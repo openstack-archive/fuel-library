@@ -1,4 +1,5 @@
-class nova {
+class nova( $novaConfHash ) {
+
   class { 'puppet': }
   class {
     [
@@ -9,12 +10,17 @@ class nova {
       # I may need to move python-mysqldb to elsewhere if it depends on mysql
       'python',
     ]:
+  } 
+  package { "python-greenlet": ensure => present }
+
+  package { ["nova-common", "nova-doc"]:
+    ensure => present,
+    require => Package["python-greenlet"]
   }
-  class { 'mysql::server':
-    mysql_root_pw => 'password',
+
+  file { "/etc/nova/nova.conf":
+    ensure => present,
+    content => template("nova/nova.conf.erb"),
+    require => Package["nova-common"]
   }
-  #mysql::db { ['nova', 'glance']:}
-  #class rabbitmq::server {
-  #
-  #  }
 }
