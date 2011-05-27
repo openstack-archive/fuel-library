@@ -1,9 +1,10 @@
 class nova(
   $verbose = false,
-  $nodaemon = false,
-  sql_connection, 
+  $nodaemon = false
+  $logdir = ''
+  $sql_connection, 
   # just for network?
-  network_manager
+  $network_manager
 ) {
 
   class { 'puppet': }
