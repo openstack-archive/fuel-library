@@ -9,6 +9,9 @@ class { 'apt':
 class { 'nova::repo':
   stage => 'repo-setup',
 }
+class { 'mysql::server':
+  root_password => 'password' 
+}
 class { 'nova::all':
   verbose => 'undef',
   nodaemon => 'undef',
@@ -28,17 +31,3 @@ class { 'nova::all':
   ipv6_backend => 'account_identifier',
 }
 
-# this will probably be on its own machine
-class mysql::server {
-  mysql_root_pw => 'foo',
-}
-
-mysql::db { 
-  db_user, 
-  db_pw, 
-  db_charset = 'utf8', 
-  host = 'localhost',
-  grant='all',
-  sql=''
-) {
-}

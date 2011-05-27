@@ -23,3 +23,10 @@ class nova-compute-test {
   class { "nova::compute": isServiceEnabled => false }
 }
 include nova-compute-test
+
+
+class { 'nova::compute':
+
+}
+
+class { 'nova': }

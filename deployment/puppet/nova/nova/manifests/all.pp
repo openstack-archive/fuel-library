@@ -2,6 +2,7 @@ class nova::all(
   $xenapi_connection_url,
   $xenapi_connection_username,
   $xenapi_connection_password,
+  $xenapi_inject_image = 'false',
   $sql_connection,
   $network_manager,
   $image_service,
@@ -9,7 +10,6 @@ class nova::all(
   $nodaemon = 'undef',
   $flat_network_bridge = 'xenbr0',
   $connection_type = 'xenapi',
-  $xenapi_inject_image = 'false',
   $rescue_timeout = '86400',
   $allow_admin_api = 'true',
   $xenapi_inject_image = 'false',
@@ -43,4 +43,10 @@ class nova::all(
   class { "nova::network": isServiceEnabled => false }
   class { "nova::objectstore": isServiceEnabled => false }
   class { "nova::scheduler": isServiceEnabled => false }
+  class { 'nova::db':
+    password => 'password',
+    name     => 'nova',
+    user     => 'nova',
+    host     => 'localhost',
+  }
 }

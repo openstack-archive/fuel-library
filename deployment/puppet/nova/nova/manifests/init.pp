@@ -1,4 +1,10 @@
-class nova( $novaConfHash ) {
+class nova(
+  $verbose = false,
+  $nodaemon = false,
+  sql_connection, 
+  # just for network?
+  network_manager
+) {
 
   class { 'puppet': }
   class {
@@ -18,9 +24,5 @@ class nova( $novaConfHash ) {
     require => Package["python-greenlet"]
   }
 
-  file { "/etc/nova/nova.conf":
-    ensure => present,
-    content => template("nova/nova.conf.erb"),
-    require => Package["nova-common"]
-  }
+  Nova_config<| require +> Package["nova-common"]  |>
 }
