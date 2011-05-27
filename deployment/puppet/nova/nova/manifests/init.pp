@@ -24,5 +24,5 @@ class nova(
     require => Package["python-greenlet"]
   }
 
-  Nova_config<| require +> Package["nova-common"]  |>
+  Nova_config<| |> { require +> Package["nova-common"] }
 }
