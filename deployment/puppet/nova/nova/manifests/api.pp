@@ -14,6 +14,6 @@ class nova::api($enabled=false) inherits nova {
     ensure => $service_ensure,
     enable => $enabled,
     require => Package["nova-api"],
-    subscribe => File["/etc/nova/nova.conf"]
+    #subscribe => File["/etc/nova/nova.conf"]
   }
 }

@@ -6,6 +6,7 @@ class nova::all(
   $sql_connection,
   $network_manager,
   $image_service,
+  $logdir,
   $verbose = 'undef',
   $nodaemon = 'undef',
   $flat_network_bridge = 'xenbr0',
@@ -18,7 +19,10 @@ class nova::all(
   $ipv6_backend = 'account_identifier'
 ) {
 
-  class { "nova": }
+  class { "nova":
+    sql_connection => sql_connection
+
+  }
   class { "nova::api": enabled => false }
   class { "nova::compute": enabled => false }
   class { "nova::network": enabled => false }

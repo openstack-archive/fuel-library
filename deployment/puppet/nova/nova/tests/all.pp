@@ -3,18 +3,19 @@ stage { 'repo-setup':
 }
 class { 'apt':
   disable_keys => true, 
-  always_apt_update => true,
+  #always_apt_update => true,
   stage => 'repo-setup',
 }
 class { 'nova::repo':
   stage => 'repo-setup',
 }
 class { 'mysql::server':
-  root_password => 'password' 
+  mysql_root_pw => 'password' 
 }
 class { 'nova::all':
   verbose => 'undef',
   nodaemon => 'undef',
+  logdir => '/var/log/nova',
   sql_connection => 'mysql://root:<password>@127.0.0.1/nova',
   network_manager => 'nova.network.manager.FlatManager',
   image_service => 'nova.image.glance.GlanceImageService',

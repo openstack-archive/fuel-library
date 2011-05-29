@@ -15,6 +15,6 @@ class nova::scheduler( $enabled ) inherits nova {
     ensure => $service_ensure,
     enable => $enabled,
     require => Package["nova-scheduler"],
-    subscribe => File["/etc/nova/nova.conf"]
+    #subscribe => File["/etc/nova/nova.conf"]
   }
 }
