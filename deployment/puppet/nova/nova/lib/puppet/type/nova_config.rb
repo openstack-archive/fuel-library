@@ -3,11 +3,11 @@ Puppet::Type.newtype(:nova_config) do
   ensurable 
 
   newparam(:name, :namevar => true) do
-    newvalues(/\S+/)
+    newvalues(/^\S+$/)
   end
 
   newproperty(:value) do
-    newvalues(/\S+/)
+    newvalues(/^\S+$/)
   end
 
   newproperty(:target) do
@@ -19,6 +19,12 @@ Puppet::Type.newtype(:nova_config) do
         nil
       end
     }
+  end
+
+  validate do
+    if ! self[:value] and self[:ensure] == :present
+      raise Puppet::Error, 'Property value must be set when ensure is present'
+    end
   end
 
 end
