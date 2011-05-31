@@ -7,6 +7,9 @@ Puppet::Type.newtype(:nova_config) do
   end
 
   newproperty(:value) do
+    munge do |value|
+      value.to_s
+    end
     newvalues(/^\S+$/)
   end
 
@@ -22,8 +25,10 @@ Puppet::Type.newtype(:nova_config) do
   end
 
   validate do
-    if ! self[:value] and self[:ensure] == :present
-      raise Puppet::Error, 'Property value must be set when ensure is present'
+    if self[:ensure] == :present
+      if self[:value].nil? || self[:value] == ''
+        raise Puppet::Error, "Property value must be set for #{self[:name]} when ensure is present"
+      end
     end
   end
 
