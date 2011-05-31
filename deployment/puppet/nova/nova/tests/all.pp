@@ -40,7 +40,6 @@ class { 'nova::all':
   quota_max_injected_file_content_bytes => '1000000',
   quota_max_injected_file_path_bytes => '1000000',
   host => $ipaddress,
-  connection_type => 'xenapi',
   xenapi_connection_url => 'https://<XenServer IP>',
   xenapi_connection_username => 'root',
   xenapi_connection_password => 'password',

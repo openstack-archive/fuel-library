@@ -1,4 +1,6 @@
-class nova::all(
+#
+# TODO - this is currently hardcoded to be a xenserver
+class nova::all (
   $logdir,
   $verbose,
   $sql_connection,
@@ -26,7 +28,6 @@ class nova::all(
   $quota_max_injected_file_content_bytes,
   $quota_max_injected_file_path_bytes,
   $host,
-  $connection_type,
   $xenapi_connection_url,
   $xenapi_connection_username,
   $xenapi_connection_password,
@@ -63,9 +64,8 @@ class nova::all(
   }
 
   class { "nova::api": enabled => false }
-  class { "nova::compute":
+  class { "nova::compute::xenserver":
     host                       => $host,
-    connection_type            => $connection_type,
     xenapi_connection_url      => $xenapi_connection_url,
     xenapi_connection_username => $xenapi_connection_username,
     xenapi_connection_password => $xenapi_connection_password,
