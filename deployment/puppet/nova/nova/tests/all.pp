@@ -1,3 +1,5 @@
+Nova_config { target => '/tmp/nova.config' }
+
 stage { 'repo-setup':
   before => Stage['main'],
 }
@@ -19,13 +21,13 @@ class { 'nova::all':
   network_manager => 'nova.network.manager.FlatManager',
   image_service => 'nova.image.glance.GlanceImageService',
   flat_network_bridge => 'xenbr0',
-  glance_host => '<glance ip address>',
+  glance_host => 'glance_ip_address',
   glance_port => '9292',
   allow_admin_api => 'true',
-  rabbit_host => 'rabbit ip address>',
-  rabbit_password => 'rabbit password>',
+  rabbit_host => 'rabbit_ip_address',
+  rabbit_password => 'rabbitpassword',
   rabbit_port => '5672',
-  rabbit_userid => 'rabbit user>',
+  rabbit_userid => 'rabbit_user',
   rabbit_virtual_host => '/',
   state_path => 'var/lib/nova',
   lock_path => 'var/lock/nova',
@@ -40,7 +42,7 @@ class { 'nova::all':
   quota_max_injected_file_content_bytes => '1000000',
   quota_max_injected_file_path_bytes => '1000000',
   host => $ipaddress,
-  xenapi_connection_url => 'https://<XenServer IP>',
+  xenapi_connection_url => 'https://<XenServer_IP>',
   xenapi_connection_username => 'root',
   xenapi_connection_password => 'password',
   xenapi_inject_image => 'false',
