@@ -10,7 +10,7 @@ class { 'nova::repo':
   stage => 'repo-setup',
 }
 class { 'mysql::server':
-  mysql_root_pw => 'password' 
+  root_password => 'password' 
 }
 class { 'nova::all':
   verbose => 'true',

@@ -5,8 +5,8 @@ class nova::db(
   $host = 'localhost'
 ) {
   mysql::db { $name:
-    db_user => $user, 
-    db_pw => $password,  
+    user => $user, 
+    password => $password,  
     host => $host,
     # I may want to inject some sql
     # sql='',
