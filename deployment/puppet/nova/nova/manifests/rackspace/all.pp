@@ -92,8 +92,7 @@ class nova::rackspace::all(
   }
 
   class { "nova::api": enabled => false }
-  class { "nova::compute":
-    compute_type 	             => $compute_type,
+  class { "nova::compute::xenserver":
     host                       => $host,
     xenapi_connection_url      => $xenapi_connection_url,
     xenapi_connection_username => $xenapi_connection_username,

@@ -7,7 +7,6 @@ class nova::rackspace::dev() {
       'bzr',
       'git',
       'gcc',
-      'gcc::swig',
       # I may need to move python-mysqldb to elsewhere if it depends on mysql
       # python-nova pulls in all of the deps mentioned here
       'python',

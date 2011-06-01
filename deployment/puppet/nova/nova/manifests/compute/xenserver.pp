@@ -8,7 +8,7 @@ class nova::compute::xenserver(
   $enabled=true
 ) {
 
-  class { 'nova':
+  class { 'nova::compute':
     enabled => $enabled,
   }
   nova_config {

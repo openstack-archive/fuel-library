@@ -3,9 +3,9 @@ class nova(
   $nova_cluster_id='localcluster',
   $sql_connection = false,
   $network_manager='nova.network.manager.FlatManager',
+  $flat_network_bridge,
   $image_service,
   # is flat_network_bridge valid if network_manager is not FlatManager?
-  $flat_network_bridge,
   $glance_host,
   $glance_port, # default is 9292
   $allow_admin_api,
@@ -16,7 +16,6 @@ class nova(
   $rabbit_virtual_host,
   # Following may need to be broken out to different nova services
   $service_down_time,
-  # TODO - do we really want to enforce the defaults here?
   $quota_instances = 10,
   $quota_cores = 20,
   $quota_volumes = 10,
