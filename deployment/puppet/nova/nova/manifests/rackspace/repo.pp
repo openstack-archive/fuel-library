@@ -1,4 +1,4 @@
-class nova::repo {
+class nova::rackspace::repo {
   # this should not be hard-coded
   # eventually this will be on a real debian repo
   apt::source { 'openstack':

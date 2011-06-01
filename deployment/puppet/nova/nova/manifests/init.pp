@@ -1,9 +1,8 @@
 class nova(
-  $verbose = false,
-  $nodaemon = false,
-  $logdir = '/var/log/nova',
-  $sql_connection,
-  $network_manager,
+  # this is how to query all resources from our clutser
+  $nova_cluster_id='localcluster',
+  $sql_connection = false,
+  $network_manager='nova.network.manager.FlatManager',
   $image_service,
   # is flat_network_bridge valid if network_manager is not FlatManager?
   $flat_network_bridge,
@@ -16,8 +15,6 @@ class nova(
   $rabbit_userid,
   $rabbit_virtual_host,
   # Following may need to be broken out to different nova services
-  $state_path,
-  $lock_path,
   $service_down_time,
   $quota_instances,
   $quota_cores,
@@ -27,32 +24,42 @@ class nova(
   $quota_metadata_items,
   $quota_max_injected_files,
   $quota_max_injected_file_content_bytes,
-  $quota_max_injected_file_path_bytes
+  $quota_max_injected_file_path_bytes,
+  $logdir = '/var/log/nova',
+  $state_path = '/var/lib/nova',
+  $lock_path = '/var/lock/nova',
+  $verbose = false,
+  $nodaemon = false
 ) {
 
-  class { 'puppet': }
-  class {
-    [
-      'bzr',
-      'git',
-      'gcc',
-      'extrapackages',
-      # I may need to move python-mysqldb to elsewhere if it depends on mysql
-      'python',
-    ]:
-  } 
+  # TODO - why is this required?
   package { "python-greenlet": ensure => present }
 
-  package { ["nova-common", "nova-doc"]:
+  class { 'nova::utilities': }
+  package { ["python-nova", "nova-common", "nova-doc"]:
     ensure => present,
     require => Package["python-greenlet"]
+  }
+
+  file { $logdir:
+    ensure => directory,
+    mode => '751',
+    owner => 'nova',
+    group => 'root',
+    require => Package['nova-common'],
+  }
+
+  # query out the config for our db connection
+  if $sql_connection {
+    nova_config { 'sql_connection': value => $sql_connection }
+  } else{
+    Nova_config<<| tag == $cluster_id and value == 'sql_connection' |>>
   }
 
   nova_config {
     'verbose': value => $verbose;
     'nodaemon': value => $nodaemon;
     'logdir': value => $logdir;
-    'sql_connection': value => $sql_connection;
     'network_manager': value => $network_manager;
     'image_service': value => $image_service;
     # is flat_network_bridge valid if network_manager is not FlatManager?

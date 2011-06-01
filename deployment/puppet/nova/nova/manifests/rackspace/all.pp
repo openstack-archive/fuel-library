@@ -1,16 +1,21 @@
 #
 # TODO - this is currently hardcoded to be a xenserver
-class nova::all(
+
+#
+# this will be specific to how rackspace composes 
+#  the various backends for openstack
+#
+class nova::rackspace::all(
   $logdir,
   $verbose,
-  # $sql_connection='mysql://root:<password>@127.0.0.1/nova',
+  $sql_connection,
   $network_manager,
   $image_service,
   $flat_network_bridge = 'xenbr0',
   $glance_host,
   $glance_port,
   $allow_admin_api = 'true',
-  $rabbit_host=$::ipaddress,
+  $rabbit_host,
   $rabbit_password,
   $rabbit_port,
   $rabbit_userid,
@@ -28,14 +33,34 @@ class nova::all(
   $quota_max_injected_file_content_bytes,
   $quota_max_injected_file_path_bytes,
   $host,
-  $compute_type = 'libvirt',
+  $compute_type = 'xenserver',
 # do kvm and libvirt have extra config options?
   $xenapi_connection_url,
   $xenapi_connection_username,
   $xenapi_connection_password,
   $xenapi_inject_image = 'false'
-  $db_host = 
 ) {
+
+
+  # this is rackspace specific stuff for setting up the repos
+  # most of this code may go away after they are finished
+  # developing
+  stage { 'repo-setup':
+    before => Stage['main'],
+  }
+  class { 'apt':
+    disable_keys => true,
+    #always_apt_update => true,
+    stage => 'repo-setup',
+  }
+  class { 'nova::rackspace::repo':
+   stage => 'repo-setup',
+  }
+  class { 'mysql::server':
+    root_password => 'password'
+  }
+
+  class { 'nova::rackspace::dev':}
 
   class { "nova":
     logdir               => $logdir,
@@ -68,7 +93,7 @@ class nova::all(
 
   class { "nova::api": enabled => false }
   class { "nova::compute":
-    compute_type 	       => $compute_type,
+    compute_type 	             => $compute_type,
     host                       => $host,
     xenapi_connection_url      => $xenapi_connection_url,
     xenapi_connection_username => $xenapi_connection_username,

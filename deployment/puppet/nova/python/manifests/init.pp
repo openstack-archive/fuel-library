@@ -31,7 +31,7 @@ class python {
     ]:
     ensure => present,
   }
-  package { ['pep8', 'xenapi', 'python-novaclient']:
+  package { ['pep8', 'xenapi']:
     provider => 'pip',
     ensure => present,
     require => Package['python-pip'],

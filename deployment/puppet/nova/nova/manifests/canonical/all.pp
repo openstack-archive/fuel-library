@@ -3,7 +3,7 @@
 class nova::all(
   $logdir,
   $verbose,
-  # $sql_connection='mysql://root:<password>@127.0.0.1/nova',
+  $sql_connection='mysql://root:<password>@127.0.0.1/nova',
   $network_manager,
   $image_service,
   $flat_network_bridge = 'xenbr0',

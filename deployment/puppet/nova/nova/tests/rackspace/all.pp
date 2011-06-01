@@ -3,21 +3,7 @@ resources { 'nova_config':
   purge => true,
 }
 
-stage { 'repo-setup':
-  before => Stage['main'],
-}
-class { 'apt':
-  disable_keys => true, 
-  #always_apt_update => true,
-  stage => 'repo-setup',
-}
-class { 'nova::repo':
-  stage => 'repo-setup',
-}
-class { 'mysql::server':
-  root_password => 'password' 
-}
-class { 'nova::all':
+class { 'nova::rackspace::all':
   verbose => 'true',
   logdir => '/var/log/nova',
   sql_connection => 'mysql://root:<password>@127.0.0.1/nova',
