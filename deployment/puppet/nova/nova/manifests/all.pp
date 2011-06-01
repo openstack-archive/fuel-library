@@ -3,7 +3,7 @@
 class nova::all(
   $logdir,
   $verbose,
-  # $sql_connection='mysql://root:<password>@127.0.0.1/nova',
+  $sql_connection='mysql://root:<password>@127.0.0.1/nova',
   $network_manager,
   $image_service,
   $flat_network_bridge = 'xenbr0',
@@ -33,8 +33,8 @@ class nova::all(
   $xenapi_connection_url,
   $xenapi_connection_username,
   $xenapi_connection_password,
-  $xenapi_inject_image = 'false'
-  $db_host = 
+  $xenapi_inject_image = 'false',
+  $db_host = 'localhost'
 ) {
 
   class { "nova":

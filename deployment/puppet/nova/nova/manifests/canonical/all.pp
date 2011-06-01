@@ -1,6 +1,6 @@
 #
 # TODO - this is currently hardcoded to be a xenserver
-class nova::all(
+class nova::canonical::all(
   $logdir,
   $verbose,
   $sql_connection='mysql://root:<password>@127.0.0.1/nova',
@@ -18,23 +18,8 @@ class nova::all(
   $state_path,
   $lock_path,
   $service_down_time,
-  $quota_instances,
-  $quota_cores,
-  $quota_volumes,
-  $quota_gigabytes,
-  $quota_floating_ips,
-  $quota_metadata_items,
-  $quota_max_injected_files,
-  $quota_max_injected_file_content_bytes,
-  $quota_max_injected_file_path_bytes,
-  $host,
-  $compute_type = 'libvirt',
-# do kvm and libvirt have extra config options?
-  $xenapi_connection_url,
-  $xenapi_connection_username,
-  $xenapi_connection_password,
-  $xenapi_inject_image = 'false'
-  $db_host = 
+  $host
+  # they are only supporting libvirt for now
 ) {
 
   class { "nova":
@@ -55,26 +40,12 @@ class nova::all(
     state_path           => $state_path,
     lock_path            => $lock_path,
     service_down_time    => $service_down_time,
-    quota_instances      => $quota_instances,
-    quota_cores          => $quota_cores,
-    quota_volumes        => $quota_volumes,
-    quota_gigabytes      => $quota_gigabytes,
-    quota_floating_ips   => $quota_floating_ips,
-    quota_metadata_items => $quota_metadata_items,
-    quota_max_injected_files              => $quota_max_injected_files,
-    quota_max_injected_file_content_bytes => $quota_max_injected_file_content_bytes,
-    quota_max_injected_file_path_bytes    => $quota_max_injected_file_path_bytes,
   }
 
   class { "nova::api": enabled => false }
+  # class { 'nova::compute::libvirt': }
   class { "nova::compute":
-    compute_type 	       => $compute_type,
-    host                       => $host,
-    xenapi_connection_url      => $xenapi_connection_url,
-    xenapi_connection_username => $xenapi_connection_username,
-    xenapi_connection_password => $xenapi_connection_password,
-    xenapi_inject_image        => $xenapi_inject_image,
-    enabled                    => false
+    enabled => false
   }
   class { "nova::network": enabled => false }
   class { "nova::objectstore": enabled => false }

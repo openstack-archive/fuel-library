@@ -4,9 +4,13 @@ class nova::compute::xenserver(
   $xenapi_connection_url,
   $xenapi_connection_username,
   $xenapi_connection_password,
-  $xenapi_inject_image=false
+  $xenapi_inject_image=false,
+  $enabled=true
 ) {
 
+  class { 'nova':
+    enabled => $enabled,
+  }
   nova_config {
     'xenapi_connection_url': value => $xenapi_connection_url;
     'xenapi_connection_username': value => $xenapi_connection_username;

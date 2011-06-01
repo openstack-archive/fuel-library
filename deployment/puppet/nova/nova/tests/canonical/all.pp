@@ -1,4 +1,4 @@
-Nova_config { target => '/tmp/nova.config' }
+#Nova_config { target => '/tmp/nova.config' }
 resources { 'nova_config':
   purge => true,
 }
@@ -6,7 +6,7 @@ resources { 'nova_config':
 class { 'mysql::server':
   root_password => 'password' 
 }
-class { 'nova::all':
+class { 'nova::canonical::all':
   #dhcpbridge_flagfile=/etc/nova/nova.conf
   #dhcpbridge=/usr/bin/nova-dhcpbridge
   #verbose => true,
