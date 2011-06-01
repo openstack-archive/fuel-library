@@ -9,7 +9,7 @@ class nova::db(
   # now this requires storedconfigs
   # TODO - worry about the security implications
   @@nova_config { 'database_url':
-    value => "mysql://${user}:${password}@${host}/${name}" ,
+    value => "mysql://${user}:${password}@${host}/${name}",
     tag => $zone,
   }
 
