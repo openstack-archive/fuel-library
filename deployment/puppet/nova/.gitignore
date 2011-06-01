@@ -1,7 +1,1 @@
-apt
-mysql
-gcc
-rabbitmq
-openstack
-git
 *.swp
