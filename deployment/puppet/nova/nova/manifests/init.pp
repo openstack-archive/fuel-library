@@ -4,16 +4,17 @@ class nova(
   $sql_connection = false,
   $network_manager='nova.network.manager.FlatManager',
   $flat_network_bridge,
-  $image_service,
+  $image_service = 'nova.image.local.LocalImageService',
   # is flat_network_bridge valid if network_manager is not FlatManager?
-  $glance_host,
-  $glance_port, # default is 9292
+  # these glance params should be optional
+  $glance_host = 'localhost',
+  $glance_port = '9292', # default is 9292
   $allow_admin_api,
-  $rabbit_host,
-  $rabbit_password,
-  $rabbit_port,
-  $rabbit_userid,
-  $rabbit_virtual_host,
+  $rabbit_host = 'localhost',
+  $rabbit_password='guest',
+  $rabbit_port='5672',
+  $rabbit_userid='guest',
+  $rabbit_virtual_host='/',
   # Following may need to be broken out to different nova services
   $service_down_time,
   $quota_instances = 10,
@@ -29,7 +30,9 @@ class nova(
   $state_path = '/var/lib/nova',
   $lock_path = '/var/lock/nova',
   $verbose = false,
-  $nodaemon = false
+  $nodaemon = false,
+  $periodic_interval = '60',
+  $report_interval = '10'
 ) {
 
   # TODO - why is this required?

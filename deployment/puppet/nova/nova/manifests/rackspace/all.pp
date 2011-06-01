@@ -6,17 +6,21 @@
 #  the various backends for openstack
 #
 class nova::rackspace::all(
-  $verbose = 'false',
-  $sql_connection = false,
+  $verbose = 'true',
+  $db_password,
+  $db_name = 'nova',
+  $db_user = 'nova',
+  $db_host = 'localhost',
   $image_service = 'nova.image.glance.GlanceImageService',
+  $network_manager = 'nova.network.manager.FlatManager',
   $flat_network_bridge = 'xenbr0',
   $glance_host = 'localhost',
   $glance_port = '9292',
   $allow_admin_api = 'true',
-  $rabbit_host = 'localhost',
-  $rabbit_port = '5672',
-  $rabbit_userid = 'nova',
-  $rabbit_password,
+  $rabbit_host = undef,
+  $rabbit_port = undef,
+  $rabbit_userid = undef,
+  $rabbit_password = undef,
   $rabbit_virtual_host='/',
   $service_down_time='180000000',
   $quota_instances='1000000',
@@ -53,13 +57,13 @@ class nova::rackspace::all(
   class { 'mysql::server':
     root_password => 'password'
   }
+  class { 'nova::rabbitmq': }
 
   class { 'nova::rackspace::dev':}
 
   class { "nova":
-    logdir               => $logdir,
     verbose              => $verbose,
-    sql_connection       => $sql_connection,
+    sql_connection       => "mysql://${db_user}:${db_password}@${db_host}/${db_name}",
     network_manager      => $network_manager,
     image_service        => $image_service,
     flat_network_bridge  => $flat_network_bridge,
@@ -71,8 +75,6 @@ class nova::rackspace::all(
     rabbit_port          => $rabbit_port,
     rabbit_userid        => $rabbit_userid,
     rabbit_virtual_host  => $rabbit_virtual_host,
-    state_path           => $state_path,
-    lock_path            => $lock_path,
     service_down_time    => $service_down_time,
     quota_instances      => $quota_instances,
     quota_cores          => $quota_cores,
@@ -99,9 +101,9 @@ class nova::rackspace::all(
   class { "nova::scheduler": enabled => false }
   class { 'nova::db':
     # pass in db config as params
-    password => 'password',
-    name     => 'nova',
-    user     => 'nova',
-    host     => 'localhost',
+    password => $db_password,
+    name     => $db_name,
+    user     => $db_user,
+    host     => $db_host,
   }
 }
