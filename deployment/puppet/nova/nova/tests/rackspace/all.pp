@@ -5,9 +5,7 @@ resources { 'nova_config':
 
 class { 'nova::rackspace::all':
   verbose => 'true',
-  logdir => '/var/log/nova',
   sql_connection => 'mysql://root:<password>@127.0.0.1/nova',
-  network_manager => 'nova.network.manager.FlatManager',
   image_service => 'nova.image.glance.GlanceImageService',
   flat_network_bridge => 'xenbr0',
   glance_host => 'glance_ip_address',
@@ -18,8 +16,6 @@ class { 'nova::rackspace::all':
   rabbit_port => '5672',
   rabbit_userid => 'rabbit_user',
   rabbit_virtual_host => '/',
-  state_path => 'var/lib/nova',
-  lock_path => 'var/lock/nova',
   service_down_time => '180000000',
   quota_instances => '1000000',
   quota_cores => '1000000',
