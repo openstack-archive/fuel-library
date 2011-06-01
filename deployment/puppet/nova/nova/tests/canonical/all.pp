@@ -23,7 +23,7 @@ class { 'nova::canonical::all':
   #network_manager=nova.network.manager.FlatManager
   verbose => 'true',
   logdir => '/var/log/nova',
-  sql_connection => 'mysql://nova:nova@127.0.0.1/nova',
+  sql_connection => 'mysql://root:password@127.0.0.1/nova',
   network_manager => 'nova.network.manager.FlatManager',
   image_service => 'nova.image.glance.GlanceImageService',
   flat_network_bridge => 'xenbr0',
@@ -35,8 +35,8 @@ class { 'nova::canonical::all':
   rabbit_port => '5672',
   rabbit_userid => 'rabbit_user',
   rabbit_virtual_host => '/',
-  state_path => 'var/lib/nova',
-  lock_path => 'var/lock/nova',
+  state_path => '/var/lib/nova',
+  lock_path => '/var/lock/nova',
   service_down_time => '180000000',
   host => $ipaddress,
 
