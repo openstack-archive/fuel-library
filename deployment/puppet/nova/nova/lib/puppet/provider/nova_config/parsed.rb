@@ -21,6 +21,9 @@ Puppet::Type.type(:nova_config).provide(
       if hash[:line] =~ /^\s*(\S+)\s*=\s*(\S+)\s*$/
         hash[:name]=$1
         hash[:value]=$2
+      elsif hash[:line] =~ /^\s*(\S+)\s*$/
+        hash[:name]=$1
+        hash[:value]=false
       else
         raise Puppet::Error, "Invalid line: #{hash[:line]}"
       end
