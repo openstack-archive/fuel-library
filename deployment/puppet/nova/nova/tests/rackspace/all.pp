@@ -8,7 +8,7 @@ class { 'nova::rackspace::all':
   glance_host => 'glance_ip_address',
   glance_port => '9292',
   allow_admin_api => 'true',
-  host => $ipaddress,
+  host => $hostname,
   xenapi_connection_url => 'https://<XenServer_IP>',
   xenapi_connection_username => 'root',
   xenapi_connection_password => 'password',
