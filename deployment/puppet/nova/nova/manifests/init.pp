@@ -7,8 +7,9 @@ class nova(
   $image_service = 'nova.image.local.LocalImageService',
   # is flat_network_bridge valid if network_manager is not FlatManager?
   # these glance params should be optional
-  $glance_host = 'localhost',
-  $glance_port = '9292', # default is 9292
+  # this should probably just be configured as a glance client
+  $glance_host = undef,
+  $glance_port = undef,
   $allow_admin_api,
   $rabbit_host = 'localhost',
   $rabbit_password='guest',
@@ -48,19 +49,19 @@ class nova(
   }
   user { 'nova':
     ensure => present,
-    group => 'nova',
+    gid    => 'nova',
   }
   file { $logdir:
-    ensure => directory,
-    mode => '751',
-    owner => 'nova',
-    group => 'nova',
+    ensure  => directory,
+    mode    => '751',
+    owner   => 'nova',
+    group   => 'nova',
     require => Package['nova-common'],
   }
   file { '/etc/nova/nova.conf':
     owner => 'nova',
     group => 'nova',
-    mode => '0640',
+    mode  => '0640',
   }
 
   # query out the config for our db connection
@@ -78,8 +79,6 @@ class nova(
     'image_service': value => $image_service;
     # is flat_network_bridge valid if network_manager is not FlatManager?
     'flat_network_bridge': value => $flat_network_bridge;
-    'glance_host': value => $glance_host;
-    'glance_port': value => $glance_port; # default is 9292
     'allow_admin_api': value => $allow_admin_api;
     'rabbit_host': value => $rabbit_host;
     'rabbit_password': value => $rabbit_password;
@@ -101,7 +100,13 @@ class nova(
     'quota_max_injected_file_path_bytes': value => $quota_max_injected_file_path_bytes
   }
 
-  Nova_config<| |> { require +> Package["nova-common"] }
+  if $image_service == 'nova.image.glance.GlanceImageService' {
+    nova_config {
+      'glance_host': value => $glance_host;
+      'glance_port': value => $glance_port; # default is 9292
+    }
+  }
+
   Nova_config<| |> { 
     require +> Package["nova-common"],
     before +> File['/etc/nova/nova.conf']
