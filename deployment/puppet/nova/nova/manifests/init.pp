@@ -43,13 +43,24 @@ class nova(
     ensure => present,
     require => Package["python-greenlet"]
   }
-
+  group { 'nova':
+    ensure => present
+  }
+  user { 'nova':
+    ensure => present,
+    group => 'nova',
+  }
   file { $logdir:
     ensure => directory,
     mode => '751',
     owner => 'nova',
-    group => 'root',
+    group => 'nova',
     require => Package['nova-common'],
+  }
+  file { '/etc/nova/nova.conf':
+    owner => 'nova',
+    group => 'nova',
+    mode => '0640',
   }
 
   # query out the config for our db connection
@@ -91,4 +102,8 @@ class nova(
   }
 
   Nova_config<| |> { require +> Package["nova-common"] }
+  Nova_config<| |> { 
+    require +> Package["nova-common"],
+    before +> File['/etc/nova/nova.conf']
+  }
 }
