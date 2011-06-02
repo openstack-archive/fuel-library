@@ -2,19 +2,22 @@
 # TODO - this is currently hardcoded to be a xenserver
 class nova::canonical::all(
   $logdir,
-  $verbose,
-  $sql_connection='mysql://root:<password>@127.0.0.1/nova',
+  $verbose = false,
+  $db_password,
+  $db_name = 'nova',
+  $db_user = 'nova',
+  $db_host = 'localhost',
   $network_manager,
   $image_service,
-  $flat_network_bridge = 'xenbr0',
+  $flat_network_bridge  = 'br100',
   $glance_host,
   $glance_port,
   $allow_admin_api = 'true',
-  $rabbit_host=$::ipaddress,
-  $rabbit_password,
-  $rabbit_port,
-  $rabbit_userid,
-  $rabbit_virtual_host,
+  $rabbit_host = undef,
+  $rabbit_password = unfef,
+  $rabbit_port = undef,
+  $rabbit_userid = undef,
+  $rabbit_virtual_host = undef,
   $state_path,
   $lock_path,
   $service_down_time,
@@ -22,10 +25,12 @@ class nova::canonical::all(
   # they are only supporting libvirt for now
 ) {
 
+  class { 'nova::rabbitmq': }
+
   class { "nova":
     logdir               => $logdir,
     verbose              => $verbose,
-    sql_connection       => $sql_connection,
+    sql_connection       => "mysql://${db_user}:${db_password}@${db_host}/${db_name}",
     network_manager      => $network_manager,
     image_service        => $image_service,
     flat_network_bridge  => $flat_network_bridge,
@@ -52,9 +57,9 @@ class nova::canonical::all(
   class { "nova::scheduler": enabled => false }
   class { 'nova::db':
     # pass in db config as params
-    password => 'password',
-    name     => 'nova',
-    user     => 'nova',
-    host     => 'localhost',
+    password => $db_password,
+    name     => $db_name,
+    user     => $db_user,
+    host     => $db_host,
   }
 }
