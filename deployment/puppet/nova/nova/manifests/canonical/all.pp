@@ -27,7 +27,15 @@ class nova::canonical::all(
   # they are only supporting libvirt for now
 ) {
 
-  class { 'nova::rabbitmq': }
+
+  # work around hostname bug, LP #653405
+  host { $hostname:
+    ip => $ipaddress,
+    host_aliases => $fqdn,
+  }
+  class { 'nova::rabbitmq':
+    require => Host[$hostname],
+  }
 
   class { "nova":
     logdir               => $logdir,
