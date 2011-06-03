@@ -13,11 +13,18 @@ class nova::db(
     tag => $zone,
   }
 
+  exec { "initial-db-sync":
+    command => "/usr/bin/nova-manage db sync",
+    require => Package["nova-common"],
+    refreshonly => true,
+  }
+
   mysql::db { $name:
     user => $user, 
     password => $password,  
     host => $host,
     # I may want to inject some sql
     require => Class['mysql::server'],
+    notify => Exec["initial-db-sync"],
   }
 }
