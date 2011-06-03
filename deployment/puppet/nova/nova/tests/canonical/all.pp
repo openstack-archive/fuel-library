@@ -28,4 +28,6 @@ class { 'nova::canonical::all':
   service_down_time => '180000000',
   host => $hostname,
   db_password => 'password',
+  admin_user => 'admin',
+  project_name => 'novaproject',
 }
