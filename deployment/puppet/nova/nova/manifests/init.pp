@@ -63,7 +63,10 @@ class nova(
     group => 'nova',
     mode  => '0640',
   }
-
+  exec { "nova-db-sync":
+    command => "/usr/bin/nova-manage db sync",
+    refreshonly => "true",
+  }
   # query out the config for our db connection
   if $sql_connection {
     nova_config { 'sql_connection': value => $sql_connection }

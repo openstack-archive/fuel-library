@@ -21,11 +21,21 @@ class nova::canonical::all(
   $state_path,
   $lock_path,
   $service_down_time,
-  $host
+  $host,
+  $admin_user = 'novaadmin',
+  $project_name = 'nova'
   # they are only supporting libvirt for now
 ) {
 
-  class { 'nova::rabbitmq': }
+
+  # work around hostname bug, LP #653405
+  host { $hostname:
+    ip => $ipaddress,
+    host_aliases => $fqdn,
+  }
+  class { 'nova::rabbitmq':
+    require => Host[$hostname],
+  }
 
   class { "nova":
     logdir               => $logdir,
@@ -61,5 +71,10 @@ class nova::canonical::all(
     name     => $db_name,
     user     => $db_user,
     host     => $db_host,
+  }
+
+  nova::manage::admin { $admin_user: }
+  nova::manage::project { $project_name:
+    owner => $admin_user,
   }
 }
