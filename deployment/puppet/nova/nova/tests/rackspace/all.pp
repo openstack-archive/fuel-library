@@ -1,11 +1,16 @@
-Nova_config { target => '/tmp/nova.config' }
+/*
+This test should configure everything needed to run openstack on a compute vm running
+on a xenserver.
+*/
+
+Nova_config { target => '/etc/nova/nova.conf' }
 resources { 'nova_config':
   purge => true,
 }
 
 class { 'nova::rackspace::all':
   image_service => 'nova.image.glance.GlanceImageService',
-  glance_host => 'glance_ip_address',
+  glance_host => $ipaddress,
   glance_port => '9292',
   allow_admin_api => 'true',
   host => $hostname,
@@ -15,3 +20,10 @@ class { 'nova::rackspace::all':
   xenapi_inject_image => 'false',
   db_password => 'password',
 }
+
+class { 'glance::api':
+  swift_store_user => 'foo_user',
+  swift_store_key => 'foo_pass',
+}
+
+class { 'glance::registry': }

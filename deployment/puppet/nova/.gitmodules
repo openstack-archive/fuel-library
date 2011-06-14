@@ -13,3 +13,6 @@
 [submodule "rabbitmq"]
 	path = rabbitmq
 	url = git://github.com/puppetlabs/puppetlabs-rabbitmq.git
+[submodule "stdlib"]
+	path = stdlib
+	url = git://github.com/puppetlabs/puppetlabs-stdlib.git
