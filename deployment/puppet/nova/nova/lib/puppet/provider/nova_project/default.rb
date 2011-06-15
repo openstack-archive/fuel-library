@@ -13,4 +13,5 @@ Puppet::Type.type(:nova_project).provide(:default) do
   def exists?
     fail('This is just the default provider for nova_project, all it does is fail')
   end
+
 end

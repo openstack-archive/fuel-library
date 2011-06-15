@@ -1,6 +1,6 @@
 Puppet::Type.newtype(:nova_config) do
 
-  ensurable 
+  ensurable
 
   newparam(:name, :namevar => true) do
     newvalues(/^\S+$/)
@@ -15,7 +15,7 @@ Puppet::Type.newtype(:nova_config) do
 
   newproperty(:target) do
     desc "Path to our nova config file"
-    defaultto { 
+    defaultto {
       if @resource.class.defaultprovider.ancestors.include?(Puppet::Provider::ParsedFile)
         @resource.class.defaultprovider.default_target
       else

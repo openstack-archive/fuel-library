@@ -4,7 +4,7 @@ Puppet::Type.newtype(:nova_admin) do
 
   ensurable
 
-  newparam(:name) do
+  newparam(:name, :namevar => true) do
     desc "The name of the admins."
   end
 
