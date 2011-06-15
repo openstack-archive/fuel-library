@@ -4,7 +4,7 @@ Puppet::Type.newtype(:nova_project) do
 
   ensurable
 
-  newparam(:name, :namevar) do
+  newparam(:name, :namevar => true) do
     desc "The name of the project."
   end
 
