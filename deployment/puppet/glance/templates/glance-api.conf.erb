@@ -1,0 +1,67 @@
+[DEFAULT]
+# Show more verbose log output (sets INFO log level output)
+verbose = <%= verbose %>
+
+# Show debugging output in logs (sets DEBUG log level output)
+debug = False
+
+# Which backend store should Glance use by default is not specified
+# in a request to add a new image to Glance? Default: 'file'
+# Available choices are 'file', 'swift', and 's3'
+default_store = <%= default_store %>
+
+# Address to bind the API server
+bind_host = <%= bind_host %>
+
+# Port the bind the API server to
+bind_port = <%= bind_port %>
+
+# Address to find the registry server
+registry_host = <%= registry_host %>
+
+# Port the registry server is listening on
+registry_port = <%= registry_port %>
+
+# Log to this file. Make sure you do not set the same log
+# file for both the API and registry servers!
+log_file = <%= log_file %>
+
+# ============ Filesystem Store Options ========================
+
+# Directory that the Filesystem backend store
+# writes image data to
+filesystem_store_datadir = <%= filesystem_store_datadir %>
+
+# ============ Swift Store Options =============================
+
+# Address where the Swift authentication service lives
+swift_store_auth_address = <%= swift_store_auth_address %>
+
+# User to authenticate against the Swift authentication service
+swift_store_user = <%= swift_store_user %>
+
+# Auth key for the user authenticating against the
+# Swift authentication service
+swift_store_key = <%= swift_store_key %>
+
+# Container within the account that the account should use
+# for storing images in Swift
+swift_store_container = <%= swift_store_container %>
+
+# Do we create the container if it does not exist?
+swift_store_create_container_on_put = <%= swift_store_create_container_on_put %>
+
+[pipeline:glance-api]
+pipeline = versionnegotiation apiv1app
+
+[pipeline:versions]
+pipeline = versionsapp
+
+[app:versionsapp]
+paste.app_factory = glance.api.versions:app_factory
+
+[app:apiv1app]
+paste.app_factory = glance.api.v1:app_factory
+
+[filter:versionnegotiation]
+paste.filter_factory = glance.api.middleware.version_negotiation:filter_factory
