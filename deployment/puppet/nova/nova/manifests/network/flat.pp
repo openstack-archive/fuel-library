@@ -1,8 +1,14 @@
 # flatdhcp.pp
-class nova::network::flat ( $flat_network_bridge,
-                            $flat_network_bridge_ip,
-                            $flat_network_bridge_netmask,
-                            $enabled = "true" ) inherits nova::network {
+class nova::network::flat (
+  $flat_network_bridge,
+  $flat_network_bridge_ip,
+  $flat_network_bridge_netmask,
+  $enabled = "true"
+) {
+
+  class { 'nova::network':
+    enabled => $enabled,
+  }
 
   nova_config {
     'network_manager': value => 'nova.network.manager.FlatManager';
