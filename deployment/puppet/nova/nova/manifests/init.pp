@@ -2,22 +2,19 @@ class nova(
   # this is how to query all resources from our clutser
   $nova_cluster_id='localcluster',
   $sql_connection = false,
-  $network_manager='nova.network.manager.FlatManager',
-  $flat_network_bridge,
   $image_service = 'nova.image.local.LocalImageService',
-  # is flat_network_bridge valid if network_manager is not FlatManager?
   # these glance params should be optional
   # this should probably just be configured as a glance client
   $glance_host = undef,
   $glance_port = undef,
-  $allow_admin_api,
+  $allow_admin_api = undef,
   $rabbit_host = 'localhost',
   $rabbit_password='guest',
   $rabbit_port='5672',
   $rabbit_userid='guest',
   $rabbit_virtual_host='/',
   # Following may need to be broken out to different nova services
-  $service_down_time,
+  $service_down_time = undef,
   $quota_instances = 10,
   $quota_cores = 20,
   $quota_volumes = 10,
@@ -67,6 +64,15 @@ class nova(
     command => "/usr/bin/nova-manage db sync",
     refreshonly => "true",
   }
+
+  # used by debian/ubuntu in nova::network_bridge to refresh
+  # interfaces based on /etc/network/interfaces
+  exec { "networking-refresh":
+    command => "/sbin/ifdown -a ; /sbin/ifup -a",
+    refreshonly => "true",
+  }
+
+
   # query out the config for our db connection
   if $sql_connection {
     nova_config { 'sql_connection': value => $sql_connection }
@@ -78,10 +84,7 @@ class nova(
     'verbose': value => $verbose;
     'nodaemon': value => $nodaemon;
     'logdir': value => $logdir;
-    'network_manager': value => $network_manager;
     'image_service': value => $image_service;
-    # is flat_network_bridge valid if network_manager is not FlatManager?
-    'flat_network_bridge': value => $flat_network_bridge;
     'allow_admin_api': value => $allow_admin_api;
     'rabbit_host': value => $rabbit_host;
     'rabbit_password': value => $rabbit_password;
