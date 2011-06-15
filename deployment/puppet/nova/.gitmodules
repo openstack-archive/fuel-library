@@ -16,3 +16,6 @@
 [submodule "stdlib"]
 	path = stdlib
 	url = git://github.com/puppetlabs/puppetlabs-stdlib.git
+[submodule "glance"]
+	path = glance
+	url = git://github.com/puppetlabs/puppetlabs-glance.git
