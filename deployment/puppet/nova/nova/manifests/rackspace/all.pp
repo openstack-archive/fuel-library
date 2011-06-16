@@ -79,6 +79,9 @@ class nova::rackspace::all(
     rabbit_userid        => $rabbit_userid,
     rabbit_virtual_host  => $rabbit_virtual_host,
     service_down_time    => $service_down_time,
+  }
+
+  class { 'nova::quota':
     quota_instances      => $quota_instances,
     quota_cores          => $quota_cores,
     quota_volumes        => $quota_volumes,
