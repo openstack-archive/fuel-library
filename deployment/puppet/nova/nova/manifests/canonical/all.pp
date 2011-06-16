@@ -24,7 +24,11 @@ class nova::canonical::all(
     host_aliases => $fqdn,
   }
   class { 'nova::rabbitmq':
-    require => Host[$hostname],
+    port         => $rabbitmq_port,
+    userid       => $rabbitmq_userid,
+    password     => $rabbitmq_password,
+    virtual_host => $rabbitmq_virtual_host,
+    require      => Host[$hostname],
   }
 
   class { "nova":

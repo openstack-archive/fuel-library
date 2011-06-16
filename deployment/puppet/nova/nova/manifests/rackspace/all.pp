@@ -1,4 +1,3 @@
-#
 # TODO - this is currently hardcoded to be a xenserver
 
 #
@@ -57,8 +56,12 @@ class nova::rackspace::all(
   class { 'mysql::server':
     root_password => 'password'
   }
-  class { 'nova::rabbitmq': }
-
+  class { 'nova::rabbitmq':
+    port         => $rabbitmq_port,
+    userid       => $rabbitmq_userid,
+    password     => $rabbitmq_password,
+    virtual_host => $rabbitmq_virtual_host,
+  }
   class { 'nova::rackspace::dev':}
 
   class { "nova":
