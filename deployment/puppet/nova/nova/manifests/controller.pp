@@ -1,6 +1,4 @@
-class nova::controller (
-   
-) {
+class nova::controller () {
 
   class { 'nova::api': }
 

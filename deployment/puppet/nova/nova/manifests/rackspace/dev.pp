@@ -11,7 +11,7 @@ class nova::rackspace::dev() {
       # python-nova pulls in all of the deps mentioned here
       'python',
     ]:
-  } 
+  }
   package { 'swig':
     ensure => installed,
   }

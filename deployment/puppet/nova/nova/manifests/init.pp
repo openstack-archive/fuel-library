@@ -38,7 +38,7 @@ class nova(
 
   class { 'nova::utilities': }
   package { ["python-nova", "nova-common", "nova-doc"]:
-    ensure => present,
+    ensure  => present,
     require => Package["python-greenlet"]
   }
   group { 'nova':
@@ -61,14 +61,14 @@ class nova(
     mode  => '0640',
   }
   exec { "nova-db-sync":
-    command => "/usr/bin/nova-manage db sync",
+    command     => "/usr/bin/nova-manage db sync",
     refreshonly => "true",
   }
 
   # used by debian/ubuntu in nova::network_bridge to refresh
   # interfaces based on /etc/network/interfaces
   exec { "networking-refresh":
-    command => "/sbin/ifdown -a ; /sbin/ifup -a",
+    command     => "/sbin/ifdown -a ; /sbin/ifup -a",
     refreshonly => "true",
   }
 

@@ -14,7 +14,7 @@ class nova::compute(
 
   package { "nova-compute":
     ensure => present,
-    require => Class['nova']
+    require => Class['nova'],
   }
 
   service { "nova-compute":
