@@ -11,8 +11,9 @@ class nova::rackspace::all(
   $db_user = 'nova',
   $db_host = 'localhost',
   $image_service = 'nova.image.glance.GlanceImageService',
-  $network_manager = 'nova.network.manager.FlatManager',
   $flat_network_bridge = 'xenbr0',
+  $flat_network_bridge_ip = '10.0.0.1',
+  $flat_network_bridge_netmask = '255.255.255.0',
   $glance_host = 'localhost',
   $glance_port = '9292',
   $allow_admin_api = 'true',
@@ -62,14 +63,12 @@ class nova::rackspace::all(
     password     => $rabbitmq_password,
     virtual_host => $rabbitmq_virtual_host,
   }
-  class { 'nova::rackspace::dev':}
+  class { 'nova::rackspace::dev': }
 
   class { "nova":
     verbose              => $verbose,
     sql_connection       => "mysql://${db_user}:${db_password}@${db_host}/${db_name}",
-    network_manager      => $network_manager,
     image_service        => $image_service,
-    flat_network_bridge  => $flat_network_bridge,
     glance_host          => $glance_host,
     glance_port          => $glance_port,
     allow_admin_api      => $allow_admin_api,
@@ -100,9 +99,15 @@ class nova::rackspace::all(
     xenapi_connection_username => $xenapi_connection_username,
     xenapi_connection_password => $xenapi_connection_password,
     xenapi_inject_image        => $xenapi_inject_image,
+    api_server                 => '127.0.0.1',
     enabled                    => false
   }
-  class { "nova::network": enabled => false }
+  class { "nova::network::flat":
+    enabled => false,
+    flat_network_bridge => $flat_network_bridge,
+    flat_network_bridge_ip => $flat_network_bridge_ip,
+    flat_network_bridge_netmask => $flat_network_bridge_netmask,
+  }
   class { "nova::objectstore": enabled => false }
   class { "nova::scheduler": enabled => false }
   class { 'nova::db':
