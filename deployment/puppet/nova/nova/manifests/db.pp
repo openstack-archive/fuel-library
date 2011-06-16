@@ -22,7 +22,6 @@ class nova::db(
   mysql::db { $name:
     user         => $user,
     password     => $password,
-    old_password => '',
     host         => $host,
     # I may want to inject some sql
     require      => Class['mysql::server'],
