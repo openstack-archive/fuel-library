@@ -2,6 +2,8 @@ Puppet::Type.type(:nova_project).provide(:nova_manage) do
 
   desc "Manage nova project"
 
+  defaultfor :kernel => 'Linux'
+
   commands :nova_manage => 'nova-manage'
 
   def exists?
