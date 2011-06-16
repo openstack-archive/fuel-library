@@ -20,9 +20,10 @@ class nova::rabbitmq(
     $delete_guest_user = false
   } else {
     $delete_guest_user = true
-    rabbitmq_user{ $userid:
+    rabbitmq_user { $userid:
       admin     => true,
       password  => $password,
+      provider => 'rabbitmqctl',
       require   => Class['rabbitmq::server'],
     }
   }
@@ -30,7 +31,8 @@ class nova::rabbitmq(
     port              => $port,
     delete_guest_user => $delete_guest_user,
   }
-  rabbitmq_vhost{ $virtual_host:
+  rabbitmq_vhost { $virtual_host:
+    provider => 'rabbitmqctl',
     require => Class['rabbitmq::server'],
   }
 }
