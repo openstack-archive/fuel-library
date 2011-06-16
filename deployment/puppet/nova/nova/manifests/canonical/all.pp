@@ -39,8 +39,10 @@ class nova::canonical::all(
   }
 
   class { "nova::api": enabled => true }
+
   class { "nova::compute":
-    enabled => true
+    api_server => $ipaddress,
+    enabled => true,
   }
 
   class { "nova::network::flat": 
