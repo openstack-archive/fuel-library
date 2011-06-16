@@ -7,12 +7,12 @@ class nova::api($enabled=false) inherits nova {
   }
 
   package { "nova-api":
-    ensure => present,
-    require => Package["python-greenlet"]
+    ensure  => present,
+    require => Package["python-greenlet"],
   }
   service { "nova-api":
-    ensure => $service_ensure,
-    enable => $enabled,
+    ensure  => $service_ensure,
+    enable  => $enabled,
     require => Package["nova-api"],
     #subscribe => File["/etc/nova/nova.conf"]
   }

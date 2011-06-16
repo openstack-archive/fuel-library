@@ -10,21 +10,22 @@ class nova::db(
   # TODO - worry about the security implications
   @@nova_config { 'database_url':
     value => "mysql://${user}:${password}@${host}/${name}",
-    tag => $zone,
+    tag   => $zone,
   }
 
   exec { "initial-db-sync":
-    command => "/usr/bin/nova-manage db sync",
+    command     => "/usr/bin/nova-manage db sync",
     refreshonly => true,
-    require => [Package["nova-common"],Nova_config['sql_connection']]
+    require     => [Package["nova-common"],Nova_config['sql_connection']]
   }
 
   mysql::db { $name:
-    user => $user,
-    password => $password,
-    host => $host,
+    user         => $user,
+    password     => $password,
+    old_password => '',
+    host         => $host,
     # I may want to inject some sql
-    require => Class['mysql::server'],
-    notify => Exec["initial-db-sync"],
+    require      => Class['mysql::server'],
+    notify       => Exec["initial-db-sync"],
   }
 }

@@ -32,10 +32,10 @@ class nova::canonical::all(
   }
 
   class { "nova":
-    logdir               => $logdir,
-    verbose              => $verbose,
-    sql_connection       => "mysql://${db_user}:${db_password}@${db_host}/${db_name}",
-    image_service        => $image_service,
+    logdir          => $logdir,
+    verbose         => $verbose,
+    sql_connection  => "mysql://${db_user}:${db_password}@${db_host}/${db_name}",
+    image_service   => $image_service,
   }
 
   class { "nova::api": enabled => true }
@@ -44,9 +44,9 @@ class nova::canonical::all(
   }
 
   class { "nova::network::flat": 
-    enabled => true,
-    flat_network_bridge => $flat_network_bridge,
-    flat_network_bridge_ip => $flat_network_bridge_ip,
+    enabled                     => true,
+    flat_network_bridge         => $flat_network_bridge,
+    flat_network_bridge_ip      => $flat_network_bridge_ip,
     flat_network_bridge_netmask => $flat_network_bridge_netmask,
   }
 
@@ -66,9 +66,9 @@ class nova::canonical::all(
   }
 
   nova::manage::network { "${project_name}-net-${network}":
-    network => $nova_network,
+    network       => $nova_network,
     available_ips => $available_ips,
-    require => Nova::Manage::Project[$project_name],
+    require       => Nova::Manage::Project[$project_name],
   }
 
 }

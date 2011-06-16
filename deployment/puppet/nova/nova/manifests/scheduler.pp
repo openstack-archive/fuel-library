@@ -7,13 +7,13 @@ class nova::scheduler( $enabled ) inherits nova {
   }
 
   package { "nova-scheduler":
-    ensure => present,
+    ensure  => present,
     require => Package["python-greenlet"]
   }
 
   service { "nova-scheduler":
-    ensure => $service_ensure,
-    enable => $enabled,
+    ensure  => $service_ensure,
+    enable  => $enabled,
     require => Package["nova-scheduler"],
     #subscribe => File["/etc/nova/nova.conf"]
   }
