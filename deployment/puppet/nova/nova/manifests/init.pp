@@ -15,15 +15,6 @@ class nova(
   $rabbit_virtual_host='/',
   # Following may need to be broken out to different nova services
   $service_down_time = undef,
-  $quota_instances = 10,
-  $quota_cores = 20,
-  $quota_volumes = 10,
-  $quota_gigabytes = 1000,
-  $quota_floating_ips = 10,
-  $quota_metadata_items = 128,
-  $quota_max_injected_files = 5,
-  $quota_max_injected_file_content_bytes = 10240,
-  $quota_max_injected_file_path_bytes = 255,
   $logdir = '/var/log/nova',
   $state_path = '/var/lib/nova',
   $lock_path = '/var/lock/nova',
@@ -95,15 +86,6 @@ class nova(
     'state_path': value => $state_path;
     'lock_path': value => $lock_path;
     'service_down_time': value => $service_down_time;
-    'quota_instances': value => $quota_instances; 
-    'quota_cores': value => $quota_cores;
-    'quota_volumes': value => $quota_volumes;
-    'quota_gigabytes': value => $quota_gigabytes;
-    'quota_floating_ips': value => $quota_floating_ips;
-    'quota_metadata_items': value => $quota_metadata_items;
-    'quota_max_injected_files': value => $quota_max_injected_files;
-    'quota_max_injected_file_content_bytes': value => $quota_max_injected_file_content_bytes;
-    'quota_max_injected_file_path_bytes': value => $quota_max_injected_file_path_bytes
   }
 
   if $image_service == 'nova.image.glance.GlanceImageService' {
@@ -113,7 +95,7 @@ class nova(
     }
   }
 
-  Nova_config<| |> { 
+  Nova_config<| |> {
     require +> Package["nova-common"],
     before +> File['/etc/nova/nova.conf']
   }
