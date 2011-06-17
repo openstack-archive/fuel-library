@@ -107,6 +107,7 @@ class nova::rackspace::all(
     flat_network_bridge => $flat_network_bridge,
     flat_network_bridge_ip => $flat_network_bridge_ip,
     flat_network_bridge_netmask => $flat_network_bridge_netmask,
+    configure_bridge => false,
   }
   class { "nova::objectstore": enabled => false }
   class { "nova::scheduler": enabled => false }
