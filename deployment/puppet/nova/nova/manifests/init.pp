@@ -25,7 +25,9 @@ class nova(
 ) {
 
   # TODO - why is this required?
-  package { "python-greenlet": ensure => present }
+  package { ['python', 'python-greenlet']:
+    ensure => present
+  }
 
   class { 'nova::utilities': }
   package { ["python-nova", "nova-common", "nova-doc"]:
