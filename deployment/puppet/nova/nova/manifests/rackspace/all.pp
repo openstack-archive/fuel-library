@@ -63,7 +63,7 @@ class nova::rackspace::all(
     password     => $rabbitmq_password,
     virtual_host => $rabbitmq_virtual_host,
   }
-  class { 'nova::rackspace::dev': }
+  #class { 'nova::rackspace::dev': }
 
   class { "nova":
     verbose              => $verbose,
