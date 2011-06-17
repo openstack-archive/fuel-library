@@ -6,7 +6,7 @@ class nova::db::allowed_hosts ( $hosts, $user, $password, $database ) {
       provider => 'mysql',
       require => Database[$database],
     }
-    database_grant { "${user}@{$name}/${database}":
+    database_grant { "${user}@${name}/${database}":
       # TODO figure out which privileges to grant.
       privileges => "all",
       provider => 'mysql',
