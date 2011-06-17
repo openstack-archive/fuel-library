@@ -16,10 +16,12 @@ class glance::registry(
     require => Class["glance"]
   }
   service { "glance-registry":
-    ensure    => running,
-    enable    => true,
-    subscribe => File["/etc/glance/glance-registry.conf"],
-    require   => Class["glance"]
+    ensure     => running,
+    enable     => true,
+    hasstatus  => true,
+    hasrestart => true,
+    subscribe  => File["/etc/glance/glance-registry.conf"],
+    require    => Class["glance"]
   }
 
 }
