@@ -19,4 +19,8 @@ class nova::compute::xenserver(
     'xenapi_connection_password': value => $xenapi_connection_password;
     'xenapi_inject_image': value => $xenapi_inject_image;
   }
+  package { 'xenapi':
+    ensure   => installed,
+    provider => pip
+  }
 }
