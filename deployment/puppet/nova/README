@@ -1,1 +1,4 @@
-This is actively under development, please do not use!!!!!
+h1. Prerequisites
+
+The openstack repo should be made available:
+see: http://docs.openstack.org/cactus/openstack-compute/admin/content/installing-the-cloud-controller.html
