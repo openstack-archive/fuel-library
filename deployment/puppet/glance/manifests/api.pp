@@ -24,9 +24,11 @@ class glance::api(
   }
 
   service { "glance-api":
-    ensure    => running,
-    enable    => true,
-    subscribe => File["/etc/glance/glance-api.conf"],
-    require   => Class["glance"]
+    ensure     => running,
+    enable     => true,
+    hasstatus  => true,
+    hasrestart => true,
+    subscribe  => File["/etc/glance/glance-api.conf"],
+    require    => Class["glance"]
   }
 }
