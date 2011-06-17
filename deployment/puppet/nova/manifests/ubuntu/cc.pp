@@ -11,6 +11,10 @@ class nova::ubuntu::cc (
   $flat_network_bridge_ip  = '11.0.0.1',
   $flat_network_bridge_netmask  = '255.255.255.0',
 
+  $image_service = 'nova.image.local.LocalImageService',
+  $glance_host,
+  $glance_port = '9292',
+
   $nova_network = '11.0.0.0',
   $available_ips = '256',
 

@@ -3,6 +3,12 @@ class nova::ubuntu::compute (
   $api_server,
   $rabbit_host,
   $db_host,
+
+  # default to local image service.
+  $image_service = undef,
+  $glance_host = undef,
+  $glance_port = '9292',
+
   $flat_network_bridge,
   $flat_network_bridge_ip,
   $flat_network_bridge_netmask,
@@ -24,6 +30,8 @@ class nova::ubuntu::compute (
     rabbit_userid       => $rabbit_userid,
     rabbit_virtual_host => $rabbit_virtual_host,
     sql_connection      => "mysql://${db_user}:${db_password}@${db_host}/${db_name}",
+    glance_host         => $glance_host,
+    glance_port         => $glance_port,
   }
 
   # TODO For now lets worry about FlatManager, then FlatDHCP, etc.
