@@ -4,9 +4,9 @@ resources { 'nova_config':
 }
 
 class { 'mysql::server':
-  root_password => 'password' 
+  root_password => 'password'
 }
-class { 'nova::canonical::all':
+class { 'nova::ubuntu::all':
   flat_network_bridge => 'br100',
   flat_network_bridge_ip => '11.0.0.1',
   flat_network_bridge_netmask => '255.255.255.0',

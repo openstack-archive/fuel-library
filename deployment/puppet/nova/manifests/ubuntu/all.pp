@@ -1,6 +1,6 @@
 #
 # TODO - this is currently hardcoded to be a xenserver
-class nova::canonical::all(
+class nova::ubuntu::all(
   $db_password,
   $db_name = 'nova',
   $db_user = 'nova',
