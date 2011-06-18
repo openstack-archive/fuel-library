@@ -20,11 +20,11 @@ class { 'nova::all':
   db_user => 'nova',
   db_host => 'localhost',
 
-  rabbit_password => 'rabbitpassword',
-  rabbit_port => '5672',
-  rabbit_userid => 'rabbit_user',
-  rabbit_virtual_host => '/',
-  rabbit_host => 'localhost',
+  #$rabbit_password => 'rabbitpassword',
+  #rabbit_port => '5672',
+  #rabbit_userid => 'rabbit_user',
+  #rabbit_virtual_host => '/',
+  #rabbit_host => 'localhost',
 
   image_service => 'nova.image.glance.GlanceImageService',
 
