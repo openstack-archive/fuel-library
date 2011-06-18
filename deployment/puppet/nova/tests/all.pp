@@ -31,4 +31,5 @@ class { 'nova::all':
   glance_host => 'localhost',
   glance_port => '9292',
 
+  libvirt_type => 'qemu',
 }

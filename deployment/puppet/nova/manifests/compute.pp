@@ -5,9 +5,12 @@ class nova::compute(
   $enabled = false,
   $api_port = 8773,
   $aws_address = '169.254.169.254'
+  $libvirt_type = 'kvm',
 ) {
 
   Nova_config<| |>~>Service['nova-compute']
+
+  nova_config { 'libvirt_type': value => $libvirt_type }
 
   if $enabled {
     $service_ensure = 'running'
