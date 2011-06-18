@@ -4,8 +4,8 @@ class nova::compute(
   $api_server,
   $enabled = false,
   $api_port = 8773,
-  $aws_address = '169.254.169.254'
-  $libvirt_type = 'kvm',
+  $aws_address = '169.254.169.254',
+  $libvirt_type = 'kvm'
 ) {
 
   Nova_config<| |>~>Service['nova-compute']
