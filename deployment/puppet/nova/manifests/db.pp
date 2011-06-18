@@ -23,6 +23,7 @@ class nova::db(
     user         => $user,
     password     => $password,
     host         => $host,
+    charset      => 'latin1',
     # I may want to inject some sql
     require      => Class['mysql::server'],
     notify       => Exec["initial-db-sync"],
