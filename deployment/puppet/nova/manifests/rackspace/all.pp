@@ -58,10 +58,10 @@ class nova::rackspace::all(
     root_password => 'password'
   }
   class { 'nova::rabbitmq':
-    port         => $rabbitmq_port,
-    userid       => $rabbitmq_userid,
-    password     => $rabbitmq_password,
-    virtual_host => $rabbitmq_virtual_host,
+    port         => $rabbit_port,
+    userid       => $rabbit_userid,
+    password     => $rabbit_password,
+    virtual_host => $rabbit_virtual_host,
   }
   #class { 'nova::rackspace::dev': }
 
