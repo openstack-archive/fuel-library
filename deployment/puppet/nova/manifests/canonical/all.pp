@@ -6,6 +6,12 @@ class nova::canonical::all(
   $db_user = 'nova',
   $db_host = 'localhost',
 
+  $rabbit_port = undef,
+  $rabbit_userid = undef,
+  $rabbit_password = undef,
+  $rabbit_virtual_host = undef,
+  $rabbit_host = undef,
+
   $flat_network_bridge  = 'br100',
   $flat_network_bridge_ip  = '11.0.0.1',
   $flat_network_bridge_netmask  = '255.255.255.0',
@@ -13,8 +19,14 @@ class nova::canonical::all(
   $nova_network = '11.0.0.0',
   $available_ips = '256',
 
+  $image_service = undef,
+  $glance_host = 'localhost',
+  $glance_port = '9292',
+
   $admin_user = 'novaadmin',
-  $project_name = 'nova'
+  $project_name = 'nova',
+
+  $verbose = undef
 ) {
 
 
@@ -24,18 +36,24 @@ class nova::canonical::all(
     host_aliases => $fqdn,
   }
   class { 'nova::rabbitmq':
-    port         => $rabbitmq_port,
-    userid       => $rabbitmq_userid,
-    password     => $rabbitmq_password,
-    virtual_host => $rabbitmq_virtual_host,
+    port         => $rabbit_port,
+    userid       => $rabbit_userid,
+    password     => $rabbit_password,
+    virtual_host => $rabbit_virtual_host,
     require      => Host[$hostname],
   }
 
   class { "nova":
-    logdir          => $logdir,
-    verbose         => $verbose,
-    sql_connection  => "mysql://${db_user}:${db_password}@${db_host}/${db_name}",
-    image_service   => $image_service,
+    verbose             => $verbose,
+    sql_connection      => "mysql://${db_user}:${db_password}@${db_host}/${db_name}",
+    image_service       => $image_service,
+    glance_host         => $glance_host,
+    glance_port         => $glance_port,
+    rabbit_host         => $rabbit_host,
+    rabbit_port         => $rabbit_port,
+    rabbit_userid       => $rabbit_userid,
+    rabbit_password     => $rabbit_password,
+    rabbit_virtual_host => $rabbit_virtual_host,
   }
 
   class { "nova::api": enabled => true }
@@ -45,7 +63,7 @@ class nova::canonical::all(
     enabled => true,
   }
 
-  class { "nova::network::flat": 
+  class { "nova::network::flat":
     enabled                     => true,
     flat_network_bridge         => $flat_network_bridge,
     flat_network_bridge_ip      => $flat_network_bridge_ip,

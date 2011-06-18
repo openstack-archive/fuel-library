@@ -5,16 +5,16 @@ class nova(
   $image_service = 'nova.image.local.LocalImageService',
   # these glance params should be optional
   # this should probably just be configured as a glance client
-  $glance_host = undef,
-  $glance_port = undef,
-  $allow_admin_api = undef,
+  $glance_host = 'localhost',
+  $glance_port = '9292',
+  $allow_admin_api = false,
   $rabbit_host = 'localhost',
   $rabbit_password='guest',
   $rabbit_port='5672',
   $rabbit_userid='guest',
   $rabbit_virtual_host='/',
   # Following may need to be broken out to different nova services
-  $service_down_time = undef,
+  $service_down_time = 60,
   $logdir = '/var/log/nova',
   $state_path = '/var/lib/nova',
   $lock_path = '/var/lock/nova',
