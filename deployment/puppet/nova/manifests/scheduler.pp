@@ -1,5 +1,7 @@
 class nova::scheduler( $enabled ) inherits nova {
 
+  Nova_config<| |> ~> Service['nova-scheduler']
+
   if $enabled {
     $service_ensure = 'running'
   } else {

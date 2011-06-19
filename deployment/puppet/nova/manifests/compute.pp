@@ -8,7 +8,7 @@ class nova::compute(
   $libvirt_type = 'kvm'
 ) {
 
-  Nova_config<| |>~>Service['nova-compute']
+  Nova_config<| |> ~> Service['nova-compute']
 
   nova_config { 'libvirt_type': value => $libvirt_type }
 
@@ -20,13 +20,14 @@ class nova::compute(
 
   package { "nova-compute":
     ensure => present,
-    require => Class['nova'],
+    require => Package['nova-common'],
   }
 
   service { "nova-compute":
     ensure => $service_ensure,
     enable => $enabled,
     require => Package["nova-compute"],
+    before  => Exec['networking-refresh'],
   }
 
   # forward guest metadata requests to correct API server
