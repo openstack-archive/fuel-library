@@ -1,4 +1,4 @@
-class nova::network( $enabled=false ) inherits nova {
+class nova::network( $enabled=false ) {
 
   Nova_config<| |> ~> Service['nova-network']
 

@@ -1,4 +1,4 @@
-class nova::api($enabled=false) inherits nova {
+class nova::api($enabled=false) {
 
   Nova_config<| |> ~> Service['nova-api']
 
