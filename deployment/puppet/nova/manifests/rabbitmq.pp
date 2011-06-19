@@ -26,6 +26,13 @@ class nova::rabbitmq(
       provider => 'rabbitmqctl',
       require   => Class['rabbitmq::server'],
     }
+    # I need to figure out the appropriate permissions
+    rabbitmq_user_permissions { "${userid}@${virtual_host}":
+      configure_permission => '.*',
+      write_permission     => '.*',
+      read_permission      => '.*',
+      provider             => 'rabbitmqctl',
+    }
   }
   class { 'rabbitmq::server':
     port              => $port,
