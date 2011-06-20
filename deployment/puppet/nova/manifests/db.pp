@@ -34,12 +34,12 @@ class nova::db(
   }
 
   if $allowed_hosts {
-    class { "nova::db::allowed_hosts":
-      hosts     => $allowed_hosts,
+     nova::db::host_access { $allowed_hosts:
       user      => $user,
-      password   => $password,
+      password  => $password,
       database  => $name,
     }
+  } else {
+    Nova::Db::Host_access<<| tag == $cluster_id |>>
   }
-
 }
