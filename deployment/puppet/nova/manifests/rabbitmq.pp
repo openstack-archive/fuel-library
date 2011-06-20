@@ -9,6 +9,10 @@ class nova::rabbitmq(
   $virtual_host='/',
   $install_repo = false
 ) {
+
+  # only configure nova after the queue is up
+  Class['rabbitmq::service'] -> Nova_config<| |>
+
   if $install_repo {
     # this is debian specific
     class { 'rabbitmq::repo::apt':
@@ -32,7 +36,7 @@ class nova::rabbitmq(
       write_permission     => '.*',
       read_permission      => '.*',
       provider             => 'rabbitmqctl',
-    }
+    }->Nova_config<| |>
   }
   class { 'rabbitmq::server':
     port              => $port,

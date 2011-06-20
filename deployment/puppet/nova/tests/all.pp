@@ -1,18 +1,6 @@
 resources { 'nova_config':
   purge => true,
 }
-
-stage { 'repo-setup':
-  before => Stage['main'],
-}
-#class { 'apt':
-#  disable_keys => true, 
-#  #always_apt_update => true,
-#  stage => 'repo-setup',
-#}
-#class { 'nova::repo':
-#  stage => 'repo-setup',
-#}
 class { 'mysql::server': }
 class { 'nova::all':
   db_password => 'password',

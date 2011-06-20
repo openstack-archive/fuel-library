@@ -1,4 +1,6 @@
-class nova::objectstore( $enabled=false ) inherits nova {
+class nova::objectstore( $enabled=false ) {
+
+  Nova_config<| |> ~> Service['nova-objectstore']
 
   if $enabled {
     $service_ensure = 'running'

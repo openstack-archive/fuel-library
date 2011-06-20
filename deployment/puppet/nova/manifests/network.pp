@@ -1,4 +1,6 @@
-class nova::network( $enabled=false ) inherits nova {
+class nova::network( $enabled=false ) {
+
+  Nova_config<| |> ~> Service['nova-network']
 
   if $enabled {
     $service_ensure = 'running'
@@ -15,6 +17,7 @@ class nova::network( $enabled=false ) inherits nova {
     ensure  => $service_ensure,
     enable  => $enabled,
     require => Package["nova-network"],
+    before  => Exec['networking-refresh'],
     #subscribe => File["/etc/nova/nova.conf"]
   }
 }
