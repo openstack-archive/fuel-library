@@ -41,6 +41,8 @@ class nova::ubuntu::cc (
     verbose         => $verbose,
     sql_connection  => "mysql://${db_user}:${db_password}@${db_host}/${db_name}",
     image_service   => $image_service,
+    glance_host     => $glance_host,
+    glance_port     => $glance_port,
   }
 
   class { "nova::api": enabled => true }

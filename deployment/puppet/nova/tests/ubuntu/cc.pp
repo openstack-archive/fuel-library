@@ -21,13 +21,18 @@ class { 'nova::ubuntu::cc':
 
   db_password => 'password',
 
-  db_allowed_hosts => ['somehost', '10.0.0.2', '10.0.0.3'],
+  db_allowed_hosts => ['somehost', '10.0.0.2', '10.0.0.3', '10.0.0.5'],
 
   admin_user => 'admin',
   project_name => 'novaproject',
 }
 
-class { "glance::api": }
+class { "glance::api":
+  verbose => 'true',
+  api_debug => 'true',
+}
 class { "glance::registry":
+  verbose => 'true',
+  debug => 'true',
   sql_connection => "mysql://nova:password@localhost/nova",
 }
