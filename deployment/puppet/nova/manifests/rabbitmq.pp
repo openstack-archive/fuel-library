@@ -11,7 +11,7 @@ class nova::rabbitmq(
 ) {
 
   # only configure nova after the queue is up
-  Class['rabbitmq::service'] -> Nova_config<| |>
+  Class['rabbitmq::service'] -> Package<| title == 'nova-common' |>
 
   if $install_repo {
     # this is debian specific

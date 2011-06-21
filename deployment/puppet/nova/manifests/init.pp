@@ -24,6 +24,10 @@ class nova(
   $report_interval = '10'
 ) {
 
+  Nova_config<| |> {
+    require +> Package["nova-common"],
+    before +> File['/etc/nova/nova.conf']
+  }
   # TODO - why is this required?
   package { ['python', 'python-greenlet']:
     ensure => present
@@ -97,8 +101,4 @@ class nova(
     }
   }
 
-  Nova_config<| |> {
-    require +> Package["nova-common"],
-    before +> File['/etc/nova/nova.conf']
-  }
 }
