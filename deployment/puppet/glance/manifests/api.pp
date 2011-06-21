@@ -1,5 +1,6 @@
 class glance::api(
-  $verbose = 'false',
+  $log_verbose = 'false',
+  $log_debug = 'false',
   $default_store = 'file',
   $bind_host = '0.0.0.0',
   $bind_port = '9292',
