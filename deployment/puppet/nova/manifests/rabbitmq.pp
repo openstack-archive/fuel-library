@@ -36,7 +36,7 @@ class nova::rabbitmq(
       write_permission     => '.*',
       read_permission      => '.*',
       provider             => 'rabbitmqctl',
-    }->Nova_config<| |>
+    }->Package<| title == 'nova-common' |>
   }
   class { 'rabbitmq::server':
     port              => $port,
