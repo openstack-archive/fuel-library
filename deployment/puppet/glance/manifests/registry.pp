@@ -1,6 +1,6 @@
 class glance::registry(
-  $verbose = 'true',
-  $debug = 'true',
+  $log_verbose = 'true',
+  $log_debug = 'true',
   $bind_host = '0.0.0.0',
   $bind_port = '9191',
   $log_file = '/var/log/glance/registry.log',
