@@ -7,7 +7,7 @@ class nova::db(
   $cluster_id = 'localzone'
 ) {
 
-  # Create the db instance after nova-common if its installed
+  # Create the db instance before nova-common if its installed
   Mysql::Db[$name] -> Package<| title == "nova-common" |>
 
   # now this requires storedconfigs
