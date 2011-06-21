@@ -1,6 +1,6 @@
 class nova::network( $enabled=false ) {
 
-  Nova_config<| |> ~> Service['nova-network']
+  Exec['post-nova_config'] ~> Service['nova-network']
 
   if $enabled {
     $service_ensure = 'running'

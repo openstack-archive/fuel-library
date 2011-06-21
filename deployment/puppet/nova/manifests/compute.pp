@@ -8,7 +8,7 @@ class nova::compute(
   $libvirt_type = 'kvm'
 ) {
 
-  Nova_config<| |> ~> Service['nova-compute']
+  Exec['post-nova_config'] ~> Service['nova-compute']
 
   nova_config { 'libvirt_type': value => $libvirt_type }
 

@@ -1,6 +1,6 @@
 class nova::objectstore( $enabled=false ) {
 
-  Nova_config<| |> ~> Service['nova-objectstore']
+  Exec['post-nova_config'] ~> Service['nova-objectstore']
 
   if $enabled {
     $service_ensure = 'running'

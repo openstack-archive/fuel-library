@@ -26,7 +26,8 @@ class nova(
 
   Nova_config<| |> {
     require +> Package["nova-common"],
-    before +> File['/etc/nova/nova.conf']
+    before +> File['/etc/nova/nova.conf'],
+    notify +> Exec['post-nova_config']
   }
   # TODO - why is this required?
   package { ['python', 'python-greenlet']:
@@ -92,6 +93,11 @@ class nova(
     'state_path': value => $state_path;
     'lock_path': value => $lock_path;
     'service_down_time': value => $service_down_time;
+  }
+
+  exec { 'post-nova_config':
+    command => '/bin/echo "Nova config has changed"',
+    refreshonly => true,
   }
 
   if $image_service == 'nova.image.glance.GlanceImageService' {
