@@ -1,4 +1,5 @@
 define nova::manage::network ( $network, $available_ips ) {
+  File['/etc/nova/nova.conf']->Nova_network[$name]
   nova_network { $name:
     ensure        => present,
     network       => $network,
