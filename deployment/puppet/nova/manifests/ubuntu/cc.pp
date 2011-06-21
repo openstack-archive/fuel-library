@@ -1,32 +1,25 @@
 #
 # TODO - this is currently hardcoded to be a xenserver
-class nova::canonical::all(
+class nova::ubuntu::cc (
   $db_password,
   $db_name = 'nova',
   $db_user = 'nova',
   $db_host = 'localhost',
-
-  $rabbit_port = undef,
-  $rabbit_userid = undef,
-  $rabbit_password = undef,
-  $rabbit_virtual_host = undef,
-  $rabbit_host = undef,
+  $db_allowed_hosts = undef,
 
   $flat_network_bridge  = 'br100',
   $flat_network_bridge_ip  = '11.0.0.1',
   $flat_network_bridge_netmask  = '255.255.255.0',
 
+  $image_service = 'nova.image.local.LocalImageService',
+  $glance_host,
+  $glance_port = '9292',
+
   $nova_network = '11.0.0.0',
   $available_ips = '256',
 
-  $image_service = undef,
-  $glance_host = 'localhost',
-  $glance_port = '9292',
-
   $admin_user = 'novaadmin',
-  $project_name = 'nova',
-
-  $verbose = undef
+  $project_name = 'nova'
 ) {
 
 
@@ -36,32 +29,23 @@ class nova::canonical::all(
     host_aliases => $fqdn,
   }
   class { 'nova::rabbitmq':
-    port         => $rabbit_port,
-    userid       => $rabbit_userid,
-    password     => $rabbit_password,
-    virtual_host => $rabbit_virtual_host,
+    port         => $rabbitmq_port,
+    userid       => $rabbitmq_userid,
+    password     => $rabbitmq_password,
+    virtual_host => $rabbitmq_virtual_host,
     require      => Host[$hostname],
   }
 
   class { "nova":
-    verbose             => $verbose,
-    sql_connection      => "mysql://${db_user}:${db_password}@${db_host}/${db_name}",
-    image_service       => $image_service,
-    glance_host         => $glance_host,
-    glance_port         => $glance_port,
-    rabbit_host         => $rabbit_host,
-    rabbit_port         => $rabbit_port,
-    rabbit_userid       => $rabbit_userid,
-    rabbit_password     => $rabbit_password,
-    rabbit_virtual_host => $rabbit_virtual_host,
+    logdir          => $logdir,
+    verbose         => $verbose,
+    sql_connection  => "mysql://${db_user}:${db_password}@${db_host}/${db_name}",
+    image_service   => $image_service,
+    glance_host     => $glance_host,
+    glance_port     => $glance_port,
   }
 
   class { "nova::api": enabled => true }
-
-  class { "nova::compute":
-    api_server => $ipaddress,
-    enabled => true,
-  }
 
   class { "nova::network::flat":
     enabled                     => true,
@@ -74,10 +58,11 @@ class nova::canonical::all(
   class { "nova::scheduler": enabled => true }
   class { 'nova::db':
     # pass in db config as params
-    password => $db_password,
-    name     => $db_name,
-    user     => $db_user,
-    host     => $db_host,
+    password      => $db_password,
+    name          => $db_name,
+    user          => $db_user,
+    host          => $db_host,
+    allowed_hosts => $db_allowed_hosts,
   }
 
   nova::manage::admin { $admin_user: }
@@ -85,7 +70,7 @@ class nova::canonical::all(
     owner => $admin_user,
   }
 
-  nova::manage::network { "${project_name}-net-${network}":
+  nova::manage::network { "${project_name}-net-${nova_network}":
     network       => $nova_network,
     available_ips => $available_ips,
     require       => Nova::Manage::Project[$project_name],

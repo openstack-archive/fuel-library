@@ -3,6 +3,7 @@ class nova::db(
   $name = 'nova',
   $user = 'nova',
   $host = '127.0.0.1',
+  $allowed_hosts = undef,
   $cluster_id = 'localzone'
 ) {
 
@@ -30,5 +31,15 @@ class nova::db(
     # I may want to inject some sql
     require      => Class['mysql::server'],
     notify       => Exec["initial-db-sync"],
+  }
+
+  if $allowed_hosts {
+     nova::db::host_access { $allowed_hosts:
+      user      => $user,
+      password  => $password,
+      database  => $name,
+    }
+  } else {
+    Nova::Db::Host_access<<| tag == $cluster_id |>>
   }
 }

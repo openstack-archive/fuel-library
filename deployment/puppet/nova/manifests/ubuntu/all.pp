@@ -1,6 +1,6 @@
 #
 # TODO - this is currently hardcoded to be a xenserver
-class nova::all(
+class nova::ubuntu::all(
   $db_password,
   $db_name = 'nova',
   $db_user = 'nova',
@@ -12,8 +12,6 @@ class nova::all(
   $rabbit_virtual_host = undef,
   $rabbit_host = undef,
 
-  $libvirt_type = 'qemu',
-
   $flat_network_bridge  = 'br100',
   $flat_network_bridge_ip  = '11.0.0.1',
   $flat_network_bridge_netmask  = '255.255.255.0',
@@ -21,7 +19,7 @@ class nova::all(
   $nova_network = '11.0.0.0',
   $available_ips = '256',
 
-  $image_service = 'nova.image.glance.GlanceImageService',
+  $image_service = undef,
   $glance_host = 'localhost',
   $glance_port = '9292',
 
@@ -61,9 +59,8 @@ class nova::all(
   class { "nova::api": enabled => true }
 
   class { "nova::compute":
-    api_server   => $ipaddress,
-    libvirt_type => $libvirt_type,
-    enabled      => true,
+    api_server => $ipaddress,
+    enabled => true,
   }
 
   class { "nova::network::flat":
@@ -93,13 +90,5 @@ class nova::all(
     available_ips => $available_ips,
     require       => Nova::Manage::Project[$project_name],
   }
-
-  # set up glance server
-  class { 'glance::api':
-    swift_store_user => 'foo_user',
-    swift_store_key => 'foo_pass',
-  }
-
-  class { 'glance::registry': }
 
 }
