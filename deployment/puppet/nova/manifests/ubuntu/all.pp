@@ -85,7 +85,7 @@ class nova::ubuntu::all(
     owner => $admin_user,
   }
 
-  nova::manage::network { "${project_name}-net-${network}":
+  nova::manage::network { "${project_name}-net-${nova_network}":
     network       => $nova_network,
     available_ips => $available_ips,
     require       => Nova::Manage::Project[$project_name],
