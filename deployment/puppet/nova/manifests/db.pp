@@ -8,7 +8,8 @@ class nova::db(
 ) {
 
   # Create the db instance before nova-common if its installed
-  Mysql::Db[$name] -> Package<| title == "nova-common" |>
+  Mysql::Db[$dbname] -> Package<| title == "nova-common" |>
+  Mysql::Db[$dbname] ~> Exec<| title == 'initial-db-sync' |>
 
   # now this requires storedconfigs
   # TODO - worry about the security implications
@@ -24,7 +25,7 @@ class nova::db(
     charset      => 'latin1',
     # I may want to inject some sql
     require      => Class['mysql::server'],
-    notify       => Exec["initial-db-sync"],
+#    notify       => Exec["initial-db-sync"],
   }
 
   if $allowed_hosts {
