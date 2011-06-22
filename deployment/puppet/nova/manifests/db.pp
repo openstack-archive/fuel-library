@@ -1,6 +1,6 @@
 class nova::db(
   $password,
-  $name = 'nova',
+  $dbname = 'nova',
   $user = 'nova',
   $host = '127.0.0.1',
   $allowed_hosts = undef,
@@ -14,11 +14,11 @@ class nova::db(
   # now this requires storedconfigs
   # TODO - worry about the security implications
   @@nova_config { 'database_url':
-    value => "mysql://${user}:${password}@${host}/${name}",
+    value => "mysql://${user}:${password}@${host}/${dbname}",
     tag   => $zone,
   }
 
-  mysql::db { $name:
+  mysql::db { $dbname:
     user         => $user,
     password     => $password,
     host         => $host,
@@ -32,7 +32,7 @@ class nova::db(
      nova::db::host_access { $allowed_hosts:
       user      => $user,
       password  => $password,
-      database  => $name,
+      database  => $dbname,
     }
   } else {
     Nova::Db::Host_access<<| tag == $cluster_id |>>

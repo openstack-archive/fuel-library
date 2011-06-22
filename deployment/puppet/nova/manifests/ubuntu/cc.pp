@@ -59,7 +59,7 @@ class nova::ubuntu::cc (
   class { 'nova::db':
     # pass in db config as params
     password      => $db_password,
-    name          => $db_name,
+    dbname        => $db_name,
     user          => $db_user,
     host          => $db_host,
     allowed_hosts => $db_allowed_hosts,
