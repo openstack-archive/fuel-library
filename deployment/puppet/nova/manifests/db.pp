@@ -17,12 +17,6 @@ class nova::db(
     tag   => $zone,
   }
 
-  exec { "initial-db-sync":
-    command     => "/usr/bin/nova-manage db sync",
-    refreshonly => true,
-    require     => [Package["nova-common"],Nova_config['sql_connection']]
-  }
-
   mysql::db { $name:
     user         => $user,
     password     => $password,
