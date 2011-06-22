@@ -10,8 +10,7 @@ resources { 'nova_config':
 
 class { 'nova::rackspace::all':
   image_service => 'nova.image.glance.GlanceImageService',
-  glance_host => $ipaddress,
-  glance_port => '9292',
+  glance_api_servers => "${ipaddress}:9292",
   allow_admin_api => 'true',
   host => $hostname,
   xenapi_connection_url => 'https://<XenServer_IP>',

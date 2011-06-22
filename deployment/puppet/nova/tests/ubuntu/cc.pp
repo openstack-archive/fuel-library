@@ -17,8 +17,7 @@ class { 'nova::ubuntu::cc':
   available_ips => '256',
 
   image_service => 'nova.image.glance.GlanceImageService',
-  glance_host => $ipaddress,
-
+  glance_api_servers => "${ipaddress}:9292",
   db_password => 'password',
 
   db_allowed_hosts => ['somehost', '10.0.0.2', '10.0.0.3', '10.0.0.5'],

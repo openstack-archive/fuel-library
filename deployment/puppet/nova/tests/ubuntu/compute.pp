@@ -12,8 +12,7 @@ class { 'nova::ubuntu::compute':
   db_password => 'password',
 
   image_service => 'nova.image.glance.GlanceImageService',
-  glance_host => '10.0.0.4',
-
+  glance_api_servers => '10.0.0.4:9292',
 
   flat_network_bridge => 'br100',
   flat_network_bridge_ip => '11.0.0.2',
