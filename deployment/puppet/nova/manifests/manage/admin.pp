@@ -1,6 +1,6 @@
 define nova::manage::admin {
 
-  File['/etc/nova/nova.conf'] -> Nova::Manage::Admin[$name]
+  File['/etc/nova/nova.conf'] -> Nova_admin[$name]
   Exec<| title == 'initial-db-sync' |> -> Nova_admin[$name]
 
   nova_admin{ $name:

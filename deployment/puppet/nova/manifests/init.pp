@@ -31,8 +31,12 @@ class nova(
     notify +> Exec['post-nova_config']
   }
   # TODO - why is this required?
-  package { ['python', 'python-greenlet']:
-    ensure => present
+  package { 'python':
+    ensure => present,
+  }
+  package { 'python-greenlet':
+    ensure => present,
+    require => Package['python'],
   }
 
   class { 'nova::utilities': }
