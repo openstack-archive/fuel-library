@@ -33,19 +33,6 @@ class nova::controller(
 ) {
 
 
-  # work around hostname bug, LP #653405
-  host { $hostname:
-    ip => $ipaddress,
-    host_aliases => $fqdn,
-  }
-  class { 'nova::rabbitmq':
-    port         => $rabbit_port,
-    userid       => $rabbit_userid,
-    password     => $rabbit_password,
-    virtual_host => $rabbit_virtual_host,
-    require      => Host[$hostname],
-  }
-
   class { "nova":
     verbose             => $verbose,
     sql_connection      => "mysql://${db_user}:${db_password}@${db_host}/${db_name}",
@@ -88,13 +75,4 @@ class nova::controller(
     available_ips => $available_ips,
     require       => Nova::Manage::Project[$project_name],
   }
-
-  # set up glance server
-  class { 'glance::api':
-    swift_store_user => 'foo_user',
-    swift_store_key => 'foo_pass',
-  }
-
-  class { 'glance::registry': }
-
 }
