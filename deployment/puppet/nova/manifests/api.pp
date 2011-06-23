@@ -8,9 +8,16 @@ class nova::api($enabled=false) {
     $service_ensure = 'stopped'
   }
 
+  exec { "initial-db-sync":
+    command     => "/usr/bin/nova-manage db sync",
+    refreshonly => true,
+    require     => [Package["nova-common"], Nova_config['sql_connection']],
+  }
+
   package { "nova-api":
     ensure  => present,
     require => Package["python-greenlet"],
+    notify  => Exec['initial-db-sync'],
   }
   service { "nova-api":
     ensure  => $service_ensure,

@@ -6,7 +6,7 @@ class { 'mysql::server':
 }
 class { 'nova::db':
   password => 'password',
-  name     => 'nova',
+  dbname   => 'nova',
   user     => 'nova',
   host     => 'localhost',
 }
