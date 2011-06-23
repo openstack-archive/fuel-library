@@ -13,6 +13,12 @@ class nova::rabbitmq(
   # only configure nova after the queue is up
   Class['rabbitmq::service'] -> Package<| title == 'nova-common' |>
 
+  # work around hostname bug, LP #653405
+  host { $hostname:
+    ip => $ipaddress,
+    host_aliases => $fqdn,
+  }
+
   if $install_repo {
     # this is debian specific
     class { 'rabbitmq::repo::apt':
