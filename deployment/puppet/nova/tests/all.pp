@@ -16,8 +16,7 @@ class { 'nova::all':
 
   image_service => 'nova.image.glance.GlanceImageService',
 
-  glance_host => 'localhost',
-  glance_port => '9292',
+  glance_api_servers => 'localhost:9292',
 
   libvirt_type => 'qemu',
 }

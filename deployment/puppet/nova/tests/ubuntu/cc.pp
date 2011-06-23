@@ -17,22 +17,21 @@ class { 'nova::ubuntu::cc':
   available_ips => '256',
 
   image_service => 'nova.image.glance.GlanceImageService',
-  glance_host => $ipaddress,
-
+  glance_api_servers => "${ipaddress}:9292",
   db_password => 'password',
 
-  db_allowed_hosts => ['somehost', '10.0.0.2', '10.0.0.3', '10.0.0.5'],
+  db_allowed_hosts => ['somehost', '10.0.0.2', '10.0.0.3', '10.0.0.5', '192.168.25.11'],
 
   admin_user => 'admin',
   project_name => 'novaproject',
 }
 
 class { "glance::api":
-  verbose => 'true',
-  api_debug => 'true',
+  log_verbose => 'true',
+  log_debug => 'true',
 }
 class { "glance::registry":
-  verbose => 'true',
-  debug => 'true',
+  log_verbose => 'true',
+  log_debug => 'true',
   sql_connection => "mysql://nova:password@localhost/nova",
 }

@@ -12,8 +12,8 @@ class nova::ubuntu::cc (
   $flat_network_bridge_netmask  = '255.255.255.0',
 
   $image_service = 'nova.image.local.LocalImageService',
-  $glance_host,
-  $glance_port = '9292',
+
+  $glance_api_servers = 'localhost:9292',
 
   $nova_network = '11.0.0.0',
   $available_ips = '256',
@@ -37,12 +37,11 @@ class nova::ubuntu::cc (
   }
 
   class { "nova":
-    logdir          => $logdir,
-    verbose         => $verbose,
-    sql_connection  => "mysql://${db_user}:${db_password}@${db_host}/${db_name}",
-    image_service   => $image_service,
-    glance_host     => $glance_host,
-    glance_port     => $glance_port,
+    logdir              => $logdir,
+    verbose             => $verbose,
+    sql_connection      => "mysql://${db_user}:${db_password}@${db_host}/${db_name}",
+    image_service       => $image_service,
+    glance_api_servers  => $glance_api_servers,
   }
 
   class { "nova::api": enabled => true }
