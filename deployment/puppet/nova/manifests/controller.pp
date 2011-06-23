@@ -22,8 +22,9 @@ class nova::controller(
   $available_ips = '256',
 
   $image_service = 'nova.image.glance.GlanceImageService',
-  $glance_host = 'localhost',
-  $glance_port = '9292',
+  $glance_api_servers = 'localhost:9292',
+  $glance_host   = undef,
+  $glance_port   = undef,
 
   $admin_user = 'novaadmin',
   $project_name = 'nova',
@@ -49,6 +50,7 @@ class nova::controller(
     verbose             => $verbose,
     sql_connection      => "mysql://${db_user}:${db_password}@${db_host}/${db_name}",
     image_service       => $image_service,
+    glance_api_servers  => $glance_api_servers,
     glance_host         => $glance_host,
     glance_port         => $glance_port,
     rabbit_host         => $rabbit_host,

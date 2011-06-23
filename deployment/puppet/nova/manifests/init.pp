@@ -6,6 +6,8 @@ class nova(
   # these glance params should be optional
   # this should probably just be configured as a glance client
   $glance_api_servers = 'localhost:9292',
+  $glance_host = 'localhost',
+  $glance_port = '9292',
   $allow_admin_api = false,
   $rabbit_host = 'localhost',
   $rabbit_password='guest',
@@ -102,6 +104,8 @@ class nova(
   if $image_service == 'nova.image.glance.GlanceImageService' {
     nova_config {
       'glance_api_servers': value => $glance_api_servers;
+      'glance_host': value => $glance_host;
+      'glance_port': value => $glance_port;
     }
   }
 
