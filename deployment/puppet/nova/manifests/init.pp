@@ -103,12 +103,17 @@ class nova(
     # config b/c they have to be set by both compute
     # as well as controller.
     'network_manager': value => $network_manager;
-    'flat_network_bridge': value => $flat_network_bridge;
   }
 
   exec { 'post-nova_config':
     command => '/bin/echo "Nova config has changed"',
     refreshonly => true,
+  }
+
+  if $network_manager == 'nova.network.manager.FlatManager' {
+    nova_config {
+      'flat_network_bridge': value => $flat_network_bridge
+    }
   }
 
   if $image_service == 'nova.image.glance.GlanceImageService' {
