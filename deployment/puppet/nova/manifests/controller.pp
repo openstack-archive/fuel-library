@@ -49,12 +49,6 @@ class nova::controller(
 
   class { "nova::api": enabled => true }
 
-  class { "nova::compute":
-    api_server   => $ipaddress,
-    libvirt_type => $libvirt_type,
-    enabled      => true,
-  }
-
   class { "nova::network::flat":
     enabled                     => true,
     flat_network_bridge         => $flat_network_bridge,
