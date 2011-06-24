@@ -5,10 +5,7 @@ class nova::compute::xenserver(
   $xenapi_connection_url,
   $xenapi_connection_username,
   $xenapi_connection_password,
-  $xenapi_inject_image=false,
-  $network_manager='nova.network.manager.FlatManager',
-  $flat_network_bridge='xenbr0',
-  $enabled=true
+  $xenapi_inject_image=false
 ) {
 
   class { 'nova::compute':

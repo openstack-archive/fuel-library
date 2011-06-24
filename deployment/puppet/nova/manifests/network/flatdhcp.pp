@@ -14,7 +14,6 @@ class nova::network::flatdhcp (
   }
 
   nova_config {
-    'network_manage': value => 'nova.network.manager.FlatDHCPManager';
     'public_interface': value => $public_interface;
     'flat_interface': value => $flat_interface;
     'flat_dhcp_start': value => $flat_dhcp_start;

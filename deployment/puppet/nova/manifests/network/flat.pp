@@ -11,11 +11,6 @@ class nova::network::flat (
     enabled => $enabled,
   }
 
-  nova_config {
-    'network_manager': value => 'nova.network.manager.FlatManager';
-    'flat_network_bridge': value => $flat_network_bridge;
-  }
-
   # flatManager requires a network bridge be manually setup.
   if $configure_bridge {
     nova::network::bridge { $flat_network_bridge:

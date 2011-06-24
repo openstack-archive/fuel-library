@@ -4,14 +4,11 @@ class nova::compute(
   $api_server,
   $enabled = false,
   $api_port = 8773,
-  $aws_address = '169.254.169.254',
-  $libvirt_type = 'kvm'
+  $aws_address = '169.254.169.254'
 ) {
 
   Exec['post-nova_config'] ~> Service['nova-compute']
   Exec['nova-db-sync']  ~> Service['nova-compute']
-
-  nova_config { 'libvirt_type': value => $libvirt_type }
 
   if $enabled {
     $service_ensure = 'running'
