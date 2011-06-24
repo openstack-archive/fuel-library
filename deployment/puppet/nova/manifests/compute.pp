@@ -9,6 +9,7 @@ class nova::compute(
 ) {
 
   Exec['post-nova_config'] ~> Service['nova-compute']
+  Exec['nova-db-sync']  ~> Service['nova-compute']
 
   nova_config { 'libvirt_type': value => $libvirt_type }
 

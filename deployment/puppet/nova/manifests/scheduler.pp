@@ -1,6 +1,7 @@
 class nova::scheduler( $enabled ) {
 
   Exec['post-nova_config'] ~> Service['nova-scheduler']
+  Exec['nova-db-sync'] -> Service['nova-scheduler']
 
   if $enabled {
     $service_ensure = 'running'

@@ -1,6 +1,7 @@
 class nova::api($enabled=false) {
 
   Exec['post-nova_config'] ~> Service['nova-api']
+  Exec['nova-db-sync'] ~> Service['nova-api']
 
   if $enabled {
     $service_ensure = 'running'
