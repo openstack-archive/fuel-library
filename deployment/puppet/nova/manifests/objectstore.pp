@@ -1,6 +1,7 @@
 class nova::objectstore( $enabled=false ) {
 
   Exec['post-nova_config'] ~> Service['nova-objectstore']
+  Exec['nova-db-sync'] ~> Service['nova-objectstore']
 
   if $enabled {
     $service_ensure = 'running'
