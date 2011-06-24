@@ -12,7 +12,7 @@ class nova::all(
   $rabbit_virtual_host = undef,
   $rabbit_host = undef,
 
-  $libvirt_type = 'qemu',
+  $libvirt_type = 'kvm',
 
   $flat_network_bridge  = 'br100',
   $flat_network_bridge_ip  = '11.0.0.1',
@@ -23,6 +23,8 @@ class nova::all(
 
   $image_service = 'nova.image.glance.GlanceImageService',
   $glance_api_servers = 'localhost:9292',
+  $glance_host = 'localhost',
+  $glance_port = '9292',
 
   $admin_user = 'novaadmin',
   $project_name = 'nova',
@@ -31,17 +33,11 @@ class nova::all(
 ) {
 
 
-  # work around hostname bug, LP #653405
-  host { $hostname:
-    ip => $ipaddress,
-    host_aliases => $fqdn,
-  }
   class { 'nova::rabbitmq':
     port         => $rabbit_port,
     userid       => $rabbit_userid,
     password     => $rabbit_password,
     virtual_host => $rabbit_virtual_host,
-    require      => Host[$hostname],
   }
 
   class { "nova":
@@ -49,6 +45,8 @@ class nova::all(
     sql_connection      => "mysql://${db_user}:${db_password}@${db_host}/${db_name}",
     image_service       => $image_service,
     glance_api_servers  => $glance_api_servers,
+    glance_host         => $glance_host,
+    glance_port         => $glance_port,
     rabbit_host         => $rabbit_host,
     rabbit_port         => $rabbit_port,
     rabbit_userid       => $rabbit_userid,
@@ -59,9 +57,14 @@ class nova::all(
   class { "nova::api": enabled => true }
 
   class { "nova::compute":
-    api_server   => $ipaddress,
-    libvirt_type => $libvirt_type,
-    enabled      => true,
+    api_server     => $ipaddress,
+    enabled        => true,
+  }
+  class { 'nova::compute::libvirt':
+    libvirt_type                => $libvirt_type,
+    flat_network_bridge         => $flat_network_bridge,
+    flat_network_bridge_ip      => $flat_network_bridge_ip,
+    flat_network_bridge_netmask => $flat_network_bridge_netmask,
   }
 
   class { "nova::network::flat":
@@ -69,6 +72,7 @@ class nova::all(
     flat_network_bridge         => $flat_network_bridge,
     flat_network_bridge_ip      => $flat_network_bridge_ip,
     flat_network_bridge_netmask => $flat_network_bridge_netmask,
+    configure_bridge            => false,
   }
 
   class { "nova::objectstore": enabled => true }

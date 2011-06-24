@@ -14,7 +14,8 @@ class nova(
   $rabbit_port='5672',
   $rabbit_userid='guest',
   $rabbit_virtual_host='/',
-  # Following may need to be broken out to different nova services
+  $network_manager = 'nova.network.manager.FlatManager',
+  $flat_network_bridge = 'br100',
   $service_down_time = 60,
   $logdir = '/var/log/nova',
   $state_path = '/var/lib/nova',
@@ -98,11 +99,21 @@ class nova(
     'state_path': value => $state_path;
     'lock_path': value => $lock_path;
     'service_down_time': value => $service_down_time;
+    # These network entries wound up in the common
+    # config b/c they have to be set by both compute
+    # as well as controller.
+    'network_manager': value => $network_manager;
   }
 
   exec { 'post-nova_config':
     command => '/bin/echo "Nova config has changed"',
     refreshonly => true,
+  }
+
+  if $network_manager == 'nova.network.manager.FlatManager' {
+    nova_config {
+      'flat_network_bridge': value => $flat_network_bridge
+    }
   }
 
   if $image_service == 'nova.image.glance.GlanceImageService' {
