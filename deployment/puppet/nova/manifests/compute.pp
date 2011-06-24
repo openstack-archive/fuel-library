@@ -22,8 +22,8 @@ class nova::compute(
   }
 
   service { "nova-compute":
-    ensure => $service_ensure,
-    enable => $enabled,
+    ensure  => $service_ensure,
+    enable  => $enabled,
     require => Package["nova-compute"],
     before  => Exec['networking-refresh'],
   }

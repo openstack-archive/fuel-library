@@ -12,7 +12,7 @@ class nova::all(
   $rabbit_virtual_host = undef,
   $rabbit_host = undef,
 
-  $libvirt_type = 'qemu',
+  $libvirt_config = undef,
 
   $flat_network_bridge  = 'br100',
   $flat_network_bridge_ip  = '11.0.0.1',
@@ -59,9 +59,9 @@ class nova::all(
   class { "nova::api": enabled => true }
 
   class { "nova::compute":
-    api_server   => $ipaddress,
-    libvirt_type => $libvirt_type,
-    enabled      => true,
+    api_server     => $ipaddress,
+    libvirt_config => $libvirt_config,
+    enabled        => true,
   }
 
   class { "nova::network::flat":
