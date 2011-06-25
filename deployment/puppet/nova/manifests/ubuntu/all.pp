@@ -28,18 +28,11 @@ class nova::ubuntu::all(
   $verbose = undef
 ) {
 
-
-  # work around hostname bug, LP #653405
-  host { $hostname:
-    ip => $ipaddress,
-    host_aliases => $fqdn,
-  }
   class { 'nova::rabbitmq':
     port         => $rabbit_port,
     userid       => $rabbit_userid,
     password     => $rabbit_password,
     virtual_host => $rabbit_virtual_host,
-    require      => Host[$hostname],
   }
 
   class { "nova":

@@ -4,8 +4,9 @@ resources { 'nova_config':
 }
 
 class { 'mysql::server':
-  root_password => 'password'
+  config_hash => {'bind_address' => '127.0.0.1'}
 }
+
 class { 'nova::ubuntu::all':
   flat_network_bridge => 'br100',
   flat_network_bridge_ip => '11.0.0.1',

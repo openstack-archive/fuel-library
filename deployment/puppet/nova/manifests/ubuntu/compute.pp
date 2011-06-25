@@ -31,12 +31,7 @@ class nova::ubuntu::compute (
     glance_api_servers  => $glance_api_servers,
   }
 
-  # TODO For now lets worry about FlatManager, then FlatDHCP, etc.
-  nova_config {
-    'network_manager': value => 'nova.network.manager.FlatManager';
-    'flat_network_bridge': value => $flat_network_bridge;
-  }
-  nova::network::bridge { $flat_network_bridge:
+ nova::network::bridge { $flat_network_bridge:
     ip      => $flat_network_bridge_ip,
     netmask => $flat_network_bridge_netmask,
   }

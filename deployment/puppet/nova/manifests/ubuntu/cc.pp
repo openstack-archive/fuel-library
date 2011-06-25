@@ -22,18 +22,11 @@ class nova::ubuntu::cc (
   $project_name = 'nova'
 ) {
 
-
-  # work around hostname bug, LP #653405
-  host { $hostname:
-    ip => $ipaddress,
-    host_aliases => $fqdn,
-  }
   class { 'nova::rabbitmq':
     port         => $rabbitmq_port,
     userid       => $rabbitmq_userid,
     password     => $rabbitmq_password,
     virtual_host => $rabbitmq_virtual_host,
-    require      => Host[$hostname],
   }
 
   class { "nova":
