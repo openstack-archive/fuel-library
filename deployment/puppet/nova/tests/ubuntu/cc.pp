@@ -5,7 +5,7 @@ resources { 'nova_config':
 }
 
 class { 'mysql::server':
-  root_password => 'password'
+  config_hash => { 'bind_address' => $ipaddress_eth0 }
 }
 
 class { 'nova::ubuntu::cc':
