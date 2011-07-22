@@ -13,6 +13,11 @@ Puppet::Type.newtype(:nova_network) do
     newvalues(/^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.0$/)
   end
 
+  newparam(:label) do
+    desc "The Nova network label"
+    defaultto "novanetwork"
+  end
+
   newparam(:available_ips) do
     desc "# of available IPs. Must be greater than 4."
     validate do |value|
