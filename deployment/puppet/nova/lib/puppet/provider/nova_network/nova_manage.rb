@@ -7,11 +7,15 @@ Puppet::Type.type(:nova_network).provide(:nova_manage) do
   commands :nova_manage => 'nova-manage'
 
   def exists?
-    nova_manage("network", "list").match(/^#{resource[:network]}\/[0-9]{1,2} /)
+    begin
+      nova_manage("network", "list").match(/^#{resource[:network]}\/[0-9]{1,2} /)
+    rescue
+      return false
+    end
   end
 
   def create
-     nova_manage("network", "create", resource[:network], "1", resource[:available_ips])
+     nova_manage("network", "create", resource[:label], resource[:network], "1", resource[:available_ips])
   end
 
   def destroy
