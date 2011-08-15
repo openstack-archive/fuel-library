@@ -9,8 +9,8 @@ Puppet::Type.newtype(:nova_network) do
   # segments b/c it is actually the combination of network/prefix
   # that determine uniqueness
   newparam(:network, :namevar => true) do
-    desc "Network (ie, 192.168.1.0)"
-    newvalues(/^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.0$/)
+    desc "Network (ie, 192.168.1.0/24)"
+    newvalues(/^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.0\/[0-9]{1,2}$/)
   end
 
   newparam(:label) do
