@@ -15,7 +15,7 @@ class nova::ubuntu::cc (
 
   $glance_api_servers = 'localhost:9292',
 
-  $nova_network = '11.0.0.0',
+  $nova_network = '11.0.0.0/24',
   $available_ips = '256',
 
   $admin_user = 'novaadmin',
