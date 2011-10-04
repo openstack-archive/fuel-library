@@ -103,6 +103,7 @@ class nova(
     # config b/c they have to be set by both compute
     # as well as controller.
     'network_manager': value => $network_manager;
+    'use_deprecated_auth': value => true;
   }
 
   exec { 'post-nova_config':
