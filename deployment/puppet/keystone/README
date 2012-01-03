@@ -1,3 +1,46 @@
 This repo is not ready to be used.
 
 These initial check-ins are just to save my current progress.
+
+---
+
+module for managing keystone:
+
+Has only been tested on Ubuntu Natty
+
+manifests:
+
+init.pp
+
+  contains the keystone class that can be used
+  to install keystone from apt
+
+dev/install.pp
+
+  installs keystone from source and sets up a dev
+  environment as recommended in the development guide
+
+    http://keystone.openstack.org/setup.html
+
+native types:
+
+  I would like to create types to manage the configuration of
+  keystone, including:
+
+  - keystone_tenant
+  - keystone_user
+  - keystone_role
+    ... I do not yet understand the below items ...
+  - keystone_endpoint (templates or something
+  - keystone_token
+  - keystone_endpointtemplate
+
+  The sole provider for all of these types is keystone-manage
+
+  This has been problematic so far in that it does not fully
+  support all of the operations needed by this type.
+
+templates/initial_data.sh.erb
+
+  contains a script that sets up an example environment
+  that cloudbuilders was using for something (but for what?)
