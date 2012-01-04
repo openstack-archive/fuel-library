@@ -1,6 +1,6 @@
 class glance::api(
-  $log_verbose = 'false',
-  $log_debug = 'false',
+  $log_verbose = false,
+  $log_debug = false,
   $default_store = 'file',
   $bind_host = '0.0.0.0',
   $bind_port = '9292',
@@ -15,21 +15,21 @@ class glance::api(
   $swift_store_create_container_on_put = 'False'
 ) inherits glance {
 
-  file { "/etc/glance/glance-api.conf":
+  file { '/etc/glance/glance-api.conf':
     ensure  => present,
     owner   => 'glance',
     group   => 'root',
-    mode    => 640,
+    mode    => '0640',
     content => template('glance/glance-api.conf.erb'),
-    require => Class["glance"]
+    require => Class['glance']
   }
 
-  service { "glance-api":
+  service { 'glance-api':
     ensure     => running,
     enable     => true,
     hasstatus  => true,
     hasrestart => true,
-    subscribe  => File["/etc/glance/glance-api.conf"],
-    require    => Class["glance"]
+    subscribe  => File['/etc/glance/glance-api.conf'],
+    require    => Class['glance']
   }
 }
