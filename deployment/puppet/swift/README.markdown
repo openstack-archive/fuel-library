@@ -1,4 +1,4 @@
-==Disclaimer
+# Disclaimer #
 
 This is not ready to be used.
 
@@ -12,48 +12,55 @@ at dan < at > puppetlabs <dot> com or bodepd < on > freenode.
 
 Any feedback greatly appreciated.
 
-==Dependencies
+# Limitations #
 
-This module has the following dependencies:
+* Only been tested for a single node swift install
+* Only been tested with tempauth
 
-  https://github.com/bodepd/puppet-ssh
+# Dependencies: #
+
+* Only tested on Ubuntu Natty
+* Only tested against Puppet 2.7.9
+* Only verified with Swift 1.4.6
+
+# module Dependencies #
+
+* https://github.com/bodepd/puppet-ssh
     (this should actaully depend on https://github.com/saz/puppet-ssh
      and can when pull request https://github.com/saz/puppet-ssh/pull/1
      is merged)
-  https://github.com/bodepd/puppet-rsync
+* https://github.com/bodepd/puppet-rsync
     (there is a pull request to merge this into the parent repo:
     https://github.com/bodepd/puppet-rsync)
-  https://github.com/saz/puppet-memcached
-  https://github.com/puppetlabs/puppetlabs-stdlib
+* https://github.com/saz/puppet-memcached
+* https://github.com/puppetlabs/puppetlabs-stdlib
 
-  This module has only been tested on Ubuntu Natty, with Puppet 2.7.9
-
-this module is intended to complement other openstack modules and
+This module is intended to complement other openstack modules and
 will eventually be a submodule of the openstack set of modules:
 
   https://github.com/puppetlabs/puppetlabs-openstack
 
-  These modules have only been verified as working against the
+These modules have only been verified as working against the
   Swift all in one installation instructions: http://swift.openstack.org/development_saio.html
 
   They have also only been tested for 1.4.6 (and will probably not work for Diablo... yet)
 
-==Usage:
+# Usage: #
 
-  swift:
+## swift: ##
 
-    class that sets up base packages and the base
-    /etc/swift/swift.conf.
+class that sets up base packages and the base
+/etc/swift/swift.conf.
 
     class { 'swift':
       # shared salt used when hashing ring mappings
       swift_hash_suffix => 'shared_secret',
     }
 
-  swift::proxy:
+## swift::proxy: ##
 
-    class that installs and configures the swift
-    proxy server
+class that installs and configures the swift
+proxy server
 
     class { 'swift::proxy':
       # specifies that account should be automatically created
@@ -65,24 +72,24 @@ will eventually be a submodule of the openstack set of modules:
       #auth_type = 'tempauth',
     }
 
-  swift::storage
+## swift::storage ##
 
-    class that sets up all of the configuration and dependencies
-    for swift storage instances
+class that sets up all of the configuration and dependencies
+for swift storage instances
 
     class { 'swift::storage':
       # address that swift should bind to
       storage_local_net_ip => '127.0.0.1'
     }
 
-  swift::storage::device
+## swift::storage::device ##
 
-    defined resource type that can be used to
-    indicate a specific device to be managed
+defined resource type that can be used to
+indicate a specific device to be managed
 
-    This will configure the rsync server instance
-    and swift storage instance to manage the device (which
-    basically maps port to device)
+This will configure the rsync server instance
+and swift storage instance to manage the device (which
+basically maps port to device)
 
     # the title for this device is the port where it
     # will be hosted
@@ -95,22 +102,20 @@ will eventually be a submodule of the openstack set of modules:
       storage_local_net_ip = '127.0.0.1'
     ) {
 
-  swift::storage::loopback
+## swift::storage::loopback ##
 
-    This defined resource was created to test
-    swift by creating loopback devices that can be
-    used for testing
+This defined resource was created to test
+swift by creating loopback devices that can be
+used for testing
 
-    It creates a partition of size [$seek]
-    at base_dir/[$name] using dd with [$byte_size],
-    formats it to be an xfs
-    filesystem which is mounted at /src/node/[$name]
+It creates a partition of size [$seek]
+at base_dir/[$name] using dd with [$byte_size],
+formats it to be an xfs
+filesystem which is mounted at /src/node/[$name]
 
-    It then creates swift::storage::devices for each device
-    type using the title as the 3rd digit of
-    a four digit port number
-
-      60[digit][role] (object = 0, container = 1, account = 2)
+It then creates swift::storage::devices for each device
+type using the title as the 3rd digit of
+a four digit port number :60[digit][role] (object = 0, container = 1, account = 2)
 
     swift::storage::loopback { '1':
       base_dir  = '/srv/loopback-device',
@@ -120,14 +125,14 @@ will eventually be a submodule of the openstack set of modules:
       storage_local_net_ip = '127.0.0.1'
     }
 
-  swift::ringbuiler
+## swift::ringbuiler ##
 
-   class that knows how to build rings. This only exists as a vague idea
+class that knows how to build rings. This only exists as a vague idea
 
-  the ring building will like be built as a combination of native types
-  (for adding the drives) and defined types for rebalancing
+the ring building will like be built as a combination of native types
+(for adding the drives) and defined types for rebalancing
 
-==Example
+# Example #
 
 For an example of how to use this module to build out a single node
 swift cluster, you can try running puppet apply examples/site.pp
@@ -135,14 +140,14 @@ swift cluster, you can try running puppet apply examples/site.pp
 
 There are a few known issues with this code:
 
-  - for some reason the ringbuilding script does not run
+* for some reason the ringbuilding script does not run
     after the manifest fails, you still need to login
     and run bash /etc/swift/ringbuilder.sh and start swift-proxy
-  - once swift is running, you can test the swift instance with the
+* once swift is running, you can test the swift instance with the
     ruby script stored in files/swift_tester.rb
 
 This example can be used as follows:
 
-puppet apply examples/site.pp --certname pre_swift
+  puppet apply examples/site.pp --certname pre_swift
 
-puppet apply examples/site.pp --certname swift_all
+  puppet apply examples/site.pp --certname swift_all
