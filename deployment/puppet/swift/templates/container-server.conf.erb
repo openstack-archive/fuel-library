@@ -1,0 +1,27 @@
+[DEFAULT]
+<% if scope.lookupvar('devices') != :undefined -%>
+devices = <%= devices %>
+<% end -%>
+bind_ip = <%= storage_local_net_ip %>
+<% if scope.lookupvar('bind_port') != :undefined -%>
+bind_port = <%= bind_port %>
+<% end -%>
+mount_check = false
+user = swift
+log_facility = LOG_LOCAL2
+workers = 2
+
+[pipeline:main]
+pipeline = container-server
+
+[app:container-server]
+use = egg:swift#container
+
+[container-replicator]
+vm_test_mode = yes
+
+[container-updater]
+
+[container-auditor]
+
+[container-sync]

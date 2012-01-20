@@ -1,0 +1,40 @@
+# This file is managed by puppet.  Do not edit
+#
+[DEFAULT]
+#cert_file = /etc/swift/cert.crt
+#key_file = /etc/swift/cert.key
+bind_port = 8080
+workers = 8
+user = swift
+
+[pipeline:main]
+# ratelimit?
+pipeline = healthcheck cache <%= auth_type %> proxy-server
+
+[app:proxy-server]
+use = egg:swift#proxy
+allow_account_management = <%= allow_account_management %>
+account_autocreate = <%= account_autocreate %>
+
+<% if auth_type == 'swauth' %>
+[filter:swauth]
+use = egg:swauth#swauth
+# this line is not in the install docs?
+default_swift_cluster = local#<%= swauth_endpoint %>
+super_admin_key = <%= swauth_super_admin_key %>
+<% elsif auth_type == 'tempauth' %>
+[filter:tempauth]
+use = egg:swift#tempauth
+user_admin_admin = admin .admin .reseller_admin
+user_test_tester = testing .admin
+user_test2_tester2 = testing2 .admin
+user_test_tester3 = testing3
+<% end %>
+
+[filter:healthcheck]
+use = egg:swift#healthcheck
+
+[filter:cache]
+use = egg:swift#memcache
+# multi-proxy config not supported
+memcache_servers = <%= proxy_local_net_ip %>:<%= proxy_port %>
