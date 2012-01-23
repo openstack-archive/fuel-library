@@ -28,3 +28,7 @@ net.ipv4.tcp_syncookies = 0
 net.ipv4.netfilter.ip_conntrack_max = 26214
 
 autocreate - should be set to true if tempauth is used
+
+
+verify uniqueness constaint of url/port across types
+  - if it exists, they should be the same type

@@ -15,6 +15,8 @@ Any feedback greatly appreciated.
 # Limitations #
 
 * Only been tested for a single node swift install
+    http://swift.openstack.org/development_saio.html
+
 * Only been tested with tempauth
 
 # Dependencies: #
@@ -40,11 +42,6 @@ will eventually be a submodule of the openstack set of modules:
 
   https://github.com/puppetlabs/puppetlabs-openstack
 
-These modules have only been verified as working against the
-  Swift all in one installation instructions: http://swift.openstack.org/development_saio.html
-
-  They have also only been tested for 1.4.6 (and will probably not work for Diablo... yet)
-
 # Usage: #
 
 ## swift: ##
@@ -64,6 +61,7 @@ proxy server
 
     class { 'swift::proxy':
       # specifies that account should be automatically created
+      # this should be set to true when tempauth is used
       account_autocreate = true,
       #proxy_local_net_ip = '127.0.0.1',
       #proxy_port = '11211',
@@ -87,20 +85,20 @@ for swift storage instances
 defined resource type that can be used to
 indicate a specific device to be managed
 
-This will configure the rsync server instance
+This will configure an rsync server instance
 and swift storage instance to manage the device (which
 basically maps port to device)
 
     # the title for this device is the port where it
     # will be hosted
-    swift::storage::device { '6010'
+    swift::storage::device { '6010':
       # the type of device (account/object/container)
       type => 'object',
       # directory where device is mounted
-      devices = '/srv/node',
+      devices => '/srv/node',
       # address to bind to
-      storage_local_net_ip = '127.0.0.1'
-    ) {
+      storage_local_net_ip => '127.0.0.1'
+    }
 
 ## swift::storage::loopback ##
 
@@ -118,12 +116,12 @@ type using the title as the 3rd digit of
 a four digit port number :60[digit][role] (object = 0, container = 1, account = 2)
 
     swift::storage::loopback { '1':
-      base_dir  = '/srv/loopback-device',
-      mnt_base_dir = '/srv/node',
-      byte_size = '1024',
-      seek      = '25000',
-      storage_local_net_ip = '127.0.0.1'
-    }
+      base_dir  => '/srv/loopback-device',
+      mnt_base_dir => '/srv/node',
+      byte_size => '1024',
+      seek      => '25000',
+      storage_local_net_ip => '127.0.0.1'
+}
 
 ## swift::ringbuiler ##
 
