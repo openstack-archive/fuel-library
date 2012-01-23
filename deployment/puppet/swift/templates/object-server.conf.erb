@@ -1,9 +1,9 @@
 [DEFAULT]
-<% if scope.lookupvar('devices') != :undefined -%>
+<% if has_variable?('devices') -%>
 devices = <%= devices %>
 <% end -%>
 bind_ip = <%= storage_local_net_ip %>
-<% if scope.lookupvar('bind_port') != :undefined -%>
+<% if has_variable?('bind_port') -%>
 bind_port = <%= bind_port %>
 <% end -%>
 mount_check = false
