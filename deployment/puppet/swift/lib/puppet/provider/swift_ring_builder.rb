@@ -15,19 +15,21 @@ class Puppet::Provider::SwiftRingBuilder < Puppet::Provider
   def self.lookup_ring
     object_hash = {}
     if File.exists?(builder_file_path)
-      swift_ring_builder(builder_file_path).split("\n")[4..-1].each do |row|
-        if row =~ /^\s+(\d+)\s+(\d+)\s+(\S+)\s+(\d+)\s+(\S+)\s+(\d+\.\d+)\s+(\d+)\s+(-?\d+\.\d+)\s+(\S*)$/
-          object_hash["#{$3}:#{$4}"] = {
-            :id          => $1,
-            :zone        => $2,
-            :device_name => $5,
-            :weight      => $6,
-            :partitions  => $7,
-            :balance     => $8,
-            :meta        => $9
-          }
-        else
-          Puppet.warning("Unexpected line: #{row}")
+      if rows = swift_ring_builder(builder_file_path).split("\n")[4..-1]
+        rows.each do |row|
+          if row =~ /^\s+(\d+)\s+(\d+)\s+(\S+)\s+(\d+)\s+(\S+)\s+(\d+\.\d+)\s+(\d+)\s+(-?\d+\.\d+)\s+(\S*)$/
+            object_hash["#{$3}:#{$4}"] = {
+              :id          => $1,
+              :zone        => $2,
+              :device_name => $5,
+              :weight      => $6,
+              :partitions  => $7,
+              :balance     => $8,
+              :meta        => $9
+            }
+          else
+            Puppet.warning("Unexpected line: #{row}")
+          end
         end
       end
     end
