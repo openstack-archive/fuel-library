@@ -1,4 +1,4 @@
-define ringbuilder::create(
+define swift::ringbuilder::create(
   $part_power = 18,
   $replicas = 5,
   $min_part_hours = 1

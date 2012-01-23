@@ -1,4 +1,4 @@
-define ringbuilder::rebalance() {
+define swift::ringbuilder::rebalance() {
 
   validate_re($name, '^object|contianer|account$')
 
