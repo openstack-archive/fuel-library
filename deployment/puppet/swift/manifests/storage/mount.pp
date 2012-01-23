@@ -5,7 +5,7 @@
 #
 define swift::storage::mount(
   $device,
-  $mnt_base_dir = '/srv/node',
+  $mnt_base_dir = '/srv/node'
 ) {
 
   # the directory that represents the mount point
