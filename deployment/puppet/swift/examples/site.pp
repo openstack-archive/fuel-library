@@ -29,72 +29,77 @@ node pre_swift {
 }
 
 node swift_all {
-  # install curl (we will need it for testing)
   package { 'curl': ensure => present }
-
-  # ensure that sshd is installed
   class { 'ssh::server::install': }
-
-  # install memcached for the proxy
   class { 'memcached':
     listen_ip => $proxy_local_net_ip,
   }
-
-  # set up the swift base deps
   class { 'swift':
     # not sure how I want to deal with this shared secret
     swift_hash_suffix => $swift_shared_secret,
     package_ensure => latest,
   }
-
-  # configure base deps for storage
-  class { 'swift::storage': }
-
-  # set up three loopback devices for testing
   swift::storage::loopback { ['1', '2', '3']:
     require => Class['swift'],
   }
 
-  # this is just here temporarily until I can better figure out how to model it
-  file { '/etc/swift/ringbuilder.sh':
-      content => '
-#!/bin/bash
-# sets up a basic ring-builder
-# which is hard-coded to only work
-# for this example
+  Ring_object_device { weight => 1 }
+  Ring_container_device { weight => 1 }
+  Ring_account_device { weight => 1 }
 
-cd /etc/swift
-
-rm -f *.builder *.ring.gz backups/*.builder backups/*.ring.gz
-
-swift-ring-builder object.builder create 18 3 1
-swift-ring-builder object.builder add z1-127.0.0.1:6010/1 1
-swift-ring-builder object.builder add z2-127.0.0.1:6020/2 1
-swift-ring-builder object.builder add z3-127.0.0.1:6030/3 1
-swift-ring-builder object.builder rebalance
-swift-ring-builder container.builder create 18 3 1
-swift-ring-builder container.builder add z1-127.0.0.1:6011/1 1
-swift-ring-builder container.builder add z2-127.0.0.1:6021/2 1
-swift-ring-builder container.builder add z3-127.0.0.1:6031/3 1
-swift-ring-builder container.builder rebalance
-swift-ring-builder account.builder create 18 3 1
-swift-ring-builder account.builder add z1-127.0.0.1:6012/1 1
-swift-ring-builder account.builder add z2-127.0.0.1:6022/2 1
-swift-ring-builder account.builder add z3-127.0.0.1:6032/3 1
-swift-ring-builder account.builder rebalance
-    ',
-    mode => '555',
-  }~>
-  # TODO - figure out why this is failing ;(
-  exec { 'build-ring':
-    command     => '/etc/swift/ringbuilder.sh',
-    refreshonly => true,
-    notify      => Service['swift-proxy']
+  ring_object_device { '127.0.0.1:6010':
+    zone        => 1,
+    device_name => '1',
+  }
+  ring_object_device { '127.0.0.1:6020':
+    zone        => 2,
+    device_name => '2',
+  }
+  ring_object_device { '127.0.0.1:6030':
+    zone        => 3,
+    device_name => '3',
   }
 
-  # configure swift proxy after the run is build
+  ring_container_device { '127.0.0.1:6011':
+    zone        => 1,
+    device_name => '1',
+  }
+  ring_container_device { '127.0.0.1:6021':
+    zone        => 2,
+    device_name => '2',
+  }
+  ring_container_device { '127.0.0.1:6031':
+    zone        => 3,
+    device_name => '3',
+  }
+
+  ring_account_device { '127.0.0.1:6012':
+    zone        => 1,
+    device_name => '1',
+  }
+  ring_account_device { '127.0.0.1:6022':
+    zone        => 2,
+    device_name => '2',
+  }
+  ring_account_device { '127.0.0.1:6032':
+    zone        => 3,
+    device_name => '3',
+  }
+
+  class { 'swift::ringbuilder':
+    part_power     => '18',
+    replicas       => '3',
+    min_part_hours => 1,
+    require        => Class['swift'],
+  }
+
+  class { 'swift::storage': }
+
+  # TODO should I enable swath in the default config?
   class { 'swift::proxy':
     account_autocreate => true,
+    require            => Class['swift::ringbuilder'],
   }
 
 }
+
