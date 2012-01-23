@@ -149,3 +149,13 @@ This example can be used as follows:
   puppet apply examples/site.pp --certname pre_swift
 
   puppet apply examples/site.pp --certname swift_all
+
+# Verifying installation #
+
+This module also comes with a simple Ruby script that validates
+rather or not your swift cluster is functional.
+
+The script can be run as:
+
+  ruby /files/swift_tester.rb
+
