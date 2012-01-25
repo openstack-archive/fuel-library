@@ -14,7 +14,7 @@ Puppet::Type.type(:nova_config).provide(
   text_line :blank, :match => /^\s*$/;
 
   record_line :parsed,
-    :fields => %w{line}, 
+    :fields => %w{line},
     :match => /--(.*)/ ,
     :post_parse => proc { |hash|
       Puppet.debug("nova config line:#{hash[:line]} has been parsed") 
