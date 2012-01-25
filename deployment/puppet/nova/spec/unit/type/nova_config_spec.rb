@@ -15,7 +15,7 @@ describe 'Puppet::Type.type(:nova_config)' do
     Puppet::Type.type(:nova_config).new(:name => 'foo', :ensure => :absent)
   end
   it 'should require a value when ensure is present' do
-    expect { Puppet::Type.type(:nova_config).new(:name => 'foo', :ensure => :present) }.should raise_error(Puppet::Error, 'Property value must be set when ensure is present')
+    expect { Puppet::Type.type(:nova_config).new(:name => 'foo', :ensure => :present) }.should raise_error(Puppet::Error, /Property value must be set/)
   end
   it 'should accept a valid value' do
     @nova_config[:value] = 'bar'
