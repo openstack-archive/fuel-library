@@ -2,9 +2,7 @@ Puppet::Type.type(:nova_network).provide(:nova_manage) do
 
   desc "Manage nova network"
 
-  defaultfor :kernel => 'Linux'
-
-  commands :nova_manage => 'nova-manage'
+  optional_commands :nova_manage => 'nova-manage'
 
   def exists?
     begin
