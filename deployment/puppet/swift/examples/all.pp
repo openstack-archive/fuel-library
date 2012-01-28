@@ -9,59 +9,45 @@ Exec { logoutput => true }
 
 package { 'curl': ensure => present }
 class { 'ssh::server::install': }
+
 class { 'memcached':
   listen_ip => $proxy_local_net_ip,
 }
+
 class { 'swift':
   # not sure how I want to deal with this shared secret
   swift_hash_suffix => $swift_shared_secret,
   package_ensure => latest,
 }
+
+# create xfs partitions on a loopback device and mount them
 swift::storage::loopback { ['1', '2', '3']:
   require => Class['swift'],
 }
 
-Ring_object_device { weight => 1 }
-Ring_container_device { weight => 1 }
-Ring_account_device { weight => 1 }
+# sets up a storage node which is composed of a single
+# device that contains an endpoint for an object, account, and container
 
-ring_object_device { '127.0.0.1:6010':
-  zone        => 1,
-  device_name => '1',
-}
-ring_object_device { '127.0.0.1:6020':
-  zone        => 2,
-  device_name => '2',
-}
-ring_object_device { '127.0.0.1:6030':
-  zone        => 3,
-  device_name => '3',
+Swift::Storage::Node {
+  mnt_base_dir         => '/srv/node',
+  weight               => 1,
+  manage_ring          => true,
+  storage_local_net_ip => '127.0.0.1',
 }
 
-ring_container_device { '127.0.0.1:6011':
-  zone        => 1,
-  device_name => '1',
-}
-ring_container_device { '127.0.0.1:6021':
-  zone        => 2,
-  device_name => '2',
-}
-ring_container_device { '127.0.0.1:6031':
-  zone        => 3,
-  device_name => '3',
+swift::storage::node { '1':
+  zone                 => 1,
+  require              => Swift::Storage::Loopback[1],
 }
 
-ring_account_device { '127.0.0.1:6012':
-  zone        => 1,
-  device_name => '1',
+swift::storage::node { '2':
+  zone                 => 2,
+  require              => Swift::Storage::Loopback[2],
 }
-ring_account_device { '127.0.0.1:6022':
-  zone        => 2,
-  device_name => '2',
-}
-ring_account_device { '127.0.0.1:6032':
-  zone        => 3,
-  device_name => '3',
+
+swift::storage::node { '3':
+  zone                 => 3,
+  require              => Swift::Storage::Loopback[3],
 }
 
 class { 'swift::ringbuilder':
@@ -78,4 +64,3 @@ class { 'swift::proxy':
   account_autocreate => true,
   require            => Class['swift::ringbuilder'],
 }
-
