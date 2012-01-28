@@ -23,16 +23,13 @@ define swift::storage::device(
 
   $bind_port = $name
 
-  Rsync::Server::Module {
+  rsync::server::module { "${type}${name}":
+    path => $devices,
+    lock_file => "/var/lock/${type}${name}.lock",
     uid => $owner,
     gid => $group,
     max_connections => $max_connections,
     read_only => false,
-  }
-
-  rsync::server::module { "${type}${name}":
-    path => $devices,
-    lock_file => "/var/lock/${type}${name}.lock"
   }
 
   file { "/etc/swift/${type}-server/${name}.conf":
