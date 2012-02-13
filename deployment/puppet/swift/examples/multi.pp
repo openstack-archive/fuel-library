@@ -33,7 +33,7 @@ if($clientcert == 'swift_storage_1') {
   $swift_zone = 2
   include role_swift_storage
 
-} elsif($clientcert == 'swift_storage_2') {
+} elsif($clientcert == 'swift_storage_3') {
 
   $swift_zone = 3
   include role_swift_storage
