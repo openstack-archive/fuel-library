@@ -46,6 +46,33 @@ if($clientcert == 'swift_storage_1') {
 
   include role_swift_ringbuilder
 
+} #elsif($clientcert == 'puppetmaster') {
+
+class role_puppetmaster {
+
+  class { 'mysql::server':
+    config_hash => {'bind_address' => '127.0.0.1'}
+  }
+  class { 'mysql::ruby': }
+  package { 'activerecord':
+    ensure   => '2.3.5',
+    provider => 'gem',
+  }
+
+  class { 'puppet::master':
+    modulepath              => '/vagrant/modules',
+    manifest                => '/vagrant/manifests/site.pp',
+    storeconfigs            => true,
+    storeconfigs_dbuser     => 'dan',
+    storeconfigs_dbpassword => 'foo',
+    storeconfigs_dbadapter  => 'mysql',
+    storeconfigs_dbserver   => 'localhost',
+    storeconfigs_dbsocket   => '/var/run/mysqld/mysqld.sock',
+    version                 => installed,
+    puppet_master_package   => 'puppet',
+    autosign                => 'true',
+    certname                => $clientcert,
+  }
 }
 
 class role_swift {
