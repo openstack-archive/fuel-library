@@ -1,5 +1,22 @@
+# Performs all global configuration required
+# for creating a swift storage node.
+#  Includes:
+#    installing an rsync server
+#    installs storeage packages (object,account,containers)
+# == Parameters
+#  [*storeage_local_net_ip*]
+#  [*package_ensure*]
+# == Dependencies
 #
-# class for building out a storage node
+# == Examples
+#
+# == Authors
+#
+#   Dan Bode dan@puppetlabs.com
+#
+# == Copyright
+#
+# Copyright 2011 Puppetlabs Inc, unless otherwise noted.
 #
 class swift::storage(
   $package_ensure = 'present',

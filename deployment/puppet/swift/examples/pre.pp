@@ -16,6 +16,7 @@ apt::source { 'puppet':
   release  => 'natty',
   key      => '4BD6EC30',
 }
+
 # install the latest version of Puppet
 package { 'puppet':
   ensure  => latest,

@@ -5,9 +5,11 @@
 
 $proxy_local_net_ip='127.0.0.1'
 $swift_shared_secret='changeme'
+
 Exec { logoutput => true }
 
 package { 'curl': ensure => present }
+
 class { 'ssh::server::install': }
 
 class { 'memcached':
@@ -20,12 +22,12 @@ class { 'swift':
   package_ensure => latest,
 }
 
-# create xfs partitions on a loopback device and mount them
+# create xfs partitions on a loopback device and mounts them
 swift::storage::loopback { ['1', '2', '3']:
   require => Class['swift'],
 }
 
-# sets up a storage node which is composed of a single
+# sets up storage nodes which is composed of a single
 # device that contains an endpoint for an object, account, and container
 
 Swift::Storage::Node {
