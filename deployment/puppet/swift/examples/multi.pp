@@ -19,35 +19,31 @@
 
 
 $swift_shared_secret='changeme'
+$swift_local_net_ip = $ipaddress_eth1
 
 Exec { logoutput => true }
 
 if($clientcert == 'swift_storage_1') {
 
-  $swift_local_net_ip = $ipaddress
   $swift_zone = 1
   include role_swift_storage
 
 } elsif($clientcert == 'swift_storage_2') {
 
-  $swift_local_net_ip = $ipaddress
   $swift_zone = 2
   include role_swift_storage
 
 } elsif($clientcert == 'swift_storage_2') {
 
-  $swift_local_net_ip = $ipaddress
   $swift_zone = 3
   include role_swift_storage
 
 } elsif($clientcert == 'swift_proxy') {
 
-  $swift_local_net_ip = $ipaddress
   include role_swift_proxy
 
 } elsif($clientcert == 'swift_ringbuilding') {
 
-  $swift_local_net_ip = $ipaddress
   include role_swift_ringbuilder
 
 }
