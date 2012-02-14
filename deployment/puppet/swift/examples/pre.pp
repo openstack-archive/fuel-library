@@ -6,9 +6,13 @@
 # set up all of the pre steps
 # this shoud be run
 
-class { 'apt':}
 # use the swift trunk ppa
 class { 'swift::repo::trunk':}
+class { 'apt':
+  proxy_host   => '10.0.2.2',
+  proxy_port   => '3128',
+  disable_keys => true,
+}
 
 # use our apt repo
 apt::source { 'puppet':
