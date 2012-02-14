@@ -1,39 +1,38 @@
 # Disclaimer #
 
-This is not ready to be used.
-
 This is pre-beta code that is actively being developed.
 
-It is currently being developed against swift trunk.
+Although the code is in a functional state, there is currently
+no guarentees about the interfaces that it provides.
 
 I am actively seeking users who understand that this code
 is in a pre-alpha state. Feel free to contact me (Dan Bode)
-at dan < at > puppetlabs <dot> com or bodepd < on > freenode.
+at dan@puppetlabs.com or bodepd<on>freenode.
 
 Any feedback greatly appreciated.
 
-# Limitations #
+# Use Cases #
 
-* Only been tested for a single node swift install
+* Tested for a single node swift install
     http://swift.openstack.org/development_saio.html
+
+* Tested for multi-node swift install
+   http://swift.openstack.org/howto_installmultinode.html
 
 * Only been tested with tempauth
 
 # Dependencies: #
 
 * Only tested on Ubuntu Natty
-* Only tested against Puppet 2.7.9
-* Only verified with Swift 1.4.6
+* Only tested against Puppet 2.7.10
+* Only verified with Swift 1.4.7
 
 # module Dependencies #
 
-* https://github.com/bodepd/puppet-ssh
-    (this should actaully depend on https://github.com/saz/puppet-ssh
-     and can when pull request https://github.com/saz/puppet-ssh/pull/1
-     is merged)
-* https://github.com/bodepd/puppet-rsync
-    (there is a pull request to merge this into the parent repo:
-    https://github.com/bodepd/puppet-rsync)
+This is known to work with master from the following github repos:
+
+* https://github.com/saz/puppet-ssh
+* https://github.com/puppetlabs/puppetlabs-rsync
 * https://github.com/saz/puppet-memcached
 * https://github.com/puppetlabs/puppetlabs-stdlib
 
@@ -63,7 +62,7 @@ proxy server
       # specifies that account should be automatically created
       # this should be set to true when tempauth is used
       account_autocreate = true,
-      #proxy_local_net_ip = '127.0.0.1',
+      proxy_local_net_ip = $ipaddress_eth1,
       #proxy_port = '11211',
       # auth type defaults to tempauth - this is the
       # only auth that has been tested
@@ -73,25 +72,28 @@ proxy server
 ## swift::storage ##
 
 class that sets up all of the configuration and dependencies
-for swift storage instances
+for swift storage server instances
 
     class { 'swift::storage':
       # address that swift should bind to
-      storage_local_net_ip => '127.0.0.1'
+      storage_local_net_ip => $ipaddress_eth1,
+      devices              => '/srv/node'
     }
 
-## swift::storage::device ##
+## swift::storage::server ##
 
-defined resource type that can be used to
-indicate a specific device to be managed
+Defined resource type that can be used to
+create a swift storage server instance. In general, you do
+not need to explicity specify your server instances (as the
+swift::storage::class will create them for you)
 
 This will configure an rsync server instance
-and swift storage instance to manage the device (which
-basically maps port to device)
+and swift storage instance to manage the all devices in
+the devices directory.
 
-    # the title for this device is the port where it
+    # the title for this server and the port where it
     # will be hosted
-    swift::storage::device { '6010':
+    swift::storage::server { '6010':
       # the type of device (account/object/container)
       type => 'object',
       # directory where device is mounted
@@ -125,32 +127,43 @@ a four digit port number :60[digit][role] (object = 0, container = 1, account = 
 
 ## swift::ringbuiler ##
 
-class that knows how to build rings. This only exists as a vague idea
+class that knows how to build rings.
 
-the ring building will like be built as a combination of native types
-(for adding the drives) and defined types for rebalancing
+Creates the initial rings, collects any exported resources,
+and rebalances the ring if it is updated.
+
+      class { 'swift::ringbuilder':
+        part_power     => '18',
+        replicas       => '3',
+        min_part_hours => '1',
+      }
 
 # Example #
 
 For an example of how to use this module to build out a single node
-swift cluster, you can try running puppet apply examples/site.pp
-(feel free to look at the code to see how to use this module)
+swift cluster, you can have a look at examples/all.pp
 
-There are a few known issues with this code:
-
-* for some reason the ringbuilding script does not run
-    after the manifest fails, you still need to login
-    and run bash /etc/swift/ringbuilder.sh and start swift-proxy
-* once swift is running, you can test the swift instance with the
-    ruby script stored in files/swift_tester.rb
-
-This example can be used as follows:
+This example can be used as follows:`
 
   # set up pre-reqs
   puppet apply examples/pre.pp
 
   # install all swift components on a single node
   puppet apply examples/all.pp
+
+For an example of how to use this module to build out a multi node
+swift cluster, you can have a look at examples/multi.pp
+
+This example assumes that a puppetmaster already exists and is
+resolvable as puppetmaster.
+
+This example can be used as follows:`
+
+  # set up pre-reqs
+  puppet apply examples/pre.pp
+
+  # install all swift components on a single node
+  puppet apply examples/all.pp --certname my_role
 
 # Verifying installation #
 
