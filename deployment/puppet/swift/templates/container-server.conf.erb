@@ -1,11 +1,7 @@
 [DEFAULT]
-<% if has_variable?('devices') -%>
 devices = <%= devices %>
-<% end -%>
 bind_ip = <%= storage_local_net_ip %>
-<% if has_variable?('bind_port') -%>
 bind_port = <%= bind_port %>
-<% end -%>
 mount_check = false
 user = swift
 log_facility = LOG_LOCAL2
