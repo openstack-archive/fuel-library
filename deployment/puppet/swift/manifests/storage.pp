@@ -1,11 +1,19 @@
-# Performs all global configuration required
-# for creating a swift storage node.
+#
+#  Configures a swift storage node to host servers for object,
+#  container, and accounts.
+#
 #  Includes:
 #    installing an rsync server
 #    installs storeage packages (object,account,containers)
 # == Parameters
-#  [*storeage_local_net_ip*]
-#  [*package_ensure*]
+#  [*storeage_local_net_ip*] ip address that the swift servers should
+#    bind to. Optional. Defaults to 127.0.0.1 .
+#    TODO - should this default to 0.0.0.0 ?
+#  [*package_ensure*] The desired ensure state of the swift storage packages.
+#    Optional. Defaults to present.
+#  [*devices*] The path where the managed volumes can be found.
+#    This assumes that all servers use the same path.
+#    Optional. Defaults to /srv/node/
 #  [*object_port*] Port where object storage server should be hosted.
 #    Optional. Defaults to 6000.
 #  [*container_port*] Port where the container storage server should be hosted.
@@ -115,6 +123,7 @@ class swift::storage(
     provider  => 'upstart',
   }
 
+  # TODO this should be removed when the upstart packages are fixed.
   define upstart() {
     file { "/etc/init/swift-${name}.conf":
       mode   => '0644',

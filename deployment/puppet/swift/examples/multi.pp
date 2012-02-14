@@ -140,6 +140,9 @@ class role_swift_storage inherits role_swift {
     require      => Class['swift'],
   }
 
+  # these exported resources write ring config
+  # resources into the database so that they can be
+  # consumed by the ringbuilder role
   @@ring_object_device { "${swift_local_net_ip}:6000":
     zone        => $swift_zone,
     device_name => 1,
