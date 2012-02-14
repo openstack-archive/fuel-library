@@ -28,7 +28,7 @@ class swift::storage(
   $package_ensure = 'present',
   # TODO - should this default to 0.0.0.0?
   $storage_local_net_ip = '127.0.0.1',
-  $devices = '/srv/nodes'
+  $devices = '/srv/node',
   $object_port = '6000',
   $container_port = '6001',
   $account_port = '6002'
