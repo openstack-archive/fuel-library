@@ -108,6 +108,7 @@ class role_swift_storage inherits role_swift {
 
   class { 'swift::storage':
     storage_local_net_ip => $swift_local_net_ip,
+    devices              => '/srv/node',
   }
 
   # create xfs partitions on a loopback device and mount them
@@ -117,31 +118,21 @@ class role_swift_storage inherits role_swift {
     require      => Class['swift'],
   }
 
-  Swift::Storage::Device {
-    storage_local_net_ip => $swift_local_net_ip,
-    devices              => '/srv/node',
-  }
-
-  swift::storage::device { '8001': type => 'object',}
   @@ring_object_device { "${swift_local_net_ip}:8001":
     zone        => 1,
     device_name => 1,
     weight      => 1,
   }
 
-  swift::storage::device { '8002': type => 'container',}
   @@ring_container_device { "${swift_local_net_ip}:8002":
     zone        => 1,
     device_name => 1,
     weight      => 1,
   }
 
-  swift::storage::device { '8003': type => 'account',}
   @@ring_account_device { "${swift_local_net_ip}:8003":
     zone        => 1,
     device_name => 1,
     weight      => 1,
   }
-
-
 }
