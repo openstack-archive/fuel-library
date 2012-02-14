@@ -87,7 +87,12 @@ class role_swift {
 
 }
 
-class role_swift_ringbuilder inherits role_swif {
+class role_swift_ringbuilder inherits role_swift {
+
+  # collect all resource that we need to rebalance the ring
+  Ring_object_device <<| |>>
+  Ring_container_device <<| |>>
+  Ring_account_device <<| |>>
 
   class { 'swift::ringbuilder':
     part_power     => '18',
@@ -95,12 +100,6 @@ class role_swift_ringbuilder inherits role_swif {
     min_part_hours => 1,
     require        => Class['swift'],
   }
-
-  # collect the ring devices to build
-  # TODO - this should be done with resource collection
-  include ring_hack
-
-  # now build an rsync server to host the data
 
 }
 
