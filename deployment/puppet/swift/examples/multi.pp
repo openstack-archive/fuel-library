@@ -112,6 +112,12 @@ class role_swift_proxy inherits role_swift {
     listen_ip => $proxy_local_net_ip,
   }
 
+  class { 'swift::ringbuilder':
+    part_power     => '18',
+    replicas       => '3',
+    min_part_hours => 1,
+    require        => Class['swift'],
+  }
   # TODO should I enable swath in the default config?
   class { 'swift::proxy':
     account_autocreate => true,
