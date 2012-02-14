@@ -40,18 +40,20 @@ node 'swift_storage_3' {
   $swift_zone = 3
   include role_swift_storage
 
-
-  include role_swift_proxy
 }
 
 node 'swift_proxy' {
 
-  include role_swift_ringbuilder
+  class { 'role_swift_ringbuilder': }
+  class { 'role_swift_proxy':
+    require => Class['role_swift_ringbuilder'],
+  }
 
 }
 
 node 'swift_ringbuilding' {
 
+  include role_swift_ringbuilder
 
 }
 
@@ -91,12 +93,6 @@ class role_swift_proxy inherits role_swift {
     listen_ip => $proxy_local_net_ip,
   }
 
-  class { 'swift::ringbuilder':
-    part_power     => '18',
-    replicas       => '3',
-    min_part_hours => 1,
-    require        => Class['swift'],
-  }
   # TODO should I enable swath in the default config?
   class { 'swift::proxy':
     account_autocreate => true,
