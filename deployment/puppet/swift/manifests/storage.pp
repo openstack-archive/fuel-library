@@ -6,6 +6,12 @@
 # == Parameters
 #  [*storeage_local_net_ip*]
 #  [*package_ensure*]
+#  [*object_port*] Port where object storage server should be hosted.
+#    Optional. Defaults to 6000.
+#  [*container_port*] Port where the container storage server should be hosted.
+#    Optional. Defaults to 6001.
+#  [*account_port*] Port where the account storage server should be hosted.
+#    Optional. Defaults to 6002.
 # == Dependencies
 #
 # == Examples
@@ -23,6 +29,9 @@ class swift::storage(
   # TODO - should this default to 0.0.0.0?
   $storage_local_net_ip = '127.0.0.1',
   $devices = '/srv/nodes'
+  $object_port = '6000',
+  $container_port = '6001',
+  $account_port = '6002'
 ) inherits swift {
 
 
@@ -57,7 +66,7 @@ class swift::storage(
     ensure => $package_ensure,
   }
 
-  swift::storage::server { '6002':
+  swift::storage::server { $account_port:
     type             => 'account',
     config_file_path => 'account-server.conf',
   }
@@ -75,7 +84,7 @@ class swift::storage(
     ensure => $package_ensure,
   }
 
-  swift::storage::server { '6001':
+  swift::storage::server { $container_port:
     type             => 'container',
     config_file_path => 'container-server.conf',
   }
@@ -93,7 +102,7 @@ class swift::storage(
     ensure => $package_ensure,
   }
 
-  swift::storage::server { '6000':
+  swift::storage::server { $object_port:
     type             => 'object',
     config_file_path => 'object-server.conf',
   }
