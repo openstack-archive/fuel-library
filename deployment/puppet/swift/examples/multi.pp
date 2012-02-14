@@ -23,32 +23,35 @@ $swift_local_net_ip = $ipaddress_eth1
 
 Exec { logoutput => true }
 
-if($clientcert == 'swift_storage_1') {
+node 'swift_storage_1' {
 
   $swift_zone = 1
   include role_swift_storage
 
-} elsif($clientcert == 'swift_storage_2') {
+}
+node 'swift_storage_2' {
 
   $swift_zone = 2
   include role_swift_storage
 
-} elsif($clientcert == 'swift_storage_3') {
+}
+node 'swift_storage_3' {
 
   $swift_zone = 3
   include role_swift_storage
 
-} elsif($clientcert == 'swift_proxy') {
 
   include role_swift_proxy
+}
 
-} elsif($clientcert == 'swift_ringbuilding') {
+node 'swift_proxy' {
 
   include role_swift_ringbuilder
 
-} #elsif($clientcert == 'puppetmaster') {
+}
 
 class role_puppetmaster {
+node 'swift_ringbuilding' {
 
   class { 'mysql::server':
     config_hash => {'bind_address' => '127.0.0.1'}
