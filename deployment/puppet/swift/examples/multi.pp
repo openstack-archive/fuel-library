@@ -1,28 +1,43 @@
 #
 # Example file for building out a multi-node environment
 #
-
-# for this to work, you need to run the nodes in this order:
-
+# This example creates nodes of the following roles:
+#   swift_storage - nodes that host storage servers
+#   swift_proxy - nodes that serve as a swift proxy
+#   swift_ringbuilder - nodes that are responsible for
+#     rebalancing the rings
+#
+# This example assumes a few things:
+#   * the multi-node scenario requires a puppetmaster
+#   * it assumes that networking is correctly configured
+#
+# These nodes need to be brought up in a certain order
 #
 # 1. storage nodes
 # 2. ringbuilder
-# 3. run the storage nodes again
+# 3. run the storage nodes again (to synchronize the ring db)
+#    TODO - the code for this has not been written yet...
 # 4. run the proxy
 # 5. test that everything works!!
 #
+# This example file is what I used for testing
+# in vagrant
 #
-# This example file is almost the
-# same as what I have been using
-# to build swift in my environment (which is based on vagrant)
-
-
-
+#
+# simple shared salt
 $swift_shared_secret='changeme'
+# assumes that the ip address where all of the storage nodes
+# will communicate is on eth1
 $swift_local_net_ip = $ipaddress_eth1
 
 Exec { logoutput => true }
 
+#
+# specifies that nodes with the cert names of
+# swift_storage_1,2, and 3 will be assigned the
+# role of swift_storage_nodes with in the respective
+# zones of 1,2,3
+#
 node 'swift_storage_1' {
 
   $swift_zone = 1
@@ -42,6 +57,12 @@ node 'swift_storage_3' {
 
 }
 
+#
+# Specfies that a node with certname of swift_proxy
+# will be assigned the role of swift proxy.
+# In my testing environemnt, the proxy node also serves
+# as the ringbuilder
+#
 node 'swift_proxy' {
 
   class { 'role_swift_ringbuilder': }
@@ -57,6 +78,9 @@ node 'swift_ringbuilding' {
 
 }
 
+#
+# classes that are used for role assignment
+#
 class role_swift {
 
   class { 'ssh::server::install': }
@@ -71,7 +95,8 @@ class role_swift {
 
 class role_swift_ringbuilder inherits role_swift {
 
-  # collect all resource that we need to rebalance the ring
+  # collect all of the resources that are needed
+  # to rebalance the ring
   Ring_object_device <<| |>>
   Ring_container_device <<| |>>
   Ring_account_device <<| |>>
@@ -87,6 +112,7 @@ class role_swift_ringbuilder inherits role_swift {
 
 class role_swift_proxy inherits role_swift {
 
+  # curl is only required so that I can run tests
   package { 'curl': ensure => present }
 
   class { 'memcached':

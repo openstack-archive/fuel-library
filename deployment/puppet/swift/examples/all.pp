@@ -2,7 +2,7 @@
 # This example file is almost the
 # same as what I have been using
 # to build swift in my environment (which is based on vagrant)
-
+#
 $proxy_local_net_ip='127.0.0.1'
 $swift_shared_secret='changeme'
 
