@@ -121,36 +121,42 @@ class role_swift_proxy inherits role_swift {
 
 class role_swift_storage inherits role_swift {
 
-  class { 'swift::storage': }
+  class { 'swift::storage':
+    storage_local_net_ip => $swift_local_net_ip,
+  }
 
   # create xfs partitions on a loopback device and mount them
   swift::storage::loopback { '1':
-    require => Class['swift'],
+    base_dir     => '/srv/loopback-device',
+    mnt_base_dir => '/srv/node',
+    require      => Class['swift'],
   }
 
-  swift::storage::device::object { '6001':
-    device_name => '1',
-    zone        => $swift_zone,
-    weight      => 1,
+  Swift::Storage::Device {
     storage_local_net_ip => $swift_local_net_ip,
-    manage_ring => false,
+    devices              => '/srv/node',
   }
-  swift::storage::device::container { '6002':
-    device_name => '1',
-    zone        => $swift_zone,
-    weight      => 1,
-    storage_local_net_ip => $swift_local_net_ip,
-    manage_ring => false,
-  }
-  swift::storage::device::account { '6003':
-    device_name => '1',
-    zone        => $swift_zone,
-    weight      => 1,
-    storage_local_net_ip => $swift_local_net_ip,
-    manage_ring => false,
-  }
-}
 
-class ring_hack {
+  swift::storage::device { '8001': type => 'object',}
+  @@ring_object_device { "${swift_local_net_ip}:8001":
+    zone        => 1,
+    device_name => 1,
+    weight      => 1,
+  }
+
+  swift::storage::device { '8002': type => 'container',}
+  @@ring_container_device { "${swift_local_net_ip}:8002":
+    zone        => 1,
+    device_name => 1,
+    weight      => 1,
+  }
+
+  swift::storage::device { '8003': type => 'account',}
+  @@ring_account_device { "${swift_local_net_ip}:8003":
+    zone        => 1,
+    device_name => 1,
+    weight      => 1,
+  }
+
 
 }

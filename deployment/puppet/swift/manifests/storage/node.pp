@@ -15,40 +15,39 @@ define swift::storage::node(
   $manage_ring = true
 ) {
 
-  swift::storage::device::object { "60${name}0":
+  Swift::Storage::Device {
+    storage_local_net_ip => $storage_local_net_ip,
     devices              => $mnt_base_dir,
-    device_name          => $name,
-    zone                 => $zone,
-    weight               => $weight,
+    max_connections      => $max_connections,
     owner                => $owner,
     group                => $group,
-    max_connections      => $max_connections,
-    storage_local_net_ip => $storage_local_net_ip,
-    manage_ring          => $manage_ring,
   }
 
-  swift::storage::device::container { "60${name}1":
-    devices              => $mnt_base_dir,
-    device_name          => $name,
-    zone                 => $zone,
-    weight               => $weight,
-    owner                => $owner,
-    group                => $group,
-    max_connections      => $max_connections,
-    storage_local_net_ip => $storage_local_net_ip,
-    manage_ring          => $manage_ring,
+  swift::storage::device { "60${name}0":
+    type => 'object',
+  }
+  ring_object_device { "${storage_local_net_ip}:60${name}0":
+    zone        => $zone,
+    device_name => $name,
+    weight      => $weight,
   }
 
-  swift::storage::device::account { "60${name}2":
-    devices              => $mnt_base_dir,
-    device_name          => $name,
-    zone                 => $zone,
-    weight               => $weight,
-    owner                => $owner,
-    group                => $group,
-    max_connections      => $max_connections,
-    storage_local_net_ip => $storage_local_net_ip,
-    manage_ring          => $manage_ring,
+  swift::storage::device { "60${name}1":
+    type => 'container',
+  }
+  ring_container_device { "${storage_local_net_ip}:60${name}1":
+    zone        => $zone,
+    device_name => $name,
+    weight      => $weight,
+  }
+
+  swift::storage::device { "60${name}2":
+    type => 'account',
+  }
+  ring_account_device { "${storage_local_net_ip}:60${name}2":
+    zone        => $zone,
+    device_name => $name,
+    weight      => $weight,
   }
 
 }
