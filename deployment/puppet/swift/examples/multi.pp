@@ -118,20 +118,20 @@ class role_swift_storage inherits role_swift {
     require      => Class['swift'],
   }
 
-  @@ring_object_device { "${swift_local_net_ip}:8001":
-    zone        => 1,
+  @@ring_object_device { "${swift_local_net_ip}:6000":
+    zone        => $swift_zone,
     device_name => 1,
     weight      => 1,
   }
 
-  @@ring_container_device { "${swift_local_net_ip}:8002":
-    zone        => 1,
+  @@ring_container_device { "${swift_local_net_ip}:6001":
+    zone        => $swift_zone,
     device_name => 1,
     weight      => 1,
   }
 
-  @@ring_account_device { "${swift_local_net_ip}:8003":
-    zone        => 1,
+  @@ring_account_device { "${swift_local_net_ip}:6002":
+    zone        => $swift_zone,
     device_name => 1,
     weight      => 1,
   }
