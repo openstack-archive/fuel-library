@@ -100,4 +100,17 @@ class swift::storage(
   service { 'swift-object':
     provider  => 'upstart',
   }
+
+  define upstart() {
+    file { "/etc/init/swift-${name}.conf":
+      mode   => '0644',
+      owner  => 'root',
+      group  => 'root',
+      source => "puppet:///modules/swift/swift-${name}.conf.upstart",
+      before => Service["swift-${name}"],
+    }
+  }
+
+  swift::storage::upstart { ['object', 'container', 'account']: }
+
 }
