@@ -10,8 +10,7 @@ define swift::storage::loopback(
   $base_dir  = '/srv/loopback-device',
   $mnt_base_dir = '/srv/node',
   $byte_size = '1024',
-  $seek      = '25000',
-  $storage_local_net_ip = '127.0.0.1'
+  $seek      = '25000'
 ) {
 
   if(!defined(File[$base_dir])) {
@@ -42,9 +41,4 @@ define swift::storage::loopback(
     subscribe    => Exec["create_partition-${name}"],
   }
 
-  swift::storage::node { $name:
-    mnt_base_dir         => $mnt_base_dir,
-    storage_local_net_ip => $storage_local_net_ip,
-    require              => Swift::Storage::Xfs[$name]
-  }
 }

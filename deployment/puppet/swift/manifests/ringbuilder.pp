@@ -1,5 +1,28 @@
+# Used to configure nodes that are responsible for managing swift rings.
+# Rings are used to make decitions about how to map objects in the cluster
 #
-# role for deploying
+# Specifies the following relationship:
+#  Rings shoudl be created before any devices are added to them
+#  Rings should be rebalanced if anything changes
+# == Parameters
+#  # TODO - I need to review the ringbuilder docs
+#  [*part_power*]
+#  [*replicas*]
+#  [*min_part_hours*]
+#
+# == Dependencies
+#
+#   Class['swift']
+#
+# == Examples
+#
+# == Authors
+#
+#   Dan Bode dan@puppetlabs.com
+#
+# == Copyright
+#
+# Copyright 2011 Puppetlabs Inc, unless otherwise noted.
 #
 class swift::ringbuilder(
   $part_power = undef,

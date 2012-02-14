@@ -1,0 +1,23 @@
+# Temporarily managed by Puppet until
+# 931893 is resolved
+# swift-object-server - SWIFT Object Server
+#
+# The swift object server.
+
+description     "SWIFT Object Server"
+author          "Marc Cluet <marc.cluet@ubuntu.com>"
+
+start on runlevel [2345]
+stop on runlevel [016]
+
+pre-start script
+  if [ $(find /etc/swift/object-server/ -type f 2>/dev/null | wc -l) -gt 0 ]; then
+    exec /usr/bin/swift-init object-server start
+  elif [ -f /etc/swift/object-server.conf ]; then
+    exec /usr/bin/swift-init object-server start
+  else
+    exit 1
+  fi
+end script
+
+post-stop exec /usr/bin/swift-init object-server stop

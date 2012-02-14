@@ -1,10 +1,28 @@
+# Performs all global configuration required
+# for creating a swift storage node.
+#  Includes:
+#    installing an rsync server
+#    installs storeage packages (object,account,containers)
+# == Parameters
+#  [*storeage_local_net_ip*]
+#  [*package_ensure*]
+# == Dependencies
 #
-# class for building out a storage node
+# == Examples
+#
+# == Authors
+#
+#   Dan Bode dan@puppetlabs.com
+#
+# == Copyright
+#
+# Copyright 2011 Puppetlabs Inc, unless otherwise noted.
 #
 class swift::storage(
   $package_ensure = 'present',
   # TODO - should this default to 0.0.0.0?
-  $storage_local_net_ip = '127.0.0.1'
+  $storage_local_net_ip = '127.0.0.1',
+  $devices = '/srv/nodes'
 ) inherits swift {
 
 
@@ -25,6 +43,11 @@ class swift::storage(
     group => 'swift',
   }
 
+  Swift::Storage::Server {
+    devices               => $devices,
+    storage_local_net_ip => $storage_local_net_ip,
+  }
+
   # package dependencies
   package { ['xfsprogs', 'parted']:
     ensure => 'present'
@@ -34,10 +57,9 @@ class swift::storage(
     ensure => $package_ensure,
   }
 
-  file { '/etc/swift/account-server.conf':
-    ensure  => present,
-    mode    => 0660,
-    content => template('swift/account-server.conf.erb')
+  swift::storage::server { '6002':
+    type             => 'account',
+    config_file_path => 'account-server.conf',
   }
 
   file { '/etc/swift/account-server/':
@@ -48,14 +70,14 @@ class swift::storage(
     provider  => 'upstart',
   }
 
+  # container server configuration
   package { 'swift-container':
     ensure => $package_ensure,
   }
 
-  file { '/etc/swift/container-server.conf':
-    ensure  => present,
-    mode    => 0660,
-    content => template('swift/container-server.conf.erb')
+  swift::storage::server { '6001':
+    type             => 'container',
+    config_file_path => 'container-server.conf',
   }
 
   file { '/etc/swift/container-server/':
@@ -66,14 +88,14 @@ class swift::storage(
     provider  => 'upstart',
   }
 
+  # object server configuration
   package { 'swift-object':
     ensure => $package_ensure,
   }
 
-  file { '/etc/swift/object-server.conf':
-    ensure  => present,
-    mode    => 0660,
-    content => template('swift/object-server.conf.erb')
+  swift::storage::server { '6000':
+    type             => 'object',
+    config_file_path => 'object-server.conf',
   }
 
   file { '/etc/swift/object-server/':
@@ -83,4 +105,17 @@ class swift::storage(
   service { 'swift-object':
     provider  => 'upstart',
   }
+
+  define upstart() {
+    file { "/etc/init/swift-${name}.conf":
+      mode   => '0644',
+      owner  => 'root',
+      group  => 'root',
+      source => "puppet:///modules/swift/swift-${name}.conf.upstart",
+      before => Service["swift-${name}"],
+    }
+  }
+
+  swift::storage::upstart { ['object', 'container', 'account']: }
+
 }

@@ -1,12 +1,27 @@
 # Install and configure base swift components
+#
 # == Parameters
 # [*swift_hash_suffix*] string of text to be used
 # as a salt when hashing to determine mappings in the ring.
-# This file should be the same on every node in the cluster!
+# This file should be the same on every node in the cluster.
 #
-# [*swift_ssh_key*] NOT YET IMPLEMENTED
+# [*swift_ssh_key*] NOT YET IMPLEMENTED. I am not entirely sure what
+#  this key is intended to be used for.
+# [*package_ensure*] The ensure state for the swift package.
+#   Optional. Defaults to present.
 #
-
+# == Dependencies
+#
+#   Class['ssh::server::install']
+#
+# == Authors
+#
+#   Dan Bode dan@puppetlabs.com
+#
+# == Copyright
+#
+# Copyright 2011 Puppetlabs Inc, unless otherwise noted.
+#
 class swift(
   $swift_hash_suffix,
 #  $swift_ssh_key,

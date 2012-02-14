@@ -146,9 +146,11 @@ There are a few known issues with this code:
 
 This example can be used as follows:
 
-  puppet apply examples/site.pp --certname pre_swift
+  # set up pre-reqs
+  puppet apply examples/pre.pp
 
-  puppet apply examples/site.pp --certname swift_all
+  # install all swift components on a single node
+  puppet apply examples/all.pp
 
 # Verifying installation #
 
