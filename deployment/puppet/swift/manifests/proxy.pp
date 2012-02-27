@@ -54,15 +54,15 @@ class swift::proxy(
     fail('Keystone is currently not supported, it should be supported soon :)')
   }
 
-  if($user_swauth) {
+  package { 'swift-proxy':
+    ensure => $package_ensure,
+  }
+
+  if($auth_type == 'swauth') {
     package { 'python-swauth':
       ensure  => $package_ensure,
       before  => Package['swift-proxy'],
     }
-  }
-
-  package { 'swift-proxy':
-    ensure => $package_ensure,
   }
 
   file { "/etc/swift/proxy-server.conf":
