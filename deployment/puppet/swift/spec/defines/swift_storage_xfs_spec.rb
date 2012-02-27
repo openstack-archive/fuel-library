@@ -18,12 +18,13 @@ describe 'swift::storage::xfs' do
        :mnt_base_dir => '/srv/node'}
     end
 
-    [{},
-     {:byte_size => 1,
+    [{:device       => 'some_device'},
+     {:device       => 'some_device',
+      :byte_size    => 1,
       :mnt_base_dir => '/mnt/foo'}
     ].each do |param_set|
 
-      describe "when #{param_set == {} ? "using default" : "specifying"} class parameters" do
+      describe "#{param_set == {} ? "using default" : "specifying"} class parameters" do
         let :param_hash do
           default_params.merge(param_set)
         end
@@ -32,7 +33,7 @@ describe 'swift::storage::xfs' do
           param_set
         end
 
-        it { should contain_exec("exec-foo").with(
+        it { should contain_exec("mkfs-foo").with(
           :command     => "mkfs.xfs -i size=#{param_hash[:byte_size]} #{param_hash[:device]}",
           :path        => ['/sbin/'],
           :refreshonly => true,
@@ -42,7 +43,7 @@ describe 'swift::storage::xfs' do
         it { should contain_swift__storage__mount('foo').with(
           {:device       => param_hash[:device],
            :mnt_base_dir => param_hash[:mnt_base_dir],
-           :subscribe    => 'Exec[mkfs-foo']}
+           :subscribe    => 'Exec[mkfs-foo]'}
         )}
 
       end
