@@ -1,6 +1,7 @@
 require 'spec_helper'
 
 describe 'swift::storage' do
+  # TODO I am not testing the upstart code b/c it should be temporary
 
   let :pre_condition do
     "class { 'swift': swift_hash_suffix => 'changeme' }
@@ -10,13 +11,23 @@ describe 'swift::storage' do
 
   let :default_params do
     {
-      :package_ensure => 'present'
+      :package_ensure => 'present',
+      :storage_local_net_ip => '127.0.0.1',
+      :devices => '/srv/node',
+      :object_port => '6000',
+      :container_port => '6001',
+      :account_port => '6002'
     }
   end
 
   [{},
    {
-      :package_ensure => 'latest'
+      :package_ensure => 'latest',
+      :devices => '/tmp/node',
+      :storage_local_net_ip => '10.0.0.1',
+      :object_port => '7000',
+      :container_port => '7001',
+      :account_port => '7002'
     }
   ].each do |param_set|
 
@@ -29,29 +40,51 @@ describe 'swift::storage' do
         param_set
       end
 
-      ['xfsprogs', 'parted', 'rsync'].each do |present_package|
+      ['xfsprogs', 'parted'].each do |present_package|
         it { should contain_package(present_package).with_ensure('present') }
       end
-      #it 'should compile the template based on the class parameters' do
-      #  content = param_value(subject, 'file', '/etc/glance/glance-api.conf', 'content')
-      #  expected_lines = [
-      #    "verbose = #{param_hash[:log_verbose]}",
-      #    "debug = #{param_hash[:log_debug]}",
-      #    "default_store = #{param_hash[:default_store]}",
-      #    "bind_host = #{param_hash[:bind_host]}",
-      #    "bind_port = #{param_hash[:bind_port]}",
-      #    "registry_host = #{param_hash[:registry_host]}",
-      #    "registry_port = #{param_hash[:registry_port]}",
-      #    "log_file = #{param_hash[:log_file]}",
-      #    "filesystem_store_datadir = #{param_hash[:filesystem_store_datadir]}",
-      #    "swift_store_auth_address = #{param_hash[:swift_store_auth_address]}",
-      #    "swift_store_user = #{param_hash[:swift_store_user]}",
-      #    "swift_store_key = #{param_hash[:swift_store_key]}",
-      #    "swift_store_container = #{param_hash[:swift_store_container]}",
-      #    "swift_store_create_container_on_put = #{param_hash[:swift_store_create_container_on_put]}"
-      #  ]
-      #  (content.split("\n") & expected_lines).should == expected_lines
-      #end
+
+      ['object', 'container', 'account'].each do |type|
+        it { should contain_package("swift-#{type}").with_ensure(param_hash[:package_ensure]) }
+        it { should contain_service("swift-#{type}").with(
+          {:provider => 'upstart',
+           :ensure   => 'running',
+           :enable    => true,
+           :hasstatus => true,
+           :subscribe => 'Service[rsync]'}
+        )}
+        it { should contain_file("/etc/swift/#{type}-server/").with(
+          {:ensure => 'directory',
+           :owner  => 'swift',
+           :group  => 'swift'}
+        )}
+      end
+
+      let :storage_server_defaults do
+        {:devices              => param_hash[:devices],
+         :storage_local_net_ip => param_hash[:storage_local_net_ip]
+        }
+      end
+
+      it { should contain_swift__storage__server(param_hash[:account_port]).with(
+        {:type => 'account',
+         :config_file_path => 'account-server.conf'}.merge(storage_server_defaults)
+      )}
+      it { should contain_swift__storage__server(param_hash[:object_port]).with(
+        {:type => 'object',
+         :config_file_path => 'object-server.conf'}.merge(storage_server_defaults)
+      )}
+      it { should contain_swift__storage__server(param_hash[:container_port]).with(
+        {:type => 'container',
+         :config_file_path => 'container-server.conf'}.merge(storage_server_defaults)
+      )}
+
+      it { should contain_class('rsync::server').with(
+        {:use_xinetd => false,
+         :address    => param_hash[:storage_local_net_ip]
+        }
+      )}
+
     end
   end
 end

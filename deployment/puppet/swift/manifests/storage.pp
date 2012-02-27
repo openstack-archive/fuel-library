@@ -61,7 +61,7 @@ class swift::storage(
   }
 
   Swift::Storage::Server {
-    devices               => $devices,
+    devices              => $devices,
     storage_local_net_ip => $storage_local_net_ip,
   }
 
