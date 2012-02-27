@@ -27,7 +27,7 @@ define swift::storage::xfs(
 
   swift::storage::mount { $name:
     device         => $device,
-    mnt_base_dir   => $mount_base_dir,
+    mnt_base_dir   => $mnt_base_dir,
     subscribe      => Exec["mkfs-${name}"]
   }
 
