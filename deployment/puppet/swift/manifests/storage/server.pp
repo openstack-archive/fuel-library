@@ -14,6 +14,8 @@ define swift::storage::server(
   $config_file_path = "${type}-server/${name}.conf"
 ) {
 
+  include "swift::storage::$type"
+
   validate_re($name, '^\d+$')
   validate_re($type, '^object|container|account$')
   # TODO - validate that name is an integer
