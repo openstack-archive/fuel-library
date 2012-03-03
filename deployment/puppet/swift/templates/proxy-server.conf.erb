@@ -1,10 +1,8 @@
 # This file is managed by puppet.  Do not edit
 #
 [DEFAULT]
-#cert_file = /etc/swift/cert.crt
-#key_file = /etc/swift/cert.key
-bind_port = 8080
-workers = 8
+bind_port = <%= port %>
+workers = <%= workers %>
 user = swift
 
 [pipeline:main]
@@ -37,4 +35,4 @@ use = egg:swift#healthcheck
 [filter:cache]
 use = egg:swift#memcache
 # multi-proxy config not supported
-memcache_servers = <%= proxy_local_net_ip %>:<%= proxy_port %>
+memcache_servers = <%= cache_servers.to_a.join(',') %>

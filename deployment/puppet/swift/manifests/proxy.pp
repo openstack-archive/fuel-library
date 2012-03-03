@@ -1,19 +1,33 @@
+#
+# TODO - assumes that proxy server is always a memcached server
+#
+# TODO - the full list of all things that can be configured is here
+#  https://github.com/openstack/swift/tree/master/swift/common/middleware
+#
 # Installs and configures the swift proxy node.
 #
 # [*Parameters*]
 #
-# [*allow_account_management*]
-# [*account_autocreate*] Rather accounts should automatically be created.
-#  I think this may be tempauth specific
 # [*proxy_local_net_ip*] The address that the proxy will bind to.
-# [*proxy_port*] Port that the swift proxy service will bind to.
-#   Optional. Defaults to 11211
+#   Required.
+# [*port*] The port to which the proxy server will bind.
+#   Optional. Defaults to 8080.
+# [*workers*] Number of threads to process requests.
+#  Optional. Defaults to the number of processors.
 # [*auth_type*] - Type of authorization to use.
 #  valid values are tempauth, swauth, and keystone.
 #  Optional. Defaults to tempauth.
+# [*allow_account_management*]
+#   Rather or not requests through this proxy can create and
+#   delete accounts. Optional. Defaults to true.
+# [*account_autocreate*] Rather accounts should automatically be created.
+#  Has to be set to true for tempauth. Optional. Defaults to true.
+# [*proxy_port*] Port that the swift proxy service will bind to.
+#   Optional. Defaults to 11211
 # [*package_ensure*] Ensure state of the swift proxy package.
 #   Optional. Defaults to present.
-#
+# [*cache_servers*] A list of the memcache servers to be used. Entries
+#  should be in the form host:port.
 # == sw auth specific configuration
 # [*swauth_endpoint*]
 # [*swauth_super_admin_user*]
@@ -33,20 +47,29 @@
 # Copyright 2011 Puppetlabs Inc, unless otherwise noted.
 #
 class swift::proxy(
-  # why did cloudbuilders default this to false?
   $proxy_local_net_ip,
+  $port = '8080',
+  $workers = $::processorcount,
+  $cache_servers = ['127.0.0.1:11211'],
   $allow_account_management = true,
-  $account_autocreate = false,
-  $proxy_port = '11211',
   $auth_type = 'tempauth',
+  $account_autocreate = true,
   $swauth_endpoint = '127.0.0.1',
   $swauth_super_admin_key = 'swauthkey',
   $package_ensure = 'present'
 ) inherits swift {
 
-  Class['memcached'] -> Class['swift::proxy']
-
+  validate_bool($account_autocreate)
+  validate_bool($allow_account_management)
   validate_re($auth_type, 'tempauth|swauth|keystone')
+
+  if($auth_type == 'tempauth' and ! $account_autocreate ){
+    fail("\$account_autocreate must be set to true when auth type is tempauth")
+  }
+
+  if $cache_server_ips =~ /^127\.0\.0\.1/ {
+    Class['memcached'] -> Class['swift::proxy']
+  }
 
   if(auth_type == 'keystone') {
     fail('Keystone is currently not supported, it should be supported soon :)')
