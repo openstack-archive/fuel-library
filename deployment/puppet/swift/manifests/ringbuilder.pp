@@ -2,10 +2,9 @@
 # Rings are used to make decicions about how to map objects in the cluster
 #
 # Specifies the following relationship:
-#  Rings shoudl be created before any devices are added to them
+#  Rings should be created before any devices are added to them
 #  Rings should be rebalanced if anything changes
 # == Parameters
-#  # TODO - I need to review the ringbuilder docs
 #  [*part_power*] The total number of partitions that should exist in the ring.
 #    This is expressed as a power of 2.
 #  [*replicas*] Numer of replicas that should be maintained of each stored object.

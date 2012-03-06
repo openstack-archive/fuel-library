@@ -65,6 +65,7 @@ node 'swift_storage_3' {
 #
 node 'swift_proxy' {
 
+  # TODO this should not be recommended
   class { 'role_swift_ringbuilder': }
   class { 'role_swift_proxy':
     require => Class['role_swift_ringbuilder'],
@@ -128,17 +129,21 @@ class role_swift_proxy inherits role_swift {
 
 class role_swift_storage inherits role_swift {
 
-  class { 'swift::storage':
-    storage_local_net_ip => $swift_local_net_ip,
-    devices              => '/srv/node',
-  }
-
   # create xfs partitions on a loopback device and mount them
   swift::storage::loopback { '1':
     base_dir     => '/srv/loopback-device',
     mnt_base_dir => '/srv/node',
     require      => Class['swift'],
   }
+
+  # install all swift storage servers together
+  class { 'swift::storage::all':
+    storage_local_net_ip => $swift_local_net_ip,
+  }
+
+
+  # TODO I need to wrap these in a define so that
+  # mcollective can collect that define
 
   # these exported resources write ring config
   # resources into the database so that they can be
@@ -155,6 +160,7 @@ class role_swift_storage inherits role_swift {
     weight      => 1,
   }
 
+  # TODO should device be changed to volume
   @@ring_account_device { "${swift_local_net_ip}:6002":
     zone        => $swift_zone,
     device_name => 1,

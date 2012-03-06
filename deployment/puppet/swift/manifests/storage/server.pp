@@ -5,14 +5,16 @@
 #  name - is going to be port
 define swift::storage::server(
   $type,
+  $storage_local_net_ip,
   $devices = '/srv/node',
   $owner = 'swift',
   $group  = 'swift',
   $max_connections = 25,
-  $storage_local_net_ip = '127.0.0.1',
   # this parameters needs to be specified after type and name
   $config_file_path = "${type}-server/${name}.conf"
 ) {
+
+  include "swift::storage::$type"
 
   validate_re($name, '^\d+$')
   validate_re($type, '^object|container|account$')

@@ -3,8 +3,8 @@ describe 'swift::ringbuilder::create' do
 
   let :default_params do
     {:part_power => 18,
-    :replicas => 5,
-    :min_part_hours => 1}
+    :replicas => 3,
+    :min_part_hours => 24}
   end
 
   describe 'with allowed titles' do

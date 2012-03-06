@@ -29,8 +29,8 @@ describe 'swift::ringbuilder' do
       ['object', 'account', 'container'].each do |type|
         it { should contain_swift__ringbuilder__create(type).with(
           :part_power     => '18',
-          :replicas       => '5',
-          :min_part_hours => '1'
+          :replicas       => '3',
+          :min_part_hours => '24'
         )}
       end
     end
