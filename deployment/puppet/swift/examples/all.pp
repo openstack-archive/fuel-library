@@ -69,6 +69,7 @@ class { 'swift::ringbuilder':
 
 # TODO should I enable swath in the default config?
 class { 'swift::proxy':
+  proxy_local_net_ip => $swift_local_net_ip,
   account_autocreate => true,
   require            => Class['swift::ringbuilder'],
 }
