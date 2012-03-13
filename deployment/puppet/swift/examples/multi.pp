@@ -68,7 +68,6 @@ node 'swift_proxy' {
   # TODO this should not be recommended
   class { 'role_swift_ringbuilder': }
   class { 'role_swift_proxy':
-    storage_local_net_ip => $swift_local_net_ip,
     require => Class['role_swift_ringbuilder'],
   }
 
@@ -118,12 +117,12 @@ class role_swift_proxy inherits role_swift {
   package { 'curl': ensure => present }
 
   class { 'memcached':
-    listen_ip => $proxy_local_net_ip,
+    listen_ip => $swift_local_net_ip,
   }
 
   # TODO should I enable swath in the default config?
   class { 'swift::proxy':
-    storage_local_net_ip => $swift_local_net_ip,
+    proxy_local_net_ip => $swift_local_net_ip,
     account_autocreate => true,
     require            => Class['swift::ringbuilder'],
   }
