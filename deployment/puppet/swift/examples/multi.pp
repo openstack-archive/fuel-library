@@ -28,7 +28,7 @@
 $swift_shared_secret='changeme'
 # assumes that the ip address where all of the storage nodes
 # will communicate is on eth1
-$swift_local_net_ip = $ipaddress_eth1
+$swift_local_net_ip = $ipaddress_eth0
 
 Exec { logoutput => true }
 
