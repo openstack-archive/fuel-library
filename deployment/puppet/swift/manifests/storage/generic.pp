@@ -41,7 +41,6 @@ define swift::storage::generic(
     enable    => true,
     hasstatus => true,
     provider  => $service_provider,
-    subscribe => Service['rsync'],
   }
 
   # TODO - this should be fixed in the upstream
