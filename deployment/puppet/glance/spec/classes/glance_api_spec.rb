@@ -41,8 +41,9 @@ describe 'glance::api' do
   ].each do |param_set|
 
     describe "when #{param_set == {} ? "using default" : "specifying"} class parameters" do
+
       let :param_hash do
-        param_set == {} ? default_params : params
+        default_params.merge(param_set)
       end
 
       let :params do
