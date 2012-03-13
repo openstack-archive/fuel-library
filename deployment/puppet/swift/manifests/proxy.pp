@@ -95,13 +95,13 @@ class swift::proxy(
     require => Package['swift-proxy'],
   }
 
-  # TODO - this needs to be updated once the init file is not broken
-
-  file { '/etc/init/swift-proxy.conf':
-    mode    => '0644',
-    owner   => 'root',
-    group   => 'root',
-    content => '
+  if($::operatingsystem == 'Ubuntu') {
+    # TODO - this needs to be updated once the init file is not broken
+    file { '/etc/init/swift-proxy.conf':
+      mode    => '0644',
+      owner   => 'root',
+      group   => 'root',
+      content => '
 # swift-proxy - SWIFT Proxy Server
 # This is temporarily managed by Puppet
 # until 917893 is fixed
@@ -122,7 +122,8 @@ pre-start script
 end script
 
 post-stop exec /usr/bin/swift-init proxy-server stop',
-    before => Service['swift-proxy'],
+      before => Service['swift-proxy'],
+    }
   }
 
   service { 'swift-proxy':

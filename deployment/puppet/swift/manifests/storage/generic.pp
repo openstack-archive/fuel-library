@@ -44,7 +44,13 @@ define swift::storage::generic(
     subscribe => Service['rsync'],
   }
 
-  swift::storage::generic::upstart { $name: }
+  # TODO - this should be fixed in the upstream
+  # packages so that this code can be removed.
+  # 931893
+  if($::operatingsystem == 'Ubuntu') {
+    # I have to fix broken init scripts on Ubuntu
+    swift::storage::generic::upstart { $name: }
+  }
 
 }
 # TODO this should be removed when the upstart packages are fixed.
