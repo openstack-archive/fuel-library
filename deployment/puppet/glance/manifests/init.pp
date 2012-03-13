@@ -1,5 +1,5 @@
 class glance(
-  package_ensure = 'present'
+  $package_ensure = 'present'
 ) {
   file { '/etc/glance/':
     ensure  => directory,
