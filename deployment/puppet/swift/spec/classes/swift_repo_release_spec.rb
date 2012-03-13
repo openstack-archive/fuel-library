@@ -1,6 +1,10 @@
 require 'spec_helper'
 describe 'swift::repo::release' do
 
+  let :facts do
+    {:lsbdistcodename => 'oneiric'}
+  end
+
   describe 'when apt is not included' do
     it 'should raise an error' do
       expect do
