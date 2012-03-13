@@ -3,9 +3,14 @@
 This module provides a set of manifests that can be
 used to install and configure glance.
 
+It is currently targettting the essex release of OpenStack.
+
+For Daiblo support, use the Diablo branch.
+
 # Platforms #
 
   Ubuntu 11.04 (Natty)
+  Ubuntu 11.10 (Oneiric)
 
 # Quick Start #
 
