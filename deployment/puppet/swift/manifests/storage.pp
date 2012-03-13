@@ -24,7 +24,7 @@ class swift::storage(
 ) inherits swift {
 
   class{ 'rsync::server':
-    use_xinetd => false,
+    use_xinetd => true,
     address    => $storage_local_net_ip,
   }
 
