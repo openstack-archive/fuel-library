@@ -3,6 +3,10 @@ require 'spec_helper'
 describe 'swift::storage::all' do
   # TODO I am not testing the upstart code b/c it should be temporary
 
+  let :facts do
+    {:operatingsystem => 'Ubuntu'}
+  end
+
   let :pre_condition do
     "class { 'swift': swift_hash_suffix => 'changeme' }
      include ssh::server::install
@@ -52,12 +56,11 @@ describe 'swift::storage::all' do
       ['object', 'container', 'account'].each do |type|
         it { should contain_package("swift-#{type}").with_ensure('present') }
         it { should contain_service("swift-#{type}").with(
-          {:provider => 'upstart',
-           :ensure   => 'running',
+          {:provider  => 'upstart',
+           :ensure    => 'running',
            :enable    => true,
-           :hasstatus => true,
-           :subscribe => 'Service[rsync]'}
-        )}
+           :hasstatus => true
+          })}
         it { should contain_file("/etc/swift/#{type}-server/").with(
           {:ensure => 'directory',
            :owner  => 'swift',
@@ -85,7 +88,7 @@ describe 'swift::storage::all' do
       )}
 
       it { should contain_class('rsync::server').with(
-        {:use_xinetd => false,
+        {:use_xinetd => true,
          :address    => param_hash[:storage_local_net_ip]
         }
       )}

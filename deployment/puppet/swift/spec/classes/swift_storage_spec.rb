@@ -3,6 +3,10 @@ require 'spec_helper'
 describe 'swift::storage' do
   # TODO I am not testing the upstart code b/c it should be temporary
 
+  let :facts do
+    {:operatingsystem => 'Ubuntu'}
+  end
+
   describe 'when required classes are specified' do
     let :pre_condition do
       "class { 'swift': swift_hash_suffix => 'changeme' }
@@ -22,7 +26,7 @@ describe 'swift::storage' do
       end
 
       it { should contain_class('rsync::server').with(
-        {:use_xinetd => false,
+        {:use_xinetd => true,
          :address    => params[:storage_local_net_ip]
         }
       )}
