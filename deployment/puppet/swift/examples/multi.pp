@@ -55,6 +55,7 @@ node 'swift_storage_3' {
   $swift_zone = 3
   include role_swift_storage
 
+
 }
 
 #
@@ -67,6 +68,7 @@ node 'swift_proxy' {
 
   # TODO this should not be recommended
   class { 'role_swift_ringbuilder': }
+
   class { 'role_swift_proxy':
     require => Class['role_swift_ringbuilder'],
   }
@@ -107,6 +109,14 @@ class role_swift_ringbuilder inherits role_swift {
     replicas       => '3',
     min_part_hours => 1,
     require        => Class['swift'],
+  }
+
+  class { 'swift::ringserver':
+    local_net_ip => $swift_local_net_ip,
+  }
+
+  @@swift::ringsync { ['account', 'object', 'container']:
+    ring_server => $swift_local_net_ip
   }
 
 }
@@ -167,4 +177,7 @@ class role_swift_storage inherits role_swift {
     device_name => 1,
     weight      => 1,
   }
+
+  Swift::Ringsync<<||>>
+
 }
