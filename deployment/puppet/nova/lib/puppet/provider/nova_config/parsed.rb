@@ -18,7 +18,7 @@ Puppet::Type.type(:nova_config).provide(
     :match => /--(.*)/ ,
     :post_parse => proc { |hash|
       Puppet.debug("nova config line:#{hash[:line]} has been parsed") 
-      if hash[:line] =~ /^\s*(\S+)\s*=\s*(\S+)\s*$/
+      if hash[:line] =~ /^\s*(\S+)\s*=\s*([\S ]+)\s*$/
         hash[:name]=$1
         hash[:value]=$2
       elsif hash[:line] =~ /^\s*(\S+)\s*$/
