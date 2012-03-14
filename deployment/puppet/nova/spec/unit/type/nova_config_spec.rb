@@ -1,4 +1,3 @@
-require File.join(File.dirname(__FILE__), '../../find_spec_utils.rb')
 require 'puppet'
 require 'puppet/type/nova_config'
 describe 'Puppet::Type.type(:nova_config)' do
