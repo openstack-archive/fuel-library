@@ -7,7 +7,6 @@ define nova::manage::network ( $network, $available_ips ) {
     ensure        => present,
     network       => $network,
     available_ips => $available_ips,
-    provider      => 'nova_manage',
     notify        => Exec["nova-db-sync"],
   }
 }

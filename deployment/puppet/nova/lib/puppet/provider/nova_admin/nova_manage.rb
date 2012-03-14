@@ -2,9 +2,7 @@ Puppet::Type.type(:nova_admin).provide(:nova_manage) do
 
   desc "Manage nova admin user"
 
-  defaultfor :kernel => 'Linux'
-
-  commands :nova_manage => 'nova-manage'
+  optional_commands :nova_manage => 'nova-manage'
 
   def exists?
     nova_manage("user", "list").match(/^#{resource[:name]}$/)

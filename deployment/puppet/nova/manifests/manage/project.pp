@@ -5,7 +5,6 @@ define nova::manage::project ( $owner ) {
 
   nova_project { $name:
     ensure   => present,
-    provider => 'nova_manage',
     owner    => $owner,
     notify   => Exec["nova-db-sync"],
     require  => Nova::Manage::Admin[$owner],

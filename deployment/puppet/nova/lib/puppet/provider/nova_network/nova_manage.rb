@@ -2,13 +2,14 @@ Puppet::Type.type(:nova_network).provide(:nova_manage) do
 
   desc "Manage nova network"
 
-  defaultfor :kernel => 'Linux'
-
-  commands :nova_manage => 'nova-manage'
+  optional_commands :nova_manage => 'nova-manage'
 
   def exists?
     begin
-      nova_manage("network", "list").match(/^#{resource[:network]}\/[0-9]{1,2} /)
+      network_list = nova_manage("network", "list")
+      return network_list.split("\n")[1..-1].detect do |n|
+        n =~ /^(\S+)\s+(#{resource[:network]})/
+      end
     rescue
       return false
     end
