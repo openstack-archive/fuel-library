@@ -15,7 +15,11 @@ Puppet::Type.newtype(:ring_account_device) do
 
   newproperty(:device_name)
 
-  newproperty(:weight)
+  newproperty(:weight) do
+    munge do |value|
+      "%.2f" % value
+    end
+  end
 
   newproperty(:meta)
 
