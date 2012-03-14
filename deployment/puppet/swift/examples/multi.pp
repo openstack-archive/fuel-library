@@ -127,7 +127,7 @@ class role_swift_proxy inherits role_swift {
   package { 'curl': ensure => present }
 
   class { 'memcached':
-    listen_ip => $swift_local_net_ip,
+    listen_ip => '127.0.0.1',
   }
 
   # TODO should I enable swath in the default config?
