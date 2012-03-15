@@ -12,18 +12,14 @@ class nova::api($enabled=false) {
   exec { "initial-db-sync":
     command     => "/usr/bin/nova-manage db sync",
     refreshonly => true,
-    require     => [Package["nova-common"], Nova_config['sql_connection']],
+    require     => [Package[$::nova::params::package_names], Nova_config['sql_connection']],
   }
 
-  package { "nova-api":
-    ensure  => present,
-    require => Package["python-greenlet"],
-    notify  => Exec['initial-db-sync'],
-  }
   service { "nova-api":
+    name    => $::nova::params::api_service_name,
     ensure  => $service_ensure,
     enable  => $enabled,
-    require => Package["nova-api"],
+    require => Package[$::nova::params::package_names],
     #subscribe => File["/etc/nova/nova.conf"]
   }
 }

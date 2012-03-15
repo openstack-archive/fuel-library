@@ -56,7 +56,10 @@ class nova::controller(
     flat_network_bridge_netmask => $flat_network_bridge_netmask,
   }
 
-  class { "nova::objectstore": enabled => true }
+  class { "nova::objectstore":
+    enabled => true,
+  }
+
   class { "nova::scheduler": enabled => true }
 
   nova::manage::admin { $admin_user: }

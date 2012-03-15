@@ -24,13 +24,23 @@ class nova(
   $nodaemon = false,
   $periodic_interval = '60',
   $report_interval = '10'
+
 ) {
 
+  include nova::params
+
   Nova_config<| |> {
-    require +> Package["nova-common"],
+    require +> Package[$::nova::params::package_names],
     before +> File['/etc/nova/nova.conf'],
     notify +> Exec['post-nova_config']
   }
+
+  File {
+    require => Package[$::nova::params::package_names],
+    owner   => 'nova',
+    group   => 'nova',
+  }
+
   # TODO - why is this required?
   package { 'python':
     ensure => present,
@@ -41,10 +51,21 @@ class nova(
   }
 
   class { 'nova::utilities': }
-  package { ["python-nova", "nova-common", "nova-doc"]:
+
+  # this anchor is used to simplify the graph between nova components by
+  # allowing a resource to serve as a point where the configuration of nova begins
+  anchor { 'nova-start': }
+
+  package { ["python-nova", $::nova::params::doc_package_name]:
     ensure  => present,
     require => Package["python-greenlet"]
   }
+
+  package { $::nova::params::package_names:
+    ensure  => present,
+    require => [Package["python-greenlet"], Anchor['nova-start']]
+  }
+
   group { 'nova':
     ensure => present
   }
@@ -55,13 +76,8 @@ class nova(
   file { $logdir:
     ensure  => directory,
     mode    => '751',
-    owner   => 'nova',
-    group   => 'nova',
-    require => Package['nova-common'],
   }
   file { '/etc/nova/nova.conf':
-    owner => 'nova',
-    group => 'nova',
     mode  => '0640',
   }
   exec { "nova-db-sync":
