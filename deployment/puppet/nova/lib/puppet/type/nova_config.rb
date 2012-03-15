@@ -10,7 +10,7 @@ Puppet::Type.newtype(:nova_config) do
     munge do |value|
       value.to_s
     end
-    newvalues(/^\S+$/)
+    newvalues(/^[\S ]+$/)
   end
 
   newproperty(:target) do
