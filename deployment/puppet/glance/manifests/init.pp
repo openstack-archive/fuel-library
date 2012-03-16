@@ -5,7 +5,7 @@ class glance(
     ensure  => directory,
     owner   => 'glance',
     group   => 'root',
-    mode    => 770,
+    mode    => '0770',
     require => Package['glance']
   }
   package { 'glance': ensure => $package_ensure }

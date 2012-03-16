@@ -23,7 +23,7 @@ describe 'glance' do
       it { should contain_file('/etc/glance/').with(
         'ensure' => 'directory',
         'owner' => 'glance',
-        'mode' => '770',
+        'mode' => '0770',
         'require' => 'Package[glance]'
       )}
     end
