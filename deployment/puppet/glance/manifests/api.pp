@@ -69,6 +69,7 @@ class glance::api(
   }
 
   service { 'glance-api':
+    name       => $::glance::params::api_service_name,
     ensure     => running,
     enable     => true,
     hasstatus  => true,
