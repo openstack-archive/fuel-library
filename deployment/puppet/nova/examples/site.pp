@@ -101,6 +101,9 @@ node glance {
 }
 
 node rabbitmq {
+  if($::operatingsystem == 'Ubuntu') {
+    class { 'rabbitmq::repo::apt': }
+  }
   class { 'nova::rabbitmq':
     userid       => $rabbit_user,
     password     => $rabbit_password,
@@ -141,6 +144,9 @@ node all {
   # This manifest installs all of the nova
   # components on one node.
   class { 'mysql::server': }
+  if($::operatingsystem == 'Ubuntu') {
+    class { 'rabbitmq::repo::apt': }
+  }
   class { 'nova::all':
     db_password => 'password',
     db_name => 'nova',
