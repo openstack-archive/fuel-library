@@ -19,6 +19,13 @@ resources { 'nova_config':
   purge => true,
 }
 
+# this is a hack that I have to do b/c openstack nova
+# sets up a route to reroute calls to the metadata server
+# to its own server which fails
+file { '/usr/lib/ruby/1.8/facter/ec2.rb':
+  ensure => absent,
+}
+
 node db {
   class { 'mysql::server':
     config_hash => {
