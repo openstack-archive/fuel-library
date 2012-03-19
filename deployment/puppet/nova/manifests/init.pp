@@ -56,7 +56,7 @@ class nova(
   # allowing a resource to serve as a point where the configuration of nova begins
   anchor { 'nova-start': }
 
-  package { ["python-nova", $::nova::params::doc_package_name]:
+  package { ["python-nova"]:
     ensure  => present,
     require => Package["python-greenlet"]
   }
