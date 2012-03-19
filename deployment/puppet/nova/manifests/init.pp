@@ -133,6 +133,13 @@ class nova(
     }
   }
 
+  if $network_manager == 'nova.network.manager.FlatDHCPManager' {
+    nova_config {
+      'dhcpbridge': value => "/usr/bin/nova-dhcpbridge";
+      'dhcpbridge_flagfile': value => "/etc/nova/nova.conf";
+    }
+  }
+
   if $image_service == 'nova.image.glance.GlanceImageService' {
     nova_config {
       'glance_api_servers': value => $glance_api_servers;
