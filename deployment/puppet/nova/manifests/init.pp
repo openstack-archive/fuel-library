@@ -23,11 +23,9 @@ class nova(
   $verbose = false,
   $nodaemon = false,
   $periodic_interval = '60',
-  $report_interval = '10'
-
-) {
-
-  include nova::params
+  $report_interval = '10',
+  $root_helper = $::nova::params::root_helper
+) inherits nova::params {
 
   Nova_config<| |> {
     require +> Package[$::nova::params::package_names],
@@ -120,6 +118,7 @@ class nova(
     # as well as controller.
     'network_manager': value => $network_manager;
     'use_deprecated_auth': value => true;
+    'root_helper': value => $root_helper;
   }
 
   exec { 'post-nova_config':
