@@ -30,7 +30,9 @@ class nova::controller(
   $admin_user = 'novaadmin',
   $project_name = 'nova',
 
-  $verbose = undef
+  $verbose = undef,
+
+  $lock_path = undef,
 ) {
 
 
@@ -46,6 +48,7 @@ class nova::controller(
     rabbit_userid       => $rabbit_userid,
     rabbit_password     => $rabbit_password,
     rabbit_virtual_host => $rabbit_virtual_host,
+    lock_path           => $lock_path,
   }
 
   class { "nova::api": enabled => true }
