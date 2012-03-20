@@ -60,15 +60,15 @@ class nova::controller(
     flat_network_bridge_netmask => $flat_network_bridge_netmask,
   }
 
-  class { "nova::objectstore": 
+  class { "nova::objectstore":
     enabled => true,
   }
 
-  class { "nova::cert": 
+  class { "nova::cert":
     enabled => true,
   }
 
-  class { "nova::volume": 
+  class { "nova::volume":
     enabled => true,
   }
 
