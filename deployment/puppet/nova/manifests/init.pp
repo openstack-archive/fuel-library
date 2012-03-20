@@ -146,5 +146,4 @@ class nova(
       'glance_port': value => $glance_port;
     }
   }
-
 }
