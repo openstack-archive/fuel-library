@@ -15,4 +15,7 @@ class glance(
     name   => $::nova::params::package_name,
     ensure => $package_ensure,
   }
+  if(! defined(Package['python-migrate'])) {
+    package { 'python-migrate': ensure => 'present' }
+  }
 }
