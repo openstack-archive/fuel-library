@@ -18,6 +18,7 @@ class nova::controller(
   $flat_network_bridge_ip  = '11.0.0.1',
   $flat_network_bridge_netmask  = '255.255.255.0',
 
+  $network_manager = undef,
   $nova_network = '11.0.0.0/24',
   $floating_network = '10.128.0.0/24',
   $available_ips = '256',
@@ -49,6 +50,7 @@ class nova::controller(
     rabbit_password     => $rabbit_password,
     rabbit_virtual_host => $rabbit_virtual_host,
     lock_path           => $lock_path,
+    network_manager     => $network_manager,
   }
 
   class { "nova::api": enabled => true }
