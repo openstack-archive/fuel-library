@@ -2,6 +2,12 @@ require 'spec_helper'
 
 describe 'glance::registry' do
 
+  let :facts do
+    {
+      :osfamily => 'Debian'
+    }
+  end
+
   let :default_params do
     {
       :log_verbose => 'false',

@@ -2,6 +2,12 @@ require 'spec_helper'
 
 describe 'glance' do
 
+  let :facts do
+    {
+      :osfamily => 'Debian'
+    }
+  end
+
   let :default_params do
     {:package_ensure => 'present'}
   end
