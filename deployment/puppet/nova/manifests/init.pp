@@ -46,11 +46,15 @@ class nova(
     require => Package["python-greenlet"]
   }
   group { 'nova':
-    ensure => present
+    ensure  => present,
+    system  => true,
+    require => Package['nova-common'],
   }
   user { 'nova':
-    ensure => present,
-    gid    => 'nova',
+    ensure  => present,
+    gid     => 'nova',
+    system  => true,
+    require => Package['nova-common'],
   }
   file { $logdir:
     ensure  => directory,
