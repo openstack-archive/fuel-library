@@ -22,11 +22,14 @@ define swift::storage::generic(
   $service_provider = 'upstart'
 ) {
 
+  include swift::params
+
   Class['swift::storage'] -> Swift::Storage::Generic[$name]
 
   validate_re($name, '^object|container|account$')
 
   package { "swift-${name}":
+    name   => inline_template("<%= scope.lookupvar('::swift::params::${name}_package_name') %>"),
     ensure => $package_ensure,
   }
 
@@ -37,6 +40,7 @@ define swift::storage::generic(
   }
 
   service { "swift-${name}":
+    name      => inline_template("<%= scope.lookupvar('::swift::params::${name}_service_name') %>"),
     ensure    => running,
     enable    => true,
     hasstatus => true,

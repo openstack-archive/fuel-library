@@ -32,3 +32,28 @@ autocreate - should be set to true if tempauth is used
 
 verify uniqueness constaint of url/port across types
   - if it exists, they should be the same type
+
+
+set up swauth auth adress??
+  -
+
+[filter:keystone]
+use = egg:keystone#swiftauth
+auth_protocol = https
+auth_host = 127.0.0.0
+auth_port = 35357
+admin_token = 999888777666
+delay_auth_decision = 0
+service_protocol = https
+service_host = 127.0.0.0
+service_port = 5000
+service_pass = dTpw
+cache = swift.cache
+
+[filter:healthcheck]
+
+- crowbar copies hash and ringfiles
+
+### important
+- set up an rsync server
+- and sync rings via rsync

@@ -2,7 +2,10 @@ require 'spec_helper'
 describe 'swift::storage::object' do
 
   let :facts do
-    {:operatingsystem => 'Ubuntu'}
+    {
+      :operatingsystem => 'Ubuntu',
+      :osfamily        => 'Debian'
+    }
   end
 
   let :pre_condition do

@@ -16,6 +16,7 @@ define swift::storage::xfs(
   $mnt_base_dir = '/srv/node'
 ) {
 
+  include swift::xfs
   # does this have to be refreshonly?
   # how can I know if this drive has been formatted?
   exec { "mkfs-${name}":

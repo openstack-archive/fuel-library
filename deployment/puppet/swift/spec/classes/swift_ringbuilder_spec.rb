@@ -2,8 +2,10 @@ require 'spec_helper'
 
 describe 'swift::ringbuilder' do
   let :facts do
-    {:operatingsystem => 'Ubuntu',
-     :processorcount  => 1
+    {
+      :operatingsystem => 'Ubuntu',
+      :osfamily        => 'Debian',
+      :processorcount  => 1
     }
   end
   describe 'when swift class is not included' do

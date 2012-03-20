@@ -115,4 +115,3 @@ if File.exists?(expected_file)
 else
   raise(Exception, "file #{expected_file} did not exist somehow, probably b/c swift is not installed correctly")
 end
-

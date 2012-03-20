@@ -4,7 +4,10 @@ describe 'swift::storage::all' do
   # TODO I am not testing the upstart code b/c it should be temporary
 
   let :facts do
-    {:operatingsystem => 'Ubuntu'}
+    {
+      :operatingsystem => 'Ubuntu',
+      :osfamily        => 'Debian'
+    }
   end
 
   let :pre_condition do
@@ -47,10 +50,6 @@ describe 'swift::storage::all' do
 
       let :params do
         param_set
-      end
-
-      ['xfsprogs', 'parted'].each do |present_package|
-        it { should contain_package(present_package).with_ensure('present') }
       end
 
       ['object', 'container', 'account'].each do |type|
