@@ -33,7 +33,7 @@ class nova::controller(
 
   $verbose = undef,
 
-  $lock_path = undef,
+  $lock_path = undef
 ) {
 
 
