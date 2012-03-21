@@ -19,7 +19,7 @@
 # Copyright 2011 Puppetlabs Inc, unless otherwise noted.
 define swift::storage::generic(
   $package_ensure   = 'present',
-  $service_provider = 'upstart'
+  $service_provider = $::swift::params::service_provider
 ) {
 
   include swift::params
