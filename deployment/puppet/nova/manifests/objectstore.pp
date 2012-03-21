@@ -1,5 +1,7 @@
 class nova::objectstore( $enabled=false ) {
 
+  include nova::params
+
   Exec['post-nova_config'] ~> Service['nova-objectstore']
   Exec['nova-db-sync'] ~> Service['nova-objectstore']
 
@@ -9,15 +11,11 @@ class nova::objectstore( $enabled=false ) {
     $service_ensure = 'stopped'
   }
 
-  package { "nova-objectstore":
-    ensure  => present,
-    require => Package["python-greenlet"]
-  }
-
   service { "nova-objectstore":
+    name => $::nova::params::objectstore_service_name,
     ensure  => $service_ensure,
     enable  => $enabled,
-    require => Package["nova-objectstore"],
+    require => Package[$::nova::params::package_names],
     #subscribe => File["/etc/nova/nova.conf"]
   }
 }

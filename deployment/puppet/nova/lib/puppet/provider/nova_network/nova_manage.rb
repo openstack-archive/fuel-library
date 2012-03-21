@@ -16,7 +16,7 @@ Puppet::Type.type(:nova_network).provide(:nova_manage) do
   end
 
   def create
-     nova_manage("network", "create", resource[:label], resource[:network], "1", resource[:available_ips])
+     nova_manage("network", "create", resource[:label], resource[:network], "1", resource[:available_ips], "--bridge=br100")
   end
 
   def destroy

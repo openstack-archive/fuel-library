@@ -1,5 +1,7 @@
 class nova::scheduler( $enabled ) {
 
+  include nova::params
+
   Exec['post-nova_config'] ~> Service['nova-scheduler']
   Exec['nova-db-sync'] -> Service['nova-scheduler']
 
@@ -9,15 +11,11 @@ class nova::scheduler( $enabled ) {
     $service_ensure = 'stopped'
   }
 
-  package { "nova-scheduler":
-    ensure  => present,
-    require => Package["python-greenlet"]
-  }
-
   service { "nova-scheduler":
+    name => $::nova::params::scheduler_service_name,
     ensure  => $service_ensure,
     enable  => $enabled,
-    require => Package["nova-scheduler"],
+    require => Package[$::nova::params::package_names],
     #subscribe => File["/etc/nova/nova.conf"]
   }
 }

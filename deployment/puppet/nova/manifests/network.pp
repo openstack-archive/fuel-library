@@ -9,15 +9,11 @@ class nova::network( $enabled=false ) {
     $service_ensure = 'stopped'
   }
 
-  package { "nova-network":
-    ensure  => present,
-    require => Package["python-greenlet"]
-  }
-
   service { "nova-network":
+    name => $::nova::params::network_service_name,
     ensure  => $service_ensure,
     enable  => $enabled,
-    require => Package["nova-network"],
+    require => Package[$::nova::params::package_names],
     before  => Exec['networking-refresh'],
     #subscribe => File["/etc/nova/nova.conf"]
   }

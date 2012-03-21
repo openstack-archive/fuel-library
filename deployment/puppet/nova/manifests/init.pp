@@ -23,14 +23,22 @@ class nova(
   $verbose = false,
   $nodaemon = false,
   $periodic_interval = '60',
-  $report_interval = '10'
-) {
+  $report_interval = '10',
+  $root_helper = $::nova::params::root_helper
+) inherits nova::params {
 
   Nova_config<| |> {
-    require +> Package["nova-common"],
+    require +> Package[$::nova::params::package_names],
     before +> File['/etc/nova/nova.conf'],
     notify +> Exec['post-nova_config']
   }
+
+  File {
+    require => Package[$::nova::params::package_names],
+    owner   => 'nova',
+    group   => 'nova',
+  }
+
   # TODO - why is this required?
   package { 'python':
     ensure => present,
@@ -41,10 +49,21 @@ class nova(
   }
 
   class { 'nova::utilities': }
-  package { ["python-nova", "nova-common", "nova-doc"]:
+
+  # this anchor is used to simplify the graph between nova components by
+  # allowing a resource to serve as a point where the configuration of nova begins
+  anchor { 'nova-start': }
+
+  package { ["python-nova"]:
     ensure  => present,
     require => Package["python-greenlet"]
   }
+
+  package { $::nova::params::package_names:
+    ensure  => present,
+    require => [Package["python-greenlet"], Anchor['nova-start']]
+  }
+
   group { 'nova':
     ensure  => present,
     system  => true,
@@ -59,13 +78,8 @@ class nova(
   file { $logdir:
     ensure  => directory,
     mode    => '751',
-    owner   => 'nova',
-    group   => 'nova',
-    require => Package['nova-common'],
   }
   file { '/etc/nova/nova.conf':
-    owner => 'nova',
-    group => 'nova',
     mode  => '0640',
   }
   exec { "nova-db-sync":
@@ -108,6 +122,7 @@ class nova(
     # as well as controller.
     'network_manager': value => $network_manager;
     'use_deprecated_auth': value => true;
+    'root_helper': value => $root_helper;
   }
 
   exec { 'post-nova_config':
@@ -121,6 +136,13 @@ class nova(
     }
   }
 
+  if $network_manager == 'nova.network.manager.FlatDHCPManager' {
+    nova_config {
+      'dhcpbridge': value => "/usr/bin/nova-dhcpbridge";
+      'dhcpbridge_flagfile': value => "/etc/nova/nova.conf";
+    }
+  }
+
   if $image_service == 'nova.image.glance.GlanceImageService' {
     nova_config {
       'glance_api_servers': value => $glance_api_servers;
@@ -128,5 +150,4 @@ class nova(
       'glance_port': value => $glance_port;
     }
   }
-
 }

@@ -7,8 +7,8 @@ class nova::db(
   $cluster_id = 'localzone'
 ) {
 
-  # Create the db instance before nova-common if its installed
-  Mysql::Db[$dbname] -> Package<| title == "nova-common" |>
+  # Create the db instance before openstack-nova if its installed
+  Mysql::Db[$dbname] -> Anchor<| title == "nova-start" |>
   Mysql::Db[$dbname] ~> Exec<| title == 'initial-db-sync' |>
 
   # now this requires storedconfigs

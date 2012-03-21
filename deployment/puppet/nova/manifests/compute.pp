@@ -16,15 +16,11 @@ class nova::compute(
     $service_ensure = 'stopped'
   }
 
-  package { "nova-compute":
-    ensure => present,
-    require => Package['nova-common'],
-  }
-
   service { "nova-compute":
+    name => $::nova::params::compute_service_name,
     ensure  => $service_ensure,
     enable  => $enabled,
-    require => Package["nova-compute"],
+    require => Package[$::nova::params::package_names],
     before  => Exec['networking-refresh'],
   }
 

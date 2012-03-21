@@ -11,7 +11,7 @@ class nova::rabbitmq(
 ) {
 
   # only configure nova after the queue is up
-  Class['rabbitmq::service'] -> Package<| title == 'nova-common' |>
+  Class['rabbitmq::service'] -> Anchor<| title == 'nova-start' |>
 
   # work around hostname bug, LP #653405
   host { $hostname:
@@ -42,7 +42,7 @@ class nova::rabbitmq(
       write_permission     => '.*',
       read_permission      => '.*',
       provider             => 'rabbitmqctl',
-    }->Package<| title == 'nova-common' |>
+    }->Anchor<| title == 'nova-start' |>
   }
   class { 'rabbitmq::server':
     port              => $port,

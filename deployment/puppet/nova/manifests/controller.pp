@@ -18,7 +18,9 @@ class nova::controller(
   $flat_network_bridge_ip  = '11.0.0.1',
   $flat_network_bridge_netmask  = '255.255.255.0',
 
+  $network_manager = undef,
   $nova_network = '11.0.0.0/24',
+  $floating_network = '10.128.0.0/24',
   $available_ips = '256',
 
   $image_service = 'nova.image.glance.GlanceImageService',
@@ -29,7 +31,9 @@ class nova::controller(
   $admin_user = 'novaadmin',
   $project_name = 'nova',
 
-  $verbose = undef
+  $verbose = undef,
+
+  $lock_path = undef
 ) {
 
 
@@ -45,6 +49,8 @@ class nova::controller(
     rabbit_userid       => $rabbit_userid,
     rabbit_password     => $rabbit_password,
     rabbit_virtual_host => $rabbit_virtual_host,
+    lock_path           => $lock_path,
+    network_manager     => $network_manager,
   }
 
   class { "nova::api": enabled => true }
@@ -54,9 +60,21 @@ class nova::controller(
     flat_network_bridge         => $flat_network_bridge,
     flat_network_bridge_ip      => $flat_network_bridge_ip,
     flat_network_bridge_netmask => $flat_network_bridge_netmask,
+    configure_bridge            => false,
   }
 
-  class { "nova::objectstore": enabled => true }
+  class { "nova::objectstore":
+    enabled => true,
+  }
+
+  class { "nova::cert":
+    enabled => true,
+  }
+
+  class { "nova::volume":
+    enabled => true,
+  }
+
   class { "nova::scheduler": enabled => true }
 
   nova::manage::admin { $admin_user: }
@@ -67,6 +85,11 @@ class nova::controller(
   nova::manage::network { "${project_name}-net-${nova_network}":
     network       => $nova_network,
     available_ips => $available_ips,
+    require       => Nova::Manage::Project[$project_name],
+  }
+
+  nova::manage::floating { "${project_name}-floating-${floating_network}":
+    network       => $floating_network,
     require       => Nova::Manage::Project[$project_name],
   }
 }
