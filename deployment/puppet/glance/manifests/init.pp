@@ -12,7 +12,7 @@ class glance(
     require => Package['glance']
   }
   package { 'glance':
-    name   => $::nova::params::package_name,
+    name   => $::glance::params::package_name,
     ensure => $package_ensure,
   }
   if(! defined(Package['python-migrate'])) {
