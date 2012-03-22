@@ -1,6 +1,10 @@
 require 'spec_helper'
 describe 'swift::storage::server' do
 
+  let :facts do
+    {:operatingsystem => 'Ubuntu'}
+  end
+
   let :pre_condition do
     "class { 'ssh::server::install': }
      class { 'swift': swift_hash_suffix => 'foo' }
@@ -53,8 +57,7 @@ describe 'swift::storage::server' do
         it { should contain_service("swift-#{t}").with(
           :ensure    => 'running',
           :enable    => true,
-          :hasstatus => true,
-          :subscribe => 'Service[rsync]'
+          :hasstatus => true
         )}
         it { should contain_file("/etc/swift/#{t}-server/").with(
           :ensure => 'directory',

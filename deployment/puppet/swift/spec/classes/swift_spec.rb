@@ -6,6 +6,10 @@ describe 'swift' do
     {:swift_hash_suffix => 'string'}
   end
 
+  let :facts do
+    {:operatingsystem => 'Ubuntu'}
+  end
+
   let :pre_condition do
     "include ssh::server::install"
   end

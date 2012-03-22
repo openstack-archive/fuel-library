@@ -5,6 +5,10 @@ describe 'swift::storage::generic' do
     'account'
   end
 
+  let :facts do
+    {:operatingsystem => 'Ubuntu'}
+  end
+
   let :pre_condition do
     "class { 'ssh::server::install': }
      class { 'swift': swift_hash_suffix => 'foo' }
@@ -46,8 +50,7 @@ describe 'swift::storage::generic' do
           :ensure    => 'running',
           :enable    => true,
           :hasstatus => true,
-          :provider  => param_hash[:service_provider],
-          :subscribe => 'Service[rsync]'
+          :provider  => param_hash[:service_provider]
         )}
         it { should contain_file("/etc/swift/#{t}-server/").with(
           :ensure => 'directory',

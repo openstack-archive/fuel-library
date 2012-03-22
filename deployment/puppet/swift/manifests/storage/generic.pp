@@ -41,7 +41,6 @@ define swift::storage::generic(
     enable    => true,
     hasstatus => true,
     provider  => $service_provider,
-    subscribe => Service['rsync'],
   }
 
   # TODO - this should be fixed in the upstream
@@ -52,14 +51,4 @@ define swift::storage::generic(
     swift::storage::generic::upstart { $name: }
   }
 
-}
-# TODO this should be removed when the upstart packages are fixed.
-define swift::storage::generic::upstart() {
-  file { "/etc/init/swift-${name}.conf":
-    mode   => '0644',
-    owner  => 'root',
-    group  => 'root',
-    source => "puppet:///modules/swift/swift-${name}.conf.upstart",
-    before => Service["swift-${name}"],
-  }
 }

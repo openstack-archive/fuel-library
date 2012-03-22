@@ -1,6 +1,10 @@
 require 'spec_helper'
 describe 'swift::storage::container' do
 
+  let :facts do
+    {:operatingsystem => 'Ubuntu'}
+  end
+
   let :pre_condition do
     "class { 'ssh::server::install': }
      class { 'swift': swift_hash_suffix => 'foo' }

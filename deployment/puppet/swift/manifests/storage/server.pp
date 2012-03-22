@@ -20,11 +20,6 @@ define swift::storage::server(
   validate_re($type, '^object|container|account$')
   # TODO - validate that name is an integer
 
-  # This makes me think that perhaps the rsync class
-  # should be split into install and config
-  #
-  Swift::Storage::Server[$name] ~> Service['rsync']
-
   $bind_port = $name
 
   rsync::server::module { "${type}${name}":
