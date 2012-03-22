@@ -7,6 +7,7 @@ class glance::registry(
   $sql_connection = 'sqlite:///var/lib/glance/glance.sqlite',
   $sql_idle_timeout = '3600'
 ) inherits glance {
+
   file { '/etc/glance/glance-registry.conf':
     ensure  => present,
     owner   => 'glance',
@@ -15,7 +16,9 @@ class glance::registry(
     content => template('glance/glance-registry.conf.erb'),
     require => Class['glance']
   }
+
   service { 'glance-registry':
+    name       => $::glance::params::registry_service_name,
     ensure     => running,
     enable     => true,
     hasstatus  => true,
