@@ -25,6 +25,14 @@ class keystone(
     ensure => $package_ensure,
   }
 
+  group { 'keystone':
+    ensure => present,
+  }
+  user { 'keystone':
+    ensure => 'present',
+    gid    => 'keystone',
+  }
+
   file { '/etc/keystone':
     ensure  => directory,
     owner   => 'keystone',
