@@ -6,7 +6,10 @@ describe 'swift::storage::generic' do
   end
 
   let :facts do
-    {:operatingsystem => 'Ubuntu'}
+    {
+      :operatingsystem => 'Ubuntu',
+      :osfamily        => 'Debian'
+    }
   end
 
   let :pre_condition do

@@ -76,6 +76,7 @@ class swift::proxy(
   }
 
   package { 'swift-proxy':
+    name   => $::swift::params::proxy_package_name,
     ensure => $package_ensure,
   }
 
@@ -127,8 +128,9 @@ post-stop exec /usr/bin/swift-init proxy-server stop',
   }
 
   service { 'swift-proxy':
+    name      => $::swift::params::proxy_service_name,
     ensure    => running,
-    provider  => 'upstart',
+    provider  => $::swift::params::service_provider,
     enable    => true,
     subscribe => File['/etc/swift/proxy-server.conf'],
   }

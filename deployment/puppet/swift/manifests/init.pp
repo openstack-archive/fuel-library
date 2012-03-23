@@ -24,9 +24,12 @@ class swift(
   $package_ensure = 'present'
 ) {
 
+  include swift::params
+
   Class['ssh::server::install'] -> Class['swift']
 
   package { 'swift':
+    name   => $::swift::params::package_name,
     ensure => $package_ensure,
   }
 

@@ -27,6 +27,19 @@ user_admin_admin = admin .admin .reseller_admin
 user_test_tester = testing .admin
 user_test2_tester2 = testing2 .admin
 user_test_tester3 = testing3
+<% elsif auth_type == 'keystone' -%>
+[filter:keystone]
+use = egg:keystone#swiftauth
+auth_protocol = https
+auth_host = 127.0.0.0
+auth_port = 35357
+admin_token = 999888777666
+delay_auth_decision = 0
+service_protocol = https
+service_host = 127.0.0.0
+service_port = 5000
+service_pass = dTpw
+cache = swift.cache
 <% end -%>
 
 [filter:healthcheck]

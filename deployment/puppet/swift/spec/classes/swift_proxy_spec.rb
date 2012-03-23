@@ -13,6 +13,7 @@ describe 'swift::proxy' do
   # set os so memcache will not fail
   let :facts do
     {:operatingsystem => 'Ubuntu',
+     :osfamily        => 'Debian',
      :processorcount  => 1
     }
   end

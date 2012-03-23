@@ -27,9 +27,4 @@ class swift::storage(
     use_xinetd => true,
     address    => $storage_local_net_ip,
   }
-
-  # package dependencies
-  package { ['xfsprogs', 'parted']:
-    ensure => 'present'
-  }
 }

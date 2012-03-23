@@ -4,7 +4,10 @@ describe 'swift::storage' do
   # TODO I am not testing the upstart code b/c it should be temporary
 
   let :facts do
-    {:operatingsystem => 'Ubuntu'}
+    {
+      :operatingsystem => 'Ubuntu',
+      :osfamily        => 'Debian'
+    }
   end
 
   describe 'when required classes are specified' do
@@ -19,10 +22,6 @@ describe 'swift::storage' do
         {
           :storage_local_net_ip => '127.0.0.1',
         }
-      end
-
-      ['xfsprogs', 'parted'].each do |present_package|
-        it { should contain_package(present_package).with_ensure('present') }
       end
 
       it { should contain_class('rsync::server').with(
