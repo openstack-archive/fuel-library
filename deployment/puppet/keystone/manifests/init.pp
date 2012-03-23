@@ -9,7 +9,8 @@ class keystone(
   $bind_host       = '0.0.0.0',
   $bind_port       = '5000',
   $admin_bind_host = '0.0.0.0',
-  $admin_bind_port = '5001'
+  $admin_bind_port = '5001',
+  $db_type         = 'sqlite',
 ) {
 
   # this package dependency needs to be removed when it
@@ -31,6 +32,14 @@ class keystone(
   user { 'keystone':
     ensure => 'present',
     gid    => 'keystone',
+  }
+
+  if($db_type != 'sqlite') {
+    file { '/var/lib/keystone/keystone.db':
+      ensure    => absent,
+      subscribe => Package['keystone'],
+      before    => Class['keystone::db'],
+    }
   }
 
   file { '/etc/keystone':
