@@ -10,7 +10,11 @@ class swift::params {
       $container_service_name = 'swift-container'
       $account_package_name   = 'swift-account'
       $account_service_name   = 'swift-account'
-      $service_provider       = 'upstart'
+      if $::operatingsystem == 'Debian' {
+        $service_proivider    = 'debian'
+      } else {
+        $service_provider     = 'upstart'
+      }
     }
     'RedHat': {
       $package_name           = 'openstack-swift'
