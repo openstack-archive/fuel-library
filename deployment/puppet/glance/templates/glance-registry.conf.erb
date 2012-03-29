@@ -15,6 +15,9 @@ bind_port = <%= bind_port %>
 # file for both the API and registry servers!
 log_file = <%= log_file %>
 
+# Backlog requests when creating socket
+backlog = 4096
+
 # SQLAlchemy connection string for the reference implementation
 # registry server. Any valid SQLAlchemy connection string is fine.
 # See: http://www.sqlalchemy.org/docs/05/reference/sqlalchemy/connections.html#sqlalchemy.create_engine
@@ -29,12 +32,32 @@ sql_connection = <%= sql_connection %>
 # before MySQL can drop the connection.
 sql_idle_timeout = <%= sql_idle_timeout %>
 
-[pipeline:glance-registry]
-pipeline = context registryapp
+# Limit the api to return `param_limit_max` items in a call to a container. If
+# a larger `limit` query param is provided, it will be reduced to this value.
+api_limit_max = 1000
 
-[app:registryapp]
-paste.app_factory = glance.registry.server:app_factory
+# If a `limit` query param is not provided in an api request, it will
+# default to `limit_param_default`
+limit_param_default = 25
 
-[filter:context]
-context_class = glance.registry.context.RequestContext
-paste.filter_factory = glance.common.context:filter_factory
+# ================= Syslog Options ============================
+
+# Send logs to syslog (/dev/log) instead of to file specified
+# by `log_file`
+use_syslog = False
+
+# Facility to use. If unset defaults to LOG_USER.
+# syslog_log_facility = LOG_LOCAL1
+
+# ================= SSL Options ===============================
+
+# Certificate file to use when starting registry server securely
+# cert_file = /path/to/certfile
+
+# Private key file to use when starting registry server securely
+# key_file = /path/to/keyfile
+
+<% if auth_type == 'keystone' -%>
+[paste_deploy]
+flavor = keystone
+<% end -%>
