@@ -31,6 +31,7 @@ define swift::storage::generic(
   package { "swift-${name}":
     name   => inline_template("<%= scope.lookupvar('::swift::params::${name}_package_name') %>"),
     ensure => $package_ensure,
+    before => Service["swift-${name}"],
   }
 
   file { "/etc/swift/${name}-server/":
