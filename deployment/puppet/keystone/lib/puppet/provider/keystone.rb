@@ -34,7 +34,16 @@ class Puppet::Provider::Keystone < Puppet::Provider
   end
 
   def self.auth_keystone(*args)
-    keystone('--token', admin_token, '--endpoint', admin_endpoint, args)
+    begin
+      keystone('--token', admin_token, '--endpoint', admin_endpoint, args)
+    rescue Exception => e
+      if e.message =~ /Unable to communicate with identity service: \[Errno 111\] Connection refused\. \(HTTP 400\)/
+       sleep 30
+       keystone('--token', admin_token, '--endpoint', admin_endpoint, args)
+      else
+        raise(e)
+      end
+    end
   end
 
   def auth_keystone(*args)
