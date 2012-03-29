@@ -1,8 +1,11 @@
 Puppet::Type.newtype(:keystone_tenant) do
 
   desc <<-EOT
-    This type can be used to create
+    This type can be used to manage
     keystone tenants.
+
+    This is assumed to be running on the same node
+    as your keystone API server.
   EOT
 
   ensurable
@@ -11,12 +14,15 @@ Puppet::Type.newtype(:keystone_tenant) do
     newvalues(/\w+/)
   end
 
-#  newproperty(:enabled) do
-#    newvalues(/(t|T)rue/, /(f|F)alse/)
-#    munge do |value|
-#      value.to_s.capitalize
-#    end
-#  end
+  newproperty(:enabled) do
+    newvalues(/(t|T)rue/, /(f|F)alse/)
+    defaultto('True')
+    munge do |value|
+      value.to_s.capitalize
+    end
+  end
+
+  newproperty(:description)
 
   newproperty(:id) do
     validate do |v|

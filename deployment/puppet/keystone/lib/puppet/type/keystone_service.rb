@@ -1,9 +1,9 @@
-Puppet::Type.newtype(:keystone_role) do
+Puppet::Type.newtype(:keystone_service) do
 
   desc <<-EOT
 
-    This is currently used to model the creation of
-    keystone roles.
+    This is currently used to model the management of
+    keystone services.
 
   EOT
 
@@ -17,6 +17,12 @@ Puppet::Type.newtype(:keystone_role) do
     validate do |v|
       raise(Puppet::Error, 'This is a read only property')
     end
+  end
+
+  newproperty(:type) do
+  end
+
+  newproperty(:description) do
   end
 
 end
