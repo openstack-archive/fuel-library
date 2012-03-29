@@ -1,12 +1,10 @@
-This repo is not ready to be used.
-
-These initial check-ins are just to save my current progress.
-
 ---
 
 module for managing keystone:
 
-Has only been tested on Ubuntu Natty
+Has only been tested mainly on Ubuntu Precise
+
+Has only been tested with the essex-4 version of keystone
 
 manifests:
 
@@ -30,17 +28,10 @@ native types:
   - keystone_tenant
   - keystone_user
   - keystone_role
-    ... I do not yet understand the below items ...
-  - keystone_endpoint (templates or something
-  - keystone_token
-  - keystone_endpointtemplate
+  - keystone_user_role
+  - keystone_service
+  - keystone_endpoint
 
-  The sole provider for all of these types is keystone-manage
+  The sole provider for all of these types is keystone
 
-  This has been problematic so far in that it does not fully
-  support all of the operations needed by this type.
-
-templates/initial_data.sh.erb
-
-  contains a script that sets up an example environment
-  that cloudbuilders was using for something (but for what?)
+  These types can only be run on the same machine where keystone is configured
