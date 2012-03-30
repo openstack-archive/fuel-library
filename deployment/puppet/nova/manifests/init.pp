@@ -25,7 +25,15 @@ class nova(
   $nodaemon = false,
   $periodic_interval = '60',
   $report_interval = '10',
-  $root_helper = $::nova::params::root_helper
+  $root_helper = $::nova::params::root_helper,
+  $auth_strategy = "keystone",
+  $auth_host = '127.0.0.1',
+  $auth_port = 35357,
+  $auth_protocol = 'http',
+  $auth_uri = 'http://127.0.0.1:5000/v2.0',
+  $admin_tenant_name = 'services',
+  $admin_user = 'nova',
+  $admin_password = 'passw0rd',
 ) inherits nova::params {
 
   # all nova_config resources should be applied
@@ -135,6 +143,7 @@ class nova(
     'network_manager': value => $network_manager;
     'use_deprecated_auth': value => true;
     'root_helper': value => $root_helper;
+    'auth_strategy': value => $auth_strategy;
   }
 
   exec { 'post-nova_config':
