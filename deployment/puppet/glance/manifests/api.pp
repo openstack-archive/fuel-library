@@ -43,8 +43,8 @@
 #  $swift_store_create_container_on_put - 'False'
 #
 class glance::api(
-  $log_verbose = false,
-  $log_debug = false,
+  $log_verbose = 'False',
+  $log_debug = 'False',
   $default_store = 'file',
   $bind_host = '0.0.0.0',
   $bind_port = '9292',
@@ -56,16 +56,49 @@ class glance::api(
   $swift_store_user = 'jdoe',
   $swift_store_key = 'a86850deb2742ec3cb41518e26aa2d89',
   $swift_store_container = 'glance',
-  $swift_store_create_container_on_put = 'False'
+  $swift_store_create_container_on_put = 'False',
+  $auth_type = 'keystone',
+  $service_protocol = 'http',
+  $service_host = '127.0.0.1',
+  $service_port = '5000',
+  $auth_host = '127.0.0.1',
+  $auth_port = '35357',
+  $auth_protocol = 'http',
+  $auth_uri = "http://127.0.0.1:5000/",
+  $admin_token = '999888777666',
+  # TODO - I should update this to use a glance specific keystone user
+  $keystone_tenant = 'admin',
+  $keystone_user = 'admin',
+  $keystone_password = 'ChangeMe'
 ) inherits glance {
 
-  file { '/etc/glance/glance-api.conf':
+  # TODO I need to work with Chris to ensure that I understand
+  # his auth requirements
+  if($auth_type == 'keystone') {
+    $context_type = 'context'
+  } else {
+    $context_type = 'auth-context'
+  }
+
+  File {
     ensure  => present,
     owner   => 'glance',
     group   => 'root',
     mode    => '0640',
+    notify  => Service['glance-api'],
+    require => Class['glance'],
+  }
+
+  file { '/etc/glance/glance-api.conf':
     content => template('glance/glance-api.conf.erb'),
-    require => Class['glance']
+  }
+
+  file { '/etc/glance/glance-api-paste.ini':
+    content => template('glance/glance-api-paste.ini.erb'),
+  }
+
+  file { '/etc/glance/glance-cache.conf':
+    content => template('glance/glance-cache.conf.erb'),
   }
 
   service { 'glance-api':
