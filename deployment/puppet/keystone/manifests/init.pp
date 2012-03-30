@@ -1,26 +1,28 @@
 #
 # module for installing keystone
 #
-# does this always live on the nova API server?
-#
-
 class keystone(
-  $package_ensure  = 'present',
-  $log_verbose     = 'False',
-  $log_debug       = 'False',
-  $default_store   = 'sqlite',
-  $bind_host       = '0.0.0.0',
-  $bind_port       = '5000',
-  $admin_bind_host = '0.0.0.0',
-  $admin_bind_port = '5001'
+  $package_ensure = 'present',
+  $default_store  = 'sqlite',
+  $bind_host      = '0.0.0.0',
+  $public_port    = '5000',
+  $admin_port     = '35357',
+  $admin_token    = 'service_token',
+  $compute_port   = '3000',
+  $log_verbose    = 'False',
+  $log_debug      = 'False',
+  $use_syslog     = 'False',
+  $db_type        = 'sqlite',
+  $catalog_type   = 'template'
 ) {
 
-  # may need to add a user for HA
+  validate_re($catalog_type, 'template|sql')
 
-  # TODO does keystone need nova-common?
+  if ( $use_syslog != 'False') {
+    fail('use syslog currently only accepts false')
+  }
 
-  #Package['keystone'] ~> Service<| 'title' = 'nova-api' |>
-
+  include keystone::params
   # this package dependency needs to be removed when it
   # is added as a package dependency
   # I filed the following ticket against the packages: 909941
@@ -32,8 +34,14 @@ class keystone(
 
   package { 'keystone':
     ensure => $package_ensure,
-    # I do not understand what this does??
-    #notify => Exec["fix_tools_tracer"],
+  }
+
+  group { 'keystone':
+    ensure => present,
+  }
+  user { 'keystone':
+    ensure => 'present',
+    gid    => 'keystone',
   }
 
   file { '/etc/keystone':
@@ -44,57 +52,54 @@ class keystone(
     require => Package['keystone']
   }
 
-  file { 'keystone.conf':
-    path    => '/etc/keystone/keystone.conf',
-    ensure  => present,
-    owner   => 'keystone',
-    mode    => 0600,
-    content => template('keystone/keystone.conf.erb'),
-    notify => Service['keystone'],
-    require => Package['keystone'], #Exec['fix_tools_tracer']]
+  concat { '/etc/keystone/keystone.conf':
+    owner   => keystone,
+    group   => keystone,
+    mode    => 600,
+    require => Package['keystone'],
+    notify  => Service['keystone'],
   }
 
+  # config sections
+  keystone::config { 'DEFAULT':
+    config => {
+      'bind_host'    => $bind_host,
+      'public_port'  => $public_port,
+      'admin_port'   => $admin_port,
+      'admin_token'  => $admin_token,
+      'compute_port' => $compute_port,
+      'log_verbose'  => $log_verbose,
+      'log_debug'    => $log_debug,
+      'use_syslog'   => $use_syslog
+    },
+    order  => '00',
+  }
 
-#  # I would prefer not to be loading initial data into keystone
-#  file { 'initial_data.sh':
-#    path => '/var/lib/keystone/initial_data.sh',
-#    ensure  => present,
-#    owner   => 'keystone',
-#    mode    => 0700,
-#    content => template('keystone/initial_data.sh.erb'),
-#    require => Package['keystone']
-#  }
-#
-#  exec { 'create_keystone_data':
-#    user => 'keystone',
-#    command     => '/var/lib/keystone/initial_data.sh',
-#    path        => [ '/bin', '/usr/bin' ],
-#    unless      => 'keystone-manage user list | grep -q admin',
-#    require     => [
-#      Package['keystone'],
-#      File['keystone.conf'],
-#      File['initial_data.sh']
-#    ]
-#  }
+  keystone::config { 'identity':
+    order  => '03',
+  }
+
+  if($catalog_type == 'template') {
+    # if we are using a catalog, then I may want to manage the file
+    keystone::config { 'template_catalog':
+      order => '04',
+    }
+  } elsif($catalog_type == 'sql' ) {
+    keystone::config { 'sql_catalog':
+      order => '04',
+    }
+  }
+
+  keystone::config { 'footer':
+    order    => '99'
+  }
 
   service { 'keystone':
     ensure     => running,
     enable     => true,
     hasstatus  => true,
     hasrestart => true,
+    provider   => $::keystone::params::service_provider,
   }
-
-  # TODO - figure out if I can remove this patching code?
-  # this can't be serious
-  # this Puppet code is patching keystone? Why?
-  #exec { "fix_tools_tracer":
-  #  command     => 'sed -e "s,^import tools.tracer,#import tools.tracer," -i /usr/lib/python2.6/dist-packages/keystone/middleware/auth_token.py /usr/bin/keystone',
-  #  path        => [ "/bin", "/usr/bin" ],
-  #  notify => [Service["nova-api"]],
-  #  refreshonly => true,
-  #  require     => [
-  #    Package['keystone'],
-  #  ]
-  #}
 
 }

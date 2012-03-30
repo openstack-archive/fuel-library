@@ -10,8 +10,20 @@ Puppet::Type.newtype(:keystone_user) do
 
   EOT
 
+# TODO support description??
+
+  ensurable
+
   newparam(:name, :namevar => true) do
     newvalues(/\S+/)
+  end
+
+  newproperty(:enabled) do
+    newvalues(/(t|T)rue/, /(f|F)alse/)
+    defaultto('True')
+    munge do |value|
+      value.to_s.capitalize
+    end
   end
 
   newparam(:password) do
@@ -22,5 +34,14 @@ Puppet::Type.newtype(:keystone_user) do
     newvalues(/\S+/)
   end
 
+  newproperty(:email) do
+    newvalues(/\S+@\S+/)
+  end
+
+  newproperty(:id) do
+    validate do |v|
+      raise(Puppet::Error, 'This is a read only property')
+    end
+  end
 
 end
