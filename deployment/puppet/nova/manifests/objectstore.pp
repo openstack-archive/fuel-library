@@ -11,11 +11,19 @@ class nova::objectstore( $enabled=false ) {
     $service_ensure = 'stopped'
   }
 
+  if($::nova::params::objectstore_package_name != undef) {
+    package { 'nova-objectstore':
+      name   => $::nova::params::objectstore_package_name,
+      ensure => present,
+      notify => Service['nova-objectstore'],
+    }
+  }
+
   service { "nova-objectstore":
     name => $::nova::params::objectstore_service_name,
     ensure  => $service_ensure,
     enable  => $enabled,
-    require => Package[$::nova::params::package_names],
+    require => Package[$::nova::params::common_package_name],
     #subscribe => File["/etc/nova/nova.conf"]
   }
 }

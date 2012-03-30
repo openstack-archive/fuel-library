@@ -1,10 +1,7 @@
-# this class should probably never be declared except
+#schedulee this class should probably never be declared except
 # from the virtualization implementation of the compute node
 class nova::compute(
-  $api_server,
   $enabled = false,
-  $api_port = 8773,
-  $aws_address = '169.254.169.254'
 ) {
 
   Exec['post-nova_config'] ~> Service['nova-compute']
@@ -16,18 +13,19 @@ class nova::compute(
     $service_ensure = 'stopped'
   }
 
+  if($::nova::params::compute_package_name != undef) {
+    package { 'nova-compute':
+      name   => $::nova::params::compute_package_name,
+      ensure => present,
+      notify => Service['nova-compute'],
+    }
+  }
+
   service { "nova-compute":
     name => $::nova::params::compute_service_name,
     ensure  => $service_ensure,
     enable  => $enabled,
-    require => Package[$::nova::params::package_names],
+    require => Package[$::nova::params::common_package_name],
     before  => Exec['networking-refresh'],
   }
-
-  # forward guest metadata requests to correct API server
-#  exec { "forward_api_requests":
-#    command => "/sbin/iptables -t nat -A PREROUTING -d ${aws_address}/32 -p tcp -m tcp --dport 80 -j DNAT --to-destination ${api_server}:${api_port}",
-#    unless => "/sbin/iptables -L PREROUTING -t nat -n | egrep 'DNAT[ ]+tcp+[ ]+--[ ]+0.0.0.0\\/0+[ ]+${aws_address}+[ ]+tcp+[ ]+dpt:80+[ ]+to:${api_server}:${api_port}'",
-#    logoutput => on_failure
-#  }
 }
