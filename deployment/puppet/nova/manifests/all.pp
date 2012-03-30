@@ -54,10 +54,11 @@ class nova::all(
     rabbit_virtual_host => $rabbit_virtual_host,
   }
 
-  class { "nova::api": enabled => true }
+  class { "nova::api":
+    enabled => true
+  }
 
   class { "nova::compute":
-    api_server     => $ipaddress,
     enabled        => true,
   }
   class { 'nova::compute::libvirt':
