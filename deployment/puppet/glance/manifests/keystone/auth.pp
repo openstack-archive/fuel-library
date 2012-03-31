@@ -9,7 +9,7 @@ class glance::keystone::auth(
   Class['keystone::roles::admin'] -> Class['glance::keystone::auth']
 
   keystone_user { $auth_name:
-    ensure   => present, 
+    ensure   => present,
     password => $password,
   }
   keystone_user_role { "${auth_name}@service":
@@ -26,6 +26,6 @@ class glance::keystone::auth(
     admin_url    => "http://${address}:${port}/v1",
     internal_url => "http://${address}:${port}/v1",
     require      => Keystone_service[$auth_name]
-  } 
+  }
 
 }
