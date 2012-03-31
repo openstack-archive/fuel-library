@@ -29,7 +29,7 @@ class keystone::mysql(
     require      => Class['mysql::server'],
   }
 
-  keystone::config { 'sql': 
+  keystone::config { 'sql':
     config => {
       user          => $user,
       password      => $password,

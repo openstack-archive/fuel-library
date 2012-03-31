@@ -4,7 +4,9 @@
 
 Exec { logoutput => 'on_failure' }
 
-stage { 'keystone_ppa': }
+stage { 'keystone_ppa':
+  before => Stage['main'],
+}
 
 class { 'apt':
   stage => 'keystone_ppa',
@@ -12,7 +14,6 @@ class { 'apt':
 class { 'keystone::repo::trunk':
   stage => 'keystone_ppa',
 }
-
 
 # example of how to build a single node
 # keystone instance backed by sqlite

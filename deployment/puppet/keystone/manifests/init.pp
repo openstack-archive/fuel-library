@@ -39,6 +39,7 @@ class keystone(
   group { 'keystone':
     ensure => present,
   }
+
   user { 'keystone':
     ensure => 'present',
     gid    => 'keystone',
