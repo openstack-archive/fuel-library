@@ -51,7 +51,6 @@ class glance::api(
 ) inherits glance {
 
   include 'concat::setup'
-  Class['glance::api'] -> Class['concat::setup']
 
   # TODO I need to work with Chris to ensure that I understand
   # his auth requirements
