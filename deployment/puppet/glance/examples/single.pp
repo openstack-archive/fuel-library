@@ -3,7 +3,9 @@
 # to ensure that we use the latest precise packages
 Exec { logoutput => 'on_failure' }
 
-stage { 'glance_ppa': }
+stage { 'glance_ppa':
+  before => Stage['main'],
+}
 
 class { 'apt':
   stage => 'glance_ppa',
