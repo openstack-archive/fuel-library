@@ -38,16 +38,16 @@ node default {
 }
 
 class role_glance_sqlite {
+
   class { 'glance::api':
     log_verbose       => 'True',
     log_debug         => 'True',
-    swift_store_user  => 'foo_user',
-    swift_store_key   => 'foo_pass',
     auth_type         => 'keystone',
     keystone_tenant   => 'service',
     keystone_user     => 'glance',
     keystone_password => 'glance_password',
   }
+  class { 'glance::backend::file': }
 
   class { 'glance::registry':
     log_verbose       => 'True',
