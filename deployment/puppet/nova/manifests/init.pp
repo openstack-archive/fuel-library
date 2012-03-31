@@ -2,6 +2,7 @@ class nova(
   # this is how to query all resources from our clutser
   $nova_cluster_id='localcluster',
   $sql_connection = false,
+  # TODO maybe this should default to glance?
   $image_service = 'nova.image.local.LocalImageService',
   # these glance params should be optional
   # this should probably just be configured as a glance client
@@ -54,7 +55,7 @@ class nova(
   # allowing a resource to serve as a point where the configuration of nova begins
   anchor { 'nova-start': }
 
-  package { ["python-nova"]:
+  package { "python-nova":
     ensure  => present,
     require => Package["python-greenlet"]
   }
@@ -78,7 +79,7 @@ class nova(
   }
   file { $logdir:
     ensure  => directory,
-    mode    => '751',
+    mode    => '0751',
   }
   file { '/etc/nova/nova.conf':
     mode  => '0640',
@@ -97,6 +98,7 @@ class nova(
 
 
   # query out the config for our db connection
+  # TODO - I am not sure if resource collection should be the default
   if $sql_connection {
     nova_config { 'sql_connection': value => $sql_connection }
   } else{
