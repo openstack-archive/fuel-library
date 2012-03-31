@@ -64,9 +64,6 @@ glance.filter_factory = glance.common.context:ContextMiddleware
 
 [filter:authtoken]
 paste.filter_factory = keystone.middleware.auth_token:filter_factory
-service_protocol = <%= service_protocol %>
-service_host = <%= service_host %>
-service_port = <%= service_port %>
 auth_host = <%= auth_host %>
 auth_port = <%= auth_port %>
 auth_protocol = <%= auth_protocol %>

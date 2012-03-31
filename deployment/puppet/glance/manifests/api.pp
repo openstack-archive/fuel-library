@@ -40,15 +40,11 @@ class glance::api(
   $registry_host = '0.0.0.0',
   $registry_port = '9191',
   $auth_type = 'keystone',
-  $service_protocol = 'http',
-  $service_host = '127.0.0.1',
-  $service_port = '5000',
   $auth_host = '127.0.0.1',
   $auth_port = '35357',
   $auth_protocol = 'http',
   $auth_uri = "http://127.0.0.1:5000/",
   $admin_token = '999888777666',
-  # TODO - I should update this to use a glance specific keystone user
   $keystone_tenant = 'admin',
   $keystone_user = 'admin',
   $keystone_password = 'ChangeMe'
