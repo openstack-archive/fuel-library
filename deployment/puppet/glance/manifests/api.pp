@@ -28,35 +28,17 @@
 #  $log_file - The path of file used for logging
 #  Optional. Default: /var/log/glance/api.log
 #
-#  $filesystem_store_datadir - Location where dist images are stored when
-#  default_store == file.
-#  Optional. Default: /var/lib/glance/images/
-#
-#  $swift_store_auth_address - Optional. Default: '127.0.0.1:8080/v1.0/',
-#
-#  $swift_store_user - Optional. Default:'jdoe',
-#
-#  $swift_store_key - Optional. Default: 'a86850deb2742ec3cb41518e26aa2d89',
-#
-#  $swift_store_container - 'glance',
-#
-#  $swift_store_create_container_on_put - 'False'
 #
 class glance::api(
   $log_verbose = 'False',
   $log_debug = 'False',
-  $default_store = 'file',
   $bind_host = '0.0.0.0',
   $bind_port = '9292',
+  $backlog   = '4096',
+  $workers   = '0',
+  $log_file = '/var/log/glance/api.log',
   $registry_host = '0.0.0.0',
   $registry_port = '9191',
-  $log_file = '/var/log/glance/api.log',
-  $filesystem_store_datadir = '/var/lib/glance/images/',
-  $swift_store_auth_address = '127.0.0.1:8080/v1.0/',
-  $swift_store_user = 'jdoe',
-  $swift_store_key = 'a86850deb2742ec3cb41518e26aa2d89',
-  $swift_store_container = 'glance',
-  $swift_store_create_container_on_put = 'False',
   $auth_type = 'keystone',
   $service_protocol = 'http',
   $service_host = '127.0.0.1',
@@ -71,6 +53,9 @@ class glance::api(
   $keystone_user = 'admin',
   $keystone_password = 'ChangeMe'
 ) inherits glance {
+
+  include 'concat::setup'
+  Class['glance::api'] -> Class['concat::setup']
 
   # TODO I need to work with Chris to ensure that I understand
   # his auth requirements
@@ -89,10 +74,34 @@ class glance::api(
     require => Class['glance'],
   }
 
-  file { '/etc/glance/glance-api.conf':
-    content => template('glance/glance-api.conf.erb'),
+  concat { '/etc/glance/glance-api.conf':
+    owner   => 'glance',
+    group   => 'root',
+    mode    => 640,
+    require => Class['glance']
   }
 
+  glance::api::config { 'header':
+    config => {
+      'log_verbose'   => $log_verbose,
+      'log_debug'     => $log_debug,
+      'bind_host'     => $bind_host,
+      'bind_port'     => $bind_port,
+      'log_file'      => $log_file,
+      'backlog'       => $backlog,
+      'workers'       => $workers,
+      'registry_host' => $registry_host,
+      'registry_port' => $registry_port
+    },
+    order  => '01',
+  }
+
+  glance::api::config { 'footer':
+    config => {
+      'auth_type' => $auth_type
+    },
+    order  => '99'
+  }
   file { '/etc/glance/glance-api-paste.ini':
     content => template('glance/glance-api-paste.ini.erb'),
   }
@@ -107,7 +116,6 @@ class glance::api(
     enable     => true,
     hasstatus  => true,
     hasrestart => true,
-    subscribe  => File['/etc/glance/glance-api.conf'],
-    require    => Class['glance']
+    subscribe  => Concat['/etc/glance/glance-api.conf'],
   }
 }
