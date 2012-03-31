@@ -54,7 +54,7 @@ class nova(
   # allowing a resource to serve as a point where the configuration of nova begins
   anchor { 'nova-start': }
 
-  package { ["python-nova"]:
+  package { "python-nova":
     ensure  => present,
     require => Package["python-greenlet"]
   }
@@ -78,7 +78,7 @@ class nova(
   }
   file { $logdir:
     ensure  => directory,
-    mode    => '751',
+    mode    => '0751',
   }
   file { '/etc/nova/nova.conf':
     mode  => '0640',
