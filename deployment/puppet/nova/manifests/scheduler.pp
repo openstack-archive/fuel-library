@@ -1,4 +1,4 @@
-class nova::scheduler( $enabled ) {
+class nova::scheduler( $enabled = false) {
 
   include nova::params
 
@@ -11,11 +11,19 @@ class nova::scheduler( $enabled ) {
     $service_ensure = 'stopped'
   }
 
+  if($::nova::params::scheduler_package_name != undef) {
+    package { 'nova-scheduler':
+      name   => $::nova::params::scheduler_package_name,
+      ensure => present,
+      notify => Service['nova-scheduler'],
+    }
+  }
+
   service { "nova-scheduler":
     name => $::nova::params::scheduler_service_name,
     ensure  => $service_ensure,
     enable  => $enabled,
-    require => Package[$::nova::params::package_names],
+    require => Package[$::nova::params::common_package_name],
     #subscribe => File["/etc/nova/nova.conf"]
   }
 }

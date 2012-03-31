@@ -3,7 +3,7 @@ require 'spec_helper'
 describe 'nova' do
   let :facts do
     { :osfamily => 'Debian' }
-  end 
+  end
 
   it do
     should contain_group('nova').with(
@@ -20,5 +20,14 @@ describe 'nova' do
       'system'  => 'true',
       'require' => 'Package[nova-common]'
     )
+  end
+  describe "When platform is RedHat" do
+    let :facts do
+      {:osfamily => 'RedHat'}
+    end
+    it { should contain_package('nova-common').with(
+      'name'   => 'openstack-nova',
+      'ensure' => 'present'
+    )}
   end
 end

@@ -28,13 +28,13 @@ class nova(
 ) inherits nova::params {
 
   Nova_config<| |> {
-    require +> Package[$::nova::params::package_names],
+    require +> Package[$::nova::params::common_package_name],
     before +> File['/etc/nova/nova.conf'],
     notify +> Exec['post-nova_config']
   }
 
   File {
-    require => Package[$::nova::params::package_names],
+    require => Package[$::nova::params::common_package_name],
     owner   => 'nova',
     group   => 'nova',
   }
@@ -59,7 +59,8 @@ class nova(
     require => Package["python-greenlet"]
   }
 
-  package { $::nova::params::package_names:
+  package { 'nova-common':
+    name    =>$::nova::params::common_package_name,
     ensure  => present,
     require => [Package["python-greenlet"], Anchor['nova-start']]
   }

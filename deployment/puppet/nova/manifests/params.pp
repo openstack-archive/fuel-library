@@ -4,7 +4,12 @@ class nova::params {
 
   case $::osfamily {
     'RedHat': {
-      $package_names            = 'openstack-nova'
+      $common_package_name      = 'openstack-nova'
+      $api_package_name         = undef
+      $compute_package_name     = undef
+      $network_package_name     = undef
+      $objectstore_package_name = undef
+      $scheduler_package_name   = undef
       $doc_package_name         = 'openstack-nova-doc'
       $api_service_name         = 'openstack-nova-api'
       $compute_service_name     = 'openstack-nova-compute'
@@ -18,13 +23,12 @@ class nova::params {
       $root_helper              = 'sudo nova-rootwrap'
     }
     'Debian': {
-      $package_names = ['nova-common',
-                        'nova-api',
-                        'nova-compute',
-                        'nova-network',
-                        'nova-objectstore',
-                        'nova-scheduler'
-                       ]
+      $common_package_name      = 'nova-common'
+      $api_package_name         = 'nova-api'
+      $compute_package_name     = 'nova-compute'
+      $network_package_name     = 'nova-network'
+      $objectstore_package_name = 'nova-objectstore'
+      $scheduler_package_name   = 'nova-scheduler'
       $doc_package_name         = 'nova-doc'
       $api_service_name         = 'nova-api'
       $compute_service_name     = 'nova-compute'
