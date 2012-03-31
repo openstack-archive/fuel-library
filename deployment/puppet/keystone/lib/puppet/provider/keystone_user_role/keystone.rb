@@ -34,10 +34,10 @@ Puppet::Type.type(:keystone_user_role).provide(
     resource[:roles].each do |role_name|
       role_id = self.class.get_roles[role_name]
       auth_keystone(
-	'user-role-add',
-	'--user', user_id,
-	'--tenant_id', tenant_id,
-	'--role', role_id
+        'user-role-add',
+        '--user', user_id,
+        '--tenant_id', tenant_id,
+        '--role', role_id
       )
     end
   end
@@ -138,7 +138,6 @@ require 'ruby-debug';debugger
     end
 
     def self.get_users
-      return @users if @users
       @users = {}
       list_keystone_objects('user', 4).each do |user|
         @users[user[3]] = user[0]
@@ -147,7 +146,6 @@ require 'ruby-debug';debugger
     end
 
     def self.get_tenants
-      return @tenants if @tenants
       @tenants = {}
       list_keystone_objects('tenant', 3).each do |tenant|
         @tenants[tenant[1]] = tenant[0]
@@ -156,7 +154,6 @@ require 'ruby-debug';debugger
     end
 
     def self.get_roles
-      return @roles if @roles
       @roles = {}
       list_keystone_objects('role', 2).each do |role|
         @roles[role[1]] = role[0]
