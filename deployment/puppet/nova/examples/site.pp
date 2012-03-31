@@ -124,7 +124,9 @@ node glance {
 
 node rabbitmq {
   if($::operatingsystem == 'Ubuntu') {
-    class { 'rabbitmq::repo::apt': }
+    class { 'rabbitmq::repo::apt':
+      stage => 'nova_ppa',
+    }
   }
   class { 'nova::rabbitmq':
     userid       => $rabbit_user,
@@ -167,7 +169,9 @@ node all {
   # components on one node.
   class { 'mysql::server': }
   if($::operatingsystem == 'Ubuntu') {
-    class { 'rabbitmq::repo::apt': }
+    class { 'rabbitmq::repo::apt':
+      stage => 'nova_ppa',
+    }
   }
   class { 'nova::all':
     db_password => 'password',
