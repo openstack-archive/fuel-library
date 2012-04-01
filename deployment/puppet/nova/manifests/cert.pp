@@ -1,19 +1,11 @@
-class nova::cert( $enabled=false ) {
+class nova::cert(
+  $enabled=false
+) inherits nova{
 
-  Exec['post-nova_config'] ~> Service['nova-cert']
-  Exec['nova-db-sync'] ~> Service['nova-cert']
-
-  if $enabled {
-    $service_ensure = 'running'
-  } else {
-    $service_ensure = 'stopped'
+  nova::generic_service { 'cert':
+    enabled      => $enabled,
+    package_name => $::nova::params::cert_package_name,
+    service_name => $::nova::params::cert_service_name,
   }
 
-  service { "nova-cert":
-    name => 'openstack-nova-cert',
-    ensure  => $service_ensure,
-    enable  => $enabled,
-    require => Package["openstack-nova"],
-    #subscribe => File["/etc/nova/nova.conf"]
-  }
 }

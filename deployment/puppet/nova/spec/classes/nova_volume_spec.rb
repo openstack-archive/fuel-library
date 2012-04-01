@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe 'nova::cert' do
+describe 'nova::volume' do
 
   let :pre_condition do
     'include nova'
@@ -10,22 +10,22 @@ describe 'nova::cert' do
     let :facts do
       { :osfamily => 'Debian' }
     end
-    it { should contain_service('nova-cert').with(
-      'name'    => 'nova-cert',
+    it { should contain_service('nova-volume').with(
+      'name'    => 'nova-volume',
       'ensure'  => 'stopped',
       'enable'  => false
     )}
-    it { should contain_package('nova-cert').with(
-      'name'   => 'nova-cert',
+    it { should contain_package('nova-volume').with(
+      'name'   => 'nova-volume',
       'ensure' => 'present',
-      'notify' => 'Service[nova-cert]'
+      'notify' => 'Service[nova-volume]'
     )}
     describe 'with enabled as true' do
       let :params do
         {:enabled => true}
       end
-      it { should contain_service('nova-cert').with(
-        'name'    => 'nova-cert',
+      it { should contain_service('nova-volume').with(
+        'name'    => 'nova-volume',
         'ensure'  => 'running',
         'enable'  => true
       )}
@@ -35,11 +35,11 @@ describe 'nova::cert' do
     let :facts do
       { :osfamily => 'RedHat' }
     end
-    it { should contain_service('nova-cert').with(
-      'name'    => 'openstack-nova-cert',
+    it { should contain_service('nova-volume').with(
+      'name'    => 'openstack-nova-volume',
       'ensure'  => 'stopped',
       'enable'  => false
     )}
-    it { should_not contain_package('nova-cert') }
+    it { should_not contain_package('nova-volume') }
   end
 end
