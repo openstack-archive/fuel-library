@@ -34,8 +34,8 @@ class nova(
   # and before the post config resource
   Nova_config<| |> {
     require +> Package[$::nova::params::common_package_name],
-    before +> File['/etc/nova/nova.conf'],
-    notify +> Exec['post-nova_config']
+    before  +> File['/etc/nova/nova.conf'],
+    notify  +> Exec['post-nova_config']
   }
 
   File {
@@ -68,7 +68,7 @@ class nova(
   package { 'nova-common':
     name    =>$::nova::params::common_package_name,
     ensure  => present,
-    require => [Package["python-greenlet"], Anchor['nova-start']]
+    require => [Package["python-nova"], Anchor['nova-start']]
   }
 
   group { 'nova':
