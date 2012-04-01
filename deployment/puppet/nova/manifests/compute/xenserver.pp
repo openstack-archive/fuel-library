@@ -14,7 +14,7 @@ class nova::compute::xenserver(
   }
 
   package { 'xenapi':
-    ensure   => installed,
+    ensure   => present,
     provider => pip
   }
 }
