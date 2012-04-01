@@ -1,5 +1,6 @@
 #
 # TODO - this is currently hardcoded to be a xenserver
+# TODO - this needs to be updated
 class nova::all(
   $db_password,
   $db_name = 'nova',

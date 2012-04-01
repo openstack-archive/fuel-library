@@ -28,6 +28,10 @@ class nova(
   $root_helper = $::nova::params::root_helper
 ) inherits nova::params {
 
+  # all nova_config resources should be applied
+  # after the nova common package
+  # before the file resource for nova.conf is managed
+  # and before the post config resource
   Nova_config<| |> {
     require +> Package[$::nova::params::common_package_name],
     before +> File['/etc/nova/nova.conf'],
@@ -40,7 +44,8 @@ class nova(
     group   => 'nova',
   }
 
-  # TODO - why is this required?
+  # TODO - see if these packages can be removed
+  # they should be handled as package deps by the OS
   package { 'python':
     ensure => present,
   }
@@ -77,6 +82,7 @@ class nova(
     system  => true,
     require => Package['nova-common'],
   }
+
   file { $logdir:
     ensure  => directory,
     mode    => '0751',
@@ -84,6 +90,9 @@ class nova(
   file { '/etc/nova/nova.conf':
     mode  => '0640',
   }
+
+  # I need to ensure that I better understand this resource
+  # this is potentially constantly resyncing a central DB
   exec { "nova-db-sync":
     command     => "/usr/bin/nova-manage db sync",
     refreshonly => "true",

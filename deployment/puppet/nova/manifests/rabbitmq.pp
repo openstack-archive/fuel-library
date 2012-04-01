@@ -14,6 +14,7 @@ class nova::rabbitmq(
   Class['rabbitmq::service'] -> Anchor<| title == 'nova-start' |>
 
   # work around hostname bug, LP #653405
+  # TODO - see if this is still required
   host { $hostname:
     ip => $ipaddress,
     host_aliases => $fqdn,
