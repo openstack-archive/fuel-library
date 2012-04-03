@@ -9,14 +9,14 @@ describe 'glance::notify::qpid' do
     it 'should set nofier strategy to qpid' do
       verify_contents(
         subject,
-        '/var/lib/puppet/concat/_etc_glance_glance-api.conf/fragments/06_notify',
+        '/var/lib/puppet/concat/_etc_glance_glance-api.conf/fragments/06_glance-api-notify',
         ['notifier_strategy = qpid']
       )
     end
     it 'should use the current qpid template' do
       verify_contents(
         subject,
-        '/var/lib/puppet/concat/_etc_glance_glance-api.conf/fragments/07_qpid',
+        '/var/lib/puppet/concat/_etc_glance_glance-api.conf/fragments/07_glance-api-qpid',
         ['#qpid_port = 5672']
       )
     end

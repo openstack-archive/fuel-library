@@ -15,14 +15,14 @@ describe 'glance::backend::swift' do
   it 'should set the default store to file' do
     verify_contents(
       subject,
-      '/var/lib/puppet/concat/_etc_glance_glance-api.conf/fragments/02_backend',
+      '/var/lib/puppet/concat/_etc_glance_glance-api.conf/fragments/04_glance-api-backend',
       ['default_store = swift']
     )
   end
   it 'should configure swift settings with defaults' do
     verify_contents(
       subject,
-      '/var/lib/puppet/concat/_etc_glance_glance-api.conf/fragments/05_swift',
+      '/var/lib/puppet/concat/_etc_glance_glance-api.conf/fragments/05_glance-api-swift',
       [
         'swift_store_auth_address = 127.0.0.1:8080/v1.0/',
         'swift_store_user = glance',
@@ -46,7 +46,7 @@ describe 'glance::backend::swift' do
     it 'should configure file backend settings with specified parameter' do
       verify_contents(
         subject,
-        '/var/lib/puppet/concat/_etc_glance_glance-api.conf/fragments/05_swift',
+        '/var/lib/puppet/concat/_etc_glance_glance-api.conf/fragments/05_glance-api-swift',
         [
           'swift_store_auth_address = 127.0.0.1:8080/v2.0/',
           'swift_store_user = glance',

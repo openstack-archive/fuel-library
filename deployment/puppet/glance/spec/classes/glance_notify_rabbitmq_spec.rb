@@ -9,14 +9,14 @@ describe 'glance::notify::rabbitmq' do
     it 'should set nofier strategy to rabbit' do
       verify_contents(
         subject,
-        '/var/lib/puppet/concat/_etc_glance_glance-api.conf/fragments/06_notify',
+        '/var/lib/puppet/concat/_etc_glance_glance-api.conf/fragments/06_glance-api-notify',
         ['notifier_strategy = rabbit']
       )
     end
     it 'should use the current rabbitmq template' do
       verify_contents(
         subject,
-        '/var/lib/puppet/concat/_etc_glance_glance-api.conf/fragments/07_rabbitmq',
+        '/var/lib/puppet/concat/_etc_glance_glance-api.conf/fragments/07_glance-api-rabbitmq',
         ['#rabbit_port = 5672']
       )
     end

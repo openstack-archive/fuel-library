@@ -50,6 +50,7 @@ class glance::api(
   $keystone_password = 'ChangeMe'
 ) inherits glance {
 
+  # used to configure concat
   include 'concat::setup'
 
   # TODO I need to work with Chris to ensure that I understand
