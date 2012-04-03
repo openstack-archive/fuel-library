@@ -11,7 +11,7 @@ define keystone::config(
   $content   = template("keystone/${name}.erb"),
   $order     = undef
 ) {
-  concat::fragment { $name:
+  concat::fragment { "kestone-${name}":
     target  => '/etc/keystone/keystone.conf',
     content => $content,
     order   => $order,
