@@ -8,9 +8,15 @@ class glance::backend::file(
   $filesystem_store_datadir = '/var/lib/glance/images/'
 ) inherits glance::api {
 
-  # set file as default store
-  class { 'glance::backend':
-    default_store => 'file',
+  #
+  # modeled as its own config define so that any attempts to
+  # define multiple backends will fail
+  #
+  glance::api::config { 'backend':
+    config => {
+      'default_store' => 'file',
+    },
+    order  => '04',
   }
 
   # configure directory where files should be stored
