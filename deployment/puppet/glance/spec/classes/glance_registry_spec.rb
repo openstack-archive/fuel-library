@@ -10,12 +10,12 @@ describe 'glance::registry' do
 
   let :default_params do
     {
-      :log_verbose => 'false',
-      :log_debug => 'false',
-      :bind_host => '0.0.0.0',
-      :bind_port => '9191',
-      :log_file => '/var/log/glance/registry.log',
-      :sql_connection => 'sqlite:///var/lib/glance/glance.sqlite',
+      :log_verbose      => 'False',
+      :log_debug        => 'False',
+      :bind_host        => '0.0.0.0',
+      :bind_port        => '9191',
+      :log_file         => '/var/log/glance/registry.log',
+      :sql_connection   => 'sqlite:///var/lib/glance/glance.sqlite',
       :sql_idle_timeout => '3600'
     }
   end

@@ -1,0 +1,21 @@
+# ============ Delayed Delete Options =============================
+
+# Turn on/off delayed delete
+delayed_delete = False
+
+# Delayed delete time in seconds
+scrub_time = 43200
+
+# Directory that the scrubber will use to remind itself of what to delete
+# Make sure this is also set in glance-scrubber.conf
+scrubber_datadir = /var/lib/glance/scrubber
+
+# =============== Image Cache Options =============================
+
+# Base directory that the Image Cache uses
+image_cache_dir = /var/lib/glance/image-cache/
+
+<% if config['auth_type'] == 'keystone' -%>
+[paste_deploy]
+flavor = keystone
+<% end -%>
