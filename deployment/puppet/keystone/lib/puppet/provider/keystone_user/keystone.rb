@@ -45,8 +45,10 @@ Puppet::Type.type(:keystone_user).provide(
       optional_opts.push('--pass').push(resource[:password])
     end
     if resource[:tenant]
-      # TODO - do I need to convert this from the name to id?
-      optional_opts.push('--tenant_id').push(resource[:tenant])
+      tenant_id = self.class.list_keystone_objects('tenant', 3).collect {|x|
+        x[0] if x[1] == resource[:tenant]
+      }.compact[0]
+      optional_opts.push('--tenant_id').push(tenant_id)
     end
     auth_keystone(
       'user-create',
