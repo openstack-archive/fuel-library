@@ -14,7 +14,7 @@ class keystone::mysql(
   file { '/var/lib/keystone/keystone.db':
     ensure    => absent,
     subscribe => Package['keystone'],
-    before    => Class['keystone::db'],
+    before    => Mysql::Db[$dbname],
   }
 
   mysql::db { $dbname:
