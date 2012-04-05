@@ -15,6 +15,7 @@ class glance(
     name   => $::glance::params::package_name,
     ensure => $package_ensure,
   }
+  # TODO - if the packaging is fixed can I remove this?
   if(! defined(Package['python-migrate'])) {
     package { 'python-migrate': ensure => 'present' }
   }
