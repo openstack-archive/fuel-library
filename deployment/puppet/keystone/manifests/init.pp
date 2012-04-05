@@ -3,7 +3,6 @@
 #
 class keystone(
   $package_ensure = 'present',
-  $default_store  = 'sqlite',
   $bind_host      = '0.0.0.0',
   $public_port    = '5000',
   $admin_port     = '35357',
@@ -12,7 +11,6 @@ class keystone(
   $log_verbose    = 'False',
   $log_debug      = 'False',
   $use_syslog     = 'False',
-  $db_type        = 'sqlite',
   $catalog_type   = 'template'
 ) {
 
