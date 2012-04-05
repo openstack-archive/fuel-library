@@ -22,7 +22,7 @@ node glance {
 
 node glance_keystone {
   class { 'concat::setup': }
-  class { 'keystone::sqlite': }
+  class { 'keystone::config::sqlite': }
   class { 'keystone':
     log_verbose  => true,
     log_debug    => true,
