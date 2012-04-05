@@ -19,8 +19,7 @@ class { 'keystone::repo::trunk':
 # keystone instance backed by sqlite
 # with all of the default admin roles
 node keystone {
-  class { 'concat::setup': }
-  class { 'keystone::sqlite': }
+  class { 'keystone::config::sqlite': }
   class { 'keystone':
     log_verbose  => true,
     log_debug    => true,
