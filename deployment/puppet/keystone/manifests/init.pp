@@ -52,9 +52,9 @@ class keystone(
   }
 
   concat { '/etc/keystone/keystone.conf':
-    owner   => keystone,
-    group   => keystone,
-    mode    => 600,
+    owner   => 'keystone',
+    group   => 'keystone',
+    mode    => '0600',
     require => Package['keystone'],
     notify  => Service['keystone'],
   }

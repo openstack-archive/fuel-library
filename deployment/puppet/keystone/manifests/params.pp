@@ -4,7 +4,7 @@ class keystone::params {
       $service_provider = 'upstart'
     }
     'RedHat': {
-      $service_provider = undef	
+      $service_provider = undef
     }
   }
 }
