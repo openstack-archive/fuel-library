@@ -9,14 +9,14 @@ describe 'glance::backend::file' do
   it 'should set the default store to file' do
     verify_contents(
       subject,
-      '/var/lib/puppet/concat/_etc_glance_glance-api.conf/fragments/02_backend',
+      '/var/lib/puppet/concat/_etc_glance_glance-api.conf/fragments/04_glance-api-backend',
       ['default_store = file']
     )
   end
   it 'should configure file backend settings' do
     verify_contents(
       subject,
-      '/var/lib/puppet/concat/_etc_glance_glance-api.conf/fragments/05_file',
+      '/var/lib/puppet/concat/_etc_glance_glance-api.conf/fragments/05_glance-api-file',
       ['filesystem_store_datadir = /var/lib/glance/images/']
     )
   end
@@ -30,7 +30,7 @@ describe 'glance::backend::file' do
     it 'should configure file backend settings with specified parameter' do
       verify_contents(
         subject,
-        '/var/lib/puppet/concat/_etc_glance_glance-api.conf/fragments/05_file',
+        '/var/lib/puppet/concat/_etc_glance_glance-api.conf/fragments/05_glance-api-file',
         ['filesystem_store_datadir = /var/lib/glance/images2']
       )
     end

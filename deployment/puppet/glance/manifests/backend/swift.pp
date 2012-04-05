@@ -19,9 +19,15 @@ class glance::backend::swift(
   $swift_store_create_container_on_put = 'False',
 ) inherits glance::api {
 
-  # specify swift as backend
-  class { 'glance::backend':
-    default_store => 'swift',
+  #
+  # modeled as its own config define so that any attempts to
+  # define multiple backends will fail
+  #
+  glance::api::config { 'backend':
+    config => {
+      'default_store' => 'swift',
+    },
+    order  => '04',
   }
 
   glance::api::config { 'swift':

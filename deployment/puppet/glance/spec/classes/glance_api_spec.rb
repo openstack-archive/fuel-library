@@ -56,7 +56,7 @@ describe 'glance::api' do
       it 'should compile the template based on the class parameters' do
         verify_contents(
           subject,
-          '/var/lib/puppet/concat/_etc_glance_glance-api.conf/fragments/01_header',
+          '/var/lib/puppet/concat/_etc_glance_glance-api.conf/fragments/01_glance-api-header',
           [
             "verbose = #{param_hash[:log_verbose]}",
             "debug = #{param_hash[:log_debug]}",
@@ -72,7 +72,7 @@ describe 'glance::api' do
         expected_lines = ['[paste_deploy]', 'flavor = keystone'] if params[:auth_type] = 'keystone'
         verify_contents(
           subject,
-          '/var/lib/puppet/concat/_etc_glance_glance-api.conf/fragments/99_footer',
+          '/var/lib/puppet/concat/_etc_glance_glance-api.conf/fragments/99_glance-api-footer',
           expected_lines
         )
 
