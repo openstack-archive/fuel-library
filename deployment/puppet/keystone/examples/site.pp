@@ -19,8 +19,7 @@ class { 'keystone::repo::trunk':
 # keystone instance backed by sqlite
 # with all of the default admin roles
 node keystone {
-  class { 'concat::setup': }
-  class { 'keystone::sqlite': }
+  class { 'keystone::config::sqlite': }
   class { 'keystone':
     log_verbose  => true,
     log_debug    => true,
@@ -30,11 +29,17 @@ node keystone {
 }
 
 node keystone_mysql {
-  class { 'concat::setup': }
   class { 'keystone::mysql':
     password => 'keystone',
   }
-  class { 'keystone': }
+  class { 'keystone::config::mysql':
+    password => 'keystone'
+  }
+  class { 'keystone':
+    log_verbose  => true,
+    log_debug    => true,
+    catalog_type => 'sql',
+  }
 }
 
 node default {

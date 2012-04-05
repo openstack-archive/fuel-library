@@ -3,7 +3,6 @@
 #
 class keystone(
   $package_ensure = 'present',
-  $default_store  = 'sqlite',
   $bind_host      = '0.0.0.0',
   $public_port    = '5000',
   $admin_port     = '35357',
@@ -12,7 +11,6 @@ class keystone(
   $log_verbose    = 'False',
   $log_debug      = 'False',
   $use_syslog     = 'False',
-  $db_type        = 'sqlite',
   $catalog_type   = 'template'
 ) {
 
@@ -22,8 +20,9 @@ class keystone(
     fail('use syslog currently only accepts false')
   }
 
-  include keystone::params
   # this package dependency needs to be removed when it
+  include 'keystone::params'
+  include 'concat::setup'
   # is added as a package dependency
   # I filed the following ticket against the packages: 909941
   if(! defined(Package['python-migrate'])) {
@@ -54,9 +53,9 @@ class keystone(
   }
 
   concat { '/etc/keystone/keystone.conf':
-    owner   => keystone,
-    group   => keystone,
-    mode    => 600,
+    owner   => 'keystone',
+    group   => 'keystone',
+    mode    => '0600',
     require => Package['keystone'],
     notify  => Service['keystone'],
   }
