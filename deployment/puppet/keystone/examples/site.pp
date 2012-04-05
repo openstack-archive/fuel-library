@@ -20,7 +20,6 @@ class { 'keystone::repo::trunk':
 # with all of the default admin roles
 node keystone {
   class { 'keystone::config::sqlite': }
-  class { 'keystone::sqlite': }
   class { 'keystone':
     log_verbose  => true,
     log_debug    => true,
