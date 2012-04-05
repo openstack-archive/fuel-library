@@ -20,8 +20,9 @@ class keystone(
     fail('use syslog currently only accepts false')
   }
 
-  include keystone::params
   # this package dependency needs to be removed when it
+  include 'keystone::params'
+  include 'concat::setup'
   # is added as a package dependency
   # I filed the following ticket against the packages: 909941
   if(! defined(Package['python-migrate'])) {
