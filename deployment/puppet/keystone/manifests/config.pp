@@ -7,7 +7,6 @@
 #
 define keystone::config(
   $config    = {},
-  $file_name = regsubst($name, ':', '_', 'G'),
   $content   = template("keystone/${name}.erb"),
   $order     = undef
 ) {
