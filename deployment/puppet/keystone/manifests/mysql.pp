@@ -2,7 +2,7 @@
 # implements mysql backend for keystone
 #
 class keystone::mysql(
-  $password,
+  $password      = 'keystone_default_password',
   $dbname        = 'keystone',
   $user          = 'keystone_admin',
   $host          = '127.0.0.1',
