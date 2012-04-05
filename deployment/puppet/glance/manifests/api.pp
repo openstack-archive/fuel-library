@@ -1,4 +1,4 @@
-# = Class: glance::api
+
 #
 # This class installs and configures the glance api server.
 #
@@ -52,14 +52,6 @@ class glance::api(
 
   # used to configure concat
   include 'concat::setup'
-
-  # TODO I need to work with Chris to ensure that I understand
-  # his auth requirements
-  if($auth_type == 'keystone') {
-    $context_type = 'context'
-  } else {
-    $context_type = 'auth-context'
-  }
 
   File {
     ensure  => present,

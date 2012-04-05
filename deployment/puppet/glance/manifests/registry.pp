@@ -17,12 +17,6 @@ class glance::registry(
   $keystone_password = 'ChangeMe'
 ) inherits glance {
 
-  if($auth_type == 'keystone') {
-    $context_type = 'context'
-  } else {
-    $context_type = 'auth-context'
-  }
-
   File {
     ensure  => present,
     owner   => 'glance',
