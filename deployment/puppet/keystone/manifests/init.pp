@@ -23,13 +23,6 @@ class keystone(
   # this package dependency needs to be removed when it
   include 'keystone::params'
   include 'concat::setup'
-  # is added as a package dependency
-  # I filed the following ticket against the packages: 909941
-  if(! defined(Package['python-migrate'])) {
-    package { 'python-migrate':
-      ensure => present,
-    }
-  }
 
   package { 'keystone':
     ensure => $package_ensure,

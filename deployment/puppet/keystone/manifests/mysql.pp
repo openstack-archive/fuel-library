@@ -14,7 +14,7 @@ class keystone::mysql(
   file { '/var/lib/keystone/keystone.db':
     ensure    => absent,
     subscribe => Package['keystone'],
-    before    => Class['keystone::db'],
+    before    => Mysql::Db[$dbname],
   }
 
   mysql::db { $dbname:
@@ -23,6 +23,14 @@ class keystone::mysql(
     host         => $host,
     charset      => 'latin1',
     require      => Class['mysql::server'],
+  }
+
+  # this probably needs to happen more often than just when the db is
+  # created
+  exec { 'keystone-manage db_sync':
+    path        => '/usr/bin',
+    refreshonly => true,
+    subscribe   => Mysql::Db[$dbname],
   }
 
 }
