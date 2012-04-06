@@ -1,4 +1,5 @@
-[<%= name %>]
+
+[sql]
 connection    = mysql://<%= "#{config['user']}:#{config['password']}@#{config['host']}/#{config['dbname']}" %>
 idle_timeout  = <%= config['idle_timeout'] %>
 min_pool_size = <%= config['min_pool_size'] %>
