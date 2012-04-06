@@ -1,5 +1,42 @@
 #
-# module for installing keystone
+# Module for managing keystone config.
+#
+# == Parameters
+#
+#   [package_ensure] Desired ensure state of packages. Optional. Defaults to present.
+#     accepts latest or specific versions.
+#   [bind_host] Host that keystone binds to.
+#   [bind_port]
+#   [public_port]
+#   [admin_port] Port that can be used for admin tasks.
+#   [admin_token] Admin token that can be used to authenticate as a keystone
+#     admin.
+#   [compute_port] TODO
+#   [log_verbose] Rather keystone should log at verbose level. Optional.
+#     Defaults to False.
+#   [log_debug] Rather keystone should log at debug level. Optional.
+#     Defaults to False.
+#   [use_syslog] Rather or not keystone should log to syslog. Optional.
+#     Defaults to False.
+#   [catalog_type]
+#
+# == Dependencies
+#  None
+#
+# == Examples
+#
+#   class { 'keystone':
+#     log_verbose => 'True',
+#     admin_token => 'my_special_token',
+#   }
+#
+# == Authors
+#
+#   Dan Bode dan@puppetlabs.com
+#
+# == Copyright
+#
+# Copyright 2012 Puppetlabs Inc, unless otherwise noted.
 #
 class keystone(
   $package_ensure = 'present',
@@ -16,11 +53,11 @@ class keystone(
 
   validate_re($catalog_type, 'template|sql')
 
+  # TODO implement syslog features
   if ( $use_syslog != 'False') {
     fail('use syslog currently only accepts false')
   }
 
-  # this package dependency needs to be removed when it
   include 'keystone::params'
   include 'concat::setup'
 
