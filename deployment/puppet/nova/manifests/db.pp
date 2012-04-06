@@ -11,8 +11,8 @@ class nova::db(
   Mysql::Db[$dbname] -> Anchor<| title == "nova-start" |>
   Mysql::Db[$dbname] ~> Exec<| title == 'initial-db-sync' |>
 
-  # now this requires storedconfigs
   # TODO - worry about the security implications
+  # I am not sure if I want to use storeconfigs for this...
   @@nova_config { 'database_url':
     value => "mysql://${user}:${password}@${host}/${dbname}",
     tag   => $zone,
@@ -25,7 +25,6 @@ class nova::db(
     charset      => 'latin1',
     # I may want to inject some sql
     require      => Class['mysql::server'],
-#    notify       => Exec["initial-db-sync"],
   }
 
   if $allowed_hosts {

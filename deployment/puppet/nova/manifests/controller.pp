@@ -5,6 +5,7 @@ class nova::controller(
   $db_name = 'nova',
   $db_user = 'nova',
   $db_host = 'localhost',
+  $db_allowed_hosts = undef,
 
   $rabbit_port = undef,
   $rabbit_userid = undef,

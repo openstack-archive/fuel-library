@@ -1,6 +1,7 @@
 require 'spec_helper'
 
 describe 'nova' do
+
   let :facts do
     { :osfamily => 'Debian' }
   end

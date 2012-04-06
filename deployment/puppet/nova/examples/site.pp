@@ -113,10 +113,7 @@ node compute {
 
 node glance {
   # set up glance server
-  class { 'glance::api':
-    swift_store_user => 'foo_user',
-    swift_store_key => 'foo_pass',
-  }
+  class { 'glance::api': }
 
   class { 'glance::registry': }
 
@@ -124,7 +121,9 @@ node glance {
 
 node rabbitmq {
   if($::operatingsystem == 'Ubuntu') {
-    class { 'rabbitmq::repo::apt': }
+    class { 'rabbitmq::repo::apt':
+      stage => 'nova_ppa',
+    }
   }
   class { 'nova::rabbitmq':
     userid       => $rabbit_user,
@@ -167,7 +166,9 @@ node all {
   # components on one node.
   class { 'mysql::server': }
   if($::operatingsystem == 'Ubuntu') {
-    class { 'rabbitmq::repo::apt': }
+    class { 'rabbitmq::repo::apt':
+      stage => 'nova_ppa',
+    }
   }
   class { 'nova::all':
     db_password => 'password',

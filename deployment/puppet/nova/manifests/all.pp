@@ -1,5 +1,6 @@
 #
 # TODO - this is currently hardcoded to be a xenserver
+# TODO - this needs to be updated
 class nova::all(
   $db_password,
   $db_name = 'nova',
@@ -98,10 +99,7 @@ class nova::all(
   }
 
   # set up glance server
-  class { 'glance::api':
-    swift_store_user => 'foo_user',
-    swift_store_key => 'foo_pass',
-  }
+  class { 'glance::api': }
 
   class { 'glance::registry': }
 
