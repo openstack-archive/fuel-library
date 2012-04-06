@@ -1,3 +1,16 @@
+#
+# Installs keystone from source. This is not yet fully implemented
+#
+# == Dependencies
+# == Examples
+# == Authors
+#
+#   Dan Bode dan@puppetlabs.com
+#
+# == Copyright
+#
+# Copyright 2012 Puppetlabs Inc, unless otherwise noted.
+#
 class keystone::dev::install(
   $source_dir = '/usr/local/keystone'
 ) {
