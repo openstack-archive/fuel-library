@@ -29,6 +29,8 @@ define swift::storage::generic(
   validate_re($name, '^object|container|account$')
 
   package { "swift-${name}":
+    # this is a way to dynamically build the variables to lookup
+    # sorry its so ugly :(
     name   => inline_template("<%= scope.lookupvar('::swift::params::${name}_package_name') %>"),
     ensure => $package_ensure,
   }
@@ -45,14 +47,6 @@ define swift::storage::generic(
     enable    => true,
     hasstatus => true,
     provider  => $service_provider,
-  }
-
-  # TODO - this should be fixed in the upstream
-  # packages so that this code can be removed.
-  # 931893
-  if($::operatingsystem == 'Ubuntu') {
-    # I have to fix broken init scripts on Ubuntu
-    swift::storage::generic::upstart { $name: }
   }
 
 }

@@ -113,9 +113,6 @@ describe 'swift::proxy' do
           (content.split("\n") & expected_lines).should =~ expected_lines
         end
       end
-      # TODO this resource should just be here temporarily until packaging
-      # is fixed
-      it { should contain_file('/etc/init/swift-proxy.conf') }
 
       describe 'when using tempauth' do
 
