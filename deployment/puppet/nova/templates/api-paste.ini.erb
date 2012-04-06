@@ -146,10 +146,10 @@ paste.filter_factory = keystone.middleware.auth_token:filter_factory
 service_protocol = http
 service_host = 127.0.0.1
 service_port = 5000
-auth_host = <%= scope.lookupvar('nova::auth_host') %>
-auth_port = <%= scope.lookupvar('nova::auth_port') %>
-auth_protocol = <%= scope.lookupvar('nova::auth_protocol') %>
-auth_uri = <%= scope.lookupvar('nova::auth_uri') %>
-admin_tenant_name = <%= scope.lookupvar('nova::admin_tenant_name') %>
-admin_user = <%= scope.lookupvar('nova::admin_user') %>
-admin_password = <%= scope.lookupvar('nova::admin_password') %>
+auth_host = <%= auth_host %>
+auth_port = <%= auth_port %>
+auth_protocol = <%= auth_protocol %>
+auth_uri = <%= auth_uri %>
+admin_tenant_name = <%= admin_tenant_name %>
+admin_user = <%= admin_user %>
+admin_password = <%= admin_password %>
