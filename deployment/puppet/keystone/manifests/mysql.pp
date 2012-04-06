@@ -25,4 +25,12 @@ class keystone::mysql(
     require      => Class['mysql::server'],
   }
 
+  # this probably needs to happen more often than just when the db is
+  # created
+  exec { 'keystone-manage db_sync':
+    path        => '/usr/bin',
+    refreshonly => true,
+    subscribe   => Mysql::Db[$dbname],
+  }
+
 }
