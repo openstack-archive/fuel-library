@@ -29,6 +29,7 @@ node keystone {
 }
 
 node keystone_mysql {
+  class { 'mysql::server': }
   class { 'keystone::mysql':
     password => 'keystone',
   }
@@ -39,7 +40,8 @@ node keystone_mysql {
     log_verbose  => true,
     log_debug    => true,
     catalog_type => 'sql',
-  }
+  }->
+  class { 'keystone::roles::admin': }
 }
 
 node default {
