@@ -10,8 +10,6 @@ $rabbit_host     = 'rabbitmq'
 $rabbit_port     = '5672'
 
 $glance_api_servers = 'glance:9292'
-$glance_host        = 'glance'
-$glance_port        = '9292'
 
 $api_server = 'controller'
 
@@ -76,8 +74,6 @@ node controller {
     image_service => 'nova.image.glance.GlanceImageService',
 
     glance_api_servers => $glance_api_servers,
-    glance_host => $glance_host,
-    glance_port => $glance_port,
 
     libvirt_type => 'qemu',
   }
@@ -101,8 +97,6 @@ node compute {
     sql_connection      => "mysql://${db_username}:${db_password}@${db_host}/${db_name}",
     image_service       => 'nova.image.glance.GlanceImageService',
     glance_api_servers  => $glance_api_servers,
-    glance_host         => $glance_host,
-    glance_port         => $glance_port,
     rabbit_host         => $rabbit_host,
     rabbit_port         => $rabbit_port,
     rabbit_userid       => $rabbit_user,
@@ -192,9 +186,7 @@ node all {
     rabbit_host => 'localhost',
 
     image_service => 'nova.image.glance.GlanceImageService',
-
-    glance_host => 'localhost',
-    glance_port => '9292',
+    glance_api_servers => $glance_api_servers,
 
     libvirt_type => 'qemu',
   }

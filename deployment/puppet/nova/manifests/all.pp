@@ -24,8 +24,6 @@ class nova::all(
 
   $image_service = 'nova.image.glance.GlanceImageService',
   $glance_api_servers = 'localhost:9292',
-  $glance_host = 'localhost',
-  $glance_port = '9292',
 
   $admin_user = 'novaadmin',
   $project_name = 'nova',
@@ -46,8 +44,6 @@ class nova::all(
     sql_connection      => "mysql://${db_user}:${db_password}@${db_host}/${db_name}",
     image_service       => $image_service,
     glance_api_servers  => $glance_api_servers,
-    glance_host         => $glance_host,
-    glance_port         => $glance_port,
     rabbit_host         => $rabbit_host,
     rabbit_port         => $rabbit_port,
     rabbit_userid       => $rabbit_userid,
