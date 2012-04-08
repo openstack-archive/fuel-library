@@ -164,12 +164,21 @@ node all {
   #
   # This manifest installs all of the nova
   # components on one node.
+
   class { 'mysql::server': }
-  if($::operatingsystem == 'Ubuntu') {
-    class { 'rabbitmq::repo::apt':
-      stage => 'nova_ppa',
-    }
+  class { 'keystone::config::mysql':
+    password => 'keystone'
   }
+  class { 'keystone':
+    log_verbose  => true,
+    log_debug    => true,
+    catalog_type => 'sql',
+  }->
+  class { 'keystone::mysql':
+    password => 'keystone',
+  }->
+  class { 'keystone::roles::admin': }
+
   class { 'nova::all':
     db_password => 'password',
     db_name => 'nova',
