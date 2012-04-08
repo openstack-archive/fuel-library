@@ -9,7 +9,7 @@ class nova::volume(
     before => Service['nova-volume'],
   }
 
-  ova::generic_service { 'volume':
+  nova::generic_service { 'volume':
     enabled      => $enabled,
     package_name => $::nova::params::volume_package_name,
     service_name => $::nova::params::volume_service_name,
@@ -19,6 +19,6 @@ class nova::volume(
   service {'tgtd':
     ensure  => $service_ensure,
     enable  => $enabled,
-    require => Package["openstack-nova"],
+    require => Nova::Generic_service['volume'],
   }
 }
