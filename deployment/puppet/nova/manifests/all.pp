@@ -87,6 +87,12 @@ class nova::all(
     host     => $db_host,
   }
 
+  class { 'nova::cert': }
+
+  class { 'nova::volume': }
+
+  class { 'nova::vncproxy': }
+
   nova::manage::admin { $admin_user: }
   nova::manage::project { $project_name:
     owner => $admin_user,
@@ -102,5 +108,6 @@ class nova::all(
   class { 'glance::api': }
 
   class { 'glance::registry': }
+
 
 }
