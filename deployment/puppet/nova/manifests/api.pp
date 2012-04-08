@@ -12,10 +12,17 @@ class nova::api(
   }
 
   Package<| title == 'nova-api' |> -> Exec['initial-db-sync']
+  Package<| title == 'nova-api' |> -> File['/etc/nova/api-paste.ini']
+
 
   nova::generic_service { 'api':
     enabled      => $enabled,
     package_name => $::nova::params::api_package_name,
     service_name => $::nova::params::api_service_name,
+  }
+
+  file { "/etc/nova/api-paste.ini":
+    content => template("nova/api-paste.ini.erb"),
+    require => Class[nova]
   }
 }
