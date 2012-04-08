@@ -118,7 +118,8 @@ Puppet::Type.type(:keystone_user).provide(
     def self.build_user_hash
       hash = {}
       list_keystone_objects('user', 4).each do |user|
-        tenant = get_keystone_object('user', user[0], 'tenantId')
+        tenantId = get_keystone_object('user', user[0], 'tenantId')
+        tenant   = get_keystone_object('tenant', tenantId, 'name')
         password = 'nil'
         hash[user[3]] = {
           :id          => user[0],
