@@ -21,6 +21,8 @@ class nova::api(
     service_name => $::nova::params::api_service_name,
   }
 
+  nova_config { 'api_paste_config': value => '/etc/nova/api-paste.ini' }
+
   file { "/etc/nova/api-paste.ini":
     content => template("nova/api-paste.ini.erb"),
     require => Class[nova]
