@@ -52,7 +52,7 @@ class nova::params {
       # some of the services need to be started form the special upstart provider
       $special_service_provider = 'upstart'
       # debian specific nova config
-      $root_helper              = 'sudo'
+      $root_helper              = 'sudo nova-rootwrap'
     }
     default: {
       fail("Unsupported osfamily: ${::osfamily} operatingsystem: ${::operatingsystem}, module ${module_name} only support osfamily RedHat and Debian")
