@@ -5,8 +5,8 @@ class nova::api(
   # TODO what exactly is this for?
   # This resource is adding a great deal of comlexity to the overall
   # modules. Removing it would be great
-  exec { "initial-db-sync":
-    command     => "/usr/bin/nova-manage db sync",
+  exec { 'initial-db-sync':
+    command     => '/usr/bin/nova-manage db sync',
     refreshonly => true,
     require     => [Package[$::nova::params::common_package_name], Nova_config['sql_connection']],
   }
@@ -23,8 +23,9 @@ class nova::api(
 
   nova_config { 'api_paste_config': value => '/etc/nova/api-paste.ini' }
 
-  file { "/etc/nova/api-paste.ini":
-    content => template("nova/api-paste.ini.erb"),
-    require => Class[nova]
+  file { '/etc/nova/api-paste.ini':
+    content => template('nova/api-paste.ini.erb'),
+    require => Class['nova'],
+    notify  => Service['nova-api'],
   }
 }
