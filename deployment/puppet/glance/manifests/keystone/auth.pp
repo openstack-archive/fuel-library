@@ -12,7 +12,7 @@ class glance::keystone::auth(
     ensure   => present,
     password => $password,
   }
-  keystone_user_role { "${auth_name}@service":
+  keystone_user_role { "${auth_name}@services":
     roles   => 'admin',
     require => Keystone_user[$auth_name]
   }
