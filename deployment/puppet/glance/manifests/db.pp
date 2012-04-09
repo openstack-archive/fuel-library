@@ -1,3 +1,7 @@
+#
+# I should change this to mysql
+# for consistency
+#
 class glance::db(
   $password,
   $dbname = 'glance',
@@ -6,6 +10,8 @@ class glance::db(
   $allowed_hosts = undef,
   $cluster_id = 'localzone'
 ) {
+
+  require 'mysql::python'
 
   mysql::db { $dbname:
     user         => $user,
