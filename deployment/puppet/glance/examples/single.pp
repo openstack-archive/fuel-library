@@ -21,7 +21,6 @@ node glance {
 }
 
 node glance_keystone {
-  class { 'concat::setup': }
   class { 'keystone::config::sqlite': }
   class { 'keystone':
     log_verbose  => true,
@@ -31,6 +30,24 @@ node glance_keystone {
   class { 'keystone::roles::admin': }
   class { 'role_glance_sqlite': }
   class { 'glance::keystone::auth': }
+}
+
+node glance_keystone_mysql {
+  class { 'mysql::server': }->
+  class { 'keystone':
+    log_verbose  => true,
+    log_debug    => true,
+    catalog_type => 'sql',
+  }->
+  class { 'keystone::mysql':
+    password => 'keystone',
+  }->
+  class { 'keystone::roles::admin': }
+  class { 'role_glance_mysql': }
+  class { 'glance::keystone::auth': }
+  class { 'keystone::config::mysql':
+    password => 'keystone'
+  }
 }
 
 node default {
@@ -48,6 +65,38 @@ class role_glance_sqlite {
     keystone_password => 'glance_password',
   }
   class { 'glance::backend::file': }
+
+  class { 'glance::registry':
+    log_verbose       => 'True',
+    log_debug         => 'True',
+    auth_type         => 'keystone',
+    keystone_tenant   => 'service',
+    keystone_user     => 'glance',
+    keystone_password => 'glance_password',
+  }
+
+}
+
+class role_glance_mysql {
+
+  class { 'glance::api':
+    log_verbose       => 'True',
+    log_debug         => 'True',
+    auth_type         => 'keystone',
+    keystone_tenant   => 'service',
+    keystone_user     => 'glance',
+    keystone_password => 'glance_password',
+  }
+  class { 'glance::backend::file': }
+
+  class { 'glance::db':
+    password => 'glance',
+    dbname   => 'glance',
+    user     => 'glance',
+    host     => '127.0.0.1',
+   # allowed_hosts = undef,
+   # $cluster_id = 'localzone'
+  }
 
   class { 'glance::registry':
     log_verbose       => 'True',
