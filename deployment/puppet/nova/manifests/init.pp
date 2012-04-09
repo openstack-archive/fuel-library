@@ -7,8 +7,6 @@ class nova(
   # these glance params should be optional
   # this should probably just be configured as a glance client
   $glance_api_servers = 'localhost:9292',
-  $glance_host = 'localhost',
-  $glance_port = '9292',
   $allow_admin_api = false,
   $rabbit_host = 'localhost',
   $rabbit_password='guest',
@@ -141,7 +139,6 @@ class nova(
     # config b/c they have to be set by both compute
     # as well as controller.
     'network_manager': value => $network_manager;
-    'use_deprecated_auth': value => true;
     'root_helper': value => $root_helper;
     'auth_strategy': value => $auth_strategy;
   }
@@ -149,6 +146,12 @@ class nova(
   exec { 'post-nova_config':
     command => '/bin/echo "Nova config has changed"',
     refreshonly => true,
+  }
+
+  if $auth_strategy == 'keystone' {
+    nova_config { 'use_deprecated_auth': value => false }
+  } else {
+    nova_config { 'use_deprecated_auth': value => true }
   }
 
   if $network_manager == 'nova.network.manager.FlatManager' {
@@ -167,8 +170,6 @@ class nova(
   if $image_service == 'nova.image.glance.GlanceImageService' {
     nova_config {
       'glance_api_servers': value => $glance_api_servers;
-      'glance_host': value => $glance_host;
-      'glance_port': value => $glance_port;
     }
   }
 }
