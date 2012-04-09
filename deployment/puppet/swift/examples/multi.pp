@@ -32,6 +32,16 @@ $swift_local_net_ip = $ipaddress_eth0
 
 Exec { logoutput => true }
 
+stage { 'openstack_ppa':}
+
+Stage['openstack_ppa'] -> Stage['main']
+
+class { 'apt':
+  stage => 'openstack_ppa',
+}
+class { 'swift::repo::trunk':
+  stage => 'openstack_ppa',
+}
 #
 # specifies that nodes with the cert names of
 # swift_storage_1,2, and 3 will be assigned the
