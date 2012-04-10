@@ -19,8 +19,8 @@ Puppet::Type.newtype(:keystone_endpoint) do
     end
   end
 
-  newproperty(:region) do  
-    defaultto('regionOne')
+  newproperty(:region) do
+    defaultto('RegionOne')
   end
 
   # TODO I should do some url validation
