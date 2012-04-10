@@ -18,7 +18,7 @@ class nova::keystone::auth(
     require => Keystone_user[$auth_name]
   }
   keystone_service { $auth_name:
-    type        => 'image',
+    type        => 'compute',
     description => "Openstack Compute Service",
   }
   keystone_endpoint { $auth_name:
@@ -26,7 +26,6 @@ class nova::keystone::auth(
     public_url   => "http://${address}:${port}/${version}/%(tenant_id)s",
     admin_url    => "http://${address}:${port}/${version}/%(tenant_id)s",
     internal_url => "http://${address}:${port}/${version}/%(tenant_id)s",
-    require      => Keystone_service[$auth_name],
   }
 
 }
