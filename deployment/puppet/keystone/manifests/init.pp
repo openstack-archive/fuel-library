@@ -48,7 +48,7 @@ class keystone(
   $log_verbose    = 'False',
   $log_debug      = 'False',
   $use_syslog     = 'False',
-  $catalog_type   = 'template'
+  $catalog_type   = 'sql'
 ) {
 
   validate_re($catalog_type, 'template|sql')
