@@ -76,8 +76,8 @@ describe 'nova' do
     it { should_not contain_nova_config('dhcpbridge_flagfile').with_value('/etc/nova/nova.conf') }
     it { should contain_nova_config('flat_network_bridge').with_value('br100') }
 
-    it { should contain_nova_config('use_deprecated_auth').with_value('true') }
-    it { should contain_nova_config('root_helper').with_value('sudo') }
+    it { should contain_nova_config('use_deprecated_auth').with_value('false') }
+    it { should contain_nova_config('root_helper').with_value('sudo nova-rootwrap') }
 
     describe 'with parameters supplied' do
 
@@ -108,9 +108,6 @@ describe 'nova' do
       # glance config
       it { should contain_nova_config('image_service').with_value('nova.image.glance.GlanceImageService') }
       it { should contain_nova_config('glance_api_servers').with_value('localhost:9292') }
-      it { should contain_nova_config('glance_host').with_value('localhost') }
-      it { should contain_nova_config('glance_port').with_value('9292') }
-
       it { should contain_nova_config('allow_admin_api').with_value(true) }
       it { should contain_nova_config('rabbit_host').with_value('rabbit') }
       it { should contain_nova_config('rabbit_password').with_value('password') }
@@ -125,7 +122,7 @@ describe 'nova' do
       it { should contain_nova_config('dhcpbridge').with_value('/usr/bin/nova-dhcpbridge') }
       it { should contain_nova_config('dhcpbridge_flagfile').with_value('/etc/nova/nova.conf') }
 
-      it { should contain_nova_config('use_deprecated_auth').with_value(true) }
+      it { should contain_nova_config('use_deprecated_auth').with_value(false) }
 
     end
 

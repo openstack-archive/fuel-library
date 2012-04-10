@@ -23,7 +23,7 @@ describe 'nova::api' do
       'name'   => 'nova-api',
       'ensure' => 'present',
       'notify' => 'Service[nova-api]',
-      'before' => 'Exec[initial-db-sync]'
+      'before' => ['Exec[initial-db-sync]', 'File[/etc/nova/api-paste.ini]']
     ) }
     describe 'with enabled as true' do
       let :params do
