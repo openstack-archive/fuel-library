@@ -72,11 +72,11 @@ Puppet::Type.type(:keystone_endpoint).provide(
   def region
     endpoint_hash[resource[:name]][:region]
   end
-  
+
   def public_url
     endpoint_hash[resource[:name]][:public_url]
   end
-  
+
   def internal_url
     endpoint_hash[resource[:name]][:internal_url]
   end

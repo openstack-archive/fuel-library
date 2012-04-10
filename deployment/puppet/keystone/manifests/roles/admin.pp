@@ -33,7 +33,7 @@ class keystone::roles::admin(
   $password = 'ChangeMe'
 ) {
 
-  keystone_tenant { 'service':
+  keystone_tenant { 'services':
     ensure      => present,
     enabled     => 'True',
     description => 'Tenant for the openstack services',
@@ -42,19 +42,20 @@ class keystone::roles::admin(
     ensure      => present,
     enabled     => 'True',
     description => 'admin tenant',
-  }->
+  }
   keystone_user { 'admin':
     ensure      => present,
     enabled     => 'True',
     tenant      => 'openstack',
     email       => $email,
     password    => $password,
-  }->
+  }
   keystone_role { ['admin', 'Member']:
     ensure => present,
-  }->
+  }
   keystone_user_role { 'admin@openstack':
     roles  => 'admin',
     ensure => present,
   }
+
 }

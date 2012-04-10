@@ -23,14 +23,23 @@ Puppet::Type.newtype(:keystone_endpoint) do
     defaultto('regionOne')
   end
 
+  # TODO I should do some url validation
   newproperty(:public_url) do
-
   end
 
   newproperty(:internal_url) do
   end
 
   newproperty(:admin_url) do
+  end
+
+  # we should not do anything until the keystone service is started
+  autorequire(:service) do
+    ['keystone']
+  end
+
+  autorequire(:keystone_service) do
+    [self[:name]]
   end
 
 end
