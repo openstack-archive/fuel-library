@@ -8,7 +8,7 @@ $keystone_db_password = 'keystone_pass'
 $keystone_admin_token = 'keystone_admin_token'
 
 $admin_email         = 'dan@puppetlabs.com'
-$admin_user_password = 'admin_password'
+$admin_user_password = 'ChangeMe'
 
 $nova_db_password   = 'nova_pass'
 $nova_user_password = 'nova_pass'
@@ -172,3 +172,29 @@ class { 'nova::compute::libvirt':
   flat_network_bridge_ip      => '192.168.188.1',
   flat_network_bridge_netmask => '255.255.255.0',
 }
+
+######## Horizon ########
+
+class { 'memcached':
+  listen_ip => '127.0.0.1',
+}
+
+class { 'horizon': }
+
+
+######## End Horizon #####
+
+######## Credentails and tests ###
+
+# lay down a file with credentials stored in it
+file { '/root/auth':
+  content =>
+'
+export OS_TENANT_NAME=openstack
+export OS_USERNAME=admin
+export OS_PASSWORD=ChangeMe
+export OS_AUTH_URL="http://localhost:5000/v2.0/"
+'
+}
+
+####### tests ###
