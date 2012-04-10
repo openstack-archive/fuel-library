@@ -6,26 +6,25 @@ class glance::keystone::auth(
   $port      = '9292'
 ) {
 
-  Class['keystone::roles::admin'] -> Class['glance::keystone::auth']
-
   keystone_user { $auth_name:
     ensure   => present,
     password => $password,
   }
   keystone_user_role { "${auth_name}@services":
+    ensure  => present,
     roles   => 'admin',
-    require => Keystone_user[$auth_name]
   }
   keystone_service { $auth_name:
+    ensure      => present,
     type        => 'image',
     description => "Openstack Image Service",
   }
   keystone_endpoint { $auth_name:
+    ensure       => present,
     region       => 'RegionOne',
     public_url   => "http://${address}:${port}/v1",
     admin_url    => "http://${address}:${port}/v1",
     internal_url => "http://${address}:${port}/v1",
-    require      => Keystone_service[$auth_name]
   }
 
 }
