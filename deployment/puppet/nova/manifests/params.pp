@@ -14,6 +14,7 @@ class nova::params {
       $objectstore_package_name = false
       $scheduler_package_name   = false
       $volume_package_name      = false
+      $vncproxy_package_name    = false
       # service names
       $api_service_name         = 'openstack-nova-api'
       $cert_service_name        = 'openstack-nova-cert'
@@ -39,6 +40,7 @@ class nova::params {
       $objectstore_package_name = 'nova-objectstore'
       $scheduler_package_name   = 'nova-scheduler'
       $volume_package_name      = 'nova-volume'
+      $vncproxy_package_name    = 'nova-vncproxy'
       # service names
       $api_service_name         = 'nova-api'
       $cert_service_name        = 'nova-cert'

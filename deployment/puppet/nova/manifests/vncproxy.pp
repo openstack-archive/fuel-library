@@ -1,10 +1,13 @@
 class nova::vncproxy(
+ $package_name = $::nova::params::vncproxy_package_name
 ) {
 
-  Package['nova-vncproxy'] -> Exec<| title == 'initial-db-sync' |>
-
-  package { 'nova-vncproxy':
-    ensure => present,
+  if($package_name) {
+    package { 'nova-vncproxy':
+      name   => $package_name,
+      ensure => present,
+      before => Exec['initial-db-sync'],
+    }
   }
 
 }
