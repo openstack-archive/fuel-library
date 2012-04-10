@@ -38,7 +38,9 @@ class keystone::mysql(
   $allowed_hosts = undef
 ) {
 
-  require mysql::python
+  Class['keystone::mysql'] -> Service<| title == 'keystone' |>
+
+  require 'mysql::python'
 
   file { '/var/lib/keystone/keystone.db':
     ensure    => absent,
