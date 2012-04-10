@@ -13,7 +13,7 @@
 define nova::generic_service(
   $package_name,
   $service_name,
-  $enabled = false,
+  $enabled = false
 ) {
 
   include nova::params

@@ -1,7 +1,7 @@
 #schedulee this class should probably never be declared except
 # from the virtualization implementation of the compute node
 class nova::compute(
-  $enabled = false,
+  $enabled = false
 ) inherits nova {
 
   nova::generic_service { 'compute':
