@@ -44,4 +44,8 @@ Puppet::Type.newtype(:keystone_user) do
     end
   end
 
+  autorequire(:keystone_tenant) do
+    self[:tenant]
+  end
+
 end

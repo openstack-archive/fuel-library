@@ -72,11 +72,11 @@ Puppet::Type.type(:keystone_endpoint).provide(
   def region
     endpoint_hash[resource[:name]][:region]
   end
-  
+
   def public_url
     endpoint_hash[resource[:name]][:public_url]
   end
-  
+
   def internal_url
     endpoint_hash[resource[:name]][:internal_url]
   end
@@ -107,7 +107,7 @@ Puppet::Type.type(:keystone_endpoint).provide(
     # TODO - this needs to be replaced with a call to endpoint-get
     # but endpoint-get is not currently supported from the admin url
     def self.get_service_id(endpoint_id)
-      `python -c "from keystoneclient.v2_0 import client ; import os ; print [e.service_id for e in client.Client(endpoint='http://127.0.0.1:35357/v2.0/', token='#{admin_token}').endpoints.list() if e.id == u'#{endpoint_id}'][0]"`
+      `python -c "from keystoneclient.v2_0 import client ; import os ; print [e.service_id for e in client.Client(endpoint='#{admin_endpoint}', token='#{admin_token}').endpoints.list() if e.id == u'#{endpoint_id}'][0]"`
     end
 
 end

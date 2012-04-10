@@ -25,4 +25,9 @@ Puppet::Type.newtype(:keystone_service) do
   newproperty(:description) do
   end
 
+  # we should not do anything until the keystone service is started
+  autorequire(:service) do
+    ['keystone']
+  end
+
 end

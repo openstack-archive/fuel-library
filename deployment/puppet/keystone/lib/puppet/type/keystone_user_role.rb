@@ -33,4 +33,17 @@ Puppet::Type.newtype(:keystone_user_role) do
     end
   end
 
+  autorequire(:keystone_user) do
+    self[:name].split('@', 2).first
+  end
+
+  autorequire(:keystone_tenant) do
+    self[:name].split('@', 2).last
+  end
+
+  # we should not do anything until the keystone service is started
+  autorequire(:service) do
+    ['keystone']
+  end
+
 end

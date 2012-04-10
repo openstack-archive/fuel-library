@@ -19,4 +19,9 @@ Puppet::Type.newtype(:keystone_role) do
     end
   end
 
+  # we should not do anything until the keystone service is started
+  autorequire(:service) do
+    ['keystone']
+  end
+
 end

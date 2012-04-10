@@ -29,4 +29,10 @@ Puppet::Type.newtype(:keystone_tenant) do
       raise(Puppet::Error, 'This is a read only property')
     end
   end
+
+  # we should not do anything until the keystone service is started
+  autorequire(:service) do
+    ['keystone']
+  end
+
 end
