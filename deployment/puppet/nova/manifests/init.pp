@@ -31,7 +31,7 @@ class nova(
   $auth_uri = 'http://127.0.0.1:5000/v2.0',
   $admin_tenant_name = 'services',
   $admin_user = 'nova',
-  $admin_password = 'passw0rd',
+  $admin_password = 'passw0rd'
 ) inherits nova::params {
 
   # all nova_config resources should be applied

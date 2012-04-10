@@ -7,6 +7,7 @@ class nova::db(
   $cluster_id = 'localzone'
 ) {
 
+  require 'mysql::python'
   # Create the db instance before openstack-nova if its installed
   Mysql::Db[$dbname] -> Anchor<| title == "nova-start" |>
   Mysql::Db[$dbname] ~> Exec<| title == 'initial-db-sync' |>
