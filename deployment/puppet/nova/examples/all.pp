@@ -168,6 +168,7 @@ class { 'nova::compute':
 }
 
 class { 'nova::compute::libvirt':
-  flat_network_bridge_ip => '192.168.188.1',
+  libvirt_type                => 'qemu',
+  flat_network_bridge_ip      => '192.168.188.1',
   flat_network_bridge_netmask => '255.255.255.0',
 }
