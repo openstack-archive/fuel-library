@@ -27,4 +27,8 @@ Puppet::Type.newtype(:nova_network) do
     end
   end
 
+  newparam(:bridge) do
+    defaultto 'br100'
+  end
+
 end
