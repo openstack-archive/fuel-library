@@ -62,6 +62,7 @@ class keystone(
   include 'concat::setup'
 
   package { 'keystone':
+    name   => $::keystone::params::package_name,
     ensure => $package_ensure,
   }
 
