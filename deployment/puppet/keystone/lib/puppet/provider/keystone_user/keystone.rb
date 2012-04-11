@@ -21,6 +21,10 @@ Puppet::Type.type(:keystone_user).provide(
 
   optional_commands :keystone => "keystone"
 
+  def self.prefetch(resource)
+    # rebuild the cahce for every puppet run
+    @user_hash = build_user_hash
+  end
 
   def self.user_hash
     @user_hash ||= build_user_hash

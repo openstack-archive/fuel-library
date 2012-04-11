@@ -19,6 +19,10 @@ Puppet::Type.type(:keystone_endpoint).provide(
 
   optional_commands :keystone => "keystone"
 
+  def self.prefetch(resource)
+    # rebuild the cahce for every puppet run
+    @endpoint_hash = build_endpoint_hash
+  end
 
   def self.endpoint_hash
     @endpoint_hash ||= build_endpoint_hash

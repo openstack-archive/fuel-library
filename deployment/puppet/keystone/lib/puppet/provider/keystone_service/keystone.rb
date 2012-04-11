@@ -21,6 +21,10 @@ Puppet::Type.type(:keystone_service).provide(
 
   optional_commands :keystone => "keystone"
 
+  def self.prefetch(resource)
+    # rebuild the cahce for every puppet run
+    @service_hash = build_service_hash
+  end
 
   def self.service_hash
     @service_hash ||= build_service_hash
