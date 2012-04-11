@@ -1,4 +1,4 @@
-# flatdhcp.pp
+# flat.pp
 class nova::network::flat (
   $flat_network_bridge,
   $configure_bridge = true,
