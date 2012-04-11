@@ -22,8 +22,9 @@ Puppet::Type.type(:keystone_tenant).provide(
 
   optional_commands :keystone => "keystone"
 
-  def self.keystone_type
-    'tenant'
+  def self.prefetch(resource)
+    # rebuild the cahce for every puppet run
+    @tenant_hash = build_tenant_hash
   end
 
   def self.tenant_hash
