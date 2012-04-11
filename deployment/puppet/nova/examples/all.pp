@@ -159,6 +159,15 @@ class { 'nova::network':
   enabled => true
 }
 
+nova::manage::network { "nova-vm-net":
+  network       => '11.0.0.0/24',
+  available_ips => 128,
+}
+
+nova::manage::floating { "nova-vm-floating":
+  network       => '10.128.0.0/24',
+}
+
 class { 'nova::objectstore':
   enabled => true
 }
