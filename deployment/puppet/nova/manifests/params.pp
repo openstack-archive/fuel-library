@@ -30,6 +30,7 @@ class nova::params {
       $special_service_provider = 'init'
       # redhat specific config defaults
       $root_helper              = 'sudo nova-rootwrap'
+      $lock_path                = '/var/lib/nova/tmp'
     }
     'Debian': {
       # package names
@@ -59,6 +60,7 @@ class nova::params {
       $tgt_service_name         = 'tgt'
       # debian specific nova config
       $root_helper              = 'sudo nova-rootwrap'
+      $lock_path                = '/var/lock/nova'
     }
     default: {
       fail("Unsupported osfamily: ${::osfamily} operatingsystem: ${::operatingsystem}, module ${module_name} only support osfamily RedHat and Debian")

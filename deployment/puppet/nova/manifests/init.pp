@@ -18,7 +18,7 @@ class nova(
   $service_down_time = 60,
   $logdir = '/var/log/nova',
   $state_path = '/var/lib/nova',
-  $lock_path = '/var/lock/nova',
+  $lock_path = $::nova::params::lock_path,
   $verbose = false,
   $nodaemon = false,
   $periodic_interval = '60',
