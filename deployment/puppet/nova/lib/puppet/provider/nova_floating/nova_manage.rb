@@ -2,14 +2,14 @@ Puppet::Type.type(:nova_floating).provide(:nova_manage) do
 
   desc "Manage nova floating"
 
-  defaultfor :kernel => 'Linux'
-
-  commands :nova_manage => 'nova-manage'
+  optional_commands :nova_manage => 'nova-manage'
 
   def exists?
     begin
+      # TODO this assumes that the CIDR is 24
+      # this may be good for an approximation, but it needs to be fixed eventually
       prefix=resource[:network].sub(/(^[0-9]*\.[0-9]*\.[0-9]*\.).*/, '\1')
-      return false if not nova_manage("floating", "list").match(/#{prefix}/)
+      return nova_manage("floating", "list").match(/#{prefix}/)
     rescue
       return false
     end
