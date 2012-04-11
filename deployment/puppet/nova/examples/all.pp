@@ -24,19 +24,21 @@ resources { 'nova_config':
   purge => true,
 }
 
-# temporarily update this to use the
-# latest tested packages from precise
-# eventually, these packages need to be moved
-# to the openstack module
-stage { 'nova_ppa':
-  before => Stage['main']
-}
+if $::osfamily == 'Debian' {
+  # temporarily update this to use the
+  # latest tested packages from precise
+  # eventually, these packages need to be moved
+  # to the openstack module
+  stage { 'nova_ppa':
+    before => Stage['main']
+  }
 
-class { 'apt':
-  stage => 'nova_ppa',
-}
-class { 'keystone::repo::trunk':
-  stage => 'nova_ppa',
+  class { 'apt':
+    stage => 'nova_ppa',
+  }
+  class { 'keystone::repo::trunk':
+    stage => 'nova_ppa',
+  }
 }
 
 # this is a hack that I have to do b/c openstack nova
