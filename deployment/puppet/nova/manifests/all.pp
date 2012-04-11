@@ -83,9 +83,9 @@ class nova::all(
     host     => $db_host,
   }
 
-  class { 'nova::cert': }
+  class { 'nova::cert': enabled => true }
 
-  class { 'nova::volume': }
+  class { 'nova::volume': enabled => true }
 
   class { 'nova::vncproxy': }
 
