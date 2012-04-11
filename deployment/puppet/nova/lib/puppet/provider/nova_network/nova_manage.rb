@@ -27,7 +27,8 @@ Puppet::Type.type(:nova_network).provide(:nova_manage) do
     begin
       network_list = nova_manage("network", "list")
       return network_list.split("\n")[1..-1].detect do |n|
-        n =~ /^(\S+)\s+(#{resource[:network]})/
+        # TODO - this does not take the CIDR into accont. Does it matter?
+        n =~ /^(\S+)\s+(#{resource[:network].split('/').first})/
       end
     rescue
       return false
