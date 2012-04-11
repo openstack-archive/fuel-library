@@ -41,6 +41,10 @@ Puppet::Type.newtype(:keystone_user_role) do
     self[:name].split('@', 2).last
   end
 
+  autorequire(:keystone_role) do
+    self[:roles]
+  end
+
   # we should not do anything until the keystone service is started
   autorequire(:service) do
     ['keystone']
