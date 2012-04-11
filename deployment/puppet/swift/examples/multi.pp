@@ -32,16 +32,22 @@ $swift_local_net_ip = $ipaddress_eth0
 
 Exec { logoutput => true }
 
-stage { 'openstack_ppa':}
 
-Stage['openstack_ppa'] -> Stage['main']
 
+#### update apt caches ########
+
+stage { 'ppa':
+  before => Stage['main']
+}
 class { 'apt':
-  stage => 'openstack_ppa',
+  stage => 'ppa',
 }
-class { 'swift::repo::trunk':
-  stage => 'openstack_ppa',
+class { 'keystone::repo::trunk':
+  stage => 'ppa',
 }
+
+##### end apt cache updates ####
+
 #
 # specifies that nodes with the cert names of
 # swift_storage_1,2, and 3 will be assigned the
