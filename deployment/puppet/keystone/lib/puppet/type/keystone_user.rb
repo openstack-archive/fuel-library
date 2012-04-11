@@ -48,4 +48,9 @@ Puppet::Type.newtype(:keystone_user) do
     self[:tenant]
   end
 
+  # we should not do anything until the keystone service is started
+  autorequire(:service) do
+    ['keystone']
+  end
+
 end
