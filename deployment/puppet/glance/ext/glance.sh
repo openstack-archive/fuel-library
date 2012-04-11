@@ -1,7 +1,8 @@
 #!/bin/bash
-# Extract creds
-# Add images to glance and index
-glance add name=ramdisk disk_format=ari container_format=ari is_public=True < /vagrant/images/lucid_ami/initrd.img-2.6.32-23-server
-glance add name=kernel disk_format=aki container_format=aki is_public=True < /vagrant/images/lucid_ami/vmlinuz-2.6.32-23-server
-glance add name=lucid_ami disk_format=ami container_format=ami is_public=True ramdisk_id=1 kernel_id=2 < /vagrant/images/lucid_ami/ubuntu-lucid.img
+#
+# assumes that resonable credentials have been stored at
+# /root/auth
+source /root/auth
+wget http://uec-images.ubuntu.com/releases/11.10/release/ubuntu-11.10-server-cloudimg-amd64-disk1.img
+glance add name="Ubuntu 11.10 cloudimg amd64" is_public=true container_format=ovf disk_format=qcow2 < ubuntu-11.10-server-cloudimg-amd64-disk1.img
 glance index
