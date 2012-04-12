@@ -3,15 +3,16 @@
 # to ensure that we use the latest precise packages
 Exec { logoutput => 'on_failure' }
 
-stage { 'glance_ppa':
-  before => Stage['main'],
-}
-
-class { 'apt':
-  stage => 'glance_ppa',
-}
-class { 'keystone::repo::trunk':
-  stage => 'glance_ppa',
+if($::osfamily == 'Debian') {
+  stage { 'glance_ppa':
+    before => Stage['main'],
+  }
+  class { 'apt':
+    stage => 'glance_ppa',
+  }
+  class { 'keystone::repo::trunk':
+    stage => 'glance_ppa',
+  }
 }
 
 node glance {
