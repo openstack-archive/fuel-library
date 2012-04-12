@@ -44,16 +44,22 @@ describe 'glance::registry' do
 
       it { should contain_class 'glance::registry' }
 
-      it do
-        should contain_service('glance-registry').with(
-          'ensure' => 'running',
-          'enable' => 'true',
-          'hasstatus' => 'true',
+      it { should contain_service('glance-registry').with(
+          'ensure'     => 'running',
+          'enable'     => 'true',
+          'hasstatus'  => 'true',
           'hasrestart' => 'true',
-          'subscribe' => 'File[/etc/glance/glance-registry.conf]',
-          'require' => 'Class[Glance]'
-        )
-      end
+          'subscribe'  => 'File[/etc/glance/glance-registry.conf]',
+          'require'    => 'Class[Glance]'
+      )}
+
+      it { should contain_exec('glance-manage db_sync').with(
+          'path'        => '/usr/bin',
+          'refreshonly' => true,
+          'logoutput'   => 'on_failure',
+          'subscribe'   => ['Package[glance]', 'File[/etc/glance/glance-registry.conf]'],
+          'notify'      => 'Service[glance-registry]'
+      )}
 
       it 'should compile the template based on the class parameters' do
         content = param_value(subject, 'file', '/etc/glance/glance-registry.conf', 'content')
