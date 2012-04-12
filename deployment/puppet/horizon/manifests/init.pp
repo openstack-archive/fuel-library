@@ -14,10 +14,6 @@ class horizon(
     ensure => present,
   }
 
-  package { 'libapache2-mod-wsgi':
-    ensure => present,
-  }
-
   file { '/etc/openstack-dashboard/local_settings.py':
     content => template('horizon/local_settings.py.erb'),
     mode    => '0644',
