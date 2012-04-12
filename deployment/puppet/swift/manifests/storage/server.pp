@@ -35,6 +35,7 @@ define swift::storage::server(
     content => template("swift/${type}-server.conf.erb"),
     owner   => $owner,
     group   => $group,
+    notify  => Service["swift-${type}"],
   }
 
 }

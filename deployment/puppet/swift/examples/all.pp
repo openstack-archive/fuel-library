@@ -30,7 +30,7 @@ class { 'swift::storage':
 }
 
 # create xfs partitions on a loopback device and mounts them
-swift::storage::loopback { ['1', '2', '3']:
+swift::storage::loopback { ['4', '2', '3']:
   require => Class['swift'],
 }
 
@@ -44,9 +44,9 @@ Swift::Storage::Node {
   storage_local_net_ip => $swift_local_net_ip,
 }
 
-swift::storage::node { '1':
-  zone    => 1,
-  require => Swift::Storage::Loopback[1],
+swift::storage::node { '4':
+  zone    => 4,
+  require => Swift::Storage::Loopback[4],
 }
 
 swift::storage::node { '2':
