@@ -37,8 +37,8 @@ class Puppet::Provider::Keystone < Puppet::Provider
     begin
       keystone('--token', admin_token, '--endpoint', admin_endpoint, args)
     rescue Exception => e
-      if e.message =~ /Unable to communicate with identity service: \[Errno 111\] Connection refused\. \(HTTP 400\)/
-       sleep 30
+      if e.message =~ /\(HTTP 400\)/
+       sleep 10
        keystone('--token', admin_token, '--endpoint', admin_endpoint, args)
       else
         raise(e)
