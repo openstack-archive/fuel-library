@@ -127,6 +127,7 @@ class keystone(
 
   service { 'keystone':
     ensure     => running,
+    name       => $::keystone::params::service_name,
     enable     => true,
     hasstatus  => true,
     hasrestart => true,
