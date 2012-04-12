@@ -55,8 +55,16 @@ class nova::params {
       $volume_service_name      = 'nova-volume'
       $libvirt_package_name     = 'libvirt-bin'
       $libvirt_service_name     = 'libvirt-bin'
-      # some of the services need to be started form the special upstart provider
-      $special_service_provider = 'upstart'
+      case $::operatingsystem {
+        'Debian': {
+          # Use default provider on Debian
+          $special_service_provider = undef
+        }
+        default: {
+          # some of the services need to be started form the special upstart provider
+          $special_service_provider = 'upstart'
+        }
+      }
       $tgt_service_name         = 'tgt'
       # debian specific nova config
       $root_helper              = 'sudo nova-rootwrap'
