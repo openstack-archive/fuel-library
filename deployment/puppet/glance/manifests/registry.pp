@@ -33,8 +33,6 @@ class glance::registry(
     content => template('glance/glance-registry-paste.ini.erb'),
   }
 
-  Database<| title == 'glance' |> ~> Exec['glance-manage db_sync']
-
   exec { 'glance-manage db_sync':
     path        => '/usr/bin',
     refreshonly => true,
