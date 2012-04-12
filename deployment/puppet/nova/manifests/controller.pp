@@ -86,7 +86,7 @@ class nova::controller(
           configure_bridge            => false,
         }
       }
-      'nova.network.manager.VlanManger': {
+      'nova.network.manager.VlanManager': {
         class { "nova::network::vlan":
           enabled => true,
         }
