@@ -34,6 +34,7 @@ class glance::registry(
   }
 
   exec { 'glance-manage db_sync':
+    command     => $::glance::params::db_sync_command,
     path        => '/usr/bin',
     refreshonly => true,
     logoutput   => on_failure,
