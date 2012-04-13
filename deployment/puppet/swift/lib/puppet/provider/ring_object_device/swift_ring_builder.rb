@@ -6,6 +6,14 @@ Puppet::Type.type(:ring_object_device).provide(
 
   optional_commands :swift_ring_builder => 'swift-ring-builder'
 
+  def self.prefetch(resource)
+    @my_ring = lookup_ring
+  end
+
+  def self.ring
+    @my_ring ||= lookup_ring
+  end
+
   # TODO maybe this should be a parameter eventually so that
   # it can be configurable
   def self.builder_file_path

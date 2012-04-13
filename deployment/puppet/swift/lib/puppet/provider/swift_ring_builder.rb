@@ -8,9 +8,6 @@ class Puppet::Provider::SwiftRingBuilder < Puppet::Provider
     end
   end
 
-  def self.ring
-    @my_ring ||= lookup_ring
-  end
 
   def self.lookup_ring
     object_hash = {}
