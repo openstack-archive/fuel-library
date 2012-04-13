@@ -6,6 +6,9 @@ class glance::keystone::auth(
   $port      = '9292'
 ) {
 
+  Keystone_user_role["${auth_name}@services"] ~> Service <| name == 'glance-registry' |>
+  Keystone_user_role["${auth_name}@services"] ~> Service <| name == 'glance-api' |>
+
   keystone_user { $auth_name:
     ensure   => present,
     password => $password,
