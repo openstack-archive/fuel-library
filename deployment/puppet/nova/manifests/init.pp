@@ -14,7 +14,7 @@ class nova(
   $rabbit_userid='guest',
   $rabbit_virtual_host='/',
   $network_manager = 'nova.network.manager.FlatManager',
-  multi_host_networking = false,
+  $multi_host_networking = false,
   $flat_network_bridge = 'br100',
   $vlan_interface = 'eth1',
   $vlan_start = 1000,
