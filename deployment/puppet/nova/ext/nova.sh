@@ -1,19 +1,24 @@
 #!/bin/bash
-# Extract creds
-cd ~
-sudo nova-manage project zipfile nova novaadmin
-unzip nova.zip
-source novarc
-euca-add-keypair openstack > ~/cert.pem
-# List
-nova flavor-list
-nova image-list
+#
+# assumes that resonable credentials have been stored at
+# /root/auth
+source /root/auth
 
-# Run instance
-euca-run-instances ami-00000003 -k openstack -t m1.tiny
-euca-describe-instances
+# get an image to test with
+wget http://uec-images.ubuntu.com/releases/11.10/release/ubuntu-11.10-server-cloudimg-amd64-disk1.img
 
-echo 'log into your controller VM'
-echo 'check the status of your VM with euca-describe-instances'
-echo 'when it is in the running state, verify that you can login'
-echo 'using ssh -i ~/cert.pem root@ip.address'
+# import that image into glance
+glance add name="Ubuntu 11.10 cloudimg amd64" is_public=true container_format=ovf disk_format=qcow2 < ubuntu-11.10-server-cloudimg-amd64-disk1.img
+
+IMAGE_ID=`glance index | grep 'Ubuntu 11.10 cloudimg amd64' | head -1 |  awk -F' ' '{print $1}'`
+
+# create a pub key
+ssh-keygen -f /tmp/id_rsa -t rsa -N ''
+nova keypair-add --pub_key /tmp/id_rsa.pub key1
+
+nova boot --flavor 1 --image ${IMAGE_ID} --key_name key1 dans_vm
+
+nova show dans_vm
+
+# create ec2 credentials
+keystone ec2-credentials-create
