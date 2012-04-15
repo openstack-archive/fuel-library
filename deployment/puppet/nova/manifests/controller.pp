@@ -19,7 +19,15 @@ class nova::controller(
   $flat_network_bridge_ip  = '11.0.0.1',
   $flat_network_bridge_netmask  = '255.255.255.0',
 
+  $flat_interface = undef,
+  $flat_dhcp_start = undef,
+  $flat_injected = undef,
+
+  $vlan_interface = 'eth1',
+  $vlan_start = 1000,
+
   $network_manager = undef,
+  $multi_host_networking = false,
   $nova_network = '11.0.0.0/24',
   $floating_network = '10.128.0.0/24',
   $available_ips = '256',
@@ -37,27 +45,56 @@ class nova::controller(
 
 
   class { "nova":
-    verbose             => $verbose,
-    sql_connection      => "mysql://${db_user}:${db_password}@${db_host}/${db_name}",
-    image_service       => $image_service,
-    glance_api_servers  => $glance_api_servers,
-    rabbit_host         => $rabbit_host,
-    rabbit_port         => $rabbit_port,
-    rabbit_userid       => $rabbit_userid,
-    rabbit_password     => $rabbit_password,
-    rabbit_virtual_host => $rabbit_virtual_host,
-    lock_path           => $lock_path,
-    network_manager     => $network_manager,
+    verbose               => $verbose,
+    sql_connection        => "mysql://${db_user}:${db_password}@${db_host}/${db_name}",
+    image_service         => $image_service,
+    glance_api_servers    => $glance_api_servers,
+    rabbit_host           => $rabbit_host,
+    rabbit_port           => $rabbit_port,
+    rabbit_userid         => $rabbit_userid,
+    rabbit_password       => $rabbit_password,
+    rabbit_virtual_host   => $rabbit_virtual_host,
+    lock_path             => $lock_path,
+    network_manager       => $network_manager,
+    multi_host_networking => $multi_host_networking,
+    flat_network_bridge   => $flat_network_bridge,
+    vlan_interface        => $vlan_interface,
+    vlan_start            => $vlan_start,
   }
 
   class { "nova::api": enabled => true }
 
-  class { "nova::network::flat":
-    enabled                     => true,
-    flat_network_bridge         => $flat_network_bridge,
-    flat_network_bridge_ip      => $flat_network_bridge_ip,
-    flat_network_bridge_netmask => $flat_network_bridge_netmask,
-    configure_bridge            => false,
+  # in multi_host networking mode nova-network does not run on the controller
+  if !$multi_host_networking {
+    case $network_manager {
+      'nova.network.manager.FlatManager': {
+        class { "nova::network::flat":
+          enabled                     => true,
+          flat_network_bridge         => $flat_network_bridge,
+          flat_network_bridge_ip      => $flat_network_bridge_ip,
+          flat_network_bridge_netmask => $flat_network_bridge_netmask,
+          configure_bridge            => false,
+        }
+      }
+      'nova.network.manager.FlatDHCPManager': {
+        class { "nova::network::flatdhcp":
+          enabled                     => true,
+          flat_interface              => $flat_interface,
+          flat_dhcp_start             => $flat_dhcp_start,
+          flat_injected               => $flat_injected,
+          flat_network_bridge_netmask => $flat_network_bridge_netmask,
+          configure_bridge            => false,
+        }
+      }
+      'nova.network.manager.VlanManager': {
+        class { "nova::network::vlan":
+          enabled => true,
+        }
+      }
+      default: {
+        fail("Unsupported network manager: ${network_manager} The supported network managers are nova.network.manager.FlatManager, nova.network.FlatDHCPManager and nova.network.manager.VlanManager")
+      }
+    }
   }
 
   class { "nova::objectstore":
@@ -65,10 +102,6 @@ class nova::controller(
   }
 
   class { "nova::cert":
-    enabled => true,
-  }
-
-  class { "nova::volume":
     enabled => true,
   }
 
