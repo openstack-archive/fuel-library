@@ -179,9 +179,12 @@ class { 'nova::compute':
 }
 
 class { 'nova::compute::libvirt':
-  libvirt_type                => 'qemu',
-  flat_network_bridge_ip      => '192.168.188.1',
-  flat_network_bridge_netmask => '255.255.255.0',
+  libvirt_type => 'qemu',
+}
+
+nova::network::bridge { 'br100':
+  ip      => '192.168.188.1',
+  netmask => '255.255.255.0',
 }
 
 ######## Horizon ########
