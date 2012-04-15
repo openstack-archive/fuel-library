@@ -2,8 +2,6 @@ class nova::compute::multi_host(
   $enabled = false
 ) inherits nova::compute {
 
-  Class['nova::compute'] { enabled => $enabled }
-
   nova_config { 'enabled_apis': value => 'metadata' }
 
   class { 'nova::api': enabled => $enabled }
