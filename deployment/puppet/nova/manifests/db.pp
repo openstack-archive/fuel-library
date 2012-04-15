@@ -12,13 +12,6 @@ class nova::db(
   Mysql::Db[$dbname] -> Anchor<| title == "nova-start" |>
   Mysql::Db[$dbname] ~> Exec<| title == 'initial-db-sync' |>
 
-  # TODO - worry about the security implications
-  # I am not sure if I want to use storeconfigs for this...
-  @@nova_config { 'database_url':
-    value => "mysql://${user}:${password}@${host}/${dbname}",
-    tag   => $zone,
-  }
-
   mysql::db { $dbname:
     user         => $user,
     password     => $password,

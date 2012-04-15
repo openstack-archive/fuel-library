@@ -115,13 +115,37 @@ class nova(
   }
 
 
-  # query out the config for our db connection
-  # TODO - I am not sure if resource collection should be the default
+  # both the sql_connection and rabbit_host are things
+  # that may need to be collected from a remote host
   if $sql_connection {
     nova_config { 'sql_connection': value => $sql_connection }
-  } else{
-    Nova_config<<| tag == $cluster_id and value == 'sql_connection' |>>
+  } else {
+    Nova_config <<| title == 'sql_connection' |>>
   }
+  if $rabbit_host {
+    nova_config { 'rabbit_host': value => $rabbit_host }
+  } else {
+    Nova_config <<| title == 'rabbit_host' |>>
+  }
+  if $image_service == 'nova.image.glance.GlanceImageService' {
+    if $glance_api_servers {
+      nova_config {
+        'glance_api_servers': value => $glance_api_servers
+      }
+    } else {
+      # TODO this only supports setting a single address for the api server
+      Nova_config <<| title == $glance_api_servers |>>
+    }
+  }
+
+  # I may want to support exporting and collecting these
+  nova_config {
+    'rabbit_password': value => $rabbit_password;
+    'rabbit_port': value => $rabbit_port;
+    'rabbit_userid': value => $rabbit_userid;
+    'rabbit_virtual_host': value => $rabbit_virtual_host;
+  }
+
 
   nova_config {
     'verbose': value => $verbose;
@@ -129,11 +153,6 @@ class nova(
     'logdir': value => $logdir;
     'image_service': value => $image_service;
     'allow_admin_api': value => $allow_admin_api;
-    'rabbit_host': value => $rabbit_host;
-    'rabbit_password': value => $rabbit_password;
-    'rabbit_port': value => $rabbit_port;
-    'rabbit_userid': value => $rabbit_userid;
-    'rabbit_virtual_host': value => $rabbit_virtual_host;
     # Following may need to be broken out to different nova services
     'state_path': value => $state_path;
     'lock_path': value => $lock_path;
@@ -146,6 +165,7 @@ class nova(
     'root_helper': value => $root_helper;
     'auth_strategy': value => $auth_strategy;
   }
+
 
   exec { 'post-nova_config':
     command => '/bin/echo "Nova config has changed"',
@@ -178,9 +198,4 @@ class nova(
     }
   }
 
-  if $image_service == 'nova.image.glance.GlanceImageService' {
-    nova_config {
-      'glance_api_servers': value => $glance_api_servers;
-    }
-  }
 }
