@@ -16,7 +16,7 @@
 # [host] Host where user should be allowed all priveleges for database.
 # Optional. Defaults to 127.0.0.1.
 #
-# [allowed_hosts] TODO implement.
+# [allowed_hosts] Hosts allowed to use the database
 #
 # == Dependencies
 #   Class['mysql::server']
@@ -42,12 +42,6 @@ class keystone::db::mysql(
 
   require 'mysql::python'
 
-  file { '/var/lib/keystone/keystone.db':
-    ensure    => absent,
-    subscribe => Package['keystone'],
-    before    => Mysql::Db[$dbname],
-  }
-
   mysql::db { $dbname:
     user     => $user,
     password => $password,
@@ -57,13 +51,15 @@ class keystone::db::mysql(
     require  => Class['mysql::server'],
   }
 
-  # this probably needs to happen more often than just when the db is
-  # created
-  exec { 'keystone-manage db_sync':
-    path        => '/usr/bin',
-    refreshonly => true,
-    subscribe   => Mysql::Db[$dbname],
-    require     => File['/etc/keystone/keystone.conf'],
+  if $allowed_hosts {
+    keystone::mysql::host_access { $allowed_hosts:
+      user     => $user,
+      password => $password,
+      database => $dbname,
+    }
   }
+
+
+  Mysql::Db[$dbname] ~> Exec<| title == 'keystone-manage db_sync' |>
 
 }
