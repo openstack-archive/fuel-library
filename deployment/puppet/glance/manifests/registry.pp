@@ -36,6 +36,7 @@ class glance::registry(
   exec { 'glance-manage db_sync':
     command     => $::glance::params::db_sync_command,
     path        => '/usr/bin',
+    user        => 'glance',
     refreshonly => true,
     logoutput   => on_failure,
     subscribe   => [Package['glance'], File['/etc/glance/glance-registry.conf']],
