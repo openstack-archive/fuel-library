@@ -174,6 +174,14 @@ class { 'nova::objectstore':
   enabled => true
 }
 
+class { 'nova::volume':
+  enabled => true
+}
+
+class { 'nova::cert':
+  enabled => true
+}
+
 class { 'nova::compute':
   enabled => true,
 }
