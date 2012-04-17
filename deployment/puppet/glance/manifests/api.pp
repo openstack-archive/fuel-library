@@ -65,7 +65,7 @@ class glance::api(
     owner   => 'glance',
     group   => 'root',
     mode    => 640,
-    require => Class['glance']
+    require => [Class['glance'], Glance::Api::Config['backend']],
   }
 
   glance::api::config { 'header':
