@@ -77,7 +77,7 @@ Puppet::Type.type(:keystone_user_role).provide(
 
   def roles=(value)
     # determine the roles to be added and removed
-require 'ruby-debug';debugger
+    # require 'ruby-debug';debugger
     remove = roles - Array(value)
     add    = Array(value) - roles
 
