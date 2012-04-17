@@ -63,6 +63,7 @@ class keystone::mysql(
     path        => '/usr/bin',
     refreshonly => true,
     subscribe   => Mysql::Db[$dbname],
+    require => File['/etc/keystone/keystone.conf'],
   }
 
 }
