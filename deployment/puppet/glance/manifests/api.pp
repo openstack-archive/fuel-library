@@ -51,6 +51,7 @@ class glance::api(
 
   # used to configure concat
   include 'concat::setup'
+  require 'keystone::python'
 
   File {
     ensure  => present,
