@@ -24,22 +24,22 @@ resources { 'nova_config':
   purge => true,
 }
 
-if $::osfamily == 'Debian' {
-  # temporarily update this to use the
-  # latest tested packages from precise
-  # eventually, these packages need to be moved
-  # to the openstack module
-  stage { 'nova_ppa':
-    before => Stage['main']
-  }
-
-  class { 'apt':
-    stage => 'nova_ppa',
-  }
-  class { 'keystone::repo::trunk':
-    stage => 'nova_ppa',
-  }
-}
+#if $::osfamily == 'Debian' {
+#  # temporarily update this to use the
+#  # latest tested packages from precise
+#  # eventually, these packages need to be moved
+#  # to the openstack module
+#  stage { 'nova_ppa':
+#    before => Stage['main']
+#  }
+#
+#  class { 'apt':
+#    stage => 'nova_ppa',
+#  }
+#  class { 'keystone::repo::trunk':
+#    stage => 'nova_ppa',
+#  }
+#}
 
 # this is a hack that I have to do b/c openstack nova
 # sets up a route to reroute calls to the metadata server
@@ -191,7 +191,7 @@ class { 'nova::compute::libvirt':
 }
 
 nova::network::bridge { 'br100':
-  ip      => '192.168.188.1',
+  ip      => '11.0.0.1',
   netmask => '255.255.255.0',
 }
 
