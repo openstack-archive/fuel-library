@@ -67,12 +67,16 @@ class keystone(
   }
 
   group { 'keystone':
-    ensure => present,
+    ensure  => present,
+    system  => true,
+    require => Package['keystone'],
   }
 
   user { 'keystone':
-    ensure => 'present',
-    gid    => 'keystone',
+    ensure  => 'present',
+    gid     => 'keystone',
+    system  => true,
+    require => Package['keystone'],
   }
 
   file { '/etc/keystone':

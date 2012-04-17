@@ -6,7 +6,14 @@ class keystone::params {
     'Debian': {
       $package_name     = 'keystone'
       $service_name     = 'keystone'
-      $service_provider = 'upstart'
+      case $::operatingsystem {
+        'Debian': {
+          $service_provider = undef
+        }
+        default: {
+          $service_provider = 'upstart'
+        }
+      }
     }
     'RedHat': {
       $package_name     = 'openstack-keystone'
