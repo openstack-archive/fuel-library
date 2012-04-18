@@ -16,6 +16,8 @@ class glance::registry(
   $keystone_password = 'ChangeMe'
 ) inherits glance {
 
+  require 'keystone::python'
+
   File {
     ensure  => present,
     owner   => 'glance',

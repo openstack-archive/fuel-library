@@ -51,6 +51,7 @@ class glance::api(
 
   # used to configure concat
   include 'concat::setup'
+  require 'keystone::python'
 
   File {
     ensure  => present,
@@ -65,7 +66,7 @@ class glance::api(
     owner   => 'glance',
     group   => 'root',
     mode    => 640,
-    require => [Class['glance'], Glance::Api::Config['backend']],
+    require => Class['glance'],
   }
 
   glance::api::config { 'header':
@@ -87,8 +88,10 @@ class glance::api(
     config => {
       'auth_type' => $auth_type
     },
-    order  => '99'
+    order   => '99',
+    require => Glance::Api::Config['backend'],
   }
+
   file { '/etc/glance/glance-api-paste.ini':
     content => template('glance/glance-api-paste.ini.erb'),
   }
