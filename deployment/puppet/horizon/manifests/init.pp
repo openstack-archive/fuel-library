@@ -20,7 +20,8 @@ class horizon(
   }
 
   service { 'httpd':
-    name      => 'apache2',
+    name      => $::horizon::params::http_service,
+    ensure    => 'running',
     subscribe => File['/etc/openstack-dashboard/local_settings.py']
   }
 }
