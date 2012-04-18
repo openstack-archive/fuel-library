@@ -22,7 +22,6 @@ Puppet::Type.type(:nova_network).provide(:nova_manage) do
     end.compact
   end
 
-
   def exists?
     begin
       network_list = nova_manage("network", "list")
@@ -36,7 +35,7 @@ Puppet::Type.type(:nova_network).provide(:nova_manage) do
   end
 
   def create
-     mask=resource[:network].sub(/.*\/([1-3][0-9]?)/)
+     mask=resource[:network].sub(/.*\/([1-3][0-9]?)/, '\1')
      available_ips=2**(32-mask.to_i)
      nova_manage("network", "create", resource[:label], resource[:network], "1", available_ips, "--bridge=#{resource[:bridge]}")
   end

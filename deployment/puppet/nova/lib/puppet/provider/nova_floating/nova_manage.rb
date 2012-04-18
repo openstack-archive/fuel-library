@@ -7,16 +7,10 @@ Puppet::Type.type(:nova_floating).provide(:nova_manage) do
   def exists?
     begin
       # Calculate num quads to grab for prefix
-      mask=resource[:network].sub(/.*\/([1-3][0-9]?)/) 
-      case 
-        when mask <= 8
-          num_quads=1
-        when mask <=16
-          num_quads=2
-        when mask <=24
-          num_quads=3
-        when mask <=32
-          num_quads=3
+      mask=resource[:network].sub(/.*\/([0-9][0-9]?)/, '\1') 
+      num_quads=32/$mask
+      if num_quads == 4
+        num_quads=3
       end
       prefix=resource[:network].sub(/(\.[0-9]{1,3}){#{num_quads}}(\/[0-9]{1,2})?$/, '') + "."
       return nova_manage("floating", "list").match(/#{prefix}/)
