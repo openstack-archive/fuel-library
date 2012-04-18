@@ -1,4 +1,4 @@
-define nova::manage::network ( $network, $available_ips ) {
+define nova::manage::network ( $network ) {
 
   File['/etc/nova/nova.conf'] -> Nova_network[$name]
   Exec<| title == 'initial-db-sync' |> -> Nova_network[$name]
@@ -6,7 +6,6 @@ define nova::manage::network ( $network, $available_ips ) {
   nova_network { $name:
     ensure        => present,
     network       => $network,
-    available_ips => $available_ips,
     notify        => Exec["nova-db-sync"],
   }
 }
