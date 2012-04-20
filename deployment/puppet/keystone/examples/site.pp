@@ -26,7 +26,7 @@ node keystone {
     log_verbose  => true,
     log_debug    => true,
     catalog_type => 'sql',
-  }->
+  }
   class { 'keystone::roles::admin': }
 }
 
@@ -39,10 +39,10 @@ node keystone_mysql {
     log_verbose  => true,
     log_debug    => true,
     catalog_type => 'sql',
-  }->
+  }
   class { 'keystone::mysql':
     password => 'keystone',
-  }->
+  }
   class { 'keystone::roles::admin': }
 }
 
