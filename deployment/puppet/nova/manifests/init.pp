@@ -34,7 +34,10 @@ class nova(
   $auth_uri = 'http://127.0.0.1:5000/v2.0',
   $admin_tenant_name = 'services',
   $admin_user = 'nova',
-  $admin_password = 'passw0rd'
+  $admin_password = 'passw0rd',
+  $vncserver_listen = '127.0.0.1',
+  $vncserver_proxyclient_address = '127.0.0.1',
+  $novncproxy_base_url = 'http://127.0.0.1:6080/vnc_auto.htm'
 ) inherits nova::params {
 
   # all nova_config resources should be applied
@@ -164,6 +167,9 @@ class nova(
     'multi_host': value => $multi_host_networking;
     'root_helper': value => $root_helper;
     'auth_strategy': value => $auth_strategy;
+    'vncserver_listen': value => $vncserver_listen;
+    'vncserver_proxyclient_address': value => $vncserver_proxyclient_address;
+    'novncproxy_base_url': value => $novncproxy_base_url;
   }
 
 
