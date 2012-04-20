@@ -6,6 +6,8 @@ class horizon(
   $cache_server_port = '11211'
 ) {
 
+  include horizon::params 
+
   if $cache_server_ip =~ /^127\.0\.0\.1/ {
     Class['memcached'] -> Class['horizon']
   }
