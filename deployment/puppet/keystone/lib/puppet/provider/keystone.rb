@@ -7,7 +7,11 @@ class Puppet::Provider::Keystone < Puppet::Provider
   end
 
   def self.get_admin_token
-    "#{keystone_file['DEFAULT']['admin_token'].strip}"
+    if keystone_file and keystone_file['DEFAULT'] and keystone_file['DEFAULT']['admin_token']
+      return "#{keystone_file['DEFAULT']['admin_token'].strip}"
+    else
+      raise(Puppet::Error, "File: /etc/keystone/keystone.conf does not contain a section DEFAULT with the admin_token specified. Keystone types will not work if keystone is not correctly configured")
+    end
   end
 
   def self.admin_endpoint
