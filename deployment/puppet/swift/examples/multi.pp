@@ -89,6 +89,7 @@ node 'swift_proxy' {
     require => Class['role_swift_ringbuilder'],
   }
 
+
 }
 
 node 'swift_ringbuilding' {
@@ -149,9 +150,12 @@ class role_swift_proxy inherits role_swift {
   # TODO should I enable swath in the default config?
   class { 'swift::proxy':
     proxy_local_net_ip => $swift_local_net_ip,
+    pipeline           => ['healthcheck', 'cache', 'tempauth', 'proxy-server'],
     account_autocreate => true,
     require            => Class['swift::ringbuilder'],
   }
+  class { ['swift::proxy::healthcheck', 'swift::proxy::cache', 'swift::proxy::tempauth']: }
+
 }
 
 class role_swift_storage inherits role_swift {
