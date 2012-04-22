@@ -12,29 +12,21 @@
 #   Required.
 # [*port*] The port to which the proxy server will bind.
 #   Optional. Defaults to 8080.
+# [*pipeline*] The list of elements of the swift proxy pipeline.
+#   Currently supports healthcheck, cache, proxy-server, and
+#   one of the following auth_types: tempauth, swauth, keystone.
+#   Each of the specified elements also need to be declared externally
+#   as a puppet class with the exception of proxy-server.
+#   Optional. Defaults to ['healthcheck', 'cache', 'tempauth', 'proxy-server']
 # [*workers*] Number of threads to process requests.
 #  Optional. Defaults to the number of processors.
-# [*auth_type*] - Type of authorization to use.
-#  valid values are tempauth, swauth, and keystone.
-#  Optional. Defaults to tempauth.
 # [*allow_account_management*]
 #   Rather or not requests through this proxy can create and
 #   delete accounts. Optional. Defaults to true.
 # [*account_autocreate*] Rather accounts should automatically be created.
 #  Has to be set to true for tempauth. Optional. Defaults to true.
-# [*proxy_port*] Port that the swift proxy service will bind to.
-#   Optional. Defaults to 11211
 # [*package_ensure*] Ensure state of the swift proxy package.
 #   Optional. Defaults to present.
-# [*cache_servers*] A list of the memcache servers to be used. Entries
-#  should be in the form host:port.
-# == sw auth specific configuration
-# [*swauth_endpoint*]
-# [*swauth_super_admin_user*]
-#
-# == Dependencies
-#
-#   Class['memcached']
 #
 # == Examples
 #
@@ -49,30 +41,36 @@
 class swift::proxy(
   $proxy_local_net_ip,
   $port = '8080',
+  $pipeline = ['healthcheck', 'cache', 'tempauth', 'proxy-server'],
   $workers = $::processorcount,
-  $cache_servers = ['127.0.0.1:11211'],
   $allow_account_management = true,
-  $auth_type = 'tempauth',
   $account_autocreate = true,
-  $swauth_endpoint = '127.0.0.1',
-  $swauth_super_admin_key = 'swauthkey',
   $package_ensure = 'present'
-) inherits swift {
+) {
+
+  include 'swift::params'
+  include 'concat::setup'
 
   validate_bool($account_autocreate)
   validate_bool($allow_account_management)
-  validate_re($auth_type, 'tempauth|swauth|keystone')
+  validate_array($pipeline)
+
+  if(member($pipeline, 'tempauth')) {
+    $auth_type = 'tempauth'
+  } elsif(member($pipeline, 'swauth')) {
+    $auth_type = 'swauth'
+  } elsif(member($pipeline, 'keystone')) {
+    $auth_type = 'keystone'
+  } else {
+    warning('no auth type provided in the pipeline')
+  }
+
+  if(! member($pipeline, 'proxy-server')) {
+    warning("swift storage server ${type} must specify ${type}-server")
+  }
 
   if($auth_type == 'tempauth' and ! $account_autocreate ){
     fail("\$account_autocreate must be set to true when auth type is tempauth")
-  }
-
-  if $cache_server_ips =~ /^127\.0\.0\.1/ {
-    Class['memcached'] -> Class['swift::proxy']
-  }
-
-  if(auth_type == 'keystone') {
-    fail('Keystone is currently not supported, it should be supported soon :)')
   }
 
   package { 'swift-proxy':
@@ -80,27 +78,38 @@ class swift::proxy(
     ensure => $package_ensure,
   }
 
-  if($auth_type == 'swauth') {
-    package { 'python-swauth':
-      ensure  => $package_ensure,
-      before  => Package['swift-proxy'],
-    }
-  }
-
-  file { "/etc/swift/proxy-server.conf":
-    ensure  => present,
+  concat { '/etc/swift/proxy-server.conf':
     owner   => 'swift',
     group   => 'swift',
-    mode    => 0660,
-    content => template('swift/proxy-server.conf.erb'),
+    mode    => '0660',
     require => Package['swift-proxy'],
+  }
+
+  $required_classes = split(
+    inline_template(
+      "<%=
+          (pipeline - ['proxy-server']).collect do |x|
+            'swift::proxy::' + x
+          end.join(',')
+      %>"), ',')
+
+  # you can now add your custom fragments at the user level
+  concat::fragment { 'swift_proxy':
+    target  => "/etc/swift/proxy-server.conf",
+    content => template('swift/proxy-server.conf.erb'),
+    order   => '00',
+    # require classes for each of the elements of the pipeline
+    # this is to ensure the user gets reasonable elements if he
+    # does not specify the backends for every specified element of
+    # the pipeline
+    before  => Class[$required_classes],
   }
 
   service { 'swift-proxy':
     name      => $::swift::params::proxy_service_name,
     ensure    => running,
-    provider  => $::swift::params::service_provider,
     enable    => true,
-    subscribe => File['/etc/swift/proxy-server.conf'],
+    provider  => $::swift::params::service_provider,
+    subscribe => Concat['/etc/swift/proxy-server.conf'],
   }
 }

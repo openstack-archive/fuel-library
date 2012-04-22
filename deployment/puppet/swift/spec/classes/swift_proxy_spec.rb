@@ -18,8 +18,8 @@ describe 'swift::proxy' do
     }
   end
 
-  let :fixture_dir do
-    File.join(File.dirname(__FILE__), '..', 'fixtures')
+  let :fragment_path do
+    "/var/lib/puppet/concat/_etc_swift_proxy-server.conf/fragments/00_swift_proxy"
   end
 
   describe 'with proper dependencies' do
@@ -48,7 +48,7 @@ describe 'swift::proxy' do
         {:ensure    => 'running',
          :provider  => 'upstart',
          :enable    => true,
-         :subscribe => 'File[/etc/swift/proxy-server.conf]'
+         :subscribe => 'Concat[/etc/swift/proxy-server.conf]'
         }
       )}
       it { should contain_file('/etc/swift/proxy-server.conf').with(
@@ -60,32 +60,29 @@ describe 'swift::proxy' do
         }
       )}
 
-      it 'should contain default config file' do
-        content = param_value(
-          subject,
-          'file', '/etc/swift/proxy-server.conf',
-          'content'
+      it 'should build the header file with all of the default contents' do
+        verify_contents(subject, fragment_path,
+          [
+            '[DEFAULT]',
+            'bind_port = 8080',
+            "workers = #{facts[:processorcount]}",
+            'user = swift',
+            '[pipeline:main]',
+            'pipeline = healthcheck cache tempauth proxy-server',
+            '[app:proxy-server]',
+            'use = egg:swift#proxy',
+            'allow_account_management = true',
+            'account_autocreate = true'
+          ]
         )
-        expected_lines =
-        [
-          '[DEFAULT]',
-          'bind_port = 8080',
-          "workers = #{facts[:processorcount]}",
-          'user = swift',
-          '[pipeline:main]',
-          'pipeline = healthcheck cache tempauth proxy-server',
-          '[app:proxy-server]',
-          'use = egg:swift#proxy',
-          'allow_account_management = true',
-          'account_autocreate = true',
-          '[filter:healthcheck]',
-          'use = egg:swift#healthcheck',
-          '[filter:cache]',
-          'use = egg:swift#memcache',
-          'memcache_servers = 127.0.0.1:11211'
-        ]
-        (content.split("\n") & expected_lines).should =~ expected_lines
       end
+      it { should contain_concat__fragment('swift_proxy').with_before(
+        [
+          'Class[Swift::Proxy::Healthcheck]',
+          'Class[Swift::Proxy::Cache]',
+          'Class[Swift::Proxy::Tempauth]'
+        ]
+      )}
 
       describe 'when more parameters are set' do
         let :params do
@@ -93,55 +90,30 @@ describe 'swift::proxy' do
            :proxy_local_net_ip => '10.0.0.2',
            :port => '80',
            :workers => 3,
-           :cache_servers => ['foo:1', 'bar:2'],
-           :allow_account_management => true
+           :pipeline  => ['swauth', 'proxy-server'],
+           :allow_account_management => false,
+           :account_autocreate => false
           }
         end
-        it 'should contain default config file' do
-          content = param_value(
-            subject,
-            'file', '/etc/swift/proxy-server.conf',
-            'content'
-          )
-          expected_lines =
+        it 'should build the header file with provided values' do
+          verify_contents(subject, fragment_path,
             [
+              '[DEFAULT]',
               'bind_port = 80',
               "workers = 3",
-              'allow_account_management = true',
-              'memcache_servers = foo:1,bar:2'
+              'user = swift',
+              '[pipeline:main]',
+              'pipeline = swauth proxy-server',
+              '[app:proxy-server]',
+              'use = egg:swift#proxy',
+              'allow_account_management = false',
+              'account_autocreate = false'
             ]
-          (content.split("\n") & expected_lines).should =~ expected_lines
-        end
-      end
-
-      describe 'when using tempauth' do
-
-        it { should_not contain_package('python-swauth') }
-        it 'should fail when setting account_autocreate to false' do
-          params[:auth_type] = 'tempauth'
-          params[:account_autocreate] = false
-          expect do
-            subject
-          end.should raise_error(Puppet::Error, /account_autocreate must be set to true when auth type is tempauth/)
-        end
-        it 'should contain tempauth configuration' do
-          content = param_value(
-            subject,
-            'file', '/etc/swift/proxy-server.conf',
-            'content'
           )
-          expected_lines =
-          [
-          'pipeline = healthcheck cache tempauth proxy-server',
-          '[filter:tempauth]',
-          'use = egg:swift#tempauth',
-          'user_admin_admin = admin .admin .reseller_admin',
-          'user_test_tester = testing .admin',
-          'user_test2_tester2 = testing2 .admin',
-          'user_test_tester3 = testing3'
-          ]
-          (content.split("\n") & expected_lines).should =~ expected_lines
         end
+        it { should contain_concat__fragment('swift_proxy').with_before(
+          'Class[Swift::Proxy::Swauth]'
+        )}
       end
 
       describe 'when supplying bad values for parameters' do
@@ -156,64 +128,5 @@ describe 'swift::proxy' do
       end
     end
 
-    describe 'when using swauth' do
-
-      let :params do
-        {:proxy_local_net_ip => '127.0.0.1',
-         :auth_type => 'swauth' }
-      end
-
-      describe 'with defaults' do
-
-        it { should contain_package('python-swauth').with(
-          {:ensure => 'present',
-           :before => 'Package[swift-proxy]'
-          }
-        )}
-        it 'should create a config file with default swauth config' do
-          content = param_value(
-            subject,
-            'file', '/etc/swift/proxy-server.conf',
-            'content'
-          )
-          expected_lines =
-          [
-            '[filter:swauth]',
-            'use = egg:swauth#swauth',
-            'default_swift_cluster = local#127.0.0.1',
-            'super_admin_key = swauthkey'
-          ]
-          (content.split("\n") & expected_lines).should =~ expected_lines
-
-        end
-      end
-
-      describe 'with parameter overrides' do
-
-        let :params do
-          {:proxy_local_net_ip => '127.0.0.1',
-           :auth_type => 'swauth',
-           :swauth_endpoint => '10.0.0.1',
-           :swauth_super_admin_key => 'key'
-          }
-        end
-
-        it 'should create a config file with default swauth config' do
-          content = param_value(
-            subject,
-            'file', '/etc/swift/proxy-server.conf',
-            'content'
-          )
-          expected_lines =
-          [
-            '[filter:swauth]',
-            'use = egg:swauth#swauth',
-            'default_swift_cluster = local#10.0.0.1',
-            'super_admin_key = key'
-          ]
-          (content.split("\n") & expected_lines).should =~ expected_lines
-        end
-      end
-    end
   end
 end

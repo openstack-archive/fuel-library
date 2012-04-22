@@ -1,0 +1,7 @@
+
+[filter:swauth]
+use = egg:swauth#swauth
+# this line is not in the install docs?
+default_swift_cluster = local#<%= swauth_endpoint %>
+super_admin_key = <%= swauth_super_admin_key %>
+
