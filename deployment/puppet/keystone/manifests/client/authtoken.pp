@@ -42,6 +42,9 @@ define keystone::client::authtoken(
   $auth_host           = '127.0.0.1',
   $auth_port           = '3557',
   $auth_protocol       = 'https'
+  # TODO implement these eventually
+  # $memcache_servers
+  # $token_cache_time
 ) {
 
   $auth_uri = "${auth_protocol}://${auth_host}:${auth_port}"
