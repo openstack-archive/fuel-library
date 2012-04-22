@@ -40,7 +40,7 @@ node keystone_mysql {
     log_debug    => true,
     catalog_type => 'sql',
   }
-  class { 'keystone::mysql':
+  class { 'keystone::db::mysql':
     password => 'keystone',
   }
   class { 'keystone::roles::admin': }
