@@ -64,6 +64,7 @@ class keystone(
   package { 'keystone':
     name   => $::keystone::params::package_name,
     ensure => $package_ensure,
+    notify => Exec['keystone-manage db_sync'],
   }
 
   group { 'keystone':
