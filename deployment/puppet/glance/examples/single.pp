@@ -49,7 +49,7 @@ class role_glance_sqlite {
     log_verbose       => 'True',
     log_debug         => 'True',
     auth_type         => 'keystone',
-    keystone_tenant   => 'service',
+    keystone_tenant   => 'services',
     keystone_user     => 'glance',
     keystone_password => 'glance_password',
   }
@@ -59,7 +59,7 @@ class role_glance_sqlite {
     log_verbose       => 'True',
     log_debug         => 'True',
     auth_type         => 'keystone',
-    keystone_tenant   => 'service',
+    keystone_tenant   => 'services',
     keystone_user     => 'glance',
     keystone_password => 'glance_password',
   }
@@ -72,7 +72,7 @@ class role_glance_mysql {
     log_verbose       => 'True',
     log_debug         => 'True',
     auth_type         => 'keystone',
-    keystone_tenant   => 'service',
+    keystone_tenant   => 'services',
     keystone_user     => 'glance',
     keystone_password => 'glance_password',
   }
@@ -91,7 +91,7 @@ class role_glance_mysql {
     log_verbose       => 'True',
     log_debug         => 'True',
     auth_type         => 'keystone',
-    keystone_tenant   => 'service',
+    keystone_tenant   => 'services',
     keystone_user     => 'glance',
     keystone_password => 'glance_password',
     sql_connection    => 'mysql://glance:glance@127.0.0.1/glance',
