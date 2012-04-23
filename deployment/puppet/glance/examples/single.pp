@@ -94,6 +94,7 @@ class role_glance_mysql {
     keystone_tenant   => 'service',
     keystone_user     => 'glance',
     keystone_password => 'glance_password',
+    sql_connection    => 'mysql://glance:glance@127.0.0.1/glance',
   }
 
 }
