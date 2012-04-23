@@ -40,7 +40,7 @@ node glance_keystone_mysql {
     log_debug    => true,
     catalog_type => 'sql',
   }->
-  class { 'keystone::mysql':
+  class { 'keystone::db::mysql':
     password => 'keystone',
   }->
   class { 'keystone::roles::admin': }
@@ -90,7 +90,7 @@ class role_glance_mysql {
   }
   class { 'glance::backend::file': }
 
-  class { 'glance::db':
+  class { 'glance::db::mysql':
     password => 'glance',
     dbname   => 'glance',
     user     => 'glance',

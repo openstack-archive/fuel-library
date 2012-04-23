@@ -1,5 +1,7 @@
-# db/allowed_hosts.pp
-define glance::db::host_access ($user, $password, $database)  {
+#
+# Used to grant access to the glance mysql DB
+#
+define glance::db::mysql::host_access ($user, $password, $database)  {
   database_user { "${user}@${name}":
     password_hash => mysql_password($password),
     provider => 'mysql',
