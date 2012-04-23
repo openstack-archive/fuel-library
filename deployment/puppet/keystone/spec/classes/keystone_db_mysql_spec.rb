@@ -33,12 +33,6 @@ describe 'keystone::db::mysql' do
       param_defaults.merge(p)
     end
 
-    it { should contain_file('/var/lib/keystone/keystone.db').with(
-      'ensure'    => 'absent',
-      'subscribe' => 'Package[keystone]',
-      'before'    => "Mysql::Db[#{param_values['dbname']}]"
-    )}
-
     it { should contain_mysql__db(param_values['dbname']).with(
       'user'     => param_values['user'],
       'password' => param_values['password'],

@@ -51,12 +51,19 @@ describe 'keystone' do
 
       it { should contain_class('concat::setup') }
 
-      it { should contain_package('keystone').with_ensure(param_hash['package_ensure']) }
+      it { should contain_package('keystone').with(
+        'ensure' => param_hash['package_ensure'],
+        'notify' => ['Exec[keystone-manage db_sync]']
+      ) }
 
-      it { should contain_group('keystone').with_ensure('present') }
+      it { should contain_group('keystone').with(
+          'ensure' => 'present',
+          'system' => 'true'
+      ) }
       it { should contain_user('keystone').with(
         'ensure' => 'present',
-        'gid'    => 'keystone'
+        'gid'    => 'keystone',
+        'system' => 'true'
       ) }
 
       it { should contain_file('/etc/keystone').with(
@@ -71,7 +78,7 @@ describe 'keystone' do
         'owner'   => 'keystone',
         'group'   => 'keystone',
         'require' => 'Package[keystone]',
-        'notify'  => 'Service[keystone]'
+        'notify'  => ['Service[keystone]', 'Exec[keystone-manage db_sync]']
       )}
 
       it { should contain_service('keystone').with(
@@ -80,6 +87,8 @@ describe 'keystone' do
         'hasstatus'  => 'true',
         'hasrestart' => 'true'
       ) }
+
+      it { should contain_exec('keystone-manage db_sync').with_refreshonly('true') }
 
       it 'should correctly configure catalog based on catalog_type'
 
