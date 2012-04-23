@@ -53,7 +53,7 @@ describe 'keystone' do
 
       it { should contain_package('keystone').with(
         'ensure' => param_hash['package_ensure'],
-        'notify' => ['Exec[keystone-manage db_sync]']
+        'notify' => 'Exec[keystone-manage db_sync]'
       ) }
 
       it { should contain_group('keystone').with(
@@ -85,7 +85,8 @@ describe 'keystone' do
         'ensure'     => 'running',
         'enable'     => 'true',
         'hasstatus'  => 'true',
-        'hasrestart' => 'true'
+        'hasrestart' => 'true',
+        'subscribe'  => 'Exec[keystone-manage db_sync]'
       ) }
 
       it { should contain_exec('keystone-manage db_sync').with_refreshonly('true') }

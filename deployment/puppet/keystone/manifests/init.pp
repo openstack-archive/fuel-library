@@ -137,6 +137,7 @@ class keystone(
     hasstatus  => true,
     hasrestart => true,
     provider   => $::keystone::params::service_provider,
+    subscribe  => Exec['keystone-manage db_sync'],
   }
 
   # this probably needs to happen more often than just when the db is
