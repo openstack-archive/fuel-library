@@ -1,6 +1,8 @@
 class nova::api(
   $enabled=false
-) inherits nova {
+) {
+
+  include nova::params
 
   # TODO what exactly is this for?
   # This resource is adding a great deal of comlexity to the overall

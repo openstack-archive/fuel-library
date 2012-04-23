@@ -1,6 +1,8 @@
 class nova::scheduler(
   $enabled = false
-) inherits nova {
+) {
+
+  include nova::params
 
   nova::generic_service { 'scheduler':
     enabled      => $enabled,

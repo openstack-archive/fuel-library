@@ -1,9 +1,11 @@
 class nova::compute::libvirt (
   $libvirt_type = 'kvm',
   $vncserver_listen = '127.0.0.1'
-) inherits nova::compute{
+) {
 
   include nova::params
+
+  Service['libvirt'] -> Service['nova-compute'] {
 
   if($::nova::params::compute_package_name) {
     package { "nova-compute-${libvirt_type}":
@@ -22,10 +24,6 @@ class nova::compute::libvirt (
     ensure   => running,
     provider => $::nova::params::special_service_provider,
     require  => Package['libvirt'],
-  }
-
-  Service['nova-compute'] {
-    require +> Service['libvirt'],
   }
 
   nova_config { 'libvirt_type': value => $libvirt_type }
