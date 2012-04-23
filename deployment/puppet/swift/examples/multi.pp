@@ -32,22 +32,6 @@ $swift_local_net_ip = $ipaddress_eth0
 
 Exec { logoutput => true }
 
-
-
-#### update apt caches ########
-
-stage { 'ppa':
-  before => Stage['main']
-}
-class { 'apt':
-  stage => 'ppa',
-}
-class { 'keystone::repo::trunk':
-  stage => 'ppa',
-}
-
-##### end apt cache updates ####
-
 #
 # specifies that nodes with the cert names of
 # swift_storage_1,2, and 3 will be assigned the
@@ -132,6 +116,7 @@ class role_swift_ringbuilder inherits role_swift {
     local_net_ip => $swift_local_net_ip,
   }
 
+  # exports rsync gets that can be used to sync the ring files
   @@swift::ringsync { ['account', 'object', 'container']:
     ring_server => $swift_local_net_ip
   }
@@ -172,7 +157,6 @@ class role_swift_storage inherits role_swift {
     storage_local_net_ip => $swift_local_net_ip,
   }
 
-
   # TODO I need to wrap these in a define so that
   # mcollective can collect that define
 
@@ -198,6 +182,7 @@ class role_swift_storage inherits role_swift {
     weight      => 1,
   }
 
+  # sync ring databases if they have been exported
   Swift::Ringsync<<||>>
 
 }
