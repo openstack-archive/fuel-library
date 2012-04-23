@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe 'keystone::mysql' do
+describe 'keystone::db::mysql' do
 
   let :facts do
     { :osfamily => 'Debian' }
