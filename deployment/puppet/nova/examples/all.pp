@@ -183,11 +183,14 @@ class { 'nova::cert':
 }
 
 class { 'nova::compute':
-  enabled => true,
+  enabled                       => true,
+  vnc_enabled                   => true,
+  vncserver_proxyclient_address => '127.0.0.1',
 }
 
 class { 'nova::compute::libvirt':
-  libvirt_type => 'qemu',
+  libvirt_type     => 'qemu',
+  vncserver_listen => '127.0.0.1',
 }
 
 nova::network::bridge { 'br100':

@@ -1,5 +1,6 @@
 class nova::compute::libvirt (
-  $libvirt_type = 'kvm'
+  $libvirt_type = 'kvm',
+  $vncserver_listen = '127.0.0.1'
 ) inherits nova::compute{
 
   include nova::params
@@ -29,4 +30,5 @@ class nova::compute::libvirt (
 
   nova_config { 'libvirt_type': value => $libvirt_type }
   nova_config { 'connection_type': value => 'libvirt' }
+  nova_config { 'vncserver_listen': value => $vncserver_listen }
 }
