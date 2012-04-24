@@ -35,6 +35,53 @@ describe 'nova::api' do
       'enable'  => true
     )}
     end
+    describe 'with defaults' do
+      it { should contain_nova_config('use_deprecated_auth').with_value('false') }
+      it 'should use default params for api-paste.init' do
+        verify_contents(subject, '/etc/nova/api-paste.ini',
+          [
+            '[filter:authtoken]',
+            'paste.filter_factory = keystone.middleware.auth_token:filter_factory',
+            'auth_host = 127.0.0.1',
+            'auth_port = 35357',
+            'auth_protocol = http',
+            'auth_uri = http://127.0.0.1:35357/v2.0',
+            'admin_tenant_name = services',
+            'admin_user = nova',
+            'admin_password = passw0rd'
+          ]
+        )
+      end
+    end
+    describe 'with params' do
+      let :params do
+        {
+          :auth_strategy     => 'foo',
+          :auth_host         => '10.0.0.1',
+          :auth_port         => 1234,
+          :auth_protocol     => 'https',
+          :admin_tenant_name => 'service2',
+          :admin_user        => 'nova2',
+          :admin_password    => 'passw0rd2'
+        }
+      end
+      it { should contain_nova_config('use_deprecated_auth').with_value('true') }
+      it 'should use default params for api-paste.init' do
+        verify_contents(subject, '/etc/nova/api-paste.ini',
+          [
+            '[filter:authtoken]',
+            'paste.filter_factory = keystone.middleware.auth_token:filter_factory',
+            'auth_host = 10.0.0.1',
+            'auth_port = 1234',
+            'auth_protocol = https',
+            'auth_uri = https://10.0.0.1:1234/v2.0',
+            'admin_tenant_name = service2',
+            'admin_user = nova2',
+            'admin_password = passw0rd2'
+          ]
+        )
+      end
+    end
   end
   describe 'on rhel' do
     let :facts do
