@@ -52,7 +52,7 @@ class keystone::db::mysql(
   }
 
   if $allowed_hosts {
-    keystone::mysql::host_access { $allowed_hosts:
+    keystone::db::mysql::host_access { $allowed_hosts:
       user     => $user,
       password => $password,
       database => $dbname,
