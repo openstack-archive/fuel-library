@@ -64,6 +64,7 @@ class keystone(
   package { 'keystone':
     name   => $::keystone::params::package_name,
     ensure => $package_ensure,
+    notify => Exec['keystone-manage db_sync'],
   }
 
   group { 'keystone':
@@ -92,7 +93,7 @@ class keystone(
     group   => 'keystone',
     mode    => '0600',
     require => Package['keystone'],
-    notify  => Service['keystone'],
+    notify  => [Service['keystone'], Exec['keystone-manage db_sync']],
   }
 
   # config sections
@@ -136,6 +137,13 @@ class keystone(
     hasstatus  => true,
     hasrestart => true,
     provider   => $::keystone::params::service_provider,
+    subscribe  => Exec['keystone-manage db_sync'],
   }
 
+  # this probably needs to happen more often than just when the db is
+  # created
+  exec { 'keystone-manage db_sync':
+    path        => '/usr/bin',
+    refreshonly => true,
+  }
 }
