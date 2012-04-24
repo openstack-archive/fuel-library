@@ -15,7 +15,9 @@
 # Copyright 2012 Puppetlabs Inc, unless otherwise noted.
 #
 class keystone::ldap {
+
   keystone::config { 'ldap':
     order => '01',
   }
+
 }
