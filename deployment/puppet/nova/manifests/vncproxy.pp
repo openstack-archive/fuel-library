@@ -9,7 +9,7 @@ class nova::vncproxy() {
   }
   file { '/etc/init.d/nova-novncproxy':
     ensure  =>  present,
-    source  =>  'puppet:///modules/openstack/nova/nova-novncproxy.init',
+    source  =>  'puppet:///modules/nova/nova-novncproxy.init',
     mode    =>  0750,
   }
   # this temporary upstart script needs to be removed
