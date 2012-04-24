@@ -1,4 +1,5 @@
 require 'spec_helper'
+
 describe 'swift::storage::generic' do
 
   let :title do
@@ -17,6 +18,7 @@ describe 'swift::storage::generic' do
      class { 'swift': swift_hash_suffix => 'foo' }
      class { 'swift::storage': storage_local_net_ip => '10.0.0.1' }"
   end
+
   let :default_params do
     {:package_ensure => 'present',
      :service_provider => 'upstart'}

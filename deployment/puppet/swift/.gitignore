@@ -4,3 +4,4 @@ spec/fixtures/modules/rsync
 spec/fixtures/modules/ssh
 spec/fixtures/modules/stdlib
 spec/fixtures/modules/xinetd
+spec/fixtures/modules/*

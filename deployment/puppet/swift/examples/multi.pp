@@ -32,22 +32,6 @@ $swift_local_net_ip = $ipaddress_eth0
 
 Exec { logoutput => true }
 
-
-
-#### update apt caches ########
-
-stage { 'ppa':
-  before => Stage['main']
-}
-class { 'apt':
-  stage => 'ppa',
-}
-class { 'keystone::repo::trunk':
-  stage => 'ppa',
-}
-
-##### end apt cache updates ####
-
 #
 # specifies that nodes with the cert names of
 # swift_storage_1,2, and 3 will be assigned the
@@ -88,6 +72,7 @@ node 'swift_proxy' {
   class { 'role_swift_proxy':
     require => Class['role_swift_ringbuilder'],
   }
+
 
 }
 
@@ -131,6 +116,7 @@ class role_swift_ringbuilder inherits role_swift {
     local_net_ip => $swift_local_net_ip,
   }
 
+  # exports rsync gets that can be used to sync the ring files
   @@swift::ringsync { ['account', 'object', 'container']:
     ring_server => $swift_local_net_ip
   }
@@ -149,9 +135,12 @@ class role_swift_proxy inherits role_swift {
   # TODO should I enable swath in the default config?
   class { 'swift::proxy':
     proxy_local_net_ip => $swift_local_net_ip,
+    pipeline           => ['healthcheck', 'cache', 'tempauth', 'proxy-server'],
     account_autocreate => true,
     require            => Class['swift::ringbuilder'],
   }
+  class { ['swift::proxy::healthcheck', 'swift::proxy::cache', 'swift::proxy::tempauth']: }
+
 }
 
 class role_swift_storage inherits role_swift {
@@ -167,7 +156,6 @@ class role_swift_storage inherits role_swift {
   class { 'swift::storage::all':
     storage_local_net_ip => $swift_local_net_ip,
   }
-
 
   # TODO I need to wrap these in a define so that
   # mcollective can collect that define
@@ -194,6 +182,7 @@ class role_swift_storage inherits role_swift {
     weight      => 1,
   }
 
+  # sync ring databases if they have been exported
   Swift::Ringsync<<||>>
 
 }

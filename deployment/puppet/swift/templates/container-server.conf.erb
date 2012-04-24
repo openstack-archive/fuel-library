@@ -2,19 +2,19 @@
 devices = <%= devices %>
 bind_ip = <%= storage_local_net_ip %>
 bind_port = <%= bind_port %>
-mount_check = false
-user = swift
+mount_check = <%= mount_check %>
+user = <%= user %>
 log_facility = LOG_LOCAL2
-workers = 2
+workers = <%= workers %>
+concurrency = <%= concurrency %>
 
 [pipeline:main]
-pipeline = container-server
+pipeline = <%= pipeline.to_a.join(' ') %>
 
 [app:container-server]
 use = egg:swift#container
 
 [container-replicator]
-vm_test_mode = yes
 
 [container-updater]
 
