@@ -19,13 +19,13 @@ class nova::db::mysql(
     user         => $user,
     password     => $password,
     host         => $host,
-    charset      => 'latin1',
+    charset      => 'utf-8',
     # I may want to inject some sql
     require      => Class['mysql::server'],
   }
 
   if $allowed_hosts {
-     nova::db::mysql::host_access { $allowed_hosts:
+    nova::db::mysql::host_access { $allowed_hosts:
       user      => $user,
       password  => $password,
       database  => $dbname,
