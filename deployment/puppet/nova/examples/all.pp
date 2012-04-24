@@ -182,6 +182,16 @@ class { 'nova::cert':
   enabled => true
 }
 
+class { 'nova::consoleauth':
+  enabled => true
+}
+
+class { 'nova::vncproxy':
+  novncproxy_base_url => "http://${ipaddress_eth0}:6080/vnc_auto.htm",
+}
+
+
+
 class { 'nova::compute':
   enabled                       => true,
   vnc_enabled                   => true,

@@ -27,7 +27,6 @@ class nova(
   $periodic_interval = '60',
   $report_interval = '10',
   $root_helper = $::nova::params::root_helper,
-  $novncproxy_base_url = 'http://127.0.0.1:6080/vnc_auto.htm'
 ) inherits nova::params {
 
   # all nova_config resources should be applied
@@ -156,8 +155,6 @@ class nova(
     'network_manager': value => $network_manager;
     'multi_host': value => $multi_host_networking;
     'root_helper': value => $root_helper;
-    # vnc config
-    'novncproxy_base_url': value => $novncproxy_base_url;
   }
 
   exec { 'post-nova_config':
