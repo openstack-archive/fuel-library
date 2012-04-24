@@ -187,10 +187,8 @@ class { 'nova::consoleauth':
 }
 
 class { 'nova::vncproxy':
-  novncproxy_base_url => "http://${ipaddress_eth0}:6080/vnc_auto.htm",
+  host => $ipaddress_eth0,
 }
-
-
 
 class { 'nova::compute':
   enabled                       => true,

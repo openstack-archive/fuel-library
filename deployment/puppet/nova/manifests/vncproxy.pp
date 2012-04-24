@@ -1,6 +1,11 @@
 class nova::vncproxy(
-  $novncproxy_base_url = 'http://127.0.0.1:6080/vnc_auto.htm'
+  $host      = 127.0.0.1,
+  $protocol  = 'http',
+  $port      = '6080',
+  $path      = '/vnc_auto.html'
 ) {
+
+  $novncproxy_base_url = "${protocol}://${host}:${port}${path}"
 
   # TODO make this work on Fedora
 
