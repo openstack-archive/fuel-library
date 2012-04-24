@@ -1,5 +1,5 @@
 class nova::vncproxy(
-  $host      = 127.0.0.1,
+  $host      = '127.0.0.1',
   $protocol  = 'http',
   $port      = '6080',
   $path      = '/vnc_auto.html'
