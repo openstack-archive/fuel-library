@@ -1,8 +1,14 @@
-class nova::vncproxy() {
+class nova::vncproxy(
+  $novncproxy_base_url = 'http://127.0.0.1:6080/vnc_auto.htm'
+) {
 
   # TODO make this work on Fedora
 
   # See http://nova.openstack.org/runnova/vncconsole.html for more details.
+
+  require git
+
+  nova_config { 'novncproxy_base_url': value => $novncproxy_base_url }
 
   package{ "noVNC":
     ensure  =>  purged,
@@ -37,10 +43,10 @@ exec su -s /bin/bash -c "exec /var/lib/nova/noVNC/utils/nova-novncproxy --flagfi
     provider => git,
     source   => 'https://github.com/cloudbuilders/noVNC.git',
     revision => 'HEAD',
-    require => Package['git','nova-api'],
+    require => Package['nova-api'],
   }
 
-  service { 'novncproxy':
+  service { 'nova-novncproxy':
     provider => upstart,
     require  => Vcsrepo['/var/lib/nova/noVNC']
   }
