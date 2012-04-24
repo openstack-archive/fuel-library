@@ -25,6 +25,12 @@ describe provider_class do
     record[:value].should == 'bar or baz'
     record[:record_type].should == :parsed
   end
+  it 'should be able to parse values with equal signs' do
+    record = @provider.class.parse('--foo = bar=baz').first
+    record[:name].should == 'foo'
+    record[:value].should == 'bar=baz'
+    record[:record_type].should == :parsed
+  end
   it 'should be able to create a valid line from a resource' do
     provider_class.to_line({:name => 'foo', :value => 'bar'}).should == '--foo=bar'
   end
