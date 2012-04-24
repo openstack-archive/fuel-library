@@ -1,4 +1,7 @@
-class nova::db(
+#
+# Class that configures mysql for nova
+#
+class nova::db::mysql(
   $password,
   $dbname = 'nova',
   $user = 'nova',
@@ -22,12 +25,12 @@ class nova::db(
   }
 
   if $allowed_hosts {
-     nova::db::host_access { $allowed_hosts:
+     nova::db::mysql::host_access { $allowed_hosts:
       user      => $user,
       password  => $password,
       database  => $dbname,
     }
   } else {
-    Nova::Db::Host_access<<| tag == $cluster_id |>>
+    Nova::Db::Mysql::Host_access<<| tag == $cluster_id |>>
   }
 }

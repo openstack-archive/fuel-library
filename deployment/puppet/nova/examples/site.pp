@@ -48,7 +48,7 @@ node db {
                    }
   }
   class { 'mysql::ruby': }
-  class { 'nova::db':
+  class { 'nova::db::mysql':
     password      => $db_password,
     dbname        => $db_name,
     user          => $db_username,

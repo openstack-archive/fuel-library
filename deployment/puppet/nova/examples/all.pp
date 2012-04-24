@@ -60,7 +60,7 @@ class { 'mysql::server':
 ####### KEYSTONE ###########
 
 # set up keystone database
-class { 'keystone::mysql':
+class { 'keystone::db::mysql':
   password => $keystone_db_password,
 }
 # set up the keystone config for mysql
@@ -91,7 +91,7 @@ class { 'glance::keystone::auth':
   password => $glance_user_password,
 }
 
-class { 'glance::db':
+class { 'glance::db::mysql':
   host     => '127.0.0.1',
   password => $glance_db_password,
 }
@@ -134,7 +134,7 @@ class { 'nova::rabbitmq':
   password => $rabbit_password,
 }
 
-class { 'nova::db':
+class { 'nova::db::mysql':
   password => $nova_db_password,
   host     => 'localhost',
 }
