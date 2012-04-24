@@ -9,6 +9,7 @@ class nova::params {
       $cert_package_name        = false
       $common_package_name      = 'openstack-nova'
       $compute_package_name     = false
+      $consoleauth_package_name = false
       $doc_package_name         = 'openstack-nova-doc'
       $network_package_name     = false
       $objectstore_package_name = false
@@ -20,6 +21,7 @@ class nova::params {
       $api_service_name         = 'openstack-nova-api'
       $cert_service_name        = 'openstack-nova-cert'
       $compute_service_name     = 'openstack-nova-compute'
+      $consoleauth_service_name = 'openstack-nova-consoleauth'
       $network_service_name     = 'openstack-nova-network'
       $objectstore_service_name = 'openstack-nova-objectstore'
       $scheduler_service_name   = 'openstack-nova-scheduler'
@@ -38,6 +40,7 @@ class nova::params {
       $cert_package_name        = 'nova-cert'
       $common_package_name      = 'nova-common'
       $compute_package_name     = 'nova-compute'
+      $consoleauth_package_name = 'nova-consoleauth'
       $doc_package_name         = 'nova-doc'
       $network_package_name     = 'nova-network'
       $objectstore_package_name = 'nova-objectstore'
@@ -49,6 +52,7 @@ class nova::params {
       $api_service_name         = 'nova-api'
       $cert_service_name        = 'nova-cert'
       $compute_service_name     = 'nova-compute'
+      $consoleauth_service_name = 'nova-consoleauth'
       $network_service_name     = 'nova-network'
       $objectstore_service_name = 'nova-objectstore'
       $scheduler_service_name   = 'nova-scheduler'

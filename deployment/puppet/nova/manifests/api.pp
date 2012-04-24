@@ -1,6 +1,17 @@
 class nova::api(
-  $enabled=false
-) inherits nova {
+  $enabled           = false,
+  $auth_strategy     = 'keystone',
+  $auth_host         = '127.0.0.1',
+  $auth_port         = 35357,
+  $auth_protocol     = 'http',
+  $admin_tenant_name = 'services',
+  $admin_user        = 'nova',
+  $admin_password    = 'passw0rd'
+) {
+
+  include nova::params
+
+  $auth_uri = "${auth_protocol}://${auth_host}:${auth_port}/v2.0"
 
   # TODO what exactly is this for?
   # This resource is adding a great deal of comlexity to the overall
@@ -21,7 +32,16 @@ class nova::api(
     service_name => $::nova::params::api_service_name,
   }
 
-  nova_config { 'api_paste_config': value => '/etc/nova/api-paste.ini' }
+  nova_config {
+    'api_paste_config': value => '/etc/nova/api-paste.ini';
+    'auth_strategy': value => $auth_strategy;
+  }
+
+  if $auth_strategy == 'keystone' {
+    nova_config { 'use_deprecated_auth': value => false }
+  } else {
+    nova_config { 'use_deprecated_auth': value => true }
+  }
 
   file { '/etc/nova/api-paste.ini':
     content => template('nova/api-paste.ini.erb'),

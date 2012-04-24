@@ -1,6 +1,8 @@
 class nova::cert(
   $enabled=false
-) inherits nova{
+) {
+
+  include nova::params
 
   nova::generic_service { 'cert':
     enabled      => $enabled,

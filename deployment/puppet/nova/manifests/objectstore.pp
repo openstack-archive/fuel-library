@@ -1,6 +1,8 @@
 class nova::objectstore(
   $enabled=false
-) inherits nova {
+) {
+
+  include nova::params
 
   nova::generic_service { 'objectstore':
     enabled      => $enabled,

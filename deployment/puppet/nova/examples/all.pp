@@ -60,7 +60,7 @@ class { 'mysql::server':
 ####### KEYSTONE ###########
 
 # set up keystone database
-class { 'keystone::mysql':
+class { 'keystone::db::mysql':
   password => $keystone_db_password,
 }
 # set up the keystone config for mysql
@@ -91,7 +91,7 @@ class { 'glance::keystone::auth':
   password => $glance_user_password,
 }
 
-class { 'glance::db':
+class { 'glance::db::mysql':
   host     => '127.0.0.1',
   password => $glance_db_password,
 }
@@ -134,7 +134,7 @@ class { 'nova::rabbitmq':
   password => $rabbit_password,
 }
 
-class { 'nova::db':
+class { 'nova::db::mysql':
   password => $nova_db_password,
   host     => 'localhost',
 }
@@ -146,11 +146,11 @@ class { 'nova':
   image_service      => 'nova.image.glance.GlanceImageService',
   glance_api_servers => '127.0.0.1:9292',
   network_manager    => 'nova.network.manager.FlatDHCPManager',
-  admin_password     => $nova_user_password,
 }
 
 class { 'nova::api':
-  enabled => true
+  enabled        => true,
+  admin_password => $nova_user_password,
 }
 
 class { 'nova::scheduler':
@@ -183,11 +183,14 @@ class { 'nova::cert':
 }
 
 class { 'nova::compute':
-  enabled => true,
+  enabled                       => true,
+  vnc_enabled                   => true,
+  vncserver_proxyclient_address => '127.0.0.1',
 }
 
 class { 'nova::compute::libvirt':
-  libvirt_type => 'qemu',
+  libvirt_type     => 'qemu',
+  vncserver_listen => '127.0.0.1',
 }
 
 nova::network::bridge { 'br100':

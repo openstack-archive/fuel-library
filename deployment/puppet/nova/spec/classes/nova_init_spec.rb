@@ -76,7 +76,6 @@ describe 'nova' do
     it { should_not contain_nova_config('dhcpbridge_flagfile').with_value('/etc/nova/nova.conf') }
     it { should contain_nova_config('flat_network_bridge').with_value('br100') }
 
-    it { should contain_nova_config('use_deprecated_auth').with_value('false') }
     it { should contain_nova_config('root_helper').with_value('sudo nova-rootwrap') }
 
     describe 'with parameters supplied' do
@@ -121,8 +120,6 @@ describe 'nova' do
       it { should contain_nova_config('network_manager').with_value('nova.network.manager.FlatDHCPManager') }
       it { should contain_nova_config('dhcpbridge').with_value('/usr/bin/nova-dhcpbridge') }
       it { should contain_nova_config('dhcpbridge_flagfile').with_value('/etc/nova/nova.conf') }
-
-      it { should contain_nova_config('use_deprecated_auth').with_value(false) }
 
     end
 

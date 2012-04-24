@@ -27,16 +27,6 @@ class nova(
   $periodic_interval = '60',
   $report_interval = '10',
   $root_helper = $::nova::params::root_helper,
-  $auth_strategy = "keystone",
-  $auth_host = '127.0.0.1',
-  $auth_port = 35357,
-  $auth_protocol = 'http',
-  $auth_uri = 'http://127.0.0.1:5000/v2.0',
-  $admin_tenant_name = 'services',
-  $admin_user = 'nova',
-  $admin_password = 'passw0rd',
-  $vncserver_listen = '127.0.0.1',
-  $vncserver_proxyclient_address = '127.0.0.1',
   $novncproxy_base_url = 'http://127.0.0.1:6080/vnc_auto.htm'
 ) inherits nova::params {
 
@@ -166,22 +156,13 @@ class nova(
     'network_manager': value => $network_manager;
     'multi_host': value => $multi_host_networking;
     'root_helper': value => $root_helper;
-    'auth_strategy': value => $auth_strategy;
-    'vncserver_listen': value => $vncserver_listen;
-    'vncserver_proxyclient_address': value => $vncserver_proxyclient_address;
+    # vnc config
     'novncproxy_base_url': value => $novncproxy_base_url;
   }
-
 
   exec { 'post-nova_config':
     command => '/bin/echo "Nova config has changed"',
     refreshonly => true,
-  }
-
-  if $auth_strategy == 'keystone' {
-    nova_config { 'use_deprecated_auth': value => false }
-  } else {
-    nova_config { 'use_deprecated_auth': value => true }
   }
 
   if $network_manager == 'nova.network.manager.FlatManager' {

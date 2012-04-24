@@ -80,7 +80,7 @@ node /controller/ {
   ####### KEYSTONE ###########
 
   # set up keystone database
-  class { 'keystone::mysql':
+  class { 'keystone::db::mysql':
     password => $keystone_db_password,
   }
   # set up the keystone config for mysql
@@ -111,7 +111,7 @@ node /controller/ {
     password => $glance_user_password,
   }
 
-  class { 'glance::db':
+  class { 'glance::db::mysql':
     host     => '127.0.0.1',
     password => $glance_db_password,
   }
@@ -154,7 +154,7 @@ node /controller/ {
     password => $rabbit_password,
   }
 
-  class { 'nova::db':
+  class { 'nova::db::mysql':
     password      => $nova_db_password,
     host          => 'localhost',
     allowed_hosts => ['%', $controller_host],
@@ -169,19 +169,19 @@ node /controller/ {
     image_service      => 'nova.image.glance.GlanceImageService',
     glance_api_servers => false,
     network_manager    => 'nova.network.manager.FlatDHCPManager',
-    admin_password     => $nova_user_password,
   }
 
   class { 'nova::api':
-    enabled => true
+    enabled        => true,
+    admin_password => $nova_user_password,
   }
 
   class { 'nova::scheduler':
-    enabled => true
+    enabled => true,
   }
 
   class { 'nova::network':
-    enabled => true
+    enabled => true,
   }
 
   nova::manage::network { "nova-vm-net":

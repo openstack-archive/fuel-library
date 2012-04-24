@@ -75,7 +75,7 @@ class nova::all(
 
   class { "nova::objectstore": enabled => true }
   class { "nova::scheduler": enabled => true }
-  class { 'nova::db':
+  class { 'nova::db::mysql':
     # pass in db config as params
     password => $db_password,
     dbname   => $db_name,

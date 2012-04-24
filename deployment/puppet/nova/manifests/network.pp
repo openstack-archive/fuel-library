@@ -1,6 +1,8 @@
 class nova::network(
   $enabled=false
-) inherits nova {
+) {
+
+  include nova::params
 
   nova::generic_service { 'network':
     enabled      => $enabled,

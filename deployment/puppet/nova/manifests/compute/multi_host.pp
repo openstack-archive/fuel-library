@@ -1,6 +1,8 @@
 class nova::compute::multi_host(
   $enabled = false
-) inherits nova::compute {
+) {
+
+  include nova::params
 
   nova_config { 'enabled_apis': value => 'metadata' }
 

@@ -1,6 +1,6 @@
 class nova::volume(
   $enabled=false
-) inherits nova {
+) {
 
   include 'nova::params'
 
