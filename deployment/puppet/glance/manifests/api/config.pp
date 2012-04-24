@@ -11,10 +11,12 @@ define glance::api::config(
   $content   = template("glance/api/${name}.erb"),
   $order     = undef
 ) {
+
   concat::fragment { "glance-api-${name}":
     target  => '/etc/glance/glance-api.conf',
     content => $content,
     order   => $order,
   }
+
 }
 

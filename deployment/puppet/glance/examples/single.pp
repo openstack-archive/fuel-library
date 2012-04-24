@@ -3,18 +3,6 @@
 # to ensure that we use the latest precise packages
 Exec { logoutput => 'on_failure' }
 
-if($::osfamily == 'Debian') {
-  stage { 'glance_ppa':
-    before => Stage['main'],
-  }
-  class { 'apt':
-    stage => 'glance_ppa',
-  }
-  class { 'keystone::repo::trunk':
-    stage => 'glance_ppa',
-  }
-}
-
 node glance {
 
   class { 'role_glance_sqlite': }
@@ -27,22 +15,22 @@ node glance_keystone {
     log_verbose  => true,
     log_debug    => true,
     catalog_type => 'sql',
-  }->
+  }
   class { 'keystone::roles::admin': }
   class { 'role_glance_sqlite': }
   class { 'glance::keystone::auth': }
 }
 
 node glance_keystone_mysql {
-  class { 'mysql::server': }->
+  class { 'mysql::server': }
   class { 'keystone':
     log_verbose  => true,
     log_debug    => true,
     catalog_type => 'sql',
-  }->
-  class { 'keystone::mysql':
+  }
+  class { 'keystone::db::mysql':
     password => 'keystone',
-  }->
+  }
   class { 'keystone::roles::admin': }
   class { 'role_glance_mysql': }
   class { 'glance::keystone::auth': }
@@ -61,7 +49,7 @@ class role_glance_sqlite {
     log_verbose       => 'True',
     log_debug         => 'True',
     auth_type         => 'keystone',
-    keystone_tenant   => 'service',
+    keystone_tenant   => 'services',
     keystone_user     => 'glance',
     keystone_password => 'glance_password',
   }
@@ -71,7 +59,7 @@ class role_glance_sqlite {
     log_verbose       => 'True',
     log_debug         => 'True',
     auth_type         => 'keystone',
-    keystone_tenant   => 'service',
+    keystone_tenant   => 'services',
     keystone_user     => 'glance',
     keystone_password => 'glance_password',
   }
@@ -84,13 +72,13 @@ class role_glance_mysql {
     log_verbose       => 'True',
     log_debug         => 'True',
     auth_type         => 'keystone',
-    keystone_tenant   => 'service',
+    keystone_tenant   => 'services',
     keystone_user     => 'glance',
     keystone_password => 'glance_password',
   }
   class { 'glance::backend::file': }
 
-  class { 'glance::db':
+  class { 'glance::db::mysql':
     password => 'glance',
     dbname   => 'glance',
     user     => 'glance',
@@ -103,9 +91,10 @@ class role_glance_mysql {
     log_verbose       => 'True',
     log_debug         => 'True',
     auth_type         => 'keystone',
-    keystone_tenant   => 'service',
+    keystone_tenant   => 'services',
     keystone_user     => 'glance',
     keystone_password => 'glance_password',
+    sql_connection    => 'mysql://glance:glance@127.0.0.1/glance',
   }
 
 }

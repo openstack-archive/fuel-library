@@ -2,7 +2,7 @@
 # I should change this to mysql
 # for consistency
 #
-class glance::db(
+class glance::db::mysql(
   $password,
   $dbname = 'glance',
   $user = 'glance',
@@ -11,7 +11,7 @@ class glance::db(
   $cluster_id = 'localzone'
 ) {
 
-  Class['glance::db'] -> Exec<| title == 'glance-manage db_sync' |>
+  Class['glance::db::mysql'] -> Exec<| title == 'glance-manage db_sync' |>
   Database[$dbname] ~> Exec<| title == 'glance-manage db_sync' |>
 
   require 'mysql::python'
@@ -27,7 +27,7 @@ class glance::db(
 
   if $allowed_hosts {
      # TODO this class should be in the mysql namespace
-     glance::db::host_access { $allowed_hosts:
+     glance::db::mysql::host_access { $allowed_hosts:
       user      => $user,
       password  => $password,
       database  => $dbname,
