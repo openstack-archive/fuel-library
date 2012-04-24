@@ -146,11 +146,11 @@ class { 'nova':
   image_service      => 'nova.image.glance.GlanceImageService',
   glance_api_servers => '127.0.0.1:9292',
   network_manager    => 'nova.network.manager.FlatDHCPManager',
-  admin_password     => $nova_user_password,
 }
 
 class { 'nova::api':
-  enabled => true
+  enabled        => true,
+  admin_password => $nova_user_password,
 }
 
 class { 'nova::scheduler':

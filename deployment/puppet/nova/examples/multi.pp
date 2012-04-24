@@ -169,19 +169,19 @@ node /controller/ {
     image_service      => 'nova.image.glance.GlanceImageService',
     glance_api_servers => false,
     network_manager    => 'nova.network.manager.FlatDHCPManager',
-    admin_password     => $nova_user_password,
   }
 
   class { 'nova::api':
-    enabled => true
+    enabled        => true,
+    admin_password => $nova_user_password,
   }
 
   class { 'nova::scheduler':
-    enabled => true
+    enabled => true,
   }
 
   class { 'nova::network':
-    enabled => true
+    enabled => true,
   }
 
   nova::manage::network { "nova-vm-net":

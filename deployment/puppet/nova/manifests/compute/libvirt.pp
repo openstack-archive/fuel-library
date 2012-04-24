@@ -5,7 +5,7 @@ class nova::compute::libvirt (
 
   include nova::params
 
-  Service['libvirt'] -> Service['nova-compute'] {
+  Service['libvirt'] -> Service['nova-compute']
 
   if($::nova::params::compute_package_name) {
     package { "nova-compute-${libvirt_type}":
