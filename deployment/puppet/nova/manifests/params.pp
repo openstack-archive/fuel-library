@@ -42,7 +42,6 @@ class nova::params {
       $cert_package_name        = 'nova-cert'
       $common_package_name      = 'nova-common'
       $compute_package_name     = 'nova-compute'
-      $consoleauth_package_name = 'nova-consoleauth'
       $doc_package_name         = 'nova-doc'
       $libvirt_package_name     = 'libvirt-bin'
       $network_package_name     = 'nova-network'
@@ -63,12 +62,14 @@ class nova::params {
       $volume_service_name      = 'nova-volume'
       case $::operatingsystem {
         'Debian': {
+          $consoleauth_package_name = 'nova-console'
           $vncproxy_package_name    = 'novnc'
           $vncproxy_service_name    = 'novnc'
           # Use default provider on Debian
           $special_service_provider = undef
         }
         default: {
+          $consoleauth_package_name = 'nova-consoleauth'
           $vncproxy_package_name    = false
           $vncproxy_service_name    = 'nova-novncproxy'
           # some of the services need to be started form the special upstart provider
