@@ -26,6 +26,7 @@ class nova::params {
       $objectstore_service_name = 'openstack-nova-objectstore'
       $scheduler_service_name   = 'openstack-nova-scheduler'
       $tgt_service_name         = 'tgtd'
+      $vncproxy_service_name    = false
       $volume_service_name      = 'openstack-nova-volume'
       $libvirt_package_name     = 'libvirt'
       $libvirt_service_name     = 'libvirtd'
@@ -47,7 +48,6 @@ class nova::params {
       $scheduler_package_name   = 'nova-scheduler'
       $tgt_package_name         = 'tgt'
       $volume_package_name      = 'nova-volume'
-      $vncproxy_package_name    = 'nova-vncproxy'
       # service names
       $api_service_name         = 'nova-api'
       $cert_service_name        = 'nova-cert'
@@ -61,10 +61,14 @@ class nova::params {
       $libvirt_service_name     = 'libvirt-bin'
       case $::operatingsystem {
         'Debian': {
+          $vncproxy_package_name    = 'novnc'
+          $vncproxy_service_name    = 'novnc'
           # Use default provider on Debian
           $special_service_provider = undef
         }
         default: {
+          $vncproxy_package_name    = false
+          $vncproxy_service_name    = 'nova-novncproxy'
           # some of the services need to be started form the special upstart provider
           $special_service_provider = 'upstart'
         }
