@@ -16,9 +16,8 @@ describe 'nova::vncproxy' do
       :name   => 'python-numpy'
     )}
 
-    it { should contain_nova_config('novncproxy_base_url').with(
-      :value => 'http://127.0.0.1:6080/vnc_auto.html'
-    )}
+    it { should contain_nova_config('novncproxy_host').with(:value => '0.0.0.0') }
+    it { should contain_nova_config('novncproxy_port').with(:value => '6080') }
 
     it { should contain_package('noVNC').with_ensure('purged') }
     it { should contain_class('git') }
@@ -40,13 +39,19 @@ describe 'nova::vncproxy' do
     #  )}
     #end
 
-    describe 'on Debian OS' do
+    describe 'and more precisely on Debian OS' do
       let :facts do
         { :osfamily => 'Debian', :operatingsystem => 'Debian' }
       end
 
       it { should_not contain_class('git') }
       it { should_not contain_vcsrepo('/var/lib/nova/noVNC') }
+      it { should_not contain_packate('noVNC') }
+
+      it { should contain_package('nova-vncproxy').with(
+        :name   => 'novnc',
+        :ensure => 'present'
+      ) }
     end
   end
 

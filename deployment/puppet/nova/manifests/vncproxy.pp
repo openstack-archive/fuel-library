@@ -1,20 +1,19 @@
 class nova::vncproxy(
   $enabled   = false,
-  $host      = '127.0.0.1',
-  $protocol  = 'http',
+  $host      = '0.0.0.0',
   $port      = '6080',
-  $path      = '/vnc_auto.html'
 ) {
 
   include nova::params
-
-  $novncproxy_base_url = "${protocol}://${host}:${port}${path}"
 
   # TODO make this work on Fedora
 
   # See http://nova.openstack.org/runnova/vncconsole.html for more details.
 
-  nova_config { 'novncproxy_base_url': value => $novncproxy_base_url }
+  nova_config {
+    'novncproxy_host': value => $host;
+    'novncproxy_port': value => $port;
+  }
 
   package { 'python-numpy':
     name   => $::nova::params::numpy_package_name,
