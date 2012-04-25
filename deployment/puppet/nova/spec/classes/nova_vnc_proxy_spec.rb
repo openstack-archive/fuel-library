@@ -11,7 +11,10 @@ describe 'nova::vncproxy' do
       { :osfamily => 'Debian' }
     end
 
-    it { should contain_package('python-numpy').with_ensure('present') }
+    it { should contain_package('python-numpy').with(
+      :ensure => 'present',
+      :name   => 'python-numpy'
+    )}
 
     it { should contain_nova_config('novncproxy_base_url').with(
       :value => 'http://127.0.0.1:6080/vnc_auto.html'
@@ -26,4 +29,18 @@ describe 'nova::vncproxy' do
     #  )}
     #end
   end
+
+  describe 'on Redhatish platforms' do
+
+    let :facts do
+      { :osfamily => 'Redhat' }
+    end
+
+    it { should contain_package('python-numpy').with(
+      :name   => 'numpy',
+      :ensure => 'present'
+    )}
+
+  end
+
 end
