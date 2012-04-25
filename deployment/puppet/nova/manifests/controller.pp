@@ -107,6 +107,8 @@ class nova::controller(
 
   class { "nova::scheduler": enabled => true }
 
+  class { "nova::vncproxy": enabled => true }
+
   nova::manage::admin { $admin_user: }
   nova::manage::project { $project_name:
     owner => $admin_user,

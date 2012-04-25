@@ -87,7 +87,7 @@ class nova::all(
 
   class { 'nova::volume': enabled => true }
 
-  class { 'nova::vncproxy': }
+  class { 'nova::vncproxy': enabled => true }
 
   nova::manage::admin { $admin_user: }
   nova::manage::project { $project_name:
