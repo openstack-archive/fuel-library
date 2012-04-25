@@ -13,6 +13,7 @@ class nova::params {
       $doc_package_name         = 'openstack-nova-doc'
       $libvirt_package_name     = 'libvirt'
       $network_package_name     = false
+      $numpy_package_name       = 'numpy'
       $objectstore_package_name = false
       $scheduler_package_name   = false
       $tgt_package_name         = 'scsi-target-utils'
@@ -45,6 +46,7 @@ class nova::params {
       $doc_package_name         = 'nova-doc'
       $libvirt_package_name     = 'libvirt-bin'
       $network_package_name     = 'nova-network'
+      $numpy_package_name       = 'python-numpy'
       $objectstore_package_name = 'nova-objectstore'
       $scheduler_package_name   = 'nova-scheduler'
       $tgt_package_name         = 'tgt'
