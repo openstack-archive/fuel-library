@@ -28,7 +28,7 @@ class nova::vncproxy(
     require      => Package['python-numpy']
   }
 
-  if ($::osfamily == 'Debian') {
+  if ($::osfamily == 'Debian' and $::operatingsystem != 'Debian') {
 
     require git
 
@@ -56,7 +56,7 @@ class nova::vncproxy(
   exec su -s /bin/bash -c "exec /var/lib/nova/noVNC/utils/nova-novncproxy --flagfile=/etc/nova/nova.conf --web=/var/lib/nova/noVNC" nova
   ',
      mode    =>  0750,
-   }
+    }
 
     # TODO this is terrifying, it is grabbing master
     # I should at least check out a branch
