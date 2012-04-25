@@ -4,7 +4,7 @@ class nova::compute(
   $enabled = false,
   $vnc_enabled = true,
   $vncserver_proxyclient_address = '127.0.0.1',
-  $novncproxy_base_url = 'http://127.0.0.1:6080/vnc_auto.htm'
+  $novncproxy_base_url = 'http://127.0.0.1:6080/vnc_auto.html'
 ) {
 
   nova::generic_service { 'compute':
@@ -18,6 +18,7 @@ class nova::compute(
   nova_config {
     'vnc_enabled': value => $vnc_enabled;
     'vncserver_proxyclient_address': value => $vncserver_proxyclient_address;
+    'novncproxy_base_url': value => $novncproxy_base_url;
   }
 
 }
