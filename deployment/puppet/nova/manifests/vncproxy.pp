@@ -13,6 +13,10 @@ class nova::vncproxy(
 
   require git
 
+  package { 'python-numpy':
+    ensure => present,
+  }
+
   nova_config { 'novncproxy_base_url': value => $novncproxy_base_url }
 
   package{ "noVNC":
