@@ -109,6 +109,8 @@ class nova::controller(
 
   class { "nova::vncproxy": enabled => true }
 
+  class { "nova::consoleauth": enabled => true }
+
   nova::manage::admin { $admin_user: }
   nova::manage::project { $project_name:
     owner => $admin_user,
