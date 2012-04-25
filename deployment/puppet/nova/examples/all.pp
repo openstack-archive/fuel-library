@@ -187,7 +187,7 @@ class { 'nova::consoleauth':
 }
 
 class { 'nova::vncproxy':
-  host => $ipaddress_eth0,
+  host => $public_hostname,
 }
 
 class { 'nova::compute':
