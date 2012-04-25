@@ -26,7 +26,7 @@ class nova(
   $nodaemon = false,
   $periodic_interval = '60',
   $report_interval = '10',
-  $root_helper = $::nova::params::root_helper,
+  $root_helper = $::nova::params::root_helper
 ) inherits nova::params {
 
   # all nova_config resources should be applied
