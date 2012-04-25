@@ -18,6 +18,7 @@ class nova::compute(
   nova_config {
     'vnc_enabled': value => $vnc_enabled;
     'vncserver_proxyclient_address': value => $vncserver_proxyclient_address;
+    'novncproxy_base_url': value => $novncproxy_base_url;
   }
 
 }
