@@ -11,6 +11,7 @@ class nova::params {
       $compute_package_name     = false
       $consoleauth_package_name = false
       $doc_package_name         = 'openstack-nova-doc'
+      $libvirt_package_name     = 'libvirt'
       $network_package_name     = false
       $objectstore_package_name = false
       $scheduler_package_name   = false
@@ -22,14 +23,13 @@ class nova::params {
       $cert_service_name        = 'openstack-nova-cert'
       $compute_service_name     = 'openstack-nova-compute'
       $consoleauth_service_name = 'openstack-nova-consoleauth'
+      $libvirt_service_name     = 'libvirtd'
       $network_service_name     = 'openstack-nova-network'
       $objectstore_service_name = 'openstack-nova-objectstore'
       $scheduler_service_name   = 'openstack-nova-scheduler'
       $tgt_service_name         = 'tgtd'
       $vncproxy_service_name    = false
       $volume_service_name      = 'openstack-nova-volume'
-      $libvirt_package_name     = 'libvirt'
-      $libvirt_service_name     = 'libvirtd'
       $special_service_provider = 'init'
       # redhat specific config defaults
       $root_helper              = 'sudo nova-rootwrap'
@@ -43,6 +43,7 @@ class nova::params {
       $compute_package_name     = 'nova-compute'
       $consoleauth_package_name = 'nova-consoleauth'
       $doc_package_name         = 'nova-doc'
+      $libvirt_package_name     = 'libvirt-bin'
       $network_package_name     = 'nova-network'
       $objectstore_package_name = 'nova-objectstore'
       $scheduler_package_name   = 'nova-scheduler'
@@ -53,12 +54,11 @@ class nova::params {
       $cert_service_name        = 'nova-cert'
       $compute_service_name     = 'nova-compute'
       $consoleauth_service_name = 'nova-consoleauth'
+      $libvirt_service_name     = 'libvirt-bin'
       $network_service_name     = 'nova-network'
       $objectstore_service_name = 'nova-objectstore'
       $scheduler_service_name   = 'nova-scheduler'
       $volume_service_name      = 'nova-volume'
-      $libvirt_package_name     = 'libvirt-bin'
-      $libvirt_service_name     = 'libvirt-bin'
       case $::operatingsystem {
         'Debian': {
           $vncproxy_package_name    = 'novnc'
