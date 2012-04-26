@@ -19,7 +19,7 @@ class nova::db::mysql(
     user         => $user,
     password     => $password,
     host         => $host,
-    charset      => 'utf8',
+    charset      => 'latin1',
     # I may want to inject some sql
     require      => Class['mysql::server'],
   }
