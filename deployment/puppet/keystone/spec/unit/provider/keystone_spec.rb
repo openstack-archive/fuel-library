@@ -1,6 +1,7 @@
 require 'puppet'
 require 'spec_helper'
 require 'puppet/provider/keystone'
+require 'tempfile'
 
 
 klass = Puppet::Provider::Keystone
@@ -14,9 +15,11 @@ describe Puppet::Provider::Keystone do
     end
 
     it 'should fail if there is no keystone config file' do
-      mock = nil
-      Puppet::Util::IniConfig::File.expects(:new).returns(mock)
-      mock.expects(:read).with('/etc/keystone/keystone.conf')
+      ini_file = Puppet::Util::IniConfig::File.new
+      t = Tempfile.new('foo')
+      path = t.path
+      t.unlink
+      ini_file.read(path)
       expect do
         klass.get_admin_token
       end.to raise_error(Puppet::Error, /Keystone types will not work/)
