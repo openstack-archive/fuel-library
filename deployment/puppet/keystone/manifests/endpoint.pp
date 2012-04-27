@@ -2,9 +2,11 @@
 # Creates the auth endpoints for keystone
 #
 class keystone::endpoint(
-  $address    = '127.0.0.1',
-  $public_url = '5000',
-  $admin_url  = '35357'
+  $public_address   = '127.0.0.1',
+  $admin_address    = '127.0.0.1',
+  $internal_address = '127.0.0.1',
+  $public_port      = '5000',
+  $admin_port       = '35357'
 ) {
   keystone_service { 'keystone':
     ensure      => present,
@@ -13,8 +15,8 @@ class keystone::endpoint(
   }
   keystone_endpoint { 'keystone':
     ensure       => present,
-    public_url   => "http://${address}:${public_url}/v2.0",
-    admin_url    => "http://${address}:${admin_url}/v2.0",
-    internal_url => "http://${address}:${public_url}/v2.0",
+    public_url   => "http://${public_address}:${public_port}/v2.0",
+    admin_url    => "http://${admin_address}:${admin_port}/v2.0",
+    internal_url => "http://${internal_address}:${public_port}/v2.0",
   }
 }
