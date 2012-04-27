@@ -6,11 +6,11 @@
 #
 # It creates the following keystone objects:
 #   - service tenant
-#   - openstack tenant
-#   - admin user (that defaults to openstack tenant)
+#   - admin tenant
+#   - admin user (that defaults to admin tenant)
 #   - admin role
 #   - Member role
-#   - adds admin role to admin user on openstack tenant
+#   - adds admin role to admin user on admin tenant
 # [*Parameters*]
 #
 # [email] The email address for the admin. Optional. Defaults to demo@puppetlabs.com.
@@ -38,7 +38,7 @@ class keystone::roles::admin(
     enabled     => 'True',
     description => 'Tenant for the openstack services',
   }
-  keystone_tenant { 'openstack':
+  keystone_tenant { 'admin':
     ensure      => present,
     enabled     => 'True',
     description => 'admin tenant',
@@ -46,14 +46,14 @@ class keystone::roles::admin(
   keystone_user { 'admin':
     ensure      => present,
     enabled     => 'True',
-    tenant      => 'openstack',
+    tenant      => 'admin',
     email       => $email,
     password    => $password,
   }
   keystone_role { ['admin', 'Member']:
     ensure => present,
   }
-  keystone_user_role { 'admin@openstack':
+  keystone_user_role { 'admin@admin':
     roles  => 'admin',
     ensure => present,
   }
