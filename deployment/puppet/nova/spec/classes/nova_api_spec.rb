@@ -36,7 +36,6 @@ describe 'nova::api' do
     )}
     end
     describe 'with defaults' do
-      it { should contain_nova_config('use_deprecated_auth').with_value('false') }
       it 'should use default params for api-paste.init' do
         verify_contents(subject, '/etc/nova/api-paste.ini',
           [
@@ -65,7 +64,6 @@ describe 'nova::api' do
           :admin_password    => 'passw0rd2'
         }
       end
-      it { should contain_nova_config('use_deprecated_auth').with_value('true') }
       it 'should use default params for api-paste.init' do
         verify_contents(subject, '/etc/nova/api-paste.ini',
           [

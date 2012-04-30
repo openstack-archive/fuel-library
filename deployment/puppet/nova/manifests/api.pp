@@ -32,16 +32,7 @@ class nova::api(
     service_name => $::nova::params::api_service_name,
   }
 
-  nova_config {
-    'api_paste_config': value => '/etc/nova/api-paste.ini';
-    'auth_strategy': value => $auth_strategy;
-  }
-
-  if $auth_strategy == 'keystone' {
-    nova_config { 'use_deprecated_auth': value => false }
-  } else {
-    nova_config { 'use_deprecated_auth': value => true }
-  }
+  nova_config { 'api_paste_config': value => '/etc/nova/api-paste.ini'; }
 
   file { '/etc/nova/api-paste.ini':
     content => template('nova/api-paste.ini.erb'),
