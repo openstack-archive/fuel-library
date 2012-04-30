@@ -77,6 +77,7 @@ describe 'nova' do
     it { should contain_nova_config('flat_network_bridge').with_value('br100') }
 
     it { should contain_nova_config('root_helper').with_value('sudo nova-rootwrap') }
+    it { should contain_nova_config('use_deprecated_auth').with_value('false') }
 
     describe 'with parameters supplied' do
 
@@ -95,10 +96,12 @@ describe 'nova' do
           'lock_path'           => '/var/locky/path',
           'state_path'          => '/var/lib/nova2',
           'service_down_time'   => '120',
-          'network_manager'     => 'nova.network.manager.FlatDHCPManager'
+          'network_manager'     => 'nova.network.manager.FlatDHCPManager',
+          'auth_strategy'       => 'foo'
         }
       end
 
+      it { should contain_nova_config('use_deprecated_auth').with_value('true') }
       it { should contain_nova_config('sql_connection').with_value('mysql://user:pass@db/db') }
 
       it { should contain_nova_config('verbose').with_value(true) }

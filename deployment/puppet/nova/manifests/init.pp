@@ -13,6 +13,7 @@ class nova(
   $rabbit_port='5672',
   $rabbit_userid='guest',
   $rabbit_virtual_host='/',
+  $auth_strategy = 'keystone',
   $network_manager = 'nova.network.manager.FlatManager',
   $multi_host_networking = false,
   $flat_network_bridge = 'br100',
@@ -129,6 +130,17 @@ class nova(
       Nova_config <<| title == $glance_api_servers |>>
     }
   }
+
+  nova_config {
+    'auth_strategy': value => $auth_strategy;
+  }
+
+  if $auth_strategy == 'keystone' {
+    nova_config { 'use_deprecated_auth': value => false }
+  } else {
+    nova_config { 'use_deprecated_auth': value => true }
+  }
+
 
   # I may want to support exporting and collecting these
   nova_config {
