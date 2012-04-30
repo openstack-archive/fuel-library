@@ -1,24 +1,38 @@
 #schedulee this class should probably never be declared except
 # from the virtualization implementation of the compute node
 class nova::compute(
-  $enabled = false,
-  $vnc_enabled = true,
+  $enabled                       = false,
+  $vnc_enabled                   = true,
   $vncserver_proxyclient_address = '127.0.0.1',
-  $novncproxy_base_url = 'http://127.0.0.1:6080/vnc_auto.html'
-) {
+  $vncproxy_host                 = false,
+  $vncproxy_protocol             = 'http',
+  $vncproxy_port                 = '6080',
+  $vncproxy_path                 = '/vnc_auto.html'
+ ) {
+
+  if ($vnc_enabled) {
+    if !($vncproxy_host) {
+      warning("VNC is enabled and \$vncproxy_host must be specified nova::compute assumes that it can collect the exported resource: Nova_config[vncproxy_base_url]")
+      Nova_config <<| title == 'vncproxy_base_url' |>>
+    } else {
+      $vncproxy_base_url = "${vncproxy_protocol}://${vncproxy_host}:${vncproxy_port}${vncproxy_path}"
+      # config for vnc proxy
+      nova_config {
+        'novncproxy_base_url': value => $vncproxy_base_url;
+      }
+    }
+  }
+
+  nova_config {
+    'vnc_enabled': value => $vnc_enabled;
+    'vncserver_proxyclient_address': value => $vncserver_proxyclient_address;
+  }
 
   nova::generic_service { 'compute':
     enabled      => $enabled,
     package_name => $::nova::params::compute_package_name,
     service_name => $::nova::params::compute_service_name,
     before       => Exec['networking-refresh']
-  }
-
-  # config for vnc proxy
-  nova_config {
-    'vnc_enabled': value => $vnc_enabled;
-    'vncserver_proxyclient_address': value => $vncserver_proxyclient_address;
-    'novncproxy_base_url': value => $novncproxy_base_url;
   }
 
 }
