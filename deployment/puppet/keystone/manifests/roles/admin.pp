@@ -30,7 +30,7 @@
 # Copyright 2012 Puppetlabs Inc, unless otherwise noted.
 #
 class keystone::roles::admin(
-  $email        = 'demo@puppetlabs.com',
+  $email,
   $password     = 'ChangeMe',
   $admin_tenant = 'openstack'
 ) {
