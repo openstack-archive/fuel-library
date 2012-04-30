@@ -186,14 +186,13 @@ class { 'nova::consoleauth':
   enabled => true
 }
 
-class { 'nova::vncproxy':
-  host => $public_hostname,
-}
+class { 'nova::vncproxy': }
 
 class { 'nova::compute':
   enabled                       => true,
   vnc_enabled                   => true,
   vncserver_proxyclient_address => '127.0.0.1',
+  vncproxy_host                 => $public_hostname,
 }
 
 class { 'nova::compute::libvirt':
