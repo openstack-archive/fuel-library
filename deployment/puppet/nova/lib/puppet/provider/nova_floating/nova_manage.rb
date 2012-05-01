@@ -5,18 +5,15 @@ Puppet::Type.type(:nova_floating).provide(:nova_manage) do
   optional_commands :nova_manage => 'nova-manage'
 
   def exists?
-    begin
-      # TODO this assumes that the CIDR is 24
-      # this may be good for an approximation, but it needs to be fixed eventually
-      prefix=resource[:network].sub(/(^[0-9]*\.[0-9]*\.[0-9]*\.).*/, '\1')
-      return nova_manage("floating", "list").match(/#{prefix}/)
-    rescue
-      return false
-    end
+    # Calculate num quads to grab for prefix
+    mask=resource[:network].sub(/.*\/([0-9][0-9]?)/, '\1').to_i
+    num_quads = 4 - mask / 8
+    prefix=resource[:network].sub(/(\.[0-9]{1,3}){#{num_quads}}(\/[0-9]{1,2})?$/, '') + "."
+    return nova_manage("floating", "list").match(/#{prefix}/)
   end
 
   def create
-     nova_manage("floating", "create", resource[:network]) if exists? == false
+     nova_manage("floating", "create", resource[:network])
   end
 
   def destroy
