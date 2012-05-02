@@ -35,17 +35,17 @@ describe 'nova::keystone::auth' do
     it { should contain_keystone_endpoint('nova').with(
       :ensure       => 'present',
       :region       => 'RegionOne',
-      :public_url   => 'http://127.0.0.1:8774/v1.1/%(tenant_id)s',
-      :admin_url    => 'http://127.0.0.1:8774/v1.1/%(tenant_id)s',
-      :internal_url => 'http://127.0.0.1:8774/v1.1/%(tenant_id)s'
+      :public_url   => 'http://127.0.0.1:8774/v2/%(tenant_id)s',
+      :admin_url    => 'http://127.0.0.1:8774/v2/%(tenant_id)s',
+      :internal_url => 'http://127.0.0.1:8774/v2/%(tenant_id)s'
     )}
 
     it { should contain_keystone_endpoint('nova_volume').with(
       :ensure       => 'present',
       :region       => 'RegionOne',
-      :public_url   => 'http://127.0.0.1:8776/v1.1/%(tenant_id)s',
-      :admin_url    => 'http://127.0.0.1:8776/v1.1/%(tenant_id)s',
-      :internal_url => 'http://127.0.0.1:8776/v1.1/%(tenant_id)s'
+      :public_url   => 'http://127.0.0.1:8776/v1/%(tenant_id)s',
+      :admin_url    => 'http://127.0.0.1:8776/v1/%(tenant_id)s',
+      :internal_url => 'http://127.0.0.1:8776/v1/%(tenant_id)s'
     )}
 
     it { should contain_keystone_endpoint('nova_ec2').with(
@@ -118,7 +118,8 @@ describe 'nova::keystone::auth' do
         :compute_port     => '9774',
         :volume_port      => '9776',
         :ec2_port         => '9773',
-        :version          => 'v2.1',
+        :volume_version   => 'v2.1',
+        :compute_version  => 'v2.2',
         :region           => 'RegionTwo'
       }
     end
@@ -126,9 +127,9 @@ describe 'nova::keystone::auth' do
     it { should contain_keystone_endpoint('nova').with(
       :ensure       => 'present',
       :region       => 'RegionTwo',
-      :public_url   => 'http://10.0.0.1:9774/v2.1/%(tenant_id)s',
-      :admin_url    => 'http://10.0.0.2:9774/v2.1/%(tenant_id)s',
-      :internal_url => 'http://10.0.0.3:9774/v2.1/%(tenant_id)s'
+      :public_url   => 'http://10.0.0.1:9774/v2.2/%(tenant_id)s',
+      :admin_url    => 'http://10.0.0.2:9774/v2.2/%(tenant_id)s',
+      :internal_url => 'http://10.0.0.3:9774/v2.2/%(tenant_id)s'
     )}
 
     it { should contain_keystone_endpoint('nova_volume').with(

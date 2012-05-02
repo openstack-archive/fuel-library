@@ -7,7 +7,8 @@ class nova::keystone::auth(
   $compute_port     = '8774',
   $volume_port      = '8776',
   $ec2_port         = '8773',
-  $version          = 'v1.1',
+  $compute_version  = 'v2',
+  $volume_version   = 'v1',
   $region           = 'RegionOne'
 ) {
 
@@ -27,9 +28,9 @@ class nova::keystone::auth(
   keystone_endpoint { $auth_name:
     ensure       => present,
     region       => $region,
-    public_url   => "http://${public_address}:${compute_port}/${version}/%(tenant_id)s",
-    admin_url    => "http://${admin_address}:${compute_port}/${version}/%(tenant_id)s",
-    internal_url => "http://${internal_address}:${compute_port}/${version}/%(tenant_id)s",
+    public_url   => "http://${public_address}:${compute_port}/${compute_version}/%(tenant_id)s",
+    admin_url    => "http://${admin_address}:${compute_port}/${compute_version}/%(tenant_id)s",
+    internal_url => "http://${internal_address}:${compute_port}/${compute_version}/%(tenant_id)s",
   }
 
   keystone_service { "${auth_name}_volume":
@@ -40,9 +41,9 @@ class nova::keystone::auth(
   keystone_endpoint { "${auth_name}_volume":
     ensure       => present,
     region       => $region,
-    public_url   => "http://${public_address}:${volume_port}/${version}/%(tenant_id)s",
-    admin_url    => "http://${admin_address}:${volume_port}/${version}/%(tenant_id)s",
-    internal_url => "http://${internal_address}:${volume_port}/${version}/%(tenant_id)s",
+    public_url   => "http://${public_address}:${volume_port}/${volume_version}/%(tenant_id)s",
+    admin_url    => "http://${admin_address}:${volume_port}/${volume_version}/%(tenant_id)s",
+    internal_url => "http://${internal_address}:${volume_port}/${volume_version}/%(tenant_id)s",
   }
 
   keystone_service { "${auth_name}_ec2":
