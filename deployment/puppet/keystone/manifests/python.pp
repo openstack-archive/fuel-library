@@ -1,7 +1,11 @@
-class keystone::python {
+class keystone::python (
+  $client_package_name = $::keystone::params::client_package_name,
+  $ensure = 'present',	
+) {
 
   package { 'python-keystone' :
-    ensure => present,
+    name   => $client_package_name,
+    ensure => $ensure,
   }
 
 }

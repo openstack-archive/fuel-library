@@ -2,6 +2,8 @@
 # This class contains the platform differences for keystone
 #
 class keystone::params {
+  $client_package_name = 'python-keystone'
+
   case $::osfamily {
     'Debian': {
       $package_name     = 'keystone'
