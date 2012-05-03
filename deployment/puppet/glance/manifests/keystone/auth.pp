@@ -15,14 +15,15 @@
 #  $region :: Region where endpoint is set.
 #
 class glance::keystone::auth(
-  $auth_name        = 'glance',
-  $password         = 'glance_password',
-  $service_type     = 'image',
-  $public_address   = '127.0.0.1',
-  $admin_address    = '127.0.0.1',
-  $internal_address = '127.0.0.1',
-  $port             = '9292',
-  $region           = 'RegionOne'
+  $auth_name          = 'glance',
+  $password           = 'glance_password',
+  $configure_endpoint = 'true',
+  $service_type       = 'image',
+  $public_address     = '127.0.0.1',
+  $admin_address      = '127.0.0.1',
+  $internal_address   = '127.0.0.1',
+  $port               = '9292',
+  $region             = 'RegionOne'
 ) {
 
   Keystone_user_role["${auth_name}@services"] ~> Service <| name == 'glance-registry' |>
@@ -40,13 +41,14 @@ class glance::keystone::auth(
     ensure      => present,
     type        => $service_type,
     description => "Openstack Image Service",
- }
-  keystone_endpoint { $auth_name:
-    ensure       => present,
-    region       => $region,
-    public_url   => "http://${public_address}:${port}/v1",
-    admin_url    => "http://${admin_address}:${port}/v1",
-    internal_url => "http://${internal_address}:${port}/v1",
   }
-
+  if $configure_endpoint {
+    keystone_endpoint { $auth_name:
+      ensure       => present,
+      region       => $region,
+      public_url   => "http://${public_address}:${port}/v1",
+      admin_url    => "http://${admin_address}:${port}/v1",
+      internal_url => "http://${internal_address}:${port}/v1",
+    }
+  }
 }
