@@ -17,7 +17,7 @@
 class glance::keystone::auth(
   $auth_name          = 'glance',
   $password           = 'glance_password',
-  $configure_endpoint = 'true',
+  $configure_endpoint = true,
   $service_type       = 'image',
   $public_address     = '127.0.0.1',
   $admin_address      = '127.0.0.1',
