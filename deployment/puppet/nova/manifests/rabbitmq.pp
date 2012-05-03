@@ -12,13 +12,6 @@ class nova::rabbitmq(
   # only configure nova after the queue is up
   Class['rabbitmq::service'] -> Anchor<| title == 'nova-start' |>
 
-  # work around hostname bug, LP #653405
-  # TODO - see if this is still required
-  host { $hostname:
-    ip => $ipaddress,
-    host_aliases => $fqdn,
-  }
-
   if $userid == 'guest' {
     $delete_guest_user = false
   } else {
