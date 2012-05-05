@@ -80,4 +80,16 @@ describe 'glance::keystone::auth' do
 
   end
 
+  describe 'when endpoint is not set' do
+
+    let :params do
+      {
+        :configure_endpoint => false,
+      }
+    end
+  
+    it { should_not contain_keystone_endpoint('glance') }
+      
+  end
+
 end
