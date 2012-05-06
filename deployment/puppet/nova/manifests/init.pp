@@ -36,7 +36,6 @@ class nova(
   # these glance params should be optional
   # this should probably just be configured as a glance client
   $glance_api_servers = 'localhost:9292',
-  $allow_admin_api = false,
   $rabbit_host = 'localhost',
   $rabbit_password='guest',
   $rabbit_port='5672',
@@ -53,7 +52,6 @@ class nova(
   $state_path = '/var/lib/nova',
   $lock_path = $::nova::params::lock_path,
   $verbose = false,
-  $nodaemon = false,
   $periodic_interval = '60',
   $report_interval = '10',
   $root_helper = $::nova::params::root_helper
@@ -182,7 +180,6 @@ class nova(
 
   nova_config {
     'verbose': value => $verbose;
-    'nodaemon': value => $nodaemon;
     'logdir': value => $logdir;
     'image_service': value => $image_service;
     # Following may need to be broken out to different nova services
