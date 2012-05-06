@@ -42,11 +42,6 @@ class nova(
   $rabbit_userid='guest',
   $rabbit_virtual_host='/',
   $auth_strategy = 'keystone',
-  $network_manager = 'nova.network.manager.FlatManager',
-  $multi_host_networking = false,
-  $flat_network_bridge = 'br100',
-  $vlan_interface = 'eth1',
-  $vlan_start = 1000,
   $service_down_time = 60,
   $logdir = '/var/log/nova',
   $state_path = '/var/lib/nova',
@@ -186,37 +181,12 @@ class nova(
     'state_path': value => $state_path;
     'lock_path': value => $lock_path;
     'service_down_time': value => $service_down_time;
-    # These network entries wound up in the common
-    # config b/c they have to be set by both compute
-    # as well as controller.
-    'network_manager': value => $network_manager;
-    'multi_host': value => $multi_host_networking;
     'root_helper': value => $root_helper;
   }
 
   exec { 'post-nova_config':
     command => '/bin/echo "Nova config has changed"',
     refreshonly => true,
-  }
-
-  if $network_manager == 'nova.network.manager.FlatManager' {
-    nova_config {
-      'flat_network_bridge': value => $flat_network_bridge
-    }
-  }
-
-  if $network_manager == 'nova.network.manager.FlatDHCPManager' {
-    nova_config {
-      'dhcpbridge': value => "/usr/bin/nova-dhcpbridge";
-      'dhcpbridge_flagfile': value => "/etc/nova/nova.conf";
-    }
-  }
-
-  if $network_manager == 'nova.network.manager.VlanManager' {
-    nova_config {
-      'vlan_interface': value => $vlan_interface;
-      'vlan_start': value     => $vlan_start;
-    }
   }
 
 }
