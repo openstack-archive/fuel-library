@@ -1,3 +1,33 @@
+# This class is used to specify configuration parameters that are common
+# across all nova services.
+#
+# ==Parameters
+#
+# [sql_connection] Connection url to use to connect to nova sql database.
+#  If specified as false, then it tries to collect the exported resource
+#   Nova_config <<| title == 'sql_connection' |>>. Optional. Defaults to false. 
+# [image_service] Service used to search for and retrieve images. Optional.
+#   Defaults to 'nova.image.local.LocalImageService'
+# [glance_api_servers] List of addresses for api servers. Optional.
+#   Defaults to localhost:9292.
+# [rabbit_host] Location of rabbitmq installation. Optional. Defaults to localhost.
+# [rabbit_password] Password used to connect to rabbitmq. Optional. Defaults to guest.
+# [rabbit_port] Port for rabbitmq instance. Optional. Defaults to 5672.
+# [rabbit_userid] User used to connect to rabbitmq. Optional. Defaults to guest.
+# [rabbit_virtual_host] The RabbitMQ virtual host. Optional. Defaults to /.
+# [auth_strategy]
+# [service_down_time] maximum time since last check-in for up service. Optional.
+#  Defaults to 60
+# [logdir] Directory where logs should be stored. Optional. Defaults to '/var/log/nova'.
+# [state_path] Directory for storing state. Optional. Defaults to '/var/lib/nova'.
+# [lock_path] Directory for lock files. Optional. Distro specific default.
+# [verbose] Rather to print more verbose output. Optional. Defaults to false.
+# [periodic_interval] Seconds between running periodic tasks. Optional.
+#   Defaults to '60'.
+# [report_interval] Interval at which nodes report to data store. Optional.
+#    Defaults to '10'.
+# [root_helper] Command used for roothelper. Optional. Distro specific.
+#
 class nova(
   # this is how to query all resources from our clutser
   $nova_cluster_id='localcluster',
@@ -155,7 +185,6 @@ class nova(
     'nodaemon': value => $nodaemon;
     'logdir': value => $logdir;
     'image_service': value => $image_service;
-    'allow_admin_api': value => $allow_admin_api;
     # Following may need to be broken out to different nova services
     'state_path': value => $state_path;
     'lock_path': value => $lock_path;
