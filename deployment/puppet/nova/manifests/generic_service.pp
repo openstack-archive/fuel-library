@@ -13,7 +13,8 @@
 define nova::generic_service(
   $package_name,
   $service_name,
-  $enabled = false
+  $enabled        = false,
+  $ensure_package = 'present',
 ) {
 
   include nova::params
@@ -38,7 +39,7 @@ define nova::generic_service(
   if ($package_name) {
     package { $nova_title:
       name   => $package_name,
-      ensure => present,
+      ensure => $ensure_package,
       notify => Service[$nova_title],
     }
   }

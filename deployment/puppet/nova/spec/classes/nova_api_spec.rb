@@ -35,6 +35,14 @@ describe 'nova::api' do
       'enable'  => true
     )}
     end
+    describe 'with package version' do
+      let :params do
+        {:ensure_package => '2012.1-2'}
+      end
+      it { should contain_package('nova-api').with(
+        'ensure' => '2012.1-2'
+      )}
+    end
     describe 'with defaults' do
       it 'should use default params for api-paste.init' do
         verify_contents(subject, '/etc/nova/api-paste.ini',
