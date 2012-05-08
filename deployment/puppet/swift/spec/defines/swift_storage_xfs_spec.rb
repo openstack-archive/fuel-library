@@ -35,7 +35,7 @@ describe 'swift::storage::xfs' do
 
         it { should contain_exec("mkfs-foo").with(
           :command     => "mkfs.xfs -i size=#{param_hash[:byte_size]} #{param_hash[:device]}",
-          :path        => ['/sbin/'],
+          :path        => '/sbin/',
           :refreshonly => true,
           :require     => 'Package[xfsprogs]'
         )}

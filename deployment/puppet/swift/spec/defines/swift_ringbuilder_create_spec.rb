@@ -31,7 +31,7 @@ describe 'swift::ringbuilder::create' do
 
             it { should contain_exec("create_#{type}").with(
               {:command => "swift-ring-builder /etc/swift/#{type}.builder create #{param_hash[:part_power]} #{param_hash[:replicas]} #{param_hash[:min_part_hours]}",
-               :path    => ['/usr/bin'],
+               :path    => '/usr/bin',
                :creates => "/etc/swift/#{type}.builder" }
             )}
           end
