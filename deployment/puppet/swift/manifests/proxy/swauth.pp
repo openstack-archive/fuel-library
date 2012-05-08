@@ -2,7 +2,7 @@
 # [*swauth_super_admin_user*]
 class swift::proxy::swauth(
   $swauth_endpoint = '127.0.0.1',
-  $swauth_super_admin_key = 'swauthkey',
+  $swauth_super_admin_key = 'swauthkey'
 ) {
 
   package { 'python-swauth':
