@@ -4,7 +4,8 @@ describe 'glance::api' do
 
   let :facts do
     {
-      :osfamily => 'Debian'
+      :osfamily => 'Debian',
+      :concat_basedir => '/var/lib/puppet/concat'
     }
   end
 

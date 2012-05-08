@@ -3,6 +3,7 @@ require 'spec_helper'
 describe 'glance::backend::file' do
   let :facts do
     {
+      :concat_basedir => '/var/lib/puppet/concat',
       :osfamily => 'Debian'
     }
   end
