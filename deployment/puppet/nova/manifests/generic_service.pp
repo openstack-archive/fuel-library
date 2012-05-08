@@ -14,7 +14,7 @@ define nova::generic_service(
   $package_name,
   $service_name,
   $enabled        = false,
-  $ensure_package = 'present',
+  $ensure_package = 'present'
 ) {
 
   include nova::params

@@ -1,7 +1,7 @@
 class nova::vncproxy(
   $enabled   = false,
   $host      = '0.0.0.0',
-  $port      = '6080',
+  $port      = '6080'
 ) {
 
   include nova::params
