@@ -2,6 +2,7 @@ require 'spec_helper'
 describe 'glance::notify::rabbitmq' do
   let :facts do
     {
+      :concat_basedir => '/var/lib/puppet/concat',
       :osfamily => 'Debian'
     }
   end
