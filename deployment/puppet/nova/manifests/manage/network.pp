@@ -8,7 +8,7 @@
 define nova::manage::network (
   $network,
   $num_networks = 1,
-  $project = 'openstack'
+  $project = undef
 ) {
 
   File['/etc/nova/nova.conf'] -> Nova_network[$name]
@@ -18,7 +18,7 @@ define nova::manage::network (
     ensure       => present,
     network      => $network,
     num_networks => $num_networks,
-    project      => $project,
+    project      => undef,
     notify       => Exec['nova-db-sync'],
   }
 

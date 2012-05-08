@@ -29,7 +29,8 @@ Puppet::Type.type(:nova_network).provide(:nova_manage) do
       :project          => '--project_id',
       :dns2             => '--dns2',
       :gateway          => '--gateway',
-      :bridge           => '--bridge'
+      :bridge           => '--bridge',
+      :vlan_start       => '--vlan'
     }.each do |param, opt|
       if resource[param]
         optional_opts.push(opt).push(resource[param])

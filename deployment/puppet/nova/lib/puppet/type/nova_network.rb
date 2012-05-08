@@ -40,6 +40,10 @@ Puppet::Type.newtype(:nova_network) do
 
   end
 
+  newparam(:vlan_start) do
+
+  end
+
   validate do
     raise(Puppet::Error, 'Label must be set') unless self[:label]
   end
