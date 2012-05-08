@@ -2,6 +2,7 @@
 # from the virtualization implementation of the compute node
 class nova::compute(
   $enabled                       = false,
+  $ensure_package                = 'present',  
   $vnc_enabled                   = true,
   $vncserver_proxyclient_address = '127.0.0.1',
   $vncproxy_host                 = false,
@@ -34,10 +35,11 @@ class nova::compute(
   }
 
   nova::generic_service { 'compute':
-    enabled      => $enabled,
-    package_name => $::nova::params::compute_package_name,
-    service_name => $::nova::params::compute_service_name,
-    before       => Exec['networking-refresh']
+    enabled        => $enabled,
+    package_name   => $::nova::params::compute_package_name,
+    service_name   => $::nova::params::compute_service_name,
+    ensure_package => $ensure_package,
+    before         => Exec['networking-refresh']
   }
 
 }
