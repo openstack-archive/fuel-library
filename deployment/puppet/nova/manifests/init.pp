@@ -120,6 +120,7 @@ class nova(
   exec { "nova-db-sync":
     command     => "/usr/bin/nova-manage db sync",
     refreshonly => "true",
+    require     => [Package['nova-common'], Nova_config['sql_connection']],
   }
 
   # used by debian/ubuntu in nova::network_bridge to refresh
