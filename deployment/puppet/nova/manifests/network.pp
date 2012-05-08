@@ -43,10 +43,11 @@ class nova::network(
 
   if $install_service {
     nova::generic_service { 'network':
-      enabled      => $enabled,
-      package_name => $::nova::params::network_package_name,
-      service_name => $::nova::params::network_service_name,
-      before       => Exec['networking-refresh']
+    enabled        => $enabled,
+    package_name   => $::nova::params::network_package_name,
+    service_name   => $::nova::params::network_service_name,
+    ensure_package => $ensure_package,
+    before         => Exec['networking-refresh']
     }
   }
 
