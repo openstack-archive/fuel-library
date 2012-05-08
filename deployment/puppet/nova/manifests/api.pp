@@ -1,5 +1,6 @@
 class nova::api(
   $enabled           = false,
+  $ensure_package    = 'present',
   $auth_strategy     = 'keystone',
   $auth_host         = '127.0.0.1',
   $auth_port         = 35357,
@@ -27,9 +28,10 @@ class nova::api(
 
 
   nova::generic_service { 'api':
-    enabled      => $enabled,
-    package_name => $::nova::params::api_package_name,
-    service_name => $::nova::params::api_service_name,
+    enabled        => $enabled,
+    ensure_package => $ensure_package,
+    package_name   => $::nova::params::api_package_name,
+    service_name   => $::nova::params::api_service_name,
   }
 
   nova_config { 'api_paste_config': value => '/etc/nova/api-paste.ini'; }
