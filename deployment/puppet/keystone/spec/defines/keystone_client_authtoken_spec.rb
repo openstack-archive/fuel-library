@@ -2,6 +2,10 @@ require 'spec_helper'
 
 describe 'keystone::client::authtoken' do
 
+  let :facts do
+    { :concat_basedir => '/var/lib/puppet/concat' }
+  end
+
   let :title do
     '/tmp/foo'
   end

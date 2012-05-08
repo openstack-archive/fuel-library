@@ -2,6 +2,10 @@ require 'spec_helper'
 
 describe 'keystone' do
 
+  let :facts do
+    { :concat_basedir => '/var/lib/puppet/concat' }
+  end
+
   let :concat_file do
     {
       :type  => 'File',
@@ -94,7 +98,6 @@ describe 'keystone' do
       it 'should correctly configure catalog based on catalog_type'
 
       it 'should create the expected DEFAULT configuration' do
-#require 'ruby-debug';debugger
         verify_contents(
           subject,
           '/var/lib/puppet/concat/_etc_keystone_keystone.conf/fragments/00_kestone-DEFAULT',
