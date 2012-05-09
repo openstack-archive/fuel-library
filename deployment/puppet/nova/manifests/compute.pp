@@ -2,7 +2,7 @@
 # from the virtualization implementation of the compute node
 class nova::compute(
   $enabled                       = false,
-  $ensure_package                = 'present',  
+  $ensure_package                = 'present',
   $vnc_enabled                   = true,
   $vncserver_proxyclient_address = '127.0.0.1',
   $vncproxy_host                 = false,

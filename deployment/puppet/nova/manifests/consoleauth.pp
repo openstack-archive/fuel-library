@@ -6,7 +6,7 @@
 #
 class nova::consoleauth(
   $enabled        = false,
-  $ensure_package = 'present',  
+  $ensure_package = 'present'
 ) {
 
   include nova::params

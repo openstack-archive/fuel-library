@@ -1,6 +1,6 @@
 class nova::scheduler(
   $enabled        = false,
-  $ensure_package = 'present',
+  $ensure_package = 'present'
 ) {
 
   include nova::params

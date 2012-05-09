@@ -1,5 +1,5 @@
 class nova::client(
-  $ensure = 'present',	
+  $ensure = 'present'
 ) {
 
   package { 'python-novaclient':
