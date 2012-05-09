@@ -103,8 +103,9 @@ class haproxy (
       true  => true,
       false => false,
     },
-    name      => 'haproxy',
-    hasstatus => true,
-    require   => Concat['/etc/haproxy/haproxy.cfg'],
+    name       => 'haproxy',
+    hasrestart => true,
+    hasstatus  => true,
+    require    => Concat['/etc/haproxy/haproxy.cfg'],
   }
 }
