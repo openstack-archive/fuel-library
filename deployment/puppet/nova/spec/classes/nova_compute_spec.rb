@@ -35,6 +35,11 @@ describe 'nova::compute' do
         'ensure' => 'present',
         'notify' => 'Service[nova-compute]'
       ) }
+      it { should contain_package('bridge-utils').with(
+        :ensure => 'present',
+        :before => 'Nova::Generic_service[compute]' 
+      ) }
+
       describe 'with enabled as true' do
         let :params do
           {
