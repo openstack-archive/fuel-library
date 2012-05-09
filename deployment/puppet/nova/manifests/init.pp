@@ -57,13 +57,13 @@ class nova(
   # before the file resource for nova.conf is managed
   # and before the post config resource
   Nova_config<| |> {
-    require +> Package[$::nova::params::common_package_name],
+    require +> Package['nova-common'],
     before  +> File['/etc/nova/nova.conf'],
     notify  +> Exec['post-nova_config']
   }
 
   File {
-    require => Package[$::nova::params::common_package_name],
+    require => Package['nova-common'],
     owner   => 'nova',
     group   => 'nova',
   }
@@ -90,7 +90,7 @@ class nova(
   }
 
   package { 'nova-common':
-    name    =>$::nova::params::common_package_name,
+    name    => $::nova::params::common_package_name,
     ensure  => present,
     require => [Package["python-nova"], Anchor['nova-start']]
   }
@@ -138,25 +138,19 @@ class nova(
   } else {
     Nova_config <<| title == 'sql_connection' |>>
   }
-  if $rabbit_host {
-    nova_config { 'rabbit_host': value => $rabbit_host }
-  } else {
-    Nova_config <<| title == 'rabbit_host' |>>
-  }
+
+  nova_config { 'image_service': value => $image_service }
+
   if $image_service == 'nova.image.glance.GlanceImageService' {
     if $glance_api_servers {
-      nova_config {
-        'glance_api_servers': value => $glance_api_servers
-      }
+      nova_config { 'glance_api_servers': value => $glance_api_servers }
     } else {
       # TODO this only supports setting a single address for the api server
       Nova_config <<| title == glance_api_servers |>>
     }
   }
 
-  nova_config {
-    'auth_strategy': value => $auth_strategy;
-  }
+  nova_config { 'auth_strategy': value => $auth_strategy }
 
   if $auth_strategy == 'keystone' {
     nova_config { 'use_deprecated_auth': value => false }
@@ -165,6 +159,11 @@ class nova(
   }
 
 
+  if $rabbit_host {
+    nova_config { 'rabbit_host': value => $rabbit_host }
+  } else {
+    Nova_config <<| title == 'rabbit_host' |>>
+  }
   # I may want to support exporting and collecting these
   nova_config {
     'rabbit_password': value => $rabbit_password;
@@ -177,7 +176,6 @@ class nova(
   nova_config {
     'verbose': value => $verbose;
     'logdir': value => $logdir;
-    'image_service': value => $image_service;
     # Following may need to be broken out to different nova services
     'state_path': value => $state_path;
     'lock_path': value => $lock_path;
