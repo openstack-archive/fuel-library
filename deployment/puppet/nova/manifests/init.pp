@@ -127,7 +127,7 @@ class nova(
       }
     } else {
       # TODO this only supports setting a single address for the api server
-      Nova_config <<| title == $glance_api_servers |>>
+      Nova_config <<| title == glance_api_servers |>>
     }
   }
 
