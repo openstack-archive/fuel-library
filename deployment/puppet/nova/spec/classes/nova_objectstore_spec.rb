@@ -30,6 +30,14 @@ describe 'nova::objectstore' do
       'enable'  => true
     )}
     end
+    describe 'with package version' do
+      let :params do
+        {:ensure_package => '2012.1-2'}
+      end
+      it { should contain_package('nova-objectstore').with(
+        'ensure' => '2012.1-2'
+      )}
+    end    
   end
   describe 'on rhel' do
     let :facts do

@@ -21,10 +21,11 @@ class nova::vncproxy(
   }
 
   nova::generic_service { 'vncproxy':
-    enabled      => $enabled,
-    package_name => $::nova::params::vncproxy_package_name,
-    service_name => $::nova::params::vncproxy_service_name,
-    require      => Package['python-numpy']
+    enabled        => $enabled,
+    package_name   => $::nova::params::vncproxy_package_name,
+    service_name   => $::nova::params::vncproxy_service_name,
+    ensure_package => $ensure_package,
+    require        => Package['python-numpy']
   }
 
 }
