@@ -1,3 +1,33 @@
+# This class is used to specify configuration parameters that are common
+# across all nova services.
+#
+# ==Parameters
+#
+# [sql_connection] Connection url to use to connect to nova sql database.
+#  If specified as false, then it tries to collect the exported resource
+#   Nova_config <<| title == 'sql_connection' |>>. Optional. Defaults to false. 
+# [image_service] Service used to search for and retrieve images. Optional.
+#   Defaults to 'nova.image.local.LocalImageService'
+# [glance_api_servers] List of addresses for api servers. Optional.
+#   Defaults to localhost:9292.
+# [rabbit_host] Location of rabbitmq installation. Optional. Defaults to localhost.
+# [rabbit_password] Password used to connect to rabbitmq. Optional. Defaults to guest.
+# [rabbit_port] Port for rabbitmq instance. Optional. Defaults to 5672.
+# [rabbit_userid] User used to connect to rabbitmq. Optional. Defaults to guest.
+# [rabbit_virtual_host] The RabbitMQ virtual host. Optional. Defaults to /.
+# [auth_strategy]
+# [service_down_time] maximum time since last check-in for up service. Optional.
+#  Defaults to 60
+# [logdir] Directory where logs should be stored. Optional. Defaults to '/var/log/nova'.
+# [state_path] Directory for storing state. Optional. Defaults to '/var/lib/nova'.
+# [lock_path] Directory for lock files. Optional. Distro specific default.
+# [verbose] Rather to print more verbose output. Optional. Defaults to false.
+# [periodic_interval] Seconds between running periodic tasks. Optional.
+#   Defaults to '60'.
+# [report_interval] Interval at which nodes report to data store. Optional.
+#    Defaults to '10'.
+# [root_helper] Command used for roothelper. Optional. Distro specific.
+#
 class nova(
   # this is how to query all resources from our clutser
   $nova_cluster_id='localcluster',
@@ -6,24 +36,17 @@ class nova(
   # these glance params should be optional
   # this should probably just be configured as a glance client
   $glance_api_servers = 'localhost:9292',
-  $allow_admin_api = false,
   $rabbit_host = 'localhost',
   $rabbit_password='guest',
   $rabbit_port='5672',
   $rabbit_userid='guest',
   $rabbit_virtual_host='/',
   $auth_strategy = 'keystone',
-  $network_manager = 'nova.network.manager.FlatManager',
-  $multi_host_networking = false,
-  $flat_network_bridge = 'br100',
-  $vlan_interface = 'eth1',
-  $vlan_start = 1000,
   $service_down_time = 60,
   $logdir = '/var/log/nova',
   $state_path = '/var/lib/nova',
   $lock_path = $::nova::params::lock_path,
   $verbose = false,
-  $nodaemon = false,
   $periodic_interval = '60',
   $report_interval = '10',
   $root_helper = $::nova::params::root_helper
@@ -34,13 +57,13 @@ class nova(
   # before the file resource for nova.conf is managed
   # and before the post config resource
   Nova_config<| |> {
-    require +> Package[$::nova::params::common_package_name],
+    require +> Package['nova-common'],
     before  +> File['/etc/nova/nova.conf'],
     notify  +> Exec['post-nova_config']
   }
 
   File {
-    require => Package[$::nova::params::common_package_name],
+    require => Package['nova-common'],
     owner   => 'nova',
     group   => 'nova',
   }
@@ -67,7 +90,7 @@ class nova(
   }
 
   package { 'nova-common':
-    name    =>$::nova::params::common_package_name,
+    name    => $::nova::params::common_package_name,
     ensure  => present,
     require => [Package["python-nova"], Anchor['nova-start']]
   }
@@ -97,6 +120,7 @@ class nova(
   exec { "nova-db-sync":
     command     => "/usr/bin/nova-manage db sync",
     refreshonly => "true",
+    require     => [Package['nova-common'], Nova_config['sql_connection']],
   }
 
   # used by debian/ubuntu in nova::network_bridge to refresh
@@ -114,25 +138,19 @@ class nova(
   } else {
     Nova_config <<| title == 'sql_connection' |>>
   }
-  if $rabbit_host {
-    nova_config { 'rabbit_host': value => $rabbit_host }
-  } else {
-    Nova_config <<| title == 'rabbit_host' |>>
-  }
+
+  nova_config { 'image_service': value => $image_service }
+
   if $image_service == 'nova.image.glance.GlanceImageService' {
     if $glance_api_servers {
-      nova_config {
-        'glance_api_servers': value => $glance_api_servers
-      }
+      nova_config { 'glance_api_servers': value => $glance_api_servers }
     } else {
       # TODO this only supports setting a single address for the api server
       Nova_config <<| title == glance_api_servers |>>
     }
   }
 
-  nova_config {
-    'auth_strategy': value => $auth_strategy;
-  }
+  nova_config { 'auth_strategy': value => $auth_strategy }
 
   if $auth_strategy == 'keystone' {
     nova_config { 'use_deprecated_auth': value => false }
@@ -141,6 +159,11 @@ class nova(
   }
 
 
+  if $rabbit_host {
+    nova_config { 'rabbit_host': value => $rabbit_host }
+  } else {
+    Nova_config <<| title == 'rabbit_host' |>>
+  }
   # I may want to support exporting and collecting these
   nova_config {
     'rabbit_password': value => $rabbit_password;
@@ -152,45 +175,17 @@ class nova(
 
   nova_config {
     'verbose': value => $verbose;
-    'nodaemon': value => $nodaemon;
     'logdir': value => $logdir;
-    'image_service': value => $image_service;
-    'allow_admin_api': value => $allow_admin_api;
     # Following may need to be broken out to different nova services
     'state_path': value => $state_path;
     'lock_path': value => $lock_path;
     'service_down_time': value => $service_down_time;
-    # These network entries wound up in the common
-    # config b/c they have to be set by both compute
-    # as well as controller.
-    'network_manager': value => $network_manager;
-    'multi_host': value => $multi_host_networking;
     'root_helper': value => $root_helper;
   }
 
   exec { 'post-nova_config':
     command => '/bin/echo "Nova config has changed"',
     refreshonly => true,
-  }
-
-  if $network_manager == 'nova.network.manager.FlatManager' {
-    nova_config {
-      'flat_network_bridge': value => $flat_network_bridge
-    }
-  }
-
-  if $network_manager == 'nova.network.manager.FlatDHCPManager' {
-    nova_config {
-      'dhcpbridge': value => "/usr/bin/nova-dhcpbridge";
-      'dhcpbridge_flagfile': value => "/etc/nova/nova.conf";
-    }
-  }
-
-  if $network_manager == 'nova.network.manager.VlanManager' {
-    nova_config {
-      'vlan_interface': value => $vlan_interface;
-      'vlan_start': value     => $vlan_start;
-    }
   }
 
 }

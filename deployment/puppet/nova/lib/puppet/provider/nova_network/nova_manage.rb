@@ -22,6 +22,29 @@ Puppet::Type.type(:nova_network).provide(:nova_manage) do
     end.compact
   end
 
+  def create
+    optional_opts = []
+    {
+      # this needs to be converted from a project name to an id
+      :project          => '--project_id',
+      :dns2             => '--dns2',
+      :gateway          => '--gateway',
+      :bridge           => '--bridge',
+      :vlan_start       => '--vlan'
+    }.each do |param, opt|
+      if resource[param]
+        optional_opts.push(opt).push(resource[param])
+      end
+    end
+
+    nova_manage('network', 'create',
+      "--label=#{resource[:label]}",
+      "--fixed_range_v4=#{resource[:name]}",
+      "--num_networks=#{resource[:num_networks]}",
+      optional_opts
+    )
+  end
+
   def exists?
     begin
       network_list = nova_manage("network", "list")
@@ -34,15 +57,9 @@ Puppet::Type.type(:nova_network).provide(:nova_manage) do
     end
   end
 
-  def create
-     mask=resource[:network].sub(/.*\/([1-3][0-9]?)/, '\1')
-     available_ips=2**(32-mask.to_i)
-     nova_manage("network", "create", resource[:label], resource[:network], "1", available_ips, "--bridge=#{resource[:bridge]}")
-  end
 
   def destroy
     nova_manage("network", "delete", resource[:network])
   end
 
 end
-
