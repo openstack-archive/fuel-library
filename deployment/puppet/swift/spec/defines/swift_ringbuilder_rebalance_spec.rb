@@ -8,7 +8,7 @@ describe 'swift::ringbuilder::rebalance' do
         end
         it { should contain_exec("rebalance_#{type}").with(
           {:command     => "swift-ring-builder /etc/swift/#{type}.builder rebalance",
-           :path        => ['/usr/bin'],
+           :path        => '/usr/bin',
            :refreshonly => true}
         )}
       end

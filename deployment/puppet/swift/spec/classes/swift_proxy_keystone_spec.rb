@@ -2,6 +2,12 @@ require 'spec_helper'
 
 describe 'swift::proxy::keystone' do
 
+  let :facts do
+    {
+      :concat_basedir => '/var/lib/puppet/concat',
+    }
+  end
+
   let :fragment_file do
     '/var/lib/puppet/concat/_etc_swift_proxy-server.conf/fragments/79_swift_keystone'
   end

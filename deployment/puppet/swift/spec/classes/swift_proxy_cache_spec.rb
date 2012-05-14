@@ -6,7 +6,8 @@ describe 'swift::proxy::cache' do
     {
       :operatingsystem => 'Ubuntu',
       :osfamily        => 'Debian',
-      :processorcount  => 1
+      :processorcount  => 1,
+      :concat_basedir  => '/var/lib/puppet/concat',
     }
   end
 
