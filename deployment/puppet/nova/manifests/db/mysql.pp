@@ -20,7 +20,7 @@ class nova::db::mysql(
     password     => $password,
     host         => $host,
     # I may want to inject some sql
-    require      => Class['mysql::server'],
+    require      => Class['mysql::config'],
   }
 
   if $allowed_hosts {
