@@ -18,7 +18,24 @@ describe 'glance::db::mysql' do
 
     it { should contain_mysql__db('glance').with(
       :password => 'glancepass1',
-      :require  => 'Class[Mysql::Config]'
+      :require  => 'Class[Mysql::Config]',
+      :charset  => 'latin1'
+    )}
+
+  end
+
+  describe "overriding default params" do
+    let :params do
+      { 
+      	:password => 'glancepass2',
+      	:dbname   => 'glancedb2',
+      	:charset  => 'utf8'
+      }
+    end
+
+    it { should contain_mysql__db('glancedb2').with(
+      :password => 'glancepass2',
+      :charset  => 'utf8'
     )}
 
   end

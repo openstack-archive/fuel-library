@@ -4,11 +4,12 @@
 #
 class glance::db::mysql(
   $password,
-  $dbname = 'glance',
-  $user = 'glance',
-  $host = '127.0.0.1',
+  $dbname        = 'glance',
+  $user          = 'glance',
+  $host          = '127.0.0.1',
   $allowed_hosts = undef,
-  $cluster_id = 'localzone'
+  $charset       = 'latin1',
+  $cluster_id    = 'localzone'
 ) {
 
   Class['glance::db::mysql'] -> Exec<| title == 'glance-manage db_sync' |>
@@ -20,7 +21,7 @@ class glance::db::mysql(
     user         => $user,
     password     => $password,
     host         => $host,
-    charset      => 'latin1',
+    charset      => $charset,
     # I may want to inject some sql
     require      => Class['mysql::config'],
   }
