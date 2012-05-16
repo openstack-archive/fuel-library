@@ -35,6 +35,7 @@ class keystone::db::mysql(
   $dbname        = 'keystone',
   $user          = 'keystone_admin',
   $host          = '127.0.0.1',
+  $charset       = 'latin1',
   $allowed_hosts = undef
 ) {
 
@@ -47,7 +48,7 @@ class keystone::db::mysql(
     password => $password,
     host     => $host,
     # TODO does it make sense to support other charsets?
-    charset  => 'latin1',
+    charset  => $charset,
     require  => Class['mysql::config'],
   }
 

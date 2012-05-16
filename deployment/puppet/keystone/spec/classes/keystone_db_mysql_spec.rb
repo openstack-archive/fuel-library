@@ -11,6 +11,7 @@ describe 'keystone::db::mysql' do
       'password' => 'keystone_default_password',
       'dbname'   => 'keystone',
       'user'     => 'keystone_admin',
+      'charset'  => 'latin1',
       'host'     => '127.0.0.1'
     }
   end
@@ -21,7 +22,8 @@ describe 'keystone::db::mysql' do
       'password' => 'password',
       'dbname'   => 'not_keystone',
       'user'     => 'dan',
-      'host'     => '127.0.0.2'
+      'host'     => '127.0.0.2',
+      'charset'  => 'utf8'
     }
   ].each do |p|
 
@@ -37,9 +39,10 @@ describe 'keystone::db::mysql' do
       'user'     => param_values['user'],
       'password' => param_values['password'],
       'host'     => param_values['host'],
-      'charset'  => 'latin1',
+      'charset'  => param_values['charset'],
       'require'  => 'Class[Mysql::Config]'
     )}
+
   end
 
 end
