@@ -48,7 +48,7 @@ class keystone::db::mysql(
     host     => $host,
     # TODO does it make sense to support other charsets?
     charset  => 'latin1',
-    require  => Class['mysql::server'],
+    require  => Class['mysql::config'],
   }
 
   if $allowed_hosts {
