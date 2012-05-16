@@ -5,8 +5,8 @@ describe 'glance::db::mysql' do
     {
       :osfamily => 'Debian'
     }
-  end
-  
+  end  
+
   describe "with default params" do
     let :params do
       { 
@@ -15,5 +15,12 @@ describe 'glance::db::mysql' do
     end
 
   	it { should include_class('mysql::python') }
+
+    it { should contain_mysql__db('glance').with(
+      :password => 'glancepass1',
+      :require  => 'Class[Mysql::Config]'
+    )}
+
   end
+
 end
