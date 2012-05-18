@@ -37,7 +37,7 @@ for example:
 
     class { 'keystone':
       log_verbose => 'True',
-      service_token => 'my_secret_token'
+      admin_token => 'my_secret_token'
     }
 
   needs to be configured to use a backend database with either:
