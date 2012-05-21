@@ -19,7 +19,7 @@ describe 'swift::proxy::keystone' do
 
   describe 'with defaults' do
 
-    it { should contain_file(fragment_file).with_content(/operator_roles = admin SwiftOperator/) }
+    it { should contain_file(fragment_file).with_content(/operator_roles = admin, SwiftOperator/) }
     it { should contain_file(fragment_file).with_content(/is_admin = true/) }
     it { should contain_file(fragment_file).with_content(/cache = swift.cache/) }
 
