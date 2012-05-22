@@ -22,7 +22,7 @@
 class nova::volume::iscsi (
   $volume_group     = 'nova-volumes',
   $iscsi_helper     = 'tgtadm',
-  $iscsi_ip_address = undef,
+  $iscsi_ip_address = undef
 ) {
 
   include 'nova::params'
