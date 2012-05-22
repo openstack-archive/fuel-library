@@ -92,9 +92,9 @@ describe 'swift::storage::server' do
           req_params
         end
 
-        it { should contain_rsync__server__module("#{t}#{title}").with(
+        it { should contain_rsync__server__module("#{t}").with(
           :path            => '/srv/node',
-          :lock_file       => "/var/lock/#{t}#{title}.lock",
+          :lock_file       => "/var/lock/#{t}.lock",
           :uid             => 'swift',
           :gid             => 'swift',
           :max_connections => 25,
