@@ -60,6 +60,13 @@ describe 'swift::storage::all' do
            :enable    => true,
            :hasstatus => true
           })}
+        it { should contain_service("swift-#{type}-replicator").with(
+          {:provider  => 'upstart',
+           :ensure    => 'running',
+           :enable    => true,
+           :hasstatus => true
+          }
+        )}
         it { should contain_file("/etc/swift/#{type}-server/").with(
           {:ensure => 'directory',
            :owner  => 'swift',
@@ -92,6 +99,51 @@ describe 'swift::storage::all' do
         }
       )}
 
+    end
+  end
+
+  describe "when installed on Debian" do
+    let :facts do
+      {
+        :operatingsystem => 'Debian',
+        :osfamily        => 'Debian'
+      }
+    end
+
+    [{  :storage_local_net_ip => '127.0.0.1' },
+      {
+      :devices => '/tmp/node',
+      :storage_local_net_ip => '10.0.0.1',
+      :object_port => '7000',
+      :container_port => '7001',
+      :account_port => '7002'
+    }
+    ].each do |param_set|
+      describe "when #{param_set == {} ? "using default" : "specifying"} class parameters" do
+        let :param_hash do
+          default_params.merge(param_set)
+        end
+
+        let :params do
+          param_set
+        end
+        ['object', 'container', 'account'].each do |type|
+          it { should contain_package("swift-#{type}").with_ensure('present') }
+          it { should contain_service("swift-#{type}").with(
+            {:provider  => nil,
+              :ensure    => 'running',
+              :enable    => true,
+              :hasstatus => true
+            })}
+            it { should contain_service("swift-#{type}-replicator").with(
+              {:provider  => nil,
+                :ensure    => 'running',
+                :enable    => true,
+                :hasstatus => true
+              }
+            )}
+        end
+      end
     end
   end
 end
