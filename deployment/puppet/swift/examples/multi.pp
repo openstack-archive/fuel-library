@@ -183,6 +183,7 @@ class role_swift_storage inherits role_swift {
   }
 
   # sync ring databases if they have been exported
-  Swift::Ringsync<<||>>
+  # do this before checking the status of the storage services
+  Swift::Ringsync<<||>> -> Class['swift::storage::all']
 
 }
