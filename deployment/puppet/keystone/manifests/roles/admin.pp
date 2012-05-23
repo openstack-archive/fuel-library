@@ -31,6 +31,7 @@
 #
 class keystone::roles::admin(
   $email,
+  $admin,
   $password     = 'ChangeMe',
   $admin_tenant = 'openstack'
 ) {
@@ -45,7 +46,7 @@ class keystone::roles::admin(
     enabled     => 'True',
     description => 'admin tenant',
   }
-  keystone_user { 'admin':
+  keystone_user { $admin:
     ensure      => present,
     enabled     => 'True',
     tenant      => $admin_tenant,
@@ -55,7 +56,7 @@ class keystone::roles::admin(
   keystone_role { ['admin', 'Member']:
     ensure => present,
   }
-  keystone_user_role { "admin@${admin_tenant}":
+  keystone_user_role { "${admin}@${admin_tenant}":
     roles  => 'admin',
     ensure => present,
   }
