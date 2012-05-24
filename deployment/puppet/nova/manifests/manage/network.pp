@@ -18,7 +18,7 @@ define nova::manage::network (
     ensure       => present,
     network      => $network,
     num_networks => $num_networks,
-    project      => undef,
+    project      => $project,
     notify       => Exec['nova-db-sync'],
   }
 
