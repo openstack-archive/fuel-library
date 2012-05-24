@@ -6,7 +6,6 @@ describe 'keystone::roles::admin' do
     let :params do
       {
         :email => 'foo@bar',
-        :admin => 'admin',
       }
     end
 
