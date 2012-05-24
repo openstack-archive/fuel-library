@@ -5,7 +5,7 @@ describe 'keystone::roles::admin' do
 
     let :params do
       {
-        :email => 'foo@bar'
+        :email => 'foo@bar',
       }
     end
 
@@ -40,6 +40,7 @@ describe 'keystone::roles::admin' do
 
     let :params do
       {
+        :admin        => 'admin',
         :email        => 'foo@baz',
         :password     => 'foo',
         :admin_tenant => 'admin'
