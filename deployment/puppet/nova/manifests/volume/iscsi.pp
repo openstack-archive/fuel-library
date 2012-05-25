@@ -18,7 +18,6 @@
 # volume group - either by another module or during the server
 # provisioning
 #
-
 class nova::volume::iscsi (
   $volume_group     = 'nova-volumes',
   $iscsi_helper     = 'tgtadm',
