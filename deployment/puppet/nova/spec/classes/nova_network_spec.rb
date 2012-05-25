@@ -184,7 +184,7 @@ describe 'nova::network' do
     end
     describe 'with package version' do
       let :params do
-        {:ensure_package => '2012.1-2'}
+        default_params.merge(:ensure_package => '2012.1-2')
       end
       it { should contain_package('nova-network').with(
         'ensure' => '2012.1-2'
