@@ -21,6 +21,8 @@ concat { "/tmp/foo": }
    '/var/lib/puppet/concat/_tmp_foo/fragments/80__tmp_foo_authtoken'
   end
 
+  it { should include_class('keystone::python') }
+
   describe 'with default options' do
     it 'should use defaults to compile fragment template' do
 # TODO why is this path wrong???
