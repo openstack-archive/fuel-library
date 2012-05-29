@@ -5,6 +5,7 @@ describe 'swift::storage::all' do
 
   let :facts do
     {
+      :concat_basedir  => '/tmp/',
       :operatingsystem => 'Ubuntu',
       :osfamily        => 'Debian'
     }
