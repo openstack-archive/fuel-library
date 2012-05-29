@@ -56,4 +56,6 @@ define keystone::client::authtoken(
     order   => $order,
   }
 
+  include 'keystone::python'
+
 }
