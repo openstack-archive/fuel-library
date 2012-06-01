@@ -21,7 +21,7 @@ class nova::network(
   $network_manager  = 'nova.network.manager.FlatDHCPManager',
   $config_overrides = {},
   $create_networks  = true,
-  $ensure_package   = 'present',  
+  $ensure_package   = 'present',
   $install_service  = true
 ) {
 
@@ -98,13 +98,19 @@ class nova::network(
     }
     'nova.network.manager.VlanManager': {
 
-      $vlan_start = $config_overrides['vlan_start']
+      $vlan_start          = $config_overrides['vlan_start']
+      $force_dhcp_release  = $config_overrides['force_dhcp_release']
+      $dhcpbridge          = $config_overrides['dhcpbridge']
+      $dhcpbridge_flagfile = $config_overrides['dhcpbridge_flagfile']
 
       class { 'nova::network::vlan':
-        fixed_range      => $fixed_range,
-        public_interface => $public_interface,
-        vlan_interface   => $private_interface,
-        vlan_start       => $vlan_start,
+        fixed_range         => $fixed_range,
+        public_interface    => $public_interface,
+        vlan_interface      => $private_interface,
+        vlan_start          => $vlan_start,
+        force_dhcp_release  => $force_dhcp_release,
+        dhcpbridge          => $dhcpbridge,
+        dhcpbridge_flagfile => $dhcpbridge_flagfile,
       }
     }
     default: {
