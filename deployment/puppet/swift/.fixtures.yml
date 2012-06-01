@@ -1,0 +1,12 @@
+fixtures:
+  repositories:
+    "apt": "git://github.com/puppetlabs/puppetlabs-apt.git"
+    "concat": "git://github.com/ripienaar/puppet-concat.git"
+    "keystone": "git://github.com/puppetlabs/puppetlabs-keystone.git"
+    "memcached": "git://github.com/saz/puppet-memcached.git"
+    "rsync": "git://github.com/puppetlabs/puppetlabs-rsync.git"
+    "ssh": "git://github.com/saz/puppet-ssh.git"
+    "stdlib": "git://github.com/puppetlabs/puppetlabs-stdlib.git"
+    "xinetd": "git://github.com/ghoneycutt/puppet-xinetd.git"
+  symlinks:
+    "swift": "#{source_dir}"
