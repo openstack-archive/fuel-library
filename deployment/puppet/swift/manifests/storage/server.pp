@@ -14,10 +14,9 @@ define swift::storage::server(
   $mount_check            = 'false',
   $user                   = 'swift',
   $workers                = '1',
-  $concurrency            = $::processorcount,
-  $replicator_concurrency = $concurrency,
-  $updater_concurrency    = $concurrency,
-  $reaper_concurrency     = $concurrency,
+  $replicator_concurrency = $::processorcount,
+  $updater_concurrency    = $::processorcount,
+  $reaper_concurrency     = $::processorcount,
   # this parameters needs to be specified after type and name
   $config_file_path       = "${type}-server/${name}.conf"
 ) {

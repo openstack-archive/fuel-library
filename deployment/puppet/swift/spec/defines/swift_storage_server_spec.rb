@@ -68,7 +68,6 @@ describe 'swift::storage::server' do
           :devices     => '/tmp/foo',
           :user        => 'dan',
           :mount_check => true,
-          :concurrency => 5,
           :workers     => 7,
           :pipeline    => ['foo']
         }.each do |k,v|
@@ -94,7 +93,24 @@ describe 'swift::storage::server' do
             end.should raise_error(Puppet::Error, /is not an Array/)
           end
         end
+        describe "when replicator_concurrency is set" do
+          let :params do req_params.merge({:replicator_concurrency => 42}) end
+          it { should contain_file(fragment_file) \
+            .with_content(/\[#{t}-replicator\]\nconcurrency\s*=\s*42\s*$/m)
+          }
+        end
+        if t != 'account'
+          describe "when updater_concurrency is set" do
+            let :params do req_params.merge({:updater_concurrency => 73}) end
             it { should contain_file(fragment_file) \
+              .with_content(/\[#{t}-updater\]\nconcurrency\s*=\s*73\s*$/m)
+            }
+          end
+        else
+          describe "when reaper_concurrency is set" do
+            let :params do req_params.merge({:reaper_concurrency => 4682}) end
+            it { should contain_file(fragment_file) \
+              .with_content(/\[#{t}-reaper\]\nconcurrency\s*=\s*4682\s*$/m)
             }
           end
         end
