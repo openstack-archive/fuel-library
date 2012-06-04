@@ -1,32 +1,34 @@
+#
+# This class can be sed to manage keystone middleware for swift proxy
+#
+# == Parameters
+#  [operator_roles] a list of keystone roles a user must have to gain
+#    access to Swift.
+#    Optional. Dfeaults to ['admin', 'SwiftOperator']
+#    Must be an array of strings
+#  [is_admin] Set to true to allow users to set ACLs on their account.
+#    Optional. Defaults to true.
+#  [cache] the cache backend to use
+#    Optional. Defaults to 'swift.cache'
+#
+# == Authors
+#
+#  Dan Bode dan@puppetlabs.com
+#  François Charlier fcharlier@ploup.net
+#
+
 class swift::proxy::keystone(
-  $admin_token         = undef,
-  $admin_user          = undef,
-  $admin_tenant_name   = undef,
-  $admin_password      = undef,
-  $delay_auth_decision = undef,
-  $auth_host           = undef,
-  $auth_port           = undef,
-  $auth_protocol       = undef,
   $operator_roles      = ['admin', 'SwiftOperator'],
   $is_admin            = true,
   $cache               = 'swift.cache'
 ) {
 
+  require 'keystone::python'
+
   concat::fragment { 'swift_keystone':
     target  => '/etc/swift/proxy-server.conf',
     content => template('swift/proxy/keystone.conf.erb'),
     order   => '79',
-  }
-
-  keystone::client::authtoken { '/etc/swift/proxy-server.conf':
-    admin_token         => $admin_token,
-    admin_user          => $admin_user,
-    admin_tenant_name   => $admin_tenant_name,
-    admin_password      => $admin_password,
-    delay_auth_decision => $delay_auth_decision,
-    auth_host           => $auth_host,
-    auth_port           => $auth_port,
-    auth_protocol       => $auth_protocol
   }
 
 }
