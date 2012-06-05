@@ -17,10 +17,13 @@
 #
 class swift::storage::all(
   $storage_local_net_ip,
-  $devices        = '/srv/node',
-  $object_port    = '6000',
-  $container_port = '6001',
-  $account_port   = '6002'
+  $devices            = '/srv/node',
+  $object_port        = '6000',
+  $container_port     = '6001',
+  $account_port       = '6002',
+  $object_pipeline    = undef,
+  $container_pipeline = undef,
+  $account_pipeline   = undef
 ) {
 
   class { 'swift::storage':
@@ -35,15 +38,18 @@ class swift::storage::all(
   swift::storage::server { $account_port:
     type             => 'account',
     config_file_path => 'account-server.conf',
+    pipeline         => $account_pipeline,
   }
 
   swift::storage::server { $container_port:
     type             => 'container',
     config_file_path => 'container-server.conf',
+    pipeline         => $container_pipeline,
   }
 
   swift::storage::server { $object_port:
     type             => 'object',
     config_file_path => 'object-server.conf',
+    pipeline         => $object_pipeline,
   }
 }

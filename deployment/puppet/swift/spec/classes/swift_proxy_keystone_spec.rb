@@ -19,6 +19,8 @@ describe 'swift::proxy::keystone' do
     '
   end
 
+  it { should include_class('keystone::python') }
+
   it { should contain_file(fragment_file).with_content(/[filter:keystone]/) }
 
   it { should contain_file(fragment_file).with_content(/paste.filter_factory = keystone.middleware.swift_auth:filter_factory/) }
@@ -28,8 +30,6 @@ describe 'swift::proxy::keystone' do
     it { should contain_file(fragment_file).with_content(/operator_roles = admin, SwiftOperator/) }
     it { should contain_file(fragment_file).with_content(/is_admin = true/) }
     it { should contain_file(fragment_file).with_content(/cache = swift.cache/) }
-
-    it { should contain_keystone__client__authtoken('/etc/swift/proxy-server.conf') }
 
   end
 

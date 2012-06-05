@@ -40,7 +40,10 @@ describe 'swift::storage::all' do
       :storage_local_net_ip => '10.0.0.1',
       :object_port => '7000',
       :container_port => '7001',
-      :account_port => '7002'
+      :account_port => '7002',
+      :object_pipeline => ["1", "2"],
+      :container_pipeline => ["3", "4"],
+      :account_pipeline => ["5", "6"],
     }
   ].each do |param_set|
 
@@ -76,15 +79,18 @@ describe 'swift::storage::all' do
 
       it { should contain_swift__storage__server(param_hash[:account_port]).with(
         {:type => 'account',
-         :config_file_path => 'account-server.conf'}.merge(storage_server_defaults)
+         :config_file_path => 'account-server.conf',
+         :pipeline => param_hash[:account_pipeline] || 'account-server' }.merge(storage_server_defaults)
       )}
       it { should contain_swift__storage__server(param_hash[:object_port]).with(
         {:type => 'object',
-         :config_file_path => 'object-server.conf'}.merge(storage_server_defaults)
+         :config_file_path => 'object-server.conf',
+         :pipeline => param_hash[:object_pipeline] || 'object-server' }.merge(storage_server_defaults)
       )}
       it { should contain_swift__storage__server(param_hash[:container_port]).with(
         {:type => 'container',
-         :config_file_path => 'container-server.conf'}.merge(storage_server_defaults)
+         :config_file_path => 'container-server.conf',
+         :pipeline => param_hash[:container_pipeline] || 'container-server' }.merge(storage_server_defaults)
       )}
 
       it { should contain_class('rsync::server').with(

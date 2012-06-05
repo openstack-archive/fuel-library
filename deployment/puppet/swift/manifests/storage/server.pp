@@ -6,23 +6,25 @@
 define swift::storage::server(
   $type,
   $storage_local_net_ip,
-  $devices          = '/srv/node',
-  $owner            = 'swift',
-  $group            = 'swift',
-  $max_connections  = 25,
-  $pipeline         = ["${type}-server"],
-  $mount_check      = 'false',
-  $user             = 'swift',
-  $workers          = '1',
-  $concurrency      = $::processorcount,
+  $devices                = '/srv/node',
+  $owner                  = 'swift',
+  $group                  = 'swift',
+  $max_connections        = 25,
+  $pipeline               = ["${type}-server"],
+  $mount_check            = 'false',
+  $user                   = 'swift',
+  $workers                = '1',
+  $replicator_concurrency = $::processorcount,
+  $updater_concurrency    = $::processorcount,
+  $reaper_concurrency     = $::processorcount,
   # this parameters needs to be specified after type and name
-  $config_file_path = "${type}-server/${name}.conf"
+  $config_file_path       = "${type}-server/${name}.conf"
 ) {
 
   # TODO if array does not include type-server, warn
   if(
     (is_array($pipeline) and ! member($pipeline, "${type}-server")) or
-    $pipline != "${type}-server"
+    $pipeline != "${type}-server"
   ) {
       warning("swift storage server ${type} must specify ${type}-server")
   }
@@ -32,6 +34,7 @@ define swift::storage::server(
 
   validate_re($name, '^\d+$')
   validate_re($type, '^object|container|account$')
+  validate_array($pipeline)
   # TODO - validate that name is an integer
 
   $bind_port = $name
@@ -52,10 +55,23 @@ define swift::storage::server(
     mode    => 640,
   }
 
+  $required_middlewares = split(
+    inline_template(
+      "<%=
+        (pipeline - ['${type}-server']).collect do |x|
+          'Swift::Storage::Filter::' + x + '[${type}]'
+        end.join(',')
+      %>"), ',')
+
   # you can now add your custom fragments at the user level
   concat::fragment { "swift-${type}-${name}":
     target  => "/etc/swift/${config_file_path}",
     content => template("swift/${type}-server.conf.erb"),
     order   => '00',
+    # require classes for each of the elements of the pipeline
+    # this is to ensure the user gets reasonable elements if he
+    # does not specify the backends for every specified element of
+    # the pipeline
+    before  => $required_middlewares,
   }
 }
