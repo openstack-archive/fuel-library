@@ -20,9 +20,9 @@
 #  [auth_host] Host providing the keystone service API endpoint. Optional.
 #    Defaults to 127.0.0.1
 #  [auth_port] Port where keystone service is listening. Optional.
-#    Defaults to 3557.
+#    Defaults to 35357.
 #  [auth_protocol] Protocol to use to communicate with keystone. Optional.
-#    Defaults to https.
+#    Defaults to http.
 #
 # == Authors
 #
@@ -40,8 +40,8 @@ define keystone::client::authtoken(
   $admin_password      = 'ChangeMe',
   $delay_auth_decision = '0',
   $auth_host           = '127.0.0.1',
-  $auth_port           = '3557',
-  $auth_protocol       = 'https'
+  $auth_port           = '35357',
+  $auth_protocol       = 'http'
   # TODO implement these eventually
   # $memcache_servers
   # $token_cache_time
