@@ -5,7 +5,8 @@ describe 'swift::ringbuilder' do
     {
       :operatingsystem => 'Ubuntu',
       :osfamily        => 'Debian',
-      :processorcount  => 1
+      :processorcount  => 1,
+      :concat_basedir  => '/tmp/foo'
     }
   end
   describe 'when swift class is not included' do
@@ -23,9 +24,11 @@ describe 'swift::ringbuilder' do
        class { 'ssh::server::install': }"
     end
 
-    it { should contain_swift__ringbuilder__rebalance('object') }
-    it { should contain_swift__ringbuilder__rebalance('account') }
-    it { should contain_swift__ringbuilder__rebalance('container') }
+    it 'should rebalance the ring for all ring types' do
+      should contain_swift__ringbuilder__rebalance('object')
+      should contain_swift__ringbuilder__rebalance('account')
+      should contain_swift__ringbuilder__rebalance('container')
+    end
 
     describe 'with default parameters' do
       ['object', 'account', 'container'].each do |type|
@@ -60,43 +63,42 @@ describe 'swift::ringbuilder' do
          'class { memcached: max_memory => 1}
           class { swift: swift_hash_suffix => string }
           class { "ssh::server::install": }
-          ring_object_device { "127.0.0.1:6000":
+          ring_object_device { "127.0.0.1:6000/1":
           zone        => 1,
-          device_name => 1,
           weight      => 1,
         }
 
-        ring_container_device { "127.0.0.1:6001":
+        ring_container_device { "127.0.0.1:6001/1":
           zone        => 2,
-          device_name => 1,
           weight      => 1,
         }
 
-        ring_account_device { "127.0.0.1:6002":
+        ring_account_device { "127.0.0.1:6002/1":
           zone        => 3,
-          device_name => 1,
           weight      => 1,
         }'
       end
 
-      it { should contain_swift__ringbuilder__create('object').with(
-        {:before => 'Ring_object_device[127.0.0.1:6000]'}
-      )}
-      it { should contain_swift__ringbuilder__create('container').with(
-        {:before => 'Ring_container_device[127.0.0.1:6001]'}
-      )}
-      it { should contain_swift__ringbuilder__create('account').with(
-        {:before => 'Ring_account_device[127.0.0.1:6002]'}
-      )}
-      it { should contain_ring_object_device('127.0.0.1:6000').with(
+      it 'should set up all of the correct dependencies' do
+        should contain_swift__ringbuilder__create('object').with(
+          {:before => 'Ring_object_device[127.0.0.1:6000/1]'}
+        )
+        should contain_swift__ringbuilder__create('container').with(
+        {:before => 'Ring_container_device[127.0.0.1:6001/1]'}
+        )
+        should contain_swift__ringbuilder__create('account').with(
+        {:before => 'Ring_account_device[127.0.0.1:6002/1]'}
+        )
+        should contain_ring_object_device('127.0.0.1:6000/1').with(
         {:notify => 'Swift::Ringbuilder::Rebalance[object]'}
-      )}
-      it { should contain_ring_container_device('127.0.0.1:6001').with(
+        )
+        should contain_ring_container_device('127.0.0.1:6001/1').with(
         {:notify => 'Swift::Ringbuilder::Rebalance[container]'}
-      )}
-      it { should contain_ring_account_device('127.0.0.1:6002').with(
+        )
+        should contain_ring_account_device('127.0.0.1:6002/1').with(
         {:notify => 'Swift::Ringbuilder::Rebalance[account]'}
-      )}
+        )
+      end
     end
   end
 end
