@@ -51,4 +51,13 @@ define swift::storage::generic(
     subscribe => Package["swift-${name}"],
   }
 
+  service { "swift-${name}-replicator":
+    name      => inline_template("<%= scope.lookupvar('::swift::params::${name}_replicator_service_name') %>"),
+    ensure    => running,
+    enable    => true,
+    hasstatus => true,
+    provider  => $service_provider,
+    subscribe => Package["swift-${name}"],
+  }
+
 }
