@@ -43,6 +43,12 @@
 #  'yes' or 'no'. Should 'swift-dispersion-report' dump json results ?
 #  Optional. Defaults to no.
 #
+# === Note
+#
+# Note: if using swift < 1.5.0, swift-dispersion-report and
+# swift-dispersion-populate might need to be patched with
+# https://github.com/openstack/swift/commit/9a423d0b78a105caf6011c6c3450f7d75d20b5a1
+#
 # === Authors
 #
 # François Charlier fcharlier@ploup.net
