@@ -168,9 +168,12 @@ describe 'nova::network' do
           default_params.merge(:network_manager => 'nova.network.manager.VlanManager')
         end
         it { should contain_class('nova::network::vlan').with(
-          :fixed_range      => '10.0.0.0/32',
-          :public_interface => nil,
-          :vlan_interface   => 'eth1'
+          :fixed_range         => '10.0.0.0/32',
+          :public_interface    => nil,
+          :vlan_interface      => 'eth1',
+          :force_dhcp_release  => true,
+          :dhcpbridge          => '/usr/bin/nova-dhcpbridge',
+          :dhcpbridge_flagfile => '/etc/nova/nova.conf'
         ) }
         describe 'when overriding parameters' do
           let :params do
@@ -189,7 +192,7 @@ describe 'nova::network' do
       it { should contain_package('nova-network').with(
         'ensure' => '2012.1-2'
       )}
-    end        
+    end
   end
   describe 'on rhel' do
     let :facts do
