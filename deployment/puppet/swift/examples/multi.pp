@@ -163,22 +163,19 @@ class role_swift_storage inherits role_swift {
   # these exported resources write ring config
   # resources into the database so that they can be
   # consumed by the ringbuilder role
-  @@ring_object_device { "${swift_local_net_ip}:6000":
+  @@ring_object_device { "${swift_local_net_ip}:6000/1":
     zone        => $swift_zone,
-    device_name => 1,
     weight      => 1,
   }
 
-  @@ring_container_device { "${swift_local_net_ip}:6001":
+  @@ring_container_device { "${swift_local_net_ip}:6001/1":
     zone        => $swift_zone,
-    device_name => 1,
     weight      => 1,
   }
 
   # TODO should device be changed to volume
-  @@ring_account_device { "${swift_local_net_ip}:6002":
+  @@ring_account_device { "${swift_local_net_ip}:6002/1":
     zone        => $swift_zone,
-    device_name => 1,
     weight      => 1,
   }
 

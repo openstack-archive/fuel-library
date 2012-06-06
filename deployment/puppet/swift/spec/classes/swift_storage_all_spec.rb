@@ -7,7 +7,8 @@ describe 'swift::storage::all' do
     {
       :concat_basedir  => '/tmp/',
       :operatingsystem => 'Ubuntu',
-      :osfamily        => 'Debian'
+      :osfamily        => 'Debian',
+      :concat_basedir  => '/tmp/foo'
     }
   end
 
@@ -113,7 +114,8 @@ describe 'swift::storage::all' do
     let :facts do
       {
         :operatingsystem => 'Debian',
-        :osfamily        => 'Debian'
+        :osfamily        => 'Debian',
+        :concat_basedir  => '/tmp/foo'
       }
     end
 
