@@ -19,6 +19,18 @@ describe provider_class do
     record[:value].should == 'bar'
     record[:record_type].should == :parsed
   end
+  it 'should be able to parse settings without values' do
+    record = @provider.class.parse('--foo').first
+    record[:name].should == 'foo'
+    record[:value].should == true
+    record[:record_type].should == :parsed
+  end
+  it 'should be able to parse negated settings without values' do
+    record = @provider.class.parse('--nofoo').first
+    record[:name].should == 'foo'
+    record[:value].should == false
+    record[:record_type].should == :parsed
+  end
   it 'should be able to parse values that have spaces' do
     record = @provider.class.parse('--foo = bar or baz').first
     record[:name].should == 'foo'
