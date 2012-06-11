@@ -1,10 +1,8 @@
 Puppet::Type.newtype(:keystone_service) do
 
   desc <<-EOT
-
     This is currently used to model the management of
     keystone services.
-
   EOT
 
   ensurable

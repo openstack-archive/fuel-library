@@ -1,14 +1,12 @@
 Puppet::Type.newtype(:keystone_user_role) do
 
   desc <<-EOT
-
     This is currently used to model the creation of
     keystone users roles.
 
     User roles are an assigment of a role to a user on
     a certain tenant. The combintation of all of these
     attributes is unique.
-
   EOT
 
   ensurable

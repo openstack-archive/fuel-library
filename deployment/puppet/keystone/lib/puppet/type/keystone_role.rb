@@ -1,10 +1,8 @@
 Puppet::Type.newtype(:keystone_role) do
 
   desc <<-EOT
-
     This is currently used to model the creation of
     keystone roles.
-
   EOT
 
   ensurable
