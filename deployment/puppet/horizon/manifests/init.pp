@@ -6,13 +6,13 @@ class horizon(
   $cache_server_port = '11211'
 ) {
 
-  include horizon::params 
+  include horizon::params
 
   if $cache_server_ip =~ /^127\.0\.0\.1/ {
     Class['memcached'] -> Class['horizon']
   }
 
-  package { 'openstack-dashboard':
+  package { ['openstack-dashboard',"$::horizon::params::http_service"]:
     ensure => present,
   }
 
@@ -24,6 +24,7 @@ class horizon(
   service { 'httpd':
     name      => $::horizon::params::http_service,
     ensure    => 'running',
+    require   => Package["$::horizon::params::http_service"],
     subscribe => File['/etc/openstack-dashboard/local_settings.py']
   }
 }
