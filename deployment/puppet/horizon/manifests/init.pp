@@ -1,9 +1,23 @@
 #
 # installs a horizon server
 #
+#
+# - Parameters
+# $cache_server_ip      memcached ip address (or VIP)
+# $cache_server_port    memcached port
+# $swift                (bool) is swift installed
+# $quantum              (bool) is quantum installed
+#   The next is an array of arrays, that can be used to add call-out links to the dashboard for other apps.
+#   There is no specific requirement for these apps to be for monitoring, that's just the defacto purpose.
+#   Each app is defined in two parts, the display name, and the URI
+# [horizon_app_links]     array as in '[ ["Nagios","http://nagios_addr:port/path"],["Ganglia","http://ganglia_addr"] ]'
+#
 class horizon(
   $cache_server_ip   = '127.0.0.1',
-  $cache_server_port = '11211'
+  $cache_server_port = '11211',
+  $swift = false,
+  $quantum = false,
+  $horizon_app_links = false,
 ) {
 
   include horizon::params
