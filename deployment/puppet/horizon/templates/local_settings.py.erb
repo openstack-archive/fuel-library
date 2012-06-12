@@ -62,16 +62,28 @@ OPENSTACK_KEYSTONE_BACKEND = {
 # external to the OpenStack environment. The default is 'internalURL'.
 #OPENSTACK_ENDPOINT_TYPE = "publicURL"
 
+<% if swift -%>
+# Include the SWIFT interface extension in Horizon
+SWIFT_ENABLED = True
+<% end -%>
+
 # The number of Swift containers and objects to display on a single page before
 # providing a paging element (a "more" link) to paginate results.
 API_RESULT_LIMIT = 1000
 
-# If you have external monitoring links, eg:
-# EXTERNAL_MONITORING = [
-#     ['Nagios','http://foo.com'],
-#     ['Ganglia','http://bar.com'],
-# ]
+<% if quantum -%>
+#  Include the Quantum interface extensions in Horizon
+QUANTUM_ENABLED = True
+<% end -%>
 
+<% if monitoring -%>
+# If you have external monitoring links, eg:
+EXTERNAL_MONITORING = [
+    <% if app_mon -%><%= app_mon %>,<% end %>
+    <% if comp_mon -%><%= comp_mon %>,<% end %>
+    <% if stor_mon -%><%= stor_mon %>,<% end %>
+]
+<% end -%>
 LOGGING = {
         'version': 1,
         # When set to True this will disable all logging except
