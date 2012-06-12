@@ -6,10 +6,8 @@ Puppet::Type.type(:keystone_role).provide(
 ) do
 
   desc <<-EOT
-
     Provider that uses the keystone client tool to
     manage keystone roles
-
   EOT
 
   optional_commands :keystone => "keystone"

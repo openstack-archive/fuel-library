@@ -6,7 +6,6 @@ Puppet::Type.type(:keystone_endpoint).provide(
 ) do
 
   desc <<-EOT
-
     Provider that uses the keystone client tool to
     manage keystone endpoints
 
@@ -14,7 +13,6 @@ Puppet::Type.type(:keystone_endpoint).provide(
       1. assumes that the admin endpoint can be accessed via localhost.
       2. Assumes that the admin token and port can be accessed from
          /etc/keystone/keystone.conf
-
   EOT
 
   optional_commands :keystone => "keystone"

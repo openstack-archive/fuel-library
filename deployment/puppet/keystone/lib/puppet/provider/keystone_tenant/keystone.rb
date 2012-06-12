@@ -6,7 +6,6 @@ Puppet::Type.type(:keystone_tenant).provide(
 ) do
 
   desc <<-EOT
-
     Provider that uses the keystone client tool to
     manage keystone tenants
 
@@ -17,7 +16,6 @@ Puppet::Type.type(:keystone_tenant).provide(
 
     One string difference, is that it does not know how to change the
     name of a tenant
-
   EOT
 
   optional_commands :keystone => "keystone"

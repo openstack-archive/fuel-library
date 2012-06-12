@@ -6,7 +6,6 @@ Puppet::Type.type(:keystone_user).provide(
 ) do
 
   desc <<-EOT
-
     Provider that uses the keystone client tool to
     manage keystone users
 
@@ -16,7 +15,6 @@ Puppet::Type.type(:keystone_user).provide(
          /etc/keystone/keystone.conf
 
     Does not support the ability to update the user's name
-
   EOT
 
   optional_commands :keystone => "keystone"

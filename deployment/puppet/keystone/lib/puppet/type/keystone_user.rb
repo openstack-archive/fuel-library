@@ -1,13 +1,11 @@
 Puppet::Type.newtype(:keystone_user) do
 
   desc <<-EOT
-
     This is currently used to model the creation of
     keystone users.
 
     It currently requires that both the password
     as well as the tenant are specified.
-
   EOT
 
 # TODO support description??

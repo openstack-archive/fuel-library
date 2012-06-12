@@ -6,7 +6,6 @@ Puppet::Type.type(:keystone_service).provide(
 ) do
 
   desc <<-EOT
-
     Provider that uses the keystone client tool to
     manage keystone services
 
@@ -16,7 +15,6 @@ Puppet::Type.type(:keystone_service).provide(
          /etc/keystone/keystone.conf
 
     Does not support the ability to list all
-
   EOT
 
   optional_commands :keystone => "keystone"
