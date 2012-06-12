@@ -76,14 +76,8 @@ API_RESULT_LIMIT = 1000
 QUANTUM_ENABLED = True
 <% end -%>
 
-<% if monitoring -%>
 # If you have external monitoring links, eg:
-EXTERNAL_MONITORING = [
-    <% if app_mon -%><%= app_mon %>,<% end %>
-    <% if comp_mon -%><%= comp_mon %>,<% end %>
-    <% if stor_mon -%><%= stor_mon %>,<% end %>
-]
-<% end -%>
+EXTERNAL_MONITORING = <% if horizon_app_links %><%= horizon_app_links %>,<% else %>[ ]<% end %>
 LOGGING = {
         'version': 1,
         # When set to True this will disable all logging except

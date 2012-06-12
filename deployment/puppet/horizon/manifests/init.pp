@@ -7,33 +7,20 @@
 # $cache_server_port    memcached port
 # $swift                (bool) is swift installed
 # $quantum              (bool) is quantum installed
-# $app_mon            [] array of ['Alert_App_Name','http://alert_app_ip:port']
-# $comp_mon          [] array of ['Compute_Mon_App_Name','http://compute_mon_app_ip:port']
-# $stor_mon             [] array of ['Stor_Mon_App_Name','http://stor_mon_app_ip:port']
+#   The next is an array of arrays, that can be used to add call-out links to the dashboard for other apps.
+#   There is no specific requirement for these apps to be for monitoring, that's just the defacto purpose.
+#   Each app is defined in two parts, the display name, and the URI
+# [horizon_app_links]     array as in '[ ["Nagios","http://nagios_addr:port/path"],["Ganglia","http://ganglia_addr"] ]'
 #
 class horizon(
   $cache_server_ip   = '127.0.0.1',
   $cache_server_port = '11211',
   $swift = false,
   $quantum = false,
-  $app_mon = undef,
-  $comp_mon = undef,
-  $stor_mon = undef,
+  $horizon_app_links = false,
 ) {
 
   include horizon::params 
-
-  if $alert_mon {
-    $monitoring = true
-  }
-  elsif $compute_mon {
-    $monitoring = true
-  }
-  elsif $stor_mon {
-    $monitoring = true
-  } else {
-    $monitoring = false
-  }
 
   if $cache_server_ip =~ /^127\.0\.0\.1/ {
     Class['memcached'] -> Class['horizon']
