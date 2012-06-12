@@ -56,10 +56,10 @@ class Puppet::Provider::Keystone < Puppet::Provider
 
   private
 
-    def self.list_keystone_objects(type, number_columns)
+    def self.list_keystone_objects(type, number_columns, *args)
       # this assumes that all returned objects are of the form
       # id, name, enabled_state, OTHER
-      list = (auth_keystone("#{type}-list").split("\n")[3..-2] || []).collect do |line|
+      list = (auth_keystone("#{type}-list", args).split("\n")[3..-2] || []).collect do |line|
         row = line.split(/\s*\|\s*/)[1..-1]
         if row.size != number_columns
           raise(Puppet::Error, "Expected #{number_columns} columns for #{type} row, found #{row.size}. Line #{line}")
@@ -71,7 +71,7 @@ class Puppet::Provider::Keystone < Puppet::Provider
 
     def self.get_keystone_object(type, id, attr)
       auth_keystone("#{type}-get", id).split("\n")[3..-2].each do |line|
-        if line =~ /^\|\s*#{attr}\s*\|\s*(.*)?\s+\|$/ 
+        if line =~ /^\|\s*#{attr}\s*\|\s*(.*)?\s+\|$/
           return $1.strip
         else
           nil

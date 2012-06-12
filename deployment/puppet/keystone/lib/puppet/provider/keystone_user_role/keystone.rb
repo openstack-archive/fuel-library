@@ -101,15 +101,15 @@ Puppet::Type.type(:keystone_user_role).provide(
         '--role', role_id
       )
     end
-    
+
   end
 
   private
 
     def self.build_user_role_hash
       hash = {}
-      get_users.each do |user_name, user_id|
-        get_tenants.each do |tenant_name, tenant_id|
+      get_tenants.each do |tenant_name, tenant_id|
+        get_users(tenant_id).each do |user_name, user_id|
           list_user_roles(user_id, tenant_id).each do |role|
             hash["#{user_name}@#{tenant_name}"] ||= {
               :user_id    => user_id,
@@ -142,9 +142,10 @@ Puppet::Type.type(:keystone_user_role).provide(
       list
     end
 
-    def self.get_users
+    def self.get_users(tenant_id='')
       @users = {}
-      list_keystone_objects('user', 4).each do |user|
+
+      list_keystone_objects('user', 4, tenant_id).each do |user|
         @users[user[3]] = user[0]
       end
       @users
