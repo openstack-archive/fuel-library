@@ -97,6 +97,19 @@ class haproxy (
       order   => '10',
       content => template('haproxy/haproxy-base.cfg.erb'),
     }
+
+    if ($::operatingsystem == 'Ubuntu') {
+      file { '/etc/default/haproxy':
+        content => 'ENABLED=1',
+        require => Package['haproxy']
+      }
+    }
+
+    file { '/var/lib/haproxy':
+      ensure => directory,
+      before => Service['haproxy'],
+    }
+
   }
 
   service { 'haproxy':
