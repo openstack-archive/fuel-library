@@ -49,6 +49,12 @@ for example:
     class { 'keystone::config::mysql':
       password => 'keystone',
     }
+  
+  or
+
+    class { 'keystone::config::postgresql':
+      password => 'keystone',
+    }
 
 
 ### setting up a keystone mysql db ###
