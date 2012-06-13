@@ -12,40 +12,40 @@ proxy_local_net_ip='127.0.0.1'
 user='openstack:admin'
 password='admin_password'
 
-# headers for curl requests
-user_header="-H 'X-Storage-User: #{user}'"
-password_header="-H 'X-Storage-Pass: #{password}'"
-get_cred_command="curl -k -v #{user_header} #{password_header} http://#{proxy_local_net_ip}:5000/v2.0/"
-
-# verify that we can retrive credentials from our user
-result_hash = {}
-puts "getting credentials: #{get_cred_command}"
-Open3.popen3(get_cred_command) do |stdin, stdout, stderr|
-  result_hash[:stderr] = stderr.read
-  result_hash[:stderr].split("\n").each do |line|
-    if line =~ /^< HTTP\/\d\.\d (\d\d\d)/
-      result_hash[:status_code]=$1
-    end
-    if line =~ /< X-Storage-Url: (http\S+)/
-      result_hash[:auth_url]=$1
-    end
-    if line =~ /< X-Storage-Token: (AUTH_\S+)/
-      result_hash[:auth_token]=$1
-    end
-  end
-end
-raise(Exception, "Call to get auth tokens failed:\n#{result_hash[:stderr]}") unless result_hash[:status_code] == '200'
-
-# verify that the credentials are valid
-auth_token_header="-H 'X-Auth-Token: #{result_hash[:auth_token]}'"
-puts auth_token_header
-get_account_head="curl -k -v #{auth_token_header} #{result_hash[:auth_url]}"
-# what is the expected code?
-puts "verifying connection auth: #{get_account_head}"
-Open3.popen3(get_account_head) do |stdin, stdout, stderr|
-  #puts stdout.read
-  #puts stderr.read
-end
+## headers for curl requests
+#user_header="-H 'X-Storage-User: #{user}'"
+#password_header="-H 'X-Storage-Pass: #{password}'"
+#get_cred_command="curl -k -v #{user_header} #{password_header} http://#{proxy_local_net_ip}:5000/v2.0/"
+#
+## verify that we can retrive credentials from our user
+#result_hash = {}
+#puts "getting credentials: #{get_cred_command}"
+#Open3.popen3(get_cred_command) do |stdin, stdout, stderr|
+#  result_hash[:stderr] = stderr.read
+#  result_hash[:stderr].split("\n").each do |line|
+#    if line =~ /^< HTTP\/\d\.\d (\d\d\d)/
+#      result_hash[:status_code]=$1
+#    end
+#    if line =~ /< X-Storage-Url: (http\S+)/
+#      result_hash[:auth_url]=$1
+#    end
+#    if line =~ /< X-Storage-Token: (AUTH_\S+)/
+#      result_hash[:auth_token]=$1
+#    end
+#  end
+#end
+#raise(Exception, "Call to get auth tokens failed:\n#{result_hash[:stderr]}") unless result_hash[:status_code] == '200'
+#
+## verify that the credentials are valid
+#auth_token_header="-H 'X-Auth-Token: #{result_hash[:auth_token]}'"
+#puts auth_token_header
+#get_account_head="curl -k -v #{auth_token_header} #{result_hash[:auth_url]}"
+## what is the expected code?
+#puts "verifying connection auth: #{get_account_head}"
+#Open3.popen3(get_account_head) do |stdin, stdout, stderr|
+#  #puts stdout.read
+#  #puts stderr.read
+#end
 
 
 swift_command_prefix="swift -A http://#{proxy_local_net_ip}:5000/v2.0/ -V 2 -U #{user} -K #{password}"
