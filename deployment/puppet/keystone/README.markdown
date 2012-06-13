@@ -53,7 +53,7 @@ for example:
 
 ### setting up a keystone mysql db ###
 
-  a keystone mysql database can be configured separately from
+  A keystone mysql database can be configured separately from
   the service.
 
   If you need to actually install a mysql database server, you can use
@@ -68,6 +68,26 @@ for example:
       user     => 'keystone',
       password => 'keystone_password',
     }
+    
+
+### setting up a keystone postgresql db ###
+
+  A keystone postgresql database can be configured separately from
+  the service instead of mysql.
+
+  If you need to actually install a postgresql database server, you can use
+  the postgresql::server class from the puppetlabs postgresql module. You
+  will also need that module to install the postgresql python driver dependencies.
+
+  # check out the postgresql module's README to learn more about
+  # how to more appropriately configure a server
+  class { 'postgresql::server': }
+
+  class { 'keystone::postgresql':
+      dbname   => 'keystone',
+      user     => 'keystone',
+      password => 'keystone_password',
+  }
 
 ## Native Types ##
 
