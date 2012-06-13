@@ -1,7 +1,6 @@
 #
 # This example file is almost the
-# same as what I have been using
-# to build swift in my environment (which is based on vagrant)
+# can be used to build out a sample swift all in one environment
 #
 $swift_local_net_ip='127.0.0.1'
 
