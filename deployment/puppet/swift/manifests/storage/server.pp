@@ -39,7 +39,7 @@ define swift::storage::server(
 
   $bind_port = $name
 
-  rsync::server::module { "${type}":
+  rsync::server::module { "${type}_${name}":
     path => $devices,
     lock_file => "/var/lock/${type}.lock",
     uid => $owner,
