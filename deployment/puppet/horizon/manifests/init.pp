@@ -26,7 +26,7 @@ class horizon(
     Class['memcached'] -> Class['horizon']
   }
 
-  package { ['openstack-dashboard',"$::horizon::params::http_service"]:
+  package { ["$::horizon::params::package_name","$::horizon::params::http_service"]:
     ensure => present,
   }
 
