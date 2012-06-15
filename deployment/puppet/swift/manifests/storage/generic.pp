@@ -33,7 +33,7 @@ define swift::storage::generic(
     # sorry its so ugly :(
     name   => inline_template("<%= scope.lookupvar('::swift::params::${name}_package_name') %>"),
     ensure => $package_ensure,
-    before => Service["swift-${name}"],
+    before => Service["swift-${name}", "swift-${name}-replicator"],
   }
 
   file { "/etc/swift/${name}-server/":

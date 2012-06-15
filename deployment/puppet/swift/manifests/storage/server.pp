@@ -39,7 +39,7 @@ define swift::storage::server(
 
   $bind_port = $name
 
-  rsync::server::module { "${type}":
+  rsync::server::module { "${type}_${name}":
     path => $devices,
     lock_file => "/var/lock/${type}.lock",
     uid => $owner,
@@ -51,7 +51,7 @@ define swift::storage::server(
   concat { "/etc/swift/${config_file_path}":
     owner   => $owner,
     group   => $group,
-    notify  => Service["swift-${type}"],
+    notify  => Service["swift-${type}", "swift-${type}-replicator"],
     mode    => 640,
   }
 
