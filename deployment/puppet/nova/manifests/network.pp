@@ -67,51 +67,32 @@ class nova::network(
   case $network_manager {
 
     'nova.network.manager.FlatDHCPManager': {
-
-      $flat_network_bridge = $config_overrides['flat_network_bridge']
-      $force_dhcp_release  = $config_overrides['force_dhcp_release']
-      $flat_injected       = $config_overrides['flat_injected']
-      $dhcpbridge          = $config_overrides['dhcpbridge']
-      $dhcpbridge_flagfile = $config_overrides['dhcpbridge_flagfile']
-
-      class { 'nova::network::flatdhcp':
-        fixed_range          => $fixed_range,
-        public_interface     => $public_interface,
-        flat_interface       => $private_interface,
-        flat_network_bridge  => $flat_network_bridge,
-        force_dhcp_release   => $force_dhcp_release,
-        flat_injected        => $flat_injected,
-        dhcpbridge           => $dhcpbridge,
-        dhcpbridge_flagfile  => $dhcpbridge_flagfile,
+      # I am not proud of this
+      $parameters = { fixed_range      => $fixed_range,
+                      public_interface => $public_interface,
+                      flat_interface   => $private_interface
       }
+      $resource_parameters = merge($config_overrides, $parameters)
+      $flatdhcp_resource = {'nova::network::flatdhcp' => $resource_parameters }
+      create_resources('class', $flatdhcp_resource)
     }
     'nova.network.manager.FlatManager': {
-
-      $flat_network_bridge = $config_overrides['flat_network_bridge']
-
-      class { 'nova::network::flat':
-        fixed_range          => $fixed_range,
-        public_interface     => $public_interface,
-        flat_interface       => $private_interface,
-        flat_network_bridge  => $flat_network_bridge,
+      $parameters = { fixed_range      => $fixed_range,
+                      public_interface => $public_interface,
+                      flat_interface   => $private_interface
       }
+      $resource_parameters = merge($config_overrides, $parameters)
+      $flat_resource = {'nova::network::flat' => $resource_parameters }
+      create_resources('class', $flat_resource)
     }
     'nova.network.manager.VlanManager': {
-
-      $vlan_start          = $config_overrides['vlan_start']
-      $force_dhcp_release  = $config_overrides['force_dhcp_release']
-      $dhcpbridge          = $config_overrides['dhcpbridge']
-      $dhcpbridge_flagfile = $config_overrides['dhcpbridge_flagfile']
-
-      class { 'nova::network::vlan':
-        fixed_range         => $fixed_range,
-        public_interface    => $public_interface,
-        vlan_interface      => $private_interface,
-        vlan_start          => $vlan_start,
-        force_dhcp_release  => $force_dhcp_release,
-        dhcpbridge          => $dhcpbridge,
-        dhcpbridge_flagfile => $dhcpbridge_flagfile,
+      $parameters = { fixed_range      => $fixed_range,
+                      public_interface => $public_interface,
+                      vlan_interface   => $private_interface
       }
+      $resource_parameters = merge($config_overrides, $parameters)
+      $vlan_resource = { 'nova::network::vlan' => $resource_parameters }
+      create_resources('class', $vlan_resource)
     }
     default: {
       fail("Unsupported network manager: ${nova::network_manager} The supported network managers are nova.network.manager.FlatManager, nova.network.FlatDHCPManager and nova.network.manager.VlanManager")
