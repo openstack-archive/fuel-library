@@ -18,7 +18,8 @@ describe 'glance::api' do
       :registry_host => '0.0.0.0',
       :registry_port => '9191',
       :log_file      => '/var/log/glance/api.log',
-      :auth_type     => 'keystone'
+      :auth_type     => 'keystone',
+      :enabled       => true
     }
   end
 
@@ -31,7 +32,8 @@ describe 'glance::api' do
       :registry_host => '127.0.0.1',
       :registry_port => '9111',
       :log_file      => '/var/log/glance-api.log',
-      :auth_type     => 'not_keystone'
+      :auth_type     => 'not_keystone',
+      :enabled       => false
     }
   ].each do |param_set|
 
@@ -48,7 +50,8 @@ describe 'glance::api' do
       it { should contain_class 'glance' }
 
       it { should contain_service('glance-api').with(
-        'ensure'     => 'running',
+        'ensure'     => param_hash[:enabled] ? 'running': 'stopped',
+        'enable'     => param_hash[:enabled],
         'hasstatus'  => 'true',
         'hasrestart' => 'true',
         'subscribe' => 'Concat[/etc/glance/glance-api.conf]'

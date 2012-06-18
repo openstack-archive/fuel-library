@@ -16,7 +16,8 @@ describe 'glance::registry' do
       :bind_port        => '9191',
       :log_file         => '/var/log/glance/registry.log',
       :sql_connection   => 'sqlite:///var/lib/glance/glance.sqlite',
-      :sql_idle_timeout => '3600'
+      :sql_idle_timeout => '3600',
+      :enabled          => true
     }
   end
 
@@ -29,7 +30,8 @@ describe 'glance::registry' do
       :bind_port => '9111',
       :log_file => '/var/log/glance-registry.log',
       :sql_connection => 'sqlite:///var/lib/glance.sqlite',
-      :sql_idle_timeout => '360'
+      :sql_idle_timeout => '360',
+      :enabled          => false
     }
   ].each do |param_set|
 
@@ -45,21 +47,26 @@ describe 'glance::registry' do
       it { should contain_class 'glance::registry' }
 
       it { should contain_service('glance-registry').with(
-          'ensure'     => 'running',
-          'enable'     => 'true',
+          'ensure'     => param_hash[:enabled] ? 'running' : 'stopped',
+          'enable'     => param_hash[:enabled],
           'hasstatus'  => 'true',
           'hasrestart' => 'true',
           'subscribe'  => 'File[/etc/glance/glance-registry.conf]',
           'require'    => 'Class[Glance]'
       )}
 
-      it { should contain_exec('glance-manage db_sync').with(
-          'path'        => '/usr/bin',
-          'refreshonly' => true,
-          'logoutput'   => 'on_failure',
-          'subscribe'   => ['Package[glance]', 'File[/etc/glance/glance-registry.conf]'],
-          'notify'      => 'Service[glance-registry]'
-      )}
+      it 'should only sync the db if the service is enabled' do
+
+        if param_hash[:enabled]
+          should contain_exec('glance-manage db_sync').with(
+            'path'        => '/usr/bin',
+            'refreshonly' => true,
+            'logoutput'   => 'on_failure',
+            'subscribe'   => ['Package[glance]', 'File[/etc/glance/glance-registry.conf]'],
+            'notify'      => 'Service[glance-registry]'
+          )
+        end
+      end
 
       it 'should compile the template based on the class parameters' do
         content = param_value(subject, 'file', '/etc/glance/glance-registry.conf', 'content')
