@@ -26,5 +26,6 @@ class swift::storage(
   class{ 'rsync::server':
     use_xinetd => true,
     address    => $storage_local_net_ip,
+    use_chroot => 'no',
   }
 }

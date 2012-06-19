@@ -26,7 +26,8 @@ describe 'swift::storage' do
 
       it { should contain_class('rsync::server').with(
         {:use_xinetd => true,
-         :address    => params[:storage_local_net_ip]
+         :address    => params[:storage_local_net_ip],
+         :use_chroot => 'no'
         }
       )}
     end
