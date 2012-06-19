@@ -9,7 +9,7 @@ class horizon::params {
     }
     'Debian': {
       $http_service                = 'apache2'
-      case $::lsbdistid {
+      case $::operatingsystem {
         'Debian': {
             $package_name          = 'openstack-dashboard-apache'
         }
