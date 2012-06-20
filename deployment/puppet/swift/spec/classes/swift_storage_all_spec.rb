@@ -103,7 +103,8 @@ describe 'swift::storage::all' do
 
       it { should contain_class('rsync::server').with(
         {:use_xinetd => true,
-         :address    => param_hash[:storage_local_net_ip]
+         :address    => param_hash[:storage_local_net_ip],
+         :use_chroot => 'no'
         }
       )}
 
