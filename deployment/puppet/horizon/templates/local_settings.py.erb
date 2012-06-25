@@ -42,8 +42,8 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 #     ('http://cluster2.example.com:5000/v2.0', 'cluster2'),
 # ]
 
-OPENSTACK_HOST = "127.0.0.1"
-OPENSTACK_KEYSTONE_URL = "http://%s:5000/v2.0" % OPENSTACK_HOST
+OPENSTACK_HOST = "<%= keystone_host %>"
+OPENSTACK_KEYSTONE_URL = "<%= keystone_scheme %>://%s:<%= keystone_port %>/v2.0" % OPENSTACK_HOST
 OPENSTACK_KEYSTONE_DEFAULT_ROLE = "Member"
 
 # The OPENSTACK_KEYSTONE_BACKEND settings can be used to identify the

@@ -3,6 +3,9 @@
 #
 #
 # - Parameters
+# $keystone_host        ip address/hostname of the keystone service
+# $keystone_port        public port of the keystone service
+# $keystone_scheme      http or https
 # $cache_server_ip      memcached ip address (or VIP)
 # $cache_server_port    memcached port
 # $swift                (bool) is swift installed
@@ -13,6 +16,9 @@
 # [horizon_app_links]     array as in '[ ["Nagios","http://nagios_addr:port/path"],["Ganglia","http://ganglia_addr"] ]'
 #
 class horizon(
+  $keystone_host     = '127.0.0.1',
+  $keystone_port     = 5000,
+  $keystone_scheme   = 'http',
   $cache_server_ip   = '127.0.0.1',
   $cache_server_port = '11211',
   $swift = false,

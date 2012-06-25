@@ -29,5 +29,24 @@ describe 'horizon' do
     it {
       should contain_service('httpd').with_name('apache2')
     }
+
+    describe 'with default parameters' do
+      it { should contain_file('/etc/openstack-dashboard/local_settings.py').with_content(/^OPENSTACK_HOST = "127.0.0.1"$/) }
+      it { should contain_file('/etc/openstack-dashboard/local_settings.py').with_content(/^OPENSTACK_KEYSTONE_URL = "http:\/\/%s:5000\/v2.0" % OPENSTACK_HOST$/) }
+    end
+
+    describe 'when overriding parameters' do
+      let :params do
+        {
+          :cache_server_ip => '10.0.0.1',
+          :keystone_host   => 'keystone.example.com',
+          :keystone_port   => 4682,
+          :keystone_scheme => 'https',
+        }
+      end
+
+      it { should contain_file('/etc/openstack-dashboard/local_settings.py').with_content(/^OPENSTACK_HOST = "keystone.example.com"$/) }
+      it { should contain_file('/etc/openstack-dashboard/local_settings.py').with_content(/^OPENSTACK_KEYSTONE_URL = "https:\/\/%s:4682\/v2.0" % OPENSTACK_HOST$/) }
+    end
   end
 end
