@@ -39,6 +39,7 @@ define swift::storage::loopback(
     mnt_base_dir => $mnt_base_dir,
     byte_size    => $byte_size,
     subscribe    => Exec["create_partition-${name}"],
+    loopback	 => true,
   }
 
 }

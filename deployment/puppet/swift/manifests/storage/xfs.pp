@@ -13,7 +13,8 @@
 define swift::storage::xfs(
   $device,
   $byte_size = '1024',
-  $mnt_base_dir = '/srv/node'
+  $mnt_base_dir = '/srv/node',
+  $loopback = false,
 ) {
 
   include swift::xfs
@@ -29,7 +30,8 @@ define swift::storage::xfs(
   swift::storage::mount { $name:
     device         => $device,
     mnt_base_dir   => $mnt_base_dir,
-    subscribe      => Exec["mkfs-${name}"]
+    subscribe      => Exec["mkfs-${name}"],
+    loopback       => $loopback,
   }
 
 }
