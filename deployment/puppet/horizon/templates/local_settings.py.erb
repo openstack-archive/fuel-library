@@ -2,13 +2,13 @@ import os
 
 from django.utils.translation import ugettext_lazy as _
 
-DEBUG = True
+DEBUG = <%= django_debug %>
 TEMPLATE_DEBUG = DEBUG
 PROD = False
 USE_SSL = False
 
 # Note: You should change this value
-SECRET_KEY = 'elj1IWiLoWHgcyYxFVLj7cM5rGOOxWl0'
+SECRET_KEY = '<%= secret_key %>'
 
 # Specify a regular expression to validate user passwords.
 # HORIZON_CONFIG = {
@@ -69,7 +69,7 @@ SWIFT_ENABLED = True
 
 # The number of Swift containers and objects to display on a single page before
 # providing a paging element (a "more" link) to paginate results.
-API_RESULT_LIMIT = 1000
+API_RESULT_LIMIT = <%= api_result_limit %>
 
 <% if quantum -%>
 #  Include the Quantum interface extensions in Horizon
