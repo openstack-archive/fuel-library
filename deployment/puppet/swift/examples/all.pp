@@ -29,38 +29,25 @@ class { 'swift::storage':
 }
 
 # create xfs partitions on a loopback device and mounts them
-swift::storage::loopback { ['4', '2', '3']:
+swift::storage::loopback { '2':
   require => Class['swift'],
 }
 
 # sets up storage nodes which is composed of a single
 # device that contains an endpoint for an object, account, and container
 
-Swift::Storage::Node {
+swift::storage::node { '2':
   mnt_base_dir         => '/srv/node',
   weight               => 1,
   manage_ring          => true,
+  zone                 => '2',
   storage_local_net_ip => $swift_local_net_ip,
-}
-
-swift::storage::node { '4':
-  zone    => 4,
-  require => Swift::Storage::Loopback[4],
-}
-
-swift::storage::node { '2':
-  zone    => 2,
-  require => Swift::Storage::Loopback[2],
-}
-
-swift::storage::node { '3':
-  zone    => 3,
-  require => Swift::Storage::Loopback[3],
+  require              => Swift::Storage::Loopback[2] ,
 }
 
 class { 'swift::ringbuilder':
   part_power     => '18',
-  replicas       => '3',
+  replicas       => '1',
   min_part_hours => 1,
   require        => Class['swift'],
 }
