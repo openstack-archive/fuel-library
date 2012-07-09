@@ -21,7 +21,7 @@
 #    fragment name.
 #
 # [*listening_service*]
-#    The haproxy service's instance name (or, the title of the 
+#    The haproxy service's instance name (or, the title of the
 #     haproxy::config resource). This must match up with a declared
 #     haproxy::config resource.
 #

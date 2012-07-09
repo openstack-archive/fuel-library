@@ -45,7 +45,12 @@
 #                                    'stats'   => 'enable',
 #                                    'option'  => 'redispatch',
 #                                    'retries' => '3',
-#                                    'timeout' => ['http-request 10s', 'queue 1m', 'connect 10s', 'client 1m', 'server 1m', 'check 10s'],
+#                                    'timeout' => ['http-request 10s',
+#                                                 'queue 1m',
+#                                                 'connect 10s',
+#                                                 'client 1m',
+#                                                 'server 1m',
+#                                                 'check 10s'],
 #                                    'maxconn' => '8000'
 #                                  },
 #
@@ -63,13 +68,13 @@ class haproxy (
   include concat::setup
 
   package { 'haproxy':
-    ensure => $enable ? {
+    ensure  => $enable ? {
       true  => present,
       false => absent,
     },
-    name => 'haproxy',
+    name    => 'haproxy',
   }
-  
+
   if $enable {
     concat { '/etc/haproxy/haproxy.cfg':
       owner   => '0',
@@ -95,11 +100,11 @@ class haproxy (
   }
 
   service { 'haproxy':
-    ensure => $enable ? {
+    ensure     => $enable ? {
       true  => running,
       false => stopped,
     },
-    enable => $enable ? {
+    enable     => $enable ? {
       true  => true,
       false => false,
     },
