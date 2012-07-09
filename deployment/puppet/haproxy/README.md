@@ -1,14 +1,14 @@
-haproxy
+# haproxy
 
 This haproxy uses storeconfigs to collect and realize balancer member servers
 on a load balancer server.  Currently Redhat family OSes are supported, but
 support for other OS Families shouldn't be too difficult to merge in.  Pull
 requests accepted!
 
-License
--------
+## License
+
 Apache 2.0
 
-Contact
--------
+## Contact
+
 Gary Larizza <gary@puppetlabs.com>
