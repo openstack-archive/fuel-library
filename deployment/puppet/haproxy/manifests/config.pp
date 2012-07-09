@@ -51,7 +51,8 @@
 #    virtual_ip             => $::ipaddress,
 #    virtual_ip_port        => '18140',
 #    mode                   => 'tcp',
-#    haproxy_config_options => {'option'     => ['tcplog', 'ssl-hello-chk'], 'balance' => 'roundrobin'},
+#    haproxy_config_options => {'option' => ['tcplog', 'ssl-hello-chk'],
+#                               'balance' => 'roundrobin'},
 #  }
 #
 # === Authors
@@ -63,7 +64,9 @@ define haproxy::config (
   $order                     = '20',
   $virtual_ip                = $::ipaddress,
   $mode                      = 'tcp',
-  $haproxy_config_options    = {'option' => ['tcplog', 'ssl-hello-chk'], 'balance' => 'roundrobin'},
+  $haproxy_config_options    = {'option' => ['tcplog',
+                                            'ssl-hello-chk'],
+                                'balance' => 'roundrobin'},
 ) {
   concat::fragment { "${name}_config_block":
     order   => $order,
