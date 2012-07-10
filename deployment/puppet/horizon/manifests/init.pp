@@ -31,7 +31,7 @@ class horizon(
   $keystone_scheme       = 'http',
   $keystone_default_role = 'Member',
   $django_debug          = 'False',
-  $api_result_limit      = 1000,
+  $api_result_limit      = 1000
 ) {
 
   include horizon::params
