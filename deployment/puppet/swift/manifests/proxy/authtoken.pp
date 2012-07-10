@@ -39,7 +39,7 @@ class swift::proxy::authtoken(
   $delay_auth_decision = undef,
   $auth_host           = undef,
   $auth_port           = undef,
-  $auth_protocol       = undef,
+  $auth_protocol       = undef
 ) {
 
   keystone::client::authtoken { '/etc/swift/proxy-server.conf':
