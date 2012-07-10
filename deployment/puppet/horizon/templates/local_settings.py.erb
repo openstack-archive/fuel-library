@@ -2,13 +2,13 @@ import os
 
 from django.utils.translation import ugettext_lazy as _
 
-DEBUG = True
+DEBUG = <%= django_debug %>
 TEMPLATE_DEBUG = DEBUG
 PROD = False
 USE_SSL = False
 
 # Note: You should change this value
-SECRET_KEY = 'elj1IWiLoWHgcyYxFVLj7cM5rGOOxWl0'
+SECRET_KEY = '<%= secret_key %>'
 
 # Specify a regular expression to validate user passwords.
 # HORIZON_CONFIG = {
@@ -42,9 +42,9 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 #     ('http://cluster2.example.com:5000/v2.0', 'cluster2'),
 # ]
 
-OPENSTACK_HOST = "127.0.0.1"
-OPENSTACK_KEYSTONE_URL = "http://%s:5000/v2.0" % OPENSTACK_HOST
-OPENSTACK_KEYSTONE_DEFAULT_ROLE = "Member"
+OPENSTACK_HOST = "<%= keystone_host %>"
+OPENSTACK_KEYSTONE_URL = "<%= keystone_scheme %>://%s:<%= keystone_port %>/v2.0" % OPENSTACK_HOST
+OPENSTACK_KEYSTONE_DEFAULT_ROLE = "<%= keystone_default_role %>"
 
 # The OPENSTACK_KEYSTONE_BACKEND settings can be used to identify the
 # capabilities of the auth backend for Keystone.
@@ -69,7 +69,7 @@ SWIFT_ENABLED = True
 
 # The number of Swift containers and objects to display on a single page before
 # providing a paging element (a "more" link) to paginate results.
-API_RESULT_LIMIT = 1000
+API_RESULT_LIMIT = <%= api_result_limit %>
 
 <% if quantum -%>
 #  Include the Quantum interface extensions in Horizon
