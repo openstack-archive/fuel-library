@@ -16,11 +16,7 @@ Puppet::Type.newtype(:nova_config) do
   newproperty(:target) do
     desc "Path to our nova config file"
     defaultto {
-      if @resource.class.defaultprovider.ancestors.include?(Puppet::Provider::ParsedFile)
-        @resource.class.defaultprovider.default_target
-      else
-        nil
-      end
+      "/etc/nova/nova.conf"
     }
   end
 
