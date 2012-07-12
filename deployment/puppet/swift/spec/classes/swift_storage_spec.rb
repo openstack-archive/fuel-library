@@ -33,15 +33,13 @@ describe 'swift::storage' do
     end
     describe 'when local net ip is not specified' do
       it 'should fail' do
-        expect do
-          subject
-        end.should raise_error(Puppet::Error, /Must pass storage_local_net_ip/)
+        expect { subject }.to raise_error(Puppet::Error, /Must pass storage_local_net_ip/)
       end
     end
   end
   describe 'when the dependencies are not specified' do
     it 'should fail' do
-      expect { subject }.should raise_error(Puppet::Error)
+      expect { subject }.to raise_error(Puppet::Error)
     end
   end
 end

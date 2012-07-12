@@ -29,9 +29,7 @@ describe 'swift::storage::all' do
 
   describe 'when an internal network ip is not specified' do
     it 'should fail' do
-      expect do
-        subject
-      end.should raise_error(Puppet::Error, /Must pass storage_local_net_ip/)
+      expect { subject }.to raise_error(Puppet::Error, /Must pass storage_local_net_ip/)
     end
   end
 

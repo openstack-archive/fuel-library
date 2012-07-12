@@ -11,9 +11,7 @@ describe 'swift::ringbuilder' do
   end
   describe 'when swift class is not included' do
     it 'should fail' do
-      expect do
-        subject
-      end.should raise_error(Puppet::Error)
+      expect { subject }.to raise_error(Puppet::Error)
     end
   end
   describe 'when swift class is included' do

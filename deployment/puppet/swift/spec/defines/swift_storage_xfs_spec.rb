@@ -5,9 +5,7 @@ describe 'swift::storage::xfs' do
   end
   describe 'when a device is not specified' do
     it 'should raise an error' do
-      expect do
-        subject
-      end.should raise_error(Puppet::Error)
+      expect { subject }.to raise_error(Puppet::Error)
     end
   end
 
