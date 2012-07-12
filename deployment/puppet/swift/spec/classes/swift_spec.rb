@@ -22,9 +22,7 @@ describe 'swift' do
       {}
     end
     it 'should raise an exception' do
-      expect do
-        subject
-      end.should raise_error(Puppet::Error)
+      expect { subject }.to raise_error(Puppet::Error)
     end
   end
 
@@ -33,9 +31,7 @@ describe 'swift' do
       ''
     end
     it 'should should raise an exception' do
-      expect do
-        subject
-      end.should raise_error(Puppet::Error)
+      expect { subject }.to raise_error(Puppet::Error)
     end
   end
 

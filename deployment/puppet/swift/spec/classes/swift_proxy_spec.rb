@@ -4,9 +4,7 @@ describe 'swift::proxy' do
 
   describe 'without memcached being included' do
     it 'should raise an error' do
-      expect do
-        subject
-      end.should raise_error(Puppet::Error)
+      expect { subject }.to raise_error(Puppet::Error)
     end
   end
 
@@ -33,9 +31,7 @@ describe 'swift::proxy' do
 
     describe 'without the proxy local network ip address being specified' do
       it "should fail" do
-        expect do
-          subject
-        end.should raise_error(Puppet::Error, /Must pass proxy_local_net_ip/)
+        expect { subject }.to raise_error(Puppet::Error, /Must pass proxy_local_net_ip/)
       end
     end
 
@@ -121,9 +117,7 @@ describe 'swift::proxy' do
         [:account_autocreate, :allow_account_management].each do |param|
           it "should fail when #{param} is not passed a boolean" do
             params[param] = 'false'
-            expect do
-              subject
-            end.should raise_error(Puppet::Error, /is not a boolean/)
+            expect { subject }.to raise_error(Puppet::Error, /is not a boolean/)
           end
         end
       end

@@ -29,9 +29,7 @@ describe 'swift::storage::generic' do
       'foo'
     end
     it 'should fail' do
-      expect do
-        subject
-      end.should raise_error(Puppet::Error, /does not match/)
+      expect { subject }.to raise_error(Puppet::Error, /does not match/)
     end
   end
 
