@@ -27,6 +27,7 @@
 # [report_interval] Interval at which nodes report to data store. Optional.
 #    Defaults to '10'.
 # [root_helper] Command used for roothelper. Optional. Distro specific.
+# [monitoring_notifications] A boolean specifying whether or not to send system usage data notifications out on the message queue. Optional, false by default. Only valid for stable/essex.
 #
 class nova(
   # this is how to query all resources from our clutser
@@ -49,7 +50,8 @@ class nova(
   $verbose = false,
   $periodic_interval = '60',
   $report_interval = '10',
-  $root_helper = $::nova::params::root_helper
+  $root_helper = $::nova::params::root_helper,
+  $monitoring_notifications = false
 ) inherits nova::params {
 
   # all nova_config resources should be applied
@@ -182,6 +184,14 @@ class nova(
     'service_down_time': value => $service_down_time;
     'root_helper': value => $root_helper;
   }
+
+
+  if $monitoring_notifications {
+    nova_config {
+      'notification_driver': value => 'nova.notifier.rabbit_notifier'
+    }
+  }
+
 
   exec { 'post-nova_config':
     command => '/bin/echo "Nova config has changed"',
