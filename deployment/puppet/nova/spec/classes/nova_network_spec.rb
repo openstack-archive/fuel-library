@@ -119,7 +119,7 @@ describe 'nova::network' do
                     'flat_network_bridge' => 'br400',
                     'force_dhcp_release'  => false,
                     'flat_injected'       => true,
-                    'dhcp_domain'           => 'novalocal',
+                    'dhcp_domain'         => 'not-novalocal',
                     'dhcpbridge'          => '/tmp/bridge',
                     'dhcpbridge_flagfile' => '/tmp/file',
                   }
