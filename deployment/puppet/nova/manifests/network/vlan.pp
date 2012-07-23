@@ -5,6 +5,7 @@ class nova::network::vlan (
   $public_interface    = undef,
   $vlan_start          = '300',
   $force_dhcp_release  = true,
+  $dhcp_domain         = 'novalocal',
   $dhcpbridge          = '/usr/bin/nova-dhcpbridge',
   $dhcpbridge_flagfile = '/etc/nova/nova.conf'
 ) {
@@ -19,6 +20,7 @@ class nova::network::vlan (
     'vlan_interface':      value => $vlan_interface;
     'vlan_start':          value => $vlan_start;
     'force_dhcp_release':  value => $force_dhcp_release;
+    'dhcp_domain':         value => $dhcp_domain;
     'dhcpbridge':          value => $dhcpbridge;
     'dhcpbridge_flagfile': value => $dhcpbridge_flagfile;
   }
