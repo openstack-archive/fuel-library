@@ -13,15 +13,21 @@ describe 'swift::storage::xfs' do
 
   describe 'when a device is specified' do
     let :default_params do
-      {:device       => 'some_device',
+      {
+       :device       => 'some_device',
        :byte_size    => '1024',
-       :mnt_base_dir => '/srv/node'}
+       :mnt_base_dir => '/srv/node',
+       :loopback     => false
+      }
     end
 
     [{:device       => 'some_device'},
-     {:device       => 'some_device',
-      :byte_size    => 1,
-      :mnt_base_dir => '/mnt/foo'}
+     {
+       :device       => 'some_device',
+       :byte_size    => 1,
+       :mnt_base_dir => '/mnt/foo',
+       :loopback     => true
+     }
     ].each do |param_set|
 
       describe "#{param_set == {} ? "using default" : "specifying"} class parameters" do
@@ -41,9 +47,10 @@ describe 'swift::storage::xfs' do
         )}
 
         it { should contain_swift__storage__mount('foo').with(
-          {:device       => param_hash[:device],
+           :device       => param_hash[:device],
            :mnt_base_dir => param_hash[:mnt_base_dir],
-           :subscribe    => 'Exec[mkfs-foo]'}
+           :loopback     => param_hash[:loopback],
+           :subscribe    => 'Exec[mkfs-foo]'
         )}
 
       end
