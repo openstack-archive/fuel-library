@@ -7,10 +7,10 @@
 #   - formats the file to be an xfs device and mounts it as a loopback device at /srv/node/$name
 #   - sets up each mount point as a swift endpoint
 define swift::storage::loopback(
-  $base_dir  = '/srv/loopback-device',
+  $base_dir     = '/srv/loopback-device',
   $mnt_base_dir = '/srv/node',
-  $byte_size = '1024',
-  $seek      = '25000'
+  $byte_size    = '1024',
+  $seek         = '25000'
 ) {
 
   if(!defined(File[$base_dir])) {
@@ -39,6 +39,7 @@ define swift::storage::loopback(
     mnt_base_dir => $mnt_base_dir,
     byte_size    => $byte_size,
     subscribe    => Exec["create_partition-${name}"],
+    loopback     => true,
   }
 
 }

@@ -5,9 +5,14 @@
 #
 define swift::storage::mount(
   $device,
-  $mnt_base_dir = '/srv/node'
+  $mnt_base_dir = '/srv/node',
+  $loopback     = false
 ) {
-
+  if($loopback){
+    $options = 'noatime,nodiratime,nobarrier,logbufs=8,loop'
+  } else {
+    $options = 'noatime,nodiratime,nobarrier,logbufs=8'
+  }
   # the directory that represents the mount point
   # needs to exist
   file { "${mnt_base_dir}/${name}":
@@ -20,7 +25,7 @@ define swift::storage::mount(
     ensure  => present,
     device  => $device,
     fstype  => 'xfs',
-    options => 'loop,noatime,nodiratime,nobarrier,logbufs=8',
+    options => $options,
     require => File["${mnt_base_dir}/${name}"]
   }
 
