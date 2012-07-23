@@ -12,9 +12,9 @@
 #  It is recommened to use 1024 to ensure that the metadata can fit in a single inode.
 define swift::storage::xfs(
   $device,
-  $byte_size = '1024',
+  $byte_size    = '1024',
   $mnt_base_dir = '/srv/node',
-  $loopback = false,
+  $loopback     = false
 ) {
 
   include swift::xfs

@@ -6,7 +6,7 @@
 define swift::storage::mount(
   $device,
   $mnt_base_dir = '/srv/node',
-  $loopback = false,
+  $loopback     = false
 ) {
   if($loopback){
     $options = 'noatime,nodiratime,nobarrier,logbufs=8,loop'
