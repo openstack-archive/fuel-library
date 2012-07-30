@@ -1,5 +1,9 @@
 Puppet::Type.newtype(:nova_config) do
 
+  def self.default_target
+    "/etc/nova/nova.conf"
+  end
+
   ensurable
 
   newparam(:name, :namevar => true) do
@@ -16,7 +20,7 @@ Puppet::Type.newtype(:nova_config) do
   newproperty(:target) do
     desc "Path to our nova config file"
     defaultto {
-      "/etc/nova/nova.conf"
+      Puppet::Type.type(:nova_config).default_target
     }
   end
 
