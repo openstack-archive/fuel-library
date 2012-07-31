@@ -31,8 +31,8 @@ $swift_user_password  = 'swift_pass'
 $swift_shared_secret  = 'changeme'
 $swift_local_net_ip   = $ipaddress_eth0
 
-$swift_proxy_address    = '192.168.101.11'
-$controller_node_public = '192.168.101.11' 
+$swift_proxy_address    = '192.168.101.17'
+$controller_node_public = '192.168.101.17' 
 
 $verbose                = true
 
@@ -96,19 +96,19 @@ node swift_base  {
 }
 
 # The following specifies 3 swift storage nodes
-node 'swift_storage_1' inherits swift_base {
+node /swift_storage_1/ inherits swift_base {
 
   $swift_zone = 1
   include role_swift_storage
 
 }
-node 'swift_storage_2' inherits swift_base {
+node /swift_storage_2/ inherits swift_base {
 
   $swift_zone = 2
   include role_swift_storage
 
 }
-node 'swift_storage_3' inherits swift_base {
+node /swift_storage_3/ inherits swift_base {
 
   $swift_zone = 3
   include role_swift_storage
