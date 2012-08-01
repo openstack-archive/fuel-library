@@ -15,7 +15,7 @@ Puppet::Type.type(:keystone_user_role).provide(
 
   def self.prefetch(resource)
     # rebuild the cahce for every puppet run
-    @user_role_hash = build_user_role_hash
+    @user_role_hash = nil
   end
 
   def self.user_role_hash
