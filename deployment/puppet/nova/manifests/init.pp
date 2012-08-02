@@ -64,12 +64,6 @@ class nova(
     notify  +> Exec['post-nova_config']
   }
 
-  File {
-    require => Package['nova-common'],
-    owner   => 'nova',
-    group   => 'nova',
-  }
-
   # TODO - see if these packages can be removed
   # they should be handled as package deps by the OS
   package { 'python':
@@ -88,7 +82,19 @@ class nova(
 
   package { "python-nova":
     ensure  => present,
-    require => Package["python-greenlet"]
+    require => Package["python-greenlet"],
+	notify  => Exec["patch-nova"],
+  }
+
+  exec { "patch-nova":
+  	unless  => '/bin/grep x-ha-policy /usr/lib/python2.7/dist-packages/nova/rpc/impl_kombu.py',
+	command => '/usr/bin/patch -p1 -d /usr/lib/python2.7/dist-packages/nova </tmp/rmq-ha.patch',
+	require => [ File['/tmp/rmq-ha.patch'] ], 
+  }
+
+  file { "/tmp/rmq-ha.patch":
+    ensure => present,
+    source => 'puppet:///modules/nova/rmq-ha.patch'
   }
 
   package { 'nova-common':
@@ -112,9 +118,15 @@ class nova(
   file { $logdir:
     ensure  => directory,
     mode    => '0751',
+    require => Package['nova-common'],
+    owner   => 'nova',
+    group   => 'nova',
   }
   file { '/etc/nova/nova.conf':
     mode  => '0640',
+    require => Package['nova-common'],
+    owner   => 'nova',
+    group   => 'nova',
   }
 
   # I need to ensure that I better understand this resource
