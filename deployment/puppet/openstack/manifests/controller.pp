@@ -65,6 +65,7 @@ class openstack::controller(
   $nova_user_password      = 'nova_pass',
   $rabbit_password         = 'rabbit_pw',
   $rabbit_user             = 'nova',
+  $rabbit_nodes            = [$internal_address],
   # network configuration
   # this assumes that it is a flat network manager
   $network_manager         = 'nova.network.manager.FlatDHCPManager',
@@ -94,10 +95,12 @@ class openstack::controller(
   $glance_api_servers = "${internal_address}:9292"
   $nova_db = "mysql://nova:${nova_db_password}@${internal_address}/nova"
 
+  $rabbit_addresses = inline_template("<%= @rabbit_nodes.map {|x| x + ':5672'}.join ',' %>")
+
   if ($export_resources) {
     # export all of the things that will be needed by the clients
-    @@nova_config { 'rabbit_host': value => $internal_address }
-    Nova_config <| title == 'rabbit_host' |>
+    @@nova_config { 'rabbit_addresses': value => $rabbit_addresses }
+    Nova_config <| title == 'rabbit_addresses' |>
     @@nova_config { 'sql_connection': value => $nova_db }
     Nova_config <| title == 'sql_connection' |>
     @@nova_config { 'glance_api_servers': value => $glance_api_servers }
@@ -105,11 +108,9 @@ class openstack::controller(
     @@nova_config { 'novncproxy_base_url': value => "http://${public_address}:6080/vnc_auto.html" }
     $sql_connection    = false
     $glance_connection = false
-    $rabbit_connection = false
   } else {
     $sql_connection    = $nova_db
     $glance_connection = $glance_api_servers
-    $rabbit_connection = $internal_address
   }
 
   ####### DATABASE SETUP ######
@@ -231,6 +232,8 @@ class openstack::controller(
     userid   => $rabbit_user,
     password => $rabbit_password,
     enabled  => $enabled,
+    cluster  => $rabbit_cluster,
+    cluster_nodes => $rabbit_nodes,
   }
 
   # TODO I may need to figure out if I need to set the connection information
@@ -238,7 +241,7 @@ class openstack::controller(
   class { 'nova':
     sql_connection     => $sql_connection,
     # this is false b/c we are exporting
-    rabbit_host        => $rabbit_connection,
+    rabbit_nodes       => $rabbit_nodes,
     rabbit_userid      => $rabbit_user,
     rabbit_password    => $rabbit_password,
     image_service      => 'nova.image.glance.GlanceImageService',

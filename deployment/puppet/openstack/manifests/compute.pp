@@ -24,8 +24,7 @@
 #   which indicates that exported resources will be used to determine connection
 #   information.
 # [nova_user_password] Nova service password.
-#  [rabbit_host] RabbitMQ host. False indicates it should be collected.
-#    Optional. Defaults to false,
+#  [rabbit_nodes] RabbitMQ nodes or false. Optional. Defaults to false.
 #  [rabbit_password] RabbitMQ password. Optional. Defaults to  'rabbit_pw',
 #  [rabbit_user] RabbitMQ user. Optional. Defaults to 'nova',
 #  [glance_api_servers] List of glance api servers of the form HOST:PORT
@@ -57,7 +56,7 @@ class openstack::compute(
   # conection information
   $sql_connection      = false,
   $nova_user_password  = 'nova_pass',
-  $rabbit_host         = false,
+  $rabbit_nodes        = false,
   $rabbit_password     = 'rabbit_pw',
   $rabbit_user         = 'nova',
   $glance_api_servers  = false,
@@ -72,7 +71,7 @@ class openstack::compute(
 
   class { 'nova':
     sql_connection     => $sql_connection,
-    rabbit_host        => $rabbit_host,
+    rabbit_nodes       => $rabbit_nodes,
     rabbit_userid      => $rabbit_user,
     rabbit_password    => $rabbit_password,
     image_service      => 'nova.image.glance.GlanceImageService',
