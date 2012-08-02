@@ -10,9 +10,8 @@
 #   Defaults to 'nova.image.local.LocalImageService'
 # [glance_api_servers] List of addresses for api servers. Optional.
 #   Defaults to localhost:9292.
-# [rabbit_host] Location of rabbitmq installation. Optional. Defaults to localhost.
+# [rabbit_nodes] RabbitMQ nodes. Optional. Defaults to localhost.
 # [rabbit_password] Password used to connect to rabbitmq. Optional. Defaults to guest.
-# [rabbit_port] Port for rabbitmq instance. Optional. Defaults to 5672.
 # [rabbit_userid] User used to connect to rabbitmq. Optional. Defaults to guest.
 # [rabbit_virtual_host] The RabbitMQ virtual host. Optional. Defaults to /.
 # [auth_strategy]
@@ -37,9 +36,8 @@ class nova(
   # these glance params should be optional
   # this should probably just be configured as a glance client
   $glance_api_servers = 'localhost:9292',
-  $rabbit_host = 'localhost',
+  $rabbit_nodes = ['localhost'],
   $rabbit_password='guest',
-  $rabbit_port='5672',
   $rabbit_userid='guest',
   $rabbit_virtual_host='/',
   $auth_strategy = 'keystone',
@@ -173,15 +171,14 @@ class nova(
   }
 
 
-  if $rabbit_host {
-    nova_config { 'rabbit_host': value => $rabbit_host }
+  if $rabbit_nodes {
+    nova_config { 'rabbit_addresses': value => inline_template("<%= @rabbit_nodes.map {|x| x+':5672'}.join ',' %>") }
   } else {
-    Nova_config <<| title == 'rabbit_host' |>>
+    Nova_config <<| title == 'rabbit_addresses' |>>
   }
   # I may want to support exporting and collecting these
   nova_config {
     'rabbit_password': value => $rabbit_password;
-    'rabbit_port': value => $rabbit_port;
     'rabbit_userid': value => $rabbit_userid;
     'rabbit_virtual_host': value => $rabbit_virtual_host;
   }

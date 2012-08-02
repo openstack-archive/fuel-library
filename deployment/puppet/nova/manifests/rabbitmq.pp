@@ -8,8 +8,8 @@ class nova::rabbitmq(
   $port='5672',
   $virtual_host='/',
   $enabled = true,
-  $config_cluster = false,
-  $cluster_disk_nodes = []
+  $cluster = false,
+  $cluster_nodes = []
 ) {
 
   # only configure nova after the queue is up
@@ -43,8 +43,8 @@ class nova::rabbitmq(
     service_ensure    => $service_ensure,
     port              => $port,
     delete_guest_user => $delete_guest_user,
-	config_cluster    => $config_cluster,
-	cluster_disk_nodes => $cluster_disk_nodes
+	config_cluster    => $cluster,
+	cluster_disk_nodes => $cluster_nodes
   }
 
   if ($enabled) {
