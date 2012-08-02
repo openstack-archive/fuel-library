@@ -11,6 +11,8 @@ class nova::compute(
   $vncproxy_path                 = '/vnc_auto.html'
  ) {
 
+  include nova::params
+
   if ($vnc_enabled) {
     if !($vncproxy_host) {
       warning("VNC is enabled and \$vncproxy_host must be specified nova::compute assumes that it can collect the exported resource: Nova_config[novncproxy_base_url]")
