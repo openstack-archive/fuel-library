@@ -1,6 +1,19 @@
+diff -r -N -u3 a/flags.py b/flags.py
+--- a/flags.py 2012-08-02 01:34:23.725950885 +0000
++++ b/flags.py 2012-08-02 01:34:10.914851304 +0000
+@@ -195,6 +195,9 @@
+     cfg.IntOpt('rabbit_port',
+                default=5672,
+                help='the RabbitMQ port'),
++    cfg.ListOpt('rabbit_addresses',
++               default=['$rabbit_host:$rabbit_port'],
++               help='RabbitMQ HA cluster host:port pairs'),
+     cfg.BoolOpt('rabbit_use_ssl',
+                 default=False,
+                 help='connect over SSL for RabbitMQ'),
 diff -r -N -u3 a/rpc/impl_kombu.py b/rpc/impl_kombu.py
---- a/rpc/impl_kombu.py	2012-08-01 23:18:25.832654796 +0000
-+++ b/rpc/impl_kombu.py	2012-08-01 23:20:56.941282534 +0000
+--- a/rpc/impl_kombu.py    2012-08-01 23:18:25.832654796 +0000
++++ b/rpc/impl_kombu.py    2012-08-01 23:20:56.941282534 +0000
 @@ -77,6 +77,7 @@
          """Re-declare the queue after a rabbit reconnect"""
          self.channel = channel
@@ -118,8 +131,8 @@ diff -r -N -u3 a/rpc/impl_kombu.py b/rpc/impl_kombu.py
              if self.max_retries and attempt == self.max_retries:
                  LOG.exception(_('Unable to connect to AMQP server on '
 diff -r -N -u3 a/utils.py b/utils.py
---- a/utils.py	2012-08-01 23:19:04.865837288 +0000
-+++ b/utils.py	2012-08-01 23:20:08.772780933 +0000
+--- a/utils.py 2012-08-01 23:19:04.865837288 +0000
++++ b/utils.py 2012-08-01 23:20:08.772780933 +0000
 @@ -986,7 +986,7 @@
          return
  
