@@ -1,7 +1,5 @@
-$LOAD_PATH.push(File.join(File.dirname(__FILE__), '..', '..', '..'))
-
 # Load the Glance provider library to help
-require 'puppet/provider/glance'
+require File.join(File.dirname(__FILE__), '..','..','..', 'puppet/provider/glance')
 
 Puppet::Type.type(:glance_image).provide(
   :glance,
@@ -10,7 +8,7 @@ Puppet::Type.type(:glance_image).provide(
   desc <<-EOT
     Glance provider to manage glance_image type.
 
-    Assumes that the Keystone service is on the same host and is working.
+    Assumes that the glance-api service is on the same host and is working.
   EOT
 
   commands :glance => 'glance'

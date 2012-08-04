@@ -16,7 +16,9 @@ Puppet::Type.newtype(:glance_image) do
       * All images are managed by the glance service. 
         This means that since users are unable to manage their own images via this type,
         is_public is really of no use. You can probably hide images this way but that's all.
-      * I really have no idea what I'm doing.
+      * As glance image names do not have to be unique, you must ensure that your glance 
+        repository does not have any duplicate names prior to using this.
+      * Ensure this is run on the same server as the glance-api service.
 
   EOT
 
