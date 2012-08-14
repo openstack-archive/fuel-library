@@ -55,6 +55,7 @@ class nova(
   # deprecated in folsom
   #$root_helper = $::nova::params::root_helper,
   $monitoring_notifications = false
+  $api_bind_address = '0.0.0.0',
 ) inherits nova::params {
 
   # all nova_config resources should be applied
@@ -198,6 +199,12 @@ class nova(
     'root_wrap_config':  value => $root_wrap_config;
   }
 
+  nova_config {
+    'ec2_listen':           value => $api_bind_address;
+    'osapi_compute_listen': value => $api_bind_address;
+    'metadata_listen':      value => $api_bind_address;
+    'osapi_volume_listen':  value => $api_bind_address;
+  }
 
   if $monitoring_notifications {
     nova_config {
