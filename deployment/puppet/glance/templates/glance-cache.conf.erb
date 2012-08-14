@@ -38,7 +38,7 @@ registry_port = <%= registry_port %>
 
 <% if auth_type == 'keystone' -%>
 # Auth settings if using Keystone
-auth_url = http://127.0.0.1:5000/v2.0/
+auth_url = <%= auth_uri %>
 admin_tenant_name = <%= keystone_tenant %>
 admin_user = <%= keystone_user %>
 admin_password = <%= keystone_password %>
