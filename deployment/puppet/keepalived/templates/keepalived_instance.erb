@@ -1,0 +1,21 @@
+vrrp_instance <%=  @name %> {
+  virtual_router_id <%= @name %>
+
+  # for electing MASTER, highest priority wins.
+  priority  <%= @priority %>
+  state     <%= @state %>
+
+  interface <%= @interface %>
+
+  virtual_ipaddress {
+    <% @virtual_ips.each do |vip| -%>
+    <%= vip %>
+    <% end %>
+  }
+
+  <% if @notify then -%>notify <%= @notify %><% end %>
+  <% if @notify_master then -%>notify_master <%= @notify_master %><% end %>
+  <% if @notify_backup then -%>notify_backup <%= @notify_backup %><% end %>
+
+  <% if @smtp_alert then -%>smtp_alert<% end %>
+}
