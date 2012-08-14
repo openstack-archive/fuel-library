@@ -49,7 +49,8 @@ class nova(
   $periodic_interval = '60',
   $report_interval = '10',
   $root_helper = $::nova::params::root_helper,
-  $monitoring_notifications = false
+  $monitoring_notifications = false,
+  $api_bind_address = '0.0.0.0',
 ) inherits nova::params {
 
   # all nova_config resources should be applied
@@ -194,6 +195,12 @@ class nova(
     'root_helper': value => $root_helper;
   }
 
+  nova_config {
+    'ec2_listen':           value => $api_bind_address;
+    'osapi_compute_listen': value => $api_bind_address;
+    'metadata_listen':      value => $api_bind_address;
+    'osapi_volume_listen':  value => $api_bind_address;
+  }
 
   if $monitoring_notifications {
     nova_config {
