@@ -65,6 +65,7 @@ class openstack::controller(
   $nova_user_password      = 'nova_pass',
   $rabbit_password         = 'rabbit_pw',
   $rabbit_user             = 'nova',
+  $rabbit_cluster          = false,
   $rabbit_nodes            = [$internal_address],
   # network configuration
   # this assumes that it is a flat network manager
@@ -89,10 +90,11 @@ class openstack::controller(
   $swift                   = false,
   $quantum                 = false,
   $horizon_app_links       = false,
-  $enabled                 = true
+  $enabled                 = true,
+  $api_bind_address        = '0.0.0.0',
 ) {
 
-  $glance_api_servers = "${internal_address}:9292"
+  $glance_api_servers = "${api_bind_address}:9292"
   $nova_db = "mysql://nova:${nova_db_password}@${internal_address}/nova"
 
   $rabbit_addresses = inline_template("<%= @rabbit_nodes.map {|x| x + ':5672'}.join ',' %>")
@@ -150,7 +152,7 @@ class openstack::controller(
     admin_token  => $keystone_admin_token,
     # we are binding keystone on all interfaces
     # the end user may want to be more restrictive
-    bind_host    => '0.0.0.0',
+    bind_host    => $api_bind_address,
     log_verbose  => $verbose,
     log_debug    => $verbose,
     catalog_type => 'sql',
@@ -201,12 +203,14 @@ class openstack::controller(
     log_verbose       => $verbose,
     log_debug         => $verbose,
     auth_type         => 'keystone',
-    auth_host         => '127.0.0.1',
+    auth_host         => $api_bind_address,
     auth_port         => '35357',
+    auth_uri          => "http://${api_bind_address}:5000/",
     keystone_tenant   => 'services',
     keystone_user     => 'glance',
     keystone_password => $glance_user_password,
     enabled           => $enabled,
+    bind_host         => $api_bind_address,
   }
   class { 'glance::backend::file': }
 
@@ -214,8 +218,9 @@ class openstack::controller(
     log_verbose       => $verbose,
     log_debug         => $verbose,
     auth_type         => 'keystone',
-    auth_host         => '127.0.0.1',
+    auth_host         => $api_bind_address,
     auth_port         => '35357',
+    auth_uri          => "http://${api_bind_address}:5000/",
     keystone_tenant   => 'services',
     keystone_user     => 'glance',
     keystone_password => $glance_user_password,
@@ -247,6 +252,7 @@ class openstack::controller(
     image_service      => 'nova.image.glance.GlanceImageService',
     glance_api_servers => $glance_connection,
     verbose            => $verbose,
+    api_bind_address   => $api_bind_address,
   }
 
   class { 'nova::api':
@@ -258,6 +264,7 @@ class openstack::controller(
     admin_tenant_name => 'services',
     admin_user        => 'nova',
     admin_password    => $nova_user_password,
+    auth_host         => $api_bind_address,
   }
 
   class { [
