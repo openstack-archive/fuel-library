@@ -111,6 +111,18 @@ class haproxy (
     name       => 'haproxy',
     hasrestart => true,
     hasstatus  => true,
-    require    => Concat['/etc/haproxy/haproxy.cfg'],
+    require    => [File['/var/lib/haproxy'], Concat['/etc/haproxy/haproxy.cfg']],
+  }
+
+  file { '/etc/default/haproxy':
+    content => $enable ? {
+      true  => "ENABLED=1",
+      false => "ENABLED=0",
+    },
+    require => Service['haproxy']
+  }
+
+  file { '/var/lib/haproxy':
+    ensure => directory,
   }
 }

@@ -74,5 +74,5 @@ define haproxy::config (
     content => template('haproxy/haproxy_config_block.erb'),
   }
 
-  Haproxy::Balancermember <<| listening_service == $name |>>
+  Haproxy::Balancermember <| listening_service == $name |>
 }
