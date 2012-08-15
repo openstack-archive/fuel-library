@@ -55,6 +55,7 @@ class openstack::controller(
   $admin_address           = $internal_address,
   # connection information
   $mysql_root_password     = 'sql_pass',
+  $custom_mysql_setup_class = undef,
   $admin_email             = 'some_user@some_fake_email_address.foo',
   $admin_password          = 'ChangeMe',
   $keystone_db_password    = 'keystone_pass',
@@ -118,7 +119,7 @@ class openstack::controller(
   ####### DATABASE SETUP ######
 
   # set up mysql server
-  class { 'mysql::server':
+  class { "mysql::server":
     config_hash => {
       # the priv grant fails on precise if I set a root password
       # TODO I should make sure that this works
@@ -126,19 +127,20 @@ class openstack::controller(
       'bind_address'  => '0.0.0.0'
     },
     enabled => $enabled,
+    custom_setup_class => $custom_mysql_setup_class,
   }
   if ($enabled) {
     # set up all openstack databases, users, grants
-    class { 'keystone::db::mysql':
+    class { "keystone::db::mysql":
       password => $keystone_db_password,
     }
-    Class['glance::db::mysql'] -> Class['glance::registry']
-    class { 'glance::db::mysql':
+    Class["glance::db::mysql"] -> Class['glance::registry']
+    class { "glance::db::mysql":
       host     => '127.0.0.1',
       password => $glance_db_password,
     }
     # TODO should I allow all hosts to connect?
-    class { 'nova::db::mysql':
+    class { "nova::db::mysql":
       password      => $nova_db_password,
       host          => $internal_address,
       allowed_hosts => '%',
@@ -160,7 +162,7 @@ class openstack::controller(
   }
   # set up keystone database
   # set up the keystone config for mysql
-  class { 'keystone::config::mysql':
+  class { "keystone::config::mysql":
     password => $keystone_db_password,
   }
 
