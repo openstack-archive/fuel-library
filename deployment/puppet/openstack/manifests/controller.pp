@@ -329,6 +329,7 @@ class openstack::controller(
     swift => $swift,
     quantum => $quantum,
     horizon_app_links => $horizon_app_links,
+    keystone_host => $internal_address,
   }
 
 
