@@ -5,10 +5,12 @@ class horizon::params {
   case $::osfamily {
     'RedHat': {
       $http_service                = 'httpd'
+      $http_modwsgi                = 'httpd' # TODO - see what openstack-dashboard depends on...
       $package_name                = 'openstack-dashboard'
     }
     'Debian': {
       $http_service                = 'apache2'
+      $http_modwsgi                = 'libapache2-mod-wsgi'
       case $::operatingsystem {
         'Debian': {
             $package_name          = 'openstack-dashboard-apache'

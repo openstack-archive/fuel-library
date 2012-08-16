@@ -40,7 +40,7 @@ class horizon(
     Class['memcached'] -> Class['horizon']
   }
 
-  package { ["$::horizon::params::package_name","$::horizon::params::http_service"]:
+  package { ["$::horizon::params::package_name","$::horizon::params::http_service","$::horizon::params::http_modwsgi"]:
     ensure => present,
   }
 
@@ -49,10 +49,15 @@ class horizon(
     mode    => '0644',
   }
 
+  exec { 'a2enmod wsgi':
+    command => 'a2enmod wsgi',
+    path => ['/usr/bin','/usr/sbin','/bin/','/sbin']
+  }
+
   service { 'httpd':
     name      => $::horizon::params::http_service,
     ensure    => 'running',
-    require   => Package["$::horizon::params::http_service"],
+    require   => [Package["$::horizon::params::http_service", "$::horizon::params::http_modwsgi"], Exec["a2enmod wsgi"]],
     subscribe => File['/etc/openstack-dashboard/local_settings.py']
   }
 }
