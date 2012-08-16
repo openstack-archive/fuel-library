@@ -83,7 +83,8 @@ class openstack::controller_ha (
 
     class { 'galera':
       cluster_name => 'openstack',
-      master_ip => $which ? { 0 => false, default => $controller_internal_addresses[0] }
+      master_ip => $which ? { 0 => false, default => $controller_internal_addresses[0] },
+      node_address => $controller_internal_addresses[$which],
     }
 
     class { 'openstack::controller':
