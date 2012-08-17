@@ -70,7 +70,6 @@ class glance::api(
     require => Class['glance'],
   }
 
-  notify {"glance_api_bind_host: ${bind_host}":}
   glance::api::config { 'header':
     config => {
       'log_verbose'   => $log_verbose,
