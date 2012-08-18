@@ -68,16 +68,18 @@ class Puppet::Provider::Keystone < Puppet::Provider
       end
       list
     end
-
     def self.get_keystone_object(type, id, attr)
-      auth_keystone("#{type}-get", id).split("\n")[3..-2].each do |line|
-        if line =~ /^\|\s*#{attr}\s*\|\s*(.*)?\s+\|$/
-          return $1.strip
+      auth_keystone("#{type}-get", id).split(/\|\n/m).each do |line|  
+        if line =~ /\|(\s+)?#{attr}(\s+)?\|/
+          if line.kind_of?(Array)
+            return line[0].split("|")[2].strip
+          else
+            return  line.split("|")[2].strip
+          end
         else
           nil
         end
-      end
+      end 
       raise(Puppet::Error, "Could not find colummn #{attr} when getting #{type} #{id}")
-    end
-
+    end 
 end
