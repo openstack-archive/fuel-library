@@ -6,7 +6,7 @@ socket    = <%= socket %>
 nice    = 0
 [mysqld]
 user    = mysql
-pid-file  = /var/run/mysqld/mysqld.pid
+pid-file  = <%= pidfile %>
 socket    = <%= socket %>
 port      = <%= port %>
 basedir   = <%= basedir %>
