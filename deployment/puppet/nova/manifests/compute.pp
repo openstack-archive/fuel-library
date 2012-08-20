@@ -9,7 +9,7 @@ class nova::compute(
   $vncproxy_protocol             = 'http',
   $vncproxy_port                 = '6080',
   $vncproxy_path                 = '/vnc_auto.html',
-  $virtio_nic                    = true
+  $virtio_nic                    = false
  ) {
 
   include nova::params
