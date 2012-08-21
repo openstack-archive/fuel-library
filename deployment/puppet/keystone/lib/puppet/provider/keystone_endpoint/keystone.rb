@@ -87,6 +87,24 @@ Puppet::Type.type(:keystone_endpoint).provide(
     endpoint_hash[resource[:name]][:admin_url]
   end
 
+  def public_url=(value)
+    destroy
+    endpoint_hash[resource[:name]][:public_url] = value
+    create
+  end 
+
+  def internal_url=(value)
+    destroy
+    endpoint_hash[resource[:name]][:internal_url] = value
+    create
+  end 
+
+  def admin_url=(value)
+    destroy
+    endpoint_hash[resource[:name]][:admin_url]
+    create
+  end 
+
   private
 
     def self.build_endpoint_hash
