@@ -108,7 +108,6 @@ class keystone(
       'log_verbose'  => $log_verbose,
       'log_debug'    => $log_debug,
       'use_syslog'   => $use_syslog,
-      'backend_driver' => $backend_driver,
     },
     order  => '00',
   }
@@ -129,7 +128,10 @@ class keystone(
   }
 
   keystone::config { 'footer':
-    order    => '99'
+    order    => '99',
+    config => {
+      'backend_driver' => $backend_driver
+    },
   }
 
   if $enabled {
