@@ -1,6 +1,6 @@
 
 [token]
-driver = keystone.token.backends.kvs.Token
+driver = <%= config['backend_driver'] %>
 expiration = 86400
 
 [policy]
