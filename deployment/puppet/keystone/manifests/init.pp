@@ -49,6 +49,7 @@ class keystone(
   $log_debug      = 'False',
   $use_syslog     = 'False',
   $catalog_type   = 'sql',
+  $backend_driver = 'keystone.token.backends.kvs.Token',
   $enabled        = true
 ) {
 
@@ -106,7 +107,8 @@ class keystone(
       'compute_port' => $compute_port,
       'log_verbose'  => $log_verbose,
       'log_debug'    => $log_debug,
-      'use_syslog'   => $use_syslog
+      'use_syslog'   => $use_syslog,
+      'backend_driver' => $backend_driver,
     },
     order  => '00',
   }
