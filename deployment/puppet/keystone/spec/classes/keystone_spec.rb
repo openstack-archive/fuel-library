@@ -25,6 +25,7 @@ describe 'keystone' do
       'log_debug'       => 'False',
       'use_syslog'      => 'False',
       'catalog_type'    => 'template',
+      'backend_driver'  => 'keystone.token.backends.kvs.Token',
       'enabled'         => true
     }
   end
@@ -40,6 +41,7 @@ describe 'keystone' do
       'log_verbose'     => 'True',
       'log_debug'       => 'True',
       'catalog_type'    => 'sql',
+      'backend_driver'  => 'something_else',
       'enabled'         => false
     }
   ].each do |param_set|
@@ -132,8 +134,16 @@ describe 'keystone' do
           ]
         )
       end
-      it { should create_file(
-        '/var/lib/puppet/concat/_etc_keystone_keystone.conf/fragments/99_kestone-footer') }
+      it do'should create a footer file with the default backend driver'
+        verify_contents(
+          subject,
+          '/var/lib/puppet/concat/_etc_keystone_keystone.conf/fragments/99_kestone-footer',
+          [
+            '[token]',
+            "driver = #{param_hash['backend_driver']}",
+          ]
+        )
+      end
     end
   end
 end
