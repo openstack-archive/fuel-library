@@ -19,7 +19,15 @@ class Puppet::Provider::Keystone < Puppet::Provider
   end
 
   def self.get_admin_endpoint
-    "http://127.0.0.1:#{keystone_file['DEFAULT']['admin_port'].strip}/v2.0/"
+    if keystone_file and keystone_file['DEFAULT'] and keystone_file['DEFAULT']['bind_host']
+      host = keystone_file['DEFAULT']['bind_host'].strip
+      if host == "0.0.0.0"
+        host = "127.0.0.1"
+      end
+    else
+      host = "127.0.0.1"
+    end
+    "http://#{host}:#{keystone_file['DEFAULT']['admin_port'].strip}/v2.0/"
   end
 
   def self.keystone_file
