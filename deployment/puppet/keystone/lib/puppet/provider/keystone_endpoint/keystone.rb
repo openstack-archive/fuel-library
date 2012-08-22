@@ -91,19 +91,19 @@ Puppet::Type.type(:keystone_endpoint).provide(
     destroy
     endpoint_hash[resource[:name]][:public_url] = value
     create
-  end 
+  end
 
   def internal_url=(value)
     destroy
     endpoint_hash[resource[:name]][:internal_url] = value
     create
-  end 
+  end
 
   def admin_url=(value)
     destroy
     endpoint_hash[resource[:name]][:admin_url]
     create
-  end 
+  end
 
   private
 
