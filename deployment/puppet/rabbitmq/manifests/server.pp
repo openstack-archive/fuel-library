@@ -59,6 +59,13 @@ class rabbitmq::server(
 
   $plugin_dir = "/usr/lib/rabbitmq/lib/rabbitmq_server-${version_real}/plugins"
 
+  if $::osfamily == 'RedHat' {
+    package { 'qpid-cpp-server':
+      ensure => 'absent',
+      before => Package[$package_name]
+    }
+  }
+
   package { $package_name:
     ensure => $pkg_ensure_real,
     notify => Class['rabbitmq::service'],
