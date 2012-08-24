@@ -41,7 +41,9 @@ bind-address=0.0.0.0
 wsrep_provider=/usr/lib/galera/libgalera_smm.so
 
 # Provider specific configuration options
-#wsrep_provider_options=
+
+# See http://www.codership.com/wiki/doku.php?id=faq
+wsrep_provider_options="pc.ignore_sb = yes"
 
 # Logical cluster name. Should be the same for all nodes.
 wsrep_cluster_name="<%= cluster_name -%>"
