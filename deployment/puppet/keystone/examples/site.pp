@@ -17,7 +17,7 @@ node keystone {
   class { 'keystone::roles::admin': }
 }
 
-node keystone_mysql {
+node default {
   class { 'mysql::server': }
   class { 'keystone::config::mysql':
     password => 'keystone'
@@ -30,9 +30,9 @@ node keystone_mysql {
   class { 'keystone::db::mysql':
     password => 'keystone',
   }
-  class { 'keystone::roles::admin': }
+  class { 'keystone::roles::admin':
+    email  => 'example@abc.com',
+ }
+
 }
 
-node default {
-  fail("could not find a matching node entry for ${clientcert}")
-}
