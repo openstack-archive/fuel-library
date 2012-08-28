@@ -4,7 +4,10 @@ describe 'haproxy', :type => :class do
 
   context 'on Redhat family operatingsystems' do
     let(:facts) do
-      { :osfamily => 'Redhat' }
+      {
+        :osfamily       => 'Redhat',
+        :concat_basedir => '/dne'
+      }
     end
     it { should include_class('concat::setup') }
 
