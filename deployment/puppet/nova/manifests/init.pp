@@ -106,10 +106,16 @@ class nova(
       ensure => present,
       source => 'puppet:///modules/nova/rmq-ha.patch'
     }
+    if $::osfamily == 'RedHat' {
+      package {'patch':
+        ensure => 'installed',
+        before => [Exec['patch-nova']]
+      } 
+    } 
 
     exec { "patch-nova":
-      unless  => '/bin/grep x-ha-policy /usr/lib/python2.7/dist-packages/nova/rpc/impl_kombu.py',
-      command => '/usr/bin/patch -p1 -d /usr/lib/python2.7/dist-packages/nova </tmp/rmq-ha.patch',
+      unless  => "/bin/grep x-ha-policy /usr/lib/${::nova::params::python_path}/nova/rpc/impl_kombu.py",
+      command => "/usr/bin/patch -p1 -d /usr/lib/${::nova::params::python_path}/nova </tmp/rmq-ha.patch",
       require => [File['/tmp/rmq-ha.patch'], Package['python-nova', 'patch']], 
     }
   }

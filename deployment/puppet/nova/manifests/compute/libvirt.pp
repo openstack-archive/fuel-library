@@ -5,6 +5,35 @@ class nova::compute::libvirt (
 
   include nova::params
 
+  if $::operatingsystem == 'CentOS' {
+
+    yumrepo {'CentOS-Base':
+      name     => 'base',
+      priority => 1,
+    }->
+
+    package { 'qemu':
+      ensure => present;
+    }
+
+    package { 'avahi':
+      ensure => present;
+    } ->
+
+    service { 'messagebus':
+      ensure => running,
+      require => Package['avahi'];
+    } ->
+
+    service { 'avahi-daemon':
+      ensure  => running,
+      require => Package['avahi'];
+    }
+
+    Service['avahi-daemon'] -> Service['libvirt']
+
+  }
+
   Service['libvirt'] -> Service['nova-compute']
 
   if($::nova::params::compute_package_name) {
