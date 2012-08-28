@@ -20,7 +20,7 @@ define nova::network::bridge ( $ip, $netmask = "255.255.255.0" )
       }
     }
 
-    'fedora' : {
+    'fedora', 'CentOS', 'RedHat': {
     }
 
     default: { fail('nova::network_bridge currently only supports Debian and Ubuntu') }

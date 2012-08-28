@@ -33,6 +33,7 @@ class nova::params {
       $volume_service_name      = 'openstack-nova-volume'
       $special_service_provider = 'init'
       # redhat specific config defaults
+      $python_path		= 'python2.6/site-packages/'
       $root_helper              = 'sudo nova-rootwrap'
       $lock_path                = '/var/lib/nova/tmp'
       $nova_db_charset          = 'latin1'
@@ -65,6 +66,7 @@ class nova::params {
       $volume_service_name      = 'nova-volume'
       $tgt_service_name         = 'tgt'
       # debian specific nova config
+      $python_path		= 'python2.7/dist-packages'
       $root_helper              = 'sudo nova-rootwrap'
       $lock_path                = '/var/lock/nova'
       $nova_db_charset          = 'latin1'

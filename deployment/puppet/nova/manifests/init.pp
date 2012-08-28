@@ -11,6 +11,7 @@
 # [glance_api_servers] List of addresses for api servers. Optional.
 #   Defaults to localhost:9292.
 # [rabbit_nodes] RabbitMQ nodes. Optional. Defaults to localhost.
+# [rabbit_host] Location of rabbitmq installation. Optional. Defaults to localhost.
 # [rabbit_password] Password used to connect to rabbitmq. Optional. Defaults to guest.
 # [rabbit_port] Port for rabbitmq instance. Optional. Defaults to 5672.
 # [rabbit_userid] User used to connect to rabbitmq. Optional. Defaults to guest.
@@ -38,7 +39,7 @@ class nova(
   # this should probably just be configured as a glance client
   $glance_api_servers = 'localhost:9292',
   $rabbit_host = 'localhost',
-  $rabbit_nodes = ['localhost'],
+  $rabbit_nodes = false,
   $rabbit_password='guest',
   $rabbit_port='5672',
   $rabbit_userid='guest',
@@ -87,15 +88,28 @@ class nova(
 	notify  => Exec["patch-nova"],
   }
 
-  exec { "patch-nova":
-  	unless  => '/bin/grep x-ha-policy /usr/lib/python2.7/dist-packages/nova/rpc/impl_kombu.py',
-	command => '/usr/bin/patch -p1 -d /usr/lib/python2.7/dist-packages/nova </tmp/rmq-ha.patch',
-	require => [ File['/tmp/rmq-ha.patch'] ], 
-  }
+  # turn on rabbitmq ha/cluster mode
+  if $rabbit_nodes {
+    package { "patch":
+      ensure => present
+    }
 
-  file { "/tmp/rmq-ha.patch":
-    ensure => present,
-    source => 'puppet:///modules/nova/rmq-ha.patch'
+    file { "/tmp/rmq-ha.patch":
+      ensure => present,
+      source => 'puppet:///modules/nova/rmq-ha.patch'
+    }
+    if $::osfamily == 'RedHat' {
+      package {'patch':
+        ensure => 'installed',
+        before => [Exec['patch-nova']]
+      } 
+    } 
+
+    exec { "patch-nova":
+      unless  => "/bin/grep x-ha-policy /usr/lib/${::nova::params::python_path}/nova/rpc/impl_kombu.py",
+      command => "/usr/bin/patch -p1 -d /usr/lib/${::nova::params::python_path}/nova </tmp/rmq-ha.patch",
+      require => [File['/tmp/rmq-ha.patch'], Package['python-nova', 'patch']], 
+    }
   }
 
   package { 'nova-common':

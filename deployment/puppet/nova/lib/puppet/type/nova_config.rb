@@ -1,5 +1,4 @@
 Puppet::Type.newtype(:nova_config) do
-
   def self.default_target
     "/etc/nova/nova.conf"
   end
