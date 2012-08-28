@@ -107,14 +107,15 @@ class mysql::config(
     }
   }
 
-#  file { '/etc/mysql':
-#    ensure => directory,
-#    mode   => '0755',
-#  }
-#  file { '/etc/mysql/conf.d':
-#    ensure => directory,
-#    mode   => '0755',
-#  }
+  file { '/etc/mysql':
+    ensure => directory,
+    mode   => '0755',
+  }
+  file { '/etc/mysql/conf.d':
+    ensure => directory,
+    mode   => '0755',
+  }
+
   file { $config_file:
     content => template('mysql/my.cnf.erb'),
     mode    => '0644',
