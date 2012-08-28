@@ -61,7 +61,7 @@ class rabbitmq::server(
 
   if $::osfamily == 'RedHat' {
     package { 'qpid-cpp-server':
-      ensure => 'absent',
+      ensure => 'purged',
       before => Package[$package_name]
     }
   }
