@@ -7,10 +7,9 @@ requests accepted!
 
 ## Hacking
 
-After cloning the repository, execute `git submodule update --init` to pull in
-any dependencies needed to test the module locally.
+After cloning the repository:
 
-1. `git submodule update --init`
+1. `gem install puppetlabs_spec_helper`
 1. `rake spec` # To run the tests
 1. Hack Hack Hack # Adding tests hopefully!
 1. Commit and send a pull request!
