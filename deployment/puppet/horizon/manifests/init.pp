@@ -40,10 +40,6 @@ class horizon(
     Class['memcached'] -> Class['horizon']
   }
 
-  package { "$::horizon::params::package_name":
-    ensure => present,
-    require => Exec["a2enmod wsgi"],
-  }
 
   package { ["$::horizon::params::http_service", "$::horizon::params::http_modwsgi"]:
     ensure => present,
@@ -55,12 +51,34 @@ class horizon(
     require => Package["$::horizon::params::package_name"],
   }
 
-  exec { 'a2enmod wsgi':
-    command => 'a2enmod wsgi',
-    path => ['/usr/bin','/usr/sbin','/bin/','/sbin'],
-    require => Package["$::horizon::params::http_service", "$::horizon::params::http_modwsgi"]
-  }
+  case $::osfamily {
+    'RedHat': { 
+      file {'/etc/httpd/conf.d/wsgi.conf':
+        mode   => 644,
+        owner  => root,
+        group  => root,
+        source => "puppet:///horizon/wsgi.conf",
+        require => Package["$::horizon::params::http_service", "$::horizon::params::http_modwsgi"]
+      }
+      package { "$::horizon::params::package_name":
+        ensure => present,
+        require => File['/etc/httpd/conf.d/wsgi.conf'],
+      }   
+    }
 
+    'Debian': {
+      exec { 'a2enmod wsgi':
+        command => 'a2enmod wsgi',
+        path => ['/usr/bin','/usr/sbin','/bin/','/sbin'],
+        require => Package["$::horizon::params::http_service", "$::horizon::params::http_modwsgi"]
+      }
+
+      package { "$::horizon::params::package_name":
+        ensure => present,
+        require => Exec['a2enmod wsgi'],
+      }
+    }
+  }
   service { 'httpd':
     name      => $::horizon::params::http_service,
     ensure    => 'running',
