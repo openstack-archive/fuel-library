@@ -23,11 +23,17 @@ class memcached(
     require => Package[$memcached::params::package_name],
   }
 
+  user {'memcached':
+    ensure => present,
+    system => true,
+  }
+
   service { $memcached::params::service_name:
     ensure     => running,
     enable     => true,
     hasrestart => true,
     hasstatus  => false,
     subscribe  => File[$memcached::params::config_file],
+    require    => [User['memcached']],
   }
 }
