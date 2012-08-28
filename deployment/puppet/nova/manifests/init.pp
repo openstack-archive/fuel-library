@@ -10,8 +10,10 @@
 #   Defaults to 'nova.image.local.LocalImageService'
 # [glance_api_servers] List of addresses for api servers. Optional.
 #   Defaults to localhost:9292.
-# [rabbit_nodes] RabbitMQ nodes. Optional. Defaults to localhost.
+# [rabbit_nodes] RabbitMQ nodes (HA/Cluster mode). Optional. Defaults to false.
+# [rabbit_host] Location of rabbitmq installation. Optional. Defaults to localhost.
 # [rabbit_password] Password used to connect to rabbitmq. Optional. Defaults to guest.
+# [rabbit_port] Port for rabbitmq instance. Optional. Defaults to 5672.
 # [rabbit_userid] User used to connect to rabbitmq. Optional. Defaults to guest.
 # [rabbit_virtual_host] The RabbitMQ virtual host. Optional. Defaults to /.
 # [auth_strategy]
@@ -36,8 +38,12 @@ class nova(
   # these glance params should be optional
   # this should probably just be configured as a glance client
   $glance_api_servers = 'localhost:9292',
-  $rabbit_nodes = ['localhost'],
+  # for use rabbitmq in HA mode
+  # $rabbit_nodes = ['node001', 'node002', 'node003']
+  $rabbit_nodes = false,
+  $rabbit_host = 'localhost',
   $rabbit_password='guest',
+  $rabbit_port='5672',
   $rabbit_userid='guest',
   $rabbit_virtual_host='/',
   $auth_strategy = 'keystone',
@@ -63,6 +69,12 @@ class nova(
     notify  +> Exec['post-nova_config']
   }
 
+  File {
+    require => Package['nova-common'],
+    owner   => 'nova',
+    group   => 'nova',
+  }
+
   # TODO - see if these packages can be removed
   # they should be handled as package deps by the OS
   package { 'python':
@@ -81,26 +93,32 @@ class nova(
 
   package { "python-nova":
     ensure  => present,
-    require => Package["python-greenlet"],
-	notify  => Exec["patch-nova"],
+    require => Package["python-greenlet"]
   }
 
-  exec { "patch-nova":
-  	unless  => '/bin/grep x-ha-policy /usr/lib/python2.7/dist-packages/nova/rpc/impl_kombu.py',
-	command => '/usr/bin/patch -p1 -d /usr/lib/python2.7/dist-packages/nova </tmp/rmq-ha.patch',
-	require => [ File['/tmp/rmq-ha.patch'] ], 
-  }
+  # turn on rabbitmq ha/cluster mode
+  if $rabbit_nodes {
+    package { "patch":
+      ensure => present
+    }
 
-  file { "/tmp/rmq-ha.patch":
-    ensure => present,
-    source => 'puppet:///modules/nova/rmq-ha.patch'
+    file { "/tmp/rmq-ha.patch":
+      ensure => present,
+      source => 'puppet:///modules/nova/rmq-ha.patch'
+    }
+
+    exec { "patch-nova":
+      unless  => '/bin/grep x-ha-policy /usr/lib/python2.7/dist-packages/nova/rpc/impl_kombu.py',
+      command => '/usr/bin/patch -p1 -d /usr/lib/python2.7/dist-packages/nova </tmp/rmq-ha.patch',
+      require => [File['/tmp/rmq-ha.patch'], Package['python-nova', 'patch']], 
+    }
   }
 
   package { 'nova-common':
     name    => $::nova::params::common_package_name,
     ensure  => present,
     require => [Package["python-nova"], Anchor['nova-start']]
-  }
+  
 
   group { 'nova':
     ensure  => present,
@@ -117,15 +135,9 @@ class nova(
   file { $logdir:
     ensure  => directory,
     mode    => '0751',
-    require => Package['nova-common'],
-    owner   => 'nova',
-    group   => 'nova',
   }
   file { '/etc/nova/nova.conf':
     mode  => '0640',
-    require => Package['nova-common'],
-    owner   => 'nova',
-    group   => 'nova',
   }
 
   # I need to ensure that I better understand this resource
@@ -175,8 +187,16 @@ class nova(
   if $rabbit_nodes {
     nova_config { 'rabbit_addresses': value => inline_template("<%= @rabbit_nodes.map {|x| x+':5672'}.join ',' %>") }
   } else {
-    Nova_config <<| title == 'rabbit_addresses' |>>
+    if $rabbit_host {
+      nova_config {
+        'rabbit_host': value => $rabbit_host;
+        'rabbit_port': value => $rabbit_port;
+      }
+    } else {
+      Nova_config <<| title == 'rabbit_host' |>>
+    }
   }
+
   # I may want to support exporting and collecting these
   nova_config {
     'rabbit_password': value => $rabbit_password;
@@ -201,6 +221,7 @@ class nova(
     'metadata_listen':      value => $api_bind_address;
     'osapi_volume_listen':  value => $api_bind_address;
   }
+
 
   if $monitoring_notifications {
     nova_config {

@@ -3,6 +3,7 @@ require 'puppet/provider/parsedfile'
 Puppet::Type.type(:nova_config).provide(
   :parsed,
   :parent => Puppet::Provider::ParsedFile,
+  :default_target => Puppet::Type.type(:nova_config).default_target,
   :filetype => :flat
 ) do
 

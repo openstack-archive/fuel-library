@@ -94,6 +94,14 @@ class nova::network(
       $vlan_resource = { 'nova::network::vlan' => $resource_parameters }
       create_resources('class', $vlan_resource)
     }
+    'nova.network.quantum.manager.QuantumManager': {
+      $parameters = { fixed_range      => $fixed_range,
+                      public_interface => $public_interface,
+                    }
+      $resource_parameters = merge($config_overrides, $parameters)
+      $quantum_resource = { 'nova::network::quantum' => $resource_parameters }
+      create_resources('class', $quantum_resource)
+    }
     default: {
       fail("Unsupported network manager: ${nova::network_manager} The supported network managers are nova.network.manager.FlatManager, nova.network.FlatDHCPManager and nova.network.manager.VlanManager")
     }

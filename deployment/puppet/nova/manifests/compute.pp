@@ -8,8 +8,11 @@ class nova::compute(
   $vncproxy_host                 = false,
   $vncproxy_protocol             = 'http',
   $vncproxy_port                 = '6080',
-  $vncproxy_path                 = '/vnc_auto.html'
+  $vncproxy_path                 = '/vnc_auto.html',
+  $virtio_nic                    = false
  ) {
+
+  include nova::params
 
   if ($vnc_enabled) {
     if !($vncproxy_host) {
@@ -40,6 +43,11 @@ class nova::compute(
     service_name   => $::nova::params::compute_service_name,
     ensure_package => $ensure_package,
     before         => Exec['networking-refresh']
+  }
+
+  if $virtio_nic {
+    # Enable the virtio network card for instances
+    nova_config { 'libvirt_use_virtio_for_bridges': value => 'True' }
   }
 
 }

@@ -35,6 +35,7 @@ class nova::params {
       # redhat specific config defaults
       $root_helper              = 'sudo nova-rootwrap'
       $lock_path                = '/var/lib/nova/tmp'
+      $nova_db_charset          = 'latin1'
     }
     'Debian': {
       # package names
@@ -66,6 +67,7 @@ class nova::params {
       # debian specific nova config
       $root_helper              = 'sudo nova-rootwrap'
       $lock_path                = '/var/lock/nova'
+      $nova_db_charset          = 'utf8'
       case $::operatingsystem {
         'Debian': {
           $consoleauth_package_name = 'nova-console'
