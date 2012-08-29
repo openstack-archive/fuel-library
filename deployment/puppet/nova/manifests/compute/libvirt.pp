@@ -7,10 +7,12 @@ class nova::compute::libvirt (
 
   if $::operatingsystem == 'CentOS' {
 
-    yumrepo {'CentOS-Base':
-      name     => 'base',
-      priority => 1,
-    }->
+#    yumrepo {'CentOS-Base':
+#      name     => 'updates',
+#      priority => 10,
+#      before   => [Package['libvirt']]
+#    }->
+    
 
     package { 'qemu':
       ensure => present;
