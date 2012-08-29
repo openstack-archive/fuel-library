@@ -98,7 +98,7 @@ class haproxy (
       content => template('haproxy/haproxy-base.cfg.erb'),
     }
 
-    if ($::operatingsystem == 'Ubuntu') {
+    if ($::osfamily == 'Debian') {
       file { '/etc/default/haproxy':
         content => 'ENABLED=1',
         require => Package['haproxy']
