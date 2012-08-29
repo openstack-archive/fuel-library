@@ -101,7 +101,8 @@ class haproxy (
     if ($::osfamily == 'Debian') {
       file { '/etc/default/haproxy':
         content => 'ENABLED=1',
-        require => Package['haproxy']
+        require => Package['haproxy'],
+        before  => Service['haproxy'],
       }
     }
 
