@@ -14,7 +14,7 @@ class openstack::repo::yum (
     }
   }
 
-  Package['yum-plugin-priorities'] -> Yumrepo['openstack-ci']
+  Package['yum-plugin-priorities'] -> Yumrepo[$repo_name]
 
   yumrepo {$repo_name:
     baseurl  => $location,
@@ -23,5 +23,4 @@ class openstack::repo::yum (
     priority => $priority,
     enabled  => 1,
   }
-
 }
