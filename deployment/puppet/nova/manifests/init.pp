@@ -119,7 +119,7 @@ class nova(
     exec { 'patch-nova':
       unless  => "/bin/grep x-ha-policy /usr/lib/${::nova::params::python_path}/nova/rpc/impl_kombu.py",
       command => "/usr/bin/patch -p1 -d /usr/lib/${::nova::params::python_path}/nova </tmp/rmq-ha.patch",
-      require => [ [File['/tmp/rmq-ha.patch']],[Package['patch']],[Pakcage['python-nova']] ], 
+      require => [ [File['/tmp/rmq-ha.patch']],[Package['patch', 'python-nova']]], 
     }
   }
 
