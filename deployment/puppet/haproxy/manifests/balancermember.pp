@@ -29,6 +29,8 @@
 #     A unique port for which the balancer member will accept connections
 #     from the load balancer. Note that cookie values aren't yet supported,
 #     but shouldn't be difficult to add to the configuration.
+#     If you use an array in server_name and balancer_ip, the same port is
+#     used for all balancermembers.
 #
 # [*order*]
 #     The order, or numerical weight, of the fragment created by this defined
@@ -38,10 +40,13 @@
 # [*server_name*]
 #     The name of the balancer member server as known to haproxy in the
 #      listening service's configuration block. This defaults to the
-#      hostname
+#      hostname. Can be an array of the same length as balancer_ip,
+#      in which case a balancermember is created for each pair of
+#      server_name and balancer_ip (in lockstep).
 #
 # [*balancer_ip*]
-#      The ip address used to contact the balancer member server
+#      The ip address used to contact the balancer member server.
+#      Can be an array, see documentation to server_name.
 #
 # [*balancermember_options*]
 #      An array of options to be specified after the server declaration
@@ -65,6 +70,21 @@
 #  Collecting the resource on a load balancer
 #
 #  Haproxy::Balancermember <<| listening_service == 'puppet00' |>>
+#
+#  Creating the resource for multiple balancer members at once
+#  (for single-pass installation of haproxy without requiring a first
+#  pass to export the resources if you know the members in advance):
+# 
+#  haproxy::balancermember { 'haproxy':
+#    listening_service      => 'puppet00',
+#    balancer_port          => '8140',
+#    order                  => '21',
+#    server_name            => ['server01', 'server02'],
+#    balancer_ip            => ['192.168.56.200', '192.168.56.201'],
+#    balancermember_options => 'check',
+#  }
+#  
+#  (this resource can be declared anywhere)
 #
 # === Authors
 #
