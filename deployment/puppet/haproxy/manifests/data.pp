@@ -25,7 +25,7 @@ class haproxy::data {
                                   }
     }
     Debian: {
-      $haproxy_global_options   = { 'log'     => "127.0.0.1 local0",
+      $haproxy_global_options   = { 'log'     => "${::ipaddress} local0",
                                     'chroot'  => '/var/lib/haproxy',
                                     'pidfile' => '/var/run/haproxy.pid',
                                     'maxconn' => '4000',
