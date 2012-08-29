@@ -91,9 +91,9 @@ class nova(
   # allowing a resource to serve as a point where the configuration of nova begins
   anchor { 'nova-start': }
 
-  package { "python-nova":
+  package { 'python-nova':
     ensure  => present,
-    require => Package["python-greenlet"]
+    require => Package['python-greenlet']
   }
 
   # turn on rabbitmq ha/cluster mode
@@ -106,17 +106,20 @@ class nova(
       ensure => present,
       source => 'puppet:///modules/nova/rmq-ha.patch'
     }
-    if $::osfamily == 'RedHat' {
-      package {'patch':
-        ensure => 'installed',
-        before => [Exec['patch-nova']]
-      } 
-    } 
+    
+    package { 'patch':
+      ensure => present
+    }
 
-    exec { "patch-nova":
+    file { '/tmp/rmq-ha.patch':
+      ensure => present,
+      source => 'puppet:///modules/nova/rmq-ha.patch'
+    }
+
+    exec { 'patch-nova':
       unless  => "/bin/grep x-ha-policy /usr/lib/${::nova::params::python_path}/nova/rpc/impl_kombu.py",
       command => "/usr/bin/patch -p1 -d /usr/lib/${::nova::params::python_path}/nova </tmp/rmq-ha.patch",
-      require => [File['/tmp/rmq-ha.patch'], Package['python-nova', 'patch']], 
+      require => [ [File['/tmp/rmq-ha.patch']],[Package['patch']],[Pakcage['python-nova']] ], 
     }
   }
 
@@ -124,13 +127,14 @@ class nova(
     name    => $::nova::params::common_package_name,
     ensure  => present,
     require => [Package["python-nova"], Anchor['nova-start']]
-  
+  } 
 
   group { 'nova':
     ensure  => present,
     system  => true,
     require => Package['nova-common'],
   }
+
   user { 'nova':
     ensure  => present,
     gid     => 'nova',
