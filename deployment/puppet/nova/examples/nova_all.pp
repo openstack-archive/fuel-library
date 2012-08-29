@@ -41,6 +41,29 @@ resources { 'nova_config':
 #  }
 #}
 
+stage {'repo-priority':
+  before => [Stage['main']]
+}
+
+class repo-priority {
+  package { 'yum-plugin-priorities':
+    ensure => present,
+  }->
+  yumrepo {'base':
+    priority => 10,
+  }->
+  yumrepo {'updates':
+    priority => 10,
+  }->
+  yumrepo {'extras':
+    priority => 10,
+  }
+}
+
+class {'repo-priority':
+  stage => 'repo-priority',
+}
+
 # this is a hack that I have to do b/c openstack nova
 # sets up a route to reroute calls to the metadata server
 # to its own server which fails
