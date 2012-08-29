@@ -105,7 +105,7 @@ class haproxy (
       }
     }
 
-    file { '/var/lib/haproxy':
+    file { $haproxy_global_options['chroot']:
       ensure => directory,
       before => Service['haproxy'],
     }
@@ -124,6 +124,9 @@ class haproxy (
     name       => 'haproxy',
     hasrestart => true,
     hasstatus  => true,
-    require    => Concat['/etc/haproxy/haproxy.cfg'],
+    require    => [
+      Concat['/etc/haproxy/haproxy.cfg'],
+      File[$haproxy_global_options['chroot']],
+    ],
   }
 }
