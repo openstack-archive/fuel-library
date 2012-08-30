@@ -97,6 +97,20 @@ class haproxy (
       order   => '10',
       content => template('haproxy/haproxy-base.cfg.erb'),
     }
+
+    if ($::osfamily == 'Debian') {
+      file { '/etc/default/haproxy':
+        content => 'ENABLED=1',
+        require => Package['haproxy'],
+        before  => Service['haproxy'],
+      }
+    }
+
+    file { $haproxy_global_options['chroot']:
+      ensure => directory,
+      before => Service['haproxy'],
+    }
+
   }
 
   service { 'haproxy':
@@ -111,6 +125,9 @@ class haproxy (
     name       => 'haproxy',
     hasrestart => true,
     hasstatus  => true,
-    require    => Concat['/etc/haproxy/haproxy.cfg'],
+    require    => [
+      Concat['/etc/haproxy/haproxy.cfg'],
+      File[$haproxy_global_options['chroot']],
+    ],
   }
 }
