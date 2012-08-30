@@ -1,6 +1,6 @@
 define haproxy_service($order, $hostnames, $balancer_ips, $virtual_ip, $port) {
   haproxy::config { $name:
-    order => $order-1,
+    order => $order - 1,
     virtual_ip => $virtual_ip,
     virtual_ip_port => $port,
       haproxy_config_options => {
