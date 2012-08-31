@@ -8,10 +8,13 @@ class haproxy::data {
   case $osfamily {
     Debian: {
       $haproxy_global_options   = { 'log'     => "${::ipaddress} local0",
+                                    'chroot'  => '/var/lib/haproxy',
+                                    'pidfile' => '/var/run/haproxy.pid',
                                     'maxconn' => '4000',
                                     'user'    => 'haproxy',
                                     'group'   => 'haproxy',
-                                    'daemon'  => ''
+                                    'daemon'  => '',
+                                    'stats'   => 'socket /var/lib/haproxy/stats'
                                   }
       $haproxy_defaults_options = { 'log'     => 'global',
                                     'stats'   => 'enable',
