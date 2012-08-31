@@ -1,5 +1,5 @@
 define galera::pkg_add(
-  $pkg_name, 
+  $pkg_version, 
   $pkg_prefix = '/tmp'
 ) {
 
@@ -8,10 +8,7 @@ define galera::pkg_add(
   package { $title :
     ensure   => present,
     provider => $::galera::params::pkg_provider,
-    source   => "${pkg_prefix}/${pkg_name}",
+    source   => "${pkg_prefix}/${title}-${pkg_version}.rpm",
   } 
 
 }
-
-
-

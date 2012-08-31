@@ -21,7 +21,8 @@ class galera($cluster_name, $master_ip = false, $node_address = $ipaddress_eth0)
 
   case $::osfamily {
     'RedHat': {
-      $pkg_prefix = 'ftp://ftp.sunet.se/pub/databases/relational/mysql/Downloads/MySQL-5.5'
+      $pkg_prefix  = 'ftp://ftp.sunet.se/pub/databases/relational/mysql/Downloads/MySQL-5.5'
+      $pkg_version = '5.5.27-1.el6.x86_64'
 
       # avoid conflicts ...
       package { "mysql-libs" : 
@@ -38,13 +39,14 @@ class galera($cluster_name, $master_ip = false, $node_address = $ipaddress_eth0)
 
       # install dependencies
       Galera::Pkg_add {
-        pkg_prefix => $pkg_prefix,
-        before     => Package['MySQL-server']
+        pkg_prefix  => $pkg_prefix,
+        pkg_version => $pkg_version,
+        before      => Package['MySQL-server']
       }
 
-      galera::pkg_add { 'MySQL-client': pkg_name => 'MySQL-client-5.5.27-1.el6.x86_64.rpm' }
-      galera::pkg_add { 'MySQL-shared': pkg_name => 'MySQL-shared-5.5.27-1.el6.x86_64.rpm' }
-      galera::pkg_add { 'MySQL-shared-compat': pkg_name => 'MySQL-shared-compat-5.5.27-1.el6.x86_64.rpm' }
+      galera::pkg_add { 'MySQL-client': }
+      galera::pkg_add { 'MySQL-shared': }
+      galera::pkg_add { 'MySQL-shared-compat': }
 
       file { '/etc/my.cnf' :
         ensure  => present,
