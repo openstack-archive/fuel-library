@@ -24,11 +24,10 @@ class mysql::server (
   $enabled          = true
 ) inherits mysql::params {
   
-  Class['mysql::server'] -> Class['mysql::config']
-
-  create_resources( 'class', { 'mysql::config' => $config_hash } )
-
   if ($custom_setup_class == undef) {
+    Class['mysql::server'] -> Class['mysql::config']
+
+    create_resources( 'class', { 'mysql::config' => $config_hash } )
     package { 'mysql-server':
       name   => $package_name,
       ensure => $package_ensure,
