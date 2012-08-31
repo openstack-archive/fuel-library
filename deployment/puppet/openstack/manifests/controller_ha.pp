@@ -18,6 +18,7 @@ define haproxy_service($order, $hostnames, $balancer_ips, $virtual_ip, $port) {
 class openstack::controller_ha (
    $master_hostname,
    $controller_public_addresses, $public_interface, $private_interface, $controller_internal_addresses,
+   $virtual_ip, $internal_interface,
    $floating_range, $fixed_range, $multi_host, $network_manager, $verbose,
    $auto_assign_floating_ip, $mysql_root_password, $admin_email, $admin_password,
    $keystone_db_password, $keystone_admin_token, $glance_db_password, $glance_user_password,
@@ -39,8 +40,8 @@ class openstack::controller_ha (
     haproxy_service { 'glance-api': order => 80, virtual_ip => $vip, hostnames => $hosts, balancer_ips => $ips, port => 9292 }
 
     exec { 'create-virtual-ip':
-      command => "ip addr add ${virtual_ip} dev eth1",
-      unless => "ip addr show dev eth1 | grep ${virtual_ip}",
+      command => "ip addr add ${virtual_ip} dev ${internal_interface}",
+      unless => "ip addr show dev ${internal_interface} | grep ${virtual_ip}",
       path => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
     }
 
@@ -53,7 +54,7 @@ class openstack::controller_ha (
     # keepalived
     class { 'keepalived': require => Class['haproxy'] }
     keepalived::instance { '42':
-      interface => 'eth1',
+      interface => $internal_interface,
       virtual_ips => [$virtual_ip],
       state    => $which ? { 0 => 'MASTER', default => 'BACKUP' },
       priority => $which ? { 0 => 101,      default => 100      },
