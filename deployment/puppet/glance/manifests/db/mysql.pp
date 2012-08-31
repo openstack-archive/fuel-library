@@ -24,7 +24,7 @@ class glance::db::mysql(
     host         => $host,
     charset      => $charset,
     # I may want to inject some sql
-    require      => Class['mysql::config'],
+    require      => Class['mysql::server'],
   }
 
   if $allowed_hosts {
