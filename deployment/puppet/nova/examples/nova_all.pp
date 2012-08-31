@@ -16,6 +16,8 @@ $nova_user_password = 'nova_pass'
 $glance_db_password   = 'glance_pass'
 $glance_user_password = 'glance_pass'
 
+$public_ip = '172.18.66.100'
+
 #
 # indicates that all nova config entries that we did
 # not specifify in Puppet should be purged from file
@@ -154,7 +156,7 @@ class { 'nova::keystone::auth':
 
 class { 'nova::rabbitmq':
   userid   => $rabbit_user,
-  password => $rabbit_password,
+  password => $rabbit_password, 
 }
 
 class { 'nova::db::mysql':
@@ -169,6 +171,7 @@ class { 'nova':
   image_service      => 'nova.image.glance.GlanceImageService',
   glance_api_servers => '127.0.0.1:9292',
 #  network_manager    => 'nova.network.manager.FlatDHCPManager',
+#  rabbit_nodes => 'node001', #rabbit ha
 }
 
 class { 'nova::api':
@@ -182,7 +185,7 @@ class { 'nova::scheduler':
 
 class { 'nova::network':
   enabled 	    => true,
-  private_interface => 'eth1',
+  private_interface => 'eth0',
   fixed_range       => '11.0.0.0/24'
 }
 
@@ -209,18 +212,20 @@ class { 'nova::consoleauth':
   enabled => true
 }
 
-class { 'nova::vncproxy': }
+class { 'nova::vncproxy': 
+  enabled                       => true,
+}
 
 class { 'nova::compute':
   enabled                       => true,
   vnc_enabled                   => true,
-  vncserver_proxyclient_address => '127.0.0.1',
-  vncproxy_host                 => $public_hostname,
+  vncproxy_host                 => $public_ip,
 }
 
 class { 'nova::compute::libvirt':
+# qemu for virtual machine work
+# default type kvm
   libvirt_type     => 'qemu',
-  vncserver_listen => '127.0.0.1',
 }
 
 nova::network::bridge { 'br100':
