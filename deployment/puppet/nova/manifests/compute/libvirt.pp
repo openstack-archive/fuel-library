@@ -15,7 +15,11 @@ class nova::compute::libvirt (
     
 
     package { 'qemu':
-      ensure => present;
+      ensure => present,
+    }
+    
+    package {'dnsmasq-utils':
+      ensure => present
     }
 
     package { 'avahi':
