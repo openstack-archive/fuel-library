@@ -12,43 +12,39 @@ class galera($cluster_name, $master_ip = false, $node_address = $ipaddress_eth0)
 
   include galera::params
 
-  $mysql_user       = $::galera::params::mysql_user
-  $mysql_password   = $::galera::params::mysql_password
-  $libgalera_prefix = $::galera::params::libgalera_prefix
-  
-  $mysql_wsrep_prefix = 'https://launchpad.net/codership-mysql/5.5/5.5.23-23.6/+download/'
-  $galera_prefix = 'https://launchpad.net/galera/2.x/23.2.1/+download/'
+  $mysql_user         = $::galera::params::mysql_user
+  $mysql_password     = $::galera::params::mysql_password
+  $libgalera_prefix   = $::galera::params::libgalera_prefix
+
+  $mysql_wsrep_prefix = 'https://launchpad.net/codership-mysql/5.5/5.5.23-23.6/+download'
+  $galera_prefix      = 'https://launchpad.net/galera/2.x/23.2.1/+download'
 
   case $::osfamily {
     'RedHat': {
-      $pkg_prefix = 'ftp://ftp.sunet.se/pub/databases/relational/mysql/Downloads/MySQL-5.5/'
-      #$pkg_prefix = '/tmp/'
+      $pkg_prefix = 'ftp://ftp.sunet.se/pub/databases/relational/mysql/Downloads/MySQL-5.5'
 
+      # avoid conflicts ...
       package { "mysql-libs" : 
         ensure   => purged,
-        before   => [Package['MySQL-client', 'MySQL-shared', 'MySQL-shared-compat', 'galera'], File['/etc/my.cnf']]
+        before   => [Package['MySQL-client', 'MySQL-shared', 'MySQL-shared-compat'], File['/etc/my.cnf']]
       }
 
-      package { 'MySQL-client' :
-        ensure   => present,
-        provider => $::galera::params::pkg_provider,
-        source   => "${pkg_prefix}MySQL-client-5.5.27-1.el6.x86_64.rpm",
-        before   => Package['MySQL-shared']
-      } 
+      if !defined(Class['selinux']) {
+        class { 'selinux' :
+          mode   => 'disabled',
+          before => Package['mysql-libs']
+        }
+      }
 
-      package { 'MySQL-shared' :
-        ensure   => present,
-        provider => $::galera::params::pkg_provider,
-        source  => "${pkg_prefix}MySQL-shared-5.5.27-1.el6.x86_64.rpm",
-        before   => Package['MySQL-shared-compat']
-      } 
+      # install dependencies
+      Galera::Pkg_add {
+        pkg_prefix => $pkg_prefix,
+        before     => Package['MySQL-server']
+      }
 
-      package { 'MySQL-shared-compat' :
-        ensure   => present,
-        provider => $::galera::params::pkg_provider,
-        source => "${pkg_prefix}MySQL-shared-compat-5.5.27-1.el6.x86_64.rpm",
-        before   => Package['MySQL-server']
-      } 
+      galera::pkg_add { 'MySQL-client': pkg_name => 'MySQL-client-5.5.27-1.el6.x86_64.rpm' }
+      galera::pkg_add { 'MySQL-shared': pkg_name => 'MySQL-shared-5.5.27-1.el6.x86_64.rpm' }
+      galera::pkg_add { 'MySQL-shared-compat': pkg_name => 'MySQL-shared-compat-5.5.27-1.el6.x86_64.rpm' }
 
       file { '/etc/my.cnf' :
         ensure  => present,
@@ -56,23 +52,10 @@ class galera($cluster_name, $master_ip = false, $node_address = $ipaddress_eth0)
         before  => Service['mysql-galera']
       }
 
-      class { 'selinux' :
-        mode   => 'disabled',
-        before => Package['mysql-libs']
-      }
-
       package { 'wget' :
         ensure => present,
         before => Exec['download-wsrep', 'download-galera']
       }
-
-      exec { "bugfix_create_db" :
-        command => "/bin/sleep 15; /usr/bin/mysql_install_db --user=mysql",
-        require => [Package["MySQL-server"], File["/etc/mysql/conf.d/wsrep.cnf"]],
-        before  => Service['mysql-galera'],
-        unless  => "/bin/ls /var/lib/mysql/performance_schema"
-      }
-
     }
     'Debian': {
       package { "mysql-client" :
@@ -99,11 +82,11 @@ class galera($cluster_name, $master_ip = false, $node_address = $ipaddress_eth0)
     ensure      => present,
     provider    => $::galera::params::pkg_provider,
     source      => "/tmp/${::galera::params::mysql_server_package}",
-    require     => Exec["download-wsrep"],
+    require     => [Exec["download-wsrep"], File["/etc/mysql/conf.d/wsrep.cnf"]]
   }
 
   exec { "download-wsrep" :
-    command     => "/usr/bin/wget -P/tmp ${mysql_wsrep_prefix}${::galera::params::mysql_server_package}",
+    command     => "/usr/bin/wget -P/tmp ${mysql_wsrep_prefix}/${::galera::params::mysql_server_package}",
     creates     => "/tmp/${::galera::params::mysql_server_package}"
   }
 
@@ -127,7 +110,7 @@ class galera($cluster_name, $master_ip = false, $node_address = $ipaddress_eth0)
   file { "/etc/mysql/conf.d/wsrep.cnf" :
     ensure      => present,
     content     => template("galera/wsrep.cnf.erb"),
-    require     => Package["MySQL-server", "galera"],
+    ## require     => Package["galera"],
   }
 
   exec { "set-mysql-password" :
