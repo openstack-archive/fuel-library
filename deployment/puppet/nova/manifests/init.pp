@@ -30,6 +30,9 @@
 # [root_helper] Command used for roothelper. Optional. Distro specific.
 # [monitoring_notifications] A boolean specifying whether or not to send system usage data notifications out on the message queue. Optional, false by default. Only valid for stable/essex.
 #
+# $rabbit_nodes = ['node001', 'node002', 'node003']
+# add rabbit nodes hostname
+#
 class nova(
   # this is how to query all resources from our clutser
   $nova_cluster_id='localcluster',
@@ -38,8 +41,9 @@ class nova(
   # these glance params should be optional
   # this should probably just be configured as a glance client
   $glance_api_servers = 'localhost:9292',
-  $rabbit_host = 'localhost',
+  # for use rabbitmq in HA mode
   $rabbit_nodes = false,
+  $rabbit_host = 'localhost',
   $rabbit_password='guest',
   $rabbit_port='5672',
   $rabbit_userid='guest',
@@ -204,6 +208,7 @@ class nova(
     'rabbit_port':         value => $rabbit_port;
     'rabbit_userid':       value => $rabbit_userid;
     'rabbit_virtual_host': value => $rabbit_virtual_host;
+    'rpc_backend': value => 'nova.rpc.impl_kombu';
   }
 
   nova_config {
