@@ -40,8 +40,8 @@ class openstack::controller_ha (
     haproxy_service { 'glance-api': order => 80, virtual_ip => $vip, hostnames => $hosts, balancer_ips => $ips, port => 9292 }
 
     exec { 'create-virtual-ip':
-      command => "ip addr add ${virtual_ip} dev ${internal_interface}",
-      unless => "ip addr show dev ${internal_interface} | grep ${virtual_ip}",
+      command => "ip addr add ${virtual_ip} dev ${private_interface}",
+      unless => "ip addr show dev ${private_interface} | grep ${virtual_ip}",
       path => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
     }
 
