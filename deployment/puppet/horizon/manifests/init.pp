@@ -40,49 +40,19 @@ class horizon(
     Class['memcached'] -> Class['horizon']
   }
 
-
-  package { ["$::horizon::params::http_service", "$::horizon::params::http_modwsgi"]:
+  package { ["$::horizon::params::package_name","$::horizon::params::http_service"]:
     ensure => present,
   }
 
   file { '/etc/openstack-dashboard/local_settings.py':
     content => template('horizon/local_settings.py.erb'),
     mode    => '0644',
-    require => Package["$::horizon::params::package_name"],
   }
 
-  case $::osfamily {
-    'RedHat': { 
-      file {'/etc/httpd/conf.d/wsgi.conf':
-        mode   => 644,
-        owner  => root,
-        group  => root,
-        source => "puppet:///horizon/wsgi.conf",
-        require => Package["$::horizon::params::http_service", "$::horizon::params::http_modwsgi"]
-      }
-      package { "$::horizon::params::package_name":
-        ensure => present,
-        require => File['/etc/httpd/conf.d/wsgi.conf'],
-      }   
-    }
-
-    'Debian': {
-      exec { 'a2enmod wsgi':
-        command => 'a2enmod wsgi',
-        path => ['/usr/bin','/usr/sbin','/bin/','/sbin'],
-        require => Package["$::horizon::params::http_service", "$::horizon::params::http_modwsgi"]
-      }
-
-      package { "$::horizon::params::package_name":
-        ensure => present,
-        require => Exec['a2enmod wsgi'],
-      }
-    }
-  }
   service { 'httpd':
     name      => $::horizon::params::http_service,
     ensure    => 'running',
-    require   => [Package["$::horizon::params::http_service", "$::horizon::params::http_modwsgi"]],
+    require   => Package["$::horizon::params::http_service"],
     subscribe => File['/etc/openstack-dashboard/local_settings.py']
   }
 }
