@@ -23,7 +23,7 @@ class nova::db::mysql(
     host         => $host,
     charset      => $nova::params::nova_db_charset,
     # I may want to inject some sql
-    require      => Class['mysql::config'],
+    require      => Class['mysql::server'],
   }
 
   if $allowed_hosts {
