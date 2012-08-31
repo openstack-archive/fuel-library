@@ -15,12 +15,14 @@ class galera($cluster_name, $master_ip = false, $node_address = $ipaddress_eth0)
   $mysql_user       = $::galera::params::mysql_user
   $mysql_password   = $::galera::params::mysql_password
   $libgalera_prefix = $::galera::params::libgalera_prefix
-
+  
+  $mysql_wsrep_prefix = 'https://launchpad.net/codership-mysql/5.5/5.5.23-23.6/+download/'
+  $galera_prefix = 'https://launchpad.net/galera/2.x/23.2.1/+download/'
 
   case $::osfamily {
     'RedHat': {
-      #$pkg_prefix = 'ftp://ftp.sunet.se/pub/databases/relational/mysql/Downloads/MySQL-5.5/'
-      $pkg_prefix = '/tmp/'
+      $pkg_prefix = 'ftp://ftp.sunet.se/pub/databases/relational/mysql/Downloads/MySQL-5.5/'
+      #$pkg_prefix = '/tmp/'
 
       package { "mysql-libs" : 
         ensure   => purged,
@@ -66,7 +68,7 @@ class galera($cluster_name, $master_ip = false, $node_address = $ipaddress_eth0)
 
       exec { "bugfix_create_db" :
         command => "/bin/sleep 15; /usr/bin/mysql_install_db --user=mysql",
-        require => Package["MySQL-server"],
+        require => [Package["MySQL-server"], File["/etc/mysql/conf.d/wsrep.cnf"]],
         before  => Service['mysql-galera'],
         unless  => "/bin/ls /var/lib/mysql/performance_schema"
       }
@@ -101,7 +103,7 @@ class galera($cluster_name, $master_ip = false, $node_address = $ipaddress_eth0)
   }
 
   exec { "download-wsrep" :
-    command     => "/usr/bin/wget -P/tmp https://launchpad.net/codership-mysql/5.5/5.5.23-23.6/+download/${::galera::params::mysql_server_package}",
+    command     => "/usr/bin/wget -P/tmp ${mysql_wsrep_prefix}${::galera::params::mysql_server_package}",
     creates     => "/tmp/${::galera::params::mysql_server_package}"
   }
 
@@ -113,7 +115,7 @@ class galera($cluster_name, $master_ip = false, $node_address = $ipaddress_eth0)
   }
 
   exec { "download-galera" :
-    command     => "/usr/bin/wget -P/tmp https://launchpad.net/galera/2.x/23.2.1/+download/${::galera::params::galera_package}",
+    command     => "/usr/bin/wget -P/tmp ${galera_prefix}/${::galera::params::galera_package}",
     creates     => "/tmp/${::galera::params::galera_package}",
   }
 
