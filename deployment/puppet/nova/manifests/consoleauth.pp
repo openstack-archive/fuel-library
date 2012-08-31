@@ -17,5 +17,12 @@ class nova::consoleauth(
     service_name   => $::nova::params::consoleauth_service_name,
     ensure_package => $ensure_package,
   }
+  
+  nova::generic_service { 'console':
+    enabled	 => $enabled,
+    service_name => $::nova::params::console_service_name,
+    package_name => false,
+  }
+    
 
 }
