@@ -5,7 +5,7 @@ class nova::compute::libvirt (
 
   include nova::params
 
-  if $::operatingsystem == 'CentOS' {
+  if $::osfamily == 'RedHat' {
 
 #    yumrepo {'CentOS-Base':
 #      name     => 'updates',
