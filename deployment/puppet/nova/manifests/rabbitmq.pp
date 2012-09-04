@@ -7,6 +7,8 @@ class nova::rabbitmq(
   $password='guest',
   $port='5672',
   $virtual_host='/',
+  $cluster = false,
+  $cluster_nodes = [],
   $enabled = true
 ) {
 
@@ -38,9 +40,11 @@ class nova::rabbitmq(
   }
 
   class { 'rabbitmq::server':
-    service_ensure    => $service_ensure,
-    port              => $port,
-    delete_guest_user => $delete_guest_user,
+    service_ensure     => $service_ensure,
+    port               => $port,
+    delete_guest_user  => $delete_guest_user,
+    config_cluster     => $cluster,
+    cluster_disk_nodes => $cluster_nodes
   }
 
   if ($enabled) {
