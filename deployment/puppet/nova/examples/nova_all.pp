@@ -1,3 +1,8 @@
+Exec {
+  logoutput => true,
+  path => '/usr/sbin:/usr/bin:/sbin:/bin'
+}
+
 $rabbit_password = 'rabbit_pw'
 $rabbit_user = 'nova'
 
@@ -26,6 +31,7 @@ resources { 'nova_config':
   purge => true,
 }
 
+## Configure repo
 #if $::osfamily == 'Debian' {
 #  # temporarily update this to use the
 #  # latest tested packages from precise
@@ -43,6 +49,7 @@ resources { 'nova_config':
 #  }
 #}
 
+
 stage {'repo-priority':
   before => [Stage['main']]
 }
@@ -59,6 +66,12 @@ class repo-priority {
   }->
   yumrepo {'extras':
     priority => 10,
+  }
+  
+  class { 'openstack::repo::yum':
+    repo_name  => 'openstackci',
+    location   => 'http://moc-ci.srt.mirantis.net/rpm',
+    key_source => 'http://moc-ci.srt.mirantis.net/gpg.pub',
   }
 }
 
@@ -145,6 +158,15 @@ class { 'glance::registry':
   sql_connection    => "mysql://glance:${glance_db_password}@127.0.0.1/glance",
 }
 
+class {'openstack::img::cirros':
+  os_tenant_name   => 'openstack',
+  os_username      => 'admin',
+  os_password      => 'ChangeMe',
+  os_auth_url      => 'http://localhost:5000/v2.0/',
+  disk_format      => 'qcow2',
+  container_format => 'bare',
+  require          => Class['glance::backend::file'],
+}
 
 ######## END GLANCE ###########
 
@@ -198,8 +220,16 @@ class { 'nova::objectstore':
   enabled => true
 }
 
+class { 'lvm':
+#  loopfile => '/tmp/nova-volumes.lvm',
+  vg       => 'nova-volumes',
+  pv	   => '/dev/sdb',
+  before   => Class['nova::volume'],
+}
+
 class { 'nova::volume':
-  enabled => true
+  enabled => true,
+  require => Class['lvm']
 }
 
 class { 'nova::volume::iscsi': }
