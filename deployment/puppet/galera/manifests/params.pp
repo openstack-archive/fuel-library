@@ -7,7 +7,7 @@ class galera::params {
 
   case $::osfamily {
     'RedHat': {
-      $pkg_provider         = 'rpm'
+      $pkg_provider         = 'rpmforce'
       $libssl_package       = 'openssl098e'
       $libaio_package       = 'libaio'
       # $mysql_client_package = 'mysql'

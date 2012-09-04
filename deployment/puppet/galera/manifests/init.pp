@@ -24,16 +24,10 @@ class galera($cluster_name, $master_ip = false, $node_address = $ipaddress_eth0)
       $pkg_prefix  = 'ftp://ftp.sunet.se/pub/databases/relational/mysql/Downloads/MySQL-5.5'
       $pkg_version = '5.5.27-1.el6.x86_64'
 
-      # avoid conflicts ...
-      package { "mysql-libs" : 
-        ensure   => purged,
-        before   => [Package['MySQL-client', 'MySQL-shared', 'MySQL-shared-compat'], File['/etc/my.cnf']]
-      }
-
       if !defined(Class['selinux']) {
         class { 'selinux' :
           mode   => 'disabled',
-          before => Package['mysql-libs']
+          before => Package['MySQL-server']
         }
       }
 
@@ -46,7 +40,7 @@ class galera($cluster_name, $master_ip = false, $node_address = $ipaddress_eth0)
 
       galera::pkg_add { 'MySQL-client': }
       galera::pkg_add { 'MySQL-shared': }
-      galera::pkg_add { 'MySQL-shared-compat': }
+      #- galera::pkg_add { 'MySQL-shared-compat': }
 
       file { '/etc/my.cnf' :
         ensure  => present,
