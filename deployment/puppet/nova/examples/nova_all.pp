@@ -1,3 +1,8 @@
+Exec {
+  logoutput => true,
+  path => '/usr/sbin:/usr/bin:/sbin:/bin'
+}
+
 $rabbit_password = 'rabbit_pw'
 $rabbit_user = 'nova'
 
@@ -26,22 +31,7 @@ resources { 'nova_config':
   purge => true,
 }
 
-#if $::osfamily == 'Debian' {
-#  # temporarily update this to use the
-#  # latest tested packages from precise
-#  # eventually, these packages need to be moved
-#  # to the openstack module
-#  stage { 'nova_ppa':
-#    before => Stage['main']
-#  }
-#
-#  class { 'apt':
-#    stage => 'nova_ppa',
-#  }
-#  class { 'keystone::repo::trunk':
-#    stage => 'nova_ppa',
-#  }
-#}
+## Congirure repo
 
 stage {'repo-priority':
   before => [Stage['main']]
@@ -59,6 +49,12 @@ class repo-priority {
   }->
   yumrepo {'extras':
     priority => 10,
+  }
+  
+  class { 'openstack::repo::yum':
+    repo_name  => 'openstackci',
+    location   => 'http://moc-ci.srt.mirantis.net/rpm',
+    key_source => 'http://moc-ci.srt.mirantis.net/gpg.pub',
   }
 }
 
