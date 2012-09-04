@@ -236,11 +236,11 @@ class openstack::controller(
 
 
   class { 'nova::rabbitmq':
-    userid   => $rabbit_user,
-    password => $rabbit_password,
-    enabled  => $enabled,
-    #cluster  => $rabbit_cluster,
-    #cluster_nodes => $rabbit_nodes,
+    userid        => $rabbit_user,
+    password      => $rabbit_password,
+    enabled       => $enabled,
+    cluster       => $rabbit_cluster,
+    cluster_nodes => $rabbit_nodes,
   }
 
   # TODO I may need to figure out if I need to set the connection information
