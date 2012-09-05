@@ -38,6 +38,7 @@ class openstack::controller_ha (
     haproxy_service { 'nova-api-3': order => 60, virtual_ip => $vip, hostnames => $hosts, balancer_ips => $ips, port => 8775 }
     haproxy_service { 'nova-api-4': order => 70, virtual_ip => $vip, hostnames => $hosts, balancer_ips => $ips, port => 8776 }
     haproxy_service { 'glance-api': order => 80, virtual_ip => $vip, hostnames => $hosts, balancer_ips => $ips, port => 9292 }
+    haproxy_service { 'glance-reg': order => 90, virtual_ip => $vip, hostnames => $hosts, balancer_ips => $ips, port => 9191 }
 
     exec { 'create-virtual-ip':
       command => "ip addr add ${virtual_ip} dev ${private_interface}",
@@ -93,6 +94,8 @@ class openstack::controller_ha (
 	  rabbit_nodes            => $controller_hostnames,
       export_resources        => false,
       api_bind_address        => $controller_internal_addresses[$which],
+      mysql_host              => $virtual_ip,
+      service_endpoint        => $virtual_ip,
     }
 
     class { 'openstack::auth_file':

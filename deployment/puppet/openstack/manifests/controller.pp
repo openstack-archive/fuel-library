@@ -93,10 +93,12 @@ class openstack::controller(
   $horizon_app_links       = false,
   $enabled                 = true,
   $api_bind_address        = '0.0.0.0',
+  $mysql_host              = '127.0.0.1',
+  $service_endpoint        = '127.0.0.1'
 ) {
-
-  $glance_api_servers = "${api_bind_address}:9292"
-  $nova_db = "mysql://nova:${nova_db_password}@${internal_address}/nova"
+  
+  $glance_api_servers = "${service_endpoint}:9292"
+  $nova_db = "mysql://nova:${nova_db_password}@${mysql_host}/nova"
 
   $rabbit_addresses = inline_template("<%= @rabbit_nodes.map {|x| x + ':5672'}.join ',' %>")
 
@@ -132,11 +134,12 @@ class openstack::controller(
   if ($enabled) {
     # set up all openstack databases, users, grants
     class { "keystone::db::mysql":
+      host     => $mysql_host,
       password => $keystone_db_password,
     }
     Class["glance::db::mysql"] -> Class['glance::registry']
     class { "glance::db::mysql":
-      host     => '127.0.0.1',
+      host     => $mysql_host,
       password => $glance_db_password,
     }
     # TODO should I allow all hosts to connect?
@@ -163,6 +166,7 @@ class openstack::controller(
   # set up keystone database
   # set up the keystone config for mysql
   class { "keystone::config::mysql":
+    host     => $mysql_host,
     password => $keystone_db_password,
   }
 
@@ -205,28 +209,30 @@ class openstack::controller(
     log_verbose       => $verbose,
     log_debug         => $verbose,
     auth_type         => 'keystone',
-    auth_host         => $api_bind_address,
+    auth_host         => $service_endpoint,
     auth_port         => '35357',
-    auth_uri          => "http://${api_bind_address}:5000/",
+    auth_uri          => "http://${service_endpoint}:5000/",
     keystone_tenant   => 'services',
     keystone_user     => 'glance',
     keystone_password => $glance_user_password,
     enabled           => $enabled,
     bind_host         => $api_bind_address,
+    registry_host     => $service_endpoint,
   }
   class { 'glance::backend::file': }
 
   class { 'glance::registry':
     log_verbose       => $verbose,
     log_debug         => $verbose,
+    bind_host         => $api_bind_address,
     auth_type         => 'keystone',
-    auth_host         => $api_bind_address,
+    auth_host         => $service_endpoint,
     auth_port         => '35357',
-    auth_uri          => "http://${api_bind_address}:5000/",
+    auth_uri          => "http://${service_endpoint}:5000/",
     keystone_tenant   => 'services',
     keystone_user     => 'glance',
     keystone_password => $glance_user_password,
-    sql_connection    => "mysql://glance:${glance_db_password}@127.0.0.1/glance",
+    sql_connection    => "mysql://glance:${glance_db_password}@${mysql_host}/glance",
     enabled           => $enabled,
   }
 
@@ -266,7 +272,7 @@ class openstack::controller(
     admin_tenant_name => 'services',
     admin_user        => 'nova',
     admin_password    => $nova_user_password,
-    auth_host         => $api_bind_address,
+    auth_host         => $service_endpoint,
   }
 
   class { [
