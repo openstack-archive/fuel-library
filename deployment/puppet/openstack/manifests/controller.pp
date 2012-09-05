@@ -142,6 +142,8 @@ class openstack::controller (
   $quantum_db_dbname       = 'quantum',
   $enabled                 = true
   $api_bind_address        = '0.0.0.0',
+  $mysql_host              = '127.0.0.1',
+  $service_endpoint        = '127.0.0.1'
 ) {
 
   # Ensure things are run in order
@@ -149,7 +151,6 @@ class openstack::controller (
   Class['openstack::db::mysql'] -> Class['openstack::glance']
   Class['openstack::db::mysql'] -> Class['openstack::nova::controller']
 
-  $glance_api_servers = "${api_bind_address}:9292"
 
 
 
@@ -215,6 +216,7 @@ class openstack::controller (
     cinder                => $cinder,
     cinder_user_password  => $cinder_user_password,
     quantum               => $quantum,
+    bind_host    => $api_bind_address,
     quantum_user_password => $quantum_user_password,
     enabled               => $enabled,
   }
@@ -229,7 +231,11 @@ class openstack::controller (
     glance_db_dbname          => $glance_db_dbname,
     glance_db_password        => $glance_db_password,
     glance_user_password      => $glance_user_password,
+    auth_uri          => "http://${service_endpoint}:5000/",
+    keystone_host         => $service_endpoint,
+    bind_host           => $api_bind_address,
     enabled                   => $enabled,
+    registry_host     => $service_endpoint,
   }
 
   ######## BEGIN NOVA ###########
@@ -263,6 +269,7 @@ class openstack::controller (
     create_networks         => $create_networks,
     num_networks            => $num_networks,
     multi_host              => $multi_host,
+    keystone_host         => $service_endpoint,
     quantum                 => $quantum,
     # Nova
     nova_user_password      => $nova_user_password,
