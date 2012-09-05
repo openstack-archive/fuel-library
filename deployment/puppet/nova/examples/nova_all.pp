@@ -141,6 +141,15 @@ class { 'glance::registry':
   sql_connection    => "mysql://glance:${glance_db_password}@127.0.0.1/glance",
 }
 
+class {'openstack::img::cirros':
+  os_tenant_name   => 'openstack',
+  os_username      => 'admin',
+  os_password      => 'ChangeMe',
+  os_auth_url      => 'http://localhost:5000/v2.0/',
+  disk_format      => 'qcow2',
+  container_format => 'bare',
+  require          => Class['glance::backend::file'],
+}
 
 ######## END GLANCE ###########
 
