@@ -99,6 +99,15 @@ class openstack::compute (
   $glance_connection = $glance_api_servers
   $rabbit_connection = $rabbit_host
 
+  augeas { "libvirt-conf":
+    context => "/files/etc/libvirt/libvirtd.conf",
+    changes =>[
+      "set listen_tls 0",
+      "set listen_tcp 1",
+      "set auth_tcp none",
+    ];
+  }
+
   class { 'nova':
     sql_connection     => $sql_connection,
     rabbit_nodes       => $rabbit_nodes,
