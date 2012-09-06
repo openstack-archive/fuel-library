@@ -31,7 +31,24 @@ resources { 'nova_config':
   purge => true,
 }
 
-## Congirure repo
+## Configure repo
+#if $::osfamily == 'Debian' {
+#  # temporarily update this to use the
+#  # latest tested packages from precise
+#  # eventually, these packages need to be moved
+#  # to the openstack module
+#  stage { 'nova_ppa':
+#    before => Stage['main']
+#  }
+#
+#  class { 'apt':
+#    stage => 'nova_ppa',
+#  }
+#  class { 'keystone::repo::trunk':
+#    stage => 'nova_ppa',
+#  }
+#}
+
 
 stage {'repo-priority':
   before => [Stage['main']]
