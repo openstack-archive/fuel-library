@@ -48,7 +48,7 @@ class glance::api(
   $keystone_user = 'admin',
   $keystone_password = 'ChangeMe',
   $enabled           = true
-) {
+) inherits glance {
 
   # used to configure concat
   include 'concat::setup'

@@ -15,7 +15,7 @@ class glance::registry(
   $keystone_user = 'admin',
   $keystone_password = 'ChangeMe',
   $enabled           = true
-) {
+) inherits glance {
 
   require 'keystone::python'
 
