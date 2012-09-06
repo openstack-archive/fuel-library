@@ -40,11 +40,14 @@ class openstack::controller_ha (
     haproxy_service { 'glance-api': order => 80, virtual_ip => $vip, hostnames => $hosts, balancer_ips => $ips, port => 9292 }
     haproxy_service { 'glance-reg': order => 90, virtual_ip => $vip, hostnames => $hosts, balancer_ips => $ips, port => 9191 }
 
-    exec { 'create-virtual-ip':
-      command => "ip addr add ${virtual_ip} dev ${internal_interface}",
-      unless => "ip addr show dev ${internal_interface} | grep ${virtual_ip}",
-      path => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
+    if $which == 0 {
+      exec { 'create-virtual-ip':
+        command => "ip addr add ${virtual_ip} dev ${internal_interface}",
+        unless => "ip addr show dev ${internal_interface} | grep ${virtual_ip}",
+        path => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
     }
+
+    sysctl::value { 'net.ipv4.ip_nonlocal_bind': value => '1' }
 
     $internal_address = $controller_internal_addresses[$which]
     class { 'haproxy':
@@ -71,7 +74,7 @@ class openstack::controller_ha (
                                     'check 10s'],
                                     'maxconn' => '8000'
                                   },
-    require => Exec['create-virtual-ip'],
+       require => Sysctl::Value['net.ipv4.ip_nonlocal_bind'],
     }
 
     # keepalived
