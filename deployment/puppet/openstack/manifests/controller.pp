@@ -204,7 +204,6 @@ class openstack::controller(
 
   ######## BEGIN GLANCE ##########
 
-  class { 'glance': }
 
   class { 'glance::api':
     log_verbose       => $verbose,
@@ -219,7 +218,6 @@ class openstack::controller(
     enabled           => $enabled,
     bind_host         => $api_bind_address,
     registry_host     => $service_endpoint,
-    require           => Class['glance']
   }
   class { 'glance::backend::file': }
 
@@ -236,7 +234,6 @@ class openstack::controller(
     keystone_password => $glance_user_password,
     sql_connection    => "mysql://glance:${glance_db_password}@${mysql_host}/glance",
     enabled           => $enabled,
-    require           => Class['glance']
   }
 
   ######## END GLANCE ###########
