@@ -49,7 +49,7 @@ class openstack::controller_ha (
     $internal_address = $controller_internal_addresses[$which]
     class { 'haproxy':
       enable => true, 
-      proxy_global_options   => { 'log'      => "${internal_address} local0",
+      haproxy_global_options   => {'log'      => "${internal_address} local0",
                                   'chroot'  => '/var/lib/haproxy',
                                   'pidfile' => '/var/run/haproxy.pid',
                                   'maxconn' => '4000',
@@ -58,7 +58,7 @@ class openstack::controller_ha (
                                   'daemon'  => '',
                                   'stats'   => 'socket /var/lib/haproxy/stats'
                                   },
-      haproxy_defaults_options => { 'log'      => 'global',
+      haproxy_defaults_options => {'log'      => 'global',
                                     'stats'   => 'enable',
                                     'mode'    => 'http',
                                     'option'  => 'redispatch',
