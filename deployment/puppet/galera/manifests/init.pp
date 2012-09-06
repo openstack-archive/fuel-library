@@ -18,6 +18,8 @@ class galera($cluster_name, $master_ip = false, $node_address = $ipaddress_eth0)
 
   $mysql_wsrep_prefix = 'https://launchpad.net/codership-mysql/5.5/5.5.23-23.6/+download'
   $galera_prefix      = 'https://launchpad.net/galera/2.x/23.2.1/+download'
+  #$mysql_wsrep_prefix = 'http://172.18.66.215'
+  #$galera_prefix      = 'http://172.18.66.215'
 
   case $::osfamily {
     'RedHat': {
@@ -40,7 +42,7 @@ class galera($cluster_name, $master_ip = false, $node_address = $ipaddress_eth0)
 
       galera::pkg_add { 'MySQL-client': }
       galera::pkg_add { 'MySQL-shared': }
-      #- galera::pkg_add { 'MySQL-shared-compat': }
+      # galera::pkg_add { 'MySQL-shared-compat': }
 
       file { '/etc/my.cnf' :
         ensure  => present,
