@@ -1,5 +1,5 @@
 class glance(
-  $package_ensure = 'present'
+  $package_ensure = 'latest'
 ) {
 
   include glance::params
