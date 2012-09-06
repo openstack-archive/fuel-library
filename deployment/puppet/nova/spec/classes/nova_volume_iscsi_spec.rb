@@ -25,6 +25,20 @@ describe 'nova::volume::iscsi' do
       )}
     end
 
+    describe 'and more specifically on debian os with iscsitarget helper' do
+      let :facts do
+        { :osfamily => 'Debian', :operatingsystem => 'Debian' }
+      end
+      let :params do
+        {:iscsi_helper => 'iscsitarget'}
+      end
+      it { should contain_package('iscsitarget') }
+      it { should contain_service('iscsitarget').with_enable(true) }
+      it { should contain_service('open-iscsi').with_enable(true) }
+      it { should contain_package('iscsitarget-dkms') }
+      it { should contain_file('/etc/default/iscsitarget') }
+    end
+
     it { should contain_nova_config('volume_group').with_value('nova-volumes') }
     it { should_not contain_nova_config('iscsi_ip_address') }
 
