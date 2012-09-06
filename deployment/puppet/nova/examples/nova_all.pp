@@ -220,8 +220,16 @@ class { 'nova::objectstore':
   enabled => true
 }
 
+class { 'lvm':
+#  loopfile => '/tmp/nova-volumes.lvm',
+  vg       => 'nova-volumes',
+  pv	   => '/dev/sdb',
+  before   => Class['nova::volume'],
+}
+
 class { 'nova::volume':
-  enabled => true
+  enabled => true,
+  require => Class['lvm']
 }
 
 class { 'nova::volume::iscsi': }
