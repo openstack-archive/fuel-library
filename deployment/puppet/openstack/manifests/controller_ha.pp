@@ -45,6 +45,7 @@ class openstack::controller_ha (
         command => "ip addr add ${virtual_ip} dev ${internal_interface}",
         unless => "ip addr show dev ${internal_interface} | grep ${virtual_ip}",
         path => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
+      }
     }
 
     sysctl::value { 'net.ipv4.ip_nonlocal_bind': value => '1' }
