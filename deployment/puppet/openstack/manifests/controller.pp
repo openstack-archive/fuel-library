@@ -134,13 +134,15 @@ class openstack::controller(
   if ($enabled) {
     # set up all openstack databases, users, grants
     class { "keystone::db::mysql":
-      host     => $mysql_host,
+      host     => $internal_address,
       password => $keystone_db_password,
+      allowed_hosts => '%',
     }
     Class["glance::db::mysql"] -> Class['glance::registry']
     class { "glance::db::mysql":
-      host     => $mysql_host,
+      host     => $internal_address,
       password => $glance_db_password,
+      allowed_hosts => '%',
     }
     # TODO should I allow all hosts to connect?
     class { "nova::db::mysql":

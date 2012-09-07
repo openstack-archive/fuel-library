@@ -93,10 +93,10 @@ class openstack::controller_ha (
     }
 
     class { 'openstack::controller':
-      public_address          => $controller_public_addresses[$which],
+      public_address          => $virtual_ip,
       public_interface        => $public_interface,
       private_interface       => $private_interface,
-      internal_address        => $controller_internal_addresses[$which],
+      internal_address        => $virtual_ip,
       floating_range          => $floating_range,
       fixed_range             => $fixed_range,
       multi_host              => $multi_host,
@@ -116,7 +116,7 @@ class openstack::controller_ha (
       rabbit_password         => $rabbit_password,
       rabbit_user             => $rabbit_user,
       rabbit_cluster          => true,
-	  rabbit_nodes            => $controller_hostnames,
+      rabbit_nodes            => $controller_hostnames,
       export_resources        => false,
       api_bind_address        => $controller_internal_addresses[$which],
       mysql_host              => $virtual_ip,
