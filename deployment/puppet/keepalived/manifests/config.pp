@@ -6,6 +6,8 @@ class keepalived::config (
   $router_id,
 ) {
 
+  include concat::setup
+
   concat { $keepalived::variables::keepalived_conf:
     warn    => true,
   }
