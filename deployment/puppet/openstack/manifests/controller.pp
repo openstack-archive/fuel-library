@@ -195,7 +195,6 @@ class openstack::controller (
     enabled => $enabled,
     custom_setup_class => $custom_mysql_setup_class,
   }
- 
   ####### KEYSTONE ###########
   class { 'openstack::keystone':
     verbose               => $verbose,
