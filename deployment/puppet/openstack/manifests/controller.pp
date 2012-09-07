@@ -146,8 +146,8 @@ class openstack::controller(
     }
     # TODO should I allow all hosts to connect?
     class { "nova::db::mysql":
+      host          => $mysql_host,
       password      => $nova_db_password,
-      host          => $internal_address,
       allowed_hosts => '%',
     }
   }
@@ -337,7 +337,7 @@ class openstack::controller(
     swift => $swift,
     quantum => $quantum,
     horizon_app_links => $horizon_app_links,
-    keystone_host => $internal_address,
+    keystone_host => $service_endpoint,
   }
 
 
