@@ -1,0 +1,7 @@
+<% novaConfHash.each do |key, value| -%>
+<% if  value != "undef" -%>
+--<%= key -%>=<%= value %>
+<% else -%>
+--<%= key %>
+<% end -%>
+<% end -%>
