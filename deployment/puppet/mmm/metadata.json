@@ -1,0 +1,35 @@
+{
+  "name": "tribily-mmm",
+  "author": "Walter Heck",
+  "description": "",
+  "license": "GPL v2",
+  "project_page": "",
+  "source": "",
+  "summary": "A puppet module to manage MMM for MySQL",
+  "version": "1.0",
+  "checksums": {
+    "Modulefile": "12619efecdbbb5f69d2bd20415306d76",
+    "README": "06c81ef266f1e370e46ba6223537735c",
+    "lib/facter/ipaddresses.rb": "93f13e7a8cf43464e64228247417f8e2",
+    "manifests/agent.pp": "5f2afcaeeb44ca95af591e644fe6e7dc",
+    "manifests/agent/config.pp": "e6521127241e80bcd4be05a7d1f84ef1",
+    "manifests/cluster/config.pp": "a9007b8ddbcf369db53a33c543affb24",
+    "manifests/common.pp": "0cf7c5805d28ad0c9c6b41911e7866ae",
+    "manifests/common/config.pp": "3461b65bbb57f8beb0768df9e6f5d93b",
+    "manifests/monitor.pp": "9b26a3cd7394c78b5f0dcd3ef14af58d",
+    "manifests/monitor/config.pp": "457a45cd765e926c8b77274a20fe6839",
+    "templates/agent-default.erb": "9f6bd7fc27856c88bc2339caacb31d11",
+    "templates/agent-init-d.erb": "4aff8d613084836622e98f6b48d76128",
+    "templates/mmm_agent.conf.erb": "3fe3085a09ae30c51a67f78bab08217d",
+    "templates/mmm_common.conf.erb": "911cac079cce027e758168ff41f7af02",
+    "templates/mmm_mon.conf.erb": "a8cdaf1c6de89a96d45962889f344b42",
+    "templates/mon-default.erb": "e0861ecb63442d699040acb8b8895898",
+    "templates/mon-init-d.erb": "1e48f64844be2a6dbc3581e386de300c"
+  },
+  "dependencies": [
+    {
+      "name": "tribily/mariadb",
+      "versionRequirement": "\u003e\u003d1.0"
+    }
+  ]
+}
