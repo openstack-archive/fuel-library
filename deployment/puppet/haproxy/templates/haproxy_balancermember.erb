@@ -1,0 +1,4 @@
+  server  <%= server_name %> <%= balancer_ip %>:<%= balancer_port %> <%
+    items = balancermember_options
+    items = [items] unless balancermember_options.instance_of? Array
+    items.each do |item| %> <%= item %><% end %>
