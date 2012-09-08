@@ -1,0 +1,4 @@
+pkg/
+*.swp
+metadata.json
+spec/fixtures/modules/*
