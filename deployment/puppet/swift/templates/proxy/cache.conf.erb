@@ -1,0 +1,3 @@
+[filter:cache]
+use = egg:swift#memcache
+memcache_servers = <%= memcache_servers.to_a.join(',') %>

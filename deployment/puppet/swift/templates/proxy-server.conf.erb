@@ -1,0 +1,15 @@
+# This file is managed by puppet.  Do not edit
+#
+[DEFAULT]
+bind_port = <%= port %>
+workers = <%= workers %>
+user = swift
+
+[pipeline:main]
+pipeline = <%= pipeline.to_a.join(' ') %>
+
+[app:proxy-server]
+use = egg:swift#proxy
+allow_account_management = <%= allow_account_management %>
+account_autocreate = <%= account_autocreate %>
+

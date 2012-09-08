@@ -1,0 +1,7 @@
+spec/fixtures/modules/apt
+spec/fixtures/modules/memcached
+spec/fixtures/modules/rsync
+spec/fixtures/modules/ssh
+spec/fixtures/modules/stdlib
+spec/fixtures/modules/xinetd
+spec/fixtures/modules/*

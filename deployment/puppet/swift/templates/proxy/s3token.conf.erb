@@ -1,0 +1,5 @@
+[filter:s3token]
+paste.filter_factory = keystone.middleware.s3_token:filter_factory
+auth_port = <%= auth_port %>
+auth_protocol = <%= auth_protocol %>
+auth_host = <%= auth_host %>
