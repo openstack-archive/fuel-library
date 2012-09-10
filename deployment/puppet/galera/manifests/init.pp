@@ -119,4 +119,12 @@ class galera($cluster_name, $master_ip = false, $node_address = $ipaddress_eth0)
     refreshonly => true,
   }
 
+  exec { "wait-for-synced-state" :
+    require     => Exec["set-mysql-password"],
+    logoutput   => true,
+    command     => "/usr/bin/mysql -Nbe \"show status like 'wsrep_local_state_comment'\" | /bin/grep -q Synced",
+    try_sleep   => 5,
+    tries       => 6,
+  }
+
 }
