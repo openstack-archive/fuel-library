@@ -10,6 +10,7 @@ class nova::consoleauth(
 ) {
 
   include nova::params
+  include nova::consoleauth_cache
 
   nova::generic_service { 'consoleauth':
     enabled        => $enabled,
