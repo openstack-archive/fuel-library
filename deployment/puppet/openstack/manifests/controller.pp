@@ -121,7 +121,7 @@ class openstack::controller (
   $rabbit_password         = 'rabbit_pw',
   $rabbit_user             = 'nova',
   # Horizon
-  $cache_server_ip         = '127.0.0.1',
+  $cache_server_ip         = ['127.0.0.1'],
   $cache_server_port       = '11211',
   $swift                   = false,
   $quantum                 = false,
@@ -306,6 +306,12 @@ class openstack::controller (
   }
 
 
+  class { 'memcached':
+    listen_ip => $api_bind_address,
+  } 
+  nova_config {'memcached_servers':
+    value => inline_template("<%= @cache_server_ip.collect {|ip| ip + ':' + @cache_server_port }.join ',' %>")
+  }
   ######## Horizon ########
   class { 'openstack::horizon':
     secret_key        => $secret_key,

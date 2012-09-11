@@ -23,7 +23,7 @@ class openstack::controller_ha (
    $auto_assign_floating_ip, $mysql_root_password, $admin_email, $admin_password,
    $keystone_db_password, $keystone_admin_token, $glance_db_password, $glance_user_password,
    $nova_db_password, $nova_user_password, $rabbit_password, $rabbit_user,
-   $rabbit_nodes, $export_resources
+   $rabbit_nodes, $memcached_servers, $export_resources
  ) {
     $which = $::hostname ? { $master_hostname => 0, default => 1 }
 
@@ -118,6 +118,7 @@ class openstack::controller_ha (
       rabbit_user             => $rabbit_user,
       rabbit_cluster          => true,
       rabbit_nodes            => $controller_hostnames,
+      cache_server_ip         => $memcached_servers,
       export_resources        => false,
       api_bind_address        => $controller_internal_addresses[$which],
       mysql_host              => $virtual_ip,
