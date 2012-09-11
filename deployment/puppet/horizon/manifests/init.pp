@@ -36,23 +36,47 @@ class horizon(
 
   include horizon::params
 
-  if $cache_server_ip =~ /^127\.0\.0\.1/ {
-    Class['memcached'] -> Class['horizon']
-  }
+  #if $cache_server_ip =~ /^127\.0\.0\.1/ {
+  Class['memcached'] -> Class['horizon']
+  #}
 
-  package { ["$::horizon::params::package_name","$::horizon::params::http_service"]:
+  package { ["$::horizon::params::http_service", "$::horizon::params::http_modwsgi", "$::horizon::params::package_name"]:
     ensure => present,
   }
 
-  file { '/etc/openstack-dashboard/local_settings.py':
+  file { $::horizon::params::local_settings_path:
     content => template('horizon/local_settings.py.erb'),
     mode    => '0644',
+    require => Package["$::horizon::params::package_name"],
+  }
+
+  case $::osfamily {
+    'RedHat': { 
+      file { '/etc/httpd/conf.d/wsgi.conf':
+        mode   => 644,
+        owner  => root,
+        group  => root,
+        content => "LoadModule wsgi_module modules/mod_wsgi.so\n",
+        require => Package["$::horizon::params::http_service", "$::horizon::params::http_modwsgi"],
+        before  => Package["$::horizon::params::package_name"],
+      }
+    }
+
+    'Debian': {
+      exec { 'a2enmod wsgi':
+        command => 'a2enmod wsgi',
+        path => ['/usr/bin','/usr/sbin','/bin/','/sbin'],
+        require => Package["$::horizon::params::http_service", "$::horizon::params::http_modwsgi"],
+        before  => Package["$::horizon::params::package_name"],
+      }
+    }
   }
 
   service { 'httpd':
     name      => $::horizon::params::http_service,
     ensure    => 'running',
-    require   => Package["$::horizon::params::http_service"],
-    subscribe => File['/etc/openstack-dashboard/local_settings.py']
+    enable    => true,
+    require   => [Package["$::horizon::params::http_service", "$::horizon::params::http_modwsgi"]],
+    subscribe => File[$::horizon::params::local_settings_path]
   }
 }
