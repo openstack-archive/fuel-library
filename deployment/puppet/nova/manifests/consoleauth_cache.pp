@@ -9,14 +9,23 @@
 class nova::consoleauth_cache() {
 
   $consoleauth_package_name = $::osfamily ? { 'RedHat' => 'python-nova', default => $::nova::params::consoleauth_package_name }
+  $nova_prefix = "/usr/lib/${::nova::params::python_path}/nova"
 
-  file { "/usr/lib/${::nova::params::python_path}/nova/consoleauth/manager.py":
-    source  => 'puppet:///modules/nova/consoleauth_manager.py',
+  File {
     require => Package[$consoleauth_package_name],
     notify  => Service[$::nova::params::consoleauth_service_name],
     #owner   => 'root',
     #group   => 'root',
     #mode    => '755',
+  }
+
+  file {
+    "${nova_prefix}/consoleauth/manager.py":
+      source => 'puppet:///modules/nova/consoleauth_manager.py';
+    "${nova_prefix}/openstack/common/timeutils.py":
+      source => 'puppet:///modules/nova/openstack_common_timeutils.py';
+    "${nova_prefix}/openstack/common/jsonutils.py":
+      source => 'puppet:///modules/nova/openstack_common_jsonutils.py';
   }
 
 }
