@@ -86,7 +86,7 @@ class openstack::controller(
   $verbose                 = false,
   $export_resources        = true,
   $secret_key              = 'dummy_secret_key',
-  $cache_server_ip         = '127.0.0.1',
+  $cache_server_ip         = ['127.0.0.1'],
   $cache_server_port       = '11211',
   $swift                   = false,
   $quantum                 = false,
@@ -327,7 +327,11 @@ class openstack::controller(
   # TOOO - what to do about HA for horizon?
 
   class { 'memcached':
-    listen_ip => '127.0.0.1',
+    listen_ip => $api_bind_address,
+  } 
+
+  nova_config {'memcached_servers':
+    value => inline_template("<%= @cache_server_ip.collect {|ip| ip + ':' + @cache_server_port }.join ',' %>")
   }
 
   class { 'horizon':
