@@ -98,6 +98,7 @@ class openstack::compute (
   $final_sql_connection = $sql_connection
   $glance_connection = $glance_api_servers
   $rabbit_connection = $rabbit_host
+  include ntpd
 
   augeas { "libvirt-conf":
     context => "/files/etc/libvirt/libvirtd.conf",

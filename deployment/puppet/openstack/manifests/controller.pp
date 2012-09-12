@@ -152,7 +152,7 @@ class openstack::controller (
   Class['openstack::db::mysql'] -> Class['openstack::nova::controller']
 
 
-
+  include ntpd
 
   ####### DATABASE SETUP ######
   # set up mysql server

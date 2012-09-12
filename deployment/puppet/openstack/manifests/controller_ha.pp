@@ -93,6 +93,10 @@ class openstack::controller_ha (
       node_address => $controller_internal_addresses[$which],
     }
 
+    class { 'firewall':
+      before => Class['galera']
+    }
+
     class { 'openstack::controller':
       public_address          => $virtual_ip,
       public_interface        => $public_interface,
