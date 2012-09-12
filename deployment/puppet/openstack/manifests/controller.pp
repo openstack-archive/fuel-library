@@ -118,6 +118,8 @@ class openstack::controller(
     $glance_connection = $glance_api_servers
   }
 
+  include ntpd
+
   ####### DATABASE SETUP ######
 
   # set up mysql server

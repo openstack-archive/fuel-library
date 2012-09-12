@@ -69,6 +69,8 @@ class openstack::compute(
   $nova_volume         = 'nova-volumes'
 ) {
 
+  include ntpd
+
   augeas { "libvirt-conf":
     context => "/files/etc/libvirt/libvirtd.conf",
     changes =>[
