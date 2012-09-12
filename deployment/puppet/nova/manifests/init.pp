@@ -109,14 +109,6 @@ class nova(
       source => 'puppet:///modules/nova/rmq-ha.patch'
     }
     
-    package { 'patch':
-      ensure => present
-    }
-
-    file { '/tmp/rmq-ha.patch':
-      ensure => present,
-      source => 'puppet:///modules/nova/rmq-ha.patch'
-    }
 
     exec { 'patch-nova':
       unless  => "/bin/grep x-ha-policy /usr/lib/${::nova::params::python_path}/nova/rpc/impl_kombu.py",
