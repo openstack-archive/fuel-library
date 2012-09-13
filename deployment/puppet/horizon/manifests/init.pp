@@ -74,7 +74,8 @@ class horizon(
 
   file_line { 'horizon_redirect_rule':
     path => '/etc/httpd/conf.d/openstack-dashboard.conf',
-    line => 'RedirectMatch permanent ^/$ /dashboard/'
+    line => 'RedirectMatch permanent ^/$ /dashboard/',
+    require => Package["$::horizon::params::package_name"]
   }
 
   service { 'httpd':
