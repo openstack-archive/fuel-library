@@ -36,6 +36,14 @@ class selinux::config(
     case $mode {
       permissive,disabled: { 
         $sestatus = '0'
+
+        # workaround bugfix (http://projects.puppetlabs.com/issues/4466)
+        $facter_selinux_path = '/usr/lib/ruby/site_ruby/1.8/facter/selinux.rb'
+        exec { "patch-facter-selinux":
+          command => "sed -i 's|proc/self/attr/current\") !|proc/self/attr/current\") rescue \"kernel\\\0\" !|' ${facter_selinux_path}",
+          unless  => "grep -q 'rescue \"kernel\\\0' ${facter_selinux_path}",
+        }
+
         if $mode == 'disabled' and $::selinux_current_mode == 'permissive' {
           notice('A reboot is required to fully disable SELinux. SELinux will operate in Permissive mode until a reboot')
         }
@@ -49,6 +57,7 @@ class selinux::config(
       command => "echo ${sestatus} > /selinux/enforce",
       unless  => "grep -q '${sestatus}' /selinux/enforce",
     }
+
   } else {
     fail("Invalid mode specified for SELinux: ${mode}")
   }
