@@ -2,6 +2,10 @@
 
 set -e
 
+# If we're not on master anywhere, pushing master will do nothing
+echo Checking if all submodules are on branch master - otherwise git checkout master manually
+git submodule foreach -q "git branch | grep -q '* master'"
+
 echo Checking for uncommitted changes in submodules
 git submodule foreach -q 'if (git status -s | grep .); then echo You have uncommitted changes in $path; return 1; fi'
 
