@@ -30,7 +30,7 @@ class horizon(
   $keystone_port         = 5000,
   $keystone_scheme       = 'http',
   $keystone_default_role = 'Member',
-  $django_debug          = 'False',
+  $django_debug          = 'True',
   $api_result_limit      = 1000
 ) {
 
@@ -44,10 +44,21 @@ class horizon(
     ensure => present,
   }
 
+  File {
+    require => Package["$::horizon::params::package_name"],
+    owner   => 'apache',
+    group   => 'apache',
+  }
+
   file { $::horizon::params::local_settings_path:
     content => template('horizon/local_settings.py.erb'),
     mode    => '0644',
-    require => Package["$::horizon::params::package_name"],
+  }
+
+  file { $::horizon::params::logdir:
+    ensure  => directory,
+    mode    => '0751',
+    before  => Service["httpd"],
   }
 
   case $::osfamily {
@@ -82,7 +93,7 @@ class horizon(
     name      => $::horizon::params::http_service,
     ensure    => 'running',
     enable    => true,
-    require   => [Package["$::horizon::params::http_service", "$::horizon::params::http_modwsgi"]],
-    subscribe => File[$::horizon::params::local_settings_path]
+    require   => Package["$::horizon::params::http_service", "$::horizon::params::http_modwsgi"],
+    subscribe => File["$::horizon::params::local_settings_path", "$::horizon::params::logdir"]
   }
 }

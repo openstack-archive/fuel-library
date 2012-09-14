@@ -2,6 +2,8 @@
 # should be considered to be constant
 class horizon::params {
 
+  $logdir = '/var/log/horizon'
+
   case $::osfamily {
     'RedHat': {
       $http_service                = 'httpd'
