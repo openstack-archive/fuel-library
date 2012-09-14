@@ -1,149 +1,80 @@
-#
-# This document serves as an example of how to deploy
-# basic single and multi-node openstack environments.
-#
-
-# deploy a script that can be used to test nova
-class { 'openstack::test_file': }
-
-####### shared variables ##################
-
-
-# this section is used to specify global variables that will
-# be used in the deployment of multi and single node openstack
-# environments
-
-# assumes that eth0 is the public interface
-$public_interface        = 'eth0'
-# assumes that eth1 is the interface that will be used for the vm network
-# this configuration assumes this interface is active but does not have an
-# ip address allocated to it.
-$private_interface       = 'eth1'
-# credentials
-$admin_email             = 'root@localhost'
-$admin_password          = 'keystone_admin'
-$keystone_db_password    = 'keystone_db_pass'
-$keystone_admin_token    = 'keystone_admin_token'
-$nova_db_password        = 'nova_pass'
-$nova_user_password      = 'nova_pass'
-$glance_db_password      = 'glance_pass'
-$glance_user_password    = 'glance_pass'
-$rabbit_password         = 'openstack_rabbit_password'
-$rabbit_user             = 'openstack_rabbit_user'
-$fixed_network_range     = '10.0.0.0/24'
-$floating_network_range  = '192.168.101.64/28'
-# switch this to true to have all service log at verbose
-$verbose                 = false
-# by default it does not enable atomatically adding floating IPs
+$virtual_ip = '10.0.0.110'
+$master_hostname = 'fuel-01'
+$controller_public_addresses = ['10.0.0.101', '10.0.0.102']
+$controller_internal_addresses = ['10.0.0.101', '10.0.0.102']
+$floating_range = '10.0.1.0/28'
+$fixed_range = '10.0.2.0/28'
+$controller_hostnames = ['fuel-01', 'fuel-02']
+$public_interface = 'eth1'
+$internal_interface = 'eth1'
+$internal_address = $ipaddress_eth1
+$private_interface = 'eth2'
+$multi_host = true
+$network_manager = 'nova.network.manager.FlatDHCPManager'
+$verbose = true
 $auto_assign_floating_ip = false
+$mysql_root_password     = 'nova'
+$admin_email             = 'openstack@openstack.org'
+$admin_password          = 'nova'
+$keystone_db_password    = 'nova'
+$keystone_admin_token    = 'nova'
+$glance_db_password      = 'nova'
+$glance_user_password    = 'nova'
+$nova_db_password        = 'nova'
+$nova_user_password      = 'nova'
+$rabbit_password         = 'nova'
+$rabbit_user             = 'nova'
 
-
-#### end shared variables #################
-
-# all nodes whose certname matches openstack_all should be
-# deployed as all-in-one openstack installations.
-node /openstack_all/ {
-
-  class { 'openstack::all':
-    public_address          => $ipaddress_eth0,
-    public_interface        => $public_interface,
-    private_interface       => $private_interface,
-    admin_email             => $admin_email,
-    admin_password          => $admin_password,
-    keystone_db_password    => $keystone_db_password,
-    keystone_admin_token    => $keystone_admin_token,
-    nova_db_password        => $nova_db_password,
-    nova_user_password      => $nova_user_password,
-    glance_db_password      => $glance_db_password,
-    glance_user_password    => $glance_user_password,
-    rabbit_password         => $rabbit_password,
-    rabbit_user             => $rabbit_user,
-    libvirt_type            => 'kvm',
-    floating_range          => $floating_network_range,
-    fixed_range             => $fixed_network_range,
-    verbose                 => $verbose,
-    auto_assign_floating_ip => $auto_assign_floating_ip,
-  }
-
-  class { 'openstack::auth_file':
-    admin_password       => $admin_password,
-    keystone_admin_token => $keystone_admin_token,
-    controller_node      => '127.0.0.1',
-  }
-
+node /fuel-0[12]/ {
+    class { 'openstack::controller_ha': 
+      controller_public_addresses => $controller_public_addresses,
+      public_interface        => $public_interface,
+      internal_interface      => $internal_interface,
+      private_interface       => $private_interface,
+      virtual_ip              => $virtual_ip,
+      controller_internal_addresses => $controller_internal_addresses,
+      master_hostname         => $master_hostname,
+      floating_range          => $floating_range,
+      fixed_range             => $fixed_range,
+      multi_host              => $multi_host,
+      network_manager         => $network_manager,
+      verbose                 => $verbose,
+      auto_assign_floating_ip => $auto_assign_floating_ip,
+      mysql_root_password     => $mysql_root_password,
+      admin_email             => $admin_email,
+      admin_password          => $admin_password,
+      keystone_db_password    => $keystone_db_password,
+      keystone_admin_token    => $keystone_admin_token,
+      glance_db_password      => $glance_db_password,
+      glance_user_password    => $glance_user_password,
+      nova_db_password        => $nova_db_password,
+      nova_user_password      => $nova_user_password,
+      rabbit_password         => $rabbit_password,
+      rabbit_user             => $rabbit_user,
+      rabbit_nodes            => $controller_hostnames,
+      memcached_servers       => $controller_hostnames,
+      export_resources        => false,
+    }
 }
 
-# multi-node specific parameters
-
-$controller_node_address  = '192.168.101.11'
-
-$controller_node_public   = $controller_node_address
-$controller_node_internal = $controller_node_address
-$sql_connection         = "mysql://nova:${nova_db_password}@${controller_node_internal}/nova"
-
-node /openstack_controller/ {
-
-#  class { 'nova::volume': enabled => true }
-
-#  class { 'nova::volume::iscsi': }
-
-  class { 'openstack::controller':
-    public_address          => $controller_node_public,
-    public_interface        => $public_interface,
-    private_interface       => $private_interface,
-    internal_address        => $controller_node_internal,
-    floating_range          => $floating_network_range,
-    fixed_range             => $fixed_network_range,
-    # by default it does not enable multi-host mode
-    multi_host              => true,
-    # by default is assumes flat dhcp networking mode
-    network_manager         => 'nova.network.manager.FlatDHCPManager',
-    verbose                 => $verbose,
-    auto_assign_floating_ip => $auto_assign_floating_ip,
-    mysql_root_password     => $mysql_root_password,
-    admin_email             => $admin_email,
-    admin_password          => $admin_password,
-    keystone_db_password    => $keystone_db_password,
-    keystone_admin_token    => $keystone_admin_token,
-    glance_db_password      => $glance_db_password,
-    glance_user_password    => $glance_user_password,
-    nova_db_password        => $nova_db_password,
-    nova_user_password      => $nova_user_password,
-    rabbit_password         => $rabbit_password,
-    rabbit_user             => $rabbit_user,
-    export_resources        => false,
-  }
-
-  class { 'openstack::auth_file':
-    admin_password       => $admin_password,
-    keystone_admin_token => $keystone_admin_token,
-    controller_node      => $controller_node_internal,
-  }
-
-
+node /fuel-[34]/ {
+    class { 'openstack::compute':
+      public_interface   => $public_interface,
+      private_interface  => $private_interface,
+      internal_address   => $internal_address,
+      libvirt_type       => 'qemu',
+      fixed_range        => $fixed_range,
+      network_manager    => $network_manager,
+      multi_host         => $multi_host,
+      sql_connection     => "mysql://nova:${nova_db_password}@${virtual_ip}/nova",
+      rabbit_nodes       => $controller_hostnames,
+      rabbit_password    => $rabbit_password,
+      rabbit_user        => $rabbit_user,
+      glance_api_servers => "${virtual_ip}:9292",
+      vncproxy_host      => $virtual_ip,
+      verbose            => $verbose,
+      vnc_enabled        => true,
+      manage_volumes     => false,
+    }
 }
 
-node /openstack_compute/ {
-
-  class { 'openstack::compute':
-    public_interface   => $public_interface,
-    private_interface  => $private_interface,
-    internal_address   => $ipaddress_eth0,
-    libvirt_type       => 'kvm',
-    fixed_range        => $fixed_network_range,
-    network_manager    => 'nova.network.manager.FlatDHCPManager',
-    multi_host         => true,
-    sql_connection     => $sql_connection,
-    nova_user_password => $nova_user_password,
-    rabbit_host        => $controller_node_internal,
-    rabbit_password    => $rabbit_password,
-    rabbit_user        => $rabbit_user,
-    glance_api_servers => "${controller_node_internal}:9292",
-    vncproxy_host      => $controller_node_public,
-    vnc_enabled        => true,
-    verbose            => $verbose,
-    manage_volumes     => true,
-    nova_volume        => 'nova-volumes'
-  }
-
-}
