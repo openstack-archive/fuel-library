@@ -130,15 +130,4 @@ diff -r -N -u3 a/rpc/impl_kombu.py b/rpc/impl_kombu.py
  
              if self.max_retries and attempt == self.max_retries:
                  LOG.exception(_('Unable to connect to AMQP server on '
-diff -r -N -u3 a/utils.py b/utils.py
---- a/utils.py 2012-08-01 23:19:04.865837288 +0000
-+++ b/utils.py 2012-08-01 23:20:08.772780933 +0000
-@@ -986,7 +986,7 @@
-         return
- 
-     hostname = socket.gethostname()
--    sentinel_re = hostname + r'\..*-(\d+$)'
-+    sentinel_re = hostname + r'-.*\.(\d+$)'
-     lockfile_re = r'nova-.*\.lock'
-     files = os.listdir(FLAGS.lock_path)
  
