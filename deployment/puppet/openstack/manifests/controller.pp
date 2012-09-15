@@ -316,6 +316,7 @@ class openstack::controller (
   class { 'openstack::horizon':
     secret_key        => $secret_key,
     cache_server_ip   => $cache_server_ip,
+    bind_address => $api_bind_address,
     cache_server_port => $cache_server_port,
     swift             => $swift,
     quantum           => $quantum,
