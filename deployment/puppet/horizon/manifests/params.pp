@@ -8,13 +8,15 @@ class horizon::params {
     'RedHat': {
       $http_service                = 'httpd'
       $http_modwsgi                = 'mod_wsgi'
+      $http_config_file            = '/etc/httpd/conf/httpd.conf'
       $package_name                = 'openstack-dashboard'
+      $dashboard_config_file       = '/etc/httpd/conf.d/openstack-dashboard.conf'
       $local_settings_path         = '/etc/openstack-dashboard/local_settings'
     }
     'Debian': {
       $http_service                = 'apache2'
       $http_modwsgi                = 'libapache2-mod-wsgi'
-      $local_settings_path         = '/etc/openstack-dashboard/local_settings.py'
+      $http_config_file            = '/etc/apache2/apache2.conf'
       case $::operatingsystem {
         'Debian': {
             $package_name          = 'openstack-dashboard-apache'
@@ -23,6 +25,8 @@ class horizon::params {
             $package_name          = 'openstack-dashboard'
         }
       }
+      $dashboard_config_file       = '/etc/httpd/conf.d/openstack-dashboard.conf'
+      $local_settings_path         = '/etc/openstack-dashboard/local_settings.py'
     }
     default: {
       fail("Unsupported osfamily: ${::osfamily} operatingsystem: ${::operatingsystem}, module ${module_name} only support osfamily RedHat and Debian")

@@ -20,6 +20,7 @@
 # $api_result_limit     max number of Swift containers/objects to display on a single page
 #
 class horizon(
+  $bind_address,
   $secret_key,
   $cache_server_ip       = '127.0.0.1',
   $cache_server_port     = '11211',
@@ -83,10 +84,21 @@ class horizon(
     }
   }
 
+  # ensure there is a HTTP redirect from / to /dashboard
   file_line { 'horizon_redirect_rule':
-    path => '/etc/httpd/conf.d/openstack-dashboard.conf',
+    path => $::horizon::params::dashboard_config_file,
     line => 'RedirectMatch permanent ^/$ /dashboard/',
-    require => Package["$::horizon::params::package_name"]
+    require => Package["$::horizon::params::package_name"],
+    notify => Service["httpd"]
+  }
+
+  # ensure https only listens on the management address, not on all interfaces
+  file_line { 'httpd_listen_on_internal_network_only':
+    path => $::horizon::params::http_config_file,
+    match => '^Listen (.*)$',
+    line => "Listen ${bind_address}:80",
+    require => Package["$::horizon::params::package_name"],
+    notify => Service["httpd"]
   }
 
   service { 'httpd':
@@ -96,4 +108,5 @@ class horizon(
     require   => Package["$::horizon::params::http_service", "$::horizon::params::http_modwsgi"],
     subscribe => File["$::horizon::params::local_settings_path", "$::horizon::params::logdir"]
   }
+
 }
