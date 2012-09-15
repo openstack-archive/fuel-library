@@ -326,8 +326,6 @@ class openstack::controller(
 
   ######## Horizon ########
 
-  # TOOO - what to do about HA for horizon?
-
   class { 'memcached':
     listen_ip => $api_bind_address,
   } 
@@ -337,6 +335,7 @@ class openstack::controller(
   }
 
   class { 'horizon':
+    bind_address => $api_bind_address,
     secret_key => $secret_key,
     cache_server_ip => $cache_server_ip,
     cache_server_port => $cache_server_port,

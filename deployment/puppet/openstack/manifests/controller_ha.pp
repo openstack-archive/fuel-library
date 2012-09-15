@@ -3,8 +3,9 @@ define haproxy_service($order, $hostnames, $balancer_ips, $virtual_ip, $port) {
     order => $order - 1,
     virtual_ip => $virtual_ip,
     virtual_ip_port => $port,
-      haproxy_config_options => {
-        'option' => ['tcplog'], 'balance' => 'roundrobin' },
+    haproxy_config_options => {
+        'option' => ['tcplog'], 'balance' => 'roundrobin'
+    },
   }
   @haproxy::balancermember { "${name}":
     order                  => $order,
@@ -31,6 +32,7 @@ class openstack::controller_ha (
     $hosts = $controller_hostnames
     $ips = $controller_internal_addresses
     # haproxy
+    haproxy_service { 'horizon': order => 15, virtual_ip => $vip, hostnames => $hosts, balancer_ips => $ips, port => 80 }
     haproxy_service { 'keystone-1': order => 20, virtual_ip => $vip, hostnames => $hosts, balancer_ips => $ips, port => 5000 }
     haproxy_service { 'keystone-2': order => 30, virtual_ip => $vip, hostnames => $hosts, balancer_ips => $ips, port => 35357 }
     haproxy_service { 'nova-api-1': order => 40, virtual_ip => $vip, hostnames => $hosts, balancer_ips => $ips, port => 8773 }
