@@ -18,9 +18,9 @@ bootloader --location=mbr --driveorder=sda,hda --append=" rhgb crashkernel=auto"
 zerombr
 clearpart --all --initlabel
 autopart
-part swap --recommended
-part /boot --fstype=ext2 --size=1024
-part / --size=4096 --fstype ext4 --grow
+part swap --recommended --ondrive=sda
+part /boot --fstype=ext2 --size=1024 --ondrive=sda
+part / --size=4096 --fstype ext4 --grow --ondrive=sda
 
 %packages --nobase --ignoremissing 
 @Core

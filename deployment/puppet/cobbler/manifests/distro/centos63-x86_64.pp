@@ -11,6 +11,9 @@ class cobbler::distro::centos63-x86_64(
     mode => 0555,
   }
 
+  # HERE IS ASSUMED THAT wget PACKAGE INSTALLED AS WE NEED IT
+  # TO DOWNLOAD CENTOS NETINSTALL ISO IMAGE
+
   $centos_iso = "/var/www/cobbler/ks_mirror/CentOS-6.3-x86_64-netinstall.iso"
   exec { "${centos_iso}":
     command => "wget -q -O- ${centos_http_iso} > ${centos_iso}",
@@ -22,7 +25,7 @@ class cobbler::distro::centos63-x86_64(
     options => "loop",
     fstype => "iso9660",
     ensure => mounted,
-    require => [File["/var/www/cobbler/ks_mirror/CentOS-6.3-x86_64-netinstall.iso"], File["/var/www/cobbler/ks_mirror/CentOS-6.3-x86_64"]],
+    require => [Exec["${centos_iso}"], File["/var/www/cobbler/ks_mirror/CentOS-6.3-x86_64"]],
   }
 
   cobbler_distro { "centos63-x86_64":

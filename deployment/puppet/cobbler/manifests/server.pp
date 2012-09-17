@@ -51,7 +51,7 @@ class cobbler::server(
       $dnsmasq_package = "dnsmasq"
       $cobbler_service = "cobblerd"
       $cobbler_web_service = "httpd"
-      $cobbler_additional_packages = ["syslinux"]
+      $cobbler_additional_packages = ["syslinux", "wget"]
     }
     /(?i)(debian|ubuntu)/:  {
       $cobbler_package = "cobbler"
