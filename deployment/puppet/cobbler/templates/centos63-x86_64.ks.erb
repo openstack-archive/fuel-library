@@ -1,0 +1,42 @@
+install
+#url --url http://centos/6.3
+lang en_US.UTF-8
+keyboard us
+reboot
+
+network --onboot yes --device eth0 --bootproto=dhcp
+firewall --disable
+
+rootpw  --iscrypted $6$6PKP1tMCaSx8lAkP$3I2iODktkcLGqN1U2C4kC5mPuQy8gXhWjk7DxlS1fhOaI5rNsJGy4kOv0cetgS0nEfMsjAR6shDGD/47d/B0v/
+authconfig --enableshadow --passalgo=sha512
+selinux --disabled
+timezone --utc America/New_York
+
+bootloader --location=mbr --driveorder=sda,hda --append=" rhgb crashkernel=auto"
+
+# Partitioning
+zerombr
+clearpart --all --initlabel
+autopart
+part swap --recommended --ondrive=sda
+part /boot --fstype=ext2 --size=1024 --ondrive=sda
+part / --size=4096 --fstype ext4 --grow --ondrive=sda
+
+%packages --nobase --ignoremissing 
+@Core
+yum
+openssh-server
+openssh
+openssh-clients
+curl
+wget
+crontabs
+cronie
+
+%post --log=/root/post-install.log
+
+%post --log=/root/nopxe.log
+
+# nopxe
+$SNIPPET('disable_pxe')
+

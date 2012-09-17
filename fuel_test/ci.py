@@ -48,12 +48,11 @@ class Ci:
         remote.sudo.ssh.execute('yum -y install puppet-server')
 
     def change_host_name(self, remote, short, long):
-        remote.sudo.ssh.execute('hostname %s' % short)
-        self.add_to_hosts(remote, '127.0.0.1', short, long)
-        self.add_to_hosts(remote, '::1', short, long)
+        remote.sudo.ssh.execute('hostname %s' % long)
+        self.add_to_hosts(remote, '127.0.0.1', short, short)
 
     def add_to_hosts(self, remote, ip, short, long):
-        remote.sudo.ssh.execute('echo %s %s %s >> /etc/hosts' % (ip, short, long))
+        remote.sudo.ssh.execute('echo %s %s %s >> /etc/hosts' % (ip, long, short))
 
     def get_environment_or_create(self):
         if self.get_environment():
@@ -92,12 +91,9 @@ class Ci:
         logger.info("Building recipes environment")
         environment = self.describe_environment()
         self.environment = environment
+
 #       todo environment should be saved before build
-        try:
-            devops.build(environment)
-        except :
-            devops.destroy(environment)
-            return
+        devops.build(environment)
 
         devops.save(environment)
         logger.info("Environment has been saved")
@@ -116,11 +112,11 @@ class Ci:
         mremote = ssh(master_node.ip_address, username='root', password='r00tme')
         mremote.reconnect()
         self.setup_puppet_master_yum(mremote)
-        with os.popen(root('fuel', 'fuel-test', 'puppet.master.config')) as f:
+        with open(root('fuel', 'fuel_test', 'puppet.master.config')) as f:
             master_config = f.read()
         self.write_config(mremote, '/etc/puppet/puppet.conf', master_config)
         self.start_puppet_master(mremote)
-        with os.popen(root('fuel', 'fuel-test', 'puppet.agent.config')) as f:
+        with open(root('fuel', 'fuel_test', 'puppet.agent.config')) as f:
             agent_config = f.read()
         for node in environment.nodes:
             remote = ssh(node.ip_address, username='root', password='r00tme')
@@ -145,6 +141,7 @@ class Ci:
     def write_config(self, remote, path, text):
         file = remote.open(path, 'w')
         file.write(text)
+        logger.info('Write config %s' % text)
         file.close()
 
     def configure_repository(self, remote):
