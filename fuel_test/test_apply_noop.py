@@ -39,7 +39,7 @@ class MyTestCase(RecipeTestCase):
         self.remote.reconnect()
         with open(root('fuel', 'fuel_test', 'nova.site.pp.template')) as f:
             site_pp = f.read()
-        write_config(remote, 'manifests/site.pp', site_pp)
+        write_config(remote, '/etc/puppet/manifests/site.pp', site_pp)
 
 
 
