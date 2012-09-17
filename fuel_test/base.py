@@ -6,7 +6,6 @@ from root import root
 class RecipeTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.upload_recipes()
         self.environment = get_environment()
         master = self.environment.node['master']
         self.revert_snapshot()
