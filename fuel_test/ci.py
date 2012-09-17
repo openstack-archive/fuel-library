@@ -112,11 +112,11 @@ class Ci:
         mremote = ssh(master_node.ip_address, username='root', password='r00tme')
         mremote.reconnect()
         self.setup_puppet_master_yum(mremote)
-        with os.popen(root('fuel', 'fuel_test', 'puppet.master.config')) as f:
+        with os.open(root('fuel', 'fuel_test', 'puppet.master.config'), 'r') as f:
             master_config = f.read()
         self.write_config(mremote, '/etc/puppet/puppet.conf', master_config)
         self.start_puppet_master(mremote)
-        with os.popen(root('fuel', 'fuel_test', 'puppet.agent.config')) as f:
+        with os.open(root('fuel', 'fuel_test', 'puppet.agent.config', 'r')) as f:
             agent_config = f.read()
         for node in environment.nodes:
             remote = ssh(node.ip_address, username='root', password='r00tme')
