@@ -45,7 +45,7 @@ class Ci:
         remote.sudo.ssh.execute('puppet cert sign --all')
 
     def wait_for_certificates(self, remote):
-        remote.sudo.ssh.execute('puppet agent --waitforcert 60')
+        remote.sudo.ssh.execute('puppet agent --waitforcert 0')
 
     def switch_off_ip_tables(self, remote):
         remote.sudo.ssh.execute('iptables -F')
