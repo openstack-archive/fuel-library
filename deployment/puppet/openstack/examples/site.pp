@@ -75,6 +75,7 @@ node /fuel-[34]/ {
       verbose            => $verbose,
       vnc_enabled        => true,
       manage_volumes     => false,
+      service_endpoint	=> $virtual_ip,
     }
 }
 
