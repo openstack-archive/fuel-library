@@ -122,7 +122,7 @@ class Ci:
         self.switch_off_ip_tables(mremote)
         with open(root('fuel', 'fuel_test', 'puppet.master.config')) as f:
             master_config = f.read()
-        self.write_config(mremote, '/etc/puppet/puppet.conf', master_config)
+        write_config(mremote, '/etc/puppet/puppet.conf', master_config)
         self.start_puppet_master(mremote)
         with open(root('fuel', 'fuel_test', 'puppet.agent.config')) as f:
             agent_config = f.read()
@@ -132,7 +132,7 @@ class Ci:
             if node.name != 'master':
                 self.add_to_hosts(remote, master_node.ip_address, 'master', 'master')
                 self.setup_puppet_client_yum(remote)
-                self.write_config(remote, '/etc/puppet/puppet.conf', agent_config)
+                write_config(remote, '/etc/puppet/puppet.conf', agent_config)
                 self.wait_for_certificates(remote)
 #            logger.info("Setting up repository configuration")
 #                    self.configure_repository(remote)
@@ -146,12 +146,6 @@ class Ci:
     def destroy_environment(self):
         if self.environment:
             devops.destroy(self.environment)
-
-    def write_config(self, remote, path, text):
-        file = remote.open(path, 'w')
-        file.write(text)
-        logger.info('Write config %s' % text)
-        file.close()
 
     def configure_repository(self, remote):
         repo = ("[mirantis]\n"
@@ -182,3 +176,9 @@ def get_environment():
     my_environment = ci.describe_environment()
     my_environment.nodes[0].interfaces[0].ip_addresses = '172.18.8.56'
     return ci.get_environment() or my_environment
+
+def write_config(remote, path, text):
+    file = remote.open(path, 'w')
+    file.write(text)
+    logger.info('Write config %s' % text)
+    file.close()
