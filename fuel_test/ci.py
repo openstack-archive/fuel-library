@@ -1,4 +1,5 @@
 import logging
+from time import sleep
 import traceback
 import devops
 from devops.model import Environment, Network, Node, Disk, Interface
@@ -135,6 +136,7 @@ class Ci:
                 self.wait_for_certificates(remote)
 #            logger.info("Setting up repository configuration")
 #                    self.configure_repository(remote)
+        sleep(5)
         self.sign_all_node_certificates(mremote)
         for node in environment.nodes:
             logger.info("Creating snapshot 'blank'")
