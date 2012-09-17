@@ -141,6 +141,7 @@ class Ci:
     def write_config(self, remote, path, text):
         file = remote.open(path, 'w')
         file.write(text)
+        logger.info('Write config %s' % text)
         file.close()
 
     def configure_repository(self, remote):
