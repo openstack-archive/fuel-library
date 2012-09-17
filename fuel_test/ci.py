@@ -48,12 +48,11 @@ class Ci:
         remote.sudo.ssh.execute('yum -y install puppet-server')
 
     def change_host_name(self, remote, short, long):
-        remote.sudo.ssh.execute('hostname %s' % short)
-        self.add_to_hosts(remote, '127.0.0.1', short, long)
-        self.add_to_hosts(remote, '::1', short, long)
+        remote.sudo.ssh.execute('hostname %s' % long)
+        self.add_to_hosts(remote, '127.0.0.1', short, short)
 
     def add_to_hosts(self, remote, ip, short, long):
-        remote.sudo.ssh.execute('echo %s %s %s >> /etc/hosts' % (ip, short, long))
+        remote.sudo.ssh.execute('echo %s %s %s >> /etc/hosts' % (ip, long, short))
 
     def get_environment_or_create(self):
         if self.get_environment():
@@ -92,12 +91,9 @@ class Ci:
         logger.info("Building recipes environment")
         environment = self.describe_environment()
         self.environment = environment
+
 #       todo environment should be saved before build
-        try:
-            devops.build(environment)
-        except :
-            devops.destroy(environment)
-            return
+        devops.build(environment)
 
         devops.save(environment)
         logger.info("Environment has been saved")
