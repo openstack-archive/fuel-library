@@ -43,6 +43,9 @@ class Ci:
     def sign_all_node_certificates(self, remote):
         remote.sudo.ssh.execute('puppet cert sign --all')
 
+    def wait_for_certificates(self, remote):
+        remote.sudo.ssh.execute('puppet agent --waitforcert 60')
+
     def switch_off_ip_tables(self, remote):
         remote.sudo.ssh.execute('iptables -F')
 
@@ -129,7 +132,7 @@ class Ci:
                 self.add_to_hosts(remote, master_node.ip_address, 'master', 'master')
                 self.setup_puppet_client_yum(remote)
                 self.write_config(remote, '/etc/puppet/puppet.conf', agent_config)
-                self.start_puppet_agent(remote)
+                self.wait_for_certificates(remote)
 #            logger.info("Setting up repository configuration")
 #                    self.configure_repository(remote)
         self.sign_all_node_certificates(mremote)
