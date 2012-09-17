@@ -43,6 +43,9 @@ class Ci:
     def sign_all_node_certificates(self, remote):
         remote.sudo.ssh.execute('puppet cert sign --all')
 
+    def switch_off_ip_tables(self, remote):
+        remote.sudo.ssh.execute('iptables -F')
+
     def setup_puppet_master_yum(self, remote):
         self.add_puppetlab_repo(remote)
         remote.sudo.ssh.execute('yum -y install puppet-server')
@@ -112,6 +115,7 @@ class Ci:
         mremote = ssh(master_node.ip_address, username='root', password='r00tme')
         mremote.reconnect()
         self.setup_puppet_master_yum(mremote)
+        self.switch_off_ip_tables(mremote)
         with open(root('fuel', 'fuel_test', 'puppet.master.config')) as f:
             master_config = f.read()
         self.write_config(mremote, '/etc/puppet/puppet.conf', master_config)
