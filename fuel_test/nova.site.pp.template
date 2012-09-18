@@ -25,7 +25,7 @@ $nova_user_password      = 'nova'
 $rabbit_password         = 'nova'
 $rabbit_user             = 'nova'
 
-node /client/ {
+node /agent-01/ {
     class { 'openstack::controller_ha':
       controller_public_addresses => $controller_public_addresses,
       public_interface        => $public_interface,
