@@ -1,6 +1,6 @@
 import unittest
 from devops.helpers import ssh, os
-from ci import get_environment
+from ci import get_environment, write_config
 from root import root
 
 class RecipeTestCase(unittest.TestCase):
@@ -27,4 +27,10 @@ class RecipeTestCase(unittest.TestCase):
                 node.restore_snapshot('blank')
         except:
           pass
+
+    def write_site_pp_manifests(self, remote):
+        with open(root('fuel', 'fuel_test', 'nova.site.pp.template')) as f:
+            site_pp = f.read()
+        remote.mkdir('/etc/puppet/manifests/')
+        write_config(remote, '/etc/puppet/manifests/site.pp', site_pp)
 

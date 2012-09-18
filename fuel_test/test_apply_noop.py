@@ -32,14 +32,11 @@ class MyTestCase(RecipeTestCase):
         self.assertEqual([], errors, errors)
         self.assertEqual([], warnings, warnings)
 
-
     def test_deploy_compute_node(self):
         node = self.environment.node['client']
         remote = ssh(node.ip_address, username='root', password='r00tme')
         self.remote.reconnect()
-        with open(root('fuel', 'fuel_test', 'nova.site.pp.template')) as f:
-            site_pp = f.read()
-        write_config(remote, '/etc/puppet/manifests/site.pp', site_pp)
+        self.write_site_pp_manifests(remote)
 
 
 
