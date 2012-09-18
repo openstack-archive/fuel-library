@@ -9,6 +9,9 @@ logger = logging.getLogger('test_recepts')
 
 import unittest
 
+#todo raise exception if remote command writes to stderr or returns non-zero exit code
+#todo pretty output
+#todo async command execution with logging
 
 
 class MyTestCase(RecipeTestCase):
@@ -42,12 +45,6 @@ class MyTestCase(RecipeTestCase):
         errors, warnings = self.parse_out(result['stdout'])
         self.assertEqual([], errors, errors)
         self.assertEqual([], warnings, warnings)
-
-
-
-
-
-
 
 if __name__ == '__main__':
     unittest.main()
