@@ -36,6 +36,6 @@ class nova::api(
   file { '/etc/nova/api-paste.ini':
     content => template('nova/api-paste.ini.erb'),
     require => Class['nova'],
-    notify  => Service['nova-api'],
+    notify  => [Service['nova-api']],
   }
 }
