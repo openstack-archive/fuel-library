@@ -42,7 +42,6 @@ class galera($cluster_name, $master_ip = false, $node_address = $ipaddress_eth0)
 
       galera::pkg_add { 'MySQL-client': }
       galera::pkg_add { 'MySQL-shared': }
-      # galera::pkg_add { 'MySQL-shared-compat': }
 
       file { '/etc/my.cnf' :
         ensure  => present,
@@ -67,6 +66,7 @@ class galera($cluster_name, $master_ip = false, $node_address = $ipaddress_eth0)
     name        => "mysql",
     ensure      => "running",
     require     => [Package["MySQL-server", "galera"], File["/etc/mysql/conf.d/wsrep.cnf"]],
+    subscribe   => File["/etc/mysql/conf.d/wsrep.cnf"],
     hasrestart  => true,
     hasstatus   => true,
   }
@@ -113,7 +113,12 @@ class galera($cluster_name, $master_ip = false, $node_address = $ipaddress_eth0)
 
   exec { "set-mysql-password" :
     unless      => "/usr/bin/mysql -u${mysql_user} -p${mysql_password}",
-    command     => "/usr/bin/mysql -uroot -e \"set wsrep_on='off'; delete from mysql.user where user=''; grant all on *.* to '${mysql_user}'@'%' identified by '${mysql_password}';flush privileges;\"",
+    command     => "/usr/bin/mysql -uroot -e \
+                   \"set wsrep_on='off';\
+                   delete from mysql.user where user='';\
+                   grant all on *.* to '${mysql_user}'@'%' identified by '${mysql_password}';\
+                   grant usage on *.* to 'cluster_watcher'@'%';\
+                   flush privileges;\"",
     require     => Service["mysql-galera"],
     subscribe   => Service["mysql-galera"],
     refreshonly => true,
