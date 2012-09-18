@@ -1,21 +1,35 @@
 define haproxy_service($order, $hostnames, $balancer_ips, $virtual_ip, $port) {
+
+  case $name {
+    "mysqld": {
+      $haproxy_config_options = { 'option' => ['tcpka', 'mysql-check user cluster_watcher'], 'balance' => 'roundrobin', 'mode' => 'tcp' }
+      $balancermember_options = 'check inter 15s fastinter 2s downinter 1s rise 5 fall 3'
+    }
+    default: {
+      $haproxy_config_options = { 'option' => ['tcplog'], 'balance' => 'roundrobin' }
+      $balancermember_options = 'check'
+    }
+  }
+
   haproxy::config { $name:
     order => $order - 1,
     virtual_ip => $virtual_ip,
     virtual_ip_port => $port,
-    haproxy_config_options => {
-        'option' => ['tcplog'], 'balance' => 'roundrobin'
-    },
+    haproxy_config_options => $haproxy_config_options,
   }
+
   @haproxy::balancermember { "${name}":
     order                  => $order,
     listening_service      => $name,
     server_name            => $hostnames,
     balancer_ip            => $balancer_ips,
     balancer_port          => $port,
-    balancermember_options => 'check'
+    balancermember_options => $balancermember_options
   }
+
 }
+
+
 class openstack::controller_ha (
    $master_hostname,
    $controller_public_addresses, $public_interface, $private_interface, $controller_internal_addresses,
@@ -26,21 +40,32 @@ class openstack::controller_ha (
    $nova_db_password, $nova_user_password, $rabbit_password, $rabbit_user,
    $rabbit_nodes, $memcached_servers, $export_resources
  ) {
+
     $which = $::hostname ? { $master_hostname => 0, default => 1 }
 
     $vip = $virtual_ip
     $hosts = $controller_hostnames
     $ips = $controller_internal_addresses
+
     # haproxy
-    haproxy_service { 'horizon': order => 15, virtual_ip => $vip, hostnames => $hosts, balancer_ips => $ips, port => 80 }
-    haproxy_service { 'keystone-1': order => 20, virtual_ip => $vip, hostnames => $hosts, balancer_ips => $ips, port => 5000 }
-    haproxy_service { 'keystone-2': order => 30, virtual_ip => $vip, hostnames => $hosts, balancer_ips => $ips, port => 35357 }
-    haproxy_service { 'nova-api-1': order => 40, virtual_ip => $vip, hostnames => $hosts, balancer_ips => $ips, port => 8773 }
-    haproxy_service { 'nova-api-2': order => 50, virtual_ip => $vip, hostnames => $hosts, balancer_ips => $ips, port => 8774 }
-    haproxy_service { 'nova-api-3': order => 60, virtual_ip => $vip, hostnames => $hosts, balancer_ips => $ips, port => 8775 }
-    haproxy_service { 'nova-api-4': order => 70, virtual_ip => $vip, hostnames => $hosts, balancer_ips => $ips, port => 8776 }
-    haproxy_service { 'glance-api': order => 80, virtual_ip => $vip, hostnames => $hosts, balancer_ips => $ips, port => 9292 }
-    haproxy_service { 'glance-reg': order => 90, virtual_ip => $vip, hostnames => $hosts, balancer_ips => $ips, port => 9191 }
+    include haproxy::data
+
+    Haproxy_service {
+      virtual_ip => $vip,
+      hostnames => $hosts,
+      balancer_ips => $ips
+    }
+
+    haproxy_service { 'horizon':    order => 15, port => 80 }
+    haproxy_service { 'keystone-1': order => 20, port => 5000 }
+    haproxy_service { 'keystone-2': order => 30, port => 35357 }
+    haproxy_service { 'nova-api-1': order => 40, port => 8773 }
+    haproxy_service { 'nova-api-2': order => 50, port => 8774 }
+    haproxy_service { 'nova-api-3': order => 60, port => 8775 }
+    haproxy_service { 'nova-api-4': order => 70, port => 8776 }
+    haproxy_service { 'glance-api': order => 80, port => 9292 }
+    haproxy_service { 'glance-reg': order => 90, port => 9191 }
+    haproxy_service { 'mysqld':     order => 95, port => 3306 }
 
     if $which == 0 {
       exec { 'create-virtual-ip':
@@ -53,31 +78,12 @@ class openstack::controller_ha (
     sysctl::value { 'net.ipv4.ip_nonlocal_bind': value => '1' }
 
     $internal_address = $controller_internal_addresses[$which]
+
     class { 'haproxy':
       enable => true, 
-      haproxy_global_options   => {'log'      => "${internal_address} local0",
-                                  'chroot'  => '/var/lib/haproxy',
-                                  'pidfile' => '/var/run/haproxy.pid',
-                                  'maxconn' => '4000',
-                                  'user'    => 'haproxy',
-                                  'group'   => 'haproxy',
-                                  'daemon'  => '',
-                                  'stats'   => 'socket /var/lib/haproxy/stats'
-                                  },
-      haproxy_defaults_options => {'log'      => 'global',
-                                    'stats'   => 'enable',
-                                    'mode'    => 'http',
-                                    'option'  => 'redispatch',
-                                    'retries' => '3',
-                                    'timeout' => ['http-request 10s',
-                                    'queue 1m',
-                                    'connect 10s',
-                                    'client 1m',
-                                    'server 1m',
-                                    'check 10s'],
-                                    'maxconn' => '8000'
-                                  },
-       require => Sysctl::Value['net.ipv4.ip_nonlocal_bind'],
+      haproxy_global_options   => merge($::haproxy::data::haproxy_global_options, {'log' => "${internal_address} local0"}),
+      haproxy_defaults_options => merge($::haproxy::data::haproxy_defaults_options, {'mode' => 'http'}),
+      require => Sysctl::Value['net.ipv4.ip_nonlocal_bind'],
     }
 
     # keepalived
