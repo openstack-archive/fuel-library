@@ -36,7 +36,7 @@ class MyTestCase(RecipeTestCase):
         self.assertEqual([], warnings, warnings)
 
     def test_deploy_compute_node(self):
-        node = self.environment.node['client']
+        node = self.environment.node['agent-01']
         remote = ssh(node.ip_address, username='root', password='r00tme')
         remote.reconnect()
         self.write_site_pp_manifest()
