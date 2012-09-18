@@ -77,6 +77,8 @@ class Ci:
         node.boot = ['disk']
         return node
 
+    NODES = ['agent-01', 'agent-02', 'agent-03', 'agent-04']
+
     def describe_environment(self):
         environment = Environment('recipes')
         private = Network(name='private', dhcp_server=True)
@@ -87,8 +89,9 @@ class Ci:
         environment.networks.append(bridged)
         master = self.describe_node('master', [private, public, bridged])
         environment.nodes.append(master)
-        client = self.describe_node('client', [private, public, bridged])
-        environment.nodes.append(client)
+        for node_name in self.NODES:
+            client = self.describe_node(node_name, [private, public, bridged])
+            environment.nodes.append(client)
         return environment
 
     def setup_environment(self):
@@ -130,14 +133,17 @@ class Ci:
             remote = ssh(node.ip_address, username='root', password='r00tme')
             remote.reconnect()
             if node.name != 'master':
-                self.add_to_hosts(remote, master_node.ip_address, 'master', 'master')
+                for node in environment.nodes:
+                    self.add_to_hosts(remote, node.ip_address, node.name, node.name)
                 self.setup_puppet_client_yum(remote)
                 write_config(remote, '/etc/puppet/puppet.conf', agent_config)
                 self.wait_for_certificates(remote)
+                self.add_epel_repo(remote)
 #            logger.info("Setting up repository configuration")
 #                    self.configure_repository(remote)
         sleep(5)
         self.sign_all_node_certificates(mremote)
+        self.add_epel_repo(mremote)
         for node in environment.nodes:
             logger.info("Creating snapshot 'blank'")
             node.save_snapshot('empty')
