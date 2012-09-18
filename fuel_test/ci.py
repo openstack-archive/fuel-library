@@ -155,7 +155,7 @@ class Ci:
                 "gpgcheck=0\n") % (
             self.environment.networks[0].ip_addresses[1],
             self.repository_server.port)
-        self.write_config(remote,'/etc/yum.repos.d/mirantis.repo', repo)
+        write_config(remote,'/etc/yum.repos.d/mirantis.repo', repo)
         remote.execute('yum makecache')
 
     def start_rpm_repository(self):
