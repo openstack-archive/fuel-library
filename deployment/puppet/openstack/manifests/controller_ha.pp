@@ -89,7 +89,7 @@ class openstack::controller_ha (
     # keepalived
     class { 'keepalived': require => Class['haproxy'] }
     keepalived::instance { '42':
-      interface => $internal_interface,
+      interface => $public_interface,
       virtual_ips => [$virtual_ip],
       state    => $which ? { 0 => 'MASTER', default => 'BACKUP' },
       priority => $which ? { 0 => 101,      default => 100      },
