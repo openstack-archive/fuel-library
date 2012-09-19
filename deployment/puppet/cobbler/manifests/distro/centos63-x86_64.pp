@@ -28,12 +28,18 @@ class cobbler::distro::centos63-x86_64(
     require => [Exec["${centos_iso}"], File["/var/www/cobbler/ks_mirror/CentOS-6.3-x86_64"]],
   }
 
+  file { "/var/www/cobbler/links/CentOS-6.3-x86_64":
+    ensure => link,
+    target => "/var/www/cobbler/ks_mirror/CentOS-6.3-x86_64",
+  }
+  
   cobbler_distro { "centos63-x86_64":
     kernel => "/var/www/cobbler/ks_mirror/CentOS-6.3-x86_64/isolinux/vmlinuz",
     initrd => "/var/www/cobbler/ks_mirror/CentOS-6.3-x86_64/isolinux/initrd.img",
     arch => "x86_64",
     breed => "redhat",
     osversion => "rhel6",
+    ksmeta => "",
     require => Mount["/var/www/cobbler/ks_mirror/CentOS-6.3-x86_64"],
   }
 }

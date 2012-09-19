@@ -29,6 +29,11 @@ Puppet::Type.newtype(:cobbler_distro) do
     newvalues(/^(x86_64|i386)$/)
   end
 
+  newparam(:ksmeta) do
+    desc "Kickstart metadata"
+    newvalues(/^((\S+=\S+) +)*(\S+=\S+)*$/)
+  end
+
   newparam(:breed) do
     desc "Breed"
     newvalues(/^(redhat|ubuntu|debian|suse)$/)
