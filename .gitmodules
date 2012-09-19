@@ -76,3 +76,12 @@
 [submodule "deployment/puppet/selinux"]
 	path = deployment/puppet/selinux
 	url = gitolite@gitolite.mirantis.com:fuel/deployment/puppet/selinux.git
+[submodule "deployment/puppet/firewall"]
+	path = deployment/puppet/firewall
+	url = gitolite@gitolite.mirantis.com:fuel/deployment/puppet/firewall.git
+[submodule "deployment/puppet/ntpd"]
+	path = deployment/puppet/ntpd
+	url = gitolite@gitolite.mirantis.com:fuel/deployment/puppet/ntpd.git
+[submodule "deployment/mcollective"]
+	path = deployment/mcollective
+	url = gitolite@gitolite.mirantis.com:fuel/deployment/mcollective.git
