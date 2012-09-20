@@ -94,7 +94,10 @@ class openstack::controller(
   $enabled                 = true,
   $api_bind_address        = '0.0.0.0',
   $mysql_host              = '127.0.0.1',
-  $service_endpoint        = '127.0.0.1'
+  $service_endpoint        = '127.0.0.1',
+  $galera_cluster_name = 'openstack',
+  $galera_master_ip = '127.0.0.1',
+  $galera_node_address = '127.0.0.1'
 ) {
   
   $glance_api_servers = "${service_endpoint}:9292"
@@ -130,19 +133,28 @@ class openstack::controller(
       # 'root_password' => $mysql_root_password,
       'bind_address'  => '0.0.0.0'
     },
+    galera_cluster_name	=> $galera_cluster_name,
+    galera_master_ip	=> $galera_master_ip,
+    galera_node_address	=> $galera_node_address,
     enabled => $enabled,
     custom_setup_class => $custom_mysql_setup_class,
   }
   if ($enabled) {
     # set up all openstack databases, users, grants
+    
+    Class['keystone::config::mysql'] -> Exec<| title == 'keystone-manage db_sync' |>
+
     class { "keystone::db::mysql":
-      host     => $internal_address,
+      host     => $mysql_host,
       password => $keystone_db_password,
       allowed_hosts => '%',
     }
+
     Class["glance::db::mysql"] -> Class['glance::registry']
+    File['/etc/glance/glance-registry.conf'] -> Exec<| title == 'glance-manage db_sync' |>
+
     class { "glance::db::mysql":
-      host     => $internal_address,
+      host     => $mysql_host,
       password => $glance_db_password,
       allowed_hosts => '%',
     }

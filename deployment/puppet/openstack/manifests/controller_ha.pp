@@ -97,17 +97,19 @@ class openstack::controller_ha (
       priority => $which ? { 0 => 101,      default => 100      },
     }
 
-    class { 'galera':
-	require => Class['haproxy'],
-      cluster_name => 'openstack',
-      master_ip => $which ? { 0 => false, default => $controller_internal_addresses[0] },
-      node_address => $controller_internal_addresses[$which],
-    }
+#    class { 'galera':
+#	require => Class['haproxy'],
+#      cluster_name => 'openstack',
+#      master_ip => $which ? { 0 => false, default => $controller_internal_addresses[0] },
+#      node_address => $controller_internal_addresses[$which],
+#    }
 
     class { 'firewall':
       before => Class['galera']
     }
-
+    Class['haproxy'] -> Class['galera']
+#    Class['openstack::controller']->Class['galera']
+    
     class { 'openstack::controller':
       public_address          => $virtual_ip,
       public_interface        => $public_interface,
@@ -121,6 +123,9 @@ class openstack::controller_ha (
       auto_assign_floating_ip => $auto_assign_floating_ip,
       mysql_root_password     => $mysql_root_password,
       custom_mysql_setup_class => 'galera',
+      galera_cluster_name	=> 'openstack',
+      galera_master_ip		=> $which ? { 0 => false, default => $controller_internal_addresses[0] },
+      galera_node_address	=> $controller_internal_addresses[$which],
       admin_email             => $admin_email,
       admin_password          => $admin_password,
       keystone_db_password    => $keystone_db_password,
