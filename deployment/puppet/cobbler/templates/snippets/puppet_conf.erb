@@ -1,0 +1,13 @@
+%post
+#if $getVar('puppet_master','') != ''
+mkdir -p /etc/puppet
+cat <<EOCONF > /etc/puppet/puppet.conf
+[main]
+    # server
+    server = $puppet_master
+
+    # enable plugin sync
+    pluginsync = true
+EOCONF
+#end if
+%end

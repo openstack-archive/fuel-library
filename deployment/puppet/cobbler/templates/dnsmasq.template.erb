@@ -2,19 +2,22 @@
 # $date 
 #
 
-# resolve.conf .. ?
-#no-poll
-#enable-dbus
 read-ethers
+log-dhcp
+log-queries
+log-facility=LOCAL0
 addn-hosts = /var/lib/cobbler/cobbler_hosts
-domain=<%= domain %>
-
-dhcp-range=<%= dhcp_range %>
-dhcp-option=3,<%= gateway %>
+domain=<%= domain_name %>
 dhcp-lease-max=1000
-dhcp-authoritative
-dhcp-boot=pxelinux.0
-dhcp-boot=net:normalarch,pxelinux.0
-dhcp-boot=net:ia64,$elilo
+
+# TODO
+interface=eth1
+listen-address=<%= next_server %>
+
+dhcp-option=6,<%= name_server %>
+
+dhcp-range=internal,<%= dhcp_start_address %>,<%= dhcp_end_address %>,<%= dhcp_netmask %>
+dhcp-option=net:internal,option:router,<%= dhcp_gateway %>
+dhcp-boot=net:internal,pxelinux.0,boothost,<%= next_server %>
 
 $insert_cobbler_system_definitions

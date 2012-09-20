@@ -24,6 +24,11 @@ Puppet::Type.newtype(:cobbler_profile) do
     newvalues(/^.*$/)
   end
 
+  newparam(:ksmeta) do
+    desc "Kickstart metadata"
+    newvalues(/^((\S+=\S+) +)*(\S+=\S+)*$/)
+  end
+
   newparam(:menu) do
     desc "Include|Exclude this profile into boot menu"
     newvalues(:true, :false)

@@ -4,42 +4,42 @@
 #
 # TODO - I need to make the choise of networking configurable
 #
-# [next_server] IP address that will be used as PXE tftp server. Required.
-#
 # [server] IP address that will be used as address of cobbler server.
 # It is needed to download kickstart files, call cobbler API and
 # so on. Required.
 #
-# [domain] Domain name that will be used as default for
+# [domain_name] Domain name that will be used as default for
 # installed nodes. Required.
+# [name_server] DNS ip address to be used by installed nodes
+# [next_server] IP address that will be used as PXE tftp server. Required.
 #
-# [dhcp_range] Range of addresses to give via dhcp
-#
-# [gateway] Gateway address for installed nodes
+# [dhcp_start_address] First address of dhcp range
+# [dhcp_end_address] Last address of dhcp range
+# [dhcp_netmask] Netmask of the network
+# [dhcp_gateway] Gateway address for installed nodes
 #
 # [cobbler_user] Cobbler web interface username
-#
 # [cobbler_password] Cobbler web interface password 
 #
 # [pxetimeout] Pxelinux will wail this count of 1/10 seconds before
 # use default pxe item. To disable it use 0. Required.
 
 class cobbler::server(
-  # settings template
-  $next_server = '127.0.0.1',
-  $server = '127.0.0.1',
+  $server             = $ipaddress,
 
-  # dnsmasq.template template
-  $domain = 'example.com',
-  $dhcp_range = '10.0.0.100,10.0.0.200',
-  $gateway = '10.0.0.1',
+  $domain_name        = 'example.com',
+  $name_server        = $ipaddress,
+  $next_server        = $ipaddress,
+  
+  $dhcp_start_address = '10.0.0.201',
+  $dhcp_end_address   = '10.0.0.254',
+  $dhcp_netmask       = '255.255.255.0',
+  $dhcp_gateway       = $ipaddress,
 
-  # users.digest template
-  $cobbler_user = 'cobbler',
-  $cobbler_password = 'cobbler',
+  $cobbler_user       = 'cobbler',
+  $cobbler_password   = 'cobbler',
 
-  # pxedefault.template template
-  $pxetimeout = '0'
+  $pxetimeout         = '0'
   ) {
 
   Exec {path => '/usr/bin:/bin:/usr/sbin:/sbin'}
@@ -51,7 +51,7 @@ class cobbler::server(
       $dnsmasq_package = "dnsmasq"
       $cobbler_service = "cobblerd"
       $cobbler_web_service = "httpd"
-      $cobbler_additional_packages = ["syslinux", "wget"]
+      $cobbler_additional_packages = ["xinetd", "tftp-server", "syslinux", "wget"]
     }
     /(?i)(debian|ubuntu)/:  {
       $cobbler_package = "cobbler"
@@ -64,7 +64,11 @@ class cobbler::server(
   }
 
   package { $cobbler_package:
-    ensure => installed
+    ensure => installed,
+    require => [
+                Package[$dnsmasq_package],
+                Package[$cobbler_additional_packages],
+                ],
   }
 
   package { $cobbler_web_package:
@@ -74,13 +78,21 @@ class cobbler::server(
   package { $dnsmasq_package:
     ensure => installed
   }
-
+  
+  file { "/etc/init.d/dnsmasq":
+    content => template("cobbler/dnsmasq.init.erb"),
+    owner => root,
+    group => root,
+    mode => 0755,
+    require => Package[$dnsmasq_package],
+    notify => Service["dnsmasq"],
+  }
+  
   package { $cobbler_additional_packages: }
   
-  define access_to_cobbler_port() {
-    $port = $name
-    $rule = "-p tcp -m state --state NEW -m tcp --dport $port -j ACCEPT"
-    exec { "access_to_cobbler_port: $name": 
+  define access_to_cobbler_port($port, $protocol='tcp') {
+    $rule = "-p $protocol -m state --state NEW -m $protocol --dport $port -j ACCEPT"
+    exec { "access_to_cobbler_${protocol}_port: $port": 
       command => "iptables -t filter -I INPUT 1 $rule; \
       /etc/init.d/iptables save",
       unless => "iptables -t filter -S INPUT | grep -q \"^-A INPUT $rule\""
@@ -110,20 +122,61 @@ class cobbler::server(
 
       # HERE IS IPTABLES RULES TO MAKE COBBLER AVAILABLE FROM OUTSIDE
       # https://github.com/cobbler/cobbler/wiki/Using%20Cobbler%20Import
-      access_to_cobbler_port { "69": }
-      access_to_cobbler_port { "80": }
-      access_to_cobbler_port { "443": }
-      access_to_cobbler_port { "25151": }
+      # SSH
+      access_to_cobbler_port { "ssh":        port => '22' }
+      # DNS
+      access_to_cobbler_port { "dns_tcp":    port => '53' }
+      access_to_cobbler_port { "dns_udp":    port => '53',  protocol => 'udp' }
+      # DHCP
+      access_to_cobbler_port { "dncp_67":    port => '67',  protocol => 'udp' }
+      access_to_cobbler_port { "dncp_68":    port => '68',  protocol => 'udp' }
+      # TFTP
+      access_to_cobbler_port { "tftp_tcp":   port => '69' }
+      access_to_cobbler_port { "tftp_udp":   port => '69',  protocol => 'udp' }
+      # NTP
+      access_to_cobbler_port { "ntp_udp":    port => '123', protocol => 'udp' }
+      # HTTP/HTTPS
+      access_to_cobbler_port { "http":       port => '80' }
+      access_to_cobbler_port { "https":      port => '443'}
+      # SYSLOG FOR COBBLER
+      access_to_cobbler_port { "syslog_tcp": port => '25150'}
+
+      service { "xinetd":
+        enable => true,
+        ensure => running,
+        hasrestart => true,
+        require => Package[$cobbler_additional_packages],
+      }
+
+      file { "/etc/xinetd.conf":
+        content => template("cobbler/xinetd.conf.erb"),
+        owner => root,
+        group => root,
+        mode => 0600,
+        require => Package[$cobbler_additional_packages],
+        notify => Service["xinetd"],
+      }
+      
     }
   }
 
+  Service[$cobbler_service] -> Exec["cobbler_sync"] -> Service["dnsmasq"]
+  
   service { $cobbler_service:
     enable => true,
     ensure => running,
     hasrestart => true,
     require => Package[$cobbler_package],
   }
-  
+
+  service { "dnsmasq":
+    enable => true,
+    ensure => running,
+    hasrestart => true,
+    require => Package[$dnsmasq_package],
+    subscribe => Exec["cobbler_sync"],
+  }
+
   service { $cobbler_web_service:
     enable => true,
     ensure => running,
@@ -135,8 +188,12 @@ class cobbler::server(
     command => "cobbler sync",
     refreshonly => true,
     returns => [0, 155],
-    require => [Package[$cobbler_package],
-                Package[$cobbler_additional_packages]],
+    require => [
+                Package[$cobbler_package],
+                Package[$dnsmasq_package],
+                ],
+    notify => Service["dnsmasq"],
+    subscribe => Service[$cobbler_service],
   }
   
   file { "/etc/cobbler/modules.conf":
@@ -144,8 +201,13 @@ class cobbler::server(
     owner => root,
     group => root,
     mode => 0644,
-    require => [Package[$cobbler_package]],
-    notify => Service[$cobbler_service],
+    require => [
+                Package[$cobbler_package],
+                ],
+    notify => [
+               Service[$cobbler_service],
+               Exec["cobbler_sync"],
+               ],
   }
 
   file {"/etc/cobbler/settings":
@@ -153,8 +215,11 @@ class cobbler::server(
     owner => root,
     group => root,
     mode => 0644,
-    require => [Package[$cobbler_package]],
-    notify => [Exec["cobbler_sync"], Service[$cobbler_service]],
+    require => Package[$cobbler_package],
+    notify => [
+               Service[$cobbler_service],
+               Exec["cobbler_sync"],
+               ],
   }
 
   file {"/etc/cobbler/dnsmasq.template":
@@ -162,14 +227,21 @@ class cobbler::server(
     owner => root,
     group => root,
     mode => 0644,
-    require => [Package[$cobbler_package]],
-    notify => [Exec["cobbler_sync"], Service[$cobbler_service]],
+    require => [
+                Package[$cobbler_package],
+                Package[$dnsmasq_package],
+                ],
+    notify => [
+               Service[$cobbler_service],
+               Exec["cobbler_sync"],
+               Service["dnsmasq"],
+               ],
     
   }
 
   cobbler_digest_user {"cobbler":
     password => $cobbler_password,
-    require => [Package[$cobbler_package]],
+    require => Package[$cobbler_package],
     notify => Service[$cobbler_service],
   }
   
@@ -178,9 +250,27 @@ class cobbler::server(
     owner => root,
     group => root,
     mode => 0644,
-    require => [Package[$cobbler_package]],
-    notify => [Exec["cobbler_sync"], Service[$cobbler_service]],
+    require => Package[$cobbler_package],
+    notify => [
+               Service[$cobbler_service],
+               Exec["cobbler_sync"],
+               ],
   }
 
+  define cobbler_snippet(){
+    file {"/var/lib/cobbler/snippets/${name}":
+      content => template("cobbler/snippets/${name}.erb"),
+      owner => root,
+      group => root,
+      mode => 0644,
+      require => Package[$cobbler_package],
+    }
+  }
+  
+  cobbler_snippet {"disable_pxe":}
+  cobbler_snippet {"post_part_compute":}
+  cobbler_snippet {"post_part_controller":}
+  cobbler_snippet {"post_part_storage":}
+  cobbler_snippet {"puppet_conf":}
   
   }                               

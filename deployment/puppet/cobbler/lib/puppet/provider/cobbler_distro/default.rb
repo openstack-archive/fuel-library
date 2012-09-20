@@ -24,9 +24,17 @@ Puppet::Type.type(:cobbler_distro).provide(:default) do
   end
 
   private
+  
+  def ksmeta
+    if @resource[:ksmeta].size > 0
+      "--ksmeta=\"#{@resource[:ksmeta]}\""
+    else
+      ""
+    end
+  end
 
   def find_distro_full
-    distro = `cobbler distro find --name=#{@resource[:name]} --kernel=#{@resource[:kernel]} --initrd=#{@resource[:initrd]} --arch=#{@resource[:arch]} --breed=#{@resource[:breed]} --os-version=#{@resource[:osversion]}`
+    distro = `cobbler distro find --name=#{@resource[:name]} --kernel=#{@resource[:kernel]} --initrd=#{@resource[:initrd]} --arch=#{@resource[:arch]} --breed=#{@resource[:breed]} --os-version=#{@resource[:osversion]} #{ksmeta}`
     distro.chomp
     return distro.size != 0
   end
@@ -39,7 +47,7 @@ Puppet::Type.type(:cobbler_distro).provide(:default) do
 
   def update_distro
     subcommand = find_distro_name ? 'edit' : 'add'
-    system("cobbler distro #{subcommand} --name=#{@resource[:name]} --kernel=#{@resource[:kernel]} --initrd=#{@resource[:initrd]} --arch=#{@resource[:arch]} --breed=#{@resource[:breed]} --os-version=#{@resource[:osversion]}")
+    system("cobbler distro #{subcommand} --name=#{@resource[:name]} --kernel=#{@resource[:kernel]} --initrd=#{@resource[:initrd]} --arch=#{@resource[:arch]} --breed=#{@resource[:breed]} --os-version=#{@resource[:osversion]} #{ksmeta}")
   end
 
   def remove_distro

@@ -41,8 +41,16 @@ Puppet::Type.type(:cobbler_profile).provide(:default) do
     end
   end
 
+  def ksmeta
+    if @resource[:ksmeta].size > 0
+      "--ksmeta=\"#{@resource[:ksmeta]}\""
+    else
+      ""
+    end
+  end
+
   def find_profile_full
-    profile = `cobbler profile find --name=#{@resource[:name]} --distro=#{@resource[:distro]} --enable-menu=#{enable_menu} --kopts=\"#{@resource[:kopts]}\" #{kickstart}`
+    profile = `cobbler profile find --name=#{@resource[:name]} --distro=#{@resource[:distro]} --enable-menu=#{enable_menu} --kopts=\"#{@resource[:kopts]}\" #{kickstart} #{ksmeta}`
     profile.chomp
     return profile.size != 0
   end
@@ -55,7 +63,7 @@ Puppet::Type.type(:cobbler_profile).provide(:default) do
 
   def update_profile
     subcommand = find_profile_name ? 'edit' : 'add'
-    system("cobbler profile #{subcommand} --name=#{@resource[:name]} --distro=#{@resource[:distro]} --enable-menu=#{enable_menu} --kopts=\"#{@resource[:kopts]}\" #{kickstart}")
+    system("cobbler profile #{subcommand} --name=#{@resource[:name]} --distro=#{@resource[:distro]} --enable-menu=#{enable_menu} --kopts=\"#{@resource[:kopts]}\" #{kickstart} #{ksmeta}")
   end
 
   def remove_profile

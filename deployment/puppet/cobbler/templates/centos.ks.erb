@@ -1,0 +1,80 @@
+# WHAT TO DO (install fresh system rather than upgrade)
+install
+
+# INSTALLATION SOURCE (centos repository)
+url --url=$tree
+
+# ALTERNATIVE REPOSITORIES
+repo --name=Puppet --baseurl=<%= ks_puppet_repo %>
+
+# KEYBOARD AND LANGUAGE CUSTOMIZATION
+lang en_US.UTF-8
+keyboard us
+
+# WHICH TIMEZONE TO USE ON INSTALLED SYSTEM
+timezone --utc <%= ks_system_timezone %>
+
+# REBOOT AFTER INSTALLATION 
+reboot
+
+network --onboot yes --device eth0 --bootproto=dhcp
+firewall --disable
+
+# SET ROOT PASSWORD DEFAULT IS r00tme
+rootpw --iscrypted <%= ks_encrypted_root_password %>
+
+# AUTHENTICATION CUSTOMIZATION
+authconfig --enableshadow --passalgo=sha512
+
+# DISABLE SELINUX ON INSTALLED SYSTEM
+selinux --disabled
+
+text
+skipx
+
+# BOOTLOADER CUSTOMIZATION
+# INSTALL BOOTLOADER INTO MASTER BOOT RECORD
+# --location=mbr
+# WHICH ORDER OF DRIVES TO USE DURING TRYING TO INSTALL BOOTLOADER 
+# --driveorder=sda,hda
+# APPEND STRING TO KERNEL BOOT COMMAND
+# --append=""
+bootloader --location=mbr --driveorder=sda,hda --append=" crashkernel=auto"
+
+# PARTITIONING
+# CLEAN ANY INVALID PARTITION TABLE
+zerombr
+clearpart --all --initlabel
+autopart
+part swap --recommended --ondrive=sda
+part /boot --fstype=ext2 --size=1024 --ondrive=sda
+part / --size=4096 --fstype ext4 --grow --ondrive=sda
+
+$SNIPPET('network_config')
+
+%pre
+$SNIPPET('kickstart_start')
+$SNIPPET('pre_install_network_config')
+
+%packages --nobase --ignoremissing 
+@Core
+yum
+openssh-server
+openssh
+openssh-clients
+curl
+wget
+crontabs
+cronie
+$SNIPPET('puppet_install_if_enabled')
+
+%post --log=/root/post-install.log
+$SNIPPET('post_install_kernel_options')
+$SNIPPET('post_install_network_config')
+$SNIPPET('puppet_register_if_enabled')
+$SNIPPET('puppet_conf')
+
+# DISABLE PXE BOOTING AFTER INSTALLATION
+%post --log=/root/nopxe.log
+$SNIPPET('disable_pxe')
+
