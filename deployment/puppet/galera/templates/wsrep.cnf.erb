@@ -31,7 +31,8 @@ query_cache_type=0
 # Override bind-address
 # In some systems bind-address defaults to 127.0.0.1, and with mysqldump SST
 # it will have (most likely) disastrous consequences on donor node
-bind-address=<%= node_address %>
+bind-address=0.0.0.0
+port=3307
 
 ##
 ## WSREP options
@@ -118,7 +119,7 @@ wsrep_sst_method=mysqldump
 
 # Address on THIS node to receive SST at. DON'T SET IT TO DONOR ADDRESS!!!
 # (SST method dependent. Defaults to the first IP of the first interface)
-wsrep_sst_receive_address=<%= node_address %>:3306
+wsrep_sst_receive_address=<%= node_address %>:3307
 
 # SST authentication string. This will be used to send SST to joining nodes.
 # Depends on SST method. For mysqldump method it is root:<root password>
