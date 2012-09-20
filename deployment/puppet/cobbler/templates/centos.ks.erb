@@ -2,17 +2,17 @@
 install
 
 # INSTALLATION SOURCE (centos repository)
-url --url=<%= kickstart_repo_url %>
+url --url=$tree
 
 # ALTERNATIVE REPOSITORIES
-repo --name=Puppet --baseurl=<%= kickstart_puppet_repo_url %>
+repo --name=Puppet --baseurl=<%= ks_puppet_repo %>
 
 # KEYBOARD AND LANGUAGE CUSTOMIZATION
 lang en_US.UTF-8
 keyboard us
 
 # WHICH TIMEZONE TO USE ON INSTALLED SYSTEM
-timezone --utc <%= kickstart_system_timezone %>
+timezone --utc <%= ks_system_timezone %>
 
 # REBOOT AFTER INSTALLATION 
 reboot
@@ -21,7 +21,7 @@ network --onboot yes --device eth0 --bootproto=dhcp
 firewall --disable
 
 # SET ROOT PASSWORD DEFAULT IS r00tme
-rootpw --iscrypted <%= kickstart_encrypted_root_password %>
+rootpw --iscrypted <%= ks_encrypted_root_password %>
 
 # AUTHENTICATION CUSTOMIZATION
 authconfig --enableshadow --passalgo=sha512
@@ -72,6 +72,7 @@ $SNIPPET('puppet_install_if_enabled')
 $SNIPPET('post_install_kernel_options')
 $SNIPPET('post_install_network_config')
 $SNIPPET('puppet_register_if_enabled')
+$SNIPPET('puppet_conf')
 
 # DISABLE PXE BOOTING AFTER INSTALLATION
 %post --log=/root/nopxe.log

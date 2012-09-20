@@ -28,13 +28,13 @@ class cobbler::server(
   $server             = $ipaddress,
 
   $domain_name        = 'example.com',
-  $name_server        = '10.0.0.1',
+  $name_server        = $ipaddress,
   $next_server        = $ipaddress,
   
-  $dhcp_start_address = '10.0.0.100',
-  $dhcp_end_address   = '10.0.0.200',
+  $dhcp_start_address = '10.0.0.201',
+  $dhcp_end_address   = '10.0.0.254',
   $dhcp_netmask       = '255.255.255.0',
-  $dhcp_gateway       = '10.0.0.1',
+  $dhcp_gateway       = $ipaddress,
 
   $cobbler_user       = 'cobbler',
   $cobbler_password   = 'cobbler',
@@ -78,7 +78,16 @@ class cobbler::server(
   package { $dnsmasq_package:
     ensure => installed
   }
-
+  
+  file { "/etc/init.d/dnsmasq":
+    content => template("cobbler/dnsmasq.init.erb"),
+    owner => root,
+    group => root,
+    mode => 0755,
+    require => Package[$dnsmasq_package],
+    notify => Service["dnsmasq"],
+  }
+  
   package { $cobbler_additional_packages: }
   
   define access_to_cobbler_port($port, $protocol='tcp') {
@@ -262,6 +271,6 @@ class cobbler::server(
   cobbler_snippet {"post_part_compute":}
   cobbler_snippet {"post_part_controller":}
   cobbler_snippet {"post_part_storage":}
-
+  cobbler_snippet {"puppet_conf":}
   
   }                               
