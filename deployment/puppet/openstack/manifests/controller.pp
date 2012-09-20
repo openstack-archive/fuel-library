@@ -143,7 +143,10 @@ class openstack::controller (
   $enabled                 = true
   $api_bind_address        = '0.0.0.0',
   $mysql_host              = '127.0.0.1',
-  $service_endpoint        = '127.0.0.1'
+  $service_endpoint        = '127.0.0.1',
+  $galera_cluster_name = 'openstack',
+  $galera_master_ip = '127.0.0.1',
+  $galera_node_address = '127.0.0.1'
 ) {
 
   # Ensure things are run in order
@@ -192,6 +195,9 @@ class openstack::controller (
       # 'root_password' => $mysql_root_password,
       'bind_address'  => '0.0.0.0'
     },
+    galera_cluster_name	=> $galera_cluster_name,
+    galera_master_ip	=> $galera_master_ip,
+    galera_node_address	=> $galera_node_address,
     enabled => $enabled,
     custom_setup_class => $custom_mysql_setup_class,
   }
