@@ -218,6 +218,7 @@ class openstack::controller (
     bind_host    => $api_bind_address,
     quantum_user_password => $quantum_user_password,
     enabled               => $enabled,
+    package_ensure => $::openstack_keystone_version,
   }
 
 
