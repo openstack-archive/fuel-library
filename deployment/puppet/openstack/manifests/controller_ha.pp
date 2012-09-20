@@ -2,12 +2,14 @@ define haproxy_service($order, $hostnames, $balancer_ips, $virtual_ip, $port) {
 
   case $name {
     "mysqld": {
-      $haproxy_config_options = { 'option' => ['tcpka', 'mysql-check user cluster_watcher'], 'balance' => 'roundrobin', 'mode' => 'tcp' }
+      $haproxy_config_options = { 'option' => ['mysql-check user cluster_watcher'], 'balance' => 'roundrobin', 'mode' => 'tcp' }
       $balancermember_options = 'check inter 15s fastinter 2s downinter 1s rise 5 fall 3'
+      $balancer_port = 3307
     }
     default: {
       $haproxy_config_options = { 'option' => ['tcplog'], 'balance' => 'roundrobin' }
       $balancermember_options = 'check'
+      $balancer_port = $port
     }
   }
 
@@ -23,7 +25,7 @@ define haproxy_service($order, $hostnames, $balancer_ips, $virtual_ip, $port) {
     listening_service      => $name,
     server_name            => $hostnames,
     balancer_ip            => $balancer_ips,
-    balancer_port          => $port,
+    balancer_port          => $balancer_port,
     balancermember_options => $balancermember_options
   }
 
