@@ -66,7 +66,8 @@ class openstack::compute(
   $vnc_enabled         = 'true',
   $verbose             = false,
   $manage_volumes      = false,
-  $nova_volume         = 'nova-volumes'
+  $nova_volume         = 'nova-volumes',
+  $service_endpoint	= '127.0.0.1'
 ) {
 
   include ntpd
@@ -89,21 +90,10 @@ class openstack::compute(
     glance_api_servers => $glance_api_servers,
     verbose            => $verbose,
   }
-
-  class { 'nova::compute':
-    enabled                        => true,
-    vnc_enabled                    => $vnc_enabled,
-    vncserver_proxyclient_address  => $internal_address,
-    vncproxy_host                  => $vncproxy_host,
-  }
-
-  class { 'nova::compute::libvirt':
-    libvirt_type     => $libvirt_type,
-    vncserver_listen => $internal_address,
-  }
-
-  # if the compute node should be configured as a multi-host
+  
+    # if the compute node should be configured as a multi-host
   # compute installation
+
   if $multi_host {
 
     include keystone::python
@@ -121,6 +111,7 @@ class openstack::compute(
       admin_tenant_name => 'services',
       admin_user        => 'nova',
       admin_password    => $nova_user_password,
+      auth_host		=> $service_endpoint,
     }
   } else {
     $enable_network_service = false
@@ -129,6 +120,21 @@ class openstack::compute(
       'send_arp_for_ha':   value => 'False';
     }
   }
+
+
+
+  class { 'nova::compute':
+    enabled                        => true,
+    vnc_enabled                    => $vnc_enabled,
+    vncserver_proxyclient_address  => $internal_address,
+    vncproxy_host                  => $vncproxy_host,
+  }
+
+  class { 'nova::compute::libvirt':
+    libvirt_type     => $libvirt_type,
+    vncserver_listen => $internal_address,
+  }
+
 
   # set up configuration for networking
   class { 'nova::network':

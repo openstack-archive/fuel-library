@@ -109,6 +109,8 @@ node /fuel-[34]/ {
       verbose            => $verbose,
       vnc_enabled        => true,
       manage_volumes     => false,
+      nova_user_password	=> $nova_user_password,
+      service_endpoint	=> $virtual_ip,
     }
 }
 
