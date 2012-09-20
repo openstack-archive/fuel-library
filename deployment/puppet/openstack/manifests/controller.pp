@@ -158,14 +158,15 @@ class openstack::controller(
 
   # set up keystone
   class { 'keystone':
-    admin_token  => $keystone_admin_token,
+    package_ensure => $::openstack_keystone_version,
+    admin_token    => $keystone_admin_token,
     # we are binding keystone on all interfaces
     # the end user may want to be more restrictive
-    bind_host    => $api_bind_address,
-    log_verbose  => $verbose,
-    log_debug    => $verbose,
-    catalog_type => 'sql',
-    enabled      => $enabled,
+    bind_host      => $api_bind_address,
+    log_verbose    => $verbose,
+    log_debug      => $verbose,
+    catalog_type   => 'sql',
+    enabled        => $enabled,
   }
   # set up keystone database
   # set up the keystone config for mysql
