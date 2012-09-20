@@ -21,7 +21,8 @@ class mysql::server (
   $service_name     = $mysql::params::service_name,
   $service_provider = $mysql::params::service_provider,
   $config_hash      = {},
-  $enabled          = true
+  $enabled          = true,
+  $galera_cluster_name, $galera_master_ip, $galera_node_address
 ) inherits mysql::params {
   
   if ($custom_setup_class == undef) {
@@ -40,7 +41,18 @@ class mysql::server (
       require  => Package['mysql-server'],
       provider => $service_provider,
     }
-  } else {
+  }
+  elsif ($custom_setup_class == 'galera')  {
+    Class['galera'] -> Class['mysql::server']
+    class { 'galera':
+	    cluster_name => $galera_cluster_name,
+	    master_ip => $galera_master_ip,
+	    node_address => $galera_node_address,
+    }
+#    require($galera_class)
+  }
+  
+   else {
     require($custom_setup_class)
   }
 }
