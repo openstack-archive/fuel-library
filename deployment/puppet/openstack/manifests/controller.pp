@@ -104,6 +104,12 @@ class openstack::controller(
   $nova_db = "mysql://nova:${nova_db_password}@${mysql_host}/nova"
 
   $rabbit_addresses = inline_template("<%= @rabbit_nodes.map {|x| x + ':5672'}.join ',' %>")
+    $memcached_addresses =  inline_template("<%= @cache_server_ip.collect {|ip| ip + ':' + @cache_server_port }.join ',' %>")
+ 
+  
+  nova_config {'memcached_servers':
+    value => $memcached_addresses
+  }
 
   if ($export_resources) {
     # export all of the things that will be needed by the clients
@@ -343,9 +349,6 @@ class openstack::controller(
     listen_ip => $api_bind_address,
   } 
 
-  nova_config {'memcached_servers':
-    value => inline_template("<%= @cache_server_ip.collect {|ip| ip + ':' + @cache_server_port }.join ',' %>")
-  }
 
   class { 'horizon':
     bind_address => $api_bind_address,

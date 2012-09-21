@@ -66,6 +66,8 @@ class openstack::compute(
   $vnc_enabled         = 'true',
   $verbose             = false,
   $manage_volumes      = false,
+    $cache_server_ip         = ['127.0.0.1'],
+  $cache_server_port       = '11211',
   $nova_volume         = 'nova-volumes',
   $service_endpoint	= '127.0.0.1'
 ) {
@@ -80,6 +82,12 @@ class openstack::compute(
       "set auth_tcp none",
     ];
   }
+
+  $memcached_addresses =  inline_template("<%= @cache_server_ip.collect {|ip| ip + ':' + @cache_server_port }.join ',' %>")
+  nova_config {'memcached_servers':
+    value => $memcached_addresses
+  }
+
 
   class { 'nova':
     sql_connection     => $sql_connection,
