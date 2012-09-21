@@ -153,6 +153,12 @@ class openstack::controller (
   Class['openstack::db::mysql'] -> Class['openstack::keystone']
   Class['openstack::db::mysql'] -> Class['openstack::glance']
   Class['openstack::db::mysql'] -> Class['openstack::nova::controller']
+  $rabbit_addresses = inline_template("<%= @rabbit_nodes.map {|x| x + ':5672'}.join ',' %>")
+    $memcached_addresses =  inline_template("<%= @cache_server_ip.collect {|ip| ip + ':' + @cache_server_port }.join ',' %>")
+ 
+  
+  nova_config {'DEFAULT/memcached_servers':    value => $memcached_addresses;
+  }
 
 
   include ntpd
@@ -315,10 +321,10 @@ class openstack::controller (
 
   class { 'memcached':
     listen_ip => $api_bind_address,
-  } 
-  nova_config {'memcached_servers':
-    value => inline_template("<%= @cache_server_ip.collect {|ip| ip + ':' + @cache_server_port }.join ',' %>")
   }
+
+
+
   ######## Horizon ########
   class { 'openstack::horizon':
     secret_key        => $secret_key,

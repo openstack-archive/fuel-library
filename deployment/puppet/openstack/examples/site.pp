@@ -110,6 +110,7 @@ node /fuel-[34]/ {
       vnc_enabled        => true,
       manage_volumes     => false,
       nova_user_password	=> $nova_user_password,
+      cache_server_ip         => $controller_hostnames,
       service_endpoint	=> $virtual_ip,
     }
 }
