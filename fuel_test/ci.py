@@ -9,9 +9,6 @@ from root import root
 logger = logging.getLogger('ci')
 
 class Ci:
-    hostname = 'nailgun'
-    domain = 'mirantis.com'
-
     def __init__(self, image=None):
         self.base_image = image
         self.environment = None
@@ -73,6 +70,7 @@ class Ci:
         node.vnc = True
         for network in networks:
             node.interfaces.append(Interface(network))
+#        node.bridged_interfaces.append(BridgedInterface('br0'))
         node.disks.append(Disk(base_image=self.base_image, format='qcow2'))
         node.boot = ['disk']
         return node
@@ -81,18 +79,22 @@ class Ci:
 
     def describe_environment(self):
         environment = Environment('recipes')
-        private = Network(name='private', dhcp_server=True)
+        internal = Network(name='internal', dhcp_server=True)
+        environment.networks.append(internal)
+        private = Network(name='private', dhcp_server=False)
         environment.networks.append(private)
         public = Network(name='public', dhcp_server=True)
         environment.networks.append(public)
-        bridged = Network(name='bridged', dhcp_server=False)
-        environment.networks.append(bridged)
-        master = self.describe_node('master', [private, public, bridged])
+        master = self.describe_node('master', [internal, private, public])
         environment.nodes.append(master)
         for node_name in self.NODES:
-            client = self.describe_node(node_name, [private, public, bridged])
+            client = self.describe_node(node_name, [internal, private, public])
             environment.nodes.append(client)
         return environment
+
+    def get_file_as_string(self, path):
+        with open(path) as f:
+            return f.read()
 
     def setup_environment(self):
         if not self.base_image:
@@ -119,14 +121,14 @@ class Ci:
             self.change_host_name(remote, node.name, node.name)
             logger.info("Renamed %s" % node.name)
         master_node = environment.node['master']
-        mremote = ssh(master_node.ip_address, username='root', password='r00tme')
-        mremote.reconnect()
-        self.setup_puppet_master_yum(mremote)
-        self.switch_off_ip_tables(mremote)
+        master_remote = ssh(master_node.ip_address, username='root', password='r00tme')
+        master_remote.reconnect()
+        self.setup_puppet_master_yum(master_remote)
+        self.switch_off_ip_tables(master_remote)
         with open(root('fuel', 'fuel_test', 'puppet.master.config')) as f:
             master_config = f.read()
-        write_config(mremote, '/etc/puppet/puppet.conf', master_config)
-        self.start_puppet_master(mremote)
+        write_config(master_remote, '/etc/puppet/puppet.conf', master_config)
+        self.start_puppet_master(master_remote)
         with open(root('fuel', 'fuel_test', 'puppet.agent.config')) as f:
             agent_config = f.read()
         for node in environment.nodes:
@@ -141,9 +143,8 @@ class Ci:
                 self.add_epel_repo(remote)
 #            logger.info("Setting up repository configuration")
 #                    self.configure_repository(remote)
-        sleep(5)
-        self.sign_all_node_certificates(mremote)
-        self.add_epel_repo(mremote)
+        self.sign_all_node_certificates(master_remote)
+        self.add_epel_repo(master_remote)
         for node in environment.nodes:
             logger.info("Creating snapshot 'blank'")
             node.save_snapshot('empty')
@@ -161,7 +162,7 @@ class Ci:
                 "gpgcheck=0\n") % (
             self.environment.networks[0].ip_addresses[1],
             self.repository_server.port)
-        write_config(remote,'/etc/yum.repos.d/mirantis.repo', repo)
+        write_config(remote,'/etc/yum/repos.d/mirantis.repo', repo)
         remote.execute('yum makecache')
 
     def start_rpm_repository(self):
