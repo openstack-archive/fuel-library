@@ -34,10 +34,6 @@ class nova::network(
     path => $::path
   }
 
-    File<| title == '/etc/nova/api-paste.ini' |>
-    File<| title == '/etc/nova/api-paste.ini' |> ~> Service['nova-network']
-
-
   sysctl::value { 'net.ipv4.ip_forward':
     value => '1'
   }
@@ -47,6 +43,9 @@ class nova::network(
   }
 
   if $install_service {
+#    File<| title == '/etc/nova/api-paste.ini' |>
+#    File<| title == '/etc/nova/api-paste.ini' |> ~> Service['nova-network']
+
     nova::generic_service { 'network':
       enabled        => $enabled,
       package_name   => $::nova::params::network_package_name,
