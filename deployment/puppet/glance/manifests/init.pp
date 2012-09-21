@@ -1,5 +1,5 @@
 class glance(
-  $package_ensure = 'present'
+  $package_ensure = $::openstack_version['glance']
 ) {
 
   include glance::params
