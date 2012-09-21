@@ -20,8 +20,9 @@
 # $api_result_limit     max number of Swift containers/objects to display on a single page
 #
 class horizon(
-  $bind_address          = '127.0.0.1',
   $secret_key,
+  $package_ensure        = 'present',
+  $bind_address          = '127.0.0.1',
   $cache_server_ip       = '127.0.0.1',
   $cache_server_port     = '11211',
   $swift                 = false,
@@ -41,8 +42,12 @@ class horizon(
   Class['memcached'] -> Class['horizon']
   #}
 
-  package { ["$::horizon::params::http_service", "$::horizon::params::http_modwsgi", "$::horizon::params::package_name"]:
+  package { ["$::horizon::params::http_service", "$::horizon::params::http_modwsgi"]:
     ensure => present,
+  }
+
+  package { "$::horizon::params::package_name":
+    ensure => $package_ensure,
   }
 
   File {
