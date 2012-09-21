@@ -1,6 +1,7 @@
 import logging
 from devops.helpers import ssh
 from django.utils.unittest.case import skip
+import re
 from base import RecipeTestCase
 from fuel_test.ci import write_config
 from root import root
@@ -39,10 +40,11 @@ class MyTestCase(RecipeTestCase):
         agent01 = self.environment.node['agent-01']
         agent02 = self.environment.node['agent-02']
         remote = ssh(agent01.ip_address, username='root', password='r00tme')
+        virtual_ip = self.environment.network['public'].ip_addresses[-3]
         remote.reconnect()
         self.write_site_pp_manifest(
-            root('fuel', 'fuel_test', 'nova.site.pp.template'),
-            virtual_ip="'%s'" % agent01.ip_address_by_network['internal'],
+            root('fuel', 'deployment', 'puppet', 'openstack', 'examples' 'site.pp'),
+            virtual_ip="'%s'" % virtual_ip,
             master_hostname="'%s'" % agent01.name,
             controller_public_addresses = [
                 "%s" % agent01.ip_address_by_network['public'],
@@ -55,10 +57,10 @@ class MyTestCase(RecipeTestCase):
             controller_hostnames = [
                 "%s" % agent01.name,
                 "%s" % agent02.name],
-            public_interface = "'eth3'",
-            internal_interface = "'eth1'",
-            internal_address = "$ipaddress_eth1",
-            private_interface = "'eth2'"
+            public_interface = "'eth2'",
+            internal_interface = "'eth0'",
+            internal_address = "$ipaddress_eth0",
+            private_interface = "'eth1'"
         )
         result = remote.sudo.ssh.execute('puppet agent --test')
         self.assertEqual([], result['stderr'], result['stderr'])
