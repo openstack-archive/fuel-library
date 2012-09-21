@@ -45,14 +45,16 @@ class MyTestCase(RecipeTestCase):
             virtual_ip="'%s'" % agent01.ip_address_by_network['internal'],
             master_hostname="'%s'" % agent01.name,
             controller_public_addresses = [
-                "'%s'" % agent01.ip_address_by_network['public'],
-                "'%s'" % agent02.ip_address_by_network['public']
+                "%s" % agent01.ip_address_by_network['public'],
+                "%s" % agent02.ip_address_by_network['public']
                 ],
             controller_internal_addresses = [
-                "'%s'" % agent01.ip_address_by_network['internal'],
-                "'%s'" % agent02.ip_address_by_network['internal']
+                "%s" % agent01.ip_address_by_network['internal'],
+                "%s" % agent02.ip_address_by_network['internal']
             ],
-            controller_hostnames = ["'%s'" % agent01.name, "'%s'" % agent02.name],
+            controller_hostnames = [
+                "%s" % agent01.name,
+                "%s" % agent02.name],
             public_interface = "'eth3'",
             internal_interface = "'eth1'",
             internal_address = "$ipaddress_eth1",
