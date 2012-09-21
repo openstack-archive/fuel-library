@@ -7,7 +7,7 @@ class nova::params {
       # package names
       $api_package_name         = false
       $cert_package_name        = false
-      $common_package_name      = 'openstack-nova'
+      $common_package_name      = 'openstack-nova-common'
       $compute_package_name     = false
       $consoleauth_package_name = false
       $doc_package_name         = 'openstack-nova-doc'
