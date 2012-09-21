@@ -57,6 +57,7 @@ class openstack::nova::controller (
   $enabled                   = true,
   $exported_resources        = true,
   $rabbit_nodes			= [$internal_address],
+  ensure_package    => present,
   $enabled_apis			= 'ec2,osapi_compute,metadata'
 ) {
 
@@ -115,6 +116,7 @@ if ($rabbit_nodes)
     glance_api_servers => $glance_connection,
     verbose            => $verbose,
     rabbit_nodes	=> $rabbit_nodes,
+    ensure_package	=> $ensure_package
   }
  }
  else
@@ -127,6 +129,7 @@ if ($rabbit_nodes)
     glance_api_servers => $glance_connection,
     verbose            => $verbose,
     rabbit_host	=> $rabbit_connection,
+    ensure_package	=> $ensure_package
   }
  
  }
@@ -136,7 +139,8 @@ if ($rabbit_nodes)
     enabled           => $enabled,
     admin_password    => $nova_user_password,
     auth_host         => $keystone_host,
-    enabled_apis	=> $enabled_apis
+    enabled_apis	=> $enabled_apis,
+    ensure_package	=> $ensure_package
   }
 
   # Configure nova-network
@@ -169,6 +173,7 @@ if ($rabbit_nodes)
       num_networks      => $num_networks,
       enabled           => $enable_network_service,
       install_service   => $enable_network_service,
+      ensure_package	=> $ensure_package
     }
   }
 
@@ -184,12 +189,14 @@ if ($rabbit_nodes)
     'nova::consoleauth'
   ]:
     enabled => $enabled,
+    ensure_package	=> $ensure_package
   }
 
   if $vnc_enabled {
     class { 'nova::vncproxy':
       host    => $public_address,
       enabled => $enabled,
+      ensure_package	=> $ensure_package
     }
   }
 

@@ -127,6 +127,7 @@ class openstack::compute (
 
 
   class { 'nova':
+    ensure_package     => $::openstack_version['nova'],
     sql_connection     => $sql_connection,
     rabbit_nodes       => $rabbit_nodes,
     rabbit_userid      => $rabbit_user,
@@ -147,6 +148,7 @@ class openstack::compute (
 
   # Install / configure nova-compute
   class { '::nova::compute':
+     ensure_package                 => $::openstack_version['nova'],
     enabled                       => $enabled,
     vnc_enabled                   => $vnc_enabled,
     vncserver_proxyclient_address => $internal_address,
@@ -172,6 +174,7 @@ class openstack::compute (
     }
     $enable_network_service = true
     class { 'nova::api':
+      ensure_package    => $::openstack_version['nova'],
       enabled           => true,
       admin_tenant_name => 'services',
       admin_user        => 'nova',
@@ -190,6 +193,7 @@ class openstack::compute (
 
   if $quantum == false {
     class { 'nova::network':
+      ensure_package    => $::openstack_version['nova'],
       private_interface => $private_interface,
       public_interface  => $public_interface,
       fixed_range       => $fixed_range,

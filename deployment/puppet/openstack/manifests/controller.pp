@@ -298,7 +298,8 @@ class openstack::controller (
     verbose                 => $verbose,
     enabled                 => $enabled,
     exported_resources      => $export_resources,
-    enabled_apis	=>	$enabled_apis
+    enabled_apis	=>	$enabled_apis,
+    ensure_package    => $::openstack_version['nova']
   }
 
   ######### Cinder Controller Services ########
@@ -329,6 +330,7 @@ class openstack::controller (
   class { 'openstack::horizon':
     secret_key        => $secret_key,
     cache_server_ip   => $cache_server_ip,
+    package_ensure => $::openstack_version['horizon'],
     bind_address => $api_bind_address,
     cache_server_port => $cache_server_port,
     swift             => $swift,
