@@ -176,7 +176,7 @@ class openstack::controller(
 
   # set up keystone
   class { 'keystone':
-    package_ensure => $::openstack_keystone_version,
+    package_ensure => $::openstack_version['keystone'],
     admin_token    => $keystone_admin_token,
     # we are binding keystone on all interfaces
     # the end user may want to be more restrictive
@@ -275,6 +275,7 @@ class openstack::controller(
   # TODO I may need to figure out if I need to set the connection information
   # or if I should collect it
   class { 'nova':
+    ensure_package     => $::openstack_version['nova'],
     sql_connection     => $sql_connection,
     # this is false b/c we are exporting
     rabbit_nodes       => $rabbit_nodes,
@@ -292,6 +293,7 @@ class openstack::controller(
   }
 
   class { 'nova::api':
+    ensure_package    => $::openstack_version['nova'],
     enabled           => $enabled,
     # TODO this should be the nova service credentials
     #admin_tenant_name => 'openstack',
@@ -308,9 +310,14 @@ class openstack::controller(
     'nova::consoleauth',
     'nova::scheduler',
     'nova::objectstore',
-    'nova::vncproxy'
   ]:
-    enabled => $enabled,
+    ensure_package => $::openstack_version['nova'],
+    enabled        => $enabled,
+  }
+
+  class { 'nova::vncproxy':
+    ensure_package => $::openstack_version['novncproxy'],
+    enabled        => $enabled,
   }
 
   if $multi_host {
@@ -332,6 +339,7 @@ class openstack::controller(
 
   # set up networking
   class { 'nova::network':
+    ensure_package    => $::openstack_version['nova'],
     private_interface => $private_interface,
     public_interface  => $public_interface,
     fixed_range       => $fixed_range,
@@ -356,6 +364,7 @@ class openstack::controller(
 
 
   class { 'horizon':
+    package_ensure => $::openstack_version['horizon'],
     bind_address => $api_bind_address,
     secret_key => $secret_key,
     cache_server_ip => $cache_server_ip,

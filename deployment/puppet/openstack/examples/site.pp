@@ -30,7 +30,13 @@ case $::osfamily {
 }
 
 # package version mapping
-$openstack_keystone_version = '2012.1.1-1.el6'
+$openstack_version = {
+  'keystone'   => '2012.1.1-1.el6',
+  'glance'     => '2012.1.1-1.el6',
+  'horizon'    => '2012.1.1-1.el6',
+  'nova'       => '2012.1.1-15.el6',
+  'novncproxy' => '0.3-11.el6',
+}
 
 $virtual_ip = '10.0.0.110'
 $master_hostname = 'fuel-01'
