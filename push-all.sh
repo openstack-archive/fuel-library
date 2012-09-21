@@ -11,7 +11,7 @@ git submodule foreach -q 'if (git status -s | grep .); then echo You have uncomm
 
 # Repeated to compensate for ssh connection resets :(
 echo Checking if push will not conflict in submodules
-git submodule foreach -q 'echo $path; git push -q --dry-run origin master || git push -q --dry-run origin master'
+git submodule foreach -q 'echo $path; (git rev-parse origin/master | grep -q $(git rev-parse master)) || git push -q --dry-run origin master || git push -q --dry-run origin master'
 
 changed=0
 subrepos=""
