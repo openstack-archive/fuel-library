@@ -1,4 +1,4 @@
-name    'puppet-haproxy'
+name    'puppetlabs-haproxy'
 version '0.1.0'
 source 'git://github.com/puppetlabs/puppetlabs-haproxy'
 author 'Puppet Labs'
