@@ -36,10 +36,28 @@ class MyTestCase(RecipeTestCase):
         self.assertEqual([], warnings, warnings)
 
     def test_deploy_compute_node(self):
-        node = self.environment.node['agent-01']
-        remote = ssh(node.ip_address, username='root', password='r00tme')
+        agent01 = self.environment.node['agent-01']
+        agent02 = self.environment.node['agent-02']
+        remote = ssh(agent01.ip_address, username='root', password='r00tme')
         remote.reconnect()
-        self.write_site_pp_manifest()
+        self.write_site_pp_manifest(
+            root('fuel', 'fuel_test', 'nova.site.pp.template'),
+            virtual_ip="'%s'" % agent01.ip_address_by_network['internal'],
+            master_hostname="'%s'" % agent01.name,
+            controller_public_addresses = [
+                "'%s'" % agent01.ip_address_by_network['public'],
+                "'%s'" % agent02.ip_address_by_network['public']
+                ],
+            controller_internal_addresses = [
+                "'%s'" % agent01.ip_address_by_network['internal'],
+                "'%s'" % agent02.ip_address_by_network['internal']
+            ],
+            controller_hostnames = ["'%s'" % agent01.name, "'%s'" % agent02.name],
+            public_interface = "'eth3'",
+            internal_interface = "'eth1'",
+            internal_address = "$ipaddress_eth1",
+            private_interface = "'eth2'"
+        )
         result = remote.sudo.ssh.execute('puppet agent --test')
         self.assertEqual([], result['stderr'], result['stderr'])
         errors, warnings = self.parse_out(result['stdout'])
