@@ -24,7 +24,7 @@ class RecipeTestCase(unittest.TestCase):
 
     def revert_snapshot(self):
         for node in self.environment.nodes:
-            node.restore_snapshot('blank')
+            node.restore_snapshot('empty')
 
     def load(self, path):
         with open(path) as f:
