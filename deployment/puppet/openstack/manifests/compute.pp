@@ -179,7 +179,8 @@ class openstack::compute (
       admin_tenant_name => 'services',
       admin_user        => 'nova',
       admin_password    => $nova_user_password,
-      enabled_apis	=> $enabled_apis
+      enabled_apis	=> $enabled_apis,
+      auth_host          => $service_endpoint
       # TODO override enabled_apis
     }
 
