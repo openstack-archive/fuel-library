@@ -40,6 +40,6 @@ class RecipeTestCase(unittest.TestCase):
 
     def write_site_pp_manifest(self, path, **kwargs):
         site_pp = self.load(path)
-        self.replace(site_pp, **kwargs)
+        site_pp = self.replace(site_pp, **kwargs)
         write_config(self.master_remote, '/etc/puppet/manifests/site.pp', site_pp)
 
