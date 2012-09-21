@@ -97,6 +97,11 @@ class openstack::compute(
     image_service      => 'nova.image.glance.GlanceImageService',
     glance_api_servers => $glance_api_servers,
     verbose            => $verbose,
+    admin_tenant_name => 'services',
+    admin_user        => 'nova',
+    admin_password    => $nova_user_password,
+    auth_host		=> $service_endpoint,
+
   }
   
     # if the compute node should be configured as a multi-host
@@ -116,10 +121,6 @@ class openstack::compute(
     $enable_network_service = true
     class { 'nova::api':
       enabled           => true,
-      admin_tenant_name => 'services',
-      admin_user        => 'nova',
-      admin_password    => $nova_user_password,
-      auth_host		=> $service_endpoint,
     }
   } else {
     $enable_network_service = false
@@ -128,8 +129,6 @@ class openstack::compute(
       'send_arp_for_ha':   value => 'False';
     }
   }
-
-
 
   class { 'nova::compute':
     enabled                        => true,

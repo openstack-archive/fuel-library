@@ -284,6 +284,11 @@ class openstack::controller(
     glance_api_servers => $glance_connection,
     verbose            => $verbose,
     api_bind_address   => $api_bind_address,
+    admin_tenant_name => 'services',
+    admin_user        => 'nova',
+    admin_password    => $nova_user_password,
+    auth_host		=> $service_endpoint,
+
   }
 
   class { 'nova::api':
@@ -292,10 +297,10 @@ class openstack::controller(
     #admin_tenant_name => 'openstack',
     #admin_user        => 'admin',
     #admin_password    => $admin_service_password,
-    admin_tenant_name => 'services',
-    admin_user        => 'nova',
-    admin_password    => $nova_user_password,
-    auth_host         => $service_endpoint,
+#    admin_tenant_name => 'services',
+#    admin_user        => 'nova',
+#    admin_password    => $nova_user_password,
+#    auth_host         => $service_endpoint,
   }
 
   class { [
