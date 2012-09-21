@@ -67,8 +67,10 @@ class nova(
   $admin_tenant_name = 'services',
   $admin_user        = 'nova',
   $admin_password    = 'passw0rd',
-  $auth_uri = "${auth_protocol}://${auth_host}:${auth_port}/v2.0",
 ) inherits nova::params {
+
+
+$auth_uri = "${auth_protocol}://${auth_host}:${auth_port}/v2.0"
 
   # all nova_config resources should be applied
   # after the nova common package
