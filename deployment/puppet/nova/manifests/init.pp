@@ -34,6 +34,7 @@
 # add rabbit nodes hostname
 #
 class nova(
+  $ensure_package = 'present',
   # this is how to query all resources from our clutser
   $nova_cluster_id='localcluster',
   $sql_connection = false,
@@ -126,7 +127,7 @@ class nova(
 
   package { 'nova-common':
     name    => $::nova::params::common_package_name,
-    ensure  => present,
+    ensure  => $ensure_package,
     require => [Package["python-nova"], Anchor['nova-start']]
   } 
 
