@@ -5,6 +5,8 @@ on a load balancer server.  Currently Redhat family OSes are supported, but
 support for other OS Families shouldn't be too difficult to merge in.  Pull
 requests accepted!
 
+Read the documentation in the manifest headers for usage information.
+
 ## Hacking
 
 After cloning the repository:
@@ -20,4 +22,4 @@ Apache 2.0
 
 ## Contact
 
-Gary Larizza <gary@puppetlabs.com>
+Puppet Labs Modules Team <modules@puppetlabs.com>
