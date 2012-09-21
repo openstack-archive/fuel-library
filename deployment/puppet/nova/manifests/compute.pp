@@ -9,7 +9,7 @@ class nova::compute(
   $vncproxy_protocol             = 'http',
   $vncproxy_port                 = '6080',
   $vncproxy_path                 = '/vnc_auto.html',
-  $virtio_nic                    = false
+  $virtio_nic                    = false,
  ) {
 
   include nova::params
@@ -27,6 +27,9 @@ class nova::compute(
     }
   }
 
+    File<| title == '/etc/nova/api-paste.ini' |>
+    File<| title == '/etc/nova/api-paste.ini' |> ~> Service['nova-compute']
+    
   nova_config {
     'vnc_enabled': value => $vnc_enabled;
     'vncserver_proxyclient_address': value => $vncserver_proxyclient_address;

@@ -59,6 +59,14 @@ class nova(
   $root_helper = $::nova::params::root_helper,
   $monitoring_notifications = false,
   $api_bind_address = '0.0.0.0',
+  $auth_strategy     = 'keystone',
+  $auth_host         = '127.0.0.1',
+  $auth_port         = 35357,
+  $auth_protocol     = 'http',
+  $admin_tenant_name = 'services',
+  $admin_user        = 'nova',
+  $admin_password    = 'passw0rd',
+  $auth_uri = "${auth_protocol}://${auth_host}:${auth_port}/v2.0",
 ) inherits nova::params {
 
   # all nova_config resources should be applied
@@ -238,5 +246,13 @@ class nova(
     command => '/bin/echo "Nova config has changed"',
     refreshonly => true,
   }
+  
+  nova_config { 'api_paste_config': value => '/etc/nova/api-paste.ini'; }
+
+  @file { '/etc/nova/api-paste.ini':
+    content => template('nova/api-paste.ini.erb'),
+    require => Package['nova-common'],
+  }
+
 
 }

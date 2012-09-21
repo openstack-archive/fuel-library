@@ -34,6 +34,10 @@ class nova::network(
     path => $::path
   }
 
+    File<| title == '/etc/nova/api-paste.ini' |>
+    File<| title == '/etc/nova/api-paste.ini' |> ~> Service['nova-network']
+
+
   sysctl::value { 'net.ipv4.ip_forward':
     value => '1'
   }
