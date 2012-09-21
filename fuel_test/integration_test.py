@@ -9,7 +9,7 @@ from ci import Ci
 def get_params():
     parser = argparse.ArgumentParser(description="Integration test suite")
     parser.add_argument("-i", "--image", dest="image",
-        help="iso image path or http://url")
+        help="base image path or http://url")
     parser.add_argument("-l", "--level", dest="log_level", type=str,
         help="log level", choices=["DEBUG", "INFO", "WARNING", "ERROR"],
         default="INFO", metavar="LEVEL")
@@ -47,15 +47,12 @@ def main():
     ci = Ci(params.image)
 
     if params.command == 'setup':
-        result = ci.get_environment_or_create()
+        ci.get_environment_or_create()
     elif params.command == 'destroy':
-        result = ci.destroy_environment()
+        ci.destroy_environment()
     else:
-         nose_runner(params)
-         result = True
+        nose_runner(params)
 
-    if not result:
-        sys.exit(1)
 
 
 if __name__ == "__main__":

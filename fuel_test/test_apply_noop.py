@@ -1,9 +1,8 @@
 import logging
 from devops.helpers import ssh
 from django.utils.unittest.case import skip
-import re
 from base import RecipeTestCase
-from fuel_test.ci import write_config
+from settings import NODES
 from root import root
 
 logger = logging.getLogger('test_recepts')
@@ -37,8 +36,8 @@ class MyTestCase(RecipeTestCase):
         self.assertEqual([], warnings, warnings)
 
     def test_deploy_compute_node(self):
-        agent01 = self.environment.node['agent-01']
-        agent02 = self.environment.node['agent-02']
+        agent01 = self.environment.node[NODES[0]]
+        agent02 = self.environment.node[NODES[1]]
         remote = ssh(agent01.ip_address, username='root', password='r00tme')
         virtual_ip = self.environment.network['public'].ip_addresses[-3]
         remote.reconnect()

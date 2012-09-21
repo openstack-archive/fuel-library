@@ -1,9 +1,9 @@
 import logging
-from time import sleep
 import traceback
 import devops
 from devops.model import Environment, Network, Node, Disk, Interface
 from devops.helpers import tcp_ping, wait, ssh, http_server, os
+from settings import NODES
 from root import root
 
 logger = logging.getLogger('ci')
@@ -75,8 +75,6 @@ class Ci:
         node.boot = ['disk']
         return node
 
-    NODES = ['agent-01', 'agent-02', 'agent-03', 'agent-04']
-
     def describe_environment(self):
         environment = Environment('recipes')
         internal = Network(name='internal', dhcp_server=True)
@@ -87,7 +85,7 @@ class Ci:
         environment.networks.append(public)
         master = self.describe_node('master', [internal, private, public])
         environment.nodes.append(master)
-        for node_name in self.NODES:
+        for node_name in NODES:
             client = self.describe_node(node_name, [internal, private, public])
             environment.nodes.append(client)
         return environment
@@ -125,11 +123,11 @@ class Ci:
         master_remote.reconnect()
         self.setup_puppet_master_yum(master_remote)
         self.switch_off_ip_tables(master_remote)
-        with open(root('fuel', 'fuel_test', 'puppet.master.config')) as f:
+        with open(root('fuel', 'fuel_test', 'config', 'puppet.master.config')) as f:
             master_config = f.read()
         write_config(master_remote, '/etc/puppet/puppet.conf', master_config)
         self.start_puppet_master(master_remote)
-        with open(root('fuel', 'fuel_test', 'puppet.agent.config')) as f:
+        with open(root('fuel', 'fuel_test', 'config', 'puppet.agent.config')) as f:
             agent_config = f.read()
         for node in environment.nodes:
             remote = ssh(node.ip_address, username='root', password='r00tme')
