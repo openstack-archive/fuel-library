@@ -1,3 +1,43 @@
+Exec { logoutput => true, path => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'] }
+
+stage {'openstack-custom-repo': before => Stage['main']}
+
+case $::osfamily {
+  'Debian': {
+    class { 'apt':
+      stage => 'openstack-ci-repo'
+    }->
+    class { 'openstack::repo::apt':
+      key => '420851BC',
+      location => 'http://172.18.66.213/deb',
+      key_source => 'http://172.18.66.213/gpg.pub',
+      origin => '172.18.66.213',
+      stage => 'openstack-ci-repo'
+    }
+  }
+  'RedHat': {
+    class { 'openstack::repo::yum':
+      repo_name  => 'openstack-epel-fuel',
+      location   => 'http://download.mirantis.com/epel-fuel',
+      key_source => 'https://fedoraproject.org/static/DE7F38BD.txt',
+      stage      => 'openstack-custom-repo',
+    }
+  }
+  default: {
+    fail("Unsupported osfamily: ${osfamily} for os ${operatingsystem}")
+  }
+}
+
+# package version mapping
+$openstack_version = {
+  'keystone'   => '2012.1.1-1.el6',
+  'glance'     => '2012.1.1-1.el6',
+  'horizon'    => '2012.1.1-1.el6',
+  'nova'       => '2012.1.1-15.el6',
+  'novncproxy' => '0.3-11.el6',
+}
+
+
 $virtual_ip = '10.0.0.110'
 $master_hostname = 'fuel-01'
 $controller_public_addresses = ['10.0.0.101', '10.0.0.102']
