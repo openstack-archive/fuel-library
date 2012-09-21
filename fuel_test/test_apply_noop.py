@@ -43,7 +43,7 @@ class MyTestCase(RecipeTestCase):
         virtual_ip = self.environment.network['public'].ip_addresses[-3]
         remote.reconnect()
         self.write_site_pp_manifest(
-            root('fuel', 'deployment', 'puppet', 'openstack', 'examples' 'site.pp'),
+            root('fuel', 'deployment', 'puppet', 'openstack', 'examples', 'site.pp'),
             virtual_ip="'%s'" % virtual_ip,
             master_hostname="'%s'" % agent01.name,
             controller_public_addresses = [
