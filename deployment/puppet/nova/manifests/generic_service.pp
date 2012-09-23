@@ -41,6 +41,8 @@ define nova::generic_service(
     package { $nova_title:
       name   => $package_name,
       ensure => $ensure_package,
+      # In square brackets to work around bug projects.puppetlabs.com/issues/7422.
+      before => [Service[$nova_title]],
       notify => Service[$nova_title],
     }
   }
