@@ -5,14 +5,14 @@ class nova::params {
   case $::osfamily {
     'RedHat': {
       # package names
-      $api_package_name         = false
+      $api_package_name         = 'openstack-nova-api'
       $cert_package_name        = false
       $common_package_name      = 'openstack-nova-common'
-      $compute_package_name     = false
+      $compute_package_name     = 'openstack-nova-compute'
       $consoleauth_package_name = false
       $doc_package_name         = 'openstack-nova-doc'
       $libvirt_package_name     = 'libvirt'
-      $network_package_name     = false
+      $network_package_name     = 'openstack-nova-network'
       $numpy_package_name       = 'numpy'
       $objectstore_package_name = false
       $scheduler_package_name   = false
