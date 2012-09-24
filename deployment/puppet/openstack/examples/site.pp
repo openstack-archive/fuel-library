@@ -97,7 +97,7 @@ node /fuel-0[12]/ {
     }
 }
 
-node /fuel-[34]/ {
+node /fuel-0[34]/ {
     class { 'openstack::compute':
       public_interface   => $public_interface,
       private_interface  => $private_interface,
