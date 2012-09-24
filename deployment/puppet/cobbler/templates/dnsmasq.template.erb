@@ -10,9 +10,7 @@ addn-hosts = /var/lib/cobbler/cobbler_hosts
 domain=<%= domain_name %>
 dhcp-lease-max=1000
 
-# TODO
-# interface=eth1
-# listen-address=<%= next_server %>
+interface=<%= dhcp_interface %>
 
 dhcp-option=6,<%= name_server %>
 
