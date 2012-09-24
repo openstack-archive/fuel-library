@@ -35,27 +35,28 @@ class MyTestCase(RecipeTestCase):
         self.assertEqual([], errors, errors)
         self.assertEqual([], warnings, warnings)
 
-    def test_deploy_compute_node(self):
-        agent01 = self.environment.node[NODES[0]]
-        agent02 = self.environment.node[NODES[1]]
-        remote = ssh(agent01.ip_address, username='root', password='r00tme')
+    @skip('debug')
+    def test_deploy_controller_nodes(self):
+        node01 = self.environment.node[NODES[0]]
+        node02 = self.environment.node[NODES[1]]
+        remote = ssh(node01.ip_address, username='root', password='r00tme')
         virtual_ip = self.environment.network['public'].ip_addresses[-3]
         remote.reconnect()
         self.write_site_pp_manifest(
             root('fuel', 'deployment', 'puppet', 'openstack', 'examples', 'site.pp'),
             virtual_ip="'%s'" % virtual_ip,
-            master_hostname="'%s'" % agent01.name,
+            master_hostname="'%s'" % node01.name,
             controller_public_addresses = [
-                "%s" % agent01.ip_address_by_network['public'],
-                "%s" % agent02.ip_address_by_network['public']
+                "%s" % node01.ip_address_by_network['public'],
+                "%s" % node02.ip_address_by_network['public']
                 ],
             controller_internal_addresses = [
-                "%s" % agent01.ip_address_by_network['internal'],
-                "%s" % agent02.ip_address_by_network['internal']
+                "%s" % node01.ip_address_by_network['internal'],
+                "%s" % node02.ip_address_by_network['internal']
             ],
             controller_hostnames = [
-                "%s" % agent01.name,
-                "%s" % agent02.name],
+                "%s" % node01.name,
+                "%s" % node02.name],
             public_interface = "'eth2'",
             internal_interface = "'eth0'",
             internal_address = "$ipaddress_eth0",
@@ -66,6 +67,27 @@ class MyTestCase(RecipeTestCase):
         errors, warnings = self.parse_out(result['stdout'])
         self.assertEqual([], errors, errors)
         self.assertEqual([], warnings, warnings)
+
+    def test_deploy_mysql_with_galera(self):
+        node01 = self.environment.node[NODES[0]]
+        node02 = self.environment.node[NODES[1]]
+        remote = ssh(node01.ip_address, username='root', password='r00tme')
+        remote.reconnect()
+        self.write_site_pp_manifest(
+            root('fuel', 'deployment', 'puppet', 'mysql', 'examples', 'site.pp'),
+            master_hostname="'%s'" % node01.name,
+            galera_master_ip = "'%s'" % node01.ip_address_by_network['internal'],
+            galera_node_addresses = [
+                "%s" % node01.ip_address_by_network['internal'],
+                "%s" % node02.ip_address_by_network['internal']
+            ],
+        )
+        result = remote.sudo.ssh.execute('puppet agent --test')
+        self.assertEqual([], result['stderr'], result['stderr'])
+        errors, warnings = self.parse_out(result['stdout'])
+        self.assertEqual([], errors, errors)
+        self.assertEqual([], warnings, warnings)
+
 
 if __name__ == '__main__':
     unittest.main()

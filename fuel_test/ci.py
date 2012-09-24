@@ -16,7 +16,7 @@ class Ci:
             self.environment = devops.load('recipes')
             logger.info("Successfully loaded existing environment")
         except Exception, e:
-            logger.error("Failed to load existing recipes environment: " + str(e) + "\n" + traceback.format_exc())
+            logger.info("Failed to load existing recipes environment: " + str(e) + "\n" + traceback.format_exc())
             pass
 
     def get_environment(self):
@@ -70,7 +70,7 @@ class Ci:
         node.vnc = True
         for network in networks:
             node.interfaces.append(Interface(network))
-#        node.bridged_interfaces.append(BridgedInterface('br0'))
+        #        node.bridged_interfaces.append(BridgedInterface('br0'))
         node.disks.append(Disk(base_image=self.base_image, format='qcow2'))
         node.boot = ['disk']
         return node
@@ -102,7 +102,7 @@ class Ci:
         environment = self.describe_environment()
         self.environment = environment
 
-#       todo environment should be saved before build
+        #       todo environment should be saved before build
         devops.build(environment)
 
         devops.save(environment)
@@ -139,12 +139,12 @@ class Ci:
                 write_config(remote, '/etc/puppet/puppet.conf', agent_config)
                 self.wait_for_certificates(remote)
                 self.add_epel_repo(remote)
-#            logger.info("Setting up repository configuration")
-#                    self.configure_repository(remote)
+            #            logger.info("Setting up repository configuration")
+            #                    self.configure_repository(remote)
         self.sign_all_node_certificates(master_remote)
         self.add_epel_repo(master_remote)
         for node in environment.nodes:
-            logger.info("Creating snapshot 'blank'")
+            logger.info("Creating snapshot 'empty'")
             node.save_snapshot('empty')
             logger.info("Test node is ready at %s" % node.ip_address)
 
@@ -158,8 +158,8 @@ class Ci:
                 "baseurl=http://%s:%d\n"
                 "enabled=1\n"
                 "gpgcheck=0\n") % (
-            self.environment.networks[0].ip_addresses[1],
-            self.repository_server.port)
+                   self.environment.networks[0].ip_addresses[1],
+                   self.repository_server.port)
         write_config(remote,'/etc/yum/repos.d/mirantis.repo', repo)
         remote.execute('yum makecache')
 
