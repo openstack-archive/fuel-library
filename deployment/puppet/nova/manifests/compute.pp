@@ -27,8 +27,8 @@ class nova::compute(
     }
   }
 
-    File<| title == '/etc/nova/api-paste.ini' |>
-    File<| title == '/etc/nova/api-paste.ini' |> ~> Service['nova-compute']
+#    File<| title == '/etc/nova/api-paste.ini' |>
+#    File<| title == '/etc/nova/api-paste.ini' |> ~> Service['nova-compute']
     
   nova_config {
     'vnc_enabled': value => $vnc_enabled;
