@@ -30,10 +30,7 @@ class MyTestCase(RecipeTestCase):
     @skip('debug')
     def test_apply_all_modules_with_noop(self):
         result = self.master_remote.execute("for i in `find /etc/puppet/modules/ | grep tests/.*pp`; do puppet apply  --modulepath=/etc/puppet/modules/ --noop $i ; done")
-        self.assertEqual([], result['stderr'], result['stderr'])
-        errors, warnings = self.parse_out(result['stdout'])
-        self.assertEqual([], errors, errors)
-        self.assertEqual([], warnings, warnings)
+        self.assertResult(result)
 
     @skip('debug')
     def test_deploy_controller_nodes(self):
@@ -63,6 +60,9 @@ class MyTestCase(RecipeTestCase):
             private_interface = "'eth1'"
         )
         result = remote.sudo.ssh.execute('puppet agent --test')
+        self.assertResult(result)
+
+    def assertResult(self, result):
         self.assertEqual([], result['stderr'], result['stderr'])
         errors, warnings = self.parse_out(result['stdout'])
         self.assertEqual([], errors, errors)
@@ -83,11 +83,7 @@ class MyTestCase(RecipeTestCase):
             ],
         )
         result = remote.sudo.ssh.execute('puppet agent --test')
-        self.assertEqual([], result['stderr'], result['stderr'])
-        errors, warnings = self.parse_out(result['stdout'])
-        self.assertEqual([], errors, errors)
-        self.assertEqual([], warnings, warnings)
-
+        self.assertResult(result)
 
 if __name__ == '__main__':
     unittest.main()
