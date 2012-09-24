@@ -88,6 +88,13 @@ class openstack::controller_ha (
       require => Sysctl::Value['net.ipv4.ip_nonlocal_bind'],
     }
 
+  exec { 'create-keepalived-rules':
+        command => "iptables -I INPUT -m pkttype --pkt-type multicast -d 224.0.0.18 -j ACCEPT",
+        unless => "iptables-save  | grep '\-A INPUT -d 224.0.0.18/32 -m pkttype --pkt-type multicast -j ACCEPT' -q",
+        path => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
+        before => Service['keepalived']
+      }
+
     # keepalived
     class { 'keepalived': require => Class['haproxy'] }
     keepalived::instance { '42':
