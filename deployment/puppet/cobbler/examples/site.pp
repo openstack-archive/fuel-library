@@ -1,4 +1,8 @@
 node default {
+  notify { "test-notification-${hostname}": }
+}
+
+node /^(fuel-pm|fuel-cobbler).mirantis.com/ {
 
   Exec  {path => '/usr/bin:/bin:/usr/sbin:/sbin'}
   
