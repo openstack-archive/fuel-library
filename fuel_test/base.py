@@ -33,7 +33,10 @@ class RecipeTestCase(unittest.TestCase):
     def replace(self, template, **kwargs):
         for key in kwargs:
             value=kwargs.get(key)
-            template, count = re.subn('(\$' + str(key) + ').*=.*', "\\1 = " + str(value), template)
+            template, count = re.subn(
+                '^(\$' + str(key) + ').*=.*', "\\1 = " + str(value),
+                template,
+                flags=re.MULTILINE)
             if count == 0:
                 raise Exception("Variable ${0:>s} is not found".format(key))
         return template
