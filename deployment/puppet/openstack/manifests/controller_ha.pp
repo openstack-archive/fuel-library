@@ -70,6 +70,21 @@ class openstack::controller_ha (
     haproxy_service { 'glance-reg': order => 90, port => 9191, virtual_ips => [$internal_virtual_ip]  }
     haproxy_service { 'mysqld':     order => 95, port => 3306, virtual_ips => [$internal_virtual_ip]  }
 
+    exec { 'up-public-interface':
+      command => "ifconfig ${public_interface} up",
+      path => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
+      before => Exec['create-public-virtual-ip']
+    }
+    exec { 'up-internal-interface':
+      command => "ifconfig ${internal_interface} up",
+      path => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
+      before => Exec['create-internal-virtual-ip']
+    }
+    exec { 'up-private-interface':
+      command => "ifconfig ${private_interface} up",
+      path => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
+    }
+
     if $which == 0 {
       exec { 'create-public-virtual-ip':
         command => "ip addr add ${public_virtual_ip} dev ${public_interface}",
