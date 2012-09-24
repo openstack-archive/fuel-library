@@ -75,6 +75,7 @@ class openstack::controller_ha (
         command => "ip addr add ${public_virtual_ip} dev ${public_interface}",
         unless => "ip addr show dev ${public_interface} | grep ${public_virtual_ip}",
         path => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
+        before => Service['keepalived']
       }
     }
 
@@ -83,6 +84,7 @@ class openstack::controller_ha (
         command => "ip addr add ${internal_virtual_ip} dev ${internal_interface}",
         unless => "ip addr show dev ${internal_interface} | grep ${internal_virtual_ip}",
         path => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
+        before => Service['keepalived']
       }
     }
     sysctl::value { 'net.ipv4.ip_nonlocal_bind': value => '1' }
@@ -96,12 +98,12 @@ class openstack::controller_ha (
       require => Sysctl::Value['net.ipv4.ip_nonlocal_bind'],
     }
 
-  exec { 'create-keepalived-rules':
+    exec { 'create-keepalived-rules':
         command => "iptables -I INPUT -m pkttype --pkt-type multicast -d 224.0.0.18 -j ACCEPT",
         unless => "iptables-save  | grep '\-A INPUT -d 224.0.0.18/32 -m pkttype --pkt-type multicast -j ACCEPT' -q",
         path => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
         before => Service['keepalived']
-      }
+    }
 
     # keepalived
     class { 'keepalived': require => Class['haproxy'] }
@@ -119,7 +121,7 @@ class openstack::controller_ha (
     }
 
 #    class { 'galera':
-#	require => Class['haproxy'],
+#   require => Class['haproxy'],
 #      cluster_name => 'openstack',
 #      master_ip => $which ? { 0 => false, default => $controller_internal_addresses[0] },
 #      node_address => $controller_internal_addresses[$which],
@@ -144,9 +146,9 @@ class openstack::controller_ha (
       auto_assign_floating_ip => $auto_assign_floating_ip,
       mysql_root_password     => $mysql_root_password,
       custom_mysql_setup_class => 'galera',
-      galera_cluster_name	=> 'openstack',
-      galera_master_ip		=> $which ? { 0 => false, default => $controller_internal_addresses[0] },
-      galera_node_address	=> $controller_internal_addresses[$which],
+      galera_cluster_name   => 'openstack',
+      galera_master_ip      => $which ? { 0 => false, default => $controller_internal_addresses[0] },
+      galera_node_address   => $controller_internal_addresses[$which],
       admin_email             => $admin_email,
       admin_password          => $admin_password,
       keystone_db_password    => $keystone_db_password,
@@ -164,6 +166,7 @@ class openstack::controller_ha (
       api_bind_address        => $controller_internal_addresses[$which],
       mysql_host              => $internal_virtual_ip,
       service_endpoint        => $internal_virtual_ip,
+      require                 => Service['keepalived']
     }
 
     class { 'openstack::auth_file':
