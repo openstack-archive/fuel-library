@@ -1,4 +1,4 @@
-define haproxy_service($order, $hostnames, $balancer_ips, $virtual_ip, $port) {
+define haproxy_service($order, $hostnames, $balancer_ips, $virtual_ips, $port) {
 
   case $name {
     "mysqld": {
@@ -15,7 +15,7 @@ define haproxy_service($order, $hostnames, $balancer_ips, $virtual_ip, $port) {
 
   haproxy::config { $name:
     order => $order - 1,
-    virtual_ip => $virtual_ip,
+    virtual_ips => $virtual_ips,
     virtual_ip_port => $port,
     haproxy_config_options => $haproxy_config_options,
   }
@@ -35,7 +35,7 @@ define haproxy_service($order, $hostnames, $balancer_ips, $virtual_ip, $port) {
 class openstack::controller_ha (
    $master_hostname,
    $controller_public_addresses, $public_interface, $private_interface, $controller_internal_addresses,
-   $virtual_ip, $internal_interface,
+   $internal_virtual_ip, $public_virtual_ip, $internal_interface,
    $floating_range, $fixed_range, $multi_host, $network_manager, $verbose,
    $auto_assign_floating_ip, $mysql_root_password, $admin_email, $admin_password,
    $keystone_db_password, $keystone_admin_token, $glance_db_password, $glance_user_password,
