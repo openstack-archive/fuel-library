@@ -15,7 +15,7 @@ cobbler_password    = 'cobbler'
 pxetimeout          = '0'
 
 
-node master {
+node fuel-01 {
   class { cobbler::server:
     server              => $server,
 
