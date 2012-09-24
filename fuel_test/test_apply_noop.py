@@ -1,5 +1,5 @@
 import logging
-from devops.helpers import ssh
+from devops.helpers import ssh, tcp_ping
 from django.utils.unittest.case import skip
 from base import RecipeTestCase
 from settings import NODES
@@ -86,6 +86,7 @@ class MyTestCase(RecipeTestCase):
         remote = ssh(node02.ip_address, username='root', password='r00tme')
         result = remote.sudo.ssh.execute('puppet agent --test')
         self.assertResult(result)
+#        self.assertTrue(tcp_ping(node01.ip_address_by_network['internal'], 3306))
 
 if __name__ == '__main__':
     unittest.main()
