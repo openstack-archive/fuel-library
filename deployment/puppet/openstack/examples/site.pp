@@ -20,7 +20,7 @@ case $::osfamily {
     class { 'openstack::repo::yum':
       repo_name  => 'openstack-epel-fuel',
       location   => 'http://download.mirantis.com/epel-fuel',
-      key_source => 'https://fedoraproject.org/static/DE7F38BD.txt',
+      key_source => 'https://fedoraproject.org/static/0608B895.txt',
       stage      => 'openstack-custom-repo',
     }
   }
