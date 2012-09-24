@@ -15,5 +15,5 @@ node /fuel-0[12]/ {
     cluster => $cluster,
     cluster_nodes => $cluster_nodes,
     enabled => $enabled
-  )
+  }
 }
