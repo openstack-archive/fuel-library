@@ -3,29 +3,19 @@ from base import RecipeTestCase
 from root import root
 from settings import NODES
 
-__author__ = 'vic'
 
 import unittest
 
-class MyTestCase(RecipeTestCase):
-    def test_deploy_nova_rabbitmq(self):
+class CobblerTestCase(RecipeTestCase):
+    def test_deploy_cobbler(self):
         node01 = self.environment.node[NODES[0]]
-        node02 = self.environment.node[NODES[1]]
         self.write_site_pp_manifest(
-            root('fuel', 'deployment', 'puppet', 'cobbler', 'examples', 'server_site.pp'),
-            cluster = 'true',
-            cluster_nodes = [
-                "%s" % node01.ip_address_by_network['internal'],
-                "%s" % node02.ip_address_by_network['internal']
-            ],
+            root('fuel', 'deployment', 'puppet', 'cobbler', 'examples', 'server_site.pp')
         )
         remote = ssh(node01.ip_address, username='root', password='r00tme')
-        result1 = remote.sudo.ssh.execute('puppet agent --test')
-        remote2 = ssh(node02.ip_address, username='root', password='r00tme')
-        result2 = remote2.sudo.ssh.execute('puppet agent --test')
-        self.assertResult(result1)
-        self.assertResult(result2)
+        result = remote.sudo.ssh.execute('puppet agent --test')
 
+        self.assertResult(result)
 
 if __name__ == '__main__':
     unittest.main()
