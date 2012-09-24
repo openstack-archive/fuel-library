@@ -20,6 +20,7 @@ class nova::params {
       $volume_package_name      = false
       $vncproxy_package_name    = 'openstack-nova-novncproxy'
       # service names
+      $old_style_nova_compute_conf = false
       $api_service_name         = 'openstack-nova-api'
       $cert_service_name        = 'openstack-nova-cert'
       $compute_service_name     = 'openstack-nova-compute'
@@ -55,6 +56,7 @@ class nova::params {
       $tgt_package_name         = 'tgt'
       $volume_package_name      = 'nova-volume'
       # service names
+      $old_style_nova_compute_conf = true
       $api_service_name         = 'nova-api'
       $cert_service_name        = 'nova-cert'
       $compute_service_name     = 'nova-compute'
