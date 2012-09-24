@@ -2,7 +2,7 @@
 # Installs the glance python library.
 #
 class glance::client (
-  $ensure = 'present'
+  $ensure = $::openstack_version['glance']
 ) {
 
   package { 'python-glance':
