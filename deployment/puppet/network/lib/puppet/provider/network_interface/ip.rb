@@ -179,7 +179,11 @@ Puppet::Type.type(:network_interface).provide(:ip) do
   end
 
   #FIXME Need to support multiple inet & inet6 hashes
-  IP_ARGS = [ "qlen", "mtu", "address" ]
+
+  # I've no idea why this is executed more than once and whether it's expected,
+  # but without the "unless defined?" part, a warning is emitted which our 
+  # tests don't like.
+  IP_ARGS = [ "qlen", "mtu", "address" ] unless defined?(IP_ARGS)
 
   IP_ARGS.each do |ip_arg|
     define_method(ip_arg.to_s.downcase) do
