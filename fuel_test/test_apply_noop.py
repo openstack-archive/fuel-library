@@ -71,8 +71,6 @@ class MyTestCase(RecipeTestCase):
     def test_deploy_mysql_with_galera(self):
         node01 = self.environment.node[NODES[0]]
         node02 = self.environment.node[NODES[1]]
-        remote = ssh(node01.ip_address, username='root', password='r00tme')
-        remote.reconnect()
         self.write_site_pp_manifest(
             root('fuel', 'deployment', 'puppet', 'mysql', 'examples', 'site.pp'),
             master_hostname="'%s'" % node01.name,
@@ -82,6 +80,10 @@ class MyTestCase(RecipeTestCase):
                 "%s" % node02.ip_address_by_network['internal']
             ],
         )
+        remote = ssh(node01.ip_address, username='root', password='r00tme')
+        result = remote.sudo.ssh.execute('puppet agent --test')
+        self.assertResult(result)
+        remote = ssh(node02.ip_address, username='root', password='r00tme')
         result = remote.sudo.ssh.execute('puppet agent --test')
         self.assertResult(result)
 
