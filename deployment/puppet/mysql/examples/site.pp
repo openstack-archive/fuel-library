@@ -3,7 +3,7 @@ $which = $::hostname ? { $master_hostname => 0, default => 1 }
 $galera_node_addresses = []
 $galera_cluster_name = 'openstack'
 $galera_master_ip = 'master_ip'
-$galera_node_address => $galera_node_addresses[$which]
+$galera_node_address = $galera_node_addresses[$which]
 $custom_mysql_setup_class = 'galera'
 $mysql_root_password = 'nova'
 $enabled = true
