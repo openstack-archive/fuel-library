@@ -140,6 +140,8 @@ class cobbler::server(
       access_to_cobbler_port { "https":      port => '443'}
       # SYSLOG FOR COBBLER
       access_to_cobbler_port { "syslog_tcp": port => '25150'}
+      # xmlrpc API
+      access_to_cobbler_port { "xmlrpc_api": port => '25151' }
 
       service { "xinetd":
         enable => true,
