@@ -68,6 +68,7 @@ class MyTestCase(RecipeTestCase):
         self.assertEqual([], errors, errors)
         self.assertEqual([], warnings, warnings)
 
+    @skip('debug')
     def test_deploy_mysql_with_galera(self):
         node01 = self.environment.node[NODES[0]]
         node02 = self.environment.node[NODES[1]]
