@@ -1,0 +1,80 @@
+fuel-01:
+  profile: "centos63-x86_64"
+  netboot-enabled: "1"
+  ksmeta: "puppet_auto_setup=1 puppet_master=fuel-pm.mirantis.com"
+  hostname: "fuel-01"
+  name-servers: "10.0.0.100"
+  name-servers-search: "mirantis.com"
+  interfaces:
+    eth0:
+      mac: "52:54:00:e6:dc:c9"
+      static: "0"
+    eth1:
+      mac: "52:54:00:0a:39:ec"
+      static: "1"
+      ip-address: "10.0.0.101"
+      netmask: "255.255.255.0"
+      dns-name: "fuel-01.mirantis.com"
+      management: "1"
+    eth2:
+      mac: "52:54:00:ae:22:04"
+fuel-02:
+  profile: "centos63-x86_64"
+  netboot-enabled: "1"
+  ksmeta: "puppet_auto_setup=1 puppet_master=fuel-pm.mirantis.com"
+  hostname: "fuel-02"
+  name-servers: "10.0.0.100"
+  name-servers-search: "mirantis.com"
+  interfaces:
+    eth0:
+      mac: "52:54:00:b4:a5:25"
+      static: "0"
+    eth1:
+      mac: "52:54:00:e4:46:5c"
+      static: "1"
+      ip-address: "10.0.0.102"
+      netmask: "255.255.255.0"
+      dns-name: "fuel-02.mirantis.com"
+      management: "1"
+    eth2:
+      mac: "52:54:00:28:f8:06"
+fuel-03:
+  profile: "centos63-x86_64"
+  netboot-enabled: "1"
+  ksmeta: "puppet_auto_setup=1 puppet_master=fuel-pm.mirantis.com"
+  hostname: "fuel-03"
+  name-servers: "10.0.0.100"
+  name-servers-search: "mirantis.com"
+  interfaces:
+    eth0:
+      mac: "52:54:00:78:23:b7"
+      static: "0"
+    eth1:
+      mac: "52:54:00:09:04:40"
+      static: "1"
+      ip-address: "10.0.0.103"
+      netmask: "255.255.255.0"
+      dns-name: "fuel-03.mirantis.com"
+      management: "1"
+    eth2:
+      mac: "52:54:00:84:60:bf"
+fuel-04:
+  profile: "centos63-x86_64"
+  netboot-enabled: "1"
+  ksmeta: "puppet_auto_setup=1 puppet_master=fuel-pm.mirantis.com"
+  hostname: "fuel-04"
+  name-servers: "10.0.0.100"
+  name-servers-search: "mirantis.com"
+  interfaces:
+    eth0:
+      mac: "52:54:00:27:49:44"
+      static: "0"
+    eth1:
+      mac: "52:54:00:68:ff:9b"
+      static: "1"
+      ip-address: "10.0.0.103"
+      netmask: "255.255.255.0"
+      dns-name: "fuel-04.mirantis.com"
+      management: "1"
+    eth2:
+      mac: "52:54:00:19:0d:56"

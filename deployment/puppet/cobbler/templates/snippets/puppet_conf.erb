@@ -1,4 +1,3 @@
-%post
 #if $getVar('puppet_master','') != ''
 mkdir -p /etc/puppet
 cat <<EOCONF > /etc/puppet/puppet.conf
@@ -10,4 +9,3 @@ cat <<EOCONF > /etc/puppet/puppet.conf
     pluginsync = true
 EOCONF
 #end if
-%end
