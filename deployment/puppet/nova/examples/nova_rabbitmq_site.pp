@@ -3,7 +3,7 @@ $password = 'guest'
 $port = '5672'
 $virtual_host = '/'
 $cluster = false
-$cluster_nodes = []
+$cluster_nodes = ['10.10.0.1' , '10.10.0.2']
 $enabled = true
 
 node /fuel-0[12]/ {
