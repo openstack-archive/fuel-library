@@ -1,4 +1,4 @@
-from devops.helpers import ssh
+from devops.helpers import ssh, tcp_ping
 from base import RecipeTestCase
 from root import root
 from settings import NODES
@@ -14,7 +14,8 @@ class CobblerTestCase(RecipeTestCase):
         )
         remote = ssh(node01.ip_address, username='root', password='r00tme')
         result = remote.sudo.ssh.execute('puppet agent --test')
-
+        for port in [22, 53, 67, 68, 69, 123, 80, 443, 25150]:
+            tcp_ping(node01.ip_address, port)
         self.assertResult(result)
 
 if __name__ == '__main__':
