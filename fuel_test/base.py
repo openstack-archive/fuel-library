@@ -34,7 +34,7 @@ class RecipeTestCase(unittest.TestCase):
         for key in kwargs:
             value=kwargs.get(key)
             template, count = re.subn(
-                '^(\$' + str(key) + ').*=.*', "\\1 = " + str(value),
+                '^(\$' + str(key) + ')\s*=.*', "\\1 = " + str(value),
                 template,
                 flags=re.MULTILINE)
             if count == 0:
