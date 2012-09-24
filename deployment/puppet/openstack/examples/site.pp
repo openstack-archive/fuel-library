@@ -38,7 +38,8 @@ $openstack_version = {
   'novncproxy' => '0.3-11.el6',
 }
 
-$virtual_ip = '10.0.0.110'
+$internal_virtual_ip = '10.0.0.110'
+$public_virtual_ip = '10.0.0.110'
 $master_hostname = 'fuel-01'
 $controller_public_addresses = ['10.0.0.101', '10.0.0.102']
 $controller_internal_addresses = ['10.0.0.101', '10.0.0.102']
@@ -71,7 +72,8 @@ node /fuel-0[12]/ {
       public_interface        => $public_interface,
       internal_interface      => $internal_interface,
       private_interface       => $private_interface,
-      virtual_ip              => $virtual_ip,
+      internal_virtual_ip     => $internal_virtual_ip,
+      public_virtual_ip       => $public_virtual_ip,
       controller_internal_addresses => $controller_internal_addresses,
       master_hostname         => $master_hostname,
       floating_range          => $floating_range,
