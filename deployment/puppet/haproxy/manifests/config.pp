@@ -62,7 +62,7 @@
 define haproxy::config (
   $virtual_ip_port,
   $order                     = '20',
-  $virtual_ip                = $::ipaddress,
+  $virtual_ips                = [$::ipaddress],
   $mode                      = 'tcp',
   $haproxy_config_options    = {'option' => ['tcplog',
                                             'ssl-hello-chk'],
