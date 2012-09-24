@@ -1,18 +1,14 @@
-server              = '10.0.0.100'
-
-domain_name         = 'mirantis.com'
-name_server         = '10.0.0.100'
-next_server         = '10.0.0.100'
-
-dhcp_start_address  = '10.0.0.201'
-dhcp_end_address    = '10.0.0.254'
-dhcp_netmask        = '255.255.255.0'
-dhcp_gateway        = '10.0.0.100'
-
-cobbler_user        = 'cobbler'
-cobbler_password    = 'cobbler'
-
-pxetimeout          = '0'
+$server              = '10.0.0.100'
+$domain_name         = 'mirantis.com'
+$name_server         = '10.0.0.100'
+$next_server         = '10.0.0.100'
+$dhcp_start_address  = '10.0.0.201'
+$dhcp_end_address    = '10.0.0.254'
+$dhcp_netmask        = '255.255.255.0'
+$dhcp_gateway        = '10.0.0.100'
+$cobbler_user        = 'cobbler'
+$cobbler_password    = 'cobbler'
+$pxetimeout          = '0'
 
 
 node fuel-01 {
