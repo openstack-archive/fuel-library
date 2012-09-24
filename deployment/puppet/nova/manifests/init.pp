@@ -88,7 +88,7 @@ class nova(
   anchor { 'nova-start': }
 
   package { 'python-nova':
-    ensure  => present,
+    ensure  => $ensure_package,
     require => Package['python-greenlet']
   }
 
