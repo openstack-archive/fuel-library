@@ -8,14 +8,16 @@ $custom_mysql_setup_class = 'galera'
 $mysql_root_password = 'nova'
 $enabled = true
 
-class { "mysql::server":
-    config_hash => {
-      # 'root_password' => $mysql_root_password,
-      'bind_address'  => '0.0.0.0'
-    },
-    galera_cluster_name	=> $galera_cluster_name,
-    galera_master_ip	=> $galera_master_ip,
-    galera_node_address	=> $galera_node_address,
-    enabled => $enabled,
-    custom_setup_class => $custom_mysql_setup_class,
-  }
+node /fuel-0[12]/ {
+    class { "mysql::server":
+        config_hash => {
+          # 'root_password' => $mysql_root_password,
+          'bind_address'  => '0.0.0.0'
+        },
+        galera_cluster_name	=> $galera_cluster_name,
+        galera_master_ip	=> $galera_master_ip,
+        galera_node_address	=> $galera_node_address,
+        enabled => $enabled,
+        custom_setup_class => $custom_mysql_setup_class,
+    }
+}
