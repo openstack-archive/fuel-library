@@ -88,5 +88,23 @@ class MyTestCase(RecipeTestCase):
         self.assertResult(result)
 #        self.assertTrue(tcp_ping(node01.ip_address_by_network['internal'], 3306))
 
+    def test_deploy_nova_rabbitmq(self):
+        node01 = self.environment.node[NODES[0]]
+        node02 = self.environment.node[NODES[1]]
+        self.write_site_pp_manifest(
+            root('fuel', 'deployment', 'puppet', 'nova', 'examples', 'nova_rabbitmq_site.pp'),
+            cluster = 'true',
+            cluster_nodes = [
+                "%s" % node01.ip_address_by_network['internal'],
+                "%s" % node02.ip_address_by_network['internal']
+            ],
+        )
+        remote = ssh(node01.ip_address, username='root', password='r00tme')
+        result1 = remote.sudo.ssh.execute('puppet agent --test')
+        remote2 = ssh(node02.ip_address, username='root', password='r00tme')
+        result2 = remote2.sudo.ssh.execute('puppet agent --test')
+        self.assertResult(result1)
+        self.assertResult(result2)
+
 if __name__ == '__main__':
     unittest.main()
