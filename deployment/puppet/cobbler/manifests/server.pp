@@ -15,6 +15,7 @@
 # [dhcp_end_address] Last address of dhcp range
 # [dhcp_netmask] Netmask of the network
 # [dhcp_gateway] Gateway address for installed nodes
+# [dhcp_interface] Interface where to bind dhcp and tftp services
 #
 # [cobbler_user] Cobbler web interface username
 # [cobbler_password] Cobbler web interface password 
@@ -33,7 +34,8 @@ class cobbler::server(
   $dhcp_end_address   = '10.0.0.254',
   $dhcp_netmask       = '255.255.255.0',
   $dhcp_gateway       = $ipaddress,
-
+  $dhcp_interface     = 'eth0',
+  
   $cobbler_user       = 'cobbler',
   $cobbler_password   = 'cobbler',
 

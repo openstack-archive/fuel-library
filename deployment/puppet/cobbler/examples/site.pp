@@ -1,4 +1,8 @@
 node default {
+  notify { "test-notification-${hostname}": }
+}
+
+node /^(fuel-pm|fuel-cobbler).mirantis.com/ {
 
   Exec  {path => '/usr/bin:/bin:/usr/sbin:/sbin'}
   
@@ -27,7 +31,8 @@ node default {
     dhcp_end_address    => '10.0.0.254',
     dhcp_netmask        => '255.255.255.0',
     dhcp_gateway        => '10.0.0.100',
-
+    dhcp_interface      => 'eth1',
+    
     cobbler_user        => 'cobbler',
     cobbler_password    => 'cobbler',
 
@@ -52,5 +57,9 @@ node default {
   Class[cobbler::profile::centos63-x86_64]
 
   class { cobbler::profile::centos63-x86_64: }
+
+  # IT IS NEEDED IN ORDER TO USE cobbler_system.py SCRIPT
+  # WHICH USES argparse PYTHON MODULE
+  package {"python-argparse": }
 
 }

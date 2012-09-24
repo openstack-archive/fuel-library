@@ -10,7 +10,8 @@ import subprocess
 import StringIO
 
 console = logging.StreamHandler()
-formatter = logging.Formatter('%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
+# formatter = logging.Formatter('%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
+formatter = logging.Formatter('%(message)s')
 console.setFormatter(formatter)
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
