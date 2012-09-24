@@ -105,7 +105,7 @@ $auth_uri = "${auth_protocol}://${auth_host}:${auth_port}/v2.0"
   anchor { 'nova-start': }
 
   package { 'python-nova':
-    ensure  => present,
+    ensure  => $ensure_package,
     require => Package['python-greenlet']
   }
 
