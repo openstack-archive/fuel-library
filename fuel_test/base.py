@@ -1,3 +1,4 @@
+import logging
 import unittest
 from devops.helpers import ssh, os
 import re
@@ -46,3 +47,19 @@ class RecipeTestCase(unittest.TestCase):
         site_pp = self.replace(site_pp, **kwargs)
         write_config(self.master_remote, '/etc/puppet/manifests/site.pp', site_pp)
 
+    def assertResult(self, result):
+        self.assertEqual([], result['stderr'], result['stderr'])
+        errors, warnings = self.parse_out(result['stdout'])
+        self.assertEqual([], errors, errors)
+        self.assertEqual([], warnings, warnings)
+
+    def parse_out(self, out):
+        errors = []
+        warnings = []
+        for line in out:
+            logging.info(line)
+            if line.find('error:') !=-1:
+                errors.append(line)
+            if line.find('warning:') !=-1:
+                warnings.append(line)
+        return errors, warnings

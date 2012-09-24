@@ -5,8 +5,6 @@ from base import RecipeTestCase
 from settings import NODES
 from root import root
 
-logger = logging.getLogger('test_recepts')
-
 import unittest
 
 #todo raise exception if remote command writes to stderr or returns non-zero exit code
@@ -15,17 +13,6 @@ import unittest
 
 
 class MyTestCase(RecipeTestCase):
-
-    def parse_out(self, out):
-        errors = []
-        warnings = []
-        for line in out:
-            logger.info(line)
-            if line.find('error:') !=-1:
-                errors.append(line)
-            if line.find('warning:') !=-1:
-                warnings.append(line)
-        return errors, warnings
 
     @skip('debug')
     def test_apply_all_modules_with_noop(self):
@@ -62,12 +49,6 @@ class MyTestCase(RecipeTestCase):
         result = remote.sudo.ssh.execute('puppet agent --test')
         self.assertResult(result)
 
-    def assertResult(self, result):
-        self.assertEqual([], result['stderr'], result['stderr'])
-        errors, warnings = self.parse_out(result['stdout'])
-        self.assertEqual([], errors, errors)
-        self.assertEqual([], warnings, warnings)
-
     @skip('debug')
     def test_deploy_mysql_with_galera(self):
         node01 = self.environment.node[NODES[0]]
@@ -89,6 +70,7 @@ class MyTestCase(RecipeTestCase):
         self.assertResult(result)
 #        self.assertTrue(tcp_ping(node01.ip_address_by_network['internal'], 3306))
 
+    @skip('debug')
     def test_deploy_nova_rabbitmq(self):
         node01 = self.environment.node[NODES[0]]
         node02 = self.environment.node[NODES[1]]
