@@ -15,7 +15,7 @@ class CobblerTestCase(RecipeTestCase):
         remote = ssh(node01.ip_address, username='root', password='r00tme')
         result = remote.sudo.ssh.execute('puppet agent --test')
         for port in [22, 53, 67, 68, 69, 123, 80, 443, 25150]:
-            self.assertTrue(tcp_ping(node01.ip_address, port), "Port %s doesn't answer")
+            self.assertTrue(tcp_ping(node01.ip_address, port), "Port %s doesn't answer" % port)
         self.assertResult(result)
 
 if __name__ == '__main__':
