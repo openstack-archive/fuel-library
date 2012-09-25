@@ -2,6 +2,7 @@ import logging
 from devops.helpers import ssh, tcp_ping
 from django.utils.unittest.case import skip
 from base import RecipeTestCase
+from helpers import execute
 from settings import NODES
 from root import root
 
@@ -14,18 +15,14 @@ import unittest
 
 class MyTestCase(RecipeTestCase):
 
-    @skip('debug')
     def test_apply_all_modules_with_noop(self):
         result = self.master_remote.execute("for i in `find /etc/puppet/modules/ | grep tests/.*pp`; do puppet apply  --modulepath=/etc/puppet/modules/ --noop $i ; done")
         self.assertResult(result)
 
-    @skip('debug')
     def test_deploy_controller_nodes(self):
         node01 = self.environment.node[NODES[0]]
         node02 = self.environment.node[NODES[1]]
-        remote = ssh(node01.ip_address, username='root', password='r00tme')
         virtual_ip = self.environment.network['public'].ip_addresses[-3]
-        remote.reconnect()
         self.write_site_pp_manifest(
             root('fuel', 'deployment', 'puppet', 'openstack', 'examples', 'site.pp'),
             virtual_ip="'%s'" % virtual_ip,
@@ -46,10 +43,10 @@ class MyTestCase(RecipeTestCase):
             internal_address = "$ipaddress_eth0",
             private_interface = "'eth1'"
         )
-        result = remote.sudo.ssh.execute('puppet agent --test')
+        remote = ssh(node01.ip_address, username='root', password='r00tme')
+        result = execute(remote.sudo.ssh, 'puppet agent --test')
         self.assertResult(result)
 
-    @skip('debug')
     def test_deploy_mysql_with_galera(self):
         node01 = self.environment.node[NODES[0]]
         node02 = self.environment.node[NODES[1]]
@@ -66,11 +63,10 @@ class MyTestCase(RecipeTestCase):
         result = remote.sudo.ssh.execute('puppet agent --test')
         self.assertResult(result)
         remote = ssh(node02.ip_address, username='root', password='r00tme')
-        result = remote.sudo.ssh.execute('puppet agent --test')
+        result = execute(remote.sudo.ssh, 'puppet agent --test')
         self.assertResult(result)
 #        self.assertTrue(tcp_ping(node01.ip_address_by_network['internal'], 3306))
 
-    @skip('debug')
     def test_deploy_nova_rabbitmq(self):
         node01 = self.environment.node[NODES[0]]
         node02 = self.environment.node[NODES[1]]
@@ -83,9 +79,9 @@ class MyTestCase(RecipeTestCase):
             ],
         )
         remote = ssh(node01.ip_address, username='root', password='r00tme')
-        result1 = remote.sudo.ssh.execute('puppet agent --test')
+        result1 = execute(remote.sudo.ssh, 'puppet agent --test')
         remote2 = ssh(node02.ip_address, username='root', password='r00tme')
-        result2 = remote2.sudo.ssh.execute('puppet agent --test')
+        result2 = execute(remote2.sudo.ssh, 'puppet agent --test')
         self.assertResult(result1)
         self.assertResult(result2)
 
