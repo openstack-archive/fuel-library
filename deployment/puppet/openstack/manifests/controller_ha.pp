@@ -85,23 +85,38 @@ class openstack::controller_ha (
       path => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
     }
 
-    if $which == 0 {
+    exec { 'up-public-interface':
+      command => "ifconfig ${public_interface} up",
+      path => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
+    }   
+    exec { 'up-internal-interface':
+      command => "ifconfig ${internal_interface} up",
+      path => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
+    }   
+    exec { 'up-private-interface':
+      command => "ifconfig ${private_interface} up",
+      path => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
+    }   
+
+    if $which == 0 { 
       exec { 'create-public-virtual-ip':
         command => "ip addr add ${public_virtual_ip} dev ${public_interface}",
         unless => "ip addr show dev ${public_interface} | grep ${public_virtual_ip}",
         path => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
-        before => Service['keepalived']
-      }
-    }
+        before => Service['keepalived'],
+        require => Exec['up-public-interface'],
+      }   
+    }   
 
-    if $which == 0 {
+    if $which == 0 { 
       exec { 'create-internal-virtual-ip':
         command => "ip addr add ${internal_virtual_ip} dev ${internal_interface}",
         unless => "ip addr show dev ${internal_interface} | grep ${internal_virtual_ip}",
         path => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
-        before => Service['keepalived']
-      }
-    }
+        before => Service['keepalived'],
+        require => Exec['up-internal-interface'],
+      }   
+    }   
     sysctl::value { 'net.ipv4.ip_nonlocal_bind': value => '1' }
 
     $internal_address = $controller_internal_addresses[$which]
