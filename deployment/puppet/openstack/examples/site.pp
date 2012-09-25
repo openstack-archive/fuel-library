@@ -113,7 +113,7 @@ node /fuel-0[34]/ {
       rabbit_password    => $rabbit_password,
       rabbit_user        => $rabbit_user,
       glance_api_servers => "${internal_virtual_ip}:9292",
-      vncproxy_host      => $internal_virtual_ip,
+      vncproxy_host      => $public_virtual_ip,
       verbose            => $verbose,
       vnc_enabled        => true,
       manage_volumes     => false,
