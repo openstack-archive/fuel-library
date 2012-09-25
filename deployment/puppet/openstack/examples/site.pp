@@ -108,18 +108,18 @@ node /fuel-0[34]/ {
       fixed_range        => $fixed_range,
       network_manager    => $network_manager,
       multi_host         => $multi_host,
-      sql_connection     => "mysql://nova:${nova_db_password}@${virtual_ip}/nova",
+      sql_connection     => "mysql://nova:${nova_db_password}@${internal_virtual_ip}/nova",
       rabbit_nodes       => $controller_hostnames,
       rabbit_password    => $rabbit_password,
       rabbit_user        => $rabbit_user,
-      glance_api_servers => "${virtual_ip}:9292",
-      vncproxy_host      => $virtual_ip,
+      glance_api_servers => "${internal_virtual_ip}:9292",
+      vncproxy_host      => $internal_virtual_ip,
       verbose            => $verbose,
       vnc_enabled        => true,
       manage_volumes     => false,
       nova_user_password	=> $nova_user_password,
       cache_server_ip         => $controller_hostnames,
-      service_endpoint	=> $virtual_ip,
+      service_endpoint	=> $internal_virtual_ip,
     }
 }
 
