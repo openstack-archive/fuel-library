@@ -16,10 +16,10 @@ class galera($cluster_name, $master_ip = false, $node_address = $ipaddress_eth0)
   $mysql_password     = $::galera::params::mysql_password
   $libgalera_prefix   = $::galera::params::libgalera_prefix
 
-  $mysql_wsrep_prefix = 'https://launchpad.net/codership-mysql/5.5/5.5.23-23.6/+download'
-  $galera_prefix      = 'https://launchpad.net/galera/2.x/23.2.1/+download'
-  #$mysql_wsrep_prefix = 'http://172.18.66.215'
-  #$galera_prefix      = 'http://172.18.66.215'
+  # $mysql_wsrep_prefix = 'https://launchpad.net/codership-mysql/5.5/5.5.23-23.6/+download'
+  # $galera_prefix      = 'https://launchpad.net/galera/2.x/23.2.1/+download'
+  $mysql_wsrep_prefix = 'http://download.mirantis.com/epel-fuel/x86_64'
+  $galera_prefix      = $mysql_wsrep_prefix
 
   case $::osfamily {
     'RedHat': {
@@ -52,6 +52,11 @@ class galera($cluster_name, $master_ip = false, $node_address = $ipaddress_eth0)
       package { 'wget' :
         ensure => present,
         before => Exec['download-wsrep', 'download-galera']
+      }
+
+      package { 'perl' :
+        ensure => present,
+        before => Galera::Pkg_add['MySQL-client']
       }
     }
     'Debian': {
