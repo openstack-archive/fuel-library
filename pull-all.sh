@@ -11,7 +11,7 @@ git submodule foreach -q 'if (git status -s | grep .); then echo You have uncomm
 
 # If we have local unpushed changes, they'll be lost too.
 echo Checking if submodules don\'t have unpushed changes - otherwise pull/push submodule manually
-git submodule foreach -q 'git rev-parse origin/master | grep -q $(git rev-parse master)'
+git submodule foreach -q 'git rev-parse master | grep -q $(git merge-base master origin/master)'
 
 git pull 
 git submodule update --init --merge
