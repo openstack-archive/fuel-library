@@ -25,7 +25,7 @@ def execute(remote, command):
         result['stderr'].append(line)
         print line
 
-    result['exit_code'] = chan.recv_exit_statrus()
+    result['exit_code'] = chan.recv_exit_status()
     chan.close()
 
     return result
