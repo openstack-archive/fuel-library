@@ -83,19 +83,6 @@ class openstack::controller_ha (
       path => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
     }
 
-    exec { 'up-public-interface':
-      command => "ifconfig ${public_interface} up",
-      path => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
-    }   
-    exec { 'up-internal-interface':
-      command => "ifconfig ${internal_interface} up",
-      path => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
-    }   
-    exec { 'up-private-interface':
-      command => "ifconfig ${private_interface} up",
-      path => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
-    }   
-
     if $which == 0 { 
       exec { 'create-public-virtual-ip':
         command => "ip addr add ${public_virtual_ip} dev ${public_interface}",
