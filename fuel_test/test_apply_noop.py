@@ -22,10 +22,12 @@ class MyTestCase(RecipeTestCase):
     def test_deploy_controller_nodes(self):
         node01 = self.environment.node[NODES[0]]
         node02 = self.environment.node[NODES[1]]
-        virtual_ip = self.environment.network['public'].ip_addresses[-3]
+        internal_virtual_ip = self.environment.network['internal'].ip_addresses[-3]
+        public_virtual_ip = self.environment.network['public'].ip_addresses[-3]
         self.write_site_pp_manifest(
             root('fuel', 'deployment', 'puppet', 'openstack', 'examples', 'site.pp'),
-            virtual_ip="'%s'" % virtual_ip,
+            internal_virtual_ip="'%s'" % internal_virtual_ip,
+            public_virtual_ip="'%s'" % public_virtual_ip,
             master_hostname="'%s'" % node01.name,
             controller_public_addresses = [
                 "%s" % node01.ip_address_by_network['public'],
