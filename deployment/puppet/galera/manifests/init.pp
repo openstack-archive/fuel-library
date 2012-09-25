@@ -23,7 +23,7 @@ class galera($cluster_name, $master_ip = false, $node_address = $ipaddress_eth0)
 
   case $::osfamily {
     'RedHat': {
-      $pkg_prefix  = 'ftp://ftp.sunet.se/pub/databases/relational/mysql/Downloads/MySQL-5.5'
+      $pkg_prefix  = $mysql_wsrep_prefix
       $pkg_version = '5.5.27-1.el6.x86_64'
 
       if !defined(Class['selinux']) {
