@@ -23,26 +23,32 @@ Puppet::Type.type(:firewall).provide(:lokkit) do
       end
     end
 
+    # TODO maybe this should be a parameter eventually so that
+    # it can be configurable
+    def self.iptables_config
+        '/etc/sysconfig/iptables'
+    end
+
+    def iptables_config
+        self.class.iptables_config
+    end
+
     def self.build_iptables_hash
         hash = {}
-        File.new('/etc/sysconfig/iptables').readlines.each do |line|
-            if line =~ /^-A INPUT.*--dport (\d+).*-j ACCEPT$/
-                hash[$1] = 1
+        if FileTest.exists?(iptables_config)
+            File.new(iptables_config).readlines.each do |line|
+                if line =~ /^-A INPUT.*--dport (\d+).*-j ACCEPT$/
+                    hash[$1] = 1
+                end
             end
         end
         hash
     end
 
-    # def ensure
-    #     iptables_config = File.new('/etc/sysconfig/iptables')
-    #     denied = iptables_config.grep(/^-A INPUT.*--dport #{port}.*-j ACCEPT$/).empty?
-    #     notice("*** denied: #{denied}")
-    #     denied ? :deny : :allow
-    # end
-    
     def exists?
-        iptables_config = File.new('/etc/sysconfig/iptables')
-        denied = iptables_config.grep(/^-A INPUT.*--dport #{port}.*-j ACCEPT$/).empty?
+        return false unless FileTest.exists?(iptables_config)
+        iptables_rules = File.new(iptables_config)
+        denied = iptables_rules.grep(/^-A INPUT.*--dport #{port}.*-j ACCEPT$/).empty?
         #notice("*** denied: #{denied}")
         #denied ? :deny : :allow
         !denied
@@ -63,14 +69,8 @@ Puppet::Type.type(:firewall).provide(:lokkit) do
     def destroy
         notice("*** deny: #{port}")
         iptables_new = []
-        # File.new('/etc/sysconfig/iptables').readlines.each do |line|
-        #     unless line =~ /^-A INPUT.*--dport #{port}.*-j ACCEPT$/
-        #         iptables_new << line
-        #         notice("*** deny: #{line}")
-        #     end
-        # end
 
-        File.open("/etc/sysconfig/iptables", "r") do |infile|
+        File.open(iptables_config, "r") do |infile|
             while (line = infile.gets)
                 unless line =~ /^-A INPUT.*--dport #{port}.*-j ACCEPT$/
                     iptables_new << line
@@ -80,7 +80,7 @@ Puppet::Type.type(:firewall).provide(:lokkit) do
         end
 
         # File.new('/etc/sysconfig/iptables', 'w').write iptables_new.join
-        File.open('/etc/sysconfig/iptables', 'w') {|f| f.write(iptables_new.join) }
+        File.open(iptables_config, 'w') {|f| f.write(iptables_new.join) }
 
         iptables '-D', 'INPUT', '-m', 'state', '--state', 'NEW', '-m', 'tcp',
                  '-p', 'tcp', '--dport', port, '-j', 'ACCEPT'
