@@ -132,7 +132,7 @@ class openstack::controller_ha (
         unless => "iptables-save  | grep '\-A INPUT -d 224.0.0.18/32 -m pkttype --pkt-type multicast -j ACCEPT' -q",
         path => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
         before => Service['keepalived'],
-        after => Class['firewall']
+        require => Class['firewall']
     }
 
     # keepalived
