@@ -52,7 +52,7 @@ class cobbler::distro::centos63-x86_64(
 
   exec { "wget ${http_iso}":
     command => "wget -q -O- ${http_iso} > ${iso}",
-    onlyif => "test ! -e ${iso}"
+    onlyif => "test ! -s ${iso}"
   }
 
   mount { $iso_mnt:
