@@ -1,7 +1,7 @@
 fuel-01:
   profile: "centos63-x86_64"
   netboot-enabled: "1"
-  ksmeta: "puppet_auto_setup=1 puppet_master=fuel-pm.mirantis.com"
+  ksmeta: "puppet_auto_setup=1 puppet_master=fuel-pm.mirantis.com puppet_enable=0"
   hostname: "fuel-01"
   name-servers: "10.0.0.100"
   name-servers-search: "mirantis.com"
@@ -14,15 +14,17 @@ fuel-01:
       static: "1"
       ip-address: "10.0.0.101"
       netmask: "255.255.255.0"
-      dns-name: "fuel-01.mirantis.com"
-      management: "1"
     eth2:
       mac: "52:54:00:ae:22:04"
-      static: "0"
+      static: "1"
+  interfaces_extra:
+    eth2:
+      promisc: "yes"
+      userctl: "yes"
 fuel-02:
   profile: "centos63-x86_64"
   netboot-enabled: "1"
-  ksmeta: "puppet_auto_setup=1 puppet_master=fuel-pm.mirantis.com"
+  ksmeta: "puppet_auto_setup=1 puppet_master=fuel-pm.mirantis.com puppet_enable=0"
   hostname: "fuel-02"
   name-servers: "10.0.0.100"
   name-servers-search: "mirantis.com"
@@ -35,15 +37,17 @@ fuel-02:
       static: "1"
       ip-address: "10.0.0.102"
       netmask: "255.255.255.0"
-      dns-name: "fuel-02.mirantis.com"
-      management: "1"
     eth2:
       mac: "52:54:00:28:f8:06"
-      static: "0"
+      static: "1"
+  interfaces_extra:
+    eth2:
+      promisc: "yes"
+      userctl: "yes"
 fuel-03:
   profile: "centos63-x86_64"
   netboot-enabled: "1"
-  ksmeta: "puppet_auto_setup=1 puppet_master=fuel-pm.mirantis.com"
+  ksmeta: "puppet_auto_setup=1 puppet_master=fuel-pm.mirantis.com puppet_enable=0"
   hostname: "fuel-03"
   name-servers: "10.0.0.100"
   name-servers-search: "mirantis.com"
@@ -56,15 +60,17 @@ fuel-03:
       static: "1"
       ip-address: "10.0.0.103"
       netmask: "255.255.255.0"
-      dns-name: "fuel-03.mirantis.com"
-      management: "1"
     eth2:
       mac: "52:54:00:84:60:bf"
-      static: "0"
+      static: "1"
+  interfaces_extra:
+    eth2:
+      promisc: "yes"
+      userctl: "yes"
 fuel-04:
   profile: "centos63-x86_64"
   netboot-enabled: "1"
-  ksmeta: "puppet_auto_setup=1 puppet_master=fuel-pm.mirantis.com"
+  ksmeta: "puppet_auto_setup=1 puppet_master=fuel-pm.mirantis.com puppet_enable=0"
   hostname: "fuel-04"
   name-servers: "10.0.0.100"
   name-servers-search: "mirantis.com"
@@ -77,8 +83,10 @@ fuel-04:
       static: "1"
       ip-address: "10.0.0.103"
       netmask: "255.255.255.0"
-      dns-name: "fuel-04.mirantis.com"
-      management: "1"
     eth2:
       mac: "52:54:00:19:0d:56"
-      static: "0"
+      static: "1"
+  interfaces_extra:
+    eth2:
+      promisc: "yes"
+      userctl: "yes"
