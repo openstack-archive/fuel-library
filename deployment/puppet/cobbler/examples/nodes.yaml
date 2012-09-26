@@ -1,7 +1,7 @@
 fuel-01:
   profile: "centos63-x86_64"
   netboot-enabled: "1"
-  ksmeta: "puppet_auto_setup=1 puppet_master=fuel-pm.mirantis.com puppet_enable=1"
+  ksmeta: "puppet_auto_setup=1 puppet_master=fuel-pm.mirantis.com puppet_enable=0"
   hostname: "fuel-01"
   name-servers: "10.0.0.100"
   name-servers-search: "mirantis.com"
@@ -29,7 +29,7 @@ fuel-01:
 fuel-02:
   profile: "centos63-x86_64"
   netboot-enabled: "1"
-  ksmeta: "puppet_auto_setup=1 puppet_master=fuel-pm.mirantis.com puppet_enable=1"
+  ksmeta: "puppet_auto_setup=1 puppet_master=fuel-pm.mirantis.com puppet_enable=0"
   hostname: "fuel-02"
   name-servers: "10.0.0.100"
   name-servers-search: "mirantis.com"
@@ -57,7 +57,7 @@ fuel-02:
 fuel-03:
   profile: "centos63-x86_64"
   netboot-enabled: "1"
-  ksmeta: "puppet_auto_setup=1 puppet_master=fuel-pm.mirantis.com puppet_enable=1"
+  ksmeta: "puppet_auto_setup=1 puppet_master=fuel-pm.mirantis.com puppet_enable=0"
   hostname: "fuel-03"
   name-servers: "10.0.0.100"
   name-servers-search: "mirantis.com"
@@ -85,7 +85,7 @@ fuel-03:
 fuel-04:
   profile: "centos63-x86_64"
   netboot-enabled: "1"
-  ksmeta: "puppet_auto_setup=1 puppet_master=fuel-pm.mirantis.com puppet_enable=1"
+  ksmeta: "puppet_auto_setup=1 puppet_master=fuel-pm.mirantis.com puppet_enable=0"
   hostname: "fuel-04"
   name-servers: "10.0.0.100"
   name-servers-search: "mirantis.com"
