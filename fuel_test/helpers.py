@@ -1,18 +1,7 @@
 import logging
 
 def execute(remote, command):
-    logging.debug("Executing command: '%s'" % command.rstrip())
-    chan = remote._ssh.get_transport().open_session()
-    stdin = chan.makefile('wb')
-    stdout = chan.makefile('rb')
-    stderr = chan.makefile_stderr('rb')
-    cmd = "%s\n" % command
-    if remote.sudo_mode:
-        cmd = 'sudo -S bash -c "%s"' % cmd.replace('"', '\\"')
-    chan.exec_command(cmd)
-    if stdout.channel.closed is False:
-        stdin.write('%s\n' % remote.password)
-        stdin.flush()
+    chan, stdin, stderr, stdout = execute_async(remote, command)
     result = {
         'stdout': [],
         'stderr': [],
@@ -29,3 +18,20 @@ def execute(remote, command):
     chan.close()
 
     return result
+
+
+def execute_async(remote, command):
+    logging.debug("Executing command: '%s'" % command.rstrip())
+    chan = remote._ssh.get_transport().open_session()
+    stdin = chan.makefile('wb')
+    stdout = chan.makefile('rb')
+    stderr = chan.makefile_stderr('rb')
+    cmd = "%s\n" % command
+    if remote.sudo_mode:
+        cmd = 'sudo -S bash -c "%s"' % cmd.replace('"', '\\"')
+    chan.exec_command(cmd)
+    if stdout.channel.closed is False:
+        stdin.write('%s\n' % remote.password)
+        stdin.flush()
+    return chan, stdin, stderr, stdout
+
