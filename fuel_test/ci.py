@@ -23,6 +23,9 @@ class Ci:
     def get_environment(self):
         return self.environment
 
+    def add_nmap_yum(self, remote):
+        remote.sudo.ssh.execute('yum install nmap')
+
     def add_epel_repo(self, remote):
         remote.sudo.ssh.execute('rpm -Uvh http://download.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-7.noarch.rpm')
 
@@ -123,6 +126,7 @@ class Ci:
         master_remote = ssh(master_node.ip_address, username='root', password='r00tme')
         master_remote.reconnect()
         self.setup_puppet_master_yum(master_remote)
+        self.add_nmap_yum(master_remote)
         self.switch_off_ip_tables(master_remote)
         with open(root('fuel', 'fuel_test', 'config', 'puppet.master.config')) as f:
             master_config = f.read()
@@ -133,14 +137,12 @@ class Ci:
         for node in environment.nodes:
             remote = ssh(node.ip_address, username='root', password='r00tme')
             remote.reconnect()
+            for node in environment.nodes:
+                self.add_to_hosts(remote, node.ip_address, node.name, node.name)
             if node.name != 'master':
-                for node in environment.nodes:
-                    self.add_to_hosts(remote, node.ip_address, node.name, node.name)
                 self.setup_puppet_client_yum(remote)
                 write_config(remote, '/etc/puppet/puppet.conf', agent_config)
                 self.wait_for_certificates(remote)
-            #            logger.info("Setting up repository configuration")
-            #                    self.configure_repository(remote)
         self.sign_all_node_certificates(master_remote)
         for node in environment.nodes:
             logger.info("Creating snapshot 'empty'")
