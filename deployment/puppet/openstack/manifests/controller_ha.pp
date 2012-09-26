@@ -114,7 +114,7 @@ class openstack::controller_ha (
                 try_sleep   => 5,
                 tries       => 6,
                 }
-
+        Exec<| title == 'wait-for-synced-state' |> -> Exec['wait-for-haproxy-mysql-backend']
         Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'initial-db-sync' |>
         Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'keystone-manage db_sync' |>
         Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'glance-manage db_sync' |>
