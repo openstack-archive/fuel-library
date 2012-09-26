@@ -10,6 +10,31 @@ $cobbler_user        = 'cobbler'
 $cobbler_password    = 'cobbler'
 $pxetimeout          = '0'
 
+case $::osfamily {
+  'Debian': {
+    class { 'apt':
+      stage => 'openstack-ci-repo'
+    }->
+    class { 'openstack::repo::apt':
+      key => '420851BC',
+      location => 'http://172.18.66.213/deb',
+      key_source => 'http://172.18.66.213/gpg.pub',
+      origin => '172.18.66.213',
+      stage => 'openstack-ci-repo'
+    }
+  }
+  'RedHat': {
+    class { 'openstack::repo::yum':
+      repo_name  => 'openstack-epel-fuel',
+      location   => 'http://download.mirantis.com/epel-fuel',
+      key_source => 'https://fedoraproject.org/static/0608B895.txt',
+      stage      => 'openstack-custom-repo',
+    }
+  }
+  default: {
+    fail("Unsupported osfamily: ${osfamily} for os ${operatingsystem}")
+  }
+}
 
 node fuel-01 {
   class { cobbler::server:
