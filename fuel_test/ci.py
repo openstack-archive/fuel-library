@@ -138,11 +138,9 @@ class Ci:
                 self.setup_puppet_client_yum(remote)
                 write_config(remote, '/etc/puppet/puppet.conf', agent_config)
                 self.wait_for_certificates(remote)
-                self.add_epel_repo(remote)
             #            logger.info("Setting up repository configuration")
             #                    self.configure_repository(remote)
         self.sign_all_node_certificates(master_remote)
-        self.add_epel_repo(master_remote)
         for node in environment.nodes:
             logger.info("Creating snapshot 'empty'")
             node.save_snapshot('empty')
