@@ -122,7 +122,7 @@ def main():
                         metavar="YAML_FILE", type=str,
                         help="nodes yaml file")
     parser.add_argument("-l", "--level", dest="log_level", type=str,
-                        help="log level", 
+                        help="log level, one of DEBUG, INFO, WARNING, ERROR", 
                         choices=["DEBUG", "INFO", "WARNING", "ERROR"],
                         default="INFO", metavar="LEVEL")
         

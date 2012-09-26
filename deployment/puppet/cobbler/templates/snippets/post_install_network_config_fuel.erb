@@ -144,10 +144,6 @@ echo "$interface_extra.upper()=$mgmt_parameters.get($mgmt_param)" >> $devfile
             #end if
         #end for
 echo "ONBOOT=yes" >> $devfile
-            ## Disable rewriting /etc/resolv.conf if name_servers is set
-            #if $len($name_servers) > 0
-echo "PEERDNS=no" >> $devfile
-            #end if
             #if $mac != "" and $iface_type not in ("master","bond","bridge")
             ## virtual interfaces don't get MACs
 echo "HWADDR=$mac" >> $devfile

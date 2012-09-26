@@ -1,7 +1,7 @@
 fuel-01:
   profile: "centos63-x86_64"
   netboot-enabled: "1"
-  ksmeta: "puppet_auto_setup=1 puppet_master=fuel-pm.mirantis.com puppet_enable=0"
+  ksmeta: "puppet_auto_setup=1 puppet_master=fuel-pm.mirantis.com puppet_enable=1"
   hostname: "fuel-01"
   name-servers: "10.0.0.100"
   name-servers-search: "mirantis.com"
@@ -18,13 +18,18 @@ fuel-01:
       mac: "52:54:00:ae:22:04"
       static: "1"
   interfaces_extra:
+    eth0:
+      peerdns: "no"
+    eth1:
+      peerdns: "no"
     eth2:
       promisc: "yes"
       userctl: "yes"
+      peerdns: "no"
 fuel-02:
   profile: "centos63-x86_64"
   netboot-enabled: "1"
-  ksmeta: "puppet_auto_setup=1 puppet_master=fuel-pm.mirantis.com puppet_enable=0"
+  ksmeta: "puppet_auto_setup=1 puppet_master=fuel-pm.mirantis.com puppet_enable=1"
   hostname: "fuel-02"
   name-servers: "10.0.0.100"
   name-servers-search: "mirantis.com"
@@ -41,13 +46,18 @@ fuel-02:
       mac: "52:54:00:28:f8:06"
       static: "1"
   interfaces_extra:
+    eth0:
+      peerdns: "no"
+    eth1:
+      peerdns: "no"
     eth2:
       promisc: "yes"
       userctl: "yes"
+      peerdns: "no"
 fuel-03:
   profile: "centos63-x86_64"
   netboot-enabled: "1"
-  ksmeta: "puppet_auto_setup=1 puppet_master=fuel-pm.mirantis.com puppet_enable=0"
+  ksmeta: "puppet_auto_setup=1 puppet_master=fuel-pm.mirantis.com puppet_enable=1"
   hostname: "fuel-03"
   name-servers: "10.0.0.100"
   name-servers-search: "mirantis.com"
@@ -64,13 +74,18 @@ fuel-03:
       mac: "52:54:00:84:60:bf"
       static: "1"
   interfaces_extra:
+    eth0:
+      peerdns: "no"
+    eth1:
+      peerdns: "no"
     eth2:
       promisc: "yes"
       userctl: "yes"
+      peerdns: "no"
 fuel-04:
   profile: "centos63-x86_64"
   netboot-enabled: "1"
-  ksmeta: "puppet_auto_setup=1 puppet_master=fuel-pm.mirantis.com puppet_enable=0"
+  ksmeta: "puppet_auto_setup=1 puppet_master=fuel-pm.mirantis.com puppet_enable=1"
   hostname: "fuel-04"
   name-servers: "10.0.0.100"
   name-servers-search: "mirantis.com"
@@ -87,6 +102,11 @@ fuel-04:
       mac: "52:54:00:19:0d:56"
       static: "1"
   interfaces_extra:
+    eth0:
+      peerdns: "no"
+    eth1:
+      peerdns: "no"
     eth2:
       promisc: "yes"
       userctl: "yes"
+      peerdns: "no"
