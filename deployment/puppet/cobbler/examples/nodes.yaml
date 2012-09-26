@@ -81,7 +81,7 @@ fuel-04:
     eth1:
       mac: "52:54:00:68:ff:9b"
       static: "1"
-      ip-address: "10.0.0.103"
+      ip-address: "10.0.0.104"
       netmask: "255.255.255.0"
     eth2:
       mac: "52:54:00:19:0d:56"
