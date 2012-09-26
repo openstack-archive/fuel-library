@@ -70,12 +70,21 @@ def update_system(system_name, system_dict):
 
     command = ["""/usr/bin/cobbler system %s --name='%s'""" % \
                (addedit, system_name)]
-    
+
+    ksmeta = system_dict.get('ksmeta', '')
     for opt in system_dict:
-        if opt in ('interfaces',):
+        if opt in ('interfaces', 'ksmeta', 'interfaces_extra'):
             continue
+            
         command.append("""--%s='%s'""" % (opt, system_dict[opt]))
 
+    for int_name in system_dict.get('interfaces_extra',{}):
+        int_extra_dict = system_dict['interfaces_extra'][int_name]
+        for int_extra in int_extra_dict:
+            ksmeta = """%s interface_extra_%s_%s=%s""" % \
+              (ksmeta, int_name, int_extra, int_extra_dict[int_extra])
+        
+    command.append("""--ksmeta='%s'""" % ksmeta)
     command = " ".join(command)
     
     logger.info("Running command: %s" % command)
@@ -113,7 +122,7 @@ def main():
                         metavar="YAML_FILE", type=str,
                         help="nodes yaml file")
     parser.add_argument("-l", "--level", dest="log_level", type=str,
-                        help="log level", 
+                        help="log level, one of DEBUG, INFO, WARNING, ERROR", 
                         choices=["DEBUG", "INFO", "WARNING", "ERROR"],
                         default="INFO", metavar="LEVEL")
         

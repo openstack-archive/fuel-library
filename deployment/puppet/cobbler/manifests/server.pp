@@ -274,5 +274,6 @@ class cobbler::server(
   cobbler_snippet {"post_part_controller":}
   cobbler_snippet {"post_part_storage":}
   cobbler_snippet {"puppet_conf":}
-  
+  cobbler_snippet {"post_install_network_config_fuel":}
+  cobbler_snippet {"puppet_register_if_enabled_fuel":}
   }                               

@@ -119,7 +119,7 @@ $SNIPPET('post_install_kernel_options')
 # COBBLER EMBEDDED SNIPPET: 'post_install_network_config'
 # CONFIGURES NETWORK INTERFACES DEPENDING ON 
 # COBBLER SYSTEM PARAMETERS
-$SNIPPET('post_install_network_config')
+$SNIPPET('post_install_network_config_fuel')
 
 # COBBLER EMBEDDED SNIPPET: 'puppet_conf'
 # CONFIGURES PUPPET AGENT
@@ -127,7 +127,7 @@ $SNIPPET('puppet_conf')
 
 # COBBLER EMBEDDED SNIPPET: 'puppet_register_if_enabled'
 # CREATES CERTIFICATE REQUEST AND SENDS IT TO PUPPET MASTER
-$SNIPPET('puppet_register_if_enabled')
+$SNIPPET('puppet_register_if_enabled_fuel')
 
 # COBBLER EMBEDDED SNIPPET: 'kickstart_done'
 # DISABLES PXE BOOTING
