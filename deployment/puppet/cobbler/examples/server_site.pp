@@ -10,6 +10,8 @@ $cobbler_user        = 'cobbler'
 $cobbler_password    = 'cobbler'
 $pxetimeout          = '0'
 
+stage {'openstack-custom-repo': before => Stage['main']}
+
 case $::osfamily {
   'Debian': {
     class { 'apt':
