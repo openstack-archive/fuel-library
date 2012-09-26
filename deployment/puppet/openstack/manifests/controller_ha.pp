@@ -106,6 +106,20 @@ class openstack::controller_ha (
 
     $internal_address = $controller_internal_addresses[$which]
 
+        package {'socat': ensure => present}
+        exec { 'wait-for-haproxy-mysql-backend':
+                command => "echo show stat | socat unix-connect:///var/lib/haproxy/stats stdio | grep 'mysqld,BACKEND' | awk -F ',' '{print \$18}' | grep -q 'UP'",
+                path => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
+                require => [Service['haproxy'],Package['socat']],
+                try_sleep   => 5,
+                tries       => 6,
+                }
+
+        Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'initial-db-sync' |>
+        Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'keystone-manage db_sync' |>
+        Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'glance-manage db_sync' |>
+        Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'nova-db-sync' |>
+
     class { 'haproxy':
       enable => true, 
       haproxy_global_options   => merge($::haproxy::data::haproxy_global_options, {'log' => "${internal_address} local0"}),
