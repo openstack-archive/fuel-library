@@ -18,6 +18,7 @@ fuel-01:
       management: "1"
     eth2:
       mac: "52:54:00:ae:22:04"
+      static: "0"
 fuel-02:
   profile: "centos63-x86_64"
   netboot-enabled: "1"
@@ -38,6 +39,7 @@ fuel-02:
       management: "1"
     eth2:
       mac: "52:54:00:28:f8:06"
+      static: "0"
 fuel-03:
   profile: "centos63-x86_64"
   netboot-enabled: "1"
@@ -58,6 +60,7 @@ fuel-03:
       management: "1"
     eth2:
       mac: "52:54:00:84:60:bf"
+      static: "0"
 fuel-04:
   profile: "centos63-x86_64"
   netboot-enabled: "1"
@@ -78,3 +81,4 @@ fuel-04:
       management: "1"
     eth2:
       mac: "52:54:00:19:0d:56"
+      static: "0"

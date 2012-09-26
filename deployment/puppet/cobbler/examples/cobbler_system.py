@@ -17,7 +17,7 @@ logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 logger.addHandler(console)
 
-def system_command(command):
+def system_command(command, expected_resultcodes=(0,)):
     
     commands = [ i.strip() for i in re.split(ur'\|', command)]
 
@@ -42,11 +42,15 @@ def system_command(command):
         
     returncode = process[-1].returncode
         
-    # if expected_resultcodes and not returncode in expected_resultcodes:
-    #     logger.error("Command '%s' returned %d, stderr: %s" % \
-    #                  (command, returncode, '\n'.join(serr)))
-    # else:
-    #     logger.debug("Command '%s' returned %d" % (command, returncode))
+    if expected_resultcodes and not returncode in expected_resultcodes:
+        logger.error("""Command: '%s'\nreturned not expected \
+value: %d\nstdout:\n%s\nstderr:\n%s""" % \
+                     (command, returncode, 
+                      process[-1].stdout.read().rstrip('\n'), 
+                      '\n'.join(serr).rstrip('\n')))
+        sys.exit(1)
+    else:
+        logger.debug("Command '%s' returned %d" % (command, returncode))
         
     return returncode
 
@@ -56,7 +60,7 @@ def is_system_exist(system_name):
 --name=%s | grep \"^%s$\" """ % (system_name, system_name)
 
     logger.debug("Running command: %s" % command)
-    code = system_command(command)
+    code = system_command(command, expected_resultcodes=(0, 1))
     return code == 0
 
 def update_system(system_name, system_dict):
@@ -74,7 +78,7 @@ def update_system(system_name, system_dict):
 
     command = " ".join(command)
     
-    logger.debug("Running command: %s" % command)
+    logger.info("Running command: %s" % command)
     return system_command(command) == 0
     
     
@@ -85,7 +89,7 @@ def update_system_interfaces(system_name, interfaces_dict):
 
     code = set([0])
     for interface_name in interfaces_dict:
-        logger.debug("Defining interface: %s" % interface_name)
+        logger.info("=== Defining interface ===: %s" % interface_name)
         int_opts = interfaces_dict[interface_name]
         
         command = ["""/usr/bin/cobbler system %s --name='%s' \
@@ -97,7 +101,7 @@ def update_system_interfaces(system_name, interfaces_dict):
 
         command = " ".join(command)
         
-        logger.debug("Running command: %s" % command)
+        logger.info("Running command: %s" % command)
         code.union(set([system_command(command)]))
 
     return len(code) == 0
@@ -108,9 +112,16 @@ def main():
     parser.add_argument("-f", "--file", dest="file", 
                         metavar="YAML_FILE", type=str,
                         help="nodes yaml file")
-    
+    parser.add_argument("-l", "--level", dest="log_level", type=str,
+                        help="log level", 
+                        choices=["DEBUG", "INFO", "WARNING", "ERROR"],
+                        default="INFO", metavar="LEVEL")
+        
     params = parser.parse_args()
-
+    
+    numeric_level = getattr(logging, params.log_level.upper())
+    logger.setLevel(numeric_level)
+    
     if params.file is None:
         parser.error("Yaml file must be defined with -f option.")
     
@@ -118,7 +129,7 @@ def main():
         nodes = yaml.load(file.read())
 
     for name in nodes:
-        logger.debug("Defining node: %s" % name)
+        logger.info("====== Defining node ======: %s" % name)
         update_system(name, nodes[name])
         update_system_interfaces(name, nodes[name]['interfaces'])
 
