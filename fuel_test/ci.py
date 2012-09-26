@@ -12,8 +12,9 @@ class Ci:
     def __init__(self, image=None):
         self.base_image = image
         self.environment = None
+        self.environment_name = os.environ.get('ENV_NAME', 'recipes')
         try:
-            self.environment = devops.load('recipes')
+            self.environment = devops.load(self.environment_name)
             logger.info("Successfully loaded existing environment")
         except Exception, e:
             logger.info("Failed to load existing recipes environment: " + str(e) + "\n" + traceback.format_exc())
@@ -76,7 +77,7 @@ class Ci:
         return node
 
     def describe_environment(self):
-        environment = Environment('recipes')
+        environment = Environment(self.environment_name)
         internal = Network(name='internal', dhcp_server=True)
         environment.networks.append(internal)
         private = Network(name='private', dhcp_server=False)
