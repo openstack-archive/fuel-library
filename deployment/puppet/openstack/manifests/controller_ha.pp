@@ -94,7 +94,7 @@ class openstack::controller_ha (
     }   
 
     exec { 'add-dhcp-keepalived-hook':
-      command => "echo /etc/init.d/keepalived restart >> /etc/dhcp/dhclient-exit-hooks && chmod a+x", 
+      command => "echo /etc/init.d/keepalived restart >> /etc/dhcp/dhclient-exit-hooks", 
       onlyif  => "grep -q 'dhcp' /etc/sysconfig/network-scripts/ifcfg-*",
       path => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
       before => Service['keepalived']
