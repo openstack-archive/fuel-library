@@ -31,6 +31,15 @@ define haproxy_service($order, $hostnames, $balancer_ips, $virtual_ips, $port) {
 
 }
 
+define keepalived_dhcp_hook($interface)
+{
+    $down_hook="ip addr show dev $interface | grep keepalived | awk '{print \$2}' > /tmp/keepalived_${interface}_ip\n"
+    $up_hook="cat /tmp/keepalived_${interface}_ip |  while read ip; do  ip addr add \$ip dev $interface label $interface:keepalived; done\n"
+    file {"/etc/dhcp/dhclient-${interface}-down-hooks": content=>$down_hook, mode => 744 }
+    file {"/etc/dhcp/dhclient-${interface}-up-hooks": content=>$up_hook, mode => 744 }
+}
+
+
 
 class openstack::controller_ha (
    $master_hostname,
@@ -93,12 +102,10 @@ class openstack::controller_ha (
       }   
     }   
 
-    exec { 'add-dhcp-keepalived-hook':
-      command => "echo /etc/init.d/keepalived restart >> /etc/dhcp/dhclient-exit-hooks", 
-      onlyif  => "grep -q 'dhcp' /etc/sysconfig/network-scripts/ifcfg-*",
-      path => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
-      before => Service['keepalived']
-    }
+    keepalived_dhcp_hook {$public_interface:interface=>$public_interface}
+    keepalived_dhcp_hook {$private_interface:interface=>$private_interface}
+
+    Keepalived_dhcp_hook<| |> {before =>Service['keepalived']} 
 
     if $which == 0 { 
       exec { 'create-internal-virtual-ip':
