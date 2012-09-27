@@ -13,7 +13,7 @@ class CobblerTestCase(RecipeTestCase):
         self.write_site_pp_manifest(
             root('fuel', 'deployment', 'puppet', 'cobbler', 'examples', 'server_site.pp'),
             server = "'%s'" % node01.ip_address,
-            nameserver = "'%s'" % node01.ip_address,
+            name_server = "'%s'" % node01.ip_address,
             next_server = "'%s'" % node01.ip_address,
             dhcp_start_address = "'%s'" % self.environment.network['internal'].ip_addresses[-5],
             dhcp_end_address = "'%s'" % self.environment.network['internal'].ip_addresses[-5],
