@@ -22,7 +22,7 @@ Puppet::Type.type(:keystone_tenant).provide(
 
   def self.prefetch(resource)
     # rebuild the cahce for every puppet run
-    @tenant_hash = build_tenant_hash
+    @tenant_hash = nil
   end
 
   def self.tenant_hash
