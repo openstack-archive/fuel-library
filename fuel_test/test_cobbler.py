@@ -11,7 +11,14 @@ class CobblerTestCase(RecipeTestCase):
     def test_deploy_cobbler(self):
         node01 = self.environment.node[NODES[0]]
         self.write_site_pp_manifest(
-            root('fuel', 'deployment', 'puppet', 'cobbler', 'examples', 'server_site.pp')
+            root('fuel', 'deployment', 'puppet', 'cobbler', 'examples', 'server_site.pp'),
+            server = "'%s'" % node01.ip_address,
+            nameserver = "'%s'" % node01.ip_address,
+            next_server = "'%s'" % node01.ip_address,
+            dhcp_start_address = "'%s'" % self.environment.network['internal'].ip_addresses[-5],
+            dhcp_edn_address = "'%s'" % self.environment.network['internal'].ip_addresses[-5],
+            dhcp_netmask = "'%s'" %'255.255.255.0',
+            dhcp_gateway = "'%s'" % node01.ip_address
         )
         remote = ssh(node01.ip_address, username='root', password='r00tme')
         result = execute(remote.sudo.ssh, 'puppet agent --test')
