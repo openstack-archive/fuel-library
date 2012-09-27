@@ -16,7 +16,7 @@ class CobblerTestCase(RecipeTestCase):
             nameserver = "'%s'" % node01.ip_address,
             next_server = "'%s'" % node01.ip_address,
             dhcp_start_address = "'%s'" % self.environment.network['internal'].ip_addresses[-5],
-            dhcp_edn_address = "'%s'" % self.environment.network['internal'].ip_addresses[-5],
+            dhcp_end_address = "'%s'" % self.environment.network['internal'].ip_addresses[-5],
             dhcp_netmask = "'%s'" %'255.255.255.0',
             dhcp_gateway = "'%s'" % node01.ip_address
         )
