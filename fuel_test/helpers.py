@@ -19,6 +19,19 @@ def execute(remote, command):
 
     return result
 
+def udp_ping(remote, host, port):
+    result = execute(remote,'nmap -PU -sU -p%s %s' % (port, host))
+    for line in result['stdout']:
+        if line.find('udp open') != -1:
+            return True
+    return False
+
+def tcp_ping(remote, host, port):
+    result = execute(remote,'nmap -PU -p%s %s' % (port, host))
+    for line in result['stdout']:
+        if line.find('tcp open') != -1:
+            return True
+    return False
 
 def execute_async(remote, command):
     logging.debug("Executing command: '%s'" % command.rstrip())
