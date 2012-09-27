@@ -1,6 +1,6 @@
 from devops.helpers import ssh, tcp_ping
 from base import RecipeTestCase
-from helpers import udp_ping
+from helpers import udp_ping, execute
 from root import root
 from settings import NODES
 
@@ -14,7 +14,7 @@ class CobblerTestCase(RecipeTestCase):
             root('fuel', 'deployment', 'puppet', 'cobbler', 'examples', 'server_site.pp')
         )
         remote = ssh(node01.ip_address, username='root', password='r00tme')
-        result = remote.sudo.ssh.execute('puppet agent --test')
+        result = execute(remote.sudo.ssh, 'puppet agent --test')
         #25151
         closed_tcp_ports = filter(
             lambda port: not tcp_ping(
@@ -22,7 +22,7 @@ class CobblerTestCase(RecipeTestCase):
                 port),[22, 53, 80, 443])
         closed_udp_ports = filter(
             lambda port: not udp_ping(
-                self.master_remote.ssh,
+                self.master_remote.sudo.ssh,
                 node01.ip_address, port), [53, 67, 68, 69])
         self.assertEquals({'tcp':[], 'udp':[]},
             {'tcp':closed_tcp_ports, 'udp':closed_udp_ports})
