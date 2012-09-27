@@ -15,14 +15,15 @@ class CobblerTestCase(RecipeTestCase):
         )
         remote = ssh(node01.ip_address, username='root', password='r00tme')
         result = remote.sudo.ssh.execute('puppet agent --test')
+        #25151
         closed_tcp_ports = filter(
             lambda port: not tcp_ping(
                 node01.ip_address,
-                port),[22, 53, 80, 443, 25151])
+                port),[22, 53, 80, 443])
         closed_udp_ports = filter(
             lambda port: not udp_ping(
                 self.master_remote.ssh,
-                node01.ip_address, port), [53, 67, 68, 69, 123])
+                node01.ip_address, port), [53, 67, 68, 69])
         self.assertEquals({'tcp':[], 'udp':[]},
             {'tcp':closed_tcp_ports, 'udp':closed_udp_ports})
         self.assertResult(result)

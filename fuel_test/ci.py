@@ -24,7 +24,7 @@ class Ci:
         return self.environment
 
     def add_nmap_yum(self, remote):
-        remote.sudo.ssh.execute('yum install nmap')
+        remote.sudo.ssh.execute('yum -y install nmap')
 
     def add_epel_repo(self, remote):
         remote.sudo.ssh.execute('rpm -Uvh http://download.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-7.noarch.rpm')
@@ -173,7 +173,7 @@ class Ci:
         if hasattr(self, 'repository_server'):
             self.repository_server.stop()
 
-def get_environment_or_create(self, image=None):
+def get_environment_or_create(image=None):
     ci = Ci(image)
     return ci.get_environment_or_create()
 
