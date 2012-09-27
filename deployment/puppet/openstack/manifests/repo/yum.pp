@@ -23,6 +23,4 @@ class openstack::repo::yum (
     priority => $priority,
     enabled  => 1,
   }
-    yumrepo {'puppetlabs-products': enabled=>0 } 
-    yumrepo {'puppetlabs-deps': enabled=>0} 
   }
