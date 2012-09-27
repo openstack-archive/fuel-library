@@ -23,8 +23,6 @@ case $::osfamily {
       key_source => 'https://fedoraproject.org/static/0608B895.txt',
       stage      => 'openstack-custom-repo',
     }
-    yumrepo {'puppetlabs-products': enabled=>0, stage => 'openstack-custom-repo' } 
-    yumrepo {'puppetlabs-deps': enabled=>0, stage => 'openstack-custom-repo' } 
   }
   default: {
     fail("Unsupported osfamily: ${osfamily} for os ${operatingsystem}")
