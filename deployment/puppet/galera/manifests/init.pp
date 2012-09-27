@@ -116,21 +116,31 @@ class galera($cluster_name, $master_ip = false, $node_address = $ipaddress_eth0)
     ## require     => Package["galera"],
   }
 
+  file { "/tmp/wsrep-init-file" :
+    ensure      => present,
+    content     => template("galera/wsrep-init-file.erb"),
+    ## require     => Package["galera"],
+  }
   exec { "set-mysql-password" :
     unless      => "/usr/bin/mysql -u${mysql_user} -p${mysql_password}",
-    command     => "/usr/bin/mysql -uroot -e \
-                   \"set wsrep_on='off';\
-                   delete from mysql.user where user='';\
-                   grant all on *.* to '${mysql_user}'@'%' identified by '${mysql_password}';\
-                   grant usage on *.* to 'cluster_watcher'@'%';\
-                   flush privileges;\"",
-    require     => Service["mysql-galera"],
-    subscribe   => Service["mysql-galera"],
-    refreshonly => true,
+    command     => "mysqld_safe --init-file=/tmp/wsrep-init-file &",
+    require   => Package["MySQL-server"],
+#    refreshonly => true,
   }
 
+  exec {"kill-initial-mysql":
+      command   => "killall mysqld"
+      unless    => "! pidof mysqld"
+      try_sleep   => 5,
+      tries       => 6,
+      before     => Service["mysql-galera"],
+      require => Exec["set-mysql-password"],
+      }
+
+  exec {"rm-init-file": command =>"rm /tmp/wsrep-init-file", require => Exec["kill-initial-mysql"] }
+
   exec { "wait-for-synced-state" :
-    require     => Exec["set-mysql-password"],
+    require     => [Exec["kill-initial-mysql"],Service['mysql-galera']]
     logoutput   => true,
     command     => "/usr/bin/mysql -Nbe \"show status like 'wsrep_local_state_comment'\" | /bin/grep -q Synced",
     try_sleep   => 5,
