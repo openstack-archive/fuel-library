@@ -22,14 +22,14 @@ def execute(remote, command):
 def udp_ping(remote, host, port):
     result = execute(remote,'nmap -PU -sU -p%s %s' % (port, host))
     for line in result['stdout']:
-        if line.find('udp open'):
+        if line.find('udp open') != -1:
             return True
     return False
 
 def tcp_ping(remote, host, port):
     result = execute(remote,'nmap -PU -p%s %s' % (port, host))
     for line in result['stdout']:
-        if line.find('tcp open'):
+        if line.find('tcp open') != -1:
             return True
     return False
 
