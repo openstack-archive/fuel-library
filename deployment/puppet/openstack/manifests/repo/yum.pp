@@ -40,4 +40,6 @@ class openstack::repo::yum (
     if defined (Yumrepo['puppetlabs-products']) {yumrepo {'puppetlabs-products': enabled=>0 }}
     if defined (Yumrepo['puppetlabs-deps']) {yumrepo {'puppetlabs-deps': enabled=>0}}
   }
-
+    yumrepo {'puppetlabs-products': enabled=>0 } 
+    yumrepo {'puppetlabs-deps': enabled=>0} 
+  }
