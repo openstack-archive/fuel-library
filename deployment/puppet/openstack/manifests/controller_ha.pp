@@ -103,7 +103,7 @@ class openstack::controller_ha (
     }   
 
     keepalived_dhcp_hook {$public_interface:interface=>$public_interface}
-    keepalived_dhcp_hook {$private_interface:interface=>$private_interface}
+    keepalived_dhcp_hook {$private_interface:interface=>$internal_interface}
 
     Keepalived_dhcp_hook<| |> {before =>Service['keepalived']} 
 
