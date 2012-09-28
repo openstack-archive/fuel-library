@@ -42,7 +42,7 @@ class cobbler::profile::centos63-x86_64(
     owner => root,
     group => root,
     mode => 0644,
-  }
+  } ->
 
   cobbler_profile { "centos63-x86_64":
     kickstart => "${ks_dir}/centos63-x86_64.ks",
