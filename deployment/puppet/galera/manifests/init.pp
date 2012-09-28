@@ -129,8 +129,8 @@ class galera($cluster_name, $master_ip = false, $node_address = $ipaddress_eth0)
   }
 
   exec {"kill-initial-mysql":
-      command   => "killall mysqld"
-      unless    => "! pidof mysqld"
+      command   => "killall mysqld",
+      onlyif    => "pidof mysqld",
       try_sleep   => 5,
       tries       => 6,
       before     => Service["mysql-galera"],
@@ -140,7 +140,7 @@ class galera($cluster_name, $master_ip = false, $node_address = $ipaddress_eth0)
   exec {"rm-init-file": command =>"rm /tmp/wsrep-init-file", require => Exec["kill-initial-mysql"] }
 
   exec { "wait-for-synced-state" :
-    require     => [Exec["kill-initial-mysql"],Service['mysql-galera']]
+    require     => [Exec["kill-initial-mysql"],Service['mysql-galera']],
     logoutput   => true,
     command     => "/usr/bin/mysql -Nbe \"show status like 'wsrep_local_state_comment'\" | /bin/grep -q Synced",
     try_sleep   => 5,
