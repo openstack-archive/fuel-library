@@ -94,7 +94,7 @@ class openstack::controller_ha (
 
     if $which == 0 { 
       exec { 'create-public-virtual-ip':
-        command => "ip addr add ${public_virtual_ip} dev ${public_interface}",
+        command => "ip addr add ${public_virtual_ip} dev ${public_interface} label ${public_interface}:keepalived",
         unless => "ip addr show dev ${public_interface} | grep ${public_virtual_ip}",
         path => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
         before => Service['keepalived'],
@@ -109,7 +109,7 @@ class openstack::controller_ha (
 
     if $which == 0 { 
       exec { 'create-internal-virtual-ip':
-        command => "ip addr add ${internal_virtual_ip} dev ${internal_interface}",
+        command => "ip addr add ${internal_virtual_ip} dev ${internal_interface} label ${internal_interface}:keepalived",
         unless => "ip addr show dev ${internal_interface} | grep ${internal_virtual_ip}",
         path => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
         before => Service['keepalived'],
