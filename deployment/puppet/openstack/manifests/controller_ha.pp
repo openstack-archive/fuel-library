@@ -1,4 +1,4 @@
-define haproxy_service($order, $hostnames, $balancer_ips, $virtual_ips, $port) {
+define haproxy_service($order, $hostnames, $balancer_ips, $virtual_ips, $port, $define_cookies = false) {
 
   case $name {
     "mysqld": {
@@ -6,6 +6,12 @@ define haproxy_service($order, $hostnames, $balancer_ips, $virtual_ips, $port) {
       $balancermember_options = 'check inter 15s fastinter 2s downinter 1s rise 5 fall 3'
       $balancer_port = 3307
     }
+    "horizon": {
+      $haproxy_config_options = { 'option' => ['forwardfor','httpchk','httpclose'],'rspidel'=>'^Set-cookie:\ IP=', 'balance' => 'roundrobin', 'cookie'=>'SERVERID insert indirect nocache', 'capture'=>'cookie vgnvisitor= len 32'}
+      $balancermember_options = 'check inter 2000 fall 3'
+      $balancer_port = 80
+    }
+
     default: {
       $haproxy_config_options = { 'option' => ['tcplog'], 'balance' => 'roundrobin' }
       $balancermember_options = 'check'
@@ -26,7 +32,8 @@ define haproxy_service($order, $hostnames, $balancer_ips, $virtual_ips, $port) {
     server_name            => $hostnames,
     balancer_ip            => $balancer_ips,
     balancer_port          => $balancer_port,
-    balancermember_options => $balancermember_options
+    balancermember_options => $balancermember_options,
+    define_cookies        => $define_cookies
   }
 
 }
@@ -68,7 +75,7 @@ class openstack::controller_ha (
       balancer_ips => $controller_internal_addresses
     }
 
-    haproxy_service { 'horizon':    order => 15, port => 80, virtual_ips => [$public_virtual_ip] }
+    haproxy_service { 'horizon':    order => 15, port => 80, virtual_ips => [$public_virtual_ip], define_cookies => true  } 
     haproxy_service { 'keystone-1': order => 20, port => 5000, virtual_ips => [$public_virtual_ip, $internal_virtual_ip]  }
     haproxy_service { 'keystone-2': order => 30, port => 35357, virtual_ips => [$public_virtual_ip, $internal_virtual_ip]  }
     haproxy_service { 'nova-api-1': order => 40, port => 8773, virtual_ips => [$public_virtual_ip, $internal_virtual_ip]  }
