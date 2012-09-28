@@ -1,7 +1,7 @@
 require 'puppet'
 Puppet::Type.type(:rabbitmq_user).provide(:rabbitmqctl) do
 
-  commands :rabbitmqctl => 'rabbitmqctl'
+  optional_commands :rabbitmqctl => 'rabbitmqctl'
   defaultfor :feature => :posix
 
   def self.instances
