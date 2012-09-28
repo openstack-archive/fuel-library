@@ -158,7 +158,7 @@ $auth_uri = "${auth_protocol}://${auth_host}:${auth_port}/v2.0"
   # this is potentially constantly resyncing a central DB
   exec { "nova-db-sync":
     command     => "/usr/bin/nova-manage db sync",
-    refreshonly => "true",
+    # refreshonly => "true",
     require     => [Package['nova-common'], Nova_config['sql_connection']],
   }
 
