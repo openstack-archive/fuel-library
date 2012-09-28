@@ -123,16 +123,27 @@ class galera($cluster_name, $master_ip = false, $node_address = $ipaddress_eth0)
   }
   exec { "set-mysql-password" :
     unless      => "/usr/bin/mysql -u${mysql_user} -p${mysql_password}",
-    command     => "mysqld_safe --init-file=/tmp/wsrep-init-file &",
-    require   => Package["MySQL-server"],
+    command     => "/usr/bin/mysqld_safe --init-file=/tmp/wsrep-init-file &",
+    require   => [Package["MySQL-server"],File['/tmp/wsrep-init-file']]
 #    refreshonly => true,
   }
 
+  exec { "wait-initial-sync" :
+    require     => Exec["set-mysql-password"],
+    before	=> Exec["kill-initial-mysql"],
+    logoutput   => true,
+    command     => "/usr/bin/mysql -Nbe \"show status like 'wsrep_local_state_comment'\" | /bin/grep -q Synced",
+    try_sleep   => 5,
+    tries       => 6,
+  }
+
+
   exec {"kill-initial-mysql":
-      command   => "killall mysqld",
-      onlyif    => "pidof mysqld",
-      try_sleep   => 5,
-      tries       => 6,
+	path   => "/usr/bin:/usr/sbin:/bin:/sbin",
+      command   => "killall -w mysqld",
+#      onlyif    => "pidof mysqld",
+#      try_sleep   => 5,
+#      tries       => 6,
       before     => Service["mysql-galera"],
       require => Exec["set-mysql-password"],
       }
