@@ -124,8 +124,8 @@ class galera($cluster_name, $master_ip = false, $node_address = $ipaddress_eth0)
   exec { "set-mysql-password" :
     unless      => "/usr/bin/mysql -u${mysql_user} -p${mysql_password}",
     command     => "/usr/bin/mysqld_safe --init-file=/tmp/wsrep-init-file &",
-    require   => [Package["MySQL-server"],File['/tmp/wsrep-init-file']]
-    subscribe => Package["MySQL-server"]
+    require   => [Package["MySQL-server"],File['/tmp/wsrep-init-file']],
+    subscribe => Package["MySQL-server"],
     refreshonly => true,
   }
 
