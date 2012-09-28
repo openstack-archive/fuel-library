@@ -135,6 +135,8 @@ class galera($cluster_name, $master_ip = false, $node_address = $ipaddress_eth0)
     command     => "/usr/bin/mysql -Nbe \"show status like 'wsrep_local_state_comment'\" | /bin/grep -q Synced",
     try_sleep   => 5,
     tries       => 6,
+    refreshonly => true,
+
   }
 
 
@@ -146,6 +148,7 @@ class galera($cluster_name, $master_ip = false, $node_address = $ipaddress_eth0)
 #      tries       => 6,
       before     => Service["mysql-galera"],
       require => Exec["set-mysql-password"],
+      refreshonly => true,
       }
 
   exec {"rm-init-file": command =>"rm /tmp/wsrep-init-file", require => Exec["kill-initial-mysql"] }
