@@ -149,7 +149,7 @@ class galera($cluster_name, $master_ip = false, $node_address = $ipaddress_eth0)
 #      tries       => 6,
       before     => Service["mysql-galera"],
       require => Exec["set-mysql-password"],
-      subscribe => Exec["set-mysql-password"],
+      subscribe => Exec["wait-initial-sync"],
     refreshonly => true,
       }
 
