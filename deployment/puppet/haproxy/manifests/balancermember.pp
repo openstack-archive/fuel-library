@@ -76,7 +76,8 @@ define haproxy::balancermember (
   $order                  = '20',
   $server_name            = $::hostname,
   $balancer_ip            = $::ipaddress,
-  $balancermember_options = ''
+  $balancermember_options = '',
+  $define_cookies         = false
 ) {
   concat::fragment { "${listening_service}_balancermember_${name}":
     order   => $order,
