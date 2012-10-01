@@ -5,7 +5,7 @@ stage {'openstack-custom-repo': before => Stage['main']}
 
 $ntp_server = '0.centos.pool.ntp.org'
 
-stage {'clocksync': before => Stage['main']}
+#stage {'clocksync': before => Stage['main']}
 
 class openstack::clocksync ($ntp_server)
 {
@@ -13,13 +13,21 @@ class openstack::clocksync ($ntp_server)
 
   package {'ntpdate': ensure => present}
   exec {'clocksync':
+    unless => "ps aux | grep -q ntpd",
+    before => Service[$::ntpd::service_name],
     require => Package['ntpdate'],
-    before => Service[$::ntpd::package_name],
     command => "/usr/sbin/ntpdate $ntp_server"
   }
 }
 
-class {'openstack::clocksync': ntp_server=>$ntp_server, stage=>'clocksync'}
+class {'openstack::clocksync': ntp_server=>$ntp_server}
+
+Exec['clocksync']->Nova::Generic_service<| |>
+Exec['clocksync']->Exec<| title == 'keystone-manage db_sync' |>
+Exec['clocksync']->Exec<| title == 'glance-manage db_sync' |>
+Exec['clocksync']->Exec<| title == 'nova-manage db sync' |>
+Exec['clocksync']->Exec<| title == 'initial-db-sync' |>
+Exec['clocksync']->Exec<| title == 'post-nova_config' |>
 
 
 case $::osfamily {
