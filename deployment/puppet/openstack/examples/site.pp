@@ -3,6 +3,25 @@ Exec { logoutput => true, path => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'] }
 
 stage {'openstack-custom-repo': before => Stage['main']}
 
+$ntp_server = '0.centos.pool.ntp.org'
+
+stage {'clocksync': before => Stage['main']}
+
+class openstack::clocksync ($ntp_server)
+{
+  include ntpd
+
+  package {'ntpdate': ensure => present}
+  exec {'clocksync':
+    require => Package['ntpdate'],
+    before => Service[$::ntpd::package_name],
+    command => "/usr/sbin/ntpdate $ntp_server"
+  }
+}
+
+class {'openstack::clocksync': ntp_server=>$ntp_server, stage=>'clocksync'}
+
+
 case $::osfamily {
   'Debian': {
     class { 'apt':
