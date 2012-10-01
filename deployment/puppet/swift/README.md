@@ -9,6 +9,31 @@ Both single host and clustered configurations are supported.
 ## Tested Environments
   * Ubuntu 12.04; puppet 2.7.16; Swift 1.4.8
 
+# Requirements
+
+This module uses exported resources to manage Swift rings, so you will need 
+to have storeconfigs enabled for this module to work. See:
+
+http://projects.puppetlabs.com/projects/1/wiki/using_stored_configuration
+http://docs.puppetlabs.com/guides/exported_resources.html
+
+Also, since the module includes custom types and providers, 
+make sure that pluginsync is enabled in master and agent configurations:
+
+    root@ubuntu:~# cat /etc/puppet/puppet.conf 
+    [main]
+    logdir=/var/log/puppet
+    vardir=/var/lib/puppet
+    ssldir=/var/lib/puppet/ssl
+    rundir=/var/run/puppet
+    factpath=$vardir/lib/facter
+    templatedir=$confdir/templates
+    prerun_command=/etc/puppet/etckeeper-commit-pre
+    postrun_command=/etc/puppet/etckeeper-commit-post
+    pluginsync = true
+
+See http://docs.puppetlabs.com/guides/plugins_in_modules.html
+
 # Dependencies
 
 * https://github.com/saz/puppet-ssh
