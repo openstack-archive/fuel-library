@@ -1,4 +1,5 @@
 import logging
+from time import sleep
 import traceback
 import devops
 from devops.model import Environment, Network, Node, Disk, Interface
@@ -143,7 +144,9 @@ class Ci:
                 self.setup_puppet_client_yum(remote)
                 write_config(remote, '/etc/puppet/puppet.conf', agent_config)
                 self.wait_for_certificates(remote)
+        sleep(5)
         self.sign_all_node_certificates(master_remote)
+        sleep(5)
         for node in environment.nodes:
             logger.info("Creating snapshot 'empty'")
             node.save_snapshot('empty')
