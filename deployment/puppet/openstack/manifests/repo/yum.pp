@@ -7,6 +7,7 @@ class openstack::repo::yum (
   $gpgcheck = 1,
   $mirrorlist = absent,
   $rhel_location = undef,
+  $mirrorlist = absent
 )
   {
 
@@ -22,23 +23,11 @@ class openstack::repo::yum (
   yumrepo {$repo_name:
     baseurl  => $location,
     mirrorlist => $mirrorlist,
-    gpgcheck => $gpgcheck,
+    gpgcheck => 1,
     gpgkey   => $key_source,
     priority => $priority,
     enabled  => 1,
     descr => $repo_name,
-    timeout => 180
-  }
-  if ($rhel_location) {
-    yumrepo {'rhel-local':
-      baseurl  => $rhel_location,
-      gpgcheck => 0,
-      enabled  => 1,
-      timeout => 180
-    }
-  }
-    if defined (Yumrepo['puppetlabs-products']) {yumrepo {'puppetlabs-products': enabled=>0 }}
-    if defined (Yumrepo['puppetlabs-deps']) {yumrepo {'puppetlabs-deps': enabled=>0}}
   }
     yumrepo {'puppetlabs-products': enabled=>0 } 
     yumrepo {'puppetlabs-deps': enabled=>0} 
