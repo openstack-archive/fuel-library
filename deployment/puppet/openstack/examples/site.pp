@@ -17,9 +17,13 @@ case $::osfamily {
     }
   }
   'RedHat': {
+    $repo_baseurl='http://download.mirantis.com/epel-fuel'
+    #added internal network mirror. Change if you need to use outside of mirantis
+    $mirrorlist='http://download.mirantis.com/epel-fuel/mirror.internal.list'
     class { 'openstack::repo::yum':
       repo_name  => 'openstack-epel-fuel',
-      location   => 'http://download.mirantis.com/epel-fuel',
+      #      location   => $repo_baseurl,
+      mirrorlist => $mirrorlist,
       key_source => 'https://fedoraproject.org/static/0608B895.txt',
       stage      => 'openstack-custom-repo',
     }

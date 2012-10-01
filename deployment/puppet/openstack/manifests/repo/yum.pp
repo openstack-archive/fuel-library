@@ -4,6 +4,7 @@ class openstack::repo::yum (
   $key_source,
   $include_src = false,
   $priority = 1,
+  $mirrorlist
 )
   {
 
@@ -18,10 +19,12 @@ class openstack::repo::yum (
 
   yumrepo {$repo_name:
     baseurl  => $location,
+    mirrorlist => $mirrorlist,
     gpgcheck => 1,
     gpgkey   => $key_source,
     priority => $priority,
     enabled  => 1,
+    descr => $repo_name,
   }
     yumrepo {'puppetlabs-products': enabled=>0 } 
     yumrepo {'puppetlabs-deps': enabled=>0} 
