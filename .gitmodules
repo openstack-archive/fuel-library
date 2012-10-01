@@ -88,3 +88,6 @@
 [submodule "deployment/puppet/cobbler"]
 	path = deployment/puppet/cobbler
 	url = gitolite@gitolite.mirantis.com:fuel/deployment/puppet/cobbler.git
+[submodule "deployment/puppet/mcollective"]
+	path = deployment/puppet/mcollective
+	url = gitolite@gitolite.mirantis.com:fuel/deployment/puppet/mcollective
