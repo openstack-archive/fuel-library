@@ -13,8 +13,8 @@ class openstack::clocksync ($ntp_server)
 
   package {'ntpdate': ensure => present}
   exec {'clocksync':
-    unless => "ps aux | grep -q ntpd",
-    before => Service[$::ntpd::service_name],
+    unless => "pidof ntpd",
+    before => [Service[$::ntpd::service_name]],
     require => Package['ntpdate'],
     command => "/usr/sbin/ntpdate $ntp_server"
   }
