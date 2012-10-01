@@ -33,6 +33,10 @@ def tcp_ping(remote, host, port):
             return True
     return False
 
+def load(path):
+    with open(path) as f:
+        return f.read()
+
 def execute_async(remote, command):
     logging.debug("Executing command: '%s'" % command.rstrip())
     chan = remote._ssh.get_transport().open_session()
