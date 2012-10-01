@@ -63,7 +63,16 @@ class cobbler::server(
     }
   }
 
-  package { $cobbler_package:
+  define cobbler_safe_package(){
+    if ! defined(Package[$name]){
+      @package { $name : }
+    }
+  }
+
+  cobbler_safe_package { $cobbler_additional_packages : }
+  Package<||>
+  
+  package { $cobbler_package :
     ensure => installed,
     require => [
                 Package[$dnsmasq_package],
@@ -71,7 +80,7 @@ class cobbler::server(
                 ],
   }
 
-  package { $cobbler_web_package:
+  package { $cobbler_web_package :
     ensure => installed
   }
 
@@ -88,7 +97,6 @@ class cobbler::server(
     notify => Service["dnsmasq"],
   }
   
-  package { $cobbler_additional_packages: }
   
   define access_to_cobbler_port($port, $protocol='tcp') {
     $rule = "-p $protocol -m state --state NEW -m $protocol --dport $port -j ACCEPT"
@@ -276,4 +284,6 @@ class cobbler::server(
   cobbler_snippet {"puppet_conf":}
   cobbler_snippet {"post_install_network_config_fuel":}
   cobbler_snippet {"puppet_register_if_enabled_fuel":}
+  cobbler_snippet {"mcollective_install_if_enabled":}
+  cobbler_snippet {"mcollective_conf":}
   }                               

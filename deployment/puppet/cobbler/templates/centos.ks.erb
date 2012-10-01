@@ -104,6 +104,10 @@ ruby-augeas
 # LISTS puppet PACKAGE IF puppet_auto_setup VARIABLE IS SET TO 1
 $SNIPPET('puppet_install_if_enabled')
 
+# COBBLER EMBEDDED SNIPPET: 'mcollective_install_if_enabled'
+# LISTS mcollective PACKAGE IF mcollective_auto_setup VARIABLE IS SET TO 1
+$SNIPPET('mcollective_install_if_enabled')
+
 # POSTINSTALL SECTION
 # HERE ARE COMMANDS THAT WILL BE LAUNCHED JUST AFTER 
 # INSTALLATION ITSELF COMPLETED
@@ -129,6 +133,10 @@ $SNIPPET('puppet_conf')
 # COBBLER EMBEDDED SNIPPET: 'puppet_register_if_enabled'
 # CREATES CERTIFICATE REQUEST AND SENDS IT TO PUPPET MASTER
 $SNIPPET('puppet_register_if_enabled_fuel')
+
+# COBBLER EMBEDDED SNIPPET: 'mcollective_conf'
+# CONFIGURES MCOLLECTIVE AGENT
+$SNIPPET('mcollective_conf')
 
 # COBBLER EMBEDDED SNIPPET: 'kickstart_done'
 # DISABLES PXE BOOTING

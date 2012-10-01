@@ -1,7 +1,16 @@
 fuel-01:
   profile: "centos63-x86_64"
   netboot-enabled: "1"
-  ksmeta: "puppet_auto_setup=1 puppet_master=fuel-pm.mirantis.com puppet_enable=0"
+  ksmeta: "puppet_auto_setup=1 \
+puppet_master=fuel-pm.mirantis.com \
+puppet_enable=0 \
+mco_auto_setup=1 \
+mco_pskey=un0aez2ei9eiGaequaey4loocohjuch4Ievu3shaeweeg5Uthi \
+mco_stomphost=10.0.0.100 \
+mco_stompport=61613 \
+mco_stompuser=mcollective \
+mco_stomppassword=AeN5mi5thahz2Aiveexo \
+mco_enable=1"
   hostname: "fuel-01.mirantis.com"
   name-servers: "10.0.0.100"
   name-servers-search: "mirantis.com"
@@ -29,7 +38,16 @@ fuel-01:
 fuel-02:
   profile: "centos63-x86_64"
   netboot-enabled: "1"
-  ksmeta: "puppet_auto_setup=1 puppet_master=fuel-pm.mirantis.com puppet_enable=0"
+  ksmeta: "puppet_auto_setup=1 \
+puppet_master=fuel-pm.mirantis.com \
+puppet_enable=0 \
+mco_auto_setup=1 \
+mco_pskey=un0aez2ei9eiGaequaey4loocohjuch4Ievu3shaeweeg5Uthi \
+mco_stomphost=10.0.0.100 \
+mco_stompport=61613 \
+mco_stompuser=mcollective \
+mco_stomppassword=AeN5mi5thahz2Aiveexo \
+mco_enable=1"
   hostname: "fuel-02.mirantis.com"
   name-servers: "10.0.0.100"
   name-servers-search: "mirantis.com"
@@ -57,7 +75,16 @@ fuel-02:
 fuel-03:
   profile: "centos63-x86_64"
   netboot-enabled: "1"
-  ksmeta: "puppet_auto_setup=1 puppet_master=fuel-pm.mirantis.com puppet_enable=0"
+  ksmeta: "puppet_auto_setup=1 \
+puppet_master=fuel-pm.mirantis.com \
+puppet_enable=0 \
+mco_auto_setup=1 \
+mco_pskey=un0aez2ei9eiGaequaey4loocohjuch4Ievu3shaeweeg5Uthi \
+mco_stomphost=10.0.0.100 \
+mco_stompport=61613 \
+mco_stompuser=mcollective \
+mco_stomppassword=AeN5mi5thahz2Aiveexo \
+mco_enable=1"
   hostname: "fuel-03.mirantis.com"
   name-servers: "10.0.0.100"
   name-servers-search: "mirantis.com"
@@ -85,7 +112,16 @@ fuel-03:
 fuel-04:
   profile: "centos63-x86_64"
   netboot-enabled: "1"
-  ksmeta: "puppet_auto_setup=1 puppet_master=fuel-pm.mirantis.com puppet_enable=0"
+  ksmeta: "puppet_auto_setup=1 \
+puppet_master=fuel-pm.mirantis.com \
+puppet_enable=0 \
+mco_auto_setup=1 \
+mco_pskey=un0aez2ei9eiGaequaey4loocohjuch4Ievu3shaeweeg5Uthi \
+mco_stomphost=10.0.0.100 \
+mco_stompport=61613 \
+mco_stompuser=mcollective \
+mco_stomppassword=AeN5mi5thahz2Aiveexo \
+mco_enable=1"
   hostname: "fuel-04.mirantis.com"
   name-servers: "10.0.0.100"
   name-servers-search: "mirantis.com"
