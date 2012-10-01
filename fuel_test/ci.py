@@ -69,9 +69,9 @@ class Ci:
         self.setup_environment()
         return self.environment
 
-    def describe_node(self, name, networks):
+    def describe_node(self, name, networks, memory=1024):
         node = Node(name)
-        node.memory = 1024
+        node.memory = memory
         node.vnc = True
         for network in networks:
             node.interfaces.append(Interface(network))
@@ -90,8 +90,12 @@ class Ci:
         environment.networks.append(public)
         master = self.describe_node('master', [internal, private, public])
         environment.nodes.append(master)
-        for node_name in NODES:
+        for node_name in NODES[:2]:
             client = self.describe_node(node_name, [internal, private, public])
+            environment.nodes.append(client)
+        for node_name in NODES[2:4]:
+            client = self.describe_node(
+                node_name, [internal, private, public], memory=4096)
             environment.nodes.append(client)
         return environment
 
