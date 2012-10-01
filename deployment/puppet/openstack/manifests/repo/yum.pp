@@ -1,10 +1,10 @@
 class openstack::repo::yum (
   $repo_name,
-  $location,
+  $location = absent,
   $key_source,
   $include_src = false,
   $priority = 1,
-  $mirrorlist
+  $mirrorlist = absent
 )
   {
 
