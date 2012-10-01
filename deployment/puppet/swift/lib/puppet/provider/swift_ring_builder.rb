@@ -15,10 +15,10 @@ class Puppet::Provider::SwiftRingBuilder < Puppet::Provider
       if rows = swift_ring_builder(builder_file_path).split("\n")[4..-1]
         rows.each do |row|
           if row =~ /^\s+(\d+)\s+(\d+)\s+(\S+)\s+(\d+)\s+(\S+)\s+(\d+\.\d+)\s+(\d+)\s+(-?\d+\.\d+)\s+(\S*)$/
-            object_hash["#{$3}:#{$4}/#{$5}"] = {
+            object_hash["#{$3}:#{$4}"] = {
               :id          => $1,
               :zone        => $2,
-              :weight      => $6,
+              # :weight      => $6, # This line was removed in 103b68b together with a few other weight-related things but I don't know why
               :partitions  => $7,
               :balance     => $8,
               :meta        => $9
@@ -41,19 +41,54 @@ class Puppet::Provider::SwiftRingBuilder < Puppet::Provider
   end
 
   def exists?
-    ring[resource[:name]]
+    return  available_devs.keys.sort == used_devs
   end
 
   def create
-    [:zone, :weight].each do |param|
-      raise(Puppet::Error, "#{param} is required") unless resource[param]
+    raise(Puppet::Error, "zone is required") unless resource[:zone]
+
+    # remove the missing devices
+    destroy
+
+    (available_devs.keys - used_devs).each do |mountpoint|
+      notice("*** create device: #{mountpoint}")
+      swift_ring_builder(builder_file_path,
+        'add',
+        "z#{resource[:zone]}-#{resource[:name]}/#{mountpoint}",
+        available_devs[mountpoint]
+      )
     end
-    swift_ring_builder(
-      builder_file_path,
-      'add',
-      "z#{resource[:zone]}-#{resource[:name]}",
-      resource[:weight]
-    )
+  end
+
+  def destroy
+    (used_devs - available_devs.keys).each do |mountpoint|
+      notice("*** remove device: #{mountpoint}")
+      swift_ring_builder(builder_file_path,
+        'remove',
+        "#{resource[:name]}/#{mountpoint}"
+      )
+    end
+  end
+
+  def available_devs
+    @available_devices = {}
+
+    mountpoints = "#{resource[:mountpoints]}".split("\n")
+    for i in mountpoints
+      @available_devices[i.split[0]] = i.split[1]
+    end
+
+    @available_devices
+  end
+
+  def used_devs
+    if devs = swift_ring_builder(builder_file_path).split("\n")[4..-1]
+      @used_devices = devs.collect do |line|
+        line.strip.split(/\s+/)[4] if line.match(/#{resource[:name].split(':')[0]}/)
+      end.compact.sort
+    else
+      []
+    end
   end
 
   def id
@@ -71,21 +106,6 @@ class Puppet::Provider::SwiftRingBuilder < Puppet::Provider
   # TODO - is updating the zone supported?
   def zone=(zone)
     Puppet.warning('Setting zone is not yet supported, I am not even sure if it is supported')
-  end
-
-  def weight
-    ring[resource[:name]][:weight]
-    # get the weight
-  end
-
-  def weight=(weight)
-    swift_ring_builder(
-      builder_file_path,
-      'set_weight',
-      "d#{ring[resource[:name]][:id]}",
-      resource[:weight]
-    )
-    # requires a rebalance
   end
 
   def partitions
