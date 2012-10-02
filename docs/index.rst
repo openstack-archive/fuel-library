@@ -88,6 +88,7 @@ CentOS Installation
 
 * Set up eth0 interface (it will provide internet access for puppet master): 
     * ``vi /etc/sysconfig/network-scripts/ifcfg-eth0``::
+
         DEVICE="eth0"
         BOOTPROTO="dhcp"
         ONBOOT="yes"
@@ -96,6 +97,7 @@ CentOS Installation
 
     * ``ifup eth0``
     * ``vi /etc/resolv.conf``::
+
         search mirantis.com
         nameserver <IP-ADDRESS-OF-YOUR-DNS-SERVER>
 
@@ -104,6 +106,7 @@ CentOS Installation
 
     * Set up eth1 interface (for communication between puppet master and puppet clients):
         * ``vi /etc/sysconfig/network-scripts/ifcfg-eth1``::
+
             DEVICE="eth1"
             BOOTPROTO="static"
             IPADDR="10.0.0.100"
@@ -117,6 +120,7 @@ CentOS Installation
             * ``ping 10.0.0.1``
 
     * ``vi /etc/yum.repos.d/puppet.repo``::
+
         [puppetlabs]
         name=Puppet Labs Packages
         baseurl=http://yum.puppetlabs.com/el/$releasever/products/$basearch/
@@ -125,6 +129,7 @@ CentOS Installation
         gpgkey=http://yum.puppetlabs.com/RPM-GPG-KEY-puppetlabs
 
     * Install puppet master::
+
         rpm -Uvh http://download.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-7.noarch.rpm
         yum upgrade
         yum install puppet-server
@@ -147,6 +152,7 @@ Enabling stored configuration on puppet master
 This paragraph will enable puppet to use a technique called stored configuration, to store exported resources in a database. This makes use of the Ruby on Rails framework and MySQL.
 
 * Install and configure MySQL & Ruby::
+
     yum install mysql
     yum install mysql-server
     yum install mysql-devel
@@ -163,6 +169,7 @@ This paragraph will enable puppet to use a technique called stored configuration
         grant all privileges on puppet.* to puppet@localhost identified by 'password';
 
 * Apply workaround for http://projects.puppetlabs.com/issues/9290::
+
     gem uninstall activerecord
     gem install activerecord -v 3.0.10
 
@@ -173,6 +180,7 @@ This paragraph will enable puppet to use a technique called stored configuration
 
 * Configure Puppet master to use storeconfigs. 
     * ``vi /etc/puppet/puppet.conf``::
+
         [master]
             storeconfigs = true
             dbadapter = mysql
@@ -188,6 +196,7 @@ Puppet Testing
 
 * Put a simple configuration into Puppet, so that when you run puppet from any node, it will display the corresponding "Hello world" message
     * ``vi /etc/puppet/manifests/site.pp``::
+
         node /fuel-pm.mirantis.com/ {
             notify{"Hello world from fuel-pm": }
         }
@@ -206,6 +215,7 @@ Puppet Testing
 
 * Make configuration changes, so that puppet master can actually act as a puppet client and provision software onto itself (it is useful, as we will be installing Cobbler on the same node as Puppet master)
     * ``vi /etc/puppet/puppet.conf``::
+
         [main]
             # server
             server = fuel-pm.mirantis.com
@@ -228,6 +238,7 @@ You must load a complete copy of Fuel onto puppet master machine. The preferred 
     * ``scp ~/.ssh/id_rsa root@fuel-pm:/root/.ssh/``
 * on puppet master, create script for automated update of puppet manifests. On the first run it will do a complete clone of Fuel git repository. On subsequent runs, it will pull incremental changes using "./pull-all.sh" script which is contained in the Fuel repository. 
     * ``vi updateRecipes.sh``::
+
         #!/bin/bash
 
         if [ -d "fuel" ]; then
@@ -260,6 +271,7 @@ Using puppet to install Cobbler
 On puppet master:
 * ``vi /etc/puppet/manifests/site.pp``
 * copy the contents of “fuel/deployment/puppet/cobbler/examples/site.pp” into “/etc/puppet/manifests/site.pp”:::
+
     node /fuel-pm/ {
 
         Exec  {path => '/usr/bin:/bin:/usr/sbin:/sbin'}
@@ -316,6 +328,7 @@ On puppet master:
 
 * if you are precisely following this guide and your network configuration is identical, you can keep the entire file as is
 * the only thing you might want to change is location of CentOS 6.3 ISO image file (to either a local mirror, or the fastest available internet mirror):::
+
     class { cobbler::distro::centos63-x86_64:
         http_iso => "http://mirror.facebook.net/centos/6.3/isos/x86_64/CentOS-6.3-x86_64-minimal.iso",
         ks_url   => "cobbler",
@@ -381,6 +394,7 @@ Edit configuration for bare metal provisioning of nodes (nodes.yaml):
     * mac addresses for every network interface (you can look them up in Virtualbox, using Machine -> Settings... -> Network -> Adapters)
     * static IP address on management interface eth1
 * vi nodes.yaml::
+
     fuel-01:
         profile: "centos63-x86_64"
         netboot-enabled: "1"
