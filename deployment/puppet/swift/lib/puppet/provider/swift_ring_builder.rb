@@ -18,11 +18,11 @@ class Puppet::Provider::SwiftRingBuilder < Puppet::Provider
             object_hash["#{$3}:#{$4}"] = {
               :id          => $1,
               :zone        => $2,
-              # :weight      => $6, # This line was removed in 103b68b together with a few other weight-related things but I don't know why
               :partitions  => $7,
               :balance     => $8,
               :meta        => $9
             }
+            #notice(object_hash.values.inspect)
           else
             Puppet.warning("Unexpected line: #{row}")
           end
@@ -41,11 +41,15 @@ class Puppet::Provider::SwiftRingBuilder < Puppet::Provider
   end
 
   def exists?
-    return  available_devs.keys.sort == used_devs
+    #notice("vailable_devs.keys.sort.inspect #{available_devs.keys.sort.inspect}")
+    #notice("used_devs #{used_devs.inspect}")
+    !available_devs.empty? or !used_devs.empty?
+    #return  available_devs.keys.sort == used_devs
+    #ring[resource[:name]]
   end
 
   def create
-    raise(Puppet::Error, "zone is required") unless resource[:zone]
+    raise(Puppet::Error, "#{param} is required") unless resource[:zone]
 
     # remove the missing devices
     destroy
