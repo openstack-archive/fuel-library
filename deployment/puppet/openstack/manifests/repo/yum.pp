@@ -7,7 +7,7 @@ class openstack::repo::yum (
   $gpgcheck = 1,
   $mirrorlist = absent,
   $rhel_location = undef,
-  $mirrorlist = absent
+  $mirrorlist = absent,
   $rhel_location = undef,
 )
   {
@@ -30,7 +30,7 @@ class openstack::repo::yum (
     enabled  => 1,
     descr => $repo_name,
   }
-  if defined ($rhel_location) {
+  if ($rhel_location) {
     yumrepo {'rhel-local':
       baseurl  => $rhel_location,
       gpgcheck => 0,
