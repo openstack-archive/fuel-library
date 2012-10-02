@@ -99,9 +99,14 @@ curl
 wget
 crontabs
 cronie
+ruby-augeas
 # COBBLER EMBEDDED SNIPPET: 'puppet_install_if_enabled'
 # LISTS puppet PACKAGE IF puppet_auto_setup VARIABLE IS SET TO 1
 $SNIPPET('puppet_install_if_enabled')
+
+# COBBLER EMBEDDED SNIPPET: 'mcollective_install_if_enabled'
+# LISTS mcollective PACKAGE IF mcollective_auto_setup VARIABLE IS SET TO 1
+$SNIPPET('mcollective_install_if_enabled')
 
 # POSTINSTALL SECTION
 # HERE ARE COMMANDS THAT WILL BE LAUNCHED JUST AFTER 
@@ -119,7 +124,7 @@ $SNIPPET('post_install_kernel_options')
 # COBBLER EMBEDDED SNIPPET: 'post_install_network_config'
 # CONFIGURES NETWORK INTERFACES DEPENDING ON 
 # COBBLER SYSTEM PARAMETERS
-$SNIPPET('post_install_network_config')
+$SNIPPET('post_install_network_config_fuel')
 
 # COBBLER EMBEDDED SNIPPET: 'puppet_conf'
 # CONFIGURES PUPPET AGENT
@@ -127,7 +132,11 @@ $SNIPPET('puppet_conf')
 
 # COBBLER EMBEDDED SNIPPET: 'puppet_register_if_enabled'
 # CREATES CERTIFICATE REQUEST AND SENDS IT TO PUPPET MASTER
-$SNIPPET('puppet_register_if_enabled')
+$SNIPPET('puppet_register_if_enabled_fuel')
+
+# COBBLER EMBEDDED SNIPPET: 'mcollective_conf'
+# CONFIGURES MCOLLECTIVE AGENT
+$SNIPPET('mcollective_conf')
 
 # COBBLER EMBEDDED SNIPPET: 'redhat_register'
 # REGISTER AT REDHAT WITH ACTIVATION KEY
