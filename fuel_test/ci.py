@@ -66,8 +66,6 @@ class Ci:
         remote.sudo.ssh.execute('setenforce 0')
 
 
-
-
     def change_host_name(self, remote, short, long):
         remote.sudo.ssh.execute('hostname %s' % long)
         self.add_to_hosts(remote, '127.0.0.1', short, short)
@@ -117,6 +115,10 @@ class Ci:
         with open(path) as f:
             return f.read()
 
+    def add_nodes_to_hosts(self, remote, nodes):
+        for node in nodes:
+            self.add_to_hosts(remote, node.ip_address, node.name, node.name)
+
     def setup_environment(self):
         if not self.base_image:
             raise Exception("Base image path is missing while trying to build recipes environment")
@@ -151,9 +153,8 @@ class Ci:
         agent_config = load(root('fuel', 'fuel_test', 'config', 'puppet.agent.config'))
         for node in environment.nodes:
             remote = ssh(node.ip_address, username='root', password='r00tme')
-            for node in environment.nodes:
-                self.add_to_hosts(remote, node.ip_address, node.name, node.name)
-            if node.name.find('master') == -1:
+            self.add_nodes_to_hosts(remote, environment.nodes)
+            if node.name != 'master':
                 self.setup_puppet_client_yum(remote)
                 write_config(remote, '/etc/puppet/puppet.conf', agent_config)
                 self.wait_for_certificates(remote)
