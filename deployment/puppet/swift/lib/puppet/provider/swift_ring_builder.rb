@@ -12,24 +12,22 @@ class Puppet::Provider::SwiftRingBuilder < Puppet::Provider
   def self.lookup_ring
     object_hash = {}
     if File.exists?(builder_file_path)
-      notice("FILE EXIST")
       if rows = swift_ring_builder(builder_file_path).split("\n")[4..-1]
-        #notice("#{rows}")
         rows.each do |row|
           if row =~ /^\s+(\d+)\s+(\d+)\s+(\S+)\s+(\d+)\s+(\S+)\s+(\d+\.\d+)\s+(\d+)\s+(-?\d+\.\d+)\s+(\S*)$/
-            object_hash["#{$3}:#{$4}/#{$5}"] = {
+            object_hash["#{$3}:#{$4}"] = {
               :id          => $1,
               :zone        => $2,
               :partitions  => $7,
               :balance     => $8,
               :meta        => $9
             }
+            #notice(object_hash.values.inspect)
           else
             Puppet.warning("Unexpected line: #{row}")
           end
         end
       end
-      notice(" !!!!METHOD!!!! #{swift_ring_builder(builder_file_path).inspect}")
     end
     object_hash
   end
@@ -43,14 +41,14 @@ class Puppet::Provider::SwiftRingBuilder < Puppet::Provider
   end
 
   def exists?
-    notice("vailable_devs.keys.sort.inspect #{available_devs.keys.sort.inspect}")
-    notice("used_devs #{used_devs.inspect}")
-    return available_devs.keys.sort == used_devs
+    #notice("vailable_devs.keys.sort.inspect #{available_devs.keys.sort.inspect}")
+    #notice("used_devs #{used_devs.inspect}")
+    !available_devs.empty? or !used_devs.empty?
+    #return  available_devs.keys.sort == used_devs
     #ring[resource[:name]]
   end
 
   def create
-    notice("!!!HEEEELP!!!")
     raise(Puppet::Error, "#{param} is required") unless resource[:zone]
 
     # remove the missing devices
@@ -109,8 +107,6 @@ class Puppet::Provider::SwiftRingBuilder < Puppet::Provider
   end
 
   def zone
-    notice("#{resource[:name]}")
-    notice(ring.keys.inspect)
     ring[resource[:name]][:zone]
   end
 
