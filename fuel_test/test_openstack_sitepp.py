@@ -16,85 +16,50 @@ class OpenStackSitePPCase(RecipeTestCase):
         self.compute2 = self.environment.node[NODES[3]]
 
     def test_deploy_nova_compute(self):
-        self.write_openstack_sitepp(self.controller1, self.controller2)
-        results =[]
-        for node in [self.compute1,]:
-            remote = ssh(node.ip_address, username='root', password='r00tme')
-            results.append(execute(remote.sudo.ssh, 'puppet agent --test --tags openstack::repo::yum,%s' % "nova::compute"))
-        for result in results:
-            self.assertResult(result)
+        self.validate(
+            [self.compute1,],
+            'puppet agent --test --tags openstack::repo::yum,%s' % "nova::compute")
 
     def test_deploy_nova_api_compute(self):
-        self.write_openstack_sitepp(self.controller1, self.controller2)
-        results =[]
-        for node in [self.compute1,]:
-            remote = ssh(node.ip_address, username='root', password='r00tme')
-            results.append(execute(remote.sudo.ssh, 'puppet agent --test --tags openstack::repo::yum,%s' % "nova::api"))
-        for result in results:
-            self.assertResult(result)
+        self.validate(
+            [self.compute1,],
+            'puppet agent --test --tags openstack::repo::yum,%s' % "nova::api")
 
     def test_deploy_nova_api_controller(self):
-        self.write_openstack_sitepp(self.controller1, self.controller2)
-        results =[]
-        for node in [self.controller1,]:
-            remote = ssh(node.ip_address, username='root', password='r00tme')
-            results.append(execute(remote.sudo.ssh, 'puppet agent --test --tags openstack::repo::yum,%s' % "nova::api"))
-        for result in results:
-            self.assertResult(result)
+        self.validate(
+            [self.controller1,],
+            'puppet agent --test --tags openstack::repo::yum,%s' % "nova::api")
 
     def test_deploy_nova_network(self):
-        self.write_openstack_sitepp(self.controller1, self.controller2)
-        results =[]
-        for node in [self.compute1,]:
-            remote = ssh(node.ip_address, username='root', password='r00tme')
-            results.append(execute(remote.sudo.ssh, 'puppet agent --test --tags openstack::repo::yum,%s' % "nova::network"))
-        for result in results:
-            self.assertResult(result)
+        self.validate(
+            [self.compute1, ],
+            'puppet agent --test --tags openstack::repo::yum,%s' % "nova::network")
 
     def test_deploy_nova_consoleauth(self):
-        self.write_openstack_sitepp(self.controller1, self.controller2)
-        results =[]
-        for node in [self.controller1,]:
-            remote = ssh(node.ip_address, username='root', password='r00tme')
-            results.append(execute(remote.sudo.ssh, 'puppet agent --test --tags openstack::repo::yum,%s' % "nova::consoleauth"))
-        for result in results:
-            self.assertResult(result)
+        self.validate(
+            [self.controller1, self.controller2],
+            'puppet agent --test --tags openstack::repo::yum,%s' % "nova::consoleauth")
+
 
     def test_deploy_nova_rabbitmq(self):
-        self.write_openstack_sitepp(self.controller1, self.controller2)
-        results =[]
-        for node in [self.controller1,]:
-            remote = ssh(node.ip_address, username='root', password='r00tme')
-            results.append(execute(remote.sudo.ssh, 'puppet agent --test --tags openstack::repo::yum,%s' % "nova::rabbitmq"))
-        for result in results:
-            self.assertResult(result)
+        self.validate(
+            [self.controller1, self.controller2],
+            'puppet agent --test --tags openstack::repo::yum,%s' % "nova::rabbitmq")
 
     def test_deploy_nova_utilities(self):
-        self.write_openstack_sitepp(self.controller1, self.controller2)
-        results =[]
-        for node in [self.compute1,]:
-            remote = ssh(node.ip_address, username='root', password='r00tme')
-            results.append(execute(remote.sudo.ssh, 'puppet agent --test --tags openstack::repo::yum,%s' % "nova::utilities"))
-        for result in results:
-            self.assertResult(result)
+        self.validate(
+            [self.compute1, ],
+            'puppet agent --test --tags openstack::repo::yum,%s' % "nova::utilities")
 
     def test_deploy_nova_vncproxy(self):
-        self.write_openstack_sitepp(self.controller1, self.controller2)
-        results =[]
-        for node in [self.controller1,]:
-            remote = ssh(node.ip_address, username='root', password='r00tme')
-            results.append(execute(remote.sudo.ssh, 'puppet agent --test --tags openstack::repo::yum,%s' % "nova::vncproxy"))
-        for result in results:
-            self.assertResult(result)
+        self.validate(
+            [self.controller1, ],
+            'puppet agent --test --tags openstack::repo::yum,%s' % "nova::vncproxy")
 
     def test_deploy_nova_volume(self):
-        self.write_openstack_sitepp(self.controller1, self.controller2)
-        results =[]
-        for node in [self.compute1,]:
-            remote = ssh(node.ip_address, username='root', password='r00tme')
-            results.append(execute(remote.sudo.ssh, 'puppet agent --test --tags openstack::repo::yum,%s' % "nova::volume"))
-        for result in results:
-            self.assertResult(result)
+        self.validate(
+            [self.compute1, ],
+            'puppet agent --test --tags openstack::repo::yum,%s' % "nova::volume")
 
 
     def write_openstack_sitepp(self, node01, node02):
@@ -123,6 +88,19 @@ class OpenStackSitePPCase(RecipeTestCase):
             internal_address="$ipaddress_eth0",
             private_interface="'eth1'"
         )
+
+    def do(self, nodes, command):
+        self.write_openstack_sitepp(self.controller1, self.controller2)
+        results = []
+        for node in nodes:
+            remote = ssh(node.ip_address, username='root', password='r00tme')
+            results.append(execute(remote.sudo.ssh, command))
+        return results
+
+    def validate(self, nodes, command):
+        results = self.do(nodes, command)
+        for result in results:
+            self.assertResult(result)
 
 if __name__ == '__main__':
     unittest.main()

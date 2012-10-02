@@ -1,4 +1,5 @@
 import logging
+import re
 
 def execute(remote, command):
     chan, stdin, stderr, stdout = execute_async(remote, command)
@@ -33,6 +34,10 @@ def tcp_ping(remote, host, port):
             return True
     return False
 
+def load(path):
+    with open(path) as f:
+        return f.read()
+
 def execute_async(remote, command):
     logging.debug("Executing command: '%s'" % command.rstrip())
     chan = remote._ssh.get_transport().open_session()
@@ -47,4 +52,10 @@ def execute_async(remote, command):
         stdin.write('%s\n' % remote.password)
         stdin.flush()
     return chan, stdin, stderr, stdout
+
+def extract_virtual_ips(ipaout):
+    pattern = '(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}).*(eth\d{1,}):keepalived'
+    return dict((v,k) for k, v in re.findall(pattern, ipaout))
+
+
 

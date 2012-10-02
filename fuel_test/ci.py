@@ -4,6 +4,7 @@ import traceback
 import devops
 from devops.model import Environment, Network, Node, Disk, Interface
 from devops.helpers import tcp_ping, wait, ssh, http_server, os
+from helpers import load
 from settings import NODES
 from root import root
 
@@ -137,24 +138,19 @@ class Ci:
             wait(lambda: tcp_ping(node.ip_address, 22), timeout=1800)
         for node in environment.nodes:
             remote = ssh(node.ip_address, username='root', password='r00tme')
-            remote.reconnect()
             self.change_host_name(remote, node.name, node.name)
             logger.info("Renamed %s" % node.name)
         master_node = environment.node['master']
         master_remote = ssh(master_node.ip_address, username='root', password='r00tme')
-        master_remote.reconnect()
         self.setup_puppet_master_yum(master_remote)
         self.add_nmap_yum(master_remote)
         self.switch_off_ip_tables(master_remote)
-        with open(root('fuel', 'fuel_test', 'config', 'puppet.master.config')) as f:
-            master_config = f.read()
+        master_config = load(root('fuel', 'fuel_test', 'config', 'puppet.master.config'))
         write_config(master_remote, '/etc/puppet/puppet.conf', master_config)
         self.start_puppet_master(master_remote)
-        with open(root('fuel', 'fuel_test', 'config', 'puppet.agent.config')) as f:
-            agent_config = f.read()
+        agent_config = load(root('fuel', 'fuel_test', 'config', 'puppet.agent.config'))
         for node in environment.nodes:
             remote = ssh(node.ip_address, username='root', password='r00tme')
-            remote.reconnect()
             for node in environment.nodes:
                 self.add_to_hosts(remote, node.ip_address, node.name, node.name)
             if node.name != 'master':
