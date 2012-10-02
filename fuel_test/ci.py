@@ -36,7 +36,7 @@ class Ci:
 
     def setup_puppet_client_yum(self, remote):
         self.add_puppetlab_repo(remote)
-        remote.sudo.ssh.execute('yum -y install puppet')
+        remote.sudo.ssh.execute('yum -y install puppet-2.7.19')
 
     def start_puppet_master(self, remote):
         remote.sudo.ssh.execute('puppet resource service puppetmaster ensure=running enable=true')
@@ -55,7 +55,7 @@ class Ci:
 
     def setup_puppet_master_yum(self, remote):
         self.add_puppetlab_repo(remote)
-        remote.sudo.ssh.execute('yum -y install puppet-server mysql mysql-server mysql-devel rubygems ruby-devel make gcc')
+        remote.sudo.ssh.execute('yum -y install puppet-server-2.7.19 mysql mysql-server mysql-devel rubygems ruby-devel make gcc')
         remote.sudo.ssh.execute('gem install rails')
         remote.sudo.ssh.execute('gem install mysql')
         remote.sudo.ssh.execute('chkconfig mysql on')
