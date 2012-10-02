@@ -22,7 +22,9 @@ class mysql::server (
   $service_provider = $mysql::params::service_provider,
   $config_hash      = {},
   $enabled          = true,
-  $galera_cluster_name, $galera_master_ip, $galera_node_address
+  $galera_cluster_name = undef,
+  $galera_master_ip = undef,
+  $galera_node_address = undef
 ) inherits mysql::params {
   
   if ($custom_setup_class == undef) {
