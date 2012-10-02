@@ -54,7 +54,18 @@ class Ci:
 
     def setup_puppet_master_yum(self, remote):
         self.add_puppetlab_repo(remote)
-        remote.sudo.ssh.execute('yum -y install puppet-server')
+        remote.sudo.ssh.execute('yum -y install puppet-server mysql mysql-server mysql-devel rubygems ruby-devel make gcc')
+        remote.sudo.ssh.execute('gem install rails')
+        remote.sudo.ssh.execute('gem install mysql')
+        remote.sudo.ssh.execute('chkconfig mysql on')
+        remote.sudo.ssh.execute('service mysqld start')
+        remote.sudo.ssh.execute('mysql -u root -e "create database puppet; grant all privileges on puppet.* to puppet@localhost identified by \'password\'; "')
+        remote.sudo.ssh.execute('gem uninstall activerecord')
+        remote.sudo.ssh.execute('gem install activerecord -v 3.0.10')
+        remote.sudo.ssh.execute('setenforce 0')
+
+
+
 
     def change_host_name(self, remote, short, long):
         remote.sudo.ssh.execute('hostname %s' % long)
