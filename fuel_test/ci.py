@@ -153,7 +153,7 @@ class Ci:
             remote = ssh(node.ip_address, username='root', password='r00tme')
             for node in environment.nodes:
                 self.add_to_hosts(remote, node.ip_address, node.name, node.name)
-            if node.name.find('master') != -1:
+            if node.name.find('master') == -1:
                 self.setup_puppet_client_yum(remote)
                 write_config(remote, '/etc/puppet/puppet.conf', agent_config)
                 self.wait_for_certificates(remote)
