@@ -1,4 +1,5 @@
 import logging
+from time import sleep
 import unittest
 from devops.helpers import ssh, os
 import re
@@ -26,6 +27,7 @@ class RecipeTestCase(unittest.TestCase):
     def revert_snapshot(self):
         for node in self.environment.nodes:
             node.restore_snapshot('empty')
+            sleep(4)
 
     def replace(self, template, **kwargs):
         for key in kwargs:
