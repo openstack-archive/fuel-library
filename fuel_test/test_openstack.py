@@ -18,10 +18,10 @@ class OpenStackCase(RecipeTestCase):
 #        address=str(network.ip_addresses[1]),
 #        prefix=str(network.ip_addresses.prefixlen)
         floating_range = '.'.join(
-            self.environment.network['public'].ip_addresses[-1].split(
+            str(self.environment.network['public'].ip_addresses[-1]).split(
                 '.')[:-1])+'.128/27'
         fixed_range = '.'.join(
-            self.environment.network['private'].ip_addresses[-1].split(
+            str(self.environment.network['private'].ip_addresses[-1]).split(
                 '.')[:-1])+'.128/27'
         self.write_site_pp_manifest(
             root('fuel', 'deployment', 'puppet', 'openstack', 'examples', 'site.pp'),
