@@ -4,7 +4,7 @@ class openstack::repo::yum (
   $key_source,
   $include_src = false,
   $priority = 1,
-  $mirrorlist = absent
+  $mirrorlist = absent,
   $rhel_location = undef,
 )
   {
