@@ -56,7 +56,7 @@ class Ci:
     def setup_puppet_master_yum(self, remote):
         self.add_puppetlab_repo(remote)
         remote.sudo.ssh.execute('yum -y install puppet-server-2.7.19 mysql mysql-server mysql-devel rubygems ruby-devel make gcc')
-        remote.sudo.ssh.execute('gem install rails')
+        remote.sudo.ssh.execute('gem install rails -v 3.0.10')
         remote.sudo.ssh.execute('gem install mysql')
         remote.sudo.ssh.execute('chkconfig mysql on')
         remote.sudo.ssh.execute('service mysqld start')
@@ -153,7 +153,7 @@ class Ci:
             remote = ssh(node.ip_address, username='root', password='r00tme')
             for node in environment.nodes:
                 self.add_to_hosts(remote, node.ip_address, node.name, node.name)
-            if node.name != 'master':
+            if str(node.name) != 'master':
                 self.setup_puppet_client_yum(remote)
                 write_config(remote, '/etc/puppet/puppet.conf', agent_config)
                 self.wait_for_certificates(remote)
