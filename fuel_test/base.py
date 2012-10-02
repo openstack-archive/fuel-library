@@ -58,6 +58,6 @@ class RecipeTestCase(unittest.TestCase):
             logging.info(line)
             if line.find('err: ') !=-1:
                 errors.append(line)
-                if line.find('warning: ') !=-1:
+            if line.find('warning: ') !=-1:
                 warnings.append(line)
         return errors, warnings
