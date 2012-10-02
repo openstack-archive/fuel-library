@@ -24,6 +24,7 @@
 $admin_email          = 'dan@example_company.com'
 $keystone_db_password = 'keystone_db_password'
 $keystone_admin_token = 'keystone_token'
+$admin_user           = 'admin'
 $admin_password       = 'admin_password'
 
 $swift_user_password  = 'swift_pass'
@@ -32,14 +33,14 @@ $swift_shared_secret  = 'changeme'
 $swift_local_net_ip   = $ipaddress_eth1
 
 $swift_proxy_address    = '192.168.1.16'
-$controller_node_public = '192.168.122.100' 
+$controller_node_public = '192.168.1.16'
 
 $verbose                = true
 
 # This node can be used to deploy a keystone service.
 # This service only contains the credentials for authenticating
 # swift
-node keystone {
+class testkeystone {
   # set up mysql server
   class { 'mysql::server':
     config_hash => {
@@ -134,7 +135,7 @@ $swift_local_net_ip,
 ) {
 
   # create xfs partitions on a loopback device and mount them
-  swift::storage::loopback { ['1', '2']:
+  swift::storage::loopback { ['dev1', 'dev2']:
     base_dir     => '/srv/loopback-device',
     mnt_base_dir => '/srv/node',
     require      => Class['swift'],
@@ -148,19 +149,19 @@ $swift_local_net_ip,
   # specify endpoints per device to be added to the ring specification
   @@ring_object_device { "${swift_local_net_ip}:6000":
     zone        => $swift_zone,
-    mountpoints  => $swift_mountpoint,
+    mountpoints  => $swift_mountpoints,
   }
 
 
   @@ring_container_device { "${swift_local_net_ip}:6001":
     zone        => $swift_zone,
-    mountpoints  => $swift_mountpoint,
+    mountpoints  => $swift_mountpoints,
   }
 
   # TODO should device be changed to volume
   @@ring_account_device { "${swift_local_net_ip}:6002":
     zone        => $swift_zone,
-    mountpoints  => $swift_mountpoint,
+    mountpoints  => $swift_mountpoints,
   }
 
 
@@ -171,6 +172,8 @@ $swift_local_net_ip,
 
 
 node /swift-proxy/ inherits swift_base {
+
+  class{'testkeystone':}
 
   # curl is only required so that I can run tests
   package { 'curl': ensure => present }
@@ -221,9 +224,9 @@ node /swift-proxy/ inherits swift_base {
     operator_roles => ['admin', 'SwiftOperator'],
   }
   class { 'swift::proxy::authtoken':
-    admin_user        => 'swift',
+    admin_user        => $admin_user,
     admin_tenant_name => 'openstack',
-    admin_password    => $swift_user_password,
+    admin_password    => $admin_password,
     # assume that the controller host is the swift api server
     auth_host         => $controller_node_public,
   }
