@@ -55,7 +55,7 @@ So, before you start creating virtual machines, you should create the following 
 Installing & configuring puppet master (fuel-pm)
 ================================================
 
-Installing puppet master is a one-time thing for the entire infrastructure. ItÎéÎ÷s a lengthy process, but you will never have to return to it again once you are complete these steps.
+Installing puppet master is a one-time thing for the entire infrastructure. It's a lengthy process, but you will never have to return to it again once you are complete these steps.
 
 VM Creation
 ~~~~~~~~~~~
@@ -263,14 +263,15 @@ You must load a complete copy of Fuel onto puppet master machine. The preferred 
 Installing & configuring cobbler (fuel-pm)
 ==========================================
 
-Cobbler is bare metal provisioning system which will perform initial installation of Linux on OpenStack nodes. Luckily, we already have a puppet master installed, so let’s install Cobbler through Puppet rather than doing it manually.
+Cobbler is bare metal provisioning system which will perform initial installation of Linux on OpenStack nodes. Luckily, we already have a puppet master installed, so let\'s install Cobbler through Puppet rather than doing it manually.
 
 Using puppet to install Cobbler
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 On puppet master:
+
 * ``vi /etc/puppet/manifests/site.pp``
-* copy the contents of “fuel/deployment/puppet/cobbler/examples/site.pp” into “/etc/puppet/manifests/site.pp”:::
+* copy the contents of "fuel/deployment/puppet/cobbler/examples/site.pp" into "/etc/puppet/manifests/site.pp": ::
 
     node /fuel-pm/ {
 
@@ -327,7 +328,7 @@ On puppet master:
     }
 
 * if you are precisely following this guide and your network configuration is identical, you can keep the entire file as is
-* the only thing you might want to change is location of CentOS 6.3 ISO image file (to either a local mirror, or the fastest available internet mirror):::
+* the only thing you might want to change is location of CentOS 6.3 ISO image file (to either a local mirror, or the fastest available internet mirror): ::
 
     class { cobbler::distro::centos63-x86_64:
         http_iso => "http://mirror.facebook.net/centos/6.3/isos/x86_64/CentOS-6.3-x86_64-minimal.iso",
@@ -378,12 +379,12 @@ Configuring cobbler to provision your OpenStack nodes (fuel-01, fuel-02, and fue
 
 Now you need to define nodes in cobbler configuration, so it knows what OS to install where and what configuration actions to take.
 
-On puppet master, create directory with configuration and copy example config file for Cobbler from Fuel repository:::
-mkdir cobbler_config
-cd cobbler_config
-ln -s ../fuel/deployment/puppet/cobbler/examples/cobbler_system.py .
-cp ../fuel/deployment/puppet/cobbler/examples/nodes.yaml .
+On puppet master, create directory with configuration and copy example config file for Cobbler from Fuel repository: ::
 
+    mkdir cobbler_config
+    cd cobbler_config
+    ln -s ../fuel/deployment/puppet/cobbler/examples/cobbler_system.py .
+    cp ../fuel/deployment/puppet/cobbler/examples/nodes.yaml .
 
 Edit configuration for bare metal provisioning of nodes (nodes.yaml):
 
