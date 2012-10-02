@@ -10,8 +10,9 @@ Puppet::Type.newtype(:nova_network) do
   # that determine uniqueness
   newparam(:network, :namevar => true) do
     desc "IPv4 Network (ie, 192.168.1.0/24)"
-    newvalues(/^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.0\/[0-9]{1,2}$/)
+    newvalues(/^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(\d|[1-2]\d|3[0-2]))$/)
   end
+#^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(\d|[1-2]\d|3[0-2]))$
 
   newparam(:label) do
     desc "The Nova network label"
