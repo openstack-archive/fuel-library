@@ -28,8 +28,10 @@ Network setup
 =============
 
 Every virtual machine will have 3 network adapters in Virtualbox:
+
 #. bridged - for internet access, so it can download packages
     * eth0 - every VM gets IP address through DHCP
+
 #. host-only adapter - for communication between Puppet master and Puppet clients, as well as PXE/DHCP for Cobbler
     * eth1 - every VM has a static IP address
     * IP addresses/network masks will be as follows
@@ -37,11 +39,13 @@ Every virtual machine will have 3 network adapters in Virtualbox:
         * 10.0.0.100 for puppet master
         * 10.0.0.101-10.0.0.104 for puppet clients
         * 255.255.255.0 network mask
+
 #. host-only adapter - for OpenStack VMs
     * eth2 - without IP address
     * promiscuous mode enabled
 
 So, before you start creating virtual machines, you should create the following host-only adapters in Virtualbox:
+
 * Virtualbox -> Preferences...
     * Network -> Add host-only network (vboxnet0)
         * IPv4 address: 10.0.0.1
@@ -73,7 +77,7 @@ VM Creation
         * Enable Network Adapter
         * Attached to: Host-only Adapter
         * Name: vboxnet0
-    * Third adapter is not really needed for Puppet master, as itÎéÎ÷s only required for OpenStack hosts and communication of tenant VMs.
+    * Third adapter is not really needed for Puppet master, as it's only required for OpenStack hosts and communication of tenant VMs.
 
 CentOS Installation
 ~~~~~~~~~~~~~~~~~~~
@@ -336,7 +340,7 @@ On puppet master:
     }
 
 * once the configuration is there, Puppet will know that Cobbler must be installed on fuel-pm machine
-* It is necessary to note that, in a proposed network configuration, the snippet above includes puppet commands to configure forwarding on cobbler node to make external resources available via 10.0.0.0/24 network which is used during installation process (see “enable_nat_all” and “enable_nat_filter”)
+* It is necessary to note that, in a proposed network configuration, the snippet above includes puppet commands to configure forwarding on cobbler node to make external resources available via 10.0.0.0/24 network which is used during installation process (see "enable_nat_all" and "enable_nat_filter")
 * run puppet agent to actually install Cobbler on fuel-pm
     * ``puppet agent --test``
 
@@ -345,7 +349,7 @@ Testing cobbler
 
 * you can check that Cobbler is successfully installed by opening the following URL from your host machine:
     * http://10.0.0.100/cobbler_web (u: cobbler, p: cobbler)
-* now you have a fully working instance of Cobbler. moreover, “centos63-x86_64” distro and “centos63-x86_64” profile were automatically installed in Cobbler, so that now Cobbler is capable of provisioning CentOS 6.3 on target nodes
+* now you have a fully working instance of Cobbler. moreover, "centos63-x86_64" distro and "centos63-x86_64" profile were automatically installed in Cobbler, so that now Cobbler is capable of provisioning CentOS 6.3 on target nodes
 
 
 Creating your OpenStack cluster
@@ -355,23 +359,28 @@ Creating VMs (fuel-01, fuel-02, and fuel-03)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Create three virtual machines for your OpenStack nodes in Virtualbox. Do not start them yet.
+
 * Machine -> New...
     * Name: fuel-01 (will need to repeat for fuel-02 and fuel-03)
     * Type: Linux
     * Version: Red Hat (64 Bit)
+
 * Machine -> Settings... -> Network
     * Adapter 1
         * Enable Network Adapter
         * Attached to: Bridged Adapter
         * Name: en1 (Wi-Fi Airport), or whatever interface where you have internet access 
+
     * Adapter 2
         * Enable Network Adapter
         * Attached to: Host-only Adapter
         * Name: vboxnet0
+
     * Adapter 3
         * Enable Network Adapter
         * Attached to: Host-only Adapter
         * Name: vboxnet1
+
     * Advanced -> Promiscuous mode: Allow All
 
 Configuring cobbler to provision your OpenStack nodes (fuel-01, fuel-02, and fuel-03)
@@ -389,7 +398,7 @@ On puppet master, create directory with configuration and copy example config fi
 Edit configuration for bare metal provisioning of nodes (nodes.yaml):
 
 * there is essentially a section for every node, and you have to define all nodes there (fuel-01, fuel-02 and fuel-03). the config for one node is posted below. config for the remaining two nodes is very similar
-* it’s important to get right the following parameters, they are different for every node (highlighted in bold below)
+* it's important to get right the following parameters, they are different for every node (highlighted in bold below)
     * name of the system in cobbler, in the very first line
     * hostname and DNS name
     * mac addresses for every network interface (you can look them up in Virtualbox, using Machine -> Settings... -> Network -> Adapters)
@@ -431,7 +440,7 @@ Edit configuration for bare metal provisioning of nodes (nodes.yaml):
     fuel-03:
         <the same configuration, with its own parameters for fuel-03>
 
-* for the sake of convenience there is “./cobbler_system.py” script, which reads definition of the systems from the yaml file and makes calls to cobbler API to insert these systems into the configuration. run it using the following command:
+* for the sake of convenience there is "./cobbler_system.py" script, which reads definition of the systems from the yaml file and makes calls to cobbler API to insert these systems into the configuration. run it using the following command:
     * ``./cobbler_system.py -f nodes.yaml -l DEBUG``
 
 Provisioning your OpenStack nodes using cobbler (fuel-01, fuel-02, and fuel-03)
@@ -440,14 +449,15 @@ Provisioning your OpenStack nodes using cobbler (fuel-01, fuel-02, and fuel-03)
 Now, when cobbler has correct configuration, the only thing you need to do is to PXE-boot your nodes. They will boot over network from DHCP/TFTP provided by cobbler and will be provisioned accordingly, with the right operating system and configuration.
 
 Here is what you have to do for every virtual machine (fuel-01, fuel-02 and fuel-03):
-* disable bridged network adapter by unchecking  “Machine -> Settings -> Network -> Enable Network Adapter” 
-    * the reason for that is --- by default, Virtualbox will attempt to use the first network interface for PXE-boot and it’s going to fail. we actually want our machines to PXE-boot from cobbler, which is on 10.0.0.100 (first host-only adapter). so the solution is to temporarily disable “bridged network adapter”
+
+* disable bridged network adapter by unchecking  "Machine -> Settings -> Network -> Enable Network Adapter" 
+    * the reason for that is --- by default, Virtualbox will attempt to use the first network interface for PXE-boot and it's going to fail. we actually want our machines to PXE-boot from cobbler, which is on 10.0.0.100 (first host-only adapter). so the solution is to temporarily disable "bridged network adapter"
 * Machine -> Start
-* press F12 during boot and select “l” (LAN) as a bootable media
+* press F12 during boot and select "l" (LAN) as a bootable media
 * once installation is complete
     * log into the machine (l: root, p: r00tme)
-    * perform shutdown using “``shutdown -H now``”
-* enable back bridged network adapter by checking  “Machine -> Settings -> Network -> Enable Network Adapter” 
+    * perform shutdown using "``shutdown -H now``"
+* enable back bridged network adapter by checking "Machine -> Settings -> Network -> Enable Network Adapter"
 * start the node using Virtualbox
 * check that network works correctly
     * ``ping www.google.com``
@@ -456,14 +466,15 @@ Here is what you have to do for every virtual machine (fuel-01, fuel-02 and fuel
 It is important to note that if you use VLANs in your network configuration you always have to keep in mind the fact that PXE booting does not work on tagged interfaces. Therefore, all your nodes including the one where cobbler service lives, must share one untagged VLAN (aka native VLAN). You can use dhcp_interface parameter of cobbler::server class to bind dhcp service to definite interface.
 
 Now, you have OS installed and configured on all nodes. Moreover, puppet is installed on the nodes as well and its configuration points to our puppet master. Therefore the nodes are almost ready for deploying OpenStack. Now, as the last step, you need to register nodes in puppet master:
+
 * ``puppet agent --test``
     * it will generate a certificate, send to puppet master for signing, and then fail
 * switch to puppet master and execute:
     * ``puppet cert list``
     * ``puppet cert sign --all``
-        * alternatively, you can sign only a single certificate using “puppet cert sign fuel-XX.mirantis.com”
+        * alternatively, you can sign only a single certificate using "puppet cert sign fuel-XX.mirantis.com"
 * ``puppet agent --test``
-    * it should successfully complete and result in “Hello World from fuel-XX” message
+    * it should successfully complete and result in "Hello World from fuel-XX" message
 
 Caveats:
 ~~~~~~~~
@@ -485,40 +496,43 @@ Installing OpenStack
 .. note:: <no changes are needed>
 
 * install OpenStack controller on fuel-01
-    * run “``puppet agent --test``” on fuel-01
+    * run "``puppet agent --test``" on fuel-01
     * wait for installation to complete
 * on fuel-02, execute:
-    * run “``puppet agent --test``” on fuel-02
+    * run "``puppet agent --test``" on fuel-02
     * wait for installation to complete
     * .. important:: it needs to be executed only after fuel-01 installation is complete, due to the nature of assembling MySQL cluster based on Galera
 
 Common issues
 =============
 
-#. Puppet fails with “err: Could not retrieve catalog from remote server: Error 400 on SERVER: undefined method 'fact_merge' for nil:NilClass”
+#. Puppet fails with "err: Could not retrieve catalog from remote server: Error 400 on SERVER: undefined method 'fact_merge' for nil:NilClass"
     * bug: http://projects.puppetlabs.com/issues/3234
-    * workaround: “service puppetmaster restart”
+    * workaround: "service puppetmaster restart"
 #. Puppet client will never resend certificate to puppet master. Certificate cannot be signed and verified.
     * bug: http://projects.puppetlabs.com/issues/4680
     * workaround:
-        * on puppet client: “``rm -f /etc/puppet/ssl/certificate_requests/\*.pem``”, and “``rm -f /etc/puppet/ssl/certs/\*.pem``”
-        * on puppet master: “``rm -f /var/lib/puppet/ssl/ca/requests/\*.pem``”
+        * on puppet client: "``rm -f /etc/puppet/ssl/certificate_requests/\*.pem``", and "``rm -f /etc/puppet/ssl/certs/\*.pem``"
+        * on puppet master: "``rm -f /var/lib/puppet/ssl/ca/requests/\*.pem``"
 
 #. My manifests are up to date under /etc/puppet/manifests, but puppet master keeps serving previous version of manifests to the clients. Manifests seem to be cached by puppet master.
     * issue: https://groups.google.com/forum/?fromgroups=#!topic/puppet-users/OpCBjV1nR2M
-    * workaround: “``service puppetmaster restart``”
-#. You may get timeout error for fuel-0x when running puppet-agent --test to install openstack when using HDD instead of SSD
-    * Sep 26 17:56:15 fuel-02 puppet-agent[1493]: Could not retrieve catalog from remote server: execution expired
-    Sep 26 17:56:15 fuel-02 puppet-agent[1493]: Not using cache on failed catalog
-    Sep 26 17:56:15 fuel-02 puppet-agent[1493]: Could not retrieve catalog; skipping run
+    * workaround: "``service puppetmaster restart``"
+#. You may get timeout error for fuel-0x when running "``puppet-agent --test``" to install openstack when using HDD instead of SSD
+    * | Sep 26 17:56:15 fuel-02 puppet-agent[1493]: Could not retrieve catalog from remote server: execution expired
+      | Sep 26 17:56:15 fuel-02 puppet-agent[1493]: Not using cache on failed catalog
+      | Sep 26 17:56:15 fuel-02 puppet-agent[1493]: Could not retrieve catalog; skipping run
+
     * workaround: ``vi /etc/puppet/puppet.conf``
         * add: ``configtimeout = 1200``
-#. while running "``puppet agent --test``" error messages below can occur:
-    * err: /File[/var/lib/puppet/lib]: Could not evaluate: Could not retrieve information from environment production source(s) puppet://fuel-pm.mirantis.com/plugins
+#. while running "``puppet agent --test``" error messages below can occurs:
+    * | err: /File[/var/lib/puppet/lib]: Could not evaluate: Could not retrieve information from environment production source(s) puppet://fuel-pm.mirantis.com/plugins
+
     and
-    err: Could not retrieve catalog from remote server: Error 400 on SERVER: stack level too deep
-    warning: Not using cache on failed catalog
-    err: Could not retrieve catalog; skipping run
+      | err: Could not retrieve catalog from remote server: Error 400 on SERVER: stack level too deep
+      | warning: Not using cache on failed catalog
+      | err: Could not retrieve catalog; skipping run
+
     * The first problem can be solved using the way discribed here http://projects.reductivelabs.com/issues/2244
     * The second problem can be solved by rebooting puppet-master
 
