@@ -263,14 +263,15 @@ You must load a complete copy of Fuel onto puppet master machine. The preferred 
 Installing & configuring cobbler (fuel-pm)
 ==========================================
 
-Cobbler is bare metal provisioning system which will perform initial installation of Linux on OpenStack nodes. Luckily, we already have a puppet master installed, so let’s install Cobbler through Puppet rather than doing it manually.
+Cobbler is bare metal provisioning system which will perform initial installation of Linux on OpenStack nodes. Luckily, we already have a puppet master installed, so let\'s install Cobbler through Puppet rather than doing it manually.
 
 Using puppet to install Cobbler
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 On puppet master:
+
 * ``vi /etc/puppet/manifests/site.pp``
-* copy the contents of “fuel/deployment/puppet/cobbler/examples/site.pp” into “/etc/puppet/manifests/site.pp”:::
+* copy the contents of "fuel/deployment/puppet/cobbler/examples/site.pp” into “/etc/puppet/manifests/site.pp”:::
 
     node /fuel-pm/ {
 
