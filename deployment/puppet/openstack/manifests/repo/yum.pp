@@ -27,7 +27,7 @@ class openstack::repo::yum (
     enabled  => 1,
     descr => $repo_name,
   }
-  if defined ($rhel_location) {
+  if ($rhel_location) {
     yumrepo {'rhel-local':
       baseurl  => $rhel_location,
       gpgcheck => 0,
