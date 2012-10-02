@@ -67,6 +67,7 @@ $openstack_version = {
 $admin_email          = 'dan@example_company.com'
 $keystone_db_password = 'keystone_db_password'
 $keystone_admin_token = 'keystone_token'
+$admin_user           = 'admin'
 $admin_password       = 'admin_password'
 
 $swift_user_password  = 'swift_pass'
@@ -177,7 +178,7 @@ $swift_local_net_ip,
 ) {
 
   # create xfs partitions on a loopback device and mount them
-  swift::storage::loopback { ['1', '2']:
+  swift::storage::loopback { ['dev1', 'dev2']:
     base_dir     => '/srv/loopback-device',
     mnt_base_dir => '/srv/node',
     require      => Class['swift'],
@@ -191,19 +192,19 @@ $swift_local_net_ip,
   # specify endpoints per device to be added to the ring specification
   @@ring_object_device { "${swift_local_net_ip}:6000":
     zone        => $swift_zone,
-    mountpoints  => $swift_mountpoint,
+    mountpoints  => $swift_mountpoints,
   }
 
 
   @@ring_container_device { "${swift_local_net_ip}:6001":
     zone        => $swift_zone,
-    mountpoints  => $swift_mountpoint,
+    mountpoints  => $swift_mountpoints,
   }
 
   # TODO should device be changed to volume
   @@ring_account_device { "${swift_local_net_ip}:6002":
     zone        => $swift_zone,
-    mountpoints  => $swift_mountpoint,
+    mountpoints  => $swift_mountpoints,
   }
 
 
@@ -264,9 +265,9 @@ node /fuel-01/ inherits swift_base {
     operator_roles => ['admin', 'SwiftOperator'],
   }
   class { 'swift::proxy::authtoken':
-    admin_user        => 'swift',
+    admin_user        => $admin_user,
     admin_tenant_name => 'openstack',
-    admin_password    => $swift_user_password,
+    admin_password    => $admin_password,
     # assume that the controller host is the swift api server
     auth_host         => $controller_node_public,
   }
