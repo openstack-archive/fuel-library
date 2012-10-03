@@ -5,7 +5,7 @@ import devops
 from devops.model import Environment, Network, Node, Disk, Interface
 from devops.helpers import tcp_ping, wait, ssh, http_server, os
 from helpers import load
-from settings import NODES
+from settings import NODES, controllers, computes
 from root import root
 
 logger = logging.getLogger('ci')
@@ -47,7 +47,7 @@ class Ci:
     def sign_all_node_certificates(self, remote):
         remote.sudo.ssh.execute('puppet cert sign --all')
 
-    def wait_for_certificates(self, remote):
+    def request_cerificate(self, remote):
         remote.sudo.ssh.execute('puppet agent --waitforcert 0')
 
     def switch_off_ip_tables(self, remote):
@@ -64,7 +64,6 @@ class Ci:
         remote.sudo.ssh.execute('gem uninstall activerecord')
         remote.sudo.ssh.execute('gem install activerecord -v 3.0.10')
         remote.sudo.ssh.execute('setenforce 0')
-
 
     def change_host_name(self, remote, short, long):
         remote.sudo.ssh.execute('hostname %s' % long)
@@ -102,10 +101,10 @@ class Ci:
         environment.nodes.append(master)
         keystone = self.describe_node('keystone', [internal, private, public])
         environment.nodes.append(keystone)
-        for node_name in NODES[:2]:
+        for node_name in controllers:
             client = self.describe_node(node_name, [internal, private, public])
             environment.nodes.append(client)
-        for node_name in NODES[2:4]:
+        for node_name in computes:
             client = self.describe_node(
                 node_name, [internal, private, public], memory=4096)
             environment.nodes.append(client)
@@ -118,6 +117,29 @@ class Ci:
     def add_nodes_to_hosts(self, remote, nodes):
         for node in nodes:
             self.add_to_hosts(remote, node.ip_address, node.name, node.name)
+
+    def setup_mater_node(self, master_remote, nodes):
+        self.setup_puppet_master_yum(master_remote)
+        self.add_nmap_yum(master_remote)
+        self.switch_off_ip_tables(master_remote)
+        master_config = load(
+            root('fuel', 'fuel_test', 'config', 'puppet.master.config'))
+        write_config(master_remote, '/etc/puppet/puppet.conf', master_config)
+        self.start_puppet_master(master_remote)
+        self.add_nodes_to_hosts(master_remote, nodes)
+
+    def setup_agent_nodes(self, nodes):
+        agent_config = load(
+            root('fuel', 'fuel_test', 'config', 'puppet.agent.config'))
+        for node in nodes:
+            if node.name != 'master':
+                remote = ssh(
+                    node.ip_address, username='root',
+                    password='r00tme')
+                self.add_nodes_to_hosts(remote, nodes)
+                self.setup_puppet_client_yum(remote)
+                write_config(remote, '/etc/puppet/puppet.conf', agent_config)
+                self.request_cerificate(remote)
 
     def setup_environment(self):
         if not self.base_image:
@@ -144,20 +166,8 @@ class Ci:
             logger.info("Renamed %s" % node.name)
         master_node = environment.node['master']
         master_remote = ssh(master_node.ip_address, username='root', password='r00tme')
-        self.setup_puppet_master_yum(master_remote)
-        self.add_nmap_yum(master_remote)
-        self.switch_off_ip_tables(master_remote)
-        master_config = load(root('fuel', 'fuel_test', 'config', 'puppet.master.config'))
-        write_config(master_remote, '/etc/puppet/puppet.conf', master_config)
-        self.start_puppet_master(master_remote)
-        agent_config = load(root('fuel', 'fuel_test', 'config', 'puppet.agent.config'))
-        for node in environment.nodes:
-            remote = ssh(node.ip_address, username='root', password='r00tme')
-            self.add_nodes_to_hosts(remote, environment.nodes)
-            if node.name != 'master':
-                self.setup_puppet_client_yum(remote)
-                write_config(remote, '/etc/puppet/puppet.conf', agent_config)
-                self.wait_for_certificates(remote)
+        self.setup_mater_node(master_remote, environment.nodes)
+        self.setup_agent_nodes(environment.nodes)
         sleep(5)
         self.sign_all_node_certificates(master_remote)
         sleep(5)

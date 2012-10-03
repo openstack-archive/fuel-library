@@ -1,10 +1,13 @@
 from devops.helpers import ssh
+from ci import get_environment
 from helpers import tempest_create_user, tempest_write_config, tempest_add_images, tempest_create_tenant, tempest_share_glance_images, tempest_mount_glance_images
 from openstack_site_pp_base import OpenStackSitePPBaseTestCase
 import unittest
+from settings import NODES
 
 class PrepareTempest(OpenStackSitePPBaseTestCase):
     def setUp(self):
+        self.environment = get_environment()
         self.controller1 = self.environment.node[NODES[0]]
         self.controller2 = self.environment.node[NODES[1]]
 

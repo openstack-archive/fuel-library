@@ -1,7 +1,7 @@
 from devops.helpers import ssh
 from base import RecipeTestCase
 from helpers import execute
-from settings import NODES
+from settings import NODES, controllers, computes
 from root import root
 
 import unittest
@@ -10,10 +10,10 @@ class OpenStackSitePPBaseTestCase(RecipeTestCase):
 
     def setUp(self):
         super(OpenStackSitePPBaseTestCase, self).setUp()
-        self.controller1 = self.environment.node[NODES[0]]
-        self.controller2 = self.environment.node[NODES[1]]
-        self.compute1 = self.environment.node[NODES[2]]
-        self.compute2 = self.environment.node[NODES[3]]
+        self.controller1 = self.environment.node[controllers[0]]
+        self.controller2 = self.environment.node[controllers[1]]
+        self.compute1 = self.environment.node[computes[0]]
+        self.compute2 = self.environment.node[computes[1]]
 
     def get_internal_virtual_ip(self):
         return self.environment.network['internal'].ip_addresses[-3]
