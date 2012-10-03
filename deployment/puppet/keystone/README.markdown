@@ -55,7 +55,6 @@ for example:
       password => 'keystone',
     }
 
-
 ### setting up a keystone mysql db ###
 
   A keystone mysql database can be configured separately from
@@ -73,7 +72,6 @@ for example:
       user     => 'keystone',
       password => 'keystone_password',
     }
-    
 
 ### setting up a keystone postgresql db ###
 
@@ -106,9 +104,11 @@ for example:
     - keystone_service
     - keystone_endpoint
 
-  These types will only work on an actualy keystone node (and they read keystone.conf
+  These types will only work on an actual keystone node (and they read keystone.conf
   to figure out the admin port and admin token, which is kind of hacky, but the best
   way I could think of.)
+
+    - keystone_config - manages individual config file entries as resources.
 
 ### examples ###
 
