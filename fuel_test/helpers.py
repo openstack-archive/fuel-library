@@ -58,7 +58,7 @@ def extract_virtual_ips(ipaout):
     pattern = '(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}).*(eth\d{1,}):keepalived'
     return dict((v,k) for k, v in re.findall(pattern, ipaout))
 
-def build_tempest_config(host='', image_ref='', image_ref_alt=''):
+def tempest_build_config(host, image_ref, image_ref_alt):
     sample = load(root('fuel', 'fuel_test', 'config', 'tempest.conf.sample'))
     config = sample % {
         'HOST': host,
@@ -76,7 +76,11 @@ def build_tempest_config(host='', image_ref='', image_ref_alt=''):
         }
     return config
 
-def create_users(remote, name, password, tenant, host):
+def tempest_write_config(host, image_ref, image_ref_alt):
+    with open(root('tempest.conf'), 'w') as f:
+        f.write(tempest_build_config(host, image_ref, image_ref_alt))
+
+def tempest_create_user(remote, host, name, password, tenant):
     auth_url = 'http://%s:5000/v2.0/' % host
     credentials = '--os-username nova --os_password admin --os_auth_url %s' % auth_url
     result = execute(remote, 'keystone %s tenant-list' % credentials)
@@ -84,7 +88,7 @@ def create_users(remote, name, password, tenant, host):
     print tenant_id
     execute(remote, 'keystone create-user --name %s --pass %s --tenant_id %s '  %(name, password, tenant_id))
 
-def add_images(remote):
+def tempest_add_images(remote):
     execute(remote, 'wget https://launchpad.net/cirros/trunk/0.3.0/+download/cirros-0.3.0-x86_64-disk.img')
     result = execute(remote, 'glance add name=cirros_0.3.0 is_public=true container_format=bare disk_format=qcow2 < cirros-0.3.0-x86_64-disk.img')
     image_ref = re.findall(pattern='Added new image with ID: (\S*)', string='\n'.join(result['stdout']))
