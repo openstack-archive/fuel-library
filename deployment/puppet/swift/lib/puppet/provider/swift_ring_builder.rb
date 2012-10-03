@@ -41,11 +41,10 @@ class Puppet::Provider::SwiftRingBuilder < Puppet::Provider
   end
 
   def exists?
-    #notice("vailable_devs.keys.sort.inspect #{available_devs.keys.sort.inspect}")
+    notice("available_devs.keys.sort.inspect #{available_devs.keys.sort.inspect}")
     #notice("used_devs #{used_devs.inspect}")
-    !available_devs.empty? or !used_devs.empty?
-    #return  available_devs.keys.sort == used_devs
-    #ring[resource[:name]]
+    #return false
+    return  available_devs.keys.sort == used_devs
   end
 
   def create
@@ -107,6 +106,8 @@ class Puppet::Provider::SwiftRingBuilder < Puppet::Provider
   end
 
   def zone
+    notice("resource[:name] #{resource[:name]}")
+    notice("ring.keys.inspect #{ring.keys.inspect}")
     ring[resource[:name]][:zone]
   end
 
