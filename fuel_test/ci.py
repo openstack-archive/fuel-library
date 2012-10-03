@@ -4,6 +4,7 @@ import traceback
 import devops
 from devops.model import Environment, Network, Node, Disk, Interface
 from devops.helpers import tcp_ping, wait, ssh, http_server, os
+from helpers import load
 from settings import NODES
 from root import root
 
@@ -35,7 +36,7 @@ class Ci:
 
     def setup_puppet_client_yum(self, remote):
         self.add_puppetlab_repo(remote)
-        remote.sudo.ssh.execute('yum -y install puppet')
+        remote.sudo.ssh.execute('yum -y install puppet-2.7.19')
 
     def start_puppet_master(self, remote):
         remote.sudo.ssh.execute('puppet resource service puppetmaster ensure=running enable=true')
@@ -54,7 +55,18 @@ class Ci:
 
     def setup_puppet_master_yum(self, remote):
         self.add_puppetlab_repo(remote)
-        remote.sudo.ssh.execute('yum -y install puppet-server')
+        remote.sudo.ssh.execute('yum -y install puppet-server-2.7.19 mysql mysql-server mysql-devel rubygems ruby-devel make gcc')
+        remote.sudo.ssh.execute('gem install rails')
+        remote.sudo.ssh.execute('gem install mysql')
+        remote.sudo.ssh.execute('chkconfig mysql on')
+        remote.sudo.ssh.execute('service mysqld start')
+        remote.sudo.ssh.execute('mysql -u root -e "create database puppet; grant all privileges on puppet.* to puppet@localhost identified by \'password\'; "')
+        remote.sudo.ssh.execute('gem uninstall activerecord')
+        remote.sudo.ssh.execute('gem install activerecord -v 3.0.10')
+        remote.sudo.ssh.execute('setenforce 0')
+
+
+
 
     def change_host_name(self, remote, short, long):
         remote.sudo.ssh.execute('hostname %s' % long)
@@ -126,24 +138,19 @@ class Ci:
             wait(lambda: tcp_ping(node.ip_address, 22), timeout=1800)
         for node in environment.nodes:
             remote = ssh(node.ip_address, username='root', password='r00tme')
-            remote.reconnect()
             self.change_host_name(remote, node.name, node.name)
             logger.info("Renamed %s" % node.name)
         master_node = environment.node['master']
         master_remote = ssh(master_node.ip_address, username='root', password='r00tme')
-        master_remote.reconnect()
         self.setup_puppet_master_yum(master_remote)
         self.add_nmap_yum(master_remote)
         self.switch_off_ip_tables(master_remote)
-        with open(root('fuel', 'fuel_test', 'config', 'puppet.master.config')) as f:
-            master_config = f.read()
+        master_config = load(root('fuel', 'fuel_test', 'config', 'puppet.master.config'))
         write_config(master_remote, '/etc/puppet/puppet.conf', master_config)
         self.start_puppet_master(master_remote)
-        with open(root('fuel', 'fuel_test', 'config', 'puppet.agent.config')) as f:
-            agent_config = f.read()
+        agent_config = load(root('fuel', 'fuel_test', 'config', 'puppet.agent.config'))
         for node in environment.nodes:
             remote = ssh(node.ip_address, username='root', password='r00tme')
-            remote.reconnect()
             for node in environment.nodes:
                 self.add_to_hosts(remote, node.ip_address, node.name, node.name)
             if node.name != 'master':
