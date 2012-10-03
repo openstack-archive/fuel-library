@@ -51,7 +51,7 @@ build_interval = 10
 
 # Number of seconds to time out on waiting for an instance or volume
 # to build or reach an expected status
-build_timeout = 600
+build_timeout = 180
 
 # The type of endpoint for a Compute API service. Unless you have a
 # custom Keystone service catalog implementation, you probably want to leave
