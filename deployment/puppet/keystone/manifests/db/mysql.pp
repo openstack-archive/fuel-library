@@ -39,6 +39,8 @@ class keystone::db::mysql(
   $allowed_hosts = undef
 ) {
 
+  Class['mysql::server']       -> Class['keystone::db::mysql']
+  Class['keystone::db::mysql'] -> Exec<|    title == 'keystone-manage db_sync' |>
   Class['keystone::db::mysql'] -> Service<| title == 'keystone' |>
 
   require 'mysql::python'
