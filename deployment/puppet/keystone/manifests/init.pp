@@ -67,6 +67,16 @@ class keystone(
 
   include 'keystone::params'
 
+  File {
+    ensure  => present,
+    owner   => 'keystone',
+    group   => 'keystone',
+    mode    => '0644',
+    require => Package['keystone'],
+    notify  => Service['keystone'],
+  }
+
+
   package { 'keystone':
     name   => $::keystone::params::package_name,
     ensure => $package_ensure,
@@ -85,12 +95,8 @@ class keystone(
     require => Package['keystone'],
   }
 
-  file { '/etc/keystone':
+  file { ['/etc/keystone', '/var/log/keystone', '/var/lib/keystone']:
     ensure  => directory,
-    owner   => 'keystone',
-    group   => 'keystone',
-    mode    => 0755,
-    require => Package['keystone']
   }
 
   file { '/etc/keystone/keystone.conf':
