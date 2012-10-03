@@ -19,6 +19,7 @@ class Puppet::Provider::Keystone < Puppet::Provider
   end
 
   def self.get_admin_endpoint
+    admin_port = keystone_file['DEFAULT']['admin_port'] ? keystone_file['DEFAULT']['admin_port'].strip : '35357'
     if keystone_file and keystone_file['DEFAULT'] and keystone_file['DEFAULT']['bind_host']
       host = keystone_file['DEFAULT']['bind_host'].strip
       if host == "0.0.0.0"
@@ -27,7 +28,7 @@ class Puppet::Provider::Keystone < Puppet::Provider
     else
       host = "127.0.0.1"
     end
-    "http://#{host}:#{keystone_file['DEFAULT']['admin_port'].strip}/v2.0/"
+    "http://#{host}:#{admin_port}/v2.0/"
   end
 
   def self.keystone_file
@@ -77,7 +78,8 @@ class Puppet::Provider::Keystone < Puppet::Provider
       list
     end
     def self.get_keystone_object(type, id, attr)
-      auth_keystone("#{type}-get", id).split(/\|\n/m).each do |line|  
+      id = id.chomp
+      auth_keystone("#{type}-get", id).split(/\|\n/m).each do |line|
         if line =~ /\|(\s+)?#{attr}(\s+)?\|/
           if line.kind_of?(Array)
             return line[0].split("|")[2].strip
@@ -87,7 +89,7 @@ class Puppet::Provider::Keystone < Puppet::Provider
         else
           nil
         end
-      end 
+      end
       raise(Puppet::Error, "Could not find colummn #{attr} when getting #{type} #{id}")
-    end 
+    end
 end

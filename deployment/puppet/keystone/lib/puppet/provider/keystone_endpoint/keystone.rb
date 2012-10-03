@@ -54,7 +54,7 @@ Puppet::Type.type(:keystone_endpoint).provide(
 
     auth_keystone(
       'endpoint-create',
-      '--service', service_id,
+      '--service-id', service_id,
       optional_opts
     )
   end

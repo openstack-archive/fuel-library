@@ -123,11 +123,11 @@ Puppet::Type.type(:keystone_user).provide(
         tenantId = get_keystone_object('user', user[0], 'tenantId')
         tenant   = tenantId == 'None' ? 'None' : get_keystone_object('tenant', tenantId, 'name')
         password = 'nil'
-        hash[user[3]] = {
+        hash[user[1]] = {
           :id          => user[0],
-          :enabled     => user[1],
-          :email       => user[2],
-          :name        => user[3],
+          :enabled     => user[2],
+          :email       => user[3],
+          :name        => user[1],
           :password    => password,
           :tenant      => tenant
         }
