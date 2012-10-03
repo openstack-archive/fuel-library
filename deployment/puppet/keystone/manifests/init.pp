@@ -55,7 +55,6 @@ class keystone(
 ) {
 
   validate_re($catalog_type,   'template|sql')
-  validate_re($sql_connection, '(mysql|postgresql|sqlite):\/\/(\S+:\S+@\S+\/\S+)?')
 
   File['/etc/keystone/keystone.conf'] -> Keystone_config<||> ~> Service['keystone']
   Keystone_config<||> -> Exec['keystone-manage db_sync']
@@ -112,6 +111,19 @@ class keystone(
     'DEFAULT/compute_port': value => $compute_port;
     'DEFAULT/verbose':      value => $log_verbose;
     'DEFAULT/debug':        value => $log_debug;
+  }
+
+  if($sql_connection =~ /mysql:\/\/\S+:\S+@\S+\/\S+/) {
+    package { 'python-mysqldb':
+      ensure => present,
+      before => Exec['keystone-manage db_sync'],
+    }
+  } elsif($sql_connection =~ /postgresql:\/\/\S+:\S+@\S+\/\S+/) {
+
+  } elsif($sql_connection =~ /sqlite:\/\//) {
+
+  } else {
+    fail("Invalid db connection ${sql_connection}")
   }
 
   # db connection config
