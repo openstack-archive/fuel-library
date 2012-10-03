@@ -83,7 +83,7 @@ def tempest_write_config(host, image_ref, image_ref_alt):
 
 def credentials(auth_host):
     auth_url = 'http://%s:5000/v2.0/' % auth_host
-    return '--os_username nova --os_password admin --os_auth_url %s' % auth_url
+    return '--os_username admin --os_password nova --os_auth_url %s' % auth_url
 
 def keystone_command(auth_host):
     return 'keystone ' + credentials(auth_host) + ' '
