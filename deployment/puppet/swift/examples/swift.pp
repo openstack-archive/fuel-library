@@ -21,6 +21,9 @@
 # this site manifest serves as an example of how to
 # deploy various swift environments
 
+#swift test with keystone:
+# swift -U services:swift -K swift_pass -A http://127.0.0.1:35357/v2.0 -V 2.0 stat
+
 $admin_email          = 'dan@example_company.com'
 $keystone_db_password = 'keystone_db_password'
 $keystone_admin_token = 'keystone_token'
@@ -40,7 +43,7 @@ $verbose                = true
 # This node can be used to deploy a keystone service.
 # This service only contains the credentials for authenticating
 # swift
-class testkeystone {
+node keystone {
   # set up mysql server
   class { 'mysql::server':
     config_hash => {
@@ -172,8 +175,6 @@ $swift_local_net_ip,
 
 
 node /swift-proxy/ inherits swift_base {
-
-  class{'testkeystone':}
 
   # curl is only required so that I can run tests
   package { 'curl': ensure => present }
