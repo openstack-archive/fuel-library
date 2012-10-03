@@ -1,6 +1,7 @@
 import logging
 import re
 from root import root
+from settings import controllers
 
 def execute(remote, command):
     chan, stdin, stderr, stdout = execute_async(remote, command)
@@ -112,10 +113,10 @@ def tempest_add_images(remote, auth_host):
     return image_ref, image_ref_any
 
 def tempest_share_glance_images(remote, network):
-    execute(remote, 'echo /var/lib/glance/images %s(rw,no_root_squash) >> /etc/exports' % network)
+    execute(remote, 'echo "/var/lib/glance/images %s(rw,no_root_squash)" >> /etc/exports' % network)
     execute(remote, '/etc/init.d/nfs start')
 
 def tempest_mount_glance_images(remote):
-    execute(remote, 'mount controller1:/var/lib/glance/images /var/lib/glance/images -o vers=3 start')
+    execute(remote, 'mount %s:/var/lib/glance/images /var/lib/glance/images -o vers=3' % controllers[0])
 
 
