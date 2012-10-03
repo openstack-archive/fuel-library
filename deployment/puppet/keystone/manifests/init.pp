@@ -49,11 +49,14 @@ class keystone(
   $log_debug      = 'False',
   $use_syslog     = 'False',
   $catalog_type   = 'sql',
-  $backend_driver = 'keystone.token.backends.kvs.Token',
-  $enabled        = true
+  $enabled        = true,
+  $sql_connection = 'sqlite:////var/lib/keystone/keystone.db',
+  $idle_timeout   = '200'
 ) {
 
-  validate_re($catalog_type, 'template|sql')
+  validate_re($catalog_type,   'template|sql')
+  validate_re($sql_connection, '(mysql|postgresql|sqlite):\/\/(\S+:\S+@\S+\/\S+)?')
+
   File['/etc/keystone/keystone.conf'] -> Keystone_config<||> ~> Service['keystone']
   Keystone_config<||> -> Exec['keystone-manage db_sync']
 
