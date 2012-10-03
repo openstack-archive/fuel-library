@@ -15,18 +15,34 @@ class OpenStackSitePPBaseTestCase(RecipeTestCase):
         self.compute1 = self.environment.node[NODES[2]]
         self.compute2 = self.environment.node[NODES[3]]
 
-    def write_tempest_config(self):
-        pass
+    def get_internal_virtual_ip(self):
+        return self.environment.network['internal'].ip_addresses[-3]
+
+    def get_public_virtual_ip(self):
+        return self.environment.network['public'].ip_addresses[-3]
+
+    def get_floating_network(self):
+        return '.'.join(
+            str(self.environment.network['public'].ip_addresses[-1]).split(
+                '.')[:-1])+'.128/27'
+
+    def get_fixed_network(self):
+        return '.'.join(
+            str(self.environment.network['private'].ip_addresses[-1]).split(
+                '.')[:-1])+'.128/27'
+
+    def get_internal_network(self):
+        network = self.environment.network['internal']
+        return str(network.ip_addresses[1]) +'/' + str(network.ip_addresses.prefixlen)
 
     def write_openstack_sitepp(self, node01, node02):
-        internal_virtual_ip = self.environment.network['internal'].ip_addresses[
-                              -3]
-        public_virtual_ip = self.environment.network['public'].ip_addresses[-3]
         self.write_site_pp_manifest(
             root('fuel', 'deployment', 'puppet', 'openstack', 'examples',
                 'site.pp'),
-            internal_virtual_ip="'%s'" % internal_virtual_ip,
-            public_virtual_ip="'%s'" % public_virtual_ip,
+            internal_virtual_ip="'%s'" % self.get_internal_virtual_ip(),
+            public_virtual_ip="'%s'" % self.get_public_virtual_ip(),
+            floating_range = "'%s'" % self.get_floating_network(),
+            fixed_range = "'%s'" % self.get_fixed_network(),
             master_hostname="'%s'" % node01.name,
             controller_public_addresses=[
                 "%s" % node01.ip_address_by_network['public'],

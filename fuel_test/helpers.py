@@ -80,21 +80,42 @@ def tempest_write_config(host, image_ref, image_ref_alt):
     with open(root('tempest.conf'), 'w') as f:
         f.write(tempest_build_config(host, image_ref, image_ref_alt))
 
-def tempest_create_user(remote, host, name, password, tenant):
-    auth_url = 'http://%s:5000/v2.0/' % host
-    credentials = '--os-username nova --os_password admin --os_auth_url %s' % auth_url
-    result = execute(remote, 'keystone %s tenant-list' % credentials)
-    tenant_id = re.findall(pattern='\s+(\S*)\s+.*%s' % tenant, string='\n'.join(result['stdout']))
-    print tenant_id
-    execute(remote, 'keystone create-user --name %s --pass %s --tenant_id %s '  %(name, password, tenant_id))
+def credentials(auth_host):
+    auth_url = 'http://%s:5000/v2.0/' % auth_host
+    return '--os-username nova --os_password admin --os_auth_url %s' % auth_url
 
-def tempest_add_images(remote):
+def keystone_command(auth_host):
+    return 'keystone ' + credentials(auth_host) + ' '
+
+def glance_command(auth_host):
+    return 'glance ' + credentials(auth_host) + ' '
+
+def tempest_create_user(remote, auth_host, name, password, tenant_id):
+    execute(remote, keystone_command(auth_host) +' create-user --name %s --pass %s --tenant_id %s '  %(name, password, tenant_id))
+
+def tempest_create_tenant(remote, auth_host, name):
+    pattern='id.*\|\s+(\S*)\s+.*'
+    result = execute(remote, keystone_command(auth_host) + 'tenant-create --name %s' % name)
+    tenant_id = re.findall(pattern, string='\n'.join(result['stdout']))
+    print tenant_id
+    return tenant_id
+
+def tempest_add_images(remote, auth_host):
     execute(remote, 'wget https://launchpad.net/cirros/trunk/0.3.0/+download/cirros-0.3.0-x86_64-disk.img')
     result = execute(remote, 'glance add name=cirros_0.3.0 is_public=true container_format=bare disk_format=qcow2 < cirros-0.3.0-x86_64-disk.img')
-    image_ref = re.findall(pattern='Added new image with ID: (\S*)', string='\n'.join(result['stdout']))
+    pattern = 'Added new image with ID: (\S*)'
+    image_ref = re.findall(pattern, string='\n'.join(result['stdout']))
     print image_ref
-    execute(remote, 'glance add name=cirros_0.3.0 is_public=true container_format=bare disk_format=qcow2 < cirros-0.3.0-x86_64-disk.img')
-    image_ref_any = re.findall(pattern='Added new image with ID: (\S*)', string='\n'.join(result['stdout']))
+    execute(remote, glance_command(auth_host) + 'add name=cirros_0.3.0 is_public=true container_format=bare disk_format=qcow2 < cirros-0.3.0-x86_64-disk.img')
+    image_ref_any = re.findall(pattern, string='\n'.join(result['stdout']))
     print image_ref_any
     return image_ref, image_ref_any
+
+def tempest_share_glance_images(remote, network):
+    execute(remote, 'echo /var/lib/glance/images %s(rw,no_root_squash) >> /etc/exports' % network)
+    execute(remote, '/etc/init.d/nfs start')
+
+def tempest_mount_glance_images(remote):
+    execute(remote, 'mount controller1:/var/lib/glance/images /var/lib/glance/images -o vers=3 start')
+
 
