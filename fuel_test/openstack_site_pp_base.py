@@ -6,61 +6,17 @@ from root import root
 
 import unittest
 
-class OpenStackSitePPCase(RecipeTestCase):
+class OpenStackSitePPBaseTestCase(RecipeTestCase):
 
     def setUp(self):
-        super(OpenStackSitePPCase, self).setUp()
+        super(OpenStackSitePPBaseTestCase, self).setUp()
         self.controller1 = self.environment.node[NODES[0]]
         self.controller2 = self.environment.node[NODES[1]]
         self.compute1 = self.environment.node[NODES[2]]
         self.compute2 = self.environment.node[NODES[3]]
 
-    def test_deploy_nova_compute(self):
-        self.validate(
-            [self.compute1,],
-            'puppet agent --test --tags openstack::repo::yum,%s' % "nova::compute")
-
-    def test_deploy_nova_api_compute(self):
-        self.validate(
-            [self.compute1,],
-            'puppet agent --test --tags openstack::repo::yum,%s' % "nova::api")
-
-    def test_deploy_nova_api_controller(self):
-        self.validate(
-            [self.controller1,],
-            'puppet agent --test --tags openstack::repo::yum,%s' % "nova::api")
-
-    def test_deploy_nova_network(self):
-        self.validate(
-            [self.compute1, ],
-            'puppet agent --test --tags openstack::repo::yum,%s' % "nova::network")
-
-    def test_deploy_nova_consoleauth(self):
-        self.validate(
-            [self.controller1, self.controller2],
-            'puppet agent --test --tags openstack::repo::yum,%s' % "nova::consoleauth")
-
-
-    def test_deploy_nova_rabbitmq(self):
-        self.validate(
-            [self.controller1, self.controller2],
-            'puppet agent --test --tags openstack::repo::yum,%s' % "nova::rabbitmq")
-
-    def test_deploy_nova_utilities(self):
-        self.validate(
-            [self.compute1, ],
-            'puppet agent --test --tags openstack::repo::yum,%s' % "nova::utilities")
-
-    def test_deploy_nova_vncproxy(self):
-        self.validate(
-            [self.controller1, ],
-            'puppet agent --test --tags openstack::repo::yum,%s' % "nova::vncproxy")
-
-    def test_deploy_nova_volume(self):
-        self.validate(
-            [self.compute1, ],
-            'puppet agent --test --tags openstack::repo::yum,%s' % "nova::volume")
-
+    def write_tempest_config(self):
+        pass
 
     def write_openstack_sitepp(self, node01, node02):
         internal_virtual_ip = self.environment.network['internal'].ip_addresses[
@@ -104,3 +60,4 @@ class OpenStackSitePPCase(RecipeTestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
