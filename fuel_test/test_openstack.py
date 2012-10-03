@@ -8,6 +8,5 @@ class OpenStackCase(OpenStackSitePPBaseTestCase):
             [self.controller1,self.controller2,self.compute1,self.compute2],
             'puppet agent --test')
 
-
 if __name__ == '__main__':
     unittest.main()
