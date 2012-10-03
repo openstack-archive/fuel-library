@@ -5,7 +5,8 @@ import unittest
 
 class PrepareTempest(OpenStackSitePPBaseTestCase):
     def setUp(self):
-        pass
+        self.controller1 = self.environment.node[NODES[0]]
+        self.controller2 = self.environment.node[NODES[1]]
 
     def prepare_for_tempest(self):
         host = self.get_public_virtual_ip()
