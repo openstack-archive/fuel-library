@@ -4,7 +4,7 @@ import unittest
 from devops.helpers import ssh, os
 import re
 from ci import get_environment, write_config
-from helpers import load
+from helpers import load, execute
 from root import root
 
 class RecipeTestCase(unittest.TestCase):
@@ -15,6 +15,7 @@ class RecipeTestCase(unittest.TestCase):
         self.revert_snapshot()
         self.master_remote = ssh(master.ip_address, username='root', password='r00tme')
         self.upload_recipes()
+        self.restart_puppet_muster()
 
     def upload_recipes(self):
         recipes_dir = root('fuel','deployment','puppet')
@@ -61,3 +62,6 @@ class RecipeTestCase(unittest.TestCase):
             if line.find('warning: ') !=-1:
                 warnings.append(line)
         return errors, warnings
+
+    def restart_puppet_muster(self):
+        execute(self.master_remote, 'service puppetmaster restart')
