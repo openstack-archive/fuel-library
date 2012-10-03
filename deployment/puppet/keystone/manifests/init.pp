@@ -39,11 +39,11 @@
 # Copyright 2012 Puppetlabs Inc, unless otherwise noted.
 #
 class keystone(
+  $admin_token    = 'service_token',
   $package_ensure = 'present',
   $bind_host      = '0.0.0.0',
   $public_port    = '5000',
   $admin_port     = '35357',
-  $admin_token    = 'service_token',
   $compute_port   = '3000',
   $log_verbose    = 'False',
   $log_debug      = 'False',
@@ -54,6 +54,8 @@ class keystone(
 ) {
 
   validate_re($catalog_type, 'template|sql')
+  File['/etc/keystone/keystone.conf'] -> Keystone_config<||> ~> Service['keystone']
+  Keystone_config<||> -> Exec['keystone-manage db_sync']
 
   # TODO implement syslog features
   if ( $use_syslog != 'False') {
@@ -61,7 +63,6 @@ class keystone(
   }
 
   include 'keystone::params'
-  include 'concat::setup'
 
   package { 'keystone':
     name   => $::keystone::params::package_name,
@@ -89,49 +90,39 @@ class keystone(
     require => Package['keystone']
   }
 
-  concat { '/etc/keystone/keystone.conf':
-    owner   => 'keystone',
-    group   => 'keystone',
+  file { '/etc/keystone/keystone.conf':
     mode    => '0600',
-    require => Package['keystone'],
-    notify  => Service['keystone'],
   }
 
-  # config sections
-  keystone::config { 'DEFAULT':
-    config => {
-      'bind_host'    => $bind_host,
-      'public_port'  => $public_port,
-      'admin_port'   => $admin_port,
-      'admin_token'  => $admin_token,
-      'compute_port' => $compute_port,
-      'log_verbose'  => $log_verbose,
-      'log_debug'    => $log_debug,
-      'use_syslog'   => $use_syslog,
-    },
-    order  => '00',
+  # default config
+  keystone_config {
+    'DEFAULT/admin_token':  value => $admin_token;
+    'DEFAULT/bind_host':    value => $bind_host;
+    'DEFAULT/public_port':  value => $public_port;
+    'DEFAULT/admin_port':   value => $admin_port;
+    'DEFAULT/compute_port': value => $compute_port;
+    'DEFAULT/verbose':      value => $log_verbose;
+    'DEFAULT/debug':        value => $log_debug;
   }
 
-  keystone::config { 'identity':
-    order  => '03',
+  # db connection config
+  keystone_config {
+    'sql/connection':   value => $sql_connection;
+    'sql/idle_timeout': value => $idle_timeout;
   }
 
+  # configure based on the catalog backend
   if($catalog_type == 'template') {
-    # if we are using a catalog, then I may want to manage the file
-    keystone::config { 'template_catalog':
-      order => '04',
+    keystone_config {
+      'catalog/driver':
+        value => 'keystone.catalog.backends.templated.TemplatedCatalog';
+      'catalog/template_file':
+        value => '/etc/keystone/default_catalog.templates';
     }
   } elsif($catalog_type == 'sql' ) {
-    keystone::config { 'sql_catalog':
-      order => '04',
+    keystone_config { 'catalog/driver':
+      value => ' keystone.catalog.backends.sql.Catalog'
     }
-  }
-
-  keystone::config { 'footer':
-    order    => '99',
-    config => {
-      'backend_driver' => $backend_driver
-    },
   }
 
   if $enabled {
@@ -156,7 +147,7 @@ class keystone(
       path        => '/usr/bin',
       refreshonly => true,
       notify      => Service['keystone'],
-      subscribe   => [Package['keystone'], Concat['/etc/keystone/keystone.conf']]
+      subscribe   => Package['keystone'],
     }
   }
 }
