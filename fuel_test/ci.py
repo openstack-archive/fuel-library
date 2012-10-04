@@ -178,6 +178,9 @@ class Ci:
             node.save_snapshot('empty')
             logger.info("Test node is ready at %s" % node.ip_address)
 
+    def destroy_environment(self):
+        if self.environment:
+            devops.destroy(self.environment)
 
     def configure_repository(self, remote):
         repo = ("[mirantis]\n"
