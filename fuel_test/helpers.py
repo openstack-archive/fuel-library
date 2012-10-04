@@ -1,8 +1,10 @@
 import logging
+import os
 import re
+from ci import Ci
+from ciswift import CiSwift
 from root import root
 from settings import controllers
-from keystoneclient.v2_0 import client
 #from glanceclient import Client
 
 def execute(remote, command):
@@ -112,3 +114,25 @@ def tempest_share_glance_images(remote, network):
 def tempest_mount_glance_images(remote):
     execute(remote, '/etc/init.d/nfslock restart')
     execute(remote, 'mount %s:/var/lib/glance/images /var/lib/glance/images -o vers=3' % controllers[0])
+
+def get_ci(image=None):
+    name = os.environ.get('ENV_NAME','recipes')
+    if name == 'recipes-swift':
+        ci = CiSwift(image,name)
+    else:
+        ci = Ci(image,name)
+    return ci
+
+def get_environment_or_create(image=None):
+    return get_ci(image).get_environment_or_create()
+
+def get_environment():
+    return get_ci().get_environment()
+
+def write_config(remote, path, text):
+    file = remote.open(path, 'w')
+    file.write(text)
+    logging.info('Write config %s' % text)
+    file.close()
+
+

@@ -1,6 +1,6 @@
 import logging
 import argparse
-from ci import get_environment_or_create,get_ci
+from helpers import get_environment_or_create, get_ci
 
 def get_params():
     parser = argparse.ArgumentParser(description="Integration test suite")
