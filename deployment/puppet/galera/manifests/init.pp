@@ -154,7 +154,7 @@ class galera($cluster_name, $master_ip = false, $node_address = $ipaddress_eth0)
       }
 
   exec {"rm-init-file":
-  command =>"rm /tmp/wsrep-init-file",
+  command =>"/bin/rm /tmp/wsrep-init-file",
   require => Exec["kill-initial-mysql"],
   }
 
