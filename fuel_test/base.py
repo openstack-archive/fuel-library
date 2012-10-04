@@ -3,7 +3,8 @@ from time import sleep
 import unittest
 from devops.helpers import ssh, os
 import re
-from helpers import load, execute, get_environment, write_config
+from ci_helpers import get_environment
+from helpers import load, execute, write_config
 from root import root
 
 class RecipeTestCase(unittest.TestCase):

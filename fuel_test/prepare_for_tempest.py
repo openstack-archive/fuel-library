@@ -1,6 +1,7 @@
 from devops.helpers import ssh
 import keystoneclient.v2_0
-from helpers import tempest_write_config, tempest_add_images, tempest_share_glance_images, tempest_mount_glance_images, get_auth_url, get_environment
+from ci_helpers import get_environment
+from helpers import tempest_write_config, tempest_add_images, tempest_share_glance_images, tempest_mount_glance_images, get_auth_url
 from openstack_site_pp_base import OpenStackSitePPBaseTestCase
 import unittest
 from settings import controllers

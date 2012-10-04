@@ -1,7 +1,7 @@
 from devops.helpers import ssh
 from base import RecipeTestCase
 from helpers import execute
-from settings import NODES, controllers, computes
+from settings import controllers, computes
 from root import root
 
 import unittest
