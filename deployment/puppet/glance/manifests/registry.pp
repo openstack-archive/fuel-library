@@ -1,23 +1,25 @@
 class glance::registry(
-  $log_verbose = 'False',
-  $log_debug = 'False',
-  $bind_host = '0.0.0.0',
-  $bind_port = '9191',
-  $log_file = '/var/log/glance/registry.log',
-  $sql_connection = 'sqlite:///var/lib/glance/glance.sqlite',
-  $sql_idle_timeout = '3600',
-  $auth_type = 'keystone',
-  $auth_host = '127.0.0.1',
-  $auth_port = '35357',
-  $auth_protocol = 'http',
-  $auth_uri = 'http://127.0.0.1:5000/',
-  $keystone_tenant = 'admin',
-  $keystone_user = 'admin',
+  $log_verbose       = 'False',
+  $log_debug         = 'False',
+  $bind_host         = '0.0.0.0',
+  $bind_port         = '9191',
+  $log_file          = '/var/log/glance/registry.log',
+  $sql_connection    = 'sqlite:///var/lib/glance/glance.sqlite',
+  $sql_idle_timeout  = '3600',
+  $auth_type         = 'keystone',
+  $auth_host         = '127.0.0.1',
+  $auth_port         = '35357',
+  $auth_protocol     = 'http',
   $keystone_password = 'ChangeMe',
   $enabled           = true
 ) inherits glance {
 
   require 'keystone::python'
+
+
+  Package['glance'] -> Glance_registry_config<||>
+  Glance_registry_config<||> ~> Exec['glance-manage db_sync']
+  Glance_registry_config<||> ~> Service['glance-registry']
 
   File {
     ensure  => present,
@@ -28,12 +30,41 @@ class glance::registry(
     require => Class['glance']
   }
 
-  file { '/etc/glance/glance-registry.conf':
-    content => template('glance/glance-registry.conf.erb'),
+  # basic service config
+  glance_registry_config {
+    'DEFAULT/verbose':   value => $log_verbose;
+    'DEFAULT/debug':     value => $log_debug;
+    'DEFAULT/bind_host': value => $bind_host;
+    'DEFAULT/bind_port': value => $bind_port;
   }
 
-  file { '/etc/glance/glance-registry-paste.ini':
-    content => template('glance/glance-registry-paste.ini.erb'),
+  # db connection config
+  glance_registry_config {
+    'DEFAULT/sql_connection':   value => $sql_connection;
+    'DEFAULT/sql_idle_timeout': value => $sql_idle_timeout;
+  }
+
+  # auth config
+  glance_registry_config {
+    'keystone_authtoken/auth_host':         value => $auth_host;
+    'keystone_authtoken/auth_port':         value => $auth_port;
+    'keystone_authtoken/protocol':          value => $protocol;
+    'keystone_authtoken/auth_uri':          value => $auth_uri;
+  }
+
+  # keystone config
+  if $auth_type == 'keystone' {
+    glance_registry_config {
+      'paste_deploy/flavor':                  value => 'keystone';
+      'keystone_authtoken/admin_tenant_name': value => $keystone_tenant;
+      'keystone_authtoken/admin_user':        value => $keystone_user;
+      'keystone_authtoken/admin_password':    value => $keystone_password;
+    }
+  }
+
+  file { ['/etc/glance/glance-registry.conf',
+          '/etc/glance/glance-registry-paste.ini'
+         ]:
   }
 
   if $enabled {

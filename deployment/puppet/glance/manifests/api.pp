@@ -1,7 +1,5 @@
 
 #
-# This class installs and configures the glance api server.
-#
 # == Paremeters:
 #
 #  $log_verbose - rather to log the glance api service at verbose level.
@@ -30,30 +28,33 @@
 #
 #
 class glance::api(
-  $log_verbose = 'False',
-  $log_debug = 'False',
-  $bind_host = '0.0.0.0',
-  $bind_port = '9292',
-  $backlog   = '4096',
-  $workers   = '0',
-  $log_file = '/var/log/glance/api.log',
-  $registry_host = '0.0.0.0',
-  $registry_port = '9191',
-  $auth_type = 'keystone',
-  $auth_host = '127.0.0.1',
-  $auth_port = '35357',
-  $auth_protocol = 'http',
-  $auth_uri = "http://127.0.0.1:5000/",
-  $keystone_tenant = 'admin',
-  $keystone_user = 'admin',
+  $log_verbose       = 'False',
+  $log_debug         = 'False',
+  $bind_host         = '0.0.0.0',
+  $bind_port         = '9292',
+  $backlog           = '4096',
+  $workers           = $::processorcount,
+  $log_file          = '/var/log/glance/api.log',
+  $registry_host     = '0.0.0.0',
+  $registry_port     = '9191',
+  $auth_type         = 'keystone',
+  $auth_host         = '127.0.0.1',
+  $auth_port         = '35357',
+  $auth_protocol     = 'http',
+  $auth_uri          = "http://127.0.0.1:5000/",
+  $keystone_tenant   = 'admin',
+  $keystone_user     = 'admin',
   $keystone_password = 'ChangeMe',
   $enabled           = true
 ) inherits glance {
 
   # used to configure concat
-  include 'concat::setup'
   require 'keystone::python'
 
+  Package['glance'] -> Glance_api_config<||>
+  Package['glance'] -> Glance_cache_config<||>
+  Glance_api_config<||>   ~> Service['glance-api']
+  Glance_cache_config<||> ~> Service['glance-api']
   File {
     ensure  => present,
     owner   => 'glance',
@@ -63,42 +64,62 @@ class glance::api(
     require => Class['glance'],
   }
 
-  concat { '/etc/glance/glance-api.conf':
-    owner   => 'glance',
-    group   => 'root',
-    mode    => 640,
-    require => Class['glance'],
+  # basic service config
+  glance_api_config {
+    'DEFAULT/verbose':   value => $log_verbose;
+    'DEFAULT/debug':     value => $log_debug;
+    'DEFAULT/bind_host': value => $bind_host;
+    'DEFAULT/bind_port': value => $bind_port;
+    'DEFAULT/backlog':   value => $backlog;
+    'DEFAULT/workers':   value => $workers;
+    'DEFAULT/log_file':  value => $log_file;
   }
 
-  glance::api::config { 'header':
-    config => {
-      'log_verbose'   => $log_verbose,
-      'log_debug'     => $log_debug,
-      'bind_host'     => $bind_host,
-      'bind_port'     => $bind_port,
-      'log_file'      => $log_file,
-      'backlog'       => $backlog,
-      'workers'       => $workers,
-      'registry_host' => $registry_host,
-      'registry_port' => $registry_port
-    },
-    order  => '01',
+  glance_cache_config {
+    'DEFAULT/verbose':   value => $log_verbose;
+    'DEFAULT/debug':     value => $log_debug;
   }
 
-  glance::api::config { 'footer':
-    config => {
-      'auth_type' => $auth_type
-    },
-    order   => '99',
-    require => Glance::Api::Config['backend'],
+  # configure api service to connect registry service
+  glance_api_config {
+    'DEFAULT/registry_host': value => $registry_host;
+    'DEFAULT/registry_port': value => $registry_port;
   }
 
-  file { '/etc/glance/glance-api-paste.ini':
-    content => template('glance/glance-api-paste.ini.erb'),
+  glance_cache_config {
+    'DEFAULT/registry_host': value => $registry_host;
+    'DEFAULT/registry_port': value => $registry_port;
   }
 
-  file { '/etc/glance/glance-cache.conf':
-    content => template('glance/glance-cache.conf.erb'),
+
+  # auth config
+  glance_api_config {
+    'keystone_authtoken/auth_host':         value => $auth_host;
+    'keystone_authtoken/auth_port':         value => $auth_port;
+    'keystone_authtoken/protocol':          value => $protocol;
+    'keystone_authtoken/auth_uri':          value => $auth_uri;
+  }
+
+  # keystone config
+  if $auth_type == 'keystone' {
+    glance_api_config {
+      'paste_deploy/flavor':                  value => 'keystone+cachemanagement';
+      'keystone_authtoken/admin_tenant_name': value => $keystone_tenant;
+      'keystone_authtoken/admin_user':        value => $keystone_user;
+      'keystone_authtoken/admin_password':    value => $keystone_password;
+    }
+    glance_cache_config {
+      'DEFAULT/auth_url':          value => $auth_uri;
+      'DEFAULT/admin_tenant_name': value => $keystone_tenant;
+      'DEFAULT/admin_user':        value => $keystone_user;
+      'DEFAULT/admin_password':    value => $eystone_password;
+    }
+  }
+
+  file { ['/etc/glance/glance-api.conf',
+          '/etc/glance/glance-api-paste.ini',
+          '/etc/glance/glance-cache.conf'
+         ]:
   }
 
   if $enabled {
@@ -113,6 +134,5 @@ class glance::api(
     enable     => $enabled,
     hasstatus  => true,
     hasrestart => true,
-    subscribe  => Concat['/etc/glance/glance-api.conf'],
   }
 }
