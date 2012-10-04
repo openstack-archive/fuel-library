@@ -1,13 +1,6 @@
 from ci import Ci
-import logging
-from time import sleep
-import traceback
-import devops
 from devops.model import Environment, Network, Node, Disk, Interface
-from devops.helpers import tcp_ping, wait, ssh, http_server, os
-from helpers import load
 from settings import storages,proxies,keystones
-from root import root
 
 class CiSwift(Ci):
     def describe_environment(self):

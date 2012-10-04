@@ -4,8 +4,9 @@ import traceback
 import devops
 from devops.model import Environment, Network, Node, Disk, Interface
 from devops.helpers import tcp_ping, wait, ssh, http_server, os
+from ciswift import CiSwift
 from helpers import load
-from settings import NODES, controllers, computes
+from settings import controllers, computes
 from root import root
 import os
 
@@ -204,7 +205,7 @@ def get_environment_or_create(image=None):
     return get_ci(image).get_environment_or_create()
 
 def get_environment():
-    return get_ci(image).get_environment()
+    return get_ci().get_environment()
 
 def write_config(remote, path, text):
     file = remote.open(path, 'w')
