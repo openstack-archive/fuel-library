@@ -68,7 +68,7 @@ class glance::api(
   File {
     ensure  => present,
     owner   => 'glance',
-    group   => 'root',
+    group   => 'glance',
     mode    => '0640',
     notify  => Service['glance-api'],
     require => Class['glance'],

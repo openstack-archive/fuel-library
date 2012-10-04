@@ -24,7 +24,7 @@ class glance::registry(
   File {
     ensure  => present,
     owner   => 'glance',
-    group   => 'root',
+    group   => 'glance',
     mode    => '0640',
     notify  => Service['glance-registry'],
     require => Class['glance']
