@@ -67,7 +67,7 @@ class Ci:
 
     def change_host_name(self, remote, short, long):
         remote.sudo.ssh.execute('hostname %s' % long)
-        remote.sudo.ssh.execute('echo HOSTNAME=fuel-01 >> /etc/sysconfig/network')
+        remote.sudo.ssh.execute('echo HOSTNAME=%s >> /etc/sysconfig/network' % short)
         self.add_to_hosts(remote, '127.0.0.1', short, short)
 
     def add_to_hosts(self, remote, ip, short, long):
