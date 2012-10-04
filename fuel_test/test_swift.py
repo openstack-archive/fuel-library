@@ -20,11 +20,22 @@ class SwiftCase(RecipeTestCase):
             controller_node_public="'%s'" % node05.ip_address_by_network['public'],
         )
         results =[]
-        for node in [node05, node01, node02, node03, node04]:
+        node=None
+        #install keystone
+        remote = ssh(node05.ip_address, username='root', password='r00tme')
+        results.append(execute(remote.sudo.ssh, 'puppet agent --test'))
+        for node in [node02, node03, node04]:
             remote = ssh(node.ip_address, username='root', password='r00tme')
             results.append(execute(remote.sudo.ssh, 'puppet agent --test'))
-        for result in results:
-            self.assertResult(result)
+            results.append(execute(remote.sudo.ssh, 'puppet agent --test'))
+        remote = ssh(node01.ip_address, username='root', password='r00tme')
+        results.append(execute(remote.sudo.ssh, 'puppet agent --test'))
+        node=None
+        for node in [node02, node03, node04]:
+            remote = ssh(node.ip_address, username='root', password='r00tme')
+            results.append(execute(remote.sudo.ssh, 'puppet agent --test'))
+#        for result in results:
+#            self.assertResult(result)
 
 if __name__ == '__main__':
     unittest.main()
