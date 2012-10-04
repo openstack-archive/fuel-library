@@ -203,10 +203,10 @@ class Ci:
             self.repository_server.stop()
 
 def get_environment_or_create(image=None):
-    return get_ci().get_environment_or_create(image)
+    return get_ci(image).get_environment_or_create()
 
 def get_environment():
-    return get_ci().get_environment()
+    return get_ci(image).get_environment()
 
 def write_config(remote, path, text):
     file = remote.open(path, 'w')
