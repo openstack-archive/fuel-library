@@ -23,17 +23,21 @@ class glance::keystone::auth(
   $admin_address      = '127.0.0.1',
   $internal_address   = '127.0.0.1',
   $port               = '9292',
-  $region             = 'RegionOne'
+  $region             = 'RegionOne',
+  $email              = 'glance@localhost',
+  $tenant             = 'services'
 ) {
 
-  Keystone_user_role["${auth_name}@services"] ~> Service <| name == 'glance-registry' |>
-  Keystone_user_role["${auth_name}@services"] ~> Service <| name == 'glance-api' |>
+  Keystone_user_role["${auth_name}@${tenant}"] ~> Service <| name == 'glance-registry' |>
+  Keystone_user_role["${auth_name}@${tenant}"] ~> Service <| name == 'glance-api' |>
 
   keystone_user { $auth_name:
     ensure   => present,
     password => $password,
+    email    => $email,
+    tenant   => $tenant,
   }
-  keystone_user_role { "${auth_name}@services":
+  keystone_user_role { "${auth_name}@${tenant}":
     ensure  => present,
     roles   => 'admin',
   }
