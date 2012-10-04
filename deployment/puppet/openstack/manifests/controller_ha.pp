@@ -1,3 +1,30 @@
+$ntp_server = '0.centos.pool.ntp.org'
+
+#stage {'clocksync': before => Stage['main']}
+
+class openstack::clocksync ($ntp_server)
+{
+  include ntpd
+
+  package {'ntpdate': ensure => present}
+  exec {'clocksync':
+    unless => "pidof ntpd",
+    before => [Service[$::ntpd::service_name]],
+    require => Package['ntpdate'],
+    command => "/usr/sbin/ntpdate $ntp_server"
+  }
+}
+
+class {'openstack::clocksync': ntp_server=>$ntp_server}
+
+Exec['clocksync']->Nova::Generic_service<| |>
+Exec['clocksync']->Exec<| title == 'keystone-manage db_sync' |>
+Exec['clocksync']->Exec<| title == 'glance-manage db_sync' |>
+Exec['clocksync']->Exec<| title == 'nova-manage db sync' |>
+Exec['clocksync']->Exec<| title == 'initial-db-sync' |>
+Exec['clocksync']->Exec<| title == 'post-nova_config' |>
+
+
 define haproxy_service($order, $hostnames, $balancer_ips, $virtual_ips, $port, $define_cookies = false) {
 
   case $name {
