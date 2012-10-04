@@ -1,5 +1,5 @@
+from devops.model import Environment, Network
 from ci import Ci
-from devops.model import Environment, Network, Node, Disk, Interface
 from settings import storages,proxies,keystones
 
 class CiSwift(Ci):
