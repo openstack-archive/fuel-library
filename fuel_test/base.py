@@ -1,8 +1,10 @@
 import logging
+from time import sleep
 import unittest
 from devops.helpers import ssh, os
 import re
 from ci import get_environment, write_config
+from helpers import load, execute
 from root import root
 
 class RecipeTestCase(unittest.TestCase):
@@ -12,8 +14,8 @@ class RecipeTestCase(unittest.TestCase):
         master = self.environment.node['master']
         self.revert_snapshot()
         self.master_remote = ssh(master.ip_address, username='root', password='r00tme')
-        self.master_remote.reconnect()
         self.upload_recipes()
+        self.restart_puppet_muster()
 
     def upload_recipes(self):
         recipes_dir = root('fuel','deployment','puppet')
@@ -26,10 +28,7 @@ class RecipeTestCase(unittest.TestCase):
     def revert_snapshot(self):
         for node in self.environment.nodes:
             node.restore_snapshot('empty')
-
-    def load(self, path):
-        with open(path) as f:
-            return f.read()
+            sleep(4)
 
     def replace(self, template, **kwargs):
         for key in kwargs:
@@ -43,7 +42,7 @@ class RecipeTestCase(unittest.TestCase):
         return template
 
     def write_site_pp_manifest(self, path, **kwargs):
-        site_pp = self.load(path)
+        site_pp = load(path)
         site_pp = self.replace(site_pp, **kwargs)
         write_config(self.master_remote, '/etc/puppet/manifests/site.pp', site_pp)
 
@@ -58,8 +57,11 @@ class RecipeTestCase(unittest.TestCase):
         warnings = []
         for line in out:
             logging.info(line)
-            if line.find('error:') !=-1:
+            if line.find('err: ') !=-1:
                 errors.append(line)
-            if line.find('warning:') !=-1:
+            if line.find('warning: ') !=-1:
                 warnings.append(line)
         return errors, warnings
+
+    def restart_puppet_muster(self):
+        execute(self.master_remote, 'service puppetmaster restart')
