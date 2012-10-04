@@ -16,6 +16,7 @@ class glance::registry(
 
   require 'keystone::python'
 
+  validate_re($sql_connection, '(sqlite|mysql|posgres):\/\/(\S+:\S+@\S+\/\S+)?')
 
   Package['glance'] -> Glance_registry_config<||>
   Glance_registry_config<||> ~> Exec['glance-manage db_sync']
@@ -28,6 +29,17 @@ class glance::registry(
     mode    => '0640',
     notify  => Service['glance-registry'],
     require => Class['glance']
+  }
+
+  if($sql_connection =~ /mysql:\/\/\S+:\S+@\S+\/\S+/) {
+    Package['python-mysqldb'] -> Exec['glance-manage db_sync']
+    ensure_resource( 'package', 'python-mysqldb', {'ensure' => 'present'})
+  } elsif($sql_connection =~ /postgresql:\/\/\S+:\S+@\S+\/\S+/) {
+
+  } elsif($sql_connection =~ /sqlite:\/\//) {
+
+  } else {
+    fail("Invalid db connection ${sql_connection}")
   }
 
   # basic service config
