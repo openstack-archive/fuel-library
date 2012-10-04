@@ -7,14 +7,15 @@ from devops.helpers import tcp_ping, wait, ssh, http_server, os
 from helpers import load
 from settings import NODES, controllers, computes
 from root import root
+import os
 
 logger = logging.getLogger('ci')
 
 class Ci:
-    def __init__(self, image=None):
+    def __init__(self, image=None, name='recipes'):
         self.base_image = image
         self.environment = None
-        self.environment_name = os.environ.get('ENV_NAME', 'recipes')
+        self.environment_name = os.environ.get('ENV_NAME', name)
         try:
             self.environment = devops.load(self.environment_name)
             logger.info("Successfully loaded existing environment")
@@ -100,8 +101,6 @@ class Ci:
         environment.networks.append(public)
         master = self.describe_node('master', [internal, private, public])
         environment.nodes.append(master)
-        keystone = self.describe_node('keystone', [internal, private, public])
-        environment.nodes.append(keystone)
         for node_name in controllers:
             client = self.describe_node(node_name, [internal, private, public])
             environment.nodes.append(client)
@@ -202,17 +201,22 @@ class Ci:
             self.repository_server.stop()
 
 def get_environment_or_create(image=None):
-    ci = Ci(image)
-    return ci.get_environment_or_create()
+    return get_ci(image).get_environment_or_create()
 
 def get_environment():
-    ci = Ci()
-    my_environment = ci.describe_environment()
-    my_environment.nodes[0].interfaces[0].ip_addresses = '172.18.8.56'
-    return ci.get_environment() or my_environment
+    return get_ci(image).get_environment()
 
 def write_config(remote, path, text):
     file = remote.open(path, 'w')
     file.write(text)
     logger.info('Write config %s' % text)
     file.close()
+
+def get_ci(image=None):
+    name = os.environ.get('ENV_NAME','recipes')
+    if name == 'recipes-swift':
+        ci = CiSwift(image,name)
+    else: 
+        ci = Ci(image,name)
+    return ci
+        
