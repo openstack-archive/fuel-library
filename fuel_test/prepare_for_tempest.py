@@ -25,7 +25,7 @@ class PrepareTempest(OpenStackSitePPBaseTestCase):
         tempest_mount_glance_images(remote_controller2, )
 
         keystone = keystoneclient.v2_0.client.Client(
-            username='admin', password='nova', tenant='openstack', auth_url=get_auth_url(host))
+            username='admin', password='nova', tenant_name='openstack', auth_url=get_auth_url(host))
         tenant1 = keystone.tenants.create('tenant1')
         tenant2 = keystone.tenants.create('tenant2')
         keystone.users.create('tempest1','secret', 'tempest1@example.com', tenant_id=tenant1.id)
