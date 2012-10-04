@@ -31,7 +31,8 @@ class PrepareTempest(OpenStackSitePPBaseTestCase):
         keystone.users.create('tempest1','secret', 'tempest1@example.com', tenant_id=tenant1.id)
         keystone.users.create('tempest2','secret', 'tempest1@example.com', tenant_id=tenant2.id)
 
-        image_ref, image_ref_any = tempest_add_images(remote, host)
+        openstack_tenant_id = filter(lambda item: item.name=='openstack', keystone.tenants.list())[0].id
+        image_ref, image_ref_any = tempest_add_images(remote, host, openstack_tenant_id)
         tempest_write_config(host, image_ref, image_ref_any)
 
 if __name__ == '__main__':
