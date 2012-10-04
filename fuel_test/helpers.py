@@ -67,10 +67,10 @@ def tempest_build_config(host, image_ref, image_ref_alt):
         'HOST': host,
         'USERNAME': 'tempest1',
         'PASSWORD': 'secret',
-        'TENANT_NAME': 'openstack',
+        'TENANT_NAME': 'tenant1',
         'ALT_USERNAME': 'tempest2',
         'ALT_PASSWORD': 'secret',
-        'ALT_TENANT_NAME': 'openstack',
+        'ALT_TENANT_NAME': 'tenant2',
         'IMAGE_ID': image_ref,
         'IMAGE_ID_ALT': image_ref_alt,
         'ADMIN_USERNAME': 'tempest1',
@@ -100,11 +100,9 @@ def tempest_add_images(remote, auth_host, tenant_id):
     execute(remote, 'wget https://launchpad.net/cirros/trunk/0.3.0/+download/cirros-0.3.0-x86_64-disk.img')
     result = execute(remote, glance_command(auth_host, tenant_id) +' add name=cirros_0.3.0 is_public=true container_format=bare disk_format=qcow2 < cirros-0.3.0-x86_64-disk.img')
     pattern = 'Added new image with ID: (\S*)'
-    image_ref = re.findall(pattern, string='\n'.join(result['stdout']))
-    print image_ref
-    execute(remote, glance_command(auth_host, tenant_id) + ' add name=cirros_0.3.0 is_public=true container_format=bare disk_format=qcow2 < cirros-0.3.0-x86_64-disk.img')
-    image_ref_any = re.findall(pattern, string='\n'.join(result['stdout']))
-    print image_ref_any
+    image_ref = re.findall(pattern, string='\n'.join(result['stdout']))[0]
+    result = execute(remote, glance_command(auth_host, tenant_id) + ' add name=cirros_0.3.0 is_public=true container_format=bare disk_format=qcow2 < cirros-0.3.0-x86_64-disk.img')
+    image_ref_any = re.findall(pattern, string='\n'.join(result['stdout']))[0]
     return image_ref, image_ref_any
 
 def tempest_share_glance_images(remote, network):
