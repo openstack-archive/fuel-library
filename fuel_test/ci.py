@@ -4,7 +4,7 @@ import traceback
 import devops
 from devops.model import Environment, Network, Node, Disk, Interface
 from devops.helpers import tcp_ping, wait, ssh, http_server, os
-from helpers import load, get_ci, write_config
+from helpers import load, write_config
 from settings import controllers, computes
 from root import root
 import os
