@@ -24,7 +24,7 @@ def main():
 
 
     if params.command == 'setup':
-        get_environment_or_create(image)
+        get_environment_or_create(params.image)
     elif params.command == 'destroy':
         get_ci().destroy_environment()
 
