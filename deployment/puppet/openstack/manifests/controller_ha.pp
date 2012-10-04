@@ -11,7 +11,8 @@ class openstack::clocksync ($ntp_server)
     unless => "pidof ntpd",
     before => [Service[$::ntpd::service_name]],
     require => Package['ntpdate'],
-    command => "/usr/sbin/ntpdate $ntp_server"
+    command => "ntpdate $ntp_server",
+    path => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
   }
 }
 
