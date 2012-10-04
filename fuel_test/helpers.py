@@ -117,6 +117,7 @@ def tempest_share_glance_images(remote, network):
     execute(remote, '/etc/init.d/nfs restart')
 
 def tempest_mount_glance_images(remote):
+    execute(remote, '/etc/init.d/nfslock restart')
     execute(remote, 'mount %s:/var/lib/glance/images /var/lib/glance/images -o vers=3' % controllers[0])
 
 
