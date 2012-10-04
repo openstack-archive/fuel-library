@@ -206,7 +206,7 @@ def get_environment_or_create(image=None):
     name = os.environ.get('ENV_NAME','recipes')
     if name == 'recipes-swift':
         ci = CiSwift(image,'recipes-swift')
-    else 
+    else: 
         ci = Ci(image) 
     return ci.get_environment_or_create()
 
@@ -214,7 +214,7 @@ def get_environment():
     name = os.environ.get('ENV_NAME','recipes')
     if name == 'recipes-swift':
         ci = CiSwift()
-    else 
+    else: 
         ci = Ci() 
     return ci.get_environment()
 
