@@ -73,8 +73,8 @@ def tempest_build_config(host, image_ref, image_ref_alt):
         'ALT_TENANT_NAME': 'tenant2',
         'IMAGE_ID': image_ref,
         'IMAGE_ID_ALT': image_ref_alt,
-        'ADMIN_USERNAME': 'tempest1',
-        'ADMIN_PASSWORD': 'secret',
+        'ADMIN_USERNAME': 'admin',
+        'ADMIN_PASSWORD': 'nova',
         'ADMIN_TENANT_NAME': 'openstack',
         }
     return config
