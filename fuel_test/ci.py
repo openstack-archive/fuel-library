@@ -20,7 +20,7 @@ class Ci:
             self.environment = devops.load(self.environment_name)
             logger.info("Successfully loaded existing environment")
         except Exception, e:
-            logger.info("Failed to load existing recipes environment: " + str(e) + "\n" + traceback.format_exc())
+            logger.info("Failed to load existing %s environment: " % self.environment_name + str(e) + "\n" + traceback.format_exc())
             pass
 
     def get_environment(self):
@@ -143,9 +143,9 @@ class Ci:
 
     def setup_environment(self):
         if not self.base_image:
-            raise Exception("Base image path is missing while trying to build recipes environment")
+            raise Exception("Base image path is missing while trying to build %s environment" % self.environment_name)
 
-        logger.info("Building recipes environment")
+        logger.info("Building %s environment" % self.environment_name)
         environment = self.describe_environment()
         self.environment = environment
 
