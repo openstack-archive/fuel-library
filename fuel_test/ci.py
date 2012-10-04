@@ -101,8 +101,6 @@ class Ci:
         environment.networks.append(public)
         master = self.describe_node('master', [internal, private, public])
         environment.nodes.append(master)
-        keystone = self.describe_node('keystone', [internal, private, public])
-        environment.nodes.append(keystone)
         for node_name in controllers:
             client = self.describe_node(node_name, [internal, private, public])
             environment.nodes.append(client)
