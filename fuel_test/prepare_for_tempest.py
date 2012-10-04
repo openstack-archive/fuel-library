@@ -1,9 +1,11 @@
 from devops.helpers import ssh
+import keystoneclient.v2_0
 from ci import get_environment
-from helpers import tempest_create_user, tempest_write_config, tempest_add_images, tempest_create_tenant, tempest_share_glance_images, tempest_mount_glance_images
+from helpers import tempest_write_config, tempest_add_images, tempest_share_glance_images, tempest_mount_glance_images, get_auth_url
 from openstack_site_pp_base import OpenStackSitePPBaseTestCase
 import unittest
 from settings import NODES
+
 
 class PrepareTempest(OpenStackSitePPBaseTestCase):
     def setUp(self):
@@ -21,10 +23,14 @@ class PrepareTempest(OpenStackSitePPBaseTestCase):
             password='r00tme').sudo.ssh
         tempest_share_glance_images(remote, self.get_internal_network())
         tempest_mount_glance_images(remote_controller2, )
-        tenant1 = tempest_create_tenant(remote, host, 'tenant1')
-        tenant2 = tempest_create_tenant(remote, host, 'tenant2')
-        tempest_create_user(remote, host, 'tempest1', 'secret', tenant1)
-        tempest_create_user(remote, host, 'tempest2', 'secret', tenant2)
+
+        keystone = keystoneclient.v2_0.client.Client(
+            username='admin', password='nova', tenant='openstack', auth_url=get_auth_url(host))
+        tenant1 = keystone.tenants.create('tenant1')
+        tenant2 = keystone.tenants.create('tenant2')
+        keystone.users.create('tempest1','secret', 'tempest1@example.com', tenant_id=tenant1.id)
+        keystone.users.create('tempest2','secret', 'tempest1@example.com', tenant_id=tenant2.id)
+
         image_ref, image_ref_any = tempest_add_images(remote, host)
         tempest_write_config(host, image_ref, image_ref_any)
 

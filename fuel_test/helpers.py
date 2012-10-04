@@ -2,6 +2,8 @@ import logging
 import re
 from root import root
 from settings import controllers
+from keystoneclient.v2_0 import client
+#from glanceclient import Client
 
 def execute(remote, command):
     chan, stdin, stderr, stdout = execute_async(remote, command)
@@ -81,25 +83,18 @@ def tempest_write_config(host, image_ref, image_ref_alt):
     with open(root('tempest.conf'), 'w') as f:
         f.write(tempest_build_config(host, image_ref, image_ref_alt))
 
-def credentials(auth_host):
+def get_auth_url(auth_host):
     auth_url = 'http://%s:5000/v2.0/' % auth_host
-    return '--os_username admin --os_password nova --os_auth_url %s' % auth_url
+    print auth_url
+    return auth_url
 
-def keystone_command(auth_host):
-    return 'keystone ' + credentials(auth_host) + ' '
+def credentials(auth_host):
+    credentials = '--os_username admin --os_password nova --os_auth_url %s' % get_auth_url(auth_host)
+    print credentials
+    return credentials
 
 def glance_command(auth_host):
     return 'glance ' + credentials(auth_host) + ' '
-
-def tempest_create_user(remote, auth_host, name, password, tenant_id):
-    execute(remote, keystone_command(auth_host) +' user-create --name %s --pass %s --tenant_id %s '  %(name, password, tenant_id))
-
-def tempest_create_tenant(remote, auth_host, name):
-    pattern='id.*\|\s+(\S*)\s+.*'
-    result = execute(remote, keystone_command(auth_host) + ' tenant-create --name %s' % name)
-    tenant_id = re.findall(pattern, string='\n'.join(result['stdout']))
-    print tenant_id
-    return tenant_id
 
 def tempest_add_images(remote, auth_host):
     execute(remote, 'wget https://launchpad.net/cirros/trunk/0.3.0/+download/cirros-0.3.0-x86_64-disk.img')
@@ -119,5 +114,3 @@ def tempest_share_glance_images(remote, network):
 def tempest_mount_glance_images(remote):
     execute(remote, '/etc/init.d/nfslock restart')
     execute(remote, 'mount %s:/var/lib/glance/images /var/lib/glance/images -o vers=3' % controllers[0])
-
-
