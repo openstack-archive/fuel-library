@@ -1,8 +1,5 @@
 import logging
-import os
 import re
-from ci import Ci
-from ciswift import CiSwift
 from root import root
 from settings import controllers
 #from glanceclient import Client
