@@ -178,9 +178,6 @@ class Ci:
             node.save_snapshot('empty')
             logger.info("Test node is ready at %s" % node.ip_address)
 
-    def destroy_environment(self):
-        if self.environment:
-            devops.destroy(self.environment)
 
     def configure_repository(self, remote):
         repo = ("[mirantis]\n"
@@ -203,23 +200,22 @@ class Ci:
             self.repository_server.stop()
 
 def get_environment_or_create(image=None):
-    name = os.environ.get('ENV_NAME','recipes')
-    if name == 'recipes-swift':
-        ci = CiSwift(image,'recipes-swift')
-    else: 
-        ci = Ci(image) 
-    return ci.get_environment_or_create()
+    return get_ci().get_environment_or_create(image)
 
 def get_environment():
-    name = os.environ.get('ENV_NAME','recipes')
-    if name == 'recipes-swift':
-        ci = CiSwift()
-    else: 
-        ci = Ci() 
-    return ci.get_environment()
+    return get_ci().get_environment()
 
 def write_config(remote, path, text):
     file = remote.open(path, 'w')
     file.write(text)
     logger.info('Write config %s' % text)
     file.close()
+
+def get_ci(image=None):
+    name = os.environ.get('ENV_NAME','recipes')
+    if name == 'recipes-swift':
+        ci = CiSwift(image,name)
+    else: 
+        ci = Ci(image,name)
+    return ci
+        
