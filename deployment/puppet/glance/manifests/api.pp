@@ -45,16 +45,26 @@ class glance::api(
   $keystone_tenant   = 'admin',
   $keystone_user     = 'admin',
   $keystone_password = 'ChangeMe',
-  $enabled           = true
+  $enabled           = true,
+  $sql_idle_timeout  = '3600',
+  $sql_connection    = 'sqlite:///var/lib/glance/glance.sqlite'
 ) inherits glance {
 
   # used to configure concat
   require 'keystone::python'
 
+  validate_re($sql_connection, '(sqlite|mysql|posgres):\/\/(\S+:\S+@\S+\/\S+)?')
+
   Package['glance'] -> Glance_api_config<||>
   Package['glance'] -> Glance_cache_config<||>
+  # adding all of this stuff b/c it devstack says glance-api uses the
+  # db now
+  Glance_api_config<||>   ~> Exec<| title == 'glance-manage db_sync' |>
+  Glance_cache_config<||> ~> Exec<| title == 'glance-manage db_sync' |>
+  Exec<| title == 'glance-manage db_sync' |> -> Service['glance-api']
   Glance_api_config<||>   ~> Service['glance-api']
   Glance_cache_config<||> ~> Service['glance-api']
+
   File {
     ensure  => present,
     owner   => 'glance',
@@ -62,6 +72,17 @@ class glance::api(
     mode    => '0640',
     notify  => Service['glance-api'],
     require => Class['glance'],
+  }
+
+  if($sql_connection =~ /mysql:\/\/\S+:\S+@\S+\/\S+/) {
+    Package['python-mysqldb'] -> Exec['glance-manage db_sync']
+    ensure_resource( 'package', 'python-mysqldb', {'ensure' => 'present'})
+  } elsif($sql_connection =~ /postgresql:\/\/\S+:\S+@\S+\/\S+/) {
+
+  } elsif($sql_connection =~ /sqlite:\/\//) {
+
+  } else {
+    fail("Invalid db connection ${sql_connection}")
   }
 
   # basic service config
@@ -91,6 +112,13 @@ class glance::api(
     'DEFAULT/registry_port': value => $registry_port;
   }
 
+  # db connection config
+  # I do not believe this was required in Essex. Does the API server now need to connect to the DB?
+  # TODO figure out if I need this...
+  glance_api_config {
+    'DEFAULT/sql_connection':   value => $sql_connection;
+    'DEFAULT/sql_idle_timeout': value => $sql_idle_timeout;
+  }
 
   # auth config
   glance_api_config {
