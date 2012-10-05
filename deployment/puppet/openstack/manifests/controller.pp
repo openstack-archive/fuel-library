@@ -146,7 +146,8 @@ class openstack::controller (
   $service_endpoint        = '127.0.0.1',
   $galera_cluster_name = 'openstack',
   $galera_master_ip = '127.0.0.1',
-  $galera_node_address = '127.0.0.1'
+  $galera_node_address = '127.0.0.1',
+  $glance_backend
 ) {
 
   # Ensure things are run in order
@@ -247,6 +248,7 @@ class openstack::controller (
     keystone_host         => $service_endpoint,
     bind_host           => $api_bind_address,
     enabled                   => $enabled,
+    glance_backend            => $glance_backend
     registry_host     => $service_endpoint,
   }
 

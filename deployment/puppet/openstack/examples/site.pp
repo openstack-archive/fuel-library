@@ -96,6 +96,7 @@ $nova_db_password        = 'nova'
 $nova_user_password      = 'nova'
 $rabbit_password         = 'nova'
 $rabbit_user             = 'nova'
+$glance_backend         ='file'
 $openstack_version = {
   'keystone'   => '2012.1.1-1.el6',
   'glance'     => '2012.1.1-1.el6',
@@ -138,6 +139,7 @@ node /fuel-0[12]/ {
       rabbit_nodes            => $controller_hostnames,
       memcached_servers       => $controller_hostnames,
       export_resources        => false,
+      glance_backend          => $glance_backend
     }
 }
 

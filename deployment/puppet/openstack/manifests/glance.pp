@@ -41,6 +41,7 @@ class openstack::glance (
   $db_type              = 'mysql',
   $glance_db_user       = 'glance',
   $glance_db_dbname     = 'glance',
+  $glance_backend	= 'file',
   $verbose              = 'False',
   $enabled              = true
 ) {
@@ -82,6 +83,5 @@ class openstack::glance (
   }
 
   # Configure file storage backend
-  class { 'glance::backend::file': }
-
+  class { "glance::backend::$glance_backend": }
 }
