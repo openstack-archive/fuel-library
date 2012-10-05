@@ -4,7 +4,7 @@ from settings import storages,proxies
 from devops.helpers import ssh
 import unittest
 
-class OpenStackCase(OpenStackSwiftSitePPBaseTestCase):
+class OpenStackSwiftCase(OpenStackSwiftSitePPBaseTestCase):
 
     def test_deploy_open_stack_swift(self):
         storage1 = self.environment.node[storages[0]]
@@ -21,12 +21,12 @@ class OpenStackCase(OpenStackSwiftSitePPBaseTestCase):
             remote = ssh(node.ip_address, username='root', password='r00tme')
             results.append(execute(remote.sudo.ssh, 'puppet agent --test'))
             results.append(execute(remote.sudo.ssh, 'puppet agent --test'))
-            remote = ssh(proxy1.ip_address, username='root', password='r00tme')
+        remote = ssh(proxy1.ip_address, username='root', password='r00tme')
+        results.append(execute(remote.sudo.ssh, 'puppet agent --test'))
+        node=None
+        for node in [storage1,storage2,storage3]:
+            remote = ssh(node.ip_address, username='root', password='r00tme')
             results.append(execute(remote.sudo.ssh, 'puppet agent --test'))
-            node=None
-            for node in [storage1,storage2,storage3]:
-                remote = ssh(node.ip_address, username='root', password='r00tme')
-                results.append(execute(remote.sudo.ssh, 'puppet agent --test'))
 
 if __name__ == '__main__':
     unittest.main()
