@@ -41,7 +41,14 @@ class PrepareTempest(OpenStackSitePPBaseTestCase):
             except:
                 sleep(1)
             break
-        tenant1 = keystone.tenants.create('tenant1')
+        tenant1 = None
+        for i in range(1,10):
+            try:
+                tenant1 = keystone.tenants.create('tenant1')
+            except:
+                sleep(1)
+            break
+
         tenant2 = keystone.tenants.create('tenant2')
         keystone.users.create('tempest1','secret', 'tempest1@example.com', tenant_id=tenant1.id)
         keystone.users.create('tempest2','secret', 'tempest1@example.com', tenant_id=tenant2.id)
