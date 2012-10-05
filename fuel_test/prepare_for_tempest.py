@@ -2,7 +2,7 @@ from time import sleep
 from devops.helpers import ssh
 import keystoneclient.v2_0
 from ci_helpers import get_environment
-from helpers import tempest_write_config, tempest_add_images, tempest_share_glance_images, tempest_mount_glance_images, get_auth_url, sync_time
+from helpers import tempest_write_config, tempest_add_images, tempest_share_glance_images, tempest_mount_glance_images, get_auth_url, sync_time, execute
 from openstack_site_pp_base import OpenStackSitePPBaseTestCase
 import unittest
 from settings import controllers
@@ -14,15 +14,18 @@ class PrepareTempest(OpenStackSitePPBaseTestCase):
         self.controller1 = self.environment.node[controllers[0]]
 
     def prepare_for_tempest(self):
-
-        sleep(30) # mysql don't want to sync
+        for node in self.environment.nodes:
+            node.shutdown()
+        for node in self.environment.nodes:
+            node.restore_snapshot('openstack')
+            sleep(4)
+            sync_time(ssh(node.ip_address, username='root', password='r00tme').sudo.ssh)
         auth_host = self.get_public_virtual_ip()
-        print 1
         remote = ssh(
             self.controller1.ip_address, username='root',
             password='r00tme').sudo.ssh
         tempest_share_glance_images(remote, self.get_internal_network())
-        print 2
+        execute(remote, '/etc/init.d/iptables stop')
         sleep(5)
         for name in controllers[1:]:
             controller = self.environment.node[name]

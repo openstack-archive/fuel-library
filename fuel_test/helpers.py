@@ -111,9 +111,9 @@ def tempest_share_glance_images(remote, network):
     execute(remote, '/etc/init.d/nfs restart')
 
 def tempest_mount_glance_images(remote):
-#    execute(remote, 'chkconfig rpcbind on')
-#    execute(remote, '/etc/init.d/nfslock restart')
-    execute(remote, 'mount %s:/var/lib/glance/images /var/lib/glance/images -o vers=3 -o nolock' % controllers[0])
+    execute(remote, 'chkconfig rpcbind on')
+    execute(remote, '/etc/init.d/rpcbind restart')
+    execute(remote, 'mount %s:/var/lib/glance/images /var/lib/glance/images' % controllers[0])
 
 def sync_time(remote):
     execute(remote, '/etc/init.d/ntpd stop')
