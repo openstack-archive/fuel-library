@@ -18,8 +18,8 @@ class PrepareTempest(OpenStackSitePPBaseTestCase):
             node.restore_snapshot('openstack')
             sleep(4)
             print 0
-            sync_time(ssh(node.ip_address, username='root', password='r00tme').sudo.ssh)
-        sleep(30) # mysql don't want to sync
+#            sync_time(ssh(node.ip_address, username='root', password='r00tme').sudo.ssh)
+#        sleep(30) # mysql don't want to sync
         auth_host = self.get_public_virtual_ip()
         print 1
         remote = ssh(
