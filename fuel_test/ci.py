@@ -35,9 +35,13 @@ class Ci:
     def add_puppetlab_repo(self, remote):
         remote.sudo.ssh.execute('rpm -ivh http://yum.puppetlabs.com/el/6/products/i386/puppetlabs-release-6-5.noarch.rpm')
 
+    def remove_puppetlab_repo(self, remote):
+        remote.sudo.ssh.execute('rpm --erase puppetlabs-release-6-5.noarch')
+
     def setup_puppet_client_yum(self, remote):
         self.add_puppetlab_repo(remote)
         remote.sudo.ssh.execute('yum -y install puppet-2.7.19')
+        self.remove_puppetlab_repo(remote)
 
     def start_puppet_master(self, remote):
         remote.sudo.ssh.execute('puppet resource service puppetmaster ensure=running enable=true')
@@ -57,6 +61,7 @@ class Ci:
     def setup_puppet_master_yum(self, remote):
         self.add_puppetlab_repo(remote)
         remote.sudo.ssh.execute('yum -y install puppet-server-2.7.19 mysql mysql-server mysql-devel rubygems ruby-devel make gcc')
+        self.remove_puppetlab_repo(remote)
         remote.sudo.ssh.execute('gem install rails -v 3.0.10')
         remote.sudo.ssh.execute('gem install mysql')
         remote.sudo.ssh.execute('chkconfig mysql on')
