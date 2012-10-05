@@ -76,6 +76,10 @@ node /fuel-0[12]/ {
       export_resources        => false,
       glance_backend          => $glance_backend
       }
+      class { 'swift::keystone::auth':
+             password => $swift_user_password,
+             address  => $swift_proxy_address,
+      }
 }
 
 node /fuel-0[34]/ {
