@@ -19,7 +19,7 @@ class PrepareTempest(OpenStackSitePPBaseTestCase):
         for node in self.environment.nodes:
             node.restore_snapshot('openstack')
             sleep(4)
-            sync_time(ssh(node.ip_address, username='root', password='r00tme').sudo.ssh)
+#            sync_time(ssh(node.ip_address, username='root', password='r00tme').sudo.ssh)
         auth_host = self.get_public_virtual_ip()
         remote = ssh(
             self.controller1.ip_address, username='root',
