@@ -97,7 +97,8 @@ class openstack::controller(
   $service_endpoint        = '127.0.0.1',
   $galera_cluster_name = 'openstack',
   $galera_master_ip = '127.0.0.1',
-  $galera_node_address = '127.0.0.1'
+  $galera_node_address = '127.0.0.1',
+  $glance_backend
 ) {
   
   $glance_api_servers = "${service_endpoint}:9292"
@@ -242,7 +243,7 @@ class openstack::controller(
     bind_host         => $api_bind_address,
     registry_host     => $service_endpoint,
   }
-  class { 'glance::backend::file': }
+  class { "glance::backend::$glance_backend": }
 
   class { 'glance::registry':
     log_verbose       => $verbose,
