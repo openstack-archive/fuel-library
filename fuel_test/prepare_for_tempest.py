@@ -33,8 +33,14 @@ class PrepareTempest(OpenStackSitePPBaseTestCase):
                 controller.ip_address, username='root',
                 password='r00tme').sudo.ssh
             tempest_mount_glance_images(remote_controller)
-        keystone = keystoneclient.v2_0.client.Client(
-            username='admin', password='nova', tenant_name='openstack', auth_url=get_auth_url(auth_host))
+        keystone = None
+        for i in range(1,10):
+            try:
+                keystone = keystoneclient.v2_0.client.Client(
+                    username='admin', password='nova', tenant_name='openstack', auth_url=get_auth_url(auth_host))
+            except:
+                sleep(1)
+            break
         tenant1 = keystone.tenants.create('tenant1')
         tenant2 = keystone.tenants.create('tenant2')
         keystone.users.create('tempest1','secret', 'tempest1@example.com', tenant_id=tenant1.id)
