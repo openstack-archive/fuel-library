@@ -87,20 +87,20 @@ def get_auth_url(auth_host):
     print auth_url
     return auth_url
 
-def credentials(auth_host, tenant_id):
-    credentials = '--os-username admin --os-password nova --os-auth-url  "%s" --os-tenant-id %s' % (get_auth_url(auth_host), tenant_id)
+def credentials(auth_host, tenant_name):
+    credentials = '--os_username admin --os_password nova --os_auth_url  "%s" --os_tenant_name %s' % (get_auth_url(auth_host), tenant_name)
     print credentials
     return credentials
 
-def glance_command(auth_host, tenant_id):
-    return 'glance ' + credentials(auth_host, tenant_id) + ' '
+def glance_command(auth_host, tenant_name):
+    return 'glance ' + credentials(auth_host, tenant_name) + ' '
 
-def tempest_add_images(remote, auth_host, tenant_id):
+def tempest_add_images(remote, auth_host, tenant_name):
     execute(remote, 'wget https://launchpad.net/cirros/trunk/0.3.0/+download/cirros-0.3.0-x86_64-disk.img')
-    result = execute(remote, glance_command(auth_host, tenant_id) +' add name=cirros_0.3.0 is_public=true container_format=bare disk_format=qcow2 < cirros-0.3.0-x86_64-disk.img')
+    result = execute(remote, glance_command(auth_host, tenant_name) +' add name=cirros_0.3.0 is_public=true container_format=bare disk_format=qcow2 < cirros-0.3.0-x86_64-disk.img')
     pattern = 'Added new image with ID: (\S*)'
     image_ref = re.findall(pattern, string='\n'.join(result['stdout']))[0]
-    result = execute(remote, glance_command(auth_host, tenant_id) + ' add name=cirros_0.3.0 is_public=true container_format=bare disk_format=qcow2 < cirros-0.3.0-x86_64-disk.img')
+    result = execute(remote, glance_command(auth_host, tenant_name) + ' add name=cirros_0.3.0 is_public=true container_format=bare disk_format=qcow2 < cirros-0.3.0-x86_64-disk.img')
     image_ref_any = re.findall(pattern, string='\n'.join(result['stdout']))[0]
     return image_ref, image_ref_any
 

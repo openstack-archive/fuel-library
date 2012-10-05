@@ -1,3 +1,4 @@
+from time import sleep
 from devops.helpers import ssh
 import keystoneclient.v2_0
 from ci_helpers import get_environment
@@ -13,6 +14,9 @@ class PrepareTempest(OpenStackSitePPBaseTestCase):
         self.controller1 = self.environment.node[controllers[0]]
 
     def prepare_for_tempest(self):
+        for node in self.environment.nodes:
+            node.restore_snapshot('openstack')
+            sleep(4)
         host = self.get_public_virtual_ip()
         remote = ssh(
             self.controller1.ip_address, username='root',
@@ -30,8 +34,7 @@ class PrepareTempest(OpenStackSitePPBaseTestCase):
         tenant2 = keystone.tenants.create('tenant2')
         keystone.users.create('tempest1','secret', 'tempest1@example.com', tenant_id=tenant1.id)
         keystone.users.create('tempest2','secret', 'tempest1@example.com', tenant_id=tenant2.id)
-        openstack_tenant_id = filter(lambda item: item.name=='openstack', keystone.tenants.list())[0].id
-        image_ref, image_ref_any = tempest_add_images(remote, host, openstack_tenant_id)
+        image_ref, image_ref_any = tempest_add_images(remote, host, 'openstack')
         tempest_write_config(host, image_ref, image_ref_any)
 
 if __name__ == '__main__':
