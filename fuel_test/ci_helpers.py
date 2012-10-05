@@ -1,7 +1,7 @@
 import os
 from ci import Ci
 from ciswift import CiSwift
-from ciopenstackswift import CiOpenstackSwift
+from ciopenstackswift import CiOpenStackSwift
 
 
 def get_ci(image=None):
@@ -9,7 +9,7 @@ def get_ci(image=None):
     if name == 'recipes-swift':
         ci = CiSwift(image,name)
     elif name == 'recipes-openstack-swift':
-        ci = CiOpenstackSwift(image,name)
+        ci = CiOpenStackSwift(image,name)
     else:
         ci = Ci(image,name)
     return ci
