@@ -14,11 +14,7 @@ class PrepareTempest(OpenStackSitePPBaseTestCase):
         self.controller1 = self.environment.node[controllers[0]]
 
     def prepare_for_tempest(self):
-        for node in self.environment.nodes:
-            node.restore_snapshot('openstack')
-            sleep(4)
-            print 0
-#            sync_time(ssh(node.ip_address, username='root', password='r00tme').sudo.ssh)
+
         sleep(30) # mysql don't want to sync
         auth_host = self.get_public_virtual_ip()
         print 1
