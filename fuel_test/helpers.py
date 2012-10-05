@@ -112,6 +112,11 @@ def tempest_mount_glance_images(remote):
 #    execute(remote, '/etc/init.d/nfslock restart')
     execute(remote, 'mount %s:/var/lib/glance/images /var/lib/glance/images -o vers=3 -o nolock' % controllers[0])
 
+def sync_time(remote):
+    execute(remote, '/etc/init.d/ntpd stop')
+    execute(remote, 'ntpdate 0.centos.pool.ntp.org')
+    execute(remote, '/etc/init.d/ntpd start')
+
 def write_config(remote, path, text):
     file = remote.open(path, 'w')
     file.write(text)

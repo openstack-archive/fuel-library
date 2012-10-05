@@ -2,7 +2,7 @@ from time import sleep
 from devops.helpers import ssh
 import keystoneclient.v2_0
 from ci_helpers import get_environment
-from helpers import tempest_write_config, tempest_add_images, tempest_share_glance_images, tempest_mount_glance_images, get_auth_url
+from helpers import tempest_write_config, tempest_add_images, tempest_share_glance_images, tempest_mount_glance_images, get_auth_url, sync_time
 from openstack_site_pp_base import OpenStackSitePPBaseTestCase
 import unittest
 from settings import controllers
@@ -17,6 +17,7 @@ class PrepareTempest(OpenStackSitePPBaseTestCase):
         for node in self.environment.nodes:
             node.restore_snapshot('openstack')
             sleep(4)
+            sync_time(ssh(node.ip_address, username='root', password='r00tme').sudo.ssh)
         host = self.get_public_virtual_ip()
         remote = ssh(
             self.controller1.ip_address, username='root',

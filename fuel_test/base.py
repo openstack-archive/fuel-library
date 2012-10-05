@@ -4,7 +4,7 @@ import unittest
 from devops.helpers import ssh, os
 import re
 from ci_helpers import get_environment
-from helpers import load, execute, write_config
+from helpers import load, execute, write_config, sync_time
 from root import root
 
 class RecipeTestCase(unittest.TestCase):
@@ -29,6 +29,7 @@ class RecipeTestCase(unittest.TestCase):
         for node in self.environment.nodes:
             node.restore_snapshot('empty')
             sleep(4)
+            sync_time(ssh(node.ip_address, username='root', password='r00tme').sudo.ssh)
 
     def replace(self, template, **kwargs):
         for key in kwargs:
