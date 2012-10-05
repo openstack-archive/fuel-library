@@ -106,6 +106,7 @@ def tempest_add_images(remote, auth_host, tenant_name):
 
 def tempest_share_glance_images(remote, network):
     execute(remote, 'chkconfig rpcbind on')
+    execute(remote, '/etc/init.d/rpcbind restart')
     execute(remote, 'echo "/var/lib/glance/images %s(rw,no_root_squash)" >> /etc/exports' % network)
     execute(remote, '/etc/init.d/nfs restart')
 
