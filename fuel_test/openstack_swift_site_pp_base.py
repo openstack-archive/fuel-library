@@ -17,7 +17,7 @@ class OpenStackSwiftSitePPBaseTestCase(RecipeTestCase):
         self.storage1 = self.environment.node[storages[0]]
         self.storage2 = self.environment.node[storages[1]]
         self.storage3 = self.environment.node[storages[2]]
-        self.proxies1 = self.environment.node[proxies[0]]
+        self.proxy1 = self.environment.node[proxies[0]]
 
     def get_internal_virtual_ip(self):
         return self.environment.network['internal'].ip_addresses[-3]
@@ -39,15 +39,16 @@ class OpenStackSwiftSitePPBaseTestCase(RecipeTestCase):
         network = self.environment.network['internal']
         return str(network.ip_addresses[1]) +'/' + str(network.ip_addresses.prefixlen)
 
-    def write_openstack_sitepp(self, node01, node02):
+    def write_openstack_sitepp(self, node01, node02, node03):
         self.write_site_pp_manifest(
             root('fuel', 'deployment', 'puppet', 'openstack', 'examples',
-                'site.pp'),
+                'site_openstack_swift_standalone.pp'),
             internal_virtual_ip="'%s'" % self.get_internal_virtual_ip(),
             public_virtual_ip="'%s'" % self.get_public_virtual_ip(),
             floating_range = "'%s'" % self.get_floating_network(),
             fixed_range = "'%s'" % self.get_fixed_network(),
             master_hostname="'%s'" % node01.name,
+            swift_proxy_address = "'%s'" % node03.ip_address_by_network['internal'],
             controller_public_addresses=[
                 "%s" % node01.ip_address_by_network['public'],
                 "%s" % node02.ip_address_by_network['public']
@@ -66,7 +67,7 @@ class OpenStackSwiftSitePPBaseTestCase(RecipeTestCase):
         )
 
     def do(self, nodes, command):
-        self.write_openstack_sitepp(self.controller1, self.controller2)
+        self.write_openstack_sitepp(self.controller1, self.controller2, self.proxy1)
         results = []
         for node in nodes:
             remote = ssh(node.ip_address, username='root', password='r00tme')
