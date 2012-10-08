@@ -29,7 +29,9 @@ class RecipeTestCase(unittest.TestCase):
         for node in self.environment.nodes:
             node.restore_snapshot('empty')
             sleep(4)
-            sync_time(ssh(node.ip_address, username='root', password='r00tme').sudo.ssh)
+            remote=ssh(node.ip_address, username='root', password='r00tme')
+            sync_time(remote.sudo.ssh)
+            remote.sudo.ssh.execute('yum makecache')
 
     def replace(self, template, **kwargs):
         for key in kwargs:
