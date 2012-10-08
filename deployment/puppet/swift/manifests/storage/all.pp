@@ -16,6 +16,7 @@
 #
 #
 class swift::storage::all(
+  $swift_zone,
   $storage_local_net_ip,
   $devices            = '/srv/node',
   $object_port        = '6000',
@@ -31,6 +32,7 @@ class swift::storage::all(
   }
 
   Swift::Storage::Server {
+    swift_zone           => $swift_zone,
     devices              => $devices,
     storage_local_net_ip => $storage_local_net_ip,
   }

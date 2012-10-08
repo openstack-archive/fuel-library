@@ -100,25 +100,19 @@ node swift_base  {
 node /storage1/ inherits swift_base {
 
   $swift_zone = 1
-  class{'role_swift_storage':
-    swift_local_net_ip => $swift_local_net_ip
-  }
+  include role_swift_storage
 
 }
 node /storage2/ inherits swift_base {
 
   $swift_zone = 2
-  class {'role_swift_storage':
-    swift_local_net_ip => $swift_local_net_ip
-  }
+  include role_swift_storage
 
 }
 node /storage3/ inherits swift_base {
 
   $swift_zone = 3
-  class {'role_swift_storage':
-    swift_local_net_ip => $swift_local_net_ip
-  }
+  include role_swift_storage
 
 }
 
@@ -130,9 +124,7 @@ node /storage3/ inherits swift_base {
 # they would need to be replaced with something that create and mounts xfs
 # partitions
 #
-class role_swift_storage (
-$swift_local_net_ip,
-) {
+class role_swift_storage {
 
   # create xfs partitions on a loopback device and mount them
   swift::storage::loopback { ['dev1', 'dev2']:
@@ -144,26 +136,8 @@ $swift_local_net_ip,
   # install all swift storage servers together
   class { 'swift::storage::all':
     storage_local_net_ip => $swift_local_net_ip,
+    swift_zone => $swift_zone,
   }
-
-  # specify endpoints per device to be added to the ring specification
-  @@ring_object_device { "${swift_local_net_ip}:6000":
-    zone        => $swift_zone,
-    mountpoints  => $swift_mountpoints,
-  }
-
-
-  @@ring_container_device { "${swift_local_net_ip}:6001":
-    zone        => $swift_zone,
-    mountpoints  => $swift_mountpoints,
-  }
-
-  # TODO should device be changed to volume
-  @@ring_account_device { "${swift_local_net_ip}:6002":
-    zone        => $swift_zone,
-    mountpoints  => $swift_mountpoints,
-  }
-
 
   # collect resources for synchronizing the ring databases
   Swift::Ringsync<<||>>
@@ -172,8 +146,6 @@ $swift_local_net_ip,
 
 
 node /swift-proxy/ inherits swift_base {
-
-  class{'testkeystone':}
 
   # curl is only required so that I can run tests
   package { 'curl': ensure => present }
