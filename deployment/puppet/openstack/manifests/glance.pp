@@ -88,7 +88,8 @@ class openstack::glance (
     if $glance_backend == "swift"
     {
     package { "openstack-swift":
-    ensure =>present
+    ensure =>present,
+    notify =>Service['glance-api']
     }
       class { "glance::backend::$glance_backend":
      swift_store_user => "services:glance",
