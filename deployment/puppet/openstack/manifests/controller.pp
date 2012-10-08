@@ -246,19 +246,20 @@ class openstack::controller(
 
   if $glance_backend == "swift"
   {
-  package { "openstack-swift":
-  ensure =>present
-  }
+    package { "openstack-swift":
+      ensure =>present,
+      notify =>Service['glance-api']
+    }
     class { "glance::backend::$glance_backend":
-   swift_store_user => "services:glance",
-   swift_store_key=> $glance_user_password,
-   swift_store_create_container_on_put => "True",
-   swift_store_auth_address => "http://${service_endpoint}:5000/v2.0/"
+      swift_store_user => "services:glance",
+      swift_store_key=> $glance_user_password,
+      swift_store_create_container_on_put => "True",
+      swift_store_auth_address => "http://${service_endpoint}:5000/v2.0/"
     }
   }
   else
   {
-  class { "glance::backend::$glance_backend": }
+    class { "glance::backend::$glance_backend": }
   }
   
 
