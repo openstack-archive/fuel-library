@@ -1,4 +1,5 @@
 import logging
+from time import sleep
 import re
 from root import root
 from settings import controllers
@@ -126,4 +127,14 @@ def write_config(remote, path, text):
     logging.info('Write config %s' % text)
     file.close()
 
+def retry(count, func, **kwargs):
+    i=0
+    while True:
+        try:
+            return func(**kwargs)
+        except:
+            if i>=count:
+                raise
+            i += 1
+            sleep(1)
 

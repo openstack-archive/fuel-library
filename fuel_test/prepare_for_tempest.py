@@ -2,7 +2,7 @@ from time import sleep
 from devops.helpers import ssh
 import keystoneclient.v2_0
 from ci_helpers import get_environment
-from helpers import tempest_write_config, tempest_add_images, tempest_share_glance_images, tempest_mount_glance_images, get_auth_url, sync_time, execute
+from helpers import tempest_write_config, tempest_add_images, tempest_share_glance_images, tempest_mount_glance_images, get_auth_url, sync_time, execute, retry
 from openstack_site_pp_base import OpenStackSitePPBaseTestCase
 import unittest
 from settings import controllers
@@ -33,25 +33,12 @@ class PrepareTempest(OpenStackSitePPBaseTestCase):
                 controller.ip_address, username='root',
                 password='r00tme').sudo.ssh
             tempest_mount_glance_images(remote_controller)
-        keystone = None
-        for i in range(1,10):
-            try:
-                keystone = keystoneclient.v2_0.client.Client(
+        keystone = retry(10,keystoneclient.v2_0.client.Client,
                     username='admin', password='nova', tenant_name='openstack', auth_url=get_auth_url(auth_host))
-            except:
-                sleep(1)
-            break
-        tenant1 = None
-        for i in range(1,10):
-            try:
-                tenant1 = keystone.tenants.create('tenant1')
-            except:
-                sleep(1)
-            break
-
-        tenant2 = keystone.tenants.create('tenant2')
-        keystone.users.create('tempest1','secret', 'tempest1@example.com', tenant_id=tenant1.id)
-        keystone.users.create('tempest2','secret', 'tempest1@example.com', tenant_id=tenant2.id)
+        tenant1 = retry(10, keystone.tenants.create, tenant_name = 'tenant1')
+        tenant2 = retry(10, keystone.tenants.create, tenant_name = 'tenant2')
+        retry(10, keystone.users.create,name='tempest1',password='secret', email='tempest1@example.com', tenant_id=tenant1.id)
+        retry(10, keystone.users.create,name='tempest2',password='secret', email='tempest1@example.com', tenant_id=tenant2.id)
         image_ref, image_ref_any = tempest_add_images(remote, auth_host, 'openstack')
         tempest_write_config(auth_host, image_ref, image_ref_any)
 
