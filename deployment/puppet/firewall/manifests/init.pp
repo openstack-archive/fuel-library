@@ -18,6 +18,7 @@ class firewall (
 	$nova_vncproxy_port =  6080,
 	$erlang_epmd_port  =   4369,
 	$erlang_rabbitmq_port =  5672,
+    $erlang_inet_dist_port = 41055,
 	$memcached_port =  11211,
 ) {
 
@@ -42,6 +43,7 @@ class firewall (
 		$nova_vncproxy_port,
 		$erlang_epmd_port,
 		$erlang_rabbitmq_port,
+		$erlang_inet_dist_port,
 		$memcached_port,
       ]: }
      }
