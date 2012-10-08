@@ -23,6 +23,8 @@
 # [Remember: No empty lines between comments and class definition]
 class rabbitmq::server(
   $port = '5672',
+  $inet_dist_listen_min = '41055',
+  $inet_dist_listen_max = '41055',
   $delete_guest_user = false,
   $package_name = 'rabbitmq-server',
   $version = 'UNSET',
