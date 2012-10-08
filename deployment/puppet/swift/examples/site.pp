@@ -92,6 +92,13 @@ node swift_base  {
     swift_hash_suffix => 'swift_shared_secret',
     package_ensure    => latest,
   }
+  
+  class { 'rsync::server':
+    use_xinetd => true,
+    address    => $swift_local_net_ip,
+    use_chroot => 'no',
+  }
+
 
 }
 
