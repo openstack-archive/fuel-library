@@ -4,22 +4,23 @@ import traceback
 import devops
 from devops.model import Environment, Network, Node, Disk, Interface
 from devops.helpers import tcp_ping, wait, ssh, http_server, os
-from helpers import load
-from settings import NODES, controllers, computes
+from helpers import load, write_config
+from settings import controllers, computes
 from root import root
+import os
 
 logger = logging.getLogger('ci')
 
 class Ci:
-    def __init__(self, image=None):
+    def __init__(self, image=None, name='recipes'):
         self.base_image = image
         self.environment = None
-        self.environment_name = os.environ.get('ENV_NAME', 'recipes')
+        self.environment_name = os.environ.get('ENV_NAME', name)
         try:
             self.environment = devops.load(self.environment_name)
             logger.info("Successfully loaded existing environment")
         except Exception, e:
-            logger.info("Failed to load existing recipes environment: " + str(e) + "\n" + traceback.format_exc())
+            logger.info("Failed to load existing %s environment: " % self.environment_name + str(e) + "\n" + traceback.format_exc())
             pass
 
     def get_environment(self):
@@ -34,9 +35,13 @@ class Ci:
     def add_puppetlab_repo(self, remote):
         remote.sudo.ssh.execute('rpm -ivh http://yum.puppetlabs.com/el/6/products/i386/puppetlabs-release-6-5.noarch.rpm')
 
+    def remove_puppetlab_repo(self, remote):
+        remote.sudo.ssh.execute('rpm --erase puppetlabs-release-6-5.noarch')
+
     def setup_puppet_client_yum(self, remote):
         self.add_puppetlab_repo(remote)
         remote.sudo.ssh.execute('yum -y install puppet-2.7.19')
+        self.remove_puppetlab_repo(remote)
 
     def start_puppet_master(self, remote):
         remote.sudo.ssh.execute('puppet resource service puppetmaster ensure=running enable=true')
@@ -56,6 +61,7 @@ class Ci:
     def setup_puppet_master_yum(self, remote):
         self.add_puppetlab_repo(remote)
         remote.sudo.ssh.execute('yum -y install puppet-server-2.7.19 mysql mysql-server mysql-devel rubygems ruby-devel make gcc')
+        self.remove_puppetlab_repo(remote)
         remote.sudo.ssh.execute('gem install rails -v 3.0.10')
         remote.sudo.ssh.execute('gem install mysql')
         remote.sudo.ssh.execute('chkconfig mysql on')
@@ -67,6 +73,7 @@ class Ci:
 
     def change_host_name(self, remote, short, long):
         remote.sudo.ssh.execute('hostname %s' % long)
+        remote.sudo.ssh.execute('echo HOSTNAME=%s >> /etc/sysconfig/network' % short)
         self.add_to_hosts(remote, '127.0.0.1', short, short)
 
     def add_to_hosts(self, remote, ip, short, long):
@@ -99,8 +106,6 @@ class Ci:
         environment.networks.append(public)
         master = self.describe_node('master', [internal, private, public])
         environment.nodes.append(master)
-        keystone = self.describe_node('keystone', [internal, private, public])
-        environment.nodes.append(keystone)
         for node_name in controllers:
             client = self.describe_node(node_name, [internal, private, public])
             environment.nodes.append(client)
@@ -143,9 +148,9 @@ class Ci:
 
     def setup_environment(self):
         if not self.base_image:
-            raise Exception("Base image path is missing while trying to build recipes environment")
+            raise Exception("Base image path is missing while trying to build %s environment" % self.environment_name)
 
-        logger.info("Building recipes environment")
+        logger.info("Building %s environment" % self.environment_name)
         environment = self.describe_environment()
         self.environment = environment
 
@@ -200,18 +205,4 @@ class Ci:
         if hasattr(self, 'repository_server'):
             self.repository_server.stop()
 
-def get_environment_or_create(image=None):
-    ci = Ci(image)
-    return ci.get_environment_or_create()
 
-def get_environment():
-    ci = Ci()
-    my_environment = ci.describe_environment()
-    my_environment.nodes[0].interfaces[0].ip_addresses = '172.18.8.56'
-    return ci.get_environment() or my_environment
-
-def write_config(remote, path, text):
-    file = remote.open(path, 'w')
-    file.write(text)
-    logger.info('Write config %s' % text)
-    file.close()

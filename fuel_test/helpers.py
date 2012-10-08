@@ -1,8 +1,8 @@
 import logging
+from time import sleep
 import re
 from root import root
 from settings import controllers
-from keystoneclient.v2_0 import client
 #from glanceclient import Client
 
 def execute(remote, command):
@@ -67,14 +67,14 @@ def tempest_build_config(host, image_ref, image_ref_alt):
         'HOST': host,
         'USERNAME': 'tempest1',
         'PASSWORD': 'secret',
-        'TENANT_NAME': 'openstack',
+        'TENANT_NAME': 'tenant1',
         'ALT_USERNAME': 'tempest2',
         'ALT_PASSWORD': 'secret',
-        'ALT_TENANT_NAME': 'openstack',
+        'ALT_TENANT_NAME': 'tenant2',
         'IMAGE_ID': image_ref,
         'IMAGE_ID_ALT': image_ref_alt,
-        'ADMIN_USERNAME': 'tempest1',
-        'ADMIN_PASSWORD': 'secret',
+        'ADMIN_USERNAME': 'admin',
+        'ADMIN_PASSWORD': 'nova',
         'ADMIN_TENANT_NAME': 'openstack',
         }
     return config
@@ -88,29 +88,53 @@ def get_auth_url(auth_host):
     print auth_url
     return auth_url
 
-def credentials(auth_host):
-    credentials = '--os_username admin --os_password nova --os_auth_url %s' % get_auth_url(auth_host)
+def credentials(auth_host, tenant_name):
+    credentials = '--os_username admin --os_password nova --os_auth_url  "%s" --os_tenant_name %s' % (get_auth_url(auth_host), tenant_name)
     print credentials
     return credentials
 
-def glance_command(auth_host):
-    return 'glance ' + credentials(auth_host) + ' '
+def glance_command(auth_host, tenant_name):
+    return 'glance ' + credentials(auth_host, tenant_name) + ' '
 
-def tempest_add_images(remote, auth_host):
+def tempest_add_images(remote, auth_host, tenant_name):
     execute(remote, 'wget https://launchpad.net/cirros/trunk/0.3.0/+download/cirros-0.3.0-x86_64-disk.img')
-    result = execute(remote, glance_command(auth_host) +' add name=cirros_0.3.0 is_public=true container_format=bare disk_format=qcow2 < cirros-0.3.0-x86_64-disk.img')
+    result = execute(remote, glance_command(auth_host, tenant_name) +' add name=cirros_0.3.0 is_public=true container_format=bare disk_format=qcow2 < cirros-0.3.0-x86_64-disk.img')
     pattern = 'Added new image with ID: (\S*)'
-    image_ref = re.findall(pattern, string='\n'.join(result['stdout']))
-    print image_ref
-    execute(remote, glance_command(auth_host) + ' add name=cirros_0.3.0 is_public=true container_format=bare disk_format=qcow2 < cirros-0.3.0-x86_64-disk.img')
-    image_ref_any = re.findall(pattern, string='\n'.join(result['stdout']))
-    print image_ref_any
+    image_ref = re.findall(pattern, string='\n'.join(result['stdout']))[0]
+    result = execute(remote, glance_command(auth_host, tenant_name) + ' add name=cirros_0.3.0 is_public=true container_format=bare disk_format=qcow2 < cirros-0.3.0-x86_64-disk.img')
+    image_ref_any = re.findall(pattern, string='\n'.join(result['stdout']))[0]
     return image_ref, image_ref_any
 
 def tempest_share_glance_images(remote, network):
+    execute(remote, 'chkconfig rpcbind on')
+    execute(remote, '/etc/init.d/rpcbind restart')
     execute(remote, 'echo "/var/lib/glance/images %s(rw,no_root_squash)" >> /etc/exports' % network)
     execute(remote, '/etc/init.d/nfs restart')
 
 def tempest_mount_glance_images(remote):
-    execute(remote, '/etc/init.d/nfslock restart')
-    execute(remote, 'mount %s:/var/lib/glance/images /var/lib/glance/images -o vers=3' % controllers[0])
+    execute(remote, 'chkconfig rpcbind on')
+    execute(remote, '/etc/init.d/rpcbind restart')
+    execute(remote, 'mount %s:/var/lib/glance/images /var/lib/glance/images' % controllers[0])
+
+def sync_time(remote):
+    execute(remote, '/etc/init.d/ntpd stop')
+    execute(remote, 'ntpdate 0.centos.pool.ntp.org')
+    execute(remote, '/etc/init.d/ntpd start')
+
+def write_config(remote, path, text):
+    file = remote.open(path, 'w')
+    file.write(text)
+    logging.info('Write config %s' % text)
+    file.close()
+
+def retry(count, func, **kwargs):
+    i=0
+    while True:
+        try:
+            return func(**kwargs)
+        except:
+            if i>=count:
+                raise
+            i += 1
+            sleep(1)
+

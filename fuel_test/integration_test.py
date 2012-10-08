@@ -1,6 +1,6 @@
 import logging
 import argparse
-from ci import Ci
+from ci_helpers import get_environment_or_create, get_ci
 
 def get_params():
     parser = argparse.ArgumentParser(description="Integration test suite")
@@ -22,12 +22,11 @@ def main():
     logger = logging.getLogger()
     logger.setLevel(numeric_level + 1)
 
-    ci = Ci(params.image)
 
     if params.command == 'setup':
-        ci.get_environment_or_create()
+        get_environment_or_create(params.image)
     elif params.command == 'destroy':
-        ci.destroy_environment()
+        get_ci().destroy_environment()
 
 if __name__ == "__main__":
     main()
