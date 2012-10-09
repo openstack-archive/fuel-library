@@ -133,13 +133,6 @@ node /fuel-0[45]/ {
     }
 }
 class role_swift_storage {
-  class { 'ssh::server::install': }
-
-  class { 'swift':
-    # not sure how I want to deal with this shared secret
-    swift_hash_suffix => 'swift_shared_secret',
-    package_ensure    => latest,
-  }
 
 
   # create xfs partitions on a loopback device and mount them
