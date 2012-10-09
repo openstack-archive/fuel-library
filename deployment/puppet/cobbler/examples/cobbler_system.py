@@ -68,8 +68,8 @@ def update_system(system_name, system_dict):
     if is_system_exist(system_name):
         addedit = 'edit'
 
-    command = ["""/usr/bin/cobbler system %s --name='%s'""" % \
-               (addedit, system_name)]
+    command = ["""/usr/bin/cobbler system %s --name='%s' --hostname='%s'""" % \
+               (addedit, system_name, system_dict['hostname'])]
 
     ksmeta = system_dict.get('ksmeta', '')
     for opt in system_dict:
