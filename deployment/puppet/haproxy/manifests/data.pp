@@ -42,6 +42,6 @@ class haproxy::data {
                                     'maxconn' => '8000'
                                   }
     }
-    default: { fail("The $::operatingsystem operating system is not supported with the haproxy module") }
+    default: { fail("The $::osfamily operating system is not supported with the haproxy module") }
   }
 }
