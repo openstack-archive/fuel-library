@@ -100,7 +100,7 @@ class openstack::controller_ha (
     Haproxy_service {
 #      virtual_ip => $vip,
       hostnames => $controller_hostnames,
-      balancer_ips => $controller_internal_addresses
+      balancer_ips => values($controller_internal_addresses)
     }
 
     haproxy_service { 'horizon':    order => 15, port => 80, virtual_ips => [$public_virtual_ip], define_cookies => true  } 
@@ -155,7 +155,7 @@ class openstack::controller_ha (
     }   
     sysctl::value { 'net.ipv4.ip_nonlocal_bind': value => '1' }
 
-    $internal_address = $controller_internal_addresses[$which]
+    $internal_address = $controller_internal_addresses[$::hostname]
 
         package {'socat': ensure => present}
         exec { 'wait-for-haproxy-mysql-backend':
@@ -228,8 +228,8 @@ class openstack::controller_ha (
       mysql_root_password     => $mysql_root_password,
       custom_mysql_setup_class => 'galera',
       galera_cluster_name   => 'openstack',
-      galera_master_ip      => $which ? { 0 => false, default => $controller_internal_addresses[0] },
-      galera_node_address   => $controller_internal_addresses[$which],
+      galera_master_ip      => $which ? { 0 => false, default => $controller_internal_addresses[$master_hostname] },
+      galera_node_address   => $controller_internal_addresses[$::hostname],
       admin_email             => $admin_email,
       admin_password          => $admin_password,
       keystone_db_password    => $keystone_db_password,
@@ -244,7 +244,7 @@ class openstack::controller_ha (
       rabbit_nodes            => $controller_hostnames,
       cache_server_ip         => $memcached_servers,
       export_resources        => false,
-      api_bind_address        => $controller_internal_addresses[$which],
+      api_bind_address        => $controller_internal_addresses[$::hostname],
       mysql_host              => $internal_virtual_ip,
       service_endpoint        => $internal_virtual_ip,
       glance_backend          => $glance_backend,
