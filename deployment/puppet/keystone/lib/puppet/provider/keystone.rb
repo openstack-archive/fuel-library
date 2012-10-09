@@ -69,7 +69,8 @@ class Puppet::Provider::Keystone < Puppet::Provider
       # this assumes that all returned objects are of the form
       # id, name, enabled_state, OTHER
       list = (auth_keystone("#{type}-list", args).split("\n")[3..-2] || []).collect do |line|
-        row = line.split(/\s*\|\s*/)[1..-1]
+        row = line.split(/\|/)[1..-1]
+        row = row.map {|x| x.strip }
         if row.size != number_columns
           raise(Puppet::Error, "Expected #{number_columns} columns for #{type} row, found #{row.size}. Line #{line}")
         end
