@@ -15,7 +15,7 @@ class OpenStackSwiftCase(OpenStackSwiftSitePPBaseTestCase):
             [self.controller1,self.controller2,self.compute1,self.compute2],
             'puppet agent --test')
         for node in self.environment.nodes:
-            node.save_snapshot('openstack')
+            node.save_snapshot('openstack', force=True)
         results=[]
         for node in [storage1,storage2,storage3]:
             remote = ssh(node.ip_address, username='root', password='r00tme')
