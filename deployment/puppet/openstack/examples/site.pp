@@ -72,8 +72,8 @@ $openstack_version = {
 $internal_virtual_ip = '10.0.0.110'
 $public_virtual_ip = '10.0.0.110'
 $master_hostname = 'fuel-01'
-$controller_public_addresses = ['10.0.0.101', '10.0.0.102']
-$controller_internal_addresses = ['10.0.0.101', '10.0.0.102']
+$controller_public_addresses = { 'fuel-01'=>'10.0.0.101', 'fuel-02'=>'10.0.0.102'}
+$controller_internal_addresses = { 'fuel-01'=>'10.0.0.101', 'fuel-02'=>'10.0.0.102'}
 $floating_range = '10.0.1.0/28'
 $fixed_range = '10.0.2.0/28'
 $controller_hostnames = ['fuel-01', 'fuel-02']
