@@ -15,7 +15,10 @@ class PrepareTempest(OpenStackSitePPBaseTestCase):
 
     def prepare_for_tempest(self):
         for node in self.environment.nodes:
-            node.stop()
+            try:
+                node.stop()
+            except:
+                pass
         for node in self.environment.nodes:
             node.restore_snapshot('openstack')
             sleep(4)
