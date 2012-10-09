@@ -46,16 +46,10 @@ class OpenStackSwiftCompactSitePPBaseTestCase(RecipeTestCase):
             fixed_range = "'%s'" % self.get_fixed_network(),
             master_hostname="'%s'" % node01.name,
             swift_proxy_address = "'%s'" % self.get_internal_virtual_ip(),
-            controller_public_addresses=[
-                "%s" % node01.ip_address_by_network['public'],
-                "%s" % node02.ip_address_by_network['public'],
-                "%s" % node02.ip_address_by_network['public']
-            ],
-            controller_internal_addresses=[
-                "%s" % node01.ip_address_by_network['internal'],
-                "%s" % node02.ip_address_by_network['internal'],
-                "%s" % node03.ip_address_by_network['internal']
-            ],
+            controller_public_addresses="{ '%s' => '%s', '%s' => '%s', '%s' => '%s' }" 
+            % (node01.name,node01.ip_address_by_network['public'],node02.name,node02.ip_address_by_network['public'],node03.name,node03.ip_address_by_network['public']),
+            controller_internal_addresses="{ '%s' => '%s', '%s' => '%s', '%s' => '%s' }" 
+            % (node01.name,node01.ip_address_by_network['internal'],node02.name,node02.ip_address_by_network['internal'],node03.name,node03.ip_address_by_network['internal']),
             controller_hostnames=[
                 "%s" % node01.name,
                 "%s" % node02.name,
