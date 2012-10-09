@@ -114,10 +114,8 @@ class keystone(
   }
 
   if($sql_connection =~ /mysql:\/\/\S+:\S+@\S+\/\S+/) {
-    package { 'python-mysqldb':
-      ensure => present,
-      before => Exec['keystone-manage db_sync'],
-    }
+    Package['python-mysqldb'] -> Exec['keystone-manage db_sync']
+    ensure_resource( 'package', 'python-mysqldb', {'ensure' => 'present'})
   } elsif($sql_connection =~ /postgresql:\/\/\S+:\S+@\S+\/\S+/) {
 
   } elsif($sql_connection =~ /sqlite:\/\//) {
