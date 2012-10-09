@@ -26,12 +26,14 @@ class openstack::repo::yum (
     priority => $priority,
     enabled  => 1,
     descr => $repo_name,
+    timeout => 180
   }
   if ($rhel_location) {
     yumrepo {'rhel-local':
       baseurl  => $rhel_location,
       gpgcheck => 0,
       enabled  => 1,
+      timeout => 180
     }
   }
     if defined (Yumrepo['puppetlabs-products']) {yumrepo {'puppetlabs-products': enabled=>0 }}
