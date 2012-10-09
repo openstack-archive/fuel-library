@@ -36,6 +36,9 @@ class horizon(
 
   include horizon::params
 
+  # I am totally confused by this, I do not think it should be installed...
+  package { 'lessc': }
+
   if $cache_server_ip =~ /^127\.0\.0\.1/ {
     Class['memcached'] -> Class['horizon']
   }
