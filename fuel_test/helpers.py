@@ -117,6 +117,7 @@ def tempest_mount_glance_images(remote):
     execute(remote, 'mount %s:/var/lib/glance/images /var/lib/glance/images' % controllers[0])
 
 def sync_time(remote):
+    execute(remote, 'yum -y install ntpdate')
     execute(remote, '/etc/init.d/ntpd stop')
     execute(remote, 'ntpdate 0.centos.pool.ntp.org')
     execute(remote, '/etc/init.d/ntpd start')
