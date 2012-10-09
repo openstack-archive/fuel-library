@@ -2,6 +2,7 @@ import os
 from ci import Ci
 from ciswift import CiSwift
 from ciopenstackswift import CiOpenStackSwift
+from ciopenstackswiftcompact import Ci as CiOpenStackSwiftCompact
 
 
 def get_ci(image=None):
@@ -10,6 +11,8 @@ def get_ci(image=None):
         ci = CiSwift(image,name)
     elif name == 'recipes-openstack-swift':
         ci = CiOpenStackSwift(image,name)
+    elif name == 'recipes-openstack-swift-compact':
+        ci = CiOpenStackSwiftCompact(image,name)
     else:
         ci = Ci(image,name)
     return ci
