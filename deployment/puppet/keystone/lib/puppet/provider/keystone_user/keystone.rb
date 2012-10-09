@@ -99,6 +99,10 @@ Puppet::Type.type(:keystone_user).provide(
     user_hash[resource[:name]][:tenant]
   end
 
+  def tenant=(value)
+    fail("tenant cannot be updated. Transition requested: #{user_hash[resource[:name]][:tenant]} -> #{value}")
+  end
+
   def email
     user_hash[resource[:name]][:email]
   end
@@ -108,7 +112,7 @@ Puppet::Type.type(:keystone_user).provide(
       "user-update",
       '--email', value,
       user_hash[resource[:name]][:id]
-    ) 
+    )
   end
 
   def id
@@ -121,7 +125,11 @@ Puppet::Type.type(:keystone_user).provide(
       hash = {}
       list_keystone_objects('user', 4).each do |user|
         tenantId = get_keystone_object('user', user[0], 'tenantId')
-        tenant   = tenantId == 'None' ? 'None' : get_keystone_object('tenant', tenantId, 'name')
+        if tenantId.nil? or tenantId == 'None' or tenantId.empty?
+          tenant = 'None'
+        else
+          tenant = get_keystone_object('tenant', tenantId, 'name')
+        end
         password = 'nil'
         hash[user[1]] = {
           :id          => user[0],
