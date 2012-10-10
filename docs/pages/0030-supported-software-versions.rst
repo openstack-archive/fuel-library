@@ -1,7 +1,9 @@
 Supported Software & Versions
 =============================
 
-Fuel has been tested and is guaranteed with the following software components:
+.. contents:: :local:
+
+Fuel has been tested and is guaranteed to work with the following software components:
 
 * OS
     * CentOS 6.3

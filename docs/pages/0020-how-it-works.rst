@@ -1,6 +1,8 @@
 How It Works
 ============
 
+.. contents:: :local:
+
 Fuel provides the following bits and pieces:
 
 * Snippets & kickstart files for Cobbler

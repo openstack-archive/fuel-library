@@ -1,6 +1,8 @@
 Package Contents
 ================
 
+.. contents:: :local:
+
 Fuel package consists of the following items:
 
 #. Access to source code with Puppet and Cobbler automation
