@@ -74,8 +74,7 @@ define haproxy::balancermember (
   $listening_service,
   $balancer_port,
   $order                  = '20',
-  $server_name            = $::hostname,
-  $balancer_ip            = $::ipaddress,
+  $balancers            =  { "$::hostname" => $::ipaddress },
   $balancermember_options = '',
   $define_cookies         = false
 ) {
@@ -85,3 +84,4 @@ define haproxy::balancermember (
     content => template('haproxy/haproxy_balancermember.erb'),
   }
 }
+
