@@ -307,8 +307,8 @@ Testing cobbler
 * now you have a fully working instance of Cobbler. moreover, it is fully configured and capable of installing the chosen OS (CentOS 6.3, or RHEL 6.3) on target OpenStack nodes
 
 
-Creating your OpenStack cluster
--------------------------------
+Deploying OpenStack
+-------------------
 
 Initial setup
 ~~~~~~~~~~~~~
