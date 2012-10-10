@@ -1,7 +1,7 @@
 from devops.helpers import ssh
-from helpers import execute
-from openstack.openstack_test_case import OpenStackTestCase
-from root import root
+from fuel_test.helpers import execute
+from fuel_test.openstack.openstack_test_case import OpenStackTestCase
+from fuel_test.root import root
 
 import unittest
 

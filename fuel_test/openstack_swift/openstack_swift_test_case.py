@@ -1,6 +1,6 @@
-from base_test_case import BaseTestCase
-from ci.ci_openstack_swift import CiOpenStackSwift
-from root import root
+from fuel_test.base_test_case import BaseTestCase
+from fuel_test.ci.ci_openstack_swift import CiOpenStackSwift
+from fuel_test.root import root
 
 class OpenStackSwiftTestCase(BaseTestCase):
     def ci(self):
@@ -27,12 +27,14 @@ class OpenStackSwiftTestCase(BaseTestCase):
                                          'internal'],
             controller_public_addresses="{ '%s' => '%s', '%s' => '%s' }"
                                         % (
-            node01.name, node01.ip_address_by_network['public'], node02.name,
-            node02.ip_address_by_network['public']),
+                node01.name, node01.ip_address_by_network['public'],
+                node02.name,
+                node02.ip_address_by_network['public']),
             controller_internal_addresses="{ '%s' => '%s', '%s' => '%s' }"
                                           % (
-            node01.name, node01.ip_address_by_network['internal'], node02.name,
-            node02.ip_address_by_network['internal']),
+                node01.name, node01.ip_address_by_network['internal'],
+                node02.name,
+                node02.ip_address_by_network['internal']),
             controller_hostnames=[
                 "%s" % node01.name,
                 "%s" % node02.name],

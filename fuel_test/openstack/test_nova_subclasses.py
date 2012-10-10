@@ -1,5 +1,5 @@
 import unittest
-from openstack.openstack_test_case import OpenStackTestCase
+from fuel_test.openstack.openstack_test_case import OpenStackTestCase
 
 
 class NovaSubClassesTestCase(OpenStackTestCase):

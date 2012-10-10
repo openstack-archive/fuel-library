@@ -3,7 +3,7 @@ import unittest
 from abc import abstractproperty
 from devops.helpers import ssh, os
 import re
-from ci.ci_base import CiBase
+from fuel_test.ci.ci_base import CiBase
 from helpers import load, execute, write_config, sync_time, safety_revert_nodes
 from root import root
 

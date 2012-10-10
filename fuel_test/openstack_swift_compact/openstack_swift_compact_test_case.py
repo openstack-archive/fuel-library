@@ -1,6 +1,6 @@
-from base_test_case import BaseTestCase
-from ci.ci_openstack_swift_compact import CiOpenStackSwiftCompact
-from root import root
+from fuel_test.base_test_case import BaseTestCase
+from fuel_test.ci.ci_openstack_swift_compact import CiOpenStackSwiftCompact
+from fuel_test.root import root
 
 class OpenStackSwiftCompactTestCase(BaseTestCase):
     def ci(self):
@@ -25,14 +25,15 @@ class OpenStackSwiftCompactTestCase(BaseTestCase):
             swift_proxy_address="'%s'" % self.ci().get_internal_virtual_ip(),
             controller_public_addresses="{ '%s' => '%s', '%s' => '%s', '%s' => '%s' }"
                                         % (
-            controller1.name, controller1.ip_address_by_network['public'],
-            controller2.name, controller2.ip_address_by_network['public'],
-            controller3.name, controller3.ip_address_by_network['public']),
+                controller1.name, controller1.ip_address_by_network['public'],
+                controller2.name, controller2.ip_address_by_network['public'],
+                controller3.name, controller3.ip_address_by_network['public']),
             controller_internal_addresses="{ '%s' => '%s', '%s' => '%s', '%s' => '%s' }"
                                           % (
-            controller1.name, controller1.ip_address_by_network['internal'],
-            controller2.name, controller2.ip_address_by_network['internal'],
-            controller3.name, controller3.ip_address_by_network['internal']),
+                controller1.name, controller1.ip_address_by_network['internal'],
+                controller2.name, controller2.ip_address_by_network['internal'],
+                controller3.name,
+                controller3.ip_address_by_network['internal']),
             controller_hostnames=[
                 "%s" % controller1.name,
                 "%s" % controller2.name,

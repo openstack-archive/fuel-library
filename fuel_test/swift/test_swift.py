@@ -1,8 +1,8 @@
 from devops.helpers import ssh
-from base_test_case import BaseTestCase
-from ci.ci_swift import CiSwift
-from helpers import execute
-from root import root
+from fuel_test.base_test_case import BaseTestCase
+from fuel_test.ci.ci_swift import CiSwift
+from fuel_test.helpers import execute
+from fuel_test.root import root
 
 import unittest
 

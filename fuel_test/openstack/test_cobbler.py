@@ -1,7 +1,7 @@
 from devops.helpers import ssh, tcp_ping
-from helpers import udp_ping, execute
-from openstack.openstack_test_case import OpenStackTestCase
-from root import root
+from fuel_test.helpers import udp_ping, execute
+from fuel_test.openstack.openstack_test_case import OpenStackTestCase
+from fuel_test.root import root
 import unittest
 
 class CobblerTestCase(OpenStackTestCase):

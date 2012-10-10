@@ -1,7 +1,7 @@
 from devops.model import Environment, Network
 import os
-from ci.ci_base import CiBase
-from node_roles import NodeRoles
+from fuel_test.ci.ci_base import CiBase
+from fuel_test.node_roles import NodeRoles
 
 class CiOpenStack(CiBase):
     def node_roles(self):

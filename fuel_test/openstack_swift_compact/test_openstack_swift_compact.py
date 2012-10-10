@@ -1,7 +1,7 @@
-from helpers import execute
+from fuel_test.helpers import execute
 from devops.helpers import ssh
 import unittest
-from openstack_swift_compact.openstack_swift_compact_test_case import OpenStackSwiftCompactTestCase
+from fuel_test.openstack_swift_compact.openstack_swift_compact_test_case import OpenStackSwiftCompactTestCase
 
 class OpenStackSwiftCompactCase(OpenStackSwiftCompactTestCase):
     def test_deploy_open_stack_swift_compact(self):
