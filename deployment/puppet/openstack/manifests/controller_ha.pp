@@ -26,7 +26,7 @@ Exec['clocksync']->Exec<| title == 'initial-db-sync' |>
 Exec['clocksync']->Exec<| title == 'post-nova_config' |>
 
 
-define haproxy_service($order, $hostnames, $balancer_ips, $virtual_ips, $port, $define_cookies = false) {
+define haproxy_service($order, $balancers, $virtual_ips, $port, $define_cookies = false) {
 
   case $name {
     "mysqld": {
@@ -57,8 +57,7 @@ define haproxy_service($order, $hostnames, $balancer_ips, $virtual_ips, $port, $
   @haproxy::balancermember { "${name}":
     order                  => $order,
     listening_service      => $name,
-    server_name            => $hostnames,
-    balancer_ip            => $balancer_ips,
+    balancers           => $balancers,
     balancer_port          => $balancer_port,
     balancermember_options => $balancermember_options,
     define_cookies        => $define_cookies
@@ -99,8 +98,8 @@ class openstack::controller_ha (
 
     Haproxy_service {
 #      virtual_ip => $vip,
-      hostnames => $controller_hostnames,
-      balancer_ips => values($controller_internal_addresses)
+#      hostnames => $controller_hostnames,
+      balancers => $controller_internal_addresses
     }
 
     haproxy_service { 'horizon':    order => 15, port => 80, virtual_ips => [$public_virtual_ip], define_cookies => true  } 
