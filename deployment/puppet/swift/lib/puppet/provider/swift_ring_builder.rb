@@ -22,7 +22,6 @@ class Puppet::Provider::SwiftRingBuilder < Puppet::Provider
               :balance     => $8,
               :meta        => $9
             }
-            #notice(object_hash.values.inspect)
           else
             Puppet.warning("Unexpected line: #{row}")
           end
@@ -41,9 +40,8 @@ class Puppet::Provider::SwiftRingBuilder < Puppet::Provider
   end
 
   def exists?
-    notice("available_devs.keys.sort.inspect #{available_devs.keys.sort.inspect}")
-    #notice("used_devs #{used_devs.inspect}")
-    #return false
+    notice("node name: #{resource[:name]}")
+    notice("available devs: #{available_devs.keys.sort.inspect}")
     return  available_devs.keys.sort == used_devs
   end
 
@@ -106,8 +104,6 @@ class Puppet::Provider::SwiftRingBuilder < Puppet::Provider
   end
 
   def zone
-    notice("resource[:name] #{resource[:name]}")
-    notice("ring.keys.inspect #{ring.keys.inspect}")
     ring[resource[:name]][:zone]
   end
 
