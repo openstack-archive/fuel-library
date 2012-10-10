@@ -35,6 +35,8 @@ class nova::compute::libvirt (
     }
   }
 
+  nova_config {
+    'compute_driver':   value => 'libvirt.LibvirtDriver';
     'libvirt_type':     value => $libvirt_type;
     'connection_type':  value => 'libvirt';
     'vncserver_listen': value => $vncserver_listen;

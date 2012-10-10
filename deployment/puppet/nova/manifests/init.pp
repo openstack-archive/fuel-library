@@ -50,7 +50,9 @@ class nova(
   $verbose = false,
   $periodic_interval = '60',
   $report_interval = '10',
-  $root_helper = $::nova::params::root_helper,
+  $root_wrap_config = '/etc/nova/rootwrap.conf',
+  # deprecated in folsom
+  #$root_helper = $::nova::params::root_helper,
   $monitoring_notifications = false
 ) inherits nova::params {
 
@@ -156,13 +158,6 @@ class nova(
 
   nova_config { 'auth_strategy': value => $auth_strategy }
 
-  if $auth_strategy == 'keystone' {
-    nova_config { 'use_deprecated_auth': value => false }
-  } else {
-    nova_config { 'use_deprecated_auth': value => true }
-  }
-
-
   if $rabbit_host {
     nova_config { 'rabbit_host': value => $rabbit_host }
   } else {
@@ -184,7 +179,7 @@ class nova(
     'state_path': value => $state_path;
     'lock_path': value => $lock_path;
     'service_down_time': value => $service_down_time;
-    'root_helper': value => $root_helper;
+    'root_wrap_config': value => $root_wrap_config;
   }
 
 

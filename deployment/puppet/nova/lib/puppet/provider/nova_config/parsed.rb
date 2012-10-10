@@ -7,7 +7,6 @@ Puppet::Type.type(:nova_config).provide(
   :filetype => :flat
 ) do
 
-  confine :osfamily => [:debian] 
 
   #confine :exists => novaconf
   text_line :comment, :match => /^\s*#/;
