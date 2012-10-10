@@ -1,3 +1,6 @@
+.. toctree::
+   :maxdepth: 2
+
 Package Contents
 ================
 
