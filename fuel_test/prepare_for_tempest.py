@@ -1,28 +1,26 @@
 from time import sleep
 from devops.helpers import ssh
 import keystoneclient.v2_0
-from helpers import tempest_write_config, tempest_add_images, tempest_share_glance_images, tempest_mount_glance_images, get_auth_url, execute, retry
+from helpers import tempest_write_config, tempest_add_images, tempest_share_glance_images, tempest_mount_glance_images, get_auth_url, execute, retry, safety_revert_nodes
 import unittest
 from openstack.openstack_test_case import OpenStackTestCase
 
 
-class PrepareOpenstackForTempest(OpenStackTestCase):
+class PrepareOpenStackForTempest(OpenStackTestCase):
     def setUp(self):
         self.environment = self.ci().get_environment()
-        self.controller1 = self.environment.node[self.ci().controllers[0]]
+        self.nodes.controllers[0] = self.environment.node[
+                                    self.ci().controllers[0]]
 
     def make_shared_storage(self, remote):
         tempest_share_glance_images(remote, self.ci().get_internal_network())
         execute(remote, '/etc/init.d/iptables stop')
         sleep(5)
-        for name in self.ci().controllers[1:]:
-            controller = self.environment.node[name]
+        for controller in self.nodes.controllers[1:]:
             remote_controller = ssh(
                 controller.ip_address, username='root',
                 password='r00tme').sudo.ssh
-            tempest_mount_glance_images(remote_controller)
-
-
+            tempest_mount_glance_images(remote_controller, controller[0].name)
 
     def make_tempest_objects(self, auth_host, remote):
         keystone = retry(10, keystoneclient.v2_0.client.Client,
@@ -39,20 +37,20 @@ class PrepareOpenstackForTempest(OpenStackTestCase):
         return image_ref, image_ref_any
 
     def prepare_for_tempest(self):
-        self.safety_revert_nodes(self.environment.nodes)
-        auth_host = self.get_public_virtual_ip()
+        safety_revert_nodes(self.environment.nodes, 'openstack')
+        auth_host = self.ci().get_public_virtual_ip()
         remote = ssh(
-            self.controller1.ip_address, username='root',
+            self.nodes.controllers[0].ip_address, username='root',
             password='r00tme').sudo.ssh
         self.make_shared_storage(remote)
         image_ref, image_ref_any = self.make_tempest_objects(auth_host, remote)
         tempest_write_config(auth_host, image_ref, image_ref_any)
 
     def prepare_for_tempest_if_swift(self):
-        self.safety_revert_nodes()
-        auth_host = self.get_public_virtual_ip()
+        safety_revert_nodes(self.environment.nodes, 'openstack')
+        auth_host = self.ci().get_public_virtual_ip()
         remote = ssh(
-            self.controller1.ip_address, username='root',
+            self.nodes.controllers[0].ip_address, username='root',
             password='r00tme').sudo.ssh
         image_ref, image_ref_any = self.make_tempest_objects(auth_host, remote)
         tempest_write_config(auth_host, image_ref, image_ref_any)

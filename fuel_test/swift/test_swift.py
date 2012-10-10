@@ -7,38 +7,37 @@ from root import root
 import unittest
 
 class SwiftCase(BaseTestCase):
-
     def ci(self):
-        if self.ci:
-            return self.ci
-        return CiSwift()
+        if not hasattr(self, '_ci'):
+            self._ci = CiSwift()
+        return self._ci
 
     def test_deploy_swift(self):
-        keystone = self.environment.node[self.ci().keystones[0]]
-        storage1 = self.environment.node[self.ci().storages[0]]
-        storage2 = self.environment.node[self.ci().storages[1]]
-        storage3 = self.environment.node[self.ci().storages[2]]
-        proxy1 = self.environment.node[self.ci().proxies[0]]
         self.write_site_pp_manifest(
-            root('fuel', 'deployment', 'puppet', 'swift', 'examples', 'site.pp'),
-            swift_proxy_address="'%s'" % proxy1.ip_address_by_network['public'],
-            controller_node_public="'%s'" % keystone.ip_address_by_network['public'],
+            root('fuel', 'deployment', 'puppet', 'swift', 'examples',
+                'site.pp'),
+            swift_proxy_address="'%s'" %
+                                self.nodes.proxies[0].ip_address_by_network[
+                                'public'],
+            controller_node_public="'%s'" % self.nodes.keystones[
+                                            0].ip_address_by_network['public'],
         )
-        results =[]
-        node=None
+        results = []
         #install keystone
-        remote = ssh(keystone.ip_address, username='root', password='r00tme')
+        remote = ssh(self.nodes.keystones[0].ip_address, username='root',
+            password='r00tme')
         results.append(execute(remote.sudo.ssh, 'puppet agent --test'))
-        for node in [storage1,storage2,storage3]:
+        for node in self.nodes.storages:
             remote = ssh(node.ip_address, username='root', password='r00tme')
             results.append(execute(remote.sudo.ssh, 'puppet agent --test'))
             results.append(execute(remote.sudo.ssh, 'puppet agent --test'))
-        remote = ssh(proxy1.ip_address, username='root', password='r00tme')
+        remote = ssh(self.nodes.proxies[0].ip_address, username='root',
+            password='r00tme')
         results.append(execute(remote.sudo.ssh, 'puppet agent --test'))
-        node=None
-        for node in [storage1,storage2,storage3]:
+        for node in self.nodes.storages:
             remote = ssh(node.ip_address, username='root', password='r00tme')
             results.append(execute(remote.sudo.ssh, 'puppet agent --test'))
+
 #        for result in results:
 #            self.assertResult(result)
 

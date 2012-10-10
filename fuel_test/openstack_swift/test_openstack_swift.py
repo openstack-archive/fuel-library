@@ -1,31 +1,28 @@
 from helpers import execute
 from devops.helpers import ssh
 import unittest
-from openstack_swift.openstack_swift_compact_test_case import OpenStackSwiftCompactTestCase
+from openstack_swift.openstack_swift_test_case import OpenStackSwiftTestCase
 
-class OpenStackSwiftCase(OpenStackSwiftCompactTestCase):
-
+class OpenStackSwiftCase(OpenStackSwiftTestCase):
     def test_deploy_open_stack_swift(self):
-        storage1 = self.environment.node[storages[0]]
-        storage2 = self.environment.node[storages[1]]
-        storage3 = self.environment.node[storages[2]]
-        proxy1 = self.environment.node[proxies[0]]
         self.validate(
-            [self.controller1,self.controller2,self.compute1,self.compute2],
+            [self.nodes.controllers[0], self.nodes.controllers[1],
+             self.nodes.computes[0], self.nodes.computes[1]],
             'puppet agent --test')
-        for node in self.environment.nodes:
-            node.save_snapshot('openstack', force=True)
-        results=[]
-        for node in [storage1,storage2,storage3]:
+        results = []
+        for node in self.nodes.storages:
             remote = ssh(node.ip_address, username='root', password='r00tme')
             results.append(execute(remote.sudo.ssh, 'puppet agent --test'))
             results.append(execute(remote.sudo.ssh, 'puppet agent --test'))
-        remote = ssh(proxy1.ip_address, username='root', password='r00tme')
+        remote = ssh(self.nodes.proxies[0].ip_address, username='root',
+            password='r00tme')
         results.append(execute(remote.sudo.ssh, 'puppet agent --test'))
-        node=None
-        for node in [storage1,storage2,storage3]:
+        node = None
+        for node in self.nodes.storages:
             remote = ssh(node.ip_address, username='root', password='r00tme')
             results.append(execute(remote.sudo.ssh, 'puppet agent --test'))
+        for node in self.environment.node_roles:
+            node.save_snapshot('openstack', force=True)
 
 if __name__ == '__main__':
     unittest.main()

@@ -1,37 +1,56 @@
 import logging
 from time import sleep
 import traceback
-from abc import abstractproperty
+from abc import abstractproperty, abstractmethod
 import devops
-from devops.model import Node, Disk, Interface
+from devops.model import Node, Disk, Interface, Environment
 from devops.helpers import tcp_ping, wait, ssh
 from helpers import load, write_config, sign_all_node_certificates, change_host_name, request_cerificate, setup_puppet_client_yum, setup_puppet_master_yum, add_nmap_yum, switch_off_ip_tables, start_puppet_master, add_to_hosts
+from node_roles import NodeRoles, Nodes
 from settings import BASE_IMAGE
 from root import root
 
 
 class CiBase:
-
     @abstractproperty
     def env_name(self):
+        """
+        :rtype : string
+        """
         pass
+
+    @abstractmethod
+    def describe_environment(self):
+        """
+        :rtype : Environment
+        """
+        pass
+
+    @abstractproperty
+    def node_roles(self):
+        """
+        :rtype : NodeRoles
+        """
+        pass
+
+    def nodes(self):
+        return Nodes(self.environment.nodes, self.node_roles)
 
     def __init__(self):
         self.base_image = BASE_IMAGE
         self.environment = None
-        self.environment_name = self.env_name
+        self.environment_name = self.env_name()
         try:
             self.environment = devops.load(self.environment_name)
             logging.info("Successfully loaded existing environment")
         except Exception, e:
-            logging.info("Failed to load existing %s environment: " % self.environment_name + str(e) + "\n" + traceback.format_exc())
+            logging.info(
+                "Failed to load existing %s environment: " % self.environment_name + str(
+                    e) + "\n" + traceback.format_exc())
             pass
 
     def get_environment(self):
         return self.environment
-
-    def node(self, name):
-        return self.environment.node[name]
 
     def get_environment_or_create(self):
         if self.get_environment():
@@ -45,13 +64,10 @@ class CiBase:
         node.vnc = True
         for network in networks:
             node.interfaces.append(Interface(network))
-        #        node.bridged_interfaces.append(BridgedInterface('br0'))
+            #        node.bridged_interfaces.append(BridgedInterface('br0'))
         node.disks.append(Disk(base_image=self.base_image, format='qcow2'))
         node.boot = ['disk']
         return node
-
-    def describe_environment(self):
-        pass
 
     def add_nodes_to_hosts(self, remote, nodes):
         for node in nodes:
@@ -82,7 +98,8 @@ class CiBase:
 
     def setup_environment(self):
         if not self.base_image:
-            raise Exception("Base image path is missing while trying to build %s environment" % self.environment_name)
+            raise Exception(
+                "Base image path is missing while trying to build %s environment" % self.environment_name)
 
         logging.info("Building %s environment" % self.environment_name)
         environment = self.describe_environment()
@@ -104,7 +121,8 @@ class CiBase:
             change_host_name(remote, node.name, node.name)
             logging.info("Renamed %s" % node.name)
         master_node = environment.node['master']
-        master_remote = ssh(master_node.ip_address, username='root', password='r00tme')
+        master_remote = ssh(master_node.ip_address, username='root',
+            password='r00tme')
         self.setup_mater_node(master_remote, environment.nodes)
         self.setup_agent_nodes(environment.nodes)
         sleep(5)
@@ -128,15 +146,16 @@ class CiBase:
     def get_floating_network(self):
         return '.'.join(
             str(self.environment.network['public'].ip_addresses[-1]).split(
-                '.')[:-1])+'.128/27'
+                '.')[:-1]) + '.128/27'
 
     def get_fixed_network(self):
         return '.'.join(
             str(self.environment.network['private'].ip_addresses[-1]).split(
-                '.')[:-1])+'.128/27'
+                '.')[:-1]) + '.128/27'
 
     def get_internal_network(self):
         network = self.environment.network['internal']
-        return str(network.ip_addresses[1]) +'/' + str(network.ip_addresses.prefixlen)
+        return str(network.ip_addresses[1]) + '/' + str(
+            network.ip_addresses.prefixlen)
 
 
