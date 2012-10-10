@@ -1,8 +1,7 @@
-.. toctree::
-   :maxdepth: 2
-
 How It Works
 ============
+
+.. contents:: :local:
 
 Fuel provides the following bits and pieces:
 

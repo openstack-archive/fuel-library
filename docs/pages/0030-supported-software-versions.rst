@@ -1,8 +1,7 @@
-.. toctree::
-   :maxdepth: 2
-
 Supported Software & Versions
 =============================
+
+.. contents:: :local:
 
 Fuel has been tested and is guaranteed with the following software components:
 

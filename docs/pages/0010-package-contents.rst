@@ -1,8 +1,7 @@
-.. toctree::
-   :maxdepth: 2
-
 Package Contents
 ================
+
+.. contents:: :local:
 
 Fuel package consists of the following items:
 

@@ -1,6 +1,8 @@
 Questions & Answers
 ===================
 
+.. contents:: :local:
+
 #. **[Q]** Why you have chosen to provide OpenStack packages through your own repository at http://download.mirantis.com?
 
    **[A]** We are fully committed to providing our customers with working and stable bits and pieces in order to make successful OpenStack deployments. It’s important to mention that we do not distribute our own version of OpenStack, but rather provide a plain vanilla distribution. So there is no vendor lock-in, and our repository just keeps history of OpenStack packages certified to work with our Puppet manifests.
