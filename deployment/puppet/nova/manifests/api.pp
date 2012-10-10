@@ -22,7 +22,11 @@ class nova::api(
 
   Package<| title == 'nova-api' |> -> Exec['initial-db-sync']
   Package<| title == 'nova-api' |> -> File['/etc/nova/api-paste.ini']
+  Package<| title == 'nova-api' |> -> Exec['nova-db-sync']
+  Package<| title == 'nova-api' |> -> Nova_paste_api_ini<| |>
 
+  Nova_paste_api_ini<| |> ~> Exec['post-nova_config']
+  Nova_paste_api_ini<| |> ~> Service['nova-api']
 
   nova::generic_service { 'api':
     enabled        => $enabled,
@@ -33,9 +37,12 @@ class nova::api(
 
   nova_config { 'api_paste_config': value => '/etc/nova/api-paste.ini'; }
 
-  file { '/etc/nova/api-paste.ini':
-    content => template('nova/api-paste.ini.erb'),
-    require => Class['nova'],
-    notify  => Service['nova-api'],
+  nova_paste_api_ini {
+    'filter:authtoken/auth_host':         value => $auth_host;
+    'filter:authtoken/auth_port':         value => $auth_port;
+    'filter:authtoken/auth_protocol':     value => $auth_protocol;
+    'filter:authtoken/admin_tenant_name': value => $admin_tenant_name;
+    'filter:authtoken/admin_user':        value => $admin_user;
+    'filter:authtoken/admin_password':    value => $admin_password;
   }
 }
