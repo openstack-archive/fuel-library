@@ -40,7 +40,14 @@
 # [*haproxy_config_options*]
 #    A hash of options that are inserted into the listening service
 #     configuration block.
-#
+# 
+# [*collect_exported*]
+#    Boolean, default 'true'. True means 'collect exported @@balancermember resources'
+#    (for the case when every balancermember node exports itself), false means
+#    'rely on the existing declared balancermember resources' (for the case when you 
+#    know the full set of balancermembers in advance and use haproxy::balancermember 
+#    with array arguments, which allows you to deploy everything in 1 run)
+#    
 #
 # === Examples
 #
@@ -67,6 +74,7 @@ define haproxy::config (
   $haproxy_config_options    = {'option' => ['tcplog',
                                             'ssl-hello-chk'],
                                 'balance' => 'roundrobin'},
+  $collect_exported          = true,
 ) {
   concat::fragment { "${name}_config_block":
     order   => $order,
@@ -74,5 +82,9 @@ define haproxy::config (
     content => template('haproxy/haproxy_config_block.erb'),
   }
 
-  Haproxy::Balancermember <<| listening_service == $name |>>
+  if $collect_exported {
+    Haproxy::Balancermember <<| listening_service == $name |>>
+  }
+  # else: the resources have been created and they introduced their
+  # concat fragments. We don't have to do anything about them.
 }
