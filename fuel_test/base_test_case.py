@@ -34,8 +34,8 @@ class BaseTestCase(unittest.TestCase):
             self.master_remote.upload(recipe_dir, remote_dir)
 
     def revert_snapshots(self):
-        safety_revert_nodes(self.environment.node_roles, 'empty')
-        for node in self.environment.node_roles:
+        safety_revert_nodes(self.environment.nodes, 'empty')
+        for node in self.environment.nodes:
             remote = ssh(node.ip_address, username='root', password='r00tme')
             sync_time(remote.sudo.ssh)
             remote.sudo.ssh.execute('yum makecache')
