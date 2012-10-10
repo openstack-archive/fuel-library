@@ -26,7 +26,17 @@ class nova::compute::libvirt (
     require  => Package['libvirt'],
   }
 
-  nova_config { 'libvirt_type': value => $libvirt_type }
-  nova_config { 'connection_type': value => 'libvirt' }
-  nova_config { 'vncserver_listen': value => $vncserver_listen }
+  case $libvirt_type {
+    'kvm': {
+      package { $::nova::params::libvirt_type_kvm:
+        ensure => present,
+        before => Package['nova-compute'],
+      }
+    }
+  }
+
+    'libvirt_type':     value => $libvirt_type;
+    'connection_type':  value => 'libvirt';
+    'vncserver_listen': value => $vncserver_listen;
+  }
 }
