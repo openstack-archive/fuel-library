@@ -1,8 +1,19 @@
 from devops.model import Environment, Network
-from ci import Ci
-from settings import storages,proxies,keystones
+import os
+from fuel_test.ci.ci_base import CiBase
+from fuel_test.node_roles import NodeRoles
 
-class CiSwift(Ci):
+class CiSwift(CiBase):
+    def node_roles(self):
+        return NodeRoles(
+            storage_names=['fuel-05', 'fuel-06', 'fuel-07'],
+            proxy_names=['fuel-08'],
+            keystone_names=['keystone']
+        )
+
+    def env_name(self):
+        return os.environ.get('ENV_NAME', 'swift')
+
     def describe_environment(self):
         environment = Environment(self.environment_name)
         internal = Network(name='internal', dhcp_server=True)
@@ -13,13 +24,13 @@ class CiSwift(Ci):
         environment.networks.append(public)
         master = self.describe_node('master', [internal, private, public])
         environment.nodes.append(master)
-        for node_name in keystones:
+        for node_name in self.node_roles().keystone_names:
             client = self.describe_node(node_name, [internal, private, public])
             environment.nodes.append(client)
-        for node_name in storages:
+        for node_name in self.node_roles().storage_names:
             client = self.describe_node(node_name, [internal, private, public])
             environment.nodes.append(client)
-        for node_name in proxies:
+        for node_name in self.node_roles().proxy_names:
             client = self.describe_node(node_name, [internal, private, public])
             environment.nodes.append(client)
         return environment

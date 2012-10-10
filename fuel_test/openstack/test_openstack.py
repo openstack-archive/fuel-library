@@ -1,11 +1,11 @@
-from openstack_site_pp_base import OpenStackSitePPBaseTestCase
 import unittest
+from fuel_test.openstack.openstack_test_case import OpenStackTestCase
 
-class OpenStackCase(OpenStackSitePPBaseTestCase):
-
+class OpenStackCase(OpenStackTestCase):
     def test_deploy_open_stack(self):
         self.validate(
-            [self.controller1,self.controller2,self.compute1,self.compute2],
+            [self.nodes.controllers[0], self.nodes.controllers[1],
+             self.nodes.computes[0], self.nodes.computes[1]],
             'puppet agent --test')
         for node in self.environment.nodes:
             node.save_snapshot('openstack', force=True)
