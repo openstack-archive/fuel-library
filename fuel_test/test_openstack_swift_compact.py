@@ -17,6 +17,7 @@ class OpenStackSwiftCompactCase(OpenStackSwiftCompactSitePPBaseTestCase):
         for node in [self.controller1,self.controller2,self.controller3]:
             remote = ssh(node.ip_address, username='root', password='r00tme')
             results.append(execute(remote.sudo.ssh, 'puppet agent --test'))
+            results.append(execute(remote.sudo.ssh, 'puppet agent --test'))
         for node in [self.controller1,self.controller2,self.controller3]:
             remote = ssh(node.ip_address, username='root', password='r00tme')
             results.append(execute(remote.sudo.ssh, 'puppet agent --test'))
