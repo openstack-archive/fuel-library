@@ -1,7 +1,7 @@
 import logging
 from devops.helpers import ssh, tcp_ping
 from django.utils.unittest.case import skip
-from base import RecipeTestCase
+from base_test_case import BaseTestCase
 from helpers import execute
 from settings import NODES
 from root import root
@@ -13,7 +13,7 @@ import unittest
 #todo async command execution with logging
 
 
-class MyTestCase(RecipeTestCase):
+class MyTestCase(BaseTestCase):
 
     def test_apply_all_modules_with_noop(self):
         result = self.master_remote.execute("for i in `find /etc/puppet/modules/ | grep tests/.*pp`; do puppet apply  --modulepath=/etc/puppet/modules/ --noop $i ; done")

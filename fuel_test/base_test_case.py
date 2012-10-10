@@ -1,18 +1,22 @@
 import logging
-from time import sleep
 import unittest
+from abc import abstractproperty
 from devops.helpers import ssh, os
 import re
-from ci_helpers import get_environment
-from helpers import load, execute, write_config, sync_time
+from helpers import load, execute, write_config, sync_time, safety_revert_nodes
 from root import root
 
-class RecipeTestCase(unittest.TestCase):
+class BaseTestCase(unittest.TestCase):
+
+    @abstractproperty
+    def ci(self):
+        pass
 
     def setUp(self):
-        self.environment = get_environment()
+        self.ci = self.ci()
+        self.environment = self.ci().get_environment_or_create()
         master = self.environment.node['master']
-        self.revert_snapshot()
+        self.revert_snapshots()
         self.master_remote = ssh(master.ip_address, username='root', password='r00tme')
         self.upload_recipes()
         self.restart_puppet_muster()
@@ -25,10 +29,9 @@ class RecipeTestCase(unittest.TestCase):
             self.master_remote.mkdir(remote_dir)
             self.master_remote.upload(recipe_dir, remote_dir)
 
-    def revert_snapshot(self):
+    def revert_snapshots(self):
+        safety_revert_nodes(self.environment.nodes, 'empty')
         for node in self.environment.nodes:
-            node.restore_snapshot('empty')
-            sleep(4)
             remote=ssh(node.ip_address, username='root', password='r00tme')
             sync_time(remote.sudo.ssh)
             remote.sudo.ssh.execute('yum makecache')
@@ -68,3 +71,17 @@ class RecipeTestCase(unittest.TestCase):
 
     def restart_puppet_muster(self):
         execute(self.master_remote, 'service puppetmaster restart')
+
+    def do(self, nodes, command):
+        results = []
+        for node in nodes:
+            remote = ssh(node.ip_address, username='root', password='r00tme')
+            results.append(execute(remote.sudo.ssh, command))
+        return results
+
+    def validate(self, nodes, command):
+        results = self.do(nodes, command)
+        for result in results:
+            self.assertResult(result)
+
+

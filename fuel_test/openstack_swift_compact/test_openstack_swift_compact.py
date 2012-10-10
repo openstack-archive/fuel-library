@@ -1,9 +1,9 @@
-from openstack_swift_compact_site_pp_base import OpenStackSwiftCompactSitePPBaseTestCase
 from helpers import execute
 from devops.helpers import ssh
 import unittest
+from openstack_swift_compact.openstack_swift_test_case import OpenStackSwiftTestCase
 
-class OpenStackSwiftCompactCase(OpenStackSwiftCompactSitePPBaseTestCase):
+class OpenStackSwiftCompactCase(OpenStackSwiftTestCase):
     def test_deploy_open_stack_swift_compact(self):
         self.validate(
             [self.controller1,self.controller2,self.controller3],

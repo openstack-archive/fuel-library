@@ -1,8 +1,8 @@
-from openstack_site_pp_base import OpenStackSitePPBaseTestCase
 import unittest
+from openstack.openstack_test_case import OpenStackTestCase
 
 
-class NovaSubClassesTestCase(OpenStackSitePPBaseTestCase):
+class NovaSubClassesTestCase(OpenStackTestCase):
     def test_deploy_nova_compute(self):
         self.validate(
             [self.compute1, ],

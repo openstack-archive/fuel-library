@@ -1,15 +1,12 @@
 from devops.helpers import ssh, tcp_ping
-from base import RecipeTestCase
 from helpers import udp_ping, execute
+from openstack.openstack_test_case import OpenStackTestCase
 from root import root
-from settings import NODES
-
-
 import unittest
 
-class CobblerTestCase(RecipeTestCase):
+class CobblerTestCase(OpenStackTestCase):
     def test_deploy_cobbler(self):
-        node01 = self.environment.node[NODES[0]]
+        node01 = self.environment.node[self.ci.controlelrs[0]]
         self.write_site_pp_manifest(
             root('fuel', 'deployment', 'puppet', 'cobbler', 'examples', 'server_site.pp'),
             server = "'%s'" % node01.ip_address,

@@ -5,6 +5,10 @@ from root import root
 from settings import controllers
 #from glanceclient import Client
 
+def get_file_as_string(path):
+    with open(path) as f:
+        return f.read()
+
 def execute(remote, command):
     chan, stdin, stderr, stdout = execute_async(remote, command)
     result = {
@@ -139,3 +143,67 @@ def retry(count, func, **kwargs):
             i += 1
             sleep(1)
 
+
+def add_nmap_yum(remote):
+    remote.sudo.ssh.execute('yum -y install nmap')
+
+def add_epel_repo(remote):
+    remote.sudo.ssh.execute('rpm -Uvh http://download.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-7.noarch.rpm')
+
+def add_puppetlab_repo(remote):
+    remote.sudo.ssh.execute('rpm -ivh http://yum.puppetlabs.com/el/6/products/i386/puppetlabs-release-6-5.noarch.rpm')
+
+def remove_puppetlab_repo(remote):
+    remote.sudo.ssh.execute('rpm --erase puppetlabs-release-6-5.noarch')
+
+def setup_puppet_client_yum(remote):
+    add_puppetlab_repo(remote)
+    remote.sudo.ssh.execute('yum -y install puppet-2.7.19')
+    remove_puppetlab_repo(remote)
+
+def start_puppet_master(remote):
+    remote.sudo.ssh.execute('puppet resource service puppetmaster ensure=running enable=true')
+
+def start_puppet_agent(remote):
+    remote.sudo.ssh.execute('puppet resource service puppet ensure=running enable=true')
+
+def sign_all_node_certificates(remote):
+    remote.sudo.ssh.execute('puppet cert sign --all')
+
+def request_cerificate(remote):
+    remote.sudo.ssh.execute('puppet agent --waitforcert 0')
+
+def switch_off_ip_tables(remote):
+    remote.sudo.ssh.execute('iptables -F')
+
+def setup_puppet_master_yum(remote):
+    add_puppetlab_repo(remote)
+    remote.sudo.ssh.execute('yum -y install puppet-server-2.7.19 mysql mysql-server mysql-devel rubygems ruby-devel make gcc')
+    remove_puppetlab_repo(remote)
+    remote.sudo.ssh.execute('gem install rails -v 3.0.10')
+    remote.sudo.ssh.execute('gem install mysql')
+    remote.sudo.ssh.execute('chkconfig mysql on')
+    remote.sudo.ssh.execute('service mysqld start')
+    remote.sudo.ssh.execute('mysql -u root -e "create database puppet; grant all privileges on puppet.* to puppet@localhost identified by \'password\'; "')
+    remote.sudo.ssh.execute('gem uninstall activerecord')
+    remote.sudo.ssh.execute('gem install activerecord -v 3.0.10')
+    remote.sudo.ssh.execute('setenforce 0')
+
+def change_host_name(remote, short, long):
+    remote.sudo.ssh.execute('hostname %s' % long)
+    remote.sudo.ssh.execute('echo HOSTNAME=%s >> /etc/sysconfig/network' % short)
+    add_to_hosts(remote, '127.0.0.1', short, short)
+
+def add_to_hosts(remote, ip, short, long):
+    remote.sudo.ssh.execute('echo %s %s %s >> /etc/hosts' % (ip, long, short))
+
+def safety_revert_nodes(nodes, snapsot_name = 'openstack'):
+    for node in nodes:
+        try:
+            node.stop()
+        except:
+            pass
+    for node in nodes:
+        node.restore_snapshot(snapsot_name)
+        sleep(4)
+        #            sync_time(ssh(node.ip_address, username='root', password='r00tme').sudo.ssh)

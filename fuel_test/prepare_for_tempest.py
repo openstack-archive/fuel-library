@@ -1,39 +1,28 @@
 from time import sleep
 from devops.helpers import ssh
 import keystoneclient.v2_0
-from ci_helpers import get_environment
-from helpers import tempest_write_config, tempest_add_images, tempest_share_glance_images, tempest_mount_glance_images, get_auth_url, sync_time, execute, retry
-from openstack_site_pp_base import OpenStackSitePPBaseTestCase
+from helpers import tempest_write_config, tempest_add_images, tempest_share_glance_images, tempest_mount_glance_images, get_auth_url, execute, retry
 import unittest
-from settings import controllers
+from openstack.openstack_test_case import OpenStackTestCase
 
 
-class PrepareTempest(OpenStackSitePPBaseTestCase):
+class PrepareOpenstackForTempest(OpenStackTestCase):
     def setUp(self):
-        self.environment = get_environment()
-        self.controller1 = self.environment.node[controllers[0]]
+        self.environment = self.ci().get_environment()
+        self.controller1 = self.environment.node[self.ci().controllers[0]]
 
     def make_shared_storage(self, remote):
-        tempest_share_glance_images(remote, self.get_internal_network())
+        tempest_share_glance_images(remote, self.ci().get_internal_network())
         execute(remote, '/etc/init.d/iptables stop')
         sleep(5)
-        for name in controllers[1:]:
+        for name in self.ci().controllers[1:]:
             controller = self.environment.node[name]
             remote_controller = ssh(
                 controller.ip_address, username='root',
                 password='r00tme').sudo.ssh
             tempest_mount_glance_images(remote_controller)
 
-    def safely_revert_nodes(self):
-        for node in self.environment.nodes:
-            try:
-                node.stop()
-            except:
-                pass
-        for node in self.environment.nodes:
-            node.restore_snapshot('openstack')
-            sleep(4)
-        #            sync_time(ssh(node.ip_address, username='root', password='r00tme').sudo.ssh)
+
 
     def make_tempest_objects(self, auth_host, remote):
         keystone = retry(10, keystoneclient.v2_0.client.Client,
@@ -50,7 +39,7 @@ class PrepareTempest(OpenStackSitePPBaseTestCase):
         return image_ref, image_ref_any
 
     def prepare_for_tempest(self):
-        self.safely_revert_nodes()
+        self.safety_revert_nodes(self.environment.nodes)
         auth_host = self.get_public_virtual_ip()
         remote = ssh(
             self.controller1.ip_address, username='root',
@@ -60,7 +49,7 @@ class PrepareTempest(OpenStackSitePPBaseTestCase):
         tempest_write_config(auth_host, image_ref, image_ref_any)
 
     def prepare_for_tempest_if_swift(self):
-        self.safely_revert_nodes()
+        self.safety_revert_nodes()
         auth_host = self.get_public_virtual_ip()
         remote = ssh(
             self.controller1.ip_address, username='root',
