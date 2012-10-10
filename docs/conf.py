@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# scaffold documentation build configuration file, created by
+# "Fuel" documentation build configuration file, created by
 # sphinx-quickstart on Tue Sep 25 14:02:29 2012.
 #
 # This file is execfile()d with the current directory set to its containing dir.
@@ -164,7 +164,7 @@ html_static_path = ['_static']
 #html_file_suffix = None
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'scaffolddoc'
+htmlhelp_basename = 'fueldoc'
 
 
 # -- Options for LaTeX output --------------------------------------------------
@@ -183,7 +183,7 @@ latex_elements = {
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('index', 'scaffold.tex', u'scaffold Documentation',
+  ('index', 'fuel.tex', u'Fuel Documentation',
    u'Nick Bogdanov', 'manual'),
 ]
 
@@ -213,8 +213,8 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'scaffold', u'scaffold Documentation',
-     [u'Nick Bogdanov'], 1)
+    ('index', 'fuel', u'Fuel Documentation',
+     [u'Mirantis'], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -227,8 +227,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  ('index', 'scaffold', u'scaffold Documentation',
-   u'Nick Bogdanov', 'scaffold', 'One line description of project.',
+  ('index', 'fuel', u'Fuel Documentation',
+   u'Mirantis', 'fuel', 'One line description of project.',
    'Miscellaneous'),
 ]
 
