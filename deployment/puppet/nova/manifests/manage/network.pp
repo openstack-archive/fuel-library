@@ -12,14 +12,13 @@ define nova::manage::network (
 ) {
 
   File['/etc/nova/nova.conf'] -> Nova_network[$name]
-  Exec<| title == 'initial-db-sync' |> -> Nova_network[$name]
+  Exec<| title == 'nova-db-sync' |> -> Nova_network[$name]
 
   nova_network { $name:
     ensure       => present,
     network      => $network,
     num_networks => $num_networks,
     project      => $project,
-    notify       => Exec['nova-db-sync'],
   }
 
 }

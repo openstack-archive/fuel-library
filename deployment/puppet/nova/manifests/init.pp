@@ -117,14 +117,6 @@ class nova(
     mode  => '0640',
   }
 
-  # I need to ensure that I better understand this resource
-  # this is potentially constantly resyncing a central DB
-  exec { "nova-db-sync":
-    command     => "/usr/bin/nova-manage db sync",
-    refreshonly => "true",
-    require     => [Package['nova-common'], Nova_config['sql_connection']],
-  }
-
   # used by debian/ubuntu in nova::network_bridge to refresh
   # interfaces based on /etc/network/interfaces
   exec { "networking-refresh":

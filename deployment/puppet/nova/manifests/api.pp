@@ -12,16 +12,6 @@ class nova::api(
 
   include nova::params
 
-  $auth_uri = "${auth_protocol}://${auth_host}:${auth_port}/v2.0"
-
-  exec { 'initial-db-sync':
-    command     => '/usr/bin/nova-manage db sync',
-    refreshonly => true,
-    require     => [Package[$::nova::params::common_package_name], Nova_config['sql_connection']],
-  }
-
-  Package<| title == 'nova-api' |> -> Exec['initial-db-sync']
-  Package<| title == 'nova-api' |> -> File['/etc/nova/api-paste.ini']
   Package<| title == 'nova-api' |> -> Exec['nova-db-sync']
   Package<| title == 'nova-api' |> -> Nova_paste_api_ini<| |>
 
@@ -45,4 +35,13 @@ class nova::api(
     'filter:authtoken/admin_user':        value => $admin_user;
     'filter:authtoken/admin_password':    value => $admin_password;
   }
+
+  # I need to ensure that I better understand this resource
+  # this is potentially constantly resyncing a central DB
+  exec { "nova-db-sync":
+    command     => "/usr/bin/nova-manage db sync",
+    refreshonly => "true",
+    subscribe   => Exec['post-nova_config'],
+  }
+
 }
