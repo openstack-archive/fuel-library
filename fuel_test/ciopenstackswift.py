@@ -17,7 +17,8 @@ class CiOpenStackSwift(Ci):
             client = self.describe_node(node_name, [internal, private, public])
             environment.nodes.append(client)
         for node_name in computes:
-            client = self.describe_node(node_name, [internal, private, public])
+            client = self.describe_node(
+                node_name, [internal, private, public], memory=4096)
             environment.nodes.append(client)
         for node_name in storages:
             client = self.describe_node(node_name, [internal, private, public])
