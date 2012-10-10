@@ -71,10 +71,14 @@ define haproxy::config (
   $order                     = '20',
   $virtual_ip                = $::ipaddress,
   $mode                      = 'tcp',
-  $haproxy_config_options    = {'option' => ['tcplog',
-                                            'ssl-hello-chk'],
-                                'balance' => 'roundrobin'},
   $collect_exported          = true,
+  $haproxy_config_options    = {
+    'option' => [
+      'tcplog',
+      'ssl-hello-chk'
+    ],
+    'balance' => 'roundrobin'
+  }
 ) {
   concat::fragment { "${name}_config_block":
     order   => $order,
