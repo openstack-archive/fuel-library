@@ -128,6 +128,16 @@ class nova(
   # both the sql_connection and rabbit_host are things
   # that may need to be collected from a remote host
   if $sql_connection {
+    if($sql_connection =~ /mysql:\/\/\S+:\S+@\S+\/\S+/) {
+      Package['python-mysqldb'] -> Exec<| title == 'nova-manage db_sync' |>
+      ensure_resource( 'package', 'python-mysqldb', {'ensure' => 'present'})
+    } elsif($sql_connection =~ /postgresql:\/\/\S+:\S+@\S+\/\S+/) {
+
+    } elsif($sql_connection =~ /sqlite:\/\//) {
+
+    } else {
+      fail("Invalid db connection ${sql_connection}")
+    }
     nova_config { 'sql_connection': value => $sql_connection }
   } else {
     Nova_config <<| title == 'sql_connection' |>>
