@@ -20,9 +20,10 @@
 #    The namevar of the defined resource type is the listening service's name.
 #     This name goes right after the 'listen' statement in haproxy.cfg
 #
-# [*virtual_ip_port*]
-#    A unique port, or a port range for which the proxy will accept connections
-#     for the ip address specified in the virtual_ip parameter.
+# [*ports*]
+#    Ports on which the proxy will listen for connections on the ip address
+#    specified in the virtual_ip parameter. Accepts either a single string or
+#    an array of strings which may be a unique port or a hyphenated port range.
 #
 # [*order*]
 #    The order, or numerical weight, of the fragment created by this defined
@@ -40,14 +41,14 @@
 # [*haproxy_config_options*]
 #    A hash of options that are inserted into the listening service
 #     configuration block.
-# 
+#
 # [*collect_exported*]
 #    Boolean, default 'true'. True means 'collect exported @@balancermember resources'
 #    (for the case when every balancermember node exports itself), false means
 #    'rely on the existing declared balancermember resources' (for the case when you 
 #    know the full set of balancermembers in advance and use haproxy::balancermember 
 #    with array arguments, which allows you to deploy everything in 1 run)
-#    
+#
 #
 # === Examples
 #
@@ -67,7 +68,7 @@
 # Gary Larizza <gary@puppetlabs.com>
 #
 define haproxy::config (
-  $virtual_ip_port,
+  $ports,
   $order                     = '20',
   $virtual_ip                = $::ipaddress,
   $mode                      = 'tcp',
