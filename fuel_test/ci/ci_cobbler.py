@@ -4,7 +4,7 @@ from devops.helpers import wait, tcp_ping, ssh
 from devops.model import Environment, Network
 import os
 from fuel_test.ci.ci_base import CiBase
-from fuel_test.helpers import sign_all_node_certificates
+from fuel_test.helpers import sign_all_node_certificates, write_static_ip
 from fuel_test.node_roles import NodeRoles
 
 class CiCobbler(CiBase):
@@ -52,10 +52,20 @@ class CiCobbler(CiBase):
         for node in start_nodes:
             logging.info("Waiting ssh... %s" % node.ip_address)
             wait(lambda: tcp_ping(node.ip_address, 22), timeout=1800)
-        self.rename_nodes(start_nodes)
+
+        addresses_iter = iter(self.environment.network['internal'])
+        gateway = addresses_iter.next()
+        net_mask = '255.255.255.0'
+        for node in start_nodes:
+            remote = ssh(node.ip_address_by_network['public'], username='root',
+                password='r00tme')
+            address = addresses_iter.next()
+            write_static_ip(remote, address, net_mask, gateway)
+            node.ip_address_by_network['internal'] = address
 
         master_remote = ssh(master_node.ip_address, username='root',
             password='r00tme')
+        self.rename_nodes(start_nodes)
         self.setup_master_node(master_remote, environment.nodes)
         self.setup_agent_nodes(self.nodes().cobblers)
         sleep(5)

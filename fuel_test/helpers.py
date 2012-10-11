@@ -282,3 +282,11 @@ def make_tempest_objects(auth_host, remote):
     image_ref, image_ref_any = tempest_add_images(remote, auth_host,
         'openstack')
     return image_ref, image_ref_any
+
+
+def write_static_ip(remote, ip, net_mask, gateway, interface='eth0'):
+    path = '/etc/sysconfig/network-scripts/ifcfg-%s' % interface
+    text = load(root('fuel', 'fuel_test', 'config', 'ifcfg-eth0.config')) % {
+        'ip': str(ip), 'net_mask': str(net_mask),
+        'gateway': str(gateway), 'interface': str(interface)}
+    write_config(remote, path, text)

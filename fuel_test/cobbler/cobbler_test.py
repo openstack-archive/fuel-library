@@ -1,40 +1,28 @@
-from devops.helpers import ssh, tcp_ping
-from fuel_test.helpers import udp_ping, execute
-from fuel_test.openstack.openstack_test_case import OpenStackTestCase
-from fuel_test.root import root
 import unittest
+from fuel_test.cobbler.cobbler_test_case import CobblerTestCase
+from fuel_test.helpers import tcp_ping, udp_ping
 
-class CobblerTestCase(OpenStackTestCase):
+
+class CobblerDeployTestCase(CobblerTestCase):
     def test_deploy_cobbler(self):
-        node01 = self.nodes.controllers[0]
-        self.write_site_pp_manifest(
-            root('fuel', 'deployment', 'puppet', 'cobbler', 'examples',
-                'server_site.pp'),
-            server="'%s'" % node01.ip_address,
-            name_server="'%s'" % node01.ip_address,
-            next_server="'%s'" % node01.ip_address,
-            dhcp_start_address="'%s'" % self.environment.network[
-                                        'internal'].ip_addresses[-5],
-            dhcp_end_address="'%s'" %
-                             self.environment.network['internal'].ip_addresses[
-                             -5],
-            dhcp_netmask="'%s'" % '255.255.255.0',
-            dhcp_gateway="'%s'" % node01.ip_address
-        )
-        remote = ssh(node01.ip_address, username='root', password='r00tme')
-        result = execute(remote.sudo.ssh, 'puppet agent --test')
-        #25151
+        self.validate(
+            self.nodes.cobblers,
+            'puppet agent --test')
+
+    def assert_cobbler_ports(self, ip):
         closed_tcp_ports = filter(
             lambda port: not tcp_ping(
-                node01.ip_address,
+                self.master_remote.sudo.ssh,
+                ip,
                 port), [22, 53, 80, 443])
         closed_udp_ports = filter(
             lambda port: not udp_ping(
                 self.master_remote.sudo.ssh,
-                node01.ip_address, port), [53, 67, 68, 69])
-        self.assertEquals({'tcp': [], 'udp': []},
+                ip, port), [53, 67, 68, 69])
+        self.assertEquals(
+            {'tcp': [], 'udp': []},
             {'tcp': closed_tcp_ports, 'udp': closed_udp_ports})
-        self.assertResult(result)
+
 
 if __name__ == '__main__':
     unittest.main()

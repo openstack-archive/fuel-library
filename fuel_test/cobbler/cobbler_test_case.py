@@ -11,6 +11,7 @@ class CobblerTestCase(BaseTestCase):
 
     def setUp(self):
         super(CobblerTestCase, self).setUp()
+        self.write_cobbler_manifest()
 
     def write_cobbler_manifest(self):
         cobbler = self.nodes.cobblers[0]
