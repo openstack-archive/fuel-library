@@ -22,13 +22,6 @@ class swift::ringserver(
 ) {
 
   Class['ringbuilder'] -> Class['swift::ringserver']
-
-  class { 'rsync::server':
-    use_xinetd => true,
-    address    => $local_net_ip,
-    use_chroot => 'no',
-  }
-
   rsync::server::module { "swift_server":
     path => '/etc/swift',
     lock_file => "/var/lock/swift_server.lock",
