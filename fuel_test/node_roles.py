@@ -4,11 +4,13 @@ class NodeRoles(object):
                  compute_names=None,
                  storage_names=None,
                  proxy_names=None,
+                 cobbler_names=None,
                  keystone_names=None):
         self.controller_names = controller_names or []
         self.compute_names = compute_names or []
         self.storage_names = storage_names or []
         self.proxy_names = proxy_names or []
+        self.cobbler_names = cobbler_names or []
         self.keystone_names = keystone_names or []
 
 
@@ -19,6 +21,7 @@ class Nodes(object):
         self.storages = []
         self.proxies = []
         self.keystones = []
+        self.cobblers = []
         for node_name in node_roles.controller_names:
             print('asdf %s' % node_name)
             self.controllers.append(devops_environment.node[node_name])
@@ -28,6 +31,8 @@ class Nodes(object):
             self.storages.append(devops_environment.node[node_name])
         for node_name in node_roles.proxy_names:
             self.proxies.append(devops_environment.node[node_name])
+        for node_name in node_roles.cobbler_names:
+            self.cobblers.append(devops_environment.node[node_name])
         for node_name in node_roles.keystone_names:
             self.keystones.append(devops_environment.node[node_name])
 

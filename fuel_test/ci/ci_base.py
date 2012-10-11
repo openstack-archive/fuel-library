@@ -12,7 +12,7 @@ from fuel_test.root import root
 from fuel_test.helpers import load
 
 
-class CiBase:
+class CiBase(object):
     @abstractproperty
     def env_name(self):
         """
@@ -74,7 +74,7 @@ class CiBase:
         for node in nodes:
             add_to_hosts(remote, node.ip_address, node.name, node.name)
 
-    def setup_mater_node(self, master_remote, nodes):
+    def setup_master_node(self, master_remote, nodes):
         setup_puppet_master_yum(master_remote)
         add_nmap_yum(master_remote)
         switch_off_ip_tables(master_remote)
@@ -97,34 +97,39 @@ class CiBase:
                 write_config(remote, '/etc/puppet/puppet.conf', agent_config)
                 request_cerificate(remote)
 
-    def setup_environment(self):
+    def make_vms(self):
         if not self.base_image:
             raise Exception(
                 "Base image path is missing while trying to build %s environment" % self.environment_name)
-
         logging.info("Building %s environment" % self.environment_name)
         environment = self.describe_environment()
-        self.environment = environment
-
         #       todo environment should be saved before build
         devops.build(environment)
-
         devops.save(environment)
         logging.info("Environment has been saved")
+        return environment
+
+    def rename_nodes(self, nodes):
+        for node in nodes:
+            remote = ssh(node.ip_address, username='root', password='r00tme')
+            change_host_name(remote, node.name, node.name)
+            logging.info("Renamed %s" % node.name)
+
+    def setup_environment(self):
+        environment = self.make_vms()
+        self.environment = environment
+
         logging.info("Starting test nodes ...")
         for node in environment.nodes:
             node.start()
         for node in environment.nodes:
             logging.info("Waiting ssh... %s" % node.ip_address)
             wait(lambda: tcp_ping(node.ip_address, 22), timeout=1800)
-        for node in environment.nodes:
-            remote = ssh(node.ip_address, username='root', password='r00tme')
-            change_host_name(remote, node.name, node.name)
-            logging.info("Renamed %s" % node.name)
+        self.rename_nodes(environment.nodes)
         master_node = environment.node['master']
         master_remote = ssh(master_node.ip_address, username='root',
             password='r00tme')
-        self.setup_mater_node(master_remote, environment.nodes)
+        self.setup_master_node(master_remote, environment.nodes)
         self.setup_agent_nodes(environment.nodes)
         sleep(5)
         sign_all_node_certificates(master_remote)

@@ -19,7 +19,8 @@ class BaseTestCase(unittest.TestCase):
         self.environment = self.ci().get_environment_or_create()
         master = self.environment.node['master']
         self.revert_snapshots()
-        self.master_remote = ssh(master.ip_address, username='root',
+        self.master_remote = ssh(master.ip_address_by_network['public'],
+            username='root',
             password='r00tme')
         self.upload_recipes()
         self.restart_puppet_muster()

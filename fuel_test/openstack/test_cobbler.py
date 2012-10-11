@@ -6,7 +6,7 @@ import unittest
 
 class CobblerTestCase(OpenStackTestCase):
     def test_deploy_cobbler(self):
-        node01 = self.environment.node[self.ci().controllers[0]]
+        node01 = self.nodes.controllers[0]
         self.write_site_pp_manifest(
             root('fuel', 'deployment', 'puppet', 'cobbler', 'examples',
                 'server_site.pp'),
