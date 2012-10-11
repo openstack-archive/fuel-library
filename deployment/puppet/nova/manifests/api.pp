@@ -7,7 +7,8 @@ class nova::api(
   $auth_protocol     = 'http',
   $admin_tenant_name = 'services',
   $admin_user        = 'nova',
-  $admin_password    = 'passw0rd'
+  $admin_password    = 'passw0rd',
+  $enabled_apis      = 'ec2,osapi_compute,metadata'
 ) {
 
   include nova::params
@@ -25,7 +26,11 @@ class nova::api(
     service_name   => $::nova::params::api_service_name,
   }
 
-  nova_config { 'api_paste_config': value => '/etc/nova/api-paste.ini'; }
+  nova_config {
+    'api_paste_config': value => '/etc/nova/api-paste.ini';
+    'enabled_apis':     value => $enabled_apis;
+    'volume_api_class': value => 'nova.volume.cinder.API';
+  }
 
   nova_paste_api_ini {
     'filter:authtoken/auth_host':         value => $auth_host;
