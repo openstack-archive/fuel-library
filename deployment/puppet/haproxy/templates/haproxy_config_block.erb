@@ -1,6 +1,6 @@
 
 listen <%= name %> <%= virtual_ip %>:<%= Array(ports).join(",#{virtual_ip}:") %>
-<% haproxy_config_options.sort.each do |key, val| -%>
+<% config_options.sort.each do |key, val| -%>
 <% if val.is_a?(Array) -%>
 <% val.each do |item| -%>
   <%= key %>  <%= item %>
