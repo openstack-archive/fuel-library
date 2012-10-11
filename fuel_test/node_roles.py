@@ -5,10 +5,10 @@ class NodeRoles(object):
                  storage_names=None,
                  proxy_names=None,
                  keystone_names=None):
-        self.controller_names = controller_names,
-        self.compute_names = compute_names,
-        self.storage_names = storage_names,
-        self.proxy_names = proxy_names,
+        self.controller_names = controller_names
+        self.compute_names = compute_names
+        self.storage_names = storage_names
+        self.proxy_names = proxy_names
         self.keystone_names = keystone_names
 
 
@@ -20,7 +20,7 @@ class Nodes(object):
         self.proxies = []
         self.keystones = []
         for node_name in node_roles.controller_names:
-            print(node_name)
+            print('asdf %s' % node_name)
             self.controllers += devops_environment.node[node_name]
         for node_name in node_roles.compute_names:
             self.computes += devops_environment.node[node_name]
