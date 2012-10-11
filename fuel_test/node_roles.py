@@ -21,15 +21,15 @@ class Nodes(object):
         self.keystones = []
         for node_name in node_roles.controller_names:
             print('asdf %s' % node_name)
-            self.controllers += devops_environment.node[node_name]
+            self.controllers.append(devops_environment.node[node_name])
         for node_name in node_roles.compute_names:
-            self.computes += devops_environment.node[node_name]
+            self.computes.append(devops_environment.node[node_name])
         for node_name in node_roles.storage_names:
-            self.storages += devops_environment.node[node_name]
+            self.storages.append(devops_environment.node[node_name])
         for node_name in node_roles.proxy_names:
-            self.proxies += devops_environment.node[node_name]
+            self.proxies.append(devops_environment.node[node_name])
         for node_name in node_roles.keystone_names:
-            self.keystones += devops_environment.node[node_name]
+            self.keystones.append(devops_environment.node[node_name])
 
 
 
