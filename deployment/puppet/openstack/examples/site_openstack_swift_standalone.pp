@@ -44,7 +44,7 @@ Exec { logoutput => true }
 stage {'openstack-custom-repo': before => Stage['main']}
 include openstack::mirantis_repos
 
-node /fuel-0[12]/ {
+node /fuel-0[12]/ inherits swift_base {
     class { 'openstack::controller_ha': 
       controller_public_addresses => $controller_public_addresses,
       public_interface        => $public_interface,
@@ -80,6 +80,7 @@ node /fuel-0[12]/ {
              password => $swift_user_password,
              address  => $swift_proxy_address,
       }
+      
 }
 
 node /fuel-0[34]/ {
@@ -114,7 +115,12 @@ node swift_base  {
     swift_hash_suffix => 'swift_shared_secret',
     package_ensure    => latest,
   }
-
+ 
+  class { 'rsync::server':
+    use_xinetd => true,
+    address    => $swift_local_net_ip,
+    use_chroot => 'no',
+  }
 }
 node /fuel-05/ inherits swift_base {
 

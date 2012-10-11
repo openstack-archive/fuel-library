@@ -161,18 +161,23 @@ class swift_base {
     swift_hash_suffix => 'swift_shared_secret',
     package_ensure    => latest,
   }
-
+ 
+  class { 'rsync::server':
+    use_xinetd => true,
+    address    => $swift_local_net_ip,
+    use_chroot => 'no',
+  }
 
 }
 
 class role_swift_proxy {
 
   # curl is only required so that I can run tests
-  package { 'curl': ensure => present }
+  #  package { 'curl': ensure => present }
 
-  class { 'memcached':
-    listen_ip => '127.0.0.1',
-  }
+  #class { 'memcached':
+  #  listen_ip => '127.0.0.1',
+  #}
 
   # specify swift proxy and all of its middlewares
   class { 'swift::proxy':

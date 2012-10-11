@@ -246,10 +246,10 @@ class openstack::controller(
 
   if $glance_backend == "swift"
   {
-    package { "openstack-swift":
-      ensure =>present,
-      notify =>Service['glance-api']
-    }
+    #    package { "openstack-swift":
+    #  ensure =>present,}
+      Package["swift"] ~> Service['glance-api']
+    
     class { "glance::backend::$glance_backend":
       swift_store_user => "services:glance",
       swift_store_key=> $glance_user_password,
