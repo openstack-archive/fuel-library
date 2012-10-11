@@ -4,7 +4,7 @@ from devops.helpers import wait, tcp_ping, ssh
 from devops.model import Environment, Network
 import os
 from fuel_test.ci.ci_base import CiBase
-from fuel_test.helpers import sign_all_node_certificates, write_static_ip
+from fuel_test.helpers import sign_all_node_certificates, write_static_ip, execute
 from fuel_test.node_roles import NodeRoles
 
 class CiCobbler(CiBase):
@@ -61,8 +61,10 @@ class CiCobbler(CiBase):
             remote = ssh(node.ip_address_by_network['public'], username='root',
                 password='r00tme')
             address = addresses_iter.next()
+            execute(remote, 'ifdown eth0')
             write_static_ip(remote, address, net_mask, gateway)
             node.ip_address_by_network['internal'] = address
+            execute(remote, 'ifup eth0')
 
         master_remote = ssh(master_node.ip_address, username='root',
             password='r00tme')
