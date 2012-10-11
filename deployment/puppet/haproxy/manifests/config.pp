@@ -38,7 +38,7 @@
 #    The mode of operation for the listening service. Valid values are 'tcp',
 #     HTTP', and 'health'.
 #
-# [*haproxy_config_options*]
+# [*config_options*]
 #    A hash of options that are inserted into the listening service
 #     configuration block.
 #
@@ -69,11 +69,11 @@
 #
 define haproxy::config (
   $ports,
-  $order                     = '20',
-  $virtual_ip                = $::ipaddress,
-  $mode                      = 'tcp',
-  $collect_exported          = true,
-  $haproxy_config_options    = {
+  $order            = '20',
+  $virtual_ip       = $::ipaddress,
+  $mode             = 'tcp',
+  $collect_exported = true,
+  $config_options   = {
     'option' => [
       'tcplog',
       'ssl-hello-chk'
