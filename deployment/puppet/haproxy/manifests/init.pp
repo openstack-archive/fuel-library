@@ -64,6 +64,7 @@
 # Gary Larizza <gary@puppetlabs.com>
 #
 class haproxy (
+  $manage_service           = true,
   $enable                   = true,
   $haproxy_global_options   = $haproxy::data::haproxy_global_options,
   $haproxy_defaults_options = $haproxy::data::haproxy_defaults_options
@@ -116,21 +117,23 @@ class haproxy (
 
   }
 
-  service { 'haproxy':
-    ensure     => $enable ? {
-      true  => running,
-      false => stopped,
-    },
-    enable     => $enable ? {
-      true  => true,
-      false => false,
-    },
-    name       => 'haproxy',
-    hasrestart => true,
-    hasstatus  => true,
-    require    => [
-      Concat['/etc/haproxy/haproxy.cfg'],
-      File[$haproxy_global_options['chroot']],
-    ],
+  if $manage_service {
+    service { 'haproxy':
+      ensure     => $enable ? {
+        true  => running,
+        false => stopped,
+      },
+      enable     => $enable ? {
+        true  => true,
+        false => false,
+      },
+      name       => 'haproxy',
+      hasrestart => true,
+      hasstatus  => true,
+      require    => [
+        Concat['/etc/haproxy/haproxy.cfg'],
+        File[$haproxy_global_options['chroot']],
+      ],
+    }
   }
 }

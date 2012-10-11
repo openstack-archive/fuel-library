@@ -83,6 +83,26 @@ describe 'haproxy', :type => :class do
             end
           end
         end
+        context "on #{osfamily} family operatingsystems without managing the service" do
+          let(:facts) do
+            { :osfamily => osfamily }.merge default_facts
+          end
+          let(:params) do
+            {
+              'enable'         => true,
+              'manage_service' => false,
+            }
+          end
+          it { should include_class('concat::setup') }
+          it 'should install the haproxy package' do
+            subject.should contain_package('haproxy').with(
+              'ensure' => 'present'
+            )
+          end
+          it 'should install the haproxy service' do
+            subject.should_not contain_service('haproxy')
+          end
+        end
       end
     end
     describe 'for OS-specific configuration' do
