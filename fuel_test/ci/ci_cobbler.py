@@ -53,7 +53,7 @@ class CiCobbler(CiBase):
             logging.info("Waiting ssh... %s" % node.ip_address)
             wait(lambda: tcp_ping(node.ip_address, 22), timeout=1800)
 
-        addresses_iter = iter(self.environment.network['internal'])
+        addresses_iter = iter(self.environment.network['internal'].ip_addresses)
         gateway = addresses_iter.next()
         net_mask = '255.255.255.0'
         for node in start_nodes:
