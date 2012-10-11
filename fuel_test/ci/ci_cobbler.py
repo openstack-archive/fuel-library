@@ -64,7 +64,7 @@ class CiCobbler(CiBase):
             address = addresses_iter.next()
             execute(remote, 'ifdown eth0')
             write_static_ip(remote, address, net_mask, gateway)
-            node.ip_address_by_network['internal'] = address
+            node.interfaces[0].ip_addresses = address
             execute(remote, 'ifup eth0')
 
         master_remote = ssh(master_node.ip_address, username='root',
