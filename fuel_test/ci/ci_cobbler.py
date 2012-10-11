@@ -46,12 +46,13 @@ class CiCobbler(CiBase):
 
         logging.info("Starting test nodes ...")
         master_node = environment.node['master']
-        start_nodes = self.nodes().cobblers + [master_node]
+        start_nodes = [master_node] + self.nodes().cobblers
         for node in start_nodes:
             node.start()
         for node in start_nodes:
             logging.info("Waiting ssh... %s" % node.ip_address)
-            wait(lambda: tcp_ping(node.ip_address, 22), timeout=1800)
+            wait(lambda: tcp_ping(node.ip_address_by_network['public'], 22),
+                timeout=1800)
 
         addresses_iter = iter(self.environment.network['internal'].ip_addresses)
         addresses_iter.next()
