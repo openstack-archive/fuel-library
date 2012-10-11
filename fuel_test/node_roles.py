@@ -5,11 +5,11 @@ class NodeRoles(object):
                  storage_names=None,
                  proxy_names=None,
                  keystone_names=None):
-        self.controller_names = controller_names
-        self.compute_names = compute_names
-        self.storage_names = storage_names
-        self.proxy_names = proxy_names
-        self.keystone_names = keystone_names
+        self.controller_names = controller_names or []
+        self.compute_names = compute_names or []
+        self.storage_names = storage_names or []
+        self.proxy_names = proxy_names or []
+        self.keystone_names = keystone_names or []
 
 
 class Nodes(object):
