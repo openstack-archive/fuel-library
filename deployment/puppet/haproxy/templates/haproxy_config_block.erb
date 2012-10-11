@@ -1,5 +1,5 @@
 
-listen <%= name %> <%= virtual_ip %>:<%= Array(ports).join(",#{virtual_ip}:") %>
+listen <%= name %> <%= listen_ip %>:<%= Array(ports).join(",#{listen_ip}:") %>
 <% config_options.sort.each do |key, val| -%>
 <% if val.is_a?(Array) -%>
 <% val.each do |item| -%>
