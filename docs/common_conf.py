@@ -34,8 +34,8 @@ extensions += ['rst2pdf.pdfbuilder']
 pdf_documents = [ 
     (master_doc, project, project, copyright),
 ]
-pdf_stylesheets = ['sphinx','kerning','a4','en']
-pdf_language = "en"
+pdf_stylesheets = ['kerning']
+#pdf_language = "en"
 # Mode for literal blocks wider than the frame. Can be
 # overflow, shrink or truncate
 #pdf_fit_mode = "shrink"
@@ -96,3 +96,5 @@ pdf_use_numbered_links = False
 
 # Background images fitting mode
 pdf_fit_background_mode = 'scale'
+
+pdf_font_path = ['C:\\Windows\\Fonts\\', '/usr/share/fonts']
