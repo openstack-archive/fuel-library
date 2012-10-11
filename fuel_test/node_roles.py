@@ -1,4 +1,4 @@
-class NodeRoles():
+class NodeRoles(object):
     def __init__(self,
                  controller_names=None,
                  compute_names=None,
@@ -12,23 +12,23 @@ class NodeRoles():
         self.keystone_names = keystone_names
 
 
-class Nodes():
-    def __init__(self, devops_nodes, node_roles):
+class Nodes(object):
+    def __init__(self, devops_environment, node_roles):
         self.controllers = []
         self.computes = []
         self.storages = []
         self.proxies = []
         self.keystones = []
         for node_name in node_roles.controller_names:
-            self.controllers += devops_nodes[node_name]
+            self.controllers += devops_environment.node[node_name]
         for node_name in node_roles.compute_names:
-            self.computes += devops_nodes[node_name]
+            self.computes += devops_environment.node[node_name]
         for node_name in node_roles.storage_names:
-            self.storages += devops_nodes[node_name]
+            self.storages += devops_environment.node[node_name]
         for node_name in node_roles.proxy_names:
-            self.proxies += devops_nodes[node_name]
+            self.proxies += devops_environment.node[node_name]
         for node_name in node_roles.keystone_names:
-            self.keystones += devops_nodes[node_name]
+            self.keystones += devops_environment.node[node_name]
 
 
 
