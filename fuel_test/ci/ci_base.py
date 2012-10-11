@@ -35,7 +35,7 @@ class CiBase:
         pass
 
     def nodes(self):
-        return Nodes(self.environment, self.node_roles)
+        return Nodes(self.environment, self.node_roles())
 
     def __init__(self):
         self.base_image = BASE_IMAGE
