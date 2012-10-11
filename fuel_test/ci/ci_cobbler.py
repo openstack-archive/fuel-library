@@ -54,6 +54,7 @@ class CiCobbler(CiBase):
             wait(lambda: tcp_ping(node.ip_address, 22), timeout=1800)
 
         addresses_iter = iter(self.environment.network['internal'].ip_addresses)
+        addresses_iter.next()
         gateway = addresses_iter.next()
         net_mask = '255.255.255.0'
         for node in start_nodes:
