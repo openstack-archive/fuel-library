@@ -20,6 +20,7 @@ class firewall (
 	$erlang_rabbitmq_port =  5672,
     $erlang_inet_dist_port = 41055,
 	$memcached_port =  11211,
+  $rsync_port = 873
 ) {
 
   case $::osfamily {
@@ -45,6 +46,7 @@ class firewall (
 		$erlang_rabbitmq_port,
 		$erlang_inet_dist_port,
 		$memcached_port,
+    $rsync_port,
       ]: }
      }
      default: {
