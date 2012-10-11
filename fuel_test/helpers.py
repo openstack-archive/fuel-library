@@ -1,5 +1,7 @@
 import logging
 from time import sleep
+from devops.helpers import ssh
+import keystoneclient.v2_0
 import re
 from root import root
 #from glanceclient import Client
@@ -103,7 +105,7 @@ def get_auth_url(auth_host):
 
 def credentials(auth_host, tenant_name):
     credentials = '--os_username admin --os_password nova --os_auth_url  "%s" --os_tenant_name %s' % (
-    get_auth_url(auth_host), tenant_name)
+        get_auth_url(auth_host), tenant_name)
     print credentials
     return credentials
 
@@ -235,6 +237,11 @@ def change_host_name(remote, short, long):
     add_to_hosts(remote, '127.0.0.1', short, short)
 
 
+def set_ip_address(remote, interface='eth0', address='1.1.1.1'):
+    remote.sudo.ssh.execute('hostname %s' % long)
+    pass
+
+
 def add_to_hosts(remote, ip, short, long):
     remote.sudo.ssh.execute('echo %s %s %s >> /etc/hosts' % (ip, long, short))
 
@@ -249,3 +256,29 @@ def safety_revert_nodes(nodes, snapsot_name='openstack'):
         node.restore_snapshot(snapsot_name)
         sleep(4)
         #            sync_time(ssh(node.ip_address, username='root', password='r00tme').sudo.ssh)
+
+
+def make_shared_storage(remote, client_nodes, access_network):
+    tempest_share_glance_images(remote, access_network)
+    execute(remote, '/etc/init.d/iptables stop')
+    sleep(5)
+    for controller in client_nodes:
+        remote_controller = ssh(
+            controller.ip_address, username='root',
+            password='r00tme').sudo.ssh
+        tempest_mount_glance_images(remote_controller, controller[0].name)
+
+
+def make_tempest_objects(auth_host, remote):
+    keystone = retry(10, keystoneclient.v2_0.client.Client,
+        username='admin', password='nova', tenant_name='openstack',
+        auth_url=get_auth_url(auth_host))
+    tenant1 = retry(10, keystone.tenants.create, tenant_name='tenant1')
+    tenant2 = retry(10, keystone.tenants.create, tenant_name='tenant2')
+    retry(10, keystone.users.create, name='tempest1', password='secret',
+        email='tempest1@example.com', tenant_id=tenant1.id)
+    retry(10, keystone.users.create, name='tempest2', password='secret',
+        email='tempest1@example.com', tenant_id=tenant2.id)
+    image_ref, image_ref_any = tempest_add_images(remote, auth_host,
+        'openstack')
+    return image_ref, image_ref_any
