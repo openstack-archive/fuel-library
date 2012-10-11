@@ -30,7 +30,7 @@
 #     resource type. This is necessary to ensure the fragment is associated
 #     with the correct listening service instance.
 #
-# [*virtual_ip*]
+# [*listen_ip*]
 #    The ip address the proxy binds to. Empty addresses, '*', and '0.0.0.0'
 #     mean that the proxy listens to all valid addresses on the system.
 #
@@ -55,12 +55,17 @@
 #  Exporting the resource for a balancer member:
 #
 #  haproxy::config { 'puppet00':
-#    order                  => '20',
-#    virtual_ip             => $::ipaddress,
-#    virtual_ip_port        => '18140',
-#    mode                   => 'tcp',
-#    haproxy_config_options => {'option' => ['tcplog', 'ssl-hello-chk'],
-#                               'balance' => 'roundrobin'},
+#    order          => '20',
+#    listen_ip      => $::ipaddress,
+#    ports          => '18140',
+#    mode           => 'tcp',
+#    config_options => {
+#      'option'  => [
+#        'tcplog',
+#        'ssl-hello-chk'
+#      ],
+#      'balance' => 'roundrobin'
+#    },
 #  }
 #
 # === Authors
@@ -70,11 +75,11 @@
 define haproxy::config (
   $ports,
   $order            = '20',
-  $virtual_ip       = $::ipaddress,
+  $listen_ip       = $::ipaddress,
   $mode             = 'tcp',
   $collect_exported = true,
   $config_options   = {
-    'option' => [
+    'option'  => [
       'tcplog',
       'ssl-hello-chk'
     ],

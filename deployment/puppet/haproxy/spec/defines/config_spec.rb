@@ -18,8 +18,9 @@ describe 'haproxy::config' do
   end
   context "when an array of ports is provided" do
     let(:params) do
-      { :name  => 'apache',
-        :ports => [
+      { :name      => 'apache',
+        :listen_ip => '23.23.23.23',
+        :ports     => [
           '80',
           '443',
         ]
@@ -29,7 +30,7 @@ describe 'haproxy::config' do
     it { should contain_concat__fragment('apache_config_block').with(
       'order'   => '20',
       'target'  => '/etc/haproxy/haproxy.cfg',
-      'content' => "\nlisten apache 1.1.1.1:80,1.1.1.1:443\n  balance  roundrobin\n  option  tcplog\n  option  ssl-hello-chk\n"
+      'content' => "\nlisten apache 23.23.23.23:80,23.23.23.23:443\n  balance  roundrobin\n  option  tcplog\n  option  ssl-hello-chk\n"
     ) }
   end
 end
