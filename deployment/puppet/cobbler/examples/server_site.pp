@@ -68,7 +68,7 @@ node fuel-cobbler {
     # }
 
     class { cobbler::distro::centos63-x86_64:
-      http_iso => "http://10.0.0.1/iso/CentOS-6.3-x86_64-minimal.iso",
+      http_iso => "http://srv08-srt.srt.mirantis.net/CentOS-6.3-x86_64-minimal.iso",
       ks_url   => "cobbler",
     }
 
