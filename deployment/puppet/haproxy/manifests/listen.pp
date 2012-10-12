@@ -22,8 +22,9 @@
 #
 # [*ports*]
 #    Ports on which the proxy will listen for connections on the ip address
-#    specified in the virtual_ip parameter. Accepts either a single string or
-#    an array of strings which may be a unique port or a hyphenated port range.
+#    specified in the virtual_ip parameter. Accepts either a single
+#    comma-separated string or an array of strings which may be ports or
+#    hyphenated port ranges.
 #
 # [*order*]
 #    The order, or numerical weight, of the fragment created by this defined
