@@ -1,0 +1,5 @@
+2012-10-12 - Version 0.2.0
+- Initial public release
+- Backwards incompatible changes all around
+- No longer needs ordering passed for more than one listener
+- Accepts multiple listen ips/ports/server_names
