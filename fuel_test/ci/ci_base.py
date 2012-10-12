@@ -97,9 +97,8 @@ class CiBase(object):
                 write_config(remote, '/etc/puppet/puppet.conf', agent_config)
                 request_cerificate(remote)
 
-            #    todo make devops to reserve ips for nodes in static networks
-
     def reserve_static_addresses(self, environment):
+        #    todo make devops to reserve ips for nodes in static networks
         pass
 
     def make_vms(self):

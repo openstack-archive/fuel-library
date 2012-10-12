@@ -17,6 +17,7 @@ class BaseTestCase(unittest.TestCase):
 
     def setUp(self):
         self.environment = self.ci().get_environment_or_create()
+        self.nodes = self.ci().nodes()
         master = self.environment.node['master']
         self.revert_snapshots()
         self.master_remote = ssh(master.ip_address_by_network['public'],
@@ -24,7 +25,6 @@ class BaseTestCase(unittest.TestCase):
             password='r00tme')
         self.upload_recipes()
         self.restart_puppet_muster()
-        self.nodes = self.ci().nodes()
 
     def upload_recipes(self):
         recipes_dir = root('fuel', 'deployment', 'puppet')
