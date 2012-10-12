@@ -17,7 +17,7 @@ class CobblerTestCase(BaseTestCase):
 
     def revert_snapshots(self):
         safety_revert_nodes(self.environment.nodes, 'empty')
-        for node in self.environment.node['master'] + self.nodes.cobblers:
+        for node in [self.environment.node['master']] + self.nodes.cobblers:
             remote = ssh(node.ip_address, username='root', password='r00tme')
             sync_time(remote.sudo.ssh)
             remote.sudo.ssh.execute('yum makecache')
