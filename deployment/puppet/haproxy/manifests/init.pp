@@ -81,7 +81,10 @@ class haproxy (
       group   => '0',
       mode    => '0644',
       require => Package['haproxy'],
-      notify  => Service['haproxy'],
+      notify  => $manage_service ? {
+        true  => Service['haproxy'],
+        false => undef,
+      },
     }
 
     # Simple Header
@@ -102,13 +105,15 @@ class haproxy (
       file { '/etc/default/haproxy':
         content => 'ENABLED=1',
         require => Package['haproxy'],
-        before  => Service['haproxy'],
+        before  => $manage_service ? {
+          true  => Service['haproxy'],
+          false => undef,
+        },
       }
     }
 
     file { $global_options['chroot']:
       ensure => directory,
-      before => Service['haproxy'],
     }
 
   }
