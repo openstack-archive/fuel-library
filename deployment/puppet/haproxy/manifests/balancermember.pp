@@ -22,8 +22,8 @@
 #
 # [*listening_service*]
 #    The haproxy service's instance name (or, the title of the
-#     haproxy::config resource). This must match up with a declared
-#     haproxy::config resource.
+#     haproxy::listen resource). This must match up with a declared
+#     haproxy::listen resource.
 #
 # [*balancer_port*]
 #     A unique port for which the balancer member will accept connections

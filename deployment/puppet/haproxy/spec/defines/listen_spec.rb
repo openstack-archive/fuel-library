@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe 'haproxy::config' do
+describe 'haproxy::listen' do
   let(:title) { 'tyler' }
   let(:facts) {{ :ipaddress => '1.1.1.1' }}
   context "when only one port is provided" do
@@ -10,7 +10,7 @@ describe 'haproxy::config' do
       }
     end
 
-    it { should contain_concat__fragment('croy_config_block').with(
+    it { should contain_concat__fragment('croy_listen_block').with(
       'order'   => '20',
       'target'  => '/etc/haproxy/haproxy.cfg',
       'content' => "\nlisten croy 1.1.1.1:18140\n  balance  roundrobin\n  option  tcplog\n  option  ssl-hello-chk\n"
@@ -19,7 +19,7 @@ describe 'haproxy::config' do
   context "when an array of ports is provided" do
     let(:params) do
       { :name      => 'apache',
-        :listen_ip => '23.23.23.23',
+        :ipaddress => '23.23.23.23',
         :ports     => [
           '80',
           '443',
@@ -27,7 +27,7 @@ describe 'haproxy::config' do
       }
     end
 
-    it { should contain_concat__fragment('apache_config_block').with(
+    it { should contain_concat__fragment('apache_listen_block').with(
       'order'   => '20',
       'target'  => '/etc/haproxy/haproxy.cfg',
       'content' => "\nlisten apache 23.23.23.23:80,23.23.23.23:443\n  balance  roundrobin\n  option  tcplog\n  option  ssl-hello-chk\n"

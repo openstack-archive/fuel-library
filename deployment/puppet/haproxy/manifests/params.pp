@@ -1,13 +1,13 @@
-# == Class: haproxy::data
+# == Class: haproxy::params
 #
 # This is a container class holding default parameters for for haproxy class.
 #  currently, only the Redhat family is supported, but this can be easily
 #  extended by changing package names and configuration file paths.
 #
-class haproxy::data {
+class haproxy::params {
   case $osfamily {
     Redhat: {
-      $haproxy_global_options   = {
+      $global_options   = {
         'log'     => "${::ipaddress} local0",
         'chroot'  => '/var/lib/haproxy',
         'pidfile' => '/var/run/haproxy.pid',
@@ -17,7 +17,7 @@ class haproxy::data {
         'daemon'  => '',
         'stats'   => 'socket /var/lib/haproxy/stats'
       }
-      $haproxy_defaults_options = {
+      $defaults_options = {
         'log'     => 'global',
         'stats'   => 'enable',
         'option'  => 'redispatch',
@@ -34,7 +34,7 @@ class haproxy::data {
       }
     }
     Debian: {
-      $haproxy_global_options   = {
+      $global_options   = {
         'log'     => "${::ipaddress} local0",
         'chroot'  => '/var/lib/haproxy',
         'pidfile' => '/var/run/haproxy.pid',
@@ -44,7 +44,7 @@ class haproxy::data {
         'daemon'  => '',
         'stats'   => 'socket /var/lib/haproxy/stats'
       }
-      $haproxy_defaults_options = {
+      $defaults_options = {
         'log'     => 'global',
         'stats'   => 'enable',
         'option'  => 'redispatch',

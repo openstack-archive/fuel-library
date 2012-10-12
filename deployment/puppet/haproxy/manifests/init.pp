@@ -1,4 +1,4 @@
-# == Class: puppet-haproxy
+# == Class: haproxy
 #
 # A Puppet module, using storeconfigs, to model an haproxy configuration.
 # Currently VERY limited - assumes Redhat/CentOS setup. Pull requests accepted!
@@ -15,13 +15,13 @@
 #   Chooses whether haproxy should be installed or ensured absent.
 #   Currently ONLY accepts valid boolean true/false values.
 #
-# [*haproxy_global_options*]
+# [*global_options*]
 #   A hash of all the haproxy global options. If you want to specify more
 #    than one option (i.e. multiple timeout or stats options), pass those
 #    options as an array and you will get a line for each of them in the
 #    resultant haproxy.cfg file.
 #
-# [*haproxy_defaults_options*]
+# [*defaults_options*]
 #   A hash of all the haproxy defaults options. If you want to specify more
 #    than one option (i.e. multiple timeout or stats options), pass those
 #    options as an array and you will get a line for each of them in the
@@ -31,8 +31,8 @@
 # === Examples
 #
 #  class { 'haproxy':
-#    enable                   => true,
-#    haproxy_global_options   => {
+#    enable           => true,
+#    global_options   => {
 #      'log'     => "${::ipaddress} local0",
 #      'chroot'  => '/var/lib/haproxy',
 #      'pidfile' => '/var/run/haproxy.pid',
@@ -42,7 +42,7 @@
 #      'daemon'  => '',
 #      'stats'   => 'socket /var/lib/haproxy/stats'
 #    },
-#    haproxy_defaults_options => {
+#    defaults_options => {
 #      'log'     => 'global',
 #      'stats'   => 'enable',
 #      'option'  => 'redispatch',
@@ -59,16 +59,12 @@
 #    },
 #  }
 #
-# === Authors
-#
-# Gary Larizza <gary@puppetlabs.com>
-#
 class haproxy (
-  $manage_service           = true,
-  $enable                   = true,
-  $haproxy_global_options   = $haproxy::data::haproxy_global_options,
-  $haproxy_defaults_options = $haproxy::data::haproxy_defaults_options
-) inherits haproxy::data {
+  $manage_service   = true,
+  $enable           = true,
+  $global_options   = $haproxy::params::global_options,
+  $defaults_options = $haproxy::params::defaults_options
+) inherits haproxy::params {
   include concat::setup
 
   package { 'haproxy':
@@ -95,7 +91,7 @@ class haproxy (
       content => "# This file managed by Puppet\n",
     }
 
-    # Most of the variables are used inside the haproxy-base.cfg.erb template
+    # Template uses $global_options, $defaults_options
     concat::fragment { 'haproxy-base':
       target  => '/etc/haproxy/haproxy.cfg',
       order   => '10',
@@ -110,7 +106,7 @@ class haproxy (
       }
     }
 
-    file { $haproxy_global_options['chroot']:
+    file { $global_options['chroot']:
       ensure => directory,
       before => Service['haproxy'],
     }
@@ -132,7 +128,7 @@ class haproxy (
       hasstatus  => true,
       require    => [
         Concat['/etc/haproxy/haproxy.cfg'],
-        File[$haproxy_global_options['chroot']],
+        File[$global_options['chroot']],
       ],
     }
   }

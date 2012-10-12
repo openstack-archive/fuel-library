@@ -1,4 +1,4 @@
-# == Define Resource Type: haproxy::config
+# == Define Resource Type: haproxy::listen
 #
 # This type will setup a listening service configuration block inside
 #  the haproxy.cfg file on an haproxy load balancer. Each listening service
@@ -30,7 +30,7 @@
 #     resource type. This is necessary to ensure the fragment is associated
 #     with the correct listening service instance.
 #
-# [*listen_ip*]
+# [*ipaddress*]
 #    The ip address the proxy binds to. Empty addresses, '*', and '0.0.0.0'
 #     mean that the proxy listens to all valid addresses on the system.
 #
@@ -38,7 +38,7 @@
 #    The mode of operation for the listening service. Valid values are 'tcp',
 #     HTTP', and 'health'.
 #
-# [*config_options*]
+# [*options*]
 #    A hash of options that are inserted into the listening service
 #     configuration block.
 #
@@ -54,12 +54,12 @@
 #
 #  Exporting the resource for a balancer member:
 #
-#  haproxy::config { 'puppet00':
-#    order          => '20',
-#    listen_ip      => $::ipaddress,
-#    ports          => '18140',
-#    mode           => 'tcp',
-#    config_options => {
+#  haproxy::listen { 'puppet00':
+#    order     => '20',
+#    ipaddress => $::ipaddress,
+#    ports     => '18140',
+#    mode      => 'tcp',
+#    options   => {
 #      'option'  => [
 #        'tcplog',
 #        'ssl-hello-chk'
@@ -72,13 +72,13 @@
 #
 # Gary Larizza <gary@puppetlabs.com>
 #
-define haproxy::config (
+define haproxy::listen (
   $ports,
   $order            = '20',
-  $listen_ip       = $::ipaddress,
+  $ipaddress        = $::ipaddress,
   $mode             = 'tcp',
   $collect_exported = true,
-  $config_options   = {
+  $options          = {
     'option'  => [
       'tcplog',
       'ssl-hello-chk'
@@ -86,10 +86,11 @@ define haproxy::config (
     'balance' => 'roundrobin'
   }
 ) {
-  concat::fragment { "${name}_config_block":
+  # Template uses: $name, $ipaddress, $ports, $options
+  concat::fragment { "${name}_listen_block":
     order   => $order,
     target  => '/etc/haproxy/haproxy.cfg',
-    content => template('haproxy/haproxy_config_block.erb'),
+    content => template('haproxy/haproxy_listen_block.erb'),
   }
 
   if $collect_exported {

@@ -1,5 +1,5 @@
 global
-<% haproxy_global_options.sort.each do |key,val| -%>
+<% global_options.sort.each do |key,val| -%>
 <% if val.is_a?(Array) -%>
 <% val.each do |item| -%>
   <%= key %>  <%= item %>
@@ -10,7 +10,7 @@ global
 <% end -%>
 
 defaults
-<% haproxy_defaults_options.sort.each do |key,val| -%>
+<% defaults_options.sort.each do |key,val| -%>
 <% if val.is_a?(Array) -%>
 <% val.each do |item| -%>
   <%= key %>  <%= item %>
