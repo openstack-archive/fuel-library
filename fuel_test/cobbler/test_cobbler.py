@@ -20,6 +20,8 @@ class CobblerCase(CobblerTestCase):
                 self.master_remote.sudo.ssh,
                 node.ip_address_by_network['public'], 22),
                 timeout=1800)
+        for node in self.environment.nodes:
+            node.save_snapshot('cobbler', force=True)
 
     def assert_cobbler_ports(self, ip):
         closed_tcp_ports = filter(
