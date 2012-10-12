@@ -23,7 +23,6 @@ class Nodes(object):
         self.keystones = []
         self.cobblers = []
         for node_name in node_roles.controller_names:
-            print('asdf %s' % node_name)
             self.controllers.append(devops_environment.node[node_name])
         for node_name in node_roles.compute_names:
             self.computes.append(devops_environment.node[node_name])

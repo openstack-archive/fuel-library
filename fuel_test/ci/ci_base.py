@@ -34,8 +34,8 @@ class CiBase(object):
         """
         pass
 
-    def nodes(self):
-        return Nodes(self.environment, self.node_roles())
+    def nodes(self, environment=None):
+        return Nodes(environment or self.environment, self.node_roles())
 
     def __init__(self):
         self.base_image = BASE_IMAGE
@@ -97,6 +97,9 @@ class CiBase(object):
                 write_config(remote, '/etc/puppet/puppet.conf', agent_config)
                 request_cerificate(remote)
 
+    def reserve_static_addresses(self, environment):
+        pass
+
     def make_vms(self):
         if not self.base_image:
             raise Exception(
@@ -105,6 +108,7 @@ class CiBase(object):
         environment = self.describe_environment()
         #       todo environment should be saved before build
         devops.build(environment)
+        self.reserve_static_addresses(environment)
         devops.save(environment)
         logging.info("Environment has been saved")
         return environment

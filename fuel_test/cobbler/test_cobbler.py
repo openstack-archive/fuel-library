@@ -1,4 +1,6 @@
+import logging
 import unittest
+from devops.helpers import wait
 from fuel_test.cobbler.cobbler_test_case import CobblerTestCase
 from fuel_test.helpers import tcp_ping, udp_ping
 
@@ -8,6 +10,16 @@ class CobblerCase(CobblerTestCase):
         self.validate(
             self.nodes.cobblers,
             'puppet agent --test')
+        for node in self.nodes.cobblers:
+            self.assert_cobbler_ports(node.ip_address_by_network['internal'])
+        for node in self.nodes.computes + self.nodes.controllers:
+            node.start()
+        for node in self.nodes.computes + self.nodes.controllers:
+            logging.info("Waiting ssh... %s" % node.ip_address)
+            wait(lambda: tcp_ping(
+                self.master_remote.sudo.ssh,
+                node.ip_address_by_network['public'], 22),
+                timeout=1800)
 
     def assert_cobbler_ports(self, ip):
         closed_tcp_ports = filter(

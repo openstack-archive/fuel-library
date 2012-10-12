@@ -26,8 +26,8 @@ class CiCobbler(CiBase):
         environment.networks.append(private)
         public = Network(name='public', dhcp_server=True)
         environment.networks.append(public)
-        master = self.describe_node('master', [internal, private, public])
-        environment.nodes.append(master)
+        master_node = self.describe_node('master', [internal, private, public])
+        environment.nodes.append(master_node)
         for node_name in self.node_roles().cobbler_names:
             client = self.describe_node(node_name, [internal, private, public])
             environment.nodes.append(client)
@@ -40,12 +40,18 @@ class CiCobbler(CiBase):
             environment.nodes.append(client)
         return environment
 
-    def setup_environment(self):
-        environment = self.make_vms()
-        self.environment = environment
+    def reserve_static_addresses(self, environment):
+        start_nodes = [environment.node['master']] + self.nodes(
+            environment).cobblers
+        addresses_iter = iter(environment.network['internal'].ip_addresses)
+        addresses_iter.next()
+        for node in start_nodes:
+            node.interfaces[0].ip_addresses = addresses_iter.next()
 
+    def setup_environment(self):
+        self.environment = self.make_vms()
+        master_node = self.environment.node['master']
         logging.info("Starting test nodes ...")
-        master_node = environment.node['master']
         start_nodes = [master_node] + self.nodes().cobblers
         for node in start_nodes:
             node.start()
@@ -53,29 +59,24 @@ class CiCobbler(CiBase):
             logging.info("Waiting ssh... %s" % node.ip_address)
             wait(lambda: tcp_ping(node.ip_address_by_network['public'], 22),
                 timeout=1800)
-
-        addresses_iter = iter(self.environment.network['internal'].ip_addresses)
-        addresses_iter.next()
-        gateway = addresses_iter.next()
+        gateway = self.environment.network['internal'].ip_addresses[1]
         net_mask = '255.255.255.0'
         for node in start_nodes:
             remote = ssh(node.ip_address_by_network['public'], username='root',
                 password='r00tme')
-            address = addresses_iter.next()
             execute(remote, 'ifdown eth0')
-            write_static_ip(remote, address, net_mask, gateway)
-            node.interfaces[0].ip_addresses = address
+            write_static_ip(remote, node.ip_address_by_network['internal'],
+                net_mask, gateway)
             execute(remote, 'ifup eth0')
-
         master_remote = ssh(master_node.ip_address, username='root',
             password='r00tme')
         self.rename_nodes(start_nodes)
-        self.setup_master_node(master_remote, environment.nodes)
+        self.setup_master_node(master_remote, self.environment.nodes)
         self.setup_agent_nodes(self.nodes().cobblers)
         sleep(5)
         sign_all_node_certificates(master_remote)
         sleep(5)
-        for node in environment.nodes:
+        for node in self.environment.nodes:
             logging.info("Creating snapshot 'empty'")
             node.save_snapshot('empty')
             logging.info("Test node is ready at %s" % node.ip_address)
