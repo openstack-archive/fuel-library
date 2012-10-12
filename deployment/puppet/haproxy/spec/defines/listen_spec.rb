@@ -12,7 +12,7 @@ describe 'haproxy::listen' do
     end
 
     it { should contain_concat__fragment('croy_listen_block').with(
-      'order'   => '20',
+      'order'   => '20-croy',
       'target'  => '/etc/haproxy/haproxy.cfg',
       'content' => "\nlisten croy 1.1.1.1:18140\n  balance  roundrobin\n  option  tcplog\n  option  ssl-hello-chk\n"
     ) }
@@ -30,7 +30,7 @@ describe 'haproxy::listen' do
     end
 
     it { should contain_concat__fragment('apache_listen_block').with(
-      'order'   => '20',
+      'order'   => '20-apache',
       'target'  => '/etc/haproxy/haproxy.cfg',
       'content' => "\nlisten apache 23.23.23.23:80,23.23.23.23:443\n  balance  roundrobin\n  option  tcplog\n  option  ssl-hello-chk\n"
     ) }
@@ -45,7 +45,7 @@ describe 'haproxy::listen' do
     end
 
     it { should contain_concat__fragment('apache_listen_block').with(
-      'order'   => '20',
+      'order'   => '20-apache',
       'target'  => '/etc/haproxy/haproxy.cfg',
       'content' => "\nlisten apache 23.23.23.23:80,23.23.23.23:443\n  balance  roundrobin\n  option  tcplog\n  option  ssl-hello-chk\n"
     ) }

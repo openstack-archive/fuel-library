@@ -26,11 +26,6 @@
 #    comma-separated string or an array of strings which may be ports or
 #    hyphenated port ranges.
 #
-# [*order*]
-#    The order, or numerical weight, of the fragment created by this defined
-#     resource type. This is necessary to ensure the fragment is associated
-#     with the correct listening service instance.
-#
 # [*ipaddress*]
 #    The ip address the proxy binds to. Empty addresses, '*', and '0.0.0.0'
 #     mean that the proxy listens to all valid addresses on the system.
@@ -56,7 +51,6 @@
 #  Exporting the resource for a balancer member:
 #
 #  haproxy::listen { 'puppet00':
-#    order     => '20',
 #    ipaddress => $::ipaddress,
 #    ports     => '18140',
 #    mode      => 'tcp',
@@ -75,7 +69,6 @@
 #
 define haproxy::listen (
   $ports,
-  $order            = '20',
   $ipaddress        = $::ipaddress,
   $mode             = 'tcp',
   $collect_exported = true,
@@ -89,7 +82,7 @@ define haproxy::listen (
 ) {
   # Template uses: $name, $ipaddress, $ports, $options
   concat::fragment { "${name}_listen_block":
-    order   => $order,
+    order   => "20-${name}",
     target  => '/etc/haproxy/haproxy.cfg',
     content => template('haproxy/haproxy_listen_block.erb'),
   }

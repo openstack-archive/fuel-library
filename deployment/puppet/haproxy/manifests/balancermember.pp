@@ -32,11 +32,6 @@
 #     configuration. If you use an array in server_names and ipaddresses, the
 #     same port is used for all balancermembers.
 #
-# [*order*]
-#     The order, or numerical weight, of the fragment created by this defined
-#      resource type. This is necessary to ensure the fragment is associated
-#      with the correct listening service instance.
-#
 # [*server_names*]
 #     The name of the balancer member server as known to haproxy in the
 #      listening service's configuration block. This defaults to the
@@ -60,7 +55,6 @@
 #  @@haproxy::balancermember { 'haproxy':
 #    listening_service => 'puppet00',
 #    ports             => '8140',
-#    order             => '21',
 #    server_names      => $::hostname,
 #    ipaddresses       => $::ipaddress,
 #    options           => 'check',
@@ -78,7 +72,6 @@
 #  haproxy::balancermember { 'haproxy':
 #    listening_service => 'puppet00',
 #    ports             => '8140',
-#    order             => '21',
 #    server_names      => ['server01', 'server02'],
 #    ipaddresses       => ['192.168.56.200', '192.168.56.201'],
 #    options           => 'check',
@@ -89,14 +82,13 @@
 define haproxy::balancermember (
   $listening_service,
   $ports,
-  $order        = '20',
   $server_names = $::hostname,
   $ipaddresses  = $::ipaddress,
   $options      = ''
 ) {
   # Template uses $ipaddresses, $server_name, $ports, $option
   concat::fragment { "${listening_service}_balancermember_${name}":
-    order   => $order,
+    order   => "20-${listening_service}-${name}",
     target  => '/etc/haproxy/haproxy.cfg',
     content => template('haproxy/haproxy_balancermember.erb'),
   }
