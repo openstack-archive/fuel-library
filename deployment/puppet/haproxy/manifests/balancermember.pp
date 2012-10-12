@@ -25,30 +25,30 @@
 #     haproxy::listen resource). This must match up with a declared
 #     haproxy::listen resource.
 #
-# [*balancer_port*]
-#     A unique port for which the balancer member will accept connections
-#     from the load balancer. Note that cookie values aren't yet supported,
-#     but shouldn't be difficult to add to the configuration.
-#     If you use an array in server_name and balancer_ip, the same port is
-#     used for all balancermembers.
+# [*ports*]
+#     An array or commas-separated list of ports for which the balancer member
+#     will accept connections from the load balancer. Note that cookie values
+#     aren't yet supported, but shouldn't be difficult to add to the
+#     configuration. If you use an array in server_names and ipaddresses, the
+#     same port is used for all balancermembers.
 #
 # [*order*]
 #     The order, or numerical weight, of the fragment created by this defined
 #      resource type. This is necessary to ensure the fragment is associated
 #      with the correct listening service instance.
 #
-# [*server_name*]
+# [*server_names*]
 #     The name of the balancer member server as known to haproxy in the
 #      listening service's configuration block. This defaults to the
-#      hostname. Can be an array of the same length as balancer_ip,
+#      hostname. Can be an array of the same length as ipaddresses,
 #      in which case a balancermember is created for each pair of
-#      server_name and balancer_ip (in lockstep).
+#      server_names and ipaddresses (in lockstep).
 #
-# [*balancer_ip*]
+# [*ipaddresses*]
 #      The ip address used to contact the balancer member server.
-#      Can be an array, see documentation to server_name.
+#      Can be an array, see documentation to server_names.
 #
-# [*balancermember_options*]
+# [*options*]
 #      An array of options to be specified after the server declaration
 #       in the listening service's configuration block.
 #
@@ -58,12 +58,12 @@
 #  Exporting the resource for a balancer member:
 #
 #  @@haproxy::balancermember { 'haproxy':
-#    listening_service      => 'puppet00',
-#    balancer_port          => '8140',
-#    order                  => '21',
-#    server_name            => $::hostname,
-#    balancer_ip            => $::ipaddress,
-#    balancermember_options => 'check',
+#    listening_service => 'puppet00',
+#    ports             => '8140',
+#    order             => '21',
+#    server_names      => $::hostname,
+#    ipaddresses       => $::ipaddress,
+#    options           => 'check',
 #  }
 #
 #
@@ -76,28 +76,25 @@
 #  pass to export the resources if you know the members in advance):
 # 
 #  haproxy::balancermember { 'haproxy':
-#    listening_service      => 'puppet00',
-#    balancer_port          => '8140',
-#    order                  => '21',
-#    server_name            => ['server01', 'server02'],
-#    balancer_ip            => ['192.168.56.200', '192.168.56.201'],
-#    balancermember_options => 'check',
+#    listening_service => 'puppet00',
+#    ports             => '8140',
+#    order             => '21',
+#    server_names      => ['server01', 'server02'],
+#    ipaddresses       => ['192.168.56.200', '192.168.56.201'],
+#    options           => 'check',
 #  }
 #  
 #  (this resource can be declared anywhere)
 #
-# === Authors
-#
-# Gary Larizza <gary@puppetlabs.com>
-#
 define haproxy::balancermember (
   $listening_service,
-  $balancer_port,
-  $order                  = '20',
-  $server_name            = $::hostname,
-  $balancer_ip            = $::ipaddress,
-  $balancermember_options = ''
+  $ports,
+  $order        = '20',
+  $server_names = $::hostname,
+  $ipaddresses  = $::ipaddress,
+  $options      = ''
 ) {
+  # Template uses $ipaddresses, $server_name, $ports, $option
   concat::fragment { "${listening_service}_balancermember_${name}":
     order   => $order,
     target  => '/etc/haproxy/haproxy.cfg',
