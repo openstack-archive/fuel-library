@@ -68,7 +68,8 @@ class CiCobbler(CiBase):
             write_static_ip(remote, node.ip_address_by_network['internal'],
                 net_mask, gateway)
             execute(remote, 'ifup eth0')
-        master_remote = ssh(master_node.ip_address, username='root',
+        master_remote = ssh(
+            master_node.ip_address_by_network['public'], username='root',
             password='r00tme')
         self.rename_nodes(start_nodes)
         self.setup_master_node(master_remote, self.environment.nodes)
