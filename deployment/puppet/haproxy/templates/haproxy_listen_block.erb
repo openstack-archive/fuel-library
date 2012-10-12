@@ -1,6 +1,6 @@
 
-listen <%= name %> <%= listen_ip %>:<%= Array(ports).join(",#{listen_ip}:") %>
-<% config_options.sort.each do |key, val| -%>
+listen <%= name %> <%= ipaddress %>:<%= Array(ports).join(",#{ipaddress}:") %>
+<% options.sort.each do |key, val| -%>
 <% if val.is_a?(Array) -%>
 <% val.each do |item| -%>
   <%= key %>  <%= item %>
