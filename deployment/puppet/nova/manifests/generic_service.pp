@@ -31,7 +31,7 @@ define nova::generic_service(
   Exec['post-nova_config'] ~> Service<| title == $nova_title |>
   # ensure that the service has only been started
   # after the initial db sync
-  Exec['nova-db-sync'] ~> Service<| title == $nova_title |>
+  Exec<| title == 'nova-db-sync' |> ~> Service<| title == $nova_title |>
 
 
   # I need to mark that ths package should be
