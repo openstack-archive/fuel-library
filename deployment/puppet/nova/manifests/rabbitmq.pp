@@ -3,11 +3,11 @@
 #
 #
 class nova::rabbitmq(
-  $userid='guest',
-  $password='guest',
-  $port='5672',
-  $virtual_host='/',
-  $enabled = true
+  $userid       ='guest',
+  $password     ='guest',
+  $port         ='5672',
+  $virtual_host ='/',
+  $enabled      = true
 ) {
 
   # only configure nova after the queue is up

@@ -165,21 +165,21 @@ class nova(
   }
   # I may want to support exporting and collecting these
   nova_config {
-    'rabbit_password': value => $rabbit_password;
-    'rabbit_port': value => $rabbit_port;
-    'rabbit_userid': value => $rabbit_userid;
+    'rabbit_password':     value => $rabbit_password;
+    'rabbit_port':         value => $rabbit_port;
+    'rabbit_userid':       value => $rabbit_userid;
     'rabbit_virtual_host': value => $rabbit_virtual_host;
   }
 
 
   nova_config {
-    'verbose': value => $verbose;
-    'logdir': value => $logdir;
+    'verbose':           value => $verbose;
+    'logdir':            value => $logdir;
     # Following may need to be broken out to different nova services
-    'state_path': value => $state_path;
-    'lock_path': value => $lock_path;
+    'state_path':        value => $state_path;
+    'lock_path':         value => $lock_path;
     'service_down_time': value => $service_down_time;
-    'root_wrap_config': value => $root_wrap_config;
+    'root_wrap_config':  value => $root_wrap_config;
   }
 
 

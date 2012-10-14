@@ -15,7 +15,7 @@ class nova::compute::file_hack() {
     group   => 'root',
     mode    => '755',
     require => Package['nova-compute'],
-    notify  => Service['nova-compute'], 
+    notify  => Service['nova-compute'],
   }
 
   file { '/usr/lib/python2.7/dist-packages/nova/virt/libvirt/connection.py': 
