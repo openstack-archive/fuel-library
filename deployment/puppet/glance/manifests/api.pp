@@ -41,7 +41,7 @@ class glance::api(
   $auth_host         = '127.0.0.1',
   $auth_port         = '35357',
   $auth_protocol     = 'http',
-  $auth_uri          = "http://127.0.0.1:5000/",
+  $auth_url          = "http://127.0.0.1:5000/",
   $keystone_tenant   = 'admin',
   $keystone_user     = 'admin',
   $keystone_password = 'ChangeMe',
