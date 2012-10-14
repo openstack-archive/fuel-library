@@ -60,11 +60,8 @@ class nova(
   # after the nova common package
   # before the file resource for nova.conf is managed
   # and before the post config resource
-  Nova_config<| |> {
-    require +> Package['nova-common'],
-    before  +> File['/etc/nova/nova.conf'],
-    notify  +> Exec['post-nova_config']
-  }
+  Package['nova-common'] -> Nova_config<| |> -> File['/etc/nova/nova.conf']
+  Nova_config<| |> ~> Exec['post-nova_config']
 
   File {
     require => Package['nova-common'],
