@@ -61,7 +61,7 @@ class glance::api(
   # db now
   Glance_api_config<||>   ~> Exec<| title == 'glance-manage db_sync' |>
   Glance_cache_config<||> ~> Exec<| title == 'glance-manage db_sync' |>
-  Exec<| title == 'glance-manage db_sync' |> -> Service['glance-api']
+  Exec<| title == 'glance-manage db_sync' |> ~> Service['glance-api']
   Glance_api_config<||>   ~> Service['glance-api']
   Glance_cache_config<||> ~> Service['glance-api']
 
@@ -136,7 +136,7 @@ class glance::api(
       'keystone_authtoken/admin_password':    value => $keystone_password;
     }
     glance_cache_config {
-      'DEFAULT/auth_url':          value => $auth_uri;
+      'DEFAULT/auth_url':          value => $auth_url;
       'DEFAULT/admin_tenant_name': value => $keystone_tenant;
       'DEFAULT/admin_user':        value => $keystone_user;
       'DEFAULT/admin_password':    value => $eystone_password;
