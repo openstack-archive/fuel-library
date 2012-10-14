@@ -15,6 +15,7 @@ node keystone {
     catalog_type => 'sql',
   }
   class { 'keystone::roles::admin': }
+    email  => 'example@abc.com',
 }
 
 node keystone_mysql {
@@ -31,6 +32,7 @@ node keystone_mysql {
     password => 'keystone',
   }
   class { 'keystone::roles::admin': }
+    email  => 'example@abc.com',
 }
 
 node default {
