@@ -2,6 +2,10 @@ require 'spec_helper'
 
 describe 'keystone::db::mysql' do
 
+  let :pre_condition do
+    'include mysql::server'
+  end
+
   let :facts do
     { :osfamily => 'Debian' }
   end
@@ -34,6 +38,8 @@ describe 'keystone::db::mysql' do
     let :param_values do
       param_defaults.merge(p)
     end
+
+    it { should contain_class('mysql::python') }
 
     it { should contain_mysql__db(param_values['dbname']).with(
       'user'     => param_values['user'],

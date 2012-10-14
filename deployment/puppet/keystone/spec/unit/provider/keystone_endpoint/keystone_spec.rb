@@ -44,7 +44,7 @@ describe provider_class do
       provider.expects(:auth_keystone).with do |a,b,c,d|
         (
           a == 'endpoint-create' &&
-          b == '--service'       &&
+          b == '--service-id'       &&
           c == 'id'              &&
           d[d.index('--publicurl')   + 1 ] == 'public_url'   &&
           d[d.index('--adminurl')    + 1 ] ==  'admin_url'   &&
