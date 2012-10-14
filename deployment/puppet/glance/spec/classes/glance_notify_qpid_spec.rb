@@ -2,24 +2,30 @@ require 'spec_helper'
 describe 'glance::notify::qpid' do
   let :facts do
     {
-      :concat_basedir => '/var/lib/puppet/concat',
       :osfamily => 'Debian'
     }
   end
-  describe 'with default parameters' do
-    it 'should set nofier strategy to qpid' do
-      verify_contents(
-        subject,
-        '/var/lib/puppet/concat/_etc_glance_glance-api.conf/fragments/06_glance-api-notify',
-        ['notifier_strategy = qpid']
-      )
-    end
-    it 'should use the current qpid template' do
-      verify_contents(
-        subject,
-        '/var/lib/puppet/concat/_etc_glance_glance-api.conf/fragments/07_glance-api-qpid',
-        ['#qpid_port = 5672']
-      )
+  let :params do
+    {:qpid_password => 'pass'}
+  end
+
+  it { should contain_glance_api_config('DEFAULT/notifier_strategy').with_value('qpid') }
+  it { should contain_glance_api_config('DEFAULT/qpid_username').with_value('guest') }
+  it { should contain_glance_api_config('DEFAULT/qpid_password').with_value('pass') }
+  it { should contain_glance_api_config('DEFAULT/qpid_host').with_value('localhost') }
+  it { should contain_glance_api_config('DEFAULT/qpid_port').with_value('5672') }
+
+  describe 'when passing params' do
+    let :params do
+      {
+        :qpid_password => 'pass',
+        :qpid_usernane => 'guest2',
+        :qpid_host     => 'localhost2',
+        :qpid_port     => '5673'
+      }
+      it { should contain_glance_api_config('DEFAULT/qpid_username').with_value('guest2') }
+      it { should contain_glance_api_config('DEFAULT/qpid_host').with_value('localhost2') }
+      it { should contain_glance_api_config('DEFAULT/qpid_port').with_value('5673') }
     end
   end
 end
