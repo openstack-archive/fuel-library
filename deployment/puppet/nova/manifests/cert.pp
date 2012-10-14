@@ -1,3 +1,6 @@
+#
+# installs nova cert package and service
+#
 class nova::cert(
   $enabled        = false,
   $ensure_package = 'present'

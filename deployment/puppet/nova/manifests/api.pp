@@ -1,3 +1,17 @@
+#
+# installs and configures nova api service
+#
+# * admin_password
+# * enabled
+# * ensure_package
+# * auth_strategy
+# * auth_host
+# * auth_port
+# * auth_protocol
+# * admin_tenant_name
+# * admin_user
+# * enabled_apis
+#
 class nova::api(
   $enabled           = false,
   $ensure_package    = 'present',

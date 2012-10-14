@@ -1,3 +1,7 @@
+#
+# configures nova::volume.
+# This has been deprecated in favor of cinder
+#
 class nova::volume(
   $enabled        = false,
   $ensure_package = 'present'

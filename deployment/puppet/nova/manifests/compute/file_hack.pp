@@ -6,6 +6,9 @@
 # This is only intended as a temporary fix and needs to be removed
 # once the issue is resolved with upstream.
 #
+# TODO - check if this is still required for folsom
+#
+#
 class nova::compute::file_hack() {
 
   # this only works on Ubunty
