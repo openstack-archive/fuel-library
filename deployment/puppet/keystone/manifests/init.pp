@@ -6,19 +6,24 @@
 #   [package_ensure] Desired ensure state of packages. Optional. Defaults to present.
 #     accepts latest or specific versions.
 #   [bind_host] Host that keystone binds to.
-#   [bind_port]
+#   [bind_port] Port that keystone binds to.
 #   [public_port]
+#   [compute_port]
+#   [admin_port]
 #   [admin_port] Port that can be used for admin tasks.
 #   [admin_token] Admin token that can be used to authenticate as a keystone
-#     admin.
-#   [compute_port] TODO
+#     admin. Required.
 #   [verbose] Rather keystone should log at verbose level. Optional.
 #     Defaults to False.
 #   [debug] Rather keystone should log at debug level. Optional.
 #     Defaults to False.
 #   [use_syslog] Rather or not keystone should log to syslog. Optional.
 #     Defaults to False.
-#   [catalog_type]
+#   [catalog_type] Type of catalog that keystone uses to store endpoints,services. Optional.
+#     Defaults to sql. (Also accepts template)
+#   [enalbles] If the keystone services should be enabled. Optioal. Default to true.
+#   [sql_conneciton] Url used to connect to database.
+#   [idle_timeout] Timeout when db connections should be reaped.
 #
 # == Dependencies
 #  None
