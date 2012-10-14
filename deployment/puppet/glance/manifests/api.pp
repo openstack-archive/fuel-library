@@ -2,10 +2,10 @@
 #
 # == Paremeters:
 #
-#  $log_verbose - rather to log the glance api service at verbose level.
+#  $verbose - rather to log the glance api service at verbose level.
 #  Optional. Default: false
 #
-#  $log_debug - rather to log the glance api service at debug level.
+#  $debug - rather to log the glance api service at debug level.
 #  Optional. Default: false
 #
 #  $default_store - Backend used to store glance dist images.
@@ -28,8 +28,8 @@
 #
 #
 class glance::api(
-  $log_verbose       = 'False',
-  $log_debug         = 'False',
+  $verbose           = 'False',
+  $debug             = 'False',
   $bind_host         = '0.0.0.0',
   $bind_port         = '9292',
   $backlog           = '4096',
@@ -87,8 +87,8 @@ class glance::api(
 
   # basic service config
   glance_api_config {
-    'DEFAULT/verbose':   value => $log_verbose;
-    'DEFAULT/debug':     value => $log_debug;
+    'DEFAULT/verbose':   value => $verbose;
+    'DEFAULT/debug':     value => $debug;
     'DEFAULT/bind_host': value => $bind_host;
     'DEFAULT/bind_port': value => $bind_port;
     'DEFAULT/backlog':   value => $backlog;
@@ -97,8 +97,8 @@ class glance::api(
   }
 
   glance_cache_config {
-    'DEFAULT/verbose':   value => $log_verbose;
-    'DEFAULT/debug':     value => $log_debug;
+    'DEFAULT/verbose':   value => $verbose;
+    'DEFAULT/debug':     value => $debug;
   }
 
   # configure api service to connect registry service

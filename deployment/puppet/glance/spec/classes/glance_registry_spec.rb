@@ -10,8 +10,8 @@ describe 'glance::registry' do
 
   let :default_params do
     {
-      :log_verbose      => 'False',
-      :log_debug        => 'False',
+      :verbose      => 'False',
+      :debug        => 'False',
       :bind_host        => '0.0.0.0',
       :bind_port        => '9191',
       :log_file         => '/var/log/glance/registry.log',
