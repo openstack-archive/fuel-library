@@ -62,7 +62,7 @@ class keystone(
   validate_re($catalog_type,   'template|sql')
 
   File['/etc/keystone/keystone.conf'] -> Keystone_config<||> ~> Service['keystone']
-  Keystone_config<||> -> Exec<| title == 'keystone-manage db_sync'|>
+  Keystone_config<||> ~> Exec<| title == 'keystone-manage db_sync'|>
 
   # TODO implement syslog features
   if ( $use_syslog != 'False') {
