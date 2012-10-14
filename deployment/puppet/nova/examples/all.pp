@@ -71,8 +71,8 @@ class { 'keystone::config::mysql':
 class { 'keystone':
   admin_token  => $keystone_admin_token,
   bind_host    => '127.0.0.1',
-  log_verbose  => true,
-  log_debug    => true,
+  verbose      => true,
+  debug        => true,
   catalog_type => 'sql',
 }
 # set up keystone admin users
@@ -97,8 +97,8 @@ class { 'glance::db::mysql':
 }
 
 class { 'glance::api':
-  log_verbose       => 'True',
-  log_debug         => 'True',
+  verbose           => 'True',
+  debug             => 'True',
   auth_type         => 'keystone',
   auth_host         => '127.0.0.1',
   auth_port         => '35357',
@@ -109,8 +109,8 @@ class { 'glance::api':
 class { 'glance::backend::file': }
 
 class { 'glance::registry':
-  log_verbose       => 'True',
-  log_debug         => 'True',
+  verbose           => 'True',
+  debug             => 'True',
   auth_type         => 'keystone',
   auth_host         => '127.0.0.1',
   auth_port         => '35357',
