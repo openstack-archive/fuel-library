@@ -44,8 +44,8 @@ class keystone::db::postgresql(
 
    postgresql::db { "${dbname}":
       user     =>  "${user}",
-      password  =>  "${password}",      
-   }  
+      password  =>  "${password}",
+   }
 
   Postgresql::Db[$dbname] ~> Exec<| title == 'keystone-manage db_sync' |>
 
