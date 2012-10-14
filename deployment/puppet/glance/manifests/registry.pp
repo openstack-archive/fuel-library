@@ -34,8 +34,7 @@ class glance::registry(
   }
 
   if($sql_connection =~ /mysql:\/\/\S+:\S+@\S+\/\S+/) {
-    Package['python-mysqldb'] -> Exec['glance-manage db_sync']
-    ensure_resource( 'package', 'python-mysqldb', {'ensure' => 'present'})
+    require 'mysql::python'
   } elsif($sql_connection =~ /postgresql:\/\/\S+:\S+@\S+\/\S+/) {
 
   } elsif($sql_connection =~ /sqlite:\/\//) {
