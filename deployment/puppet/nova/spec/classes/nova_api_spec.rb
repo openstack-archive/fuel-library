@@ -6,6 +6,10 @@ describe 'nova::api' do
     'include nova'
   end
 
+  let :params do
+    {:admin_password => 'passw0rd'}
+  end
+
   describe 'on debian platforms' do
     let :facts do
       { :osfamily => 'Debian' }
@@ -22,7 +26,7 @@ describe 'nova::api' do
     ) }
     describe 'with enabled as true' do
       let :params do
-        {:enabled => true}
+        {:admin_password => 'passw0rd', :enabled => true}
       end
     it { should contain_service('nova-api').with(
       'name'    => 'nova-api',
@@ -32,7 +36,7 @@ describe 'nova::api' do
     end
     describe 'with package version' do
       let :params do
-        {:ensure_package => '2012.1-2'}
+        {:admin_password => 'passw0rd', :ensure_package => '2012.1-2'}
       end
       it { should contain_package('nova-api').with(
         'ensure' => '2012.1-2'

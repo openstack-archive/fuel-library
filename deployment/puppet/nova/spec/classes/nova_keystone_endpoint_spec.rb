@@ -4,6 +4,10 @@ describe 'nova::keystone::auth' do
 
   describe 'with defaults' do
 
+    let :params do
+      {:password => 'nova_password'}
+    end
+
     it { should contain_keystone_user('nova').with(
       :ensure   => 'present',
       :password => 'nova_password'
@@ -61,7 +65,7 @@ describe 'nova::keystone::auth' do
   describe 'when setting auth name' do
 
     let :params do
-      {:auth_name => 'foo' }
+      {:password => 'nova_password', :auth_name => 'foo' }
     end
 
     it { should contain_keystone_user('foo').with(
@@ -112,6 +116,7 @@ describe 'nova::keystone::auth' do
 
     let :params do
       {
+        :password         => 'nova_password',
         :public_address   => '10.0.0.1',
         :admin_address    => '10.0.0.2',
         :internal_address => '10.0.0.3',
