@@ -5,7 +5,7 @@
 #
 # [sql_connection] Connection url to use to connect to nova sql database.
 #  If specified as false, then it tries to collect the exported resource
-#   Nova_config <<| title == 'sql_connection' |>>. Optional. Defaults to false. 
+#   Nova_config <<| title == 'sql_connection' |>>. Optional. Defaults to false.
 # [image_service] Service used to search for and retrieve images. Optional.
 #   Defaults to 'nova.image.local.LocalImageService'
 # [glance_api_servers] List of addresses for api servers. Optional.
@@ -166,7 +166,6 @@ class nova(
     'rabbit_userid':       value => $rabbit_userid;
     'rabbit_virtual_host': value => $rabbit_virtual_host;
   }
-
 
   nova_config {
     'verbose':           value => $verbose;
