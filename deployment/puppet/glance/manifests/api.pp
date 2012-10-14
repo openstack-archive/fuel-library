@@ -75,7 +75,7 @@ class glance::api(
   }
 
   if($sql_connection =~ /mysql:\/\/\S+:\S+@\S+\/\S+/) {
-    Package['python-mysqldb'] -> Exec['glance-manage db_sync']
+    Package['python-mysqldb'] -> Exec<| title == 'glance-manage db_sync' |>
     ensure_resource( 'package', 'python-mysqldb', {'ensure' => 'present'})
   } elsif($sql_connection =~ /postgresql:\/\/\S+:\S+@\S+\/\S+/) {
 

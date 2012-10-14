@@ -21,7 +21,7 @@ class glance::registry(
   validate_re($sql_connection, '(sqlite|mysql|posgres):\/\/(\S+:\S+@\S+\/\S+)?')
 
   Package['glance'] -> Glance_registry_config<||>
-  Glance_registry_config<||> ~> Exec['glance-manage db_sync']
+  Glance_registry_config<||> ~> Exec<| title == 'glance-manage db_sync' |>
   Glance_registry_config<||> ~> Service['glance-registry']
 
   File {
