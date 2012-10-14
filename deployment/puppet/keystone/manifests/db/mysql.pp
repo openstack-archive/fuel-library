@@ -31,7 +31,7 @@
 # Copyright 2012 Puppetlabs Inc, unless otherwise noted.
 #
 class keystone::db::mysql(
-  $password      = 'keystone_default_password',
+  $password,
   $dbname        = 'keystone',
   $user          = 'keystone_admin',
   $host          = '127.0.0.1',

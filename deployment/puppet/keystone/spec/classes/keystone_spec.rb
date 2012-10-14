@@ -20,7 +20,7 @@ describe 'keystone' do
     }
   end
 
-  [{},
+  [{'admin_token'     => 'service_token'},
    {
       'package_ensure'  => 'latest',
       'bind_host'       => '127.0.0.1',

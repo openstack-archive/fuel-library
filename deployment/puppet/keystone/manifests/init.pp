@@ -39,7 +39,7 @@
 # Copyright 2012 Puppetlabs Inc, unless otherwise noted.
 #
 class keystone(
-  $admin_token    = 'service_token',
+  $admin_token,
   $package_ensure = 'present',
   $bind_host      = '0.0.0.0',
   $public_port    = '5000',

@@ -33,7 +33,7 @@
 # Copyright 2012 Etienne Pelletier, unless otherwise noted.
 #
 class keystone::db::postgresql(
-  $password      = 'keystone_default_password',
+  $password,
   $dbname        = 'keystone',
   $user          = 'keystone_admin',
 ) {
