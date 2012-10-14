@@ -29,7 +29,6 @@ class nova::network::quantum (
   }
 
   nova_config {
-    'network_manager':           value => 'nova.network.quantum.manager.QuantumManager';
     'fixed_range':               value => $fixed_range;
     'quantum_use_dhcp':          value => $use_dhcp;
     'quantum_auth_strategy':     value => $quantum_auth_strategy;
