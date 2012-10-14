@@ -1,6 +1,6 @@
 class nova::keystone::auth(
+  $password,
   $auth_name        = 'nova',
-  $password         = 'nova_password',
   $public_address   = '127.0.0.1',
   $admin_address    = '127.0.0.1',
   $internal_address = '127.0.0.1',

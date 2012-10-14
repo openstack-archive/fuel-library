@@ -13,6 +13,7 @@
 # * enabled_apis
 #
 class nova::api(
+  $admin_password,
   $enabled           = false,
   $ensure_package    = 'present',
   $auth_strategy     = 'keystone',
@@ -21,7 +22,6 @@ class nova::api(
   $auth_protocol     = 'http',
   $admin_tenant_name = 'services',
   $admin_user        = 'nova',
-  $admin_password    = 'passw0rd',
   $enabled_apis      = 'ec2,osapi_compute,metadata'
 ) {
 
