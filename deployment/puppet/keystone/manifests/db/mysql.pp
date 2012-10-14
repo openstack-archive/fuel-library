@@ -42,6 +42,7 @@ class keystone::db::mysql(
   Class['mysql::server']       -> Class['keystone::db::mysql']
   Class['keystone::db::mysql'] -> Exec<|    title == 'keystone-manage db_sync' |>
   Class['keystone::db::mysql'] -> Service<| title == 'keystone' |>
+  Mysql::Db[$dbname] ~> Exec<| title == 'keystone-manage db_sync' |>
 
   require 'mysql::python'
 
@@ -61,8 +62,5 @@ class keystone::db::mysql(
       database => $dbname,
     }
   }
-
-
-  Mysql::Db[$dbname] ~> Exec<| title == 'keystone-manage db_sync' |>
 
 }
