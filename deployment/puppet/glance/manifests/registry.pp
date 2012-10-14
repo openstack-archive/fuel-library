@@ -60,10 +60,9 @@ class glance::registry(
 
   # auth config
   glance_registry_config {
-    'keystone_authtoken/auth_host':         value => $auth_host;
-    'keystone_authtoken/auth_port':         value => $auth_port;
-    'keystone_authtoken/protocol':          value => $protocol;
-    'keystone_authtoken/auth_uri':          value => $auth_uri;
+    'keystone_authtoken/auth_host':     value => $auth_host;
+    'keystone_authtoken/auth_port':     value => $auth_port;
+    'keystone_authtoken/auth_protocol': value => $auth_protocol;
   }
 
   # keystone config

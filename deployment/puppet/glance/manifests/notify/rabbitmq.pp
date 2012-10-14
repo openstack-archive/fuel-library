@@ -3,8 +3,8 @@
 #
 class glance::notify::rabbitmq(
   $rabbit_password,
-  $rabbitmq_userid => 'guest',
-  $rabbit_host     => 'localhost'
+  $rabbit_userid   = 'guest',
+  $rabbit_host     = 'localhost'
 ) inherits glance::api {
 
   glance_api_config {

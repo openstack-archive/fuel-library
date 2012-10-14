@@ -3,8 +3,9 @@
 #
 class glance::notify::qpid(
   $qpid_password,
-  $qpid_usernane => 'guest',
-  $qpid_host     => 'localhost'
+  $qpid_username = 'guest',
+  $qpid_host     = 'localhost',
+  $qpid_port     = '5672'
 ) inherits glance::api {
 
   glance_api_config {
