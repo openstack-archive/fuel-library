@@ -14,6 +14,10 @@ describe 'glance::backend::swift' do
     }
   end
 
+  let :pre_condition do
+    'class { "glance::api": keystone_password => "pass" }'
+  end
+
   it { should contain_glance_api_config('DEFAULT/default_store').with_value('swift') }
   it { should contain_glance_api_config('DEFAULT/swift_store_key').with_value('key') }
   it { should contain_glance_api_config('DEFAULT/swift_store_user').with_value('user') }

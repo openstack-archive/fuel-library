@@ -7,6 +7,10 @@ describe 'glance::backend::file' do
     }
   end
 
+  let :pre_condition do
+    'class { "glance::api": keystone_password => "pass" }'
+  end
+
   it { should contain_glance_api_config('DEFAULT/default_store').with_value('file') }
   it { should contain_glance_api_config('DEFAULT/filesystem_store_datadir').with_value('/var/lib/glance/images/') }
 

@@ -9,6 +9,10 @@ describe 'glance::notify::qpid' do
     {:qpid_password => 'pass'}
   end
 
+  let :pre_condition do
+    'class { "glance::api": keystone_password => "pass" }'
+  end
+
   it { should contain_glance_api_config('DEFAULT/notifier_strategy').with_value('qpid') }
   it { should contain_glance_api_config('DEFAULT/qpid_username').with_value('guest') }
   it { should contain_glance_api_config('DEFAULT/qpid_password').with_value('pass') }

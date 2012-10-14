@@ -5,6 +5,11 @@ describe 'glance::notify::rabbitmq' do
       :osfamily => 'Debian'
     }
   end
+
+  let :pre_condition do
+    'class { "glance::api": keystone_password => "pass" }'
+  end
+
   let :params do
     {:rabbit_password => 'pass'}
   end

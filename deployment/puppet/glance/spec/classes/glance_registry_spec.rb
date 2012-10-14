@@ -10,14 +10,14 @@ describe 'glance::registry' do
 
   let :default_params do
     {
-      :verbose      => 'False',
-      :debug        => 'False',
-      :bind_host        => '0.0.0.0',
-      :bind_port        => '9191',
-      :log_file         => '/var/log/glance/registry.log',
-      :sql_connection   => 'sqlite:///var/lib/glance/glance.sqlite',
-      :sql_idle_timeout => '3600',
-      :enabled          => true,
+      :verbose           => 'False',
+      :debug             => 'False',
+      :bind_host         => '0.0.0.0',
+      :bind_port         => '9191',
+      :log_file          => '/var/log/glance/registry.log',
+      :sql_connection    => 'sqlite:///var/lib/glance/glance.sqlite',
+      :sql_idle_timeout  => '3600',
+      :enabled           => true,
       :auth_type         => 'keystone',
       :auth_host         => '127.0.0.1',
       :auth_port         => '35357',
@@ -29,16 +29,16 @@ describe 'glance::registry' do
   end
 
   [
-    {},
+    {:keystone_password => 'ChangeMe'},
     {
-      :verbose => 'true',
-      :debug => 'true',
-      :bind_host => '127.0.0.1',
-      :bind_port => '9111',
-      :log_file => '/var/log/glance-registry.log',
-      :sql_connection => 'sqlite:///var/lib/glance.sqlite',
-      :sql_idle_timeout => '360',
-      :enabled          => false,
+      :verbose           => 'True',
+      :debug             => 'True',
+      :bind_host         => '127.0.0.1',
+      :bind_port         => '9111',
+      :log_file          => '/var/log/glance-registry.log',
+      :sql_connection    => 'sqlite:///var/lib/glance.sqlite',
+      :sql_idle_timeout  => '360',
+      :enabled           => false,
       :auth_type         => 'keystone',
       :auth_host         => '127.0.0.1',
       :auth_port         => '35357',
@@ -49,9 +49,9 @@ describe 'glance::registry' do
     }
   ].each do |param_set|
 
-    describe "when #{param_set == {} ? "using default" : "specifying"} class parameters" do
+    describe "when #{param_set == {:keystone_password => 'ChangeMe'} ? "using default" : "specifying"} class parameters" do
       let :param_hash do
-        param_set == {} ? default_params : params
+        default_params.merge(param_set)
       end
 
       let :params do

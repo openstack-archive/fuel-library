@@ -15,8 +15,9 @@
 #  $region :: Region where endpoint is set.
 #
 class glance::keystone::auth(
+  $password,
+  $email              = 'glance@localhost',
   $auth_name          = 'glance',
-  $password           = 'glance_password',
   $configure_endpoint = true,
   $service_type       = 'image',
   $public_address     = '127.0.0.1',
@@ -24,7 +25,6 @@ class glance::keystone::auth(
   $internal_address   = '127.0.0.1',
   $port               = '9292',
   $region             = 'RegionOne',
-  $email              = 'glance@localhost',
   $tenant             = 'services'
 ) {
 

@@ -1,6 +1,7 @@
 class glance::registry(
-  $verbose       = 'False',
-  $debug         = 'False',
+  $keystone_password,
+  $verbose           = 'False',
+  $debug             = 'False',
   $bind_host         = '0.0.0.0',
   $bind_port         = '9191',
   $log_file          = '/var/log/glance/registry.log',
@@ -12,7 +13,6 @@ class glance::registry(
   $auth_protocol     = 'http',
   $keystone_tenant   = 'admin',
   $keystone_user     = 'admin',
-  $keystone_password = 'ChangeMe',
   $enabled           = true
 ) inherits glance {
 

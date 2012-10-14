@@ -34,7 +34,7 @@ describe 'glance::api' do
     }
   end
 
-  [{},
+  [{:keystone_password => 'ChangeMe'},
    {
       :verbose           => 'true',
       :debug             => 'true',
@@ -59,7 +59,7 @@ describe 'glance::api' do
     }
   ].each do |param_set|
 
-    describe "when #{param_set == {} ? "using default" : "specifying"} class parameters" do
+    describe "when #{param_set == {:keystone_password => 'ChangeMe'} ? "using default" : "specifying"} class parameters" do
 
       let :param_hash do
         default_params.merge(param_set)

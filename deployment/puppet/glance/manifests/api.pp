@@ -28,6 +28,7 @@
 #
 #
 class glance::api(
+  $keystone_password,
   $verbose           = 'False',
   $debug             = 'False',
   $bind_host         = '0.0.0.0',
@@ -44,7 +45,6 @@ class glance::api(
   $auth_url          = "http://127.0.0.1:5000/",
   $keystone_tenant   = 'admin',
   $keystone_user     = 'admin',
-  $keystone_password = 'ChangeMe',
   $enabled           = true,
   $sql_idle_timeout  = '3600',
   $sql_connection    = 'sqlite:///var/lib/glance/glance.sqlite'
