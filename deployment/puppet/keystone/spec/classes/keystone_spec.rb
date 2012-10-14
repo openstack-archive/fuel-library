@@ -2,6 +2,10 @@ require 'spec_helper'
 
 describe 'keystone' do
 
+  let :facts do
+    {:osfamily => 'Debian'}
+  end
+
   let :default_params do
     {
       'package_ensure'  => 'present',
