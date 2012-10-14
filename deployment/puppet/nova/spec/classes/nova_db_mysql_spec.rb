@@ -12,7 +12,7 @@ describe 'nova::db::mysql' do
     it { should contain_mysql__db('nova').with(
       :user        => 'nova',
       :password    => 'qwerty',
-      :charset     => 'utf8',
+      :charset     => 'latin1',
       :require     => "Class[Mysql::Config]"
     )}
   end
