@@ -12,9 +12,9 @@
 #   [admin_token] Admin token that can be used to authenticate as a keystone
 #     admin.
 #   [compute_port] TODO
-#   [log_verbose] Rather keystone should log at verbose level. Optional.
+#   [verbose] Rather keystone should log at verbose level. Optional.
 #     Defaults to False.
-#   [log_debug] Rather keystone should log at debug level. Optional.
+#   [debug] Rather keystone should log at debug level. Optional.
 #     Defaults to False.
 #   [use_syslog] Rather or not keystone should log to syslog. Optional.
 #     Defaults to False.
@@ -45,8 +45,8 @@ class keystone(
   $public_port    = '5000',
   $admin_port     = '35357',
   $compute_port   = '3000',
-  $log_verbose    = 'False',
-  $log_debug      = 'False',
+  $verbose        = 'False',
+  $debug          = 'False',
   $use_syslog     = 'False',
   $catalog_type   = 'sql',
   $enabled        = true,
@@ -109,8 +109,8 @@ class keystone(
     'DEFAULT/public_port':  value => $public_port;
     'DEFAULT/admin_port':   value => $admin_port;
     'DEFAULT/compute_port': value => $compute_port;
-    'DEFAULT/verbose':      value => $log_verbose;
-    'DEFAULT/debug':        value => $log_debug;
+    'DEFAULT/verbose':      value => $verbose;
+    'DEFAULT/debug':        value => $debug;
   }
 
   if($sql_connection =~ /mysql:\/\/\S+:\S+@\S+\/\S+/) {
