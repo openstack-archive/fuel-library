@@ -31,17 +31,17 @@ Puppet::Type.newtype(:nova_network) do
     desc 'project that the network is associated with'
   end
 
-  # we are not currently using this stuff
   newparam(:gateway) do
-
   end
 
   newparam(:dns2) do
-
   end
 
   newparam(:vlan_start) do
+  end
 
+  newparam(:network_size) do
+    defaultto('256')
   end
 
   validate do
