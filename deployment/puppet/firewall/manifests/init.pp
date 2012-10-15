@@ -8,7 +8,11 @@ class firewall (
     $mysql_gcomm_port = 4567,
         $galera_ist_port = 4568,
 	$keystone_public_port =  5000,
-        $keystone_admin_port = 35357,
+	$swift_proxy_port =  8080,
+	$swift_object_port =  6000,
+	$swift_container_port =  6001,
+	$swift_account_port =  6002,
+  $keystone_admin_port = 35357,
 	$glance_api_port = 9292,
 	$glance_reg_port = 9191,
 	$glance_nova_api_ec2_port = 8773,
@@ -47,6 +51,10 @@ class firewall (
 		$erlang_inet_dist_port,
 		$memcached_port,
     $rsync_port,
+	$swift_proxy_port,
+	$swift_object_port,
+	$swift_container_port,
+	$swift_account_port,
       ]: }
      }
      default: {
