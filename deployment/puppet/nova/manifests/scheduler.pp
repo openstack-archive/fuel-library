@@ -1,3 +1,6 @@
+#
+# install nova scheduler
+#
 class nova::scheduler(
   $enabled        = false,
   $ensure_package = 'present'

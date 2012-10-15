@@ -49,11 +49,6 @@ describe 'nova' do
       'require' => 'Package[nova-common]'
     )}
 
-    it { should contain_exec('nova-db-sync').with(
-      'command'     => '/usr/bin/nova-manage db sync',
-      'refreshonly' => true
-    )}
-
     it { should contain_exec('networking-refresh').with(
       'command'     => '/sbin/ifdown -a ; /sbin/ifup -a',
       'refreshonly' => true
@@ -65,7 +60,7 @@ describe 'nova' do
     it { should contain_nova_config('glance_api_servers').with_value('localhost:9292') }
 
     it { should contain_nova_config('auth_strategy').with_value('keystone') }
-    it { should contain_nova_config('use_deprecated_auth').with_value('false') }
+    it { should_not contain_nova_config('use_deprecated_auth').with_value('false') }
 
     it { should contain_nova_config('rabbit_host').with_value('localhost') }
     it { should contain_nova_config('rabbit_password').with_value('guest') }
@@ -78,10 +73,9 @@ describe 'nova' do
     it { should contain_nova_config('state_path').with_value('/var/lib/nova') }
     it { should contain_nova_config('lock_path').with_value('/var/lock/nova') }
     it { should contain_nova_config('service_down_time').with_value('60') }
-    it { should contain_nova_config('root_helper').with_value('sudo nova-rootwrap') }
+    it { should contain_nova_config('root_wrap_config').with_value('/etc/nova/rootwrap.conf') }
 
 
-    it { should contain_nova_config('root_helper').with_value('sudo nova-rootwrap') }
 
     describe 'with parameters supplied' do
 
@@ -108,14 +102,14 @@ describe 'nova' do
       it { should_not contain_nova_config('glance_api_servers') }
 
       it { should contain_nova_config('auth_strategy').with_value('foo') }
-      it { should contain_nova_config('use_deprecated_auth').with_value(true) }
+      it { should_not contain_nova_config('use_deprecated_auth').with_value(true) }
 
       it { should contain_nova_config('rabbit_host').with_value('rabbit') }
       it { should contain_nova_config('rabbit_password').with_value('password') }
       it { should contain_nova_config('rabbit_port').with_value('5673') }
       it { should contain_nova_config('rabbit_userid').with_value('rabbit_user') }
       it { should contain_nova_config('rabbit_virtual_host').with_value('/') }
-      
+
       it { should contain_nova_config('verbose').with_value(true) }
       it { should contain_nova_config('logdir').with_value('/var/log/nova2') }
       it { should contain_nova_config('state_path').with_value('/var/lib/nova2') }
@@ -132,7 +126,7 @@ describe 'nova' do
         'name'   => 'openstack-nova',
         'ensure' => 'present'
       )}
-      it { should contain_nova_config('root_helper').with_value('sudo nova-rootwrap') }
+      it { should contain_nova_config('root_wrap_config').with_value('/etc/nova/rootwrap.conf') }
     end
   end
 end

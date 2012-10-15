@@ -15,7 +15,7 @@ class nova::db::mysql(
   require 'mysql::python'
   # Create the db instance before openstack-nova if its installed
   Mysql::Db[$dbname] -> Anchor<| title == "nova-start" |>
-  Mysql::Db[$dbname] ~> Exec<| title == 'initial-db-sync' |>
+  Mysql::Db[$dbname] ~> Exec<| title == 'nova-db-sync' |>
 
   mysql::db { $dbname:
     user         => $user,

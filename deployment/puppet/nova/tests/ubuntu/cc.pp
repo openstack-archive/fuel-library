@@ -27,8 +27,8 @@ class { 'nova::ubuntu::cc':
 }
 
 class { "glance::api":
-  log_verbose => 'true',
-  log_debug => 'true',
+  verbose => 'true',
+  debug => 'true',
 }
 class { "glance::registry":
   log_verbose => 'true',

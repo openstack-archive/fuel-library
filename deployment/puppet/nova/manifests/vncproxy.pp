@@ -1,3 +1,6 @@
+#
+# configures nova vnc proxy
+#
 class nova::vncproxy(
   $enabled        = false,
   $host           = '0.0.0.0',

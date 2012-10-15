@@ -5,7 +5,7 @@
 #
 # [sql_connection] Connection url to use to connect to nova sql database.
 #  If specified as false, then it tries to collect the exported resource
-#   Nova_config <<| title == 'sql_connection' |>>. Optional. Defaults to false. 
+#   Nova_config <<| title == 'sql_connection' |>>. Optional. Defaults to false.
 # [image_service] Service used to search for and retrieve images. Optional.
 #   Defaults to 'nova.image.local.LocalImageService'
 # [glance_api_servers] List of addresses for api servers. Optional.
@@ -50,7 +50,9 @@ class nova(
   $verbose = false,
   $periodic_interval = '60',
   $report_interval = '10',
-  $root_helper = $::nova::params::root_helper,
+  $root_wrap_config = '/etc/nova/rootwrap.conf',
+  # deprecated in folsom
+  #$root_helper = $::nova::params::root_helper,
   $monitoring_notifications = false
 ) inherits nova::params {
 
@@ -58,11 +60,8 @@ class nova(
   # after the nova common package
   # before the file resource for nova.conf is managed
   # and before the post config resource
-  Nova_config<| |> {
-    require +> Package['nova-common'],
-    before  +> File['/etc/nova/nova.conf'],
-    notify  +> Exec['post-nova_config']
-  }
+  Package['nova-common'] -> Nova_config<| |> -> File['/etc/nova/nova.conf']
+  Nova_config<| |> ~> Exec['post-nova_config']
 
   File {
     require => Package['nova-common'],
@@ -117,14 +116,6 @@ class nova(
     mode  => '0640',
   }
 
-  # I need to ensure that I better understand this resource
-  # this is potentially constantly resyncing a central DB
-  exec { "nova-db-sync":
-    command     => "/usr/bin/nova-manage db sync",
-    refreshonly => "true",
-    require     => [Package['nova-common'], Nova_config['sql_connection']],
-  }
-
   # used by debian/ubuntu in nova::network_bridge to refresh
   # interfaces based on /etc/network/interfaces
   exec { "networking-refresh":
@@ -136,6 +127,15 @@ class nova(
   # both the sql_connection and rabbit_host are things
   # that may need to be collected from a remote host
   if $sql_connection {
+    if($sql_connection =~ /mysql:\/\/\S+:\S+@\S+\/\S+/) {
+      require 'mysql::python'
+    } elsif($sql_connection =~ /postgresql:\/\/\S+:\S+@\S+\/\S+/) {
+
+    } elsif($sql_connection =~ /sqlite:\/\//) {
+
+    } else {
+      fail("Invalid db connection ${sql_connection}")
+    }
     nova_config { 'sql_connection': value => $sql_connection }
   } else {
     Nova_config <<| title == 'sql_connection' |>>
@@ -154,13 +154,6 @@ class nova(
 
   nova_config { 'auth_strategy': value => $auth_strategy }
 
-  if $auth_strategy == 'keystone' {
-    nova_config { 'use_deprecated_auth': value => false }
-  } else {
-    nova_config { 'use_deprecated_auth': value => true }
-  }
-
-
   if $rabbit_host {
     nova_config { 'rabbit_host': value => $rabbit_host }
   } else {
@@ -168,21 +161,20 @@ class nova(
   }
   # I may want to support exporting and collecting these
   nova_config {
-    'rabbit_password': value => $rabbit_password;
-    'rabbit_port': value => $rabbit_port;
-    'rabbit_userid': value => $rabbit_userid;
+    'rabbit_password':     value => $rabbit_password;
+    'rabbit_port':         value => $rabbit_port;
+    'rabbit_userid':       value => $rabbit_userid;
     'rabbit_virtual_host': value => $rabbit_virtual_host;
   }
 
-
   nova_config {
-    'verbose': value => $verbose;
-    'logdir': value => $logdir;
+    'verbose':           value => $verbose;
+    'logdir':            value => $logdir;
     # Following may need to be broken out to different nova services
-    'state_path': value => $state_path;
-    'lock_path': value => $lock_path;
+    'state_path':        value => $state_path;
+    'lock_path':         value => $lock_path;
     'service_down_time': value => $service_down_time;
-    'root_helper': value => $root_helper;
+    'root_wrap_config':  value => $root_wrap_config;
   }
 
 

@@ -1,6 +1,6 @@
 class nova::keystone::auth(
+  $password,
   $auth_name        = 'nova',
-  $password         = 'nova_password',
   $public_address   = '127.0.0.1',
   $admin_address    = '127.0.0.1',
   $internal_address = '127.0.0.1',
@@ -9,14 +9,18 @@ class nova::keystone::auth(
   $ec2_port         = '8773',
   $compute_version  = 'v2',
   $volume_version   = 'v1',
-  $region           = 'RegionOne'
+  $region           = 'RegionOne',
+  $tenant           = 'services',
+  $email            = 'nova@localhost'
 ) {
 
   keystone_user { $auth_name:
     ensure   => present,
     password => $password,
+    email    => $email,
+    tenant   => $tenant,
   }
-  keystone_user_role { "${auth_name}@services":
+  keystone_user_role { "${auth_name}@${tenant}":
     ensure  => present,
     roles   => 'admin',
   }

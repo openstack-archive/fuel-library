@@ -164,8 +164,8 @@ node all {
     password => 'keystone'
   }
   class { 'keystone':
-    log_verbose  => true,
-    log_debug    => true,
+    verbose      => true,
+    debug        => true,
     catalog_type => 'sql',
   }->
   class { 'keystone::mysql':

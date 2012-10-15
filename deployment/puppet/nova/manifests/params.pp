@@ -18,7 +18,7 @@ class nova::params {
       $scheduler_package_name   = false
       $tgt_package_name         = 'scsi-target-utils'
       $volume_package_name      = false
-      $vncproxy_package_name    = false
+      $vncproxy_package_name    = 'openstack-nova-novncproxy'
       # service names
       $api_service_name         = 'openstack-nova-api'
       $cert_service_name        = 'openstack-nova-cert'
@@ -29,7 +29,7 @@ class nova::params {
       $objectstore_service_name = 'openstack-nova-objectstore'
       $scheduler_service_name   = 'openstack-nova-scheduler'
       $tgt_service_name         = 'tgtd'
-      $vncproxy_service_name    = false
+      $vncproxy_service_name    = 'openstack-nova-novncproxy'
       $volume_service_name      = 'openstack-nova-volume'
       $special_service_provider = 'init'
       # redhat specific config defaults
@@ -46,7 +46,7 @@ class nova::params {
       $doc_package_name         = 'nova-doc'
       $libvirt_package_name     = 'libvirt-bin'
       $network_package_name     = 'nova-network'
-      $vncproxy_package_name    = 'novnc'
+      $vncproxy_package_name    = ['novnc', 'nova-novncproxy']
       $numpy_package_name       = 'python-numpy'
       $objectstore_package_name = 'nova-objectstore'
       $scheduler_package_name   = 'nova-scheduler'
@@ -59,7 +59,7 @@ class nova::params {
       $consoleauth_service_name = 'nova-consoleauth'
       $libvirt_service_name     = 'libvirt-bin'
       $network_service_name     = 'nova-network'
-      $vncproxy_service_name    = 'novnc'
+      $vncproxy_service_name    = 'nova-novncproxy'
       $objectstore_service_name = 'nova-objectstore'
       $scheduler_service_name   = 'nova-scheduler'
       $volume_service_name      = 'nova-volume'
@@ -67,7 +67,7 @@ class nova::params {
       # debian specific nova config
       $root_helper              = 'sudo nova-rootwrap'
       $lock_path                = '/var/lock/nova'
-      $nova_db_charset          = 'utf8'
+      $nova_db_charset          = 'latin1'
       case $::operatingsystem {
         'Debian': {
           $consoleauth_package_name = 'nova-console'
