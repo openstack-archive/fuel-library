@@ -43,19 +43,15 @@ class horizon(
     Class['memcached'] -> Class['horizon']
   }
 
-  package { ["$::horizon::params::package_name","$::horizon::params::http_service"]:
-    ensure => present,
+  package { $::horizon::params::package_name:
+    ensure  => present,
+    require => Package[$::horizon::params::http_service],
   }
 
-  file { '/etc/openstack-dashboard/local_settings.py':
+  file { $::horizon::params::config_file:
     content => template('horizon/local_settings.py.erb'),
     mode    => '0644',
+    notify  => Service[$::horizon::params::http_service],
   }
 
-  service { 'httpd':
-    name      => $::horizon::params::http_service,
-    ensure    => 'running',
-    require   => Package["$::horizon::params::http_service"],
-    subscribe => File['/etc/openstack-dashboard/local_settings.py']
-  }
 }
