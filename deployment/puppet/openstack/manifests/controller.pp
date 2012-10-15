@@ -323,8 +323,8 @@ class openstack::controller (
 
 
   class { 'memcached':
-    listen_ip => $api_bind_address,
-  }
+    #    listen_ip => $api_bind_address,
+  } 
 
 
 
