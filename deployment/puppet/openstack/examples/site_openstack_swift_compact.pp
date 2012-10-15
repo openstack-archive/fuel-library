@@ -231,62 +231,52 @@ class role_swift_proxy {
   # collect all of the resources that are needed
   # to balance the ring
 
-  Package["swift"] -> Swift::Ringbuilder_multi::Create <||>
-  Package["swift"] -> Swift::Ringbuilder_multi::Rebalance <||>
   Package["swift"] -> Class["swift::proxy"] 
 
- Swift::Ringbuilder_multi::Create <<|  |>>
- Swift::Ringbuilder_multi::Create <<|  |>>
- Swift::Ringbuilder_multi::Create <<|  |>>
- Swift::Ringbuilder_multi::Rebalance <<|  |>>
- Swift::Ringbuilder_multi::Rebalance <<|  |>>
- Swift::Ringbuilder_multi::Rebalance <<|  |>>
-  Ring_object_device <<| |>>
-  Ring_container_device <<| |>>
-  Ring_account_device <<| |>>
-
-  @@swift::ringbuilder_multi::create{ "object-${::hostname}":
-    part_power     => $part_power,
-    replicas       => $replicas,
-        ring_type => "object",
-    min_part_hours => $min_part_hours,
-  }
-  @@swift::ringbuilder_multi::create{ "container-${::hostname}":
-    part_power     => $part_power,
-        ring_type => "container",
-    replicas       => $replicas,
-    min_part_hours => $min_part_hours,
-  }
-  @@swift::ringbuilder_multi::create{ "account-${::hostname}":
-    part_power     => $part_power,
-        ring_type => "account",
-    replicas       => $replicas,
-    min_part_hours => $min_part_hours,
-  }
- Ring_object_device <| |> 
-{
-        notify +> Swift::Ringbuilder_multi::Rebalance["object-${::hostname}"]
-}
- Ring_container_device <| |> 
-{
+  if $::hostname==$master_hostname {
+     Ring_object_device <<| |>>
+     Ring_container_device <<| |>>
+     Ring_account_device <<| |>>
+     
+     swift::ringbuilder_multi::create{ "object-${::hostname}":
+       part_power     => $part_power,
+       replicas       => $replicas,
+       ring_type => "object",
+       min_part_hours => $min_part_hours,
+     }
+     swift::ringbuilder_multi::create{ "container-${::hostname}":
+       part_power     => $part_power,
+       ring_type => "container",
+       replicas       => $replicas,
+       min_part_hours => $min_part_hours,
+     }
+     swift::ringbuilder_multi::create{ "account-${::hostname}":
+       part_power     => $part_power,
+       ring_type => "account",
+       replicas       => $replicas,
+       min_part_hours => $min_part_hours,
+     }
+     Ring_object_device <| |> 
+     {
+       notify +> Swift::Ringbuilder_multi::Rebalance["object-${::hostname}"]
+     }
+     Ring_container_device <| |> 
+     {
         notify +> Swift::Ringbuilder_multi::Rebalance["container-${::hostname}"]
-}
- Ring_account_device <| |> 
-{
+     }
+     Ring_account_device <| |> 
+     {
         notify +> Swift::Ringbuilder_multi::Rebalance["account-${::hostname}"]
-}
+     }
+     Swift::Ringbuilder_multi::Create["object-${::hostname}"] -> Ring_object_device <| |>
 
+     Swift::Ringbuilder_multi::Create["container-${::hostname}"] -> Ring_container_device <| |>
+     
+     Swift::Ringbuilder_multi::Create["account-${::hostname}"] -> Ring_account_device <| |>
 
-
-  Swift::Ringbuilder_multi::Create["object-${::hostname}"] -> Ring_object_device <| |>
-
- Swift::Ringbuilder_multi::Create["container-${::hostname}"] -> Ring_container_device <| |>
-
-  Swift::Ringbuilder_multi::Create["account-${::hostname}"] -> Ring_account_device <| |>
-
-  @@swift::ringbuilder_multi::rebalance{ "object-${::hostname}": ring_type => "object" }
-  @@swift::ringbuilder_multi::rebalance{ "container-${::hostname}": ring_type => "container" }
-  @@swift::ringbuilder_multi::rebalance{ "account-${::hostname}": ring_type => "account" }
+     swift::ringbuilder_multi::rebalance{ "object-${::hostname}": ring_type => "object" }
+     swift::ringbuilder_multi::rebalance{ "container-${::hostname}": ring_type => "container" }
+     swift::ringbuilder_multi::rebalance{ "account-${::hostname}": ring_type => "account" }
 
 
   # create the ring
@@ -300,18 +290,21 @@ class role_swift_proxy {
 
 
   # sets up an rsync db that can be used to sync the ring DB
+  }
   class { 'swift::ringserver':
     local_net_ip => $swift_local_net_ip,
-	
   }
-if $::hostname==$master_hostname
-{
-  # exports rsync gets that can be used to sync the ring files
-  @@swift::ringsync { ['account', 'object', 'container']:
-   ring_server => $swift_local_net_ip
- }
-
-}
+  if $::hostname==$master_hostname
+  {
+    # exports rsync gets that can be used to sync the ring files
+    @@swift::ringsync { ['account', 'object', 'container']:
+      ring_server => $swift_local_net_ip
+    }
+    else {
+      Swift::Ringsync<<||>>
+      Swift::Ringsync ~> Service["swift-proxy"]
+    }
+  }
   # deploy a script that can be used for testing
   file { '/tmp/swift_keystone_test.rb':
     source => 'puppet:///modules/swift/swift_keystone_test.rb'
