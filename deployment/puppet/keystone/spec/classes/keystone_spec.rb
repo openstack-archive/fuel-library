@@ -3,33 +3,28 @@ require 'spec_helper'
 describe 'keystone' do
 
   let :facts do
-    { :concat_basedir => '/var/lib/puppet/concat' }
-  end
-
-  let :concat_file do
-    {
-      :type  => 'File',
-      :title => '/var/lib/puppet/concat/_etc_keystone_keystone.conf/fragments.concat.out'
-    }
+    {:osfamily => 'Debian'}
   end
 
   let :default_params do
     {
       'package_ensure'  => 'present',
-      'bind_host'        => '0.0.0.0',
+      'bind_host'       => '0.0.0.0',
       'public_port'     => '5000',
       'admin_port'      => '35357',
       'admin_token'     => 'service_token',
       'compute_port'    => '3000',
-      'log_verbose'     => 'False',
-      'log_debug'       => 'False',
+      'verbose'         => 'False',
+      'debug'           => 'False',
       'use_syslog'      => 'False',
-      'catalog_type'    => 'template',
-      'enabled'         => true
+      'catalog_type'    => 'sql',
+      'enabled'         => true,
+      'sql_connection'  => 'sqlite:////var/lib/keystone/keystone.db',
+      'idle_timeout'    => '200'
     }
   end
 
-  [{},
+  [{'admin_token'     => 'service_token'},
    {
       'package_ensure'  => 'latest',
       'bind_host'       => '127.0.0.1',
@@ -37,10 +32,12 @@ describe 'keystone' do
       'admin_port'      => '35358',
       'admin_token'     => 'service_token_override',
       'compute_port'    => '3001',
-      'log_verbose'     => 'True',
-      'log_debug'       => 'True',
-      'catalog_type'    => 'sql',
-      'enabled'         => false
+      'verbose'         => 'True',
+      'debug'           => 'True',
+      'catalog_type'    => 'template',
+      'enabled'         => false,
+      'sql_connection'  => 'mysql://a:b@c/d',
+      'idle_timeout'    => '300'
     }
   ].each do |param_set|
 
@@ -54,8 +51,6 @@ describe 'keystone' do
       end
 
       it { should contain_class('keystone::params') }
-
-      it { should contain_class('concat::setup') }
 
       it { should contain_package('keystone').with(
         'ensure' => param_hash['package_ensure']
@@ -71,20 +66,17 @@ describe 'keystone' do
         'system' => 'true'
       ) }
 
-      it { should contain_file('/etc/keystone').with(
-        'ensure'     => 'directory',
-        'owner'      => 'keystone',
-        'group'      => 'keystone',
-        'mode'       => '0755',
-        'require'    => 'Package[keystone]'
-      ) }
-
-      it { should contain_concat('/etc/keystone/keystone.conf').with(
-        'owner'   => 'keystone',
-        'group'   => 'keystone',
-        'require' => 'Package[keystone]',
-        'notify'  => 'Service[keystone]'
-      ) }
+      it 'should contain the expected directories' do
+        ['/etc/keystone', '/var/log/keystone', '/var/lib/keystone'].each do |d|
+          should contain_file(d).with(
+            'ensure'     => 'directory',
+            'owner'      => 'keystone',
+            'group'      => 'keystone',
+            'mode'       => '0644',
+            'require'    => 'Package[keystone]'
+          )
+        end
+      end
 
       it { should contain_service('keystone').with(
         'ensure'     => param_hash['enabled'] ? 'running' : 'stopped',
@@ -103,37 +95,24 @@ describe 'keystone' do
         end
       end
 
-      it 'should correctly configure catalog based on catalog_type'
+      it 'should contain correct config' do
+        [
+          'admin_token',
+          'bind_host',
+          'public_port',
+          'admin_port',
+          'compute_port',
+          'verbose',
+          'debug'
+        ].each do |config|
+          should contain_keystone_config("DEFAULT/#{config}").with_value(param_hash[config])
+        end
+      end
 
-      it 'should create the expected DEFAULT configuration' do
-        verify_contents(
-          subject,
-          '/var/lib/puppet/concat/_etc_keystone_keystone.conf/fragments/00_kestone-DEFAULT',
-          [
-            "bind_host     = #{param_hash['bind_host']}",
-            "public_port   = #{param_hash['public_port']}",
-            "admin_port    = #{param_hash['admin_port']}",
-            "admin_token   = #{param_hash['admin_token']}",
-            "compute_port  = #{param_hash['compute_port']}",
-            "verbose       = #{param_hash['log_verbose']}",
-            "debug         = #{param_hash['log_debug']}",
-            "log_file      = /var/log/keystone/keystone.log",
-            "use_syslog    = #{param_hash['use_syslog']}"
-          ]
-        )
+      it 'should contain correct mysql config' do
+        should contain_keystone_config('sql/idle_timeout').with_value(param_hash['idle_timeout'])
+        should contain_keystone_config('sql/connection').with_value(param_hash['sql_connection'])
       end
-      it 'should create the expected identity section' do
-        verify_contents(
-          subject,
-          '/var/lib/puppet/concat/_etc_keystone_keystone.conf/fragments/03_kestone-identity',
-          [
-            "[identity]",
-            "driver = keystone.identity.backends.sql.Identity"
-          ]
-        )
-      end
-      it { should create_file(
-        '/var/lib/puppet/concat/_etc_keystone_keystone.conf/fragments/99_kestone-footer') }
     end
   end
 end

@@ -1,0 +1,7 @@
+2012-10-08 - Version 0.2.0
+* add enable parameter
+* add initial postgres classes
+* keystone native type performance improvements
+* support of multi-line field values for keystone native types
+* add parameters for setting public, internal, and admin endpoints
+* allow keystone to bind to non-localhost interfaces

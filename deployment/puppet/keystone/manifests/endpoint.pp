@@ -1,6 +1,12 @@
 #
 # Creates the auth endpoints for keystone
 #
+# * public_address   - public address for keystone endpoint. Optional. Defaults to 127.0.0.1.
+# * admin_address    - admin address for keystone endpoint. Optional. Defaults to 127.0.0.1.
+# * internal_address - internal address for keystone endpoint. Optional. Defaults to 127.0.0.1.
+# * public_port      - Port for non-admin access to keystone endpoint. Optional. Defaults to 5000.
+# * admin_port       - Port for admin access to keystone endpoint. Optional. Defaults to 35357.
+#
 class keystone::endpoint(
   $public_address   = '127.0.0.1',
   $admin_address    = '127.0.0.1',

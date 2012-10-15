@@ -54,7 +54,7 @@ Puppet::Type.type(:keystone_endpoint).provide(
 
     auth_keystone(
       'endpoint-create',
-      '--service', service_id,
+      '--service-id', service_id,
       optional_opts
     )
   end
@@ -87,6 +87,24 @@ Puppet::Type.type(:keystone_endpoint).provide(
     endpoint_hash[resource[:name]][:admin_url]
   end
 
+  def public_url=(value)
+    destroy
+    endpoint_hash[resource[:name]][:public_url] = value
+    create
+  end
+
+  def internal_url=(value)
+    destroy
+    endpoint_hash[resource[:name]][:internal_url] = value
+    create
+  end
+
+  def admin_url=(value)
+    destroy
+    endpoint_hash[resource[:name]][:admin_url]
+    create
+  end
+
   private
 
     def self.build_endpoint_hash
@@ -109,7 +127,7 @@ Puppet::Type.type(:keystone_endpoint).provide(
     # TODO - this needs to be replaced with a call to endpoint-get
     # but endpoint-get is not currently supported from the admin url
     def self.get_service_id(endpoint_id)
-      `python -c "from keystoneclient.v2_0 import client ; import os ; print [e.service_id for e in client.Client(endpoint='#{admin_endpoint}', token='#{admin_token}').endpoints.list() if e.id == u'#{endpoint_id}'][0]"`
+      `python -c "from keystoneclient.v2_0 import client ; import os ; print [e.service_id for e in client.Client(endpoint='#{admin_endpoint}', token='#{admin_token}').endpoints.list() if e.id == u'#{endpoint_id}'][0]"`.strip()
     end
 
 end

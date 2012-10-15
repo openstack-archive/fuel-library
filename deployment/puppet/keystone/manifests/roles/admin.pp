@@ -31,8 +31,8 @@
 #
 class keystone::roles::admin(
   $email,
+  $password,
   $admin        = 'admin',
-  $password     = 'ChangeMe',
   $admin_tenant = 'openstack'
 ) {
 

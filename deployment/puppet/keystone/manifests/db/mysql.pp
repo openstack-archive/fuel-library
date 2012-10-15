@@ -31,7 +31,7 @@
 # Copyright 2012 Puppetlabs Inc, unless otherwise noted.
 #
 class keystone::db::mysql(
-  $password      = 'keystone_default_password',
+  $password,
   $dbname        = 'keystone',
   $user          = 'keystone_admin',
   $host          = '127.0.0.1',
@@ -39,7 +39,10 @@ class keystone::db::mysql(
   $allowed_hosts = undef
 ) {
 
+  Class['mysql::server']       -> Class['keystone::db::mysql']
+  Class['keystone::db::mysql'] -> Exec<|    title == 'keystone-manage db_sync' |>
   Class['keystone::db::mysql'] -> Service<| title == 'keystone' |>
+  Mysql::Db[$dbname] ~> Exec<| title == 'keystone-manage db_sync' |>
 
   require 'mysql::python'
 
@@ -59,8 +62,5 @@ class keystone::db::mysql(
       database => $dbname,
     }
   }
-
-
-  Mysql::Db[$dbname] ~> Exec<| title == 'keystone-manage db_sync' |>
 
 }
