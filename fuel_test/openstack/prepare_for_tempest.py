@@ -12,24 +12,16 @@ class PrepareOpenStackForTempest(OpenStackTestCase):
         safety_revert_nodes(self.environment.nodes, 'openstack')
         auth_host = self.ci().get_public_virtual_ip()
         remote = ssh(
-            self.nodes.controllers[0].ip_address, username='root',
+            self.ci().nodes().controllers[0].ip_address, username='root',
             password='r00tme').sudo.ssh
         make_shared_storage(
             remote,
-            self.nodes.controllers[1:],
+            self.ci().nodes().controllers[1:],
             self.ci().get_internal_network()
         )
         image_ref, image_ref_any = make_tempest_objects(auth_host, remote)
         tempest_write_config(auth_host, image_ref, image_ref_any)
 
-    def prepare_for_tempest_if_swift(self):
-        safety_revert_nodes(self.environment.nodes, 'openstack')
-        auth_host = self.ci().get_public_virtual_ip()
-        remote = ssh(
-            self.nodes.controllers[0].ip_address, username='root',
-            password='r00tme').sudo.ssh
-        image_ref, image_ref_any = make_tempest_objects(auth_host, remote)
-        tempest_write_config(auth_host, image_ref, image_ref_any)
 
 if __name__ == '__main__':
     unittest.main()
