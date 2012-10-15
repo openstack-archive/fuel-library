@@ -300,11 +300,12 @@ class role_swift_proxy {
     @@swift::ringsync { ['account', 'object', 'container']:
       ring_server => $swift_local_net_ip
     }
-    else {
-      Swift::Ringsync<<||>>
-      Swift::Ringsync ~> Service["swift-proxy"]
-    }
   }
+  else {
+    Swift::Ringsync<<||>>
+    Swift::Ringsync ~> Service["swift-proxy"]
+  }
+
   # deploy a script that can be used for testing
   file { '/tmp/swift_keystone_test.rb':
     source => 'puppet:///modules/swift/swift_keystone_test.rb'
