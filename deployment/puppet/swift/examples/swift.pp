@@ -218,7 +218,7 @@ node /swift-proxy/ inherits swift_base {
     min_part_hours => 1,
     require        => Class['swift'],
   }
-
+   Class['ringbuilder'] -> Class['swift::ringserver']
   # sets up an rsync db that can be used to sync the ring DB
   class { 'swift::ringserver':
     local_net_ip => $swift_local_net_ip,

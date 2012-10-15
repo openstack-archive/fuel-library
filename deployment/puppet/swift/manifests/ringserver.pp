@@ -21,7 +21,7 @@ class swift::ringserver(
   $max_connections = 5
 ) {
 
-  Class['ringbuilder'] -> Class['swift::ringserver']
+  #  Class['ringbuilder'] -> Class['swift::ringserver']
   rsync::server::module { "swift_server":
     path => '/etc/swift',
     lock_file => "/var/lock/swift_server.lock",
