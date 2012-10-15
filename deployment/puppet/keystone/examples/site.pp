@@ -12,7 +12,6 @@ node keystone_sqlite {
   class { 'keystone::roles::admin': }
     email  => 'example@abc.com',
   }
->>>>>>> refactor site manifest
 }
 
 node keystone_mysql {
