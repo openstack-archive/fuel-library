@@ -391,7 +391,7 @@ class {'nova::quota':
   ######## Horizon ########
 
   class { 'memcached':
-    listen_ip => $api_bind_address,
+    #    listen_ip => $api_bind_address,
   } 
 
 
