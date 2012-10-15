@@ -6,9 +6,6 @@ from fuel_test.cobbler.cobbler_test_case import CobblerTestCase
 from fuel_test.helpers import tcp_ping, udp_ping
 
 class CobblerCase(CobblerTestCase):
-    def setUp(self):
-        pass
-
     def test_deploy_cobbler(self):
         self.validate(
             self.nodes.cobblers,
