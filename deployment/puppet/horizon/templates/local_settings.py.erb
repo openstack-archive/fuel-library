@@ -107,7 +107,15 @@ LOGGING = {
                 'handlers': ['console'],
                 'propagate': False,
             },
+            'openstack_dashboard': {
+                'handlers': ['console'],
+                'propagate': False,
+            },
             'novaclient': {
+                'handlers': ['console'],
+                'propagate': False,
+            },
+           'glanceclient': {
                 'handlers': ['console'],
                 'propagate': False,
             },
@@ -121,3 +129,10 @@ LOGGING = {
             }
         }
 }
+LOGIN_URL='/horizon/auth/login/'
+LOGIN_REDIRECT_URL='/horizon'
+
+# The Ubuntu package includes pre-compressed JS and compiled CSS to allow
+# offline compression by default.  To enable online compression, install
+# the node-less package and enable the following option.
+COMPRESS_OFFLINE = True

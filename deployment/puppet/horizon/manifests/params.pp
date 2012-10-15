@@ -6,9 +6,11 @@ class horizon::params {
     'RedHat': {
       $http_service                = 'httpd'
       $package_name                = 'openstack-dashboard'
+      $config_file                 = '/etc/openstack-dashboard/local_settings'
     }
     'Debian': {
       $http_service                = 'apache2'
+      $config_file                 = '/etc/openstack-dashboard/local_settings.py'
       case $::operatingsystem {
         'Debian': {
             $package_name          = 'openstack-dashboard-apache'
