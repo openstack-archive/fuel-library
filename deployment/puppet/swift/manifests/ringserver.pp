@@ -20,8 +20,7 @@ class swift::ringserver(
   $local_net_ip,
   $max_connections = 5
 ) {
-
-  Class['ringbuilder'] -> Class['swift::ringserver']
+  Class['swift::ringbuilder'] -> Class['swift::ringserver']
   rsync::server::module { "swift_server":
     path => '/etc/swift',
     lock_file => "/var/lock/swift_server.lock",
