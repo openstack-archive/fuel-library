@@ -303,7 +303,7 @@ class role_swift_proxy {
   }
   else {
     Swift::Ringsync<<||>>
-    Swift::Ringsync ~> Service["swift-proxy"]
+    Swift::Ringsync<| |> ~> Service["swift-proxy"]
   }
 
   # deploy a script that can be used for testing
