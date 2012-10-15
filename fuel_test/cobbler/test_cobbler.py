@@ -6,6 +6,9 @@ from fuel_test.cobbler.cobbler_test_case import CobblerTestCase
 from fuel_test.helpers import tcp_ping, udp_ping
 
 class CobblerCase(CobblerTestCase):
+    def setUp(self):
+        pass
+
     def test_deploy_cobbler(self):
         self.validate(
             self.nodes.cobblers,
@@ -46,166 +49,33 @@ class CobblerCase(CobblerTestCase):
                 system_id, token,
                 ks_meta=self.ks_meta,
                 name=node.name,
-                hostname=node.name + "mirantis.com",
+                hostname=node.name + ".mirantis.com",
                 name_servers=cobbler.ip_address_by_network['internal'],
                 name_servers_search="mirantis.com",
                 profile="centos63-x86_64",
                 netboot_enabled="1")
             client.modify_system(system_id, 'modify_interface', {
-                "macaddress-eth0": node.interfaces[0].mac_address,
-                "ipaddress-eth0": node.ip_address_by_network['internal'],
-                "dnsname-eth0": node.name + "mirantis.com",
+                "macaddress-eth0": str(node.interfaces[0].mac_address),
+                "ipaddress-eth0": str(node.ip_address_by_network['internal']),
+                "dnsname-eth0": node.name + ".mirantis.com",
                 "static-eth0": "1",
-                "macaddress-eth1": node.interfaces[1].mac_address,
+                "macaddress-eth1": str(node.interfaces[1].mac_address),
                 "static-eth1": "0",
-                "macaddress-eth2": node.interfaces[2].mac_address,
+                "macaddress-eth2": str(node.interfaces[2].mac_address),
                 "static-eth2": "0"
             }, token)
             client.save_system(system_id, token)
             client.sync(token)
 
-
-            #fuel-01:
-            #  profile: "centos63-x86_64"
-            #  netboot-enabled: "1"
-            #  hostname: "fuel-01"
-            #  name-servers: "10.0.0.100"
-            #  name-servers-search: "mirantis.com"
-            #  interfaces:
-            #    eth0:
-            #      mac: "52:54:00:e6:dc:c9"
-            #      static: "0"
-            #    eth1:
-            #      mac: "52:54:00:0a:39:ec"
-            #      static: "1"
-            #      ip-address: "10.0.0.101"
-            #      netmask: "255.255.255.0"
-            #      dns-name: "fuel-01.mirantis.com"
-            #    eth2:
-            #      mac: "52:54:00:ae:22:04"
-            #      static: "1"
-            #  interfaces_extra:
-            #    eth0:
-            #      peerdns: "no"
-            #    eth1:
-            #      peerdns: "no"
-            #    eth2:
-            #      promisc: "yes"
-            #      userctl: "yes"
-            #      peerdns: "no"
-            #fuel-02:
-            #  profile: "centos63-x86_64"
-            #  netboot-enabled: "1"
-            #  hostname: "fuel-02"
-            #  name-servers: "10.0.0.100"
-            #  name-servers-search: "mirantis.com"
-            #  interfaces:
-            #    eth0:
-            #      mac: "52:54:00:b4:a5:25"
-            #      static: "0"
-            #    eth1:
-            #      mac: "52:54:00:e4:46:5c"
-            #      static: "1"
-            #      ip-address: "10.0.0.102"
-            #      netmask: "255.255.255.0"
-            #      dns-name: "fuel-02.mirantis.com"
-            #    eth2:
-            #      mac: "52:54:00:28:f8:06"
-            #      static: "1"
-            #  interfaces_extra:
-            #    eth0:
-            #      peerdns: "no"
-            #    eth1:
-            #      peerdns: "no"
-            #    eth2:
-            #      promisc: "yes"
-            #      userctl: "yes"
-            #      peerdns: "no"
-            #fuel-03:
-            #  profile: "centos63-x86_64"
-            #  netboot-enabled: "1"
-            #  hostname: "fuel-03"
-            #  name-servers: "10.0.0.100"
-            #  name-servers-search: "mirantis.com"
-            #  interfaces:
-            #    eth0:
-            #      mac: "52:54:00:78:23:b7"
-            #      static: "0"
-            #    eth1:
-            #      mac: "52:54:00:09:04:40"
-            #      static: "1"
-            #      ip-address: "10.0.0.103"
-            #      netmask: "255.255.255.0"
-            #      dns-name: "fuel-03.mirantis.com"
-            #    eth2:
-            #      mac: "52:54:00:84:60:bf"
-            #      static: "1"
-            #  interfaces_extra:
-            #    eth0:
-            #      peerdns: "no"
-            #    eth1:
-            #      peerdns: "no"
-            #    eth2:
-            #      promisc: "yes"
-            #      userctl: "yes"
-            #      peerdns: "no"
-            #fuel-04:
-            #  profile: "centos63-x86_64"
-            #  netboot-enabled: "1"
-            #  ksmeta: "puppet_auto_setup=1 \
-            #puppet_master=fuel-pm.mirantis.com \
-            #puppet_version=2.7.19 \
-            #puppet_enable=0 \
-            #mco_auto_setup=1 \
-            #mco_pskey=un0aez2ei9eiGaequaey4loocohjuch4Ievu3shaeweeg5Uthi \
-            #mco_stomphost=10.0.0.100 \
-            #mco_stompport=61613 \
-            #mco_stompuser=mcollective \
-            #mco_stomppassword=AeN5mi5thahz2Aiveexo \
-            #mco_enable=1"
-            #  hostname: "fuel-04"
-            #  name-servers: "10.0.0.100"
-            #  name-servers-search: "mirantis.com"
-            #  interfaces:
-            #    eth0:
-            #      mac: "52:54:00:27:49:44"
-            #      static: "0"
-            #    eth1:
-            #      mac: "52:54:00:68:ff:9b"
-            #      static: "1"
-            #      ip-address: "10.0.0.104"
-            #      netmask: "255.255.255.0"
-            #      dns-name: "fuel-04.mirantis.com"
-            #    eth2:
-            #      mac: "52:54:00:19:0d:56"
-            #      static: "1"
-            #  interfaces_extra:
-            #    eth0:
-            #      peerdns: "no"
-            #    eth1:
-            #      peerdns: "no"
-            #    eth2:
-            #      promisc: "yes"
-            #      userctl: "yes"
-            #      peerdns: "no"
-
-
-            #        print server.get_distros()
-            #        print server.get_profiles()
-            #        print server.get_systems()
-            #        print server.get_images()
-            #        print server.get_repos()
-
     def test_deploy_nodes(self):
-        for node in self.nodes.computes + self.nodes.controllers:
+        for node in self.ci().nodes().computes + self.ci().nodes().controllers:
             node.start()
-        for node in self.nodes.computes + self.nodes.controllers:
+        for node in self.ci().nodes().computes + self.ci().nodes().controllers:
             logging.info("Waiting ssh... %s" % node.ip_address)
             wait(lambda: tcp_ping(
                 self.master_remote.sudo.ssh,
                 node.ip_address_by_network['public'], 22),
                 timeout=1800)
-
 
     def assert_cobbler_ports(self, ip):
         closed_tcp_ports = filter(
