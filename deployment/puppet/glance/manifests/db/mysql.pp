@@ -12,8 +12,9 @@ class glance::db::mysql(
   $cluster_id    = 'localzone'
 ) {
 
+  Class['mysql::server']     -> Class['glance::db::mysql']
   Class['glance::db::mysql'] -> Exec<| title == 'glance-manage db_sync' |>
-  Database[$dbname] ~> Exec<| title == 'glance-manage db_sync' |>
+  Database[$dbname]          ~> Exec<| title == 'glance-manage db_sync' |>
 
   require 'mysql::python'
 

@@ -5,12 +5,16 @@ describe 'glance::db::mysql' do
     {
       :osfamily => 'Debian'
     }
-  end  
+  end
+
+  let :pre_condition do
+    'include mysql::server'
+  end
 
   describe "with default params" do
     let :params do
-      { 
-      	:password => 'glancepass1' 
+      {
+      	:password => 'glancepass1'
       }
     end
 
@@ -26,7 +30,7 @@ describe 'glance::db::mysql' do
 
   describe "overriding default params" do
     let :params do
-      { 
+      {
       	:password => 'glancepass2',
       	:dbname   => 'glancedb2',
       	:charset  => 'utf8'

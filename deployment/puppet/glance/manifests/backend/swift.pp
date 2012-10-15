@@ -19,28 +19,14 @@ class glance::backend::swift(
   $swift_store_create_container_on_put = 'False'
 ) inherits glance::api {
 
-  #
-  # modeled as its own config define so that any attempts to
-  # define multiple backends will fail
-  #
-  glance::api::config { 'backend':
-    config => {
-      'default_store' => 'swift',
-    },
-    order  => '04',
-  }
-
-  glance::api::config { 'swift':
-    config => {
-      'swift_store_user' => $swift_store_user,
-      'swift_store_key'  => $swift_store_key,
-      'swift_store_auth_address' => $swift_store_auth_address,
-      'swift_store_container' => $swift_store_container,
-      'swift_store_create_container_on_put' => $swift_store_create_container_on_put
-    },
-    order  => '05',
-  # this just needs to configure a section
-  # in glance-api.conf
+  glance_api_config {
+    'DEFAULT/default_store': value => 'swift';
+    'DEFAULT/swift_store_user':         value => $swift_store_user;
+    'DEFAULT/swift_store_key':          value => $swift_store_key;
+    'DEFAULT/swift_store_auth_address': value => $swift_store_auth_address;
+    'DEFAULT/swift_store_container':    value => $swift_store_container;
+    'DEFAULT/swift_store_create_container_on_put':
+      value => $swift_store_create_container_on_put;
   }
 
 }

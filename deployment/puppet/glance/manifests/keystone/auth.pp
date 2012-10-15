@@ -15,25 +15,29 @@
 #  $region :: Region where endpoint is set.
 #
 class glance::keystone::auth(
+  $password,
+  $email              = 'glance@localhost',
   $auth_name          = 'glance',
-  $password           = 'glance_password',
   $configure_endpoint = true,
   $service_type       = 'image',
   $public_address     = '127.0.0.1',
   $admin_address      = '127.0.0.1',
   $internal_address   = '127.0.0.1',
   $port               = '9292',
-  $region             = 'RegionOne'
+  $region             = 'RegionOne',
+  $tenant             = 'services'
 ) {
 
-  Keystone_user_role["${auth_name}@services"] ~> Service <| name == 'glance-registry' |>
-  Keystone_user_role["${auth_name}@services"] ~> Service <| name == 'glance-api' |>
+  Keystone_user_role["${auth_name}@${tenant}"] ~> Service <| name == 'glance-registry' |>
+  Keystone_user_role["${auth_name}@${tenant}"] ~> Service <| name == 'glance-api' |>
 
   keystone_user { $auth_name:
     ensure   => present,
     password => $password,
+    email    => $email,
+    tenant   => $tenant,
   }
-  keystone_user_role { "${auth_name}@services":
+  keystone_user_role { "${auth_name}@${tenant}":
     ensure  => present,
     roles   => 'admin',
   }

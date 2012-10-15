@@ -4,9 +4,13 @@ describe 'glance::keystone::auth' do
 
   describe 'with defaults' do
 
+    let :params do
+      {:password => 'pass'}
+    end
+
     it { should contain_keystone_user('glance').with(
       :ensure   => 'present',
-      :password => 'glance_password'
+      :password => 'pass'
     )}
 
     it { should contain_keystone_user_role('glance@services').with(
@@ -62,6 +66,7 @@ describe 'glance::keystone::auth' do
 
     let :params do
       {
+        :password         => 'pass',
         :public_address   => '10.0.0.1',
         :admin_address    => '10.0.0.2',
         :internal_address => '10.0.0.3',
@@ -85,11 +90,11 @@ describe 'glance::keystone::auth' do
     let :params do
       {
         :configure_endpoint => false,
+        :password         => 'pass',
       }
     end
-  
+
     it { should_not contain_keystone_endpoint('glance') }
-      
   end
 
 end

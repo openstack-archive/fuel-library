@@ -12,8 +12,8 @@ node glance {
 node glance_keystone {
   class { 'keystone::config::sqlite': }
   class { 'keystone':
-    log_verbose  => true,
-    log_debug    => true,
+    verbose  => true,
+    debug    => true,
     catalog_type => 'sql',
   }
   class { 'keystone::roles::admin': }
@@ -24,8 +24,8 @@ node glance_keystone {
 node glance_keystone_mysql {
   class { 'mysql::server': }
   class { 'keystone':
-    log_verbose  => true,
-    log_debug    => true,
+    verbose  => true,
+    debug    => true,
     catalog_type => 'sql',
   }
   class { 'keystone::db::mysql':
@@ -46,8 +46,8 @@ node default {
 class role_glance_sqlite {
 
   class { 'glance::api':
-    log_verbose       => 'True',
-    log_debug         => 'True',
+    verbose       => 'True',
+    debug         => 'True',
     auth_type         => 'keystone',
     keystone_tenant   => 'services',
     keystone_user     => 'glance',
@@ -56,8 +56,8 @@ class role_glance_sqlite {
   class { 'glance::backend::file': }
 
   class { 'glance::registry':
-    log_verbose       => 'True',
-    log_debug         => 'True',
+    verbose       => 'True',
+    debug         => 'True',
     auth_type         => 'keystone',
     keystone_tenant   => 'services',
     keystone_user     => 'glance',
@@ -69,8 +69,8 @@ class role_glance_sqlite {
 class role_glance_mysql {
 
   class { 'glance::api':
-    log_verbose       => 'True',
-    log_debug         => 'True',
+    verbose       => 'True',
+    debug         => 'True',
     auth_type         => 'keystone',
     keystone_tenant   => 'services',
     keystone_user     => 'glance',
@@ -88,8 +88,8 @@ class role_glance_mysql {
   }
 
   class { 'glance::registry':
-    log_verbose       => 'True',
-    log_debug         => 'True',
+    verbose       => 'True',
+    debug         => 'True',
     auth_type         => 'keystone',
     keystone_tenant   => 'services',
     keystone_user     => 'glance',

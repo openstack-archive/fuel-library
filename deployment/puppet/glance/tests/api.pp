@@ -1,4 +1,4 @@
 class { 'glance::api':
-  log_debug => 'true',
-  log_verbose => 'true',
+  debug => 'true',
+  verbose => 'true',
 }

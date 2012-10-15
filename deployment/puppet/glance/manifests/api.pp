@@ -1,13 +1,11 @@
 
 #
-# This class installs and configures the glance api server.
-#
 # == Paremeters:
 #
-#  $log_verbose - rather to log the glance api service at verbose level.
+#  $verbose - rather to log the glance api service at verbose level.
 #  Optional. Default: false
 #
-#  $log_debug - rather to log the glance api service at debug level.
+#  $debug - rather to log the glance api service at debug level.
 #  Optional. Default: false
 #
 #  $default_store - Backend used to store glance dist images.
@@ -30,75 +28,125 @@
 #
 #
 class glance::api(
-  $log_verbose = 'False',
-  $log_debug = 'False',
-  $bind_host = '0.0.0.0',
-  $bind_port = '9292',
-  $backlog   = '4096',
-  $workers   = '0',
-  $log_file = '/var/log/glance/api.log',
-  $registry_host = '0.0.0.0',
-  $registry_port = '9191',
-  $auth_type = 'keystone',
-  $auth_host = '127.0.0.1',
-  $auth_port = '35357',
-  $auth_protocol = 'http',
-  $auth_uri = "http://127.0.0.1:5000/",
-  $keystone_tenant = 'admin',
-  $keystone_user = 'admin',
-  $keystone_password = 'ChangeMe',
-  $enabled           = true
+  $keystone_password,
+  $verbose           = 'False',
+  $debug             = 'False',
+  $bind_host         = '0.0.0.0',
+  $bind_port         = '9292',
+  $backlog           = '4096',
+  $workers           = $::processorcount,
+  $log_file          = '/var/log/glance/api.log',
+  $registry_host     = '0.0.0.0',
+  $registry_port     = '9191',
+  $auth_type         = 'keystone',
+  $auth_host         = '127.0.0.1',
+  $auth_port         = '35357',
+  $auth_protocol     = 'http',
+  $auth_url          = "http://127.0.0.1:5000/",
+  $keystone_tenant   = 'admin',
+  $keystone_user     = 'admin',
+  $enabled           = true,
+  $sql_idle_timeout  = '3600',
+  $sql_connection    = 'sqlite:///var/lib/glance/glance.sqlite'
 ) inherits glance {
 
   # used to configure concat
-  include 'concat::setup'
   require 'keystone::python'
+
+  validate_re($sql_connection, '(sqlite|mysql|posgres):\/\/(\S+:\S+@\S+\/\S+)?')
+
+  Package['glance'] -> Glance_api_config<||>
+  Package['glance'] -> Glance_cache_config<||>
+  # adding all of this stuff b/c it devstack says glance-api uses the
+  # db now
+  Glance_api_config<||>   ~> Exec<| title == 'glance-manage db_sync' |>
+  Glance_cache_config<||> ~> Exec<| title == 'glance-manage db_sync' |>
+  Exec<| title == 'glance-manage db_sync' |> ~> Service['glance-api']
+  Glance_api_config<||>   ~> Service['glance-api']
+  Glance_cache_config<||> ~> Service['glance-api']
 
   File {
     ensure  => present,
     owner   => 'glance',
-    group   => 'root',
+    group   => 'glance',
     mode    => '0640',
     notify  => Service['glance-api'],
     require => Class['glance'],
   }
 
-  concat { '/etc/glance/glance-api.conf':
-    owner   => 'glance',
-    group   => 'root',
-    mode    => 640,
-    require => Class['glance'],
+  if($sql_connection =~ /mysql:\/\/\S+:\S+@\S+\/\S+/) {
+    require 'mysql::python'
+  } elsif($sql_connection =~ /postgresql:\/\/\S+:\S+@\S+\/\S+/) {
+
+  } elsif($sql_connection =~ /sqlite:\/\//) {
+
+  } else {
+    fail("Invalid db connection ${sql_connection}")
   }
 
-  glance::api::config { 'header':
-    config => {
-      'log_verbose'   => $log_verbose,
-      'log_debug'     => $log_debug,
-      'bind_host'     => $bind_host,
-      'bind_port'     => $bind_port,
-      'log_file'      => $log_file,
-      'backlog'       => $backlog,
-      'workers'       => $workers,
-      'registry_host' => $registry_host,
-      'registry_port' => $registry_port
-    },
-    order  => '01',
+  # basic service config
+  glance_api_config {
+    'DEFAULT/verbose':   value => $verbose;
+    'DEFAULT/debug':     value => $debug;
+    'DEFAULT/bind_host': value => $bind_host;
+    'DEFAULT/bind_port': value => $bind_port;
+    'DEFAULT/backlog':   value => $backlog;
+    'DEFAULT/workers':   value => $workers;
+    'DEFAULT/log_file':  value => $log_file;
   }
 
-  glance::api::config { 'footer':
-    config => {
-      'auth_type' => $auth_type
-    },
-    order   => '99',
-    require => Glance::Api::Config['backend'],
+  glance_cache_config {
+    'DEFAULT/verbose':   value => $verbose;
+    'DEFAULT/debug':     value => $debug;
   }
 
-  file { '/etc/glance/glance-api-paste.ini':
-    content => template('glance/glance-api-paste.ini.erb'),
+  # configure api service to connect registry service
+  glance_api_config {
+    'DEFAULT/registry_host': value => $registry_host;
+    'DEFAULT/registry_port': value => $registry_port;
   }
 
-  file { '/etc/glance/glance-cache.conf':
-    content => template('glance/glance-cache.conf.erb'),
+  glance_cache_config {
+    'DEFAULT/registry_host': value => $registry_host;
+    'DEFAULT/registry_port': value => $registry_port;
+  }
+
+  # db connection config
+  # I do not believe this was required in Essex. Does the API server now need to connect to the DB?
+  # TODO figure out if I need this...
+  glance_api_config {
+    'DEFAULT/sql_connection':   value => $sql_connection;
+    'DEFAULT/sql_idle_timeout': value => $sql_idle_timeout;
+  }
+
+  # auth config
+  glance_api_config {
+    'keystone_authtoken/auth_host':         value => $auth_host;
+    'keystone_authtoken/auth_port':         value => $auth_port;
+    'keystone_authtoken/protocol':          value => $protocol;
+    'keystone_authtoken/auth_uri':          value => $auth_uri;
+  }
+
+  # keystone config
+  if $auth_type == 'keystone' {
+    glance_api_config {
+      'paste_deploy/flavor':                  value => 'keystone+cachemanagement';
+      'keystone_authtoken/admin_tenant_name': value => $keystone_tenant;
+      'keystone_authtoken/admin_user':        value => $keystone_user;
+      'keystone_authtoken/admin_password':    value => $keystone_password;
+    }
+    glance_cache_config {
+      'DEFAULT/auth_url':          value => $auth_url;
+      'DEFAULT/admin_tenant_name': value => $keystone_tenant;
+      'DEFAULT/admin_user':        value => $keystone_user;
+      'DEFAULT/admin_password':    value => $eystone_password;
+    }
+  }
+
+  file { ['/etc/glance/glance-api.conf',
+          '/etc/glance/glance-api-paste.ini',
+          '/etc/glance/glance-cache.conf'
+         ]:
   }
 
   if $enabled {
@@ -113,6 +161,5 @@ class glance::api(
     enable     => $enabled,
     hasstatus  => true,
     hasrestart => true,
-    subscribe  => Concat['/etc/glance/glance-api.conf'],
   }
 }
