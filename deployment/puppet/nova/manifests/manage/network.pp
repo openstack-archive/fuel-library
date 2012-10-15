@@ -8,6 +8,7 @@
 define nova::manage::network (
   $network,
   $num_networks = 1,
+  $network_size = 255,
   $project = undef
 ) {
 
@@ -18,6 +19,7 @@ define nova::manage::network (
     ensure       => present,
     network      => $network,
     num_networks => $num_networks,
+    network_size => $network_size,
     project      => $project,
   }
 

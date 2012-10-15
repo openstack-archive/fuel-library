@@ -38,9 +38,10 @@ Puppet::Type.type(:nova_network).provide(:nova_manage) do
     end
 
     nova_manage('network', 'create',
-      "--label=#{resource[:label]}",
-      "--fixed_range_v4=#{resource[:name]}",
-      "--num_networks=#{resource[:num_networks]}",
+      resource[:label],
+      resource[:name],
+      resource[:num_networks],
+      resource[:network_size],
       optional_opts
     )
   end
