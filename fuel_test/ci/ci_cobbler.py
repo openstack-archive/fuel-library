@@ -41,12 +41,10 @@ class CiCobbler(CiBase):
         return environment
 
     def reserve_static_addresses(self, environment):
-        start_nodes = [environment.node['master']] + self.nodes(
-            environment).cobblers
         addresses_iter = iter(environment.network['internal'].ip_addresses)
         addresses_iter.next()
         addresses_iter.next()
-        for node in start_nodes:
+        for node in environment.nodes:
             node.interfaces[0].ip_addresses = addresses_iter.next()
 
     def setup_environment(self):

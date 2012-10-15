@@ -70,6 +70,17 @@ class CiBase(object):
         node.boot = ['disk']
         return node
 
+    def describe_empty_node(self, name, networks, memory=1024):
+        node = Node(name)
+        node.memory = memory
+        node.vnc = True
+        for network in networks:
+            node.interfaces.append(Interface(network))
+            #        node.bridged_interfaces.append(BridgedInterface('br0'))
+        node.disks.append(Disk(size=8589934592, format='qcow2'))
+        node.boot = ['disk']
+        return node
+
     def add_nodes_to_hosts(self, remote, nodes):
         for node in nodes:
             add_to_hosts(remote, node.ip_address, node.name, node.name)
