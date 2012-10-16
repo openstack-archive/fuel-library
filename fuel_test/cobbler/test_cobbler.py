@@ -1,12 +1,20 @@
 import logging
+from time import sleep
 import unittest
-from devops.helpers import wait
+import devops
+from devops.helpers import wait, ssh
 from fuel_test.cobbler.cobbler_client import CobblerClient
 from fuel_test.cobbler.cobbler_test_case import CobblerTestCase
-from fuel_test.helpers import tcp_ping, udp_ping
+from fuel_test.helpers import tcp_ping, udp_ping, safety_revert_nodes, add_to_hosts, sign_all_node_certificates, sync_time
 
 class CobblerCase(CobblerTestCase):
     def test_deploy_cobbler(self):
+        safety_revert_nodes(self.environment.nodes, 'empty')
+        for node in [self.environment.node['master']] + self.nodes.cobblers:
+            remote = ssh(node.ip_address, username='root', password='r00tme')
+            sync_time(remote.sudo.ssh)
+            remote.sudo.ssh.execute('yum makecache')
+        self.write_cobbler_manifest()
         self.validate(
             self.nodes.cobblers,
             'puppet agent --test')
@@ -37,12 +45,14 @@ class CobblerCase(CobblerTestCase):
                 }
 
     def test_configure_cobbler(self):
-        nodes = self.ci().nodes().controllers + self.ci().nodes().computes
+        safety_revert_nodes(self.ci().environment.nodes, 'cobbler')
+
+        client_nodes = self.ci().nodes().controllers + self.ci().nodes().computes
         cobbler = self.ci().nodes().cobblers[0]
-        client = CobblerClient(cobbler.ip_address_by_network['public'])
+        client = CobblerClient(cobbler.ip_address_by_network['internal'])
         token = client.login('cobbler', 'cobbler')
 
-        for node in nodes:
+        for node in client_nodes:
             system_id = client.new_system(token)
             client.modify_system_args(
                 system_id, token,
@@ -67,16 +77,36 @@ class CobblerCase(CobblerTestCase):
             client.save_system(system_id, token)
             client.sync(token)
 
+        master = self.ci().environment.node['master']
+        remote = ssh(
+            self.ci().nodes().cobblers[0].ip_address_by_network['internal'],
+            username='root',
+            password='r00tme')
+
+        add_to_hosts(
+            remote,
+            master.ip_address_by_network['internal'],
+            master.name,
+            master.name + ".mirantis.com")
+
+        for node in self.environment.nodes:
+            node.save_snapshot('cobbler-configured', force=True)
+
     def test_deploy_nodes(self):
-        for node in self.ci().nodes().computes + self.ci().nodes().controllers:
-            node.restore_snapshot('cobbler')
+        safety_revert_nodes(self.environment.nodes,
+            snapsot_name='cobbler-configured')
+        for node in self.environment.nodes:
             node.start()
         for node in self.ci().nodes().computes + self.ci().nodes().controllers:
             logging.info("Waiting ssh... %s" % node.ip_address)
-            wait(lambda: tcp_ping(
-                self.master_remote.sudo.ssh,
-                node.ip_address_by_network['public'], 22),
-                timeout=1800)
+            wait(lambda: devops.helpers.tcp_ping(
+                node.ip_address_by_network['internal'], 22),
+                timeout=900)
+        sleep(20)
+        sign_all_node_certificates(self.master_remote)
+        self.validate(
+            self.ci().nodes().computes + self.ci().nodes().controllers,
+            'puppet agent --test')
 
     def assert_cobbler_ports(self, ip):
         closed_tcp_ports = filter(
@@ -95,28 +125,3 @@ class CobblerCase(CobblerTestCase):
 
 if __name__ == '__main__':
     unittest.main()
-
-
-#    # HERE IS IPTABLES RULES TO MAKE COBBLER AVAILABLE FROM OUTSIDE
-#    # https://github.com/cobbler/cobbler/wiki/Using%20Cobbler%20Import
-#    # SSH
-#    access_to_cobbler_port { "ssh":        port => '22' }
-#    # DNS
-#    access_to_cobbler_port { "dns_tcp":    port => '53' }
-#    access_to_cobbler_port { "dns_udp":    port => '53',  protocol => 'udp' }
-#    # DHCP
-#    access_to_cobbler_port { "dncp_67":    port => '67',  protocol => 'udp' }
-#    access_to_cobbler_port { "dncp_68":    port => '68',  protocol => 'udp' }
-#    # TFTP
-#    access_to_cobbler_port { "tftp_tcp":   port => '69' }
-#    access_to_cobbler_port { "tftp_udp":   port => '69',  protocol => 'udp' }
-#    # NTP
-#    access_to_cobbler_port { "ntp_udp":    port => '123', protocol => 'udp' }
-#    # HTTP/HTTPS
-#    access_to_cobbler_port { "http":       port => '80' }
-#    access_to_cobbler_port { "https":      port => '443'}
-#    # SYSLOG FOR COBBLER
-#    access_to_cobbler_port { "syslog_tcp": port => '25150'}
-#    # xmlrpc API
-#    access_to_cobbler_port { "xmlrpc_api": port => '25151' }
-#    #:80/api/distro/list

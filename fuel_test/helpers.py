@@ -255,8 +255,7 @@ def safety_revert_nodes(nodes, snapsot_name='openstack'):
             pass
     for node in nodes:
         node.restore_snapshot(snapsot_name)
-        sleep(4)
-        #            sync_time(ssh(node.ip_address, username='root', password='r00tme').sudo.ssh)
+        sleep(2)
 
 
 def make_shared_storage(remote, host, client_nodes, access_network):
