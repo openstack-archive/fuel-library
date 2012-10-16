@@ -16,6 +16,7 @@ class PrepareOpenStackForTempest(OpenStackTestCase):
             password='r00tme').sudo.ssh
         make_shared_storage(
             remote,
+            self.ci().nodes().controllers[0].name,
             self.ci().nodes().controllers[1:],
             self.ci().get_internal_network()
         )

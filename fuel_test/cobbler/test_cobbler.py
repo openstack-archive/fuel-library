@@ -6,6 +6,9 @@ from fuel_test.cobbler.cobbler_test_case import CobblerTestCase
 from fuel_test.helpers import tcp_ping, udp_ping
 
 class CobblerCase(CobblerTestCase):
+    def setUp(self):
+        pass
+
     def test_deploy_cobbler(self):
         self.validate(
             self.nodes.cobblers,
@@ -15,27 +18,29 @@ class CobblerCase(CobblerTestCase):
         for node in self.environment.nodes:
             node.save_snapshot('cobbler', force=True)
 
-
-    ks_meta = ("puppet_auto_setup=1 "
-               "puppet_master=fuel-pm.mirantis.com "
-               "puppet_version=2.7.19 "
-               "puppet_enable=0 "
-               "mco_auto_setup=1 "
-               "mco_pskey=un0aez2ei9eiGaequaey4loocohjuch4Ievu3shaeweeg5Uthi "
-               "mco_stomphost=10.0.0.100 "
-               "mco_stompport=61613 "
-               "mco_stompuser=mcollective "
-               "mco_stomppassword=AeN5mi5thahz2Aiveexo "
-               "mco_enable=1 "
-               "interface_extra_eth0_peerdns=no"
-               "interface_extra_eth1_peerdns=no"
-               "interface_extra_eth2_peerdns=no"
-               "interface_extra_eth2_promisc=yes"
-               "interface_extra_eth2_userctl=yes"
-        )
+    def get_ks_meta(self, puppet_master, mco_host):
+        return  ("puppet_auto_setup=1 "
+                 "puppet_master=%(puppet_master)s "
+                 "puppet_version=2.7.19 "
+                 "puppet_enable=0 "
+                 "mco_auto_setup=1 "
+                 "mco_pskey=un0aez2ei9eiGaequaey4loocohjuch4Ievu3shaeweeg5Uthi "
+                 "mco_stomphost=%(mco_host)s "
+                 "mco_stompport=61613 "
+                 "mco_stompuser=mcollective "
+                 "mco_stomppassword=AeN5mi5thahz2Aiveexo "
+                 "mco_enable=1 "
+                 "interface_extra_eth0_peerdns=no "
+                 "interface_extra_eth1_peerdns=no "
+                 "interface_extra_eth2_peerdns=no "
+                 "interface_extra_eth2_promisc=yes "
+                 "interface_extra_eth2_userctl=yes "
+                    ) % {'puppet_master': puppet_master,
+                         'mco_host': mco_host
+                }
 
     def test_configure_cobbler(self):
-        nodes = self.ci().nodes().computes + self.ci().nodes().controllers
+        nodes = self.ci().nodes().controllers + self.ci().nodes().computes
         cobbler = self.ci().nodes().cobblers[0]
         client = CobblerClient(cobbler.ip_address_by_network['public'])
         token = client.login('cobbler', 'cobbler')
@@ -44,7 +49,8 @@ class CobblerCase(CobblerTestCase):
             system_id = client.new_system(token)
             client.modify_system_args(
                 system_id, token,
-                ks_meta=self.ks_meta,
+                ks_meta=self.get_ks_meta('master',
+                    cobbler.ip_address_by_network['internal']),
                 name=node.name,
                 hostname=node.name + ".mirantis.com",
                 name_servers=cobbler.ip_address_by_network['internal'],
