@@ -75,7 +75,8 @@ class compact_controller {
       rabbit_nodes            => $controller_hostnames,
       memcached_servers       => $controller_hostnames,
       export_resources        => false,
-      glance_backend          => $glance_backend
+      glance_backend          => $glance_backend,
+      swift_proxies           => $swift_proxies
       }
       class { 'swift::keystone::auth':
              password => $swift_user_password,
