@@ -74,7 +74,8 @@ def extract_virtual_ips(ipaout):
 
 
 def tempest_build_config(host, image_ref, image_ref_alt):
-    sample = load(root('fuel', 'fuel_test', 'config', 'tempest.conf.sample'))
+    sample = load(
+        root('fuel', 'fuel_test', 'config', 'tempest.conf.essex.sample'))
     config = sample % {
         'HOST': host,
         'USERNAME': 'tempest1',
