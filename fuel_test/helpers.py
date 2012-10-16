@@ -216,18 +216,19 @@ def switch_off_ip_tables(remote):
 
 def setup_puppet_master_yum(remote):
     add_puppetlab_repo(remote)
-    remote.sudo.ssh.execute(
+    execute(
+        remote.sudo.ssh,
         'yum -y install puppet-server-2.7.19 mysql mysql-server mysql-devel rubygems ruby-devel make gcc')
     remove_puppetlab_repo(remote)
-    remote.sudo.ssh.execute('gem install rails -v 3.0.10')
-    remote.sudo.ssh.execute('gem install mysql')
-    remote.sudo.ssh.execute('chkconfig mysql on')
-    remote.sudo.ssh.execute('service mysqld start')
-    remote.sudo.ssh.execute(
+    execute(remote.sudo.ssh, 'gem install rails -v 3.0.10')
+    execute(remote.sudo.ssh, 'gem install mysql')
+    execute(remote.sudo.ssh, 'chkconfig mysql on')
+    execute(remote.sudo.ssh, 'service mysqld start')
+    execute(remote.sudo.ssh,
         'mysql -u root -e "create database puppet; grant all privileges on puppet.* to puppet@localhost identified by \'password\'; "')
-    remote.sudo.ssh.execute('gem uninstall activerecord')
-    remote.sudo.ssh.execute('gem install activerecord -v 3.0.10')
-    remote.sudo.ssh.execute('setenforce 0')
+    execute(remote.sudo.ssh, 'gem uninstall activerecord')
+    execute(remote.sudo.ssh, 'gem install activerecord -v 3.0.10')
+    execute(remote.sudo.ssh, 'setenforce 0')
 
 
 def change_host_name(remote, short, long):
@@ -258,7 +259,7 @@ def safety_revert_nodes(nodes, snapsot_name='openstack'):
         #            sync_time(ssh(node.ip_address, username='root', password='r00tme').sudo.ssh)
 
 
-def make_shared_storage(remote, client_nodes, access_network):
+def make_shared_storage(remote, host, client_nodes, access_network):
     tempest_share_glance_images(remote, access_network)
     execute(remote, '/etc/init.d/iptables stop')
     sleep(5)
@@ -266,7 +267,7 @@ def make_shared_storage(remote, client_nodes, access_network):
         remote_controller = ssh(
             controller.ip_address, username='root',
             password='r00tme').sudo.ssh
-        tempest_mount_glance_images(remote_controller, controller[0].name)
+        tempest_mount_glance_images(remote_controller, host)
 
 
 def make_tempest_objects(auth_host, remote):
