@@ -3,6 +3,7 @@ $public_virtual_ip = '10.0.57.253'
 $master_hostname = 'fuel-01'
 $controller_public_addresses = { 'fuel-01' => '10.0.57.3', 'fuel-02' => '10.0.57.4', 'fuel-03' => '10.0.57.5' }
 $controller_internal_addresses = { 'fuel-01' => '10.0.113.3', 'fuel-02' => '10.0.113.4', 'fuel-03' => '10.0.113.5' }
+$swift_proxies = $controller_internal_addresses 
 $floating_range = '10.0.57.128/27'
 $fixed_range = '10.0.202.128/27'
 $controller_hostnames = ['fuel-01', 'fuel-02', 'fuel-03']
@@ -74,7 +75,8 @@ class compact_controller {
       rabbit_nodes            => $controller_hostnames,
       memcached_servers       => $controller_hostnames,
       export_resources        => false,
-      glance_backend          => $glance_backend
+      glance_backend          => $glance_backend,
+      swift_proxies           => $swift_proxies
       }
       class { 'swift::keystone::auth':
              password => $swift_user_password,
@@ -198,7 +200,6 @@ class role_swift_proxy {
   class { [
     'swift::proxy::catch_errors',
     'swift::proxy::healthcheck',
-    'swift::proxy::cache',
     'swift::proxy::swift3',
   ]: }
   class { 'swift::proxy::ratelimit':
@@ -213,6 +214,10 @@ class role_swift_proxy {
 #    auth_host     => $controller_node_public,
 #    auth_port     => '35357',
 #  }
+   $cache_addresses =  inline_template("<%= @swift_proxies.keys.uniq.sort.collect {|ip| ip + ':11211' }.join ',' %>")
+   class { 'swift::proxy::cache':
+        memcache_servers => split($cache_addresses,',')
+        }
   class { 'swift::proxy::keystone':
     operator_roles => ['admin', 'SwiftOperator'],
   }
