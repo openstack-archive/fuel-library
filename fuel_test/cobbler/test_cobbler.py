@@ -6,9 +6,6 @@ from fuel_test.cobbler.cobbler_test_case import CobblerTestCase
 from fuel_test.helpers import tcp_ping, udp_ping
 
 class CobblerCase(CobblerTestCase):
-    def setUp(self):
-        pass
-
     def test_deploy_cobbler(self):
         self.validate(
             self.nodes.cobblers,
@@ -72,6 +69,7 @@ class CobblerCase(CobblerTestCase):
 
     def test_deploy_nodes(self):
         for node in self.ci().nodes().computes + self.ci().nodes().controllers:
+            node.restore_snapshot('cobbler')
             node.start()
         for node in self.ci().nodes().computes + self.ci().nodes().controllers:
             logging.info("Waiting ssh... %s" % node.ip_address)
