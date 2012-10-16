@@ -139,6 +139,7 @@ class role_swift_storage {
   swift::storage::loopback { ['dev1', 'dev2']:
     base_dir     => '/srv/loopback-device',
     mnt_base_dir => '/srv/node',
+    $seek         => '1048756',
     require      => Class['swift'],
   }
 
@@ -237,7 +238,11 @@ class role_swift_proxy {
      Ring_object_device <<| |>>
      Ring_container_device <<| |>>
      Ring_account_device <<| |>>
-     
+    
+     Package["swift"]->Swift::Ringbuilder_multi::Rebalance<| |>
+
+     Package["swift"]->Swift::Ringbuilder_multi::Create<| |>
+
      swift::ringbuilder_multi::create{ "object-${::hostname}":
        part_power     => $part_power,
        replicas       => $replicas,

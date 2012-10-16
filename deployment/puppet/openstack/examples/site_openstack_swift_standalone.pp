@@ -146,6 +146,7 @@ class role_swift_storage {
   swift::storage::loopback { ['dev1', 'dev2']:
     base_dir     => '/srv/loopback-device',
     mnt_base_dir => '/srv/node',
+    seek         => '1048756',
     require      => Class['swift'],
   }
 
