@@ -1,8 +1,10 @@
 $internal_virtual_ip = '10.0.0.110'
 $public_virtual_ip = '10.0.0.110'
 $master_hostname = 'fuel-01'
+$swift_master = 'fuel-08'
 $controller_public_addresses = { 'fuel-01'=>'10.0.0.101', 'fuel-02'=>'10.0.0.102'}
 $controller_internal_addresses = { 'fuel-01'=>'10.0.0.101', 'fuel-02'=>'10.0.0.102'}
+$swift_proxies = {'fuel-08' => '10.0.0.108', 'fuel-09' => '10.0.0.109' }  
 $floating_range = '10.0.1.0/28'
 $fixed_range = '10.0.2.0/28'
 $controller_hostnames = ['fuel-01', 'fuel-02']
@@ -74,7 +76,8 @@ node /fuel-0[12]/ inherits swift_base {
       rabbit_nodes            => $controller_hostnames,
       memcached_servers       => $controller_hostnames,
       export_resources        => false,
-      glance_backend          => $glance_backend
+      glance_backend          => $glance_backend,
+      swift_proxies           => $swift_proxies
       }
       class { 'swift::keystone::auth':
              password => $swift_user_password,
@@ -166,9 +169,7 @@ node /fuel-08/ inherits swift_base {
   # curl is only required so that I can run tests
   package { 'curl': ensure => present }
 
-  class { 'memcached':
-    listen_ip => '127.0.0.1',
-  }
+    class { 'memcached':}
 
   # specify swift proxy and all of its middlewares
   class { 'swift::proxy':
@@ -193,9 +194,16 @@ node /fuel-08/ inherits swift_base {
   class { [
     'swift::proxy::catch_errors',
     'swift::proxy::healthcheck',
-    'swift::proxy::cache',
     'swift::proxy::swift3',
   ]: }
+
+   $cache_addresses =  inline_template("<%= @swift_proxies.keys.uniq.sort.collect {|ip| ip + ':11211' }.join ',' %>")
+   class { 'swift::proxy::cache':
+        memcache_servers => split($cache_addresses,',')
+        }
+
+
+
   class { 'swift::proxy::ratelimit':
     clock_accuracy         => 1000,
     max_sleep_time_seconds => 60,
@@ -238,11 +246,17 @@ node /fuel-08/ inherits swift_base {
   class { 'swift::ringserver':
     local_net_ip => $swift_local_net_ip,
   }
-
-  # exports rsync gets that can be used to sync the ring files
-  @@swift::ringsync { ['account', 'object', 'container']:
-   ring_server => $swift_local_net_ip
+  if $::hostname == $swift_master {
+    # exports rsync gets that can be used to sync the ring files
+    @@swift::ringsync { ['account', 'object', 'container']:
+    ring_server => $swift_local_net_ip
+    }
  }
+ else {
+   Swift::Ringsync<<||>>
+   Swift::Ringsync<||> ~> Service["swift-proxy"]
+ }
+
 
   # deploy a script that can be used for testing
   file { '/tmp/swift_keystone_test.rb':

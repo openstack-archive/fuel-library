@@ -83,7 +83,7 @@ class openstack::controller_ha (
    $auto_assign_floating_ip, $mysql_root_password, $admin_email, $admin_password,
    $keystone_db_password, $keystone_admin_token, $glance_db_password, $glance_user_password,
    $nova_db_password, $nova_user_password, $rabbit_password, $rabbit_user,
-   $rabbit_nodes, $memcached_servers, $export_resources, $glance_backend
+   $rabbit_nodes, $memcached_servers, $export_resources, $glance_backend='file', $swift_proxies=undef
  ) {
 
     $which = $::hostname ? { $master_hostname => 0, default => 1 }
@@ -112,6 +112,11 @@ class openstack::controller_ha (
     haproxy_service { 'glance-api': order => 80, port => 9292, virtual_ips => [$public_virtual_ip, $internal_virtual_ip]  }
     haproxy_service { 'glance-reg': order => 90, port => 9191, virtual_ips => [$internal_virtual_ip]  }
     haproxy_service { 'mysqld':     order => 95, port => 3306, virtual_ips => [$internal_virtual_ip]  }
+          if $glance_backend == 'swift'
+        {
+                        haproxy_service { 'swift':    order => 96, port => 8080, virtual_ips => [$internal_virtual_ip], balancers => $swift_proxies }
+        }
+
 
     exec { 'up-public-interface':
       command => "ifconfig ${public_interface} up",
