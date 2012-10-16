@@ -55,9 +55,6 @@ clearpart --all --initlabel
 
 # AUTOMATICALLY CREATE / /boot AND swap PARTITIONS
 autopart
-part swap --recommended --ondrive=sda
-part /boot --fstype=ext2 --size=1024 --ondrive=sda
-part / --size=4096 --fstype ext4 --grow --ondrive=sda
 
 # COBBLER EMBEDDED SNIPPET: 'network_config'
 # CONFIGURES NETWORK INTERFACES DEPENDING ON 
