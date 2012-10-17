@@ -80,8 +80,9 @@ class compact_controller {
       }
       class { 'swift::keystone::auth':
              password => $swift_user_password,
-             address  => $swift_proxy_address,
-
+             public_address  => $public_virtual_ip,
+             internal_address  => $internal_virtual_ip,
+             admin_address  => $internal_virtual_ip,
       }
 
 }
@@ -197,8 +198,8 @@ class role_swift_proxy {
       'proxy-server'
     ],
     account_autocreate => true,
-    # TODO where is the  ringbuilder_multi class?
-#    require            => Class['swift::ringbuilder_multi'],
+    # TODO where is the  ringbuilder class?
+#    require            => Class['swift::ringbuilder'],
   }
 
   # configure all of the middlewares
@@ -237,81 +238,34 @@ class role_swift_proxy {
   # collect all of the resources that are needed
   # to balance the ring
 
-  Package["swift"] -> Class["swift::proxy"] 
 
   if $::hostname==$master_hostname {
      Ring_object_device <<| |>>
      Ring_container_device <<| |>>
      Ring_account_device <<| |>>
     
-     Package["swift"]->Swift::Ringbuilder_multi::Rebalance<| |>
-
-     Package["swift"]->Swift::Ringbuilder_multi::Create<| |>
-
-     swift::ringbuilder_multi::create{ "object-${::hostname}":
-       part_power     => $part_power,
-       replicas       => $replicas,
-       ring_type => "object",
-       min_part_hours => $min_part_hours,
-     }
-     swift::ringbuilder_multi::create{ "container-${::hostname}":
-       part_power     => $part_power,
-       ring_type => "container",
-       replicas       => $replicas,
-       min_part_hours => $min_part_hours,
-     }
-     swift::ringbuilder_multi::create{ "account-${::hostname}":
-       part_power     => $part_power,
-       ring_type => "account",
-       replicas       => $replicas,
-       min_part_hours => $min_part_hours,
-     }
-     Ring_object_device <| |> 
-     {
-       notify +> Swift::Ringbuilder_multi::Rebalance["object-${::hostname}"]
-     }
-     Ring_container_device <| |> 
-     {
-        notify +> Swift::Ringbuilder_multi::Rebalance["container-${::hostname}"]
-     }
-     Ring_account_device <| |> 
-     {
-        notify +> Swift::Ringbuilder_multi::Rebalance["account-${::hostname}"]
-     }
-     Swift::Ringbuilder_multi::Create["object-${::hostname}"] -> Ring_object_device <| |>
-
-     Swift::Ringbuilder_multi::Create["container-${::hostname}"] -> Ring_container_device <| |>
-     
-     Swift::Ringbuilder_multi::Create["account-${::hostname}"] -> Ring_account_device <| |>
-
-     swift::ringbuilder_multi::rebalance{ "object-${::hostname}": ring_type => "object" }
-     swift::ringbuilder_multi::rebalance{ "container-${::hostname}": ring_type => "container" }
-     swift::ringbuilder_multi::rebalance{ "account-${::hostname}": ring_type => "account" }
-
-
   # create the ring
-#  class { 'swift::ringbuilder_multi':
-#    # the part power should be determined by assuming 100 partitions per drive
-#    part_power     => '18',
-#    replicas       => '3',
-#    min_part_hours => 1,
-#    require        => Class['swift'],
-#  }
-
+  class { 'swift::ringbuilder':
+    # the part power should be determined by assuming 100 partitions per drive
+    part_power     => '18',
+    replicas       => '3',
+    min_part_hours => 1,
+    require        => Class['swift'],
+  }
+  Class['swift::ringbuilder'] -> Class['swift::proxy']
 
   # sets up an rsync db that can be used to sync the ring DB
-  }
+  
   class { 'swift::ringserver':
     local_net_ip => $swift_local_net_ip,
   }
-  if $::hostname==$master_hostname
-  {
     # exports rsync gets that can be used to sync the ring files
     @@swift::ringsync { ['account', 'object', 'container']:
       ring_server => $swift_local_net_ip
     }
   }
   else {
+    Package["swift"] -> Class["swift::proxy"] 
     Swift::Ringsync<<||>>
     Swift::Ringsync<| |> ~> Service["swift-proxy"]
   }

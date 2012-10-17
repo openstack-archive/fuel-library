@@ -79,11 +79,14 @@ node /fuel-0[12]/ inherits swift_base {
       glance_backend          => $glance_backend,
       swift_proxies           => $swift_proxies
       }
+      
       class { 'swift::keystone::auth':
              password => $swift_user_password,
-             address  => $swift_proxy_address,
+             public_address  => $public_virtual_ip,
+             internal_address  => $internal_virtual_ip,
+             admin_address  => $internal_virtual_ip,
       }
-      
+
 }
 
 node /fuel-0[34]/ {
@@ -164,7 +167,7 @@ class role_swift_storage {
 
 }
 
-node /fuel-08/ inherits swift_base {
+node /fuel-0[89]/ inherits swift_base {
 
   # curl is only required so that I can run tests
   package { 'curl': ensure => present }
@@ -227,6 +230,8 @@ node /fuel-08/ inherits swift_base {
     auth_host         => $controller_node_public,
   }
 
+  if $::hostname == $swift_master {
+   Class['swift::ringbuilder'] -> Class['swift::proxy']
   # collect all of the resources that are needed
   # to balance the ring
   Ring_object_device <<| |>>
@@ -241,12 +246,10 @@ node /fuel-08/ inherits swift_base {
     min_part_hours => 1,
     require        => Class['swift'],
   }
-   Class['swift::ringbuilder'] -> Class['swift::ringserver']
   # sets up an rsync db that can be used to sync the ring DB
   class { 'swift::ringserver':
     local_net_ip => $swift_local_net_ip,
   }
-  if $::hostname == $swift_master {
     # exports rsync gets that can be used to sync the ring files
     @@swift::ringsync { ['account', 'object', 'container']:
     ring_server => $swift_local_net_ip
