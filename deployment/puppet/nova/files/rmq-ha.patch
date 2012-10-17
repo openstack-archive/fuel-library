@@ -22,7 +22,7 @@ diff -r -N -u3 a/rpc/impl_kombu.py b/rpc/impl_kombu.py
          self.queue = kombu.entity.Queue(**self.kwargs)
          self.queue.declare()
  
-@@ -348,27 +349,28 @@
+@@ -348,27 +349,30 @@
          # Keys to translate from server_params to kombu params
          server_params_to_kombu_params = {'username': 'userid'}
  
@@ -58,6 +58,8 @@ diff -r -N -u3 a/rpc/impl_kombu.py b/rpc/impl_kombu.py
 +            params.setdefault('virtual_host', FLAGS.rabbit_virtual_host)
 +            if FLAGS.fake_rabbit:
 +                params['transport'] = 'memory'
++            else:
++                params['transport'] = 'pyamqp'
 +            if FLAGS.rabbit_use_ssl:
 +                params['ssl'] = self._fetch_ssl_params()
 +
@@ -88,13 +90,14 @@ diff -r -N -u3 a/rpc/impl_kombu.py b/rpc/impl_kombu.py
              try:
                  self.connection.close()
              except self.connection_errors:
-@@ -414,7 +416,7 @@
+@@ -414,7 +416,8 @@
              # it shouldn't be doing any network operations, yet.
              self.connection = None
          self.connection = kombu.connection.BrokerConnection(
 -                **self.params)
 +                **params)
          self.connection_errors = self.connection.connection_errors
++        self.channel_errors = self.connection.channel_errors
          if self.memory_transport:
              # Kludge to speed up tests.
 @@ -428,7 +430,7 @@
@@ -117,7 +120,7 @@ diff -r -N -u3 a/rpc/impl_kombu.py b/rpc/impl_kombu.py
 +                self._connect(params)
                  return
 -            except (self.connection_errors, IOError), e:
-+            except (IOError, self.connection_errors) as e:
++            except (self.connection_errors, self.channel_errors, IOError), e:
                  pass
              except Exception, e:
                  # NOTE(comstud): Unfortunately it's possible for amqplib
@@ -130,4 +133,23 @@ diff -r -N -u3 a/rpc/impl_kombu.py b/rpc/impl_kombu.py
  
              if self.max_retries and attempt == self.max_retries:
                  LOG.exception(_('Unable to connect to AMQP server on '
- 
+--- a/rpc/impl_kombu.py  2012-10-17 08:04:08.671647729 +0400
++++ b/rpc/impl_kombu.py  2012-10-17 08:04:29.060656476 +0400
+@@ -494,7 +494,7 @@
+         while True:
+             try:
+                 return method(*args, **kwargs)
+-            except (self.connection_errors, socket.timeout, IOError), e:
++            except (self.connection_errors, self.channel_errors, socket.timeout, IOError), e:
+                 pass
+             except Exception, e:
+                 # NOTE(comstud): Unfortunately it's possible for amqplib
+--- a/utils.py  2012-10-17 03:56:53.804857392 +0400
++++ b/utils.py  2012-10-17 03:56:33.089851994 +0400
+@@ -837,7 +837,7 @@
+     pass
+ else:
+     anyjson._modules.append(("nova.utils", "dumps", TypeError,
+-                                           "loads", ValueError))
++                                           "loads", ValueError, None))
+     anyjson.force_implementation("nova.utils")
