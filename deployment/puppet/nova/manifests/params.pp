@@ -17,7 +17,7 @@ class nova::params {
       $objectstore_package_name = false
       $scheduler_package_name   = false
       $tgt_package_name         = 'scsi-target-utils'
-      $volume_package_name      = false
+      $volume_package_name      = 'openstack-nova-volume'
       $vncproxy_package_name    = 'openstack-nova-novncproxy'
       # service names
       $old_style_nova_compute_conf = false
