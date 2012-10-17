@@ -22,7 +22,7 @@ class OpenStackSwiftCompactCase(OpenStackSwiftCompactTestCase):
             remote = ssh(node.ip_address, username='root', password='r00tme')
             results.append(execute(remote.sudo.ssh, 'puppet agent --test'))
         self.validate(
-            [self.nodes.computes],
+            self.nodes.computes,
             'puppet agent --test')
         for node in self.environment.nodes:
             node.save_snapshot('openstack')
