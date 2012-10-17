@@ -114,7 +114,7 @@ class openstack::controller_ha (
     haproxy_service { 'mysqld':     order => 95, port => 3306, virtual_ips => [$internal_virtual_ip]  }
           if $glance_backend == 'swift'
         {
-                        haproxy_service { 'swift':    order => 96, port => 8080, virtual_ips => [$internal_virtual_ip], balancers => $swift_proxies }
+                        haproxy_service { 'swift':    order => 96, port => 8080, virtual_ips => [$public_virtual_ip,$internal_virtual_ip], balancers => $swift_proxies }
         }
 
 
