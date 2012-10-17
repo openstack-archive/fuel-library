@@ -69,9 +69,9 @@ class BaseTestCase(unittest.TestCase):
         warnings = []
         for line in out:
             logging.info(line)
-            if line.find('err: ') != -1:
+            if line.find('err: ') == 0:
                 errors.append(line)
-            if line.find('warning: ') != -1:
+            if line.find('warning: ') == 0:
                 warnings.append(line)
         return errors, warnings
 
