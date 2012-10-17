@@ -48,7 +48,7 @@ Puppet::Type.type(:firewall).provide(:lokkit) do
     def exists?
         return false unless FileTest.exists?(iptables_config)
         iptables_rules = File.new(iptables_config)
-        denied = iptables_rules.grep(/^-A INPUT.*--dport #{port}.*-j ACCEPT$/).empty?
+        denied = iptables_rules.grep(/^-A INPUT.*--dport #{port}\b.*-j ACCEPT$/).empty?
         #notice("*** denied: #{denied}")
         #denied ? :deny : :allow
         !denied
