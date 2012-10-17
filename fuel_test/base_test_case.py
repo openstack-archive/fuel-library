@@ -24,6 +24,7 @@ class BaseTestCase(unittest.TestCase):
             username='root',
             password='r00tme')
         self.upload_recipes()
+        execute(self.master_remote,"rm -rf /etc/puppet/modules/quantum")
         self.restart_puppet_muster()
 
     def upload_recipes(self):
