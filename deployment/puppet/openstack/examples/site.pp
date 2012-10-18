@@ -26,6 +26,7 @@ $nova_user_password      = 'nova'
 $rabbit_password         = 'nova'
 $rabbit_user             = 'nova'
 $glance_backend         ='file'
+$manage_volumes         = false
 $openstack_version = {
   'keystone'   => '2012.1.1-1.el6',
   'glance'     => '2012.1.1-1.el6',
@@ -39,6 +40,10 @@ stage {'openstack-custom-repo': before => Stage['main']}
 include openstack::mirantis_repos
 
 node /fuel-0[12]/ {
+  if $::hostname == $master_hostname
+  {
+    $manage_volumes = true
+  }
     class { 'openstack::controller_ha': 
       controller_public_addresses => $controller_public_addresses,
       public_interface        => $public_interface,
@@ -68,7 +73,8 @@ node /fuel-0[12]/ {
       rabbit_nodes            => $controller_hostnames,
       memcached_servers       => $controller_hostnames,
       export_resources        => false,
-      glance_backend          => $glance_backend
+      glance_backend          => $glance_backend,
+      manage_volumes          => $manage_volumes
     }
 }
 

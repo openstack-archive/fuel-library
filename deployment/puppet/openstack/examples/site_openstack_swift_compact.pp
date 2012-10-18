@@ -33,6 +33,7 @@ $swift_local_net_ip   = $ipaddress_eth0
 $swift_proxy_address = '10.0.113.253'
 $controller_node_public = $internal_virtual_ip 
 $glance_backend         = 'swift'
+$manage_volumes         = false
 $openstack_version = {
   'keystone'   => '2012.1.1-1.el6',
   'glance'     => '2012.1.1-1.el6',
@@ -46,6 +47,9 @@ stage {'openstack-custom-repo': before => Stage['main']}
 include openstack::mirantis_repos
 
 class compact_controller {
+  if $::hostname == $master_hostname {
+    $manage_volumes = true
+  }
   class { 'openstack::controller_ha': 
       controller_public_addresses => $controller_public_addresses,
       public_interface        => $public_interface,
@@ -76,7 +80,8 @@ class compact_controller {
       memcached_servers       => $controller_hostnames,
       export_resources        => false,
       glance_backend          => $glance_backend,
-      swift_proxies           => $swift_proxies
+      swift_proxies           => $swift_proxies,
+      manage_volumes          => $manage_volumes 
       }
       class { 'swift::keystone::auth':
              password => $swift_user_password,

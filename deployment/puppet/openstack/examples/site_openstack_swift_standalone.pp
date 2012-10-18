@@ -34,6 +34,7 @@ $swift_local_net_ip   = $ipaddress_eth0
 $swift_proxy_address    = '192.168.1.16'
 $controller_node_public = $internal_virtual_ip 
 $glance_backend         = 'swift'
+$manage_volumes         = false
 $openstack_version = {
   'keystone'   => '2012.1.1-1.el6',
   'glance'     => '2012.1.1-1.el6',
@@ -47,6 +48,10 @@ stage {'openstack-custom-repo': before => Stage['main']}
 include openstack::mirantis_repos
 
 node /fuel-0[12]/ inherits swift_base {
+    if $::hostname == $master_hostname
+    {
+      $manage_volumes = true
+    }
     class { 'openstack::controller_ha': 
       controller_public_addresses => $controller_public_addresses,
       public_interface        => $public_interface,
@@ -77,7 +82,8 @@ node /fuel-0[12]/ inherits swift_base {
       memcached_servers       => $controller_hostnames,
       export_resources        => false,
       glance_backend          => $glance_backend,
-      swift_proxies           => $swift_proxies
+      swift_proxies           => $swift_proxies,
+      manage_volumes          => $manage_volumes,
       }
       
       class { 'swift::keystone::auth':
