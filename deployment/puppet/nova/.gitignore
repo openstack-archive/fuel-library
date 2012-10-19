@@ -1,2 +1,7 @@
 *.swp
+pkg/
+.DS_Store
+metadata.json
+coverage/
+.project
 spec/fixtures/modules/*
