@@ -27,12 +27,25 @@ $rabbit_password         = 'nova'
 $rabbit_user             = 'nova'
 $glance_backend         ='file'
 $manage_volumes         = false
-$openstack_version = {
-  'keystone'   => '2012.1.1-1.el6',
-  'glance'     => '2012.1.1-1.el6',
-  'horizon'    => '2012.1.1-1.el6',
-  'nova'       => '2012.1.1-15.el6',
-  'novncproxy' => '0.3-11.el6',
+case $::osfamily {
+  'RedHat': {
+    $openstack_version = {
+      'keystone'   => '2012.1.1-1.el6',
+      'glance'     => '2012.1.1-1.el6',
+      'horizon'    => '2012.1.1-1.el6',
+      'nova'       => '2012.1.1-15.el6',
+      'novncproxy' => '0.3-11.el6',
+    }
+  }
+  'Debian': {
+    $openstack_version = {
+      'keystone'   => '7',
+      'glance'     => '9',
+      'horizon'    => '190',
+      'nova'       => '19',
+      'novncproxy' => '4',
+    }
+  }
 }
 
 Exec { logoutput => true }
