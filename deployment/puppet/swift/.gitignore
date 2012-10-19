@@ -6,3 +6,8 @@ spec/fixtures/modules/stdlib
 spec/fixtures/modules/xinetd
 spec/fixtures/modules/*
 *.swp
+pkg/
+.DS_Store
+metadata.json
+coverage/
+.project
