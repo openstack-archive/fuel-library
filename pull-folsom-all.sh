@@ -31,6 +31,6 @@ then
     exit 1
 fi
 
-git pull 
+git pull origin folsom 
 git submodule update --init --merge
 
