@@ -1,12 +1,12 @@
 #!/bin/bash
 
-git checkout master
+git checkout folsom
 
 set -e
 
 # If we're not on master anywhere, pushing master will do nothing
-echo Checking if all submodules are on branch master - otherwise git checkout master manually
-if ! git submodule foreach -q "git branch | grep -q '* master'"
+echo Checking if all submodules are on branch folsom - otherwise git checkout folsom manually
+if ! git submodule foreach -q "git branch | grep -q '* folsom'"
 then
     echo The submodule above is not on branch master. ./push-all.sh only works with branch master.
     echo If you\'re in a \"topic branch\", just do \"git checkout master\" there.
@@ -27,10 +27,10 @@ then
 fi
 
 echo Checking if push will not conflict in submodules
-if ! git submodule foreach -q 'echo $path; (git rev-parse origin/master | grep -q $(git rev-parse master)) || git push -q --dry-run origin master'
+if ! git submodule foreach -q 'echo $path; (git rev-parse origin/folsom | grep -q $(git rev-parse folsom)) || git push -q --dry-run origin folsom'
 then
     echo The submodule above will conflict during push.
-    echo Please run ./pull-all.sh, resolve the conflicts and then rerun ./push-all.sh.
+    echo Please run ./pull-folsom-all.sh, resolve the conflicts and then rerun ./push-folsom-all.sh.
     exit 1
 fi
 
@@ -41,11 +41,11 @@ do
     subrepos="$subrepo $subrepos"
     changed=1
     pushd $subrepo
-        git push origin master
+        git push origin folsom 
     popd
 done
 if [ "$changed" == "1" ]
 then
     git commit -m "Updated submodules: $subrepos" $subrepos
 fi
-git push origin master
+git push origin folsom 
