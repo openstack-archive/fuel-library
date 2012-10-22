@@ -1,3 +1,4 @@
+.settings
 *.swp
 pkg/
 .DS_Store
