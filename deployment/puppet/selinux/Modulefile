@@ -1,5 +1,5 @@
 name 'Mirantis Inc-selinux'
-version ''
+version '0.0.1'
 
 author 'Mirantis Inc'
 license ''
