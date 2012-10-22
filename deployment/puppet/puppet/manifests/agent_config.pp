@@ -1,4 +1,4 @@
-class puppetmaster::client_config(
+class puppet::agent_config(
   $pluginsync     = true,
   $puppet_confdir = '/etc/puppet',
   $puppet_master_hostname,

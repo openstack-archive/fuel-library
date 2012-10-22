@@ -1,6 +1,6 @@
-# Defaults for puppetmaster - sourced by /etc/init.d/puppetmaster
+# Defaults for puppet - sourced by /etc/init.d/puppet
 
-# Start puppetmaster on boot? If you are using passenger, you should
+# Start puppet on boot? If you are using passenger, you should
 # have this set to "no"
 START=yes
 
@@ -19,13 +19,13 @@ DAEMON_OPTS=""
 #          passenger: no need to set this, be sure to set START=no above
 SERVERTYPE=mongrel
 
-# How many puppetmaster instances to start? Its pointless to set this
+# How many puppet instances to start? Its pointless to set this
 # higher than 1 if you are not using mongrel. 
 PUPPETMASTERS=<%= puppet_master_ports.split.count %>
 
-# What port should the puppetmaster listen on (default: 8140). If
+# What port should the puppet listen on (default: 8140). If
 # PUPPETMASTERS is set to a number greater than 1, then the port for
-# the first puppetmaster will be set to the port listed below, and
+# the first puppet will be set to the port listed below, and
 # further instances will be incremented by one 
 #
 # NOTE: if you are using mongrel, then you will need to have a

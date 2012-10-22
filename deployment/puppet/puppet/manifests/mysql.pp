@@ -1,4 +1,4 @@
-class puppetmaster::mysql(
+class puppet::mysql(
   $puppet_stored_dbname,
   $puppet_stored_dbuser,
   $puppet_stored_dbpassword,

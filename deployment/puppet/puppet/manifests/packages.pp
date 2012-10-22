@@ -1,7 +1,7 @@
-class puppetmaster::packages {
+class puppet::packages {
   
   
-  package { $puppetmaster::params::mysql_packages : ensure=> "installed"} 
+  package { $puppet::params::mysql_packages : ensure=> "installed"}
 
   # http://projects.puppetlabs.com/issues/9290
   package { "rails":

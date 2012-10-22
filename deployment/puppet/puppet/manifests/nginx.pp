@@ -1,4 +1,4 @@
-class puppetmaster::nginx(
+class puppet::nginx(
   $puppet_master_hostname,
   $cacert = $::cacert,
   $cakey = $::cakey,
@@ -9,7 +9,7 @@ class puppetmaster::nginx(
   package { "nginx": }
 
   file { "/etc/nginx/conf.d/puppet.conf":
-    content => template("puppetmaster/nginx_puppet.erb"),
+    content => template("puppet/nginx_puppet.erb"),
     owner => 'root',
     group => 'root',
     mode => 0644,

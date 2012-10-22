@@ -1,35 +1,35 @@
-class puppetmaster::master (
-  $puppet_package_version = $puppetmaster::params::puppet_master_version,
+class puppet::master (
+  $puppet_package_version = $puppet::params::puppet_master_version,
   $puppet_master_ports = "18140 18141 18142 18143",
   $plugin_sync = true
-  ) inherits puppetmaster::params {
+  ) inherits puppet::params {
 
-  package { $puppetmaster::params::puppet_master_packages :
+  package { $puppet::params::puppet_master_packages :
     ensure => $puppet_package_version,
   }
    
-  package {  $puppetmaster::params::mongrel_packages: ensure=>"installed"}
+  package {  $puppet::params::mongrel_packages: ensure=>"installed"}
   
-  class {"puppetmaster::master_config":
-    require => Package[$puppetmaster::params::puppet_master_packages],
-    notify => Service["puppetmaster"],
+  class {"puppet::master_config":
+    require => Package[$puppet::params::puppet_master_packages],
+    notify => Service["puppet"],
   }
   
-  file { $puppetmaster::params::daemon_config_file:
-    content => template($puppetmaster::params::daemon_config_template),
+  file { $puppet::params::daemon_config_file:
+    content => template($puppet::params::daemon_config_template),
     owner => 'root',
     group => 'root',
     mode => 0644,
-    require => Package[$puppetmaster::params::puppet_master_packages],
-    notify => Service["puppetmaster"],
+    require => Package[$puppet::params::puppet_master_packages],
+    notify => Service["puppet"],
   }
 
-  service { "puppetmaster":
+  service { "puppet":
     enable => true,
     ensure => "running",
     require => [
-                Package[$puppetmaster::params::puppet_master_packages],
-                Package[ $puppetmaster::params::mongrel_packages],
+                Package[$puppet::params::puppet_master_packages],
+                Package[ $puppet::params::mongrel_packages],
                 ],
   }
 

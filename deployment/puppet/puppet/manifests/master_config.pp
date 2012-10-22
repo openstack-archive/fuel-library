@@ -1,4 +1,4 @@
-class puppetmaster::master_config(
+class puppet::master_config(
   $pluginsync     = true,
   $puppet_confdir = '/etc/puppet',
   $autosign = true,
@@ -18,6 +18,11 @@ class puppetmaster::master_config(
   ini_setting {'autosign':
     setting => 'autosign',
     value   => $autosign,
+  }
+  
+  ini_setting {'certname':
+    setting => 'certname',
+    value   => $::hostname,
   }
   
   

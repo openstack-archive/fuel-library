@@ -1,8 +1,8 @@
 node default {
   
-  class { "puppetmaster" :  }
+  class { "puppet" :  }
   
-  class { "puppetmaster::storedb" :
+  class { "puppet::storedb" :
     puppet_stored_dbname => "puppet",
     puppet_stored_dbuser => "puppet",
     puppet_stored_dbpassword => "Johmek0mi9WeGhieshiFiB9rizai0M",
@@ -10,13 +10,13 @@ node default {
     mysql_root_password => "eo6raesh7aThe5ahbahgohphupahk5",
   }
   
-  class { "puppetmaster::nginx":
+  class { "puppet::nginx":
     puppet_master_hostname => "product-centos.mirantis.com",
     cacert => "/var/lib/puppet/ssl/certs/hostname.pem",
     cakey => "/var/lib/puppet/ssl/private_keys/hostname.pem",
   }
   
-  class { "puppetmaster::client_config":
+  class { "puppet::agent_config":
     puppet_master_hostname => "product-centos.mirantis.com"
   }
 }

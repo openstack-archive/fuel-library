@@ -1,21 +1,21 @@
-class puppetmaster (
+class puppet (
   ) {
-  anchor { "puppetmaster-begin": }
-  anchor { "puppetmaster-end": }
+  anchor { "puppet-begin": }
+  anchor { "puppet-end": }
 
-  Anchor<| title == "puppetmaster-begin" |> ->
+  Anchor<| title == "puppet-begin" |> ->
   Class["selinux"] ->
-  Class["puppetmaster::iptables"] ->
-  Class["puppetmaster::master"] ->
-  Anchor<| title == "puppetmaster-end" |>
+  Class["puppet::iptables"] ->
+  Class["puppet::master"] ->
+  Anchor<| title == "puppet-end" |>
 
   
   class { 'selinux': mode => 'disabled',}
 
-  class { "puppetmaster::iptables": }
+  class { "puppet::iptables": }
 
     
-  class { "puppetmaster::master":
+  class { "puppet::master":
       puppet_master_ports => "18140 18141 18142 18143",
   }
 
