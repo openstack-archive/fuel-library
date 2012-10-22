@@ -36,23 +36,89 @@ class horizon(
 
   include horizon::params
 
+  #if $cache_server_ip =~ /^127\.0\.0\.1/ {
+  Class['memcached'] -> Class['horizon']
+  #}
+
+  package { ["$::horizon::params::http_service", "$::horizon::params::http_modwsgi"]:
+    ensure => present,
+  }
+
+  package { "$::horizon::params::package_name":
+    ensure => $package_ensure,
+    require => Package[$::horizon::params::http_service],
+  }
+
+  File {
+    require => Package["$::horizon::params::package_name"],
+    owner   => 'apache',
+    group   => 'apache',
+  }
+
+  file { $::horizon::params::local_settings_path:
+    content => template('horizon/local_settings.py.erb'),
+    mode    => '0644',
+  }
+
+  file { $::horizon::params::logdir:
+    ensure  => directory,
+    mode    => '0751',
+    before  => Service["httpd"],
+  }
+
+  case $::osfamily {
+    'RedHat': { 
+      file { '/etc/httpd/conf.d/wsgi.conf':
+        mode   => 644,
+        owner  => root,
+        group  => root,
+        content => "LoadModule wsgi_module modules/mod_wsgi.so\n",
+        require => Package["$::horizon::params::http_service", "$::horizon::params::http_modwsgi"],
+        before  => Package["$::horizon::params::package_name"],
+      }
+    }
+
+    'Debian': {
+      exec { 'a2enmod wsgi':
+        command => 'a2enmod wsgi',
+        path => ['/usr/bin','/usr/sbin','/bin/','/sbin'],
+        require => Package["$::horizon::params::http_service", "$::horizon::params::http_modwsgi"],
+        before  => Package["$::horizon::params::package_name"],
+      }
+    }
+  }
+
+  # ensure there is a HTTP redirect from / to /dashboard
+  file_line { 'horizon_redirect_rule':
+    path => $::horizon::params::config_file,
+    line => 'RedirectMatch permanent ^/$ /dashboard/',
+    require => Package["$::horizon::params::package_name"],
+    notify => Service["httpd"]
+  }
+
+  # ensure https only listens on the management address, not on all interfaces
+  file_line { 'httpd_listen_on_internal_network_only':
+    path => $::horizon::params::http_config_file,
+    match => '^Listen (.*)$',
+    line => "Listen ${bind_address}:80",
+    require => Package["$::horizon::params::package_name"],
+    notify => Service["httpd"]
+  }
+
+  service { 'httpd':
+    name      => $::horizon::params::http_service,
+    ensure    => 'running',
+    enable    => true,
+    require   => Package["$::horizon::params::http_service", "$::horizon::params::http_modwsgi"],
+    subscribe => File["$::horizon::params::local_settings_path", "$::horizon::params::logdir"]
+    }
   # I am totally confused by this, I do not think it should be installed...
-  package { 'node-less': }
+#  package { 'node-less': }
 
   if $cache_server_ip =~ /^127\.0\.0\.1/ {
     Class['memcached'] -> Class['horizon']
   }
 
-  package { $::horizon::params::package_name:
-    ensure  => present,
-    require => Package[$::horizon::params::http_service],
-  }
 
-  file { $::horizon::params::config_file:
-    content => template('horizon/local_settings.py.erb'),
-    mode    => '0644',
-    notify  => Service[$::horizon::params::http_service],
-    require => Package[$::horizon::params::package_name],
-  }
 
 }
