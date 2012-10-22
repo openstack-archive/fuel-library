@@ -26,6 +26,7 @@ foo= foovalue2
 baz=bazvalue
     #another comment
  ; yet another comment
+ zot = multi word value
       EOS
       template.split("\n")
     }
@@ -45,6 +46,7 @@ baz=bazvalue
       subject.get_value("section1", "bar").should == "barvalue"
       subject.get_value("section2", "foo").should == "foovalue2"
       subject.get_value("section2", "baz").should == "bazvalue"
+      subject.get_value("section2", "zot").should == "multi word value"
     end
 
   end

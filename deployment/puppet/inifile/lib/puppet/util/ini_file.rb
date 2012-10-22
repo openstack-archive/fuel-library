@@ -6,7 +6,7 @@ module Util
   class IniFile
 
     SECTION_REGEX = /^\s*\[([\w\d\.\\\/\-\:]+)\]\s*$/
-    SETTING_REGEX = /^\s*([\w\d\.\\\/\-]+)\s*=\s*([\S]+)\s*$/
+    SETTING_REGEX = /^\s*([\w\d\.\\\/\-]+)\s*=\s*([\S\s]*\S)\s*$/
 
     def initialize(path, key_val_separator = ' = ')
       @path = path
@@ -42,10 +42,30 @@ module Util
       end
     end
 
+    def remove_setting(section_name, setting)
+      section = @sections_hash[section_name]
+      if (section.has_existing_setting?(setting))
+        # If the setting is found, we have some work to do.
+        # First, we remove the line from our array of lines:
+        remove_line(section, setting)
+
+        # Then, we need to tell the setting object to remove
+        # the setting from its state:
+        section.remove_existing_setting(setting)
+
+        # Finally, we need to update all of the start/end line
+        # numbers for all of the sections *after* the one that
+        # was modified.
+        section_index = @section_names.index(section_name)
+        decrement_section_line_numbers(section_index + 1)
+      end
+    end
+
     def save
       File.open(@path, 'w') do |fh|
 
         @section_names.each do |name|
+
           section = @sections_hash[name]
 
           if section.start_line.nil?
@@ -113,6 +133,16 @@ module Util
       end
     end
 
+    def remove_line(section, setting)
+      (section.start_line..section.end_line).each do |line_num|
+        if (match = SETTING_REGEX.match(lines[line_num]))
+          if (match[1] == setting)
+            lines.delete_at(line_num)
+          end
+        end
+      end
+    end
+
     def create_line_iter
       ExternalIterator.new(lines)
     end
@@ -130,6 +160,17 @@ module Util
         #  small-ish config files that can fit into memory without
         #  too much trouble.
         File.readlines(path)
+    end
+
+
+    # Utility method; given a section index (index into the @section_names
+    # array), decrement the start/end line numbers for that section and all
+    # all of the other sections that appear *after* the specified section.
+    def decrement_section_line_numbers(section_index)
+      @section_names[section_index..(@section_names.length - 1)].each do |name|
+        section = @sections_hash[name]
+        section.decrement_line_nums
+      end
     end
 
   end
