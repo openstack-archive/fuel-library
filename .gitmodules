@@ -91,3 +91,15 @@
 [submodule "deployment/puppet/mcollective"]
 	path = deployment/puppet/mcollective
 	url = gitolite@gitolite.mirantis.com:fuel/deployment/puppet/mcollective
+[submodule "deployment/puppet/puppet"]
+	path = deployment/puppet/puppet
+	url = gitolite@gitolite.mirantis.com:fuel/deployment/puppet/puppet.git
+[submodule "deployment/puppet/puppetdb"]
+	path = deployment/puppet/puppetdb
+	url = gitolite@gitolite.mirantis.com:fuel/deployment/puppet/puppetdb.git
+[submodule "deployment/puppet/postgresql"]
+	path = deployment/puppet/postgresql
+	url = gitolite@gitolite.mirantis.com:fuel/deployment/puppet/postgresql.git
+[submodule "deployment/puppet/inifile"]
+	path = deployment/puppet/inifile
+	url = gitolite@gitolite.mirantis.com:fuel/deployment/puppet/inifile.git
