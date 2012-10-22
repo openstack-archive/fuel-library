@@ -5,19 +5,19 @@ class nova::params {
   case $::osfamily {
     'RedHat': {
       # package names
-      $api_package_name         = false
-      $cert_package_name        = false
-      $common_package_name      = 'openstack-nova'
-      $compute_package_name     = false
-      $consoleauth_package_name = false
+      $api_package_name         = 'openstack-nova-api'
+      $cert_package_name        = 'openstack-nova-cert'
+      $common_package_name      = 'openstack-nova-common'
+      $compute_package_name     = 'openstack-nova-compute'
+      $consoleauth_package_name = 'openstack-nova-console'
       $doc_package_name         = 'openstack-nova-doc'
       $libvirt_package_name     = 'libvirt'
-      $network_package_name     = false
+      $network_package_name     = 'openstack-nova-network'
       $numpy_package_name       = 'numpy'
-      $objectstore_package_name = false
-      $scheduler_package_name   = false
+      $objectstore_package_name = 'openstack-nova-objectstore'
+      $scheduler_package_name   = 'openstack-nova-schedulre'
       $tgt_package_name         = 'scsi-target-utils'
-      $volume_package_name      = false
+      $volume_package_name      = 'openstack-nova-volume'
       $vncproxy_package_name    = 'openstack-nova-novncproxy'
       # service names
       $api_service_name         = 'openstack-nova-api'
@@ -29,7 +29,7 @@ class nova::params {
       $objectstore_service_name = 'openstack-nova-objectstore'
       $scheduler_service_name   = 'openstack-nova-scheduler'
       $tgt_service_name         = 'tgtd'
-      $vncproxy_service_name    = 'openstack-nova-novncproxy'
+      $vncproxy_service_name    = ['openstack-nova-novncproxy','novnc']
       $volume_service_name      = 'openstack-nova-volume'
       $special_service_provider = 'init'
       # redhat specific config defaults
