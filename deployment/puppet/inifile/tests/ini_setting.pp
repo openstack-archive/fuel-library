@@ -11,7 +11,7 @@ ini_setting { "sample setting2":
   section             => 'bar',
   setting             => 'barsetting',
   value               => 'BAR!',
-  key_value_separator => '=',
+  key_val_separator   => '=',
   ensure              => present,
   require             => Ini_setting["sample setting"],
 }
