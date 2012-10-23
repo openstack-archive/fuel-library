@@ -47,20 +47,28 @@ class cobbler::distro::centos63-x86_64(
     mode => 0555,
   }
 
-  # HERE IS ASSUMED THAT wget PACKAGE INSTALLED AS WE NEED IT
-  # TO DOWNLOAD CENTOS ISO IMAGE
-
-  exec { "wget ${http_iso}":
-    command => "wget -q -O- ${http_iso} > ${iso}",
-    onlyif => "test ! -s ${iso}"
+  if $http_iso =~ /^http:\/\/.+/ {
+    # HERE IS ASSUMED THAT wget PACKAGE INSTALLED AS WE NEED IT
+    # TO DOWNLOAD CENTOS ISO IMAGE
+    exec { "get ${http_iso}":
+      command => "wget -q -O- ${http_iso} > ${iso}",
+      onlyif => "test ! -s ${iso}",
+    }
   }
-
+  elsif $http_iso =~ /^file:\/\/.+/ {
+    $http_iso_path = split($http_iso, 'file://')
+    exec { "get ${http_iso}":
+      command => "cp ${http_iso_path[1]} ${iso}",
+      onlyif => "test ! -s ${iso}",
+    }
+  }
+  
   mount { $iso_mnt:
     device => $iso,
     options => "loop",
     fstype => "iso9660",
     ensure => mounted,
-    require => [Exec["wget ${http_iso}"], File[$iso_mnt]],
+    require => [Exec["get ${http_iso}"], File[$iso_mnt]],
   }
 
   file { $iso_link:
