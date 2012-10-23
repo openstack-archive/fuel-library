@@ -59,7 +59,7 @@ class nova::params {
       $cert_service_name        = 'nova-cert'
       $compute_service_name     = 'nova-compute'
       $consoleauth_service_name = 'nova-consoleauth'
-      $console_service_name	= 'openstack-nova-console'
+      $console_service_name	= 'nova-console'
       $libvirt_service_name     = 'libvirt-bin'
       $network_service_name     = 'nova-network'
       $vncproxy_service_name    = 'nova-novncproxy'
