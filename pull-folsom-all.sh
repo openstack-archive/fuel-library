@@ -1,13 +1,14 @@
 #!/bin/bash
 set -e
-git checkout master
+
+git checkout folsom
 
 # If we're not on master anywhere, pulling master doesn't make sense
-echo Checking if all submodules are on branch master
-if ! git submodule foreach -q "git branch | grep -q '* master'"
+echo Checking if all submodules are on branch folsom
+if ! git submodule foreach -q "git branch | grep -q '* folsom'"
 then
-    echo The submodule above is not on branch master.
-    echo You can try: \"git submodule foreach git checkout master\" and rerun ./pull-all.sh
+    echo The submodule above is not on branch folsom.
+    echo You can try: \"git submodule foreach git checkout folsom\" and rerun ./pull-all.sh
     exit 1
 fi
 
@@ -22,14 +23,14 @@ fi
 
 # If we have local unpushed changes, they'll be lost too.
 echo Checking if submodules don\'t have unpushed changes
-if ! git submodule foreach -q 'git rev-parse master | grep -q $(git merge-base master origin/master)'
+if ! git submodule foreach -q 'git rev-parse folsom | grep -q $(git merge-base folsom origin/folsom)'
 then
     echo The submodule above has unpushed changes which would be lost by pulling.
-    echo \(branch master is not an ancestor of origin/master\)
+    echo \(branch folsom is not an ancestor of origin/folsom\)
     echo Please do ./push-all.sh first, then rerun ./pull-all.sh
     exit 1
 fi
 
-git pull 
+git pull origin folsom 
 git submodule update --init --merge
 

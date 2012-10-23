@@ -100,9 +100,9 @@ if "%1" == "qthelp" (
 	echo.
 	echo.Build finished; now you can run "qcollectiongenerator" with the ^
 .qhcp project file in %BUILDDIR%/qthelp, like this:
-	echo.^> qcollectiongenerator %BUILDDIR%\qthelp\scaffold.qhcp
+	echo.^> qcollectiongenerator %BUILDDIR%\qthelp\fuel.qhcp
 	echo.To view the help file:
-	echo.^> assistant -collectionFile %BUILDDIR%\qthelp\scaffold.ghc
+	echo.^> assistant -collectionFile %BUILDDIR%\qthelp\fuel.ghc
 	goto end
 )
 
@@ -131,7 +131,7 @@ if "%1" == "latex" (
 )
 
 if "%1" == "pdf" (
-	%SPHINXBUILD% -bpdf %ALLSPHINXOPTS% %BUILDDIR%/pdf
+	%SPHINXBUILD% -b pdf %ALLSPHINXOPTS% %BUILDDIR%/pdf
 	if errorlevel 1 exit /b 1
 	echo.
 	echo.Build finished; the PDF files are in %BUILDDIR%/pdf.

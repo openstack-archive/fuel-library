@@ -1,1 +1,2 @@
-NODES = ['fuel-01', 'fuel-02', 'fuel-03', 'fuel-04','keystone']
+import os
+BASE_IMAGE =  os.environ.get('BASE_IMAGE', '/var/lib/libvirt/images/vgalkin_centos-base.qcow2')
