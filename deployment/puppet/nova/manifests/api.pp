@@ -59,7 +59,7 @@ class nova::api(
   # this is potentially constantly resyncing a central DB
   exec { "nova-db-sync":
     command     => "/usr/bin/nova-manage db sync",
-    refreshonly => "true",
+#    refreshonly => "true",
     subscribe   => Exec['post-nova_config'],
   }
 
