@@ -1,11 +1,10 @@
 class puppet::master (
-  $puppet_package_version = $puppet::params::puppet_master_version,
-  $puppet_master_ports = "18140 18141 18142 18143",
-  $plugin_sync = true
+    $puppet_master_ports = $puppet::params::puppet_master_ports,
+    $puppet_master_version = $puppet::params::puppet_master_version,
   ) inherits puppet::params {
 
   package { $puppet::params::puppet_master_packages :
-    ensure => $puppet_package_version,
+    ensure => $puppet_master_version,
   }
    
   package {  $puppet::params::mongrel_packages: ensure=>"installed"}
@@ -32,5 +31,4 @@ class puppet::master (
                 Package[ $puppet::params::mongrel_packages],
                 ],
   }
-
-  }
+}

@@ -2,6 +2,7 @@ class puppet::master_config(
   $pluginsync     = true,
   $puppet_confdir = '/etc/puppet',
   $autosign = true,
+  $dns_alt_names = $::hostname
 ) {
 
   Ini_setting {
@@ -20,12 +21,10 @@ class puppet::master_config(
     value   => $autosign,
   }
   
-  ini_setting {'certname':
-    setting => 'certname',
-    value   => $::hostname,
+  ini_setting {'dns_alt_names':
+    setting => 'dns_alt_names',
+    value   => $dns_alt_names,
   }
-  
-  
-
+ 
 }
   

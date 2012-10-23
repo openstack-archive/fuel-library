@@ -14,12 +14,11 @@ server {
     
     ssl                     on;
     ssl_session_timeout     20m;
-    ssl_certificate         <%= cacert %>;
-    ssl_certificate_key     <%= cakey %>;
+    ssl_certificate         <%= hostcert %>;
+    ssl_certificate_key     <%= hostprivkey %>;
     ssl_client_certificate  <%= localcacert %>;
     ssl_crl <%= cacrl %>;
 
-    ssl_ciphers             SSLv2:-LOW:-EXPORT:RC4+RSA;
     ssl_session_cache       shared:SSL:8m;
     
     ssl_verify_client       optional;

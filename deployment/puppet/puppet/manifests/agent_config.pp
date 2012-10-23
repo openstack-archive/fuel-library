@@ -1,7 +1,7 @@
 class puppet::agent_config(
   $pluginsync     = true,
   $puppet_confdir = '/etc/puppet',
-  $puppet_master_hostname,
+  $server,
 ) {
 
   Ini_setting {
@@ -17,7 +17,7 @@ class puppet::agent_config(
   
   ini_setting {'server':
     setting => 'server',
-    value   => $puppet_master_hostname,
+    value   => $server,
   }
 
 }

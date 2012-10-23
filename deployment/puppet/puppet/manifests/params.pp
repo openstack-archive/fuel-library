@@ -1,4 +1,7 @@
-class puppet::params {
+class puppet::params 
+ {
+  
+  $puppet_master_ports = "18140 18141 18142 18143"
   
 	case $::osfamily {
 	    'RedHat': {

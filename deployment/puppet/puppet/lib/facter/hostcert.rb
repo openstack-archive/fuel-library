@@ -1,4 +1,4 @@
-Facter.add("cacert") do
+Facter.add("hostcert") do
   setcode do
     require 'puppet'
     if Puppet::PUPPETVERSION.split(".").first == "2"
@@ -6,6 +6,6 @@ Facter.add("cacert") do
     else 
     	Puppet.settings.initialize_global_settings unless Puppet.settings.global_defaults_initialized?
     end
-    Puppet[:cacert]
+    Puppet[:hostcert]
   end
 end

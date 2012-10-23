@@ -5,7 +5,7 @@ class puppet::storedb (
   $puppet_stored_dbsocket,
   $mysql_root_password,
   
-) inherits puppet::params{
+) inherits puppet::params {
   
   class { "puppet::mysql":
     puppet_stored_dbname => $puppet_stored_dbname,

@@ -1,7 +1,7 @@
 class puppet::nginx(
   $puppet_master_hostname,
-  $cacert = $::cacert,
-  $cakey = $::cakey,
+  $hostcert = $::hostcert,
+  $hostprivkey = $::hostprivkey,
   $localcacert = $::localcacert,
   $cacrl = $::cacrl,
   ) {

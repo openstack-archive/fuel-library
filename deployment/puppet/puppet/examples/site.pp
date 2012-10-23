@@ -12,11 +12,11 @@ node default {
   
   class { "puppet::nginx":
     puppet_master_hostname => "product-centos.mirantis.com",
-    cacert => "/var/lib/puppet/ssl/certs/hostname.pem",
-    cakey => "/var/lib/puppet/ssl/private_keys/hostname.pem",
+    hostcert => "/var/lib/puppet/ssl/certs/hostname.pem",
+    hostprivkey => "/var/lib/puppet/ssl/private_keys/hostname.pem",
   }
   
   class { "puppet::agent_config":
-    puppet_master_hostname => "product-centos.mirantis.com"
+    server => "product-centos.mirantis.com"
   }
 }
