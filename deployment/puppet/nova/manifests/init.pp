@@ -60,7 +60,7 @@ class nova(
   $root_wrap_config = '/etc/nova/rootwrap.conf',
   # deprecated in folsom
   #$root_helper = $::nova::params::root_helper,
-  $monitoring_notifications = false
+  $monitoring_notifications = false,
   $api_bind_address = '0.0.0.0',
 ) inherits nova::params {
 

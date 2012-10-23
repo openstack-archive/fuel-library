@@ -15,10 +15,10 @@ class nova::params {
       $network_package_name     = 'openstack-nova-network'
       $numpy_package_name       = 'numpy'
       $objectstore_package_name = 'openstack-nova-objectstore'
-      $scheduler_package_name   = 'openstack-nova-schedulre'
+      $scheduler_package_name   = 'openstack-nova-scheduler'
       $tgt_package_name         = 'scsi-target-utils'
       $volume_package_name      = 'openstack-nova-volume'
-      $vncproxy_package_name    = 'openstack-nova-novncproxy'
+      $vncproxy_package_name    = ['novnc','openstack-nova-novncproxy']
       # service names
       $api_service_name         = 'openstack-nova-api'
       $cert_service_name        = 'openstack-nova-cert'
@@ -30,7 +30,7 @@ class nova::params {
       $objectstore_service_name = 'openstack-nova-objectstore'
       $scheduler_service_name   = 'openstack-nova-scheduler'
       $tgt_service_name         = 'tgtd'
-      $vncproxy_service_name    = ['openstack-nova-novncproxy','novnc']
+      $vncproxy_service_name    = 'openstack-nova-novncproxy'
       $volume_service_name      = 'openstack-nova-volume'
       $special_service_provider = 'init'
       # redhat specific config defaults
