@@ -16,6 +16,7 @@ define haproxy_service($order, $hostnames, $balancer_ips, $virtual_ip, $port) {
   }
 }
 class openstack::controller_ha (
+   $master_hostname,
    $controller_public_addresses, $public_interface, $private_interface, $controller_internal_addresses,
    $floating_range, $fixed_range, $multi_host, $network_manager, $verbose,
    $auto_assign_floating_ip, $mysql_root_password, $admin_email, $admin_password,
@@ -76,8 +77,13 @@ class openstack::controller_ha (
     keepalived::instance { '42':
       interface => 'eth1',
       virtual_ips => [$virtual_ip],
-      state    => $::hostname ? { $master_hostname => 'MASTER', default => 'BACKUP' },
-      priority => $::hostname ? { $master_hostname => 101,      default => 100      },
+      state    => $which ? { 0 => 'MASTER', default => 'BACKUP' },
+      priority => $which ? { 0 => 101,      default => 100      },
+    }
+
+    class { 'galera':
+      cluster_name => 'openstack',
+      master_ip => $which ? { 0 => false, default => $controller_internal_addresses[0] }
     }
 
     class { 'openstack::controller':
@@ -92,6 +98,7 @@ class openstack::controller_ha (
       verbose                 => $verbose,
       auto_assign_floating_ip => $auto_assign_floating_ip,
       mysql_root_password     => $mysql_root_password,
+      custom_mysql_setup_class => 'galera',
       admin_email             => $admin_email,
       admin_password          => $admin_password,
       keystone_db_password    => $keystone_db_password,

@@ -69,7 +69,7 @@ class openstack::controller (
   $private_interface,
   # Required Database
   $mysql_root_password     = 'sql_pass',
-  # Required Keystone
+  $custom_mysql_setup_class = undef,
   $admin_email             = 'some_user@some_fake_email_address.foo',
   $admin_password          = 'ChangeMe',
   $keystone_db_password    = 'keystone_pass',
@@ -182,9 +182,19 @@ class openstack::controller (
       quantum_db_dbname      => $quantum_db_dbname,
       allowed_hosts          => $allowed_hosts,
       enabled                => $enabled,
-    }
+   }
   }
-
+  class { "mysql::server":
+    config_hash => {
+      # the priv grant fails on precise if I set a root password
+      # TODO I should make sure that this works
+      # 'root_password' => $mysql_root_password,
+      'bind_address'  => '0.0.0.0'
+    },
+    enabled => $enabled,
+    custom_setup_class => $custom_mysql_setup_class,
+  }
+ 
   ####### KEYSTONE ###########
   class { 'openstack::keystone':
     verbose               => $verbose,
