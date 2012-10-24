@@ -24,6 +24,7 @@
 $admin_email          = 'dan@example_company.com'
 $keystone_db_password = 'keystone_db_password'
 $keystone_admin_token = 'keystone_token'
+$admin_user           = 'admin'
 $admin_password       = 'admin_password'
 
 $swift_user_password  = 'swift_pass'
@@ -31,8 +32,8 @@ $swift_user_password  = 'swift_pass'
 $swift_shared_secret  = 'changeme'
 $swift_local_net_ip   = $ipaddress_eth0
 
-$swift_proxy_address    = '192.168.101.17'
-$controller_node_public = '192.168.101.17' 
+$swift_proxy_address    = '192.168.1.16'
+$controller_node_public = '192.168.122.100' 
 
 $verbose                = true
 
@@ -103,19 +104,19 @@ node swift_base  {
 }
 
 # The following specifies 3 swift storage nodes
-node /swift_storage_1/ inherits swift_base {
+node /fuel-05/ inherits swift_base {
 
   $swift_zone = 1
   include role_swift_storage
 
 }
-node /swift_storage_2/ inherits swift_base {
+node /fuel-06/ inherits swift_base {
 
   $swift_zone = 2
   include role_swift_storage
 
 }
-node /swift_storage_3/ inherits swift_base {
+node /fuel-07/ inherits swift_base {
 
   $swift_zone = 3
   include role_swift_storage
@@ -133,7 +134,7 @@ node /swift_storage_3/ inherits swift_base {
 class role_swift_storage {
 
   # create xfs partitions on a loopback device and mount them
-  swift::storage::loopback { ['1', '2']:
+  swift::storage::loopback { ['dev1', 'dev2']:
     base_dir     => '/srv/loopback-device',
     mnt_base_dir => '/srv/node',
     require      => Class['swift'],
@@ -142,37 +143,7 @@ class role_swift_storage {
   # install all swift storage servers together
   class { 'swift::storage::all':
     storage_local_net_ip => $swift_local_net_ip,
-  }
-
-  # specify endpoints per device to be added to the ring specification
-  @@ring_object_device { "${swift_local_net_ip}:6000/1":
-    zone        => $swift_zone,
-    weight      => 1,
-  }
-
-  @@ring_object_device { "${swift_local_net_ip}:6000/2":
-    zone        => $swift_zone,
-    weight      => 1,
-  }
-
-  @@ring_container_device { "${swift_local_net_ip}:6001/1":
-    zone        => $swift_zone,
-    weight      => 1,
-  }
-
-  @@ring_container_device { "${swift_local_net_ip}:6001/2":
-    zone        => $swift_zone,
-    weight      => 1,
-  }
-  # TODO should device be changed to volume
-  @@ring_account_device { "${swift_local_net_ip}:6002/1":
-    zone        => $swift_zone,
-    weight      => 1,
-  }
-
-  @@ring_account_device { "${swift_local_net_ip}:6002/2":
-    zone        => $swift_zone,
-    weight      => 1,
+    swift_zone           => $swift_zone
   }
 
   # collect resources for synchronizing the ring databases
@@ -181,7 +152,7 @@ class role_swift_storage {
 }
 
 
-node /swift_proxy/ inherits swift_base {
+node /fuel-08/ inherits swift_base {
 
   # curl is only required so that I can run tests
   package { 'curl': ensure => present }
@@ -199,7 +170,7 @@ node /swift_proxy/ inherits swift_base {
       'cache',
       'ratelimit',
       'swift3',
-      's3token',
+#      's3token',
       'authtoken',
       'keystone',
       'proxy-server'
@@ -223,18 +194,18 @@ node /swift_proxy/ inherits swift_base {
     rate_buffer_seconds    => 5,
     account_ratelimit      => 0
   }
-  class { 'swift::proxy::s3token':
+#  class { 'swift::proxy::s3token':
     # assume that the controller host is the swift api server
-    auth_host     => $controller_node_public,
-    auth_port     => '35357',
-  }
+#    auth_host     => $controller_node_public,
+#    auth_port     => '35357',
+#  }
   class { 'swift::proxy::keystone':
     operator_roles => ['admin', 'SwiftOperator'],
   }
   class { 'swift::proxy::authtoken':
-    admin_user        => 'swift',
-    admin_tenant_name => 'services',
-    admin_password    => $swift_user_password,
+    admin_user        => $admin_user,
+    admin_tenant_name => 'openstack',
+    admin_password    => $admin_password,
     # assume that the controller host is the swift api server
     auth_host         => $controller_node_public,
   }
