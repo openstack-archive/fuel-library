@@ -20,18 +20,18 @@ class nova::volume::san (
 ) {
 
   if $san_private_key {
-    nova_config { 'san_private_key': value => $san_private_key }
+    nova_config { 'DEFAULT/san_private_key': value => $san_private_key }
   } else {
     nova_config {
-      'san_login':    value => $san_login;
-      'san_password': value => $san_password;
+      'DEFAULT/san_login':    value => $san_login;
+      'DEFAULT/san_password': value => $san_password;
     }
   }
 
   nova_config {
-    'volume_driver':   value => $volume_driver;
-    'san_ip':          value => $san_ip;
-    'san_clustername': value => $san_clustername;
+    'DEFAULT/volume_driver':   value => $volume_driver;
+    'DEFAULT/san_ip':          value => $san_ip;
+    'DEFAULT/san_clustername': value => $san_clustername;
   }
 
 }

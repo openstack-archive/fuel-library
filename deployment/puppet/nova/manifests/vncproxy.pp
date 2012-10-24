@@ -15,8 +15,8 @@ class nova::vncproxy(
   # See http://nova.openstack.org/runnova/vncconsole.html for more details.
 
   nova_config {
-    'novncproxy_host': value => $host;
-    'novncproxy_port': value => $port;
+    'DEFAULT/novncproxy_host': value => $host;
+    'DEFAULT/novncproxy_port': value => $port;
   }
 
   package { 'python-numpy':

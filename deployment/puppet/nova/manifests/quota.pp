@@ -12,15 +12,15 @@ class nova::quota(
 ) {
 
   nova_config {
-    'quota_instances': value => $quota_instances;
-    'quota_cores': value => $quota_cores;
-    'quota_volumes': value => $quota_volumes;
-    'quota_gigabytes': value => $quota_gigabytes;
-    'quota_floating_ips': value => $quota_floating_ips;
-    'quota_metadata_items': value => $quota_metadata_items;
-    'quota_max_injected_files': value => $quota_max_injected_files;
-    'quota_max_injected_file_content_bytes': value => $quota_max_injected_file_content_bytes;
-    'quota_max_injected_file_path_bytes': value => $quota_max_injected_file_path_bytes
+    'DEFAULT/quota_instances': value => $quota_instances;
+    'DEFAULT/quota_cores': value => $quota_cores;
+    'DEFAULT/quota_volumes': value => $quota_volumes;
+    'DEFAULT/quota_gigabytes': value => $quota_gigabytes;
+    'DEFAULT/quota_floating_ips': value => $quota_floating_ips;
+    'DEFAULT/quota_metadata_items': value => $quota_metadata_items;
+    'DEFAULT/quota_max_injected_files': value => $quota_max_injected_files;
+    'DEFAULT/quota_max_injected_file_content_bytes': value => $quota_max_injected_file_content_bytes;
+    'DEFAULT/quota_max_injected_file_path_bytes': value => $quota_max_injected_file_path_bytes
   }
 
 }

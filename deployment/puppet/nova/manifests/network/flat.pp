@@ -10,14 +10,14 @@ class nova::network::flat (
 ) {
 
   if $public_interface {
-    nova_config { 'public_interface': value => $public_interface }
+    nova_config { 'DEFAULT/public_interface': value => $public_interface }
   }
 
   nova_config {
-    'network_manager':     value => 'nova.network.manager.FlatManager';
-    'fixed_range':         value => $fixed_range;
-    'flat_interface':      value => $flat_interface;
-    'flat_network_bridge': value => $flat_network_bridge;
+    'DEFAULT/network_manager':     value => 'nova.network.manager.FlatManager';
+    'DEFAULT/fixed_range':         value => $fixed_range;
+    'DEFAULT/flat_interface':      value => $flat_interface;
+    'DEFAULT/flat_network_bridge': value => $flat_network_bridge;
   }
 
 }

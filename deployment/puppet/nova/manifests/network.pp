@@ -40,7 +40,7 @@ class nova::network(
   }
 
   if $floating_range {
-    nova_config { 'floating_range':   value => $floating_range }
+    nova_config { 'DEFAULT/floating_range':   value => $floating_range }
   }
 
   if $install_service {

@@ -11,18 +11,18 @@ class nova::network::vlan (
 ) {
 
   if $public_interface {
-    nova_config { 'public_interface': value => $public_interface }
+    nova_config { 'DEFAULT/public_interface': value => $public_interface }
   }
 
   nova_config {
-    'network_manager':     value => 'nova.network.manager.VlanManager';
-    'fixed_range':         value => $fixed_range;
-    'vlan_interface':      value => $vlan_interface;
-    'vlan_start':          value => $vlan_start;
-    'force_dhcp_release':  value => $force_dhcp_release;
-    'dhcp_domain':         value => $dhcp_domain;
-    'dhcpbridge':          value => $dhcpbridge;
-    'dhcpbridge_flagfile': value => $dhcpbridge_flagfile;
+    'DEFAULT/network_manager':     value => 'nova.network.manager.VlanManager';
+    'DEFAULT/fixed_range':         value => $fixed_range;
+    'DEFAULT/vlan_interface':      value => $vlan_interface;
+    'DEFAULT/vlan_start':          value => $vlan_start;
+    'DEFAULT/force_dhcp_release':  value => $force_dhcp_release;
+    'DEFAULT/dhcp_domain':         value => $dhcp_domain;
+    'DEFAULT/dhcpbridge':          value => $dhcpbridge;
+    'DEFAULT/dhcpbridge_flagfile': value => $dhcpbridge_flagfile;
   }
 
 }

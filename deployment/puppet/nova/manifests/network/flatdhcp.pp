@@ -12,20 +12,20 @@ class nova::network::flatdhcp (
 ) {
 
   if $public_interface {
-    nova_config { 'public_interface': value => $public_interface }
+    nova_config { 'DEFAULT/public_interface': value => $public_interface }
   }
 
   nova_config {
-    'network_manager':     value => 'nova.network.manager.FlatDHCPManager';
-    'fixed_range':         value => $fixed_range;
-    'flat_interface':      value => $flat_interface;
-    'flat_network_bridge': value => $flat_network_bridge;
+    'DEFAULT/network_manager':     value => 'nova.network.manager.FlatDHCPManager';
+    'DEFAULT/fixed_range':         value => $fixed_range;
+    'DEFAULT/flat_interface':      value => $flat_interface;
+    'DEFAULT/flat_network_bridge': value => $flat_network_bridge;
     #'flat_dhcp_start':     value => $flat_dhcp_start;
-    'force_dhcp_release':  value => $force_dhcp_release;
-    'flat_injected':       value => $flat_injected;
-    'dhcp_domain':         value => $dhcp_domain;
-    'dhcpbridge':          value => $dhcpbridge;
-    'dhcpbridge_flagfile': value => $dhcpbridge_flagfile;
+    'DEFAULT/force_dhcp_release':  value => $force_dhcp_release;
+    'DEFAULT/flat_injected':       value => $flat_injected;
+    'DEFAULT/dhcp_domain':         value => $dhcp_domain;
+    'DEFAULT/dhcpbridge':          value => $dhcpbridge;
+    'DEFAULT/dhcpbridge_flagfile': value => $dhcpbridge_flagfile;
   }
 
 }

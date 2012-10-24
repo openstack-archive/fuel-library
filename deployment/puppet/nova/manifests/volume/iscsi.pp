@@ -26,10 +26,10 @@ class nova::volume::iscsi (
 
   include 'nova::params'
 
-  nova_config { 'volume_group': value => $volume_group }
+  nova_config { 'DEFAULT/volume_group': value => $volume_group }
 
   if $iscsi_ip_address {
-    nova_config { 'iscsi_ip_address': value => $iscsi_ip_address }
+    nova_config { 'DEFAULT/iscsi_ip_address': value => $iscsi_ip_address }
   }
 
   case $iscsi_helper {

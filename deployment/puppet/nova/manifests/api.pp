@@ -28,10 +28,10 @@ class nova::api(
   include nova::params
 
   Package<| title == 'nova-api' |> -> Exec['nova-db-sync']
-  Package<| title == 'nova-api' |> -> Nova_paste_api_ini<| |>
+  Package<| title == 'nova-api' |> -> Nova_config<| |>
 
-  Nova_paste_api_ini<| |> ~> Exec['post-nova_config']
-  Nova_paste_api_ini<| |> ~> Service['nova-api']
+  Nova_config<| |> ~> Exec['post-nova_config']
+  Nova_config<| |> ~> Service['nova-api']
 
   nova::generic_service { 'api':
     enabled        => $enabled,
@@ -41,18 +41,18 @@ class nova::api(
   }
 
   nova_config {
-    'api_paste_config': value => '/etc/nova/api-paste.ini';
-    'enabled_apis':     value => $enabled_apis;
-    'volume_api_class': value => 'nova.volume.cinder.API';
+    'DEFAULT/api_paste_config': value => '/etc/nova/api-paste.ini';
+    'DEFAULT/enabled_apis':     value => $enabled_apis;
+    'DEFAULT/volume_api_class': value => 'nova.volume.cinder.API';
   }
 
-  nova_paste_api_ini {
-    'filter:authtoken/auth_host':         value => $auth_host;
-    'filter:authtoken/auth_port':         value => $auth_port;
-    'filter:authtoken/auth_protocol':     value => $auth_protocol;
-    'filter:authtoken/admin_tenant_name': value => $admin_tenant_name;
-    'filter:authtoken/admin_user':        value => $admin_user;
-    'filter:authtoken/admin_password':    value => $admin_password;
+  nova_config {
+    'keystone_authtoken/auth_host':         value => $auth_host;
+    'keystone_authtoken/auth_port':         value => $auth_port;
+    'keystone_authtoken/auth_protocol':     value => $auth_protocol;
+    'keystone_authtoken/admin_tenant_name': value => $admin_tenant_name;
+    'keystone_authtoken/admin_user':        value => $admin_user;
+    'keystone_authtoken/admin_password':    value => $admin_password;
   }
 
   # I need to ensure that I better understand this resource

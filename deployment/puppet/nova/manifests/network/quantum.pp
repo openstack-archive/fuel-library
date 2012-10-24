@@ -21,22 +21,22 @@ class nova::network::quantum (
 ) {
 
   if $public_interface {
-    nova_config { 'public_interface': value => $public_interface }
+    nova_config { 'DEFAULT/public_interface': value => $public_interface }
   }
 
   if $quantum_host != 'localhost' {
-    nova_config { 'quantum_connection_host': value => $quantum_connection_host }
+    nova_config { 'DEFAULT/quantum_connection_host': value => $quantum_connection_host }
   }
 
   nova_config {
-    'fixed_range':               value => $fixed_range;
-    'quantum_use_dhcp':          value => $use_dhcp;
-    'quantum_auth_strategy':     value => $quantum_auth_strategy;
-    'network_api_class':         value => 'nova.network.quantumv2.api.API';
-    'quantum_url':               value => $quantum_url;
-    'quantum_admin_tenant_name': value => $quantum_admin_tenant_name;
-    'quantum_admin_username':    value => $quantum_admin_username;
-    'quantum_admin_password':    value => $quantum_admin_password;
-    'quantum_admin_auth_url':    value => $quantum_admin_auth_url;
+    'DEFAULT/fixed_range':               value => $fixed_range;
+    'DEFAULT/quantum_use_dhcp':          value => $use_dhcp;
+    'DEFAULT/quantum_auth_strategy':     value => $quantum_auth_strategy;
+    'DEFAULT/network_api_class':         value => 'nova.network.quantumv2.api.API';
+    'DEFAULT/quantum_url':               value => $quantum_url;
+    'DEFAULT/quantum_admin_tenant_name': value => $quantum_admin_tenant_name;
+    'DEFAULT/quantum_admin_username':    value => $quantum_admin_username;
+    'DEFAULT/quantum_admin_password':    value => $quantum_admin_password;
+    'DEFAULT/quantum_admin_auth_url':    value => $quantum_admin_auth_url;
   }
 }
