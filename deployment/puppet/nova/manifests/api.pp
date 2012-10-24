@@ -29,7 +29,11 @@ class nova::api(
 
   Package<| title == 'nova-api' |> -> Exec['nova-db-sync']
   Package<| title == 'nova-api' |> -> Nova_config<| |>
-
+  Package<| title == 'nova-api' |> -> Nova_paste_api_ini<| |>
+  
+  Nova_paste_api_ini<| |> ~> Exec['post-nova_config']
+  Nova_paste_api_ini<| |> ~> Service['nova-api']
+  
   Nova_config<| |> ~> Exec['post-nova_config']
   Nova_config<| |> ~> Service['nova-api']
 
@@ -39,11 +43,19 @@ class nova::api(
     package_name   => $::nova::params::api_package_name,
     service_name   => $::nova::params::api_service_name,
   }
-
+  
+  if $enabled_apis =~ /\S*osapi_volume\S*/
+  {
+    $volume_api_class = 'nova.volume.api.API'
+  }
+  else
+  {
+    $volume_api_class = 'nova.volume.cinder.API'
+  }
   nova_config {
     'DEFAULT/api_paste_config': value => '/etc/nova/api-paste.ini';
     'DEFAULT/enabled_apis':     value => $enabled_apis;
-    'DEFAULT/volume_api_class': value => 'nova.volume.cinder.API';
+    'DEFAULT/volume_api_class': value => $volume_api_class;
   }
 
   nova_config {
