@@ -22,12 +22,13 @@ define swift::storage::server(
   # this parameters needs to be specified after type and name
   $config_file_path       = "${type}-server/${name}.conf"
 ) {
-
+  if (is_array($pipeline)) {
+    $pipeline_real = $pipeline
+  } else {
+    $pipeline_real = [$pipeline]
+  }
   # TODO if array does not include type-server, warn
-  if(
-    (is_array($pipeline) and ! member($pipeline, "${type}-server")) or
-    $pipeline != "${type}-server"
-  ) {
+  if(! member($pipeline_real, "${type}-server")) {
       warning("swift storage server ${type} must specify ${type}-server")
   }
 
@@ -36,7 +37,6 @@ define swift::storage::server(
 
   validate_re($name, '^\d+$')
   validate_re($type, '^object|container|account$')
-  validate_array($pipeline)
   # TODO - validate that name is an integer
 
   $bind_port = $name
@@ -60,7 +60,7 @@ define swift::storage::server(
   $required_middlewares = split(
     inline_template(
       "<%=
-        (pipeline - ['${type}-server']).collect do |x|
+        (pipeline_real - ['${type}-server']).collect do |x|
           'Swift::Storage::Filter::' + x + '[${type}]'
         end.join(',')
       %>"), ',')

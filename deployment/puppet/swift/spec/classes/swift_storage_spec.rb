@@ -23,13 +23,6 @@ describe 'swift::storage' do
           :storage_local_net_ip => '127.0.0.1',
         }
       end
-
-      it { should contain_class('rsync::server').with(
-        {:use_xinetd => true,
-         :address    => params[:storage_local_net_ip],
-         :use_chroot => 'no'
-        }
-      )}
     end
     describe 'when local net ip is not specified' do
       it 'should fail' do

@@ -8,7 +8,7 @@ log_facility = LOG_LOCAL2
 workers = <%= workers %>
 
 [pipeline:main]
-pipeline = <%= pipeline.to_a.join(' ') %>
+pipeline = <%= pipeline_real.join(' ') %>
 
 [app:container-server]
 use = egg:swift#container

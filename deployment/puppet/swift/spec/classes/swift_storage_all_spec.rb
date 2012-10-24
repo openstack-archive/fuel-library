@@ -27,14 +27,9 @@ describe 'swift::storage::all' do
     }
   end
 
-  describe 'when an internal network ip is not specified' do
-    it 'should fail' do
-      expect { subject }.to raise_error(Puppet::Error, /Must pass storage_local_net_ip/)
-    end
-  end
-
-  [{  :storage_local_net_ip => '127.0.0.1' },
+  [{  :swift_zone => '1', :storage_local_net_ip => '127.0.0.1' },
    {
+      :swift_zone => '1',
       :devices => '/tmp/node',
       :storage_local_net_ip => '10.0.0.1',
       :object_port => '7000',
@@ -98,14 +93,6 @@ describe 'swift::storage::all' do
          :config_file_path => 'container-server.conf',
          :pipeline => param_hash[:container_pipeline] || 'container-server' }.merge(storage_server_defaults)
       )}
-
-      it { should contain_class('rsync::server').with(
-        {:use_xinetd => true,
-         :address    => param_hash[:storage_local_net_ip],
-         :use_chroot => 'no'
-        }
-      )}
-
     end
   end
 
@@ -118,8 +105,9 @@ describe 'swift::storage::all' do
       }
     end
 
-    [{  :storage_local_net_ip => '127.0.0.1' },
+    [{  :swift_zone => '1', :storage_local_net_ip => '127.0.0.1' },
       {
+      :swift_zone => '1',
       :devices => '/tmp/node',
       :storage_local_net_ip => '10.0.0.1',
       :object_port => '7000',

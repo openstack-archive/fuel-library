@@ -27,8 +27,8 @@ describe 'swift::storage::node' do
   end
 
   it {
-    should contain_ring_object_device("127.0.0.1:6010/1")
-    should contain_ring_container_device("127.0.0.1:6011/1")
-    should contain_ring_account_device("127.0.0.1:6012/1")
+    should contain_ring_object_device("127.0.0.1:6010")
+    should contain_ring_container_device("127.0.0.1:6011")
+    should contain_ring_account_device("127.0.0.1:6012")
   }
 end

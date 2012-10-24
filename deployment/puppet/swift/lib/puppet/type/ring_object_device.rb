@@ -7,7 +7,7 @@ Puppet::Type.newtype(:ring_object_device) do
     validate do |value|
       # Commit 103b68b changed acceptable format from address:port/device to just address:port.
       address = value.split(':')
-      raise(Puppet::Error, "invalid name #{value}e") unless address.size == 2
+      raise(Puppet::Error, "invalid name #{value}: should contain address:port") unless address.size == 2
       IPAddr.new(address[0])
     end
   end

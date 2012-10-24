@@ -25,8 +25,9 @@ describe 'swift::storage::server' do
 
   describe 'with an invalid title' do
     let :params do
-      {:storage_local_net_ip => '127.0.0.1',
-      :type => 'object'}
+      {:swift_zone => '1',
+       :storage_local_net_ip => '127.0.0.1',
+       :type => 'object'}
     end
     let :title do
       'foo'
@@ -45,7 +46,7 @@ describe 'swift::storage::server' do
       end
 
       let :req_params do
-        {:storage_local_net_ip => '10.0.0.1', :type => t}
+        {:swift_zone => '1', :storage_local_net_ip => '10.0.0.1', :type => t}
       end
       let :params do
         req_params
@@ -67,7 +68,7 @@ describe 'swift::storage::server' do
           :user        => 'dan',
           :mount_check => true,
           :workers     => 7,
-          :pipeline    => ['foo']
+          :pipeline    => 'foo'
         }.each do |k,v|
           describe "when #{k} is set" do
             let :params do req_params.merge({k => v}) end
@@ -82,12 +83,6 @@ describe 'swift::storage::server' do
             :content => /^pipeline\s*=\s*1 2 3\s*$/,
             :before => ["Swift::Storage::Filter::1[#{t}]", "Swift::Storage::Filter::2[#{t}]", "Swift::Storage::Filter::3[#{t}]"]
           })}
-        end
-        describe "when pipeline is not passed an array" do
-          let :params do req_params.merge({:pipeline => 'not an array'}) end
-          it "should fail" do
-            expect { subject }.to raise_error(Puppet::Error, /is not an Array/)
-          end
         end
         describe "when replicator_concurrency is set" do
           let :params do req_params.merge({:replicator_concurrency => 42}) end

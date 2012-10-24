@@ -26,8 +26,8 @@ Devices:    id  zone      ip address  port      name weight partitions balance m
 '
     )
     resources = provider_class.lookup_ring.inspect
-    resources['192.168.101.15:6002/1'].should_not be_nil
-    resources['192.168.101.13:6002/1'].should_not be_nil
-    resources['192.168.101.14:6002/1'].should_not be_nil
+    resources['192.168.101.15:6002'].should_not be_nil
+    resources['192.168.101.13:6002'].should_not be_nil
+    resources['192.168.101.14:6002'].should_not be_nil
   end
 end
