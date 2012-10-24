@@ -87,6 +87,7 @@ class openstack::controller (
   $admin_address           = $public_address,
   $rabbit_password         = 'rabbit_pw',
   $rabbit_user             = 'nova',
+  $rabbit_cluster          = false,
   $rabbit_nodes            = [$internal_address],
   # network configuration
   # this assumes that it is a flat network manager
@@ -140,12 +141,15 @@ class openstack::controller (
   $quantum_db_user         = 'quantum',
   $quantum_db_dbname       = 'quantum',
   $enabled                 = true
+  $api_bind_address        = '0.0.0.0',
 ) {
 
   # Ensure things are run in order
   Class['openstack::db::mysql'] -> Class['openstack::keystone']
   Class['openstack::db::mysql'] -> Class['openstack::glance']
   Class['openstack::db::mysql'] -> Class['openstack::nova::controller']
+
+  $glance_api_servers = "${api_bind_address}:9292"
 
 
 
