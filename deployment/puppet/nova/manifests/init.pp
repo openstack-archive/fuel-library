@@ -212,7 +212,7 @@ class nova(
     'DEFAULT/state_path':        value => $state_path;
     'DEFAULT/lock_path':         value => $lock_path;
     'DEFAULT/service_down_time': value => $service_down_time;
-    'DEFAULT/root_wrap_config':  value => $root_wrap_config;
+    'DEFAULT/rootwrap_config':  value => $root_wrap_config;
   }
 
   nova_config {
