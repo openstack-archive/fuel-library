@@ -216,11 +216,17 @@ class openstack::controller (
   # indicates that all nova config entries that we did
   # not specifify in Puppet should be purged from file
   #
-  #if ($purge_nova_config) {
-  #  resources { 'nova_config':
-  #    purge => true,
-  #  }
-  #}
+  if ($purge_nova_config) {
+    resources { 'nova_config':
+      purge => true,
+    }
+  }
+  if ($cinder) {
+    $enabled_apis = 'ec2,osapi_compute,metadata'
+  } else {
+    $enabled_apis = 'ec2,osapi_compute,metadata,osapi_volume'
+  }
+
 
   class { 'openstack::nova::controller':
     # Database
@@ -251,6 +257,7 @@ class openstack::controller (
     verbose                 => $verbose,
     enabled                 => $enabled,
     exported_resources      => $export_resources,
+    enabled_apis	=>	$enabled_apis
   }
 
   ######### Cinder Controller Services ########

@@ -55,7 +55,8 @@ class openstack::nova::controller (
   $keystone_host             = '127.0.0.1',
   $verbose                   = 'False',
   $enabled                   = true,
-  $exported_resources        = true
+  $exported_resources        = true,
+  $enabled_apis			= 'ec2,osapi_compute,metadata'
 ) {
 
   # Configure the db string
@@ -107,12 +108,13 @@ class openstack::nova::controller (
     verbose            => $verbose,
     rabbit_host        => $rabbit_connection,
   }
-
+  
   # Configure nova-api
   class { 'nova::api':
     enabled           => $enabled,
     admin_password    => $nova_user_password,
     auth_host         => $keystone_host,
+    enabled_apis	=> $enabled_apis
   }
 
   # Configure nova-network

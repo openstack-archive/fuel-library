@@ -39,7 +39,14 @@ class openstack::compute (
   $vncproxy_host                 = undef,
   # General
   $verbose                       = 'False',
-  $enabled                       = true
+  $enabled                       = true,
+  $multi_host			 = false,
+  $public_interface,
+  $private_interface,
+  $network_manager,
+  $fixed_range,
+  $quantum			= false,
+  $cinder			= false
 ) {
 
   #
@@ -68,6 +75,14 @@ class openstack::compute (
     rabbit_host        => $rabbit_host,
   }
 
+  if ($cinder) {
+    $enabled_apis			= 'ec2,osapi_compute,metadata'
+    package {'python-cinderclient': ensure => present}
+  } else {
+    $enabled_apis = 'ec2,osapi_compute,metadata,osapi_volume'
+  }
+
+
   # Install / configure nova-compute
   class { '::nova::compute':
     enabled                       => $enabled,
@@ -86,39 +101,44 @@ class openstack::compute (
   # compute installation
   if $multi_host {
     include keystone::python
-    #nova_config {
-    #  'multi_host':      value => 'True';
-    #  'send_arp_for_ha': value => 'True';
-    #}
-    #if ! $public_interface {
-    #  fail('public_interface must be defined for multi host compute nodes')
-    #}
-    #$enable_network_service = true
+    nova_config {
+      'DEFAULT/multi_host':      value => 'True';
+      'DEFAULT/send_arp_for_ha': value => 'True';
+    }
+    if ! $public_interface {
+      fail('public_interface must be defined for multi host compute nodes')
+    }
+    $enable_network_service = true
     class { 'nova::api':
       enabled           => true,
       admin_tenant_name => 'services',
       admin_user        => 'nova',
       admin_password    => $nova_user_password,
+      enabled_apis	=> $enabled_apis
       # TODO override enabled_apis
     }
+
   } else {
-    #$enable_network_service = false
-    #nova_config {
-    #  'multi_host':      value => 'False';
-    #  'send_arp_for_ha': value => 'False';
-    #}
+    $enable_network_service = false
+    nova_config {
+      'DEFAULT/multi_host':      value => 'False';
+      'DEFAULT/send_arp_for_ha': value => 'False';
+    }
   }
 
-  #class { 'nova::network':
-  #  private_interface => $private_interface,
-  #  public_interface  => $public_interface,
-  #  fixed_range       => $fixed_range,
-  #  floating_range    => false,
-  #  network_manager   => $network_manager,
-  #  config_overrides  => $network_config,
-  #  create_networks   => false,
-  #  enabled           => $enable_network_service,
-  #  install_service   => $enable_network_service,
-  #}
+  if $quantum == false {
+    class { 'nova::network':
+      private_interface => $private_interface,
+      public_interface  => $public_interface,
+      fixed_range       => $fixed_range,
+      floating_range    => $floating_range,
+      network_manager   => $network_manager,
+      config_overrides  => $network_config,
+      create_networks   => $really_create_networks,
+      num_networks      => $num_networks,
+      enabled           => $enable_network_service,
+      install_service   => $enable_network_service,
+    }
+  }
 
 }
