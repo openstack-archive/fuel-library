@@ -7,7 +7,38 @@
 #
 # See params.pp
 #
-# === Examples
+# [private_interface] Interface used for vm networking connectivity. Required.
+# [internal_address] Internal address used for management. Required.
+# [public_interface] Public interface used to route public traffic. Optional.
+#   Defaults to false.
+# [fixed_range] Range of ipv4 network for vms.
+# [network_manager] Nova network manager to use.
+# [multi_host] Rather node should support multi-host networking mode for HA.
+#   Optional. Defaults to false.
+# [network_config] Hash that can be used to pass implementation specifc
+#   network settings. Optioal. Defaults to {}
+# [sql_connection] SQL connection information. Optional. Defaults to false
+#   which indicates that exported resources will be used to determine connection
+#   information.
+# [nova_user_password] Nova service password.
+#  [rabbit_nodes] RabbitMQ nodes or false. Optional. Defaults to false.
+#  [rabbit_password] RabbitMQ password. Optional. Defaults to  'rabbit_pw',
+#  [rabbit_user] RabbitMQ user. Optional. Defaults to 'nova',
+#  [glance_api_servers] List of glance api servers of the form HOST:PORT
+#    delimited by ':'. False indicates that the resource should be collected.
+#    Optional. Defaults to false,
+#  [libvirt_type] Underlying libvirt supported hypervisor.
+#    Optional. Defaults to 'kvm',
+#  [vncproxy_host] Host that serves as vnc proxy. Optional.
+#    Defaults to false. False indicates that a vnc proxy should not be configured.
+#  [vnc_enabled] Rather vnc console should be enabled.
+#    Optional. Defaults to 'true',
+#  [verbose] Rather components should log verbosely.
+#    Optional. Defaults to false.
+#  [manage_volumes] Rather nova-volume should be enabled on this compute node.
+#    Optional. Defaults to false.
+#  [nova_volumes] Name of volume group in which nova-volume will create logical volumes.
+#    Optional. Defaults to nova-volumes.
 #
 # class { 'openstack::nova::compute':
 #   internal_address   => '192.168.2.2',
@@ -46,7 +77,10 @@ class openstack::compute (
   $network_manager,
   $fixed_range,
   $quantum			= false,
-  $cinder			= false
+  $cinder			= false,
+  $rabbit_nodes        = false,
+  $rabbit_password     = 'rabbit_pw',
+  $rabbit_user         = 'nova',
 ) {
 
   #
@@ -67,6 +101,7 @@ class openstack::compute (
 
   class { 'nova':
     sql_connection     => $sql_connection,
+    rabbit_nodes       => $rabbit_nodes,
     rabbit_userid      => $rabbit_user,
     rabbit_password    => $rabbit_password,
     image_service      => 'nova.image.glance.GlanceImageService',

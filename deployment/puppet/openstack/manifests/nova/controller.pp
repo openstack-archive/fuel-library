@@ -56,6 +56,7 @@ class openstack::nova::controller (
   $verbose                   = 'False',
   $enabled                   = true,
   $exported_resources        = true,
+  $rabbit_nodes			= [$internal_address],
   $enabled_apis			= 'ec2,osapi_compute,metadata'
 ) {
 
@@ -71,10 +72,14 @@ class openstack::nova::controller (
   } else {
     $real_glance_api_servers = $glance_api_servers
   }
+    $rabbit_addresses = inline_template("<%= @rabbit_nodes.map {|x| x + ':5672'}.join ',' %>")
   if ($exported_resources) {
     # export all of the things that will be needed by the clients
     @@nova_config { 'DEFAULT/rabbit_host': value => $internal_address }
     Nova_config <| title == 'rabbit_host' |>
+
+    @@nova_config { 'DEFAULT/rabbit_nodes': value => $rabbit_addresses }
+    Nova_config <| title == 'rabbit_nodes' |>
 
     @@nova_config { 'DEFAULT/sql_connection': value => $nova_db }
     Nova_config <| title == 'sql_connection' |>
@@ -96,8 +101,11 @@ class openstack::nova::controller (
     userid   => $rabbit_user,
     password => $rabbit_password,
     enabled  => $enabled,
+    cluster  => $rabbit_cluster,
+    cluster_nodes => $rabbit_nodes,
   }
-
+if ($rabbit_nodes)
+{
   # Configure Nova
   class { 'nova':
     sql_connection     => $sql_connection,
@@ -106,8 +114,22 @@ class openstack::nova::controller (
     image_service      => 'nova.image.glance.GlanceImageService',
     glance_api_servers => $glance_connection,
     verbose            => $verbose,
-    rabbit_host        => $rabbit_connection,
+    rabbit_nodes	=> $rabbit_nodes,
   }
+ }
+ else
+ {
+  class { 'nova':
+    sql_connection     => $sql_connection,
+    rabbit_userid      => $rabbit_user,
+    rabbit_password    => $rabbit_password,
+    image_service      => 'nova.image.glance.GlanceImageService',
+    glance_api_servers => $glance_connection,
+    verbose            => $verbose,
+    rabbit_host	=> $rabbit_connection,
+  }
+ 
+ }
   
   # Configure nova-api
   class { 'nova::api':

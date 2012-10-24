@@ -85,6 +85,11 @@ class openstack::controller (
   # not sure if this works correctly
   $internal_address        = $public_address,
   $admin_address           = $public_address,
+  $rabbit_password         = 'rabbit_pw',
+  $rabbit_user             = 'nova',
+  $rabbit_nodes            = [$internal_address],
+  # network configuration
+  # this assumes that it is a flat network manager
   $network_manager         = 'nova.network.manager.FlatDHCPManager',
   $fixed_range             = '10.0.0.0/24',
   $floating_range          = false,
@@ -141,6 +146,8 @@ class openstack::controller (
   Class['openstack::db::mysql'] -> Class['openstack::keystone']
   Class['openstack::db::mysql'] -> Class['openstack::glance']
   Class['openstack::db::mysql'] -> Class['openstack::nova::controller']
+
+
 
   ####### DATABASE SETUP ######
   # set up mysql server
@@ -251,6 +258,7 @@ class openstack::controller (
     # Rabbit
     rabbit_user             => $rabbit_user,
     rabbit_password         => $rabbit_password,
+    rabbit_nodes       => $rabbit_nodes,
     # Glance
     glance_api_servers      => $glance_api_servers,
     # General
