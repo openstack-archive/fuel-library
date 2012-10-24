@@ -5,6 +5,7 @@ class horizon::params {
   case $::osfamily {
     'RedHat': {
       $http_service                = 'httpd'
+      $http_modwsgi                = 'mod_wsgi'
       $package_name                = 'openstack-dashboard'
       $config_file                 = '/etc/openstack-dashboard/local_settings'
     }

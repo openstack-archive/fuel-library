@@ -52,6 +52,7 @@ class horizon(
     content => template('horizon/local_settings.py.erb'),
     mode    => '0644',
     notify  => Service[$::horizon::params::http_service],
+    require => Package[$::horizon::params::package_name],
   }
 
 }
