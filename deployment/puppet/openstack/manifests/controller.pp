@@ -110,7 +110,7 @@ class openstack::controller (
   # Nova
   $nova_db_user            = 'nova',
   $nova_db_dbname          = 'nova',
-  $purge_nova_config       = true,
+  $purge_nova_config       = false,
   # Rabbit
   $rabbit_password         = 'rabbit_pw',
   $rabbit_user             = 'nova',
@@ -216,11 +216,11 @@ class openstack::controller (
   # indicates that all nova config entries that we did
   # not specifify in Puppet should be purged from file
   #
-  if ($purge_nova_config) {
-    resources { 'nova_config':
-      purge => true,
-    }
-  }
+  #if ($purge_nova_config) {
+  #  resources { 'nova_config':
+  #    purge => true,
+  #  }
+  #}
 
   class { 'openstack::nova::controller':
     # Database

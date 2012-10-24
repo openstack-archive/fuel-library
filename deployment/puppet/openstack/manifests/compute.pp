@@ -26,7 +26,7 @@ class openstack::compute (
   # DB
   $sql_connection                = false,
   # Nova
-  $purge_nova_config              = true,
+  $purge_nova_config              = false,
   # Rabbit
   $rabbit_host                   = false,
   $rabbit_user                   = 'nova',

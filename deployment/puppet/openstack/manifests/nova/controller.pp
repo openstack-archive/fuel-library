@@ -72,13 +72,13 @@ class openstack::nova::controller (
   }
   if ($exported_resources) {
     # export all of the things that will be needed by the clients
-    @@nova_config { 'rabbit_host': value => $internal_address }
+    @@nova_config { 'DEFAULT/rabbit_host': value => $internal_address }
     Nova_config <| title == 'rabbit_host' |>
 
-    @@nova_config { 'sql_connection': value => $nova_db }
+    @@nova_config { 'DEFAULT/sql_connection': value => $nova_db }
     Nova_config <| title == 'sql_connection' |>
 
-    @@nova_config { 'glance_api_servers': value => $real_glance_api_servers }
+    @@nova_config { 'DEFAULT/glance_api_servers': value => $real_glance_api_servers }
     Nova_config <| title == 'glance_api_servers' |>
 
     $sql_connection    = false
@@ -117,7 +117,7 @@ class openstack::nova::controller (
 
   # Configure nova-network
   if $multi_host {
-    nova_config { 'multi_host': value => 'True' }
+    nova_config { 'DEFAULT/multi_host': value => 'True' }
     $enable_network_service = false
   } else {
     if $enabled {
@@ -149,7 +149,7 @@ class openstack::nova::controller (
   }
 
   if $auto_assign_floating_ip {
-    nova_config { 'auto_assign_floating_ip': value => 'True' }
+    nova_config { 'DEFAULT/auto_assign_floating_ip': value => 'True' }
   }
 
   # a bunch of nova services that require no configuration
