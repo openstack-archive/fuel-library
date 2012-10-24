@@ -1,5 +1,5 @@
 name    'puppetlabs-nova'
-version '0.1.1'
+version '0.2.0'
 source  'https://github.com/puppetlabs/puppetlabs-nova'
 author  'Puppet Labs'
 license 'Apache License 2.0'
@@ -9,8 +9,8 @@ project_page 'https://github.com/puppetlabs/puppetlabs-nova'
 
 ## Add dependencies, if any:
 dependency 'puppetlabs/apt', '>= 0.0.3'
-dependency 'puppetlabs/glance', '>= 0.1.0'
-dependency 'puppetlabs/keystone', '>= 0.1.0'
+dependency 'puppetlabs/glance', '>= 0.2.0'
+dependency 'puppetlabs/keystone', '>= 0.2.0'
 dependency 'puppetlabs/mysql', '>= 0.3.0'
 dependency 'puppetlabs/rabbitmq', '>= 2.0.0'
 dependency 'puppetlabs/stdlib', '>= 2.3.0'
