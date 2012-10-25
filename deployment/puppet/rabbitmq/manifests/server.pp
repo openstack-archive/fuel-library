@@ -34,6 +34,8 @@ class rabbitmq::server(
   $stomp_port = '6163',
   $node_ip_address = 'UNSET',
   $config='UNSET',
+  $config_cluster = false,
+  $cluster_disk_nodes = [], 
   $env_config='UNSET'
 ) {
 
