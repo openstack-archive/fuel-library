@@ -4,6 +4,7 @@ class puppet::nginx(
   $hostprivkey = $::hostprivkey,
   $localcacert = $::localcacert,
   $cacrl = $::cacrl,
+  $upstream_servers = ["127.0.0.1:18140", "127.0.0.1:18141", "127.0.0.1:18142", "127.0.0.1:18143"],
   ) {
 
   package { "nginx": }
@@ -15,7 +16,7 @@ class puppet::nginx(
     mode => 0644,
     require => Package["nginx"],
     notify => Service["nginx"],
-  }
+  }->
     
   service { "nginx":
     enable => true,

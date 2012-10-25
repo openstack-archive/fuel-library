@@ -1,34 +1,27 @@
 class puppet::master (
     $puppet_master_ports = $puppet::params::puppet_master_ports,
     $puppet_master_version = $puppet::params::puppet_master_version,
+    $puppet_service_name = "puppetmaster"
   ) inherits puppet::params {
+  
+  include puppet::service
 
   package { $puppet::params::puppet_master_packages :
     ensure => $puppet_master_version,
   }
    
-  package {  $puppet::params::mongrel_packages: ensure=>"installed"}
-  
-  class {"puppet::master_config":
-    require => Package[$puppet::params::puppet_master_packages],
-    notify => Service["puppet"],
-  }
-  
-  file { $puppet::params::daemon_config_file:
-    content => template($puppet::params::daemon_config_template),
+  file { "/etc/puppet/puppet.conf":
+    content => template($puppet::params::puppet_config_template),
     owner => 'root',
     group => 'root',
     mode => 0644,
     require => Package[$puppet::params::puppet_master_packages],
-    notify => Service["puppet"],
+    notify => Service["puppetmaster"],
+  }->
+  
+  class {"puppet::master_config":
+    require => Package[$puppet::params::puppet_master_packages],
+    notify => Service["puppetmaster"],
   }
-
-  service { "puppet":
-    enable => true,
-    ensure => "running",
-    require => [
-                Package[$puppet::params::puppet_master_packages],
-                Package[ $puppet::params::mongrel_packages],
-                ],
-  }
+  
 }

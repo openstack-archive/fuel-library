@@ -7,7 +7,8 @@ class puppet::iptables {
     exec { "access_to_puppet_${protocol}_port: $port":
       command => "iptables -t filter -I INPUT 1 $rule; \
       /etc/init.d/iptables save",
-      unless => "iptables -t filter -S INPUT | grep -q \"^-A INPUT $rule\""
+      unless => "iptables -t filter -S INPUT | grep -q \"^-A INPUT $rule\"",
+      onlyif => "test -f /etc/init.d/iptables"
     }
   }
 

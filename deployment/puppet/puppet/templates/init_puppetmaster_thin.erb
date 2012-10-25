@@ -1,0 +1,32 @@
+#!/bin/sh
+#DAEMON=/var/lib/gems/1.8/bin/thin
+DAEMON=<%= thin_path %>
+#SCRIPT_NAME=/usr/share/puppet/rack/puppetmasterd/config.ru
+SCRIPT_NAME=/usr/share/puppet/ext/rack/files/config.ru
+
+ROLE_NAME=puppetmasterd
+#todo runlib
+#DAEMON_OPTS="-P /var/run/puppet/$ROLE_NAME.pid -e production --servers 4 --daemonize --socket /var/run/puppet/$ROLE_NAME.sock --chdir /etc/puppet/ --user puppet --group puppet -R $SCRIPT_NAME" 
+DAEMON_OPTS="-P /var/run/puppet/$ROLE_NAME.pid -e production --servers 4 --daemonize --port 18140 --chdir /etc/puppet/ --user puppet --group puppet -R $SCRIPT_NAME"
+    
+# Exit if the package is not installed
+[ -x "$DAEMON" ] || echo $DAEMON is not installed 
+[ -x "$DAEMON" ] || exit 6
+  
+case "$1" in
+  start)
+        $DAEMON start $DAEMON_OPTS
+        ;;
+  stop)
+        $DAEMON stop $DAEMON_OPTS
+        ;;
+  restart|force-reload|reload)
+        $DAEMON restart $DAEMON_OPTS
+        ;;
+  *)
+        echo "Usage: $0 {start|stop|restart}" >&2
+        exit 1
+        ;;
+esac
+    
+exit 0

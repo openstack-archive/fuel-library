@@ -10,6 +10,7 @@ class puppet::params
          $mongrel_packages = "rubygem-mongrel"
          $daemon_config_file = "/etc/sysconfig/puppetmaster"
          $daemon_config_template = "puppet/sysconfig_puppetmaster.erb"
+         $puppet_config_template = "puppet/puppet.conf.centos.erb"
       }
       'Debian': {
          $puppet_master_version  = "2.7.19-1puppetlabs1"
@@ -17,6 +18,7 @@ class puppet::params
          $mongrel_packages = "mongrel"
          $daemon_config_file = "/etc/default/puppetmaster"
          $daemon_config_template = "puppet/default_puppetmaster.erb"
+         $puppet_config_template = "puppet/puppet.conf.ubuntu.erb"
       }
       default: {
         fail("Unsupported osfamily: ${::osfamily} operatingsystem: ${::operatingsystem}, module ${module_name} only support osfamily RedHat and Debian")
