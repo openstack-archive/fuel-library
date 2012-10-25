@@ -34,7 +34,9 @@ class openstack::glance (
   $db_host,
   $glance_user_password,
   $glance_db_password,
+  $bind_host        = '127.0.0.1',
   $keystone_host        = '127.0.0.1',
+  $registry_host        = '127.0.0.1',
   $auth_uri             = "http://127.0.0.1:5000/",
   $db_type              = 'mysql',
   $glance_db_user       = 'glance',
@@ -62,6 +64,7 @@ class openstack::glance (
     keystone_password => $glance_user_password,
     sql_connection    => $sql_connection,
     enabled           => $enabled,
+    registry_host	=> $registry_host
   }
 
   # Install and configure glance-registry
