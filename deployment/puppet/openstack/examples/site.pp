@@ -96,6 +96,17 @@ $nova_db_password        = 'nova'
 $nova_user_password      = 'nova'
 $rabbit_password         = 'nova'
 $rabbit_user             = 'nova'
+$openstack_version = {
+  'keystone'   => '2012.1.1-1.el6',
+  'glance'     => '2012.1.1-1.el6',
+  'horizon'    => '2012.1.1-1.el6',
+  'nova'       => '2012.1.1-15.el6',
+  'novncproxy' => '0.3-11.el6',
+}
+
+Exec { logoutput => true }
+stage {'openstack-custom-repo': before => Stage['main']}
+include openstack::mirantis_repos
 
 node /fuel-0[12]/ {
     class { 'openstack::controller_ha': 
