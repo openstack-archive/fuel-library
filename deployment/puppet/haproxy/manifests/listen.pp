@@ -69,7 +69,7 @@
 #
 define haproxy::listen (
   $ports,
-  $ipaddress        = $::ipaddress,
+  $ipaddress        = [$::ipaddress],
   $mode             = 'tcp',
   $collect_exported = true,
   $options          = {
