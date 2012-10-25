@@ -36,7 +36,7 @@ Puppet::Type.newtype(:cobbler_profile) do
 
   newparam(:kickstart) do
     desc "Path to kickstart file"
-    newvalues(/^(\/[^\/]+)+$/)
+    newvalues(/^(\/[^\/]+)*$/)
   end
 
   newparam(:name, :namevar => true) do
