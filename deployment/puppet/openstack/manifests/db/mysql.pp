@@ -64,13 +64,27 @@ class openstack::db::mysql (
 ) {
 
   # Install and configure MySQL Server
-  class { 'mysql::server':
+#  class { 'mysql::server':
+#    config_hash => {
+#      'root_password' => $mysql_root_password,
+#      'bind_address'  => $mysql_bind_address,
+#    },
+#    enabled     => $enabled,
+# }
+  class { "mysql::server":
     config_hash => {
-      'root_password' => $mysql_root_password,
-      'bind_address'  => $mysql_bind_address,
+      # the priv grant fails on precise if I set a root password
+      # TODO I should make sure that this works
+      # 'root_password' => $mysql_root_password,
+      'bind_address'  => '0.0.0.0'
     },
-    enabled     => $enabled,
+    galera_cluster_name	=> $galera_cluster_name,
+    galera_master_ip	=> $galera_master_ip,
+    galera_node_address	=> $galera_node_address,
+    enabled => $enabled,
+    custom_setup_class => $custom_mysql_setup_class,
   }
+
 
   # This removes default users and guest access
   if $mysql_account_security {

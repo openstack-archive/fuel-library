@@ -20,6 +20,7 @@
 #
 
 class openstack::horizon (
+  $bind_address 	= '127.0.0.1',
   $secret_key,
   $cache_server_ip       = '127.0.0.1',
   $cache_server_port     = '11211',
@@ -30,21 +31,24 @@ class openstack::horizon (
   $keystone_scheme       = 'http',
   $keystone_default_role = 'Member',
   $django_debug          = 'False',
-  $api_result_limit      = 1000
+  $api_result_limit      = 1000,
+  $package_ensure 	= present
 ) {
 
-  class { 'memcached':
-    listen_ip => $cache_server_ip,
-    tcp_port  => $cache_server_port,
-    udp_port  => $cache_server_port,
-  }
+ # class { 'memcached':
+#    listen_ip => $cache_server_ip,
+#    tcp_port  => $cache_server_port,
+#    udp_port  => $cache_server_port,
+ # }
 
   class { '::horizon':
+    bind_address	=> $bind_address,
     cache_server_ip       => $cache_server_ip,
     cache_server_port     => $cache_server_port,
     secret_key            => $secret_key,
     swift                 => $swift,
     quantum               => $quantum,
+    package_ensure	=> $package_ensure,
     horizon_app_links     => $horizon_app_links,
     keystone_host         => $keystone_host,
     keystone_scheme       => $keystone_scheme,

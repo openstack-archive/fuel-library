@@ -57,7 +57,7 @@ class openstack::nova::controller (
   $enabled                   = true,
   $exported_resources        = true,
   $rabbit_nodes			= [$internal_address],
-  ensure_package    => present,
+  $ensure_package    = present,
   $enabled_apis			= 'ec2,osapi_compute,metadata'
 ) {
 

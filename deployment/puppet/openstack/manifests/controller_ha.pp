@@ -47,15 +47,15 @@ define haproxy_service($order, $balancers, $virtual_ips, $port, $define_cookies 
     }
   }
 
-  haproxy::config { $name:
-    order => $order - 1,
-    virtual_ips => $virtual_ips,
-    virtual_ip_port => $port,
+  haproxy::listen { $name:
+#    order => $order - 1,
+    ipaddress => $virtual_ips,
+    ports => $port,
     haproxy_config_options => $haproxy_config_options,
   }
 
-  @haproxy::balancermember { "${name}":
-    order                  => $order,
+  @@haproxy::balancermember { "${name}":
+#    order                  => $order,
     listening_service      => $name,
     balancers           => $balancers,
     balancer_port          => $balancer_port,
@@ -94,7 +94,7 @@ class openstack::controller_ha (
 
 
     # haproxy
-    include haproxy::data
+    include haproxy::params
 
     Haproxy_service {
 #      virtual_ip => $vip,
@@ -177,8 +177,8 @@ class openstack::controller_ha (
 
     class { 'haproxy':
       enable => true, 
-      haproxy_global_options   => merge($::haproxy::data::haproxy_global_options, {'log' => "${internal_address} local0"}),
-      haproxy_defaults_options => merge($::haproxy::data::haproxy_defaults_options, {'mode' => 'http'}),
+      global_options   => merge($::haproxy::params::global_options, {'log' => "${internal_address} local0"}),
+      defaults_options => merge($::haproxy::params::defaults_options, {'mode' => 'http'}),
       require => Sysctl::Value['net.ipv4.ip_nonlocal_bind'],
     }
 
@@ -218,7 +218,7 @@ class openstack::controller_ha (
     Class['haproxy'] -> Class['galera']
 #    Class['openstack::controller']->Class['galera']
     
-    class { 'openstack::controller':
+    class { '::openstack::controller':
       public_address          => $public_virtual_ip,
       public_interface        => $public_interface,
       private_interface       => $private_interface,

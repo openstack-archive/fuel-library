@@ -140,7 +140,7 @@ class openstack::controller (
   $quantum_db_password     = 'quantum_db_pass',
   $quantum_db_user         = 'quantum',
   $quantum_db_dbname       = 'quantum',
-  $enabled                 = true
+  $enabled                 = true,
   $api_bind_address        = '0.0.0.0',
   $mysql_host              = '127.0.0.1',
   $service_endpoint        = '127.0.0.1',
@@ -195,19 +195,6 @@ class openstack::controller (
       enabled                => $enabled,
    }
   }
-  class { "mysql::server":
-    config_hash => {
-      # the priv grant fails on precise if I set a root password
-      # TODO I should make sure that this works
-      # 'root_password' => $mysql_root_password,
-      'bind_address'  => '0.0.0.0'
-    },
-    galera_cluster_name	=> $galera_cluster_name,
-    galera_master_ip	=> $galera_master_ip,
-    galera_node_address	=> $galera_node_address,
-    enabled => $enabled,
-    custom_setup_class => $custom_mysql_setup_class,
-  }
   ####### KEYSTONE ###########
   class { 'openstack::keystone':
     verbose               => $verbose,
@@ -248,7 +235,7 @@ class openstack::controller (
     keystone_host         => $service_endpoint,
     bind_host           => $api_bind_address,
     enabled                   => $enabled,
-    glance_backend            => $glance_backend
+    glance_backend            => $glance_backend,
     registry_host     => $service_endpoint,
   }
 

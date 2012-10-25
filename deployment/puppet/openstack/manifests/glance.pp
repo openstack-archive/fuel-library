@@ -90,7 +90,7 @@ class openstack::glance (
 #    package { "openstack-swift":
 #    ensure =>present,
     Package["swift"] ~> Service['glance-api']
-    }
+    
       class { "glance::backend::$glance_backend":
      swift_store_user => "services:glance",
      swift_store_key=> $glance_user_password,
