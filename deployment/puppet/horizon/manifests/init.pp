@@ -20,6 +20,7 @@
 # $api_result_limit     max number of Swift containers/objects to display on a single page
 #
 class horizon(
+  $bind_address = '127.0.0.1',
   $secret_key,
   $cache_server_ip       = '127.0.0.1',
   $cache_server_port     = '11211',
