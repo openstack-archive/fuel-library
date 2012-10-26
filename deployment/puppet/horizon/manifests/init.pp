@@ -26,6 +26,7 @@ class horizon(
   $cache_server_port     = '11211',
   $swift                 = false,
   $quantum               = false,
+  $package_ensure	= present,
   $horizon_app_links     = false,
   $keystone_host         = '127.0.0.1',
   $keystone_port         = 5000,
@@ -99,7 +100,7 @@ class horizon(
 
   # ensure https only listens on the management address, not on all interfaces
   file_line { 'httpd_listen_on_internal_network_only':
-    path => $::horizon::params::http_config_file,
+    path => $::horizon::params::config_file,
     match => '^Listen (.*)$',
     line => "Listen ${bind_address}:80",
     require => Package["$::horizon::params::package_name"],
