@@ -77,7 +77,6 @@ class puppetdb::server(
   $database_password       = $puppetdb::params::database_password,
   $database_name           = $puppetdb::params::database_name,
   $puppetdb_version        = $puppetdb::params::puppetdb_version,
-  $manage_redhat_firewall  = $puppetdb::params::manage_redhat_firewall,
   $confdir                 = $puppetdb::params::confdir,
   $gc_interval             = $puppetdb::params::gc_interval,
 ) inherits puppetdb::params {
@@ -87,10 +86,7 @@ class puppetdb::server(
     notify => Service['puppetdb'],
   }
 
-  class { 'puppetdb::server::firewall':
-    port                   => $ssl_listen_port,
-    manage_redhat_firewall => $manage_redhat_firewall,
-  }
+  class { 'puppetdb::server::firewall':}
 
   class { 'puppetdb::server::database_ini':
     database          => $database,

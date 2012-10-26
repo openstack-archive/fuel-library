@@ -51,6 +51,7 @@ class puppetdb::master::config(
   $puppet_conf          = '/etc/puppet/puppet.conf',
   $puppetdb_version     = $puppetdb::params::puppetdb_version,
   $restart_puppet       = true,
+  $puppet_service_name  = $puppetdb::params::puppet_service_name,
 ) inherits puppetdb::params {
 
   package { 'puppetdb-terminus':
@@ -102,14 +103,14 @@ class puppetdb::master::config(
   if ($restart_puppet) {
     # We will need to restart the puppet master service if certain config
     # files are changed, so here we make sure it's in the catalog.
-    if ! defined(Service[$puppetdb::params::puppet_service_name]) {
-      service { $puppetdb::params::puppet_service_name:
+    if ! defined(Service[$puppet_service_name]) {
+      service { $puppet_service_name:
         ensure => running,
       }
     }
 
-    Class['puppetdb::master::puppetdb_conf'] ~> Service[$puppetdb::params::puppet_service_name]
-    Class['puppetdb::master::routes']        ~> Service[$puppetdb::params::puppet_service_name]
+    Class['puppetdb::master::puppetdb_conf'] ~> Service[$puppet_service_name]
+    Class['puppetdb::master::routes']        ~> Service[$puppet_service_name]
   }
 
 }

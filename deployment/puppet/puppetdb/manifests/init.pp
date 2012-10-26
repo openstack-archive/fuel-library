@@ -40,18 +40,15 @@
 class puppetdb(
   $database               = $puppetdb::params::database,
   $puppetdb_version       = $puppetdb::params::puppetdb_version,
-  $manage_redhat_firewall = $puppetdb::params::manage_redhat_firewall,
 ) inherits puppetdb::params {
 
   class { 'puppetdb::server':
     database               => $database,
     puppetdb_version       => $puppetdb_version,
-    manage_redhat_firewall => $manage_redhat_firewall,
   }
 
   if ($database == 'postgres') {
     class { 'puppetdb::database::postgresql':
-      manage_redhat_firewall => $manage_redhat_firewall,
       before                 => Class['puppetdb::server']
     }
   }
