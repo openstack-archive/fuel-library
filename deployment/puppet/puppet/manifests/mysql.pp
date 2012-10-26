@@ -1,4 +1,5 @@
 class puppet::mysql ($puppet_stored_dbname, $puppet_stored_dbuser, $puppet_stored_dbpassword, $mysql_root_password,) {
+  
   class { "mysql::server":
     config_hash => {
       "bind_address"  => "127.0.0.1",

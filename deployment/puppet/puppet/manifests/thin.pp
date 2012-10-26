@@ -1,138 +1,48 @@
-class puppet::thin () {
-  include puppet::service
-  include puppet::master
-
-  $thin_daemon_config_template = "puppet/init_puppetmaster_thin.erb"
-
-  case $::osfamily {
-    'RedHat' : {
-      $thin_path ="/usr/bin/thin"
-      package {
-        "make":
-          ensure => latest;
-          
-        "gcc":
-          ensure => latest;
-          
-        "gcc-c++":
-          ensure => latest;
-        
-        "rubygems":
-          ensure => latest;
-
-
-        rrdtool-devel:
-          ensure => latest;
-
-        "ruby-devel":
-          ensure => latest;
-
-         fcgi-devel:
-          ensure => latest;
-      } ->
-      
-      package {
-        bacon:
-          ensure   => present,
-          provider => gem;
-
-        rack:
-          ensure   => present,
-          provider => gem;
-
-        rake:
-          ensure   => present,
-          provider => gem;
-
-        memcache-client:
-          ensure   => present,
-          provider => gem;
-
-        mongrel:
-          ensure   => present,
-          provider => gem;
-
-        fcgi:
-          ensure   => present,
-          provider => gem,
-          require  => Package[fcgi-devel];
-
-        thin:
-          ensure   => present,
-          provider => gem,
-          require  => [Package[bacon], Package[rack], Package[rake], Package[fcgi], Package[memcache-client], Package[mongrel]];
-      }
-    }
-    'Debian' : {
-      $thin_path ="/usr/local/bin/thin"
-      package {
-        "make":
-          ensure => latest;
-          
-        "gcc":
-          ensure => latest;
-        
-        "rubygems1.8":
-          ensure => latest;
-
-        librrd-ruby:
-          ensure => latest;
-
-        "ruby1.8-dev":
-          ensure => latest;
-
-        libfcgi-dev:
-          ensure => latest;
-
-        "libfcgi-ruby1.8":
-          ensure => latest;
-      } ->
-      package {
-
-        bacon:
-          ensure   => present,
-          provider => gem;
-
-        rack:
-          ensure   => present,
-          provider => gem;
-
-        rake:
-          ensure   => present,
-          provider => gem;
-
-        memcache-client:
-          ensure   => present,
-          provider => gem;
-
-        mongrel:
-          ensure   => present,
-          provider => gem;
-
-        fcgi:
-          ensure   => present,
-          provider => gem,
-          require  => Package[libfcgi-dev];
-
-        thin:
-          ensure   => present,
-          provider => gem,
-          require  => [Package[bacon], Package[rack], Package[rake], Package[fcgi], Package[memcache-client], Package[mongrel]];
-      }
-    }
-    default  : {
-      fail("Unsupported osfamily: ${::osfamily} operatingsystem: ${::operatingsystem}, module ${module_name} only support osfamily RedHat and Debian"
-      )
-    }
-  } 
+class puppet::thin (
+  $port = 18140,
+  $servers = 4,
+  $sockets = false, #not implemented  
+) inherits puppet::params {
   
-  file { "/etc/init.d/puppetmaster":
-    content => template($thin_daemon_config_template),
-    owner   => 'root',
-    group   => 'root',
-    mode    => 0755,
-    notify  => Service["puppetmaster"],
-    require => [Exec["puppetmaster_stopped"], Package[thin]],
+  $thin_daemon_config_template = "puppet/init_puppetmaster_thin.erb"
+  $role_name="puppetmasterd"
+  $rack_config = "/usr/share/puppet/ext/rack/files/config.ru"
+
+  package { $puppet::params::thin_packages:
+          ensure => latest;
+  }
+
+  exec { "thin_install":
+      command => "/usr/bin/thin install",
+      require => [
+                  Package[$puppet::params::thin_packages],
+                  ],
+      before => Service["thin"]
+  }
+  
+  if ! defined(Package[$puppet::params::puppet_master_packages]) {
+      package { $puppet::params::puppet_master_packages :
+         ensure => present,
+      }
+  }
+  
+  exec { "thin_configure":
+      #command => "thin config --config /etc/thin/puppet.yaml -P /var/run/puppet/${role_name}.pid -e production --servers 4 --daemonize --socket /var/run/puppet/${rolename}.sock --chdir /etc/puppet/ -R ${rack_config}",
+      command => "/usr/bin/thin config --config /etc/thin/puppet.yaml -P /var/run/puppet/${role_name}.pid -e production --servers ${servers} --daemonize --port ${port} --chdir /etc/puppet/  -R ${rack_config}",
+      require => [Package[$puppet::params::thin_packages],
+                  Exec["thin_install"],
+                  Package[$puppet::params::puppet_master_packages],
+                 ],
+      notify => Service["thin"],
+  }
+
+  service { "thin":
+      name => "thin",
+      enable => true,
+      ensure =>"running",
+      require => [
+                  Package[$puppet::params::thin_packages],
+                  ],
   }
 
 }

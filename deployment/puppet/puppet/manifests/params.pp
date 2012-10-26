@@ -8,6 +8,7 @@ class puppet::params
          $puppet_master_version  = "2.7.19-1.el6"
          $puppet_master_packages = "puppet-server" 
          $mongrel_packages = "rubygem-mongrel"
+         $thin_packages = "rubygem-thin"
          $daemon_config_file = "/etc/sysconfig/puppetmaster"
          $daemon_config_template = "puppet/sysconfig_puppetmaster.erb"
          $puppet_config_template = "puppet/puppet.conf.centos.erb"
@@ -16,6 +17,7 @@ class puppet::params
          $puppet_master_version  = "2.7.19-1puppetlabs1"
          $puppet_master_packages = ["puppetmaster", "puppetmaster-common", "puppet-common"]
          $mongrel_packages = "mongrel"
+         $thin_packages = "thin"
          $daemon_config_file = "/etc/default/puppetmaster"
          $daemon_config_template = "puppet/default_puppetmaster.erb"
          $puppet_config_template = "puppet/puppet.conf.ubuntu.erb"

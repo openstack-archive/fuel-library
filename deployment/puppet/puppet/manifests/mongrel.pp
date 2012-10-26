@@ -1,6 +1,7 @@
-class puppet::mongrel{
-  
-  include puppet::service
+class puppet::mongrel(
+  $puppet_master_ports = $puppet::params::puppet_master_ports
+) inherits puppet::master
+{
   
   package {  $puppet::params::mongrel_packages: ensure=>"installed"}
 

@@ -6,7 +6,7 @@ class puppet::nginx(
   $cacrl = $::cacrl,
   $upstream_servers = ["127.0.0.1:18140", "127.0.0.1:18141", "127.0.0.1:18142", "127.0.0.1:18143"],
   ) {
-
+   
   package { "nginx": }
 
   file { "/etc/nginx/conf.d/puppet.conf":
@@ -17,11 +17,11 @@ class puppet::nginx(
     require => Package["nginx"],
     notify => Service["nginx"],
   }->
-    
+  
   service { "nginx":
     enable => true,
     ensure => "running",
-    require => Package["nginx"],
+    require => [Package["nginx"],
+               Class["puppet::service"]]
   }
-
 }

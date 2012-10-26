@@ -13,6 +13,5 @@ class puppet::iptables {
   }
 
   access_to_puppet_port { "puppet_tcp":   port => '8140' }
-#  todo use puppetlabs/firewall?
 
 }

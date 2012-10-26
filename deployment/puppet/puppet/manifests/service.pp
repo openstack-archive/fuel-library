@@ -1,18 +1,26 @@
-class puppet::service ($puppet_service_name = "puppetmaster")
-inherits puppet::params 
+class puppet::service ($enable_service = false) inherits puppet::params
 {
-	service { "puppetmaster":
-	    name => $puppet_service_name,
-	    enable => true,
-	    ensure =>"running",
-	    require => [
-	                Package[$puppet::params::puppet_master_packages],
-	                Class["puppet::master_config"]
-	                ],
+  if ($enable_service) {
+  	service { "puppetmaster":
+	      enable => true,
+	      ensure =>"running",
+	      require => [
+	                  Package[$puppet::params::puppet_master_packages],
+	                  Class["puppet::master_config"]
+	                  ],
+	  }
 	}
 	
-	exec {"puppetmaster_stopped":
-	  command => "/etc/init.d/puppetmaster stop",
-	  require => Package[$puppet::params::puppet_master_packages]
-	}
+	else {
+    service { "puppetmaster":
+        enable => false,
+        ensure =>"stopped",
+        require => [
+                    Package[$puppet::params::puppet_master_packages],
+                    Class["puppet::master_config"]
+                    ],
+    }
+    
+  }
+	  
 }
