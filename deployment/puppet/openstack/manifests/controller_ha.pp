@@ -51,10 +51,10 @@ define haproxy_service($order, $balancers, $virtual_ips, $port, $define_cookies 
 #    order => $order - 1,
     ipaddress => $virtual_ips,
     ports => $port,
-    haproxy_config_options => $haproxy_config_options,
-  }
-
-  @@haproxy::balancermember { "${name}":
+    options => $haproxy_config_options,
+    collect_exported => false
+  }->
+  haproxy::balancermember { "${name}":
 #    order                  => $order,
     listening_service      => $name,
     balancers           => $balancers,
@@ -187,7 +187,7 @@ class openstack::controller_ha (
         unless => "iptables-save  | grep '\-A INPUT -d 224.0.0.18/32 -m pkttype --pkt-type multicast -j ACCEPT' -q",
         path => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
         before => Service['keepalived'],
-        require => Class['firewall']
+        require => Class['myfirewall']
     }
 
     # keepalived
@@ -212,7 +212,7 @@ class openstack::controller_ha (
 #      node_address => $controller_internal_addresses[$which],
 #    }
 
-    class { 'firewall':
+    class { 'myfirewall':
       before => Class['galera']
     }
     Class['haproxy'] -> Class['galera']

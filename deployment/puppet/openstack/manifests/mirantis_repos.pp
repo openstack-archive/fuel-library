@@ -13,7 +13,7 @@ class openstack::mirantis_repos {
         }
       }
       'RedHat': {
-        $repo_baseurl='http://download.mirantis.com/epel-fuel'
+	#$repo_baseurl='http://download.mirantis.com/epel-fuel-folsom'
         #added internal network mirror. Change if you need to use outside of mirantis
         $mirrorlist='http://172.18.67.168/centos-repo/epel-fuel-folsom/mirror.internal.list'
         class { 'openstack::repo::yum':

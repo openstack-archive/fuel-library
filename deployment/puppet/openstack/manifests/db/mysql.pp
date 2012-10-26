@@ -60,7 +60,11 @@ class openstack::db::mysql (
     $quantum                = true,
     $quantum_db_user        = 'quantum',
     $quantum_db_dbname      = 'quantum',
-    $enabled                = true
+    $enabled                = true,
+    $galera_cluster_name = 'openstack',
+    $galera_master_ip = '127.0.0.1',
+    $galera_node_address = '127.0.0.1',
+    $custom_setup_class = undef
 ) {
 
   # Install and configure MySQL Server
@@ -82,12 +86,12 @@ class openstack::db::mysql (
     galera_master_ip	=> $galera_master_ip,
     galera_node_address	=> $galera_node_address,
     enabled => $enabled,
-    custom_setup_class => $custom_mysql_setup_class,
+    custom_setup_class => $custom_setup_class,
   }
 
 
   # This removes default users and guest access
-  if $mysql_account_security {
+  if $mysql_account_security and $custom_setup_class == undef {
     class { 'mysql::server::account_security': }
   }
 

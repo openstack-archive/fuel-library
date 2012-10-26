@@ -24,7 +24,7 @@ class openstack::repo::yum (
   yumrepo {$repo_name:
     baseurl  => $location,
     mirrorlist => $mirrorlist,
-    gpgcheck => 1,
+    gpgcheck => $gpgcheck,
     gpgkey   => $key_source,
     priority => $priority,
     enabled  => 1,

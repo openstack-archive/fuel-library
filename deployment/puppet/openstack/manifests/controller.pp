@@ -193,6 +193,11 @@ class openstack::controller (
       quantum_db_dbname      => $quantum_db_dbname,
       allowed_hosts          => $allowed_hosts,
       enabled                => $enabled,
+     galera_cluster_name => $galera_cluster_name,
+     galera_master_ip => $galera_master_ip ,
+     galera_node_address => $galera_node_address ,
+     custom_setup_class => $custom_mysql_setup_class,
+
    }
   }
   ####### KEYSTONE ###########
