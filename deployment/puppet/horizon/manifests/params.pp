@@ -11,12 +11,13 @@ class horizon::params {
       $http_config_file            = '/etc/httpd/conf/httpd.conf'
       $package_name                = 'openstack-dashboard'
       $dashboard_config_file       = '/etc/httpd/conf.d/openstack-dashboard.conf'
+      $httpd_listen_config_file       = '/etc/httpd/conf/httpd.conf'
       $local_settings_path         = '/etc/openstack-dashboard/local_settings'
     }
     'Debian': {
       $http_service                = 'apache2'
       $http_modwsgi                = 'libapache2-mod-wsgi'
-      $http_config_file            = '/etc/apache2/apache2.conf'
+      $httpd_listen_config_file    = '/etc/apache2/ports.conf'
       case $::operatingsystem {
         'Debian': {
             $package_name          = 'openstack-dashboard-apache'
@@ -25,7 +26,7 @@ class horizon::params {
             $package_name          = 'openstack-dashboard'
         }
       }
-      $dashboard_config_file       = '/etc/httpd/conf.d/openstack-dashboard.conf'
+      $dashboard_config_file       = '/etc/apache2/conf.d/openstack-dashboard.conf'
       $local_settings_path         = '/etc/openstack-dashboard/local_settings.py'
     }
     default: {
