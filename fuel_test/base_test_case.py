@@ -1,11 +1,10 @@
 import logging
 import unittest
 from abc import abstractproperty
-from devops.helpers import ssh, os
+from devops.helpers import ssh
 import re
 from fuel_test.ci.ci_base import CiBase
-from helpers import load, execute, write_config, sync_time, safety_revert_nodes
-from root import root
+from helpers import load, execute, write_config, sync_time, safety_revert_nodes, upload_recipes
 
 class BaseTestCase(unittest.TestCase):
     @abstractproperty
@@ -23,17 +22,8 @@ class BaseTestCase(unittest.TestCase):
         self.master_remote = ssh(master.ip_address_by_network['internal'],
             username='root',
             password='r00tme')
-        self.upload_recipes()
-        execute(self.master_remote, "rm -rf /etc/puppet/modules/quantum")
+        upload_recipes(self.master_remote)
         self.restart_puppet_muster()
-
-    def upload_recipes(self):
-        recipes_dir = root('fuel', 'deployment', 'puppet')
-        for dir in os.listdir(recipes_dir):
-            recipe_dir = os.path.join(recipes_dir, dir)
-            remote_dir = "/etc/puppet/modules/"
-            self.master_remote.mkdir(remote_dir)
-            self.master_remote.upload(recipe_dir, remote_dir)
 
     def revert_snapshots(self):
         safety_revert_nodes(self.environment.nodes, 'empty')
