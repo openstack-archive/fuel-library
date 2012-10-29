@@ -217,6 +217,7 @@ def switch_off_ip_tables(remote):
 
 def setup_puppet_master_yum(remote):
     add_puppetlab_repo(remote)
+    execute(remote.sudo.ssh, 'yum -y install puppet-2.7.19')
     execute(remote.sudo.ssh, 'puppet apply -e '
                              '"class {puppet:}'
                              '-> class {puppet::thin}'
