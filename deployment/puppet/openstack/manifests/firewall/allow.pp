@@ -1,4 +1,4 @@
-define myfirewall::allow () {
+define openstack::firewall::allow () {
 
   firewall { "100 snat for port $title":
     chain    => 'INPUT',

@@ -1,5 +1,5 @@
 
-class myfirewall (
+class openstack::firewall (
 	$ssh_port = 22,
 	$http_port = 80,
 	$https_port = 443,
@@ -65,7 +65,7 @@ Firewallchain {
     proto   => 'all',
     state   => ['RELATED', 'ESTABLISHED'],
     action  => 'accept',
-  }->myfirewall::allow {[
+  }->openstack::firewall::allow {[
 		$ssh_port,
 		$http_port,
 		$https_port,
