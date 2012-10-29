@@ -186,7 +186,7 @@ class openstack::controller_ha (
         unless => "iptables-save  | grep '\-A INPUT -d 224.0.0.18/32 -m pkttype --pkt-type multicast -j ACCEPT' -q",
         path => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
         before => Service['keepalived'],
-        require => Class['myfirewall']
+        require => Class['::openstack::firewall']
     }
 
     # keepalived
@@ -211,7 +211,7 @@ class openstack::controller_ha (
 #      node_address => $controller_internal_addresses[$which],
 #    }
 
-    class { 'myfirewall':
+    class { '::openstack::firewall':
       before => Class['galera']
     }
     Class['haproxy'] -> Class['galera']
