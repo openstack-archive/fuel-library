@@ -24,7 +24,7 @@ class BaseTestCase(unittest.TestCase):
             username='root',
             password='r00tme')
         self.upload_recipes()
-        execute(self.master_remote,"rm -rf /etc/puppet/modules/quantum")
+        execute(self.master_remote, "rm -rf /etc/puppet/modules/quantum")
         self.restart_puppet_muster()
 
     def upload_recipes(self):
@@ -40,7 +40,7 @@ class BaseTestCase(unittest.TestCase):
         for node in self.environment.nodes:
             remote = ssh(node.ip_address, username='root', password='r00tme')
             sync_time(remote.sudo.ssh)
-            remote.sudo.ssh.execute('yum makecache')
+            execute(remote.sudo.ssh, 'yum makecache')
 
     def replace(self, template, **kwargs):
         for key in kwargs:
