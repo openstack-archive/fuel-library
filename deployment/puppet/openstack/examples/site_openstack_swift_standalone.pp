@@ -47,11 +47,17 @@ case $::osfamily {
   }
   'Debian': {
     $openstack_version = {
-      'keystone'   => '7',
-      'glance'     => '9',
-      'horizon'    => '190',
-      'nova'       => '19',
-      'novncproxy' => '4',
+#     'keystone'   => '7',
+#      'keystone'  => '2012.1-0ubuntu1',
+#     'glance'     => '9',
+#      'glance'     => '2012.1-0ubuntu2',
+#     'horizon'    => '190',
+#      'horizon'    => '2012.1-0ubuntu8',
+#     'nova'       => '19',
+#      'nova'       => '2012.1-0ubuntu2',
+#     'novncproxy' => '4',
+#      'novncproxy' => '2012.1~e3+dfsg+1-2',
+#      'nova-common' => '2012.1-0ubuntu2',
     }
   }
 }
