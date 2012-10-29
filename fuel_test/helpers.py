@@ -3,6 +3,7 @@ from time import sleep
 from devops.helpers import ssh, os
 import keystoneclient.v2_0
 import re
+from fuel_test.settings import OS_FAMILY
 from root import root
 #from glanceclient import Client
 
@@ -169,28 +170,35 @@ def retry(count, func, **kwargs):
             sleep(1)
 
 
-def add_nmap_yum(remote):
-    remote.sudo.ssh.execute('yum -y install nmap')
+def install_packages(remote, packages):
+    if OS_FAMILY == "centos":
+        execute(remote.sudo.ssh, 'yum -y install %s' % packages)
+    else:
+        execute(remote.sudo.ssh, 'apt-get -y install %s' % packages)
 
 
-def add_epel_repo(remote):
+def add_nmap(remote):
+    install_packages(remote, "nmap")
+
+
+def add_epel_repo_yum(remote):
     remote.sudo.ssh.execute(
         'rpm -Uvh http://download.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-7.noarch.rpm')
 
 
-def add_puppetlab_repo(remote):
+def add_puppetlab_repo_yum(remote):
     remote.sudo.ssh.execute(
         'rpm -ivh http://yum.puppetlabs.com/el/6/products/i386/puppetlabs-release-6-5.noarch.rpm')
 
 
-def remove_puppetlab_repo(remote):
+def remove_puppetlab_repo_yum(remote):
     remote.sudo.ssh.execute('rpm --erase puppetlabs-release-6-5.noarch')
 
 
 def setup_puppet_client_yum(remote):
-    add_puppetlab_repo(remote)
-    remote.sudo.ssh.execute('yum -y install puppet-2.7.19')
-    remove_puppetlab_repo(remote)
+    add_puppetlab_repo_yum(remote)
+    install_packages(remote, 'puppet-2.7.19')
+    remove_puppetlab_repo_yum(remote)
 
 
 def start_puppet_master(remote):
@@ -215,19 +223,23 @@ def switch_off_ip_tables(remote):
     remote.sudo.ssh.execute('iptables -F')
 
 
+def puppet_apply(remote, script, module_path="/tmp/puppet/modules/"):
+    execute(remote.sudo.ssh,
+        "puppet apply --modulepath %s -e '%s'" % (module_path, script))
+
+
 def setup_puppet_master_yum(remote):
-    add_puppetlab_repo(remote)
+    add_puppetlab_repo_yum(remote)
     execute(remote.sudo.ssh, 'yum -y install puppet-2.7.19')
     upload_recipes(remote.sudo.ssh, "/tmp/puppet/modules/")
-    execute(remote.sudo.ssh,
-        'puppet apply --modulepath /tmp/puppet/modules/ -e '
-        '"class {puppet:}'
+    puppet_apply(remote.sudo.ssh,
+        'class {puppet:}'
         '-> class {puppet::thin:}'
-        '-> class {puppet::nginx: puppet_master_hostname=>\"master.mirantis.com\"}"')
-    execute(remote.sudo.ssh,
-        'puppet apply --modulepath /tmp/puppet/modules/ -e "class {puppetdb:}"')
-    execute(remote.sudo.ssh,
-        'puppet apply --modulepath /tmp/puppet/modules/ -e "class {puppetdb::master::config:}"')
+        '-> class {puppet::nginx: puppet_master_hostname => "master.mirantis.com"}')
+    puppet_apply(remote.sudo.ssh,
+        'class {puppetdb:}')
+    puppet_apply(remote.sudo.ssh,
+        'class {puppetdb::master::config:}')
     execute(remote.sudo.ssh, 'setenforce 0')
 
 
@@ -241,9 +253,21 @@ def upload_recipes(remote, remote_dir="/etc/puppet/modules/"):
 
 def change_host_name(remote, short, long):
     remote.sudo.ssh.execute('hostname %s' % long)
-    remote.sudo.ssh.execute(
-        'echo HOSTNAME=%s >> /etc/sysconfig/network' % short)
     add_to_hosts(remote, '127.0.0.1', short, long)
+    if OS_FAMILY == "centos":
+        update_host_name_centos(remote, short)
+    else:
+        update_host_name_ubuntu(remote, short)
+
+
+def update_host_name_centos(remote, short):
+    execute(remote.sudo.ssh,
+        'echo HOSTNAME=%s >> /etc/sysconfig/network' % short)
+
+
+def update_host_name_ubuntu(remote, short):
+    execute(remote.sudo.ssh,
+        'echo %s > /etc/hostname' % short)
 
 
 def add_to_hosts(remote, ip, short, long):
