@@ -217,18 +217,13 @@ def switch_off_ip_tables(remote):
 
 def setup_puppet_master_yum(remote):
     add_puppetlab_repo(remote)
-    execute(
-        remote.sudo.ssh,
-        'yum -y install puppet-server-2.7.19 mysql mysql-server mysql-devel rubygems ruby-devel make gcc')
-    remove_puppetlab_repo(remote)
-    execute(remote.sudo.ssh, 'gem install rails -v 3.0.10')
-    execute(remote.sudo.ssh, 'gem install mysql')
-    execute(remote.sudo.ssh, 'chkconfig mysql on')
-    execute(remote.sudo.ssh, 'service mysqld start')
+    execute(remote.sudo.ssh, 'puppet apply -e '
+                             '"class {puppet:}'
+                             '-> class {puppet::thin}'
+                             '-> class {puppet::nginx: puppet_master_hostname=>\"master.mirantis.com\"}"')
+    execute(remote.sudo.ssh, 'puppet apply -e "class {puppetdb:}"')
     execute(remote.sudo.ssh,
-        'mysql -u root -e "create database puppet; grant all privileges on puppet.* to puppet@localhost identified by \'password\'; "')
-    execute(remote.sudo.ssh, 'gem uninstall activerecord')
-    execute(remote.sudo.ssh, 'gem install activerecord -v 3.0.10')
+        'puppet apply -e "class {puppetdb::master::config}"')
     execute(remote.sudo.ssh, 'setenforce 0')
 
 
@@ -236,7 +231,7 @@ def change_host_name(remote, short, long):
     remote.sudo.ssh.execute('hostname %s' % long)
     remote.sudo.ssh.execute(
         'echo HOSTNAME=%s >> /etc/sysconfig/network' % short)
-    add_to_hosts(remote, '127.0.0.1', short, short)
+    add_to_hosts(remote, '127.0.0.1', short, long)
 
 
 def set_ip_address(remote, interface='eth0', address='1.1.1.1'):

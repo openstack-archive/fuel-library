@@ -83,7 +83,8 @@ class CiBase(object):
 
     def add_nodes_to_hosts(self, remote, nodes):
         for node in nodes:
-            add_to_hosts(remote, node.ip_address, node.name, node.name)
+            add_to_hosts(remote, node.ip_address, node.name,
+                node.name + '.mirantis.com')
 
     def setup_master_node(self, master_remote, nodes):
         setup_puppet_master_yum(master_remote)
@@ -128,7 +129,7 @@ class CiBase(object):
     def rename_nodes(self, nodes):
         for node in nodes:
             remote = ssh(node.ip_address, username='root', password='r00tme')
-            change_host_name(remote, node.name, node.name)
+            change_host_name(remote, node.name, node.name + '.mirantis.com')
             logging.info("Renamed %s" % node.name)
 
     def setup_environment(self):
