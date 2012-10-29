@@ -142,7 +142,6 @@ class openstack::controller (
   $quantum_db_dbname       = 'quantum',
   $enabled                 = true,
   $api_bind_address        = '0.0.0.0',
-  $mysql_host              = '127.0.0.1',
   $service_endpoint        = '127.0.0.1',
   $galera_cluster_name = 'openstack',
   $galera_master_ip = '127.0.0.1',

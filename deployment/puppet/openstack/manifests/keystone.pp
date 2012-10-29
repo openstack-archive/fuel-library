@@ -163,6 +163,7 @@ class openstack::keystone (
     admin_token    => $admin_token,
     enabled        => $enabled,
     sql_connection => $sql_conn,
+    bind_host	=> $bind_host,
     package_ensure => $package_ensure
   }
 

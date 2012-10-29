@@ -52,9 +52,8 @@ define haproxy_service($order, $balancers, $virtual_ips, $port, $define_cookies 
     ipaddress => $virtual_ips,
     ports => $port,
     options => $haproxy_config_options,
-    collect_exported => false
-  }->
-  haproxy::balancermember { "${name}":
+  }
+  @@haproxy::balancermember { "${name}":
 #    order                  => $order,
     listening_service      => $name,
     balancers           => $balancers,
@@ -249,7 +248,7 @@ class openstack::controller_ha (
       cache_server_ip         => $memcached_servers,
       export_resources        => false,
       api_bind_address        => $controller_internal_addresses[$::hostname],
-      mysql_host              => $internal_virtual_ip,
+      db_host              => $internal_virtual_ip,
       service_endpoint        => $internal_virtual_ip,
       glance_backend          => $glance_backend,
       require                 => Service['keepalived']
