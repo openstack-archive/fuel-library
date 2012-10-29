@@ -27,73 +27,11 @@ class openstack::firewall (
   $rsync_port = 873,
   $iscsi_port = 3260,
 ) {
-exec { 'persist-firewall':
+exec { 'startup-firewall':
   command     => $operatingsystem ? {
-      'debian'          => '/sbin/iptables-save > /etc/iptables/rules.v4',
-      /(RedHat|CentOS)/ => '/sbin/iptables-save > /etc/sysconfig/iptables',
- },
-#  refreshonly => true,
+      'debian'          => '/sbin/iptables-restore  /etc/iptables/rules.v4',
+      /(RedHat|CentOS)/ => '/sbin/iptables-restore  /etc/sysconfig/iptables',
+ }
 }
 
-Firewall {
-  notify  => Exec['persist-firewall'],
-#  before  => Class['my_fw::post'],
-#  require => Class['my_fw::pre'],
 }
-Firewallchain {
-  notify  => Exec['persist-firewall'],
-}
-
-# Purge unmanaged firewall resources
-#
-# This will clear any existing rules, and make sure that only rules
-# defined in puppet exist on the machine
-#resources { "firewall":
-#  purge => true
-#}
-
-  firewall { '000 accept all icmp':
-    proto   => 'icmp',
-    action  => 'accept',
-  }->
-  firewall { '001 accept all to lo interface':
-    proto   => 'all',
-    iniface => 'lo',
-    action  => 'accept',
-  }->
-  firewall { '002 accept related established rules':
-    proto   => 'all',
-    state   => ['RELATED', 'ESTABLISHED'],
-    action  => 'accept',
-  }->openstack::firewall::allow {[
-		$ssh_port,
-		$http_port,
-		$https_port,
-		$mysql_port,
-		$mysql_backend_port,
-		$galera_ist_port,
-        $mysql_gcomm_port,
-		$keystone_public_port,
-		$keystone_admin_port, 
-		$glance_api_port,
-		$glance_reg_port,
-		$glance_nova_api_ec2_port,
-		$nova_api_compute_port,
-		$nova_api_metadata_port,
-		$nova_api_volume_port,
-		$nova_vncproxy_port,
-		$erlang_epmd_port,
-		$erlang_rabbitmq_port,
-		$erlang_inet_dist_port,
-		$memcached_port,
-    $rsync_port,
-	$swift_proxy_port,
-	$swift_object_port,
-	$swift_container_port,
-	$swift_account_port,
-  $iscsi_port,
-      ]: }
-
-
-}
-
