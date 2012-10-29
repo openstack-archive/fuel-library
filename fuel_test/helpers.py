@@ -145,7 +145,7 @@ def tempest_mount_glance_images(remote, host):
 
 
 def sync_time(remote):
-    execute(remote, 'yum -y install ntpdate')
+    install_packages(remote, 'ntpdate')
     execute(remote, '/etc/init.d/ntpd stop')
     execute(remote, 'ntpdate 0.centos.pool.ntp.org')
     execute(remote, '/etc/init.d/ntpd start')
@@ -182,23 +182,37 @@ def add_nmap(remote):
 
 
 def add_epel_repo_yum(remote):
-    remote.sudo.ssh.execute(
+    execute(remote.sudo.ssh,
         'rpm -Uvh http://download.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-7.noarch.rpm')
 
 
-def add_puppetlab_repo_yum(remote):
-    remote.sudo.ssh.execute(
-        'rpm -ivh http://yum.puppetlabs.com/el/6/products/i386/puppetlabs-release-6-5.noarch.rpm')
+def delete_epel_repo_yum(remote):
+    execute(remote.sudo.ssh,
+        'rpm --erase epel-release-6-7.noarch.rpm')
 
 
-def remove_puppetlab_repo_yum(remote):
-    remote.sudo.ssh.execute('rpm --erase puppetlabs-release-6-5.noarch')
+def add_puppet_lab_repo(remote):
+    if OS_FAMILY == "centos":
+        execute(
+            remote.sudo.ssh,
+            'rpm -ivh http://yum.puppetlabs.com/el/6/products/i386/puppetlabs-release-6-5.noarch.rpm')
+    else:
+        execute(remote.sudo.ssh,
+            'wget http://apt.puppetlabs.com/puppetlabs-release-precise.deb -O /tmp/puppetlabs-release-precise.deb')
+        execute(remote.sudo.ssh, 'dpkg -i puppetlabs-release-precise.deb')
 
 
-def setup_puppet_client_yum(remote):
-    add_puppetlab_repo_yum(remote)
-    install_packages(remote, 'puppet-2.7.19')
-    remove_puppetlab_repo_yum(remote)
+def remove_puppetlab_repo(remote):
+    if OS_FAMILY == "centos":
+        execute(remote.sudo.ssh, 'rpm --erase puppetlabs-release-6-5.noarch')
+    else:
+        execute(remote.sudo.ssh, 'dpkg -r puppetlabs-release-precise.deb')
+
+
+def setup_puppet_client(remote):
+    add_puppet_lab_repo(remote)
+    install_packages(remote, 'puppet')
+    remove_puppetlab_repo(remote)
 
 
 def start_puppet_master(remote):
@@ -228,9 +242,10 @@ def puppet_apply(remote, script, module_path="/tmp/puppet/modules/"):
         "puppet apply --modulepath %s -e '%s'" % (module_path, script))
 
 
-def setup_puppet_master_yum(remote):
-    add_puppetlab_repo_yum(remote)
-    execute(remote.sudo.ssh, 'yum -y install puppet-2.7.19')
+def setup_puppet_master(remote):
+    add_puppet_lab_repo(remote)
+    add_epel_repo_yum(remote)
+    install_packages(remote, 'puppet')
     upload_recipes(remote.sudo.ssh, "/tmp/puppet/modules/")
     puppet_apply(remote.sudo.ssh,
         'class {puppet:}'
