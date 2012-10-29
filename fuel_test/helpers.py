@@ -222,12 +222,12 @@ def setup_puppet_master_yum(remote):
     execute(remote.sudo.ssh,
         'puppet apply --modulepath /tmp/puppet/modules/ -e '
         '"class {puppet:}'
-        '-> class {puppet::thin}'
+        '-> class {puppet::thin:}'
         '-> class {puppet::nginx: puppet_master_hostname=>\"master.mirantis.com\"}"')
     execute(remote.sudo.ssh,
         'puppet apply --modulepath /tmp/puppet/modules/ -e "class {puppetdb:}"')
     execute(remote.sudo.ssh,
-        'puppet apply -e "class {puppetdb::master::config}"')
+        'puppet apply --modulepath /tmp/puppet/modules/ -e "class {puppetdb::master::config:}"')
     execute(remote.sudo.ssh, 'setenforce 0')
 
 
@@ -244,11 +244,6 @@ def change_host_name(remote, short, long):
     remote.sudo.ssh.execute(
         'echo HOSTNAME=%s >> /etc/sysconfig/network' % short)
     add_to_hosts(remote, '127.0.0.1', short, long)
-
-
-def set_ip_address(remote, interface='eth0', address='1.1.1.1'):
-    remote.sudo.ssh.execute('hostname %s' % long)
-    pass
 
 
 def add_to_hosts(remote, ip, short, long):
