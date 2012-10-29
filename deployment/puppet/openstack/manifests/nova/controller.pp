@@ -58,7 +58,8 @@ class openstack::nova::controller (
   $exported_resources        = true,
   $rabbit_nodes			= [$internal_address],
   $ensure_package    = present,
-  $enabled_apis			= 'ec2,osapi_compute,metadata'
+  $enabled_apis			= 'ec2,osapi_compute,metadata',
+  $api_bind_address		= '0.0.0.0'
 ) {
 
   # Configure the db string
@@ -76,10 +77,10 @@ class openstack::nova::controller (
     $rabbit_addresses = inline_template("<%= @rabbit_nodes.map {|x| x + ':5672'}.join ',' %>")
   if ($exported_resources) {
     # export all of the things that will be needed by the clients
-    @@nova_config { 'DEFAULT/rabbit_host': value => $internal_address }
-    Nova_config <| title == 'rabbit_host' |>
+#    @@nova_config { 'DEFAULT/rabbit_host': value => $internal_address }
+#    Nova_config <| title == 'rabbit_host' |>
 
-    @@nova_config { 'DEFAULT/rabbit_nodes': value => $rabbit_addresses }
+    @@nova_config { 'DEFAULT/rabbit_addresses': value => $rabbit_addresses }
     Nova_config <| title == 'rabbit_nodes' |>
 
     @@nova_config { 'DEFAULT/sql_connection': value => $nova_db }
@@ -116,7 +117,8 @@ if ($rabbit_nodes)
     glance_api_servers => $glance_connection,
     verbose            => $verbose,
     rabbit_nodes	=> $rabbit_nodes,
-    ensure_package	=> $ensure_package
+    ensure_package	=> $ensure_package,
+    api_bind_address 	=> $api_bind_address
   }
  }
  else
@@ -129,7 +131,8 @@ if ($rabbit_nodes)
     glance_api_servers => $glance_connection,
     verbose            => $verbose,
     rabbit_host	=> $rabbit_connection,
-    ensure_package	=> $ensure_package
+    ensure_package	=> $ensure_package,
+    api_bind_address 	=> $api_bind_address
   }
  
  }
@@ -150,7 +153,7 @@ if ($rabbit_nodes)
     admin_password    => $nova_user_password,
     auth_host         => $keystone_host,
     enabled_apis	=> $enabled_apis,
-    ensure_package	=> $ensure_package
+    ensure_package	=> $ensure_package,
   }
 
   # Configure nova-network

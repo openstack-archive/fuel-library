@@ -57,6 +57,7 @@ class openstack::glance (
   class { 'glance::api':
     verbose           => $verbose,
     debug             => $verbose,
+    bind_host		=> $bind_host,
     auth_type         => 'keystone',
     auth_port         => '35357',
     auth_host         => $keystone_host,
@@ -72,6 +73,7 @@ class openstack::glance (
   class { 'glance::registry':
     verbose           => $verbose,
     debug             => $verbose,
+    bind_host		=> $bind_host,
     auth_host         => $keystone_host,
     auth_port         => '35357',
     auth_type         => 'keystone',

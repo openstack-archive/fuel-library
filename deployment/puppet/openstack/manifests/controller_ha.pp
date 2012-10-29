@@ -181,16 +181,16 @@ class openstack::controller_ha (
       require => Sysctl::Value['net.ipv4.ip_nonlocal_bind'],
     }
 
-    exec { 'create-keepalived-rules':
-        command => "iptables -I INPUT -m pkttype --pkt-type multicast -d 224.0.0.18 -j ACCEPT && /etc/init.d/iptables save ", 
-        unless => "iptables-save  | grep '\-A INPUT -d 224.0.0.18/32 -m pkttype --pkt-type multicast -j ACCEPT' -q",
-        path => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
-        before => Service['keepalived'],
-        require => Class['::openstack::firewall']
-    }
+#    exec { 'create-keepalived-rules':
+#        command => "iptables -I INPUT -m pkttype --pkt-type multicast -d 224.0.0.18 -j ACCEPT && /etc/init.d/iptables save ", 
+#        unless => "iptables-save  | grep '\-A INPUT -d 224.0.0.18/32 -m pkttype --pkt-type multicast -j ACCEPT' -q",
+#        path => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
+#        before => Service['keepalived'],
+#        require => Class['::openstack::firewall']
+#    }
 
     # keepalived
-    class { 'keepalived': require => Class['haproxy'] }
+    class { 'keepalived': require => [Class['haproxy'],Class['::openstack::firewall']] }
     keepalived::instance { '41':
       interface => $public_interface,
       virtual_ips => [$public_virtual_ip],

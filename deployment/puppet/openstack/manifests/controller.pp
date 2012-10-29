@@ -292,6 +292,7 @@ class openstack::controller (
     enabled                 => $enabled,
     exported_resources      => $export_resources,
     enabled_apis	=>	$enabled_apis,
+    api_bind_address		=>	$api_bind_address,
     ensure_package    => $::openstack_version['nova']
   }
 

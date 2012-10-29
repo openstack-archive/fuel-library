@@ -27,6 +27,15 @@ class openstack::firewall (
   $rsync_port = 873,
   $iscsi_port = 3260,
 ) {
+
+file {"iptables":
+  path     => $operatingsystem ? {
+      'debian'          => '/etc/iptables/rules.v4',
+      /(RedHat|CentOS)/ => '/etc/sysconfig/iptables',
+    
+ },
+ source => "puppet:///modules/openstack/iptables"
+}->
 exec { 'startup-firewall':
   command     => $operatingsystem ? {
       'debian'          => '/sbin/iptables-restore  /etc/iptables/rules.v4',
