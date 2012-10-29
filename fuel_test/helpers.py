@@ -1,6 +1,6 @@
 import logging
 from time import sleep
-from devops.helpers import ssh
+from devops.helpers import ssh, os
 import keystoneclient.v2_0
 import re
 from root import root
@@ -218,14 +218,25 @@ def switch_off_ip_tables(remote):
 def setup_puppet_master_yum(remote):
     add_puppetlab_repo(remote)
     execute(remote.sudo.ssh, 'yum -y install puppet-2.7.19')
-    execute(remote.sudo.ssh, 'puppet apply -e '
-                             '"class {puppet:}'
-                             '-> class {puppet::thin}'
-                             '-> class {puppet::nginx: puppet_master_hostname=>\"master.mirantis.com\"}"')
-    execute(remote.sudo.ssh, 'puppet apply -e "class {puppetdb:}"')
+    upload_recipes(remote.sudo.ssh, "/tmp/puppet/modules/")
+    execute(remote.sudo.ssh,
+        'puppet apply --modulepath /tmp/puppet/modules/ -e '
+        '"class {puppet:}'
+        '-> class {puppet::thin}'
+        '-> class {puppet::nginx: puppet_master_hostname=>\"master.mirantis.com\"}"')
+    execute(remote.sudo.ssh,
+        'puppet apply --modulepath /tmp/puppet/modules/ -e "class {puppetdb:}"')
     execute(remote.sudo.ssh,
         'puppet apply -e "class {puppetdb::master::config}"')
     execute(remote.sudo.ssh, 'setenforce 0')
+
+
+def upload_recipes(remote, remote_dir="/etc/puppet/modules/"):
+    recipes_dir = root('fuel', 'deployment', 'puppet')
+    for dir in os.listdir(recipes_dir):
+        recipe_dir = os.path.join(recipes_dir, dir)
+        remote.mkdir(remote_dir)
+        remote.upload(recipe_dir, remote_dir)
 
 
 def change_host_name(remote, short, long):
