@@ -100,9 +100,10 @@ class horizon(
 
   # ensure https only listens on the management address, not on all interfaces
   file_line { 'httpd_listen_on_internal_network_only':
-    path => $::horizon::params::config_file,
+    path => $::horizon::params::httpd_listen_config_file,
     match => '^Listen (.*)$',
     line => "Listen ${bind_address}:80",
+    before => Service["httpd"],
     require => Package["$::horizon::params::package_name"],
     notify => Service["httpd"]
   }
