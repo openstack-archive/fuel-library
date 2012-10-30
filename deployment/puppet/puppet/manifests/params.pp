@@ -6,7 +6,7 @@ class puppet::params
 	case $::osfamily {
 	    'RedHat': {
          $puppet_master_version  = "2.7.19-1.el6"
-         $puppet_master_packages = ["puppet-server, puppet"] 
+         $puppet_master_packages = ["puppet-server", "puppet"] 
          $mongrel_packages = "rubygem-mongrel"
          $thin_packages = "rubygem-thin"
          $daemon_config_file = "/etc/sysconfig/puppetmaster"
