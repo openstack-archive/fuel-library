@@ -247,6 +247,7 @@ def setup_puppet_master(remote):
     add_epel_repo_yum(remote)
     install_packages(remote, PUPPET_CLIENT_PACKAGE)
     upload_recipes(remote.sudo.ssh, "/tmp/puppet/modules/")
+    execute(remote.sudo.ssh, 'setenforce 0')
     puppet_apply(remote.sudo.ssh,
         'class {puppet:}'
         '-> class {puppet::thin:}'
@@ -255,7 +256,6 @@ def setup_puppet_master(remote):
         'class {puppetdb:}')
     puppet_apply(remote.sudo.ssh,
         'class {puppetdb::master::config:}')
-    execute(remote.sudo.ssh, 'setenforce 0')
 
 
 def upload_recipes(remote, remote_dir="/etc/puppet/modules/"):
