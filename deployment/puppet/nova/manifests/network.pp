@@ -16,7 +16,7 @@ class nova::network(
   $fixed_range,
   $public_interface = undef,
   $num_networks     = 1,
-  $network_size     = 255,
+#  $network_size     = 255,
   $floating_range   = false,
   $enabled          = false,
   $network_manager  = 'nova.network.manager.FlatDHCPManager',

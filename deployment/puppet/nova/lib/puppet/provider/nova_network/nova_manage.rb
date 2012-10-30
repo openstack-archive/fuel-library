@@ -30,7 +30,8 @@ Puppet::Type.type(:nova_network).provide(:nova_manage) do
       :dns2             => '--dns2',
       :gateway          => '--gateway',
       :bridge           => '--bridge',
-      :vlan_start       => '--vlan'
+      :vlan_start       => '--vlan',
+      :network_size	=> '--network_size'
     }.each do |param, opt|
       if resource[param]
         optional_opts.push(opt).push(resource[param])
@@ -41,7 +42,6 @@ Puppet::Type.type(:nova_network).provide(:nova_manage) do
       resource[:label],
       resource[:name],
       resource[:num_networks],
-      resource[:network_size],
       optional_opts
     )
   end
