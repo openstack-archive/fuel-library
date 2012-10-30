@@ -1,0 +1,8 @@
+name    'puppet-cinder'
+version '0.0.1'
+source  'https://github.com/jtopjian/puppet-cinder'
+author  'Joe Topjian'
+license 'Apache License 2.0'
+summary 'install openstack cinder'
+description 'install openstack cinder'
+project_page 'https://github.com/jtopjian/puppet-cinder'
