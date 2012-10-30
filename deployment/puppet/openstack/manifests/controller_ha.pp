@@ -52,8 +52,9 @@ define haproxy_service($order, $balancers, $virtual_ips, $port, $define_cookies 
     ipaddress => $virtual_ips,
     ports => $port,
     options => $haproxy_config_options,
+    collect_exported => false
   }
-  @@haproxy::balancermember { "${name}":
+  @haproxy::balancermember { "${name}":
 #    order                  => $order,
     listening_service      => $name,
     balancers           => $balancers,
