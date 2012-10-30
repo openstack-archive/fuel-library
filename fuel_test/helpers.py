@@ -3,7 +3,7 @@ from time import sleep
 from devops.helpers import ssh, os
 import keystoneclient.v2_0
 import re
-from fuel_test.settings import OS_FAMILY
+from fuel_test.settings import OS_FAMILY, PUPPET_CLIENT_PACKAGE
 from root import root
 #from glanceclient import Client
 
@@ -211,7 +211,7 @@ def remove_puppetlab_repo(remote):
 
 def setup_puppet_client(remote):
     add_puppet_lab_repo(remote)
-    install_packages(remote, 'puppet')
+    install_packages(remote, PUPPET_CLIENT_PACKAGE)
     remove_puppetlab_repo(remote)
 
 
@@ -245,7 +245,7 @@ def puppet_apply(remote, script, module_path="/tmp/puppet/modules/"):
 def setup_puppet_master(remote):
     add_puppet_lab_repo(remote)
     add_epel_repo_yum(remote)
-    install_packages(remote, 'puppet')
+    install_packages(remote, PUPPET_CLIENT_PACKAGE)
     upload_recipes(remote.sudo.ssh, "/tmp/puppet/modules/")
     puppet_apply(remote.sudo.ssh,
         'class {puppet:}'
