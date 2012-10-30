@@ -7,17 +7,17 @@ Backport from https://review.openstack.org/#/c/13665/
 
 Change-Id: Ib44abf115b42c3df42771344f6722ce1db043bbd
 ---
- nova/openstack/common/network_utils.py  |   68 ++++++++++++++++++
- nova/openstack/common/rpc/impl_kombu.py |  120 +++++++++++++++++++++----------
+ openstack/common/network_utils.py  |   68 ++++++++++++++++++
+ openstack/common/rpc/impl_kombu.py |  120 +++++++++++++++++++++----------
  openstack-common.conf                   |    2 +-
  3 files changed, 150 insertions(+), 40 deletions(-)
- create mode 100644 nova/openstack/common/network_utils.py
+ create mode 100644 openstack/common/network_utils.py
 
-diff --git a/nova/openstack/common/network_utils.py b/nova/openstack/common/network_utils.py
+diff --git a/openstack/common/network_utils.py b/openstack/common/network_utils.py
 new file mode 100644
 index 0000000..69f6732
 --- /dev/null
-+++ b/nova/openstack/common/network_utils.py
++++ b/openstack/common/network_utils.py
 @@ -0,0 +1,68 @@
 +# vim: tabstop=4 shiftwidth=4 softtabstop=4
 +
@@ -87,10 +87,10 @@ index 0000000..69f6732
 +            port = default_port
 +
 +    return (host, None if port is None else int(port))
-diff --git a/nova/openstack/common/rpc/impl_kombu.py b/nova/openstack/common/rpc/impl_kombu.py
+diff --git a/openstack/common/rpc/impl_kombu.py b/openstack/common/rpc/impl_kombu.py
 index fff1ed9..3469a9b 100644
---- a/nova/openstack/common/rpc/impl_kombu.py
-+++ b/nova/openstack/common/rpc/impl_kombu.py
+--- a/openstack/common/rpc/impl_kombu.py
++++ b/openstack/common/rpc/impl_kombu.py
 @@ -33,6 +33,7 @@ from nova.openstack.common import cfg
  from nova.openstack.common.gettextutils import _
  from nova.openstack.common.rpc import amqp as rpc_amqp
