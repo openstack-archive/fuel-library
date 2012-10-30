@@ -20,11 +20,11 @@ class puppet::thin (
       before => Service["thin"]
   }
   
-  if ! defined(Package[$puppet::params::puppet_master_packages]) {
-      package { $puppet::params::puppet_master_packages :
-         ensure => present,
-      }
-  }
+#  if ! defined([Package[$puppet::params::puppet_master_packages]]) {
+#      package { $puppet::params::puppet_master_packages :
+#         ensure => present,
+#      }
+#  }
   
   exec { "thin_configure":
       #command => "thin config --config /etc/thin/puppet.yaml -P /var/run/puppet/${role_name}.pid -e production --servers 4 --daemonize --socket /var/run/puppet/${rolename}.sock --chdir /etc/puppet/ -R ${rack_config}",
