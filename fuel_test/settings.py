@@ -16,6 +16,21 @@ PUPPET_VERSIONS = {
     },
 }
 
+PUPPET_VERSION = PUPPET_VERSIONS.get(OS_FAMILY).get(PUPPET_GEN)
+
+PUPPET_CLIENT_PACKAGES = {
+    'centos': {
+        "2": 'puppet-2.7.19-1.el6',
+        "3": 'puppet-3.0.1-1.el6',
+    },
+    'ubuntu': {
+        "2": 'puppet=2.7.19-1puppetlabs1 puppet-common=2.7.19-1puppetlabs1',
+        "3": 'puppet=3.0.1-1puppetlabs1 puppet-common=3.0.1-1puppetlabs1'
+    },
+}
+
+PUPPET_CLIENT_PACKAGE = PUPPET_CLIENT_PACKAGES.get(OS_FAMILY).get(PUPPET_GEN)
+
 ERROR_PREFIXES = {
     "2": "err: ",
     "3": "Error: ",
@@ -30,5 +45,3 @@ WARNING_PREFIXES = {
 
 WARNING_PREFIX = WARNING_PREFIXES.get(PUPPET_GEN)
 
-def get_puppet_version():
-    return PUPPET_VERSIONS.get(OS_FAMILY).get(PUPPET_GEN)
