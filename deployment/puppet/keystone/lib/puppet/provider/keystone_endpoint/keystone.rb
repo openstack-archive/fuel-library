@@ -109,7 +109,7 @@ Puppet::Type.type(:keystone_endpoint).provide(
 
     def self.build_endpoint_hash
       hash = {}
-      list_keystone_objects('endpoint', 6).each do |endpoint|
+      list_keystone_objects('endpoint', [5,6]).each do |endpoint|
         service_id   = get_service_id(endpoint[0])
         service_name = get_keystone_object('service', service_id, 'name')
         hash[service_name] = {
