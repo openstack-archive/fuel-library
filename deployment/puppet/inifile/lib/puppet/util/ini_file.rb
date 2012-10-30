@@ -5,8 +5,13 @@ module Puppet
 module Util
   class IniFile
 
-    SECTION_REGEX = /^\s*\[([\w\d\.\\\/\-\:]+)\]\s*$/
-    SETTING_REGEX = /^\s*([\w\d\.\\\/\-]+)\s*=\s*([\S\s]*\S)\s*$/
+    def section_regex
+      /^\s*\[([\w\d\.\\\/\-\:]+)\]\s*$/
+    end
+
+    def setting_regex
+      /^\s*([\w\d\.\\\/\-]+)\s*=\s*([\S]+)\s*$/x
+    end
 
     def initialize(path, key_val_separator = ' = ')
       @path = path
@@ -100,7 +105,7 @@ module Util
       line, line_num = line_iter.next
 
       while line
-        if (match = SECTION_REGEX.match(line))
+        if (match = section_regex.match(line))
           section = read_section(match[1], line_num, line_iter)
           add_section(section)
         end
@@ -113,9 +118,9 @@ module Util
       end_line_num = nil
       while true
         line, line_num = line_iter.peek
-        if (line_num.nil? or match = SECTION_REGEX.match(line))
+        if (line_num.nil? or match = section_regex.match(line))
           return Section.new(name, start_line, end_line_num, settings)
-        elsif (match = SETTING_REGEX.match(line))
+        elsif (match = setting_regex.match(line))
           settings[match[1]] = match[2]
         end
         end_line_num = line_num
@@ -125,7 +130,7 @@ module Util
 
     def update_line(section, setting, value)
       (section.start_line..section.end_line).each do |line_num|
-        if (match = SETTING_REGEX.match(lines[line_num]))
+        if (match = setting_regex.match(lines[line_num]))
           if (match[1] == setting)
             lines[line_num] = "#{setting}#{@key_val_separator}#{value}"
           end
