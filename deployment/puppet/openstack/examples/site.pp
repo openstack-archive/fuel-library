@@ -1,14 +1,14 @@
-$internal_virtual_ip = '10.0.0.110'
-$public_virtual_ip = '10.0.0.110'
+$internal_virtual_ip = '10.0.125.253'
+$public_virtual_ip = '10.0.74.253'
 $master_hostname = 'fuel-01'
-$controller_public_addresses = { 'fuel-01'=>'10.0.0.101', 'fuel-02'=>'10.0.0.102'}
-$controller_internal_addresses = { 'fuel-01'=>'10.0.0.101', 'fuel-02'=>'10.0.0.102'}
-$floating_range = '10.0.1.0/28'
-$fixed_range = '10.0.2.0/28'
+$controller_public_addresses = { 'fuel-01'=>'10.0.74.3', 'fuel-02'=>'10.0.74.4'}
+$controller_internal_addresses = { 'fuel-01'=>'10.0.125.3', 'fuel-02'=>'10.0.125.4'}
+$floating_range = '10.0.74.128/28'
+$fixed_range = '10.0.161.128/28'
 $controller_hostnames = ['fuel-01', 'fuel-02']
-$public_interface = 'eth1'
+$public_interface = 'eth0'
 $internal_interface = 'eth1'
-$internal_address = $ipaddress_eth1
+$internal_address = $ipaddress_eth0
 $private_interface = 'eth2'
 $multi_host = true
 $network_manager = 'nova.network.manager.FlatDHCPManager'
@@ -27,11 +27,11 @@ $rabbit_password         = 'nova'
 $rabbit_user             = 'nova'
 $glance_backend         ='file'
 $openstack_version = {
-  'keystone'   => '2012.1.1-1.el6',
-  'glance'     => '2012.1.1-1.el6',
-  'horizon'    => '2012.1.1-1.el6',
-  'nova'       => '2012.1.1-15.el6',
-  'novncproxy' => '0.3-11.el6',
+  'keystone'   => latest,
+  'glance'     => latest,
+  'horizon'    => latest,
+  'nova'       => latest,
+  'novncproxy' => latest,
 }
 
 Exec { logoutput => true }
