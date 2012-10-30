@@ -19,8 +19,8 @@ define nova::manage::network (
     ensure       => present,
     network      => $network,
     num_networks => $num_networks,
-    network_size => $network_size,
-    project      => $project,
+#    network_size => $network_size,
+#    project      => $project,
   }
 
 }

@@ -42,7 +42,7 @@ Puppet::Type.newtype(:nova_network) do
   end
 
   newparam(:network_size) do
-    defaultto('256')
+#    defaultto('256')
   end
 
   validate do
