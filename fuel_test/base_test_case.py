@@ -4,6 +4,7 @@ from abc import abstractproperty
 from devops.helpers import ssh
 import re
 from fuel_test.ci.ci_base import CiBase
+from fuel_test.settings import ERROR_PREFIX, WARNING_PREFIX
 from helpers import load, execute, write_config, sync_time, safety_revert_nodes, upload_recipes
 
 class BaseTestCase(unittest.TestCase):
@@ -60,9 +61,9 @@ class BaseTestCase(unittest.TestCase):
         warnings = []
         for line in out:
             logging.info(line)
-            if line.find('err: ') == 0:
+            if line.find(ERROR_PREFIX) < 5:
                 errors.append(line)
-            if line.find('warning: ') == 0:
+            if line.find(WARNING_PREFIX) < 5:
                 warnings.append(line)
         return errors, warnings
 
