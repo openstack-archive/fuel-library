@@ -1,9 +1,14 @@
 import os
 
-BASE_IMAGE = os.environ.get('BASE_IMAGE',
-    '/var/lib/libvirt/images/vgalkin_centos-base.qcow2')
 OS_FAMILY = os.environ.get('OS_FAMILY', "centos")
 PUPPET_GEN = os.environ.get('PUPPET_GEN', "2")
+
+DEFAULT_IMAGES = {
+    'centos': '/var/lib/libvirt/images/vgalkin_centos-base.qcow2',
+    'ubuntu': '/var/lib/libvirt/images/ubuntu-12.04-server-cloudimg-amd64-disk1.base.qcow2',
+}
+
+BASE_IMAGE = os.environ.get('BASE_IMAGE', DEFAULT_IMAGES.get(OS_FAMILY))
 
 PUPPET_VERSIONS = {
     'centos': {
