@@ -3,7 +3,7 @@ from time import sleep
 from devops.helpers import ssh, os
 import keystoneclient.v2_0
 import re
-from fuel_test.settings import OS_FAMILY, PUPPET_CLIENT_PACKAGE
+from fuel_test.settings import OS_FAMILY, PUPPET_CLIENT_PACKAGE, PUPPET_VERSION
 from root import root
 #from glanceclient import Client
 
@@ -257,9 +257,9 @@ def setup_puppet_master(remote):
     upload_recipes(remote.sudo.ssh, "/tmp/puppet/modules/")
     execute(remote.sudo.ssh, 'setenforce 0')
     puppet_apply(remote.sudo.ssh,
-        'class {puppet:}'
+        'class {puppet: puppet_master_version => "%s"}'
         '-> class {puppet::thin:}'
-        '-> class {puppet::nginx: puppet_master_hostname => "master.mirantis.com"}')
+        '-> class {puppet::nginx: puppet_master_hostname => "master.mirantis.com"}' % PUPPET_VERSION)
     puppet_apply(remote.sudo.ssh,
         'class {puppetdb:}')
     puppet_apply(remote.sudo.ssh,
