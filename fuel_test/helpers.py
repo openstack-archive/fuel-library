@@ -174,7 +174,7 @@ def install_packages(remote, packages):
     if OS_FAMILY == "centos":
         execute(remote.sudo.ssh, 'yum -y install %s' % packages)
     else:
-        execute(remote.sudo.ssh, 'apt-get -y install %s' % packages)
+        execute(remote.sudo.ssh, 'DEBIAN_FRONTEND=noninteractive apt-get -y install %s' % packages)
 
 
 def add_nmap(remote):
@@ -182,8 +182,9 @@ def add_nmap(remote):
 
 
 def add_epel_repo_yum(remote):
-    execute(remote.sudo.ssh,
-        'rpm -Uvh http://download.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-7.noarch.rpm')
+    if OS_FAMILY == "centos":
+        execute(remote.sudo.ssh,
+            'rpm -Uvh http://download.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-7.noarch.rpm')
 
 
 def delete_epel_repo_yum(remote):
@@ -199,7 +200,7 @@ def add_puppet_lab_repo(remote):
     else:
         execute(remote.sudo.ssh,
             'wget http://apt.puppetlabs.com/puppetlabs-release-precise.deb -O /tmp/puppetlabs-release-precise.deb')
-        execute(remote.sudo.ssh, 'dpkg -i puppetlabs-release-precise.deb')
+        execute(remote.sudo.ssh, 'dpkg -i /tmp/puppetlabs-release-precise.deb')
 
 
 def remove_puppetlab_repo(remote):
