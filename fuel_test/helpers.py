@@ -73,6 +73,64 @@ def extract_virtual_ips(ipaout):
     pattern = '(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}).*(eth\d{1,}):keepalived'
     return dict((v, k) for k, v in re.findall(pattern, ipaout))
 
+def tempest_folsom_build_config(host, image_ref, image_ref_alt,
+                                path_to_private_key,
+                                compute_db_uri=' mysql://user:pass@localhost/nova'):
+    sample = load(
+        root('fuel', 'fuel_test', 'config', 'tempest.conf.folsom.sample'))
+
+    config = sample % {
+        'IDENTITY_USE_SSL': 'false',
+        'IDENTITY_HOST': host,
+        'IDENTITY_PORT': '5000',
+        'IDENTITY_API_VERSION': 'v2.0',
+        'IDENTITY_PATH': 'tokens',
+        'IDENTITY_STRATEGY': 'keystone',
+        'COMPUTE_ALLOW_TENANT_ISOLATION': 'true',
+        'COMPUTE_ALLOW_TENANT_REUSE': 'true',
+        'USERNAME': 'tempest1',
+        'PASSWORD': 'secret',
+        'TENANT_NAME': 'tenant1',
+        'ALT_USERNAME': 'tempest2',
+        'ALT_PASSWORD': 'secret',
+        'ALT_TENANT_NAME': 'tenant2',
+        'IMAGE_ID': image_ref,
+        'IMAGE_ID_ALT': image_ref_alt,
+        'FLAVOR_REF': '1',
+        'FLAVOR_REF_ALT': '2',
+        'COMPUTE_BUILD_INTERVAL': '10',
+        'COMPUTE_BUILD_TIMEOUT': '600',
+        'COMPUTE_CATALOG_TYPE': 'compute',
+        'COMPUTE_CREATE_IMAGE_ENABLED': 'true',
+        'COMPUTE_RESIZE_AVAILABLE': 'true',
+        'COMPUTE_CHANGE_PASSWORD_AVAILABLE': 'true',
+        'COMPUTE_LOG_LEVEL': 'DEBUG',
+        'COMPUTE_WHITEBOX_ENABLED': 'true',
+        'COMPUTE_SOURCE_DIR': '/opt/stack/nova',
+        'COMPUTE_CONFIG_PATH': '/etc/nova/nova.conf',
+        'COMPUTE_BIN_DIR': '/usr/local/bin',
+        'COMPUTE_PATH_TO_PRIVATE_KEY': path_to_private_key,
+        'COMPUTE_DB_URI': compute_db_uri,
+        'IMAGE_CATALOG_TYPE': 'image',
+        'IMAGE_API_VERSION': '1',
+        'IMAGE_HOST': host,
+        'IMAGE_PORT': '9292',
+        'IMAGE_USERNAME': 'tempest1',
+        'IMAGE_PASSWORD': 'secret',
+        'IMAGE_TENANT_NAME': 'tenant1',
+        'COMPUTE_ADMIN_USERNAME': 'nova',
+        'COMPUTE_ADMIN_PASSWORD': 'admin',
+        'COMPUTE_ADMIN_TENANT_NAME': 'openstack',
+        'IDENTITY_ADMIN_USERNAME': 'nova',
+        'IDENTITY_ADMIN_PASSWORD': 'admin',
+        'IDENTITY_ADMIN_TENANT_NAME': 'openstack',
+        'VOLUME_CATALOG_TYPE': 'volume',
+        'VOLUME_BUILD_INTERVAL': '10',
+        'VOLUME_BUILD_TIMEOUT': '300',
+    }
+    
+    return config
+
 
 def tempest_build_config(host, image_ref, image_ref_alt):
     sample = load(

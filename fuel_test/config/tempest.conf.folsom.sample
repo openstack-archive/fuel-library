@@ -125,11 +125,11 @@ host = %(IMAGE_HOST)s
 port = %(IMAGE_PORT)s
 
 # This should be the username of a user WITHOUT administrative privileges
-username = %(USERNAME)s
+username = %(IMAGE_USERNAME)s
 # The above non-administrative user's password
-password = %(PASSWORD)s
+password = %(IMAGE_PASSWORD)s
 # The above non-administrative user's tenant name
-tenant_name = %(TENANT_NAME)s
+tenant_name = %(IMAGE_TENANT_NAME)s
 
 [compute-admin]
 # This section contains configuration options for an administrative
