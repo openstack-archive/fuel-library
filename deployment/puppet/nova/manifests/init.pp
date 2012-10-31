@@ -195,9 +195,9 @@ class nova(
 
 
   if $rabbit_nodes {
-    nova_config { 'DEFAULT/rabbit_addresses': value => inline_template("<%= @rabbit_nodes.map {|x| x+':5672'}.join ',' %>") }
+    nova_config { 'DEFAULT/rabbit_hosts': value => inline_template("<%= @rabbit_nodes.map {|x| x+':5672'}.join ',' %>") }
   } else {
-    Nova_config <<| title == 'rabbit_addresses' |>>
+    Nova_config <<| title == 'rabbit_hosts' |>>
   }
   # I may want to support exporting and collecting these
   nova_config {
