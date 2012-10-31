@@ -103,10 +103,20 @@ class nova(
       source => 'puppet:///modules/nova/rmq-ha.patch'
     }
 
-    exec { 'patch-nova':
+    file { "/tmp/mysql.patch":
+      ensure => present,
+      source => 'puppet:///modules/nova/mysql.patch'
+    }
+
+    exec { 'patch-nova-rabbitmq':
       unless  => "/bin/grep x-ha-policy /usr/lib/${::nova::params::python_path}/nova/openstack/common/rpc/impl_kombu.py",
       command => "/usr/bin/patch -p1 -d /usr/lib/${::nova::params::python_path}/nova </tmp/rmq-ha.patch",
       require => [ [File['/tmp/rmq-ha.patch']],[Package['patch', 'python-nova']]], 
+    } ->
+    exec { 'patch-nova-mysql':
+      unless  => "/bin/grep sql_inc_retry_interval /usr/lib/${::nova::params::python_path}/nova/flags.py",
+      command => "/usr/bin/patch -p1 -d /usr/lib/${::nova::params::python_path}/nova </tmp/mysql.patch",
+      require => [ [File['/tmp/mysql.patch']],[Package['patch', 'python-nova']]], 
     } ->
     exec { 'update-kombu':
       command => "/usr/bin/easy_install pip; /usr/bin/pip uninstall -y kombu; /usr/bin/pip uninstall -y anyjson; /usr/bin/pip install kombu==2.4.7; /usr/bin/pip install anyjson==0.3.3; /usr/bin/pip install amqp"
