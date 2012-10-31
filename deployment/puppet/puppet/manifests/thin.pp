@@ -17,7 +17,12 @@ class puppet::thin (
       require => [
                   Package[$puppet::params::thin_packages],
                   ],
-      before => Service["thin"]
+      
+  }->
+  exec {"thin_config_directory":
+    command => 'ln -s /etc/thin1.8 /etc/thin',
+    creates => '/etc/thin',
+    before => Exec["thin_configure"] 
   }
   
 #  if ! defined([Package[$puppet::params::puppet_master_packages]]) {
