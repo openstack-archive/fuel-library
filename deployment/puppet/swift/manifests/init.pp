@@ -25,8 +25,13 @@ class swift(
 ) {
 
   include swift::params
-
+if !defined(Class['ssh::server::install'])
+ {
+  class{ 'ssh::server::install': }
+ }
   Class['ssh::server::install'] -> Class['swift']
+
+    class {'rsync::server':}
 
   package { 'swift':
     name   => $::swift::params::package_name,
