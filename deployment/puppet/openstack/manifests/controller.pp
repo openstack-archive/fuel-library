@@ -146,7 +146,9 @@ class openstack::controller (
   $galera_cluster_name = 'openstack',
   $galera_master_ip = '127.0.0.1',
   $galera_node_address = '127.0.0.1',
-  $glance_backend
+  $glance_backend,
+  $manage_volumes          = false,
+  $nv_physical_volume      = undef,
 ) {
 
   # Ensure things are run in order
@@ -309,7 +311,36 @@ class openstack::controller (
     }
 
     class { 'cinder::scheduler': }
+  if $manage_volumes {
+
+    class { 'cinder::volume':
+      ensure_package => $::openstack_version['cinder'],
+      enabled        => true,
+    }   
+
+    class { 'cinder::volume::iscsi':
+      iscsi_ip_address => $internal_address,
+      physical_volume  => $nv_physical_volume,
+    }   
+  }
+
+
   } else {
+    if $manage_volumes {
+
+    class { 'nova::volume':
+      ensure_package => $::openstack_version['nova'],
+      enabled        => true,
+    }   
+
+    class { 'nova::volume::iscsi':
+      volume_group     => $nova_volume,
+      iscsi_ip_address => $internal_address,
+      physical_volume  => $nv_physical_volume,
+    }   
+  }
+
+
     # Set up nova-volume
   }
 
