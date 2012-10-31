@@ -124,8 +124,9 @@ $auth_uri = "${auth_protocol}://${auth_host}:${auth_port}/v2.0"
       unless  => "/bin/grep x-ha-policy /usr/lib/${::nova::params::python_path}/nova/rpc/impl_kombu.py",
       command => "/usr/bin/patch -p1 -d /usr/lib/${::nova::params::python_path}/nova </tmp/rmq-ha.patch",
       require => [ [File['/tmp/rmq-ha.patch']],[Package['patch', 'python-nova']]], 
-    } -> exec { 'update-kombu':
-        command => "/usr/bin/easy_install pip; /usr/bin/pip uninstall -y kombu; /usr/bin/pip uninstall -y anyjson; /usr/bin/pip install kombu==2.4.7; /usr/bin/pip install anyjson==0.3.3; /usr/bin/pip install amqp;"
+    } ->  exec { 'update-kombu':
+        path    => ["/usr/bin/:/usr/local/bin/"],
+        command => "easy_install pip; pip uninstall -y kombu; pip uninstall -y anyjson; pip install kombu==2.4.7; pip install anyjson==0.3.3; pip install amqp;"
     }
   }
 
