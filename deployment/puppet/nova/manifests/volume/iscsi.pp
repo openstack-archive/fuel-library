@@ -19,6 +19,7 @@
 # provisioning
 #
 class nova::volume::iscsi (
+  $physical_volume  = undef,
   $volume_group     = 'nova-volumes',
   $iscsi_helper     = 'tgtadm',
   $iscsi_ip_address = undef
@@ -53,4 +54,11 @@ class nova::volume::iscsi (
         fail("Unsupported iscsi helper: ${iscsi_helper}. The supported iscsi helper is tgtadm.")
     }
   }
+
+  class { 'lvm':
+    vg     => $volume_group,
+    pv     => $physical_volume,
+    before => Nova::Generic_service['volume'],
+  }
+
 }
