@@ -74,14 +74,14 @@ class openstack::nova::controller (
   } else {
     $real_glance_api_servers = $glance_api_servers
   }
-    $rabbit_addresses = inline_template("<%= @rabbit_nodes.map {|x| x + ':5672'}.join ',' %>")
+    $rabbit_hosts = inline_template("<%= @rabbit_nodes.map {|x| x + ':5672'}.join ',' %>")
   if ($exported_resources) {
     # export all of the things that will be needed by the clients
 #    @@nova_config { 'DEFAULT/rabbit_host': value => $internal_address }
 #    Nova_config <| title == 'rabbit_host' |>
 
-    @@nova_config { 'DEFAULT/rabbit_addresses': value => $rabbit_addresses }
-    Nova_config <| title == 'rabbit_nodes' |>
+    @@nova_config { 'DEFAULT/rabbit_hosts': value => $rabbit_hosts }
+    Nova_config <| title == 'rabbit_hosts' |>
 
     @@nova_config { 'DEFAULT/sql_connection': value => $nova_db }
     Nova_config <| title == 'sql_connection' |>
