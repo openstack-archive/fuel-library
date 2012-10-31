@@ -199,7 +199,7 @@ def add_puppet_lab_repo(remote):
     else:
         execute(remote.sudo.ssh,
             'wget http://apt.puppetlabs.com/puppetlabs-release-precise.deb -O /tmp/puppetlabs-release-precise.deb')
-        execute(remote.sudo.ssh, 'dpkg -i puppetlabs-release-precise.deb')
+        execute(remote.sudo.ssh, 'dpkg -i /tmp/puppetlabs-release-precise.deb')
 
 
 def remove_puppetlab_repo(remote):
