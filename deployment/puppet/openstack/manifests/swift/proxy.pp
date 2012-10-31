@@ -17,7 +17,9 @@ class openstack::swift::proxy (
   $ratelimit_account_ratelimit      = 0,
   $package_ensure                   = 'present',
   $controller_node_address          = '10.0.0.1',
-  $memcached                        = true
+  $memcached                        = true,
+  $swift_proxies			= { '127.0.0.1' => '127.0.0.1'},
+  $swift_master				= $::hostname
 ) {
 
   class { 'swift': 
@@ -26,9 +28,7 @@ class openstack::swift::proxy (
   }
 
   if $memcached {
-    class { 'memcached':
-      listen_ip => '127.0.0.1',
-    }
+    class { 'memcached':}
   }
 
   class { '::swift::proxy':
@@ -46,9 +46,13 @@ class openstack::swift::proxy (
   class { [
     '::swift::proxy::catch_errors',
     '::swift::proxy::healthcheck',
-    '::swift::proxy::cache',
     '::swift::proxy::swift3',
   ]: }
+  
+   $cache_addresses =  inline_template("<%= @swift_proxies.keys.uniq.sort.collect {|ip| ip + ':11211' }.join ',' %>")
+   class { '::swift::proxy::cache':
+        memcache_servers => split($cache_addresses,',')
+        }
 
   class { '::swift::proxy::ratelimit':
     clock_accuracy         => $ratelimit_clock_accuracy,
@@ -71,7 +75,7 @@ class openstack::swift::proxy (
     admin_password    => $swift_user_password,
     auth_host         => $controller_node_address,
   }
-
+  if $::hostname == $swift_master {
   # collect all of the resources that are needed
   # to balance the ring
   Ring_object_device <<| |>>
@@ -96,7 +100,12 @@ class openstack::swift::proxy (
   @@swift::ringsync { ['account', 'object', 'container']:
    ring_server => $swift_local_net_ip
   }
-
+ }
+ else {
+   Swift::Ringsync<<||>>
+   Swift::Ringsync<||> ~> Service["swift-proxy"]
+ }
+    
   # deploy a script that can be used for testing
   file { '/tmp/swift_keystone_test.rb':
     source => 'puppet:///modules/swift/swift_keystone_test.rb'

@@ -89,8 +89,14 @@ class openstack::glance (
   
     if $glance_backend == "swift"
     {
-#    package { "openstack-swift":
-#    ensure =>present,
+    if !defined(Package['swift'])
+    {
+	include ::swift::params
+	package { "swift":
+	name   => $::swift::params::package_name,
+	ensure =>present
+	}
+    }
     Package["swift"] ~> Service['glance-api']
     
       class { "glance::backend::$glance_backend":

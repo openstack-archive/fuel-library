@@ -29,20 +29,21 @@ class openstack::swift::storage-node (
   # install all swift storage servers together
   class { 'swift::storage::all':
     storage_local_net_ip => $swift_local_net_ip,
+    swift_zone		=> $swift_zone
   }
 
   define device_endpoint ($swift_local_net_ip, $zone, $weight) {
     @@ring_object_device { "${swift_local_net_ip}:6000/${name}":
       zone   => $swift_zone,
-      weight => $weight,
+#      weight => $weight,
     }
     @@ring_container_device { "${swift_local_net_ip}:6001/${name}":
       zone   => $swift_zone,
-      weight => $weight,
+#      weight => $weight,
     }
     @@ring_account_device { "${swift_local_net_ip}:6002/${name}":
       zone   => $swift_zone,
-      weight => $weight,
+#      weight => $weight,
     }
   }
 
