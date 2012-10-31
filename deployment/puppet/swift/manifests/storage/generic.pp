@@ -50,7 +50,19 @@ define swift::storage::generic(
     provider  => $service_provider,
     subscribe => Package["swift-${name}"],
   }
+ if $::osfamily == "RedHat" {
+    service { "swift-${name}-replicator":
+      start    => "/usr/bin/swift-init ${name}-replicator start",
+      ensure    => running,
+      enable    => true,
+      hasstatus => true,
+      provider  => base,
+      subscribe => Package["swift-${name}"],
+    }   
+  }
 
+else
+{
   service { "swift-${name}-replicator":
     name      => inline_template("<%= scope.lookupvar('::swift::params::${name}_replicator_service_name') %>"),
     ensure    => running,
@@ -59,5 +71,5 @@ define swift::storage::generic(
     provider  => $service_provider,
     subscribe => Package["swift-${name}"],
   }
-
+}
 }
