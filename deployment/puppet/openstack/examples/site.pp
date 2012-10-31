@@ -26,7 +26,12 @@ $nova_user_password      = 'nova'
 $rabbit_password         = 'nova'
 $rabbit_user             = 'nova'
 $glance_backend         ='file'
+
+# Disk or partition for use by nova-volume
+# Each PhysicalVolume can be a disk partition, whole disk, meta device, or loopback file
 $manage_volumes         = false
+$nv_physical_volume     = ['/dev/sdz', '/dev/sdy', '/dev/sdx'] 
+
 case $::osfamily {
   'RedHat': {
     $openstack_version = {
@@ -93,7 +98,8 @@ node /fuel-0[12]/ {
       memcached_servers       => $controller_hostnames,
       export_resources        => false,
       glance_backend          => $glance_backend,
-      manage_volumes          => $manage_volumes
+      manage_volumes          => $manage_volumes,
+      nv_physical_volume      => $nv_physical_volume,
     }
 }
 
@@ -115,6 +121,7 @@ node /fuel-0[34]/ {
       verbose            => $verbose,
       vnc_enabled        => true,
       manage_volumes     => false,
+      nv_physical_volume => $nv_physical_volume,
       nova_user_password	=> $nova_user_password,
       cache_server_ip         => $controller_hostnames,
       service_endpoint	=> $internal_virtual_ip,

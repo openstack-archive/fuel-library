@@ -99,7 +99,8 @@ class openstack::controller(
   $galera_master_ip = '127.0.0.1',
   $galera_node_address = '127.0.0.1',
   $glance_backend,
-  $manage_volumes = false
+  $manage_volumes          = false,
+  $nv_physical_volume      = undef,
 ) {
   
   $glance_api_servers = "${service_endpoint}:9292"
@@ -410,8 +411,8 @@ class {'nova::quota':
 
 
   ######## End Horizon #####
-  if $manage_volumes {
 
+  if $manage_volumes {
 
     class { 'nova::volume':
       ensure_package => $::openstack_version['nova'],
@@ -421,6 +422,7 @@ class {'nova::quota':
     class { 'nova::volume::iscsi':
       volume_group     => $nova_volume,
       iscsi_ip_address => $internal_address,
+      physical_volume  => $nv_physical_volume,
     }   
   }
 
