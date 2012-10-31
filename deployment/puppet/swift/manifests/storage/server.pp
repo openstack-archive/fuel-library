@@ -5,7 +5,7 @@
 #  name - is going to be port
 define swift::storage::server(
   $type,
-  swift_zone,
+  $swift_zone,
   $port = $name,
   $storage_local_net_ip,
   $devices                = '/srv/node',
