@@ -43,11 +43,14 @@ class puppet::thin (
 
 # Force puppet master to generate certificates 
   exec {"start-puppet-master":
-      command => "/etc/init.d/puppetmaster start"
-  } ->
+      command => "/etc/init.d/puppetmaster start",
+      before => Exec["stop-puppet-master"],
+      tries => 3,
+      try_sleep => 10
+  } 
   exec {"stop-puppet-master":
       command => "/etc/init.d/puppetmaster stop",
-      before => Service["thin"]
+      before => Service["thin"],
   }
     
 
