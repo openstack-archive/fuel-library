@@ -84,7 +84,8 @@ class openstack::controller_ha (
    $keystone_db_password, $keystone_admin_token, $glance_db_password, $glance_user_password,
    $nova_db_password, $nova_user_password, $rabbit_password, $rabbit_user,
    $rabbit_nodes, $memcached_servers, $export_resources, $glance_backend='file', $swift_proxies=undef,
-   $quantum = false, $cinder = false
+   $quantum = false, $cinder = false,
+   $nv_physical_volume = undef,$manage_volumes = false,
  ) {
 
     $which = $::hostname ? { $master_hostname => 0, default => 1 }
@@ -256,6 +257,8 @@ class openstack::controller_ha (
       require                 => Service['keepalived'],
       quantum                 => $quantum,
       cinder                  => $cinder,
+      manage_volumes          => $manage_volumes,
+      nv_physical_volume      => $nv_physical_volume,
     }
 
     class { 'openstack::auth_file':
