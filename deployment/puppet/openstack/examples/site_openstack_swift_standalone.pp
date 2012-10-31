@@ -35,11 +35,11 @@ $swift_proxy_address    = '192.168.1.16'
 $controller_node_public = $internal_virtual_ip 
 $glance_backend         = 'swift'
 $openstack_version = {
-  'keystone'   => '2012.1.1-1.el6',
-  'glance'     => '2012.1.1-1.el6',
-  'horizon'    => '2012.1.1-1.el6',
-  'nova'       => '2012.1.1-15.el6',
-  'novncproxy' => '0.3-11.el6',
+  'keystone'   => 'latest',
+  'glance'     => 'latest',
+  'horizon'    => 'latest',
+  'nova'       => 'latest',
+  'novncproxy' => 'latest',
 }
 
 Exec { logoutput => true }
