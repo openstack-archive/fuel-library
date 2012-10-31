@@ -20,7 +20,7 @@ class puppet::thin (
       
   }->
   exec {"thin_config_directory":
-    command => 'ln -s /etc/thin1.8 /etc/thin',
+    command => '/bin/ln -s /etc/thin1.8 /etc/thin',
     creates => '/etc/thin',
     before => Exec["thin_configure"] 
   }
