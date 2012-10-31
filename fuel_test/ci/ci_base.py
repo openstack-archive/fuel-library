@@ -67,6 +67,7 @@ class CiBase(object):
             node.interfaces.append(Interface(network))
             #        node.bridged_interfaces.append(BridgedInterface('br0'))
         node.disks.append(Disk(base_image=self.base_image, format='qcow2'))
+        node.disks.append(Disk(size=20*1024*1024*1024, format='qcow2'))
         node.boot = ['disk']
         return node
 
@@ -78,6 +79,7 @@ class CiBase(object):
             node.interfaces.append(Interface(network))
             #        node.bridged_interfaces.append(BridgedInterface('br0'))
         node.disks.append(Disk(size=8589934592, format='qcow2'))
+        node.disks.append(Disk(size=20*1024*1024*1024, format='qcow2'))
         node.boot = ['disk']
         return node
 
