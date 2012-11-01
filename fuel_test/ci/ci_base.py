@@ -92,10 +92,6 @@ class CiBase(object):
         setup_puppet_master(master_remote)
         add_nmap(master_remote)
         switch_off_ip_tables(master_remote)
-        master_config = load(
-            root('fuel', 'fuel_test', 'config', 'puppet.master.config'))
-        write_config(master_remote, '/etc/puppet/puppet.conf', master_config)
-        start_puppet_master(master_remote)
         self.add_nodes_to_hosts(master_remote, nodes)
 
     def setup_agent_nodes(self, nodes):
