@@ -3,7 +3,7 @@ from time import sleep
 from devops.helpers import ssh, os
 import keystoneclient.v2_0
 import re
-from fuel_test.settings import OS_FAMILY, PUPPET_CLIENT_PACKAGE, PUPPET_VERSION
+from fuel_test.settings import OS_FAMILY, PUPPET_CLIENT_PACKAGE, PUPPET_VERSION, PUPPET_MASTER_SERVICE
 from root import root
 #from glanceclient import Client
 
@@ -282,7 +282,7 @@ def setup_puppet_client(remote):
 
 def start_puppet_master(remote):
     remote.sudo.ssh.execute(
-        'puppet resource service puppetmaster ensure=running enable=true')
+        'puppet resource service %s ensure=running enable=true' % PUPPET_MASTER_SERVICE)
 
 
 def start_puppet_agent(remote):

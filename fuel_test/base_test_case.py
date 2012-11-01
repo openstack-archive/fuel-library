@@ -4,7 +4,7 @@ from abc import abstractproperty
 from devops.helpers import ssh
 import re
 from fuel_test.ci.ci_base import CiBase
-from fuel_test.settings import ERROR_PREFIX, WARNING_PREFIX
+from fuel_test.settings import ERROR_PREFIX, WARNING_PREFIX, PUPPET_MASTER_SERVICE
 from helpers import load, execute, write_config, sync_time, safety_revert_nodes, upload_recipes
 
 class BaseTestCase(unittest.TestCase):
@@ -24,7 +24,6 @@ class BaseTestCase(unittest.TestCase):
             username='root',
             password='r00tme')
         upload_recipes(self.master_remote)
-        self.restart_puppet_muster()
 
     def revert_snapshots(self):
         safety_revert_nodes(self.environment.nodes, 'empty')
@@ -66,9 +65,6 @@ class BaseTestCase(unittest.TestCase):
             if (line.find(WARNING_PREFIX) < 5) and (line.find(WARNING_PREFIX) !=-1):
                 warnings.append(line)
         return errors, warnings
-
-    def restart_puppet_muster(self):
-        execute(self.master_remote, 'service puppetmaster restart')
 
     def do(self, nodes, command):
         results = []
