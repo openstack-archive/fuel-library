@@ -73,9 +73,9 @@ def extract_virtual_ips(ipaout):
     pattern = '(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}).*(eth\d{1,}):keepalived'
     return dict((v, k) for k, v in re.findall(pattern, ipaout))
 
-def tempest_folsom_build_config(host, image_ref, image_ref_alt,
+def tempest_build_config_folsom(host, image_ref, image_ref_alt,
                                 path_to_private_key,
-                                compute_db_uri=' mysql://user:pass@localhost/nova'):
+                                compute_db_uri='mysql://user:pass@localhost/nova'):
     sample = load(
         root('fuel', 'fuel_test', 'config', 'tempest.conf.folsom.sample'))
 
@@ -132,7 +132,7 @@ def tempest_folsom_build_config(host, image_ref, image_ref_alt,
     return config
 
 
-def tempest_build_config(host, image_ref, image_ref_alt):
+def tempest_build_config_essex(host, image_ref, image_ref_alt):
     sample = load(
         root('fuel', 'fuel_test', 'config', 'tempest.conf.essex.sample'))
     config = sample % {
@@ -152,9 +152,9 @@ def tempest_build_config(host, image_ref, image_ref_alt):
     return config
 
 
-def tempest_write_config(host, image_ref, image_ref_alt):
+def tempest_write_config(config):
     with open(root('tempest.conf'), 'w') as f:
-        f.write(tempest_build_config(host, image_ref, image_ref_alt))
+        f.write(config)
 
 
 def get_auth_url(auth_host):
@@ -183,8 +183,8 @@ def tempest_add_images(remote, auth_host, tenant_name):
     image_ref = re.findall(pattern, string='\n'.join(result['stdout']))[0]
     result = execute(remote, glance_command(auth_host,
         tenant_name) + ' add name=cirros_0.3.0 is_public=true container_format=bare disk_format=qcow2 < cirros-0.3.0-x86_64-disk.img')
-    image_ref_any = re.findall(pattern, string='\n'.join(result['stdout']))[0]
-    return image_ref, image_ref_any
+    image_ref_alt = re.findall(pattern, string='\n'.join(result['stdout']))[0]
+    return image_ref, image_ref_alt
 
 
 def tempest_share_glance_images(remote, network):
@@ -387,9 +387,9 @@ def make_tempest_objects(auth_host, remote):
         email='tempest1@example.com', tenant_id=tenant1.id)
     retry(10, keystone.users.create, name='tempest2', password='secret',
         email='tempest1@example.com', tenant_id=tenant2.id)
-    image_ref, image_ref_any = tempest_add_images(remote, auth_host,
+    image_ref, image_ref_alt = tempest_add_images(remote, auth_host,
         'openstack')
-    return image_ref, image_ref_any
+    return image_ref, image_ref_alt
 
 
 def write_static_ip(remote, ip, net_mask, gateway, interface='eth0'):

@@ -1,6 +1,6 @@
 from devops.helpers import ssh
 import unittest
-from fuel_test.helpers import safety_revert_nodes, make_shared_storage, make_tempest_objects, tempest_write_config
+from fuel_test.helpers import safety_revert_nodes, make_shared_storage, make_tempest_objects, tempest_write_config, tempest_build_config_essex, tempest_build_config_folsom
 from fuel_test.openstack.openstack_test_case import OpenStackTestCase
 
 
@@ -20,8 +20,32 @@ class PrepareOpenStackForTempest(OpenStackTestCase):
             self.ci().nodes().controllers[1:],
             self.ci().get_internal_network()
         )
-        image_ref, image_ref_any = make_tempest_objects(auth_host, remote)
-        tempest_write_config(auth_host, image_ref, image_ref_any)
+        image_ref, image_ref_alt = make_tempest_objects(auth_host, remote)
+        tempest_write_config(tempest_build_config_essex(auth_host, image_ref, image_ref_alt))
+
+    def prepare_for_tempest_folsom(self):
+        safety_revert_nodes(self.environment.nodes, 'openstack')
+        auth_host = self.ci().get_public_virtual_ip()
+        remote = ssh(
+            self.ci().nodes().controllers[0].ip_address, username='root',
+            password='r00tme').sudo.ssh
+        make_shared_storage(
+            remote,
+            self.ci().nodes().controllers[0].name,
+            self.ci().nodes().controllers[1:],
+            self.ci().get_internal_network()
+        )
+        compute_db_uri = 'mysql://nova:nova@%s/nova' % self.ci().get_internal_virtual_ip()
+
+        image_ref, image_ref_alt = make_tempest_objects(auth_host, remote)
+        tempest_write_config(
+            tempest_build_config_folsom(
+                host=auth_host,
+                image_ref=image_ref,
+                image_ref_alt=image_ref_alt,
+                path_to_private_key='private.pem',
+                compute_db_uri=compute_db_uri
+            ))
 
 
 if __name__ == '__main__':
