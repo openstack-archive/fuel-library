@@ -10,7 +10,7 @@ class CiOpenStackSwift(CiBase):
             controller_names=['fuel-01', 'fuel-02'],
             compute_names=['fuel-03', 'fuel-04'],
             storage_names=['fuel-05', 'fuel-06', 'fuel-07'],
-            proxy_names=['fuel-08'],
+            proxy_names=['fuel-08', 'fuel-09'],
         )
 
 
