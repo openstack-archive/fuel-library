@@ -47,11 +47,11 @@ class openstack::swift::storage-node (
     }
   }
 
-  device_endpoint { $storage_devices:
-    swift_local_net_ip => $swift_local_net_ip,
-    zone               => $swift_zone,
-    weight             => $storage_weight,
-  }
+#  device_endpoint { $storage_devices:
+#    swift_local_net_ip => $swift_local_net_ip,
+#    zone               => $swift_zone,
+#    weight             => $storage_weight,
+# }
 
   # collect resources for synchronizing the ring databases
   Swift::Ringsync<<||>>
