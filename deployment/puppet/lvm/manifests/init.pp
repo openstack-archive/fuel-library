@@ -1,26 +1,34 @@
 class lvm(
   $ensure = 'present',
   $vg = 'volume-group-00',
-  $pv = undef,
+  $pv = undef
 ) {
 
   if ! $pv {
-    fail('The pv(physical volume) parameter is not defined')
+    warning('The pv(physical volume) parameter is not defined. The loopback device will be created automatically')
+
+    $pv_name = '/dev/loop2'
+    class { 'lvm::create_loopback':
+      loopback_device => $pv_name,
+      require => Package['lvm2'],
+    }
+  } else {
+    $pv_name = $pv
   }
 
-  package{ 'lvm2':
+  package { 'lvm2':
     ensure => $ensure,
   }
 
-  physical_volume { $pv:
+  physical_volume { $pv_name:
     ensure  => $ensure,
     require => Package['lvm2'],
   }
 
   volume_group { $vg:
     ensure           => $ensure,
-    physical_volumes => $pv,
-    require          => Physical_volume[$pv]
+    physical_volumes => $pv_name,
+    require          => Physical_volume[$pv_name]
   }
 
 }
