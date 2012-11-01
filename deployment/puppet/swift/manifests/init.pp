@@ -59,4 +59,19 @@ if !defined(Class['ssh::server::install'])
     mode    => 0660,
     content => template('swift/swift.conf.erb'),
   }
+      file { "/tmp/swift-utils.patch":
+      ensure => present,
+      source => 'puppet:///modules/swift/swift-utils.patch'
+    }
+    if !defined(Package['patch'])
+    {
+	package {'patch': ensure => present }
+    }
+    exec { 'patch-swift-utils':
+      path    => ["/usr/bin", "/usr/sbin"],
+      onlyif  => "patch -t -N -p1 --dry-run  -d /usr/lib/${::swift::params::python_path}/swift/common/ --reject-file=/dev/null < /tmp/swift-utils.patch",
+      command => "/usr/bin/patch -p1 -d /usr/lib/${::swift::params::python_path}/swift/common/ </tmp/swift-utils.patch",
+      require => [ [File['/tmp/swift-utils.patch']],[Package['patch', 'swift']]], 
+    } 
+
 }

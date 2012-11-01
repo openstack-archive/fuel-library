@@ -13,6 +13,7 @@ class swift::params {
       $account_package_name              = 'swift-account'
       $account_service_name              = 'swift-account'
       $account_replicator_service_name   = 'swift-account-replicator'
+      $python_path		= 'python2.7/dist-packages'
       if $::operatingsystem == 'Debian' {
         $service_proivider    = 'debian'
       } else {
@@ -33,6 +34,7 @@ class swift::params {
       $account_service_name              = 'openstack-swift-account'
       $account_replicator_service_name   = undef
       $service_provider                  = undef
+      $python_path		= 'python2.6/site-packages'
     }
     default: {
         fail("Unsupported osfamily: ${osfamily} for os ${operatingsystem}")
