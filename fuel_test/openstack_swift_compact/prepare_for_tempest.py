@@ -4,7 +4,7 @@ from fuel_test.helpers import safety_revert_nodes, tempest_write_config, make_te
 from fuel_test.openstack_swift_compact.openstack_swift_compact_test_case import OpenStackSwiftCompactTestCase
 
 
-class PrepareOpenStackSwiftForTempest(OpenStackSwiftCompactTestCase):
+class PrepareOpenStackSwiftCompactForTempest(OpenStackSwiftCompactTestCase):
     def setUp(self):
         self.environment = self.ci().get_environment()
 
