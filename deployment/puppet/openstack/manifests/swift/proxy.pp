@@ -22,12 +22,14 @@ class openstack::swift::proxy (
   $swift_master				= $::hostname
 ) {
 
+if !defined(Class['swift'])
+{
   class { 'swift': 
     swift_hash_suffix => $swift_hash_suffix,
     package_ensure    => $package_ensure,
   }
-
-  if $memcached {
+}
+  if $memcached and !defined(Class['memcached']) {
     class { 'memcached':}
   }
 

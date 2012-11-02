@@ -9,12 +9,14 @@ class openstack::swift::storage-node (
   $storage_weight       = 1,
   $package_ensure       = 'present'
 ) {
+if !defined(Class['swift'])
+{
 
   class { 'swift': 
     swift_hash_suffix => $swift_hash_suffix,
     package_ensure    => $package_ensure,
   }
-
+}
   case $storage_type {
     'loopback': {
       # create xfs partitions on a loopback device and mount them

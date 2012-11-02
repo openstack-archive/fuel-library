@@ -313,11 +313,11 @@ class openstack::controller (
     # Set up nova-volume
   }
 
-
+ if !defined(Class['memcached']){
   class { 'memcached':
     #    listen_ip => $api_bind_address,
   } 
-
+ }
 
 
   ######## Horizon ########
