@@ -37,7 +37,8 @@ class PrepareOpenStackForTempest(OpenStackTestCase):
         )
         compute_db_uri = 'mysql://nova:nova@%s/nova' % self.ci().get_internal_virtual_ip()
 
-        image_ref, image_ref_alt = make_tempest_objects(auth_host, remote)
+        image_ref, image_ref_alt = make_tempest_objects(
+            auth_host, remote, tenant_name='admin')
         tempest_write_config(
             tempest_build_config_folsom(
                 host=auth_host,

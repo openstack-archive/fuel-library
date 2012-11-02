@@ -120,10 +120,10 @@ def tempest_build_config_folsom(host, image_ref, image_ref_alt,
         'IMAGE_TENANT_NAME': 'tenant1',
         'COMPUTE_ADMIN_USERNAME': 'nova',
         'COMPUTE_ADMIN_PASSWORD': 'admin',
-        'COMPUTE_ADMIN_TENANT_NAME': 'openstack',
+        'COMPUTE_ADMIN_TENANT_NAME': 'admin',
         'IDENTITY_ADMIN_USERNAME': 'nova',
         'IDENTITY_ADMIN_PASSWORD': 'admin',
-        'IDENTITY_ADMIN_TENANT_NAME': 'openstack',
+        'IDENTITY_ADMIN_TENANT_NAME': 'admin',
         'VOLUME_CATALOG_TYPE': 'volume',
         'VOLUME_BUILD_INTERVAL': '10',
         'VOLUME_BUILD_TIMEOUT': '300',
@@ -379,9 +379,9 @@ def make_shared_storage(remote, host, client_nodes, access_network):
         tempest_mount_glance_images(remote_controller, host)
 
 
-def make_tempest_objects(auth_host, remote):
+def make_tempest_objects(auth_host, remote, username='admin', password='nova', tenant_name='openstack'):
     keystone = retry(10, keystoneclient.v2_0.client.Client,
-        username='admin', password='nova', tenant_name='openstack',
+        username=username, password=password, tenant_name=tenant_name,
         auth_url=get_auth_url(auth_host))
     tenant1 = retry(10, keystone.tenants.create, tenant_name='tenant1')
     tenant2 = retry(10, keystone.tenants.create, tenant_name='tenant2')
