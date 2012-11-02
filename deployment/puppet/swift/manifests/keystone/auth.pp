@@ -27,6 +27,7 @@ class swift::keystone::auth(
 
   keystone_user { $auth_name:
     ensure   => present,
+    tenant => 'services',
     password => $password,
   }
   keystone_user_role { "${auth_name}@services":
