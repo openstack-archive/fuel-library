@@ -39,7 +39,6 @@ class openstack::swift::proxy (
     allow_account_management => $proxy_allow_account_management,
     account_autocreate       => $proxy_account_autocreate,
     package_ensure           => $package_ensure,
-    require                  => Class['swift::ringbuilder'],
   }
 
   # configure all of the middlewares
@@ -89,6 +88,7 @@ class openstack::swift::proxy (
     replicas       => $ring_replicas,
     min_part_hours => $ring_min_part_hours,
     require        => Class['swift'],
+    before         => [Class['::swift::proxy']],
   }
 
   # sets up an rsync db that can be used to sync the ring DB
