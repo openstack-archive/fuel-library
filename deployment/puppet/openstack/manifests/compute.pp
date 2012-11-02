@@ -91,7 +91,9 @@ class openstack::compute (
     $cache_server_ip         = ['127.0.0.1'],
   $cache_server_port       = '11211',
   $nova_volume         = 'nova-volumes',
-  $service_endpoint	= '127.0.0.1'
+  $service_endpoint	= '127.0.0.1',
+  $ssh_private_key = undef,
+  $ssh_public_key = undef,
 ) {
 
   #
@@ -159,6 +161,43 @@ class openstack::compute (
   class { 'nova::compute::libvirt':
     libvirt_type     => $libvirt_type,
     vncserver_listen => $internal_address,
+  }
+
+  if defined ( $ssh_private_key ) {
+    file { '/var/lib/nova/.ssh':
+      ensure => directory,
+      owner => 'nova',
+      group => 'nova',
+      mode => '0700'
+    }
+    file { '/var/lib/nova/.ssh/authorized_keys':
+      ensure => present,
+      owner => 'nova',
+      group => 'nova',
+      mode => '0400',
+      source => $ssh_public_key,
+    }
+    file { '/var/lib/nova/.ssh/id_rsa':
+      ensure => present,
+      owner => 'nova',
+      group => 'nova',
+      mode => '0400',
+      source => $ssh_private_key,
+    }
+    file { '/var/lib/nova/.ssh/id_rsa.pub':
+      ensure => present,
+      owner => 'nova',
+      group => 'nova',
+      mode => '0400',
+      source => $ssh_public_key,
+    }
+    file { '/var/lib/nova/.ssh/config':
+      ensure => present,
+      owner => 'nova',
+      group => 'nova',
+      mode => '0600',
+      content => 'Host *\n  StrictHostKeyChecking no\n  UserKnownHostsFile=/dev/null\n',
+    }
   }
 
   # if the compute node should be configured as a multi-host
