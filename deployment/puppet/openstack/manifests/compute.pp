@@ -163,7 +163,7 @@ class openstack::compute (
     vncserver_listen => $internal_address,
   }
 
-  if defined ( $ssh_private_key ) {
+  if ( $ssh_private_key != undef ) {
     file { '/var/lib/nova/.ssh':
       ensure => directory,
       owner => 'nova',
