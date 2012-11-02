@@ -408,6 +408,12 @@ In case of VirtualBox, it's recommended to save current state of every virtual m
         * ``cp fuel/deployment/puppet/openstack/examples/site_openstack_swift_compact.pp /etc/puppet/manifests/site.pp``
     * ``vi /etc/puppet/manifests/site.pp``
         .. literalinclude:: ../../deployment/puppet/openstack/examples/site_openstack_swift_compact.pp
+    * Create the directory ``/var/lib/puppet/ssh_keys`` and do ``ssh-keygen -f openstack`` there
+    * Edit the file ``/etc/puppet/fileserver.conf`` and append the following lines: ::
+
+        [ssh_keys]
+        path /var/lib/puppet/ssh_keys
+        allow *
 
 * Install OpenStack controller nodes sequentially, one by one
     * run "``puppet agent --test``" on fuel-01
