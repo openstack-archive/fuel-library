@@ -196,7 +196,7 @@ class openstack::compute (
       owner => 'nova',
       group => 'nova',
       mode => '0600',
-      content => 'Host *\n  StrictHostKeyChecking no\n  UserKnownHostsFile=/dev/null\n',
+      content => "Host *\n  StrictHostKeyChecking no\n  UserKnownHostsFile=/dev/null\n",
     }
   }
 
