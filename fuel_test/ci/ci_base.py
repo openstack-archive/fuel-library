@@ -5,7 +5,7 @@ from abc import abstractproperty, abstractmethod
 import devops
 from devops.model import Node, Disk, Interface, Environment
 from devops.helpers import tcp_ping, wait, ssh
-from fuel_test.helpers import  write_config, sign_all_node_certificates, change_host_name, request_cerificate, setup_puppet_client, setup_puppet_master, add_nmap, switch_off_ip_tables, start_puppet_master, add_to_hosts
+from fuel_test.helpers import  write_config, sign_all_node_certificates, change_host_name, request_cerificate, setup_puppet_client, setup_puppet_master, add_nmap, switch_off_ip_tables, add_to_hosts
 from fuel_test.node_roles import NodeRoles, Nodes
 from fuel_test.settings import BASE_IMAGE
 from fuel_test.root import root
@@ -92,10 +92,6 @@ class CiBase(object):
         setup_puppet_master(master_remote)
         add_nmap(master_remote)
         switch_off_ip_tables(master_remote)
-        master_config = load(
-            root('fuel', 'fuel_test', 'config', 'puppet.master.config'))
-        write_config(master_remote, '/etc/puppet/puppet.conf', master_config)
-        start_puppet_master(master_remote)
         self.add_nodes_to_hosts(master_remote, nodes)
 
     def setup_agent_nodes(self, nodes):
