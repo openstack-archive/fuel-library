@@ -2,6 +2,7 @@ import unittest
 from devops.helpers import ssh
 from fuel_test.helpers import safety_revert_nodes, tempest_write_config, make_tempest_objects, tempest_build_config_essex
 from fuel_test.openstack_swift_compact.openstack_swift_compact_test_case import OpenStackSwiftCompactTestCase
+from fuel_test.settings import ADMIN_USERNAME, ADMIN_PASSWORD, ADMIN_TENANT_ESSEX
 
 
 class PrepareOpenStackSwiftCompactForTempest(OpenStackSwiftCompactTestCase):
@@ -14,7 +15,12 @@ class PrepareOpenStackSwiftCompactForTempest(OpenStackSwiftCompactTestCase):
         remote = ssh(
             self.ci().nodes().controllers[0].ip_address, username='root',
             password='r00tme').sudo.ssh
-        image_ref, image_ref_alt = make_tempest_objects(auth_host, remote)
+        image_ref, image_ref_alt = make_tempest_objects(
+            auth_host, remote,
+            username=ADMIN_USERNAME,
+            password=ADMIN_PASSWORD,
+            tenant_name=ADMIN_TENANT_ESSEX,
+        )
         tempest_write_config(tempest_build_config_essex(auth_host, image_ref, image_ref_alt))
 
 if __name__ == '__main__':

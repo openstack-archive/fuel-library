@@ -163,26 +163,36 @@ def get_auth_url(auth_host):
     return auth_url
 
 
-def credentials(auth_host, tenant_name):
-    credentials = '--os_username admin --os_password nova --os_auth_url  "%s" --os_tenant_name %s' % (
-        get_auth_url(auth_host), tenant_name)
+def credentials(auth_host, username, password, tenant_name):
+    credentials = '--os_username %s --os_password %s --os_auth_url  "%s" --os_tenant_name %s' % (
+        get_auth_url(auth_host), username, password, tenant_name)
     print credentials
     return credentials
 
 
-def glance_command(auth_host, tenant_name):
-    return 'glance ' + credentials(auth_host, tenant_name) + ' '
+def glance_command(auth_host, username, password, tenant_name):
+    return 'glance ' + credentials(auth_host, username, password, tenant_name) + ' '
 
 
-def tempest_add_images(remote, auth_host, tenant_name):
+def tempest_add_images(remote, auth_host, username, password, tenant_name):
     execute(remote,
         'wget https://launchpad.net/cirros/trunk/0.3.0/+download/cirros-0.3.0-x86_64-disk.img')
-    result = execute(remote, glance_command(auth_host,
-        tenant_name) + ' add name=cirros_0.3.0 is_public=true container_format=bare disk_format=qcow2 < cirros-0.3.0-x86_64-disk.img')
+    result = execute(
+        remote,
+        glance_command(
+            auth_host,
+            username,
+            password,
+            tenant_name) + ' add name=cirros_0.3.0 is_public=true container_format=bare disk_format=qcow2 < cirros-0.3.0-x86_64-disk.img')
     pattern = 'Added new image with ID: (\S*)'
     image_ref = re.findall(pattern, string='\n'.join(result['stdout']))[0]
-    result = execute(remote, glance_command(auth_host,
-        tenant_name) + ' add name=cirros_0.3.0 is_public=true container_format=bare disk_format=qcow2 < cirros-0.3.0-x86_64-disk.img')
+    result = execute(
+        remote,
+        glance_command(
+            auth_host,
+            username,
+            password,
+            tenant_name) + ' add name=cirros_0.3.0 is_public=true container_format=bare disk_format=qcow2 < cirros-0.3.0-x86_64-disk.img')
     image_ref_alt = re.findall(pattern, string='\n'.join(result['stdout']))[0]
     return image_ref, image_ref_alt
 
@@ -379,7 +389,7 @@ def make_shared_storage(remote, host, client_nodes, access_network):
         tempest_mount_glance_images(remote_controller, host)
 
 
-def make_tempest_objects(auth_host, remote, username='admin', password='nova', tenant_name='openstack'):
+def make_tempest_objects(auth_host, remote, username, password, tenant_name):
     keystone = retry(10, keystoneclient.v2_0.client.Client,
         username=username, password=password, tenant_name=tenant_name,
         auth_url=get_auth_url(auth_host))
@@ -389,8 +399,12 @@ def make_tempest_objects(auth_host, remote, username='admin', password='nova', t
         email='tempest1@example.com', tenant_id=tenant1.id)
     retry(10, keystone.users.create, name='tempest2', password='secret',
         email='tempest1@example.com', tenant_id=tenant2.id)
-    image_ref, image_ref_alt = tempest_add_images(remote, auth_host,
-        'openstack')
+    image_ref, image_ref_alt = tempest_add_images(
+        remote,
+        auth_host,
+        username,
+        password,
+        tenant_name)
     return image_ref, image_ref_alt
 
 
