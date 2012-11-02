@@ -317,11 +317,13 @@ def setup_puppet_master(remote):
     puppet_apply(remote.sudo.ssh,
         'class {puppet: puppet_master_version => "%s"}'
         '-> class {puppet::thin:}'
-        '-> class {puppet::nginx: puppet_master_hostname => "master.mirantis.com"}' % PUPPET_VERSION)
+        '-> class {puppet::nginx: puppet_master_hostname => "master.mirantis.com"}'
+        '-> class {puppet::fileserver_config:}' % PUPPET_VERSION)
     puppet_apply(remote.sudo.ssh,
         'class {puppetdb:}')
     puppet_apply(remote.sudo.ssh,
         'class {puppetdb::master::config: puppet_service_name=>"%s"}' % PUPPET_MASTER_SERVICE)
+    execute(remote, 'ssh-keygen -f /var/lib/puppet/ssh_keys/openstack -N ""')
 
 
 def upload_recipes(remote, remote_dir="/etc/puppet/modules/"):
