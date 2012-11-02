@@ -132,7 +132,8 @@ node /fuel-07/ {
 node /fuel-0[89]/ {
 
 
-  class { openstack::swift::proxy: swift_proxies => $swift_proxies, swift_master => $swift_master }
+  class { openstack::swift::proxy: swift_proxies => $swift_proxies, swift_master => $swift_master, controller_node_address =>  $internal_virtual_ip }
+  
 
 }
 
