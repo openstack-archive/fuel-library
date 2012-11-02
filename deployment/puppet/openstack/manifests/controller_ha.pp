@@ -183,14 +183,26 @@ class openstack::controller_ha (
       require => Sysctl::Value['net.ipv4.ip_nonlocal_bind'],
     }
 
-    exec { 'create-keepalived-rules':
-        command => "iptables -I INPUT -m pkttype --pkt-type multicast -d 224.0.0.18 -j ACCEPT && /etc/init.d/iptables save ", 
-        unless => "iptables-save  | grep '\-A INPUT -d 224.0.0.18/32 -m pkttype --pkt-type multicast -j ACCEPT' -q",
-        path => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
-        before => Service['keepalived'],
-        require => Class['firewall']
+    case $::osfamily {
+      'RedHat': {
+        exec { 'create-keepalived-rules':
+          command => "iptables -I INPUT -m pkttype --pkt-type multicast -d 224.0.0.18 -j ACCEPT && /etc/init.d/iptables save ", 
+          unless => "iptables-save  | grep '\-A INPUT -d 224.0.0.18/32 -m pkttype --pkt-type multicast -j ACCEPT' -q",
+          path => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
+          before => Service['keepalived'],
+          require => Class['firewall']
+        }
+      }
+      'Debian': {
+        exec { 'create-keepalived-rules':
+          command => "iptables -I INPUT -m pkttype --pkt-type multicast -d 224.0.0.18 -j ACCEPT && iptables-save ", 
+          unless => "iptables-save  | grep '\-A INPUT -d 224.0.0.18/32 -m pkttype --pkt-type multicast -j ACCEPT' -q",
+          path => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
+          before => Service['keepalived'],
+          require => Class['firewall']
+        }
+      }
     }
-
     # keepalived
     class { 'keepalived': require => Class['haproxy'] }
     keepalived::instance { '41':
