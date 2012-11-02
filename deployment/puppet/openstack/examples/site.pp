@@ -124,7 +124,9 @@ node /fuel-0[34]/ {
       nv_physical_volume => $nv_physical_volume,
       nova_user_password	=> $nova_user_password,
       cache_server_ip         => $controller_hostnames,
-      service_endpoint	=> $internal_virtual_ip,
+      service_endpoint	 => $internal_virtual_ip,
+      ssh_private_key    => 'puppet:///ssh_keys/openstack',
+      ssh_public_key     => 'puppet:///ssh_keys/openstack.pub',
     }
 }
 
