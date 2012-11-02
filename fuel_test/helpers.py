@@ -322,6 +322,7 @@ def setup_puppet_master(remote):
         'class {puppetdb:}')
     puppet_apply(remote.sudo.ssh,
         'class {puppetdb::master::config:}')
+    execute(remote.sudo.ssh, 'service thin restart')
 
 
 def upload_recipes(remote, remote_dir="/etc/puppet/modules/"):
