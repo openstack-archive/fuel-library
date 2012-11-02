@@ -144,6 +144,8 @@ node /fuel-0[34]/ {
     glance_api_servers => "${controller_node_internal}:9292",
     vncproxy_host      => $controller_node_public,
     vnc_enabled        => true,
+    ssh_private_key    => 'puppet:///ssh_keys/openstack',
+    ssh_public_key     => 'puppet:///ssh_keys/openstack.pub',
     verbose            => $verbose,
   }
 
