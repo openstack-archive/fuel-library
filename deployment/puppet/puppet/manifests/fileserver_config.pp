@@ -23,12 +23,14 @@ class puppet::fileserver_config(
     setting => 'path',
     value   => $path,
     notify => Service[$notify_service],
+    key_val_separator => " ", 
   }
   
   ini_setting {'allow':
     setting => 'allow',
     value   => $allow,
     notify => Service[$notify_service],
+    key_val_separator => " ",
   }
   
   if ($deny) {  
@@ -36,6 +38,7 @@ class puppet::fileserver_config(
 	    setting => 'deny',
 	    value   => $deny,
 	    notify => Service[$notify_service],
+	    key_val_separator => " ",
 	  }
 	}
 
