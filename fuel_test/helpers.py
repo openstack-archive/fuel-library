@@ -164,8 +164,17 @@ def get_auth_url(auth_host):
 
 
 def credentials(auth_host, username, password, tenant_name):
-    credentials = '--os_username %s --os_password %s --os_auth_url  "%s" --os_tenant_name %s' % (
-        get_auth_url(auth_host), username, password, tenant_name)
+    credentials = (
+        ' --os_username %(username)s '
+        ' --os_password %(password)s '
+        ' --os_auth_url  "%(auth_url)s" '
+        ' --os_tenant_name %(tenant_name)s '
+    ) % {
+        'auth_url' :get_auth_url(auth_host),
+        'username' :username,
+        'password' : password,
+        'tenant_name': tenant_name
+    }
     print credentials
     return credentials
 
