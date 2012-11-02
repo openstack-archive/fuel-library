@@ -94,13 +94,15 @@ class horizon(
   }
 
   # ensure there is a HTTP redirect from / to /dashboard
-  #  file_line { 'horizon_redirect_rule':
-  # path => $::horizon::params::config_file,
-  # line => 'RedirectMatch permanent ^/$ /dashboard/',
-  # require => Package["$::horizon::params::package_name"],
-  # notify => Service["httpd"]
-  #}
-
+  if $::osfamily == 'RedHat'
+ {
+  file_line { 'horizon_redirect_rule':
+   path => $::horizon::params::config_file,
+   line => 'RedirectMatch permanent ^/$ /dashboard/',
+   require => Package["$::horizon::params::package_name"],
+   notify => Service["httpd"]
+  }
+ }
   # ensure https only listens on the management address, not on all interfaces
   file_line { 'httpd_listen_on_internal_network_only':
     path => $::horizon::params::httpd_listen_config_file,
