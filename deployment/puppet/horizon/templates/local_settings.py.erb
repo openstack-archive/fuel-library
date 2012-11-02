@@ -129,8 +129,9 @@ LOGGING = {
             }
         }
 }
-LOGIN_URL='/horizon/auth/login/'
-LOGIN_REDIRECT_URL='/horizon'
+
+LOGIN_URL='/<%= dashboard_urlpart %>/auth/login/'
+LOGIN_REDIRECT_URL='/<%= dashboard_urlpart%>'
 
 # The Ubuntu package includes pre-compressed JS and compiled CSS to allow
 # offline compression by default.  To enable online compression, install
