@@ -32,12 +32,14 @@ if !defined(Class['ssh::server::install'])
   Class['ssh::server::install'] -> Class['swift']
 
     class {'rsync::server':}
+if !defined(Package['swift'])
+ {
 
   package { 'swift':
     name   => $::swift::params::package_name,
     ensure => $package_ensure,
   }
-
+}
   File { owner => 'swift', group => 'swift', require => Package['swift'] }
 
   file { '/home/swift':
