@@ -16,26 +16,26 @@ class puppet::fileserver_config(
     ensure  => present,
     section => section,
     path    => "${puppet_confdir}/fileserver.conf",
-    notify => $notify_service, 
+    notify => Service[$notify_service], 
   }
   
   ini_setting {'path':
     setting => 'path',
     value   => $path,
-    notify => $notify_service,
+    notify => Service[$notify_service],
   }
   
   ini_setting {'allow':
     setting => 'allow',
     value   => $allow,
-    notify => $notify_service,
+    notify => Service[$notify_service],
   }
   
   if ($deny) {  
 	  ini_setting {'deny':
 	    setting => 'deny',
 	    value   => $deny,
-	    notify => $notify_service,
+	    notify => Service[$notify_service],
 	  }
 	}
 
