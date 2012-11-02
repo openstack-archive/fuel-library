@@ -328,7 +328,8 @@ def setup_puppet_master(remote):
         'class {puppet: puppet_master_version => "%s"}'
         '-> class {puppet::thin:}'
         '-> class {puppet::nginx: puppet_master_hostname => "master.mirantis.com"}'
-        '-> class {puppet::fileserver_config:}' % PUPPET_VERSION)
+         % PUPPET_VERSION)
+    puppet_apply(remote.sudo.ssh, 'class {puppet::fileserver_config:}')
     puppet_apply(remote.sudo.ssh,
         'class {puppetdb:}')
     puppet_apply(remote.sudo.ssh,
