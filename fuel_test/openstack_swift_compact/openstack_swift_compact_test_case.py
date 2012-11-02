@@ -35,6 +35,7 @@ class OpenStackSwiftCompactTestCase(BaseTestCase):
             floating_range="'%s'" % self.ci().get_floating_network(),
             fixed_range="'%s'" % self.ci().get_fixed_network(),
             master_hostname = "'%s'" % controllers[0].name,
+            swift_master = "%s" % controllers[0].name,
             controller_public_addresses = controller_public_addresses,
             controller_internal_addresses = controller_internal_addresses,
             controller_hostnames=["%s" % controller.name for controller in controllers],
