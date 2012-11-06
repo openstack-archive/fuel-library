@@ -8,6 +8,7 @@ class cinder::api (
   $keystone_auth_port     = '35357',
   $keystone_auth_protocol = 'http',
   $package_ensure         = 'latest',
+  $bind_host              = '0.0.0.0',
   $enabled                = true
 ) {
 
@@ -45,7 +46,9 @@ class cinder::api (
     ensure    => $ensure,
     require   => Package[$api_package, 'python-keystone'],
   }
-
+  cinder_config {
+    'DEFAULT/bind_host': value => $bind_host;
+  }
   if $keystone_enabled {
     cinder_config {
       'DEFAULT/auth_strategy':     value => 'keystone' ;
