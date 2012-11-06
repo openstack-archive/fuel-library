@@ -9,10 +9,10 @@ class openstack::cinder(
   $enabled         = true,
   $purge_cinder_config = true,
   $auth_host          = '127.0.0.1',
-  $bind_host          = '127.0.0.1',
+  $bind_host          = '0.0.0.0',
 ) {
 
-  if ($purge_nova_config) {
+  if ($purge_cinder_config) {
     resources { 'cinder_config':
       purge => true,
     }   
@@ -32,6 +32,7 @@ class openstack::cinder(
       package_ensure => $::openstack_version['cinder'],
       keystone_auth_host => $auth_host,
       keystone_password => $cinder_user_password,
+      bind_host         => $bind_host,
   }   
 
 
