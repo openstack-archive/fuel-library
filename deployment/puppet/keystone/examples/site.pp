@@ -9,7 +9,7 @@ node keystone_sqlite {
     debug    => true,
     catalog_type => 'sql',
   }
-  class { 'keystone::roles::admin': }
+  class { 'keystone::roles::admin': 
     email  => 'example@abc.com',
   }
 }
@@ -42,8 +42,10 @@ node keystone {
   class { 'keystone::db::mysql':
     password => 'keystone',
   }
-  class { 'keystone::roles::admin': }
+  class { 'keystone::roles::admin': 
     email  => 'example@abc.com',
+  }
+  
 }
 
 node default {
