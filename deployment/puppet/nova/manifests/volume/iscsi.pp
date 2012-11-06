@@ -54,7 +54,7 @@ class nova::volume::iscsi (
         fail("Unsupported iscsi helper: ${iscsi_helper}. The supported iscsi helper is tgtadm.")
     }
   }
-if $physical_volume {
+if ($physical_volume) {
   class { 'lvm':
     vg     => $volume_group,
     pv     => $physical_volume,
