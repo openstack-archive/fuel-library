@@ -22,6 +22,7 @@ $rabbit_password         = 'nova'
 $rabbit_user             = 'nova'
 $glance_backend          = 'file'
 $public_address          = '10.0.0.101'
+$nv_physical_volume     = ['/dev/sdz', '/dev/sdy', '/dev/sdx']
 case $::osfamily {
   'RedHat': {
     $openstack_version = {
@@ -80,6 +81,7 @@ node /fuel-01/ {
       network_manager         => $network_manager,
       export_resources        => false,
       manage_volumes          => true,
+      nv_physical_volume      => $nv_physical_volume,
     }
 }
 

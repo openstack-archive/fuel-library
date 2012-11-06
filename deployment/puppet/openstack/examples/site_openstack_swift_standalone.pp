@@ -35,6 +35,7 @@ $swift_proxy_address    = '192.168.1.16'
 $controller_node_public = $internal_virtual_ip 
 $glance_backend         = 'swift'
 $manage_volumes         = false
+$nv_physical_volume     = ['/dev/sdz', '/dev/sdy', '/dev/sdx']
 case $::osfamily {
   'RedHat': {
     $openstack_version = {
@@ -103,6 +104,7 @@ node /fuel-0[12]/ inherits swift_base {
       glance_backend          => $glance_backend,
       swift_proxies           => $swift_proxies,
       manage_volumes          => $manage_volumes,
+      nv_physical_volume      => $nv_physical_volume,
       }
       
       class { 'swift::keystone::auth':

@@ -34,6 +34,7 @@ $swift_proxy_address = '10.0.113.253'
 $controller_node_public = $internal_virtual_ip 
 $glance_backend         = 'swift'
 $manage_volumes         = false
+$nv_physical_volume     = ['/dev/sdz', '/dev/sdy', '/dev/sdx']
 case $::osfamily {
   'RedHat': {
     $openstack_version = {
@@ -101,6 +102,7 @@ class compact_controller {
       glance_backend          => $glance_backend,
       swift_proxies           => $swift_proxies,
       manage_volumes          => $manage_volumes 
+      nv_physical_volume      => $nv_physical_volume,
       }
       class { 'swift::keystone::auth':
              password => $swift_user_password,
