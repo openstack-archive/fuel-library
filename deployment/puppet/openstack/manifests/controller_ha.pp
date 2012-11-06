@@ -83,7 +83,8 @@ class openstack::controller_ha (
    $auto_assign_floating_ip, $mysql_root_password, $admin_email, $admin_password,
    $keystone_db_password, $keystone_admin_token, $glance_db_password, $glance_user_password,
    $nova_db_password, $nova_user_password, $rabbit_password, $rabbit_user,
-   $rabbit_nodes, $memcached_servers, $export_resources, $glance_backend='file', $swift_proxies=undef
+   $rabbit_nodes, $memcached_servers, $export_resources, $glance_backend='file', $swift_proxies=undef,
+   $quantum = false, $cinder = false
  ) {
 
     $which = $::hostname ? { $master_hostname => 0, default => 1 }
@@ -252,7 +253,9 @@ class openstack::controller_ha (
       db_host              => $internal_virtual_ip,
       service_endpoint        => $internal_virtual_ip,
       glance_backend          => $glance_backend,
-      require                 => Service['keepalived']
+      require                 => Service['keepalived'],
+      quantum                 => $quantum,
+      cinder                  => $cinder,
     }
 
     class { 'openstack::auth_file':

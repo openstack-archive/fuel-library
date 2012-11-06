@@ -34,6 +34,8 @@ $swift_local_net_ip   = $ipaddress_eth0
 $swift_proxy_address = '10.0.126.253'
 $controller_node_public = $internal_virtual_ip 
 $glance_backend         = 'swift'
+$quantum                = false
+$cinder                 = true
 $openstack_version = {
   'keystone'   => 'latest',
   'glance'     => 'latest',
@@ -77,7 +79,10 @@ class compact_controller {
       memcached_servers       => $controller_hostnames,
       export_resources        => false,
       glance_backend          => $glance_backend,
-      swift_proxies           => $swift_proxies
+      swift_proxies           => $swift_proxies,
+      quantum                 => $quantum,
+      cinder                  => $cinder,
+ 
       }
       class { 'swift::keystone::auth':
              password => $swift_user_password,

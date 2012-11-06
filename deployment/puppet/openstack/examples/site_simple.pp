@@ -38,6 +38,8 @@ $verbose                 = true
 # by default it does not enable atomatically adding floating IPs
 $auto_assign_floating_ip = false
 
+$quantum                = false
+$cinder                 = true
 stage {'openstack-custom-repo': before => Stage['main']}
 include openstack::mirantis_repos
 
@@ -115,6 +117,8 @@ node /fuel-01/ {
     rabbit_password         => $rabbit_password,
     rabbit_user             => $rabbit_user,
     export_resources        => false,
+    quantum                 => $quantum,
+    cinder                  => $cinder,
   }
 
   class { 'openstack::auth_file':

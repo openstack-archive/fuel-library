@@ -26,6 +26,8 @@ $nova_user_password      = 'nova'
 $rabbit_password         = 'nova'
 $rabbit_user             = 'nova'
 $glance_backend         ='file'
+$quantum                = false
+$cinder                 = true
 $openstack_version = {
   'keystone'   => latest,
   'glance'     => latest,
@@ -68,7 +70,9 @@ node /fuel-0[12]/ {
       rabbit_nodes            => $controller_hostnames,
       memcached_servers       => $controller_hostnames,
       export_resources        => false,
-      glance_backend          => $glance_backend
+      glance_backend          => $glance_backend,
+      quantum                 => $quantum,
+      cinder                  => $cinder,
     }
 }
 
