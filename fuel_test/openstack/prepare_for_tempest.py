@@ -2,6 +2,7 @@ from devops.helpers import ssh
 import unittest
 from fuel_test.helpers import safety_revert_nodes, make_shared_storage, make_tempest_objects, tempest_write_config, tempest_build_config_essex, tempest_build_config_folsom
 from fuel_test.openstack.openstack_test_case import OpenStackTestCase
+from fuel_test.root import root
 from fuel_test.settings import ADMIN_USERNAME, ADMIN_PASSWORD, ADMIN_TENANT_ESSEX, ADMIN_TENANT_FOLSOM
 
 
@@ -54,7 +55,7 @@ class PrepareOpenStackForTempest(OpenStackTestCase):
                 host=auth_host,
                 image_ref=image_ref,
                 image_ref_alt=image_ref_alt,
-                path_to_private_key='private.pem',
+                path_to_private_key=root('fuel', 'fuel_test', 'config', 'ssh_keys', 'openstack'),
                 compute_db_uri=compute_db_uri
             ))
 
