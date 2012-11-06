@@ -339,6 +339,7 @@ def setup_puppet_master(remote):
         '-> class {puppet::thin:}'
         '-> class {puppet::nginx: puppet_master_hostname => "master.mirantis.com"}'
          % PUPPET_VERSION)
+    remote.mkdir('/var/lib/puppet/ssh_keys')
     puppet_apply(remote.sudo.ssh, 'class {puppet::fileserver_config:}')
     puppet_apply(remote.sudo.ssh,
         'class {puppetdb:}')
@@ -354,7 +355,6 @@ def upload_recipes(remote, remote_dir="/etc/puppet/modules/"):
         remote.upload(recipe_dir, remote_dir)
 
 def upload_keys(remote, remote_dir="/var/lib/puppet"):
-    remote.mkdir(remote_dir + '/ssh_keys')
     ssh_keys_dir = root('fuel', 'fuel_test', 'config', 'ssh_keys')
     remote.upload(ssh_keys_dir, remote_dir)
 
