@@ -48,6 +48,7 @@ class cinder::api (
   }
   cinder_config {
     'DEFAULT/bind_host': value => $bind_host;
+    'DEFAULT/osapi_volume_listen': value => $bind_host;
   }
   if $keystone_enabled {
     cinder_config {
