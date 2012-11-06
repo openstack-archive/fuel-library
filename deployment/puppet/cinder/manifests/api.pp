@@ -50,16 +50,13 @@ class cinder::api (
     cinder_config {
       'DEFAULT/auth_strategy':     value => 'keystone' ;
     }
-    cinder_api_paste_ini {
-      'filter:authtoken/service_protocol':  value => $keystone_auth_protocol;
-      'filter:authtoken/service_host':      value => $keystone_auth_host;
-      'filter:authtoken/service_port':      value => '5000';
-      'filter:authtoken/auth_protocol':     value => $keystone_auth_protocol;
-      'filter:authtoken/auth_host':         value => $keystone_auth_host;
-      'filter:authtoken/auth_port':         value => $keystone_auth_port;
-      'filter:authtoken/admin_tenant_name': value => $keystone_tenant;
-      'filter:authtoken/admin_user':        value => $keystone_user;
-      'filter:authtoken/admin_password':    value => $keystone_password;
+    cinder_config {
+      'keystone_authtoken/auth_protocol':     value => $keystone_auth_protocol;
+      'keystone_authtoken/auth_host':         value => $keystone_auth_host;
+      'keystone_authtoken/auth_port':         value => $keystone_auth_port;
+      'keystone_authtoken/admin_tenant_name': value => $keystone_tenant;
+      'keystone_authtoken/admin_user':        value => $keystone_user;
+      'keystone_authtoken/admin_password':    value => $keystone_password;
     }
   }
 
