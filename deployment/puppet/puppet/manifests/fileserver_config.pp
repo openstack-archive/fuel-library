@@ -1,10 +1,11 @@
 class puppet::fileserver_config(
-  $puppet_confdir = '/etc/puppet/',
-  $autosign = true,
-  $section     = "ssh_keys",
-  $path = '/var/lib/puppet/ssh_keys',
-  $allow = '*',
-  $deny = undef,
+  $puppet_confdir = '/etc/puppet',
+  $folders = [{
+    section=>'ssh_keys',
+    path=>'/var/lib/puppet/ssh_keys',
+    allow=>'*',
+    deny => undef,
+  },],
   $notify_service = "thin" 
 ){
   
@@ -12,35 +13,11 @@ class puppet::fileserver_config(
     service {$notify_service:}
   }
 
-  Ini_setting {
-    ensure  => present,
-    section => section,
-    path    => "${puppet_confdir}/fileserver.conf",
-    notify => Service[$notify_service], 
+  file { "${puppet_confdir}/fileserver.conf":
+      content => template("puppet/fileserver.conf.erb"),
+      notify => Service[$notify_service],
   }
-  
-  ini_setting {'path':
-    setting => 'path',
-    value   => $path,
-    notify => Service[$notify_service],
-    key_val_separator => " ", 
-  }
-  
-  ini_setting {'allow':
-    setting => 'allow',
-    value   => $allow,
-    notify => Service[$notify_service],
-    key_val_separator => " ",
-  }
-  
-  if ($deny) {  
-	  ini_setting {'deny':
-	    setting => 'deny',
-	    value   => $deny,
-	    notify => Service[$notify_service],
-	    key_val_separator => " ",
-	  }
-	}
+ 
 
 }
   
