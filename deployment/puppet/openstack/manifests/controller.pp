@@ -300,29 +300,19 @@ class openstack::controller (
 
   ######### Cinder Controller Services ########
   if ($cinder) {
-    class { "cinder::base":
-      verbose         => $verbose,
-      sql_connection  => "mysql://${cinder_db_user}:${cinder_db_password}@${db_host}/${cinder_db_dbname}?charset=utf8",
+    class {'openstack::cinder':
+      sql_connection => "mysql://${cinder_db_user}:${cinder_db_password}@${db_host}/${cinder_db_dbname}?charset=utf8",
       rabbit_password => $rabbit_password,
+      rabbit_host     => false,
+      rabbit_nodes    => $rabbit_nodes,
+      volume_group    => 'cinder-volumes',
+      physical_volume => $physical_volume,
+      manage_volumes  => $manage_volumes,
+      enabled         => true,
+      auth_host       => $service_endpoint,
+      bind_host       => $api_bind_address,
     }
-
-    class { 'cinder::api':
-      keystone_password => $cinder_user_password,
-    }
-
-    class { 'cinder::scheduler': }
-  if $manage_volumes {
-
-    class { 'cinder::volume':
-      package_ensure => $::openstack_version['cinder'],
-      enabled        => true,
-    }   
-
-    class { 'cinder::volume::iscsi':
-      iscsi_ip_address => $internal_address,
-      physical_volume  => $nv_physical_volume,
-    }   
-  }
+ }
 
 
   } else {
