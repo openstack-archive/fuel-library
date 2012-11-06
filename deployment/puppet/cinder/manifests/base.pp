@@ -45,12 +45,16 @@ class cinder::base (
   }
   if $rabbit_host
   {
+    cinder_config {
     'DEFAULT/rabbit_host':         value => $rabbit_host;
+    }
   }
   if $rabbit_hosts
   {
+    cinder_config {
     'DEFAULT/rabbit_hosts':         value => $rabbit_hosts;
     'DEFAULT/rabbit_ha_queues': value => 'True';
+    }
   }
   cinder_config {
     'DEFAULT/rpc_backend':         value => $rpc_backend;
