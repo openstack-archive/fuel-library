@@ -54,6 +54,12 @@ class cinder::api (
     cinder_config {
       'DEFAULT/auth_strategy':     value => 'keystone' ;
     }
+    cinder_api_paste_ini {
+      'filter:authtoken/service_port': value => 5000;
+      'filter:authtoken/service_protocol': value => $keystone_auth_protocol;
+      'filter:authtoken/service_host': value => $keystone_auth_host;
+    }
+
     cinder_config {
       'keystone_authtoken/auth_protocol':     value => $keystone_auth_protocol;
       'keystone_authtoken/auth_host':         value => $keystone_auth_host;
