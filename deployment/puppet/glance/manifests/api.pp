@@ -123,8 +123,8 @@ class glance::api(
   glance_api_config {
     'keystone_authtoken/auth_host':         value => $auth_host;
     'keystone_authtoken/auth_port':         value => $auth_port;
-    'keystone_authtoken/protocol':          value => $protocol;
-    'keystone_authtoken/auth_uri':          value => $auth_uri;
+    'keystone_authtoken/protocol':          value => $auth_protocol;
+    'keystone_authtoken/auth_uri':          value => $auth_url;
   }
 
   # keystone config
@@ -139,7 +139,7 @@ class glance::api(
       'DEFAULT/auth_url':          value => $auth_url;
       'DEFAULT/admin_tenant_name': value => $keystone_tenant;
       'DEFAULT/admin_user':        value => $keystone_user;
-      'DEFAULT/admin_password':    value => $eystone_password;
+      'DEFAULT/admin_password':    value => $keystone_password;
     }
   }
 

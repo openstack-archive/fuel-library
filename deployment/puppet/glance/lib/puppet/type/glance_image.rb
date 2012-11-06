@@ -32,7 +32,7 @@ Puppet::Type.newtype(:glance_image) do
   newproperty(:id) do
     desc 'The unique id of the image'
     validate do |v|
-      raise(Puppet:Error, 'This is a read only property')
+      raise(Puppet::Error, 'This is a read only property')
     end
   end
 
