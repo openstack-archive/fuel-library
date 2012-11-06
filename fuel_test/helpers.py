@@ -354,7 +354,7 @@ def upload_recipes(remote, remote_dir="/etc/puppet/modules/"):
         remote.mkdir(remote_dir)
         remote.upload(recipe_dir, remote_dir)
 
-def upload_keys(remote, remote_dir="/var/lib/puppet"):
+def upload_keys(remote, remote_dir="/var/lib/puppet/"):
     ssh_keys_dir = root('fuel', 'fuel_test', 'config', 'ssh_keys')
     remote.upload(ssh_keys_dir, remote_dir)
 
