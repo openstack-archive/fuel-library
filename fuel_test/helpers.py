@@ -3,7 +3,7 @@ from time import sleep
 from devops.helpers import ssh, os
 import keystoneclient.v2_0
 import re
-from fuel_test.settings import OS_FAMILY, PUPPET_CLIENT_PACKAGE, PUPPET_VERSION, PUPPET_MASTER_SERVICE
+from fuel_test.settings import OS_FAMILY, PUPPET_CLIENT_PACKAGE, PUPPET_VERSION, PUPPET_MASTER_SERVICE, ADMIN_USERNAME, ADMIN_PASSWORD, ADMIN_TENANT_FOLSOM, ADMIN_TENANT_ESSEX
 from root import root
 #from glanceclient import Client
 
@@ -118,12 +118,12 @@ def tempest_build_config_folsom(host, image_ref, image_ref_alt,
         'IMAGE_USERNAME': 'tempest1',
         'IMAGE_PASSWORD': 'secret',
         'IMAGE_TENANT_NAME': 'tenant1',
-        'COMPUTE_ADMIN_USERNAME': 'nova',
-        'COMPUTE_ADMIN_PASSWORD': 'admin',
-        'COMPUTE_ADMIN_TENANT_NAME': 'admin',
-        'IDENTITY_ADMIN_USERNAME': 'nova',
-        'IDENTITY_ADMIN_PASSWORD': 'admin',
-        'IDENTITY_ADMIN_TENANT_NAME': 'admin',
+        'COMPUTE_ADMIN_USERNAME': ADMIN_USERNAME,
+        'COMPUTE_ADMIN_PASSWORD': ADMIN_PASSWORD,
+        'COMPUTE_ADMIN_TENANT_NAME': ADMIN_TENANT_FOLSOM,
+        'IDENTITY_ADMIN_USERNAME': ADMIN_USERNAME,
+        'IDENTITY_ADMIN_PASSWORD': ADMIN_PASSWORD,
+        'IDENTITY_ADMIN_TENANT_NAME': ADMIN_TENANT_FOLSOM,
         'VOLUME_CATALOG_TYPE': 'volume',
         'VOLUME_BUILD_INTERVAL': '10',
         'VOLUME_BUILD_TIMEOUT': '300',
@@ -145,9 +145,9 @@ def tempest_build_config_essex(host, image_ref, image_ref_alt):
         'ALT_TENANT_NAME': 'tenant2',
         'IMAGE_ID': image_ref,
         'IMAGE_ID_ALT': image_ref_alt,
-        'ADMIN_USERNAME': 'admin',
-        'ADMIN_PASSWORD': 'nova',
-        'ADMIN_TENANT_NAME': 'openstack',
+        'ADMIN_USERNAME':  ADMIN_USERNAME,
+        'ADMIN_PASSWORD': ADMIN_PASSWORD,
+        'ADMIN_TENANT_NAME': ADMIN_TENANT_ESSEX,
     }
     return config
 
