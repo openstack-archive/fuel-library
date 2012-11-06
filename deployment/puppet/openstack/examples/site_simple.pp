@@ -42,6 +42,15 @@ $manage_volumes         = true
 $nv_physical_volume     = ['/dev/sdz', '/dev/sdy', '/dev/sdx'] 
 $quantum                = false
 $cinder                 = true
+$openstack_version = {
+  'keystone'   => latest,
+  'glance'     => latest,
+  'horizon'    => latest,
+  'nova'       => latest,
+  'novncproxy' => latest,
+  'cinder' => latest,
+}
+
 stage {'openstack-custom-repo': before => Stage['main']}
 include openstack::mirantis_repos
 

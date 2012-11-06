@@ -36,6 +36,7 @@ $openstack_version = {
   'horizon'    => latest,
   'nova'       => latest,
   'novncproxy' => latest,
+  'cinder' => latest,
 }
 
 Exec { logoutput => true }
