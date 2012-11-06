@@ -49,6 +49,11 @@ class cinder::volume::iscsi (
         require  => [Class['cinder::volume'], Package['iscsitarget', 'iscsitarget-dkms']],
       }
     }
+    default: {
+      fail("Unsupported iscsi helper: ${iscsi_helper}.")
+    }
+  }
+
   if ($physical_volume) {
   class { 'lvm':
     vg     => $volume_group,
@@ -56,9 +61,4 @@ class cinder::volume::iscsi (
     before => Service['cinder-volume'],
   }
 }
-    default: {
-      fail("Unsupported iscsi helper: ${iscsi_helper}.")
-    }
-  }
-
 }
