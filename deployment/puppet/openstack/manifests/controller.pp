@@ -85,6 +85,7 @@ class openstack::controller (
   # not sure if this works correctly
   $internal_address        = $public_address,
   $admin_address           = $public_address,
+  # Rabbit
   $rabbit_password         = 'rabbit_pw',
   $rabbit_user             = 'nova',
   $rabbit_cluster          = false,
@@ -117,9 +118,6 @@ class openstack::controller (
   $nova_db_user            = 'nova',
   $nova_db_dbname          = 'nova',
   $purge_nova_config       = false,
-  # Rabbit
-  $rabbit_password         = 'rabbit_pw',
-  $rabbit_user             = 'nova',
   # Horizon
   $cache_server_ip         = ['127.0.0.1'],
   $cache_server_port       = '11211',
