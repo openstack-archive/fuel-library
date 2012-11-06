@@ -2,7 +2,7 @@ class openstack::cinder(
   $sql_connection,
   $rabbit_password,
   $rabbit_host     = false,
-  $rabbit_nodes    = ['127.0.0.1']
+  $rabbit_nodes    = ['127.0.0.1'],
   $volume_group    = 'cinder-volumes',
   $physical_volume = undef,
   $manage_volumes  = false,
