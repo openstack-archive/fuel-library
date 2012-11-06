@@ -34,6 +34,8 @@ $swift_local_net_ip   = $ipaddress_eth0
 $swift_proxy_address = '10.0.126.253'
 $controller_node_public = $internal_virtual_ip 
 $glance_backend         = 'swift'
+$manage_volumes         = true 
+$nv_physical_volume     = ['/dev/sdz', '/dev/sdy', '/dev/sdx'] 
 $quantum                = false
 $cinder                 = true
 $openstack_version = {
@@ -42,6 +44,7 @@ $openstack_version = {
   'horizon'    => 'latest',
   'nova'       => 'latest',
   'novncproxy' => 'latest',
+  'cinder' => latest,
 }
 
 Exec { logoutput => true }
@@ -82,6 +85,8 @@ class compact_controller {
       swift_proxies           => $swift_proxies,
       quantum                 => $quantum,
       cinder                  => $cinder,
+      manage_volumes          => $manage_volumes,
+      nv_physical_volume      => $nv_physical_volume,
  
       }
       class { 'swift::keystone::auth':

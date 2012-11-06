@@ -80,6 +80,7 @@ class openstack::compute (
   # nova compute configuration parameters
   $verbose             = false,
   $manage_volumes      = false,
+  $nv_physical_volume  = undef,
     $cache_server_ip         = ['127.0.0.1'],
   $cache_server_port       = '11211',
   $nova_volume         = 'nova-volumes',

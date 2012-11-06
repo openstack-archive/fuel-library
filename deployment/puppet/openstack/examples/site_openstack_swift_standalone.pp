@@ -36,12 +36,15 @@ $controller_node_public = $internal_virtual_ip
 $glance_backend         = 'swift'
 $quantum                = false
 $cinder                 = true
+$manage_volumes         = true 
+$nv_physical_volume     = ['/dev/sdz', '/dev/sdy', '/dev/sdx'] 
 $openstack_version = {
   'keystone'   => 'latest',
   'glance'     => 'latest',
   'horizon'    => 'latest',
   'nova'       => 'latest',
   'novncproxy' => 'latest',
+  'cinder' => latest,
 }
 
 Exec { logoutput => true }
@@ -82,6 +85,8 @@ node /fuel-0[12]/ {
       swift_proxies           => $swift_proxies,
       quantum                 => $quantum,
       cinder                  => $cinder,
+      manage_volumes          => $manage_volumes,
+      nv_physical_volume      => $nv_physical_volume,
  
       }
       

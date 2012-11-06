@@ -38,8 +38,19 @@ $verbose                 = true
 # by default it does not enable atomatically adding floating IPs
 $auto_assign_floating_ip = false
 
+$manage_volumes         = true 
+$nv_physical_volume     = ['/dev/sdz', '/dev/sdy', '/dev/sdx'] 
 $quantum                = false
 $cinder                 = true
+$openstack_version = {
+  'keystone'   => latest,
+  'glance'     => latest,
+  'horizon'    => latest,
+  'nova'       => latest,
+  'novncproxy' => latest,
+  'cinder' => latest,
+}
+
 stage {'openstack-custom-repo': before => Stage['main']}
 include openstack::mirantis_repos
 
@@ -119,6 +130,8 @@ node /fuel-01/ {
     export_resources        => false,
     quantum                 => $quantum,
     cinder                  => $cinder,
+      manage_volumes          => $manage_volumes,
+      nv_physical_volume      => $nv_physical_volume,
   }
 
   class { 'openstack::auth_file':
