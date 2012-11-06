@@ -49,7 +49,7 @@ class cinder::volume::iscsi (
         require  => [Class['cinder::volume'], Package['iscsitarget', 'iscsitarget-dkms']],
       }
     }
-  if $physical_volume {
+  if ($physical_volume) {
   class { 'lvm':
     vg     => $volume_group,
     pv     => $physical_volume,
