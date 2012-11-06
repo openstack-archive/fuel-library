@@ -8,7 +8,7 @@ class cinder::base (
   $sql_connection,
   $rpc_backend            = 'cinder.openstack.common.rpc.impl_kombu',
   $rabbit_host            = false,
-  $rabbit_hosts           = ['127.0.0.1']
+  $rabbit_hosts           = ['127.0.0.1'],
   $rabbit_port            = 5672,
   $rabbit_virtual_host    = '/',
   $rabbit_userid          = 'nova',
