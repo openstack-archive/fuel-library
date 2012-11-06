@@ -51,14 +51,14 @@ class openstack::compute (
   $internal_address,
   # Required Nova
   $nova_user_password,
-  # Required Rabbit
-  $rabbit_password,
   # Network
   # DB
   $sql_connection                = false,
   # Nova
   $purge_nova_config              = false,
   # Rabbit
+  $rabbit_nodes        = false,
+  $rabbit_password     = 'rabbit_pw',
   $rabbit_host                   = false,
   $rabbit_user                   = 'nova',
   # Glance
@@ -69,7 +69,6 @@ class openstack::compute (
   $vnc_enabled                   = true,
   $vncproxy_host                 = undef,
   # General
-  $verbose                       = 'False',
   $enabled                       = true,
   $multi_host			 = false,
   $public_interface,
@@ -78,14 +77,7 @@ class openstack::compute (
   $fixed_range,
   $quantum			= false,
   $cinder			= false,
-  $rabbit_nodes        = false,
-  $rabbit_password     = 'rabbit_pw',
-  $rabbit_user         = 'nova',
-  $glance_api_servers  = false,
   # nova compute configuration parameters
-  $libvirt_type        = 'kvm',
-  $vncproxy_host       = false,
-  $vnc_enabled         = 'true',
   $verbose             = false,
   $manage_volumes      = false,
   $nv_physical_volume  = undef,
