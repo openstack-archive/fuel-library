@@ -313,7 +313,7 @@ class openstack::controller (
  }
 
 
-  } else {
+   else {
     if $manage_volumes {
 
     class { 'nova::volume':
