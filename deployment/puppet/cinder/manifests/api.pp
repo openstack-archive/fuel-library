@@ -35,9 +35,9 @@ class cinder::api (
     $ensure = 'stopped'
   }
 
-  package { 'python-keystone':
-    ensure => $package_ensure,
-  }
+ #  package { 'python-keystone':
+ #   ensure => $package_ensure,
+ # }
 
   service { 'cinder-api':
     name      => $::cinder::params::api_service,
