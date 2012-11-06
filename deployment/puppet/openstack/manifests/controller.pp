@@ -314,7 +314,7 @@ class openstack::controller (
   if $manage_volumes {
 
     class { 'cinder::volume':
-      ensure_package => $::openstack_version['cinder'],
+      package_ensure => $::openstack_version['cinder'],
       enabled        => true,
     }   
 
