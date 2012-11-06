@@ -7,7 +7,8 @@ class cinder::base (
   $rabbit_password,
   $sql_connection,
   $rpc_backend            = 'cinder.openstack.common.rpc.impl_kombu',
-  $rabbit_host            = '127.0.0.1',
+  $rabbit_host            = false,
+  $rabbit_hosts           = ['127.0.0.1']
   $rabbit_port            = 5672,
   $rabbit_virtual_host    = '/',
   $rabbit_userid          = 'nova',
@@ -42,11 +43,18 @@ class cinder::base (
     owner  => 'cinder',
     group  => 'cinder',
   }
-
+  if $rabbit_host
+  {
+    'DEFAULT/rabbit_host':         value => $rabbit_host;
+  }
+  if $rabbit_hosts
+  {
+    'DEFAULT/rabbit_hosts':         value => $rabbit_hosts;
+    'DEFAULT/rabbit_ha_queues': value => 'True';
+  }
   cinder_config {
     'DEFAULT/rpc_backend':         value => $rpc_backend;
     'DEFAULT/rabbit_password':     value => $rabbit_password;
-    'DEFAULT/rabbit_host':         value => $rabbit_host;
     'DEFAULT/rabbit_port':         value => $rabbit_port;
     'DEFAULT/rabbit_virtual_host': value => $rabbit_virtual_host;
     'DEFAULT/rabbit_userid':       value => $rabbit_userid;
