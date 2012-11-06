@@ -343,7 +343,6 @@ def setup_puppet_master(remote):
         'class {puppetdb:}')
     puppet_apply(remote.sudo.ssh,
         'class {puppetdb::master::config: puppet_service_name=>"%s"}' % PUPPET_MASTER_SERVICE)
-    execute(remote, 'ssh-keygen -f /var/lib/puppet/ssh_keys/openstack -N ""')
 
 
 def upload_recipes(remote, remote_dir="/etc/puppet/modules/"):
