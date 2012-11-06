@@ -4,8 +4,8 @@ from abc import abstractproperty
 from devops.helpers import ssh
 import re
 from fuel_test.ci.ci_base import CiBase
-from fuel_test.settings import ERROR_PREFIX, WARNING_PREFIX, PUPPET_MASTER_SERVICE
-from helpers import load, execute, write_config, sync_time, safety_revert_nodes, upload_recipes
+from fuel_test.settings import ERROR_PREFIX, WARNING_PREFIX
+from helpers import load, execute, write_config, sync_time, safety_revert_nodes, upload_recipes, upload_keys
 
 class BaseTestCase(unittest.TestCase):
     @abstractproperty
@@ -24,6 +24,7 @@ class BaseTestCase(unittest.TestCase):
             username='root',
             password='r00tme')
         upload_recipes(self.master_remote)
+        upload_keys(self.master_remote)
 
     def revert_snapshots(self):
         safety_revert_nodes(self.environment.nodes, 'empty')
