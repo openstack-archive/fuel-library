@@ -3,6 +3,7 @@ class cinder::volume::iscsi (
   $iscsi_ip_address,
   $volume_group      = 'cinder-volumes',
   $iscsi_helper      = 'tgtadm',
+  $physical_volume = undef,
 ) {
 
   include cinder::params
@@ -48,7 +49,13 @@ class cinder::volume::iscsi (
         require  => [Class['cinder::volume'], Package['iscsitarget', 'iscsitarget-dkms']],
       }
     }
-
+  if $physical_volume {
+  class { 'lvm':
+    vg     => $volume_group,
+    pv     => $physical_volume,
+    before => Service['cinder-volume'],
+  }
+}
     default: {
       fail("Unsupported iscsi helper: ${iscsi_helper}.")
     }
