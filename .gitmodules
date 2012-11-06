@@ -103,3 +103,6 @@
 [submodule "deployment/puppet/inifile"]
 	path = deployment/puppet/inifile
 	url = gitolite@gitolite.mirantis.com:fuel/deployment/puppet/inifile.git
+[submodule "deployment/puppet/cinder"]
+	path = deployment/puppet/cinder
+	url = gitolite@gitolite.mirantis.com:fuel/deployment/puppet/cinder.git
