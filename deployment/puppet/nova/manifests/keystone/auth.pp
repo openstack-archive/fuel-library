@@ -9,6 +9,7 @@ class nova::keystone::auth(
   $ec2_port         = '8773',
   $compute_version  = 'v2',
   $volume_version   = 'v1',
+  $cinder           = false,
   $region           = 'RegionOne',
   $tenant           = 'services',
   $email            = 'nova@localhost'
@@ -37,6 +38,8 @@ class nova::keystone::auth(
     internal_url => "http://${internal_address}:${compute_port}/${compute_version}/%(tenant_id)s",
   }
 
+  if !($cinder)
+  {
   keystone_service { "${auth_name}_volume":
     ensure      => present,
     type        => 'volume',
@@ -49,7 +52,7 @@ class nova::keystone::auth(
     admin_url    => "http://${admin_address}:${volume_port}/${volume_version}/%(tenant_id)s",
     internal_url => "http://${internal_address}:${volume_port}/${volume_version}/%(tenant_id)s",
   }
-
+  }
   keystone_service { "${auth_name}_ec2":
     ensure      => present,
     type        => 'ec2',
