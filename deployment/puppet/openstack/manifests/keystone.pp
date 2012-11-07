@@ -199,6 +199,7 @@ class openstack::keystone (
         public_address   => $nova_public_real,
         admin_address    => $nova_admin_real,
         internal_address => $nova_internal_real,
+        cinder            => $cinder,
       }
     }
 
