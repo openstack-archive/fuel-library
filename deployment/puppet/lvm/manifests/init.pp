@@ -1,12 +1,12 @@
 class lvm(
-  loopfile = undef,
+  $loopfile = undef,
   $ensure = 'present',
   $vg = 'volume-group-00',
   $pv = undef,
 ) {
 
     if ! $pv and ! $loopfile {
-      fail('The pv(physical volume) or loopfile parameter is not defined')
+      fail('The pv (physical volume) or loopfile parameter is not defined')
     }
 
   package{ 'lvm2':
