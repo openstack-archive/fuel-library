@@ -103,12 +103,12 @@ class openstack::keystone (
   if($glance_internal_address) {
     $glance_internal_real = $glance_internal_address
   } else {
-    $glance_internal_real = $glance_public_real
+    $glance_internal_real = $internal_real
   }
   if($glance_admin_address) {
     $glance_admin_real = $glance_admin_address
   } else {
-    $glance_admin_real = $glance_internal_real
+    $glance_admin_real = $admin_real
   }
   if($nova_public_address) {
     $nova_public_real = $nova_public_address
@@ -118,12 +118,12 @@ class openstack::keystone (
   if($nova_internal_address) {
     $nova_internal_real = $nova_internal_address
   } else {
-    $nova_internal_real = $nova_public_real
+    $nova_internal_real = $internal_real
   }
   if($nova_admin_address) {
     $nova_admin_real = $nova_admin_address
   } else {
-    $nova_admin_real = $nova_internal_real
+    $nova_admin_real = $admin_real
   }
   if($cinder_public_address) {
     $cinder_public_real = $cinder_public_address
@@ -133,12 +133,12 @@ class openstack::keystone (
   if($cinder_internal_address) {
     $cinder_internal_real = $cinder_internal_address
   } else {
-    $cinder_internal_real = $cinder_public_real
+    $cinder_internal_real = $internal_real
   }
   if($cinder_admin_address) {
     $cinder_admin_real = $cinder_admin_address
   } else {
-    $cinder_admin_real = $cinder_internal_real
+    $cinder_admin_real = $admin_real
   }
   if($quantum_public_address) {
     $quantum_public_real = $quantum_public_address
@@ -148,12 +148,12 @@ class openstack::keystone (
   if($quantum_internal_address) {
     $quantum_internal_real = $quantum_internal_address
   } else {
-    $quantum_internal_real = $quantum_public_real
+    $quantum_internal_real = $internal_real
   }
   if($quantum_admin_address) {
     $quantum_admin_real = $quantum_admin_address
   } else {
-    $quantum_admin_real = $quantum_internal_real
+    $quantum_admin_real = $admin_real
   }
 
   class { '::keystone':
