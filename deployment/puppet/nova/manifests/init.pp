@@ -94,8 +94,11 @@ class nova(
 
   # turn on rabbitmq ha/cluster mode
   if $rabbit_nodes {
+    if !defined(Package['patch'])
+    {
     package { "patch":
       ensure => present
+    }
     }
 
     file { "/tmp/rmq-ha.patch":
