@@ -17,6 +17,7 @@ class cinder::params {
 
       $tgt_package_name  = 'tgt'
       $tgt_service_name  = 'tgt'
+      $python_path       = 'python2.7/dist-packages'
 
     }
 
@@ -34,7 +35,7 @@ class cinder::params {
 
       $tgt_package_name  = 'scsi-target-utils'
       $tgt_service_name  = 'tgtd'
-
+      $python_path       = 'python2.6/site-packages'
     }
   }
 }
