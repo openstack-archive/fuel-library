@@ -109,6 +109,16 @@ class openstack::compute(
   }
 
   if ( $ssh_private_key != undef ) {
+    case $::osfamily {
+      'Debian': {$scp_package='openssh-client'}
+      'Redhat': {$scp_package='openssh-clients'}
+       default: {
+                 fail("Unsupported osfamily: ${osfamily}")
+      }
+    }
+    if !defined(Package[$scp_package]) {
+      package {$scp_package: ensure => present } 
+    }
     file { '/var/lib/nova/.ssh':
       ensure => directory,
       owner => 'nova',
