@@ -26,6 +26,13 @@ class cinder::volume::iscsi (
         enable  => true,
         require => Class['cinder::volume'],
       }
+  file_line { 'tgtd_include':
+   path => '/etc/tgt/targets.conf',
+   line => 'include /etc/cinder/volumes/*',
+   require => Package["tgt"],
+   before => Service["tgtd"],
+  notify => Service["tgtd"]
+  }
     }
 
     'ietadm': {
