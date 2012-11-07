@@ -34,9 +34,10 @@ class openstack::cinder(
       keystone_password => $cinder_user_password,
       bind_host         => $bind_host,
   }   
-
-
-
+   class { 'cinder::scheduler':
+      package_ensure => $::openstack_version['cinder'],
+      enabled        => true,
+    }   
 if $manage_volumes {
 
     class { 'cinder::volume':
