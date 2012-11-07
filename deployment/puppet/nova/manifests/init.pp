@@ -180,9 +180,8 @@ $auth_uri = "${auth_protocol}://${auth_host}:${auth_port}/v2.0"
   } else {
     Nova_config <<| title == 'sql_connection' |>>
   }
-
   nova_config { 'image_service': value => $image_service }
-
+  nova_config { 'allow_resize_to_same_host': value => 'True' }
   if $image_service == 'nova.image.glance.GlanceImageService' {
     if $glance_api_servers {
       nova_config { 'glance_api_servers': value => $glance_api_servers }
