@@ -63,10 +63,6 @@ class { 'mysql::server':
 class { 'keystone::db::mysql':
   password => $keystone_db_password,
 }
-# set up the keystone config for mysql
-class { 'keystone::config::mysql':
-  password => $keystone_db_password,
-}
 # set up keystone
 class { 'keystone':
   admin_token  => $keystone_admin_token,
