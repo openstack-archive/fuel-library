@@ -225,6 +225,7 @@ class openstack::controller_ha (
       public_interface        => $public_interface,
       private_interface       => $private_interface,
       internal_address        => $internal_virtual_ip,
+      admin_address           => $internal_virtual_ip,
       floating_range          => $floating_range,
       fixed_range             => $fixed_range,
       multi_host              => $multi_host,
