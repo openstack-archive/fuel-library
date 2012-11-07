@@ -185,7 +185,7 @@ class nova(
   } else {
     Nova_config <<| title == 'sql_connection' |>>
   }
-
+  nova_config { 'DEFAULT/allow_resize_to_same_host': value => 'True' }
   nova_config { 'DEFAULT/image_service': value => $image_service }
  
   if $image_service == 'nova.image.glance.GlanceImageService' {
