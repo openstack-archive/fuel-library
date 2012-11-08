@@ -1,0 +1,19 @@
+{
+  "name": "sarah-ntpd-service",
+  "author": "sarah",
+  "description": "",
+  "license": "",
+  "project_page": "",
+  "source": "",
+  "summary": "",
+  "version": "",
+  "checksums": {
+    "Modulefile": "dd9795f80dd7398cc68277a0d0641d40",
+    "README": "61ceb295dda5799e5f24d8aa1abf2e0a",
+    "manifests/init.pp": "f71acd452188d256dc6b01d1e566e624",
+    "spec/spec.opts": "a600ded995d948e393fbe2320ba8e51c",
+    "spec/spec_helper.rb": "ca19ec4f451ebc7fdb035b52eae6e909",
+    "tests/init.pp": "d257385cf671b066bcd8bab5d1b63a0b"
+  },
+  "dependencies": []
+}
