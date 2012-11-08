@@ -1,0 +1,9 @@
+name 'cprice404-inifile'
+version '0.0.3'
+
+author 'Chris Price'
+license 'Apache'
+project_page 'https://github.com/cprice-puppet/puppetlabs-inifile'
+source 'git://github.com/cprice-puppet/puppetlabs-inifile.git'
+summary 'Resource types for managing settings in INI files'
+description 'Resource types for managing settings in INI files'
