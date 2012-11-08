@@ -37,7 +37,7 @@ class openstack::cinder(
     #} ->
 
     cinder_config { 'DEFAULT/rabbit_ha_queues': value => 'True' }
-  }
+  
   }
   class { 'cinder::base':
     package_ensure => $::openstack_version['cinder'],
