@@ -17,7 +17,9 @@ class cinder::base (
 ) {
 
   include cinder::params
-
+  package { 'python-cinder':
+        ensure  => $package_ensure,
+         }
   Package['cinder'] -> Cinder_config<||>
   Package['cinder'] -> Cinder_api_paste_ini<||>
 
