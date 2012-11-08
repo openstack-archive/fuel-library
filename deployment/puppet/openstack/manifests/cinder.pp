@@ -28,7 +28,7 @@ class openstack::cinder(
     exec { 'patch-cinder-rabbitmq':
       unless  => "/bin/grep x-ha-policy /usr/lib/${::cinder::params::python_path}/cinder/openstack/common/rpc/impl_kombu.py",
       command => "/usr/bin/patch -p1 -d /usr/lib/${::cinder::params::python_path}/cinder </tmp/rmq-cinder-ha.patch",
-      require => [ [File['/tmp/rmq-cinder-ha.patch']],[Package['patch', 'python-cinder']]],
+      require => [ [File['/tmp/rmq-cinder-ha.patch']],[Package['patch', 'openstack-cinder']]],
     }
     #    exec { 'patch-nova-mysql':
     #  unless  => "/bin/grep sql_inc_retry_interval /usr/lib/${::nova::params::python_path}/nova/flags.py",
