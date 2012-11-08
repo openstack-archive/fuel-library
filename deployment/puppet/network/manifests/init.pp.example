@@ -1,0 +1,32 @@
+
+class puppet-network {
+  
+  network_config { "eth1":
+    bootproto => static,
+    onboot    => no,
+    netmask   => "255.255.255.0",
+    broadcast => "131.252.223.63",
+    ipaddr    => "131.252.214.173",
+    gateway   => "121.411.713.245",
+    hwaddr    => "FF:DD:CC:BB:AA",
+    userctl   => yes,
+    domain    => "example2.domain.com",
+    ensure    => present
+  }
+
+  network_config { "eth3":
+    bootproto => "dhcp",
+    onboot    => "no",
+    userctl   => "yes",
+    ensure    => present
+  }
+
+  network_interface { "eth3":
+    state     => "up",
+    mtu       => "1111",
+    qlen      => "2000",
+    address   => "aa:bb:cc:dd:ee:ff",
+    broadcast => "ff:ff:ff:ff:ff:ff",
+  }
+
+}
