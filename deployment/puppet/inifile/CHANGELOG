@@ -1,0 +1,14 @@
+2012-09-24 - Chris Price <chris@pupppetlabs.com> - 0.0.3
+ * Version 0.0.3 released
+
+2012-09-20 - Chris Price <chris@puppetlabs.com> - 0.0.3
+ * Add validation for key_val_separator (e527908)
+
+2012-09-19 - Chris Price <chris@puppetlabs.com> - 0.0.3
+ * Allow overriding separator string between key/val pairs (8d1fdc5)
+
+2012-08-20 - Chris Price <chris@pupppetlabs.com> - 0.0.2
+ * Version 0.0.2 released
+
+2012-08-17 - Chris Price <chris@pupppetlabs.com> - 0.0.2
+ * Add support for "global" section at beginning of file (c57dab4)
