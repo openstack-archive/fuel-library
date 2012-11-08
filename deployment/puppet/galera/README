@@ -1,0 +1,35 @@
+This is a good start to play around with the galera multi-master mysql synchronous replication (http://www.codership.com/products/mysql_galera)
+
+HOWTO:
+
+ * play around (add a database and data, chaos-monkey nodes etc.)
+
+
+WARNING
+
+Change the mysql root password in production and limit access to galera cluster members!
+
+TODO
+
+ * naming: master -> donor
+ * put a load balancer in front of the cluster
+ * make cluster "masterless"
+
+nodes.pp
+
+# nodes
+$cluster_name = 'wsrep_galera_cluster'
+
+node /mysql-db-01/ {
+    class { 'galera' :
+        cluster_name => $cluster_name
+    }
+}
+
+node /mysql-db-0([2-9])/ {
+    $master_ip = '172.18.67.254'
+    class { 'galera' :
+        cluster_name => $cluster_name,
+        master_ip    => $master_ip
+    }
+}
