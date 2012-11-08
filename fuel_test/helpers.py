@@ -315,7 +315,7 @@ def sign_all_node_certificates(remote):
 
 
 def request_cerificate(remote):
-    remote.sudo.ssh.execute('puppet agent --waitforcert 0')
+    remote.sudo.ssh.execute('puppet agent --waitforcert 0 --test')
 
 
 def switch_off_ip_tables(remote):
