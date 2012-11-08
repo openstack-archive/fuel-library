@@ -1,0 +1,7 @@
+.settings
+*.swp
+pkg/
+.DS_Store
+metadata.json
+coverage/
+.project

@@ -1,0 +1,13 @@
+name 'Mirantis Inc-puppet'
+version '0.0.1'
+
+author 'Mirantis Inc.'
+license 'Apache License 2.0'
+project_page 'http://mirantis.com'
+source 'git@github.com:Mirantis/product.git'
+summary 'Mirantis Puppet Master Module'
+description 'Module to install puppet master with nginx as frontend'
+dependency 'puppetlabs/stdlib', '==2.3.3'
+dependency 'Mirantis Inc/selinux', '==0.0.1'
+dependency 'cprice404/inifile', '==0.0.3'
+dependency 'puppetlabs/mysql', '==0.3.0'
