@@ -12,11 +12,11 @@ class openstack::cinder(
   $bind_host          = '0.0.0.0',
 ) {
   include cinder::params
-  if ($purge_cinder_config) {
-    resources { 'cinder_config':
-      purge => true,
-    }   
-  }
+  #  if ($purge_cinder_config) {
+  # resources { 'cinder_config':
+  #   purge => true,
+  # }   
+  #}
 
   if $rabbit_nodes {
     $rabbit_hosts = inline_template("<%= @rabbit_nodes.map {|x| x + ':5672'}.join ',' %>")
