@@ -1,0 +1,59 @@
+*
+Disclaimer - this does not work yet.
+
+I will make a release when I feel like things are coming together.
+
+I am only releasing this on github, b/c people are interested in the
+code dispite the fact that it does not quite work yet.
+
+*
+
+
+This currently only works on ubuntu releases that
+can configure swift using upstart
+
+
+swift is currently not using ssl for transport b/c I did not create
+self signed certs as a part of the installation
+(also swift proxy is not configured to use those certs)
+
+# not
+
+# disable TIME_WAIT.. wait..
+net.ipv4.tcp_tw_recycle=1
+net.ipv4.tcp_tw_reuse=1
+# disable syn cookies
+net.ipv4.tcp_syncookies = 0
+# double amount of allowed conntrack
+net.ipv4.netfilter.ip_conntrack_max = 26214
+
+autocreate - should be set to true if tempauth is used
+
+
+verify uniqueness constaint of url/port across types
+  - if it exists, they should be the same type
+
+
+set up swauth auth adress??
+  -
+
+[filter:keystone]
+use = egg:keystone#swiftauth
+auth_protocol = https
+auth_host = 127.0.0.0
+auth_port = 35357
+admin_token = 999888777666
+delay_auth_decision = 0
+service_protocol = https
+service_host = 127.0.0.0
+service_port = 5000
+service_pass = dTpw
+cache = swift.cache
+
+[filter:healthcheck]
+
+- crowbar copies hash and ringfiles
+
+### important
+- set up an rsync server
+- and sync rings via rsync

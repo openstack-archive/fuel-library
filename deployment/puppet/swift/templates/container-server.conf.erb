@@ -1,0 +1,24 @@
+[DEFAULT]
+devices = <%= devices %>
+bind_ip = <%= storage_local_net_ip %>
+bind_port = <%= bind_port %>
+mount_check = <%= mount_check %>
+user = <%= user %>
+log_facility = LOG_LOCAL2
+workers = <%= workers %>
+
+[pipeline:main]
+pipeline = <%= pipeline.to_a.join(' ') %>
+
+[app:container-server]
+use = egg:swift#container
+
+[container-replicator]
+concurrency = <%= replicator_concurrency %>
+
+[container-updater]
+concurrency = <%= updater_concurrency %>
+
+[container-auditor]
+
+[container-sync]
