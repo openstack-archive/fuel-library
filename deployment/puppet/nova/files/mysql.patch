@@ -1,0 +1,254 @@
+commit 0b5a6543d1a7bcac03565abcde2e3888df55084d
+Author: Devananda van der Veen <devananda.vdv@gmail.com>
+Date:   Wed Jul 18 18:47:25 2012 -0700
+
+    Catch database-has-gone-away errors and retry
+    
+    Wrap certain session and query methods, and catch exceptions caused by a
+    failed or broken database connection. When caught, retry the last query
+    in a loop until it succeeds, or until we time out. The time out is
+    configurable with min, max, and increment options. The current defaults
+    will result in 20 retries spread over 155 seconds.
+    
+    As a result of better disconnect error handling, we can remove the
+    ping_listener() which generated spurious "SELECT 1" queries.
+    
+    However, we can not yet disable pool_reset_on_return; doing so would
+    cause dangling transactions and lead to random failures between threads
+    viewing old versions of the data.
+    
+    Fixes bug 1007027.
+    
+    Change-Id: If4b20ab75ef712314327a6c8e167a28d89657091
+
+diff --git a/db/sqlalchemy/session.py b/db/sqlalchemy/session.py
+index 6e754be..d5f7330 100644
+--- a/db/sqlalchemy/session.py
++++ b/db/sqlalchemy/session.py
+@@ -21,12 +21,16 @@
+ import re
+ import time
+ 
+-from sqlalchemy.exc import DisconnectionError, OperationalError
++from sqlalchemy.exc import DisconnectionError
++from sqlalchemy.exc import OperationalError
+ import sqlalchemy.interfaces
+ import sqlalchemy.orm
+-from sqlalchemy.pool import NullPool, StaticPool
++from sqlalchemy.pool import NullPool
++from sqlalchemy.pool import StaticPool
+ 
+ import nova.exception
++from nova.exception import DBError
++from nova.exception import InvalidUnicodeParameter
+ import nova.flags as flags
+ import nova.openstack.common.log as logging
+ 
+@@ -47,8 +51,10 @@ def get_session(autocommit=True, expire_on_commit=False):
+         _MAKER = get_maker(engine, autocommit, expire_on_commit)
+ 
+     session = _MAKER()
+-    session.query = nova.exception.wrap_db_error(session.query)
+-    session.flush = nova.exception.wrap_db_error(session.flush)
++    session.begin = wrap_db_error(session.begin)
++    session.execute = wrap_db_error(session.execute)
++    session.flush = wrap_db_error(session.flush)
++    session.query = wrap_db_error(session.query)
+     return session
+ 
+ 
+@@ -66,24 +72,6 @@ def add_regexp_listener(dbapi_con, con_record):
+     dbapi_con.create_function('regexp', 2, regexp)
+ 
+ 
+-def ping_listener(dbapi_conn, connection_rec, connection_proxy):
+-    """
+-    Ensures that MySQL connections checked out of the
+-    pool are alive.
+-
+-    Borrowed from:
+-    http://groups.google.com/group/sqlalchemy/msg/a4ce563d802c929f
+-    """
+-    try:
+-        dbapi_conn.cursor().execute('select 1')
+-    except dbapi_conn.OperationalError, ex:
+-        if ex.args[0] in (2006, 2013, 2014, 2045, 2055):
+-            LOG.warn('Got mysql server has gone away: %s', ex)
+-            raise DisconnectionError("Database server went away")
+-        else:
+-            raise
+-
+-
+ def is_db_connection_error(args):
+     """Return True if error in connecting to db."""
+     # NOTE(adam_g): This is currently MySQL specific and needs to be extended
+@@ -95,6 +83,51 @@ def is_db_connection_error(args):
+     return False
+ 
+ 
++def wrap_db_error(f):
++    """Function wrapper to capture DB errors
++
++    If an exception is thrown by the wrapped function,
++    determine if it represents a database connection error.
++    If so, retry the wrapped function, and repeat until it succeeds
++    or we reach a configurable maximum number of retries.
++    If it is not a connection error, or we exceeded the retry limit,
++    raise a DBError.
++
++    """
++    def _wrap_db_error(*args, **kwargs):
++        next_interval = FLAGS.sql_retry_interval
++        remaining = FLAGS.sql_max_retries
++        if remaining == -1:
++            remaining = 'infinite'
++        while True:
++            try:
++                return f(*args, **kwargs)
++            except UnicodeEncodeError:
++                raise InvalidUnicodeParameter()
++            except OperationalError, e:
++                if is_db_connection_error(e.args[0]):
++                    if remaining == 0:
++                        LOG.exception(_('DB exceeded retry limit.'))
++                        raise DBError(e)
++                    if remaining != 'infinite':
++                        remaining -= 1
++                    LOG.exception(_('DB connection error, '
++                                    'retrying in %i seconds.') % next_interval)
++                    time.sleep(next_interval)
++                    if FLAGS.sql_inc_retry_interval:
++                        next_interval = min(next_interval * 2,
++                                            FLAGS.sql_max_retry_interval)
++                else:
++                    LOG.exception(_('DB exception wrapped.'))
++                    raise DBError(e)
++            except Exception, e:
++                LOG.exception(_('DB exception wrapped.'))
++                raise DBError(e)
++
++    _wrap_db_error.func_name = f.func_name
++    return _wrap_db_error
++
++
+ def get_engine():
+     """Return a SQLAlchemy engine."""
+     global _ENGINE
+@@ -122,9 +155,7 @@ def get_engine():
+ 
+         _ENGINE = sqlalchemy.create_engine(FLAGS.sql_connection, **engine_args)
+ 
+-        if 'mysql' in connection_dict.drivername:
+-            sqlalchemy.event.listen(_ENGINE, 'checkout', ping_listener)
+-        elif "sqlite" in connection_dict.drivername:
++        if "sqlite" in connection_dict.drivername:
+             if not FLAGS.sqlite_synchronous:
+                 sqlalchemy.event.listen(_ENGINE, 'connect',
+                                         synchronous_switch_listener)
+@@ -142,6 +173,7 @@ def get_engine():
+             if not is_db_connection_error(e.args[0]):
+                 raise
+ 
++            next_interval = FLAGS.sql_retry_interval
+             remaining = FLAGS.sql_max_retries
+             if remaining == -1:
+                 remaining = 'infinite'
+@@ -150,7 +182,7 @@ def get_engine():
+                 LOG.warn(msg % remaining)
+                 if remaining != 'infinite':
+                     remaining -= 1
+-                time.sleep(FLAGS.sql_retry_interval)
++                time.sleep(next_interval)
+                 try:
+                     _ENGINE.connect()
+                     break
+@@ -158,14 +190,22 @@ def get_engine():
+                     if (remaining != 'infinite' and remaining == 0) or \
+                        not is_db_connection_error(e.args[0]):
+                         raise
++                    if FLAGS.sql_inc_retry_interval:
++                        next_interval = min(next_interval * 2,
++                                            FLAGS.sql_max_retry_interval)
++
+     return _ENGINE
+ 
+ 
+ def get_maker(engine, autocommit=True, expire_on_commit=False):
+     """Return a SQLAlchemy sessionmaker using the given engine."""
++    query = sqlalchemy.orm.query.Query
++    query.all = wrap_db_error(query.all)
++    query.first = wrap_db_error(query.first)
+     return sqlalchemy.orm.sessionmaker(bind=engine,
+                                        autocommit=autocommit,
+-                                       expire_on_commit=expire_on_commit)
++                                       expire_on_commit=expire_on_commit,
++                                       query_cls=query)
+ 
+ 
+ def debug_mysql_do_query():
+@@ -185,7 +225,7 @@ def debug_mysql_do_query():
+                 continue
+             if file.endswith('utils.py') and method == '_inner':
+                 continue
+-            if file.endswith('exception.py') and method == '_wrap':
++            if file.endswith('session.py') and method == '_wrap_db_error':
+                 continue
+             # nova/db/api is just a wrapper around nova/db/sqlalchemy/api
+             if file.endswith('nova/db/api.py'):
+diff --git a/exception.py b/exception.py
+index c9f339e..7ec7a9e 100644
+--- a/exception.py
++++ b/exception.py
+@@ -62,19 +62,6 @@ class ProcessExecutionError(IOError):
+         IOError.__init__(self, message)
+ 
+ 
+-def wrap_db_error(f):
+-    def _wrap(*args, **kwargs):
+-        try:
+-            return f(*args, **kwargs)
+-        except UnicodeEncodeError:
+-            raise InvalidUnicodeParameter()
+-        except Exception, e:
+-            LOG.exception(_('DB exception wrapped.'))
+-            raise DBError(e)
+-    _wrap.func_name = f.func_name
+-    return _wrap
+-
+-
+ def wrap_exception(notifier=None, publisher_id=None, event_type=None,
+                    level=None):
+     """This decorator wraps a method to catch any exceptions that may
+diff --git a/flags.py b/flags.py
+index 76766b7..40f83b5 100644
+--- a/flags.py
++++ b/flags.py
+@@ -258,15 +258,23 @@ global_opts = [
+                 default=True,
+                 help='If passed, use synchronous mode for sqlite'),
+     cfg.IntOpt('sql_idle_timeout',
+-               default=3600,
+-               help='timeout before idle sql connections are reaped'),
++               default=30,
++               help='seconds before idle sql connections are reaped'),
+     cfg.IntOpt('sql_max_retries',
+-               default=10,
+-               help='maximum db connection retries during startup. '
++               default=20,
++               help='maximum sql connection retries before error is raised. '
+                     '(setting -1 implies an infinite retry count)'),
+     cfg.IntOpt('sql_retry_interval',
++               default=1,
++               help='seconds between sql connection retries'),
++    cfg.BoolOpt('sql_inc_retry_interval',
++               default=True,
++               help='Whether to increase interval between sql connection '
++                    'retries, up to sql_max_retry_interval'),
++    cfg.IntOpt('sql_max_retry_interval',
+                default=10,
+-               help='interval between retries of opening a sql connection'),
++               help='max seconds between sql connection retries, if '
++               'sql_inc_retry_interval is enabled'),
+     cfg.StrOpt('compute_manager',
+                default='nova.compute.manager.ComputeManager',
+                help='full class name for the Manager for compute'),
