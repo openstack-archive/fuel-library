@@ -53,7 +53,6 @@ class cinder::base (
   {
     cinder_config {
     'DEFAULT/rabbit_hosts':         value => $rabbit_hosts;
-    'DEFAULT/rabbit_ha_queues': value => 'True';
     }
   }
   cinder_config {
