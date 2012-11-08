@@ -1,0 +1,12 @@
+name 'puppetlabs-puppetdb'
+version '1.0.3'
+
+author 'Puppet Labs'
+license 'Apache'
+project_page 'https://github.com/puppetlabs-puppet/puppetlabs-puppetdb'
+source 'git://github.com/puppetlabs-puppet/puppetlabs-puppetdb.git'
+summary 'PuppetDB resource types'
+description 'PuppetDB resource types'
+dependency 'cprice404/inifile', '==0.0.x'
+dependency 'inkling/postgresql', '==0.3.x'
+dependency 'puppetlabs/firewall', '==0.0.x'
