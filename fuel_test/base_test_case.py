@@ -61,9 +61,9 @@ class BaseTestCase(unittest.TestCase):
         warnings = []
         for line in out:
             logging.info(line)
-            if (line.find(ERROR_PREFIX) < 5) and (line.find(ERROR_PREFIX) !=-1):
+            if (line.find(ERROR_PREFIX) < 15) and (line.find(ERROR_PREFIX) !=-1):
                 errors.append(line)
-            if (line.find(WARNING_PREFIX) < 5) and (line.find(WARNING_PREFIX) !=-1):
+            if (line.find(WARNING_PREFIX) < 15) and (line.find(WARNING_PREFIX) !=-1):
                 warnings.append(line)
         return errors, warnings
 
