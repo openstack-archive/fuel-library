@@ -1,0 +1,22 @@
+
+The common module installs various functions that are required by other
+modules. This module should be installed before any of the other module.
+
+To use this module, follow these directions:
+
+1. Your modules directory will need all the files included in this
+   repository placed under a directory called "common"
+
+2. Add the following line to manifests/site.pp:
+   
+       import "modules.pp"
+
+3. Add the following line to manifests/modules.pp:
+
+       import "common"
+
+
+Author::    David Schmitt (mailto:david@dasz.at)
+Copyright:: Copyright (c) 2007-2009 dasz.at OG
+License::   3-clause BSD
+
