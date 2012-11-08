@@ -1,0 +1,13 @@
+listen <%= name %>
+<% ipaddress.uniq.each do |virtual_ip| %>
+bind <%= virtual_ip %>:<%= ports %>
+<% end %>
+<% options.sort.each do |key, val| -%>
+<% if val.is_a?(Array) -%>
+<% val.each do |item| -%>
+  <%= key %>  <%= item %>
+<% end -%>
+<% else -%>
+  <%= key %>  <%= val %>
+<% end -%>
+<% end -%>

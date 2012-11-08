@@ -1,0 +1,5 @@
+fixtures:
+  repositories:
+    concat: "git://github.com/ripienaar/puppet-concat.git"
+  symlinks:
+    haproxy: "#{source_dir}"
