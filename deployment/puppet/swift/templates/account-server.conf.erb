@@ -1,0 +1,22 @@
+[DEFAULT]
+devices = <%= devices %>
+bind_ip = <%= storage_local_net_ip %>
+bind_port = <%= bind_port %>
+mount_check = <%= mount_check %>
+user = <%= user %>
+log_facility = LOG_LOCAL2
+workers = <%= workers %>
+
+[pipeline:main]
+pipeline = <%= pipeline_real.join(' ') %>
+
+[app:account-server]
+use = egg:swift#account
+
+[account-replicator]
+concurrency = <%= replicator_concurrency %>
+
+[account-auditor]
+
+[account-reaper]
+concurrency = <%= reaper_concurrency %>

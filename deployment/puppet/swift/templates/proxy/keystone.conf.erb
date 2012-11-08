@@ -1,0 +1,7 @@
+
+[filter:keystone]
+paste.filter_factory = keystone.middleware.swift_auth:filter_factory
+operator_roles = <%= operator_roles.to_a.join(', ') %>
+is_admin = <%= is_admin %>
+cache = <%= cache %>
+

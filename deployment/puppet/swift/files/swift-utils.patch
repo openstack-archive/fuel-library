@@ -1,0 +1,10 @@
+--- a/utils.py      2012-11-01 17:55:05.866064930 +0400
++++ b/utils.py  2012-11-01 17:54:34.413060567 +0400
+@@ -656,6 +656,7 @@
+         os.setgroups([])
+     os.setgid(user[3])
+     os.setuid(user[2])
++    os.environ['HOME']=user[5]
+     try:
+         os.setsid()
+     except OSError:
