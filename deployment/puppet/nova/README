@@ -1,0 +1,10 @@
+h1. Prerequisites
+
+The openstack repo should be made available:
+see: http://docs.openstack.org/cactus/openstack-compute/admin/content/installing-the-cloud-controller.html
+
+This is currently known not to work on 2.6.4.
+
+Master of this repo is now targetting the essex version of openstack.
+
+For Diablo support, try the diablo branch of this repo
