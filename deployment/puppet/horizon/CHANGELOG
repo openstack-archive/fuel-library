@@ -1,0 +1,5 @@
+* 2012-10-08 0.2.0
+- better rspec tests
+- adds more params for settings config file
+* 2012-06-12 0.1.0
+- Initial release
