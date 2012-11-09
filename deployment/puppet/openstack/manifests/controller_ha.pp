@@ -30,18 +30,18 @@ define haproxy_service($order, $balancers, $virtual_ips, $port, $define_cookies 
 
   case $name {
     "mysqld": {
-      $haproxy_config_options = { 'option' => ['mysql-check user cluster_watcher'], 'balance' => 'roundrobin', 'mode' => 'tcp' }
+      $haproxy_config_options = { 'option' => ['mysql-check user cluster_watcher', 'tcplog'], 'balance' => 'roundrobin', 'mode' => 'tcp' }
       $balancermember_options = 'check inter 15s fastinter 2s downinter 1s rise 5 fall 3'
       $balancer_port = 3307
     }
     "horizon": {
-      $haproxy_config_options = { 'option' => ['forwardfor','httpchk','httpclose'],'rspidel'=>'^Set-cookie:\ IP=', 'balance' => 'roundrobin', 'cookie'=>'SERVERID insert indirect nocache', 'capture'=>'cookie vgnvisitor= len 32'}
+      $haproxy_config_options = { 'option' => ['forwardfor','httpchk','httpclose', 'httplog'],'rspidel'=>'^Set-cookie:\ IP=', 'balance' => 'roundrobin', 'cookie'=>'SERVERID insert indirect nocache', 'capture'=>'cookie vgnvisitor= len 32'}
       $balancermember_options = 'check inter 2000 fall 3'
       $balancer_port = 80
     }
 
     default: {
-      $haproxy_config_options = { 'option' => ['tcplog'], 'balance' => 'roundrobin' }
+      $haproxy_config_options = { 'option' => ['httplog'], 'balance' => 'roundrobin' }
       $balancermember_options = 'check'
       $balancer_port = $port
     }
@@ -102,6 +102,13 @@ class openstack::controller_ha (
 #      virtual_ip => $vip,
 #      hostnames => $controller_hostnames,
       balancers => $controller_internal_addresses
+    }
+
+    file { '/etc/rsyslog.d/haproxy.conf':
+      ensure => present,
+      content => '$ModLoad imudp
+$UDPServerRun 514
+local0.* -/var/log/haproxy.log'
     }
 
     haproxy_service { 'horizon':    order => 15, port => 80, virtual_ips => [$public_virtual_ip], define_cookies => true  } 
