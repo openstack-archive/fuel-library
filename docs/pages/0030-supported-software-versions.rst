@@ -13,4 +13,4 @@ Fuel has been tested and is guaranteed to work with the following software compo
 * Cobbler
     * 2.2.3
 * OpenStack
-    * Essex release
+    * Folsom release
