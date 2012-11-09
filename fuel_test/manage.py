@@ -26,7 +26,7 @@ def main():
             node.suspend()
     if params.command == 'resume':
         for node in environment.nodes:
-            node.suspend()
+            node.resume()
 
 if __name__ == "__main__":
     main()
