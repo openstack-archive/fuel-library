@@ -52,8 +52,7 @@ case $::osfamily {
 
 Exec { logoutput => true }
 stage {'openstack-custom-repo': before => Stage['main']}
-include openstack::mirantis_repos
-
+class {'openstack::mirantis_repos': }
 node /fuel-01/ {
     class { 'openstack::controller': 
       public_address          => $public_address,

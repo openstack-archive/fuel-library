@@ -146,6 +146,7 @@ $auth_uri = "${auth_protocol}://${auth_host}:${auth_port}/v2.0"
     ensure  => present,
     gid     => 'nova',
     system  => true,
+    shell   => '/bin/bash',
     require => Package['nova-common'],
   }
 

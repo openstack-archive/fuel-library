@@ -1,4 +1,4 @@
-class openstack::mirantis_repos {
+class openstack::mirantis_repos ( type = "internal" ) {
     case $::osfamily {
       'Debian': {
 #        class { 'apt':
@@ -15,7 +15,7 @@ class openstack::mirantis_repos {
       'RedHat': {
         $repo_baseurl='http://download.mirantis.com/epel-fuel'
         #added internal network mirror. Change if you need to use outside of mirantis
-        $mirrorlist='http://download.mirantis.com/epel-fuel/mirror.internal.list'
+        $mirrorlist="http://download.mirantis.com/epel-fuel/mirror.$type.list"
         class { 'openstack::repo::yum':
           repo_name  => 'openstack-epel-fuel',
           #      location   => $repo_baseurl,
