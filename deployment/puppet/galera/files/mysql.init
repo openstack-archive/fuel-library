@@ -310,7 +310,7 @@ case "$mode" in
         # mysqld should remove the pid file when it exits, so wait for it.
         wait_for_pid removed "$mysqld_pid" "$mysqld_pid_file_path"; return_value=$?
         j=0
-        while test $j -ne 10  #wait a little bit for mysql to exit
+        while test $j -ne 60  #wait a little bit for mysql to exit
         do 
                 if (kill -0 $mysqld_pid 2>/dev/null); then
                         let j=$j+1
@@ -326,7 +326,7 @@ case "$mode" in
         fi
          echo "Waiting for galera processes # `pidof mysqld` to finally exit."
                 j=0
-                while test $j -ne 20
+                while test $j -ne 30
                 do
                         if (kill -0 `pidof mysqld` 1>&2 2>/dev/null)  then
                                 echo -n ".`pidof mysqld`"

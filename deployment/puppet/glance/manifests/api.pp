@@ -106,13 +106,14 @@ class glance::api(
   } else {
     $service_ensure = 'stopped'
   }
-
+  
   service { 'glance-api':
     name       => $::glance::params::api_service_name,
     ensure     => $service_ensure,
     enable     => $enabled,
     hasstatus  => true,
     hasrestart => true,
-    subscribe  => Concat['/etc/glance/glance-api.conf'],
+    require    => [Concat['/etc/glance/glance-api.conf']],
+    subscribe  => [Concat['/etc/glance/glance-api.conf']],
   }
 }

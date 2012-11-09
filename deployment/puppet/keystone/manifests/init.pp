@@ -142,6 +142,7 @@ class keystone(
     enable     => $enabled,
     hasstatus  => true,
     hasrestart => true,
+    require    => [Concat['/etc/keystone/keystone.conf']],
     provider   => $::keystone::params::service_provider,
   }
 

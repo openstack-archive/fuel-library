@@ -58,8 +58,8 @@ class glance::registry(
     enable     => $enabled,
     hasstatus  => true,
     hasrestart => true,
-    subscribe  => File['/etc/glance/glance-registry.conf'],
-    require    => Class['glance']
+    subscribe  => [File['/etc/glance/glance-registry.conf']],
+    require    => [Class['glance'],File['/etc/glance/glance-registry.conf']]
   }
 
 }
