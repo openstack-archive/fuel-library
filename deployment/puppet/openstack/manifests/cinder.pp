@@ -64,7 +64,7 @@ if $manage_volumes {
     }   
 
     class { 'cinder::volume::iscsi':
-      iscsi_ip_address => $internal_address,
+      iscsi_ip_address => $bind_host,
       physical_volume  => $nv_physical_volume,
     } 
   }
