@@ -65,5 +65,5 @@ class OpenStackSwiftTestCase(BaseTestCase):
             internal_interface="'eth0'",
             internal_address="$ipaddress_eth0",
             private_interface="'eth1'",
-            nv_physical_volume= ["/dev/sdb"]
+            nv_physical_volume= ["/dev/vdb"]
         )
