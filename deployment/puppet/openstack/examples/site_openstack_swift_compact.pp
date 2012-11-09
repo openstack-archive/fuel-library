@@ -101,7 +101,7 @@ class compact_controller {
       export_resources        => false,
       glance_backend          => $glance_backend,
       swift_proxies           => $swift_proxies,
-      manage_volumes          => $manage_volumes 
+      manage_volumes          => $manage_volumes, 
       nv_physical_volume      => $nv_physical_volume,
       }
       class { 'swift::keystone::auth':
