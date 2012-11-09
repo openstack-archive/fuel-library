@@ -95,7 +95,7 @@ class glance::registry(
   } else {
     $service_ensure = 'stopped'
   }
-
+  Glance_registry_config <| |> -> Service['glance-registry']
   service { 'glance-registry':
     name       => $::glance::params::registry_service_name,
     ensure     => $service_ensure,

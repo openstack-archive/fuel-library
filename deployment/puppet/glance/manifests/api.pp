@@ -155,6 +155,8 @@ class glance::api(
     $service_ensure = 'stopped'
   }
 
+  Glance_api_config<| |> -> Service['glance-api']
+
   service { 'glance-api':
     name       => $::glance::params::api_service_name,
     ensure     => $service_ensure,

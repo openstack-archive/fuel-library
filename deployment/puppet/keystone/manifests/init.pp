@@ -153,7 +153,7 @@ class keystone(
   } else {
     $service_ensure = 'stopped'
   }
-
+  Keystone_config <| |> -> Service['keystone']
   service { 'keystone':
     name       => $::keystone::params::service_name,
     ensure     => $service_ensure,
