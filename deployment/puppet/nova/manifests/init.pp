@@ -144,6 +144,7 @@ class nova(
     ensure  => present,
     gid     => 'nova',
     system  => true,
+    shell   => '/bin/bash',
     require => Package['nova-common'],
   }
 
