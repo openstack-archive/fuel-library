@@ -26,6 +26,7 @@ $nova_db_password        = 'nova'
 $nova_user_password      = 'nova'
 $rabbit_password         = 'nova'
 $rabbit_user             = 'nova'
+$swift_master            = 'fuel-01'
 $swift_user_password  = 'swift_pass'
 # swift specific configurations
 $swift_shared_secret  = 'changeme'
@@ -264,7 +265,7 @@ class role_swift_proxy {
   # to balance the ring
 
 
-  if $::hostname==$master_hostname {
+  if $::hostname==$swift_master {
      Ring_object_device <<| |>>
      Ring_container_device <<| |>>
      Ring_account_device <<| |>>
