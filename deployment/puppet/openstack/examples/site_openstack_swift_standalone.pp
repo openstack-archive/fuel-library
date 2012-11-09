@@ -65,8 +65,7 @@ case $::osfamily {
 
 Exec { logoutput => true }
 stage {'openstack-custom-repo': before => Stage['main']}
-include openstack::mirantis_repos
-
+class {'openstack::mirantis_repos': }
 node /fuel-0[12]/ inherits swift_base {
     if $::hostname == $master_hostname
     {
