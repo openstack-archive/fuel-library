@@ -1,4 +1,4 @@
-class openstack::mirantis_repos ( type = "internal" ) {
+class openstack::mirantis_repos ( $type = "internal" ) {
     case $::osfamily {
       'Debian': {
 #        class { 'apt':
