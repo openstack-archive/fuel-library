@@ -7,8 +7,6 @@ class openstack::repo::yum (
   $gpgcheck = 1,
   $mirrorlist = absent,
   $rhel_location = undef,
-  $mirrorlist = absent,
-  $rhel_location = undef,
 )
   {
 
