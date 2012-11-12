@@ -23,7 +23,7 @@ class PrepareOpenStackForTempest(OpenStackTestCase):
             self.ci().get_internal_network()
         )
         image_ref, image_ref_alt = make_tempest_objects(
-            auth_host, remote,
+            auth_host,
             username=ADMIN_USERNAME,
             password=ADMIN_PASSWORD,
             tenant_name=ADMIN_TENANT_ESSEX,
@@ -45,7 +45,7 @@ class PrepareOpenStackForTempest(OpenStackTestCase):
         compute_db_uri = 'mysql://nova:nova@%s/nova' % self.ci().get_internal_virtual_ip()
 
         image_ref, image_ref_alt = make_tempest_objects(
-            auth_host, remote,
+            auth_host,
             username=ADMIN_USERNAME,
             password=ADMIN_PASSWORD,
             tenant_name=ADMIN_TENANT_FOLSOM,
