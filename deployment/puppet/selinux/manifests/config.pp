@@ -38,10 +38,18 @@ class selinux::config(
         $sestatus = '0'
 
         # workaround bugfix (http://projects.puppetlabs.com/issues/4466)
+        case $::osfamily {
+          'RedHat': {
         $facter_selinux_path = '/usr/lib/ruby/site_ruby/1.8/facter/selinux.rb'
+            }
+	         'Debian': {
+	            $facter_selinux_path = '/usr/lib/ruby/vendor_ruby/facter/selinux.rb'
+	          }
+	      }
+
         exec { "patch-facter-selinux":
-          command => "sed -i 's|proc/self/attr/current\") !|proc/self/attr/current\") rescue \"kernel\\\0\" !|' ${facter_selinux_path}",
-          unless  => "grep -q 'rescue \"kernel\\\0' ${facter_selinux_path}",
+          command => "sed -i 's|proc/self/attr/current\") !|proc/self/attr/current\") rescue \"kernel\\\\0\" !|' ${facter_selinux_path}",
+          unless  => "grep -q 'rescue \"kernel' ${facter_selinux_path}",
         }
 
         if $mode == 'disabled' and $::selinux_current_mode == 'permissive' {

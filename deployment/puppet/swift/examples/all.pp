@@ -38,7 +38,6 @@ swift::storage::loopback { '2':
 
 swift::storage::node { '2':
   mnt_base_dir         => '/srv/node',
-  weight               => 1,
   manage_ring          => true,
   zone                 => '2',
   storage_local_net_ip => $swift_local_net_ip,
