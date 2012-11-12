@@ -4,7 +4,7 @@ from time import sleep
 from devops.helpers import ssh, os
 import keystoneclient.v2_0
 import re
-from fuel_test.settings import OS_FAMILY, PUPPET_CLIENT_PACKAGE, PUPPET_VERSION, PUPPET_MASTER_SERVICE, ADMIN_USERNAME, ADMIN_PASSWORD, ADMIN_TENANT_FOLSOM, ADMIN_TENANT_ESSEX
+from fuel_test.settings import OS_FAMILY, PUPPET_CLIENT_PACKAGE, PUPPET_VERSION, PUPPET_MASTER_SERVICE, ADMIN_USERNAME, ADMIN_PASSWORD, ADMIN_TENANT_FOLSOM, ADMIN_TENANT_ESSEX, CIRROS_IMAGE
 from root import root
 import glanceclient.client
 
@@ -204,7 +204,7 @@ def upload(glance, name, path):
 
 def tempest_add_images(auth_host, username, password, tenant_name):
     if not os.path.isfile('cirros-0.3.0-x86_64-disk.img'):
-        subprocess.check_call(['wget', 'https://launchpad.net/cirros/trunk/0.3.0/+download/cirros-0.3.0-x86_64-disk.img'])
+        subprocess.check_call(['wget', CIRROS_IMAGE])
     glance = _get_image_client(auth_host, username, password, tenant_name)
     return upload(glance, 'cirros_0.3.0', 'cirros-0.3.0-x86_64-disk.img'),\
            upload(glance, 'cirros_0.3.0', 'cirros-0.3.0-x86_64-disk.img')
