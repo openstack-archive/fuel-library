@@ -200,10 +200,10 @@ def upload(glance, name, path):
         container_format='bare',
         disk_format='qcow2')
     image.update(data=open(path, 'rb'))
-    return image.ref
+    return image.id
 
 def tempest_add_images(auth_host, username, password, tenant_name):
-    if os.path.isfile('cirros-0.3.0-x86_64-disk.img'):
+    if not os.path.isfile('cirros-0.3.0-x86_64-disk.img'):
         subprocess.check_call(['wget', 'https://launchpad.net/cirros/trunk/0.3.0/+download/cirros-0.3.0-x86_64-disk.img'])
     glance = _get_image_client(auth_host, username, password, tenant_name)
     return upload(glance, 'cirros_0.3.0', 'cirros-0.3.0-x86_64-disk.img'),\
