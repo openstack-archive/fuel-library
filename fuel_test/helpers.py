@@ -405,7 +405,7 @@ def make_shared_storage(remote, host, client_nodes, access_network):
             controller.ip_address, username='root',
             password='r00tme').sudo.ssh
         tempest_mount_glance_images(remote_controller, host)
-    sleep(5)
+    sleep(60)
 
 def write_static_ip(remote, ip, net_mask, gateway, interface='eth0'):
     path = '/etc/sysconfig/network-scripts/ifcfg-%s' % interface
