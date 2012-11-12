@@ -1,11 +1,12 @@
 import logging
+import subprocess
 from time import sleep
 from devops.helpers import ssh, os
 import keystoneclient.v2_0
 import re
 from fuel_test.settings import OS_FAMILY, PUPPET_CLIENT_PACKAGE, PUPPET_VERSION, PUPPET_MASTER_SERVICE, ADMIN_USERNAME, ADMIN_PASSWORD, ADMIN_TENANT_FOLSOM, ADMIN_TENANT_ESSEX
 from root import root
-#from glanceclient import Client
+import glanceclient.client
 
 def get_file_as_string(path):
     with open(path) as f:
@@ -164,48 +165,48 @@ def get_auth_url(auth_host):
     return auth_url
 
 
-def credentials(auth_host, username, password, tenant_name):
-    credentials = (
-        ' --os_username %(username)s '
-        ' --os_password %(password)s '
-        ' --os_auth_url  "%(auth_url)s" '
-        ' --os_tenant_name %(tenant_name)s '
-    ) % {
-        'auth_url' :get_auth_url(auth_host),
-        'username' :username,
-        'password' : password,
-        'tenant_name': tenant_name
-    }
-    print credentials
-    return credentials
+def _get_identity_client(auth_host, username, password, tenant_name):
+    keystone = retry(10, keystoneclient.v2_0.client.Client,
+        username=username, password=password, tenant_name=tenant_name,
+        auth_url=get_auth_url(auth_host))
+    return keystone
 
+def _get_image_client(self):
+    keystone = self._get_identity_client()
+    token = keystone.auth_token
+    endpoint = keystone.service_catalog.url_for(service_type='image',
+        endpoint_type='publicURL')
+    return glanceclient.Client('1', endpoint=endpoint, token=token)
 
-def glance_command(auth_host, username, password, tenant_name):
-    return 'glance ' + credentials(auth_host, username, password, tenant_name) + ' '
-
-
-def tempest_add_images(remote, auth_host, username, password, tenant_name):
-    execute(remote,
-        'wget https://launchpad.net/cirros/trunk/0.3.0/+download/cirros-0.3.0-x86_64-disk.img')
-    result = execute(
-        remote,
-        glance_command(
-            auth_host,
-            username,
-            password,
-            tenant_name) + ' add name=cirros_0.3.0 is_public=true container_format=bare disk_format=qcow2 < cirros-0.3.0-x86_64-disk.img')
-    pattern = 'Added new image with ID: (\S*)'
-    image_ref = re.findall(pattern, string='\n'.join(result['stdout']))[0]
-    result = execute(
-        remote,
-        glance_command(
-            auth_host,
-            username,
-            password,
-            tenant_name) + ' add name=cirros_0.3.0 is_public=true container_format=bare disk_format=qcow2 < cirros-0.3.0-x86_64-disk.img')
-    image_ref_alt = re.findall(pattern, string='\n'.join(result['stdout']))[0]
+def make_tempest_objects(auth_host, username, password, tenant_name):
+    keystone = _get_identity_client(auth_host, username, password, tenant_name)
+    tenant1 = retry(10, keystone.tenants.create, tenant_name='tenant1')
+    tenant2 = retry(10, keystone.tenants.create, tenant_name='tenant2')
+    retry(10, keystone.users.create, name='tempest1', password='secret',
+        email='tempest1@example.com', tenant_id=tenant1.id)
+    retry(10, keystone.users.create, name='tempest2', password='secret',
+        email='tempest1@example.com', tenant_id=tenant2.id)
+    image_ref, image_ref_alt = tempest_add_images(
+        auth_host,
+        username,
+        password,
+        tenant_name)
     return image_ref, image_ref_alt
 
+def upload(glance, name, path):
+    image= glance.images.create(
+        name=name,
+        is_public=True,
+        container_format='bare',
+        disk_format='qcow2')
+    image.update(data=open(path, 'rb'))
+    return image.ref
+
+def tempest_add_images(auth_host, username, password, tenant_name):
+    subprocess.check_call(['wget', 'https://launchpad.net/cirros/trunk/0.3.0/+download/cirros-0.3.0-x86_64-disk.img'])
+    glance = _get_identity_client(auth_host, username, password, tenant_name)
+    return upload(glance, 'cirros_0.3.0', 'cirros-0.3.0-x86_64-disk.img'),\
+           upload(glance, 'cirros_0.3.0', 'cirros-0.3.0-x86_64-disk.img')
 
 def tempest_share_glance_images(remote, network):
     execute(remote, 'chkconfig rpcbind on')
@@ -405,23 +406,7 @@ def make_shared_storage(remote, host, client_nodes, access_network):
         tempest_mount_glance_images(remote_controller, host)
 
 
-def make_tempest_objects(auth_host, remote, username, password, tenant_name):
-    keystone = retry(10, keystoneclient.v2_0.client.Client,
-        username=username, password=password, tenant_name=tenant_name,
-        auth_url=get_auth_url(auth_host))
-    tenant1 = retry(10, keystone.tenants.create, tenant_name='tenant1')
-    tenant2 = retry(10, keystone.tenants.create, tenant_name='tenant2')
-    retry(10, keystone.users.create, name='tempest1', password='secret',
-        email='tempest1@example.com', tenant_id=tenant1.id)
-    retry(10, keystone.users.create, name='tempest2', password='secret',
-        email='tempest1@example.com', tenant_id=tenant2.id)
-    image_ref, image_ref_alt = tempest_add_images(
-        remote,
-        auth_host,
-        username,
-        password,
-        tenant_name)
-    return image_ref, image_ref_alt
+
 
 
 def write_static_ip(remote, ip, net_mask, gateway, interface='eth0'):
