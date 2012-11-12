@@ -395,20 +395,17 @@ def safety_revert_nodes(nodes, snapsot_name='openstack'):
         node.restore_snapshot(snapsot_name)
         sleep(2)
 
-
 def make_shared_storage(remote, host, client_nodes, access_network):
     tempest_share_glance_images(remote, access_network)
+    switch_off_ip_tables(remote)
     execute(remote, '/etc/init.d/iptables stop')
-    sleep(5)
+    sleep(15)
     for controller in client_nodes:
         remote_controller = ssh(
             controller.ip_address, username='root',
             password='r00tme').sudo.ssh
         tempest_mount_glance_images(remote_controller, host)
-
-
-
-
+    sleep(5)
 
 def write_static_ip(remote, ip, net_mask, gateway, interface='eth0'):
     path = '/etc/sysconfig/network-scripts/ifcfg-%s' % interface
