@@ -171,8 +171,8 @@ def _get_identity_client(auth_host, username, password, tenant_name):
         auth_url=get_auth_url(auth_host))
     return keystone
 
-def _get_image_client(self):
-    keystone = self._get_identity_client()
+def _get_image_client(auth_host, username, password, tenant_name):
+    keystone = _get_identity_client(auth_host, username, password, tenant_name)
     token = keystone.auth_token
     endpoint = keystone.service_catalog.url_for(service_type='image',
         endpoint_type='publicURL')
@@ -194,7 +194,7 @@ def make_tempest_objects(auth_host, username, password, tenant_name):
     return image_ref, image_ref_alt
 
 def upload(glance, name, path):
-    image= glance.images.create(
+    image = glance.images.create(
         name=name,
         is_public=True,
         container_format='bare',
@@ -203,8 +203,9 @@ def upload(glance, name, path):
     return image.ref
 
 def tempest_add_images(auth_host, username, password, tenant_name):
-    subprocess.check_call(['wget', 'https://launchpad.net/cirros/trunk/0.3.0/+download/cirros-0.3.0-x86_64-disk.img'])
-    glance = _get_identity_client(auth_host, username, password, tenant_name)
+    if os.path.isfile('cirros-0.3.0-x86_64-disk.img'):
+        subprocess.check_call(['wget', 'https://launchpad.net/cirros/trunk/0.3.0/+download/cirros-0.3.0-x86_64-disk.img'])
+    glance = _get_image_client(auth_host, username, password, tenant_name)
     return upload(glance, 'cirros_0.3.0', 'cirros-0.3.0-x86_64-disk.img'),\
            upload(glance, 'cirros_0.3.0', 'cirros-0.3.0-x86_64-disk.img')
 
