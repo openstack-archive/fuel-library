@@ -8,15 +8,15 @@ v0.1.99.1-folsom
 ----------------
 
 * Supported use cases:
-** CentOS, 3 controllers in HA, (no Swift, no Cinder, no Quantum)
-** CentOS, 3 controllers in HA, Swift, Cinder (no Quantum).
+	* CentOS, 3 controllers in HA, (no Swift, no Cinder, no Quantum)
+	* CentOS, 3 controllers in HA, Swift, Cinder (no Quantum).
 
 
 v0.1.99.0-folsom
 ----------------
 
 * Supported use cases:
-** CentOS, 3 controllers in HA (no Swift, no Cinder, no Quantum)
+	* CentOS, 3 controllers in HA (no Swift, no Cinder, no Quantum)
 
 v0.1.0-essex
 ------------
