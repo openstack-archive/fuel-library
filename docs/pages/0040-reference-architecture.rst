@@ -28,9 +28,9 @@ Logical Setup
 
 Controller Nodes
 ^^^^^^^^^^^^^^^^
-Let’s take a closer look on how OpenStack deployment will look like and what will it take to achieve high availability for an OpenStack deployment:
+Let's take a closer look on how OpenStack deployment will look like and what will it take to achieve high availability for an OpenStack deployment:
 
-* Every OpenStack cluster has multiple controller nodes in order to provide redundancy
+* Every OpenStack cluster has multiple controller nodes in order to provide redundancy. To avoid the split-brain in Galera cluster (quorum-based system) it is strongly advised to plan at least 3 controller nodes
 * Every OpenStack controller is running keepalived which manages a single VIP for all controller nodes
 * Every OpenStack controller is running HAProxy for HTTP and TCP load balancing of requests going to OpenStack API services, RabbitMQ and MySQL
 * When the end users access OpenStack cloud using Horizon and/or REST API, the request goes to an alive controller node which currently holds VIP, and the connection gets terminated by HAProxy

@@ -100,6 +100,8 @@ OS Installation
    * `CentOS-6.3-x86_64-minimal.iso <http://mirror.stanford.edu/yum/pub/centos/6.3/isos/x86_64/CentOS-6.3-x86_64-minimal.iso>`_
    * `rhel-server-6.3-x86_64-boot.iso <https://access.redhat.com/home>`_
 
+Also you can choose the nearest mirror from `CentOS Mirrors List <http://www.centos.org/modules/tinycontent/index.php?id=30>`_
+
 * Mount it to the server CD/DVD drive. In case of Virtualbox, mount it to fuel-pm virtual machine
     * Machine -> Settings... -> Storage -> CD/DVD Drive -> Choose a virtual CD/DVD disk file...
 
@@ -121,7 +123,7 @@ OS Installation
         search mirantis.com
         nameserver 8.8.8.8 
 
-    * Note: you can look up your DNS server using â€œipconfig /allâ€ on a host Windows machine, or using â€œcat /etc/resolv.confâ€ under Linux
+    * Note: you can look up your DNS server using ``ipconfig /all`` on a host Windows machine, or using ``cat /etc/resolv.conf`` under Linux
 
     * Check that internet access works
         * ``ping google.com``
@@ -160,7 +162,7 @@ OS Installation
         service iptables stop
         chkconfig iptables off
 
-    * Set hostname
+    * Set hostname (replace “mirantis.com” with your domain name)
         * ``vi /etc/sysconfig/network``
             * ``HOSTNAME=fuel-pm``
         * ``vi /etc/hosts``
@@ -177,15 +179,19 @@ This section will allow you to configure puppet to use a technique called stored
 
 * Install and configure MySQL & Ruby::
 
+    yum install make
+    yum install gcc
+
     yum install mysql
     yum install mysql-server
     yum install mysql-devel
+
     yum install rubygems
     yum install ruby-devel
-    yum install make
-    yum install gcc
+
     gem install rails
     gem install mysql
+
     chkconfig mysqld on
     service mysqld start
     mysql -u root
@@ -219,7 +225,7 @@ This section will allow you to configure puppet to use a technique called stored
 Testing Puppet
 ~~~~~~~~~~~~~~
 
-* Put a simple configuration into Puppet, so that when you run puppet from any node, it will display the corresponding "Hello world" message
+* Put a simple configuration into Puppet (replace “mirantis.com” with your domain name), so that when you run puppet from any node, it will display the corresponding "Hello world" message
     * ``vi /etc/puppet/manifests/site.pp``::
 
         node /fuel-pm.mirantis.com/ {
@@ -238,7 +244,7 @@ Testing Puppet
             notify{"Hello world from fuel-04": }
         }
 
-* If you are planning on installing Cobbler on Puppet master node as well, make configuration changes on puppet master so that it actually knows how to provision software onto itself
+* If you are planning on installing Cobbler on Puppet master node as well, make configuration changes on puppet master so that it actually knows how to provision software onto itself (replace “mirantis.com” with your domain name)
     * ``vi /etc/puppet/puppet.conf``::
 
         [main]
@@ -272,13 +278,13 @@ Using Puppet to install Cobbler
 On puppet master:
 
 * ``vi /etc/puppet/manifests/site.pp``
-* Copy the contents of "fuel/deployment/puppet/cobbler/examples/site.pp" into "/etc/puppet/manifests/site.pp":
+* Copy the contents of "fuel/deployment/puppet/cobbler/examples/site.pp" into "/etc/puppet/manifests/site.pp" (replace “mirantis.com” with your domain name):
     .. literalinclude:: ../../deployment/puppet/cobbler/examples/site.pp
 
 * The only thing you might want to change is location of CentOS 6.3 ISO image file (to either a local mirror, or the fastest available internet mirror): ::
 
     class { cobbler::distro::centos63-x86_64:
-        http_iso => "http://mirror.facebook.net/centos/6.3/isos/x86_64/CentOS-6.3-x86_64-minimal.iso",
+        http_iso => "http://mirror.stanford.edu/yum/pub/centos/6.3/isos/x86_64/CentOS-6.3-x86_64-minimal.iso",
         ks_url   => "cobbler",
     }
 
