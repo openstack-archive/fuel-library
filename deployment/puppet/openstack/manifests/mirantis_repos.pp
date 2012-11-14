@@ -20,7 +20,7 @@ class openstack::mirantis_repos (
       #$repo_baseurl='http://download.mirantis.com/epel-fuel-folsom'
 
       #added internal/external network mirror
-      $mirrorlist="http://download.mirantis.com/epel-fuel/mirror.${type}.list"
+      $mirrorlist="http://download.mirantis.com/epel-fuel-folsom/mirror.${type}.list"
 
       class { 'openstack::repo::yum':
         descr      => 'Mirantis OpenStack Custom Packages',
