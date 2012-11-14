@@ -69,6 +69,7 @@ build_timeout = %(COMPUTE_BUILD_TIMEOUT)s
 # This requires the instances be routable from the host
 #  executing the tests
 run_ssh = %(RUN_SSH)s
+network_for_ssh = %(NETWORK_FOR_SSH)s
 
 # The type of endpoint for a Compute API service. Unless you have a
 # custom Keystone service catalog implementation, you probably want to leave
