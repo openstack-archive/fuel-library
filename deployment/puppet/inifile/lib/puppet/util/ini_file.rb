@@ -5,13 +5,9 @@ module Puppet
 module Util
   class IniFile
 
-    def section_regex
-      /^\s*\[([\w\d\.\\\/\-\:]+)\]\s*$/
-    end
-
-    def setting_regex
-      /^\s*([\w\d\.\\\/\-]+)\s*=\s*([\S]+)\s*$/x
-    end
+    SECTION_REGEX = /^\s*\[([\w\d\.\\\/\-\:]+)\]\s*$/
+    SETTING_REGEX = /^(\s*)([\w\d\.\\\/\-]+)(\s*=\s*)([\S\s]*\S)\s*$/
+    COMMENTED_SETTING_REGEX = /^(\s*)[#;]+(\s*)([\w\d\.\\\/\-]+)(\s*=\s*)([\S\s]*\S)\s*$/
 
     def initialize(path, key_val_separator = ' = ')
       @path = path
@@ -35,13 +31,35 @@ module Util
 
     def set_value(section_name, setting, value)
       unless (@sections_hash.has_key?(section_name))
-        add_section(Section.new(section_name, nil, nil, nil))
+        add_section(Section.new(section_name, nil, nil, nil, nil))
       end
 
       section = @sections_hash[section_name]
+
       if (section.has_existing_setting?(setting))
         update_line(section, setting, value)
         section.update_existing_setting(setting, value)
+      elsif result = find_commented_setting(section, setting)
+        # So, this stanza is a bit of a hack.  What we're trying
+        # to do here is this: for settings that don't already
+        # exist, we want to take a quick peek to see if there
+        # is a commented-out version of them in the section.
+        # If so, we'd prefer to add the setting directly after
+        # the commented line, rather than at the end of the section.
+
+        # If we get here then we found a commented line, so we
+        # call "insert_inline_setting_line" to update the lines array
+        insert_inline_setting_line(result, section, setting, value)
+
+        # Then, we need to tell the setting object that we hacked
+        # in an inline setting
+        section.insert_inline_setting(setting, value)
+
+        # Finally, we need to update all of the start/end line
+        # numbers for all of the sections *after* the one that
+        # was modified.
+        section_index = @section_names.index(section_name)
+        increment_section_line_numbers(section_index + 1)
       else
         section.set_additional_setting(setting, value)
       end
@@ -69,21 +87,62 @@ module Util
     def save
       File.open(@path, 'w') do |fh|
 
-        @section_names.each do |name|
+        @section_names.each_index do |index|
+          name = @section_names[index]
 
           section = @sections_hash[name]
 
-          if section.start_line.nil?
+          # We need a buffer to cache lines that are only whitespace
+          whitespace_buffer = []
+
+          if (section.is_new_section?) && (! section.is_global?)
             fh.puts("\n[#{section.name}]")
-          elsif ! section.end_line.nil?
+          end
+
+          if ! section.is_new_section?
+            # write all of the pre-existing settings
             (section.start_line..section.end_line).each do |line_num|
-              fh.puts(lines[line_num])
+              line = lines[line_num]
+
+              # We buffer any lines that are only whitespace so that
+              # if they are at the end of a section, we can insert
+              # any new settings *before* the final chunk of whitespace
+              # lines.
+              if (line =~ /^\s*$/)
+                whitespace_buffer << line
+              else
+                # If we get here, we've found a non-whitespace line.
+                # We'll flush any cached whitespace lines before we
+                # write it.
+                flush_buffer_to_file(whitespace_buffer, fh)
+                fh.puts(line)
+              end
             end
           end
 
+          # write new settings, if there are any
           section.additional_settings.each_pair do |key, value|
-            fh.puts("#{key}#{@key_val_separator}#{value}")
+            fh.puts("#{' ' * (section.indentation || 0)}#{key}#{@key_val_separator}#{value}")
           end
+
+          if (whitespace_buffer.length > 0)
+            flush_buffer_to_file(whitespace_buffer, fh)
+          else
+            # We get here if there were no blank lines at the end of the
+            # section.
+            #
+            # If we are adding a new section with a new setting,
+            # and if there are more sections that come after this one,
+            # we'll write one blank line just so that there is a little
+            # whitespace between the sections.
+            #if (section.end_line.nil? &&
+            if (section.is_new_section? &&
+                (section.additional_settings.length > 0) &&
+                (index < @section_names.length - 1))
+              fh.puts("")
+            end
+          end
+
         end
       end
     end
@@ -105,7 +164,7 @@ module Util
       line, line_num = line_iter.next
 
       while line
-        if (match = section_regex.match(line))
+        if (match = SECTION_REGEX.match(line))
           section = read_section(match[1], line_num, line_iter)
           add_section(section)
         end
@@ -116,12 +175,15 @@ module Util
     def read_section(name, start_line, line_iter)
       settings = {}
       end_line_num = nil
+      min_indentation = nil
       while true
         line, line_num = line_iter.peek
-        if (line_num.nil? or match = section_regex.match(line))
-          return Section.new(name, start_line, end_line_num, settings)
-        elsif (match = setting_regex.match(line))
-          settings[match[1]] = match[2]
+        if (line_num.nil? or match = SECTION_REGEX.match(line))
+          return Section.new(name, start_line, end_line_num, settings, min_indentation)
+        elsif (match = SETTING_REGEX.match(line))
+          settings[match[2]] = match[4]
+          indentation = match[1].length
+          min_indentation = [indentation, min_indentation || indentation].min
         end
         end_line_num = line_num
         line_iter.next
@@ -130,9 +192,9 @@ module Util
 
     def update_line(section, setting, value)
       (section.start_line..section.end_line).each do |line_num|
-        if (match = setting_regex.match(lines[line_num]))
-          if (match[1] == setting)
-            lines[line_num] = "#{setting}#{@key_val_separator}#{value}"
+        if (match = SETTING_REGEX.match(lines[line_num]))
+          if (match[2] == setting)
+            lines[line_num] = "#{match[1]}#{match[2]}#{match[3]}#{value}"
           end
         end
       end
@@ -141,7 +203,7 @@ module Util
     def remove_line(section, setting)
       (section.start_line..section.end_line).each do |line_num|
         if (match = SETTING_REGEX.match(lines[line_num]))
-          if (match[1] == setting)
+          if (match[2] == setting)
             lines.delete_at(line_num)
           end
         end
@@ -167,6 +229,35 @@ module Util
         File.readlines(path)
     end
 
+    # This utility method scans through the lines for a section looking for
+    # commented-out versions of a setting.  It returns `nil` if it doesn't
+    # find one.  If it does find one, then it returns a hash containing
+    # two keys:
+    #
+    #   :line_num - the line number that contains the commented version
+    #               of the setting
+    #   :match    - the ruby regular expression match object, which can
+    #               be used to mimic the whitespace from the comment line
+    def find_commented_setting(section, setting)
+      return nil if section.is_new_section?
+      (section.start_line..section.end_line).each do |line_num|
+        if (match = COMMENTED_SETTING_REGEX.match(lines[line_num]))
+          if (match[3] == setting)
+            return { :match => match, :line_num => line_num }
+          end
+        end
+      end
+      nil
+    end
+
+    # This utility method is for inserting a line into the existing
+    # lines array.  The `result` argument is expected to be in the
+    # format of the return value of `find_commented_setting`.
+    def insert_inline_setting_line(result, section, setting, value)
+      line_num = result[:line_num]
+      match = result[:match]
+      lines.insert(line_num + 1, "#{' ' * section.indentation}#{setting}#{match[4]}#{value}")
+    end
 
     # Utility method; given a section index (index into the @section_names
     # array), decrement the start/end line numbers for that section and all
@@ -175,6 +266,24 @@ module Util
       @section_names[section_index..(@section_names.length - 1)].each do |name|
         section = @sections_hash[name]
         section.decrement_line_nums
+      end
+    end
+
+    # Utility method; given a section index (index into the @section_names
+    # array), increment the start/end line numbers for that section and all
+    # all of the other sections that appear *after* the specified section.
+    def increment_section_line_numbers(section_index)
+      @section_names[section_index..(@section_names.length - 1)].each do |name|
+        section = @sections_hash[name]
+        section.increment_line_nums
+      end
+    end
+
+
+    def flush_buffer_to_file(buffer, fh)
+      if buffer.length > 0
+        buffer.each { |l| fh.puts(l) }
+        buffer.clear
       end
     end
 

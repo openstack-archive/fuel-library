@@ -1,5 +1,5 @@
 name 'cprice404-inifile'
-version '0.0.3'
+version '0.9.0'
 source 'git://github.com/cprice-puppet/puppetlabs-inifile.git'
 author 'Chris Price'
 description 'Resource types for managing settings in INI files'
