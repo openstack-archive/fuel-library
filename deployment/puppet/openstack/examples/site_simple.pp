@@ -51,8 +51,8 @@ $openstack_version = {
   'cinder' => latest,
 }
 
-stage {'openstack-custom-repo': before => Stage['main']}
-include openstack::mirantis_repos
+stage { 'openstack-custom-repo': before => Stage['main'] }
+class { 'openstack::mirantis_repos': stage => 'openstack-custom-repo' }
 
 #### end shared variables #################
 

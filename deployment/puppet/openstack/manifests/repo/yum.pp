@@ -2,10 +2,12 @@ class openstack::repo::yum (
   $repo_name,
   $location = absent,
   $key_source,
+  $failovermethod = absent,
   $include_src = false,
   $priority = 1,
   $gpgcheck = 1,
   $mirrorlist = absent,
+  $descr = $repo_name,
   $rhel_location = undef,
 )
   {
@@ -20,13 +22,14 @@ class openstack::repo::yum (
   #Package['yum-plugin-priorities'] -> Yumrepo[$repo_name]
 
   yumrepo {$repo_name:
-    baseurl  => $location,
-    mirrorlist => $mirrorlist,
-    gpgcheck => $gpgcheck,
-    gpgkey   => $key_source,
-    priority => $priority,
-    enabled  => 1,
-    descr => $repo_name,
+    baseurl        => $location,
+    mirrorlist     => $mirrorlist,
+    failovermethod => $failovermethod,
+    gpgcheck       => $gpgcheck,
+    gpgkey         => $key_source,
+    priority       => $priority,
+    enabled        => 1,
+    descr          => $descr,
   }
   if ($rhel_location) {
     yumrepo {'rhel-local':

@@ -48,8 +48,10 @@ $openstack_version = {
 }
 
 Exec { logoutput => true }
-stage {'openstack-custom-repo': before => Stage['main']}
-include openstack::mirantis_repos
+
+stage { 'openstack-custom-repo': before => Stage['main'] }
+class { 'openstack::mirantis_repos': stage => 'openstack-custom-repo' }
+
 
 class compact_controller {
   class { 'openstack::controller_ha': 
