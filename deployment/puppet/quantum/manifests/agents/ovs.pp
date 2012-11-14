@@ -1,7 +1,7 @@
 class quantum::agents::ovs (
   $package_ensure       = 'present',
   $enabled              = true,
-  $bridge_uplinks       = ['br-ex:eth1'],
+  $bridge_uplinks       = ['br-ex:eth2'],
   $bridge_mappings      = ['br-virtual:br-ex'],
   $integration_bridge   = 'br-int',
   $enable_tunneling     = false,

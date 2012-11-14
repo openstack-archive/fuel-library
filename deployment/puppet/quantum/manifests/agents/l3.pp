@@ -14,7 +14,6 @@ class quantum::agents::l3 (
   $router_id                    = '7e5c2aca-bbac-44dd-814d-f2ea9a4003e4',
   $gateway_external_net_id      = '3f8699d7-f221-421a-acf5-e41e88cfd54f',
   $handle_internal_only_routers = 'True',
-  $external_network_bridge      = 'br-ex',
   $metadata_ip                  = '169.254.169.254',
   $metadata_port                = 8775,
   $polling_interval             = 3
