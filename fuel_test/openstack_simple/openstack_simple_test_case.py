@@ -22,8 +22,8 @@ class OpenStackSimpleTestCase(BaseTestCase):
                 public_interface="'eth2'",
                 internal_interface="'eth0'",
                 private_interface="'eth1'",
-                controller_node_address=controller.ip_address_by_network['internal'],
-                controller_node_public=controller.ip_address_by_network['public'],
+                controller_node_address="'%s'" % controller.ip_address_by_network['internal'],
+                controller_node_public="'%s'" % controller.ip_address_by_network['public'],
                 nv_physical_volume= ["/dev/vdb"]
             )
 
