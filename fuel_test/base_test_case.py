@@ -20,7 +20,7 @@ class BaseTestCase(unittest.TestCase):
         self.nodes = self.ci().nodes()
         master = self.environment.node['master']
         self.revert_snapshots()
-        self.master_remote = ssh(master.ip_address_by_network['internal'],
+        self.master_remote = ssh(master.ip_address_by_network['public'],
             username='root',
             password='r00tme')
         upload_recipes(self.master_remote)
