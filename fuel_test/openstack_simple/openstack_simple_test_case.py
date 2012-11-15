@@ -21,7 +21,6 @@ class OpenStackSimpleTestCase(BaseTestCase):
                 fixed_network_range="'%s'" % self.ci().get_fixed_network(),
                 public_interface="'eth2'",
                 internal_interface="'eth0'",
-                internal_address="$ipaddress_eth0",
                 private_interface="'eth1'",
                 controller_node_address=controller.ip_address_by_network['internal'],
                 controller_node_public=controller.ip_address_by_network['public'],
