@@ -5,11 +5,17 @@ import devops
 from devops.helpers import wait, ssh
 from fuel_test.cobbler.cobbler_client import CobblerClient
 from fuel_test.cobbler.cobbler_test_case import CobblerTestCase
-from fuel_test.helpers import tcp_ping, udp_ping, safety_revert_nodes, add_to_hosts, sign_all_node_certificates, sync_time
+from fuel_test.helpers import tcp_ping, udp_ping, safety_revert_nodes, add_to_hosts, sign_all_node_certificates, sync_time, upload_recipes, upload_keys
 
 class CobblerCase(CobblerTestCase):
     def test_deploy_cobbler(self):
         safety_revert_nodes(self.environment.nodes, 'empty')
+        master = self.environment.node['master']
+        self.master_remote = ssh(master.ip_address_by_network['public'],
+            username='root',
+            password='r00tme')
+        upload_recipes(self.master_remote)
+        upload_keys(self.master_remote)
         for node in [self.environment.node['master']] + self.nodes.cobblers:
             remote = ssh(node.ip_address, username='root', password='r00tme')
             sync_time(remote.sudo.ssh)
