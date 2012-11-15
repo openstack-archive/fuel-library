@@ -1,7 +1,7 @@
 #
 class openstack::mirantis_repos (
   $type        = 'external',
-  $enable_epel = true
+  $enable_epel = false
 ) {
   case $::osfamily {
     'Debian': {
