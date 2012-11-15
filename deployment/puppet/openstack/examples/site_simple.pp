@@ -1,11 +1,3 @@
-#
-# This document serves as an example of how to deploy
-# basic single and multi-node openstack environments.
-#
-
-# deploy a script that can be used to test nova
-class { 'openstack::test_file': }
-
 ####### shared variables ##################
 
 
@@ -54,54 +46,14 @@ $openstack_version = {
 stage { 'openstack-custom-repo': before => Stage['main'] }
 class { 'openstack::mirantis_repos': stage => 'openstack-custom-repo' }
 
-#### end shared variables #################
 
-# all nodes whose certname matches openstack_all should be
-# deployed as all-in-one openstack installations.
-node /openstack_all/ {
-
-  class { 'openstack::all':
-    public_address          => $ipaddress_eth2,
-    public_interface        => $public_interface,
-    private_interface       => $private_interface,
-    admin_email             => $admin_email,
-    admin_password          => $admin_password,
-    keystone_db_password    => $keystone_db_password,
-    keystone_admin_token    => $keystone_admin_token,
-    nova_db_password        => $nova_db_password,
-    nova_user_password      => $nova_user_password,
-    glance_db_password      => $glance_db_password,
-    glance_user_password    => $glance_user_password,
-    rabbit_password         => $rabbit_password,
-    rabbit_user             => $rabbit_user,
-    libvirt_type            => 'kvm',
-    floating_range          => $floating_network_range,
-    fixed_range             => $fixed_network_range,
-    verbose                 => $verbose,
-    auto_assign_floating_ip => $auto_assign_floating_ip,
-  }
-
-  class { 'openstack::auth_file':
-    admin_password       => $admin_password,
-    keystone_admin_token => $keystone_admin_token,
-    controller_node      => '127.0.0.1',
-  }
-
-}
-
-# multi-node specific parameters
 
 $controller_node_address  = '10.0.125.3' 
-
 $controller_node_public   = '10.0.74.3' 
 $controller_node_internal = $controller_node_address
 $sql_connection         = "mysql://nova:${nova_db_password}@${controller_node_internal}/nova"
 
 node /fuel-01/ {
-
-#  class { 'nova::volume': enabled => true }
-
-#  class { 'nova::volume::iscsi': }
 
   class { 'openstack::controller':
     public_address          => $controller_node_public,
