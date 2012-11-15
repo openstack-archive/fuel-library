@@ -144,7 +144,7 @@ class openstack::controller (
   $galera_cluster_name = 'openstack',
   $galera_master_ip = '127.0.0.1',
   $galera_node_address = '127.0.0.1',
-  $glance_backend,
+  $glance_backend = 'file',
   $manage_volumes          = false,
   $nv_physical_volume      = undef,
 ) {
