@@ -95,6 +95,12 @@ LOGGING = {
                 'level': 'INFO',
                 'class': 'logging.StreamHandler',
                 },
+            'file': {
+                # Set the level to "DEBUG" for verbose output logging.
+                'level': 'DEBUG',
+                'class': 'logging.FileHandler',
+                'filename': '/var/log/horizon/horizon.log'
+                },
             },
         'loggers': {
             # Logging from django.db.backends is VERY verbose, send to null
@@ -104,27 +110,27 @@ LOGGING = {
                 'propagate': False,
                 },
             'horizon': {
-                'handlers': ['console'],
+                'handlers': ['file'],
                 'propagate': False,
             },
             'openstack_dashboard': {
-                'handlers': ['console'],
+                'handlers': ['file'],
                 'propagate': False,
             },
             'novaclient': {
-                'handlers': ['console'],
+                'handlers': ['file'],
                 'propagate': False,
             },
            'glanceclient': {
-                'handlers': ['console'],
+                'handlers': ['file'],
                 'propagate': False,
             },
             'keystoneclient': {
-                'handlers': ['console'],
+                'handlers': ['file'],
                 'propagate': False,
             },
             'nose.plugins.manager': {
-                'handlers': ['console'],
+                'handlers': ['file'],
                 'propagate': False,
             }
         }
