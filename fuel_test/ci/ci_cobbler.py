@@ -6,13 +6,17 @@ import os
 from fuel_test.ci.ci_base import CiBase
 from fuel_test.helpers import sign_all_node_certificates, write_static_ip, execute
 from fuel_test.node_roles import NodeRoles
+from fuel_test.settings import COBBLER_CONTROLLERS, COBBLER_COMPUTES
 
 class CiCobbler(CiBase):
     def node_roles(self):
         return NodeRoles(
             cobbler_names=['fuel-cobbler'],
-            controller_names=['fuel-01', 'fuel-02'],
-            compute_names=['fuel-03', 'fuel-04']
+            controller_names=['fuel-%02d' % x for x in
+                              range(1, 1 + COBBLER_CONTROLLERS)],
+            compute_names=['fuel-%02d' % x for x in range(
+                COBBLER_CONTROLLERS + 1,
+                COBBLER_CONTROLLERS + 1 + COBBLER_COMPUTES)]
         )
 
     def env_name(self):
@@ -37,7 +41,7 @@ class CiCobbler(CiBase):
             environment.nodes.append(client)
         for node_name in self.node_roles().compute_names:
             client = self.describe_empty_node(
-                node_name, [internal, private, public], memory=4096)
+                node_name, [internal, private, public], memory=1024)
             environment.nodes.append(client)
         return environment
 
