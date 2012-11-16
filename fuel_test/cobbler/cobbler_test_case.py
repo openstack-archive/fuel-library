@@ -10,7 +10,9 @@ class CobblerTestCase(BaseTestCase):
         return self._ci
 
     def setUp(self):
-        super(CobblerTestCase, self).setUp()
+        self.environment = self.ci().get_environment_or_create()
+        self.nodes = self.ci().nodes()
+
 
     def revert_snapshots(self):
         pass
