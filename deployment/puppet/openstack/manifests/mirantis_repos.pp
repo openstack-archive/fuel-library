@@ -1,6 +1,6 @@
 #
 class openstack::mirantis_repos (
-  $type        = 'external',
+  $type        = 'internal',
   $enable_epel = false
 ) {
   case $::osfamily {
