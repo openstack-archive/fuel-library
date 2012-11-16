@@ -186,7 +186,7 @@ def make_tempest_objects(auth_host, username, password, tenant_name):
     retry(10, keystone.users.create, name='tempest1', password='secret',
         email='tempest1@example.com', tenant_id=tenant1.id)
     retry(10, keystone.users.create, name='tempest2', password='secret',
-        email='tempest1@example.com', tenant_id=tenant2.id)
+        email='tempest2@example.com', tenant_id=tenant2.id)
     image_ref, image_ref_alt = tempest_add_images(
         auth_host,
         username,
