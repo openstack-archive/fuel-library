@@ -1,0 +1,4 @@
+nosetests
+python-glanceclient
+python-keystoneclient
+devops
