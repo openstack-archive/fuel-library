@@ -1,16 +1,18 @@
 class openstack::mirantis_repos ( $type = "internal" ) {
     case $::osfamily {
       'Debian': {
+#     Currently we use only standard Debian repos, installed with OS
+#     There is nothing in our custom repo for Debian.
 #        class { 'apt':
 #          stage => 'openstack-custom-repo'
 #        }->
-        class { 'openstack::repo::apt':
-          key => '420851BC',
-          location => 'http://172.18.66.213/deb',
-          key_source => 'http://172.18.66.213/gpg.pub',
-          origin => '172.18.66.213',
-          stage => 'openstack-custom-repo',
-        }
+#        class { 'openstack::repo::apt':
+#          key => '420851BC',
+#          location => 'http://172.18.66.213/deb',
+#          key_source => 'http://172.18.66.213/gpg.pub',
+#          origin => '172.18.66.213',
+#          stage => 'openstack-custom-repo',
+#        }
       }
       'RedHat': {
         $repo_baseurl='http://download.mirantis.com/epel-fuel'
