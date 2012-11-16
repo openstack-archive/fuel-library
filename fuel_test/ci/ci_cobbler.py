@@ -73,7 +73,7 @@ class CiCobbler(CiBase):
             password='r00tme')
         self.rename_nodes(start_nodes)
         self.setup_master_node(master_remote, self.environment.nodes)
-        self.setup_agent_nodes(self.nodes().cobblers)
+        self.setup_agent_nodes(start_nodes)
         sleep(5)
         sign_all_node_certificates(master_remote)
         sleep(5)
