@@ -107,7 +107,7 @@ node /fuel-0[234]/ {
     multi_host         => true,
     sql_connection     => $sql_connection,
     nova_user_password => $nova_user_password,
-    rabbit_host        => $controller_node_internal,
+    rabbit_nodes        => [$controller_node_internal],
     rabbit_password    => $rabbit_password,
     rabbit_user        => $rabbit_user,
     glance_api_servers => "${controller_node_internal}:9292",
@@ -115,6 +115,7 @@ node /fuel-0[234]/ {
     vnc_enabled        => true,
     ssh_private_key    => 'puppet:///ssh_keys/openstack',
     ssh_public_key     => 'puppet:///ssh_keys/openstack.pub',
+    service_endpoint => $controller_node_internal,
     verbose            => $verbose,
   }
 
