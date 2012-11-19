@@ -43,6 +43,7 @@ Exec { logoutput => true }
 
 stage { 'openstack-custom-repo': before => Stage['main'] }
 class { 'openstack::mirantis_repos': stage => 'openstack-custom-repo' }
+class { 'apt::update': stage => 'openstack-custom-repo' }
 
 
 node /fuel-0[12]/ {

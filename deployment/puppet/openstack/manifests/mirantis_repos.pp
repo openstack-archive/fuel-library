@@ -13,6 +13,7 @@ class openstack::mirantis_repos (
     key_source => "pgp.mit.edu",
     include_src => false,
   }
+  class { 'apt::update': stage => 'openstack-custom-repo' }
 #     Currently we use only standard Debian repos, installed with OS
 #     There is nothing in our custom repo for Debian.
 #        class { 'apt':
