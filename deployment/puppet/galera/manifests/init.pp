@@ -129,6 +129,7 @@ class galera($cluster_name, $master_ip = false, $node_address = $ipaddress_eth0)
 
   service { "mysql-galera" :
     name        => "mysql",
+    enable      => true,
     ensure      => "running",
     require     => [Package["MySQL-server", "galera"], File["/etc/mysql/conf.d/wsrep.cnf"]],
     subscribe   => File["/etc/mysql/conf.d/wsrep.cnf"],
