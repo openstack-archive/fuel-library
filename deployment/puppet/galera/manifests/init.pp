@@ -18,15 +18,17 @@ class galera($cluster_name, $master_ip = false, $node_address = $ipaddress_eth0)
 
   # $mysql_wsrep_prefix = 'https://launchpad.net/codership-mysql/5.5/5.5.23-23.6/+download'
   # $galera_prefix      = 'https://launchpad.net/galera/2.x/23.2.1/+download'
-  $mysql_wsrep_prefix = 'http://download.mirantis.com/epel-fuel/x86_64'
-  $galera_prefix      = $mysql_wsrep_prefix
+  #$mysql_wsrep_prefix = 'http://download.mirantis.com/epel-fuel/x86_64'
+  #$galera_prefix      = $mysql_wsrep_prefix
 
   case $::osfamily {
     'RedHat': {
-      $pkg_prefix  = $mysql_wsrep_prefix
+      $mysql_wsrep_prefix = 'http://download.mirantis.com/epel-fuel/x86_64'
+      $galera_prefix      = $mysql_wsrep_prefix
+      $pkg_prefix  = $mysql_wsrep_prefix  #Yeah, looks funny. So was inherited.
       $pkg_version = '5.5.27-1.el6.x86_64'
 
-      if !defined(Class['selinux']) {
+      if (!$::selinux=='false') and !defined(Class['selinux']) {
         class { 'selinux' :
           mode   => 'disabled',
           before => Package['MySQL-server']
@@ -67,6 +69,52 @@ class galera($cluster_name, $master_ip = false, $node_address = $ipaddress_eth0)
       }
     }
     'Debian': {
+      $mysql_wsrep_prefix = 'http://172.18.67.168'
+      $galera_prefix      = $mysql_wsrep_prefix
+      
+            $pkg_prefix  = $mysql_wsrep_prefix  #Yeah, looks funny. So was inherited.
+      $pkg_version = 'wsrep-5.5.23-23.6-amd64'
+
+      if (!$::selinux=='false') and !defined(Class['selinux']) {
+        class { 'selinux' :
+          mode   => 'disabled',
+          before => Package['MySQL-server']
+        }
+      }
+
+      # install dependencies
+      Galera::Pkg_add {
+        pkg_prefix  => $pkg_prefix,
+        pkg_version => $pkg_version,
+        before      => Package['MySQL-server']
+      }
+
+      galera::pkg_add { 'MySQL-client': }
+      galera::pkg_add { 'MySQL-shared': }
+
+      file { '/etc/init.d/mysql' :
+        ensure  => present,
+        mode => 755,
+        source  => 'puppet:///modules/galera/mysql.init',
+        require => Package['MySQL-server'],
+        before  => Service['mysql-galera']
+      }
+      file { '/etc/my.cnf' :
+        ensure  => present,
+        source  => 'puppet:///modules/galera/my.cnf',
+        before  => Service['mysql-galera']
+      }
+
+      package { 'wget' :
+        ensure => present,
+        before => Exec['download-wsrep', 'download-galera']
+      }
+
+      package { 'perl' :
+        ensure => present,
+        before => Galera::Pkg_add['MySQL-client']
+      }
+      
       package { "mysql-client" :
         ensure => present,
         before => Package["MySQL-server"]

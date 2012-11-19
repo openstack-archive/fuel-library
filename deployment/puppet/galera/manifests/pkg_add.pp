@@ -4,11 +4,22 @@ define galera::pkg_add(
 ) {
 
   include galera::params
-
-  package { $title :
-    ensure   => present,
-    provider => $::galera::params::pkg_provider,
-    source   => "${pkg_prefix}/${title}-${pkg_version}.rpm",
-  } 
-
+  case $::osfamily {
+    'RedHat': {
+    
+    package { $title :
+        ensure   => present,
+        provider => $::galera::params::pkg_provider,
+        source   => "${pkg_prefix}/${title}-${pkg_version}.rpm",
+      } 
+    }
+    'Debian': {
+    
+      package { $title :
+        ensure   => present,
+        provider => $::galera::params::pkg_provider,
+        source   => "${pkg_prefix}/${title}-${pkg_version}.deb",
+      } 
+    }
+  }
 }
