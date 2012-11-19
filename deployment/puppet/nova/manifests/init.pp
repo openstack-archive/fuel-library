@@ -120,9 +120,9 @@ class nova(
       unless  => "/bin/grep sql_inc_retry_interval /usr/lib/${::nova::params::python_path}/nova/flags.py",
       command => "/usr/bin/patch -p1 -d /usr/lib/${::nova::params::python_path}/nova </tmp/mysql.patch",
       require => [ [File['/tmp/mysql.patch']],[Package['patch', 'python-nova']]], 
-    } ->
-    exec { 'update-kombu':
-      command => "/usr/bin/easy_install pip; /usr/bin/pip uninstall -y kombu; /usr/bin/pip uninstall -y anyjson; /usr/bin/pip install kombu==2.4.7; /usr/bin/pip install anyjson==0.3.3; /usr/bin/pip install amqp"
+    } ->  exec { 'update-kombu':
+        path    => ["/usr/bin/:/usr/local/bin/"],
+        command => "easy_install pip; pip uninstall -y kombu; pip uninstall -y anyjson; pip install kombu==2.4.7; pip install anyjson==0.3.3; pip install amqp;"
     }
 
     nova_config { 'DEFAULT/rabbit_ha_queues': value => 'True' }
