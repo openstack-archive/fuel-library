@@ -1,5 +1,6 @@
 class openstack::cinder(
   $sql_connection,
+  $cinder_user_password,
   $rabbit_password,
   $rabbit_host     = false,
   $rabbit_nodes    = ['127.0.0.1'],
