@@ -70,14 +70,12 @@ class keystone(
   group { 'keystone':
     ensure  => present,
     system  => true,
-    require => Package['keystone'],
   }
 
   user { 'keystone':
     ensure  => 'present',
     gid     => 'keystone',
     system  => true,
-    require => Package['keystone'],
   }
 
   file { '/etc/keystone':
@@ -85,14 +83,14 @@ class keystone(
     owner   => 'keystone',
     group   => 'keystone',
     mode    => 0755,
-    require => Package['keystone']
+    require => [User['keystone'], Group['keystone']]
   }
 
   concat { '/etc/keystone/keystone.conf':
     owner   => 'keystone',
     group   => 'keystone',
     mode    => '0600',
-    require => Package['keystone'],
+    require => [File['/etc/keystone']],
     notify  => Service['keystone'],
   }
 
@@ -135,14 +133,14 @@ class keystone(
   } else {
     $service_ensure = 'stopped'
   }
-
+  Concat['/etc/keystone/keystone.conf'] -> Package['keystone']
   service { 'keystone':
     name       => $::keystone::params::service_name,
     ensure     => $service_ensure,
     enable     => $enabled,
     hasstatus  => true,
     hasrestart => true,
-    require    => [Concat['/etc/keystone/keystone.conf']],
+    require    => [Package['keystone'],Concat['/etc/keystone/keystone.conf']],
     provider   => $::keystone::params::service_provider,
   }
 

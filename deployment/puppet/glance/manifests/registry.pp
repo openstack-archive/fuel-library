@@ -51,6 +51,11 @@ class glance::registry(
   } else {
     $service_ensure = 'stopped'
   }
+ package {'glance-registry':
+	 name => $::glance::params::registry_package_name,
+ 	 ensure => $package_ensure 
+ }
+ File['/etc/glance/glance-registry.conf'] -> Package['glance-registry']
 
   service { 'glance-registry':
     name       => $::glance::params::registry_service_name,
@@ -59,7 +64,7 @@ class glance::registry(
     hasstatus  => true,
     hasrestart => true,
     subscribe  => [File['/etc/glance/glance-registry.conf']],
-    require    => [Class['glance'],File['/etc/glance/glance-registry.conf']]
+    require    => [Class['glance'],File['/etc/glance/glance-registry.conf'],Package['glance-registry']]
   }
 
 }
