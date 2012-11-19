@@ -7,7 +7,7 @@ class openstack::mirantis_repos (
     'Debian': {
   apt::source { 'cloud-archive':
     location => 'http://172.18.67.168/ubuntu-cloud.archive.canonical.com/ubuntu',
-    release => 'precise-updates/folsom'
+    release => 'precise-updates/folsom',
     repos => 'main',
     key => "5EDB1B62EC4926EA",
     key_source => "pgp.mit.edu",
