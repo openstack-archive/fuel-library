@@ -25,7 +25,6 @@ class horizon::params {
             $package_name          = 'openstack-dashboard'
         }
       }
-      $config_file       = '/etc/httpd/conf.d/openstack-dashboard.conf'
       $local_settings_path         = '/etc/openstack-dashboard/local_settings.py'
     }
     default: {
