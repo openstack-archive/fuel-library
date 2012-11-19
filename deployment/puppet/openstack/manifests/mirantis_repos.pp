@@ -5,6 +5,14 @@ class openstack::mirantis_repos (
 ) {
   case $::osfamily {
     'Debian': {
+  apt::source { 'cloud-archive':
+    location => 'http://172.18.67.168/ubuntu-cloud.archive.canonical.com/ubuntu',
+    release => 'precise-updates/folsom'
+    repos => 'main',
+    key => "5EDB1B62EC4926EA",
+    key_source => "pgp.mit.edu",
+    include_src => false,
+  }
 #     Currently we use only standard Debian repos, installed with OS
 #     There is nothing in our custom repo for Debian.
 #        class { 'apt':
