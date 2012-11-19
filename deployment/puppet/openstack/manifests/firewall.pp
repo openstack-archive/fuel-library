@@ -30,7 +30,7 @@ class openstack::firewall (
 
 file {"iptables":
   path     => $operatingsystem ? {
-      'debian'          => '/etc/iptables/rules.v4',
+      /(Debian|Ubuntu)/          => '/etc/iptables/rules.v4',
       /(RedHat|CentOS)/ => '/etc/sysconfig/iptables',
     
  },
@@ -38,7 +38,7 @@ file {"iptables":
 }->
 exec { 'startup-firewall':
   command     => $operatingsystem ? {
-      'debian'          => '/sbin/iptables-restore  /etc/iptables/rules.v4',
+      /(Debian|Ubuntu)/          => '/sbin/iptables-restore  /etc/iptables/rules.v4',
       /(RedHat|CentOS)/ => '/sbin/iptables-restore  /etc/sysconfig/iptables',
  }
 }
