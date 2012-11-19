@@ -89,8 +89,8 @@ class galera($cluster_name, $master_ip = false, $node_address = $ipaddress_eth0)
         before      => Package['MySQL-server']
       }
 
-      galera::pkg_add { 'MySQL-client': }
-      galera::pkg_add { 'MySQL-shared': }
+#      galera::pkg_add { 'MySQL-client': }
+#      galera::pkg_add { 'MySQL-shared': }
 
       file { '/etc/init.d/mysql' :
         ensure  => present,
@@ -112,12 +112,17 @@ class galera($cluster_name, $master_ip = false, $node_address = $ipaddress_eth0)
 
       package { 'perl' :
         ensure => present,
-        before => Galera::Pkg_add['MySQL-client']
+        before => Package['mysql-client']
       }
       
-      package { "mysql-client" :
+      package { 'mysql-client' :
         ensure => present,
-        before => Package["MySQL-server"]
+        before => Package['MySQL-server']
+      }
+
+      package { 'mysql-common' :
+        ensure => present,
+        before => Package['MySQL-server']
       }
     }
   }
