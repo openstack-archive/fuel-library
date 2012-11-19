@@ -33,7 +33,8 @@ class CobblerTestCase(BaseTestCase):
                              -5],
             dhcp_netmask="'%s'" % '255.255.255.0',
             dhcp_gateway="'%s'" %
-                         self.environment.network['internal'].ip_addresses[1]
+                         self.environment.network['internal'].ip_addresses[1],
+            pxetimeout         = '3000'
         )
 
 
