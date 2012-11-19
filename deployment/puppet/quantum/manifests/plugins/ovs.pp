@@ -3,7 +3,7 @@ class quantum::plugins::ovs (
   $sql_connection       = 'sqlite:////var/lib/quantum/ovs.sqlite',
   $sql_max_retries      = 10,
   $reconnect_interval   = 2,
-  $bridge_mappings      = ['physnet1:br-virtual'],
+  $bridge_mappings      = ['br-virtual:br-ex'],
   $tenant_network_type  = 'vlan',
   $network_vlan_ranges  = 'physnet1:1000:2000',
   $integration_bridge   = 'br-int',

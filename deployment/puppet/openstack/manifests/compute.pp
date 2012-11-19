@@ -75,7 +75,11 @@ class openstack::compute (
   $private_interface,
   $network_manager,
   $fixed_range,
-  $quantum			= false,
+  # Quantum
+  $quantum                       = false,
+  $quantum_sql_connection        = false,
+  $quantum_host                  = false,
+  $quantum_user_password         = false,
   $cinder			= false,
   # nova compute configuration parameters
   $verbose             = false,
@@ -114,6 +118,19 @@ class openstack::compute (
       "set auth_tcp none",
     ];
   }
+
+  # script called by qemu needs to manipulate the tap device
+  File_line {
+    path => '/etc/libvirt/qemu.conf',
+  }
+
+  file_line {
+    'clear_emulator_capabilities': line  => "clear_emulator_capabilities = 0";
+    'user': line  => "user = root";
+    'group': line  => "group = root";
+    'cgroup_device_acl': line  => "cgroup_device_acl = [\n  '/dev/null', '/dev/full', '/dev/zero',\n  '/dev/random', '/dev/urandom', '/dev/ptmx',\n  '/dev/kvm', '/dev/kqemu','/dev/rtc',\n  '/dev/hpet', '/dev/net/tun',\n]";
+  }
+
 
   $memcached_addresses =  inline_template("<%= @cache_server_ip.collect {|ip| ip + ':' + @cache_server_port }.join ',' %>")
   nova_config {'DEFAULT/memcached_servers':
@@ -205,36 +222,40 @@ class openstack::compute (
 
   # if the compute node should be configured as a multi-host
   # compute installation
-  if $multi_host {
-    include keystone::python
-    nova_config {
-      'DEFAULT/multi_host':      value => 'True';
-      'DEFAULT/send_arp_for_ha': value => 'True';
-    }
-    if ! $public_interface {
-      fail('public_interface must be defined for multi host compute nodes')
-    }
-    $enable_network_service = true
-    class { 'nova::api':
-      ensure_package    => $::openstack_version['nova'],
-      enabled           => true,
-      admin_tenant_name => 'services',
-      admin_user        => 'nova',
-      admin_password    => $nova_user_password,
-      enabled_apis	=> $enabled_apis,
-      auth_host          => $service_endpoint
-      # TODO override enabled_apis
+  if ! $quantum {
+    if ! $fixed_range {
+      fail("Must specify the fixed range when using nova-networks")
     }
 
-  } else {
-    $enable_network_service = false
-    nova_config {
-      'DEFAULT/multi_host':      value => 'False';
-      'DEFAULT/send_arp_for_ha': value => 'False';
-    }
-  }
+    if $multi_host {
+      include keystone::python
+      nova_config {
+        'DEFAULT/multi_host':      value => 'True';
+        'DEFAULT/send_arp_for_ha': value => 'True';
+      }
+      if ! $public_interface {
+        fail('public_interface must be defined for multi host compute nodes')
+      }
+      $enable_network_service = true
+      class { 'nova::api':
+        ensure_package    => $::openstack_version['nova'],
+        enabled           => true,
+        admin_tenant_name => 'services',
+        admin_user        => 'nova',
+        admin_password    => $nova_user_password,
+        enabled_apis	=> $enabled_apis,
+        auth_host          => $service_endpoint
+        # TODO override enabled_apis
+      }
 
-  if $quantum == false {
+    } else {
+      $enable_network_service = false
+      nova_config {
+        'DEFAULT/multi_host':      value => 'False';
+        'DEFAULT/send_arp_for_ha': value => 'False';
+      }
+    }
+
     class { 'nova::network':
       ensure_package    => $::openstack_version['nova'],
       private_interface => $private_interface,
@@ -247,6 +268,73 @@ class openstack::compute (
       num_networks      => $num_networks,
       enabled           => $enable_network_service,
       install_service   => $enable_network_service,
+    }
+  } else {
+
+    if ! $quantum_sql_connection {
+      fail('quantum sql connection must be specified when quantum is installed on compute instances')
+    }
+    if ! $quantum_host {
+      fail('quantum host must be specified when quantum is installed on compute instances')
+    }
+    if ! $quantum_user_password {
+      fail('quantum user password must be set when quantum is configured')
+    }
+
+    class { 'quantum':
+      verbose         => $verbose,
+      debug           => $verbose,
+      rabbit_host     => $rabbit_host,
+      rabbit_user     => $rabbit_user,
+      rabbit_password => $rabbit_password,
+      #sql_connection  => $quantum_sql_connection,
+    }
+
+    class { 'quantum::plugins::ovs':
+      tenant_network_type => 'gre',
+      enable_tunneling    => true,
+    }
+
+    class { 'quantum::agents::ovs':
+      bridge_uplinks   => ["br-ex:${private_interface}"],
+      enable_tunneling => true,
+      local_ip         => $internal_address,
+    }
+
+    # class { 'quantum::agents::dhcp':
+    #   debug          => True,
+    #   use_namespaces => False,
+    # }
+
+    # class { 'quantum::agents::l3':
+    #   debug          => True,
+    #   auth_url       => "http://${service_endpoint}:35357/v2.0",
+    #   auth_tenant    => 'services',
+    #   auth_user      => 'quantum',
+    #   auth_password  => $quantum_user_password,
+    #   use_namespaces => False,
+    # }
+
+    class { 'nova::compute::quantum': }
+
+    # does this have to be installed on the compute node?
+    # NOTE
+    class { 'nova::network::quantum':
+    #$fixed_range,
+      quantum_admin_password    => $quantum_user_password,
+    #$use_dhcp                  = 'True',
+    #$public_interface          = undef,
+      quantum_connection_host   => $quantum_host,
+      #quantum_auth_strategy     => 'keystone',
+      quantum_url               => "http://${service_endpoint}:9696",
+      quantum_admin_tenant_name => 'services',
+      #quantum_admin_username    => 'quantum',
+      quantum_admin_auth_url    => "http://${service_endpoint}:35357/v2.0"
+    }
+
+    nova_config {
+      'linuxnet_interface_driver':       value => 'nova.network.linux_net.LinuxOVSInterfaceDriver';
+      'linuxnet_ovs_integration_bridge': value => 'br-int';
     }
   }
 

@@ -122,7 +122,6 @@ class openstack::controller (
   $cache_server_ip         = ['127.0.0.1'],
   $cache_server_port       = '11211',
   $swift                   = false,
-  $quantum                 = false,
   $cinder                  = false,
   $horizon_app_links       = undef,
   # General
@@ -134,8 +133,9 @@ class openstack::controller (
   $cinder_db_user          = 'cinder',
   $cinder_db_dbname        = 'cinder',
   #
-  $quantum_user_password   = 'quantum_user_pass',
-  $quantum_db_password     = 'quantum_db_pass',
+  $quantum                 = false,
+  $quantum_user_password   = 'quantum_pass',
+  $quantum_db_password     = 'quantum_pass',
   $quantum_db_user         = 'quantum',
   $quantum_db_dbname       = 'quantum',
   $enabled                 = true,
@@ -144,7 +144,7 @@ class openstack::controller (
   $galera_cluster_name = 'openstack',
   $galera_master_ip = '127.0.0.1',
   $galera_node_address = '127.0.0.1',
-  $glance_backend = 'file',
+  $glance_backend          = 'file',
   $manage_volumes          = false,
   $nv_physical_volume      = undef,
 ) {
@@ -270,6 +270,7 @@ class openstack::controller (
     public_address          => $public_address,
     admin_address           => $admin_address,
     internal_address        => $internal_address,
+    private_interface       => $private_interface,
     auto_assign_floating_ip => $auto_assign_floating_ip,
     create_networks         => $create_networks,
     num_networks            => $num_networks,

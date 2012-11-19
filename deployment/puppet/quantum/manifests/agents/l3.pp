@@ -1,3 +1,4 @@
+#
 class quantum::agents::l3 (
   $package_ensure               = 'present',
   $enabled                      = true,
@@ -57,6 +58,17 @@ class quantum::agents::l3 (
     $ensure = 'running'
   } else {
     $ensure = 'stopped'
+  }
+
+  $iptables_manager = '/usr/lib/python2.6/site-packages/quantum/agent/linux/iptables_manager.py'
+
+  # rootwrap error with L3 agent
+  # https://bugs.launchpad.net/quantum/+bug/1069966
+  exec { 'patch-iptables-manager':
+    command => "sed -i '272 s|/sbin/||' ${iptables_manager}",
+    unless  => "sed -n '272p' ${iptables_manager} | grep -q '/sbin/'",
+    path    => '/bin/',
+    require => Package[$l3_agent_package],
   }
 
   service { 'quantum-l3':

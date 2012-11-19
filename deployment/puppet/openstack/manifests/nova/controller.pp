@@ -22,6 +22,7 @@
 class openstack::nova::controller (
   # Network Required
   $public_address,
+  $private_interface,
   # Database Required
   $db_host,
   # Rabbit Required
@@ -39,7 +40,12 @@ class openstack::nova::controller (
   $num_networks              = 1,
   $multi_host                = false,
   $network_manager           = 'nova.network.manager.FlatDHCPManager',
-  $quantum                   = true,
+  # Quantum
+  $quantum                   = false,
+  $quantum_db_dbname         = 'quantum',
+  $quantum_db_user           = 'quantum',
+  $quantum_db_password       = 'quantum_pass',
+  $quantum_user_password     = 'quantum_pass',
   # Nova
   $nova_db_user              = 'nova',
   $nova_db_dbname            = 'nova',
@@ -156,25 +162,25 @@ if ($rabbit_nodes)
     ensure_package	=> $ensure_package,
   }
 
-  # Configure nova-network
-  if $multi_host {
-    nova_config { 'DEFAULT/multi_host': value => 'True' }
-    $enable_network_service = false
-  } else {
-    if $enabled {
-      $enable_network_service = true
-    } else {
-      $enable_network_service = false
-    }
-  }
-
   if $enabled {
     $really_create_networks = $create_networks
   } else {
     $really_create_networks = false
   }
 
-  if $quantum == false {
+  if ! $quantum {
+    # Configure nova-network
+    if $multi_host {
+      nova_config { 'DEFAULT/multi_host': value => 'True' }
+      $enable_network_service = false
+    } else {
+      if $enabled {
+        $enable_network_service = true
+      } else {
+        $enable_network_service = false
+      }
+    }
+
     class { 'nova::network':
       private_interface => $private_interface,
       public_interface  => $public_interface,
@@ -187,6 +193,59 @@ if ($rabbit_nodes)
       enabled           => $enable_network_service,
       install_service   => $enable_network_service,
       ensure_package	=> $ensure_package
+    }
+  } else {
+    # Set up Quantum
+    $quantum_sql_connection = "mysql://${quantum_db_user}:${quantum_db_password}@${db_host}/${quantum_db_dbname}?charset=utf8"
+    class { 'quantum':
+      rabbit_user     => $rabbit_user,
+      rabbit_password => $rabbit_password,
+      #sql_connection  => $quantum_sql_connection,
+      verbose         => $verbose,
+      debug           => $verbose,
+    }
+
+    class { 'quantum::server':
+      auth_password => $quantum_user_password,
+    }
+
+    class { 'quantum::plugins::ovs':
+      sql_connection      => $quantum_sql_connection,
+      tenant_network_type => 'gre',
+      enable_tunneling    => true,
+    }
+
+    class { 'quantum::agents::ovs':
+      bridge_uplinks   => ["br-ex:${private_interface}"],
+      enable_tunneling => true,
+      local_ip         => $internal_address,
+    }
+
+    class { 'quantum::agents::dhcp':
+      debug          => True,
+      use_namespaces => False,
+    }
+
+    class { 'quantum::agents::l3':
+      debug          => True,
+      auth_url       => "http://${keystone_host}:35357/v2.0",
+      auth_tenant    => 'services',
+      auth_user      => 'quantum',
+      auth_password  => $quantum_user_password,
+      use_namespaces => False,
+    }
+
+    class { 'nova::network::quantum':
+    #$fixed_range,
+      quantum_admin_password    => $quantum_user_password,
+    #$use_dhcp                  = 'True',
+    #$public_interface          = undef,
+      quantum_connection_host   => 'localhost',
+      quantum_auth_strategy     => 'keystone',
+      quantum_url               => "http://${keystone_host}:9696",
+      quantum_admin_tenant_name => 'services',
+      #quantum_admin_username    => 'quantum',
+      quantum_admin_auth_url    => "http://${keystone_host}:35357/v2.0",
     }
   }
 
