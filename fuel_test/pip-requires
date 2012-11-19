@@ -1,4 +1,4 @@
-nosetests
+nose
 python-glanceclient
 python-keystoneclient
 devops
