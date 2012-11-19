@@ -89,22 +89,26 @@ class keystone(
   group { 'keystone':
     ensure  => present,
     system  => true,
-    require => Package['keystone'],
   }
 
   user { 'keystone':
     ensure  => 'present',
     gid     => 'keystone',
     system  => true,
-    require => Package['keystone'],
   }
 
   file { ['/etc/keystone', '/var/log/keystone', '/var/lib/keystone']:
     ensure  => directory,
+    owner   => 'keystone',
+    group   => 'keystone',
+    mode    => 0755,
+    require => [User['keystone'], Group['keystone']]
   }
 
   file { '/etc/keystone/keystone.conf':
     mode    => '0600',
+    require => [File['/etc/keystone']],
+    notify  => Service['keystone'],
   }
 
   # default config
@@ -154,12 +158,14 @@ class keystone(
     $service_ensure = 'stopped'
   }
   Keystone_config <| |> -> Service['keystone']
+  Keystone_config <| |> -> Package['keystone']
   service { 'keystone':
     name       => $::keystone::params::service_name,
     ensure     => $service_ensure,
     enable     => $enabled,
     hasstatus  => true,
     hasrestart => true,
+    require    => [Package['keystone'],Concat['/etc/keystone/keystone.conf']],
     provider   => $::keystone::params::service_provider,
   }
 

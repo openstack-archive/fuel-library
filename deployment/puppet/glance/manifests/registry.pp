@@ -96,14 +96,20 @@ class glance::registry(
     $service_ensure = 'stopped'
   }
   Glance_registry_config <| |> -> Service['glance-registry']
+ package {'glance-registry':
+	 name => $::glance::params::registry_package_name,
+ 	 ensure => $package_ensure 
+ }
+  Glance_registry_config <| |> -> Package['glance-registry']
+
   service { 'glance-registry':
     name       => $::glance::params::registry_service_name,
     ensure     => $service_ensure,
     enable     => $enabled,
     hasstatus  => true,
     hasrestart => true,
-    subscribe  => File['/etc/glance/glance-registry.conf'],
-    require    => Class['glance']
+    subscribe  => [File['/etc/glance/glance-registry.conf']],
+    require    => [Class['glance'],File['/etc/glance/glance-registry.conf'],Package['glance-registry']]
   }
 
 }
