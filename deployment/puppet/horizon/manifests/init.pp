@@ -51,10 +51,21 @@ class horizon(
     require => Package[$::horizon::params::http_service],
   }
 
-  File {
-    require => Package["$::horizon::params::package_name"],
-    owner   => 'apache',
-    group   => 'apache',
+  case $::osfamily {
+    'RedHat': {
+      File {
+        require => Package["$::horizon::params::package_name"],
+        owner   => 'apache',
+        group   => 'apache',
+      }
+    }
+    'Debian': {
+      File {
+        require => Package["$::horizon::params::package_name"],
+        owner   => 'www-data',
+        group   => 'www-data',
+      }
+    }
   }
  $dashboard_urlpart = $::osfamily ? {
    'Debian' => 'horizon',
@@ -68,7 +79,7 @@ class horizon(
   file { $::horizon::params::logdir:
     ensure  => directory,
     mode    => '0751',
-    before  => Service["httpd"],
+    before  => Service["$::horizon::params::http_service"],
   }
 
   case $::osfamily {
@@ -100,7 +111,7 @@ class horizon(
    path => $::horizon::params::config_file,
    line => 'RedirectMatch permanent ^/$ /dashboard/',
    require => Package["$::horizon::params::package_name"],
-   notify => Service["httpd"]
+   notify => Service["$::horizon::params::http_service"]
   }
  }
   # ensure https only listens on the management address, not on all interfaces
@@ -108,25 +119,18 @@ class horizon(
     path => $::horizon::params::httpd_listen_config_file,
     match => '^Listen (.*)$',
     line => "Listen ${bind_address}:80",
-    before => Service["httpd"],
+    before => Service["$::horizon::params::http_service"],
     require => Package["$::horizon::params::package_name"],
-    notify => Service["httpd"]
+    notify => Service["$::horizon::params::http_service"]
   }
-
-  service { 'httpd':
-    name      => $::horizon::params::http_service,
-    ensure    => 'running',
-    enable    => true,
-    require   => Package["$::horizon::params::http_service", "$::horizon::params::http_modwsgi"],
-    subscribe => File["$::horizon::params::local_settings_path", "$::horizon::params::logdir"]
+    service { '$::horizon::params::http_service':
+      name      => $::horizon::params::http_service,
+      ensure    => 'running',
+      enable    => true,
+      require   => Package["$::horizon::params::http_service", "$::horizon::params::http_modwsgi"],
+      subscribe => File["$::horizon::params::local_settings_path", "$::horizon::params::logdir"]
     }
-  # I am totally confused by this, I do not think it should be installed...
-#  package { 'node-less': }
-
   if $cache_server_ip =~ /^127\.0\.0\.1/ {
     Class['memcached'] -> Class['horizon']
   }
-
-
-
 }
