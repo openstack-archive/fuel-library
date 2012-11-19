@@ -309,6 +309,7 @@ class openstack::controller (
       enabled         => true,
       auth_host       => $service_endpoint,
       bind_host       => $api_bind_address,
+      cinder_user_password    => $cinder_user_password,
     }
  }
 
