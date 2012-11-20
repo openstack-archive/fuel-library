@@ -50,6 +50,57 @@ class CobblerCase(CobblerTestCase):
                          'mco_host': mco_host
                 }
 
+    def add_fake_nodes(self):
+        cobbler = self.ci().nodes().cobblers[0]
+        client = CobblerClient(cobbler.ip_address_by_network['internal'])
+        token = client.login('cobbler', 'cobbler')
+        for i in range(1,100):
+            for j in range(1,100):
+                self._add_node(
+                    client, token, cobbler,
+                    node_name='fake' + str(i),
+                    node_mac0="00:17:3e:{0:02x}:{1:02x}:01".format(i, j),
+                    node_mac1="00:17:3e:{0:02x}:{1:02x}:02".format(i, j),
+                    node_mac2="00:17:3e:{0:02x}:{1:02x}:03".format(i, j),
+                    node_ip="192.168.{0:d}.{1:d}".format(i, j)
+                )
+
+    def _add_node(self, client, token, cobbler, node_name, node_mac0, node_mac1, node_mac2, node_ip):
+        system_id = client.new_system(token)
+        client.modify_system_args(
+            system_id, token,
+            ks_meta=self.get_ks_meta('master',
+                cobbler.ip_address_by_network['internal']),
+            name=node_name,
+            hostname=node_name + ".mirantis.com",
+            name_servers=cobbler.ip_address_by_network['internal'],
+            name_servers_search="mirantis.com",
+            profile="centos63-x86_64",
+            netboot_enabled="1")
+        client.modify_system(system_id, 'modify_interface', {
+            "macaddress-eth0": str(node_mac0),
+            "ipaddress-eth0": str(node_ip),
+            "dnsname-eth0": node_name + ".mirantis.com",
+            "static-eth0": "1",
+            "macaddress-eth1": str(node_mac1),
+            "static-eth1": "0",
+            "macaddress-eth2": str(node_mac2),
+            "static-eth2": "0"
+        }, token)
+        client.save_system(system_id, token)
+        client.sync(token)
+
+    def add_node(self, client, token, cobbler, node):
+        node_name=node.name
+        node_mac0=str(node.interfaces[0].mac_address)
+        node_mac1=str(node.interfaces[1].mac_address)
+        node_mac2=str(node.interfaces[2].mac_address)
+        node_ip=str(node.ip_address_by_network['internal'])
+        self._add_node(
+            client, token, cobbler, node_name,
+            node_mac0, node_mac1, node_mac2, node_ip
+        )
+
     def test_configure_cobbler(self):
         safety_revert_nodes(self.ci().environment.nodes, 'cobbler')
 
@@ -59,29 +110,7 @@ class CobblerCase(CobblerTestCase):
         token = client.login('cobbler', 'cobbler')
 
         for node in client_nodes:
-            system_id = client.new_system(token)
-            client.modify_system_args(
-                system_id, token,
-                ks_meta=self.get_ks_meta('master',
-                    cobbler.ip_address_by_network['internal']),
-                name=node.name,
-                hostname=node.name + ".mirantis.com",
-                name_servers=cobbler.ip_address_by_network['internal'],
-                name_servers_search="mirantis.com",
-                profile="centos63-x86_64",
-                netboot_enabled="1")
-            client.modify_system(system_id, 'modify_interface', {
-                "macaddress-eth0": str(node.interfaces[0].mac_address),
-                "ipaddress-eth0": str(node.ip_address_by_network['internal']),
-                "dnsname-eth0": node.name + ".mirantis.com",
-                "static-eth0": "1",
-                "macaddress-eth1": str(node.interfaces[1].mac_address),
-                "static-eth1": "0",
-                "macaddress-eth2": str(node.interfaces[2].mac_address),
-                "static-eth2": "0"
-            }, token)
-            client.save_system(system_id, token)
-            client.sync(token)
+            self.add_node(client, token, cobbler, node)
 
         master = self.ci().environment.node['master']
         remote = ssh(
