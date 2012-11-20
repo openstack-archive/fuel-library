@@ -409,13 +409,17 @@ Installing OpenStack
 
 In case of VirtualBox, it's recommended to save current state of every virtual machine using the mechanism of snapshot. It is helpful to have a point to revert to, so you can install OpenStack using puppet, then revert and try one more time if needed.
 
-* In puppet master
+* On puppet master
     * create file with definition of networks, nodes, and roles. assume you are deploying a compact configuration, with Controllers and Swift combined:
         * ``cp fuel/deployment/puppet/openstack/examples/site_openstack_swift_compact.pp /etc/puppet/manifests/site.pp``
     * ``vi /etc/puppet/manifests/site.pp``
         .. literalinclude:: ../../deployment/puppet/openstack/examples/site_openstack_swift_compact.pp
-    * Create the directory ``/var/lib/puppet/ssh_keys`` and do ``ssh-keygen -f openstack`` there
-    * Edit the file ``/etc/puppet/fileserver.conf`` and append the following lines: ::
+    * create directory with keys, give it the appropriate permissions, and generate keys themselves 
+        * ``mkdir /var/lib/puppet/ssh_keys``
+        * ``cd /var/lib/puppet/ssh_keys``
+        * ``ssh-keygen -f openstack``
+        * ``chown -R puppet:puppet /var/lib/puppet/ssh_keys/``
+    * edit the file ``/etc/puppet/fileserver.conf`` and append the following lines: ::
 
         [ssh_keys]
         path /var/lib/puppet/ssh_keys
