@@ -162,7 +162,9 @@ class glance::api(
     name => $::glance::params::api_package_name,
     ensure => $package_ensure,
    }
+   File['/etc/glance/glance-api.conf']->Glance_api_config<| |>
    Glance_api_config<| |> -> Package['glance-api']
+   Package['glance-api'] -> Service['glance-api']
   }
   service { 'glance-api':
     name       => $::glance::params::api_service_name,

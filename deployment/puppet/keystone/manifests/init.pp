@@ -102,13 +102,27 @@ class keystone(
     owner   => 'keystone',
     group   => 'keystone',
     mode    => 0755,
-    require => [User['keystone'], Group['keystone']]
   }
 
+  case $::osfamily {
+    'Debian': {
   file { '/etc/keystone/keystone.conf':
-    mode    => '0600',
-    require => [File['/etc/keystone']],
-    notify  => Service['keystone'],
+    ensure=>present,
+    owner=>'keystone',
+    group=>'keystone',
+    require=>File['/etc/keystone']
+  }
+    User['keystone'] -> File['/etc/keystone'] 
+    Group['keystone'] -> File['/etc/keystone'] 
+    Keystone_config<||> -> Package['keystone']
+    File['/etc/keystone/keystone.conf']->Keystone_config<||>
+    }   
+    'RedHat': {
+    Package['keystone'] -> User['keystone'] 
+    Package['keystone'] -> Group['keystone'] 
+    Package['keystone'] -> File['/etc/keystone'] 
+    Package['keystone'] -> Keystone_config<||>
+    }   
   }
 
   # default config
@@ -158,14 +172,17 @@ class keystone(
     $service_ensure = 'stopped'
   }
   Keystone_config <| |> -> Service['keystone']
-  Keystone_config <| |> -> Package['keystone']
+  if $::osfamily == "Debian"
+  {
+    Keystone_config <| |> -> Package['keystone']
+  }
   service { 'keystone':
     name       => $::keystone::params::service_name,
     ensure     => $service_ensure,
     enable     => $enabled,
     hasstatus  => true,
     hasrestart => true,
-    require    => [Package['keystone'],Concat['/etc/keystone/keystone.conf']],
+    require    => [Package['keystone']],
     provider   => $::keystone::params::service_provider,
   }
 

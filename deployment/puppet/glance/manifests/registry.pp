@@ -102,6 +102,8 @@ class glance::registry(
 	 name => $::glance::params::registry_package_name,
  	 ensure => $package_ensure 
  }
+  File['/etc/glance/glance-registry.conf'] -> Glance_registry_config<||>
+  Package['glance-registry']->Service['glance-registry']
   Glance_registry_config <| |> -> Package['glance-registry']
   }
 
