@@ -1,11 +1,12 @@
 class openstack::mirantis_repos ( $type = "internal" ) {
     case $::osfamily {
       'Debian': {
+        class { 'apt':
+          stage => 'openstack-custom-repo',
+          always_apt_update => true,
+        } #->
 #     Currently we use only standard Debian repos, installed with OS
 #     There is nothing in our custom repo for Debian.
-#        class { 'apt':
-#          stage => 'openstack-custom-repo'
-#        }->
 #        class { 'openstack::repo::apt':
 #          key => '420851BC',
 #          location => 'http://172.18.66.213/deb',

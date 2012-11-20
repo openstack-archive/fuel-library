@@ -61,7 +61,7 @@ case $::osfamily {
 
 Exec { logoutput => true }
 stage {'openstack-custom-repo': before => Stage['main']}
-class {'openstack::mirantis_repos': }
+
 node /fuel-0[12]/ {
   if $::hostname == $master_hostname
   {
