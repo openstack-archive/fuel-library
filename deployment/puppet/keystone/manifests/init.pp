@@ -83,14 +83,25 @@ class keystone(
     owner   => 'keystone',
     group   => 'keystone',
     mode    => 0755,
-    require => [User['keystone'], Group['keystone']]
   }
-
+  case $::osfamily {
+    'Debian': {
+    User['keystone'] -> File['/etc/keystone'] 
+    Group['keystone'] -> File['/etc/keystone'] 
+    Concat['/etc/keystone/keystone.conf'] -> Package['keystone']
+    File['/etc/keystone'] -> Concat['/etc/keystone/keystone.conf'] 
+    }   
+    'RedHat': {
+    Package['keystone'] -> User['keystone'] 
+    Package['keystone'] -> Group['keystone'] 
+    Package['keystone'] -> File['/etc/keystone'] 
+    Package['keystone'] -> Concat['/etc/keystone/keystone.conf'] 
+    }   
+  }
   concat { '/etc/keystone/keystone.conf':
     owner   => 'keystone',
     group   => 'keystone',
     mode    => '0600',
-    require => [File['/etc/keystone']],
     notify  => Service['keystone'],
   }
 
@@ -133,7 +144,7 @@ class keystone(
   } else {
     $service_ensure = 'stopped'
   }
-  Concat['/etc/keystone/keystone.conf'] -> Package['keystone']
+
   service { 'keystone':
     name       => $::keystone::params::service_name,
     ensure     => $service_ensure,

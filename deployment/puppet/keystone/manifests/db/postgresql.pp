@@ -38,8 +38,8 @@ class keystone::db::postgresql(
   $user          = 'keystone_admin',
 ) {
 
-  Class['keystone::db::postgresql'] -> Service<| title == 'keystone' |>
-
+  Class['keystone::db::postgresql'] -> Package<| title == 'keystone' |>
+  Class['keystone::db::postgresql'] -> Exec<| title == 'keystone-manage db_sync' |>
   require 'postgresql::python'
 
    postgresql::db { "${dbname}":
