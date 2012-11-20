@@ -5,9 +5,15 @@ module Puppet
 module Util
   class IniFile
 
-    SECTION_REGEX = /^\s*\[([\w\d\.\\\/\-\:]+)\]\s*$/
-    SETTING_REGEX = /^(\s*)([\w\d\.\\\/\-]+)(\s*=\s*)([\S\s]*\S)\s*$/
-    COMMENTED_SETTING_REGEX = /^(\s*)[#;]+(\s*)([\w\d\.\\\/\-]+)(\s*=\s*)([\S\s]*\S)\s*$/
+    def section_regex
+    	/^\s*\[([\w\d\.\\\/\-\:]+)\]\s*$/
+    end
+    def setting_regex
+    	/^(\s*)([\w\d\.\\\/\-]+)(\s*=\s*)([\S\s]*\S)\s*$/
+    end
+    def commented_setting_regex
+    	/^(\s*)[#;]+(\s*)([\w\d\.\\\/\-]+)(\s*=\s*)([\S\s]*\S)\s*$/
+    end
 
     def initialize(path, key_val_separator = ' = ')
       @path = path
@@ -164,7 +170,7 @@ module Util
       line, line_num = line_iter.next
 
       while line
-        if (match = SECTION_REGEX.match(line))
+        if (match = section_regex.match(line))
           section = read_section(match[1], line_num, line_iter)
           add_section(section)
         end
@@ -178,9 +184,9 @@ module Util
       min_indentation = nil
       while true
         line, line_num = line_iter.peek
-        if (line_num.nil? or match = SECTION_REGEX.match(line))
+        if (line_num.nil? or match = section_regex.match(line))
           return Section.new(name, start_line, end_line_num, settings, min_indentation)
-        elsif (match = SETTING_REGEX.match(line))
+        elsif (match = setting_regex.match(line))
           settings[match[2]] = match[4]
           indentation = match[1].length
           min_indentation = [indentation, min_indentation || indentation].min
@@ -192,7 +198,7 @@ module Util
 
     def update_line(section, setting, value)
       (section.start_line..section.end_line).each do |line_num|
-        if (match = SETTING_REGEX.match(lines[line_num]))
+        if (match = setting_regex.match(lines[line_num]))
           if (match[2] == setting)
             lines[line_num] = "#{match[1]}#{match[2]}#{match[3]}#{value}"
           end
@@ -202,7 +208,7 @@ module Util
 
     def remove_line(section, setting)
       (section.start_line..section.end_line).each do |line_num|
-        if (match = SETTING_REGEX.match(lines[line_num]))
+        if (match = setting_regex.match(lines[line_num]))
           if (match[2] == setting)
             lines.delete_at(line_num)
           end
@@ -241,7 +247,7 @@ module Util
     def find_commented_setting(section, setting)
       return nil if section.is_new_section?
       (section.start_line..section.end_line).each do |line_num|
-        if (match = COMMENTED_SETTING_REGEX.match(lines[line_num]))
+        if (match = commented_setting_regex.match(lines[line_num]))
           if (match[3] == setting)
             return { :match => match, :line_num => line_num }
           end
