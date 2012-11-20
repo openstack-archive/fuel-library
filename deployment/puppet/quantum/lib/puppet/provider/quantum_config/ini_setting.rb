@@ -2,7 +2,7 @@ Puppet::Type.type(:ini_setting)#.providers
 
 Puppet::Type.type(:quantum_config).provide(
   :ini_setting,
-  :parent => Puppet::Type::Ini_setting::ProviderRuby
+  :parent => Puppet::Type.type(:ini_setting).provider(:ruby)
 ) do
 
   def section
