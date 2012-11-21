@@ -65,7 +65,7 @@ case $::osfamily {
 
 Exec { logoutput => true }
 stage {'openstack-custom-repo': before => Stage['main']}
-
+class {'openstack::mirantis_repos': }
 class compact_controller {
   if $::hostname == $master_hostname {
     $manage_volumes = true
