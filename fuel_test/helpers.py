@@ -293,7 +293,7 @@ def remove_puppetlab_repo(remote):
     if OS_FAMILY == "centos":
         execute(remote.sudo.ssh, 'rpm --erase puppetlabs-release-6-5.noarch')
     else:
-        execute(remote.sudo.ssh, 'dpkg -r puppetlabs-release-precise.deb')
+        execute(remote.sudo.ssh, 'dpkg -r puppetlabs-release-precise')
 
 
 def setup_puppet_client(remote):
