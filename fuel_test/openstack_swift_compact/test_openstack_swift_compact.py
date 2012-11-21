@@ -2,6 +2,7 @@ from fuel_test.helpers import execute
 from devops.helpers import ssh
 import unittest
 from fuel_test.openstack_swift_compact.openstack_swift_compact_test_case import OpenStackSwiftCompactTestCase
+from fuel_test.settings import OPENSTACK_SNAPSHOT
 
 class OpenStackSwiftCompactCase(OpenStackSwiftCompactTestCase):
     def test_deploy_open_stack_swift_compact(self):
@@ -25,7 +26,7 @@ class OpenStackSwiftCompactCase(OpenStackSwiftCompactTestCase):
             self.nodes.computes,
             'puppet agent --test')
         for node in self.environment.nodes:
-            node.save_snapshot('openstack')
+            node.save_snapshot(OPENSTACK_SNAPSHOT)
 
 if __name__ == '__main__':
     unittest.main()
