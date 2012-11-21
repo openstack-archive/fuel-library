@@ -77,8 +77,8 @@ if !defined(Package['swift'])
     }
     exec { 'patch-swift-utils':
       path    => ["/usr/bin", "/usr/sbin"],
-      onlyif  => "patch -t -N -p1 --dry-run  -d /usr/lib/${::swift::params::python_path}/swift/common/ --reject-file=/dev/null < /tmp/swift-utils.patch",
-      command => "/usr/bin/patch -p1 -d /usr/lib/${::swift::params::python_path}/swift/common/ </tmp/swift-utils.patch",
+      command => "/usr/bin/patch -p1 -N -r - -d /usr/lib/${::swift::params::python_path}/swift/common/ </tmp/swift-utils.patch",
+      returns => [0, 1],
       require => [ [File['/tmp/swift-utils.patch']],[Package['patch', 'swift']]], 
     } 
 
