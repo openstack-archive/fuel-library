@@ -113,12 +113,14 @@ class nova(
 
     exec { 'patch-nova-rabbitmq':
       unless  => "/bin/grep x-ha-policy /usr/lib/${::nova::params::python_path}/nova/openstack/common/rpc/impl_kombu.py",
-      command => "/usr/bin/patch -p1 -d /usr/lib/${::nova::params::python_path}/nova </tmp/rmq-ha.patch",
+      command => "/usr/bin/patch -p1 -N -r - -d /usr/lib/${::nova::params::python_path}/nova </tmp/rmq-ha.patch",
+      returns => [0, 1],
       require => [ [File['/tmp/rmq-ha.patch']],[Package['patch', 'python-nova']]], 
     } ->
     exec { 'patch-nova-mysql':
       unless  => "/bin/grep sql_inc_retry_interval /usr/lib/${::nova::params::python_path}/nova/flags.py",
-      command => "/usr/bin/patch -p1 -d /usr/lib/${::nova::params::python_path}/nova </tmp/mysql.patch",
+      command => "/usr/bin/patch -p1 -N -r - -d /usr/lib/${::nova::params::python_path}/nova </tmp/mysql.patch",
+      returns => [0, 1],
       require => [ [File['/tmp/mysql.patch']],[Package['patch', 'python-nova']]], 
     } ->  exec { 'update-kombu':
         path    => ["/usr/bin/:/usr/local/bin/"],
