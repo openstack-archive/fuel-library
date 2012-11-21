@@ -12,5 +12,5 @@ In order to use Fuel, one must supply configuration -- description of physical n
 
 After configuration is in place, Fuel automatically performs bare metal provisioning of hardware nodes and setup of OpenStack cloud:
 
-.. image:: https://docs.google.com/drawings/pub?id=1EGypSG_0K-YA4XJ0rPZ6XZ48VdkLxEgWDSRRtMJk7Tc&w=678&h=617 
+.. image:: https://docs.google.com/drawings/pub?id=15vTTG2_575M7-kOzwsYyDmQrMgCPT2joLF2Cgiyzv7Q&w=678&h=617
 
