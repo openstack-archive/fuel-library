@@ -42,10 +42,9 @@ $openstack_version = {
   'novncproxy' => latest,
   'cinder' => latest,
 }
-
+$mirror_type="external"
 stage { 'openstack-custom-repo': before => Stage['main'] }
-class { 'openstack::mirantis_repos': stage => 'openstack-custom-repo' }
-class { 'apt::update': stage => 'openstack-custom-repo' }
+class { 'openstack::mirantis_repos': stage => 'openstack-custom-repo', type => $mirror_type }
 
 
 $controller_node_address  = '10.0.125.3' 
