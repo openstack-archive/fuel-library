@@ -50,7 +50,7 @@ class OpenStackSwiftTestCase(BaseTestCase):
             controller_public_addresses = controller_public_addresses,
             controller_internal_addresses = controller_internal_addresses, 
             swift_proxies = swift_proxies,
-            mirror_type = 'internal',
+            mirror_type = "'internal'",
 #            controller_public_addresses="{ '%s' => '%s', '%s' => '%s' }"
 #                                        % (
 #                node01.name, node01.ip_address_by_network['public'],
