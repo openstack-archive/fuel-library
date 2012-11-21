@@ -6,10 +6,11 @@ from devops.helpers import wait, ssh
 from fuel_test.cobbler.cobbler_client import CobblerClient
 from fuel_test.cobbler.cobbler_test_case import CobblerTestCase
 from fuel_test.helpers import tcp_ping, udp_ping, safety_revert_nodes, add_to_hosts, sign_all_node_certificates, sync_time, upload_recipes, upload_keys
+from fuel_test.settings import EMPTY_SNAPSHOT
 
 class CobblerCase(CobblerTestCase):
     def test_deploy_cobbler(self):
-        safety_revert_nodes(self.environment.nodes, 'empty')
+        safety_revert_nodes(self.environment.nodes, EMPTY_SNAPSHOT)
         master = self.environment.node['master']
         self.master_remote = ssh(master.ip_address_by_network['public'],
             username='root',
