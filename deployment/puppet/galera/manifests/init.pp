@@ -92,7 +92,14 @@ class galera($cluster_name, $master_ip = false, $node_address = $ipaddress_eth0)
 #      galera::pkg_add { 'MySQL-client': }
 #      galera::pkg_add { 'MySQL-shared': }
 
-          file { '/etc/my.cnf' :
+      file { '/etc/init.d/mysql' :
+        ensure  => present,
+        mode => 755,
+        source  => 'puppet:///modules/galera/mysql.init',
+        require => Package['MySQL-server'],
+        before  => Service['mysql-galera']
+      }
+      file { '/etc/my.cnf' :
         ensure  => present,
         source  => 'puppet:///modules/galera/my.cnf',
         before  => Service['mysql-galera']
