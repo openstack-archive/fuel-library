@@ -62,15 +62,16 @@ case $::osfamily {
     }
   }
 }
-
+$mirror_type = "external"
 Exec { logoutput => true }
-stage {'openstack-custom-repo': before => Stage['main']}
-class {'openstack::mirantis_repos': }
+stage { 'openstack-custom-repo': before => Stage['main'] }
+class { 'openstack::mirantis_repos': stage => 'openstack-custom-repo', type => $mirror_type }
 node /fuel-0[12]/ inherits swift_base {
     if $::hostname == $master_hostname
     {
       $manage_volumes = true
     }
+
     class { 'openstack::controller_ha': 
       controller_public_addresses => $controller_public_addresses,
       public_interface        => $public_interface,

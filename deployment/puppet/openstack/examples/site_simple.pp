@@ -49,10 +49,16 @@ case $::osfamily {
     }
   }
 }
-
+$mirror_type="external"
 Exec { logoutput => true }
-stage {'openstack-custom-repo': before => Stage['main']}
-class {'openstack::mirantis_repos': }
+stage { 'openstack-custom-repo': before => Stage['main'] }
+class { 'openstack::mirantis_repos': stage => 'openstack-custom-repo', type => $mirror_type }
+
+
+$controller_node_address  = '10.0.125.3' 
+$controller_node_public   = '10.0.74.3' 
+$controller_node_internal = $controller_node_address
+$sql_connection         = "mysql://nova:${nova_db_password}@${controller_node_internal}/nova"
 node /fuel-01/ {
     class { 'openstack::controller': 
       public_address          => $public_address,
