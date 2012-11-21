@@ -44,6 +44,6 @@ class OpenStackSwiftCompactTestCase(BaseTestCase):
             internal_interface="'eth0'",
             internal_address="$ipaddress_eth0",
             private_interface="'eth1'",
-            mirror_type ='internal',
+            mirror_type ="'internal'",
             nv_physical_volume= ["/dev/vdb"]
         )
