@@ -46,12 +46,13 @@ $openstack_version = {
   'novncproxy' => 'latest',
   'cinder' => latest,
 }
+$mirror_type="external"
+
 
 Exec { logoutput => true }
 
 stage { 'openstack-custom-repo': before => Stage['main'] }
-class { 'openstack::mirantis_repos': stage => 'openstack-custom-repo' }
-class { 'apt::update': stage => 'openstack-custom-repo' }
+class { 'openstack::mirantis_repos': stage => 'openstack-custom-repo', type=> $mirror_type }
 
 class compact_controller {
   class { 'openstack::controller_ha': 
