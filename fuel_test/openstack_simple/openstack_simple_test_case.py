@@ -23,9 +23,11 @@ class OpenStackSimpleTestCase(BaseTestCase):
             internal_interface="'eth0'",
             private_interface="'eth1'",
             mirror_type="'internal'",
-            controller_node_address="'%s'" % controller.ip_address_by_network['internal'],
-            controller_node_public="'%s'" % controller.ip_address_by_network['public'],
-            nv_physical_volume= ["/dev/vdb"]
+            controller_node_address="'%s'" % controller.ip_address_by_network[
+                                             'internal'],
+            controller_node_public="'%s'" % controller.ip_address_by_network[
+                                            'public'],
+            nv_physical_volume=["/dev/vdb"]
         )
 
 if __name__ == '__main__':
