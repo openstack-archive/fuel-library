@@ -44,7 +44,7 @@ $mirror_type="external"
 Exec { logoutput => true }
 
 stage { 'openstack-custom-repo': before => Stage['main'] }
-class { 'openstack::mirantis_repos': stage => 'openstack-custom-repo', type=$mirror_type }
+class { 'openstack::mirantis_repos': stage => 'openstack-custom-repo', type=>$mirror_type }
 
 
 node /fuel-0[12]/ {
