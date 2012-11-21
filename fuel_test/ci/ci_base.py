@@ -7,7 +7,7 @@ from devops.model import Node, Disk, Interface, Environment
 from devops.helpers import tcp_ping, wait, ssh
 from fuel_test.helpers import  write_config, sign_all_node_certificates, change_host_name, request_cerificate, setup_puppet_client, setup_puppet_master, add_nmap, switch_off_ip_tables, add_to_hosts
 from fuel_test.node_roles import NodeRoles, Nodes
-from fuel_test.settings import BASE_IMAGE
+from fuel_test.settings import BASE_IMAGE, EMPTY_SNAPSHOT
 from fuel_test.root import root
 from fuel_test.helpers import load
 
@@ -150,8 +150,8 @@ class CiBase(object):
         sign_all_node_certificates(master_remote)
         sleep(5)
         for node in environment.nodes:
-            logging.info("Creating snapshot 'empty'")
-            node.save_snapshot('empty')
+            logging.info("Creating snapshot %s" % EMPTY_SNAPSHOT)
+            node.save_snapshot(EMPTY_SNAPSHOT)
             logging.info("Test node is ready at %s" % node.ip_address)
 
     def destroy_environment(self):

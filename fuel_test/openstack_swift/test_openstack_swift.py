@@ -2,6 +2,7 @@ from devops.helpers import ssh
 import unittest
 from fuel_test.helpers import execute
 from fuel_test.openstack_swift.openstack_swift_test_case import OpenStackSwiftTestCase
+from fuel_test.settings import OPENSTACK_SNAPSHOT
 
 class OpenStackSwiftCase(OpenStackSwiftTestCase):
     def test_deploy_open_stack_swift(self):
@@ -24,7 +25,7 @@ class OpenStackSwiftCase(OpenStackSwiftTestCase):
             remote = ssh(node.ip_address, username='root', password='r00tme')
             results.append(execute(remote.sudo.ssh, 'puppet agent --test'))
         for node in self.environment.nodes:
-            node.save_snapshot('openstack', force=True)
+            node.save_snapshot(OPENSTACK_SNAPSHOT, force=True)
 
 if __name__ == '__main__':
     unittest.main()

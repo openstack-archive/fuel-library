@@ -6,7 +6,7 @@ import os
 from fuel_test.ci.ci_base import CiBase
 from fuel_test.helpers import sign_all_node_certificates, write_static_ip, execute
 from fuel_test.node_roles import NodeRoles
-from fuel_test.settings import COBBLER_CONTROLLERS, COBBLER_COMPUTES
+from fuel_test.settings import COBBLER_CONTROLLERS, COBBLER_COMPUTES, EMPTY_SNAPSHOT
 
 class CiCobbler(CiBase):
     def node_roles(self):
@@ -82,6 +82,6 @@ class CiCobbler(CiBase):
         sign_all_node_certificates(master_remote)
         sleep(5)
         for node in self.environment.nodes:
-            logging.info("Creating snapshot 'empty'")
-            node.save_snapshot('empty')
+            logging.info("Creating snapshot %s" % EMPTY_SNAPSHOT)
+            node.save_snapshot(EMPTY_SNAPSHOT)
             logging.info("Test node is ready at %s" % node.ip_address)
