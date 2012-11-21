@@ -23,6 +23,7 @@ class OpenStackTestCase(BaseTestCase):
             floating_range="'%s'" % self.ci().get_floating_network(),
             fixed_range="'%s'" % self.ci().get_fixed_network(),
             master_hostname="'%s'" % controller1.name,
+            mirror_type='internal',
             controller_public_addresses="{ '%s' => '%s', '%s' => '%s' }"
             % (
                 controller1.name, controller1.ip_address_by_network['public'],
