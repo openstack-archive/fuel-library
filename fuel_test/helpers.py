@@ -4,7 +4,7 @@ from time import sleep
 from devops.helpers import ssh, os
 import keystoneclient.v2_0
 import re
-from fuel_test.settings import OS_FAMILY, PUPPET_CLIENT_PACKAGE, PUPPET_VERSION, PUPPET_MASTER_SERVICE, ADMIN_USERNAME, ADMIN_PASSWORD, ADMIN_TENANT_FOLSOM, ADMIN_TENANT_ESSEX, CIRROS_IMAGE
+from fuel_test.settings import OS_FAMILY, PUPPET_CLIENT_PACKAGE, PUPPET_VERSION, PUPPET_MASTER_SERVICE, ADMIN_USERNAME, ADMIN_PASSWORD, ADMIN_TENANT_FOLSOM, ADMIN_TENANT_ESSEX, CIRROS_IMAGE, OPENSTACK_SNAPSHOT
 from root import root
 import glanceclient.client
 
@@ -386,7 +386,7 @@ def add_to_hosts(remote, ip, short, long):
     remote.sudo.ssh.execute('echo %s %s %s >> /etc/hosts' % (ip, long, short))
 
 
-def safety_revert_nodes(nodes, snapsot_name='openstack'):
+def safety_revert_nodes(nodes, snapsot_name=OPENSTACK_SNAPSHOT):
     for node in nodes:
         try:
             node.stop()

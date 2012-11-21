@@ -4,7 +4,7 @@ from abc import abstractproperty
 from devops.helpers import ssh
 import re
 from fuel_test.ci.ci_base import CiBase
-from fuel_test.settings import ERROR_PREFIX, WARNING_PREFIX
+from fuel_test.settings import ERROR_PREFIX, WARNING_PREFIX, EMPTY_SNAPSHOT
 from helpers import load, execute, write_config, sync_time, safety_revert_nodes, upload_recipes, upload_keys
 
 class BaseTestCase(unittest.TestCase):
@@ -27,7 +27,7 @@ class BaseTestCase(unittest.TestCase):
         upload_keys(self.master_remote)
 
     def revert_snapshots(self):
-        safety_revert_nodes(self.environment.nodes, 'empty')
+        safety_revert_nodes(self.environment.nodes, EMPTY_SNAPSHOT)
         for node in self.environment.nodes:
             remote = ssh(node.ip_address, username='root', password='r00tme')
             sync_time(remote.sudo.ssh)

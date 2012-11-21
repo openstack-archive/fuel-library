@@ -61,3 +61,6 @@ CIRROS_IMAGE ='http://srv08-srt.srt.mirantis.net/cirros-0.3.0-x86_64-disk.img'
 COBBLER_CONTROLLERS = int(os.environ.get('COBBLER_CONTROLLERS', 2))
 COBBLER_COMPUTES = int(os.environ.get('COBBLER_COMPUTES', 2))
 
+
+EMPTY_SNAPSHOT = os.environ.get('EMPTY_SNAPSHOT', 'empty')
+OPENSTACK_SNAPSHOT = os.environ.get('OPENSTACK_SNAPSHOT', 'openstack')
