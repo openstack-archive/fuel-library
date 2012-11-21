@@ -1,4 +1,7 @@
-class openstack::mirantis_repos ( $type = "internal" ) {
+class openstack::mirantis_repos (
+  # DO NOT change this value to 'internal'. all our customers are relying on external repositories
+  $type        = 'external'
+) {
     case $::osfamily {
       'Debian': {
         class { 'apt':
@@ -16,12 +19,10 @@ class openstack::mirantis_repos ( $type = "internal" ) {
 #        }
       }
       'RedHat': {
-        $repo_baseurl='http://download.mirantis.com/epel-fuel'
-        #added internal network mirror. Change if you need to use outside of mirantis
+        #added internal/external network mirror
         $mirrorlist="http://download.mirantis.com/epel-fuel/mirror.$type.list"
         class { 'openstack::repo::yum':
           repo_name  => 'openstack-epel-fuel',
-          #      location   => $repo_baseurl,
           mirrorlist => $mirrorlist,
           key_source => "https://fedoraproject.org/static/0608B895.txt\n  http://mirror.centos.org/centos/RPM-GPG-KEY-CentOS-6\n http://download.mirantis.com/epel-fuel/rabbit.key",
           stage      => 'openstack-custom-repo',
