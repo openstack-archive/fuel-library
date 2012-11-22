@@ -6,7 +6,7 @@ class swift::proxy::swauth(
 ) {
 
   package { 'python-swauth':
-    ensure  => $package_ensure,
+    ensure  => $swift::proxy::package_ensure,
     before  => Package['swift-proxy'],
   }
 

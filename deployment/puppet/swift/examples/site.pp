@@ -76,6 +76,10 @@ $swift_shared_secret  = 'changeme'
 $swift_local_net_ip   = $ipaddress_eth0
 
 $swift_proxy_address    = '192.168.1.16'
+$internal_address   = $swift_proxy_address
+$admin_address = $swift_proxy_address
+$public_address = $swift_proxy_address
+
 $controller_node_public = '192.168.122.100' 
 
 $verbose                = true
@@ -122,7 +126,9 @@ node keystone {
   # configure the keystone service user and endpoint
   class { 'swift::keystone::auth':
     password => $swift_user_password,
-    address  => $swift_proxy_address,
+    internal_address => $internal_address,
+    admin_address => $admin_address,
+    public_address => $public_address,
   }
 }
 
