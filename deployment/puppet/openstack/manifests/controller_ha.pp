@@ -187,7 +187,7 @@ class openstack::controller_ha (
       'RedHat': {
         exec { 'create-keepalived-rules':
           command => "iptables -I INPUT -m pkttype --pkt-type multicast -d 224.0.0.18 -j ACCEPT && /etc/init.d/iptables save ", 
-          unless => "iptables-save  | grep '\-A INPUT -d 224.0.0.18/32 -m pkttype --pkt-type multicast -j ACCEPT' -q",
+          unless => "iptables-save  | grep '\\-A INPUT -d 224.0.0.18/32 -m pkttype --pkt-type multicast -j ACCEPT' -q",
           path => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
           before => Service['keepalived'],
           require => Class['firewall']
@@ -196,7 +196,7 @@ class openstack::controller_ha (
       'Debian': {
         exec { 'create-keepalived-rules':
           command => "iptables -I INPUT -m pkttype --pkt-type multicast -d 224.0.0.18 -j ACCEPT && iptables-save ", 
-          unless => "iptables-save  | grep '\-A INPUT -d 224.0.0.18/32 -m pkttype --pkt-type multicast -j ACCEPT' -q",
+          unless => "iptables-save  | grep '\\-A INPUT -d 224.0.0.18/32 -m pkttype --pkt-type multicast -j ACCEPT' -q",
           path => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
           before => Service['keepalived'],
           require => Class['firewall']
