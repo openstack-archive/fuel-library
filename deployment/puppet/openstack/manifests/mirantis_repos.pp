@@ -9,11 +9,11 @@ class openstack::mirantis_repos (
     'Debian': {
       if $type == 'external' {
         apt::source  { 'cloud-archive':
-          location => 'http://172.18.67.168/ubuntu-cloud.archive.canonical.com/ubuntu',
+          location => 'http://ubuntu-cloud.archive.canonical.com/ubuntu',
           release => 'precise-updates/folsom',
           repos => 'main',
           key => "5EDB1B62EC4926EA",
-          key_source => "pgp.mit.edu",
+          key_server => "pgp.mit.edu",
           include_src => false,
         }
       }
@@ -24,7 +24,7 @@ class openstack::mirantis_repos (
           release => 'precise-updates/folsom',
           repos => 'main',
           key => "5EDB1B62EC4926EA",
-          key_source => "pgp.mit.edu",
+          key_server => "pgp.mit.edu",
           include_src => false,
         }
 #        apt::source  { 'mirantis-internal-test-repo':
