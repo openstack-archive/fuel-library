@@ -421,7 +421,7 @@ class {'nova::quota':
 
     class { 'nova::volume::iscsi':
       volume_group     => $nova_volume,
-      iscsi_ip_address => $internal_address,
+      iscsi_ip_address => $api_bind_address,
       physical_volume  => $nv_physical_volume,
     }   
   }
