@@ -286,6 +286,7 @@ class openstack::controller (
     rabbit_user             => $rabbit_user,
     rabbit_password         => $rabbit_password,
     rabbit_nodes       => $rabbit_nodes,
+    rabbit_cluster => $rabbit_cluster,
     # Glance
     glance_api_servers      => $glance_api_servers,
     # General
