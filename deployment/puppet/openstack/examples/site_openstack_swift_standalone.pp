@@ -219,7 +219,7 @@ node /fuel-0[89]/ inherits swift_base {
     ],
     account_autocreate => true,
     # TODO where is the  ringbuilder class?
-    require            => Class['swift::ringbuilder'],
+    #require            => Class['swift::ringbuilder'],
   }
 
   # configure all of the middlewares
@@ -260,7 +260,6 @@ node /fuel-0[89]/ inherits swift_base {
   }
 
   if $::hostname == $swift_master {
-   Class['swift::ringbuilder'] -> Class['swift::proxy']
   # collect all of the resources that are needed
   # to balance the ring
   Ring_object_device <<| |>>
@@ -275,6 +274,8 @@ node /fuel-0[89]/ inherits swift_base {
     min_part_hours => 1,
     require        => Class['swift'],
   }
+  Class['swift::ringbuilder'] -> Class['swift::proxy']
+
   # sets up an rsync db that can be used to sync the ring DB
   class { 'swift::ringserver':
     local_net_ip => $swift_local_net_ip,
