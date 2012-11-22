@@ -18,12 +18,10 @@ class OpenStackSwiftCase(OpenStackSwiftTestCase):
         remote = ssh(self.nodes.proxies[0].ip_address, username='root',
             password='r00tme')
         results.append(execute(remote.sudo.ssh, 'puppet agent --test'))
-        for node in self.nodes.storages:
-            remote = ssh(node.ip_address, username='root', password='r00tme')
-            results.append(execute(remote.sudo.ssh, 'puppet agent --test'))
-        for node in self.nodes.proxies:
-            remote = ssh(node.ip_address, username='root', password='r00tme')
-            results.append(execute(remote.sudo.ssh, 'puppet agent --test'))
+        self.validate(self.nodes.storages,
+                                'puppet agent --test')
+        self.validate(self.nodes.proxies,
+                                'puppet agent --test')
         for node in self.environment.nodes:
             node.save_snapshot(OPENSTACK_SNAPSHOT, force=True)
 
