@@ -7,28 +7,45 @@ class openstack::mirantis_repos (
 ) {
   case $::osfamily {
     'Debian': {
-  apt::source { 'cloud-archive':
-    location => 'http://172.18.67.168/ubuntu-cloud.archive.canonical.com/ubuntu',
-    release => 'precise-updates/folsom',
-    repos => 'main',
-    key => "5EDB1B62EC4926EA",
-    key_source => "pgp.mit.edu",
-    include_src => false,
-  }
-  class { 'apt::update': stage => 'openstack-custom-repo' }
-#     Currently we use only standard Debian repos, installed with OS
-#     There is nothing in our custom repo for Debian.
-#        class { 'apt':
-#          stage => 'openstack-custom-repo'
-#        }->
-#        class { 'openstack::repo::apt':
+      if $type == 'external' {
+        apt::source  { 'cloud-archive':
+          location => 'http://ubuntu-cloud.archive.canonical.com/ubuntu',
+          release => 'precise-updates/folsom',
+          repos => 'main',
+          key => "5EDB1B62EC4926EA",
+          key_server => "pgp.mit.edu",
+          include_src => false,
+        }
+      }
+      # Below we set our internal repos for testing purposes. Some of them may match with external ones.
+      if $type == 'internal' {
+        apt::source  { 'cloud-archive':
+          location => 'http://172.18.67.168/ubuntu-cloud.archive.canonical.com/ubuntu',
+          release => 'precise-updates/folsom',
+          repos => 'main',
+          key => "5EDB1B62EC4926EA",
+          key_server => "pgp.mit.edu",
+          include_src => false,
+        }
+#        apt::source  { 'mirantis-internal-test-repo':
 #          key => '420851BC',
 #          location => 'http://172.18.66.213/deb',
 #          key_source => 'http://172.18.66.213/gpg.pub',
 #          origin => '172.18.66.213',
-#          stage => 'openstack-custom-repo',
 #        }
     }
+  
+  class { 'apt::update': stage => 'openstack-custom-repo' }
+  
+#     In no one custom Debian repository is defined, it is necessary to force run apt-get update 
+#     Please uncomment the following block to order puppet to force apt-get update
+################ Start of forced apt-get update block ##############
+#        class { 'apt':
+#          stage => 'openstack-custom-repo',
+#          always_apt_update => true,
+#        }
+################ End of forced apt-get update block ###############
+  }
     'RedHat': {
       #added internal/external network mirror
       $mirrorlist="http://download.mirantis.com/epel-fuel-folsom/mirror.${type}.list"
