@@ -18,7 +18,7 @@ Overview
 
 OpenStack services are interconnected by RESTful HTTP-based APIs and AMQP-based RPC messages. So, redundancy for stateless OpenStack API services is implemented through the combination of VIP management (keepalived) and load balancing (HAProxy). Stateful OpenStack components, such as state database and messaging server, rely on their respective active-active modes for high availability -- RabbitMQ uses built-in clustering capabilities, while the database uses MySQL/Galera replication.
 
-.. image:: https://docs.google.com/drawings/pub?id=1PzRBUaZEPMG25488mlb42fRdlFS3BygPwbAGBHudnTM&w=661&h=491
+.. image:: https://docs.google.com/drawings/pub?id=1PzRBUaZEPMG25488mlb42fRdlFS3BygPwbAGBHudnTM&w=750&h=491
 
 Logical Setup 
 -------------
@@ -39,7 +39,7 @@ Let's take a closer look on how OpenStack deployment will look like and what wil
     * MySQL high availability is achieved through Galera active/active multi-master deployment
 
 
-.. image:: https://docs.google.com/drawings/pub?id=1aftE8Yes7CdVSZgZD1A82T_2GqL2SMImtRYU914IMyQ&w=1125&h=869
+.. image:: https://docs.google.com/drawings/pub?id=1aftE8Yes7CdVSZgZD1A82T_2GqL2SMImtRYU914IMyQ&w=966&h=860
 
 
 Compute Nodes
@@ -48,7 +48,7 @@ Compute Nodes
 OpenStack compute need to "talk" to controller nodes and reach out to essential services such as RabbitMQ and MySQL. They use the same approach that provides redundancy to the end-users of Horizon and REST APIs, reaching out to controller nodes using VIP and going through HAProxy.
 
 
-.. image:: https://docs.google.com/drawings/pub?id=16gsjc81Ptb5SL090XYAN8Kunrxfg6lScNCo3aReqdJI&w=1062&h=815
+.. image:: https://docs.google.com/drawings/pub?id=16gsjc81Ptb5SL090XYAN8Kunrxfg6lScNCo3aReqdJI&w=873&h=801
 
 
 Storage Nodes
@@ -57,7 +57,7 @@ Storage Nodes
 This reference architecture requires shared storage to be present in an OpenStack cluster. The shared storage will act as a backend for Glance, so that multiple glances instances running on controller nodes can store images on and retrieve images from it. Our recommendation is to deploy Swift and use it not only for storing VM images, but also for any other objects.
 
 
-.. image:: https://docs.google.com/drawings/pub?id=1Xd70yy7h5Jq2oBJ12fjnPWP8eNsWilC-ES1ZVTFo0m8&w=1056&h=804
+.. image:: https://docs.google.com/drawings/pub?id=1Xd70yy7h5Jq2oBJ12fjnPWP8eNsWilC-ES1ZVTFo0m8&w=777&h=778
 
 
 
@@ -72,7 +72,7 @@ The absolute minimum requirement for a highly-available OpenStack deployment is 
 * 1 compute node
 
 
-.. image:: https://docs.google.com/drawings/pub?id=19Dk1qD5V50-N0KX4kdG_0EhGUBP7D_kLi2dU6caL9AM&w=936&h=544
+.. image:: https://docs.google.com/drawings/pub?id=19Dk1qD5V50-N0KX4kdG_0EhGUBP7D_kLi2dU6caL9AM&w=767&h=413
 
 
 If you want to run storage separately from controllers, you can do that as well raising the bar to 7 nodes:
@@ -82,7 +82,7 @@ If you want to run storage separately from controllers, you can do that as well 
 * 1 compute node
 
 
-.. image:: https://docs.google.com/drawings/pub?id=1xmGUrk2U-YWmtoS77xqG0tzO3A47p6cI3mMbzLKG8tY&w=885&h=690
+.. image:: https://docs.google.com/drawings/pub?id=1xmGUrk2U-YWmtoS77xqG0tzO3A47p6cI3mMbzLKG8tY&w=769&h=594
 
 
 Of course, you have freedom in choosing how to deploy OpenStack based on the amount of available hardware you have, and based on your goals (whether you want a compute-oriented, or storage-oriented cluster).
@@ -113,5 +113,5 @@ The current architecture assumes presence of 3 NIC cards in hardware, but can be
 In multi-host networking mode, you can choose between FlatDHCPManager and VlanManager network managers in OpenStack.  Please see the following figure which shows all relevant nodes and networks.
 
 
-.. image:: https://docs.google.com/drawings/pub?id=11KtrvPxqK3ilkAfKPSVN5KzBjnSPIJw-jRDc9fiYhxw&w=1128&h=764
+.. image:: https://docs.google.com/drawings/pub?id=11KtrvPxqK3ilkAfKPSVN5KzBjnSPIJw-jRDc9fiYhxw&w=820&h=1000
 
