@@ -61,8 +61,8 @@ class testkeystone {
     # we are binding keystone on all interfaces
     # the end user may want to be more restrictive
     bind_host    => '0.0.0.0',
-    log_verbose  => $verbose,
-    log_debug    => $verbose,
+    verbose  => $verbose,
+    debug    => $verbose,
     catalog_type => 'sql',
   }
 
