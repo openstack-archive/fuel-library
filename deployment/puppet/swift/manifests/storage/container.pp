@@ -5,9 +5,9 @@ class swift::storage::container(
     package_ensure => $package_ensure
   }
 
-  @@ring_container_device { "${swift_local_net_ip}:${port}":
+  @@ring_container_device { "${swift_local_net_ip}:${swift::storage::all::container_port}":
     zone => $swift_zone,
-    mountpoints => $swift_mountpoints,
+    mountpoints => $::swift_mountpoints,
   }
 
 }
