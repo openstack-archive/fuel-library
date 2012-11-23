@@ -21,7 +21,7 @@ class MyTestCase(OpenStackTestCase):
                               -3]
         public_virtual_ip = self.environment.network['public'].ip_addresses[-3]
         self.write_site_pp_manifest(
-            root('fuel', 'deployment', 'puppet', 'openstack', 'examples',
+            root('deployment', 'puppet', 'openstack', 'examples',
                 'site.pp'),
             internal_virtual_ip="'%s'" % internal_virtual_ip,
             public_virtual_ip="'%s'" % public_virtual_ip,
@@ -52,7 +52,7 @@ class MyTestCase(OpenStackTestCase):
 
     def test_deploy_mysql_with_galera(self):
         self.write_site_pp_manifest(
-            root('fuel', 'deployment', 'puppet', 'mysql', 'examples',
+            root('deployment', 'puppet', 'mysql', 'examples',
                 'site.pp'),
             master_hostname="'%s'" % self.nodes.controllers[0].name,
             galera_master_ip="'%s'" %
@@ -78,7 +78,7 @@ class MyTestCase(OpenStackTestCase):
 
     def test_deploy_nova_rabbitmq(self):
         self.write_site_pp_manifest(
-            root('fuel', 'deployment', 'puppet', 'nova', 'examples',
+            root('deployment', 'puppet', 'nova', 'examples',
                 'nova_rabbitmq_site.pp'),
             cluster='true',
             cluster_nodes=[

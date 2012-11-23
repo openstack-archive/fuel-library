@@ -96,7 +96,7 @@ class CiBase(object):
 
     def setup_agent_nodes(self, nodes):
         agent_config = load(
-            root('fuel', 'fuel_test', 'config', 'puppet.agent.config'))
+            root('fuel_test', 'config', 'puppet.agent.config'))
         for node in nodes:
             if node.name != 'master':
                 remote = ssh(
