@@ -156,19 +156,19 @@ class glance::api(
   }
 
   Glance_api_config<| |> -> Service['glance-api']
+  if $::osfamily == "Debian"
+  {
   package{ 'glance-api':
     name => $::glance::params::api_package_name,
     ensure => $package_ensure,
    }
    Glance_api_config<| |> -> Package['glance-api']
-
+  }
   service { 'glance-api':
     name       => $::glance::params::api_service_name,
     ensure     => $service_ensure,
     enable     => $enabled,
     hasstatus  => true,
     hasrestart => true,
-    require    => [Concat['/etc/glance/glance-api.conf'], Package['glance-api']],
-    subscribe  => [Concat['/etc/glance/glance-api.conf']],
   }
 }
