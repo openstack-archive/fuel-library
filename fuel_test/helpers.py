@@ -156,7 +156,7 @@ def tempest_build_config_essex(host, image_ref, image_ref_alt):
 
 
 def tempest_write_config(config):
-    with open(root('tempest.conf'), 'w') as f:
+    with open(root('..', 'tempest.conf'), 'w') as f:
         f.write(config)
 
 
