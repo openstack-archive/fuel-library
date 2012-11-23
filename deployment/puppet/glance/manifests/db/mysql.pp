@@ -13,6 +13,7 @@ class glance::db::mysql(
 ) {
 
   Class['mysql::server']     -> Class['glance::db::mysql']
+  Class['glance::db::mysql'] -> Package['glance-registry']
   Class['glance::db::mysql'] -> Exec<| title == 'glance-manage db_sync' |>
   Database[$dbname]          ~> Exec<| title == 'glance-manage db_sync' |>
 
