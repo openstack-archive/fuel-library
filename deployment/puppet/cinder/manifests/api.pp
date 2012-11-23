@@ -27,8 +27,6 @@ class cinder::api (
   Cinder_config<||> ~> Service['cinder-api']
   Cinder_config<||> ~> Exec['cinder-manage db_sync']
   Cinder_api_paste_ini<||> ~> Service['cinder-api']
-  Package[$api_package] -> Cinder_config<||>
-  Package[$api_package] -> Cinder_api_paste_ini<||>
 
   if $enabled {
     $ensure = 'running'
@@ -39,6 +37,13 @@ class cinder::api (
     "Debian":  {
       File[$::cinder::params::cinder_conf] -> Cinder_config<||>
       Cinder_config <| |> -> Package['cinder-api']
+      File[$::cinder::params::cinder_api_paste_ini] -> Cinder_api_paste_ini<||>
+      Cinder_api_paste_ini <| |> -> Package['cinder-api']
+    }
+    }
+    "RedHat": {
+  Package[$api_package] -> Cinder_config<||>
+  Package[$api_package] -> Cinder_api_paste_ini<||>
     }
   }
  
