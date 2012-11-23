@@ -11,6 +11,10 @@ class quantum::db::mysql (
 
   Class['mysql::server'] -> Class['quantum::db::mysql']
 
+  if $::osfamily=="Debian"{
+    Class['quantum::db::mysql']->Package['quantum-server']
+  }
+
   require 'mysql::python'
 
   mysql::db { $dbname:
