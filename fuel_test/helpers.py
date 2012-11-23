@@ -78,7 +78,7 @@ def tempest_build_config_folsom(host, image_ref, image_ref_alt,
                                 path_to_private_key,
                                 compute_db_uri='mysql://user:pass@localhost/nova'):
     sample = load(
-        root('fuel', 'fuel_test', 'config', 'tempest.conf.folsom.sample'))
+        root('fuel_test', 'config', 'tempest.conf.folsom.sample'))
 
     config = sample % {
         'IDENTITY_USE_SSL': 'false',
@@ -137,7 +137,7 @@ def tempest_build_config_folsom(host, image_ref, image_ref_alt,
 
 def tempest_build_config_essex(host, image_ref, image_ref_alt):
     sample = load(
-        root('fuel', 'fuel_test', 'config', 'tempest.conf.essex.sample'))
+        root('fuel_test', 'config', 'tempest.conf.essex.sample'))
     config = sample % {
         'HOST': host,
         'USERNAME': 'tempest1',
@@ -352,14 +352,14 @@ def setup_puppet_master(remote):
 
 
 def upload_recipes(remote, remote_dir="/etc/puppet/modules/"):
-    recipes_dir = root('fuel', 'deployment', 'puppet')
+    recipes_dir = root('deployment', 'puppet')
     for dir in os.listdir(recipes_dir):
         recipe_dir = os.path.join(recipes_dir, dir)
         remote.mkdir(remote_dir)
         remote.upload(recipe_dir, remote_dir)
 
 def upload_keys(remote, remote_dir="/var/lib/puppet/"):
-    ssh_keys_dir = root('fuel', 'fuel_test', 'config', 'ssh_keys')
+    ssh_keys_dir = root('fuel_test', 'config', 'ssh_keys')
     remote.upload(ssh_keys_dir, remote_dir)
 
 
@@ -410,7 +410,7 @@ def make_shared_storage(remote, host, client_nodes, access_network):
 
 def write_static_ip(remote, ip, net_mask, gateway, interface='eth0'):
     path = '/etc/sysconfig/network-scripts/ifcfg-%s' % interface
-    text = load(root('fuel', 'fuel_test', 'config', 'ifcfg-eth0.config')) % {
+    text = load(root('fuel_test', 'config', 'ifcfg-eth0.config')) % {
         'ip': str(ip), 'net_mask': str(net_mask),
         'gateway': str(gateway), 'interface': str(interface)}
     write_config(remote, path, text)
