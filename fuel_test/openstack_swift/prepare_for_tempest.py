@@ -9,8 +9,10 @@ class PrepareOpenStackSwiftForTempest(OpenStackSwiftTestCase):
     def setUp(self):
         self.environment = self.ci().get_environment()
 
-    def prepare_for_tempest_if_swift(self):
+    def revert(self):
         safety_revert_nodes(self.environment.nodes, 'openstack')
+
+    def prepare_for_tempest_if_swift(self):
         auth_host = self.ci().get_public_virtual_ip()
         image_ref, image_ref_alt = make_tempest_objects(
             auth_host,
@@ -21,7 +23,6 @@ class PrepareOpenStackSwiftForTempest(OpenStackSwiftTestCase):
         tempest_write_config(tempest_build_config_essex(auth_host, image_ref, image_ref_alt))
 
     def prepare_for_tempest_if_swift_folsom(self):
-        safety_revert_nodes(self.environment.nodes, 'openstack')
         auth_host = self.ci().get_public_virtual_ip()
         image_ref, image_ref_alt = make_tempest_objects(
             auth_host,
