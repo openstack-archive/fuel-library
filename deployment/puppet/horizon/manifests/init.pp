@@ -38,10 +38,6 @@ class horizon(
 
   include horizon::params
 
-  #if $cache_server_ip =~ /^127\.0\.0\.1/ {
-  Class['memcached'] -> Class['horizon']
-  #}
-
   package { ["$::horizon::params::http_service", "$::horizon::params::http_modwsgi"]:
     ensure => present,
   }
@@ -106,45 +102,25 @@ class horizon(
     notify => [Service["$::horizon::params::http_service"]],
     require =>[Package["$::horizon::params::package_name"]] 
   }
-    }
-    'Debian': {
-      file {'/etc/apache2':
-        ensure => directory,
-        require => []
-      }
-      file { $::horizon::params::httpd_listen_config_file: 
-      content => template('horizon/ports.conf.erb'), 
-      require => File['/etc/apache2'],
-      before => Package[$::horizon::params::package_name],
-      }
-      exec { 'a2enmod wsgi':
-        command => 'a2enmod wsgi',
-        path => ['/usr/bin','/usr/sbin','/bin/','/sbin'],
-        require => Package["$::horizon::params::http_service", "$::horizon::params::http_modwsgi"],
-        before  => Package["$::horizon::params::package_name"],
-      }
-    }
-  }
-
-  # ensure there is a HTTP redirect from / to /dashboard
-  if $::osfamily == 'RedHat'
- {
-  file_line { 'horizon_redirect_rule':
-   path => $::horizon::params::config_file,
-   line => 'RedirectMatch permanent ^/$ /dashboard/',
-   require => Package["$::horizon::params::package_name"],
-   notify => Service["$::horizon::params::http_service"]
-  }
  }
-  # ensure https only listens on the management address, not on all interfaces
-  file_line { 'httpd_listen_on_internal_network_only':
-    path => $::horizon::params::httpd_listen_config_file,
-    match => '^Listen (.*)$',
-    line => "Listen ${bind_address}:80",
-    before => Service["$::horizon::params::http_service"],
-    require => Package["$::horizon::params::package_name"],
-    notify => Service["$::horizon::params::http_service"]
-  }
+ 'Debian': {
+   file {'/etc/apache2':
+     ensure => directory,
+     require => []
+   }
+   file { $::horizon::params::httpd_listen_config_file: 
+   content => template('horizon/ports.conf.erb'), 
+   require => File['/etc/apache2'],
+   before => Package[$::horizon::params::package_name],
+   }
+   exec { 'a2enmod wsgi':
+     command => 'a2enmod wsgi',
+     path => ['/usr/bin','/usr/sbin','/bin/','/sbin'],
+     require => Package["$::horizon::params::http_service", "$::horizon::params::http_modwsgi"],
+     before  => Package["$::horizon::params::package_name"],
+   }
+ }
+}
     service { '$::horizon::params::http_service':
       name      => $::horizon::params::http_service,
       ensure    => 'running',
