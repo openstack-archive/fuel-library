@@ -87,6 +87,8 @@ node /fuel-0[12]/ {
       quantum                 => $quantum,
       quantum_user_password   => $quantum_user_password,
       quantum_db_password     => $quantum_db_password,
+      quantum_db_user         => $quantum_db_user,
+      quantum_db_dbname       => $quantum_db_dbname,
       cinder                  => $cinder,
       manage_volumes          => $manage_volumes,
       nv_physical_volume      => $nv_physical_volume,
