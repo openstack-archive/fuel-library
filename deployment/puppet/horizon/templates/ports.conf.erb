@@ -1,0 +1,12 @@
+NameVirtualHost *:80
+Listen <%= bind_address %>:80 
+
+<IfModule mod_ssl.c>
+    Listen <%= bind_address %>:443
+</IfModule>
+
+<IfModule mod_gnutls.c>
+    Listen <%= bind_address %>:443
+</IfModule>
+
+
