@@ -3,6 +3,8 @@ class quantum::agents::l3 (
   $package_ensure               = 'present',
   $enabled                      = true,
   $debug                        = 'False',
+  $fixed_range                  = '10.0.1.0/24',
+  $floating_range               = '192.168.10.0/24',
   $interface_driver             = 'quantum.agent.linux.interface.OVSInterfaceDriver',
   $external_network_bridge      = 'br-ex',
   $auth_url                     = 'http://localhost:5000/v2.0',
@@ -48,7 +50,7 @@ class quantum::agents::l3 (
     'DEFAULT/admin_password':                 value => $auth_password;
     'DEFAULT/use_namespaces':                 value => $use_namespaces;
     'DEFAULT/router_id':                      value => $router_id;
-    'DEFAULT/gateway_external_net_id':        value => $gateway_external_net_id;
+    # 'DEFAULT/gateway_external_net_id':        value => $gateway_external_net_id;
     'DEFAULT/metadata_ip':                    value => $metadata_ip;
     'DEFAULT/external_network_bridge':        value => $external_network_bridge;
     'DEFAULT/root_helper':                    value => $root_helper;
@@ -66,9 +68,30 @@ class quantum::agents::l3 (
   # https://bugs.launchpad.net/quantum/+bug/1069966
   exec { 'patch-iptables-manager':
     command => "sed -i '272 s|/sbin/||' ${iptables_manager}",
-    unless  => "sed -n '272p' ${iptables_manager} | grep -q '/sbin/'",
+    onlyif  => "sed -n '272p' ${iptables_manager} | grep -q '/sbin/'",
     path    => '/bin/',
     require => Package[$l3_agent_package],
+  }
+
+  # create external/internal networks
+  file { '/tmp/quantum-networking.sh':
+    mode    => 740,
+    owner   => root,
+    content => template('quantum/quantum-networking.sh.erb'),
+    require => Service['quantum-server'],
+    notify  => Exec['create-networks'],
+  }
+
+  package { 'whatmask':
+    ensure => $package_ensure,
+    before => Exec['create-networks']
+  }
+
+  exec { 'create-networks':
+    command     => '/tmp/quantum-networking.sh',
+    # path        => '/usr/bin',
+    refreshonly => true,
+    logoutput   => true,
   }
 
   service { 'quantum-l3':

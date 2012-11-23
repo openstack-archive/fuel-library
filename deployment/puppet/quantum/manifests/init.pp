@@ -1,3 +1,4 @@
+#
 class quantum (
   $rabbit_password,
   $enabled                = true,
@@ -57,4 +58,10 @@ class quantum (
     'DEFAULT/rabbit_password':        value => $rabbit_password;
     'DEFAULT/rabbit_virtual_host':    value => $rabbit_virtual_host;
   }
+
+  # SELINUX=permissive
+  if !defined(Class['selinux']) and ($::osfamily == 'RedHat') {
+    class { 'selinux' : }
+  }
+
 }
