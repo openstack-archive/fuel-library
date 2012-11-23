@@ -272,7 +272,7 @@ class openstack::compute (
     class { 'quantum':
       verbose         => $verbose,
       debug           => $verbose,
-      rabbit_host     => $rabbit_host,
+      rabbit_host     => $rabbit_nodes ? { false => $rabbit_host, default => $rabbit_nodes },
       rabbit_user     => $rabbit_user,
       rabbit_password => $rabbit_password,
       #sql_connection  => $quantum_sql_connection,

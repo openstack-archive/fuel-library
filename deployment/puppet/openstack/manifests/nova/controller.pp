@@ -201,6 +201,7 @@ if ($rabbit_nodes)
     class { 'quantum':
       rabbit_user     => $rabbit_user,
       rabbit_password => $rabbit_password,
+      rabbit_host     => $rabbit_nodes,
       #sql_connection  => $quantum_sql_connection,
       verbose         => $verbose,
       debug           => $verbose,
