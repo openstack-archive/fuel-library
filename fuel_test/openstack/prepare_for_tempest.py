@@ -10,8 +10,10 @@ class PrepareOpenStackForTempest(OpenStackTestCase):
     def setUp(self):
         self.environment = self.ci().get_environment()
 
-    def prepare_for_tempest(self):
+    def revert(self):
         safety_revert_nodes(self.environment.nodes, 'openstack')
+
+    def prepare_for_tempest(self):
         auth_host = self.ci().get_public_virtual_ip()
         remote = ssh(
             self.ci().nodes().controllers[0].ip_address, username='root',
@@ -31,7 +33,6 @@ class PrepareOpenStackForTempest(OpenStackTestCase):
         tempest_write_config(tempest_build_config_essex(auth_host, image_ref, image_ref_alt))
 
     def prepare_for_tempest_folsom(self):
-        safety_revert_nodes(self.environment.nodes, 'openstack')
         auth_host = self.ci().get_public_virtual_ip()
         remote = ssh(
             self.ci().nodes().controllers[0].ip_address, username='root',
