@@ -28,7 +28,13 @@ $rabbit_user             = 'nova'
 $glance_backend         ='file'
 $manage_volumes         = true 
 $nv_physical_volume     = ['/dev/sdz', '/dev/sdy', '/dev/sdx'] 
+
 $quantum                = false
+$quantum_user_password  = 'quantum_pass'
+$quantum_db_password    = 'quantum_pass'
+$quantum_db_user        = 'quantum'
+$quantum_db_dbname      = 'quantum'
+
 $cinder                 = true
 $openstack_version = {
   'keystone'   => latest,
@@ -79,6 +85,8 @@ node /fuel-0[12]/ {
       export_resources        => false,
       glance_backend          => $glance_backend,
       quantum                 => $quantum,
+      quantum_user_password   => $quantum_user_password,
+      quantum_db_password     => $quantum_db_password,
       cinder                  => $cinder,
       manage_volumes          => $manage_volumes,
       nv_physical_volume      => $nv_physical_volume,

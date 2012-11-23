@@ -84,8 +84,9 @@ class openstack::controller_ha (
    $keystone_db_password, $keystone_admin_token, $glance_db_password, $glance_user_password,
    $nova_db_password, $nova_user_password, $rabbit_password, $rabbit_user,
    $rabbit_nodes, $memcached_servers, $export_resources, $glance_backend='file', $swift_proxies=undef,
-   $quantum = false, $cinder = false,
-   $nv_physical_volume = undef,$manage_volumes = false,
+   $quantum = false, $quantum_user_password, $quantum_db_password, $quantum_db_user = 'quantum',
+   $quantum_db_dbname  = 'quantum', $cinder = false,
+   $nv_physical_volume = undef, $manage_volumes = false,
  ) {
 
     $which = $::hostname ? { $master_hostname => 0, default => 1 }
@@ -119,6 +120,7 @@ local0.* -/var/log/haproxy.log'
     haproxy_service { 'nova-api-3': order => 60, port => 8775, virtual_ips => [$public_virtual_ip, $internal_virtual_ip]  }
     haproxy_service { 'nova-api-4': order => 70, port => 8776, virtual_ips => [$public_virtual_ip, $internal_virtual_ip]  }
     haproxy_service { 'glance-api': order => 80, port => 9292, virtual_ips => [$public_virtual_ip, $internal_virtual_ip]  }
+    haproxy_service { 'quantum':    order => 85, port => 9696, virtual_ips => [$public_virtual_ip, $internal_virtual_ip]  }
     haproxy_service { 'glance-reg': order => 90, port => 9191, virtual_ips => [$internal_virtual_ip]  }
     haproxy_service { 'mysqld':     order => 95, port => 3306, virtual_ips => [$internal_virtual_ip]  }
           if $glance_backend == 'swift'
@@ -264,6 +266,8 @@ local0.* -/var/log/haproxy.log'
       glance_backend          => $glance_backend,
       require                 => Service['keepalived'],
       quantum                 => $quantum,
+      quantum_user_password   => $quantum_user_password,
+      quantum_db_password     => $quantum_db_password,
       cinder                  => $cinder,
       manage_volumes          => $manage_volumes,
       nv_physical_volume      => $nv_physical_volume,

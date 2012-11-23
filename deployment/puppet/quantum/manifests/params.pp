@@ -21,6 +21,8 @@ class quantum::params {
 
       $cliff_package      = 'python-cliff'
       $kernel_headers     = "linux-headers-${::kernelrelease}"
+
+      $python_path        = 'python2.7/dist-packages'
     }
     'RedHat': {
       $package_name       = 'openstack-quantum'
@@ -43,6 +45,8 @@ class quantum::params {
 
       $cliff_package      = 'python-cliff'
       $kernel_headers     = "linux-headers-${::kernelrelease}"
+
+      $python_path        = 'python2.6/site-packages'
     }
   }
 }
