@@ -30,7 +30,7 @@ class openstack::firewall (
 
 file {"iptables":
   path     => $operatingsystem ? {
-      /(Debian|Ubuntu)/          => '/etc/iptables/rules.v4',
+      /(Debian|Ubuntu)/          => '/etc/network/rules.v4',
       /(RedHat|CentOS)/ => '/etc/sysconfig/iptables',
     
  },
