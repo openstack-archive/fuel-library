@@ -89,7 +89,7 @@ class horizon(
         before  => Package["$::horizon::params::package_name"],
       }  # ensure there is a HTTP redirect from / to /dashboard
   file_line { 'horizon_redirect_rule':
-    path => $::horizon::params::dashboard_config_file,
+    path => $::horizon::params::config_file,
     line => 'RedirectMatch permanent ^/$ /dashboard/',
     require => Package["$::horizon::params::package_name"],
     notify => Service["$::horizon::params::http_service"]

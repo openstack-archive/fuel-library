@@ -105,24 +105,24 @@ class keystone(
   }
 
   case $::osfamily {
-    'Debian': {
-		  file { '/etc/keystone/keystone.conf':
-		    ensure=>present,
-		    owner=>'keystone',
-		    group=>'keystone',
-		    require=>File['/etc/keystone']
-		  }
-	    User['keystone'] -> File['/etc/keystone'] 
-	    Group['keystone'] -> File['/etc/keystone'] 
-	    Keystone_config<||> -> Package['keystone']
-	    File['/etc/keystone/keystone.conf']->Keystone_config<||>
-    }   
-    'RedHat': {
-	    Package['keystone'] -> User['keystone'] 
-	    Package['keystone'] -> Group['keystone'] 
-	    Package['keystone'] -> File['/etc/keystone'] 
-	    Package['keystone'] -> Keystone_config<||>
-    }   
+    'Debian' : {
+      file { '/etc/keystone/keystone.conf':
+        ensure  => present,
+        owner   => 'keystone',
+        group   => 'keystone',
+        require => File['/etc/keystone']
+      }
+      User['keystone'] -> File['/etc/keystone']
+      Group['keystone'] -> File['/etc/keystone']
+      Keystone_config <| |> -> Package['keystone']
+      File['/etc/keystone/keystone.conf'] -> Keystone_config <| |>
+    }
+    'RedHat' : {
+      Package['keystone'] -> User['keystone']
+      Package['keystone'] -> Group['keystone']
+      Package['keystone'] -> File['/etc/keystone']
+      Package['keystone'] -> Keystone_config <| |>
+    }
   }
 
   # default config

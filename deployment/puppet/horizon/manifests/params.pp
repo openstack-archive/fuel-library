@@ -9,8 +9,8 @@ class horizon::params {
       $http_service                = 'httpd'
       $http_modwsgi                = 'mod_wsgi'
       $package_name                = 'openstack-dashboard'
-      $httpd_listen_config_file       = '/etc/httpd/conf/httpd.conf'
-      $config_file       = '/etc/httpd/conf.d/openstack-dashboard.conf'
+      $httpd_listen_config_file    = '/etc/httpd/conf/httpd.conf'
+      $config_file                 = '/etc/httpd/conf.d/openstack-dashboard.conf'
       $local_settings_path         = '/etc/openstack-dashboard/local_settings'
     }
     'Debian': {
