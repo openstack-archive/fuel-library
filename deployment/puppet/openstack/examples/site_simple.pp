@@ -32,8 +32,14 @@ $auto_assign_floating_ip = false
 
 $manage_volumes         = true 
 $nv_physical_volume     = ['/dev/sdz', '/dev/sdy', '/dev/sdx'] 
-$quantum                = false
 $cinder                 = true
+
+$quantum                = true
+$quantum_user_password  = 'quantum_pass'
+$quantum_db_password    = 'quantum_pass'
+$quantum_db_user        = 'quantum'
+$quantum_db_dbname      = 'quantum'
+
 $openstack_version = {
   'keystone'   => latest,
   'glance'     => latest,
@@ -50,6 +56,10 @@ class { 'openstack::mirantis_repos': stage => 'openstack-custom-repo', type => $
 $controller_node_address  = '10.0.125.3' 
 $controller_node_public   = '10.0.74.3' 
 $controller_node_internal = $controller_node_address
+
+$quantum_host             = $controller_node_address
+
+$quantum_sql_connection   = "mysql://${quantum_db_user}:${quantum_db_password}@${quantum_host}/${quantum_db_dbname}"
 $sql_connection         = "mysql://nova:${nova_db_password}@${controller_node_internal}/nova"
 
 node /fuel-01/ {
@@ -80,6 +90,8 @@ node /fuel-01/ {
     rabbit_user             => $rabbit_user,
     export_resources        => false,
     quantum                 => $quantum,
+    quantum_user_password   => $quantum_user_password,
+    quantum_db_password     => $quantum_db_password,
     cinder                  => $cinder,
       manage_volumes          => $manage_volumes,
       nv_physical_volume      => $nv_physical_volume,
@@ -97,25 +109,29 @@ node /fuel-01/ {
 node /fuel-0[234]/ {
 
   class { 'openstack::compute':
-    public_interface   => $public_interface,
-    private_interface  => $private_interface,
-    internal_address   => $ipaddress_eth0,
-    libvirt_type       => 'kvm',
-    fixed_range        => $fixed_network_range,
-    network_manager    => 'nova.network.manager.FlatDHCPManager',
-    multi_host         => true,
-    sql_connection     => $sql_connection,
-    nova_user_password => $nova_user_password,
-    rabbit_nodes        => [$controller_node_internal],
-    rabbit_password    => $rabbit_password,
-    rabbit_user        => $rabbit_user,
-    glance_api_servers => "${controller_node_internal}:9292",
-    vncproxy_host      => $controller_node_public,
-    vnc_enabled        => true,
-    ssh_private_key    => 'puppet:///ssh_keys/openstack',
-    ssh_public_key     => 'puppet:///ssh_keys/openstack.pub',
-    service_endpoint => $controller_node_internal,
-    verbose            => $verbose,
+    public_interface       => $public_interface,
+    private_interface      => $private_interface,
+    internal_address       => $ipaddress_eth0,
+    libvirt_type           => 'kvm',
+    fixed_range            => $fixed_network_range,
+    network_manager        => 'nova.network.manager.FlatDHCPManager',
+    multi_host             => true,
+    sql_connection         => $sql_connection,
+    nova_user_password     => $nova_user_password,
+    rabbit_nodes           => [$controller_node_internal],
+    rabbit_password        => $rabbit_password,
+    rabbit_user            => $rabbit_user,
+    glance_api_servers     => "${controller_node_internal}:9292",
+    vncproxy_host          => $controller_node_public,
+    vnc_enabled            => true,
+    ssh_private_key        => 'puppet:///ssh_keys/openstack',
+    ssh_public_key         => 'puppet:///ssh_keys/openstack.pub',
+    quantum                => $quantum,
+    quantum_host           => $quantum_host,
+    quantum_sql_connection => $quantum_sql_connection,
+    quantum_user_password  => $quantum_user_password,
+    service_endpoint       => $controller_node_internal,
+    verbose                => $verbose,
   }
 
 }

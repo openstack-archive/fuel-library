@@ -119,18 +119,6 @@ class openstack::compute (
     ];
   }
 
-  # script called by qemu needs to manipulate the tap device
-  File_line {
-    path => '/etc/libvirt/qemu.conf',
-  }
-
-  file_line {
-    'clear_emulator_capabilities': line  => "clear_emulator_capabilities = 0";
-    'user': line  => "user = root";
-    'group': line  => "group = root";
-    'cgroup_device_acl': line  => "cgroup_device_acl = [\n  '/dev/null', '/dev/full', '/dev/zero',\n  '/dev/random', '/dev/urandom', '/dev/ptmx',\n  '/dev/kvm', '/dev/kqemu','/dev/rtc',\n  '/dev/hpet', '/dev/net/tun',\n]";
-  }
-
 
   $memcached_addresses =  inline_template("<%= @cache_server_ip.collect {|ip| ip + ':' + @cache_server_port }.join ',' %>")
   nova_config {'DEFAULT/memcached_servers':
@@ -291,6 +279,7 @@ class openstack::compute (
     }
 
     class { 'quantum::plugins::ovs':
+      sql_connection      => $quantum_sql_connection,
       tenant_network_type => 'gre',
       enable_tunneling    => true,
     }
@@ -299,6 +288,14 @@ class openstack::compute (
       bridge_uplinks   => ["br-ex:${private_interface}"],
       enable_tunneling => true,
       local_ip         => $internal_address,
+    }
+
+
+    # script called by qemu needs to manipulate the tap device
+    file { "/etc/libvirt/qemu.conf":
+      ensure => present,
+      notify => Service['libvirt'],
+      source => 'puppet:///modules/nova/libvirt_qemu.conf',
     }
 
     # class { 'quantum::agents::dhcp':

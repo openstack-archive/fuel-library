@@ -229,11 +229,14 @@ if ($rabbit_nodes)
 
     class { 'quantum::agents::l3':
       debug          => True,
+      fixed_range    => $fixed_range,
+      floating_range => $floating_range,
       auth_url       => "http://${keystone_host}:35357/v2.0",
       auth_tenant    => 'services',
       auth_user      => 'quantum',
       auth_password  => $quantum_user_password,
       use_namespaces => False,
+      metadata_ip    => $::ipaddress,
     }
 
     class { 'nova::network::quantum':

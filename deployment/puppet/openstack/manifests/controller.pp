@@ -276,7 +276,10 @@ class openstack::controller (
     num_networks            => $num_networks,
     multi_host              => $multi_host,
     keystone_host         => $service_endpoint,
+    # Quantum
     quantum                 => $quantum,
+    quantum_user_password   => $quantum_user_password,
+    quantum_db_password     => $quantum_db_password,
     # Nova
     nova_user_password      => $nova_user_password,
     nova_db_password        => $nova_db_password,
