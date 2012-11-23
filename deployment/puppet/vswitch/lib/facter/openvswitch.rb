@@ -5,16 +5,11 @@
 # Resolution:
 #
 # Caveats:
-require "facter"
-require "facter/kernel_modules"
-require "set"
 
-# VSCTL = "/usr/bin/ovs-vsctl"
 def ovs_vsctl
   "/usr/bin/ovs-vsctl"
 end
 
-# OFCTL = "/usr/bin/ovs-ofctl"
 def ovs_ofctl
   "/usr/bin/ovs-ofctl"
 end

@@ -5,8 +5,6 @@
 # Resolution:
 #
 # Caveats:
-
-require "facter"
 require "set"
 
 def get_modules
