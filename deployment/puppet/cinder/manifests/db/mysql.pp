@@ -12,6 +12,9 @@ class cinder::db::mysql (
   include cinder::params
 
   Class['mysql::server'] -> Class['cinder::db::mysql']
+  if $::osfamily == "Debian" {
+    Class['cinder::db::mysql'] -> Package['cinder-api']
+  }
   Class['cinder::db::mysql'] -> Exec<| title == 'cinder-manage db_sync' |>
   Database[$dbname] ~> Exec<| title == 'cinder-manage db_sync' |>
 

@@ -35,7 +35,13 @@ class cinder::api (
   } else {
     $ensure = 'stopped'
   }
-
+  case $::osfamily {
+    "Debian":  {
+      File[$::cinder::params::cinder_conf] -> Cinder_config<||>
+      Cinder_config <| |> -> Package['cinder-api']
+    }
+  }
+ 
  #  package { 'python-keystone':
  #   ensure => $package_ensure,
  # }
@@ -69,8 +75,7 @@ class cinder::api (
       'keystone_authtoken/admin_password':    value => $keystone_password;
     }
   }
-
-  exec { 'cinder-manage db_sync':
+ exec { 'cinder-manage db_sync':
     command     => $::cinder::params::db_sync_command,
     path        => '/usr/bin',
     user        => 'cinder',
