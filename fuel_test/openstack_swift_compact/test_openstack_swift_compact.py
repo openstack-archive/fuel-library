@@ -19,9 +19,9 @@ class OpenStackSwiftCompactCase(OpenStackSwiftCompactTestCase):
             results.append(execute(remote.sudo.ssh, 'puppet agent --test'))
         remote = ssh(self.nodes.controllers[0].ip_address,username='root', password='r00tme')
         results.append(execute(remote.sudo.ssh, 'puppet agent --test'))
-        for node in self.nodes.controllers:
-            remote = ssh(node.ip_address, username='root', password='r00tme')
-            results.append(execute(remote.sudo.ssh, 'puppet agent --test'))
+        self.validate(
+            self.nodes.controllers,
+            'puppet agent --test')
         self.validate(
             self.nodes.computes,
             'puppet agent --test')
