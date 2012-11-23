@@ -76,7 +76,7 @@ class keystone(
     owner   => 'keystone',
     group   => 'keystone',
     mode    => '0644',
-    require => Package['keystone'],
+#    require => Package['keystone'],
     notify  => Service['keystone'],
   }
 
