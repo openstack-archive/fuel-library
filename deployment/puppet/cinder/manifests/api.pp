@@ -37,7 +37,7 @@ class cinder::api (
     "Debian":  {
       File[$::cinder::params::cinder_conf] -> Cinder_config<||>
       Cinder_config <| |> -> Package['cinder-api']
-      File[$::cinder::params::cinder_api_paste_ini] -> Cinder_api_paste_ini<||>
+      File[$::cinder::params::cinder_paste_api_ini] -> Cinder_api_paste_ini<||>
       Cinder_api_paste_ini <| |> -> Package['cinder-api']
     }
     "RedHat": {
