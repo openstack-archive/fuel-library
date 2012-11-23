@@ -40,7 +40,6 @@ class cinder::api (
       File[$::cinder::params::cinder_api_paste_ini] -> Cinder_api_paste_ini<||>
       Cinder_api_paste_ini <| |> -> Package['cinder-api']
     }
-    }
     "RedHat": {
   Package[$api_package] -> Cinder_config<||>
   Package[$api_package] -> Cinder_api_paste_ini<||>
