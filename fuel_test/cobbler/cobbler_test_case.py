@@ -21,7 +21,7 @@ class CobblerTestCase(BaseTestCase):
         cobbler = self.nodes.cobblers[0]
         cobbler_address = cobbler.ip_address_by_network['internal']
         self.write_site_pp_manifest(
-            root('fuel', 'deployment', 'puppet', 'cobbler', 'examples',
+            root('deployment', 'puppet', 'cobbler', 'examples',
                 'server_site.pp'),
             server="'%s'" % cobbler_address,
             name_server="'%s'" % cobbler_address,

@@ -15,7 +15,7 @@ class OpenStackSimpleTestCase(BaseTestCase):
 
     def write_openstack_sitepp(self, controller):
         self.write_site_pp_manifest(
-            root('fuel', 'deployment', 'puppet', 'openstack', 'examples',
+            root('deployment', 'puppet', 'openstack', 'examples',
                 'site_simple.pp'),
             floating_network_range="'%s'" % self.ci().get_floating_network(),
             fixed_network_range="'%s'" % self.ci().get_fixed_network(),

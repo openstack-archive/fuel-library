@@ -55,7 +55,7 @@ class PrepareOpenStackForTempest(OpenStackTestCase):
                 host=auth_host,
                 image_ref=image_ref,
                 image_ref_alt=image_ref_alt,
-                path_to_private_key=root('fuel', 'fuel_test', 'config', 'ssh_keys', 'openstack'),
+                path_to_private_key=root('fuel_test', 'config', 'ssh_keys', 'openstack'),
                 compute_db_uri=compute_db_uri
             ))
 
