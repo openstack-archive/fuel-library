@@ -39,7 +39,7 @@ class OpenStackSwiftTestCase(BaseTestCase):
 
         self.write_site_pp_manifest(
 
-            root('fuel', 'deployment', 'puppet', 'openstack', 'examples',
+            root('deployment', 'puppet', 'openstack', 'examples',
                 'site_openstack_swift_standalone.pp'),
             internal_virtual_ip="'%s'" % self.ci().get_internal_virtual_ip(),
             public_virtual_ip="'%s'" % self.ci().get_public_virtual_ip(),

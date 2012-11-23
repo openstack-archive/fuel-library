@@ -16,7 +16,7 @@ class OpenStackTestCase(BaseTestCase):
 
     def write_openstack_sitepp(self, controller1, controller2):
         self.write_site_pp_manifest(
-            root('fuel', 'deployment', 'puppet', 'openstack', 'examples',
+            root('deployment', 'puppet', 'openstack', 'examples',
                  'site.pp'),
             internal_virtual_ip="'%s'" % self.ci().get_internal_virtual_ip(),
             public_virtual_ip="'%s'" % self.ci().get_public_virtual_ip(),

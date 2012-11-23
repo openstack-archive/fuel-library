@@ -14,7 +14,7 @@ class SwiftCase(BaseTestCase):
 
     def test_deploy_swift(self):
         self.write_site_pp_manifest(
-            root('fuel', 'deployment', 'puppet', 'swift', 'examples',
+            root('deployment', 'puppet', 'swift', 'examples',
                 'site.pp'),
             swift_proxy_address="'%s'" %
                                 self.nodes.proxies[0].ip_address_by_network[
