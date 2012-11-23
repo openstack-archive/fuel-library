@@ -33,8 +33,8 @@ class openstack::nova::controller (
   # Network
   $fixed_range               = '10.0.0.0/24',
   $floating_range            = false,
-  $internal_address          = $public_address,
-  $admin_address             = $public_address,
+  $internal_address,
+  $admin_address,
   $auto_assign_floating_ip   = false,
   $create_networks           = true,
   $num_networks              = 1,

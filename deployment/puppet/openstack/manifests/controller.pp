@@ -83,8 +83,8 @@ class openstack::controller (
   # Required Horizon
   $secret_key              = 'dummy_secret_key',
   # not sure if this works correctly
-  $internal_address        = $public_address,
-  $admin_address           = $public_address,
+  $internal_address,
+  $admin_address,
   # Rabbit
   $rabbit_password         = 'rabbit_pw',
   $rabbit_user             = 'nova',
