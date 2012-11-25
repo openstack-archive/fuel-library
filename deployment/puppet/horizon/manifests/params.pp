@@ -15,7 +15,7 @@ class horizon::params {
     }
     'Debian': {
       $http_service                = 'apache2'
-      $config_file                 = '/etc/openstack-dashboard/local_settings.py'
+      $config_file                 = '/etc/apache2/conf.d/openstack-dashboard.conf'
       $httpd_listen_config_file    = '/etc/apache2/ports.conf'
       $http_modwsgi                = 'libapache2-mod-wsgi'
       case $::operatingsystem {
