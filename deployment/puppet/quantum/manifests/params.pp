@@ -23,6 +23,7 @@ class quantum::params {
       $kernel_headers     = "linux-headers-${::kernelrelease}"
 
       $python_path        = 'python2.7/dist-packages'
+      $cidr_package       = 'ipcalc'
     }
     'RedHat': {
       $package_name       = 'openstack-quantum'
@@ -45,7 +46,7 @@ class quantum::params {
 
       $cliff_package      = 'python-cliff'
       $kernel_headers     = "linux-headers-${::kernelrelease}"
-
+      $cidr_package       = "whatmask"
       $python_path        = 'python2.6/site-packages'
     }
   }

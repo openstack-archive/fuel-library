@@ -72,17 +72,18 @@ class quantum::agents::l3 (
     path    => '/bin/',
     require => Package[$l3_agent_package],
   }
-
+  
   # create external/internal networks
   file { '/tmp/quantum-networking.sh':
     mode    => 740,
     owner   => root,
-    content => template('quantum/quantum-networking.sh.erb'),
+    content => template("quantum/quantum-networking.${::osfamily}.sh.erb"),
     require => Service['quantum-server'],
     notify  => Exec['create-networks'],
   }
 
-  package { 'whatmask':
+  package { 'cidr-package':
+    name => $::quantum::params::cidr_package,
     ensure => $package_ensure,
     before => Exec['create-networks']
   }
