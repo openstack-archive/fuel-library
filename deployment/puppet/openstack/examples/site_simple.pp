@@ -65,6 +65,7 @@ $sql_connection         = "mysql://nova:${nova_db_password}@${controller_node_in
 node /fuel-01/ {
 
   class { 'openstack::controller':
+    admin_address           => $controller_node_internal,
     public_address          => $controller_node_public,
     public_interface        => $public_interface,
     private_interface       => $private_interface,
