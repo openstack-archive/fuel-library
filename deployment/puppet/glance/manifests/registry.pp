@@ -75,7 +75,6 @@ class glance::registry(
   }
 
   file { ['/etc/glance/glance-registry.conf',
-          '/etc/glance/glance-registry-paste.ini'
          ]:
   }
 

@@ -144,7 +144,6 @@ class glance::api(
   }
 
   file { ['/etc/glance/glance-api.conf',
-          '/etc/glance/glance-api-paste.ini',
           '/etc/glance/glance-cache.conf'
          ]:
   }
@@ -164,6 +163,8 @@ class glance::api(
    }
    File['/etc/glance/glance-api.conf']->Glance_api_config<| |>
    Glance_api_config<| |> -> Package['glance-api']
+   File['/etc/glance/glance-cache.conf']->Glance_cache_config<| |>
+   Glance_cache_config<| |> -> Package['glance-api']
    Package['glance-api'] -> Service['glance-api']
   }
   service { 'glance-api':

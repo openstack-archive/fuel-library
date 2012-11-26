@@ -35,13 +35,26 @@ class nova::api(
     }
     "RedHat": {
   Package<| title == 'nova-api' |> -> Nova_config<| |>
-  Package<| title == 'nova-api' |> -> Nova_paste_api_ini<| |>
     }
   }
   
+  Package<| title == 'nova-common' |> -> Nova_paste_api_ini<| |>
   Nova_paste_api_ini<| |> ~> Exec['post-nova_config']
   Nova_paste_api_ini<| |> ~> Service['nova-api']
   
+
+    nova_paste_api_ini {
+      'filter:authtoken/service_port': ensure => absent;
+      'filter:authtoken/service_protocol': ensure => absent;
+      'filter:authtoken/service_host': ensure => absent;
+      'filter:authtoken/auth_port': ensure => absent;
+      'filter:authtoken/auth_protocol': ensure => absent;
+      'filter:authtoken/auth_host': ensure => absent;
+      'filter:authtoken/admin_tenant_name': ensure => absent;
+      'filter:authtoken/admin_user': ensure => absent;
+      'filter:authtoken/admin_password': ensure => absent;
+    } 
+
   Nova_config<| |> ~> Exec['post-nova_config']
   Nova_config<| |> ~> Service['nova-api']
 
@@ -65,7 +78,6 @@ class nova::api(
     'DEFAULT/enabled_apis':     value => $enabled_apis;
     'DEFAULT/volume_api_class': value => $volume_api_class;
   }
-
   nova_config {
     'keystone_authtoken/auth_host':         value => $auth_host;
     'keystone_authtoken/auth_port':         value => $auth_port;

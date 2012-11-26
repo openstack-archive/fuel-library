@@ -36,13 +36,13 @@ class cinder::api (
   case $::osfamily {
     "Debian":  {
       File[$::cinder::params::cinder_conf] -> Cinder_config<||>
-      Cinder_config <| |> -> Package['cinder-api']
       File[$::cinder::params::cinder_paste_api_ini] -> Cinder_api_paste_ini<||>
-      Cinder_api_paste_ini <| |> -> Package['cinder-api']
+      Cinder_config <| |> -> Package['cinder-api']
+      Cinder_api_paste_ini<||> -> Package['cinder-api']
     }
     "RedHat": {
-  Package[$api_package] -> Cinder_config<||>
   Package[$api_package] -> Cinder_api_paste_ini<||>
+  Package[$api_package] -> Cinder_config<||>
     }
   }
  
@@ -60,16 +60,22 @@ class cinder::api (
     'DEFAULT/bind_host': value => $bind_host;
     'DEFAULT/osapi_volume_listen': value => $bind_host;
   }
-  if $keystone_enabled {
+     cinder_api_paste_ini {
+      'filter:authtoken/service_port': ensure => absent;
+      'filter:authtoken/service_protocol': ensure => absent;
+      'filter:authtoken/service_host': ensure => absent;
+      'filter:authtoken/auth_port': ensure => absent;
+      'filter:authtoken/auth_protocol': ensure => absent;
+      'filter:authtoken/auth_host': ensure => absent;
+      'filter:authtoken/admin_tenant_name': ensure => absent;
+      'filter:authtoken/admin_user': ensure => absent;
+      'filter:authtoken/admin_password': ensure => absent;
+    }
+
+ if $keystone_enabled {
     cinder_config {
       'DEFAULT/auth_strategy':     value => 'keystone' ;
     }
-    cinder_api_paste_ini {
-      'filter:authtoken/service_port': value => 5000;
-      'filter:authtoken/service_protocol': value => $keystone_auth_protocol;
-      'filter:authtoken/service_host': value => $keystone_auth_host;
-    }
-
     cinder_config {
       'keystone_authtoken/auth_protocol':     value => $keystone_auth_protocol;
       'keystone_authtoken/auth_host':         value => $keystone_auth_host;

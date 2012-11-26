@@ -26,9 +26,17 @@ class quantum::server (
 
   Package[$server_package] -> Quantum_api_config<||>
   Package[$server_package] -> Quantum_config<||>
-  if $::osfamily == 'Debian'
+  case $::osfamily
   {
-    Quantum_config<||>->Package['quantum-server']
+    'Debian':
+      {
+       Quantum_config<||>->Package['quantum-server']
+       Quantum_api_config<||>->Package['quantum-server']
+      }
+      'RedHat':
+        {
+        Package['quantum-server'] -> Quantum_config<||>
+      }
   }
 
   Quantum_config<||> ~> Service['quantum-server']
