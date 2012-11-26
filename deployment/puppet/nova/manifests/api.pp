@@ -28,8 +28,16 @@ class nova::api(
   include nova::params
 
   Package<| title == 'nova-api' |> -> Exec['nova-db-sync']
+  case $::osfamily {
+    "Debian": {
+  Nova_config<| |> -> Package<| title == 'nova-api' |>
+  Nova_paste_api_ini<| |> -> Package<| title == 'nova-api' |>
+    }
+    "RedHat": {
   Package<| title == 'nova-api' |> -> Nova_config<| |>
   Package<| title == 'nova-api' |> -> Nova_paste_api_ini<| |>
+    }
+  }
   
   Nova_paste_api_ini<| |> ~> Exec['post-nova_config']
   Nova_paste_api_ini<| |> ~> Service['nova-api']
