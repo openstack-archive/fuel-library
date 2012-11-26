@@ -69,7 +69,7 @@ class galera($cluster_name, $master_ip = false, $node_address = $ipaddress_eth0)
       }
     }
     'Debian': {
-      $mysql_wsrep_prefix = 'http://172.18.67.168'
+      $mysql_wsrep_prefix = 'http://download.mirantis.com/epel-fuel/x86_64'
       $galera_prefix      = $mysql_wsrep_prefix
       
             $pkg_prefix  = $mysql_wsrep_prefix  #Yeah, looks funny. So was inherited.
