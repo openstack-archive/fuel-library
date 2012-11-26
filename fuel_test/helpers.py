@@ -210,19 +210,31 @@ def tempest_add_images(auth_host, username, password, tenant_name):
     return upload(glance, 'cirros_0.3.0', 'cirros-0.3.0-x86_64-disk.img'),\
            upload(glance, 'cirros_0.3.0', 'cirros-0.3.0-x86_64-disk.img')
 
+
 def tempest_share_glance_images(remote, network):
-    execute(remote, 'chkconfig rpcbind on')
-    execute(remote, '/etc/init.d/rpcbind restart')
-    execute(remote,
-        'echo "/var/lib/glance/images %s(rw,no_root_squash)" >> /etc/exports' % network)
-    execute(remote, '/etc/init.d/nfs restart')
+    if OS_FAMILY == "centos":
+        execute(remote, 'chkconfig rpcbind on')
+        execute(remote, '/etc/init.d/rpcbind restart')
+        execute(remote,
+            'echo "/var/lib/glance/images %s(rw,no_root_squash)" >> /etc/exports' % network)
+        execute(remote, '/etc/init.d/nfs restart')
+    else:
+        install_packages(remote, 'nfs-kernel-server nfs-common portmap')
+        execute(remote,
+            'echo "/var/lib/glance/images %s(rw,no_root_squash)" >> /etc/exports' % network)
+        execute(remote, '/etc/init.d/nfs-kernel-server restart')
 
 
 def tempest_mount_glance_images(remote, host):
-    execute(remote, 'chkconfig rpcbind on')
-    execute(remote, '/etc/init.d/rpcbind restart')
-    execute(remote,
-        'mount %s:/var/lib/glance/images /var/lib/glance/images' % host)
+    if OS_FAMILY == "centos":
+        execute(remote, 'chkconfig rpcbind on')
+        execute(remote, '/etc/init.d/rpcbind restart')
+        execute(remote,
+            'mount %s:/var/lib/glance/images /var/lib/glance/images' % host)
+    else:
+        install_packages(remote, 'nfs-common portmap')
+        execute(remote,
+            'mount %s:/var/lib/glance/images /var/lib/glance/images' % host)
 
 
 def sync_time(remote):
