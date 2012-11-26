@@ -50,9 +50,9 @@ class glance::keystone::auth(
     keystone_endpoint { $auth_name:
       ensure       => present,
       region       => $region,
-      public_url   => "http://${public_address}:${port}/v1",
-      admin_url    => "http://${admin_address}:${port}/v1",
-      internal_url => "http://${internal_address}:${port}/v1",
+      public_url   => "http://${public_address}:${port}",
+      admin_url    => "http://${admin_address}:${port}",
+      internal_url => "http://${internal_address}:${port}",
     }
   }
 }
