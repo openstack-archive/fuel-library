@@ -54,7 +54,7 @@ class glance::api(
   require 'keystone::python'
 
   validate_re($sql_connection, '(sqlite|mysql|posgres):\/\/(\S+:\S+@\S+\/\S+)?')
-
+  $auth_uri = "http://$auth_host:$auth_port"
   Package['glance'] -> Glance_api_config<||>
   Package['glance'] -> Glance_cache_config<||>
   # adding all of this stuff b/c it devstack says glance-api uses the
@@ -124,7 +124,7 @@ class glance::api(
     'keystone_authtoken/auth_host':         value => $auth_host;
     'keystone_authtoken/auth_port':         value => $auth_port;
     'keystone_authtoken/protocol':          value => $auth_protocol;
-    'keystone_authtoken/auth_uri':          value => $auth_url;
+    'keystone_authtoken/auth_uri':          value => $auth_uri;
   }
 
   # keystone config
@@ -136,7 +136,7 @@ class glance::api(
       'keystone_authtoken/admin_password':    value => $keystone_password;
     }
     glance_cache_config {
-      'DEFAULT/auth_url':          value => $auth_url;
+      'DEFAULT/auth_url':          value => $auth_uri;
       'DEFAULT/admin_tenant_name': value => $keystone_tenant;
       'DEFAULT/admin_user':        value => $keystone_user;
       'DEFAULT/admin_password':    value => $keystone_password;
