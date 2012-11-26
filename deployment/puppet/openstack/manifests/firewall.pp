@@ -38,7 +38,7 @@ file {"iptables":
 }->
 exec { 'startup-firewall':
   command     => $operatingsystem ? {
-      /(Debian|Ubuntu)/          => '/sbin/iptables-restore  /etc/iptables/rules.v4',
+      /(Debian|Ubuntu)/          => '/sbin/iptables-restore  /etc/network/rules.v4',
       /(RedHat|CentOS)/ => '/sbin/iptables-restore  /etc/sysconfig/iptables',
  }
 }
