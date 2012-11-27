@@ -64,6 +64,7 @@ class openstack::db::mysql (
     $galera_cluster_name = 'openstack',
     $galera_master_ip = '127.0.0.1',
     $galera_node_address = '127.0.0.1',
+    $galera_nodes = ['127.0.0.1'],
     $custom_setup_class = undef
 ) {
 
@@ -85,6 +86,7 @@ class openstack::db::mysql (
     galera_cluster_name	=> $galera_cluster_name,
     galera_master_ip	=> $galera_master_ip,
     galera_node_address	=> $galera_node_address,
+    galera_nodes      => $galera_nodes,
     enabled => $enabled,
     custom_setup_class => $custom_setup_class,
   }
