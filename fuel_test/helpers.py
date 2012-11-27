@@ -421,8 +421,17 @@ def make_shared_storage(remote, host, client_nodes, access_network):
     sleep(60)
 
 def write_static_ip(remote, ip, net_mask, gateway, interface='eth0'):
-    path = '/etc/sysconfig/network-scripts/ifcfg-%s' % interface
-    text = load(root('fuel_test', 'config', 'ifcfg-eth0.config')) % {
-        'ip': str(ip), 'net_mask': str(net_mask),
-        'gateway': str(gateway), 'interface': str(interface)}
-    write_config(remote, path, text)
+    if OS_FAMILY == 'centos':
+        path = '/etc/sysconfig/network-scripts/ifcfg-%s' % interface
+        text = load(root('fuel_test', 'config', 'ifcfg-eth0.config')) % {
+            'ip': str(ip), 'net_mask': str(net_mask),
+            'gateway': str(gateway), 'interface': str(interface)}
+        write_config(remote, path, text)
+    else:
+        path = '/etc/network/interfaces' % interface
+        text = load(root('fuel_test', 'config', 'interfaces.config')) % {
+            'ip': str(ip), 'net_mask': str(net_mask),
+            'gateway': str(gateway)}
+        write_config(remote, path, text)
+
+
