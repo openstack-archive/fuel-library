@@ -184,6 +184,7 @@ local0.* -/var/log/haproxy.log'
         Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'initial-db-sync' |>
         Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'keystone-manage db_sync' |>
         Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'glance-manage db_sync' |>
+        Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'cinder-manage db_sync' |>
         Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'nova-db-sync' |>
 
     class { 'haproxy':
