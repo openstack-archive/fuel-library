@@ -1,6 +1,11 @@
 # unzip swig screen parted curl euca2ools - extra packages
 class nova::utilities {
-  package { ['unzip', 'screen', 'parted', 'curl', 'euca2ools', 'guestmount']:
+  include nova::params
+  package { ['unzip', 'screen', 'curl', 'euca2ools', $::nova::params::guestmount_package_name]:
     ensure => present
   }
+  if !(defined(Package['parted'])) {
+    package {"parted": ensure => 'present' }
+  }
+
 }
