@@ -8,7 +8,7 @@
 # vi /etc/mysql/conf.d/wsrep.cnf 
 # /etc/init.d/mysql start
 # 
-class galera($cluster_name, $master_ip = false, $node_address = $ipaddress_eth0) {
+class galera($cluster_name, $master_ip = false, $node_address = $ipaddress_eth0, $setup_multiple_gcomm = false, $node_addresses=[$ipaddress_eth0]) {
 
   include galera::params
 

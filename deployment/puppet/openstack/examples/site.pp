@@ -99,6 +99,7 @@ node /fuel-0[12]/ {
       memcached_servers       => $controller_hostnames,
       export_resources        => false,
       glance_backend          => $glance_backend,
+      galera_nodes            => $controller_hostnames,
       manage_volumes          => $manage_volumes,
       nv_physical_volume      => $nv_physical_volume,
     }

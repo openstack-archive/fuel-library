@@ -84,7 +84,7 @@ class openstack::controller_ha (
    $keystone_db_password, $keystone_admin_token, $glance_db_password, $glance_user_password,
    $nova_db_password, $nova_user_password, $rabbit_password, $rabbit_user,
    $rabbit_nodes, $memcached_servers, $export_resources, $glance_backend='file', $swift_proxies=undef, $manage_volumes = false,
-   $nv_physical_volume = undef,
+   $galera_nodes, $nv_physical_volume = undef,
  ) {
 
     $which = $::hostname ? { $master_hostname => 0, default => 1 }
@@ -247,6 +247,7 @@ class openstack::controller_ha (
       galera_cluster_name   => 'openstack',
       galera_master_ip      => $which ? { 0 => false, default => $controller_internal_addresses[$master_hostname] },
       galera_node_address   => $controller_internal_addresses[$::hostname],
+      galera_nodes          => $galera_nodes,
       admin_email             => $admin_email,
       admin_password          => $admin_password,
       keystone_db_password    => $keystone_db_password,
