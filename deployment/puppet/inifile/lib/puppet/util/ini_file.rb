@@ -37,7 +37,7 @@ module Util
 
     def set_value(section_name, setting, value)
       unless (@sections_hash.has_key?(section_name))
-        add_section(Section.new(section_name, nil, nil, nil, nil))
+        add_section(Section.new(section_name, nil, nil, nil, 0))
       end
 
       section = @sections_hash[section_name]
@@ -262,7 +262,7 @@ module Util
     def insert_inline_setting_line(result, section, setting, value)
       line_num = result[:line_num]
       match = result[:match]
-      lines.insert(line_num + 1, "#{' ' * section.indentation}#{setting}#{match[4]}#{value}")
+      lines.insert(line_num + 1, "#{' ' * (section.indentation || 0)}#{setting}#{match[4]}#{value}")
     end
 
     # Utility method; given a section index (index into the @section_names
