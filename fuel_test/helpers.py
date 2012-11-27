@@ -428,7 +428,7 @@ def write_static_ip(remote, ip, net_mask, gateway, interface='eth0'):
             'gateway': str(gateway), 'interface': str(interface)}
         write_config(remote, path, text)
     else:
-        path = '/etc/network/interfaces' % interface
+        path = '/etc/network/interfaces'
         text = load(root('fuel_test', 'config', 'interfaces.config')) % {
             'ip': str(ip), 'net_mask': str(net_mask),
             'gateway': str(gateway)}
