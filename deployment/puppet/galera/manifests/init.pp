@@ -228,4 +228,16 @@ class galera($cluster_name, $master_ip = false, $node_address = $ipaddress_eth0,
     tries       => 6,
   }
 
+  if ! $master_ip
+  {
+    exec { "bootstrap-galera" :
+      require     => [Service['mysql-galera']],
+      subscribe    => [Service['mysql-galera']],
+      before => [Exec['wait-for-synced-state']],
+      logoutput   => true,
+      command     => "/usr/bin/mysql -Nbe \"SET GLOBAL wsrep_provider_options='pc.bootstrap=1'\"",
+    }
+  }
+
+
 }
