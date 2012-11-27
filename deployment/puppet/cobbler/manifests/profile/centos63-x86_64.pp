@@ -12,19 +12,9 @@
 # [ks_encrypted_root_password] Hash of the root password on installed system.
 
 class cobbler::profile::centos63-x86_64(
+  $ks_repo = false,
   $distro  = "centos63-x86_64",
-  $ks_repo = [
-              {
-              "name" => "Puppet",
-              "url"  => "http://yum.puppetlabs.com/el/6/products/x86_64",
-              },
-              {
-              "name" => "Stanford",
-              "url"  => "http://mirror.stanford.edu/yum/pub/centos/6.3/os/x86_64",
-              }],
-              
   $ks_system_timezone         = "America/Los_Angeles",
-
   # default password is 'r00tme'
   $ks_encrypted_root_password = "\$6\$tCD3X7ji\$1urw6qEMDkVxOkD33b4TpQAjRiCeDZx0jmgMhDYhfB9KuGfqO9OcMaKyUxnGGWslEDQ4HxTw7vcAMP85NxQe61",
   ) {
@@ -36,7 +26,7 @@ class cobbler::profile::centos63-x86_64(
       $ks_dir = "/var/lib/cobbler/kickstarts"
     }
   }
-  
+
   file { "${ks_dir}/centos63-x86_64.ks":
     content => template("cobbler/centos.ks.erb"),
     owner => root,
@@ -51,6 +41,6 @@ class cobbler::profile::centos63-x86_64(
     ksmeta => "",
     menu => true,
   }
-  
+
 }
 
