@@ -97,6 +97,7 @@ class compact_controller {
       quantum_db_dbname       => $quantum_db_dbname,
       cinder                  => $cinder,
       manage_volumes          => $manage_volumes,
+      galera_nodes            => $controller_hostnames,
       nv_physical_volume      => $nv_physical_volume,
  
       }

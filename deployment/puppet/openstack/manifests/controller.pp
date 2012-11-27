@@ -145,6 +145,7 @@ class openstack::controller (
   $galera_master_ip = '127.0.0.1',
   $galera_node_address = '127.0.0.1',
   $glance_backend          = 'file',
+  $galera_nodes = ['127.0.0.1'],
   $manage_volumes          = false,
   $nv_physical_volume      = undef,
 ) {
@@ -165,9 +166,50 @@ class openstack::controller (
 
   ####### DATABASE SETUP ######
   # set up mysql server
+<<<<<<< HEAD
   if ($db_type == 'mysql') {
     if ($enabled) {
       Class['glance::db::mysql'] -> Class['glance::registry']
+=======
+  class { "mysql::server":
+    config_hash => {
+      # the priv grant fails on precise if I set a root password
+      # TODO I should make sure that this works
+      # 'root_password' => $mysql_root_password,
+      'bind_address'  => '0.0.0.0'
+    },
+    galera_cluster_name	=> $galera_cluster_name,
+    galera_master_ip	=> $galera_master_ip,
+    galera_node_address	=> $galera_node_address,
+    galera_nodes        => $galera_nodes,
+    enabled => $enabled,
+    custom_setup_class => $custom_mysql_setup_class,
+  }
+  if ($enabled) {
+    # set up all openstack databases, users, grants
+    
+    Class['keystone::config::mysql'] -> Exec<| title == 'keystone-manage db_sync' |>
+
+    class { "keystone::db::mysql":
+      host     => $mysql_host,
+      password => $keystone_db_password,
+      allowed_hosts => '%',
+    }
+
+    Class["glance::db::mysql"] -> Class['glance::registry']
+    File['/etc/glance/glance-registry.conf'] -> Exec<| title == 'glance-manage db_sync' |>
+
+    class { "glance::db::mysql":
+      host     => $mysql_host,
+      password => $glance_db_password,
+      allowed_hosts => '%',
+    }
+    # TODO should I allow all hosts to connect?
+    class { "nova::db::mysql":
+      host          => $mysql_host,
+      password      => $nova_db_password,
+      allowed_hosts => '%',
+>>>>>>> 94b9f1d... Fix [FUEL-198] for essex.
     }
     class { 'openstack::db::mysql':
       mysql_root_password    => $mysql_root_password,

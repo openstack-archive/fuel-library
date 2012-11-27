@@ -90,6 +90,7 @@ node /fuel-0[12]/ {
       quantum_db_user         => $quantum_db_user,
       quantum_db_dbname       => $quantum_db_dbname,
       cinder                  => $cinder,
+      galera_nodes            => $controller_hostnames,
       manage_volumes          => $manage_volumes,
       nv_physical_volume      => $nv_physical_volume,
     }
