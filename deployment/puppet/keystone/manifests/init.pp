@@ -134,6 +134,7 @@ class keystone(
     'DEFAULT/compute_port': value => $compute_port;
     'DEFAULT/verbose':      value => $verbose;
     'DEFAULT/debug':        value => $debug;
+    'DEFAULT/log_file':        value => "/var/log/keystone/keystone.log";
     'identity/driver': value =>"keystone.identity.backends.sql.Identity";
     'token/driver': value =>"keystone.token.backends.sql.Token";
     'policy/driver': value =>"keystone.policy.backends.rules.Policy";
