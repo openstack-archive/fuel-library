@@ -6,6 +6,7 @@ $libvirt_type_kvm = 'qemu-kvm'
   case $::osfamily {
     'RedHat': {
       # package names
+      $guestmount_package_name = 'libguestfs-tools-c'
       $api_package_name         = 'openstack-nova-api'
       $cert_package_name        = 'openstack-nova-cert'
       $common_package_name      = 'openstack-nova-common'
@@ -42,6 +43,7 @@ $libvirt_type_kvm = 'qemu-kvm'
     }
     'Debian': {
       # package names
+      $guestmount_package_name = 'guestmount'
       $api_package_name         = 'nova-api'
       $cert_package_name        = 'nova-cert'
       $common_package_name      = 'nova-common'
