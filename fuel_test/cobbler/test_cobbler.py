@@ -6,7 +6,7 @@ from devops.helpers import wait, ssh
 from fuel_test.cobbler.cobbler_client import CobblerClient
 from fuel_test.cobbler.cobbler_test_case import CobblerTestCase
 from fuel_test.helpers import tcp_ping, udp_ping, safety_revert_nodes, add_to_hosts, sign_all_node_certificates, sync_time, upload_recipes, upload_keys
-from fuel_test.settings import EMPTY_SNAPSHOT
+from fuel_test.settings import EMPTY_SNAPSHOT, OS_FAMILY
 
 class CobblerCase(CobblerTestCase):
     def test_deploy_cobbler(self):
@@ -68,6 +68,10 @@ class CobblerCase(CobblerTestCase):
 
     def _add_node(self, client, token, cobbler, node_name, node_mac0, node_mac1, node_mac2, node_ip):
         system_id = client.new_system(token)
+        if OS_FAMILY=='centos':
+            profile='centos63-x86_64'
+        else:
+            profile='ubuntu-1204-x86_64'
         client.modify_system_args(
             system_id, token,
             ks_meta=self.get_ks_meta('master',
@@ -76,7 +80,7 @@ class CobblerCase(CobblerTestCase):
             hostname=node_name + ".mirantis.com",
             name_servers=cobbler.ip_address_by_network['internal'],
             name_servers_search="mirantis.com",
-            profile="centos63-x86_64",
+            profile=profile,
             netboot_enabled="1")
         client.modify_system(system_id, 'modify_interface', {
             "macaddress-eth0": str(node_mac0),
