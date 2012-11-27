@@ -5,7 +5,7 @@ node default {
 node /^(fuel-pm|fuel-cobbler).mirantis.com/ {
 
   Exec  {path => '/usr/bin:/bin:/usr/sbin:/sbin'}
-  
+
   exec { "enable_forwarding":
     command => "echo 1 > /proc/sys/net/ipv4/ip_forward",
     unless => "cat /proc/sys/net/ipv4/ip_forward | grep -q 1",
@@ -16,29 +16,25 @@ node /^(fuel-pm|fuel-cobbler).mirantis.com/ {
     /etc/init.d/iptables save",
     unless => "iptables -t nat -S POSTROUTING | grep -q \"^-A POSTROUTING -s 10.0.0.0/24 ! -d 10.0.0.0/24 -j MASQUERADE\""
   }
-  
+
   exec { "enable_nat_filter":
     command => "iptables -t filter -I FORWARD 1 -j ACCEPT; \
     /etc/init.d/iptables save",
     unless => "iptables -t filter -S FORWARD | grep -q \"^-A FORWARD -j ACCEPT\""
   }
-  
+
   class { cobbler::server:
     server              => '10.0.0.100',
-
     domain_name         => 'mirantis.com',
     name_server         => '10.0.0.100',
     next_server         => '10.0.0.100',
-
     dhcp_start_address  => '10.0.0.201',
     dhcp_end_address    => '10.0.0.254',
     dhcp_netmask        => '255.255.255.0',
     dhcp_gateway        => '10.0.0.100',
     dhcp_interface      => 'eth1',
-    
     cobbler_user        => 'cobbler',
     cobbler_password    => 'cobbler',
-
     pxetimeout          => '0'
   }
 
@@ -55,11 +51,23 @@ node /^(fuel-pm|fuel-cobbler).mirantis.com/ {
     ks_url   => "cobbler",
   }
 
-  
   Class[cobbler::distro::centos63-x86_64] ->
   Class[cobbler::profile::centos63-x86_64]
 
-  class { cobbler::profile::centos63-x86_64: }
+  class { cobbler::profile::centos63-x86_64:
+    ks_repo =>  [{
+                "name" => "Puppet",
+                "url"  => "http://yum.puppetlabs.com/el/6/products/x86_64",
+                },
+                {
+                "name" => "Stanford",
+                "url"  => "http://mirror.stanford.edu/yum/pub/centos/6.3/os/x86_64",
+                },
+                {
+                "name" => 'puppet-dep',
+                "url" => 'http://yum.puppetlabs.com/el/6/dependencies/x86_64/',
+                }],
+  }
 
   # RHEL distribution
   # class { cobbler::distro::rhel63-x86_64:
@@ -70,7 +78,12 @@ node /^(fuel-pm|fuel-cobbler).mirantis.com/ {
   # Class[cobbler::distro::rhel63-x86_64] ->
   # Class[cobbler::profile::rhel63-x86_64]
   #
-  # class { cobbler::profile::rhel63-x86_64: }
+  # class { cobbler::profile::rhel63-x86_64:
+  #   ks_repo => [{
+  #              "name" => "Puppet",
+  #              "url"  => "http://yum.puppetlabs.com/el/6/products/x86_64",
+  #              }],
+  # }
 
 
 
