@@ -49,7 +49,7 @@ class glance::registry(
     'DEFAULT/debug':     value => $debug;
     'DEFAULT/bind_host': value => $bind_host;
     'DEFAULT/bind_port': value => $bind_port;
-    'DEFAULT/log_file_port': value => "/var/log/glance/registry.log";
+    'DEFAULT/log_file': value => "/var/log/glance/registry.log";
     'DEFAULT/backlog': value => "4096";
     'DEFAULT/api_limit_max': value => "1000";
     'DEFAULT/limit_param_default': value => "25";
