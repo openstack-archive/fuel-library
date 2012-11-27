@@ -53,6 +53,7 @@ class nova::api(
       'filter:authtoken/admin_tenant_name': ensure => absent;
       'filter:authtoken/admin_user': ensure => absent;
       'filter:authtoken/admin_password': ensure => absent;
+      'filter:authtoken/signing_dirname': ensure => absent;
     } 
 
   Nova_config<| |> ~> Exec['post-nova_config']
