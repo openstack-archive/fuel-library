@@ -40,7 +40,7 @@ case $::osfamily {
 }
 
 node fuel-cobbler {
-  class { cobbler::server:
+  class { cobbler:
     server              => $server,
 
     domain_name         => $domain_name,
