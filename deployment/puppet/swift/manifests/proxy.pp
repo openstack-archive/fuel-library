@@ -72,6 +72,13 @@ class swift::proxy(
   if($auth_type == 'tempauth' and ! $account_autocreate ){
     fail("\$account_autocreate must be set to true when auth type is tempauth")
   }
+  if $::osfamily == "Debian"
+  {
+    package { 'swift-plugin-s3': 
+    ensure => present, 
+    before=>Package['swift-proxy']
+    } 
+  }
 
   package { 'swift-proxy':
     name   => $::swift::params::proxy_package_name,
