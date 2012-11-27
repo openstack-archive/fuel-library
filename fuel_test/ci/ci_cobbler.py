@@ -45,13 +45,6 @@ class CiCobbler(CiBase):
             environment.nodes.append(client)
         return environment
 
-    def reserve_static_addresses(self, environment):
-        addresses_iter = iter(environment.network['internal'].ip_addresses)
-        addresses_iter.next()
-        addresses_iter.next()
-        for node in environment.nodes:
-            node.interfaces[0].ip_addresses = addresses_iter.next()
-
     def setup_environment(self):
         self.environment = self.make_vms()
         master_node = self.environment.node['master']
