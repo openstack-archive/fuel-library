@@ -93,11 +93,24 @@ class glance::api(
     'DEFAULT/backlog':   value => $backlog;
     'DEFAULT/workers':   value => $workers;
     'DEFAULT/log_file':  value => $log_file;
+    'DEFAULT/use_syslog':  value => "False";
+    'DEFAULT/registry_client_protocol':  value => "http";
+    'DEFAULT/delayed_delete': value => "False";
+    'DEFAULT/scrub_time': value => "43200";
+    'DEFAULT/scrubber_datadir': value => "/var/lib/glance/scrubber";
+    'DEFAULT/image_cache_dir': value => "/var/lib/glance/image-cache/";
   }
 
   glance_cache_config {
     'DEFAULT/verbose':   value => $verbose;
     'DEFAULT/debug':     value => $debug;
+    'DEFAULT/use_syslog':  value => "False";
+    'DEFAULT/image_cache_dir': value => "/var/lib/glance/image-cache/";
+    'DEFAULT/log_file':  value => "/var/log/glance/image-cache.log";
+    'DEFAULT/image_cache_stall_time':  value => "86400";
+    'DEFAULT/image_cache_invalid_entry_grace_period':  value => "3600";
+    'DEFAULT/image_cache_max_size':  value => "10737418240";
+    'DEFAULT/filesystem_store_datadir':  value => "/var/lib/glance/images/";
   }
 
   # configure api service to connect registry service
@@ -123,7 +136,7 @@ class glance::api(
   glance_api_config {
     'keystone_authtoken/auth_host':         value => $auth_host;
     'keystone_authtoken/auth_port':         value => $auth_port;
-    'keystone_authtoken/protocol':          value => $auth_protocol;
+    'keystone_authtoken/auth_protocol':          value => $auth_protocol;
     'keystone_authtoken/auth_uri':          value => $auth_uri;
   }
 
