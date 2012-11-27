@@ -1,0 +1,92 @@
+#import ipaddr
+#import late_command
+#set $script = ""
+##
+##
+#set ikeys = $interfaces.keys()
+##################################
+## configuring udev rules
+##################################
+#set $script += "### configuring udev rules ###\n"
+#set $rules_file = "/etc/udev/rules.d/70-persistent-net.rules"
+#set $script += "echo > %s\n" % $rules_file
+#for $iname in $ikeys
+    #set $idata = $interfaces[$iname]
+    #set $imac = $idata.get("mac_address", "")
+    #if $imac == "":
+        #continue
+    #end if
+    #set $script += "MATCHADDR=%s INTERFACE=%s /lib/udev/write_net_rules\n" % ($imac, $iname)
+#end for
+#set $script += "\n"
+#######################################
+## configuring /etc/network/interfaces
+#######################################
+#set $script += "### configuring interfaces ###\n"
+#set $interfaces_file = "/etc/network/interfaces"
+#set $script += "echo > %s\n" % $interfaces_file
+#set $script += "echo auto lo >> %s\n" % $interfaces_file
+#set $script += "echo iface lo inet loopback >> %s\n" % $interfaces_file
+#set $script += "echo >> %s\n" % $interfaces_file
+#for $iname in $ikeys
+    #set $idata = $interfaces[$iname]
+    #if $idata.get("static", "0") in ("1", True, "true")
+        #set $script += "echo auto %s >> %s\n" % ($iname, $interfaces_file)
+        #set $script += "echo iface %s inet static >> %s\n" % ($iname, $interfaces_file)
+        #set $iip = $idata.get("ip_address", "")
+        #if $iip != ""
+            #set $script += "echo address %s >> %s\n" % ($iip, $interfaces_file)
+        #end if
+        #set $inetmask = $idata.get("netmask", "")
+        #if $inetmask != ""
+            #set $script += "echo netmask %s >> %s\n" % ($inetmask, $interfaces_file)
+        #end if
+        #set $gateway = $getVar("gateway", "")
+        #if $gateway != ""
+            #set $network_address = ipaddr.IPv4Network("%s/%s" % ($iip, $inetmask))
+            #set $gateway_address = ipaddr.IPv4Address($gateway)
+            #if $gateway_address in $network_address
+                #set $script += "echo gateway %s >> %s\n" % ($gateway, $interfaces_file)
+                #set $nss = ""
+                #for $ns in $getVar("name_servers", [])
+                    #set $nss += " %s" % $ns
+                #end for
+                #if $nss != ""
+                    #set $script += "echo dns-nameservers %s >> %s\n" % ($nss, $interfaces_file)
+                #end if
+                #set $nssearch = ""
+                #for $nsrch in $getVar("name_servers_search", [])
+                    #set $nssearch += " %s" % $nsrch
+                #end for
+                #if $nssearch
+                    #set $script += "echo dns-search %s >> %s\n" % ($nssearch, $interfaces_file)
+                #end if
+            #end if
+        #end if
+    #else
+        #set script += "echo auto %s >> %s\n" % ($iname, $interfaces_file)
+        #set $script += "echo iface %s inet dhcp >> %s\n" % ($iname, $interfaces_file)
+    #end if
+    #set $script += "echo >> %s\n" % $interfaces_file
+#end for
+#set $script += "\n"
+#######################################
+## configuring /etc/hosts
+#######################################
+#set $script += "### configuring /etc/hosts ###\n"
+#set $hosts_file = "/etc/hosts"
+#set $script += "echo > %s\n" % $hosts_file
+#set $script += "echo 127.0.0.1 localhost >> %s\n" % $hosts_file
+#for $iname in $ikeys
+    #set $idata = $interfaces[$iname]
+    #if $idata.get("static", "0") in ("1", True, "true")
+        #set $iip = $idata.get("ip_address", "")
+        #if $iip != ""
+            #set $idnsname = $idata.get("dns_name", "")
+            #if $idnsname != ""
+                #set $script += "echo %s %s >> %s\n" % ($iip, $idnsname, $hosts_file)
+            #end if
+        #end if
+    #end if
+#end for
+in-target $late_command.late_command($script, source_method="content")

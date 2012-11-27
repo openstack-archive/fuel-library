@@ -8,6 +8,7 @@ libdir = /usr/libexec/mcollective
 logfile = /var/log/mcollective.log
 loglevel = info
 daemonize = 1
+direct_addressing = 1
 
 # Plugins
 securityprovider = psk
@@ -19,6 +20,7 @@ plugin.stomp.port = $mco_stompport
 plugin.stomp.user = $mco_stompuser
 plugin.stomp.password = $mco_stomppassword
 
+
 # Facts
 factsource = yaml
 plugin.yaml = /etc/mcollective/facts.yaml
@@ -26,6 +28,10 @@ EOCONF
 #end if
 
 #if $str($getVar('mco_enable', '')) == "1"
-# turn on mcollective service after reboot
+## turn on mcollective service after reboot
+    #if $breed == "redhat"
 /sbin/chkconfig mcollective on
+    #elif $breed == "debian" or $breed == "ubuntu"
+/usr/sbin/update-rc.d mcollective defaults
+    #end if
 #end if

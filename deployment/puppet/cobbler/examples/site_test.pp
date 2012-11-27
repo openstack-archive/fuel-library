@@ -1,8 +1,4 @@
 node default {
-  notify { "test-notification-${hostname}": }
-}
-
-node /^(fuel-pm|fuel-cobbler).mirantis.com/ {
 
   Exec  {path => '/usr/bin:/bin:/usr/sbin:/sbin'}
 
@@ -14,9 +10,9 @@ node /^(fuel-pm|fuel-cobbler).mirantis.com/ {
   case $operatingsystem {
     /(?i)(centos|redhat)/: {
       exec { "enable_nat_all":
-        command => "iptables -t nat -I POSTROUTING 1 -s 10.0.0.0/24 ! -d 10.0.0.0/24 -j MASQUERADE; \
+        command => "iptables -t nat -I POSTROUTING 1 -s 10.100.0.0/24 ! -d 10.100.0.0/24 -j MASQUERADE; \
         /etc/init.d/iptables save",
-        unless => "iptables -t nat -S POSTROUTING | grep -q \"^-A POSTROUTING -s 10.0.0.0/24 ! -d 10.0.0.0/24 -j MASQUERADE\""
+        unless => "iptables -t nat -S POSTROUTING | grep -q \"^-A POSTROUTING -s 10.100.0.0/24 ! -d 10.100.0.0/24 -j MASQUERADE\""
       }
 
       exec { "enable_nat_filter":
@@ -38,9 +34,9 @@ node /^(fuel-pm|fuel-cobbler).mirantis.com/ {
       # you already have those files defined
 
       exec { "enable_nat_all":
-        command => "iptables -t nat -I POSTROUTING 1 -s 10.0.0.0/24 ! -d 10.0.0.0/24 -j MASQUERADE; \
+        command => "iptables -t nat -I POSTROUTING 1 -s 10.100.0.0/24 ! -d 10.100.0.0/24 -j MASQUERADE; \
         iptables-save -c > /etc/iptables.rules",
-        unless => "iptables -t nat -S POSTROUTING | grep -q \"^-A POSTROUTING -s 10.0.0.0/24 ! -d 10.0.0.0/24 -j MASQUERADE\""
+        unless => "iptables -t nat -S POSTROUTING | grep -q \"^-A POSTROUTING -s 10.100.0.0/24 ! -d 10.100.0.0/24 -j MASQUERADE\""
       }
 
       exec { "enable_nat_filter":
@@ -60,17 +56,17 @@ node /^(fuel-pm|fuel-cobbler).mirantis.com/ {
   }
 
   class { cobbler :
-    server              => '10.0.0.100',
+    server              => '10.100.0.201',
 
     domain_name         => 'mirantis.com',
-    name_server         => '10.0.0.100',
-    next_server         => '10.0.0.100',
+    name_server         => '10.100.0.201',
+    next_server         => '10.100.0.201',
 
-    dhcp_start_address  => '10.0.0.201',
-    dhcp_end_address    => '10.0.0.254',
+    dhcp_start_address  => '10.100.0.221',
+    dhcp_end_address    => '10.100.0.254',
     dhcp_netmask        => '255.255.255.0',
-    dhcp_gateway        => '10.0.0.100',
-    dhcp_interface      => 'eth1',
+    dhcp_gateway        => '10.100.0.1',
+    dhcp_interface      => 'eth0',
 
     cobbler_user        => 'cobbler',
     cobbler_password    => 'cobbler',
@@ -82,13 +78,18 @@ node /^(fuel-pm|fuel-cobbler).mirantis.com/ {
   Class[cobbler::distro::centos63-x86_64] ->
   Class[cobbler::profile::centos63-x86_64]
 
-  class { cobbler::distro::centos63-x86_64:
-    http_iso => "http://10.0.0.1/iso/CentOS-6.3-x86_64-minimal.iso",
+  class { cobbler::distro::centos63-x86_64 :
+    http_iso => "http://10.100.0.1/iso/CentOS-6.3-x86_64-minimal.iso",
     ks_url   => "cobbler",
     require  => Class[cobbler],
   }
 
-  class { cobbler::profile::centos63-x86_64: }
+  class { cobbler::profile::centos63-x86_64 :
+    ks_repo => [{
+                "name" => "Local",
+                "url" => "http://10.100.0.1:1234/centos/6.3/os/x86_64"
+                }],
+  }
 
 
   # UBUNTU distribution
@@ -96,27 +97,15 @@ node /^(fuel-pm|fuel-cobbler).mirantis.com/ {
   Class[cobbler::profile::ubuntu-1204-x86_64]
 
   class { cobbler::distro::ubuntu-1204-x86_64 :
-    http_iso => "http://10.0.0.1/iso/ubuntu-12.04-x86_64-mini.iso",
-    require  => Class[cobbler],
+    http_iso => "http://10.100.0.1/iso/ubuntu-12.04-x86_64-mini.iso",
+    ks_url   => "http://10.100.0.1:1234/ubuntu"
   }
 
-  class { cobbler::profile::ubuntu-1204-x86_64 : }
-
-
-  # RHEL distribution
-  # Class[cobbler::distro::rhel63-x86_64] ->
-  # Class[cobbler::profile::rhel63-x86_64]
-  #
-  # class { cobbler::distro::rhel63-x86_64:
-  #   http_iso => "http://address/of/rhel-server-6.3-x86_64-boot.iso",
-  #   ks_url   => "http://address/of/rhel/base/mirror/6.3/os/x86_64",
-  #   require  => Class[cobbler],
-  # }
-  #
-  # class { cobbler::profile::rhel63-x86_64: }
-
-  # IT IS NEEDED IN ORDER TO USE cobbler_system.py SCRIPT
-  # WHICH USES argparse PYTHON MODULE
-  package {"python-argparse": }
+  class { cobbler::profile::ubuntu-1204-x86_64 :
+    ks_repo => [{
+                "name" => "Local",
+                "url"  => "http://10.100.0.1:1234/ubuntu"
+                }],
+  }
 
 }

@@ -1,0 +1,38 @@
+#import late_command
+#if $str($getVar('mco_auto_setup','')) == "1"
+in-target mkdir -p /etc/mcollective && \
+in-target $late_command.late_file("""topicprefix = /topic/
+main_collective = mcollective
+collectives = mcollective
+libdir = /usr/libexec/mcollective
+logfile = /var/log/mcollective.log
+loglevel = info
+daemonize = 1
+direct_addressing = 1
+
+# Plugins
+securityprovider = psk
+plugin.psk = %(mco_pskey)s
+
+connector = stomp
+plugin.stomp.host = %(mco_stomphost)s
+plugin.stomp.port = %(mco_stompport)s
+plugin.stomp.user = %(mco_stompuser)s
+plugin.stomp.password = %(mco_stomppassword)s
+
+# Facts
+factsource = yaml
+plugin.yaml = /etc/mcollective/facts.yaml
+""" % {
+    "mco_pskey": $mco_pskey,
+    "mco_stomphost": $mco_stomphost,
+    "mco_stompport": $mco_stompport,
+    "mco_stompuser": $mco_stompuser,
+    "mco_stomppassword": $mco_stomppassword
+    }, "/etc/mcollective/server.cfg", source_method='content', mode="0600") && \
+#end if
+#if $str($getVar('mco_enable', '')) == "1"
+in-target /usr/sbin/update-rc.d mcollective defaults \
+#else
+true \
+#end if
