@@ -1,9 +1,9 @@
 class puppet::nginx(
   $puppet_master_hostname,
-  $hostcert = $::hostcert,
-  $hostprivkey = $::hostprivkey,
-  $localcacert = $::localcacert,
-  $cacrl = $::cacrl,
+  $hostcert = $settings::hostcert,
+  $hostprivkey = $settings::hostprivkey,
+  $localcacert = $settings::localcacert,
+  $cacrl = $settings::cacrl,
   $upstream_servers = ["127.0.0.1:18140", "127.0.0.1:18141", "127.0.0.1:18142", "127.0.0.1:18143"],
   ) {
    

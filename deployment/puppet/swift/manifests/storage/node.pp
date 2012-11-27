@@ -7,7 +7,6 @@
 define swift::storage::node(
   $mnt_base_dir,
   $zone,
-  $weight = 1,
   $owner = 'swift',
   $group  = 'swift',
   $max_connections = 25,
@@ -28,7 +27,6 @@ define swift::storage::node(
   }
   ring_object_device { "${storage_local_net_ip}:60${name}0/$name":
     zone        => $zone,
-    weight      => $weight,
   }
 
   swift::storage::server { "60${name}1":
@@ -36,7 +34,6 @@ define swift::storage::node(
   }
   ring_container_device { "${storage_local_net_ip}:60${name}1/$name":
     zone        => $zone,
-    weight      => $weight,
   }
 
   swift::storage::server { "60${name}2":
@@ -44,7 +41,6 @@ define swift::storage::node(
   }
   ring_account_device { "${storage_local_net_ip}:60${name}2/$name":
     zone        => $zone,
-    weight      => $weight,
   }
 
 }

@@ -29,10 +29,9 @@ class { 'haproxy':
 @@haproxy::balancermember { $fqdn:
   order                  => '21',
   listening_service      => 'puppet00',
-  server_name            => $::hostname,
-  balancer_ip            => $::ipaddress,
   balancer_port          => '8140',
-  balancermember_options => 'check'
+  balancermember_options => 'check',
+  define_cookies         =>  true
 }
 
 # Declare a couple of Listening Services for haproxy.cfg
@@ -41,14 +40,14 @@ class { 'haproxy':
 #  Haproxy::Balancermember <<| listening_service == $name |>>
 haproxy::config { 'puppet00':
   order                  => '20',
-  virtual_ip             => $::ipaddress,
+  virtual_ips             => [$::ipaddress],
   virtual_ip_port        => '18140',
   haproxy_config_options => {
     'option' => ['tcplog', 'ssl-hello-chk'], 'balance' => 'roundrobin' },
 }
 haproxy::config { 'stats':
   order                  => '30',
-  virtual_ip             => '',
+  virtual_ips             => [],
   virtual_ip_port        => '9090',
   haproxy_config_options => { 'mode'  => 'http',
                               'stats' => ['uri /', 'auth puppet:puppet']
