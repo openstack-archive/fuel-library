@@ -44,12 +44,15 @@ wsrep_provider=<%= libgalera_prefix %>/galera/libgalera_smm.so
 # Provider specific configuration options
 
 # See http://www.codership.com/wiki/doku.php?id=faq
+
+
+
 wsrep_provider_options="pc.ignore_sb = no"
 
 # Logical cluster name. Should be the same for all nodes.
 wsrep_cluster_name="<%= cluster_name -%>"
 <% if setup_multiple_gcomm -%>
-        wsrep_cluster_address="gcomm://<%= @node_addresses.collect {|ip| ip + ':' + 4567 }.join ',' %>"
+        wsrep_cluster_address="gcomm://<%= @node_addresses.collect {|ip| ip + ':' + 4567 }.join ',' %>?pc.wait_prim=yes"
 <% else -%>
     <% if master_ip -%>
         wsrep_cluster_address="gcomm://<%= master_ip %>:4567"
