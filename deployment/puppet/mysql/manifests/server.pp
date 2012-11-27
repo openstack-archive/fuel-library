@@ -24,7 +24,8 @@ class mysql::server (
   $enabled          = true,
   $galera_cluster_name = undef,
   $galera_master_ip = undef,
-  $galera_node_address = undef
+  $galera_node_address = undef,
+  $galera_nodes = undef
 ) inherits mysql::params {
   
   if ($custom_setup_class == undef) {
@@ -50,6 +51,7 @@ class mysql::server (
 	    cluster_name => $galera_cluster_name,
 	    master_ip => $galera_master_ip,
 	    node_address => $galera_node_address,
+      node_addresses => $galera_nodes,
     }
 #    require($galera_class)
   }

@@ -98,6 +98,7 @@ class openstack::controller(
   $galera_cluster_name = 'openstack',
   $galera_master_ip = '127.0.0.1',
   $galera_node_address = '127.0.0.1',
+  $galera_nodes = ['127.0.0.1'],
   $glance_backend,
   $manage_volumes          = false,
   $nv_physical_volume      = undef,
@@ -145,6 +146,7 @@ class openstack::controller(
     galera_cluster_name	=> $galera_cluster_name,
     galera_master_ip	=> $galera_master_ip,
     galera_node_address	=> $galera_node_address,
+    galera_nodes        => $galera_nodes,
     enabled => $enabled,
     custom_setup_class => $custom_mysql_setup_class,
   }

@@ -104,6 +104,7 @@ node /fuel-0[12]/ inherits swift_base {
       glance_backend          => $glance_backend,
       swift_proxies           => $swift_proxies,
       manage_volumes          => $manage_volumes,
+      galera_nodes            => $controller_hostnames,
       nv_physical_volume      => $nv_physical_volume,
       }
       
