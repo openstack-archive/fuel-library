@@ -14,6 +14,11 @@ def ovs_ofctl
   "/usr/bin/ovs-ofctl"
 end
 
+def openvswitch_module
+  (Facter.value('osfamily') != 'Debian') ? 'openvswitch' : 'openvswitch_mod'
+end
+
+
 module OpenVSwitch
     def self.exec(bin, cmd)
         result = Facter::Util::Resolution.exec(bin + " " + cmd)
@@ -49,7 +54,7 @@ end
 
 Facter.add("openvswitch_module") do
     setcode do
-        Facter.value(:kernel_modules).split(",").include? "openvswitch"
+        Facter.value(:kernel_modules).split(",").include? openvswitch_module
     end
 end
 
