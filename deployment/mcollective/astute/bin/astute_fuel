@@ -1,0 +1,27 @@
+#!/usr/bin/env ruby
+
+require 'rubygems'
+require 'astute'
+require 'yaml'
+
+class ConsoleReporter
+  def report(msg)
+    p msg
+  end
+end
+
+reporter = ConsoleReporter.new
+
+# load nodes structure from yaml 
+nodes_raw = YAML::load( File.open( './nodes.yaml' ) )
+nodes = Array.new(nodes_raw.size, Hash.new)
+indx = 0
+nodes_raw.each do |key, value|
+  nodes[indx] = value
+  nodes[indx]['uid'] = key
+  indx = indx + 1
+end
+
+task_id = `uuidgen`.strip
+orchestrator = Astute::Orchestrator.new
+orchestrator.deploy(reporter, task_id, nodes)

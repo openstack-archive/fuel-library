@@ -1,0 +1,15 @@
+fuel-01:
+    ip: 10.1.1.3
+    role: controller
+
+fuel-02:
+    ip: 10.1.1.4
+    role: controller
+
+fuel-03:
+    ip: 10.1.1.5
+    role: controller
+
+fuel-04:
+    ip: 10.1.1.6
+    role: compute
