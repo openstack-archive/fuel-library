@@ -75,6 +75,17 @@ node fuel-cobbler {
 
     class { cobbler::profile::centos63-x86_64: }
 
+    # UBUNTU distribution
+      Class[cobbler::distro::ubuntu-1204-x86_64] ->
+      Class[cobbler::profile::ubuntu-1204-x86_64]
+
+      class { cobbler::distro::ubuntu-1204-x86_64 :
+        http_iso => "http://172.18.67.168/ubuntu-12.04.1-server-amd64.iso",
+        require  => Class[cobbler],
+      }
+
+      class { cobbler::profile::ubuntu-1204-x86_64 : }
+
     # RHEL distribution
     # class { cobbler::distro::rhel63-x86_64:
     #   http_iso => "http://address/of/rhel-server-6.3-x86_64-boot.iso",
