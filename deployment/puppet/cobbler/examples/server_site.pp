@@ -15,13 +15,13 @@ stage {'openstack-custom-repo': before => Stage['main']}
 
 case $::osfamily {
   'Debian': {
-    class { 'openstack::repo::apt':
-      key => '420851BC',
-      location => 'http://172.18.66.213/deb',
-      key_source => 'http://172.18.66.213/gpg.pub',
-      origin => '172.18.66.213',
-      stage => 'openstack-custom-repo'
-    }
+#    class { 'openstack::repo::apt':
+#      key => '420851BC',
+#      location => 'http://172.18.66.213/deb',
+#      key_source => 'http://172.18.66.213/gpg.pub',
+#      origin => '172.18.66.213',
+#      stage => 'openstack-custom-repo'
+#    }
   }
   'RedHat': {
     class { 'openstack::repo::yum':
