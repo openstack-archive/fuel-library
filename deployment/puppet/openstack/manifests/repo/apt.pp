@@ -13,9 +13,9 @@ class openstack::repo::apt (
     include_src => $include_src,
   }
 
-  apt::pinning { 'openstack-apt-repo':
+  apt::pin { 'openstack-apt-repo':
     priority => 1001,
-    pin => "origin $origin",
+    origin => $origin,
     require => Apt::Source['openstack-apt-repo'],
   }
 }
