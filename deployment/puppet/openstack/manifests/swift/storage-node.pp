@@ -23,6 +23,7 @@ if !defined(Class['swift'])
       swift::storage::loopback { $storage_devices:
         base_dir     => $storage_base_dir,
         mnt_base_dir => $storage_mnt_base_dir,
+        seek         => '1048756',
         require      => Class['swift'],
       }
     }
