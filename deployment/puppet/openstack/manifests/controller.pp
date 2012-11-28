@@ -138,6 +138,7 @@ class openstack::controller (
   $quantum_db_password     = 'quantum_pass',
   $quantum_db_user         = 'quantum',
   $quantum_db_dbname       = 'quantum',
+  $quantum_l3_enable       = true,
   $enabled                 = true,
   $api_bind_address        = '0.0.0.0',
   $service_endpoint        = '127.0.0.1',
@@ -282,6 +283,7 @@ class openstack::controller (
     quantum                 => $quantum,
     quantum_user_password   => $quantum_user_password,
     quantum_db_password     => $quantum_db_password,
+    quantum_l3_enable       => $quantum_l3_enable, 
     # Nova
     nova_user_password      => $nova_user_password,
     nova_db_password        => $nova_db_password,

@@ -270,6 +270,7 @@ local0.* -/var/log/haproxy.log'
       quantum                 => $quantum,
       quantum_user_password   => $quantum_user_password,
       quantum_db_password     => $quantum_db_password,
+      quantum_l3_enable       => $which ? { 0 => true, 1 => false },
       cinder                  => $cinder,
       manage_volumes          => $manage_volumes,
       nv_physical_volume      => $nv_physical_volume,

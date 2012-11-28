@@ -22,7 +22,7 @@ class quantum::db::mysql (
     password     => $password,
     host         => $host,
     charset      => $charset,
-    require      => Class['mysql::config'],
+    require      => Class['mysql::server'],
   }
 
   if $allowed_hosts {

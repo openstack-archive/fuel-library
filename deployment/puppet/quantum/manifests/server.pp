@@ -1,3 +1,4 @@
+#
 class quantum::server (
   $auth_password,
   $package_ensure   = 'present',
@@ -30,12 +31,12 @@ class quantum::server (
   {
     'Debian':
       {
-       Quantum_config<||>->Package['quantum-server']
-       Quantum_api_config<||>->Package['quantum-server']
+       Quantum_config<||>->Package[$server_package]
+       Quantum_api_config<||>->Package[$server_package]
       }
       'RedHat':
         {
-        Package['quantum-server'] -> Quantum_config<||>
+        Package[$server_package] -> Quantum_config<||>
       }
   }
 

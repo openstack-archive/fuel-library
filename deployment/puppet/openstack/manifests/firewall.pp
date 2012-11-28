@@ -26,6 +26,7 @@ class openstack::firewall (
 	$memcached_port =  11211,
   $rsync_port = 873,
   $iscsi_port = 3260,
+	$quantum_api_port = 9696,
 ) {
 
 file {"iptables":
