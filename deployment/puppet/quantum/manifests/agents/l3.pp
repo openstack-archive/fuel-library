@@ -58,6 +58,28 @@ class quantum::agents::l3 (
 
   if $enabled {
     $ensure = 'running'
+
+    # create external/internal networks
+    file { '/tmp/quantum-networking.sh':
+      mode    => 740,
+      owner   => root,
+      content => template("quantum/quantum-networking.sh.${::osfamily}.erb"),
+      require => Service['quantum-server'],
+      notify  => Exec['create-networks'],
+    }
+  
+    package { 'cidr-package':
+      name => $::quantum::params::cidr_package,
+      ensure => $package_ensure,
+      before => Exec['create-networks']
+    }
+  
+    exec { 'create-networks':
+      command     => '/tmp/quantum-networking.sh',
+      # path        => '/usr/bin',
+      refreshonly => true,
+      logoutput   => true,
+    }
   } else {
     $ensure = 'stopped'
   }
@@ -71,28 +93,6 @@ class quantum::agents::l3 (
     onlyif  => "sed -n '272p' ${iptables_manager} | grep -q '/sbin/'",
     path    => '/bin/',
     require => Package[$l3_agent_package],
-  }
-  
-  # create external/internal networks
-  file { '/tmp/quantum-networking.sh':
-    mode    => 740,
-    owner   => root,
-    content => template("quantum/quantum-networking.${::osfamily}.sh.erb"),
-    require => Service['quantum-server'],
-    notify  => Exec['create-networks'],
-  }
-
-  package { 'cidr-package':
-    name => $::quantum::params::cidr_package,
-    ensure => $package_ensure,
-    before => Exec['create-networks']
-  }
-
-  exec { 'create-networks':
-    command     => '/tmp/quantum-networking.sh',
-    # path        => '/usr/bin',
-    refreshonly => true,
-    logoutput   => true,
   }
 
   service { 'quantum-l3':

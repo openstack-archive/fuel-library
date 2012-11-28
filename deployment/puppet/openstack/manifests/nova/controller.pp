@@ -46,6 +46,7 @@ class openstack::nova::controller (
   $quantum_db_user           = 'quantum',
   $quantum_db_password       = 'quantum_pass',
   $quantum_user_password     = 'quantum_pass',
+  $quantum_l3_enable         = true,
   # Nova
   $nova_db_user              = 'nova',
   $nova_db_dbname            = 'nova',
@@ -229,6 +230,7 @@ if ($rabbit_nodes)
     }
 
     class { 'quantum::agents::l3':
+      enabled        => $quantum_l3_enable,
       debug          => True,
       fixed_range    => $fixed_range,
       floating_range => $floating_range,
