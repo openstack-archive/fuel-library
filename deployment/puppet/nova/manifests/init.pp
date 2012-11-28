@@ -130,6 +130,10 @@ $auth_uri = "${auth_protocol}://${auth_host}:${auth_port}/v2.0"
     }
   }
 
+  if (defined(Exec['update-kombu']))
+  {
+    Exec['update-kombu'] -> Nova::Generic_service<||>
+  }
   package { 'nova-common':
     name    => $::nova::params::common_package_name,
     ensure  => $ensure_package,
