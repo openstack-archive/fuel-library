@@ -13,7 +13,8 @@ class openstack::mirantis_repos (
           release => 'precise-updates/folsom',
           repos => 'main',
           key => "5EDB1B62EC4926EA",
-          key_server => "pgp.mit.edu",
+          key_source => 'http://download.mirantis.com/precise-fuel-folsom/cloud-archive.key',
+#          key_server => "keys.gnupg.net",
           include_src => false,
         }
       }
@@ -24,7 +25,8 @@ class openstack::mirantis_repos (
           release => 'precise-updates/folsom',
           repos => 'main',
           key => "5EDB1B62EC4926EA",
-          key_server => "pgp.mit.edu",
+          key_source => 'http://172.18.67.168/ubuntu-repo/precise-fuel-folsom/cloud-archive.key',
+#         key_server => "pgp.mit.edu",
           include_src => false,
         }
 #        apt::source  { 'mirantis-internal-test-repo':
