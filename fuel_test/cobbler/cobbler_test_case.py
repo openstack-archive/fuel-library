@@ -37,6 +37,12 @@ class CobblerTestCase(BaseTestCase):
             pxetimeout         = '3000'
         )
 
+    def write_stomp_manifest(self):
+        self.write_site_pp_manifest(
+            root('deployment', 'puppet', 'mcollective', 'examples',
+                'site.pp'),
+        )
+
 
 if __name__ == '__main__':
     unittest.main()

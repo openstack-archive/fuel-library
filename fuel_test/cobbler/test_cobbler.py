@@ -30,6 +30,22 @@ class CobblerCase(CobblerTestCase):
         for node in self.environment.nodes:
             node.save_snapshot('cobbler', force=True)
 
+    def deploy_stomp_node(self):
+        master = self.environment.node['master']
+        self.master_remote = ssh(master.ip_address_by_network['public'],
+            username='root',
+            password='r00tme')
+        upload_recipes(self.master_remote)
+        upload_keys(self.master_remote)
+        for node in [self.environment.node['master']] + self.nodes.cobblers:
+            remote = ssh(node.ip_address, username='root', password='r00tme')
+            sync_time(remote.sudo.ssh)
+            remote.sudo.ssh.execute('yum makecache')
+        self.write_stomp_manifest()
+        self.validate(
+            self.nodes.stomps,
+            'puppet agent --test')
+
     def get_ks_meta(self, puppet_master, mco_host):
         return  ("puppet_auto_setup=1 "
                  "puppet_master=%(puppet_master)s "
@@ -53,6 +69,7 @@ class CobblerCase(CobblerTestCase):
 
     def add_fake_nodes(self):
         cobbler = self.ci().nodes().cobblers[0]
+        stomp_name = self.ci().nodes().stomps[0].name
         client = CobblerClient(cobbler.ip_address_by_network['internal'])
         token = client.login('cobbler', 'cobbler')
         for i in range(1,100):
@@ -63,10 +80,11 @@ class CobblerCase(CobblerTestCase):
                     node_mac0="00:17:3e:{0:02x}:{1:02x}:01".format(i, j),
                     node_mac1="00:17:3e:{0:02x}:{1:02x}:02".format(i, j),
                     node_mac2="00:17:3e:{0:02x}:{1:02x}:03".format(i, j),
-                    node_ip="192.168.{0:d}.{1:d}".format(i, j)
+                    node_ip="192.168.{0:d}.{1:d}".format(i, j),
+                    stomp_name=stomp_name
                 )
 
-    def _add_node(self, client, token, cobbler, node_name, node_mac0, node_mac1, node_mac2, node_ip):
+    def _add_node(self, client, token, cobbler, node_name, node_mac0, node_mac1, node_mac2, node_ip, stomp_name):
         system_id = client.new_system(token)
         if OS_FAMILY=='centos':
             profile='centos63-x86_64'
@@ -75,7 +93,7 @@ class CobblerCase(CobblerTestCase):
         client.modify_system_args(
             system_id, token,
             ks_meta=self.get_ks_meta('master',
-                'stomp'),
+                stomp_name),
             name=node_name,
             hostname=node_name + ".mirantis.com",
             name_servers=cobbler.ip_address_by_network['internal'],
@@ -103,7 +121,8 @@ class CobblerCase(CobblerTestCase):
         node_ip=str(node.ip_address_by_network['internal'])
         self._add_node(
             client, token, cobbler, node_name,
-            node_mac0, node_mac1, node_mac2, node_ip
+            node_mac0, node_mac1, node_mac2, node_ip,
+            stomp_name=self.ci().nodes().stomps[0].name
         )
 
     def test_configure_cobbler(self):
