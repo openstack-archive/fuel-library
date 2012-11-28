@@ -40,6 +40,14 @@ class openstack::cinder(
     cinder_config { 'DEFAULT/rabbit_ha_queues': value => 'True' }
   
   }
+
+  if (defined(Exec['patch-cinder-rabbitmq']))
+  {
+    Exec['patch-cinder-rabbitmq']->Class['cinder::base']
+    Exec['patch-cinder-rabbitmq']->Class['cinder::api']
+    Exec['patch-cinder-rabbitmq']->Class['cinder::scheduler']
+  }
+
   class { 'cinder::base':
     package_ensure => $::openstack_version['cinder'],
     rabbit_password => $rabbit_password,
@@ -58,6 +66,12 @@ class openstack::cinder(
       enabled        => true,
     }   
 if $manage_volumes {
+  if (defined(Exec['patch-cinder-rabbitmq']))
+  {
+    Exec['patch-cinder-rabbitmq']->Class['cinder::volume']
+    Exec['patch-cinder-rabbitmq']->Class['cinder::volume::iscsi']
+  }
+
 
     class { 'cinder::volume':
       package_ensure => $::openstack_version['cinder'],
