@@ -15,9 +15,6 @@ stage {'openstack-custom-repo': before => Stage['main']}
 
 case $::osfamily {
   'Debian': {
-    class { 'apt':
-      stage => 'openstack-custom-repo'
-    }->
     class { 'openstack::repo::apt':
       key => '420851BC',
       location => 'http://172.18.66.213/deb',
