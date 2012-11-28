@@ -43,7 +43,6 @@ class openstack::cinder(
 
   if (defined(Exec['patch-cinder-rabbitmq']))
   {
-    Exec['patch-cinder-rabbitmq']->Class['cinder::base']
     Exec['patch-cinder-rabbitmq']->Class['cinder::api']
     Exec['patch-cinder-rabbitmq']->Class['cinder::scheduler']
   }
