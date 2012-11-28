@@ -160,11 +160,9 @@ class openstack::compute (
     libvirt_type     => $libvirt_type,
     vncserver_listen => $internal_address,
   }
-
-  if ( $ssh_private_key != undef ) {
     case $::osfamily {
       'Debian': {$scp_package='openssh-client'}
-      'Redhat': {$scp_package='openssh-clients'}
+      'RedHat': {$scp_package='openssh-clients'}
        default: {
                  fail("Unsupported osfamily: ${osfamily}")
       }
@@ -172,7 +170,9 @@ class openstack::compute (
     if !defined(Package[$scp_package]) {
       package {$scp_package: ensure => present } 
     }
-    file { '/var/lib/nova/.ssh':
+ 
+  if ( $ssh_private_key != undef ) {
+   file { '/var/lib/nova/.ssh':
       ensure => directory,
       owner => 'nova',
       group => 'nova',
