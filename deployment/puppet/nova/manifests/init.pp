@@ -130,6 +130,10 @@ class nova(
     nova_config { 'DEFAULT/rabbit_ha_queues': value => 'True' }
   }
 
+  if (defined(Exec['update-kombu']))
+  {
+    Exec['update-kombu'] -> Nova::Generic_service<||>
+  }
   package { 'nova-common':
     name    => $::nova::params::common_package_name,
     ensure  => $ensure_package,
