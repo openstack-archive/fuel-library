@@ -61,10 +61,12 @@ class mcollective::rabbitmq(
     @service { 'rabbitmq-server' : }
   }
 
-  exec {"rabbit-plugins":
-    path => '/usr/sbin/:/usr/lib/rabbitmq/bin/',
-    command => 'rabbitmq-plugins enable amqp_client rabbitmq_stomp',
-    require   => Package['rabbitmq-server'],
-    notify   => Service['rabbitmq-server'],
+  file {"/etc/rabbitmq/enabled_plugins":
+    content => template("mcollective/enabled_plugins.erb"),
+    owner => root,
+    group => root,
+    mode => 0644,
+    require => Package["rabbitmq-server"],
+    notify => Service["rabbitmq-server"],
   }
 }
