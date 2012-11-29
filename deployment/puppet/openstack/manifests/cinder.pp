@@ -11,6 +11,7 @@ class openstack::cinder(
   $purge_cinder_config = true,
   $auth_host          = '127.0.0.1',
   $bind_host          = '0.0.0.0',
+  $patch_apply        = false,
 ) {
   include cinder::params
   #  if ($purge_cinder_config) {
@@ -20,17 +21,21 @@ class openstack::cinder(
   #}
   if $rabbit_nodes {
     $rabbit_hosts = inline_template("<%= @rabbit_nodes.map {|x| x + ':5672'}.join ',' %>")
-    # file { "/tmp/rmq-cinder-ha.patch":
-    #   ensure => present,
-    #   source => 'puppet:///modules/cinder/rmq-cinder-ha.patch'
-    # }
 
-    # exec { 'patch-cinder-rabbitmq':
-    #   unless  => "/bin/grep x-ha-policy /usr/lib/${::cinder::params::python_path}/cinder/openstack/common/rpc/impl_kombu.py",
-    #   command => "/usr/bin/patch -p1 -N -r - -d /usr/lib/${::cinder::params::python_path}/cinder </tmp/rmq-cinder-ha.patch",
-    #   returns => [0, 1],
-    #   require => [ [File['/tmp/rmq-cinder-ha.patch']],[Package['patch', 'python-cinder']]],
-    # }
+    if $patch_apply {
+      file { "/tmp/rmq-cinder-ha.patch":
+        ensure => present,
+        source => 'puppet:///modules/cinder/rmq-cinder-ha.patch'
+      }
+
+      exec { 'patch-cinder-rabbitmq':
+        unless  => "/bin/grep x-ha-policy /usr/lib/${::cinder::params::python_path}/cinder/openstack/common/rpc/impl_kombu.py",
+        command => "/usr/bin/patch -p1 -N -r - -d /usr/lib/${::cinder::params::python_path}/cinder </tmp/rmq-cinder-ha.patch",
+        returns => [0, 1],
+        require => [ [File['/tmp/rmq-cinder-ha.patch']],[Package['patch', 'python-cinder']]],
+      }
+    }
+
     #    exec { 'patch-nova-mysql':
     #  unless  => "/bin/grep sql_inc_retry_interval /usr/lib/${::nova::params::python_path}/nova/flags.py",
     #  command => "/usr/bin/patch -p1 -N -r - -d /usr/lib/${::nova::params::python_path}/nova </tmp/mysql.patch",
