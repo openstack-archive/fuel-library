@@ -75,7 +75,7 @@ class CobblerCase(CobblerTestCase):
         client.modify_system_args(
             system_id, token,
             ks_meta=self.get_ks_meta('master',
-                cobbler.ip_address_by_network['internal']),
+                'stomp'),
             name=node_name,
             hostname=node_name + ".mirantis.com",
             name_servers=cobbler.ip_address_by_network['internal'],
