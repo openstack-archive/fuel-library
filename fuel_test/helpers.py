@@ -1,9 +1,10 @@
 import logging
 import subprocess
 from time import sleep
-from devops.helpers import ssh, os
+from devops.helpers import ssh, os, wait
 import keystoneclient.v2_0
 import re
+from fuel_test.cobbler.cobbler_client import CobblerClient
 from fuel_test.settings import OS_FAMILY, PUPPET_CLIENT_PACKAGE, PUPPET_VERSION, PUPPET_MASTER_SERVICE, ADMIN_USERNAME, ADMIN_PASSWORD, ADMIN_TENANT_FOLSOM, ADMIN_TENANT_ESSEX, CIRROS_IMAGE, OPENSTACK_SNAPSHOT
 from root import root
 import glanceclient.client
@@ -433,5 +434,14 @@ def write_static_ip(remote, ip, net_mask, gateway, interface='eth0'):
             'ip': str(ip), 'net_mask': str(net_mask),
             'gateway': str(gateway)}
         write_config(remote, path, text)
+
+def await_node_deploy(ip, name):
+    client = CobblerClient(ip)
+    token = client.login('cobbler', 'cobbler')
+#    todo does cobbler require authorization?
+    wait(
+        lambda : client.get_system(name, token)['netboot_enabled'] == False,
+        timeout=30*60*60)
+
 
 
