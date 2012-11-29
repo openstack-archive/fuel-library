@@ -1,11 +1,9 @@
-import logging
 from time import sleep
 import unittest
-import devops
-from devops.helpers import wait, ssh
+from devops.helpers import ssh
 from fuel_test.cobbler.cobbler_client import CobblerClient
 from fuel_test.cobbler.cobbler_test_case import CobblerTestCase
-from fuel_test.helpers import tcp_ping, udp_ping, safety_revert_nodes, add_to_hosts, sign_all_node_certificates, sync_time, upload_recipes, upload_keys
+from fuel_test.helpers import tcp_ping, udp_ping, safety_revert_nodes, add_to_hosts, sign_all_node_certificates, sync_time, upload_recipes, upload_keys, await_node_deploy
 from fuel_test.settings import EMPTY_SNAPSHOT, OS_FAMILY
 
 class CobblerCase(CobblerTestCase):
@@ -152,20 +150,17 @@ class CobblerCase(CobblerTestCase):
             node.save_snapshot('cobbler-configured', force=True)
 
     def test_deploy_nodes(self):
+        cobbler = self.ci().nodes().cobblers[0]
         safety_revert_nodes(self.environment.nodes,
             snapsot_name='cobbler-configured')
         for node in self.environment.nodes:
             node.start()
         for node in self.ci().nodes().computes + self.ci().nodes().controllers:
-            logging.info("Waiting ssh... %s" % node.ip_address)
-            wait(lambda: devops.helpers.tcp_ping(
-                node.ip_address_by_network['internal'], 22),
-                timeout=900)
+            await_node_deploy(
+                cobbler.ip_address_by_network['internal'], node.name)
         sleep(20)
         sign_all_node_certificates(self.master_remote)
-        self.validate(
-            self.ci().nodes().computes + self.ci().nodes().controllers,
-            'puppet agent --test')
+
 
     def assert_cobbler_ports(self, ip):
         closed_tcp_ports = filter(
