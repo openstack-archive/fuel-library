@@ -443,5 +443,17 @@ def await_node_deploy(ip, name):
         lambda : client.get_system(name, token)['netboot_enabled'] == False,
         timeout=30*60*60)
 
+def build_astute():
+    subprocess.check_output(
+        ['gem', 'build', 'astute.gemspec'],
+        cwd=root('deployment', 'mcollective', 'astute'))
 
+def install_astute(ip):
+    remote = ssh(ip,
+        username='root',
+        password='r00tme')
+    remote.upload(
+        root('deployment', 'mcollective', 'astute', 'astute-0.0.1.gem'),
+        '/tmp/astute-0.0.1.gem')
+    execute(remote, 'gem install /tmp/astute-0.0.1.gem')
 

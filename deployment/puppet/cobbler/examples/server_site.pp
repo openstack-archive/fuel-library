@@ -80,7 +80,7 @@ node fuel-cobbler {
       Class[cobbler::profile::ubuntu-1204-x86_64]
 
       class { cobbler::distro::ubuntu-1204-x86_64 :
-        http_iso => "http://172.18.67.168/ubuntu-12.04.1-server-amd64.iso",
+        http_iso => "http://172.18.67.168/mini.iso",
         require  => Class[cobbler],
       }
 

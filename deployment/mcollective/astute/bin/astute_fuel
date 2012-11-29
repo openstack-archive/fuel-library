@@ -15,11 +15,11 @@ reporter = ConsoleReporter.new
 # load nodes structure from yaml 
 nodes_raw = YAML::load( File.open( './nodes.yaml' ) )
 nodes = Array.new(nodes_raw.size, Hash.new)
-indx = 0
+index = 0
 nodes_raw.each do |key, value|
-  nodes[indx] = value
-  nodes[indx]['uid'] = key
-  indx = indx + 1
+  nodes[index] = value
+  nodes[index]['uid'] = key
+  index = index + 1
 end
 
 task_id = `uuidgen`.strip

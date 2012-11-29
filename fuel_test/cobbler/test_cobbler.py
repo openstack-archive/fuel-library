@@ -3,7 +3,7 @@ import unittest
 from devops.helpers import ssh
 from fuel_test.cobbler.cobbler_client import CobblerClient
 from fuel_test.cobbler.cobbler_test_case import CobblerTestCase
-from fuel_test.helpers import tcp_ping, udp_ping, safety_revert_nodes, add_to_hosts, sign_all_node_certificates, sync_time, upload_recipes, upload_keys, await_node_deploy
+from fuel_test.helpers import tcp_ping, udp_ping, safety_revert_nodes, add_to_hosts, sign_all_node_certificates, sync_time, upload_recipes, upload_keys, await_node_deploy, build_astute, install_astute
 from fuel_test.settings import EMPTY_SNAPSHOT, OS_FAMILY
 
 class CobblerCase(CobblerTestCase):
@@ -27,6 +27,10 @@ class CobblerCase(CobblerTestCase):
             self.assert_cobbler_ports(node.ip_address_by_network['internal'])
         for node in self.environment.nodes:
             node.save_snapshot('cobbler', force=True)
+
+    def install_astute_gem(self):
+        build_astute()
+        install_astute(self.nodes.stomps[0].ip_address_by_network['public'])
 
     def deploy_stomp_node(self):
         master = self.environment.node['master']
