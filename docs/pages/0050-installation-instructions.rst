@@ -175,52 +175,41 @@ Also you can choose the nearest mirror from `CentOS Mirrors List <http://www.cen
 Enabling Stored Configuration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This section will allow you to configure puppet to use a technique called stored configuration. It's requred by Puppet manifests supplied with Fuel, so that they can store exported resources in Puppet database. This makes use of the Ruby on Rails framework and MySQL.
+This section will allow you to configure puppet to use a technique called stored configuration. It's requred by Puppet manifests supplied with Fuel, so that they can store exported resources in Puppet database. This makes use of the PuppetDB.
 
-* Install and configure MySQL & Ruby::
+* Install and configure PuppetDB::
 
-    yum install make
-    yum install gcc
-
-    yum install mysql
-    yum install mysql-server
-    yum install mysql-devel
-
-    yum install rubygems
-    yum install ruby-devel
-
-    gem install rails
-    gem install mysql
-
-    chkconfig mysqld on
-    service mysqld start
-    mysql -u root
-        create database puppet;
-        grant all privileges on puppet.* to puppet@localhost identified by 'password';
-
-* Apply workaround for http://projects.puppetlabs.com/issues/9290::
-
-    gem uninstall activerecord
-    gem install activerecord -v 3.0.10
+    yum install puppetdb puppetdb-terminus
 
 * Disable selinux (otherwise Puppet will not be able to connect to MySQL)
     * ``vi /etc/selinux/config``
         * find the corresponding line and change to ``SELINUX=disabled``
     * ``setenforce 0``
 
-* Configure Puppet master to use storeconfigs. 
+* Configure Puppet master to use storeconfigs.
     * ``vi /etc/puppet/puppet.conf``::
 
-        [master]
-            storeconfigs = true
-            dbadapter = mysql
-            dbuser = puppet
-            dbpassword = password
-            dbserver = localhost
-            dbsocket = /var/lib/mysql/mysql.sock
-            rundir = /var/run/puppet
+       [master]
+           storeconfigs = true
+           storeconfigs_backend = puppetdb
+
+* make sure your host resolve themselves FQDN.
+    * ``vi /etc/puppet/puppetdb.conf``::
+
+       [main]
+           server = your.full.fqdn.name
+           port = 8081
 
     * ``service puppetmaster restart``
+
+* Troubleshooting
+If you have a problem with ssl and puppetdb:
+
+   * ``service puppetdb stop``
+   * ``rm -rf /etc/puppetdb/ssl``
+   * ``puppetdb-ssl-setup``
+   * ``service puppetdb start``
+
                         
 Testing Puppet
 ~~~~~~~~~~~~~~
