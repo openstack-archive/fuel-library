@@ -29,7 +29,7 @@ $glance_backend         ='file'
 $manage_volumes         = true 
 $nv_physical_volume     = ['/dev/sdz', '/dev/sdy', '/dev/sdx'] 
 
-$quantum                = false
+$quantum                = true
 $quantum_user_password  = 'quantum_pass'
 $quantum_db_password    = 'quantum_pass'
 $quantum_db_user        = 'quantum'
