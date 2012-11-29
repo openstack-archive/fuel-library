@@ -17,7 +17,7 @@ class CiCobbler(CiBase):
             compute_names=['fuel-%02d' % x for x in range(
                 COBBLER_CONTROLLERS + 1,
                 COBBLER_CONTROLLERS + 1 + COBBLER_COMPUTES)],
-            stomp_names=['stomp']
+            stomp_names=['fuel-mcollective']
         )
 
     def env_name(self):
