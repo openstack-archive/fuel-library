@@ -6,16 +6,19 @@ class mcollective::client(
   $stompport = "61613",
   ){
 
-  case $operatingsystem {
-    /(?i)(centos|redhat)/:  {
-      # THIS PACKAGE ALSO INSTALLS REQUIREMENTS 
+  case $::osfamily {
+    'Debian': {
+      # THIS PACKAGE ALSO INSTALLS REQUIREMENTS
       # mcollective-common
       # rubygems
       # rubygem-stomp
       $mcollective_client_package = "mcollective-client"
     }
+    'RedHat': {
+      $mcollective_client_package = "mcollective-client"
+    }
     default: {
-      fail("Unsupported operating system: ${operatingsystem}")
+      fail("Unsupported osfamily: ${osfamily} for os ${operatingsystem}")
     }
   }
 
