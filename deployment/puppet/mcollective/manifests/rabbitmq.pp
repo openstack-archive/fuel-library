@@ -53,14 +53,18 @@ class mcollective::rabbitmq(
   # TODO
   # IMPLEMENT RABBITMQ PLUGIN TYPE IN rabbitmq MODULE
 
-  if ! defined(Service['rabbitmq::server']){
-    @service { 'rabbitmq::server' : }
+  if ! defined(Package['rabbitmq-server']){
+    @package { 'rabbitmq-server': }
+  }
+
+  if ! defined(Service['rabbitmq-server']){
+    @service { 'rabbitmq-server' : }
   }
 
   exec {"rabbit-plugins":
     path => '/usr/sbin/:/usr/lib/rabbitmq/bin/',
     command => 'rabbitmq-plugins enable amqp_client rabbitmq_stomp',
-    require   => Class['rabbitmq::server'],
-    notify   => Service['rabbitmq-server']
+    require   => Package['rabbitmq-server'],
+    notify   => Service['rabbitmq-server'],
   }
 }
