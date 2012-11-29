@@ -200,6 +200,7 @@ if ($rabbit_nodes)
     # Set up Quantum
     $quantum_sql_connection = "mysql://${quantum_db_user}:${quantum_db_password}@${db_host}/${quantum_db_dbname}?charset=utf8"
     class { 'quantum':
+      bind_host       => $api_bind_address,
       rabbit_user     => $rabbit_user,
       rabbit_password => $rabbit_password,
       rabbit_host     => $rabbit_nodes,
@@ -209,6 +210,7 @@ if ($rabbit_nodes)
     }
 
     class { 'quantum::server':
+      auth_host     => $internal_address,
       auth_password => $quantum_user_password,
     }
 
@@ -221,7 +223,7 @@ if ($rabbit_nodes)
     class { 'quantum::agents::ovs':
       bridge_uplinks   => ["br-ex:${private_interface}"],
       enable_tunneling => true,
-      local_ip         => $internal_address,
+      local_ip         => $api_bind_address,
     }
 
     class { 'quantum::agents::dhcp':
