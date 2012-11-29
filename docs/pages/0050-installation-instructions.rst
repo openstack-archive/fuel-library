@@ -201,6 +201,7 @@ This section will allow you to configure puppet to use a technique called stored
            port = 8081
 
     * ``service puppetmaster restart``
+    * ``service puppetdb restart`` - this may take about half a minute to actually start. Check by ``telnet localhost 8081``.
 
 * Troubleshooting
 If you have a problem with ssl and puppetdb:
