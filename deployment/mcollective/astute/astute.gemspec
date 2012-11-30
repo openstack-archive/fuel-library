@@ -13,7 +13,7 @@ Gem::Specification.new do |s|
   s.add_dependency 'mcollective-client', '> 2.0.0'
 
   s.files   = Dir.glob("{bin,lib,spec}/**/*")
-  s.executables = ['astute']
+  s.executables = ['astute', 'astute_fuel']
   s.require_path = 'lib'
 end
 
