@@ -62,6 +62,7 @@ class nova(
   #$root_helper = $::nova::params::root_helper,
   $monitoring_notifications = false,
   $api_bind_address = '0.0.0.0',
+  $patch_apply = false,
 ) inherits nova::params {
 
   # all nova_config resources should be applied
@@ -94,8 +95,43 @@ class nova(
 
   # turn on rabbitmq ha/cluster mode
   if $rabbit_nodes {
-    package { ['python-kombu', 'python-anyjson', 'python-amqp']:
-      ensure => present
+    if $patch_apply {
+      if !defined(Package['patch']) {
+        package { "patch": ensure => present }
+      }
+
+      file { "/tmp/rmq-ha.patch":
+        ensure => present,
+        source => 'puppet:///modules/nova/rmq-ha.patch'
+      }
+
+      file { "/tmp/mysql.patch":
+        ensure => present,
+        source => 'puppet:///modules/nova/mysql.patch'
+      }
+
+      exec { 'patch-nova-rabbitmq':
+        unless  => "/bin/grep x-ha-policy /usr/lib/${::nova::params::python_path}/nova/openstack/common/rpc/impl_kombu.py",
+        command => "/usr/bin/patch -p1 -N -r - -d /usr/lib/${::nova::params::python_path}/nova </tmp/rmq-ha.patch",
+        returns => [0, 1],
+        require => [ [File['/tmp/rmq-ha.patch']],[Package['patch', 'python-nova']]], 
+      } ->
+      exec { 'patch-nova-mysql':
+        unless  => "/bin/grep sql_inc_retry_interval /usr/lib/${::nova::params::python_path}/nova/flags.py",
+        command => "/usr/bin/patch -p1 -N -r - -d /usr/lib/${::nova::params::python_path}/nova </tmp/mysql.patch",
+        returns => [0, 1],
+        require => [ [File['/tmp/mysql.patch']],[Package['patch', 'python-nova']]], 
+      } ->
+      exec { 'update-kombu':
+        path    => ["/usr/bin/:/usr/local/bin/"],
+        command => "easy_install pip; pip uninstall -y kombu; pip uninstall -y anyjson; pip install kombu==2.4.7; pip install anyjson==0.3.3; pip install amqp;"
+      }
+
+    } else {
+      package { ['python-kombu', 'python-anyjson', 'python-amqp']:
+        ensure => present
+      }
+
     }
 
     # file { "/tmp/rmq-ha.patch":

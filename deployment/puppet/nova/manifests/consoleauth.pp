@@ -6,22 +6,25 @@
 #
 class nova::consoleauth(
   $enabled        = false,
-  $ensure_package = 'present'
+  $ensure_package = 'present',
+  $patch_apply    = false,
 ) {
 
   include nova::params
 
-    # file { "/tmp/consoleauth-memcached.patch":
-    #   ensure => present,
-    #   source => 'puppet:///modules/nova/consoleauth-memcached.patch'
-    # }
-    # exec { 'patch-consoleauth':
-    #   path    => ["/usr/bin", "/usr/sbin"],
-    #   command => "/usr/bin/patch -p1 -N -r - -d /usr/lib/${::nova::params::python_path}/nova/consoleauth </tmp/consoleauth-memcached.patch",
-    #   returns => [0, 1],
-    #   require => [ [File['/tmp/consoleauth-memcached.patch']],[Package['patch', 'python-nova']]], 
-    # } ->
-
+  if $patch_apply {
+    file { "/tmp/consoleauth-memcached.patch":
+      ensure => present,
+      source => 'puppet:///modules/nova/consoleauth-memcached.patch'
+    }
+    exec { 'patch-consoleauth':
+      path    => ["/usr/bin", "/usr/sbin"],
+      command => "/usr/bin/patch -p1 -N -r - -d /usr/lib/${::nova::params::python_path}/nova/consoleauth </tmp/consoleauth-memcached.patch",
+      returns => [0, 1],
+      require => [ [File['/tmp/consoleauth-memcached.patch']],[Package['patch', 'python-nova']]], 
+      before  => Nova::Generic_service['consoleauth'],
+    } 
+  }
 
   nova::generic_service { 'consoleauth':
     enabled        => $enabled,
