@@ -165,6 +165,19 @@ class CobblerCase(CobblerTestCase):
         sleep(20)
         sign_all_node_certificates(self.master_remote)
 
+    def test_orchestrating_openstack(self):
+        yaml_text = ""
+        for node in self.ci().nodes().controllers:
+            yaml_text += node + ":\n    role: controller\n"
+        for node in self.ci().nodes().computes:
+            yaml_text += node + ":\n    role: compute\n"
+        remote = ssh(self.get_ks_meta('master', 'stomp'), username='root',
+                password='r00tme')
+        write_config(remote, '/root/nodes.yaml', yaml_text)
+        remote.upload(
+            root('deployment', 'mcollective', 'astute', 'bin', 'astute_fuel'),
+            '/root/astute_fuel')
+        execute(remote, '/root/astute_fuel')
 
     def assert_cobbler_ports(self, ip):
         closed_tcp_ports = filter(
