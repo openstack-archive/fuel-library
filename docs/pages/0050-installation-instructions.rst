@@ -240,25 +240,26 @@ This section will allow you to configure puppet to use a technique called stored
 		
 		apt-get install puppetdb puppetdb-terminus
 
-* Disable selinux on CentOS/RHEL (otherwise Puppet will not be able to connect to DB)::
+* Disable selinux on CentOS/RHEL (otherwise Puppet will not be able to connect to PuppetDB)::
 	
 	sed -i s/SELINUX=.*/SELINUX=disabled/ /etc/sysconfig/selinux
 	setenforce 0
 
-* Configure Puppet master to use storeconfigs.
+* Configure Puppet master to use storeconfigs
     * ``vi /etc/puppet/puppet.conf``::
 
        [master]
            storeconfigs = true
            storeconfigs_backend = puppetdb
 
-* Make sure your host resolve FQDN of themselves.
-    * ``vi /etc/puppet/puppetdb.conf``::
+* Configure PuppetDB to use the right hostname and port
+    * ``vi /etc/puppet/puppetdb.conf`` (replace "mirantis.com" with your domain name; if this file does not exist, it will get created)::
 
        [main]
-           server = your.full.fqdn.name
+           server = fuel-pm.mirantis.com
            port = 8081
-* Restart Puppet master to apply settings (Note that these operations may take about half a minute to actually start. Check by ``telnet localhost 8081``)::
+
+* Restart Puppet master to apply settings (Note: these operations may take about half a minute. You can ensure that PuppetDB is running by executing ``telnet fuel-pm.mirantis.com 8081``)::
 
     service puppetmaster restart
     service puppetdb restart
