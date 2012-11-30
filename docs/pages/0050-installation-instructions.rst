@@ -97,79 +97,133 @@ OS Installation
 ~~~~~~~~~~~~~~~~~~~
 
 * Pick and download operating system image, it will be used as a base OS for the Puppet master node. We suggest to stick with either of these two:
-   * `CentOS-6.3-x86_64-minimal.iso <http://mirror.stanford.edu/yum/pub/centos/6.3/isos/x86_64/CentOS-6.3-x86_64-minimal.iso>`_
+   * `CentOS-6.3-x86_64-minimal.iso <http://mirror.stanford.edu/yum/pub/centos/6.3/isos/x86_64/CentOS-6.3-x86_64-minimal.iso>`_ Also you can choose the nearest mirror from `CentOS Mirrors List <http://www.centos.org/modules/tinycontent/index.php?id=30>`_
    * `rhel-server-6.3-x86_64-boot.iso <https://access.redhat.com/home>`_
+   * `Ubuntu 12.04 "Precise Pangolin" Minimal CD, x86_64 <https://help.ubuntu.com/community/Installation/MinimalCD>`_
 
-Also you can choose the nearest mirror from `CentOS Mirrors List <http://www.centos.org/modules/tinycontent/index.php?id=30>`_
 
 * Mount it to the server CD/DVD drive. In case of Virtualbox, mount it to fuel-pm virtual machine
     * Machine -> Settings... -> Storage -> CD/DVD Drive -> Choose a virtual CD/DVD disk file...
 
+
 * Boot server (or VM) off CD/DVD drive and install the chosen OS
     * Choose root password carefully
 
+
 * Set up eth0 interface (it will provide internet access for puppet master): 
-    * ``vi /etc/sysconfig/network-scripts/ifcfg-eth0``::
+	* CentOS/RHEL
+		* ``vi /etc/sysconfig/network-scripts/ifcfg-eth0``::
 
-        DEVICE="eth0"
-        BOOTPROTO="dhcp"
-        ONBOOT="yes"
-        TYPE="Ethernet"
-        PEERDNS="no"
+			DEVICE="eth0"
+			BOOTPROTO="dhcp"
+			ONBOOT="yes"
+			TYPE="Ethernet"
+			PEERDNS="no"
 
-    * ``ifup eth0``
-    * ``vi /etc/resolv.conf`` (replace "mirantis.com" with your domain name, replace "8.8.8.8" with your DNS IP)::
+		* Apply network settings::
+
+			ifup eth0
+
+    * Ubuntu
+        * ``vi /etc/network/interfaces``::
+
+        	auto eth0
+        	iface eth0 inet dhcp 
+     
+        * Apply network settings::
+
+	        service networking restart
+
+    * Add DNS for internet hostnames resolution. Both CentOS/RHEL and Ubuntu: ``vi /etc/resolv.conf`` (replace "mirantis.com" with your domain name, replace "8.8.8.8" with your DNS IP). Note: you can look up your DNS server using ``ipconfig /all`` on a host Windows machine, or using ``cat /etc/resolv.conf`` under host Linux ::
 
         search mirantis.com
         nameserver 8.8.8.8 
 
-    * Note: you can look up your DNS server using ``ipconfig /all`` on a host Windows machine, or using ``cat /etc/resolv.conf`` under Linux
+    * Check that internet access works::
 
-    * Check that internet access works
-        * ``ping google.com``
+        ping google.com
 
-    * Set up eth1 interface (for communication between puppet master and puppet clients):
-        * ``vi /etc/sysconfig/network-scripts/ifcfg-eth1``::
+* Set up eth1 interface (for communication between puppet master and puppet clients):
+	* CentOS/RHEL
+		* ``vi /etc/sysconfig/network-scripts/ifcfg-eth1``::
 
-            DEVICE="eth1"
-            BOOTPROTO="static"
-            IPADDR="10.0.0.100"
-            NETMASK="255.255.255.0"
-            ONBOOT="yes"
-            TYPE="Ethernet"
-            PEERDNS="no"
+			DEVICE="eth1"
+			BOOTPROTO="static"
+			IPADDR="10.0.0.100"
+			NETMASK="255.255.255.0"
+			ONBOOT="yes"
+			TYPE="Ethernet"
+			PEERDNS="no"
 
-        * ``ifup eth1``
-        * check that ping to your host machine works
-            * ``ping 10.0.0.1``
+		* Apply network settings:: 
 
-    * ``vi /etc/yum.repos.d/puppet.repo``::
+			ifup eth1
 
-        [puppetlabs]
-        name=Puppet Labs Packages
-        baseurl=http://yum.puppetlabs.com/el/$releasever/products/$basearch/
-        enabled=1
-        gpgcheck=1
-        gpgkey=http://yum.puppetlabs.com/RPM-GPG-KEY-puppetlabs
+	* Ubuntu
+		* add eth1 into "/etc/network/interfaces"::
 
-    * Install puppet master::
+			auto eth1
+			iface eth1 inet static
+			address 10.0.0.100
+			netmask 255.255.255.0
+			network 10.0.0.0
+			 
+		* Apply network settungs::
 
-        rpm -Uvh http://download.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-7.noarch.rpm
-        yum upgrade
-        yum install puppet-server
-        service puppetmaster start
-        chkconfig puppetmaster on
-        service iptables stop
-        chkconfig iptables off
+			service networking restart
 
-    * Set hostname (replace “mirantis.com” with your domain name)
-        * ``vi /etc/sysconfig/network``
-            * ``HOSTNAME=fuel-pm``
-        * ``vi /etc/hosts``
-            * ``10.0.0.100   fuel-pm fuel-pm.mirantis.com``
-        * ``hostname fuel-pm``
-        * ``reboot``
+	* check that ping to your host machine works::
 
+            ping 10.0.0.1
+
+* Set up packages repository
+	* CentOS/RHEL
+		* ``vi /etc/yum.repos.d/puppet.repo``::
+
+			[puppetlabs]
+			name=Puppet Labs Packages
+			baseurl=http://yum.puppetlabs.com/el/$releasever/products/$basearch/
+			enabled=1
+			gpgcheck=1
+			gpgkey=http://yum.puppetlabs.com/RPM-GPG-KEY-puppetlabs
+
+	* Ubuntu
+		* run::
+
+			wget http://apt.puppetlabs.com/puppetlabs-release-precise.deb
+			sudo dpkg -i puppetlabs-release-precise.deb
+
+* Install puppet master
+	* CentOS/RHEL::
+
+		rpm -Uvh http://download.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-7.noarch.rpm
+		yum upgrade
+		yum install puppet-server
+		service puppetmaster start
+		chkconfig puppetmaster on
+		service iptables stop
+		chkconfig iptables off
+
+	* Ubuntu::
+		
+		sudo apt-get update
+		apt-get install puppet puppetmaster
+
+* Set hostname
+	* CentOS/RHEL
+		* ``vi /etc/sysconfig/network``::
+
+			HOSTNAME=fuel-pm
+
+	* Ubuntu
+		* ``vi /etc/hostname``::
+
+			fuel-pm
+
+	* Both CentOS/RHEL and Ubuntu ``vi /etc/hosts`` (replace "mirantis.com" with your domain name)::
+
+            10.0.0.100   fuel-pm fuel-pm.mirantis.com
+	
 .. _puppet-master-stored-config:
 
 Enabling Stored Configuration
@@ -177,14 +231,19 @@ Enabling Stored Configuration
 
 This section will allow you to configure puppet to use a technique called stored configuration. It's requred by Puppet manifests supplied with Fuel, so that they can store exported resources in Puppet database. This makes use of the PuppetDB.
 
-* Install and configure PuppetDB::
+* Install and configure PuppetDB
+	* CentOS/RHEL:: 
 
-    yum install puppetdb puppetdb-terminus
+		yum install puppetdb puppetdb-terminus 
 
-* Disable selinux (otherwise Puppet will not be able to connect to MySQL)
-    * ``vi /etc/selinux/config``
-        * find the corresponding line and change to ``SELINUX=disabled``
-    * ``setenforce 0``
+	* Ubuntu::
+		
+		apt-get install puppetdb puppetdb-terminus
+
+* Disable selinux on CentOS/RHEL (otherwise Puppet will not be able to connect to DB)::
+	
+	sed -i s/SELINUX=.*/SELINUX=disabled/ /etc/sysconfig/selinux
+	setenforce 0
 
 * Configure Puppet master to use storeconfigs.
     * ``vi /etc/puppet/puppet.conf``::
@@ -193,29 +252,33 @@ This section will allow you to configure puppet to use a technique called stored
            storeconfigs = true
            storeconfigs_backend = puppetdb
 
-* make sure your host resolve themselves FQDN.
+* Make sure your host resolve FQDN of themselves.
     * ``vi /etc/puppet/puppetdb.conf``::
 
        [main]
            server = your.full.fqdn.name
            port = 8081
+* Restart Puppet master to apply settings (Note that these operations may take about half a minute to actually start. Check by ``telnet localhost 8081``)::
 
-    * ``service puppetmaster restart``
-    * ``service puppetdb restart`` - this may take about half a minute to actually start. Check by ``telnet localhost 8081``.
+    service puppetmaster restart
+    service puppetdb restart
 
-* Troubleshooting
-If you have a problem with ssl and puppetdb:
 
-   * ``service puppetdb stop``
-   * ``rm -rf /etc/puppetdb/ssl``
-   * ``puppetdb-ssl-setup``
-   * ``service puppetdb start``
+Troubleshooting PuppetDB and SSL
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* If you have a problem with ssl and puppetdb::
+
+   service puppetdb stop
+   rm -rf /etc/puppetdb/ssl
+   puppetdb-ssl-setup
+   service puppetdb start
 
                         
 Testing Puppet
 ~~~~~~~~~~~~~~
 
-* Put a simple configuration into Puppet (replace “mirantis.com” with your domain name), so that when you run puppet from any node, it will display the corresponding "Hello world" message
+* Put a simple configuration into Puppet (replace "mirantis.com" with your domain name), so that when you run puppet from any node, it will display the corresponding "Hello world" message
     * ``vi /etc/puppet/manifests/site.pp``::
 
         node /fuel-pm.mirantis.com/ {
@@ -234,7 +297,7 @@ Testing Puppet
             notify{"Hello world from fuel-04": }
         }
 
-* If you are planning on installing Cobbler on Puppet master node as well, make configuration changes on puppet master so that it actually knows how to provision software onto itself (replace “mirantis.com” with your domain name)
+* If you are planning on installing Cobbler on Puppet master node as well, make configuration changes on puppet master so that it actually knows how to provision software onto itself (replace "mirantis.com" with your domain name)
     * ``vi /etc/puppet/puppet.conf``::
 
         [main]
@@ -250,12 +313,12 @@ Testing Puppet
 Installing Fuel
 ~~~~~~~~~~~~~~~
 
-First of all, you must copy a complete Fuel package onto your puppet master machine. Once you put Fuel up these, you should unpack the archive and supply Fuel manifests to Puppet:
+First of all, you must copy a complete Fuel package onto your puppet master machine. Once you put Fuel up these, you should unpack the archive and supply Fuel manifests to Puppet::
 
-    * ``tar -xzf <fuel-archive-name>.tar.gz``
-    * ``cd fuel``
-    * ``cp -Rf fuel/deployment/puppet/* /etc/puppet/modules/``
-    * ``service puppetmaster restart``
+	tar -xzf <fuel-archive-name>.tar.gz
+	cd fuel
+	cp -Rf fuel/deployment/puppet/* /etc/puppet/modules/
+	service puppetmaster restart
 
 Installing & Configuring Cobbler
 --------------------------------
@@ -268,29 +331,15 @@ Using Puppet to install Cobbler
 On puppet master:
 
 * ``vi /etc/puppet/manifests/site.pp``
-* Copy the contents of "fuel/deployment/puppet/cobbler/examples/site.pp" into "/etc/puppet/manifests/site.pp" (replace “mirantis.com” with your domain name):
+* Copy the contents of "fuel/deployment/puppet/cobbler/examples/site.pp" into "/etc/puppet/manifests/site.pp" (replace "mirantis.com" with your domain name):
     .. literalinclude:: ../../deployment/puppet/cobbler/examples/site.pp
 
-* The only thing you might want to change is location of CentOS 6.3 ISO image file (to either a local mirror, or the fastest available internet mirror): ::
+* The two things you might want to change:
+		* Comment out unnecessory distributions
+		* Change the location of ISO image file (to either a local mirror, or the fastest available internet mirror)
 
-    class { cobbler::distro::centos63-x86_64:
-        http_iso => "http://mirror.stanford.edu/yum/pub/centos/6.3/isos/x86_64/CentOS-6.3-x86_64-minimal.iso",
-        ks_url   => "cobbler",
-    }
-
-* The file above assumes you will be installing CentOS 6.3 as a base OS for OpenStack nodes. If you want to install RHEL 6.3, you will need to download its ISO image from `Red Hat Customer Portal <https://access.redhat.com/home>`_, put it on a local HTTP mirror, and add the following lines to the configuration file: ::
-
-    class { cobbler::distro::rhel63-x86_64:
-        http_iso => "http://<local-mirror-ip>/iso/rhel-server-6.3-x86_64-boot.iso",
-        ks_url => "http://<local-mirror-ip>/rhel/6.3/os/x86_64",
-    }
-
-    Class[cobbler::distro::rhel63-x86_64] ->
-    Class[cobbler::profile::rhel63-x86_64]
-
-    class { cobbler::profile::rhel63-x86_64: }
-  
 * Once the configuration is there, Puppet will know that Cobbler must be installed on fuel-pm machine. Once Cobbler is installed, the right distro and profile will be automatically added to it. OS image will be downloaded from the mirror and put into Cobbler as well.
+
 * It is necessary to note that, in a proposed network configuration, the snippet above includes puppet commands to configure forwarding on cobbler node to make external resources available via 10.0.0.0/24 network which is used during installation process (see "enable_nat_all" and "enable_nat_filter")
 * run puppet agent to actually install Cobbler on fuel-pm
     * ``puppet agent --test``
