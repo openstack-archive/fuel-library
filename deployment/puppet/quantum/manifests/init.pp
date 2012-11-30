@@ -25,6 +25,7 @@ class quantum (
   include 'quantum::params'
 
   Package['quantum'] -> Quantum_config<||>
+  Package['quantum'] -> Quantum_api_config<||>
 
   file {'/etc/quantum':
     ensure  => directory,
