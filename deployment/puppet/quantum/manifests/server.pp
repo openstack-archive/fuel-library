@@ -25,8 +25,6 @@ class quantum::server (
     $server_package = 'quantum'
   }
 
-  Package[$server_package] -> Quantum_api_config<||>
-  Package[$server_package] -> Quantum_config<||>
   case $::osfamily
   {
     'Debian':
@@ -37,6 +35,7 @@ class quantum::server (
       'RedHat':
         {
         Package[$server_package] -> Quantum_config<||>
+        Package[$server_package] -> Quantum_api_config<||>
       }
   }
 
