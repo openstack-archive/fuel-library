@@ -67,7 +67,8 @@ class openstack::nova::controller (
   $rabbit_cluster = false,
   $ensure_package    = present,
   $enabled_apis			= 'ec2,osapi_compute,metadata',
-  $api_bind_address		= '0.0.0.0'
+  $api_bind_address		= '0.0.0.0',
+  $patch_apply               = false,
 ) {
 
   # Configure the db string
@@ -126,7 +127,8 @@ if ($rabbit_nodes)
     verbose            => $verbose,
     rabbit_nodes	=> $rabbit_nodes,
     ensure_package	=> $ensure_package,
-    api_bind_address 	=> $api_bind_address
+    api_bind_address 	=> $api_bind_address,
+    patch_apply        => $patch_apply,
   }
  }
  else
@@ -207,6 +209,7 @@ if ($rabbit_nodes)
       #sql_connection  => $quantum_sql_connection,
       verbose         => $verbose,
       debug           => $verbose,
+      patch_apply     => $patch_apply,
     }
 
     class { 'quantum::server':
@@ -267,10 +270,15 @@ if ($rabbit_nodes)
     'nova::scheduler',
     'nova::objectstore',
     'nova::cert',
-    'nova::consoleauth'
   ]:
     enabled => $enabled,
     ensure_package	=> $ensure_package
+  }
+
+  class { 'nova::consoleauth':
+    enabled        => $enabled,
+    ensure_package => $ensure_package,
+    patch_apply    => $patch_apply,
   }
 
   if $vnc_enabled {

@@ -91,6 +91,7 @@ class openstack::compute (
   $service_endpoint	= '127.0.0.1',
   $ssh_private_key = undef,
   $ssh_public_key = undef,
+  $patch_apply       = false,
 ) {
 
   #
@@ -136,6 +137,7 @@ class openstack::compute (
     glance_api_servers => $glance_api_servers,
     verbose            => $verbose,
     rabbit_host        => $rabbit_host,
+    patch_apply        => $patch_apply,
   }
 
   if ($cinder) {
@@ -275,6 +277,7 @@ class openstack::compute (
       rabbit_host     => $rabbit_nodes ? { false => $rabbit_host, default => $rabbit_nodes },
       rabbit_user     => $rabbit_user,
       rabbit_password => $rabbit_password,
+      patch_apply     => $patch_apply,
       #sql_connection  => $quantum_sql_connection,
     }
 
