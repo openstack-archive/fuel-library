@@ -108,4 +108,6 @@ node default {
                 }],
   }
 
+  class { cobbler::checksum_bootpc: }
+
 }
