@@ -81,7 +81,7 @@ For Virtualbox, follow these steps to create virtual hardware:
 * Machine -> New...
     * Name: fuel-pm 
     * Type: Linux
-    * Version: Red Hat (64 Bit)
+    * Version: Red Hat (64 Bit) or Ubuntu (64 Bit)
 * Machine -> Settings... -> Network
     * Adapter 1
         * Enable Network Adapter
