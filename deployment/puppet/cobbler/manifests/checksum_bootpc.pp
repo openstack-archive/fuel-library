@@ -1,4 +1,7 @@
 class cobbler::checksum_bootpc () {
+  
+  Exec {path => '/usr/bin:/bin:/usr/sbin:/sbin'}
+  
   case $operatingsystem {
     /(?i)(centos|redhat)/ : {
       exec { "checksum_fill_bootpc":
