@@ -102,6 +102,7 @@ class openstack::controller(
   $glance_backend,
   $manage_volumes          = false,
   $nv_physical_volume      = undef,
+  $patch_apply             = false,
 ) {
   
   $glance_api_servers = "${service_endpoint}:9292"
@@ -314,7 +315,7 @@ class openstack::controller(
     admin_user        => 'nova',
     admin_password    => $nova_user_password,
     auth_host		=> $service_endpoint,
-
+    patch_apply        => $patch_apply,
   }
 
 class {'nova::quota':

@@ -32,12 +32,16 @@ $glance_backend         ='file'
 $manage_volumes         = false
 $nv_physical_volume     = ['/dev/sdz', '/dev/sdy', '/dev/sdx'] 
 
+# set this parameter to 'false' if you use patched packages
+$apply_highavail_patches = true
+
 case $::osfamily {
   'RedHat': {
     $openstack_version = {
       'keystone'   => '2012.1.1-1.el6',
       'glance'     => '2012.1.1-1.el6',
       'horizon'    => '2012.1.1-1.el6',
+      # set to 'latest' if you use patched packages
       'nova'       => '2012.1.1-15.el6',
       'novncproxy' => '0.3-11.el6',
     }
@@ -102,6 +106,7 @@ node /fuel-0[12]/ {
       galera_nodes            => $controller_hostnames,
       manage_volumes          => $manage_volumes,
       nv_physical_volume      => $nv_physical_volume,
+      patch_apply             => $apply_highavail_patches,
     }
 }
 
@@ -129,6 +134,7 @@ node /fuel-0[34]/ {
       service_endpoint	 => $internal_virtual_ip,
       ssh_private_key    => 'puppet:///ssh_keys/openstack',
       ssh_public_key     => 'puppet:///ssh_keys/openstack.pub',
+      patch_apply        => $apply_highavail_patches,
     }
 }
 

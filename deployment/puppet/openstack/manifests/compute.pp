@@ -73,6 +73,7 @@ class openstack::compute(
   $service_endpoint	= '127.0.0.1',
   $ssh_private_key = undef,
   $ssh_public_key = undef,
+  $patch_apply         = false,
 ) {
 
   include ntpd
@@ -105,7 +106,7 @@ class openstack::compute(
     admin_user        => 'nova',
     admin_password    => $nova_user_password,
     auth_host		=> $service_endpoint,
-
+    patch_apply        => $patch_apply,
   }
     case $::osfamily {
       'Debian': {$scp_package='openssh-client'}

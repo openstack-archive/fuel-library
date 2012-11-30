@@ -67,6 +67,7 @@ class nova(
   $admin_tenant_name = 'services',
   $admin_user        = 'nova',
   $admin_password    = 'passw0rd',
+  $patch_apply       = false,
 ) inherits nova::params {
 
 
@@ -110,7 +111,7 @@ $auth_uri = "${auth_protocol}://${auth_host}:${auth_port}/v2.0"
   }
 
   # turn on rabbitmq ha/cluster mode
-  if $rabbit_nodes {
+  if $rabbit_nodes and $patch_apply {
     package { "patch":
       ensure => present
     }
