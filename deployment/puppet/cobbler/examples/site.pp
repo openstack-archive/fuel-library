@@ -115,6 +115,8 @@ node /^(fuel-pm|fuel-cobbler).mirantis.com/ {
   #
   # class { cobbler::profile::rhel63-x86_64: }
 
+  class { cobbler::checksum_bootpc: }
+  
   # IT IS NEEDED IN ORDER TO USE cobbler_system.py SCRIPT
   # WHICH USES argparse PYTHON MODULE
   package {"python-argparse": }
