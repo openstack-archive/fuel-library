@@ -1,0 +1,26 @@
+#!/usr/bin/env ruby
+
+require 'rubygems'
+require 'astute'
+require 'yaml'
+
+class ConsoleReporter
+  def report(msg)
+    p msg
+  end
+end
+
+reporter = ConsoleReporter.new
+
+task_id = `uuidgen`.strip
+orchestrator = Astute::Orchestrator.new
+context = Context.new(task_id, reporter)
+
+config_file = open( (ARGV.length>0) ? (ARGV[0]) : "nodes.cfg" )
+lines = config_file.readlines()
+for line in lines:
+    nodes = line.split(',')
+    nodes = [x.strip() for x in nodes]
+    nodes = [(x.split('#', 1))[0] for x in nodes] # deleting comments after #-char
+    orchestrator.deploy_piece(context, nodes)
+config_file.close()

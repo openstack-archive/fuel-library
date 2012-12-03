@@ -166,18 +166,16 @@ class CobblerCase(CobblerTestCase):
         sign_all_node_certificates(self.master_remote)
 
     def test_orchestrating_openstack(self):
-        yaml_text = ""
+        config_text = ""
         for node in self.ci().nodes().controllers:
-            yaml_text += node + ":\n    role: controller\n"
+            config_text += node + "\n"
         for node in self.ci().nodes().computes:
-            yaml_text += node + ":\n    role: compute\n"
-        remote = ssh(self.get_ks_meta('master', 'stomp'), username='root',
+            config_text += node + ", "
+        if self.ci().nodes().computes.len() > 0: config_text = config_text[:-2] # deleting last comma
+        remote = ssh(self.nodes.stomps[0].ip_address_by_network['public'], username='root',
                 password='r00tme')
-        write_config(remote, '/root/nodes.yaml', yaml_text)
-        remote.upload(
-            root('deployment', 'mcollective', 'astute', 'bin', 'astute_fuel'),
-            '/root/astute_fuel')
-        execute(remote, '/root/astute_fuel')
+        write_config(remote, '/tmp/nodes.cfg', config_text)
+        execute(remote, 'astute_run /tmp/nodes.cfg')
 
     def assert_cobbler_ports(self, ip):
         closed_tcp_ports = filter(
