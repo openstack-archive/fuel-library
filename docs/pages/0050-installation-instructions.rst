@@ -336,16 +336,17 @@ Using Puppet to install Cobbler
 On puppet master:
 
 * ``vi /etc/puppet/manifests/site.pp``
-* Copy the contents of "fuel/deployment/puppet/cobbler/examples/server_site.pp" into "/etc/puppet/manifests/site.pp" (replace "mirantis.com" with your domain name):
-    .. literalinclude:: ../../deployment/puppet/cobbler/examples/server_site.pp
+* Copy the contents of "fuel/deployment/puppet/cobbler/examples/site_fordocs.pp" into "/etc/puppet/manifests/site.pp" (replace "mirantis.com" with your domain name):
+    .. literalinclude:: ../../deployment/puppet/cobbler/examples/site_fordocs.pp
 
 * The two things you might want to change:
-		* Comment out unnecessory distributions
+		* Comment out unnecessory distributions (uncomment used distributions)
 		* Change the location of ISO image file (to either a local mirror, or the fastest available internet mirror)
 
 * Once the configuration is there, Puppet will know that Cobbler must be installed on fuel-pm machine. Once Cobbler is installed, the right distro and profile will be automatically added to it. OS image will be downloaded from the mirror and put into Cobbler as well.
 
 * It is necessary to note that, in a proposed network configuration, the snippet above includes puppet commands to configure forwarding on cobbler node to make external resources available via 10.0.0.0/24 network which is used during installation process (see "enable_nat_all" and "enable_nat_filter")
+
 * run puppet agent to actually install Cobbler on fuel-pm
     * ``puppet agent --test``
 
