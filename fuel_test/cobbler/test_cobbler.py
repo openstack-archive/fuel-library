@@ -167,12 +167,7 @@ class CobblerCase(CobblerTestCase):
         sign_all_node_certificates(self.master_remote)
 
     def test_orchestrating_openstack(self):
-        config_text = ""
-        for node in self.ci().nodes().controllers:
-            config_text += node + "\n"
-        for node in self.ci().nodes().computes:
-            config_text += node + ", "
-        if self.ci().nodes().computes.len() > 0: config_text = config_text[:-2] # deleting last comma
+        config_text = "fuel-01\nfuel-02,fuel-03,fuel-04"
         remote = ssh(self.nodes.stomps[0].ip_address_by_network['public'], username='root',
                 password='r00tme')
         write_config(remote, '/tmp/nodes.cfg', config_text)
