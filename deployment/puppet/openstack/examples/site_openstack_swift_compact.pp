@@ -159,7 +159,7 @@ node /fuel-0[45]/ {
       cinder                  => $cinder,
       ssh_private_key    => 'puppet:///ssh_keys/openstack',
       ssh_public_key     => 'puppet:///ssh_keys/openstack.pub',
- 
+      patch_apply             =>  $apply_highavail_patches,
     }
 }
 
