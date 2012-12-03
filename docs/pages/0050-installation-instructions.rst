@@ -222,8 +222,11 @@ OS Installation
 
 	* Both CentOS/RHEL and Ubuntu ``vi /etc/hosts`` (replace "mirantis.com" with your domain name)::
 
-            10.0.0.100   fuel-pm fuel-pm.mirantis.com
-	
+            10.0.0.100   fuel-pm.mirantis.com fuel-pm
+
+	* Run ``hostname fuel-pm`` or reboot to apply hostname
+
+
 .. _puppet-master-stored-config:
 
 Enabling Stored Configuration
@@ -261,7 +264,8 @@ This section will allow you to configure puppet to use a technique called stored
 
 * Restart Puppet master to apply settings (Note: these operations may take about half a minute. You can ensure that PuppetDB is running by executing ``telnet fuel-pm.mirantis.com 8081``)::
 
-    service puppetmaster restart
+    puppetdb-ssl-setup
+	service puppetmaster restart
     service puppetdb restart
 
 
