@@ -19,6 +19,10 @@ class cobbler::profile::centos63-x86_64(
               "url"  => "http://yum.puppetlabs.com/el/6/products/x86_64",
               },
               {
+              "name" => "PuppetDeps",
+              "url"  => "http://yum.puppetlabs.com/el/6/dependencies/x86_64",
+              },
+              {
               "name" => "Stanford",
               "url"  => "http://mirror.stanford.edu/yum/pub/centos/6.3/os/x86_64",
               }],

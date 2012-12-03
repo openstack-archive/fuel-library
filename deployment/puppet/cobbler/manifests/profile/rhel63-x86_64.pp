@@ -17,6 +17,10 @@ class cobbler::profile::rhel63-x86_64(
               {
               "name" => "Puppet",
               "url"  => "http://yum.puppetlabs.com/el/6/products/x86_64",
+              },
+              {
+                "name" => "PuppetDeps",
+                "url"  => "http://yum.puppetlabs.com/el/6/dependencies/x86_64",
               }],
 
   $ks_system_timezone         = "America/Los_Angeles",
