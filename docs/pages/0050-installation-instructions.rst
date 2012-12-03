@@ -371,7 +371,10 @@ In case of Virtualnox, create the corresponding virtual machines for your OpenSt
 * Machine -> New...
     * Name: fuel-01 (will need to repeat for fuel-02, fuel-03, and fuel-04)
     * Type: Linux
-    * Version: Red Hat (64 Bit)
+    * Version: Red Hat (64 Bit) or Ubuntu (64 Bit)
+
+* Machine -> System -> Motherboard...
+	* Check "Network" in "Boot sequence"
 
 * Machine -> Settings... -> Network
     * Adapter 1
@@ -399,7 +402,7 @@ On puppet master, create directory with configuration and copy example config fi
 
     * ``mkdir cobbler_config``
     * ``cd cobbler_config``
-    * ``ln -s ../fuel/deployment/puppet/cobbler/examples/cobbler_system.py .``
+    * ``cp ../fuel/deployment/puppet/cobbler/examples/cobbler_system.py .``
     * ``cp ../fuel/deployment/puppet/cobbler/examples/nodes.yaml .``
 
 Edit configuration for bare metal provisioning of nodes (nodes.yaml):
