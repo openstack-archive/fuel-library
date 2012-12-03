@@ -20,6 +20,10 @@ class openstack::mirantis_repos (
       }
       # Below we set our internal repos for testing purposes. Some of them may match with external ones.
       if $type == 'internal' {
+        file {'/etc/apt/sources.list':
+          ensure => absent
+        }
+        File['/etc/apt/sources.list']->Apt::Source<||>
         apt::source  { 'cloud-archive':
           location => 'http://172.18.67.168/ubuntu-cloud.archive.canonical.com/ubuntu',
           release => 'precise-updates/folsom',
