@@ -97,7 +97,7 @@ node /fuel-0[12]/ {
       manage_volumes          => $manage_volumes,
       galera_nodes            => $controller_hostnames,
       nv_physical_volume      => $nv_physical_volume,
- 
+      patch_apply             =>   $apply_highavail_patches,
       }
       
       class { 'swift::keystone::auth':
