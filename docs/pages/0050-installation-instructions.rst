@@ -263,10 +263,10 @@ This section will allow you to configure puppet to use a technique called stored
            port = 8081
 
 * Restart Puppet master to apply settings (Note: these operations may take about half a minute. You can ensure that PuppetDB is running by executing ``telnet fuel-pm.mirantis.com 8081``)::
-
-    puppetdb-ssl-setup
+	
+	puppetdb-ssl-setup
 	service puppetmaster restart
-    service puppetdb restart
+	service puppetdb restart
 
 
 Troubleshooting PuppetDB and SSL
@@ -336,8 +336,8 @@ Using Puppet to install Cobbler
 On puppet master:
 
 * ``vi /etc/puppet/manifests/site.pp``
-* Copy the contents of "fuel/deployment/puppet/cobbler/examples/site.pp" into "/etc/puppet/manifests/site.pp" (replace "mirantis.com" with your domain name):
-    .. literalinclude:: ../../deployment/puppet/cobbler/examples/site.pp
+* Copy the contents of "fuel/deployment/puppet/cobbler/examples/server_site.pp" into "/etc/puppet/manifests/site.pp" (replace "mirantis.com" with your domain name):
+    .. literalinclude:: ../../deployment/puppet/cobbler/examples/server_site.pp
 
 * The two things you might want to change:
 		* Comment out unnecessory distributions
