@@ -29,12 +29,21 @@ class openstack::mirantis_repos (
 #         key_server => "pgp.mit.edu",
           include_src => false,
         }
-#        apt::source  { 'mirantis-internal-test-repo':
-#          key => '420851BC',
-#          location => 'http://172.18.66.213/deb',
-#          key_source => 'http://172.18.66.213/gpg.pub',
-#          origin => '172.18.66.213',
-#        }
+        apt::source  { 'ubuntu-mirror':
+          location => 'http://172.18.67.168/ubuntu-repo/mirror.yandex.ru/ubuntu',
+          release => 'precise',
+          repos => 'main universe multiverse restricted',
+        }
+         apt::source  { 'ubuntu-updates':
+          location => 'http://172.18.67.168/ubuntu-repo/mirror.yandex.ru/ubuntu',
+          release => 'precise-updates',
+          repos => 'main universe multiverse restricted',
+        }
+         apt::source  { 'ubuntu-security':
+          location => 'http://172.18.67.168/ubuntu-repo/mirror.yandex.ru/ubuntu',
+          release => 'precise-updates',
+          repos => 'main universe multiverse restricted',
+        }
     }
   
   class { 'apt::update': stage => 'openstack-custom-repo' }
