@@ -10,6 +10,7 @@
 #end if
 
 #if $str($getVar('mco_auto_setup','')) == "1"
+    #silent $pkgsel_packages.append("libstomp-ruby")
     #silent $pkgsel_packages.append("mcollective")
 #end if
 
