@@ -28,4 +28,10 @@ class nova::consoleauth_cache() {
       source => 'puppet:///modules/nova/openstack_common_jsonutils.py';
   }
 
+  if $::osfamily == 'Debian' {
+    package { 'python-memcache':
+      before => Package[$consoleauth_package_name]
+    }
+  }
+
 }
