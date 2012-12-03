@@ -51,7 +51,7 @@ $openstack_version = {
   'cinder' => latest,
 }
 $mirror_type="external"
-
+$apply_highavail_patches = true
 
 Exec { logoutput => true }
 
