@@ -4,7 +4,7 @@ from devops.helpers import ssh
 from fuel_test.cobbler.cobbler_client import CobblerClient
 from fuel_test.cobbler.cobbler_test_case import CobblerTestCase
 from fuel_test.helpers import tcp_ping, udp_ping, safety_revert_nodes, add_to_hosts, sign_all_node_certificates, sync_time, upload_recipes, upload_keys, await_node_deploy, build_astute, install_astute
-from fuel_test.settings import EMPTY_SNAPSHOT, OS_FAMILY
+from fuel_test.settings import EMPTY_SNAPSHOT, OS_FAMILY, PUPPET_VERSION
 
 class CobblerCase(CobblerTestCase):
     def test_deploy_cobbler(self):
@@ -51,7 +51,7 @@ class CobblerCase(CobblerTestCase):
     def get_ks_meta(self, puppet_master, mco_host):
         return  ("puppet_auto_setup=1 "
                  "puppet_master=%(puppet_master)s "
-                 "puppet_version=2.7.19 "
+                 "puppet_version=%(puppet_version)s "
                  "puppet_enable=0 "
                  "mco_auto_setup=1 "
                  "mco_pskey=un0aez2ei9eiGaequaey4loocohjuch4Ievu3shaeweeg5Uthi "
@@ -66,6 +66,7 @@ class CobblerCase(CobblerTestCase):
                  "interface_extra_eth2_promisc=yes "
                  "interface_extra_eth2_userctl=yes "
                     ) % {'puppet_master': puppet_master,
+                         'puppet_version': PUPPET_VERSION,
                          'mco_host': mco_host
                 }
 
