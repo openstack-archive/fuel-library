@@ -354,7 +354,7 @@ Testing cobbler
 ~~~~~~~~~~~~~~~
 
 * you can check that Cobbler is installed successfully by opening the following URL from your host machine:
-    * http://fuel-pm/cobbler_web (u: cobbler, p: cobbler)
+    * http://fuel-pm/cobbler_web/ (u: cobbler, p: cobbler)
 * now you have a fully working instance of Cobbler. moreover, it is fully configured and capable of installing the chosen OS (CentOS 6.3, or RHEL 6.3) on target OpenStack nodes
 
 
