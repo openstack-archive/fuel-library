@@ -3,6 +3,7 @@
 #if $str($getVar('puppet_auto_setup','')) == "1"
     #if $str($getVar('puppet_version', '')) != ""
     	#silent $pkgsel_packages.append("puppet=" + $puppet_version)
+    	#silent $pkgsel_packages.append("puppet-common=" + $puppet_version)
     #else
 	#silent $pkgsel_packages.append("puppet")
     #end if
