@@ -24,7 +24,11 @@ class quantum::server (
   } else {
     $server_package = 'quantum'
   }
-
+  if (defined(Exec['patch-quantum-rabbitmq']))
+  {
+    Exec['patch-quantum-rabbitmq'] -> Package[$server_package]
+  }
+ 
   case $::osfamily
   {
     'Debian':
