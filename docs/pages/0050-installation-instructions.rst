@@ -336,10 +336,10 @@ Using Puppet to install Cobbler
 On puppet master:
 
 * ``vi /etc/puppet/manifests/site.pp``
-* Copy the contents of "fuel/deployment/puppet/cobbler/examples/site_fordocs.pp" into "/etc/puppet/manifests/site.pp" (replace "mirantis.com" with your domain name):
+* Copy the contents of one of "site.pp" from "fuel/deployment/puppet/cobbler/examples/" into "/etc/puppet/manifests/site.pp" (replace "mirantis.com" with your domain name):
     .. literalinclude:: ../../deployment/puppet/cobbler/examples/site_fordocs.pp
 
-* The two things you might want to change:
+* The example above gives you the simple way to deploy the cobbler. The two things you might want to change:
 		* Comment out unnecessory distributions (uncomment used distributions)
 		* Change the location of ISO image file (to either a local mirror, or the fastest available internet mirror)
 
@@ -410,7 +410,7 @@ Edit configuration for bare metal provisioning of nodes (nodes.yaml):
 * There is essentially a section for every node, and you have to define all nodes there (fuel-01, fuel-02, fuel-03, and fuel-04). The config for a single node is posted below, while the config for the remaining nodes is very similar
 * It's important to get right the following parameters, they are different for every node:
     * name of the system in cobbler, the very first line
-    * hostname and DNS name
+    * hostname and DNS name (do not forget to replace "mirantis.com" to your domain name)
     * mac addresses for every network interface (you can look them up in Virtualbox, using Machine -> Settings... -> Network -> Adapters)
     * static IP address on management interface eth1
 * vi nodes.yaml
@@ -458,20 +458,19 @@ Installing OpenStack
 In case of VirtualBox, it's recommended to save current state of every virtual machine using the mechanism of snapshot. It is helpful to have a point to revert to, so you can install OpenStack using puppet, then revert and try one more time if needed.
 
 * On puppet master
-    * create file with definition of networks, nodes, and roles. assume you are deploying a compact configuration, with Controllers and Swift combined:
-        * ``cp fuel/deployment/puppet/openstack/examples/site_openstack_swift_compact.pp /etc/puppet/manifests/site.pp``
-    * ``vi /etc/puppet/manifests/site.pp``
-        .. literalinclude:: ../../deployment/puppet/openstack/examples/site_openstack_swift_compact.pp
-    * create directory with keys, give it the appropriate permissions, and generate keys themselves 
-        * ``mkdir /var/lib/puppet/ssh_keys``
-        * ``cd /var/lib/puppet/ssh_keys``
-        * ``ssh-keygen -f openstack``
-        * ``chown -R puppet:puppet /var/lib/puppet/ssh_keys/``
-    * edit the file ``/etc/puppet/fileserver.conf`` and append the following lines: ::
-
-        [ssh_keys]
-        path /var/lib/puppet/ssh_keys
-        allow *
+	* create file with definition of networks, nodes, and roles. assume you are deploying a compact configuration, with Controllers and Swift combined: ``cp fuel/deployment/puppet/openstack/examples/site_openstack_swift_compact.pp /etc/puppet/manifests/site.pp``
+	* ``vi /etc/puppet/manifests/site.pp``, correct IP adressing configuration for "public" and "internal" adresses according your current scheme. Also define proper "$floating_range" and "$fixed_range"
+	.. literalinclude:: ../../deployment/puppet/openstack/examples/site_openstack-swift-copmact_fordocs.pp
+	* create directory with keys, give it the appropriate permissions, and generate keys themselves 
+		* ``mkdir /var/lib/puppet/ssh_keys``
+		* ``cd /var/lib/puppet/ssh_keys``
+		* ``ssh-keygen -f openstack``
+		* ``chown -R puppet:puppet /var/lib/puppet/ssh_keys/``
+    * edit the file ``/etc/puppet/fileserver.conf`` and append the following lines: :: 
+	
+	[ssh_keys]
+	path /var/lib/puppet/ssh_keys
+	allow *
 
 * Install OpenStack controller nodes sequentially, one by one
     * run "``puppet agent --test``" on fuel-01
