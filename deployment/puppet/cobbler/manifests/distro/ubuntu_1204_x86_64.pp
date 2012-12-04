@@ -1,4 +1,4 @@
-class cobbler::distro::ubuntu-1204-x86_64(
+class cobbler::distro::ubuntu_1204_x86_64(
   $http_iso = "http://archive.ubuntu.com/ubuntu/dists/precise/main/installer-amd64/current/images/netboot/mini.iso",
   $ks_url   = "http://us.archive.ubuntu.com/ubuntu",
   ){
@@ -70,7 +70,7 @@ class cobbler::distro::ubuntu-1204-x86_64(
     target => $iso_mnt,
   }
 
-  cobbler_distro { "ubuntu-1204-x86_64":
+  cobbler_distro { "ubuntu_1204_x86_64":
     kernel => "${iso_mnt}/linux",
     initrd => "${iso_mnt}/initrd.gz",
     arch => "x86_64",

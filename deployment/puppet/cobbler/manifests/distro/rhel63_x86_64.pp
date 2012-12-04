@@ -1,5 +1,5 @@
 #
-# This class is intended to make cobbler distro rhel63-x86_64. It will 
+# This class is intended to make cobbler distro rhel63_x86_64. It will
 # download and mount rhel ISO image.
 #
 # [http_iso] This is the url from where to download rhel 6.3 ISO image.
@@ -13,7 +13,7 @@
 # repository.
 
 
-class cobbler::distro::rhel63-x86_64(
+class cobbler::distro::rhel63_x86_64(
   $http_iso = "http://10.0.0.1/~hex/iso/rhel-server-6.3-x86_64-boot.iso",
   $ks_url   = "http://10.0.0.1/~hex/rhel/6.3/os/x86_64"
   ) {
@@ -70,7 +70,7 @@ class cobbler::distro::rhel63-x86_64(
   }
 
   
-  cobbler_distro { "rhel63-x86_64":
+  cobbler_distro { "rhel63_x86_64":
     kernel => "${iso_mnt}/isolinux/vmlinuz",
     initrd => "${iso_mnt}/isolinux/initrd.img",
     arch => "x86_64",

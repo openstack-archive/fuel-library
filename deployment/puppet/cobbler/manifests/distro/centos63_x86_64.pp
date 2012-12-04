@@ -1,5 +1,5 @@
 #
-# This class is intended to make cobbler distro centos63-x86_64. It will
+# This class is intended to make cobbler distro centos63_x86_64. It will
 # download and mount centos ISO image.
 #
 # [http_iso] This is the url from where to download centos 6.3 ISO image.
@@ -13,7 +13,7 @@
 # repository.
 
 
-class cobbler::distro::centos63-x86_64(
+class cobbler::distro::centos63_x86_64(
   $http_iso = "http://mirror.stanford.edu/yum/pub/centos/6.3/isos/x86_64/CentOS-6.3-x86_64-minimal.iso",
   $ks_url   = "http://mirror.stanford.edu/yum/pub/centos/6.3/os/x86_64"
   ) {
@@ -83,7 +83,7 @@ class cobbler::distro::centos63-x86_64(
     target => $iso_mnt,
   }
 
-  cobbler_distro { "centos63-x86_64":
+  cobbler_distro { "centos63_x86_64":
     kernel => "${iso_mnt}/isolinux/vmlinuz",
     initrd => "${iso_mnt}/isolinux/initrd.img",
     arch => "x86_64",

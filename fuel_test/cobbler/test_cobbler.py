@@ -90,9 +90,9 @@ class CobblerCase(CobblerTestCase):
     def _add_node(self, client, token, cobbler, node_name, node_mac0, node_mac1, node_mac2, node_ip, stomp_name):
         system_id = client.new_system(token)
         if OS_FAMILY=='centos':
-            profile='centos63-x86_64'
+            profile='centos63_x86_64'
         else:
-            profile='ubuntu-1204-x86_64'
+            profile='ubuntu_1204_x86_64'
         client.modify_system_args(
             system_id, token,
             ks_meta=self.get_ks_meta('master',

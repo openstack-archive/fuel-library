@@ -1,5 +1,5 @@
 #
-# This class is intended to make cobbler profile rhel63-x86_64.
+# This class is intended to make cobbler profile rhel63_x86_64.
 #
 # [distro] The name of cobbler distro to bind profile to.
 #
@@ -7,8 +7,8 @@
 #
 # [ks_encrypted_root_password] Hash of the root password on installed system.
 
-class cobbler::profile::ubuntu-1204-x86_64(
-  $distro  = "ubuntu-1204-x86_64",
+class cobbler::profile::ubuntu_1204_x86_64(
+  $distro  = "ubuntu_1204_x86_64",
   $ks_repo = [
     {
       "name" => "Puppet",
@@ -33,15 +33,15 @@ class cobbler::profile::ubuntu-1204-x86_64(
     }
   }
 
-  file { "${ks_dir}/ubuntu-1204-x86_64.preseed":
+  file { "${ks_dir}/ubuntu_1204_x86_64.preseed":
     content => template("cobbler/preseed/ubuntu-1204.preseed.erb"),
     owner => root,
     group => root,
     mode => 0644,
   } ->
 
-  cobbler_profile { "ubuntu-1204-x86_64":
-    kickstart => "${ks_dir}/ubuntu-1204-x86_64.preseed",
+  cobbler_profile { "ubuntu_1204_x86_64":
+    kickstart => "${ks_dir}/ubuntu_1204_x86_64.preseed",
     kopts => $kopts,
     distro => $distro,
     ksmeta => "",

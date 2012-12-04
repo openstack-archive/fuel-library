@@ -1,5 +1,5 @@
 fuel-01:
-  profile: "centos63-x86_64"
+  profile: "centos63_x86_64"
   netboot-enabled: "1"
   ksmeta: "puppet_auto_setup=1 \
 puppet_master=fuel-pm.mirantis.com \
@@ -38,7 +38,7 @@ mco_enable=1"
       userctl: "yes"
       peerdns: "no"
 fuel-02:
-  profile: "centos63-x86_64"
+  profile: "centos63_x86_64"
   netboot-enabled: "1"
   ksmeta: "puppet_auto_setup=1 \
 puppet_master=fuel-pm.mirantis.com \
@@ -77,7 +77,7 @@ mco_enable=1"
       userctl: "yes"
       peerdns: "no"
 fuel-03:
-  profile: "centos63-x86_64"
+  profile: "centos63_x86_64"
   netboot-enabled: "1"
   ksmeta: "puppet_auto_setup=1 \
 puppet_master=fuel-pm.mirantis.com \
@@ -116,7 +116,7 @@ mco_enable=1"
       userctl: "yes"
       peerdns: "no"
 fuel-04:
-  profile: "centos63-x86_64"
+  profile: "centos63_x86_64"
   netboot-enabled: "1"
   ksmeta: "puppet_auto_setup=1 \
 puppet_master=fuel-pm.mirantis.com \

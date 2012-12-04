@@ -58,39 +58,39 @@ node fuel-pm {
 
     # CentOS distribution
     #  Class[cobbler::server] ->
-    # Class[cobbler::distro::centos63-x86_64]
+    # Class[cobbler::distro::centos63_x86_64]
     #
-    # class { cobbler::distro::centos63-x86_64:
+    # class { cobbler::distro::centos63_x86_64:
     #  http_iso => "http://172.18.67.168/CentOS-6.3-x86_64-minimal.iso",
     #  ks_url   => "cobbler",
     # }
 
-    # Class[cobbler::distro::centos63-x86_64] ->
-    # Class[cobbler::profile::centos63-x86_64]
+    # Class[cobbler::distro::centos63_x86_64] ->
+    # Class[cobbler::profile::centos63_x86_64]
 
-    # class { cobbler::profile::centos63-x86_64: }
+    # class { cobbler::profile::centos63_x86_64: }
 
     # UBUNTU distribution
-    #  Class[cobbler::distro::ubuntu-1204-x86_64] ->
-    #  Class[cobbler::profile::ubuntu-1204-x86_64]
+    #  Class[cobbler::distro::ubuntu_1204_x86_64] ->
+    #  Class[cobbler::profile::ubuntu_1204_x86_64]
     #
-    #  class { cobbler::distro::ubuntu-1204-x86_64 :
+    #  class { cobbler::distro::ubuntu_1204_x86_64 :
     #    http_iso => "http://172.18.67.168/mini.iso",
     #    require  => Class[cobbler],
     #  }
     #
-    #  class { cobbler::profile::ubuntu-1204-x86_64 : }
+    #  class { cobbler::profile::ubuntu_1204_x86_64 : }
 
     # RHEL distribution
-    # class { cobbler::distro::rhel63-x86_64:
+    # class { cobbler::distro::rhel63_x86_64:
     #   http_iso => "http://address/of/rhel-server-6.3-x86_64-boot.iso",
     #   ks_url   => "http://address/of/rhel/base/mirror/6.3/os/x86_64",
     # }
     #
-    # Class[cobbler::distro::rhel63-x86_64] ->
-    # Class[cobbler::profile::rhel63-x86_64]
+    # Class[cobbler::distro::rhel63_x86_64] ->
+    # Class[cobbler::profile::rhel63_x86_64]
     #
-    # class { cobbler::profile::rhel63-x86_64: }
+    # class { cobbler::profile::rhel63_x86_64: }
 
     class { cobbler::checksum_bootpc: }
 

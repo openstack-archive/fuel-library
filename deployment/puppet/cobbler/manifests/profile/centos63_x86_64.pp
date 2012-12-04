@@ -1,5 +1,5 @@
 #
-# This class is intended to make cobbler profile centos63-x86_64.
+# This class is intended to make cobbler profile centos63_x86_64.
 #
 # [distro] The name of cobbler distro to bind profile to.
 #
@@ -11,8 +11,8 @@
 #
 # [ks_encrypted_root_password] Hash of the root password on installed system.
 
-class cobbler::profile::centos63-x86_64(
-  $distro  = "centos63-x86_64",
+class cobbler::profile::centos63_x86_64(
+  $distro  = "centos63_x86_64",
   $ks_repo = [
               {
               "name" => "Puppet",
@@ -42,15 +42,15 @@ class cobbler::profile::centos63-x86_64(
     }
   }
 
-  file { "${ks_dir}/centos63-x86_64.ks":
+  file { "${ks_dir}/centos63_x86_64.ks":
     content => template("cobbler/kickstart/centos.ks.erb"),
     owner => root,
     group => root,
     mode => 0644,
   } ->
 
-  cobbler_profile { "centos63-x86_64":
-    kickstart => "${ks_dir}/centos63-x86_64.ks",
+  cobbler_profile { "centos63_x86_64":
+    kickstart => "${ks_dir}/centos63_x86_64.ks",
     kopts => $kopts,
     distro => $distro,
     ksmeta => "",
