@@ -10,52 +10,10 @@ $cobbler_user        = 'cobbler'
 $cobbler_password    = 'cobbler'
 $pxetimeout          = '0'
 $dhcp_interface      = 'eth0'
+$mirror_type         = 'internal'
 
-stage {'openstack-custom-repo': before => Stage['main']}
-
-case $::osfamily {
-  'Debian': {
-    file {'/etc/apt/sources.list':
-      ensure => absent
-    }
-    File['/etc/apt/sources.list']->Apt::Source<||>
-    apt::source  { 'cloud-archive':
-      location => 'http://172.18.67.168/ubuntu-cloud.archive.canonical.com/ubuntu',
-      release => 'precise-updates/folsom',
-      repos => 'main',
-      key => "5EDB1B62EC4926EA",
-      key_source => 'http://172.18.67.168/ubuntu-repo/precise-fuel-folsom/cloud-archive.key',
-#         key_server => "pgp.mit.edu",
-      include_src => false,
-    }
-    apt::source  { 'ubuntu-mirror':
-      location => 'http://172.18.67.168/ubuntu-repo/mirror.yandex.ru/ubuntu',
-      release => 'precise',
-      repos => 'main universe multiverse restricted',
-    }
-     apt::source  { 'ubuntu-updates':
-      location => 'http://172.18.67.168/ubuntu-repo/mirror.yandex.ru/ubuntu',
-      release => 'precise-updates',
-      repos => 'main universe multiverse restricted',
-    }
-     apt::source  { 'ubuntu-security':
-      location => 'http://172.18.67.168/ubuntu-repo/mirror.yandex.ru/ubuntu',
-      release => 'precise-updates',
-      repos => 'main universe multiverse restricted',
-    }
-  }
-  'RedHat': {
-    class { 'openstack::repo::yum':
-      repo_name  => 'openstack-epel-fuel',
-      location   => 'http://download.mirantis.com/epel-fuel',
-      key_source => 'https://fedoraproject.org/static/0608B895.txt',
-      stage      => 'openstack-custom-repo',
-    }
-  }
-  default: {
-    fail("Unsupported osfamily: ${osfamily} for os ${operatingsystem}")
-  }
-}
+stage { 'openstack-custom-repo': before => Stage['main'] }
+class { 'openstack::mirantis_repos': stage => 'openstack-custom-repo', type=>$mirror_type }
 
 node fuel-cobbler {
   class { cobbler:
