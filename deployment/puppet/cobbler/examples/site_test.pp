@@ -103,9 +103,19 @@ node default {
 
   class { cobbler::profile::ubuntu-1204-x86_64 :
     ks_repo => [{
-                "name" => "Local",
-                "url"  => "http://10.100.0.1:1234/ubuntu"
-                }],
+        "name" => "Local",
+        "url"  => "http://10.100.0.1:1234/ubuntu",
+        "release" => "precise",
+        "repos" => "main",
+      },
+      {
+        "name" => "Puppet",
+        "url"  => "http://apt.puppetlabs.com/",
+        "key"  =>  "http://apt.puppetlabs.com/pubkey.gpg",
+        "release" => "precise",
+        "repos" => "main dependencies",
+      },
+    ],
   }
 
   class { cobbler::checksum_bootpc: }

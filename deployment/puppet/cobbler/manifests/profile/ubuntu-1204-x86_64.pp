@@ -9,10 +9,15 @@
 
 class cobbler::profile::ubuntu-1204-x86_64(
   $distro  = "ubuntu-1204-x86_64",
-  $ks_repo = [{
-    "name" => "Puppet",
-    "url"  => "http://apt.puppetlabs.com/",
-  },],
+  $ks_repo = [
+    {
+      "name" => "Puppet",
+      "url"  => "http://apt.puppetlabs.com/",
+      "key"  =>  "http://apt.puppetlabs.com/pubkey.gpg",
+      "release" => "precise",
+      "repos" => "main dependencies",
+    },
+  ],
 
   $ks_system_timezone = "America/Los_Angeles",
 

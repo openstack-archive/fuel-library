@@ -64,17 +64,25 @@ node fuel-cobbler {
       }
 
       class { cobbler::profile::ubuntu-1204-x86_64 :
-        ks_repo => [{
+          ks_repo => [
+          {
             "name" => "Puppet",
             "url"  => "http://apt.puppetlabs.com/",
+            "key"  =>  "http://apt.puppetlabs.com/pubkey.gpg",
+            "release" => "precise",
+            "repos" => "main dependencies",
           },
           {
             "name" => "Canonical",
             "url"  => "http://172.18.67.168/ubuntu-cloud.archive.canonical.com/ubuntu/",
+            "release" => "precise",
+            "repos" => "main universe multiverse restricted",
           },
           {
             "name" => "Yandex",
             "url"  => "http://172.18.67.168/ubuntu-repo/mirror.yandex.ru/ubuntu",
+            "release" => "precise",
+            "repos" => "main universe multiverse restricted",
           },
         ],
       }

@@ -64,8 +64,11 @@ d-i apt-setup/use_mirror boolean true
 <% i = 0 -%>
 <% @ks_repo.each do |repo| -%>
 <% break if i > 9 -%>
-d-i apt-setup/local<%= i %>/repository string <%= repo['url'] %> precise main
+d-i apt-setup/local<%= i %>/repository string <%= repo['url'] %> <%= repo['release'] %> <%= repo['repos'] %>
 d-i apt-setup/local<%= i %>/comment string <%= repo['name'] %>
+<% if repo.has_key?('key') -%>
+d-i apt-setup/local<%= i %>/key string <%= repo['key'] %>
+<% end -%>
 <% i += 1 -%>
 <% end -%>
 
