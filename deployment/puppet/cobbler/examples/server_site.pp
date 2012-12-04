@@ -63,7 +63,21 @@ node fuel-cobbler {
         require  => Class[cobbler],
       }
 
-      class { cobbler::profile::ubuntu-1204-x86_64 : }
+      class { cobbler::profile::ubuntu-1204-x86_64 :
+        ks_repo => [{
+            "name" => "Puppet",
+            "url"  => "http://apt.puppetlabs.com/",
+          },
+          {
+            "name" => "Canonical",
+            "url"  => "http://172.18.67.168/ubuntu-cloud.archive.canonical.com/ubuntu/",
+          },
+          {
+            "name" => "Yandex",
+            "url"  => "http://172.18.67.168/ubuntu-repo/mirror.yandex.ru/ubuntu",
+          },
+        ],
+      }
 
     # RHEL distribution
     # class { cobbler::distro::rhel63-x86_64:
