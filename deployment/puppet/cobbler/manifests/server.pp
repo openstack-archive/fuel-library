@@ -31,6 +31,7 @@ class cobbler::server {
       $cobbler_service = "cobbler"
       $cobbler_web_service = "apache2"
       $dnsmasq_service = "dnsmasq"
+      $apache_ssl_module = "ssl"
 
     }
   }
@@ -50,6 +51,14 @@ class cobbler::server {
     hasrestart => true,
     require => Package[$cobbler::packages::dnsmasq_package],
     subscribe => Exec["cobbler_sync"],
+  }
+
+  if $apache_ssl_module {
+    exec {'ssl':
+      command => "/usr/sbin/a2enmod ssl",
+      before  => Service[$cobbler_web_service],
+      notify  => Service[$cobbler_web_service],
+    }
   }
 
   service { $cobbler_web_service:
