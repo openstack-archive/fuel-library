@@ -15,13 +15,34 @@ stage {'openstack-custom-repo': before => Stage['main']}
 
 case $::osfamily {
   'Debian': {
-#    class { 'openstack::repo::apt':
-#      key => '420851BC',
-#      location => 'http://172.18.66.213/deb',
-#      key_source => 'http://172.18.66.213/gpg.pub',
-#      origin => '172.18.66.213',
-#      stage => 'openstack-custom-repo'
-#    }
+    file {'/etc/apt/sources.list':
+      ensure => absent
+    }
+    File['/etc/apt/sources.list']->Apt::Source<||>
+    apt::source  { 'cloud-archive':
+      location => 'http://172.18.67.168/ubuntu-cloud.archive.canonical.com/ubuntu',
+      release => 'precise-updates/folsom',
+      repos => 'main',
+      key => "5EDB1B62EC4926EA",
+      key_source => 'http://172.18.67.168/ubuntu-repo/precise-fuel-folsom/cloud-archive.key',
+#         key_server => "pgp.mit.edu",
+      include_src => false,
+    }
+    apt::source  { 'ubuntu-mirror':
+      location => 'http://172.18.67.168/ubuntu-repo/mirror.yandex.ru/ubuntu',
+      release => 'precise',
+      repos => 'main universe multiverse restricted',
+    }
+     apt::source  { 'ubuntu-updates':
+      location => 'http://172.18.67.168/ubuntu-repo/mirror.yandex.ru/ubuntu',
+      release => 'precise-updates',
+      repos => 'main universe multiverse restricted',
+    }
+     apt::source  { 'ubuntu-security':
+      location => 'http://172.18.67.168/ubuntu-repo/mirror.yandex.ru/ubuntu',
+      release => 'precise-updates',
+      repos => 'main universe multiverse restricted',
+    }
   }
   'RedHat': {
     class { 'openstack::repo::yum':
