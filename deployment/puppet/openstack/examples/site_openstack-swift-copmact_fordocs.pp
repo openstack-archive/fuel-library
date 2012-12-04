@@ -6,7 +6,7 @@ $floating_range = '10.0.2.128/27'
 
 # Internal networking
 $internal_interface = 'eth1'
-$internal_address = $ipaddress_eth0
+$internal_address = $ipaddress_eth1
 $internal_virtual_ip = '10.0.0.253'
 $controller_internal_addresses = {'fuel-01' => '10.0.0.101','fuel-02' => '10.0.0.102','fuel-03' => '10.0.0.103', 'fuel-04' => '10.0.0.104}
 
