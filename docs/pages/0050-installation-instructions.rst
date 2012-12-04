@@ -460,7 +460,7 @@ In case of VirtualBox, it's recommended to save current state of every virtual m
 * On puppet master
 	* create file with definition of networks, nodes, and roles. assume you are deploying a compact configuration, with Controllers and Swift combined: ``cp fuel/deployment/puppet/openstack/examples/site_openstack_swift_compact.pp /etc/puppet/manifests/site.pp``
 	* ``vi /etc/puppet/manifests/site.pp``, correct IP adressing configuration for "public" and "internal" adresses according your current scheme. Also define proper "$floating_range" and "$fixed_range"
-	.. literalinclude:: ../../deployment/puppet/openstack/examples/site_openstack-swift-copmact_fordocs.pp
+	.. literalinclude:: ../../deployment/puppet/openstack/examples/site_openstack-swift-compact_fordocs.pp
 	* create directory with keys, give it the appropriate permissions, and generate keys themselves 
 		* ``mkdir /var/lib/puppet/ssh_keys``
 		* ``cd /var/lib/puppet/ssh_keys``

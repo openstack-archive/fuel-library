@@ -8,7 +8,7 @@ $floating_range = '10.0.2.128/27'
 $internal_interface = 'eth1'
 $internal_address = $ipaddress_eth1
 $internal_virtual_ip = '10.0.0.253'
-$controller_internal_addresses = {'fuel-01' => '10.0.0.101','fuel-02' => '10.0.0.102','fuel-03' => '10.0.0.103', 'fuel-04' => '10.0.0.104}
+$controller_internal_addresses = {'fuel-01' => '10.0.0.101','fuel-02' => '10.0.0.102','fuel-03' => '10.0.0.103', 'fuel-04' => '10.0.0.104'}
 
 # Tennant's networking
 $private_interface = 'eth2'
@@ -38,7 +38,7 @@ $swift_user_password  = 'swift_pass'
 
 # swift specific configurations
 $swift_shared_secret  = 'changeme'
-$swift_local_net_ip   = $ipaddress_eth0
+$swift_local_net_ip   = $ipaddress_eth1
 $swift_proxy_address = '10.0.0.253'
 $controller_node_public = $internal_virtual_ip 
 $glance_backend         = 'swift'
