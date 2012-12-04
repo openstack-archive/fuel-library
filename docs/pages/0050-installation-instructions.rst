@@ -394,11 +394,11 @@ In case of Virtualnox, create the corresponding virtual machines for your OpenSt
         * Advanced -> Promiscuous mode: Allow All
 
 Configuring Cobbler to provision your OpenStack Nodes
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Now you need to define nodes in cobbler configuration, so it knows what OS to install where and what configuration actions to take.
 
-On puppet master, create directory with configuration and copy example config file for Cobbler from Fuel repository:
+On puppet master, create whereever you like a directory for configuration and copy example config file for Cobbler from Fuel repository:
 
     * ``mkdir cobbler_config``
     * ``cd cobbler_config``
