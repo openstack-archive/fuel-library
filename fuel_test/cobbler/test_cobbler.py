@@ -9,6 +9,7 @@ from fuel_test.root import root
 
 class CobblerCase(CobblerTestCase):
     def configure_master_remote(self):
+        master = self.environment.node['master']
         self.master_remote = ssh(master.ip_address_by_network['public'],
             username='root',
             password='r00tme')
@@ -17,7 +18,6 @@ class CobblerCase(CobblerTestCase):
 
     def test_deploy_cobbler(self):
         safety_revert_nodes(self.environment.nodes, EMPTY_SNAPSHOT)
-        master = self.environment.node['master']
         self.configure_master_remote()
         for node in [self.environment.node['master']] + self.nodes.cobblers:
             remote = ssh(node.ip_address, username='root', password='r00tme')
@@ -37,7 +37,6 @@ class CobblerCase(CobblerTestCase):
         install_astute(self.nodes.stomps[0].ip_address_by_network['public'])
 
     def deploy_stomp_node(self):
-        master = self.environment.node['master']
         self.configure_master_remote()
         for node in [self.environment.node['master']] + self.nodes.cobblers:
             remote = ssh(node.ip_address, username='root', password='r00tme')
