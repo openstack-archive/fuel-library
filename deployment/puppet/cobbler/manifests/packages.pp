@@ -14,7 +14,7 @@ class cobbler::packages {
       $cobbler_web_package = "cobbler-web"
       $dnsmasq_package = "dnsmasq"
       $cobbler_additional_packages = ["tftpd-hpa", "syslinux", "wget", "python-ipaddr"]
-      $django_package = "python_django"
+      $django_package = "python-django"
       $django_version = "1.3.1-4ubuntu1.4"
     }
   }
