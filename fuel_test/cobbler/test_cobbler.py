@@ -167,6 +167,35 @@ class CobblerCase(CobblerTestCase):
         sign_all_node_certificates(self.master_remote)
 
     def test_orchestrating_minimal(self):
+        controller1 = self.nodes.controllers[0]
+        controller2 = self.nodes.controllers[1]
+        self.write_site_pp_manifest(
+            root('deployment', 'puppet', 'openstack', 'examples',
+                 'site.pp'),
+            internal_virtual_ip="'%s'" % self.ci().get_internal_virtual_ip(),
+            public_virtual_ip="'%s'" % self.ci().get_public_virtual_ip(),
+            floating_range="'%s'" % self.ci().get_floating_network(),
+            fixed_range="'%s'" % self.ci().get_fixed_network(),
+            master_hostname="'%s'" % controller1.name,
+            mirror_type="'internal'",
+            controller_public_addresses="{ '%s' => '%s', '%s' => '%s' }"
+            % (
+                controller1.name, controller1.ip_address_by_network['public'],
+                controller2.name, controller2.ip_address_by_network['public']),
+            controller_internal_addresses="{ '%s' => '%s', '%s' => '%s' }"
+            % (
+                controller1.name, controller1.ip_address_by_network['internal'],
+                controller2.name,
+                controller2.ip_address_by_network['internal']),
+            controller_hostnames=[
+                "%s" % controller1.name,
+                "%s" % controller2.name],
+            public_interface="'eth2'",
+            internal_interface="'eth0'",
+            internal_address="$ipaddress_eth0",
+            private_interface="'eth1'",
+            nv_physical_volume= ["/dev/vdb"]
+        )
         config_text = \
         "use_case: minimal\n\
         fuel-01:\n\
@@ -183,6 +212,22 @@ class CobblerCase(CobblerTestCase):
         execute(remote, 'astute_run /tmp/nodes.yaml')
 
     def test_orchestrating_simple(self):
+        controller = self.nodes.controllers[0]
+        self.write_site_pp_manifest(
+            root('deployment', 'puppet', 'openstack', 'examples',
+                'site_simple.pp'),
+            floating_network_range="'%s'" % self.ci().get_floating_network(),
+            fixed_network_range="'%s'" % self.ci().get_fixed_network(),
+            public_interface="'eth2'",
+            internal_interface="'eth0'",
+            private_interface="'eth1'",
+            mirror_type="'internal'",
+            controller_node_address="'%s'" % controller.ip_address_by_network[
+                                             'internal'],
+            controller_node_public="'%s'" % controller.ip_address_by_network[
+                                            'public'],
+            nv_physical_volume=["/dev/vdb"]
+        )
         config_text = \
         "use_case: minimal\n\
         fuel-01:\n\
