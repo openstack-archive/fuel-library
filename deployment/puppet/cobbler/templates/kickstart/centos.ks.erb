@@ -5,8 +5,13 @@ install
 url --url=$tree
 
 # ALTERNATIVE REPOSITORIES
-<% @ks_repo.each do |repo| %>
+<% if ks_repo.kind_of?(Array)  %>
+  <% ks_repo.each do |repo| %>
 repo --name=<%= repo['name'] %> --baseurl=<%= repo['url'] %>
+  <% end %>
+<% else %>
+  # No reopos add
+  # in order to add repo declare the puppet "ks_repo" variable as Array
 <% end %>
 
 # KEYBOARD AND LANGUAGE CUSTOMIZATION
