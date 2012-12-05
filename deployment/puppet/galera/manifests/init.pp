@@ -26,7 +26,7 @@ class galera($cluster_name, $master_ip = false, $node_address = $ipaddress_eth0,
       $mysql_wsrep_prefix = 'http://download.mirantis.com/epel-fuel/x86_64'
       $galera_prefix      = $mysql_wsrep_prefix
       $pkg_prefix  = $mysql_wsrep_prefix  #Yeah, looks funny. So was inherited.
-      $pkg_version = '5.5.27-1.el6.x86_64'
+      $pkg_version = '5.5.28-1.el6.x86_64'
 
       if (!$::selinux=='false') and !defined(Class['selinux']) {
         class { 'selinux' :
@@ -72,8 +72,8 @@ class galera($cluster_name, $master_ip = false, $node_address = $ipaddress_eth0,
       $mysql_wsrep_prefix = 'http://download.mirantis.com/epel-fuel/x86_64'
       $galera_prefix      = $mysql_wsrep_prefix
       
-            $pkg_prefix  = $mysql_wsrep_prefix  #Yeah, looks funny. So was inherited.
-      $pkg_version = 'wsrep-5.5.23-23.6-amd64'
+      $pkg_prefix  = $mysql_wsrep_prefix
+      $pkg_version = 'wsrep-5.5.28-23.7-amd64'
 
       if (!$::selinux=='false') and !defined(Class['selinux']) {
         class { 'selinux' :
