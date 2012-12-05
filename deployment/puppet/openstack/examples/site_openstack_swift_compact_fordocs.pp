@@ -6,7 +6,7 @@ $floating_range = '10.0.2.128/27'
 
 # Internal networking
 $internal_interface = 'eth1'
-$internal_address = $ipaddress_eth1
+$internal_address = getvar("::ipaddress_${internal_interface}")
 $internal_virtual_ip = '10.0.0.253'
 $controller_internal_addresses = {'fuel-01' => '10.0.0.101','fuel-02' => '10.0.0.102','fuel-03' => '10.0.0.103', 'fuel-04' => '10.0.0.104'}
 
@@ -122,24 +122,54 @@ class compact_controller {
 node /fuel-01/ {
   class { compact_controller: }
   $swift_zone = 1
-  class { openstack::swift::storage-node: swift_zone => $swift_zone }
-  class { openstack::swift::proxy: swift_proxies => $swift_proxies, swift_master => $swift_master, controller_node_address =>  $internal_virtual_ip }
+
+  class { 'openstack::swift::storage-node':
+    swift_zone         => $swift_zone,
+    swift_local_net_ip => $internal_address,
+  }
+
+  class { 'openstack::swift::proxy':
+    swift_proxies           => $swift_proxies,
+    swift_master            => $swift_master,
+    controller_node_address => $internal_virtual_ip,
+    swift_local_net_ip      => $internal_address,
+  }
 }
 
 
 node /fuel-02/ {
   class { compact_controller: }
   $swift_zone = 2
-  class { openstack::swift::storage-node: swift_zone => $swift_zone }
-  class { openstack::swift::proxy: swift_proxies => $swift_proxies, swift_master => $swift_master, controller_node_address =>  $internal_virtual_ip }
+
+  class { 'openstack::swift::storage-node':
+    swift_zone         => $swift_zone,
+    swift_local_net_ip => $internal_address,
+  }
+
+  class { 'openstack::swift::proxy':
+    swift_proxies           => $swift_proxies,
+    swift_master            => $swift_master,
+    controller_node_address => $internal_virtual_ip,
+    swift_local_net_ip      => $internal_address,
+  }
 }
 
 
 node /fuel-03/ {
   class { compact_controller: }
   $swift_zone = 3
-  class { openstack::swift::storage-node: swift_zone => $swift_zone }
-  class { openstack::swift::proxy: swift_proxies => $swift_proxies, swift_master => $swift_master, controller_node_address =>  $internal_virtual_ip }
+
+  class { 'openstack::swift::storage-node':
+    swift_zone         => $swift_zone,
+    swift_local_net_ip => $internal_address,
+  }
+
+  class { 'openstack::swift::proxy':
+    swift_proxies           => $swift_proxies,
+    swift_master            => $swift_master,
+    controller_node_address => $internal_virtual_ip,
+    swift_local_net_ip      => $internal_address,
+  }
 }
 
 
