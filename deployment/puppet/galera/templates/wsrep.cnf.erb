@@ -47,17 +47,21 @@ wsrep_provider=<%= libgalera_prefix %>/galera/libgalera_smm.so
 
 
 
-wsrep_provider_options="pc.ignore_sb = no"
+wsrep_provider_options="pc.ignore_sb = no;ist.recv_addr=<%= node_address %>"
 
 # Logical cluster name. Should be the same for all nodes.
 wsrep_cluster_name="<%= cluster_name -%>"
 <% if setup_multiple_gcomm -%>
-        wsrep_cluster_address="gcomm://<%= @node_addresses.collect {|ip| ip + ':' + 4567 }.join ',' %>?pc.wait_prim=yes"
+    <% if master_ip -%>
+wsrep_cluster_address="gcomm://<%= @node_addresses.collect {|ip| ip + ':' + 4567.to_s }.join ',' %>"
+    <% else -%>
+wsrep_cluster_address="gcomm://"
+    <% end -%>
 <% else -%>
     <% if master_ip -%>
-        wsrep_cluster_address="gcomm://<%= master_ip %>:4567"
+wsrep_cluster_address="gcomm://<%= master_ip %>:4567"
     <% else -%>
-        wsrep_cluster_address="gcomm://"
+wsrep_cluster_address="gcomm://"
     <% end -%>
 <% end -%>
 
@@ -74,7 +78,7 @@ wsrep_node_address=<%= node_address %>
 #wsrep_node_incoming_address=
 
 # How many threads will process writesets from other nodes
-wsrep_slave_threads=1
+wsrep_slave_threads=2
 
 # DBUG options for wsrep provider
 #wsrep_dbug_option

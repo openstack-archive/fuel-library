@@ -8,7 +8,7 @@
 # vi /etc/mysql/conf.d/wsrep.cnf 
 # /etc/init.d/mysql start
 # 
-class galera($cluster_name, $master_ip = false, $node_address = $ipaddress_eth0, $setup_multiple_gcomm = false, $node_addresses=[$ipaddress_eth0]) {
+class galera($cluster_name, $master_ip = false, $node_address = $ipaddress_eth0, $setup_multiple_gcomm = true, $node_addresses=[$ipaddress_eth0]) {
 
   include galera::params
 
@@ -198,7 +198,7 @@ class galera($cluster_name, $master_ip = false, $node_address = $ipaddress_eth0,
     logoutput   => true,
     command     => "/usr/bin/mysql -Nbe \"show status like 'wsrep_local_state_comment'\" | /bin/grep -q Synced",
     try_sleep   => 5,
-    tries       => 6,
+    tries       => 60,
     refreshonly => true,
   }
 
@@ -207,8 +207,8 @@ class galera($cluster_name, $master_ip = false, $node_address = $ipaddress_eth0,
 	path   => "/usr/bin:/usr/sbin:/bin:/sbin",
       command   => "killall -w mysqld",
 #      onlyif    => "pidof mysqld",
-#      try_sleep   => 5,
-#      tries       => 6,
+      try_sleep   => 5,
+      tries       => 6,
       before     => Service["mysql-galera"],
       require => Exec["set-mysql-password"],
       subscribe => Exec["wait-initial-sync"],
@@ -225,17 +225,17 @@ class galera($cluster_name, $master_ip = false, $node_address = $ipaddress_eth0,
     logoutput   => true,
     command     => "/usr/bin/mysql -Nbe \"show status like 'wsrep_local_state_comment'\" | /bin/grep -q Synced",
     try_sleep   => 5,
-    tries       => 6,
+    tries       => 60,
   }
 
   if ! $master_ip
   {
-    exec { "bootstrap-galera" :
-      require     => [Service['mysql-galera']],
-      subscribe    => [Service['mysql-galera']],
-      before => [Exec['wait-for-synced-state']],
-      logoutput   => true,
-      command     => "/usr/bin/mysql -Nbe \"SET GLOBAL wsrep_provider_options='pc.bootstrap=1'\"",
+      $galera_gcomm_string = inline_template("<%= @node_addresses.collect {|ip| ip + ':' + 4567.to_s }.join ',' %>")
+
+      exec {"first-galera-node-final-config":
+      require => [Exec["wait-for-synced-state"],Service['mysql-galera']],
+      path   => "/usr/bin:/usr/sbin:/bin:/sbin",
+      command => "sed -i 's/wsrep_cluster_address=\"gcomm:\/\/\"/wsrep_cluster_address=\"gcomm:\/\/${galera_gcomm_string}\"/' /etc/mysql/conf.d/wsrep.cnf",
     }
   }
 
