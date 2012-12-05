@@ -39,7 +39,7 @@ Let's take a closer look on how OpenStack deployment will look like and what wil
     * MySQL high availability is achieved through Galera active/active multi-master deployment
 
 
-.. image:: https://docs.google.com/drawings/pub?id=1aftE8Yes7CdVSZgZD1A82T_2GqL2SMImtRYU914IMyQ&w=966&h=860
+.. image:: https://docs.google.com/drawings/pub?id=1aftE8Yes7CdVSZgZD1A82T_2GqL2SMImtRYU914IMyQ&w=869&h=855
 
 
 Compute Nodes
