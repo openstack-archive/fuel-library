@@ -8,14 +8,17 @@ from fuel_test.settings import EMPTY_SNAPSHOT, OS_FAMILY, PUPPET_VERSION
 from fuel_test.root import root
 
 class CobblerCase(CobblerTestCase):
-    def test_deploy_cobbler(self):
-        safety_revert_nodes(self.environment.nodes, EMPTY_SNAPSHOT)
-        master = self.environment.node['master']
+    def configure_master_remote(self):
         self.master_remote = ssh(master.ip_address_by_network['public'],
             username='root',
             password='r00tme')
         upload_recipes(self.master_remote)
         upload_keys(self.master_remote)
+
+    def test_deploy_cobbler(self):
+        safety_revert_nodes(self.environment.nodes, EMPTY_SNAPSHOT)
+        master = self.environment.node['master']
+        self.configure_master_remote()
         for node in [self.environment.node['master']] + self.nodes.cobblers:
             remote = ssh(node.ip_address, username='root', password='r00tme')
             sync_time(remote.sudo.ssh)
@@ -35,11 +38,7 @@ class CobblerCase(CobblerTestCase):
 
     def deploy_stomp_node(self):
         master = self.environment.node['master']
-        self.master_remote = ssh(master.ip_address_by_network['public'],
-            username='root',
-            password='r00tme')
-        upload_recipes(self.master_remote)
-        upload_keys(self.master_remote)
+        self.configure_master_remote()
         for node in [self.environment.node['master']] + self.nodes.cobblers:
             remote = ssh(node.ip_address, username='root', password='r00tme')
             sync_time(remote.sudo.ssh)
@@ -168,6 +167,7 @@ class CobblerCase(CobblerTestCase):
         sign_all_node_certificates(self.master_remote)
 
     def test_orchestrating_minimal(self):
+        self.configure_master_remote()
         controller1 = self.nodes.controllers[0]
         controller2 = self.nodes.controllers[1]
         self.write_site_pp_manifest(
@@ -213,6 +213,7 @@ class CobblerCase(CobblerTestCase):
         execute(remote, 'astute_run /tmp/nodes.yaml')
 
     def test_orchestrating_simple(self):
+        self.configure_master_remote()
         controller = self.nodes.controllers[0]
         self.write_site_pp_manifest(
             root('deployment', 'puppet', 'openstack', 'examples',
