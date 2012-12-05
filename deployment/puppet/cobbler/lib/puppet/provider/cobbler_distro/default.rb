@@ -48,7 +48,7 @@ Puppet::Type.type(:cobbler_distro).provide(:default) do
     if err = stderr.gets
       raise Puppet::Error, err
     else
-      return distro.chomp.size != 0
+      return distro.gets.chomp.size != 0
     end
   end
 
