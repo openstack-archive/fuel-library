@@ -5,6 +5,7 @@ from fuel_test.cobbler.cobbler_client import CobblerClient
 from fuel_test.cobbler.cobbler_test_case import CobblerTestCase
 from fuel_test.helpers import tcp_ping, udp_ping, safety_revert_nodes, add_to_hosts, sign_all_node_certificates, sync_time, upload_recipes, upload_keys, await_node_deploy, build_astute, install_astute, write_config, execute
 from fuel_test.settings import EMPTY_SNAPSHOT, OS_FAMILY, PUPPET_VERSION
+from root import root
 
 class CobblerCase(CobblerTestCase):
     def test_deploy_cobbler(self):
