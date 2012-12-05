@@ -166,12 +166,37 @@ class CobblerCase(CobblerTestCase):
         sleep(20)
         sign_all_node_certificates(self.master_remote)
 
-    def test_orchestrating_openstack(self):
-        config_text = "fuel-01\nfuel-02,fuel-03,fuel-04"
+    def test_orchestrating_minimal(self):
+        config_text = \
+        "use_case: minimal\n\
+        fuel-01:\n\
+            role: controller\n\
+        fuel-02:\n\
+            role: controller\n\
+        fuel-03:\n\
+            role: compute\n\
+        fuel-04:\n\
+            role: compute"
         remote = ssh(self.nodes.stomps[0].ip_address_by_network['public'], username='root',
                 password='r00tme')
-        write_config(remote, '/tmp/nodes.cfg', config_text)
-        execute(remote, 'astute_run /tmp/nodes.cfg')
+        write_config(remote, '/tmp/nodes.yaml', config_text)
+        execute(remote, 'astute_run /tmp/nodes.yaml')
+
+    def test_orchestrating_simple(self):
+        config_text = \
+        "use_case: minimal\n\
+        fuel-01:\n\
+            role: controller\n\
+        fuel-02:\n\
+            role: compute\n\
+        fuel-03:\n\
+            role: compute\n\
+        fuel-04:\n\
+            role: compute"
+        remote = ssh(self.nodes.stomps[0].ip_address_by_network['public'], username='root',
+                password='r00tme')
+        write_config(remote, '/tmp/nodes.yaml', config_text)
+        execute(remote, 'astute_run /tmp/nodes.yaml')
 
     def assert_cobbler_ports(self, ip):
         closed_tcp_ports = filter(

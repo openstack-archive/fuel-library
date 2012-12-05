@@ -16,11 +16,30 @@ task_id = `uuidgen`.strip
 orchestrator = Astute::Orchestrator.new
 context = Context.new(task_id, reporter)
 
-config_file = open( (ARGV.length>0) ? (ARGV[0]) : "nodes.cfg" )
-lines = config_file.readlines()
-for line in lines:
-    nodes = line.split(',')
-    nodes = [x.strip() for x in nodes]
-    nodes = [(x.split('#', 1))[0] for x in nodes] # deleting comments after #-char
-    orchestrator.deploy_piece(context, nodes)
-config_file.close()
+# load nodes structure from yaml 
+nodes_raw = YAML::load( File.open( (ARGV.length>0) ? (ARGV[0]) : "nodes.yaml" ) )
+nodes = Array.new(nodes_raw.size, Hash.new)
+indx = 0
+nodes_raw.each do |key, value|
+  if key != 'use_case'
+    nodes[indx] = value
+    nodes[indx]['uid'] = key
+    indx = indx + 1
+  end
+end
+
+if nodes_raw['use_case'] == "minimal" or
+    nodes_raw['use_case'] == "simple"
+  ctrl_nodes = nodes.select {|n| n['role'] == 'controller'}
+  for node in ctrl_nodes do
+    orchestrator.deploy_piece(context, node)
+  end
+  compute_nodes = nodes.select {|n| n['role'] == 'compute'}
+  orchestrator.deploy_piece(context, compute_nodes)
+elsif nodes_raw['use_case'] == "compact"
+  print "TODO - compact use case"
+elsif nodes_raw['use_case'] == "full"
+  print "TODO - full use case"
+else
+  puts "Use case " + nodes_raw['use_case'] + " is not supported!"
+end
