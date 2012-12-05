@@ -61,7 +61,7 @@ node fuel-cobbler {
       class { cobbler::distro::ubuntu_1204_x86_64 :
         http_iso => "http://172.18.67.168/mini.iso",
         require  => Class[cobbler],
-        ks_url   = "http://172.18.67.168/ubuntu-repo/mirror.yandex.ru/ubuntu",
+        ks_url   => "http://172.18.67.168/ubuntu-repo/mirror.yandex.ru/ubuntu",
       }
 
       class { cobbler::profile::ubuntu_1204_x86_64 :
