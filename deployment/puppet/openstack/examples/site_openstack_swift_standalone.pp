@@ -10,7 +10,7 @@ $fixed_range = '10.0.251.128/27'
 $controller_hostnames = ['fuel-01', 'fuel-02']
 $public_interface = 'eth2'
 $internal_interface = 'eth0'
-$internal_address = $ipaddress_eth0
+$internal_address = getvar("::ipaddress_${internal_interface}")
 $private_interface = 'eth1'
 $multi_host = true
 $network_manager = 'nova.network.manager.FlatDHCPManager'
@@ -140,25 +140,44 @@ node /fuel-0[34]/ {
 node /fuel-05/ {
 
   $swift_zone = 1
-  class { openstack::swift::storage-node: swift_zone => $swift_zone }
+
+  class { 'openstack::swift::storage-node':
+    swift_zone         => $swift_zone,
+    swift_local_net_ip => $internal_address,
+  }
+
 }
 
 node /fuel-06/ {
 
   $swift_zone = 2
-  class { openstack::swift::storage-node: swift_zone => $swift_zone }
+
+  class { 'openstack::swift::storage-node':
+    swift_zone         => $swift_zone,
+    swift_local_net_ip => $internal_address,
+  }
+
 }
+
 node /fuel-07/ {
 
   $swift_zone = 3
-  class { openstack::swift::storage-node: swift_zone => $swift_zone }
+
+  class { 'openstack::swift::storage-node':
+    swift_zone         => $swift_zone,
+    swift_local_net_ip => $internal_address,
+  }
+
 }
 
 node /fuel-0[89]/ {
 
-
-  class { openstack::swift::proxy: swift_proxies => $swift_proxies, swift_master => $swift_master, controller_node_address =>  $internal_virtual_ip }
-  
+  class { 'openstack::swift::proxy':
+    swift_proxies           => $swift_proxies,
+    swift_master            => $swift_master,
+    controller_node_address => $internal_virtual_ip,
+    swift_local_net_ip      => $internal_address,
+  }
 
 }
 

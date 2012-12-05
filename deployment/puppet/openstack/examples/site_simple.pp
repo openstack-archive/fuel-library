@@ -114,7 +114,7 @@ node /fuel-0[234]/ {
   class { 'openstack::compute':
     public_interface       => $public_interface,
     private_interface      => $private_interface,
-    internal_address       => $ipaddress_eth0,
+    internal_address       => getvar("::ipaddress_${internal_interface}"),
     libvirt_type           => 'kvm',
     fixed_range            => $fixed_network_range,
     network_manager        => 'nova.network.manager.FlatDHCPManager',
