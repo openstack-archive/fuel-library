@@ -58,6 +58,9 @@ if !defined(Package['swift'])
     ensure => directory,
     owner => 'swift'
   }
+  file {'/var/cache/swift':
+    ensure => directory
+  }
   file { '/var/run/swift':
     ensure => directory,
   }
