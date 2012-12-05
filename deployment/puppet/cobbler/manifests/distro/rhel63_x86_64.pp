@@ -39,12 +39,9 @@ class cobbler::distro::rhel63_x86_64(
   else {
     $tree = $ks_url
   }
-  
+
   file { $iso_mnt:
     ensure => directory,
-    owner => root,
-    group => root,
-    mode => 0555,
   }
 
   # HERE IS ASSUMED THAT wget PACKAGE INSTALLED AS WE NEED IT
