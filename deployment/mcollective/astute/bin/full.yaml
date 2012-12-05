@@ -1,0 +1,19 @@
+use_case: full
+fuel-01:
+    role: controller
+fuel-02:
+    role: controller
+fuel-03:
+    role: compute
+fuel-04:
+    role: compute
+fuel-05:
+    role: storage
+fuel-06:
+    role: storage
+fuel-07:
+    role: storage
+fuel-08:
+    role: proxy
+fuel-09:
+    role: proxy

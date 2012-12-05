@@ -1,0 +1,11 @@
+use_case: compact
+fuel-01:
+    role: controller
+fuel-02:
+    role: controller
+fuel-03:
+    role: controller
+fuel-04:
+    role: compute
+fuel-05:
+    role: compute
