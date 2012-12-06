@@ -24,6 +24,15 @@ class openstack::mirantis_repos (
           ensure => absent
         }
         File['/etc/apt/sources.list']->Apt::Source<||>
+         apt::source  { 'precise-fuel-folsom':
+          location => 'http://172.18.67.168/ubuntu-repo/precise-fuel-folsom',
+          release => 'precise',
+          repos => 'main',
+          key => "F8AF89DD",
+          key_source => 'http://172.18.67.168/ubuntu-repo/precise-fuel-folsom/Mirantis.key',
+#         key_server => "pgp.mit.edu",
+          include_src => false,
+        }
         apt::source  { 'cloud-archive':
           location => 'http://172.18.67.168/ubuntu-cloud.archive.canonical.com/ubuntu',
           release => 'precise-updates/folsom',
