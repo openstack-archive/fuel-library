@@ -178,7 +178,7 @@ local0.* -/var/log/haproxy.log'
                 path => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
                 require => [Service['haproxy'],Package['socat']],
                 try_sleep   => 5,
-                tries       => 6,
+                tries       => 60,
                 }
         Exec<| title == 'wait-for-synced-state' |> -> Exec['wait-for-haproxy-mysql-backend']
         Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'initial-db-sync' |>
