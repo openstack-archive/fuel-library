@@ -29,7 +29,7 @@ class BaseTestCase(unittest.TestCase):
     def revert_snapshots(self):
         safety_revert_nodes(self.environment.nodes, EMPTY_SNAPSHOT)
         for node in self.environment.nodes:
-            remote = ssh(node.ip_address, username='root', password='r00tme')
+            remote = ssh(node.ip_address_by_network['internal'], username='root', password='r00tme')
             sync_time(remote.sudo.ssh)
             execute(remote.sudo.ssh, 'yum makecache')
 
@@ -70,7 +70,7 @@ class BaseTestCase(unittest.TestCase):
     def do(self, nodes, command):
         results = []
         for node in nodes:
-            remote = ssh(node.ip_address, username='root', password='r00tme')
+            remote = ssh(node.ip_address_by_network['internal'], username='root', password='r00tme')
             results.append(execute(remote.sudo.ssh, command))
         return results
 

@@ -24,18 +24,18 @@ class SwiftCase(BaseTestCase):
         )
         results = []
         #install keystone
-        remote = ssh(self.nodes.keystones[0].ip_address, username='root',
+        remote = ssh(self.nodes.keystones[0].ip_address_by_network['internal'], username='root',
             password='r00tme')
         results.append(execute(remote.sudo.ssh, 'puppet agent --test'))
         for node in self.nodes.storages:
-            remote = ssh(node.ip_address, username='root', password='r00tme')
+            remote = ssh(node.ip_address_by_network['internal'], username='root', password='r00tme')
             results.append(execute(remote.sudo.ssh, 'puppet agent --test'))
             results.append(execute(remote.sudo.ssh, 'puppet agent --test'))
-        remote = ssh(self.nodes.proxies[0].ip_address, username='root',
+        remote = ssh(self.nodes.proxies[0].ip_address_by_network['internal'], username='root',
             password='r00tme')
         results.append(execute(remote.sudo.ssh, 'puppet agent --test'))
         for node in self.nodes.storages:
-            remote = ssh(node.ip_address, username='root', password='r00tme')
+            remote = ssh(node.ip_address_by_network['internal'], username='root', password='r00tme')
             results.append(execute(remote.sudo.ssh, 'puppet agent --test'))
 
 #        for result in results:

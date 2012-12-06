@@ -4,7 +4,7 @@ from devops.helpers import ssh
 from fuel_test.cobbler.cobbler_client import CobblerClient
 from fuel_test.cobbler.cobbler_test_case import CobblerTestCase
 from fuel_test.helpers import tcp_ping, udp_ping, safety_revert_nodes, add_to_hosts, sign_all_node_certificates, sync_time, upload_recipes, upload_keys, await_node_deploy, build_astute, install_astute, write_config, execute
-from fuel_test.settings import EMPTY_SNAPSHOT, OS_FAMILY, PUPPET_VERSION
+from fuel_test.settings import EMPTY_SNAPSHOT, OS_FAMILY, PUPPET_VERSION, PUBLIC_INTERFACE, INTERNAL_INTERFACE, PRIVATE_INTERFACE
 from fuel_test.root import root
 
 class CobblerCase(CobblerTestCase):
@@ -20,7 +20,7 @@ class CobblerCase(CobblerTestCase):
         safety_revert_nodes(self.environment.nodes, EMPTY_SNAPSHOT)
         self.configure_master_remote()
         for node in [self.environment.node['master']] + self.nodes.cobblers:
-            remote = ssh(node.ip_address, username='root', password='r00tme')
+            remote = ssh(node.ip_address_by_network['internal'], username='root', password='r00tme')
             sync_time(remote.sudo.ssh)
             remote.sudo.ssh.execute('yum makecache')
         self.write_cobbler_manifest()
@@ -39,7 +39,7 @@ class CobblerCase(CobblerTestCase):
     def deploy_stomp_node(self):
         self.configure_master_remote()
         for node in [self.environment.node['master']] + self.nodes.cobblers:
-            remote = ssh(node.ip_address, username='root', password='r00tme')
+            remote = ssh(node.ip_address_by_network['internal'], username='root', password='r00tme')
             sync_time(remote.sudo.ssh)
             remote.sudo.ssh.execute('yum makecache')
         self.write_stomp_manifest()
@@ -104,11 +104,11 @@ class CobblerCase(CobblerTestCase):
             netboot_enabled="1")
         client.modify_system(system_id, 'modify_interface', {
             "macaddress-eth0": str(node_mac0),
-            "ipaddress-eth0": str(node_ip),
-            "dnsname-eth0": node_name + ".mirantis.com",
-            "static-eth0": "1",
+            "static-eth0": "0",
             "macaddress-eth1": str(node_mac1),
-            "static-eth1": "0",
+            "ipaddress-eth1": str(node_ip),
+            "dnsname-eth1": node_name + ".mirantis.com",
+            "static-eth1": "1",
             "macaddress-eth2": str(node_mac2),
             "static-eth2": "0"
         }, token)
@@ -190,10 +190,9 @@ class CobblerCase(CobblerTestCase):
             controller_hostnames=[
                 "%s" % controller1.name,
                 "%s" % controller2.name],
-            public_interface="'eth2'",
-            internal_interface="'eth0'",
-            internal_address="$ipaddress_eth0",
-            private_interface="'eth1'",
+            public_interface="'%s'" % PUBLIC_INTERFACE,
+            internal_interface="'%s'" % INTERNAL_INTERFACE,
+            private_interface="'%s'" % PRIVATE_INTERFACE,
             nv_physical_volume= ["/dev/vdb"]
         )
         config_text = \
@@ -219,9 +218,9 @@ class CobblerCase(CobblerTestCase):
                 'site_simple.pp'),
             floating_network_range="'%s'" % self.ci().get_floating_network(),
             fixed_network_range="'%s'" % self.ci().get_fixed_network(),
-            public_interface="'eth2'",
-            internal_interface="'eth0'",
-            private_interface="'eth1'",
+            public_interface="'%s'" % PUBLIC_INTERFACE,
+            internal_interface="'%s'" % INTERNAL_INTERFACE,
+            private_interface="'%s'" % PRIVATE_INTERFACE,
             mirror_type="'internal'",
             controller_node_address="'%s'" % controller.ip_address_by_network[
                                              'internal'],
