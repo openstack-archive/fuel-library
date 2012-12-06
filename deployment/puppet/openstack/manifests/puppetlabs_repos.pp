@@ -18,14 +18,14 @@ class openstack::puppetlabs_repos (
 ################ End of forced apt-get update block ###############
     }
     'RedHat': {
-      yumrepo { 'puppet-labs':
-        mirrorlist => 'http://yum.puppetlabs.com/el/6/products/x86_64',
+      yumrepo { 'puppetlabs-products':
+        baseurl => 'http://yum.puppetlabs.com/el/6/products/x86_64',
         gpgkey         => 'http://yum.puppetlabs.com/RPM-GPG-KEY-puppetlabs',
         gpgcheck       => 1,
       }
 
-      yumrepo { 'puppet-labs-deps':
-              mirrorlist => 'http://yum.puppetlabs.com/el/6/dependencies/x86_64',
+      yumrepo { 'puppetlabs-deps':
+              baseurl => 'http://yum.puppetlabs.com/el/6/dependencies/x86_64',
               gpgkey         => 'http://yum.puppetlabs.com/RPM-GPG-KEY-puppetlabs',
               gpgcheck       => 1,
       }
