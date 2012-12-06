@@ -69,9 +69,9 @@ class openstack::mirantis_repos (
         descr      => 'Mirantis OpenStack Custom Packages',
         repo_name  => 'openstack-epel-fuel',
         mirrorlist => $mirrorlist,
-        key_source => "https://fedoraproject.org/static/0608B895.txt\n  http://mirror.centos.org/centos/RPM-GPG-KEY-CentOS-6\n http://download.mirantis.com/epel-fuel-folsom/rabbit.key\n http://download.mirantis.com/epel-fuel-folsom/mirantis.key",
+        key_source => "https://download.mirantis.com/epel-fuel-folsom/epel.key\n  http://download.mirantis.com/epel-fuel-folsom/centos.key\n http://download.mirantis.com/epel-fuel-folsom/rabbit.key\n http://download.mirantis.com/epel-fuel-folsom/mirantis.key\n http://download.mirantis.com/epel-fuel-folsom/mysql.key\n",
         stage      => 'openstack-custom-repo',
-        gpgcheck	=> '0'
+        gpgcheck	=> '1'
       }
 
       if $enable_epel {
