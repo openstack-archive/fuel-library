@@ -78,7 +78,7 @@ class openstack::mirantis_repos (
         descr      => 'Mirantis OpenStack Custom Packages',
         repo_name  => 'openstack-epel-fuel',
         mirrorlist => $mirrorlist,
-        key_source => "https://download.mirantis.com/epel-fuel-folsom/epel.key\n  http://download.mirantis.com/epel-fuel-folsom/centos.key\n http://download.mirantis.com/epel-fuel-folsom/rabbit.key\n http://download.mirantis.com/epel-fuel-folsom/mirantis.key\n http://download.mirantis.com/epel-fuel-folsom/mysql.key\n",
+        key_source => "http://download.mirantis.com/epel-fuel-folsom/epel.key\n  http://download.mirantis.com/epel-fuel-folsom/centos.key\n http://download.mirantis.com/epel-fuel-folsom/rabbit.key\n http://download.mirantis.com/epel-fuel-folsom/mirantis.key\n http://download.mirantis.com/epel-fuel-folsom/mysql.key\n",
         stage      => 'openstack-custom-repo',
         gpgcheck	=> '1'
       }
