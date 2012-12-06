@@ -24,12 +24,12 @@ class CiCobbler(CiBase):
 
     def describe_environment(self):
         environment = Environment(self.environment_name)
+        public = Network(name='public', dhcp_server=True)
+        environment.networks.append(public)
         internal = Network(name='internal', dhcp_server=False)
         environment.networks.append(internal)
         private = Network(name='private', dhcp_server=False)
         environment.networks.append(private)
-        public = Network(name='public', dhcp_server=True)
-        environment.networks.append(public)
         master_node = self.describe_node('master', [internal, private, public])
         environment.nodes.append(master_node)
         for node_name in self.node_roles().cobbler_names:
