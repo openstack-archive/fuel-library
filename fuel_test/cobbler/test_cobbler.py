@@ -20,7 +20,7 @@ class CobblerCase(CobblerTestCase):
         safety_revert_nodes(self.environment.nodes, EMPTY_SNAPSHOT)
         self.configure_master_remote()
         for node in [self.environment.node['master']] + self.nodes.cobblers:
-            remote = ssh(node.ip_address_by_network['internal'], username='root', password='r00tme')
+            remote = ssh(node.ip_address_by_network['public'], username='root', password='r00tme')
             sync_time(remote.sudo.ssh)
             update_pm(remote.sudo.ssh)
         self.write_cobbler_manifest()
