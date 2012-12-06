@@ -38,7 +38,7 @@ $quantum_db_dbname      = 'quantum'
 $cinder                 = true
 
 # set this parameter to 'false' if you use patched packages
-$apply_highavail_patches = true
+$apply_highavail_patches = false
 
 $openstack_version = {
   'keystone'   => latest,
