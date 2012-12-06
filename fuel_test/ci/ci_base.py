@@ -107,10 +107,6 @@ class CiBase(object):
                 write_config(remote, '/etc/puppet/puppet.conf', agent_config)
                 request_cerificate(remote)
 
-    def reserve_static_addresses(self, environment):
-        #    todo make devops to reserve ips for nodes in static networks
-        pass
-
     def make_vms(self):
         if not self.base_image:
             raise Exception(
@@ -119,7 +115,6 @@ class CiBase(object):
         environment = self.describe_environment()
         #       todo environment should be saved before build
         devops.build(environment)
-        self.reserve_static_addresses(environment)
         devops.save(environment)
         logging.info("Environment has been saved")
         return environment

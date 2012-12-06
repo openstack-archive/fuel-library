@@ -16,7 +16,8 @@ class CiCobbler(CiBase):
                               range(1, 1 + COBBLER_CONTROLLERS)],
             compute_names=['fuel-%02d' % x for x in range(
                 COBBLER_CONTROLLERS + 1,
-                COBBLER_CONTROLLERS + 1 + COBBLER_COMPUTES)]
+                COBBLER_CONTROLLERS + 1 + COBBLER_COMPUTES)],
+            stomp_names=['fuel-mcollective']
         )
 
     def env_name(self):
@@ -35,6 +36,9 @@ class CiCobbler(CiBase):
         for node_name in self.node_roles().cobbler_names:
             client = self.describe_node(node_name, [internal, private, public])
             environment.nodes.append(client)
+        for node_name in self.node_roles().stomp_names:
+            client = self.describe_node(node_name, [internal, private, public])
+            environment.nodes.append(client)
         for node_name in self.node_roles().controller_names:
             client = self.describe_empty_node(node_name,
                 [internal, private, public])
@@ -45,18 +49,15 @@ class CiCobbler(CiBase):
             environment.nodes.append(client)
         return environment
 
-    def reserve_static_addresses(self, environment):
-        addresses_iter = iter(environment.network['internal'].ip_addresses)
-        addresses_iter.next()
-        addresses_iter.next()
-        for node in environment.nodes:
-            node.interfaces[0].ip_addresses = addresses_iter.next()
+    def get_start_nodes(self):
+        return [self.environment.node['master']] + self.nodes().cobblers + self.nodes().stomps
+
 
     def setup_environment(self):
         self.environment = self.make_vms()
         master_node = self.environment.node['master']
         logging.info("Starting test nodes ...")
-        start_nodes = [master_node] + self.nodes().cobblers
+        start_nodes = self.get_start_nodes()
         for node in start_nodes:
             node.start()
         for node in start_nodes:
