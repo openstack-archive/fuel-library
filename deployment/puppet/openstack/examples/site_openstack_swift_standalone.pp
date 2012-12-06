@@ -52,7 +52,7 @@ $openstack_version = {
 }
 $mirror_type = "external"
 Exec { logoutput => true }
-$apply_highavail_patches = true
+$apply_highavail_patches = false 
 stage { 'openstack-custom-repo': before => Stage['main'] }
 class { 'openstack::mirantis_repos': stage => 'openstack-custom-repo', type => $mirror_type }
 
