@@ -4,6 +4,9 @@ $pskey="un0aez2ei9eiGaequaey4loocohjuch4Ievu3shaeweeg5Uthi"
 $stomphost="127.0.0.1"
 $stompport="61613"
 
+stage { 'puppetlabs-repo': before => Stage['main'] }
+class { 'openstack::mirantis_repos': stage => 'puppetlabs-repo'}
+
 node /fuel-mcollective.mirantis.com/ {
 
   class { mcollective::rabbitmq:
