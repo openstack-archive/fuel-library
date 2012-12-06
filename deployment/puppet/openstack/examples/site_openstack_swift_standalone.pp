@@ -55,6 +55,10 @@ Exec { logoutput => true }
 $apply_highavail_patches = false 
 stage { 'openstack-custom-repo': before => Stage['main'] }
 class { 'openstack::mirantis_repos': stage => 'openstack-custom-repo', type => $mirror_type }
+if $::operatingsystem == 'Ubuntu'
+{
+  class { 'openstack::apparmor::disable': stage => 'openstack-custom-repo' }
+}
 
 node /fuel-0[12]/ {
     class { 'openstack::controller_ha': 
