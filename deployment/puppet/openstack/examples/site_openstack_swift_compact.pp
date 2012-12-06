@@ -68,6 +68,10 @@ $mirror_type="external"
 Exec { logoutput => true }
 stage { 'openstack-custom-repo': before => Stage['main'] }
 class { 'openstack::mirantis_repos': stage => 'openstack-custom-repo', type=> $mirror_type }
+if $::operatingsystem == 'Ubuntu'
+{
+  class { 'openstack::apparmor::disable': stage => 'openstack-custom-repo' }
+}
 class compact_controller {
   if $::hostname == $master_hostname {
     $manage_volumes = true

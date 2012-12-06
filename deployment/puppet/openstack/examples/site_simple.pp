@@ -53,6 +53,10 @@ $mirror_type="external"
 Exec { logoutput => true }
 stage { 'openstack-custom-repo': before => Stage['main'] }
 class { 'openstack::mirantis_repos': stage => 'openstack-custom-repo', type => $mirror_type }
+if $::operatingsystem == 'Ubuntu'
+{
+  class { 'openstack::apparmor::disable': stage => 'openstack-custom-repo' }
+}
 
 
 $controller_node_address  = '10.0.125.3' 
