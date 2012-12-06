@@ -22,6 +22,7 @@
 class openstack::nova::controller (
   # Network Required
   $public_address,
+  $public_interface,
   $private_interface,
   # Database Required
   $db_host,
@@ -47,6 +48,7 @@ class openstack::nova::controller (
   $quantum_db_password       = 'quantum_pass',
   $quantum_user_password     = 'quantum_pass',
   $quantum_l3_enable         = true,
+  $tenant_network_type       = 'gre',
   # Nova
   $nova_db_user              = 'nova',
   $nova_db_dbname            = 'nova',
@@ -201,6 +203,8 @@ if ($rabbit_nodes)
   } else {
     # Set up Quantum
     $quantum_sql_connection = "mysql://${quantum_db_user}:${quantum_db_password}@${db_host}/${quantum_db_dbname}?charset=utf8"
+    $enable_tunneling       = $tenant_network_type ? { 'gre' => true, 'vlan' => false }
+
     class { 'quantum':
       bind_host       => $api_bind_address,
       rabbit_user     => $rabbit_user,
@@ -219,13 +223,13 @@ if ($rabbit_nodes)
 
     class { 'quantum::plugins::ovs':
       sql_connection      => $quantum_sql_connection,
-      tenant_network_type => 'gre',
-      enable_tunneling    => true,
+      tenant_network_type => $tenant_network_type,
+      enable_tunneling    => $enable_tunneling,
     }
 
     class { 'quantum::agents::ovs':
-      bridge_uplinks   => ["br-ex:${private_interface}"],
-      enable_tunneling => true,
+      bridge_uplinks   => ["br-ex:${public_interface}"],
+      enable_tunneling => $enable_tunneling,
       local_ip         => $api_bind_address,
     }
 
@@ -244,7 +248,7 @@ if ($rabbit_nodes)
       auth_user      => 'quantum',
       auth_password  => $quantum_user_password,
       use_namespaces => False,
-      metadata_ip    => $::ipaddress,
+      metadata_ip    => $api_bind_address,
     }
 
     class { 'nova::network::quantum':
