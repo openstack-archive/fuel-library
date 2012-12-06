@@ -8,6 +8,7 @@ import unittest
 #todo raise exception if remote command writes to stderr or returns non-zero exit code
 #todo pretty output
 #todo async command execution
+from fuel_test.settings import PUBLIC_INTERFACE, INTERNAL_INTERFACE, PRIVATE_INTERFACE
 
 
 class MyTestCase(OpenStackTestCase):
@@ -40,12 +41,11 @@ class MyTestCase(OpenStackTestCase):
             controller_hostnames=[
                 "%s" % self.nodes.controllers[0].name,
                 "%s" % self.nodes.controllers[1].name],
-            public_interface="'eth2'",
-            internal_interface="'eth0'",
-            internal_address="$ipaddress_eth0",
-            private_interface="'eth1'"
+            public_interface="'%s'" % PUBLIC_INTERFACE,
+            internal_interface="'%s'" % INTERNAL_INTERFACE,
+            private_interface="'%s'" % PRIVATE_INTERFACE
         )
-        remote = ssh(self.nodes.controllers[0].ip_address, username='root',
+        remote = ssh(self.nodes.controllers[0].ip_address_by_network['internal'], username='root',
             password='r00tme')
         result = execute(remote.sudo.ssh, 'puppet agent --test')
         self.assertResult(result)
@@ -65,11 +65,11 @@ class MyTestCase(OpenStackTestCase):
                        'internal']
             ],
         )
-        remote = ssh(self.nodes.controllers[0].ip_address, username='root',
+        remote = ssh(self.nodes.controllers[0].ip_address_by_network['internal'], username='root',
             password='r00tme')
         result = remote.sudo.ssh.execute('puppet agent --test')
         self.assertResult(result)
-        remote = ssh(self.nodes.controllers[1].ip_address, username='root',
+        remote = ssh(self.nodes.controllers[1].ip_address_by_network['internal'], username='root',
             password='r00tme')
         result = execute(remote.sudo.ssh, 'puppet agent --test')
         self.assertResult(result)
@@ -88,10 +88,10 @@ class MyTestCase(OpenStackTestCase):
                        'internal']
             ],
         )
-        remote = ssh(self.nodes.controllers[0].ip_address, username='root',
+        remote = ssh(self.nodes.controllers[0].ip_address_by_network['internal'], username='root',
             password='r00tme')
         result1 = execute(remote.sudo.ssh, 'puppet agent --test')
-        remote2 = ssh(self.nodes.controllers[1].ip_address, username='root',
+        remote2 = ssh(self.nodes.controllers[1].ip_address_by_network['internal'], username='root',
             password='r00tme')
         result2 = execute(remote2.sudo.ssh, 'puppet agent --test')
         self.assertResult(result1)

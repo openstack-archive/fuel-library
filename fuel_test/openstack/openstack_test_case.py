@@ -2,6 +2,7 @@ import unittest
 from fuel_test.base_test_case import BaseTestCase
 from fuel_test.ci.ci_openstack import CiOpenStack
 from fuel_test.root import root
+from fuel_test.settings import PUBLIC_INTERFACE, INTERNAL_INTERFACE, PRIVATE_INTERFACE
 
 class OpenStackTestCase(BaseTestCase):
     def ci(self):
@@ -36,10 +37,9 @@ class OpenStackTestCase(BaseTestCase):
             controller_hostnames=[
                 "%s" % controller1.name,
                 "%s" % controller2.name],
-            public_interface="'eth2'",
-            internal_interface="'eth0'",
-            internal_address="$ipaddress_eth0",
-            private_interface="'eth1'",
+            public_interface="'%s'" % PUBLIC_INTERFACE,
+            internal_interface="'%s'" % INTERNAL_INTERFACE,
+            private_interface="'%s'" % PRIVATE_INTERFACE,
             nv_physical_volume= ["/dev/vdb"]
         )
         
