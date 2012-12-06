@@ -9,7 +9,7 @@ $dhcp_gateway        = '10.0.0.100'
 $cobbler_user        = 'cobbler'
 $cobbler_password    = 'cobbler'
 $pxetimeout          = '0'
-$dhcp_interface      = 'eth0'
+$dhcp_interface      = 'eth1'
 $mirror_type         = 'internal'
 
 stage { 'openstack-custom-repo': before => Stage['main'] }
