@@ -1,17 +1,17 @@
 class cobbler::selinux {
-  case $operatingsystem {
-    /(?i)(centos|redhat)/: {
+  if ($::selinux==false) {
 
-      exec { "cobbler_disable_selinux":
-        command => "setenforce 0",
-        onlyif => "getenforce | grep -q Enforcing"
-      }
+  	  Exec {path => '/usr/bin:/bin:/usr/sbin:/sbin'}
 
-      exec { "cobbler_disable_selinux_permanent":
-        command => "sed -ie \"s/^SELINUX=enforcing/SELINUX=disabled/g\" /etc/selinux/config",
-        onlyif => "grep -q \"^SELINUX=enforcing\" /etc/selinux/config"
-      }
+  	  exec { "cobbler_disable_selinux":
+  	    command => "setenforce 0",
+  	    onlyif => "getenforce | grep -q Enforcing"
+  	  }
+
+  	  exec { "cobbler_disable_selinux_permanent":
+  	    command => "sed -ie \"s/^SELINUX=enforcing/SELINUX=disabled/g\" /etc/selinux/config",
+  	    onlyif => "grep -q \"^SELINUX=enforcing\" /etc/selinux/config"
+  	  }
 
     }
-  }
 }
