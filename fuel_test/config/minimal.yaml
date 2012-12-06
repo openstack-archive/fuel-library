@@ -1,0 +1,11 @@
+fuel-01:
+    role: controller
+
+fuel-02:
+    role: compute #controller
+
+fuel-03:
+    role: compute
+
+fuel-04:
+    role: compute
