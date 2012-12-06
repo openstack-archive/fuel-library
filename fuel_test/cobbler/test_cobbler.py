@@ -3,7 +3,7 @@ import unittest
 from devops.helpers import ssh
 from fuel_test.cobbler.cobbler_client import CobblerClient
 from fuel_test.cobbler.cobbler_test_case import CobblerTestCase
-from fuel_test.helpers import tcp_ping, udp_ping, safety_revert_nodes, add_to_hosts, sign_all_node_certificates, sync_time, upload_recipes, upload_keys, await_node_deploy, build_astute, install_astute, write_config, execute
+from fuel_test.helpers import tcp_ping, udp_ping, safety_revert_nodes, add_to_hosts, sign_all_node_certificates, sync_time, upload_recipes, upload_keys, await_node_deploy, build_astute, install_astute, write_config, execute, update_pm
 from fuel_test.settings import EMPTY_SNAPSHOT, OS_FAMILY, PUPPET_VERSION, PUBLIC_INTERFACE, INTERNAL_INTERFACE, PRIVATE_INTERFACE
 from fuel_test.root import root
 
@@ -22,7 +22,7 @@ class CobblerCase(CobblerTestCase):
         for node in [self.environment.node['master']] + self.nodes.cobblers:
             remote = ssh(node.ip_address_by_network['internal'], username='root', password='r00tme')
             sync_time(remote.sudo.ssh)
-            remote.sudo.ssh.execute('yum makecache')
+            update_pm(remote.sudo.ssh)
         self.write_cobbler_manifest()
         self.validate(
             self.nodes.cobblers,
@@ -38,10 +38,6 @@ class CobblerCase(CobblerTestCase):
 
     def deploy_stomp_node(self):
         self.configure_master_remote()
-        for node in [self.environment.node['master']] + self.nodes.cobblers:
-            remote = ssh(node.ip_address_by_network['internal'], username='root', password='r00tme')
-            sync_time(remote.sudo.ssh)
-            remote.sudo.ssh.execute('yum makecache')
         self.write_stomp_manifest()
         self.validate(
             self.nodes.stomps,
