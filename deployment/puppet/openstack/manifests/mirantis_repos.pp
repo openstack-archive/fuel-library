@@ -24,7 +24,7 @@ class openstack::mirantis_repos (
         class { 'openstack::repo::yum':
           repo_name  => 'openstack-epel-fuel',
           mirrorlist => $mirrorlist,
-          key_source => "https://fedoraproject.org/static/0608B895.txt\n  http://mirror.centos.org/centos/RPM-GPG-KEY-CentOS-6\n http://download.mirantis.com/epel-fuel/rabbit.key\n http://download.mirantis.com/epel-fuel/mirantis.key",
+          key_source => "http://download.mirantis.com/epel-fuel/centos.key\n  http://download.mirantis.com/epel-fuel/epel.key\n http://download.mirantis.com/epel-fuel/rabbit.key\n http://download.mirantis.com/epel-fuel/mirantis.key\n http://download.mirantis.com/epel-fuel/mysql.key",
           stage      => 'openstack-custom-repo',
         }
       }
