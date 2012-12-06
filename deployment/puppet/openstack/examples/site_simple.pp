@@ -29,7 +29,7 @@ case $::osfamily {
       'keystone'   => '2012.1.1-1.el6',
       'glance'     => '2012.1.1-1.el6',
       'horizon'    => '2012.1.1-1.el6',
-      'nova'       => '2012.1.1-15.el6',
+      'nova'       => '2012.1.1-16.mira',
       'novncproxy' => '0.3-11.el6',
     }
   }

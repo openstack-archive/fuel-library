@@ -33,7 +33,7 @@ $manage_volumes         = false
 $nv_physical_volume     = ['/dev/sdz', '/dev/sdy', '/dev/sdx'] 
 
 # set this parameter to 'false' if you use patched packages
-$apply_highavail_patches = true
+$apply_highavail_patches = false
 
 case $::osfamily {
   'RedHat': {
@@ -42,7 +42,7 @@ case $::osfamily {
       'glance'     => '2012.1.1-1.el6',
       'horizon'    => '2012.1.1-1.el6',
       # set to 'latest' if you use patched packages
-      'nova'       => '2012.1.1-15.el6',
+      'nova'       => '2012.1.1-16.mira',
       'novncproxy' => '0.3-11.el6',
     }
   }
