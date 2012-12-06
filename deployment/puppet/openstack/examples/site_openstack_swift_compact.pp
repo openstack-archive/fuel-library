@@ -57,6 +57,10 @@ Exec { logoutput => true }
 
 stage { 'openstack-custom-repo': before => Stage['main'] }
 class { 'openstack::mirantis_repos': stage => 'openstack-custom-repo', type=> $mirror_type }
+if $::operatingsystem == 'Ubuntu'
+{
+  class { 'openstack::apparmor::disable': stage => 'openstack-custom-repo' }
+}
 
 class compact_controller {
   class { 'openstack::controller_ha': 
