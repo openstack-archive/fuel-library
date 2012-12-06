@@ -85,7 +85,7 @@ class CiBase(object):
 
     def add_nodes_to_hosts(self, remote, nodes):
         for node in nodes:
-            add_to_hosts(remote, node.ip_address, node.name,
+            add_to_hosts(remote, node.ip_address_by_network['internal'], node.name,
                 node.name + '.mirantis.com')
 
     def setup_master_node(self, master_remote, nodes):
@@ -100,7 +100,7 @@ class CiBase(object):
         for node in nodes:
             if node.name != 'master':
                 remote = ssh(
-                    node.ip_address, username='root',
+                    node.ip_address_by_network['internal'], username='root',
                     password='r00tme')
                 self.add_nodes_to_hosts(remote, nodes)
                 setup_puppet_client(remote)
@@ -121,7 +121,7 @@ class CiBase(object):
 
     def rename_nodes(self, nodes):
         for node in nodes:
-            remote = ssh(node.ip_address, username='root', password='r00tme')
+            remote = ssh(node.ip_address_by_network['internal'], username='root', password='r00tme')
             change_host_name(remote, node.name, node.name + '.mirantis.com')
             logging.info("Renamed %s" % node.name)
 
@@ -133,11 +133,11 @@ class CiBase(object):
         for node in environment.nodes:
             node.start()
         for node in environment.nodes:
-            logging.info("Waiting ssh... %s" % node.ip_address)
-            wait(lambda: tcp_ping(node.ip_address, 22), timeout=1800)
+            logging.info("Waiting ssh... %s" % node.ip_address_by_network['internal'])
+            wait(lambda: tcp_ping(node.ip_address_by_network['internal'], 22), timeout=1800)
         self.rename_nodes(environment.nodes)
         master_node = environment.node['master']
-        master_remote = ssh(master_node.ip_address, username='root',
+        master_remote = ssh(master_node.ip_address_by_network['internal'], username='root',
             password='r00tme')
         self.setup_master_node(master_remote, environment.nodes)
         self.setup_agent_nodes(environment.nodes)
@@ -147,7 +147,7 @@ class CiBase(object):
         for node in environment.nodes:
             logging.info("Creating snapshot %s" % EMPTY_SNAPSHOT)
             node.save_snapshot(EMPTY_SNAPSHOT)
-            logging.info("Test node is ready at %s" % node.ip_address)
+            logging.info("Test node is ready at %s" % node.ip_address_by_network['internal'])
 
     def destroy_environment(self):
         if self.environment:

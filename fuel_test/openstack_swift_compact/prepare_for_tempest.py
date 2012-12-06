@@ -16,7 +16,7 @@ class PrepareOpenStackSwiftCompactForTempest(OpenStackSwiftCompactTestCase):
     def prepare_for_tempest_if_swift(self):
         auth_host = self.ci().get_public_virtual_ip()
         remote = ssh(
-            self.ci().nodes().controllers[0].ip_address, username='root',
+            self.ci().nodes().controllers[0].ip_address_by_network['internal'], username='root',
             password='r00tme').sudo.ssh
         image_ref, image_ref_alt = make_tempest_objects(
             auth_host,

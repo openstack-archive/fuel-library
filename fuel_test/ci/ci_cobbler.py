@@ -61,7 +61,7 @@ class CiCobbler(CiBase):
         for node in start_nodes:
             node.start()
         for node in start_nodes:
-            logging.info("Waiting ssh... %s" % node.ip_address)
+            logging.info("Waiting ssh... %s" % node.ip_address_by_network['internal'])
             wait(lambda: tcp_ping(node.ip_address_by_network['public'], 22),
                 timeout=1800)
         gateway = self.environment.network['internal'].ip_addresses[1]
@@ -69,10 +69,10 @@ class CiCobbler(CiBase):
         for node in start_nodes:
             remote = ssh(node.ip_address_by_network['public'], username='root',
                 password='r00tme')
-            execute(remote, 'ifdown eth0')
+            execute(remote, 'ifdown eth1')
             write_static_ip(remote, node.ip_address_by_network['internal'],
                 net_mask, gateway)
-            execute(remote, 'ifup eth0')
+            execute(remote, 'ifup eth1')
         master_remote = ssh(
             master_node.ip_address_by_network['public'], username='root',
             password='r00tme')
@@ -85,4 +85,4 @@ class CiCobbler(CiBase):
         for node in self.environment.nodes:
             logging.info("Creating snapshot %s" % EMPTY_SNAPSHOT)
             node.save_snapshot(EMPTY_SNAPSHOT)
-            logging.info("Test node is ready at %s" % node.ip_address)
+            logging.info("Test node is ready at %s" % node.ip_address_by_network['internal'])

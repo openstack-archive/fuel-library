@@ -1,6 +1,7 @@
 from fuel_test.base_test_case import BaseTestCase
 from fuel_test.ci.ci_openstack_swift_compact import CiOpenStackSwiftCompact
 from fuel_test.root import root
+from fuel_test.settings import PUBLIC_INTERFACE, INTERNAL_INTERFACE, PRIVATE_INTERFACE
 
 class OpenStackSwiftCompactTestCase(BaseTestCase):
     def ci(self):
@@ -40,10 +41,9 @@ class OpenStackSwiftCompactTestCase(BaseTestCase):
             controller_internal_addresses = controller_internal_addresses,
             controller_hostnames=["%s" % controller.name for controller in controllers],
             swift_proxy_address="'%s'" % self.ci().get_internal_virtual_ip(),
-            public_interface="'eth2'",
-            internal_interface="'eth0'",
-            internal_address="$ipaddress_eth0",
-            private_interface="'eth1'",
+            public_interface="'%s'" % PUBLIC_INTERFACE,
+            internal_interface="'%s'" % INTERNAL_INTERFACE,
+            private_interface="'%s'" % PRIVATE_INTERFACE,
             mirror_type ="'internal'",
             nv_physical_volume= ["/dev/vdb"]
         )

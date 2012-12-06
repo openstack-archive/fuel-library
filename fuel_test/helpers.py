@@ -416,12 +416,12 @@ def make_shared_storage(remote, host, client_nodes, access_network):
     sleep(15)
     for controller in client_nodes:
         remote_controller = ssh(
-            controller.ip_address, username='root',
+            controller.ip_address_by_network['internal'], username='root',
             password='r00tme').sudo.ssh
         tempest_mount_glance_images(remote_controller, host)
     sleep(60)
 
-def write_static_ip(remote, ip, net_mask, gateway, interface='eth0'):
+def write_static_ip(remote, ip, net_mask, gateway, interface='eth1'):
     if OS_FAMILY == 'centos':
         path = '/etc/sysconfig/network-scripts/ifcfg-%s' % interface
         text = load(root('fuel_test', 'config', 'ifcfg-eth0.config')) % {

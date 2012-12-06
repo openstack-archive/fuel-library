@@ -64,3 +64,6 @@ COBBLER_COMPUTES = int(os.environ.get('COBBLER_COMPUTES', 2))
 
 EMPTY_SNAPSHOT = os.environ.get('EMPTY_SNAPSHOT', 'empty')
 OPENSTACK_SNAPSHOT = os.environ.get('OPENSTACK_SNAPSHOT', 'openstack')
+PUBLIC_INTERFACE='eth0'
+INTERNAL_INTERFACE = 'eth1'
+PRIVATE_INTERFACE = 'eth2'
