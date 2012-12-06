@@ -8,6 +8,9 @@ define keepalived::instance (
   $notify_backup = undef,
   $notify_fault  = undef,
   $smtp_alert    = false,
+  $vrrp_script   = undef,
+  $interval = '2',
+  $weight = '2',
 ) {
 
   include keepalived::variables

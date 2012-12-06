@@ -68,6 +68,7 @@
 # Gary Larizza <gary@puppetlabs.com>
 #
 define haproxy::listen (
+  $order            = '19',
   $ports,
   $ipaddress        = [$::ipaddress],
   $mode             = 'tcp',
@@ -82,7 +83,7 @@ define haproxy::listen (
 ) {
   # Template uses: $name, $ipaddress, $ports, $options
   concat::fragment { "${name}-listen_block":
-    order   => "20-${name}",
+    order   => "${order}-${name}",
     target  => '/etc/haproxy/haproxy.cfg',
     content => template('haproxy/haproxy_listen_block.erb'),
   }

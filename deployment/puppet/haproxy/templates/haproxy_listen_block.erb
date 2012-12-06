@@ -1,7 +1,5 @@
 listen <%= name %>
-<% ipaddress.uniq.each do |virtual_ip| %>
-bind <%= virtual_ip %>:<%= ports %>
-<% end %>
+bind <%= ipaddress %>:<%= Array(ports).collect { |x| x.split(',')}.flatten.join(",#{ipaddress}:") %>
 <% options.sort.each do |key, val| -%>
 <% if val.is_a?(Array) -%>
 <% val.each do |item| -%>

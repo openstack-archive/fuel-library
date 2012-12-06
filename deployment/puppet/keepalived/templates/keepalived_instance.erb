@@ -1,3 +1,9 @@
+<% if @vrrp_script then -%>vrrp_script <%= @name -%>-script {
+  script "<%= @vrrp_script %>"
+  interval <%= @interval %>
+  weight <%= @weight %>
+}
+<% end %>
 vrrp_instance <%=  @name %> {
   virtual_router_id <%= @name %>
 
@@ -18,4 +24,10 @@ vrrp_instance <%=  @name %> {
   <% if @notify_backup then -%>notify_backup <%= @notify_backup %><% end %>
 
   <% if @smtp_alert then -%>smtp_alert<% end %>
+
+  <% if @vrrp_script then -%>track_script {
+    <%= @name %>-script
+  }
+  <% end %>
+
 }

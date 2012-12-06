@@ -5,8 +5,8 @@ class swift::storage::account(
     package_ensure => $package_ensure,
   }
 
-  @@ring_account_device { "${swift_local_net_ip}:${swift::storage::all::account_port}":
-    zone => $swift_zone,
+  @@ring_account_device { "${swift::storage::all::storage_local_net_ip}:${swift::storage::all::account_port}":
+    zone => $swift::storage::all::swift_zone,
     mountpoints => $::swift_mountpoints,
   }
 }
