@@ -5,7 +5,7 @@ class cobbler::selinux {
 
   	  exec { "cobbler_disable_selinux":
   	    command => "setenforce 0",
-  	    onlyif => "getenforce | grep -q Enforcing"
+  	    onlyif => "getenforce | grep -q Enforcing",
   	  }
 
   	  exec { "cobbler_disable_selinux_permanent":
