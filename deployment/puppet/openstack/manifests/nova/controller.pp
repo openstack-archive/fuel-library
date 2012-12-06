@@ -40,6 +40,7 @@ class openstack::nova::controller (
   $create_networks           = true,
   $num_networks              = 1,
   $multi_host                = false,
+  $network_config            = {},
   $network_manager           = 'nova.network.manager.FlatDHCPManager',
   # Quantum
   $quantum                   = false,
