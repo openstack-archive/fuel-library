@@ -5,7 +5,7 @@ class openstack::puppetlabs_repos (
        apt::source { 'puppetlabs':
          location   => 'http://apt.puppetlabs.com',
          repos      => 'main dependencies',
-         key        =>  'http://apt.puppetlabs.com/pubkey.gpg',
+         key_source =>  'http://apt.puppetlabs.com/pubkey.gpg',
        }
 
       class { 'apt::update': stage => 'puppetlabs-repo' }
