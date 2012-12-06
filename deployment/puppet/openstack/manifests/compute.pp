@@ -80,6 +80,7 @@ class openstack::compute (
   $quantum_sql_connection        = false,
   $quantum_host                  = false,
   $quantum_user_password         = false,
+  $tenant_network_type           = 'gre',
   $cinder			= false,
   # nova compute configuration parameters
   $verbose             = false,
@@ -271,6 +272,8 @@ class openstack::compute (
       fail('quantum user password must be set when quantum is configured')
     }
 
+    $enable_tunneling = $tenant_network_type ? { 'gre' => true, 'vlan' => false }
+
     class { 'quantum':
       verbose         => $verbose,
       debug           => $verbose,
@@ -283,13 +286,13 @@ class openstack::compute (
 
     class { 'quantum::plugins::ovs':
       sql_connection      => $quantum_sql_connection,
-      tenant_network_type => 'gre',
-      enable_tunneling    => true,
+      tenant_network_type => $tenant_network_type,
+      enable_tunneling    => $enable_tunneling,
     }
 
     class { 'quantum::agents::ovs':
-      bridge_uplinks   => ["br-ex:${private_interface}"],
-      enable_tunneling => true,
+      bridge_uplinks   => ["br-ex:${public_interface}"],
+      enable_tunneling => $enable_tunneling,
       local_ip         => $internal_address,
     }
 

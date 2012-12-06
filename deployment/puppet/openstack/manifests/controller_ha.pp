@@ -85,7 +85,7 @@ class openstack::controller_ha (
    $nova_db_password, $nova_user_password, $rabbit_password, $rabbit_user,
    $rabbit_nodes, $memcached_servers, $export_resources, $glance_backend='file', $swift_proxies=undef,
    $quantum = false, $quantum_user_password, $quantum_db_password, $quantum_db_user = 'quantum',
-   $quantum_db_dbname  = 'quantum', $cinder = false, $patch_apply = false,
+   $quantum_db_dbname  = 'quantum', $cinder = false, $patch_apply = false, $tenant_network_type = 'gre',
    $nv_physical_volume = undef, $manage_volumes = false,$galera_nodes, 
  ) {
 
@@ -271,6 +271,7 @@ local0.* -/var/log/haproxy.log'
       quantum_user_password   => $quantum_user_password,
       quantum_db_password     => $quantum_db_password,
       quantum_l3_enable       => $which ? { 0 => true, 1 => false },
+      tenant_network_type     => $tenant_network_type,
       cinder                  => $cinder,
       manage_volumes          => $manage_volumes,
       nv_physical_volume      => $nv_physical_volume,

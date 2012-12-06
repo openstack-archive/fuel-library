@@ -88,7 +88,7 @@ class quantum::agents::l3 (
     $ensure = 'stopped'
   }
 
-  $iptables_manager = '/usr/lib/python2.6/site-packages/quantum/agent/linux/iptables_manager.py'
+  $iptables_manager = "/usr/lib/${::quantum::params::python_path}/quantum/agent/linux/iptables_manager.py"
 
   # rootwrap error with L3 agent
   # https://bugs.launchpad.net/quantum/+bug/1069966
