@@ -121,7 +121,7 @@ class CiBase(object):
 
     def rename_nodes(self, nodes):
         for node in nodes:
-            remote = ssh(node.ip_address_by_network['internal'], username='root', password='r00tme')
+            remote = ssh(node.ip_address_by_network['public'], username='root', password='r00tme')
             change_host_name(remote, node.name, node.name + '.mirantis.com')
             logging.info("Renamed %s" % node.name)
 
