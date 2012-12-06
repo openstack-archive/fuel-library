@@ -16,7 +16,7 @@ class nova::network(
   $fixed_range,
   $public_interface = undef,
   $num_networks     = 1,
-#  $network_size     = 255,
+  $network_size     = 255,
   $floating_range   = false,
   $enabled          = false,
   $network_manager  = 'nova.network.manager.FlatDHCPManager',
@@ -43,6 +43,14 @@ class nova::network(
     nova_config { 'DEFAULT/floating_range':   value => $floating_range }
   }
 
+  if has_key($config_overrides, 'vlan_start') {
+    $vlan_start = $config_overrides['vlan_start']
+  } else {
+    $vlan_start = 300
+  }
+
+  notify {"VLAN: (${vlan_start})":}
+
   if $install_service {
     nova::generic_service { 'network':
       enabled        => $enabled,
@@ -58,6 +66,7 @@ class nova::network(
       network       => $fixed_range,
       num_networks  => $num_networks,
       network_size  => $network_size,
+      vlan_start    => $vlan_start,
     }
     if $floating_range {
       nova::manage::floating { 'nova-vm-floating':

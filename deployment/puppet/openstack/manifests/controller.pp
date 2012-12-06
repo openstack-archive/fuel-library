@@ -281,6 +281,7 @@ class openstack::controller (
     create_networks         => $create_networks,
     num_networks            => $num_networks,
     multi_host              => $multi_host,
+    network_config          => $network_config,
     keystone_host         => $service_endpoint,
     # Quantum
     quantum                 => $quantum,
