@@ -31,21 +31,21 @@ class CiCobbler(CiBase):
         environment.networks.append(internal)
         private = Network(name='private', dhcp_server=False)
         environment.networks.append(private)
-        master_node = self.describe_node('master', [internal, private, public])
+        master_node = self.describe_node('master', [public, internal, private])
         environment.nodes.append(master_node)
         for node_name in self.node_roles().cobbler_names:
-            client = self.describe_node(node_name, [internal, private, public])
+            client = self.describe_node(node_name, [public, internal, private])
             environment.nodes.append(client)
         for node_name in self.node_roles().stomp_names:
-            client = self.describe_node(node_name, [internal, private, public])
+            client = self.describe_node(node_name, [public, internal, private])
             environment.nodes.append(client)
         for node_name in self.node_roles().controller_names:
             client = self.describe_empty_node(node_name,
-                [internal, private, public])
+                [public, internal, private])
             environment.nodes.append(client)
         for node_name in self.node_roles().compute_names:
             client = self.describe_empty_node(
-                node_name, [internal, private, public], memory=1024)
+                node_name, [public, internal, private], memory=1024)
             environment.nodes.append(client)
         return environment
 

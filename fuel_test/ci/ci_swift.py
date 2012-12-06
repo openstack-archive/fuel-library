@@ -22,16 +22,16 @@ class CiSwift(CiBase):
         environment.networks.append(internal)
         private = Network(name='private', dhcp_server=False)
         environment.networks.append(private)
-        master = self.describe_node('master', [internal, private, public])
+        master = self.describe_node('master', [public, internal, private])
         environment.nodes.append(master)
         for node_name in self.node_roles().keystone_names:
-            client = self.describe_node(node_name, [internal, private, public])
+            client = self.describe_node(node_name, [public, internal, private])
             environment.nodes.append(client)
         for node_name in self.node_roles().storage_names:
-            client = self.describe_node(node_name, [internal, private, public])
+            client = self.describe_node(node_name, [public, internal, private])
             environment.nodes.append(client)
         for node_name in self.node_roles().proxy_names:
-            client = self.describe_node(node_name, [internal, private, public])
+            client = self.describe_node(node_name, [public, internal, private])
             environment.nodes.append(client)
         return environment
 
