@@ -71,6 +71,7 @@ class openstack::compute (
   # General
   $enabled                       = true,
   $multi_host			 = false,
+  $network_config                = {},
   $public_interface,
   $private_interface,
   $network_manager,
