@@ -100,7 +100,7 @@ class CiBase(object):
         for node in nodes:
             if node.name != 'master':
                 remote = ssh(
-                    node.ip_address_by_network['internal'], username='root',
+                    node.ip_address_by_network['public'], username='root',
                     password='r00tme')
                 self.add_nodes_to_hosts(remote, nodes)
                 setup_puppet_client(remote)
