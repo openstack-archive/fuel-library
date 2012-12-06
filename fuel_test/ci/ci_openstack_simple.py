@@ -15,12 +15,12 @@ class CiOpenStackSimple(CiBase):
 
     def describe_environment(self):
         environment = Environment(self.environment_name)
+        public = Network(name='public', dhcp_server=True)
+        environment.networks.append(public)
         internal = Network(name='internal', dhcp_server=True)
         environment.networks.append(internal)
         private = Network(name='private', dhcp_server=False)
         environment.networks.append(private)
-        public = Network(name='public', dhcp_server=True)
-        environment.networks.append(public)
         master = self.describe_node('master', [internal, private, public])
         environment.nodes.append(master)
         for node_name in self.node_roles().controller_names:
