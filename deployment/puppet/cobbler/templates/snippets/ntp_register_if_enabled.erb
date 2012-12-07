@@ -1,0 +1,10 @@
+#if $str($getVar('ntp_enable', '')) == "1"
+#one-time synchronization
+/etc/init.d/ntpdate start
+## turn ntp service on after reboot
+    #if $breed == "redhat"
+/sbin/chkconfig ntpd on
+    #elif $breed == "debian" or $breed == "ubuntu"
+/usr/sbin/update-rc.d ntp defaults
+    #end if
+#end if

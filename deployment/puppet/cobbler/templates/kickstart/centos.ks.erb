@@ -93,6 +93,7 @@ $SNIPPET('pre_install_network_config')
 %packages --nobase
 @Core
 yum
+ntp
 openssh-server
 openssh
 openssh-clients
@@ -134,6 +135,10 @@ $SNIPPET('puppet_conf')
 # COBBLER EMBEDDED SNIPPET: 'puppet_register_if_enabled'
 # CREATES CERTIFICATE REQUEST AND SENDS IT TO PUPPET MASTER
 $SNIPPET('puppet_register_if_enabled')
+
+# COBBLER EMBEDDED SNIPPET: 'ntp_register_if_enabled'
+# SYNC NTPDATE AND RUN NTP SERVICE
+$SNIPPET('ntp_register_if_enabled')
 
 # COBBLER EMBEDDED SNIPPET: 'mcollective_conf'
 # CONFIGURES MCOLLECTIVE AGENT
