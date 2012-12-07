@@ -7,6 +7,7 @@ class cobbler::snippets {
       group => root,
       mode => 0644,
       require => Package[$cobbler::packages::cobbler_package],
+      notify => Exec["cobbler_sync"]
     }
   }
 

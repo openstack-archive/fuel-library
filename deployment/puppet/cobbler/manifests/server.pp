@@ -69,15 +69,16 @@ class cobbler::server {
   }
 
   exec {"cobbler_sync":
-    command => "sleep 3 && cobbler sync > /tmp/cobbler_sync.log 2>&1",
+    command => "cobbler sync",
     refreshonly => true,
-    returns => [0, 155],
     require => [
                 Package[$cobbler::packages::cobbler_package],
                 Package[$cobbler::packages::dnsmasq_package],
                 ],
     subscribe => Service[$cobbler_service],
     notify => Service[$dnsmasq_service],
+    tries => 10,
+    try_sleep=> 3,
   }
 
   file { "/etc/cobbler/modules.conf":
