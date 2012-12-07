@@ -195,16 +195,17 @@ class CobblerCase(CobblerTestCase):
             private_interface="'%s'" % PRIVATE_INTERFACE,
             nv_physical_volume= ["/dev/vdb"]
         )
-        config_text = \
-        "use_case: minimal\n\
-        fuel-01:\n\
-            role: controller\n\
-        fuel-02:\n\
-            role: controller\n\
-        fuel-03:\n\
-            role: compute\n\
-        fuel-04:\n\
-            role: compute"
+        config_text = (
+                       "use_case: minimal\n"
+                       "fuel-01:\n"
+                       "  role: controller\n"
+                       "fuel-02:\n"
+                       "  role: controller\n"
+                       "fuel-03:\n"
+                       "  role: compute\n"
+                       "fuel-04:\n"
+                       "  role: compute\n"
+        )
         remote = ssh(self.nodes.stomps[0].ip_address_by_network['public'], username='root',
                 password='r00tme')
         write_config(remote, '/tmp/nodes.yaml', config_text)
@@ -228,16 +229,17 @@ class CobblerCase(CobblerTestCase):
                                             'public'],
             nv_physical_volume=["/dev/vdb"]
         )
-        config_text = \
-        "use_case: minimal\n\
-        fuel-01:\n\
-            role: controller\n\
-        fuel-02:\n\
-            role: compute\n\
-        fuel-03:\n\
-            role: compute\n\
-        fuel-04:\n\
-            role: compute"
+        config_text = (
+            "use_case: minimal\n"
+            "fuel-01:\n"
+            "  role: controller\n"
+            "fuel-02:\n"
+            "  role: controller\n"
+            "fuel-03:\n"
+            "  role: compute\n"
+            "fuel-04:\n"
+            "  role: compute\n"
+        )
         remote = ssh(self.nodes.stomps[0].ip_address_by_network['public'], username='root',
                 password='r00tme')
         write_config(remote, '/tmp/nodes.yaml', config_text)
