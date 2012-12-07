@@ -192,7 +192,7 @@ if $::galera_gcomm_empty=="true" {
   }
   exec { "set-mysql-password" :
     unless      => "/usr/bin/mysql -u${mysql_user} -p${mysql_password}",
-    command     => "/usr/bin/mysqld_safe --init-file=/tmp/wsrep-init-file &",
+    command     => "/usr/bin/mysqld_safe --init-file=/tmp/wsrep-init-file --port=3307 &",
     require   => [Package["MySQL-server"],File['/tmp/wsrep-init-file']],
     subscribe => Package["MySQL-server"],
     refreshonly => true,
@@ -203,7 +203,7 @@ if $::galera_gcomm_empty=="true" {
     subscribe   => Exec["set-mysql-password"],
     before	=> Exec["kill-initial-mysql"],
     logoutput   => true,
-    command     => "/usr/bin/mysql -Nbe \"show status like 'wsrep_local_state_comment'\" | /bin/grep -q Synced",
+    command     => "/usr/bin/mysql -Nbe \"show status like 'wsrep_local_state_comment'\" | /bin/grep -q Synced && sleep 10",
     try_sleep   => 5,
     tries       => 60,
     refreshonly => true,
@@ -212,7 +212,7 @@ if $::galera_gcomm_empty=="true" {
 
   exec {"kill-initial-mysql":
 	path   => "/usr/bin:/usr/sbin:/bin:/sbin",
-      command   => "killall -w mysqld",
+      command   => "killall -w mysqld && sleep 10",
 #      onlyif    => "pidof mysqld",
       try_sleep   => 5,
       tries       => 6,
@@ -230,7 +230,7 @@ if $::galera_gcomm_empty=="true" {
   exec { "wait-for-synced-state" :
     require     => [Exec["kill-initial-mysql"],Service['mysql-galera']],
     logoutput   => true,
-    command     => "/usr/bin/mysql -Nbe \"show status like 'wsrep_local_state_comment'\" | /bin/grep -q Synced",
+    command     => "/usr/bin/mysql -Nbe \"show status like 'wsrep_local_state_comment'\" | /bin/grep -q Synced && sleep 10",
     try_sleep   => 5,
     tries       => 60,
   }
