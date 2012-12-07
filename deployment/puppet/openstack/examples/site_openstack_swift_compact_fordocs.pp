@@ -1,14 +1,14 @@
 # Public networking
 $public_interface = 'eth0'
 $public_virtual_ip = '10.0.2.253'
-$controller_public_addresses = {'fuel-01' => '10.0.2.15','fuel-02' => '10.0.2.16','fuel-03' => '10.0.2.17','fuel-04' => '10.0.2.18'}
+$controller_public_addresses = {'fuel-01' => '10.0.2.15','fuel-02' => '10.0.2.16','fuel-03' => '10.0.2.17'}
 $floating_range = '10.0.2.128/27'
 
 # Internal networking
 $internal_interface = 'eth1'
 $internal_address = getvar("::ipaddress_${internal_interface}")
 $internal_virtual_ip = '10.0.0.253'
-$controller_internal_addresses = {'fuel-01' => '10.0.0.101','fuel-02' => '10.0.0.102','fuel-03' => '10.0.0.103', 'fuel-04' => '10.0.0.104'}
+$controller_internal_addresses = {'fuel-01' => '10.0.0.101','fuel-02' => '10.0.0.102','fuel-03' => '10.0.0.103'}
 
 # Tennant's networking
 $private_interface = 'eth2'
