@@ -1,6 +1,6 @@
 # galera_gcomm.rb
 
-result = "false"
+result = "true"
 if File.exists?("/etc/mysql/conf.d/wsrep.cnf")
     if open("/etc/mysql/conf.d/wsrep.cnf").read.grep(/^\s*wsrep_cluster_address=[\"\']gcomm:\/\/\s*[\"\']\s*/)
         result="true"
