@@ -3,9 +3,15 @@ $stomppassword="AeN5mi5thahz2Aiveexo"
 $pskey="un0aez2ei9eiGaequaey4loocohjuch4Ievu3shaeweeg5Uthi"
 $stomphost="127.0.0.1"
 $stompport="61613"
+$mirror_type="external"
 
 stage { 'puppetlabs-repo': before => Stage['main'] }
 class { 'openstack::puppetlabs_repos': stage => 'puppetlabs-repo'}
+class { 'openstack::mirantis_repos':
+  stage => 'puppetlabs-repo',
+  type=>$mirror_type,
+  before=>Class['openstack::puppetlabs_repos'],
+}
 
 node /fuel-mcollective.mirantis.com/ {
 
