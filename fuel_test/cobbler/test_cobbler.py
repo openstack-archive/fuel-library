@@ -159,7 +159,11 @@ class CobblerCase(CobblerTestCase):
             await_node_deploy(
                 cobbler.ip_address_by_network['internal'], node.name)
         sleep(20)
-        sign_all_node_certificates(self.master_remote)
+        master = self.environment.node['master']
+        master_remote = ssh(master.ip_address_by_network['public'],
+            username='root',
+            password='r00tme')
+        sign_all_node_certificates(master_remote)
 
     def test_orchestrating_minimal(self):
         self.configure_master_remote()
