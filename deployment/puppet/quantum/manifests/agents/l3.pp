@@ -86,7 +86,7 @@ class quantum::agents::l3 (
         # path        => '/usr/bin',
         refreshonly => true,
         logoutput   => true,
-        notify      => service['quantum-plugin-ovs-service'],
+        notify      => Service['quantum-plugin-ovs-service'],
       }
     }
   } else {
