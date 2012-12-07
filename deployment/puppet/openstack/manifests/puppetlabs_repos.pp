@@ -8,7 +8,9 @@ class openstack::puppetlabs_repos (
          key_source =>  'http://apt.puppetlabs.com/pubkey.gpg',
        }
 
-    class { 'apt::update': stage => $openstack::puppetlabs_repos::stage }
+    if !defined(Class['apt::update']) {
+      class { 'apt::update': stage => $openstack::puppetlabs_repos::stage }
+    }
 
 #     In no one custom Debian repository is defined, it is necessary to force run apt-get update
 #     Please uncomment the following block to order puppet to force apt-get update
