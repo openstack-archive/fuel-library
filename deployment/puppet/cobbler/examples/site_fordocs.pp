@@ -12,6 +12,7 @@ $pxetimeout          = '0'
 $dhcp_interface      = 'eth1'
 
 stage {'openstack-custom-repo': before => Stage['main']}
+class { 'openstack::mirantis_repos': stage => 'openstack-custom-repo' }
 
 case $::osfamily {
   'Debian': {
