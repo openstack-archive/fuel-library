@@ -40,6 +40,7 @@ class nova::params {
       $root_helper              = 'sudo nova-rootwrap'
       $lock_path                = '/var/lib/nova/tmp'
       $nova_db_charset          = 'latin1'
+      $memcache_package_name  = "python-memcached"
     }
     'Debian': {
       # package names
@@ -76,6 +77,7 @@ class nova::params {
       $root_helper              = 'sudo nova-rootwrap'
       $lock_path                = '/var/lock/nova'
       $nova_db_charset          = 'utf8'
+      $memcache_package_name = "python-memcache"
       case $::operatingsystem {
         'Debian': {
           $consoleauth_package_name = 'nova-console'

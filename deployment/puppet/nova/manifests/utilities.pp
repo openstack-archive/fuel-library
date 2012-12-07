@@ -1,7 +1,7 @@
 # unzip swig screen parted curl euca2ools - extra packages
 class nova::utilities {
   include nova::params
-  package { ['unzip', 'screen', 'curl', 'euca2ools']:
+  package { ['unzip', 'screen', 'curl', 'euca2ools',$memcache_package_name]:
     ensure => present
   }
   if !(defined(Package['parted'])) {
