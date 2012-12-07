@@ -86,6 +86,7 @@ class quantum::agents::l3 (
         # path        => '/usr/bin',
         refreshonly => true,
         logoutput   => true,
+        require => [Service['quantum-l3'],Service['quantum-plugin-ovs-service']],
         notify      => Service['quantum-plugin-ovs-service'],
       }
     }
