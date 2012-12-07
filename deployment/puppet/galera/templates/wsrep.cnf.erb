@@ -51,7 +51,6 @@ wsrep_provider_options="pc.ignore_sb = no;ist.recv_addr=<%= node_address %>"
 
 # Logical cluster name. Should be the same for all nodes.
 wsrep_cluster_name="<%= cluster_name -%>"
-<% if galera_gcomm_empty -%>
 <% if setup_multiple_gcomm -%>
     <% if master_ip -%>
 wsrep_cluster_address="gcomm://<%= @node_addresses.collect {|ip| ip + ':' + 4567.to_s }.join ',' %>"
@@ -64,7 +63,6 @@ wsrep_cluster_address="gcomm://<%= master_ip %>:4567"
     <% else -%>
 wsrep_cluster_address="gcomm://"
     <% end -%>
-<% end -%>
 <% end -%>
 
 
