@@ -29,8 +29,11 @@ class nova::consoleauth_cache() {
   }
 
   if $::osfamily == 'Debian' {
-    package { 'python-memcache':
-      before => Package[$consoleauth_package_name]
+    if !(defined(Package[$nova::params::memcache_package_name])) {
+          package {$nova::params::memcache_package_name:
+            ensure => 'present',
+            before => Package[$consoleauth_package_name],
+          }
     }
   }
 
