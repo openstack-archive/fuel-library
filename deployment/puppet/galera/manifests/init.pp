@@ -131,7 +131,7 @@ class galera($cluster_name, $master_ip = false, $node_address = $ipaddress_eth0,
     name        => "mysql",
     enable      => true,
     ensure      => "running",
-    require     => [Package["MySQL-server", "galera"]]
+    require     => [Package["MySQL-server", "galera"]],
     hasrestart  => true,
     hasstatus   => true,
   }
