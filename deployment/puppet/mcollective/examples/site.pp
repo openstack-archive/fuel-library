@@ -11,7 +11,6 @@ class { 'openstack::mirantis_repos':
   stage => 'puppetlabs-repo',
   type=>$mirror_type,
   disable_puppet_labs_repos => false,
-  before=>Class['openstack::puppetlabs_repos'],
 }
 
 node /fuel-mcollective.mirantis.com/ {
