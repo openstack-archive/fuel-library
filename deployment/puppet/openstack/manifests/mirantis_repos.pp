@@ -59,7 +59,7 @@ class openstack::mirantis_repos (
         }
     }
   
-  class { 'apt::update': stage => 'openstack-custom-repo' }
+  class { 'apt::update':}
   
 #     In no one custom Debian repository is defined, it is necessary to force run apt-get update 
 #     Please uncomment the following block to order puppet to force apt-get update
