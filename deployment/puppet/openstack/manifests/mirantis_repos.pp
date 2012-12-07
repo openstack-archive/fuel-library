@@ -8,6 +8,20 @@ class openstack::mirantis_repos (
           stage => 'openstack-custom-repo',
           always_apt_update => true,
         } #->
+         if $type == 'external' {
+           apt::source  { 'precise-fuel-essex':
+          location => 'http://download.mirantis.com/precise-fuel-essex',
+          release => 'precise',
+          repos => 'main',
+          key => "F8AF89DD",
+          key_source => 'http://download.mirantis.com/precise-fuel-essex/Mirantis.key',
+#         key_server => "pgp.mit.edu",
+          include_src => false,
+        }
+ 
+         }
+          if $type == 'internal'
+          {
          apt::source  { 'precise-fuel-essex':
           location => 'http://172.18.67.168/ubuntu-repo/precise-fuel-essex',
           release => 'precise',
@@ -16,7 +30,8 @@ class openstack::mirantis_repos (
           key_source => 'http://172.18.67.168/ubuntu-repo/precise-fuel-essex/Mirantis.key',
 #         key_server => "pgp.mit.edu",
           include_src => false,
-        } 
+        }
+          }
 #     Currently we use only standard Debian repos, installed with OS
 #     There is nothing in our custom repo for Debian.
 #        class { 'openstack::repo::apt':
@@ -26,6 +41,7 @@ class openstack::mirantis_repos (
 #          origin => '172.18.66.213',
 #          stage => 'openstack-custom-repo',
 #        }
+
       }
       'RedHat': {
         #added internal/external network mirror
