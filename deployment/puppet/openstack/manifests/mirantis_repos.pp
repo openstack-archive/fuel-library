@@ -17,6 +17,15 @@ class openstack::mirantis_repos (
 #          key_server => "keys.gnupg.net",
           include_src => false,
         }
+          apt::source  { 'precise-fuel-folsom':
+          location => 'http://download.mirantis.com/precise-fuel-folsom',
+          release => 'precise',
+          repos => 'main',
+          key => "F8AF89DD",
+          key_source => 'http://download.mirantis.com/precise-fuel-folsom/Mirantis.key',
+#         key_server => "pgp.mit.edu",
+          include_src => false,
+        }
       }
       # Below we set our internal repos for testing purposes. Some of them may match with external ones.
       if $type == 'internal' {
