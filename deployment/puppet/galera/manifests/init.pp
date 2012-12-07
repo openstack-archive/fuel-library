@@ -168,7 +168,6 @@ class galera($cluster_name, $master_ip = false, $node_address = $ipaddress_eth0,
 
   file { ["/etc/mysql", "/etc/mysql/conf.d" ] :
     ensure => directory,
-    before => File["/etc/mysql/conf.d/wsrep.cnf"]
   }
 if $::galera_gcomm_empty=="true" {
 
@@ -176,7 +175,8 @@ if $::galera_gcomm_empty=="true" {
   file { "/etc/mysql/conf.d/wsrep.cnf" :
     ensure      => present,
     content     => template("galera/wsrep.cnf.erb"),
-    ## require     => Package["galera"],
+    require => [File["/etc/mysql/conf.d"], File["/etc/mysql"]],
+ ## require     => Package["galera"],
   }
   File["/etc/mysql/conf.d/wsrep.cnf"]->Service['mysql-galera']
   File["/etc/mysql/conf.d/wsrep.cnf"]~>Service['mysql-galera']
