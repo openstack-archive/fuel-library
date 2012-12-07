@@ -271,7 +271,11 @@ fi
 case "$mode" in
   'start')
     # Start daemon
-
+    if `pidof mysqld`
+    then
+        echo "There are other mysqld processes running. Exiting"
+        exit 1
+    fi
     # Safeguard (relative paths, core dumps..)
     cd $basedir
 
