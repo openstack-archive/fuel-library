@@ -34,6 +34,7 @@ $quantum_user_password  = 'quantum_pass'
 $quantum_db_password    = 'quantum_pass'
 $quantum_db_user        = 'quantum'
 $quantum_db_dbname      = 'quantum'
+$tenant_network_type    = 'gre'
 
 $cinder                 = true
 
@@ -97,6 +98,7 @@ node /fuel-0[12]/ {
       quantum_db_password     => $quantum_db_password,
       quantum_db_user         => $quantum_db_user,
       quantum_db_dbname       => $quantum_db_dbname,
+      tenant_network_type     => $tenant_network_type,
       cinder                  => $cinder,
       galera_nodes            => $controller_hostnames,
       manage_volumes          => $manage_volumes,
@@ -127,6 +129,11 @@ node /fuel-0[34]/ {
       nova_user_password	=> $nova_user_password,
       cache_server_ip         => $controller_hostnames,
       service_endpoint	 => $internal_virtual_ip,
+      quantum                => $quantum,
+      quantum_host           => $quantum_host,
+      quantum_sql_connection => $quantum_sql_connection,
+      quantum_user_password  => $quantum_user_password,
+      tenant_network_type     => $tenant_network_type,
       cinder                  => $cinder,
       ssh_private_key    => 'puppet:///ssh_keys/openstack',
       ssh_public_key     => 'puppet:///ssh_keys/openstack.pub',

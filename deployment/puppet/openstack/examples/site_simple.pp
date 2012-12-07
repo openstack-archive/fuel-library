@@ -39,6 +39,7 @@ $quantum_user_password  = 'quantum_pass'
 $quantum_db_password    = 'quantum_pass'
 $quantum_db_user        = 'quantum'
 $quantum_db_dbname      = 'quantum'
+$tenant_network_type    = 'gre'
 
 $openstack_version = {
   'keystone'   => latest,
@@ -99,6 +100,7 @@ node /fuel-01/ {
     quantum_db_password     => $quantum_db_password,
     quantum_db_user         => $quantum_db_user,
     quantum_db_dbname       => $quantum_db_dbname,
+    tenant_network_type     => $tenant_network_type,
     cinder                  => $cinder,
       manage_volumes          => $manage_volumes,
       nv_physical_volume      => $nv_physical_volume,
@@ -137,6 +139,7 @@ node /fuel-0[234]/ {
     quantum_host           => $quantum_host,
     quantum_sql_connection => $quantum_sql_connection,
     quantum_user_password  => $quantum_user_password,
+    tenant_network_type     => $tenant_network_type,
     service_endpoint       => $controller_node_internal,
     verbose                => $verbose,
   }
