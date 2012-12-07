@@ -5,6 +5,8 @@ class quantum::agents::l3 (
   $debug                        = 'False',
   $fixed_range                  = '10.0.1.0/24',
   $floating_range               = '192.168.10.0/24',
+  $tenant_network_type          = 'gre',
+  $create_networks              = true,
   $interface_driver             = 'quantum.agent.linux.interface.OVSInterfaceDriver',
   $external_network_bridge      = 'br-ex',
   $auth_url                     = 'http://localhost:5000/v2.0',
@@ -63,26 +65,29 @@ class quantum::agents::l3 (
   if $enabled {
     $ensure = 'running'
 
-    # create external/internal networks
-    file { '/tmp/quantum-networking.sh':
-      mode    => 740,
-      owner   => root,
-      content => template("quantum/quantum-networking.sh.${::osfamily}.erb"),
-      require => Service['quantum-server'],
-      notify  => Exec['create-networks'],
-    }
+    if $create_networks {
+      # create external/internal networks
+      file { '/tmp/quantum-networking.sh':
+        mode    => 740,
+        owner   => root,
+        content => template("quantum/quantum-networking.sh.${::osfamily}.erb"),
+        require => Service['quantum-server'],
+        notify  => Exec['create-networks'],
+      }
   
-    package { 'cidr-package':
-      name => $::quantum::params::cidr_package,
-      ensure => $package_ensure,
-      before => Exec['create-networks']
-    }
+      package { 'cidr-package':
+        name => $::quantum::params::cidr_package,
+        ensure => $package_ensure,
+        before => Exec['create-networks']
+      }
   
-    exec { 'create-networks':
-      command     => '/tmp/quantum-networking.sh',
-      # path        => '/usr/bin',
-      refreshonly => true,
-      logoutput   => true,
+      exec { 'create-networks':
+        command     => '/tmp/quantum-networking.sh',
+        # path        => '/usr/bin',
+        refreshonly => true,
+        logoutput   => true,
+        notify      => service['quantum-plugin-ovs-service'],
+      }
     }
   } else {
     $ensure = 'stopped'

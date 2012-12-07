@@ -2,7 +2,7 @@ class quantum::agents::ovs (
   $package_ensure       = 'present',
   $enabled              = true,
   $bridge_uplinks       = ['br-ex:eth2'],
-  $bridge_mappings      = ['default:br-ex'],
+  $bridge_mappings      = ['physnet1:br-ex'],
   $integration_bridge   = 'br-int',
   $enable_tunneling     = false,
   $local_ip             = false,

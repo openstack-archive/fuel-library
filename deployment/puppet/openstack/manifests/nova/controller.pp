@@ -240,16 +240,18 @@ if ($rabbit_nodes)
     }
 
     class { 'quantum::agents::l3':
-      enabled        => $quantum_l3_enable,
-      debug          => True,
-      fixed_range    => $fixed_range,
-      floating_range => $floating_range,
-      auth_url       => "http://${keystone_host}:35357/v2.0",
-      auth_tenant    => 'services',
-      auth_user      => 'quantum',
-      auth_password  => $quantum_user_password,
-      use_namespaces => False,
-      metadata_ip    => $api_bind_address,
+      enabled             => $quantum_l3_enable,
+      debug               => True,
+      fixed_range         => $fixed_range,
+      floating_range      => $floating_range,
+      tenant_network_type => $tenant_network_type,
+      create_networks     => $create_networks,
+      auth_url            => "http://${keystone_host}:35357/v2.0",
+      auth_tenant         => 'services',
+      auth_user           => 'quantum',
+      auth_password       => $quantum_user_password,
+      use_namespaces      => False,
+      metadata_ip         => $api_bind_address,
     }
 
     class { 'nova::network::quantum':
