@@ -102,7 +102,7 @@ class CiBase(object):
                 remote = ssh(
                     node.ip_address_by_network['public'], username='root',
                     password='r00tme')
-                self.add_nodes_to_hosts(remote, nodes)
+                self.add_nodes_to_hosts(remote, self.environment.nodes)
                 setup_puppet_client(remote)
                 write_config(remote, '/etc/puppet/puppet.conf', agent_config)
                 request_cerificate(remote)
