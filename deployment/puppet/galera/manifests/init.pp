@@ -228,16 +228,16 @@ class galera($cluster_name, $master_ip = false, $node_address = $ipaddress_eth0,
     tries       => 60,
   }
 
-  if ! $master_ip
-  {
-      $galera_gcomm_string = inline_template("<%= @node_addresses.collect {|ip| ip + ':' + 4567.to_s }.join ',' %>")
+#  if ! $master_ip
+#  {
+#      $galera_gcomm_string = inline_template("<%= @node_addresses.collect {|ip| ip + ':' + 4567.to_s }.join ',' %>")
 
-      exec {"first-galera-node-final-config":
-      require => [Exec["wait-for-synced-state"],Service['mysql-galera']],
-      path   => "/usr/bin:/usr/sbin:/bin:/sbin",
-      command => "sed -i 's/wsrep_cluster_address=\"gcomm:\/\/\"/wsrep_cluster_address=\"gcomm:\/\/${galera_gcomm_string}\"/' /etc/mysql/conf.d/wsrep.cnf",
-    }
-  }
+#      exec {"first-galera-node-final-config":
+#      require => [Exec["wait-for-synced-state"],Service['mysql-galera']],
+#      path   => "/usr/bin:/usr/sbin:/bin:/sbin",
+#      command => "sed -i 's/wsrep_cluster_address=\"gcomm:\/\/\"/wsrep_cluster_address=\"gcomm:\/\/${galera_gcomm_string}\"/' /etc/mysql/conf.d/wsrep.cnf",
+#    }
+#  }
 
 
 }
