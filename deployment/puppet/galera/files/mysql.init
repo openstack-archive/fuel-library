@@ -274,7 +274,7 @@ case "$mode" in
     if `pidof mysqld`
     then
         echo "There are other mysqld processes running. Exiting"
-        exit 1
+        exit 0
     fi
     # Safeguard (relative paths, core dumps..)
     cd $basedir
