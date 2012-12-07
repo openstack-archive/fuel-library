@@ -10,7 +10,7 @@ class openstack::repo::yum (
   $descr = $repo_name,
   $rhel_location = undef,
 )
-  {
+{
 
   #if defined(Package['yum-plugin-priorities']) {}
   #else {
@@ -38,6 +38,4 @@ class openstack::repo::yum (
       enabled  => 1,
     }
   }
-    if defined (Yumrepo['puppetlabs-products']) {yumrepo {'puppetlabs-products': enabled=>0 }}
-    if defined (Yumrepo['puppetlabs-deps']) {yumrepo {'puppetlabs-deps': enabled=>0}}
-  }
+}

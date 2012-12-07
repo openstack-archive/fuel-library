@@ -2,7 +2,8 @@
 class openstack::mirantis_repos (
   # DO NOT change this value to 'internal'. all our customers are relying on external repositories
   $type        = 'external',
-  $enable_epel = false
+  $enable_epel = false,
+  $disable_puppet_labs_repos = true,
 
 ) {
   case $::osfamily {
@@ -105,6 +106,11 @@ class openstack::mirantis_repos (
           descr      => 'Extra Packages for Enterprise Linux 6 - $basearch',
           mirrorlist => 'http://mirrors.fedoraproject.org/metalink?repo=epel-6&arch=$basearch',
         }
+      }
+
+      if $disable_puppet_labs_repos {
+          if defined (Yumrepo['puppetlabs-products']) {yumrepo {'puppetlabs-products': enabled=>0 }}
+          if defined (Yumrepo['puppetlabs-deps']) {yumrepo {'puppetlabs-deps': enabled=>0}}
       }
 
     }
