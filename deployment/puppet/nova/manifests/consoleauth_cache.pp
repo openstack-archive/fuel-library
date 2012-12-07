@@ -32,9 +32,8 @@ class nova::consoleauth_cache() {
     if !(defined(Package[$nova::params::memcache_package_name])) {
           package {$nova::params::memcache_package_name:
             ensure => 'present',
-            before => Package[$consoleauth_package_name],
           }
     }
+    Package[$nova::params::memcache_package_name] -> Package[$consoleauth_package_name]
   }
-
 }
