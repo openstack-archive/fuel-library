@@ -281,24 +281,24 @@ class openstack::controller_ha (
 
 #Class['openstack::controller_ha']->Class['galera-master-final-config']
 
-class openstack::galera-master-final-config($master_hostname,$node_addresses=[$ipaddress_eth0]) {
+#class openstack::galera-master-final-config($master_hostname, $controller_internal_addresses) {
 # This class changes config file on first Galera node to allow safe restart of this node without leaving cluster.
 #    require => Class['openstack::controller_ha'],
 
-    $which = $::hostname ? { $master_hostname => 0, default => 1 }
+#    $which = $::hostname ? { $master_hostname => 0, default => 1 }
 
-    if $which == 0 {
-      $galera_gcomm_string = inline_template("<%= @node_addresses.collect {|ip| ip + ':' + 4567.to_s }.join ',' %>")
+#    if $which == 0 {
+#      $galera_gcomm_string = inline_template("<%= @controller_internal_addresses.keys.collect {|ip| ip + ':' + 4567.to_s }.join ',' %>")
 
-      exec {"first-galera-node-final-config":
+#      exec {"first-galera-node-final-config":
 #        require => [Exec["wait-for-synced-state"],Service['mysql-galera']],
-        path   => "/usr/bin:/usr/sbin:/bin:/sbin",
-        command => "sed -i 's/wsrep_cluster_address=\"gcomm:\/\/\"/wsrep_cluster_address=\"gcomm:\/\/${galera_gcomm_string}\"/' /etc/mysql/conf.d/wsrep.cnf",
-      }
-    }
-}
+#        path   => "/usr/bin:/usr/sbin:/bin:/sbin",
+#        command => "sed -i 's/wsrep_cluster_address=\"gcomm:\/\/\"/wsrep_cluster_address=\"gcomm:\/\/${galera_gcomm_string}\"/' /etc/mysql/conf.d/wsrep.cnf",
+#      }
+#    }
+#}
 
-class {'openstack::galera-master-final-config':
-    require => Class['openstack::controller_ha'],
-    master_hostname => $master_hostname
-}
+#class {'openstack::galera-master-final-config':
+#    require => Class['openstack::controller_ha'],
+#    master_hostname => $master_hostname
+#}
