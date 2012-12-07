@@ -72,7 +72,6 @@ class openstack::mirantis_repos (
 #     Please uncomment the following block to order puppet to force apt-get update
 ################ Start of forced apt-get update block ##############
 #        class { 'apt':
-#          stage => 'openstack-custom-repo',
 #          always_apt_update => true,
 #        }
 ################ End of forced apt-get update block ###############
@@ -86,7 +85,6 @@ class openstack::mirantis_repos (
         repo_name  => 'openstack-epel-fuel',
         mirrorlist => $mirrorlist,
         key_source => "http://download.mirantis.com/epel-fuel-folsom/epel.key\n  http://download.mirantis.com/epel-fuel-folsom/centos.key\n http://download.mirantis.com/epel-fuel-folsom/rabbit.key\n http://download.mirantis.com/epel-fuel-folsom/mirantis.key\n http://download.mirantis.com/epel-fuel-folsom/mysql.key\n",
-        stage      => 'openstack-custom-repo',
         gpgcheck	=> '1'
       }
 
