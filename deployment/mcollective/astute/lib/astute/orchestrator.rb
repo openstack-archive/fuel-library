@@ -47,6 +47,18 @@ module Astute
       return {'networks' => result}
     end
 
+    def deploy_piece(ctx, nodes, publish_role_in_fact)
+      nodes_roles = nodes.map { |n| { n['uid'] => n['role'] } }
+      Astute.logger.info "#{ctx.task_id}: Starting deployment of nodes => roles: #{nodes_roles.inspect}"
+      ctx.reporter.report nodes_status(nodes, 'deploying')
+      if publish_role_in_fact
+        @metapublisher.call(ctx, nodes)
+      end
+      @deployer.call(ctx, nodes)
+      ctx.reporter.report nodes_status(nodes, 'ready')
+      Astute.logger.info "#{ctx.task_id}: Finished deployment of nodes => roles: #{nodes_roles.inspect}"
+    end
+
     private
     def simple_remove_nodes(ctx, nodes)
       if nodes.empty?
@@ -81,18 +93,6 @@ module Astute
       end
       Astute.logger.info "#{ctx.task_id}: Finished removing of nodes: #{uids.inspect}"
       return answer
-    end
-
-    def deploy_piece(ctx, nodes, publish_role_in_fact)
-      nodes_roles = nodes.map { |n| { n['uid'] => n['role'] } }
-      Astute.logger.info "#{ctx.task_id}: Starting deployment of nodes => roles: #{nodes_roles.inspect}"
-      ctx.reporter.report nodes_status(nodes, 'deploying')
-      if publish_role_in_fact
-        @metapublisher.call(ctx, nodes)
-      end
-      @deployer.call(ctx, nodes)
-      ctx.reporter.report nodes_status(nodes, 'ready')
-      Astute.logger.info "#{ctx.task_id}: Finished deployment of nodes => roles: #{nodes_roles.inspect}"
     end
 
     def nodes_status(nodes, status)

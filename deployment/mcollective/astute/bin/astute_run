@@ -41,10 +41,10 @@ if nodes_raw['use_case'] == "minimal" or
     nodes_raw['use_case'] == "simple"
   ctrl_nodes = nodes.select {|n| n['role'] == 'controller'}
   for node in ctrl_nodes do
-    orchestrator.deploy_piece(context, node)
+    orchestrator.deploy_piece(context, node, false)
   end
   compute_nodes = nodes.select {|n| n['role'] == 'compute'}
-  orchestrator.deploy_piece(context, compute_nodes)
+  orchestrator.deploy_piece(context, compute_nodes, false)
 elsif nodes_raw['use_case'] == "compact"
   print "TODO - compact use case"
 elsif nodes_raw['use_case'] == "full"
