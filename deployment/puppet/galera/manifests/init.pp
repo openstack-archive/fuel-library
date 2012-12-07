@@ -171,7 +171,14 @@ class galera($cluster_name, $master_ip = false, $node_address = $ipaddress_eth0,
     ensure => directory,
     before => File["/etc/mysql/conf.d/wsrep.cnf"]
   }
+if $::galera_gcomm_empty="true" {
+  $galera_gcomm_empty=true
+}
+else {
+  $galer_gcomm_empty=false
+}
 
+  
   file { "/etc/mysql/conf.d/wsrep.cnf" :
     ensure      => present,
     content     => template("galera/wsrep.cnf.erb"),
