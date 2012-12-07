@@ -10,7 +10,7 @@ class { 'openstack::puppetlabs_repos': stage => 'puppetlabs-repo'}
 class { 'openstack::mirantis_repos':
   stage => 'puppetlabs-repo',
   type=>$mirror_type,
-  disable_puppet_labs_repos => $false,
+  disable_puppet_labs_repos => false,
   before=>Class['openstack::puppetlabs_repos'],
 }
 
