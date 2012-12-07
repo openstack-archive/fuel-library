@@ -146,7 +146,7 @@ class galera($cluster_name, $master_ip = false, $node_address = $ipaddress_eth0,
     name 	=> $::galera::params::mysql_server_name,
     provider    => $::galera::params::pkg_provider,
     source      => "/tmp/${::galera::params::mysql_server_package}",
-    require     => [Exec["download-wsrep"], File["/etc/mysql/conf.d/wsrep.cnf"]]
+    require     => [Exec["download-wsrep"]]
   }
 
   exec { "download-wsrep" :
