@@ -12,7 +12,6 @@ class openstack::puppetlabs_repos (
 #     Please uncomment the following block to order puppet to force apt-get update
 ################ Start of forced apt-get update block ##############
 #        class { 'apt':
-#          stage => 'openstack-custom-repo',
 #          always_apt_update => true,
 #        }
 ################ End of forced apt-get update block ###############

@@ -1,37 +1,9 @@
 Exec { logoutput => true, path => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'] }
 
 stage {'openstack-custom-repo': before => Stage['main']}
+$mirror_type="external"
+class { 'openstack::mirantis_repos': stage => 'openstack-custom-repo', type=>$mirror_type }
 
-
-case $::osfamily {
-  'Debian': {
-    class { 'apt':
-      stage => 'openstack-ci-repo'
-    }->
-    class { 'openstack::repo::apt':
-      key => '420851BC',
-      location => 'http://172.18.66.213/deb',
-      key_source => 'http://172.18.66.213/gpg.pub',
-      origin => '172.18.66.213',
-      stage => 'openstack-ci-repo'
-    }
-  }
-  'RedHat': {
-    $repo_baseurl='http://download.mirantis.com/epel-fuel'
-    #added internal network mirror. Change if you need to use outside of mirantis
-    $mirrorlist='http://download.mirantis.com/epel-fuel/mirror.internal.list'
-    class { 'openstack::repo::yum':
-      repo_name  => 'openstack-epel-fuel',
-      #      location   => $repo_baseurl,
-      mirrorlist => $mirrorlist,
-      key_source => 'https://fedoraproject.org/static/0608B895.txt',
-      stage      => 'openstack-custom-repo',
-    }
-  }
-  default: {
-    fail("Unsupported osfamily: ${osfamily} for os ${operatingsystem}")
-  }
-}
 
 
 #
