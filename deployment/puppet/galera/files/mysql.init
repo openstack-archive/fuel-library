@@ -271,7 +271,7 @@ fi
 case "$mode" in
   'start')
     # Start daemon
-    if `pidof mysqld`
+    if [ `pidof mysqld` -o `pidof mysqld_safe` ]
     then
         echo "There are other mysqld processes running. Exiting"
         exit 0
