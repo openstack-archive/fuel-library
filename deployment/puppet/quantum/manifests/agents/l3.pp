@@ -87,6 +87,7 @@ class quantum::agents::l3 (
         # path        => '/usr/bin',
         refreshonly => true,
         logoutput   => true,
+        require => Service["openvswitch-switch"],
         notify      => Service['quantum-plugin-ovs-service'],
       }
     }
