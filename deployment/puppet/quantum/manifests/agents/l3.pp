@@ -10,6 +10,7 @@ class quantum::agents::l3 (
   $interface_driver             = 'quantum.agent.linux.interface.OVSInterfaceDriver',
   $external_network_bridge      = 'br-ex',
   $auth_url                     = 'http://localhost:5000/v2.0',
+  $auth_port                    = '5000',
   $auth_region                  = 'RegionOne',
   $auth_tenant                  = 'service',
   $auth_user                    = 'quantum',

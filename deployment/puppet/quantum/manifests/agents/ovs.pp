@@ -39,7 +39,7 @@ class quantum::agents::ovs (
   Package[$ovs_agent_package] -> Quantum_plugin_ovs<||>
 
   vs_bridge {$integration_bridge:
-    external_ids => "bridge-id=${ingration_bridge}",
+    external_ids => "bridge-id=${integration_bridge}",
     ensure       => present,
     require      => Service['quantum-plugin-ovs-service'],
   }
@@ -71,7 +71,7 @@ class quantum::agents::ovs (
 
   service { 'quantum-plugin-ovs-service':
     name    => $::quantum::params::ovs_agent_service,
-    enable  => $enable,
+    enable  => $enabled,
     ensure  => $service_ensure,
     require => [Package[$ovs_agent_package]]
   }
