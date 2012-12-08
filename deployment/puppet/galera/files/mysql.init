@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -v
 # Copyright Abandoned 1996 TCX DataKonsult AB & Monty Program KB & Detron HB
 # This file is public domain and comes with NO WARRANTY of any kind
 
@@ -399,7 +399,7 @@ case "$mode" in
       fi
     else
       # Try to find appropriate mysqld process
-      mysqld_pid=`pidof $libexecdir/mysqld`
+      mysqld_pid=`pidof /usr/sbin/mysqld`
       if test -z $mysqld_pid ; then 
         if test -f "$lock_file_path" ; then 
           log_failure_msg "MySQL is not running, but lock file ($lock_file_path) exists"
