@@ -186,6 +186,7 @@ local0.* -/var/log/haproxy.log'
         Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'glance-manage db_sync' |>
         Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'cinder-manage db_sync' |>
         Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'nova-db-sync' |>
+        Exec['wait-for-haproxy-mysql-backend'] -> Service <| title == 'cinder-volume' |>
 
     class { 'haproxy':
       enable => true, 
