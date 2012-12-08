@@ -124,6 +124,10 @@ class galera($cluster_name, $master_ip = false, $node_address = $ipaddress_eth0,
         ensure => present,
         before => Package['MySQL-server']
       }
+      package {'libc6': 
+      ensure=>latest,
+      before => Package['MySQL-server']
+      }
     }
   }
 
