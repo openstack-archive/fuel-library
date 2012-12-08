@@ -1,19 +1,15 @@
-require "puppet"
+Puppet::Type.newtype(:vs_bridge) do
+  @doc = "A Switch - For example 'br-int' in OpenStack"
 
-module Puppet
-  Puppet::Type.newtype(:vs_bridge) do
-    @doc = "A Switch - For example 'br-int' in OpenStack"
+  ensurable
 
-    ensurable
+  newparam(:name) do
+    isnamevar
+    desc "The bridge to configure"
+  end
 
-    newparam(:name) do
-      isnamevar
-      desc "The bridge to configure"
-    end
-
-    newproperty(:external_ids) do
-      desc "External IDs for the bridge"
-    end
-
+  newproperty(:external_ids) do
+    desc "External IDs for the bridge"
   end
 end
+
