@@ -214,7 +214,7 @@ if $::galera_gcomm_empty=="true" {
 
   exec {"kill-initial-mysql":
 	path   => "/usr/bin:/usr/sbin:/bin:/sbin",
-      command   => "killall -w mysqld && sleep 10",
+      command   => "killall -w mysqld && killall -9 mysqld_safe && sleep 10",
 #      onlyif    => "pidof mysqld",
       try_sleep   => 5,
       tries       => 6,
