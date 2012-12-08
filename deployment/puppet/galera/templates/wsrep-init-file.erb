@@ -1,7 +1,4 @@
 set wsrep_on='off';
-<% if ! master_ip -%>
-SET GLOBAL wsrep_provider_options='pc.bootstrap=1';
-<% end -%>
 delete from mysql.user where user='';
 grant all on *.* to '<%= mysql_user %>'@'%' identified by '<%= mysql_password %>';
 grant all on *.* to '<%= mysql_user %>'@'localhost' identified by '<%= mysql_password %>';
