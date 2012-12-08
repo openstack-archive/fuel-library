@@ -182,6 +182,8 @@ if $::galera_gcomm_empty=="true" {
     require => [File["/etc/mysql/conf.d"], File["/etc/mysql"]],
  ## require     => Package["galera"],
   }
+  File["/etc/mysql/conf.d/wsrep.cnf"]->Exec['set-mysql-password']
+  File["/etc/mysql/conf.d/wsrep.cnf"]~>Exec['set-mysql-password']
   File["/etc/mysql/conf.d/wsrep.cnf"]->Service['mysql-galera']
   File["/etc/mysql/conf.d/wsrep.cnf"]~>Service['mysql-galera']
 }
@@ -212,7 +214,7 @@ if $::galera_gcomm_empty=="true" {
 
   exec {"kill-initial-mysql":
 	path   => "/usr/bin:/usr/sbin:/bin:/sbin",
-      command   => "killall -w mysqld && sleep 10",
+      command   => "killall -w mysqld && ( killall -w -9 mysqld_safe || : ) && sleep 10",
 #      onlyif    => "pidof mysqld",
       try_sleep   => 5,
       tries       => 6,
