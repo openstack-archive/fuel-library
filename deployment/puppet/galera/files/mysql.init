@@ -271,7 +271,7 @@ fi
 case "$mode" in
   'start')
     # Start daemon
-    if [ `pidof mysqld mysqld_safe` ]
+    if pgrep "mysqld_safe|mysqld" 1>/dev/null
     then
         echo "There are other mysqld processes running. Exiting"
         exit 0
@@ -305,7 +305,13 @@ case "$mode" in
     retry=0
     if test -s "$mysqld_pid_file_path"
     then
-      mysqld_pid=`cat "$mysqld_pid_file_path"`
+        mysqld_pid=`cat "$mysqld_pid_file_path"`
+    else
+        mysqld_pid=`pidof mysqld`
+    fi
+
+
+
 
       if (kill -0 $mysqld_pid 2>/dev/null)
       then
@@ -357,9 +363,6 @@ case "$mode" in
         rm -f "$lock_file_path"
       fi
       exit $return_value
-    else
-      log_failure_msg "MySQL server PID file could not be found!"
-    fi
     ;;
 
   'restart')
@@ -406,7 +409,7 @@ case "$mode" in
         exit 3
       else
         log_failure_msg "MySQL is running but PID file could not be found"
-        exit 4
+        exit 0
       fi
     fi
     ;;
