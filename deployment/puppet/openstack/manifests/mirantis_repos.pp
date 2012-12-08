@@ -17,6 +17,7 @@ class openstack::mirantis_repos (
           key_source => 'http://download.mirantis.com/precise-fuel-essex/Mirantis.key',
 #         key_server => "pgp.mit.edu",
           include_src => false,
+          pin => "1000",
         }
  
          }
@@ -30,6 +31,7 @@ class openstack::mirantis_repos (
           key_source => 'http://172.18.67.168/ubuntu-repo/precise-fuel-essex/Mirantis.key',
 #         key_server => "pgp.mit.edu",
           include_src => false,
+          pin => "1000",
         }
           }
 #     Currently we use only standard Debian repos, installed with OS
