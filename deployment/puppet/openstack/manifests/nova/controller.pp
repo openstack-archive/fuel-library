@@ -238,7 +238,7 @@ if ($rabbit_nodes)
       debug          => True,
       use_namespaces => False,
     }
-
+    Quantum::Plugins::Ovs::Bridge <| title == "br-ex:${public_interface}" |> -> Exec[create-networks]
     class { 'quantum::agents::l3':
       enabled             => $quantum_l3_enable,
       debug               => True,
