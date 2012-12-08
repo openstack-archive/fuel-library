@@ -26,6 +26,7 @@ class openstack::mirantis_repos (
           key_source => 'http://download.mirantis.com/precise-fuel-folsom/Mirantis.key',
 #         key_server => "pgp.mit.edu",
           include_src => false,
+          pin       => "1000"
         }
       }
       # Below we set our internal repos for testing purposes. Some of them may match with external ones.
@@ -42,6 +43,7 @@ class openstack::mirantis_repos (
           key_source => 'http://172.18.67.168/ubuntu-repo/precise-fuel-folsom/Mirantis.key',
 #         key_server => "pgp.mit.edu",
           include_src => false,
+          pin         => 1000,
         }
         apt::source  { 'cloud-archive':
           location => 'http://172.18.67.168/ubuntu-cloud.archive.canonical.com/ubuntu',
