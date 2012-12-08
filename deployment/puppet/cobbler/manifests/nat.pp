@@ -1,6 +1,6 @@
 # add nat tables for nodes range
 class cobbler::nat(
-$nat_range = undef,
+  $nat_range = undef,
 ) {
 
   Exec  {path => '/usr/bin:/bin:/usr/sbin:/sbin'}
@@ -13,17 +13,17 @@ $nat_range = undef,
   case $::operatingsystem {
     /(?i)(centos|redhat)/: {
       exec { 'enable_nat_all':
-        command => "iptables -t nat -I POSTROUTING 1
+        command => "iptables -t nat -I POSTROUTING 1 \
                     -s ${nat_range}/24 ! -d ${nat_range}/24 -j MASQUERADE; \
                     /etc/init.d/iptables save",
-        unless  => "iptables -t nat -S POSTROUTING | grep -q \"^-A POSTROUTING
+        unless  => "iptables -t nat -S POSTROUTING | grep -q \"^-A POSTROUTING \
                    -s ${nat_range}/24 ! -d ${nat_range}/24 -j MASQUERADE\""
       }
 
       exec { 'enable_nat_filter':
         command => 'iptables -t filter -I FORWARD 1 -j ACCEPT; \
                    /etc/init.d/iptables save',
-        unless  => 'iptables -t filter -S FORWARD | grep -q "^-A FORWARD
+        unless  => 'iptables -t filter -S FORWARD | grep -q "^-A FORWARD \
                    -j ACCEPT"'
       }
 
@@ -44,17 +44,17 @@ $nat_range = undef,
       # you already have those files defined
 
       exec { 'enable_nat_all':
-        command => "iptables -t nat -I POSTROUTING 1
+        command => "iptables -t nat -I POSTROUTING 1 \
                     -s ${nat_range}/24 ! -d ${nat_range}/24 -j MASQUERADE; \
                     iptables-save -c > /etc/iptables.rules",
-        unless  => "iptables -t nat -S POSTROUTING | grep -q \"^-A POSTROUTING
+        unless  => "iptables -t nat -S POSTROUTING | grep -q \"^-A POSTROUTING \
                    -s ${nat_range}/24 ! -d ${nat_range}/24 -j MASQUERADE\""
       }
 
       exec { 'enable_nat_filter':
         command => 'iptables -t filter -I FORWARD 1 -j ACCEPT; \
                    iptables-save -c > /etc/iptables.rules',
-        unless  => 'iptables -t filter -S FORWARD | grep -q "^-A
+        unless  => 'iptables -t filter -S FORWARD | grep -q "^-A \
                    FORWARD -j ACCEPT"'
       }
 
