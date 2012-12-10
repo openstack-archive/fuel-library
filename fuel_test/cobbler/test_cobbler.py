@@ -93,9 +93,9 @@ class CobblerCase(CobblerTestCase):
             ks_meta=self.get_ks_meta('master',
                 stomp_name),
             name=node_name,
-            hostname=node_name + ".mirantis.com",
+            hostname=node_name + ".your-domain-name.com",
             name_servers=cobbler.ip_address_by_network['internal'],
-            name_servers_search="mirantis.com",
+            name_servers_search="your-domain-name.com",
             profile=profile,
             netboot_enabled="1")
         client.modify_system(system_id, 'modify_interface', {
@@ -103,7 +103,7 @@ class CobblerCase(CobblerTestCase):
             "static-eth0": "0",
             "macaddress-eth1": str(node_mac1),
             "ipaddress-eth1": str(node_ip),
-            "dnsname-eth1": node_name + ".mirantis.com",
+            "dnsname-eth1": node_name + ".your-domain-name.com",
             "static-eth1": "1",
             "macaddress-eth2": str(node_mac2),
             "static-eth2": "0"
@@ -144,7 +144,7 @@ class CobblerCase(CobblerTestCase):
             remote,
             master.ip_address_by_network['internal'],
             master.name,
-            master.name + ".mirantis.com")
+            master.name + ".your-domain-name.com")
 
         for node in self.environment.nodes:
             node.save_snapshot('cobbler-configured', force=True)

@@ -6,7 +6,7 @@ node default {
   notify { "test-notification-${hostname}": }
 }
 
-node /^(fuel-pm|fuel-cobbler).mirantis.com/ {
+node /^(fuel-pm|fuel-cobbler).your-domain-name.com/ {
 
   class{cobbler::nat:
     nat_range => '10.0.0.0',

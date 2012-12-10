@@ -27,7 +27,7 @@ class cobbler(
 
   $server             = $ipaddress,
 
-  $domain_name        = 'mirantis.com',
+  $domain_name        = 'your-domain-name.com',
   $name_server        = $ipaddress,
   $next_server        = $ipaddress,
 
