@@ -1,3 +1,7 @@
+#
+# This file does not seem to be used anywhere. Consider for deletion, or replace this comment with the actual usage description.
+#
+
 node default {
   notify { "test-notification-${hostname}": }
 }
@@ -11,7 +15,7 @@ node /^(fuel-pm|fuel-cobbler).mirantis.com/ {
   class { cobbler :
     server              => '10.0.0.100',
 
-    domain_name         => 'mirantis.com',
+    domain_name         => 'your-domain-name.com',
     name_server         => '10.0.0.100',
     next_server         => '10.0.0.100',
 

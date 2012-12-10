@@ -1,3 +1,7 @@
+#
+# This file does not seem to be used anywhere. Consider for deletion, or replace this comment with the actual usage description.
+#
+
 node default {
 
   Exec  {path => '/usr/bin:/bin:/usr/sbin:/sbin'}
@@ -58,7 +62,7 @@ node default {
   class { cobbler :
     server              => '10.100.0.201',
 
-    domain_name         => 'mirantis.com',
+    domain_name         => 'your-domain-name.com',
     name_server         => '10.100.0.201',
     next_server         => '10.100.0.201',
 

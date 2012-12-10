@@ -6,9 +6,9 @@ Installation Instructions
 Introduction
 ------------
 
-You can follow these instructions in order to get a production-grade OpenStack installation on hardware, or you can just do a dry run using Virtualbox to get of feel of how Fuel works.
+You can follow these instructions in order to get a production-grade OpenStack installation on hardware, or you can just do a dry run using VirtualBox to get of feel of how Fuel works.
 
-If you decide to give Fuel a try using Virtualbox, you will need the latest VirtualBox 4.2.1 as well as a stable host system, preferably Mac OS 10.7.x, CentOS 6.3, or Ubuntu 12.04 (Windows 8 also works, but is definitely not recommended). VirtualBox has to be installed with "extension pack", which enables PXE boot capabilities on Intel network adapters.
+If you decide to give Fuel a try using VirtualBox, you will need the latest stable VirtualBox (version 4.2.4 at the moment), as well as a stable host system, preferably Mac OS 10.7.x, CentOS 6.3, or Ubuntu 12.04 (Windows 8 also works, but is not recommended). VirtualBox has to be installed with "extension pack", which enables PXE boot capabilities on Intel network adapters.
 
 The list of certified hardware configuration is coming up in one of the next versions of Fuel.
 
@@ -33,7 +33,7 @@ In case of VirtualBox environment, allocate the following resources for these ma
 Network Setup
 -------------
 
-The current architecture assumes deployment with 3 network adapters, for clarity. However, it can be tuned to support different scenarios, for example deployment with only 2 NICs. So, the adapters will be:  
+The current architecture assumes deployment with 3 network interfaces, for clarity. However, it can be tuned to support different scenarios, for example deployment with only 2 NICs. The default set of interfaces is defined as follows:  
 
 #. eth0 - public network, with access to the internet
     * we will assume that DHCP is enabled and every machine gets its IP address on this interface automatically through DHCP
@@ -51,9 +51,9 @@ The current architecture assumes deployment with 3 network adapters, for clarity
     * without IP address
     * with promiscuous mode enabled
 
-If you are on Virtualbox, create the following host-only adapters:
+If you are on VirtualBox, create the following host-only adapters:
 
-* Virtualbox -> Preferences...
+* VirtualBox -> Preferences...
     * Network -> Add host-only network (vboxnet0)
         * IPv4 address: 10.0.0.1
         * IPv4 mask: 255.255.255.0
@@ -76,33 +76,34 @@ Initial Setup
 
 If you plan for provision Puppet master on hardware, you need to make sure you can boot your server from an ISO. 
 
-For Virtualbox, follow these steps to create virtual hardware:
+For VirtualBox, follow these steps to create virtual hardware:
 
 * Machine -> New...
     * Name: fuel-pm 
     * Type: Linux
     * Version: Red Hat (64 Bit) or Ubuntu (64 Bit)
 * Machine -> Settings... -> Network
-    * Adapter 1
-        * Enable Network Adapter
-        * Attached to: Bridged Adapter
-        * Name: epn1 (Wi-Fi Airport), or whatever network interface of the host machine where you have internet access 
-    * Adapter 2
+    * Adapter 1 
         * Enable Network Adapter
         * Attached to: Host-only Adapter
         * Name: vboxnet0
+    * Adapter 2
+        * Enable Network Adapter
+        * Attached to: Bridged Adapter
+        * Name: epn1 (Wi-Fi Airport), or whatever network interface of the host machine where you have internet access 
+    * It's important that host-only "Adapter 1" goes first, as Cobbler will use vboxnet0 for PXE, and VirtualBox boots from LAN on the first available network adapter.
     * Third adapter is not really needed for Puppet master, as it's only required for OpenStack hosts and communication of tenant VMs.
 
 OS Installation
 ~~~~~~~~~~~~~~~~~~~
 
-* Pick and download operating system image, it will be used as a base OS for the Puppet master node. We suggest to stick with either of these two:
-   * `CentOS-6.3-x86_64-minimal.iso <http://mirror.stanford.edu/yum/pub/centos/6.3/isos/x86_64/CentOS-6.3-x86_64-minimal.iso>`_ Also you can choose the nearest mirror from `CentOS Mirrors List <http://www.centos.org/modules/tinycontent/index.php?id=30>`_
-   * `rhel-server-6.3-x86_64-boot.iso <https://access.redhat.com/home>`_
-   * `Ubuntu 12.04 "Precise Pangolin" Minimal CD, x86_64 <https://help.ubuntu.com/community/Installation/MinimalCD>`_
+* Pick and download operating system image, it will be used as a base OS for the Puppet master node:
+   * `CentOS 6.3 <http://isoredirect.centos.org/centos/6/isos/x86_64/>`_: download CentOS-6.3-x86_64-minimal.iso
+   * `RHEL 6.3 <https://access.redhat.com/home>`_: download rhel-server-6.3-x86_64-boot.iso
+   * `Ubuntu 12.04 <https://help.ubuntu.com/community/Installation/MinimalCD>`_: download "Precise Pangolin" Minimal CD
 
 
-* Mount it to the server CD/DVD drive. In case of Virtualbox, mount it to fuel-pm virtual machine
+* Mount it to the server CD/DVD drive. In case of VirtualBox, mount it to fuel-pm virtual machine
     * Machine -> Settings... -> Storage -> CD/DVD Drive -> Choose a virtual CD/DVD disk file...
 
 
@@ -110,7 +111,7 @@ OS Installation
     * Choose root password carefully
 
 
-* Set up eth0 interface (it will provide internet access for puppet master): 
+* Set up eth0 interface (it will provide internet access for puppet master and will correspond to "Adapter 2" in VirtualBox): 
 	* CentOS/RHEL
 		* ``vi /etc/sysconfig/network-scripts/ifcfg-eth0``::
 
@@ -134,16 +135,16 @@ OS Installation
 
 	        service networking restart
 
-    * Add DNS for internet hostnames resolution. Both CentOS/RHEL and Ubuntu: ``vi /etc/resolv.conf`` (replace "mirantis.com" with your domain name, replace "8.8.8.8" with your DNS IP). Note: you can look up your DNS server using ``ipconfig /all`` on a host Windows machine, or using ``cat /etc/resolv.conf`` under host Linux ::
+    * Add DNS for internet hostnames resolution. Both CentOS/RHEL and Ubuntu: ``vi /etc/resolv.conf`` (replace "your-domain-name.com" with your domain name, replace "8.8.8.8" with your DNS IP). Note: you can look up your DNS server on your host machine using ``ipconfig /all`` on Windows, or using ``cat /etc/resolv.conf`` under Linux ::
 
-        search mirantis.com
+        search your-domain-name.com
         nameserver 8.8.8.8 
 
     * Check that internet access works::
 
         ping google.com
 
-* Set up eth1 interface (for communication between puppet master and puppet clients):
+* Set up eth1 interface (it will be for communication between puppet master and puppet clients, as well as for Cobbler. it will correspond to "Adapter 1" in VirtualBox):
 	* CentOS/RHEL
 		* ``vi /etc/sysconfig/network-scripts/ifcfg-eth1``::
 
@@ -220,9 +221,9 @@ OS Installation
 
 			fuel-pm
 
-	* Both CentOS/RHEL and Ubuntu ``vi /etc/hosts`` (replace "mirantis.com" with your domain name)::
+	* Both CentOS/RHEL and Ubuntu ``vi /etc/hosts`` (replace "your-domain-name.com" with your domain name)::
 
-            10.0.0.100   fuel-pm.mirantis.com fuel-pm
+            10.0.0.100   fuel-pm.your-domain-name.com fuel-pm
 
 	* Run ``hostname fuel-pm`` or reboot to apply hostname
 
@@ -256,13 +257,13 @@ This section will allow you to configure puppet to use a technique called stored
            storeconfigs_backend = puppetdb
 
 * Configure PuppetDB to use the right hostname and port
-    * ``vi /etc/puppet/puppetdb.conf`` (replace "mirantis.com" with your domain name; if this file does not exist, it will get created)::
+    * ``vi /etc/puppet/puppetdb.conf`` (replace "your-domain-name.com" with your domain name; if this file does not exist, it will get created)::
 
        [main]
-           server = fuel-pm.mirantis.com
+           server = fuel-pm.your-domain-name.com
            port = 8081
 
-* Restart Puppet master to apply settings (Note: these operations may take about half a minute. You can ensure that PuppetDB is running by executing ``telnet fuel-pm.mirantis.com 8081``)::
+* Restart Puppet master to apply settings (Note: these operations may take about half a minute. You can ensure that PuppetDB is running by executing ``telnet fuel-pm.your-domain-name.com 8081``)::
 	
 	puppetdb-ssl-setup
 	service puppetmaster restart
@@ -283,31 +284,31 @@ Troubleshooting PuppetDB and SSL
 Testing Puppet
 ~~~~~~~~~~~~~~
 
-* Put a simple configuration into Puppet (replace "mirantis.com" with your domain name), so that when you run puppet from any node, it will display the corresponding "Hello world" message
+* Put a simple configuration into Puppet (replace "your-domain-name.com" with your domain name), so that when you run puppet from any node, it will display the corresponding "Hello world" message
     * ``vi /etc/puppet/manifests/site.pp``::
 
-        node /fuel-pm.mirantis.com/ {
+        node /fuel-pm.your-domain-name.com/ {
             notify{"Hello world from fuel-pm": }
         }
-        node /fuel-01.mirantis.com/ {
+        node /fuel-01.your-domain-name.com/ {
             notify{"Hello world from fuel-01": }
         }
-        node /fuel-02.mirantis.com/ {
+        node /fuel-02.your-domain-name.com/ {
             notify{"Hello world from fuel-02": }
         }
-        node /fuel-03.mirantis.com/ {
+        node /fuel-03.your-domain-name.com/ {
             notify{"Hello world from fuel-03": }
         }
-        node /fuel-04.mirantis.com/ {
+        node /fuel-04.your-domain-name.com/ {
             notify{"Hello world from fuel-04": }
         }
 
-* If you are planning on installing Cobbler on Puppet master node as well, make configuration changes on puppet master so that it actually knows how to provision software onto itself (replace "mirantis.com" with your domain name)
+* If you are planning on installing Cobbler on Puppet master node as well, make configuration changes on puppet master so that it actually knows how to provision software onto itself (replace "your-domain-name.com" with your domain name)
     * ``vi /etc/puppet/puppet.conf``::
 
         [main]
             # server
-            server = fuel-pm.mirantis.com
+            server = fuel-pm.your-domain-name.com
 
             # enable plugin sync
             pluginsync = true
@@ -318,7 +319,7 @@ Testing Puppet
 Installing Fuel
 ~~~~~~~~~~~~~~~
 
-First of all, you must copy a complete Fuel package onto your puppet master machine. Once you put Fuel up these, you should unpack the archive and supply Fuel manifests to Puppet::
+First of all, you must copy a complete Fuel package onto your puppet master machine. Once you put Fuel there, you should unpack the archive and supply Fuel manifests to Puppet::
 
 	tar -xzf <fuel-archive-name>.tar.gz
 	cd fuel
@@ -328,7 +329,7 @@ First of all, you must copy a complete Fuel package onto your puppet master mach
 Installing & Configuring Cobbler
 --------------------------------
 
-Cobbler is bare metal provisioning system which will perform initial installation of Linux on OpenStack nodes. Luckily, we already have a puppet master installed, so we can install Cobbler through Puppet in a matter of seconds rather than doing it manually.
+Cobbler is bare metal provisioning system which performs bare metal provisioning and does initial installation of Linux on OpenStack nodes. Luckily, we already have a puppet master installed, so Cobbler can be installed using Puppet in a matter of seconds rather than doing it manually.
 
 Using Puppet to install Cobbler
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -336,12 +337,14 @@ Using Puppet to install Cobbler
 On puppet master:
 
 * ``vi /etc/puppet/manifests/site.pp``
-* Copy the contents of one of "site.pp" from "fuel/deployment/puppet/cobbler/examples/" into "/etc/puppet/manifests/site.pp" (replace "mirantis.com" with your domain name):
+
+* Copy the contents of one of "site.pp" from "fuel/deployment/puppet/cobbler/examples/" into "/etc/puppet/manifests/site.pp":
     .. literalinclude:: ../../deployment/puppet/cobbler/examples/site_fordocs.pp
 
-* The example above gives you the simple way to deploy the cobbler. The two things you might want to change:
-		* Comment out unnecessory distributions (uncomment used distributions)
-		* Change the location of ISO image file (to either a local mirror, or the fastest available internet mirror)
+* Make the following changes in that file:
+    * Replace IP addresses and ranges according to your network setup. Replace "your-domain-name.com" with your domain name.
+    * Uncomment the required OS distributions. They will be downloaded and imported into Cobbler at the time of Cobbler installation.
+    * Change the location of ISO image files to either a local mirror, or the fastest available internet mirror.
 
 * Once the configuration is there, Puppet will know that Cobbler must be installed on fuel-pm machine. Once Cobbler is installed, the right distro and profile will be automatically added to it. OS image will be downloaded from the mirror and put into Cobbler as well.
 
@@ -355,7 +358,7 @@ Testing cobbler
 
 * you can check that Cobbler is installed successfully by opening the following URL from your host machine:
     * http://fuel-pm/cobbler_web/ (u: cobbler, p: cobbler)
-* now you have a fully working instance of Cobbler. moreover, it is fully configured and capable of installing the chosen OS (CentOS 6.3, or RHEL 6.3) on target OpenStack nodes
+* now you have a fully working instance of Cobbler. moreover, it is fully configured and capable of installing the chosen OS (CentOS 6.3, RHEL 6.3, or Ubuntu 12.04) on target OpenStack nodes
 
 
 Deploying OpenStack
@@ -366,7 +369,7 @@ Initial setup
 
 If you are using hardware, make sure it is capable of PXE booting over the network from Cobbler.
 
-In case of Virtualnox, create the corresponding virtual machines for your OpenStack nodes in Virtualbox. Do not start them yet.
+In case of VirtualBox, create the corresponding virtual machines for your OpenStack nodes. Do not start them yet.
 
 * Machine -> New...
     * Name: fuel-01 (will need to repeat for fuel-02, fuel-03, and fuel-04)
@@ -379,13 +382,13 @@ In case of Virtualnox, create the corresponding virtual machines for your OpenSt
 * Machine -> Settings... -> Network
     * Adapter 1
         * Enable Network Adapter
-        * Attached to: Bridged Adapter
-        * Name: en1 (Wi-Fi Airport), or whatever network interface of the host machine where you have internet access 
-
-    * Adapter 2
-        * Enable Network Adapter
         * Attached to: Host-only Adapter
         * Name: vboxnet0
+    
+    * Adapter 2
+        * Enable Network Adapter
+        * Attached to: Bridged Adapter
+        * Name: en1 (Wi-Fi Airport), or whatever network interface of the host machine where you have internet access 
 
     * Adapter 3
         * Enable Network Adapter
@@ -393,12 +396,14 @@ In case of Virtualnox, create the corresponding virtual machines for your OpenSt
         * Name: vboxnet1
         * Advanced -> Promiscuous mode: Allow All
 
+    * It's important that host-only "Adapter 1" goes first, as Cobbler will use vboxnet0 for PXE, and VirtualBox boots from LAN on the first available network adapter.
+
 Configuring Cobbler to provision your OpenStack Nodes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Now you need to define nodes in cobbler configuration, so it knows what OS to install where and what configuration actions to take.
 
-On puppet master, create whereever you like a directory for configuration and copy example config file for Cobbler from Fuel repository:
+On puppet master, create a directory for configuration (wherever you like) and copy example config file for Cobbler from Fuel repository:
 
     * ``mkdir cobbler_config``
     * ``cd cobbler_config``
@@ -407,11 +412,11 @@ On puppet master, create whereever you like a directory for configuration and co
 
 Edit configuration for bare metal provisioning of nodes (nodes.yaml):
 
-* There is essentially a section for every node, and you have to define all nodes there (fuel-01, fuel-02, fuel-03, and fuel-04). The config for a single node is posted below, while the config for the remaining nodes is very similar
+* There is essentially a section for every node, and you have to define all OpenStack nodes there (fuel-01, fuel-02, fuel-03, and fuel-04 by default). The config for a single node is posted below, while the config for the remaining nodes is very similar
 * It's important to get right the following parameters, they are different for every node:
     * name of the system in cobbler, the very first line
-    * hostname and DNS name (do not forget to replace "mirantis.com" to your domain name)
-    * mac addresses for every network interface (you can look them up in Virtualbox, using Machine -> Settings... -> Network -> Adapters)
+    * hostname and DNS name (do not forget to replace "your-domain-name.com" with your domain name)
+    * mac addresses for every network interface (you can look them up in VirtualBox, using Machine -> Settings... -> Network -> Adapters)
     * static IP address on management interface eth1
 * vi nodes.yaml
     .. literalinclude:: ../../deployment/puppet/cobbler/examples/nodes.yaml
@@ -426,18 +431,12 @@ Now, when cobbler has correct configuration, the only thing you need to do is to
 
 In case of VirtualBox, here is what you have to do for every virtual machine (fuel-01, fuel-02, fuel-03, fuel-04):
 
-* disable bridged network adapter by unchecking  "Machine -> Settings -> Network -> Enable Network Adapter" 
-    * the reason for that is --- by default, Virtualbox will attempt to use the first network interface for PXE-boot and it's going to fail. we actually want our machines to PXE-boot from cobbler, which is on 10.0.0.100 (first host-only adapter). so the solution is to temporarily disable "bridged network adapter"
-* Machine -> Start
-* press F12 during boot and select "l" (LAN) as a bootable media
-* once installation is complete
-    * log into the machine (l: root, p: r00tme)
-    * perform shutdown using "``shutdown -H now``"
-* enable back bridged network adapter by checking "Machine -> Settings -> Network -> Enable Network Adapter"
-* start the node using Virtualbox
-* check that network works correctly
-    * ``ping www.google.com``
-    * ``ping 10.0.0.100``
+* start VM
+* press F12 immediately and select "l" (LAN) as a bootable media
+* wait for an installation to complete
+* check that network is set up correctly and machine can reach package repositories as well as puppet master
+    * ``ping download.mirantis.com``
+    * ``ping fuel-pm.your-domain-name.com``
 
 It is important to note that if you use VLANs in your network configuration you always have to keep in mind the fact that PXE booting does not work on tagged interfaces. Therefore, all your nodes including the one where cobbler service lives, must share one untagged VLAN (also called "native VLAN"). You can use dhcp_interface parameter of cobbler::server class to bind dhcp service to certain interface.
 
@@ -448,7 +447,7 @@ Now, you have OS installed and configured on all nodes. Moreover, puppet is inst
 * switch to puppet master and execute:
     * ``puppet cert list``
     * ``puppet cert sign --all``
-        * alternatively, you can sign only a single certificate using "puppet cert sign fuel-XX.mirantis.com"
+        * alternatively, you can sign only a single certificate using "puppet cert sign fuel-XX.your-domain-name.com"
 * ``puppet agent --test``
     * it should successfully complete and result in "Hello World from fuel-XX" message
 
@@ -460,8 +459,10 @@ In case of VirtualBox, it's recommended to save current state of every virtual m
 * On puppet master
 	* create file with definition of networks, nodes, and roles. assume you are deploying a compact configuration, with Controllers and Swift combined: ``cp fuel/deployment/puppet/openstack/examples/site_openstack_swift_compact.pp /etc/puppet/manifests/site.pp``
 	* ``vi /etc/puppet/manifests/site.pp``, correct IP adressing configuration for "public" and "internal" adresses according your current scheme. Also define proper "$floating_range" and "$fixed_range"
-	.. literalinclude:: ../../deployment/puppet/openstack/examples/site_openstack-swift-compact_fordocs.pp
-	* create directory with keys, give it the appropriate permissions, and generate keys themselves 
+
+	.. literalinclude:: ../../deployment/puppet/openstack/examples/site_openstack_swift_compact_fordocs.pp
+	
+    * create directory with keys, give it the appropriate permissions, and generate keys themselves 
 		* ``mkdir /var/lib/puppet/ssh_keys``
 		* ``cd /var/lib/puppet/ssh_keys``
 		* ``ssh-keygen -f openstack``
@@ -509,7 +510,7 @@ Common Technical Issues
     * workaround: ``vi /etc/puppet/puppet.conf``
         * add: ``configtimeout = 1200``
 #. while running "``puppet agent --test``" error messages below can occurs:
-    * | err: /File[/var/lib/puppet/lib]: Could not evaluate: Could not retrieve information from environment production source(s) puppet://fuel-pm.mirantis.com/plugins
+    * | err: /File[/var/lib/puppet/lib]: Could not evaluate: Could not retrieve information from environment production source(s) puppet://fuel-pm.your-domain-name.com/plugins
 
     and
       | err: Could not retrieve catalog from remote server: Error 400 on SERVER: stack level too deep

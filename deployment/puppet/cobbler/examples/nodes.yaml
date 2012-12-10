@@ -2,7 +2,7 @@ fuel-01:
   profile: "centos63_x86_64"
   netboot-enabled: "1"
   ksmeta: "puppet_auto_setup=1 \
-puppet_master=fuel-pm.mirantis.com \
+puppet_master=fuel-pm.your-domain-name.com \
 puppet_version=2.7.19 \
 puppet_enable=0 \
 ntp_enable=1 \
@@ -15,7 +15,7 @@ mco_stomppassword=AeN5mi5thahz2Aiveexo \
 mco_enable=1"
   hostname: "fuel-01"
   name-servers: "10.0.0.100"
-  name-servers-search: "mirantis.com"
+  name-servers-search: "your-domain-name.com"
   interfaces:
     eth0:
       mac: "52:54:00:e6:dc:c9"
@@ -25,7 +25,7 @@ mco_enable=1"
       static: "1"
       ip-address: "10.0.0.101"
       netmask: "255.255.255.0"
-      dns-name: "fuel-01.mirantis.com"
+      dns-name: "fuel-01.your-domain-name.com"
     eth2:
       mac: "52:54:00:ae:22:04"
       static: "1"
@@ -42,7 +42,7 @@ fuel-02:
   profile: "centos63_x86_64"
   netboot-enabled: "1"
   ksmeta: "puppet_auto_setup=1 \
-puppet_master=fuel-pm.mirantis.com \
+puppet_master=fuel-pm.your-domain-name.com \
 puppet_version=2.7.19 \
 puppet_enable=0 \
 ntp_enable=1 \
@@ -55,7 +55,7 @@ mco_stomppassword=AeN5mi5thahz2Aiveexo \
 mco_enable=1"
   hostname: "fuel-02"
   name-servers: "10.0.0.100"
-  name-servers-search: "mirantis.com"
+  name-servers-search: "your-domain-name.com"
   interfaces:
     eth0:
       mac: "52:54:00:b4:a5:25"
@@ -65,7 +65,7 @@ mco_enable=1"
       static: "1"
       ip-address: "10.0.0.102"
       netmask: "255.255.255.0"
-      dns-name: "fuel-02.mirantis.com"
+      dns-name: "fuel-02.your-domain-name.com"
     eth2:
       mac: "52:54:00:28:f8:06"
       static: "1"
@@ -82,7 +82,7 @@ fuel-03:
   profile: "centos63_x86_64"
   netboot-enabled: "1"
   ksmeta: "puppet_auto_setup=1 \
-puppet_master=fuel-pm.mirantis.com \
+puppet_master=fuel-pm.your-domain-name.com \
 puppet_version=2.7.19 \
 puppet_enable=0 \
 ntp_enable=1 \
@@ -95,7 +95,7 @@ mco_stomppassword=AeN5mi5thahz2Aiveexo \
 mco_enable=1"
   hostname: "fuel-03"
   name-servers: "10.0.0.100"
-  name-servers-search: "mirantis.com"
+  name-servers-search: "your-domain-name.com"
   interfaces:
     eth0:
       mac: "52:54:00:78:23:b7"
@@ -105,7 +105,7 @@ mco_enable=1"
       static: "1"
       ip-address: "10.0.0.103"
       netmask: "255.255.255.0"
-      dns-name: "fuel-03.mirantis.com"
+      dns-name: "fuel-03.your-domain-name.com"
     eth2:
       mac: "52:54:00:84:60:bf"
       static: "1"
@@ -122,7 +122,7 @@ fuel-04:
   profile: "centos63_x86_64"
   netboot-enabled: "1"
   ksmeta: "puppet_auto_setup=1 \
-puppet_master=fuel-pm.mirantis.com \
+puppet_master=fuel-pm.your-domain-name.com \
 puppet_version=2.7.19 \
 puppet_enable=0 \
 ntp_enable=1 \
@@ -135,7 +135,7 @@ mco_stomppassword=AeN5mi5thahz2Aiveexo \
 mco_enable=1"
   hostname: "fuel-04"
   name-servers: "10.0.0.100"
-  name-servers-search: "mirantis.com"
+  name-servers-search: "your-domain-name.com"
   interfaces:
     eth0:
       mac: "52:54:00:27:49:44"
@@ -145,7 +145,7 @@ mco_enable=1"
       static: "1"
       ip-address: "10.0.0.104"
       netmask: "255.255.255.0"
-      dns-name: "fuel-04.mirantis.com"
+      dns-name: "fuel-04.your-domain-name.com"
     eth2:
       mac: "52:54:00:19:0d:56"
       static: "1"

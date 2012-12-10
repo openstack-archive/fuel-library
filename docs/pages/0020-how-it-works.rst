@@ -3,14 +3,13 @@ How It Works
 
 .. contents:: :local:
 
-Fuel provides the following bits and pieces:
+Fuel provides the following important bits in order to streamline the process of installing and managing OpenStack:
 
-* Snippets & kickstart files for Cobbler
+* Automation & instructions to install master node with Puppet Master and Cobbler
+* Snippets, kickstart and preseed files for Cobbler
 * Puppet manifests for all OpenStack components
 
-In order to use Fuel, one must supply configuration -- description of physical nodes, layout of OpenStack components, as well as desired OpenStack settings. After that Fuel automatically performs deployment according to the reference architecture with built-in high availability for OpenStack components.
-
-After configuration is in place, Fuel automatically performs bare metal provisioning of hardware nodes and setup of OpenStack cloud:
+In order to use Fuel, one must create a master node first. Then configuration must be supplied for an OpenStack installation -- description of physical nodes, layout of OpenStack components, as well as desired OpenStack settings. After that Fuel automatically performs deployment according to the reference architecture with built-in high availability for OpenStack components. It performs bare metal provisioning of hardware nodes first, and then does installation and setup of an OpenStack cloud:
 
 .. image:: https://docs.google.com/drawings/pub?id=15vTTG2_575M7-kOzwsYyDmQrMgCPT2joLF2Cgiyzv7Q&w=678&h=617
 
