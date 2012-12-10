@@ -54,8 +54,19 @@ class cobbler::server {
   }
 
   if $apache_ssl_module {
-    exec {'ssl':
-      command => "/usr/sbin/a2enmod ssl",
+    file {'/etc/apache2/mods-enabled/ssl.load':
+      ensure  => link,
+      target  => '/etc/apache2/mods-available/ssl.load',
+    }->
+
+    file {'/etc/apache2/mods-enabled/ssl.conf':
+      ensure  => link,
+      target  => '/etc/apache2/mods-available/ssl.conf',
+    }->
+
+    file {'/etc/apache2/sites-enabled/default-ssl':
+      ensure  => link,
+      target  => '/etc/apache2/sites-available/default-ssl',
       before  => Service[$cobbler_web_service],
       notify  => Service[$cobbler_web_service],
     }
