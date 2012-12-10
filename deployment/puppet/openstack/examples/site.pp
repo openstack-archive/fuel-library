@@ -24,7 +24,7 @@ $apply_highavail_patches = false
 $master_hostname         = 'fuel-01'
 $controller_hostnames    = ['fuel-01', 'fuel-02']
 $glance_backend          ='file'
-$nv_physical_volume      = ['/dev/sdz', '/dev/sdy', '/dev/sdx'] 
+$nv_physical_volume      = ['/dev/sdz', '/dev/sdy', '/dev/sdx']
 $network_manager         = 'nova.network.manager.FlatDHCPManager'
 $mirror_type="external"
 
@@ -44,6 +44,7 @@ $nova_user_password      = 'nova'
 $rabbit_password         = 'nova'
 $rabbit_user             = 'nova'
 
+$quantum_sql_connection = "mysql://${quantum_db_user}:${quantum_db_password}@${quantum_host}/${quantum_db_dbname}"
 $quantum_user_password  = 'quantum_pass'
 $quantum_db_password    = 'quantum_pass'
 $quantum_db_user        = 'quantum'

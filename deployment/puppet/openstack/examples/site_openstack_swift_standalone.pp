@@ -35,6 +35,7 @@ $swift_proxy_address = '10.0.48.253'
 $controller_node_public = $internal_virtual_ip 
 $glance_backend         = 'swift'
 $quantum                = true
+$quantum_sql_connection   = "mysql://${quantum_db_user}:${quantum_db_password}@${quantum_host}/${quantum_db_dbname}"
 $quantum_user_password  = 'quantum_pass'
 $quantum_db_password    = 'quantum_pass'
 $quantum_db_user        = 'quantum'
