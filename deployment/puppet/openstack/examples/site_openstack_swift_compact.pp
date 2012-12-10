@@ -37,6 +37,7 @@ $glance_backend         = 'swift'
 $manage_volumes         = true 
 $nv_physical_volume     = ['/dev/sdz', '/dev/sdy', '/dev/sdx'] 
 $quantum                = true
+$quantum_host             = $internal_virtual_ip
 $quantum_sql_connection   = "mysql://${quantum_db_user}:${quantum_db_password}@${quantum_host}/${quantum_db_dbname}"
 $quantum_user_password  = 'quantum_pass'
 $quantum_db_password    = 'quantum_pass'

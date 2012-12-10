@@ -44,6 +44,7 @@ $nova_user_password      = 'nova'
 $rabbit_password         = 'nova'
 $rabbit_user             = 'nova'
 
+$quantum_host             = $internal_virtual_ip
 $quantum_sql_connection = "mysql://${quantum_db_user}:${quantum_db_password}@${quantum_host}/${quantum_db_dbname}"
 $quantum_user_password  = 'quantum_pass'
 $quantum_db_password    = 'quantum_pass'
