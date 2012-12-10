@@ -113,12 +113,14 @@ OS Installation
 
 * Set up eth0 interface (it will provide internet access for puppet master and will correspond to "Adapter 2" in VirtualBox): 
 	* CentOS/RHEL
+          * Copy mac addres from "Adapter 2" and add this to "MACADDR=" separated by colons
 		* ``vi /etc/sysconfig/network-scripts/ifcfg-eth0``::
 
 			DEVICE="eth0"
 			BOOTPROTO="dhcp"
 			ONBOOT="yes"
 			TYPE="Ethernet"
+			MACADDR="00:11:22:33:44:55"
 			PEERDNS="no"
 
 		* Apply network settings::
@@ -126,14 +128,18 @@ OS Installation
 			ifup eth0
 
     * Ubuntu
-        * ``vi /etc/network/interfaces``::
+      * Copy mac addres from "Adapter 2" and add this to "ATTR{address}==" separated by colons
+        * ``vim /etc/udev/rules.d/70-persistent-net.rules``::
+          SUBSYSTEM=="net", ACTION=="add", DRIVERS=="?*", ATTR{address}=="00:11:22:33:44:55", ATTR{type}=="1", KERNEL=="eth*", NAME="eth0"
+
+        * ``vim /etc/network/interfaces``::
 
         	auto eth0
-        	iface eth0 inet dhcp 
+        	iface eth0 inet dhcp
      
         * Apply network settings::
 
-	        service networking restart
+	        /etc/init.d/networking restart
 
     * Add DNS for internet hostnames resolution. Both CentOS/RHEL and Ubuntu: ``vi /etc/resolv.conf`` (replace "your-domain-name.com" with your domain name, replace "8.8.8.8" with your DNS IP). Note: you can look up your DNS server on your host machine using ``ipconfig /all`` on Windows, or using ``cat /etc/resolv.conf`` under Linux ::
 
@@ -146,6 +152,7 @@ OS Installation
 
 * Set up eth1 interface (it will be for communication between puppet master and puppet clients, as well as for Cobbler. it will correspond to "Adapter 1" in VirtualBox):
 	* CentOS/RHEL
+          * Copy mac addres from "Adapter 1" and add this to "MACADDR=" separated by colons
 		* ``vi /etc/sysconfig/network-scripts/ifcfg-eth1``::
 
 			DEVICE="eth1"
@@ -154,13 +161,18 @@ OS Installation
 			NETMASK="255.255.255.0"
 			ONBOOT="yes"
 			TYPE="Ethernet"
+			MACADDR="66:77:88:99:aa:bb"
 			PEERDNS="no"
 
-		* Apply network settings:: 
+		* Apply network settings::
 
 			ifup eth1
 
 	* Ubuntu
+      * Copy mac addres from "Adapter 1" and add this to "ATTR{address}==" separated by colons
+        * ``vim /etc/udev/rules.d/70-persistent-net.rules``::
+          SUBSYSTEM=="net", ACTION=="add", DRIVERS=="?*", ATTR{address}=="66:77:88:99:aa:bb", ATTR{type}=="1", KERNEL=="eth*", NAME="eth1"
+
 		* add eth1 into "/etc/network/interfaces"::
 
 			auto eth1
@@ -169,9 +181,11 @@ OS Installation
 			netmask 255.255.255.0
 			network 10.0.0.0
 			 
-		* Apply network settungs::
+		* Apply network settings::
 
-			service networking restart
+			/etc/init.d/networking restart
+
+                * In the case of ubuntu reboot virtual machine to apply the changes
 
 	* check that ping to your host machine works::
 
