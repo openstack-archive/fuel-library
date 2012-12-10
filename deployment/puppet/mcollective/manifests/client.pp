@@ -32,4 +32,19 @@ class mcollective::client(
     require => Package[$mcollective_client_package],
   }
   
+  file {"/usr/libexec/mcollective/mcollective/agent/puppetd.ddl" :
+    content => template("mcollective/puppetd.ddl.erb"),
+    owner => root,
+    group => root,
+    mode => 0600,
+    require => Package[$mcollective_client_package],
+  }
+  
+  file {"/usr/libexec/mcollective/mcollective/agent/puppetd.rb" :
+    content => template("mcollective/puppetd.rb.erb"),
+    owner => root,
+    group => root,
+    mode => 0600,
+    require => Package[$mcollective_client_package],
+  }
 }
