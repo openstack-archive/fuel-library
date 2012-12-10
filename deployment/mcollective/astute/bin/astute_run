@@ -27,7 +27,7 @@ context = Context.new(task_id, reporter)
 
 # load nodes structure from yaml 
 nodes_raw = YAML::load( File.open( (ARGV.length>0) ? (ARGV[0]) : "nodes.yaml" ) )
-nodes = Array.new(nodes_raw.size, Hash.new)
+nodes = Array.new(nodes_raw.size - 1, Hash.new)
 indx = 0
 nodes_raw.each do |key, value|
   if key != 'use_case'
@@ -41,7 +41,7 @@ if nodes_raw['use_case'] == "minimal" or
     nodes_raw['use_case'] == "simple"
   ctrl_nodes = nodes.select {|n| n['role'] == 'controller'}
   for node in ctrl_nodes do
-    orchestrator.deploy_piece(context, node, false)
+    orchestrator.deploy_piece(context, [node], false)
   end
   compute_nodes = nodes.select {|n| n['role'] == 'compute'}
   orchestrator.deploy_piece(context, compute_nodes, false)

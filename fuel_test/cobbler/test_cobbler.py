@@ -197,13 +197,13 @@ class CobblerCase(CobblerTestCase):
         )
         config_text = (
                        "use_case: minimal\n"
-                       "fuel-01:\n"
+                       "fuel-01.mirantis.com:\n"
                        "  role: controller\n"
-                       "fuel-02:\n"
+                       "fuel-02.mirantis.com:\n"
                        "  role: controller\n"
-                       "fuel-03:\n"
+                       "fuel-03.mirantis.com:\n"
                        "  role: compute\n"
-                       "fuel-04:\n"
+                       "fuel-04.mirantis.com:\n"
                        "  role: compute\n"
         )
         remote = ssh(self.nodes.stomps[0].ip_address_by_network['public'], username='root',
@@ -230,14 +230,14 @@ class CobblerCase(CobblerTestCase):
             nv_physical_volume=["/dev/vdb"]
         )
         config_text = (
-            "use_case: minimal\n"
-            "fuel-01:\n"
+            "use_case: simple\n"
+            "fuel-01.mirantis.com:\n"
             "  role: controller\n"
-            "fuel-02:\n"
+            "fuel-02.mirantis.com:\n"
             "  role: controller\n"
-            "fuel-03:\n"
+            "fuel-03.mirantis.com:\n"
             "  role: compute\n"
-            "fuel-04:\n"
+            "fuel-04.mirantis.com:\n"
             "  role: compute\n"
         )
         remote = ssh(self.nodes.stomps[0].ip_address_by_network['public'], username='root',
