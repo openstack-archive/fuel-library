@@ -120,7 +120,7 @@ OS Installation
 			BOOTPROTO="dhcp"
 			ONBOOT="yes"
 			TYPE="Ethernet"
-			MACADDR="00:11:22:33:44:55"
+			HWADDR="00:11:22:33:44:55"
 			PEERDNS="no"
 
 		* Apply network settings::
@@ -161,7 +161,7 @@ OS Installation
 			NETMASK="255.255.255.0"
 			ONBOOT="yes"
 			TYPE="Ethernet"
-			MACADDR="66:77:88:99:aa:bb"
+			HWADDR="66:77:88:99:aa:bb"
 			PEERDNS="no"
 
 		* Apply network settings::
