@@ -1,45 +1,54 @@
+$public_interface    = 'eth0'
+$internal_interface  = 'eth1'
+$private_interface   = 'eth2'
 $internal_virtual_ip = '10.0.125.253'
-$public_virtual_ip = '10.0.74.253'
-$master_hostname = 'fuel-01'
+$public_virtual_ip   = '10.0.74.253'
+
 $controller_public_addresses = { 'fuel-01'=>'10.0.74.3', 'fuel-02'=>'10.0.74.4'}
 $controller_internal_addresses = { 'fuel-01'=>'10.0.125.3', 'fuel-02'=>'10.0.125.4'}
+
 $floating_range = '10.0.74.128/28'
 $fixed_range = '10.0.161.128/28'
-$controller_hostnames = ['fuel-01', 'fuel-02']
-$public_interface = 'eth0'
-$internal_interface = 'eth1'
-$internal_address = getvar("::ipaddress_${internal_interface}")
-$private_interface = 'eth2'
-$multi_host = true
-$network_manager = 'nova.network.manager.FlatDHCPManager'
-$verbose = true
+
+
+
+$multi_host              = true
+$cinder                  = true
+$manage_volumes          = true
+$quantum                 = true
 $auto_assign_floating_ip = false
+
+# set this parameter to 'false' if you use patched packages
+$apply_highavail_patches = false
+
+$master_hostname         = 'fuel-01'
+$controller_hostnames    = ['fuel-01', 'fuel-02']
+$glance_backend          ='file'
+$nv_physical_volume      = ['/dev/sdz', '/dev/sdy', '/dev/sdx'] 
+$network_manager         = 'nova.network.manager.FlatDHCPManager'
+$mirror_type="external"
+
 $mysql_root_password     = 'nova'
 $admin_email             = 'openstack@openstack.org'
 $admin_password          = 'nova'
+
 $keystone_db_password    = 'nova'
 $keystone_admin_token    = 'nova'
+
 $glance_db_password      = 'nova'
 $glance_user_password    = 'nova'
+
 $nova_db_password        = 'nova'
 $nova_user_password      = 'nova'
+
 $rabbit_password         = 'nova'
 $rabbit_user             = 'nova'
-$glance_backend         ='file'
-$manage_volumes         = true 
-$nv_physical_volume     = ['/dev/sdz', '/dev/sdy', '/dev/sdx'] 
 
-$quantum                = true
 $quantum_user_password  = 'quantum_pass'
 $quantum_db_password    = 'quantum_pass'
 $quantum_db_user        = 'quantum'
 $quantum_db_dbname      = 'quantum'
 $tenant_network_type    = 'gre'
-
-$cinder                 = true
-
-# set this parameter to 'false' if you use patched packages
-$apply_highavail_patches = false
 
 $openstack_version = {
   'keystone'   => latest,
@@ -50,8 +59,7 @@ $openstack_version = {
   'cinder' => latest,
 }
 
-$mirror_type="external"
-
+$internal_address = getvar("::ipaddress_${internal_interface}")
 Exec { logoutput => true }
 
 stage { 'openstack-custom-repo': before => Stage['main'] }
