@@ -69,7 +69,7 @@ node fuel-cobbler {
     Class['cobbler::distro::centos63_x86_64'] ->
     Class['cobbler::profile::centos63_x86_64']
 
-    class { 'cobbler::profile::centos63_x86_64:' }
+    class { 'cobbler::profile::centos63_x86_64' : }
 
     # UBUNTU distribution
       Class['cobbler::distro::ubuntu_1204_x86_64'] ->
