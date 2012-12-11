@@ -99,10 +99,7 @@ class nova(
         ensure => present
       }
 
-    }
-
-
-    nova_config { 'DEFAULT/rabbit_ha_queues': value => 'True' }
+      nova_config { 'DEFAULT/rabbit_ha_queues': value => 'True' }
   }
 
   if (defined(Exec['update-kombu']))
