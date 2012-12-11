@@ -30,9 +30,6 @@ $manage_volumes          = true
 $quantum                 = true
 $auto_assign_floating_ip = false
 
-# set this parameter to 'false' if you use patched packages
-$apply_highavail_patches = false
-
 # Set default hostname
 $master_hostname         = 'fuel-01'
 $controller_hostnames    = ['fuel-01', 'fuel-02']
@@ -130,7 +127,6 @@ node /fuel-0[12]/ {
       galera_nodes            => $controller_hostnames,
       manage_volumes          => $manage_volumes,
       nv_physical_volume      => $nv_physical_volume,
-      patch_apply             => $apply_highavail_patches,
     }
 }
 
@@ -164,7 +160,6 @@ node /fuel-0[34]/ {
       cinder                  => $cinder,
       ssh_private_key    => 'puppet:///ssh_keys/openstack',
       ssh_public_key     => 'puppet:///ssh_keys/openstack.pub',
-      patch_apply        => $apply_highavail_patches,
     }
 }
 

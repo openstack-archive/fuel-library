@@ -62,7 +62,6 @@ $openstack_version = {
   'cinder' => latest,
 }
 $mirror_type="external"
-$apply_highavail_patches = false 
 
 Exec { logoutput => true }
 
@@ -115,7 +114,6 @@ class compact_controller {
       manage_volumes          => $manage_volumes,
       galera_nodes            => $controller_hostnames,
       nv_physical_volume      => $nv_physical_volume,
-      patch_apply             =>  $apply_highavail_patches,
       }
       class { 'swift::keystone::auth':
              password => $swift_user_password,
@@ -210,6 +208,5 @@ node /fuel-04/ {
       cinder                  => $cinder,
       ssh_private_key    => 'puppet:///ssh_keys/openstack',
       ssh_public_key     => 'puppet:///ssh_keys/openstack.pub',
-      patch_apply             =>  $apply_highavail_patches,
     }
 }
