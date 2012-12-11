@@ -27,5 +27,7 @@ node /fuel-mcollective.your-domain-name.com/ {
     stomphost => $stomphost,
     stompport => $stompport
   }
+  
+  include ntpd
 
 }
