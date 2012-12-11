@@ -55,7 +55,6 @@ $openstack_version = {
 }
 $mirror_type = "external"
 Exec { logoutput => true }
-$apply_highavail_patches = false 
 stage { 'openstack-custom-repo': before => Stage['main'] }
 class { 'openstack::mirantis_repos': stage => 'openstack-custom-repo', type => $mirror_type }
 if $::operatingsystem == 'Ubuntu'
@@ -105,9 +104,8 @@ node /fuel-0[12]/ {
       manage_volumes          => $manage_volumes,
       galera_nodes            => $controller_hostnames,
       nv_physical_volume      => $nv_physical_volume,
-      patch_apply             =>   $apply_highavail_patches,
       }
-      
+
       class { 'swift::keystone::auth':
              password => $swift_user_password,
              public_address  => $public_virtual_ip,
@@ -134,9 +132,9 @@ node /fuel-0[34]/ {
       verbose            => $verbose,
       vnc_enabled        => true,
       manage_volumes     => false,
-      nova_user_password	=> $nova_user_password,
-      cache_server_ip         => $controller_hostnames,
-      service_endpoint	=> $internal_virtual_ip,
+      nova_user_password => $nova_user_password,
+      cache_server_ip    => $controller_hostnames,
+      service_endpoint   => $internal_virtual_ip,
       quantum                => $quantum,
       quantum_host           => $quantum_host,
       quantum_sql_connection => $quantum_sql_connection,
@@ -145,7 +143,6 @@ node /fuel-0[34]/ {
       cinder                  => $cinder,
       ssh_private_key    => 'puppet:///ssh_keys/openstack',
       ssh_public_key     => 'puppet:///ssh_keys/openstack.pub',
-      patch_apply             =>   $apply_highavail_patches,
  
     }
 }
