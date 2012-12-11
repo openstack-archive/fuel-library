@@ -29,11 +29,6 @@ class quantum::agents::l3 (
 
   if $::quantum::params::l3_agent_package {
     Package['quantum'] -> Package['quantum-l3']
-  if (defined(Exec['patch-quantum-rabbitmq']))
-  {
-    Exec['patch-quantum-rabbitmq'] -> Package['quantum-l3']
-  }
- 
     $l3_agent_package = 'quantum-l3'
 
     package { 'quantum-l3':

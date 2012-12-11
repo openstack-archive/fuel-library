@@ -20,7 +20,6 @@ class quantum (
   $rabbit_port            = '5672',
   $rabbit_user            = 'guest',
   $rabbit_virtual_host    = '/',
-  $patch_apply            = false,
 ) {
   include 'quantum::params'
 
@@ -43,25 +42,11 @@ class quantum (
   if is_array($rabbit_host) and size($rabbit_host) > 1 {
     $rabbit_hosts = inline_template("<%= @rabbit_host.map {|x| x + ':5672'}.join ',' %>")
 
-    if $patch_apply {
-      file { "/tmp/rmq-quantum-ha.patch":
-        ensure => present,
-        source => 'puppet:///modules/quantum/rmq-quantum-ha.patch'
-      }
-
-      exec { 'patch-quantum-rabbitmq':
-        unless  => "/bin/grep -q x-ha-policy /usr/lib/${::quantum::params::python_path}/quantum/openstack/common/rpc/impl_kombu.py",
-        command => "/usr/bin/patch -p1 -N -r - -d /usr/lib/${::quantum::params::python_path}/quantum </tmp/rmq-quantum-ha.patch",
-        returns => [0, 1],
-        require => [ File['/tmp/rmq-quantum-ha.patch'], Package['patch', 'quantum'] ],
-      }
-    }
-
     quantum_config {
       'DEFAULT/rabbit_ha_queues': value => 'True';
       'DEFAULT/rabbit_hosts':     value => $rabbit_hosts;
     }
-  
+
   } else {
     quantum_config {
       'DEFAULT/rabbit_host': value => is_array($rabbit_host) ? { false => $rabbit_host, true => join($rabbit_host) };

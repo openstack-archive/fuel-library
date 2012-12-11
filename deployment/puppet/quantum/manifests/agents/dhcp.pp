@@ -14,11 +14,7 @@ class quantum::agents::dhcp (
 
   if $::quantum::params::dhcp_agent_package {
     Package['quantum'] -> Package['quantum-dhcp-agent']
-  if (defined(Exec['patch-quantum-rabbitmq']))
-  {
-    Exec['patch-quantum-rabbitmq'] -> Package['quantum-dhcp-agent']
-  }
- 
+
     $dhcp_agent_package = 'quantum-dhcp-agent'
 
     package { 'quantum-dhcp-agent':
