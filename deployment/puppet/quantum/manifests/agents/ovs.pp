@@ -19,12 +19,6 @@ class quantum::agents::ovs (
 
   if $::quantum::params::ovs_agent_package {
     Package['quantum'] ->  Package['quantum-plugin-ovs-agent']
-  if (defined(Exec['patch-quantum-rabbitmq']))
-  {
-    Exec['patch-quantum-rabbitmq'] -> Package['quantum-plugin-ovs-agent']
-  }
- 
-    
 
     $ovs_agent_package = 'quantum-plugin-ovs-agent'
 
