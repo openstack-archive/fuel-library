@@ -3,7 +3,10 @@ fuel-01:
   netboot-enabled: "1"
   ksmeta: "puppet_auto_setup=1 \
 puppet_master=fuel-pm.your-domain-name.com \
-puppet_version=2.7.19 \
+## for Ubuntu
+# puppet_version=2.7.19-1puppetlabs2 \
+## for Centos
+puppet_version=2.7.19-1.el6 \
 puppet_enable=0 \
 ntp_enable=1 \
 mco_auto_setup=1 \
@@ -43,7 +46,10 @@ fuel-02:
   netboot-enabled: "1"
   ksmeta: "puppet_auto_setup=1 \
 puppet_master=fuel-pm.your-domain-name.com \
-puppet_version=2.7.19 \
+## for Ubuntu
+# puppet_version=2.7.19-1puppetlabs2 \
+## for Centos
+puppet_version=2.7.19-1.el6 \
 puppet_enable=0 \
 ntp_enable=1 \
 mco_auto_setup=1 \
@@ -83,7 +89,10 @@ fuel-03:
   netboot-enabled: "1"
   ksmeta: "puppet_auto_setup=1 \
 puppet_master=fuel-pm.your-domain-name.com \
-puppet_version=2.7.19 \
+## for Ubuntu
+# puppet_version=2.7.19-1puppetlabs2 \
+## for Centos
+puppet_version=2.7.19-1.el6 \
 puppet_enable=0 \
 ntp_enable=1 \
 mco_auto_setup=1 \
@@ -123,7 +132,10 @@ fuel-04:
   netboot-enabled: "1"
   ksmeta: "puppet_auto_setup=1 \
 puppet_master=fuel-pm.your-domain-name.com \
-puppet_version=2.7.19 \
+## for Ubuntu
+# puppet_version=2.7.19-1puppetlabs2 \
+## for Centos
+puppet_version=2.7.19-1.el6 \
 puppet_enable=0 \
 ntp_enable=1 \
 mco_auto_setup=1 \
