@@ -11,6 +11,8 @@ class glance(
     mode    => '0770',
     require => Package['glance']
   }
+  group {'glance': gid=> 161, ensure=>present, system=>true}
+  user  {'glance': uid=> 161, ensure=>present, system=>true, group=>"glance", require=>Group['glance']}
   package { 'glance':
     name   => $::glance::params::package_name,
     ensure => $package_ensure,
