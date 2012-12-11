@@ -91,7 +91,7 @@ class CobblerCase(CobblerTestCase):
             profile='ubuntu_1204_x86_64'
         client.modify_system_args(
             system_id, token,
-            ks_meta=self.get_ks_meta('master',
+            ks_meta=self.get_ks_meta('master.your-domain-name.com',
                 stomp_name),
             name=node_name,
             hostname=node_name + ".your-domain-name.com",
