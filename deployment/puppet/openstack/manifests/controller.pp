@@ -150,7 +150,6 @@ class openstack::controller (
   $galera_nodes = ['127.0.0.1'],
   $manage_volumes          = false,
   $nv_physical_volume      = undef,
-  $patch_apply             = false,
 ) {
 
   # Ensure things are run in order
@@ -297,18 +296,17 @@ class openstack::controller (
     # Rabbit
     rabbit_user             => $rabbit_user,
     rabbit_password         => $rabbit_password,
-    rabbit_nodes       => $rabbit_nodes,
-    rabbit_cluster => $rabbit_cluster,
+    rabbit_nodes            => $rabbit_nodes,
+    rabbit_cluster          => $rabbit_cluster,
     # Glance
     glance_api_servers      => $glance_api_servers,
     # General
     verbose                 => $verbose,
     enabled                 => $enabled,
     exported_resources      => $export_resources,
-    patch_apply             => $patch_apply,
-    enabled_apis	=>	$enabled_apis,
-    api_bind_address		=>	$api_bind_address,
-    ensure_package    => $::openstack_version['nova']
+    enabled_apis            => $enabled_apis,
+    api_bind_address        => $api_bind_address,
+    ensure_package          => $::openstack_version['nova']
   }
 
   ######### Cinder Controller Services ########
@@ -325,7 +323,6 @@ class openstack::controller (
       auth_host       => $service_endpoint,
       bind_host       => $api_bind_address,
       cinder_user_password    => $cinder_user_password,
-      patch_apply     => $patch_apply,
     }
  }
 

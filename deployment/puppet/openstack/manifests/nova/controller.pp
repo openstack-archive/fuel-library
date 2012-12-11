@@ -66,12 +66,11 @@ class openstack::nova::controller (
   $verbose                   = 'False',
   $enabled                   = true,
   $exported_resources        = true,
-  $rabbit_nodes			= [$internal_address],
-  $rabbit_cluster = false,
-  $ensure_package    = present,
-  $enabled_apis			= 'ec2,osapi_compute,metadata',
-  $api_bind_address		= '0.0.0.0',
-  $patch_apply               = false,
+  $rabbit_nodes     = [$internal_address],
+  $rabbit_cluster   = false,
+  $ensure_package   = present,
+  $enabled_apis     = 'ec2,osapi_compute,metadata',
+  $api_bind_address = '0.0.0.0',
 ) {
 
   # Configure the db string
@@ -128,10 +127,9 @@ if ($rabbit_nodes)
     image_service      => 'nova.image.glance.GlanceImageService',
     glance_api_servers => $glance_connection,
     verbose            => $verbose,
-    rabbit_nodes	=> $rabbit_nodes,
-    ensure_package	=> $ensure_package,
-    api_bind_address 	=> $api_bind_address,
-    patch_apply        => $patch_apply,
+    rabbit_nodes       => $rabbit_nodes,
+    ensure_package     => $ensure_package,
+    api_bind_address   => $api_bind_address,
   }
  }
  else
@@ -143,9 +141,9 @@ if ($rabbit_nodes)
     image_service      => 'nova.image.glance.GlanceImageService',
     glance_api_servers => $glance_connection,
     verbose            => $verbose,
-    rabbit_host	=> $rabbit_connection,
-    ensure_package	=> $ensure_package,
-    api_bind_address 	=> $api_bind_address
+    rabbit_host        => $rabbit_connection,
+    ensure_package     => $ensure_package,
+    api_bind_address   => $api_bind_address
   }
  
  }
@@ -199,7 +197,7 @@ if ($rabbit_nodes)
       num_networks      => $num_networks,
       enabled           => $enable_network_service,
       install_service   => $enable_network_service,
-      ensure_package	=> $ensure_package
+      ensure_package    => $ensure_package
     }
   } else {
     # Set up Quantum
@@ -214,7 +212,6 @@ if ($rabbit_nodes)
       #sql_connection  => $quantum_sql_connection,
       verbose         => $verbose,
       debug           => $verbose,
-      patch_apply     => $patch_apply,
     }
 
     class { 'quantum::server':
@@ -278,20 +275,19 @@ if ($rabbit_nodes)
     'nova::cert',
   ]:
     enabled => $enabled,
-    ensure_package	=> $ensure_package
+    ensure_package => $ensure_package
   }
 
   class { 'nova::consoleauth':
     enabled        => $enabled,
     ensure_package => $ensure_package,
-    patch_apply    => $patch_apply,
   }
 
   if $vnc_enabled {
     class { 'nova::vncproxy':
       host    => $public_address,
       enabled => $enabled,
-      ensure_package	=> $ensure_package
+      ensure_package => $ensure_package
     }
   }
 
