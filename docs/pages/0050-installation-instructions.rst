@@ -35,17 +35,17 @@ Network Setup
 
 The current architecture assumes deployment with 3 network interfaces, for clarity. However, it can be tuned to support different scenarios, for example deployment with only 2 NICs. The default set of interfaces is defined as follows:  
 
-#. eth0 - public network, with access to the internet
-    * we will assume that DHCP is enabled and every machine gets its IP address on this interface automatically through DHCP
-
-#. eth1 - management network. for communication between Puppet master and Puppet clients, as well as PXE/TFTP/DHCP for Cobbler
+#. eth0 - management network. for communication between Puppet master and Puppet clients, as well as PXE/TFTP/DHCP for Cobbler
     * every machine will have a static IP address there
     * you can configure network addresses/network mask according to your needs, but we will be giving instructions using the following network settings on this interface:
         * 10.0.0.100 for puppet master
         * 10.0.0.101-10.0.0.103 for controller nodes
-        * 10.0.0.104 for compute nodes
+        * 10.0.0.104-10.0.0.254 for compute nodes
         * 255.255.255.0 network mask
         * if case if VirtualBox environment, host machine will be 10.0.0.1
+
+#. eth1 - public network, with access to the internet
+    * we will assume that DHCP is enabled and every machine gets its IP address on this interface automatically through DHCP
 
 #. eth2 - for communication between OpenStack VMs
     * without IP address
@@ -114,9 +114,9 @@ OS Installation
 * Set up eth0 interface (it will provide internet access for puppet master and will correspond to "Adapter 2" in VirtualBox): 
 	* CentOS/RHEL
           * Copy mac addres from "Adapter 2" and add this to "MACADDR=" separated by colons
-		* ``vi /etc/sysconfig/network-scripts/ifcfg-eth0``::
+		* ``vi /etc/sysconfig/network-scripts/ifcfg-eth1``::
 
-			DEVICE="eth0"
+			DEVICE="eth1"
 			BOOTPROTO="dhcp"
 			ONBOOT="yes"
 			TYPE="Ethernet"
@@ -125,17 +125,17 @@ OS Installation
 
 		* Apply network settings::
 
-			ifup eth0
+			ifup eth1
 
     * Ubuntu
       * Copy mac addres from "Adapter 2" and add this to "ATTR{address}==" separated by colons
         * ``vim /etc/udev/rules.d/70-persistent-net.rules``::
-          SUBSYSTEM=="net", ACTION=="add", DRIVERS=="?*", ATTR{address}=="00:11:22:33:44:55", ATTR{type}=="1", KERNEL=="eth*", NAME="eth0"
+          SUBSYSTEM=="net", ACTION=="add", DRIVERS=="?*", ATTR{address}=="00:11:22:33:44:55", ATTR{type}=="1", KERNEL=="eth*", NAME="eth1"
 
         * ``vim /etc/network/interfaces``::
 
-        	auto eth0
-        	iface eth0 inet dhcp
+        	auto eth1
+        	iface eth1 inet dhcp
      
         * Apply network settings::
 
@@ -153,9 +153,9 @@ OS Installation
 * Set up eth1 interface (it will be for communication between puppet master and puppet clients, as well as for Cobbler. it will correspond to "Adapter 1" in VirtualBox):
 	* CentOS/RHEL
           * Copy mac addres from "Adapter 1" and add this to "MACADDR=" separated by colons
-		* ``vi /etc/sysconfig/network-scripts/ifcfg-eth1``::
+		* ``vi /etc/sysconfig/network-scripts/ifcfg-eth0``::
 
-			DEVICE="eth1"
+			DEVICE="eth0"
 			BOOTPROTO="static"
 			IPADDR="10.0.0.100"
 			NETMASK="255.255.255.0"
@@ -166,16 +166,16 @@ OS Installation
 
 		* Apply network settings::
 
-			ifup eth1
+			ifup eth0
 
 	* Ubuntu
       * Copy mac addres from "Adapter 1" and add this to "ATTR{address}==" separated by colons
         * ``vim /etc/udev/rules.d/70-persistent-net.rules``::
-          SUBSYSTEM=="net", ACTION=="add", DRIVERS=="?*", ATTR{address}=="66:77:88:99:aa:bb", ATTR{type}=="1", KERNEL=="eth*", NAME="eth1"
+          SUBSYSTEM=="net", ACTION=="add", DRIVERS=="?*", ATTR{address}=="66:77:88:99:aa:bb", ATTR{type}=="1", KERNEL=="eth*", NAME="eth0"
 
 		* add eth1 into "/etc/network/interfaces"::
 
-			auto eth1
+			auto eth0
 			iface eth1 inet static
 			address 10.0.0.100
 			netmask 255.255.255.0
@@ -237,6 +237,7 @@ OS Installation
 
 	* Both CentOS/RHEL and Ubuntu ``vi /etc/hosts`` (replace "your-domain-name.com" with your domain name)::
 
+            127.0.0.1    localhost fuel-pm
             10.0.0.100   fuel-pm.your-domain-name.com fuel-pm
 
 	* Run ``hostname fuel-pm`` or reboot to apply hostname

@@ -3,9 +3,9 @@ fuel-01:
   netboot-enabled: "1"
   ksmeta: "puppet_auto_setup=1 \
 puppet_master=fuel-pm.your-domain-name.com \
-## for Ubuntu
+# for Ubuntu
 # puppet_version=2.7.19-1puppetlabs2 \
-## for Centos
+# for Centos
 puppet_version=2.7.19-1.el6 \
 puppet_enable=0 \
 ntp_enable=1 \
@@ -21,14 +21,14 @@ mco_enable=1"
   name-servers-search: "your-domain-name.com"
   interfaces:
     eth0:
-      mac: "52:54:00:e6:dc:c9"
-      static: "0"
-    eth1:
       mac: "52:54:00:0a:39:ec"
       static: "1"
       ip-address: "10.0.0.101"
       netmask: "255.255.255.0"
       dns-name: "fuel-01.your-domain-name.com"
+    eth1:
+      mac: "52:54:00:e6:dc:c9"
+      static: "0"
     eth2:
       mac: "52:54:00:ae:22:04"
       static: "1"
@@ -46,9 +46,9 @@ fuel-02:
   netboot-enabled: "1"
   ksmeta: "puppet_auto_setup=1 \
 puppet_master=fuel-pm.your-domain-name.com \
-## for Ubuntu
+# for Ubuntu
 # puppet_version=2.7.19-1puppetlabs2 \
-## for Centos
+# for Centos
 puppet_version=2.7.19-1.el6 \
 puppet_enable=0 \
 ntp_enable=1 \
@@ -64,14 +64,14 @@ mco_enable=1"
   name-servers-search: "your-domain-name.com"
   interfaces:
     eth0:
-      mac: "52:54:00:b4:a5:25"
-      static: "0"
-    eth1:
       mac: "52:54:00:e4:46:5c"
       static: "1"
       ip-address: "10.0.0.102"
       netmask: "255.255.255.0"
       dns-name: "fuel-02.your-domain-name.com"
+    eth1:
+      mac: "52:54:00:b4:a5:25"
+      static: "0"
     eth2:
       mac: "52:54:00:28:f8:06"
       static: "1"
@@ -89,9 +89,9 @@ fuel-03:
   netboot-enabled: "1"
   ksmeta: "puppet_auto_setup=1 \
 puppet_master=fuel-pm.your-domain-name.com \
-## for Ubuntu
+# for Ubuntu
 # puppet_version=2.7.19-1puppetlabs2 \
-## for Centos
+# for Centos
 puppet_version=2.7.19-1.el6 \
 puppet_enable=0 \
 ntp_enable=1 \
@@ -107,14 +107,14 @@ mco_enable=1"
   name-servers-search: "your-domain-name.com"
   interfaces:
     eth0:
-      mac: "52:54:00:78:23:b7"
-      static: "0"
-    eth1:
       mac: "52:54:00:09:04:40"
       static: "1"
       ip-address: "10.0.0.103"
       netmask: "255.255.255.0"
       dns-name: "fuel-03.your-domain-name.com"
+    eth1:
+      mac: "52:54:00:78:23:b7"
+      static: "0"
     eth2:
       mac: "52:54:00:84:60:bf"
       static: "1"
@@ -132,9 +132,9 @@ fuel-04:
   netboot-enabled: "1"
   ksmeta: "puppet_auto_setup=1 \
 puppet_master=fuel-pm.your-domain-name.com \
-## for Ubuntu
+# for Ubuntu
 # puppet_version=2.7.19-1puppetlabs2 \
-## for Centos
+# for Centos
 puppet_version=2.7.19-1.el6 \
 puppet_enable=0 \
 ntp_enable=1 \
@@ -150,14 +150,14 @@ mco_enable=1"
   name-servers-search: "your-domain-name.com"
   interfaces:
     eth0:
-      mac: "52:54:00:27:49:44"
-      static: "0"
-    eth1:
       mac: "52:54:00:68:ff:9b"
       static: "1"
       ip-address: "10.0.0.104"
       netmask: "255.255.255.0"
       dns-name: "fuel-04.your-domain-name.com"
+    eth1:
+      mac: "52:54:00:27:49:44"
+      static: "0"
     eth2:
       mac: "52:54:00:19:0d:56"
       static: "1"
