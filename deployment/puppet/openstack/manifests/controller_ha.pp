@@ -281,24 +281,28 @@ class openstack::controller_ha (
 
 #Class['openstack::controller_ha']->Class['galera-master-final-config']
 
-#class openstack::galera-master-final-config($master_hostname, $controller_internal_addresses) {
+class openstack::galera_master_final_config($master_hostname, $controller_internal_addresses) {
 # This class changes config file on first Galera node to allow safe restart of this node without leaving cluster.
 #    require => Class['openstack::controller_ha'],
 
-#    $which = $::hostname ? { $master_hostname => 0, default => 1 }
+    $is_master = $::hostname ? { $master_hostname => 0, default => 1 }
+    
+    if $is_master == 0 {
+      $galera_gcomm_string = inline_template("<%= @controller_internal_addresses.keys.collect {|ip| ip + ':' + 4567.to_s }.join ',' %>")
+      $check_galera = "show status like 'wsrep_cluster_size';"
+      $mysql_user = $::galera::params::mysql_user
+      $mysql_password = $::galera::params::mysql_password
 
-#    if $which == 0 {
-#      $galera_gcomm_string = inline_template("<%= @controller_internal_addresses.keys.collect {|ip| ip + ':' + 4567.to_s }.join ',' %>")
+      exec {"first-galera-node-final-config":
+        require => [Exec["wait-for-synced-state"],Service['mysql-galera']],
+        path   => "/usr/bin:/usr/sbin:/bin:/sbin",
+        command => "sed -i 's/wsrep_cluster_address=\"gcomm:\/\/\"/wsrep_cluster_address=\"gcomm:\/\/${galera_gcomm_string}\"/' /etc/mysql/conf.d/wsrep.cnf",
+        onlyif => "mysql -e -u${mysql_user} -p${mysql_password} ${check_galera} | awk '\$1 == \"wsrep_cluster_size\" {print \$2}' | awk '{if (\$0 > 1) exit 0; else exit 1}' ",
+      }
+    }
+}
 
-#      exec {"first-galera-node-final-config":
-#        require => [Exec["wait-for-synced-state"],Service['mysql-galera']],
-#        path   => "/usr/bin:/usr/sbin:/bin:/sbin",
-#        command => "sed -i 's/wsrep_cluster_address=\"gcomm:\/\/\"/wsrep_cluster_address=\"gcomm:\/\/${galera_gcomm_string}\"/' /etc/mysql/conf.d/wsrep.cnf",
-#      }
-#    }
-#}
-
-#class {'openstack::galera-master-final-config':
-#    require => Class['openstack::controller_ha'],
-#    master_hostname => $master_hostname
-#}
+class {'openstack::galera_master_final_config':
+    require => Class['openstack::controller_ha'],
+    master_hostname => $master_hostname
+}
