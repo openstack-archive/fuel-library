@@ -3,7 +3,7 @@ Package Contents
 
 .. contents:: :local:
 
-Fuel package consists of the following items:
+Fuel package contains the following items:
 
 #. Puppet and Cobbler automation
     * resides in Fuel distribution under /deployment directory  

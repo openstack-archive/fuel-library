@@ -23,5 +23,5 @@ v0.1.0-essex
 * Cobbler-based bare-metal provisioning for CentOS 6.3 and RHEL 6.3
 * Access to the mirror with OpenStack packages (http://download.mirantis.com/epel-fuel/)
 * Configuration templates for different OpenStack cluster setups
-* User guide
+* User Guide
 
