@@ -1,6 +1,15 @@
+##
+# These parameters should be edit
+##
+
+# This interface will be giving away internet
 $public_interface    = 'eth0'
+# This interface will look to local network
 $internal_interface  = 'eth1'
+# This interface for internal services
 $private_interface   = 'eth2'
+
+# Public and Internal IP
 $internal_virtual_ip = '10.0.125.253'
 $public_virtual_ip   = '10.0.74.253'
 
@@ -10,8 +19,11 @@ $controller_internal_addresses = { 'fuel-01'=>'10.0.125.3', 'fuel-02'=>'10.0.125
 $floating_range = '10.0.74.128/28'
 $fixed_range = '10.0.161.128/28'
 
+##
+# These parameters to change by necessity
+##
 
-
+# Enabled or disabled different services
 $multi_host              = true
 $cinder                  = true
 $manage_volumes          = true
@@ -21,13 +33,17 @@ $auto_assign_floating_ip = false
 # set this parameter to 'false' if you use patched packages
 $apply_highavail_patches = false
 
+# Set default hostname
 $master_hostname         = 'fuel-01'
 $controller_hostnames    = ['fuel-01', 'fuel-02']
 $glance_backend          ='file'
-$nv_physical_volume      = ['/dev/sdz', '/dev/sdy', '/dev/sdx']
 $network_manager         = 'nova.network.manager.FlatDHCPManager'
 $mirror_type="external"
 
+# Add physical volume to cinder, value must be different
+$nv_physical_volume      = ['/dev/sdz', '/dev/sdy', '/dev/sdx']
+
+# Set credential for different services
 $mysql_root_password     = 'nova'
 $admin_email             = 'openstack@openstack.org'
 $admin_password          = 'nova'
@@ -52,6 +68,7 @@ $quantum_db_user        = 'quantum'
 $quantum_db_dbname      = 'quantum'
 $tenant_network_type    = 'gre'
 
+# Version of package
 $openstack_version = {
   'keystone'   => latest,
   'glance'     => latest,
