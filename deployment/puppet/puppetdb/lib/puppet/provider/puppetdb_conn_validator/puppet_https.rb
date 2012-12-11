@@ -38,7 +38,7 @@ Puppet::Type.type(:puppetdb_conn_validator).provide(:puppet_https) do
 
   def exists?
     success = attempt_connection
-    (1..3).each do
+    (1..12).each do
         unless success
           # It can take several seconds for the puppetdb server to start up;
           # especially on the first install.  Therefore, our first connection attempt
