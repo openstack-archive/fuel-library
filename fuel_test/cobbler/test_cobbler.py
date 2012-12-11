@@ -49,6 +49,7 @@ class CobblerCase(CobblerTestCase):
                  "puppet_version=%(puppet_version)s "
                  "puppet_enable=0 "
                  "mco_auto_setup=1 "
+                 "ntp_enable=1 "
                  "mco_pskey=un0aez2ei9eiGaequaey4loocohjuch4Ievu3shaeweeg5Uthi "
                  "mco_stomphost=%(mco_host)s "
                  "mco_stompport=61613 "
