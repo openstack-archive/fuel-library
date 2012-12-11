@@ -20,69 +20,75 @@
 # Copyright 2011 Puppetlabs Inc, unless otherwise noted.
 #
 class swift(
-  $swift_hash_suffix,
-  $package_ensure = 'present'
+  $swift_hash_suffix = undef,
+  $package_ensure = 'present',
 ) {
 
   include swift::params
-if !defined(Class['ssh::server::install'])
- {
-  class{ 'ssh::server::install': }
- }
-  Class['ssh::server::install'] -> Class['swift']
 
-    class {'rsync::server':}
-if !defined(Package['swift'])
- {
-
-  package { 'swift':
-    name   => $::swift::params::package_name,
-    ensure => $package_ensure,
+  if !defined(Class['ssh::server::install']) {
+    class{ 'ssh::server::install': }
   }
-}
+
+    Class['ssh::server::install'] -> Class['swift']
+
+      class {'rsync::server':}
+
+  if !defined(Package['swift']) {
+    package { 'swift':
+      ensure => $package_ensure,
+      name   => $::swift::params::package_name,
+    }
+  }
+
   File { owner => 'swift', group => 'swift', require => Package['swift'] }
 
   file { '/home/swift':
     ensure  => directory,
-    mode    => 0700,
+    mode    => '0700',
   }
 
   file { '/etc/swift':
     ensure => directory,
-    mode   => 2770,
+    mode   => '2770',
   }
-  user {'swift':
-        ensure => present,
-       }
+
+  user {'swift': ensure => present}
+
   file { '/var/lib/swift':
-    ensure => directory,
-    owner => 'swift'
-  }
+      ensure => directory,
+      owner  => 'swift',
+    }
+
   file {'/var/cache/swift':
     ensure => directory
   }
+
   file { '/var/run/swift':
     ensure => directory,
   }
 
   file { '/etc/swift/swift.conf':
     ensure  => present,
-    mode    => 0660,
+    mode    => '0660',
     content => template('swift/swift.conf.erb'),
   }
-      file { "/tmp/swift-utils.patch":
-      ensure => present,
-      source => 'puppet:///modules/swift/swift-utils.patch'
-    }
-    if !defined(Package['patch'])
-    {
-	package {'patch': ensure => present }
-    }
-    exec { 'patch-swift-utils':
-      path    => ["/usr/bin", "/usr/sbin"],
-      command => "/usr/bin/patch -p1 -N -r - -d /usr/lib/${::swift::params::python_path}/swift/common/ </tmp/swift-utils.patch",
-      returns => [0, 1],
-      require => [ [File['/tmp/swift-utils.patch']],[Package['patch', 'swift']]], 
-    } 
 
+#  file { "/tmp/swift-utils.patch":
+#    ensure => present,
+#    source => 'puppet:///modules/swift/swift-utils.patch'
+#  }
+#
+#  if !defined(Package['patch']) {
+#    package {'patch': ensure => present }
+#  }
+#
+#  exec { 'patch-swift-utils':
+#    path    => ["/usr/bin", "/usr/sbin"],
+#    command => "/usr/bin/patch -p1 -N -r - -d \
+#                /usr/lib/${::swift::params::python_path}/swift/common/ \
+#                </tmp/swift-utils.patch",
+#    returns => [0, 1],
+#    require => [ [File['/tmp/swift-utils.patch']],[Package['patch', 'swift']]],
+#  }
 }
