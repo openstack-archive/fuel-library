@@ -510,7 +510,7 @@ Common Technical Issues
 
 #. Puppet fails with "err: Could not retrieve catalog from remote server: Error 400 on SERVER: undefined method 'fact_merge' for nil:NilClass"
     * bug: http://projects.puppetlabs.com/issues/3234
-    * workaround: "service puppetmaster restart"
+    * workaround: ``service puppetmaster restart``
 #. Puppet client will never resend the certificate to Puppet master. Certificate cannot be signed and verified.
     * bug: http://projects.puppetlabs.com/issues/4680
     * workaround:
