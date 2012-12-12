@@ -25,7 +25,7 @@ Logical Setup
 
 Controller Nodes
 ^^^^^^^^^^^^^^^^
-Let us take a closer look at how OpenStack deployment will look and what it will take to achieve high availability for an OpenStack deployment:
+Let us take a closer look at what OpenStack deployment looks like, and what it will take to achieve high availability for an OpenStack deployment:
 
 * Every OpenStack cluster has multiple controller nodes in order to provide redundancy. To avoid the split-brain in Galera cluster (quorum-based system), it is strongly advised to plan at least 3 controller nodes
 * Every OpenStack controller is running keepalived which manages a single VIP for all controller nodes
@@ -87,7 +87,7 @@ If you want to run storage separately from controllers, you can do that as well 
 
 Of course, you are free to choose how to deploy OpenStack based on the amount of available hardware and on your goals (whether you want a compute-oriented or storage-oriented cluster).
 
-For a typical OpenStack compute deployment, you can use this table as a high-level guide to determine the number of controllers, compute, and storage nodes you should have:
+For a typical OpenStack compute deployment, you can use this table as a high-level guidance to determine the number of controllers, compute, and storage nodes you should have:
 
 =============  ===========  =======  ==============
 # of Machines  Controllers  Compute  Storage
