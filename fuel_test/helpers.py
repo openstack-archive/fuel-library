@@ -448,6 +448,16 @@ def only_private_interface(nodes):
             write_config(remote, path, load(root('fuel_test', 'config', 'interfaces_quantum_ubuntu.config')))
         execute(remote, 'ifup eth0')
 
+
+def kill_dhcpclient(nodes):
+    for node in nodes:
+        remote = ssh(node.ip_address_by_network['public'], username='root', password='r00tme')
+        if OS_FAMILY == 'centos':
+            execute(remote, 'killall dhclient')
+        else:
+            execute(remote, 'killall dhclient3')
+        logging.info("Killed dhcp %s" % node.name)
+
 def await_node_deploy(ip, name):
     client = CobblerClient(ip)
     token = client.login('cobbler', 'cobbler')

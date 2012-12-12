@@ -5,7 +5,7 @@ from abc import abstractproperty, abstractmethod
 import devops
 from devops.model import Node, Disk, Interface, Environment
 from devops.helpers import tcp_ping, wait, ssh
-from fuel_test.helpers import  write_config, sign_all_node_certificates, change_host_name, request_cerificate, setup_puppet_client, setup_puppet_master, add_nmap, switch_off_ip_tables, add_to_hosts, only_private_interface
+from fuel_test.helpers import  write_config, sign_all_node_certificates, change_host_name, request_cerificate, setup_puppet_client, setup_puppet_master, add_nmap, switch_off_ip_tables, add_to_hosts, only_private_interface, kill_dhcpclient
 from fuel_test.node_roles import NodeRoles, Nodes
 from fuel_test.settings import BASE_IMAGE, EMPTY_SNAPSHOT
 from fuel_test.root import root
@@ -142,6 +142,7 @@ class CiBase(object):
         master_node = environment.node['master']
         master_remote = ssh(master_node.ip_address_by_network['internal'], username='root',
             password='r00tme')
+        kill_dhcpclient(environment.nodes)
         self.setup_master_node(master_remote, environment.nodes)
         self.setup_agent_nodes(environment.nodes)
         only_private_interface(self.quantum_nodes())
