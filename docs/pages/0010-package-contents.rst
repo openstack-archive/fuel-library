@@ -1,7 +1,7 @@
 Package Contents
 ================
 
-.. contents:: :local:
+.. contents:: :local: 
 
 Fuel package contains the following items:
 

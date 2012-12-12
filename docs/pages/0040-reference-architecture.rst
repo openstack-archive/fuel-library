@@ -3,7 +3,7 @@ Reference Architecture
 
 .. contents:: :local:
 
-This reference architecture, combined with Cobbler & Puppet automation, allows you to easily deploy OpenStack in a highly available mode. It means that the failure of a single service or even a whole controller machine will not affect your ability to control the cloud. High availability for OpenStack is provided by integrated open source components, including:
+This reference architecture, combined with Cobbler & Puppet automation, allows you to easily deploy OpenStack in a highly available mode. It means that the failure of a single service or even a whole controller machine will not affect your ability to control the cloud. High availability for OpenStack is provided by integrated open source components, including: 
 
 * keepalived
 * HAProxy

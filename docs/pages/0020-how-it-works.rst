@@ -3,7 +3,7 @@ How It Works
 
 .. contents:: :local:
 
-Fuel provides the following important bits in order to streamline the process of installing and managing OpenStack:
+Fuel provides the following important bits in order to streamline the process of installing and managing OpenStack: 
 
 * Automation & instructions to install master node with Puppet Master and Cobbler
 * Snippets, kickstart and preseed files for Cobbler
