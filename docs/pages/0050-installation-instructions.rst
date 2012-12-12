@@ -246,6 +246,29 @@ OS Installation
 	* Run ``hostname fuel-pm`` or reboot to apply hostname
 
 
+Installing Puppet with thin
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* Copy modules
+
+* Install Puppet master thin and nginx::
+
+	puppet apply -e'class {puppet:}
+	  '-> class {puppet::thin:}
+	  '-> class {puppet::nginx: puppet_master_hostname => "fuel-pm.mirantis.com"}'
+
+* Generate SSH keys and upload them to ``/var/lib/puppet/ssh_keys``
+	* The default key names are "openstack" and "openstack.pub"
+
+* Configure Puppet file server::
+
+	puppet apply -e 'class {puppet::fileserver_config}'
+	
+	* The following file will be created: ``/etc/puppet/fileserver.conf``
+
+* Configure PuppetDB
+
+
 .. _puppet-master-stored-config:
 
 Enabling Stored Configuration
@@ -261,6 +284,16 @@ This section will show how to configure Puppet to use a technique called stored 
 	* Ubuntu::
 		
 		apt-get install puppetdb puppetdb-terminus
+
+* Alternatively, you can install PuppetDB by Puppet manifest using the following script::
+
+	puppet apply -e 'class {puppetdb:}'
+	puppet apply -e 'class {class {puppetdb::master::config: puppet_service_name=>'thin' }
+
+or::
+	puppet apply -e 'class {puppetdb:}'
+	puppet apply -e 'class {class {puppetdb::master::config: puppet_service_name=>'puppetmaster' }
+
 
 * Disable selinux on CentOS/RHEL (otherwise Puppet will not be able to connect to PuppetDB)::
 	
