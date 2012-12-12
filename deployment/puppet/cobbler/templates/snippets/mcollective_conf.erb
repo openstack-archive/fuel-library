@@ -302,6 +302,7 @@ EOCONF
 gem install json_pure
 service mcollective restart
     #elif $breed == "debian" or $breed == "ubuntu"
+cp -nr /usr/share/mcollective/plugins/mcollective/* /usr/lib/ruby/1.8/mcollective/
 /usr/sbin/update-rc.d mcollective defaults
     #end if
 #end if
