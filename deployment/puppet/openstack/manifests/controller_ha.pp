@@ -48,14 +48,14 @@ define haproxy_service($order, $balancers, $virtual_ips, $port, $define_cookies 
   }
 
   haproxy::listen { $name:
-#    order => $order - 1,
+    order => $order - 1,
     ipaddress => $virtual_ips,
     ports => $port,
     options => $haproxy_config_options,
     collect_exported => false
   }
   @haproxy::balancermember { "${name}":
-#    order                  => $order,
+    order                  => $order,
     listening_service      => $name,
     balancers           => $balancers,
     balancer_port          => $balancer_port,
