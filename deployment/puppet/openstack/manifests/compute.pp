@@ -289,7 +289,7 @@ class openstack::compute (
     }
 
     class { 'quantum::agents::ovs':
-      bridge_uplinks   => ["br-ex:${public_interface}"],
+      bridge_uplinks   => ["br-prv:${private_interface}"],
       enable_tunneling => $enable_tunneling,
       local_ip         => $internal_address,
     }
@@ -326,10 +326,10 @@ class openstack::compute (
     #$use_dhcp                  = 'True',
     #$public_interface          = undef,
       quantum_connection_host   => $quantum_host,
-      #quantum_auth_strategy     => 'keystone',
+      quantum_auth_strategy     => 'keystone',
       quantum_url               => "http://${service_endpoint}:9696",
       quantum_admin_tenant_name => 'services',
-      #quantum_admin_username    => 'quantum',
+      quantum_admin_username    => 'quantum',
       quantum_admin_auth_url    => "http://${service_endpoint}:35357/v2.0"
     }
 
