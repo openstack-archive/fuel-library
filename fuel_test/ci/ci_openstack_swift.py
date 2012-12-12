@@ -11,11 +11,15 @@ class CiOpenStackSwift(CiBase):
             compute_names=['fuel-03', 'fuel-04'],
             storage_names=['fuel-05', 'fuel-06', 'fuel-07'],
             proxy_names=['fuel-08', 'fuel-09'],
+            quantum_names=['fuel-quantum'],
         )
 
 
     def env_name(self):
         return os.environ.get('ENV_NAME', 'recipes-swift')
+
+    def quantum_nodes(self):
+        return self.nodes().quantums
 
     def describe_environment(self):
         environment = Environment(self.environment_name)

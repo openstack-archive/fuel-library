@@ -7,11 +7,15 @@ class CiOpenStack(CiBase):
     def node_roles(self):
         return NodeRoles(
             controller_names=['fuel-01', 'fuel-02'],
-            compute_names=['fuel-03', 'fuel-04']
+            compute_names=['fuel-03', 'fuel-04'],
+            quantum_names=['fuel-quantum'],
         )
 
     def env_name(self):
         return os.environ.get('ENV_NAME', 'recipes')
+
+    def quantum_nodes(self):
+        return self.nodes().quantums
 
     def describe_environment(self):
         environment = Environment(self.environment_name)
@@ -34,6 +38,8 @@ class CiOpenStack(CiBase):
                 node_name, [public, internal, private], memory=4096)
             environment.nodes.append(client)
         return environment
+
+
 
 
 

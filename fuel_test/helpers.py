@@ -435,6 +435,19 @@ def write_static_ip(remote, ip, net_mask, gateway, interface='eth1'):
             'gateway': str(gateway)}
         write_config(remote, path, text)
 
+def only_private_interface(nodes):
+    for node in nodes:
+        remote = ssh(node.ip_address_by_network['internal'], username='root',
+            password='r00tme')
+        execute(remote, 'ifdown eth0')
+        if OS_FAMILY == 'centos':
+            path = '/etc/sysconfig/network-scripts/ifcfg-eth0'
+            write_config(remote, path, load(root('fuel_test', 'config', 'interfaces_quantum_centos.config')))
+        else:
+            path = '/etc/network/interfaces'
+            write_config(remote, path, load(root('fuel_test', 'config', 'interfaces_quantum_ubuntu.config')))
+        execute(remote, 'ifup eth0')
+
 def await_node_deploy(ip, name):
     client = CobblerClient(ip)
     token = client.login('cobbler', 'cobbler')

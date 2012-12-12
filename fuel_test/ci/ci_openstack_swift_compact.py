@@ -8,11 +8,15 @@ class CiOpenStackSwiftCompact(CiBase):
     def node_roles(self):
         return NodeRoles(
             controller_names=['fuel-01', 'fuel-02', 'fuel-03'],
-            compute_names=['fuel-04', 'fuel-05']
+            compute_names=['fuel-04', 'fuel-05'],
+            quantum_names=['fuel-quantum'],
         )
 
     def env_name(self):
         return os.environ.get('ENV_NAME', 'recipes-swift-compact')
+
+    def quantum_nodes(self):
+        return self.nodes().quantums
 
     def describe_environment(self):
         environment = Environment(self.environment_name)
