@@ -536,6 +536,9 @@ In case of VirtualBox, it is recommended to save the current state of every virt
 
 * Your OpenStack cluster is ready to go.
 
+Note: Due to the Swift setup specifics, it is not enough to run Puppet 1 time. To complete the deployment, you should perform 3 runs of Puppet on each node.
+
+
 .. _common-technical-issues:
 
 Common Technical Issues
