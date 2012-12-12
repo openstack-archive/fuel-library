@@ -2,7 +2,6 @@ $internal_virtual_ip = '10.0.126.253'
 $public_virtual_ip = '10.0.215.253'
 $master_hostname = 'fuel-01'
 $swift_master = $master_hostname
-$controller_public_addresses = {'fuel-01' => '10.0.215.3','fuel-02' => '10.0.215.4','fuel-03' => '10.0.215.5'}
 $controller_internal_addresses = {'fuel-01' => '10.0.126.3','fuel-02' => '10.0.126.4','fuel-03' => '10.0.126.5'}
 $swift_proxies = $controller_internal_addresses 
 $floating_range = '10.0.215.128/27'
@@ -205,4 +204,5 @@ node /fuel-0[45]/ {
 
 
 
-
+# deprecated. keep it for backward compatibility
+$controller_public_addresses = {'fuel-01' => '10.0.215.3','fuel-02' => '10.0.215.4','fuel-03' => '10.0.215.5'}

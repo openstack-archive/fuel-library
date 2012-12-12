@@ -1,7 +1,6 @@
 # Public networking
 $public_interface = 'eth0'
 $public_virtual_ip = '10.0.2.253'
-$controller_public_addresses = {'fuel-01' => '10.0.2.15','fuel-02' => '10.0.2.16','fuel-03' => '10.0.2.17'}
 $floating_range = '10.0.2.128/27'
 
 # Internal networking
@@ -210,3 +209,6 @@ node /fuel-04/ {
       ssh_public_key     => 'puppet:///ssh_keys/openstack.pub',
     }
 }
+
+# deprecated. keep it for backward compatibility
+$controller_public_addresses = {'fuel-01' => '10.0.2.15','fuel-02' => '10.0.2.16','fuel-03' => '10.0.2.17'}

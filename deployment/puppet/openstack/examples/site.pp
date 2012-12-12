@@ -9,11 +9,10 @@ $internal_interface  = 'eth1'
 # This interface for internal services
 $private_interface   = 'eth2'
 
-# Public and Internal IP
+# Public and Internal IP pools
 $internal_virtual_ip = '10.0.125.253'
 $public_virtual_ip   = '10.0.74.253'
 
-$controller_public_addresses = { 'fuel-01'=>'10.0.74.3', 'fuel-02'=>'10.0.74.4'}
 $controller_internal_addresses = { 'fuel-01'=>'10.0.125.3', 'fuel-02'=>'10.0.125.4'}
 
 $floating_range = '10.0.74.128/28'
@@ -163,3 +162,5 @@ node /fuel-0[34]/ {
     }
 }
 
+# deprecated. keep it for backward compatibility
+$controller_public_addresses = { 'fuel-01'=>'10.0.74.3', 'fuel-02'=>'10.0.74.4'}
