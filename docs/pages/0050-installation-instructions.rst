@@ -459,6 +459,6 @@ Common Technical Issues
       | warning: Not using cache on failed catalog
       | err: Could not retrieve catalog; skipping run
 
-    * The first problem can be solved using the way discribed here: http://projects.reductivelabs.com/issues/2244
+    * The first problem can be solved using the way described here: http://projects.reductivelabs.com/issues/2244
     * The second problem can be solved by rebooting Puppet master
 
