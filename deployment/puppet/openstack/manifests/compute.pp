@@ -73,7 +73,6 @@ class openstack::compute(
   $service_endpoint	= '127.0.0.1',
   $ssh_private_key = undef,
   $ssh_public_key = undef,
-  $patch_apply         = false,
 ) {
 
   include ntpd
@@ -102,11 +101,10 @@ class openstack::compute(
     image_service      => 'nova.image.glance.GlanceImageService',
     glance_api_servers => $glance_api_servers,
     verbose            => $verbose,
-    admin_tenant_name => 'services',
-    admin_user        => 'nova',
-    admin_password    => $nova_user_password,
-    auth_host		=> $service_endpoint,
-    patch_apply        => $patch_apply,
+    admin_tenant_name  => 'services',
+    admin_user         => 'nova',
+    admin_password     => $nova_user_password,
+    auth_host          => $service_endpoint,
   }
     case $::osfamily {
       'Debian': {$scp_package='openssh-client'}

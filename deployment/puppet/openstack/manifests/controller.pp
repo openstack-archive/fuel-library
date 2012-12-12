@@ -102,7 +102,6 @@ class openstack::controller(
   $glance_backend,
   $manage_volumes          = false,
   $nv_physical_volume      = undef,
-  $patch_apply             = false,
 ) {
   
   $glance_api_servers = "${service_endpoint}:9292"
@@ -311,23 +310,22 @@ class openstack::controller(
     glance_api_servers => $glance_connection,
     verbose            => $verbose,
     api_bind_address   => $api_bind_address,
-    admin_tenant_name => 'services',
-    admin_user        => 'nova',
-    admin_password    => $nova_user_password,
-    auth_host		=> $service_endpoint,
-    patch_apply        => $patch_apply,
+    admin_tenant_name  => 'services',
+    admin_user         => 'nova',
+    admin_password     => $nova_user_password,
+    auth_host          => $service_endpoint,
   }
 
 class {'nova::quota':
-  quota_instances => 100,
-  quota_cores => 100,
-  quota_volumes => 100,
-  quota_gigabytes => 1000,
-  quota_floating_ips => 100,
-  quota_metadata_items => 1024,
-  quota_max_injected_files => 50,
+  quota_instances                       => 100,
+  quota_cores                           => 100,
+  quota_volumes                         => 100,
+  quota_gigabytes                       => 1000,
+  quota_floating_ips                    => 100,
+  quota_metadata_items                  => 1024,
+  quota_max_injected_files              => 50,
   quota_max_injected_file_content_bytes => 102400,
-  quota_max_injected_file_path_bytes => 4096
+  quota_max_injected_file_path_bytes    => 4096
 }
   class { 'nova::api':
     ensure_package    => $::openstack_version['nova'],

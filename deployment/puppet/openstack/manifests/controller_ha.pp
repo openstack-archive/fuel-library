@@ -69,23 +69,23 @@ define keepalived_dhcp_hook($interface)
 {
     $down_hook="ip addr show dev $interface | grep keepalived | awk '{print \$2}' > /tmp/keepalived_${interface}_ip\n"
     $up_hook="cat /tmp/keepalived_${interface}_ip |  while read ip; do  ip addr add \$ip dev $interface label $interface:keepalived; done\n"
-    file {"/etc/dhcp/dhclient-${interface}-down-hooks": content=>$down_hook, mode => 744 }
-    file {"/etc/dhcp/dhclient-${interface}-up-hooks": content=>$up_hook, mode => 744 }
+    file {"/etc/dhcp/dhclient-${interface}-down-hooks": content=> $down_hook, mode => '0744' }
+    file {"/etc/dhcp/dhclient-${interface}-up-hooks": content=> $up_hook, mode => '0744' }
 }
 
 
 
 class openstack::controller_ha (
-   $master_hostname,
-   $controller_public_addresses, $public_interface, $private_interface, $controller_internal_addresses,
-   $internal_virtual_ip, $public_virtual_ip, $internal_interface,
-   $floating_range, $fixed_range, $multi_host, $network_manager, $verbose,
-   $auto_assign_floating_ip, $mysql_root_password, $admin_email, $admin_password,
-   $keystone_db_password, $keystone_admin_token, $glance_db_password, $glance_user_password,
-   $nova_db_password, $nova_user_password, $rabbit_password, $rabbit_user,
-   $rabbit_nodes, $memcached_servers, $export_resources, $glance_backend='file', $swift_proxies=undef, $manage_volumes = false,
-   $galera_nodes, $nv_physical_volume = undef, $patch_apply = false,
- ) {
+  $master_hostname,
+  $controller_public_addresses, $public_interface, $private_interface, $controller_internal_addresses,
+  $internal_virtual_ip, $public_virtual_ip, $internal_interface,
+  $floating_range, $fixed_range, $multi_host, $network_manager, $verbose,
+  $auto_assign_floating_ip, $mysql_root_password, $admin_email, $admin_password,
+  $keystone_db_password, $keystone_admin_token, $glance_db_password, $glance_user_password,
+  $nova_db_password, $nova_user_password, $rabbit_password, $rabbit_user,
+  $rabbit_nodes, $memcached_servers, $export_resources, $glance_backend='file', $swift_proxies=undef, $manage_volumes = false,
+  $galera_nodes, $nv_physical_volume = undef,
+) {
 
     $which = $::hostname ? { $master_hostname => 0, default => 1 }
 
@@ -103,20 +103,23 @@ class openstack::controller_ha (
       balancers => $controller_internal_addresses
     }
 
-    haproxy_service { 'horizon':    order => 15, port => 80, virtual_ips => [$public_virtual_ip], define_cookies => true  } 
-    haproxy_service { 'keystone-1': order => 20, port => 5000, virtual_ips => [$public_virtual_ip, $internal_virtual_ip]  }
-    haproxy_service { 'keystone-2': order => 30, port => 35357, virtual_ips => [$public_virtual_ip, $internal_virtual_ip]  }
-    haproxy_service { 'nova-api-1': order => 40, port => 8773, virtual_ips => [$public_virtual_ip, $internal_virtual_ip]  }
-    haproxy_service { 'nova-api-2': order => 50, port => 8774, virtual_ips => [$public_virtual_ip, $internal_virtual_ip]  }
-    haproxy_service { 'nova-api-3': order => 60, port => 8775, virtual_ips => [$public_virtual_ip, $internal_virtual_ip]  }
-    haproxy_service { 'nova-api-4': order => 70, port => 8776, virtual_ips => [$public_virtual_ip, $internal_virtual_ip]  }
-    haproxy_service { 'glance-api': order => 80, port => 9292, virtual_ips => [$public_virtual_ip, $internal_virtual_ip]  }
-    haproxy_service { 'glance-reg': order => 90, port => 9191, virtual_ips => [$internal_virtual_ip]  }
-    haproxy_service { 'mysqld':     order => 95, port => 3306, virtual_ips => [$internal_virtual_ip]  }
-          if $glance_backend == 'swift'
-        {
-                        haproxy_service { 'swift':    order => 96, port => 8080, virtual_ips => [$public_virtual_ip,$internal_virtual_ip], balancers => $swift_proxies }
-        }
+  haproxy_service { 'horizon':    order => 15, port => 80, virtual_ips => [$public_virtual_ip], define_cookies => true  }
+  haproxy_service { 'keystone-1': order => 20, port => 5000, virtual_ips => [$public_virtual_ip, $internal_virtual_ip]  }
+  haproxy_service { 'keystone-2': order => 30, port => 35357, virtual_ips => [$public_virtual_ip, $internal_virtual_ip]  }
+  haproxy_service { 'nova-api-1': order => 40, port => 8773, virtual_ips => [$public_virtual_ip, $internal_virtual_ip]  }
+  haproxy_service { 'nova-api-2': order => 50, port => 8774, virtual_ips => [$public_virtual_ip, $internal_virtual_ip]  }
+  haproxy_service { 'nova-api-3': order => 60, port => 8775, virtual_ips => [$public_virtual_ip, $internal_virtual_ip]  }
+  haproxy_service { 'nova-api-4': order => 70, port => 8776, virtual_ips => [$public_virtual_ip, $internal_virtual_ip]  }
+  haproxy_service { 'glance-api': order => 80, port => 9292, virtual_ips => [$public_virtual_ip, $internal_virtual_ip]  }
+  haproxy_service { 'glance-reg': order => 90, port => 9191, virtual_ips => [$internal_virtual_ip]  }
+  haproxy_service { 'mysqld':     order => 95, port => 3306, virtual_ips => [$internal_virtual_ip]  }
+
+  if $glance_backend == 'swift' {
+    haproxy_service { 'swift':
+      order => 96,
+      port => 8080,
+      virtual_ips => [$public_virtual_ip,$internal_virtual_ip], balancers => $swift_proxies }
+  }
 
 
     exec { 'up-public-interface':
@@ -132,32 +135,32 @@ class openstack::controller_ha (
       path => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
     }
 
-    if $which == 0 { 
+    if $which == 0 {
       exec { 'create-public-virtual-ip':
         command => "ip addr add ${public_virtual_ip} dev ${public_interface} label ${public_interface}:keepalived",
         unless => "ip addr show dev ${public_interface} | grep ${public_virtual_ip}",
         path => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
         before => Service['keepalived'],
         require => Exec['up-public-interface'],
-      }   
-    }   
+      }
+    }
 
     keepalived_dhcp_hook {$public_interface:interface=>$public_interface}
     if $internal_interface != $public_interface {
       keepalived_dhcp_hook {$internal_interface:interface=>$internal_interface}
     }
 
-    Keepalived_dhcp_hook<| |> {before =>Service['keepalived']} 
+    Keepalived_dhcp_hook<| |> {before =>Service['keepalived']}
 
-    if $which == 0 { 
+    if $which == 0 {
       exec { 'create-internal-virtual-ip':
         command => "ip addr add ${internal_virtual_ip} dev ${internal_interface} label ${internal_interface}:keepalived",
         unless => "ip addr show dev ${internal_interface} | grep ${internal_virtual_ip}",
         path => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
         before => Service['keepalived'],
         require => Exec['up-internal-interface'],
-      }   
-    }   
+      }
+    }
     sysctl::value { 'net.ipv4.ip_nonlocal_bind': value => '1' }
 
     $internal_address = $controller_internal_addresses[$::hostname]
@@ -177,7 +180,7 @@ class openstack::controller_ha (
         Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'nova-db-sync' |>
 
     class { 'haproxy':
-      enable => true, 
+      enable => true,
       haproxy_global_options   => merge($::haproxy::data::haproxy_global_options, {'log' => "${internal_address} local0"}),
       haproxy_defaults_options => merge($::haproxy::data::haproxy_defaults_options, {'mode' => 'http'}),
       require => Sysctl::Value['net.ipv4.ip_nonlocal_bind'],
@@ -186,7 +189,7 @@ class openstack::controller_ha (
     case $::osfamily {
       'RedHat': {
         exec { 'create-keepalived-rules':
-          command => "iptables -I INPUT -m pkttype --pkt-type multicast -d 224.0.0.18 -j ACCEPT && /etc/init.d/iptables save ", 
+          command => "iptables -I INPUT -m pkttype --pkt-type multicast -d 224.0.0.18 -j ACCEPT && /etc/init.d/iptables save ",
           unless => "iptables-save  | grep '\\-A INPUT -d 224.0.0.18/32 -m pkttype --pkt-type multicast -j ACCEPT' -q",
           path => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
           before => Service['keepalived'],
@@ -195,7 +198,7 @@ class openstack::controller_ha (
       }
       'Debian': {
         exec { 'create-keepalived-rules':
-          command => "iptables -I INPUT -m pkttype --pkt-type multicast -d 224.0.0.18 -j ACCEPT && iptables-save ", 
+          command => "iptables -I INPUT -m pkttype --pkt-type multicast -d 224.0.0.18 -j ACCEPT && iptables-save ",
           unless => "iptables-save  | grep '\\-A INPUT -d 224.0.0.18/32 -m pkttype --pkt-type multicast -j ACCEPT' -q",
           path => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
           before => Service['keepalived'],
@@ -230,7 +233,7 @@ class openstack::controller_ha (
     }
     Class['haproxy'] -> Class['galera']
 #    Class['openstack::controller']->Class['galera']
-    
+
     class { 'openstack::controller':
       public_address          => $public_virtual_ip,
       public_interface        => $public_interface,
@@ -269,7 +272,6 @@ class openstack::controller_ha (
       require                 => Service['keepalived'],
       manage_volumes          => $manage_volumes,
       nv_physical_volume      => $nv_physical_volume,
-      patch_apply             => $patch_apply,
     }
 
     class { 'openstack::auth_file':
@@ -286,7 +288,7 @@ class openstack::galera_master_final_config($master_hostname, $controller_intern
 #    require => Class['openstack::controller_ha'],
 
     $is_master = $::hostname ? { $master_hostname => 0, default => 1 }
-    
+
     if $is_master == 0 {
       $galera_gcomm_string = inline_template("<%= @controller_internal_addresses.keys.collect {|ip| ip + ':' + 4567.to_s }.join ',' %>")
       $check_galera = "show status like 'wsrep_cluster_size';"

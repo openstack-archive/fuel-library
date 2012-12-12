@@ -5,7 +5,7 @@
 #
 # [sql_connection] Connection url to use to connect to nova sql database.
 #  If specified as false, then it tries to collect the exported resource
-#   Nova_config <<| title == 'sql_connection' |>>. Optional. Defaults to false. 
+#   Nova_config <<| title == 'sql_connection' |>>. Optional. Defaults to false.
 # [image_service] Service used to search for and retrieve images. Optional.
 #   Defaults to 'nova.image.local.LocalImageService'
 # [glance_api_servers] List of addresses for api servers. Optional.
@@ -67,7 +67,6 @@ class nova(
   $admin_tenant_name = 'services',
   $admin_user        = 'nova',
   $admin_password    = 'passw0rd',
-  $patch_apply       = false,
 ) inherits nova::params {
 
 
@@ -95,7 +94,7 @@ $auth_uri = "${auth_protocol}://${auth_host}:${auth_port}/v2.0"
     ensure => present,
   }
   package { 'python-greenlet':
-    ensure => present,
+    ensure  => present,
     require => Package['python'],
   }
 
@@ -110,36 +109,15 @@ $auth_uri = "${auth_protocol}://${auth_host}:${auth_port}/v2.0"
     require => Package['python-greenlet']
   }
 
-  # turn on rabbitmq ha/cluster mode
-  if $rabbit_nodes and $patch_apply {
-    package { "patch":
-      ensure => present
-    }
-
-    file { "/tmp/rmq-ha.patch":
-      ensure => present,
-      source => 'puppet:///modules/nova/rmq-ha.patch'
-    }
-
-    exec { 'patch-nova':
-      unless  => "/bin/grep x-ha-policy /usr/lib/${::nova::params::python_path}/nova/rpc/impl_kombu.py",
-      command => "/usr/bin/patch -p1 -d /usr/lib/${::nova::params::python_path}/nova </tmp/rmq-ha.patch",
-      require => [ [File['/tmp/rmq-ha.patch']],[Package['patch', 'python-nova']]], 
-    } ->  exec { 'update-kombu':
-        path    => ["/usr/bin/:/usr/local/bin/"],
-        command => "easy_install pip; pip uninstall -y kombu; pip uninstall -y anyjson; pip install kombu==2.4.7; pip install anyjson==0.3.3; pip install amqp;"
-    }
-  }
-
-  if (defined(Exec['update-kombu']))
-  {
+  if (defined(Exec['update-kombu'])) {
     Exec['update-kombu'] -> Nova::Generic_service<||>
   }
+
   package { 'nova-common':
-    name    => $::nova::params::common_package_name,
     ensure  => $ensure_package,
-    require => [Package["python-nova"], Anchor['nova-start']]
-  } 
+    name    => $::nova::params::common_package_name,
+    require => [Package['python-nova'], Anchor['nova-start']],
+  }
 
   group { 'nova':
     ensure  => present,
@@ -159,23 +137,24 @@ $auth_uri = "${auth_protocol}://${auth_host}:${auth_port}/v2.0"
     ensure  => directory,
     mode    => '0751',
   }
+
   file { '/etc/nova/nova.conf':
     mode  => '0640',
   }
 
   # I need to ensure that I better understand this resource
   # this is potentially constantly resyncing a central DB
-  exec { "nova-db-sync":
-    command     => "/usr/bin/nova-manage db sync",
-    # refreshonly => "true",
+  exec { 'nova-db-sync':
+    command     => '/usr/bin/nova-manage db sync',
+    # refreshonly => 'true',
     require     => [Package['nova-common'], Nova_config['sql_connection']],
   }
 
   # used by debian/ubuntu in nova::network_bridge to refresh
   # interfaces based on /etc/network/interfaces
-  exec { "networking-refresh":
-    command     => "/sbin/ifdown -a ; /sbin/ifup -a",
-    refreshonly => "true",
+  exec { 'networking-refresh':
+    command     => '/sbin/ifdown -a ; /sbin/ifup -a',
+    refreshonly => true,
   }
 
 
@@ -186,8 +165,10 @@ $auth_uri = "${auth_protocol}://${auth_host}:${auth_port}/v2.0"
   } else {
     Nova_config <<| title == 'sql_connection' |>>
   }
+
   nova_config { 'image_service': value => $image_service }
   nova_config { 'allow_resize_to_same_host': value => 'True' }
+
   if $image_service == 'nova.image.glance.GlanceImageService' {
     if $glance_api_servers {
       nova_config { 'glance_api_servers': value => $glance_api_servers }
@@ -207,7 +188,9 @@ $auth_uri = "${auth_protocol}://${auth_host}:${auth_port}/v2.0"
 
 
   if $rabbit_nodes {
-    nova_config { 'rabbit_addresses': value => inline_template("<%= @rabbit_nodes.map {|x| x+':5672'}.join ',' %>") }
+    nova_config { 'rabbit_addresses':
+      value => inline_template('<%= @rabbit_nodes.map {|x| x+':5672'}.join ',' %>')
+    }
   } else {
     if $rabbit_host {
       nova_config {
@@ -254,16 +237,14 @@ $auth_uri = "${auth_protocol}://${auth_host}:${auth_port}/v2.0"
 
 
   exec { 'post-nova_config':
-    command => '/bin/echo "Nova config has changed"',
+    command     => '/bin/echo "Nova config has changed"',
     refreshonly => true,
   }
-  
+
   nova_config { 'api_paste_config': value => '/etc/nova/api-paste.ini'; }
 
   @file { '/etc/nova/api-paste.ini':
     content => template('nova/api-paste.ini.erb'),
     require => Package['nova-common'],
   }
-
-
 }
