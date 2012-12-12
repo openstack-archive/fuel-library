@@ -6,33 +6,36 @@
 # environments
 
 # assumes that eth0 is the public interface
-$public_interface        = 'eth2'
+$public_interface        = 'eth0'
 # assumes that eth1 is the interface that will be used for the vm network
 # this configuration assumes this interface is active but does not have an
 # ip address allocated to it.
-$private_interface       = 'eth1'
-$internal_interface       = 'eth0'
+$internal_interface      = 'eth1'
+$private_interface       = 'eth2'
+
+$fixed_network_range     = '10.0.214.0/24'
+$floating_network_range  = '10.0.74.128/28'
+
+$controller_node_address  = '10.0.125.3'
+$controller_node_public   = '10.0.74.3'
+
+$mirror_type='external'
+
 # credentials
 $admin_email             = 'root@localhost'
 $admin_password          = 'keystone_admin'
+
 $keystone_db_password    = 'keystone_db_pass'
 $keystone_admin_token    = 'keystone_admin_token'
+
 $nova_db_password        = 'nova_pass'
 $nova_user_password      = 'nova_pass'
+
 $glance_db_password      = 'glance_pass'
 $glance_user_password    = 'glance_pass'
+
 $rabbit_password         = 'openstack_rabbit_password'
 $rabbit_user             = 'openstack_rabbit_user'
-$fixed_network_range     = '10.0.214.0/24'
-$floating_network_range  = '10.0.74.128/28'
-# switch this to true to have all service log at verbose
-$verbose                 = true
-# by default it does not enable atomatically adding floating IPs
-$auto_assign_floating_ip = false
-
-$manage_volumes         = true 
-$nv_physical_volume     = ['/dev/sdz', '/dev/sdy', '/dev/sdx'] 
-$cinder                 = true
 
 $quantum                = true
 $quantum_user_password  = 'quantum_pass'
@@ -40,6 +43,15 @@ $quantum_db_password    = 'quantum_pass'
 $quantum_db_user        = 'quantum'
 $quantum_db_dbname      = 'quantum'
 $tenant_network_type    = 'gre'
+
+# by default it does not enable atomatically adding floating IPs
+$auto_assign_floating_ip = false
+$manage_volumes          = true
+
+# Add physical volume to cinder, value must be different
+$nv_physical_volume     = ['/dev/sdz', '/dev/sdy', '/dev/sdx']
+$cinder                 = true
+
 
 $openstack_version = {
   'keystone'   => latest,
@@ -49,21 +61,20 @@ $openstack_version = {
   'novncproxy' => latest,
   'cinder' => latest,
 }
-$mirror_type="external"
+
+# switch this to true to have all service log at verbose
+$verbose                 = true
+
 stage { 'openstack-custom-repo': before => Stage['main'] }
 class { 'openstack::mirantis_repos': stage => 'openstack-custom-repo', type => $mirror_type }
-if $::operatingsystem == 'Ubuntu'
-{
+
+if $::operatingsystem == 'Ubuntu' {
   class { 'openstack::apparmor::disable': stage => 'openstack-custom-repo' }
 }
 
 
-$controller_node_address  = '10.0.125.3' 
-$controller_node_public   = '10.0.74.3' 
 $controller_node_internal = $controller_node_address
-
 $quantum_host             = $controller_node_address
-
 $quantum_sql_connection   = "mysql://${quantum_db_user}:${quantum_db_password}@${quantum_host}/${quantum_db_dbname}"
 $sql_connection         = "mysql://nova:${nova_db_password}@${controller_node_internal}/nova"
 
@@ -102,8 +113,8 @@ node /fuel-01/ {
     quantum_db_dbname       => $quantum_db_dbname,
     tenant_network_type     => $tenant_network_type,
     cinder                  => $cinder,
-      manage_volumes          => $manage_volumes,
-      nv_physical_volume      => $nv_physical_volume,
+    manage_volumes          => $manage_volumes,
+    nv_physical_volume      => $nv_physical_volume,
   }
 
   class { 'openstack::auth_file':
@@ -111,8 +122,6 @@ node /fuel-01/ {
     keystone_admin_token => $keystone_admin_token,
     controller_node      => $controller_node_internal,
   }
-
-
 }
 
 node /fuel-0[234]/ {
@@ -139,9 +148,8 @@ node /fuel-0[234]/ {
     quantum_host           => $quantum_host,
     quantum_sql_connection => $quantum_sql_connection,
     quantum_user_password  => $quantum_user_password,
-    tenant_network_type     => $tenant_network_type,
+    tenant_network_type    => $tenant_network_type,
     service_endpoint       => $controller_node_internal,
     verbose                => $verbose,
   }
-
 }
