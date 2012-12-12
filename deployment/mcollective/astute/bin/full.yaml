@@ -1,19 +1,19 @@
 use_case: full
-fuel-01:
+fuel-01.your-domain-name.com:
     role: controller
-fuel-02:
+fuel-02.your-domain-name.com:
     role: controller
-fuel-03:
+fuel-03.your-domain-name.com:
     role: compute
-fuel-04:
+fuel-04.your-domain-name.com:
     role: compute
-fuel-05:
+fuel-05.your-domain-name.com:
     role: storage
-fuel-06:
+fuel-06.your-domain-name.com:
     role: storage
-fuel-07:
+fuel-07.your-domain-name.com:
     role: storage
-fuel-08:
+fuel-08.your-domain-name.com:
     role: proxy
-fuel-09:
+fuel-09.your-domain-name.com:
     role: proxy
