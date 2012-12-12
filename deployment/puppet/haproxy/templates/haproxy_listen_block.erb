@@ -1,11 +1,13 @@
 listen <%= name %>
-bind <%= ipaddress %>:<%= Array(ports).collect { |x| x.split(',')}.flatten.join(",#{ipaddress}:") %>
+<% ipaddress.uniq.each do |virtual_ip| %>
+    bind <%= virtual_ip %>:<%= Array(ports).collect { |x| x.split(',')}.flatten.join(",#{virtual_ip}:") %>
+<% end %>
 <% options.sort.each do |key, val| -%>
-<% if val.is_a?(Array) -%>
-<% val.each do |item| -%>
-  <%= key %>  <%= item %>
-<% end -%>
-<% else -%>
-  <%= key %>  <%= val %>
-<% end -%>
+    <% if val.is_a?(Array) -%>
+        <% val.each do |item| -%>
+            <%= key %>  <%= item %>
+        <% end -%>
+    <% else -%>
+        <%= key %>  <%= val %>
+    <% end -%>
 <% end -%>
