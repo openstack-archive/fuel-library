@@ -5,7 +5,7 @@ from devops.helpers import ssh
 import re
 from fuel_test.ci.ci_base import CiBase
 from fuel_test.settings import ERROR_PREFIX, WARNING_PREFIX, EMPTY_SNAPSHOT
-from helpers import load, execute, write_config, sync_time, safety_revert_nodes, upload_recipes, upload_keys
+from helpers import load, execute, write_config, sync_time, safety_revert_nodes, upload_recipes, upload_keys, update_pm
 
 class BaseTestCase(unittest.TestCase):
     @abstractproperty
@@ -31,7 +31,7 @@ class BaseTestCase(unittest.TestCase):
         for node in self.environment.nodes:
             remote = ssh(node.ip_address_by_network['internal'], username='root', password='r00tme')
             sync_time(remote.sudo.ssh)
-            execute(remote.sudo.ssh, 'yum makecache')
+            update_pm(remote.sudo.ssh)
 
     def replace(self, template, **kwargs):
         for key in kwargs:

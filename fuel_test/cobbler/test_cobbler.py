@@ -3,7 +3,7 @@ import unittest
 from devops.helpers import ssh
 from fuel_test.cobbler.cobbler_client import CobblerClient
 from fuel_test.cobbler.cobbler_test_case import CobblerTestCase
-from fuel_test.helpers import tcp_ping, udp_ping, safety_revert_nodes, add_to_hosts, sign_all_node_certificates, sync_time, upload_recipes, upload_keys, await_node_deploy, build_astute, install_astute, write_config, execute
+from fuel_test.helpers import tcp_ping, udp_ping, safety_revert_nodes, add_to_hosts, sign_all_node_certificates, sync_time, upload_recipes, upload_keys, await_node_deploy, build_astute, install_astute, write_config, execute, update_pm
 from fuel_test.settings import EMPTY_SNAPSHOT, OS_FAMILY, PUPPET_VERSION, PUBLIC_INTERFACE, INTERNAL_INTERFACE, PRIVATE_INTERFACE
 from fuel_test.root import root
 
@@ -22,7 +22,7 @@ class CobblerCase(CobblerTestCase):
         for node in [self.environment.node['master']] + self.nodes.cobblers:
             remote = ssh(node.ip_address_by_network['public'], username='root', password='r00tme')
             sync_time(remote.sudo.ssh)
-            remote.sudo.ssh.execute('yum makecache')
+            update_pm(remote.sudo.ssh)
         self.write_cobbler_manifest()
         self.validate(
             self.nodes.cobblers,
@@ -38,10 +38,6 @@ class CobblerCase(CobblerTestCase):
 
     def deploy_stomp_node(self):
         self.configure_master_remote()
-        for node in [self.environment.node['master']] + self.nodes.cobblers:
-            remote = ssh(node.ip_address_by_network['internal'], username='root', password='r00tme')
-            sync_time(remote.sudo.ssh)
-            remote.sudo.ssh.execute('yum makecache')
         self.write_stomp_manifest()
         self.validate(
             self.nodes.stomps,
@@ -53,6 +49,7 @@ class CobblerCase(CobblerTestCase):
                  "puppet_version=%(puppet_version)s "
                  "puppet_enable=0 "
                  "mco_auto_setup=1 "
+                 "ntp_enable=1 "
                  "mco_pskey=un0aez2ei9eiGaequaey4loocohjuch4Ievu3shaeweeg5Uthi "
                  "mco_stomphost=%(mco_host)s "
                  "mco_stompport=61613 "
@@ -94,12 +91,12 @@ class CobblerCase(CobblerTestCase):
             profile='ubuntu_1204_x86_64'
         client.modify_system_args(
             system_id, token,
-            ks_meta=self.get_ks_meta('master',
+            ks_meta=self.get_ks_meta('master.your-domain-name.com',
                 stomp_name),
             name=node_name,
-            hostname=node_name + ".mirantis.com",
+            hostname=node_name + ".your-domain-name.com",
             name_servers=cobbler.ip_address_by_network['internal'],
-            name_servers_search="mirantis.com",
+            name_servers_search="your-domain-name.com",
             profile=profile,
             netboot_enabled="1")
         client.modify_system(system_id, 'modify_interface', {
@@ -107,7 +104,7 @@ class CobblerCase(CobblerTestCase):
             "static-eth0": "0",
             "macaddress-eth1": str(node_mac1),
             "ipaddress-eth1": str(node_ip),
-            "dnsname-eth1": node_name + ".mirantis.com",
+            "dnsname-eth1": node_name + ".your-domain-name.com",
             "static-eth1": "1",
             "macaddress-eth2": str(node_mac2),
             "static-eth2": "0"
@@ -148,7 +145,7 @@ class CobblerCase(CobblerTestCase):
             remote,
             master.ip_address_by_network['internal'],
             master.name,
-            master.name + ".mirantis.com")
+            master.name + ".your-domain-name.com")
 
         for node in self.environment.nodes:
             node.save_snapshot('cobbler-configured', force=True)
@@ -163,7 +160,11 @@ class CobblerCase(CobblerTestCase):
             await_node_deploy(
                 cobbler.ip_address_by_network['internal'], node.name)
         sleep(20)
-        sign_all_node_certificates(self.master_remote)
+        master = self.environment.node['master']
+        master_remote = ssh(master.ip_address_by_network['public'],
+            username='root',
+            password='r00tme')
+        sign_all_node_certificates(master_remote)
 
     def test_orchestrating_minimal(self):
         self.configure_master_remote()
@@ -195,16 +196,17 @@ class CobblerCase(CobblerTestCase):
             private_interface="'%s'" % PRIVATE_INTERFACE,
             nv_physical_volume= ["/dev/vdb"]
         )
-        config_text = \
-        "use_case: minimal\n\
-        fuel-01:\n\
-            role: controller\n\
-        fuel-02:\n\
-            role: controller\n\
-        fuel-03:\n\
-            role: compute\n\
-        fuel-04:\n\
-            role: compute"
+        config_text = (
+                       "use_case: minimal\n"
+                       "fuel-01.your-domain-name.com:\n"
+                       "  role: controller\n"
+                       "fuel-02.your-domain-name.com:\n"
+                       "  role: controller\n"
+                       "fuel-03.your-domain-name.com:\n"
+                       "  role: compute\n"
+                       "fuel-04.your-domain-name.com:\n"
+                       "  role: compute\n"
+        )
         remote = ssh(self.nodes.stomps[0].ip_address_by_network['public'], username='root',
                 password='r00tme')
         write_config(remote, '/tmp/nodes.yaml', config_text)
@@ -228,16 +230,17 @@ class CobblerCase(CobblerTestCase):
                                             'public'],
             nv_physical_volume=["/dev/vdb"]
         )
-        config_text = \
-        "use_case: minimal\n\
-        fuel-01:\n\
-            role: controller\n\
-        fuel-02:\n\
-            role: compute\n\
-        fuel-03:\n\
-            role: compute\n\
-        fuel-04:\n\
-            role: compute"
+        config_text = (
+            "use_case: simple\n"
+            "fuel-01.your-domain-name.com:\n"
+            "  role: controller\n"
+            "fuel-02.your-domain-name.com:\n"
+            "  role: controller\n"
+            "fuel-03.your-domain-name.com:\n"
+            "  role: compute\n"
+            "fuel-04.your-domain-name.com:\n"
+            "  role: compute\n"
+        )
         remote = ssh(self.nodes.stomps[0].ip_address_by_network['public'], username='root',
                 password='r00tme')
         write_config(remote, '/tmp/nodes.yaml', config_text)
