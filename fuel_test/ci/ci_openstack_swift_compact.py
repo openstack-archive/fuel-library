@@ -27,6 +27,9 @@ class CiOpenStackSwiftCompact(CiBase):
         for node_name in self.node_roles().controller_names:
             client = self.describe_node(node_name, [public, internal, private])
             environment.nodes.append(client)
+        for node_name in self.node_roles().quantum_names:
+            client = self.describe_node(node_name, [public, internal, private])
+            environment.nodes.append(client)
         for node_name in self.node_roles().compute_names:
             client = self.describe_node(
                 node_name, [public, internal, private], memory=4096)
