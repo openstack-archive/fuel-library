@@ -77,7 +77,7 @@ Installing Puppet master is a one-time procedure for the entire infrastructure. 
 Initial Setup
 ~~~~~~~~~~~~~
 
-If you plan to provision Puppet master on hardware, you need to make sure that you can boot your server from an ISO. 
+If you plan to provision the Puppet master on hardware, you need to make sure that you can boot your server from an ISO. 
 
 For VirtualBox, follow these steps to create virtual hardware:
 
@@ -100,7 +100,7 @@ For VirtualBox, follow these steps to create virtual hardware:
 OS Installation
 ~~~~~~~~~~~~~~~~~~~
 
-* Pick and download operating system image, it will be used as a base OS for the Puppet master node:
+* Pick and download operating system image. It will be used as a base OS for the Puppet master node:
    * `CentOS 6.3 <http://isoredirect.centos.org/centos/6/isos/x86_64/>`_: download CentOS-6.3-x86_64-minimal.iso
    * `RHEL 6.3 <https://access.redhat.com/home>`_: download rhel-server-6.3-x86_64-boot.iso
    * `Ubuntu 12.04 <https://help.ubuntu.com/community/Installation/MinimalCD>`_: download "Precise Pangolin" Minimal CD
@@ -251,7 +251,7 @@ OS Installation
 Enabling Stored Configuration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This section will allow you to configure Puppet to use a technique called stored configuration. It is required by Puppet manifests supplied with Fuel, so that they can store exported resources in Puppet database. This makes use of the PuppetDB.
+This section will show how to configure Puppet to use a technique called stored configuration. It is required by Puppet manifests supplied with Fuel, so that they can store exported resources in Puppet database. This makes use of the PuppetDB.
 
 * Install and configure PuppetDB
 	* CentOS/RHEL:: 
@@ -445,7 +445,7 @@ Edit configuration for bare metal provisioning of nodes (nodes.yaml):
 Provisioning your OpenStack nodes using Cobbler
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Now, when cobbler has correct configuration, the only thing you need to do is to PXE-boot your nodes. They will boot over network from DHCP/TFTP provided by Cobbler and will be provisioned accordingly, with the specified operating system and configuration.
+Now, when Cobbler has the correct configuration, the only thing you need to do is to PXE-boot your nodes. They will boot over the network from DHCP/TFTP provided by Cobbler and will be provisioned accordingly, with the specified operating system and configuration.
 
 In case of VirtualBox, here is what you have to do for every virtual machine (fuel-01, fuel-02, fuel-03, fuel-04):
 
