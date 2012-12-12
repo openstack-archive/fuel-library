@@ -30,8 +30,8 @@
 #set $script += "echo >> %s\n" % $interfaces_file
 #for $iname in $ikeys
     #set $idata = $interfaces[$iname]
+    #set $script += "echo auto %s >> %s\n" % ($iname, $interfaces_file)
     #if $idata.get("static", "0") in ("1", True, "true")
-        #set $script += "echo auto %s >> %s\n" % ($iname, $interfaces_file)
         #set $script += "echo iface %s inet static >> %s\n" % ($iname, $interfaces_file)
         #set $iip = $idata.get("ip_address", "")
         #if $iip != ""
@@ -41,16 +41,16 @@
         #if $inetmask != ""
             #set $script += "echo netmask %s >> %s\n" % ($inetmask, $interfaces_file)
         #end if
+        #set $nss = ""
+        #for $ns in $getVar("name_servers", [])
+             #set $nss += " %s" % $ns
+        #end for
         #set $gateway = $getVar("gateway", "")
         #if $gateway != ""
             #set $network_address = ipaddr.IPv4Network("%s/%s" % ($iip, $inetmask))
             #set $gateway_address = ipaddr.IPv4Address($gateway)
             #if $gateway_address in $network_address
                 #set $script += "echo gateway %s >> %s\n" % ($gateway, $interfaces_file)
-                #set $nss = ""
-                #for $ns in $getVar("name_servers", [])
-                    #set $nss += " %s" % $ns
-                #end for
                 #if $nss != ""
                     #set $script += "echo dns-nameservers %s >> %s\n" % ($nss, $interfaces_file)
                 #end if
@@ -63,8 +63,12 @@
                 #end if
             #end if
         #end if
+        #if $idata.get("management", "0") in ("1", True, "true")
+            #if $nss != ""
+                #set $script += "echo dns-nameservers %s >> %s\n" % ($nss, $interfaces_file)
+            #end if
+        #end if
     #else
-        #set script += "echo auto %s >> %s\n" % ($iname, $interfaces_file)
         #set $script += "echo iface %s inet dhcp >> %s\n" % ($iname, $interfaces_file)
     #end if
     #set $script += "echo >> %s\n" % $interfaces_file
