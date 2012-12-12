@@ -6,7 +6,8 @@ class NodeRoles(object):
                  proxy_names=None,
                  cobbler_names=None,
                  keystone_names=None,
-                 stomp_names=None):
+                 stomp_names=None,
+                 quantum_names=None):
         self.controller_names = controller_names or []
         self.compute_names = compute_names or []
         self.storage_names = storage_names or []
@@ -14,6 +15,7 @@ class NodeRoles(object):
         self.cobbler_names = cobbler_names or []
         self.keystone_names = keystone_names or []
         self.stomp_names = stomp_names or []
+        self.quantum_names = quantum_names or []
 
 
 class Nodes(object):
@@ -25,6 +27,7 @@ class Nodes(object):
         self.keystones = []
         self.cobblers = []
         self.stomps = []
+        self.quantums = []
         for node_name in node_roles.controller_names:
             self.controllers.append(devops_environment.node[node_name])
         for node_name in node_roles.compute_names:
@@ -39,6 +42,8 @@ class Nodes(object):
             self.keystones.append(devops_environment.node[node_name])
         for node_name in node_roles.stomp_names:
             self.stomps.append(devops_environment.node[node_name])
+        for node_name in node_roles.quantum_names:
+            self.quantums.append(devops_environment.node[node_name])
 
 
 
