@@ -74,7 +74,7 @@ Installing Puppet master is a one-time procedure for the entire infrastructure. 
 Initial Setup
 ~~~~~~~~~~~~~
 
-If you plan to provision Puppet master on hardware, you need to make sure you can boot your server from an ISO. 
+If you plan to provision the Puppet master on hardware, you need to make sure you can boot your server from an ISO. 
 
 For VirtualBox, follow these steps to create virtual hardware:
 
@@ -173,7 +173,7 @@ OS Installation
 Enabling Stored Configuration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This section will allow you to configure Puppet to use a technique called stored configuration. It is requred by Puppet manifests supplied with Fuel, so that they can store exported resources in Puppet database. This makes use of the Ruby on Rails framework and MySQL.
+This section will show how to configure Puppet to use a technique called stored configuration. It is requred by Puppet manifests supplied with Fuel, so that they can store exported resources in Puppet database. This makes use of the Ruby on Rails framework and MySQL.
 
 * Install and configure MySQL & Ruby::
 
@@ -368,7 +368,7 @@ Edit configuration for bare metal provisioning of nodes (nodes.yaml):
 Provisioning your OpenStack nodes using Cobbler
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Now, when Cobbler has correct configuration, the only thing you need to do is to PXE-boot your nodes. They will boot over a network from DHCP/TFTP provided by cobbler and will be provisioned accordingly, with the specified operating system and configuration.
+Now, when Cobbler has the correct configuration, the only thing you need to do is to PXE-boot your nodes. They will boot over the network from DHCP/TFTP provided by Cobbler and will be provisioned accordingly, with the specified operating system and configuration.
 
 In case of VirtualBox, here is what you have to do for every virtual machine (fuel-01, fuel-02, fuel-03, fuel-04):
 
