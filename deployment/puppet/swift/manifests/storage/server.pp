@@ -6,7 +6,6 @@
 define swift::storage::server(
   $type,
   $swift_zone,
-  $port = $name,
   $storage_local_net_ip,
   $devices                = '/srv/node',
   $owner                  = 'swift',
@@ -32,7 +31,11 @@ define swift::storage::server(
       warning("swift storage server ${type} must specify ${type}-server")
   }
 
-  include "swift::storage::$type"
+  class { "swift::storage::${type}":
+    storage_local_net_ip => $storage_local_net_ip,
+    swift_zone           => $swift_zone,
+    port                 => $name,
+  }
   include 'concat::setup'
 
   validate_re($name, '^\d+$')
