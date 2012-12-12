@@ -501,7 +501,7 @@ In case of VirtualBox, it is recommended to save the current state of every virt
     * run "``puppet agent --test``" on fuel-04
     * wait for the installation to complete
 
-* Your OpenStack cluster is ready to go
+* Your OpenStack cluster is ready to go.
 
 .. _common-technical-issues:
 
