@@ -94,7 +94,7 @@ For VirtualBox, follow these steps to create virtual hardware:
         * Enable Network Adapter
         * Attached to: Bridged Adapter
         * Name: epn1 (Wi-Fi Airport), or whatever network interface of the host machine with Internet access 
-    * It's important that host-only "Adapter 1" goes first, as Cobbler will use vboxnet0 for PXE, and VirtualBox boots from LAN on the first available network adapter.
+    * It is important that host-only "Adapter 1" goes first, as Cobbler will use vboxnet0 for PXE, and VirtualBox boots from LAN on the first available network adapter.
     * Third adapter is not really needed for Puppet master, as it is only required for OpenStack hosts and communication of tenant VMs.
 
 OS Installation
