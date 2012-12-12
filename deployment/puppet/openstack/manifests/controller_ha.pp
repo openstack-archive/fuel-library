@@ -306,5 +306,6 @@ class openstack::galera_master_final_config($master_hostname, $controller_intern
 
 class {'openstack::galera_master_final_config':
     require => Class['openstack::controller_ha'],
-    master_hostname => $master_hostname
+    master_hostname => $master_hostname,
+    controller_internal_addresses => $controller_internal_addresses,
 }
