@@ -189,7 +189,7 @@ $auth_uri = "${auth_protocol}://${auth_host}:${auth_port}/v2.0"
 
   if $rabbit_nodes {
     nova_config { 'rabbit_addresses':
-      value => inline_template('<%= @rabbit_nodes.map {|x| x+':5672'}.join ',' %>')
+      value => inline_template("<%= @rabbit_nodes.map {|x| x+':5672'}.join ',' %>"),
     }
   } else {
     if $rabbit_host {
