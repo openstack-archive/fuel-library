@@ -15,7 +15,7 @@ class NodeRoles(object):
         self.cobbler_names = cobbler_names or []
         self.keystone_names = keystone_names or []
         self.stomp_names = stomp_names or []
-        self.quantum_names = stomp_names or []
+        self.quantum_names = quantum_names or []
 
 
 class Nodes(object):
