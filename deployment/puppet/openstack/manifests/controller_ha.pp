@@ -296,7 +296,7 @@ class openstack::galera_master_final_config($master_hostname, $controller_intern
       $mysql_password = $::galera::params::mysql_password
 
       exec {"first-galera-node-final-config":
-        require => [Exec["wait-for-synced-state"],Service['mysql-galera']],
+        require => Stage['main'],
         path   => "/usr/bin:/usr/sbin:/bin:/sbin",
         command => "sed -i 's/wsrep_cluster_address=\"gcomm:\/\/\"/wsrep_cluster_address=\"gcomm:\/\/${galera_gcomm_string}\"/' /etc/mysql/conf.d/wsrep.cnf",
         onlyif => "mysql -e -u${mysql_user} -p${mysql_password} ${check_galera} | awk '\$1 == \"wsrep_cluster_size\" {print \$2}' | awk '{if (\$0 > 1) exit 0; else exit 1}' ",
@@ -304,10 +304,11 @@ class openstack::galera_master_final_config($master_hostname, $controller_intern
     }
 }
 
-if defined(Class['Openstack::Controller_ha']) {
+#if defined(Class['Openstack::Controller_ha']) {
   class {'openstack::galera_master_final_config':
-    require => Class['openstack::controller_ha'],
+#    require => Class['openstack::controller_ha'],
+    require => Stage['main'],
     master_hostname => $master_hostname,
     controller_internal_addresses => $controller_internal_addresses,
-  }
+#  }
 }
