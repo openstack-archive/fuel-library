@@ -9,6 +9,12 @@ class cobbler::nat(
     command => 'echo 1 > /proc/sys/net/ipv4/ip_forward',
     unless  => 'cat /proc/sys/net/ipv4/ip_forward | grep -q 1',
   }
+  exec { 'save_ipv4_forward':
+    command => 'sed -i --follow-symlinks -e "/net\.ipv4\.ip_forward/d" \
+                   /etc/sysctl.conf && echo "net.ipv4.ip_forward = 1" >> \
+                   /etc/sysctl.conf',
+    unless  => 'grep -q "^\s*net\.ipv4\.ip_forward = 1" /etc/sysctl.conf',
+  }
 
   case $::operatingsystem {
     /(?i)(centos|redhat)/: {
@@ -27,12 +33,6 @@ class cobbler::nat(
                    -j ACCEPT"'
       }
 
-      exec { 'save_ipv4_forward':
-        command => 'sed -i --follow-symlinks -e "/net\.ipv4\.ip_forward/d" \
-                   /etc/sysctl.conf && echo "net.ipv4.ip_forward = 1" >> \
-                   /etc/sysctl.conf',
-        unless  => 'grep -q "^\s*net\.ipv4\.ip_forward = 1" /etc/sysctl.conf',
-      }
     }
     /(?i)(debian|ubuntu)/: {
       # In order to save these rules and to make them raising on
@@ -56,14 +56,6 @@ class cobbler::nat(
                    iptables-save -c > /etc/iptables.rules',
         unless  => 'iptables -t filter -S FORWARD | grep -q "^-A \
                    FORWARD -j ACCEPT"'
-      }
-
-      # it is for the sake of raising up forwarding mode on boot
-      file { '/etc/sysctl.d/60-ipv4_forward.conf' :
-        content => 'net.ipv4.ip_forward = 1',
-        owner   => root,
-        group   => root,
-        mode    => '0644',
       }
     }
     default: {}
