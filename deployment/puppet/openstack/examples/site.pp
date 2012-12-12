@@ -63,7 +63,7 @@ $quantum_db_password    = 'quantum_pass'
 $quantum_db_user        = 'quantum'
 $quantum_db_dbname      = 'quantum'
 $tenant_network_type    = 'gre'
-
+$verbose = true
 # Version of package
 $openstack_version = {
   'keystone'   => latest,
