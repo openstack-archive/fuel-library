@@ -102,7 +102,7 @@ def tempest_build_config_folsom(host, image_ref, image_ref_alt,
         'FLAVOR_REF_ALT': '2',
         'COMPUTE_BUILD_INTERVAL': '10',
         'COMPUTE_BUILD_TIMEOUT': '600',
-        'RUN_SSH':'true',
+        'RUN_SSH':'false',
         'NETWORK_FOR_SSH':'novanetwork',
         'COMPUTE_CATALOG_TYPE': 'compute',
         'COMPUTE_CREATE_IMAGE_ENABLED': 'true',
@@ -353,7 +353,7 @@ def setup_puppet_master(remote):
     puppet_apply(remote.sudo.ssh,
         'class {puppet: puppet_master_version => "%s"}'
         '-> class {puppet::thin:}'
-        '-> class {puppet::nginx: puppet_master_hostname => "master.mirantis.com"}'
+        '-> class {puppet::nginx: puppet_master_hostname => "master.your-domain-name.com"}'
          % PUPPET_VERSION)
     remote.mkdir('/var/lib/puppet/ssh_keys')
     puppet_apply(remote.sudo.ssh, 'class {puppet::fileserver_config:}')

@@ -7,7 +7,7 @@ from fuel_test.settings import OPENSTACK_SNAPSHOT
 class OpenStackSwiftCase(OpenStackSwiftTestCase):
     def test_deploy_open_stack_swift(self):
         self.validate(
-            [self.nodes.controllers[0], self.nodes.controllers[1],
+            [self.nodes.controllers[0], self.nodes.controllers[1], self.nodes.controllers[0],
              self.nodes.computes[0], self.nodes.computes[1]],
             'puppet agent --test')
         results = []
