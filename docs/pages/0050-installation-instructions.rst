@@ -35,10 +35,7 @@ Network Setup
 
 The current architecture assumes deployment with 3 network interfaces, for clarity. However, it can be tuned to support different scenarios, for example, deployment with only 2 NICs. The default set of interfaces is defined as follows:  
 
-#. eth0 - public network, with access to Internet
-    * we will assume that DHCP is enabled and every machine gets its IP address on this interface automatically through DHCP
-
-#. eth1 - management network for communication between Puppet master and Puppet clients, as well as PXE/TFTP/DHCP for Cobbler
+#. eth0 - management network for communication between Puppet master and Puppet clients, as well as PXE/TFTP/DHCP for Cobbler
     * every machine will have a static IP address there
     * you can configure network addresses/network mask according to your needs, but we will give instructions using the following network settings on this interface:
         * 10.0.0.100 for Puppet master
