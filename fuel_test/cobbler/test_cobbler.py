@@ -246,6 +246,56 @@ class CobblerCase(CobblerTestCase):
         write_config(remote, '/tmp/nodes.yaml', config_text)
         execute(remote, 'astute_run /tmp/nodes.yaml')
 
+    def test_orchestrating_compact(self):
+        self.configure_master_remote()
+
+        config_text = (
+            "use_case: compact\n"
+            "fuel-01.your-domain-name.com:\n"
+            "    role: controller\n"
+            "fuel-02.your-domain-name.com:\n"
+            "    role: controller\n"
+            "fuel-03.your-domain-name.com:\n"
+            "    role: controller\n"
+            "fuel-04.your-domain-name.com:\n"
+            "    role: compute\n"
+            "fuel-05.your-domain-name.com:\n"
+            "    role: compute\n"
+        )
+        remote = ssh(self.nodes.stomps[0].ip_address_by_network['public'], username='root',
+                password='r00tme')
+        write_config(remote, '/tmp/nodes.yaml', config_text)
+        execute(remote, 'astute_run /tmp/nodes.yaml')
+        
+    def test_orchestrating_full(self):
+        self.configure_master_remote()
+
+        config_text = (
+            "use_case: full\n"
+            "fuel-01.your-domain-name.com:\n"
+            "    role: controller\n"
+            "fuel-02.your-domain-name.com:\n"
+            "    role: controller\n"
+            "fuel-03.your-domain-name.com:\n"
+            "    role: compute\n"
+            "fuel-04.your-domain-name.com:\n"
+            "    role: compute\n"
+            "fuel-05.your-domain-name.com:\n"
+            "    role: storage\n"
+            "fuel-06.your-domain-name.com:\n"
+            "    role: storage\n"
+            "fuel-07.your-domain-name.com:\n"
+            "    role: storage\n"
+            "fuel-08.your-domain-name.com:\n"
+            "    role: proxy\n"
+            "fuel-09.your-domain-name.com:\n"
+            "    role: proxy\n"
+        )
+        remote = ssh(self.nodes.stomps[0].ip_address_by_network['public'], username='root',
+                password='r00tme')
+        write_config(remote, '/tmp/nodes.yaml', config_text)
+        execute(remote, 'astute_run /tmp/nodes.yaml')
+        
     def assert_cobbler_ports(self, ip):
         closed_tcp_ports = filter(
             lambda port: not tcp_ping(

@@ -4,6 +4,16 @@ require 'rubygems'
 require 'astute'
 require 'yaml'
 
+def puppet_consecutive_call(orchestrator, context, nodes)
+  for node in nodes do
+    orchestrator.deploy_piece(context, [node], false)
+  end
+end
+
+def puppet_parralel_call(orchestrator, context, nodes)
+  orchestrator.deploy_piece(context, nodes, false)
+end
+
 class Context
   attr_accessor :task_id, :reporter
 
@@ -37,18 +47,30 @@ nodes_raw.each do |key, value|
   end
 end
 
+ctrl_nodes = nodes.select {|n| n['role'] == 'controller'}
+compute_nodes = nodes.select {|n| n['role'] == 'compute'}
+
 if nodes_raw['use_case'] == "minimal" or
-    nodes_raw['use_case'] == "simple"
-  ctrl_nodes = nodes.select {|n| n['role'] == 'controller'}
-  for node in ctrl_nodes do
-    orchestrator.deploy_piece(context, [node], false)
-  end
-  compute_nodes = nodes.select {|n| n['role'] == 'compute'}
-  orchestrator.deploy_piece(context, compute_nodes, false)
+    nodes_raw['use_case'] == "simple"  
+  puppet_consecutive_call(orchestrator, context, ctrl_nodes)
+  puppet_parallel_call(orchestrator, context, compute_nodes)
 elsif nodes_raw['use_case'] == "compact"
-  print "TODO - compact use case"
+  puppet_consecutive_call(orchestrator, context, [ctrl_nodes[0]])
+  puppet_parralel_call(orchestrator, context, ctrl_nodes[1..2])
+  puppet_parallel_call(orchestrator, context, ctrl_nodes)
+  puppet_consecutive_call(orchestrator, context, [ctrl_nodes[0]])
+  puppet_parralel_call(orchestrator, context, ctrl_nodes[1..2] + compute_nodes)
 elsif nodes_raw['use_case'] == "full"
-  print "TODO - full use case"
+  storage_nodes = nodes.select {|n| n['role'] == 'storage'}
+  proxy_nodes = nodes.select {|n| n['role'] == 'proxy'}
+  puppet_consecutive_call(orchestrator, context, [ctrl_nodes[0]])
+  puppet_parralel_call(orchestrator, context, [ctrl_nodes[1]])
+  puppet_parallel_call(orchestrator, context, compute_nodes)
+  puppet_parallel_call(orchestrator, context, storage_nodes)
+  puppet_parallel_call(orchestrator, context, storage_nodes)
+  puppet_parallel_call(orchestrator, context, [proxy_nodes[0]])
+  puppet_parallel_call(orchestrator, context, storage_nodes)
+  puppet_parallel_call(orchestrator, context, [proxy_nodes[1]])
 else
   puts "Use case " + nodes_raw['use_case'] + " is not supported!"
 end
