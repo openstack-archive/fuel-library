@@ -49,6 +49,7 @@ class openstack::nova::controller (
   $quantum_db_password       = 'quantum_pass',
   $quantum_user_password     = 'quantum_pass',
   $quantum_l3_enable         = true,
+  $tenant_network_type       = 'gre',
   # Nova
   $nova_db_user              = 'nova',
   $nova_db_dbname            = 'nova',
@@ -203,7 +204,7 @@ if ($rabbit_nodes)
     $quantum_sql_connection = "$db_type://${quantum_db_user}:${quantum_db_password}@${db_host}/${quantum_db_dbname}?charset=utf8"
     $enable_tunneling       = $tenant_network_type ? { 'gre' => true, 'vlan' => false }
 
-    class { 'quantum':
+    class { '::quantum':
       bind_host       => $api_bind_address,
       rabbit_user     => $rabbit_user,
       rabbit_password => $rabbit_password,
@@ -217,6 +218,15 @@ if ($rabbit_nodes)
       auth_host     => $internal_address,
       auth_password => $quantum_user_password,
     }
+
+    class { 'quantum::plugins::ovs':
+      bridge_mappings     => ["physnet1:br-ex","physnet2:br-prv"],
+      network_vlan_ranges => 'physnet1,physnet2:1000:2000',
+      sql_connection      => $quantum_sql_connection,
+      tenant_network_type => $tenant_network_type,
+      enable_tunneling    => $enable_tunneling,
+    }
+
     class { 'nova::network::quantum':
     #$fixed_range,
       quantum_admin_password    => $quantum_user_password,

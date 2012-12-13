@@ -62,12 +62,17 @@ class quantum::agents::l3 (
     $ensure = 'running'
 
     if $create_networks {
+      package { 'python-keystoneclient':
+        ensure => present,
+        before => Exec['create-networks']
+      }
+
       # create external/internal networks
       file { '/tmp/quantum-networking.sh':
         mode    => 740,
         owner   => root,
         content => template("quantum/quantum-networking.sh.${::osfamily}.erb"),
-        require => Service['quantum-server'],
+        require => Service['quantum-l3'],
         notify  => Exec['create-networks'],
       }
   
@@ -82,7 +87,7 @@ class quantum::agents::l3 (
         # path        => '/usr/bin',
         refreshonly => true,
         logoutput   => true,
-        require => Service["openvswitch-switch"],
+        require     => Service["openvswitch-switch"],
         notify      => Service['quantum-plugin-ovs-service'],
       }
     }

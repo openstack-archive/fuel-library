@@ -2,34 +2,36 @@
 
 class openstack::quantum (
   $db_host,
-  $internal_address         = $ipaddress_eth0,
-  $public_interface = "eth0",
-  $private_interface = "eth1",
-  $service_endpoint         = '127.0.0.1',
   $rabbit_password,
-  $rabbit_user               = 'nova',
-  $rabbit_nodes     = ['127.0.0.1'],
-  $db_type                   = 'mysql',
-  $auth_host             = '127.0.0.1',
-  $verbose                   = 'False',
-  $debug                   = 'False',
-  $enabled                   = true,
-  $exported_resources        = true,
-    $ensure_package   = present,
-  $api_bind_address = '0.0.0.0',
-  $quantum                   = false,
-  $quantum_db_dbname         = 'quantum',
-  $quantum_db_user           = 'quantum',
-  $quantum_db_password       = 'quantum_pass',
-  $quantum_user_password     = 'quantum_pass',
-  $tenant_network_type       = 'gre',
+  $internal_address         = $ipaddress_eth0,
+  $public_interface         = "eth0",
+  $private_interface        = "eth1",
+  $fixed_range              = '10.0.0.0/24',
+  $floating_range           = false,
+  $service_endpoint         = '127.0.0.1',
+  $rabbit_user              = 'nova',
+  $rabbit_nodes             = ['127.0.0.1'],
+  $db_type                  = 'mysql',
+  $auth_host                = '127.0.0.1',
+  $verbose                  = 'False',
+  $debug                    = 'False',
+  $enabled                  = true,
+  $exported_resources       = true,
+  $ensure_package           = present,
+  $api_bind_address         = '0.0.0.0',
+  $quantum                  = false,
+  $quantum_db_dbname        = 'quantum',
+  $quantum_db_user          = 'quantum',
+  $quantum_db_password      = 'quantum_pass',
+  $quantum_user_password    = 'quantum_pass',
+  $tenant_network_type      = 'gre',
 )
 {
     # Set up Quantum
     $quantum_sql_connection = "$db_type://${quantum_db_user}:${quantum_db_password}@${db_host}/${quantum_db_dbname}?charset=utf8"
     $enable_tunneling       = $tenant_network_type ? { 'gre' => true, 'vlan' => false }
 
-    class { 'quantum':
+    class { '::quantum':
       bind_host       => $api_bind_address,
       rabbit_user     => $rabbit_user,
       rabbit_password => $rabbit_password,
@@ -40,7 +42,8 @@ class openstack::quantum (
     }
 
     class { 'quantum::plugins::ovs':
-      bridge_mappings => ["physnet1:br-ex","physnet2:br-prv"],
+      bridge_mappings     => ["physnet1:br-ex","physnet2:br-prv"],
+      network_vlan_ranges => 'physnet1,physnet2:1000:2000',
       sql_connection      => $quantum_sql_connection,
       tenant_network_type => $tenant_network_type,
       enable_tunneling    => $enable_tunneling,
@@ -48,6 +51,7 @@ class openstack::quantum (
 
     class { 'quantum::agents::ovs':
       bridge_uplinks   => ["br-ex:${public_interface}","br-prv:${private_interface}"],
+      bridge_mappings  => ['physnet1:br-ex', 'physnet2:br-prv'],
       enable_tunneling => $enable_tunneling,
       local_ip         => $internal_address,
     }
