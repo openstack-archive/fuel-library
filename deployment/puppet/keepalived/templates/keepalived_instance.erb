@@ -15,7 +15,7 @@ vrrp_instance <%=  @name %> {
 
   virtual_ipaddress {
     <% @virtual_ips.each do |vip| -%>
-        <%= vip -%> label <%= @interface -%>:keepalived
+        <%= vip -%> label <%= @interface -%>:ka
     <% end %>
   }
 
