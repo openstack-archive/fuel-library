@@ -105,7 +105,7 @@ class openstack::controller (
   $db_type                 = 'mysql',
   $mysql_account_security  = true,
   $mysql_bind_address      = '0.0.0.0',
-  $allowed_hosts           = '%',
+  $allowed_hosts           = [ '%', $::hostname ],
   # Keystone
   $keystone_db_user        = 'keystone',
   $keystone_db_dbname      = 'keystone',
