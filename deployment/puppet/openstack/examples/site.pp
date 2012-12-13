@@ -165,27 +165,25 @@ node /fuel-0[34]/ {
 
 node /fuel-quantum/ {
     class { 'openstack::quantum': 
-      db_host => $internal_virtual_ip,
-      service_endpoint => $internal_virtual_ip,
-      auth_host=> $internal_virtual_ip,
-      internal_address => $internal_address,
-      controller_public_addresses => $controller_public_addresses,
-      public_interface        => $public_interface,
-      private_interface       => $private_interface,
-      multi_host              => $multi_host,
-      verbose                 => $verbose,
-      auto_assign_floating_ip => $auto_assign_floating_ip,
-      rabbit_password         => $rabbit_password,
-      rabbit_user             => $rabbit_user,
-      rabbit_nodes            => $controller_hostnames,
-      export_resources        => false,
-      quantum                 => $quantum,
-      quantum_user_password   => $quantum_user_password,
-      quantum_db_password     => $quantum_db_password,
-      quantum_db_user         => $quantum_db_user,
-      quantum_db_dbname       => $quantum_db_dbname,
-      tenant_network_type     => $tenant_network_type,
-      api_bind_address        => $internal_address
+      db_host               => $internal_virtual_ip,
+      service_endpoint      => $internal_virtual_ip,
+      auth_host             => $internal_virtual_ip,
+      internal_address      => $internal_address,
+      public_interface      => $public_interface,
+      private_interface     => $private_interface,
+      floating_range        => $floating_range,
+      fixed_range           => $fixed_range,
+      verbose               => $verbose,
+      rabbit_password       => $rabbit_password,
+      rabbit_user           => $rabbit_user,
+      rabbit_nodes          => $controller_hostnames,
+      quantum               => $quantum,
+      quantum_user_password => $quantum_user_password,
+      quantum_db_password   => $quantum_db_password,
+      quantum_db_user       => $quantum_db_user,
+      quantum_db_dbname     => $quantum_db_dbname,
+      tenant_network_type   => $tenant_network_type,
+      api_bind_address      => $internal_address
     }
 }
 

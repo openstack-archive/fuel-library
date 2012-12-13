@@ -223,5 +223,29 @@ node /fuel-0[89]/ {
   }
 }
 
+node /fuel-quantum/ {
+    class { 'openstack::quantum': 
+      db_host               => $internal_virtual_ip,
+      service_endpoint      => $internal_virtual_ip,
+      auth_host             => $internal_virtual_ip,
+      internal_address      => $internal_address,
+      public_interface      => $public_interface,
+      private_interface     => $private_interface,
+      floating_range        => $floating_range,
+      fixed_range           => $fixed_range,
+      verbose               => $verbose,
+      rabbit_password       => $rabbit_password,
+      rabbit_user           => $rabbit_user,
+      rabbit_nodes          => $controller_hostnames,
+      quantum               => $quantum,
+      quantum_user_password => $quantum_user_password,
+      quantum_db_password   => $quantum_db_password,
+      quantum_db_user       => $quantum_db_user,
+      quantum_db_dbname     => $quantum_db_dbname,
+      tenant_network_type   => $tenant_network_type,
+      api_bind_address      => $internal_address
+    }
+}
+
 # deprecated. keep it for backward compatibility
 $controller_public_addresses = {'fuel-01' => '10.0.2.15','fuel-02' => '10.0.2.16','fuel-03' => '10.0.2.17'}
