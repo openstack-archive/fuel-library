@@ -72,7 +72,7 @@ def execute_async(remote, command):
 
 
 def extract_virtual_ips(ipaout):
-    pattern = '(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}).*(eth\d{1,}):keepalived'
+    pattern = '(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}).*(eth\d{1,}):ka'
     return dict((v, k) for k, v in re.findall(pattern, ipaout))
 
 def tempest_build_config_folsom(host, image_ref, image_ref_alt,

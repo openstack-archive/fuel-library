@@ -68,7 +68,7 @@ define haproxy_service($order, $balancers, $virtual_ips, $port, $define_cookies 
 define keepalived_dhcp_hook($interface)
 {
     $down_hook="ip addr show dev $interface | grep keepalived | awk '{print \$2}' > /tmp/keepalived_${interface}_ip\n"
-    $up_hook="cat /tmp/keepalived_${interface}_ip |  while read ip; do  ip addr add \$ip dev $interface label $interface:keepalived; done\n"
+    $up_hook="cat /tmp/keepalived_${interface}_ip |  while read ip; do  ip addr add \$ip dev $interface label $interface:ka; done\n"
     file {"/etc/dhcp/dhclient-${interface}-down-hooks": content=> $down_hook, mode => '0744' }
     file {"/etc/dhcp/dhclient-${interface}-up-hooks": content=> $up_hook, mode => '0744' }
 }
@@ -137,7 +137,7 @@ class openstack::controller_ha (
 
     if $which == 0 {
       exec { 'create-public-virtual-ip':
-        command => "ip addr add ${public_virtual_ip} dev ${public_interface} label ${public_interface}:keepalived",
+        command => "ip addr add ${public_virtual_ip} dev ${public_interface} label ${public_interface}:ka",
         unless => "ip addr show dev ${public_interface} | grep ${public_virtual_ip}",
         path => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
         before => Service['keepalived'],
@@ -154,7 +154,7 @@ class openstack::controller_ha (
 
     if $which == 0 {
       exec { 'create-internal-virtual-ip':
-        command => "ip addr add ${internal_virtual_ip} dev ${internal_interface} label ${internal_interface}:keepalived",
+        command => "ip addr add ${internal_virtual_ip} dev ${internal_interface} label ${internal_interface}:ka",
         unless => "ip addr show dev ${internal_interface} | grep ${internal_virtual_ip}",
         path => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
         before => Service['keepalived'],
