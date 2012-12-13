@@ -309,6 +309,9 @@ echo -n "search " >>/etc/resolv.conf
 echo -n "$nameserversearch " >>/etc/resolv.conf
         #end for
 echo "" >>/etc/resolv.conf
+    #else
+sed -i -e "/^search /d" /etc/resolv.conf
+sed -i -e "/^domain /d" /etc/resolv.conf
     #end if
     ## =============================================================================
     ## Configure name servers in /etc/resolv.conf
