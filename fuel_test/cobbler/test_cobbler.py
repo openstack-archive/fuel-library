@@ -247,8 +247,42 @@ class CobblerCase(CobblerTestCase):
         execute(remote, 'astute_run /tmp/nodes.yaml')
 
     def test_orchestrating_compact(self):
+        controllers = self.nodes.controllers
+        proxies = self.nodes.proxies
         self.configure_master_remote()
-
+        controller_public_addresses="{"
+        controller_internal_addresses="{"
+        for controller in controllers:
+            controller_public_addresses +="'%s' => '%s'" % (controller.name,controller.ip_address_by_network['public'])
+            if controller != controllers[-1]:
+                controller_public_addresses +=","
+            else:
+                controller_public_addresses +="}"
+        for controller in controllers:
+            controller_internal_addresses +="'%s' => '%s'" % (controller.name,controller.ip_address_by_network['internal'])
+            if controller != controllers[-1]:
+                controller_internal_addresses +=","
+            else:
+                controller_internal_addresses +="}"
+        self.write_site_pp_manifest(
+            root('deployment', 'puppet', 'openstack', 'examples',
+                'site_openstack_swift_compact.pp'),
+            internal_virtual_ip="'%s'" % self.ci().get_internal_virtual_ip(),
+            public_virtual_ip="'%s'" % self.ci().get_public_virtual_ip(),
+            floating_range="'%s'" % self.ci().get_floating_network(),
+            fixed_range="'%s'" % self.ci().get_fixed_network(),
+            master_hostname = "'%s'" % controllers[0].name,
+            swift_master = "%s" % controllers[0].name,
+            controller_public_addresses = controller_public_addresses,
+            controller_internal_addresses = controller_internal_addresses,
+            controller_hostnames=["%s" % controller.name for controller in controllers],
+            swift_proxy_address="'%s'" % self.ci().get_internal_virtual_ip(),
+            public_interface="'%s'" % PUBLIC_INTERFACE,
+            internal_interface="'%s'" % INTERNAL_INTERFACE,
+            private_interface="'%s'" % PRIVATE_INTERFACE,
+            mirror_type ="'internal'",
+            nv_physical_volume= ["/dev/vdb"]
+        )
         config_text = (
             "use_case: compact\n"
             "fuel-01.your-domain-name.com:\n"
@@ -269,7 +303,49 @@ class CobblerCase(CobblerTestCase):
         
     def test_orchestrating_full(self):
         self.configure_master_remote()
+        controllers = self.nodes.controllers
+        proxies = self.nodes.proxies
+        controller_public_addresses="{"
+        controller_internal_addresses="{"
+        swift_proxies="{"
+        for controller in controllers:
+            controller_public_addresses +="'%s' => '%s'" % (controller.name,controller.ip_address_by_network['public'])
+            if controller != controllers[-1]:
+                controller_public_addresses +=","
+            else:
+                controller_public_addresses +="}"
+        for controller in controllers:
+            controller_internal_addresses +="'%s' => '%s'" % (controller.name,controller.ip_address_by_network['internal'])
+            if controller != controllers[-1]:
+                controller_internal_addresses +=","
+            else:
+                controller_internal_addresses +="}"
+        for proxy in proxies:
+            swift_proxies +="'%s' => '%s'" % (proxy.name,proxy.ip_address_by_network['internal'])
+            if proxy != proxies[-1]:
+                swift_proxies +=","
+            else:
+                swift_proxies +="}"
 
+        self.write_site_pp_manifest(
+            root('deployment', 'puppet', 'openstack', 'examples',
+                'site_openstack_swift_standalone.pp'),
+            internal_virtual_ip="'%s'" % self.ci().get_internal_virtual_ip(),
+            public_virtual_ip="'%s'" % self.ci().get_public_virtual_ip(),
+            floating_range="'%s'" % self.ci().get_floating_network(),
+            fixed_range="'%s'" % self.ci().get_fixed_network(),
+            master_hostname="'%s'" % controllers[0].name,
+            swift_proxy_address="'%s'" % self.ci().get_internal_virtual_ip(),
+            controller_public_addresses = controller_public_addresses,
+            controller_internal_addresses = controller_internal_addresses, 
+            swift_proxies = swift_proxies,
+            mirror_type = "'internal'",
+            controller_hostnames=["%s" % controller.name for controller in controllers],
+            public_interface="'%s'" % PUBLIC_INTERFACE,
+            internal_interface="'%s'" % INTERNAL_INTERFACE,
+            private_interface="'%s'" % PRIVATE_INTERFACE,
+            nv_physical_volume= ["/dev/vdb"]
+        )
         config_text = (
             "use_case: full\n"
             "fuel-01.your-domain-name.com:\n"
