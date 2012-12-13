@@ -3,22 +3,23 @@
 ##
 
 # This interface will be giving away internet
-$public_interface    = 'eth0'
-# This interface will look to local network
-$internal_interface  = 'eth1'
+$public_interface    = 'eth1'
+# This interface will look to management network
+$internal_interface  = 'eth0'
 # This interface for internal services
 $private_interface   = 'eth2'
 
-# Public and Internal IP
+# Public and Internal VIPs for load-balancers
 $internal_virtual_ip = '10.0.0.253'
 $public_virtual_ip = '10.0.2.253'
+$swift_proxy_address = '10.0.0.253'
 
 $controller_internal_addresses = {'fuel-01' => '10.0.0.101','fuel-02' => '10.0.0.102','fuel-03' => '10.0.0.103'}
 
+# Public and Internal IP
 $floating_range = '10.0.2.128/27'
 $fixed_range = '10.0.198.128/27'
 
-$swift_proxy_address = '10.0.0.253'
 
 ##
 # These parameters to change by necessity

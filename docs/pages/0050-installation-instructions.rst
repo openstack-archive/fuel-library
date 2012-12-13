@@ -102,145 +102,131 @@ OS Installation
    * `RHEL 6.3 <https://access.redhat.com/home>`_: download rhel-server-6.3-x86_64-boot.iso
    * `Ubuntu 12.04 <https://help.ubuntu.com/community/Installation/MinimalCD>`_: download "Precise Pangolin" Minimal CD
 
-
 * Mount it to the server CD/DVD drive. In case of VirtualBox, mount it to the fuel-pm virtual machine
     * Machine -> Settings... -> Storage -> CD/DVD Drive -> Choose a virtual CD/DVD disk file...
-
 
 * Boot server (or VM) from CD/DVD drive and install the chosen OS
     * Choose root password carefully
 
+* Set up eth0 interface. It will be used for communication between Puppet master and Puppet clients, as well as for Cobbler: 
+    * CentOS/RHEL
+        * ``vi /etc/sysconfig/network-scripts/ifcfg-eth0``::
+        
+            DEVICE="eth0"
+            BOOTPROTO="static"
+            IPADDR="10.0.0.100"
+            NETMASK="255.255.255.0"
+            ONBOOT="yes"
+            TYPE="Ethernet"
+            PEERDNS="no"
 
-* Set up eth0 interface (it will provide Internet access for Puppet master and correspond to "Adapter 2" in VirtualBox): 
-	* CentOS/RHEL
-          * Copy MAC address from "Adapter 2" and add this to "MACADDR=" separated by colons
-		* ``vi /etc/sysconfig/network-scripts/ifcfg-eth0``::
-
-			DEVICE="eth0"
-			BOOTPROTO="dhcp"
-			ONBOOT="yes"
-			TYPE="Ethernet"
-			HWADDR="00:11:22:33:44:55"
-			PEERDNS="no"
-
-		* Apply network settings::
-
-			ifup eth1
-
-    * Ubuntu
-      * Copy MAC address from "Adapter 2" and add this to "ATTR{address}==" separated by colons
-        * ``vim /etc/udev/rules.d/70-persistent-net.rules``::
-          SUBSYSTEM=="net", ACTION=="add", DRIVERS=="?*", ATTR{address}=="00:11:22:33:44:55", ATTR{type}=="1", KERNEL=="eth*", NAME="eth1"
-
-        * ``vim /etc/network/interfaces``::
-
-        	auto eth1
-        	iface eth1 inet dhcp
-     
         * Apply network settings::
 
-	        /etc/init.d/networking restart
+            /etc/sysconfig/network-scripts/ifup eth0
+
+    * Ubuntu
+        * ``vi /etc/network/interfaces`` and add configuration corresponding eth0 interface::
+
+            auto eth0
+            iface eth0 inet static
+            address 10.0.0.100
+            netmask 255.255.255.0
+            network 10.0.0.0
+
+        * Apply network settings::
+
+            /etc/init.d/networking restart
 
     * Add DNS for Internet hostnames resolution. Both CentOS/RHEL and Ubuntu: ``vi /etc/resolv.conf`` (replace "your-domain-name.com" with your domain name, replace "8.8.8.8" with your DNS IP). Note: you can look up your DNS server on your host machine using ``ipconfig /all`` on Windows, or using ``cat /etc/resolv.conf`` under Linux ::
 
         search your-domain-name.com
         nameserver 8.8.8.8 
 
-    * Check that Internet access works::
-
-        ping google.com
-
-* Set up eth1 interface. It will be used for communication between Puppet master and Puppet clients, as well as for Cobbler. It will correspond to "Adapter 1" in VirtualBox.
-	* CentOS/RHEL
-          * Copy mac addres from "Adapter 1" and add this to "MACADDR=" separated by colons
-		* ``vi /etc/sysconfig/network-scripts/ifcfg-eth0``::
-
-			DEVICE="eth1"
-			BOOTPROTO="static"
-			IPADDR="10.0.0.100"
-			NETMASK="255.255.255.0"
-			ONBOOT="yes"
-			TYPE="Ethernet"
-			HWADDR="66:77:88:99:aa:bb"
-			PEERDNS="no"
-
-		* Apply network settings::
-
-			ifup eth0
-
-	* Ubuntu
-      * Copy MAC address from "Adapter 1" and add this to "ATTR{address}==" separated by colons
-        * ``vim /etc/udev/rules.d/70-persistent-net.rules``::
-          SUBSYSTEM=="net", ACTION=="add", DRIVERS=="?*", ATTR{address}=="66:77:88:99:aa:bb", ATTR{type}=="1", KERNEL=="eth*", NAME="eth0"
-
-		* add eth1 into "/etc/network/interfaces"::
-
-			auto eth0
-			iface eth1 inet static
-			address 10.0.0.100
-			netmask 255.255.255.0
-			network 10.0.0.0
-			 
-		* Apply network settings::
-
-			/etc/init.d/networking restart
-
-                * In the case of Ubuntu reboot the virtual machine to apply the changes
-
-	* check that ping to your host machine works::
+    * check that ping to your host machine works. This means that management segment is available::
 
             ping 10.0.0.1
+ 
+* Set up eth1 interface. It will provide Internet access for Puppet master:
+    * CentOS/RHEL
+        * ``vi /etc/sysconfig/network-scripts/ifcfg-eth1``::
+            DEVICE="eth1"
+            BOOTPROTO="dhcp"
+            ONBOOT="yes"
+            TYPE="Ethernet"
+
+        * Apply network settings::
+
+            /etc/sysconfig/network-scripts/ifup eth1
+
+    * Ubuntu
+        * ``vi /etc/network/interfaces`` and add configuration corresponding eth1 interface::
+
+            auto eth1
+            iface eth1 inet dhcp
+
+        * Apply network settings::
+
+            /etc/init.d/networking restart
+
+    * Check that Internet access works::
+
+            ping google.com
 
 * Set up the packages repository
-	* CentOS/RHEL
-		* ``vi /etc/yum.repos.d/puppet.repo``::
+    * CentOS/RHEL
+        * ``vi /etc/yum.repos.d/puppet.repo``::
 
-			[puppetlabs]
-			name=Puppet Labs Packages
-			baseurl=http://yum.puppetlabs.com/el/$releasever/products/$basearch/
-			enabled=1
-			gpgcheck=1
-			gpgkey=http://yum.puppetlabs.com/RPM-GPG-KEY-puppetlabs
+            [puppetlabs]
+            name=Puppet Labs Packages
+            baseurl=http://yum.puppetlabs.com/el/$releasever/products/$basearch/
+            enabled=1
+            gpgcheck=1
+            gpgkey=http://yum.puppetlabs.com/RPM-GPG-KEY-puppetlabs
 
-	* Ubuntu
-		* run::
+    * Ubuntu
+        * from command line run::
 
-			wget http://apt.puppetlabs.com/puppetlabs-release-precise.deb
-			sudo dpkg -i puppetlabs-release-precise.deb
+            wget http://apt.puppetlabs.com/puppetlabs-release-precise.deb
+            sudo dpkg -i puppetlabs-release-precise.deb
 
 * Install Puppet master
-	* CentOS/RHEL::
+    * CentOS/RHEL::
 
-		rpm -Uvh http://download.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-7.noarch.rpm
-		yum upgrade
-		yum install puppet-server
-		service puppetmaster start
-		chkconfig puppetmaster on
-		service iptables stop
-		chkconfig iptables off
+        rpm -Uvh http://download.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-7.noarch.rpm
+        yum upgrade
+        yum install puppet-server
+        service puppetmaster start
+        chkconfig puppetmaster on
+        service iptables stop
+        chkconfig iptables off
 
-	* Ubuntu::
-		
-		sudo apt-get update
-		apt-get install puppet puppetmaster
+    * Ubuntu::
+        
+        sudo apt-get update
+        apt-get install puppet puppetmaster
+		update-rc.d puppetmaster defaults
 
 * Set hostname
-	* CentOS/RHEL
-		* ``vi /etc/sysconfig/network``::
+    * CentOS/RHEL
+        * ``vi /etc/sysconfig/network``::
 
-			HOSTNAME=fuel-pm
+            HOSTNAME=fuel-pm
 
-	* Ubuntu
-		* ``vi /etc/hostname``::
+    * Ubuntu
+        * ``vi /etc/hostname``::
 
-			fuel-pm
+            fuel-pm
 
-	* Both CentOS/RHEL and Ubuntu ``vi /etc/hosts`` (replace "your-domain-name.com" with your domain name)::
+    * Both CentOS/RHEL and Ubuntu ``vi /etc/hosts`` (replace "your-domain-name.com" with your domain name)::
 
             127.0.0.1    localhost fuel-pm
             10.0.0.100   fuel-pm.your-domain-name.com fuel-pm
+			10.0.0.101   fuel-01.your-domain-name.com fuel-01
+			10.0.0.102   fuel-02.your-domain-name.com fuel-02
+			10.0.0.103   fuel-03.your-domain-name.com fuel-03
+			10.0.0.104   fuel-04.your-domain-name.com fuel-04
 
-	* Run ``hostname fuel-pm`` or reboot to apply hostname
+    * Run ``hostname fuel-pm`` or reboot to apply hostname
 
 
 Installing Puppet with thin
@@ -248,20 +234,18 @@ Installing Puppet with thin
 
 * Copy modules
 
-* Install Puppet master thin and nginx::
+* Install Puppet master thin and nginx (replace "your-domain-name.com" with your domain name)::
 
-	puppet apply -e'class {puppet:}
-	  '-> class {puppet::thin:}
-	  '-> class {puppet::nginx: puppet_master_hostname => "fuel-pm.mirantis.com"}'
+    puppet apply -e'class {puppet:}
+      '-> class {puppet::thin:}
+      '-> class {puppet::nginx: puppet_master_hostname => "fuel-pm.your-domain-name.com"}'
 
 * Generate SSH keys and upload them to ``/var/lib/puppet/ssh_keys``
-	* The default key names are "openstack" and "openstack.pub"
+    * The default key names are "openstack" and "openstack.pub"
 
-* Configure Puppet file server::
+* Configure Puppet file server (The following file will be created: ``/etc/puppet/fileserver.conf``)::
 
-	puppet apply -e 'class {puppet::fileserver_config}'
-	
-	* The following file will be created: ``/etc/puppet/fileserver.conf``
+    puppet apply -e 'class {puppet::fileserver_config}'
 
 * Configure PuppetDB
 
@@ -274,48 +258,50 @@ Enabling Stored Configuration
 This section will show how to configure Puppet to use a technique called stored configuration. It is required by Puppet manifests supplied with Fuel, so that they can store exported resources in Puppet database. This makes use of the PuppetDB.
 
 * Install and configure PuppetDB
-	* CentOS/RHEL:: 
+    * CentOS/RHEL:: 
 
-		yum install puppetdb puppetdb-terminus 
+        yum install puppetdb puppetdb-terminus
+        chkconfig puppetdb on		
 
-	* Ubuntu::
-		
-		apt-get install puppetdb puppetdb-terminus
+    * Ubuntu::
+        
+        apt-get install puppetdb puppetdb-terminus
+		update-rc.d puppetdb defaults
 
 * Alternatively, you can install PuppetDB by Puppet manifest using the following script::
 
-	puppet apply -e 'class {puppetdb:}'
-	puppet apply -e 'class {class {puppetdb::master::config: puppet_service_name=>'thin' }
+    puppet apply -e 'class {puppetdb:}'
+    puppet apply -e 'class {class {puppetdb::master::config: puppet_service_name=>'thin' }
 
 or::
-	puppet apply -e 'class {puppetdb:}'
-	puppet apply -e 'class {class {puppetdb::master::config: puppet_service_name=>'puppetmaster' }
+
+    puppet apply -e 'class {puppetdb:}'
+    puppet apply -e 'class {class {puppetdb::master::config: puppet_service_name=>'puppetmaster' }
 
 
 * Disable selinux on CentOS/RHEL (otherwise Puppet will not be able to connect to PuppetDB)::
-	
-	sed -i s/SELINUX=.*/SELINUX=disabled/ /etc/sysconfig/selinux
-	setenforce 0
+    
+    sed -i s/SELINUX=.*/SELINUX=disabled/ /etc/sysconfig/selinux
+    setenforce 0
 
 * Configure Puppet master to use storeconfigs
-    * ``vi /etc/puppet/puppet.conf``::
-
-       [master]
+    * ``vi /etc/puppet/puppet.conf`` and add following into [master] section::
+       
            storeconfigs = true
            storeconfigs_backend = puppetdb
 
 * Configure PuppetDB to use the correct hostname and port
-    * ``vi /etc/puppet/puppetdb.conf`` (replace "your-domain-name.com" with your domain name; if this file does not exist, it will be created)::
+    * ``vi /etc/puppet/puppetdb.conf`` and add following into [main] section (replace "your-domain-name.com" with your domain name; if this file does not exist, it will be created)::
 
-       [main]
            server = fuel-pm.your-domain-name.com
            port = 8081
 
-* Restart Puppet master to apply settings (Note: these operations may take about half a minute. You can ensure that PuppetDB is running by executing ``telnet fuel-pm.your-domain-name.com 8081``)::
-	
+* Restart Puppet master to apply settings (Note: these operations may take about two minutes. You can ensure that PuppetDB is running by executing ``telnet fuel-pm.your-domain-name.com 8081``)::
+    
+    service puppetmaster restart
 	puppetdb-ssl-setup
-	service puppetmaster restart
-	service puppetdb restart
+    service puppetmaster restart
+    service puppetdb restart
 
 
 Troubleshooting PuppetDB and SSL
@@ -328,7 +314,7 @@ Troubleshooting PuppetDB and SSL
    puppetdb-ssl-setup
    service puppetdb start
 
-                        
+   
 Testing Puppet
 ~~~~~~~~~~~~~~
 
@@ -369,10 +355,10 @@ Installing Fuel
 
 First of all, you should copy a complete Fuel package onto your Puppet master machine. Once you put Fuel there, you should unpack the archive and supply Fuel manifests to Puppet::
 
-	tar -xzf <fuel-archive-name>.tar.gz
-	cd fuel
-	cp -Rf fuel/deployment/puppet/* /etc/puppet/modules/
-	service puppetmaster restart
+    tar -xzf <fuel-archive-name>.tar.gz
+    cd fuel
+    cp -Rf fuel/deployment/puppet/* /etc/puppet/modules/
+    service puppetmaster restart
 
 Installing & Configuring Cobbler
 --------------------------------
@@ -425,7 +411,7 @@ In case of VirtualBox, create the corresponding virtual machines for your OpenSt
     * Version: Red Hat (64 Bit) or Ubuntu (64 Bit)
 
 * Machine -> System -> Motherboard...
-	* Check "Network" in "Boot sequence"
+    * Check "Network" in "Boot sequence"
 
 * Machine -> Settings... -> Network
     * Adapter 1
@@ -455,8 +441,8 @@ On Puppet master, create a directory for configuration (wherever you like) and c
 
     * ``mkdir cobbler_config``
     * ``cd cobbler_config``
-    * ``cp ../fuel/deployment/puppet/cobbler/examples/cobbler_system.py .``
-    * ``cp ../fuel/deployment/puppet/cobbler/examples/nodes.yaml .``
+    * ``cp /etc/puppet/modules/cobbler/examples/cobbler_system.py .``
+    * ``cp /etc/puppet/modules/cobbler/examples/nodes.yaml .``
 
 Edit configuration for bare metal provisioning of nodes (nodes.yaml):
 
@@ -465,7 +451,8 @@ Edit configuration for bare metal provisioning of nodes (nodes.yaml):
     * name of the system in Cobbler, the very first line
     * hostname and DNS name (do not forget to replace "your-domain-name.com" with your domain name)
     * MAC addresses for every network interface (you can look them up in VirtualBox by using Machine -> Settings... -> Network -> Adapters)
-    * static IP address on management interface eth1
+    * static IP address on management interface eth0
+	* version of Puppet according target OS
 * vi nodes.yaml
     .. literalinclude:: ../../deployment/puppet/cobbler/examples/nodes.yaml
 
@@ -505,21 +492,21 @@ Installing OpenStack
 In case of VirtualBox, it is recommended to save the current state of every virtual machine using the mechanism of snapshots. It is helpful to have a point to revert to, so that you could install OpenStack using Puppet and then revert and try one more time, if necessary.
 
 * On Puppet master
-	* create a file with the definition of networks, nodes, and roles. Assume you are deploying a compact configuration, with Controllers and Swift combined: ``cp fuel/deployment/puppet/openstack/examples/site_openstack_swift_compact.pp /etc/puppet/manifests/site.pp``
-	* ``vi /etc/puppet/manifests/site.pp``, correct IP addressing configuration for the "public" and "internal" addresses according to your current scheme. Also define  "$floating_range" and "$fixed_range" appropriately.
+    * create a file with the definition of networks, nodes, and roles. Assume you are deploying a compact configuration, with Controllers and Swift combined: ``cp /etc/puppet/modules/openstack/examples/site_openstack_swift_compact.pp /etc/puppet/manifests/site.pp``
+    * ``vi /etc/puppet/manifests/site.pp``, correct IP addressing configuration for the "public" and "internal" addresses according to your current scheme. Also define  "$floating_range" and "$fixed_range" appropriately.
 
-	.. literalinclude:: ../../deployment/puppet/openstack/examples/site_openstack_swift_compact_fordocs.pp
-	
+    .. literalinclude:: ../../deployment/puppet/openstack/examples/site_openstack_swift_compact_fordocs.pp
+    
     * create a directory with keys, give it appropriate permissions, and generate keys themselves
-		* ``mkdir /var/lib/puppet/ssh_keys``
-		* ``cd /var/lib/puppet/ssh_keys``
-		* ``ssh-keygen -f openstack``
-		* ``chown -R puppet:puppet /var/lib/puppet/ssh_keys/``
+        * ``mkdir /var/lib/puppet/ssh_keys``
+        * ``cd /var/lib/puppet/ssh_keys``
+        * ``ssh-keygen -f openstack``
+        * ``chown -R puppet:puppet /var/lib/puppet/ssh_keys/``
     * edit file ``/etc/puppet/fileserver.conf`` and append the following lines: :: 
-	
-	[ssh_keys]
-	path /var/lib/puppet/ssh_keys
-	allow *
+    
+    [ssh_keys]
+    path /var/lib/puppet/ssh_keys
+    allow *
 
 * Install OpenStack controller nodes sequentially, one by one
     * run "``puppet agent --test``" on fuel-01

@@ -3,18 +3,19 @@
 ##
 
 # This interface will be giving away internet
-$public_interface    = 'eth0'
-# This interface will look to local network
-$internal_interface  = 'eth1'
-# This interface for internal services
+$public_interface    = 'eth1'
+# This interface will look to management network
+$internal_interface  = 'eth0'
+# This interface for internal services 
 $private_interface   = 'eth2'
 
-# Public and Internal IP pools
+# Public and Internal VIPs for load-balancers
 $internal_virtual_ip = '10.0.125.253'
 $public_virtual_ip   = '10.0.74.253'
 
 $controller_internal_addresses = { 'fuel-01'=>'10.0.125.3', 'fuel-02'=>'10.0.125.4'}
 
+# Public and Internal IP pools
 $floating_range = '10.0.74.128/28'
 $fixed_range = '10.0.161.128/28'
 

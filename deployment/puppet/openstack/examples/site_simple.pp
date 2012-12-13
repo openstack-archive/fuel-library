@@ -5,12 +5,12 @@
 # be used in the deployment of multi and single node openstack
 # environments
 
-# assumes that eth0 is the public interface
-$public_interface        = 'eth0'
-# assumes that eth1 is the interface that will be used for the vm network
+# assumes that eth1 is the public interface
+$public_interface        = 'eth1'
+# assumes that eth0 is the interface that will be used for the vm network
 # this configuration assumes this interface is active but does not have an
 # ip address allocated to it.
-$internal_interface      = 'eth1'
+$internal_interface      = 'eth0'
 $private_interface       = 'eth2'
 
 $fixed_network_range     = '10.0.214.0/24'
