@@ -273,7 +273,7 @@ class openstack::compute (
 
     $enable_tunneling = $tenant_network_type ? { 'gre' => true, 'vlan' => false }
 
-    class { 'quantum':
+    class { '::quantum':
       verbose         => $verbose,
       debug           => $verbose,
       rabbit_host     => $rabbit_nodes ? { false => $rabbit_host, default => $rabbit_nodes },
@@ -286,10 +286,13 @@ class openstack::compute (
       sql_connection      => $quantum_sql_connection,
       tenant_network_type => $tenant_network_type,
       enable_tunneling    => $enable_tunneling,
+      bridge_mappings     => ['physnet2:br-prv'],
+      network_vlan_ranges => 'physnet1,physnet2:1000:2000',
     }
 
     class { 'quantum::agents::ovs':
       bridge_uplinks   => ["br-prv:${private_interface}"],
+      bridge_mappings  => ['physnet2:br-prv'],
       enable_tunneling => $enable_tunneling,
       local_ip         => $internal_address,
     }
