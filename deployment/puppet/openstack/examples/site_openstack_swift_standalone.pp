@@ -13,7 +13,6 @@ $private_interface   = 'eth2'
 $internal_virtual_ip = '10.0.0.253'
 $public_virtual_ip = '10.0.2.253'
 
-$controller_public_addresses = {'fuel-01' => '10.0.2.15','fuel-02' => '10.0.2.16','fuel-03' => '10.0.2.17'}
 $controller_internal_addresses = {'fuel-01' => '10.0.0.101','fuel-02' => '10.0.0.102','fuel-03' => '10.0.0.103'}
 
 $floating_range = '10.0.2.128/27'
@@ -222,3 +221,6 @@ node /fuel-0[89]/ {
     swift_local_net_ip      => $internal_address,
   }
 }
+
+# deprecated. keep it for backward compatibility
+$controller_public_addresses = {'fuel-01' => '10.0.2.15','fuel-02' => '10.0.2.16','fuel-03' => '10.0.2.17'}
