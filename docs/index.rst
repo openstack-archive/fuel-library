@@ -15,4 +15,5 @@ Table of contents
    pages/0050-installation-instructions
    pages/0060-questions-and-answers
    pages/0070-release-notes
+   pages/0080-known-issues
 
