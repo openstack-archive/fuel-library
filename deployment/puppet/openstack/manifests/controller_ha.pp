@@ -145,7 +145,7 @@ local0.* -/var/log/haproxy.log'
     if $which == 0 { 
       exec { 'create-public-virtual-ip':
         command => "ip addr add ${public_virtual_ip} dev ${public_interface} label ${public_interface}:ka",
-        unless => "ip addr show dev ${public_interface} | grep ${public_virtual_ip}",
+        unless => "ip addr show dev ${public_interface} | grep -w ${public_virtual_ip}",
         path => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
         before => Service['keepalived'],
         require => Exec['up-public-interface'],
