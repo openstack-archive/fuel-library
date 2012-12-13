@@ -13,9 +13,11 @@ class mcollective::client(
       # rubygems
       # rubygem-stomp
       $mcollective_client_package = "mcollective-client"
+      $mcollective_agent_path = "/usr/share/mcollective/plugins/mcollective/agent"
     }
     'RedHat': {
       $mcollective_client_package = "mcollective-client"
+      $mcollective_agent_path = "/usr/libexec/mcollective/mcollective/agent"
     }
     default: {
       fail("Unsupported osfamily: ${osfamily} for os ${operatingsystem}")
@@ -32,7 +34,7 @@ class mcollective::client(
     require => Package[$mcollective_client_package],
   }
   
-  file {"/usr/libexec/mcollective/mcollective/agent/puppetd.ddl" :
+  file {"${mcollective_agent_path}/puppetd.ddl" :
     content => template("mcollective/puppetd.ddl.erb"),
     owner => root,
     group => root,
@@ -40,7 +42,7 @@ class mcollective::client(
     require => Package[$mcollective_client_package],
   }
   
-  file {"/usr/libexec/mcollective/mcollective/agent/puppetd.rb" :
+  file {"${mcollective_agent_path}/puppetd.rb" :
     content => template("mcollective/puppetd.rb.erb"),
     owner => root,
     group => root,
