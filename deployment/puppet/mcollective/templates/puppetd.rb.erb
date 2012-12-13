@@ -120,7 +120,7 @@ module MCollective
       end
 
       def runonce_background
-        cmd = [@puppetd, "--onetime"]
+        cmd = [@puppetd, "--test"]
 
         unless request[:forcerun]
           if @splaytime && @splaytime > 0

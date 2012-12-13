@@ -15,6 +15,11 @@ module Astute
         prev_run = res.results[:data][:lastrun]
         last_run = prev_run
         while last_run == prev_run
+          if puppet_status[0].results[:data][:status] == "stopped" 
+          # if stopped and while doesn't end - output message and exit
+            puts "Puppet stopped on " + puppet_status[0].results[:sender]
+            break
+          end
           puppetd.discover(:nodes => [res.results[:sender]])
           puppet_status = puppetd.status
           # logging to false, otherwise we get a message every second
@@ -34,7 +39,7 @@ module Astute
       puppetd = MClient.new(ctx, "puppetd", uids)
       puppet_status = puppetd.status
 
-      puppetd.runonce
+      run_results = puppetd.runonce
 
       Astute.logger.debug "Waiting for puppet to finish deployment on all nodes (timeout = #{PUPPET_TIMEOUT} sec)..."
       time_before = Time.now
@@ -43,6 +48,9 @@ module Astute
         # As a better implementation we can later use separate queue to get result, ex. http://www.devco.net/archives/2012/08/19/mcollective-async-result-handling.php
         # or we can rewrite puppet agent not to fork, and increase ttl for mcollective RPC.
         wait_until_puppet_done(puppetd, puppet_status)
+      end
+      run_results.each do |run_result|
+        puts run_result.results[:data][:output] # puppet output
       end
       time_spent = Time.now - time_before
       Astute.logger.info "#{ctx.task_id}: Spent #{time_spent} seconds on puppet run for following nodes(uids): #{nodes.map {|n| n['uid']}.join(',')}"
