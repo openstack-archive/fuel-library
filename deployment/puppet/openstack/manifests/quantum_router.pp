@@ -1,6 +1,6 @@
 #This class installs quantum WITHOUT quantum api server which is installed on controller nodes
 
-class openstack::quantum (
+class openstack::quantum_router (
   $db_host,
   $rabbit_password,
   $internal_address         = $ipaddress_eth0,
