@@ -236,9 +236,7 @@ Installing Puppet with thin
 
 * Install Puppet master thin and nginx (replace "your-domain-name.com" with your domain name)::
 
-    puppet apply -e'class {puppet:}
-      '-> class {puppet::thin:}
-      '-> class {puppet::nginx: puppet_master_hostname => "fuel-pm.your-domain-name.com"}'
+    puppet apply -e 'class {puppet:} -> class {puppet::thin:} -> class {puppet::nginx: puppet_master_hostname => "fuel-pm.mirantis.com"}'
 
 * Generate SSH keys and upload them to ``/var/lib/puppet/ssh_keys``
     * The default key names are "openstack" and "openstack.pub"
