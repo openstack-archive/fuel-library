@@ -41,7 +41,10 @@ class quantum (
 
   if is_array($rabbit_host) and size($rabbit_host) > 1 {
     $rabbit_hosts = inline_template("<%= @rabbit_host.map {|x| x + ':5672'}.join ',' %>")
-
+    Quantum_config['DEFAULT/rabbit_ha_queues'] -> Service<| title == 'quantum-server' |>
+    Quantum_config['DEFAULT/rabbit_ha_queues'] -> Service<| title == 'quantum-plugin-ovs-service' |>
+    Quantum_config['DEFAULT/rabbit_ha_queues'] -> Service<| title == 'quantum-l3' |>
+    Quantum_config['DEFAULT/rabbit_ha_queues'] -> Service<| title == 'quantum-dhcp-agent' |>
     quantum_config {
       'DEFAULT/rabbit_ha_queues': value => 'True';
       'DEFAULT/rabbit_hosts':     value => $rabbit_hosts;
