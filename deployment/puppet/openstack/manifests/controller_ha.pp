@@ -78,7 +78,7 @@ define keepalived_dhcp_hook($interface)
 class openstack::controller_ha (
    $master_hostname,
    $controller_public_addresses, $public_interface, $private_interface, $controller_internal_addresses,
-   $internal_virtual_ip, $public_virtual_ip, $internal_interface,
+   $internal_virtual_ip, $public_virtual_ip, $internal_interface, $internal_address,
    $floating_range, $fixed_range, $multi_host, $network_manager, $verbose, $network_config = {},
    $auto_assign_floating_ip, $mysql_root_password, $admin_email, $admin_password,
    $keystone_db_password, $keystone_admin_token, $glance_db_password, $glance_user_password,
@@ -169,8 +169,6 @@ local0.* -/var/log/haproxy.log'
       }   
     }   
     sysctl::value { 'net.ipv4.ip_nonlocal_bind': value => '1' }
-
-    $internal_address = $controller_internal_addresses[$::fqdn]
 
         package {'socat': ensure => present}
         exec { 'wait-for-haproxy-mysql-backend':

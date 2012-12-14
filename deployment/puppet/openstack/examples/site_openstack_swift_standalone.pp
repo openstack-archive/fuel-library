@@ -100,6 +100,7 @@ node /fuel-0[12]/ {
   class { 'openstack::controller_ha':
     controller_public_addresses   => $controller_public_addresses,
     controller_internal_addresses => $controller_internal_addresses,
+    internal_address        => $internal_address,
     public_interface        => $public_interface,
     internal_interface      => $internal_interface,
     private_interface       => $private_interface,
