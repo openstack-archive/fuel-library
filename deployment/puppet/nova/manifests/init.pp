@@ -98,7 +98,7 @@ class nova(
       package { ['python-kombu', 'python-anyjson', 'python-amqp']:
         ensure => present
       }
-      Nova_config['DEFAULT/rabbit_ha_queues'] -> Nova::Generic_service<||>
+      Nova_config['DEFAULT/rabbit_ha_queues'] -> Nova::Generic_service<| title != 'api' |>
       nova_config { 'DEFAULT/rabbit_ha_queues': value => 'True' }
   }
 
