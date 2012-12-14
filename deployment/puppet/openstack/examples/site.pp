@@ -164,7 +164,7 @@ node /fuel-0[34]/ {
 }
 
 node /fuel-quantum/ {
-    class { 'openstack::quantum': 
+    class { 'openstack::quantum_router': 
       db_host               => $internal_virtual_ip,
       service_endpoint      => $internal_virtual_ip,
       auth_host             => $internal_virtual_ip,
