@@ -70,6 +70,7 @@ class cinder::api (
       'filter:authtoken/admin_tenant_name': ensure => absent;
       'filter:authtoken/admin_user': ensure => absent;
       'filter:authtoken/admin_password': ensure => absent;
+      'filter:authtoken/signing_dir': ensure => absent;
     }
 
  if $keystone_enabled {
@@ -83,6 +84,8 @@ class cinder::api (
       'keystone_authtoken/admin_tenant_name': value => $keystone_tenant;
       'keystone_authtoken/admin_user':        value => $keystone_user;
       'keystone_authtoken/admin_password':    value => $keystone_password;
+      'keystone_authtoken/signing_dir':       value => '/tmp/keystone-signing-nova';
+      'keystone_authtoken/signing_dirname':   value => '/tmp/keystone-signing-nova';
     }
   }
  exec { 'cinder-manage db_sync':

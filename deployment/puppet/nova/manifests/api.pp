@@ -53,6 +53,7 @@ class nova::api(
       'filter:authtoken/admin_tenant_name': ensure => absent;
       'filter:authtoken/admin_user': ensure => absent;
       'filter:authtoken/admin_password': ensure => absent;
+      'filter:authtoken/signing_dir': ensure => absent;
       'filter:authtoken/signing_dirname': ensure => absent;
     } 
 
@@ -86,6 +87,8 @@ class nova::api(
     'keystone_authtoken/admin_tenant_name': value => $admin_tenant_name;
     'keystone_authtoken/admin_user':        value => $admin_user;
     'keystone_authtoken/admin_password':    value => $admin_password;
+    'keystone_authtoken/signing_dir':       value => '/tmp/keystone-signing-nova';
+    'keystone_authtoken/signing_dirname':   value => '/tmp/keystone-signing-nova';
   }
 
   # I need to ensure that I better understand this resource
