@@ -16,8 +16,9 @@ $public_virtual_ip   = '10.0.74.253'
 $controller_internal_addresses = { 'fuel-01'=>'10.0.125.3', 'fuel-02'=>'10.0.125.4'}
 
 # Public and Internal IP pools
-$floating_range = '10.0.74.128/28'
-$fixed_range = '10.0.161.128/28'
+$create_networks = true
+$floating_range  = '10.0.74.128/28'
+$fixed_range     = '10.0.161.128/28'
 
 ##
 # These parameters to change by necessity
@@ -173,6 +174,7 @@ node /fuel-quantum/ {
       private_interface     => $private_interface,
       floating_range        => $floating_range,
       fixed_range           => $fixed_range,
+      create_networks       => $create_networks,
       verbose               => $verbose,
       rabbit_password       => $rabbit_password,
       rabbit_user           => $rabbit_user,

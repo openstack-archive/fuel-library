@@ -8,6 +8,7 @@ class openstack::quantum_router (
   $private_interface        = "eth1",
   $fixed_range              = '10.0.0.0/24',
   $floating_range           = false,
+  $create_networks          = true,
   $service_endpoint         = '127.0.0.1',
   $rabbit_user              = 'nova',
   $rabbit_nodes             = ['127.0.0.1'],
@@ -61,7 +62,7 @@ class openstack::quantum_router (
       use_namespaces => False,
     }
     class { 'quantum::agents::l3':
-      enabled             => $quantum_l3_enable,
+      #enabled             => $quantum_l3_enable,
       debug               => True,
       fixed_range         => $fixed_range,
       floating_range      => $floating_range,
