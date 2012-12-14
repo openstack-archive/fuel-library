@@ -1,0 +1,314 @@
+From 8ce3a34c13a86b79de6d629e8af45172555353aa Mon Sep 17 00:00:00 2001
+From: Eugene Kirpichov <ekirpichov@gmail.com>
+Date: Fri, 14 Dec 2012 09:19:12 +0000
+Subject: [PATCH] mysql reconnects
+
+Change-Id: Ia308fdb897df7fdf0dbee6bb3ad6958ba181398f
+---
+ nova/db/sqlalchemy/session.py |   72 +++++++++++++++++++++++++----
+ nova/exception.py             |   13 ------
+ nova/flags.py                 |   16 +++++--
+ nova/tests/test_db_retry.py   |  101 +++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 177 insertions(+), 25 deletions(-)
+ create mode 100644 nova/tests/test_db_retry.py
+
+diff --git a/nova/db/sqlalchemy/session.py b/nova/db/sqlalchemy/session.py
+index 3f20632..253d591 100644
+--- a/nova/db/sqlalchemy/session.py
++++ b/nova/db/sqlalchemy/session.py
+@@ -26,6 +26,8 @@ from sqlalchemy.exc import DisconnectionError, OperationalError
+ from sqlalchemy.pool import NullPool, StaticPool
+ 
+ import nova.exception
++from nova.exception import DBError
++from nova.exception import InvalidUnicodeParameter
+ import nova.flags as flags
+ import nova.log as logging
+ 
+@@ -46,8 +48,10 @@ def get_session(autocommit=True, expire_on_commit=False):
+         _MAKER = get_maker(engine, autocommit, expire_on_commit)
+ 
+     session = _MAKER()
+-    session.query = nova.exception.wrap_db_error(session.query)
+-    session.flush = nova.exception.wrap_db_error(session.flush)
++    session.begin = wrap_db_error(session.begin)
++    session.execute = wrap_db_error(session.execute)
++    session.flush = wrap_db_error(session.flush)
++    session.query = wrap_db_error(session.query)
+     return session
+ 
+ 
+@@ -84,12 +88,57 @@ def is_db_connection_error(args):
+     """Return True if error in connecting to db."""
+     # NOTE(adam_g): This is currently MySQL specific and needs to be extended
+     #               to support Postgres and others.
+-    conn_err_codes = ('2002', '2003', '2006')
++    conn_err_codes = ('2002', '2003', '2006', '2013')
+     for err_code in conn_err_codes:
+         if args.find(err_code) != -1:
+             return True
+     return False
+ 
++def wrap_db_error(f):
++    """Function wrapper to capture DB errors
++
++    If an exception is thrown by the wrapped function,
++    determine if it represents a database connection error.
++    If so, retry the wrapped function, and repeat until it succeeds
++    or we reach a configurable maximum number of retries.
++    If it is not a connection error, or we exceeded the retry limit,
++    raise a DBError.
++
++    """
++    def _wrap_db_error(*args, **kwargs):
++        next_interval = FLAGS.sql_retry_interval
++        remaining = FLAGS.sql_max_retries
++        if remaining == -1:
++            remaining = 'infinite'
++        while True:
++            try:
++                return f(*args, **kwargs)
++            except UnicodeEncodeError:
++                raise InvalidUnicodeParameter()
++            except OperationalError, e:
++                if is_db_connection_error(e.args[0]):
++                    if remaining == 0:
++                        LOG.exception(_('DB exceeded retry limit.'))
++                        raise DBError(e)
++                    if remaining != 'infinite':
++                        remaining -= 1
++                    LOG.exception(_('DB connection error, '
++                                    'retrying in %i seconds.') % next_interval)
++                    time.sleep(next_interval)
++                    if FLAGS.sql_inc_retry_interval:
++                        next_interval = min(next_interval * 2,
++                                            FLAGS.sql_max_retry_interval)
++                else:
++                    LOG.exception(_('DB exception wrapped.'))
++                    raise DBError(e)
++            except Exception, e:
++                LOG.exception(_('DB exception wrapped.'))
++                raise DBError(e)
++
++    _wrap_db_error.func_name = f.func_name
++    return _wrap_db_error
++
++
+ 
+ def get_engine():
+     """Return a SQLAlchemy engine."""
+@@ -119,9 +168,6 @@ def get_engine():
+             if not FLAGS.sqlite_synchronous:
+                 engine_args["listeners"] = [SynchronousSwitchListener()]
+ 
+-        if 'mysql' in connection_dict.drivername:
+-            engine_args['listeners'] = [MySQLPingListener()]
+-
+         _ENGINE = sqlalchemy.create_engine(FLAGS.sql_connection, **engine_args)
+ 
+         try:
+@@ -130,6 +176,7 @@ def get_engine():
+             if not is_db_connection_error(e.args[0]):
+                 raise
+ 
++            next_interval = FLAGS.sql_retry_interval
+             remaining = FLAGS.sql_max_retries
+             if remaining == -1:
+                 remaining = 'infinite'
+@@ -138,7 +185,7 @@ def get_engine():
+                 LOG.warn(msg % remaining)
+                 if remaining != 'infinite':
+                     remaining -= 1
+-                time.sleep(FLAGS.sql_retry_interval)
++                time.sleep(next_interval)
+                 try:
+                     _ENGINE.connect()
+                     break
+@@ -146,11 +193,20 @@ def get_engine():
+                     if (remaining != 'infinite' and remaining == 0) or \
+                        not is_db_connection_error(e.args[0]):
+                         raise
++                    if FLAGS.sql_inc_retry_interval:
++                        next_interval = min(next_interval * 2,
++                                            FLAGS.sql_max_retry_interval)
++
++
+     return _ENGINE
+ 
+ 
+ def get_maker(engine, autocommit=True, expire_on_commit=False):
+     """Return a SQLAlchemy sessionmaker using the given engine."""
++    query = sqlalchemy.orm.query.Query
++    query.all = wrap_db_error(query.all)
++    query.first = wrap_db_error(query.first)
+     return sqlalchemy.orm.sessionmaker(bind=engine,
+                                        autocommit=autocommit,
+-                                       expire_on_commit=expire_on_commit)
++                                       expire_on_commit=expire_on_commit,
++                                       query_cls=query)
+diff --git a/nova/exception.py b/nova/exception.py
+index 107d926..79e9727 100644
+--- a/nova/exception.py
++++ b/nova/exception.py
+@@ -84,19 +84,6 @@ class DBError(Error):
+         super(DBError, self).__init__(str(inner_exception))
+ 
+ 
+-def wrap_db_error(f):
+-    def _wrap(*args, **kwargs):
+-        try:
+-            return f(*args, **kwargs)
+-        except UnicodeEncodeError:
+-            raise InvalidUnicodeParameter()
+-        except Exception, e:
+-            LOG.exception(_('DB exception wrapped.'))
+-            raise DBError(e)
+-    _wrap.func_name = f.func_name
+-    return _wrap
+-
+-
+ def wrap_exception(notifier=None, publisher_id=None, event_type=None,
+                    level=None):
+     """This decorator wraps a method to catch any exceptions that may
+diff --git a/nova/flags.py b/nova/flags.py
+index 652d346..4472ed2 100644
+--- a/nova/flags.py
++++ b/nova/flags.py
+@@ -323,15 +323,23 @@ global_opts = [
+                 default=True,
+                 help='If passed, use synchronous mode for sqlite'),
+     cfg.IntOpt('sql_idle_timeout',
+-               default=3600,
+-               help='timeout before idle sql connections are reaped'),
++               default=30,
++               help='seconds before idle sql connections are reaped'),
+     cfg.IntOpt('sql_max_retries',
+-               default=10,
++               default=-1,
+                help='maximum db connection retries during startup. '
+                     '(setting -1 implies an infinite retry count)'),
+     cfg.IntOpt('sql_retry_interval',
++               default=1,
++               help='seconds between sql connection retries'),
++    cfg.BoolOpt('sql_inc_retry_interval',
++               default=True,
++               help='Whether to increase interval between sql connection '
++                    'retries, up to sql_max_retry_interval'),
++    cfg.IntOpt('sql_max_retry_interval',
+                default=10,
+-               help='interval between retries of opening a sql connection'),
++               help='max seconds between sql connection retries, if '
++               'sql_inc_retry_interval is enabled'),
+     cfg.StrOpt('compute_manager',
+                default='nova.compute.manager.ComputeManager',
+                help='full class name for the Manager for compute'),
+diff --git a/nova/tests/test_db_retry.py b/nova/tests/test_db_retry.py
+new file mode 100644
+index 0000000..8e5eeaf
+--- /dev/null
++++ b/nova/tests/test_db_retry.py
+@@ -0,0 +1,101 @@
++# vim: tabstop=4 shiftwidth=4 softtabstop=4
++# Copyright 2012 OpenStack LLC.
++# All Rights Reserved.
++#
++#    Licensed under the Apache License, Version 2.0 (the "License"); you may
++#    not use this file except in compliance with the License. You may obtain
++#    a copy of the License at
++#
++#         http://www.apache.org/licenses/LICENSE-2.0
++#
++#    Unless required by applicable law or agreed to in writing, software
++#    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
++#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
++#    License for the specific language governing permissions and limitations
++#    under the License.
++
++"""Unit tests for database retry logic"""
++
++from sqlalchemy import exc
++
++from nova.db.sqlalchemy import session
++from nova import exception
++from nova import flags
++from nova import test
++
++FLAGS = flags.FLAGS
++
++
++class DbRetryTestCase(test.TestCase):
++    def setUp(self):
++        super(DbRetryTestCase, self).setUp()
++        self.error_counter = 0
++
++    def my_raise(self, **kwargs):
++        """Simulate raising a database-has-gone-away error
++
++        This method creates a fake OperationalError with an ID matching
++        a valid MySQL "database has gone away" situation. It also decrements
++        the error_counter so that we can artificially keep track of
++        how many times this function is called by the wrapper. When
++        error_counter reaches zero, this function returns True, simulating
++        the database becoming available again and the query succeeding.
++        """
++
++        if self.error_counter > 0:
++            self.error_counter -= 1
++            e = exc.OperationalError(False, False, False)
++            e.args = ['2006', 'Test raise operational error']
++            raise e
++        else:
++            return True
++
++    def test_raise_db_conn_error(self):
++        is_db_conn_error = False
++        self.error_counter = 1
++
++        try:
++            self.my_raise()
++        except Exception, e:
++            is_db_conn_error = session.is_db_connection_error(e.args[0])
++        self.assertTrue(is_db_conn_error)
++
++    def test_retry_one(self):
++        self.flags(sql_retry_interval=1)
++
++        try:
++            q = session.wrap_db_error(self.my_raise)
++            self.error_counter = 1
++            self.assertEqual(True, q(), 'Single retry did not succeed.')
++        except Exception, e:
++            self.fail('Single retry raised an un-wrapped error.')
++
++        self.assertEqual(0, self.error_counter,
++                'Counter not decremented, retry logic probably failed.')
++
++    def test_retry_two(self):
++        self.flags(sql_inc_retry_interval=False)
++        self.flags(sql_retry_interval=1)
++
++        try:
++            q = session.wrap_db_error(self.my_raise)
++            self.error_counter = 2
++            self.assertEqual(True, q(), 'Multiple retry did not succeed.')
++        except Exception, e:
++            self.fail('Multiple retry raised an un-wrapped error.')
++
++        self.assertEqual(0, self.error_counter,
++                'Counter not decremented, retry logic probably failed.')
++
++    def test_retry_until_failure(self):
++        self.flags(sql_inc_retry_interval=False)
++        self.flags(sql_max_retries=3)
++        self.flags(sql_retry_interval=1)
++
++        q = session.wrap_db_error(self.my_raise)
++        self.error_counter = 5
++        self.assertRaises(exception.DBError, q,
++                'Retry of permanent failure did not throw DBError exception.')
++
++        self.assertNotEqual(0, self.error_counter,
++                'Retry did not stop after sql_max_retries iterations.')
+-- 
+1.7.9.5
+
