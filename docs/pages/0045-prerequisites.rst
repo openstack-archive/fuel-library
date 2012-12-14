@@ -20,7 +20,7 @@ Public network is usually isolated from Private networks and Management network.
 Public/corporate network usually is a single C class network from Customer’s network range (globally routed or private range).
 
 Management (Internal) Network Segment
-~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Management network connects all cluster nodes. Management network is used for exchange management data between components of the OpenStack cluster. This network must be isolated from Private and Public networks for security reasons.
 
@@ -51,3 +51,12 @@ Example "site*.pp" manifests assume that you have the same collection of physica
 
 Be careful and do not try to add block devices containing your operating system or any other useful data, as they will be destroyed after you allocate them to virtual machines.
 
+Quantum Notes
+-------------
+
+The Quantum project was created to provide a rich and tenant-facing API for defining network connectivity and addressing in the cloud. The Quantum project gives operators the ability to leverage different networking technologies to power their cloud networking.
+
+There are several common deployment use cases for Quantum.
+The FUEL automatically implements the use case: Provider Router with Private Networks. This use provides each tenant with one or more private networks, which connect to the outside world via a Quantum router.
+
+In order to deploy quantum you need to setup an additional node that will act as a L3 router. 

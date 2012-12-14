@@ -221,10 +221,10 @@ OS Installation
 
             127.0.0.1    localhost fuel-pm
             10.0.0.100   fuel-pm.your-domain-name.com fuel-pm
-			10.0.0.101   fuel-01.your-domain-name.com fuel-01
-			10.0.0.102   fuel-02.your-domain-name.com fuel-02
-			10.0.0.103   fuel-03.your-domain-name.com fuel-03
-			10.0.0.104   fuel-04.your-domain-name.com fuel-04
+            10.0.0.101   fuel-01.your-domain-name.com fuel-01
+            10.0.0.102   fuel-02.your-domain-name.com fuel-02
+            10.0.0.103   fuel-03.your-domain-name.com fuel-03
+            10.0.0.104   fuel-04.your-domain-name.com fuel-04
 
     * Run ``hostname fuel-pm`` or reboot to apply hostname
 
@@ -499,6 +499,23 @@ In case of VirtualBox, it is recommended to save the current state of every virt
 
     .. literalinclude:: ../../deployment/puppet/openstack/examples/site_openstack_swift_compact_fordocs.pp
     
+    * In order to deploy quantum you need to setup an additional node that will act as a L3 router. In the ``/etc/puppet/manifests/site.pp`` set the following options::
+
+        # Network mode: quantum(true) or nova-network(false)
+        $quantum                = true
+        # API service location
+        $quantum_host           = $internal_virtual_ip
+        # Keystone and DB user password
+        $quantum_user_password  = 'quantum_pass'
+        $quantum_db_password    = 'quantum_pass'
+        # DB user name
+        $quantum_db_user        = 'quantum'
+        # Type of network to allocate for tenant networks.
+        # You MUST either change this to 'vlan' or change this to 'gre'
+        # in order for tenant networks to provide connectivity between hosts
+        # It's more handy to choose tunnel mode since you don't have to configure your physical switchs for VLANs
+        $tenant_network_type    = 'gre'
+      
     * create a directory with keys, give it appropriate permissions, and generate keys themselves
         * ``mkdir /var/lib/puppet/ssh_keys``
         * ``cd /var/lib/puppet/ssh_keys``
