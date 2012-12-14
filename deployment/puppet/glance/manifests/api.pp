@@ -147,6 +147,8 @@ class glance::api(
       'keystone_authtoken/admin_tenant_name': value => $keystone_tenant;
       'keystone_authtoken/admin_user':        value => $keystone_user;
       'keystone_authtoken/admin_password':    value => $keystone_password;
+      'keystone_authtoken/signing_dir':       value => '/tmp/keystone-signing-nova';
+      'keystone_authtoken/signing_dirname':   value => '/tmp/keystone-signing-nova';
     }
     glance_cache_config {
       'DEFAULT/auth_url':          value => $auth_uri;
