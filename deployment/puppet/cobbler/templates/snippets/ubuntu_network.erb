@@ -16,7 +16,7 @@
     #if $imac == "":
         #continue
     #end if
-    #set $script += "MATCHADDR=%s INTERFACE=%s /lib/udev/write_net_rules\n" % ($imac, $iname)
+    #set $script += "MATCHADDR=%s INTERFACE=%s /lib/udev/write_net_rules\n" % ($imac.lower(), $iname)
 #end for
 #set $script += "\n"
 #######################################
