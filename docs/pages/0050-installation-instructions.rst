@@ -493,7 +493,11 @@ In case of VirtualBox, it is recommended to save the current state of every virt
 
 * On Puppet master
     * create a file with the definition of networks, nodes, and roles. Assume you are deploying a compact configuration, with Controllers and Swift combined: ``cp /etc/puppet/modules/openstack/examples/site_openstack_swift_compact.pp /etc/puppet/manifests/site.pp``
-    * ``vi /etc/puppet/manifests/site.pp``, correct IP addressing configuration for the "public" and "internal" addresses according to your current scheme. Also define  "$floating_range" and "$fixed_range" appropriately.
+    * ``vi /etc/puppet/manifests/site.pp`` and
+        * correct IP addressing configuration for the "public" and "internal" addresses according to your current scheme
+        * define  "$floating_range" and "$fixed_range" appropriately
+        * define what volume manager should be used. To deploy cinder simply set $cinder = true in your site.pp file 
+        * specify "$nv_physical_volume" array specifies physical volumes that will be aggregated into "cinder-volumes" volume group
 
     .. literalinclude:: ../../deployment/puppet/openstack/examples/site_openstack_swift_compact_fordocs.pp
     

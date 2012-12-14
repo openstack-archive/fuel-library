@@ -12,6 +12,7 @@ Table of contents
    pages/0020-how-it-works
    pages/0030-supported-software-versions
    pages/0040-reference-architecture
+   pages/0045-prerequisites
    pages/0050-installation-instructions
    pages/0060-questions-and-answers
    pages/0070-release-notes
