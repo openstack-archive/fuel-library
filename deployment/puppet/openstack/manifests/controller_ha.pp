@@ -87,7 +87,7 @@ class openstack::controller_ha (
   $galera_nodes, $nv_physical_volume = undef,
 ) {
 
-    $which = $::hostname ? { $master_hostname => 0, default => 1 }
+    $which = $::fqdn ? { $master_hostname => 0, default => 1 }
 
     #    $vip = $virtual_ip
     #    $hosts = $controller_hostnames
@@ -163,7 +163,7 @@ class openstack::controller_ha (
     }
     sysctl::value { 'net.ipv4.ip_nonlocal_bind': value => '1' }
 
-    $internal_address = $controller_internal_addresses[$::hostname]
+    $internal_address = $controller_internal_addresses[$::fqdn]
 
         package {'socat': ensure => present}
         exec { 'wait-for-haproxy-mysql-backend':
@@ -249,7 +249,7 @@ class openstack::controller_ha (
       custom_mysql_setup_class => 'galera',
       galera_cluster_name   => 'openstack',
       galera_master_ip      => $which ? { 0 => false, default => $controller_internal_addresses[$master_hostname] },
-      galera_node_address   => $controller_internal_addresses[$::hostname],
+      galera_node_address   => $controller_internal_addresses[$::fqdn],
       galera_nodes          => $galera_nodes,
       admin_email             => $admin_email,
       admin_password          => $admin_password,
@@ -265,7 +265,7 @@ class openstack::controller_ha (
       rabbit_nodes            => $controller_hostnames,
       cache_server_ip         => $memcached_servers,
       export_resources        => false,
-      api_bind_address        => $controller_internal_addresses[$::hostname],
+      api_bind_address        => $controller_internal_addresses[$::fqdn],
       mysql_host              => $internal_virtual_ip,
       service_endpoint        => $internal_virtual_ip,
       glance_backend          => $glance_backend,

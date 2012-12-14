@@ -70,7 +70,7 @@ if $::operatingsystem == 'Ubuntu'
   class { 'openstack::apparmor::disable': stage => 'openstack-custom-repo' }
 }
 node /fuel-0[12]/ {
-  if $::hostname == $master_hostname
+  if $::fqdn == $master_hostname
   {
     $manage_volumes = true
   }
