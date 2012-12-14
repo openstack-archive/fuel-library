@@ -23,6 +23,9 @@ class OpenStackSwiftCompactCase(OpenStackSwiftCompactTestCase):
             self.nodes.controllers,
             'puppet agent --test')
         self.validate(
+            self.nodes.quantums,
+            'puppet agent --test')
+        self.validate(
             self.nodes.computes,
             'puppet agent --test')
         for node in self.environment.nodes:
