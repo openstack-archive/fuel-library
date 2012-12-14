@@ -29,7 +29,7 @@ class OpenStackSwiftCompactCase(OpenStackSwiftCompactTestCase):
             self.nodes.computes,
             'puppet agent --test')
         for node in self.environment.nodes:
-            node.save_snapshot(OPENSTACK_SNAPSHOT)
+            node.save_snapshot(OPENSTACK_SNAPSHOT, force=True)
 
 if __name__ == '__main__':
     unittest.main()
