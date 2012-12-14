@@ -179,7 +179,8 @@ wait_for_pid () {
 
         # there's nothing that will affect the file.
         log_failure_msg "The server quit without updating PID file ($pid_file_path)."
-        return 1  # not waiting any more.
+        rm -f "$pid_file_path"
+        return 0  # not waiting any more.
       fi
     fi
 
@@ -338,7 +339,8 @@ case "$mode" in
                 j=0
                 while test $j -ne 30
                 do
-                        if (kill -0 `pidof mysqld` 1>&2 2>/dev/null)  then
+                        if (kill -0 `pidof mysqld` 1>&2 2>/dev/null)
+                        then
                                 echo -n ".`pidof mysqld`"
                                 kill `pidof mysqld`
                                 sleep 2 
