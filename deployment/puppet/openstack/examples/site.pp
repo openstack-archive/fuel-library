@@ -70,7 +70,7 @@ if $::operatingsystem == 'Ubuntu'
   class { 'openstack::apparmor::disable': stage => 'openstack-custom-repo' }
 }
 node /fuel-0[12]/ {
-  if $::fqdn == $master_hostname
+  if $::hostname == $master_hostname
   {
     $manage_volumes = true
   }
@@ -82,6 +82,7 @@ node /fuel-0[12]/ {
       internal_virtual_ip     => $internal_virtual_ip,
       public_virtual_ip       => $public_virtual_ip,
       controller_internal_addresses => $controller_internal_addresses,
+      internal_address        => $internal_address,
       master_hostname         => $master_hostname,
       floating_range          => $floating_range,
       fixed_range             => $fixed_range,

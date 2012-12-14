@@ -73,7 +73,7 @@ if $::operatingsystem == 'Ubuntu'
   class { 'openstack::apparmor::disable': stage => 'openstack-custom-repo' }
 }
 class compact_controller {
-  if $::fqdn == $master_hostname {
+  if $::hostname == $master_hostname {
     $manage_volumes = true
   }
   class { 'openstack::controller_ha': 
@@ -84,6 +84,7 @@ class compact_controller {
       internal_virtual_ip     => $internal_virtual_ip,
       public_virtual_ip       => $public_virtual_ip,
       controller_internal_addresses => $controller_internal_addresses,
+      internal_address        => $internal_address,
       master_hostname         => $master_hostname,
       floating_range          => $floating_range,
       fixed_range             => $fixed_range,
@@ -274,7 +275,7 @@ class role_swift_proxy {
   # to balance the ring
 
 
-  if $::fqdn == $swift_master {
+  if $::hostname == $swift_master {
      Ring_object_device <<| |>>
      Ring_container_device <<| |>>
      Ring_account_device <<| |>>
