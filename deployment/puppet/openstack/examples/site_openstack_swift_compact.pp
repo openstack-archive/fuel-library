@@ -17,8 +17,9 @@ $swift_proxy_address = '10.0.126.253'
 $controller_internal_addresses = {'fuel-01' => '10.0.126.3','fuel-02' => '10.0.126.4','fuel-03' => '10.0.126.5'}
 
 # Public and Internal IP pools
-$fixed_range = '10.0.198.128/27'
-$floating_range = '10.0.74.128/28'
+$create_networks = true
+$fixed_range     = '10.0.198.128/27'
+$floating_range  = '10.0.74.128/28'
 
 ##
 # These parameters to change by necessity
@@ -240,6 +241,7 @@ node /fuel-quantum/ {
       private_interface     => $private_interface,
       floating_range        => $floating_range,
       fixed_range           => $fixed_range,
+      create_networks       => $create_networks,
       verbose               => $verbose,
       rabbit_password       => $rabbit_password,
       rabbit_user           => $rabbit_user,
