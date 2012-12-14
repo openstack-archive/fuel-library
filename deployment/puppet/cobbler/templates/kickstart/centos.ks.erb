@@ -59,7 +59,13 @@ zerombr
 clearpart --all --initlabel
 
 # AUTOMATICALLY CREATE / /boot AND swap PARTITIONS
-autopart
+# autopart can't work together with autocreate LVS group for cinder
+# autopart
+part      /boot  --fstype ext3 --size=512 --asprimary
+part      pv.01  --size=1 --grow
+volgroup  sysvg  pv.01
+logvol    swap   --fstype swap --name=swap --vgname=sysvg --recommended
+logvol    /      --fstype ext3 --name=root --vgname=sysvg --size=1 --grow
 
 # COBBLER EMBEDDED SNIPPET: 'network_config'
 # CONFIGURES NETWORK INTERFACES DEPENDING ON
@@ -139,6 +145,9 @@ $SNIPPET('puppet_register_if_enabled')
 # COBBLER EMBEDDED SNIPPET: 'ntp_register_if_enabled'
 # SYNC NTPDATE AND RUN NTP SERVICE
 $SNIPPET('ntp_register_if_enabled')
+
+# CREATING LVM GROUP FOR CINDER
+$SNIPPET('cinder_create_lvm_group')
 
 # COBBLER EMBEDDED SNIPPET: 'mcollective_conf'
 # CONFIGURES MCOLLECTIVE AGENT
