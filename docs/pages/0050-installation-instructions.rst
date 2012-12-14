@@ -515,7 +515,7 @@ In case of VirtualBox, it is recommended to save the current state of every virt
         # in order for tenant networks to provide connectivity between hosts
         # It's more handy to choose tunnel mode since you don't have to configure your physical switchs for VLANs
         $tenant_network_type    = 'gre'
-      
+
     * create a directory with keys, give it appropriate permissions, and generate keys themselves
         * ``mkdir /var/lib/puppet/ssh_keys``
         * ``cd /var/lib/puppet/ssh_keys``
