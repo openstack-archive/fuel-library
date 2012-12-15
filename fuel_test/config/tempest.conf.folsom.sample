@@ -175,3 +175,7 @@ build_interval = %(VOLUME_BUILD_INTERVAL)s
 # Number of seconds to time out on waiting for a volume
 # to be available or reach an expected status
 build_timeout = %(VOLUME_BUILD_TIMEOUT)s
+
+[network]
+catalog_type = %(NETWORK_CATALOG_TYPE)s
+api_version = %(NETWORK_API_VERSION)s
