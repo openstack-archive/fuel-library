@@ -480,3 +480,6 @@ def install_astute(ip):
         '/tmp/astute-0.0.1.gem')
     execute(remote, 'gem install /tmp/astute-0.0.1.gem')
 
+def is_not_essex():
+    return os.environ.get('ENV_NAME', 'folsom').find('essex') == -1
+
