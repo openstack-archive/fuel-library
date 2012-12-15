@@ -5,16 +5,12 @@ from fuel_test.settings import OPENSTACK_SNAPSHOT
 
 class OpenStackSwiftCase(OpenStackSwiftTestCase):
     def test_deploy_open_stack_swift(self):
-        self.validate(
-            self.nodes.controllers[:1] + self.nodes.controllers[1:] + self.nodes.controllers[:1],
-            'puppet agent --test')
+        self.validate(self.nodes.controllers[:1], 'puppet agent --test')
+        self.validate(self.nodes.controllers[1:], 'puppet agent --test')
+        self.validate(self.nodes.controllers[:1], 'puppet agent --test')
         if is_not_essex():
-            self.validate(
-                 self.nodes.quantums,
-                'puppet agent --test')
-        self.validate(
-            self.nodes.computes,
-            'puppet agent --test')
+            self.validate(self.nodes.quantums, 'puppet agent --test')
+        self.validate(self.nodes.computes, 'puppet agent --test')
         self.do(self.nodes.storages, 'puppet agent --test')
         self.do(self.nodes.storages, 'puppet agent --test')
         self.do(self.nodes.proxies, 'puppet agent --test')
