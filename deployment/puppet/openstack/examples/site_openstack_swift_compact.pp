@@ -255,6 +255,13 @@ node /fuel-quantum/ {
       tenant_network_type   => $tenant_network_type,
       api_bind_address      => $internal_address
     }
+
+    class { 'openstack::auth_file':
+      admin_password       => $admin_password,
+      keystone_admin_token => $keystone_admin_token,
+      controller_node      => $internal_virtual_ip,
+      before               => Class['openstack::quantum_router'],
+    }
 }
 
 
