@@ -39,7 +39,7 @@ case $::osfamily {
       'glance'     => '2012.1.1-1.el6',
       'horizon'    => '2012.1.1-1.el6',
       # set to 'latest' if you use patched packages
-      'nova'       => '2012.1.1-16.mira',
+      'nova'       => '2012.1.1-17.mira',
       'novncproxy' => '0.3-11.el6',
     }
   }
