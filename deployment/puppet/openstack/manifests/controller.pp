@@ -138,7 +138,7 @@ class openstack::controller (
   $quantum_db_password     = 'quantum_pass',
   $quantum_db_user         = 'quantum',
   $quantum_db_dbname       = 'quantum',
-  $segment_range           = '1:4096',
+  $segment_range           = '1:4094',
   $tenant_network_type     = 'gre',
   $enabled                 = true,
   $api_bind_address        = '0.0.0.0',

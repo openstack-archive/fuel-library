@@ -9,7 +9,7 @@ class openstack::quantum_router (
   $fixed_range              = '10.0.0.0/24',
   $floating_range           = false,
   $create_networks          = true,
-  $segment_range            = '1:4096',
+  $segment_range            = '1:4094',
   $service_endpoint         = '127.0.0.1',
   $rabbit_user              = 'nova',
   $rabbit_nodes             = ['127.0.0.1'],

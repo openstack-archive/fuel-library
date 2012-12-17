@@ -82,7 +82,7 @@ class openstack::compute (
   $quantum_host                  = false,
   $quantum_user_password         = false,
   $tenant_network_type           = 'gre',
-  $segment_range                 = '1:4096',
+  $segment_range                 = '1:4094',
   $cinder			= false,
   # nova compute configuration parameters
   $verbose             = false,

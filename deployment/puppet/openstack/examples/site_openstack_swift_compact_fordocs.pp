@@ -21,6 +21,10 @@ $create_networks = true
 $floating_range  = '10.0.2.128/27'
 $fixed_range     = '10.0.198.128/27'
 
+# For VLAN networks: valid VLAN VIDs are 1 through 4094.
+# For GRE networks: Valid tunnel IDs are any 32 bit unsigned integer.
+$segment_range = '900:999'
+
 ##
 # These parameters to change by necessity
 ##
@@ -134,6 +138,7 @@ class compact_controller {
     quantum_db_user         => $quantum_db_user,
     quantum_db_dbname       => $quantum_db_dbname,
     tenant_network_type     => $tenant_network_type,
+    segment_range           => $segment_range,
     cinder                  => $cinder,
     manage_volumes          => $manage_volumes,
     galera_nodes            => $controller_hostnames,
@@ -228,6 +233,7 @@ node /fuel-04/ {
       quantum_sql_connection => $quantum_sql_connection,
       quantum_user_password  => $quantum_user_password,
       tenant_network_type    => $tenant_network_type,
+      segment_range          => $segment_range,
       cinder                 => $cinder,
       ssh_private_key        => 'puppet:///ssh_keys/openstack',
       ssh_public_key         => 'puppet:///ssh_keys/openstack.pub',
@@ -255,6 +261,7 @@ node /fuel-quantum/ {
       quantum_db_user       => $quantum_db_user,
       quantum_db_dbname     => $quantum_db_dbname,
       tenant_network_type   => $tenant_network_type,
+      segment_range         => $segment_range,
       api_bind_address      => $internal_address
     }
 

@@ -85,7 +85,7 @@ class openstack::controller_ha (
    $nova_db_password, $nova_user_password, $rabbit_password, $rabbit_user,
    $rabbit_nodes, $memcached_servers, $export_resources, $glance_backend='file', $swift_proxies=undef,
    $quantum = false, $quantum_user_password, $quantum_db_password, $quantum_db_user = 'quantum',
-   $quantum_db_dbname  = 'quantum', $cinder = false, $tenant_network_type = 'gre', $segment_range = '1:4096',
+   $quantum_db_dbname  = 'quantum', $cinder = false, $tenant_network_type = 'gre', $segment_range = '1:4094',
    $nv_physical_volume = undef, $manage_volumes = false,$galera_nodes, 
  ) {
 

@@ -49,7 +49,7 @@ class openstack::nova::controller (
   $quantum_db_password       = 'quantum_pass',
   $quantum_user_password     = 'quantum_pass',
   #$quantum_l3_enable         = true,
-  $segment_range             = '1:4096',
+  $segment_range             = '1:4094',
   $tenant_network_type       = 'gre',
   # Nova
   $nova_db_user              = 'nova',
