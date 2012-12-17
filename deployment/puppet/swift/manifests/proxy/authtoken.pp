@@ -50,7 +50,8 @@ class swift::proxy::authtoken(
     delay_auth_decision => $delay_auth_decision,
     auth_host           => $auth_host,
     auth_port           => $auth_port,
-    auth_protocol       => $auth_protocol
+    auth_protocol       => $auth_protocol,
+    signing_dir         => '/tmp/keystone_signing_swift',
   }
 
 }

@@ -41,7 +41,8 @@ define keystone::client::authtoken(
   $delay_auth_decision = '0',
   $auth_host           = '127.0.0.1',
   $auth_port           = '35357',
-  $auth_protocol       = 'http'
+  $auth_protocol       = 'http',
+  $signing_dir         = undef,
   # TODO implement these eventually
   # $memcache_servers
   # $token_cache_time
