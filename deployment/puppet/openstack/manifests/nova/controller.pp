@@ -48,7 +48,8 @@ class openstack::nova::controller (
   $quantum_db_user           = 'quantum',
   $quantum_db_password       = 'quantum_pass',
   $quantum_user_password     = 'quantum_pass',
-  $quantum_l3_enable         = true,
+  #$quantum_l3_enable         = true,
+  $segment_range             = '1:4096',
   $tenant_network_type       = 'gre',
   # Nova
   $nova_db_user              = 'nova',
@@ -221,7 +222,8 @@ if ($rabbit_nodes)
 
     class { 'quantum::plugins::ovs':
       bridge_mappings     => ["physnet1:br-ex","physnet2:br-prv"],
-      network_vlan_ranges => 'physnet1,physnet2:1000:2000',
+      network_vlan_ranges => "physnet1,physnet2:${segment_range}",
+      tunnel_id_ranges    => "${segment_range}",
       sql_connection      => $quantum_sql_connection,
       tenant_network_type => $tenant_network_type,
       enable_tunneling    => $enable_tunneling,

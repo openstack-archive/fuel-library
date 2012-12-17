@@ -82,6 +82,7 @@ class openstack::compute (
   $quantum_host                  = false,
   $quantum_user_password         = false,
   $tenant_network_type           = 'gre',
+  $segment_range                 = '1:4096',
   $cinder			= false,
   # nova compute configuration parameters
   $verbose             = false,
@@ -287,7 +288,8 @@ class openstack::compute (
       tenant_network_type => $tenant_network_type,
       enable_tunneling    => $enable_tunneling,
       bridge_mappings     => ['physnet2:br-prv'],
-      network_vlan_ranges => 'physnet1,physnet2:1000:2000',
+      network_vlan_ranges => "physnet1,physnet2:${segment_range}",
+      tunnel_id_ranges    => "${segment_range}",
     }
 
     class { 'quantum::agents::ovs':

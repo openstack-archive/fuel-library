@@ -9,6 +9,7 @@ class openstack::quantum_router (
   $fixed_range              = '10.0.0.0/24',
   $floating_range           = false,
   $create_networks          = true,
+  $segment_range            = '1:4096',
   $service_endpoint         = '127.0.0.1',
   $rabbit_user              = 'nova',
   $rabbit_nodes             = ['127.0.0.1'],
@@ -44,7 +45,8 @@ class openstack::quantum_router (
 
     class { 'quantum::plugins::ovs':
       bridge_mappings     => ["physnet1:br-ex","physnet2:br-prv"],
-      network_vlan_ranges => 'physnet1,physnet2:1000:2000',
+      network_vlan_ranges => "physnet1,physnet2:${segment_range}",
+      tunnel_id_ranges    => "${segment_range}",
       sql_connection      => $quantum_sql_connection,
       tenant_network_type => $tenant_network_type,
       enable_tunneling    => $enable_tunneling,
@@ -68,6 +70,7 @@ class openstack::quantum_router (
       floating_range      => $floating_range,
       tenant_network_type => $tenant_network_type,
       create_networks     => $create_networks,
+      segment_range       => $segment_range,
       auth_url            => "http://${auth_host}:35357/v2.0",
       auth_tenant         => 'services',
       auth_user           => 'quantum',

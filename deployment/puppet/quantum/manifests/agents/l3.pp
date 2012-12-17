@@ -5,6 +5,7 @@ class quantum::agents::l3 (
   $debug                        = 'False',
   $fixed_range                  = '10.0.1.0/24',
   $floating_range               = '192.168.10.0/24',
+  $segment_range                = '1:4096',
   $tenant_network_type          = 'gre',
   $create_networks              = true,
   $interface_driver             = 'quantum.agent.linux.interface.OVSInterfaceDriver',

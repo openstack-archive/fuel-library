@@ -138,7 +138,7 @@ class openstack::controller (
   $quantum_db_password     = 'quantum_pass',
   $quantum_db_user         = 'quantum',
   $quantum_db_dbname       = 'quantum',
-  $quantum_l3_enable       = true,
+  $segment_range           = '1:4096',
   $tenant_network_type     = 'gre',
   $enabled                 = true,
   $api_bind_address        = '0.0.0.0',
@@ -286,7 +286,7 @@ class openstack::controller (
     quantum                 => $quantum,
     quantum_user_password   => $quantum_user_password,
     quantum_db_password     => $quantum_db_password,
-    quantum_l3_enable       => $quantum_l3_enable,
+    segment_range           => $segment_range,
     tenant_network_type     => $tenant_network_type, 
     # Nova
     nova_user_password      => $nova_user_password,
