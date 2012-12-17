@@ -79,5 +79,8 @@ class openstack::quantum_router (
       metadata_ip         => $service_endpoint,
     }
 
+    sysctl::value { 'net.ipv4.ip_forward':
+      value => '1'
+    }
 
 }
