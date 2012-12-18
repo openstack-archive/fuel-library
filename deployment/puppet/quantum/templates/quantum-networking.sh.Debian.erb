@@ -23,7 +23,7 @@ Q_L3_CONF_FILE=/etc/quantum/l3_agent.ini
 TENANT_NAME="admin"
 TENANT_NETWORK_NAME="int_net"
 FIXED_RANGE="<%= fixed_range %>"
-NETWORK_GATEWAY=$(ipcalc -nb $FIXED_RANGE | awk '/^HostMin/ {print $2}')
+NETWORK_GATEWAY=$(TERM=vt100 ipcalc -nb $FIXED_RANGE | awk '/^HostMin/ {print $2}')
 ###########################
 
 
@@ -44,7 +44,7 @@ EXT_NET_LEN=${EXT_NET_CIDR#*/}
 # External bridge that we have configured into l3_agent.ini (Don't change it)
 EXT_NET_BRIDGE=br-ex
 
-set $(ipcalc -nb $EXT_NET_CIDR | awk '/^(HostMin|HostMax)/ {print $2}')
+set $(TERM=vt100 ipcalc -nb $EXT_NET_CIDR | awk '/^(HostMin|HostMax)/ {print $2}')
 LAST_OCTET=${1##*.}
 
 # IP of external bridge (br-ex) :
