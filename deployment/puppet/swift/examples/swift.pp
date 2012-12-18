@@ -21,6 +21,7 @@
 # this site manifest serves as an example of how to
 # deploy various swift environments
 
+$internal_interface   = 'eth0'
 $admin_email          = 'dan@example_company.com'
 $keystone_db_password = 'keystone_db_password'
 $keystone_admin_token = 'keystone_token'
@@ -30,7 +31,7 @@ $admin_password       = 'admin_password'
 $swift_user_password  = 'swift_pass'
 # swift specific configurations
 $swift_shared_secret  = 'changeme'
-$swift_local_net_ip   = $ipaddress_eth1
+$internal_address = getvar("::ipaddress_${internal_interface}")
 
 $swift_proxy_address    = '192.168.1.16'
 $controller_node_public = '192.168.1.16'
@@ -135,7 +136,7 @@ class role_swift_storage {
 
   # install all swift storage servers together
   class { 'swift::storage::all':
-    storage_local_net_ip => $swift_local_net_ip,
+    storage_local_net_ip => $internal_address,
     swift_zone => $swift_zone,
   }
 
@@ -156,7 +157,7 @@ node /swift-proxy/ inherits swift_base {
 
   # specify swift proxy and all of its middlewares
   class { 'swift::proxy':
-    proxy_local_net_ip => $swift_local_net_ip,
+    proxy_local_net_ip => $internal_address,
     pipeline           => [
       'catch_errors',
       'healthcheck',
@@ -217,15 +218,15 @@ node /swift-proxy/ inherits swift_base {
     min_part_hours => 1,
     require        => Class['swift'],
   }
-   Class['ringbuilder'] -> Class['swift::ringserver']
+   Class['swift::ringbuilder'] -> Class['swift::ringserver']
   # sets up an rsync db that can be used to sync the ring DB
   class { 'swift::ringserver':
-    local_net_ip => $swift_local_net_ip,
+    local_net_ip => $internal_address,
   }
 
   # exports rsync gets that can be used to sync the ring files
   @@swift::ringsync { ['account', 'object', 'container']:
-   ring_server => $swift_local_net_ip
+   ring_server => $internal_address
  }
 
   # deploy a script that can be used for testing
