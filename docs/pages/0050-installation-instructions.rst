@@ -44,7 +44,7 @@ The current architecture assumes deployment with 3 network interfaces, for clari
         * 255.255.255.0 network mask
         * in the case of VirtualBox environment, host machine will be 10.0.0.1
 
-#. eth1 - public network, with access to the internet
+#. eth1 - public network, with access to Internet
     * we will assume that DHCP is enabled and every machine gets its IP address on this interface automatically through DHCP
 
 #. eth2 - for communication between OpenStack VMs
@@ -62,7 +62,7 @@ If you are on VirtualBox, create the following host-only adapters:
         * IPv4 address: 0.0.0.0
         * IPv4 mask: 255.255.255.0
         * DHCP server: disabled
-    * If your host operating system is Windows, you need to make an additional step of setting up IP address & network mask under "Control Panel -> Network and Internet -> Network and Sharing Center" for "Virtual Host-Only Network" adapter.
+    * If your host operating system is Windows, you need to fulfil an additional step of setting up IP address & network mask under "Control Panel -> Network and Internet -> Network and Sharing Center" for "Virtual Host-Only Network" adapter.
 
 Installing & Configuring Puppet Master
 --------------------------------------
@@ -97,7 +97,7 @@ For VirtualBox, follow these steps to create virtual hardware:
 OS Installation
 ~~~~~~~~~~~~~~~~~~~
 
-* Pick and download operating system image. It will be used as a base OS for the Puppet master node:
+* Pick and download an operating system image. It will be used as a base OS for the Puppet master node:
    * `CentOS 6.3 <http://isoredirect.centos.org/centos/6/isos/x86_64/>`_: download CentOS-6.3-x86_64-minimal.iso
    * `RHEL 6.3 <https://access.redhat.com/home>`_: download rhel-server-6.3-x86_64-boot.iso
    * `Ubuntu 12.04 <https://help.ubuntu.com/community/Installation/MinimalCD>`_: download "Precise Pangolin" Minimal CD

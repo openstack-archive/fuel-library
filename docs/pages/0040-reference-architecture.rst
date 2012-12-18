@@ -16,7 +16,7 @@ It is important to mention that the entire reference architecture is based on th
 Overview
 --------
 
-OpenStack services are interconnected by RESTful HTTP-based APIs and AMQP-based RPC messages. So, redundancy for stateless OpenStack API services is implemented through the combination of VIP management (keepalived) and load balancing (HAProxy). Stateful OpenStack components, such as state database and messaging server, rely on their respective active-active modes for high availability -- RabbitMQ uses built-in clustering capabilities, while the database uses MySQL/Galera replication.
+OpenStack services are interconnected by RESTful HTTP-based APIs and AMQP-based RPC messages. So, redundancy for stateless OpenStack API services is implemented through the combination of VIP management (keepalived) and load balancing (HAProxy). Stateful OpenStack components, such as state database and messaging server, rely on their respective active/active modes for high availability -- RabbitMQ uses built-in clustering capabilities, while the database uses MySQL/Galera replication.
 
 .. image:: https://docs.google.com/drawings/pub?id=1PzRBUaZEPMG25488mlb42fRdlFS3BygPwbAGBHudnTM&w=750&h=491
 
@@ -75,7 +75,7 @@ The absolute minimum requirement for a highly-available OpenStack deployment is 
 .. image:: https://docs.google.com/drawings/pub?id=19Dk1qD5V50-N0KX4kdG_0EhGUBP7D_kLi2dU6caL9AM&w=767&h=413
 
 
-If you want to run storage separately from controllers, you can do that as well raising the bar to 7 nodes:
+If you want to run storage separately from controllers, you can do that as well by raising the bar to 7 nodes:
 
 * 3 controller nodes
 * 3 storage nodes
