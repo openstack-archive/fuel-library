@@ -523,18 +523,28 @@ Enabling Quantum
 
         # Network mode: quantum(true) or nova-network(false)
         $quantum                = true
+
         # API service location
         $quantum_host           = $internal_virtual_ip
+
         # Keystone and DB user password
         $quantum_user_password  = 'quantum_pass'
         $quantum_db_password    = 'quantum_pass'
+
         # DB user name
         $quantum_db_user        = 'quantum'
+
         # Type of network to allocate for tenant networks.
         # You MUST either change this to 'vlan' or change this to 'gre'
         # in order for tenant networks to provide connectivity between hosts
         # Sometimes it can be handy to use GRE tunnel mode since you don't have to configure your physical switches for VLANs
         $tenant_network_type    = 'gre'
+
+        # For VLAN networks, the VLAN VID on the physical network that realizes the virtual network.
+        # Valid VLAN VIDs are 1 through 4094.
+        # For GRE networks, the tunnel ID.
+        # Valid tunnel IDs are any 32 bit unsigned integer.
+        $segment_range          = '1500:1999'
 
 
 Enabling Cinder
@@ -545,6 +555,17 @@ Enabling Cinder
 * Alternatively, you can leave this field blank and create LVM VolumeGroup called "cinder-volumes" on every controller node yourself.
 * The available manifests under "examples" assume that you have the same collection of physical devices for VolumeGroup "cinder-volumes" across all of your volume nodes.
 * Be careful and do not add block devices to the list containing useful data (e.g. block devices on which your OS resides), as they will be destroyed after you allocate them for Cinder.
+* For example::
+
+       # Volume manager: cinder(true) or nova-volume(false)
+       $cinder             = true
+
+       # Rather cinder/nova-volume (iscsi volume driver) should be enabled
+       $manage_volumes     = true
+
+       # Disk or partition for use by cinder/nova-volume
+       # Each physical volume can be a disk partition, whole disk, meta device, or loopback file
+       $nv_physical_volume = ['/dev/sdz', '/dev/sdy', '/dev/sdx']
 
 
 Installing OpenStack on the nodes using Puppet
