@@ -28,13 +28,44 @@ d-i time/zone string <%= @ks_system_timezone %>
 
 d-i partman/early_command string debconf-set partman-auto/disk `list-devices disk | head -n1`
 d-i partman-iscsi/mainmenu string finish
-d-i partman-auto/method string regular
+d-i partman-auto/method string lvm 
 d-i partman-lvm/device_remove_lvm boolean true
 d-i partman-lvm/confirm boolean true
+d-i partman/confirm_write_new_label boolean true
+d-i partman/confirm boolean true
+d-i partman-auto/expert_recipe string                         \
+      boot-lvm ::                                             \
+              256 400 1024 ext3                               \
+                      $primary{ } $bootable{ }                \
+                      method{ format } format{ }              \
+                      use_filesystem{ } filesystem{ ext3 }    \
+                      mountpoint{ /boot }                     \
+              .                                               \
+              500 500 -1 ext3                                 \
+                      method{ lvm }                           \
+                      $defaultignore{ } $primary{ }           \
+                      vg_name{ sysvol }                       \
+              .                                               \
+              1024 10000 1000000000 ext4                      \
+                      $lvmok{ }                               \
+                      in_vg{ sysvol }                         \
+                      lv_name{ root }                         \
+                      method{ format } format{ }              \
+                      use_filesystem{ } filesystem{ ext4 }    \
+                      mountpoint{ / }                         \
+                      .                                       \
+              1024 500 300% linux-swap                        \
+                      $lvmok{ }                               \
+                      in_vg{ sysvol }                         \
+                      lv_name{ swap }                         \
+                      method{ swap }                          \
+                      format{ }                               \
+                      .
 d-i partman/confirm_write_new_label boolean true
 d-i partman/choose_partition select Finish partitioning and write changes to disk
 d-i partman/confirm boolean true
 d-i partman/confirm_nooverwrite boolean true
+d-i partman/confirm boolean true
 d-i partman/default_filesystem string ext4
 
 d-i base-installer/kernel/image string linux-server
@@ -144,6 +175,7 @@ d-i debian-installer/exit/poweroff boolean false
 d-i preseed/late_command string true && \
 $SNIPPET('ubuntu_disable_pxe') && \
 $SNIPPET('ubuntu_network') && \
+$SNIPPET('cinder_create_lvm_group__ubuntu') && \
 $SNIPPET('ubuntu_puppet_config') && \
 $SNIPPET('ubuntu_mcollective_config') && \
 true
