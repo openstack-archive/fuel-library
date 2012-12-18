@@ -131,6 +131,8 @@ def tempest_build_config_folsom(host, image_ref, image_ref_alt,
         'VOLUME_CATALOG_TYPE': 'volume',
         'VOLUME_BUILD_INTERVAL': '10',
         'VOLUME_BUILD_TIMEOUT': '300',
+        'NETWORK_CATALOG_TYPE': 'network',
+        'NETWORK_API_VERSION': 'v2.0',
     }
     
     return config
