@@ -241,7 +241,7 @@ if $::galera_gcomm_empty=="true" {
 
   class {'galera::galera_master_final_config':
 #      stage => 'after_main',
-      require     => Exec<| title == 'wait-for-haproxy-mysql-backend' |>,
+      require     => Exec["wait-for-haproxy-mysql-backend"],
       master_ip => $master_ip,
       node_addresses => $node_addresses,
   }
