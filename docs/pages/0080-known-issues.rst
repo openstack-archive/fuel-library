@@ -1,10 +1,10 @@
 Known issues
-=============
+============
 
 .. contents:: :local:
 
 1. At least one RabbitMQ node must remain operational
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 **Issue:** RabbitMQ nodes must not be shut down all at once. RabbitMQ requires
 that, after a full shutdown of the cluster, the first node to bring up should
@@ -34,8 +34,8 @@ _
 
 **Workaround:**
  
- The right way to get Galera up and working
- -------------------------------------------------------------------------------------
+The right way to get Galera up and working
+-------------------------------------------------------------------------------------
 
 Galera, as high availability software, does not include built-in full cluster shutdown or restart sequence.
 
@@ -82,6 +82,7 @@ Recommended way to stop cluster is following:
 #.  **Stop all requests to cluster from outside**
 
      * Default Galera non-synchronized cache size under heavy load may be up to 1 Gib - you may have to wait until every node is fully synced.
+
      Select first node to shut down - better to start from non-primary nodes.
      Connect to this node with mysql console.
     

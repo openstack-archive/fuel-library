@@ -1,51 +1,56 @@
-##
-# These parameters should be edit
-##
+#
+# Parameter values in this file should be changed, taking into consideration your
+# networking setup and desired OpenStack settings.
+# 
+# Please consult with the latest Fuel User Guide before making edits.
+#
 
-# This interface will be giving away internet
+# This is a name of public interface. Public network provides address space for Floating IPs, as well as public IP accessibility to the API endpoints.
 $public_interface    = 'eth1'
-# This interface will look to management network
+
+# This is a name of internal interface. It will be hooked to the management network, where data exchange between components of the OpenStack cluster will happen.
 $internal_interface  = 'eth0'
-# This interface for internal services 
+
+# This is a name of private interface. All traffic within OpenStack tenants' networks will go through this interface.
 $private_interface   = 'eth2'
 
-# Public and Internal VIPs for load-balancers
+# Public and Internal VIPs. These virtual addresses are required by HA topology and will be managed by keepalived.
 $internal_virtual_ip = '10.0.125.253'
 $public_virtual_ip   = '10.0.74.253'
 
+# Map of controller IP addresses on internal interfaces. Must have an entry for every controller node.
 $controller_internal_addresses = { 'fuel-01'=>'10.0.125.3', 'fuel-02'=>'10.0.125.4'}
 
-# Public and Internal IP pools
+# Specify pools for Floating IP and Fixed IP.
+# Floating IP addresses are used for communication of VM instances with the outside world (e.g. Internet).
+# Fixed IP addresses are typically used for communication between VM instances.
 $create_networks = true
 $floating_range  = '10.0.74.128/28'
 $fixed_range     = '10.0.161.128/28'
 
 # For VLAN networks: valid VLAN VIDs are 1 through 4094.
 # For GRE networks: Valid tunnel IDs are any 32 bit unsigned integer.
-$segment_range = '900:999'
+$segment_range   = '900:999'
 
-##
-# These parameters to change by necessity
-##
-
-# Enabled or disabled different services
+# Here you can enable or disable different services, based on the chosen deployment topology.
 $multi_host              = true
 $cinder                  = true
 $manage_volumes          = true
 $quantum                 = true
 $auto_assign_floating_ip = false
+$glance_backend          = 'file'
 
-# Set default hostname
-$master_hostname         = 'fuel-01'
-$controller_hostnames    = ['fuel-01', 'fuel-02']
-$glance_backend          ='file'
-$network_manager         = 'nova.network.manager.FlatDHCPManager'
-$mirror_type="external"
+# Set master hostname for the HA cluster of controller nodes, as well as hostnames for every controller in the cluster.
+$master_hostname      = 'fuel-01'
+$controller_hostnames = ['fuel-01', 'fuel-02']
 
-# Add physical volume to cinder, value must be different
+# Set up OpenStack network manager
+$network_manager      = 'nova.network.manager.FlatDHCPManager'
+
+# Here you can add physical volumes to cinder. Please replace values with the actual names of devices.
 $nv_physical_volume      = ['/dev/sdz', '/dev/sdy', '/dev/sdx']
 
-# Set credential for different services
+# Specify credentials for different services
 $mysql_root_password     = 'nova'
 $admin_email             = 'openstack@openstack.org'
 $admin_password          = 'nova'
@@ -62,25 +67,29 @@ $nova_user_password      = 'nova'
 $rabbit_password         = 'nova'
 $rabbit_user             = 'nova'
 
-$quantum_host             = $internal_virtual_ip
-$quantum_sql_connection = "mysql://${quantum_db_user}:${quantum_db_password}@${quantum_host}/${quantum_db_dbname}"
-$quantum_user_password  = 'quantum_pass'
-$quantum_db_password    = 'quantum_pass'
-$quantum_db_user        = 'quantum'
-$quantum_db_dbname      = 'quantum'
-$tenant_network_type    = 'gre'
-$verbose = true
-# Version of package
+$quantum_sql_connection  = "mysql://${quantum_db_user}:${quantum_db_password}@${quantum_host}/${quantum_db_dbname}"
+$quantum_user_password   = 'quantum_pass'
+$quantum_db_password     = 'quantum_pass'
+$quantum_db_user         = 'quantum'
+$quantum_db_dbname       = 'quantum'
+$tenant_network_type     = 'gre'
+
+$quantum_host            = $internal_virtual_ip
+
+# OpenStack packages to be installed
 $openstack_version = {
-  'keystone'   => latest,
-  'glance'     => latest,
-  'horizon'    => latest,
-  'nova'       => latest,
-  'novncproxy' => latest,
-  'cinder' => latest,
+  'keystone'   => 'latest',
+  'glance'     => 'latest',
+  'horizon'    => 'latest',
+  'nova'       => 'latest',
+  'novncproxy' => 'latest',
+  'cinder'     => 'latest',
 }
 
+$mirror_type = 'external'
+
 $internal_address = getvar("::ipaddress_${internal_interface}")
+$verbose = true
 Exec { logoutput => true }
 
 stage { 'openstack-custom-repo': before => Stage['main'] }
@@ -90,7 +99,7 @@ if $::operatingsystem == 'Ubuntu'
   class { 'openstack::apparmor::disable': stage => 'openstack-custom-repo' }
 }
 
-
+# Definition of OpenStack controller nodes.
 node /fuel-0[12]/ {
     class { 'openstack::controller_ha': 
       controller_public_addresses => $controller_public_addresses,
@@ -137,6 +146,7 @@ node /fuel-0[12]/ {
     }
 }
 
+# Definition of OpenStack compute nodes.
 node /fuel-0[34]/ {
     class { 'openstack::compute':
       public_interface   => $public_interface,
@@ -156,21 +166,22 @@ node /fuel-0[34]/ {
       vnc_enabled        => true,
       manage_volumes     => false,
       nv_physical_volume => $nv_physical_volume,
-      nova_user_password	=> $nova_user_password,
-      cache_server_ip         => $controller_hostnames,
+      nova_user_password => $nova_user_password,
+      cache_server_ip    => $controller_hostnames,
       service_endpoint	 => $internal_virtual_ip,
-      quantum                => $quantum,
-      quantum_host           => $quantum_host,
+      quantum            => $quantum,
+      quantum_host       => $quantum_host,
       quantum_sql_connection => $quantum_sql_connection,
       quantum_user_password  => $quantum_user_password,
-      tenant_network_type     => $tenant_network_type,
-      segment_range           => $segment_range,
-      cinder                  => $cinder,
+      tenant_network_type    => $tenant_network_type,
+      segment_range      => $segment_range,
+      cinder             => $cinder,
       ssh_private_key    => 'puppet:///ssh_keys/openstack',
       ssh_public_key     => 'puppet:///ssh_keys/openstack.pub',
     }
 }
 
+# Definition of OpenStack Quantum node. 
 node /fuel-quantum/ {
     class { 'openstack::quantum_router': 
       db_host               => $internal_virtual_ip,
@@ -204,7 +215,5 @@ node /fuel-quantum/ {
     }
 }
 
-
-
-# deprecated. keep it for backward compatibility
+# This configuration option is deprecated and will be removed in future releases. It's currently kept for backward compatibility.
 $controller_public_addresses = { 'fuel-01'=>'10.0.74.3', 'fuel-02'=>'10.0.74.4'}

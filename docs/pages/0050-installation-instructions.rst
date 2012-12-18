@@ -149,6 +149,7 @@ OS Installation
 * Set up eth1 interface. It will provide Internet access for Puppet master:
     * CentOS/RHEL
         * ``vi /etc/sysconfig/network-scripts/ifcfg-eth1``::
+
             DEVICE="eth1"
             BOOTPROTO="dhcp"
             ONBOOT="yes"
@@ -204,7 +205,7 @@ OS Installation
         
         sudo apt-get update
         apt-get install puppet puppetmaster
-		update-rc.d puppetmaster defaults
+        update-rc.d puppetmaster defaults
 
 * Set hostname
     * CentOS/RHEL
@@ -264,17 +265,17 @@ This section will show how to configure Puppet to use a technique called stored 
     * Ubuntu::
         
         apt-get install puppetdb puppetdb-terminus
-		update-rc.d puppetdb defaults
+        update-rc.d puppetdb defaults
 
 * Alternatively, you can install PuppetDB by Puppet manifest using the following script::
 
-    puppet apply -e 'class {puppetdb:}'
-    puppet apply -e 'class {class {puppetdb::master::config: puppet_service_name=>'thin' }
+        puppet apply -e 'class {puppetdb:}'
+        puppet apply -e 'class {class {puppetdb::master::config: puppet_service_name=>'thin' }
 
 or::
 
-    puppet apply -e 'class {puppetdb:}'
-    puppet apply -e 'class {class {puppetdb::master::config: puppet_service_name=>'puppetmaster' }
+        puppet apply -e 'class {puppetdb:}'
+        puppet apply -e 'class {class {puppetdb::master::config: puppet_service_name=>'puppetmaster' }
 
 
 * Disable selinux on CentOS/RHEL (otherwise Puppet will not be able to connect to PuppetDB)::
@@ -297,7 +298,7 @@ or::
 * Restart Puppet master to apply settings (Note: these operations may take about two minutes. You can ensure that PuppetDB is running by executing ``telnet fuel-pm.your-domain-name.com 8081``)::
     
     service puppetmaster restart
-	puppetdb-ssl-setup
+    puppetdb-ssl-setup
     service puppetmaster restart
     service puppetdb restart
 
@@ -370,7 +371,7 @@ On Puppet master:
 
 * ``vi /etc/puppet/manifests/site.pp``
 
-* Copy the content of one of "site.pp" from "fuel/deployment/puppet/cobbler/examples/" into "/etc/puppet/manifests/site.pp":
+* Copy the content of "fuel/deployment/puppet/cobbler/examples/site.pp" into "/etc/puppet/manifests/site.pp":
     .. literalinclude:: ../../deployment/puppet/cobbler/examples/site_fordocs.pp
 
 * Make the following changes in that file:
@@ -430,8 +431,8 @@ In case of VirtualBox, create the corresponding virtual machines for your OpenSt
 
     * It is important that host-only "Adapter 1" goes first, as Cobbler will use vboxnet0 for PXE, and VirtualBox boots from LAN on the first available network adapter.
 
-Configuring Cobbler to provision your OpenStack Nodes
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Configuring nodes in Cobbler
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Now you need to define nodes in the Cobbler configuration, so that it knows what OS to install, where to install it, and what configuration actions to take.
 
@@ -457,8 +458,8 @@ Edit configuration for bare metal provisioning of nodes (nodes.yaml):
 * for the sake of convenience the "./cobbler_system.py" script is provided. The script reads the definition of the systems from the yaml file and makes calls to Cobbler API to insert these systems into the configuration. Run it using the following command:
     * ``./cobbler_system.py -f nodes.yaml -l DEBUG``
 
-Provisioning your OpenStack nodes using Cobbler
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Installing OS on the nodes using Cobbler
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Now, when Cobbler has the correct configuration, the only thing you need to do is to PXE-boot your nodes. They will boot over the network from DHCP/TFTP provided by Cobbler and will be provisioned accordingly, with the specified operating system and configuration.
 
@@ -484,22 +485,41 @@ Now you have OS installed and configured on all nodes. Moreover, Puppet is insta
 * ``puppet agent --test``
     * it should successfully complete and result in the "Hello World from fuel-XX" message
 
-Installing OpenStack
-~~~~~~~~~~~~~~~~~~~~
+Configuring OpenStack cluster in Puppet
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 In case of VirtualBox, it is recommended to save the current state of every virtual machine using the mechanism of snapshots. It is helpful to have a point to revert to, so that you could install OpenStack using Puppet and then revert and try one more time, if necessary.
 
 * On Puppet master
-    * create a file with the definition of networks, nodes, and roles. Assume you are deploying a compact configuration, with Controllers and Swift combined: ``cp /etc/puppet/modules/openstack/examples/site_openstack_swift_compact.pp /etc/puppet/manifests/site.pp``
-    * ``vi /etc/puppet/manifests/site.pp`` and
-        * correct IP addressing configuration for the "public" and "internal" addresses according to your current scheme
-        * define  "$floating_range" and "$fixed_range" appropriately
-        * define what volume manager should be used. To deploy cinder simply set $cinder = true in your site.pp file 
-        * specify "$nv_physical_volume" array specifies physical volumes that will be aggregated into "cinder-volumes" volume group
-
-    .. literalinclude:: ../../deployment/puppet/openstack/examples/site_openstack_swift_compact_fordocs.pp
+    * create a file with the definition of networks, nodes, and roles. Assume you are deploying a compact configuration, with Controllers and Swift combined:
+        * ``cp /etc/puppet/modules/openstack/examples/site_openstack_swift_compact.pp /etc/puppet/manifests/site.pp``
+    * ``vi /etc/puppet/manifests/site.pp`` and edit settings accordingly (see "Configuring Network", "Enabling Quantum", "Enabling Cinder" below):
+       
+       .. literalinclude:: ../../deployment/puppet/openstack/examples/site_openstack_swift_compact_fordocs.pp
     
-    * In order to deploy quantum you need to setup an additional node that will act as a L3 router. In the ``/etc/puppet/manifests/site.pp`` set the following options::
+    * create a directory with keys, give it appropriate permissions, and generate keys themselves
+        * ``mkdir /var/lib/puppet/ssh_keys``
+        * ``cd /var/lib/puppet/ssh_keys``
+        * ``ssh-keygen -f openstack``
+        * ``chown -R puppet:puppet /var/lib/puppet/ssh_keys/``
+    * edit file ``/etc/puppet/fileserver.conf`` and append the following lines: :: 
+    
+        [ssh_keys]
+        path /var/lib/puppet/ssh_keys
+        allow *
+
+Configuring Network
+^^^^^^^^^^^^^^^^^^^
+
+* You will need to change the following parameters:
+  
+  * Change IP addresses for "public" and "internal" according to your networking requirements
+  * Define "$floating_range" and "$fixed_range" accordingly
+
+Enabling Quantum
+^^^^^^^^^^^^^^^^
+
+* In order to deploy OpenStack with Quantum you need to setup an additional node that will act as a L3 router. This node is defined in configuration as ``fuel-quantum`` node. You will need to set the following options in order to enable Quantum::
 
         # Network mode: quantum(true) or nova-network(false)
         $quantum                = true
@@ -513,19 +533,22 @@ In case of VirtualBox, it is recommended to save the current state of every virt
         # Type of network to allocate for tenant networks.
         # You MUST either change this to 'vlan' or change this to 'gre'
         # in order for tenant networks to provide connectivity between hosts
-        # It's more handy to choose tunnel mode since you don't have to configure your physical switchs for VLANs
+        # Sometimes it can be handy to use GRE tunnel mode since you don't have to configure your physical switches for VLANs
         $tenant_network_type    = 'gre'
 
-    * create a directory with keys, give it appropriate permissions, and generate keys themselves
-        * ``mkdir /var/lib/puppet/ssh_keys``
-        * ``cd /var/lib/puppet/ssh_keys``
-        * ``ssh-keygen -f openstack``
-        * ``chown -R puppet:puppet /var/lib/puppet/ssh_keys/``
-    * edit file ``/etc/puppet/fileserver.conf`` and append the following lines: :: 
-    
-    [ssh_keys]
-    path /var/lib/puppet/ssh_keys
-    allow *
+
+Enabling Cinder
+^^^^^^^^^^^^^^^
+
+* In order to deploy OpenStack with Cinder, simply set ``$cinder = true`` in your site.pp file.
+* Then, specify the list of physical devices in ``$nv_physical_volume``. They will be aggregated into "cinder-volumes" volume group.
+* Alternatively, you can leave this field blank and create LVM VolumeGroup called "cinder-volumes" on every controller node yourself.
+* The available manifests under "examples" assume that you have the same collection of physical devices for VolumeGroup "cinder-volumes" across all of your volume nodes.
+* Be careful and do not add block devices to the list containing useful data (e.g. block devices on which your OS resides), as they will be destroyed after you allocate them for Cinder.
+
+
+Installing OpenStack on the nodes using Puppet
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * Install OpenStack controller nodes sequentially, one by one
     * run "``puppet agent --test``" on fuel-01

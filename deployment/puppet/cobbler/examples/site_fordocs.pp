@@ -1,7 +1,8 @@
 #
-# This manifest file is being used as a sample in FUEL user guide.
+# This manifest file is being used as a sample in Fuel user guide.
+#
 # It's a starting point for an end-user.
-# User has to edit this file and provide networking information, as well as uncomment/edit corresponding sections for CentOS, Ubuntu, and RHEL.
+# User has to edit this file and change networking information, as well as uncomment/edit corresponding sections for CentOS, Ubuntu, and RHEL.
 #
 
 $server              = '10.0.0.100'
