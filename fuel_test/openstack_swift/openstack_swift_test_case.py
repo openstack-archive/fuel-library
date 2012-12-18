@@ -47,6 +47,7 @@ class OpenStackSwiftTestCase(BaseTestCase):
             floating_range="'%s'" % self.ci().get_floating_network(),
             fixed_range="'%s'" % self.ci().get_fixed_network(),
             master_hostname="'%s'" % controllers[0].name,
+            swift_master="'%s'" % proxies[0].name,
             swift_proxy_address="'%s'" % self.ci().get_internal_virtual_ip(),
             controller_public_addresses = controller_public_addresses,
             controller_internal_addresses = controller_internal_addresses, 

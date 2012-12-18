@@ -1,7 +1,7 @@
 #
 # Parameter values in this file should be changed, taking into consideration your
 # networking setup and desired OpenStack settings.
-# 
+#
 # Please consult with the latest Fuel User Guide before making edits.
 #
 
@@ -43,6 +43,7 @@ $glance_backend          = 'swift'
 
 # Set master hostname for the HA cluster of controller nodes, as well as hostnames for every controller in the cluster.
 $master_hostname      = 'fuel-01'
+$swift_master    = 'fuel-08'
 $controller_hostnames = ['fuel-01', 'fuel-02', 'fuel-03']
 
 # Set up OpenStack network manager
