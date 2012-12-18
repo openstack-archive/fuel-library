@@ -82,7 +82,6 @@ $quantum_sql_connection  = "mysql://${quantum_db_user}:${quantum_db_password}@${
 $quantum_host            = $internal_virtual_ip
 $controller_node_public  = $internal_virtual_ip
 $swift_local_net_ip      = $ipaddress_eth1
-$swift_master            = $master_hostname
 $swift_proxies           = $controller_internal_addresses
 
 # OpenStack packages to be installed
