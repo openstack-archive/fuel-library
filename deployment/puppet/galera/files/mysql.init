@@ -272,6 +272,8 @@ fi
 case "$mode" in
   'start')
     # Start daemon
+    echo "sleeping for a while in order to work around stupid bug"
+    sleep 30
     if pgrep "mysqld_safe|mysqld" 1>/dev/null
     then
         echo "There are other mysqld processes running. Exiting"
@@ -303,6 +305,8 @@ case "$mode" in
   'stop')
     # Stop daemon. We use a signal here to avoid having to know the
     # root password.
+    echo "sleeping for a while in order to work around stupid bug"
+    sleep 30
     retry=0
     if test -s "$mysqld_pid_file_path"
     then
