@@ -78,12 +78,6 @@ $quantum_db_dbname       = 'quantum'
 $tenant_network_type     = 'gre'
 $quantum_sql_connection  = "mysql://${quantum_db_user}:${quantum_db_password}@${quantum_host}/${quantum_db_dbname}"
 
-$quantum_host            = $internal_virtual_ip
-$controller_node_public  = $internal_virtual_ip
-$swift_local_net_ip      = $ipaddress_eth1
-$swift_master            = $master_hostname
-$swift_proxies           = $controller_internal_addresses
-
 # OpenStack packages to be installed
 $openstack_version = {
   'keystone'   => 'latest',
@@ -97,7 +91,14 @@ $openstack_version = {
 $mirror_type = 'external'
 
 $internal_address = getvar("::ipaddress_${internal_interface}")
+
+$quantum_host            = $internal_virtual_ip
+$controller_node_public  = $internal_virtual_ip
+$swift_local_net_ip      = $internal_address
+$swift_master            = $master_hostname
+$swift_proxies           = $controller_internal_addresses
 $verbose = true
+
 Exec { logoutput => true }
 
 stage { 'openstack-custom-repo': before => Stage['main'] }
