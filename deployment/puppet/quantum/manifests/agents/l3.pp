@@ -5,6 +5,7 @@ class quantum::agents::l3 (
   $debug                        = 'False',
   $fixed_range                  = '10.0.1.0/24',
   $floating_range               = '192.168.10.0/24',
+  $ext_ipinfo                   = {},
   $segment_range                = '1:4094',
   $tenant_network_type          = 'gre',
   $create_networks              = true,

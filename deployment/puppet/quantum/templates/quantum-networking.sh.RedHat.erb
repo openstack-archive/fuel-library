@@ -44,6 +44,7 @@ EXT_NET_LEN=${EXT_NET_CIDR#*/}
 # External bridge that we have configured into l3_agent.ini (Don't change it)
 EXT_NET_BRIDGE=br-ex
 
+<% if ext_ipinfo.empty? -%>
 set $(whatmask $EXT_NET_CIDR | awk '/^(First|Last)/ {print $7}')
 LAST_OCTET=${1##*.}
 
@@ -56,6 +57,12 @@ EXT_NET_GATEWAY=$1
 # Floating IP range
 POOL_FLOATING_START=${1/%$LAST_OCTET/$(($LAST_OCTET + 2))}
 POOL_FLOATING_END=$2
+<% else -%>
+EXT_GW_IP=<%= ext_ipinfo['ext_bridge']%>
+EXT_NET_GATEWAY=<%= ext_ipinfo['public_net_router']%>
+POOL_FLOATING_START=<%= ext_ipinfo['pool_start']%>
+POOL_FLOATING_END=<%= ext_ipinfo['pool_end']%>
+<% end -%>
 
 ###############################################################
 
