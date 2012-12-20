@@ -40,7 +40,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'Product - FUEL'
+project = u'Fuel for OpenStack'
 copyright = u'2012, Mirantis'
 
 # The version info for the project you're documenting, acts as replacement for

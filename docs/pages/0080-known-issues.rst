@@ -1,5 +1,5 @@
-Known Issues and Peculiarities
-==============================
+Known Issues and Workarounds
+============================
 
 .. contents:: :local:
 
@@ -48,7 +48,7 @@ On the other side, deploying, updating or restarting Galera may lead to differen
 This guide is intended to help avoid some of these issues.
 
 Regular Galera cluster startup includes a combination of the procedures described below. 
-These procedures, with some differences, are performed by FUEL manifests.
+These procedures, with some differences, are performed by Fuel manifests.
  
 
 **1. Stop a single Galera node**
@@ -57,7 +57,7 @@ There is no dedicated Galera process - Galera works inside MySQL server process.
 MySQL server should be patched with Galera WSREP patch to be able to work as Galera cluster.
 
 All Galera stop steps listed below are automatically performed by the mysql init script 
-supplied by FUEL installation manifests, so in most cases it should be enough to perform the first step only. 
+supplied by Fuel installation manifests, so in most cases it should be enough to perform the first step only. 
 In case even init script fails in some (rare, as we hope) circumstances, repeat step 2 manually.
 
 #. Run ``service mysql stop``.
@@ -67,6 +67,7 @@ In case even init script fails in some (rare, as we hope) circumstances, repeat 
 #. Run ``ps -ef | grep mysql`` and stop ALL(!) **mysqld** and **mysqld_safe** processes.
      * Wait 20 seconds and check if the mysqld processes are running again. 
      * Stop or kill any new mysqld or mysqld_safe processes.
+
      It is very important to stop all MySQL processes - Galera uses ``mysqld_safe`` 
      and it may start additional MySQL processes. 
      So, even if there is no currently running processes visible, additional processes may be already in process of start. 
@@ -76,7 +77,7 @@ In case even init script fails in some (rare, as we hope) circumstances, repeat 
      the node may be considered shut down gracefully.
   
 
-**2. Stop the Galera cluster
+**2. Stop the Galera cluster**
 
 Galera cluster is a master-master replication cluster. Therefore, it is always in the process of synchronization.
 
@@ -84,8 +85,7 @@ The recommended way to stop the cluster includes the following steps:
 
 #.  Stop all requests to the cluster from outside
 
-     * Default Galera non-synchronized cache size under heavy load may be up to 1 Gib - 
-     you may have to wait until every node is fully synced.
+     * Default Galera non-synchronized cache size under heavy load may be up to 1 Gib - you may have to wait until every node is fully synced.
 
      Select the first node to shut down - better to start from non-primary nodes.
      Connect to this node with mysql console.
@@ -113,8 +113,7 @@ The recommended way to stop the cluster includes the following steps:
                                    
 #.   Repeat steps 1 and 2 for each remaining node. 
 
-     * Remember which node you are going to shut down last - ideally, it should be the primary node in the synced state. 
-     This node is the best and recommended candidate to start up first when you decide to continue the cluster operation.
+     * Remember which node you are going to shut down last - ideally, it should be the primary node in the synced state. This node is the best and the recommended candidate to start up first when you decide to continue cluster operation.
  
 
 **3. Start Galera and create a new cluster**
@@ -122,7 +121,7 @@ The recommended way to stop the cluster includes the following steps:
 Galera writes its state to file ``grastate.dat`` that resides in the location specified in 
 ``wsrep_data_home_dir variable``, defaulting to "mysql_real_data_home".
 
-FUEL OpenStack deployment manifests also place this file to the default location, path: ``/var/lib/mysql/grastate.dat``.
+Fuel OpenStack deployment manifests also place this file to the default location, path: ``/var/lib/mysql/grastate.dat``.
 
 This file is very useful to find out the node with the most recent commit in case of unexpected cluster shutdown. 
 Simply compare the "UUID" values of ``grastat.dat`` from every node. 
@@ -142,7 +141,7 @@ and start the cluster operation from the node found.
 
     This node is supposed to start first. It creates a new cluster ID and a new last commit UUID 
     (the ``wsrep_cluster_state_uuid`` variable represents this UUID inside the MySQL process). 
-    FUEL deployment manifests with default settings set up ``fuel-01`` to be both the primary Galera cluster node 
+    Fuel deployment manifests with default settings set up ``fuel-01`` to be both the primary Galera cluster node 
     and the first deployed OpenStack controller.
     * Open ``/etc/mysql/conf.d/wsrep.cnf``
     * Set empty cluster address as follows (including quotation marks):
@@ -156,8 +155,7 @@ and start the cluster operation from the node found.
     
     * Connect to MySQL server.
     
-    * Run the ``SET GLOBAL wsrep_on='ON';`` to start replication within the new cluster. 
-    This variable can also be set by editing the ``wsrep.cnf`` file.
+    * Run the ``SET GLOBAL wsrep_on='ON';`` to start replication within the new cluster. This variable can also be set by editing the ``wsrep.cnf`` file.
     
     * Check the new cluster status by running the following command: ``show status like 'wsrep%';``
 
@@ -175,9 +173,9 @@ and start the cluster operation from the node found.
     * Check its ``/etc/mysql/conf.d/wsrep.cnf`` file.
 
       * The ``wsrep_cluster_address="gcomm://node1,node2"`` variable should include the name or IP address 
-      of already started primary node. Otherwise, this node will definitely fail to start. 
-      In case of OpenStack deployed by FUEL manifests with default settings (2 controllers), 
-      this parameter should look like 
+        of already started primary node. Otherwise, this node will definitely fail to start. 
+        In case of OpenStack deployed by Fuel manifests with default settings (2 controllers), 
+        this parameter should look like 
 
     ``wsrep_cluster_address="gcomm://fuel-01:4567,fuel-02:4567"``
 
@@ -187,9 +185,11 @@ and start the cluster operation from the node found.
 #.  Connect to any node with mysql and run ``show status like 'wsrep%';`` again.
 
     * ``wsrep_local_state_comment`` should finally change from "Donor/Synced" or other statuses to "Synced". 
+
     Time to sync may vary depending on the database size and connection speed.
 
     * ``wsrep_cluster_status`` should be "Primary" on both nodes. 
+
     Galera is a master-master replication cluster and every node becomes primary by default (i.e. master). 
     Galera also supports master-slave configuration for special purposes. 
     Slave nodes have the "Non-Primary" value for ``wsrep_cluster_status``.
@@ -210,7 +210,8 @@ and start the cluster operation from the node found.
  
     * Open file ``/etc/mysql/conf.d/wsrep.cnf``.
     * Set ``wsrep_cluster_address=`` to the same value (node list) that is used for every secondary controller.
-    In case of OpenStack deployed by FUEL manifests with default settings (2 controllers), 
+
+    In case of OpenStack deployed by Fuel manifests with default settings (2 controllers), 
     on every operating controller this parameter should finally look like 
 
     ``wsrep_cluster_address="gcomm://fuel-01:4567,fuel-02:4567"`` 
@@ -251,7 +252,7 @@ and start the cluster operation from the node found.
     listed in ``gcomm://node1,node2:port2,node3`` is already started and is available for initial synchronization.
     For every starting Galera node it is enough to have at least one working node name/address to get full 
     information about the cluster structure and to perform initial synchronization.
-    Actually FUEL deployment manifests with default settings may set (or may not set!)
+    Actually Fuel deployment manifests with default settings may set (or may not set!)
 
     ``wsrep_cluster_address="gcomm://"`` 
 
@@ -275,7 +276,7 @@ and start the cluster operation from the node found.
     has a new cluster ID and the ``wsrep_cluster_state_uuid`` value that is less than the same value on long-working nodes.
     So, 3 working primary controllers are the very minimal Galera cluster size. Recommended Galera cluster size is 
     6 controllers.
-    Actually FUEL deployment manifests with default settings deploy non-recommended Galera configuration 
+    Actually Fuel deployment manifests with default settings deploy non-recommended Galera configuration 
     with 2 controllers only. It is suitable for testing purposes, but not for production deployments.
 
 
