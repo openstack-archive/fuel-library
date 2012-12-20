@@ -237,16 +237,12 @@ if $::galera_gcomm_empty=="true" {
     tries       => 60,
   }
 
-  #  if ! $master_ip
-#  {
-#      $galera_gcomm_string = inline_template("<%= @node_addresses.collect {|ip| ip + ':' + 4567.to_s }.join ',' %>")
-
-#      exec {"first-galera-node-final-config":
-#      require => [Exec["wait-for-synced-state"],Service['mysql-galera']],
-#      path   => "/usr/bin:/usr/sbin:/bin:/sbin",
-#      command => "sed -i 's/wsrep_cluster_address=\"gcomm:\/\/\"/wsrep_cluster_address=\"gcomm:\/\/${galera_gcomm_string}\"/' /etc/mysql/conf.d/wsrep.cnf",
-#    }
-#  }
+    class {'galera::galera_master_final_config':
+#      stage => 'after_main',
+      require     => Exec["wait-for-haproxy-mysql-backend"],
+      master_ip => $master_ip,
+      node_addresses => $node_addresses,
+    }
   #  if ! $master_ip
   #{
   # exec { "bootstrap-galera" :
