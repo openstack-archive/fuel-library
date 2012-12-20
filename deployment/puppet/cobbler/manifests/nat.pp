@@ -1,6 +1,6 @@
 # add nat tables for nodes range
 class cobbler::nat(
-  $nat_range = undef,
+  $nat_range,
 ) {
 
   Exec  {path => '/usr/bin:/bin:/usr/sbin:/sbin'}
@@ -20,10 +20,10 @@ class cobbler::nat(
     /(?i)(centos|redhat)/: {
       exec { 'enable_nat_all':
         command => "iptables -t nat -I POSTROUTING 1 \
-                    -s ${nat_range}/24 ! -d ${nat_range}/24 -j MASQUERADE; \
+                    -s ${nat_range} ! -d ${nat_range} -j MASQUERADE; \
                     /etc/init.d/iptables save",
         unless  => "iptables -t nat -S POSTROUTING | grep -q \"^-A POSTROUTING \
-                   -s ${nat_range}/24 ! -d ${nat_range}/24 -j MASQUERADE\""
+                   -s ${nat_range} ! -d ${nat_range} -j MASQUERADE\""
       }
 
       exec { 'enable_nat_filter':
@@ -45,10 +45,10 @@ class cobbler::nat(
 
       exec { 'enable_nat_all':
         command => "iptables -t nat -I POSTROUTING 1 \
-                    -s ${nat_range}/24 ! -d ${nat_range}/24 -j MASQUERADE; \
+                    -s ${nat_range} ! -d ${nat_range} -j MASQUERADE; \
                     iptables-save -c > /etc/iptables.rules",
         unless  => "iptables -t nat -S POSTROUTING | grep -q \"^-A POSTROUTING \
-                   -s ${nat_range}/24 ! -d ${nat_range}/24 -j MASQUERADE\""
+                   -s ${nat_range} ! -d ${nat_range} -j MASQUERADE\""
       }
 
       exec { 'enable_nat_filter':

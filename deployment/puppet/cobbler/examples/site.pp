@@ -22,6 +22,7 @@ $cobbler_user        = 'cobbler'
 $cobbler_password    = 'cobbler'
 $pxetimeout          = '0'
 $mirror_type         = 'internal'
+$nat_range           = '10.0.0.0/24'
 
 stage { 'openstack-custom-repo': before => Stage['main'] }
 class { 'openstack::mirantis_repos':
@@ -31,7 +32,7 @@ class { 'openstack::mirantis_repos':
 
 node fuel-cobbler {
 
-  class {'cobbler::nat':}
+  class {'cobbler::nat': nat_range => $nat_range}
 
   class { 'cobbler':
     server              => $server,
