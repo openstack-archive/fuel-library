@@ -193,9 +193,9 @@ OS Installation
 * Install Puppet master
     * CentOS/RHEL::
 
-        rpm -Uvh http://download.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-7.noarch.rpm
+        rpm -Uvh http://download.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
         yum upgrade
-        yum install puppet-server
+        yum install puppet-server-2.7.19
         service puppetmaster start
         chkconfig puppetmaster on
         service iptables stop
