@@ -28,6 +28,17 @@ $create_networks = true
 $floating_range  = '10.0.74.128/28'
 $fixed_range     = '10.0.161.128/28'
 
+# If $external_ipinfo option is not defined the addresses will be calculated automatically from $floating_range:
+# the first address will be defined as an external default router
+# second address will be set to an uplink bridge interface (br-ex)
+# remaining addresses are utilized for ip floating pool
+## $external_ipinfo = {
+##   'public_net_router' => '10.0.74.129',
+##   'ext_bridge'        => '10.0.74.130',
+##   'pool_start'        => '10.0.74.131',
+##   'pool_end'          => '10.0.74.142',
+## }
+
 # For VLAN networks: valid VLAN VIDs are 1 through 4094.
 # For GRE networks: Valid tunnel IDs are any 32 bit unsigned integer.
 $segment_range   = '900:999'
