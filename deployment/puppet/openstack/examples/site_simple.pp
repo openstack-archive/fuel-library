@@ -24,7 +24,7 @@ $fixed_range     = '10.0.214.0/24'
 $cinder                  = true
 $multi_host              = true
 $manage_volumes          = true
-$quantum                 = true
+$quantum                 = false
 $auto_assign_floating_ip = false
 
 # Addresses of controller node
