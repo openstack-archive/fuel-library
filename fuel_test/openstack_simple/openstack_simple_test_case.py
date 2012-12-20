@@ -19,7 +19,7 @@ class OpenStackSimpleTestCase(BaseTestCase):
             root('deployment', 'puppet', 'openstack', 'examples',
                 'site_simple.pp'),
             floating_range="'%s'" % self.ci().get_floating_network(),
-            fixed_network_range="'%s'" % self.ci().get_fixed_network(),
+            fixed_range="'%s'" % self.ci().get_fixed_network(),
             public_interface="'%s'" % PUBLIC_INTERFACE,
             internal_interface="'%s'" % INTERNAL_INTERFACE,
             private_interface="'%s'" % PRIVATE_INTERFACE,
