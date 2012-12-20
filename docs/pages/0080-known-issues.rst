@@ -179,7 +179,7 @@ and start the cluster operation from the node found.
 
     ``wsrep_cluster_address="gcomm://fuel-01:4567,fuel-02:4567"``
 
-    * If ``wsrep_cluster_address`` is set correctly, run ``service mysql start`` on this node.
+    * If ``wsrep_cluster_address`` is set correctly, run ``rm -f /var/lib/mysql/grastate.dat`` and then ``service mysql start`` on this node.
 
 
 #.  Connect to any node with mysql and run ``show status like 'wsrep%';`` again.
