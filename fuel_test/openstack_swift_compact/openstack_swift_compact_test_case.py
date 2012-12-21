@@ -11,9 +11,8 @@ class OpenStackSwiftCompactTestCase(BaseTestCase):
 
     def setUp(self):
         super(OpenStackSwiftCompactTestCase, self).setUp()
-        self.write_openstack_sitepp(self.nodes.controllers)
 
-    def write_openstack_sitepp(self, controllers):
+    def write_openstack_sitepp(self, controllers, quantum=False):
         controller_public_addresses="{"
         controller_internal_addresses="{"
         for controller in controllers:
@@ -45,5 +44,6 @@ class OpenStackSwiftCompactTestCase(BaseTestCase):
             internal_interface="'%s'" % INTERNAL_INTERFACE,
             private_interface="'%s'" % PRIVATE_INTERFACE,
             mirror_type ="'internal'",
-            nv_physical_volume= ["/dev/vdb"]
+            nv_physical_volume= ["/dev/vdb"],
+            quantum = "'true'" if quantum else "'false'" ,
         )
