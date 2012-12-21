@@ -24,6 +24,11 @@ class mcollective::client(
     }
   }
 
+  package { 'stomp':
+    ensure   => 'installed',
+    provider => 'gem',
+  }
+  
   package { $mcollective_client_package : }
 
   file {"/etc/mcollective/client.cfg" :

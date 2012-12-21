@@ -4,7 +4,11 @@ cat <<EOCONF > /etc/mcollective/server.cfg
 topicprefix = /topic/
 main_collective = mcollective
 collectives = mcollective
+#if $breed == "redhat"
 libdir = /usr/libexec/mcollective
+#elif $breed == "debian" or $breed == "ubuntu"
+libdir = /usr/share/mcollective/plugins
+#end if
 logfile = /var/log/mcollective.log
 loglevel = info
 daemonize = 1
@@ -302,7 +306,6 @@ EOCONF
 gem install json_pure
 service mcollective restart
     #elif $breed == "debian" or $breed == "ubuntu"
-cp -nr /usr/share/mcollective/plugins/mcollective/* /usr/lib/ruby/1.8/mcollective/
 /usr/sbin/update-rc.d mcollective defaults
     #end if
 #end if

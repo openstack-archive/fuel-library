@@ -1,7 +1,11 @@
 topicprefix = /topic/
 main_collective = mcollective
 collectives = mcollective
+#if $breed == "redhat"
 libdir = /usr/libexec/mcollective
+#elif $breed == "debian" or $breed == "ubuntu"
+libdir = /usr/share/mcollective/plugins
+#end if
 logfile = /var/log/mcollective.log
 loglevel = info
 direct_addressing = 1
