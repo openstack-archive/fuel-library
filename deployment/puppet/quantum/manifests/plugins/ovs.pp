@@ -76,6 +76,11 @@ class quantum::plugins::ovs (
         'OVS/network_vlan_ranges':  value => $network_vlan_ranges;
         'OVS/bridge_mappings':      value => $br_map_str;
       }
+
+      package { 'vconfig':
+        name    => $::quantum::params::vlan_package,
+        ensure  => latest,
+      }
     } 
   }
 

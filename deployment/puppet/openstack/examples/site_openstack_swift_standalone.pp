@@ -33,6 +33,7 @@ $fixed_range     = '10.0.198.128/27'
 # the first address will be defined as an external default router
 # second address will be set to an uplink bridge interface (br-ex)
 # remaining addresses are utilized for ip floating pool
+$external_ipinfo = {}
 ## $external_ipinfo = {
 ##   'public_net_router' => '10.0.2.129',
 ##   'ext_bridge'        => '10.0.2.130',
@@ -279,6 +280,7 @@ node /fuel-quantum/ {
       quantum_db_dbname     => $quantum_db_dbname,
       tenant_network_type   => $tenant_network_type,
       segment_range         => $segment_range,
+      external_ipinfo       => $external_ipinfo,
       api_bind_address      => $internal_address
     }
 
