@@ -58,11 +58,11 @@ $quantum_db_password     = 'quantum_pass'
 $quantum_db_user         = 'quantum'
 $quantum_db_dbname       = 'quantum'
 $tenant_network_type     = 'gre'
-$quantum_sql_connection  = "mysql://${quantum_db_user}:${quantum_db_password}@${quantum_host}/${quantum_db_dbname}"
 
 $controller_node_internal = $controller_node_address
 $quantum_host             = $controller_node_address
 $sql_connection           = "mysql://nova:${nova_db_password}@${controller_node_internal}/nova"
+$quantum_sql_connection   = "mysql://${quantum_db_user}:${quantum_db_password}@${quantum_host}/${quantum_db_dbname}"
 
 # OpenStack packages to be installed
 $openstack_version = {

@@ -79,7 +79,6 @@ $nova_user_password      = 'nova'
 $rabbit_password         = 'nova'
 $rabbit_user             = 'nova'
 
-$quantum_sql_connection  = "mysql://${quantum_db_user}:${quantum_db_password}@${quantum_host}/${quantum_db_dbname}"
 $quantum_user_password   = 'quantum_pass'
 $quantum_db_password     = 'quantum_pass'
 $quantum_db_user         = 'quantum'
@@ -101,6 +100,8 @@ $openstack_version = {
 $mirror_type = 'external'
 
 $internal_address = getvar("::ipaddress_${internal_interface}")
+$quantum_sql_connection  = "mysql://${quantum_db_user}:${quantum_db_password}@${quantum_host}/${quantum_db_dbname}"
+
 $verbose = true
 Exec { logoutput => true }
 
