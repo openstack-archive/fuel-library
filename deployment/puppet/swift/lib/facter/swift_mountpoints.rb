@@ -11,9 +11,10 @@ $result = ""
 #   end
 # end
 
-mounted_devs = %x[df |grep '/srv/node']
+mounted_devs = %x[df -P |grep '/srv/node']
 mounted_devs.split("\n").each do |mountpoint|
-  dev, weight = mountpoint.split(/\b/).values_at(-1, 5)
+  mountp, weight = mountpoint.split(/\s+/).values_at(-1, 1)
+  dev = mountp.split(/\b/)[-1]
   if dev and weight.strip !=""
     $result += dev + " " + weight.to_i.fdiv(10485760).ceil.to_s + "\n"
   end
