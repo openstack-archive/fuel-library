@@ -285,12 +285,12 @@ def add_nmap(remote):
 def add_epel_repo_yum(remote):
     if OS_FAMILY == "centos":
         execute(remote.sudo.ssh,
-            'rpm -Uvh http://download.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-7.noarch.rpm')
+            'rpm -Uvh http://download.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm')
 
 
 def delete_epel_repo_yum(remote):
     execute(remote.sudo.ssh,
-        'rpm --erase epel-release-6-7.noarch.rpm')
+        'rpm --erase epel-release-6-8.noarch.rpm')
 
 
 def add_puppet_lab_repo(remote):
