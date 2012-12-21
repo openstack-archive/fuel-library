@@ -63,9 +63,11 @@ class quantum::agents::ovs (
     $service_ensure = 'stopped'
   }
 
-  package { 'python-amqp':
-    ensure => present,
-    before => Package[$ovs_agent_package]
+  if ! defined(Package['python-amqp']) {
+    package { 'python-amqp':
+      ensure => present,
+      before => Package[$ovs_agent_package]
+    }
   }
 
   service { 'quantum-plugin-ovs-service':
