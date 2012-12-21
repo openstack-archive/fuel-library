@@ -152,7 +152,7 @@ OS Installation
 
     * Install Puppet master::
 
-        rpm -Uvh http://download.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-7.noarch.rpm
+        rpm -Uvh http://download.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
         yum upgrade
         yum install puppet-server
         service puppetmaster start
