@@ -31,7 +31,7 @@ query_cache_type=0
 # Override bind-address
 # In some systems bind-address defaults to 127.0.0.1, and with mysqldump SST
 # it will have (most likely) disastrous consequences on donor node
-bind-address=0.0.0.0
+bind-address=<%= node_address %>
 port=3307
 
 ##
@@ -47,7 +47,7 @@ wsrep_provider=<%= libgalera_prefix %>/galera/libgalera_smm.so
 
 
 
-wsrep_provider_options="pc.ignore_sb = no;ist.recv_addr=<%= node_address %>"
+wsrep_provider_options="pc.ignore_sb = no;ist.recv_addr=<%= node_address %>;gmcast.listen_addr=tcp://<%= node_address %>:4567"
 
 # Logical cluster name. Should be the same for all nodes.
 wsrep_cluster_name="<%= cluster_name -%>"
