@@ -26,7 +26,7 @@ Exec['clocksync']->Exec<| title == 'initial-db-sync' |>
 Exec['clocksync']->Exec<| title == 'post-nova_config' |>
 
 
-define haproxy_service($order, $balancers, $virtual_ips, $port, $define_cookies = false, $backup = false) {
+define haproxy_service($order, $balancers, $virtual_ips, $port, $define_cookies = false, $master_host = undef) {
 
   case $name {
     "mysqld": {
@@ -61,7 +61,7 @@ define haproxy_service($order, $balancers, $virtual_ips, $port, $define_cookies 
     balancer_port          => $balancer_port,
     balancermember_options => $balancermember_options,
     define_cookies        => $define_cookies,
-    backup => $backup
+    master_host => $master_host
   }
 
 }
@@ -123,7 +123,7 @@ local0.* -/var/log/haproxy.log'
     haproxy_service { 'glance-api': order => 80, port => 9292, virtual_ips => [$public_virtual_ip, $internal_virtual_ip]  }
     haproxy_service { 'quantum':    order => 85, port => 9696, virtual_ips => [$public_virtual_ip, $internal_virtual_ip]  }
     haproxy_service { 'glance-reg': order => 90, port => 9191, virtual_ips => [$internal_virtual_ip]  }
-    haproxy_service { 'mysqld':     order => 95, port => 3306, virtual_ips => [$internal_virtual_ip], backup => $which ? { 0 => false, default => true } }
+    haproxy_service { 'mysqld':     order => 95, port => 3306, virtual_ips => [$internal_virtual_ip], master_host => $master_hostname }
           if $glance_backend == 'swift'
         {
                         haproxy_service { 'swift':    order => 96, port => 8080, virtual_ips => [$public_virtual_ip,$internal_virtual_ip], balancers => $swift_proxies }
