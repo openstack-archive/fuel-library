@@ -310,8 +310,20 @@ case "$mode" in
     else
         mysqld_pid=`pidof mysqld`
     fi
-
-
+    
+    #Attempting to turn off replication gracefully before mysql shutdown
+    mysql -e "SET GLOBAL wsrep_on='OFF';"
+    sleep 1
+    if (mysql -Nbe "show variables like 'wsrep_on';" | awk '$1 == "wsrep_on" {print $2}' | grep -q "OFF")
+    then
+      echo "Mysql replication is turned off with exit code $?"
+    else
+      #TODO: Invent something more suitable for the case of failed replication turn off.
+      echo "Failed to turn off mysql replication with exit code $?"
+    fi
+    sleep 1
+    mysql -Nbe "show variables like 'wsrep_cluster_address';"
+    sleep 1
 
 
       if (kill -0 $mysqld_pid 2>/dev/null)
@@ -330,8 +342,7 @@ case "$mode" in
                 fi
                 sleep 1
         done
-        if test $j -eq 10;
-         then 
+        if test $j -eq 10; then 
                 log_failure_msg "MySQL server process #$mysqld_pid failed to stop!"
                 return_value=1
         fi
