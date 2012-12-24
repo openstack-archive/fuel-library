@@ -42,6 +42,10 @@ class Puppet::Provider::SwiftRingBuilder < Puppet::Provider
   def exists?
     notice("node name: #{resource[:name]}")
     notice("available devs: #{available_devs.keys.sort.inspect}")
+    available_devs.keys.each do |dev|
+      raise(Puppet::Error, "Device name #{resource[:name]} should not contain underscore") if dev.include?('_')
+    end
+    raise(Puppet::Error, "Device not found check device on  #{resource[:name]} ") if available_devs.empty?
     return  available_devs.keys.sort == used_devs
   end
 
