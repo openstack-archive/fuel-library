@@ -219,7 +219,7 @@ node /fuel-05/ {
   $swift_zone = 1
 
   class { 'openstack::swift::storage-node':
-    loopback           => $swift_loopback,
+    storage_type       => $swift_loopback,
     swift_zone         => $swift_zone,
     swift_local_net_ip => $internal_address,
   }
