@@ -1,8 +1,6 @@
 Known Issues and Workarounds
 ============================
 
-.. contents:: :local:
-
 
 Galera
 ^^^^^^

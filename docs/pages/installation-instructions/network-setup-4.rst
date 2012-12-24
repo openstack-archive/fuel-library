@@ -1,8 +1,6 @@
 Installation Instructions
 =========================
 
-.. contents:: :local:
-
 
 Network Setup
 -------------

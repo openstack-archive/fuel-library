@@ -1,9 +1,6 @@
 Installation Instructions
 =========================
 
-.. contents:: :local:
-
-
 Machines
 --------
 

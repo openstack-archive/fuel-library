@@ -1,8 +1,6 @@
 Reference Architecture
 ======================
 
-.. contents:: :local:
-
 
 Cinder vs. nova-volume
 ----------------------

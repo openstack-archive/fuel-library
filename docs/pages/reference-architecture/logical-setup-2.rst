@@ -1,8 +1,6 @@
 Reference Architecture
 ======================
 
-.. contents:: :local:
-
 
 Logical Setup 
 -------------

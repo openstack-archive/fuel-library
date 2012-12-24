@@ -1,8 +1,6 @@
 Reference Architecture
 ======================
 
-.. contents:: :local:
-
 
 Cluster Sizing
 --------------

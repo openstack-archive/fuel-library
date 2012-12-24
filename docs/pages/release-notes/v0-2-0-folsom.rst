@@ -1,8 +1,6 @@
 Release Notes
 =============
 
-.. contents:: :local:
-
 
 v0.2.0-folsom
 -------------

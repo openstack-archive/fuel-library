@@ -1,8 +1,6 @@
 Installation Instructions
 =========================
 
-.. contents:: :local:
-
 .. _common-technical-issues:
 
 Common Technical Issues

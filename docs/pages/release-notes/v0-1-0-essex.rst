@@ -1,8 +1,6 @@
 Release Notes
 =============
 
-.. contents:: :local:
-
 
 v0.1.0-essex
 ------------
