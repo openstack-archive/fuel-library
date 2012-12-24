@@ -1,7 +1,7 @@
 #
 # Parameter values in this file should be changed, taking into consideration your
 # networking setup and desired OpenStack settings.
-# 
+#
 # Please consult with the latest Fuel User Guide before making edits.
 #
 
@@ -52,6 +52,10 @@ $manage_volumes          = true
 $quantum                 = true
 $auto_assign_floating_ip = false
 $glance_backend          = 'swift'
+
+# Use loopback device for swift
+# set 'loopback' or false
+$swift_loopback = 'loopback'
 
 # Set master hostname for the HA cluster of controller nodes, as well as hostnames for every controller in the cluster.
 $master_hostname      = 'fuel-01'
@@ -181,6 +185,7 @@ node /fuel-01/ {
   $swift_zone = 1
 
   class { 'openstack::swift::storage-node':
+    loopback           => $swift_loopback,
     swift_zone         => $swift_zone,
     swift_local_net_ip => $internal_address,
   }

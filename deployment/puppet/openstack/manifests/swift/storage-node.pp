@@ -12,27 +12,25 @@ class openstack::swift::storage-node (
 if !defined(Class['swift'])
 {
 
-  class { 'swift': 
+  class { 'swift':
     swift_hash_suffix => $swift_hash_suffix,
     package_ensure    => $package_ensure,
   }
 }
-  case $storage_type {
-    'loopback': {
-      # create xfs partitions on a loopback device and mount them
-      swift::storage::loopback { $storage_devices:
-        base_dir     => $storage_base_dir,
-        mnt_base_dir => $storage_mnt_base_dir,
-        seek         => '1048756',
-        require      => Class['swift'],
-      }
+  if $storage_type == 'loopback' {
+    # create xfs partitions on a loopback device and mount them
+    swift::storage::loopback { $storage_devices:
+      base_dir     => $storage_base_dir,
+      mnt_base_dir => $storage_mnt_base_dir,
+      seek         => '1048756',
+      require      => Class['swift'],
     }
   }
 
   # install all swift storage servers together
   class { 'swift::storage::all':
     storage_local_net_ip => $swift_local_net_ip,
-    swift_zone		=> $swift_zone
+    swift_zone           => $swift_zone
   }
 
   define device_endpoint ($swift_local_net_ip, $zone, $weight) {
