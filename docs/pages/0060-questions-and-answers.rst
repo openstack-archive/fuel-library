@@ -1,4 +1,4 @@
-Questions & Answers
+FAQ (Frequently Asked Questions)
 ===================
 
 .. contents:: :local:
