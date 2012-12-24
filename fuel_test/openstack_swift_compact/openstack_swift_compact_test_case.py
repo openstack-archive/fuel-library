@@ -13,7 +13,7 @@ class OpenStackSwiftCompactTestCase(BaseTestCase):
     def setUp(self):
         super(OpenStackSwiftCompactTestCase, self).setUp()
 
-    def write_openstack_sitepp(self, controllers, quantum=False):
+    def write_openstack_sitepp(self, controllers, quantum=False, loopback=True):
         controller_public_addresses="{"
         controller_internal_addresses="{"
         for controller in controllers:
@@ -48,6 +48,7 @@ class OpenStackSwiftCompactTestCase(BaseTestCase):
                 mirror_type ="'internal'",
                 nv_physical_volume= ["/dev/vdb"],
                 quantum = "true" if quantum else "false",
+                swift_loopback = "'loopback'" if loopback else "false",
             )
         else:
             self.write_site_pp_manifest(

@@ -25,5 +25,9 @@ class OpenStackSwiftCompactCase(OpenStackSwiftCompactTestCase):
         self.write_openstack_sitepp(self.nodes.controllers, quantum=False)
         self.deploy_compact(quantum=False)
 
+    def test_deploy_compact_wo_loopback(self):
+        self.write_openstack_sitepp(self.nodes.controllers, quantum=False, loopback=False)
+        self.deploy_compact(quantum=False)
+
 if __name__ == '__main__':
     unittest.main()
