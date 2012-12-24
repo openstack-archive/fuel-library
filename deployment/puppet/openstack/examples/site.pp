@@ -19,7 +19,7 @@ $internal_virtual_ip = '10.0.125.253'
 $public_virtual_ip   = '10.0.74.253'
 
 # Map of controller IP addresses on internal interfaces. Must have an entry for every controller node.
-$controller_internal_addresses = { 'fuel-01'=>'10.0.125.3', 'fuel-02'=>'10.0.125.4'}
+$controller_internal_addresses = { 'fuel-controller-01'=>'10.0.125.3', 'fuel-controller-02'=>'10.0.125.4'}
 
 # Specify pools for Floating IP and Fixed IP.
 # Floating IP addresses are used for communication of VM instances with the outside world (e.g. Internet).
@@ -53,8 +53,8 @@ $auto_assign_floating_ip = false
 $glance_backend          = 'file'
 
 # Set master hostname for the HA cluster of controller nodes, as well as hostnames for every controller in the cluster.
-$master_hostname      = 'fuel-01'
-$controller_hostnames = ['fuel-01', 'fuel-02']
+$master_hostname      = 'fuel-controller-01'
+$controller_hostnames = ['fuel-controller-01', 'fuel-controller-02']
 
 # Set up OpenStack network manager
 $network_manager      = 'nova.network.manager.FlatDHCPManager'
@@ -113,7 +113,7 @@ if $::operatingsystem == 'Ubuntu'
 }
 
 # Definition of OpenStack controller nodes.
-node /fuel-0[12]/ {
+node /fuel-controller-[\d+]/ {
     class { 'openstack::controller_ha': 
       controller_public_addresses => $controller_public_addresses,
       public_interface        => $public_interface,
@@ -160,7 +160,7 @@ node /fuel-0[12]/ {
 }
 
 # Definition of OpenStack compute nodes.
-node /fuel-0[34]/ {
+node /fuel-compute-[\d+]/ {
     class { 'openstack::compute':
       public_interface   => $public_interface,
       private_interface  => $private_interface,
@@ -230,4 +230,4 @@ node /fuel-quantum/ {
 }
 
 # This configuration option is deprecated and will be removed in future releases. It's currently kept for backward compatibility.
-$controller_public_addresses = { 'fuel-01'=>'10.0.74.3', 'fuel-02'=>'10.0.74.4'}
+$controller_public_addresses = { 'fuel-controller-01'=>'10.0.74.3', 'fuel-controller-02'=>'10.0.74.4'}

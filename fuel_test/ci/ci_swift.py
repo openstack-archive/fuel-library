@@ -6,8 +6,8 @@ from fuel_test.node_roles import NodeRoles
 class CiSwift(CiBase):
     def node_roles(self):
         return NodeRoles(
-            storage_names=['fuel-05', 'fuel-06', 'fuel-07'],
-            proxy_names=['fuel-08'],
+            storage_names=['fuel-swift-01', 'fuel-swift-02', 'fuel-swift-03'],
+            proxy_names=['fuel-swiftproxy-01'],
             keystone_names=['keystone']
         )
 

@@ -1,9 +1,9 @@
 use_case: simple
-fuel-01.your-domain-name.com:
+fuel-controller-01.your-domain-name.com:
     role: controller
-fuel-02.your-domain-name.com:
+fuel-compute-01.your-domain-name.com:
     role: compute
-fuel-03.your-domain-name.com:
+fuel-compute-02.your-domain-name.com:
     role: compute
-fuel-04.your-domain-name.com:
+fuel-compute-03.your-domain-name.com:
     role: compute

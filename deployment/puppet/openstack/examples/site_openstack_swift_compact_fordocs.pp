@@ -20,7 +20,7 @@ $public_virtual_ip   = '10.0.2.253'
 $swift_proxy_address = '10.0.0.253'
 
 # Map of controller IP addresses on internal interfaces. Must have an entry for every controller node.
-$controller_internal_addresses = {'fuel-01' => '10.0.0.101','fuel-02' => '10.0.0.102','fuel-03' => '10.0.0.103'}
+$controller_internal_addresses = {'fuel-controller-01' => '10.0.0.101','fuel-controller-02' => '10.0.0.102','fuel-controller-03' => '10.0.0.103'}
 
 # Specify pools for Floating IP and Fixed IP.
 # Floating IP addresses are used for communication of VM instances with the outside world (e.g. Internet).
@@ -58,8 +58,8 @@ $glance_backend          = 'swift'
 $swift_loopback = 'loopback'
 
 # Set master hostname for the HA cluster of controller nodes, as well as hostnames for every controller in the cluster.
-$master_hostname      = 'fuel-01'
-$controller_hostnames = ['fuel-01', 'fuel-02', 'fuel-03']
+$master_hostname      = 'fuel-controller-01'
+$controller_hostnames = ['fuel-controller-01', 'fuel-controller-02', 'fuel-controller-03']
 
 # Set up OpenStack network manager
 $network_manager      = 'nova.network.manager.FlatDHCPManager'
@@ -180,7 +180,7 @@ class compact_controller {
 
 
 # Definition of the first OpenStack controller.
-node /fuel-01/ {
+node /fuel-controller-01/ {
   class { compact_controller: }
   $swift_zone = 1
 
@@ -200,7 +200,7 @@ node /fuel-01/ {
 
 
 # Definition of the second OpenStack controller.
-node /fuel-02/ {
+node /fuel-controller-02/ {
   class { 'compact_controller': }
   $swift_zone = 2
 
@@ -219,7 +219,7 @@ node /fuel-02/ {
 
 
 # Definition of the third OpenStack controller.
-node /fuel-03/ {
+node /fuel-controller-03/ {
   class { 'compact_controller': }
   $swift_zone = 3
 
@@ -238,7 +238,7 @@ node /fuel-03/ {
 
 
 # Definition of OpenStack compute node.
-node /fuel-04/ {
+node /fuel-compute-[\d+]/ {
     class { 'openstack::compute':
       public_interface       => $public_interface,
       private_interface      => $private_interface,
@@ -308,5 +308,5 @@ node /fuel-quantum/ {
 }
 
 # This configuration option is deprecated and will be removed in future releases. It's currently kept for backward compatibility.
-$controller_public_addresses = {'fuel-01' => '10.0.2.15','fuel-02' => '10.0.2.16','fuel-03' => '10.0.2.17'}
+$controller_public_addresses = {'fuel-controller-01' => '10.0.2.15','fuel-controller-02' => '10.0.2.16','fuel-controller-03' => '10.0.2.17'}
 

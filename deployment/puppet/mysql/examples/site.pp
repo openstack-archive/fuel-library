@@ -1,4 +1,4 @@
-$master_hostname = 'fuel-01'
+$master_hostname = 'fuel-controller-01'
 $which = $::hostname ? { $master_hostname => 0, default => 1 }
 $galera_node_addresses = []
 $galera_cluster_name = 'openstack'
@@ -8,7 +8,7 @@ $custom_mysql_setup_class = 'galera'
 $mysql_root_password = 'nova'
 $enabled = true
 
-node /fuel-0[12]/ {
+node /fuel-controller-[\d+]/ {
     class { "mysql::server":
         config_hash => {
           # 'root_password' => $mysql_root_password,

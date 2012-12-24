@@ -87,7 +87,7 @@ if $::operatingsystem == 'Ubuntu' {
 }
 
 # Definition of OpenStack controller node.
-node /fuel-01/ {
+node /fuel-controller-[\d+]/ {
 
   class { 'openstack::controller':
     admin_address           => $controller_node_internal,
@@ -132,7 +132,7 @@ node /fuel-01/ {
 }
 
 # Definition of OpenStack compute nodes.
-node /fuel-0[234]/ {
+node /fuel-compute-[\d+]/ {
 
   class { 'openstack::compute':
     public_interface       => $public_interface,
