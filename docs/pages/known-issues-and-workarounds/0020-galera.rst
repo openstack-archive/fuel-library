@@ -114,7 +114,7 @@ and start the cluster operation from the node found.
 
     This node is supposed to start first. It creates a new cluster ID and a new last commit UUID 
     (the ``wsrep_cluster_state_uuid`` variable represents this UUID inside the MySQL process). 
-    Fuel deployment manifests with default settings set up ``fuel-01`` to be both the primary Galera cluster node 
+    Fuel deployment manifests with default settings set up ``fuel-controller-01`` to be both the primary Galera cluster node 
     and the first deployed OpenStack controller.
     * Open ``/etc/mysql/conf.d/wsrep.cnf``
     * Set empty cluster address as follows (including quotation marks):
@@ -150,7 +150,7 @@ and start the cluster operation from the node found.
         In case of OpenStack deployed by Fuel manifests with default settings (2 controllers), 
         this parameter should look like 
 
-    ``wsrep_cluster_address="gcomm://fuel-01:4567,fuel-02:4567"``
+    ``wsrep_cluster_address="gcomm://fuel-controller-01:4567,fuel-controller-02:4567"``
 
     * If ``wsrep_cluster_address`` is set correctly, run ``rm -f /var/lib/mysql/grastate.dat`` and then ``service mysql start`` on this node.
 
@@ -187,7 +187,7 @@ and start the cluster operation from the node found.
     In case of OpenStack deployed by Fuel manifests with default settings (2 controllers), 
     on every operating controller this parameter should finally look like 
 
-    ``wsrep_cluster_address="gcomm://fuel-01:4567,fuel-02:4567"`` 
+    ``wsrep_cluster_address="gcomm://fuel-controller-01:4567,fuel-controller-02:4567"`` 
 
     This step is important for future failures or maintenance procedures.
     In case Galera primary controller node is restarted with the empty "gcomm" value 
@@ -231,7 +231,7 @@ and start the cluster operation from the node found.
 
     on the primary node (first deployed OpenStack controller) and node list like
 
-    ``wsrep_cluster_address="gcomm://fuel-01:4567,fuel-02:4567"`` 
+    ``wsrep_cluster_address="gcomm://fuel-controller-01:4567,fuel-controller-02:4567"`` 
 
     on every secondary controller. Therefore, it is a good idea to check these parameters after the deployment is finished.
 
