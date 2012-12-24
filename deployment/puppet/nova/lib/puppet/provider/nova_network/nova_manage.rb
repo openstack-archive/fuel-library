@@ -33,11 +33,13 @@ Puppet::Type.type(:nova_network).provide(:nova_manage) do
       :gateway          => '--gateway',
       :bridge           => '--bridge',
       :vlan_start       => '--vlan',
-      :network_size	=> '--network_size'
     }.each do |param, opt|
       if resource[param]
         optional_opts.push(opt).push(resource[param])
       end
+    end
+    if resource[:network_size].to_i <= 2**(32-resource[:name].split('/')[1].to_i)-1
+        optional_opts.push('--network_size').push(resource[:network_size])
     end
 
     nova_manage('network', 'create',
