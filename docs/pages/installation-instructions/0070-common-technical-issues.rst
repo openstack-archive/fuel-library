@@ -16,10 +16,10 @@ Common Technical Issues
 #. The manifests are up-to-date under ``/etc/puppet/manifests``, but Puppet master keeps serving the previous version of manifests to the clients. Manifests seem to be cached by Puppet master.
     * issue: https://groups.google.com/forum/?fromgroups=#!topic/puppet-users/OpCBjV1nR2M
     * workaround: "``service puppetmaster restart``"
-#. Timeout error for fuel-0x when running "``puppet-agent --test``" to install OpenStack when using HDD instead of SSD
-    * | Sep 26 17:56:15 fuel-02 puppet-agent[1493]: Could not retrieve catalog from remote server: execution expired
-      | Sep 26 17:56:15 fuel-02 puppet-agent[1493]: Not using cache on failed catalog
-      | Sep 26 17:56:15 fuel-02 puppet-agent[1493]: Could not retrieve catalog; skipping run
+#. Timeout error for fuel-controller-XX when running "``puppet-agent --test``" to install OpenStack when using HDD instead of SSD
+    * | Sep 26 17:56:15 fuel-controller-02 puppet-agent[1493]: Could not retrieve catalog from remote server: execution expired
+      | Sep 26 17:56:15 fuel-controller-02 puppet-agent[1493]: Not using cache on failed catalog
+      | Sep 26 17:56:15 fuel-controller-02 puppet-agent[1493]: Could not retrieve catalog; skipping run
 
     * workaround: ``vi /etc/puppet/puppet.conf``
         * add: ``configtimeout = 1200``

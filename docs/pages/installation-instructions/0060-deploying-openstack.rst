@@ -10,7 +10,7 @@ If you are using hardware, make sure it is capable of PXE booting over the netwo
 In case of VirtualBox, create the corresponding virtual machines for your OpenStack nodes. Do not start them yet.
 
 * Machine -> New...
-    * Name: fuel-01 (will need to repeat for fuel-02, fuel-03, and fuel-04)
+    * Name: fuel-controller-01 (will need to repeat for fuel-controller-02, fuel-controller-03, and fuel-compute-01)
     * Type: Linux
     * Version: Red Hat (64 Bit) or Ubuntu (64 Bit)
 
@@ -50,7 +50,7 @@ On Puppet master, create a directory for configuration (wherever you like) and c
 
 Edit configuration for bare metal provisioning of nodes (nodes.yaml):
 
-* There is essentially a section for every node, and you have to define all OpenStack nodes there (fuel-01, fuel-02, fuel-03, and fuel-04 by default). The config for a single node is provided below. The config for the remaining nodes is very similar
+* There is essentially a section for every node, and you have to define all OpenStack nodes there (fuel-controller-01, fuel-controller-02, fuel-controller-03, and fuel-compute-01 by default). The config for a single node is provided below. The config for the remaining nodes is very similar
 * It is important to get the following parameters correctly specified (they are different for every node):
     * name of the system in Cobbler, the very first line
     * hostname and DNS name (do not forget to replace "your-domain-name.com" with your domain name)
@@ -68,7 +68,7 @@ Installing OS on the nodes using Cobbler
 
 Now, when Cobbler has the correct configuration, the only thing you need to do is to PXE-boot your nodes. They will boot over the network from DHCP/TFTP provided by Cobbler and will be provisioned accordingly, with the specified operating system and configuration.
 
-In case of VirtualBox, here is what you have to do for every virtual machine (fuel-01, fuel-02, fuel-03, fuel-04):
+In case of VirtualBox, here is what you have to do for every virtual machine (fuel-controller-01, fuel-controller-02, fuel-controller-03, fuel-compute-01):
 
 * Start VM
 * Press F12 immediately and select "l" (LAN) as a bootable media
@@ -177,13 +177,13 @@ Installing OpenStack on the nodes using Puppet
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * Install OpenStack controller nodes sequentially, one by one
-    * run "``puppet agent --test``" on fuel-01
+    * run "``puppet agent --test``" on fuel-controller-01
     * wait for the installation to complete
-    * repeat the same for fuel-02 and fuel-03
+    * repeat the same for fuel-controller-02 and fuel-controller-03
     * .. important:: It is important to establish the cluster of OpenStack controllers in sequential fashion, due to the nature of assembling MySQL cluster based on Galera
 
 * Install OpenStack compute nodes. You can do it in parallel if you wish.
-    * run "``puppet agent --test``" on fuel-04
+    * run "``puppet agent --test``" on fuel-compute-01
     * wait for the installation to complete
 
 * Your OpenStack cluster is ready to go.

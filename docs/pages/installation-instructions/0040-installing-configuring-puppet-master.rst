@@ -157,10 +157,10 @@ OS Installation
 
             127.0.0.1    localhost fuel-pm
             10.0.0.100   fuel-pm.your-domain-name.com fuel-pm
-            10.0.0.101   fuel-01.your-domain-name.com fuel-01
-            10.0.0.102   fuel-02.your-domain-name.com fuel-02
-            10.0.0.103   fuel-03.your-domain-name.com fuel-03
-            10.0.0.104   fuel-04.your-domain-name.com fuel-04
+            10.0.0.101   fuel-controller-01.your-domain-name.com fuel-controller-01
+            10.0.0.102   fuel-controller-02.your-domain-name.com fuel-controller-02
+            10.0.0.103   fuel-controller-03.your-domain-name.com fuel-controller-03
+            10.0.0.110   fuel-compute-01.your-domain-name.com fuel-compute-01
 
     * Run ``hostname fuel-pm`` or reboot to apply hostname
 
@@ -227,17 +227,17 @@ Testing Puppet
         node /fuel-pm.your-domain-name.com/ {
             notify{"Hello world from fuel-pm": }
         }
-        node /fuel-01.your-domain-name.com/ {
-            notify{"Hello world from fuel-01": }
+        node /fuel-controller-01.your-domain-name.com/ {
+            notify{"Hello world from fuel-controller-01": }
         }
-        node /fuel-02.your-domain-name.com/ {
-            notify{"Hello world from fuel-02": }
+        node /fuel-controller-02.your-domain-name.com/ {
+            notify{"Hello world from fuel-controller-02": }
         }
-        node /fuel-03.your-domain-name.com/ {
-            notify{"Hello world from fuel-03": }
+        node /fuel-controller-03.your-domain-name.com/ {
+            notify{"Hello world from fuel-controller-03": }
         }
-        node /fuel-04.your-domain-name.com/ {
-            notify{"Hello world from fuel-04": }
+        node /fuel-compute-01.your-domain-name.com/ {
+            notify{"Hello world from fuel-compute-01": }
         }
 
 * If you are planning to install Cobbler on Puppet master node as well, make configuration changes on Puppet master so that it actually knows how to provision software onto itself (replace "your-domain-name.com" with your domain name)
