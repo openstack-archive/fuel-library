@@ -40,7 +40,6 @@ class mcollective::rabbitmq(
     password  => $stomppassword,
     provider  => 'rabbitmqctl',
     require   => Class['rabbitmq::server'],
-    notify => Service["rabbitmq-server"],
   }
   
   rabbitmq_user_permissions { "${stompuser}@/":
@@ -49,7 +48,6 @@ class mcollective::rabbitmq(
     read_permission      => '.*',
     provider             => 'rabbitmqctl',
     require              => Class['rabbitmq::server'],
-    notify => Service["rabbitmq-server"],
   }
 
 
@@ -71,5 +69,15 @@ class mcollective::rabbitmq(
     mode => 0644,
     require => Package["rabbitmq-server"],
     notify => Service["rabbitmq-server"],
+  }
+  
+  Rabbitmq_user<||> -> Exec['rabbitmq_restart']
+  Rabbitmq_user_permissions<||> -> Exec['rabbitmq_restart']
+  File['/etc/rabbitmq/enabled_plugins'] -> Exec['rabbitmq_restart']
+  
+  exec{ 'rabbitmq_restart':
+    command => 'service rabbitmq-server restart'
+    path => ['/bin', '/sbin'],
+  
   }
 }
