@@ -1,6 +1,3 @@
-Reference Architecture 
-======================
-
 
 Quantum vs. nova-network
 ------------------------

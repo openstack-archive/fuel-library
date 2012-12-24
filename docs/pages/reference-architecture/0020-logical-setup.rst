@@ -1,6 +1,3 @@
-Reference Architecture 
-======================
-
 
 Logical Setup 
 -------------

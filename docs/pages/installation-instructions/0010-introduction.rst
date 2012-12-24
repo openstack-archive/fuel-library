@@ -1,5 +1,3 @@
-Installation Instructions 
-=========================
 
 Introduction
 ------------

@@ -1,5 +1,3 @@
-Installation Instructions 
-=========================
 
 Installing & Configuring Puppet Master
 --------------------------------------

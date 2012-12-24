@@ -1,6 +1,3 @@
-Reference Architecture 
-======================
-
 
 Cluster Sizing
 --------------

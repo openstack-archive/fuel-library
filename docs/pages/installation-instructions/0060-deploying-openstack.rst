@@ -1,6 +1,3 @@
-Installation Instructions 
-=========================
-
 
 Deploying OpenStack
 -------------------
