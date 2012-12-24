@@ -66,6 +66,8 @@ class quantum::server (
     ensure     => $service_ensure,
     enable     => $enabled,
     hasstatus  => true,
-    hasrestart => true
+    hasrestart => true,
+    provider   => $::quantum::params::service_provider,
   }
+
 }

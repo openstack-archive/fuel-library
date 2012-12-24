@@ -25,6 +25,15 @@ class quantum::params {
       $python_path        = 'python2.7/dist-packages'
       $cidr_package       = 'ipcalc'
       $vlan_package       = 'vlan'
+
+      case $::operatingsystem {
+        'Debian': {
+          $service_provider = undef
+        }
+        default: {
+          $service_provider = 'upstart'
+        }
+      }
     }
     'RedHat': {
       $package_name       = 'openstack-quantum'
@@ -47,9 +56,12 @@ class quantum::params {
 
       $cliff_package      = 'python-cliff'
       $kernel_headers     = "linux-headers-${::kernelrelease}"
+
+      $python_path        = 'python2.6/site-packages'
       $cidr_package       = "whatmask"
       $vlan_package       = 'vconfig'
-      $python_path        = 'python2.6/site-packages'
+
+      $service_provider   = undef
     }
   }
 }

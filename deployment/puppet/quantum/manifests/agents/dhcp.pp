@@ -61,9 +61,13 @@ class quantum::agents::dhcp (
   }
 
   service { 'quantum-dhcp-service':
-    name    => $::quantum::params::dhcp_agent_service,
-    enable  => $enabled,
-    ensure  => $ensure,
-    require => [Package[$dhcp_agent_package], Class['quantum']],
+    name       => $::quantum::params::dhcp_agent_service,
+    enable     => $enabled,
+    ensure     => $ensure,
+    hasstatus  => true,
+    hasrestart => true,
+    provider   => $::quantum::params::service_provider,
+    require    => [Package[$dhcp_agent_package], Class['quantum'], Service['quantum-plugin-ovs-service']],
   }
+
 }

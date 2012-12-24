@@ -90,7 +90,7 @@ class quantum::agents::l3 (
         refreshonly => true,
         logoutput   => true,
         require     => Service["openvswitch-switch"],
-        notify      => Service['quantum-plugin-ovs-service'],
+        #notify      => Service['quantum-plugin-ovs-service'],
       }
     }
   } else {
@@ -109,9 +109,13 @@ class quantum::agents::l3 (
   }
 
   service { 'quantum-l3':
-    name    => $::quantum::params::l3_agent_service,
-    enable  => $enabled,
-    ensure  => $ensure,
-    require => [Package[$l3_agent_package], Class['quantum']],
+    name       => $::quantum::params::l3_agent_service,
+    enable     => $enabled,
+    ensure     => $ensure,
+    hasstatus  => true,
+    hasrestart => true,
+    provider   => $::quantum::params::service_provider,
+    require    => [Package[$l3_agent_package], Class['quantum']],
   }
+
 }
