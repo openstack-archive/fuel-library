@@ -96,30 +96,45 @@ Configuring OpenStack cluster in Puppet
 In case of VirtualBox, it is recommended to save the current state of every virtual machine using the mechanism of snapshots. It is helpful to have a point to revert to, so that you could install OpenStack using Puppet and then revert and try one more time, if necessary.
 
 * On Puppet master
-    * create a file with the definition of networks, nodes, and roles. Assume you are deploying a compact configuration, with Controllers and Swift combined:
-        * ``cp /etc/puppet/modules/openstack/examples/site_openstack_swift_compact.pp /etc/puppet/manifests/site.pp``
-    * ``vi /etc/puppet/manifests/site.pp`` and edit settings accordingly (see "Configuring Network", "Enabling Quantum", "Enabling Cinder" below):
-       
-       .. literalinclude:: ../../deployment/puppet/openstack/examples/site_openstack_swift_compact_fordocs.pp
-    
-    * create a directory with keys, give it appropriate permissions, and generate keys themselves
-        * ``mkdir /var/lib/puppet/ssh_keys``
-        * ``cd /var/lib/puppet/ssh_keys``
-        * ``ssh-keygen -f openstack``
-        * ``chown -R puppet:puppet /var/lib/puppet/ssh_keys/``
     * edit file ``/etc/puppet/fileserver.conf`` and append the following lines: :: 
     
         [ssh_keys]
         path /var/lib/puppet/ssh_keys
         allow *
 
+    * create a directory with keys, give it appropriate permissions, and generate keys themselves
+        * ``mkdir /var/lib/puppet/ssh_keys``
+        * ``cd /var/lib/puppet/ssh_keys``
+        * ``ssh-keygen -f openstack``
+        * ``chown -R puppet:puppet /var/lib/puppet/ssh_keys/``
+    * create a file with the definition of networks, nodes, and roles. Assume you are deploying a compact configuration, with Controllers and Swift combined:
+        ``cp /etc/puppet/modules/openstack/examples/site_openstack_swift_compact.pp /etc/puppet/manifests/site.pp``
+    * ``vi /etc/puppet/manifests/site.pp`` and edit settings accordingly (see "Configuring Network", "Enabling Quantum", "Enabling Cinder" below):
+       
+       .. literalinclude:: ../../deployment/puppet/openstack/examples/site_openstack_swift_compact_fordocs.pp
+    
+
 Configuring Network
 ^^^^^^^^^^^^^^^^^^^
 
-* You will need to change the following parameters:
+* You will need ``vi /etc/puppet/manifests/site.pp`` (see above) to change the following parameters:
   
   * Change IP addresses for "public" and "internal" according to your networking requirements
+
+      $internal_virtual_ip = '10.0.0.253' # IP address must be in address space of management network (eth0)
+      $swift_proxy_address = '10.0.0.253' # but not in DHCP range.
+
+      $public_virtual_ip   = '10.xxx.yyy.253' # must be in address space of public network (eth1) , but not in DHCP range and floating range (see below). 
+
   * Define "$floating_range" and "$fixed_range" accordingly
+
+      $floating_range  = '10.xxx.yyy.128/26' # IP-address from the public address space. 
+      $fixed_range     = '10.0.198.0/24'     # This subnet used for service purpose only. Specify any unused by you subnet here. 
+
+  * Specify network manager.  It can be 'nova.network.manager.FlatDHCPManager', 'nova.network.manager.FlatManager' or 'nova.network.manager.VlanManager'
+
+      $network_manager = 'nova.network.manager.FlatDHCPManager'
+
 
 Enabling Quantum
 ^^^^^^^^^^^^^^^^
@@ -157,7 +172,7 @@ Enabling Cinder
 
 * In order to deploy OpenStack with Cinder, simply set ``$cinder = true`` in your site.pp file.
 * Then, specify the list of physical devices in ``$nv_physical_volume``. They will be aggregated into "cinder-volumes" volume group.
-* Alternatively, you can leave this field blank and create LVM VolumeGroup called "cinder-volumes" on every controller node yourself.
+* Alternatively, you can leave this field blank and create LVM VolumeGroup called "cinder-volumes" on every controller node yourself. Cobbler automation allows you to create this volume group during bare metal provisioning phase through parameter "cinder_bd_for_vg" in nodes.yaml file.
 * The available manifests under "examples" assume that you have the same collection of physical devices for VolumeGroup "cinder-volumes" across all of your volume nodes.
 * Be careful and do not add block devices to the list containing useful data (e.g. block devices on which your OS resides), as they will be destroyed after you allocate them for Cinder.
 * For example::

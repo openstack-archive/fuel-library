@@ -9,7 +9,8 @@ The current architecture assumes deployment with 3 network interfaces, for clari
     * you can configure network addresses/network mask according to your needs, but we will give instructions using the following network settings on this interface:
         * 10.0.0.100 for Puppet master
         * 10.0.0.101-10.0.0.103 for controller nodes
-        * 10.0.0.104 for compute nodes
+        * 10.0.0.105 for quantum node
+        * 10.0.0.110-10.0.0.126 for compute nodes
         * 255.255.255.0 network mask
         * in the case of VirtualBox environment, host machine will be 10.0.0.1
 
