@@ -85,7 +85,8 @@ define haproxy::balancermember (
   $order                  = '20',
   $balancers            =  { "$::hostname" => $::ipaddress },
   $balancermember_options = '',
-  $define_cookies         = false
+  $define_cookies         = false,
+  $backup = false
 ) {
   # Template uses $ipaddresses, $server_name, $ports, $option
   concat::fragment { "${listening_service}_balancermember_${name}":
