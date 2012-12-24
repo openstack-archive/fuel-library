@@ -1,13 +1,13 @@
 $internal_virtual_ip = '10.0.0.110'
 $public_virtual_ip = '10.0.0.110'
-$master_hostname = 'fuel-01'
-$swift_master = 'fuel-08'
-$controller_public_addresses = { 'fuel-01'=>'10.0.0.101', 'fuel-02'=>'10.0.0.102'}
-$controller_internal_addresses = { 'fuel-01'=>'10.0.0.101', 'fuel-02'=>'10.0.0.102'}
-$swift_proxies = {'fuel-08' => '10.0.0.108', 'fuel-09' => '10.0.0.109' }  
+$master_hostname = 'fuel-controller-01'
+$swift_master = 'fuel-swiftproxy-01'
+$controller_public_addresses = { 'fuel-controller-01'=>'10.0.0.101', 'fuel-controller-02'=>'10.0.0.102'}
+$controller_internal_addresses = { 'fuel-controller-01'=>'10.0.0.101', 'fuel-controller-02'=>'10.0.0.102'}
+$swift_proxies = {'fuel-swiftproxy-01' => '10.0.0.108', 'fuel-swiftproxy-02' => '10.0.0.109' }  
 $floating_range = '10.0.1.0/28'
 $fixed_range = '10.0.2.0/28'
-$controller_hostnames = ['fuel-01', 'fuel-02']
+$controller_hostnames = ['fuel-controller-01', 'fuel-controller-02']
 $public_interface = 'eth1'
 $internal_interface = 'eth1'
 $internal_address = getvar("::ipaddress_${internal_interface}")
@@ -70,7 +70,7 @@ if $::operatingsystem == 'Ubuntu'
 {
   class { 'openstack::apparmor::disable': stage => 'openstack-custom-repo' }
 }
-node /fuel-0[12]/ inherits swift_base {
+node /fuel-controller-[\d+]/ inherits swift_base {
     if $::hostname == $master_hostname
     {
       $manage_volumes = true
@@ -122,7 +122,7 @@ node /fuel-0[12]/ inherits swift_base {
 
 }
 
-node /fuel-0[34]/ {
+node /fuel-compute-[\d+]/ {
     class { 'openstack::compute':
       public_interface   => $public_interface,
       private_interface  => $private_interface,
@@ -163,19 +163,19 @@ node swift_base  {
     use_chroot => 'no',
   }
 }
-node /fuel-05/ inherits swift_base {
+node /fuel-swift-01/ inherits swift_base {
 
   $swift_zone = 1
   include role_swift_storage
 
 }
-node /fuel-06/ inherits swift_base {
+node /fuel-swift-02/ inherits swift_base {
 
   $swift_zone = 2
   include role_swift_storage
 
 }
-node /fuel-07/ inherits swift_base {
+node /fuel-swift-03/ inherits swift_base {
 
   $swift_zone = 3
   include role_swift_storage
@@ -202,7 +202,7 @@ class role_swift_storage {
 
 }
 
-node /fuel-0[89]/ inherits swift_base {
+node /fuel-swiftproxy-[\d+]/ inherits swift_base {
 
   # curl is only required so that I can run tests
   package { 'curl': ensure => present }

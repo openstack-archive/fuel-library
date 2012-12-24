@@ -198,13 +198,13 @@ class CobblerCase(CobblerTestCase):
         )
         config_text = (
                        "use_case: minimal\n"
-                       "fuel-01.your-domain-name.com:\n"
+                       "fuel-controller-01.your-domain-name.com:\n"
                        "  role: controller\n"
-                       "fuel-02.your-domain-name.com:\n"
+                       "fuel-controller-02.your-domain-name.com:\n"
                        "  role: controller\n"
-                       "fuel-03.your-domain-name.com:\n"
+                       "fuel-compute-01.your-domain-name.com:\n"
                        "  role: compute\n"
-                       "fuel-04.your-domain-name.com:\n"
+                       "fuel-compute-02.your-domain-name.com:\n"
                        "  role: compute\n"
         )
         remote = ssh(self.nodes.stomps[0].ip_address_by_network['public'], username='root',
@@ -232,13 +232,13 @@ class CobblerCase(CobblerTestCase):
         )
         config_text = (
             "use_case: simple\n"
-            "fuel-01.your-domain-name.com:\n"
+            "fuel-controller-01.your-domain-name.com:\n"
             "  role: controller\n"
-            "fuel-02.your-domain-name.com:\n"
-            "  role: controller\n"
-            "fuel-03.your-domain-name.com:\n"
+            "fuel-compute-01.your-domain-name.com:\n"
             "  role: compute\n"
-            "fuel-04.your-domain-name.com:\n"
+            "fuel-compute-02.your-domain-name.com:\n"
+            "  role: compute\n"
+            "fuel-compute-03.your-domain-name.com:\n"
             "  role: compute\n"
         )
         remote = ssh(self.nodes.stomps[0].ip_address_by_network['public'], username='root',
@@ -285,15 +285,15 @@ class CobblerCase(CobblerTestCase):
         )
         config_text = (
             "use_case: compact\n"
-            "fuel-01.your-domain-name.com:\n"
+            "fuel-controller-01.your-domain-name.com:\n"
             "    role: controller\n"
-            "fuel-02.your-domain-name.com:\n"
+            "fuel-controller-02.your-domain-name.com:\n"
             "    role: controller\n"
-            "fuel-03.your-domain-name.com:\n"
+            "fuel-controller-03.your-domain-name.com:\n"
             "    role: controller\n"
-            "fuel-04.your-domain-name.com:\n"
+            "fuel-compute-01.your-domain-name.com:\n"
             "    role: compute\n"
-            "fuel-05.your-domain-name.com:\n"
+            "fuel-compute-02.your-domain-name.com:\n"
             "    role: compute\n"
         )
         remote = ssh(self.nodes.stomps[0].ip_address_by_network['public'], username='root',
@@ -348,23 +348,23 @@ class CobblerCase(CobblerTestCase):
         )
         config_text = (
             "use_case: full\n"
-            "fuel-01.your-domain-name.com:\n"
+            "fuel-controller-01.your-domain-name.com:\n"
             "    role: controller\n"
-            "fuel-02.your-domain-name.com:\n"
+            "fuel-controller-02.your-domain-name.com:\n"
             "    role: controller\n"
-            "fuel-03.your-domain-name.com:\n"
+            "fuel-compute-01.your-domain-name.com:\n"
             "    role: compute\n"
-            "fuel-04.your-domain-name.com:\n"
+            "fuel-compute-02.your-domain-name.com:\n"
             "    role: compute\n"
-            "fuel-05.your-domain-name.com:\n"
+            "fuel-swift-01.your-domain-name.com:\n"
             "    role: storage\n"
-            "fuel-06.your-domain-name.com:\n"
+            "fuel-swift-02.your-domain-name.com:\n"
             "    role: storage\n"
-            "fuel-07.your-domain-name.com:\n"
+            "fuel-swift-03.your-domain-name.com:\n"
             "    role: storage\n"
-            "fuel-08.your-domain-name.com:\n"
+            "fuel-swiftproxy-01.your-domain-name.com:\n"
             "    role: proxy\n"
-            "fuel-09.your-domain-name.com:\n"
+            "fuel-swiftproxy-02.your-domain-name.com:\n"
             "    role: proxy\n"
         )
         remote = ssh(self.nodes.stomps[0].ip_address_by_network['public'], username='root',

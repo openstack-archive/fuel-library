@@ -1,12 +1,12 @@
 $internal_virtual_ip = '10.0.113.253'
 $public_virtual_ip = '10.0.57.253'
-$master_hostname = 'fuel-01'
-$controller_public_addresses = { 'fuel-01' => '10.0.57.3', 'fuel-02' => '10.0.57.4', 'fuel-03' => '10.0.57.5' }
-$controller_internal_addresses = { 'fuel-01' => '10.0.113.3', 'fuel-02' => '10.0.113.4', 'fuel-03' => '10.0.113.5' }
+$master_hostname = 'fuel-controller-01'
+$controller_public_addresses = { 'fuel-controller-01' => '10.0.57.3', 'fuel-controller-02' => '10.0.57.4', 'fuel-controller-03' => '10.0.57.5' }
+$controller_internal_addresses = { 'fuel-controller-01' => '10.0.113.3', 'fuel-controller-02' => '10.0.113.4', 'fuel-controller-03' => '10.0.113.5' }
 $swift_proxies = $controller_internal_addresses 
 $floating_range = '10.0.57.128/27'
 $fixed_range = '10.0.202.128/27'
-$controller_hostnames = ['fuel-01', 'fuel-02', 'fuel-03']
+$controller_hostnames = ['fuel-controller-01', 'fuel-controller-02', 'fuel-controller-03']
 $public_interface = 'eth2'
 $internal_interface = 'eth0'
 $internal_address = getvar("::ipaddress_${internal_interface}")
@@ -26,7 +26,7 @@ $nova_db_password        = 'nova'
 $nova_user_password      = 'nova'
 $rabbit_password         = 'nova'
 $rabbit_user             = 'nova'
-$swift_master            = 'fuel-01'
+$swift_master            = 'fuel-controller-01'
 $swift_user_password  = 'swift_pass'
 # swift specific configurations
 $swift_shared_secret    = 'changeme'
@@ -122,7 +122,7 @@ class compact_controller {
 }
 
 
-node /fuel-01/ {
+node /fuel-controller-01/ {
   include compact_controller
   include swift_base
   $swift_zone = 1
@@ -130,7 +130,7 @@ node /fuel-01/ {
   include role_swift_proxy
 }
 
-node /fuel-02/ {
+node /fuel-controller-02/ {
   include compact_controller
   include swift_base
   $swift_zone = 2
@@ -138,7 +138,7 @@ node /fuel-02/ {
   include role_swift_proxy
 }
 
-node /fuel-03/ {
+node /fuel-controller-03/ {
   include compact_controller
   include swift_base
   $swift_zone = 3
@@ -146,7 +146,7 @@ node /fuel-03/ {
   include role_swift_proxy
 }
 
-node /fuel-0[45]/ {
+node /fuel-compute-[\d+]/ {
     class { 'openstack::compute':
       public_interface   => $public_interface,
       private_interface  => $private_interface,

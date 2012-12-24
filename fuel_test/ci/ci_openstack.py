@@ -6,8 +6,8 @@ from fuel_test.node_roles import NodeRoles
 class CiOpenStack(CiBase):
     def node_roles(self):
         return NodeRoles(
-            controller_names=['fuel-01', 'fuel-02'],
-            compute_names=['fuel-03', 'fuel-04'],
+            controller_names=['fuel-controller-01', 'fuel-controller-02'],
+            compute_names=['fuel-compute-01', 'fuel-compute-02'],
             quantum_names=['fuel-quantum'],
         )
 

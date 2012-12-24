@@ -20,8 +20,8 @@ Machines
 At the very minimum, you need to have the following machines in your data center:
 
 * 1x Puppet master and Cobbler server (called "fuel-pm", where "pm" stands for puppet master). You can also choose to have Puppet master and Cobbler server on different nodes
-* 3x for OpenStack controllers (called "fuel-01", "fuel-02", and "fuel-03")
-* 1x for OpenStack compute (called "fuel-04")
+* 3x for OpenStack controllers (called "fuel-controller-01", "fuel-controller-02", and "fuel-controller-03")
+* 1x for OpenStack compute (called "fuel-compute-01")
 
 In case of VirtualBox environment, allocate the following resources for these machines:
 
@@ -43,7 +43,7 @@ The current architecture assumes deployment with 3 network adapters, for clarity
     * you can configure network addresses/network mask according to your needs, but we will give instructions using the following network settings on this interface:
         * 10.0.0.100 for puppet master
         * 10.0.0.101-10.0.0.103 for controller nodes
-        * 10.0.0.104 for compute nodes
+        * 10.0.0.110 for compute nodes
         * 255.255.255.0 network mask
         * in the case of VirtualBox environment, host machine will be 10.0.0.1
 
@@ -225,17 +225,8 @@ Testing Puppet
         node /fuel-pm.mirantis.com/ {
             notify{"Hello world from fuel-pm": }
         }
-        node /fuel-01.mirantis.com/ {
-            notify{"Hello world from fuel-01": }
-        }
-        node /fuel-02.mirantis.com/ {
-            notify{"Hello world from fuel-02": }
-        }
-        node /fuel-03.mirantis.com/ {
-            notify{"Hello world from fuel-03": }
-        }
-        node /fuel-04.mirantis.com/ {
-            notify{"Hello world from fuel-04": }
+        node /fuel-.+-[\d+].mirantis.com/ {
+            notify{"Hello world": }
         }
 
 * If you are planning to install Cobbler on Puppet master node as well, make configuration changes on Puppet master so that it actually knows how to provision software onto itself
@@ -318,7 +309,7 @@ If you are using hardware, make sure it is capable of PXE booting over the netwo
 In case of VirtualBox, create the corresponding virtual machines for your OpenStack nodes in VirtualBox. Do not start them yet.
 
 * Machine -> New...
-    * Name: fuel-01 (will need to repeat for fuel-02, fuel-03, and fuel-04)
+    * Name: fuel-controller-01 (will need to repeat for fuel-controller-02, fuel-controller-03, and fuel-compute-01)
     * Type: Linux
     * Version: Red Hat (64 Bit)
 
@@ -353,7 +344,7 @@ On Puppet master, create a directory with configuration and copy the sample conf
 
 Edit configuration for bare metal provisioning of nodes (nodes.yaml):
 
-* There is essentially a section for every node, and you have to define all nodes there (fuel-01, fuel-02, fuel-03, and fuel-04). The config for a single node is given below, while the config for the remaining nodes is very similar
+* There is essentially a section for every node, and you have to define all nodes there (fuel-controller-01, fuel-controller-02, fuel-controller-03, and fuel-compute-04). The config for a single node is given below, while the config for the remaining nodes is very similar
 * It is important to get the following parameters correctly specified (they are different for every node):
     * Name of the system in Cobbler, the very first line
     * Hostname and DNS name
@@ -370,7 +361,7 @@ Provisioning your OpenStack nodes using Cobbler
 
 Now, when Cobbler has the correct configuration, the only thing you need to do is to PXE-boot your nodes. They will boot over the network from DHCP/TFTP provided by Cobbler and will be provisioned accordingly, with the specified operating system and configuration.
 
-In case of VirtualBox, here is what you have to do for every virtual machine (fuel-01, fuel-02, fuel-03, fuel-04):
+In case of VirtualBox, here is what you have to do for every virtual machine (fuel-controller-01, fuel-controller-02, fuel-controller-03, fuel-compute-04):
 
 * disable bridged network adapter by unchecking  "Machine -> Settings -> Network -> Enable Network Adapter" 
     * Reason for that: by default, VirtualBox will attempt to use the first network interface for PXE-boot and it is going to fail. We actually want our machines to PXE-boot from Cobbler which is on 10.0.0.100 (first host-only adapter). So the solution is to temporarily disable "bridged network adapter".
@@ -396,7 +387,7 @@ Now you have OS installed and configured on all nodes. Moreover, Puppet is insta
     * ``puppet cert sign --all``
         * alternatively, you can sign only a single certificate using "puppet cert sign fuel-XX.mirantis.com"
 * ``puppet agent --test``
-    * it should successfully complete and result in the "Hello world from fuel-XX" message
+    * it should successfully complete and result in the "Hello world" message
 
 Installing OpenStack
 ~~~~~~~~~~~~~~~~~~~~
@@ -416,13 +407,13 @@ In case of VirtualBox, it is recommended to save the current state of every virt
         allow *
 
 * Install OpenStack controller nodes sequentially, one by one
-    * run "``puppet agent --test``" on fuel-01
+    * run "``puppet agent --test``" on fuel-controller-01
     * wait for the installation to complete
-    * repeat the same for fuel-02 and fuel-03
+    * repeat the same for fuel-controller-02 and fuel-controller-03
     * .. Important:: It is important to establish the cluster of OpenStack controllers in sequential fashion, due to the nature of assembling MySQL cluster based on Galera
 
 * Install OpenStack compute nodes, you can do it in parallel if you want
-    * run "``puppet agent --test``" on fuel-04
+    * run "``puppet agent --test``" on fuel-compute-01
     * wait for the installation to complete
 
 * Your OpenStack cluster is ready to go.
@@ -447,10 +438,10 @@ Common Technical Issues
 #. The manifests are up-to-date under ``/etc/puppet/manifests``, but Puppet master keeps serving the previous version of manifests to the clients. The manifests seem to be cached by Puppet master.
     * issue: https://groups.google.com/forum/?fromgroups=#!topic/puppet-users/OpCBjV1nR2M
     * workaround: "``service puppetmaster restart``"
-#. Timeout error for fuel-0x on running "``puppet-agent --test``" to install OpenStack when using HDD instead of SSD
-    * | Sep 26 17:56:15 fuel-02 puppet-agent[1493]: Could not retrieve catalog from remote server: execution expired
-      | Sep 26 17:56:15 fuel-02 puppet-agent[1493]: Not using cache on failed catalog
-      | Sep 26 17:56:15 fuel-02 puppet-agent[1493]: Could not retrieve catalog; skipping run
+#. Timeout error for fuel-XX on running "``puppet-agent --test``" to install OpenStack when using HDD instead of SSD
+    * | Sep 26 17:56:15 fuel-controller-02 puppet-agent[1493]: Could not retrieve catalog from remote server: execution expired
+      | Sep 26 17:56:15 fuel-controller-02 puppet-agent[1493]: Not using cache on failed catalog
+      | Sep 26 17:56:15 fuel-controller-02 puppet-agent[1493]: Could not retrieve catalog; skipping run
 
     * workaround: ``vi /etc/puppet/puppet.conf``
         * add: ``configtimeout = 1200``

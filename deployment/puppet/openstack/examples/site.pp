@@ -1,11 +1,11 @@
 $internal_virtual_ip = '10.0.0.110'
 $public_virtual_ip = '10.0.0.110'
-$master_hostname = 'fuel-01'
-$controller_public_addresses = { 'fuel-01'=>'10.0.0.101', 'fuel-02'=>'10.0.0.102'}
-$controller_internal_addresses = { 'fuel-01'=>'10.0.0.101', 'fuel-02'=>'10.0.0.102'}
+$master_hostname = 'fuel-controller-01'
+$controller_public_addresses = { 'fuel-controller-01'=>'10.0.0.101', 'fuel-controller-02'=>'10.0.0.102'}
+$controller_internal_addresses = { 'fuel-controller-01'=>'10.0.0.101', 'fuel-controller-02'=>'10.0.0.102'}
 $floating_range = '10.0.1.0/28'
 $fixed_range = '10.0.2.0/28'
-$controller_hostnames = ['fuel-01', 'fuel-02']
+$controller_hostnames = ['fuel-controller-01', 'fuel-controller-02']
 $public_interface = 'eth1'
 $internal_interface = 'eth1'
 $internal_address = getvar("::ipaddress_${internal_interface}")
@@ -69,7 +69,7 @@ if $::operatingsystem == 'Ubuntu'
 {
   class { 'openstack::apparmor::disable': stage => 'openstack-custom-repo' }
 }
-node /fuel-0[12]/ {
+node /fuel-controller-[\d+]/ {
   if $::hostname == $master_hostname
   {
     $manage_volumes = true
@@ -111,7 +111,7 @@ node /fuel-0[12]/ {
     }
 }
 
-node /fuel-0[34]/ {
+node /fuel-compute-[\d+]/ {
     class { 'openstack::compute':
       public_interface   => $public_interface,
       private_interface  => $private_interface,

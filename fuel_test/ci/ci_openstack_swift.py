@@ -7,10 +7,10 @@ from fuel_test.node_roles import NodeRoles
 class CiOpenStackSwift(CiBase):
     def node_roles(self):
         return NodeRoles(
-            controller_names=['fuel-01', 'fuel-02'],
-            compute_names=['fuel-03', 'fuel-04'],
-            storage_names=['fuel-05', 'fuel-06', 'fuel-07'],
-            proxy_names=['fuel-08', 'fuel-09'],
+            controller_names=['fuel-controller-01', 'fuel-controller-02'],
+            compute_names=['fuel-compute-01', 'fuel-compute-02'],
+            storage_names=['fuel-swift-05', 'fuel-swift-06', 'fuel-swift-07'],
+            proxy_names=['fuel-swiftproxy-08', 'fuel-swiftproxy-09'],
             quantum_names=['fuel-quantum'],
         )
 
