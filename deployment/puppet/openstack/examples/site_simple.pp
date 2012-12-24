@@ -1,6 +1,6 @@
 $floating_range          = '10.0.0.128/28'
 $fixed_range             = '10.0.2.0/28'
-$controller_hostnames    = ['fuel-01']
+$controller_hostnames    = ['fuel-controller-01']
 $controller_ip           = '10.0.0.101'
 $public_interface        = 'eth1'
 $internal_address        = $ipaddress_eth1
@@ -63,7 +63,7 @@ $controller_node_address  = '10.0.125.3'
 $controller_node_public   = '10.0.74.3' 
 $controller_node_internal = $controller_node_address
 $sql_connection         = "mysql://nova:${nova_db_password}@${controller_node_internal}/nova"
-node /fuel-01/ {
+node /fuel-controller-01/ {
     class { 'openstack::controller': 
       public_address          => $public_address,
       internal_address        => $internal_address,
@@ -94,7 +94,7 @@ node /fuel-01/ {
     }
 }
 
-node /fuel-0[234]/ {
+node /fuel-compute-[\d+]/ {
     class { 'openstack::compute':
       public_interface   => $public_interface,
       private_interface  => $private_interface,

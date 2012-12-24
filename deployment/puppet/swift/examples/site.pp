@@ -153,19 +153,19 @@ node swift_base  {
 }
 
 # The following specifies 3 swift storage nodes
-node /fuel-05/ inherits swift_base {
+node /fuel-swift-01/ inherits swift_base {
 
   $swift_zone = 1
   include role_swift_storage
 
 }
-node /fuel-06/ inherits swift_base {
+node /fuel-swift-02/ inherits swift_base {
 
   $swift_zone = 2
   include role_swift_storage
 
 }
-node /fuel-07/ inherits swift_base {
+node /fuel-swift-03/ inherits swift_base {
 
   $swift_zone = 3
   include role_swift_storage
@@ -201,7 +201,7 @@ class role_swift_storage {
 }
 
 
-node /fuel-08/ inherits swift_base {
+node /fuel-swiftproxy-[\d+]/ inherits swift_base {
 
   # curl is only required so that I can run tests
   package { 'curl': ensure => present }
