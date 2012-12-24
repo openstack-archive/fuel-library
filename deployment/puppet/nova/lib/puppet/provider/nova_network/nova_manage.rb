@@ -55,7 +55,9 @@ Puppet::Type.type(:nova_network).provide(:nova_manage) do
     begin
       network_list = nova_manage("network", "list")
       return network_list.split("\n")[1..-1].detect do |n|
-        net.include?(IPAddr.new(n.split[1]))
+        if (ipaddr = n.split[1]) =~ /^(\d+.){3}\d+\/\d+$/
+          net.include?(IPAddr.new(ipaddr))
+        end
       end
     rescue
       return false
