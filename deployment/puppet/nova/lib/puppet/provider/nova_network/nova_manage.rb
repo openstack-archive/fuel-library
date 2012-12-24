@@ -1,3 +1,5 @@
+require 'ipaddr'
+
 Puppet::Type.type(:nova_network).provide(:nova_manage) do
 
   desc "Manage nova network"
@@ -47,12 +49,13 @@ Puppet::Type.type(:nova_network).provide(:nova_manage) do
   end
 
   def exists?
+    # notice("exists()")
+    net = IPAddr.new(resource[:network])
+
     begin
       network_list = nova_manage("network", "list")
       return network_list.split("\n")[1..-1].detect do |n|
-        # TODO - this does not take the CIDR into accont. Does it matter?
-        # n =~ /^(\S+)\s+(#{resource[:network].split('/').first})/
-        n =~ /^(\S+)\s+(#{Regexp.escape(resource[:network])})/
+        net.include?(IPAddr.new(n.split[1]))
       end
     rescue
       return false
