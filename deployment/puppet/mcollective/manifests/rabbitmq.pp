@@ -40,6 +40,7 @@ class mcollective::rabbitmq(
     password  => $stomppassword,
     provider  => 'rabbitmqctl',
     require   => Class['rabbitmq::server'],
+    notify => Service["rabbitmq-server"],
   }
   
   rabbitmq_user_permissions { "${stompuser}@/":
@@ -48,6 +49,7 @@ class mcollective::rabbitmq(
     read_permission      => '.*',
     provider             => 'rabbitmqctl',
     require              => Class['rabbitmq::server'],
+    notify => Service["rabbitmq-server"],
   }
 
 
