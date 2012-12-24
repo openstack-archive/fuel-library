@@ -47,7 +47,7 @@ class OpenStackSwiftCompactTestCase(BaseTestCase):
                 private_interface="'%s'" % PRIVATE_INTERFACE,
                 mirror_type ="'internal'",
                 nv_physical_volume= ["/dev/vdb"],
-                quantum = "'true'" if quantum else "'false'" ,
+                quantum = "true" if quantum else "false",
             )
         else:
             self.write_site_pp_manifest(
