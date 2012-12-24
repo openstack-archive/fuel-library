@@ -30,7 +30,7 @@ define haproxy_service($order, $balancers, $virtual_ips, $port, $define_cookies 
 
   case $name {
     "mysqld": {
-      $haproxy_config_options = { 'option' => ['mysql-check user cluster_watcher'], 'balance' => 'roundrobin', 'mode' => 'tcp', 'timeout server' =>  '28801s', 'timeout client' => '28801s' }
+      $haproxy_config_options = { 'option' => ['mysql-check user cluster_watcher', 'srvtcpka','clitcpka'], 'balance' => 'roundrobin', 'mode' => 'tcp', 'timeout server' =>  '28801s', 'timeout client' => '28801s' }
       $balancermember_options = 'check inter 15s fastinter 2s downinter 1s rise 5 fall 3'
       $balancer_port = 3307
     }
