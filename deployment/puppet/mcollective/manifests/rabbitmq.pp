@@ -76,8 +76,7 @@ class mcollective::rabbitmq(
   File['/etc/rabbitmq/enabled_plugins'] -> Exec['rabbitmq_restart']
   
   exec{ 'rabbitmq_restart':
-    command => 'service rabbitmq-server restart'
+    command => 'service rabbitmq-server restart',
     path => ['/bin', '/sbin'],
-  
   }
 }
