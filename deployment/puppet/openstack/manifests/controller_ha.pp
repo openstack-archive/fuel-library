@@ -68,7 +68,7 @@ define haproxy_service($order, $balancers, $virtual_ips, $port, $define_cookies 
 
 define keepalived_dhcp_hook($interface)
 {
-    $down_hook="ip addr show dev $interface | grep keepalived | awk '{print \$2}' > /tmp/keepalived_${interface}_ip\n"
+    $down_hook="ip addr show dev $interface | grep -w $interface:ka | awk '{print \$2}' > /tmp/keepalived_${interface}_ip\n"
     $up_hook="cat /tmp/keepalived_${interface}_ip |  while read ip; do  ip addr add \$ip dev $interface label $interface:ka; done\n"
     file {"/etc/dhcp/dhclient-${interface}-down-hooks": content=> $down_hook, mode => '0744' }
     file {"/etc/dhcp/dhclient-${interface}-up-hooks": content=> $up_hook, mode => '0744' }
