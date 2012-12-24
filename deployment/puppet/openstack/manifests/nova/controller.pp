@@ -39,6 +39,7 @@ class openstack::nova::controller (
   $auto_assign_floating_ip   = false,
   $create_networks           = true,
   $num_networks              = 1,
+  $network_size              = 255,
   $multi_host                = false,
   $network_config            = {},
   $network_manager           = 'nova.network.manager.FlatDHCPManager',
@@ -196,6 +197,7 @@ if ($rabbit_nodes)
       config_overrides  => $network_config,
       create_networks   => $really_create_networks,
       num_networks      => $num_networks,
+      network_size      => $network_size,
       enabled           => $enable_network_service,
       install_service   => $enable_network_service,
       ensure_package    => $ensure_package
