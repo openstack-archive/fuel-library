@@ -2,15 +2,14 @@ Puppet::Type.type(:network_interface).provide(:ip) do
 
   # ip command is preferred over ifconfig
   commands :ip => "/sbin/ip", :vconfig => "/sbin/vconfig"
-
   # Uses the ip command to determine if the device exists
   def exists?
-#    ip('link', 'list', @resource[:name])
+    #    ip('link', 'list', @resource[:name])
     ip('addr', 'show', 'label', @resource[:device]).include?("inet")
   rescue Puppet::ExecutionFailure
     return false
-#     raise Puppet::Error, "Network interface %s does not exist" % @resource[:name] 
-  end 
+    #     raise Puppet::Error, "Network interface %s does not exist" % @resource[:name]
+  end
 
   def create
     if @resource[:vlan] == :yes && ! ip('link', 'list').include?(@resource[:name].split(':').first)
@@ -37,8 +36,7 @@ Puppet::Type.type(:network_interface).provide(:ip) do
     end
   end
 
-
- # NETMASK
+  # NETMASK
   def netmask
     lines = ip('addr', 'show', 'label', @resource[:device])
     lines.scan(/\s*inet (\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b)\/(\d+) b?r?d?\s*(\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b)?\s*scope (\w+) (\w+:?\d*)/)
@@ -50,7 +48,7 @@ Puppet::Type.type(:network_interface).provide(:ip) do
     ip_addr_add
   end
 
- # BROADCAST
+  # BROADCAST
   def broadcast
     lines = ip('addr', 'show', 'label', @resource[:device])
     lines.scan(/\s*inet (\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b)\/(\d+) b?r?d?\s*(\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b)?\s*scope (\w+) (\w+:?\d*)/)
@@ -62,7 +60,7 @@ Puppet::Type.type(:network_interface).provide(:ip) do
     ip_addr_add
   end
 
- # IPADDR
+  # IPADDR
   def ipaddr
     lines = ip('addr', 'show', 'label', @resource[:device])
     lines.scan(/\s*inet (\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b)\/(\d+) b?r?d?\s*(\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b)?\s*scope (\w+) (\w+:?\d*)/)
@@ -74,7 +72,6 @@ Puppet::Type.type(:network_interface).provide(:ip) do
     ip_addr_add
   end
 
-  
   def ip_addr_flush
     ip('addr', 'flush', 'dev', @resource[:device], 'label', @resource[:device].sub(/:/, '\:'))
   end
@@ -86,7 +83,7 @@ Puppet::Type.type(:network_interface).provide(:ip) do
   def device
     config_values[:dev]
   end
-  
+
   # Ensurable/ensure adds unnecessary complexity to this provider
   # Network interfaces are up or down, present/absent are unnecessary
   def state
@@ -95,7 +92,7 @@ Puppet::Type.type(:network_interface).provide(:ip) do
       return "up"
     else
       return "down"
-    end 
+    end
   end
 
   # Set the interface's state
@@ -123,7 +120,7 @@ Puppet::Type.type(:network_interface).provide(:ip) do
     i=0
     j=0
     p=0
-   
+
     # Append ipv6 lines into one string
     lines.each do |line|
       if line.include?("inet6")
@@ -132,66 +129,66 @@ Puppet::Type.type(:network_interface).provide(:ip) do
       else
         # move along, nothing to see here
       end
-       p += 1 
+      p += 1
     end
 
     #FIXME This should capture 'NOARP' and 'MULTICAST'
     # Scan the first line of the ip command output
     line1.scan(/\d: (\w+): <(\w+),(\w+),(\w+),?(\w*)> mtu (\d+) qdisc (\w+) state (\w+)\s*\w* (\d+)*/)
-    values = {  
+    values = {
       "device"    => $1,
       "mtu"       => $6,
       "qdisc"     => $7,
       "state"     => $8,
-      "qlen"      => $9, 
+      "qlen"      => $9,
     }
-    
+
     # Scan the second line of the ip command output
-    line2.scan(/\s*link\/\w+ ((?:[0-9a-f]{2}[:-]){5}[0-9a-f]{2}) brd ((?:[0-9a-f]{2}[:-]){5}[0-9a-f]{2})/) 
+    line2.scan(/\s*link\/\w+ ((?:[0-9a-f]{2}[:-]){5}[0-9a-f]{2}) brd ((?:[0-9a-f]{2}[:-]){5}[0-9a-f]{2})/)
     values["address"]   = $1
-    values["broadcast"] = $2 
-   
+    values["broadcast"] = $2
+
     # Scan all the inet and inet6 entries
     lines.each do |line|
-      if line.include?("inet6") 
+      if line.include?("inet6")
         line.scan(/\s*inet6 ((?>[0-9,a-f,A-F]*\:{1,2})+[0-9,a-f,A-F]{0,4})\/\w+ scope (\w+)\s*\w*\s*valid_lft (\w+) preferred_lft (\w+)/)
-        values["inet6_#{j}"] = { 
+        values["inet6_#{j}"] = {
           "ip"              => $1,
-          "scope"           => $2, 
+          "scope"           => $2,
           "valid_lft"       => $3,
-          "preferred_lft"   => $4, 
+          "preferred_lft"   => $4,
         }
         j += 1
       else
         line.scan(/\s*inet (\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b)\/\d+ b?r?d?\s*(\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b)?\s*scope (\w+) (\w+:?\d*)/)
-        values["inet_#{i}"] = { 
+        values["inet_#{i}"] = {
           "ip"         => $1,
           "brd"        => $2,
           "scope"      => $3,
-          "dev"        => $4, 
+          "dev"        => $4,
         }
         i += 1
       end
     end
-    
-  return values
+
+    return values
 
   end
 
   #FIXME Need to support multiple inet & inet6 hashes
   def ip_args
-      [ "qlen", "mtu", "address" ]
+    [ "qlen", "mtu", "address" ]
   end
 
   ip_args.each do |ip_arg|
     define_method(ip_arg.to_s.downcase) do
       state_values[ip_arg]
     end
-    
+
     define_method("#{ip_arg}=".downcase) do |value|
       ip('link', 'set', "#{ip_arg}", value, 'dev', @resource[:name])
       state_values[ip_arg] = value
     end
   end
-  
+
 end
