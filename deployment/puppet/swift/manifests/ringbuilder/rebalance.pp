@@ -12,8 +12,14 @@ define swift::ringbuilder::rebalance() {
 
   exec { "rebalance_${name}":
     command     => "swift-ring-builder /etc/swift/${name}.builder \
-                    pretend_min_part_hours_passed && swift-ring-builder \
-                    /etc/swift/${name}.builder rebalance",
+                    pretend_min_part_hours_passed",
+    path        => ['/usr/bin'],
+    refreshonly => true,
+    returns     => [0,1],
+  }->
+
+  exec { "rebalance_${name}":
+    command     => "swift-ring-builder /etc/swift/${name}.builder rebalance",
     path        => ['/usr/bin'],
     refreshonly => true,
   }
