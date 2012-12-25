@@ -29,10 +29,11 @@ d-i time/zone string <%= @ks_system_timezone %>
 d-i partman/early_command string debconf-set partman-auto/disk `list-devices disk | head -n1`
 d-i partman-iscsi/mainmenu string finish
 d-i partman-auto/method string lvm 
+d-i partman-md/device_remove_md boolean true
 d-i partman-lvm/device_remove_lvm boolean true
 d-i partman-lvm/confirm boolean true
-d-i partman/confirm_write_new_label boolean true
-d-i partman/confirm boolean true
+d-i partman-lvm/confirm_nooverwrite boolean true
+d-i partman-auto/choose_recipe select boot-lvm
 d-i partman-auto/expert_recipe string                         \
       boot-lvm ::                                             \
               256 400 1024 ext3                               \
@@ -53,19 +54,19 @@ d-i partman-auto/expert_recipe string                         \
                       method{ format } format{ }              \
                       use_filesystem{ } filesystem{ ext4 }    \
                       mountpoint{ / }                         \
-                      .                                       \
+              .                                               \
               1024 500 300% linux-swap                        \
                       $lvmok{ }                               \
                       in_vg{ sysvol }                         \
                       lv_name{ swap }                         \
                       method{ swap }                          \
                       format{ }                               \
-                      .
+              .
 d-i partman/confirm_write_new_label boolean true
+d-i partman-auto/confirm_nooverwrite boolean true
 d-i partman/choose_partition select Finish partitioning and write changes to disk
 d-i partman/confirm boolean true
 d-i partman/confirm_nooverwrite boolean true
-d-i partman/confirm boolean true
 d-i partman/default_filesystem string ext4
 
 d-i base-installer/kernel/image string linux-server
