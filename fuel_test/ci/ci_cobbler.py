@@ -12,9 +12,9 @@ class CiCobbler(CiBase):
     def node_roles(self):
         return NodeRoles(
             cobbler_names=['fuel-cobbler'],
-            controller_names=['fuel-%02d' % x for x in
+            controller_names=['fuel-controller-%02d' % x for x in
                               range(1, 1 + COBBLER_CONTROLLERS)],
-            compute_names=['fuel-%02d' % x for x in range(
+            compute_names=['fuel-compute-%02d' % x for x in range(
                 COBBLER_CONTROLLERS + 1,
                 COBBLER_CONTROLLERS + 1 + COBBLER_COMPUTES)],
             stomp_names=['fuel-mcollective']
