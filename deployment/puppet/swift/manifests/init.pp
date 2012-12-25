@@ -39,6 +39,13 @@ class swift(
       ensure => $package_ensure,
       name   => $::swift::params::package_name,
     }
+
+    file {'/srv/node/*':
+      ensure  => 'directory',
+      owner   => 'swift',
+      recurse => false,
+      require => Package['swift'],
+    }
   }
 
   File { owner => 'swift', group => 'swift', require => Package['swift'] }
