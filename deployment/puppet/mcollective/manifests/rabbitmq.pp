@@ -77,6 +77,6 @@ class mcollective::rabbitmq(
   
   exec{ 'rabbitmq_restart':
     command => 'service rabbitmq-server restart',
-    path => ['/bin', '/sbin'],
+    path => ['/bin', '/sbin', '/usr/bin', '/usr/sbin'],
   }
 }
