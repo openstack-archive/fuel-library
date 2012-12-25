@@ -71,6 +71,9 @@ class quantum::agents::ovs (
 
   Package['python-amqp'] -> Package[$ovs_agent_package]
 
+  Quantum_config<||> ~> Service['quantum-plugin-ovs-service']
+  Quantum_plugin_ovs<||> ~> Service['quantum-plugin-ovs-service']
+
   service { 'quantum-plugin-ovs-service':
     name       => $::quantum::params::ovs_agent_service,
     enable     => $enabled,
@@ -78,7 +81,7 @@ class quantum::agents::ovs (
     hasstatus  => true,
     hasrestart => true,
     provider   => $::quantum::params::service_provider,
-    require    => [Package[$ovs_agent_package]]
+    require    => [Package[$ovs_agent_package], Class['quantum']]
   }
 
 }
