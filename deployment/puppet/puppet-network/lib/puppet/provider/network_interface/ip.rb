@@ -179,9 +179,11 @@ Puppet::Type.type(:network_interface).provide(:ip) do
   end
 
   #FIXME Need to support multiple inet & inet6 hashes
-  IP_ARGS = [ "qlen", "mtu", "address" ]
+  def ip_args
+      [ "qlen", "mtu", "address" ]
+  end
 
-  IP_ARGS.each do |ip_arg|
+  ip_args.each do |ip_arg|
     define_method(ip_arg.to_s.downcase) do
       state_values[ip_arg]
     end
