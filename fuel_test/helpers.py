@@ -449,6 +449,7 @@ def only_private_interface(nodes):
             path = '/etc/network/interfaces'
             write_config(remote, path, load(root('fuel_test', 'config', 'interfaces_quantum_ubuntu.config')))
         execute(remote, 'ifup eth0')
+        execute(remote, 'dhclient eth1')
 
 
 def kill_dhcpclient(nodes):

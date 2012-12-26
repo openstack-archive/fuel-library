@@ -146,6 +146,7 @@ class CiBase(object):
         self.setup_master_node(master_remote, environment.nodes)
         self.setup_agent_nodes(environment.nodes)
         only_private_interface(self.quantum_nodes())
+        kill_dhcpclient(self.quantum_nodes())
         sleep(5)
         sign_all_node_certificates(master_remote)
         sleep(5)
