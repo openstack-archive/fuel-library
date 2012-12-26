@@ -11,8 +11,7 @@ define swift::ringbuilder::rebalance() {
   validate_re($name, '^object|container|account$')
 
   exec { "hours_passed_${name}":
-    command     => "swift-ring-builder /etc/swift/${name}.builder \
-                    pretend_min_part_hours_passed",
+    command     => "swift-ring-builder /etc/swift/${name}.builder pretend_min_part_hours_passed",
     path        => ['/usr/bin'],
     refreshonly => true,
     returns     => [0,1],
