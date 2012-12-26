@@ -58,9 +58,12 @@ ADMIN_TENANT_ESSEX = 'openstack'
 ADMIN_TENANT_FOLSOM = 'admin'
 
 CIRROS_IMAGE ='http://srv08-srt.srt.mirantis.net/cirros-0.3.0-x86_64-disk.img'
-COBBLER_CONTROLLERS = int(os.environ.get('COBBLER_CONTROLLERS', 2))
-COBBLER_COMPUTES = int(os.environ.get('COBBLER_COMPUTES', 2))
-
+COBBLER_CONTROLLERS = int(os.environ.get('COBBLER_CONTROLLERS', 3))
+COBBLER_COMPUTES = int(os.environ.get('COBBLER_COMPUTES', 3))
+COBBLER_SWIFTS = int(os.environ.get('COBBLER_SWIFTS', 0))
+COBBLER_PROXIES = int(os.environ.get('COBBLER_PROXIES', 0))
+COBBLER_QUANTUM = int(os.environ.get('COBBLER_QUANTUM', 0))
+COBBLER_KEYSTONE = int(os.environ.get('COBBLER_KEYSTONE', 0))
 
 EMPTY_SNAPSHOT = os.environ.get('EMPTY_SNAPSHOT', 'empty')
 OPENSTACK_SNAPSHOT = os.environ.get('OPENSTACK_SNAPSHOT', 'openstack')
