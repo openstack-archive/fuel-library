@@ -15,8 +15,13 @@ class CiCobbler(CiBase):
             controller_names=['fuel-controller-%02d' % x for x in
                               range(1, 1 + COBBLER_CONTROLLERS)],
             compute_names=['fuel-compute-%02d' % x for x in range(
-                COBBLER_CONTROLLERS + 1,
-                COBBLER_CONTROLLERS + 1 + COBBLER_COMPUTES)],
+                1, 1 + COBBLER_COMPUTES)],
+            storage_names=['fuel-swift-%02d' % x for x in range(
+                1, 1 + COBBLER_SWIFTS)],
+            proxy_names=['fuel-swiftproxy-%02d' % x for x in range(
+                1, 1 + COBBLER_PROXIES)],
+            quantum_names=['fuel-quantum'] if COBBLER_QUANTUM else [],
+            keystone_names=['keystone'] if COBBLER_KEYSTONE else [],
             stomp_names=['fuel-mcollective']
         )
 
