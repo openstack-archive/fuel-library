@@ -40,12 +40,13 @@ class swift(
       name   => $::swift::params::package_name,
     }
 
-    file {'/srv/node/':
-      ensure  => 'directory',
-      owner   => 'swift',
-      recurse => true,
+    file {'/srv/node':
+      ensure       => 'directory',
+      owner        => 'swift',
+      group        => 'swift',
+      recurse      => true,
       recurselimit => 1,
-      require => Package['swift'],
+      require      => Package['swift'],
     }
   }
 
