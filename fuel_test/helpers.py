@@ -450,6 +450,10 @@ def only_private_interface(nodes):
             write_config(remote, path, load(root('fuel_test', 'config', 'interfaces_quantum_ubuntu.config')))
         execute(remote, 'ifup eth0')
         execute(remote, 'dhclient eth1')
+        if OS_FAMILY == 'centos':
+            execute(remote, 'killall dhclient')
+        else:
+            execute(remote, 'killall dhclient3')
 
 
 def kill_dhcpclient(nodes):
