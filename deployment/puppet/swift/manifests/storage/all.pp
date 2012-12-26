@@ -31,6 +31,16 @@ class swift::storage::all(
     storage_local_net_ip => $storage_local_net_ip,
   }
 
+  if(!defined(File['/srv/node'])) {
+    file {'/srv/node':
+      ensure       => 'directory',
+      owner        => 'swift',
+      group        => 'swift',
+      recurse      => true,
+      recurselimit => 1,
+    }
+  }
+
   Swift::Storage::Server {
     swift_zone           => $swift_zone,
     devices              => $devices,
