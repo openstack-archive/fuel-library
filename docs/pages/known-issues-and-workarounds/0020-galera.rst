@@ -147,10 +147,16 @@ and start the cluster operation from the node found.
 
       * The ``wsrep_cluster_address="gcomm://node1,node2"`` variable should include the name or IP address 
         of already started primary node. Otherwise, this node will definitely fail to start. 
-        In case of OpenStack deployed by Fuel manifests with default settings (2 controllers), 
+        
+        **Note.** 
+        *Due to Galera bug for each node it is recommended to include only names and addresses of remote nodes.*
+        *It was found, while each Galera node attempts to exclude its own address, sometimes it fails.*
+        *As a result Galera node fails to start with "Cannot open channel..." error in* **/etc/log/mysqld.log**
+        
+        In case of OpenStack deployed by Fuel manifests with default settings (2 controllers), Fuel automatically removes local names and IP addresses from gcomm strings on every node to avoid node from connection to itself and
         this parameter should look like 
 
-    ``wsrep_cluster_address="gcomm://fuel-controller-01:4567,fuel-controller-02:4567"``
+    ``wsrep_cluster_address="gcomm://fuel-controller-01:4567"``
 
     * If ``wsrep_cluster_address`` is set correctly, run ``rm -f /var/lib/mysql/grastate.dat`` and then ``service mysql start`` on this node.
 
