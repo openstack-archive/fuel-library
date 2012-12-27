@@ -1,5 +1,5 @@
 
-v0.2.0-folsom
+v2.0-folsom
 -------------
 
 * Puppet manifests for deploying OpenStack Folsom in HA mode
