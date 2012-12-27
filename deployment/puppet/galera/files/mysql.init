@@ -1,4 +1,4 @@
-#!/bin/bash -v
+#!/bin/bash
 # Copyright Abandoned 1996 TCX DataKonsult AB & Monty Program KB & Detron HB
 # This file is public domain and comes with NO WARRANTY of any kind
 
@@ -271,6 +271,7 @@ fi
 
 case "$mode" in
   'start')
+      sleep 30
     # Start daemon
     if pgrep "mysqld_safe|mysqld" 1>/dev/null
     then
@@ -301,6 +302,7 @@ case "$mode" in
     ;;
 
   'stop')
+      sleep 30
     # Stop daemon. We use a signal here to avoid having to know the
     # root password.
     retry=0
