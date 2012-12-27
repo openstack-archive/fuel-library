@@ -1,7 +1,7 @@
 from fuel_test.base_test_case import BaseTestCase
 from fuel_test.ci.ci_openstack_swift import CiOpenStackSwift
 from fuel_test.root import root
-from fuel_test.settings import PUBLIC_INTERFACE, INTERNAL_INTERFACE, PRIVATE_INTERFACE
+from fuel_test.settings import PUBLIC_INTERFACE, INTERNAL_INTERFACE, PRIVATE_INTERFACE, OS_FAMILY
 
 class OpenStackSwiftTestCase(BaseTestCase):
     def ci(self):
@@ -36,7 +36,10 @@ class OpenStackSwiftTestCase(BaseTestCase):
             else:
                 swift_proxies +="}"
 
-
+        if OS_FAMILY == 'centos':
+            mirror_type = "'internal-stage'"
+        else:
+            mirror_type = "'internal'"
 
         self.write_site_pp_manifest(
 
@@ -52,7 +55,7 @@ class OpenStackSwiftTestCase(BaseTestCase):
             controller_public_addresses = controller_public_addresses,
             controller_internal_addresses = controller_internal_addresses, 
             swift_proxies = swift_proxies,
-            mirror_type = "'internal'",
+            mirror_type = mirror_type,
 #            controller_public_addresses="{ '%s' => '%s', '%s' => '%s' }"
 #                                        % (
 #                node01.name, node01.ip_address_by_network['public'],

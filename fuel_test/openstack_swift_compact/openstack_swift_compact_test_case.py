@@ -2,7 +2,7 @@ from fuel_test.base_test_case import BaseTestCase
 from fuel_test.ci.ci_openstack_swift_compact import CiOpenStackSwiftCompact
 from fuel_test.helpers import is_not_essex
 from fuel_test.root import root
-from fuel_test.settings import PUBLIC_INTERFACE, INTERNAL_INTERFACE, PRIVATE_INTERFACE
+from fuel_test.settings import PUBLIC_INTERFACE, INTERNAL_INTERFACE, PRIVATE_INTERFACE, OS_FAMILY
 
 class OpenStackSwiftCompactTestCase(BaseTestCase):
     def ci(self):
@@ -51,6 +51,10 @@ class OpenStackSwiftCompactTestCase(BaseTestCase):
                 swift_loopback = "'loopback'" if loopback else "false",
             )
         else:
+            if OS_FAMILY == 'centos':
+                mirror_type = "'internal-stage'"
+            else:
+                mirror_type = "'internal'"
             self.write_site_pp_manifest(
                 root('deployment', 'puppet', 'openstack', 'examples',
                     'site_openstack_swift_compact.pp'),
@@ -67,7 +71,7 @@ class OpenStackSwiftCompactTestCase(BaseTestCase):
                 public_interface="'%s'" % PUBLIC_INTERFACE,
                 internal_interface="'%s'" % INTERNAL_INTERFACE,
                 private_interface="'%s'" % PRIVATE_INTERFACE,
-                mirror_type ="'internal'",
+                mirror_type = mirror_type,
                 nv_physical_volume= ["/dev/vdb"],
             )
 

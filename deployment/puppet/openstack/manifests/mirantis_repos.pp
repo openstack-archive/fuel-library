@@ -86,7 +86,7 @@ class openstack::mirantis_repos (
   }
     'RedHat': {
       #added internal/external network mirror
-      $mirrorlist="http://download.mirantis.com/epel-fuel-folsom/mirror.${type}-stage.list"
+      $mirrorlist="http://download.mirantis.com/epel-fuel-folsom/mirror.${type}.list"
 
       class { 'openstack::repo::yum':
         descr      => 'Mirantis OpenStack Custom Packages',
