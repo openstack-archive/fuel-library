@@ -1,8 +1,8 @@
-class galera::galera_master_final_config($master_ip, $node_addresses) {
+class galera::galera_master_final_config($master_ip, $node_addresses, $node_address) {
 # This class changes config file on first Galera node to allow safe restart of this node without leaving cluster.
 
     if ! $master_ip {
-      $galera_gcomm_string = inline_template("<%= @node_addresses.reject{|ip| ip == hostname }.collect {|ip| ip + ':' + 4567.to_s }.join ',' %>")
+      $galera_gcomm_string = inline_template("<%= @node_addresses.reject{|ip| ip == hostname || ip == @node_address }.collect {|ip| ip + ':' + 4567.to_s }.join ',' %>")
       $check_galera = "show status like 'wsrep_cluster_size';"
       $mysql_user = $::galera::params::mysql_user
       $mysql_password = $::galera::params::mysql_password
