@@ -1,5 +1,8 @@
 #!/bin/bash
 
+echo "This script is deprecated. We no longer publish fuel releases to download.mirantis.com"
+exit 0
+
 if [ ! $# == 1 ]; then
 
   echo "Usage: $0 <fuel-package-name.tar.gz>"

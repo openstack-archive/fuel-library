@@ -1,5 +1,5 @@
 
-v0.1.0-essex
+v1.0-essex
 ------------
 
 * Puppet manifests for deploying OpenStack Essex in HA mode
