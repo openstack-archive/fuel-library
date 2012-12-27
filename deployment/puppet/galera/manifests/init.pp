@@ -244,6 +244,7 @@ if $::galera_gcomm_empty=="true" {
       require     => Exec["wait-for-haproxy-mysql-backend"],
       master_ip => $master_ip,
       node_addresses => $node_addresses,
+      node_address   => $node_address,
   }
 
 }
