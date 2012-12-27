@@ -13,10 +13,12 @@ class mcollective::client(
       # rubygems
       # rubygem-stomp
       $mcollective_client_package = "mcollective-client"
+      $mcollective_client_config_template="mcollective/client.cfg.ubuntu.erb"
       $mcollective_agent_path = "/usr/share/mcollective/plugins/mcollective/agent"
     }
     'RedHat': {
       $mcollective_client_package = "mcollective-client"
+      $mcollective_client_config_template="mcollective/client.cfg.erb"
       $mcollective_agent_path = "/usr/libexec/mcollective/mcollective/agent"
     }
     default: {
@@ -32,7 +34,7 @@ class mcollective::client(
   package { $mcollective_client_package : }
 
   file {"/etc/mcollective/client.cfg" :
-    content => template("mcollective/client.cfg.erb"),
+    content => template($mcollective_client_config_template),
     owner => root,
     group => root,
     mode => 0600,
