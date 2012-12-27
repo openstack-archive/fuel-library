@@ -6,7 +6,10 @@ import os
 from fuel_test.ci.ci_base import CiBase
 from fuel_test.helpers import sign_all_node_certificates, write_static_ip, execute
 from fuel_test.node_roles import NodeRoles
-from fuel_test.settings import COBBLER_CONTROLLERS, COBBLER_COMPUTES, EMPTY_SNAPSHOT
+from fuel_test.settings import COBBLER_CONTROLLERS, COBBLER_COMPUTES, \
+                               COBBLER_SWIFTS, COBBLER_PROXIES, \
+                               COBBLER_QUANTUM, COBBLER_KEYSTONE, \
+                               EMPTY_SNAPSHOT
 
 class CiCobbler(CiBase):
     def node_roles(self):
