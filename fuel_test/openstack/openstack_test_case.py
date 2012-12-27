@@ -2,7 +2,7 @@ import unittest
 from fuel_test.base_test_case import BaseTestCase
 from fuel_test.ci.ci_openstack import CiOpenStack
 from fuel_test.root import root
-from fuel_test.settings import PUBLIC_INTERFACE, INTERNAL_INTERFACE, PRIVATE_INTERFACE
+from fuel_test.settings import PUBLIC_INTERFACE, INTERNAL_INTERFACE, PRIVATE_INTERFACE, OS_FAMILY
 
 class OpenStackTestCase(BaseTestCase):
     def ci(self):
@@ -16,6 +16,11 @@ class OpenStackTestCase(BaseTestCase):
             self.nodes.controllers[1])
 
     def write_openstack_sitepp(self, controller1, controller2):
+        if OS_FAMILY == 'centos':
+            mirror_type = "'internal-stage'"
+        else:
+            mirror_type = "'internal'"
+
         self.write_site_pp_manifest(
             root('deployment', 'puppet', 'openstack', 'examples',
                  'site.pp'),
@@ -24,7 +29,7 @@ class OpenStackTestCase(BaseTestCase):
             floating_range="'%s'" % self.ci().get_floating_network(),
             fixed_range="'%s'" % self.ci().get_fixed_network(),
             master_hostname="'%s'" % controller1.name,
-            mirror_type="'internal'",
+            mirror_type=mirror_type,
             controller_public_addresses="{ '%s' => '%s', '%s' => '%s' }"
             % (
                 controller1.name, controller1.ip_address_by_network['public'],
