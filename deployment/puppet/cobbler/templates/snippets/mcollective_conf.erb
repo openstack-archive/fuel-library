@@ -4,11 +4,11 @@ cat <<EOCONF > /etc/mcollective/server.cfg
 topicprefix = /topic/
 main_collective = mcollective
 collectives = mcollective
-#if $breed == "redhat"
+    #if $breed == "redhat"
 libdir = /usr/libexec/mcollective
-#elif $breed == "debian" or $breed == "ubuntu"
+    #elif $breed == "debian" or $breed == "ubuntu"
 libdir = /usr/share/mcollective/plugins
-#end if
+    #end if
 logfile = /var/log/mcollective.log
 loglevel = info
 daemonize = 1
