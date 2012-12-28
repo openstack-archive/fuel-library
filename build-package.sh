@@ -21,8 +21,8 @@ build_dir="fuel-$tag"
 rm -rf $build_dir
 mkdir $build_dir
 
-# checkout fuel into it
-git clone gitolite@gitolite.mirantis.com:fuel/fuel.git $build_dir
+# checkout fuel into it. you may change $(whoami) to efecctive username
+git clone ssh://$(whoami)@gerrit.mirantis.com:29418/fuel/fuel-essex.git $build_dir
 cd $build_dir
 git checkout $tag
 git submodule update --init
