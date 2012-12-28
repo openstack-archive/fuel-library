@@ -280,6 +280,8 @@ local0.* -/var/log/haproxy.log'
       cinder                  => $cinder,
       manage_volumes          => $manage_volumes,
       nv_physical_volume      => $nv_physical_volume,
+      # turn on SWIFT_ENABLED option for Horizon dashboard
+      swift                   => $glance_backend ? { 'swift' => true, default => false },
     }
 
     class { 'openstack::auth_file':
