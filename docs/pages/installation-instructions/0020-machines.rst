@@ -13,4 +13,5 @@ In the case of VirtualBox environment, allocate the following resources for thes
 * 1+ vCPU
 * 512+ MB of RAM for controller nodes
 * 1024+ MB of RAM for compute nodes
+* 1024+ MB of RAM for Puppet master and Cobbler server node
 * 8+ GB of HDD (enable dynamic virtual drive expansion in order to save some disk space)
