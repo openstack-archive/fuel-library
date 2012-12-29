@@ -34,18 +34,19 @@ class openstack::cinder(
     sql_connection  => $sql_connection,
     verbose         => $verbose,
   }
-  class { 'cinder::api':
+  if ($bind_host) {
+    class { 'cinder::api':
       package_ensure     => $::openstack_version['cinder'],
       keystone_auth_host => $auth_host,
       keystone_password  => $cinder_user_password,
       bind_host          => $bind_host,
-  }
+    }
 
-  class { 'cinder::scheduler':
-    package_ensure => $::openstack_version['cinder'],
-    enabled        => true,
+    class { 'cinder::scheduler':
+      package_ensure => $::openstack_version['cinder'],
+      enabled        => true,
+    }
   }
-
   if $manage_volumes {
 
     class { 'cinder::volume':
@@ -59,3 +60,4 @@ class openstack::cinder(
     }
   }
 }
+

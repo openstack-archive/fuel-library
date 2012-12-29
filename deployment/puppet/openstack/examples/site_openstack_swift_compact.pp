@@ -253,7 +253,7 @@ node /fuel-compute-[\d+]/ {
     vncproxy_host          => $public_virtual_ip,
     verbose                => $verbose,
     vnc_enabled            => true,
-    manage_volumes         => false,
+    manage_volumes         => $manage_volumes,
     nova_user_password     => $nova_user_password,
     cache_server_ip        => $controller_hostnames,
     service_endpoint       => $internal_virtual_ip,

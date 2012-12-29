@@ -94,6 +94,13 @@ class openstack::compute (
   $service_endpoint	= '127.0.0.1',
   $ssh_private_key = undef,
   $ssh_public_key = undef,
+  # if the cinder management components should be installed
+  $cinder                  = 'false',
+  $cinder_user_password    = 'cinder_user_pass',
+  $cinder_db_password      = 'cinder_db_pass',
+  $cinder_db_user          = 'cinder',
+  $cinder_db_dbname        = 'cinder',
+
 ) {
 
   #
@@ -144,6 +151,20 @@ class openstack::compute (
   if ($cinder) {
     $enabled_apis			= 'ec2,osapi_compute,metadata'
     package {'python-cinderclient': ensure => present}
+    class {'openstack::cinder':
+      sql_connection => "mysql://${cinder_db_user}:${cinder_db_password}@${db_host}/${cinder_db_dbname}?charset=utf8",
+      rabbit_password => $rabbit_password,
+      rabbit_host     => false,
+      rabbit_nodes    => $rabbit_nodes,
+      volume_group    => 'cinder-volumes',
+      physical_volume => $physical_volume,
+      manage_volumes  => $manage_volumes,
+      enabled         => true,
+      auth_host       => $service_endpoint,
+      bind_host       => false,
+      cinder_user_password    => $cinder_user_password,
+    }
+
   } else {
     $enabled_apis = 'ec2,osapi_compute,metadata,osapi_volume'
   }
@@ -345,3 +366,4 @@ class openstack::compute (
   }
 
 }
+
