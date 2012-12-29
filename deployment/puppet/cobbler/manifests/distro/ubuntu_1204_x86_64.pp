@@ -1,11 +1,11 @@
 class cobbler::distro::ubuntu_1204_x86_64(
-  $http_iso = "http://archive.ubuntu.com/ubuntu/dists/precise/main/installer-amd64/current/images/netboot/mini.iso",
-  $ks_url   = "http://us.archive.ubuntu.com/ubuntu",
+  $http_iso = 'http://archive.ubuntu.com/ubuntu/dists/precise/main/installer-amd64/current/images/netboot/mini.iso',
+  $ks_url   = 'http://us.archive.ubuntu.com/ubuntu',
   ){
 
   Exec {path => '/usr/bin:/bin:/usr/sbin:/sbin'}
 
-  case $operatingsystem {
+  case $::operatingsystem {
     /(?i)(centos|redhat)/:  {
       $ks_mirror = '/var/www/cobbler/ks_mirror'
     }
@@ -15,7 +15,7 @@ class cobbler::distro::ubuntu_1204_x86_64(
   }
 
   # mini
-  $iso_name = extension_basename($http_iso, "true")
+  $iso_name = extension_basename($http_iso, 'true')
   # mini.iso
   $iso_basename = extension_basename($http_iso)
   # /var/www/cobbler/ks_mirror/ubuntu-12.04-x86_64-mini.iso
@@ -25,7 +25,7 @@ class cobbler::distro::ubuntu_1204_x86_64(
   # /var/www/cobbler/links/ubuntu-12.04-x86_64-mini
   $iso_link = "/var/www/cobbler/links/${iso_name}"
 
-  if $ks_url == "cobbler" {
+  if $ks_url == 'cobbler' {
     $tree_host = "@@server@@"
     $tree_url = "/cblr/links/${iso_name}"
   }
@@ -43,22 +43,23 @@ class cobbler::distro::ubuntu_1204_x86_64(
     # TO DOWNLOAD CENTOS ISO IMAGE
     exec { "get ${http_iso}":
       command => "wget -q -O- ${http_iso} > ${iso}",
-      onlyif => "test ! -s ${iso}",
+      timeout => 0,
+      onlyif  => "test ! -s ${iso}",
     }
   }
   elsif $http_iso =~ /^file:\/\/.+/ {
     $http_iso_path = split($http_iso, 'file://')
     exec { "get ${http_iso}":
       command => "cp ${http_iso_path[1]} ${iso}",
-      onlyif => "test ! -s ${iso}",
+      onlyif  => "test ! -s ${iso}",
     }
   }
 
   mount { $iso_mnt:
-    device => $iso,
-    options => "loop",
-    fstype => "iso9660",
-    ensure => mounted,
+    ensure  => mounted,
+    device  => $iso,
+    options => 'loop',
+    fstype  => 'iso9660',
     require => [Exec["get ${http_iso}"], File[$iso_mnt]],
   }
 
@@ -68,13 +69,13 @@ class cobbler::distro::ubuntu_1204_x86_64(
   }
 
   cobbler_distro { "ubuntu_1204_x86_64":
-    kernel => "${iso_mnt}/linux",
-    initrd => "${iso_mnt}/initrd.gz",
-    arch => "x86_64",
-    breed => "ubuntu",
-    osversion => "precise",
-    ksmeta => "tree_host=$tree_host tree_url=$tree_url",
-    require => Mount[$iso_mnt],
+    kernel    => "${iso_mnt}/linux",
+    initrd    => "${iso_mnt}/initrd.gz",
+    arch      => 'x86_64',
+    breed     => 'ubuntu',
+    osversion => 'precise',
+    ksmeta    => "tree_host=${tree_host} tree_url=${tree_url}",
+    require   => Mount[$iso_mnt],
   }
 
 
