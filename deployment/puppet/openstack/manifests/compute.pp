@@ -55,10 +55,10 @@ class openstack::compute (
   # DB
   $sql_connection                = false,
   # Nova
-  $purge_nova_config              = false,
+  $purge_nova_config             = false,
   # Rabbit
-  $rabbit_nodes        = false,
-  $rabbit_password     = 'rabbit_pw',
+  $rabbit_nodes                  = false,
+  $rabbit_password               = 'rabbit_pw',
   $rabbit_host                   = false,
   $rabbit_user                   = 'nova',
   # Glance
@@ -70,7 +70,7 @@ class openstack::compute (
   $vncproxy_host                 = undef,
   # General
   $enabled                       = true,
-  $multi_host			 = false,
+  $multi_host                    = false,
   $network_config                = {},
   $public_interface,
   $private_interface,
@@ -83,17 +83,17 @@ class openstack::compute (
   $quantum_user_password         = false,
   $tenant_network_type           = 'gre',
   $segment_range                 = '1:4094',
-  $cinder			= false,
+  $cinder              = false,
   # nova compute configuration parameters
   $verbose             = false,
   $manage_volumes      = false,
   $nv_physical_volume  = undef,
-    $cache_server_ip         = ['127.0.0.1'],
-  $cache_server_port       = '11211',
+  $cache_server_ip     = ['127.0.0.1'],
+  $cache_server_port   = '11211',
   $nova_volume         = 'nova-volumes',
-  $service_endpoint	= '127.0.0.1',
-  $ssh_private_key = undef,
-  $ssh_public_key = undef,
+  $service_endpoint    = '127.0.0.1',
+  $ssh_private_key     = undef,
+  $ssh_public_key      = undef,
   # if the cinder management components should be installed
   $cinder                  = 'false',
   $cinder_user_password    = 'cinder_user_pass',
@@ -120,15 +120,30 @@ class openstack::compute (
   $rabbit_connection = $rabbit_host
   include ntpd
 
-  augeas { "libvirt-conf":
-    context => "/files/etc/libvirt/libvirtd.conf",
+  augeas { 'libvirt-conf':
+    context => '/files/etc/libvirt/libvirtd.conf',
     changes =>[
-      "set listen_tls 0",
-      "set listen_tcp 1",
-      "set auth_tcp none",
+      'set listen_tls 0',
+      'set listen_tcp 1',
+      'set auth_tcp none',
     ];
   }
 
+  case $::osfamily {
+    'RedHat': {
+      augeas { 'sysconfig-libvirt':
+        context => '/etc/sysconfig/libvirtd',
+        changes => 'set LIBVIRTD_ARGS "--listen"',
+      }
+    }
+    'Debian': {
+      augeas { 'default-libvirt':
+        context => '/etc/default/libvirt-bin',
+        changes => 'set libvirtd_opts "-l -d"',
+      }
+    }
+  default: { fail("Unsupported osfamily: ${::osfamily}") }
+  }
 
   $memcached_addresses =  inline_template("<%= @cache_server_ip.collect {|ip| ip + ':' + @cache_server_port }.join ',' %>")
   nova_config {'DEFAULT/memcached_servers':
@@ -149,20 +164,20 @@ class openstack::compute (
   }
 
   if ($cinder) {
-    $enabled_apis			= 'ec2,osapi_compute,metadata'
+    $enabled_apis = 'ec2,osapi_compute,metadata'
     package {'python-cinderclient': ensure => present}
     class {'openstack::cinder':
-      sql_connection => "mysql://${cinder_db_user}:${cinder_db_password}@${db_host}/${cinder_db_dbname}?charset=utf8",
-      rabbit_password => $rabbit_password,
-      rabbit_host     => false,
-      rabbit_nodes    => $rabbit_nodes,
-      volume_group    => 'cinder-volumes',
-      physical_volume => $physical_volume,
-      manage_volumes  => $manage_volumes,
-      enabled         => true,
-      auth_host       => $service_endpoint,
-      bind_host       => false,
-      cinder_user_password    => $cinder_user_password,
+      sql_connection       => "mysql://${cinder_db_user}:${cinder_db_password}@${db_host}/${cinder_db_dbname}?charset=utf8",
+      rabbit_password      => $rabbit_password,
+      rabbit_host          => false,
+      rabbit_nodes         => $rabbit_nodes,
+      volume_group         => 'cinder-volumes',
+      physical_volume      => $physical_volume,
+      manage_volumes       => $manage_volumes,
+      enabled              => true,
+      auth_host            => $service_endpoint,
+      bind_host            => false,
+      cinder_user_password => $cinder_user_password,
     }
 
   } else {
@@ -172,7 +187,7 @@ class openstack::compute (
 
   # Install / configure nova-compute
   class { '::nova::compute':
-     ensure_package                 => $::openstack_version['nova'],
+    ensure_package                => $::openstack_version['nova'],
     enabled                       => $enabled,
     vnc_enabled                   => $vnc_enabled,
     vncserver_proxyclient_address => $internal_address,
@@ -198,36 +213,36 @@ class openstack::compute (
   if ( $ssh_private_key != undef ) {
    file { '/var/lib/nova/.ssh':
       ensure => directory,
-      owner => 'nova',
-      group => 'nova',
-      mode => '0700'
+      owner  => 'nova',
+      group  => 'nova',
+      mode   => '0700'
     }
     file { '/var/lib/nova/.ssh/authorized_keys':
       ensure => present,
-      owner => 'nova',
-      group => 'nova',
-      mode => '0400',
+      owner  => 'nova',
+      group  => 'nova',
+      mode   => '0400',
       source => $ssh_public_key,
     }
     file { '/var/lib/nova/.ssh/id_rsa':
       ensure => present,
-      owner => 'nova',
-      group => 'nova',
-      mode => '0400',
+      owner  => 'nova',
+      group  => 'nova',
+      mode   => '0400',
       source => $ssh_private_key,
     }
     file { '/var/lib/nova/.ssh/id_rsa.pub':
       ensure => present,
-      owner => 'nova',
-      group => 'nova',
-      mode => '0400',
+      owner  => 'nova',
+      group  => 'nova',
+      mode   => '0400',
       source => $ssh_public_key,
     }
     file { '/var/lib/nova/.ssh/config':
-      ensure => present,
-      owner => 'nova',
-      group => 'nova',
-      mode => '0600',
+      ensure  => present,
+      owner   => 'nova',
+      group   => 'nova',
+      mode    => '0600',
       content => "Host *\n  StrictHostKeyChecking no\n  UserKnownHostsFile=/dev/null\n",
     }
   }
@@ -236,7 +251,7 @@ class openstack::compute (
   # compute installation
   if ! $quantum {
     if ! $fixed_range {
-      fail("Must specify the fixed range when using nova-networks")
+      fail('Must specify the fixed range when using nova-networks')
     }
 
     if $multi_host {
@@ -255,8 +270,8 @@ class openstack::compute (
         admin_tenant_name => 'services',
         admin_user        => 'nova',
         admin_password    => $nova_user_password,
-        enabled_apis	=> $enabled_apis,
-        auth_host          => $service_endpoint
+        enabled_apis      => $enabled_apis,
+        auth_host         => $service_endpoint
         # TODO override enabled_apis
       }
 
@@ -322,7 +337,7 @@ class openstack::compute (
 
 
     # script called by qemu needs to manipulate the tap device
-    file { "/etc/libvirt/qemu.conf":
+    file { '/etc/libvirt/qemu.conf':
       ensure => present,
       notify => Service['libvirt'],
       source => 'puppet:///modules/nova/libvirt_qemu.conf',
@@ -364,6 +379,5 @@ class openstack::compute (
       'linuxnet_ovs_integration_bridge': value => 'br-int';
     }
   }
-
 }
 
