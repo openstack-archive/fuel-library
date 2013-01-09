@@ -120,6 +120,7 @@ node /fuel-controller-[\d+]/ {
     quantum_db_dbname       => $quantum_db_dbname,
     tenant_network_type     => $tenant_network_type,
     cinder                  => $cinder,
+    db_host                 => $internal_virtual_ip,
     manage_volumes          => $manage_volumes,
     nv_physical_volume      => $nv_physical_volume,
   }
