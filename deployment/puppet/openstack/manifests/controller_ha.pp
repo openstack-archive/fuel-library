@@ -204,14 +204,18 @@ local0.* -/var/log/haproxy.log'
 #    }
 
     # keepalived
+    $public_vrid   = $::deployment_id
+    $internal_vrid = $::deployment_id + 1
+
     class { 'keepalived': require => [Class['haproxy'],Class['::openstack::firewall']] }
-    keepalived::instance { "${::deployment_id}":
+
+    keepalived::instance { $public_vrid:
       interface => $public_interface,
       virtual_ips => [$public_virtual_ip],
       state    => $which ? { 0 => 'MASTER', default => 'BACKUP' },
       priority => $which ? { 0 => 101,      default => 100      },
     }
-    keepalived::instance { '42':
+    keepalived::instance { $internal_vrid:
       interface => $internal_interface,
       virtual_ips => [$internal_virtual_ip],
       state    => $which ? { 0 => 'MASTER', default => 'BACKUP' },
