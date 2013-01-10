@@ -145,7 +145,7 @@ class openstack::compute (
       'set listen_tls 0',
       'set listen_tcp 1',
       'set auth_tcp none',
-    ];
+    ],
     notify => Service['libvirt'],
   }
 
