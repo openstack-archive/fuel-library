@@ -1,0 +1,26 @@
+{
+  "name": "unyonsys-keepalived",
+  "author": "Bruno LEON",
+  "description": "UNKNOWN",
+  "license": "Apache License, Version 2.0",
+  "project_page": "UNKNOWN",
+  "source": "",
+  "summary": "UNKNOWN",
+  "version": "0.0.1",
+  "checksums": {
+    "LICENSE": "620a50cee7805493d59a66750a9c94e4",
+    "Modulefile": "0ad7e237b730f529207cb490db955581",
+    "README": "08f6847d19498f9771fa8ad276e7548f",
+    "manifests\\config.pp": "d7cb549b9814e31825359ff44e9002a9",
+    "manifests\\init.pp": "910602fcd97a2e758a48b3fe29f7dd51",
+    "manifests\\install.pp": "554d06f23339a8bf96d7fc703ee4f408",
+    "manifests\\instance.pp": "7c3e704d0ca5b469637f6bde58bf8757",
+    "manifests\\service.pp": "980e2687932ebd77172108968fd495be",
+    "manifests\\variables.pp": "b49e73e211f42a4ca27c0c105dd65fd4",
+    "spec\\spec_helper.rb": "a55d1e6483344f8ec6963fcb2c220372",
+    "templates\\global_config.erb": "66e85f533f3cc8d96e09ecf7721aa45c",
+    "templates\\keepalived_instance.erb": "758d728b825ede31d0dc2e54aa7a3a86",
+    "tests\\init.pp": "917132f14950d232f2827ac8435b47c3"
+  },
+  "dependencies": []
+}

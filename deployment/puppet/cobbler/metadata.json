@@ -1,0 +1,161 @@
+{
+  "name": "Mirantis Inc.-cobbler",
+  "author": "Mirantis Inc.",
+  "description": "Module to install cobbler provisioning system",
+  "license": "Apache License 2.0",
+  "project_page": "https://github.com/Mirantis/recipes-library",
+  "source": "https://github.com/Mirantis/recipes-library/cobbler",
+  "summary": "Mirantis Cobbler Module",
+  "version": "0.0.1",
+  "checksums": {
+    "Modulefile": "cd2e84d6b259f0cd0d1d90a3a34ab551",
+    "examples\\cobbler_system.py": "4001fae423ddde00a1a037aba40fa84b",
+    "examples\\nodes.yaml": "178e4d661b6bb678f83f005ec91c6ce0",
+    "examples\\server_site.pp": "e27fba5a07c4ce57f8b2dca843aad8e7",
+    "examples\\site.pp": "aa43b27ad0c43ba1520aeeba79373ebe",
+    "examples\\site_fordocs.pp": "df5cd990ef40debbd5fc10015fae19ac",
+    "examples\\site_test.pp": "af74138bc6fe212af3d5cefe3698e9f0",
+    "lib\\puppet\\parser\\functions\\extension_basename.rb": "5818e8a25ee94153609aff457cc567ba",
+    "lib\\puppet\\provider\\cobbler_digest_user\\default.rb": "b22f0e8781f31e5dc65ef15891328e2d",
+    "lib\\puppet\\provider\\cobbler_distro\\default.rb": "06d932f4778d745cd836d5b4421adfd4",
+    "lib\\puppet\\provider\\cobbler_profile\\default.rb": "aec1ed6bbbecd3dfcb803dd42bb67890",
+    "lib\\puppet\\type\\cobbler_digest_user.rb": "7fb89e01d1dcd67cd824ede343d26d99",
+    "lib\\puppet\\type\\cobbler_distro.rb": "44b1c9c230ac73fe0c0919d99a091831",
+    "lib\\puppet\\type\\cobbler_profile.rb": "fc6c85240f1c06283df8fad0cfdd9aed",
+    "manifests\\checksum_bootpc.pp": "45278400f1f30d641308db23cfb47817",
+    "manifests\\distro\\centos63_x86_64.pp": "8cb8fcc874ed3c7f0a099efe875b1d15",
+    "manifests\\distro\\rhel63_x86_64.pp": "d85247a6a5198b97e1e0b4f35419fe39",
+    "manifests\\distro\\ubuntu_1204_x86_64.pp": "cd6d225dff3d025e5779df9c01d81852",
+    "manifests\\init.pp": "0b85034ba38c7248a9044818a811bd36",
+    "manifests\\iptables.pp": "5ab9b3232d1ae903c21a2d46f29e1b52",
+    "manifests\\nat.pp": "8cc63027981c37c2304d6070c0f4378e",
+    "manifests\\packages.pp": "98cea74cc07c400e423b71dc17d48743",
+    "manifests\\profile\\centos63_x86_64.pp": "435f53b9c1c11ca70d0cb02e950208d8",
+    "manifests\\profile\\rhel63_x86_64.pp": "f4838226b615b0e14092fc029dd37c6e",
+    "manifests\\profile\\ubuntu_1204_x86_64.pp": "ff74e440b1c8998be41cfb08e0df3119",
+    "manifests\\selinux.pp": "d441ce08fac9c7f79b26fbff30b5f41f",
+    "manifests\\server.pp": "197d52a800529e9f5e0223903e4e521a",
+    "manifests\\snippets.pp": "ed6033d2ad27b4f813ba1d895cc98792",
+    "templates\\dnsmasq.template.erb": "86e0283f44aaec7491fe59dd9027f94c",
+    "templates\\kickstart\\centos.ks.erb": "4bea34f00837ae1ed0e50fe33adc06ed",
+    "templates\\kickstart\\rhel.ks.erb": "5d2310d27cc9b4aa09f0727e07b3dfa1",
+    "templates\\modules.conf.erb": "19ab2bf35e401fda681fabd97f83cd00",
+    "templates\\preseed\\ubuntu-1204.preseed.erb": "b154959f0bb52406fad114f15187eb76",
+    "templates\\pxedefault.template.erb": "5db8433476fb525cb3a55be6e72df23a",
+    "templates\\scripts\\late_command.py": "17f297bb7216896769d92f67f018afc6",
+    "templates\\settings.erb": "737443c33bd06c60e1dcbeae56266393",
+    "templates\\snippets\\cinder_create_lvm_group.erb": "4693cd6b84ea3bf83fdae36dc57fa9e8",
+    "templates\\snippets\\cinder_create_lvm_group__ubuntu.erb": "28b6ceb0b704be28977fd87d574e310b",
+    "templates\\snippets\\mcollective_conf.erb": "a4bf450a87b6b4fd62559eab6e23fed5",
+    "templates\\snippets\\mcollective_install_if_enabled.erb": "0002cd9667fc03ee095c8eaaa0135ef0",
+    "templates\\snippets\\ntp_register_if_enabled.erb": "34e837068dab623ef269559d19aca53a",
+    "templates\\snippets\\post_install_network_config.erb": "e979bb5ffa186be024fb6ecd56ff1d27",
+    "templates\\snippets\\post_part_compute.erb": "68ea30d44e315baee168ffe159ce8f5b",
+    "templates\\snippets\\post_part_controller.erb": "ac71c4dc802fa4cb8dd8d64c03c0ff43",
+    "templates\\snippets\\post_part_storage.erb": "465caba4b09398256ef18f3660aa2bfd",
+    "templates\\snippets\\puppet_conf.erb": "3c6518489f4bf236c292d8d1660222b4",
+    "templates\\snippets\\puppet_install_if_enabled.erb": "ea165f6f3b897a84233d26292356f659",
+    "templates\\snippets\\puppet_register_if_enabled.erb": "8f0db8bee0a30e85735f391e2da02934",
+    "templates\\snippets\\ubuntu_disable_pxe.erb": "bc37b6cc3e2814aaf5c814d7539143b0",
+    "templates\\snippets\\ubuntu_mcollective_config.erb": "a51a9da8b787bdac83bbb16230d7aa0e",
+    "templates\\snippets\\ubuntu_network.erb": "6e9fcc1b9cdb07c67f7b2a0d39751421",
+    "templates\\snippets\\ubuntu_packages.erb": "ab462b2ec16feab4d177273d66cbec3e",
+    "templates\\snippets\\ubuntu_puppet_config.erb": "53d4faad79d1f49d3300f1e9d9a2bea1",
+    "templates\\ubuntu\\iptablesload.erb": "4a722ea06214de82b1397a89ae43fc73",
+    "templates\\ubuntu\\iptablessave.erb": "5e24fc9cb33ecf554adb15e97434dd56",
+    "templates\\xinetd.conf.erb": "0bd0bce97d90ccb7e5e90f6f7351eae1"
+  },
+  "types": [
+    {
+      "parameters": [
+        {
+          "name": "password",
+          "doc": "User password"
+        },
+        {
+          "name": "name",
+          "doc": "Name of user"
+        }
+      ],
+      "providers": [
+        {
+          "name": "default"
+        }
+      ],
+      "name": "cobbler_digest_user"
+    },
+    {
+      "parameters": [
+        {
+          "name": "kernel",
+          "doc": "Path to kernel"
+        },
+        {
+          "name": "initrd",
+          "doc": "Path to initrd"
+        },
+        {
+          "name": "arch",
+          "doc": "Architecture"
+        },
+        {
+          "name": "ksmeta",
+          "doc": "Kickstart metadata"
+        },
+        {
+          "name": "breed",
+          "doc": "Breed"
+        },
+        {
+          "name": "osversion",
+          "doc": "OS Version"
+        },
+        {
+          "name": "name",
+          "doc": "Name of distro"
+        }
+      ],
+      "providers": [
+        {
+          "name": "default"
+        }
+      ],
+      "name": "cobbler_distro"
+    },
+    {
+      "parameters": [
+        {
+          "name": "distro",
+          "doc": "Distro"
+        },
+        {
+          "name": "kopts",
+          "doc": "Kernel options"
+        },
+        {
+          "name": "ksmeta",
+          "doc": "Kickstart metadata"
+        },
+        {
+          "name": "menu",
+          "doc": "Include|Exclude this profile into boot menu"
+        },
+        {
+          "name": "kickstart",
+          "doc": "Path to kickstart file"
+        },
+        {
+          "name": "name",
+          "doc": "Name of profile"
+        }
+      ],
+      "providers": [
+        {
+          "name": "default"
+        }
+      ],
+      "name": "cobbler_profile"
+    }
+  ],
+  "dependencies": []
+}

@@ -1,0 +1,21 @@
+{
+  "name": "Mirantis Inc.-mcollective",
+  "author": "Mirantis Inc.",
+  "description": "Module to install mcollective orchestration node",
+  "license": "Apache License 2.0",
+  "project_page": "http://mirantis.com",
+  "source": "gitolite@gitolite.mirantis.com:fuel/deployment/puppet/mcollective.git",
+  "summary": "Mirantis Mcollective Module",
+  "version": "0.0.1",
+  "checksums": {
+    "Modulefile": "1a40be90e9f00fc5f7c6d6fac8b618a1",
+    "examples\\site.pp": "90f2270cf8f13c0260e92fc00b375728",
+    "manifests\\client.pp": "2f4db2275602d05ea6ff974f2335b3ac",
+    "manifests\\rabbitmq.pp": "c32d72e7e2c66738eac23da3e047bda2",
+    "templates\\client.cfg.erb": "ef4ddd412d6d816e588cfb188507b2ce",
+    "templates\\enabled_plugins.erb": "542c47315c0765db92d92d51baeb2153",
+    "templates\\puppetd.ddl.erb": "bcd22b51b69041258c4182dcecaf852c",
+    "templates\\puppetd.rb.erb": "c463291197471d056d07a8bc4ecdb586"
+  },
+  "dependencies": []
+}

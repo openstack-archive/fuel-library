@@ -1,0 +1,124 @@
+{
+  "name": "puppetlabs-lvm",
+  "author": "",
+  "description": "",
+  "license": "GPLv2",
+  "project_page": "https://github.com/puppetlabs/puppet-lvm",
+  "source": "",
+  "summary": "Puppet types and providers to manage LVM",
+  "version": "0.1.0",
+  "checksums": {
+    "LICENSE": "751419260aa954499f7abaabaa882bbe",
+    "Modulefile": "f1af1b297c1842eca36d816de894637d",
+    "README.markdown": "d4fa9d4295442f751e0646991f230ff0",
+    "lib\\puppet\\provider\\filesystem\\lvm.rb": "07453cd65faca23238ebe0cfa309a635",
+    "lib\\puppet\\provider\\logical_volume\\lvm.rb": "9500c9ac6c7943012b48f0b810b4a90a",
+    "lib\\puppet\\provider\\physical_volume\\lvm.rb": "ceb7fd1c60ef79a3375da30f27e1df2e",
+    "lib\\puppet\\provider\\volume_group\\lvm.rb": "6c28663bcb22644cef1af5e25dd56290",
+    "lib\\puppet\\type\\filesystem.rb": "5d11e39fd9c983722561795f24d283d9",
+    "lib\\puppet\\type\\logical_volume.rb": "350c39a2c86e1eec8abab67d6f528a80",
+    "lib\\puppet\\type\\physical_volume.rb": "21f306de23bad962d2fa1f8316c6c2f0",
+    "lib\\puppet\\type\\volume_group.rb": "e48f119df8920af800135fe38c1f6017",
+    "manifests\\init.pp": "38c82f221c0bb97445fd9c9efa027546",
+    "spec\\lib\\helpers.rb": "cba0cd3b30e99fde8382fdafe8319bd4",
+    "spec\\lib\\matchers.rb": "0d8a1189209ded0fcefdd5ca100b01d1",
+    "spec\\spec_helper.rb": "93b1a059b4ba4226dfa7472f905e4e61",
+    "spec\\unit\\puppet\\provider\\filesystem\\lvm.rb": "230b1066c2ab7875b5f1d98cfd8e549c",
+    "spec\\unit\\puppet\\provider\\logical_volume\\lvm.rb": "42ed5c4abe3a40371075145d18a97e07",
+    "spec\\unit\\puppet\\provider\\physical_volume\\lvm.rb": "8aa2469679dbbf918dfcda80d1e9f443",
+    "spec\\unit\\puppet\\provider\\volume_group\\lvm.rb": "212d7ccd7a6bc8e207a4cb65e5ef00e1",
+    "spec\\unit\\puppet\\type\\filesystem.rb": "42052efe6720be2f979eee69f8892b28",
+    "spec\\unit\\puppet\\type\\logical_volume.rb": "1df12f515c7734659c43a37f172c2726",
+    "spec\\unit\\puppet\\type\\physical_volume.rb": "cc7e8a2cc82c6e08910901e2ca49b9b1",
+    "spec\\unit\\puppet\\type\\volume_group.rb": "ea2d268e6ace696f6bccf5521296e062"
+  },
+  "types": [
+    {
+      "parameters": [
+        {
+          "name": "fs_type",
+          "doc": "The file system type. eg. ext3."
+        },
+        {
+          "name": "name"
+        },
+        {
+          "name": "options",
+          "doc": "Params for the mkfs command. eg. -l internal,agcount\u003dx"
+        }
+      ],
+      "providers": [
+        {
+          "name": "lvm",
+          "doc": "Manages filesystem of a logical volume"
+        }
+      ],
+      "name": "filesystem"
+    },
+    {
+      "parameters": [
+        {
+          "name": "name",
+          "doc": "The name of the logical volume.  This is the unqualified name and will be\n            automatically added to the volume group\u0027s device path (e.g., \u0027/dev/$vg/$lv\u0027)."
+        },
+        {
+          "name": "volume_group",
+          "doc": "The volume group name associated with this logical volume.  This will automatically\n            set this volume group as a dependency, but it must be defined elsewhere using the\n            volume_group resource type."
+        },
+        {
+          "name": "initial_size",
+          "doc": "The initial size of the logical volume. This will only apply to newly-created volumes"
+        }
+      ],
+      "properties": [
+        {
+          "name": "size",
+          "doc": "The size of the logical volume. Set to undef to use all available space"
+        }
+      ],
+      "providers": [
+        {
+          "name": "lvm",
+          "doc": "Manages LVM logical volumes"
+        }
+      ],
+      "name": "logical_volume"
+    },
+    {
+      "parameters": [
+        {
+          "name": "name"
+        }
+      ],
+      "providers": [
+        {
+          "name": "lvm",
+          "doc": "Manages LVM physical volumes"
+        }
+      ],
+      "name": "physical_volume"
+    },
+    {
+      "parameters": [
+        {
+          "name": "name",
+          "doc": "The name of the volume group."
+        }
+      ],
+      "properties": [
+        {
+          "name": "physical_volumes",
+          "doc": "The list of physical volumes to be included in the volume group; this\n             will automatically set these as dependencies, but they must be defined elsewhere\n             using the physical_volume resource type."
+        }
+      ],
+      "providers": [
+        {
+          "name": "lvm",
+          "doc": "Manages LVM volume groups"
+        }
+      ],
+      "name": "volume_group"
+    }
+  ],
+  "dependencies": []
+}
