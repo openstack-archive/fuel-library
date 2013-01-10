@@ -145,8 +145,8 @@ class openstack::compute (
       'set listen_tls 0',
       'set listen_tcp 1',
       'set auth_tcp none',
-    notify => Service['libvirt'],
     ];
+    notify => Service['libvirt'],
   }
 
   $memcached_addresses =  inline_template("<%= @cache_server_ip.collect {|ip| ip + ':' + @cache_server_port }.join ',' %>")
