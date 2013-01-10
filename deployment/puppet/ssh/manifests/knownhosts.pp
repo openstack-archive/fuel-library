@@ -1,5 +1,5 @@
 class ssh::knownhosts {
-    Sshkey <<| |>> {
+    Sshkey <<| tag == "${::deployment_id}@${::environment}" |>> {
         ensure => present,
     }
 }

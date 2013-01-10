@@ -44,6 +44,9 @@ $external_ipinfo = {}
 # For GRE networks: Valid tunnel IDs are any 32 bit unsigned integer.
 $segment_range   = '900:999'
 
+# it should be set to an integer value (valid range is 0..254)
+$deployment_id = '89'
+
 # Here you can enable or disable different services, based on the chosen deployment topology.
 $multi_host              = true
 $cinder                  = true
@@ -104,6 +107,9 @@ $quantum_sql_connection  = "mysql://${quantum_db_user}:${quantum_db_password}@${
 
 $verbose = true
 Exec { logoutput => true }
+
+# Globally apply an environment-based tag to all resources on each node.
+tag("${::deployment_id}@${::environment}")
 
 stage { 'openstack-custom-repo': before => Stage['main'] }
 class { 'openstack::mirantis_repos': stage => 'openstack-custom-repo', type=>$mirror_type }

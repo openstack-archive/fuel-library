@@ -5,7 +5,7 @@
 #
 # [sql_connection] Connection url to use to connect to nova sql database.
 #  If specified as false, then it tries to collect the exported resource
-#   Nova_config <<| title == 'sql_connection' |>>. Optional. Defaults to false.
+#   Nova_config <<| tag == "${::deployment_id}@${::environment}" and title == 'sql_connection' |>>. Optional. Defaults to false.
 # [image_service] Service used to search for and retrieve images. Optional.
 #   Defaults to 'nova.image.local.LocalImageService'
 # [glance_api_servers] List of addresses for api servers. Optional.
@@ -162,7 +162,7 @@ class nova(
     }
     nova_config { 'DEFAULT/sql_connection': value => $sql_connection }
   } else {
-    Nova_config <<| title == 'sql_connection' |>>
+    Nova_config <<| tag == "${::deployment_id}@${::environment}" and title == 'sql_connection' |>>
   }
   nova_config { 'DEFAULT/allow_resize_to_same_host': value => 'True' }
   nova_config { 'DEFAULT/image_service': value => $image_service }
@@ -172,7 +172,7 @@ class nova(
       nova_config { 'DEFAULT/glance_api_servers': value => $glance_api_servers }
     } else {
       # TODO this only supports setting a single address for the api server
-      Nova_config <<| title == glance_api_servers |>>
+      Nova_config <<| tag == "${::deployment_id}@${::environment}" and title == glance_api_servers |>>
     }
   }
 
@@ -182,14 +182,14 @@ class nova(
 #    nova_config { 'DEFAULT/rabbit_host': value => $rabbit_host }
 #  }
 #  else {
-#     Nova_config <<| title == 'rabbit_host' |>>
+#     Nova_config <<| tag == "${::deployment_id}@${::environment}" and title == 'rabbit_host' |>>
 #  }
 
 
   if $rabbit_nodes {
     nova_config { 'DEFAULT/rabbit_hosts': value => inline_template("<%= @rabbit_nodes.map {|x| x+':5672'}.join ',' %>") }
   } else {
-    Nova_config <<| title == 'rabbit_hosts' |>>
+    Nova_config <<| tag == "${::deployment_id}@${::environment}" and title == 'rabbit_hosts' |>>
   }
   # I may want to support exporting and collecting these
   nova_config {

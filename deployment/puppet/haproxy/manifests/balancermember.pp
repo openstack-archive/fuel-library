@@ -63,7 +63,7 @@
 #
 #  Collecting the resource on a load balancer
 #
-#  Haproxy::Balancermember <<| listening_service == 'puppet00' |>>
+#  Haproxy::Balancermember <<| tag == "${::deployment_id}@${::environment}" and listening_service == 'puppet00' |>>
 #
 #  Creating the resource for multiple balancer members at once
 #  (for single-pass installation of haproxy without requiring a first
