@@ -1,0 +1,166 @@
+{
+  "name": "puppet-quantum",
+  "author": "Joe Topjian,Endre Karlson,Emilien Macchi,Dan Bode",
+  "description": "Puppet module to install and configure the OpenStack network service, Quantum",
+  "license": "Apache License 2.0",
+  "project_page": "https://github.com/EmilienM/openstack-quantum-puppet",
+  "source": "https://github.com/EmilienM/openstack-quantum-puppet",
+  "summary": "Puppet module for OpenStack Quantum",
+  "version": "0.2.2",
+  "checksums": {
+    "Modulefile": "fe847eb8a4928a4b34719981d3be858f",
+    "README.md": "f4ac36fd1d070d17fc8ef160e4aeede4",
+    "examples\\quantum.pp": "2dee9f893e3001237329b2e96ad19b58",
+    "files\\mysql-reconnect.patch": "363e9f8efc66cbdc22f85a54e73b35f9",
+    "files\\rmq-quantum-ha.patch": "8ac177d5e29971c8bac96476c8916f71",
+    "lib\\puppet\\provider\\quantum_api_config\\ini_setting.rb": "ae1788859e8550098936a198fcdc4778",
+    "lib\\puppet\\provider\\quantum_config\\ini_setting.rb": "ab3b8e8a73354ca2501a97cad8190473",
+    "lib\\puppet\\provider\\quantum_dhcp_agent_config\\ini_setting.rb": "8ae8c70a78093547ab877789794f70bf",
+    "lib\\puppet\\provider\\quantum_l3_agent_config\\ini_setting.rb": "7add7bdd33d56da17383050763395898",
+    "lib\\puppet\\provider\\quantum_plugin_ovs\\ini_setting.rb": "32ef1dfb717023b80c2c29cc85778e06",
+    "lib\\puppet\\type\\quantum_api_config.rb": "65034839b3e1e1626d8dc8e632459450",
+    "lib\\puppet\\type\\quantum_config.rb": "b6047f3037a15f173b0792427d6ce275",
+    "lib\\puppet\\type\\quantum_dhcp_agent_config.rb": "8c34604b8a64c69e72afc8ec1c0b7093",
+    "lib\\puppet\\type\\quantum_l3_agent_config.rb": "3de9063c6d24e3eeb7b1863c9b4a049a",
+    "lib\\puppet\\type\\quantum_plugin_ovs.rb": "156f57fe0ec3faadfa4b05c589aaffec",
+    "manifests\\agents\\dhcp.pp": "486b893bd9a3c2441f6bb1a44b73345c",
+    "manifests\\agents\\l3.pp": "d4229832314f8cf5d9f6d4d9f1ab6628",
+    "manifests\\agents\\ovs.pp": "e427f9861f17dd521c24c1d10c88d4f4",
+    "manifests\\client.pp": "03b288cfdb19a14b5d46bc2664824783",
+    "manifests\\db\\mysql.pp": "a464b2bd9a734efe4dd285485ed57ff9",
+    "manifests\\db\\mysql\\host_access.pp": "01bd3832999e9713b0699429815d4cac",
+    "manifests\\init.pp": "fdf3d0ffc96d33b746fbd15869e1ce7f",
+    "manifests\\keystone\\auth.pp": "b86b74b6bd051d8298a8e05b3dc88659",
+    "manifests\\params.pp": "57c43444ef7d6ad11138f4a36ea1bba7",
+    "manifests\\plugins\\ovs.pp": "8e7b43940eb4948e4893f7c4054b2de4",
+    "manifests\\plugins\\ovs\\bridge.pp": "cdcdafbb5e738c9522f3e52a03973a3a",
+    "manifests\\plugins\\ovs\\port.pp": "1ca2215be4c95c77034dcdf67382f6b2",
+    "manifests\\server.pp": "9cf98232c78c32972a94ccc1307f42e8",
+    "templates\\quantum-networking.sh.Debian.erb": "2575509d8d80e5ee305972d298b033f5",
+    "templates\\quantum-networking.sh.RedHat.erb": "cdcd9d0b746f5951815fd6d6ebab928b"
+  },
+  "types": [
+    {
+      "parameters": [
+        {
+          "name": "name",
+          "doc": "Section/setting name to manage from api-paste.ini"
+        }
+      ],
+      "properties": [
+        {
+          "name": "value",
+          "doc": "The value of the setting to be defined."
+        }
+      ],
+      "providers": [
+        {
+          "name": "ini_setting"
+        }
+      ],
+      "name": "quantum_api_config"
+    },
+    {
+      "parameters": [
+        {
+          "name": "name",
+          "doc": "Section/setting name to manage from quantum.conf"
+        }
+      ],
+      "properties": [
+        {
+          "name": "value",
+          "doc": "The value of the setting to be defined."
+        }
+      ],
+      "providers": [
+        {
+          "name": "ini_setting"
+        }
+      ],
+      "name": "quantum_config"
+    },
+    {
+      "parameters": [
+        {
+          "name": "name",
+          "doc": "Section/setting name to manage from dhcp_agent.ini"
+        }
+      ],
+      "properties": [
+        {
+          "name": "value",
+          "doc": "The value of the setting to be defined."
+        }
+      ],
+      "providers": [
+        {
+          "name": "ini_setting"
+        }
+      ],
+      "name": "quantum_dhcp_agent_config"
+    },
+    {
+      "parameters": [
+        {
+          "name": "name",
+          "doc": "Section/setting name to manage from l3_agent.ini"
+        }
+      ],
+      "properties": [
+        {
+          "name": "value",
+          "doc": "The value of the setting to be defined."
+        }
+      ],
+      "providers": [
+        {
+          "name": "ini_setting"
+        }
+      ],
+      "name": "quantum_l3_agent_config"
+    },
+    {
+      "parameters": [
+        {
+          "name": "name",
+          "doc": "Section/setting name to manage from ovs_quantum_plugin.ini"
+        }
+      ],
+      "properties": [
+        {
+          "name": "value",
+          "doc": "The value of the setting to be defined."
+        }
+      ],
+      "providers": [
+        {
+          "name": "ini_setting"
+        }
+      ],
+      "name": "quantum_plugin_ovs"
+    }
+  ],
+  "dependencies": [
+    {
+      "name": "puppetlabs/mysql",
+      "version_requirement": "\u003e\u003d0.3.0"
+    },
+    {
+      "name": "puppetlabs/nova",
+      "version_requirement": "\u003e\u003d1.0.1"
+    },
+    {
+      "name": "cprice404/inifile",
+      "version_requirement": "\u003e\u003d0.9.0"
+    },
+    {
+      "name": "ekarlso/vswitch",
+      "version_requirement": "\u003e\u003d0.1.0"
+    },
+    {
+      "name": "puppetlabs/stdlib",
+      "version_requirement": "\u003e\u003d2.4.0"
+    }
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "name": "duritong-sysctl",
+  "author": "",
+  "description": "This modules allows you to configure sysctl.",
+  "license": "GPLv2",
+  "project_page": "https://github.com/duritong/puppet-sysctl",
+  "source": "",
+  "summary": "",
+  "version": "0.0.1",
+  "checksums": {
+    "Modulefile": "5e4d27cd0d37aa40dd200c9e92fbb42c",
+    "README": "2ca7df81cd909d893992ccc9f57521a4",
+    "lib\\puppet\\provider\\sysctl\\parsed.rb": "f1ad6c1cd610b6fe33fcd245759c09d1",
+    "lib\\puppet\\type\\sysctl.rb": "65fe3deaf4e245b7a5f031dac3d73f4d",
+    "manifests\\value.pp": "1d145504423237bcf848c513dd726266"
+  },
+  "types": [
+    {
+      "parameters": [
+        {
+          "name": "name",
+          "doc": "Name of the parameter"
+        }
+      ],
+      "properties": [
+        {
+          "name": "val",
+          "doc": "Value the parameter should be set to"
+        },
+        {
+          "name": "target",
+          "doc": "Name of the file to store parameters in"
+        }
+      ],
+      "providers": [
+        {
+          "name": "parsed"
+        }
+      ],
+      "name": "sysctl",
+      "doc": "Manages kernel parameters in /etc/sysctl.conf.  By default this will\n                only edit the configuration file, and not change any of the runtime\n                values.  If you wish changes to be activated right away, you can do\n                so with an exec like so:\n\n                        exec { load-sysctl:\n                            command \u003d\u003e \"/sbin/sysctl -p /etc/sysctl.conf\",\n                            refreshonly \u003d\u003e true\n                        }\n\n                Set any changes you want to happen right away to notify this command,\n                or you can set it as the default:\n\n                        Sysctl {\n                            notify \u003d\u003e Exec[load-sysctl]\n                        }"
+    }
+  ],
+  "dependencies": []
+}

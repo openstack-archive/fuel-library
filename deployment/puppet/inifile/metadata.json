@@ -1,0 +1,65 @@
+{
+  "name": "cprice404-inifile",
+  "author": "Chris Price",
+  "description": "Resource types for managing settings in INI files",
+  "license": "Apache",
+  "project_page": "https://github.com/cprice-puppet/puppetlabs-inifile",
+  "source": "git://github.com/cprice-puppet/puppetlabs-inifile.git",
+  "summary": "Resource types for managing settings in INI files",
+  "version": "0.9.0",
+  "checksums": {
+    "CHANGELOG": "8ef9a7631076e135f7daa73588f58e8e",
+    "LICENSE": "519b25a3992e0598a9855e4ccd7f66a1",
+    "Modulefile": "c77497bf834acf7c171dbfec9ef4eb51",
+    "README.markdown": "64084e513d908aa245e481a2e360eef2",
+    "lib\\puppet\\provider\\ini_setting\\ruby.rb": "2a1c716e89c70356db877aa8bff3a942",
+    "lib\\puppet\\type\\ini_setting.rb": "afcd3f28b946b08db1b48fb189e6d8cf",
+    "lib\\puppet\\util\\external_iterator.rb": "69ad1eb930ca6d8d6b6faea343b4a22e",
+    "lib\\puppet\\util\\ini_file.rb": "97eaa61d9076b6a68de30a549c3253d0",
+    "lib\\puppet\\util\\ini_file\\section.rb": "501e535c51d31e3e6482b838ec521246",
+    "spec\\spec_helper.rb": "7ac8d5b0b5a15c3cf9e730a8e416a7e9",
+    "spec\\unit\\puppet\\provider\\ini_setting\\ruby_spec.rb": "990d726b9c3ac5fde69b3336d1f6a706",
+    "spec\\unit\\puppet\\util\\external_iterator_spec.rb": "35cc6e56e0064e496e9151dd778f751f",
+    "spec\\unit\\puppet\\util\\ini_file_spec.rb": "d1fc8b3a91d598196e84dab7c0218425",
+    "tests\\ini_setting.pp": "362db5c48da5b9d412378aa58a405451"
+  },
+  "types": [
+    {
+      "parameters": [
+        {
+          "name": "name",
+          "doc": "An arbitrary name used as the identity of the resource."
+        },
+        {
+          "name": "section",
+          "doc": "The name of the section in the ini file in which the setting should be defined."
+        },
+        {
+          "name": "setting",
+          "doc": "The name of the setting to be defined."
+        },
+        {
+          "name": "path",
+          "doc": "The ini file Puppet will ensure contains the specified setting."
+        },
+        {
+          "name": "key_val_separator",
+          "doc": "The separator string to use between each setting name and value. Defaults to \" \u003d \", but you could use this to override e.g. whether or not the separator should include whitespace."
+        }
+      ],
+      "properties": [
+        {
+          "name": "value",
+          "doc": "The value of the setting to be defined."
+        }
+      ],
+      "providers": [
+        {
+          "name": "ruby"
+        }
+      ],
+      "name": "ini_setting"
+    }
+  ],
+  "dependencies": []
+}

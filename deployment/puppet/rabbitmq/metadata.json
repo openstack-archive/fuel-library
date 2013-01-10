@@ -1,0 +1,166 @@
+{
+  "name": "puppetlabs-rabbitmq",
+  "author": "puppetlabs",
+  "description": "This module manages RabbitMQ. Tested on Debian/Ubuntu",
+  "license": "Apache",
+  "project_page": "http://github.com/puppetlabs/puppetlabs-rabbitmq",
+  "source": "git://github.com/puppetlabs/puppetlabs-rabbitmq.git",
+  "summary": "RabbitMQ Puppet Module",
+  "version": "2.0.2",
+  "checksums": {
+    ".fixtures.yml": "633546e6e1aa19759455f28b206d49bf",
+    ".gemfile": "cdc1b5cdf76da9627e7dd0b843b26cd6",
+    ".travis.yml": "96e99c22e0186230227f84bf1184b3ce",
+    "CHANGELOG": "aaa88bb56821b2cc86de1ac2e08adcfc",
+    "LICENSE": "0e5ccf641e613489e66aa98271dbe798",
+    "Modulefile": "27e8b411c3246c150c04caeef99f7e03",
+    "README.md": "64e1ae4d374da731cc0c20b388d6693d",
+    "Rakefile": "0254db5d3fc38c67a2c160d7296a24f8",
+    "TODO": "53cf21155ec1e83e3e167f711fd3ff9f",
+    "files\\README.markdown": "3d44458cc68d8513b51e3b56c604eec4",
+    "files\\plugins\\amqp_client-2.3.1.ez": "543ec53b7208fdc2dc4eba3684868011",
+    "files\\plugins\\rabbit_stomp-2.3.1.ez": "f552a986409a6d407a080b1aceb80d20",
+    "lib\\puppet\\provider\\rabbitmq_plugin\\default.rb": "bcf98ac1eee12ae7dcd97a3b81ee27fe",
+    "lib\\puppet\\provider\\rabbitmq_plugin\\rabbitmqplugins.rb": "6f92cd2ca3efa9488eb4eb0a74a03817",
+    "lib\\puppet\\provider\\rabbitmq_user\\default.rb": "73b6c890e97e30c7f8f56087fcd5e79b",
+    "lib\\puppet\\provider\\rabbitmq_user\\rabbitmqctl.rb": "400dfd4f4d0beb6a75f2d85cae2c46c0",
+    "lib\\puppet\\provider\\rabbitmq_user_permissions\\default.rb": "a30af4fcbc0caa035f5556d922852df6",
+    "lib\\puppet\\provider\\rabbitmq_user_permissions\\rabbitmqctl.rb": "2739072dac8677a9bd7d6edc99e068b6",
+    "lib\\puppet\\provider\\rabbitmq_vhost\\default.rb": "e7c89c9a31286c1672038bb1a3f40b26",
+    "lib\\puppet\\provider\\rabbitmq_vhost\\rabbitmqctl.rb": "b90e0495a329b7412c5eb8c96fea6c49",
+    "lib\\puppet\\type\\rabbitmq_plugin.rb": "6a707d089d0e50a949ecf8fae114eab0",
+    "lib\\puppet\\type\\rabbitmq_user.rb": "7e9dc2665bac19254fc40fc4266a32ef",
+    "lib\\puppet\\type\\rabbitmq_user_permissions.rb": "6a5a099cd122d3449367ab240a7e72ea",
+    "lib\\puppet\\type\\rabbitmq_vhost.rb": "9bbd7676d2611d0559a3f328376f730b",
+    "manifests\\repo\\apt.pp": "2437ec1d6b056e70dc30a028d1c88fac",
+    "manifests\\repo\\rhel.pp": "79d96a3688339ca1b5501d4b87c496e8",
+    "manifests\\server.pp": "77ac9f4241ae2bd9572aa33152861d1d",
+    "manifests\\service.pp": "eb3832a0f74fed17eca0a2cd91946dd0",
+    "spec\\README.markdown": "32a1fc0121c28aff554ef5d422b8b51e",
+    "spec\\classes\\rabbitmq_repo_rhel.rb": "2b5294529ac87aa4b398ef26622da873",
+    "spec\\classes\\rabbitmq_server_spec.rb": "e7550b1d9f0ac2ca6d63e6e9d3a48895",
+    "spec\\fixtures\\manifests\\site.pp": "d41d8cd98f00b204e9800998ecf8427e",
+    "spec\\spec.opts": "a600ded995d948e393fbe2320ba8e51c",
+    "spec\\spec_helper.rb": "0db89c9a486df193c0e40095422e19dc",
+    "spec\\unit\\puppet\\provider\\rabbitmq_user\\rabbitmqctl_spec.rb": "07af653beb1e70cb6dc7338bba9be753",
+    "spec\\unit\\puppet\\provider\\rabbitmq_user_permissions\\rabbitmqctl_spec.rb": "f7c9ffaf5c1f5b87bbd8994adde4c145",
+    "spec\\unit\\puppet\\provider\\rabbitmq_vhost\\rabbitmqctl_spec.rb": "56695718b2f0a6f73d8bee330e424abf",
+    "spec\\unit\\puppet\\type\\rabbitmq_user_permissions_spec.rb": "3df2a199740e68852a45d39a9fc06c9f",
+    "spec\\unit\\puppet\\type\\rabbitmq_user_spec.rb": "5ee4aa9bb58990863b1fa11a5c092201",
+    "spec\\unit\\puppet\\type\\rabbitmq_vhost_spec.rb": "162e29065eb5ce664842b66bcfa0ac34",
+    "templates\\README.markdown": "aada0a1952329e46b98695349dba6203",
+    "templates\\rabbit.pub.key": "e454b517476b3eaee39f09c71036fa7c",
+    "templates\\rabbitmq-env.conf.erb": "bc57ed66a340cf34bb2b3658da37cc4a",
+    "templates\\rabbitmq.config": "4e713a737836770223a2b699bc5748f3",
+    "tests\\full.pp": "e8c8327e04a3f97c0340b164532239c0",
+    "tests\\permissions\\add.pp": "8cede62afe395e31705ad78752b6aeef",
+    "tests\\plugin.pp": "788f465e719a3408e82bce6d37d2aaee",
+    "tests\\repo\\apt.pp": "4ea43b4f8dcaf474ec11d796efef66a3",
+    "tests\\server.pp": "cd6cd7006b741faf53fb6ffcbe6a1697",
+    "tests\\service.pp": "f06296b103daf449f9e7644fd9eee58b",
+    "tests\\site.pp": "653334bf690768a8af42cd13e8e53ef2",
+    "tests\\user\\add.pp": "3fc8096048295bf611ab701348892601",
+    "tests\\vhosts\\add.pp": "f054d84ac87dc206f586d779fc312fa6"
+  },
+  "types": [
+    {
+      "parameters": [
+        {
+          "name": "name"
+        }
+      ],
+      "providers": [
+        {
+          "name": "default"
+        },
+        {
+          "name": "rabbitmqplugins"
+        }
+      ],
+      "name": "rabbitmq_plugin"
+    },
+    {
+      "parameters": [
+        {
+          "name": "name",
+          "doc": "Name of user"
+        },
+        {
+          "name": "password",
+          "doc": "User password to be set *on creation*"
+        }
+      ],
+      "properties": [
+        {
+          "name": "admin",
+          "doc": "rather or not user should be an admin"
+        }
+      ],
+      "providers": [
+        {
+          "name": "default"
+        },
+        {
+          "name": "rabbitmqctl"
+        }
+      ],
+      "name": "rabbitmq_user"
+    },
+    {
+      "parameters": [
+        {
+          "name": "name"
+        }
+      ],
+      "properties": [
+        {
+          "name": "configure_permission",
+          "doc": "regexp representing configuration permissions"
+        },
+        {
+          "name": "read_permission",
+          "doc": "regexp representing read permissions"
+        },
+        {
+          "name": "write_permission",
+          "doc": "regexp representing write permissions"
+        }
+      ],
+      "providers": [
+        {
+          "name": "default"
+        },
+        {
+          "name": "rabbitmqctl"
+        }
+      ],
+      "name": "rabbitmq_user_permissions"
+    },
+    {
+      "parameters": [
+        {
+          "name": "name"
+        }
+      ],
+      "providers": [
+        {
+          "name": "default"
+        },
+        {
+          "name": "rabbitmqctl"
+        }
+      ],
+      "name": "rabbitmq_vhost"
+    }
+  ],
+  "dependencies": [
+    {
+      "name": "puppetlabs/stdlib",
+      "version_requirement": "\u003e\u003d2.0.0"
+    },
+    {
+      "name": "puppetlabs/apt",
+      "version_requirement": "\u003e\u003d0.0.3"
+    }
+  ]
+}

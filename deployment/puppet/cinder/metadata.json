@@ -1,0 +1,71 @@
+{
+  "name": "puppet-cinder",
+  "author": "Joe Topjian",
+  "description": "install openstack cinder",
+  "license": "Apache License 2.0",
+  "project_page": "https://github.com/jtopjian/puppet-cinder",
+  "source": "https://github.com/jtopjian/puppet-cinder",
+  "summary": "install openstack cinder",
+  "version": "0.0.1",
+  "checksums": {
+    "Modulefile": "134d474acb4af3c99692f24c8527583c",
+    "files\\rmq-cinder-ha.patch": "9a0d451aedf8d1dd0599646f1976ebb1",
+    "lib\\puppet\\provider\\cinder_api_paste_ini\\ini_setting.rb": "2b90d5f7382a986374c3e03660c9b90b",
+    "lib\\puppet\\provider\\cinder_config\\ini_setting.rb": "db25a006764f7d7bc8eb811acd7a3f1c",
+    "lib\\puppet\\type\\cinder_api_paste_ini.rb": "6d340fd82d039545b7f342cf2c974849",
+    "lib\\puppet\\type\\cinder_config.rb": "63930ad327fb217cc7f1e16688211d6e",
+    "manifests\\api.pp": "c936ee0debe490136fee4a707cb6b579",
+    "manifests\\base.pp": "870e895c108b8175d5792e2aa309784b",
+    "manifests\\db\\mysql.pp": "729297502fbba53874d1eb354f90f562",
+    "manifests\\db\\mysql\\host_access.pp": "5791cf403b1bb1d2fcfd938e2e0a11ac",
+    "manifests\\db\\sync.pp": "a476ce6f80bda469461b428c825bf501",
+    "manifests\\keystone\\auth.pp": "d9a5fa39356fcfb2e236f25f86808a40",
+    "manifests\\params.pp": "02aab9e85bd70368b24daacbe2867208",
+    "manifests\\scheduler.pp": "54ad0d41189767a0968b218393d84479",
+    "manifests\\volume.pp": "60f678323aeede4288ebd0878eabb2de",
+    "manifests\\volume\\iscsi.pp": "da1627891bc797a43d0a9c418e9b0d63"
+  },
+  "types": [
+    {
+      "parameters": [
+        {
+          "name": "name",
+          "doc": "Section/setting name to manage from /etc/cinder/api-paste.ini"
+        }
+      ],
+      "properties": [
+        {
+          "name": "value",
+          "doc": "The value of the setting to be defined."
+        }
+      ],
+      "providers": [
+        {
+          "name": "ini_setting"
+        }
+      ],
+      "name": "cinder_api_paste_ini"
+    },
+    {
+      "parameters": [
+        {
+          "name": "name",
+          "doc": "Section/setting name to manage from /etc/cinder/cinder.conf"
+        }
+      ],
+      "properties": [
+        {
+          "name": "value",
+          "doc": "The value of the setting to be defined."
+        }
+      ],
+      "providers": [
+        {
+          "name": "ini_setting"
+        }
+      ],
+      "name": "cinder_config"
+    }
+  ],
+  "dependencies": []
+}

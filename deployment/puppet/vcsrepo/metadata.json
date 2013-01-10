@@ -1,0 +1,147 @@
+{
+  "name": "puppetlabs-vcsrepo",
+  "author": "",
+  "description": "",
+  "license": "",
+  "project_page": "",
+  "source": "",
+  "summary": "",
+  "version": "0.0.4",
+  "checksums": {
+    "LICENSE": "3169c4d06a92f27ab28d53c1179cc1a7",
+    "Modulefile": "980a342ab9a28931cfb8dd7ff8842f92",
+    "README.BZR.markdown": "f202a6ee6d297c09c89c5bce2569ee25",
+    "README.CVS.markdown": "d7b48f6abd22a79f402dc445e70612db",
+    "README.GIT.markdown": "30e149a4a738ee8229fb08b796bae6c2",
+    "README.HG.markdown": "2ec41d70129c53ee6a6831795bfeda40",
+    "README.SVN.markdown": "cf3b9d062c06f59ae8772204a3cc6806",
+    "README.markdown": "c6ead7d4a1e4512929711a0348642707",
+    "Rakefile": "cc0e9a5225430b6a13c74ae74032ed33",
+    "examples\\bzr\\branch.pp": "ea6a41c7757431edbd52bc5da8bc2882",
+    "examples\\bzr\\init_repo.pp": "af1cc14d0c33862e665e42eec244665a",
+    "examples\\cvs\\local.pp": "7be84e245b7f6e1f344b07d8833dc1aa",
+    "examples\\cvs\\remote.pp": "560ca3df0a5be2313ba814f289c08b79",
+    "examples\\git\\bare_init.pp": "4cffe87aa10b02134ddd27c5fcb1f726",
+    "examples\\git\\clone.pp": "7aa96da7e914731864644f57b2757bda",
+    "examples\\git\\working_copy_init.pp": "c053558f3583fa87705c9fb33a9614e5",
+    "examples\\hg\\clone.pp": "97c4bc9d296b89bc0b6f59ac713e3f25",
+    "examples\\hg\\init_repo.pp": "cb3293a7b82ee34e3a89badb90659ad6",
+    "examples\\svn\\checkout.pp": "6e884b0fc38da21b7a13c95b7e977c2b",
+    "examples\\svn\\server.pp": "63309662f80d0e7b35ab1b4cd1591148",
+    "lib\\puppet\\provider\\vcsrepo.rb": "f5b8a90080b8c27e2656af8605148928",
+    "lib\\puppet\\provider\\vcsrepo\\bzr.rb": "35fd23d904f549ea51c3a6859f882f0c",
+    "lib\\puppet\\provider\\vcsrepo\\cvs.rb": "bc63d9785db10e1328edd7b5c5b32174",
+    "lib\\puppet\\provider\\vcsrepo\\git.rb": "45d6c651f3b9188736c3ce9458a6232f",
+    "lib\\puppet\\provider\\vcsrepo\\hg.rb": "32e17bb9d2f9b4311a2ea60292630958",
+    "lib\\puppet\\provider\\vcsrepo\\svn.rb": "e79b6eb310a247aa1ec7ddaddc328600",
+    "lib\\puppet\\type\\vcsrepo.rb": "ba8c4b043983b59688c31868dce19a14",
+    "spec\\fixtures\\bzr_version_info.txt": "5edb13429faf2f0b9964b4326ef49a65",
+    "spec\\fixtures\\git_branch_a.txt": "2371229e7c1706c5ab8f90f0cd57230f",
+    "spec\\fixtures\\hg_parents.txt": "efc28a1bd3f1ce7fb4481f76feed3f6e",
+    "spec\\fixtures\\hg_tags.txt": "8383048b15adb3d58a92ea0c8b887537",
+    "spec\\fixtures\\svn_info.txt": "978db25720a098e5de48388fe600c062",
+    "spec\\spec.opts": "a600ded995d948e393fbe2320ba8e51c",
+    "spec\\spec_helper.rb": "63b2c95f52bf796d7138c87d4f718afa",
+    "spec\\support\\filesystem_helpers.rb": "982a58fb186dad382f56504f57887139",
+    "spec\\support\\fixture_helpers.rb": "4f2ee9e618fcb57054af0a7fd481a97f",
+    "spec\\support\\provider_example_group.rb": "cd74e9f2a19b545f6b962250a86beed0",
+    "spec\\unit\\puppet\\provider\\vcsrepo\\bzr_spec.rb": "595f6e1e12d0d9b52a9144ab62a2ca86",
+    "spec\\unit\\puppet\\provider\\vcsrepo\\cvs_spec.rb": "7154cbacd1c79e94be444a3e7fceeed6",
+    "spec\\unit\\puppet\\provider\\vcsrepo\\git_spec.rb": "64d2b83fd473b1c37feadcc7879e7af4",
+    "spec\\unit\\puppet\\provider\\vcsrepo\\hg_spec.rb": "29078a90254ecea8cfcf0df266dad2bd",
+    "spec\\unit\\puppet\\provider\\vcsrepo\\svn_spec.rb": "ab41d490cbf74a51d68c0bfbfe2297f8",
+    "spec\\unit\\puppet\\type\\README.markdown": "de26a7643813abd6c2e7e28071b1ef94"
+  },
+  "types": [
+    {
+      "parameters": [
+        {
+          "name": "path",
+          "doc": "Absolute path to repository"
+        },
+        {
+          "name": "source",
+          "doc": "The source URI for the repository"
+        },
+        {
+          "name": "fstype",
+          "doc": "Filesystem type"
+        },
+        {
+          "name": "owner",
+          "doc": "The user/uid that owns the repository files"
+        },
+        {
+          "name": "group",
+          "doc": "The group/gid that owns the repository files"
+        },
+        {
+          "name": "user",
+          "doc": "The user to run for repository operations"
+        },
+        {
+          "name": "excludes",
+          "doc": "Files to be excluded from the repository"
+        },
+        {
+          "name": "force",
+          "doc": "Force repository creation, destroying any files on the path in the process."
+        },
+        {
+          "name": "compression",
+          "doc": "Compression level"
+        },
+        {
+          "name": "basic_auth_username",
+          "doc": "HTTP Basic Auth username"
+        },
+        {
+          "name": "basic_auth_password",
+          "doc": "HTTP Basic Auth password"
+        },
+        {
+          "name": "identity",
+          "doc": "SSH identity file"
+        },
+        {
+          "name": "module",
+          "doc": "The repository module to manage"
+        },
+        {
+          "name": "remote",
+          "doc": "The remote repository to track"
+        }
+      ],
+      "properties": [
+        {
+          "name": "revision",
+          "doc": "The revision of the repository"
+        }
+      ],
+      "providers": [
+        {
+          "name": "bzr",
+          "doc": "Supports Bazaar repositories"
+        },
+        {
+          "name": "cvs",
+          "doc": "Supports CVS repositories/workspaces"
+        },
+        {
+          "name": "git",
+          "doc": "Supports Git repositories"
+        },
+        {
+          "name": "hg",
+          "doc": "Supports Mercurial repositories"
+        },
+        {
+          "name": "svn",
+          "doc": "Supports Subversion repositories"
+        }
+      ],
+      "name": "vcsrepo"
+    }
+  ],
+  "dependencies": []
+}
