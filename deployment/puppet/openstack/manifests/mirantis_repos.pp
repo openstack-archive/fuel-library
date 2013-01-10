@@ -72,7 +72,7 @@ class openstack::mirantis_repos (
     }
 
     if !defined(Class['apt::update']) {
-     class { 'apt::update': stage => $openstack::mirantis_repos::stage }
+     class { 'apt::update': stage => $::openstack::mirantis_repos::stage }
     }
 
   

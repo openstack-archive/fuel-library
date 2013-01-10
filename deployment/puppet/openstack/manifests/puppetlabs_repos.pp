@@ -9,7 +9,7 @@ class openstack::puppetlabs_repos (
        }
 
     if !defined(Class['apt::update']) {
-      class { 'apt::update': stage => $openstack::puppetlabs_repos::stage }
+      class { 'apt::update': stage => $::openstack::puppetlabs_repos::stage }
     }
 
 #     In no one custom Debian repository is defined, it is necessary to force run apt-get update

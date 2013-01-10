@@ -7,10 +7,13 @@ class openstack::repo::yum (
   $priority = 1,
   $gpgcheck = 1,
   $mirrorlist = absent,
-  $descr = $repo_name,
   $rhel_location = undef,
+  $descr = undef
 )
 {
+  if ! $descr {
+    $description = $repo_name
+    }
 
   #if defined(Package['yum-plugin-priorities']) {}
   #else {
@@ -29,7 +32,7 @@ class openstack::repo::yum (
     gpgkey         => $key_source,
     priority       => $priority,
     enabled        => 1,
-    descr          => $descr,
+    descr          => $description,
   }
   if ($rhel_location) {
     yumrepo {'rhel-local':
