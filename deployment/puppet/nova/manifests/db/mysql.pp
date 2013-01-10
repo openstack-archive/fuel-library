@@ -33,6 +33,6 @@ class nova::db::mysql(
       database  => $dbname,
     }
   } else {
-    Nova::Db::Mysql::Host_access<<| tag == $cluster_id |>>
+    Nova::Db::Mysql::Host_access<<| tag == "${::deployment_id}@${::environment}" and tag == $cluster_id |>>
   }
 }

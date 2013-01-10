@@ -79,9 +79,9 @@ if !defined(Class['swift'])
   if $::hostname == $swift_master {
   # collect all of the resources that are needed
   # to balance the ring
-  Ring_object_device <<| |>>
-  Ring_container_device <<| |>>
-  Ring_account_device <<| |>>
+  Ring_object_device <<| tag == "${::deployment_id}@${::environment}" |>>
+  Ring_container_device <<| tag == "${::deployment_id}@${::environment}" |>>
+  Ring_account_device <<| tag == "${::deployment_id}@${::environment}" |>>
 
   # create the ring
   class { 'swift::ringbuilder':
@@ -104,7 +104,7 @@ if !defined(Class['swift'])
   }
  }
  else {
-   Swift::Ringsync<<||>>
+   Swift::Ringsync<<| tag == "${::deployment_id}@${::environment}" |>>
    Swift::Ringsync<||> ~> Service["swift-proxy"]
  }
     

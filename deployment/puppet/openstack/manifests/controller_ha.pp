@@ -205,7 +205,7 @@ local0.* -/var/log/haproxy.log'
 
     # keepalived
     class { 'keepalived': require => [Class['haproxy'],Class['::openstack::firewall']] }
-    keepalived::instance { '41':
+    keepalived::instance { "${::deployment_id}":
       interface => $public_interface,
       virtual_ips => [$public_virtual_ip],
       state    => $which ? { 0 => 'MASTER', default => 'BACKUP' },
