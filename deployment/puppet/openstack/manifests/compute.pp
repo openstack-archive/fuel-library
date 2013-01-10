@@ -121,29 +121,32 @@ class openstack::compute (
   $rabbit_connection = $rabbit_host
   include ntpd
 
+  case $::osfamily {
+    'RedHat': {
+      augeas { 'sysconfig-libvirt':
+        context => '/files/etc/sysconfig/libvirtd',
+        changes => 'set LIBVIRTD_ARGS "--listen"',
+        before  => Augeas['libvirt-conf'],
+      }
+    }
+    'Debian': {
+      augeas { 'default-libvirt':
+        context => '/files/etc/default/libvirt-bin',
+        changes => 'set libvirtd_opts "-l -d"',
+        before  => Augeas['libvirt-conf'],
+      }
+    }
+  default: { fail("Unsupported osfamily: ${::osfamily}") }
+  }
+
   augeas { 'libvirt-conf':
     context => '/files/etc/libvirt/libvirtd.conf',
     changes =>[
       'set listen_tls 0',
       'set listen_tcp 1',
       'set auth_tcp none',
+    notify => Service['libvirt'],
     ];
-  }
-
-  case $::osfamily {
-    'RedHat': {
-      augeas { 'sysconfig-libvirt':
-        context => '/etc/sysconfig/libvirtd',
-        changes => 'set LIBVIRTD_ARGS "--listen"',
-      }
-    }
-    'Debian': {
-      augeas { 'default-libvirt':
-        context => '/etc/default/libvirt-bin',
-        changes => 'set libvirtd_opts "-l -d"',
-      }
-    }
-  default: { fail("Unsupported osfamily: ${::osfamily}") }
   }
 
   $memcached_addresses =  inline_template("<%= @cache_server_ip.collect {|ip| ip + ':' + @cache_server_port }.join ',' %>")
