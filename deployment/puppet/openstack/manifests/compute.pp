@@ -100,7 +100,7 @@ class openstack::compute (
   $cinder_db_password      = 'cinder_db_pass',
   $cinder_db_user          = 'cinder',
   $cinder_db_dbname        = 'cinder',
-  $db_host                 = 127.0.0.1,
+  $db_host                 = '127.0.0.1',
 
 ) {
 
