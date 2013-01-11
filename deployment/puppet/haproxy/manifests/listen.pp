@@ -89,7 +89,7 @@ define haproxy::listen (
   }
 
   if $collect_exported {
-    Haproxy::Balancermember <<| tag == "${::deployment_id}@${::environment}" and listening_service == "${name}" |>>
+    Haproxy::Balancermember <<| tag == "${::deployment_id}::${::environment}" and listening_service == "${name}" |>>
   }
   else 
   {

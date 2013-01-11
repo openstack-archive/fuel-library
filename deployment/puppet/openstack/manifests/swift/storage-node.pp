@@ -55,6 +55,6 @@ if !defined(Class['swift'])
 # }
 
   # collect resources for synchronizing the ring databases
-  Swift::Ringsync<<| tag == "${::deployment_id}@${::environment}" |>>
+  Swift::Ringsync<<| tag == "${::deployment_id}::${::environment}" |>>
 
 }

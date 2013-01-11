@@ -109,7 +109,7 @@ $verbose = true
 Exec { logoutput => true }
 
 # Globally apply an environment-based tag to all resources on each node.
-tag("${::deployment_id}@${::environment}")
+tag("${::deployment_id}::${::environment}")
 
 stage { 'openstack-custom-repo': before => Stage['main'] }
 class { 'openstack::mirantis_repos': stage => 'openstack-custom-repo', type=>$mirror_type }

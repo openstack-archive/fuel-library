@@ -155,7 +155,7 @@ class role_swift_storage {
   }
 
   # collect resources for synchronizing the ring databases
-  Swift::Ringsync<<| tag == "${::deployment_id}@${::environment}" |>>
+  Swift::Ringsync<<| tag == "${::deployment_id}::${::environment}" |>>
 
 }
 
@@ -220,9 +220,9 @@ node /fuel-swiftproxy-01/ inherits swift_base {
 
   # collect all of the resources that are needed
   # to balance the ring
-  Ring_object_device <<| tag == "${::deployment_id}@${::environment}" |>>
-  Ring_container_device <<| tag == "${::deployment_id}@${::environment}" |>>
-  Ring_account_device <<| tag == "${::deployment_id}@${::environment}" |>>
+  Ring_object_device <<| tag == "${::deployment_id}::${::environment}" |>>
+  Ring_container_device <<| tag == "${::deployment_id}::${::environment}" |>>
+  Ring_account_device <<| tag == "${::deployment_id}::${::environment}" |>>
 
   # create the ring
   class { 'swift::ringbuilder':
