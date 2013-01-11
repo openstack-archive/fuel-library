@@ -95,12 +95,12 @@ class openstack::compute (
   $ssh_private_key     = undef,
   $ssh_public_key      = undef,
   # if the cinder management components should be installed
-  $cinder                  = 'false',
   $cinder_user_password    = 'cinder_user_pass',
   $cinder_db_password      = 'cinder_db_pass',
   $cinder_db_user          = 'cinder',
   $cinder_db_dbname        = 'cinder',
   $db_host                 = '127.0.0.1',
+  $use_syslog              = false,
 
 ) {
 
@@ -165,6 +165,7 @@ class openstack::compute (
     glance_api_servers => $glance_api_servers,
     verbose            => $verbose,
     rabbit_host        => $rabbit_host,
+    use_syslog              => $use_syslog,
   }
 
   if ($cinder) {
@@ -182,6 +183,7 @@ class openstack::compute (
       auth_host            => $service_endpoint,
       bind_host            => false,
       cinder_user_password => $cinder_user_password,
+      use_syslog              => $use_syslog,
     }
 
   } else {
@@ -320,6 +322,7 @@ class openstack::compute (
       rabbit_host     => $rabbit_nodes ? { false => $rabbit_host, default => $rabbit_nodes },
       rabbit_user     => $rabbit_user,
       rabbit_password => $rabbit_password,
+      use_syslog              => $use_syslog,
       #sql_connection  => $quantum_sql_connection,
     }
 

@@ -47,7 +47,8 @@ class glance::api(
   $keystone_user     = 'admin',
   $enabled           = true,
   $sql_idle_timeout  = '3600',
-  $sql_connection    = 'sqlite:///var/lib/glance/glance.sqlite'
+  $sql_connection    = 'sqlite:///var/lib/glance/glance.sqlite',
+  $use_syslog = false
 ) inherits glance {
 
   # used to configure concat
@@ -83,6 +84,12 @@ class glance::api(
   } else {
     fail("Invalid db connection ${sql_connection}")
   }
+  
+if $use_syslog
+  {
+ glance_api_config {'DEFAULT/log_config': value => "/etc/glance/logging.conf";}
+
+}
 
   # basic service config
   glance_api_config {

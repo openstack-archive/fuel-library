@@ -87,7 +87,7 @@ class openstack::controller_ha (
    $rabbit_nodes, $memcached_servers, $export_resources, $glance_backend='file', $swift_proxies=undef,
    $quantum = false, $quantum_user_password, $quantum_db_password, $quantum_db_user = 'quantum',
    $quantum_db_dbname  = 'quantum', $cinder = false, $cinder_iscsi_bind_iface = false, $tenant_network_type = 'gre', $segment_range = '1:4094',
-   $nv_physical_volume = undef, $manage_volumes = false,$galera_nodes, 
+   $nv_physical_volume = undef, $manage_volumes = false,$galera_nodes, $use_syslog = false,
  ) {
 
     $which = $::hostname ? { $master_hostname => 0, default => 1 }
@@ -287,6 +287,7 @@ local0.* -/var/log/haproxy.log'
       nv_physical_volume      => $nv_physical_volume,
       # turn on SWIFT_ENABLED option for Horizon dashboard
       swift                   => $glance_backend ? { 'swift' => true, default => false },
+      use_syslog              => $use_syslog,
     }
 
     class { 'openstack::auth_file':

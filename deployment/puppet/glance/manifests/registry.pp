@@ -13,8 +13,15 @@ class glance::registry(
   $auth_protocol     = 'http',
   $keystone_tenant   = 'admin',
   $keystone_user     = 'admin',
-  $enabled           = true
+  $enabled           = true,
+  $use_syslog = false
 ) inherits glance {
+  
+    if $use_syslog
+  {
+ glance_registry_config {'DEFAULT/log_config': value => "/etc/glance/logging.conf";}
+##TODO add rsyslog module config
+  }
 
   require 'keystone::python'
 

@@ -93,6 +93,17 @@ $tenant_network_type     = 'gre'
 
 $quantum_host            = $internal_virtual_ip
 
+$use_syslog = false
+
+if $use_syslog {
+class { "::rsyslog::client": 
+    log_local => true,
+    log_auth_local => true,
+    server => '127.0.0.1',
+    port => '514'
+ }
+}
+
 # OpenStack packages to be installed
 $openstack_version = {
   'keystone'   => 'latest',
@@ -120,6 +131,7 @@ if $::operatingsystem == 'Ubuntu'
 {
   class { 'openstack::apparmor::disable': stage => 'openstack-custom-repo' }
 }
+
 
 # Definition of OpenStack controller nodes.
 node /fuel-controller-[\d+]/ {
@@ -166,6 +178,7 @@ node /fuel-controller-[\d+]/ {
       galera_nodes            => $controller_hostnames,
       manage_volumes          => $manage_volumes,
       nv_physical_volume      => $nv_physical_volume,
+      use_syslog              => $use_syslog,
     }
 }
 
@@ -202,6 +215,7 @@ node /fuel-compute-[\d+]/ {
       db_host            => $internal_virtual_ip,
       ssh_private_key    => 'puppet:///ssh_keys/openstack',
       ssh_public_key     => 'puppet:///ssh_keys/openstack.pub',
+      use_syslog              => $use_syslog,
     }
 }
 
@@ -229,7 +243,8 @@ node /fuel-quantum/ {
       tenant_network_type   => $tenant_network_type,
       external_ipinfo       => $external_ipinfo,
       segment_range         => $segment_range,
-      api_bind_address      => $internal_address
+      api_bind_address      => $internal_address,
+      use_syslog              => $use_syslog,
     }
 
     class { 'openstack::auth_file':

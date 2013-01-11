@@ -20,6 +20,7 @@ class quantum (
   $rabbit_port            = '5672',
   $rabbit_user            = 'guest',
   $rabbit_virtual_host    = '/',
+  $use_syslog = false
 ) {
   include 'quantum::params'
 
@@ -76,7 +77,17 @@ class quantum (
     'DEFAULT/rabbit_password':        value => $rabbit_password;
     'DEFAULT/rabbit_virtual_host':    value => $rabbit_virtual_host;
   }
+  if $use_syslog
+  {
+ quantum_config {'DEFAULT/log_config': value => "/etc/quantum/logging.conf";}
+file {"quantum-logging.conf":
+    source=>"puppet:///quantum/logging.conf",
+    path => "/etc/quantum/logging.conf",
+    owner => "quantum",
+    group => "quantum",
+}
 
+}
   # SELINUX=permissive
   if !defined(Class['selinux']) and ($::osfamily == 'RedHat') {
     class { 'selinux' : }

@@ -38,6 +38,8 @@ class nova(
   # this is how to query all resources from our clutser
   $nova_cluster_id='localcluster',
   $sql_connection = false,
+  $use_syslog = false,
+  $syslog_log_facility = "LOCAL0",
   $image_service = 'nova.image.glance.GlanceImageService',
   # these glance params should be optional
   # this should probably just be configured as a glance client
@@ -62,6 +64,7 @@ class nova(
   #$root_helper = $::nova::params::root_helper,
   $monitoring_notifications = false,
   $api_bind_address = '0.0.0.0',
+  $remote_syslog_server = '127.0.0.1'
 ) inherits nova::params {
 
   # all nova_config resources should be applied
@@ -126,6 +129,33 @@ class nova(
     require => Package['nova-common'],
   }
 
+#Configure logging in nova.conf
+if $use_syslog
+ {
+
+nova_config
+ {
+ 'DEFAULT/log_config': value => "/etc/nova/logging.conf";
+ 'DEFAULT/use_syslog': value =>  "True";
+ 'DEFAULT/syslog_log_facility': value =>  $syslog_log_facility;
+ 'DEFAULT/logging_context_format_string':
+  value => '%(levelname)s %(name)s [%(request_id)s %(user_id)s %(project_id)s] %(instance)s %(message)s';
+ 'DEFAULT/logging_default_format_string':
+ value =>'%(levelname)s %(name)s [-] %(instance)s %(message)s';
+}
+
+file {"nova-logging.conf": 
+source=>"puppet:///nova/logging.conf",
+path => "/etc/nova/logging.conf",
+owner => "nova",
+group => "nova",
+require => [User['glance'],Group['glance'],Package['nova-common']]
+}
+
+##TODO: Add rsyslog module for nova logging to <splunkhost>
+  
+}
+
   file { $logdir:
     ensure  => directory,
     mode    => '0751',
@@ -166,7 +196,7 @@ class nova(
   }
   nova_config { 'DEFAULT/allow_resize_to_same_host': value => 'True' }
   nova_config { 'DEFAULT/image_service': value => $image_service }
- 
+   
   if $image_service == 'nova.image.glance.GlanceImageService' {
     if $glance_api_servers {
       nova_config { 'DEFAULT/glance_api_servers': value => $glance_api_servers }

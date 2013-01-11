@@ -28,6 +28,7 @@ class openstack::quantum_router (
   $quantum_db_password      = 'quantum_pass',
   $quantum_user_password    = 'quantum_pass',
   $tenant_network_type      = 'gre',
+  $use_syslog              = false,
 )
 {
     # Set up Quantum
@@ -42,6 +43,7 @@ class openstack::quantum_router (
       #      sql_connection  => $quantum_sql_connection,
       verbose         => $verbose,
       debug           => $verbose,
+      use_syslog              => $use_syslog,
     }
 
     class { 'quantum::plugins::ovs':

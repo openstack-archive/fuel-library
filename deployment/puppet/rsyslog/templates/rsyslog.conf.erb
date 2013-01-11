@@ -1,0 +1,33 @@
+# file is managed by puppet
+
+#################
+#### MODULES ####
+#################
+
+$ModLoad imuxsock # provides support for local system logging
+$ModLoad imklog   # provides kernel logging support (previously done by rklogd) 
+#$ModLoad immark  # provides --MARK-- message capability
+
+###########################
+#### GLOBAL DIRECTIVES ####
+###########################
+
+#
+# Set the default permissions for all log files.
+#
+$FileOwner <%= scope.lookupvar('rsyslog::params::log_user') %>
+$FileGroup <%= scope.lookupvar('rsyslog::params::log_group') %>
+$FileCreateMode 0640
+$DirCreateMode 0755
+$PrivDropToUser <%= scope.lookupvar('rsyslog::params::run_user') %>
+$PrivDropToGroup <%= scope.lookupvar('rsyslog::params::run_group') %>
+
+#
+# Include all config files in <%= scope.lookupvar('rsyslog::params::rsyslog_d') %>
+#
+$IncludeConfig <%= scope.lookupvar('rsyslog::params::rsyslog_d') -%>*.conf
+
+#
+# Emergencies are sent to everybody logged in.
+#
+*.emerg				*

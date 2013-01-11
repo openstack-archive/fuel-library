@@ -152,6 +152,7 @@ class openstack::controller (
   $galera_nodes = ['127.0.0.1'],
   $manage_volumes          = false,
   $nv_physical_volume      = undef,
+  $use_syslog              => false,
 ) {
 
   # Ensure things are run in order
@@ -229,6 +230,7 @@ class openstack::controller (
     quantum_user_password => $quantum_user_password,
     enabled               => $enabled,
     package_ensure => $::openstack_keystone_version,
+    use_syslog              => $use_syslog,
   }
 
 
@@ -246,7 +248,8 @@ class openstack::controller (
     bind_host                 => $api_bind_address,
     enabled                   => $enabled,
     glance_backend            => $glance_backend,
-    registry_host             => $service_endpoint,
+    registry_host     => $service_endpoint,
+    use_syslog              => $use_syslog,
   }
 
   ######## BEGIN NOVA ###########
@@ -309,7 +312,8 @@ class openstack::controller (
     exported_resources      => $export_resources,
     enabled_apis            => $enabled_apis,
     api_bind_address        => $api_bind_address,
-    ensure_package          => $::openstack_version['nova']
+    ensure_package          => $::openstack_version['nova'],
+    use_syslog              => $use_syslog,
   }
 
   ######### Cinder Controller Services ########
@@ -332,6 +336,7 @@ class openstack::controller (
       bind_host       => $api_bind_address,
       iscsi_bind_host => $cinder_iscsi_bind_addr,
       cinder_user_password    => $cinder_user_password,
+      use_syslog              => $use_syslog,
     }
   } else {
     if $manage_volumes {

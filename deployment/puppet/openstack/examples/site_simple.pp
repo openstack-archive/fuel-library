@@ -67,6 +67,14 @@ $quantum_host             = $controller_node_address
 $sql_connection           = "mysql://nova:${nova_db_password}@${controller_node_internal}/nova"
 $quantum_sql_connection   = "mysql://${quantum_db_user}:${quantum_db_password}@${quantum_host}/${quantum_db_dbname}"
 
+if $use_syslog {
+class { "::rsyslog::client": 
+    log_local => true,
+    log_auth_local => true,
+    server => '127.0.0.1',
+    port => '514'
+ }
+}
 # OpenStack packages to be installed
 $openstack_version = {
   'keystone'   => 'latest',
@@ -126,6 +134,7 @@ node /fuel-controller-[\d+]/ {
     cinder_iscsi_bind_iface => $cinder_iscsi_bind_iface,
     manage_volumes          => $manage_volumes,
     nv_physical_volume      => $nv_physical_volume,
+    use_syslog              => $use_syslog,
   }
 
   class { 'openstack::auth_file':
@@ -165,5 +174,6 @@ node /fuel-compute-[\d+]/ {
     db_host                => $conrtoller_node_internal,
     manage_volumes         => $manage_volumes,
     verbose                => $verbose,
+    use_syslog              => $use_syslog,
   }
 }

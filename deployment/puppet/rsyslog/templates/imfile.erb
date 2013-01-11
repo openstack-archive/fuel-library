@@ -1,0 +1,11 @@
+$ModLoad imfile
+
+$InputFileName <%= file_name %>
+$InputFileTag <%= file_tag %>
+$InputFileStateFile state-<%= name %>
+$InputFileSeverity <%= file_severity %>
+$InputFileFacility <%= file_facility %>
+$InputFilePollingInterval <%= polling_interval %>
+<% if run_file_monitor == true -%>
+$InputRunFileMonitor
+<% end -%>

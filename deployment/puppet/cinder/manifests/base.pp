@@ -13,7 +13,8 @@ class cinder::base (
   $rabbit_virtual_host    = '/',
   $rabbit_userid          = 'nova',
   $package_ensure         = 'present',
-  $verbose                = 'True'
+  $verbose                = 'True',
+  $use_syslog             = false
 ) {
 
   include cinder::params
@@ -28,6 +29,15 @@ class cinder::base (
     ensure => $package_ensure,
   }
 
+if $use_syslog {
+	cinder_config {'DEFAULT/log_config': value => "/etc/cinder/logging.conf";}
+	file { "cinder-logging.conf":
+	    source=>"puppet:///cinder/logging.conf",
+	    path => "/etc/cinder/logging.conf",
+	    owner => "cinder",
+	    group => "cinder",
+	}
+}
   File {
     ensure  => present,
     owner   => 'cinder',

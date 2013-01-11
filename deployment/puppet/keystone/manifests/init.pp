@@ -65,9 +65,19 @@ class keystone(
   Keystone_config<||> ~> Exec<| title == 'keystone-manage db_sync'|>
 
   # TODO implement syslog features
-  if ( $use_syslog != 'False') {
-    fail('use syslog currently only accepts false')
+  if $use_syslog
+  {
+ keystone_config {'DEFAULT/log_config': value => "/etc/keystone/logging.conf";}
+file {"keystone-logging.conf":
+    source=>"puppet:///keystone/logging.conf",
+    path => "/etc/keystone/logging.conf",
+    owner => "keystone",
+    group => "keystone",
+    require => [User['keystone'],Group['keystone'],File['/etc/keystone']]
+}
+##TODO add rsyslog module config
   }
+ 
 
   include 'keystone::params'
 

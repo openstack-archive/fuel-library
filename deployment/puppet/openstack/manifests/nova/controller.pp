@@ -73,6 +73,7 @@ class openstack::nova::controller (
   $ensure_package   = present,
   $enabled_apis     = 'ec2,osapi_compute,metadata',
   $api_bind_address = '0.0.0.0',
+  $use_syslog              = false,
 ) {
 
   # Configure the db string
@@ -145,7 +146,8 @@ if ($rabbit_nodes)
     verbose            => $verbose,
     rabbit_host        => $rabbit_connection,
     ensure_package     => $ensure_package,
-    api_bind_address   => $api_bind_address
+    api_bind_address   => $api_bind_address,
+    use_syslog              => $use_syslog,
   }
  
  }
