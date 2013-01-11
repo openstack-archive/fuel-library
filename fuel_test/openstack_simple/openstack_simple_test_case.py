@@ -2,7 +2,7 @@ import unittest
 from fuel_test.base_test_case import BaseTestCase
 from fuel_test.ci.ci_openstack_simple import CiOpenStackSimple
 from fuel_test.root import root
-from fuel_test.settings import PUBLIC_INTERFACE, INTERNAL_INTERFACE, PRIVATE_INTERFACE, OS_FAMILY
+from fuel_test.settings import PUBLIC_INTERFACE, INTERNAL_INTERFACE, PRIVATE_INTERFACE, OS_FAMILY, USE_SYSLOG
 
 class OpenStackSimpleTestCase(BaseTestCase):
     def ci(self):
@@ -33,8 +33,9 @@ class OpenStackSimpleTestCase(BaseTestCase):
                                              'internal'],
             controller_node_public="'%s'" % controller.ip_address_by_network[
                                             'public'],
-            nv_physical_volume=["/dev/vdb"]
-        )
+            nv_physical_volume=["/dev/vdb"],
+            use_syslog = "%s" % USE_SYSLOG
+         )
 
 if __name__ == '__main__':
     unittest.main()

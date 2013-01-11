@@ -2,7 +2,7 @@ from fuel_test.base_test_case import BaseTestCase
 from fuel_test.ci.ci_openstack_swift_compact import CiOpenStackSwiftCompact
 from fuel_test.helpers import is_not_essex
 from fuel_test.root import root
-from fuel_test.settings import PUBLIC_INTERFACE, INTERNAL_INTERFACE, PRIVATE_INTERFACE, OS_FAMILY
+from fuel_test.settings import PUBLIC_INTERFACE, INTERNAL_INTERFACE, PRIVATE_INTERFACE, OS_FAMILY, USE_SYSLOG
 
 class OpenStackSwiftCompactTestCase(BaseTestCase):
     def ci(self):
@@ -49,6 +49,7 @@ class OpenStackSwiftCompactTestCase(BaseTestCase):
                 nv_physical_volume= ["/dev/vdb"],
                 quantum = "true" if quantum else "false",
                 swift_loopback = "'loopback'" if loopback else "false",
+                use_syslog = "'%s'" % USE_SYSLOG
             )
         else:
             if OS_FAMILY == 'centos':
@@ -73,6 +74,7 @@ class OpenStackSwiftCompactTestCase(BaseTestCase):
                 private_interface="'%s'" % PRIVATE_INTERFACE,
                 mirror_type = mirror_type,
                 nv_physical_volume= ["/dev/vdb"],
+                use_syslog = "%s" % USE_SYSLOG
             )
 
 

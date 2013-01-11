@@ -96,3 +96,4 @@ OPENSTACK_SNAPSHOT = os.environ.get('OPENSTACK_SNAPSHOT', 'openstack')
 PUBLIC_INTERFACE='eth0'
 INTERNAL_INTERFACE = 'eth1'
 PRIVATE_INTERFACE = 'eth2'
+USE_SYSLOG = os.environ.get('USE_SYSLOG','false')
