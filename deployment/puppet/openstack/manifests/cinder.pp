@@ -11,6 +11,7 @@ class openstack::cinder(
   $purge_cinder_config = true,
   $auth_host          = '127.0.0.1',
   $bind_host          = '0.0.0.0',
+  $iscsi_bind_host    = '0.0.0.0',
 ) {
   include cinder::params
   #  if ($purge_cinder_config) {
@@ -55,7 +56,7 @@ class openstack::cinder(
     }
 
     class { 'cinder::volume::iscsi':
-      iscsi_ip_address => $bind_host,
+      iscsi_ip_address => $iscsi_bind_host,
       physical_volume  => $nv_physical_volume,
     }
   }

@@ -34,6 +34,9 @@ $controller_node_public  = '10.0.74.3'
 # Set up OpenStack network manager
 $network_manager      = 'nova.network.manager.FlatDHCPManager'
 
+# Setup network interface, which Cinder used for export iSCSI targets.
+$cinder_iscsi_bind_iface = $internal_interface
+
 # Here you can add physical volumes to cinder. Please replace values with the actual names of devices.
 $nv_physical_volume   = ['/dev/sdz', '/dev/sdy', '/dev/sdx']
 
@@ -120,6 +123,7 @@ node /fuel-controller-[\d+]/ {
     quantum_db_dbname       => $quantum_db_dbname,
     tenant_network_type     => $tenant_network_type,
     cinder                  => $cinder,
+    cinder_iscsi_bind_iface => $cinder_iscsi_bind_iface,
     manage_volumes          => $manage_volumes,
     nv_physical_volume      => $nv_physical_volume,
   }

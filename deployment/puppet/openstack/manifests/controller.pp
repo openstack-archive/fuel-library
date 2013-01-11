@@ -133,6 +133,7 @@ class openstack::controller (
   $cinder_db_password      = 'cinder_db_pass',
   $cinder_db_user          = 'cinder',
   $cinder_db_dbname        = 'cinder',
+  $cinder_iscsi_bind_iface = false,
   #
   $quantum                 = false,
   $quantum_user_password   = 'quantum_pass',
@@ -224,7 +225,7 @@ class openstack::controller (
     cinder                => $cinder,
     cinder_user_password  => $cinder_user_password,
     quantum               => $quantum,
-    bind_host    => $api_bind_address,
+    bind_host             => $api_bind_address,
     quantum_user_password => $quantum_user_password,
     enabled               => $enabled,
     package_ensure => $::openstack_keystone_version,
@@ -240,12 +241,12 @@ class openstack::controller (
     glance_db_dbname          => $glance_db_dbname,
     glance_db_password        => $glance_db_password,
     glance_user_password      => $glance_user_password,
-    auth_uri          => "http://${service_endpoint}:5000/",
-    keystone_host         => $service_endpoint,
-    bind_host           => $api_bind_address,
+    auth_uri                  => "http://${service_endpoint}:5000/",
+    keystone_host             => $service_endpoint,
+    bind_host                 => $api_bind_address,
     enabled                   => $enabled,
     glance_backend            => $glance_backend,
-    registry_host     => $service_endpoint,
+    registry_host             => $service_endpoint,
   }
 
   ######## BEGIN NOVA ###########
@@ -283,7 +284,7 @@ class openstack::controller (
     network_size            => $network_size,
     multi_host              => $multi_host,
     network_config          => $network_config,
-    keystone_host         => $service_endpoint,
+    keystone_host           => $service_endpoint,
     # Quantum
     quantum                 => $quantum,
     quantum_user_password   => $quantum_user_password,
@@ -313,8 +314,13 @@ class openstack::controller (
 
   ######### Cinder Controller Services ########
   if ($cinder) {
+    if ($cinder_iscsi_bind_iface) {
+      $cinder_iscsi_bind_addr = getvar("::ipaddress_${cinder_iscsi_bind_iface}")
+    } else {
+      $cinder_iscsi_bind_addr = $api_bind_address
+    }
     class {'openstack::cinder':
-      sql_connection => "mysql://${cinder_db_user}:${cinder_db_password}@${db_host}/${cinder_db_dbname}?charset=utf8",
+      sql_connection  => "mysql://${cinder_db_user}:${cinder_db_password}@${db_host}/${cinder_db_dbname}?charset=utf8",
       rabbit_password => $rabbit_password,
       rabbit_host     => false,
       rabbit_nodes    => $rabbit_nodes,
@@ -324,27 +330,23 @@ class openstack::controller (
       enabled         => true,
       auth_host       => $service_endpoint,
       bind_host       => $api_bind_address,
+      iscsi_bind_host => $cinder_iscsi_bind_addr,
       cinder_user_password    => $cinder_user_password,
     }
- }
-
-
-   else {
+  } else {
     if $manage_volumes {
 
-    class { 'nova::volume':
-      ensure_package => $::openstack_version['nova'],
-      enabled        => true,
-    }   
+      class { 'nova::volume':
+        ensure_package => $::openstack_version['nova'],
+        enabled        => true,
+      }   
 
-    class { 'nova::volume::iscsi':
-      volume_group     => $nova_volume,
-      iscsi_ip_address => $api_bind_address,
-      physical_volume  => $nv_physical_volume,
-    }   
-  }
-
-
+      class { 'nova::volume::iscsi':
+        volume_group     => $nova_volume,
+        iscsi_ip_address => $api_bind_address,
+        physical_volume  => $nv_physical_volume,
+      }   
+    }
     # Set up nova-volume
   }
 

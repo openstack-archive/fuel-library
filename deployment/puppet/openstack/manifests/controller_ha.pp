@@ -86,7 +86,7 @@ class openstack::controller_ha (
    $nova_db_password, $nova_user_password, $rabbit_password, $rabbit_user,
    $rabbit_nodes, $memcached_servers, $export_resources, $glance_backend='file', $swift_proxies=undef,
    $quantum = false, $quantum_user_password, $quantum_db_password, $quantum_db_user = 'quantum',
-   $quantum_db_dbname  = 'quantum', $cinder = false, $tenant_network_type = 'gre', $segment_range = '1:4094',
+   $quantum_db_dbname  = 'quantum', $cinder = false, $cinder_iscsi_bind_iface = false, $tenant_network_type = 'gre', $segment_range = '1:4094',
    $nv_physical_volume = undef, $manage_volumes = false,$galera_nodes, 
  ) {
 
@@ -271,7 +271,7 @@ local0.* -/var/log/haproxy.log'
       cache_server_ip         => $memcached_servers,
       export_resources        => false,
       api_bind_address        => $internal_address,
-      db_host              => $internal_virtual_ip,
+      db_host                 => $internal_virtual_ip,
       service_endpoint        => $internal_virtual_ip,
       glance_backend          => $glance_backend,
       require                 => Service['keepalived'],
@@ -282,6 +282,7 @@ local0.* -/var/log/haproxy.log'
       segment_range           => $segment_range,
       tenant_network_type     => $tenant_network_type,
       cinder                  => $cinder,
+      cinder_iscsi_bind_iface => $cinder_iscsi_bind_iface,
       manage_volumes          => $manage_volumes,
       nv_physical_volume      => $nv_physical_volume,
       # turn on SWIFT_ENABLED option for Horizon dashboard
