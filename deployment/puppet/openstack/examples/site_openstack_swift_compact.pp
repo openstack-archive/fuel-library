@@ -17,7 +17,6 @@ $private_interface   = 'eth2'
 # Public and Internal VIPs. These virtual addresses are required by HA topology and will be managed by keepalived.
 $internal_virtual_ip = '10.0.126.253'
 $public_virtual_ip   = '10.0.215.253'
-$swift_proxy_address = '10.0.126.253'
 
 # Map of controller IP addresses on internal interfaces. Must have an entry for every controller node.
 $controller_internal_addresses = {'fuel-controller-01' => '10.0.126.3','fuel-controller-02' => '10.0.126.4','fuel-controller-03' => '10.0.126.5'}
