@@ -35,6 +35,7 @@ class openstack::cinder(
     rabbit_hosts    => $rabbit_hosts,
     sql_connection  => $sql_connection,
     verbose         => $verbose,
+    use_syslog => $use_syslog
   }
   if ($bind_host) {
     class { 'cinder::api':
