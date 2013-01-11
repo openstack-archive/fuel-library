@@ -132,7 +132,7 @@ class openstack::compute (
     'Debian': {
       augeas { 'default-libvirt':
         context => '/files/etc/default/libvirt-bin',
-        changes => 'set libvirtd_opts "-l -d"',
+        changes => "set libvirtd_opts '\"-l -d\"'",
         before  => Augeas['libvirt-conf'],
       }
     }
