@@ -149,7 +149,7 @@ source=>"puppet:///nova/logging.conf",
 path => "/etc/nova/logging.conf",
 owner => "nova",
 group => "nova",
-require => [User['glance'],Group['glance'],Package['nova-common']]
+require => [Package['nova-common']]
 }
 
 ##TODO: Add rsyslog module for nova logging to <splunkhost>
