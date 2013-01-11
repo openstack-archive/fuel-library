@@ -43,7 +43,7 @@ class openstack::glance (
   $glance_db_dbname     = 'glance',
   $glance_backend       = 'file',
   $verbose              = 'False',
-  $enabled              = true
+  $enabled              = true,
   $use_syslog           = false,
 ) {
 
