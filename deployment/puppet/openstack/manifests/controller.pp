@@ -152,7 +152,7 @@ class openstack::controller (
   $galera_nodes = ['127.0.0.1'],
   $manage_volumes          = false,
   $nv_physical_volume      = undef,
-  $use_syslog              => false,
+  $use_syslog              = false,
 ) {
 
   # Ensure things are run in order
