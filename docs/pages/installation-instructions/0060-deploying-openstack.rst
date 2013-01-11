@@ -135,6 +135,39 @@ Configuring Network
 
       $network_manager = 'nova.network.manager.FlatDHCPManager'
 
+Configuring for Syslog
+^^^^^^^^^^^^^^^^^^^^^^
+
+* If you want to use syslog server, you need to do the following steps:
+
+Set $use_syslog variable to true in site.pp
+
+Adjust corresponding variables in "if $use_syslog" clause
+
+::
+
+    $use_syslog = true
+         if $use_syslog {
+            class { "::rsyslog::client": 
+                log_local => true,
+                log_auth_local => true,
+                server => '127.0.0.1',
+                port => '514'
+            }
+    }
+
+
+For remote logging:
+
+            server => <syslog server hostname or ip>
+
+            port => <syslog server port>
+
+For local logging:
+
+            set log_local and log_auth_local to true
+
+
 
 Enabling Quantum
 ^^^^^^^^^^^^^^^^
