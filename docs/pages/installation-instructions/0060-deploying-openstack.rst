@@ -122,7 +122,6 @@ Configuring Network
   * Change IP addresses for "public" and "internal" according to your networking requirements
 
       $internal_virtual_ip = '10.0.0.253' # IP address must be in address space of management network (eth0)
-      $swift_proxy_address = '10.0.0.253' # but not in DHCP range.
 
       $public_virtual_ip   = '10.xxx.yyy.253' # must be in address space of public network (eth1) , but not in DHCP range and floating range (see below). 
 
