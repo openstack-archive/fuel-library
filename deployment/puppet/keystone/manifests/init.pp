@@ -52,7 +52,7 @@ class keystone(
   $compute_port   = '3000',
   $verbose        = 'False',
   $debug          = 'False',
-  $use_syslog     = 'False',
+  $use_syslog     = false,
   $catalog_type   = 'sql',
   $enabled        = true,
   $sql_connection = 'sqlite:////var/lib/keystone/keystone.db',

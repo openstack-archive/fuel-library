@@ -74,6 +74,7 @@ class openstack::keystone (
   $quantum                  = true,
   $enabled                  = true,
   $package_ensure = present,
+  $use_syslog = false,
 ) {
 
   # Install and configure Keystone
@@ -164,7 +165,8 @@ class openstack::keystone (
     enabled        => $enabled,
     sql_connection => $sql_conn,
     bind_host	=> $bind_host,
-    package_ensure => $package_ensure
+    package_ensure => $package_ensure,
+    use_syslog => $use_syslog
   }
 
   if ($enabled) {
