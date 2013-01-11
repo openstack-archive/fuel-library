@@ -133,6 +133,7 @@ if ($rabbit_nodes)
     rabbit_nodes       => $rabbit_nodes,
     ensure_package     => $ensure_package,
     api_bind_address   => $api_bind_address,
+    use_syslog              => $use_syslog,
   }
  }
  else

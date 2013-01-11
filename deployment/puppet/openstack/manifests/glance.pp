@@ -67,7 +67,8 @@ class openstack::glance (
     keystone_password => $glance_user_password,
     sql_connection    => $sql_connection,
     enabled           => $enabled,
-    registry_host     => $registry_host
+    registry_host     => $registry_host,
+    use_syslog => $use_syslog
   }
 
   # Install and configure glance-registry
@@ -83,6 +84,7 @@ class openstack::glance (
     keystone_password => $glance_user_password,
     sql_connection    => $sql_connection,
     enabled           => $enabled,
+    use_syslog => $use_syslog
   }
 
   # Configure file storage backend
