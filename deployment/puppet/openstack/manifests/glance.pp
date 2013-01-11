@@ -34,16 +34,17 @@ class openstack::glance (
   $db_host,
   $glance_user_password,
   $glance_db_password,
-  $bind_host        = '127.0.0.1',
+  $bind_host            = '127.0.0.1',
   $keystone_host        = '127.0.0.1',
   $registry_host        = '127.0.0.1',
   $auth_uri             = "http://127.0.0.1:5000/",
   $db_type              = 'mysql',
   $glance_db_user       = 'glance',
   $glance_db_dbname     = 'glance',
-  $glance_backend	= 'file',
+  $glance_backend       = 'file',
   $verbose              = 'False',
   $enabled              = true
+  $use_syslog           = false,
 ) {
 
   # Configure the db string
@@ -57,7 +58,7 @@ class openstack::glance (
   class { 'glance::api':
     verbose           => $verbose,
     debug             => $verbose,
-    bind_host		=> $bind_host,
+    bind_host         => $bind_host,
     auth_type         => 'keystone',
     auth_port         => '35357',
     auth_host         => $keystone_host,
@@ -66,14 +67,14 @@ class openstack::glance (
     keystone_password => $glance_user_password,
     sql_connection    => $sql_connection,
     enabled           => $enabled,
-    registry_host	=> $registry_host
+    registry_host     => $registry_host
   }
 
   # Install and configure glance-registry
   class { 'glance::registry':
     verbose           => $verbose,
     debug             => $verbose,
-    bind_host		=> $bind_host,
+    bind_host         => $bind_host,
     auth_host         => $keystone_host,
     auth_port         => '35357',
     auth_type         => 'keystone',
@@ -85,32 +86,25 @@ class openstack::glance (
   }
 
   # Configure file storage backend
-  
-  
-    if $glance_backend == "swift"
-    {
-    if !defined(Package['swift'])
-    {
-	include ::swift::params
-	package { "swift":
-	name   => $::swift::params::package_name,
-	ensure =>present
-	}
-    }
-    Package["swift"] ~> Service['glance-api']
-    
-      class { "glance::backend::$glance_backend":
-     swift_store_user => "services:glance",
-     swift_store_key=> $glance_user_password,
-     swift_store_create_container_on_put => "True",
-     swift_store_auth_address => "http://${keystone_host}:5000/v2.0/"
+
+
+ if $glance_backend == "swift" {
+    if !defined(Package['swift']) {
+      include ::swift::params
+      package { "swift":
+        name   => $::swift::params::package_name,
+        ensure =>present
       }
     }
-    else
-    {
-     class { "glance::backend::$glance_backend": }
+    Package["swift"] ~> Service['glance-api']
+
+    class { "glance::backend::$glance_backend":
+      swift_store_user => "services:glance",
+      swift_store_key=> $glance_user_password,
+      swift_store_create_container_on_put => "True",
+      swift_store_auth_address => "http://${keystone_host}:5000/v2.0/"
+    }
+  } else {
+    class { "glance::backend::$glance_backend": }
   }
-       
-     
-     
 }

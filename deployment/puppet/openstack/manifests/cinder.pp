@@ -12,6 +12,7 @@ class openstack::cinder(
   $auth_host          = '127.0.0.1',
   $bind_host          = '0.0.0.0',
   $iscsi_bind_host    = '0.0.0.0',
+  $use_syslog         = false,
 ) {
   include cinder::params
   #  if ($purge_cinder_config) {
