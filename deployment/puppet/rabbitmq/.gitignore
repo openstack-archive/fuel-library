@@ -1,7 +1,6 @@
 *.swp
 pkg/
 .DS_Store
-
 coverage/
-
+metadata.json
 spec/fixtures/modules/*
