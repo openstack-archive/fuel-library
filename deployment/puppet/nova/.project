@@ -3,6 +3,9 @@
 	<name>nova</name>
 	<comment></comment>
 	<projects>
+		<project>keystone</project>
+		<project>lvm</project>
+		<project>quantum</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

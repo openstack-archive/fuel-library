@@ -33,8 +33,7 @@ class { 'haproxy':
 @@haproxy::balancermember { $fqdn:
   order                  => '21',
   listening_service      => 'puppet00',
-  server_name            => $::hostname,
-  balancer_ip            => $::ipaddress,
+  balancers            => { "$::hostname" => $::ipaddress },
   balancer_port          => '8140',
   balancermember_options => 'check'
 }

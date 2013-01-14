@@ -4,6 +4,8 @@
 	<comment></comment>
 	<projects>
 		<project>keystone</project>
+		<project>mysql</project>
+		<project>stdlib</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

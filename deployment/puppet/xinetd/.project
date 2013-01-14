@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-Description>
+<projectDescription>
 	<name>xinetd</name>
 	<comment></comment>
-	s>
-	<s>
+	<projects>
+	</projects>
 	<buildSpec>
 		<buildCommand>
 			<name>org.cloudsmith.geppetto.pp.dsl.ui.modulefileBuilder</name>
@@ -20,4 +20,4 @@ Description>
 		<nature>org.cloudsmith.geppetto.pp.dsl.ui.puppetNature</nature>
 		<nature>org.eclipse.xtext.ui.shared.xtextNature</nature>
 	</natures>
-<Description>
+</projectDescription>

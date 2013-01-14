@@ -4,7 +4,9 @@
 	<comment></comment>
 	<projects>
 		<project>concat</project>
+		<project>glance</project>
 		<project>mysql</project>
+		<project>postgresql</project>
 		<project>stdlib</project>
 		<project>vcsrepo</project>
 	</projects>

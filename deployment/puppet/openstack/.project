@@ -8,9 +8,11 @@
 		<project>firewall</project>
 		<project>glance</project>
 		<project>keepalived</project>
+		<project>keystone</project>
 		<project>mysql</project>
 		<project>ntpd</project>
 		<project>quantum</project>
+		<project>rsyslog</project>
 		<project>stdlib</project>
 		<project>swift</project>
 	</projects>
