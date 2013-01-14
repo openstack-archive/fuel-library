@@ -27,6 +27,9 @@ $controller_internal_addresses = { 'fuel-controller-01'=>'10.0.125.3', 'fuel-con
 $create_networks = true
 $floating_range  = '10.0.74.128/28'
 $fixed_range     = '10.0.161.128/28'
+$num_networks    = 1
+$network_size    = 255
+$vlan_start      = 300
 
 # If $external_ipinfo option is not defined the addresses will be calculated automatically from $floating_range:
 # the first address will be defined as an external default router
@@ -149,6 +152,9 @@ node /fuel-controller-[\d+]/ {
       fixed_range             => $fixed_range,
       multi_host              => $multi_host,
       network_manager         => $network_manager,
+      num_networks            => $num_networks,
+      network_size            => $network_size,
+      network_config          => { 'vlan_start' => $vlan_start },
       verbose                 => $verbose,
       auto_assign_floating_ip => $auto_assign_floating_ip,
       mysql_root_password     => $mysql_root_password,
@@ -191,6 +197,7 @@ node /fuel-compute-[\d+]/ {
       libvirt_type       => 'qemu',
       fixed_range        => $fixed_range,
       network_manager    => $network_manager,
+      network_config     => { 'vlan_start' => $vlan_start },
       multi_host         => $multi_host,
       sql_connection     => "mysql://nova:${nova_db_password}@${internal_virtual_ip}/nova",
       rabbit_nodes       => $controller_hostnames,

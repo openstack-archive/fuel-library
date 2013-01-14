@@ -19,6 +19,9 @@ $private_interface   = 'eth2'
 # Fixed IP addresses are typically used for communication between VM instances.
 $floating_range  = '10.0.74.128/28'
 $fixed_range     = '10.0.214.0/24'
+$num_networks    = 1
+$network_size    = 255
+$vlan_start      = 300
 
 # Here you can enable or disable different services, based on the chosen deployment topology.
 $cinder                  = true
@@ -110,6 +113,9 @@ node /fuel-controller-[\d+]/ {
     fixed_range             => $fixed_range,
     multi_host              => $multi_host,
     network_manager         => $network_manager,
+    num_networks            => $num_networks,
+    network_size            => $network_size,
+    network_config          => { 'vlan_start' => $vlan_start },
     verbose                 => $verbose,
     auto_assign_floating_ip => $auto_assign_floating_ip,
     mysql_root_password     => $mysql_root_password,
@@ -154,6 +160,7 @@ node /fuel-compute-[\d+]/ {
     libvirt_type           => 'kvm',
     fixed_range            => $fixed_range,
     network_manager        => $network_manager,
+    network_config         => { 'vlan_start' => $vlan_start },
     multi_host             => $multi_host,
     sql_connection         => $sql_connection,
     nova_user_password     => $nova_user_password,
