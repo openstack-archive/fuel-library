@@ -13,6 +13,7 @@ class openstack::cinder(
   $bind_host          = '0.0.0.0',
   $iscsi_bind_host    = '0.0.0.0',
   $use_syslog         = false,
+  $cinder_rate_limits = undef
 ) {
   include cinder::params
   #  if ($purge_cinder_config) {
@@ -28,7 +29,6 @@ class openstack::cinder(
     cinder_config { 'DEFAULT/rabbit_ha_queues': value => 'True' }
   }
 
-
   class { 'cinder::base':
     package_ensure  => $::openstack_version['cinder'],
     rabbit_password => $rabbit_password,
@@ -43,6 +43,7 @@ class openstack::cinder(
       keystone_auth_host => $auth_host,
       keystone_password  => $cinder_user_password,
       bind_host          => $bind_host,
+      cinder_rate_limits => $cinder_rate_limits
     }
 
     class { 'cinder::scheduler':

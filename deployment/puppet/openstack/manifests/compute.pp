@@ -101,7 +101,8 @@ class openstack::compute (
   $cinder_db_dbname        = 'cinder',
   $db_host                 = '127.0.0.1',
   $use_syslog              = false,
-
+  $nova_rate_limits = undef,
+  $cinder_rate_limits = undef
 ) {
 
   #
@@ -167,7 +168,10 @@ class openstack::compute (
     rabbit_host        => $rabbit_host,
     use_syslog              => $use_syslog,
   }
-
+  if $nova_rate_limits
+  {
+ class {'::nova::limits': limits => $nova_rate_limits}
+  }
   if ($cinder) {
     $enabled_apis = 'ec2,osapi_compute,metadata'
     package {'python-cinderclient': ensure => present}
@@ -184,6 +188,7 @@ class openstack::compute (
       bind_host            => false,
       cinder_user_password => $cinder_user_password,
       use_syslog              => $use_syslog,
+      cinder_rate_limits => $cinder_rate_limits
     }
 
   } else {
@@ -277,7 +282,8 @@ class openstack::compute (
         admin_user        => 'nova',
         admin_password    => $nova_user_password,
         enabled_apis      => $enabled_apis,
-        auth_host         => $service_endpoint
+        auth_host         => $service_endpoint,
+        nova_rate_limits => $nova_rate_limits
         # TODO override enabled_apis
       }
 

@@ -22,7 +22,8 @@ class nova::api(
   $auth_protocol     = 'http',
   $admin_tenant_name = 'services',
   $admin_user        = 'nova',
-  $enabled_apis      = 'ec2,osapi_compute,metadata'
+  $enabled_apis      = 'ec2,osapi_compute,metadata',
+  $nova_rate_limits = undef
 ) {
 
   include nova::params
@@ -56,6 +57,10 @@ class nova::api(
       'filter:authtoken/signing_dir': ensure => absent;
       'filter:authtoken/signing_dirname': ensure => absent;
     } 
+    
+if $nova_rate_limits {
+  class{'::nova::limits': limits => $nova_rate_limits}
+}
 
   Nova_config<| |> ~> Exec['post-nova_config']
   Nova_config<| |> ~> Service['nova-api']

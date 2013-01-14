@@ -70,6 +70,9 @@ $quantum_host             = $controller_node_address
 $sql_connection           = "mysql://nova:${nova_db_password}@${controller_node_internal}/nova"
 $quantum_sql_connection   = "mysql://${quantum_db_user}:${quantum_db_password}@${quantum_host}/${quantum_db_dbname}"
 
+
+
+
 if $use_syslog {
 class { "::rsyslog::client": 
     log_local => true,
@@ -99,6 +102,23 @@ class { 'openstack::mirantis_repos': stage => 'openstack-custom-repo', type => $
 if $::operatingsystem == 'Ubuntu' {
   class { 'openstack::apparmor::disable': stage => 'openstack-custom-repo' }
 }
+
+#Rate Limits for cinder and Nova
+#Cinder and Nova can rate-limit your requests to API services
+#These limits can be small for your installation or usage scenario
+#Change the following variables if you want. The unit is requests per minute.
+
+$nova_rate_limits = { 'POST' => '10',
+ 'POST_SERVERS' => '50',
+ 'PUT' => 10, 'GET' => 3,
+ 'DELETE' => 100 }
+ 
+
+$cinder_rate_limits = { 'POST' => '10',
+ 'POST_SERVERS' => '50',
+ 'PUT' => 10, 'GET' => 3,
+ 'DELETE' => 100 }
+
 
 # Definition of OpenStack controller node.
 node /fuel-controller-[\d+]/ {
@@ -141,6 +161,8 @@ node /fuel-controller-[\d+]/ {
     manage_volumes          => $manage_volumes,
     nv_physical_volume      => $nv_physical_volume,
     use_syslog              => $use_syslog,
+          nova_rate_limits => $nova_rate_limits,
+      cinder_rate_limits => $cinder_rate_limits
   }
 
   class { 'openstack::auth_file':
@@ -182,5 +204,7 @@ node /fuel-compute-[\d+]/ {
     manage_volumes         => $manage_volumes,
     verbose                => $verbose,
     use_syslog              => $use_syslog,
+    nova_rate_limits => $nova_rate_limits,
+    cinder_rate_limits => $cinder_rate_limits
   }
 }

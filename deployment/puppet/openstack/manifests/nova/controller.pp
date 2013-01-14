@@ -74,6 +74,7 @@ class openstack::nova::controller (
   $enabled_apis     = 'ec2,osapi_compute,metadata',
   $api_bind_address = '0.0.0.0',
   $use_syslog              = false,
+  $nova_rate_limits = undef
 ) {
 
   # Configure the db string
@@ -170,6 +171,7 @@ if ($rabbit_nodes)
     auth_host         => $keystone_host,
     enabled_apis	=> $enabled_apis,
     ensure_package	=> $ensure_package,
+    nova_rate_limits => $nova_rate_limits
   }
 
   if $enabled {

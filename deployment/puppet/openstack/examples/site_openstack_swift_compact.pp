@@ -144,6 +144,23 @@ if $::operatingsystem == 'Ubuntu' {
   class { 'openstack::apparmor::disable': stage => 'openstack-custom-repo' }
 }
 
+#Rate Limits for cinder and Nova
+#Cinder and Nova can rate-limit your requests to API services
+#These limits can be small for your installation or usage scenario
+#Change the following variables if you want. The unit is requests per minute.
+
+$nova_rate_limits = { 'POST' => '10',
+ 'POST_SERVERS' => '50',
+ 'PUT' => 10, 'GET' => 3,
+ 'DELETE' => 100 }
+ 
+
+$cinder_rate_limits = { 'POST' => '10',
+ 'POST_SERVERS' => '50',
+ 'PUT' => 10, 'GET' => 3,
+ 'DELETE' => 100 }
+
+
 class compact_controller {
   class { 'openstack::controller_ha':
     controller_public_addresses   => $controller_public_addresses,
@@ -193,6 +210,8 @@ class compact_controller {
     galera_nodes            => $controller_hostnames,
     nv_physical_volume      => $nv_physical_volume,
     use_syslog              => $use_syslog,
+    nova_rate_limits => $nova_rate_limits,
+    cinder_rate_limits => $cinder_rate_limits
   }
   class { 'swift::keystone::auth':
     password         => $swift_user_password,
@@ -293,6 +312,8 @@ node /fuel-compute-[\d+]/ {
     ssh_private_key        => 'puppet:///ssh_keys/openstack',
     ssh_public_key         => 'puppet:///ssh_keys/openstack.pub',
     use_syslog              => $use_syslog,
+    nova_rate_limits => $nova_rate_limits,
+    cinder_rate_limits => $cinder_rate_limits
   }
 }
 

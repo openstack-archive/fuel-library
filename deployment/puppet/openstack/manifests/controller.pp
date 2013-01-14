@@ -153,6 +153,8 @@ class openstack::controller (
   $manage_volumes          = false,
   $nv_physical_volume      = undef,
   $use_syslog              = false,
+  $nova_rate_limits = undef,
+  $cinder_rate_limits = undef
 ) {
 
   # Ensure things are run in order
@@ -314,6 +316,7 @@ class openstack::controller (
     api_bind_address        => $api_bind_address,
     ensure_package          => $::openstack_version['nova'],
     use_syslog              => $use_syslog,
+    nova_rate_limits => $nova_rate_limits
   }
 
   ######### Cinder Controller Services ########
@@ -337,6 +340,7 @@ class openstack::controller (
       iscsi_bind_host => $cinder_iscsi_bind_addr,
       cinder_user_password    => $cinder_user_password,
       use_syslog              => $use_syslog,
+      cinder_rate_limits => $cinder_rate_limits
     }
   } else {
     if $manage_volumes {

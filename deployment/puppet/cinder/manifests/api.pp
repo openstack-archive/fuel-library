@@ -9,7 +9,8 @@ class cinder::api (
   $keystone_auth_protocol = 'http',
   $package_ensure         = 'latest',
   $bind_host              = '0.0.0.0',
-  $enabled                = true
+  $enabled                = true,
+  $cinder_rate_limits = undef
 ) {
 
   include cinder::params
@@ -23,7 +24,9 @@ class cinder::api (
   } else {
     $api_package = $::cinder::params::package_name
   }
-
+if $cinder_rate_limits {
+  class{'::cinder::limits': limits => $cinder_rate_limits}
+}
   Cinder_config<||> ~> Service['cinder-api']
   Cinder_config<||> ~> Exec['cinder-manage db_sync']
   Cinder_api_paste_ini<||> ~> Service['cinder-api']
