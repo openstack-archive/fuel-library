@@ -32,7 +32,7 @@ class cinder::base (
 if $use_syslog {
 	cinder_config {'DEFAULT/log_config': value => "/etc/cinder/logging.conf";}
 	file { "cinder-logging.conf":
-	    source=>"puppet:///cinder/logging.conf",
+	    source=>"puppet:///modules/cinder/logging.conf",
 	    path => "/etc/cinder/logging.conf",
 	    owner => "cinder",
 	    group => "cinder",

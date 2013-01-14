@@ -81,7 +81,7 @@ class quantum (
   {
  quantum_config {'DEFAULT/log_config': value => "/etc/quantum/logging.conf";}
 file {"quantum-logging.conf":
-    source=>"puppet:///quantum/logging.conf",
+    source=>"puppet:///modules/quantum/logging.conf",
     path => "/etc/quantum/logging.conf",
     owner => "quantum",
     group => "quantum",

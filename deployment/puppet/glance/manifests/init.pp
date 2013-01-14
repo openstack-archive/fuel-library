@@ -14,7 +14,7 @@ class glance(
     require => Package['glance']
   }
 file {"glance-logging.conf": 
-source=>"puppet:///glance/logging.conf",
+source=>"puppet:///modules/glance/logging.conf",
 path => "/etc/glance/logging.conf",
 owner => "glance",
 group => "glance",

@@ -145,7 +145,7 @@ nova_config
 }
 
 file {"nova-logging.conf": 
-source=>"puppet:///nova/logging.conf",
+source=>"puppet:///modules/nova/logging.conf",
 path => "/etc/nova/logging.conf",
 owner => "nova",
 group => "nova",

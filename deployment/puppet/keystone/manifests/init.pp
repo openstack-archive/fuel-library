@@ -69,7 +69,7 @@ class keystone(
   {
  keystone_config {'DEFAULT/log_config': value => "/etc/keystone/logging.conf";}
 file {"keystone-logging.conf":
-    source=>"puppet:///keystone/logging.conf",
+    source=>"puppet:///modules/keystone/logging.conf",
     path => "/etc/keystone/logging.conf",
     owner => "keystone",
     group => "keystone",
