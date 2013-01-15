@@ -17,7 +17,8 @@ class rsyslog::config {
         require => Class["rsyslog::install"],
         notify  => Class["rsyslog::service"],
     }
-
+if $osfamily == "Debian"
+{
     file { $rsyslog::params::rsyslog_default:
         owner   => root,
         group   => $rsyslog::params::run_group,
@@ -26,7 +27,7 @@ class rsyslog::config {
         require => Class["rsyslog::install"],
         notify  => Class["rsyslog::service"],
     }
-
+}
     file { $rsyslog::params::spool_dir:
         owner   => root,
         group   => $rsyslog::params::run_group,
