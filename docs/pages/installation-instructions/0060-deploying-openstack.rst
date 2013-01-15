@@ -166,7 +166,22 @@ For local logging:
 
             set log_local and log_auth_local to true
 
+Configuring Rate-Limits
+^^^^^^^^^^^^^^^^^^^^^^^
 
+Openstack has predefined limits on different HTTP queries for nova-compute and cinder services. Sometimes (e.g. for big clouds or test scenarios) these limits are too strict. (See http://docs.openstack.org/folsom/openstack-compute/admin/content/configuring-compute-API.html) In this case you can change them to appropriate values. 
+
+There are to hashes describing these limits: $nova_rate_limits and $cinder_rate_limits. ::
+
+    $nova_rate_limits = { 'POST' => '10',
+    'POST_SERVERS' => '50',
+    'PUT' => 10, 'GET' => 3,
+    'DELETE' => 100 }
+
+    $cinder_rate_limits = { 'POST' => '10',
+    'POST_SERVERS' => '50',
+    'PUT' => 10, 'GET' => 3,
+    'DELETE' => 100 }
 
 Enabling Quantum
 ^^^^^^^^^^^^^^^^
