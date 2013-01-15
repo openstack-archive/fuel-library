@@ -55,6 +55,22 @@ class CiCobbler(CiBase):
             client = self.describe_empty_node(
                 node_name, [public, internal, private], memory=1024)
             environment.nodes.append(client)
+        for node_name in self.node_roles().storage_names:
+            client = self.describe_empty_node(
+                node_name, [public, internal, private], memory=1024)
+            environment.nodes.append(client)
+        for node_name in self.node_roles().proxy_names:
+            client = self.describe_empty_node(
+                node_name, [public, internal, private], memory=1024)
+            environment.nodes.append(client)
+        for node_name in self.node_roles().quantum_names:
+            client = self.describe_empty_node(
+                node_name, [public, internal, private], memory=1024)
+            environment.nodes.append(client)
+        for node_name in self.node_roles().keystone_names:
+            client = self.describe_empty_node(
+                node_name, [public, internal, private], memory=1024)
+            environment.nodes.append(client)
         return environment
 
     def get_start_nodes(self):
