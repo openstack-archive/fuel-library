@@ -119,6 +119,7 @@ $cinder_rate_limits = { 'POST' => '10',
  'PUT' => 10, 'GET' => 3,
  'DELETE' => 100 }
 
+sysctl::value { 'net.ipv4.ip_nonlocal_bind': value => '0' }
 
 # Definition of OpenStack controller node.
 node /fuel-controller-[\d+]/ {

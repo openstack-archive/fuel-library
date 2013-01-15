@@ -163,6 +163,7 @@ $cinder_rate_limits = { 'POST' => '10',
  'PUT' => 10, 'GET' => 3,
  'DELETE' => 100 }
 
+sysctl::value { 'net.ipv4.ip_nonlocal_bind': value => '0' }
 
 class compact_controller {
   class { 'openstack::controller_ha':
