@@ -60,7 +60,8 @@ class galera($cluster_name, $master_ip = false, $node_address = $ipaddress_eth0,
 
       package { 'wget' :
         ensure => present,
-        before => Exec['download-wsrep', 'download-galera']
+        before => Exec['download-galera']
+        #before => Exec['download-wsrep', 'download-galera']
       }
 
       package { 'perl' :
@@ -107,7 +108,8 @@ class galera($cluster_name, $master_ip = false, $node_address = $ipaddress_eth0,
 
       package { 'wget' :
         ensure => present,
-        before => Exec['download-wsrep', 'download-galera']
+        before => Exec['download-galera']
+        #before => Exec['download-wsrep', 'download-galera']
       }
 
       package { 'perl' :
@@ -149,14 +151,14 @@ class galera($cluster_name, $master_ip = false, $node_address = $ipaddress_eth0,
     ensure      => present,
     name 	=> $::galera::params::mysql_server_name,
     provider    => $::galera::params::pkg_provider,
-    source      => "/tmp/${::galera::params::mysql_server_package}",
-    require     => [Exec["download-wsrep"]]
+    #source      => "/tmp/${::galera::params::mysql_server_package}",
+    #require     => [Exec["download-wsrep"]]
   }
 
-  exec { "download-wsrep" :
-    command     => "/usr/bin/wget -P/tmp ${mysql_wsrep_prefix}/${::galera::params::mysql_server_package}",
-    creates     => "/tmp/${::galera::params::mysql_server_package}"
-  }
+  #exec { "download-wsrep" :
+  #  command     => "/usr/bin/wget -P/tmp ${mysql_wsrep_prefix}/${::galera::params::mysql_server_package}",
+  #  creates     => "/tmp/${::galera::params::mysql_server_package}"
+  #}
 
   package { "galera" :
     ensure      => present,
