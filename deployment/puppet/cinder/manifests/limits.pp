@@ -6,6 +6,14 @@ class cinder::limits (
  'DELETE' => 100 })
 
 {
-cinder_api_paste_ini {"filter:ratelimit/limits": value => "(POST, \"*\", .*, $limits['POST'], MINUTE);(POST, \"*/servers\", ^/servers, $limits['POST_SERVERS'], DAY);(PUT, \"*\", .*, $limits['PUT'], MINUTE);(GET, \"*changes-since*\", .*changes-since.*, 3, MINUTE);(DELETE, \"*\", .*, $limits['DELETE'], MINUTE)"}
+  $post_limit=$limits[POST]
+  $put_limit=$limits[PUT]
+  $get_limit=$limits[GET]
+  $delete_limit=$limits[DELETE]
+  $post_servers_limit=$limits[POST_SERVERS]
+
+
+ cinder_api_paste_ini {"filter:ratelimit/limits": value => "(POST, \"*\", .*, $post_limit, MINUTE);(POST, \"*/servers\", ^/servers, $post_servers_limit, DAY);(PUT, \"*\", .*, $put_limit, MINUTE);(GET, \"*changes-since*\", .*changes-since.*, $get_limit, MINUTE);(DELETE, \"*\", .*, $delete_limit, MINUTE)"}
   
 }
+
