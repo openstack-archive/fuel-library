@@ -48,7 +48,7 @@ class OpenStackSwiftCompactTestCase(BaseTestCase):
                 nv_physical_volume= ["/dev/vdb"],
                 quantum = "true" if quantum else "false",
                 swift_loopback = "'loopback'" if loopback else "false",
-                use_syslog = "'%s'" % USE_SYSLOG
+                use_syslog = "%s" % USE_SYSLOG
             )
         else:
             if OS_FAMILY == 'centos':
