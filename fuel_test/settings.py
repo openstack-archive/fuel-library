@@ -65,7 +65,7 @@ COBBLER_PROXIES = int(os.environ.get('COBBLER_PROXIES', 0))
 COBBLER_QUANTUM = int(os.environ.get('COBBLER_QUANTUM', 0))
 COBBLER_KEYSTONE = int(os.environ.get('COBBLER_KEYSTONE', 0))
 
-COBBLER_USECASE = str(os.environ.get('COBBLER_SWIFTS', ""))
+COBBLER_USECASE = str(os.environ.get('COBBLER_USECASE', ""))
 if COBBLER_USECASE == "simple":
     COBBLER_CONTROLLERS = 1
     COBBLER_COMPUTES = 3
