@@ -102,7 +102,8 @@ class openstack::compute (
   $db_host                 = '127.0.0.1',
   $use_syslog              = false,
   $nova_rate_limits = undef,
-  $cinder_rate_limits = undef
+  $cinder_rate_limits = undef,
+  $create_networks = false
 ) {
 
   #
@@ -303,7 +304,7 @@ class openstack::compute (
       floating_range    => $floating_range,
       network_manager   => $network_manager,
       config_overrides  => $network_config,
-      create_networks   => $really_create_networks,
+      create_networks   => $create_networks,
       num_networks      => $num_networks,
       enabled           => $enable_network_service,
       install_service   => $enable_network_service,
