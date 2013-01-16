@@ -15,9 +15,7 @@ define nova::manage::network (
 
   File['/etc/nova/nova.conf'] -> Nova_network[$name]
   Exec<| title == 'nova-db-sync' |> -> Nova_network[$name]
-if ! $vlan_start {
-  $network_size=undef
-}
+
   nova_network { $name:
     ensure       => present,
     network      => $network,

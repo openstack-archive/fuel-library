@@ -45,11 +45,12 @@ class nova::network(
 
   if has_key($config_overrides, 'vlan_start') {
     $vlan_start = $config_overrides['vlan_start']
+    if $network_manager !~ /VlanManager$/ {
+      $_config_overrides = delete($config_overrides, 'vlan_start')
+    }
   } else {
-    $vlan_start = 300
+    $vlan_start = undef
   }
-
-  notify {"VLAN: (${vlan_start})":}
 
   if $install_service {
     nova::generic_service { 'network':
@@ -83,7 +84,7 @@ class nova::network(
                       public_interface => $public_interface,
                       flat_interface   => $private_interface
       }
-      $resource_parameters = merge($config_overrides, $parameters)
+      $resource_parameters = merge($_config_overrides, $parameters)
       $flatdhcp_resource = {'nova::network::flatdhcp' => $resource_parameters }
       create_resources('class', $flatdhcp_resource)
     }
@@ -92,7 +93,7 @@ class nova::network(
                       public_interface => $public_interface,
                       flat_interface   => $private_interface
       }
-      $resource_parameters = merge($config_overrides, $parameters)
+      $resource_parameters = merge($_config_overrides, $parameters)
       $flat_resource = {'nova::network::flat' => $resource_parameters }
       create_resources('class', $flat_resource)
     }
@@ -111,7 +112,7 @@ class nova::network(
       $parameters = { fixed_range      => $fixed_range,
                       public_interface => $public_interface,
                     }
-      $resource_parameters = merge($config_overrides, $parameters)
+      $resource_parameters = merge($_config_overrides, $parameters)
       $quantum_resource = { 'nova::network::quantum' => $resource_parameters }
       create_resources('class', $quantum_resource)
     }
