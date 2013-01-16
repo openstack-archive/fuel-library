@@ -32,14 +32,18 @@
     #set $idata = $interfaces[$iname]
     #set $script += "echo auto %s >> %s\n" % ($iname, $interfaces_file)
     #if $idata.get("static", "0") in ("1", True, "true")
-        #set $script += "echo iface %s inet static >> %s\n" % ($iname, $interfaces_file)
         #set $iip = $idata.get("ip_address", "")
         #if $iip != ""
+            #set $script += "echo iface %s inet static >> %s\n" % ($iname, $interfaces_file)
             #set $script += "echo address %s >> %s\n" % ($iip, $interfaces_file)
-        #end if
-        #set $inetmask = $idata.get("netmask", "")
-        #if $inetmask != ""
-            #set $script += "echo netmask %s >> %s\n" % ($inetmask, $interfaces_file)
+            #set $inetmask = $idata.get("netmask", "")
+            #if $inetmask != ""
+                #set $script += "echo netmask %s >> %s\n" % ($inetmask, $interfaces_file)
+            #end if
+        #else
+            #set $script += "echo iface %s inet manual >> %s\n" % ($iname, $interfaces_file)
+            #set $script += "echo up ip l set %s up >> %s\n" % ($iname, $interfaces_file)
+            #set $script += "echo down ip l set %s down >> %s\n" % ($iname, $interfaces_file)
         #end if
         #set $nss = ""
         #for $ns in $getVar("name_servers", [])
