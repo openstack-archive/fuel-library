@@ -119,26 +119,27 @@ Configuring Network
 
 * You will need ``vi /etc/puppet/manifests/site.pp`` (see above) to change the following parameters:
   
-  * Change IP addresses for "public" and "internal" according to your networking requirements
+  * Change IP addresses for "public" and "internal" according to your networking requirements::
 
-      $internal_virtual_ip = '10.0.0.253' # IP address must be in address space of management network (eth0)
+    $internal_virtual_ip = '10.0.0.253' # IP address must be in address space of management network (eth0)
+    $public_virtual_ip   = '10.xxx.yyy.253' # must be in address space of public network (eth1) , but not in DHCP range and floating range (see below). 
 
-      $public_virtual_ip   = '10.xxx.yyy.253' # must be in address space of public network (eth1) , but not in DHCP range and floating range (see below). 
+  * Define "$floating_range" and "$fixed_range" accordingly::
 
-  * Define "$floating_range" and "$fixed_range" accordingly
+    $floating_range  = '10.xxx.yyy.128/26' # IP-address from the public address space. 
+    $fixed_range     = '10.0.198.0/24'     # This subnet used for service purpose only. Specify any unused by you subnet here. 
 
-      $floating_range  = '10.xxx.yyy.128/26' # IP-address from the public address space. 
-      $fixed_range     = '10.0.198.0/24'     # This subnet used for service purpose only. Specify any unused by you subnet here. 
+  * Specify network manager.  It can be 'nova.network.manager.FlatDHCPManager', 'nova.network.manager.FlatManager' or 'nova.network.manager.VlanManager'::
 
-  * Specify network manager.  It can be 'nova.network.manager.FlatDHCPManager', 'nova.network.manager.FlatManager' or 'nova.network.manager.VlanManager'
+    $network_manager = 'nova.network.manager.FlatDHCPManager'
 
-      $network_manager = 'nova.network.manager.FlatDHCPManager'
+  * Define how many networks to be created at once::
 
-  * Define how many networks to be created at once
+    $num_networks  = 1     # Number of networks to create
+    $network_size  = 255   # Number of IPs per network
 
-      $num_networks    = 1     # Number of networks to create
-      $network_size    = 255   # Number of IPs per network
-      $vlan_start      = 300   # VLAN ID to start with (the VLAN IDs from ``vlan_start`` to ``vlan_start + num_networks-1`` are generated automatically)
+    $vlan_start    = 300   # VLAN ID to start with
+                           # IDs from (vlan_start) to (vlan_start + num_networks-1) are generated automatically
 
 **Note:**
 The last options above are specific to nova network and will be ignored if the quantum service is enabled
