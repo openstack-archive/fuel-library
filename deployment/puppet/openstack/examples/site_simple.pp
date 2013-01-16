@@ -72,7 +72,7 @@ $quantum_sql_connection   = "mysql://${quantum_db_user}:${quantum_db_password}@$
 
 
 
-
+$use_syslog = false
 if $use_syslog {
 class { "::rsyslog::client": 
     log_local => true,
