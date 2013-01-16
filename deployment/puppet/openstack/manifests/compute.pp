@@ -169,10 +169,7 @@ class openstack::compute (
     rabbit_host        => $rabbit_host,
     use_syslog              => $use_syslog,
   }
-  if $nova_rate_limits
-  {
- class {'::nova::limits': limits => $nova_rate_limits}
-  }
+
   if ($cinder) {
     $enabled_apis = 'ec2,osapi_compute,metadata'
     package {'python-cinderclient': ensure => present}
