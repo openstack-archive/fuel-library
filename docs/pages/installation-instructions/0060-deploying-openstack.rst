@@ -230,7 +230,8 @@ Enabling Cinder
 * Then, specify the list of physical devices in ``$nv_physical_volume``. They will be aggregated into "cinder-volumes" volume group.
 * Alternatively, you can leave this field blank and create LVM VolumeGroup called "cinder-volumes" on every controller node yourself. Cobbler automation allows you to create this volume group during bare metal provisioning phase through parameter "cinder_bd_for_vg" in nodes.yaml file.
 * The available manifests under "examples" assume that you have the same collection of physical devices for VolumeGroup "cinder-volumes" across all of your volume nodes.
-* Be careful and do not add block devices to the list containing useful data (e.g. block devices on which your OS resides), as they will be destroyed after you allocate them for Cinder.
+* Cinder will be activated on any node that contains ``$nv_phyical_volume`` block device(s) or "cinder-volumes" volume group, including both controller and compute nodes.
+* Be careful to not add block devices to the list which contain useful data (e.g. block devices on which your OS resides), as they will be destroyed after you allocate them for Cinder.
 * For example::
 
        # Volume manager: cinder(true) or nova-volume(false)
