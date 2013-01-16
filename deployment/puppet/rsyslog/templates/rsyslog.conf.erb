@@ -27,7 +27,3 @@ $PrivDropToGroup <%= scope.lookupvar('rsyslog::params::run_group') %>
 #
 $IncludeConfig <%= scope.lookupvar('rsyslog::params::rsyslog_d') -%>*.conf
 
-#
-# Emergencies are sent to everybody logged in.
-#
-*.emerg				*
