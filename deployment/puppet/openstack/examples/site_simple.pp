@@ -201,7 +201,7 @@ node /fuel-compute-[\d+]/ {
     quantum_user_password  => $quantum_user_password,
     tenant_network_type    => $tenant_network_type,
     service_endpoint       => $controller_node_internal,
-    db_host                => $conrtoller_node_internal,
+    db_host                => $controller_node_internal,
     manage_volumes         => $manage_volumes,
     verbose                => $verbose,
     use_syslog              => $use_syslog,
