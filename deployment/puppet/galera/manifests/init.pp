@@ -23,10 +23,10 @@ class galera($cluster_name, $master_ip = false, $node_address = $ipaddress_eth0,
 
   case $::osfamily {
     'RedHat': {
-      $mysql_wsrep_prefix = 'http://download.mirantis.com/epel-fuel/x86_64'
-      $galera_prefix      = $mysql_wsrep_prefix
-      $pkg_prefix  = $mysql_wsrep_prefix  #Yeah, looks funny. So was inherited.
-      $pkg_version = '5.5.28-1.el6.x86_64'
+#      $mysql_wsrep_prefix = 'http://download.mirantis.com/epel-fuel/x86_64'
+#      $galera_prefix      = $mysql_wsrep_prefix
+#      $pkg_prefix  = $mysql_wsrep_prefix
+#      $pkg_version = '5.5.28-1.el6.x86_64'
 
       if (!$::selinux=='false') and !defined(Class['selinux']) {
         class { 'selinux' :
@@ -35,15 +35,15 @@ class galera($cluster_name, $master_ip = false, $node_address = $ipaddress_eth0,
         }
       }
 
-      # install dependencies
-      Galera::Pkg_add {
-        pkg_prefix  => $pkg_prefix,
-        pkg_version => $pkg_version,
-        before      => Package['MySQL-server']
-      }
+      # install custom dependencies outside repository
+#      Galera::Pkg_add {
+#        pkg_prefix  => $pkg_prefix,
+#        pkg_version => $pkg_version,
+#        before      => Package['MySQL-server']
+#      }
 
-      galera::pkg_add { 'MySQL-client': }
-      galera::pkg_add { 'MySQL-shared': }
+#      galera::pkg_add { 'MySQL-client': }
+#      galera::pkg_add { 'MySQL-shared': }
 
       file { '/etc/init.d/mysql' :
         ensure  => present,
@@ -58,23 +58,38 @@ class galera($cluster_name, $master_ip = false, $node_address = $ipaddress_eth0,
         before  => Service['mysql-galera']
       }
 
+      package { 'MySQL-client' :
+        ensure => present,
+        before => Package['MySQL-server']
+      }
+
+      package { 'MySQL-shared' :
+        ensure => present,
+        before => Package['MySQL-server']
+      }
+
+#      package { 'mysql-server' :
+#        ensure => present,
+#        require => Package['MySQL-client', 'MySQL-shared'],
+#        before => Service['mysql-galera']
+#      }
+
       package { 'wget' :
         ensure => present,
-        before => Exec['download-galera']
-        #before => Exec['download-wsrep', 'download-galera']
+#        before => Exec['download-wsrep', 'download-galera']
       }
 
       package { 'perl' :
         ensure => present,
-        before => Galera::Pkg_add['MySQL-client']
+        before => Package['MySQL-client']
       }
     }
     'Debian': {
-      $mysql_wsrep_prefix = 'http://download.mirantis.com/epel-fuel/x86_64'
-      $galera_prefix      = $mysql_wsrep_prefix
+#      $mysql_wsrep_prefix = 'http://download.mirantis.com/epel-fuel/x86_64'
+#      $galera_prefix      = $mysql_wsrep_prefix
       
-      $pkg_prefix  = $mysql_wsrep_prefix
-      $pkg_version = 'wsrep-5.5.28-23.7-amd64'
+#      $pkg_prefix  = $mysql_wsrep_prefix
+#      $pkg_version = 'wsrep-5.5.28-23.7-amd64'
 
       if (!$::selinux=='false') and !defined(Class['selinux']) {
         class { 'selinux' :
@@ -83,12 +98,12 @@ class galera($cluster_name, $master_ip = false, $node_address = $ipaddress_eth0,
         }
       }
 
-      # install dependencies
-      Galera::Pkg_add {
-        pkg_prefix  => $pkg_prefix,
-        pkg_version => $pkg_version,
-        before      => Package['MySQL-server']
-      }
+      # install custom dependencies outside repository
+#      Galera::Pkg_add {
+#        pkg_prefix  => $pkg_prefix,
+#        pkg_version => $pkg_version,
+#        before      => Package['MySQL-server']
+#      }
 
 #      galera::pkg_add { 'MySQL-client': }
 #      galera::pkg_add { 'MySQL-shared': }
@@ -108,8 +123,7 @@ class galera($cluster_name, $master_ip = false, $node_address = $ipaddress_eth0,
 
       package { 'wget' :
         ensure => present,
-        before => Exec['download-galera']
-        #before => Exec['download-wsrep', 'download-galera']
+#        before => Exec['download-wsrep', 'download-galera']
       }
 
       package { 'perl' :
@@ -151,33 +165,42 @@ class galera($cluster_name, $master_ip = false, $node_address = $ipaddress_eth0,
     ensure      => present,
     name 	=> $::galera::params::mysql_server_name,
     provider    => $::galera::params::pkg_provider,
-    #source      => "/tmp/${::galera::params::mysql_server_package}",
-    #require     => [Exec["download-wsrep"]]
+#    before => Package['Python-mysqldb']
+    require     => [Package['galera'],File["/etc/mysql/conf.d/wsrep.cnf"]]
+#    source      => "/tmp/${::galera::params::mysql_server_package}",
+#    require     => [Exec["download-wsrep"]]
   }
 
-  #exec { "download-wsrep" :
+#  exec { "download-wsrep" :
   #  command     => "/usr/bin/wget -P/tmp ${mysql_wsrep_prefix}/${::galera::params::mysql_server_package}",
   #  creates     => "/tmp/${::galera::params::mysql_server_package}"
-  #}
+#  }
 
   package { "galera" :
     ensure      => present,
+#    require     => Package['MySQL-client'],
     provider    => $::galera::params::pkg_provider,
-    source      => "/tmp/${::galera::params::galera_package}",
-    require     => Exec["download-galera"],
+#    source      => "/tmp/${::galera::params::galera_package}",
+#    require     => Exec["download-galera"],
   }
+  # Uncomment the following Exec and order sign to obtain full MySQL server installation log
+#  ->
+#  exec { "debug -mysql-server-installation" :
+#    command     => "/usr/bin/yum -d 10 -e 10 -y install MySQL-server 2>&1 | tee mysql_install.log",
+#    before => Package["MySQL-server"],
+#    logoutput => true,
+#  }
 
-  exec { "download-galera" :
-    command     => "/usr/bin/wget -P/tmp ${galera_prefix}/${::galera::params::galera_package}",
-    creates     => "/tmp/${::galera::params::galera_package}",
-  }
+#  exec { "download-galera" :
+#    command     => "/usr/bin/wget -P/tmp ${galera_prefix}/${::galera::params::galera_package}",
+#    creates     => "/tmp/${::galera::params::galera_package}",
+#  }
 
   file { ["/etc/mysql", "/etc/mysql/conf.d" ] :
     ensure => directory,
   }
 if $::galera_gcomm_empty=="true" {
 
-  
   file { "/etc/mysql/conf.d/wsrep.cnf" :
     ensure      => present,
     content     => template("galera/wsrep.cnf.erb"),
@@ -188,6 +211,7 @@ if $::galera_gcomm_empty=="true" {
   File["/etc/mysql/conf.d/wsrep.cnf"]~>Exec['set-mysql-password']
   File["/etc/mysql/conf.d/wsrep.cnf"]->Service['mysql-galera']
   File["/etc/mysql/conf.d/wsrep.cnf"]~>Service['mysql-galera']
+  File["/etc/mysql/conf.d/wsrep.cnf"]->Package['MySQL-server']
 }
   file { "/tmp/wsrep-init-file" :
     ensure      => present,
