@@ -17,11 +17,22 @@ class cinder::volume (
   } else {
     $volume_package = $::cinder::params::package_name
   }
-
-  Package[$volume_package] -> Cinder_config<||>
+  case $::osfamily {
+    "Debian":  {
+      File[$::cinder::params::cinder_conf] -> Cinder_config<||>
+      File[$::cinder::params::cinder_paste_api_ini] -> Cinder_api_paste_ini<||>
+      Cinder_config <| |> -> Package['cinder-volume']
+      Cinder_api_paste_ini<||> -> Package['cinder-volume']
+    }
+    "RedHat": {
   Package[$volume_package] -> Cinder_api_paste_ini<||>
+  Package[$volume_package] -> Cinder_config<||>
+    }
+  }
   Cinder_config<||> ~> Service['cinder-volume']
+  Cinder_config<||> ~> Exec['cinder-manage db_sync']
   Cinder_api_paste_ini<||> ~> Service['cinder-volume']
+
 
   if $enabled {
     $ensure = 'running'
