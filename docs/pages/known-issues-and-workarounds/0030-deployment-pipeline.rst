@@ -3,7 +3,7 @@ The process of redeploying the same environment
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Overview
-~~~~~~~~
+--------
 
   Because Puppet is additive only, there was no ability to revert changes as you would in a typical application deployment.
   If a change needs to be backed out, you must explicitly add configuration to reverse it, check this configuration in,
@@ -15,7 +15,7 @@ Overview
 
 
 Environments
-~~~~~~~~~~~~
+------------
 
   Puppet supports putting nodes in environments, this maps cleanly to your development, QA and production life cycles
   and it’s a way to hand out different code to different nodes.
@@ -50,7 +50,7 @@ Environments
 
 
 Deployment pipeline
-~~~~~~~~~~~~~~~~~~~
+-------------------
 
   * Deploy
 
@@ -81,7 +81,7 @@ Deployment pipeline
 
 
 Links
-~~~~~
+-----
 
   * http://puppetlabs.com/blog/a-deployment-pipeline-for-infrastructure/
   * http://docs.puppetlabs.com/guides/environment.html

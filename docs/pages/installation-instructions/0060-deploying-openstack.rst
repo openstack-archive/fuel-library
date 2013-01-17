@@ -137,12 +137,11 @@ Configuring Network
 
     $num_networks  = 1     # Number of networks to create
     $network_size  = 255   # Number of IPs per network
-
     $vlan_start    = 300   # VLAN ID to start with
-                           # IDs from (vlan_start) to (vlan_start + num_networks-1) are generated automatically
+    IDs from (vlan_start) to (vlan_start + num_networks-1) are generated automatically
 
-**Note:**
-The last options above are specific to nova network and will be ignored if the quantum service is enabled
+  **Note:**
+  The last options are specific to nova network and will be ignored if the quantum service is enabled
 
 Configuring for Syslog
 ^^^^^^^^^^^^^^^^^^^^^^
