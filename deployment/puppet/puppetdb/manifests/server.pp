@@ -70,6 +70,7 @@
 class puppetdb::server(
   $ssl_listen_address      = $puppetdb::params::ssl_listen_address,
   $ssl_listen_port         = $puppetdb::params::ssl_listen_port,
+  $listen_port             = $puppetdb::params::listen_port,
   $database                = $puppetdb::params::database,
   $database_host           = $puppetdb::params::database_host,
   $database_port           = $puppetdb::params::database_port,
@@ -102,6 +103,7 @@ class puppetdb::server(
   class { 'puppetdb::server::jetty_ini':
     ssl_listen_address  => $ssl_listen_address,
     ssl_listen_port     => $ssl_listen_port,
+    listen_port         => $listen_port,
     confdir             => $confdir,
     notify              => Service['puppetdb'],
   }

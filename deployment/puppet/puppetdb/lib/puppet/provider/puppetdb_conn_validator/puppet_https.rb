@@ -45,7 +45,7 @@ Puppet::Type.type(:puppetdb_conn_validator).provide(:puppet_https) do
           # may fail.  Here we have somewhat arbitrarily chosen to retry one time
           # after ten seconds if that situation arises.  May want to revisit this,
           # but it seems to work OK for the common use case.
-          Puppet.notice("Failed to connect to puppetdb; sleeping 10 seconds before retry")
+          Puppet.notice("Waiting for puppetdb service")
           sleep 10
           success = attempt_connection
         end

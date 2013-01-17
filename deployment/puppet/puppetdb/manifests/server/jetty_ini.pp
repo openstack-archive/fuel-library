@@ -30,6 +30,7 @@
 class puppetdb::server::jetty_ini(
   $ssl_listen_address = $puppetdb::params::ssl_listen_address,
   $ssl_listen_port    = $puppetdb::params::ssl_listen_port,
+  $listen_port        = $puppetdb::params::listen_port,
   $confdir            = $puppetdb::params::confdir,
 ) inherits puppetdb::params {
 
@@ -46,6 +47,11 @@ class puppetdb::server::jetty_ini(
   ini_setting {'puppetdb_sslhost':
     setting => 'ssl-host',
     value   => $ssl_listen_address,
+  }
+
+  ini_setting {'puppetdb_port':
+    setting => 'port',
+    value   => $listen_port,
   }
 
   ini_setting {'puppetdb_sslport':
