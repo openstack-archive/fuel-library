@@ -77,5 +77,13 @@ if $use_syslog {
     'DEFAULT/verbose':             value => $verbose;
     'DEFAULT/api_paste_config':    value => '/etc/cinder/api-paste.ini';
   }
+ exec { 'cinder-manage db_sync':
+    command     => $::cinder::params::db_sync_command,
+    path        => '/usr/bin',
+    user        => 'cinder',
+    refreshonly => true,
+    logoutput   => 'on_failure',
+  }
+
 
 }

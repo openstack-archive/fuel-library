@@ -91,12 +91,4 @@ if $cinder_rate_limits {
       'keystone_authtoken/signing_dirname':   value => '/tmp/keystone-signing-cinder';
     }
   }
- exec { 'cinder-manage db_sync':
-    command     => $::cinder::params::db_sync_command,
-    path        => '/usr/bin',
-    user        => 'cinder',
-    refreshonly => true,
-    logoutput   => 'on_failure',
-  }
-
 }
