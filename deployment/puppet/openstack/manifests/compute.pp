@@ -179,7 +179,7 @@ class openstack::compute (
       rabbit_host          => false,
       rabbit_nodes         => $rabbit_nodes,
       volume_group         => 'cinder-volumes',
-      physical_volume      => $physical_volume,
+      physical_volume      => $nv_physical_volume,
       manage_volumes       => $manage_volumes,
       enabled              => true,
       auth_host            => $service_endpoint,

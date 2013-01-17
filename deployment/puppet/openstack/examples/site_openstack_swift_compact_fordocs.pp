@@ -316,7 +316,6 @@ node /fuel-compute-[\d+]/ {
       quantum_user_password  => $quantum_user_password,
       tenant_network_type    => $tenant_network_type,
       segment_range          => $segment_range,
-      cinder                 => $cinder,
       ssh_private_key        => 'puppet:///ssh_keys/openstack',
       ssh_public_key         => 'puppet:///ssh_keys/openstack.pub',
       use_syslog              => $use_syslog,
