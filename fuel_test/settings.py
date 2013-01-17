@@ -1,7 +1,7 @@
 import os
 
 OS_FAMILY = os.environ.get('OS_FAMILY', "centos")
-PUPPET_GEN = os.environ.get('PUPPET_GEN', "3")
+PUPPET_GEN = os.environ.get('PUPPET_GEN', "2")
 
 DEFAULT_IMAGES = {
     'centos': '/var/lib/libvirt/images/centos63-cobbler-base.qcow2',
