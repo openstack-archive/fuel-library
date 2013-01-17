@@ -15,11 +15,23 @@ class cinder::scheduler (
   } else {
     $scheduler_package = $::cinder::params::package_name
   }
-
-  Package[$scheduler_package] -> Cinder_config<||>
+  case $::osfamily {
+    "Debian":  {
+      File[$::cinder::params::cinder_conf] -> Cinder_config<||>
+      File[$::cinder::params::cinder_paste_api_ini] -> Cinder_api_paste_ini<||>
+      Cinder_config <| |> -> Package['cinder-scheduler']
+      Cinder_api_paste_ini<||> -> Package['cinder-scheduler']
+    }
+    "RedHat": {
   Package[$scheduler_package] -> Cinder_api_paste_ini<||>
-  Cinder_api_paste_ini<||> ~> Service['cinder-scheduler']
-  Exec<| title == 'cinder-manage db_sync' |> ~> Service['cinder-scheduler']
+  Package[$scheduler_package] -> Cinder_config<||>
+    }
+  }
+  Cinder_config<||> ~> Service['cinder-volume']
+  Cinder_config<||> ~> Exec['cinder-manage db_sync']
+  Cinder_api_paste_ini<||> ~> Service['cinder-volume']
+
+
 
   if $enabled {
     $ensure = 'running'
