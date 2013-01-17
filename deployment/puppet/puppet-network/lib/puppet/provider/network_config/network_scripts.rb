@@ -1,11 +1,9 @@
 Puppet::Type.type(:network_config).provide(:network_scripts) do
-  desc "Provider for configuration of network_scripts"
-
-  defaultfor :operatingsystem => [:redhat, :fedora, :centos]
+  desc "Provider for configuration of CentOS network scripts"
+  defaultfor :operatingsystem => [:redhat, :fedora, :centos ]
 
   @@exclusive = nil
   @@configured_devices = []
-  @@config_dir = "/etc/sysconfig/network-scripts/"
   @@instance_count = 0
   @@total_resource_count = 0
 
@@ -80,6 +78,7 @@ Puppet::Type.type(:network_config).provide(:network_scripts) do
 
   def initialize(args)
     super(args)
+    @@config_dir = "/etc/sysconfig/network-scripts/"
     @@configured_devices << "ifcfg-#{@resource[:device]}"
     @@total_resource_count += 1
   end
