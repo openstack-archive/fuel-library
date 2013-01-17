@@ -149,16 +149,16 @@ if $::operatingsystem == 'Ubuntu' {
 #These limits can be small for your installation or usage scenario
 #Change the following variables if you want. The unit is requests per minute.
 
-$nova_rate_limits = { 'POST' => '10',
- 'POST_SERVERS' => '50',
- 'PUT' => 10, 'GET' => 3,
- 'DELETE' => 100 }
- 
+$nova_rate_limits = { 'POST' => 1000,
+ 'POST_SERVERS' => 1000,
+ 'PUT' => 1000, 'GET' => 1000,
+ 'DELETE' => 1000 }
 
-$cinder_rate_limits = { 'POST' => '10',
- 'POST_SERVERS' => '50',
- 'PUT' => 10, 'GET' => 3,
- 'DELETE' => 100 }
+
+$cinder_rate_limits = { 'POST' => 1000,
+ 'POST_SERVERS' => 1000,
+ 'PUT' => 1000, 'GET' => 1000,
+ 'DELETE' => 1000 }
 
 sysctl::value { 'net.ipv4.conf.all.rp_filter': value => '0' }
 
