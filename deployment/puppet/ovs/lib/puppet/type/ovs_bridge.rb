@@ -1,7 +1,7 @@
 module Puppet
   Puppet::Type.newtype(:ovs_bridge) do
-    @doc = "A Switch - For example 'br-int' in OpenStack"
-
+    @doc = "Manage a Open vSwitch bridge (virtual switch)"
+    desc @doc
     ensurable
 
     newparam(:name) do

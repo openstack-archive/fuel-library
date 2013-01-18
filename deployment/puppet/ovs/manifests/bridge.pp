@@ -1,5 +1,4 @@
 define ovs::bridge (
-  $name,
   $external_ids = "",
   $ensure = "present"
 ) {

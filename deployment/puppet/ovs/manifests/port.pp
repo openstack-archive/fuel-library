@@ -1,10 +1,11 @@
 define ovs::port (
-  $interface,
   $bridge,
+  $type   = 'internal',
   $ensure = present
 ) {
-  ovs_port { $interface:
+  ovs_port { $name:
     bridge   => $bridge,
+    #type     => $type,
     ensure   => $ensure
   }
 }
