@@ -1,5 +1,4 @@
-module Puppet
-  Puppet::Type.newtype(:ovs_port) do
+Puppet::Type.newtype(:ovs_port) do
     @doc = "Manage a Open vSwitch port"
     desc @doc
 
@@ -11,6 +10,8 @@ module Puppet
     end
 
     newparam(:type) do
+      newvalues('', :system, :internal, :tap, :gre, :ipsec_gre, :capwap, :patch, :null)
+      defaultto('')
       desc "Ovs port type"
     end
 
@@ -21,7 +22,4 @@ module Puppet
     autorequire(:ovs_bridge) do
       [self[:bridge]]
     end
-
-  end
 end
-
