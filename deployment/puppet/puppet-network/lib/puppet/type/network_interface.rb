@@ -58,11 +58,11 @@ module Puppet
       desc "mtu"
     end
 
-    newparam(:vlan) do
-      desc "Is the device VLAN tagged (802.1q)"
-      newvalues(:yes, :no)
-      defaultto(:no)
-    end
+    #newparam(:vlan) do
+    #  desc "Is the device VLAN tagged (802.1q)"
+    #  newvalues(:yes, :no)
+    #  defaultto(:no)
+    #end
 
 
     newproperty(:ipaddr) do

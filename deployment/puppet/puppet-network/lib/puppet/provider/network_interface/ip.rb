@@ -1,7 +1,7 @@
 Puppet::Type.type(:network_interface).provide(:ip) do
 
   # ip command is preferred over ifconfig
-  commands :ip => "/sbin/ip", :vconfig => "/sbin/vconfig"
+  commands :ip => "/sbin/ip" #, :vconfig => "/sbin/vconfig"
   # Uses the ip command to determine if the device exists
   def exists?
     #    ip('link', 'list', @resource[:name])
@@ -12,10 +12,10 @@ Puppet::Type.type(:network_interface).provide(:ip) do
   end
 
   def create
-    if @resource[:vlan] == :yes && ! ip('link', 'list').include?(@resource[:name].split(':').first)
-      # Create vlan device
-      vconfig('add', @resource[:device].split('.').first, @resource[:device].split('.').last)
-    end
+    #if @resource[:vlan] == :yes && ! ip('link', 'list').include?(@resource[:name].split(':').first)
+    #  # Create vlan device
+    #  vconfig('add', @resource[:device].split('.').first, @resource[:device].split('.').last)
+    #end
     unless self.netmask == @resource.should(:netmask) || self.broadcast == @resource.should(:broadcast) || self.ipaddr == @resource.should(:ipaddr)
       ip_addr_flush
       ip_addr_add
@@ -27,13 +27,13 @@ Puppet::Type.type(:network_interface).provide(:ip) do
 
   def destroy
     ip_addr_flush
-    if @resource[:vlan] == :yes
-      # Test if no ip addresses are configured on this vlan device
-      if ! ip('addr', 'show', @resource[:device].split(':').first).include?("inet")
-        # Destroy vlan device
-        vconfig('rem', @resource[:device].split(':').first)
-      end
-    end
+    #if @resource[:vlan] == :yes
+    #  # Test if no ip addresses are configured on this vlan device
+    #  if ! ip('addr', 'show', @resource[:device].split(':').first).include?("inet")
+    #    # Destroy vlan device
+    #    vconfig('rem', @resource[:device].split(':').first)
+    #  end
+    #end
   end
 
   # NETMASK
