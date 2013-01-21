@@ -15,6 +15,7 @@ module Astute
         prev_run = res.results[:data][:lastrun]
         last_run = prev_run
         while last_run == prev_run
+          puppet_status = puppetd.status
           if puppet_status[0].results[:data][:status] == "stopped" 
           # if stopped and while doesn't end - output message and exit
             puts "Puppet stopped on " + puppet_status[0].results[:sender]
