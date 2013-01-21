@@ -1,18 +1,21 @@
-class nagios {
+class nagios (
+$services,
+$servicegroups     = false,
+$hostgroup         = false,
+$proj_name         = 'nrpe.d',
+$whitelist         = '127.0.0.1',
+) inherits nagios::params  {
+
+  validate_array($services)
+
   include nagios::common
 
-  validate_hash(hiera('contacts'))
-  validate_hash(hiera('contactgroups'))
-  validate_array(hiera('hostgroups'))
-  validate_array(hiera('servicegroups'))
-  validate_hash(hiera('htpasswd'))
-  validate_array(hiera('whitelist'))
-
-  nagios::whitelist { '/etc/nagios/nrpe.cfg':
-    whitelist => hiera('whitelist'),
+  nagios::nrpeconfig { '/etc/nagios/nrpe.cfg':
+    whitelist   => $whitelist,
+    include_dir => "/etc/nagios/${proj_name}",
   }
 
-  file { '/etc/nagios/nrpe.d':
+  file { "/etc/nagios/${proj_name}":
     force   => true,
     purge   => true,
     recurse => true,

@@ -80,10 +80,10 @@ nrpe_group=nagios
 #
 # NOTE: This option is ignored if NRPE is running under either inetd or xinetd
 
-<% if t_whitelist.length > 1 -%>
-allowed_hosts=<%= t_whitelist.join(",") %>
+<% if whitelist.kind_of?(Array) -%>
+allowed_hosts=<%= whitelist.join(",") %>
 <% else -%>
-allowed_hosts=<%= t_whitelist %>
+allowed_hosts=<%= whitelist %>
 <% end -%>
  
 
@@ -179,7 +179,7 @@ connection_timeout=300
 
 #include_dir=<somedirectory>
 #include_dir=<someotherdirectory>
-
+include_dir=<%= include_dir %>
 
 
 # COMMAND DEFINITIONS
@@ -226,7 +226,3 @@ connection_timeout=300
 # local configuration:
 #	if you'd prefer, you can instead place directives here
 include=/etc/nagios/nrpe_local.cfg
-
-# 
-# you can place your config snipplets into nrpe.d/
-include_dir=/etc/nagios/nrpe.d/
