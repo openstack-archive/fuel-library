@@ -20,7 +20,12 @@ ovs::port{"mmm1": bridge => "br-mgmt"}
 ovs::bridge{"br-ex": }
 ovs::port{"eth0": bridge => "br-ex"}
 ovs::port{"eee0": bridge => "br-ex"}
-ovs::port{"eee1": bridge => "br-ex"}
+ovs::port{"eee1": bridge => "br-ex", type=>'internal'}
+
+You can define type for the port. Port type can be
+'system', 'internal', 'tap', 'gre', 'ipsec_gre', 'capwap', 'patch', 'null'.
+If you not define type for port (or define '') -- ovs-vsctl will have default behavior 
+(see http://openvswitch.org/cgi-bin/ovsman.cgi?page=utilities%2Fovs-vsctl.8).
 
 ---
 this module based on https://github.com/ekarlso/puppet-vswitch

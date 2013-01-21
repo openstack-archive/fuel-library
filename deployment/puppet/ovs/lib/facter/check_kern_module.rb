@@ -1,4 +1,3 @@
-
 require "facter"
 require "set"
 
