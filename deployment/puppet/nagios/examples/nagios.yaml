@@ -1,0 +1,31 @@
+---
+contacts:
+   user: 'hotkey'
+   alias: 'Dennis Hoppe'
+   email: 'nagios@%{domain}'
+   group: 'admins'
+contactgroups:
+   group: 'admins'
+   alias: 'Debian Solutions'
+hostgroups:
+   - 'squeeze'
+servicegroups:
+   - 'apt'
+   - 'disks'
+   - 'interfaces'
+   - 'kernel'
+   - 'libs'
+   - 'load'
+   - 'mailq'
+   - 'ntp'
+   - 'procs'
+   - 'puppet'
+   - 'smart'
+   - 'ssh'
+   - 'swap'
+   - 'user'
+htpasswd:
+   hotkey: 'mwFa.GFGcetO6'
+whitelist:
+   - '127.0.0.1'
+   - '192.168.122.110'
