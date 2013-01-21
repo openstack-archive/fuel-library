@@ -115,6 +115,8 @@ class openstack::mirantis_repos (
         }
       }
 
+#Puppetlabs repos are really slow. This can slow deployment or even lead to yum timeout.
+
       if $disable_puppet_labs_repos {
           if defined (Yumrepo['puppetlabs-products']) {yumrepo {'puppetlabs-products': enabled=>0 }}
           if defined (Yumrepo['puppetlabs-deps']) {yumrepo {'puppetlabs-deps': enabled=>0}}

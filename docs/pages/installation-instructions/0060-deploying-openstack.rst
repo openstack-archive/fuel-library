@@ -222,6 +222,10 @@ Enabling Quantum
         # Valid tunnel IDs are any 32 bit unsigned integer.
         $segment_range          = '1500:1999'
 
+Mirror choosing
+^^^^^^^^^^^^^^^
+
+At present we can have several types of mirrors for package downloading. One can either use external repos provided by Mirantis and your distribution vendors or use internal repos. This behavior is controlled by $mirror_type variable in site.pp. Set it to 'external' - as of version 2.0 it is not possible to define custom internal repo, but it will be possible in future versions. Anyway, you can modify mirantis_repos.pp to run with your internal repo.
 
 Enabling Cinder
 ^^^^^^^^^^^^^^^
