@@ -10,7 +10,7 @@ Puppet::Type.type(:network_config).provide(:network_scripts) do
   # checks for network-script existence and correctness
   def exists?
     @@instance_count += 1
-    @config_file = "#{@@config_dir}ifcfg-#{@resource[:name]}"
+    @config_file = "#{@@config_dir}ifcfg-#{@resource[:device]}"
 
     # do not check file contents if the purpose is to ensure the file isn't there
     return File.exists?(@config_file) if @resource[:ensure] == :absent
@@ -46,11 +46,11 @@ Puppet::Type.type(:network_config).provide(:network_scripts) do
         f.write("#{vs}\n")
       end
     end
-    system("ifdown #{@resource[:name]};sleep 2;ifup #{@resource[:name]}")
+    system("ifdown #{@resource[:device]};sleep 2;ifup #{@resource[:device]}")
   end
 
   def destroy
-    system("ifdown #{@resource[:name]}")
+    system("ifdown #{@resource[:device]}")
     if File.exists?(@config_file)
       Puppet.notice "Destroying #{@config_file}"
       File.unlink(@config_file)
