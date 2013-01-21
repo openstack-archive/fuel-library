@@ -10,7 +10,7 @@ def puppet_consecutive_call(orchestrator, context, nodes)
   end
 end
 
-def puppet_parralel_call(orchestrator, context, nodes)
+def puppet_parallel_call(orchestrator, context, nodes)
   orchestrator.deploy_piece(context, nodes, false)
 end
 
@@ -48,7 +48,9 @@ nodes_raw.each do |key, value|
 end
 
 ctrl_nodes = nodes.select {|n| n['role'] == 'controller'}
+ctrl_nodes = ctrl_nodes.sort{|x,y| x['uid'] <=> y['uid']}
 compute_nodes = nodes.select {|n| n['role'] == 'compute'}
+compute_nodes = compute_nodes.sort{|x,y| x['uid'] <=> y['uid']}
 
 if nodes_raw['use_case'] == "minimal" or
     nodes_raw['use_case'] == "simple"  
@@ -56,15 +58,17 @@ if nodes_raw['use_case'] == "minimal" or
   puppet_parallel_call(orchestrator, context, compute_nodes)
 elsif nodes_raw['use_case'] == "compact"
   puppet_consecutive_call(orchestrator, context, [ctrl_nodes[0]])
-  puppet_parralel_call(orchestrator, context, ctrl_nodes[1..2])
+  puppet_parallel_call(orchestrator, context, ctrl_nodes[1..2])
   puppet_parallel_call(orchestrator, context, ctrl_nodes)
   puppet_consecutive_call(orchestrator, context, [ctrl_nodes[0]])
-  puppet_parralel_call(orchestrator, context, ctrl_nodes[1..2] + compute_nodes)
+  puppet_parallel_call(orchestrator, context, ctrl_nodes[1..2] + compute_nodes)
 elsif nodes_raw['use_case'] == "full"
   storage_nodes = nodes.select {|n| n['role'] == 'storage'}
+  storage_nodes = storage_nodes.sort{|x,y| x['uid'] <=> y['uid']}
   proxy_nodes = nodes.select {|n| n['role'] == 'proxy'}
+  proxy_nodes = proxy_nodes.sort{|x,y| x['uid'] <=> y['uid']}
   puppet_consecutive_call(orchestrator, context, [ctrl_nodes[0]])
-  puppet_parralel_call(orchestrator, context, [ctrl_nodes[1]])
+  puppet_parallel_call(orchestrator, context, [ctrl_nodes[1]])
   puppet_parallel_call(orchestrator, context, compute_nodes)
   puppet_parallel_call(orchestrator, context, storage_nodes)
   puppet_parallel_call(orchestrator, context, storage_nodes)
