@@ -7,7 +7,8 @@ class openstack::swift::storage-node (
   $storage_mnt_base_dir = '/srv/node',
   $storage_devices      = ['1', '2'],
   $storage_weight       = 1,
-  $package_ensure       = 'present'
+  $package_ensure       = 'present',
+  $loopback_size        = '1048756'
 ) {
 if !defined(Class['swift'])
 {
@@ -22,7 +23,7 @@ if !defined(Class['swift'])
     swift::storage::loopback { $storage_devices:
       base_dir     => $storage_base_dir,
       mnt_base_dir => $storage_mnt_base_dir,
-      seek         => '1048756',
+      seek         => $loopback_size,
       require      => Class['swift'],
     }
   }
