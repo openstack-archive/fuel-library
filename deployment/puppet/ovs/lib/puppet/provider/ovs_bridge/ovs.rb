@@ -1,5 +1,5 @@
 Puppet::Type.type(:ovs_bridge).provide(:ovs) do
-  commands :vsctl => "/usr/bin/ovs-vsctl"
+  optionalcommands :vsctl => "/usr/bin/ovs-vsctl"
 
   def exists?
     vsctl("br-exists", @resource[:name])
@@ -8,7 +8,10 @@ Puppet::Type.type(:ovs_bridge).provide(:ovs) do
   end
 
   def create
-    vsctl("add-br", @resource[:name])
+    cmd = [@resource[:name]]
+    cmd = ['--may-exist'] + cmd if @resource[:may_exist]
+    cmd = ['add-br'] + cmd
+    vsctl(cmd)
     external_ids = @resource[:external_ids] if @resource[:external_ids]
   end
 

@@ -13,4 +13,9 @@ Puppet::Type.newtype(:ovs_bridge) do
       desc "External IDs for the bridge"
     end
 
+    newproperty(:may_exist) do
+      defaultto(false)
+      desc "Allow try re-creating existing bridge"
+    end
+
 end

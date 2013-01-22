@@ -15,6 +15,11 @@ Puppet::Type.newtype(:ovs_port) do
       desc "Ovs port type"
     end
 
+    newproperty(:may_exist) do
+      defaultto(false)
+      desc "Allow try re-creating existing port"
+    end
+
     newparam(:bridge) do
       desc "What bridge to use"
     end
