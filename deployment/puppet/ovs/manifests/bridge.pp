@@ -1,13 +1,13 @@
 define ovs::bridge (
   $external_ids = "",
   $ensure = "present",
-  $may_exist = false,
+  $skip_existing = false,
 ) {
   if ! defined (Ovs_bridge[$name]) {
     ovs_bridge {$name:
       external_ids => $external_ids,
       ensure       => $ensure,
-      may_exist    => $may_exist,
+      skip_existing=> $skip_existing,
     }
   }
 }

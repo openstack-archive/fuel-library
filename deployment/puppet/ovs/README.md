@@ -19,7 +19,7 @@ ovs::port{"mmm1": bridge => "br-mgmt"}
 
 ovs::bridge{"br-ex": }
 ovs::port{"eth0": bridge => "br-ex"}
-ovs::port{"eee0": bridge => "br-ex", may_exist => true}
+ovs::port{"eee0": bridge => "br-ex", skip_existing => true}
 ovs::port{"eee1": bridge => "br-ex", type=>'internal'}
 
 You can define type for the port. Port type can be
@@ -27,7 +27,7 @@ You can define type for the port. Port type can be
 If you not define type for port (or define '') -- ovs-vsctl will have default behavior 
 (see http://openvswitch.org/cgi-bin/ovsman.cgi?page=utilities%2Fovs-vsctl.8).
 
-You can add --may-exist option to the ovs-vsctl utility if it's necessary.
+You can use skip_existing option if you not want interrupt configuration during adding existing port or bridge.
 
 ---
 this module based on https://github.com/ekarlso/puppet-vswitch

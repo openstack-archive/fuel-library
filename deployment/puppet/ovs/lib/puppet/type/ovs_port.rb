@@ -15,9 +15,9 @@ Puppet::Type.newtype(:ovs_port) do
       desc "Ovs port type"
     end
 
-    newproperty(:may_exist) do
+    newparam(:skip_existing) do
       defaultto(false)
-      desc "Allow try re-creating existing port"
+      desc "Allow skip existing port"
     end
 
     newparam(:bridge) do

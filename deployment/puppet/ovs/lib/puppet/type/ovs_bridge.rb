@@ -4,18 +4,19 @@ Puppet::Type.newtype(:ovs_bridge) do
 
     ensurable
 
-    newparam(:name) do
+    newparam(:bridge) do
       isnamevar
       desc "The bridge to configure"
+    end
+
+    newparam(:skip_existing) do
+      defaultto(false)
+      desc "Allow skip existing bridge"
     end
 
     newproperty(:external_ids) do
       desc "External IDs for the bridge"
     end
 
-    newproperty(:may_exist) do
-      defaultto(false)
-      desc "Allow try re-creating existing bridge"
-    end
 
 end
