@@ -1,8 +1,7 @@
-define nagios::whitelist($whitelist = false) {
-  $t_whitelist = $whitelist ? {
-    false   => '127.0.0.1',
-    default => $whitelist,
-  }
+define nagios::nrpeconfig(
+$whitelist   = '127.0.0.1',
+$include_dir = '/etc/nagios/nrpe.d',
+){
 
   file { $name:
     owner   => root,

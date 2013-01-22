@@ -1,10 +1,27 @@
-class nagios::command {
+class nagios::command inherits nagios::master {
   # Local
   nagios::command::commands { 'check_ntp_time':
     command => '$USER1$/check_ntp_time -H $HOSTADDRESS$',
   }
 
   # Remote
+
+  nagios::command::commands { 'check_http_api':
+    command => '$USER1$/check_http -H $HOSTADDRESS$ -p $ARG1$',
+  }  
+
+  nagios::command::commands { 'check_galera_mysql':
+    command => '$USER1$/check_mysql -H $HOSTADDRESS$ -P 3307 -u $ARG1$ -p $ARG2$',
+  }
+
+  nagios::command::commands { 'check_libvirt':
+    command => '$USER1$/check_os_libvirt connect -H $HOSTADDRESS$ -m qemu+tcp',
+  }
+
+  nagios::command::commands { 'check_rabbitmq':
+    command => '$USER1$/check_os_rabbitmq connect -H $HOSTADDRESS$ -P 5672 -u $ARG1$ -p $ARG2$',
+  }
+
   nagios::command::commands { 'nrpe_check_apt':
     command => '$USER1$/check_nrpe -H $HOSTADDRESS$ -c check_apt',
   }

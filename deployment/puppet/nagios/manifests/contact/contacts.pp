@@ -1,4 +1,9 @@
-define nagios::contact::contacts($alias = false, $email = false, $group = false) {
+define nagios::contact::contacts (
+$alias = false, 
+$email = false, 
+$group = false,
+) {
+
   $t_email = $email ? {
     false   => 'root@localhost',
     default => $email,
@@ -10,6 +15,6 @@ define nagios::contact::contacts($alias = false, $email = false, $group = false)
     email         => $t_email,
     contactgroups => $group,
     use           => 'generic-contact',
-    target        => '/etc/nagios3/conf.d/contacts.cfg',
+    target        => "/etc/nagios3/${proj_name}/contacts.cfg",
   }
 }
