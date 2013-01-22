@@ -21,6 +21,7 @@ $libvirt_type_kvm = 'qemu-kvm'
       $tgt_package_name         = 'scsi-target-utils'
       $volume_package_name      = 'openstack-nova-volume'
       $vncproxy_package_name    = ['novnc','openstack-nova-novncproxy']
+      $pymemcache_package_name  = 'python-memcached'
       # service names
       $api_service_name         = 'openstack-nova-api'
       $cert_service_name        = 'openstack-nova-cert'
@@ -57,6 +58,7 @@ $libvirt_type_kvm = 'qemu-kvm'
       $scheduler_package_name   = 'nova-scheduler'
       $tgt_package_name         = 'tgt'
       $volume_package_name      = 'nova-volume'
+      $pymemcache_package_name  = 'python-memcache'
       # service names
       $api_service_name         = 'nova-api'
       $cert_service_name        = 'nova-cert'

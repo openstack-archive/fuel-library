@@ -38,14 +38,16 @@ Puppet::Type.type(:nova_network).provide(:nova_manage) do
         optional_opts.push(opt).push(resource[param])
       end
     end
-    if resource[:network_size].to_i <= 2**(32-resource[:name].split('/')[1].to_i)-1
-        optional_opts.push('--network_size').push(resource[:network_size])
-    end
+
+    # if resource[:network_size].to_i <= 2**(32-resource[:name].split('/')[1].to_i)-1
+    #     optional_opts.push('--network_size').push(resource[:network_size])
+    # end
 
     nova_manage('network', 'create',
       resource[:label],
       resource[:name],
       resource[:num_networks],
+      resource[:network_size],
       optional_opts
     )
   end

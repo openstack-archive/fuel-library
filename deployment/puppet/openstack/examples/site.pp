@@ -28,7 +28,7 @@ $create_networks = true
 $floating_range  = '10.0.74.128/28'
 $fixed_range     = '10.0.161.128/28'
 $num_networks    = 1
-$network_size    = 255
+$network_size    = 15
 $vlan_start      = 300
 
 # If $external_ipinfo option is not defined the addresses will be calculated automatically from $floating_range:

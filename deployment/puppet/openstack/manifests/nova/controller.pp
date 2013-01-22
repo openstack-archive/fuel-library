@@ -71,7 +71,7 @@ class openstack::nova::controller (
   $rabbit_nodes     = [$internal_address],
   $rabbit_cluster   = false,
   $ensure_package   = present,
-  $enabled_apis     = 'ec2,osapi_compute,metadata',
+  $enabled_apis     = 'ec2,osapi_compute',
   $api_bind_address = '0.0.0.0',
   $use_syslog              = false,
   $nova_rate_limits = undef
@@ -164,15 +164,6 @@ if ($rabbit_nodes)
     quota_max_injected_file_content_bytes => 102400,
     quota_max_injected_file_path_bytes => 4096
   }
-  # Configure nova-api
-  class { 'nova::api':
-    enabled           => $enabled,
-    admin_password    => $nova_user_password,
-    auth_host         => $keystone_host,
-    enabled_apis	=> $enabled_apis,
-    ensure_package	=> $ensure_package,
-    nova_rate_limits => $nova_rate_limits
-  }
 
   if $enabled {
     $really_create_networks = $create_networks
@@ -184,13 +175,17 @@ if ($rabbit_nodes)
     # Configure nova-network
     if $multi_host {
       nova_config { 'DEFAULT/multi_host': value => 'True' }
+
       $enable_network_service = false
+      $_enabled_apis = $enabled_apis
     } else {
       if $enabled {
         $enable_network_service = true
       } else {
         $enable_network_service = false
       }
+
+      $_enabled_apis = "${enabled_apis},metadata"
     }
 
     class { 'nova::network':
@@ -248,6 +243,16 @@ if ($rabbit_nodes)
       quantum_admin_username    => 'quantum',
       quantum_admin_auth_url    => "http://${keystone_host}:35357/v2.0",
     }
+  }
+
+  # Configure nova-api
+  class { 'nova::api':
+    enabled           => $enabled,
+    admin_password    => $nova_user_password,
+    auth_host         => $keystone_host,
+    enabled_apis      => $_enabled_apis,
+    ensure_package    => $ensure_package,
+    nova_rate_limits  => $nova_rate_limits
   }
 
   if $auto_assign_floating_ip {

@@ -28,6 +28,12 @@ class nova::api(
 
   include nova::params
 
+  package { 'python-memcache':
+    ensure => present,
+    name   => $::nova::params::pymemcache_package_name,
+    before => Nova::Generic_service['api'],
+  } 
+
   Package<| title == 'nova-api' |> -> Exec['nova-db-sync']
   case $::osfamily {
     "Debian": {

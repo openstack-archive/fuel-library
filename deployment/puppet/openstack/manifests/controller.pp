@@ -265,9 +265,9 @@ class openstack::controller (
     }
   }
   if ($cinder) {
-    $enabled_apis = 'ec2,osapi_compute,metadata'
+    $enabled_apis = 'ec2,osapi_compute'
   } else {
-    $enabled_apis = 'ec2,osapi_compute,metadata,osapi_volume'
+    $enabled_apis = 'ec2,osapi_compute,osapi_volume'
   }
 
 
