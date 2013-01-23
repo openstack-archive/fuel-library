@@ -167,11 +167,12 @@ class openstack::compute (
     glance_api_servers => $glance_api_servers,
     verbose            => $verbose,
     rabbit_host        => $rabbit_host,
-    use_syslog              => $use_syslog,
+    use_syslog         => $use_syslog,
+    api_bind_address   => $internal_address,
   }
 
   if ($cinder) {
-    $enabled_apis = 'ec2,osapi_compute,metadata'
+    # $enabled_apis = 'ec2,osapi_compute,metadata'
     package {'python-cinderclient': ensure => present}
     class {'openstack::cinder':
       sql_connection       => "mysql://${cinder_db_user}:${cinder_db_password}@${db_host}/${cinder_db_dbname}?charset=utf8",
@@ -189,8 +190,8 @@ class openstack::compute (
       cinder_rate_limits => $cinder_rate_limits
     }
 
-  } else {
-    $enabled_apis = 'ec2,osapi_compute,metadata,osapi_volume'
+  #} else {
+    # $enabled_apis = 'ec2,osapi_compute,metadata,osapi_volume'
   }
 
 
@@ -265,28 +266,35 @@ class openstack::compute (
 
     if $multi_host {
       include keystone::python
+
       nova_config {
         'DEFAULT/multi_host':      value => 'True';
         'DEFAULT/send_arp_for_ha': value => 'True';
+        # 'DEFAULT/metadata_listen': value => $internal_address;
+        'DEFAULT/metadata_host':   value => $internal_address;
       }
+
       if ! $public_interface {
         fail('public_interface must be defined for multi host compute nodes')
       }
+
       $enable_network_service = true
+
       class { 'nova::api':
         ensure_package    => $::openstack_version['nova'],
         enabled           => true,
         admin_tenant_name => 'services',
         admin_user        => 'nova',
         admin_password    => $nova_user_password,
-        enabled_apis      => $enabled_apis,
+        enabled_apis      => 'metadata',
         auth_host         => $service_endpoint,
-        nova_rate_limits => $nova_rate_limits
+        nova_rate_limits  => $nova_rate_limits,
         # TODO override enabled_apis
       }
 
     } else {
       $enable_network_service = false
+
       nova_config {
         'DEFAULT/multi_host':      value => 'False';
         'DEFAULT/send_arp_for_ha': value => 'False';
