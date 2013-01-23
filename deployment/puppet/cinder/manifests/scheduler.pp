@@ -27,9 +27,9 @@ class cinder::scheduler (
   Package[$scheduler_package] -> Cinder_config<||>
     }
   }
-  Cinder_config<||> ~> Service['cinder-volume']
+  Cinder_config<||> ~> Service['cinder-scheduler']
   Cinder_config<||> ~> Exec['cinder-manage db_sync']
-  Cinder_api_paste_ini<||> ~> Service['cinder-volume']
+  Cinder_api_paste_ini<||> ~> Service['cinder-scheduler']
 
 
 
