@@ -1,7 +1,7 @@
 import os
 
 OS_FAMILY = os.environ.get('OS_FAMILY', "centos")
-PUPPET_GEN = os.environ.get('PUPPET_GEN', "2")
+PUPPET_GEN = os.environ.get('PUPPET_GEN', "3")
 
 DEFAULT_IMAGES = {
     'centos': '/var/lib/libvirt/images/centos63-cobbler-base.qcow2',
@@ -57,43 +57,41 @@ ADMIN_PASSWORD = 'nova'
 ADMIN_TENANT_ESSEX = 'openstack'
 ADMIN_TENANT_FOLSOM = 'admin'
 
-CIRROS_IMAGE ='http://srv08-srt.srt.mirantis.net/cirros-0.3.0-x86_64-disk.img'
-COBBLER_CONTROLLERS = int(os.environ.get('COBBLER_CONTROLLERS', 3))
-COBBLER_COMPUTES = int(os.environ.get('COBBLER_COMPUTES', 3))
-COBBLER_SWIFTS = int(os.environ.get('COBBLER_SWIFTS', 0))
-COBBLER_PROXIES = int(os.environ.get('COBBLER_PROXIES', 0))
-COBBLER_QUANTUM = int(os.environ.get('COBBLER_QUANTUM', 0))
-COBBLER_KEYSTONE = int(os.environ.get('COBBLER_KEYSTONE', 0))
-
-COBBLER_USECASE = str(os.environ.get('COBBLER_USECASE', ""))
-if COBBLER_USECASE == "simple":
-    COBBLER_CONTROLLERS = 1
-    COBBLER_COMPUTES = 3
-    COBBLER_SWIFTS = 0
-    COBBLER_PROXIES = 0
-    COBBLER_QUANTUM = 0
-elif COBBLER_USECASE == "minimal":
-    COBBLER_CONTROLLERS = 2
-    COBBLER_COMPUTES = 2
-    COBBLER_SWIFTS = 0
-    COBBLER_PROXIES = 0
-    COBBLER_QUANTUM = 0
-elif COBBLER_USECASE == "compact":
-    COBBLER_CONTROLLERS = 3
-    COBBLER_COMPUTES = 2
-    COBBLER_SWIFTS = 0
-    COBBLER_PROXIES = 0
-    COBBLER_QUANTUM = 0
-elif COBBLER_USECASE == "full":
-    COBBLER_CONTROLLERS = 2
-    COBBLER_COMPUTES = 2
-    COBBLER_SWIFTS = 3
-    COBBLER_PROXIES = 2
-    COBBLER_QUANTUM = 1
+CIRROS_IMAGE = 'http://srv08-srt.srt.mirantis.net/cirros-0.3.0-x86_64-disk.img'
+CONTROLLERS = int(os.environ.get('CONTROLLERS', 3))
+COMPUTES = int(os.environ.get('COMPUTES', 3))
+STORAGES = int(os.environ.get('STORAGES', 3))
+PROXIES = int(os.environ.get('PROXIES', 2))
 
 EMPTY_SNAPSHOT = os.environ.get('EMPTY_SNAPSHOT', 'empty')
 OPENSTACK_SNAPSHOT = os.environ.get('OPENSTACK_SNAPSHOT', 'openstack')
-PUBLIC_INTERFACE='eth0'
-INTERNAL_INTERFACE = 'eth1'
-PRIVATE_INTERFACE = 'eth2'
-USE_SYSLOG = os.environ.get('USE_SYSLOG','false')
+
+INTERFACE_ORDER = ('public', 'internal', 'private')
+
+INTERFACES = {
+    'public': 'eth0',
+    'internal': 'eth1',
+    'private': 'eth2',
+}
+
+DEFAULT_POOLS = {
+    'centos': {
+        'public': '172.18.95.0/24:27',
+        'private': '10.108.0.0/16:24',
+        'internal': '10.108.0.0/16:24',
+    },
+    'ubuntu': {
+        'public': '172.18.94.0/24:27',
+        'private': '10.107.0.0/16:24',
+        'internal': '10.107.0.0/16:24',
+    },
+}
+
+POOLS = {
+    'public': os.environ.get('PUBLIC_POOL',
+        DEFAULT_POOLS.get(OS_FAMILY).get('public')).split(':'),
+    'private': os.environ.get('PRIVATE_POOL',
+        DEFAULT_POOLS.get(OS_FAMILY).get('private')).split(':'),
+    'internal': os.environ.get('INTERNAL_POOL',
+        DEFAULT_POOLS.get(OS_FAMILY).get('internal')).split(':')
+}

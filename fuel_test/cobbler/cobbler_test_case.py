@@ -1,7 +1,11 @@
+from time import sleep
 import unittest
 from fuel_test.base_test_case import BaseTestCase
 from fuel_test.ci.ci_cobbler import CiCobbler
-from fuel_test.root import root
+from fuel_test.cobbler.cobbler_client import CobblerClient
+from fuel_test.helpers import tcp_ping, sync_time, udp_ping, build_astute, install_astute, add_to_hosts, await_node_deploy, update_pms
+from fuel_test.manifest import Manifest, Template
+from fuel_test.settings import PUPPET_VERSION, OS_FAMILY
 
 class CobblerTestCase(BaseTestCase):
     def ci(self):
@@ -9,40 +13,206 @@ class CobblerTestCase(BaseTestCase):
             self._ci = CiCobbler()
         return self._ci
 
+    def generate_manifests(self):
+        Manifest().write_openstack_manifest(
+            remote=self.remote(),
+            template=Template.minimal(), ci=self.ci(),
+            controllers=self.nodes().controllers,
+            swift=False,
+            quantum=True)
+        Manifest().write_openstack_manifest(
+            remote=self.remote(),
+            template=Template.compact(), ci=self.ci(),
+            controllers=self.nodes().controllers,
+            quantum=False, loopback=False, use_syslog=False)
+        Manifest().write_openstack_manifest(
+            remote=self.remote(),
+            template=Template.compact(), ci=self.ci(),
+            controllers=self.nodes().controllers,
+            quantum=False)
+        Manifest().write_openstack_manifest(
+            remote=self.remote(),
+            template=Template.full(), ci=self.ci(),
+            controllers=self.nodes().controllers,
+            proxies=self.nodes().proxies,
+            quantum=True)
+        Manifest().write_openstack_simple_manifest(
+            remote=self.remote(),
+            ci=self.ci(),
+            controllers=self.nodes().controllers)
+
+
     def setUp(self):
-        self.environment = self.ci().get_environment_or_create()
-        self.nodes = self.ci().nodes()
+        self.get_nodes_deployed_state()
+        self.generate_manifests()
+        self.update_modules()
+        remotes = [node.remote('internal', login='root', password='r00tme') for node in self.environment().nodes]
+        sync_time(remotes)
+        update_pms(remotes)
 
+    def get_nodes_deployed_state(self):
+        if self.environment().has_snapshot('nodes-deployed'):
+            self.environment().revert('nodes-deployed')
+        else:
+            self.ci().get_empty_state()
+            self.update_modules()
+            self.prepare_cobbler_environment()
+        for node in self.nodes():
+            node.await('internal')
 
-    def revert_snapshots(self):
-        pass
+    def prepare_cobbler_environment(self):
+        self.deploy_cobbler()
+        self.configure_cobbler()
+        self.deploy_stomp_node()
+        self.deploy_nodes()
 
-    def write_cobbler_manifest(self):
-        cobbler = self.nodes.cobblers[0]
-        cobbler_address = cobbler.ip_address_by_network['internal']
-        self.write_site_pp_manifest(
-            root('deployment', 'puppet', 'cobbler', 'examples',
-                'server_site.pp'),
-            server="'%s'" % cobbler_address,
-            name_server="'%s'" % cobbler_address,
-            next_server="'%s'" % cobbler_address,
-            dhcp_start_address="'%s'" % self.environment.network[
-                                        'internal'].ip_addresses[10],
-            dhcp_end_address="'%s'" %
-                             self.environment.network['internal'].ip_addresses[
-                             -5],
-            dhcp_netmask="'%s'" % '255.255.255.0',
-            dhcp_gateway="'%s'" %
-                         self.environment.network['internal'].ip_addresses[1],
-            pxetimeout         = '3000'
+    def deploy_cobbler(self):
+        Manifest().write_cobbler_manifest(self.remote(), self.ci(),
+            self.nodes().cobblers)
+        self.validate(
+            self.nodes().cobblers,
+            'puppet agent --test')
+        for node in self.nodes().cobblers:
+            self.assert_cobbler_ports(
+                node.get_ip_address_by_network_name('internal'))
+        self.environment().snapshot('cobbler', force=True)
+
+    def assert_cobbler_ports(self, ip):
+        closed_tcp_ports = filter(
+            lambda port: not tcp_ping(
+                self.remote().sudo.ssh,
+                ip,
+                port), [22, 53, 80, 443])
+        closed_udp_ports = filter(
+            lambda port: not udp_ping(
+                self.remote().sudo.ssh,
+                ip, port), [53, 67, 68, 69])
+        self.assertEquals(
+            {'tcp': [], 'udp': []},
+            {'tcp': closed_tcp_ports, 'udp': closed_udp_ports})
+
+    def deploy_stomp_node(self):
+        Manifest().write_stomp_manifest(self.remote())
+        self.validate(
+            self.nodes().stomps,
+            'puppet agent --test')
+
+    def install_astute_gem(self):
+        build_astute()
+        install_astute(self.nodes().stomps[0].remote('public',
+            login='root',
+            password='r00tme'))
+
+    def get_ks_meta(self, puppet_master, mco_host):
+        return  ("puppet_auto_setup=1 "
+                 "puppet_master=%(puppet_master)s "
+                 "puppet_version=%(puppet_version)s "
+                 "puppet_enable=0 "
+                 "mco_auto_setup=1 "
+                 "ntp_enable=1 "
+                 "mco_pskey=un0aez2ei9eiGaequaey4loocohjuch4Ievu3shaeweeg5Uthi "
+                 "mco_stomphost=%(mco_host)s "
+                 "mco_stompport=61613 "
+                 "mco_stompuser=mcollective "
+                 "mco_stomppassword=AeN5mi5thahz2Aiveexo "
+                 "mco_enable=1 "
+                 "interface_extra_eth0_peerdns=no "
+                 "interface_extra_eth1_peerdns=no "
+                 "interface_extra_eth2_peerdns=no "
+                 "interface_extra_eth2_promisc=yes "
+                 "interface_extra_eth2_userctl=yes "
+                    ) % {'puppet_master': puppet_master,
+                         'puppet_version': PUPPET_VERSION,
+                         'mco_host': mco_host
+                }
+
+    def add_fake_nodes(self):
+        cobbler = self.ci().nodes().cobblers[0]
+        stomp_name = self.ci().nodes().stomps[0].name
+        client = CobblerClient(
+            cobbler.get_ip_address_by_network_name('internal'))
+        token = client.login('cobbler', 'cobbler')
+        for i in range(1, 100):
+            for j in range(1, 100):
+                self._add_node(
+                    client, token, cobbler,
+                    node_name='fake' + str(i),
+                    node_mac0="00:17:3e:{0:02x}:{1:02x}:01".format(i, j),
+                    node_mac1="00:17:3e:{0:02x}:{1:02x}:02".format(i, j),
+                    node_mac2="00:17:3e:{0:02x}:{1:02x}:03".format(i, j),
+                    node_ip="192.168.{0:d}.{1:d}".format(i, j),
+                    stomp_name=stomp_name
+                )
+
+    def _add_node(self, client, token, cobbler, node_name, node_mac0, node_mac1,
+                  node_mac2, node_ip, stomp_name):
+        system_id = client.new_system(token)
+        if OS_FAMILY == 'centos':
+            profile = 'centos63_x86_64'
+        else:
+            profile = 'ubuntu_1204_x86_64'
+        client.modify_system_args(
+            system_id, token,
+            ks_meta=self.get_ks_meta('master.your-domain-name.com',
+                stomp_name),
+            name=node_name,
+            hostname=node_name + ".your-domain-name.com",
+            name_servers=cobbler.get_ip_address_by_network_name('internal'),
+            name_servers_search="your-domain-name.com",
+            profile=profile,
+            netboot_enabled="1")
+        client.modify_system(system_id, 'modify_interface', {
+            "macaddress-eth0": str(node_mac0),
+            "static-eth0": "0",
+            "macaddress-eth1": str(node_mac1),
+            "ipaddress-eth1": str(node_ip),
+            "dnsname-eth1": node_name + ".your-domain-name.com",
+            "static-eth1": "1",
+            "macaddress-eth2": str(node_mac2),
+            "static-eth2": "0"
+        }, token)
+        client.save_system(system_id, token)
+        client.sync(token)
+
+    def add_node(self, client, token, cobbler, node):
+        node_name = node.name
+        node_mac0 = str(node.interfaces[0].mac_address)
+        node_mac1 = str(node.interfaces[1].mac_address)
+        node_mac2 = str(node.interfaces[2].mac_address)
+        node_ip = str(node.get_ip_address_by_network_name('internal'))
+        self._add_node(
+            client, token, cobbler, node_name,
+            node_mac0, node_mac1, node_mac2, node_ip,
+            stomp_name=self.ci().nodes().stomps[0].name
         )
 
-    def write_stomp_manifest(self):
-        self.write_site_pp_manifest(
-            root('deployment', 'puppet', 'mcollective', 'examples',
-                'site.pp'),
-        )
+    def configure_cobbler(self):
+        cobbler = self.ci().nodes().cobblers[0]
+        client = CobblerClient(
+            cobbler.get_ip_address_by_network_name('internal'))
+        token = client.login('cobbler', 'cobbler')
+        for node in self.ci().client_nodes():
+            self.add_node(client, token, cobbler, node)
+        master = self.environment().node_by_name('master')
+        remote = master.remote('internal',
+            login='root',
+            password='r00tme')
+        add_to_hosts(
+            remote,
+            master.get_ip_address_by_network_name('internal'),
+            master.name,
+            master.name + ".your-domain-name.com")
+        self.environment().snapshot('cobbler-configured', force=True)
 
+    def deploy_nodes(self):
+        cobbler = self.ci().nodes().cobblers[0]
+        for node in self.ci().client_nodes():
+            node.start()
+        for node in self.ci().client_nodes():
+            await_node_deploy(
+                cobbler.get_ip_address_by_network_name('internal'), node.name)
+        sleep(20)
+        self.environment().snapshot('nodes-deployed', force=True)
 
 if __name__ == '__main__':
     unittest.main()

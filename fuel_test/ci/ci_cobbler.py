@@ -1,30 +1,28 @@
 import logging
 from time import sleep
-from devops.helpers import wait, tcp_ping, ssh
-from devops.model import Environment, Network
+from ipaddr import IPNetwork
+
 import os
 from fuel_test.ci.ci_base import CiBase
-from fuel_test.helpers import sign_all_node_certificates, write_static_ip, execute
 from fuel_test.node_roles import NodeRoles
-from fuel_test.settings import COBBLER_CONTROLLERS, COBBLER_COMPUTES, \
-                               COBBLER_SWIFTS, COBBLER_PROXIES, \
-                               COBBLER_QUANTUM, COBBLER_KEYSTONE, \
-                               EMPTY_SNAPSHOT
+from fuel_test.settings import CONTROLLERS, COMPUTES,\
+    STORAGES, PROXIES,\
+    EMPTY_SNAPSHOT, POOLS, INTERFACE_ORDER
 
 class CiCobbler(CiBase):
     def node_roles(self):
         return NodeRoles(
+            master_names=['master'],
             cobbler_names=['fuel-cobbler'],
             controller_names=['fuel-controller-%02d' % x for x in
-                              range(1, 1 + COBBLER_CONTROLLERS)],
+                              range(1, 1 + CONTROLLERS)],
             compute_names=['fuel-compute-%02d' % x for x in range(
-                1, 1 + COBBLER_COMPUTES)],
+                1, 1 + COMPUTES)],
             storage_names=['fuel-swift-%02d' % x for x in range(
-                1, 1 + COBBLER_SWIFTS)],
+                1, 1 + STORAGES)],
             proxy_names=['fuel-swiftproxy-%02d' % x for x in range(
-                1, 1 + COBBLER_PROXIES)],
-            quantum_names=['fuel-quantum'] if COBBLER_QUANTUM else [],
-            keystone_names=['keystone'] if COBBLER_KEYSTONE else [],
+                1, 1 + PROXIES)],
+            quantum_names=['fuel-quantum'],
             stomp_names=['fuel-mcollective']
         )
 
@@ -32,81 +30,43 @@ class CiCobbler(CiBase):
         return os.environ.get('ENV_NAME', 'cobbler')
 
     def describe_environment(self):
-        environment = Environment(self.environment_name)
-        public = Network(name='public', dhcp_server=True)
-        environment.networks.append(public)
-        internal = Network(name='internal', dhcp_server=False)
-        environment.networks.append(internal)
-        private = Network(name='private', dhcp_server=False)
-        environment.networks.append(private)
-        master_node = self.describe_node('master', [public, internal, private])
-        environment.nodes.append(master_node)
-        for node_name in self.node_roles().cobbler_names:
-            client = self.describe_node(node_name, [public, internal, private])
-            environment.nodes.append(client)
-        for node_name in self.node_roles().stomp_names:
-            client = self.describe_node(node_name, [public, internal, private])
-            environment.nodes.append(client)
-        for node_name in self.node_roles().controller_names:
-            client = self.describe_empty_node(node_name,
-                [public, internal, private])
-            environment.nodes.append(client)
-        for node_name in self.node_roles().compute_names:
-            client = self.describe_empty_node(
-                node_name, [public, internal, private], memory=1024)
-            environment.nodes.append(client)
-        for node_name in self.node_roles().storage_names:
-            client = self.describe_empty_node(
-                node_name, [public, internal, private], memory=1024)
-            environment.nodes.append(client)
-        for node_name in self.node_roles().proxy_names:
-            client = self.describe_empty_node(
-                node_name, [public, internal, private], memory=1024)
-            environment.nodes.append(client)
-        for node_name in self.node_roles().quantum_names:
-            client = self.describe_empty_node(
-                node_name, [public, internal, private], memory=1024)
-            environment.nodes.append(client)
-        for node_name in self.node_roles().keystone_names:
-            client = self.describe_empty_node(
-                node_name, [public, internal, private], memory=1024)
-            environment.nodes.append(client)
+        """
+        :rtype : Environment
+        """
+        environment = self.manager.environment_create(self.env_name())
+        networks = []
+        for name in INTERFACE_ORDER:
+            network = IPNetwork(POOLS.get(name)[0])
+            new_prefix = int(POOLS.get(name)[1])
+            pool = self.manager.create_network_pool(
+                networks=[network], prefix=int(new_prefix))
+            networks.append(self.manager.network_create(
+                name=name, environment=environment, pool=pool))
+        for name in self.node_roles().master_names + self.node_roles().cobbler_names + self.node_roles().stomp_names:
+            self.describe_node(name, networks)
+        for name in self.node_roles().compute_names:
+            self.describe_empty_node(name, networks, memory=4096)
+        for name in self.node_roles().controller_names + self.node_roles().storage_names + self.node_roles().quantum_names + self.node_roles().proxy_names:
+            self.describe_empty_node(name, networks)
         return environment
 
-    def get_start_nodes(self):
-        return [self.environment.node['master']] + self.nodes().cobblers + self.nodes().stomps
+    def get_startup_nodes(self):
+        return self.nodes().masters + self.nodes().cobblers + self.nodes().stomps
 
+    def client_nodes(self):
+        return self.nodes().controllers + self.nodes().computes + self.nodes().storages + self.nodes().proxies + self.nodes().quantums
 
     def setup_environment(self):
-        self.environment = self.make_vms()
-        master_node = self.environment.node['master']
+        master_node = self.nodes().masters[0]
         logging.info("Starting test nodes ...")
-        start_nodes = self.get_start_nodes()
+        start_nodes = self.get_startup_nodes()
+        self.environment().start(start_nodes)
         for node in start_nodes:
-            node.start()
-        for node in start_nodes:
-            logging.info("Waiting ssh... %s" % node.ip_address_by_network['public'])
-            wait(lambda: tcp_ping(node.ip_address_by_network['public'], 22),
-                timeout=1800)
-        gateway = self.environment.network['internal'].ip_addresses[1]
-        net_mask = '255.255.255.0'
-        for node in start_nodes:
-            remote = ssh(node.ip_address_by_network['public'], username='root',
-                password='r00tme')
-            execute(remote, 'ifdown eth1')
-            write_static_ip(remote, node.ip_address_by_network['internal'],
-                net_mask, gateway)
-            execute(remote, 'ifup eth1')
-        master_remote = ssh(
-            master_node.ip_address_by_network['public'], username='root',
+            node.await('public')
+        master_remote = master_node.remote('public', login='root',
             password='r00tme')
         self.rename_nodes(start_nodes)
-        self.setup_master_node(master_remote, self.environment.nodes)
+        self.setup_master_node(master_remote, self.environment().nodes)
         self.setup_agent_nodes(start_nodes)
-        sleep(5)
-        sign_all_node_certificates(master_remote)
-        sleep(5)
-        for node in self.environment.nodes:
-            logging.info("Creating snapshot %s" % EMPTY_SNAPSHOT)
-            node.save_snapshot(EMPTY_SNAPSHOT)
-            logging.info("Test node is ready at %s" % node.ip_address_by_network['internal'])
+        sleep(10)
+        self.environment().snapshot(EMPTY_SNAPSHOT)

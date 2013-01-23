@@ -1,11 +1,8 @@
 import logging
-from time import sleep
-import traceback
 from abc import abstractproperty, abstractmethod
-import devops
-from devops.model import Node, Disk, Interface, Environment
-from devops.helpers import tcp_ping, wait, ssh
-from fuel_test.helpers import  write_config, sign_all_node_certificates, change_host_name, request_cerificate, setup_puppet_client, setup_puppet_master, add_nmap, switch_off_ip_tables, add_to_hosts, only_private_interface, kill_dhcpclient
+from devops.manager import Manager
+from ipaddr import IPNetwork
+from fuel_test.helpers import  write_config, change_host_name, request_cerificate, setup_puppet_client, setup_puppet_master, add_nmap, switch_off_ip_tables, add_to_hosts
 from fuel_test.node_roles import NodeRoles, Nodes
 from fuel_test.settings import BASE_IMAGE, EMPTY_SNAPSHOT
 from fuel_test.root import root
@@ -13,6 +10,32 @@ from fuel_test.helpers import load
 
 
 class CiBase(object):
+    def __init__(self):
+        self.manager = Manager()
+        self.base_image = self.manager.volume_get_predefined(BASE_IMAGE)
+        self._environment = None
+
+    def _get_or_create(self):
+        try:
+            return self.manager.environment_get(self.env_name())
+        except:
+            self._environment = self.describe_environment()
+            self._environment.define()
+            return self._environment
+
+    def get_empty_state(self):
+        if self.environment().has_snapshot(EMPTY_SNAPSHOT):
+            self.environment().revert(EMPTY_SNAPSHOT)
+        else:
+            self.setup_environment()
+
+    def environment(self):
+        """
+        :rtype : devops.models.Environment
+        """
+        self._environment = self._environment or self._get_or_create()
+        return self._environment
+
     @abstractproperty
     def env_name(self):
         """
@@ -23,7 +46,7 @@ class CiBase(object):
     @abstractmethod
     def describe_environment(self):
         """
-        :rtype : Environment
+        :rtype : devops.models.Environment
         """
         pass
 
@@ -34,61 +57,46 @@ class CiBase(object):
         """
         pass
 
-    def quantum_nodes(self):
-        return []
+    def nodes(self):
+        return Nodes(self.environment(), self.node_roles())
 
-    def nodes(self, environment=None):
-        return Nodes(environment or self.environment, self.node_roles())
+    def add_empty_volume(self, node, name):
+        self.manager.node_attach_volume(
+            node=node,
+            volume=self.manager.volume_create(
+                name=name, capacity=20 * 1024 * 1024 * 1024,
+                environment=self.environment()))
 
-    def __init__(self):
-        self.base_image = BASE_IMAGE
-        self.environment = None
-        self.environment_name = self.env_name()
-        try:
-            self.environment = devops.load(self.environment_name)
-            logging.info("Successfully loaded existing environment")
-        except Exception, e:
-            logging.info(
-                "Failed to load existing %s environment: " % self.environment_name + str(
-                    e) + "\n" + traceback.format_exc())
-            pass
-
-    def get_environment(self):
-        return self.environment
-
-    def get_environment_or_create(self):
-        if self.get_environment():
-            return self.get_environment()
-        self.setup_environment()
-        return self.environment
+    def add_node(self, memory, name):
+        return self.manager.node_create(
+            name=name,
+            memory=memory,
+            environment=self.environment())
 
     def describe_node(self, name, networks, memory=1024):
-        node = Node(name)
-        node.memory = memory
-        node.vnc = True
+        node = self.add_node(memory, name)
         for network in networks:
-            node.interfaces.append(Interface(network))
-            #        node.bridged_interfaces.append(BridgedInterface('br0'))
-        node.disks.append(Disk(base_image=self.base_image, format='qcow2'))
-        node.disks.append(Disk(size=20*1024*1024*1024, format='qcow2'))
-        node.boot = ['disk']
+            self.manager.interface_create(network, node=node)
+        self.manager.node_attach_volume(
+            node=node,
+            volume=self.manager.volume_create_child(
+                name=name + '-system', backing_store=self.base_image,
+                environment=self.environment()))
+        self.add_empty_volume(node, name + '-cinder')
         return node
 
     def describe_empty_node(self, name, networks, memory=1024):
-        node = Node(name)
-        node.memory = memory
-        node.vnc = True
+        node = self.add_node(memory, name)
         for network in networks:
-            node.interfaces.append(Interface(network))
-            #        node.bridged_interfaces.append(BridgedInterface('br0'))
-        node.disks.append(Disk(size=8589934592, format='qcow2'))
-        node.disks.append(Disk(size=20*1024*1024*1024, format='qcow2'))
-        node.boot = ['disk']
+            self.manager.interface_create(network, node=node)
+        self.add_empty_volume(node, name + '-system')
+        self.add_empty_volume(node, name + '-cinder')
         return node
 
     def add_nodes_to_hosts(self, remote, nodes):
         for node in nodes:
-            add_to_hosts(remote, node.ip_address_by_network['internal'], node.name,
+            add_to_hosts(remote,
+                node.get_ip_address_by_network_name('internal'), node.name,
                 node.name + '.your-domain-name.com')
 
     def setup_master_node(self, master_remote, nodes):
@@ -102,83 +110,45 @@ class CiBase(object):
             root('fuel_test', 'config', 'puppet.agent.config'))
         for node in nodes:
             if node.name != 'master':
-                remote = ssh(
-                    node.ip_address_by_network['public'], username='root',
+                remote = node.remote('public', login='root',
                     password='r00tme')
-                self.add_nodes_to_hosts(remote, self.environment.nodes)
+                self.add_nodes_to_hosts(remote, self.environment().nodes)
                 setup_puppet_client(remote)
                 write_config(remote, '/etc/puppet/puppet.conf', agent_config)
                 request_cerificate(remote)
 
-    def make_vms(self):
-        if not self.base_image:
-            raise Exception(
-                "Base image path is missing while trying to build %s environment" % self.environment_name)
-        logging.info("Building %s environment" % self.environment_name)
-        environment = self.describe_environment()
-        #       todo environment should be saved before build
-        devops.build(environment)
-        devops.save(environment)
-        logging.info("Environment has been saved")
-        return environment
-
     def rename_nodes(self, nodes):
         for node in nodes:
-            remote = ssh(node.ip_address_by_network['public'], username='root', password='r00tme')
-            change_host_name(remote, node.name, node.name + '.your-domain-name.com')
+            remote = node.remote('public', login='root', password='r00tme')
+            change_host_name(remote, node.name,
+                node.name + '.your-domain-name.com')
             logging.info("Renamed %s" % node.name)
 
+    @abstractmethod
     def setup_environment(self):
-        environment = self.make_vms()
-        self.environment = environment
+        """
+        :rtype : None
+        """
+        pass
 
-        logging.info("Starting test nodes ...")
-        for node in environment.nodes:
-            node.start()
-        for node in environment.nodes:
-            logging.info("Waiting ssh... %s" % node.ip_address_by_network['internal'])
-            wait(lambda: tcp_ping(node.ip_address_by_network['internal'], 22), timeout=1800)
-        self.rename_nodes(environment.nodes)
-        master_node = environment.node['master']
-        master_remote = ssh(master_node.ip_address_by_network['internal'], username='root',
-            password='r00tme')
-        kill_dhcpclient(environment.nodes)
-        self.setup_master_node(master_remote, environment.nodes)
-        self.setup_agent_nodes(environment.nodes)
-        only_private_interface(self.quantum_nodes())
-        sleep(5)
-        sign_all_node_certificates(master_remote)
-        sleep(5)
-        for node in environment.nodes:
-            logging.info("Creating snapshot %s" % EMPTY_SNAPSHOT)
-            node.save_snapshot(EMPTY_SNAPSHOT)
-            logging.info("Test node is ready at %s" % node.ip_address_by_network['internal'])
+    def internal_virtual_ip(self):
+        return str(IPNetwork(
+            self.environment().network_by_name('internal').ip_network)[-3])
 
+    def public_virtual_ip(self):
+        return str(
+            IPNetwork(self.environment().network_by_name('public').ip_network)[
+            -3])
 
+    def floating_network(self):
+        return str(
+            IPNetwork(self.environment().network_by_name('public').ip_network).subnet(
+                new_prefix=27)[0])
 
-    def destroy_environment(self):
-        if self.environment:
-            devops.destroy(self.environment)
+    def fixed_network(self):
+        return str(
+            IPNetwork(self.environment().network_by_name('private').ip_network).subnet(
+                new_prefix=27)[0])
 
-    def get_internal_virtual_ip(self):
-        return self.environment.network['internal'].ip_addresses[-3]
-
-    def get_public_virtual_ip(self):
-        return self.environment.network['public'].ip_addresses[-3]
-
-    def get_floating_network(self):
-        return '.'.join(
-            str(self.environment.network['public'].ip_addresses[-1]).split(
-                '.')[:-1]) + '.128/27'
-
-    def get_fixed_network(self):
-        return '.'.join(
-            str(self.environment.network['private'].ip_addresses[-1]).split(
-                '.')[:-1]) + '.128/27'
-
-    def get_internal_network(self):
-        network = self.environment.network['internal']
-        return str(network.ip_addresses[1]) + '/' + str(
-            network.ip_addresses.prefixlen)
-
-
+    def internal_network(self):
+        return str(IPNetwork(self.environment().network_by_name('internal').ip_network))
