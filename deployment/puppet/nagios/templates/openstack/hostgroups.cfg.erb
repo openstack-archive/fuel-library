@@ -1,18 +1,7 @@
-#define hostgroup{
-#  hostgroup_name  controller-nodes
-#  alias           Openstack Controller nodes
-#  members         cont-01-qa.qa.rr.lan,cont-02-qa.qa.rr.lan,cont-03-qa.qa.rr.lan
-#}
-#
-#define hostgroup{
-#  hostgroup_name  compute-nodes
-#  alias           Openstack Compute nodes
-#  members         comp-01-qa.qa.rr.lan
-#}
-
+# THIS FILE IS MANAGED BY PUPPET
 <% if hostgroups.kind_of? Array %>
 <% hostgroups.each do |host| %>
-define hostgroup{ 
+define hostgroup{
   hostgroup_name <%= host %> 
 }
 <% end %>
