@@ -1,15 +1,15 @@
 class nagios::contact inherits nagios::master {
 
   nagios::contact::contacts { $contacts[user]:
-    alias => $contacts[alias],
-    email => $contacts[email],
-    group => $contacts[group],
+    alias   => $contacts[alias],
+    email   => $contacts[email],
+    group   => $contacts[group],
     notify  => Exec['fix-permissions'],
     require => File['conf.d'],
   }
 
   nagios::contact::contactgroups { $contactgroups[group]:
-    alias => $contactgroups[alias],
+    alias   => $contactgroups[alias],
     notify  => Exec['fix-permissions'],
     require => File['conf.d'],
   }

@@ -1,6 +1,6 @@
 define nagios::contact::contacts (
-$alias = false, 
-$email = false, 
+$alias = false,
+$email = false,
 $group = false,
 ) {
 
