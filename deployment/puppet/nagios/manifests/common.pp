@@ -1,3 +1,4 @@
+## This is class includes services from Array
 class nagios::common inherits nagios {
 
   nagios::host::hosts { $::hostname: }
@@ -24,7 +25,7 @@ class nagios::common inherits nagios {
         current => $c_num,
       }
       nagios::common::runservice { $services[$current]:
-        service => $services[$current], 
+        service => $services[$current],
       }
     }
   }
