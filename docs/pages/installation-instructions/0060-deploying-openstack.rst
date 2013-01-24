@@ -249,6 +249,44 @@ Enabling Cinder
        $nv_physical_volume = ['/dev/sdz', '/dev/sdy', '/dev/sdx']
 
 
+Enabling Swift
+^^^^^^^^^^^^^^^
+The following options should be changed if necessary: ::
+
+  # make a backend selection (file or swift) 
+  $glance_backend = 'swift'
+  
+  # 'loopback' for testing (it creates two loopback devices on every node)
+  # false for pre-built devices
+  $swift_loopback = 'loopback'
+  
+  # defines where to place the ringbuilder 
+  $swift_master = 'fuel-swiftproxy-01'
+  
+  # all of the swift services, rsync daemon on the storage nodes listen on their local net ip addresses
+  $swift_local_net_ip = $internal_address
+ 
+
+In ``openstack/examples/site_openstack_swift_standalone.pp`` example, the following nodes are specified:
+
+* fuel-swiftproxyused as the ringbuilder + proxy node
+* fuel-swift-01, fuel-swift-02, fuel-swift-03 used as the storage nodes
+
+In ``openstack/examples/site_openstack_swift_compact.pp`` example, the role of swift-storage and swift-proxy combined with controllers.
+
+For more realistic use-cases, you should manually prepare volumes by fdisk and initialize it:
+
+* create the XFS partition:
+
+  ``mkfs.xfs -i size=1024 -f /dev/sdx1``
+
+* mount device/partition:
+
+  For a standard swift install, all data drives are mounted directly under ``/srv/node``
+
+  ``mount -t xfs -o noatime,nodiratime,nobarrier,logbufs=8 /dev/sdx1 /srv/node/sdx``
+
+
 Installing OpenStack on the nodes using Puppet
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -262,6 +300,23 @@ Installing OpenStack on the nodes using Puppet
     * run "``puppet agent --test``" on fuel-compute-01
     * wait for the installation to complete
 
+* Install Swift nodes in standalone/compact mode.
+
+  To fully configure a Swift environment, the nodes must be configured in the following order:
+
+    * First the storage nodes need to be configured.
+      This creates the storage services (object, container, account) and exports all of the storage endpoints
+      for the ring builder into puppetDB.
+      **Note:** The replicator service fails to start in this initial configuration. It is Ok.
+
+    * Next, the ringbuild and swift proxy must be configured.
+      The ringbuilder needs to collect the storage endpoints and create the ring database before the proxy
+      can be installed. It also sets up an rsync server which is used to host the ring database.
+      Resources are exported that are used to rsync the ring database from this server.
+
+    * Finally, the storage nodes should be run again so that they can rsync the ring databases.
+
+  **Note:** In compact mode as storage and proxy services are on the same node to complete the deployment, you should perform 2 runs of Puppet on each node (run it once on all 3 controllers, then a second time on each controller). But if you are using loopback devices it requires to run a third time.
+
 * Your OpenStack cluster is ready to go.
 
-Note: Due to the Swift setup specifics, it is not enough to run Puppet 1 time. To complete the deployment, you should perform 3 runs of Puppet on each node.
