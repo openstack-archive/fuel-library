@@ -14,8 +14,8 @@
 class nagios::master (
 $proj_name         = 'conf.d',
 $hostgroups        = [],
-$templatehost      = {'name' => 'default-host','check_interval' => '60'}
-$templateservice   = {'name' => 'default-service' ,'check_interval'=>'60'}
+$templatehost      = {'name' => 'default-host','check_interval' => '60'},
+$templateservice   = {'name' => 'default-service' ,'check_interval'=>'60'},
 $templatehost      = 'default-host',
 $templateservice   = 'default-service',
 $htpasswd          = {'nagiosadmin' => 'nagiosadmin'},
