@@ -1,5 +1,27 @@
+<% if templatehost.kind_of? Hash %>
 define host {
-  name                            <%= templatehost %>
+<% templatehost.keys.each do |key| %>
+<%= key %>     <%= templatehost[key] -%>
+<% end %>
+  notifications_enabled           1
+  event_handler_enabled           1
+  flap_detection_enabled          1
+  failure_prediction_enabled      1
+  process_perf_data               0
+  retain_status_information       1
+  retain_nonstatus_information    1
+  notification_period             24x7
+  register                        0 check_period                    24x7
+  retry_interval                  15
+  max_check_attempts              1
+  check_command                   check-host-alive
+  notification_interval           300s
+  notification_options            d,u,r
+  contact_groups                  admins
+  register                        0
+}
+<%else%>
+  name                            templatehost['name']
   notifications_enabled           1
   event_handler_enabled           1
   flap_detection_enabled          1
@@ -10,18 +32,20 @@ define host {
   notification_period             24x7
   register                        0
   check_period                    24x7
-  check_interval                  60s
-  retry_interval                  15s
+  check_interval                  60
+  retry_interval                  15
   max_check_attempts              1
   check_command                   check-host-alive
   notification_interval           300s
   notification_options            d,u,r
   contact_groups                  admins
   register                        0
-}
-
+<%end%>
+<% if templateservice.kind_of? Hash %>
 define service {
-  name                            <%= templateservice %>
+<% templateservice.keys.each do |key| %>
+<%= key %>      <%= templateservice[key] %>
+<% end %>
   active_checks_enabled           1
   passive_checks_enabled          1
   parallelize_check               1
@@ -37,7 +61,6 @@ define service {
   is_volatile                     0
   check_period                    24x7
   max_check_attempts              1
-  check_interval                  60s
   retry_interval                  15s
   contact_groups                  admins
   notification_options            w,u,c,r
@@ -45,3 +68,28 @@ define service {
   notification_period             24x7
   register                        0
 }
+<%else%>
+  name                            <%= templateservice['name'] %>
+  active_checks_enabled           1
+  passive_checks_enabled          1
+  parallelize_check               1
+  obsess_over_service             1
+  check_freshness                 0
+  notifications_enabled           1
+  event_handler_enabled           1
+  flap_detection_enabled          1
+  failure_prediction_enabled      1
+  process_perf_data               0
+  retain_status_information       1
+  retain_nonstatus_information    1
+  is_volatile                     0
+  check_period                    24x7
+  max_check_attempts              1
+  check_interval                  60
+  retry_interval                  15
+  contact_groups                  admins
+  notification_options            w,u,c,r
+  notification_interval           1200
+  notification_period             24x7
+  register                        0
+<%end%>

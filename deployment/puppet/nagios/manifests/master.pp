@@ -1,6 +1,21 @@
+## This is class installed nagios master
+# ==Parameters
+## proj_name       => isolated configuration for project
+## templatehost    => checks,intervals parameters for hosts (as Hash)
+# name - name of this template
+# check_interval check command interval for hosts included in this group
+#
+## templateservice => checks,intervals parameters for services (as Hash)
+# name - name of this template
+# check_interval check command interval for services included in this group
+#
+## hostgroups      =>  create hostgroups
+# Put all hostgroups from nrpe here (as Array)
 class nagios::master (
 $proj_name         = 'conf.d',
 $hostgroups        = [],
+$templatehost      = {'name' => 'default-host','check_interval' => '60'}
+$templateservice   = {'name' => 'default-service' ,'check_interval'=>'60'}
 $templatehost      = 'default-host',
 $templateservice   = 'default-service',
 $htpasswd          = {'nagiosadmin' => 'nagiosadmin'},
@@ -11,6 +26,8 @@ $contacts          = {'user' => 'hotkey', 'alias' => 'Dennis Hoppe',
 ) {
 
   validate_hash($htpasswd)
+  validate_hash($templateservice)
+  validate_hash($templatehost)
   validate_hash($contactgroups)
   validate_hash($contacts)
 
@@ -38,9 +55,9 @@ $contacts          = {'user' => 'hotkey', 'alias' => 'Dennis Hoppe',
   augeas {'configs':
     context => '/files/etc/nagios3/nagios.cfg',
     changes => [
-               "set cfg_dir[2] \"/etc/nagios3/${proj_name}\"",
-               "set check_external_commands 1",
-               ],
+      "set cfg_dir[2] \"/etc/nagios3/${proj_name}\"",
+      'set check_external_commands 1',
+    ],
   }
 
   file { '/etc/nagios3/htpasswd.users':
@@ -74,10 +91,7 @@ $contacts          = {'user' => 'hotkey', 'alias' => 'Dennis Hoppe',
     mode    => '0644',
     alias   => 'conf.d',
     notify  => Service['nagios3'],
-    source  => [
-      "puppet:///modules/nagios/squeeze/etc/nagios3/conf.d",
-      'puppet:///modules/nagios/common/etc/nagios3/conf.d'
-    ],
+    source  => 'puppet:///modules/nagios/common/etc/nagios3/conf.d',
     require => Package['nagios3'],
   }
 
