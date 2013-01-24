@@ -27,15 +27,27 @@ class mysql::server (
   $galera_node_address = undef,
   $galera_nodes = undef
 ) inherits mysql::params {
-  
+    
   if ($custom_setup_class == undef) {
+    include mysql
     Class['mysql::server'] -> Class['mysql::config']
+    Class['mysql']         -> Class['mysql::server']
 
     create_resources( 'class', { 'mysql::config' => $config_hash } )
+#    exec { "debug-mysql-server-installation" :
+#      command     => "/usr/bin/yum -d 10 -e 10 -y install MySQL-server-5.5.28-6 2>&1 | tee mysql_install.log",
+#      before => Package["mysql-server"],
+#      logoutput => true,
+#    }
     package { 'mysql-server':
       name   => $package_name,
-      ensure => $package_ensure,
+      ensure => $mysql::params::server_version,
+#      require=> Package['mysql-shared'],
     }
+#    package { 'mysql-client':
+#      name   => $package_name,
+#      ensure => $mysql::params::client_version,
+#    }
  
     service { 'mysqld':
       name     => $service_name,
