@@ -2,7 +2,7 @@ define nagios::host::hosts() {
 
   @@nagios_host { $name:
     ensure     => present,
-    hostgroups => $hostgroup,
+#    hostgroups => $hostgroup,
     alias      => $::hostname,
     use        => 'default-host',
     address    => $::fqdn,
