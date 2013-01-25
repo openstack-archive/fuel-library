@@ -259,6 +259,6 @@ Installing Fuel
 First of all, you should copy a complete Fuel package onto your Puppet master machine. Once you put Fuel there, you should unpack the archive and supply Fuel manifests to Puppet::
 
     tar -xzf <fuel-archive-name>.tar.gz
-    cd fuel
-    cp -Rf fuel/deployment/puppet/* /etc/puppet/modules/
+    cd <fuel-archive-name>
+    cp -Rf deployment/puppet/* /etc/puppet/modules/
     service puppetmaster restart
