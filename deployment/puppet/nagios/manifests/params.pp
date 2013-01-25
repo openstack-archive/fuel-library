@@ -3,7 +3,12 @@ class nagios::params {
   $services_list = {
     'nova-compute' => 'check_nrpe_1arg!check_nova_compute',
     'nova-network' => 'check_nrpe_1arg!check_nova_network',
-    'libvirt' => 'check_libvirt',
+    'libvirt' => 'check_nrpe_1arg!check_libvirt',
+    'swift-proxy' => 'check_nrpe_1arg!check_swift_proxy',
+    'swift-account' => 'check_nrpe_1arg!check_swift_account',
+    'swift-container' => 'check_nrpe_1arg!check_swift_container',
+    'swift-object' => 'check_nrpe_1arg!check_swift_object',
+    'swift-ring' => 'check_nrpe_1arg!check_swift_ring',
     'keystone' => 'check_http_api!5000',
     'nova-novncproxy' => 'check_nrpe_1arg!check_nova_novncproxy',
     'nova-scheduler' => 'check_nrpe_1arg!check_nova_scheduler',

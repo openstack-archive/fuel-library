@@ -8,14 +8,10 @@ class nagios::command inherits nagios::master {
 
   nagios::command::commands { 'check_http_api':
     command => '$USER1$/check_http -H $HOSTADDRESS$ -p $ARG1$',
-  }  
+  }
 
   nagios::command::commands { 'check_galera_mysql':
     command => '$USER1$/check_mysql -H $HOSTADDRESS$ -P 3307 -u $ARG1$ -p $ARG2$',
-  }
-
-  nagios::command::commands { 'check_libvirt':
-    command => '$USER1$/check_os_libvirt connect -H $HOSTADDRESS$ -m qemu+tcp',
   }
 
   nagios::command::commands { 'check_rabbitmq':
