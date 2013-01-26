@@ -17,16 +17,10 @@ class ntpd {
   
   package { $package_name: ensure => present }
 
-  exec{ 'ntp_init_force':
-    command => '/etc/init.d/ntpdate start',
-    path => ['/bin', '/sbin', '/usr/bin', '/usr/sbin'],
-    require => Package[$package_name],
-  }
-
   service { $service_name:
     enable  => true,
     ensure  => running,
-    require => Exec['ntp_init_force'],
+    require => Package[$package_name],
   }
 
 }
