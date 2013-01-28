@@ -55,6 +55,7 @@ $multi_host              = true
 $quantum                 = true
 $manage_volumes          = true
 $cinder                  = true
+$cinder_on_computes      = $cinder
 $auto_assign_floating_ip = false
 $glance_backend          = 'swift'
 
@@ -308,7 +309,8 @@ node /fuel-compute-[\d+]/ {
     quantum_user_password  => $quantum_user_password,
     tenant_network_type    => $tenant_network_type,
     segment_range          => $segment_range,
-    cinder                 => $cinder,
+    cinder                 => $cinder_on_computes,
+    cinder_iscsi_bind_iface => $cinder_iscsi_bind_iface,
     nv_physical_volume      => $nv_physical_volume,
     db_host                => $internal_virtual_ip,
     ssh_private_key        => 'puppet:///ssh_keys/openstack',

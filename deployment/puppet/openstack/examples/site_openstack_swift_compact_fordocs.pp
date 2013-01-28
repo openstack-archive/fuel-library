@@ -55,6 +55,7 @@ $deployment_id = '69'
 
 # Here you can enable or disable different services, based on the chosen deployment topology.
 $cinder                  = true
+$cinder_on_computes      = $cinder
 $multi_host              = true
 $manage_volumes          = true
 $quantum                 = true
@@ -318,9 +319,11 @@ node /fuel-compute-[\d+]/ {
       segment_range          => $segment_range,
       ssh_private_key        => 'puppet:///ssh_keys/openstack',
       ssh_public_key         => 'puppet:///ssh_keys/openstack.pub',
-      use_syslog              => $use_syslog,
-      nova_rate_limits => $nova_rate_limits,
-      cinder_rate_limits => $cinder_rate_limits
+      use_syslog             => $use_syslog,
+      nova_rate_limits       => $nova_rate_limits,
+      cinder                 => $cinder_on_computes,
+      cinder_iscsi_bind_iface=> $cinder_iscsi_bind_iface,      
+      cinder_rate_limits     => $cinder_rate_limits
     }
 }
 
