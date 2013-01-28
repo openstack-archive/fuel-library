@@ -277,6 +277,7 @@ In ``openstack/examples/site_openstack_swift_compact.pp`` example, the role of s
 
 For more realistic use-cases, you should manually prepare volumes by fdisk and initialize it:
 
+
 * create the XFS partition:
 
   ``mkfs.xfs -i size=1024 -f /dev/sdx1``
@@ -336,12 +337,12 @@ Examples of OpenStack installation sequences
   **Example1:** **Full OpenStack deployment with standalone storage nodes**
 
     * Create necessary volumes on storage nodes as described in	 :ref:`create-the-XFS-partition`
-    * Sequentially run deployment pass on controller nodes (``fuel-controller-01 ... fuel-controller-xx``). Errors in Swift storage like */Stage[main]/Swift::Storage::Container/Ring_container_device[<device address>]: Could not evaluate: Device not found check device on <device address>* are expected during the deployment passes until the very final pass.
-    * Run additional deployment pass on Controller 1 only (``fuel-controller-01``) to finalize Galera cluster configuration. Ignore errors in *Swift::Storage::Container* during this deployment pass.
+    * Sequentially run deployment pass on controller nodes (``fuel-controller-01 ... fuel-controller-xx``).
+    * Run additional deployment pass on Controller 1 only (``fuel-controller-01``) to finalize Galera cluster configuration.
     * Run deployment pass on every compute node (``fuel-compute-01 ... fuel-compute-xx``) - unlike controllers these nodes may be deployed in parallel.
-    * Sequentially run deployment pass on every storage node (``fuel-swift-01`` ... ``fuel-swift-xx``) node. By default these nodes named as ``fuel-swift-xx``. Again, ignore errors in *Swift::Storage::Container* during this deployment pass.
-    * In case loopback devices are used on storage nodes (``$swift_loopback = 'loopback'`` in ``site.pp``) - run deployment pass on every storage (``fuel-swift-01`` ... ``fuel-swift-xx``) node one more time. Skip this step in case loopback is off (``$swift_loopback = false`` in ``site.pp``). And again, ignore errors in *Swift::Storage::Container* during this deployment pass.
-    * Run deployment pass on every SwiftProxy node. Node name is set by ``$swift_master`` variable in ``site.pp``. It is single node for majority of OpenStack installations and by default it is ``fuel-swiftproxy-01``. Ignore errors in *Swift::Storage::Container* during this deployment pass.
+    * Sequentially run deployment pass on every storage node (``fuel-swift-01`` ... ``fuel-swift-xx``) node. By default these nodes named as ``fuel-swift-xx``. Errors in Swift storage like */Stage[main]/Swift::Storage::Container/Ring_container_device[<device address>]: Could not evaluate: Device not found check device on <device address>* are expected on Storage nodes during the deployment passes until the very final pass.
+    * In case loopback devices are used on storage nodes (``$swift_loopback = 'loopback'`` in ``site.pp``) - run deployment pass on every storage (``fuel-swift-01`` ... ``fuel-swift-xx``) node one more time. Skip this step in case loopback is off (``$swift_loopback = false`` in ``site.pp``). Again, ignore errors in *Swift::Storage::Container* during this deployment pass.
+    * Run deployment pass on every SwiftProxy node (``fuel-swiftproxy-01 ... fuel-swiftproxy-02``). Node names are set by ``$swift_proxies`` variable in ``site.pp``. There are 2 Swift Proxies by default.
     * Repeat deployment pass on every storage (``fuel-swift-01`` ... ``fuel-swift-xx``) node. No Swift storage errors should appear during this deployment pass!
 
   **Example2:** **Compact OpenStack deployment with storage and swift-proxy combined with nova-controller on the same nodes**
