@@ -248,6 +248,7 @@ Enabling Cinder
        # Each physical volume can be a disk partition, whole disk, meta device, or loopback file
        $nv_physical_volume = ['/dev/sdz', '/dev/sdy', '/dev/sdx']
 
+.. _create-the-XFS-partition:
 
 Enabling Swift
 ^^^^^^^^^^^^^^^
@@ -334,7 +335,7 @@ Examples of OpenStack installation sequences
 
   **Example1:** **Full OpenStack deployment with standalone storage nodes**
 
-    * Create necessary volumes on storage nodes. These volumes are set in ``site.pp`` by ``$nv_physical_volume`` variable.
+    * Create necessary volumes on storage nodes as described in	 :ref:`create-the-XFS-partition`
     * Sequentially run deployment pass on controller nodes (``fuel-controller-01 ... fuel-controller-xx``). Errors in Swift storage like */Stage[main]/Swift::Storage::Container/Ring_container_device[<device address>]: Could not evaluate: Device not found check device on <device address>* are expected during the deployment passes until the very final pass.
     * Run additional deployment pass on Controller 1 only (``fuel-controller-01``) to finalize Galera cluster configuration. Ignore errors in *Swift::Storage::Container* during this deployment pass.
     * Run deployment pass on every compute node (``fuel-compute-01 ... fuel-compute-xx``) - unlike controllers these nodes may be deployed in parallel.
@@ -345,7 +346,7 @@ Examples of OpenStack installation sequences
 
   **Example2:** **Compact OpenStack deployment with storage and swift-proxy combined with nova-controller on the same nodes**
 
-    * Create necessary volumes on controller nodes. These volumes are set in ``site.pp`` by ``$nv_physical_volume`` variable.
+    * Create necessary volumes on controller nodes as described in	 :ref:`create-the-XFS-partition`
     * Sequentially run deployment pass on controller nodes (``fuel-controller-01 ... fuel-controller-xx``). Errors in Swift storage like */Stage[main]/Swift::Storage::Container/Ring_container_device[<device address>]: Could not evaluate: Device not found check device on <device address>* are expected during the deployment passes until the very final pass.
     * Run deployment pass on every compute node (``fuel-compute-01 ... fuel-compute-xx``) - unlike controllers these nodes may be deployed in parallel.
     * Sequentially run one more deployment pass on every controller (``fuel-controller-01 ... fuel-controller-xx``) node. Again, ignore errors in *Swift::Storage::Container* during this deployment pass.
