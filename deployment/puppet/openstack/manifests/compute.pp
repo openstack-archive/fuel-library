@@ -99,6 +99,7 @@ class openstack::compute (
   $cinder_db_password      = 'cinder_db_pass',
   $cinder_db_user          = 'cinder',
   $cinder_db_dbname        = 'cinder',
+  $cinder_iscsi_bind_iface = false,
   $db_host                 = '127.0.0.1',
   $use_syslog              = false,
   $nova_rate_limits = undef,
@@ -172,6 +173,11 @@ class openstack::compute (
   }
 
   if ($cinder) {
+    if ($cinder_iscsi_bind_iface) {
+      $cinder_iscsi_bind_addr = getvar("::ipaddress_${cinder_iscsi_bind_iface}")
+    } else {
+      $cinder_iscsi_bind_addr = $api_bind_address
+    }
     # $enabled_apis = 'ec2,osapi_compute,metadata'
     package {'python-cinderclient': ensure => present}
     class {'openstack::cinder':
@@ -185,9 +191,10 @@ class openstack::compute (
       enabled              => true,
       auth_host            => $service_endpoint,
       bind_host            => false,
+      iscsi_bind_host      => $cinder_iscsi_bind_addr,
       cinder_user_password => $cinder_user_password,
-      use_syslog              => $use_syslog,
-      cinder_rate_limits => $cinder_rate_limits
+      use_syslog           => $use_syslog,
+      cinder_rate_limits   => $cinder_rate_limits
     }
 
   #} else {
