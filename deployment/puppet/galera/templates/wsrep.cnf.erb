@@ -132,3 +132,6 @@ wsrep_sst_auth=<%= mysql_user %>:<%= mysql_password %>
 
 # Protocol version to use
 # wsrep_protocol_version=
+<% if skip_name_resolve -%>
+skip-name-resolve
+<% end -%>

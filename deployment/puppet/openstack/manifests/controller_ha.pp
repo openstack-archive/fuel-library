@@ -126,6 +126,7 @@ class openstack::controller_ha (
    $quantum_netnode_on_cnt  = false,
    $quantum_gre_bind_addr   = $internal_address,
    $quantum_external_ipinfo = {},
+   $mysql_skip_name_resolve = false,
  ) {
 
     # haproxy
@@ -291,6 +292,7 @@ local0.* -/var/log/haproxy.log'
       primary_controller      => $primary_controller,
       galera_node_address     => $internal_address,
       galera_nodes            => $galera_nodes,
+      mysql_skip_name_resolve => $mysql_skip_name_resolve,
       admin_email             => $admin_email,
       admin_user              => $admin_user,
       admin_password          => $admin_password,

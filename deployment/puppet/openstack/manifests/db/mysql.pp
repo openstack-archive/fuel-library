@@ -65,6 +65,7 @@ class openstack::db::mysql (
     $primary_controller     = false,
     $galera_node_address = '127.0.0.1',
     $galera_nodes = ['127.0.0.1'],
+    $mysql_skip_name_resolve = false,
     $custom_setup_class = undef
 ) {
 
@@ -89,6 +90,7 @@ class openstack::db::mysql (
     galera_nodes      => $galera_nodes,
     enabled => $enabled,
     custom_setup_class => $custom_setup_class,
+    mysql_skip_name_resolve => $mysql_skip_name_resolve,
   }
 
 

@@ -13,6 +13,7 @@ class galera (
   $primary_controller   = false,
   $node_address         = $ipaddress_eth0,
   $setup_multiple_gcomm = true,
+  $skip_name_resolve    = false,
   $node_addresses       = [
     $ipaddress_eth0]) {
   include galera::params

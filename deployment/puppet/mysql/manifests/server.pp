@@ -25,7 +25,8 @@ class mysql::server (
   $galera_cluster_name = undef,
   $primary_controller = primary_controller,
   $galera_node_address = undef,
-  $galera_nodes = undef
+  $galera_nodes = undef,
+  $mysql_skip_name_resolve = false,
 ) inherits mysql::params {
     
   if ($custom_setup_class == undef) {
@@ -64,6 +65,7 @@ class mysql::server (
 	    primary_controller => $primary_controller,
 	    node_address => $galera_node_address,
       node_addresses => $galera_nodes,
+        skip_name_resolve => $mysql_skip_name_resolve,
     }
 #    require($galera_class)
   }
