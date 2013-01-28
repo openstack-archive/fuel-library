@@ -316,7 +316,49 @@ Installing OpenStack on the nodes using Puppet
 
     * Finally, the storage nodes should be run again so that they can rsync the ring databases.
 
-  **Note:** In compact mode as storage and proxy services are on the same node to complete the deployment, you should perform 2 runs of Puppet on each node (run it once on all 3 controllers, then a second time on each controller). But if you are using loopback devices it requires to run a third time.
+  **Note:** In compact mode, as storage and proxy services are on the same node, to complete the deployment, you should perform 2 runs of Puppet on each node (run it once on all 3 controllers, then a second time on each controller). But if you are using loopback devices it requires to run a third time.
 
 * Your OpenStack cluster is ready to go.
 
+
+Examples of OpenStack installation sequences
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+**First, please see the link below for details about different deployment scenarios.**
+
+     :ref:`Swift-and-object-storage-notes`
+
+  **Note:** No changes to ``site.pp`` necessary between installation phases except the *Controller + Compute on the same node* case. You simply run the same puppet scenario in several passes over the already installed node. Every deployment pass Puppet collects and adds necessary absent information to OpenStack configuration, stores it to PuppedDB and applies necessary changes. But please use appropriate ``site.pp`` from OpenStack Examples as base file for your OpenStack deployment.
+
+  **Note:** *Sequentially run* means you don't start the next node deployment until previous one is finished.
+
+  **Example1:** **Full OpenStack deployment with standalone storage nodes**
+
+    * Create necessary volumes on storage nodes. These volumes are set in ``site.pp`` by ``$nv_physical_volume`` variable.
+    * Sequentially run deployment pass on controller nodes (``fuel-controller-01 ... fuel-controller-xx``). Errors in Swift storage like */Stage[main]/Swift::Storage::Container/Ring_container_device[<device address>]: Could not evaluate: Device not found check device on <device address>* are expected during the deployment passes until the very final pass.
+    * Run additional deployment pass on Controller 1 only (``fuel-controller-01``) to finalize Galera cluster configuration. Ignore errors in *Swift::Storage::Container* during this deployment pass.
+    * Run deployment pass on every compute node (``fuel-compute-01 ... fuel-compute-xx``) - unlike controllers these nodes may be deployed in parallel.
+    * Sequentially run deployment pass on every storage node (``fuel-swift-01`` ... ``fuel-swift-xx``) node. By default these nodes named as ``fuel-swift-xx``. Again, ignore errors in *Swift::Storage::Container* during this deployment pass.
+    * In case loopback devices are used on storage nodes (``$swift_loopback = 'loopback'`` in ``site.pp``) - run deployment pass on every storage (``fuel-swift-01`` ... ``fuel-swift-xx``) node one more time. Skip this step in case loopback is off (``$swift_loopback = false`` in ``site.pp``). And again, ignore errors in *Swift::Storage::Container* during this deployment pass.
+    * Run deployment pass on every SwiftProxy node. Node name is set by ``$swift_master`` variable in ``site.pp``. It is single node for majority of OpenStack installations and by default it is ``fuel-swiftproxy-01``. Ignore errors in *Swift::Storage::Container* during this deployment pass.
+    * Repeat deployment pass on every storage (``fuel-swift-01`` ... ``fuel-swift-xx``) node. No Swift storage errors should appear during this deployment pass!
+
+  **Example2:** **Compact OpenStack deployment with storage and swift-proxy combined with nova-controller on the same nodes**
+
+    * Create necessary volumes on controller nodes. These volumes are set in ``site.pp`` by ``$nv_physical_volume`` variable.
+    * Sequentially run deployment pass on controller nodes (``fuel-controller-01 ... fuel-controller-xx``). Errors in Swift storage like */Stage[main]/Swift::Storage::Container/Ring_container_device[<device address>]: Could not evaluate: Device not found check device on <device address>* are expected during the deployment passes until the very final pass.
+    * Run deployment pass on every compute node (``fuel-compute-01 ... fuel-compute-xx``) - unlike controllers these nodes may be deployed in parallel.
+    * Sequentially run one more deployment pass on every controller (``fuel-controller-01 ... fuel-controller-xx``) node. Again, ignore errors in *Swift::Storage::Container* during this deployment pass.
+    * Run additional deployment pass *only* on controller, which holds on the SwiftProxy service. By default it is ``fuel-controller-01``. And again, ignore errors in *Swift::Storage::Container* during this deployment pass.
+    * Sequentially run one more deployment pass on every controller (``fuel-controller-01 ... fuel-controller-xx``) node to finalize storage configuration. No Swift storage errors should appear during this deployment pass!
+
+  **Example3:** **OpenStack HA installation without Swift**
+
+    * Sequentially run deployment pass on controller nodes (``fuel-controller-01 ... fuel-controller-xx``). No errors should appear during this deployment pass.
+    * Run additional deployment pass on Controller 1 only (``fuel-controller-01``) to finalize Galera cluster configuration.
+    * Run deployment pass on every compute node (``fuel-compute-01 ... fuel-compute-xx``) - unlike controllers these nodes may be deployed in parallel.
+
+  **Example4:** **The most simple OpenStack installation Controller + Compute on the same node**
+
+    * Set ``node /fuel-controller-[\d+]/`` variable in ``site.pp`` to match with node name you are going to deploy OpenStack. Set ``node /fuel-compute-[\d+]/`` variable to **mismatch** with node name. Run deployment pass on this node. No errors should appear during this deployment pass.
+    * Set ``node /fuel-compute-[\d+]/`` variable in ``site.pp`` to match with node name you are going to deploy OpenStack. Set ``node /fuel-controller-[\d+]/`` variable to **mismatch** with node name. Run deployment pass on this node. No errors should appear during this deployment pass.

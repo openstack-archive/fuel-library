@@ -1,3 +1,4 @@
+.. _Swift-and-object-storage-notes:
 
 Swift (object storage) notes
 ----------------------------
