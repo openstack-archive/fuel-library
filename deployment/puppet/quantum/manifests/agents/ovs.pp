@@ -74,6 +74,10 @@ class quantum::agents::ovs (
   Quantum_config<||> ~> Service['quantum-plugin-ovs-service']
   Quantum_plugin_ovs<||> ~> Service['quantum-plugin-ovs-service']
 
+  if defined(Service['quantum-l3']) {
+    Vs_bridge[$integration_bridge] ~> Service['quantum-l3']
+  }
+
   service { 'quantum-plugin-ovs-service':
     name       => $::quantum::params::ovs_agent_service,
     enable     => $enabled,

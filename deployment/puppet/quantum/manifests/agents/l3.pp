@@ -74,7 +74,7 @@ class quantum::agents::l3 (
         mode    => 740,
         owner   => root,
         content => template("quantum/quantum-networking.sh.${::osfamily}.erb"),
-        require => Service['quantum-l3'],
+        #require => Service['quantum-l3'],
         notify  => Exec['create-networks'],
       }
   
@@ -90,7 +90,7 @@ class quantum::agents::l3 (
         refreshonly => true,
         logoutput   => true,
         require     => Service["openvswitch-switch"],
-        #notify      => Service['quantum-plugin-ovs-service'],
+        notify      => Service['quantum-l3'],
       }
     }
   } else {

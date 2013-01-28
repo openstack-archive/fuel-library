@@ -95,8 +95,8 @@ create_ext_net() {
     local pool_floating_end="$6"
     local tenant_id=$(keystone tenant-list | grep " services " | awk '{print $2}')
 
-    ext_net_id=$(get_id quantum net-create $ext_net_name -- --router:external=True <% if tenant_network_type == 'vlan' -%>--tenant_id $tenant_id --provider:network_type flat --provider:physical_network physnet1<% else -%>--provider:network_type gre --provider:segmentation_id <%= segment_range.split(':')[0].to_i + 2 %><% end -%>)
-    quantum subnet-create <% if tenant_network_type == 'vlan' -%>--tenant_id $tenant_id <% end -%>--ip_version 4 --allocation-pool start=$pool_floating_start,end=$pool_floating_end \
+    ext_net_id=$(get_id quantum net-create $ext_net_name -- --router:external=True --tenant_id $tenant_id <% if tenant_network_type == 'vlan' -%>--provider:network_type flat --provider:physical_network physnet1<% else -%>--provider:network_type gre --provider:segmentation_id <%= segment_range.split(':')[0].to_i + 2 %><% end -%>)
+    quantum subnet-create --tenant_id $tenant_id --ip_version 4 --allocation-pool start=$pool_floating_start,end=$pool_floating_end \
     --gateway $ext_net_gateway $ext_net_id $ext_net_cidr -- --enable_dhcp=False
 }
 
