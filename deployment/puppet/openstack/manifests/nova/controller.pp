@@ -215,6 +215,7 @@ if ($rabbit_nodes)
       #sql_connection  => $quantum_sql_connection,
       verbose         => $verbose,
       debug           => $verbose,
+      use_syslog      => $use_syslog,
     }
 
     class { 'quantum::server':
