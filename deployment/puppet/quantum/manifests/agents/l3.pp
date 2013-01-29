@@ -64,6 +64,9 @@ class quantum::agents::l3 (
     $ensure = 'running'
 
     if $create_networks {
+
+      Vs_bridge<||> -> Exec['create-networks']
+
       package { 'python-keystoneclient':
         ensure => present,
         before => Exec['create-networks']
@@ -115,7 +118,7 @@ class quantum::agents::l3 (
     hasstatus  => true,
     hasrestart => true,
     provider   => $::quantum::params::service_provider,
-    require    => [Package[$l3_agent_package], Class['quantum']],
+    require    => [Package[$l3_agent_package], Class['quantum'], Service['quantum-plugin-ovs-service']],
   }
 
 }
