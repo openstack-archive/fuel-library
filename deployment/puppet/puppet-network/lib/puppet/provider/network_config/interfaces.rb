@@ -83,8 +83,12 @@ Puppet::Type.type(:network_config).provide(:interfaces) do
         vs = v.nil? ? k : quote_value ? "#{k} \"#{v}\"" : "#{k} #{v}"
         f.write("#{vs}\n")
       end
+      if @memory_values['vlan'] == 'yes' then f.write("vlan_raw_device #{@resource[:device].split(".")[0]}") end
     end
     system("grep -q \"source.*#{@resource[:device]}\" #{@@main_config_file} || echo \"source #{@config_file}\" >> #{@@main_config_file}")
+    unless @@exclusive == :false 
+       system("sed -i /source.*#{@resource[:device]}/!d #{@@main_config_file}")
+    end
     system("ifdown #{@resource[:device]};sleep 2;ifup #{@resource[:device]}")
   end
 
@@ -134,20 +138,11 @@ Puppet::Type.type(:network_config).provide(:interfaces) do
       case k.to_s
         when /ipaddr/
           k="address"
-        when /bootproto/,/onboot/,/nozeroconf/,/domain/,/delay/,/device/,/userctl/
+        when /bootproto/,/onboot/,/nozeroconf/,/domain/,/delay/,/device/,/userctl/,/vlan/
           next
         end
       @converted_values[k.to_s] = v.to_s
     end
   end
-
-  # ... change this for interfaces 
-  # iface eth0-@map_value
-  #   key value
-  #   address 192.168.1.1
-  #   netmask 255.255.255.0
-  #
-  #   lines beginning with the work "auto" ~ onboot => yes
-  # record_line :parsed, :fields => %w{address netmask gateway broadcast family method},
 
 end
