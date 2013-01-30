@@ -8,7 +8,7 @@ $group   = false,
     hostgroup_name      => $hostgroup,
     check_command       => $command,
     service_description => $name,
-    hostname            => $::fqdn,
+    host_name           => $::fqdn,
     target              => "/etc/nagios3/${proj_name}/${::hostname}_services.cfg",
   }
 }
