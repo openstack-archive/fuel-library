@@ -19,8 +19,8 @@ class quantum::agents::l3 (
   $auth_password                = 'password',
   $root_helper                  = 'sudo /usr/bin/quantum-rootwrap /etc/quantum/rootwrap.conf',
   $use_namespaces               = 'True',
-  $router_id                    = '7e5c2aca-bbac-44dd-814d-f2ea9a4003e4',
-  $gateway_external_net_id      = '3f8699d7-f221-421a-acf5-e41e88cfd54f',
+  #$router_id                    = '7e5c2aca-bbac-44dd-814d-f2ea9a4003e4',
+  #$gateway_external_net_id      = '3f8699d7-f221-421a-acf5-e41e88cfd54f',
   $handle_internal_only_routers = 'True',
   $metadata_ip                  = '169.254.169.254',
   $metadata_port                = 8775,
@@ -53,7 +53,7 @@ class quantum::agents::l3 (
     'DEFAULT/admin_user':                     value => $auth_user;
     'DEFAULT/admin_password':                 value => $auth_password;
     'DEFAULT/use_namespaces':                 value => $use_namespaces;
-    'DEFAULT/router_id':                      value => $router_id;
+    #'DEFAULT/router_id':                      value => $router_id;
     # 'DEFAULT/gateway_external_net_id':        value => $gateway_external_net_id;
     'DEFAULT/metadata_ip':                    value => $metadata_ip;
     'DEFAULT/external_network_bridge':        value => $external_network_bridge;
@@ -92,7 +92,7 @@ class quantum::agents::l3 (
         # path        => '/usr/bin',
         refreshonly => true,
         logoutput   => true,
-        require     => Service["openvswitch-switch"],
+        require     => Package[$l3_agent_package],
         notify      => Service['quantum-l3'],
       }
     }

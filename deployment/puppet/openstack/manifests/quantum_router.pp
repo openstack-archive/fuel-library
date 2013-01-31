@@ -19,7 +19,6 @@ class openstack::quantum_router (
   $verbose                  = 'False',
   $debug                    = 'False',
   $enabled                  = true,
-  $exported_resources       = true,
   $ensure_package           = present,
   $api_bind_address         = '0.0.0.0',
   $quantum                  = false,
@@ -28,12 +27,13 @@ class openstack::quantum_router (
   $quantum_db_password      = 'quantum_pass',
   $quantum_user_password    = 'quantum_pass',
   $tenant_network_type      = 'gre',
-  $use_syslog              = false,
+  $use_syslog               = false,
 )
 {
     # Set up Quantum
     $quantum_sql_connection = "$db_type://${quantum_db_user}:${quantum_db_password}@${db_host}/${quantum_db_dbname}?charset=utf8"
     $enable_tunneling       = $tenant_network_type ? { 'gre' => true, 'vlan' => false }
+    $admin_auth_url = "http://${auth_host}:35357/v2.0"
 
     class { '::quantum':
       bind_host       => $api_bind_address,
@@ -43,7 +43,7 @@ class openstack::quantum_router (
       #      sql_connection  => $quantum_sql_connection,
       verbose         => $verbose,
       debug           => $verbose,
-      use_syslog              => $use_syslog,
+      use_syslog      => $use_syslog,
     }
 
     class { 'quantum::plugins::ovs':
@@ -66,6 +66,7 @@ class openstack::quantum_router (
       debug          => True,
       use_namespaces => False,
     }
+
     class { 'quantum::agents::l3':
       #enabled             => $quantum_l3_enable,
       debug               => True,
@@ -75,12 +76,23 @@ class openstack::quantum_router (
       tenant_network_type => $tenant_network_type,
       create_networks     => $create_networks,
       segment_range       => $segment_range,
-      auth_url            => "http://${auth_host}:35357/v2.0",
+      auth_url            => $admin_auth_url,
       auth_tenant         => 'services',
       auth_user           => 'quantum',
       auth_password       => $quantum_user_password,
       use_namespaces      => False,
-      metadata_ip         => $service_endpoint,
+      metadata_ip         => $internal_address,
+    }
+
+    class { '::nova::metadata_api':
+      admin_auth_url   => $admin_auth_url,
+      service_endpoint => $service_endpoint,
+      listen_ip        => $internal_address,
+      controller_nodes => $rabbit_nodes,
+      auth_password    => $quantum_user_password,
+      rabbit_user      => $rabbit_user,
+      rabbit_password  => $rabbit_password,
+      require          => Service['quantum-l3'],
     }
 
     sysctl::value { 'net.ipv4.ip_forward':
