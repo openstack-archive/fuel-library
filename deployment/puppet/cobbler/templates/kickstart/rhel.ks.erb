@@ -59,13 +59,8 @@ zerombr
 clearpart --all --initlabel
 
 # AUTOMATICALLY CREATE / /boot AND swap PARTITIONS
-# autopart can't work together with autocreate LVS group for cinder
-# autopart
-part     /boot --fstype ext3 --size=512 --asprimary
-part     pv.01 --size=1 --grow
-volgroup sysvg pv.01
-logvol   swap  --fstype swap --name=swap --vgname=sysvg --recommended
-logvol   /     --fstype ext3 --name=root --vgname=sysvg --size=1 --grow
+# autopart --type=lvm can't work together with autocreate LVS group for cinder
+autopart --type=plain
 
 # COBBLER EMBEDDED SNIPPET: 'network_config'
 # CONFIGURES NETWORK INTERFACES DEPENDING ON
