@@ -3,6 +3,7 @@ class openstack::mirantis_repos (
   # DO NOT change this value to 'internal'. all our customers are relying on external repositories
   $type        = 'external',
   $enable_epel = false,
+  $originator = "Mirantis Product <product@mirantis.com>",
   $disable_puppet_labs_repos = true,
 
 ) {
@@ -26,7 +27,7 @@ class openstack::mirantis_repos (
           key_source => 'http://download.mirantis.com/precise-fuel-folsom/Mirantis.key',
 #         key_server => "pgp.mit.edu",
           include_src => false,
-          pin       => "1000"
+          pin       => "1001"
         }
       }
       # Below we set our internal repos for testing purposes. Some of them may match with external ones.
@@ -43,8 +44,9 @@ class openstack::mirantis_repos (
           key_source => 'http://172.18.67.168/ubuntu-repo/precise-fuel-folsom/Mirantis.key',
 #         key_server => "pgp.mit.edu",
           include_src => false,
-          pin         => 1000,
-        }
+          #          pin         => 1000,
+        }->apt::pin{'mirantis-releases': priority=> 1001, originator=>$originator }
+        
         apt::source  { 'cloud-archive':
           location => 'http://172.18.67.168/ubuntu-cloud.archive.canonical.com/ubuntu',
           release => 'precise-updates/folsom',
