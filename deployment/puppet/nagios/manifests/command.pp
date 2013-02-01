@@ -4,6 +4,15 @@ class nagios::command inherits nagios::master {
     command => '$USER1$/check_ntp_time -H $HOSTADDRESS$',
   }
 
+  if $::osfamily == 'RedHat' {
+    nagios::command::commands { 
+      'check_nrpe':
+        command => '/usr/lib64/nagios/plugins/check_nrpe -H $HOSTADDRESS$ -c $ARG1$ -a $ARG2$';
+      'check_nrpe_1arg':
+        command => '/usr/lib64/nagios/plugins/check_nrpe -H $HOSTADDRESS$ -c $ARG1$';
+    }
+  }
+
   # Remote
 
   nagios::command::commands { 'check_http_api':

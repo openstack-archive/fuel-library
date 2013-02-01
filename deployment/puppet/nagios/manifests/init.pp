@@ -22,38 +22,43 @@ $whitelist         = '127.0.0.1',
     include_dir => "/etc/nagios/${proj_name}",
   }
 
-  file { "/etc/nagios/${proj_name}":
+  package { $nagios::params::nrpepkg: 
+    ensure => present,
+  }
+
+  File {
     force   => true,
     purge   => true,
     recurse => true,
     owner   => root,
     group   => root,
     mode    => '0644',
-    notify  => Service['nagios-nrpe-server'],
-    source  => 'puppet:///modules/nagios/common/etc/nagios/nrpe.d',
-    require => Package['nagios-nrpe-server'],
   }
 
-  file { '/usr/local/lib/nagios':
-    force   => true,
-    purge   => true,
-    recurse => true,
-    owner   => root,
-    group   => staff,
+  file { "/etc/nagios/${proj_name}/openstack.cfg":
+    content => template('nagios/openstack/openstack.cfg.erb'),
+    notify  => Service[$nagios::params::nrpeservice],
+    require => Package[$nagios::params::nrpepkg],
+  }
+
+  file { "/etc/nagios/${proj_name}/commands.cfg":
+    content => template('nagios/common/etc/nagios/nrpe.d/commands.cfg.erb'),
+    notify  => Service[$nagios::params::nrpeservice],
+    require => Package[$nagios::params::nrpepkg],
+  }
+
+  file { "/etc/nagios/${proj_name}":
+    source  => 'puppet:///modules/nagios/common/etc/nagios/nrpe.d',
+    notify  => Service[$nagios::params::nrpeservice],
+    require => Package[$nagios::params::nrpepkg],
+  }
+
+  file { "/usr/local/lib/nagios":
     mode    => '0755',
     source  => 'puppet:///modules/nagios/common/usr/local/lib/nagios',
   }
 
-  package { [
-    'binutils',
-    'libnagios-plugin-perl',
-    'nagios-nrpe-server',
-    'nagios-plugins-basic',
-    'nagios-plugins-standard' ]:
-    ensure => present,
-  }
-
-  service { 'nagios-nrpe-server':
+  service {$nagios::params::nrpeservice:
     ensure     => running,
     enable     => true,
     hasrestart => true,
@@ -61,7 +66,7 @@ $whitelist         = '127.0.0.1',
     pattern    => 'nrpe',
     require    => [
       File['nrpe.cfg'],
-      Package['nagios-nrpe-server']
+      Package[$nagios::params::nrpepkg]
     ],
   }
 }

@@ -5,6 +5,6 @@ define nagios::host::hostgroups() {
   nagios_hostgroup { $name:
     ensure         => present,
     alias          => $alias,
-    target         => "/etc/nagios3/${proj_name}/hostgroups.cfg",
+    target         => "/etc/${nagios::params::masterdir}/${proj_name}/hostgroups.cfg",
   }
 }
