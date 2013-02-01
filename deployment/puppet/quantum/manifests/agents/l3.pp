@@ -121,4 +121,15 @@ class quantum::agents::l3 (
     require    => [Package[$l3_agent_package], Class['quantum'], Service['quantum-plugin-ovs-service']],
   }
 
+  $update_default_route_metric = "/sbin/route del default gw ${::defaultroute};\
+    /sbin/route add default gw ${::defaultroute} dev ${::defaultroute_interface} metric 100"
+
+  exec { 'update_default_route_metric':
+    command     => $update_default_route_metric,
+    returns     => [0, 7],
+    subscribe   => Package[$l3_agent_package],
+    before      => Service['quantum-l3'],
+    refreshonly => true,
+  }
+
 }
