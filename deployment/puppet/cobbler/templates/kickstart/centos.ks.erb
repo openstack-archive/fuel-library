@@ -62,7 +62,7 @@ clearpart --all --initlabel
 # autopart can't work together with autocreate LVS group for cinder
 # autopart
 part      /boot  --fstype ext3 --size=512 --asprimary
-part      pv.01  --size=1 --grow
+part      pv.01
 volgroup  sysvg  pv.01
 logvol    swap   --fstype swap --name=swap --vgname=sysvg --recommended
 logvol    /      --fstype ext3 --name=root --vgname=sysvg --size=1 --grow
