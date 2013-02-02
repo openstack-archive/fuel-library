@@ -34,4 +34,43 @@ class nagios::params {
     'swap' => 'nrpe_check_swap!20%!10%',
     'user' => 'nrpe_check_users!5!10',
   }
+
+  case $::osfamily {
+    'RedHat': {
+      $nagios3pkg = [
+        'nagios',
+        'nagios-plugins-nrpe',
+        'nagios-plugins-all' ]
+      $nrpepkg = [
+        'binutils',
+        'openssl',
+        'nrpe',
+        'nagios-plugins-nrpe',
+        'perl-Nagios-Plugin',
+        'nagios-plugins-all' ]
+      $masterdir = 'nagios'
+      $htpasswd  = 'passwd'
+      $libdir    = '/usr/lib64'
+      $nrpeservice = 'nrpe'
+      $masterservice = 'nagios'
+      $distro = inline_template("<%= scope.lookupvar('::operatingsystem').downcase -%>")
+    }
+    'Debian': {
+      $nagios3pkg = [
+        'nagios3',
+        'nagios-nrpe-plugin' ]
+      $nrpepkg = [
+        'binutils',
+        'libnagios-plugin-perl',
+        'nagios-nrpe-server',
+        'nagios-plugins-basic',
+        'nagios-plugins-standard']
+      $masterdir = 'nagios3'
+      $htpasswd  = 'htpasswd.users'
+      $libdir    = '/usr/lib'
+      $nrpeservice = 'nagios-nrpe-server'
+      $masterservice = 'nagios3'
+      $distro = inline_template("<%= scope.lookupvar('::lsbdistid').downcase -%>")
+    }
+  }
 }
