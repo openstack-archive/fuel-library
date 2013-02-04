@@ -68,7 +68,7 @@ class openstack::mirantis_repos (
         }
          apt::source  { 'ubuntu-security':
           location => 'http://172.18.67.168/ubuntu-repo/mirror.yandex.ru/ubuntu',
-          release => 'precise-updates',
+          release => 'precise-security',
           repos => 'main universe multiverse restricted',
         }
     }
