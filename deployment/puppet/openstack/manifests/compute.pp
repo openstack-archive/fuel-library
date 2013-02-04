@@ -178,7 +178,9 @@ class openstack::compute (
     } else {
       $cinder_iscsi_bind_addr = $api_bind_address
     }
-    # $enabled_apis = 'ec2,osapi_compute,metadata'
+
+    $enabled_apis = 'metadata'
+
     package {'python-cinderclient': ensure => present}
     class {'openstack::cinder':
       sql_connection       => "mysql://${cinder_db_user}:${cinder_db_password}@${db_host}/${cinder_db_dbname}?charset=utf8",
@@ -197,8 +199,8 @@ class openstack::compute (
       cinder_rate_limits   => $cinder_rate_limits
     }
 
-  #} else {
-    # $enabled_apis = 'ec2,osapi_compute,metadata,osapi_volume'
+  } else {
+    $enabled_apis = 'metadata,osapi_volume'
   }
 
 
@@ -293,7 +295,7 @@ class openstack::compute (
         admin_tenant_name => 'services',
         admin_user        => 'nova',
         admin_password    => $nova_user_password,
-        enabled_apis      => 'metadata',
+        enabled_apis      => $enabled_apis,
         auth_host         => $service_endpoint,
         nova_rate_limits  => $nova_rate_limits,
         # TODO override enabled_apis

@@ -78,14 +78,12 @@ if $nova_rate_limits {
     service_name   => $::nova::params::api_service_name,
   }
   
-  if $enabled_apis =~ /\S*osapi_volume\S*/
-  {
+  if $enabled_apis =~ /osapi_volume/ {
     $volume_api_class = 'nova.volume.api.API'
-  }
-  else
-  {
+  } else {
     $volume_api_class = 'nova.volume.cinder.API'
   }
+
   nova_config {
     'DEFAULT/api_paste_config': value => '/etc/nova/api-paste.ini';
     'DEFAULT/enabled_apis':     value => $enabled_apis;
