@@ -231,15 +231,21 @@ Enabling Cinder
 ^^^^^^^^^^^^^^^
 
 * In order to deploy OpenStack with Cinder, simply set ``$cinder = true`` in your site.pp file.
+* If you need export cinder volumes from compute nodes (not only from controller nodes), set ``$cinder_on_computes = true`` in your site.pp file.
 * Then, specify the list of physical devices in ``$nv_physical_volume``. They will be aggregated into "cinder-volumes" volume group.
 * Alternatively, you can leave this field blank and create LVM VolumeGroup called "cinder-volumes" on every controller node yourself. Cobbler automation allows you to create this volume group during bare metal provisioning phase through parameter "cinder_bd_for_vg" in nodes.yaml file.
 * The available manifests under "examples" assume that you have the same collection of physical devices for VolumeGroup "cinder-volumes" across all of your volume nodes.
 * Cinder will be activated on any node that contains ``$nv_phyical_volume`` block device(s) or "cinder-volumes" volume group, including both controller and compute nodes.
 * Be careful to not add block devices to the list which contain useful data (e.g. block devices on which your OS resides), as they will be destroyed after you allocate them for Cinder.
+* You can specify network interface, that will be used for exports cinder volumes (by default used management network interface). For this set ``$cinder_iscsi_bind_iface = 'ethX'`` option.
 * For example::
 
        # Volume manager: cinder(true) or nova-volume(false)
        $cinder             = true
+       $cinder_on_computes = true
+
+       # Setup network interface, which Cinder used for export iSCSI targets.
+       $cinder_iscsi_bind_iface = 'ethX'
 
        # Rather cinder/nova-volume (iscsi volume driver) should be enabled
        $manage_volumes     = true
