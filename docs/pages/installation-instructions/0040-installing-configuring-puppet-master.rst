@@ -184,7 +184,7 @@ This section will show how to configure Puppet to use a technique called stored 
 
 * Disable selinux on CentOS/RHEL (otherwise Puppet will not be able to connect to PuppetDB)::
     
-    sed -i s/SELINUX=.*/SELINUX=disabled/ /etc/sysconfig/selinux
+    sed -i s/SELINUX=.*/SELINUX=disabled/ /etc/selinux/config
     setenforce 0
 
 * Configure Puppet master to use storeconfigs
