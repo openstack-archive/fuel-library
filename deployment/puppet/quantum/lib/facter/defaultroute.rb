@@ -1,5 +1,3 @@
-require 'facter/util/ip'
-require 'facter/util/netstat'
 require 'ipaddr'
 
 # Fact: defaultroute
