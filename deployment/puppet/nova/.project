@@ -3,6 +3,7 @@
 	<name>nova</name>
 	<comment></comment>
 	<projects>
+		<project>glance</project>
 		<project>keystone</project>
 		<project>lvm</project>
 		<project>quantum</project>

@@ -3,6 +3,7 @@
 	<name>rsync</name>
 	<comment></comment>
 	<projects>
+		<project>xinetd</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
