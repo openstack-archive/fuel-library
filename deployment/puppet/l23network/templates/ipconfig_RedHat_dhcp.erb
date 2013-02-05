@@ -2,3 +2,6 @@ DEVICE=<%= interface %>
 BOOTPROTO=dhcp
 ONBOOT=yes
 USERCTL=no
+<% if @hwaddr %>
+HWADDR=<%= @hwaddr %>
+<% end %>

@@ -14,20 +14,36 @@
 # [*netmask*]
 #   Specify network mask.
 #
+# [*ifname_order_prefix*]
+#   Centos and Ubuntu at boot time Up and configure network interfaces in
+#   alphabetical order of interface configuration file names.
+#   This option helps You change this order at system startup.
+#
+# [*hwaddr*]
+#   Specify ethernet MAC address. default not set.
+#
+# [*gateway*]
+#   Specify default gateway if need.
+#
+# [*nameservers*]
+#   Specify pair of nameservers if need.
+#
+# [*dhcp_hostname*]
+#   Specify hostname for DHCP if need.
+#
 # [*dhcp_nowait*]
 #   If you put 'true' to this option dhcp agent will be started in background.
 #   Puppet will not wait for obtain IP address and route.
 #
-# [*ifname_order_prefix*]
-#     Centos and Ubuntu at boot time Up and configure network interfaces in
-#   alphabetical order of interface configuration file names.
-#   This option helps You change this order at system startup.
-#
 define l23network::l3::ifconfig (
     $interface,
     $ipaddr,
-    $netmask     = '255.255.255.0',
-    $dhcp_nowait = false,
+    $netmask       = '255.255.255.0',
+    $hwaddr        = undef,
+    $gateway       = undef,
+    $nameservers   = undef,
+    $dhcp_hostname = undef,
+    $dhcp_nowait   = false,
     $ifname_order_prefix = false
 ){
 

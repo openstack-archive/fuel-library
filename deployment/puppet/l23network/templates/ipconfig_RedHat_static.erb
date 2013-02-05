@@ -4,3 +4,6 @@ NETMASK=<%= netmask %>
 BOOTPROTO=none
 ONBOOT=yes
 USERCTL=no
+<% if @hwaddr %>
+HWADDR=<%= @hwaddr %>
+<% end %>

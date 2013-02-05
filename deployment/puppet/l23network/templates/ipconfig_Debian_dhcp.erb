@@ -1,2 +1,5 @@
 auto <%= interface %>
 iface <%= interface %> inet dhcp
+<% if @hwaddr %>
+hwaddress <%= @hwaddr %>
+<% end %>
