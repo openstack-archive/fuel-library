@@ -55,7 +55,7 @@ $multi_host              = true
 $quantum                 = true
 $manage_volumes          = true
 $cinder                  = true
-$cinder_on_computes      = $cinder
+$cinder_on_computes      = false
 $auto_assign_floating_ip = false
 $glance_backend          = 'swift'
 

@@ -53,7 +53,7 @@ $deployment_id = '89'
 # Here you can enable or disable different services, based on the chosen deployment topology.
 $multi_host              = true
 $cinder                  = true
-$cinder_on_computes      = $cinder
+$cinder_on_computes      = false
 $manage_volumes          = true
 $quantum                 = true
 $auto_assign_floating_ip = false

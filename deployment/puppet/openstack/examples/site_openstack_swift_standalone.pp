@@ -52,7 +52,7 @@ $deployment_id = '59'
 
 # Here you can enable or disable different services, based on the chosen deployment topology.
 $cinder                  = true
-$cinder_on_computes      = $cinder
+$cinder_on_computes      = false
 $multi_host              = true
 $manage_volumes          = true
 $quantum                 = true
