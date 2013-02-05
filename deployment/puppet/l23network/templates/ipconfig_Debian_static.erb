@@ -2,3 +2,6 @@ auto <%= interface %>
 iface <%= interface %> inet static
 address <%= ipaddr %>
 netmask <%= netmask %>
+<% if @hwaddr %>
+hwaddress <%= @hwaddr %>
+<% end %>

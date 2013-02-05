@@ -1,4 +1,7 @@
 auto <%= interface %>
 iface <%= interface %> inet manual
+<% if @hwaddr %>
+hwaddress <%= @hwaddr %>
+<% end %>
 up ip l set <%= interface %> up
 down ip l set <%= interface %> down
