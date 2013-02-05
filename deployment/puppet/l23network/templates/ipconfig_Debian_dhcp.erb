@@ -1,8 +1,3 @@
 auto <%= interface %>
 iface <%= interface %> inet dhcp
-<% if @hwaddr %>
-hwaddress <%= @hwaddr %>
-<% end %>
-<% if @dhcp_hostname %>
-hwaddress <%= @dhcp_hostname %>
-<% end %>
+<% if @dhcp_hostname %>hostname <%= @dhcp_hostname %><% end %>

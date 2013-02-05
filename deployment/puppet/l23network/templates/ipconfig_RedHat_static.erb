@@ -4,9 +4,7 @@ NETMASK=<%= netmask %>
 BOOTPROTO=none
 ONBOOT=yes
 USERCTL=no
-<% if @hwaddr %>
-HWADDR=<%= @hwaddr %>
-<% end %>
-<% if @gateway %>
-GATEWAY=<%= @gateway %>
-<% end %>
+<% if @gateway %>GATEWAY=<%= @gateway %><% end %>
+<% if @dns_nameservers_1 %>DNS1=<%= @dns_nameservers_1 %><% end %>
+<% if @dns_nameservers_2 %>DNS2=<%= @dns_nameservers_2 %><% end %>
+

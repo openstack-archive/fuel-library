@@ -2,9 +2,8 @@ auto <%= interface %>
 iface <%= interface %> inet static
 address <%= ipaddr %>
 netmask <%= netmask %>
-<% if @hwaddr %>
-hwaddress <%= @hwaddr %>
-<% end %>
-<% if @gateway %>
-gateway <%= @gateway %>
-<% end %>
+<% if @gateway %>gateway <%= @gateway %><% end %>
+<% if @dns_nameservers_join %>dns-nameservers <%= @dns_nameservers_join %><% end %>
+<% if @dns_search %>dns-search <%= @dns_search %><% end %>
+<% if @dns_domain %>dns-domain <%= @dns_domain %><% end %>
+

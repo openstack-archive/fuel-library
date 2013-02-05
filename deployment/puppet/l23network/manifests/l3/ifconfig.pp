@@ -19,9 +19,6 @@
 #   alphabetical order of interface configuration file names.
 #   This option helps You change this order at system startup.
 #
-# [*hwaddr*]
-#   Specify ethernet MAC address. default not set.
-#
 # [*gateway*]
 #   Specify default gateway if need.
 #
@@ -36,14 +33,15 @@
 #   Puppet will not wait for obtain IP address and route.
 #
 define l23network::l3::ifconfig (
-    $interface,
+    $interface       = $name,
     $ipaddr,
-    $netmask       = '255.255.255.0',
-    $hwaddr        = undef,
-    $gateway       = undef,
-    $nameservers   = undef,
-    $dhcp_hostname = undef,
-    $dhcp_nowait   = false,
+    $netmask         = '255.255.255.0',
+    $gateway         = undef,
+    $dns_nameservers = undef,
+    $dns_search      = undef,
+    $dns_domain      = undef,
+    $dhcp_hostname   = undef,
+    $dhcp_nowait     = false,
     $ifname_order_prefix = false
 ){
 
@@ -56,10 +54,23 @@ define l23network::l3::ifconfig (
     'Debian': {
       $if_files_dir = '/etc/network/interfaces.d'
       $interfaces = '/etc/network/interfaces'
+      if $hwaddr { # Ubuntu need MAC addr in lower case
+        $hwaddr_ok = downcase($hwaddr)
+      }
+      if $dns_nameservers {
+        $dns_nameservers_join = join($dns_nameservers, ' ')
+      }
     }
     'RedHat': {
       $if_files_dir = '/etc/sysconfig/network-scripts'
       $interfaces = false
+      if $hwaddr { # RedHat need MAC addr in Upper case
+        $hwaddr_ok = upcase($hwaddr)
+      }
+      if $dns_nameservers {
+        $dns_nameservers_1 = $dns_nameservers[0]
+        $dns_nameservers_2 = $dns_nameservers[1]
+      }
     }
     default: {
       fail("Unsupported OS: ${::osfamily}/${::operatingsystem}")
@@ -106,7 +117,7 @@ define l23network::l3::ifconfig (
   exec { "ifdn_${interface}":
     command     => "${cmd_ifdn} ${interface}",
     path        => '/usr/bin:/usr/sbin:/bin:/sbin',
-    onlyif      => "ip link show ${interface}|grep ' ${interface}:'|grep -i up",
+    onlyif      => "ip link show ${interface} | grep ' ${interface}:' | grep -i ',UP,'",
     subscribe   => File[$interface_file],
     refreshonly => true,
   }

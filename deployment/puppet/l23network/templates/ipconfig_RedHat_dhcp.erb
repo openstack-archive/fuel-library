@@ -2,9 +2,4 @@ DEVICE=<%= interface %>
 BOOTPROTO=dhcp
 ONBOOT=yes
 USERCTL=no
-<% if @hwaddr %>
-HWADDR=<%= @hwaddr %>
-<% end %>
-<% if @dhcp_hostname %>
-DHCP_HOSTNAME=<%= @dhcp_hostname %>
-<% end %>
+<% if @dhcp_hostname %>DHCP_HOSTNAME=<%= @dhcp_hostname %><% end %>
