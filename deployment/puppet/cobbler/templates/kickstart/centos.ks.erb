@@ -58,9 +58,7 @@ zerombr
 # REMOVE ALL PARTITIONS BEFORE CREATING NEW ONES
 clearpart --all --initlabel
 
-# AUTOMATICALLY CREATE / /boot AND swap PARTITIONS
-# autopart --type=lvm can't work together with autocreate LVS group for cinder
-autopart --type=plain
+$SNIPPET('main_partition_select')
 
 # COBBLER EMBEDDED SNIPPET: 'network_config'
 # CONFIGURES NETWORK INTERFACES DEPENDING ON
@@ -87,6 +85,8 @@ $SNIPPET('kickstart_start')
 # INTO /tmp/pre_install_network_config WHICH IS INCLUDED
 # INTO KICKSTART BY 'network_config' SNIPPET
 $SNIPPET('pre_install_network_config')
+
+$SNIPPET('pre_partition_select')
 
 
 # PACKAGES SECTION
