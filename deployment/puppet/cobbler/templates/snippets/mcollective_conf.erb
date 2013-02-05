@@ -4,11 +4,7 @@ cat <<EOCONF > /etc/mcollective/server.cfg
 topicprefix = /topic/
 main_collective = mcollective
 collectives = mcollective
-    #if $breed == "redhat"
 libdir = /usr/libexec/mcollective
-    #elif $breed == "debian" or $breed == "ubuntu"
-libdir = /usr/share/mcollective/plugins
-    #end if
 logfile = /var/log/mcollective.log
 loglevel = info
 daemonize = 1
@@ -301,11 +297,7 @@ EOCONF
 
 #if $str($getVar('mco_enable', '')) == "1"
 ## turn on mcollective service after reboot
-    #if $breed == "redhat"
 /sbin/chkconfig mcollective on
 gem install json_pure
 service mcollective restart
-    #elif $breed == "debian" or $breed == "ubuntu"
-/usr/sbin/update-rc.d mcollective defaults
-    #end if
 #end if
