@@ -22,6 +22,7 @@ class CompactTestCase(CobblerTestCase):
             remote=self.remote(),
             template=Template.compact(), ci=self.ci(),
             controllers=self.nodes().controllers,
+            quantums=self.nodes().quantums,
             quantum=True)
         self.deploy_compact()
         self.environment().snapshot('compact', force=True)
@@ -31,6 +32,7 @@ class CompactTestCase(CobblerTestCase):
             remote=self.remote(),
             template=Template.compact(), ci=self.ci(),
             controllers=self.nodes().controllers,
+            quantums=self.nodes().quantums,
             quantum=False)
         self.deploy_compact(quantum=False)
         self.environment().snapshot('compact_wo_quantum', force=True)
@@ -40,6 +42,7 @@ class CompactTestCase(CobblerTestCase):
             remote=self.remote(),
             template=Template.compact(), ci=self.ci(),
             controllers=self.nodes().controllers,
+            quantums=self.nodes().quantums,
             quantum=False, loopback=False, use_syslog=False)
         self.deploy_compact(quantum=False, loopback=False)
         self.environment().snapshot('compact_woloopback', force=True)

@@ -10,6 +10,7 @@ class FullTestCase(CobblerTestCase):
             template=Template.full(), ci=self.ci(),
             controllers=self.nodes().controllers,
             proxies=self.nodes().proxies,
+            quantums=self.nodes().quantums,
             quantum=True)
         self.validate(self.nodes().controllers[:1], 'puppet agent --test')
         self.validate(self.nodes().controllers[1:], 'puppet agent --test')
