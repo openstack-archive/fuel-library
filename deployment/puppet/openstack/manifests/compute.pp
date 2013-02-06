@@ -176,7 +176,7 @@ class openstack::compute (
     if ($cinder_iscsi_bind_iface) {
       $cinder_iscsi_bind_addr = getvar("::ipaddress_${cinder_iscsi_bind_iface}")
     } else {
-      $cinder_iscsi_bind_addr = $api_bind_address
+      $cinder_iscsi_bind_addr = $internal_address
     }
 
     $enabled_apis = 'metadata'
