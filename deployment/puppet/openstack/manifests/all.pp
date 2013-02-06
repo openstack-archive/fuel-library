@@ -244,7 +244,6 @@ class openstack::all (
     class { 'cinder::volume': }
     class { 'cinder::volume::iscsi':
       iscsi_ip_address => '127.0.0.1',
-      volume_group     => $nova_volume,
     }
     
     $enabled_apis = $_enabled_apis 
@@ -343,8 +342,6 @@ class openstack::all (
     class { 'quantum::plugins::ovs':
       sql_connection      => $quantum_sql_connection,
       tenant_network_type => 'gre',
-      # I need to know what this does...
-      local_ip            => '10.0.0.1',
       enable_tunneling    => true,
     }
 
@@ -363,6 +360,7 @@ class openstack::all (
       quantum_admin_tenant_name => 'services',
       #quantum_admin_username    => 'quantum',
       quantum_admin_auth_url    => "http://127.0.0.1:35357/v2.0",
+      public_interface          => $public_interface,
     }
   }
 

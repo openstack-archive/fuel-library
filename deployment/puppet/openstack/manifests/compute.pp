@@ -399,7 +399,8 @@ class openstack::compute (
       quantum_url               => "http://${service_endpoint}:9696",
       quantum_admin_tenant_name => 'services',
       quantum_admin_username    => 'quantum',
-      quantum_admin_auth_url    => "http://${service_endpoint}:35357/v2.0"
+      quantum_admin_auth_url    => "http://${service_endpoint}:35357/v2.0",
+      public_interface          => $public_interface,
     }
 
     nova_config {

@@ -243,6 +243,7 @@ if ($rabbit_nodes)
       quantum_admin_tenant_name => 'services',
       quantum_admin_username    => 'quantum',
       quantum_admin_auth_url    => "http://${keystone_host}:35357/v2.0",
+      public_interface          => $public_interface,
     }
   }
 
