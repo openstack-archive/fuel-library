@@ -328,8 +328,48 @@ Installing OpenStack on the nodes using Puppet
 
 * Your OpenStack cluster is ready to go.
 
+Installing Nagios Monitoring using Puppet
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Examples of OpenStack installation sequences
+Installing nagios NRPE on compute or controller node: ::
+  class {'nagios':
+  proj_name       => 'test',
+  services        => ['nova-compute','nova-network','libvirt'],
+  whitelist       => ['127.0.0.1','10.0.97.5'],
+  hostgroup       => 'compute',
+  }
+
+where ``proj_name`` is a env for nagios commands and directory
+in this case:
+        "``/etc/nagios/test/``"
+``ervices`` - all services which nagios will monitor
+``whitelist`` - array of IP addreses which NRPE trusts
+``hostgroup`` - group wich will use in nagios master (do not forget create it in nagios master)
+
+Installing nagios Master on any convenient node: ::
+
+  class {'nagios::master':
+    proj_name       => 'test',
+    templatehost    => {'name' => 'default-host','check_interval' => '10'},
+    templateservice => {'name' => 'default-service' ,'check_interval'=>'10'},
+    hostgroups      => ['compute','controller'],
+    contactgroups   => {'group' => 'admins', 'alias' => 'Admins'}, 
+    contacts        => {'user' => 'hotkey', 'alias' => 'Dennis Hoppe',
+                 'email' => 'nagios@%{domain}',
+                 'group' => 'admins'},
+  }
+
+where ``proj_name`` is a env for nagios services and directory
+in this case:
+        "``/etc/nagios3/test/``"
+``templatehost`` - group of checks and intervals parameters for hosts (as Hash)
+``templateservice`` - group checks and intervals parameters for services  (as Hash)
+``hostgroups`` - just add all of groups which were on NRPE nodes (as Array)
+``contactgroups`` - group of contacts {as Hash}
+``contacts`` - create contacts for send error reports {as Hash}
+
+
+Examplee of OpenStack installation sequences
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 **First, please see the link below for details about different deployment scenarios.**
@@ -346,7 +386,7 @@ Examples of OpenStack installation sequences
     * Sequentially run deployment pass on controller nodes (``fuel-controller-01 ... fuel-controller-xx``).
     * Run additional deployment pass on Controller 1 only (``fuel-controller-01``) to finalize Galera cluster configuration.
     * Run deployment pass on every compute node (``fuel-compute-01 ... fuel-compute-xx``) - unlike controllers these nodes may be deployed in parallel.
-    * Sequentially run deployment pass on every storage node (``fuel-swift-01`` ... ``fuel-swift-xx``) node. By default these nodes named as ``fuel-swift-xx``. Errors in Swift storage like */Stage[main]/Swift::Storage::Container/Ring_container_device[<device address>]: Could not evaluate: Device not found check device on <device address>* are expected on Storage nodes during the deployment passes until the very final pass.
+    * Sequentially run deployment pass on every storage node (``fuel-sowift-01`` ... ``fuel-swift-xx``) node. By default these nodes named as ``fuel-swift-xx``. Errors in Swift storage like */Stage[main]/Swift::Storage::Container/Ring_container_device[<device address>]: Could not evaluate: Device not found check device on <device address>* are expected on Storage nodes during the deployment passes until the very final pass.
     * In case loopback devices are used on storage nodes (``$swift_loopback = 'loopback'`` in ``site.pp``) - run deployment pass on every storage (``fuel-swift-01`` ... ``fuel-swift-xx``) node one more time. Skip this step in case loopback is off (``$swift_loopback = false`` in ``site.pp``). Again, ignore errors in *Swift::Storage::Container* during this deployment pass.
     * Run deployment pass on every SwiftProxy node (``fuel-swiftproxy-01 ... fuel-swiftproxy-02``). Node names are set by ``$swift_proxies`` variable in ``site.pp``. There are 2 Swift Proxies by default.
     * Repeat deployment pass on every storage (``fuel-swift-01`` ... ``fuel-swift-xx``) node. No Swift storage errors should appear during this deployment pass!
