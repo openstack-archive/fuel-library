@@ -7,14 +7,17 @@
 		<project>cinder</project>
 		<project>firewall</project>
 		<project>glance</project>
+		<project>haproxy</project>
 		<project>keepalived</project>
 		<project>keystone</project>
+		<project>lvm</project>
 		<project>mysql</project>
 		<project>ntpd</project>
 		<project>quantum</project>
 		<project>rsyslog</project>
 		<project>stdlib</project>
 		<project>swift</project>
+		<project>sysctl</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
