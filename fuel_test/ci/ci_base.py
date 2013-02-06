@@ -133,12 +133,12 @@ class CiBase(object):
 
     def internal_virtual_ip(self):
         return str(IPNetwork(
-            self.environment().network_by_name('internal').ip_network)[-3])
+            self.environment().network_by_name('internal').ip_network)[-2])
 
     def public_virtual_ip(self):
         return str(
             IPNetwork(self.environment().network_by_name('public').ip_network)[
-            -3])
+            -2])
 
     def public_router(self):
         return str(
@@ -148,7 +148,7 @@ class CiBase(object):
     def floating_network(self):
         return str(
             IPNetwork(self.environment().network_by_name('public').ip_network).subnet(
-                new_prefix=29)[0])
+                new_prefix=29)[-1])
 
     def fixed_network(self):
         return str(
