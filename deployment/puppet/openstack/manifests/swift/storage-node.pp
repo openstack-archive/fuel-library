@@ -1,4 +1,4 @@
-class openstack::swift::storage-node (
+class openstack::swift::storage_node (
   $swift_zone,
   $swift_hash_suffix    = 'swift_secret',
   $swift_local_net_ip   = $::ipaddress_eth0,
