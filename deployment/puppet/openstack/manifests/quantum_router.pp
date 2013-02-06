@@ -84,7 +84,7 @@ class openstack::quantum_router (
       metadata_ip         => $internal_address,
     }
 
-    class { '::nova::metadata_api':
+    class { 'nova::metadata_api':
       admin_auth_url   => $admin_auth_url,
       service_endpoint => $service_endpoint,
       listen_ip        => $internal_address,
