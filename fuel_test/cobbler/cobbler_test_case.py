@@ -55,12 +55,11 @@ class CobblerTestCase(BaseTestCase):
         update_pms(remotes)
 
     def get_nodes_deployed_state(self):
-        if self.environment().has_snapshot('nodes-deployed'):
-            self.environment().revert('nodes-deployed')
-        else:
+        if not self.environment().has_snapshot('nodes-deployed'):
             self.ci().get_empty_state()
             self.update_modules()
             self.prepare_cobbler_environment()
+        self.environment().revert('nodes-deployed')
         for node in self.nodes():
             node.await('internal')
 
