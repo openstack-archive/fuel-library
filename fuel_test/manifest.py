@@ -105,7 +105,7 @@ class Manifest(object):
         floating_network = IPNetwork(ci.floating_network())
         return {
            'public_net_router' : ci.public_router(),
-           'ext_bridge'        : quantums[0].get_ip_address_by_network_name('internal'),
+           'ext_bridge'        : quantums[0].get_ip_address_by_network_name('public'),
            'pool_start'        : floating_network[2],
            'pool_end'          : floating_network[-2]
         }
