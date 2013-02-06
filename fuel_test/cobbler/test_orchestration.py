@@ -9,6 +9,7 @@ class CobblerCase(CobblerTestCase):
             remote=self.remote(),
             template=Template.minimal(), ci=self.ci(),
             controllers=self.nodes().controllers[:2],
+            quantums=self.nodes().quantums,
             swift=False,
             quantum=True)
         config_text = (
@@ -53,6 +54,7 @@ class CobblerCase(CobblerTestCase):
             remote=self.remote(),
             template=Template.compact(), ci=self.ci(),
             controllers=self.nodes().controllers,
+            quantums=self.nodes().quantums,
             quantum=True)
         config_text = (
             "use_case: compact\n"
@@ -77,6 +79,7 @@ class CobblerCase(CobblerTestCase):
             remote=self.remote(),
             template=Template.full(), ci=self.ci(),
             controllers=self.nodes().controllers,
+            quantums=self.nodes().quantums,
             proxies=self.nodes().proxies,
             quantum=True)
         config_text = (

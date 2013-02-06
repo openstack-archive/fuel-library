@@ -9,6 +9,7 @@ class MinimalTestCase(CobblerTestCase):
             remote=self.remote(),
             template=Template.minimal(), ci=self.ci(),
             controllers=self.nodes().controllers,
+            quantums=self.nodes().quantums,
             swift=False,
             quantum=True)
         self.validate(self.nodes().controllers[:1], 'puppet agent --test')

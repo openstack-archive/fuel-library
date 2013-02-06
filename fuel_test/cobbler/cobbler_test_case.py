@@ -18,22 +18,26 @@ class CobblerTestCase(BaseTestCase):
             remote=self.remote(),
             template=Template.minimal(), ci=self.ci(),
             controllers=self.nodes().controllers,
+            quantums=self.nodes().quantums,
             swift=False,
             quantum=True)
         Manifest().write_openstack_manifest(
             remote=self.remote(),
             template=Template.compact(), ci=self.ci(),
             controllers=self.nodes().controllers,
+            quantums=self.nodes().quantums,
             quantum=False, loopback=False, use_syslog=False)
         Manifest().write_openstack_manifest(
             remote=self.remote(),
             template=Template.compact(), ci=self.ci(),
             controllers=self.nodes().controllers,
+            quantums=self.nodes().quantums,
             quantum=False)
         Manifest().write_openstack_manifest(
             remote=self.remote(),
             template=Template.full(), ci=self.ci(),
             controllers=self.nodes().controllers,
+            quantums=self.nodes().quantums,
             proxies=self.nodes().proxies,
             quantum=True)
         Manifest().write_openstack_simple_manifest(

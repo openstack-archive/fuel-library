@@ -101,6 +101,16 @@ class Manifest(object):
             lambda x: (x.name, x.get_ip_address_by_network_name('internal')),
             controllers))
 
+    def external_ip_info(self, ci, quantums):
+        floating_network = IPNetwork(ci.floating_network())
+        return {
+           'public_net_router' : ci.public_router(),
+           'ext_bridge'        : quantums[0].get_ip_address_by_network_name('internal'),
+           'pool_start'        : floating_network[2],
+           'pool_end'          : floating_network[-2]
+        }
+
+
     def hostnames(self, controllers):
         return [x.name for x in controllers]
 
@@ -145,7 +155,7 @@ class Manifest(object):
         self.write_manifest(remote, template)
 
 
-    def write_openstack_manifest(self, remote, template, ci, controllers,
+    def write_openstack_manifest(self, remote, template, ci, controllers, quantums,
                                  proxies=None, use_syslog=True,
                                  quantum=True, loopback=True,
                                  cinder=True, swift=True):
@@ -167,6 +177,7 @@ class Manifest(object):
             nv_physical_volume=self.physical_volumes(),
             use_syslog=use_syslog,
             cinder=cinder,
+            external_ipinfo = self.external_ip_info(ci, quantums),
         )
         if swift:
             template.replace(swift_loopback=self.loopback(loopback))
@@ -223,3 +234,5 @@ class Manifest(object):
 
     def write_stomp_manifest(self, remote):
         self.write_manifest(remote, Template.stomp())
+
+
