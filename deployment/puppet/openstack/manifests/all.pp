@@ -227,7 +227,7 @@ class openstack::all (
   }
 
   ######### Cinder Controller Services ########
-  $_enabled_apis = 'ec2,osapi_compute,metadata'
+  $enabled_apis_ = 'ec2,osapi_compute,metadata'
 
   if ($cinder) {
     class { "cinder::base":
@@ -246,7 +246,7 @@ class openstack::all (
       iscsi_ip_address => '127.0.0.1',
     }
     
-    $enabled_apis = $_enabled_apis 
+    $enabled_apis = $enabled_apis_ 
   } else {
     # Set up nova-volume
     class { 'lvm':
@@ -263,7 +263,7 @@ class openstack::all (
     
     class { 'nova::volume::iscsi': }
 
-    $enabled_apis = "${_enabled_apis},osapi_volume"
+    $enabled_apis = "${enabled_apis_},osapi_volume"
   }
 
   # Install / configure rabbitmq
