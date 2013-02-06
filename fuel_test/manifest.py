@@ -110,7 +110,6 @@ class Manifest(object):
            'pool_end'          : floating_network[-2]
         }
 
-
     def hostnames(self, controllers):
         return [x.name for x in controllers]
 
