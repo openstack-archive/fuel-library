@@ -176,6 +176,7 @@ class Manifest(object):
             nv_physical_volume=self.physical_volumes(),
             use_syslog=use_syslog,
             cinder=cinder,
+            cinder_on_computes=cinder,
             external_ipinfo = self.external_ip_info(ci, quantums),
         )
         if swift:
