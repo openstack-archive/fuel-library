@@ -128,6 +128,12 @@ class Manifest(object):
     def loopback(self, loopback):
         return "loopback" if loopback else False
 
+    def floating_network(self, ci, quantum):
+        if quantum:
+            ci.public_network()
+        else:
+            ci.floating_network()
+
     def write_openstack_simple_manifest(self, remote, ci, controllers,
                                         use_syslog=True,
                                         quantum=True,
@@ -136,7 +142,7 @@ class Manifest(object):
             root(
                 'deployment', 'puppet', 'openstack', 'examples',
                 'site_simple.pp')).replace(
-            floating_range=ci.floating_network(),
+            floating_range=self.floating_network(ci, quantum),
             fixed_range=ci.fixed_network(),
             public_interface=self.public_interface(),
             internal_interface=self.internal_interface(),
@@ -161,7 +167,7 @@ class Manifest(object):
         template.replace(
             internal_virtual_ip=ci.internal_virtual_ip(),
             public_virtual_ip=ci.public_virtual_ip(),
-            floating_range=ci.floating_network(),
+            floating_range=self.floating_network(ci, quantum),
             fixed_range=ci.fixed_network(),
             master_hostname=controllers[0].name,
             mirror_type=self.mirror_type(),
