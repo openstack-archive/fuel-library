@@ -53,7 +53,7 @@ wsrep_provider_options="pc.ignore_sb = no;ist.recv_addr=<%= node_address %>;gmca
 wsrep_cluster_name="<%= cluster_name -%>"
 <% if setup_multiple_gcomm -%>
     <% if master_ip -%>
-wsrep_cluster_address="gcomm://<%= @node_addresses.reject{|ip| ip == hostname || ip == node_address }.collect {|ip| ip + ':' + 4567.to_s }.join ',' %>"
+wsrep_cluster_address="gcomm://<%= @node_addresses.reject{|ip| ip == hostname || ip == node_address || ip == fqdn }.collect {|ip| ip + ':' + 4567.to_s }.join ',' %>"
     <% else -%>
 wsrep_cluster_address="gcomm://"
     <% end -%>
