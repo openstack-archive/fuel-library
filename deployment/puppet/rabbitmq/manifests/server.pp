@@ -32,7 +32,7 @@ class rabbitmq::server(
   $service_ensure = 'running',
   $config_stomp = false,
   $stomp_port = '6163',
-  $node_ip_address = 'UNSET',
+  $node_ip_address = getvar("::ipaddress_${internal_interface}"),
   $config='UNSET',
   $config_cluster = false,
   $cluster_disk_nodes = [], 

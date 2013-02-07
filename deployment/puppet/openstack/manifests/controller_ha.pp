@@ -39,7 +39,17 @@ define haproxy_service($order, $balancers, $virtual_ips, $port, $define_cookies 
       $balancermember_options = 'check inter 2000 fall 3'
       $balancer_port = 80
     }
-
+    "rabbitmq-epmd": {
+      $haproxy_config_options = { 'option' => ['clitcpka','srvtcpka'], 'balance' => 'roundrobin', 'mode' => 'tcp'}
+      $balancermember_options = 'check inter 5000 rise 2 fall 3'
+      $balancer_port = 4369
+    }
+    "rabbitmq-openstack": {
+      $haproxy_config_options = { 'option' => ['clitcpka','srvtcpka'], 'balance' => 'roundrobin', 'mode' => 'tcp'}
+      $balancermember_options = 'check inter 5000 rise 2 fall 3'
+      $balancer_port = 5672
+    }
+    
     default: {
       $haproxy_config_options = { 'option' => ['httplog'], 'balance' => 'roundrobin' }
       $balancermember_options = 'check'
@@ -113,7 +123,7 @@ class openstack::controller_ha (
 $UDPServerRun 514
 local0.* -/var/log/haproxy.log'
     }
-    
+    Class['keepalived'] -> Class ['nova::rabbitmq']
     haproxy_service { 'horizon':    order => 15, port => 80, virtual_ips => [$public_virtual_ip], define_cookies => true  } 
     haproxy_service { 'keystone-1': order => 20, port => 5000, virtual_ips => [$public_virtual_ip, $internal_virtual_ip]  }
     haproxy_service { 'keystone-2': order => 30, port => 35357, virtual_ips => [$public_virtual_ip, $internal_virtual_ip]  }
@@ -128,6 +138,8 @@ local0.* -/var/log/haproxy.log'
     haproxy_service { 'glance-api': order => 80, port => 9292, virtual_ips => [$public_virtual_ip, $internal_virtual_ip]  }
     haproxy_service { 'quantum':    order => 85, port => 9696, virtual_ips => [$public_virtual_ip, $internal_virtual_ip]  }
     haproxy_service { 'glance-reg': order => 90, port => 9191, virtual_ips => [$internal_virtual_ip]  }
+#    haproxy_service { 'rabbitmq-epmd':    order => 91, port => 4369, virtual_ips => [$internal_virtual_ip], master_host => $master_hostname  }
+    haproxy_service { 'rabbitmq-openstack':    order => 92, port => 5672, virtual_ips => [$internal_virtual_ip], master_host => $master_hostname  }
     haproxy_service { 'mysqld':     order => 95, port => 3306, virtual_ips => [$internal_virtual_ip], master_host => $master_hostname }
           if $glance_backend == 'swift'
         {
