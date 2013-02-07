@@ -52,10 +52,13 @@ Facter.add(:defaultroute_interface) do
       gw = IPAddr.new(defaultroute)
       Facter::Util::IP.get_interfaces.collect { |i| Facter::Util::IP.alphafy(i) }.
       detect do |i| 
-        range = Facter.value('network_' + i) +
-                '/' +
-                Facter.value('netmask_' + i)
-        IPAddr.new(range).include?(gw)
+        network = Facter.value('network_' + i)
+        netmask = Facter.value('netmask_' + i)
+        if network and netmask
+            IPAddr.new(network+'/'+netmask).include?(gw)
+        else
+            false
+        end
       end
     end
   end
