@@ -81,14 +81,23 @@ class { "::rsyslog::client":
     port => '514'
  }
 }
+  case $::osfamily {
+    "Debian":  {
+       $rabbitmq_version_string = 'ubuntu 2.7.1-0ubuntu4'
+    }
+    "RedHat": {
+       $rabbitmq_version_string = 'centos 2.8.7-2'
+    }
+  }
 # OpenStack packages to be installed
 $openstack_version = {
-  'keystone'   => 'latest',
-  'glance'     => 'latest',
-  'horizon'    => 'latest',
-  'nova'       => 'latest',
-  'novncproxy' => 'latest',
-  'cinder'     => 'latest',
+  'keystone'         => 'latest',
+  'glance'           => 'latest',
+  'horizon'          => 'latest',
+  'nova'             => 'latest',
+  'novncproxy'       => 'latest',
+  'cinder'           => 'latest',
+  'rabbitmq_version' => $rabbitmq_version_string,
 }
 
 $mirror_type = 'external'

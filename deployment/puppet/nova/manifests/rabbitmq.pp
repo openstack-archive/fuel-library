@@ -44,7 +44,8 @@ class nova::rabbitmq(
     port               => $port,
     delete_guest_user  => $delete_guest_user,
     config_cluster     => $cluster,
-    cluster_disk_nodes => $cluster_nodes
+    cluster_disk_nodes => $cluster_nodes,
+    version            => $::openstack_version['rabbitmq_version']
   }
 
   if ($enabled) {

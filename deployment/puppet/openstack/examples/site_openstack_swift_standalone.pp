@@ -113,14 +113,23 @@ class { "::rsyslog::client":
     port => '514'
  }
 }
+  case $::osfamily {
+    "Debian":  {
+       $rabbitmq_version_string = 'ubuntu 2.7.1-0ubuntu4'
+    }
+    "RedHat": {
+       $rabbitmq_version_string = 'centos 2.8.7-2'
+    }
+  }
 # OpenStack packages to be installed
 $openstack_version = {
-  'keystone'   => 'latest',
-  'glance'     => 'latest',
-  'horizon'    => 'latest',
-  'nova'       => 'latest',
-  'novncproxy' => 'latest',
-  'cinder'     => 'latest',
+  'keystone'         => 'latest',
+  'glance'           => 'latest',
+  'horizon'          => 'latest',
+  'nova'             => 'latest',
+  'novncproxy'       => 'latest',
+  'cinder'           => 'latest',
+  'rabbitmq_version' => $rabbitmq_version_string,
 }
 
 $mirror_type = 'external'
@@ -272,7 +281,7 @@ node /fuel-swift-01/ {
 
   $swift_zone = 1
 
-  class { 'openstack::swift::storage_node':
+  class { 'openstack::swift::storage-node':
     storage_type       => $swift_loopback,
     swift_zone         => $swift_zone,
     swift_local_net_ip => $internal_address,
@@ -285,7 +294,7 @@ node /fuel-swift-02/ {
 
   $swift_zone = 2
 
-  class { 'openstack::swift::storage_node':
+  class { 'openstack::swift::storage-node':
     storage_type       => $swift_loopback,
     swift_zone         => $swift_zone,
     swift_local_net_ip => $internal_address,
@@ -298,7 +307,7 @@ node /fuel-swift-03/ {
 
   $swift_zone = 3
 
-  class { 'openstack::swift::storage_node':
+  class { 'openstack::swift::storage-node':
     storage_type       => $swift_loopback,
     swift_zone         => $swift_zone,
     swift_local_net_ip => $internal_address,
