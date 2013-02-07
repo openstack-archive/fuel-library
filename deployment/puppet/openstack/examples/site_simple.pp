@@ -171,8 +171,8 @@ node /fuel-controller-[\d+]/ {
     manage_volumes          => $manage_volumes,
     nv_physical_volume      => $nv_physical_volume,
     use_syslog              => $use_syslog,
-          nova_rate_limits => $nova_rate_limits,
-      cinder_rate_limits => $cinder_rate_limits
+    nova_rate_limits        => $nova_rate_limits,
+    cinder_rate_limits      => $cinder_rate_limits
   }
 
   class { 'openstack::auth_file':
@@ -213,8 +213,8 @@ node /fuel-compute-[\d+]/ {
     db_host                => $controller_node_internal,
     manage_volumes         => $manage_volumes,
     verbose                => $verbose,
-    use_syslog              => $use_syslog,
-    nova_rate_limits => $nova_rate_limits,
-    cinder_rate_limits => $cinder_rate_limits
+    use_syslog             => $use_syslog,
+    nova_rate_limits       => $nova_rate_limits,
+    cinder_rate_limits     => $cinder_rate_limits
   }
 }
