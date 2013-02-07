@@ -149,6 +149,11 @@ class CiBase(object):
             IPNetwork(
                 self.environment().network_by_name('public').ip_network)[1])
 
+    def internal_router(self):
+        return str(
+            IPNetwork(
+                self.environment().network_by_name('internal').ip_network)[1])
+
     def fixed_network(self):
         return str(
             IPNetwork(self.environment().network_by_name('private').ip_network).subnet(

@@ -144,11 +144,18 @@ class CobblerTestCase(BaseTestCase):
                     node_mac1="00:17:3e:{0:02x}:{1:02x}:02".format(i, j),
                     node_mac2="00:17:3e:{0:02x}:{1:02x}:03".format(i, j),
                     node_ip="192.168.{0:d}.{1:d}".format(i, j),
-                    stomp_name=stomp_name
+                    stomp_name=stomp_name,
+                    gateway=self.ci().internal_router()
                 )
 
+    def _static(self, node_name):
+        if node_name.count('quantum'):
+            return "1"
+        else:
+            return "0"
+
     def _add_node(self, client, token, cobbler, node_name, node_mac0, node_mac1,
-                  node_mac2, node_ip, stomp_name):
+                  node_mac2, node_ip, stomp_name, gateway):
         system_id = client.new_system(token)
         if OS_FAMILY == 'centos':
             profile = 'centos63_x86_64'
@@ -163,21 +170,22 @@ class CobblerTestCase(BaseTestCase):
             name_servers=cobbler.get_ip_address_by_network_name('internal'),
             name_servers_search="your-domain-name.com",
             profile=profile,
+            gateway=gateway,
             netboot_enabled="1")
         client.modify_system(system_id, 'modify_interface', {
             "macaddress-eth0": str(node_mac0),
-            "static-eth0": "0",
+            "static-eth0": self._static(node_name),
             "macaddress-eth1": str(node_mac1),
             "ipaddress-eth1": str(node_ip),
             "dnsname-eth1": node_name + ".your-domain-name.com",
-            "static-eth1": "1",
+            "static-eth1": self._static(node_name),
             "macaddress-eth2": str(node_mac2),
             "static-eth2": "0"
         }, token)
         client.save_system(system_id, token)
         client.sync(token)
 
-    def add_node(self, client, token, cobbler, node):
+    def add_node(self, client, token, cobbler, node, gateway):
         node_name = node.name
         node_mac0 = str(node.interfaces[0].mac_address)
         node_mac1 = str(node.interfaces[1].mac_address)
@@ -186,7 +194,8 @@ class CobblerTestCase(BaseTestCase):
         self._add_node(
             client, token, cobbler, node_name,
             node_mac0, node_mac1, node_mac2, node_ip,
-            stomp_name=self.ci().nodes().stomps[0].name
+            stomp_name=self.ci().nodes().stomps[0].name,
+            gateway=gateway
         )
 
     def configure_cobbler(self):
@@ -195,7 +204,7 @@ class CobblerTestCase(BaseTestCase):
             cobbler.get_ip_address_by_network_name('internal'))
         token = client.login('cobbler', 'cobbler')
         for node in self.ci().client_nodes():
-            self.add_node(client, token, cobbler, node)
+            self.add_node(client, token, cobbler, node, gateway=self.ci().internal_router())
         master = self.environment().node_by_name('master')
         remote = master.remote('internal',
             login='root',
