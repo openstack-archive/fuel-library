@@ -33,3 +33,18 @@ Common Technical Issues
 
     * The first problem can be solved using the way described here: http://projects.reductivelabs.com/issues/2244
     * The second problem can be solved by rebooting Puppet master.
+
+#. PuppetDB Connection Failures
+  Puppet fails on fuel-pm with message:
+   Could not retrieve catalog from remote server: Error 400 on SERVER: Failed to submit 'replace facts' command for fuel-pm to PuppetDB at fuel-pm:8081: Connection refused - connect(2)
+
+  This message is often the result of one of the following:
+
+  * Firewall blocking the puppetdb port
+  * DNS issue with the hostname specified in your puppetdb.conf
+  * DNS issue with the ssl-host specified in your jetty.ini on the puppetdb server
+
+  If you are able to connect (e.g. via telnet) to port 8081 on the puppetdb machine, so try the next step:
+   | put in ``/etc/puppetdb/conf.d/jetty.ini`` a line:
+   | ``certificate-whitelist = /etc/puppetdb/whitelist.txt``
+   | listing all aliases for the machine in that file.
