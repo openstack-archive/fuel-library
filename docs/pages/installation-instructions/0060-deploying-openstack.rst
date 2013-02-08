@@ -369,7 +369,7 @@ in this case:
 ``contacts`` - create contacts for send error reports {as Hash}
 
 
-Examplee of OpenStack installation sequences
+Examples of OpenStack installation sequences
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 **First, please see the link below for details about different deployment scenarios.**
