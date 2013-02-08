@@ -174,7 +174,7 @@ require => [Package['nova-common']]
   # interfaces based on /etc/network/interfaces
   exec { "networking-refresh":
     command     => "/sbin/ifdown -a ; /sbin/ifup -a",
-    refreshonly => "true",
+    refreshonly => true,
   }
 
 

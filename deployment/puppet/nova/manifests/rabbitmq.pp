@@ -46,7 +46,7 @@ class nova::rabbitmq(
     config_cluster     => $cluster,
     cluster_disk_nodes => $cluster_nodes,
     version            => $::openstack_version['rabbitmq_version'],
-    node_ip_address    => undef
+    node_ip_address    => 'UNSET',
   }
 
   if ($enabled) {
