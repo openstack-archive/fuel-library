@@ -104,7 +104,19 @@ class rabbitmq::server(
     mode    => '0644',
     notify  => Class['rabbitmq::service'],
   }
-
+  
+  file { 'rabbitmq-server':
+    ensure  => present,
+    path    => '/etc/init.d/rabbitmq-server',
+    source => 'puppet:///modules/rabbitmq/rabbitmq-server',
+    replace => true,
+    owner   => '0',
+    group   => '0',
+    mode    => '0755',
+    #notify  => Class['rabbitmq::service'],
+    require => Package[$package_name],
+  }
+  
   class { 'rabbitmq::service':
     service_name => $service_name,
     ensure       => $service_ensure,
