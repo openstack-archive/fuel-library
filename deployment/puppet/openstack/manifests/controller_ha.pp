@@ -101,7 +101,14 @@ class openstack::controller_ha (
    $cinder_rate_limits = undef, $nova_rate_limits = undef
  ) {
 
-    $which = $::hostname ? { $master_hostname => 0, default => 1 }
+   # $which = $::hostname ? { $master_hostname => 0, default => 1 }
+    if ($::hostname == $master_hostname) or ($::fqdn == $master_hostname) {
+      $which = 0
+    }
+    else {
+      $which = 1
+    }
+    
 
     #    $vip = $virtual_ip
     #    $hosts = $controller_hostnames
