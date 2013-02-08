@@ -30,8 +30,15 @@ class mcollective::client(
     ensure   => 'installed',
     provider => 'gem',
   }
-  
-  package { $mcollective_client_package : }
+
+  package { "mcollective-common" : 
+    ensure => 'present',
+  }
+
+  package { $mcollective_client_package : 
+    ensure => 'present',
+    require => Package["mcollective-common"],
+  }
 
   exec {"patch_mcollective_no_ttl" :
     command => 'find -name message.rb | grep mcollective | xargs sed -i \'s/msg_age = Time.now.utc.to_i - msgtime/msg_age = 0 #Time.now.utc.to_i - msgtime/g\'',
