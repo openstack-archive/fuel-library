@@ -54,7 +54,12 @@ end
 
 Facter.add("openvswitch_module") do
     setcode do
-        Facter.value(:kernel_modules).split(",").include? openvswitch_module
+		modules = Facter.value(:kernel_modules)
+		if modules
+			modules.split(",").include? openvswitch_module
+		else
+		    false
+		end
     end
 end
 
