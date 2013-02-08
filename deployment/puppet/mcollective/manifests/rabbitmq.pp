@@ -33,6 +33,7 @@ class mcollective::rabbitmq(
     cluster_disk_nodes => [],
     config_stomp       => true,
     stomp_port         => $stompport,
+    node_ip_address    => 'UNSET',
   }
         
   rabbitmq_user { $stompuser:
