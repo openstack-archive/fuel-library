@@ -60,7 +60,9 @@ $auto_assign_floating_ip = false
 $glance_backend          = 'file'
 
 # Set master hostname for the HA cluster of controller nodes, as well as hostnames for every controller in the cluster.
+# Set master hostname as fully qualified domain name if FQDNs are used in $controller_internal_addresses
 $master_hostname      = 'fuel-controller-01'
+# Set short hostnames only to $controller_hostnames. RabbitMQ will not work if Fully Qualified domain names set here!
 $controller_hostnames = ['fuel-controller-01', 'fuel-controller-02']
 
 # Set up OpenStack network manager
