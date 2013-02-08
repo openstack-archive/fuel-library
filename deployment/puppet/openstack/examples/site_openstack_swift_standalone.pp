@@ -117,10 +117,10 @@ class { "::rsyslog::client":
 }
   case $::osfamily {
     "Debian":  {
-       $rabbitmq_version_string = 'ubuntu 2.7.1-0ubuntu4'
+       $rabbitmq_version_string = '2.7.1-0ubuntu4'
     }
     "RedHat": {
-       $rabbitmq_version_string = 'centos 2.8.7-2'
+       $rabbitmq_version_string = '2.8.7-2.el6'
     }
   }
 # OpenStack packages to be installed
