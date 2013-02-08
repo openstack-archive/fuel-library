@@ -31,12 +31,12 @@ class mcollective::client(
     provider => 'gem',
   }
 
-  package { $mcollective_client_package : 
+  package { $mcollective_client_package :
     ensure => 'present',
   }
 
   exec {"patch_mcollective_no_ttl" :
-    command => 'find / -name message.rb | grep mcollective | xargs sed -i \'s/msg_age = Time.now.utc.to_i - msgtime/msg_age = 0 #Time.now.utc.to_i - msgtime/g\'',
+    command => "find / -name message.rb | grep mcollective | xargs sed -i 's/msg_age = Time.now.utc.to_i - msgtime/msg_age = 0 #Time.now.utc.to_i - msgtime/g'",
     path => ['/bin','/sbin','/usr/bin','/usr/sbin'],
     provider => shell,
     require => Package[$mcollective_client_package],
