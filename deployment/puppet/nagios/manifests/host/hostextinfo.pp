@@ -4,9 +4,9 @@ define nagios::host::hostextinfo() {
     ensure          => present,
     host_name       => $::fqdn,
     notes           => $::lsbdistid,
-    icon_image      => "base/${nagios::params::distro}.png",
+    icon_image      => $nagios::params::icon_image,
     icon_image_alt  => $::lsbdistid,
-    statusmap_image => "base/${nagios::params::distro}.gd2",
+    statusmap_image => $nagios::params::statusmap_image,
     vrml_image      => "${nagios::params::distro}.png",
     target          => "/etc/${nagios::params::masterdir}/${proj_name}/${::hostname}_hostextinfo.cfg",
   }

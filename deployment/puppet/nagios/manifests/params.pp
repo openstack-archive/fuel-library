@@ -23,8 +23,8 @@ class nagios::params {
     'glance-api' => 'check_http_api!9292',
     'glance-registry' => 'check_nrpe_1arg!check_glance_registry',
     'horizon' => 'check_http_api!80',
-    'rabbitmq' => 'check_rabbitmq!nova!nova',
-    'mysql' => 'check_galera_mysql!nova!nova',
+    'rabbitmq' => 'check_rabbitmq',
+    'mysql' => 'check_galera_mysql',
     'apt' => 'nrpe_check_apt',
     'kernel' => 'nrpe_check_kernel',
     'libs' => 'nrpe_check_libs',
@@ -33,6 +33,7 @@ class nagios::params {
     'zombie' => 'nrpe_check_procs_zombie!5!10',
     'swap' => 'nrpe_check_swap!20%!10%',
     'user' => 'nrpe_check_users!5!10',
+    'host-alive' => 'check-host-alive',
   }
 
   case $::osfamily {
@@ -53,7 +54,9 @@ class nagios::params {
       $libdir    = '/usr/lib64'
       $nrpeservice = 'nrpe'
       $masterservice = 'nagios'
-      $distro = inline_template("<%= scope.lookupvar('::operatingsystem').downcase -%>")
+      $distro = inline_template("<%= scope.lookupvar('::osfamily').downcase -%>")
+      $icon_image = "${distro}.png"
+      $statusmap_image = "${distro}.gd2"
     }
     'Debian': {
       $nagios3pkg = [
@@ -71,6 +74,8 @@ class nagios::params {
       $nrpeservice = 'nagios-nrpe-server'
       $masterservice = 'nagios3'
       $distro = inline_template("<%= scope.lookupvar('::lsbdistid').downcase -%>")
+      $icon_image = "base/${distro}.png"
+      $statusmap_image = "base/${distro}.gd2",
     }
   }
 }

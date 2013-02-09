@@ -24,7 +24,6 @@ class nagios::common inherits nagios {
 #})
 
   define runservice($service) {
-    include nagios::params
     notify {$services_list[$service]:}
     nagios::service::services { $service:
       command => $services_list[$service]
