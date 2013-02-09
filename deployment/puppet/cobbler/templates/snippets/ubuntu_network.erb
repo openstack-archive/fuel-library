@@ -51,7 +51,11 @@
         #end for
         #set $gateway = $getVar("gateway", "")
         #if $gateway != ""
-            #set $network_address = ipaddr.IPv4Network("%s/%s" % ($iip, $inetmask))
+            #if $inetmask != ""
+                #set $network_address = ipaddr.IPv4Network("%s/%s" % ($iip, $inetmask))
+            #else
+                #set $network_address = ipaddr.IPv4Network("%s" % ($iip))
+            #end if
             #set $gateway_address = ipaddr.IPv4Address($gateway)
             #if $gateway_address in $network_address
                 #set $script += "echo gateway %s >> %s\n" % ($gateway, $interfaces_file)
