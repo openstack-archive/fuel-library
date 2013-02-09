@@ -1,6 +1,5 @@
 import subprocess
 from time import sleep
-import unittest
 from devops.helpers.helpers import ssh
 import glanceclient
 import keystoneclient.v2_0
@@ -19,8 +18,8 @@ class Prepare():
 
     def remote(self):
         return ssh(self.public_ip,
-            login='root',
-            password='r00tme').sudo.ssh
+                   login='root',
+                   password='r00tme').sudo.ssh
 
     def ci(self):
         if not hasattr(self, '_ci'):
@@ -68,7 +67,7 @@ class Prepare():
                 image_ref=image_ref,
                 image_ref_alt=image_ref_alt,
                 path_to_private_key=root('fuel_test', 'config', 'ssh_keys',
-                    'openstack'),
+                                         'openstack'),
                 compute_db_uri='mysql://nova:nova@%s/nova' % self.ci().internal_virtual_ip()
             ))
 
@@ -160,25 +159,25 @@ class Prepare():
         tenant1 = retry(10, keystone.tenants.create, tenant_name='tenant1')
         tenant2 = retry(10, keystone.tenants.create, tenant_name='tenant2')
         retry(10, keystone.users.create, name='tempest1', password='secret',
-            email='tempest1@example.com', tenant_id=tenant1.id)
+              email='tempest1@example.com', tenant_id=tenant1.id)
         retry(10, keystone.users.create, name='tempest2', password='secret',
-            email='tempest2@example.com', tenant_id=tenant2.id)
+              email='tempest2@example.com', tenant_id=tenant2.id)
         image_ref, image_ref_alt = self.tempest_add_images()
         return image_ref, image_ref_alt
 
     def _get_identity_client(self):
         keystone = retry(10, keystoneclient.v2_0.client.Client,
-            username=self.username(), password=self.password(),
-            tenant_name=self.tenant(),
-            auth_url=self.get_auth_url())
+                         username=self.username(), password=self.password(),
+                         tenant_name=self.tenant(),
+                         auth_url=self.get_auth_url())
         return keystone
 
     def _get_image_client(self):
         keystone = self._get_identity_client()
         endpoint = keystone.service_catalog.url_for(service_type='image',
-            endpoint_type='publicURL')
+                                                    endpoint_type='publicURL')
         return glanceclient.Client('1', endpoint=endpoint,
-            token=keystone.auth_token)
+                                   token=keystone.auth_token)
 
     def upload(self, glance, name, path):
         image = glance.images.create(
@@ -194,9 +193,9 @@ class Prepare():
             subprocess.check_call(['wget', CIRROS_IMAGE])
         glance = self._get_image_client()
         return self.upload(glance, 'cirros_0.3.0',
-            'cirros-0.3.0-x86_64-disk.img'),\
+                           'cirros-0.3.0-x86_64-disk.img'), \
                self.upload(glance, 'cirros_0.3.0',
-                   'cirros-0.3.0-x86_64-disk.img')
+                           'cirros-0.3.0-x86_64-disk.img')
 
     def tempest_share_glance_images(self, network):
         if OS_FAMILY == "centos":
@@ -207,7 +206,7 @@ class Prepare():
             self.remote().check_stderr('/etc/init.d/nfs restart')
         else:
             install_packages(self.remote(),
-                'nfs-kernel-server nfs-common portmap')
+                             'nfs-kernel-server nfs-common portmap')
             self.remote().check_stderr(
                 'echo "/var/lib/glance/images %s(rw,no_root_squash)" >> /etc/exports' % network)
             self.remote().check_stderr('/etc/init.d/nfs-kernel-server restart')
@@ -233,7 +232,8 @@ class Prepare():
                 'internal', login='root',
                 password='r00tme').sudo.ssh
             self.tempest_mount_glance_images(remote, nfs_server)
-        sleep(60)
+        sleep(20)
+
 
 if __name__ == '__main__':
-    unittest.main()
+    Prepare().prepare_tempest_folsom()
