@@ -40,7 +40,11 @@ $verbose                 = true
 $auto_assign_floating_ip = false
 
 # Cinder service
-$cinder = false
+$cinder                  = false
+$quantum                 = false
+$swift                   = false
+$use_syslog              = false
+
 
 # Packages repo setup
 $mirror_type = 'internal'
@@ -77,6 +81,8 @@ node 'fuel-controller-02' {
     network_config          => { 'vlan_start' => $vlan_start },
     purge_nova_config       => false,
     cinder                  => $cinder,
+    quantum                 => $quantum,
+    swift                   => $swift,
   }
 
   class { 'openstack::auth_file':
