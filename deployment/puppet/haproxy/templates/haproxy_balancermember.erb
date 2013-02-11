@@ -2,5 +2,5 @@
     items = balancermember_options
     items = [items] unless balancermember_options.instance_of? Array
     items.each do |item| %> <% if @define_cookies == true %> cookie <%= @host %> <% end %> <%= item %> <% if @master_host and @master_host != @host %> backup <% end %> <% end %>
-  <% end %>
+  <% end -%>
 
