@@ -44,7 +44,7 @@ def sync_time(remotes):
     install_packages2(remotes, 'ntpdate')
     for remote in remotes:
         remote.execute('/etc/init.d/ntpd stop')
-        remote.check_stderr('ntpdate 0.centos.pool.ntp.org')
+        remote.execute('ntpdate 0.centos.pool.ntp.org')
         remote.execute('/etc/init.d/ntpd start')
 
 
