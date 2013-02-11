@@ -55,16 +55,18 @@ start_rabbitmq () {
         echo RabbitMQ is currently running
     else
         #RETVAL=0
-        ensure_pid_dir
+        #ensure_pid_dir
         #set +e
         #Give rabbitmq master some additional time to start. 
         #Slave nodes fail to start until master is up and running
         #So, give slaves 5 attempts to start
         j=5
+        echo RabbitMQ is going to make ${j} attempts to find master node and start.
         while test $j -ne 0
         do
             RETVAL=0
-            let j=$j-1
+            ensure_pid_dir
+            j=$((j-1))
             set +e
             echo ${j} attempts left to start RabbitMQ Server before consider start failed.
             RABBITMQ_PID_FILE=$PID_FILE $START_PROG $DAEMON \
@@ -84,7 +86,9 @@ start_rabbitmq () {
                     ;;
                 *)
                     remove_pid
-                    echo FAILED - check ${INIT_LOG_DIR}/startup_\{log, _err\}
+                    if [ $j = 0 ] ; then
+                        echo FAILED - check ${INIT_LOG_DIR}/startup_\{log, _err\}
+                    fi
                     RETVAL=1
                     ;;
             esac
