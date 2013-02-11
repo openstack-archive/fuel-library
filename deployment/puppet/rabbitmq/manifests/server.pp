@@ -105,7 +105,7 @@ class rabbitmq::server(
     notify  => Class['rabbitmq::service'],
   }
   
-  if $::osfamily == 'RedHat' {
+  #if $::osfamily == 'RedHat' {
     file { 'rabbitmq-server':
       ensure  => present,
       path    => '/etc/init.d/rabbitmq-server',
@@ -117,7 +117,7 @@ class rabbitmq::server(
       #notify  => Class['rabbitmq::service'],
       require => Package[$package_name],
     }
-  }
+  #}
   
   class { 'rabbitmq::service':
     service_name => $service_name,
