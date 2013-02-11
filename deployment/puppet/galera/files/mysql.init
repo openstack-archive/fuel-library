@@ -326,7 +326,7 @@ case "$mode" in
         while test $j -ne 60  #wait a little bit for mysql to exit
         do 
                 if (kill -0 $mysqld_pid 2>/dev/null); then
-                        let j=$j+1
+                        j=$((j+1))
                 else
                         break
                 fi
