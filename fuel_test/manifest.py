@@ -160,6 +160,26 @@ class Manifest(object):
         self.write_manifest(remote, template)
 
 
+    def write_openstack_single_manifest(self, remote, ci,
+                                        use_syslog=True,
+                                        quantum=True,
+                                        cinder=True):
+        template = Template(
+            root(
+                'deployment', 'puppet', 'openstack', 'examples',
+                'site_singlenode.pp')).replace(
+            floating_range=self.floating_network(ci, quantum),
+            fixed_range=ci.fixed_network(),
+            public_interface=self.public_interface(),
+            private_interface=self.private_interface(),
+            mirror_type=self.mirror_type(),
+            use_syslog=use_syslog,
+            cinder=cinder,
+            quantum=quantum,
+        )
+        self.write_manifest(remote, template)
+
+
     def write_openstack_manifest(self, remote, template, ci, controllers, quantums,
                                  proxies=None, use_syslog=True,
                                  quantum=True, loopback=True,

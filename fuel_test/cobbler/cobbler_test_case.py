@@ -44,7 +44,9 @@ class CobblerTestCase(BaseTestCase):
             remote=self.remote(),
             ci=self.ci(),
             controllers=self.nodes().controllers)
-
+        Manifest().write_openstack_single_manifest(
+            remote=self.remote(),
+            ci=self.ci())
 
     def setUp(self):
         self.get_nodes_deployed_state()
