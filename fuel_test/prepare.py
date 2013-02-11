@@ -14,7 +14,7 @@ class Prepare():
     def __init__(self):
         self.public_ip = self.ci().public_virtual_ip()
         self.internal_ip = self.ci().public_virtual_ip()
-        self.controllers = self.ci().nodes().controllers()
+        self.controllers = self.ci().nodes().controllers
 
     def remote(self):
         return ssh(self.public_ip,
