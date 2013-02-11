@@ -31,8 +31,8 @@ $horizon_secret_key      = 'dummy_secret_key'
 $mysql_root_password     = 'sql_pass'
 $rabbit_password         = 'openstack_rabbit_password'
 $rabbit_user             = 'openstack_rabbit_user'
-$fixed_range     = '10.0.58.0/24'
-$floating_range  = '10.0.75.128/27'
+$fixed_range             = '10.0.58.0/24'
+$floating_range          = '10.0.75.128/27'
 $vlan_start              = 300
 # switch this to true to have all service log at verbose
 $verbose                 = true
