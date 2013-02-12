@@ -307,6 +307,7 @@ class openstack::controller (
     rabbit_password         => $rabbit_password,
     rabbit_nodes            => $rabbit_nodes,
     rabbit_cluster          => $rabbit_cluster,
+    rabbit_node_ip_address => $rabbit_node_ip_address,
     # Glance
     glance_api_servers      => $glance_api_servers,
     # General
