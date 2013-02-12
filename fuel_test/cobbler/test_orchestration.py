@@ -1,4 +1,5 @@
 import unittest
+from fuel_test.astute import Astute
 from fuel_test.cobbler.cobbler_test_case import CobblerTestCase
 from fuel_test.helpers import    write_config
 from fuel_test.manifest import Manifest, Template
@@ -12,17 +13,8 @@ class CobblerCase(CobblerTestCase):
             quantums=self.nodes().quantums,
             swift=False,
             quantum=True)
-        config_text = (
-            "use_case: minimal\n"
-            "fuel-controller-01.your-domain-name.com:\n"
-            "  role: controller\n"
-            "fuel-controller-02.your-domain-name.com:\n"
-            "  role: controller\n"
-            "fuel-compute-01.your-domain-name.com:\n"
-            "  role: compute\n"
-            "fuel-compute-02.your-domain-name.com:\n"
-            "  role: compute\n"
-            )
+        config_text = Astute.config('minimal', controllers=self.nodes().controllers,
+            computes=self.nodes().computes)
         remote = self.nodes().stomps[0].remote('public', login='root',
             password='r00tme')
         write_config(remote, '/tmp/nodes.yaml', config_text)
@@ -33,17 +25,8 @@ class CobblerCase(CobblerTestCase):
             remote=self.remote(),
             ci=self.ci(),
             controllers=self.nodes().controllers[:1])
-        config_text = (
-            "use_case: simple\n"
-            "fuel-controller-01.your-domain-name.com:\n"
-            "  role: controller\n"
-            "fuel-controller-02.your-domain-name.com:\n"
-            "  role: controller\n"
-            "fuel-compute-01.your-domain-name.com:\n"
-            "  role: compute\n"
-            "fuel-compute-02.your-domain-name.com:\n"
-            "  role: compute\n"
-            )
+        config_text = Astute.config('simple', controllers=self.nodes().controllers,
+            computes=self.nodes().computes, quantums=self.nodes().quantums)
         remote = self.nodes().stomps[0].remote('public', login='root',
             password='r00tme')
         write_config(remote, '/tmp/nodes.yaml', config_text)
@@ -56,19 +39,8 @@ class CobblerCase(CobblerTestCase):
             controllers=self.nodes().controllers,
             quantums=self.nodes().quantums,
             quantum=True)
-        config_text = (
-            "use_case: compact\n"
-            "fuel-controller-01.your-domain-name.com:\n"
-            "    role: controller\n"
-            "fuel-controller-02.your-domain-name.com:\n"
-            "    role: controller\n"
-            "fuel-controller-03.your-domain-name.com:\n"
-            "    role: controller\n"
-            "fuel-compute-01.your-domain-name.com:\n"
-            "    role: compute\n"
-            "fuel-compute-02.your-domain-name.com:\n"
-            "    role: compute\n"
-            )
+        config_text = Astute.config('compact', controllers=self.nodes().controllers,
+            computes=self.nodes().computes, quantums=self.nodes().quantums)
         remote = self.nodes().stomps[0].remote('public', login='root',
             password='r00tme')
         write_config(remote, '/tmp/nodes.yaml', config_text)
@@ -82,27 +54,11 @@ class CobblerCase(CobblerTestCase):
             quantums=self.nodes().quantums,
             proxies=self.nodes().proxies,
             quantum=True)
-        config_text = (
-            "use_case: full\n"
-            "fuel-controller-01.your-domain-name.com:\n"
-            "    role: controller\n"
-            "fuel-controller-02.your-domain-name.com:\n"
-            "    role: controller\n"
-            "fuel-compute-01.your-domain-name.com:\n"
-            "    role: compute\n"
-            "fuel-compute-02.your-domain-name.com:\n"
-            "    role: compute\n"
-            "fuel-swift-01.your-domain-name.com:\n"
-            "    role: storage\n"
-            "fuel-swift-02.your-domain-name.com:\n"
-            "    role: storage\n"
-            "fuel-swift-03.your-domain-name.com:\n"
-            "    role: storage\n"
-            "fuel-swiftproxy-01.your-domain-name.com:\n"
-            "    role: proxy\n"
-            "fuel-swiftproxy-02.your-domain-name.com:\n"
-            "    role: proxy\n"
-            )
+        config_text = Astute.config('full', controllers=self.nodes().controllers,
+            computes=self.nodes().computes,
+            quantums=self.nodes().quantums,
+            storages=self.nodes().storages,
+            proxies=self.nodes().proxies)
         remote = self.nodes().stomps[0].remote(login='root',
             password='r00tme')
         write_config(remote, '/tmp/nodes.yaml', config_text)

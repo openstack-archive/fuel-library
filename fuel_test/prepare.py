@@ -10,7 +10,7 @@ from fuel_test.root import root
 from fuel_test.settings import ADMIN_USERNAME, ADMIN_PASSWORD, ADMIN_TENANT_ESSEX, ADMIN_TENANT_FOLSOM, OS_FAMILY, CIRROS_IMAGE
 
 
-class Prepare():
+class Prepare(object):
     def __init__(self):
         self.public_ip = self.ci().public_virtual_ip()
         self.internal_ip = self.ci().public_virtual_ip()
