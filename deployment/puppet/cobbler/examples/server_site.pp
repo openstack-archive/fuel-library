@@ -81,13 +81,7 @@ node fuel-cobbler {
             "name" => "Canonical",
             "url"  => "http://172.18.67.168/ubuntu-cloud.archive.canonical.com/ubuntu/",
             "release" => "precise-updates/folsom",
-            "repos" => "main universe multiverse restricted",
-          },
-          {
-            "name" => "Yandex",
-            "url"  => "http://172.18.67.168/ubuntu-repo/mirror.yandex.ru/ubuntu",
-            "release" => "precise",
-            "repos" => "main universe multiverse restricted",
+            "repos" => "main",
           },
         ],
       }
