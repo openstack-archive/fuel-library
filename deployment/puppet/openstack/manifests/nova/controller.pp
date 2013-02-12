@@ -57,6 +57,7 @@ class openstack::nova::controller (
   $nova_db_dbname            = 'nova',
   # Rabbit
   $rabbit_user               = 'nova',
+  $rabbit_node_ip_address = undef,
   # Database
   $db_type                   = 'mysql',
   # Glance
@@ -74,7 +75,7 @@ class openstack::nova::controller (
   $enabled_apis     = 'ec2,osapi_compute',
   $api_bind_address = '0.0.0.0',
   $use_syslog              = false,
-  $nova_rate_limits = undef
+  $nova_rate_limits = undef,
 ) {
 
   # Configure the db string
@@ -120,6 +121,7 @@ class openstack::nova::controller (
     enabled  => $enabled,
     cluster  => $rabbit_cluster,
     cluster_nodes => $rabbit_nodes,
+    rabbit_node_ip_address => $rabbit_node_ip_address,
   }
 if ($rabbit_nodes)
 {

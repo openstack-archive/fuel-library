@@ -90,6 +90,7 @@ class openstack::controller (
   $rabbit_user             = 'nova',
   $rabbit_cluster          = false,
   $rabbit_nodes            = [$internal_address],
+  $rabbit_node_ip_address = undef,
   # network configuration
   # this assumes that it is a flat network manager
   $network_manager         = 'nova.network.manager.FlatDHCPManager',
@@ -154,7 +155,7 @@ class openstack::controller (
   $nv_physical_volume      = undef,
   $use_syslog              = false,
   $nova_rate_limits = undef,
-  $cinder_rate_limits = undef
+  $cinder_rate_limits = undef,
 ) {
 
   # Ensure things are run in order

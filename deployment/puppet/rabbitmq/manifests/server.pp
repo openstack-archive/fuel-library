@@ -32,7 +32,7 @@ class rabbitmq::server(
   $service_ensure = 'running',
   $config_stomp = false,
   $stomp_port = '6163',
-  $node_ip_address = getvar("::ipaddress_${::internal_interface}"),
+  $node_ip_address = 'UNSET', #getvar("::ipaddress_${::internal_interface}"),
   $config='UNSET',
   $config_cluster = false,
   $cluster_disk_nodes = [], 
@@ -105,19 +105,17 @@ class rabbitmq::server(
     notify  => Class['rabbitmq::service'],
   }
   
-  #if $::osfamily == 'RedHat' {
-    file { 'rabbitmq-server':
-      ensure  => present,
-      path    => '/etc/init.d/rabbitmq-server',
-      source => 'puppet:///modules/rabbitmq/rabbitmq-server',
-      replace => true,
-      owner   => '0',
-      group   => '0',
-      mode    => '0755',
-      #notify  => Class['rabbitmq::service'],
-      require => Package[$package_name],
-    }
-  #}
+  file { 'rabbitmq-server':
+    ensure  => present,
+    path    => '/etc/init.d/rabbitmq-server',
+    source => 'puppet:///modules/rabbitmq/rabbitmq-server',
+    replace => true,
+    owner   => '0',
+    group   => '0',
+    mode    => '0755',
+    #notify  => Class['rabbitmq::service'],
+    require => Package[$package_name],
+  }
   
   class { 'rabbitmq::service':
     service_name => $service_name,

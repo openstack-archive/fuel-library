@@ -313,7 +313,8 @@ local0.* -/var/log/haproxy.log'
       swift                   => $glance_backend ? { 'swift' => true, default => false },
       use_syslog              => $use_syslog,
       cinder_rate_limits => $cinder_rate_limits,
-      nova_rate_limits => $nova_rate_limits
+      nova_rate_limits => $nova_rate_limits,
+      rabbit_node_ip_address  => getvar("::ipaddress_${internal_interface}"),
     }
 
     class { 'openstack::auth_file':
