@@ -231,6 +231,8 @@ class CobblerTestCase(BaseTestCase):
         for node in self.ci().client_nodes():
             await_node_deploy(
                 cobbler.get_ip_address_by_network_name('internal'), node.name)
+        for node in self.ci().client_nodes():
+            node.await()
         sleep(20)
         self.environment().snapshot('nodes-deployed', force=True)
 
