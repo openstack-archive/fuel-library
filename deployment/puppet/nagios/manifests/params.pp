@@ -75,7 +75,7 @@ class nagios::params {
       $masterservice = 'nagios3'
       $distro = inline_template("<%= scope.lookupvar('::lsbdistid').downcase -%>")
       $icon_image = "base/${distro}.png"
-      $statusmap_image = "base/${distro}.gd2",
+      $statusmap_image = "base/${distro}.gd2"
     }
   }
 }
