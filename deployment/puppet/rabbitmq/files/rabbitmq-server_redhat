@@ -61,7 +61,7 @@ start_rabbitmq () {
         #Slave nodes fail to start until master is up and running
         #So, give slaves 5 attempts to start
         j=5
-        echo RabbitMQ is going to make ${j} attempts to find master node and start.
+        echo "RabbitMQ is going to make ${j} attempts to find master node and start."
         while test $j -ne 0
         do
             RETVAL=0

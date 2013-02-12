@@ -105,16 +105,33 @@ class rabbitmq::server(
     notify  => Class['rabbitmq::service'],
   }
   
+  case $::osfamily {
+    'RedHat' : {
   file { 'rabbitmq-server':
     ensure  => present,
     path    => '/etc/init.d/rabbitmq-server',
-    source => 'puppet:///modules/rabbitmq/rabbitmq-server',
+        source => 'puppet:///modules/rabbitmq/rabbitmq-server_redhat',
     replace => true,
     owner   => '0',
     group   => '0',
     mode    => '0755',
     #notify  => Class['rabbitmq::service'],
     require => Package[$package_name],
+  }
+    }
+    'Debian' : {
+      file { 'rabbitmq-server':
+        ensure  => present,
+        path    => '/etc/init.d/rabbitmq-server',
+        source => 'puppet:///modules/rabbitmq/rabbitmq-server_ubuntu',
+        replace => true,
+        owner   => '0',
+        group   => '0',
+        mode    => '0755',
+        #notify  => Class['rabbitmq::service'],
+        require => Package[$package_name],
+      }
+    }
   }
   
   class { 'rabbitmq::service':
