@@ -101,6 +101,7 @@ class CobblerTestCase(BaseTestCase):
         self.validate(
             self.nodes().stomps,
             'puppet agent --test')
+        self.install_astute_gem()
 
     def install_astute_gem(self):
         build_astute()
