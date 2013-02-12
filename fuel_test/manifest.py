@@ -130,9 +130,15 @@ class Manifest(object):
 
     def floating_network(self, ci, quantum):
         if quantum:
-            ci.public_network()
+            return ci.public_network()
         else:
-            ci.floating_network()
+            return ci.floating_network()
+
+    def fixed_network(self, ci, quantum):
+        if quantum:
+            return '192.168.111.0/24'
+        else:
+            return ci.fixed_network()
 
     def write_openstack_simple_manifest(self, remote, ci, controllers,
                                         use_syslog=True,
@@ -143,7 +149,7 @@ class Manifest(object):
                 'deployment', 'puppet', 'openstack', 'examples',
                 'site_simple.pp')).replace(
             floating_range=self.floating_network(ci, quantum),
-            fixed_range=ci.fixed_network(),
+            fixed_range=self.fixed_network(ci, quantum),
             public_interface=self.public_interface(),
             internal_interface=self.internal_interface(),
             private_interface=self.private_interface(),
@@ -169,7 +175,7 @@ class Manifest(object):
                 'deployment', 'puppet', 'openstack', 'examples',
                 'site_singlenode.pp')).replace(
             floating_range=self.floating_network(ci, quantum),
-            fixed_range=ci.fixed_network(),
+            fixed_range=self.fixed_network(ci, quantum),
             public_interface=self.public_interface(),
             private_interface=self.private_interface(),
             mirror_type=self.mirror_type(),
@@ -188,7 +194,7 @@ class Manifest(object):
             internal_virtual_ip=ci.internal_virtual_ip(),
             public_virtual_ip=ci.public_virtual_ip(),
             floating_range=self.floating_network(ci, quantum),
-            fixed_range=ci.fixed_network(),
+            fixed_range=self.fixed_network(ci,quantum),
             master_hostname=controllers[0].name,
             mirror_type=self.mirror_type(),
             controller_public_addresses=self.public_addresses(
@@ -260,5 +266,8 @@ class Manifest(object):
 
     def write_stomp_manifest(self, remote):
         self.write_manifest(remote, Template.stomp())
+
+
+
 
 
