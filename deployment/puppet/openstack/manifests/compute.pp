@@ -266,6 +266,18 @@ class openstack::compute (
     }
   }
 
+  # configure nova api 
+  class { 'nova::api':
+    ensure_package    => $::openstack_version['nova'],
+    enabled           => true,
+    admin_tenant_name => 'services',
+    admin_user        => 'nova',
+    admin_password    => $nova_user_password,
+    enabled_apis      => $enabled_apis,
+    auth_host         => $service_endpoint,
+    nova_rate_limits  => $nova_rate_limits,
+  }
+
   # if the compute node should be configured as a multi-host
   # compute installation
   if ! $quantum {
@@ -288,18 +300,6 @@ class openstack::compute (
       }
 
       $enable_network_service = true
-
-      class { 'nova::api':
-        ensure_package    => $::openstack_version['nova'],
-        enabled           => true,
-        admin_tenant_name => 'services',
-        admin_user        => 'nova',
-        admin_password    => $nova_user_password,
-        enabled_apis      => $enabled_apis,
-        auth_host         => $service_endpoint,
-        nova_rate_limits  => $nova_rate_limits,
-        # TODO override enabled_apis
-      }
 
     } else {
       $enable_network_service = false
