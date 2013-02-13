@@ -1,0 +1,9 @@
+DEFAULT local
+PROMPT 0
+TIMEOUT 0
+TOTALTIMEOUT 0
+ONTIMEOUT local
+
+LABEL local
+    COM32 chain.c32
+    APPEND hd0
