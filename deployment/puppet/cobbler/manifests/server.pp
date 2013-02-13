@@ -134,7 +134,6 @@ class cobbler::server {
                ],
   }
 
-
   file {"/etc/cobbler/pxe/pxedefault.template":
     content => template("cobbler/pxedefault.template.erb"),
     owner => root,
@@ -147,4 +146,24 @@ class cobbler::server {
                ],
   }
 
+  file {"/etc/cobbler/pxe/pxelocal.template":
+      content => template("cobbler/pxelocal.template.erb"),
+      owner => root,
+      group => root,
+      mode => 0644,
+      require => Package[$cobbler_package],
+      notify => [
+                 Service[$cobbler_service],
+                 Exec["cobbler_sync"],
+                 ],
   }
+
+ exec { "/var/lib/tftpboot/chain.c32":
+     command => "cp /usr/share/syslinux/chain.c32 /var/lib/tftpboot/chain.c32",
+     unless => "test -e /var/lib/tftpboot/chain.c32",
+     require => [
+                 Package[$cobbler_additional_packages],
+                 Package[$cobbler_package],
+                 ]
+ }
+}
