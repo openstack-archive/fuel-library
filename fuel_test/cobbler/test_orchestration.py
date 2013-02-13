@@ -25,7 +25,7 @@ class CobblerCase(CobblerTestCase):
             remote=self.remote(),
             ci=self.ci(),
             controllers=self.nodes().controllers[:1])
-        config_text = Astute.config('simple', controllers=self.nodes().controllers,
+        config_text = Astute.config('simple', controllers=self.nodes().controllers[:1],
             computes=self.nodes().computes, quantums=self.nodes().quantums)
         remote = self.nodes().stomps[0].remote('public', login='root',
             password='r00tme')
