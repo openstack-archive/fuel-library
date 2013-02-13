@@ -121,6 +121,7 @@ class quantum::agents::l3 (
     require    => [Package[$l3_agent_package], Class['quantum'], Service['quantum-plugin-ovs-service']],
   }
 
+  # turn down the current default route metric priority
   $update_default_route_metric = "/sbin/route del default gw ${::defaultroute};\
     /sbin/route add default gw ${::defaultroute} dev ${::defaultroute_interface} metric 100"
 
@@ -130,6 +131,16 @@ class quantum::agents::l3 (
     subscribe   => Package[$l3_agent_package],
     before      => Service['quantum-l3'],
     refreshonly => true,
+  }
+
+  exec { 'wait-for-default-route':
+    command     => "/bin/ping -q -c1 ${::defaultroute}",
+    subscribe   => Exec['update_default_route_metric'],
+    require     => Service['quantum-l3'],
+    logoutput   => 'on_failure',
+    refreshonly => true,
+    try_sleep   => 3,
+    tries       => 5,
   }
 
 }

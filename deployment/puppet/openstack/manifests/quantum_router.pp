@@ -92,7 +92,6 @@ class openstack::quantum_router (
       auth_password    => $quantum_user_password,
       rabbit_user      => $rabbit_user,
       rabbit_password  => $rabbit_password,
-      require          => Service['quantum-l3'],
     }
 
     sysctl::value { 'net.ipv4.ip_forward':
