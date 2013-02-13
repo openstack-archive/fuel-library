@@ -151,7 +151,7 @@ class cobbler::server {
       owner => root,
       group => root,
       mode => 0644,
-      require => Package[$cobbler_package],
+      require => Package[$cobbler::packages::cobbler_package],
       notify => [
                  Service[$cobbler_service],
                  Exec["cobbler_sync"],
@@ -162,8 +162,8 @@ class cobbler::server {
      command => "cp /usr/share/syslinux/chain.c32 /var/lib/tftpboot/chain.c32",
      unless => "test -e /var/lib/tftpboot/chain.c32",
      require => [
-                 Package[$cobbler_additional_packages],
-                 Package[$cobbler_package],
+                 Package[$cobbler::packages::cobbler_additional_packages],
+                 Package[$cobbler::packages::cobbler_package],
                  ]
  }
 }
