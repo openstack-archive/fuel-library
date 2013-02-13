@@ -30,7 +30,7 @@ plugin.yaml = /etc/mcollective/facts.yaml
     "mco_stompuser": $mco_stompuser,
     "mco_stomppassword": $mco_stomppassword
     }, "/etc/mcollective/server.cfg", source_method='content', mode="0600");\
-in-target mkdir -p /usr/libexec/mcollective/mcollective/agent/ && \
+in-target mkdir -p /usr/share/mcollective/plugins/mcollective/agent/ && \
 in-target $late_command.late_file("""
 metadata    :name        => "puppetd",
             :description => "Run puppet agent, get its status, and enable/disable it",
@@ -121,7 +121,7 @@ action "status", :description => "Get puppet agent's status" do
            :display_as => "Status"
 end
 """
-, "/usr/libexec/mcollective/mcollective/agent/puppetd.ddl", source_method='content', mode="0600");\
+, "/usr/share/mcollective/plugins/mcollective/agent/puppetd.ddl", source_method='content', mode="0600");\
 
 in-target $late_command.late_file("""
 module MCollective
@@ -297,7 +297,7 @@ end
 
 # vi:tabstop=2:expandtab:ai:filetype=ruby
 """
-, "/usr/libexec/mcollective/mcollective/agent/puppetd.rb", source_method='content', mode="0600") ;\
+, "/usr/share/mcollective/plugins/mcollective/agent/puppetd.rb", source_method='content', mode="0600") ;\
 in-target sed -i 's/msg_age = Time.now.utc.to_i - msgtime/msg_age = 0 #Time.now.utc.to_i - msgtime/g' /usr/lib/ruby/1.8/mcollective/message.rb; \
 #end if
 #if $str($getVar('mco_enable', '')) == "1"
