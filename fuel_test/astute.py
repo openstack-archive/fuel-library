@@ -13,11 +13,11 @@ class Astute(object):
         config = {
             'use_case': use_case
         }
-        map(lambda x: config.update({x.name: {'role': 'controller'}}), controllers)
-        map(lambda x: config.update({x.name: {'role': 'compute'}}), computes)
-        map(lambda x: config.update({x.name: {'role': 'storage'}}), storages)
-        map(lambda x: config.update({x.name: {'role': 'proxy'}}), proxies)
-        map(lambda x: config.update({x.name: {'role': 'quantum'}}), quantums)
+        map(lambda x: config.update({str(x.name): {'role': 'controller'}}), controllers)
+        map(lambda x: config.update({str(x.name): {'role': 'compute'}}), computes)
+        map(lambda x: config.update({str(x.name): {'role': 'storage'}}), storages)
+        map(lambda x: config.update({str(x.name): {'role': 'proxy'}}), proxies)
+        map(lambda x: config.update({str(x.name): {'role': 'quantum'}}), quantums)
         return yaml.dump(config)
 
     def test_minimal_config(self):
