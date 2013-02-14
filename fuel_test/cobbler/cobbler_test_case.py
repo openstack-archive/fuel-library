@@ -1,5 +1,6 @@
 from time import sleep
 import unittest
+from devops.error import TimeoutError
 from fuel_test.base_test_case import BaseTestCase
 from fuel_test.ci.ci_cobbler import CiCobbler
 from fuel_test.cobbler.cobbler_client import CobblerClient
@@ -233,7 +234,12 @@ class CobblerTestCase(BaseTestCase):
             await_node_deploy(
                 cobbler.get_ip_address_by_network_name('internal'), node.name)
         for node in self.ci().client_nodes():
-            node.await('internal')
+            try:
+                node.await('internal')
+            except TimeoutError:
+                node.destroy()
+                node.start()
+                node.await('internal')
         sleep(20)
         self.environment().snapshot('nodes-deployed', force=True)
 
