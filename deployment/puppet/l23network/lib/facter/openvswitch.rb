@@ -5,8 +5,6 @@
 # Resolution:
 #
 # Caveats:
-require "facter"
-require "set"
 
 def vsctl_cmd
   "/usr/bin/ovs-vsctl"
@@ -47,14 +45,6 @@ module OpenVSwitch
         return ofctl("show " + bridge)
     end
 end
-
-
-#Facter.add("openvswitch_module") do
-#    setcode do
-#        Facter.value(:kernel_modules).split(",").include? "openvswitch_mod"
-#    end
-#end
-
 
 if Facter.value(:kern_module_ovs_loaded) == true && File.exists?(vsctl_cmd)
     bridges = OpenVSwitch.list_br || []

@@ -12,7 +12,7 @@
 #   for up empty unaddressed interface.
 #
 # [*netmask*]
-#   Specify network mask.
+#   Specify network mask. Default is '255.255.255.0'.
 #
 # [*ifname_order_prefix*]
 #   Centos and Ubuntu at boot time Up and configure network interfaces in
@@ -22,8 +22,9 @@
 # [*gateway*]
 #   Specify default gateway if need.
 #
-# [*nameservers*]
-#   Specify pair of nameservers if need.
+# [*dns_nameservers*]
+#   Specify pair of nameservers if need. Must be array, for example:
+#   nameservers => ['8.8.8.8', '8.8.4.4']
 #
 # [*dhcp_hostname*]
 #   Specify hostname for DHCP if need.
@@ -42,31 +43,24 @@ define l23network::l3::ifconfig (
     $dns_domain      = undef,
     $dhcp_hostname   = undef,
     $dhcp_nowait     = false,
-    $ifname_order_prefix = false
+    $ifname_order_prefix = false,
 ){
-
   case $ipaddr {
     'dhcp':  { $method = 'dhcp' }
     'none':  { $method = 'manual' }
     default: { $method = 'static' }
   }
   case $::osfamily {
-    'Debian': {
+    /(?i)debian/: {
       $if_files_dir = '/etc/network/interfaces.d'
       $interfaces = '/etc/network/interfaces'
-      if $hwaddr { # Ubuntu need MAC addr in lower case
-        $hwaddr_ok = downcase($hwaddr)
-      }
       if $dns_nameservers {
         $dns_nameservers_join = join($dns_nameservers, ' ')
       }
     }
-    'RedHat': {
+    /(?i)redhat/: {
       $if_files_dir = '/etc/sysconfig/network-scripts'
       $interfaces = false
-      if $hwaddr { # RedHat need MAC addr in Upper case
-        $hwaddr_ok = upcase($hwaddr)
-      }
       if $dns_nameservers {
         $dns_nameservers_1 = $dns_nameservers[0]
         $dns_nameservers_2 = $dns_nameservers[1]
