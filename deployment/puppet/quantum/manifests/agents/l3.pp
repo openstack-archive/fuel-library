@@ -41,6 +41,11 @@ class quantum::agents::l3 (
     $l3_agent_package = $::quantum::params::package_name
   }
 
+  package { 'python-keystoneclient':
+    ensure => present,
+    before => Package[$l3_agent_package],
+  }
+
   Package[$l3_agent_package] -> Quantum_l3_agent_config<||>
   Quantum_config<||> ~> Service['quantum-l3']
   Quantum_l3_agent_config<||> ~> Service['quantum-l3']
@@ -65,36 +70,83 @@ class quantum::agents::l3 (
 
     if $create_networks {
 
-      Vs_bridge<||> -> Exec['create-networks']
+      Vs_bridge<||> -> Quantum::Network::Setup<||>
 
-      package { 'python-keystoneclient':
-        ensure => present,
-        before => Exec['create-networks']
+      $segment_id = regsubst($segment_range, ':\d+', '')
+
+      if $tenant_network_type == 'gre' {
+        $internal_physical_network = undef
+        $external_physical_network = undef
+        $external_network_type = $tenant_network_type
+        $external_segment_id = $segment_id + 1
+      } else {
+        $internal_physical_network = 'physnet2'
+        $external_physical_network = 'physnet1'
+        $external_network_type = 'flat'
+        $external_segment_id = undef
       }
 
-      # create external/internal networks
-      file { '/tmp/quantum-networking.sh':
-        mode    => 740,
-        owner   => root,
-        content => template("quantum/quantum-networking.sh.${::osfamily}.erb"),
-        #require => Service['quantum-l3'],
-        notify  => Exec['create-networks'],
+      if empty($ext_ipinfo) {
+        $floating_net = regsubst($floating_range, '(.+\.)\d+/\d+', '\1')
+        $floating_host = regsubst($floating_range, '.+\.(\d+)/\d+', '\1') + 1
+
+        $external_gateway = "${floating_net}${floating_host}"
+        $external_alloc_pool = undef
+      } else {
+        $external_gateway = $ext_ipinfo['public_net_router']
+        $external_alloc_pool = [$ext_ipinfo['pool_start'], $ext_ipinfo['pool_end']]
       }
-  
-      package { 'cidr-package':
-        name => $::quantum::params::cidr_package,
-        ensure => $package_ensure,
-        before => Exec['create-networks']
-      }
-  
-      exec { 'create-networks':
-        command     => '/tmp/quantum-networking.sh',
-        # path        => '/usr/bin',
+
+      quantum::network::setup { 'net04':
+        physnet         => $internal_physical_network,
+        network_type    => $tenant_network_type,
+        segment_id      => $segment_id,
+        subnet_name     => 'subnet04',
+        subnet_cidr     => $fixed_range,
+        nameservers     => '8.8.4.4',
+      } 
+    
+      quantum::network::setup { 'net04_ext':
+        tenant_name     => 'services',
+        physnet         => $external_physical_network,
+        network_type    => $external_network_type,
+        segment_id      => $external_segment_id,  # undef,
+        router_external => 'True',
+        subnet_name     => 'subnet04_ext',
+        subnet_cidr     => $floating_range,
+        subnet_gw       => $external_gateway,  # undef,
+        alloc_pool      => $external_alloc_pool,  # undef,
+        enable_dhcp     => 'False',  # 'True',
+      } 
+    
+      quantum::network::provider_router { 'router04':
+        router_subnets  => 'subnet04',  # undef,
+        router_extnet   => 'net04_ext', # undef,
+        notify          => Service['quantum-l3'],
+      } 
+
+      # turn down the current default route metric priority
+      $update_default_route_metric = "/sbin/route del default gw ${::defaultroute};\
+        /sbin/route add default gw ${::defaultroute} dev ${::defaultroute_interface} metric 100"
+    
+      exec { 'update_default_route_metric':
+        command     => $update_default_route_metric,
+        returns     => [0, 7],
+        subscribe   => Package[$l3_agent_package],
+        before      => Service['quantum-l3'],
         refreshonly => true,
-        logoutput   => true,
-        require     => Package[$l3_agent_package],
-        notify      => Service['quantum-l3'],
       }
+    
+      exec { 'settle-down-default-route':
+        command     => "/bin/ping -q -W2 -c1 ${external_gateway}",
+        subscribe   => Exec['update_default_route_metric'],
+        require     => Service['quantum-l3'],
+        logoutput   => 'on_failure',
+        refreshonly => true,
+        try_sleep   => 3,
+        tries       => 5,
+      }
+
     }
   } else {
     $ensure = 'stopped'
@@ -119,28 +171,6 @@ class quantum::agents::l3 (
     hasrestart => true,
     provider   => $::quantum::params::service_provider,
     require    => [Package[$l3_agent_package], Class['quantum'], Service['quantum-plugin-ovs-service']],
-  }
-
-  # turn down the current default route metric priority
-  $update_default_route_metric = "/sbin/route del default gw ${::defaultroute};\
-    /sbin/route add default gw ${::defaultroute} dev ${::defaultroute_interface} metric 100"
-
-  exec { 'update_default_route_metric':
-    command     => $update_default_route_metric,
-    returns     => [0, 7],
-    subscribe   => Package[$l3_agent_package],
-    before      => Service['quantum-l3'],
-    refreshonly => true,
-  }
-
-  exec { 'wait-for-default-route':
-    command     => "/bin/ping -q -c1 ${::defaultroute}",
-    subscribe   => Exec['update_default_route_metric'],
-    require     => Service['quantum-l3'],
-    logoutput   => 'on_failure',
-    refreshonly => true,
-    try_sleep   => 3,
-    tries       => 5,
   }
 
 }
