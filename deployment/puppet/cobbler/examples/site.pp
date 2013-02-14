@@ -4,13 +4,14 @@
 # It references internal repositories with packages.
 #
 
-# Fast mirror for your location
+# Fast mirror for your location, it will be used to download packages
 $fast_mirror         = 'http://172.18.67.168/ubuntu-repo/mirror.yandex.ru/ubuntu'
 # Ip for internal cobbler services
 $server              = '10.0.0.100'
 # Interface for cobbler instances
 $dhcp_interface      = 'eth1'
-# Dhcp range
+
+# Networking description for Dhcp to use during baremetal deployment over management network
 $dhcp_start_address  = '10.0.0.201'
 $dhcp_end_address    = '10.0.0.254'
 $dhcp_netmask        = '255.255.255.0'
@@ -21,8 +22,15 @@ $next_server         = '10.0.0.100'
 $cobbler_user        = 'cobbler'
 $cobbler_password    = 'cobbler'
 $pxetimeout          = '0'
+
+# Predefined mirror type to use: internal or external (should be removed soon)
 $mirror_type         = 'internal'
+
+# Management network to set up nat masquerade in iptables on cobbler/puppetmaster node
+# (should be automatically calculated from DHCP parameters behind)
 $nat_range           = '10.0.0.0/24'
+
+#----Don't edit anything below that line----------------------------------
 
 stage { 'openstack-custom-repo': before => Stage['main'] }
 class { 'openstack::mirantis_repos':
