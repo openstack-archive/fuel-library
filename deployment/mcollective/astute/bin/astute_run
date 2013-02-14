@@ -35,15 +35,48 @@ task_id = `uuidgen`.strip
 orchestrator = Astute::Orchestrator.new
 context = Context.new(task_id, reporter)
 
+pinged_nodes_list = [] # make list of nodes that respond to ping
+IO.popen('mco ping') do |line|
+  if /time=/.match(line) # in 'mco ping' output only lines with 'time=' hold node names
+    pinged_nodes_list += [/^[^ ]*/.match(line).to_s]
+  end
+end
+
 # load nodes structure from yaml 
 nodes_raw = YAML::load( File.open( (ARGV.length>0) ? (ARGV[0]) : "nodes.yaml" ) )
-nodes = Array.new(nodes_raw.size - 1, Hash.new)
-indx = 0
+nodes = Array.new
+domain_name = ''
+
 nodes_raw.each do |key, value|
-  if key != 'use_case'
-    nodes[indx] = value
-    nodes[indx]['uid'] = key
-    indx = indx + 1
+  domain_name = value if key =='domain_name'
+end
+
+nodes_raw.each do |key, value|
+  next if (key == 'use_case') or (key =='domain_name')
+  
+  if /^\/.*\/$/.match(key) # if name stats and ends with '/' then it's regexp
+    name_regexp = Regexp.new(key.slice(1..-2))
+    name_with_domain_regexp = Regexp.new(key.slice(1..-2) + '.' + domain_name)
+    pinged_nodes_list.each do |name|
+      if name_regexp.match(name) or name_with_domain_regexp.match(name)
+        hash_element = value.clone
+        hash_element['uid'] = name
+        nodes += [hash_element]
+      end
+    end
+  else
+    if pinged_nodes_list.include? key
+      hash_element = value.clone
+      hash_element['uid'] = key
+      nodes += [hash_element]
+    elsif pinged_nodes_list.include?(key + '.' + domain_name)
+    # check if we can find this name after appending domain name
+      hash_element = value.clone
+      hash_element['uid'] = key + '.' + domain_name
+      nodes += [hash_element]
+    else # coudn't ping this node or wrong name
+      raise "Node " + key + " not found!"
+    end
   end
 end
 

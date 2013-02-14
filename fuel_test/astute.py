@@ -11,7 +11,8 @@ class Astute(object):
         if not storages: storages = []
         if not computes: computes = []
         config = {
-            'use_case': use_case
+            'use_case': use_case,
+            'domain_name': 'your-domain-name.com'
         }
         map(lambda x: config.update({str(x.name): {'role': 'controller'}}), controllers)
         map(lambda x: config.update({str(x.name): {'role': 'compute'}}), computes)
