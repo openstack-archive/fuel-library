@@ -47,7 +47,7 @@ define haproxy_service($order, $balancers, $virtual_ips, $port, $define_cookies 
     "rabbitmq-openstack": {
       $haproxy_config_options = { 'option' => ['clitcpka','srvtcpka'], 'balance' => 'roundrobin', 'mode' => 'tcp'}
       $balancermember_options = 'check inter 5000 rise 2 fall 3'
-      $balancer_port = 5672
+      $balancer_port = 5673
     }
     
     default: {
@@ -292,6 +292,7 @@ local0.* -/var/log/haproxy.log'
       rabbit_user             => $rabbit_user,
       rabbit_cluster          => true,
       rabbit_nodes            => $controller_hostnames,
+      rabbit_port             => '5673',
       cache_server_ip         => $memcached_servers,
       export_resources        => false,
       api_bind_address        => $internal_address,

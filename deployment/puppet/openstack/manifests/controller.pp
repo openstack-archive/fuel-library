@@ -90,7 +90,8 @@ class openstack::controller (
   $rabbit_user             = 'nova',
   $rabbit_cluster          = false,
   $rabbit_nodes            = [$internal_address],
-  $rabbit_node_ip_address = undef,
+  $rabbit_node_ip_address  = undef,
+  $rabbit_port             = '5672',
   # network configuration
   # this assumes that it is a flat network manager
   $network_manager         = 'nova.network.manager.FlatDHCPManager',
@@ -307,7 +308,8 @@ class openstack::controller (
     rabbit_password         => $rabbit_password,
     rabbit_nodes            => $rabbit_nodes,
     rabbit_cluster          => $rabbit_cluster,
-    rabbit_node_ip_address => $rabbit_node_ip_address,
+    rabbit_node_ip_address  => $rabbit_node_ip_address,
+    rabbit_port             => $rabbit_port,
     # Glance
     glance_api_servers      => $glance_api_servers,
     # General

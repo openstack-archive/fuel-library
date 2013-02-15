@@ -23,7 +23,8 @@ class nova::api(
   $admin_tenant_name = 'services',
   $admin_user        = 'nova',
   $enabled_apis      = 'ec2,osapi_compute,metadata',
-  $nova_rate_limits = undef
+  $nova_rate_limits  = undef,
+  $nova_user_password = undef, #Empty password generates error and saves from non-working installation
 ) {
 
   include nova::params
@@ -103,9 +104,11 @@ if $nova_rate_limits {
   # I need to ensure that I better understand this resource
   # this is potentially constantly resyncing a central DB
   exec { "nova-db-sync":
-    command     => "/usr/bin/nova-manage db sync",
+    command      => "/usr/bin/nova-manage db sync",
 #    refreshonly => "true",
-    subscribe   => Exec['post-nova_config'],
+    subscribe    => Exec['post-nova_config'],
+#    user         => User[nova],
+    logoutput    => true,
   }
-
+ 
 }

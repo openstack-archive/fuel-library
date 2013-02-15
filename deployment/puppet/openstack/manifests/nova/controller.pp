@@ -57,7 +57,8 @@ class openstack::nova::controller (
   $nova_db_dbname            = 'nova',
   # Rabbit
   $rabbit_user               = 'nova',
-  $rabbit_node_ip_address = undef,
+  $rabbit_node_ip_address    = undef,
+  $rabbit_port               = '5672',
   # Database
   $db_type                   = 'mysql',
   # Glance
@@ -122,6 +123,7 @@ class openstack::nova::controller (
     cluster  => $rabbit_cluster,
     cluster_nodes => $rabbit_nodes,
     rabbit_node_ip_address => $rabbit_node_ip_address,
+    port     => $rabbit_port,
   }
 if ($rabbit_nodes)
 {
