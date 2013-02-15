@@ -1,0 +1,5 @@
+2012-10-14 - Version 0.1.0
+- Added robustness for general corosync management (read the merges)
+- Added `cs_group` type
+- Added some testing
+- Generally tried to get on top of this thing.
