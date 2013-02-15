@@ -1,6 +1,6 @@
 class rsyslog::params {
   case $::operatingsystem {
-    ubuntu, debian, redhat, centos: {
+    /(?i)(ubuntu|debian|redhat|centos)/: {
       $rsyslog_package_name   = 'rsyslog'
       $relp_package_name      = 'rsyslog-relp'
       $package_status         = 'latest'
@@ -16,7 +16,7 @@ class rsyslog::params {
       $client_conf            = "${rsyslog_d}client.conf"
       $server_conf            = "${rsyslog_d}server.conf"
     }
-    freebsd: {
+    /(?i)freebsd/: {
       $rsyslog_package_name   = 'rsyslog5'
       $relp_package_name      = 'rsyslog5-relp'
       $package_status         = 'present'
