@@ -23,6 +23,8 @@ class FullTestCase(CobblerTestCase):
         self.do(self.nodes().proxies, 'puppet agent --test')
         self.validate(self.nodes().storages, 'puppet agent --test')
         self.validate(self.nodes().proxies, 'puppet agent --test')
+
+    def snapshot(self):
         self.environment().snapshot('full', force=True)
 
 if __name__ == '__main__':
