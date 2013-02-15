@@ -1,11 +1,19 @@
 #
-# This manifest file is being used as a sample in Fuel user guide.
+# This manifest file is used as a sample in Fuel user guide.
 #
-# It's a starting point for an end-user.
-# User has to edit this file and change networking information, as well as uncomment/edit corresponding sections for CentOS, Ubuntu, and RHEL.
+# This manifest is a starting point for an end-user.
+# This file requires editing, including changes to network
+# information, as well as uncomment/edit corresponding
+# sections for CentOS, Ubuntu, and RHEL.
 #
 
+# IP for internal cobbler services
 $server              = '10.0.0.100'
+
+# Gateway, DNS and other DHCP options
+# which cobbler sends to clients by default.
+
+
 $domain_name         = 'your-domain-name.com'
 $name_server         = '10.0.0.100'
 $next_server         = '10.0.0.100'
@@ -13,9 +21,15 @@ $dhcp_start_address  = '10.0.0.201'
 $dhcp_end_address    = '10.0.0.254'
 $dhcp_netmask        = '255.255.255.0'
 $dhcp_gateway        = '10.0.0.100'
+$pxetimeout          = '0'
+
+# Cobbler web interface username and password
 $cobbler_user        = 'cobbler'
 $cobbler_password    = 'cobbler'
-$pxetimeout          = '0'
+
+# Interface on which cobbler listens
+# for requests
+
 $dhcp_interface      = 'eth1'
 
 stage {'openstack-custom-repo': before => Stage['main']}
