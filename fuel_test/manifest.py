@@ -55,6 +55,7 @@ class Template(object):
 
     def replace(self, **kwargs):
         self.value = self._replace(self.value, **kwargs)
+        return self
 
     def __str__(self):
         return str(self.value)
