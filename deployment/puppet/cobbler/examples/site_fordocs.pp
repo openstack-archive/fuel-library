@@ -7,11 +7,28 @@
 # sections for CentOS, Ubuntu, and RHEL.
 #
 
-# IP for internal cobbler services
+# [server] IP address that will be used as address of cobbler server.
+# It is needed to download kickstart files, call cobbler API and
+# so on. Required.
 $server              = '10.0.0.100'
 
 # Gateway, DNS and other DHCP options
 # which cobbler sends to clients by default.
+
+
+# [domain_name] Domain name that will be used as default for
+# installed nodes. Required.
+# [name_server] DNS ip address to be used by installed nodes
+# [next_server] IP address that will be used as PXE tftp server. Required.
+# [dhcp_start_address] First address of dhcp range
+# [dhcp_end_address] Last address of dhcp range
+# [dhcp_netmask] Netmask of the network
+# [dhcp_gateway] Gateway address for installed nodes
+# [dhcp_interface] Interface where to bind dhcp and tftp services
+# [pxetimeout] Pxelinux will wail this count of 1/10 seconds before
+# use default pxe item. To disable it use 0. Required.
+# [cobbler_user] Cobbler web interface username
+# [cobbler_password] Cobbler web interface password
 
 
 $domain_name         = 'your-domain-name.com'
