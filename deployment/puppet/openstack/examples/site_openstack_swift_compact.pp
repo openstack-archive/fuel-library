@@ -197,7 +197,7 @@ $controller_node_public  = $internal_virtual_ip
 # It tells on which swift proxy node to build 
 # *ring.gz files. Other swift proxies/storages
 # will rsync them
-$swift_master            = $master_hostname
+$swift_master            = $master_hostname.split(.)[0]
 
 # Hash of proxies hostname|fqdn => ip mappings.
 # This is used by controller_ha.pp manifests for haproxy setup
