@@ -18,12 +18,15 @@ $internal_interface  = 'eth0'
 $private_interface   = 'eth2'
 
 # Public and Internal VIPs. These virtual addresses are required by HA topology and will be managed by keepalived.
-$internal_virtual_ip = '10.0.126.253'
+$internal_virtual_ip = '10.0.0.253'
+# Change this IP to IP routable from your 'public' network,
+# e. g. Internet or your office LAN, in which your public 
+# interface resides
 $public_virtual_ip   = '10.0.215.253'
 
 # Array containing key/value pairs of controllers and IP addresses for their internal interfaces. Must have an entry for every controller node.
 # Fully Qualified domain names are allowed here along with short hostnames.
-$controller_internal_addresses = {'fuel-controller-01' => '10.0.126.3','fuel-controller-02' => '10.0.126.4','fuel-controller-03' => '10.0.126.5'}
+$controller_internal_addresses = {'fuel-controller-01' => '10.0.0.103','fuel-controller-02' => '10.0.0.104','fuel-controller-03' => '10.0.0.105'}
 
 # Set internal address on which services should listen.
 # We assume that this IP will is equal to one of the haproxy 

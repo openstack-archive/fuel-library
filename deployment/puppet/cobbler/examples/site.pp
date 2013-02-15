@@ -32,7 +32,7 @@ $dhcp_interface      = 'eth1'
 # [cobbler_password] Cobbler web interface password
 
 $dhcp_start_address  = '10.0.0.201'
-$dhcp_end_address    = '10.0.0.254'
+$dhcp_end_address    = '10.0.0.250'
 $dhcp_netmask        = '255.255.255.0'
 $dhcp_gateway        = '10.0.0.100'
 $domain_name         = 'your-domain-name.com'
