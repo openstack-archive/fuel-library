@@ -29,6 +29,14 @@ class openstack::mirantis_repos (
           include_src => false,
           pin       => "1001"
         }
+        apt::source  { 'rabbit-3.0':
+          location => 'http://download.mirantis.com/precise-fuel-folsom',
+          release => 'precise-rabbitmq-3.0',
+          repos => 'main',
+          key => "5EDB1B62EC4926EA",
+          key_source => 'http://download.mirantis.com/precise-fuel-folsom/Mirantis.key',
+          include_src => false,
+        }
       }
       # Below we set our internal repos for testing purposes. Some of them may match with external ones.
       if $type == 'internal' {
@@ -70,6 +78,14 @@ class openstack::mirantis_repos (
           location => 'http://172.18.67.168/ubuntu-repo/mirror.yandex.ru/ubuntu',
           release => 'precise-security',
           repos => 'main universe multiverse restricted',
+        }
+        apt::source  { 'rabbit-3.0':
+          location => 'http://172.18.67.168/ubuntu-repo/precise-fuel-folsom',
+          release => 'precise-rabbitmq-3.0',
+          repos => 'main',
+          key => "5EDB1B62EC4926EA",
+          key_source => 'http://172.18.67.168/ubuntu-repo/precise-fuel-folsom/Mirantis.key',
+          include_src => false,
         }
     }
 
