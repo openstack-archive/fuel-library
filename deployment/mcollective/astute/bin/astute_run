@@ -36,7 +36,7 @@ orchestrator = Astute::Orchestrator.new
 context = Context.new(task_id, reporter)
 
 pinged_nodes_list = [] # make list of nodes that respond to ping
-IO.popen('mco ping') do |line|
+IO.popen('mco ping').each do |line|
   if /time=/.match(line) # in 'mco ping' output only lines with 'time=' hold node names
     pinged_nodes_list += [/^[^ ]*/.match(line).to_s]
   end
