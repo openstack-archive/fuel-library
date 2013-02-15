@@ -5,13 +5,13 @@
 # === Parameters
 #
 # [*route*]
-#   Route that will be added. Using default_route fact if it's not specify.
+#   Route that will be added.
 #
 # [*timeout*]
 #   Timeout before checking exists or not default route in routing table.
 #
 define l23network::l3::set_default_route_if_none (
-    $route = $::default_route,
+    $route = $::l3_default_route,
     $timeout = 10,
 ){
   if $route {

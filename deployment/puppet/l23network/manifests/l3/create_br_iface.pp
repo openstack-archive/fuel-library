@@ -36,18 +36,18 @@ define l23network::l3::create_br_iface (
     l23network::l2::port {$interface:
       bridge        => $bridge,
       skip_existing => $se,
-      require       => l23network::l2::bridge[$bridge]
+      require       => L23network::L2::Bridge[$bridge]
     }
     l23network::l3::ifconfig {$interface:
       interface => $interface,
       ipaddr    => 'none',
-      require   => l23network::l2::port[$interface],
+      require   => L23network::L2::Port[$interface],
     }
     l23network::l3::ifconfig {$bridge:
       interface           => $bridge,
       ipaddr              => $ipaddr,
       netmask             => $netmask,
       ifname_order_prefix => 'ovs',
-      require             => l23network::l3::ifconfig[$interface],
+      require             => L23network::L3::Ifconfig[$interface],
     }
 }
