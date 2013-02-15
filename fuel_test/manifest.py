@@ -265,7 +265,9 @@ class Manifest(object):
         self.write_manifest(remote, site_pp)
 
     def write_stomp_manifest(self, remote):
-        self.write_manifest(remote, Template.stomp())
+        self.write_manifest(remote, Template.stomp().replace(
+            mirror_type=self.mirror_type()
+        ))
 
 
 
