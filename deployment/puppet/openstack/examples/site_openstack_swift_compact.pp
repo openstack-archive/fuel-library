@@ -193,10 +193,11 @@ $swift_local_net_ip      = $internal_address
 # and put into swift configs
 $controller_node_public  = $internal_virtual_ip
 
-# Set fqdn of swift_master.
+# Set hostname of swift_master.
 # It tells on which swift proxy node to build 
 # *ring.gz files. Other swift proxies/storages
-# will rsync them
+# will rsync them. 
+# Short hostnames allowed only. No FQDNs.
 $swift_master            = $master_hostname.split(.)[0]
 
 # Hash of proxies hostname|fqdn => ip mappings.
