@@ -141,7 +141,7 @@ $quantum_sql_connection  = "mysql://${quantum_db_user}:${quantum_db_password}@${
 
 $controller_node_public  = $internal_virtual_ip
 $swift_local_net_ip      = $internal_address
-$swift_proxies           = $controller_internal_addresses
+$swift_proxies           = {'fuel-swiftproxy-01' => '10.0.0.108','fuel-swiftproxy-02' => '10.0.0.109'}
 
 $verbose = true
 Exec { logoutput => true }
