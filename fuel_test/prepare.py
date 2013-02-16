@@ -102,7 +102,7 @@ class Prepare(object):
             'COMPUTE_CATALOG_TYPE': 'compute',
             'COMPUTE_CREATE_IMAGE_ENABLED': 'true',
             'COMPUTE_RESIZE_AVAILABLE': 'true',
-            'COMPUTE_CHANGE_PASSWORD_AVAILABLE': 'true',
+            'COMPUTE_CHANGE_PASSWORD_AVAILABLE': 'false',
             'COMPUTE_LOG_LEVEL': 'DEBUG',
             'COMPUTE_WHITEBOX_ENABLED': 'true',
             'COMPUTE_SOURCE_DIR': '/opt/stack/nova',
