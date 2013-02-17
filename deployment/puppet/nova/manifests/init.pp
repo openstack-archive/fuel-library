@@ -164,6 +164,7 @@ require => [Package['nova-common']]
     group   => 'nova',
   }
   file { "${logdir}/nova.log":
+      ensure => present,
       mode  => '0640',
       require => [Package['nova-common'], File[$logdir]],
       owner   => 'nova',
