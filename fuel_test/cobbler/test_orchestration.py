@@ -59,7 +59,7 @@ class CobblerCase(CobblerTestCase):
             quantums=self.nodes().quantums,
             storages=self.nodes().storages,
             proxies=self.nodes().proxies)
-        remote = self.nodes().stomps[0].remote(login='root',
+        remote = self.nodes().stomps[0].remote('public', login='root',
             password='r00tme')
         write_config(remote, '/tmp/nodes.yaml', config_text)
         remote.check_stderr('astute_run /tmp/nodes.yaml')
