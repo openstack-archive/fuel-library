@@ -163,6 +163,12 @@ require => [Package['nova-common']]
     owner   => 'nova',
     group   => 'nova',
   }
+  file { "${logdir}/nova.log":
+      mode  => '0640',
+      require => [Package['nova-common'], File[$logdir]],
+      owner   => 'nova',
+      group   => 'nova',
+  }
   file { '/etc/nova/nova.conf':
     mode  => '0640',
     require => Package['nova-common'],
