@@ -10,9 +10,11 @@
 
 # This is the name of the public interface. The public network provides address space for Floating IPs, as well as public IP accessibility to the API endpoints.
 $public_interface    = 'eth1'
+$public_br           = 'br-ex'
 
 # This is the name of the internal interface. It will be attached to the management network, where data exchange between components of the OpenStack cluster will happen.
 $internal_interface  = 'eth0'
+$internal_br         = 'br-mgmt'
 
 # This is the name of the private interface. All traffic within OpenStack tenants' networks will go through this interface.
 $private_interface   = 'eth2'
@@ -28,11 +30,60 @@ $public_virtual_ip   = '10.0.215.253'
 # Fully Qualified domain names are allowed here along with short hostnames.
 $controller_internal_addresses = {'fuel-controller-01' => '10.0.0.103','fuel-controller-02' => '10.0.0.104','fuel-controller-03' => '10.0.0.105'}
 
-# Set internal address on which services should listen.
+# Set IP addresses on which services should listen.
 # We assume that this IP will is equal to one of the haproxy 
 # backends. If the IP address does not match, this may break your environment.
-# Leave internal_address unchanged unless you know what you are doing.
-$internal_address = getvar("::ipaddress_${internal_interface}")
+
+# Leave internal_adderss unchanged unless you know what you are doing.
+#
+$tmp1 = regsubst($internal_br, '\-', '_')
+$internal_br_address = getvar("::ipaddress_${tmp1}")
+if ('' != $internal_br_address) {
+  $internal_address = $internal_br_address 
+  $internal_netmask = getvar("::netmask_${tmp1}")
+} else {
+  $tmp2 = regsubst($internal_interface, '\-', '_')
+  $internal_address = getvar("::ipaddress_${tmp2}")
+  $internal_netmask = getvar("::netmask_${tmp2}")
+}
+
+$tmp3 = regsubst($public_br, '\-', '_')
+$public_br_address = getvar("::ipaddress_${tmp3}")
+if ('' != $public_br_address) {
+  $public_address = $public_br_address 
+  $public_netmask = getvar("::netmask_${tmp3}")
+} else {
+  $tmp4 = regsubst($public_interface, '\-', '_')
+  $public_address = getvar("::ipaddress_${tmp4}")
+  $public_netmask = getvar("::netmask_${tmp4}")
+}
+
+#Network configuration
+stage {'netconfig':
+      before  => Stage['main'],
+}
+class {'l23network': stage=> 'netconfig'}
+class node_netconfig (
+  $mgmt_ipaddr,
+  $mgmt_netmask  = '255.255.255.0',
+  $public_ipaddr = undef,
+  $public_netmask= '255.255.255.0'
+) { 
+  l23network::l3::create_br_iface {'mgmt':
+     interface => $internal_interface,
+     bridge    => $internal_br,
+     ipaddr    => $mgmt_ipaddr,
+     netmask   => $mgmt_netmask,
+  }
+  l23network::l3::create_br_iface {'ex':
+     interface => $public_interface,
+     bridge    => $public_br,
+     ipaddr    => $public_ipaddr,
+     netmask   => $public_netmask,
+  }
+  l23network::l3::create_br_iface['mgmt'] -> L23network::L3::Create_br_iface['ex']
+  l23network::l3::ifconfig {$private_interface: ipaddr=>'none' }
+}
 
 # Set hostname for master controller of HA cluster. 
 # It is strongly recommend that the master controller is deployed before all other controllers since it initializes the new cluster.  
@@ -88,6 +139,7 @@ $quantum_db_dbname       = 'quantum'
 # Should we use quantum or nova-network(deprecated).
 # Consult OpenStack documentation for differences between them.
 $quantum                 = true
+$quantum_netnode_on_cnt  = true
 
 # Specify network creation criteria:
 # Should puppet automatically create networks?
@@ -112,7 +164,9 @@ $vlan_start      = 300
 $tenant_network_type     = 'gre'
 
 #Which IP to use to communicate with Quantum server?
-$quantum_host            = $internal_virtual_ip
+#$quantum_host            = $internal_virtual_ip
+$quantum_net_node_hostname= 'fuel-controller-03'
+$quantum_net_node_address = $controller_internal_addresses[$quantum_net_node_hostname]
 
 # If $external_ipinfo option is not defined, the addresses will be allocated automatically from $floating_range:
 # the first address will be defined as an external default router,
@@ -139,7 +193,7 @@ $network_manager = 'nova.network.manager.FlatDHCPManager'
 $auto_assign_floating_ip = false
 
 # Database connection for Quantum configuration (quantum.conf)
-$quantum_sql_connection  = "mysql://${quantum_db_user}:${quantum_db_password}@${quantum_host}/${quantum_db_dbname}"
+$quantum_sql_connection  = "mysql://${quantum_db_user}:${quantum_db_password}@${$internal_virtual_ip}/${quantum_db_dbname}"
 
 ### NETWORK/QUANTUM END ###
 
@@ -218,23 +272,23 @@ $swift_proxies           = $controller_internal_addresses
 # Enable error messages reporting to rsyslog. Rsyslog must be installed in this case.
 $use_syslog = false
 if $use_syslog {
-class { "::rsyslog::client": 
+  class { "::rsyslog::client": 
     log_local => true,
     log_auth_local => true,
     server => '127.0.0.1',
     port => '514'
- }
+  }
 }
 
 ### Syslog END ###
-  case $::osfamily {
+case $::osfamily {
     "Debian":  {
        $rabbitmq_version_string = '2.7.1-0ubuntu4'
     }
     "RedHat": {
        $rabbitmq_version_string = '2.8.7-2.el6'
     }
-  }
+ }
 #
 # OpenStack packages and customized component versions to be installed. 
 # Use 'latest' to get the most recent ones or specify exact version if you need to install custom version.
@@ -289,7 +343,7 @@ Exec { logoutput => true }
 # Globally apply an environment-based tag to all resources on each node.
 tag("${::deployment_id}::${::environment}")
 
-stage { 'openstack-custom-repo': before => Stage['main'] }
+stage { 'openstack-custom-repo': before => Stage['netconfig'] }
 class { 'openstack::mirantis_repos': stage => 'openstack-custom-repo', type=> $mirror_type }
 
 if $::operatingsystem == 'Ubuntu' {
@@ -299,14 +353,14 @@ if $::operatingsystem == 'Ubuntu' {
 sysctl::value { 'net.ipv4.conf.all.rp_filter': value => '0' }
 
 class compact_controller (
-  $quantum_is_network_node = false
+  $quantum_network_node = false
 ) {
   class { 'openstack::controller_ha':
     controller_public_addresses   => $controller_public_addresses,
     controller_internal_addresses => $controller_internal_addresses,
     internal_address        => $internal_address,
-    public_interface        => $public_interface,
-    internal_interface      => $internal_interface,
+    public_interface        => $public_br,
+    internal_interface      => $internal_br,
     private_interface       => $private_interface,
     internal_virtual_ip     => $internal_virtual_ip,
     public_virtual_ip       => $public_virtual_ip,
@@ -341,6 +395,10 @@ class compact_controller (
     quantum_db_password     => $quantum_db_password,
     quantum_db_user         => $quantum_db_user,
     quantum_db_dbname       => $quantum_db_dbname,
+    quantum_network_node    => $quantum_network_node,
+    quantum_netnode_on_cnt  => $quantum_netnode_on_cnt,
+    quantum_gre_bind_addr   => $internal_address,
+    quantum_external_ipinfo => $external_ipinfo,
     tenant_network_type     => $tenant_network_type,
     segment_range           => $segment_range,
     cinder                  => $cinder,
@@ -362,7 +420,14 @@ class compact_controller (
 
 # Definition of the first OpenStack controller.
 node /fuel-controller-01/ {
-  
+  class {'::node_netconfig':
+      mgmt_ipaddr    => $::internal_address,
+      mgmt_netmask   => $::internal_netmask,
+      public_ipaddr  => $::public_address,
+      public_netmask => $::public_netmask,
+      stage          => 'netconfig',
+  }
+
   class {'nagios':
     proj_name       => $proj_name,
     services        => [
@@ -394,7 +459,14 @@ node /fuel-controller-01/ {
 
 # Definition of the second OpenStack controller.
 node /fuel-controller-02/ {
-  
+  class {'::node_netconfig':
+      mgmt_ipaddr    => $::internal_address,
+      mgmt_netmask   => $::internal_netmask,
+      public_ipaddr  => $::public_address,
+      public_netmask => $::public_netmask,
+      stage          => 'netconfig',
+  }
+
   class {'nagios':
     proj_name       => $proj_name,
     services        => [
@@ -426,6 +498,13 @@ node /fuel-controller-02/ {
 
 # Definition of the third OpenStack controller.
 node /fuel-controller-03/ {
+  class {'::node_netconfig':
+      mgmt_ipaddr    => $::internal_address,
+      mgmt_netmask   => $::internal_netmask,
+      public_ipaddr  => $::public_address,
+      public_netmask => $::public_netmask,
+      stage          => 'netconfig',
+  }
   
   class {'nagios':
     proj_name       => $proj_name,
@@ -439,7 +518,7 @@ node /fuel-controller-03/ {
     hostgroup       => 'controller',
   }
   
-  class { 'compact_controller': }
+  class { 'compact_controller': quantum_network_node => true }
   $swift_zone = 3
 
   class { 'openstack::swift::storage_node':
@@ -494,6 +573,7 @@ node /fuel-compute-[\d+]/ {
     quantum_host           => $quantum_host,
     quantum_sql_connection => $quantum_sql_connection,
     quantum_user_password  => $quantum_user_password,
+    quantum_host           => $quantum_net_node_address,
     tenant_network_type    => $tenant_network_type,
     segment_range          => $segment_range,
     cinder                 => $cinder_on_computes,
@@ -510,6 +590,14 @@ node /fuel-compute-[\d+]/ {
 
 # Definition of OpenStack Quantum node.
 node /fuel-quantum/ {
+  # class {'::node_netconfig':
+  #     mgmt_ipaddr    => $::internal_address,
+  #     mgmt_netmask   => $::internal_netmask,
+  #     public_ipaddr  => $::public_address,
+  #     public_netmask => $::public_netmask,
+  #     stage          => 'netconfig',
+  # }
+  if ! $quantum_netnode_on_cnt {
     class { 'openstack::quantum_router':
       db_host               => $internal_virtual_ip,
       service_endpoint      => $internal_virtual_ip,
@@ -536,13 +624,13 @@ node /fuel-quantum/ {
       api_bind_address      => $internal_address,
       use_syslog              => $use_syslog,
     }
-
     class { 'openstack::auth_file':
       admin_password       => $admin_password,
       keystone_admin_token => $keystone_admin_token,
       controller_node      => $internal_virtual_ip,
       before               => Class['openstack::quantum_router'],
     }
+  }
 }
 
 # This configuration option is deprecated and will be removed in future releases. It's currently kept for backward compatibility.

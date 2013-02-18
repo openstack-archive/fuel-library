@@ -44,12 +44,10 @@ define l23network::l3::create_br_iface (
       require       => L23network::L2::Bridge[$bridge]
     }
     l23network::l3::ifconfig {$interface:
-      interface => $interface,
       ipaddr    => 'none',
       require   => L23network::L2::Port[$interface],
     }
     l23network::l3::ifconfig {$bridge:
-      interface           => $bridge,
       ipaddr              => $ipaddr,
       netmask             => $netmask,
       gateway             => $gateway_ip_address_for_newly_created_interface,

@@ -50,6 +50,10 @@ class openstack::nova::controller (
   $quantum_db_password       = 'quantum_pass',
   $quantum_user_password     = 'quantum_pass',
   #$quantum_l3_enable         = true,
+  $quantum_network_node      = false,
+  $quantum_netnode_on_cnt    = false,
+  $quantum_gre_bind_addr     = $internal_address,
+  $quantum_external_ipinfo   = {},
   $segment_range             = '1:4094',
   $tenant_network_type       = 'gre',
   # Nova
@@ -94,7 +98,11 @@ class openstack::nova::controller (
   }
   # Change the pool of rabbit server nodes for clients to single virtual IP for HA mode
     if $rabbit_ha_virtual_ip {
-      $rabbit_hosts = "${rabbit_ha_virtual_ip}:5672"
+      if $quantum_netnode_on_cnt { 
+        $rabbit_hosts = "${rabbit_ha_virtual_ip}"
+      } else {
+        $rabbit_hosts = "${rabbit_ha_virtual_ip}:5672"
+      }
     }
     else {
       $rabbit_hosts = inline_template("<%= @rabbit_nodes.map {|x| x + ':5672'}.join ',' %>")
@@ -132,8 +140,7 @@ class openstack::nova::controller (
     rabbit_node_ip_address => $rabbit_node_ip_address,
     port     => $rabbit_port,
   }
-if ($rabbit_nodes)
-{
+if ($rabbit_nodes) {
   # Configure Nova
   class { 'nova':
     sql_connection     => $sql_connection,
@@ -148,9 +155,7 @@ if ($rabbit_nodes)
     use_syslog              => $use_syslog,
     rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
   }
- }
- else
- {
+} else {
   class { 'nova':
     sql_connection     => $sql_connection,
     rabbit_userid      => $rabbit_user,
@@ -163,8 +168,7 @@ if ($rabbit_nodes)
     api_bind_address   => $api_bind_address,
     use_syslog              => $use_syslog,
   }
- 
- }
+}
   class {'nova::quota':
     quota_instances => 100,
     quota_cores => 100,
@@ -216,47 +220,92 @@ if ($rabbit_nodes)
     }
   } else {
     # Set up Quantum
-    $quantum_sql_connection = "$db_type://${quantum_db_user}:${quantum_db_password}@${db_host}/${quantum_db_dbname}?charset=utf8"
     $enable_tunneling       = $tenant_network_type ? { 'gre' => true, 'vlan' => false }
-
-    class { '::quantum':
-      bind_host       => $api_bind_address,
-      rabbit_user     => $rabbit_user,
-      rabbit_password => $rabbit_password,
-      rabbit_host     => $rabbit_nodes,
-      rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
-      #sql_connection  => $quantum_sql_connection,
-      verbose         => $verbose,
-      debug           => $verbose,
-      use_syslog      => $use_syslog,
-    }
+    $quantum_sql_connection = "$db_type://${quantum_db_user}:${quantum_db_password}@${db_host}/${quantum_db_dbname}?charset=utf8"
 
     class { 'quantum::server':
       auth_host     => $internal_address,
       auth_password => $quantum_user_password,
     }
 
-    class { 'quantum::plugins::ovs':
-      bridge_mappings     => ["physnet1:br-ex","physnet2:br-prv"],
-      network_vlan_ranges => "physnet1,physnet2:${segment_range}",
-      tunnel_id_ranges    => "${segment_range}",
-      sql_connection      => $quantum_sql_connection,
-      tenant_network_type => $tenant_network_type,
-      enable_tunneling    => $enable_tunneling,
-    }
+    if ! $quantum_netnode_on_cnt {
+      class { '::quantum':
+        bind_host       => $api_bind_address,
+        rabbit_user     => $rabbit_user,
+        rabbit_password => $rabbit_password,
+        rabbit_host     => $rabbit_nodes,
+        rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
+        #sql_connection  => $quantum_sql_connection,
+        verbose         => $verbose,
+        debug           => $verbose,
+        use_syslog      => $use_syslog,
+      }
+      class { 'quantum::plugins::ovs':
+        bridge_mappings     => ["physnet1:br-ex","physnet2:br-prv"],
+        network_vlan_ranges => "physnet1,physnet2:${segment_range}",
+        tunnel_id_ranges    => "${segment_range}",
+        sql_connection      => $quantum_sql_connection,
+        tenant_network_type => $tenant_network_type,
+        enable_tunneling    => $enable_tunneling,
+      }
 
-    class { 'nova::network::quantum':
-    #$fixed_range,
-      quantum_admin_password    => $quantum_user_password,
-    #$use_dhcp                  = 'True',
-    #$public_interface          = undef,
-      quantum_connection_host   => $quantum_host, 
-      quantum_auth_strategy     => 'keystone',
-      quantum_url               => "http://${keystone_host}:9696",
-      quantum_admin_tenant_name => 'services',
-      quantum_admin_username    => 'quantum',
-      quantum_admin_auth_url    => "http://${keystone_host}:35357/v2.0",
-      public_interface          => $public_interface,
+      class { 'nova::network::quantum':
+      #$fixed_range,
+        quantum_admin_password    => $quantum_user_password,
+      #$use_dhcp                  = 'True',
+      #$public_interface          = undef,
+        quantum_connection_host   => $quantum_host, 
+        quantum_auth_strategy     => 'keystone',
+        quantum_url               => "http://${keystone_host}:9696",
+        quantum_admin_tenant_name => 'services',
+        quantum_admin_username    => 'quantum',
+        quantum_admin_auth_url    => "http://${keystone_host}:35357/v2.0",
+        public_interface          => $public_interface,
+      }
+    } else {
+      # Quantum network node on controller#3
+      class { '::openstack::quantum_router':
+        db_host               => $internal_virtual_ip,
+        service_endpoint      => $internal_virtual_ip,
+        auth_host             => $internal_virtual_ip,
+        internal_address      => $internal_address,
+        public_interface      => $public_interface,
+        private_interface     => $private_interface,
+        floating_range        => $floating_range,
+        fixed_range           => $fixed_range,
+        create_networks       => $create_networks,
+        verbose               => $verbose,
+        rabbit_password       => $rabbit_password,
+        rabbit_user           => $rabbit_user,
+        rabbit_nodes          => $rabbit_nodes,
+        rabbit_ha_virtual_ip  => $rabbit_hosts,  ####################
+        quantum               => $quantum,
+        quantum_user_password => $quantum_user_password,
+        quantum_db_password   => $quantum_db_password,
+        quantum_db_user       => $quantum_db_user,
+        quantum_db_dbname     => $quantum_db_dbname,
+        quantum_gre_bind_addr => $quantum_gre_bind_addr,
+        quantum_network_node  => $quantum_network_node,
+        quantum_netnode_on_cnt=> $quantum_netnode_on_cnt,
+        tenant_network_type   => $tenant_network_type,
+        segment_range         => $segment_range,
+        external_ipinfo       => $external_ipinfo,
+        api_bind_address      => $api_bind_address,
+        use_syslog            => $use_syslog,
+      }
+      class { 'nova::network::quantum':
+      #$fixed_range,
+        quantum_admin_password    => $quantum_user_password,
+      #$use_dhcp                  = 'True',
+      #$public_interface          = undef,
+        quantum_connection_host   => $quantum_host, 
+        quantum_auth_strategy     => 'keystone',
+        quantum_url               => "http://${keystone_host}:9696",
+        quantum_admin_tenant_name => 'services',
+        quantum_admin_username    => 'quantum',
+        quantum_admin_auth_url    => "http://${keystone_host}:35357/v2.0",
+        public_interface          => $public_interface,
+      }
     }
   }
 

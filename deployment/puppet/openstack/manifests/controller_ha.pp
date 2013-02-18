@@ -121,7 +121,12 @@ class openstack::controller_ha (
    $quantum_db_dbname  = 'quantum', $cinder = false, $cinder_iscsi_bind_iface = false, $tenant_network_type = 'gre', $segment_range = '1:4094',
    $nv_physical_volume = undef, $manage_volumes = false,$galera_nodes, $use_syslog = false,
    $cinder_rate_limits = undef, $nova_rate_limits = undef, 
-   $rabbit_node_ip_address = $internal_address, $horizon_use_ssl = false,
+   $rabbit_node_ip_address  = $internal_address, $horizon_use_ssl = false,
+   $rabbit_node_ip_address  = $internal_address,
+   $quantum_network_node    = false,
+   $quantum_netnode_on_cnt  = false,
+   $quantum_gre_bind_addr   = $internal_address,
+   $quantum_external_ipinfo = {},
  ) {
 
    # $which = $::hostname ? { $master_hostname => 0, default => 1 }
@@ -338,6 +343,10 @@ local0.* -/var/log/haproxy.log'
       quantum_user_password   => $quantum_user_password,
       quantum_db_password     => $quantum_db_password,
       #quantum_l3_enable       => $which ? { 0 => true, 1 => false },
+      quantum_gre_bind_addr   => $quantum_gre_bind_addr,
+      quantum_external_ipinfo => $quantum_external_ipinfo,
+      quantum_network_node    => $quantum_network_node,
+      quantum_netnode_on_cnt  => $quantum_netnode_on_cnt,
       segment_range           => $segment_range,
       tenant_network_type     => $tenant_network_type,
       cinder                  => $cinder,

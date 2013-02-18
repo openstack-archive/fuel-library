@@ -76,7 +76,7 @@ class openstack::compute (
   $public_interface,
   $private_interface,
   $network_manager,
-  $fixed_range,
+  $fixed_range                   = undef,
   # Quantum
   $quantum                       = false,
   $quantum_sql_connection        = false,

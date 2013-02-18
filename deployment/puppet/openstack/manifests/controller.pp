@@ -143,6 +143,10 @@ class openstack::controller (
   $quantum_db_password     = 'quantum_pass',
   $quantum_db_user         = 'quantum',
   $quantum_db_dbname       = 'quantum',
+  $quantum_network_node    = false,
+  $quantum_netnode_on_cnt  = false,
+  $quantum_gre_bind_addr   = undef,
+  $quantum_external_ipinfo = {},
   $segment_range           = '1:4094',
   $tenant_network_type     = 'gre',
   $enabled                 = true,
@@ -274,7 +278,6 @@ class openstack::controller (
     $enabled_apis = 'ec2,osapi_compute,osapi_volume'
   }
 
-
   class { 'openstack::nova::controller':
     # Database
     db_host                 => $db_host,
@@ -298,8 +301,12 @@ class openstack::controller (
     quantum                 => $quantum,
     quantum_user_password   => $quantum_user_password,
     quantum_db_password     => $quantum_db_password,
+    quantum_network_node    => $quantum_network_node,
+    quantum_netnode_on_cnt  => $quantum_netnode_on_cnt,
+    quantum_gre_bind_addr   => $quantum_gre_bind_addr,
+    quantum_external_ipinfo => $quantum_external_ipinfo,
     segment_range           => $segment_range,
-    tenant_network_type     => $tenant_network_type, 
+    tenant_network_type     => $tenant_network_type,
     # Nova
     nova_user_password      => $nova_user_password,
     nova_db_password        => $nova_db_password,

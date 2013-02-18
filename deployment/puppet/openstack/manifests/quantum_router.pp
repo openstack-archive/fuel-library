@@ -3,9 +3,9 @@
 class openstack::quantum_router (
   $db_host,
   $rabbit_password,
-  $internal_address         = $ipaddress_eth0,
-  $public_interface         = "eth0",
-  $private_interface        = "eth1",
+  $internal_address         = $::ipaddress_br_mgmt,
+  $public_interface         = "br-ex",
+  $private_interface        = "br-mgmt",
   $fixed_range              = '10.0.0.0/24',
   $floating_range           = false,
   $external_ipinfo          = {},
@@ -27,10 +27,13 @@ class openstack::quantum_router (
   $quantum_db_user          = 'quantum',
   $quantum_db_password      = 'quantum_pass',
   $quantum_user_password    = 'quantum_pass',
+  $exported_resources       = true,
+  $quantum_gre_bind_addr    = $internal_address,
+  $quantum_network_node     = false,
+  $quantum_netnode_on_cnt   = false,  
   $tenant_network_type      = 'gre',
   $use_syslog               = false,
-)
-{
+) {
     # Set up Quantum
     $quantum_sql_connection = "$db_type://${quantum_db_user}:${quantum_db_password}@${db_host}/${quantum_db_dbname}?charset=utf8"
     $enable_tunneling       = $tenant_network_type ? { 'gre' => true, 'vlan' => false }
@@ -47,7 +50,6 @@ class openstack::quantum_router (
       debug           => $verbose,
       use_syslog      => $use_syslog,
     }
-
     class { 'quantum::plugins::ovs':
       bridge_mappings     => ["physnet1:br-ex","physnet2:br-prv"],
       network_vlan_ranges => "physnet1,physnet2:${segment_range}",
@@ -57,44 +59,43 @@ class openstack::quantum_router (
       enable_tunneling    => $enable_tunneling,
     }
 
-    class { 'quantum::agents::ovs':
-      bridge_uplinks   => ["br-ex:${public_interface}","br-prv:${private_interface}"],
-      bridge_mappings  => ['physnet1:br-ex', 'physnet2:br-prv'],
-      enable_tunneling => $enable_tunneling,
-      local_ip         => $internal_address,
-    }
-
-    class { 'quantum::agents::dhcp':
-      debug          => True,
-      use_namespaces => False,
-    }
-
-    class { 'quantum::agents::l3':
-      #enabled             => $quantum_l3_enable,
-      debug               => True,
-      fixed_range         => $fixed_range,
-      floating_range      => $floating_range,
-      ext_ipinfo          => $external_ipinfo,
-      tenant_network_type => $tenant_network_type,
-      create_networks     => $create_networks,
-      segment_range       => $segment_range,
-      auth_url            => $admin_auth_url,
-      auth_tenant         => 'services',
-      auth_user           => 'quantum',
-      auth_password       => $quantum_user_password,
-      use_namespaces      => False,
-      metadata_ip         => $internal_address,
-    }
-
-    class { 'nova::metadata_api':
-      admin_auth_url   => $admin_auth_url,
-      service_endpoint => $service_endpoint,
-      listen_ip        => $internal_address,
-      controller_nodes => $rabbit_nodes,
-      auth_password    => $quantum_user_password,
-      rabbit_user      => $rabbit_user,
-      rabbit_password  => $rabbit_password,
-      rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
+    if $quantum_network_node {
+      class { 'quantum::agents::ovs':
+        bridge_uplinks   => ["br-ex:${public_interface}","br-prv:${private_interface}"],
+        bridge_mappings  => ['physnet1:br-ex', 'physnet2:br-prv'],
+        enable_tunneling => $enable_tunneling,
+        local_ip         => $internal_address,
+      }
+      class { 'quantum::agents::dhcp':
+        debug          => True,
+        use_namespaces => False,
+      }
+      class { 'quantum::agents::l3':
+        #enabled             => $quantum_l3_enable,
+        debug               => True,
+        fixed_range         => $fixed_range,
+        floating_range      => $floating_range,
+        ext_ipinfo          => $external_ipinfo,
+        tenant_network_type => $tenant_network_type,
+        create_networks     => $create_networks,
+        segment_range       => $segment_range,
+        auth_url            => $admin_auth_url,
+        auth_tenant         => 'services',
+        auth_user           => 'quantum',
+        auth_password       => $quantum_user_password,
+        use_namespaces      => False,
+        metadata_ip         => $internal_address,
+      }
+      class { 'nova::metadata_api':
+        admin_auth_url   => $admin_auth_url,
+        service_endpoint => $service_endpoint,
+        listen_ip        => $internal_address,
+        controller_nodes => $rabbit_nodes,
+        auth_password    => $quantum_user_password,
+        rabbit_user      => $rabbit_user,
+        rabbit_password  => $rabbit_password,
+        rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
+      }
     }
 
     sysctl::value { 'net.ipv4.ip_forward':
