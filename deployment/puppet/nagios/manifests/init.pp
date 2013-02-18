@@ -11,6 +11,8 @@ $servicegroups     = false,
 $hostgroup         = false,
 $proj_name         = 'nrpe.d',
 $whitelist         = '127.0.0.1',
+$nrpepkg           = $nagios::params::nrpepkg,
+$nrpeservice       = $nagios::params::nrpeservice,
 ) inherits nagios::params  {
 
   validate_array($services)
@@ -22,8 +24,19 @@ $whitelist         = '127.0.0.1',
     include_dir => "/etc/nagios/${proj_name}",
   }
 
-  package { $nagios::params::nrpepkg: 
-    ensure => present,
+  package {$nrpepkg:}
+
+  if inline_template("<%= !(services & ['swift-proxy', 'swift-account',
+    'swift-container', 'swift-object', 'swift-ring']).empty? -%>") == 'true' {
+    package {'nagios-plugins-os-swift':
+      require => Package[$nrpepkg],
+    }
+  }
+
+  if member($services, 'libvirt') == true {
+    package {'nagios-plugins-os-libvirt':
+      require => Package[$nrpepkg],
+    }
   }
 
   File {
@@ -37,20 +50,20 @@ $whitelist         = '127.0.0.1',
 
   file { "/etc/nagios/${proj_name}/openstack.cfg":
     content => template('nagios/openstack/openstack.cfg.erb'),
-    notify  => Service[$nagios::params::nrpeservice],
-    require => Package[$nagios::params::nrpepkg],
+    notify  => Service[$nrpeservice],
+    require => Package[$nrpepkg],
   }
 
   file { "/etc/nagios/${proj_name}/commands.cfg":
     content => template('nagios/common/etc/nagios/nrpe.d/commands.cfg.erb'),
-    notify  => Service[$nagios::params::nrpeservice],
-    require => Package[$nagios::params::nrpepkg],
+    notify  => Service[$nrpeservice],
+    require => Package[$nrpepkg],
   }
 
   file { "/etc/nagios/${proj_name}":
     source  => 'puppet:///modules/nagios/common/etc/nagios/nrpe.d',
-    notify  => Service[$nagios::params::nrpeservice],
-    require => Package[$nagios::params::nrpepkg],
+    notify  => Service[$nrpeservice],
+    require => Package[$nrpepkg],
   }
 
   file { "/usr/local/lib/nagios":
@@ -58,7 +71,7 @@ $whitelist         = '127.0.0.1',
     source  => 'puppet:///modules/nagios/common/usr/local/lib/nagios',
   }
 
-  service {$nagios::params::nrpeservice:
+  service {$nrpeservice:
     ensure     => running,
     enable     => true,
     hasrestart => true,
@@ -66,7 +79,7 @@ $whitelist         = '127.0.0.1',
     pattern    => 'nrpe',
     require    => [
       File['nrpe.cfg'],
-      Package[$nagios::params::nrpepkg]
+      Package[$nrpepkg]
     ],
   }
 }

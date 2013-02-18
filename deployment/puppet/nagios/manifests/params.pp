@@ -39,18 +39,26 @@ class nagios::params {
   case $::osfamily {
     'RedHat': {
       $nagios3pkg = [
-        'nagios',
-        'nagios-plugins-nrpe',
-        'nagios-plugins-all' ]
+        'nagios', 'nagios-plugins-nrpe',
+         ]
       $nrpepkg = [
         'binutils',
         'openssl',
         'nrpe',
         'nagios-plugins-nrpe',
-        'perl-Nagios-Plugin',
-        'nagios-plugins-all' ]
+        'nagios-plugins-by_ssh', 'nagios-plugins-cluster', 'nagios-plugins-dhcp',
+        'nagios-plugins-dig', 'nagios-plugins-disk', 'nagios-plugins-dns',
+        'nagios-plugins-dummy', 'nagios-plugins-flexlm', 'nagios-plugins-http',
+        'nagios-plugins-icmp', 'nagios-plugins-ide_smart',
+        'nagios-plugins-ircd', 'nagios-plugins-mysql',
+        'nagios-plugins-nt', 'nagios-plugins-ntp', 'nagios-plugins-ntp-perl',
+        'nagios-plugins-nwstat', 'nagios-plugins-overcr', 'nagios-plugins-ping',
+        'nagios-plugins-procs', 'nagios-plugins-real',
+        'nagios-plugins-rpc', 'nagios-plugins-sensors', 'nagios-plugins-ssh',
+        'nagios-plugins-swap', 'nagios-plugins-tcp', 'nagios-plugins-time',
+        'nagios-plugins-users',  ]
       $masterdir = 'nagios'
-      $htpasswd  = 'passwd'
+      $htpasswd_file  = 'passwd'
       $libdir    = '/usr/lib64'
       $nrpeservice = 'nrpe'
       $masterservice = 'nagios'
@@ -69,7 +77,7 @@ class nagios::params {
         'nagios-plugins-basic',
         'nagios-plugins-standard']
       $masterdir = 'nagios3'
-      $htpasswd  = 'htpasswd.users'
+      $htpasswd_file  = 'htpasswd.users'
       $libdir    = '/usr/lib'
       $nrpeservice = 'nagios-nrpe-server'
       $masterservice = 'nagios3'

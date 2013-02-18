@@ -21,6 +21,15 @@ $contactgroups     = {'group' => 'admins', 'alias' => 'Admins'},
 $contacts          = {'user' => 'hotkey', 'alias' => 'Dennis Hoppe',
                       'email' => 'nagios@%{domain}',
                       'group' => 'admins'},
+$rabbitmq          = false,
+$mysql_user        = 'root',
+$mysql_pass        = 'nova',
+$rabbit_user       = 'nova',
+$rabbit_pass       = 'nova',
+$nagios3pkg        = $nagios::params::nagios3pkg,
+$masterservice     = $nagios::params::masterservice,
+$masterdir         = $nagios::params::masterdir,
+$htpasswd_file     = $nagios::params::htpasswd_file,
 ) inherits nagios::params {
 
   validate_hash($htpasswd)
@@ -39,20 +48,24 @@ $contacts          = {'user' => 'hotkey', 'alias' => 'Dennis Hoppe',
       command => 'dpkg-statoverride --update --add nagios nagios 751 /var/lib/nagios3 && dpkg-statoverride --update --add nagios www-data 2710 /var/lib/nagios3/rw',
       path    => ['/bin','/sbin','/usr/sbin/','/usr/sbin/'],
       unless  => 'dpkg-statoverride --list nagios nagios 751 /var/lib/nagios3 && dpkg-statoverride --list nagios www-data 2710 /var/lib/nagios3/rw',
-      notify  => Service[$nagios::params::masterservice],
+      notify  => Service[$masterservice],
     }
   }
 
   # Bug: 3299
     exec { 'fix-permissions':
-      command     => "chmod -R go+r /etc/${nagios::params::masterdir}/${proj_name}",
+      command     => "chmod -R go+r /etc/${masterdir}/${proj_name}",
       path        => ['/bin','/sbin','/usr/sbin/','/usr/sbin/'],
       refreshonly => true,
-      notify      => Service[$nagios::params::masterservice],
+      notify      => Service[$masterservice],
     }
 
-  package { $nagios::params::nagios3pkg:
-    ensure => present,
+  package {$nagios3pkg:}
+
+  if $rabbitmq == true {
+    package {'nagios-plugins-os-rabbitmq':
+      require => Package[$nagios3pkg]
+    }
   }
 
   case $::osfamily {
@@ -60,27 +73,27 @@ $contacts          = {'user' => 'hotkey', 'alias' => 'Dennis Hoppe',
       augeas {'configs':
         lens    => 'NagiosCfg.lns',
         incl    => '/etc/nagios*/*.cfg',
-        context => "/files/etc/${nagios::params::masterdir}/nagios.cfg",
+        context => "/files/etc/${masterdir}/nagios.cfg",
         changes => [
           'rm cfg_file[position() > 1]',
-          "set cfg_dir \"/etc/${masterdir}/${nagios::master::proj_name}\"",
+          "set cfg_dir \"/etc/${masterdir}/${proj_name}\"",
           'set check_external_commands 1',
         ],
-        require => Package[$nagios::params::nagios3pkg],
-        notify  => Service[$nagios::params::masterservice],
+        require => Package[$nagios3pkg],
+        notify  => Service[$masterservice],
       }
     }
     'Debian': {
       augeas {'configs':
         lens    => 'NagiosCfg.lns',
         incl    => '/etc/nagios*/*.cfg',
-        context => "/files/etc/${nagios::params::masterdir}/nagios.cfg",
+        context => "/files/etc/${masterdir}/nagios.cfg",
         changes => [
-          "set cfg_dir[2] \"/etc/${masterdir}/${nagios::master::proj_name}\"",
+          "set cfg_dir[2] \"/etc/${masterdir}/${proj_name}\"",
           'set check_external_commands 1',
         ],
-        require => Package[$nagios::params::nagios3pkg],
-        notify  => Service[$nagios::params::masterservice],
+        require => Package[$nagios3pkg],
+        notify  => Service[$masterservice],
       }
     }
   }
@@ -89,22 +102,22 @@ $contacts          = {'user' => 'hotkey', 'alias' => 'Dennis Hoppe',
       owner   => root,
       group   => root,
       mode    => '0644',
-      require => Package[$nagios::params::nagios3pkg],
+      require => Package[$nagios3pkg],
   }
 
   file {
-    "/etc/${nagios::params::masterdir}/${proj_name}/templates.cfg":
+    "/etc/${masterdir}/${proj_name}/templates.cfg":
       content => template('nagios/openstack/templates.cfg.erb');
-    "/etc/${nagios::params::masterdir}/${proj_name}/hostgroup.cfg":
+    "/etc/${masterdir}/${proj_name}/hostgroup.cfg":
       content => template('nagios/openstack/hostgroups.cfg.erb');
-    "/etc/${nagios::params::masterdir}/${nagios::params::htpasswd}":
+    "/etc/${masterdir}/${htpasswd_file}":
       content => template('nagios/common/etc/nagios3/htpasswd.users.erb');
   }
 
-  file { "/etc/${nagios::params::masterdir}/${proj_name}":
+  file { "/etc/${masterdir}/${proj_name}":
     recurse => true,
     alias   => 'conf.d',
-    notify  => Service[$nagios::params::masterservice],
+    notify  => Service[$masterservice],
     source  => 'puppet:///modules/nagios/common/etc/nagios3/conf.d',
   }
 
@@ -123,7 +136,7 @@ $contacts          = {'user' => 'hotkey', 'alias' => 'Dennis Hoppe',
     'nagios_servicegroup':;
   }
 
-  service { $nagios::params::masterservice:
+  service { $masterservice:
     ensure     => running,
     enable     => true,
     hasrestart => true,
@@ -131,7 +144,7 @@ $contacts          = {'user' => 'hotkey', 'alias' => 'Dennis Hoppe',
     require    => [
       Augeas['configs'],
       File['conf.d'],
-      Package[$nagios::params::nagios3pkg]
+      Package[$nagios3pkg]
     ],
   }
 }
