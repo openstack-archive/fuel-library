@@ -1,24 +1,47 @@
-def get_def_route
-  addr = nil
-  File.open("/proc/net/route", "r") do |rff|
-    while (line = rff.gets)
-      rgx = line.match('^\s*(\S+)\s+00000000\s+([\dABCDEF]{8})\s+')
-      if rgx
-        vals = rgx.to_a[2]
-        addr = []
-        0.step(6, 2) do |i| 
-          addr << vals.slice(i,2).hex
+require 'ipaddr'
+
+begin
+  require 'facter/util/netstat.rb'
+rescue LoadError => e
+  # puppet apply does not add module lib directories to the $LOAD_PATH (See
+  # #4248). It should (in the future) but for the time being we need to be
+  # defensive which is what this rescue block is doing.
+  rb_file = File.join(File.dirname(__FILE__), 'util', 'netstat.rb')
+  load rb_file if File.exists?(rb_file) or raise e
+end
+
+# Fact: defaultroute
+#
+# Purpose: Return the default route for a host.
+#
+Facter.add(:l3_default_route) do
+  confine :kernel => Facter::Util::NetStat.supported_platforms
+  setcode do
+    Facter::Util::NetStat.get_route_value('default', 'gw') ||
+    Facter::Util::NetStat.get_route_value('0.0.0.0', 'gw')
+  end
+end
+
+# Fact: l3_default_route_interface
+#
+# Purpose: Return the interface uses for the host's default route.
+#
+Facter.add(:l3_default_route_interface) do
+  confine :kernel => Facter::Util::IP.supported_platforms
+  setcode do
+    defaultroute = Facter.value(:l3_default_route)
+    if defaultroute
+      gw = IPAddr.new(defaultroute)
+      Facter::Util::IP.get_interfaces.collect { |i| Facter::Util::IP.alphafy(i) }.
+      detect do |i| 
+        network = Facter.value('network_' + i)
+        netmask = Facter.value('netmask_' + i)
+        if network and netmask
+            IPAddr.new(network+'/'+netmask).include?(gw)
+        else
+            false
         end
-        addr = addr.reverse.join('.')
-        break
       end
     end
   end
-  return addr
-end
-
-Facter.add('default_route') do
-  setcode do
-    get_def_route()
-  end 
 end

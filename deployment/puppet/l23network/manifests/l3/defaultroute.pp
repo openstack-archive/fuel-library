@@ -1,12 +1,10 @@
-# == Define: l23network::l3::nondefaultroute
+# == Define: l23network::l3::defaultroute
 #
 # Do not use this directly,
-# use
-# l23network::l3::route
+# use l23network::l3::route instead
 #
-define l23network::l3::nondefaultroute (
+define l23network::l3::defaultroute (
     $gateway,
-    $route       = $name,
     $metric      = undef,
 ){
   case $::osfamily {
@@ -22,4 +20,3 @@ define l23network::l3::nondefaultroute (
   }
 
 }
-

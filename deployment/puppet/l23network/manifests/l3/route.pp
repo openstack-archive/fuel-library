@@ -15,20 +15,22 @@
 #   Specify metroc for this route. Undefined by default.
 #
 define l23network::l3::route (
-    $route       = $name,
     $gateway,
+    $route       = $name,
     $metric      = undef,
 ){
   case $route {
     /(?i)default/: { # default routing
-      fail("default routing configuration not implemented. Use 'gateway' option while use l23network::l3::ifconfig.")
+      l23network::l3::defaultroute {'default':
+        gateway => $gateway,
+        metric  => $metric,
+      }
     }
     default: {       # non-default routing
-      l23network::l3::nondefaultroute {"${route}":
+      l23network::l3::nondefaultroute {$route:
         gateway => $gateway,
         metric  => $metric,
       }
     }
   }
-
 }

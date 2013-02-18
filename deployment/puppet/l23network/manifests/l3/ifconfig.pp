@@ -34,8 +34,8 @@
 #   Puppet will not wait for obtain IP address and route.
 #
 define l23network::l3::ifconfig (
-    $interface       = $name,
     $ipaddr,
+    $interface       = $name,
     $netmask         = '255.255.255.0',
     $gateway         = undef,
     $dns_nameservers = undef,
