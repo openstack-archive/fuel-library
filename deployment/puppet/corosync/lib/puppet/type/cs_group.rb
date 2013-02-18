@@ -20,7 +20,6 @@ module Puppet
     newproperty(:primitives, :array_matching => :all) do
       desc "An array of primitives to have in this group.  Must be listed in the
           order that you wish them to start."
-
       # Have to redefine should= here so we can sort the array that is given to
       # us by the manifest.  While were checking on the class of our value we
       # are going to go ahead and do some validation too.  The way Corosync
@@ -59,7 +58,6 @@ module Puppet
       end
       autos
     end
-
 
   end
 end

@@ -188,13 +188,13 @@ Puppet::Type.type(:cs_location).provide(:crm, :parent => Puppet::Provider::Coros
           end
           rule_number = 0
           rule_number += rule_hash[:expressions].size if !rule_hash[:expressions].nil?
-          rule_number += rule_hash[:expressions].size if !rule_hash[:date_expressions].nil? 
+          rule_number += rule_hash[:expressions].size if !rule_hash[:date_expressions].nil?
           updated << "#{rule_hash[:boolean].to_s} " if rule_number > 1
         end
       end
-      
+
       debug("creating location with command\n #{updated}\n")
-      
+
       Tempfile.open('puppet_crm_update') do |tmpfile|
         tmpfile.write(updated)
         tmpfile.flush
@@ -206,18 +206,18 @@ Puppet::Type.type(:cs_location).provide(:crm, :parent => Puppet::Provider::Coros
 end
 
 def convert_to_sym(hash)
-    if hash.is_a? Hash
-     hash.inject({}) do |memo,(key,value)|
-        value = convert_to_sym(value)
-        if value.is_a?(Array)
-            value.collect! do |arr_el|
-                    convert_to_sym(arr_el)
-            end
+  if hash.is_a? Hash
+    hash.inject({}) do |memo,(key,value)|
+      value = convert_to_sym(value)
+      if value.is_a?(Array)
+        value.collect! do |arr_el|
+          convert_to_sym(arr_el)
         end
-       memo[key.to_sym] = value
-       memo
+      end
+      memo[key.to_sym] = value
+      memo
     end
-    else
-        hash
-    end
+  else
+    hash
+  end
 end

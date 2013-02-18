@@ -32,7 +32,7 @@ module Puppet
 
     newproperty(:node_score) do
       desc "The score for the node"
-      
+
       validate do |value|
         begin
           if  value !~ /^([+-]){,1}(inf|INFINITY)$/
@@ -47,15 +47,14 @@ module Puppet
     newproperty(:rules, :array_matching=>:all) do
       desc "Specify rules for location"
       munge do |rule|
-         convert_to_sym(rule)
+        convert_to_sym(rule)
       end
     end
 
-    
     newproperty(:node) do
       desc "The node for which to apply node_score"
     end
-    
+
     autorequire(:cs_shadow) do
       [ @parameters[:cib].value ]
     end
@@ -72,19 +71,19 @@ module Puppet
 end
 
 def convert_to_sym(hash)
-    if hash.is_a? Hash
-     hash.inject({}) do |memo,(key,value)|
-        value = convert_to_sym(value)
-        if value.is_a?(Array)
-            value.collect! do |arr_el|
-                    convert_to_sym(arr_el)
-            end
+  if hash.is_a? Hash
+    hash.inject({}) do |memo,(key,value)|
+      value = convert_to_sym(value)
+      if value.is_a?(Array)
+        value.collect! do |arr_el|
+          convert_to_sym(arr_el)
         end
-       memo[key.to_sym] = value
-       memo
+      end
+      memo[key.to_sym] = value
+      memo
     end
-    else
-        hash
-    end
+  else
+    hash
+  end
 end
 

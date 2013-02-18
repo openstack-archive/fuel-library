@@ -226,7 +226,7 @@ Puppet::Type.type(:cs_resource).provide(:crm, :parent => Puppet::Provider::Coros
   end
 
   def multistate_hash=(should)
-    #Check if we use default multistate name 
+    #Check if we use default multistate name
     #if it is empty
     if should[:type] and  should[:name].to_s.empty?
       newname = "#{should[:type]}_#{@property_hash[:name]}"
@@ -242,8 +242,8 @@ Puppet::Type.type(:cs_resource).provide(:crm, :parent => Puppet::Provider::Coros
       try_to_delete_resource(@property_hash[:multistate_hash][:name])
       try_to_delete_resource(@property_hash[:multistate_hash][:name],@resource[:cib])
     elsif
-      #otherwise, stop it and rename it both
-      #in shadow and live cib
+    #otherwise, stop it and rename it both
+    #in shadow and live cib
     (should[:type] == @property_hash[:multistate_hash][:type] and @property_hash[:multistate_hash][:type]  and
     newname != @property_hash[:multistate_hash][:name])
       crm('resource', 'stop', "#{@property_hash[:multistate_hash][:name]}")

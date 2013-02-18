@@ -1,4 +1,5 @@
 require 'pathname' # JJM WORK_AROUND #14073
+
 require Pathname.new(__FILE__).dirname.dirname.expand_path + 'corosync'
 
 Puppet::Type.type(:cs_property).provide(:crm, :parent => Puppet::Provider::Corosync) do
@@ -10,7 +11,6 @@ Puppet::Type.type(:cs_property).provide(:crm, :parent => Puppet::Provider::Coros
   commands :crm           => 'crm'
   commands :cibadmin      => 'cibadmin'
   commands :crm_attribute => 'crm_attribute'
-
   def self.instances
 
     block_until_ready

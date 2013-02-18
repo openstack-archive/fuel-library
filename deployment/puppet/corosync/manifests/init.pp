@@ -63,19 +63,17 @@
 #
 # Copyright 2012, Puppet Labs, LLC.
 #
-class corosync(
-  $enable_secauth     = 'UNSET',
-  $authkey            = '/etc/puppet/ssl/certs/ca.pem',
-  $threads            = 'UNSET',
-  $port               = 'UNSET',
-  $bind_address       = 'UNSET',
-  $multicast_address  = 'UNSET',
-  $unicast_addresses  = 'UNSET',
-  $force_online       = false,
-  $check_standby      = false,
-  $debug              = false,
-) {
-
+class corosync (
+  $enable_secauth    = 'UNSET',
+  $authkey           = '/etc/puppet/ssl/certs/ca.pem',
+  $threads           = 'UNSET',
+  $port              = 'UNSET',
+  $bind_address      = 'UNSET',
+  $multicast_address = 'UNSET',
+  $unicast_addresses = 'UNSET',
+  $force_online      = false,
+  $check_standby     = false,
+  $debug             = false,) {
   # Making it possible to provide data with parameterized class declarations or
   # Console.
   $threads_real = $threads ? {
@@ -109,6 +107,7 @@ class corosync(
     },
     default => $unicast_addresses
   }
+
   if $unicast_addresses_real == 'UNSET' {
     $corosync_conf = "${module_name}/corosync.conf.erb"
   } else {
@@ -121,7 +120,7 @@ class corosync(
 
   # $multicast_address is NOT required if $unicast_address is provided
   if $multicast_address == 'UNSET' and $unicast_addresses_real == 'UNSET' {
-    if ! $::multicast_address {
+    if !$::multicast_address {
       fail('You must provide a value for multicast_address')
     } else {
       $multicast_address_real = $::multicast_address
@@ -132,20 +131,25 @@ class corosync(
 
   if $enable_secauth == 'UNSET' {
     case $::enable_secauth {
-      true:  { $enable_secauth_real = 'on' }
-      false: { $enable_secauth_real = 'off' }
-      undef:   { $enable_secauth_real = 'on' }
-      '':      { $enable_secauth_real = 'on' }
-      default: { validate_re($::enable_secauth, '^true$|^false$') }
+      true    : { $enable_secauth_real = 'on' }
+      false   : { $enable_secauth_real = 'off' }
+      undef   : { $enable_secauth_real = 'on' }
+      ''      : { $enable_secauth_real = 'on' }
+      default : { validate_re($::enable_secauth, '^true$|^false$') }
     }
   } else {
-      case $enable_secauth {
-        true:   { $enable_secauth_real = 'on' }
-        false:  { $enable_secauth_real = 'off' }
-        default:
-          { fail('The enable_secauth class
-          parameter requires a true or false boolean') }
+    case $enable_secauth {
+      true    : {
+        $enable_secauth_real = 'on'
       }
+      false   : {
+        $enable_secauth_real = 'off'
+      }
+      default : {
+        fail('The enable_secauth class
+          parameter requires a true or false boolean')
+      }
+    }
   }
 
   # Using the Puppet infrastructure's ca as the authkey, this means any node in
@@ -153,16 +157,16 @@ class corosync(
   # something better.
   if $enable_secauth_real == 'on' {
     file { '/etc/corosync/authkey':
-      ensure  => file,
-      source  => $authkey,
-      mode    => '0400',
-      owner   => 'root',
-      group   => 'root',
-      notify  => Service['corosync'],
+      ensure => file,
+      source => $authkey,
+      mode   => '0400',
+      owner  => 'root',
+      group  => 'root',
+      notify => Service['corosync'],
     }
   }
 
-  package { [ 'corosync', 'pacemaker' ]: ensure => present }
+  package { ['corosync', 'pacemaker']: ensure => present }
 
   # Template uses:
   # - $unicast_addresses
@@ -194,7 +198,7 @@ class corosync(
   if $::osfamily == 'Debian' {
     exec { 'enable corosync':
       command => 'sed -i s/START=no/START=yes/ /etc/default/corosync',
-      path    => [ '/bin', '/usr/bin' ],
+      path    => ['/bin', '/usr/bin'],
       unless  => 'grep START=yes /etc/default/corosync',
       require => Package['corosync'],
       before  => Service['corosync'],
@@ -205,7 +209,7 @@ class corosync(
     # Throws a puppet error if node is on standby
     exec { 'check_standby node':
       command => 'echo "Node appears to be on standby" && false',
-      path    => [ '/bin', '/usr/bin', '/sbin', '/usr/sbin' ],
+      path    => ['/bin', '/usr/bin', '/sbin', '/usr/sbin'],
       onlyif  => "crm node status|grep ${::hostname}-standby|
       grep 'value=\"on\"'",
       require => Service['corosync'],
@@ -215,7 +219,7 @@ class corosync(
   if $force_online == true {
     exec { 'force_online node':
       command => 'crm node online',
-      path    => [ '/bin', '/usr/bin', '/sbin', '/usr/sbin' ],
+      path    => ['/bin', '/usr/bin', '/sbin', '/usr/sbin'],
       onlyif  => "crm node status|grep ${::hostname}-standby|
       grep 'value=\"on\"'",
       require => Service['corosync'],
@@ -225,7 +229,6 @@ class corosync(
   service { 'corosync':
     ensure    => running,
     enable    => true,
-    subscribe => File[ [ '/etc/corosync/corosync.conf',
-    '/etc/corosync/service.d' ] ],
+    subscribe => File[['/etc/corosync/corosync.conf', '/etc/corosync/service.d']],
   }
 }
