@@ -290,7 +290,9 @@ if $::operatingsystem == 'Ubuntu' {
 
 sysctl::value { 'net.ipv4.conf.all.rp_filter': value => '0' }
 
-class compact_controller {
+class compact_controller (
+  $quantum_is_network_node = false
+) {
   class { 'openstack::controller_ha':
     controller_public_addresses   => $controller_public_addresses,
     controller_internal_addresses => $controller_internal_addresses,
@@ -339,8 +341,8 @@ class compact_controller {
     galera_nodes            => $controller_hostnames,
     nv_physical_volume      => $nv_physical_volume,
     use_syslog              => $use_syslog,
-    nova_rate_limits => $nova_rate_limits,
-    cinder_rate_limits => $cinder_rate_limits
+    nova_rate_limits        => $nova_rate_limits,
+    cinder_rate_limits      => $cinder_rate_limits,
   }
   class { 'swift::keystone::auth':
     password         => $swift_user_password,

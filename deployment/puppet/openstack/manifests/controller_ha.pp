@@ -98,7 +98,8 @@ class openstack::controller_ha (
    $quantum = false, $quantum_user_password, $quantum_db_password, $quantum_db_user = 'quantum',
    $quantum_db_dbname  = 'quantum', $cinder = false, $cinder_iscsi_bind_iface = false, $tenant_network_type = 'gre', $segment_range = '1:4094',
    $nv_physical_volume = undef, $manage_volumes = false,$galera_nodes, $use_syslog = false,
-   $cinder_rate_limits = undef, $nova_rate_limits = undef
+   $cinder_rate_limits = undef, $nova_rate_limits = undef, 
+   $rabbit_node_ip_address = $internal_address,
  ) {
 
    # $which = $::hostname ? { $master_hostname => 0, default => 1 }
@@ -313,9 +314,9 @@ local0.* -/var/log/haproxy.log'
       # turn on SWIFT_ENABLED option for Horizon dashboard
       swift                   => $glance_backend ? { 'swift' => true, default => false },
       use_syslog              => $use_syslog,
-      cinder_rate_limits => $cinder_rate_limits,
-      nova_rate_limits => $nova_rate_limits,
-      rabbit_node_ip_address  => getvar("::ipaddress_${internal_interface}"),
+      cinder_rate_limits      => $cinder_rate_limits,
+      nova_rate_limits        => $nova_rate_limits,
+      rabbit_node_ip_address  => $rabbit_node_ip_address,
     }
 
     class { 'openstack::auth_file':
