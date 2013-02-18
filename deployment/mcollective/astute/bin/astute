@@ -1,23 +1,55 @@
 #!/usr/bin/env ruby
 
-require 'rubygems'
-require 'astute'
+require 'optparse'
+require 'yaml'
+begin
+  require 'astute'
+rescue LoadError
+  require 'rubygems'
+  require 'astute'
+end
 
 class ConsoleReporter
   def report(msg)
-    p msg
+    puts msg.inspect
   end
 end
 
+opts = {}
+optparse = OptionParser.new do |o|
+  o.banner = "Usage: bin/astute -f FILENAME"
+
+  o.on("-v", "--[no-]verbose", "Run verbosely") do |v|
+    opts[:verbose] = v
+  end
+
+  o.on("-f FILENAME", "Environment in YAML format. Samples are in examples directory.") do |f|
+    opts[:filename] = f
+  end
+
+  o.on("-h") { puts o; exit }
+end
+optparse.parse!(ARGV)
+
+if opts[:filename].nil?
+  puts optparse
+  exit
+end
+
 reporter = ConsoleReporter.new
+Astute.logger = Logger.new(STDOUT) if opts[:verbose]
 
-nodes = [{'id' => '1', 'ip' => '10.1.1.2', 'uid' => 'devnailgun.mirantis.com', 'role' => 'test_controller'}]
-#nodes << {'id' => '2', 'ip' => '10.1.1.3', 'uid' => 'mcoll2', 'role' => 'test_controller'}
+environment = YAML.load_file(opts[:filename])
 
-networks = [{'id' => 1, 'vlan_id' => 100, 'cidr' => '10.0.0.0/24'},
-            {'id' => 2, 'vlan_id' => 101, 'cidr' => '192.168.0.0/24'}]
+case environment['attributes']['deployment_engine']
+  when 'nailyfact'
+    deploy_engine = Astute::DeploymentEngine::NailyFact
+  when 'simplepuppet'
+    deploy_engine = Astute::DeploymentEngine::SimplePuppet  # It just calls puppet and doesn't do any magic
+  else
+    deploy_engine = nil  # Orchestrator will use it's default
+end
 
-task_id = `uuidgen`.strip
-orchestrator = Astute::Orchestrator.new
-orchestrator.deploy(reporter, task_id, nodes)
-orchestrator.verify_networks(reporter, task_id, nodes, networks)
+orchestrator = Astute::Orchestrator.new(deploy_engine, log_parsing=false)
+orchestrator.deploy(reporter, environment['task_uuid'], environment['nodes'], environment['attributes'])
+#orchestrator.verify_networks(reporter, task_id, nodes, networks)

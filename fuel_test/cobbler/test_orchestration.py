@@ -18,7 +18,7 @@ class CobblerCase(CobblerTestCase):
         remote = self.nodes().stomps[0].remote('public', login='root',
             password='r00tme')
         write_config(remote, '/tmp/nodes.yaml', config_text)
-        remote.check_stderr('astute_run /tmp/nodes.yaml')
+        remote.check_stderr('astute_run -v -f /tmp/nodes.yaml')
 
     def test_orchestrating_simple(self):
         Manifest().write_openstack_simple_manifest(
@@ -30,7 +30,7 @@ class CobblerCase(CobblerTestCase):
         remote = self.nodes().stomps[0].remote('public', login='root',
             password='r00tme')
         write_config(remote, '/tmp/nodes.yaml', config_text)
-        remote.check_stderr('astute_run /tmp/nodes.yaml')
+        remote.check_stderr('astute_run -v -f /tmp/nodes.yaml')
 
     def test_orchestrating_compact(self):
         Manifest().write_openstack_manifest(
@@ -44,7 +44,7 @@ class CobblerCase(CobblerTestCase):
         remote = self.nodes().stomps[0].remote('public', login='root',
             password='r00tme')
         write_config(remote, '/tmp/nodes.yaml', config_text)
-        remote.check_stderr('astute_run /tmp/nodes.yaml')
+        remote.check_stderr('astute_run -v -f /tmp/nodes.yaml')
 
     def test_orchestrating_full(self):
         Manifest().write_openstack_manifest(
@@ -62,7 +62,7 @@ class CobblerCase(CobblerTestCase):
         remote = self.nodes().stomps[0].remote('public', login='root',
             password='r00tme')
         write_config(remote, '/tmp/nodes.yaml', config_text)
-        remote.check_stderr('astute_run /tmp/nodes.yaml')
+        remote.check_stderr('astute_run -v -f /tmp/nodes.yaml')
 
 
 if __name__ == '__main__':

@@ -1,26 +1,38 @@
 #!/usr/bin/env ruby
 
-require 'rubygems'
-require 'astute'
+require 'optparse'
 require 'yaml'
+begin
+  require 'astute'
+rescue LoadError
+  require 'rubygems'
+  require 'astute'
+end
 
-def puppet_consecutive_call(orchestrator, context, nodes)
+#---------- SETTINGS -----------
+$retries = 2
+$ignore_failure = false
+task_id = `uuidgen`.strip
+log_parser = Astute::LogParser::NoParsing.new
+logger_output = STDOUT
+#--------------------------------
+
+def puppet_consecutive_call(context, nodes)
+  nodes = [nodes] if not nodes.is_a?(Array)
+  Astute.logger.info "#{context.task_id}: Starting consecutive deployment."
   for node in nodes do
-    orchestrator.deploy_piece(context, [node], false)
+    Astute::PuppetdDeployer.deploy(context, [node], $retries, $ignore_failure)
   end
+  nodes_roles = nodes.map { |n| { n['uid'] => n['role'] } }
+  Astute.logger.info "#{context.task_id}: Finished deployment of nodes => roles: #{nodes_roles.inspect}"
 end
 
-def puppet_parallel_call(orchestrator, context, nodes)
-  orchestrator.deploy_piece(context, nodes, false)
-end
-
-class Context
-  attr_accessor :task_id, :reporter
-
-  def initialize(task_id, reporter)
-    @task_id = task_id
-    @reporter = reporter
-  end
+def puppet_parallel_call(context, nodes)
+  nodes = [nodes] if not nodes.is_a?(Array)
+  Astute.logger.info "#{context.task_id}: Starting parallel deployment."
+  Astute::PuppetdDeployer.deploy(context, nodes, $retries, $ignore_failure)
+  nodes_roles = nodes.map { |n| { n['uid'] => n['role'] } }
+  Astute.logger.info "#{context.task_id}: Finished deployment of nodes => roles: #{nodes_roles.inspect}"
 end
 
 class ConsoleReporter
@@ -29,13 +41,34 @@ class ConsoleReporter
   end
 end
 
+opts = {}
+optparse = OptionParser.new do |o|
+  o.banner = "Usage: bin/astute -f FILENAME"
+
+  o.on("-v", "--[no-]verbose", "Run verbosely") do |v|
+    opts[:verbose] = v
+  end
+
+  o.on("-f FILENAME", "Environment in YAML format. Samples are in examples directory.") do |f|
+    opts[:filename] = f
+  end
+
+  o.on("-h") { puts o; exit }
+end
+optparse.parse!(ARGV)
+
+if opts[:filename].nil?
+  puts optparse
+  exit
+end
+
+Astute.logger = Logger.new(logger_output) if opts[:verbose]
 reporter = ConsoleReporter.new
+proxy_reporter = Astute::ProxyReporter.new(reporter)
+context = Astute::Context.new(task_id, proxy_reporter, log_parser)
 
-task_id = `uuidgen`.strip
-orchestrator = Astute::Orchestrator.new
-context = Context.new(task_id, reporter)
-
-pinged_nodes_list = [] # make list of nodes that respond to ping
+# make list of nodes that respond to ping
+pinged_nodes_list = []
 IO.popen('mco ping').each do |line|
   if /time=/.match(line) # in 'mco ping' output only lines with 'time=' hold node names
     pinged_nodes_list += [/^[^ ]*/.match(line).to_s]
@@ -43,7 +76,7 @@ IO.popen('mco ping').each do |line|
 end
 
 # load nodes structure from yaml 
-nodes_raw = YAML::load( File.open( (ARGV.length>0) ? (ARGV[0]) : "nodes.yaml" ) )
+nodes_raw = YAML.load_file( opts[:filename] )
 nodes = Array.new
 domain_name = ''
 
@@ -87,27 +120,27 @@ compute_nodes = compute_nodes.sort{|x,y| x['uid'] <=> y['uid']}
 
 if nodes_raw['use_case'] == "minimal" or
     nodes_raw['use_case'] == "simple"  
-  puppet_consecutive_call(orchestrator, context, ctrl_nodes)
-  puppet_parallel_call(orchestrator, context, compute_nodes)
+  puppet_consecutive_call(context, ctrl_nodes)
+  puppet_parallel_call(context, compute_nodes)
 elsif nodes_raw['use_case'] == "compact"
-  puppet_consecutive_call(orchestrator, context, [ctrl_nodes[0]])
-  puppet_parallel_call(orchestrator, context, ctrl_nodes[1..2])
-  puppet_parallel_call(orchestrator, context, ctrl_nodes)
-  puppet_consecutive_call(orchestrator, context, [ctrl_nodes[0]])
-  puppet_parallel_call(orchestrator, context, ctrl_nodes[1..2] + compute_nodes)
+  puppet_consecutive_call(context, ctrl_nodes[0])
+  puppet_parallel_call(context, ctrl_nodes[1..2])
+  puppet_parallel_call(context, ctrl_nodes)
+  puppet_consecutive_call(context, ctrl_nodes[0])
+  puppet_parallel_call(context, ctrl_nodes[1..2] + compute_nodes)
 elsif nodes_raw['use_case'] == "full"
   storage_nodes = nodes.select {|n| n['role'] == 'storage'}
   storage_nodes = storage_nodes.sort{|x,y| x['uid'] <=> y['uid']}
   proxy_nodes = nodes.select {|n| n['role'] == 'proxy'}
   proxy_nodes = proxy_nodes.sort{|x,y| x['uid'] <=> y['uid']}
-  puppet_consecutive_call(orchestrator, context, [ctrl_nodes[0]])
-  puppet_parallel_call(orchestrator, context, [ctrl_nodes[1]])
-  puppet_parallel_call(orchestrator, context, compute_nodes)
-  puppet_parallel_call(orchestrator, context, storage_nodes)
-  puppet_parallel_call(orchestrator, context, storage_nodes)
-  puppet_parallel_call(orchestrator, context, [proxy_nodes[0]])
-  puppet_parallel_call(orchestrator, context, storage_nodes)
-  puppet_parallel_call(orchestrator, context, [proxy_nodes[1]])
+  puppet_consecutive_call(context, ctrl_nodes[0])
+  puppet_parallel_call(context, ctrl_nodes[1])
+  puppet_parallel_call(context, compute_nodes)
+  puppet_parallel_call(context, storage_nodes)
+  puppet_parallel_call(context, storage_nodes)
+  puppet_parallel_call(context, proxy_nodes[0])
+  puppet_parallel_call(context, storage_nodes)
+  puppet_parallel_call(context, proxy_nodes[1])
 else
   puts "Use case " + nodes_raw['use_case'] + " is not supported!"
 end
