@@ -51,9 +51,8 @@ $mirror_type = 'internal'
 stage { 'openstack-custom-repo': before => Stage['main'] }
 class { 'openstack::mirantis_repos': stage => 'openstack-custom-repo', type => $mirror_type }
 
-# all nodes whose certname matches fuel-openstack-all should be
-# deployed as all-in-one openstack installations.
-node 'fuel-controller-02' {
+# Every node should be deployed as all-in-one openstack installations.
+node default {
 
   # include 'apache'
 
