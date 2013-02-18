@@ -72,7 +72,8 @@ def install_packages2(remotes, packages):
         cmd = 'yum -y install %s' % packages
     else:
         cmd = 'DEBIAN_FRONTEND=noninteractive apt-get -y install %s' % packages
-    SSHClient.execute_together(remotes, cmd)
+    for remote in remotes:
+        remote.execute(cmd)
 
 def install_packages(remote, packages):
     if OS_FAMILY == "centos":
@@ -87,7 +88,8 @@ def update_pms(remotes):
         cmd = 'yum makecache'
     else:
         cmd = 'apt-get update'
-    SSHClient.execute_together(remotes, cmd)
+    for remote in remotes:
+        remote.execute(cmd)
 
 
 def update_pm(remote):
