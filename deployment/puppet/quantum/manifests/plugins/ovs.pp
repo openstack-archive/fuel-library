@@ -15,7 +15,6 @@ class quantum::plugins::ovs (
 ) {
 
   include 'quantum::params'
-  require 'vswitch::ovs'
 
   Package['quantum'] -> Package['quantum-plugin-ovs']
   Package['quantum-plugin-ovs'] -> Quantum_plugin_ovs<||>

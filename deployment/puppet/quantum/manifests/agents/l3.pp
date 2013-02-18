@@ -19,12 +19,12 @@ class quantum::agents::l3 (
   $auth_password                = 'password',
   $root_helper                  = 'sudo /usr/bin/quantum-rootwrap /etc/quantum/rootwrap.conf',
   $use_namespaces               = 'True',
-  #$router_id                    = '7e5c2aca-bbac-44dd-814d-f2ea9a4003e4',
-  #$gateway_external_net_id      = '3f8699d7-f221-421a-acf5-e41e88cfd54f',
+  $router_id                    = undef,
+  $gateway_external_net_id      = undef,
   $handle_internal_only_routers = 'True',
   $metadata_ip                  = '169.254.169.254',
   $metadata_port                = 8775,
-  $polling_interval             = 3
+  $polling_interval             = 3,
 ) {
 
   include 'quantum::params'
@@ -69,7 +69,7 @@ class quantum::agents::l3 (
 
     if $create_networks {
 
-      Vs_bridge<||> -> Quantum::Network::Setup<||>
+      L23network::L2::Bridge<||> -> Quantum::Network::Setup<||>
 
       $segment_id = regsubst($segment_range, ':\d+', '')
 

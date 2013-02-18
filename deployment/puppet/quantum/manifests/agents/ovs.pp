@@ -4,8 +4,8 @@ class quantum::agents::ovs (
   $bridge_uplinks       = ['br-ex:eth2'],
   $bridge_mappings      = ['physnet1:br-ex'],
   $integration_bridge   = 'br-int',
-  $enable_tunneling     = false,
-  $local_ip             = false,
+  $enable_tunneling     = true,
+  $local_ip             = undef,
   $tunnel_bridge        = 'br-tun'
 ) {
 
@@ -15,8 +15,7 @@ class quantum::agents::ovs (
   }
 
   include 'quantum::params'
-  require 'vswitch::ovs'
-
+  
   if $::quantum::params::ovs_agent_package {
     Package['quantum'] ->  Package['quantum-plugin-ovs-agent']
 
@@ -32,16 +31,18 @@ class quantum::agents::ovs (
 
   Package[$ovs_agent_package] -> Quantum_plugin_ovs<||>
 
-  vs_bridge {$integration_bridge:
+  l23network::l2::bridge{$integration_bridge:
     external_ids => "bridge-id=${integration_bridge}",
     ensure       => present,
+    skip_existing=> true,
     #require      => Service['quantum-plugin-ovs-service'],
   }
 
   if $enable_tunneling {
-    vs_bridge {$tunnel_bridge:
+    l23network::l2::bridge{$tunnel_bridge:
       external_ids => "bridge-id=${tunnel_bridge}",
       ensure       => present,
+      skip_existing=> true,
       #require      => Service['quantum-plugin-ovs-service'],
     }
 
@@ -50,11 +51,13 @@ class quantum::agents::ovs (
     }
   }
 
-  quantum::plugins::ovs::bridge{$bridge_mappings:
-    #require      => Service['quantum-plugin-ovs-service'],
-  }
-  quantum::plugins::ovs::port{$bridge_uplinks:
-    #require      => Service['quantum-plugin-ovs-service'],
+  if ! $enable_tunneling {
+    quantum::plugins::ovs::bridge{$bridge_mappings:
+      #require      => Service['quantum-plugin-ovs-service'],
+    }
+    quantum::plugins::ovs::port{$bridge_uplinks:
+      #require      => Service['quantum-plugin-ovs-service'],
+    }
   }
 
   if $enabled {
@@ -72,7 +75,7 @@ class quantum::agents::ovs (
   Quantum_config<||> ~> Service['quantum-plugin-ovs-service']
   Quantum_plugin_ovs<||> ~> Service['quantum-plugin-ovs-service']
 
-  Vs_bridge<||> -> Service['quantum-plugin-ovs-service']
+  L23network::L2::Bridge<||> -> Service['quantum-plugin-ovs-service']
 
   service { 'quantum-plugin-ovs-service':
     name       => $::quantum::params::ovs_agent_service,
