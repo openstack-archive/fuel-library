@@ -5,12 +5,12 @@
 #
 class l23network::l2 {
   case $::osfamily {
-    /(?i)(debian)/: {
+    /(?i)debian/: {
       $service_name = 'openvswitch-switch'
       $status_cmd   = '/etc/init.d/openvswitch-switch status'
       $ovs_packages = ['openvswitch-datapath-dkms', 'openvswitch-switch']
     }
-    /(?i)(redhat)/: {
+    /(?i)redhat/: {
       $service_name = 'openvswitch' #'ovs-vswitchd'
       $status_cmd   = '/etc/init.d/openvswitch status'
       $ovs_packages = ['kmod-openvswitch', 'openvswitch']
