@@ -111,7 +111,7 @@ define l23network::l3::ifconfig (
   exec { "ifdn_${interface}":
     command     => "${cmd_ifdn} ${interface}",
     path        => '/usr/bin:/usr/sbin:/bin:/sbin',
-    onlyif      => "ip link show ${interface} | grep ' ${interface}:' | grep -i ',UP,'",
+    onlyif      => "ip link show ${interface} | grep -i ' ${interface}:' | grep -i ',UP,'",
     subscribe   => File[$interface_file],
     refreshonly => true,
   }
