@@ -31,7 +31,7 @@ $controller_internal_addresses = {'fuel-controller-01' => '10.0.0.103','fuel-con
 # Set internal address on which services should listen.
 # We assume that this IP will is equal to one of the haproxy 
 # backends. If the IP address does not match, this may break your environment.
-# Leave internal_adderss unchanged unless you know what you are doing.
+# Leave internal_address unchanged unless you know what you are doing.
 $internal_address = getvar("::ipaddress_${internal_interface}")
 
 # Set hostname for master controller of HA cluster. 
@@ -185,7 +185,7 @@ $glance_backend          = 'swift'
 
 # Use loopback device for swift:
 # set 'loopback' or false
-# This parameter controls where swift partiotions are located: 
+# This parameter controls where swift partitions are located:
 # on physical partitions or inside loopback devices.
 $swift_loopback = 'loopback'
 
@@ -233,7 +233,7 @@ class { "::rsyslog::client":
   }
 #
 # OpenStack packages and customized component versions to be installed. 
-# Use 'latest' to get the most rescent ones or specify exact version if you need to install custom version.
+# Use 'latest' to get the most recent ones or specify exact version if you need to install custom version.
 $openstack_version = {
   'keystone'         => 'latest',
   'glance'           => 'latest',
