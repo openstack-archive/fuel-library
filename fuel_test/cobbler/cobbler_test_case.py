@@ -186,7 +186,7 @@ class CobblerTestCase(BaseTestCase):
             "dnsname-eth1": node_name + ".your-domain-name.com",
             "static-eth1": self._static(node_name),
             "macaddress-eth2": str(node_mac2),
-            "static-eth2": "0"
+            "static-eth2": "1"
         }, token)
         client.save_system(system_id, token)
         client.sync(token)
