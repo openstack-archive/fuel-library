@@ -4,7 +4,7 @@ from devops.error import TimeoutError
 from fuel_test.base_test_case import BaseTestCase
 from fuel_test.ci.ci_cobbler import CiCobbler
 from fuel_test.cobbler.cobbler_client import CobblerClient
-from fuel_test.helpers import tcp_ping, udp_ping, build_astute, install_astute, add_to_hosts, await_node_deploy, update_pms
+from fuel_test.helpers import tcp_ping, udp_ping, build_astute, install_astute, add_to_hosts, await_node_deploy
 from fuel_test.manifest import Manifest, Template
 from fuel_test.settings import PUPPET_VERSION, OS_FAMILY
 
@@ -53,8 +53,6 @@ class CobblerTestCase(BaseTestCase):
         self.get_nodes_deployed_state()
         self.generate_manifests()
         self.update_modules()
-        remotes = [node.remote('internal', login='root', password='r00tme') for node in self.environment().nodes]
-        update_pms(remotes)
 
     def get_nodes_deployed_state(self):
         if not self.environment().has_snapshot('nodes-deployed'):
