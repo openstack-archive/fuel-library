@@ -70,9 +70,6 @@ define l23network::l3::ifconfig (
       fail("Unsupported OS: ${::osfamily}/${::operatingsystem}")
     }
   }
-  $cmd_ifup = 'ifup'
-  $cmd_ifdn = 'ifdown'
-  $cmd_flush= 'ip addr flush'
 
   if $ifname_order_prefix {
     $interface_file= "${if_files_dir}/ifcfg-${ifname_order_prefix}-${interface}"
@@ -107,31 +104,8 @@ define l23network::l3::ifconfig (
     require => File[$if_files_dir],
   }
 
-  # Downing interface
-  exec { "ifdn_${interface}":
-    command     => "${cmd_ifdn} ${interface}",
-    path        => '/usr/bin:/usr/sbin:/bin:/sbin',
-    onlyif      => "ip link show ${interface} | grep -i ' ${interface}:' | grep -i ',UP,'",
+  l3_if_downup {$interface:
     subscribe   => File[$interface_file],
-    refreshonly => true,
-  }
-  # Cleaning interface
-  exec { "flush_${interface}":
-    command     => "${cmd_flush} ${interface}",
-    path        => '/usr/bin:/usr/sbin:/bin:/sbin',
-    subscribe   => Exec["ifdn_${interface}"],
-    refreshonly => true,
-  }
-  # Upping interface
-  if $dhcp_nowait {
-    $w = '&'
-  } else {
-    $w = ''
-  }
-  exec { "ifup_${interface}":
-    command     => "${cmd_ifup} ${interface} ${w}",
-    path        => '/usr/bin:/usr/sbin:/bin:/sbin',
-    subscribe   => Exec["flush_${interface}"],
-    refreshonly => true,
+    refreshonly => true,    
   }
 }
