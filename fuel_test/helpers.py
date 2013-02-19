@@ -2,7 +2,7 @@ import logging
 import subprocess
 import tarfile
 from time import sleep
-from devops.helpers.helpers import wait, SSHClient
+from devops.helpers.helpers import wait
 import os
 import re
 from fuel_test.cobbler.cobbler_client import CobblerClient
@@ -40,19 +40,11 @@ def extract_virtual_ips(ipaout):
     return dict((v, k) for k, v in re.findall(pattern, ipaout))
 
 
-def sync_time(remotes):
-    install_packages2(remotes, 'ntpdate')
-    for remote in remotes:
-        remote.execute('/etc/init.d/ntpd stop')
-        remote.execute('ntpdate 0.centos.pool.ntp.org')
-        remote.execute('/etc/init.d/ntpd start')
-
-
 def write_config(remote, path, text):
-    file = remote.open(path, 'w')
-    file.write(text)
+    config = remote.open(path, 'w')
+    config.write(text)
     logging.info('Write config %s' % text)
-    file.close()
+    config.close()
 
 
 def retry(count, func, **kwargs):
@@ -189,16 +181,16 @@ def setup_puppet_master(remote):
 
 def upload_recipes(remote, remote_dir="/etc/puppet/modules/"):
     recipes_dir = root('deployment', 'puppet')
-    file = None
+    tar_file = None
     try:
-        file = remote.open('/tmp/recipes.tar', 'wb')
-        with tarfile.open(fileobj=file, mode='w') as tar:
+        tar_file = remote.open('/tmp/recipes.tar', 'wb')
+        with tarfile.open(fileobj=tar_file, mode='w') as tar:
             tar.add(recipes_dir, arcname='')
         remote.mkdir(remote_dir)
         remote.check_call('tar -xf /tmp/recipes.tar -C %s' % remote_dir)
     finally:
-        if file:
-            file.close()
+        if tar_file:
+            tar_file.close()
 
 
 def upload_keys(remote, remote_dir="/var/lib/puppet/"):
@@ -206,9 +198,9 @@ def upload_keys(remote, remote_dir="/var/lib/puppet/"):
     remote.upload(ssh_keys_dir, remote_dir)
 
 
-def change_host_name(remote, short, long):
-    remote.sudo.ssh.execute('hostname %s' % long)
-    add_to_hosts(remote, '127.0.0.1', short, long)
+def change_host_name(remote, short, full):
+    remote.sudo.ssh.execute('hostname %s' % full)
+    add_to_hosts(remote, '127.0.0.1', short, full)
     if OS_FAMILY == "centos":
         update_host_name_centos(remote, short)
     else:
@@ -225,8 +217,8 @@ def update_host_name_ubuntu(remote, short):
         'echo %s > /etc/hostname' % short)
 
 
-def add_to_hosts(remote, ip, short, long):
-    remote.sudo.ssh.execute('echo %s %s %s >> /etc/hosts' % (ip, long, short))
+def add_to_hosts(remote, ip, short, full):
+    remote.sudo.ssh.execute('echo %s %s %s >> /etc/hosts' % (ip, full, short))
 
 
 def await_node_deploy(ip, name):
