@@ -51,6 +51,27 @@ $mirror_type = 'internal'
 stage { 'openstack-custom-repo': before => Stage['main'] }
 class { 'openstack::mirantis_repos': stage => 'openstack-custom-repo', type => $mirror_type }
 
+# OpenStack packages and customized component versions to be installed.
+# Use 'latest' to get the most recent ones or specify exact version if you need to install custom version.
+case $::osfamily {
+  "Debian":  {
+     $rabbitmq_version_string = '2.7.1-0ubuntu4'
+  }
+  "RedHat": {
+     $rabbitmq_version_string = '2.8.7-2.el6'
+  }
+}
+
+$openstack_version = {
+  'keystone'         => 'latest',
+  'glance'           => 'latest',
+  'horizon'          => 'latest',
+  'nova'             => 'latest',
+  'novncproxy'       => 'latest',
+  'cinder'           => 'latest',
+  'rabbitmq_version' => $rabbitmq_version_string,
+}
+
 # Every node should be deployed as all-in-one openstack installations.
 node default {
 
