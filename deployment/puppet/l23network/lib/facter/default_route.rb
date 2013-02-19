@@ -32,10 +32,10 @@ Facter.add(:l3_default_route_interface) do
     defaultroute = Facter.value(:l3_default_route)
     if defaultroute
       gw = IPAddr.new(defaultroute)
-      Facter::Util::IP.get_interfaces.collect { |i| Facter::Util::IP.alphafy(i) }.
-      detect do |i| 
-        network = Facter.value('network_' + i)
-        netmask = Facter.value('netmask_' + i)
+      Facter::Util::IP.get_interfaces.detect do |i| 
+        pi = Facter::Util::IP.alphafy(i)
+        network = Facter.value('network_' + pi)
+        netmask = Facter.value('netmask_' + pi)
         if network and netmask
             IPAddr.new(network+'/'+netmask).include?(gw)
         else
