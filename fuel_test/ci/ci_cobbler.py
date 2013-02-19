@@ -45,7 +45,7 @@ class CiCobbler(CiBase):
         for name in self.node_roles().master_names + self.node_roles().cobbler_names + self.node_roles().stomp_names:
             self.describe_node(name, networks)
         for name in self.node_roles().compute_names:
-            self.describe_empty_node(name, networks, memory=4096)
+            self.describe_empty_node(name, networks, memory=2048)
         for name in self.node_roles().controller_names + self.node_roles().storage_names + self.node_roles().quantum_names + self.node_roles().proxy_names:
             self.describe_empty_node(name, networks)
         return environment
