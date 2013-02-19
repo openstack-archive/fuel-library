@@ -29,6 +29,11 @@ define l23network::l3::create_br_iface (
       $ext_ids = "bridge-id=${bridge}"
     }
     #
+    if $::l3_default_route_interface == $interface {
+      $gateway_ip_address_for_newly_created_interface = $::l3_default_route
+    } else {
+      $gateway_ip_address_for_newly_created_interface = undef
+    }
     l23network::l2::bridge {$bridge:
       skip_existing => $se,
       external_ids  => $ext_ids,
@@ -47,6 +52,7 @@ define l23network::l3::create_br_iface (
       interface           => $bridge,
       ipaddr              => $ipaddr,
       netmask             => $netmask,
+      gateway             => $gateway_ip_address_for_newly_created_interface,
       ifname_order_prefix => 'ovs',
       require             => L23network::L3::Ifconfig[$interface],
     }
