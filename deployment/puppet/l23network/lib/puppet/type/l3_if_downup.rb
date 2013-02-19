@@ -24,6 +24,15 @@ Puppet::Type.newtype(:l3_if_downup) do
       defaultto(true)
     end
 
+    newparam(:kill_dhclient) do
+      # workaround for https://bugs.launchpad.net/ubuntu/+source/dhcp3/+bug/38140
+      newvalues(true, false)
+      defaultto(true)
+    end
+    newparam(:dhclient_name) do
+      defaultto('dhclient3')
+    end
+
     def refresh
       provider.restart
     end
