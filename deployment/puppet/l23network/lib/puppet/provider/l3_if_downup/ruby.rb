@@ -7,13 +7,14 @@ Puppet::Type.type(:l3_if_downup).provide(:ruby) do
                     :ps   => "ps"
 
   def restart
-    begin
+    begin # downing inteface
       ifdn(@resource[:interface])
       notice("Interface '#{@resource[:interface]}' down.")
     rescue Puppet::ExecutionFailure
       # pass
     end
     if @resource[:kill_dhclient] and Facter.value(:osfamily) == 'Debian'
+      # kill forgotten dhclient in Ubuntu
       dhclient = @resource[:dhclient_name]
       iface = @resource[:interface]
       ps('axf').each_line do |line|
@@ -28,7 +29,7 @@ Puppet::Type.type(:l3_if_downup).provide(:ruby) do
         end
       end
     end
-    if @resource[:flush]  
+    if @resource[:flush]  # Flushing IP addresses from interface
       begin
         ip(['addr', 'flush', @resource[:interface]])
         notice("Interface '#{@resource[:interface]}' flush.")
@@ -36,7 +37,7 @@ Puppet::Type.type(:l3_if_downup).provide(:ruby) do
         # pass
       end
     end
-    begin
+    begin  # Put interface to UP state
       ifup(@resource[:interface])
       notice("Interface '#{@resource[:interface]}' up.")
     rescue Puppet::ExecutionFailure
