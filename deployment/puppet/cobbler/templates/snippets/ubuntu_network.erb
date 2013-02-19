@@ -127,4 +127,10 @@
   #set $script += "echo domain %s >> %s\n" % ($domdom,$resolvconf)
   #set $script += "echo domain %s >> %s\n" % ($domdom,$resolvhead)
 #end if
+#if $name_servers
+  #for $nameserver in $name_servers
+      #set $script += "echo nameserver %s >> %s\n" % ($nameserver, $resolvconf)
+      #set $script += "echo nameserver %s >> %s\n" % ($nameserver, $resolvhead)
+  #end for
+#end if
 in-target $late_command.late_command($script, source_method="content") \
