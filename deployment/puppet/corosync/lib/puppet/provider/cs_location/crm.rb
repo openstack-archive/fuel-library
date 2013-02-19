@@ -17,8 +17,8 @@ Puppet::Type.type(:cs_location).provide(:crm, :parent => Puppet::Provider::Coros
 
     instances = []
 
-    cmd = [ command(:crm), 'configure', 'show', 'xml' ]
-    raw, status = Puppet::Util::SUIDManager.run_and_capture(cmd)
+    #cmd = [ command(:crm), 'configure', 'show', 'xml' ]
+    raw, status = dump_cib
     doc = REXML::Document.new(raw)
 
     doc.root.elements['configuration'].elements['constraints'].each_element('rsc_location') do |e|
@@ -188,7 +188,7 @@ Puppet::Type.type(:cs_location).provide(:crm, :parent => Puppet::Provider::Coros
           end
           rule_number = 0
           rule_number += rule_hash[:expressions].size if !rule_hash[:expressions].nil?
-          rule_number += rule_hash[:expressions].size if !rule_hash[:date_expressions].nil?
+          rule_number += rule_hash[:date_expressions].size if !rule_hash[:date_expressions].nil?
           updated << "#{rule_hash[:boolean].to_s} " if rule_number > 1
         end
       end
@@ -196,7 +196,7 @@ Puppet::Type.type(:cs_location).provide(:crm, :parent => Puppet::Provider::Coros
       debug("creating location with command\n #{updated}\n")
 
       Tempfile.open('puppet_crm_update') do |tmpfile|
-        tmpfile.write(updated)
+        tmpfile.write(updated.rstrip)
         tmpfile.flush
         ENV["CIB_shadow"] = @resource[:cib]
         crm('configure', 'load', 'update', tmpfile.path.to_s)

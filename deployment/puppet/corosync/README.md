@@ -1,6 +1,10 @@
 Puppet Labs module for Corosync
 ============================
 
+These manfisests are derived from puppetlabs-corosync modules.
+
+
+
 Corosync is a cluster stack written as a reimplementation of all the core
 functionalities required by openais.  Meant to provide 100% correct operation
 during failures or partitionable networks.
@@ -30,16 +34,30 @@ corosync::service { 'pacemaker':
 }
 ```
 
+Configuring cluster properties
+------------------------------
+
+* Configure quorum policy
+
+```puppet
+cs_property { 'no-quorum-policy':
+  ensure => present,
+  value  => 'ignore',
+}
+```puppet
+
 Configuring primitives
 ------------------------
 
 The resources that Corosync will manage can be referred to as a primitive.
 These are things like virtual IPs or services like drbd, nginx, and apache.
 
+
+
 *To assign a VIP to a network interface to be used by Nginx*
 
 ```puppet
-cs_primitive { 'nginx_vip':
+cs_resource { 'nginx_vip':
   primitive_class => 'ocf',
   primitive_type  => 'IPaddr2',
   provided_by     => 'heartbeat',
@@ -51,7 +69,7 @@ cs_primitive { 'nginx_vip':
 *Make Corosync manage and monitor the state of Nginx using a custom OCF agent*
 
 ```puppet
-cs_primitive { 'nginx_service':
+cs_resource { 'nginx_service':
   primitive_class => 'ocf',
   primitive_type  => 'nginx_fixed',
   provided_by     => 'pacemaker',
@@ -63,10 +81,11 @@ cs_primitive { 'nginx_service':
 }
 ```
 
+
 *Make Corosync manage and monitor the state of Apache using a LSB agent*
 
 ```puppet
-cs_primitive { 'nginx_service':
+cs_resource { 'nginx_service':
   primitive_class => 'lsb',
   primitive_type  => 'apache2',
   provided_by     => 'heartbeat',
@@ -75,6 +94,23 @@ cs_primitive { 'nginx_service':
     'start'   => { 'interval' => '0', 'timeout' => '30s', 'on-fail' => 'restart' }
   },
   require         => Cs_primitive['apache2_vip'],
+}
+```
+
+*You can also specify multi-state resource such as clone or master
+
+```puppet
+cs_resource {'nginx_service':
+primitive_class => 'lsb',
+  provided_by     => 'heartbeat',
+  operations      => {
+    'monitor' => { 'interval' => '10s', 'timeout' => '30s' },
+    'start'   => { 'interval' => '0', 'timeout' => '30s', 'on-fail' => 'restart' }
+  },
+  require         => Cs_primitive['apache2_vip'],
+  multistate_hash => {'type'=>'clone','name'=>'nginx_clone'
+  ms_metadata => {'interleave'=>'true'}
+  }
 }
 ```
 
@@ -106,11 +142,48 @@ cs_order { 'vip_before_service':
 }
 ```
 
+Configuring resource locations
+--------------------------------
+
+You can pacemaker resource locations
+
+In this case you have to options according to pacemaker rules.
+
+1) Specify node score by use of `node_score` and `node` parameters
+2) Specify the hash of rules containing all the pacemaker location parameters
+
+
+```puppet 
+cs_location { 'l_11':
+ 'name'=>"l_11",:rules=>[
+          {'score'=>"INFINITY",'boolean'=>'',
+            'expressions'=>[
+              {'attribute'=>"#uname",'operation'=>'ne','value'=>'ubuntu-1'}
+                ],
+            'date_expressions' => [
+              {'date_spec'=>{'hours'=>"10", 'weeks'=>"5"}, 'operation'=>"date_spec", 'start'=>"", 'end'=>""},
+              {'date_spec'=>{'weeks'=>"5"}, 'operation'=>"date_spec", 'start'=>"", 'end'=>""}
+                ]
+           }
+        ],
+         'primitive'=> 'master_bar', ensure=>present
+}
+
+Configuring shadow CIB
+----------------------
+
+If you want the bunch of parameters be applied at once, use cs_shadow and `shadow`
+parameter to specify the shadow CIB to be created. In this case puppet will create
+CIB with corresponding name and commit it after all changes are applied.
+
+You can also specify `isempty` parameter for creation of empty shadow CIB. 
+Be really careful with it. Don't blame me if you ruined your cluster by use of
+this parameter.   
+
 Dependencies
 ------------
 
-Tested and built on Debian 6 using backports so version 1.4.2 of Corosync is validated
-to function.
+Tested and built on Ubuntu 12.04 with 1.4.2 of Corosync is validated to function.
 
 Notes
 -----
@@ -133,6 +206,7 @@ there are more incomplete examples spread across the [Puppet Labs Github](https:
 Contributors
 ------------
 
+  * Mirantis Inc. 
   * [See Puppet Labs Github](https://github.com/puppetlabs/puppetlabs-corosync/graphs/contributors)
 
 Copyright and License

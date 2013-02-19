@@ -39,11 +39,16 @@
 					<date_expression id="l_11-expression-0" operation="date_spec">
 						<date_spec hours="10" id="l_11-date_spec" weeks="5"/>
 					</date_expression>
-					<date_expression id="l_11-expression-1" operation="date_spec">
-						<date_spec id="l_11-date_spec-0" weeks="5"/>
+					<date_expression id="l_11-expression-1" operation="in_range" start="20121212" end="20131212" />
+					<date_expression id="l_11-expression-2" operation="gt" start="20121212"/>
+					<date_expression id="l_11-expression-3" operation="lt" end="20131212" />
+					<date_expression id="l_11-expression-4" operation="in_range" end="" start="20121212">
+						<duration id="l_11-duration" years="10"/>
 					</date_expression>
 				</rule>
 			</rsc_location>
+			<rsc_location id="l_12" rsc="master_bar" node="ubuntu-1" score="INFINITY"/>
+
 		</constraints>
 	</configuration>
 </cib>

@@ -12,10 +12,10 @@ describe Puppet::Type.type(:cs_shadow).provider(:crm) do
       provider.sync('myshadow')
     end
     it "should create  empty shadow" do
-          resource[:isempty] = :true
-          provider.expects(:crm).with('cib','delete','myshadow')
-          provider.expects(:crm).with('cib','new','myshadow','empty')
-          provider.sync('myshadow')
+      resource[:isempty] = :true
+      provider.expects(:crm).with('cib','delete','myshadow')
+      provider.expects(:crm).with('cib','new','myshadow','empty')
+      provider.sync('myshadow')
     end
   end
 
