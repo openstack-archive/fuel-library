@@ -8,6 +8,6 @@ define nagios::host::hostextinfo() {
     icon_image_alt  => $::lsbdistid,
     statusmap_image => $nagios::params::statusmap_image,
     vrml_image      => "${nagios::params::distro}.png",
-    target          => "/etc/${nagios::params::masterdir}/${proj_name}/${::hostname}_hostextinfo.cfg",
+    target          => "/etc/${nagios::params::masterdir}/${nagios::proj_name}/${::hostname}_hostextinfo.cfg",
   }
 }

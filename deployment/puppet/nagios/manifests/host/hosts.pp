@@ -7,6 +7,6 @@ define nagios::host::hosts() {
     use        => 'default-host',
     address    => $::fqdn,
     host_name  => $::fqdn,
-    target     => "/etc/${nagios::params::masterdir}/${proj_name}/${::hostname}_hosts.cfg",
+    target     => "/etc/${nagios::params::masterdir}/${nagios::proj_name}/${::hostname}_hosts.cfg",
   }
 }

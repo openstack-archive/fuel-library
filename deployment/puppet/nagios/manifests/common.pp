@@ -24,25 +24,25 @@ class nagios::common inherits nagios {
 #})
 
   define runservice($service) {
-    notify {$services_list[$service]:}
+    notify {$nagios::params::services_list[$service]:}
     nagios::service::services { $service:
-      command => $services_list[$service]
+      command => $nagios::params::services_list[$service]
     }
   }
 
-  define addservice($services_count = size($services), $current = 0) {
+  define addservice($services_count = size($nagios::services), $current = 0) {
     if $current == $services_count -1 {
-      nagios::common::runservice { $services[$current]:
-      service => $services[$current],
+      nagios::common::runservice { $nagios::services[$current]:
+      service => $nagios::services[$current],
       }
     } else {
       $c_num = $current + 1
 
-      nagios::common::addservice { $services[$current]:
+      nagios::common::addservice { $nagios::services[$current]:
         current => $c_num,
       }
-      nagios::common::runservice { $services[$current]:
-        service => $services[$current],
+      nagios::common::runservice { $nagios::services[$current]:
+        service => $nagios::services[$current],
       }
     }
   }
