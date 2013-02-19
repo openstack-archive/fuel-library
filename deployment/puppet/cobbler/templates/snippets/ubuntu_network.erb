@@ -59,18 +59,20 @@
                  #set $network_address = ipaddr.IPv4Network("%s" % $iip)
                #end if
             #end if
-            #set $gateway_address = ipaddr.IPv4Address($gateway)
-            #if $gateway_address in $network_address
-                #set $script += "echo gateway %s >> %s\n" % ($gateway, $interfaces_file)
-                #if $nss != ""
-                    #set $script += "echo dns-nameservers %s >> %s\n" % ($nss, $interfaces_file)
-                #end if
-                #set $nssearch = ""
-                #for $nsrch in $getVar("name_servers_search", [])
-                    #set $nssearch += " %s" % $nsrch
-                #end for
-                #if $nssearch
-                    #set $script += "echo dns-search %s >> %s\n" % ($nssearch, $interfaces_file)
+            #if $iip != ""
+                #set $gateway_address = ipaddr.IPv4Address($gateway)
+                #if $gateway_address in $network_address
+                    #set $script += "echo gateway %s >> %s\n" % ($gateway, $interfaces_file)
+                    #if $nss != ""
+                        #set $script += "echo dns-nameservers %s >> %s\n" % ($nss, $interfaces_file)
+                    #end if
+                    #set $nssearch = ""
+                    #for $nsrch in $getVar("name_servers_search", [])
+                        #set $nssearch += " %s" % $nsrch
+                    #end for
+                    #if $nssearch
+                        #set $script += "echo dns-search %s >> %s\n" % ($nssearch, $interfaces_file)
+                    #end if
                 #end if
             #end if
         #end if
