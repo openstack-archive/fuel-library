@@ -20,11 +20,11 @@ class nagios::command inherits nagios::master {
   }
 
   nagios::command::commands { 'check_galera_mysql':
-    command => "\$USER1$/check_mysql -H \$HOSTADDRESS$ -P 3307 -u ${mysql_user} -p ${mysql_pass}",
+    command => "\$USER1$/check_mysql -H \$HOSTADDRESS$ -P 3307 -u ${nagios::master::mysql_user} -p ${nagios::master::mysql_pass}",
   }
 
   nagios::command::commands { 'check_rabbitmq':
-    command => "\$USER1$/check_os_rabbitmq connect -H \$HOSTADDRESS$ -P 5672 -u ${rabbit_user} -p ${rabbit_pass}",
+    command => "\$USER1$/check_os_rabbitmq connect -H \$HOSTADDRESS$ -P 5672 -u ${nagios::master::rabbit_user} -p ${nagios::master::rabbit_pass}",
   }
 
   nagios::command::commands { 'nrpe_check_apt':

@@ -5,6 +5,6 @@ define nagios::service::servicegroups() {
   nagios_servicegroup { $name:
     ensure => present,
 #    alias  => $alias,
-    target => "/etc/${nagios::params::masterdir}/${proj_name}/servicegroups.cfg",
+    target => "/etc/${nagios::params::masterdir}/${nagios::proj_name}/servicegroups.cfg",
   }
 }
