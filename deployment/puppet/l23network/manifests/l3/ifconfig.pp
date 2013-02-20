@@ -77,6 +77,20 @@ define l23network::l3::ifconfig (
     $interface_file= "${if_files_dir}/ifcfg-${interface}"
   }
 
+  if $method == 'static' {
+    if $gateway {
+      $def_gateway = $gateway
+    } else {
+      if $::l3_default_route and $::l3_default_route_interface == $interface {
+        $def_gateway = $::l3_default_route
+      } else {
+        $def_gateway = undef
+      }
+    }
+  } else {
+    $def_gateway = undef
+  }
+
   if $interfaces {
     if ! defined(File[$interfaces]) {
       file {$interfaces:
