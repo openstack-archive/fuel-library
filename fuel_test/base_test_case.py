@@ -29,7 +29,8 @@ class BaseTestCase(unittest.TestCase):
         upload_keys(self.remote())
 
     def assertResult(self, result):
-        self.assertEqual([], result['stderr'], result['stderr'])
+        stderr = filter(lambda x: x.find('PYCURL ERROR 22') == -1, result['stderr'])
+        self.assertEqual([], stderr, stderr)
         errors, warnings = self.parse_out(result['stdout'])
         self.assertEqual([], errors, errors)
         self.assertEqual([], warnings, warnings)
