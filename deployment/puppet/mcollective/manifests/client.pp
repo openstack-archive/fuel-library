@@ -26,11 +26,6 @@ class mcollective::client(
     }
   }
 
-  package { 'stomp':
-    ensure   => 'installed',
-    provider => 'gem',
-  }
-
   package { $mcollective_client_package :
     ensure => 'present',
   }
