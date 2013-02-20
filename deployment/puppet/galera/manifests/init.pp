@@ -174,15 +174,9 @@ class galera (
   exec { "set-mysql-password":
     unless      => "/usr/bin/mysql -u${mysql_user} -p${mysql_password}",
     command     => "/usr/bin/mysqld_safe --init-file=/tmp/wsrep-init-file --port=3307 &",
-    require     => [Package["MySQL-server"], File['/tmp/wsrep-init-file']],
-    subscribe   => Package["MySQL-server"],
-    refreshonly => true,
   }
 
   exec { "wait-initial-sync":
-    require     => Exec["set-mysql-password"],
-    subscribe   => Exec["set-mysql-password"],
-    before      => Exec["kill-initial-mysql"],
     logoutput   => true,
     command     => "/usr/bin/mysql -Nbe \"show status like 'wsrep_local_state_comment'\" | /bin/grep -q Synced && sleep 10",
     try_sleep   => 5,
@@ -196,24 +190,25 @@ class galera (
     #      onlyif    => "pidof mysqld",
     try_sleep   => 5,
     tries       => 6,
-    before      => Service["mysql-galera"],
-    require     => Exec["set-mysql-password"],
-    subscribe   => Exec["wait-initial-sync"],
     refreshonly => true,
   }
 
   exec { "rm-init-file":
     command => "/bin/rm /tmp/wsrep-init-file",
-    require => Exec["kill-initial-mysql"],
   }
 
   exec { "wait-for-synced-state":
-    require   => [Exec["kill-initial-mysql"], Service['mysql-galera']],
     logoutput => true,
     command   => "/usr/bin/mysql -Nbe \"show status like 'wsrep_local_state_comment'\" | /bin/grep -q Synced && sleep 10",
     try_sleep => 5,
     tries     => 60,
   }
+  
+  Package["MySQL-server"] -> Exec["set-mysql-password"] 
+  File['/tmp/wsrep-init-file'] -> Exec["set-mysql-password"] -> Exec["wait-initial-sync"] 
+  -> Exec["kill-initial-mysql"] -> Service["mysql-galera"] -> Exec ["wait-for-synced-state"]
+  Exec["kill-initial-mysql"] -> Exec["rm-init-file"]
+  Exec["set-mysql-password"] ~> Exec ["wait-initial-sync"] ~> Exec["kill-initial-mysql"]
 
   class { 'galera::galera_master_final_config':
     require        => Exec["wait-for-haproxy-mysql-backend"],
