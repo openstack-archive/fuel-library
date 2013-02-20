@@ -261,16 +261,20 @@ $verbose = true
 #Cinder and Nova can rate-limit your requests to API services.
 #These limits can be reduced for your installation or usage scenario.
 #Change the following variables if you want. They are measured in requests per minute.
-$nova_rate_limits = { 'POST' => 1000,
- 'POST_SERVERS' => 1000,
- 'PUT' => 1000, 'GET' => 1000,
- 'DELETE' => 1000 }
+$nova_rate_limits = {
+  'POST' => 1000,
+  'POST_SERVERS' => 1000,
+  'PUT' => 1000, 'GET' => 1000,
+  'DELETE' => 1000 
+}
 
 
-$cinder_rate_limits = { 'POST' => 1000,
- 'POST_SERVERS' => 1000,
- 'PUT' => 1000, 'GET' => 1000,
- 'DELETE' => 1000 }
+$cinder_rate_limits = {
+  'POST' => 1000,
+  'POST_SERVERS' => 1000,
+  'PUT' => 1000, 'GET' => 1000,
+  'DELETE' => 1000 
+}
 
 
 Exec { logoutput => true }
