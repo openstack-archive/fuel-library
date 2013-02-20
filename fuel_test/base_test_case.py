@@ -30,6 +30,7 @@ class BaseTestCase(unittest.TestCase):
 
     def assertResult(self, result):
         stderr = filter(lambda x: x.find('PYCURL ERROR 22') == -1, result['stderr'])
+        stderr = filter(lambda x: x.find('Trying other mirror.') == -1, stderr)
         self.assertEqual([], stderr, stderr)
         errors, warnings = self.parse_out(result['stdout'])
         self.assertEqual([], errors, errors)
