@@ -9,6 +9,10 @@ class puppet::nginx(
    
   package { "nginx": }
 
+  file { "/etc/nginx/conf.d/default.conf":
+      ensure => absent,
+  }
+
   file { "/etc/nginx/conf.d/puppet.conf":
     content => template("puppet/nginx_puppet.erb"),
     owner => 'root',
@@ -16,12 +20,14 @@ class puppet::nginx(
     mode => 0644,
     require => Package["nginx"],
     notify => Service["nginx"],
-  }->
-  
+  }
+
   service { "nginx":
     enable => true,
     ensure => "running",
-    require => [Package["nginx"],
-               Class["puppet::service"]]
+    require => [Package["nginx"],Class["puppet::service"]]
   }
+
+  File["/etc/nginx/conf.d/default.conf"] ~> Service["nginx"]
+  File["/etc/nginx/conf.d/puppet.conf"] ~> Service["nginx"]
 }
