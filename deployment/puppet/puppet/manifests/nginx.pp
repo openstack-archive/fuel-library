@@ -19,7 +19,6 @@ class puppet::nginx(
     group => 'root',
     mode => 0644,
     require => Package["nginx"],
-    notify => Service["nginx"],
   }
 
   service { "nginx":
