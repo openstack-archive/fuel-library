@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import copy
 
 import sys
 import re
@@ -7,7 +8,7 @@ import yaml
 import argparse
 import logging
 import subprocess
-import StringIO
+
 
 console = logging.StreamHandler()
 # formatter = logging.Formatter('%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
@@ -134,14 +135,16 @@ def main():
     if params.file is None:
         parser.error("Yaml file must be defined with -f option.")
     
-    with open(params.file, 'r') as file:
-        nodes = yaml.load(file.read())
+    with open(params.file, 'r') as f:
+        nodes = yaml.load(f.read())
 
     common = nodes.pop('common') if 'common' in nodes.keys() else {}
     cobbler_common = common.pop('cobbler_common') if 'cobbler_common' in common.keys() else {}
     for x in nodes:
         if "role" in nodes[x].keys(): nodes[x].pop("role")
+        stored_node = copy.deepcopy(nodes[x])
         nodes[x].update(cobbler_common)
+        nodes[x].update(stored_node)
 
     for name in nodes:
         logger.info("====== Defining node ======: %s" % name)

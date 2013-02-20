@@ -16,6 +16,13 @@ dhcp-option=6,<%= @name_server %>
 
 dhcp-range=internal,<%= @dhcp_start_address %>,<%= @dhcp_end_address %>,<%= @dhcp_netmask %>
 dhcp-option=net:internal,option:router,<%= @dhcp_gateway %>
+
+
+# pxe-service is for network cards with new PXE bios
+# This service may fail on old cards and on some hypervisors
 pxe-service=x86PC,"Install",pxelinux,<%= @next_server %>
+
+# dhcp-boot mode works with almost every card
+# dhcp-boot=net:internal,pxelinux.0,boothost,<%= @next_server %>
 
 $insert_cobbler_system_definitions

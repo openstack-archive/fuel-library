@@ -1,4 +1,6 @@
 class cobbler::server {
+  include cobbler::packages
+  
   Exec {
     path => '/usr/bin:/bin:/usr/sbin:/sbin'
   }
@@ -82,7 +84,7 @@ class cobbler::server {
       Package[$cobbler::packages::dnsmasq_package],],
     subscribe   => Service[$cobbler_service],
     notify      => Service[$dnsmasq_service],
-    tries       => 10,
+    tries       => 20,
     try_sleep   => 3,
   }
 
