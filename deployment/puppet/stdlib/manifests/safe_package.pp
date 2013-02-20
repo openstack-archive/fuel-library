@@ -1,4 +1,4 @@
-define safe_package (
+define stdlib::safe_package (
 ) {
   if !defined(Package[$name]) {
     package { $name: }

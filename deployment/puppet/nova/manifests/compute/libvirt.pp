@@ -22,7 +22,7 @@ class nova::compute::libvirt (
       command => "/bin/ln -sf /usr/libexec/qemu-kvm /usr/bin/qemu-system-x86_64",
     } 
                    
-    safe_package {'dnsmasq-utils':}
+    stdlib::safe_package {'dnsmasq-utils':}
 
     package { 'avahi':
       ensure => present;
