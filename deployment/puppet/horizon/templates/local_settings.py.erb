@@ -4,11 +4,8 @@ from django.utils.translation import ugettext_lazy as _
 
 DEBUG = <%= django_debug %>
 TEMPLATE_DEBUG = DEBUG
-PROD = False
-USE_SSL = False
 
-# Note: You should change this value
-SECRET_KEY = '<%= secret_key %>'
+
 
 # Specify a regular expression to validate user passwords.
 # HORIZON_CONFIG = {
@@ -19,6 +16,9 @@ SECRET_KEY = '<%= secret_key %>'
 # }
 
 LOCAL_PATH = os.path.dirname(os.path.abspath(__file__))
+
+# Note: You should change this value
+SECRET_KEY = '<%= secret_key %>'
 
 # We recommend you use memcached for development; otherwise after every reload
 # of the django development server, you will have to login again. To use
@@ -46,6 +46,9 @@ OPENSTACK_HOST = "<%= keystone_host %>"
 OPENSTACK_KEYSTONE_URL = "<%= keystone_scheme %>://%s:<%= keystone_port %>/v2.0" % OPENSTACK_HOST
 OPENSTACK_KEYSTONE_DEFAULT_ROLE = "<%= keystone_default_role %>"
 
+# Disable SSL certificate checks (useful for self-signed certificates):
+OPENSTACK_SSL_NO_VERIFY = True
+
 # The OPENSTACK_KEYSTONE_BACKEND settings can be used to identify the
 # capabilities of the auth backend for Keystone.
 # If Keystone has been configured to use LDAP as the auth backend then set
@@ -57,6 +60,10 @@ OPENSTACK_KEYSTONE_BACKEND = {
     'can_edit_user': True
 }
 
+OPENSTACK_HYPERVISOR_FEATURES = {
+    'can_set_mount_point': True
+}
+
 # OPENSTACK_ENDPOINT_TYPE specifies the endpoint type to use for the endpoints
 # in the Keystone service catalog. Use this setting when Horizon is running
 # external to the OpenStack environment. The default is 'internalURL'.
@@ -65,15 +72,21 @@ OPENSTACK_KEYSTONE_BACKEND = {
 <% if swift -%>
 # Include the SWIFT interface extension in Horizon
 SWIFT_ENABLED = True
+SWIFT_PAGINATE_LIMIT = 100
 <% end -%>
 
 # The number of Swift containers and objects to display on a single page before
 # providing a paging element (a "more" link) to paginate results.
 API_RESULT_LIMIT = <%= api_result_limit %>
+API_RESULT_PAGE_SIZE = 20
 
 <% if quantum -%>
 #  Include the Quantum interface extensions in Horizon
 QUANTUM_ENABLED = True
+QUANTUM_URL = '%s'  % OPENSTACK_HOST
+QUANTUM_PORT = '9696'
+QUANTUM_TENANT = 'services'
+QUANTUM_CLIENT_VERSION='2.0'
 <% end -%>
 
 # If you have external monitoring links, eg:
@@ -136,8 +149,9 @@ LOGGING = {
         }
 }
 
-LOGIN_URL='/<%= dashboard_urlpart %>/auth/login/'
-LOGIN_REDIRECT_URL='/<%= dashboard_urlpart%>'
+LOGIN_URL = '<%= root_url %>/auth/login/'
+LOGOUT_URL = '<%= root_url %>/auth/logout/'
+LOGIN_REDIRECT_URL = '<%= root_url %>/syspanel/'
 
 # The Ubuntu package includes pre-compressed JS and compiled CSS to allow
 # offline compression by default.  To enable online compression, install
