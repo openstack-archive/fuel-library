@@ -125,8 +125,8 @@ class quantum::agents::l3 (
       } 
 
       # turn down the current default route metric priority
-      $update_default_route_metric = "/sbin/route del default gw ${::defaultroute};\
-        /sbin/route add default gw ${::defaultroute} dev ${::defaultroute_interface} metric 100"
+      $update_default_route_metric = "/sbin/ip route del default via ${::defaultroute};\
+        /sbin/ip route add default via ${::defaultroute} metric 100"
     
       exec { 'update_default_route_metric':
         command     => $update_default_route_metric,
