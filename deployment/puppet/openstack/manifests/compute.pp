@@ -61,6 +61,7 @@ class openstack::compute (
   $rabbit_password               = 'rabbit_pw',
   $rabbit_host                   = false,
   $rabbit_user                   = 'nova',
+  $rabbit_ha_virtual_ip          = false,
   # Glance
   $glance_api_servers            = false,
   # Virtualization
@@ -170,6 +171,7 @@ class openstack::compute (
     rabbit_host        => $rabbit_host,
     use_syslog         => $use_syslog,
     api_bind_address   => $internal_address,
+    rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
   }
 
   if ($cinder) {
@@ -196,7 +198,8 @@ class openstack::compute (
       iscsi_bind_host      => $cinder_iscsi_bind_addr,
       cinder_user_password => $cinder_user_password,
       use_syslog           => $use_syslog,
-      cinder_rate_limits   => $cinder_rate_limits
+      cinder_rate_limits   => $cinder_rate_limits,
+      rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
     }
 
   } else {
@@ -344,6 +347,7 @@ class openstack::compute (
       rabbit_user     => $rabbit_user,
       rabbit_password => $rabbit_password,
       use_syslog              => $use_syslog,
+      rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
       #sql_connection  => $quantum_sql_connection,
     }
 

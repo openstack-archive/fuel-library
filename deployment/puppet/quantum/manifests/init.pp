@@ -20,6 +20,7 @@ class quantum (
   $rabbit_port            = '5672',
   $rabbit_user            = 'guest',
   $rabbit_virtual_host    = '/',
+  $rabbit_ha_virtual_ip   = false,
   $use_syslog = false
 ) {
   include 'quantum::params'
@@ -41,7 +42,11 @@ class quantum (
   }
 
   if is_array($rabbit_host) and size($rabbit_host) > 1 {
-    $rabbit_hosts = inline_template("<%= @rabbit_host.map {|x| x + ':5672'}.join ',' %>")
+    if $rabbit_ha_virtual_ip {
+      $rabbit_hosts = "${rabbit_ha_virtual_ip}:${rabbit_port}"
+    } else {
+      $rabbit_hosts = inline_template("<%= @rabbit_host.map {|x| x + ':' + @rabbit_port}.join ',' %>")
+    }
     Quantum_config['DEFAULT/rabbit_ha_queues'] -> Service<| title == 'quantum-server' |>
     Quantum_config['DEFAULT/rabbit_ha_queues'] -> Service<| title == 'quantum-plugin-ovs-service' |>
     Quantum_config['DEFAULT/rabbit_ha_queues'] -> Service<| title == 'quantum-l3' |>

@@ -51,6 +51,7 @@ class nova(
   $rabbit_port='5672',
   $rabbit_userid='guest',
   $rabbit_virtual_host='/',
+  $rabbit_ha_virtual_ip = false,
   $auth_strategy = 'keystone',
   $service_down_time = 60,
   $logdir = '/var/log/nova',
@@ -223,8 +224,10 @@ require => [Package['nova-common']]
 #  }
 
 
-  if $rabbit_nodes {
+  if $rabbit_nodes and !$rabbit_ha_virtual_ip {
     nova_config { 'DEFAULT/rabbit_hosts': value => inline_template("<%= @rabbit_nodes.map {|x| x+':5672'}.join ',' %>") }
+  } elsif $rabbit_ha_virtual_ip{
+    nova_config { 'DEFAULT/rabbit_hosts': value => "${rabbit_ha_virtual_ip}:5672" }
   } else {
     Nova_config <<| tag == "${::deployment_id}::${::environment}" and title == 'rabbit_hosts' |>>
   }

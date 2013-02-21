@@ -14,6 +14,7 @@ class openstack::quantum_router (
   $service_endpoint         = '127.0.0.1',
   $rabbit_user              = 'nova',
   $rabbit_nodes             = ['127.0.0.1'],
+  $rabbit_ha_virtual_ip     = false,
   $db_type                  = 'mysql',
   $auth_host                = '127.0.0.1',
   $verbose                  = 'False',
@@ -40,6 +41,7 @@ class openstack::quantum_router (
       rabbit_user     => $rabbit_user,
       rabbit_password => $rabbit_password,
       rabbit_host     => $rabbit_nodes,
+      rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
       #      sql_connection  => $quantum_sql_connection,
       verbose         => $verbose,
       debug           => $verbose,
@@ -92,6 +94,7 @@ class openstack::quantum_router (
       auth_password    => $quantum_user_password,
       rabbit_user      => $rabbit_user,
       rabbit_password  => $rabbit_password,
+      rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
     }
 
     sysctl::value { 'net.ipv4.ip_forward':

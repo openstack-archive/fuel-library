@@ -13,6 +13,7 @@ class nova::metadata_api (
   $rpc_backend       = 'nova.rpc.impl_kombu',
   $rabbit_user       = 'rabbit_user',
   $rabbit_password   = 'rabbit_password',
+  $rabbit_ha_virtual_ip     = false,
 ) {
 
   include nova::params
@@ -38,7 +39,11 @@ class nova::metadata_api (
     require => Package['nova-metadata-api'],
   }
   
-  $rabbit_hosts = join(regsubst($controller_nodes, '$', ':5672'), ',')
+  if $rabbit_ha_virtual_ip {
+    $rabbit_hosts = "${rabbit_ha_virtual_ip}:5672"
+  } else {
+    $rabbit_hosts = join(regsubst($controller_nodes, '$', ':5672'), ',')
+  }
   $memcached_servers = join(regsubst($controller_nodes, '$', ':11211'), ',')
 
   nova_config {
