@@ -210,7 +210,7 @@ require => [Package['nova-common']]
       nova_config { 'DEFAULT/glance_api_servers': value => $glance_api_servers }
     } else {
       # TODO this only supports setting a single address for the api server
-      Nova_config <<| tag == "${::deployment_id}::${::environment}" and title == glance_api_servers |>>
+      Nova_config <<| tag == "${::deployment_id}::${::environment}" and title == 'glance_api_servers' |>>
     }
   }
 
