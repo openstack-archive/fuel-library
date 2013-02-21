@@ -8,6 +8,7 @@ class SingleTestCase(CobblerTestCase):
         Manifest().write_openstack_single_manifest(
             remote=self.remote(),
             ci=self.ci(),
+            quantum=False,
         )
         self.validate(
             self.nodes().controllers,
