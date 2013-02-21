@@ -43,10 +43,9 @@ class quantum::agents::l3 (
 
   package { 'python-keystoneclient':
     ensure => present,
-    before => Package[$l3_agent_package],
   }
 
-  Package[$l3_agent_package] -> Quantum_l3_agent_config<||>
+  Package['python-keystoneclient'] -> Package[$l3_agent_package] -> Quantum_l3_agent_config<||>
   Quantum_config<||> ~> Service['quantum-l3']
   Quantum_l3_agent_config<||> ~> Service['quantum-l3']
 
@@ -132,15 +131,15 @@ class quantum::agents::l3 (
       exec { 'update_default_route_metric':
         command     => $update_default_route_metric,
         returns     => [0, 7],
-        subscribe   => Package[$l3_agent_package],
-        before      => Service['quantum-l3'],
         refreshonly => true,
       }
+
+      Package[$l3_agent_package] ~> Exec['update_default_route_metric']
+      Exec['update_default_route_metric']->Service['quantum-l3']->Exec['settle-down-default-route']
     
       exec { 'settle-down-default-route':
         command     => "/bin/ping -q -W2 -c1 ${external_gateway}",
         subscribe   => Exec['update_default_route_metric'],
-        require     => Service['quantum-l3'],
         logoutput   => 'on_failure',
         refreshonly => true,
         try_sleep   => 3,

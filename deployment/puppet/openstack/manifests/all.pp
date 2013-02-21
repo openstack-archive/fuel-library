@@ -213,8 +213,9 @@ class openstack::all (
   # should be in the package dependencies
   package { 'python-amqp':
     ensure => present,
-    before => Class['nova'],
   }
+
+  Package['python-amqp'] -> Class['nova']
 
   #
   # indicates that all nova config entries that we did

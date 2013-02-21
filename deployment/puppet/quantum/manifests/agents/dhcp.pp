@@ -29,8 +29,8 @@ class quantum::agents::dhcp (
     /\.Dnsmasq/: {
       package { $::quantum::params::dnsmasq_packages:
         ensure => present,
-        before => Package[$dhcp_agent_package],
       }
+      Package[$::quantum::params::dnsmasq_packages] -> Package[$dhcp_agent_package]
       $dhcp_server_packages = $::quantum::params::dnsmasq_packages
     }
     default: {
