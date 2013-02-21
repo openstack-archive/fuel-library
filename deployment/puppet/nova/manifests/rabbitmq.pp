@@ -8,7 +8,7 @@ class nova::rabbitmq(
   $port='5672',
   $virtual_host='/',
   $cluster = false,
-  $cluster_nodes = [],
+  $cluster_nodes = [], #Real node names to install RabbitMQ server onto.
   $enabled = true,
   $rabbit_node_ip_address = 'UNSET'
 ) {

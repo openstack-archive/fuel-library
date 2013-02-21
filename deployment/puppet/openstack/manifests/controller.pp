@@ -91,6 +91,7 @@ class openstack::controller (
   $rabbit_cluster          = false,
   $rabbit_nodes            = [$internal_address],
   $rabbit_node_ip_address  = undef,
+  $rabbit_ha_virtual_ip    = false, #Internal virtual IP for HA configuration
   $rabbit_port             = '5672',
   # network configuration
   # this assumes that it is a flat network manager
@@ -310,6 +311,7 @@ class openstack::controller (
     rabbit_cluster          => $rabbit_cluster,
     rabbit_node_ip_address  => $rabbit_node_ip_address,
     rabbit_port             => $rabbit_port,
+    rabbit_ha_virtual_ip   => $rabbit_ha_virtual_ip,
     # Glance
     glance_api_servers      => $glance_api_servers,
     # General
@@ -344,7 +346,8 @@ class openstack::controller (
       iscsi_bind_host => $cinder_iscsi_bind_addr,
       cinder_user_password    => $cinder_user_password,
       use_syslog              => $use_syslog,
-      cinder_rate_limits => $cinder_rate_limits
+      cinder_rate_limits => $cinder_rate_limits,
+      rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
     }
   } else {
     if $manage_volumes {

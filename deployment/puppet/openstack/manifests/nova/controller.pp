@@ -70,13 +70,14 @@ class openstack::nova::controller (
   $verbose                   = 'False',
   $enabled                   = true,
   $exported_resources        = true,
-  $rabbit_nodes     = [$internal_address],
-  $rabbit_cluster   = false,
-  $ensure_package   = present,
-  $enabled_apis     = 'ec2,osapi_compute',
-  $api_bind_address = '0.0.0.0',
-  $use_syslog              = false,
-  $nova_rate_limits = undef,
+  $rabbit_nodes              = [$internal_address],
+  $rabbit_cluster            = false,
+  $rabbit_ha_virtual_ip      = false,
+  $ensure_package            = present,
+  $enabled_apis              = 'ec2,osapi_compute',
+  $api_bind_address          = '0.0.0.0',
+  $use_syslog                = false,
+  $nova_rate_limits          = undef,
 ) {
 
   # Configure the db string
@@ -91,7 +92,13 @@ class openstack::nova::controller (
   } else {
     $real_glance_api_servers = $glance_api_servers
   }
-    $rabbit_hosts = inline_template("<%= @rabbit_nodes.map {|x| x + ':5672'}.join ',' %>")
+  # Change the pool of rabbit server nodes for clients to single virtual IP for HA mode
+    if $rabbit_ha_virtual_ip {
+      $rabbit_hosts = "${rabbit_ha_virtual_ip}:5672"
+    }
+    else {
+      $rabbit_hosts = inline_template("<%= @rabbit_nodes.map {|x| x + ':5672'}.join ',' %>")
+    }
   if ($exported_resources) {
     # export all of the things that will be needed by the clients
 #    @@nova_config { 'DEFAULT/rabbit_host': value => $internal_address }
@@ -121,7 +128,7 @@ class openstack::nova::controller (
     password => $rabbit_password,
     enabled  => $enabled,
     cluster  => $rabbit_cluster,
-    cluster_nodes => $rabbit_nodes,
+    cluster_nodes => $rabbit_nodes, #Real node names to install RabbitMQ server onto
     rabbit_node_ip_address => $rabbit_node_ip_address,
     port     => $rabbit_port,
   }
@@ -139,6 +146,7 @@ if ($rabbit_nodes)
     ensure_package     => $ensure_package,
     api_bind_address   => $api_bind_address,
     use_syslog              => $use_syslog,
+    rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
   }
  }
  else
@@ -216,6 +224,7 @@ if ($rabbit_nodes)
       rabbit_user     => $rabbit_user,
       rabbit_password => $rabbit_password,
       rabbit_host     => $rabbit_nodes,
+      rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
       #sql_connection  => $quantum_sql_connection,
       verbose         => $verbose,
       debug           => $verbose,
