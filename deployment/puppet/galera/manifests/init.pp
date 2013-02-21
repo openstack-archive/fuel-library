@@ -174,6 +174,7 @@ class galera (
   exec { "set-mysql-password":
     unless      => "/usr/bin/mysql -u${mysql_user} -p${mysql_password}",
     command     => "/usr/bin/mysqld_safe --init-file=/tmp/wsrep-init-file --port=3307 &",
+    refreshonly => true,
   }
 
   exec { "wait-initial-sync":
@@ -208,7 +209,7 @@ class galera (
   File['/tmp/wsrep-init-file'] -> Exec["set-mysql-password"] -> Exec["wait-initial-sync"] 
   -> Exec["kill-initial-mysql"] -> Service["mysql-galera"] -> Exec ["wait-for-synced-state"]
   Exec["kill-initial-mysql"] -> Exec["rm-init-file"]
-  Exec["set-mysql-password"] ~> Exec ["wait-initial-sync"] ~> Exec["kill-initial-mysql"]
+  Package["MySQL-server"] ~> Exec["set-mysql-password"] ~> Exec ["wait-initial-sync"] ~> Exec["kill-initial-mysql"]
 
   class { 'galera::galera_master_final_config':
     require        => Exec["wait-for-haproxy-mysql-backend"],
