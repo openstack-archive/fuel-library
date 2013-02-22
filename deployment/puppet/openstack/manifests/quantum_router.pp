@@ -95,6 +95,7 @@ class openstack::quantum_router (
         rabbit_user      => $rabbit_user,
         rabbit_password  => $rabbit_password,
         rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
+        quantum_netnode_on_cnt => $quantum_netnode_on_cnt,
       }
     }
 

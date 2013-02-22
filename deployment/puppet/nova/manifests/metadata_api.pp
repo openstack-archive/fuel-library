@@ -13,16 +13,19 @@ class nova::metadata_api (
   $rpc_backend       = 'nova.rpc.impl_kombu',
   $rabbit_user       = 'rabbit_user',
   $rabbit_password   = 'rabbit_password',
-  $rabbit_ha_virtual_ip     = false,
+  $rabbit_ha_virtual_ip= false,
+  $quantum_netnode_on_cnt= false,
 ) {
 
   include nova::params
 
-  package { 'python-memcache':
-    ensure => present,
-    name   => $::nova::params::pymemcache_package_name,
-    before => Service['nova-metadata-api'],
-  } 
+  if ! defined(Package['python-memcache']) {
+    package { 'python-memcache':
+     ensure => present,
+     name   => $::nova::params::pymemcache_package_name,
+     before => Service['nova-metadata-api'],
+    } 
+  }
 
   Package['nova-metadata-api'] -> Nova_config<||>
   Nova_config<||> ~> Service['nova-metadata-api']
@@ -45,27 +48,29 @@ class nova::metadata_api (
     $rabbit_hosts = join(regsubst($controller_nodes, '$', ':5672'), ',')
   }
   $memcached_servers = join(regsubst($controller_nodes, '$', ':11211'), ',')
+  
+  nova_config {'DEFAULT/quantum_connection_host':   value => $service_endpoint }
 
-  nova_config {
-    'DEFAULT/quantum_auth_strategy':     value => $auth_strategy; 
-    'DEFAULT/rabbit_hosts':              value => $rabbit_hosts;
-    'DEFAULT/quantum_admin_auth_url':    value => $admin_auth_url;
-    'DEFAULT/quantum_admin_password':    value => $auth_password;
-    'DEFAULT/quantum_admin_username':    value => 'quantum';
-    'DEFAULT/rabbit_userid':             value => $rabbit_user;
-    'DEFAULT/rabbit_password':           value => $rabbit_password;
-    'DEFAULT/sql_connection':            value => "mysql://nova:nova@${service_endpoint}/nova";
-    'DEFAULT/rabbit_virtual_host':       value => '/';
-    'DEFAULT/quantum_admin_tenant_name': value => $admin_tenant_name;
-    'DEFAULT/quantum_url':               value => "http://${service_endpoint}:9696" ;
-    'DEFAULT/metadata_listen':           value => $listen_ip;
-    'DEFAULT/auth_strategy':             value => $auth_strategy;
-    'DEFAULT/rpc_backend':               value => $rpc_backend;
-    'DEFAULT/memcached_servers':         value => $memcached_servers;
-    'DEFAULT/quantum_connection_host':   value => $service_endpoint;
-    'DEFAULT/network_api_class':         value => 'nova.network.quantumv2.api.API';
-    'DEFAULT/rootwrap_config':           value => '/etc/nova/rootwrap.conf';
-    'DEFAULT/rabbit_ha_queues':          value => 'True';
+  if ! $quantum_netnode_on_cnt {
+    nova_config {
+      'DEFAULT/quantum_auth_strategy':     value => $auth_strategy; 
+      'DEFAULT/rabbit_hosts':              value => $rabbit_hosts;
+      'DEFAULT/quantum_admin_auth_url':    value => $admin_auth_url;
+      'DEFAULT/quantum_admin_password':    value => $auth_password;
+      'DEFAULT/quantum_admin_username':    value => 'quantum';
+      'DEFAULT/rabbit_userid':             value => $rabbit_user;
+      'DEFAULT/rabbit_password':           value => $rabbit_password;
+      'DEFAULT/sql_connection':            value => "mysql://nova:nova@${service_endpoint}/nova";
+      'DEFAULT/rabbit_virtual_host':       value => '/';
+      'DEFAULT/quantum_admin_tenant_name': value => $admin_tenant_name;
+      'DEFAULT/quantum_url':               value => "http://${service_endpoint}:9696" ;
+      'DEFAULT/metadata_listen':           value => $listen_ip;
+      'DEFAULT/auth_strategy':             value => $auth_strategy;
+      'DEFAULT/rpc_backend':               value => $rpc_backend;
+      'DEFAULT/memcached_servers':         value => $memcached_servers;
+      'DEFAULT/network_api_class':         value => 'nova.network.quantumv2.api.API';
+      'DEFAULT/rootwrap_config':           value => '/etc/nova/rootwrap.conf';
+      'DEFAULT/rabbit_ha_queues':          value => 'True';
+    }
   }
-
 }
