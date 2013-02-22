@@ -16,7 +16,7 @@ define quantum::network::provider_router (
     tenant      => $tenant_name,
     int_subnets => $router_subnets,
     ext_net     => $router_extnet,
-    admin_state => $admin_state,
+    #admin_state => $admin_state,
   } 
 
 }
