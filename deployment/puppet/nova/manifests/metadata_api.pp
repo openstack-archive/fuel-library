@@ -19,16 +19,10 @@ class nova::metadata_api (
 
   include nova::params
 
-  if ! defined(Package['python-memcache']) {
-    package { 'python-memcache':
+  stdlib::safe_package { $::nova::params::pymemcache_package_name:
      ensure => present,
-     name   => $::nova::params::pymemcache_package_name,
-     before => Service['nova-metadata-api'],
-    } 
-  }
-
-  Package['nova-metadata-api'] -> Nova_config<||>
-  Nova_config<||> ~> Service['nova-metadata-api']
+     before => Service[$::nova::params::meta_api_service_name],
+  } 
 
   if ! defined(Package['nova-metadata-api']) {
     package {'nova-metadata-api':
@@ -36,12 +30,14 @@ class nova::metadata_api (
       ensure => present,
     }
   }
+  Package[$::nova::params::meta_api_package_name] -> Nova_config<||>
+  Nova_config<||> ~> Service[$::nova::params::meta_api_service_name]
 
-  service { 'nova-metadata-api':
+  service { $::nova::params::meta_api_service_name:
     name    => $::nova::params::meta_api_service_name,
     ensure  => 'running',
     enable  => true,
-    require => Package['nova-metadata-api'],
+    require => Package[$::nova::params::meta_api_package_name],
   }
   
   if $rabbit_ha_virtual_ip {

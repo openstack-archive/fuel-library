@@ -29,9 +29,8 @@ class nova::api(
 
   include nova::params
 
-  stdlib::safe_package { 'python-memcache':
+  stdlib::safe_package { $::nova::params::pymemcache_package_name:
       ensure => present,
-      name   => $::nova::params::pymemcache_package_name,
       before => Nova::Generic_service['api'],
   }
 
