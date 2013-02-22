@@ -48,7 +48,7 @@ module Puppet
     autorequire(:cs_property) do
       resources_with_cib :cs_order
     end
-    
+
     autorequire(:cs_group) do
       resources_with_cib :cs_order
     end

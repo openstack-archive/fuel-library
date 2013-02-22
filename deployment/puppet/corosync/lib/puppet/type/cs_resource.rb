@@ -144,10 +144,10 @@ module Puppet
       validate do |value|
         raise Puppet::Error, "Puppet::Type::Cs_Resource: multistate_hash property must be a hash" unless
         value.is_a? Hash
-        
+
         raise Puppet::Error, "Puppet::Type::Cs_Resource: multistate_hash type property #{value[:type]} must be in master|clone|'' if set" unless
-        ["master", "clone", ""].include?(value[:type]) or value[:type] == nil 
-        
+        ["master", "clone", ""].include?(value[:type]) or value[:type] == nil
+
       end
       defaultto Hash.new
 

@@ -16,7 +16,7 @@
 #
 class corosync::reprobe {
   exec { 'crm resource reprobe':
-    path        => ['/bin','/usr/bin','/sbin','/usr/sbin'],
+    path        => ['/bin', '/usr/bin', '/sbin', '/usr/sbin'],
     refreshonly => true,
   }
   Cs_resource <| |> {

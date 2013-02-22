@@ -11,7 +11,6 @@ Puppet::Type.type(:cs_colocation).provide(:crm, :parent => Puppet::Provider::Cor
   # Decided to just go with relative.
   commands :crm => 'crm'
   commands :crm_attribute => 'crm_attribute'
-
   def self.instances
 
     block_until_ready
@@ -37,7 +36,6 @@ Puppet::Type.type(:cs_colocation).provide(:crm, :parent => Puppet::Provider::Cor
         with_rsc = items['with-rsc']
       end
 
-      
       colocation_instance = {
         :name       => items['id'],
         :ensure     => :present,

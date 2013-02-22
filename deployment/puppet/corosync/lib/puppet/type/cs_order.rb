@@ -65,6 +65,5 @@ module Puppet
       autos
     end
 
-
   end
 end
