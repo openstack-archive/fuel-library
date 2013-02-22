@@ -122,7 +122,6 @@ class openstack::controller_ha (
    $nv_physical_volume = undef, $manage_volumes = false,$galera_nodes, $use_syslog = false,
    $cinder_rate_limits = undef, $nova_rate_limits = undef, 
    $rabbit_node_ip_address  = $internal_address, $horizon_use_ssl = false,
-   $rabbit_node_ip_address  = $internal_address,
    $quantum_network_node    = false,
    $quantum_netnode_on_cnt  = false,
    $quantum_gre_bind_addr   = $internal_address,
