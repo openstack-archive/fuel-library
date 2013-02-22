@@ -49,9 +49,7 @@ class quantum::agents::ovs (
     quantum_plugin_ovs {
       'OVS/local_ip': value => $local_ip;
     }
-  }
-
-  if ! $enable_tunneling {
+  } else {
     quantum::plugins::ovs::bridge{$bridge_mappings:
       #require      => Service['quantum-plugin-ovs-service'],
     }

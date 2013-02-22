@@ -1,4 +1,5 @@
 define quantum::plugins::ovs::port {
+  $mapping = split($name, ":")
   $bridge  = $mapping[0]
   $port    = $mapping[1]
 
