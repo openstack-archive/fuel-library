@@ -64,6 +64,10 @@ $glance_backend          = 'file'
 $master_hostname      = 'fuel-controller-01'
 # Set short hostnames only to $controller_hostnames. RabbitMQ will not work if Fully Qualified domain names set here!
 $controller_hostnames = ['fuel-controller-01', 'fuel-controller-02']
+# Set nagios master fqdn
+$nagios_master        = 'nagios-server.your-domain-name.com'
+## proj_name  name of environment nagios configuration
+$proj_name = 'test'
 
 # Set up OpenStack network manager
 $network_manager      = 'nova.network.manager.FlatDHCPManager'
@@ -102,7 +106,7 @@ $quantum_host            = $internal_virtual_ip
 $use_syslog = false
 
 if $use_syslog {
-class { "::rsyslog::client": 
+class { "::rsyslog::client":
     log_local => true,
     log_auth_local => true,
     server => '127.0.0.1',
@@ -168,7 +172,18 @@ sysctl::value { 'net.ipv4.conf.all.rp_filter': value => '0' }
 
 # Definition of OpenStack controller nodes.
 node /fuel-controller-[\d+]/ {
-    class { 'openstack::controller_ha': 
+
+  class {'nagios':
+    proj_name       => $proj_name,
+    services        => [
+      'host-alive','nova-novncproxy','keystone', 'nova-scheduler',
+      'nova-consoleauth', 'nova-cert', 'haproxy', 'nova-api', 'glance-api',
+      'glance-registry','horizon', 'rabbitmq', 'mysql'
+    ],
+    whitelist       => ['127.0.0.1', $nagios_master],
+    hostgroup       => 'controller',
+  }
+    class { 'openstack::controller_ha':
       controller_public_addresses => $controller_public_addresses,
       public_interface        => $public_interface,
       internal_interface      => $internal_interface,
@@ -222,6 +237,16 @@ node /fuel-controller-[\d+]/ {
 
 # Definition of OpenStack compute nodes.
 node /fuel-compute-[\d+]/ {
+
+  class {'nagios':
+    proj_name       => $proj_name,
+    services        => [
+      'host-alive', 'nova-compute','nova-network','libvirt'
+    ],
+    whitelist       => ['127.0.0.1', $nagios_master],
+    hostgroup       => 'compute',
+  }
+
     class { 'openstack::compute':
       public_interface   => $public_interface,
       private_interface  => $private_interface,
@@ -244,7 +269,7 @@ node /fuel-compute-[\d+]/ {
       nv_physical_volume => $nv_physical_volume,
       nova_user_password => $nova_user_password,
       cache_server_ip    => $controller_hostnames,
-      service_endpoint	 => $internal_virtual_ip,
+      service_endpoint   => $internal_virtual_ip,
       quantum            => $quantum,
       quantum_host       => $quantum_host,
       quantum_sql_connection => $quantum_sql_connection,
@@ -256,10 +281,10 @@ node /fuel-compute-[\d+]/ {
       db_host            => $internal_virtual_ip,
       ssh_private_key    => 'puppet:///ssh_keys/openstack',
       ssh_public_key     => 'puppet:///ssh_keys/openstack.pub',
-      use_syslog              => $use_syslog,
-      nova_rate_limits => $nova_rate_limits,
+      use_syslog         => $use_syslog,
+      nova_rate_limits   => $nova_rate_limits,
       cinder_rate_limits => $cinder_rate_limits
-      
+
     }
 }
 
