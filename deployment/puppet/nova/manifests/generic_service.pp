@@ -37,13 +37,12 @@ define nova::generic_service(
   # I need to mark that ths package should be
   # installed before nova_config
   if ($package_name) {
-    package { $nova_title:
+    stdlib::safe_package {$nova_title:
       name   => $package_name,
       ensure => $ensure_package,
-      # In square brackets to work around bug projects.puppetlabs.com/issues/7422.
-      before => [Service[$nova_title]],
-      notify => Service[$nova_title],
     }
+    Stdlib::Safe_package[$nova_title] -> Service[$nova_title]
+    Stdlib::Safe_package[$nova_title] ~> Service[$nova_title]
   }
 
   if ($service_name) {
