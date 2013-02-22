@@ -48,7 +48,7 @@ class quantum::plugins::ovs (
     require => Package['quantum-plugin-ovs']
   }
 
-  package { 'quantum-plugin-ovs':
+  stdlib::safe_package { 'quantum-plugin-ovs':
     name    => $::quantum::params::ovs_server_package,
     ensure  => $package_ensure,
   }
@@ -79,7 +79,7 @@ class quantum::plugins::ovs (
         'OVS/bridge_mappings':      value => $br_map_str;
       }
 
-      package { 'vconfig':
+      stdlib::safe_package { 'vconfig':
         name    => $::quantum::params::vlan_package,
         ensure  => latest,
       }

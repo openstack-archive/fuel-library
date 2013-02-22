@@ -36,7 +36,7 @@ class quantum (
     require => Package['quantum']
   }
 
-  package {'quantum':
+  stdlib::safe_package {'quantum':
     name   => $::quantum::params::package_name,
     ensure => $package_ensure
   }
