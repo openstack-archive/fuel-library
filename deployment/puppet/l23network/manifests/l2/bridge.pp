@@ -26,7 +26,7 @@ define l23network::l2::bridge (
       ensure       => $ensure,
       external_ids => $external_ids,
       skip_existing=> $skip_existing,
-      require      => Service['openvswitch-service']
+      require      => Service<| title == 'openvswitch-service' |>,
     }
   }
 }
