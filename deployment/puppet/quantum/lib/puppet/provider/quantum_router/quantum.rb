@@ -48,8 +48,8 @@ Puppet::Type.type(:quantum_router).provide(
     # add an internal networks interfaces to a router
     @resource[:int_subnets].each do |subnet|
       auth_quantum('router-interface-add',
-        @resource[:name],
-	subnet
+        @resource[:name],	
+        subnet
       )
     end
 
