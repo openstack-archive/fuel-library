@@ -18,7 +18,7 @@ Puppet::Type.type(:cs_property).provide(:crm, :parent => Puppet::Provider::Coros
     instances = []
 
     cmd = [ command(:crm), 'configure', 'show', 'xml' ]
-    raw, status = Puppet::Util::SUIDManager.run_and_capture(cmd)
+    raw, status = dump_cib
     doc = REXML::Document.new(raw)
 
     doc.root.elements['configuration/crm_config/cluster_property_set'].each_element do |e|

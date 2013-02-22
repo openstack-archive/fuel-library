@@ -17,8 +17,8 @@ Puppet::Type.type(:cs_colocation).provide(:crm, :parent => Puppet::Provider::Cor
 
     instances = []
 
-    cmd = [ command(:crm), 'configure', 'show', 'xml' ]
-    raw, status = Puppet::Util::SUIDManager.run_and_capture(cmd)
+    #cmd = [ command(:crm), 'configure', 'show', 'xml' ]
+    raw, status = dump_cib
     doc = REXML::Document.new(raw)
 
     doc.root.elements['configuration'].elements['constraints'].each_element('rsc_colocation') do |e|
@@ -100,7 +100,7 @@ Puppet::Type.type(:cs_colocation).provide(:crm, :parent => Puppet::Provider::Cor
       updated = "colocation "
       updated << "#{@property_hash[:name]} #{@property_hash[:score]}: #{@property_hash[:primitives].join(' ')}"
       Tempfile.open('puppet_crm_update') do |tmpfile|
-        tmpfile.write(updated)
+        tmpfile.write(updated.rstrip)
         tmpfile.flush
         ENV["CIB_shadow"] = @resource[:cib]
         crm('configure', 'load', 'update', tmpfile.path.to_s)

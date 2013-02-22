@@ -31,9 +31,8 @@ describe Puppet::Type.type(:cs_order).provider(:crm) do
   describe "#instances" do
     it "should find instances" do
       provider.class.stubs(:block_until_ready).returns(true)
-      provider.class.stubs(:ready).returns(true)
       out=File.open(File.dirname(__FILE__) + '/../../../../fixtures/cib/cib.xml')
-      Puppet::Util::SUIDManager.stubs(:run_and_capture).with(['/usr/sbin/crm','configure','show','xml']).returns(out,0)
+      provider.class.stubs(:dump_cib).returns(out,nil)
       instances = provider.class.instances
       instances[0].instance_eval{@property_hash}.should eql({:name=>"foo-before-bar",:score=>"INFINITY", :first=> 'foo',:second=>'bar', :ensure=>:present, :provider=>:crm})
     end

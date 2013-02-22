@@ -13,73 +13,14 @@ Puppet::Type.type(:cs_resource).provide(:crm, :parent => Puppet::Provider::Coros
   # Path to the crm binary for interacting with the cluster configuration.
   commands :crm => 'crm'
   commands :crm_attribute => 'crm_attribute'
-  def rename_resource?(resource_name,should,cib=nil)
-    cmd =  [ command(:crm), 'configure', 'rename', resource_name, should ]
-    if cib
-      ENV['CIB_shadow'] = cib
-      raw, status = Puppet::Util::SUIDManager.run_and_capture(cmd)
-    else
-      raw, status = Puppet::Util::SUIDManager.run_and_capture(cmd)
-    end
-    debug("rename exit code is #{status}")
-    if status == 0
-      return true
-    else
-      return false
-    end
-  end
-
-  def try_to_rename_resource(resource_name,should,cib=nil,timeout=120)
-    Timeout::timeout(timeout) do
-      until rename_resource?(resource_name,should,cib)
-        debug("Trying to rename resource #{resource_name} to #{should}")
-        sleep 2
-      end
-      # Sleeping a spare two since it seems that dc-version is returning before
-      # It is really ready to take config changes, but it is close enough.
-      # Probably need to find a better way to check for reediness.
-      sleep 2
-    end
-  end
-
-  def deleted_resource?(resource_name,cib=nil)
-    cmd =  [ command(:crm), 'configure', 'delete', resource_name ]
-    debug("using CIB named #{cib}")
-    if cib
-      ENV['CIB_shadow'] = cib
-      raw, status = Puppet::Util::SUIDManager.run_and_capture(cmd)
-    else
-      raw, status = Puppet::Util::SUIDManager.run_and_capture(cmd)
-    end
-    debug("delete exit code is #{status}")
-    if status == 0
-      return true
-    else
-      return false
-    end
-  end
-
-  def try_to_delete_resource(resource_name,cib=nil,timeout=120)
-    Timeout::timeout(timeout) do
-      until deleted_resource?(resource_name,cib)
-        debug("Trying to delete resource #{resource_name} from #{cib}.")
-        sleep 2
-      end
-      # Sleeping a spare two since it seems that dc-version is returning before
-      # It is really ready to take config changes, but it is close enough.
-      # Probably need to find a better way to check for reediness.
-      sleep 2
-    end
-  end
-
   def self.instances
 
     block_until_ready
 
     instances = []
 
-    cmd = [ command(:crm), 'configure', 'show', 'xml' ]
-    raw, status = Puppet::Util::SUIDManager.run_and_capture(cmd)
+    # cmd = [ command(:crm), 'configure', 'show', 'xml' ]
+    raw, status = dump_cib
     doc = REXML::Document.new(raw)
 
     # We are obtaining four different sets of data in this block.  We obtain
@@ -128,7 +69,8 @@ Puppet::Type.type(:cs_resource).provide(:crm, :parent => Puppet::Provider::Coros
         end
       end
       if e.parent.name == 'master' or e.parent.name == 'clone'
-        primitive[items['id'].to_sym][:multistate_hash][:name] = e.parent.attributes['id'] unless  e.parent.attributes['id'] ==  "#{e.parent.name}_#{items['id'].to_sym}"
+        primitive[items['id'].to_sym][:multistate_hash][:name] = e.parent.attributes['id']
+        #unless e.parent.attributes['id'] ==  "#{e.parent.name}_#{items['id'].to_sym}"
         primitive[items['id'].to_sym][:multistate_hash][:type] = e.parent.name
         if ! e.parent.elements['meta_attributes'].nil?
           e.parent.elements['meta_attributes'].each_element do |m|
@@ -179,7 +121,7 @@ Puppet::Type.type(:cs_resource).provide(:crm, :parent => Puppet::Provider::Coros
     debug('Stopping primitive before removing it')
     crm('resource', 'stop', @resource[:name])
     debug('Removing primitive')
-    try_to_delete_resource(@resource[:name])
+    try_command("delete",@resource[:name])
     @property_hash.clear
   end
 
@@ -239,16 +181,16 @@ Puppet::Type.type(:cs_resource).provide(:crm, :parent => Puppet::Provider::Coros
       #and shadow cib
 
       crm('resource', 'stop', "#{@property_hash[:multistate_hash][:name]}")
-      try_to_delete_resource(@property_hash[:multistate_hash][:name])
-      try_to_delete_resource(@property_hash[:multistate_hash][:name],@resource[:cib])
+      try_command("delete",@property_hash[:multistate_hash][:name])
+      try_command("delete",@property_hash[:multistate_hash][:name],nil,@resource[:cib])
     elsif
     #otherwise, stop it and rename it both
     #in shadow and live cib
     (should[:type] == @property_hash[:multistate_hash][:type] and @property_hash[:multistate_hash][:type]  and
     newname != @property_hash[:multistate_hash][:name])
       crm('resource', 'stop', "#{@property_hash[:multistate_hash][:name]}")
-      try_to_rename_resource(@property_hash[:multistate_hash][:name],newname)
-      try_to_rename_resource(@property_hash[:multistate_hash][:name],newname,@resource[:cib])
+      try_command("rename",@property_hash[:multistate_hash][:name],newname)
+      try_command("rename",@property_hash[:multistate_hash][:name],newname,@resource[:cib])
     end
     @property_hash[:multistate_hash][:name] = newname
     @property_hash[:multistate_hash][:type] = should[:type]

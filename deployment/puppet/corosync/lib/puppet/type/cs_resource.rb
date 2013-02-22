@@ -135,10 +135,14 @@ module Puppet
         by default"
 
       munge do |value_hash|
-        value_hash.inject({}) do |memo,(key,value)|
+        munged_hash = value_hash.inject({}) do |memo,(key,value)|
           memo[key.to_sym] = String(value)
           memo
         end
+        if munged_hash[:name].to_s.empty?
+          munged_hash[:name] = "#{munged_hash[:type]}_#{@resource[:name]}"
+        end
+        munged_hash
       end
 
       validate do |value|

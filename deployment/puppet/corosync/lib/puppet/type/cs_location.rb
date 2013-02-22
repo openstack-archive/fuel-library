@@ -35,7 +35,7 @@ module Puppet
 
       validate do |value|
         begin
-          if  value !~ /^([+-]){,1}(inf|INFINITY)$/
+          if  value !~ /^([+-]){0,1}(inf|INFINITY)$/
             score = Integer(value)
           end
         rescue ArgumentError

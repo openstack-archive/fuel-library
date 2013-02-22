@@ -1,25 +1,57 @@
 class Puppet::Provider::Corosync < Puppet::Provider
-
+  require "open3"
   # Yep, that's right we are parsing XML...FUN! (It really wasn't that bad)
   require 'rexml/document'
+  #require 'system'
+  
+  
+  def self.dump_cib
+    stdin, stdout, stderr = Open3.popen3("#{command(:crm)} configure show xml")
+    return stdout, nil
+  end
+
+  def try_command(command,resource_name,should=nil,cib=nil,timeout=120)
+    cmd = "#{command(:crm)} configure #{command} #{resource_name} #{should} ".rstrip
+    env = {}
+      if cib
+        env["CIB_shadow"]=cib.to_s
+      end
+    Timeout::timeout(timeout) do
+      debug("Issuing  #{cmd} for CIB #{cib}  ")
+      loop do
+        break  if exec_withenv(cmd,env) == 0
+        sleep 2
+      end
+    end
+  end
+
+  def exec_withenv(cmd,env={})
+    Process.fork  do
+       ENV.update(env)
+       Process.exec(cmd)
+     end
+     Process.wait
+     $?.exitstatus
+  end
+  
+  def self.exec_withenv(cmd,env={})
+    Process.fork  do
+      ENV.update(env)
+      Process.exec(cmd)
+    end
+    Process.wait
+    $?.exitstatus
+  end
 
   # Corosync takes a while to build the initial CIB configuration once the
   # service is started for the first time.  This provides us a way to wait
   # until we're up so we can make changes that don't disappear in to a black
   # hole.
-  def self.ready?
-    cmd =  [ command(:crm_attribute), '--type', 'crm_config', '--query', '--name', 'dc-version' ]
-    raw, status = Puppet::Util::SUIDManager.run_and_capture(cmd)
-    if status == 0
-      return true
-    else
-      return false
-    end
-  end
 
   def self.block_until_ready(timeout = 120)
+    cmd = "#{command(:crm_attribute)} --type crm_config --query --name dc-version"
     Timeout::timeout(timeout) do
-      until ready?
+      until exec_withenv(cmd) == 0
         debug('Corosync not ready, retrying')
         sleep 2
       end
