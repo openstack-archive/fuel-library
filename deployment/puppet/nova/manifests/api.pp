@@ -24,27 +24,25 @@ class nova::api(
   $admin_user        = 'nova',
   $enabled_apis      = 'ec2,osapi_compute,metadata',
   $nova_rate_limits  = undef,
-  $nova_user_password = undef, #Empty password generates error and saves from non-working installation
+  $nova_user_password= undef, #Empty password generates error and saves from non-working installation
 ) {
 
   include nova::params
 
-  if ! defined(Package['python-memcache']) {
-    package { 'python-memcache':
+  stdlib::safe_package { 'python-memcache':
       ensure => present,
       name   => $::nova::params::pymemcache_package_name,
       before => Nova::Generic_service['api'],
-    }
-  } 
+  }
 
   Package<| title == 'nova-api' |> -> Exec['nova-db-sync']
   case $::osfamily {
     "Debian": {
-  Nova_config<| |> -> Package<| title == 'nova-api' |>
-  Nova_paste_api_ini<| |> -> Package<| title == 'nova-api' |>
+        Nova_config<| |> -> Package<| title == 'nova-api' |>
+        Nova_paste_api_ini<| |> -> Package<| title == 'nova-api' |>
     }
     "RedHat": {
-  Package<| title == 'nova-api' |> -> Nova_config<| |>
+        Package<| title == 'nova-api' |> -> Nova_config<| |>
     }
   }
   
@@ -53,7 +51,7 @@ class nova::api(
   Nova_paste_api_ini<| |> ~> Service['nova-api']
   
 
-    nova_paste_api_ini {
+  nova_paste_api_ini {
       'filter:authtoken/service_port': ensure => absent;
       'filter:authtoken/service_protocol': ensure => absent;
       'filter:authtoken/service_host': ensure => absent;
@@ -65,11 +63,11 @@ class nova::api(
       'filter:authtoken/admin_password': ensure => absent;
       'filter:authtoken/signing_dir': ensure => absent;
       'filter:authtoken/signing_dirname': ensure => absent;
-    } 
+  } 
     
-if $nova_rate_limits {
-  class{'::nova::limits': limits => $nova_rate_limits}
-}
+  if $nova_rate_limits {
+      class{'::nova::limits': limits => $nova_rate_limits}
+  }
 
   Nova_config<| |> ~> Exec['post-nova_config']
   Nova_config<| |> ~> Service['nova-api']
@@ -107,9 +105,9 @@ if $nova_rate_limits {
   # this is potentially constantly resyncing a central DB
   exec { "nova-db-sync":
     command      => "/usr/bin/nova-manage db sync",
-#    refreshonly => "true",
+   #refreshonly  => "true",
     subscribe    => Exec['post-nova_config'],
-#    user         => User[nova],
+   #user         => User[nova],
     logoutput    => true,
   }
  
