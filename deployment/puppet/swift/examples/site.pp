@@ -76,7 +76,7 @@ node keystone {
 
   # set up keystone database
   # set up the keystone config for mysql
-  class { 'keystone::config::mysql':
+  class { 'openstack::db::mysql':
     password => $keystone_db_password,
   }
   # set up keystone admin users
