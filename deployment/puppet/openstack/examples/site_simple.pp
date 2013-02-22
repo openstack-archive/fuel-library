@@ -37,6 +37,11 @@ $controller_node_public  = '10.0.74.3'
 # Set up OpenStack network manager
 $network_manager      = 'nova.network.manager.FlatDHCPManager'
 
+# Set nagios master fqdn
+$nagios_master        = 'nagios-server.your-domain-name.com'
+## proj_name  name of environment nagios configuration
+$proj_name            = 'test'
+
 # Setup network interface, which Cinder used for export iSCSI targets.
 $cinder_iscsi_bind_iface = $internal_interface
 
@@ -132,6 +137,17 @@ sysctl::value { 'net.ipv4.conf.all.rp_filter': value => '0' }
 
 # Definition of OpenStack controller node.
 node /fuel-controller-[\d+]/ {
+  
+  class {'nagios':
+    proj_name       => $proj_name,
+    services        => [
+      'host-alive','nova-novncproxy','keystone', 'nova-scheduler',
+      'nova-consoleauth', 'nova-cert', 'haproxy', 'nova-api', 'glance-api',
+      'glance-registry','horizon', 'rabbitmq', 'mysql',
+    ],
+    whitelist       => ['127.0.0.1', $nagios_master],
+    hostgroup       => 'controller',
+  }
 
   class { 'openstack::controller':
     admin_address           => $controller_node_internal,
@@ -184,6 +200,15 @@ node /fuel-controller-[\d+]/ {
 
 # Definition of OpenStack compute nodes.
 node /fuel-compute-[\d+]/ {
+  
+  class {'nagios':
+    proj_name       => $proj_name,
+    services        => [
+      'host-alive', 'nova-compute','nova-network','libvirt'
+    ],
+    whitelist       => ['127.0.0.1', $nagios_master],
+    hostgroup       => 'compute',
+  }
 
   class { 'openstack::compute':
     public_interface       => $public_interface,

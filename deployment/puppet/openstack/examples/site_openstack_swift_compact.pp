@@ -45,6 +45,10 @@ $master_hostname = 'fuel-controller-01'
 # Only short controller names allowed. Fully qualified domain names are restricted, since it breaks RabbitMQ installation and other services, 
 # requiring only short names for proper work. By default this list repeats controller names from $controller_internal_addresses, but in short hostname only form.
 $controller_hostnames = ['fuel-controller-01', 'fuel-controller-02', 'fuel-controller-03']
+# Set nagios master fqdn
+$nagios_master        = 'nagios-server.your-domain-name.com'
+## proj_name  name of environment nagios configuration
+$proj_name            = 'test'
 
 #Specify if your installation contains multiple Nova controllers. Defaults to true as it is the most common scenario.
 $multi_host              = true
@@ -358,6 +362,19 @@ class compact_controller (
 
 # Definition of the first OpenStack controller.
 node /fuel-controller-01/ {
+  
+  class {'nagios':
+    proj_name       => $proj_name,
+    services        => [
+      'host-alive','nova-novncproxy','keystone', 'nova-scheduler',
+      'nova-consoleauth', 'nova-cert', 'haproxy', 'nova-api', 'glance-api',
+      'glance-registry','horizon', 'rabbitmq', 'mysql', 'swift-proxy',
+      'swift-account', 'swift-container', 'swift-object',
+    ],
+    whitelist       => ['127.0.0.1', $nagios_master],
+    hostgroup       => 'controller',
+  }
+  
   class { compact_controller: }
   $swift_zone = 1
 
@@ -377,6 +394,19 @@ node /fuel-controller-01/ {
 
 # Definition of the second OpenStack controller.
 node /fuel-controller-02/ {
+  
+  class {'nagios':
+    proj_name       => $proj_name,
+    services        => [
+      'host-alive','nova-novncproxy','keystone', 'nova-scheduler',
+      'nova-consoleauth', 'nova-cert', 'haproxy', 'nova-api', 'glance-api',
+      'glance-registry','horizon', 'rabbitmq', 'mysql', 'swift-proxy',
+      'swift-account', 'swift-container', 'swift-object',
+    ],
+    whitelist       => ['127.0.0.1', $nagios_master],
+    hostgroup       => 'controller',
+  }
+  
   class { 'compact_controller': }
   $swift_zone = 2
 
@@ -396,6 +426,19 @@ node /fuel-controller-02/ {
 
 # Definition of the third OpenStack controller.
 node /fuel-controller-03/ {
+  
+  class {'nagios':
+    proj_name       => $proj_name,
+    services        => [
+      'host-alive','nova-novncproxy','keystone', 'nova-scheduler',
+      'nova-consoleauth', 'nova-cert', 'haproxy', 'nova-api', 'glance-api',
+      'glance-registry','horizon', 'rabbitmq', 'mysql', 'swift-proxy',
+      'swift-account', 'swift-container', 'swift-object',
+    ],
+    whitelist       => ['127.0.0.1', $nagios_master],
+    hostgroup       => 'controller',
+  }
+  
   class { 'compact_controller': }
   $swift_zone = 3
 
@@ -415,6 +458,16 @@ node /fuel-controller-03/ {
 
 # Definition of OpenStack compute nodes.
 node /fuel-compute-[\d+]/ {
+  
+  class {'nagios':
+    proj_name       => $proj_name,
+    services        => [
+      'host-alive', 'nova-compute','nova-network','libvirt'
+    ],
+    whitelist       => ['127.0.0.1', $nagios_master],
+    hostgroup       => 'compute',
+  }
+  
   class { 'openstack::compute':
     public_interface       => $public_interface,
     private_interface      => $private_interface,

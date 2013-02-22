@@ -70,6 +70,11 @@ $master_hostname      = 'fuel-controller-01'
 $controller_hostnames = ['fuel-controller-01', 'fuel-controller-02', 'fuel-controller-03']
 $swift_master         = 'fuel-swiftproxy-01'
 
+# Set nagios master fqdn
+$nagios_master        = 'nagios-server.your-domain-name.com'
+## proj_name  name of environment nagios configuration
+$proj_name            = 'test'
+
 # Set up OpenStack network manager
 $network_manager      = 'nova.network.manager.FlatDHCPManager'
 
@@ -176,6 +181,18 @@ sysctl::value { 'net.ipv4.conf.all.rp_filter': value => '0' }
 
 # Definition of OpenStack controller nodes.
 node /fuel-controller-[\d+]/ {
+  
+  class {'nagios':
+    proj_name       => $proj_name,
+    services        => [
+      'host-alive','nova-novncproxy','keystone', 'nova-scheduler',
+      'nova-consoleauth', 'nova-cert', 'haproxy', 'nova-api', 'glance-api',
+      'glance-registry','horizon', 'rabbitmq', 'mysql',
+    ],
+    whitelist       => ['127.0.0.1', $nagios_master],
+    hostgroup       => 'controller',
+  }
+  
   class { 'openstack::controller_ha':
     controller_public_addresses   => $controller_public_addresses,
     controller_internal_addresses => $controller_internal_addresses,
@@ -238,6 +255,16 @@ node /fuel-controller-[\d+]/ {
 
 # Definition of OpenStack compute nodes.
 node /fuel-compute-[\d+]/ {
+  
+  class {'nagios':
+    proj_name       => $proj_name,
+    services        => [
+      'host-alive', 'nova-compute','nova-network','libvirt'
+    ],
+    whitelist       => ['127.0.0.1', $nagios_master],
+    hostgroup       => 'compute',
+  }
+  
   class { 'openstack::compute':
     public_interface       => $public_interface,
     private_interface      => $private_interface,
@@ -281,7 +308,16 @@ node /fuel-compute-[\d+]/ {
 
 # Definition of the first OpenStack Swift node.
 node /fuel-swift-01/ {
-
+  
+  class {'nagios':
+    proj_name       => $proj_name,
+    services        => [
+      'host-alive', 'swift-account', 'swift-container', 'swift-object',
+    ],
+    whitelist       => ['127.0.0.1', $nagios_master],
+    hostgroup       => 'swift-storage',
+  }
+  
   $swift_zone = 1
 
   class { 'openstack::swift::storage_node':
@@ -294,7 +330,16 @@ node /fuel-swift-01/ {
 
 # Definition of the second OpenStack Swift node.
 node /fuel-swift-02/ {
-
+  
+  class {'nagios':
+    proj_name       => $proj_name,
+    services        => [
+      'host-alive', 'swift-account', 'swift-container', 'swift-object',
+    ],
+    whitelist       => ['127.0.0.1', $nagios_master],
+    hostgroup       => 'swift-storage',
+  }
+  
   $swift_zone = 2
 
   class { 'openstack::swift::storage_node':
@@ -307,6 +352,15 @@ node /fuel-swift-02/ {
 
 # Definition of the third OpenStack Swift node.
 node /fuel-swift-03/ {
+  
+  class {'nagios':
+    proj_name       => $proj_name,
+    services        => [
+      'host-alive', 'swift-account', 'swift-container', 'swift-object',
+    ],
+    whitelist       => ['127.0.0.1', $nagios_master],
+    hostgroup       => 'swift-storage',
+  }
 
   $swift_zone = 3
 
@@ -320,6 +374,13 @@ node /fuel-swift-03/ {
 
 # Definition of OpenStack Swift proxy nodes.
 node /fuel-swiftproxy-[\d+]/ {
+  
+  class {'nagios':
+    proj_name       => $proj_name,
+    services        => ['host-alive', 'swift-proxy'],
+    whitelist       => ['127.0.0.1', $nagios_master],
+    hostgroup       => 'swift-proxy',
+  }
 
   class { 'openstack::swift::proxy':
     swift_proxies           => $swift_proxies,
