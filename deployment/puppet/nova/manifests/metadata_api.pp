@@ -19,14 +19,15 @@ class nova::metadata_api (
 
   include nova::params
 
-  stdlib::safe_package { $::nova::params::pymemcache_package_name:
-     ensure => present,
-     before => Service[$::nova::params::meta_api_service_name],
-  } 
+  if !defined(Package[$::nova::params::pymemcache_package_name]) {
+    package { $::nova::params::pymemcache_package_name:
+      ensure => present,
+      before => Nova::Generic_service['api'],
+    }
+  }
 
-  if ! defined(Package['nova-metadata-api']) {
-    package {'nova-metadata-api':
-      name   => $::nova::params::meta_api_package_name,
+  if !defined(Package[$::nova::params::meta_api_package_name]) {
+    package { $::nova::params::meta_api_package_name:
       ensure => present,
     }
   }

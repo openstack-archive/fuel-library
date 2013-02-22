@@ -29,9 +29,11 @@ class nova::api(
 
   include nova::params
 
-  stdlib::safe_package { $::nova::params::pymemcache_package_name:
+  if !defined(Package[$::nova::params::pymemcache_package_name]) {
+    package { $::nova::params::pymemcache_package_name:
       ensure => present,
       before => Nova::Generic_service['api'],
+    }
   }
 
   Package<| title == 'nova-api' |> -> Exec['nova-db-sync']

@@ -17,7 +17,7 @@ class quantum::server (
   if $::quantum::params::server_package {
     $server_package = 'quantum-server'
 
-    stdlib::safe_package {$server_package:
+    package {$server_package:
       name   => $::quantum::params::server_package,
       ensure => $package_ensure
     }

@@ -37,9 +37,11 @@ define nova::generic_service(
   # I need to mark that ths package should be
   # installed before nova_config
   if ($package_name) {
-    stdlib::safe_package {$nova_title:
-      name   => $package_name,
-      ensure => $ensure_package,
+    if !defined(Package[$nova_title]) and !defined(Package[$package_name]) {
+      package {$nova_title:
+        name   => $package_name,
+        ensure => $ensure_package,
+      }
     }
     Package[$nova_title] -> Service[$nova_title]
     Package[$nova_title] ~> Service[$nova_title]
