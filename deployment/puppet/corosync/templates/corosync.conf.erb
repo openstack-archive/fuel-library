@@ -1,5 +1,3 @@
-compatibility: whitetank
-
 totem {
 version:                             2
 token:                               3000
@@ -10,13 +8,13 @@ vsftype:                             none
 max_messages:                        20
 clear_node_high_bit:                 yes
 rrp_mode:                            none
-secauth:                             <%= enable_secauth_real %>
-threads:                             <%= threads_real %>
+secauth:                             <%= enable_secauth %>
+threads:                             <%= threads %>
 interface {
 ringnumber:  0
-bindnetaddr: <%= bind_address_real %>
-mcastaddr:   <%= multicast_address_real %>
-mcastport:   <%= port_real %>
+bindnetaddr: <%= bind_address %>
+mcastaddr:   <%= multicast_address %>
+mcastport:   <%= port %>
 }
 }
 

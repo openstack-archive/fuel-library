@@ -64,51 +64,20 @@
 # Copyright 2012, Puppet Labs, LLC.
 #
 class corosync (
-  $enable_secauth    = 'UNSET',
+  $enable_secauth    = 'off',
   $authkey           = '/etc/puppet/ssl/certs/ca.pem',
-  $threads           = 'UNSET',
-  $port              = 'UNSET',
-  $bind_address      = 'UNSET',
-  $multicast_address = 'UNSET',
-  $unicast_addresses = 'UNSET',
+  $threads           = 0,
+  $port              = 5405,
+  $bind_address      = $::ipaddress_eth0,
+  $multicast_address = "239.1.1.2",
+  $unicast_addresses = undef,
   $force_online      = false,
   $check_standby     = false,
   $debug             = false,) {
   # Making it possible to provide data with parameterized class declarations or
   # Console.
-  $threads_real = $threads ? {
-    'UNSET' => $::threads ? {
-      undef   => $::processorcount,
-      default => $::threads,
-    },
-    default => $threads,
-  }
-
-  $port_real = $port ? {
-    'UNSET' => $::port ? {
-      undef   => '5405',
-      default => $::port,
-    },
-    default => $port,
-  }
-
-  $bind_address_real = $bind_address ? {
-    'UNSET' => $::bind_address ? {
-      undef   => $::ipaddress,
-      default => $::bind_address,
-    },
-    default => $bind_address,
-  }
-
-  $unicast_addresses_real = $unicast_addresses ? {
-    'UNSET' => $::unicast_addresses ? {
-      undef   => 'UNSET',
-      default => $::unicast_addresses
-    },
-    default => $unicast_addresses
-  }
-
-  if $unicast_addresses_real == 'UNSET' {
+  
+  if $unicast_addresses == undef {
     $corosync_conf = "${module_name}/corosync.conf.erb"
   } else {
     $corosync_conf = "${module_name}/corosync.conf.udpu.erb"
@@ -118,44 +87,12 @@ class corosync (
   # this value is provided.  This is emulating a required variable as defined in
   # parameterized class.
 
-  # $multicast_address is NOT required if $unicast_address is provided
-  if $multicast_address == 'UNSET' and $unicast_addresses_real == 'UNSET' {
-    if !$::multicast_address {
-      fail('You must provide a value for multicast_address')
-    } else {
-      $multicast_address_real = $::multicast_address
-    }
-  } else {
-    $multicast_address_real = $multicast_address
-  }
-
-  if $enable_secauth == 'UNSET' {
-    case $::enable_secauth {
-      true    : { $enable_secauth_real = 'on' }
-      false   : { $enable_secauth_real = 'off' }
-      undef   : { $enable_secauth_real = 'on' }
-      ''      : { $enable_secauth_real = 'on' }
-      default : { validate_re($::enable_secauth, '^true$|^false$') }
-    }
-  } else {
-    case $enable_secauth {
-      true    : {
-        $enable_secauth_real = 'on'
-      }
-      false   : {
-        $enable_secauth_real = 'off'
-      }
-      default : {
-        fail('The enable_secauth class
-          parameter requires a true or false boolean')
-      }
-    }
-  }
-
+  
+  
   # Using the Puppet infrastructure's ca as the authkey, this means any node in
   # Puppet can join the cluster.  Totally not ideal, going to come up with
   # something better.
-  if $enable_secauth_real == 'on' {
+  if $enable_secauth == 'on' {
     file { '/etc/corosync/authkey':
       ensure => file,
       source => $authkey,
@@ -172,10 +109,10 @@ class corosync (
   # - $unicast_addresses
   # - $multicast_address
   # - $debug
-  # - $bind_address_real
-  # - $port_real
-  # - $enable_secauth_real
-  # - $threads_real
+  # - $bind_address
+  # - $port
+  # - $enable_secauth
+  # - $threads
   file { '/etc/corosync/corosync.conf':
     ensure  => file,
     mode    => '0644',
