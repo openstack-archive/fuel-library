@@ -104,13 +104,14 @@ class openstack::mirantis_repos (
   }
     'RedHat': {
       #added internal/external network mirror
-      $mirrorlist="http://download.mirantis.com/epel-fuel-folsom/mirror.${type}.list"
+      $mirrorlist="http://172.18.67.168/centos-repo/epel-fuel-folsom/mirror.${type}.list"
 
       class { 'openstack::repo::yum':
         descr      => 'Mirantis OpenStack Custom Packages',
         repo_name  => 'openstack-epel-fuel',
         mirrorlist => $mirrorlist,
-        key_source => "http://download.mirantis.com/epel-fuel-folsom/epel.key\n  http://download.mirantis.com/epel-fuel-folsom/centos.key\n http://download.mirantis.com/epel-fuel-folsom/rabbit.key\n http://download.mirantis.com/epel-fuel-folsom/mirantis.key\n http://download.mirantis.com/epel-fuel-folsom/mysql.key\n",
+        #key_source => "http://download.mirantis.com/epel-fuel-folsom/epel.key\n  http://download.mirantis.com/epel-fuel-folsom/centos.key\n http://download.mirantis.com/epel-fuel-folsom/rabbit.key\n http://download.mirantis.com/epel-fuel-folsom/mirantis.key\n http://download.mirantis.com/epel-fuel-folsom/mysql.key\n",
+        key_source => "http://172.18.67.168/centos-repo/epel-fuel-folsom/epel.key\n  http://172.18.67.168/centos-repo/epel-fuel-folsom/centos.key\n http://172.18.67.168/centos-repo/epel-fuel-folsom/rabbit.key\n http://172.18.67.168/centos-repo/epel-fuel-folsom/mirantis.key\n http://172.18.67.168/centos-repo/epel-fuel-folsom/mysql.key\n",
         gpgcheck	=> '1'
       }
 
