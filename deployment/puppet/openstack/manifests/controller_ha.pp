@@ -34,11 +34,33 @@ define haproxy_service($order, $balancers, $virtual_ips, $port, $define_cookies 
       $balancermember_options = 'check inter 15s fastinter 2s downinter 1s rise 5 fall 3'
       $balancer_port = 3307
     }
+
     "horizon": {
-      $haproxy_config_options = { 'option' => ['forwardfor','httpchk','httpclose', 'httplog'],'rspidel'=>'^Set-cookie:\ IP=', 'balance' => 'roundrobin', 'cookie'=>'SERVERID insert indirect nocache', 'capture'=>'cookie vgnvisitor= len 32'}
+      $haproxy_config_options = {
+        'option'  => ['forwardfor', 'httpchk', 'httpclose', 'httplog'],
+        'rspidel' => '^Set-cookie:\ IP=',
+        # 'stick'   => 'on src table horizon-ssl',
+        'balance' => 'roundrobin',
+        'cookie'  => 'SERVERID insert indirect nocache',
+        'capture' => 'cookie vgnvisitor= len 32'
+      }
       $balancermember_options = 'check inter 2000 fall 3'
       $balancer_port = 80
     }
+
+    "horizon-ssl": {
+      $haproxy_config_options = {
+        'option'      => ['ssl-hello-chk', 'tcpka'],
+        'stick-table' => 'type ip size 200k expire 30m',
+        'stick'       => 'on src',
+        'balance'     => 'source',
+        'timeout'     => ['client 3h', 'server 3h'],
+        'mode'        => 'tcp'
+      }
+      $balancermember_options = 'weight 1 check'
+      $balancer_port = 443
+    }
+
     "rabbitmq-epmd": {
       $haproxy_config_options = { 'option' => ['clitcpka','srvtcpka'], 'balance' => 'roundrobin', 'mode' => 'tcp'}
       $balancermember_options = 'check inter 5000 rise 2 fall 3'
@@ -99,7 +121,7 @@ class openstack::controller_ha (
    $quantum_db_dbname  = 'quantum', $cinder = false, $cinder_iscsi_bind_iface = false, $tenant_network_type = 'gre', $segment_range = '1:4094',
    $nv_physical_volume = undef, $manage_volumes = false,$galera_nodes, $use_syslog = false,
    $cinder_rate_limits = undef, $nova_rate_limits = undef, 
-   $rabbit_node_ip_address = $internal_address,
+   $rabbit_node_ip_address = $internal_address, $horizon_use_ssl = false,
  ) {
 
    # $which = $::hostname ? { $master_hostname => 0, default => 1 }
@@ -132,7 +154,12 @@ $UDPServerRun 514
 local0.* -/var/log/haproxy.log'
     }
     Class['keepalived'] -> Class ['nova::rabbitmq']
-    haproxy_service { 'horizon':    order => 15, port => 80, virtual_ips => [$public_virtual_ip], define_cookies => true  } 
+    haproxy_service { 'horizon':    order => 15, port => 80, virtual_ips => [$public_virtual_ip], define_cookies => true  }
+
+    if $horizon_use_ssl {
+      haproxy_service { 'horizon-ssl': order => 17, port => 443, virtual_ips => [$public_virtual_ip] }
+    }
+
     haproxy_service { 'keystone-1': order => 20, port => 5000, virtual_ips => [$public_virtual_ip, $internal_virtual_ip]  }
     haproxy_service { 'keystone-2': order => 30, port => 35357, virtual_ips => [$public_virtual_ip, $internal_virtual_ip]  }
     haproxy_service { 'nova-api-1': order => 40, port => 8773, virtual_ips => [$public_virtual_ip, $internal_virtual_ip]  }
@@ -144,7 +171,11 @@ local0.* -/var/log/haproxy.log'
 
     haproxy_service { 'nova-api-4': order => 70, port => 8776, virtual_ips => [$public_virtual_ip, $internal_virtual_ip]  }
     haproxy_service { 'glance-api': order => 80, port => 9292, virtual_ips => [$public_virtual_ip, $internal_virtual_ip]  }
-    haproxy_service { 'quantum':    order => 85, port => 9696, virtual_ips => [$public_virtual_ip, $internal_virtual_ip]  }
+
+    if $quantum {
+      haproxy_service { 'quantum': order => 85, port => 9696, virtual_ips => [$public_virtual_ip, $internal_virtual_ip]  }
+    }
+
     haproxy_service { 'glance-reg': order => 90, port => 9191, virtual_ips => [$internal_virtual_ip]  }
 #    haproxy_service { 'rabbitmq-epmd':    order => 91, port => 4369, virtual_ips => [$internal_virtual_ip], master_host => $master_hostname  }
     haproxy_service { 'rabbitmq-openstack':    order => 92, port => 5672, virtual_ips => [$internal_virtual_ip], master_host => $master_hostname  }
@@ -318,6 +349,7 @@ local0.* -/var/log/haproxy.log'
       use_syslog              => $use_syslog,
       cinder_rate_limits      => $cinder_rate_limits,
       nova_rate_limits        => $nova_rate_limits,
+      horizon_use_ssl         => $horizon_use_ssl,
     }
 
     class { 'openstack::auth_file':

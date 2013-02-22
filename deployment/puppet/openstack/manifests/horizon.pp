@@ -20,8 +20,8 @@
 #
 
 class openstack::horizon (
-  $bind_address 	= '127.0.0.1',
   $secret_key,
+  $bind_address          = '127.0.0.1',
   $cache_server_ip       = '127.0.0.1',
   $cache_server_port     = '11211',
   $swift                 = false,
@@ -32,7 +32,8 @@ class openstack::horizon (
   $keystone_default_role = 'Member',
   $django_debug          = 'False',
   $api_result_limit      = 1000,
-  $package_ensure 	= present
+  $package_ensure        = present,
+  $use_ssl               = false,
 ) {
 
  # class { 'memcached':
@@ -55,5 +56,6 @@ class openstack::horizon (
     keystone_default_role => $keystone_default_role,
     django_debug          => $django_debug,
     api_result_limit      => $api_result_limit,
+    use_ssl               => $use_ssl,
   }
 }

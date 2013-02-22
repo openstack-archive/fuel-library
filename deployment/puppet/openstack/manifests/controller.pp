@@ -158,6 +158,7 @@ class openstack::controller (
   $use_syslog              = false,
   $nova_rate_limits = undef,
   $cinder_rate_limits = undef,
+  $horizon_use_ssl         = false,
 ) {
 
   # Ensure things are run in order
@@ -376,13 +377,14 @@ class openstack::controller (
   class { 'openstack::horizon':
     secret_key        => $secret_key,
     cache_server_ip   => $cache_server_ip,
-    package_ensure => $::openstack_version['horizon'],
-    bind_address => $api_bind_address,
+    package_ensure    => $::openstack_version['horizon'],
+    bind_address      => $api_bind_address,
     cache_server_port => $cache_server_port,
     swift             => $swift,
     quantum           => $quantum,
     horizon_app_links => $horizon_app_links,
-    keystone_host => $service_endpoint,
+    keystone_host     => $service_endpoint,
+    use_ssl           => $horizon_use_ssl,
   }
 
 }
