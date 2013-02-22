@@ -69,7 +69,7 @@ class openstack::controller (
   $private_interface,
   # Required Database
   $mysql_root_password     = 'sql_pass',
-  $custom_mysql_setup_class = undef,
+  $custom_mysql_setup_class= undef,
   $admin_email             = 'some_user@some_fake_email_address.foo',
   $admin_password          = 'ChangeMe',
   $keystone_db_password    = 'keystone_pass',
@@ -152,17 +152,17 @@ class openstack::controller (
   $enabled                 = true,
   $api_bind_address        = '0.0.0.0',
   $service_endpoint        = '127.0.0.1',
-  $galera_cluster_name = 'openstack',
-  $galera_master_ip = '127.0.0.1',
-  $galera_node_address = '127.0.0.1',
+  $galera_cluster_name     = 'openstack',
+  $galera_master_ip        = '127.0.0.1',
+  $galera_node_address     = '127.0.0.1',
   $glance_backend          = 'file',
-  $galera_nodes = ['127.0.0.1'],
+  $galera_nodes            = ['127.0.0.1'],
   $manage_volumes          = false,
   $nv_physical_volume      = undef,
   $use_syslog              = false,
-  $nova_rate_limits = undef,
-  $cinder_rate_limits = undef,
   $horizon_use_ssl         = false,
+  $nova_rate_limits        = undef,
+  $cinder_rate_limits      = undef,
 ) {
 
   # Ensure things are run in order
@@ -208,13 +208,12 @@ class openstack::controller (
       quantum_db_dbname      => $quantum_db_dbname,
       allowed_hosts          => $allowed_hosts,
       enabled                => $enabled,
-     galera_cluster_name => $galera_cluster_name,
-     galera_master_ip => $galera_master_ip ,
-     galera_node_address => $galera_node_address ,
-     galera_nodes        => $galera_nodes,
-     custom_setup_class => $custom_mysql_setup_class,
-
-   }
+      galera_cluster_name    => $galera_cluster_name,
+      galera_master_ip       => $galera_master_ip ,
+      galera_node_address    => $galera_node_address ,
+      galera_nodes           => $galera_nodes,
+      custom_setup_class     => $custom_mysql_setup_class,
+    }
   }
   ####### KEYSTONE ###########
   class { 'openstack::keystone':
@@ -239,8 +238,8 @@ class openstack::controller (
     bind_host             => $api_bind_address,
     quantum_user_password => $quantum_user_password,
     enabled               => $enabled,
-    package_ensure => $::openstack_keystone_version,
-    use_syslog              => $use_syslog,
+    package_ensure        => $::openstack_keystone_version,
+    use_syslog            => $use_syslog,
   }
 
 
@@ -258,8 +257,8 @@ class openstack::controller (
     bind_host                 => $api_bind_address,
     enabled                   => $enabled,
     glance_backend            => $glance_backend,
-    registry_host     => $service_endpoint,
-    use_syslog              => $use_syslog,
+    registry_host             => $service_endpoint,
+    use_syslog                => $use_syslog,
   }
 
   ######## BEGIN NOVA ###########
@@ -319,7 +318,7 @@ class openstack::controller (
     rabbit_cluster          => $rabbit_cluster,
     rabbit_node_ip_address  => $rabbit_node_ip_address,
     rabbit_port             => $rabbit_port,
-    rabbit_ha_virtual_ip   => $rabbit_ha_virtual_ip,
+    rabbit_ha_virtual_ip    => $rabbit_ha_virtual_ip,
     # Glance
     glance_api_servers      => $glance_api_servers,
     # General
@@ -330,7 +329,7 @@ class openstack::controller (
     api_bind_address        => $api_bind_address,
     ensure_package          => $::openstack_version['nova'],
     use_syslog              => $use_syslog,
-    nova_rate_limits => $nova_rate_limits
+    nova_rate_limits        => $nova_rate_limits
   }
 
   ######### Cinder Controller Services ########
@@ -341,20 +340,20 @@ class openstack::controller (
       $cinder_iscsi_bind_addr = $api_bind_address
     }
     class {'openstack::cinder':
-      sql_connection  => "mysql://${cinder_db_user}:${cinder_db_password}@${db_host}/${cinder_db_dbname}?charset=utf8",
-      rabbit_password => $rabbit_password,
-      rabbit_host     => false,
-      rabbit_nodes    => $rabbit_nodes,
-      volume_group    => 'cinder-volumes',
-      physical_volume => $nv_physical_volume,
-      manage_volumes  => $manage_volumes,
-      enabled         => true,
-      auth_host       => $service_endpoint,
-      bind_host       => $api_bind_address,
-      iscsi_bind_host => $cinder_iscsi_bind_addr,
-      cinder_user_password    => $cinder_user_password,
-      use_syslog              => $use_syslog,
-      cinder_rate_limits => $cinder_rate_limits,
+      sql_connection       => "mysql://${cinder_db_user}:${cinder_db_password}@${db_host}/${cinder_db_dbname}?charset=utf8",
+      rabbit_password      => $rabbit_password,
+      rabbit_host          => false,
+      rabbit_nodes         => $rabbit_nodes,
+      volume_group         => 'cinder-volumes',
+      physical_volume      => $nv_physical_volume,
+      manage_volumes       => $manage_volumes,
+      enabled              => true,
+      auth_host            => $service_endpoint,
+      bind_host            => $api_bind_address,
+      iscsi_bind_host      => $cinder_iscsi_bind_addr,
+      cinder_user_password => $cinder_user_password,
+      use_syslog           => $use_syslog,
+      cinder_rate_limits   => $cinder_rate_limits,
       rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
     }
   } else {

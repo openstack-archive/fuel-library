@@ -8,11 +8,11 @@ class openstack::clocksync ($ntp_server)
 
   package {'ntpdate': ensure => present}
   exec {'clocksync':
-    unless => "pidof ntpd",
-    before => [Service[$::ntpd::service_name]],
+    unless  => "pidof ntpd",
+    before  => [Service[$::ntpd::service_name]],
     require => Package['ntpdate'],
     command => "ntpdate $ntp_server",
-    path => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
+    path    => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
   }
 }
 
@@ -80,20 +80,20 @@ define haproxy_service($order, $balancers, $virtual_ips, $port, $define_cookies 
   }
 
   haproxy::listen { $name:
-    order => $order - 1,
-    ipaddress => $virtual_ips,
-    ports => $port,
-    options => $haproxy_config_options,
+    order            => $order - 1,
+    ipaddress        => $virtual_ips,
+    ports            => $port,
+    options          => $haproxy_config_options,
     collect_exported => false
   }
   @haproxy::balancermember { "${name}":
     order                  => $order,
     listening_service      => $name,
-    balancers           => $balancers,
+    balancers              => $balancers,
     balancer_port          => $balancer_port,
     balancermember_options => $balancermember_options,
-    define_cookies        => $define_cookies,
-    master_host => $master_host
+    define_cookies         => $define_cookies,
+    master_host            => $master_host
   }
 
 }
@@ -193,23 +193,23 @@ local0.* -/var/log/haproxy.log'
 
     exec { 'up-public-interface':
       command => "ifconfig ${public_interface} up",
-      path => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
+      path    => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
     }
     exec { 'up-internal-interface':
       command => "ifconfig ${internal_interface} up",
-      path => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
+      path    => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
     }
     exec { 'up-private-interface':
       command => "ifconfig ${private_interface} up",
-      path => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
+      path    => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
     }
 
     if $which == 0 { 
       exec { 'create-public-virtual-ip':
         command => "ip addr add ${public_virtual_ip} dev ${public_interface} label ${public_interface}:ka",
-        unless => "ip addr show dev ${public_interface} | grep -w ${public_virtual_ip}",
-        path => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
-        before => Service['keepalived'],
+        unless  => "ip addr show dev ${public_interface} | grep -w ${public_virtual_ip}",
+        path    => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
+        before  => Service['keepalived'],
         require => Exec['up-public-interface'],
       }   
     }   
@@ -224,9 +224,9 @@ local0.* -/var/log/haproxy.log'
     if $which == 0 { 
       exec { 'create-internal-virtual-ip':
         command => "ip addr add ${internal_virtual_ip} dev ${internal_interface} label ${internal_interface}:ka",
-        unless => "ip addr show dev ${internal_interface} | grep -w ${internal_virtual_ip}",
-        path => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
-        before => Service['keepalived'],
+        unless  => "ip addr show dev ${internal_interface} | grep -w ${internal_virtual_ip}",
+        path    => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
+        before  => Service['keepalived'],
         require => Exec['up-internal-interface'],
       }   
     }   
@@ -312,11 +312,11 @@ local0.* -/var/log/haproxy.log'
       verbose                 => $verbose,
       auto_assign_floating_ip => $auto_assign_floating_ip,
       mysql_root_password     => $mysql_root_password,
-      custom_mysql_setup_class => 'galera',
-      galera_cluster_name   => 'openstack',
-      galera_master_ip      => $which ? { 0 => false, default => $controller_internal_addresses[$master_hostname] },
-      galera_node_address   => $internal_address,
-      galera_nodes          => $galera_nodes,
+      custom_mysql_setup_class=> 'galera',
+      galera_cluster_name     => 'openstack',
+      galera_master_ip        => $which ? { 0 => false, default => $controller_internal_addresses[$master_hostname] },
+      galera_node_address     => $internal_address,
+      galera_nodes            => $galera_nodes,
       admin_email             => $admin_email,
       admin_password          => $admin_password,
       keystone_db_password    => $keystone_db_password,
@@ -342,7 +342,7 @@ local0.* -/var/log/haproxy.log'
       quantum                 => $quantum,
       quantum_user_password   => $quantum_user_password,
       quantum_db_password     => $quantum_db_password,
-      #quantum_l3_enable       => $which ? { 0 => true, 1 => false },
+     #quantum_l3_enable       => $which ? { 0 => true, 1 => false },
       quantum_gre_bind_addr   => $quantum_gre_bind_addr,
       quantum_external_ipinfo => $quantum_external_ipinfo,
       quantum_network_node    => $quantum_network_node,

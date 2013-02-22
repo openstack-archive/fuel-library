@@ -577,14 +577,14 @@ node /fuel-compute-[\d+]/ {
     tenant_network_type    => $tenant_network_type,
     segment_range          => $segment_range,
     cinder                 => $cinder_on_computes,
-    cinder_iscsi_bind_iface => $cinder_iscsi_bind_iface,
-    nv_physical_volume      => $nv_physical_volume,
+    cinder_iscsi_bind_iface=> $cinder_iscsi_bind_iface,
+    nv_physical_volume     => $nv_physical_volume,
     db_host                => $internal_virtual_ip,
     ssh_private_key        => 'puppet:///ssh_keys/openstack',
     ssh_public_key         => 'puppet:///ssh_keys/openstack.pub',
-    use_syslog              => $use_syslog,
-    nova_rate_limits => $nova_rate_limits,
-    cinder_rate_limits => $cinder_rate_limits
+    use_syslog             => $use_syslog,
+    nova_rate_limits       => $nova_rate_limits,
+    cinder_rate_limits     => $cinder_rate_limits
   }
 }
 
@@ -622,7 +622,7 @@ node /fuel-quantum/ {
       segment_range         => $segment_range,
       external_ipinfo       => $external_ipinfo,
       api_bind_address      => $internal_address,
-      use_syslog              => $use_syslog,
+      use_syslog            => $use_syslog,
     }
     class { 'openstack::auth_file':
       admin_password       => $admin_password,

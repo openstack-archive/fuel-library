@@ -132,27 +132,27 @@ class openstack::nova::controller (
 
   # Install / configure rabbitmq
   class { 'nova::rabbitmq':
-    userid   => $rabbit_user,
-    password => $rabbit_password,
-    enabled  => $enabled,
-    cluster  => $rabbit_cluster,
-    cluster_nodes => $rabbit_nodes, #Real node names to install RabbitMQ server onto
+    userid                 => $rabbit_user,
+    password               => $rabbit_password,
+    enabled                => $enabled,
+    cluster                => $rabbit_cluster,
+    cluster_nodes          => $rabbit_nodes, #Real node names to install RabbitMQ server onto
     rabbit_node_ip_address => $rabbit_node_ip_address,
-    port     => $rabbit_port,
+    port                   => $rabbit_port,
   }
 if ($rabbit_nodes) {
   # Configure Nova
   class { 'nova':
-    sql_connection     => $sql_connection,
-    rabbit_userid      => $rabbit_user,
-    rabbit_password    => $rabbit_password,
-    image_service      => 'nova.image.glance.GlanceImageService',
-    glance_api_servers => $glance_connection,
-    verbose            => $verbose,
-    rabbit_nodes       => $rabbit_nodes,
-    ensure_package     => $ensure_package,
-    api_bind_address   => $api_bind_address,
-    use_syslog              => $use_syslog,
+    sql_connection       => $sql_connection,
+    rabbit_userid        => $rabbit_user,
+    rabbit_password      => $rabbit_password,
+    image_service        => 'nova.image.glance.GlanceImageService',
+    glance_api_servers   => $glance_connection,
+    verbose              => $verbose,
+    rabbit_nodes         => $rabbit_nodes,
+    ensure_package       => $ensure_package,
+    api_bind_address     => $api_bind_address,
+    use_syslog           => $use_syslog,
     rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
   }
 } else {
@@ -166,19 +166,19 @@ if ($rabbit_nodes) {
     rabbit_host        => $rabbit_connection,
     ensure_package     => $ensure_package,
     api_bind_address   => $api_bind_address,
-    use_syslog              => $use_syslog,
+    use_syslog         => $use_syslog,
   }
 }
   class {'nova::quota':
-    quota_instances => 100,
-    quota_cores => 100,
-    quota_volumes => 100,
-    quota_gigabytes => 1000,
-    quota_floating_ips => 100,
-    quota_metadata_items => 1024,
-    quota_max_injected_files => 50,
+    quota_instances                       => 100,
+    quota_cores                           => 100,
+    quota_volumes                         => 100,
+    quota_gigabytes                       => 1000,
+    quota_floating_ips                    => 100,
+    quota_metadata_items                  => 1024,
+    quota_max_injected_files              => 50,
     quota_max_injected_file_content_bytes => 102400,
-    quota_max_injected_file_path_bytes => 4096
+    quota_max_injected_file_path_bytes    => 4096
   }
 
   if $enabled {
@@ -230,30 +230,27 @@ if ($rabbit_nodes) {
 
     if ! $quantum_netnode_on_cnt {
       class { '::quantum':
-        bind_host       => $api_bind_address,
-        rabbit_user     => $rabbit_user,
-        rabbit_password => $rabbit_password,
-        rabbit_host     => $rabbit_nodes,
+        bind_host            => $api_bind_address,
+        rabbit_user          => $rabbit_user,
+        rabbit_password      => $rabbit_password,
+        rabbit_host          => $rabbit_nodes,
         rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
-        #sql_connection  => $quantum_sql_connection,
-        verbose         => $verbose,
-        debug           => $verbose,
-        use_syslog      => $use_syslog,
+       #sql_connection       => $quantum_sql_connection,
+        verbose              => $verbose,
+        debug                => $verbose,
+        use_syslog           => $use_syslog,
       }
       class { 'quantum::plugins::ovs':
-        bridge_mappings     => ["physnet1:br-ex","physnet2:br-prv"],
-        network_vlan_ranges => "physnet1,physnet2:${segment_range}",
-        tunnel_id_ranges    => "${segment_range}",
-        sql_connection      => $quantum_sql_connection,
-        tenant_network_type => $tenant_network_type,
-        enable_tunneling    => $enable_tunneling,
+        bridge_mappings      => ["physnet1:br-ex","physnet2:br-prv"],
+        network_vlan_ranges  => "physnet1,physnet2:${segment_range}",
+        tunnel_id_ranges     => "${segment_range}",
+        sql_connection       => $quantum_sql_connection,
+        tenant_network_type  => $tenant_network_type,
+        enable_tunneling     => $enable_tunneling,
       }
 
       class { 'nova::network::quantum':
-      #$fixed_range,
         quantum_admin_password    => $quantum_user_password,
-      #$use_dhcp                  = 'True',
-      #$public_interface          = undef,
         quantum_connection_host   => $quantum_host, 
         quantum_auth_strategy     => 'keystone',
         quantum_url               => "http://${keystone_host}:9696",
@@ -294,10 +291,7 @@ if ($rabbit_nodes) {
         use_syslog            => $use_syslog,
       }
       class { 'nova::network::quantum':
-      #$fixed_range,
         quantum_admin_password    => $quantum_user_password,
-      #$use_dhcp                  = 'True',
-      #$public_interface          = undef,
         quantum_connection_host   => $quantum_host, 
         quantum_auth_strategy     => 'keystone',
         quantum_url               => "http://${keystone_host}:9696",
@@ -340,8 +334,8 @@ if ($rabbit_nodes) {
 
   if $vnc_enabled {
     class { 'nova::vncproxy':
-      host    => $public_address,
-      enabled => $enabled,
+      host           => $public_address,
+      enabled        => $enabled,
       ensure_package => $ensure_package
     }
   }

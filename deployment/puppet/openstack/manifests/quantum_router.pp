@@ -40,15 +40,15 @@ class openstack::quantum_router (
     $admin_auth_url = "http://${auth_host}:35357/v2.0"
 
     class { '::quantum':
-      bind_host       => $api_bind_address,
-      rabbit_user     => $rabbit_user,
-      rabbit_password => $rabbit_password,
-      rabbit_host     => $rabbit_nodes,
+      bind_host            => $api_bind_address,
+      rabbit_user          => $rabbit_user,
+      rabbit_password      => $rabbit_password,
+      rabbit_host          => $rabbit_nodes,
       rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
-      #      sql_connection  => $quantum_sql_connection,
-      verbose         => $verbose,
-      debug           => $verbose,
-      use_syslog      => $use_syslog,
+     #sql_connection       => $quantum_sql_connection,
+      verbose              => $verbose,
+      debug                => $verbose,
+      use_syslog           => $use_syslog,
     }
     class { 'quantum::plugins::ovs':
       bridge_mappings     => ["physnet1:br-ex","physnet2:br-prv"],
@@ -71,7 +71,7 @@ class openstack::quantum_router (
         use_namespaces => False,
       }
       class { 'quantum::agents::l3':
-        #enabled             => $quantum_l3_enable,
+       #enabled             => $quantum_l3_enable,
         debug               => True,
         fixed_range         => $fixed_range,
         floating_range      => $floating_range,
@@ -87,14 +87,14 @@ class openstack::quantum_router (
         metadata_ip         => $internal_address,
       }
       class { 'nova::metadata_api':
-        admin_auth_url   => $admin_auth_url,
-        service_endpoint => $service_endpoint,
-        listen_ip        => $internal_address,
-        controller_nodes => $rabbit_nodes,
-        auth_password    => $quantum_user_password,
-        rabbit_user      => $rabbit_user,
-        rabbit_password  => $rabbit_password,
-        rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
+        admin_auth_url         => $admin_auth_url,
+        service_endpoint       => $service_endpoint,
+        listen_ip              => $internal_address,
+        controller_nodes       => $rabbit_nodes,
+        auth_password          => $quantum_user_password,
+        rabbit_user            => $rabbit_user,
+        rabbit_password        => $rabbit_password,
+        rabbit_ha_virtual_ip   => $rabbit_ha_virtual_ip,
         quantum_netnode_on_cnt => $quantum_netnode_on_cnt,
       }
     }
