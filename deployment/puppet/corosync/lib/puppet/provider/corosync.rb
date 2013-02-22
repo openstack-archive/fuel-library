@@ -25,18 +25,13 @@ class Puppet::Provider::Corosync < Puppet::Provider
     end
   end
 
-  def exec_withenv(cmd,env={})
-    Process.fork  do
-       ENV.update(env)
-       Process.exec(cmd)
-     end
-     Process.wait
-     $?.exitstatus
+  def exec_withenv(cmd,env=nil)
+    self.class.exec_withenv(cmd.env)
   end
   
-  def self.exec_withenv(cmd,env={})
+  def self.exec_withenv(cmd,env=nil)
     Process.fork  do
-      ENV.update(env)
+      ENV.update(env) if !env.nil?
       Process.exec(cmd)
     end
     Process.wait
