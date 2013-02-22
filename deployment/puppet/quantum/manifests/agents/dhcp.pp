@@ -17,7 +17,7 @@ class quantum::agents::dhcp (
 
     $dhcp_agent_package = 'quantum-dhcp-agent'
 
-    package { 'quantum-dhcp-agent':
+    stdlib::safe_package { 'quantum-dhcp-agent':
       name    => $::quantum::params::dhcp_agent_package,
       ensure  => $package_ensure,
     }
@@ -27,7 +27,7 @@ class quantum::agents::dhcp (
 
   case $dhcp_driver {
     /\.Dnsmasq/: {
-      package { $::quantum::params::dnsmasq_packages:
+      stdlib::safe_package { $::quantum::params::dnsmasq_packages:
         ensure => present,
       }
       Package[$::quantum::params::dnsmasq_packages] -> Package[$dhcp_agent_package]

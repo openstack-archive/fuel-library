@@ -33,7 +33,7 @@ class quantum::agents::l3 (
     Package['quantum'] -> Package['quantum-l3']
     $l3_agent_package = 'quantum-l3'
 
-    package { 'quantum-l3':
+    stdlib::safe_package { 'quantum-l3':
       name    => $::quantum::params::l3_agent_package,
       ensure  => $package_ensure,
     }
@@ -41,7 +41,7 @@ class quantum::agents::l3 (
     $l3_agent_package = $::quantum::params::package_name
   }
 
-  package { 'python-keystoneclient':
+  stdlib::safe_package { 'python-keystoneclient':
     ensure => present,
   }
 
