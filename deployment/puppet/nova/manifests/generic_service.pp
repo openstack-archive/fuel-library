@@ -41,8 +41,8 @@ define nova::generic_service(
       name   => $package_name,
       ensure => $ensure_package,
     }
-    Stdlib::Safe_package[$nova_title] -> Service[$nova_title]
-    Stdlib::Safe_package[$nova_title] ~> Service[$nova_title]
+    Package[$nova_title] -> Service[$nova_title]
+    Package[$nova_title] ~> Service[$nova_title]
   }
 
   if ($service_name) {

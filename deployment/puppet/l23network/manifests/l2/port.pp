@@ -34,7 +34,7 @@ define l23network::l2::port (
       bridge        => $bridge,
       type          => $type,
       skip_existing => $skip_existing,
-      require       => Service<| title == 'openvswitch-service' |>,
     }
+    Service<| title == 'openvswitch-service' |> -> L2_ovs_port[$name]
   }
 }

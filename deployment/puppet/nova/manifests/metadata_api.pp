@@ -30,11 +30,12 @@ class nova::metadata_api (
   Package['nova-metadata-api'] -> Nova_config<||>
   Nova_config<||> ~> Service['nova-metadata-api']
 
-  stdlib::safe_package {'nova-metadata-api':
-    name   => $::nova::params::meta_api_package_name,
-    ensure => present,
+  if ! defined(Package['nova-metadata-api']) {
+    package {'nova-metadata-api':
+      name   => $::nova::params::meta_api_package_name,
+      ensure => present,
+    }
   }
-
 
   service { 'nova-metadata-api':
     name    => $::nova::params::meta_api_service_name,
