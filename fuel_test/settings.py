@@ -67,6 +67,7 @@ EMPTY_SNAPSHOT = os.environ.get('EMPTY_SNAPSHOT', 'empty')
 OPENSTACK_SNAPSHOT = os.environ.get('OPENSTACK_SNAPSHOT', 'openstack')
 
 INTERFACE_ORDER = ('public', 'internal', 'private')
+ROUTED_INTERFACE = 'public'
 
 INTERFACES = {
     'public': 'eth0',
@@ -95,3 +96,5 @@ POOLS = {
     'internal': os.environ.get('INTERNAL_POOL',
         DEFAULT_POOLS.get(OS_FAMILY).get('internal')).split(':')
 }
+
+

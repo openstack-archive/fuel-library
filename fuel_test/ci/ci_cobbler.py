@@ -7,7 +7,8 @@ from fuel_test.ci.ci_base import CiBase
 from fuel_test.node_roles import NodeRoles
 from fuel_test.settings import CONTROLLERS, COMPUTES,\
     STORAGES, PROXIES,\
-    EMPTY_SNAPSHOT, POOLS, INTERFACE_ORDER
+    EMPTY_SNAPSHOT, POOLS, INTERFACE_ORDER, ROUTED_INTERFACE
+
 
 class CiCobbler(CiBase):
     def node_roles(self):
@@ -41,7 +42,8 @@ class CiCobbler(CiBase):
             pool = self.manager.create_network_pool(
                 networks=[network], prefix=int(new_prefix))
             networks.append(self.manager.network_create(
-                name=name, environment=environment, pool=pool))
+                name=name, environment=environment, pool=pool,
+                forward='route' if name==ROUTED_INTERFACE else 'nat'))
         for name in self.node_roles().master_names + self.node_roles().cobbler_names + self.node_roles().stomp_names:
             self.describe_node(name, networks)
         for name in self.node_roles().compute_names:
