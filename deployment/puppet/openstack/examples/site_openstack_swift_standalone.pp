@@ -161,6 +161,11 @@ if $::operatingsystem == 'Ubuntu' {
   class { 'openstack::apparmor::disable': stage => 'openstack-custom-repo' }
 }
 
+stage {'netconfig':
+      before  => Stage['main'],
+}
+class {'l23network': stage=> 'netconfig'}
+
 #Rate Limits for cinder and Nova
 #Cinder and Nova can rate-limit your requests to API services
 #These limits can be small for your installation or usage scenario
