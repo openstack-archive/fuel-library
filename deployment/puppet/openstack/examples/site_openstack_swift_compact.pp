@@ -617,6 +617,8 @@ node /fuel-quantum/ {
       quantum_db_password   => $quantum_db_password,
       quantum_db_user       => $quantum_db_user,
       quantum_db_dbname     => $quantum_db_dbname,
+      quantum_netnode_on_cnt=> false,
+      quantum_network_node  => true,
       tenant_network_type   => $tenant_network_type,
       segment_range         => $segment_range,
       external_ipinfo       => $external_ipinfo,

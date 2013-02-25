@@ -32,7 +32,7 @@ class nova::metadata_api (
     package_name   => $::nova::params::meta_api_package_name,
     service_name   => $::nova::params::meta_api_service_name,
   }
-  Package[$::nova::params::meta_api_package_name] -> Nova_config<| title!='DEFAULT/rabbit_ha_queues' |>
+  Package[$::nova::params::meta_api_package_name] -> Nova_config<||>
   Nova_config<||> ~> Service[$::nova::params::meta_api_service_name]
  
   
@@ -45,7 +45,7 @@ class nova::metadata_api (
   
   nova_config {'DEFAULT/quantum_connection_host':   value => $service_endpoint }
 
-  if ! $quantum_netnode_on_cnt {
+  #if ! $quantum_netnode_on_cnt {
     nova_config {
       'DEFAULT/quantum_auth_strategy':     value => $auth_strategy; 
       'DEFAULT/rabbit_hosts':              value => $rabbit_hosts;
@@ -66,5 +66,5 @@ class nova::metadata_api (
       'DEFAULT/rootwrap_config':           value => '/etc/nova/rootwrap.conf';
       'DEFAULT/rabbit_ha_queues':          value => 'True';
     }
-  }
+  #}
 }
