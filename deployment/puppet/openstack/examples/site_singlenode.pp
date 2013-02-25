@@ -44,11 +44,15 @@ $cinder                  = false
 $quantum                 = false
 $swift                   = false
 $use_syslog              = false
-
+stage {'netconfig':
+      before  => Stage['main'],
+}
+class {'l23network': stage=> 'netconfig'}
+$quantum_gre_bind_addr = $internal_address
 
 # Packages repo setup
 $mirror_type = 'internal'
-stage { 'openstack-custom-repo': before => Stage['main'] }
+stage { 'openstack-custom-repo': before => Stage['netconfig'] }
 class { 'openstack::mirantis_repos': stage => 'openstack-custom-repo', type => $mirror_type }
 
 # OpenStack packages and customized component versions to be installed.

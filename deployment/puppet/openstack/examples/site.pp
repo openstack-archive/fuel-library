@@ -102,6 +102,11 @@ $quantum_db_dbname       = 'quantum'
 $tenant_network_type     = 'gre'
 
 $quantum_host            = $internal_virtual_ip
+stage {'netconfig':
+      before  => Stage['main'],
+}
+class {'l23network': stage=> 'netconfig'}
+$quantum_gre_bind_addr = $internal_address
 
 $use_syslog = false
 
@@ -144,7 +149,7 @@ Exec { logoutput => true }
 # Globally apply an environment-based tag to all resources on each node.
 tag("${::deployment_id}::${::environment}")
 
-stage { 'openstack-custom-repo': before => Stage['main'] }
+stage { 'openstack-custom-repo': before => Stage['netconfig'] }
 class { 'openstack::mirantis_repos': stage => 'openstack-custom-repo', type=>$mirror_type }
 if $::operatingsystem == 'Ubuntu'
 {

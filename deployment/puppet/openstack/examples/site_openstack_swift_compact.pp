@@ -62,6 +62,7 @@ if ('' != $public_br_address) {
 stage {'netconfig':
       before  => Stage['main'],
 }
+$quantum_gre_bind_addr = $internal_address
 class {'l23network': stage=> 'netconfig'}
 class node_netconfig (
   $mgmt_ipaddr,
@@ -397,7 +398,7 @@ class compact_controller (
     quantum_db_dbname       => $quantum_db_dbname,
     quantum_network_node    => $quantum_network_node,
     quantum_netnode_on_cnt  => $quantum_netnode_on_cnt,
-    quantum_gre_bind_addr   => $internal_address,
+    quantum_gre_bind_addr   => $quantum_gre_bind_addr,
     quantum_external_ipinfo => $external_ipinfo,
     tenant_network_type     => $tenant_network_type,
     segment_range           => $segment_range,

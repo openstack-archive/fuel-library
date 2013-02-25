@@ -149,22 +149,25 @@ $swift_local_net_ip      = $internal_address
 $swift_proxies           = {'fuel-swiftproxy-01' => '10.0.0.108','fuel-swiftproxy-02' => '10.0.0.109'}
 
 $verbose = true
+stage {'netconfig':
+      before  => Stage['main'],
+}
+class {'l23network': stage=> 'netconfig'}
+$quantum_gre_bind_addr = $internal_address
+
+
 Exec { logoutput => true }
 
 # Globally apply an environment-based tag to all resources on each node.
 tag("${::deployment_id}::${::environment}")
 
-stage { 'openstack-custom-repo': before => Stage['main'] }
+stage { 'openstack-custom-repo': before => Stage['netconfig'] }
 class { 'openstack::mirantis_repos': stage => 'openstack-custom-repo', type => $mirror_type }
 
 if $::operatingsystem == 'Ubuntu' {
   class { 'openstack::apparmor::disable': stage => 'openstack-custom-repo' }
 }
 
-stage {'netconfig':
-      before  => Stage['main'],
-}
-class {'l23network': stage=> 'netconfig'}
 
 #Rate Limits for cinder and Nova
 #Cinder and Nova can rate-limit your requests to API services

@@ -74,7 +74,11 @@ $controller_node_internal = $controller_node_address
 $quantum_host             = $controller_node_address
 $sql_connection           = "mysql://nova:${nova_db_password}@${controller_node_internal}/nova"
 $quantum_sql_connection   = "mysql://${quantum_db_user}:${quantum_db_password}@${quantum_host}/${quantum_db_dbname}"
-
+stage {'netconfig':
+      before  => Stage['main'],
+}
+class {'l23network': stage=> 'netconfig'}
+$quantum_gre_bind_addr = $internal_address
 
 
 $use_syslog = false
@@ -110,7 +114,7 @@ $mirror_type = 'external'
 $verbose = true
 Exec { logoutput => true }
 
-stage { 'openstack-custom-repo': before => Stage['main'] }
+stage { 'openstack-custom-repo': before => Stage['netconfig'] }
 class { 'openstack::mirantis_repos': stage => 'openstack-custom-repo', type => $mirror_type }
 
 if $::operatingsystem == 'Ubuntu' {
