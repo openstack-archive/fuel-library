@@ -40,6 +40,9 @@ define nova::generic_service(
     # some packages gives in config as array of packages. 
     # we can't check defined this array or not.
     # temporary allow thah packages without check
+    # 
+    # TODO: Write methods defined_all, defined_any, undefined_one
+    # and put it to stdlib
     if is_array($package_name) or !defined(Package[$package_name]) {
       package {$package_name:
         ensure => $ensure_package,

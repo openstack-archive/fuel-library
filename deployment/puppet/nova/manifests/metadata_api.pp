@@ -28,7 +28,6 @@ class nova::metadata_api (
 
   nova::generic_service { 'metadata-api':
     enabled        => true,
-    ensure_package => 'running',
     package_name   => $::nova::params::meta_api_package_name,
     service_name   => $::nova::params::meta_api_service_name,
   }

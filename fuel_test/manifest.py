@@ -222,10 +222,6 @@ class Manifest(object):
             floating_range=self.floating_network(ci, quantum),
             fixed_range=self.fixed_network(ci,quantum),
             mirror_type=self.mirror_type(),
-            controller_public_addresses=self.public_addresses(
-                controllers),
-            controller_internal_addresses=self.internal_addresses(
-                controllers),
             controller_hostnames=self.hostnames(controllers),
             public_interface=self.public_interface(),
             internal_interface=self.internal_interface(),
@@ -242,18 +238,10 @@ class Manifest(object):
         )
         if swift:
             template.replace(swift_loopback=self.loopback(loopback))
-            if proxies:
-                template.replace(
-                    swift_proxies=self.internal_addresses(proxies)
-                )
-            else:
-                template.replace(
-                    swift_proxies=self.internal_addresses(controllers)
-                )
         if is_not_essex():
             template.replace(
                 quantum=quantum,
-                )
+            )
 
         self.write_manifest(remote, template)
 
