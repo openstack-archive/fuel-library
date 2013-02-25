@@ -140,7 +140,7 @@ $openstack_version = {
 
 $mirror_type = 'external'
 
-$addresses = {
+$addresses_hash = {
   'fuel-controller-01' => {
     'internal_address' => '10.0.0.103',
     'public_address' => '10.0.204.103',
@@ -162,7 +162,7 @@ $addresses = {
           'public_address' => '10.0.204.108',
   },
 }
-
+$addresses = $addresses_hash
 # Set internal address on which services should listen.
 # We assume that this IP will is equal to one of the haproxy
 # backends. If the IP address does not match, this may break your environment.

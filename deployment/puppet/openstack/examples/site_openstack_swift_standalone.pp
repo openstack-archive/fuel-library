@@ -21,7 +21,7 @@ $public_virtual_ip   = '10.0.2.253'
 # Map of controller IP addresses on internal interfaces. Must have an entry for every controller node.
 $controller_internal_addresses = {'fuel-controller-01' => '10.0.0.101','fuel-controller-02' => '10.0.0.102','fuel-controller-03' => '10.0.0.103'}
 
-$addresses = {
+$addresses_hash = {
   'fuel-controller-01' => {
     'internal_address' => '10.0.0.103',
     'public_address' => '10.0.204.103',
@@ -55,7 +55,7 @@ $addresses = {
               'public_address' => '10.0.204.109',
   },
 }
-
+$addresses = $addresses_hash
 # Set internal address on which services should listen.
 # We assume that this IP will is equal to one of the haproxy
 # backends. If the IP address does not match, this may break your environment.
