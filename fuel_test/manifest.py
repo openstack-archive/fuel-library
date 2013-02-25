@@ -102,6 +102,27 @@ class Manifest(object):
             lambda x: (x.name, x.get_ip_address_by_network_name('internal')),
             controllers))
 
+    def addresses(self, nodes):
+        return dict(map(
+            lambda x:
+            (str(x.name),
+               {
+                   'internal_address': x.get_ip_address_by_network_name('internal'),
+                   'public_address': x.get_ip_address_by_network_name('public'),
+               },
+        ),
+            nodes)
+        )
+
+    def self_test(self):
+        class Node(object):
+            def __init__(self, name):
+                super(Node, self).__init__()
+                self.name = name
+            def get_ip_address_by_network_name(self, name):
+                return '10.0.55.66'
+        print self.addresses([Node('fuel-controller-01'), Node('fuel-controller-02')])
+
     def external_ip_info(self, ci, quantums):
         floating_network = IPNetwork(ci.floating_network())
         return {
@@ -211,6 +232,7 @@ class Manifest(object):
             cinder=cinder,
             cinder_on_computes=cinder,
             external_ipinfo = self.external_ip_info(ci, quantums),
+            addresses = self.addresses(ci.nodes().all,)
         )
         if swift:
             template.replace(swift_loopback=self.loopback(loopback))

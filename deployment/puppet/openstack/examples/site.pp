@@ -140,7 +140,38 @@ $openstack_version = {
 
 $mirror_type = 'external'
 
-$internal_address = getvar("::ipaddress_${internal_interface}")
+$addresses = {
+  'fuel-controller-01' => {
+    'internal_address' => '10.0.0.103',
+    'public_address' => '10.0.204.103',
+  },
+  'fuel-controller-02' => {
+      'internal_address' => '10.0.0.104',
+      'public_address' => '10.0.204.104',
+  },
+  'fuel-compute-01' => {
+          'internal_address' => '10.0.0.106',
+          'public_address' => '10.0.204.106',
+  },
+  'fuel-compute-02' => {
+          'internal_address' => '10.0.0.107',
+          'public_address' => '10.0.204.107',
+  },
+  'fuel-quantum' => {
+          'internal_address' => '10.0.0.108',
+          'public_address' => '10.0.204.108',
+  },
+}
+
+# Set internal address on which services should listen.
+# We assume that this IP will is equal to one of the haproxy
+# backends. If the IP address does not match, this may break your environment.
+# Leave internal_address unchanged unless you know what you are doing.
+$internal_address = $addresses[$::hostname]['internal_address']
+$public_address = $addresses[$::hostname]['public_address']
+$internal_netmask = '255.255.255.0'
+$public_netmask = '255.255.255.0'
+
 $quantum_sql_connection  = "mysql://${quantum_db_user}:${quantum_db_password}@${quantum_host}/${quantum_db_dbname}"
 
 $verbose = true

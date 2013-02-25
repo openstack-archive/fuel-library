@@ -30,39 +30,49 @@ $public_virtual_ip   = '10.0.215.253'
 # Fully Qualified domain names are allowed here along with short hostnames.
 $controller_internal_addresses = {'fuel-controller-01' => '10.0.0.103','fuel-controller-02' => '10.0.0.104','fuel-controller-03' => '10.0.0.105'}
 
-# Set IP addresses on which services should listen.
-# We assume that this IP will is equal to one of the haproxy 
+$addresses = {
+  'fuel-controller-01' => {
+    'internal_address' => '10.0.0.103',
+    'public_address' => '10.0.204.103',
+  },
+  'fuel-controller-02' => {
+      'internal_address' => '10.0.0.104',
+      'public_address' => '10.0.204.104',
+  },
+  'fuel-controller-03' => {
+        'internal_address' => '10.0.0.105',
+        'public_address' => '10.0.204.105',
+  },
+  'fuel-compute-01' => {
+          'internal_address' => '10.0.0.106',
+          'public_address' => '10.0.204.106',
+  },
+  'fuel-compute-02' => {
+          'internal_address' => '10.0.0.107',
+          'public_address' => '10.0.204.107',
+  },
+  'fuel-quantum' => {
+          'internal_address' => '10.0.0.108',
+          'public_address' => '10.0.204.108',
+  },
+}
+
+# Set internal address on which services should listen.
+# We assume that this IP will is equal to one of the haproxy
 # backends. If the IP address does not match, this may break your environment.
-
-# Leave internal_adderss unchanged unless you know what you are doing.
-#
-$tmp1 = regsubst($internal_br, '\-', '_')
-$internal_br_address = getvar("::ipaddress_${tmp1}")
-if ('' != $internal_br_address) {
-  $internal_address = $internal_br_address 
-  $internal_netmask = getvar("::netmask_${tmp1}")
-} else {
-  $tmp2 = regsubst($internal_interface, '\-', '_')
-  $internal_address = getvar("::ipaddress_${tmp2}")
-  $internal_netmask = getvar("::netmask_${tmp2}")
-}
-
-$tmp3 = regsubst($public_br, '\-', '_')
-$public_br_address = getvar("::ipaddress_${tmp3}")
-if ('' != $public_br_address) {
-  $public_address = $public_br_address 
-  $public_netmask = getvar("::netmask_${tmp3}")
-} else {
-  $tmp4 = regsubst($public_interface, '\-', '_')
-  $public_address = getvar("::ipaddress_${tmp4}")
-  $public_netmask = getvar("::netmask_${tmp4}")
-}
+# Leave internal_address unchanged unless you know what you are doing.
+$internal_address = $addresses[$::hostname]['internal_address']
+$public_address = $addresses[$::hostname]['public_address']
+$internal_netmask = '255.255.255.0'
+$public_netmask = '255.255.255.0'
 
 #Network configuration
 stage {'netconfig':
       before  => Stage['main'],
 }
+
 $quantum_gre_bind_addr = $internal_address
+
 class {'l23network': stage=> 'netconfig'}
 class node_netconfig (
   $mgmt_ipaddr,
@@ -82,7 +92,7 @@ class node_netconfig (
      ipaddr    => $public_ipaddr,
      netmask   => $public_netmask,
   }
-  l23network::l3::create_br_iface['mgmt'] -> L23network::L3::Create_br_iface['ex']
+  L23network::L3::Create_br_iface['mgmt'] -> L23network::L3::Create_br_iface['ex']
   l23network::l3::ifconfig {$private_interface: ipaddr=>'none' }
 }
 
