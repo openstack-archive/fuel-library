@@ -109,7 +109,7 @@ $openstack_version = {
   'rabbitmq_version' => $rabbitmq_version_string,
 }
 
-$mirror_type = 'external'
+$mirror_type = 'default'
 
 $verbose = true
 Exec { logoutput => true }

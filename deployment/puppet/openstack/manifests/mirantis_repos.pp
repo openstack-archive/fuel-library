@@ -1,99 +1,108 @@
 #
 class openstack::mirantis_repos (
-  # DO NOT change this value to 'internal'. all our customers are relying on external repositories
-  $type        = 'external',
-  $enable_epel = false,
-  $originator = "Mirantis Product <product@mirantis.com>",
+  # DO NOT change this value to 'defaults'. all our customers are relying on external repositories
+  $type        = 'default',
+  $originator  = 'Mirantis Product <product@mirantis.com>',
   $disable_puppet_labs_repos = true,
-
+  $deb_fuel_folsom_repo   = 'http://172.18.67.168/ubuntu-repo/precise-fuel-folsom',
+  $deb_cloud_archive_repo = 'http://172.18.67.168/ubuntu-cloud.archive.canonical.com/ubuntu',
+  $deb_rabbit_repo        = 'http://172.18.67.168/ubuntu-repo/precise-fuel-folsom',
+  $enable_epel = false,
+  $mirrorlist             = 'http://download.mirantis.com/epel-fuel-folsom/mirror.external.list',
 ) {
   case $::osfamily {
     'Debian': {
-      if $type == 'external' {
-        apt::source  { 'cloud-archive':
-          location => 'http://ubuntu-cloud.archive.canonical.com/ubuntu',
-          release => 'precise-updates/folsom',
-          repos => 'main',
-          key => "5EDB1B62EC4926EA",
-          key_source => 'http://download.mirantis.com/precise-fuel-folsom/cloud-archive.key',
-#          key_server => "keys.gnupg.net",
+      if $type == 'default' {
+        apt::source { 'cloud-archive':
+          location    => 'http://ubuntu-cloud.archive.canonical.com/ubuntu',
+          release     => 'precise-updates/folsom',
+          repos       => 'main',
+          key         => '5EDB1B62EC4926EA',
+          key_source  => 'http://download.mirantis.com/precise-fuel-folsom/cloud-archive.key',
+          #key_server => 'keys.gnupg.net',
           include_src => false,
         }
-          apt::source  { 'precise-fuel-folsom':
-          location => 'http://download.mirantis.com/precise-fuel-folsom',
-          release => 'precise',
-          repos => 'main',
-          key => "F8AF89DD",
-          key_source => 'http://download.mirantis.com/precise-fuel-folsom/Mirantis.key',
-#         key_server => "pgp.mit.edu",
+
+          apt::source { 'precise-fuel-folsom':
+          location    => 'http://download.mirantis.com/precise-fuel-folsom',
+          release     => 'precise',
+          repos       => 'main',
+          key         => 'F8AF89DD',
+          key_source  => 'http://download.mirantis.com/precise-fuel-folsom/Mirantis.key',
+          #key_server => "pgp.mit.edu",
           include_src => false,
-          pin       => "1001"
+          pin         => '1001'
         }
-        apt::source  { 'rabbit-3.0':
-          location => 'http://download.mirantis.com/precise-fuel-folsom',
-          release => 'precise-rabbitmq-3.0',
-          repos => 'main',
-          key => "5EDB1B62EC4926EA",
-          key_source => 'http://download.mirantis.com/precise-fuel-folsom/Mirantis.key',
+
+        apt::source { 'rabbit-3.0':
+          location    => 'http://download.mirantis.com/precise-fuel-folsom',
+          release     => 'precise-rabbitmq-3.0',
+          repos       => 'main',
+          key         => '5EDB1B62EC4926EA',
+          key_source  => 'http://download.mirantis.com/precise-fuel-folsom/Mirantis.key',
           include_src => false,
         }
       }
       # Below we set our internal repos for testing purposes. Some of them may match with external ones.
-      if $type == 'internal' {
-        file {'/etc/apt/sources.list':
-          ensure => absent
-        }
-        File['/etc/apt/sources.list']->Apt::Source<||>
+      if $type == 'custom' {
+        file {'/etc/apt/sources.list': ensure => absent }
+
+        File['/etc/apt/sources.list'] -> Apt::Source<||>
          apt::source  { 'precise-fuel-folsom':
-          location => 'http://172.18.67.168/ubuntu-repo/precise-fuel-folsom',
-          release => 'precise',
-          repos => 'main',
-          key => "F8AF89DD",
-          key_source => 'http://172.18.67.168/ubuntu-repo/precise-fuel-folsom/Mirantis.key',
-#         key_server => "pgp.mit.edu",
+          location    => $deb_fuel_folsom_repo,
+          release     => 'precise',
+          repos       => 'main',
+          key         => 'F8AF89DD',
+          key_source  => 'http://172.18.67.168/ubuntu-repo/precise-fuel-folsom/Mirantis.key',
+#         key_server  => "pgp.mit.edu",
           include_src => false,
-          #          pin         => 1000,
-        }->apt::pin{'mirantis-releases': priority=> 1001, originator=>$originator }
-        
-        apt::source  { 'cloud-archive':
-          location => 'http://172.18.67.168/ubuntu-cloud.archive.canonical.com/ubuntu',
-          release => 'precise-updates/folsom',
-          repos => 'main',
-          key => "5EDB1B62EC4926EA",
-          key_source => 'http://172.18.67.168/ubuntu-repo/precise-fuel-folsom/cloud-archive.key',
-#         key_server => "pgp.mit.edu",
-          include_src => false,
-        }
-        apt::source  { 'ubuntu-mirror':
-          location => 'http://172.18.67.168/ubuntu-repo/mirror.yandex.ru/ubuntu',
-          release => 'precise',
-          repos => 'main universe multiverse restricted',
-        }
-         apt::source  { 'ubuntu-updates':
-          location => 'http://172.18.67.168/ubuntu-repo/mirror.yandex.ru/ubuntu',
-          release => 'precise-updates',
-          repos => 'main universe multiverse restricted',
-        }
-         apt::source  { 'ubuntu-security':
-          location => 'http://172.18.67.168/ubuntu-repo/mirror.yandex.ru/ubuntu',
-          release => 'precise-security',
-          repos => 'main universe multiverse restricted',
-        }
-        apt::source  { 'rabbit-3.0':
-          location => 'http://172.18.67.168/ubuntu-repo/precise-fuel-folsom',
-          release => 'precise-rabbitmq-3.0',
-          repos => 'main',
-          key => "5EDB1B62EC4926EA",
-          key_source => 'http://172.18.67.168/ubuntu-repo/precise-fuel-folsom/Mirantis.key',
-          include_src => false,
-        }
-    }
+          #pin         => 1000,
+        }->
 
-    if !defined(Class['apt::update']) {
-     class { 'apt::update': stage => $::openstack::mirantis_repos::stage }
-    }
+        apt::pin{'mirantis-releases': priority=> 1001, originator=>$originator }
 
-  
+        apt::source { 'cloud-archive':
+          location    => $deb_cloud_archive_repo,
+          release     => 'precise-updates/folsom',
+          repos       => 'main',
+          key         => '5EDB1B62EC4926EA',
+          key_source  => 'http://172.18.67.168/ubuntu-repo/precise-fuel-folsom/cloud-archive.key',
+          #key_server   => "pgp.mit.edu",
+          include_src => false,
+        }
+
+        apt::source { 'ubuntu-mirror':
+          location => 'http://172.18.67.168/ubuntu-repo/mirror.yandex.ru/ubuntu',
+          release  => 'precise',
+          repos    => 'main universe multiverse restricted',
+        }
+
+         apt::source { 'ubuntu-updates':
+          location => 'http://172.18.67.168/ubuntu-repo/mirror.yandex.ru/ubuntu',
+          release  => 'precise-updates',
+          repos    => 'main universe multiverse restricted',
+        }
+
+         apt::source { 'ubuntu-security':
+          location => 'http://172.18.67.168/ubuntu-repo/mirror.yandex.ru/ubuntu',
+          release  => 'precise-security',
+          repos    => 'main universe multiverse restricted',
+        }
+
+        apt::source { 'rabbit-3.0':
+          location    => $deb_rabbit_repo,
+          release     => 'precise-rabbitmq-3.0',
+          repos       => 'main',
+          key         => '5EDB1B62EC4926EA',
+          key_source  => 'http://172.18.67.168/ubuntu-repo/precise-fuel-folsom/Mirantis.key',
+          include_src => false,
+        }
+      }
+
+      if !defined(Class['apt::update']) {
+       class { 'apt::update': stage => $::openstack::mirantis_repos::stage }
+      }
+
 #     In no one custom Debian repository is defined, it is necessary to force run apt-get update
 #     Please uncomment the following block to order puppet to force apt-get update
 ################ Start of forced apt-get update block ##############
@@ -101,17 +110,16 @@ class openstack::mirantis_repos (
 #          always_apt_update => true,
 #        }
 ################ End of forced apt-get update block ###############
-  }
+    }
+
     'RedHat': {
       #added internal/external network mirror
-      $mirrorlist="http://download.mirantis.com/epel-fuel-folsom/mirror.${type}.list"
 
-      class { 'openstack::repo::yum':
+      yumrepo { 'openstack-epel-fuel':
         descr      => 'Mirantis OpenStack Custom Packages',
-        repo_name  => 'openstack-epel-fuel',
         mirrorlist => $mirrorlist,
-        key_source => "http://download.mirantis.com/epel-fuel-folsom/epel.key\n  http://download.mirantis.com/epel-fuel-folsom/centos.key\n http://download.mirantis.com/epel-fuel-folsom/rabbit.key\n http://download.mirantis.com/epel-fuel-folsom/mirantis.key\n http://download.mirantis.com/epel-fuel-folsom/mysql.key\n",
-        gpgcheck	=> '1'
+        gpgcheck   => '1',
+        gpgkey     => 'http://download.mirantis.com/epel-fuel-folsom/epel.key\n  http://download.mirantis.com/epel-fuel-folsom/centos.key\n http://download.mirantis.com/epel-fuel-folsom/rabbit.key\n http://download.mirantis.com/epel-fuel-folsom/mirantis.key\n http://download.mirantis.com/epel-fuel-folsom/mysql.key\n',
       }
 
       if $enable_epel {

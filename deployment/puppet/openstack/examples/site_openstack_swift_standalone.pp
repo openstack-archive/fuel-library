@@ -189,7 +189,7 @@ $openstack_version = {
   'rabbitmq_version' => $rabbitmq_version_string,
 }
 
-$mirror_type = 'external'
+$mirror_type = 'default'
 
 $quantum_sql_connection  = "mysql://${quantum_db_user}:${quantum_db_password}@${quantum_host}/${quantum_db_dbname}"
 

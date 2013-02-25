@@ -144,7 +144,7 @@ $openstack_version = {
   'rabbitmq_version' => $rabbitmq_version_string,
 }
 
-$mirror_type = 'external'
+$mirror_type = 'default'
 
 $addresses_hash = {
   'fuel-controller-01' => {

@@ -283,13 +283,13 @@ $openstack_version = {
   'rabbitmq_version' => $rabbitmq_version_string,
 }
 
-# Which package repo mirror to use. Currently "external" is used by default.
-# "internal" is used by Mirantis for testing purposes.
+# Which package repo mirror to use. Currently "default".
+# "custom" is used by Mirantis for testing purposes.
 # Local puppet-managed repo option planned for future releases.
 
 # If you want to set up a local repository, you will need to manually adjust mirantis_repos.pp,
 # though it is NOT recommended.
-$mirror_type = 'external'
+$mirror_type = 'default'
 
 
 # This parameter specifies the verbosity level of log messages
