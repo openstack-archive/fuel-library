@@ -570,7 +570,6 @@ node /fuel-compute-[\d+]/ {
     cache_server_ip        => $controller_hostnames,
     service_endpoint       => $internal_virtual_ip,
     quantum                => $quantum,
-    quantum_host           => $quantum_host,
     quantum_sql_connection => $quantum_sql_connection,
     quantum_user_password  => $quantum_user_password,
     quantum_host           => $quantum_net_node_address,

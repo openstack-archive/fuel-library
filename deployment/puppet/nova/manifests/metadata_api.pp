@@ -26,20 +26,15 @@ class nova::metadata_api (
     }
   }
 
-  if !defined(Package[$::nova::params::meta_api_package_name]) {
-    package { $::nova::params::meta_api_package_name:
-      ensure => present,
-    }
+  nova::generic_service { 'metadata-api':
+    enabled        => true,
+    ensure_package => 'running',
+    package_name   => $::nova::params::meta_api_package_name,
+    service_name   => $::nova::params::meta_api_service_name,
   }
-  Package[$::nova::params::meta_api_package_name] -> Nova_config<||>
+  Package[$::nova::params::meta_api_package_name] -> Nova_config<| title!='DEFAULT/rabbit_ha_queues' |>
   Nova_config<||> ~> Service[$::nova::params::meta_api_service_name]
-
-  service { $::nova::params::meta_api_service_name:
-    name    => $::nova::params::meta_api_service_name,
-    ensure  => 'running',
-    enable  => true,
-    require => Package[$::nova::params::meta_api_package_name],
-  }
+ 
   
   if $rabbit_ha_virtual_ip {
     $rabbit_hosts = "${rabbit_ha_virtual_ip}:5672"

@@ -46,6 +46,8 @@ class quantum::agents::l3 (
   }
 
   Package['python-keystoneclient'] -> Package[$l3_agent_package] -> Quantum_l3_agent_config<||>
+  Quantum_config<||> -> Quantum_l3_agent_config<||>
+  Quantum_l3_agent_config<||> -> Service['quantum-l3']
   Quantum_config<||> ~> Service['quantum-l3']
   Quantum_l3_agent_config<||> ~> Service['quantum-l3']
 
@@ -57,8 +59,8 @@ class quantum::agents::l3 (
     'DEFAULT/admin_user':                     value => $auth_user;
     'DEFAULT/admin_password':                 value => $auth_password;
     'DEFAULT/use_namespaces':                 value => $use_namespaces;
-    #'DEFAULT/router_id':                      value => $router_id;
-    # 'DEFAULT/gateway_external_net_id':        value => $gateway_external_net_id;
+   #'DEFAULT/router_id':                      value => $router_id;
+   #'DEFAULT/gateway_external_net_id':        value => $gateway_external_net_id;
     'DEFAULT/metadata_ip':                    value => $metadata_ip;
     'DEFAULT/external_network_bridge':        value => $external_network_bridge;
     'DEFAULT/root_helper':                    value => $root_helper;
@@ -104,6 +106,7 @@ class quantum::agents::l3 (
         subnet_cidr     => $fixed_range,
         nameservers     => '8.8.4.4',
       } 
+      Quantum_l3_agent_config<||> -> Quantum::Network::Setup['net04']
     
       quantum::network::setup { 'net04_ext':
         tenant_name     => 'services',
@@ -117,12 +120,14 @@ class quantum::agents::l3 (
         alloc_pool      => $external_alloc_pool,  # undef,
         enable_dhcp     => 'False',  # 'True',
       } 
+      Quantum_l3_agent_config<||> -> Quantum::Network::Setup['net04_ext']
     
       quantum::network::provider_router { 'router04':
         router_subnets  => 'subnet04',  # undef,
         router_extnet   => 'net04_ext', # undef,
         notify          => Service['quantum-l3'],
       } 
+      Quantum::Network::Setup['net04_ext'] -> Quantum::Network::Provider_router['router04']
 
       # turn down the current default route metric priority
       $update_default_route_metric = "/sbin/ip route del default via ${::defaultroute};\
@@ -133,6 +138,7 @@ class quantum::agents::l3 (
         returns     => [0, 7],
         refreshonly => true,
       }
+      Quantum::Network::Provider_router['router04'] -> Exec['update_default_route_metric']
 
       Package[$l3_agent_package] ~> Exec['update_default_route_metric']
       Exec['update_default_route_metric']->Service['quantum-l3']->Exec['settle-down-default-route']

@@ -37,14 +37,18 @@ define nova::generic_service(
   # I need to mark that ths package should be
   # installed before nova_config
   if ($package_name) {
-    if !defined(Package[$nova_title]) and !defined(Package[$package_name]) {
-      package {$nova_title:
-        name   => $package_name,
+    # some packages gives in config as array of packages. 
+    # we can't check defined this array or not.
+    # temporary allow thah packages without check
+    if is_array($package_name) or !defined(Package[$package_name]) {
+      package {$package_name:
         ensure => $ensure_package,
       }
     }
-    Package[$nova_title] -> Service[$nova_title]
-    Package[$nova_title] ~> Service[$nova_title]
+    #Package[$nova_title] -> Service[$nova_title]
+    #Package[$nova_title] ~> Service[$nova_title]
+    Package[$package_name] -> Service[$nova_title]
+    Package[$package_name] ~> Service[$nova_title]
   }
 
   if ($service_name) {
