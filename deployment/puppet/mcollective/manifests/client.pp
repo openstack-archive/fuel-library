@@ -26,6 +26,19 @@ class mcollective::client(
     }
   }
 
+# install ruby-devel, make and gcc to exclude problems with installing astute gem
+  package { "ruby-devel" :
+    ensure => 'present',
+  }
+
+  package { "make" :
+    ensure => 'present',
+  }
+
+  package { "gcc" :
+    ensure => 'present',
+  }
+
   package { $mcollective_client_package :
     ensure => 'present',
   }
