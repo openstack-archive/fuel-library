@@ -233,6 +233,7 @@ class Manifest(object):
             cinder_on_computes=cinder,
             external_ipinfo = self.external_ip_info(ci, quantums),
             addresses = self.addresses(ci.nodes().all),
+            default_gateway = ci.public_router(),
         )
         if swift:
             template.replace(swift_loopback=self.loopback(loopback))

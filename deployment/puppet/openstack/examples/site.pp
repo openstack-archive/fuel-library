@@ -163,6 +163,7 @@ $addresses_hash = {
   },
 }
 $addresses = $addresses_hash
+$default_gateway = undef
 # Set internal address on which services should listen.
 # We assume that this IP will is equal to one of the haproxy
 # backends. If the IP address does not match, this may break your environment.
