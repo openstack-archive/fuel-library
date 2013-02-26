@@ -295,7 +295,7 @@ if $use_syslog {
 ### Syslog END ###
 case $::osfamily {
     "Debian":  {
-       $rabbitmq_version_string = '2.7.1-0ubuntu4'
+       $rabbitmq_version_string = '2.8.7-1'
     }
     "RedHat": {
        $rabbitmq_version_string = '2.8.7-2.el6'

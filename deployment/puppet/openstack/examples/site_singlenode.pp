@@ -59,7 +59,7 @@ class { 'openstack::mirantis_repos': stage => 'openstack-custom-repo', type => $
 # Use 'latest' to get the most recent ones or specify exact version if you need to install custom version.
 case $::osfamily {
   "Debian":  {
-     $rabbitmq_version_string = '2.7.1-0ubuntu4'
+     $rabbitmq_version_string = '2.8.7-1'
   }
   "RedHat": {
      $rabbitmq_version_string = '2.8.7-2.el6'
