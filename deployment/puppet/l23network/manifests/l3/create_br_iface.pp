@@ -32,6 +32,7 @@ define l23network::l3::create_br_iface (
     $gateway      = undef,
     $se           = true,
     $external_ids = '',
+    $save_default_gateway = false,
 ){
     if ! $external_ids {
       $ext_ids = "bridge-id=${bridge}"
