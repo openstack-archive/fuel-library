@@ -8,7 +8,7 @@ class openstack::mirantis_repos (
   $deb_cloud_archive_repo = 'http://172.18.67.168/ubuntu-cloud.archive.canonical.com/ubuntu',
   $deb_rabbit_repo        = 'http://172.18.67.168/ubuntu-repo/precise-fuel-folsom',
   $enable_epel = false,
-  $mirrorlist             = 'http://download.mirantis.com/epel-fuel-folsom/mirror.external.list',
+  $mirrorlist             = 'http://download.mirantis.com/epel-fuel-folsom/mirror.internal.list',
   $enable_test_repo = false,
 ) {
   case $::osfamily {
@@ -115,12 +115,22 @@ class openstack::mirantis_repos (
 
     'RedHat': {
       #added internal/external network mirror
+      if $type == 'default' {
+        yumrepo { 'openstack-epel-fuel':
+          descr      => 'Mirantis OpenStack Custom Packages',
+          mirrorlist => http://download.mirantis.com/epel-fuel-folsom/mirror.external.list,
+          gpgcheck   => '1',
+          gpgkey     => 'http://download.mirantis.com/epel-fuel-folsom/epel.key  http://download.mirantis.com/epel-fuel-folsom/centos.key http://download.mirantis.com/epel-fuel-folsom/rabbit.key http://download.mirantis.com/epel-fuel-folsom/mirantis.key http://download.mirantis.com/epel-fuel-folsom/mysql.key',
+        }
+      }
 
-      yumrepo { 'openstack-epel-fuel':
-        descr      => 'Mirantis OpenStack Custom Packages',
-        mirrorlist => $mirrorlist,
-        gpgcheck   => '1',
-        gpgkey     => 'http://download.mirantis.com/epel-fuel-folsom/epel.key  http://download.mirantis.com/epel-fuel-folsom/centos.key http://download.mirantis.com/epel-fuel-folsom/rabbit.key http://download.mirantis.com/epel-fuel-folsom/mirantis.key http://download.mirantis.com/epel-fuel-folsom/mysql.key',
+      if $type == 'custom' {
+        yumrepo { 'openstack-epel-fuel':
+          descr      => 'Mirantis OpenStack Custom Packages',
+          mirrorlist => $mirrorlist,
+          gpgcheck   => '1',
+          gpgkey     => 'http://download.mirantis.com/epel-fuel-folsom/epel.key  http://download.mirantis.com/epel-fuel-folsom/centos.key http://download.mirantis.com/epel-fuel-folsom/rabbit.key http://download.mirantis.com/epel-fuel-folsom/mirantis.key http://download.mirantis.com/epel-fuel-folsom/mysql.key',
+        }
       }
 
       if $enable_test_repo {
