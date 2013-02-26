@@ -51,9 +51,15 @@ class {'l23network': stage=> 'netconfig'}
 $quantum_gre_bind_addr = $internal_address
 
 # Packages repo setup
-$mirror_type = 'internal'
+$mirror_type = 'default'
+$enable_test_repo = false
+
 stage { 'openstack-custom-repo': before => Stage['netconfig'] }
-class { 'openstack::mirantis_repos': stage => 'openstack-custom-repo', type => $mirror_type }
+class { 'openstack::mirantis_repos':
+  stage => 'openstack-custom-repo',
+  type=>$mirror_type,
+  enable_test_repo=>$enable_test_repo,
+}
 
 # OpenStack packages and customized component versions to be installed.
 # Use 'latest' to get the most recent ones or specify exact version if you need to install custom version.

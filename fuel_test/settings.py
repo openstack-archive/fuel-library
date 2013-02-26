@@ -97,4 +97,4 @@ POOLS = {
         DEFAULT_POOLS.get(OS_FAMILY).get('internal')).split(':')
 }
 
-
+TEST_REPO = os.environ.get('TEST_REPO', 'false') == 'true'

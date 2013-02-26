@@ -190,6 +190,7 @@ $openstack_version = {
 }
 
 $mirror_type = 'default'
+$enable_test_repo = false
 
 $quantum_sql_connection  = "mysql://${quantum_db_user}:${quantum_db_password}@${quantum_host}/${quantum_db_dbname}"
 
@@ -211,7 +212,11 @@ Exec { logoutput => true }
 tag("${::deployment_id}::${::environment}")
 
 stage { 'openstack-custom-repo': before => Stage['netconfig'] }
-class { 'openstack::mirantis_repos': stage => 'openstack-custom-repo', type => $mirror_type }
+class { 'openstack::mirantis_repos':
+  stage => 'openstack-custom-repo',
+  type=>$mirror_type,
+  enable_test_repo=>$enable_test_repo,
+}
 
 if $::operatingsystem == 'Ubuntu' {
   class { 'openstack::apparmor::disable': stage => 'openstack-custom-repo' }

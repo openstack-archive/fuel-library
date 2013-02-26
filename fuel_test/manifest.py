@@ -2,7 +2,7 @@ from ipaddr import IPNetwork
 import re
 from fuel_test.helpers import load, write_config, is_not_essex
 from fuel_test.root import root
-from fuel_test.settings import INTERFACES, OS_FAMILY
+from fuel_test.settings import INTERFACES, TEST_REPO
 
 
 class Template(object):
@@ -83,10 +83,7 @@ class Template(object):
 
 class Manifest(object):
     def mirror_type(self):
-        if OS_FAMILY == 'centos':
-            return 'internal-stage'
-        else:
-            return 'internal'
+        return 'custom'
 
     def write_manifest(self, remote, manifest):
         write_config(remote, '/etc/puppet/manifests/site.pp',
@@ -183,7 +180,8 @@ class Manifest(object):
                                    0].get_ip_address_by_network_name(
                 'public'),
             nv_physical_volume=self.physical_volumes(),
-            use_syslog=use_syslog
+            use_syslog=use_syslog,
+            enable_test_repo = TEST_REPO,
         )
         self.write_manifest(remote, template)
 
@@ -204,6 +202,7 @@ class Manifest(object):
             use_syslog=use_syslog,
             cinder=cinder,
             quantum=quantum,
+            enable_test_repo = TEST_REPO,
         )
         self.write_manifest(remote, template)
 
@@ -234,6 +233,7 @@ class Manifest(object):
             external_ipinfo = self.external_ip_info(ci, quantums),
             addresses = self.addresses(ci.nodes().all),
             default_gateway = ci.public_router(),
+            enable_test_repo = TEST_REPO,
         )
         if swift:
             template.replace(swift_loopback=self.loopback(loopback))
