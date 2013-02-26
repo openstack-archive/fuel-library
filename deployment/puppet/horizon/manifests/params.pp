@@ -16,7 +16,9 @@ class horizon::params {
       $apache_user               = 'apache'
       $apache_group              = 'apache'
       $ssl_key_group             = 'root'
-      $ssl_dir                   = '/etc/pki/tls'
+      $ssl_cert_file             = '/etc/pki/tls/certs/localhost.crt'
+      $ssl_key_file              = '/etc/pki/tls/private/localhost.key'
+      $ssl_cert_type             = 'crt'
     }
     'Debian': {
       $http_service              = 'apache2'
@@ -28,7 +30,9 @@ class horizon::params {
       $apache_user               = 'www-data'
       $apache_group              = 'www-data'
       $ssl_key_group             = 'ssl-cert'
-      $ssl_dir                   = '/etc/ssl'
+      $ssl_cert_file             = '/etc/ssl/certs/ssl-cert-snakeoil.pem'
+      $ssl_key_file              = '/etc/ssl/private/ssl-cert-snakeoil.key'
+      $ssl_cert_type             = 'pem'
       case $::operatingsystem {
         'Debian': {
             $package_name        = 'openstack-dashboard-apache'
@@ -43,6 +47,4 @@ class horizon::params {
     }
   }
 
-  $ssl_cert_file = "${ssl_dir}/certs/horizon.pem"
-  $ssl_key_file  = "${ssl_dir}/private/horizon.key"
 }
