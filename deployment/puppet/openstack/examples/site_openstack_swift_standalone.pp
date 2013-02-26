@@ -114,7 +114,11 @@ $swift_loopback = 'loopback'
 $master_hostname      = 'fuel-controller-01'
 # Set short hostnames only to $controller_hostnames. RabbitMQ will not work if Fully Qualified domain names set here!
 $controller_hostnames = ['fuel-controller-01', 'fuel-controller-02', 'fuel-controller-03']
-$swift_master         = 'fuel-swiftproxy-01'
+if $::hostname == 'fuel-swiftproxy-01' {
+  $primary_proxy = true
+} else {
+  $primary_proxy = false
+}
 
 # Set nagios master fqdn
 $nagios_master        = 'nagios-server.your-domain-name.com'
@@ -446,7 +450,7 @@ node /fuel-swiftproxy-[\d+]/ {
 
   class { 'openstack::swift::proxy':
     swift_proxies           => $swift_proxies,
-    swift_master            => $swift_master,
+    primary_proxy           => $primary_proxy,
     controller_node_address => $internal_virtual_ip,
     swift_local_net_ip      => $internal_address,
   }

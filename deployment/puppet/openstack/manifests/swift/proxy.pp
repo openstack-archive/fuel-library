@@ -19,7 +19,7 @@ class openstack::swift::proxy (
   $controller_node_address          = '10.0.0.1',
   $memcached                        = true,
   $swift_proxies			= { '127.0.0.1' => '127.0.0.1'},
-  $swift_master				= $::hostname
+  $primary_proxy            =  false
 ) {
 
 if !defined(Class['swift'])
@@ -76,7 +76,7 @@ if !defined(Class['swift'])
     admin_password    => $swift_user_password,
     auth_host         => $controller_node_address,
   }
-  if $::hostname == $swift_master {
+  if $primary_proxy {
   # collect all of the resources that are needed
   # to balance the ring
   Ring_object_device <<| tag == "${::deployment_id}::${::environment}" |>>

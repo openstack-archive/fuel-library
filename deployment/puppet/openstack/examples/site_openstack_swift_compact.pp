@@ -271,7 +271,7 @@ $controller_node_public  = $internal_virtual_ip
 # *ring.gz files. Other swift proxies/storages
 # will rsync them. 
 # Short hostnames allowed only. No FQDNs.
-$swift_master            = $master_hostname
+$primary_proxy = $::hostname == 'fuel-controller-01'
 
 # Hash of proxies hostname|fqdn => ip mappings.
 # This is used by controller_ha.pp manifests for haproxy setup
@@ -472,7 +472,7 @@ node /fuel-controller-01/ {
 
   class { 'openstack::swift::proxy':
     swift_proxies           => $swift_proxies,
-    swift_master            => $swift_master,
+    primary_proxy            => $primary_proxy,
     controller_node_address => $internal_virtual_ip,
     swift_local_net_ip      => $internal_address,
   }
@@ -511,7 +511,7 @@ node /fuel-controller-02/ {
 
   class { 'openstack::swift::proxy':
     swift_proxies           => $swift_proxies,
-    swift_master            => $swift_master,
+    primary_proxy            => $primary_proxy,
     controller_node_address => $internal_virtual_ip,
     swift_local_net_ip      => $internal_address,
   }
@@ -550,7 +550,7 @@ node /fuel-controller-03/ {
 
   class { 'openstack::swift::proxy':
     swift_proxies           => $swift_proxies,
-    swift_master            => $swift_master,
+    primary_proxy            => $primary_proxy,
     controller_node_address => $internal_virtual_ip,
     swift_local_net_ip      => $internal_address,
   }

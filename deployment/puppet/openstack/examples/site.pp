@@ -24,6 +24,12 @@ $controller_internal_addresses = { 'fuel-controller-01'=>'10.0.125.3', 'fuel-con
 # Specify pools for Floating IP and Fixed IP.
 # Floating IP addresses are used for communication of VM instances with the outside world (e.g. Internet).
 # Fixed IP addresses are typically used for communication between VM instances.
+if $::hostname == 'fuel-controller-01' {
+  $primary_proxy = true
+} else {
+  $primary_proxy = false
+}
+
 $create_networks = true
 $floating_range  = '10.0.74.128/28'
 $fixed_range     = '10.0.161.128/28'
