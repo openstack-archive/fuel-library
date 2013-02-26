@@ -118,7 +118,7 @@ class openstack::mirantis_repos (
       if $type == 'default' {
         yumrepo { 'openstack-epel-fuel':
           descr      => 'Mirantis OpenStack Custom Packages',
-          mirrorlist => http://download.mirantis.com/epel-fuel-folsom/mirror.external.list,
+          mirrorlist => 'http://download.mirantis.com/epel-fuel-folsom/mirror.external.list',
           gpgcheck   => '1',
           gpgkey     => 'http://download.mirantis.com/epel-fuel-folsom/epel.key  http://download.mirantis.com/epel-fuel-folsom/centos.key http://download.mirantis.com/epel-fuel-folsom/rabbit.key http://download.mirantis.com/epel-fuel-folsom/mirantis.key http://download.mirantis.com/epel-fuel-folsom/mysql.key',
         }
