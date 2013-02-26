@@ -363,6 +363,14 @@ if $::operatingsystem == 'Ubuntu' {
 
 sysctl::value { 'net.ipv4.conf.all.rp_filter': value => '0' }
 
+# Dashboard(horizon) https/ssl mode
+#     false: normal mode with no encryption
+# 'default': uses keys supplied with the ssl module package
+#   'exist': assumes that the keys (domain name based certificate) are provisioned in advance
+#  'custom': require fileserver static mount point [ssl_certs] and hostname based certificate existence
+$horizon_use_ssl = false
+
+
 class compact_controller (
   $quantum_network_node = false
 ) {
@@ -420,6 +428,7 @@ class compact_controller (
     use_syslog              => $use_syslog,
     nova_rate_limits        => $nova_rate_limits,
     cinder_rate_limits      => $cinder_rate_limits,
+    horizon_use_ssl         => $horizon_use_ssl,
   }
   class { 'swift::keystone::auth':
     password         => $swift_user_password,

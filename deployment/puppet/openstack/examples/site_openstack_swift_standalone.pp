@@ -231,6 +231,14 @@ $cinder_rate_limits = { 'POST' => 1000,
 
 sysctl::value { 'net.ipv4.conf.all.rp_filter': value => '0' }
 
+# Dashboard(horizon) https/ssl mode
+#     false: normal mode with no encryption
+# 'default': uses keys supplied with the ssl module package
+#   'exist': assumes that the keys (domain name based certificate) are provisioned in advance
+#  'custom': require fileserver static mount point [ssl_certs] and hostname based certificate existence
+$horizon_use_ssl = false
+
+
 # Definition of OpenStack controller nodes.
 node /fuel-controller-[\d+]/ {
   
@@ -293,6 +301,7 @@ node /fuel-controller-[\d+]/ {
     galera_nodes            => $controller_hostnames,
     nv_physical_volume      => $nv_physical_volume,
     use_syslog              => $use_syslog,
+    horizon_use_ssl         => $horizon_use_ssl,
     nova_rate_limits => $nova_rate_limits,
     cinder_rate_limits => $cinder_rate_limits
   }
