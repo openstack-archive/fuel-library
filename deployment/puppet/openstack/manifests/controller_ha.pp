@@ -342,7 +342,37 @@ local0.* -/var/log/haproxy.log'
       nova_rate_limits        => $nova_rate_limits,
       horizon_use_ssl         => $horizon_use_ssl,
     }
-
+  if $quantum_network_node {
+      class { '::openstack::quantum_router':
+        db_host               => $internal_virtual_ip,
+        service_endpoint      => $internal_virtual_ip,
+        auth_host             => $internal_virtual_ip,
+        internal_address      => $internal_address,
+        public_interface      => $public_interface,
+        private_interface     => $private_interface,
+        floating_range        => $floating_range,
+        fixed_range           => $fixed_range,
+        create_networks       => $create_networks,
+        verbose               => $verbose,
+        rabbit_password       => $rabbit_password,
+        rabbit_user           => $rabbit_user,
+        rabbit_nodes          => $rabbit_nodes,
+        rabbit_ha_virtual_ip  => $internal_virtual_ip,
+        quantum               => $quantum,
+        quantum_user_password => $quantum_user_password,
+        quantum_db_password   => $quantum_db_password,
+        quantum_db_user       => $quantum_db_user,
+        quantum_db_dbname     => $quantum_db_dbname,
+        quantum_gre_bind_addr => $quantum_gre_bind_addr,
+        quantum_network_node  => $quantum_network_node,
+        quantum_netnode_on_cnt=> $quantum_netnode_on_cnt,
+        tenant_network_type   => $tenant_network_type,
+        segment_range         => $segment_range,
+        external_ipinfo       => $external_ipinfo,
+        api_bind_address      => $internal_address,
+        use_syslog            => $use_syslog,
+      }
+  }
     class { 'openstack::auth_file':
       admin_user              => $admin_user,
       admin_password          => $admin_password,
