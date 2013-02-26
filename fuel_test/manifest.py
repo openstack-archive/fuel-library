@@ -216,7 +216,6 @@ class Manifest(object):
             public_virtual_ip=ci.public_virtual_ip(),
             floating_range=self.floating_network(ci, quantum),
             fixed_range=self.fixed_network(ci,quantum),
-            master_hostname=controllers[0].name,
             mirror_type=self.mirror_type(),
             controller_public_addresses=self.public_addresses(
                 controllers),

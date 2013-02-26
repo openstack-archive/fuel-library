@@ -109,15 +109,22 @@ $glance_backend          = 'swift'
 # set 'loopback' or false
 $swift_loopback = 'loopback'
 
-# Set master hostname for the HA cluster of controller nodes, as well as hostnames for every controller in the cluster.
-# Set master hostname as fully qualified domain name if FQDNs are used in $controller_internal_addresses
-$master_hostname      = 'fuel-controller-01'
 # Set short hostnames only to $controller_hostnames. RabbitMQ will not work if Fully Qualified domain names set here!
 $controller_hostnames = ['fuel-controller-01', 'fuel-controller-02', 'fuel-controller-03']
+
+# Set hostname of swift_master.
+# It tells on which swift proxy node to build
+# *ring.gz files. Other swift proxies/storages
+# will rsync them.
 if $::hostname == 'fuel-swiftproxy-01' {
   $primary_proxy = true
 } else {
   $primary_proxy = false
+}
+if $::hostname == 'fuel-controller-01' {
+  $primary_controller = true
+} else {
+  $primary_controller = false
 }
 
 # Set nagios master fqdn
@@ -272,7 +279,7 @@ node /fuel-controller-[\d+]/ {
     private_interface       => $private_interface,
     internal_virtual_ip     => $internal_virtual_ip,
     public_virtual_ip       => $public_virtual_ip,
-    master_hostname         => $master_hostname,
+    primary_controller      => $primary_controller,
     floating_range          => $floating_range,
     fixed_range             => $fixed_range,
     multi_host              => $multi_host,

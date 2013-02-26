@@ -10,7 +10,7 @@
 #
 class galera (
   $cluster_name,
-  $master_ip            = false,
+  $primary_controller   = false,
   $node_address         = $ipaddress_eth0,
   $setup_multiple_gcomm = true,
   $node_addresses       = [
@@ -213,7 +213,7 @@ class galera (
 
   class { 'galera::galera_master_final_config':
     require        => Exec["wait-for-haproxy-mysql-backend"],
-    master_ip      => $master_ip,
+    primary_controller => $primary_controller,
     node_addresses => $node_addresses,
     node_address   => $node_address,
   }
