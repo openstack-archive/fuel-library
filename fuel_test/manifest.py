@@ -239,12 +239,10 @@ class Manifest(object):
             template.replace(swift_loopback=self.loopback(loopback))
             if proxies:
                 template.replace(
-                    swift_master=proxies[0].name,
                     swift_proxies=self.internal_addresses(proxies)
                 )
             else:
                 template.replace(
-                    swift_master="%s" % controllers[0].name,
                     swift_proxies=self.internal_addresses(controllers)
                 )
         if is_not_essex():
