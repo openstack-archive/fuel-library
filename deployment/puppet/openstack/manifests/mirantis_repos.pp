@@ -120,7 +120,7 @@ class openstack::mirantis_repos (
         descr      => 'Mirantis OpenStack Custom Packages',
         mirrorlist => $mirrorlist,
         gpgcheck   => '1',
-        gpgkey     => 'http://download.mirantis.com/epel-fuel-folsom/epel.key\n  http://download.mirantis.com/epel-fuel-folsom/centos.key\n http://download.mirantis.com/epel-fuel-folsom/rabbit.key\n http://download.mirantis.com/epel-fuel-folsom/mirantis.key\n http://download.mirantis.com/epel-fuel-folsom/mysql.key\n',
+        gpgkey     => 'http://download.mirantis.com/epel-fuel-folsom/epel.key  http://download.mirantis.com/epel-fuel-folsom/centos.key http://download.mirantis.com/epel-fuel-folsom/rabbit.key http://download.mirantis.com/epel-fuel-folsom/mirantis.key http://download.mirantis.com/epel-fuel-folsom/mysql.key',
       }
 
       if $enable_test_repo {
@@ -128,7 +128,7 @@ class openstack::mirantis_repos (
           descr      => 'Mirantis OpenStack OSCI Packages',
           baseurl    => 'http://osci-koji.srt.mirantis.net/mash/fuel-folsom/x86_64/',
           gpgcheck   => '1',
-          gpgkey     => 'http://download.mirantis.com/epel-fuel-folsom/epel.key\n  http://download.mirantis.com/epel-fuel-folsom/centos.key\n http://download.mirantis.com/epel-fuel-folsom/rabbit.key\n http://download.mirantis.com/epel-fuel-folsom/mirantis.key\n http://download.mirantis.com/epel-fuel-folsom/mysql.key\n',
+          gpgkey     => 'http://download.mirantis.com/epel-fuel-folsom/epel.key  http://download.mirantis.com/epel-fuel-folsom/centos.key http://download.mirantis.com/epel-fuel-folsom/rabbit.key http://download.mirantis.com/epel-fuel-folsom/mirantis.key http://download.mirantis.com/epel-fuel-folsom/mysql.key',
         }
       }
 
