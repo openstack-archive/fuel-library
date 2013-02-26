@@ -67,40 +67,48 @@ class horizon(
 
   case $use_ssl {
     'exist': { # SSL certificate already exists
-      $sslcert_pair = regsubst([$::horizon::params::ssl_cert_file, $::horizon::params::ssl_key_file],
-                        '(\S+\/)\S+(\.\S+)', "\1${::domain}\2")
-
-      $ssl_cert_file = $sslcert_pair[0]
-      $ssl_key_file  = $sslcert_pair[1]
+      $generate_sslcert_names = true
+      $inject_certs = false
     }
 
-    'custom': { # upload signed certificate
-      $sslcert_pair = regsubst([$::horizon::params::ssl_cert_file, $::horizon::params::ssl_key_file],
-                        '(\S+\/)\S+(\.\S+)', "\1${::hostname}\2")
-
-      $ssl_cert_file     = $sslcert_pair[0]
-      $ssl_key_file      = $sslcert_pair[1]
-
-      file { $ssl_cert_file:
-        ensure  => present,
-        mode    => '0644',
-        owner   => 'root',
-        group   => 'root',
-        source  => "puppet:///ssl_certs/${::hostname}.${::horizon::params::ssl_cert_type}",
-      }
-
-      file { $ssl_key_file:
-        ensure  => present,
-        mode    => '0640',
-        owner   => 'root',
-        group   => $::horizon::params::ssl_key_group,
-        source  => "puppet:///ssl_certs/${::hostname}.key",
-      }
+    'custom': { # custom signed certificate
+      $generate_sslcert_names = true
+      $inject_certs = true
     }
 
     'default': { # use default package certificate
-      $ssl_cert_file = $::horizon::params::ssl_cert_file
-      $ssl_key_file  = $::horizon::params::ssl_key_file
+      $generate_sslcert_names = false
+      $inject_certs = false
+    }
+  }
+
+  if $generate_sslcert_names {
+    $sslcert_pair = regsubst([$::horizon::params::ssl_cert_file, $::horizon::params::ssl_key_file],
+                        '(.+\/).+(\..+)', "\1${::domain}\2")
+
+    $ssl_cert_file = $sslcert_pair[0]
+    $ssl_key_file  = $sslcert_pair[1]
+  } else {
+    $ssl_cert_file = $::horizon::params::ssl_cert_file
+    $ssl_key_file  = $::horizon::params::ssl_key_file
+  }
+
+  # inject signed certificate
+  if $inject_certs {
+    file { $ssl_cert_file:
+      ensure  => present,
+      mode    => '0644',
+      owner   => 'root',
+      group   => 'root',
+      source  => "puppet:///ssl_certs/${::domain}.${::horizon::params::ssl_cert_type}",
+    }
+
+    file { $ssl_key_file:
+      ensure  => present,
+      mode    => '0640',
+      owner   => 'root',
+      group   => $::horizon::params::ssl_key_group,
+      source  => "puppet:///ssl_certs/${::domain}.key",
     }
   }
 
