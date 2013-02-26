@@ -17,19 +17,29 @@
 # [*netmask*]
 #   Network mask.
 #
+# [*gateway*]
+#   You can specify default gateway. 
+#
+# [*save_default_gateway*]
+#   If current network configuration contains a default gateway 
+#   this option allow try to save it.
+#
 define l23network::l3::create_br_iface (
     $interface,
     $bridge,
     $ipaddr,
-    $netmask = '',
-    $se = true,
+    $netmask      = '255.255.255.0',
+    $gateway      = undef,
+    $se           = true,
     $external_ids = '',
 ){
     if ! $external_ids {
       $ext_ids = "bridge-id=${bridge}"
     }
     #
-    if $::l3_default_route_interface == $interface {
+    if $gateway {
+      $gateway_ip_address_for_newly_created_interface = $gateway
+    } elsif $save_default_gateway and $::l3_default_route_interface == $interface {
       $gateway_ip_address_for_newly_created_interface = $::l3_default_route
     } else {
       $gateway_ip_address_for_newly_created_interface = undef

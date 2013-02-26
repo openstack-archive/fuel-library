@@ -19,8 +19,8 @@ class quantum::agents::l3 (
   $auth_password                = 'password',
   $root_helper                  = 'sudo /usr/bin/quantum-rootwrap /etc/quantum/rootwrap.conf',
   $use_namespaces               = 'True',
-  $router_id                    = undef,
-  $gateway_external_net_id      = undef,
+ #$router_id                    = undef,
+ #$gateway_external_net_id      = undef,
   $handle_internal_only_routers = 'True',
   $metadata_ip                  = '169.254.169.254',
   $metadata_port                = 8775,
@@ -130,8 +130,10 @@ class quantum::agents::l3 (
       Quantum::Network::Setup['net04_ext'] -> Quantum::Network::Provider_router['router04']
 
       # turn down the current default route metric priority
-      $update_default_route_metric = "/sbin/ip route del default via ${::defaultroute};\
-        /sbin/ip route add default via ${::defaultroute} metric 100"
+      # TODO: make function for recognize REAL defaultroute
+      # temporary use 
+      $update_default_route_metric = "/sbin/ip route del default via ${::default_gateway};\
+        /sbin/ip route add default via ${::default_gateway} metric 100"
     
       exec { 'update_default_route_metric':
         command     => $update_default_route_metric,

@@ -33,6 +33,10 @@ Puppet::Type.newtype(:l3_if_downup) do
       defaultto('dhclient3')
     end
 
+    newparam(:sleep_time) do
+      defaultto(1)
+    end
+
     def refresh
       provider.restart
     end

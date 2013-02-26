@@ -57,7 +57,7 @@ $addresses_hash = {
   },
 }
 $addresses = $addresses_hash
-$default_gateway = undef
+$default_gateway = '10.0.204.1'
 # Set internal address on which services should listen.
 # We assume that this IP will is equal to one of the haproxy
 # backends. If the IP address does not match, this may break your environment.
@@ -79,19 +79,22 @@ class node_netconfig (
   $mgmt_ipaddr,
   $mgmt_netmask  = '255.255.255.0',
   $public_ipaddr = undef,
-  $public_netmask= '255.255.255.0'
+  $public_netmask= '255.255.255.0',
+  $save_default_gateway=false,
 ) { 
   l23network::l3::create_br_iface {'mgmt':
      interface => $internal_interface,
      bridge    => $internal_br,
      ipaddr    => $mgmt_ipaddr,
      netmask   => $mgmt_netmask,
+     save_default_gateway => $save_default_gateway,
   }
   l23network::l3::create_br_iface {'ex':
      interface => $public_interface,
      bridge    => $public_br,
      ipaddr    => $public_ipaddr,
      netmask   => $public_netmask,
+     gateway   => $default_gateway,
   }
   L23network::L3::Create_br_iface['mgmt'] -> L23network::L3::Create_br_iface['ex']
   l23network::l3::ifconfig {$private_interface: ipaddr=>'none' }
@@ -610,13 +613,13 @@ node /fuel-compute-[\d+]/ {
 
 # Definition of OpenStack Quantum node.
 node /fuel-quantum/ {
-  # class {'::node_netconfig':
-  #     mgmt_ipaddr    => $::internal_address,
-  #     mgmt_netmask   => $::internal_netmask,
-  #     public_ipaddr  => $::public_address,
-  #     public_netmask => $::public_netmask,
-  #     stage          => 'netconfig',
-  # }
+  class {'::node_netconfig':
+      mgmt_ipaddr    => $::internal_address,
+      mgmt_netmask   => $::internal_netmask,
+      public_ipaddr  => 'none',
+      save_default_gateway => true,
+      stage          => 'netconfig',
+  }
   if ! $quantum_netnode_on_cnt {
     class { 'openstack::quantum_router':
       db_host               => $internal_virtual_ip,

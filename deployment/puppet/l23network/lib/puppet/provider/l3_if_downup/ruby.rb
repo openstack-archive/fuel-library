@@ -10,8 +10,9 @@ Puppet::Type.type(:l3_if_downup).provide(:ruby) do
     begin # downing inteface
       ifdn(@resource[:interface])
       notice("Interface '#{@resource[:interface]}' down.")
+      sleep @resource[:sleep_time]
     rescue Puppet::ExecutionFailure
-      # pass
+      notice("Can't put interface '#{@resource[:interface]}' to DOWN state.")
     end
     if @resource[:kill_dhclient] and Facter.value(:osfamily) == 'Debian'
       # kill forgotten dhclient in Ubuntu
@@ -23,6 +24,7 @@ Puppet::Type.type(:l3_if_downup).provide(:ruby) do
           begin
             kill(['-9',rg[1]])
             notice("Killed forgotten #{dhclient} with PID=#{rg[1]} succeffuly...")
+            sleep @resource[:sleep_time]
           rescue Puppet::ExecutionFailure
             notice("Can't kill #{dhclient} with PID=#{rg[1]}")
           end
@@ -33,15 +35,17 @@ Puppet::Type.type(:l3_if_downup).provide(:ruby) do
       begin
         ip(['addr', 'flush', @resource[:interface]])
         notice("Interface '#{@resource[:interface]}' flush.")
+        sleep @resource[:sleep_time]
       rescue Puppet::ExecutionFailure
-        # pass
+        notice("Can't flush interface '#{@resource[:interface]}'.")
       end
     end
     begin  # Put interface to UP state
       ifup(@resource[:interface])
       notice("Interface '#{@resource[:interface]}' up.")
+      sleep @resource[:sleep_time]
     rescue Puppet::ExecutionFailure
-      # pass
+      notice("Can't put interface '#{@resource[:interface]}' to UP state.")
     end
   end
 
