@@ -145,6 +145,7 @@ $openstack_version = {
 }
 
 $mirror_type = 'default'
+$enable_test_repo = false
 
 $addresses_hash = {
   'fuel-controller-01' => {
@@ -188,7 +189,11 @@ Exec { logoutput => true }
 tag("${::deployment_id}::${::environment}")
 
 stage { 'openstack-custom-repo': before => Stage['netconfig'] }
-class { 'openstack::mirantis_repos': stage => 'openstack-custom-repo', type=>$mirror_type }
+class { 'openstack::mirantis_repos':
+  stage => 'openstack-custom-repo',
+  type=>$mirror_type,
+  enable_test_repo=>$enable_test_repo,
+}
 if $::operatingsystem == 'Ubuntu'
 {
   class { 'openstack::apparmor::disable': stage => 'openstack-custom-repo' }

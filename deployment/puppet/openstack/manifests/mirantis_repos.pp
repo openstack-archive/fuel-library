@@ -9,6 +9,7 @@ class openstack::mirantis_repos (
   $deb_rabbit_repo        = 'http://172.18.67.168/ubuntu-repo/precise-fuel-folsom',
   $enable_epel = false,
   $mirrorlist             = 'http://download.mirantis.com/epel-fuel-folsom/mirror.external.list',
+  $enable_test_repo = false,
 ) {
   case $::osfamily {
     'Debian': {
@@ -120,6 +121,15 @@ class openstack::mirantis_repos (
         mirrorlist => $mirrorlist,
         gpgcheck   => '1',
         gpgkey     => 'http://download.mirantis.com/epel-fuel-folsom/epel.key\n  http://download.mirantis.com/epel-fuel-folsom/centos.key\n http://download.mirantis.com/epel-fuel-folsom/rabbit.key\n http://download.mirantis.com/epel-fuel-folsom/mirantis.key\n http://download.mirantis.com/epel-fuel-folsom/mysql.key\n',
+      }
+
+      if $enable_test_repo {
+        yumrepo {'openstack-osci-repo':
+          descr      => 'Mirantis OpenStack OSCI Packages',
+          baseurl    => 'http://osci-koji.srt.mirantis.net/mash/fuel-folsom/x86_64/',
+          gpgcheck   => '1',
+          gpgkey     => 'http://download.mirantis.com/epel-fuel-folsom/epel.key\n  http://download.mirantis.com/epel-fuel-folsom/centos.key\n http://download.mirantis.com/epel-fuel-folsom/rabbit.key\n http://download.mirantis.com/epel-fuel-folsom/mirantis.key\n http://download.mirantis.com/epel-fuel-folsom/mysql.key\n',
+        }
       }
 
       if $enable_epel {

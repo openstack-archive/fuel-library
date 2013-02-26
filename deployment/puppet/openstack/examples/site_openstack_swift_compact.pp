@@ -324,7 +324,7 @@ $openstack_version = {
 # If you want to set up a local repository, you will need to manually adjust mirantis_repos.pp,
 # though it is NOT recommended.
 $mirror_type = 'default'
-
+$enable_test_repo = false
 
 # This parameter specifies the verbosity level of log messages
 # in openstack components config. Currently, it disables or enables debugging.
@@ -359,7 +359,11 @@ Exec { logoutput => true }
 tag("${::deployment_id}::${::environment}")
 
 stage { 'openstack-custom-repo': before => Stage['netconfig'] }
-class { 'openstack::mirantis_repos': stage => 'openstack-custom-repo', type=> $mirror_type }
+class { 'openstack::mirantis_repos':
+  stage => 'openstack-custom-repo',
+  type=>$mirror_type,
+  enable_test_repo=>$enable_test_repo,
+}
 
 if $::operatingsystem == 'Ubuntu' {
   class { 'openstack::apparmor::disable': stage => 'openstack-custom-repo' }
