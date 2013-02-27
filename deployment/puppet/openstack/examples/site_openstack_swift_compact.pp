@@ -73,7 +73,8 @@ $addresses_hash = {
 }
 $addresses = $addresses_hash
 $default_gateway = '10.0.204.1'
-$dns_nameservers = ['10.0.204.3',]
+$dns_nameservers = ['10.0.204.3',] # Need point to cobbler node IP if you use default use case.
+
 # Set internal address on which services should listen.
 # We assume that this IP will is equal to one of the haproxy
 # backends. If the IP address does not match, this may break your environment.
@@ -576,7 +577,14 @@ node /fuel-controller-03/ {
 
 # Definition of OpenStack compute nodes.
 node /fuel-compute-[\d+]/ {
-  
+  class {'::node_netconfig':
+      mgmt_ipaddr    => $::internal_address,
+      mgmt_netmask   => $::internal_netmask,
+      public_ipaddr  => $::public_address,
+      public_netmask => $::public_netmask,
+      stage          => 'netconfig',
+  }
+
   class {'nagios':
     proj_name       => $proj_name,
     services        => [
