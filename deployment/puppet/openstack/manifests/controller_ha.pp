@@ -26,7 +26,7 @@ Exec['clocksync']->Exec<| title == 'initial-db-sync' |>
 Exec['clocksync']->Exec<| title == 'post-nova_config' |>
 
 
-define haproxy_service($order, $balancers, $virtual_ips, $port, $define_cookies = false, $primary_controller = false) {
+define haproxy_service($order, $balancers, $virtual_ips, $port, $define_cookies = false, $define_backend = false) {
 
   case $name {
     "mysqld": {
@@ -93,7 +93,7 @@ define haproxy_service($order, $balancers, $virtual_ips, $port, $define_cookies 
     balancer_port          => $balancer_port,
     balancermember_options => $balancermember_options,
     define_cookies         => $define_cookies,
-    primary_controller     => $primary_controller
+    define_backend        =>  $define_backend
   }
 
 }
@@ -165,9 +165,9 @@ local0.* -/var/log/haproxy.log'
     }
 
     haproxy_service { 'glance-reg': order => 90, port => 9191, virtual_ips => [$internal_virtual_ip]  }
-#    haproxy_service { 'rabbitmq-epmd':    order => 91, port => 4369, virtual_ips => [$internal_virtual_ip], primary_controller => $primary_controller }
-    haproxy_service { 'rabbitmq-openstack':    order => 92, port => 5672, virtual_ips => [$internal_virtual_ip], primary_controller => $primary_controller}
-    haproxy_service { 'mysqld': order => 95, port => 3306, virtual_ips => [$internal_virtual_ip], primary_controller => $primary_controller }
+#    haproxy_service { 'rabbitmq-epmd':    order => 91, port => 4369, virtual_ips => [$internal_virtual_ip], define_backend => true }
+    haproxy_service { 'rabbitmq-openstack':    order => 92, port => 5672, virtual_ips => [$internal_virtual_ip], define_backend => true }
+    haproxy_service { 'mysqld': order => 95, port => 3306, virtual_ips => [$internal_virtual_ip], define_backend => true }
     if $glance_backend == 'swift' {
       haproxy_service { 'swift': order => 96, port => 8080, virtual_ips => [$public_virtual_ip,$internal_virtual_ip], balancers => $swift_proxies }
     }
