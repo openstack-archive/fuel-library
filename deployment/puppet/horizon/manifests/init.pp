@@ -49,13 +49,14 @@ class horizon(
     ensure => present,
   }
 
-  package { "$::horizon::params::package_name":
-    ensure => $package_ensure,
+  package { 'dashboard':
+    name    => $::horizon::params::package_name,
+    ensure  => $package_ensure,
     require => Package[$::horizon::params::http_service],
   }
 
   File {
-    require => Package["$::horizon::params::package_name"],
+    require => Package['dashboard'],
     owner   => $wsgi_user,
     group   => $wsgi_group,
   }
@@ -115,20 +116,31 @@ class horizon(
   file { $::horizon::params::logdir:
     ensure  => directory,
     mode    => '0751',
-    before  => Service["$::horizon::params::http_service"],
+    before  => Service['httpd'],
   }
 
   file { $::horizon::params::vhosts_file:
     content => template('horizon/vhosts.erb'),
     mode    => '0644',
-    require => Package["$::horizon::params::package_name"],
-    notify  => Service["$::horizon::params::http_service"]
+    require => Package['dashboard'],
+    notify  => Service['httpd']
   }
 
-  file { $::horizon::params::httpd_listen_config_file: 
-    content => template('horizon/ports.conf.erb'), 
-    require => Package[$::horizon::params::package_name],
-    #before  => Package[$::horizon::params::package_name],
+  file { 'httpd_listen_config_file':
+    path    => $::horizon::params::httpd_listen_config_file,
+    content => template('horizon/ports.conf.erb'),
+    owner   => 'root',
+    group   => 'root',
+    notify  => Service['httpd'],
+    before  => Package[$::horizon::params::http_service],
+    require => File[$::horizon::params::apache_confdir]
+  }
+
+  file { $::horizon::params::apache_confdir:
+    ensure  => directory,
+    owner   => 'root',
+    group   => 'root',
+    require => []
   }
 
   case $::osfamily {
@@ -139,7 +151,7 @@ class horizon(
         group  => root,
         content => "LoadModule wsgi_module modules/mod_wsgi.so\n",
         require => Package["$::horizon::params::http_service", "$::horizon::params::http_modwsgi"],
-        before  => Package["$::horizon::params::package_name"],
+        before  => Package['dashboard'],
       }  # ensure there is a HTTP redirect from / to /dashboard
 
       # file_line { 'horizon_redirect_rule':
@@ -161,7 +173,7 @@ class horizon(
       if $use_ssl {
         package { 'mod_ssl':
           ensure => present,
-          before => Service[$::horizon::params::http_service],
+          before => Service['httpd'],
         }
       }
 
@@ -170,19 +182,14 @@ class horizon(
         changes => [ 
           "rm directive[. = 'Listen']"
         ],
-        before  => Service[$::horizon::params::http_service],
+        before  => Service['httpd'],
       } 
     }
     'Debian': {
-      file {'/etc/apache2':
-        ensure => directory,
-        require => []
-      }
-
       A2mod {
         ensure  => present,
-        require => Package[$::horizon::params::package_name],
-        notify  => Service[$::horizon::params::http_service],
+        require => Package['dashboard'],
+        notify  => Service['httpd'],
       }
 
       a2mod { 'wsgi': }
@@ -199,7 +206,7 @@ class horizon(
 
       file { '/etc/apache2/sites-enabled/000-default':
         ensure => absent,
-        before => Service[$::horizon::params::http_service],
+        before => Service['httpd'],
       }
 
    # exec { 'a2enmod wsgi':
@@ -213,7 +220,7 @@ class horizon(
     }
   }
 
-  service { '$::horizon::params::http_service':
+  service { 'httpd':
     name      => $::horizon::params::http_service,
     ensure    => 'running',
     enable    => true,

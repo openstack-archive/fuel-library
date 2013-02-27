@@ -15,6 +15,7 @@ class horizon::params {
       $root_url                  = '/dashboard'
       $apache_user               = 'apache'
       $apache_group              = 'apache'
+      $apache_confdir            = ['/etc/httpd', '/etc/httpd/conf.d']
       $ssl_key_group             = 'root'
       $ssl_cert_file             = '/etc/pki/tls/certs/localhost.crt'
       $ssl_key_file              = '/etc/pki/tls/private/localhost.key'
@@ -29,6 +30,7 @@ class horizon::params {
       $root_url                  = '/horizon'
       $apache_user               = 'www-data'
       $apache_group              = 'www-data'
+      $apache_confdir            = '/etc/apache2'
       $ssl_key_group             = 'ssl-cert'
       $ssl_cert_file             = '/etc/ssl/certs/ssl-cert-snakeoil.pem'
       $ssl_key_file              = '/etc/ssl/private/ssl-cert-snakeoil.key'
