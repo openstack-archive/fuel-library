@@ -8,7 +8,7 @@ class openstack::mirantis_repos (
   $deb_cloud_archive_repo = 'http://172.18.67.168/ubuntu-cloud.archive.canonical.com/ubuntu',
   $deb_rabbit_repo        = 'http://172.18.67.168/ubuntu-repo/precise-fuel-folsom',
   $enable_epel = false,
-  $mirrorlist             = 'http://download.mirantis.com/epel-fuel-folsom/mirror.internal.list',
+  $mirrorlist             = 'http://download.mirantis.com/epel-fuel-folsom/mirror.internal-stage.list',
   $enable_test_repo = false,
 ) {
   case $::osfamily {
