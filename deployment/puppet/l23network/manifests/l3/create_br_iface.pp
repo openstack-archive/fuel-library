@@ -32,6 +32,7 @@ define l23network::l3::create_br_iface (
     $gateway      = undef,
     $se           = true,
     $external_ids = '',
+    $dns_nameservers      = undef,
     $save_default_gateway = false,
 ){
     if ! $external_ids {
@@ -62,6 +63,7 @@ define l23network::l3::create_br_iface (
       ipaddr              => $ipaddr,
       netmask             => $netmask,
       gateway             => $gateway_ip_address_for_newly_created_interface,
+      dns_nameservers     => $dns_nameservers,
       ifname_order_prefix => 'ovs',
       require             => L23network::L3::Ifconfig[$interface],
     }

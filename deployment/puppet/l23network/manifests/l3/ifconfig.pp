@@ -25,6 +25,7 @@
 # [*dns_nameservers*]
 #   Specify pair of nameservers if need. Must be array, for example:
 #   nameservers => ['8.8.8.8', '8.8.4.4']
+# TODO: realize dns_domain derecive
 #
 # [*dhcp_hostname*]
 #   Specify hostname for DHCP if need.

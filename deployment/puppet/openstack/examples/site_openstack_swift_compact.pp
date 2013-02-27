@@ -73,6 +73,7 @@ $addresses_hash = {
 }
 $addresses = $addresses_hash
 $default_gateway = '10.0.204.1'
+$dns_nameservers = ['10.0.204.3',]
 # Set internal address on which services should listen.
 # We assume that this IP will is equal to one of the haproxy
 # backends. If the IP address does not match, this may break your environment.
@@ -102,6 +103,7 @@ class node_netconfig (
      bridge    => $internal_br,
      ipaddr    => $mgmt_ipaddr,
      netmask   => $mgmt_netmask,
+     dns_nameservers      => $dns_nameservers,
      save_default_gateway => $save_default_gateway,
   }
   l23network::l3::create_br_iface {'ex':
@@ -296,7 +298,7 @@ $swift_proxies           = $controller_internal_addresses
 # Enable error messages reporting to rsyslog. Rsyslog must be installed in this case.
 $use_syslog = false
 if $use_syslog {
-  class { "::rsyslog::client": 
+  class { "::rsyslog::client":
     log_local => true,
     log_auth_local => true,
     server => '127.0.0.1',
