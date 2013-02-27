@@ -281,7 +281,8 @@ class Manifest(object):
             dhcp_end_address=network[-1],
             dhcp_netmask=network.netmask,
             dhcp_gateway=network[1],
-            pxetimeout='3000'
+            pxetimeout='3000',
+            mirror_type=self.mirror_type(),
         )
         self.write_manifest(remote, site_pp)
 
