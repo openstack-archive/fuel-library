@@ -37,34 +37,26 @@ port=3307
 ##
 ## WSREP options
 ##
-
 # Full path to wsrep provider library or 'none'
 wsrep_provider=<%= libgalera_prefix %>/galera/libgalera_smm.so
 
 # Provider specific configuration options
-
 # See http://www.codership.com/wiki/doku.php?id=faq
-
-
 
 wsrep_provider_options="pc.ignore_sb = no;ist.recv_addr=<%= node_address %>;gmcast.listen_addr=tcp://<%= node_address %>:4567"
 
 # Logical cluster name. Should be the same for all nodes.
 wsrep_cluster_name="<%= cluster_name -%>"
-<% if setup_multiple_gcomm -%>
-    <% if master_ip -%>
+
+<% if primary_controller -%>
+wsrep_cluster_address="gcomm://"
+<% else -%>
+    <% if setup_multiple_gcomm -%>
 wsrep_cluster_address="gcomm://<%= @node_addresses.reject{|ip| ip == hostname || ip == node_address || ip == l3_fqdn_hostname }.collect {|ip| ip + ':' + 4567.to_s }.join ',' %>"
     <% else -%>
-wsrep_cluster_address="gcomm://"
-    <% end -%>
-<% else -%>
-    <% if master_ip -%>
-wsrep_cluster_address="gcomm://<%= master_ip %>:4567"
-    <% else -%>
-wsrep_cluster_address="gcomm://"
+wsrep_cluster_address="gcomm://<%= @node_addresses.first %>:4567"
     <% end -%>
 <% end -%>
-
 
 # Human-readable node name (non-unique). Hostname by default.
 #wsrep_node_name=

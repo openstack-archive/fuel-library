@@ -21,15 +21,15 @@ $public_virtual_ip   = '10.0.74.253'
 # Map of controller IP addresses on internal interfaces. Must have an entry for every controller node.
 $controller_internal_addresses = { 'fuel-controller-01'=>'10.0.125.3', 'fuel-controller-02'=>'10.0.125.4'}
 
+if $::hostname == 'fuel-controller-01' {
+  $primary_controller = true
+} else {
+  $primary_controller = false
+}
+
 # Specify pools for Floating IP and Fixed IP.
 # Floating IP addresses are used for communication of VM instances with the outside world (e.g. Internet).
 # Fixed IP addresses are typically used for communication between VM instances.
-if $::hostname == 'fuel-controller-01' {
-  $primary_proxy = true
-} else {
-  $primary_proxy = false
-}
-
 $create_networks = true
 $floating_range  = '10.0.74.128/28'
 $fixed_range     = '10.0.161.128/28'
@@ -65,9 +65,6 @@ $quantum                 = true
 $auto_assign_floating_ip = false
 $glance_backend          = 'file'
 
-# Set master hostname for the HA cluster of controller nodes, as well as hostnames for every controller in the cluster.
-# Set master hostname as fully qualified domain name if FQDNs are used in $controller_internal_addresses
-$master_hostname      = 'fuel-controller-01'
 # Set short hostnames only to $controller_hostnames. RabbitMQ will not work if Fully Qualified domain names set here!
 $controller_hostnames = ['fuel-controller-01', 'fuel-controller-02']
 # Set nagios master fqdn
@@ -248,7 +245,7 @@ node /fuel-controller-[\d+]/ {
       public_virtual_ip       => $public_virtual_ip,
       controller_internal_addresses => $controller_internal_addresses,
       internal_address        => $internal_address,
-      master_hostname         => $master_hostname,
+      primary_controller      => $primary_controller,
       floating_range          => $floating_range,
       fixed_range             => $fixed_range,
       multi_host              => $multi_host,

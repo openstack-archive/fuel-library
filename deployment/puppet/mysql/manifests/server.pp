@@ -23,7 +23,7 @@ class mysql::server (
   $config_hash      = {},
   $enabled          = true,
   $galera_cluster_name = undef,
-  $galera_master_ip = undef,
+  $primary_controller = primary_controller,
   $galera_node_address = undef,
   $galera_nodes = undef
 ) inherits mysql::params {
@@ -61,7 +61,7 @@ class mysql::server (
     Class['galera'] -> Class['mysql::server']
     class { 'galera':
 	    cluster_name => $galera_cluster_name,
-	    master_ip => $galera_master_ip,
+	    primary_controller => $primary_controller,
 	    node_address => $galera_node_address,
       node_addresses => $galera_nodes,
     }

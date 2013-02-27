@@ -30,6 +30,21 @@ $public_virtual_ip   = '10.0.215.253'
 # Fully Qualified domain names are allowed here along with short hostnames.
 $controller_internal_addresses = {'fuel-controller-01' => '10.0.0.103','fuel-controller-02' => '10.0.0.104','fuel-controller-03' => '10.0.0.105'}
 
+# Set hostname of swift_master.
+# It tells on which swift proxy node to build
+# *ring.gz files. Other swift proxies/storages
+# will rsync them.
+if $::hostname == 'fuel-controller-01' {
+  $primary_proxy = true
+} else {
+  $primary_proxy = false
+}
+if $::hostname == 'fuel-controller-01' {
+  $primary_controller = true
+} else {
+  $primary_controller = false
+}
+
 $addresses_hash = {
   'fuel-controller-01' => {
     'internal_address' => '10.0.0.103',
@@ -100,13 +115,7 @@ class node_netconfig (
   l23network::l3::ifconfig {$private_interface: ipaddr=>'none' }
 }
 
-# Set hostname for master controller of HA cluster. 
-# It is strongly recommend that the master controller is deployed before all other controllers since it initializes the new cluster.  
-# Default is fuel-controller-01. 
-# Fully qualified domain name is also allowed.
-$master_hostname = 'fuel-controller-01'
-
-# Array of controller hostnames. 
+# Array of controller hostnames.
 # Duplicating all hostnames/ip addresses, etc, seems kind of repetitive. Used by some services. MUST include the same hostnames as $controller_internal_addresses keys.
 # Only short controller names allowed. Fully qualified domain names are restricted, since it breaks RabbitMQ installation and other services, 
 # requiring only short names for proper work. By default this list repeats controller names from $controller_internal_addresses, but in short hostname only form.
@@ -274,7 +283,7 @@ $controller_node_public  = $internal_virtual_ip
 # *ring.gz files. Other swift proxies/storages
 # will rsync them. 
 # Short hostnames allowed only. No FQDNs.
-$primary_proxy = $::hostname == 'fuel-controller-01'
+
 
 # Hash of proxies hostname|fqdn => ip mappings.
 # This is used by controller_ha.pp manifests for haproxy setup
@@ -391,7 +400,7 @@ class compact_controller (
     private_interface       => $private_interface,
     internal_virtual_ip     => $internal_virtual_ip,
     public_virtual_ip       => $public_virtual_ip,
-    master_hostname         => $master_hostname,
+    primary_controller      => $primary_controller,
     floating_range          => $floating_range,
     fixed_range             => $fixed_range,
     multi_host              => $multi_host,
@@ -479,7 +488,7 @@ node /fuel-controller-01/ {
 
   class { 'openstack::swift::proxy':
     swift_proxies           => $swift_proxies,
-    primary_proxy            => $primary_proxy,
+    primary_proxy           => $primary_proxy,
     controller_node_address => $internal_virtual_ip,
     swift_local_net_ip      => $internal_address,
   }
@@ -518,7 +527,7 @@ node /fuel-controller-02/ {
 
   class { 'openstack::swift::proxy':
     swift_proxies           => $swift_proxies,
-    primary_proxy            => $primary_proxy,
+    primary_proxy           => $primary_proxy,
     controller_node_address => $internal_virtual_ip,
     swift_local_net_ip      => $internal_address,
   }
@@ -557,7 +566,7 @@ node /fuel-controller-03/ {
 
   class { 'openstack::swift::proxy':
     swift_proxies           => $swift_proxies,
-    primary_proxy            => $primary_proxy,
+    primary_proxy           => $primary_proxy,
     controller_node_address => $internal_virtual_ip,
     swift_local_net_ip      => $internal_address,
   }

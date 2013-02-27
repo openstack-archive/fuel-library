@@ -61,8 +61,8 @@ class openstack::db::mysql (
     $quantum_db_user        = 'quantum',
     $quantum_db_dbname      = 'quantum',
     $enabled                = true,
-    $galera_cluster_name = 'openstack',
-    $galera_master_ip = '127.0.0.1',
+    $galera_cluster_name    = 'openstack',
+    $primary_controller     = false,
     $galera_node_address = '127.0.0.1',
     $galera_nodes = ['127.0.0.1'],
     $custom_setup_class = undef
@@ -84,7 +84,7 @@ class openstack::db::mysql (
       'bind_address'  => '0.0.0.0'
     },
     galera_cluster_name	=> $galera_cluster_name,
-    galera_master_ip	=> $galera_master_ip,
+    primary_controller => $primary_controller,
     galera_node_address	=> $galera_node_address,
     galera_nodes      => $galera_nodes,
     enabled => $enabled,

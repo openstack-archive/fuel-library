@@ -65,13 +65,7 @@ $public_address = $addresses[$::hostname]['public_address']
 $internal_netmask = '255.255.255.0'
 $public_netmask = '255.255.255.0'
 
-# Set hostname for master controller of HA cluster. 
-# It is strongly recommend that the master controller is deployed before all other controllers since it initializes the new cluster.  
-# Default is fuel-controller-01. 
-# Fully qualified domain name is also allowed.
-$master_hostname = 'fuel-controller-01'
-
-# Array of controller hostnames. 
+# Array of controller hostnames.
 # Duplicating all hostnames/ip addresses, etc, seems kind of repetitive. Used by some services. MUST include the same hostnames as $controller_internal_addresses keys.
 # Only short controller names allowed. Fully qualified domain names are restricted, since it breaks RabbitMQ installation and other services, 
 # requiring only short names for proper work. By default this list repeats controller names from $controller_internal_addresses, but in short hostname only form.
@@ -234,11 +228,15 @@ $controller_node_public  = $internal_virtual_ip
 # It tells on which swift proxy node to build 
 # *ring.gz files. Other swift proxies/storages
 # will rsync them. 
-# Short hostnames allowed only. No FQDNs.
 if $::hostname == 'fuel-controller-01' {
   $primary_proxy = true
 } else {
   $primary_proxy = false
+}
+if $::hostname == 'fuel-controller-01' {
+  $primary_controller = true
+} else {
+  $primary_controller = false
 }
 
 # Hash of proxies hostname|fqdn => ip mappings.
@@ -351,7 +349,7 @@ class compact_controller {
     private_interface       => $private_interface,
     internal_virtual_ip     => $internal_virtual_ip,
     public_virtual_ip       => $public_virtual_ip,
-    master_hostname         => $master_hostname,
+    primary_controller      => $primary_controller,
     floating_range          => $floating_range,
     fixed_range             => $fixed_range,
     multi_host              => $multi_host,

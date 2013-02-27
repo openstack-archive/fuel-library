@@ -26,7 +26,7 @@ Exec['clocksync']->Exec<| title == 'initial-db-sync' |>
 Exec['clocksync']->Exec<| title == 'post-nova_config' |>
 
 
-define haproxy_service($order, $balancers, $virtual_ips, $port, $define_cookies = false, $master_host = undef) {
+define haproxy_service($order, $balancers, $virtual_ips, $port, $define_cookies = false, $primary_controller = false) {
 
   case $name {
     "mysqld": {
@@ -93,7 +93,7 @@ define haproxy_service($order, $balancers, $virtual_ips, $port, $define_cookies 
     balancer_port          => $balancer_port,
     balancermember_options => $balancermember_options,
     define_cookies         => $define_cookies,
-    master_host            => $master_host
+    primary_controller     => $primary_controller
   }
 
 }
@@ -109,7 +109,7 @@ define keepalived_dhcp_hook($interface)
 
 
 class openstack::controller_ha (
-   $master_hostname,
+   $primary_controller,
    $controller_public_addresses, $public_interface, $private_interface, $controller_internal_addresses,
    $internal_virtual_ip, $public_virtual_ip, $internal_interface, $internal_address,
    $floating_range, $fixed_range, $multi_host, $network_manager, $verbose, $network_config = {}, $num_networks = 1, $network_size = 255,
@@ -128,26 +128,10 @@ class openstack::controller_ha (
    $quantum_external_ipinfo = {},
  ) {
 
-   # $which = $::hostname ? { $master_hostname => 0, default => 1 }
-    if ($::hostname == $master_hostname) or ($::fqdn == $master_hostname) {
-      $which = 0
-    }
-    else {
-      $which = 1
-    }
-    
-
-    #    $vip = $virtual_ip
-    #    $hosts = $controller_hostnames
-    #    $ips = $controller_internal_addresses
-
-
     # haproxy
     include haproxy::params
 
     Haproxy_service {
-#      virtual_ip => $vip,
-#      hostnames => $controller_hostnames,
       balancers => $controller_internal_addresses
     }
 
@@ -181,13 +165,12 @@ local0.* -/var/log/haproxy.log'
     }
 
     haproxy_service { 'glance-reg': order => 90, port => 9191, virtual_ips => [$internal_virtual_ip]  }
-#    haproxy_service { 'rabbitmq-epmd':    order => 91, port => 4369, virtual_ips => [$internal_virtual_ip], master_host => $master_hostname  }
-    haproxy_service { 'rabbitmq-openstack':    order => 92, port => 5672, virtual_ips => [$internal_virtual_ip], master_host => $master_hostname  }
-    haproxy_service { 'mysqld':     order => 95, port => 3306, virtual_ips => [$internal_virtual_ip], master_host => $master_hostname }
-          if $glance_backend == 'swift'
-        {
-                        haproxy_service { 'swift':    order => 96, port => 8080, virtual_ips => [$public_virtual_ip,$internal_virtual_ip], balancers => $swift_proxies }
-        }
+#    haproxy_service { 'rabbitmq-epmd':    order => 91, port => 4369, virtual_ips => [$internal_virtual_ip], primary_controller => $primary_controller }
+    haproxy_service { 'rabbitmq-openstack':    order => 92, port => 5672, virtual_ips => [$internal_virtual_ip], primary_controller => $primary_controller}
+    haproxy_service { 'mysqld': order => 95, port => 3306, virtual_ips => [$internal_virtual_ip], primary_controller => $primary_controller }
+    if $glance_backend == 'swift' {
+      haproxy_service { 'swift': order => 96, port => 8080, virtual_ips => [$public_virtual_ip,$internal_virtual_ip], balancers => $swift_proxies }
+    }
 
 
     exec { 'up-public-interface':
@@ -203,7 +186,7 @@ local0.* -/var/log/haproxy.log'
       path    => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
     }
 
-    if $which == 0 { 
+    if $primary_controller {
       exec { 'create-public-virtual-ip':
         command => "ip addr add ${public_virtual_ip} dev ${public_interface} label ${public_interface}:ka",
         unless  => "ip addr show dev ${public_interface} | grep -w ${public_virtual_ip}",
@@ -220,7 +203,7 @@ local0.* -/var/log/haproxy.log'
 
     Keepalived_dhcp_hook<| |> {before =>Service['keepalived']} 
 
-    if $which == 0 { 
+    if $primary_controller {
       exec { 'create-internal-virtual-ip':
         command => "ip addr add ${internal_virtual_ip} dev ${internal_interface} label ${internal_interface}:ka",
         unless  => "ip addr show dev ${internal_interface} | grep -w ${internal_virtual_ip}",
@@ -272,29 +255,21 @@ local0.* -/var/log/haproxy.log'
     keepalived::instance { $public_vrid:
       interface => $public_interface,
       virtual_ips => [$public_virtual_ip],
-      state    => $which ? { 0 => 'MASTER', default => 'BACKUP' },
-      priority => $which ? { 0 => 101,      default => 100      },
+      state    => $primary_controller ? { true => 'MASTER', default => 'BACKUP' },
+      priority => $primary_controller ? { true => 101,      default => 100      },
     }
     keepalived::instance { $internal_vrid:
       interface => $internal_interface,
       virtual_ips => [$internal_virtual_ip],
-      state    => $which ? { 0 => 'MASTER', default => 'BACKUP' },
-      priority => $which ? { 0 => 101,      default => 100      },
+      state    => $primary_controller ? { true => 'MASTER', default => 'BACKUP' },
+      priority => $primary_controller ? { true => 101,      default => 100      },
     }
-
-#    class { 'galera':
-#   require => Class['haproxy'],
-#      cluster_name => 'openstack',
-#      master_ip => $which ? { 0 => false, default => $controller_internal_addresses[0] },
-#      node_address => $controller_internal_addresses[$which],
-#    }
 
     class { '::openstack::firewall':
       before => Class['galera']
     }
     Class['haproxy'] -> Class['galera']
-#    Class['openstack::controller']->Class['galera']
-    
+
     class { '::openstack::controller':
       public_address          => $public_virtual_ip,
       public_interface        => $public_interface,
@@ -313,7 +288,7 @@ local0.* -/var/log/haproxy.log'
       mysql_root_password     => $mysql_root_password,
       custom_mysql_setup_class=> 'galera',
       galera_cluster_name     => 'openstack',
-      galera_master_ip        => $which ? { 0 => false, default => $controller_internal_addresses[$master_hostname] },
+      primary_controller      => $primary_controller,
       galera_node_address     => $internal_address,
       galera_nodes            => $galera_nodes,
       admin_email             => $admin_email,
@@ -341,7 +316,7 @@ local0.* -/var/log/haproxy.log'
       quantum                 => $quantum,
       quantum_user_password   => $quantum_user_password,
       quantum_db_password     => $quantum_db_password,
-     #quantum_l3_enable       => $which ? { 0 => true, 1 => false },
+     #quantum_l3_enable       => $primary_controller,
       quantum_gre_bind_addr   => $quantum_gre_bind_addr,
       quantum_external_ipinfo => $quantum_external_ipinfo,
       quantum_network_node    => $quantum_network_node,
