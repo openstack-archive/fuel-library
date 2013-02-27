@@ -42,6 +42,7 @@ class openstack::keystone (
   $db_password,
   $admin_token,
   $admin_email,
+  $admin_user = 'admin',
   $admin_password,
   $glance_user_password,
   $nova_user_password,
@@ -172,6 +173,7 @@ class openstack::keystone (
   if ($enabled) {
     # Setup the admin user
     class { 'keystone::roles::admin':
+      admin        => $admin_user,
       email        => $admin_email,
       password     => $admin_password,
       admin_tenant => $admin_tenant,
