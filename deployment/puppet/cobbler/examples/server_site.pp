@@ -15,7 +15,7 @@ $cobbler_user        = 'cobbler'
 $cobbler_password    = 'cobbler'
 $pxetimeout          = '0'
 $dhcp_interface      = 'eth1'
-$mirror_type         = 'internal'
+$mirror_type         = 'default'
 
 stage { 'openstack-custom-repo': before => Stage['main'] }
 class { 'openstack::mirantis_repos': stage => 'openstack-custom-repo', type=>$mirror_type }
