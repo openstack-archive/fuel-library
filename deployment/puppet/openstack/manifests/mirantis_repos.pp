@@ -4,11 +4,17 @@ class openstack::mirantis_repos (
   $type        = 'default',
   $originator  = 'Mirantis Product <product@mirantis.com>',
   $disable_puppet_labs_repos = true,
+  $upstream_mirror        = true,
+  $deb_mirror             = 'http://172.18.67.168/ubuntu-repo/mirror.yandex.ru/ubuntu',
+  $deb_updates            = 'http://172.18.67.168/ubuntu-repo/mirror.yandex.ru/ubuntu',
+  $deb_security           = 'http://172.18.67.168/ubuntu-repo/mirror.yandex.ru/ubuntu',
   $deb_fuel_folsom_repo   = 'http://172.18.67.168/ubuntu-repo/precise-fuel-folsom',
   $deb_cloud_archive_repo = 'http://172.18.67.168/ubuntu-cloud.archive.canonical.com/ubuntu',
   $deb_rabbit_repo        = 'http://172.18.67.168/ubuntu-repo/precise-fuel-folsom',
   $enable_epel = false,
-  $mirrorlist             = 'http://download.mirantis.com/epel-fuel-folsom/mirror.internal-stage.list',
+  $fuel_mirrorlist        = 'http://download.mirantis.com/epel-fuel-folsom/mirror.internal-stage.list',
+  $mirrorlist_base        = 'http://172.18.67.168/centos-repo/mirror-6.3-os.list',
+  $mirrorlist_updates     = 'http://172.18.67.168/centos-repo/mirror-6.3-updates.list',
   $enable_test_repo = false,
 ) {
   case $::osfamily {
@@ -46,20 +52,17 @@ class openstack::mirantis_repos (
       }
       # Below we set our internal repos for testing purposes. Some of them may match with external ones.
       if $type == 'custom' {
-        file {'/etc/apt/sources.list': ensure => absent }
 
-        File['/etc/apt/sources.list'] -> Apt::Source<||>
          apt::source  { 'precise-fuel-folsom':
           location    => $deb_fuel_folsom_repo,
           release     => 'precise',
           repos       => 'main',
           key         => 'F8AF89DD',
           key_source  => 'http://172.18.67.168/ubuntu-repo/precise-fuel-folsom/Mirantis.key',
-#         key_server  => "pgp.mit.edu",
+          #key_server  => "pgp.mit.edu",
           include_src => false,
           #pin         => 1000,
         }->
-
         apt::pin{'mirantis-releases': priority=> 1001, originator=>$originator }
 
         apt::source { 'cloud-archive':
@@ -72,24 +75,6 @@ class openstack::mirantis_repos (
           include_src => false,
         }
 
-        apt::source { 'ubuntu-mirror':
-          location => 'http://172.18.67.168/ubuntu-repo/mirror.yandex.ru/ubuntu',
-          release  => 'precise',
-          repos    => 'main universe multiverse restricted',
-        }
-
-         apt::source { 'ubuntu-updates':
-          location => 'http://172.18.67.168/ubuntu-repo/mirror.yandex.ru/ubuntu',
-          release  => 'precise-updates',
-          repos    => 'main universe multiverse restricted',
-        }
-
-         apt::source { 'ubuntu-security':
-          location => 'http://172.18.67.168/ubuntu-repo/mirror.yandex.ru/ubuntu',
-          release  => 'precise-security',
-          repos    => 'main universe multiverse restricted',
-        }
-
         apt::source { 'rabbit-3.0':
           location    => $deb_rabbit_repo,
           release     => 'precise-rabbitmq-3.0',
@@ -97,6 +82,30 @@ class openstack::mirantis_repos (
           key         => '5EDB1B62EC4926EA',
           key_source  => 'http://172.18.67.168/ubuntu-repo/precise-fuel-folsom/Mirantis.key',
           include_src => false,
+        }
+
+        if $upstream_mirror == true {
+
+          file {'/etc/apt/sources.list': ensure => absent }
+          File['/etc/apt/sources.list'] -> Apt::Source<||>
+
+          apt::source { 'ubuntu-mirror':
+            location => $deb_mirror,
+            release  => 'precise',
+            repos    => 'main universe multiverse restricted',
+          }
+
+           apt::source { 'ubuntu-updates':
+            location => $deb_updates,
+            release  => 'precise-updates',
+            repos    => 'main universe multiverse restricted',
+          }
+
+           apt::source { 'ubuntu-security':
+            location => $deb_security,
+            release  => 'precise-security',
+            repos    => 'main universe multiverse restricted',
+          }
         }
       }
 
@@ -127,9 +136,23 @@ class openstack::mirantis_repos (
       if $type == 'custom' {
         yumrepo { 'openstack-epel-fuel':
           descr      => 'Mirantis OpenStack Custom Packages',
-          mirrorlist => $mirrorlist,
+          mirrorlist => $fuel_mirrorlist,
           gpgcheck   => '1',
           gpgkey     => 'http://download.mirantis.com/epel-fuel-folsom/epel.key  http://download.mirantis.com/epel-fuel-folsom/centos.key http://download.mirantis.com/epel-fuel-folsom/rabbit.key http://download.mirantis.com/epel-fuel-folsom/mirantis.key http://download.mirantis.com/epel-fuel-folsom/mysql.key',
+        }
+
+        if $upstream_mirror == true {
+          yumrepo { 'centos-base':
+            descr      => 'Local base mirror repository',
+            name       => 'base',
+            mirrorlist => $mirrorlist_base,
+          }
+
+          yumrepo { 'centos-updates':
+            descr      => 'Local updates mirror repository',
+            name       => 'updates',
+            mirrorlist => $mirrorlist_updates,
+          }
         }
       }
 
