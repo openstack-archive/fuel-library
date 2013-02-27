@@ -104,14 +104,16 @@ Puppet::Type.type(:cs_order).provide(:crm, :parent => Puppet::Provider::Corosync
   # as stdin for the crm command.
   def flush
     unless @property_hash.empty?
+      self.class.block_until_ready
       updated = 'order '
       updated << "#{@property_hash[:name]} #{@property_hash[:score]}: "
       updated << "#{@property_hash[:first]} #{@property_hash[:second]}"
       Tempfile.open('puppet_crm_update') do |tmpfile|
         tmpfile.write(updated.rstrip)
         tmpfile.flush
-        ENV['CIB_shadow'] = @resource[:cib]
-        crm('configure', 'load', 'update', tmpfile.path.to_s)
+        env = {}
+        env["CIB_shadow"] = @resource[:cib].to_s if !@resource[:cib].nil?
+        exec_withenv("#{command(:crm)} configure load update #{tmpfile.path.to_s}",env)
       end
     end
   end

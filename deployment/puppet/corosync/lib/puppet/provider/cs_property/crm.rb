@@ -76,8 +76,9 @@ Puppet::Type.type(:cs_property).provide(:crm, :parent => Puppet::Provider::Coros
     unless @property_hash.empty?
       # clear this on properties, in case it's set from a previous
       # run of a different corosync type
-      ENV['CIB_shadow'] = @resource[:cib]
-      crm('configure', 'property', '$id="cib-bootstrap-options"', "#{@property_hash[:name]}=#{@property_hash[:value]}")
+    env = {}
+    env["CIB_shadow"] = @resource[:cib].to_s if !@resource[:cib].nil?
+    exec_withenv("#{command(:crm)}  configure property \\$id=\"cib-bootstrap-options\" #{@property_hash[:name]}=#{@property_hash[:value]}", env)
     end
   end
 end
