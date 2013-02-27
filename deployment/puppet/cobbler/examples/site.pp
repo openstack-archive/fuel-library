@@ -43,7 +43,7 @@ $cobbler_password    = 'cobbler'
 $pxetimeout          = '0'
 
 # Predefined mirror type to use: internal or external (should be removed soon)
-$mirror_type         = 'internal'
+$mirror_type         = 'default'
 
 # Management network to set up NAT masquerade in iptables on cobbler/puppetmaster node
 # (should be automatically calculated from DHCP parameters defined above)

@@ -1,7 +1,7 @@
 Exec { logoutput => true, path => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'] }
 
 stage {'openstack-custom-repo': before => Stage['main']}
-$mirror_type="external"
+$mirror_type="default"
 class { 'openstack::mirantis_repos': stage => 'openstack-custom-repo', type=>$mirror_type }
 
 
