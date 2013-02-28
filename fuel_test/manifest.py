@@ -80,6 +80,11 @@ class Template(object):
         return cls(root('deployment', 'puppet', 'openstack', 'examples',
             'site_openstack_swift_standalone.pp'))
 
+    @classmethod
+    def nagios(cls):
+        return cls(root('deployment', 'puppet', 'nagios', 'examples',
+                        'master.pp'))
+
 
 class Manifest(object):
     def mirror_type(self):
@@ -290,6 +295,9 @@ class Manifest(object):
         self.write_manifest(remote, Template.stomp().replace(
             mirror_type=self.mirror_type()
         ))
+
+    def write_nagios_manifest(self, remote):
+        self.write_manifest(remote, Template.nagios())
 
 
 
