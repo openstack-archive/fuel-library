@@ -490,6 +490,7 @@ node /fuel-controller-01/ {
   }
 
   class { 'openstack::swift::proxy':
+    swift_user_password     => $swift_user_password,
     swift_proxies           => $swift_proxies,
     primary_proxy           => $primary_proxy,
     controller_node_address => $internal_virtual_ip,
@@ -529,6 +530,7 @@ node /fuel-controller-02/ {
   }
 
   class { 'openstack::swift::proxy':
+    swift_user_password     => $swift_user_password,
     swift_proxies           => $swift_proxies,
     primary_proxy           => $primary_proxy,
     controller_node_address => $internal_virtual_ip,
@@ -568,6 +570,7 @@ node /fuel-controller-03/ {
   }
 
   class { 'openstack::swift::proxy':
+    swift_user_password     => $swift_user_password,
     swift_proxies           => $swift_proxies,
     primary_proxy           => $primary_proxy,
     controller_node_address => $internal_virtual_ip,
