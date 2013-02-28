@@ -10,8 +10,10 @@
 		<project>haproxy</project>
 		<project>keepalived</project>
 		<project>keystone</project>
+		<project>l23network</project>
 		<project>lvm</project>
 		<project>mysql</project>
+		<project>nagios</project>
 		<project>ntpd</project>
 		<project>quantum</project>
 		<project>rsyslog</project>

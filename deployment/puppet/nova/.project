@@ -4,8 +4,10 @@
 	<comment></comment>
 	<projects>
 		<project>glance</project>
+		<project>horizon</project>
 		<project>keystone</project>
 		<project>lvm</project>
+		<project>memcached</project>
 		<project>quantum</project>
 	</projects>
 	<buildSpec>
