@@ -79,32 +79,37 @@ end
 nodes_raw = YAML.load_file( opts[:filename] )
 nodes = Array.new
 domain_name = ''
+use_case = ''
 
-nodes_raw.each do |key, value|
-  domain_name = value if key =='domain_name'
+if nodes_raw.has_key?('common')
+  if nodes_raw['common'].has_key?('orchestrator_common')
+    common = nodes_raw['common']['orchestrator_common']
+    domain_name = common['domain_name'] if common.has_key?('domain_name')
+    use_case = common['use_case'] if common.has_key?('use_case')
+  end
 end
 
 nodes_raw.each do |key, value|
-  next if (key == 'use_case') or (key =='domain_name')
+  next if (key == 'common')
   
   if /^\/.*\/$/.match(key) # if name stats and ends with '/' then it's regexp
     name_regexp = Regexp.new(key.slice(1..-2))
     name_with_domain_regexp = Regexp.new(key.slice(1..-2) + '.' + domain_name)
     pinged_nodes_list.each do |name|
       if name_regexp.match(name) or name_with_domain_regexp.match(name)
-        hash_element = value.clone
+        hash_element = { 'role' => value['role'] }
         hash_element['uid'] = name
         nodes += [hash_element]
       end
     end
   else
     if pinged_nodes_list.include? key
-      hash_element = value.clone
+      hash_element = { 'role' => value['role'] }
       hash_element['uid'] = key
       nodes += [hash_element]
     elsif pinged_nodes_list.include?(key + '.' + domain_name)
     # check if we can find this name after appending domain name
-      hash_element = value.clone
+      hash_element = { 'role' => value['role'] }
       hash_element['uid'] = key + '.' + domain_name
       nodes += [hash_element]
     else # coudn't ping this node or wrong name
@@ -118,17 +123,17 @@ ctrl_nodes = ctrl_nodes.sort{|x,y| x['uid'] <=> y['uid']}
 compute_nodes = nodes.select {|n| n['role'] == 'compute'}
 compute_nodes = compute_nodes.sort{|x,y| x['uid'] <=> y['uid']}
 
-if nodes_raw['use_case'] == "minimal" or
-    nodes_raw['use_case'] == "simple"  
+if use_case == "minimal" or
+    use_case == "simple"  
   puppet_consecutive_call(context, ctrl_nodes)
   puppet_parallel_call(context, compute_nodes)
-elsif nodes_raw['use_case'] == "compact"
+elsif use_case == "compact"
   puppet_consecutive_call(context, ctrl_nodes[0])
   puppet_parallel_call(context, ctrl_nodes[1..2])
   puppet_parallel_call(context, ctrl_nodes)
   puppet_consecutive_call(context, ctrl_nodes[0])
   puppet_parallel_call(context, ctrl_nodes[1..2] + compute_nodes)
-elsif nodes_raw['use_case'] == "full"
+elsif use_case == "full"
   storage_nodes = nodes.select {|n| n['role'] == 'storage'}
   storage_nodes = storage_nodes.sort{|x,y| x['uid'] <=> y['uid']}
   proxy_nodes = nodes.select {|n| n['role'] == 'proxy'}
@@ -142,5 +147,5 @@ elsif nodes_raw['use_case'] == "full"
   puppet_parallel_call(context, storage_nodes)
   puppet_parallel_call(context, proxy_nodes[1])
 else
-  puts "Use case " + nodes_raw['use_case'] + " is not supported!"
+  puts "Use case " + use_case + " is not supported!"
 end
