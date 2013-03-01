@@ -137,6 +137,12 @@ def main():
     with open(params.file, 'r') as file:
         nodes = yaml.load(file.read())
 
+    common = nodes.pop('common') if 'common' in nodes.keys() else {}
+    cobbler_common = common.pop('cobbler_common') if 'cobbler_common' in common.keys() else {}
+    for x in nodes:
+        if "role" in nodes[x].keys(): nodes[x].pop("role")
+        nodes[x].update(cobbler_common)
+
     for name in nodes:
         logger.info("====== Defining node ======: %s" % name)
         update_system(name, nodes[name])
