@@ -50,7 +50,7 @@ class Puppet::Provider::Keystone < Puppet::Provider
     begin
       keystone('--token', admin_token, '--endpoint', admin_endpoint, args)
     rescue Exception => e
-      if e.message =~ /\(HTTP 400\)/
+      if e.message =~ /(\(HTTP 400\))|(\[Errno 111\] Connection refused)/
        sleep 10
        keystone('--token', admin_token, '--endpoint', admin_endpoint, args)
       else
@@ -69,7 +69,8 @@ class Puppet::Provider::Keystone < Puppet::Provider
       # this assumes that all returned objects are of the form
       # id, name, enabled_state, OTHER
       # number_columns can be a Fixnum or an Array of possible values that can be returned
-      list = (auth_keystone("#{type}-list", args).split("\n")[3..-2] || []).collect do |line|
+      list = (auth_keystone("#{type}-list", args).split("\n")[3..-2] || []).select{ |line| line =~ /^\|.*\|$/ }.reject{ |line| line =~ /^\|\s+id\s+\|\s+name\s+\|\s+enabled\s+\|$/}.collect do |line|
+
         row = line.split(/\|/)[1..-1]
         row = row.map {|x| x.strip }
         # if both checks fail then we have a mismatch between what was expected and what was received
