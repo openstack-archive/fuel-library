@@ -86,6 +86,10 @@ module Astute
           # At least we will report about successfully deployed nodes
           nodes_to_report = calc_nodes['succeed'].map { |n| {'uid' => n, 'status' => 'ready'} }
 
+          if last_run[0].results[:data][:resources]["failed"]
+          puts "Puppet error while installing " + nodes_to_report.inspect.to_str
+          exit!
+
           # Process retries
           nodes_to_retry = []
           calc_nodes['error'].each do |uid|
