@@ -154,22 +154,6 @@ class horizon(
         before  => Package['dashboard'],
       }  # ensure there is a HTTP redirect from / to /dashboard
 
-      # file_line { 'horizon_redirect_rule':
-      #   path => $::horizon::params::config_file,
-      #   line => 'RedirectMatch permanent ^/$ /dashboard/',
-      #   require => Package["$::horizon::params::package_name"],
-      #   notify => Service["$::horizon::params::http_service"]
-      # }
-
-      # file_line { 'httpd_listen_on_internal_network_only':
-      #   path => $::horizon::params::httpd_listen_config_file,
-      #   match => '^Listen (.*)$',
-      #   line => "Listen ${bind_address}:80",
-      #   before => [Service["$::horizon::params::http_service"]],
-      #   notify => [Service["$::horizon::params::http_service"]],
-      #   require =>[Package["$::horizon::params::package_name"]] 
-      # }
-
       if $use_ssl {
         package { 'mod_ssl':
           ensure => present,
@@ -201,22 +185,12 @@ class horizon(
       file { '/etc/apache2/sites-enabled/openstack-dashboard':
         ensure  => link,
         target  => $::horizon::params::vhosts_file,
-        #require => File['/etc/apache2/sites-available/openstack-dashboard'],
       }
 
       file { '/etc/apache2/sites-enabled/000-default':
         ensure => absent,
         before => Service['httpd'],
       }
-
-   # exec { 'a2enmod wsgi':
-   #   command => 'a2enmod wsgi',
-   #   path => ['/usr/bin','/usr/sbin','/bin/','/sbin'],
-   #   require => Package["$::horizon::params::http_service", "$::horizon::params::http_modwsgi"],
-   #   before  => Package["$::horizon::params::package_name"],
-   # }
-
-
     }
   }
 
