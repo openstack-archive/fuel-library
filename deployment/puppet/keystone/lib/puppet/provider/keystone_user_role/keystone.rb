@@ -131,7 +131,11 @@ Puppet::Type.type(:keystone_user_role).provide(
       # id, name, enabled_state, OTHER
       number_columns = 4
       role_output = auth_keystone('user-role-list', '--user-id', user_id, '--tenant-id', tenant_id)
-      list = (role_output.split("\n")[3..-2] || []).collect do |line|
+      list = (role_output.split("\n")[3..-2] || []).select do 
+          |line| line =~ /^\|.*\|$/
+      end.reject do
+              |line| line =~ /^\|\s+id\s+\|\s+name\s+\|\s+user_id\s+\|\s+tenant_id\s+\|$/
+      end.collect do |line|
         row = line.split(/\s*\|\s*/)[1..-1]
         if row.size != number_columns
           raise(Puppet::Error, "Expected #{number_columns} columns for #{type} row, found #{row.size}. Line #{line}")
