@@ -15,11 +15,13 @@ class mcollective::client(
       $mcollective_client_package = "mcollective-client"
       $mcollective_client_config_template="mcollective/client.cfg.ubuntu.erb"
       $mcollective_agent_path = "/usr/share/mcollective/plugins/mcollective/agent"
+      $additional_packages = "ruby-dev"
     }
     'RedHat': {
       $mcollective_client_package = "mcollective-client"
       $mcollective_client_config_template="mcollective/client.cfg.erb"
       $mcollective_agent_path = "/usr/libexec/mcollective/mcollective/agent"
+      $additional_packages = "ruby-devel"
     }
     default: {
       fail("Unsupported osfamily: ${osfamily} for os ${operatingsystem}")
@@ -27,7 +29,7 @@ class mcollective::client(
   }
 
 # install ruby-devel, make and gcc to exclude problems with installing astute gem
-  package { "ruby-devel" :
+  package { $additional_packages :
     ensure => 'present',
   }
 
