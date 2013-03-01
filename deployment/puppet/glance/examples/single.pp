@@ -33,7 +33,7 @@ node glance_keystone_mysql {
   class { 'keystone::roles::admin': }
   class { 'role_glance_mysql': }
   class { 'glance::keystone::auth': }
-  
+
 }
 
 node default {

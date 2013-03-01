@@ -12,5 +12,4 @@ class { 'openstack::controller':
   glance_db_password   => 'password',
   glance_user_password => 'password',
   secret_key           => '12345',
-  exported_resources   => false,
 }
