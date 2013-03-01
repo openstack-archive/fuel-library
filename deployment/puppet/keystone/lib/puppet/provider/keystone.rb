@@ -69,7 +69,7 @@ class Puppet::Provider::Keystone < Puppet::Provider
       # this assumes that all returned objects are of the form
       # id, name, enabled_state, OTHER
       # number_columns can be a Fixnum or an Array of possible values that can be returned
-      list = (auth_keystone("#{type}-list", args).split("\n")[3..-2] || []).select{ |line| line =~ /^\|.*\|$/ }.reject{ |line| line =~ /^\|\s+id\s+\|\s+name\s+\|\s+enabled\s+\|$/}.collect do |line|
+      list = (auth_keystone("#{type}-list", args).split("\n")[3..-2] || []).select{ |line| line =~ /^\|.*\|$/ }.reject{ |line| line =~ /^\|\s+id\s+.*\|$/}.collect do |line|
 
         row = line.split(/\|/)[1..-1]
         row = row.map {|x| x.strip }
@@ -79,6 +79,7 @@ class Puppet::Provider::Keystone < Puppet::Provider
         end
         row
       end
+	debug(list.inspect)
       list
     end
     def self.get_keystone_object(type, id, attr)
