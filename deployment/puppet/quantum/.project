@@ -4,7 +4,9 @@
 	<comment></comment>
 	<projects>
 		<project>keystone</project>
+		<project>l23network</project>
 		<project>selinux</project>
+		<project>stdlib</project>
 		<project>sysctl</project>
 		<project>vswitch</project>
 	</projects>

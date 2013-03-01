@@ -16,11 +16,13 @@ Puppet::Type.newtype(:ring_account_device) do
     desc "mountpoints and weight "
   end
 
-  newproperty(:zone)
+  newproperty(:zone) do
+  end  
 
   # weight removed in 103b68b but I don't know why
 
-  newproperty(:meta)
+  newproperty(:meta) do
+  end
 
   [:id, :partitions, :balance].each do |param|
     newproperty(param) do

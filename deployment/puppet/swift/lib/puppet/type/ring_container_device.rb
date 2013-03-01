@@ -16,11 +16,13 @@ Puppet::Type.newtype(:ring_container_device) do
     desc "mountpoints and weight "
   end
 
-  newproperty(:zone)
+  newproperty(:zone) do
+  end
 
   # Commit 103b68b removed weight but I don't know why.
 
-  newproperty(:meta)
+  newproperty(:meta) do
+  end
 
   [:id, :partitions, :balance].each do |param|
     newproperty(param) do

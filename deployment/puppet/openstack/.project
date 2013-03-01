@@ -8,12 +8,15 @@
 		<project>firewall</project>
 		<project>glance</project>
 		<project>haproxy</project>
+		<project>horizon</project>
 		<project>keepalived</project>
 		<project>keystone</project>
 		<project>l23network</project>
 		<project>lvm</project>
+		<project>memcached</project>
 		<project>mysql</project>
 		<project>nagios</project>
+		<project>nova</project>
 		<project>ntpd</project>
 		<project>quantum</project>
 		<project>rsyslog</project>
