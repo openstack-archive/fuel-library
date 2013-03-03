@@ -1,5 +1,5 @@
 class nagios::service(
-  $templateservice = nagios::master::templateservice,
+  $templateservice = $nagios::master::templateservice,
 ) inherits nagios::master {
 
 #  nagios::service::servicegroups { $servicegroups: }
