@@ -67,7 +67,7 @@ class Puppet::Provider::Corosync_service < Puppet::Provider
 
   def exists?
     self.class.block_until_ready
-    debug(@property_hash.inspect)
+    #debug(@property_hash.inspect)
     !(@property_hash[:ensure] == :absent or @property_hash.empty?)
   end
 end

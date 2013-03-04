@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 #
 # OpenStack OVS Service (quantum-ovs-agent)
@@ -38,6 +38,8 @@ OCF_RESKEY_plugin_config_default="/etc/quantum/plugins/openvswitch/ovs_quantum_p
 OCF_RESKEY_user_default="quantum"
 OCF_RESKEY_pid_default="$HA_RSCTMP/$OCF_RESOURCE_INSTANCE.pid"
 OCF_RESKEY_amqp_server_port_default="5672"
+OCF_RESKEY_integration_bridge_default="br-int"
+OCF_RESKEY_segmentation_bridge_default="br-tun"
 
 : ${OCF_RESKEY_binary=${OCF_RESKEY_binary_default}}
 : ${OCF_RESKEY_config=${OCF_RESKEY_config_default}}
@@ -45,6 +47,8 @@ OCF_RESKEY_amqp_server_port_default="5672"
 : ${OCF_RESKEY_user=${OCF_RESKEY_user_default}}
 : ${OCF_RESKEY_pid=${OCF_RESKEY_pid_default}}
 : ${OCF_RESKEY_amqp_server_port=${OCF_RESKEY_amqp_server_port_default}}
+: ${OCF_RESKEY_integration_bridge=${OCF_RESKEY_integration_bridge_default}}
+: ${OCF_RESKEY_segmentation_bridge=${OCF_RESKEY_segmentation_bridge_default}}
 
 #######################################################################
 
@@ -95,7 +99,7 @@ Location of the OpenStack Quantum Service (quantum-server) configuration file
 <content type="string" default="${OCF_RESKEY_config_default}" />
 </parameter>
 
-<parameter name="plugin config" unique="0" required="0">
+<parameter name="plugin_config" unique="0" required="0">
 <longdesc lang="en">
 Location of the OpenStack OVS Service (quantum-ovs-agent) configuration file
 </longdesc>
@@ -119,14 +123,6 @@ The pid file to use for this OpenStack OVS Service (quantum-ovs-agent) instance
 <content type="string" default="${OCF_RESKEY_pid_default}" />
 </parameter>  
 
-<parameter name="amqp_server_port" unique="0" required="0">                                                                                                                                                              
-<longdesc lang="en">                                                                                                                                                                                                      
-The listening port number of the AMQP server. Mandatory to perform a monitor check                                                                                                                                        
-</longdesc>                                                                                                                                                                                                               
-<shortdesc lang="en">AMQP listening port</shortdesc>                                                                                                                                                                      
-<content type="integer" default="${OCF_RESKEY_amqp_server_port_default}" />                                                                                                                                              
-</parameter>      
-
 
 <parameter name="additional_parameters" unique="0" required="0">
 <longdesc lang="en">
@@ -135,6 +131,24 @@ Additional parameters to pass on to the OpenStack OVS Service (quantum-ovs-agent
 <shortdesc lang="en">Additional parameters for quantum-ovs-agent</shortdesc>
 <content type="string" />
 </parameter>
+
+<parameter name="integration_bridge" unique="0" required="0">
+<longdesc lang="en">
+OVS integration bridge name OpenStack OVS Service (quantum-ovs-agent)
+</longdesc>
+<shortdesc lang="en">Integration bridge name for quantum-ovs-agent</shortdesc>
+<content type="string" default="${OCF_RESKEY_integration_bridge_default}"/>
+</parameter>
+
+<parameter name="segmentation_bridge" unique="0" required="0">
+<longdesc lang="en">
+OVS integration bridge name OpenStack OVS Service (quantum-ovs-agent)
+</longdesc>
+<shortdesc lang="en">Segmentation bridge name for quantum-ovs-agent</shortdesc>
+<content type="string" default="${OCF_RESKEY_segmentation_bridge_default}"/>
+</parameter>
+
+
 
 </parameters>
 
@@ -184,8 +198,19 @@ quantum_ovs_agent_status() {
     local rc
 
     if [ ! -f $OCF_RESKEY_pid ]; then
-        ocf_log info "OpenStack OVS Server (quantum-ovs-agent) is not running"
-        return $OCF_NOT_RUNNING
+        ocf_log info "OpenStack OVS Server (quantum-ovs-agent) seems not to exist"
+        
+        pid=`pgrep -f ${OCF_RESKEY_binary}`
+        
+        if [ $? -eq 0 ]
+        then
+        	ocf_log warn "OpenStack OVS Server (quantum-ovs-agent) was run, but no pid file found."
+        	ocf_log warn "Will use $pid as PID of process (quantum-ovs-agent)"
+        	ocf_log warn "Writing $pid into $OCF_RESKEY_pid"
+        	echo $pid > $OCF_RESKEY_pid
+    	else
+    		return $OCF_NOT_RUNNING
+    	fi
     else
         pid=`cat $OCF_RESKEY_pid`
     fi
@@ -195,40 +220,41 @@ quantum_ovs_agent_status() {
     if [ $rc -eq 0 ]; then
         return $OCF_SUCCESS
     else
-        ocf_log info "Old PID file found, but OpenStack OVS Server (quantum-ovs-agent) is not running"
+        ocf_log info "Old PID file $OCF_RESKEY_pid found (with pid $pid), but OpenStack OVS Server (quantum-ovs-agent) is not running"
         return $OCF_NOT_RUNNING
     fi
 }
 
 quantum_ovs_agent_monitor() {
-    local rc
-    local pid
-    local network_amqp_check
-    
     quantum_ovs_agent_status
     rc=$?
-
-    # If status returned anything but success, return that immediately
-    if [ $rc -ne $OCF_SUCCESS ]; then
-        return $rc
-    fi
-
-    # Check the connections according to the PID.
-    # We are sure to hit the scheduler process and not other Quantum process with the same connection behavior (for example quantum-server)
-        pid=`cat $OCF_RESKEY_pid`
-        # check the connections according to the PID
-        network_amqp_check=`netstat -punt | grep -s "$OCF_RESKEY_amqp_server_port" | grep -s "$pid" | grep -qs "ESTABLISHED"`
-        rc=$?
-	    if [ $rc -ne 0 ]; then
-	        ocf_log err "Quantum OVS Server is not connected to the AMQP server : $rc"
-	        return $OCF_NOT_RUNNING
-	    fi
-
-    ocf_log debug "OpenStack OVS Server (quantum-ovs-agent) monitor succeeded"
-    return $OCF_SUCCESS
+    return $rc
 }
 
-clean_up_bridges() {
+clean_up() {
+	
+	ocf_log info "cleaning up integration bridge"
+	ovs-vsctl -- --if-exists del-br ${OCF_RESKEY_segmentation_bridge}
+	rc=$?
+	if [ $rc -ne 0 ]; then
+        ocf_log err "Could not clean up segmentation bridge ${OCF_RESKEY_segmentation_bridge}"
+        exit $OCF_ERR_GENERIC
+    fi
+    ocf_log info "cleaning up segmentation bridge"
+	ovs-vsctl -- --if-exists del-br ${OCF_RESKEY_integration_bridge}
+	rc=$?
+	if [ $rc -ne 0 ]; then
+        ocf_log err "Could not clean up integration bridge ${OCF_RESKEY_integration_bridge}"
+        exit $OCF_ERR_GENERIC
+    fi
+    ocf_log info "recreating integration bridge"
+	ovs-vsctl -- --may-exist add-br ${OCF_RESKEY_integration_bridge}
+	rc=$?
+	if [ $rc -ne 0 ]; then
+        ocf_log err "Could not start up integration bridge ${OCF_RESKEY_integration_bridge}"
+        exit $OCF_ERR_GENERIC
+    fi
+    	            
 
 }
 
@@ -242,11 +268,12 @@ quantum_ovs_agent_start() {
         return $OCF_SUCCESS
     fi
     
-    clean_up_bridges
+    clean_up
+    
     # run the actual quantum-ovs-agent daemon. Don't use ocf_run as we're sending the tool's output
     # straight to /dev/null anyway and using ocf_run would break stdout-redirection here.
     su ${OCF_RESKEY_user} -s /bin/sh -c "${OCF_RESKEY_binary} --config-file=$OCF_RESKEY_config \
-       --config-file=$OCF_RESKEY_plugin_config --log-file=/var/log/quantum/ovs-agent.log $OCF_RESKEY_additional_parameters"' >> \
+       --config-file=$OCF_RESKEY_plugin_config $OCF_RESKEY_additional_parameters"' >> \
 	/dev/null 2>&1 & echo $!' > $OCF_RESKEY_pid
 
     # Spin waiting for the server to come up.
@@ -273,6 +300,7 @@ quantum_ovs_agent_stop() {
     quantum_ovs_agent_status
     rc=$?
     if [ $rc -eq $OCF_NOT_RUNNING ]; then
+    	clean_up
         ocf_log info "OpenStack OVS Server (quantum-ovs-agent) already stopped"
         return $OCF_SUCCESS
     fi
@@ -313,7 +341,7 @@ quantum_ovs_agent_stop() {
         ocf_run kill -s KILL $pid
     fi
 
-    clean_up_bridges 
+    clean_up 
 
     ocf_log info "OpenStack OVS Server (quantum-ovs-agent) stopped"
 

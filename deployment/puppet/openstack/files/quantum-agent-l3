@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 #
 # OpenStack L3 Service (quantum-l3-agent)
@@ -37,14 +37,23 @@ OCF_RESKEY_config_default="/etc/quantum/quantum.conf"
 OCF_RESKEY_plugin_config_default="/etc/quantum/l3_agent.ini"
 OCF_RESKEY_user_default="quantum"
 OCF_RESKEY_pid_default="$HA_RSCTMP/$OCF_RESOURCE_INSTANCE.pid"
-OCF_RESKEY_quantum_server_port_default="9696"
+OCF_RESKEY_os_auth_url_default="http://localhost:5000/v2.0"
+OCF_RESKEY_username_default="quantum"
+OCF_RESKEY_password_default="quantum_pass"
+OCF_RESKEY_tenant_default="services"
 
+
+: ${OCF_RESKEY_os_auth_url=${OCF_RESKEY_os_auth_url_default}}
+: ${OCF_RESKEY_username=${OCF_RESKEY_username_default}}
+: ${OCF_RESKEY_password=${OCF_RESKEY_password_default}}
+: ${OCF_RESKEY_tenant=${OCF_RESKEY_tenant_default}}
 : ${OCF_RESKEY_binary=${OCF_RESKEY_binary_default}}
 : ${OCF_RESKEY_config=${OCF_RESKEY_config_default}}
 : ${OCF_RESKEY_plugin_config=${OCF_RESKEY_plugin_config_default}}
 : ${OCF_RESKEY_user=${OCF_RESKEY_user_default}}
 : ${OCF_RESKEY_pid=${OCF_RESKEY_pid_default}}
-: ${OCF_RESKEY_quantum_server_port=${OCF_RESKEY_quantum_server_port_default}}
+
+
 
 #######################################################################
 
@@ -95,7 +104,7 @@ Location of the OpenStack Quantum Service (quantum-server) configuration file
 <content type="string" default="${OCF_RESKEY_config_default}" />
 </parameter>
 
-<parameter name="plugin config" unique="0" required="0">
+<parameter name="plugin_config" unique="0" required="0">
 <longdesc lang="en">
 Location of the OpenStack L3 Service (quantum-l3-agent) configuration file
 </longdesc>
@@ -128,6 +137,40 @@ The listening port number of the AMQP server. Mandatory to perform a monitor che
 </parameter>      
 
 
+<parameter name="username" unique="0" required="0">                                                                                                                                                              
+<longdesc lang="en">                                                                                                                                                                                                      
+Quantum username for port list fetching                                                                                                                                        
+</longdesc>                                                                                                                                                                                                               
+<shortdesc lang="en">Quantum username</shortdesc>                                                                                                                                                                      
+<content type="string" default="${OCF_RESKEY_username_default}" />                                                                                                                                              
+</parameter>      
+
+
+<parameter name="password" unique="0" required="0">                                                                                                                                                              
+<longdesc lang="en">                                                                                                                                                                                                      
+Quantum password for port list fetching                                                                                                                                        
+</longdesc>                                                                                                                                                                                                               
+<shortdesc lang="en">Quantum password</shortdesc>                                                                                                                                                                      
+<content type="string" default="${OCF_RESKEY_password_default}" />                                                                                                                                              
+</parameter>      
+
+<parameter name="os_auth_url" unique="0" required="0">                                                                                                                                                              
+<longdesc lang="en">                                                                                                                                                                                                      
+URL of keystone                                                                                                                                        
+</longdesc>                                                                                                                                                                                                               
+<shortdesc lang="en">Keystone URL</shortdesc>                                                                                                                                                                      
+<content type="string" default="${OCF_RESKEY_os_auth_url_default}" />                                                                                                                                              
+</parameter>      
+
+<parameter name="tenant" unique="0" required="0">                                                                                                                                                              
+<longdesc lang="en">                                                                                                                                                                                                      
+Admin tenant name                                                                                                                                        
+</longdesc>                                                                                                                                                                                                               
+<shortdesc lang="en">Admin tenant</shortdesc>                                                                                                                                                                      
+<content type="string" default="${OCF_RESKEY_tenant_default}" />                                                                                                                                              
+</parameter>      
+
+
 <parameter name="additional_parameters" unique="0" required="0">
 <longdesc lang="en">
 Additional parameters to pass on to the OpenStack L3 Service (quantum-l3-agent)
@@ -135,6 +178,8 @@ Additional parameters to pass on to the OpenStack L3 Service (quantum-l3-agent)
 <shortdesc lang="en">Additional parameters for quantum-l3-agent</shortdesc>
 <content type="string" />
 </parameter>
+
+
 
 </parameters>
 
@@ -184,8 +229,19 @@ quantum_l3_agent_status() {
     local rc
 
     if [ ! -f $OCF_RESKEY_pid ]; then
-        ocf_log info "OpenStack L3 Server (quantum-l3-agent) is not running"
-        return $OCF_NOT_RUNNING
+        ocf_log info "OpenStack OVS Server (quantum-l3-agent) seems not to exist"
+        
+        pid=`pgrep -f ${OCF_RESKEY_binary}`
+        
+        if [ $? -eq 0 ]
+        then
+        	ocf_log warn "OpenStack OVS Server (quantum-l3-agent) was run, but no pid file found."
+        	ocf_log warn "Will use $pid as PID of process (quantum-l3-agent)"
+        	ocf_log warn "Writing $pid into $OCF_RESKEY_pid"
+        	echo $pid > $OCF_RESKEY_pid
+    	else
+    		return $OCF_NOT_RUNNING
+    	fi
     else
         pid=`cat $OCF_RESKEY_pid`
     fi
@@ -195,42 +251,59 @@ quantum_l3_agent_status() {
     if [ $rc -eq 0 ]; then
         return $OCF_SUCCESS
     else
-        ocf_log info "Old PID file found, but OpenStack L3 Server (quantum-l3-agent) is not running"
+        ocf_log info "Old PID file found, but OpenStack OVS Server (quantum-l3-agent) is not running"
         return $OCF_NOT_RUNNING
     fi
 }
 
+
+
+clean_up()
+{
+	quantum --os-auth-url ${OCF_RESKEY_os_auth_url} --os-username ${OCF_RESKEY_username} --os-password ${OCF_RESKEY_password} --os-tenant-name ${OCF_RESKEY_tenant} port-list --quote minimal -f csv |	 awk -F ',' '{print $1}' |	 tail -n +2 |
+	 while read port; do
+		eval `quantum --os-auth-url ${OCF_RESKEY_os_auth_url} --os-username ${OCF_RESKEY_username} --os-password ${OCF_RESKEY_password} --os-tenant-name ${OCF_RESKEY_tenant} port-show -f shell ${port} | grep device_owner`;
+		if test -n "$device_owner" && test $device_owner == "network:router_gateway"
+		 then
+			EXT_ROUTER_PORT=qg-${port:0:11}
+				ocf_log info "Cleaning up port $EXT_ROUTER_PORT"
+				ovs-vsctl -- --if-exists del-port $EXT_ROUTER_PORT;
+				rc=$?
+				if [ $rc -ne 0 ];
+				then
+					ocf_log err "Could not cleanup port $EXT_ROUTER_PORT"
+					exit $OCF_ERR_GENERIC
+				fi
+			
+		 fi
+		if test -n "$device_owner" && test $device_owner == "network:router_interface";
+		 then
+			INT_ROUTER_PORT=qr-${port:0:11}
+				ocf_log info "Cleaning up port $INT_ROUTER_PORT"
+				ovs-vsctl -- --if-exists del-port $INT_ROUTER_PORT;
+				rc=$?
+				if [ $rc -ne 0 ];
+				then
+					ocf_log err "Could not cleanup port $INT_ROUTER_PORT"
+					exit $OCF_ERR_GENERIC
+			fi
+		fi
+	 done 
+}
+
+
 quantum_l3_agent_monitor() {
-    local rc
-    local pid
-    local network_amqp_check
-    
     quantum_l3_agent_status
     rc=$?
+    return $rc
 
-    # If status returned anything but success, return that immediately
-    if [ $rc -ne $OCF_SUCCESS ]; then
-        return $rc
-    fi
-
-    # Check the connections according to the PID.
-    # We are sure to hit the scheduler process and not other Quantum process with the same connection behavior (for example quantum-server)
-        pid=`cat $OCF_RESKEY_pid`
-        # check the connections according to the PID
-        network_amqp_check=`netstat -punt | grep -s "$OCF_RESKEY_quantum_server_port" | grep -s "$pid" | grep -qs "ESTABLISHED"`
-        rc=$?
-	    if [ $rc -ne 0 ]; then
-	        ocf_log err "Quantum L3 Server is not connected to the Quantum server: $rc"
-	        return $OCF_NOT_RUNNING
-	    fi
-
-    ocf_log debug "OpenStack L3 Server (quantum-l3-agent) monitor succeeded"
-    return $OCF_SUCCESS
 }
 
 quantum_l3_agent_start() {
     local rc
-
+    
+	clean_up
+	
     quantum_l3_agent_status
     rc=$?
     if [ $rc -eq $OCF_SUCCESS ]; then
@@ -241,7 +314,7 @@ quantum_l3_agent_start() {
     # run the actual quantum-l3-agent daemon. Don't use ocf_run as we're sending the tool's output
     # straight to /dev/null anyway and using ocf_run would break stdout-redirection here.
     su ${OCF_RESKEY_user} -s /bin/sh -c "${OCF_RESKEY_binary} --config-file=$OCF_RESKEY_config \
-       --config-file=$OCF_RESKEY_plugin_config --log-file=/var/log/quantum/l3-agent.log $OCF_RESKEY_additional_parameters"' >> \
+       --config-file=$OCF_RESKEY_plugin_config $OCF_RESKEY_additional_parameters"' >> \
 	/dev/null 2>&1 & echo $!' > $OCF_RESKEY_pid
 
     # Spin waiting for the server to come up.
@@ -268,6 +341,7 @@ quantum_l3_agent_stop() {
     quantum_l3_agent_status
     rc=$?
     if [ $rc -eq $OCF_NOT_RUNNING ]; then
+    	clean_up
         ocf_log info "OpenStack L3 Server (quantum-l3-agent) already stopped"
         return $OCF_SUCCESS
     fi
@@ -310,7 +384,9 @@ quantum_l3_agent_stop() {
     ocf_log info "OpenStack L3 Server (quantum-l3-agent) stopped"
 
     rm -f $OCF_RESKEY_pid
-
+	
+	clean_up
+	
     return $OCF_SUCCESS
 }
 

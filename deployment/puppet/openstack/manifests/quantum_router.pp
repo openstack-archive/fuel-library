@@ -33,6 +33,7 @@ class openstack::quantum_router (
   $quantum_netnode_on_cnt   = false,  
   $tenant_network_type      = 'gre',
   $use_syslog               = false,
+  $service_provider          = 'generic'
 ) {
     # Set up Quantum
     $quantum_sql_connection = "$db_type://${quantum_db_user}:${quantum_db_password}@${db_host}/${quantum_db_dbname}?charset=utf8"
@@ -65,10 +66,16 @@ class openstack::quantum_router (
         bridge_mappings  => ['physnet1:br-ex', 'physnet2:br-prv'],
         enable_tunneling => $enable_tunneling,
         local_ip         => $internal_address,
+        service_provider => $service_provider
       }
       class { 'quantum::agents::dhcp':
         debug          => True,
         use_namespaces => False,
+        service_provider => $service_provider,
+        auth_url            => $admin_auth_url,
+        auth_tenant         => 'services',
+         auth_user           => 'quantum',
+         auth_password       => $quantum_user_password,
       }
       class { 'quantum::agents::l3':
        #enabled             => $quantum_l3_enable,
@@ -85,6 +92,7 @@ class openstack::quantum_router (
         auth_password       => $quantum_user_password,
         use_namespaces      => False,
         metadata_ip         => $internal_address,
+        service_provider => $service_provider
       }
       if ! $quantum_netnode_on_cnt {
         class { 'nova::metadata_api':

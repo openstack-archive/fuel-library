@@ -17,6 +17,7 @@
 		<project>mysql</project>
 		<project>nagios</project>
 		<project>nova</project>
+		<project>corosync</project>
 		<project>ntpd</project>
 		<project>quantum</project>
 		<project>rsyslog</project>

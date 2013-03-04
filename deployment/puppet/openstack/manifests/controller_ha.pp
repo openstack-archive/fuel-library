@@ -129,6 +129,8 @@ class openstack::controller_ha (
    $quantum_gre_bind_addr   = $internal_address,
    $quantum_external_ipinfo = {},
    $mysql_skip_name_resolve = false,
+   $service_provider = "pacemaker",
+   $create_networks = true
  ) {
 
     # haproxy
@@ -366,6 +368,7 @@ local0.* -/var/log/haproxy.log'
         quantum_gre_bind_addr => $quantum_gre_bind_addr,
         quantum_network_node  => $quantum_network_node,
         quantum_netnode_on_cnt=> $quantum_netnode_on_cnt,
+        service_provider      => $service_provider,
         tenant_network_type   => $tenant_network_type,
         segment_range         => $segment_range,
         external_ipinfo       => $external_ipinfo,
@@ -379,6 +382,9 @@ local0.* -/var/log/haproxy.log'
       admin_tenant            => $keystone_admin_tenant,
       keystone_admin_token    => $keystone_admin_token,
       controller_node         => $internal_virtual_ip,
+    }
+    class {'openstack::corosync':
+      bind_address => $internal_address
     }
 }
 

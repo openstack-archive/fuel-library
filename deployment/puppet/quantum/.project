@@ -3,6 +3,7 @@
 	<name>quantum</name>
 	<comment></comment>
 	<projects>
+		<project>corosync</project>
 		<project>keystone</project>
 		<project>l23network</project>
 		<project>selinux</project>

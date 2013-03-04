@@ -26,13 +26,13 @@ Puppet::Type.newtype(:quantum_router) do
     desc "Set an gateway interface to the specified external network" 
   end
 
-#  def generate
-#    router_info = self.provider.auth_quantum('router-show', @name)
-#    router_id = router_info.split("\n").grep(/\bid/).to_s.split('|')[2].strip
-#     options = { :name => 'DEFAULT/router_id', :value => router_id }
-#     Puppet.notice("generating router_id ini setting")
-#    [ Puppet::Type.type(:quantum_l3_agent_config).new(options) ]
-#  end
+  def generate
+    router_info = self.provider.auth_quantum('router-show', @name)
+    router_id = router_info.split("\n").grep(/\bid/).to_s.split('|')[2].strip
+     options = { :name => 'DEFAULT/router_id', :value => router_id }
+     Puppet.notice("generating router_id ini setting")
+    [ Puppet::Type.type(:quantum_l3_agent_config).new(options) ]
+  end
 
   # Require the Quantum service to be running
   autorequire(:package) do

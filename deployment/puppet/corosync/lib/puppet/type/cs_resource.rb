@@ -139,7 +139,7 @@ module Puppet
           memo[key.to_sym] = String(value)
           memo
         end
-        if munged_hash[:name].to_s.empty?
+        if munged_hash[:name].to_s.empty? and !munged_hash[:type].to_s.empty?
           munged_hash[:name] = "#{munged_hash[:type]}_#{@resource[:name]}"
         end
         munged_hash

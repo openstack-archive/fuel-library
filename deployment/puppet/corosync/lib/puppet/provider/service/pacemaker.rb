@@ -37,7 +37,9 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Cor
     get_resources
     instances = []
     XPath.match(@@resources, '//primitive').each do |element|
-      instances << new(:name => element.attributes['id'], :hasstatus => true, :hasrestart => false)
+      if !element.nil?
+        instances << new(:name => element.attributes['id'], :hasstatus => true, :hasrestart => false)
+      end
     end
     instances
   end
@@ -173,17 +175,21 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Cor
     @last_successful_operations = []
     @@nodes.each do |node|
       next unless node[:state] == :online
-      all_operations =  XPath.match(@@cib,"cib/status/node_state[@uname='#{node[:uname]}']/lrm/lrm_resources/lrm_resource/lrm_rsc_op[starts-with(@id,'#{@resource[:name]}:')]")
+      debug("getting last ops on #{node[:uname]} for #{@resource[:name]}")
+      all_operations =  XPath.match(@@cib,"cib/status/node_state[@uname='#{node[:uname]}']/lrm/lrm_resources/lrm_resource/lrm_rsc_op[starts-with(@id,'#{@resource[:name]}')]")
+      next if all_operations.nil?
       completed_ops = all_operations.select{|op| op.attributes['op-status'].to_i != -1 }
+      next if completed_ops.nil?
       start_stop_ops = completed_ops.select{|op| ["start","stop"].include? op.attributes['operation']}
+      next if start_stop_ops.nil?
       sorted_operations = start_stop_ops.sort do
         |a,b| a.attributes['call-id'] <=> b.attributes['call-id']
       end
       good_operations = sorted_operations.select do |op|
         op.attributes['rc-code'] == '0'
       end
-      last_good_operation = good_operations.last.attributes['operation']
-      @last_successful_operations << last_good_operation
+      next if good_operations.nil?
+      @last_successful_operations << good_operations.last.attributes['operation'] unless good_operations.last.nil?  
     end
     @last_successful_operations
   end
@@ -241,10 +247,11 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Cor
     end
   
   def status
+    debug("getting last operations")
     get_last_successful_operations
     if @last_successful_operations.any? {|op| op == 'start'}
       return :running
-    elsif @last_successful_operations.all? {|op| op == 'stop'}
+    elsif @last_successful_operations.all? {|op| op == 'stop'} or @last_successful_operations.empty?
       return :stopped
     else
       raise Puppet::Error("resource #{@resource[:name]} in unknown state")
