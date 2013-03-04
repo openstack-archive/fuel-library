@@ -18,21 +18,25 @@
 
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
 NAME=rabbitmq-server
-DAEMON=/usr/lib/rabbitmq/bin/${NAME}
+DAEMON=/usr/sbin/${NAME}
 CONTROL=/usr/sbin/rabbitmqctl
-DESC=rabbitmq-server
+DESC="message broker"
 USER=rabbitmq
 ROTATE_SUFFIX=
 INIT_LOG_DIR=/var/log/rabbitmq
 PID_FILE=/var/run/rabbitmq/pid
 
-LOCK_FILE=
 
 test -x $DAEMON || exit 0
 test -x $CONTROL || exit 0
 
 RETVAL=0
 set -e
+
+[ -f /etc/default/${NAME} ] && . /etc/default/${NAME}
+
+. /lib/lsb/init-functions
+. /lib/init/vars.sh
 
 ensure_pid_dir () {
     PID_DIR=`dirname ${PID_FILE}`
@@ -48,48 +52,69 @@ remove_pid () {
     rmdir `dirname ${PID_FILE}` || :
 }
 
+move_out_rabbit_database_to_backup () {
+    local RABBIT_DEFAULTS_FILE=/usr/lib/rabbitmq/bin/rabbitmq-defaults
+    local RABBIT_CONFIG_FILE=/etc/rabbitmq/rabbitmq-env.conf
+    local DATE=$(date +"%Y-%m-%d_%H-%M-%S")
+    local C_DIR=$(pwd)
+    
+    [ -f ${RABBIT_DEFAULTS_FILE} ] && . ${RABBIT_DEFAULTS_FILE}
+    [ -f ${RABBIT_CONFIG_FILE} ] && . ${RABBIT_CONFIG_FILE}
+    
+    if [ -d ${MNESIA_BASE} ] ; then
+        cd ${MNESIA_BASE}/..
+        local BACKUPS_DIR=`dirname ${MNESIA_BASE}`/backups
+
+        if [ ! -d ${BACKUPS_DIR} ] ; then
+            mkdir -p ${BACKUPS_DIR}
+            chown -R ${USER}:${USER} ${BACKUPS_DIR}
+            chmod 755 ${BACKUPS_DIR}
+        fi
+
+        printf '%s\n' " "
+        printf '%s\n' "Backing up mnesia base in: ${MNESIA_BASE}"
+        mv `basename ${MNESIA_BASE}` \
+            ${BACKUPS_DIR}/`basename ${MNESIA_BASE}`_${DATE}
+        printf '%s\n' "Old Mnesia base has moved to " \
+            ${BACKUPS_DIR}/`basename ${MNESIA_BASE}`_${DATE}
+        cd ${C_DIR}
+    fi
+}
+
 start_rabbitmq () {
     status_rabbitmq quiet
-    if [ $RETVAL = 0 ] ; then
-        echo RabbitMQ is currently running
-    else
-        #RETVAL=0
-        #ensure_pid_dir
-        #set +e
-        j=5
-        echo "RabbitMQ is going to make ${j} attempts to find master node and start."
-        while test $j -ne 0
+    if [ $RETVAL != 0 ] ; then
+    #Slave nodes fail to start until master is not up and running
+    #So, give slaves several attempts to start
+    #Rabbit database will be moved out before last attempt.
+        local MAX_START_ATTEMPTS=3
+        printf '%s\n' "RabbitMQ is going to make ${MAX_START_ATTEMPTS} \
+            attempts to find master node and start."
+        while test $MAX_START_ATTEMPTS -ne 0
         do
             RETVAL=0
             ensure_pid_dir
-            j=$((j-1))
+            printf '%s\n' "${MAX_START_ATTEMPTS} attempts left to start \
+                RabbitMQ Server before consider start failed."
+            if [ $MAX_START_ATTEMPTS = 1 ] ; then
+                move_out_rabbit_database_to_backup                
+            fi
             set +e
-            echo ${j} attempts left to start RabbitMQ Server before consider start failed.
-            RABBITMQ_PID_FILE=$PID_FILE start-stop-daemon --pidfile=$PID_FILE --chuid rabbitmq --exec $DAEMON --background --start
+            RABBITMQ_PID_FILE=$PID_FILE start-stop-daemon --quiet \
+                --chuid rabbitmq --start --exec $DAEMON \
+                --pidfile "$RABBITMQ_PID_FILE" --background
             $CONTROL wait $PID_FILE >/dev/null 2>&1
             RETVAL=$?
             set -e
-            case "$RETVAL" in
-                0)
-                    echo SUCCESS
-                    if [ -n "$LOCK_FILE" ] ; then
-                        touch $LOCK_FILE
-                    fi
-                    echo "`date` - rabbitmq successfully started" >> ${INIT_LOG_DIR}/startup_log
-                    # only emit the event on boot
-                    [ -n "$UPSTART_JOB" ] && initctl emit --no-wait rabbitmq-server-running || true
-                    break
-                    ;;
-                *)
-                    remove_pid
-                    if [ $j = 0 ] ; then
-                        echo FAILED - check ${INIT_LOG_DIR}/startup_\{log, _err\}
-                        echo "`date` - rabbitmq failed to start" >> ${INIT_LOG_DIR}/startup_err
-                    fi
-                    RETVAL=1
-                    ;;
-            esac
+            if [ $RETVAL != 0 ] ; then
+                remove_pid
+            else
+                break
+            fi
+            MAX_START_ATTEMPTS=$((MAX_START_ATTEMPTS - 1))
         done
+    else
+        RETVAL=3
     fi
 }
 
@@ -97,22 +122,14 @@ stop_rabbitmq () {
     status_rabbitmq quiet
     if [ $RETVAL = 0 ] ; then
         set +e
-        start-stop-daemon --pidfile=$PID_FILE --stop
+        $CONTROL stop ${PID_FILE} > ${INIT_LOG_DIR}/shutdown_log 2> ${INIT_LOG_DIR}/shutdown_err
         RETVAL=$?
         set -e
         if [ $RETVAL = 0 ] ; then
             remove_pid
-            if [ -n "$LOCK_FILE" ] ; then
-                rm -f $LOCK_FILE
-            fi
-            echo "`date` - rabbitmq successfully stopped" >> ${INIT_LOG_DIR}/shutdown_log
-        else
-            echo FAILED - check ${INIT_LOG_DIR}/shutdown_log, _err
-            echo "`date` - rabbitmq failed to stop" >> ${INIT_LOG_DIR}/shutdown_err
         fi
     else
-        echo RabbitMQ is not running
-        RETVAL=0
+        RETVAL=3
     fi
 }
 
@@ -131,7 +148,7 @@ status_rabbitmq() {
 
 rotate_logs_rabbitmq() {
     set +e
-    $CONTROL rotate_logs ${ROTATE_SUFFIX}
+    $CONTROL -q rotate_logs ${ROTATE_SUFFIX}
     if [ $? != 0 ] ; then
         RETVAL=1
     fi
@@ -143,8 +160,7 @@ restart_running_rabbitmq () {
     if [ $RETVAL = 0 ] ; then
         restart_rabbitmq
     else
-        echo RabbitMQ is not runnning
-        RETVAL=0
+        log_warning_msg "${DESC} not running"
     fi
 }
 
@@ -153,33 +169,60 @@ restart_rabbitmq() {
     start_rabbitmq
 }
 
+restart_end() {
+    if [ $RETVAL = 0 ] ; then
+        log_end_msg 0
+    else
+        log_end_msg 1
+    fi
+}
+
+start_stop_end() {
+    case "$RETVAL" in
+        0)
+            [ -x /sbin/initctl ] && /sbin/initctl emit --no-wait "${NAME}-${1}"
+            log_end_msg 0
+            ;;
+        3)
+            log_warning_msg "${DESC} already ${1}"
+            log_end_msg 0
+            RETVAL=0
+            ;;
+        *)
+            log_warning_msg "FAILED - check ${INIT_LOG_DIR}/startup_\{log, _err\}"
+            log_end_msg 1
+            ;;
+    esac
+}
+
 case "$1" in
     start)
-        echo -n "Starting $DESC: "
+        log_daemon_msg "Starting ${DESC}" $NAME
         start_rabbitmq
-        echo "$NAME."
+        start_stop_end "running"
         ;;
     stop)
-        echo -n "Stopping $DESC: "
+        log_daemon_msg "Stopping ${DESC}" $NAME
         stop_rabbitmq
-        echo "$NAME."
+        start_stop_end "stopped"
         ;;
     status)
         status_rabbitmq
         ;;
     rotate-logs)
-        echo -n "Rotating log files for $DESC: "
+        log_action_begin_msg "Rotating log files for ${DESC} ${NAME}"
         rotate_logs_rabbitmq
+        log_action_end_msg $RETVAL
         ;;
     force-reload|reload|restart)
-        echo -n "Restarting $DESC: "
+        log_daemon_msg "Restarting ${DESC}" $NAME
         restart_rabbitmq
-        echo "$NAME."
+        restart_end
         ;;
     try-restart)
-        echo -n "Restarting $DESC: "
+        log_daemon_msg "Restarting ${DESC}" $NAME
         restart_running_rabbitmq
-        echo "$NAME."
+        restart_end
         ;;
     *)
         echo "Usage: $0 {start|stop|status|rotate-logs|restart|condrestart|try-restart|reload|force-reload}" >&2
