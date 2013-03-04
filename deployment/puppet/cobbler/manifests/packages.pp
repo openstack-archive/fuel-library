@@ -5,7 +5,7 @@ class cobbler::packages {
       $cobbler_package = "cobbler"
       $cobbler_web_package = "cobbler-web"
       $dnsmasq_package = "dnsmasq"
-      $cobbler_additional_packages = ["xinetd", "tftp-server", "syslinux", "wget"]
+      $cobbler_additional_packages = ["xinetd", "tftp-server", "syslinux", "wget", "python-ipaddr"]
       $django_package = "Django"
       $django_version = "1.3.4-1.el6"
     }
