@@ -15,6 +15,6 @@ $group = false,
     email         => $t_email,
     contactgroups => $group,
     use           => 'generic-contact',
-    target        => "/etc/${nagios::params::masterdir}/${nagios::proj_name}/contacts.cfg",
+    target        => "/etc/${nagios::params::masterdir}/${nagios::master::proj_name}/contacts.cfg",
   }
 }

@@ -6,6 +6,6 @@ notify {$name:}
   nagios_contactgroup { $name:
     ensure => present,
     alias  => $alias,
-    target => "/etc/${nagios::params::masterdir}/${nagios::proj_name}/contactgroups.cfg",
+    target => "/etc/${nagios::params::masterdir}/${nagios::master::proj_name}/contactgroups.cfg",
   }
 }
