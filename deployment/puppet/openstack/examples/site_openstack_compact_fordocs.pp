@@ -715,3 +715,10 @@ node /fuel-quantum/ {
     }
   }
 }
+
+# This configuration option is deprecated and will be removed in future releases. It's currently kept for backward compatibility.
+$controller_public_addresses = {
+  'fuel-controller-01' => $addresses['fuel-controller-01']['public_address'],
+  'fuel-controller-02' => $addresses['fuel-controller-02']['public_address'],
+  'fuel-controller-03' => $addresses['fuel-controller-03']['public_address'],
+}
