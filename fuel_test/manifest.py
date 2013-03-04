@@ -73,12 +73,12 @@ class Template(object):
     @classmethod
     def compact(cls):
         return cls(root('deployment', 'puppet', 'openstack', 'examples',
-            'site_openstack_swift_compact.pp'))
+            'site_openstack_compact.pp'))
 
     @classmethod
     def full(cls):
         return cls(root('deployment', 'puppet', 'openstack', 'examples',
-            'site_openstack_swift_standalone.pp'))
+            'site_openstack_full.pp'))
 
     @classmethod
     def nagios(cls):
@@ -171,7 +171,7 @@ class Manifest(object):
         template = Template(
             root(
                 'deployment', 'puppet', 'openstack', 'examples',
-                'site_simple.pp')).replace(
+                'site_openstack_simple.pp')).replace(
             floating_range=self.floating_network(ci, quantum),
             fixed_range=self.fixed_network(ci, quantum),
             public_interface=self.public_interface(),
@@ -198,7 +198,7 @@ class Manifest(object):
         template = Template(
             root(
                 'deployment', 'puppet', 'openstack', 'examples',
-                'site_singlenode.pp')).replace(
+                'site_openstack_single.pp')).replace(
             floating_range=self.floating_network(ci, quantum),
             fixed_range=self.fixed_network(ci, quantum),
             public_interface=self.public_interface(),

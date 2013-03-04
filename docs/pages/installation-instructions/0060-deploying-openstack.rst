@@ -448,8 +448,16 @@ specify the individual controllers::
 Notice also that each controller has the swift_zone specified, so each
 of the three controllers can represent each of the three Swift zones.
 
+<<<<<<< HEAD
+=======
+In ``openstack/examples/site_openstack_full.pp`` example, the following nodes are specified:
+>>>>>>> 5f32c0d... Rename and sync manifests
 
 
+<<<<<<< HEAD
+=======
+In ``openstack/examples/site_openstack_compact.pp`` example, the role of swift-storage and swift-proxy combined with controllers.
+>>>>>>> 5f32c0d... Rename and sync manifests
 
 One final fix
 ^^^^^^^^^^^^^

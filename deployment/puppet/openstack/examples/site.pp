@@ -18,8 +18,20 @@ $private_interface   = 'eth2'
 $internal_virtual_ip = '10.0.125.253'
 $public_virtual_ip   = '10.0.74.253'
 
-# Map of controller IP addresses on internal interfaces. Must have an entry for every controller node.
-$controller_internal_addresses = { 'fuel-controller-01'=>'10.0.125.3', 'fuel-controller-02'=>'10.0.125.4'}
+# Hash of controller hostnames and his internal IP adresses.
+# Only short controller names allowed. Fully qualified domain names are restricted, since it breaks RabbitMQ installation and other services,
+# requiring only short names for proper work. By default this list repeats controller names from $controller_internal_addresses, but in short hostname only form.
+$controller_internal_addresses = {
+  'fuel-controller-01' => $addresses['fuel-controller-01']['internal_address'],
+  'fuel-controller-02' => $addresses['fuel-controller-02']['internal_address'],
+}
+# This configuration option is deprecated and will be removed in future releases. It's currently kept for backward compatibility.
+$controller_public_addresses = {
+  'fuel-controller-01' => $addresses['fuel-controller-01']['public_address'],
+  'fuel-controller-02' => $addresses['fuel-controller-02']['public_address'],
+}
+# Used for rabbit configuration
+$controller_hostnames = keys($controller_internal_addresses)
 
 if $::hostname == 'fuel-controller-01' {
   $primary_controller = true
@@ -65,8 +77,8 @@ $quantum                 = true
 $auto_assign_floating_ip = false
 $glance_backend          = 'file'
 
-# Set short hostnames only to $controller_hostnames. RabbitMQ will not work if Fully Qualified domain names set here!
-$controller_hostnames = ['fuel-controller-01', 'fuel-controller-02']
+
+
 # Set nagios master fqdn
 $nagios_master        = 'nagios-server.your-domain-name.com'
 ## proj_name  name of environment nagios configuration
@@ -379,5 +391,4 @@ node /fuel-quantum/ {
     }
 }
 
-# This configuration option is deprecated and will be removed in future releases. It's currently kept for backward compatibility.
-$controller_public_addresses = { 'fuel-controller-01'=>'10.0.74.3', 'fuel-controller-02'=>'10.0.74.4'}
+
