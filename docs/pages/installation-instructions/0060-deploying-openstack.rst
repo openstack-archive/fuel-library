@@ -391,10 +391,10 @@ Examples of OpenStack installation sequences
     * Run additional deployment pass on Controller 1 only (``fuel-controller-01``) to finalize Galera cluster configuration.
     * Run deployment pass on Quantum node (``fuel-quantum``) to install Quantum router.
     * Run deployment pass on every compute node (``fuel-compute-01 ... fuel-compute-xx``) - unlike controllers these nodes may be deployed in parallel.
-    * Sequentially run deployment pass on every storage node (``fuel-sowift-01`` ... ``fuel-swift-xx``) node. By default these nodes named as ``fuel-swift-xx``. Errors in Swift storage like */Stage[main]/Swift::Storage::Container/Ring_container_device[<device address>]: Could not evaluate: Device not found check device on <device address>* are expected on Storage nodes during the deployment passes until the very final pass.
+    * Sequentially run deployment pass on every storage node (``fuel-swift-01 ... fuel-swift-xx``) node. By default these nodes named as ``fuel-swift-xx``. Errors in Swift storage like */Stage[main]/Swift::Storage::Container/Ring_container_device[<device address>]: Could not evaluate: Device not found check device on <device address>* are expected on Storage nodes during the deployment passes until the very final pass.
     * In case loopback devices are used on storage nodes (``$swift_loopback = 'loopback'`` in ``site.pp``) - run deployment pass on every storage (``fuel-swift-01`` ... ``fuel-swift-xx``) node one more time. Skip this step in case loopback is off (``$swift_loopback = false`` in ``site.pp``). Again, ignore errors in *Swift::Storage::Container* during this deployment pass.
     * Run deployment pass on every SwiftProxy node (``fuel-swiftproxy-01 ... fuel-swiftproxy-02``). Node names are set by ``$swift_proxies`` variable in ``site.pp``. There are 2 Swift Proxies by default.
-    * Repeat deployment pass on every storage (``fuel-swift-01`` ... ``fuel-swift-xx``) node. No Swift storage errors should appear during this deployment pass!
+    * Repeat deployment pass on every storage (``fuel-swift-01 ... fuel-swift-xx``) node. No Swift storage errors should appear during this deployment pass!
 
   **Example2:** **Compact OpenStack deployment with storage and swift-proxy combined with nova-controller on the same nodes**
 
