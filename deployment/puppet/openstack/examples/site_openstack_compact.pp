@@ -512,7 +512,7 @@ node /fuel-controller-01/ {
     hostgroup       => 'controller',
   }
   
-  class { compact_controller: }
+  class { compact_controller: quantum_network_node => true }
   $swift_zone = 1
 
   class { 'openstack::swift::storage_node':
@@ -552,7 +552,7 @@ node /fuel-controller-02/ {
     hostgroup       => 'controller',
   }
   
-  class { 'compact_controller': }
+  class { 'compact_controller': quantum_network_node => true }
   $swift_zone = 2
 
   class { 'openstack::swift::storage_node':
