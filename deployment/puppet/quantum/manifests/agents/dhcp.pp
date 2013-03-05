@@ -125,6 +125,18 @@ class quantum::agents::dhcp (
       second => "p_${::quantum::params::dhcp_agent_service}",
       score  => 'INFINITY',
     }
+    
+    Service['quantum-dhcp-service_stopped'] -> Cs_resource["p_${::quantum::params::dhcp_agent_service}"]
+    service { 'quantum-dhcp-service_stopped':
+      name       => "${::quantum::params::dhcp_agent_service}",
+      enable     => false,
+      ensure     => stopped,
+      hasstatus  => true,
+      hasrestart => true,
+      provider   => $::quantum::params::service_provider,
+      require    => [Package[$dhcp_agent_package], Class['quantum']],
+    }
+
 
     service { 'quantum-dhcp-service':
       name       => "p_${::quantum::params::dhcp_agent_service}",

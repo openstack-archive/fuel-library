@@ -94,6 +94,17 @@ class quantum::agents::ovs (
       }
       ,
     }
+    Package[$ovs_agent_package] -> Service['quantum-plugin-ovs-service_stopped'] 
+    Service['quantum-plugin-ovs-service_stopped']->Cs_resource["p_${::quantum::params::ovs_agent_service}"]
+    
+    service { 'quantum-plugin-ovs-service_stopped':
+      name       => "${::quantum::params::ovs_agent_service}",
+      enable     => false,
+      ensure     => stopped,
+      hasstatus  => true,
+      hasrestart => true,
+      provider   => $::quantum::params::service_provider,
+    }
 
     service { 'quantum-plugin-ovs-service':
       name       => "p_${::quantum::params::ovs_agent_service}",

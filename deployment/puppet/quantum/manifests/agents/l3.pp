@@ -247,7 +247,20 @@ class quantum::agents::l3 (
       second => "p_${::quantum::params::l3_agent_service}",
       score  => 'INFINITY',
     }
-
+    
+    #Ensure service is stopped  and disabled by upstart/init/etc.
+    Service['quantum-l3-init_stopped']->Cs_resource["p_${::quantum::params::l3_agent_service}"]
+    
+    service { 'quantum-l3-init_stopped':
+      name       => "${::quantum::params::l3_agent_service}",
+      enable     => false,
+      ensure     => stopped,
+      hasstatus  => true,
+      hasrestart => true,
+      provider   => $::quantum::params::service_provider,
+      require    => [Package[$l3_agent_package], Class['quantum']],
+    }
+ 
     service { 'quantum-l3':
       name       => "p_${::quantum::params::l3_agent_service}",
       enable     => $enabled,
