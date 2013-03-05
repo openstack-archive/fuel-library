@@ -24,52 +24,56 @@ $internal_virtual_ip = '10.0.0.253'
 # interface resides
 $public_virtual_ip   = '10.0.215.253'
 
-# Array containing key/value pairs of controllers and IP addresses for their internal interfaces. Must have an entry for every controller node.
-# Fully Qualified domain names are allowed here along with short hostnames.
-$controller_internal_addresses = {'fuel-controller-01' => '10.0.0.103','fuel-controller-02' => '10.0.0.104','fuel-controller-03' => '10.0.0.105'}
-
-$addresses_hash = {
-  'fuel-controller-01' => {
+$nodes_harr = [
+  {
+    'name' => 'fuel-cobbler',
+    'role' => 'cobbler',
+    'internal_address' => '10.0.0.102',
+    'public_address'   => '10.0.204.102',
+  },
+  {
+    'name' => 'fuel-controller-01',
+    'role' => 'controller',
     'internal_address' => '10.0.0.103',
-    'public_address' => '10.0.204.103',
+    'public_address'   => '10.0.204.103',
   },
-  'fuel-controller-02' => {
-      'internal_address' => '10.0.0.104',
-      'public_address' => '10.0.204.104',
+  {
+    'name' => 'fuel-controller-02',
+    'role' => 'controller',
+    'internal_address' => '10.0.0.104',
+    'public_address'   => '10.0.204.104',
   },
-  'fuel-controller-03' => {
-        'internal_address' => '10.0.0.105',
-        'public_address' => '10.0.204.105',
+  {
+    'name' => 'fuel-controller-03',
+    'role' => 'controller',
+    'internal_address' => '10.0.0.105',
+    'public_address'   => '10.0.204.105',
   },
-  'fuel-compute-01' => {
-          'internal_address' => '10.0.0.106',
-          'public_address' => '10.0.204.106',
+  {
+    'name' => 'fuel-compute-01',
+    'role' => 'compute',
+    'internal_address' => '10.0.0.106',
+    'public_address'   => '10.0.204.106',
   },
-  'fuel-compute-02' => {
-          'internal_address' => '10.0.0.107',
-          'public_address' => '10.0.204.107',
+  {
+    'name' => 'fuel-compute-02',
+    'role' => 'compute',
+    'internal_address' => '10.0.0.107',
+    'public_address'   => '10.0.204.107',
   },
-  'fuel-quantum' => {
-          'internal_address' => '10.0.0.108',
-          'public_address' => '10.0.204.108',
-  },
-}
-$addresses = $addresses_hash
-$default_gateway = undef
-# Set internal address on which services should listen.
-# We assume that this IP will is equal to one of the haproxy
-# backends. If the IP address does not match, this may break your environment.
-# Leave internal_address unchanged unless you know what you are doing.
-$internal_address = $addresses[$::hostname]['internal_address']
-$public_address = $addresses[$::hostname]['public_address']
+]
+$nodes = $nodes_harr
+$default_gateway = '10.0.204.1'
+$dns_nameservers = [filter_nodes($nodes,'name','fuel-cobbler')['internal_address'],] # Need point to cobbler node IP if you use default use case.
+$node = filter_nodes($nodes,'name',$::hostname)
+$internal_address = $node['internal_address']
+$public_address = $node['public_address']
 $internal_netmask = '255.255.255.0'
 $public_netmask = '255.255.255.0'
+$controller_internal_addresses = nodes_to_hash(filter_nodes($nodes,'role','controller'),'name','internal_address')
+$controller_public_addresses = nodes_to_hash(filter_nodes($nodes,'role','controller'),'name','public_address')
+$controller_hostnames = keys($controller_internal_addresses)
 
-# Array of controller hostnames.
-# Duplicating all hostnames/ip addresses, etc, seems kind of repetitive. Used by some services. MUST include the same hostnames as $controller_internal_addresses keys.
-# Only short controller names allowed. Fully qualified domain names are restricted, since it breaks RabbitMQ installation and other services, 
-# requiring only short names for proper work. By default this list repeats controller names from $controller_internal_addresses, but in short hostname only form.
-$controller_hostnames = ['fuel-controller-01', 'fuel-controller-02', 'fuel-controller-03']
 # Set nagios master fqdn
 $nagios_master        = 'nagios-server.your-domain-name.com'
 ## proj_name  name of environment nagios configuration

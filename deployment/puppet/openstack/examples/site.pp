@@ -18,19 +18,54 @@ $private_interface   = 'eth2'
 $internal_virtual_ip = '10.0.125.253'
 $public_virtual_ip   = '10.0.74.253'
 
-# Hash of controller hostnames and his internal IP adresses.
-# Only short controller names allowed. Fully qualified domain names are restricted, since it breaks RabbitMQ installation and other services,
-# requiring only short names for proper work. By default this list repeats controller names from $controller_internal_addresses, but in short hostname only form.
-$controller_internal_addresses = {
-  'fuel-controller-01' => $addresses['fuel-controller-01']['internal_address'],
-  'fuel-controller-02' => $addresses['fuel-controller-02']['internal_address'],
-}
-# This configuration option is deprecated and will be removed in future releases. It's currently kept for backward compatibility.
-$controller_public_addresses = {
-  'fuel-controller-01' => $addresses['fuel-controller-01']['public_address'],
-  'fuel-controller-02' => $addresses['fuel-controller-02']['public_address'],
-}
-# Used for rabbit configuration
+$nodes_harr = [
+  {
+    'name' => 'fuel-cobbler',
+    'role' => 'cobbler',
+    'internal_address' => '10.0.0.102',
+    'public_address'   => '10.0.204.102',
+  },
+  {
+    'name' => 'fuel-controller-01',
+    'role' => 'controller',
+    'internal_address' => '10.0.0.103',
+    'public_address'   => '10.0.204.103',
+  },
+  {
+    'name' => 'fuel-controller-02',
+    'role' => 'controller',
+    'internal_address' => '10.0.0.104',
+    'public_address'   => '10.0.204.104',
+  },
+  {
+    'name' => 'fuel-controller-03',
+    'role' => 'controller',
+    'internal_address' => '10.0.0.105',
+    'public_address'   => '10.0.204.105',
+  },
+  {
+    'name' => 'fuel-compute-01',
+    'role' => 'compute',
+    'internal_address' => '10.0.0.106',
+    'public_address'   => '10.0.204.106',
+  },
+  {
+    'name' => 'fuel-compute-02',
+    'role' => 'compute',
+    'internal_address' => '10.0.0.107',
+    'public_address'   => '10.0.204.107',
+  },
+]
+$nodes = $nodes_harr
+$default_gateway = '10.0.204.1'
+$dns_nameservers = [filter_nodes($nodes,'name','fuel-cobbler')['internal_address'],] # Need point to cobbler node IP if you use default use case.
+$node = filter_nodes($nodes,'name',$::hostname)
+$internal_address = $node['internal_address']
+$public_address = $node['public_address']
+$internal_netmask = '255.255.255.0'
+$public_netmask = '255.255.255.0'
+$controller_internal_addresses = nodes_to_hash(filter_nodes($nodes,'role','controller'),'name','internal_address')
+$controller_public_addresses = nodes_to_hash(filter_nodes($nodes,'role','controller'),'name','public_address')
 $controller_hostnames = keys($controller_internal_addresses)
 
 if $::hostname == 'fuel-controller-01' {

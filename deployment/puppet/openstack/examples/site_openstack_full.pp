@@ -26,65 +26,54 @@ $internal_virtual_ip = '10.0.0.253'
 # interface resides
 $public_virtual_ip   = '10.0.215.253'
 
-# Array containing key/value pairs of node name and IP addresses for their internal and public interfaces. Must have an entry for every node.
-# Fully Qualified domain names are not allowed here.
-
-$addresses_hash = {
-  'fuel-controller-01' => {
-      'internal_address' => '10.0.0.103',
-      'public_address' => '10.0.204.103',
+$nodes_harr = [
+  {
+    'name' => 'fuel-cobbler',
+    'role' => 'cobbler',
+    'internal_address' => '10.0.0.102',
+    'public_address'   => '10.0.204.102',
   },
-  'fuel-controller-02' => {
-      'internal_address' => '10.0.0.104',
-      'public_address' => '10.0.204.104',
+  {
+    'name' => 'fuel-controller-01',
+    'role' => 'controller',
+    'internal_address' => '10.0.0.103',
+    'public_address'   => '10.0.204.103',
   },
-  'fuel-controller-03' => {
-      'internal_address' => '10.0.0.105',
-      'public_address' => '10.0.204.105',
+  {
+    'name' => 'fuel-controller-02',
+    'role' => 'controller',
+    'internal_address' => '10.0.0.104',
+    'public_address'   => '10.0.204.104',
   },
-  'fuel-compute-01' => {
-      'internal_address' => '10.0.0.106',
-      'public_address' => '10.0.204.106',
+  {
+    'name' => 'fuel-controller-03',
+    'role' => 'controller',
+    'internal_address' => '10.0.0.105',
+    'public_address'   => '10.0.204.105',
   },
-  'fuel-compute-02' => {
-      'internal_address' => '10.0.0.107',
-      'public_address' => '10.0.204.107',
+  {
+    'name' => 'fuel-compute-01',
+    'role' => 'compute',
+    'internal_address' => '10.0.0.106',
+    'public_address'   => '10.0.204.106',
   },
-  'fuel-quantum' => {
-      'internal_address' => '10.0.0.108',
-      'public_address' => '10.0.204.108',
+  {
+    'name' => 'fuel-compute-02',
+    'role' => 'compute',
+    'internal_address' => '10.0.0.107',
+    'public_address'   => '10.0.204.107',
   },
-  'fuel-swiftproxy-01' => {
-      'internal_address' => '10.0.0.109',
-      'public_address' => '10.0.204.109',
-  },
-  'fuel-swiftproxy-02' => {
-      'internal_address' => '10.0.0.109',
-      'public_address' => '10.0.204.109',
-  },
-}
-$addresses = $addresses_hash
+]
+$nodes = $nodes_harr
 $default_gateway = '10.0.204.1'
-$dns_nameservers = [$addresses['fuel-cobbler']['internal_address'],] # Need point to cobbler node IP if you use default use case.
-
-# Set internal address on which services should listen.
-# We assume that this IP will is equal to one of the haproxy
-# backends. If the IP address does not match, this may break your environment.
-# Leave internal_address unchanged unless you know what you are doing.
-$internal_address = $addresses[$::hostname]['internal_address']
-$public_address   = $addresses[$::hostname]['public_address']
+$dns_nameservers = [filter_nodes($nodes,'name','fuel-cobbler')['internal_address'],] # Need point to cobbler node IP if you use default use case.
+$node = filter_nodes($nodes,'name',$::hostname)
+$internal_address = $node['internal_address']
+$public_address = $node['public_address']
 $internal_netmask = '255.255.255.0'
-$public_netmask   = '255.255.255.0'
-
-# Hash of controller hostnames and his internal IP adresses.
-# Only short controller names allowed. Fully qualified domain names are restricted, since it breaks RabbitMQ installation and other services, 
-# requiring only short names for proper work. By default this list repeats controller names from $controller_internal_addresses, but in short hostname only form.
-$controller_internal_addresses = {
-  'fuel-controller-01' => $addresses['fuel-controller-01']['internal_address'],
-  'fuel-controller-02' => $addresses['fuel-controller-02']['internal_address'],
-  'fuel-controller-03' => $addresses['fuel-controller-03']['internal_address'],
-}
-# Used for rabbit configuration
+$public_netmask = '255.255.255.0'
+$controller_internal_addresses = nodes_to_hash(filter_nodes($nodes,'role','controller'),'name','internal_address')
+$controller_public_addresses = nodes_to_hash(filter_nodes($nodes,'role','controller'),'name','public_address')
 $controller_hostnames = keys($controller_internal_addresses)
 
 #Network configuration
