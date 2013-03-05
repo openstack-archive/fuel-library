@@ -6,7 +6,7 @@ from devops.helpers.helpers import wait
 import os
 import re
 from fuel_test.cobbler.cobbler_client import CobblerClient
-from fuel_test.settings import OS_FAMILY, PUPPET_CLIENT_PACKAGE, PUPPET_VERSION, PUPPET_MASTER_SERVICE
+from fuel_test.settings import OS_FAMILY, PUPPET_CLIENT_PACKAGE, PUPPET_VERSION, PUPPET_MASTER_SERVICE, EXIST_TAR
 from root import root
 
 def get_file_as_string(path):
@@ -183,9 +183,12 @@ def upload_recipes(remote, remote_dir="/etc/puppet/modules/"):
     recipes_dir = root('deployment', 'puppet')
     tar_file = None
     try:
-        tar_file = remote.open('/tmp/recipes.tar', 'wb')
-        with tarfile.open(fileobj=tar_file, mode='w') as tar:
-            tar.add(recipes_dir, arcname='')
+        if EXIST_TAR:
+            remote.upload(EXIST_TAR, '/tmp/recipes.tar')
+        else:
+            tar_file = remote.open('/tmp/recipes.tar', 'wb')
+            with tarfile.open(fileobj=tar_file, mode='w') as tar:
+                tar.add(recipes_dir, arcname='')
         remote.mkdir(remote_dir)
         remote.check_call('tar -xf /tmp/recipes.tar -C %s' % remote_dir)
     finally:

@@ -1,7 +1,8 @@
 import unittest
 from fuel_test.cobbler.cobbler_test_case import CobblerTestCase
 from fuel_test.manifest import Manifest
-from fuel_test.settings import OPENSTACK_SNAPSHOT
+from fuel_test.settings import OPENSTACK_SNAPSHOT, CREATE_SNAPSHOTS
+
 
 class SingleTestCase(CobblerTestCase):
     def test_single(self):
@@ -13,7 +14,8 @@ class SingleTestCase(CobblerTestCase):
         self.validate(
             self.nodes().controllers,
             'puppet agent --test')
-        self.environment().snapshot(OPENSTACK_SNAPSHOT, force=True)
+        if CREATE_SNAPSHOTS:
+            self.environment().snapshot(OPENSTACK_SNAPSHOT, force=True)
 
 if __name__ == '__main__':
     unittest.main()
