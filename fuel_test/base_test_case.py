@@ -47,7 +47,8 @@ class BaseTestCase(unittest.TestCase):
                 line.find(WARNING_PREFIX) != -1):
                 if line.find(
                     '# Warning: Disabling this option means that a compromised guest can') == -1:
-                    warnings.append(line)
+                    if line.find("Augeas[configs](provider=augeas): Loading failed for one or more files") == -1:
+                        warnings.append(line)
         return errors, warnings
 
     def do(self, nodes, command):
