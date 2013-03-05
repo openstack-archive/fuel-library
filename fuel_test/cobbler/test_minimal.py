@@ -2,6 +2,8 @@ import unittest
 from fuel_test.cobbler.cobbler_test_case import CobblerTestCase
 from fuel_test.helpers import is_not_essex
 from fuel_test.manifest import Manifest, Template
+from fuel_test.settings import CREATE_SNAPSHOTS
+
 
 class MinimalTestCase(CobblerTestCase):
     def test_minimal(self):
@@ -18,7 +20,8 @@ class MinimalTestCase(CobblerTestCase):
         if is_not_essex():
             self.validate(self.nodes().quantums, 'puppet agent --test')
         self.validate(self.nodes().computes, 'puppet agent --test')
-        self.environment().snapshot('minimal', force=True)
+        if CREATE_SNAPSHOTS:
+            self.environment().snapshot('minimal', force=True)
 
 if __name__ == '__main__':
     unittest.main()

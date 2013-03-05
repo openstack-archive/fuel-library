@@ -2,6 +2,8 @@ import unittest
 from fuel_test.cobbler.cobbler_test_case import CobblerTestCase
 from fuel_test.helpers import is_not_essex
 from fuel_test.manifest import Manifest, Template
+from fuel_test.settings import CREATE_SNAPSHOTS
+
 
 class FullTestCase(CobblerTestCase):
     def test_full(self):
@@ -25,9 +27,8 @@ class FullTestCase(CobblerTestCase):
         self.validate(self.nodes().proxies, 'puppet agent --test')
         Manifest().write_nagios_manifest(remote=self.remote())
         self.validate(self.nodes().controllers[:1], 'puppet agent --test')
-
-    def snapshot(self):
-        self.environment().snapshot('full', force=True)
+        if CREATE_SNAPSHOTS:
+            self.environment().snapshot('full', force=True)
 
 if __name__ == '__main__':
     unittest.main()
