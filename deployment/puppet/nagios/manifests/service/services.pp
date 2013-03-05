@@ -9,6 +9,6 @@ $group   = false,
     check_command       => $command,
     service_description => $name,
     host_name           => $::fqdn,
-    target              => "/etc/${nagios::params::masterdir}/${nagios::proj_name}/${::hostname}_services.cfg",
+    target              => "/etc/${nagios::params::masterdir}/${nagios::master_proj_name}/${::hostname}_services.cfg",
   }
 }

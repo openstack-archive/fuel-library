@@ -32,6 +32,8 @@ $masterdir         = $nagios::params::masterdir,
 $htpasswd_file     = $nagios::params::htpasswd_file,
 ) inherits nagios::params {
 
+  $master_proj_name = "${proj_name}_master"
+
   validate_hash($htpasswd)
   validate_hash($templateservice)
   validate_hash($templatehost)
@@ -54,7 +56,7 @@ $htpasswd_file     = $nagios::params::htpasswd_file,
 
   # Bug: 3299
     exec { 'fix-permissions':
-      command     => "chmod -R go+r /etc/${masterdir}/${proj_name}",
+      command     => "chmod -R go+r /etc/${masterdir}/${master_proj_name}",
       path        => ['/bin','/sbin','/usr/sbin/','/usr/sbin/'],
       refreshonly => true,
       notify      => Service[$masterservice],
@@ -76,7 +78,7 @@ $htpasswd_file     = $nagios::params::htpasswd_file,
         context => "/files/etc/${masterdir}/nagios.cfg",
         changes => [
           'rm cfg_file[position() > 1]',
-          "set cfg_dir \"/etc/${masterdir}/${proj_name}\"",
+          "set cfg_dir \"/etc/${masterdir}/${master_proj_name}\"",
           'set check_external_commands 1',
         ],
         require => Package[$nagios3pkg],
@@ -89,7 +91,7 @@ $htpasswd_file     = $nagios::params::htpasswd_file,
         incl    => '/etc/nagios*/*.cfg',
         context => "/files/etc/${masterdir}/nagios.cfg",
         changes => [
-          "set cfg_dir[2] \"/etc/${masterdir}/${proj_name}\"",
+          "set cfg_dir[2] \"/etc/${masterdir}/${master_proj_name}\"",
           'set check_external_commands 1',
         ],
         require => Package[$nagios3pkg],
@@ -106,15 +108,15 @@ $htpasswd_file     = $nagios::params::htpasswd_file,
   }
 
   file {
-    "/etc/${masterdir}/${proj_name}/templates.cfg":
+    "/etc/${masterdir}/${master_proj_name}/templates.cfg":
       content => template('nagios/openstack/templates.cfg.erb');
-    "/etc/${masterdir}/${proj_name}/hostgroup.cfg":
+    "/etc/${masterdir}/${master_proj_name}/hostgroup.cfg":
       content => template('nagios/openstack/hostgroups.cfg.erb');
     "/etc/${masterdir}/${htpasswd_file}":
       content => template('nagios/common/etc/nagios3/htpasswd.users.erb');
   }
 
-  file { "/etc/${masterdir}/${proj_name}":
+  file { "/etc/${masterdir}/${master_proj_name}":
     recurse => true,
     alias   => 'conf.d',
     notify  => Service[$masterservice],

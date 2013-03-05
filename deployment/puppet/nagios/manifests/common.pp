@@ -20,7 +20,7 @@ class nagios::common inherits nagios {
 # nagios_services_export( $services, $services_list,
 #{
 #  'hostgroup_name'      => $hostgroup,
-#  'target'              => "/etc/${nagios::params::masterdir}/${proj_name}/${::hostname}_services.cfg"
+#  'target'              => "/etc/${nagios::params::masterdir}/${nagios::master_proj_name}/${::hostname}_services.cfg"
 #})
 
   define runservice($service) {

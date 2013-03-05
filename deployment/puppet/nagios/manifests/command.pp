@@ -5,7 +5,7 @@ class nagios::command inherits nagios::master {
   }
 
   if $::osfamily == 'RedHat' {
-    nagios::command::commands { 
+    nagios::command::commands {
       'check_nrpe':
         command => '/usr/lib64/nagios/plugins/check_nrpe -H $HOSTADDRESS$ -c $ARG1$ -a $ARG2$';
       'check_nrpe_1arg':
@@ -89,10 +89,5 @@ class nagios::command inherits nagios::master {
 
   nagios::command::commands { 'nrpe_check_users':
     command => '$USER1$/check_nrpe -H $HOSTADDRESS$ -c check_users -a $ARG1$ $ARG2$',
-  }
-
-  Nagios_command <||> {
-    notify  => Exec['fix-permissions'],
-    require => File['conf.d'],
   }
 }

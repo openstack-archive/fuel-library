@@ -15,6 +15,7 @@ $nrpepkg           = $nagios::params::nrpepkg,
 $nrpeservice       = $nagios::params::nrpeservice,
 ) inherits nagios::params  {
 
+  $master_proj_name = "${proj_name}_master"
   validate_array($services)
 
   include nagios::common
