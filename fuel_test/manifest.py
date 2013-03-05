@@ -116,6 +116,42 @@ class Manifest(object):
             nodes)
         )
 
+    def generate_dns_nameservers_list(self, ci):
+        return map(
+            lambda x: x.get_ip_address_by_network_name('internal'), ci.nodes().cobblers)
+
+    def generate_nodes_configs_list(self, ci):
+        def get_role(ci, node):
+            rv = ''
+            if node in ci.nodes().computes:
+                rv = 'compute'
+            elif node in ci.nodes().controllers:
+                rv = 'controller'
+            elif node in ci.nodes().storages:
+                rv = 'storage'
+            elif node in ci.nodes().proxies:
+                rv = 'proxy'
+            elif node in ci.nodes().quantums:
+                rv = 'quantum'
+            elif node in ci.nodes().masters:
+                rv = 'master'
+            elif node in ci.nodes().cobblers:
+                rv = 'cobbler'
+            elif node in ci.nodes().stomps:
+                rv = 'stomp'
+            return str(rv)
+        nodes = ci.nodes().all
+        return map(
+            lambda x:
+               {   
+                   'name': str(x.name),
+                   'role': get_role(ci, x),
+                   'internal_address': x.get_ip_address_by_network_name('internal'),
+                   'public_address': x.get_ip_address_by_network_name('public'),
+               }
+        ,
+            nodes)
+
     def self_test(self):
         class Node(object):
             def __init__(self, name):
@@ -222,7 +258,6 @@ class Manifest(object):
             floating_range=self.floating_network(ci, quantum),
             fixed_range=self.fixed_network(ci,quantum),
             mirror_type=self.mirror_type(),
-            controller_hostnames=self.hostnames(controllers),
             public_interface=self.public_interface(),
             internal_interface=self.internal_interface(),
             private_interface=self.private_interface(),
@@ -230,11 +265,12 @@ class Manifest(object):
             use_syslog=use_syslog,
             cinder=cinder,
             cinder_on_computes=cinder,
-            external_ipinfo = self.external_ip_info(ci, quantums),
-            addresses = self.addresses(ci.nodes().all),
-            default_gateway = ci.public_router(),
-            enable_test_repo = TEST_REPO,
             nagios_master = controllers[0].name + '.your-domain-name.com',
+            external_ipinfo=self.external_ip_info(ci, quantums),
+            nodes=self.generate_nodes_configs_list(ci),
+            dns_nameservers=self.generate_dns_nameservers_list(ci),
+            default_gateway=ci.public_router(),
+            enable_test_repo=TEST_REPO,
         )
         if swift:
             template.replace(swift_loopback=self.loopback(loopback))

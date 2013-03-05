@@ -66,10 +66,15 @@ $nodes_harr = [
 ]
 $nodes = $nodes_harr
 $default_gateway = '10.0.204.1'
-$dns_nameservers = [filter_nodes($nodes,'name','fuel-cobbler')['internal_address'],] # Need point to cobbler node IP if you use default use case.
+
+# Specify nameservers here.
+# Need points to cobbler node IP, and to special prepared nameservers if you known what you do.
+$dns_nameservers = ['10.0.204.1','8.8.8.8']
+
+
 $node = filter_nodes($nodes,'name',$::hostname)
-$internal_address = $node['internal_address']
-$public_address = $node['public_address']
+$internal_address = $node[0]['internal_address']
+$public_address = $node[0]['public_address']
 $internal_netmask = '255.255.255.0'
 $public_netmask = '255.255.255.0'
 $controller_internal_addresses = nodes_to_hash(filter_nodes($nodes,'role','controller'),'name','internal_address')
@@ -186,7 +191,7 @@ $quantum_gre_bind_addr = $internal_address
 
 #Which IP have Quantum network node?
 $quantum_net_node_hostname= 'fuel-controller-03'
-$quantum_net_node_address = $addresses[$quantum_net_node_hostname]['internal_address']
+$quantum_net_node_address = $controller_internal_addresses[$quantum_net_node_hostname]
 
 # If $external_ipinfo option is not defined, the addresses will be allocated automatically from $floating_range:
 # the first address will be defined as an external default router,
@@ -683,11 +688,4 @@ node /fuel-quantum/ {
       before               => Class['openstack::quantum_router'],
     }
   }
-}
-
-# This configuration option is deprecated and will be removed in future releases. It's currently kept for backward compatibility.
-$controller_public_addresses = {
-  'fuel-controller-01' => $addresses['fuel-controller-01']['public_address'],
-  'fuel-controller-02' => $addresses['fuel-controller-02']['public_address'],
-  'fuel-controller-03' => $addresses['fuel-controller-03']['public_address'],
 }
