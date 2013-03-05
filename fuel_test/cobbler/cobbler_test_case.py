@@ -6,7 +6,8 @@ from fuel_test.ci.ci_cobbler import CiCobbler
 from fuel_test.cobbler.cobbler_client import CobblerClient
 from fuel_test.helpers import tcp_ping, udp_ping, build_astute, install_astute, add_to_hosts, await_node_deploy
 from fuel_test.manifest import Manifest, Template
-from fuel_test.settings import PUPPET_VERSION, OS_FAMILY
+from fuel_test.settings import PUPPET_VERSION, OS_FAMILY, CLEAN
+
 
 class CobblerTestCase(BaseTestCase):
     def ci(self):
@@ -50,7 +51,8 @@ class CobblerTestCase(BaseTestCase):
             ci=self.ci())
 
     def setUp(self):
-        self.get_nodes_deployed_state()
+        if CLEAN:
+            self.get_nodes_deployed_state()
         self.generate_manifests()
         self.update_modules()
 
