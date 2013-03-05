@@ -227,8 +227,7 @@ if ($rabbit_nodes) {
       auth_host     => $internal_address,
       auth_password => $quantum_user_password,
     }
-
-    if ! $quantum_netnode_on_cnt {
+    if ! $quantum_network_node {
       class { '::quantum':
         bind_host            => $api_bind_address,
         rabbit_user          => $rabbit_user,
@@ -240,16 +239,8 @@ if ($rabbit_nodes) {
         debug                => $verbose,
         use_syslog           => $use_syslog,
       }
-      class { 'quantum::plugins::ovs':
-        bridge_mappings      => ["physnet1:br-ex","physnet2:br-prv"],
-        network_vlan_ranges  => "physnet1,physnet2:${segment_range}",
-        tunnel_id_ranges     => "${segment_range}",
-        sql_connection       => $quantum_sql_connection,
-        tenant_network_type  => $tenant_network_type,
-        enable_tunneling     => $enable_tunneling,
-      }
-
-      class { 'nova::network::quantum':
+   }
+     class { 'nova::network::quantum':
         quantum_admin_password    => $quantum_user_password,
         quantum_connection_host   => $quantum_host, 
         quantum_auth_strategy     => 'keystone',
@@ -259,19 +250,6 @@ if ($rabbit_nodes) {
         quantum_admin_auth_url    => "http://${keystone_host}:35357/v2.0",
         public_interface          => $public_interface,
       }
-    } else {
-      # Quantum network node on controller#3
-      class { 'nova::network::quantum':
-        quantum_admin_password    => $quantum_user_password,
-        quantum_connection_host   => $quantum_host, 
-        quantum_auth_strategy     => 'keystone',
-        quantum_url               => "http://${keystone_host}:9696",
-        quantum_admin_tenant_name => 'services',
-        quantum_admin_username    => 'quantum',
-        quantum_admin_auth_url    => "http://${keystone_host}:35357/v2.0",
-        public_interface          => $public_interface,
-      }
-    }
   }
 
   # Configure nova-api
