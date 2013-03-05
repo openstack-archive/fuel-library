@@ -272,7 +272,7 @@ class quantum::agents::l3 (
       enable     => $enabled,
       ensure     => $ensure,
       hasstatus  => true,
-      hasrestart => true,
+      hasrestart => false,
       provider   => "pacemaker",
       require    => [Package[$l3_agent_package], Class['quantum'], Service['quantum-plugin-ovs-service']],
     }

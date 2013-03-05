@@ -105,7 +105,7 @@ class quantum::agents::dhcp (
     Cs_commit <| title == 'ovs' |> -> Cs_shadow <| title == 'dhcp' |>
     
     Cs_commit['dhcp'] -> Service['quantum-dhcp-service']
-    
+      
     Cs_resource["p_${::quantum::params::dhcp_agent_service}"]->Cs_colocation['dhcp-with-ovs']
     Cs_resource["p_${::quantum::params::dhcp_agent_service}"]->Cs_order['dhcp-after-ovs'] 
     cs_shadow { 'dhcp': cib => 'dhcp' }
@@ -143,7 +143,7 @@ class quantum::agents::dhcp (
       enable     => $enabled,
       ensure     => $ensure,
       hasstatus  => true,
-      hasrestart => true,
+      hasrestart => false,
       provider   => $service_provider,
       require    => [Package[$dhcp_agent_package], Class['quantum'], Service['quantum-plugin-ovs-service']],
     }

@@ -111,7 +111,7 @@ class quantum::agents::ovs (
       enable     => $enabled,
       ensure     => $service_ensure,
       hasstatus  => true,
-      hasrestart => true,
+      hasrestart => false,
       provider   => $service_provider,
     }
 
