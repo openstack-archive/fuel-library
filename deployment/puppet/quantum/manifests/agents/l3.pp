@@ -51,6 +51,9 @@ class quantum::agents::l3 (
   Quantum_l3_agent_config <| |> -> Service['quantum-l3']
   Quantum_config <| |> ~> Service['quantum-l3']
   Quantum_l3_agent_config <| |> ~> Service['quantum-l3']
+  Quantum_l3_agent_config <||> ->Quantum_router <||> 
+  Quantum_l3_agent_config <||> ->Quantum_net <||> 
+  Quantum_l3_agent_config <||> ->Quantum_subnet <||> 
 
   quantum_l3_agent_config {
     'DEFAULT/debug':
@@ -116,6 +119,9 @@ class quantum::agents::l3 (
         $external_gateway = $ext_ipinfo['public_net_router']
         $external_alloc_pool = [$ext_ipinfo['pool_start'], $ext_ipinfo['pool_end']]
       }
+
+	Keystone_user_role["$auth_user@$auth_tenant"] -> Quantum::Network::Setup <||>
+	Keystone_user_role["$auth_user@$auth_tenant"] -> Quantum::Network::Provider_router <||>
 
       quantum::network::setup { 'net04':
         physnet      => $internal_physical_network,

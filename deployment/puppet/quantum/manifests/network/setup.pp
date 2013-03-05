@@ -15,8 +15,11 @@ define quantum::network::setup (
   $nameservers     = undef,
 ) {
 
+  Quantum_l3_agent_config <||> ->Quantum_net <||> 
+  Quantum_l3_agent_config <||> ->Quantum_subnet <||> 
   Quantum_net<||> -> Quantum_subnet<||>
-
+  Service <| title == 'keystone' |> -> Quantum_net <| |>
+  Service <| title == 'keystone' |> -> Quantum_subnet <| |>
   # create network
   quantum_net { $title:
     ensure        => present,

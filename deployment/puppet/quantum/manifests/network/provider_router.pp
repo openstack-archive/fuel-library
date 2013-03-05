@@ -5,10 +5,9 @@ define quantum::network::provider_router (
   $tenant_name    = 'admin',
   $router_subnets = undef,
   $router_extnet  = undef,
-  $router_state   = undef,
-) {
-
-  Quantum_subnet<||> -> Quantum_router<||>
+  $router_state   = undef,) {
+  Quantum_subnet <| |> -> Quantum_router <| |>
+  Service <| title == 'keystone' |> -> Quantum_router <| |>
 
   # create router
   quantum_router { $title:
@@ -16,7 +15,7 @@ define quantum::network::provider_router (
     tenant      => $tenant_name,
     int_subnets => $router_subnets,
     ext_net     => $router_extnet,
-    #admin_state => $admin_state,
-  } 
+  # admin_state => $admin_state,
+  }
 
 }
