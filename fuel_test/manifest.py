@@ -238,6 +238,7 @@ class Manifest(object):
             addresses = self.addresses(ci.nodes().all),
             default_gateway = ci.public_router(),
             enable_test_repo = TEST_REPO,
+            nagios_master = controllers[0].name + '.your-domain-name.com',
         )
         if swift:
             template.replace(swift_loopback=self.loopback(loopback))
