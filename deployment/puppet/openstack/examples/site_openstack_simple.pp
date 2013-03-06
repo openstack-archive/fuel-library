@@ -83,21 +83,21 @@ $quantum_gre_bind_addr = $internal_address
 
 $use_syslog = false
 if $use_syslog {
-class { "::rsyslog::client": 
+  class { "::rsyslog::client": 
     log_local => true,
     log_auth_local => true,
     server => '127.0.0.1',
     port => '514'
- }
+  }
 }
-  case $::osfamily {
+case $::osfamily {
     "Debian":  {
-       $rabbitmq_version_string = '2.8.7-1'
+      $rabbitmq_version_string = '2.8.7-1'
     }
     "RedHat": {
-       $rabbitmq_version_string = '2.8.7-2.el6'
+      $rabbitmq_version_string = '2.8.7-2.el6'
     }
-  }
+}
 # OpenStack packages to be installed
 $openstack_version = {
   'keystone'         => 'latest',
@@ -131,16 +131,21 @@ if $::operatingsystem == 'Ubuntu' {
 #These limits can be small for your installation or usage scenario
 #Change the following variables if you want. The unit is requests per minute.
 
-$nova_rate_limits = { 'POST' => 1000,
- 'POST_SERVERS' => 1000,
- 'PUT' => 1000, 'GET' => 1000,
- 'DELETE' => 1000 }
+$nova_rate_limits = { 
+  'POST' => 1000,
+  'POST_SERVERS' => 1000,
+  'PUT' => 1000, 
+  'GET' => 1000,
+  'DELETE' => 1000 
+}
 
-
-$cinder_rate_limits = { 'POST' => 1000,
- 'POST_SERVERS' => 1000,
- 'PUT' => 1000, 'GET' => 1000,
- 'DELETE' => 1000 }
+$cinder_rate_limits = { 
+  'POST' => 1000,
+  'POST_SERVERS' => 1000,
+  'PUT' => 1000, 
+  'GET' => 1000,
+  'DELETE' => 1000 
+}
 
 sysctl::value { 'net.ipv4.conf.all.rp_filter': value => '0' }
 

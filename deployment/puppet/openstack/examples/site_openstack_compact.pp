@@ -68,15 +68,19 @@ $nodes = $nodes_harr
 $default_gateway = '10.0.204.1'
 
 # Specify nameservers here.
-# Need points to cobbler node IP, and to special prepared nameservers if you known what you do.
+# Need points to cobbler node IP, or to special prepared nameservers if you known what you do.
 $dns_nameservers = ['10.0.204.1','8.8.8.8']
+
+# Specify netmasks for internal and external networks.
+$internal_netmask = '255.255.255.0'
+$public_netmask = '255.255.255.0'
 
 
 $node = filter_nodes($nodes,'name',$::hostname)
 $internal_address = $node[0]['internal_address']
 $public_address = $node[0]['public_address']
-$internal_netmask = '255.255.255.0'
-$public_netmask = '255.255.255.0'
+
+
 $controller_internal_addresses = nodes_to_hash(filter_nodes($nodes,'role','controller'),'name','internal_address')
 $controller_public_addresses = nodes_to_hash(filter_nodes($nodes,'role','controller'),'name','public_address')
 $controller_hostnames = keys($controller_internal_addresses)
