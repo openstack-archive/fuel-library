@@ -5,8 +5,6 @@ Reference Architecture
 
 .. contents:: :local:
 
-.. include:: /pages/reference-architecture/technical-considerations/0070-swift-notes.rst
-
 .. include:: /pages/reference-architecture/0010-overview.rst
 .. include:: /pages/reference-architecture/0020-logical-setup.rst
 .. include:: /pages/reference-architecture/0030-cluster-sizing.rst
