@@ -10,9 +10,11 @@
 
 # This is the name of the public interface. The public network provides address space for Floating IPs, as well as public IP accessibility to the API endpoints.
 $public_interface    = 'eth1'
+$public_br           = 'br-ex'
 
 # This is the name of the internal interface. It will be attached to the management network, where data exchange between components of the OpenStack cluster will happen.
 $internal_interface  = 'eth0'
+$internal_br         = 'br-mgmt'
 
 # This is the name of the private interface. All traffic within OpenStack tenants' networks will go through this interface.
 $private_interface   = 'eth2'
@@ -64,15 +66,62 @@ $nodes_harr = [
 ]
 $nodes = $nodes_harr
 $default_gateway = '10.0.204.1'
-$dns_nameservers = [filter_nodes($nodes,'name','fuel-cobbler')['internal_address'],] # Need point to cobbler node IP if you use default use case.
-$node = filter_nodes($nodes,'name',$::hostname)
-$internal_address = $node['internal_address']
-$public_address = $node['public_address']
+
+# Specify nameservers here.
+# Need points to cobbler node IP, or to special prepared nameservers if you known what you do.
+$dns_nameservers = ['10.0.204.1','8.8.8.8']
+
+# Specify netmasks for internal and external networks.
 $internal_netmask = '255.255.255.0'
 $public_netmask = '255.255.255.0'
+
+
+$node = filter_nodes($nodes,'name',$::hostname)
+$internal_address = $node[0]['internal_address']
+$public_address = $node[0]['public_address']
+
+
 $controller_internal_addresses = nodes_to_hash(filter_nodes($nodes,'role','controller'),'name','internal_address')
 $controller_public_addresses = nodes_to_hash(filter_nodes($nodes,'role','controller'),'name','public_address')
 $controller_hostnames = keys($controller_internal_addresses)
+
+#Network configuration
+stage {'netconfig':
+      before  => Stage['main'],
+}
+
+class {'l23network': stage=> 'netconfig'}
+class node_netconfig (
+  $mgmt_ipaddr,
+  $mgmt_netmask  = '255.255.255.0',
+  $public_ipaddr = undef,
+  $public_netmask= '255.255.255.0',
+  $save_default_gateway=false,
+) { 
+  l23network::l3::create_br_iface {'mgmt':
+     interface => $internal_interface,
+     bridge    => $internal_br,
+     ipaddr    => $mgmt_ipaddr,
+     netmask   => $mgmt_netmask,
+     dns_nameservers      => $dns_nameservers,
+     save_default_gateway => $save_default_gateway,
+  }
+  l23network::l3::create_br_iface {'ex':
+     interface => $public_interface,
+     bridge    => $public_br,
+     ipaddr    => $public_ipaddr,
+     netmask   => $public_netmask,
+     gateway   => $default_gateway,
+  }
+  L23network::L3::Create_br_iface['mgmt'] -> L23network::L3::Create_br_iface['ex']
+  l23network::l3::ifconfig {$private_interface: ipaddr=>'none' }
+}
+
+# Set hostname for master controller of HA cluster. 
+# It is strongly recommend that the master controller is deployed before all other controllers since it initializes the new cluster.  
+# Default is fuel-controller-01. 
+# Fully qualified domain name is also allowed.
+$master_hostname = 'fuel-controller-01'
 
 # Set nagios master fqdn
 $nagios_master        = 'nagios-server.your-domain-name.com'
@@ -117,6 +166,7 @@ $quantum_db_dbname       = 'quantum'
 # Should we use quantum or nova-network(deprecated).
 # Consult OpenStack documentation for differences between them.
 $quantum                 = true
+$quantum_netnode_on_cnt  = true
 
 # Specify network creation criteria:
 # Should puppet automatically create networks?
@@ -124,11 +174,12 @@ $create_networks = true
 # Fixed IP addresses are typically used for communication between VM instances.
 $fixed_range     = '10.0.198.128/27'
 # Floating IP addresses are used for communication of VM instances with the outside world (e.g. Internet).
-$floating_range  = '10.0.74.128/28'
+$floating_range  = '10.0.204.128/28'
 
 # These parameters are passed to the previously specified network manager , e.g. nova-manage network create.
 # Not used in Quantum.
 # Consult openstack docs for corresponding network manager. 
+# https://fuel-dev.mirantis.com/docs/0.2/pages/0050-installation-instructions.html#network-setup
 $num_networks    = 1
 $network_size    = 31
 $vlan_start      = 300
@@ -139,8 +190,12 @@ $vlan_start      = 300
 # Consult Openstack Quantum docs 
 $tenant_network_type     = 'gre'
 
-#Which IP to use to communicate with Quantum server?
-$quantum_host            = $internal_virtual_ip
+# Which IP address will be used for creating GRE tunnels.
+$quantum_gre_bind_addr = $internal_address
+
+#Which IP have Quantum network node?
+$quantum_net_node_hostname= 'fuel-controller-03'
+$quantum_net_node_address = $controller_internal_addresses[$quantum_net_node_hostname]
 
 # If $external_ipinfo option is not defined, the addresses will be allocated automatically from $floating_range:
 # the first address will be defined as an external default router,
@@ -167,7 +222,7 @@ $network_manager = 'nova.network.manager.FlatDHCPManager'
 $auto_assign_floating_ip = false
 
 # Database connection for Quantum configuration (quantum.conf)
-$quantum_sql_connection  = "mysql://${quantum_db_user}:${quantum_db_password}@${quantum_host}/${quantum_db_dbname}"
+$quantum_sql_connection  = "mysql://${quantum_db_user}:${quantum_db_password}@${$internal_virtual_ip}/${quantum_db_dbname}"
 
 ### NETWORK/QUANTUM END ###
 
@@ -217,7 +272,7 @@ $glance_backend          = 'swift'
 
 # Use loopback device for swift:
 # set 'loopback' or false
-# This parameter controls where swift partiotions are located: 
+# This parameter controls where swift partitions are located:
 # on physical partitions or inside loopback devices.
 $swift_loopback = 'loopback'
 
@@ -228,25 +283,27 @@ $swift_local_net_ip      = $internal_address
 # and put into swift configs
 $controller_node_public  = $internal_virtual_ip
 
+
+# Hash of proxies hostname|fqdn => ip mappings.
+# This is used by controller_ha.pp manifests for haproxy setup
+# of swift_proxy backends
+$swift_proxies = $controller_internal_addresses
+
+
 # Set hostname of swift_master.
-# It tells on which swift proxy node to build 
+# It tells on which swift proxy node to build
 # *ring.gz files. Other swift proxies/storages
-# will rsync them. 
+# will rsync them.
 if $::hostname == 'fuel-controller-01' {
   $primary_proxy = true
 } else {
   $primary_proxy = false
 }
-if $::hostname == 'fuel-controller-01' {
+if $::hostname == $master_hostname {
   $primary_controller = true
 } else {
   $primary_controller = false
 }
-
-# Hash of proxies hostname|fqdn => ip mappings.
-# This is used by controller_ha.pp manifests for haproxy setup
-# of swift_proxy backends
-$swift_proxies           = $controller_internal_addresses
 
 ### Glance and swift END ###
 
@@ -254,27 +311,26 @@ $swift_proxies           = $controller_internal_addresses
 # Enable error messages reporting to rsyslog. Rsyslog must be installed in this case.
 $use_syslog = false
 if $use_syslog {
-class { "::rsyslog::client": 
+  class { "::rsyslog::client":
     log_local => true,
     log_auth_local => true,
     server => '127.0.0.1',
     port => '514'
- }
+  }
 }
 
 ### Syslog END ###
-
-# OpenStack packages and customized component versions to be installed. 
-# Use 'latest' to get the most rescent ones or specify exact version if you need to install custom version.
-  case $::osfamily {
+case $::osfamily {
     "Debian":  {
        $rabbitmq_version_string = '2.8.7-1'
     }
     "RedHat": {
        $rabbitmq_version_string = '2.8.7-2.el6'
     }
-  }
-
+}
+#
+# OpenStack packages and customized component versions to be installed. 
+# Use 'latest' to get the most recent ones or specify exact version if you need to install custom version.
 $openstack_version = {
   'keystone'         => 'latest',
   'glance'           => 'latest',
@@ -288,7 +344,6 @@ $openstack_version = {
 # Which package repo mirror to use. Currently "default".
 # "custom" is used by Mirantis for testing purposes.
 # Local puppet-managed repo option planned for future releases.
-
 # If you want to set up a local repository, you will need to manually adjust mirantis_repos.pp,
 # though it is NOT recommended.
 $mirror_type = 'default'
@@ -302,16 +357,18 @@ $verbose = true
 #Cinder and Nova can rate-limit your requests to API services.
 #These limits can be reduced for your installation or usage scenario.
 #Change the following variables if you want. They are measured in requests per minute.
-$nova_rate_limits = { 'POST' => 1000,
- 'POST_SERVERS' => 1000,
- 'PUT' => 1000, 'GET' => 1000,
- 'DELETE' => 1000 }
-
-
-$cinder_rate_limits = { 'POST' => 1000,
- 'POST_SERVERS' => 1000,
- 'PUT' => 1000, 'GET' => 1000,
- 'DELETE' => 1000 }
+$nova_rate_limits = {
+  'POST' => 1000,
+  'POST_SERVERS' => 1000,
+  'PUT' => 1000, 'GET' => 1000,
+  'DELETE' => 1000 
+}
+$cinder_rate_limits = {
+  'POST' => 1000,
+  'POST_SERVERS' => 1000,
+  'PUT' => 1000, 'GET' => 1000,
+  'DELETE' => 1000 
+}
 
 
 Exec { logoutput => true }
@@ -322,7 +379,7 @@ Exec { logoutput => true }
 # Globally apply an environment-based tag to all resources on each node.
 tag("${::deployment_id}::${::environment}")
 
-stage { 'openstack-custom-repo': before => Stage['main'] }
+stage { 'openstack-custom-repo': before => Stage['netconfig'] }
 class { 'openstack::mirantis_repos':
   stage => 'openstack-custom-repo',
   type=>$mirror_type,
@@ -343,13 +400,15 @@ sysctl::value { 'net.ipv4.conf.all.rp_filter': value => '0' }
 $horizon_use_ssl = false
 
 
-class compact_controller {
+class compact_controller (
+  $quantum_network_node = false
+) {
   class { 'openstack::controller_ha':
     controller_public_addresses   => $controller_public_addresses,
     controller_internal_addresses => $controller_internal_addresses,
     internal_address        => $internal_address,
-    public_interface        => $public_interface,
-    internal_interface      => $internal_interface,
+    public_interface        => $public_br,
+    internal_interface      => $internal_br,
     private_interface       => $private_interface,
     internal_virtual_ip     => $internal_virtual_ip,
     public_virtual_ip       => $public_virtual_ip,
@@ -384,6 +443,10 @@ class compact_controller {
     quantum_db_password     => $quantum_db_password,
     quantum_db_user         => $quantum_db_user,
     quantum_db_dbname       => $quantum_db_dbname,
+    quantum_network_node    => $quantum_network_node,
+    quantum_netnode_on_cnt  => $quantum_netnode_on_cnt,
+    quantum_gre_bind_addr   => $quantum_gre_bind_addr,
+    quantum_external_ipinfo => $external_ipinfo,
     tenant_network_type     => $tenant_network_type,
     segment_range           => $segment_range,
     cinder                  => $cinder,
@@ -392,9 +455,9 @@ class compact_controller {
     galera_nodes            => $controller_hostnames,
     nv_physical_volume      => $nv_physical_volume,
     use_syslog              => $use_syslog,
+    nova_rate_limits        => $nova_rate_limits,
+    cinder_rate_limits      => $cinder_rate_limits,
     horizon_use_ssl         => $horizon_use_ssl,
-    nova_rate_limits => $nova_rate_limits,
-    cinder_rate_limits => $cinder_rate_limits
   }
   class { 'swift::keystone::auth':
     password         => $swift_user_password,
@@ -406,7 +469,14 @@ class compact_controller {
 
 # Definition of the first OpenStack controller.
 node /fuel-controller-01/ {
-  
+  class {'::node_netconfig':
+      mgmt_ipaddr    => $::internal_address,
+      mgmt_netmask   => $::internal_netmask,
+      public_ipaddr  => $::public_address,
+      public_netmask => $::public_netmask,
+      stage          => 'netconfig',
+  }
+
   class {'nagios':
     proj_name       => $proj_name,
     services        => [
@@ -431,7 +501,7 @@ node /fuel-controller-01/ {
   class { 'openstack::swift::proxy':
     swift_user_password     => $swift_user_password,
     swift_proxies           => $swift_proxies,
-    primary_proxy            => $primary_proxy,
+    primary_proxy           => $primary_proxy,
     controller_node_address => $internal_virtual_ip,
     swift_local_net_ip      => $internal_address,
   }
@@ -439,7 +509,14 @@ node /fuel-controller-01/ {
 
 # Definition of the second OpenStack controller.
 node /fuel-controller-02/ {
-  
+  class {'::node_netconfig':
+      mgmt_ipaddr    => $::internal_address,
+      mgmt_netmask   => $::internal_netmask,
+      public_ipaddr  => $::public_address,
+      public_netmask => $::public_netmask,
+      stage          => 'netconfig',
+  }
+
   class {'nagios':
     proj_name       => $proj_name,
     services        => [
@@ -464,7 +541,7 @@ node /fuel-controller-02/ {
   class { 'openstack::swift::proxy':
     swift_user_password     => $swift_user_password,
     swift_proxies           => $swift_proxies,
-    primary_proxy            => $primary_proxy,
+    primary_proxy           => $primary_proxy,
     controller_node_address => $internal_virtual_ip,
     swift_local_net_ip      => $internal_address,
   }
@@ -472,6 +549,13 @@ node /fuel-controller-02/ {
 
 # Definition of the third OpenStack controller.
 node /fuel-controller-03/ {
+  class {'::node_netconfig':
+      mgmt_ipaddr    => $::internal_address,
+      mgmt_netmask   => $::internal_netmask,
+      public_ipaddr  => $::public_address,
+      public_netmask => $::public_netmask,
+      stage          => 'netconfig',
+  }
   
   class {'nagios':
     proj_name       => $proj_name,
@@ -485,7 +569,7 @@ node /fuel-controller-03/ {
     hostgroup       => 'controller',
   }
   
-  class { 'compact_controller': }
+  class { 'compact_controller': quantum_network_node => true }
   $swift_zone = 3
 
   class { 'openstack::swift::storage_node':
@@ -497,7 +581,7 @@ node /fuel-controller-03/ {
   class { 'openstack::swift::proxy':
     swift_user_password     => $swift_user_password,
     swift_proxies           => $swift_proxies,
-    primary_proxy            => $primary_proxy,
+    primary_proxy           => $primary_proxy,
     controller_node_address => $internal_virtual_ip,
     swift_local_net_ip      => $internal_address,
   }
@@ -505,6 +589,14 @@ node /fuel-controller-03/ {
 
 # Definition of OpenStack compute nodes.
 node /fuel-compute-[\d+]/ {
+  class {'::node_netconfig':
+      mgmt_ipaddr    => $::internal_address,
+      mgmt_netmask   => $::internal_netmask,
+      public_ipaddr  => $::public_address,
+      public_netmask => $::public_netmask,
+      stage          => 'netconfig',
+  }
+
   class {'nagios':
     proj_name       => $proj_name,
     services        => [
@@ -527,6 +619,7 @@ node /fuel-compute-[\d+]/ {
     rabbit_nodes           => $controller_hostnames,
     rabbit_password        => $rabbit_password,
     rabbit_user            => $rabbit_user,
+    rabbit_ha_virtual_ip   => $internal_virtual_ip,
     glance_api_servers     => "${internal_virtual_ip}:9292",
     vncproxy_host          => $public_virtual_ip,
     verbose                => $verbose,
@@ -536,25 +629,33 @@ node /fuel-compute-[\d+]/ {
     cache_server_ip        => $controller_hostnames,
     service_endpoint       => $internal_virtual_ip,
     quantum                => $quantum,
-    quantum_host           => $quantum_host,
     quantum_sql_connection => $quantum_sql_connection,
     quantum_user_password  => $quantum_user_password,
+    quantum_host           => $quantum_net_node_address,
     tenant_network_type    => $tenant_network_type,
     segment_range          => $segment_range,
     cinder                 => $cinder_on_computes,
-    cinder_iscsi_bind_iface => $cinder_iscsi_bind_iface,
-    nv_physical_volume      => $nv_physical_volume,
+    cinder_iscsi_bind_iface=> $cinder_iscsi_bind_iface,
+    nv_physical_volume     => $nv_physical_volume,
     db_host                => $internal_virtual_ip,
     ssh_private_key        => 'puppet:///ssh_keys/openstack',
     ssh_public_key         => 'puppet:///ssh_keys/openstack.pub',
-    use_syslog              => $use_syslog,
-    nova_rate_limits => $nova_rate_limits,
-    cinder_rate_limits => $cinder_rate_limits
+    use_syslog             => $use_syslog,
+    nova_rate_limits       => $nova_rate_limits,
+    cinder_rate_limits     => $cinder_rate_limits
   }
 }
 
 # Definition of OpenStack Quantum node.
 node /fuel-quantum/ {
+  class {'::node_netconfig':
+      mgmt_ipaddr    => $::internal_address,
+      mgmt_netmask   => $::internal_netmask,
+      public_ipaddr  => 'none',
+      save_default_gateway => true,
+      stage          => 'netconfig',
+  }
+  if ! $quantum_netnode_on_cnt {
     class { 'openstack::quantum_router':
       db_host               => $internal_virtual_ip,
       service_endpoint      => $internal_virtual_ip,
@@ -569,29 +670,25 @@ node /fuel-quantum/ {
       rabbit_password       => $rabbit_password,
       rabbit_user           => $rabbit_user,
       rabbit_nodes          => $controller_hostnames,
+      rabbit_ha_virtual_ip  => $internal_virtual_ip,
       quantum               => $quantum,
       quantum_user_password => $quantum_user_password,
       quantum_db_password   => $quantum_db_password,
       quantum_db_user       => $quantum_db_user,
       quantum_db_dbname     => $quantum_db_dbname,
+      quantum_netnode_on_cnt=> false,
+      quantum_network_node  => true,
       tenant_network_type   => $tenant_network_type,
       segment_range         => $segment_range,
       external_ipinfo       => $external_ipinfo,
       api_bind_address      => $internal_address,
-      use_syslog              => $use_syslog,
+      use_syslog            => $use_syslog,
     }
-
     class { 'openstack::auth_file':
       admin_password       => $admin_password,
       keystone_admin_token => $keystone_admin_token,
       controller_node      => $internal_virtual_ip,
       before               => Class['openstack::quantum_router'],
     }
-}
-
-# This configuration option is deprecated and will be removed in future releases. It's currently kept for backward compatibility.
-$controller_public_addresses = {
-  'fuel-controller-01' => $addresses['fuel-controller-01']['public_address'],
-  'fuel-controller-02' => $addresses['fuel-controller-02']['public_address'],
-  'fuel-controller-03' => $addresses['fuel-controller-03']['public_address'],
+  }
 }

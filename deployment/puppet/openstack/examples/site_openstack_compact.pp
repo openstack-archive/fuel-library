@@ -327,7 +327,7 @@ case $::osfamily {
     "RedHat": {
        $rabbitmq_version_string = '2.8.7-2.el6'
     }
- }
+}
 #
 # OpenStack packages and customized component versions to be installed. 
 # Use 'latest' to get the most recent ones or specify exact version if you need to install custom version.
@@ -348,7 +348,6 @@ $openstack_version = {
 # though it is NOT recommended.
 $mirror_type = 'default'
 $enable_test_repo = false
-
 
 # This parameter specifies the verbosity level of log messages
 # in openstack components config. Currently, it disables or enables debugging.
