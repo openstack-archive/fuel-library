@@ -58,7 +58,7 @@ $nodes_harr = [
 ]
 $nodes = $nodes_harr
 $default_gateway = '10.0.204.1'
-$dns_nameservers = [filter_nodes($nodes,'name','fuel-cobbler')['internal_address'],] # Need point to cobbler node IP if you use default use case.
+$dns_nameservers = ['10.0.204.1','8.8.8.8']
 $node = filter_nodes($nodes,'name',$::hostname)
 $internal_address = $node['internal_address']
 $public_address = $node['public_address']
@@ -190,39 +190,6 @@ $openstack_version = {
 
 $mirror_type = 'default'
 $enable_test_repo = false
-
-$addresses_hash = {
-  'fuel-controller-01' => {
-    'internal_address' => '10.0.0.103',
-    'public_address' => '10.0.204.103',
-  },
-  'fuel-controller-02' => {
-      'internal_address' => '10.0.0.104',
-      'public_address' => '10.0.204.104',
-  },
-  'fuel-compute-01' => {
-          'internal_address' => '10.0.0.106',
-          'public_address' => '10.0.204.106',
-  },
-  'fuel-compute-02' => {
-          'internal_address' => '10.0.0.107',
-          'public_address' => '10.0.204.107',
-  },
-  'fuel-quantum' => {
-          'internal_address' => '10.0.0.108',
-          'public_address' => '10.0.204.108',
-  },
-}
-$addresses = $addresses_hash
-$default_gateway = undef
-# Set internal address on which services should listen.
-# We assume that this IP will is equal to one of the haproxy
-# backends. If the IP address does not match, this may break your environment.
-# Leave internal_address unchanged unless you know what you are doing.
-$internal_address = $addresses[$::hostname]['internal_address']
-$public_address = $addresses[$::hostname]['public_address']
-$internal_netmask = '255.255.255.0'
-$public_netmask = '255.255.255.0'
 
 $quantum_sql_connection  = "mysql://${quantum_db_user}:${quantum_db_password}@${quantum_host}/${quantum_db_dbname}"
 
