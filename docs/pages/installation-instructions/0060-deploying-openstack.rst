@@ -2,160 +2,538 @@
 Deploying OpenStack
 -------------------
 
-Initial setup
-~~~~~~~~~~~~~
+At this point you have functioning servers that are ready to have
+OpenStack installed. If you're using VirtualBox, save the current state
+of every virtual machine by taking a snapshot. (To do that while the
+machine is running, highlight the machine in the main VirtualBox
+console, click the Snapshots button, then click the camera icon.) This
+way you can go back to this point and try again if necessary.
 
-If you are using hardware, make sure it is capable of PXE booting over the network from Cobbler.
 
-In case of VirtualBox, create the corresponding virtual machines for your OpenStack nodes. Do not start them yet.
 
-* Machine -> New...
-    * Name: fuel-controller-01 (will need to repeat for fuel-controller-02, fuel-controller-03, and fuel-compute-01)
-    * Type: Linux
-    * Version: Red Hat (64 Bit) or Ubuntu (64 Bit)
+To install the new cluster, the Puppet Master needs a configuration
+file that defines all of the appropriate networks, nodes, and roles.
+Fortunately, Fuel provides several different configurations, and as we
+have discussed, we are going to use the Multi-node (HA) Swift Compact
+architecture, or Swift Compact. To configure the Puppet Master to use
+the Swift Compact topology, copy that configuration file into the
+Puppet Master::
 
-* Machine -> System -> Motherboard...
-    * Check "Network" in "Boot sequence"
 
-* Machine -> Settings... -> Network
-    * Adapter 1
-        * Enable Network Adapter
-        * Attached to: Host-only Adapter
-        * Name: vboxnet0
+
+    cp /etc/puppet/modules/openstack/examples/site_openstack_swift_compact.pp /etc/puppet/manifests/site.pp
+
+
+
+The next step will be to go through the site.pp file and make any
+necessary customizations. In our case, were going to do three things:
+
+#. Customize network settings to match our actual machines
+#. Turn off Quantum, since we made the decision not to use it in order to simplify matters
+#. Set up Cinder so that scheduling is handled by the controllers (as normal) but the actual storage happens on the compute node
+
+
+
+Lets start with the basic network customization::
+
+
+
+    ### GENERAL CONFIG ###
+    # This section sets main parameters such as hostnames and IP addresses of different nodes
+
+    # This is the name of the public interface. The public network provides address space for Floating IPs, as well as public IP accessibility to the API endpoints.
+    $public_interface = 'eth1'
+    $public_br = 'br-ex'
     
-    * Adapter 2
-        * Enable Network Adapter
-        * Attached to: Bridged Adapter
-        * Name: en1 (Wi-Fi Airport), or whatever network interface of the host machine with Internet access 
-
-    * Adapter 3
-        * Enable Network Adapter
-        * Attached to: Host-only Adapter
-        * Name: vboxnet1
-        * Advanced -> Promiscuous mode: Allow All
-
-    * It is important that host-only "Adapter 1" goes first, as Cobbler will use vboxnet0 for PXE, and VirtualBox boots from LAN on the first available network adapter.
-
-Configuring nodes in Cobbler
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Now you need to define nodes in the Cobbler configuration, so that it knows what OS to install, where to install it, and what configuration actions to take.
-
-On Puppet master, create a directory for configuration (wherever you like) and copy the sample config file for Cobbler from Fuel repository:
-
-    * ``mkdir cobbler_config``
-    * ``cd cobbler_config``
-    * ``cp /etc/puppet/modules/cobbler/examples/cobbler_system.py .``
-    * ``cp /etc/puppet/modules/cobbler/examples/nodes.yaml .``
-
-Edit configuration for bare metal provisioning of nodes (nodes.yaml):
-
-* There is essentially a section for every node, and you have to define all OpenStack nodes there (fuel-controller-01, fuel-controller-02, fuel-controller-03, and fuel-compute-01 by default). The config for a single node is provided below. The config for the remaining nodes is very similar
-* It is important to get the following parameters correctly specified (they are different for every node):
-    * name of the system in Cobbler, the very first line
-    * hostname and DNS name (do not forget to replace "your-domain-name.com" with your domain name)
-    * MAC addresses for every network interface (you can look them up in VirtualBox by using Machine -> Settings... -> Network -> Adapters)
-    * static IP address on management interface eth0
-	* version of Puppet according target OS
-* vi nodes.yaml
-    .. literalinclude:: ../../deployment/puppet/cobbler/examples/nodes.yaml
-
-* for the sake of convenience the "./cobbler_system.py" script is provided. The script reads the definition of the systems from the yaml file and makes calls to Cobbler API to insert these systems into the configuration. Run it using the following command:
-    * ``./cobbler_system.py -f nodes.yaml -l DEBUG``
-
-Installing OS on the nodes using Cobbler
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Now, when Cobbler has the correct configuration, the only thing you need to do is to PXE-boot your nodes. They will boot over the network from DHCP/TFTP provided by Cobbler and will be provisioned accordingly, with the specified operating system and configuration.
-
-In case of VirtualBox, here is what you have to do for every virtual machine (fuel-controller-01, fuel-controller-02, fuel-controller-03, fuel-compute-01):
-
-* Start VM
-* Press F12 immediately and select "l" (LAN) as a bootable media
-* Wait for the installation to complete
-* Check that network is set up correctly and machine can reach package repositories as well as Puppet master
-    * ``ping download.mirantis.com``
-    * ``ping fuel-pm.your-domain-name.com``
-
-It is important to note that if you use VLANs in your network configuration, you always have to keep in mind the fact that PXE booting does not work on tagged interfaces. Therefore, all your nodes including the one where the Cobbler service resides must share one untagged VLAN (also called "native VLAN"). You can use the ``dhcp_interface`` parameter of the ``cobbler::server`` class to bind the DHCP service to a certain interface.
-
-Now you have OS installed and configured on all nodes. Moreover, Puppet is installed on the nodes as well and its configuration points to our Puppet master. Therefore, the nodes are almost ready for deploying OpenStack. Now, as the last step, you need to register nodes in Puppet master:
-
-* ``puppet agent --test``
-    * it will generate a certificate, send to Puppet master for signing, and then fail
-* switch to Puppet master and execute:
-    * ``puppet cert list``
-    * ``puppet cert sign --all``
-        * alternatively, you can sign only a single certificate using "puppet cert sign fuel-XX.your-domain-name.com"
-* ``puppet agent --test``
-    * it should successfully complete and result in the "Hello World from fuel-XX" message
-
-Configuring OpenStack cluster in Puppet
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-In case of VirtualBox, it is recommended to save the current state of every virtual machine using the mechanism of snapshots. It is helpful to have a point to revert to, so that you could install OpenStack using Puppet and then revert and try one more time, if necessary.
-
-* On Puppet master
-    * edit file ``/etc/puppet/fileserver.conf`` and append the following lines: :: 
+    # This is the name of the internal interface. It will be attached to the management network, where data exchange between components of the OpenStack cluster will happen.
+    $internal_interface = 'eth0'
+    $internal_br = 'br-mgmt'
     
-        [ssh_keys]
-        path /var/lib/puppet/ssh_keys
-        allow *
+    # This is the name of the private interface. All traffic within OpenStack tenants' networks will go through this interface.
+    $private_interface = 'eth2'
 
-    * create a directory with keys, give it appropriate permissions, and generate keys themselves
-        * ``mkdir /var/lib/puppet/ssh_keys``
-        * ``cd /var/lib/puppet/ssh_keys``
-        * ``ssh-keygen -f openstack``
-        * ``chown -R puppet:puppet /var/lib/puppet/ssh_keys/``
-    * create a file with the definition of networks, nodes, and roles. Assume you are deploying a compact configuration, with Controllers and Swift combined:
-        ``cp /etc/puppet/modules/openstack/examples/site_openstack_swift_compact.pp /etc/puppet/manifests/site.pp``
-    * ``vi /etc/puppet/manifests/site.pp`` and edit settings accordingly (see "Configuring Network", "Enabling Quantum", "Enabling Cinder" below):
-       
-       .. literalinclude:: ../../deployment/puppet/openstack/examples/site_openstack_swift_compact_fordocs.pp
+
+In this case, we don't need to make any changes to the interface
+settings, because they match what we've already set up. ::
+
+    # Public and Internal VIPs. These virtual addresses are required by HA topology and will be managed by keepalived.
+    $internal_virtual_ip = '10.0.0.10'
+    # Change this IP to IP routable from your 'public' network,
+    # e. g. Internet or your office LAN, in which your public
+    # interface resides
+    $public_virtual_ip = '10.0.1.10'
+
+
+
+The Virtual IPs, however, are not correct for our setup. The host IPs
+specified are in use elsewhere in the configuration, and the
+$public_virtual_ip needs to be on the public network we've already
+specified, so make the changes you see here to sync up with our actual
+setup. ::
+
+
+
+    # Array containing key/value pairs of controllers and IP addresses for their internal interfaces. Must have an entry for every controller node.
+    # Fully Qualified domain names are allowed here along with short hostnames.
+
+    $controller_internal_addresses = {'fuel-controller-01' => '10.0.0.101','fuel-controller-02' => '10.0.0.102','fuel-controller-03' =>'10.0.0.103'}
+
+    # Set hostname of swift_master.
+    ...
+
+
+
+Next, fix the internal IP addresses for the controllers to match the
+addresses they were given earlier.
+
+
+You'll need to make similar adjustments to the actual node definitions::
+
+
+    ...
+      $primary_controller = false
+    }
+
+    $addresses_hash = {
+      'fuel-controller-01' => {
+        'internal_address' => '10.0.0.101',
+        'public_address' => '10.0.1.101',
+      },
+      'fuel-controller-02' => {
+        'internal_address' => '10.0.0.102',
+        'public_address' => '10.0.1.102',
+      },
+      'fuel-controller-03' => {
+        'internal_address' => '10.0.0.103',
+        'public_address' => '10.0.1.103',
+      },
+      'fuel-compute-01' => {
+        'internal_address' => '10.0.0.110',
+        'public_address' => '10.0.1.110',
+      },
+      'fuel-compute-02' => {
+    ...
+
+
+
+Again, the internal and public addresses need to match what has
+already been set. Don't worry about the fuel-compute-02 and fuel-quantum nodes; were not using them in this setup. (You can delete them
+if you want, but its not necessary.)
+
+
+
+Finally, you need to correct the gateway and DNS values::
+
+
+
+    ...
+      'fuel-quantum' => {
+            'internal_address' => '10.0.0.108',
+            'public_address' => '10.0.204.108',
+      },
+    }
+    $addresses = $addresses_hash
+    $default_gateway = '10.0.1.1'
+    $dns_nameservers = [$addresses['fuel-pm']['internal_address'],] 
+    # Need point to cobbler node IP if you use default use case.
+
+    # Set internal address on which services should listen.
+    # We assume that this IP will is equal to one of the haproxy
+    ...
+
+
+
+The default gateway is the host machine, or more specifically, the
+first Hostonly adapter we specified in VirtualBox, which we set to
+10.0.1.1.
+
+
+
+Finally, make sure that the $dns_nameservers value is looking for
+fuel-pm, rather than fuel-cobbler, because we've combined them into one
+machine.
+
+
+
+Now that the network is configured for the servers, lets look at the
+network services.
+
+
+Enabling Quantum
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+In order to deploy OpenStack with Quantum you need to setup an
+additional node that will act as a L3 router, or run Quantum out of
+one of the existing nodes. In our case we've opted to turn off Quantum::
+
+
+    ...
+    ### GENERAL CONFIG END ###
+    ### NETWORK/QUANTUM ###
+    # Specify network/quantum specific settings
     
+    # Should we use quantum or nova-network(deprecated).
+    # Consult OpenStack documentation for differences between them.
+    $quantum = false
+    $quantum_netnode_on_cnt = false
+    
+Notice that if we were going to keep Quantum on, the $quantum_netnode_on_cnt lets us specify whether we want Quantum to run
+on the controllers. ::
 
-Configuring Network
-^^^^^^^^^^^^^^^^^^^
 
-* You will need ``vi /etc/puppet/manifests/site.pp`` (see above) to change the following parameters:
-  
-  * Change IP addresses for "public" and "internal" according to your networking requirements::
+    # Specify network creation criteria:
+    # Should puppet automatically create networks?
+    $create_networks = true
+    # Fixed IP addresses are typically used for communication between VM instances.
+    $fixed_range = '10.0.198.128/27'
+    # Floating IP addresses are used for communication of VM instances with the outside world (e.g. Internet).
+    $floating_range = '10.0.1.128/28'
 
-    $internal_virtual_ip = '10.0.0.253' # IP address must be in address space of management network (eth0)
-    $public_virtual_ip   = '10.xxx.yyy.253' # must be in address space of public network (eth1) , but not in DHCP range and floating range (see below). 
 
-  * Define "$floating_range" and "$fixed_range" accordingly::
 
-    $floating_range  = '10.xxx.yyy.128/26' # IP-address from the public address space. 
-    $fixed_range     = '10.0.198.0/24'     # This subnet used for service purpose only. Specify any unused by you subnet here. 
+The Floating IPs will be assigned to OpenStack VMs, and will be the
+way in which they will be accessed from the Internet, so the
+$floating_range needs to be on the public network. (Notice also that
+this range includes 10.0.1.253; that's why we had to move the
+$public_virtual_ip to 10.0.1.10.) ::
 
-  * Specify network manager.  It can be 'nova.network.manager.FlatDHCPManager', 'nova.network.manager.FlatManager' or 'nova.network.manager.VlanManager'::
 
-    $network_manager = 'nova.network.manager.FlatDHCPManager'
 
-  * Define how many networks to be created at once::
+    # These parameters are passed to the previously specified network manager , e.g. nova-manage network create.
+    # Not used in Quantum.
+    # Consult openstack docs for corresponding network manager.
+    # https://fuel-dev.mirantis.com/docs/0.2/pages/0050-installation-instructions.html#network-setup
+    $num_networks = 1
+    $network_size = 31
+    $vlan_start = 300
 
-    $num_networks  = 1     # Number of networks to create
-    $network_size  = 255   # Number of IPs per network
-    $vlan_start    = 300   # VLAN ID to start with
-    IDs from (vlan_start) to (vlan_start + num_networks-1) are generated automatically
+    # Quantum
+    # Segmentation type for isolating traffic between tenants
+    ...
 
-  **Note:**
-  The last options are specific to nova network and will be ignored if the quantum service is enabled
 
-Configuring for Syslog
-^^^^^^^^^^^^^^^^^^^^^^
+
+Finally, just as a note, you don't need to change anything here, but
+since this example uses nova-network its good to note these values.  You have the option to create multiple VLANs, and the 
+IDs for those VLANs run from vlan_start to (vlan_start + num_networks - 1), and are generated
+automatically.
+
+
+Enabling Cinder
+^^^^^^^^^^^^^^^
+
+While this example doesnt use Quantum, it does use Cinder, and with
+some very specific variations from the default. Specifically, as we
+said before, while the Cinder scheduler will continue to run on the
+controllers, the actual storage takes place on the compute nodes, on
+the /dev/sdb1 partition you created earlier. Cinder will be activated
+on any node that contains the specified block devices -- unless
+specified otherwise -- so let's look at what all of that means for the
+configuration. ::
+
+
+
+    ...
+    ### CINDER/VOLUME ###
+    
+    # Should we use cinder or nova-volume(obsolete)
+    # Consult openstack docs for differences between them
+    $cinder = true
+    
+    # Should we install cinder on compute nodes?
+    $cinder_on_computes = true
+    
+We want Cinder to be on the compute nodes, so set this value to true. ::
+
+
+
+    #Set it to true if your want cinder-volume been installed to the host
+    #Otherwise it will install api and scheduler services
+    $manage_volumes = true
+    
+    # Setup network interface, which Cinder uses to export iSCSI targets.
+    # This interface defines which IP to use to listen on iscsi port for
+    # incoming connections of initiators
+    $cinder_iscsi_bind_iface = 'eth3'
+
+
+
+Here you have the opportunity to specify which network interface
+Cinder uses for its own traffic. As you may recall, we set up a fourth
+NIC, and we can specify that here now, rather than using the default
+internal interface. ::
+
+
+
+    # Below you can add physical volumes to cinder. Please replace values with the actual names of devices.
+    # This parameter defines which partitions to aggregate into cinder-volumes or nova-volumes LVM VG
+    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    # USE EXTREME CAUTION WITH THIS SETTING! IF THIS PARAMETER IS DEFINED,
+    # IT WILL AGGREGATE THE VOLUMES INTO AN LVM VOLUME GROUP
+    # AND ALL THE DATA THAT RESIDES ON THESE VOLUMES WILL BE LOST!
+    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    # Leave this parameter empty if you want to create [cinder|nova]-volumes VG by yourself
+    $nv_physical_volume = ['/dev/sdb']
+    
+    ### CINDER/VOLUME END ###
+    ...
+
+
+
+We only want to allocate the /dev/sdb value for Cinder, so adjust
+$nv_physical_volume accordingly. Note, however, that this is a global
+value; it will apply to all servers, including the controllers --
+unless we specify otherwise, which we will in a moment.
+
+
+
+**Be careful** to not add block devices to the list which contain useful
+data (e.g. block devices on which your OS resides), as they will be
+destroyed after you allocate them for Cinder.
+
+
+
+Now lets look at the other storage-based service: Swift.
+
+
+Enabling Swift
+^^^^^^^^^^^^^^
+
+There aren't many changes that you will need to make to the default
+configuration in order to enable Swift to work properly in Swift
+Compact mode, but you will need to adjust for the fact that we are
+running Swift on physical partitions::
+
+
+    ...
+    ### GLANCE and SWIFT ###
+    
+    # Which backend to use for glance
+    # Supported backends are "swift" and "file"
+    $glance_backend = 'swift'
+    
+    # Use loopback device for swift:
+    # set 'loopback' or false
+    # This parameter controls where swift partitions are located:
+    # on physical partitions or inside loopback devices.
+    $swift_loopback = false
+    
+The default value is loopback, which tells Swift to use a loopback storage device, which is basically a file that acts like a drive, rather than an actual physical drive. ::
+
+
+    # Which IP address to bind swift components to: e.g., which IP swift-proxy should listen on
+    $swift_local_net_ip = $internal_address
+    
+    # IP node of controller used during swift installation
+    # and put into swift configs
+    $controller_node_public = $internal_virtual_ip
+    
+    # Set hostname of swift_master.
+    # It tells on which swift proxy node to build
+    # *ring.gz files. Other swift proxies/storages
+    # will rsync them.
+    # Short hostnames allowed only. No FQDNs.
+    
+    # Hash of proxies hostname|fqdn => ip mappings.
+    # This is used by controller_ha.pp manifests for haproxy setup
+    # of swift_proxy backends
+    $swift_proxies = $controller_internal_addresses
+    
+    ### Glance and swift END ###
+    ...
+
+
+
+Now we just need to make sure that all of our nodes get the proper
+values.
+
+
+Defining the node configurations
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Now that we've set all of the global values, its time to make sure that
+the actual node definitions are correct. For example, by default all
+nodes will enable Cinder on /dev/sdb, but we don't want that for the
+controllers, so set nv_physical_volume to null, and manage_volumes to false. ::
+
+
+
+    ...
+    class compact_controller (
+        $quantum_network_node = false
+    ) {
+      class { 'openstack::controller_ha':
+        controller_public_addresses => $controller_public_addresses,
+        controller_internal_addresses => $controller_internal_addresses,
+        internal_address => $internal_address,
+    ...
+        tenant_network_type => $tenant_network_type,
+        segment_range => $segment_range,
+        cinder => $cinder,
+        cinder_iscsi_bind_iface => $cinder_iscsi_bind_iface,
+        manage_volumes => false,
+        galera_nodes => $controller_hostnames,
+        nv_physical_volume => null,
+        use_syslog => $use_syslog,
+        nova_rate_limits => $nova_rate_limits,
+        cinder_rate_limits => $cinder_rate_limits,
+        horizon_use_ssl => $horizon_use_ssl,
+      }
+      class { 'swift::keystone::auth':
+        password => $swift_user_password,
+        public_address => $public_virtual_ip,
+        internal_address => $internal_virtual_ip,
+        admin_address => $internal_virtual_ip,
+      }
+    }
+    ...
+
+
+
+Fortunately, Fuel includes a class for the controllers, so you don't
+have to make these changes for each individual controller. As you can
+see, the controllers generally use the global values, but in this case
+you're telling the controllers not to manage_volumes, and not to use
+/dev/sdb for Cinder.
+
+
+
+If you look down a little further, this class then goes on to help
+specify the individual controllers::
+
+
+    ...
+    # Definition of the first OpenStack controller.
+    node /fuel-controller-01/ {
+      class {'::node_netconfig':
+            mgmt_ipaddr => $::internal_address,
+            mgmt_netmask => $::internal_netmask,
+            public_ipaddr => $::public_address,
+            public_netmask => $::public_netmask,
+            stage => 'netconfig',
+      }
+      class {'nagios':
+            proj_name => $proj_name,
+            services => [
+                'host-alive','nova-novncproxy','keystone', 'nova-scheduler',
+                'nova-consoleauth', 'nova-cert', 'haproxy', 'nova-api', 'glance-api',
+                'glance-registry','horizon', 'rabbitmq', 'mysql', 'swift-proxy',
+                'swift-account', 'swift-container', 'swift-object',
+            ],
+            whitelist => ['127.0.0.1', $nagios_master],
+            hostgroup => 'controller',
+      }
+
+      class { compact_controller: }
+      $swift_zone = 1
+
+      class { 'openstack::swift::storage_node':
+        storage_type => $swift_loopback,
+        swift_zone => $swift_zone,
+        swift_local_net_ip => $internal_address,
+      }
+
+      class { 'openstack::swift::proxy':
+        swift_user_password     => $swift_user_password,
+        swift_proxies => $swift_proxies,
+        primary_proxy => $primary_proxy,
+        controller_node_address => $internal_virtual_ip,
+        swift_local_net_ip => $internal_address,
+      }
+    }
+    ...
+
+
+
+Notice also that each controller has the swift_zone specified, so each
+of the three controllers can represent each of the three Swift zones.
+
+
+
+
+One final fix
+^^^^^^^^^^^^^
+
+Although the $controller_public_addresses value is deprecated, it must
+be specified correctly or your cluster will not function properly. You
+can find this value at the very bottom of the site.pp file::
+
+
+    ...
+    # This configuration option is deprecated and will be removed in future releases. It's currently kept for backward compatibility.
+    $controller_public_addresses = {'fuel-controller-01' => '10.0.1.101','fuel-controller-02' => '10.0.1.102','fuel-controller-03' =>'10.0.1.103'}
+
+
+
+Now you're ready to perform the actual installation.
+
+
+Installing OpenStack on the nodes using Puppet
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Now that you've set all of your configurations, all that's left to stand
+up your OpenStack cluster is to run Puppet on each of your nodes; the
+Puppet Master knows what to do for each of them.
+
+
+
+Start by logging in to fuel-controller-01 and running the Puppet
+agent. One optional step would be to use the script command to log all
+of your output so you can check for errors if necessary::
+
+
+
+    script agent-01.log
+    puppet agent --test
+
+
+
+You will to see a great number of messages scroll by, and the
+installation will take a significan't amount of time. When the process
+has completed, press CTRL-D to stop logging and grep for errors::
+
+
+
+    grep err: agent-01.log
+
+
+
+If you find any errors relating to other nodes, ignore them for now.
+
+
+
+Now you can run the same installation procedure on fuel-controller-01
+and fuel-controller-02, as well as fuel-compute-01.
+
+
+
+Note that the controllers must be installed sequentially due to the
+nature of assembling a MySQL cluster based on Galera, which means that
+one must complete its installation before the next begins, but that
+compute nodes can be installed concurrently once the controllers are
+in place.
+
+
+
+In some cases, you may find errors related to resources that are not
+yet available when the installation takes place. To solve that
+problem, simply re-run the puppet agent on the affected node, and
+again grep for error messages.
+
+
+
+When you see no errors on any of your nodes, your OpenStack cluster is
+ready to go.
+
+Configuring OpenStack to use syslog
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 * If you want to use syslog server, you need to do the following steps:
 
-Set $use_syslog variable to true in site.pp
-
-Adjust corresponding variables in "if $use_syslog" clause
-
-::
+Adjust the corresponding variables in "if $use_syslog" clause::
 
     $use_syslog = true
-         if $use_syslog {
+        if $use_syslog {
             class { "::rsyslog::client": 
                 log_local => true,
                 log_auth_local => true,
@@ -163,7 +541,6 @@ Adjust corresponding variables in "if $use_syslog" clause
                 port => '514'
             }
     }
-
 
 For remote logging:
 
@@ -174,13 +551,32 @@ For remote logging:
 For local logging:
 
             set log_local and log_auth_local to true
+   
 
+Setting the mirror type
+^^^^^^^^^^^^^^^^^^^^^^^
+
+
+To tell Fuel to download packages from external repos provided by Mirantis and your distribution vendors, set the $mirror_type variable to "external"::
+
+    ...
+    # If you want to set up a local repository, you will need to manually adjust mirantis_repos.pp,
+    # though it is NOT recommended.
+    $mirror_type = 'external'
+    $enable_test_repo = false
+    ...
+
+Future versions of Fuel will enable you to use your own internal repositories.
+ 
 Configuring Rate-Limits
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-Openstack has predefined limits on different HTTP queries for nova-compute and cinder services. Sometimes (e.g. for big clouds or test scenarios) these limits are too strict. (See http://docs.openstack.org/folsom/openstack-compute/admin/content/configuring-compute-API.html) In this case you can change them to appropriate values. 
+Openstack has predefined limits on different HTTP queries for nova-compute and cinder services. Some
+times (e.g. for big clouds or test scenarios) these limits are too strict. (See http://docs.openstac
+k.org/folsom/openstack-compute/admin/content/configuring-compute-API.html) In this case you can chan
+ge them to appropriate values.
 
-There are to hashes describing these limits: $nova_rate_limits and $cinder_rate_limits. ::
+There are two hashes describing these limits: $nova_rate_limits and $cinder_rate_limits. ::
 
     $nova_rate_limits = { 'POST' => '10',
     'POST_SERVERS' => '50',
@@ -192,144 +588,10 @@ There are to hashes describing these limits: $nova_rate_limits and $cinder_rate_
     'PUT' => 10, 'GET' => 3,
     'DELETE' => 100 }
 
-Enabling Quantum
-^^^^^^^^^^^^^^^^
 
-* In order to deploy OpenStack with Quantum you need to setup an additional node that will act as a L3 router. This node is defined in configuration as ``fuel-quantum`` node. You will need to set the following options in order to enable Quantum::
-
-        # Network mode: quantum(true) or nova-network(false)
-        $quantum                = true
-
-        # API service location
-        $quantum_host           = $internal_virtual_ip
-
-        # Keystone and DB user password
-        $quantum_user_password  = 'quantum_pass'
-        $quantum_db_password    = 'quantum_pass'
-
-        # DB user name
-        $quantum_db_user        = 'quantum'
-
-        # Type of network to allocate for tenant networks.
-        # You MUST either change this to 'vlan' or change this to 'gre'
-        # in order for tenant networks to provide connectivity between hosts
-        # Sometimes it can be handy to use GRE tunnel mode since you don't have to configure your physical switches for VLANs
-        $tenant_network_type    = 'gre'
-
-        # For VLAN networks, the VLAN VID on the physical network that realizes the virtual network.
-        # Valid VLAN VIDs are 1 through 4094.
-        # For GRE networks, the tunnel ID.
-        # Valid tunnel IDs are any 32 bit unsigned integer.
-        $segment_range          = '1500:1999'
-
-Mirror choosing
-^^^^^^^^^^^^^^^
-
-At present we can have several types of mirrors for package downloading. One can either use external repos provided by Mirantis and your distribution vendors or use internal repos. This behavior is controlled by $mirror_type variable in site.pp. Set it to 'external' - as of version 2.0 it is not possible to define custom internal repo, but it will be possible in future versions. Anyway, you can modify mirantis_repos.pp to run with your internal repo.
-
-Enabling Cinder
-^^^^^^^^^^^^^^^
-
-* In order to deploy OpenStack with Cinder, simply set ``$cinder = true`` in your site.pp file.
-* If you need export cinder volumes from compute nodes (not only from controller nodes), set ``$cinder_on_computes = true`` in your site.pp file.
-* Then, specify the list of physical devices in ``$nv_physical_volume``. They will be aggregated into "cinder-volumes" volume group.
-* Alternatively, you can leave this field blank and create LVM VolumeGroup called "cinder-volumes" on every controller node yourself. Cobbler automation allows you to create this volume group during bare metal provisioning phase through parameter "cinder_bd_for_vg" in nodes.yaml file.
-* The available manifests under "examples" assume that you have the same collection of physical devices for VolumeGroup "cinder-volumes" across all of your volume nodes.
-* Cinder will be activated on any node that contains ``$nv_phyical_volume`` block device(s) or "cinder-volumes" volume group, including both controller and compute nodes.
-* Be careful to not add block devices to the list which contain useful data (e.g. block devices on which your OS resides), as they will be destroyed after you allocate them for Cinder.
-* You can specify network interface, that will be used for exports cinder volumes (by default used management network interface). For this set ``$cinder_iscsi_bind_iface = 'ethX'`` option.
-* For example::
-
-       # Volume manager: cinder(true) or nova-volume(false)
-       $cinder             = true
-       $cinder_on_computes = true
-
-       # Setup network interface, which Cinder used for export iSCSI targets.
-       $cinder_iscsi_bind_iface = 'ethX'
-
-       # Rather cinder/nova-volume (iscsi volume driver) should be enabled
-       $manage_volumes     = true
-
-       # Disk or partition for use by cinder/nova-volume
-       # Each physical volume can be a disk partition, whole disk, meta device, or loopback file
-       $nv_physical_volume = ['/dev/sdz', '/dev/sdy', '/dev/sdx']
-
-.. _create-the-XFS-partition:
-
-Enabling Swift
-^^^^^^^^^^^^^^^
-The following options should be changed if necessary: ::
-
-  # make a backend selection (file or swift) 
-  $glance_backend = 'swift'
-  
-  # 'loopback' for testing (it creates two loopback devices on every node)
-  # false for pre-built devices
-  $swift_loopback = 'loopback'
-  
-  # defines where to place the ringbuilder 
-  $swift_master = 'fuel-swiftproxy-01'
-  
-  # all of the swift services, rsync daemon on the storage nodes listen on their local net ip addresses
-  $swift_local_net_ip = $internal_address
- 
-
-In ``openstack/examples/site_openstack_swift_standalone.pp`` example, the following nodes are specified:
-
-* fuel-swiftproxyused as the ringbuilder + proxy node
-* fuel-swift-01, fuel-swift-02, fuel-swift-03 used as the storage nodes
-
-In ``openstack/examples/site_openstack_swift_compact.pp`` example, the role of swift-storage and swift-proxy combined with controllers.
-
-For more realistic use-cases, you should manually prepare volumes by fdisk and initialize it:
-
-
-* create the XFS partition:
-
-  ``mkfs.xfs -i size=1024 -f /dev/sdx1``
-
-* mount device/partition:
-
-  For a standard swift install, all data drives are mounted directly under ``/srv/node``
-
-  ``mount -t xfs -o noatime,nodiratime,nobarrier,logbufs=8 /dev/sdx1 /srv/node/sdx``
-
-
-Installing OpenStack on the nodes using Puppet
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* Install OpenStack controller nodes sequentially, one by one
-    * run "``puppet agent --test``" on fuel-controller-01
-    * wait for the installation to complete
-    * repeat the same for fuel-controller-02 and fuel-controller-03
-    * .. important:: It is important to establish the cluster of OpenStack controllers in sequential fashion, due to the nature of assembling MySQL cluster based on Galera
-
-* Install OpenStack compute nodes. You can do it in parallel if you wish.
-    * run "``puppet agent --test``" on fuel-compute-01
-    * wait for the installation to complete
-
-* Install Swift nodes in standalone/compact mode.
-
-  To fully configure a Swift environment, the nodes must be configured in the following order:
-
-    * First the storage nodes need to be configured.
-      This creates the storage services (object, container, account) and exports all of the storage endpoints
-      for the ring builder into puppetDB.
-      **Note:** The replicator service fails to start in this initial configuration. It is Ok.
-
-    * Next, the ringbuild and swift proxy must be configured.
-      The ringbuilder needs to collect the storage endpoints and create the ring database before the proxy
-      can be installed. It also sets up an rsync server which is used to host the ring database.
-      Resources are exported that are used to rsync the ring database from this server.
-
-    * Finally, the storage nodes should be run again so that they can rsync the ring databases.
-
-  **Note:** In compact mode, as storage and proxy services are on the same node, to complete the deployment, you should perform 2 runs of Puppet on each node (run it once on all 3 controllers, then a second time on each controller). But if you are using loopback devices it requires to run a third time.
-
-* Your OpenStack cluster is ready to go.
 
 Installing Nagios Monitoring using Puppet
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Installing nagios NRPE on compute or controller node: ::
 
@@ -374,7 +636,7 @@ in this case:
 
 
 Examples of OpenStack installation sequences
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 **First, please see the link below for details about different deployment scenarios.**
 
@@ -391,10 +653,10 @@ Examples of OpenStack installation sequences
     * Run additional deployment pass on Controller 1 only (``fuel-controller-01``) to finalize Galera cluster configuration.
     * Run deployment pass on Quantum node (``fuel-quantum``) to install Quantum router.
     * Run deployment pass on every compute node (``fuel-compute-01 ... fuel-compute-xx``) - unlike controllers these nodes may be deployed in parallel.
-    * Sequentially run deployment pass on every storage node (``fuel-swift-01 ... fuel-swift-xx``) node. By default these nodes named as ``fuel-swift-xx``. Errors in Swift storage like */Stage[main]/Swift::Storage::Container/Ring_container_device[<device address>]: Could not evaluate: Device not found check device on <device address>* are expected on Storage nodes during the deployment passes until the very final pass.
+    * Sequentially run deployment pass on every storage node (``fuel-sowift-01`` ... ``fuel-swift-xx``) node. By default these nodes named as ``fuel-swift-xx``. Errors in Swift storage like */Stage[main]/Swift::Storage::Container/Ring_container_device[<device address>]: Could not evaluate: Device not found check device on <device address>* are expected on Storage nodes during the deployment passes until the very final pass.
     * In case loopback devices are used on storage nodes (``$swift_loopback = 'loopback'`` in ``site.pp``) - run deployment pass on every storage (``fuel-swift-01`` ... ``fuel-swift-xx``) node one more time. Skip this step in case loopback is off (``$swift_loopback = false`` in ``site.pp``). Again, ignore errors in *Swift::Storage::Container* during this deployment pass.
     * Run deployment pass on every SwiftProxy node (``fuel-swiftproxy-01 ... fuel-swiftproxy-02``). Node names are set by ``$swift_proxies`` variable in ``site.pp``. There are 2 Swift Proxies by default.
-    * Repeat deployment pass on every storage (``fuel-swift-01 ... fuel-swift-xx``) node. No Swift storage errors should appear during this deployment pass!
+    * Repeat deployment pass on every storage (``fuel-swift-01`` ... ``fuel-swift-xx``) node. No Swift storage errors should appear during this deployment pass!
 
   **Example2:** **Compact OpenStack deployment with storage and swift-proxy combined with nova-controller on the same nodes**
 

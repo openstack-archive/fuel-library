@@ -1,9 +1,6 @@
 
-Galera
-^^^^^^
-
 Galera cluster has no built-in restart or shutdown mechanism
-------------------------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 **Issue:**
 Galera cluster cannot be simply started or stopped. It is supposed to work continuously.
@@ -12,7 +9,7 @@ Galera cluster cannot be simply started or stopped. It is supposed to work conti
 
  
 The right way to get Galera up and working
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Galera, as high availability software, does not include any built-in full cluster shutdown or restart sequence.
 
@@ -271,7 +268,7 @@ starting from this found node - the one with the most recent non-damaged replica
 
 
 Useful links
-~~~~~~~~~~~~
+^^^^^^^^^^^^
 
 * Galera documentation from Galera authors:
 

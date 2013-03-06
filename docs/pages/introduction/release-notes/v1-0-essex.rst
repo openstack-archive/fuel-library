@@ -1,6 +1,6 @@
 
 v1.0-essex
-------------
+^^^^^^^^^^
 
 * Puppet manifests for deploying OpenStack Essex in HA mode
 * Active/Active HA architecture for Essex, based on RabbitMQ / MySQL Galera / HAProxy / keepalived

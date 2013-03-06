@@ -3,5 +3,5 @@ Package Contents
 
 .. contents:: :local: 
 
-.. include:: package-contents/0010-package-contents.rst
+.. include:: /pages/package-contents/0010-package-contents.rst
 

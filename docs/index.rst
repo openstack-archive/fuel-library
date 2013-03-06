@@ -9,11 +9,9 @@ Table of contents
    :maxdepth: 2
 
    pages/0010-package-contents
-   pages/0020-how-it-works
-   pages/0030-supported-software-versions
+   pages/0020-introduction
    pages/0040-reference-architecture
    pages/0050-installation-instructions
+   pages/0055-production-considerations
    pages/0060-frequently-asked-questions
-   pages/0070-release-notes
-   pages/0080-known-issues-and-workarounds
-
+   pages/0090-creating-fuel-pm-from-scratch

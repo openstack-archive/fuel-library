@@ -1,6 +1,6 @@
 
 v2.0-folsom
--------------
+^^^^^^^^^^^
 
 * Puppet manifests for deploying OpenStack Folsom in HA mode
 * Active/Active HA architecture for Folsom, based on RabbitMQ / MySQL Galera / HAProxy / keepalived
