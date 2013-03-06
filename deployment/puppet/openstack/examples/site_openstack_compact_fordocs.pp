@@ -85,6 +85,15 @@ $controller_internal_addresses = nodes_to_hash(filter_nodes($nodes,'role','contr
 $controller_public_addresses = nodes_to_hash(filter_nodes($nodes,'role','controller'),'name','public_address')
 $controller_hostnames = keys($controller_internal_addresses)
 
+
+if $quantum {
+  $public_int   = $public_br
+  $internal_int = $internal_br
+} else {
+  $public_int   = $public_interface 
+  $internal_int = $internal_interface
+}
+
 #Network configuration
 stage {'netconfig':
       before  => Stage['main'],
@@ -97,23 +106,38 @@ class node_netconfig (
   $public_ipaddr = undef,
   $public_netmask= '255.255.255.0',
   $save_default_gateway=false,
-) { 
-  l23network::l3::create_br_iface {'mgmt':
-     interface => $internal_interface,
-     bridge    => $internal_br,
-     ipaddr    => $mgmt_ipaddr,
-     netmask   => $mgmt_netmask,
-     dns_nameservers      => $dns_nameservers,
-     save_default_gateway => $save_default_gateway,
+  $quantum = $quantum,
+) {
+  if $quantum { 
+    l23network::l3::create_br_iface {'mgmt':
+      interface => $internal_interface,
+      bridge    => $internal_br,
+      ipaddr    => $mgmt_ipaddr,
+      netmask   => $mgmt_netmask,
+      dns_nameservers      => $dns_nameservers,
+      save_default_gateway => $save_default_gateway,
+    }
+    l23network::l3::create_br_iface {'ex':
+      interface => $public_interface,
+      bridge    => $public_br,
+      ipaddr    => $public_ipaddr,
+      netmask   => $public_netmask,
+      gateway   => $default_gateway,
+    }
+    L23network::L3::Create_br_iface['mgmt'] -> L23network::L3::Create_br_iface['ex']
+  } else {
+    # nova-network mode
+    l23network::l3::ifconfig {$public_int:
+      ipaddr  => $public_ipaddr,
+      netmask => $public_netmask,
+      gateway => $default_gateway,
+    }
+    l23network::l3::ifconfig {$internal_int: 
+      ipaddr  => $mgmt_ipaddr,
+      netmask => $mgmt_netmask,
+      dns_nameservers      => $dns_nameservers,
+    }
   }
-  l23network::l3::create_br_iface {'ex':
-     interface => $public_interface,
-     bridge    => $public_br,
-     ipaddr    => $public_ipaddr,
-     netmask   => $public_netmask,
-     gateway   => $default_gateway,
-  }
-  L23network::L3::Create_br_iface['mgmt'] -> L23network::L3::Create_br_iface['ex']
   l23network::l3::ifconfig {$private_interface: ipaddr=>'none' }
 }
 
@@ -399,7 +423,6 @@ sysctl::value { 'net.ipv4.conf.all.rp_filter': value => '0' }
 #  'custom': require fileserver static mount point [ssl_certs] and hostname based certificate existence
 $horizon_use_ssl = false
 
-
 class compact_controller (
   $quantum_network_node = false
 ) {
@@ -407,8 +430,8 @@ class compact_controller (
     controller_public_addresses   => $controller_public_addresses,
     controller_internal_addresses => $controller_internal_addresses,
     internal_address        => $internal_address,
-    public_interface        => $public_br,
-    internal_interface      => $internal_br,
+    public_interface        => $public_int,
+    internal_interface      => $internal_int,
     private_interface       => $private_interface,
     internal_virtual_ip     => $internal_virtual_ip,
     public_virtual_ip       => $public_virtual_ip,
