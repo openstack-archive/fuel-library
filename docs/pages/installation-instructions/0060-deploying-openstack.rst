@@ -636,6 +636,7 @@ where ``proj_name`` is an environment for nagios services and directory
 
 in this case:
         "``/etc/nagios3/test/``"
+
 *  ``templatehost`` - group of checks and intervals parameters for hosts (as Hash)
 *  ``templateservice`` - group of checks and intervals parameters for services  (as Hash)
 *  ``hostgroups`` - just add all groups which were on NRPE nodes (as Array)

@@ -331,6 +331,10 @@ This time the process should successfully complete and result in the
 "Hello World from fuel-XX" message you defined earlier.
 
 
+.. _create-the-XFS-partition:
+
+Create the XFS partition
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 The last step before installing OpenStack is to prepare the partitions
 on which Swift and Cinder will store their data. Later versions of
