@@ -16,7 +16,7 @@ class quantum::agents::l3 (
   $auth_url                     = 'http://localhost:5000/v2.0',
   $auth_port                    = '5000',
   $auth_region                  = 'RegionOne',
-  $auth_tenant                  = 'service',
+  $auth_tenant                  = 'services',
   $auth_user                    = 'quantum',
   $auth_password                = 'password',
   $root_helper                  = 'sudo /usr/bin/quantum-rootwrap /etc/quantum/rootwrap.conf',
@@ -147,10 +147,15 @@ class quantum::agents::l3 (
       }
       Quantum_l3_agent_config <| |> -> Quantum::Network::Setup['net04_ext']
 
+      #router_info = quantum('--os-tenant-name', @auth_hash['admin_tenant_name'], '--os-username', @auth_hash['admin_user'], '--os-password', @auth_hash['admin_password'], '--os-auth-url', @auth_hash['auth_url'], 'router-show', @name)
       quantum::network::provider_router { 'router04':
         router_subnets => 'subnet04', # undef,
         router_extnet  => 'net04_ext', # undef,
         notify         => Service['quantum-l3'],
+        auth_tenant => $auth_tenant,
+        auth_user => $auth_user,
+        auth_password => $auth_password,
+        auth_url => $auth_url
       }
       Quantum::Network::Setup['net04_ext'] -> Quantum::Network::Provider_router['router04']
 
@@ -166,12 +171,12 @@ class quantum::agents::l3 (
         refreshonly => true,
       }
       Quantum::Network::Provider_router['router04'] -> Exec['update_default_route_metric']
-
       Class[quantum::waistline] -> Quantum::Network::Setup<||>
       Class[quantum::waistline] -> Quantum::Network::Provider_router<||>
       Class[quantum::waistline] -> Exec[update_default_route_metric]
-
-
+      quantum_l3_agent_routerid{'router04': value => 'router04'}
+      Quantum::Network::Provider_router['router04']->Quantum_l3_agent_routerid['router04']
+      Quantum_l3_agent_routerid['router04']~>Service['quantum-l3']
       Package[$l3_agent_package] ~> Exec['update_default_route_metric']
       Exec['update_default_route_metric'] -> Service['quantum-l3'] -> Exec['settle-down-default-route']
 
