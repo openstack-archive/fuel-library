@@ -154,6 +154,7 @@ RabbitMQ Server before consider start failed."
                     fi
                     if [ $MAX_START_ATTEMPTS = 1 ] ; then
                         set_nova_rabbit_credentials
+                        RETVAL=0
                     fi
                     break
                     ;;
