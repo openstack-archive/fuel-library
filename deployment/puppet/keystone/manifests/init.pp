@@ -75,9 +75,13 @@ file {"keystone-logging.conf":
     group => "keystone",
     require => [User['keystone'],Group['keystone'],File['/etc/keystone']]
 }
+
 ##TODO add rsyslog module config
   }
- 
+  else  {
+ keystone_config {'DEFAULT/log_config': ensure=> absent;}
+
+  }
 
   include 'keystone::params'
 

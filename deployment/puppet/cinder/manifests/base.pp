@@ -38,6 +38,9 @@ if $use_syslog {
 	    group => "cinder",
 	}
 }
+else {
+	cinder_config {'DEFAULT/log_config': ensure=>absent;}
+}
   File {
     ensure  => present,
     owner   => 'cinder',

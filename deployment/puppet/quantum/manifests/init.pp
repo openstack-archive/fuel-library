@@ -92,6 +92,10 @@ class quantum (
       group => "quantum",
     }
   }
+  else {
+    
+    quantum_config {'DEFAULT/log_config': ensure=> absent;}
+  }
 
   # SELINUX=permissive
   if !defined(Class['selinux']) and ($::osfamily == 'RedHat') {

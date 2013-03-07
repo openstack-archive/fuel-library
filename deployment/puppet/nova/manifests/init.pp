@@ -156,7 +156,12 @@ require => [Package['nova-common']]
 ##TODO: Add rsyslog module for nova logging to <splunkhost>
   
 }
-
+else {
+  nova_config {
+   'DEFAULT/log_config': ensure=>absent;
+   'DEFAULT/use_syslog': value =>"False";
+  }
+}
   file { $logdir:
     ensure  => directory,
     mode    => '0751',
