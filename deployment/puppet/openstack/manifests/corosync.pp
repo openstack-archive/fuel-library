@@ -22,7 +22,7 @@ class openstack::corosync (
 Class['::corosync']->Cs_shadow<||>
 Class['::corosync']->Cs_property<||>->Cs_resource<||>
 Cs_property<||>->Cs_shadow<||>
-
+Cs_property['no-quorum-policy']->Cs_property['stonith-enabled']->Cs_property['start-failure-is-fatal']
 
 file {'quantum-agent-dhcp':
   path=>'/usr/lib/ocf/resource.d/pacemaker/quantum-agent-dhcp', 
@@ -83,6 +83,12 @@ cs_property { 'stonith-enabled':
   ensure => present,
   value  => $stonith,
 }
+cs_property { 'start-failure-is-fatal':
+#  cib => 'properties',
+  ensure => present,
+  value  => "false",
+}
+#
 #cs_property { 'placement-strategy':
 #  cib => 'shadow',
 #  ensure => absent,

@@ -105,6 +105,11 @@ class corosync (
 
   package { ['corosync', 'pacemaker']: ensure => present }
 
+  if $::osfamily == "RedHat"
+  {
+  	package {'crmsh': ensure => present}
+  }
+
   # Template uses:
   # - $unicast_addresses
   # - $multicast_address
