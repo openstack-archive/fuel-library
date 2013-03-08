@@ -7,16 +7,16 @@ from fuel_test.settings import CREATE_SNAPSHOTS
 
 class CompactTestCase(CobblerTestCase):
     def deploy_compact(self, quantum=True, loopback=True):
-        self.do(self.nodes().controllers[:1], 'puppet agent --test')
-        self.do(self.nodes().controllers[1:], 'puppet agent --test')
+        self.do(self.nodes().controllers[:1], 'puppet agent --test 2>&1')
+        self.do(self.nodes().controllers[1:], 'puppet agent --test 2>&1')
         if loopback:
-            self.do(self.nodes().controllers, 'puppet agent --test')
-        self.do(self.nodes().controllers[1:], 'puppet agent --test')
-        self.do(self.nodes().controllers[:1], 'puppet agent --test')
-        self.validate(self.nodes().controllers, 'puppet agent --test')
+            self.do(self.nodes().controllers, 'puppet agent --test 2>&1')
+        self.do(self.nodes().controllers[1:], 'puppet agent --test 2>&1')
+        self.do(self.nodes().controllers[:1], 'puppet agent --test 2>&1')
+        self.validate(self.nodes().controllers, 'puppet agent --test 2>&1')
         if quantum:
-            self.validate(self.nodes().quantums, 'puppet agent --test')
-        self.validate(self.nodes().computes, 'puppet agent --test')
+            self.validate(self.nodes().quantums, 'puppet agent --test 2>&1')
+        self.validate(self.nodes().computes, 'puppet agent --test 2>&1')
 
     @unittest.skipUnless(is_not_essex(), 'Quantum in essex is not supported')
     def test_deploy_compact_quantum(self):
