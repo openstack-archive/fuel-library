@@ -69,5 +69,8 @@ class quantum::agents::dhcp (
     provider   => $::quantum::params::service_provider,
     require    => [Package[$dhcp_agent_package], Class['quantum'], Service['quantum-plugin-ovs-service']],
   }
+  if $::quantum_netnode_on_cnt {
+    Service[haproxy] -> Service[quantum-dhcp-service]
+  }
 
 }

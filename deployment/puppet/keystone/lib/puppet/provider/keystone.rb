@@ -48,17 +48,17 @@ class Puppet::Provider::Keystone < Puppet::Provider
 
   def self.auth_keystone(*args)
     rv = nil
-    retryes = 60
+    retries = 60
     loop do
       begin
         rv = keystone('--token', admin_token, '--endpoint', admin_endpoint, args)
         break
       rescue Exception => e
-        if e.message =~ /(\(HTTP 400\))|(\[Errno 111\]\s+Connection\s+refused)/
+        if e.message =~ /(\(HTTP\s+400\))|(\[Errno 111\]\s+Connection\s+refused)/
           notice("Can't connect to keystone backend. Waiting for retry...")
-          retryes -= 1
+          retries -= 1
           sleep 2
-          if retryes <= 1
+          if retries <= 1
             notice("Can't connect to keystone backend. No more retries, auth failed")
             raise(e)
             #break

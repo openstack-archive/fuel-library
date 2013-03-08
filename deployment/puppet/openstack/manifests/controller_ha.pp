@@ -253,7 +253,9 @@ local0.* -/var/log/haproxy.log'
     $public_vrid   = $::deployment_id
     $internal_vrid = $::deployment_id + 1
 
-    class { 'keepalived': require => [Class['haproxy'],Class['::openstack::firewall']] }
+    class { 'keepalived': 
+      require => [ Class['haproxy'], Class['::openstack::firewall']  ] 
+    }
 
     keepalived::instance { $public_vrid:
       interface => $public_interface,
