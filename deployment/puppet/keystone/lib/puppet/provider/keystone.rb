@@ -47,16 +47,29 @@ class Puppet::Provider::Keystone < Puppet::Provider
   end
 
   def self.auth_keystone(*args)
-    begin
-      keystone('--token', admin_token, '--endpoint', admin_endpoint, args)
-    rescue Exception => e
-      if e.message =~ /(\(HTTP 400\))|(\[Errno 111\] Connection refused)/
-       sleep 10
-       keystone('--token', admin_token, '--endpoint', admin_endpoint, args)
-      else
-        raise(e)
+    rv = nil
+    retryes = 60
+    loop do
+      begin
+        rv = keystone('--token', admin_token, '--endpoint', admin_endpoint, args)
+        break
+      rescue Exception => e
+        if e.message =~ /(\(HTTP 400\))|(\[Errno 111\]\s+Connection\s+refused)/
+          notice("Can't connect to keystone backend. Waiting for retry...")
+          retryes -= 1
+          sleep 2
+          if retryes <= 1
+            notice("Can't connect to keystone backend. No more retries, auth failed")
+            raise(e)
+            #break
+          end
+        else
+          raise(e)
+          #break
+        end
       end
     end
+    return rv
   end
 
   def auth_keystone(*args)
