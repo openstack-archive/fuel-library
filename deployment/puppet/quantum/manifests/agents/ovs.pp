@@ -14,8 +14,8 @@ class quantum::agents::ovs (
     fail('Local ip for ovs agent must be set when tunneling is enabled')
   }
 
-  include 'quantum::params'
-  
+  include 'quantum::waist_setup'
+
   if $::quantum::params::ovs_agent_package {
     Package['quantum'] ->  Package['quantum-plugin-ovs-agent']
 
@@ -63,13 +63,7 @@ class quantum::agents::ovs (
   } else {
     $service_ensure = 'stopped'
   }
-
-  if ! defined(Package['python-amqp']) {
-    package { 'python-amqp':
-      ensure => present,
-    }
-  }
-
+  
   Quantum_config<||> ~> Service['quantum-plugin-ovs-service']
   Quantum_plugin_ovs<||> ~> Service['quantum-plugin-ovs-service']
 
@@ -83,7 +77,6 @@ class quantum::agents::ovs (
     hasrestart => true,
     provider   => $::quantum::params::service_provider,
   }
-
-  Package['python-amqp'] -> Package[$ovs_agent_package] -> Service['quantum-plugin-ovs-service']
-  Class['quantum'] -> Service['quantum-plugin-ovs-service']
+  Class[quantum::waistline] -> Service[quantum-plugin-ovs-service]
+  Package[$ovs_agent_package] -> Service[quantum-plugin-ovs-service]
 }

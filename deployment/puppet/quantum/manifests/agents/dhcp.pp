@@ -25,6 +25,8 @@ class quantum::agents::dhcp (
     $dhcp_agent_package = $::quantum::params::package_name
   }
 
+  include 'quantum::waist_setup'
+
   case $dhcp_driver {
     /\.Dnsmasq/: {
       package { $::quantum::params::dnsmasq_packages:
@@ -69,8 +71,5 @@ class quantum::agents::dhcp (
     provider   => $::quantum::params::service_provider,
     require    => [Package[$dhcp_agent_package], Class['quantum'], Service['quantum-plugin-ovs-service']],
   }
-  if $::quantum_netnode_on_cnt {
-    Service[haproxy] -> Service[quantum-dhcp-service]
-  }
-
+  Class[quantum::waistline] -> Service[quantum-dhcp-service]
 }

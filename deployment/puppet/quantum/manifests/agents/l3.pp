@@ -41,13 +41,11 @@ class quantum::agents::l3 (
     $l3_agent_package = $::quantum::params::package_name
   }
 
-  package { 'python-keystoneclient':
-    ensure => present,
-  }
+  include 'quantum::waist_setup'
 
-  Package['python-keystoneclient'] -> Package[$l3_agent_package] -> Quantum_l3_agent_config<||>
+  Package[$l3_agent_package] -> Quantum_l3_agent_config<||>
   Quantum_config<||> -> Quantum_l3_agent_config<||>
-  Quantum_l3_agent_config<||> -> Service['quantum-l3']
+  Quantum_l3_agent_config<||> -> Class[quantum::waistline]
   Quantum_config<||> ~> Service['quantum-l3']
   Quantum_l3_agent_config<||> ~> Service['quantum-l3']
 
@@ -107,7 +105,7 @@ class quantum::agents::l3 (
         nameservers     => '8.8.4.4',
       } 
       Quantum_l3_agent_config<||> -> Quantum::Network::Setup['net04']
-    
+
       quantum::network::setup { 'net04_ext':
         tenant_name     => 'services',
         physnet         => $external_physical_network,
@@ -141,6 +139,11 @@ class quantum::agents::l3 (
         refreshonly => true,
       }
       Quantum::Network::Provider_router['router04'] -> Exec['update_default_route_metric']
+
+      Class[quantum::waistline] -> Quantum::Network::Setup<||>
+      Class[quantum::waistline] -> Quantum::Network::Provider_router<||>
+      Class[quantum::waistline] -> Exec[update_default_route_metric]
+
 
       Package[$l3_agent_package] ~> Exec['update_default_route_metric']
       Exec['update_default_route_metric']->Service['quantum-l3']->Exec['settle-down-default-route']
@@ -177,7 +180,9 @@ class quantum::agents::l3 (
     hasstatus  => true,
     hasrestart => true,
     provider   => $::quantum::params::service_provider,
-    require    => [Package[$l3_agent_package], Class['quantum'], Service['quantum-plugin-ovs-service']],
   }
+  Package[$l3_agent_package] -> Service[quantum-l3]
+  Service[quantum-plugin-ovs-service] -> Service[quantum-l3]
+  Class[quantum::waistline] -> Service[quantum-l3]
 
 }
