@@ -519,10 +519,10 @@ class ha_controller (
 
 # Definition of OpenStack controller nodes.
 node /fuel-controller-01/ {
-  class { ha_controller: }
+  class { ha_controller: quantum_network_node => true }
 }
 node /fuel-controller-02/ {
-  class { ha_controller: }
+  class { ha_controller: quantum_network_node => true }
 }
 node /fuel-controller-03/ {
   class { ha_controller: quantum_network_node => true }
