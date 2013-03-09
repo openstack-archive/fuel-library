@@ -3,9 +3,9 @@ class cobbler::packages {
   case $operatingsystem {
     /(?i)(centos|redhat)/:  {
       $cobbler_package = "cobbler"
-      $cobbler_version = "2.2.3"
+      $cobbler_version = "2.2.3-2.el6"
       $cobbler_web_package = "cobbler-web"
-      $cobbler_web_package_version = "2.2.3"
+      $cobbler_web_package_version = "2.2.3-2.el6"
       $dnsmasq_package = "dnsmasq"
       $cobbler_additional_packages = ["xinetd", "tftp-server", "syslinux", "wget", "python-ipaddr"]
       $django_package = "Django"
