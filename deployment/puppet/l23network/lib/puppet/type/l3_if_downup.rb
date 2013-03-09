@@ -34,7 +34,7 @@ Puppet::Type.newtype(:l3_if_downup) do
     end
 
     newparam(:sleep_time) do
-      defaultto(1)
+      defaultto(3)
     end
 
     def refresh

@@ -43,7 +43,7 @@ Puppet::Type.type(:l3_if_downup).provide(:ruby) do
     begin  # Put interface to UP state
       ifup(@resource[:interface])
       notice("Interface '#{@resource[:interface]}' up.")
-      sleep @resource[:sleep_time]
+      sleep 30
     rescue Puppet::ExecutionFailure
       notice("Can't put interface '#{@resource[:interface]}' to UP state.")
     end
