@@ -34,6 +34,15 @@
 #   If you put 'true' to this option dhcp agent will be started in background.
 #   Puppet will not wait for obtain IP address and route.
 #
+# [*check_by_ping*]
+#   You can put here IP address, that will be pinged after interface UP. We will
+#   be wait that this IP will pinged. 
+#   Can be IP address, 'none', or 'gateway' for check awailability default gateway
+#   if it exists for this interface.
+#   
+# [*check_by_ping_timeout*]
+#   Timeout for check_by_ping
+#
 define l23network::l3::ifconfig (
     $ipaddr,
     $interface       = $name,
@@ -45,6 +54,8 @@ define l23network::l3::ifconfig (
     $dhcp_hostname   = undef,
     $dhcp_nowait     = false,
     $ifname_order_prefix = false,
+    $check_by_ping   = 'gateway',
+    $check_by_ping_timeout = 120,
 ){
   case $ipaddr {
     'dhcp':  { $method = 'dhcp' }
@@ -120,7 +131,9 @@ define l23network::l3::ifconfig (
   }
 
   l3_if_downup {$interface:
-    subscribe   => File[$interface_file],
-    refreshonly => true,    
+    check_by_ping => $check_by_ping,
+    check_by_ping_timeout => $check_by_ping_timeout,
+    subscribe     => File[$interface_file],
+    refreshonly   => true,
   }
 }

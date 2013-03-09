@@ -34,7 +34,22 @@ Puppet::Type.newtype(:l3_if_downup) do
     end
 
     newparam(:sleep_time) do
-      defaultto(1)
+      defaultto(3)
+    end
+
+    newparam(:check_by_ping) do
+      defaultto('none')
+      validate do |val|
+        if val == 'none' or val == 'gateway'
+          true
+        elsif not val =~ /^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$/
+          fail("Invalid IP address: '#{val}'")
+        end
+      end
+    end
+
+    newparam(:check_by_ping_timeout) do
+      defaultto(120)
     end
 
     def refresh
