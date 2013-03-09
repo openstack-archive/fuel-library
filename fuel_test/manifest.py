@@ -271,6 +271,7 @@ class Manifest(object):
             dns_nameservers=self.generate_dns_nameservers_list(ci),
             default_gateway=ci.public_router(),
             enable_test_repo=TEST_REPO,
+            deployment_id = self.deployment_id(ci),
         )
         if swift:
             template.replace(swift_loopback=self.loopback(loopback))
@@ -323,6 +324,13 @@ class Manifest(object):
 
     def write_nagios_manifest(self, remote):
         self.write_manifest(remote, Template.nagios())
+
+    def deployment_id(self, ci):
+        try:
+            return ci.internal_network().split('.')[2]
+        except:
+            return '250'
+
 
 
 
