@@ -1,4 +1,6 @@
 /.idea
+iso/local_mirror
+iso/build
 *.pyc
 _build
 metadata.json

@@ -13,8 +13,10 @@ Gem::Specification.new do |s|
   s.add_dependency 'mcollective-client', '> 2.0.0'
   s.add_dependency 'symboltable', '>= 1.0.2'
 
-  s.files   = Dir.glob("{bin,lib,spec}/**/*")
-  s.executables = ['astute', 'astute_run']
+  s.files   = Dir.glob("{bin,lib,spec,samples,templates}/**/*")
+  s.executables = ['astute', 'astute_run', 'openstack_system']
+  s.extra_rdoc_files = %w< README >
+  
   s.require_path = 'lib'
 end
 

@@ -1,0 +1,47 @@
+#!/usr/bin/env ruby
+require 'optparse'
+begin
+  require '../../astute/lib/manifest'
+rescue LoadError
+  require 'rubygems'
+  require 'manifest'
+end
+
+
+
+options={}
+parser = OptionParser.new do |opts|
+  opts.banner = "Usage: openstack_system.rb -c CONFIG -t TEMPLATE -o SITE_PP"
+
+  opts.on("-v", "--[no-]verbose", "Run verbosely") do |v|
+    options[:verbose] = v
+  end
+
+  opts.on("-c CONFIG", "Config file in yaml") do |c|
+    options[:config] = c
+  end
+
+  opts.on("-t TEMPLATE", "template for site.pp") do |t|
+    options[:template] = t
+  end
+
+  opts.on("-o SITE_PP", "Resulting site.pp file") do |o|
+    options[:output] = o
+  end
+
+  opts.on("-h", "This is da help.") { puts opts; exit }
+end
+
+parser.parse!(ARGV)
+
+if options[:config].nil? or options[:template].nil? or options[:output].nil?
+  puts parser
+  exit 1
+end
+
+config = ConfigYaml.load_file(options[:config])
+template = Template.new(options[:template])
+
+File.open(options[:output], 'w') { |f|
+  f.write Manifest.prepare_manifest(template, config)
+}
