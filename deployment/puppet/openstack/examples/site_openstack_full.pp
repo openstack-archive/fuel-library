@@ -28,6 +28,12 @@ $public_virtual_ip   = '10.0.215.253'
 
 $nodes_harr = [
   {
+    'name' => 'master',
+    'role' => 'master',
+    'internal_address' => '10.0.0.101'
+    'public_address'   => '10.0.204.101',
+  },
+  {
     'name' => 'fuel-cobbler',
     'role' => 'cobbler',
     'internal_address' => '10.0.0.102',
@@ -63,7 +69,38 @@ $nodes_harr = [
     'internal_address' => '10.0.0.107',
     'public_address'   => '10.0.204.107',
   },
+  {
+    'name' => 'fuel-swiftproxy-01',
+    'role' => 'swift-proxy',
+    'internal_address' => '10.0.0.108',
+    'public_address'   => '10.0.204.108',
+  },
+  {
+    'name' => 'fuel-swiftproxy-02',
+    'role' => 'swift-proxy',
+    'internal_address' => '10.0.0.109',
+    'public_address'   => '10.0.204.109',
+  },
+  {
+    'name' => 'fuel-swift-01',
+    'role' => 'storage',
+    'internal_address' => '10.0.0.110',
+    'public_address'   => '10.0.204.110',
+  },
+  {
+    'name' => 'fuel-swift-02',
+    'role' => 'storage',
+    'internal_address' => '10.0.0.111',
+    'public_address'   => '10.0.204.111',
+  },
+  {
+    'name' => 'fuel-swift-03',
+    'role' => 'storage',
+    'internal_address' => '10.0.0.112',
+    'public_address'   => '10.0.204.112',
+  }
 ]
+
 $nodes = $nodes_harr
 $default_gateway = '10.0.204.1'
 
