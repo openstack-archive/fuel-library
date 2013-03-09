@@ -30,7 +30,7 @@ $nodes_harr = [
   {
     'name' => 'master',
     'role' => 'master',
-    'internal_address' => '10.0.0.101'
+    'internal_address' => '10.0.0.101',
     'public_address'   => '10.0.204.101',
   },
   {
