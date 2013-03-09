@@ -211,8 +211,7 @@ class openstack::mirantis_repos (
       exec {'i_am_very_happy_that_centos_6_4_became_at_time':
         command => "/usr/bin/yum clean all",
       }
-      Yumrepo<||> -> Exec['i_am_very_happy_that_centos_6_4_became_at_time'] -> package {'rsync': }
-
+      Yumrepo<||> -> Exec['i_am_very_happy_that_centos_6_4_became_at_time']
     }
     default: {
       fail("Unsupported osfamily: ${osfamily} for os ${operatingsystem}")
