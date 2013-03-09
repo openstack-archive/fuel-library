@@ -52,7 +52,24 @@ class openstack::mirantis_repos (
       }
       # Below we set our internal repos for testing purposes. Some of them may match with external ones.
       if $type == 'custom' {
+	
+	if $enable_test_repo { 
 
+	
+
+         apt::source  { 'precise-fuel-folsom':
+          location    => $deb_fuel_folsom_repo,
+          release     => 'precise-2.1',
+          repos       => 'main',
+          key         => 'F8AF89DD',
+          key_source  => 'http://172.18.67.168/ubuntu-repo/precise-fuel-folsom/Mirantis.key',
+          #key_server  => "pgp.mit.edu",
+          include_src => false,
+          #pin         => 1000,
+        }->
+        apt::pin{'mirantis-releases': priority=> 1001, originator=>$originator }
+	}
+	else { 
          apt::source  { 'precise-fuel-folsom':
           location    => $deb_fuel_folsom_repo,
           release     => 'precise',
@@ -64,7 +81,7 @@ class openstack::mirantis_repos (
           #pin         => 1000,
         }->
         apt::pin{'mirantis-releases': priority=> 1001, originator=>$originator }
-
+	}
         apt::source { 'cloud-archive':
           location    => $deb_cloud_archive_repo,
           release     => 'precise-updates/folsom',
