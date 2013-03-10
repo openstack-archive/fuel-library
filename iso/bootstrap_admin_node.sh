@@ -89,4 +89,5 @@ puppet apply -e '
 	squid_cache_size => 4096,
 	squid_cache_mem  => 128
     }'
+gem install /var/www/astute-0.0.1.gem
 ) >> $log
