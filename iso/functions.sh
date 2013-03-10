@@ -40,7 +40,7 @@ function default_settings {
     hostname="fuel-pm"
     domain="local"
     mgmt_if="eth0"
-    mgmt_ip="10.0.0.1"
+    mgmt_ip="10.0.0.100"
     mgmt_mask="255.255.0.0"
     ext_if="eth1"
     dhcp_start_address="10.0.0.201"
@@ -78,6 +78,8 @@ function apply_settings {
 
 # Domain/Hostname apply
     sed -i -e 's#^\(HOSTNAME=\).*$#\1'"$hostname"'#' /etc/sysconfig/network
+    [ -z $mgmt_ip ] && echo "prepend domain-name-servers 127.0.0.1;" >> /etc/dhclient-$mgmt_if.conf
+    [ -z $ext_ip ] && echo "prepend domain-name-servers 127.0.0.1;" >> /etc/dhclient-$ext_if.conf
     [ -z $mgmt_ip ] || grep -q "^\s*$mgmt_ip\s+$hostname" /etc/hosts || echo "$mgmt_ip    $hostname.$domain $hostname" >> /etc/hosts
     service network restart
     sed -i "s%\(^.*address is:\).*$%\1 `ip address show $ext_if | awk '/inet / {print \$2}' | cut -d/ -f1 -`%" /etc/issue
