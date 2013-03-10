@@ -77,6 +77,7 @@ cs_property { 'no-quorum-policy':
   ensure => present,
 # cib => 'properties',
   value  => $quorum_policy,
+  retries => 5
 }
 cs_property { 'stonith-enabled':
 #  cib => 'properties',

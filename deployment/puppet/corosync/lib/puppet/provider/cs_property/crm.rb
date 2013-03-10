@@ -1,6 +1,9 @@
 require 'pathname' # JJM WORK_AROUND #14073
-
+require 'open3'
 require Pathname.new(__FILE__).dirname.dirname.expand_path + 'corosync'
+require 'rexml/document'
+
+include REXML
 
 Puppet::Type.type(:cs_property).provide(:crm, :parent => Puppet::Provider::Corosync) do
   desc 'Specific provider for a rather specific type since I currently have no plan to
@@ -74,11 +77,37 @@ Puppet::Type.type(:cs_property).provide(:crm, :parent => Puppet::Provider::Coros
   # as stdin for the crm command.
   def flush
     unless @property_hash.empty?
+      self.class.block_until_ready
       # clear this on properties, in case it's set from a previous
       # run of a different corosync type
-    env = {}
-    env["CIB_shadow"] = @resource[:cib].to_s if !@resource[:cib].nil?
-    exec_withenv("#{command(:crm)}  configure property \\$id=\"cib-bootstrap-options\" #{@property_hash[:name]}=#{@property_hash[:value]}", env)
+      env = {}
+      success = nil
+      retries = @resource[:retries]
+      env["CIB_shadow"] = @resource[:cib].to_s if !@resource[:cib].nil?
+      command_to_exec="#{command(:crm)}  configure property \\$id=\"cib-bootstrap-options\" #{@property_hash[:name]}=#{@property_hash[:value]} 2>&1"
+     while !success do
+        retries -= 1
+        raise(Puppet::Error,"unable to set cluster property") if retries < 0
+        notice("will try to set cluster property value. #{retries} retries left")
+        exec_withenv(command_to_exec, env)
+        debug("Fetching cluster property value")
+        result_command = ""
+        result_command << "CIB_shadow = #{@resource[:cib]} " if !@resource[:cib].nil?
+        result_command << "#{command(:cibadmin)} --scope crm_config -Q --xpath \"//nvpair[@name='#{resource[:name]}']\""
+        debug("Executing #{result_command}")
+        stdin, stdout, stderr = Open3.popen3(result_command)
+        debug("Got #{stdout}")
+        begin
+                result_xml = REXML::Document.new(stdout)
+        rescue
+                #pass
+        end
+        if !result_xml.nil? 
+                debug("result_xml is #{result_xml.root.to_s}")
+                success = result_xml.root.attributes['value'] == @resource[:value]
+        end
+        sleep 2
+      end
     end
   end
 end

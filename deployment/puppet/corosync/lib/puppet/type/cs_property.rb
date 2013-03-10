@@ -43,6 +43,16 @@ module Puppet
         cluster properties can range the gambit."
     end
 
+    newparam(:retries) do
+      desc "How many attempts we should make in order to set this cluster
+      property. Sometimes it is needed when configuring cluster bootstrap
+      options, e.g. no-quorum-policy and others."
+      munge do |value|
+	      Integer(value)
+      end
+      defaultto(1)
+    end
+
     autorequire(:service) do
       [ 'corosync' ]
     end
