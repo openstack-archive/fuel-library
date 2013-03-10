@@ -84,5 +84,9 @@ puppet apply -e '
 	stomppassword => $stomppassword,
 	stomphost => $stomphost,
 	stompport => $stompport
-    } '
+    } 
+    class { squid:
+	squid_cache_size => 4096,
+	squid_cache_mem  => 128
+    }'
 ) >> $log
