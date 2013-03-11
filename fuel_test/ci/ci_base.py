@@ -4,10 +4,9 @@ from devops.manager import Manager
 from ipaddr import IPNetwork
 from fuel_test.helpers import  write_config, change_host_name, request_cerificate, setup_puppet_client, setup_puppet_master, add_nmap, switch_off_ip_tables, add_to_hosts
 from fuel_test.node_roles import NodeRoles, Nodes
-from fuel_test.settings import BASE_IMAGE, EMPTY_SNAPSHOT
+from fuel_test.settings import BASE_IMAGE, EMPTY_SNAPSHOT, ISO
 from fuel_test.root import root
 from fuel_test.helpers import load
-
 
 class CiBase(object):
     def __init__(self):
@@ -83,6 +82,15 @@ class CiBase(object):
                 name=name + '-system', backing_store=self.base_image,
                 environment=self.environment()))
         self.add_empty_volume(node, name + '-cinder')
+        return node
+
+    def describe_master_node(self, name, networks, memory=1024):
+        node = self.add_node(memory, name)
+        for network in networks:
+            self.manager.interface_create(network, node=node)
+        self.add_empty_volume(node, name + '-system')
+        self.manager.node_attach_volume(node, self.manager.volume_get_predefined(
+            ISO), device='cdrom', bus='sata')
         return node
 
     def describe_empty_node(self, name, networks, memory=1024):

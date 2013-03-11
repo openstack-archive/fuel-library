@@ -4,7 +4,7 @@ from devops.helpers.helpers import ssh
 import glanceclient
 import keystoneclient.v2_0
 import os
-from fuel_test.ci.ci_cobbler import CiCobbler
+from fuel_test.ci.ci_vm import CiVM
 from fuel_test.helpers import load, retry, install_packages, switch_off_ip_tables, is_not_essex
 from fuel_test.root import root
 from fuel_test.settings import ADMIN_USERNAME, ADMIN_PASSWORD, ADMIN_TENANT_ESSEX, ADMIN_TENANT_FOLSOM, OS_FAMILY, CIRROS_IMAGE
@@ -23,7 +23,7 @@ class Prepare(object):
 
     def ci(self):
         if not hasattr(self, '_ci'):
-            self._ci = CiCobbler()
+            self._ci = CiVM()
         return self._ci
 
     def username(self):

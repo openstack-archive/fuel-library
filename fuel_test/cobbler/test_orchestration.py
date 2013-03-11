@@ -1,6 +1,6 @@
 import unittest
 from fuel_test.astute import Astute
-from fuel_test.cobbler.cobbler_test_case import CobblerTestCase
+from fuel_test.cobbler.vm_test_case import CobblerTestCase
 from fuel_test.helpers import    write_config
 from fuel_test.manifest import Manifest, Template
 

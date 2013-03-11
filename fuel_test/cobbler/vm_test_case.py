@@ -2,53 +2,18 @@ from time import sleep
 import unittest
 from devops.error import TimeoutError
 from fuel_test.base_test_case import BaseTestCase
-from fuel_test.ci.ci_cobbler import CiCobbler
+from fuel_test.ci.ci_vm import CiVM
 from fuel_test.cobbler.cobbler_client import CobblerClient
 from fuel_test.helpers import tcp_ping, udp_ping, build_astute, install_astute, add_to_hosts, await_node_deploy
 from fuel_test.manifest import Manifest, Template
-from fuel_test.settings import PUPPET_VERSION, OS_FAMILY, CLEAN
+from fuel_test.settings import PUPPET_VERSION, OS_FAMILY, CLEAN, USE_ISO
 
 
 class CobblerTestCase(BaseTestCase):
     def ci(self):
         if not hasattr(self, '_ci'):
-            self._ci = CiCobbler()
+            self._ci = CiVM()
         return self._ci
-
-    def generate_manifests(self):
-        Manifest().write_openstack_manifest(
-            remote=self.remote(),
-            template=Template.minimal(), ci=self.ci(),
-            controllers=self.nodes().controllers,
-            quantums=self.nodes().quantums,
-            swift=False,
-            quantum=True)
-        Manifest().write_openstack_manifest(
-            remote=self.remote(),
-            template=Template.compact(), ci=self.ci(),
-            controllers=self.nodes().controllers,
-            quantums=self.nodes().quantums,
-            quantum=False, loopback=False, use_syslog=False)
-        Manifest().write_openstack_manifest(
-            remote=self.remote(),
-            template=Template.compact(), ci=self.ci(),
-            controllers=self.nodes().controllers,
-            quantums=self.nodes().quantums,
-            quantum=False)
-        Manifest().write_openstack_manifest(
-            remote=self.remote(),
-            template=Template.full(), ci=self.ci(),
-            controllers=self.nodes().controllers,
-            quantums=self.nodes().quantums,
-            proxies=self.nodes().proxies,
-            quantum=True)
-        Manifest().write_openstack_simple_manifest(
-            remote=self.remote(),
-            ci=self.ci(),
-            controllers=self.nodes().controllers)
-        Manifest().write_openstack_single_manifest(
-            remote=self.remote(),
-            ci=self.ci())
 
     def setUp(self):
         if CLEAN:
@@ -67,7 +32,10 @@ class CobblerTestCase(BaseTestCase):
 
     def prepare_cobbler_environment(self):
         self.deploy_cobbler()
-        self.configure_cobbler()
+        if USE_ISO:
+            self.configure_cobbler(self.ci().nodes().masters[0])
+        else:
+            self.configure_cobbler(self.ci().nodes().cobblers[0])
         self.deploy_stomp_node()
         self.deploy_nodes()
 
@@ -203,8 +171,7 @@ class CobblerTestCase(BaseTestCase):
             gateway=gateway, net_mask=net_mask,
         )
 
-    def configure_cobbler(self):
-        cobbler = self.ci().nodes().cobblers[0]
+    def configure_cobbler(self, cobbler):
         client = CobblerClient(
             cobbler.get_ip_address_by_network_name('internal'))
         token = client.login('cobbler', 'cobbler')
@@ -241,6 +208,41 @@ class CobblerTestCase(BaseTestCase):
                 node.await('internal')
         sleep(20)
         self.environment().snapshot('nodes-deployed', force=True)
+
+    def generate_manifests(self):
+        Manifest().write_openstack_manifest(
+            remote=self.remote(),
+            template=Template.minimal(), ci=self.ci(),
+            controllers=self.nodes().controllers,
+            quantums=self.nodes().quantums,
+            swift=False,
+            quantum=True)
+        Manifest().write_openstack_manifest(
+            remote=self.remote(),
+            template=Template.compact(), ci=self.ci(),
+            controllers=self.nodes().controllers,
+            quantums=self.nodes().quantums,
+            quantum=False, loopback=False, use_syslog=False)
+        Manifest().write_openstack_manifest(
+            remote=self.remote(),
+            template=Template.compact(), ci=self.ci(),
+            controllers=self.nodes().controllers,
+            quantums=self.nodes().quantums,
+            quantum=False)
+        Manifest().write_openstack_manifest(
+            remote=self.remote(),
+            template=Template.full(), ci=self.ci(),
+            controllers=self.nodes().controllers,
+            quantums=self.nodes().quantums,
+            proxies=self.nodes().proxies,
+            quantum=True)
+        Manifest().write_openstack_simple_manifest(
+            remote=self.remote(),
+            ci=self.ci(),
+            controllers=self.nodes().controllers)
+        Manifest().write_openstack_single_manifest(
+            remote=self.remote(),
+            ci=self.ci())
 
 if __name__ == '__main__':
     unittest.main()
