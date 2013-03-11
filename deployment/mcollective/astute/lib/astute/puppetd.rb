@@ -49,14 +49,14 @@ module Astute
 
       nodes_to_check = running_nodes + succeed_nodes + error_nodes
       unless nodes_to_check.size == last_run.size
-        raise "Should never happen. Internal error in nodes statuses calculation. Statuses calculated for: #{nodes_to_check.inspect},"
+        raise "Shoud never happen. Internal error in nodes statuses calculation. Statuses calculated for: #{nodes_to_check.inspect},"
                     "nodes passed to check statuses of: #{last_run.map {|n| n.results[:sender]}}"
       end
       return {'succeed' => succeed_nodes, 'error' => error_nodes, 'running' => running_nodes}
     end
 
     public
-    def self.deploy(ctx, nodes, retries=2, ignore_failure=false)
+    def self.deploy(ctx, nodes, retries=2, change_node_status=true)
       # TODO: can we hide retries, ignore_failure into @ctx ?
       uids = nodes.map {|n| n['uid']}
       # TODO(mihgen): handle exceptions from mclient, raised if agent does not respond or responded with error
@@ -66,12 +66,6 @@ module Astute
       # Keep info about retries for each node
       node_retries = {}
       uids.each {|x| node_retries.merge!({x => retries}) }
-
-      begin
-        ctx.deploy_log_parser.add_separator(nodes)
-      rescue Exception => e
-        Astute.logger.warn "Some error occurred when add separator to logs: #{e.message}, trace: #{e.backtrace.inspect}"
-      end
 
       Astute.logger.debug "Waiting for puppet to finish deployment on all nodes (timeout = #{Astute.config.PUPPET_TIMEOUT} sec)..."
       time_before = Time.now
@@ -84,12 +78,8 @@ module Astute
           Astute.logger.debug "Nodes statuses: #{calc_nodes.inspect}"
 
           # At least we will report about successfully deployed nodes
-          nodes_to_report = calc_nodes['succeed'].map { |n| {'uid' => n, 'status' => 'ready'} }
-
-          if last_run[0].results[:data][:resources]["failed"]
-            puts "Puppet error while installing " + nodes_to_report.inspect.to_str
-            exit!
-          end
+          nodes_to_report = []
+          nodes_to_report.concat(calc_nodes['succeed'].map { |n| {'uid' => n, 'status' => 'ready'} }) if change_node_status
 
           # Process retries
           nodes_to_retry = []
@@ -101,7 +91,7 @@ module Astute
               nodes_to_retry << uid
             else
               Astute.logger.debug "Node #{uid.inspect} has failed to deploy. There is no more retries for puppet run."
-              nodes_to_report << {'uid' => uid, 'status' => 'error', 'error_type' => 'deploy'} unless ignore_failure
+              nodes_to_report << {'uid' => uid, 'status' => 'error', 'error_type' => 'deploy'} if change_node_status
             end
           end
           if nodes_to_retry.any?

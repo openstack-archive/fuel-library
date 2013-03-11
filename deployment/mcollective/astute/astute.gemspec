@@ -16,7 +16,6 @@ Gem::Specification.new do |s|
   s.files   = Dir.glob("{bin,lib,spec,samples,templates}/**/*")
   s.executables = ['astute', 'astute_run', 'openstack_system']
   s.extra_rdoc_files = %w< README >
-  
   s.require_path = 'lib'
 end
 

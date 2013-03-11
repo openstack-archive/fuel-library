@@ -3,7 +3,7 @@ module Astute
     def initialize(deploy_engine=nil, log_parsing=false)
       @deploy_engine = deploy_engine ||= Astute::DeploymentEngine::NailyFact
       if log_parsing
-        @log_parser = LogParser::ParseNodeLogs.new('puppet-agent.log')
+        @log_parser = LogParser::ParseDeployLogs.new
       else
         @log_parser = LogParser::NoParsing.new
       end
@@ -26,6 +26,11 @@ module Astute
       context = Context.new(task_id, proxy_reporter, @log_parser)
       deploy_engine_instance = @deploy_engine.new(context)
       Astute.logger.info "Using #{deploy_engine_instance.class} for deployment."
+      begin
+        @log_parser.prepare(nodes)
+      rescue Exception => e
+        Astute.logger.warn "Some error occurred when prepare LogParser: #{e.message}, trace: #{e.backtrace.inspect}"
+      end
       deploy_engine_instance.deploy(nodes, attrs)
     end
 

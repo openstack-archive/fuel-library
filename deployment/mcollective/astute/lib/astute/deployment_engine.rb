@@ -13,6 +13,7 @@ module Astute
     def deploy(nodes, attrs)
       # See implementation in subclasses, this may be overriden
       attrs['deployment_mode'] ||= 'multinode_compute'  # simple multinode deployment is the default
+      @ctx.deploy_log_parser.deploy_type = attrs['deployment_mode']
       Astute.logger.info "Deployment mode #{attrs['deployment_mode']}"
       result = self.send("deploy_#{attrs['deployment_mode']}", nodes, attrs)
     end
@@ -61,12 +62,10 @@ module Astute
       Astute.logger.info "Starting deployment of controllers"
       deploy_piece(ctrl_nodes, attrs)
 
-      @ctx.deploy_log_parser.pattern_spec['expected_line_number'] = 380
       compute_nodes = nodes.select {|n| n['role'] == 'compute'}
       Astute.logger.info "Starting deployment of computes"
       deploy_piece(compute_nodes, attrs)
 
-      @ctx.deploy_log_parser.pattern_spec['expected_line_number'] = 300
       other_nodes = nodes - ctrl_nodes - compute_nodes
       Astute.logger.info "Starting deployment of other nodes"
       deploy_piece(other_nodes, attrs)
@@ -97,26 +96,23 @@ module Astute
     def deploy_ha_compute(nodes, attrs)
       ctrl_nodes = nodes.select {|n| n['role'] == 'controller'}
       Astute.logger.info "Starting deployment of all controllers one by one, ignoring failure"
-      ctrl_nodes.each {|n| deploy_piece([n], attrs, retries=0, ignore_failure=true)}
+      ctrl_nodes.each {|n| deploy_piece([n], attrs, retries=0, change_node_status=false)}
 
       Astute.logger.info "Starting deployment of all controllers, ignoring failure"
-      deploy_piece(ctrl_nodes, attrs, retries=0, ignore_failure=true)
+      deploy_piece(ctrl_nodes, attrs, retries=0, change_node_status=false)
 
       Astute.logger.info "Starting deployment of 1st controller again, ignoring failure"
-      deploy_piece([ctrl_nodes[0]], attrs, retries=0, ignore_failure=true)
+      deploy_piece([ctrl_nodes[0]], attrs, retries=0, change_node_status=false)
 
       retries = 1
       Astute.logger.info "Starting deployment of all controllers until it completes, "\
                          "allowed retries: #{retries}"
       deploy_piece(ctrl_nodes, attrs, retries=retries)
 
-      # FIXME(mihgen): put right numbers for logs
-      @ctx.deploy_log_parser.pattern_spec['expected_line_number'] = 380
       compute_nodes = nodes.select {|n| n['role'] == 'compute'}
       Astute.logger.info "Starting deployment of computes"
       deploy_piece(compute_nodes, attrs)
 
-      @ctx.deploy_log_parser.pattern_spec['expected_line_number'] = 300
       other_nodes = nodes - ctrl_nodes - compute_nodes
       Astute.logger.info "Starting deployment of other nodes"
       deploy_piece(other_nodes, attrs)
@@ -129,13 +125,13 @@ module Astute
       other_nodes = nodes - ctrl_nodes - compute_nodes
 
       Astute.logger.info "Starting deployment of all controllers one by one, ignoring failure"
-      ctrl_nodes.each {|n| deploy_piece([n], attrs, retries=0,  ignore_failure=true)}
+      ctrl_nodes.each {|n| deploy_piece([n], attrs, retries=0, change_node_status=false)}
 
       Astute.logger.info "Starting deployment of 1st controller again, ignoring failure"
-      deploy_piece(ctrl_nodes[0..0], attrs, retries=0,  ignore_failure=true)
+      deploy_piece(ctrl_nodes[0..0], attrs, retries=0, change_node_status=false)
 
       Astute.logger.info "Starting deployment of controllers exclude first, ignoring failure"
-      deploy_piece(ctrl_nodes[1..-1], attrs, retries=0,  ignore_failure=true)
+      deploy_piece(ctrl_nodes[1..-1], attrs, retries=0, change_node_status=false)
 
       Astute.logger.info "Starting deployment of 1st controller again, ignoring failure"
       deploy_piece(ctrl_nodes[0..0], attrs, retries=0)
@@ -174,13 +170,13 @@ module Astute
       deploy_piece(compute_nodes, attrs)
 
       Astute.logger.info "Starting deployment of storages, ignoring failure"
-      deploy_piece(storage_nodes, attrs,  ignore_failure=true)
+      deploy_piece(storage_nodes, attrs, change_node_status=false)
 
       Astute.logger.info "Starting deployment of storages, ignoring failure"
-      deploy_piece(storage_nodes, attrs,  ignore_failure=true)
+      deploy_piece(storage_nodes, attrs, change_node_status=false)
 
       Astute.logger.info "Starting deployment of all proxies one by one, ignoring failure"
-      proxy_nodes.each {|n| deploy_piece([n], attrs, retries=0,  ignore_failure=true)}
+      proxy_nodes.each {|n| deploy_piece([n], attrs, retries=0, change_node_status=false)}
 
       Astute.logger.info "Starting deployment of storages"
       deploy_piece(storage_nodes, attrs)
@@ -194,8 +190,8 @@ module Astute
     end
 
     private
-    def nodes_status(nodes, status)
-      {'nodes' => nodes.map { |n| {'uid' => n['uid'], 'status' => status} }}
+    def nodes_status(nodes, status, data_to_merge)
+      {'nodes' => nodes.map { |n| {'uid' => n['uid'], 'status' => status}.merge(data_to_merge) }}
     end
 
     def validate_nodes(nodes)
@@ -229,6 +225,9 @@ module Astute
             interfaces[name]['broadcast'] = iface['brd']
           end
         end
+        if iface['gateway'] and iface['name'] =~ /^public$/i
+          interfaces[name]['gateway'] = iface['gateway']
+        end
         interfaces[name]['ensure'] = 'present'
         Astute.logger.debug "Calculated network for interface: #{name}, data: #{interfaces[name].inspect}"
       end
@@ -243,4 +242,4 @@ module Astute
     end
   end
 end
-  
+
