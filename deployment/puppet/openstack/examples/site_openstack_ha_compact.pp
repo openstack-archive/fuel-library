@@ -691,7 +691,7 @@ node /fuel-compute-[\d+]/ {
     public_interface       => $public_int,
     private_interface      => $private_interface,
     internal_address       => $internal_address,
-    libvirt_type           => 'qemu',
+    libvirt_type           => 'kvm',
     fixed_range            => $fixed_range,
     network_manager        => $network_manager,
     network_config         => { 'vlan_start' => $vlan_start },

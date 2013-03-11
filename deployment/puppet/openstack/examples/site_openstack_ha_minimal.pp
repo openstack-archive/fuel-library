@@ -69,7 +69,12 @@ $nodes_harr = [
     'internal_address' => '10.0.0.107',
     'public_address'   => '10.0.204.107',
   },
-]
+  {
+    'name' => 'fuel-compute-03',
+    'role' => 'compute',
+    'internal_address' => '10.0.0.108',
+    'public_address'   => '10.0.204.108',
+  },]
 $nodes = $nodes_harr
 $default_gateway = '10.0.204.1'
 
@@ -573,7 +578,7 @@ node /fuel-compute-[\d+]/ {
     public_interface       => $public_int,
     private_interface      => $private_interface,
     internal_address       => $internal_address,
-    libvirt_type           => 'qemu',
+    libvirt_type           => 'kvm',
     fixed_range            => $fixed_range,
     network_manager        => $network_manager,
     network_config         => { 'vlan_start' => $vlan_start },

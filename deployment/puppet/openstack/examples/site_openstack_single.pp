@@ -129,7 +129,7 @@ node default {
     mysql_root_password     => $mysql_root_password,
     rabbit_password         => $rabbit_password,
     rabbit_user             => $rabbit_user,
-    libvirt_type            => 'qemu',
+    libvirt_type            => 'kvm',
     floating_range          => $floating_range,
     fixed_range             => $fixed_range,
     verbose                 => $verbose,

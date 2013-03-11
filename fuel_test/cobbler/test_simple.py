@@ -11,7 +11,7 @@ class SimpleTestCase(CobblerTestCase):
             ci=self.ci(),
             controllers=self.nodes().controllers)
         self.validate(
-            self.nodes().controllers + self.nodes().computes,
+            self.nodes().controllers[:1] + self.nodes().computes,
             'puppet agent --test')
         if CREATE_SNAPSHOTS:
             self.environment().snapshot(OPENSTACK_SNAPSHOT, force=True)

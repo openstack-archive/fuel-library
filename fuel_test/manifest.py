@@ -203,7 +203,7 @@ class Manifest(object):
     def write_openstack_simple_manifest(self, remote, ci, controllers,
                                         use_syslog=True,
                                         quantum=True,
-                                        cinder=True):
+                                        cinder=True, cinder_on_computes=False):
         template = Template(
             root(
                 'deployment', 'puppet', 'openstack', 'examples',
@@ -214,16 +214,25 @@ class Manifest(object):
             internal_interface=self.internal_interface(),
             private_interface=self.private_interface(),
             mirror_type=self.mirror_type(),
-            controller_node_address=controllers[
-                                    0].get_ip_address_by_network_name(
-                'internal'),
-            controller_node_public=controllers[
-                                   0].get_ip_address_by_network_name(
-                'public'),
+            #controller_node_address=controllers[0].get_ip_address_by_network_name('internal'),
+            #controller_node_public=controllers[0].get_ip_address_by_network_name('public'),
+            cinder=cinder,
+            cinder_on_computes=cinder_on_computes,
             nv_physical_volume=self.physical_volumes(),
+            nagios_master = controllers[0].name + '.your-domain-name.com',
+            external_ipinfo=self.external_ip_info(ci, controllers),
+            nodes=self.generate_nodes_configs_list(ci),
+            dns_nameservers=self.generate_dns_nameservers_list(ci),
+            default_gateway=ci.public_router(),
+            enable_test_repo=TEST_REPO,
+            deployment_id = self.deployment_id(ci),
             use_syslog=use_syslog,
-            enable_test_repo = TEST_REPO,
         )
+        if is_not_essex():
+            template.replace(
+                quantum=quantum,
+                quantum_netnode_on_cnt=quantum,
+            )
         self.write_manifest(remote, template)
 
 
@@ -251,8 +260,7 @@ class Manifest(object):
     def write_openstack_ha_minimal_manifest(self, remote, template, ci, controllers, quantums,
                                  proxies=None, use_syslog=True,
                                  quantum=True, loopback=True,
-                                 cinder=True, cinder_on_computes=False,
-                                 ):
+                                 cinder=True, cinder_on_computes=False):
         template.replace(
             internal_virtual_ip=ci.internal_virtual_ip(),
             public_virtual_ip=ci.public_virtual_ip(),

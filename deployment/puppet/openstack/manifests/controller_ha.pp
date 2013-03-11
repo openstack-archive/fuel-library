@@ -93,7 +93,7 @@ class openstack::controller_ha (
    $keystone_db_password, $keystone_admin_token, $glance_db_password, $glance_user_password,
    $nova_db_password, $nova_user_password, $rabbit_password, $rabbit_user,
    $rabbit_nodes, $memcached_servers, $export_resources, $glance_backend='file', $swift_proxies=undef,
-   $quantum = false, $quantum_user_password, $quantum_db_password, $quantum_db_user = 'quantum',
+   $quantum = false, $quantum_user_password='', $quantum_db_password='', $quantum_db_user = 'quantum',
    $quantum_db_dbname  = 'quantum', $cinder = false, $cinder_iscsi_bind_iface = false, $tenant_network_type = 'gre', $segment_range = '1:4094',
    $nv_physical_volume = undef, $manage_volumes = false,$galera_nodes, $use_syslog = false,
    $cinder_rate_limits = undef, $nova_rate_limits = undef, 
@@ -318,7 +318,7 @@ local0.* -/var/log/haproxy.log'
       nova_rate_limits        => $nova_rate_limits,
       horizon_use_ssl         => $horizon_use_ssl,
     }
-  if $quantum_network_node {
+    if $quantum_network_node {
       class { '::openstack::quantum_router':
         db_host               => $internal_virtual_ip,
         service_endpoint      => $internal_virtual_ip,
@@ -349,7 +349,7 @@ local0.* -/var/log/haproxy.log'
         api_bind_address      => $internal_address,
         use_syslog            => $use_syslog,
       }
-  }
+    }
     class { 'openstack::auth_file':
       admin_user              => $admin_user,
       admin_password          => $admin_password,
