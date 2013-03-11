@@ -63,7 +63,7 @@ puppet apply -e "
         arch      => 'x86_64',
         breed     => 'redhat',
         osversion => 'rhel6',
-        ksmeta    => 'tree=http://mirror.stanford.edu/yum/pub/centos', }
+        ksmeta    => 'tree=http://mirror.stanford.edu/yum/pub/centos/6.3/os/x86_64', }
     class { 'cobbler::profile::centos63_x86_64': }"
 
 puppet apply -e '
@@ -84,10 +84,9 @@ puppet apply -e '
 	stomppassword => $stomppassword,
 	stomphost => $stomphost,
 	stompport => $stompport
-    } 
-    class { squid:
-	squid_cache_size => 4096,
-	squid_cache_mem  => 128
-    }'
+    } '
+puppet apply -e 'class { squid: }'
+iptables -A PREROUTING -t nat -i $mgmt_if -s $mgmt_ip/$mgmt_mask ! -d $mgmt_ip -p tcp --dport 80 -j REDIRECT --to-port 3128
+
 gem install /var/www/astute-0.0.1.gem
 ) >> $log

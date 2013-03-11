@@ -49,8 +49,10 @@ class cobbler::iptables {
   # DHCP
   access_to_cobbler_port { "dhcp_67":    port => '67',  protocol => 'udp' }
   access_to_cobbler_port { "dhcp_68":    port => '68',  protocol => 'udp' }
+  # SQUID PROXY
+  access_to_cobbler_port { "http_3128":  port => '3128',protocol => 'tcp' }
   # PXE
-  access_to_cobbler_port { "pxe_4011":    port => '4011',  protocol => 'udp' }
+  access_to_cobbler_port { "pxe_4011":   port => '4011',protocol => 'udp' }
   # TFTP
   access_to_cobbler_port { "tftp_tcp":   port => '69' }
   access_to_cobbler_port { "tftp_udp":   port => '69',  protocol => 'udp' }

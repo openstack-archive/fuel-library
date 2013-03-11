@@ -3,7 +3,11 @@
 # Sets internal variables and defaults for squid module
 # This class is automatically loaded in all the classes that use the values set here 
 #
-class squid::params  {
+class squid::params (
+   $cache_size = 4096,
+   $cache_mem = 128,
+)
+  {
 
 ## DEFAULTS FOR VARIABLES USERS CAN SET
 # (Here are set the defaults, provide your custom variables externally)
@@ -68,16 +72,6 @@ class squid::params  {
     $cache_dir_type = $squid_cache_dir_type ? {
         ''      => "ufs",
         default => "${squid_cache_dir_type}",
-    }
-
-    $cache_size = $squid_cache_size ? {
-        ''      => "100",
-        default => "${squid_cache_size}",
-    }
-
-    $cache_mem = $squid_cache_mem ? {
-        ''      => "8",
-        default => "${squid_cache_mem}",
     }
 
     $cache_parent = $squid_cache_parent ? {

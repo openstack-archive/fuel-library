@@ -589,9 +589,9 @@ acl to_localhost dst 127.0.0.0/8 0.0.0.0/32
 # Example rule allowing access from your local networks.
 # Adapt to list your (internal) IP networks from where browsing
 # should be allowed
-#acl localnet src 10.0.0.0/8	# RFC1918 possible internal network
-#acl localnet src 172.16.0.0/12	# RFC1918 possible internal network
-#acl localnet src 192.168.0.0/16	# RFC1918 possible internal network
+acl localnet src 10.0.0.0/8	# RFC1918 possible internal network
+acl localnet src 172.16.0.0/12	# RFC1918 possible internal network
+acl localnet src 192.168.0.0/16	# RFC1918 possible internal network
 #
 <% if (scope.lookupvar('squid::params::default_acls') == true) -%>
 acl SSL_ports port 443
@@ -654,7 +654,7 @@ http_access deny CONNECT !SSL_ports
 # Example rule allowing access from your local networks.
 # Adapt localnet in the ACL section to list your (internal) IP networks
 # from where browsing should be allowed
-#http_access allow localnet
+http_access allow localnet
 http_access allow localhost
 <% end -%>
 
@@ -892,7 +892,7 @@ htcp_access deny all
 #
 # Squid normally listens to port 3128
 <% if (scope.lookupvar('squid::params::http_port_options') == "") -%>
-http_port <%= scope.lookupvar('squid::params::http_port') %>
+http_port <%= scope.lookupvar('squid::params::http_port') %> transparent
 <% else %>
 http_port <%= scope.lookupvar('squid::params::http_port') %> <%= scope.lookupvar('squid::params::http_port_options') %>
 <% end %>
