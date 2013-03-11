@@ -77,6 +77,9 @@ $public_netmask = '255.255.255.0'
 
 
 $node = filter_nodes($nodes,'name',$::hostname)
+if empty($node) {
+  fail("Node $::hostname is not defined in the hash structure")
+}
 $internal_address = $node[0]['internal_address']
 $public_address = $node[0]['public_address']
 
@@ -468,6 +471,11 @@ class compact_controller (
 
 # Definition of OpenStack controller nodes.
 node /fuel-controller-01/ {
+  include stdlib
+  class { 'operatingsystem::checksupported':
+      stage => 'setup'
+  }
+
   class {'::node_netconfig':
       mgmt_ipaddr    => $::internal_address,
       mgmt_netmask   => $::internal_netmask,
@@ -487,7 +495,13 @@ node /fuel-controller-01/ {
   }
   class { compact_controller: }
 }
+
 node /fuel-controller-02/ {
+  include stdlib
+  class { 'operatingsystem::checksupported':
+      stage => 'setup'
+  }
+
   class {'::node_netconfig':
       mgmt_ipaddr    => $::internal_address,
       mgmt_netmask   => $::internal_netmask,
@@ -507,7 +521,13 @@ node /fuel-controller-02/ {
   }
   class { compact_controller: }
 }
+
 node /fuel-controller-03/ {
+  include stdlib
+  class { 'operatingsystem::checksupported':
+      stage => 'setup'
+  }
+
   class {'::node_netconfig':
       mgmt_ipaddr    => $::internal_address,
       mgmt_netmask   => $::internal_netmask,
@@ -530,13 +550,10 @@ node /fuel-controller-03/ {
 
 # Definition of OpenStack compute nodes.
 node /fuel-compute-[\d+]/ {
-  #class {'::node_netconfig':
-  #    mgmt_ipaddr    => $::internal_address,
-  #    mgmt_netmask   => $::internal_netmask,
-  #    public_ipaddr  => $::public_address,
-  #    public_netmask => $::public_netmask,
-  #    stage          => 'netconfig',
-  #}
+  include stdlib
+  class { 'operatingsystem::checksupported':
+      stage => 'setup'
+  }
 
   class {'nagios':
     proj_name       => $proj_name,
@@ -589,6 +606,11 @@ node /fuel-compute-[\d+]/ {
 
 # Definition of OpenStack Quantum node.
 node /fuel-quantum/ {
+  include stdlib
+  class { 'operatingsystem::checksupported':
+      stage => 'setup'
+  }
+
   class {'::node_netconfig':
       mgmt_ipaddr    => $::internal_address,
       mgmt_netmask   => $::internal_netmask,

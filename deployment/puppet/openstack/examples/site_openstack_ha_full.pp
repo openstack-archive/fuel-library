@@ -114,6 +114,9 @@ $public_netmask = '255.255.255.0'
 
 
 $node = filter_nodes($nodes,'name',$::hostname)
+if empty($node) {
+  fail("Node $::hostname is not defined in the hash structure")
+}
 $internal_address = $node[0]['internal_address']
 $public_address = $node[0]['public_address']
 $controller_internal_addresses = nodes_to_hash(filter_nodes($nodes,'role','controller'),'name','internal_address')
@@ -543,18 +546,40 @@ class ha_controller (
 
 # Definition of OpenStack controller nodes.
 node /fuel-controller-01/ {
+  include stdlib
+  class { 'operatingsystem::checksupported':
+      stage => 'setup'
+  }
+
   class { ha_controller: quantum_network_node => true }
 }
+
 node /fuel-controller-02/ {
+  include stdlib
+  class { 'operatingsystem::checksupported':
+      stage => 'setup'
+  }
+
   class { ha_controller: quantum_network_node => true }
 }
+
 node /fuel-controller-03/ {
+  include stdlib
+  class { 'operatingsystem::checksupported':
+      stage => 'setup'
+  }
+
   class { ha_controller: quantum_network_node => true }
 }
 
 
 # Definition of OpenStack compute nodes.
 node /fuel-compute-[\d+]/ {
+  include stdlib
+  class { 'operatingsystem::checksupported':
+      stage => 'setup'
+  }
+
   class {'::node_netconfig':
     mgmt_ipaddr    => $::internal_address,
     mgmt_netmask   => $::internal_netmask,
@@ -615,6 +640,11 @@ node /fuel-compute-[\d+]/ {
 
 # Definition of the first OpenStack Swift node.
 node /fuel-swift-01/ {
+  include stdlib
+  class { 'operatingsystem::checksupported':
+      stage => 'setup'
+  }
+
   class {'::node_netconfig':
     mgmt_ipaddr    => $::internal_address,
     mgmt_netmask   => $::internal_netmask,
@@ -644,6 +674,11 @@ node /fuel-swift-01/ {
 
 # Definition of the second OpenStack Swift node.
 node /fuel-swift-02/ {
+  include stdlib
+  class { 'operatingsystem::checksupported':
+      stage => 'setup'
+  }
+
   class {'::node_netconfig':
     mgmt_ipaddr    => $::internal_address,
     mgmt_netmask   => $::internal_netmask,
@@ -673,6 +708,11 @@ node /fuel-swift-02/ {
 
 # Definition of the third OpenStack Swift node.
 node /fuel-swift-03/ {
+  include stdlib
+  class { 'operatingsystem::checksupported':
+      stage => 'setup'
+  }
+
   class {'::node_netconfig':
     mgmt_ipaddr    => $::internal_address,
     mgmt_netmask   => $::internal_netmask,
@@ -702,6 +742,11 @@ node /fuel-swift-03/ {
 
 # Definition of OpenStack Swift proxy nodes.
 node /fuel-swiftproxy-[\d+]/ {
+  include stdlib
+  class { 'operatingsystem::checksupported':
+      stage => 'setup'
+  }
+
   class {'::node_netconfig':
     mgmt_ipaddr    => $::internal_address,
     mgmt_netmask   => $::internal_netmask,
@@ -728,6 +773,11 @@ node /fuel-swiftproxy-[\d+]/ {
 
 # Definition of OpenStack Quantum node.
 node /fuel-quantum/ {
+  include stdlib
+  class { 'operatingsystem::checksupported':
+      stage => 'setup'
+  }
+
   class {'::node_netconfig':
       mgmt_ipaddr    => $::internal_address,
       mgmt_netmask   => $::internal_netmask,
