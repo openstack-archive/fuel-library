@@ -68,7 +68,7 @@ class Template(object):
     @classmethod
     def minimal(cls):
         return cls(root('deployment', 'puppet', 'openstack', 'examples',
-            'site.pp'))
+            'site_openstack_minimal.pp'))
 
     @classmethod
     def compact(cls):
