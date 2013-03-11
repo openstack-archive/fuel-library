@@ -167,6 +167,7 @@ class openstack::controller (
   $cinder_rate_limits      = undef,
 ) {
 
+
   # Ensure things are run in order
   Class['openstack::db::mysql'] -> Class['openstack::keystone']
   Class['openstack::db::mysql'] -> Class['openstack::glance']
@@ -179,7 +180,6 @@ class openstack::controller (
   }
 
 
-  include ntpd
 
   ####### DATABASE SETUP ######
   # set up mysql server

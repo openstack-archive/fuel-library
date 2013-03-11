@@ -28,6 +28,6 @@ node /fuel-mcollective.your-domain-name.com/ {
     stompport => $stompport
   }
   
-  include ntpd
+  class { 'ntp':}
 
 }

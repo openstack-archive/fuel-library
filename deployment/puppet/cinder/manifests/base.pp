@@ -92,8 +92,5 @@ else {
   Cinder_config<||> -> Exec['cinder-manage db_sync']
   Nova_config<||> -> Exec['cinder-manage db_sync']
   Cinder_api_paste_ini<||> -> Exec['cinder-manage db_sync']
-  if defined(Exec[ntp_init_force]) {
-    Exec[ntp_init_force] -> Exec['cinder-manage db_sync']
-  }
 
 }

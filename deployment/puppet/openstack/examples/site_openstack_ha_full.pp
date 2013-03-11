@@ -400,6 +400,30 @@ $cinder_rate_limits = {
   'PUT' => 1000, 'GET' => 1000,
   'DELETE' => 1000 
 }
+#Specify desired NTP servers here.
+#If you leave it undef pool.ntp.org
+#will be used
+
+$ntp_servers = ['pool.ntp.org']
+
+class {'openstack::clocksync': ntp_servers=>$ntp_servers}
+
+#Exec clocksync from openstack::clocksync before services
+#connectinq to AMQP server are started.
+
+Exec<| title == 'clocksync' |>->Nova::Generic_service<| |>
+Exec<| title == 'clocksync' |>->Service<| title == 'quantum-l3' |>
+Exec<| title == 'clocksync' |>->Service<| title == 'quantum-dhcp-service' |>
+Exec<| title == 'clocksync' |>->Service<| title == 'quantum-ovs-plugin-service' |>
+Exec<| title == 'clocksync' |>->Service<| title == 'cinder-volume' |>
+Exec<| title == 'clocksync' |>->Service<| title == 'cinder-api' |>
+Exec<| title == 'clocksync' |>->Service<| title == 'cinder-scheduler' |>
+Exec<| title == 'clocksync' |>->Exec<| title == 'keystone-manage db_sync' |>
+Exec<| title == 'clocksync' |>->Exec<| title == 'glance-manage db_sync' |>
+Exec<| title == 'clocksync' |>->Exec<| title == 'nova-manage db sync' |>
+Exec<| title == 'clocksync' |>->Exec<| title == 'initial-db-sync' |>
+Exec<| title == 'clocksync' |>->Exec<| title == 'post-nova_config' |>
+
 
 
 Exec { logoutput => true }
