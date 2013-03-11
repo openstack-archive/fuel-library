@@ -63,22 +63,22 @@ class Template(object):
     @classmethod
     def stomp(cls):
         return cls(root('deployment', 'puppet', 'mcollective', 'examples',
-            'site.pp'))
+            'site_openstack_ha_minimal.pp'))
 
     @classmethod
     def minimal(cls):
         return cls(root('deployment', 'puppet', 'openstack', 'examples',
-            'site_openstack_minimal.pp'))
+            'site_openstack_ha_minimal.pp'))
 
     @classmethod
     def compact(cls):
         return cls(root('deployment', 'puppet', 'openstack', 'examples',
-            'site_openstack_compact.pp'))
+            'site_openstack_ha_compact.pp'))
 
     @classmethod
     def full(cls):
         return cls(root('deployment', 'puppet', 'openstack', 'examples',
-            'site_openstack_full.pp'))
+            'site_openstack_ha_full.pp'))
 
     @classmethod
     def nagios(cls):
@@ -248,6 +248,41 @@ class Manifest(object):
         self.write_manifest(remote, template)
 
 
+    def write_openstack_ha_minimal_manifest(self, remote, template, ci, controllers, quantums,
+                                 proxies=None, use_syslog=True,
+                                 quantum=True, loopback=True,
+                                 cinder=True, cinder_on_computes=False,
+                                 ):
+        template.replace(
+            internal_virtual_ip=ci.internal_virtual_ip(),
+            public_virtual_ip=ci.public_virtual_ip(),
+            floating_range=self.floating_network(ci, quantum),
+            fixed_range=self.fixed_network(ci,quantum),
+            mirror_type=self.mirror_type(),
+            public_interface=self.public_interface(),
+            internal_interface=self.internal_interface(),
+            private_interface=self.private_interface(),
+            nv_physical_volume=self.physical_volumes(),
+            use_syslog=use_syslog,
+            cinder=cinder,
+            cinder_on_computes=cinder_on_computes,
+            nagios_master = controllers[0].name + '.your-domain-name.com',
+            external_ipinfo=self.external_ip_info(ci, quantums),
+            nodes=self.generate_nodes_configs_list(ci),
+            dns_nameservers=self.generate_dns_nameservers_list(ci),
+            default_gateway=ci.public_router(),
+            enable_test_repo=TEST_REPO,
+            deployment_id = self.deployment_id(ci),
+        )
+        if is_not_essex():
+            template.replace(
+                quantum=quantum,
+                quantum_netnode_on_cnt=quantum,
+            )
+
+        self.write_manifest(remote, template)
+
+
     def write_openstack_manifest(self, remote, template, ci, controllers, quantums,
                                  proxies=None, use_syslog=True,
                                  quantum=True, loopback=True,
@@ -330,9 +365,3 @@ class Manifest(object):
             return ci.internal_network().split('.')[2]
         except:
             return '250'
-
-
-
-
-
-

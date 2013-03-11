@@ -24,7 +24,7 @@ $internal_virtual_ip = '10.0.0.253'
 # Change this IP to IP routable from your 'public' network,
 # e. g. Internet or your office LAN, in which your public 
 # interface resides
-$public_virtual_ip   = '10.0.215.253'
+$public_virtual_ip   = '10.0.204.253'
 
 $nodes_harr = [
   {
@@ -94,6 +94,12 @@ if $quantum {
   $internal_int = $internal_interface
 }
 
+if $::hostname == 'fuel-controller-01' {
+  $primary_controller = true
+} else {
+  $primary_controller = false
+}
+
 #Network configuration
 stage {'netconfig':
       before  => Stage['main'],
@@ -110,7 +116,7 @@ class node_netconfig (
 ) {
   if $quantum { 
     l23network::l3::create_br_iface {'mgmt':
-      interface => $internal_interface,
+      interface => $internal_int,
       bridge    => $internal_br,
       ipaddr    => $mgmt_ipaddr,
       netmask   => $mgmt_netmask,
@@ -118,7 +124,7 @@ class node_netconfig (
       save_default_gateway => $save_default_gateway,
     }
     l23network::l3::create_br_iface {'ex':
-      interface => $public_interface,
+      interface => $public_int,
       bridge    => $public_br,
       ipaddr    => $public_ipaddr,
       netmask   => $public_netmask,
@@ -172,9 +178,6 @@ $nova_user_password      = 'nova'
 $rabbit_password         = 'nova'
 $rabbit_user             = 'nova'
 
-$swift_user_password     = 'swift_pass'
-$swift_shared_secret     = 'changeme'
-
 $quantum_user_password   = 'quantum_pass'
 $quantum_db_password     = 'quantum_pass'
 $quantum_db_user         = 'quantum'
@@ -192,11 +195,16 @@ $quantum_db_dbname       = 'quantum'
 $quantum                 = true
 $quantum_netnode_on_cnt  = true
 
+#$quantum_host            = $internal_virtual_ip
+
+
 # Specify network creation criteria:
 # Should puppet automatically create networks?
 $create_networks = true
+
 # Fixed IP addresses are typically used for communication between VM instances.
 $fixed_range     = '10.0.198.128/27'
+
 # Floating IP addresses are used for communication of VM instances with the outside world (e.g. Internet).
 $floating_range  = '10.0.204.128/28'
 
@@ -254,7 +262,8 @@ $quantum_sql_connection  = "mysql://${quantum_db_user}:${quantum_db_password}@${
 # This parameter specifies the the identifier of the current cluster. This is needed in case of multiple environments.
 # installation. Each cluster requires a unique integer value. 
 # Valid identifier range is 0 to 254
-$deployment_id = '79'
+
+$deployment_id = '89'
 
 # Below you can enable or disable various services based on the chosen deployment topology:
 ### CINDER/VOLUME ###
@@ -273,7 +282,7 @@ $manage_volumes          = true
 # Setup network interface, which Cinder uses to export iSCSI targets.
 # This interface defines which IP to use to listen on iscsi port for
 # incoming connections of initiators
-$cinder_iscsi_bind_iface = $internal_interface
+$cinder_iscsi_bind_iface = $internal_int
 
 # Below you can add physical volumes to cinder. Please replace values with the actual names of devices.
 # This parameter defines which partitions to aggregate into cinder-volumes or nova-volumes LVM VG
@@ -288,48 +297,20 @@ $nv_physical_volume     = ['/dev/sdz', '/dev/sdy', '/dev/sdx']
 
 ### CINDER/VOLUME END ###
 
-### GLANCE and SWIFT ###
+### GLANCE ###
 
 # Which backend to use for glance
 # Supported backends are "swift" and "file"
-$glance_backend          = 'swift'
+$glance_backend          = 'file'
 
 # Use loopback device for swift:
 # set 'loopback' or false
 # This parameter controls where swift partitions are located:
 # on physical partitions or inside loopback devices.
-$swift_loopback = 'loopback'
-
-# Which IP address to bind swift components to: e.g., which IP swift-proxy should listen on
-$swift_local_net_ip      = $internal_address
-
-# IP node of controller used during swift installation
-# and put into swift configs
-$controller_node_public  = $internal_virtual_ip
-
-
-# Hash of proxies hostname|fqdn => ip mappings.
-# This is used by controller_ha.pp manifests for haproxy setup
-# of swift_proxy backends
-$swift_proxies = $controller_internal_addresses
-
-
-# Set hostname of swift_master.
-# It tells on which swift proxy node to build
-# *ring.gz files. Other swift proxies/storages
-# will rsync them.
-if $::hostname == 'fuel-controller-01' {
-  $primary_proxy = true
-} else {
-  $primary_proxy = false
-}
-if $::hostname == $master_hostname {
-  $primary_controller = true
-} else {
-  $primary_controller = false
-}
+$swift_loopback = false
 
 ### Glance and swift END ###
+
 
 ### Syslog ###
 # Enable error messages reporting to rsyslog. Rsyslog must be installed in this case.
@@ -372,6 +353,8 @@ $openstack_version = {
 # though it is NOT recommended.
 $mirror_type = 'default'
 $enable_test_repo = false
+
+#$quantum_sql_connection  = "mysql://${quantum_db_user}:${quantum_db_password}@${quantum_host}/${quantum_db_dbname}"
 
 # This parameter specifies the verbosity level of log messages
 # in openstack components config. Currently, it disables or enables debugging.
@@ -460,7 +443,6 @@ class compact_controller (
     memcached_servers       => $controller_hostnames,
     export_resources        => false,
     glance_backend          => $glance_backend,
-    swift_proxies           => $swift_proxies,
     quantum                 => $quantum,
     quantum_user_password   => $quantum_user_password,
     quantum_db_password     => $quantum_db_password,
@@ -482,15 +464,9 @@ class compact_controller (
     cinder_rate_limits      => $cinder_rate_limits,
     horizon_use_ssl         => $horizon_use_ssl,
   }
-  class { 'swift::keystone::auth':
-    password         => $swift_user_password,
-    public_address   => $public_virtual_ip,
-    internal_address => $internal_virtual_ip,
-    admin_address    => $internal_virtual_ip,
-  }
 }
 
-# Definition of the first OpenStack controller.
+# Definition of OpenStack controller nodes.
 node /fuel-controller-01/ {
   class {'::node_netconfig':
       mgmt_ipaddr    => $::internal_address,
@@ -499,38 +475,18 @@ node /fuel-controller-01/ {
       public_netmask => $::public_netmask,
       stage          => 'netconfig',
   }
-
   class {'nagios':
     proj_name       => $proj_name,
     services        => [
       'host-alive','nova-novncproxy','keystone', 'nova-scheduler',
       'nova-consoleauth', 'nova-cert', 'haproxy', 'nova-api', 'glance-api',
-      'glance-registry','horizon', 'rabbitmq', 'mysql', 'swift-proxy',
-      'swift-account', 'swift-container', 'swift-object',
+      'glance-registry','horizon', 'rabbitmq', 'mysql'
     ],
     whitelist       => ['127.0.0.1', $nagios_master],
     hostgroup       => 'controller',
   }
-  
-  class { compact_controller: quantum_network_node => true }
-  $swift_zone = 1
-
-  class { 'openstack::swift::storage_node':
-    storage_type       => $swift_loopback,
-    swift_zone         => $swift_zone,
-    swift_local_net_ip => $internal_address,
-  }
-
-  class { 'openstack::swift::proxy':
-    swift_user_password     => $swift_user_password,
-    swift_proxies           => $swift_proxies,
-    primary_proxy           => $primary_proxy,
-    controller_node_address => $internal_virtual_ip,
-    swift_local_net_ip      => $internal_address,
-  }
+  class { compact_controller: }
 }
-
-# Definition of the second OpenStack controller.
 node /fuel-controller-02/ {
   class {'::node_netconfig':
       mgmt_ipaddr    => $::internal_address,
@@ -539,38 +495,18 @@ node /fuel-controller-02/ {
       public_netmask => $::public_netmask,
       stage          => 'netconfig',
   }
-
   class {'nagios':
     proj_name       => $proj_name,
     services        => [
       'host-alive','nova-novncproxy','keystone', 'nova-scheduler',
       'nova-consoleauth', 'nova-cert', 'haproxy', 'nova-api', 'glance-api',
-      'glance-registry','horizon', 'rabbitmq', 'mysql', 'swift-proxy',
-      'swift-account', 'swift-container', 'swift-object',
+      'glance-registry','horizon', 'rabbitmq', 'mysql'
     ],
     whitelist       => ['127.0.0.1', $nagios_master],
     hostgroup       => 'controller',
   }
-  
-  class { 'compact_controller': quantum_network_node => true }
-  $swift_zone = 2
-
-  class { 'openstack::swift::storage_node':
-    storage_type       => $swift_loopback,
-    swift_zone         => $swift_zone,
-    swift_local_net_ip => $internal_address,
-  }
-
-  class { 'openstack::swift::proxy':
-    swift_user_password     => $swift_user_password,
-    swift_proxies           => $swift_proxies,
-    primary_proxy           => $primary_proxy,
-    controller_node_address => $internal_virtual_ip,
-    swift_local_net_ip      => $internal_address,
-  }
+  class { compact_controller: }
 }
-
-# Definition of the third OpenStack controller.
 node /fuel-controller-03/ {
   class {'::node_netconfig':
       mgmt_ipaddr    => $::internal_address,
@@ -579,46 +515,28 @@ node /fuel-controller-03/ {
       public_netmask => $::public_netmask,
       stage          => 'netconfig',
   }
-  
   class {'nagios':
     proj_name       => $proj_name,
     services        => [
       'host-alive','nova-novncproxy','keystone', 'nova-scheduler',
       'nova-consoleauth', 'nova-cert', 'haproxy', 'nova-api', 'glance-api',
-      'glance-registry','horizon', 'rabbitmq', 'mysql', 'swift-proxy',
-      'swift-account', 'swift-container', 'swift-object',
+      'glance-registry','horizon', 'rabbitmq', 'mysql'
     ],
     whitelist       => ['127.0.0.1', $nagios_master],
     hostgroup       => 'controller',
   }
-  
   class { 'compact_controller': quantum_network_node => true }
-  $swift_zone = 3
-
-  class { 'openstack::swift::storage_node':
-    storage_type       => $swift_loopback,
-    swift_zone         => $swift_zone,
-    swift_local_net_ip => $internal_address,
-  }
-
-  class { 'openstack::swift::proxy':
-    swift_user_password     => $swift_user_password,
-    swift_proxies           => $swift_proxies,
-    primary_proxy           => $primary_proxy,
-    controller_node_address => $internal_virtual_ip,
-    swift_local_net_ip      => $internal_address,
-  }
 }
 
 # Definition of OpenStack compute nodes.
 node /fuel-compute-[\d+]/ {
-  class {'::node_netconfig':
-      mgmt_ipaddr    => $::internal_address,
-      mgmt_netmask   => $::internal_netmask,
-      public_ipaddr  => $::public_address,
-      public_netmask => $::public_netmask,
-      stage          => 'netconfig',
-  }
+  #class {'::node_netconfig':
+  #    mgmt_ipaddr    => $::internal_address,
+  #    mgmt_netmask   => $::internal_netmask,
+  #    public_ipaddr  => $::public_address,
+  #    public_netmask => $::public_netmask,
+  #    stage          => 'netconfig',
+  #}
 
   class {'nagios':
     proj_name       => $proj_name,
@@ -630,7 +548,7 @@ node /fuel-compute-[\d+]/ {
   }
   
   class { 'openstack::compute':
-    public_interface       => $public_interface,
+    public_interface       => $public_int,
     private_interface      => $private_interface,
     internal_address       => $internal_address,
     libvirt_type           => 'qemu',
@@ -684,7 +602,7 @@ node /fuel-quantum/ {
       service_endpoint      => $internal_virtual_ip,
       auth_host             => $internal_virtual_ip,
       internal_address      => $internal_address,
-      public_interface      => $public_interface,
+      public_interface      => $public_int,
       private_interface     => $private_interface,
       floating_range        => $floating_range,
       fixed_range           => $fixed_range,

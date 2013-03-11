@@ -7,18 +7,17 @@ from fuel_test.settings import CREATE_SNAPSHOTS
 
 class MinimalTestCase(CobblerTestCase):
     def test_minimal(self):
-        Manifest().write_openstack_manifest(
+        Manifest().write_openstack_ha_minimal_manifest(
             remote=self.remote(),
             template=Template.minimal(), ci=self.ci(),
             controllers=self.nodes().controllers,
             quantums=self.nodes().quantums,
-            swift=False,
             quantum=True)
         self.validate(self.nodes().controllers[:1], 'puppet agent --test')
         self.validate(self.nodes().controllers[1:], 'puppet agent --test')
         self.validate(self.nodes().controllers[:1], 'puppet agent --test')
-        if is_not_essex():
-            self.validate(self.nodes().quantums, 'puppet agent --test')
+        #if is_not_essex():
+        #    self.validate(self.nodes().quantums, 'puppet agent --test')
         self.validate(self.nodes().computes, 'puppet agent --test')
         if CREATE_SNAPSHOTS:
             self.environment().snapshot('minimal', force=True)
