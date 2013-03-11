@@ -204,6 +204,7 @@ Puppet::Type.type(:cs_resource).provide(:crm, :parent => Puppet::Provider::Coros
   # that can be used by the crm command.
   def flush
     unless @property_hash.empty?
+      self.class.block_until_ready
       unless @property_hash[:operations].empty?
         operations = ''
         @property_hash[:operations].each do |o|
@@ -249,8 +250,9 @@ Puppet::Type.type(:cs_resource).provide(:crm, :parent => Puppet::Provider::Coros
       Tempfile.open('puppet_crm_update') do |tmpfile|
         tmpfile.write(updated)
         tmpfile.flush
-        ENV['CIB_shadow'] = @resource[:cib]
-        crm('configure', 'load', 'update', tmpfile.path.to_s)
+        env = {}
+        env["CIB_shadow"] = @resource[:cib].to_s if !@resource[:cib].nil?
+        exec_withenv("#{command(:crm)} configure load update #{tmpfile.path.to_s}",env)
       end
     end
   end

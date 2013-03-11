@@ -1,4 +1,4 @@
-class Puppet::Provider::Corosync < Puppet::Provider
+class Puppet::Provider::Corosync_service < Puppet::Provider
   require "open3"
   # Yep, that's right we are parsing XML...FUN! (It really wasn't that bad)
   require 'rexml/document'
@@ -6,7 +6,7 @@ class Puppet::Provider::Corosync < Puppet::Provider
   
   
   def self.dump_cib
-    stdin, stdout, stderr = Open3.popen3("#{command(:crm)} configure show xml")
+    stdin, stdout, stderr = Open3.popen3("#{command(:cibadmin)} -Q")
     return stdout, nil
   end
 

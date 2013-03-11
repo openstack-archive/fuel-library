@@ -20,9 +20,9 @@ mcastport:   <%= port %>
 
 logging {
 fileline:        off
-to_stderr:       yes
-to_logfile:      no
-
+to_stderr:       no 
+to_logfile:      yes
+logfile:	/var/log/corosync.log
 to_syslog:       yes
 syslog_facility: daemon
 debug:           <%= scope.lookupvar('debug') ? 'on' : 'off' %>

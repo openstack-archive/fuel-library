@@ -35,7 +35,7 @@ module Puppet
 
     def generate
       options = { :name => @title }
-      Puppet.warning("generating cs_commit")
+      Puppet.notice("generating cs_commit #{@title}")
       [ Puppet::Type.type(:cs_commit).new(options) ]
     end
 

@@ -25,9 +25,10 @@ totem {
 
 logging {
   fileline:        off
-  to_stderr:       yes
-  to_logfile:      no
+  to_stderr:       no 
+  to_logfile:      yes
   to_syslog:       yes
+  logfile:	   /var/log/corosync.log
   syslog_facility: daemon
   debug:           <%= scope.lookupvar('debug') ? 'on' : 'off' %>
   timestamp:       on
