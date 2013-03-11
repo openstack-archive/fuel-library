@@ -25,8 +25,6 @@ class FullTestCase(CobblerTestCase):
         self.do(self.nodes().proxies, 'puppet agent --test 2>&1')
         self.validate(self.nodes().storages, 'puppet agent --test 2>&1')
         self.validate(self.nodes().proxies, 'puppet agent --test 2>&1')
-        Manifest().write_nagios_manifest(remote=self.remote())
-        self.validate(self.nodes().controllers[:1], 'puppet agent --test 2>&1')
         if CREATE_SNAPSHOTS:
             self.environment().snapshot('full', force=True)
 
