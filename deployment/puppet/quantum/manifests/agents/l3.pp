@@ -175,7 +175,7 @@ class quantum::agents::l3 (
       Class[quantum::waistline] -> Quantum::Network::Provider_router<||>
       Class[quantum::waistline] -> Exec[update_default_route_metric]
       quantum_l3_agent_routerid{'router04': value => 'router04'}
-      Quantum::Network::Provider_router['router04']->Quantum_l3_agent_routerid['router04']
+      Quantum_l3_agent_config <||>->Quantum_l3_agent_routerid['router04']
       Quantum_l3_agent_routerid['router04']~>Service['quantum-l3']
       Package[$l3_agent_package] ~> Exec['update_default_route_metric']
       Exec['update_default_route_metric'] -> Service['quantum-l3'] -> Exec['settle-down-default-route']
