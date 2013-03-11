@@ -24,7 +24,7 @@ $internal_virtual_ip = '10.0.0.253'
 # Change this IP to IP routable from your 'public' network,
 # e. g. Internet or your office LAN, in which your public 
 # interface resides
-$public_virtual_ip   = '10.0.215.253'
+$public_virtual_ip   = '10.0.204.253'
 
 $nodes_harr = [
   {
@@ -110,7 +110,7 @@ class node_netconfig (
 ) {
   if $quantum { 
     l23network::l3::create_br_iface {'mgmt':
-      interface => $internal_interface,
+      interface => $internal_int,
       bridge    => $internal_br,
       ipaddr    => $mgmt_ipaddr,
       netmask   => $mgmt_netmask,
@@ -118,7 +118,7 @@ class node_netconfig (
       save_default_gateway => $save_default_gateway,
     }
     l23network::l3::create_br_iface {'ex':
-      interface => $public_interface,
+      interface => $public_int,
       bridge    => $public_br,
       ipaddr    => $public_ipaddr,
       netmask   => $public_netmask,
@@ -273,7 +273,7 @@ $manage_volumes          = true
 # Setup network interface, which Cinder uses to export iSCSI targets.
 # This interface defines which IP to use to listen on iscsi port for
 # incoming connections of initiators
-$cinder_iscsi_bind_iface = $internal_interface
+$cinder_iscsi_bind_iface = $internal_int
 
 # Below you can add physical volumes to cinder. Please replace values with the actual names of devices.
 # This parameter defines which partitions to aggregate into cinder-volumes or nova-volumes LVM VG
@@ -684,7 +684,7 @@ node /fuel-quantum/ {
       service_endpoint      => $internal_virtual_ip,
       auth_host             => $internal_virtual_ip,
       internal_address      => $internal_address,
-      public_interface      => $public_interface,
+      public_interface      => $public_int,
       private_interface     => $private_interface,
       floating_range        => $floating_range,
       fixed_range           => $fixed_range,
@@ -714,11 +714,4 @@ node /fuel-quantum/ {
       before               => Class['openstack::quantum_router'],
     }
   }
-}
-
-# This configuration option is deprecated and will be removed in future releases. It's currently kept for backward compatibility.
-$controller_public_addresses = {
-  'fuel-controller-01' => $addresses['fuel-controller-01']['public_address'],
-  'fuel-controller-02' => $addresses['fuel-controller-02']['public_address'],
-  'fuel-controller-03' => $addresses['fuel-controller-03']['public_address'],
 }
