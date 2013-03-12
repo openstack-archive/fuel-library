@@ -362,6 +362,6 @@ class Manifest(object):
 
     def deployment_id(self, ci):
         try:
-            return ci.internal_network().split('.')[2]
+            return str(int(ci.internal_network().split('.')[2]) + 1)
         except:
             return '250'
