@@ -45,7 +45,7 @@ function default_settings {
     ext_if="eth1"
     dhcp_start_address="10.0.0.201"
     dhcp_end_address="10.0.0.254"
-    mirror_type="iso"
+    mirror_type="default"
 }
 
 function apply_settings {
@@ -150,7 +150,7 @@ while [ $endconf -ne 1 ]; do
             ;;
         5)
             show_top
-            echo -n "Please select set of mirrors to use(iso/custom): "; read mirror_type
+            echo -n "Please select set of mirrors to use(default/custom): "; read mirror_type
             ;;
         6)
             echo;echo "Those changes are permanent!"
