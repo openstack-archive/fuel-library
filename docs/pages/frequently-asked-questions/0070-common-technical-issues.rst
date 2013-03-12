@@ -35,7 +35,7 @@ Common Technical Issues
     * The second problem can be solved by rebooting Puppet master.
 
 #. PuppetDB Connection Failures
-  Puppet fails on fuel-pm with message:
+   Puppet fails on fuel-pm with message:
    Could not retrieve catalog from remote server: Error 400 on SERVER: Failed to submit 'replace facts' command for fuel-pm to PuppetDB at fuel-pm:8081: Connection refused - connect(2)
 
   This message is often the result of one of the following:
