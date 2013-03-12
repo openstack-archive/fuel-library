@@ -63,7 +63,7 @@ class Template(object):
     @classmethod
     def stomp(cls):
         return cls(root('deployment', 'puppet', 'mcollective', 'examples',
-            'site_openstack_ha_minimal.pp'))
+            'site.pp'))
 
     @classmethod
     def minimal(cls):
