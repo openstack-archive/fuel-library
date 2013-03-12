@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 require 'optparse'
 
+ORCHESTRATION_ROLES = %w(controller compute quantum storage swift-proxy)
+
 class Template
   def self.p_(value)
     if value.is_a? Hash
@@ -79,13 +81,16 @@ class ConfigYaml
   def common()
     @yaml['common']
   end
+  def orchestrator_common()
+    self.common['orchestrator_common']
+  end
   def settings()
     self.common()['openstack_common']
   end
   def mandatory(key)
     result = self.settings()[key]
     if result.nil?
-      raise "Undefined %s" % key
+      raise "Undefined %s in template" % key
     end
     result
   end
@@ -198,9 +203,22 @@ class Manifest
   end
 end
 
+class Astute
+  def self.prepare_config(config)
+    nodes = config.nodes().select do |node|
+      !(ORCHESTRATION_ROLES & [node['role']]).empty?
+    end.
+    collect do |node|
+      {:uid.to_s => node['name'], :role.to_s => node['role']}
+    end
+    YAML.dump({:nodes.to_s => nodes}.update(config.orchestrator_common()))
+  end
+end
+
+
 options={}
 parser = OptionParser.new do |opts|
-  opts.banner = "Usage: openstack_system.rb -c CONFIG -t TEMPLATE -o SITE_PP"
+  opts.banner = "Usage: openstack_system.rb -c CONFIG -t TEMPLATE -o SITE_PP -a ASTUTE"
 
   opts.on("-v", "--[no-]verbose", "Run verbosely") do |v|
     options[:verbose] = v
@@ -218,7 +236,11 @@ parser = OptionParser.new do |opts|
     options[:output] = o
   end
 
-  opts.on("-h", "This is da help.") { puts opts; exit }
+  opts.on("-a ASTUTE", "Resulting astute.yaml file") do |a|
+    options[:astute] = a
+  end
+
+  opts.on("-h", "This help.") { puts opts; exit }
 end
 
 parser.parse!(ARGV)
@@ -233,4 +255,8 @@ template = Template.new(options[:template])
 
 File.open(options[:output], 'w') { |f|
   f.write Manifest.prepare_manifest(template, config)
+}
+
+File.open(options[:astute], 'w') { |f|
+  f.write Astute.prepare_config(config)
 }

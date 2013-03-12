@@ -1,7 +1,9 @@
 common:
   orchestrator_common:
-    use_case: minimal
-    domain_name: your-domain-name.com
+    attributes:
+      deployment_mode: multinode_compute
+      deployment_engine: simplepuppet
+    task_uuid: deployment_task
 
   openstack_common:
    internal_virtual_ip: 10.49.63.127
