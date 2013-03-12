@@ -80,7 +80,9 @@ $(ISOROOT)/astute-0.0.1.gem:
 $(ISOROOT)/.discinfo: $(SOURCE_DIR)/.discinfo ; $(ACTION.COPY)
 $(ISOROOT)/.treeinfo: $(SOURCE_DIR)/.treeinfo ; $(ACTION.COPY)
 $(ISOROOT)/isolinux/isolinux.cfg: $(SOURCE_DIR)/isolinux/isolinux.cfg ; $(ACTION.COPY)
-$(ISOROOT)/ks.cfg: $(SOURCE_DIR)/ks.cfg ; $(ACTION.COPY)
+$(ISOROOT)/ks.cfg: $(SOURCE_DIR)/ks.cfg; $(ACTION.COPY)
+	[ -z "$$TGTDRIVE" ] || sed -i "s/^\(tgtdrive=\)\".*\"$$/\1\"$$TGTDRIVE\"/" $@
+	[ -z "$$USEEXTIF" ] || sed -i "s/^\(network\s*--bootproto=dhcp\.*\)/\1 --device=$$USEEXTIF/" $@
 $(ISOROOT)/bootstrap_admin_node.sh: $(SOURCE_DIR)/bootstrap_admin_node.sh ; $(ACTION.COPY)
 $(ISOROOT)/functions.sh: $(SOURCE_DIR)/functions.sh ; $(ACTION.COPY)
 $(ISOROOT)/bootstrap_admin_node.conf: $(SOURCE_DIR)/bootstrap_admin_node.conf ; $(ACTION.COPY)
