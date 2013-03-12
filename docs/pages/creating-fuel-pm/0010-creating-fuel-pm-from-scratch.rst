@@ -171,7 +171,8 @@ OS Installation
 
       ``vi/etc/yum.repos.d/puppet.repo``::
 
-        [puppetlabs] name=Puppet Labs Packages
+        [puppetlabs] 
+        name=Puppet Labs Packages
         baseurl=http://yum.puppetlabs.com/el/$releasever/products/$basearch/
         enabled=1 gpgcheck=1 gpgkey=http://yum.puppetlabs.com/RPM-GPG-KEY-puppetlabs
 

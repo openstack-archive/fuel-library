@@ -33,8 +33,7 @@ authorization for these transactions are handled by **Keystone**.
 OpenStack provides for two different types of storage: block storage
 and object storage. Block storage is traditional data storage, with
 small, fixed-size blocks that are mapped to locations on storage media. At
-its simplest level, OpenStack provides block storage using **nova-
-volume**, but it is common to use **Cinder**.
+its simplest level, OpenStack provides block storage using **nova-volume**, but it is common to use **Cinder**.
 
 
 
@@ -66,7 +65,7 @@ essential services run out of a single server:
 
 
 
-[INSERT DIAGRAM HERE]
+.. image:: https://docs.google.com/drawings/d/1gGNYYayPAPPHgOYi98Dmebry4hP1SOGF2APXWzbnNo8/pub?w=767&h=413
 
 
 
@@ -97,8 +96,7 @@ provide; because Swift runs on its own servers, you can reduce the
 number of controllers from three (or five, for a full Swift implementation) to one, if desired:
 
 
-
-[INSERT DIAGRAM HERE]
+.. image:: https://docs.google.com/drawings/d/1nVEtfpNLaLV4EBKJQleLxovqMVrDCRT7yFWTYUQASB0/pub?w=767&h=413
 
 
 
@@ -116,7 +114,7 @@ nodes:
 
 
 
-[INSERT DIAGRAM HERE]
+.. image:: https://docs.google.com/drawings/d/1xLv4zog19j0MThVGV9gSYa4wh1Ma4MQYsBz-4vE1xvg/pub?w=767&h=413
 
 
 
@@ -131,7 +129,7 @@ but avoids the need for a separate Quantum node:
 
 
 
-[INSERT DIAGRAM HERE]
+.. image:: https://docs.google.com/drawings/d/1GYNM5yTJSlZe9nB5SHnlrqyMfVRdVh02OFLwXlz-itc/pub?w=767&h=413
 
 
 Multi-node (HA) deployment (Standalone)
@@ -145,7 +143,7 @@ networking, and controller functionality:
 
 
 
-[INSERT DIAGRAM HERE]
+.. image:: https://docs.google.com/drawings/d/1rJEZi5-l9oemMmrkH5UPjitQQDVGuZQ1KS0pPWTuovY/pub?w=769&h=594
 
 
 
@@ -160,7 +158,7 @@ architecture.
 
 Lets take a closer look at the details of this topology.
 
-A closer look at the Multi-node (non-HA) deployment (compact Swift)
+A closer look at the Multi-node (HA) deployment (compact Swift)
 -------------------------------------------------------------------
 
 In this section, you'll learn more about the Multi-node (HA) Compact
@@ -168,8 +166,7 @@ Swift topology and how it achieves high availability in preparation
 for installing this cluster in section 3. As you may recall, this
 topology looks something like this:
 
-[INSERT DIAGRAM HERE]
-
+.. image:: https://docs.google.com/drawings/d/1xLv4zog19j0MThVGV9gSYa4wh1Ma4MQYsBz-4vE1xvg/pub?w=767&h=413
 
 
 OpenStack services are interconnected by RESTful HTTP-based APIs and
