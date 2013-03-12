@@ -1,26 +1,20 @@
 import logging
 from abc import abstractproperty, abstractmethod
-from devops.manager import Manager
 from ipaddr import IPNetwork
 from fuel_test.helpers import  write_config, change_host_name, request_cerificate, setup_puppet_client, setup_puppet_master, add_nmap, switch_off_ip_tables, add_to_hosts
 from fuel_test.node_roles import NodeRoles, Nodes
-from fuel_test.settings import BASE_IMAGE, EMPTY_SNAPSHOT, ISO
+from fuel_test.settings import EMPTY_SNAPSHOT, ISO
 from fuel_test.root import root
 from fuel_test.helpers import load
 
 class CiBase(object):
     def __init__(self):
-        self.manager = Manager()
-        self.base_image = self.manager.volume_get_predefined(BASE_IMAGE)
         self._environment = None
 
-    def _get_or_create(self):
-        try:
-            return self.manager.environment_get(self.env_name())
-        except:
-            self._environment = self.describe_environment()
-            self._environment.define()
-            return self._environment
+    def get_or_create(self):
+        self._environment = self.describe_environment()
+        self._environment.define()
+        return self._environment
 
     def get_empty_state(self):
         if self.environment().has_snapshot(EMPTY_SNAPSHOT):
@@ -32,7 +26,7 @@ class CiBase(object):
         """
         :rtype : devops.models.Environment
         """
-        self._environment = self._environment or self._get_or_create()
+        self._environment = self._environment or self.get_or_create()
         return self._environment
 
     @abstractproperty
@@ -58,48 +52,6 @@ class CiBase(object):
 
     def nodes(self):
         return Nodes(self.environment(), self.node_roles())
-
-    def add_empty_volume(self, node, name):
-        self.manager.node_attach_volume(
-            node=node,
-            volume=self.manager.volume_create(
-                name=name, capacity=20 * 1024 * 1024 * 1024,
-                environment=self.environment()))
-
-    def add_node(self, memory, name):
-        return self.manager.node_create(
-            name=name,
-            memory=memory,
-            environment=self.environment())
-
-    def describe_node(self, name, networks, memory=1024):
-        node = self.add_node(memory, name)
-        for network in networks:
-            self.manager.interface_create(network, node=node)
-        self.manager.node_attach_volume(
-            node=node,
-            volume=self.manager.volume_create_child(
-                name=name + '-system', backing_store=self.base_image,
-                environment=self.environment()))
-        self.add_empty_volume(node, name + '-cinder')
-        return node
-
-    def describe_master_node(self, name, networks, memory=1024):
-        node = self.add_node(memory, name)
-        for network in networks:
-            self.manager.interface_create(network, node=node)
-        self.add_empty_volume(node, name + '-system')
-        self.manager.node_attach_volume(node, self.manager.volume_get_predefined(
-            ISO), device='cdrom', bus='sata')
-        return node
-
-    def describe_empty_node(self, name, networks, memory=1024):
-        node = self.add_node(memory, name)
-        for network in networks:
-            self.manager.interface_create(network, node=node)
-        self.add_empty_volume(node, name + '-system')
-        self.add_empty_volume(node, name + '-cinder')
-        return node
 
     def add_nodes_to_hosts(self, remote, nodes):
         for node in nodes:

@@ -1,16 +1,28 @@
 import logging
 from time import sleep
 from ipaddr import IPNetwork
-
+from devops.manager import Manager
 import os
 from fuel_test.ci.ci_base import CiBase
 from fuel_test.node_roles import NodeRoles
 from fuel_test.settings import CONTROLLERS, COMPUTES,\
     STORAGES, PROXIES,\
-    EMPTY_SNAPSHOT, POOLS, INTERFACE_ORDER, ROUTED_INTERFACE
+    EMPTY_SNAPSHOT, POOLS, INTERFACE_ORDER, ROUTED_INTERFACE, BASE_IMAGE, ISO
 
 
 class CiVM(CiBase):
+
+    def get_or_create(self):
+        try:
+            return self.manager.environment_get(self.env_name())
+        except:
+            return super(CiVM, self).get_or_create()
+
+    def __init__(self):
+        super(CiVM, self).__init__()
+        self.manager = Manager()
+        self.base_image = self.manager.volume_get_predefined(BASE_IMAGE)
+
     def node_roles(self):
         return NodeRoles(
             master_names=['master'],
@@ -59,6 +71,49 @@ class CiVM(CiBase):
 
     def client_nodes(self):
         return self.nodes().controllers + self.nodes().computes + self.nodes().storages + self.nodes().proxies + self.nodes().quantums
+
+
+    def add_empty_volume(self, node, name):
+        self.manager.node_attach_volume(
+            node=node,
+            volume=self.manager.volume_create(
+                name=name, capacity=20 * 1024 * 1024 * 1024,
+                environment=self.environment()))
+
+    def add_node(self, memory, name):
+        return self.manager.node_create(
+            name=name,
+            memory=memory,
+            environment=self.environment())
+
+    def describe_node(self, name, networks, memory=1024):
+        node = self.add_node(memory, name)
+        for network in networks:
+            self.manager.interface_create(network, node=node)
+        self.manager.node_attach_volume(
+            node=node,
+            volume=self.manager.volume_create_child(
+                name=name + '-system', backing_store=self.base_image,
+                environment=self.environment()))
+        self.add_empty_volume(node, name + '-cinder')
+        return node
+
+    def describe_master_node(self, name, networks, memory=1024):
+        node = self.add_node(memory, name)
+        for network in networks:
+            self.manager.interface_create(network, node=node)
+        self.add_empty_volume(node, name + '-system')
+        self.manager.node_attach_volume(node, self.manager.volume_get_predefined(
+            ISO), device='cdrom', bus='sata')
+        return node
+
+    def describe_empty_node(self, name, networks, memory=1024):
+        node = self.add_node(memory, name)
+        for network in networks:
+            self.manager.interface_create(network, node=node)
+        self.add_empty_volume(node, name + '-system')
+        self.add_empty_volume(node, name + '-cinder')
+        return node
 
     def setup_environment(self):
         master_node = self.nodes().masters[0]
