@@ -4,8 +4,11 @@
 	<comment></comment>
 	<projects>
 		<project>corosync</project>
+		<project>haproxy</project>
 		<project>keystone</project>
 		<project>l23network</project>
+		<project>nova</project>
+		<project>openstack</project>
 		<project>selinux</project>
 		<project>stdlib</project>
 		<project>sysctl</project>
