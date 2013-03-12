@@ -28,6 +28,12 @@ $public_virtual_ip   = '10.0.204.253'
 
 $nodes_harr = [
   {
+    'name' => 'master',
+    'role' => 'master',
+    'internal_address' => '10.0.0.101',
+    'public_address'   => '10.0.204.101',
+  },
+  {
     'name' => 'fuel-cobbler',
     'role' => 'cobbler',
     'internal_address' => '10.0.0.102',
@@ -88,67 +94,6 @@ $controller_internal_addresses = nodes_to_hash(filter_nodes($nodes,'role','contr
 $controller_public_addresses = nodes_to_hash(filter_nodes($nodes,'role','controller'),'name','public_address')
 $controller_hostnames = keys($controller_internal_addresses)
 
-
-if $quantum {
-  $public_int   = $public_br
-  $internal_int = $internal_br
-} else {
-  $public_int   = $public_interface 
-  $internal_int = $internal_interface
-}
-
-if $::hostname == 'fuel-controller-01' {
-  $primary_controller = true
-} else {
-  $primary_controller = false
-}
-
-#Network configuration
-stage {'netconfig':
-      before  => Stage['main'],
-}
-
-class {'l23network': stage=> 'netconfig'}
-class node_netconfig (
-  $mgmt_ipaddr,
-  $mgmt_netmask  = '255.255.255.0',
-  $public_ipaddr = undef,
-  $public_netmask= '255.255.255.0',
-  $save_default_gateway=false,
-  $quantum = $quantum,
-) {
-  if $quantum { 
-    l23network::l3::create_br_iface {'mgmt':
-      interface => $internal_int,
-      bridge    => $internal_br,
-      ipaddr    => $mgmt_ipaddr,
-      netmask   => $mgmt_netmask,
-      dns_nameservers      => $dns_nameservers,
-      save_default_gateway => $save_default_gateway,
-    }
-    l23network::l3::create_br_iface {'ex':
-      interface => $public_int,
-      bridge    => $public_br,
-      ipaddr    => $public_ipaddr,
-      netmask   => $public_netmask,
-      gateway   => $default_gateway,
-    }
-    L23network::L3::Create_br_iface['mgmt'] -> L23network::L3::Create_br_iface['ex']
-  } else {
-    # nova-network mode
-    l23network::l3::ifconfig {$public_int:
-      ipaddr  => $public_ipaddr,
-      netmask => $public_netmask,
-      gateway => $default_gateway,
-    }
-    l23network::l3::ifconfig {$internal_int: 
-      ipaddr  => $mgmt_ipaddr,
-      netmask => $mgmt_netmask,
-      dns_nameservers      => $dns_nameservers,
-    }
-  }
-  l23network::l3::ifconfig {$private_interface: ipaddr=>'none' }
-}
 
 # Set hostname for master controller of HA cluster. 
 # It is strongly recommend that the master controller is deployed before all other controllers since it initializes the new cluster.  
@@ -259,13 +204,72 @@ $auto_assign_floating_ip = false
 # Database connection for Quantum configuration (quantum.conf)
 $quantum_sql_connection  = "mysql://${quantum_db_user}:${quantum_db_password}@${$internal_virtual_ip}/${quantum_db_dbname}"
 
+
+if $quantum {
+  $public_int   = $public_br
+  $internal_int = $internal_br
+} else {
+  $public_int   = $public_interface
+  $internal_int = $internal_interface
+}
+
+if $::hostname == 'fuel-controller-01' {
+  $primary_controller = true
+} else {
+  $primary_controller = false
+}
+
+#Network configuration
+stage {'netconfig':
+      before  => Stage['main'],
+}
+
+class {'l23network': stage=> 'netconfig'}
+class node_netconfig (
+  $mgmt_ipaddr,
+  $mgmt_netmask  = '255.255.255.0',
+  $public_ipaddr = undef,
+  $public_netmask= '255.255.255.0',
+  $save_default_gateway=false,
+  $quantum = $quantum,
+) {
+  if $quantum {
+    l23network::l3::create_br_iface {'mgmt':
+      interface => $internal_interface, # !!! NO $internal_int /sv !!!
+      bridge    => $internal_br,
+      ipaddr    => $mgmt_ipaddr,
+      netmask   => $mgmt_netmask,
+      dns_nameservers      => $dns_nameservers,
+      save_default_gateway => $save_default_gateway,
+    } ->
+    l23network::l3::create_br_iface {'ex':
+      interface => $public_interface, # !! NO $public_int /sv !!!
+      bridge    => $public_br,
+      ipaddr    => $public_ipaddr,
+      netmask   => $public_netmask,
+      gateway   => $default_gateway,
+    }
+  } else {
+    # nova-network mode
+    l23network::l3::ifconfig {$public_int:
+      ipaddr  => $public_ipaddr,
+      netmask => $public_netmask,
+      gateway => $default_gateway,
+    }
+    l23network::l3::ifconfig {$internal_int:
+      ipaddr  => $mgmt_ipaddr,
+      netmask => $mgmt_netmask,
+      dns_nameservers      => $dns_nameservers,
+    }
+  }
+  l23network::l3::ifconfig {$private_interface: ipaddr=>'none' }
+}
 ### NETWORK/QUANTUM END ###
 
 
 # This parameter specifies the the identifier of the current cluster. This is needed in case of multiple environments.
 # installation. Each cluster requires a unique integer value. 
 # Valid identifier range is 0 to 254
-
 $deployment_id = '89'
 
 # Below you can enable or disable various services based on the chosen deployment topology:
@@ -408,6 +412,7 @@ sysctl::value { 'net.ipv4.conf.all.rp_filter': value => '0' }
 #   'exist': assumes that the keys (domain name based certificate) are provisioned in advance
 #  'custom': require fileserver static mount point [ssl_certs] and hostname based certificate existence
 $horizon_use_ssl = false
+
 
 class compact_controller (
   $quantum_network_node = false
@@ -624,7 +629,7 @@ node /fuel-quantum/ {
       service_endpoint      => $internal_virtual_ip,
       auth_host             => $internal_virtual_ip,
       internal_address      => $internal_address,
-      public_interface      => $public_int,
+      public_interface      => $public_int, # ??????????????????????????
       private_interface     => $private_interface,
       floating_range        => $floating_range,
       fixed_range           => $fixed_range,

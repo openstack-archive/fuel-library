@@ -24,7 +24,7 @@ $internal_virtual_ip = '10.0.0.253'
 # Change this IP to IP routable from your 'public' network,
 # e. g. Internet or your office LAN, in which your public 
 # interface resides
-$public_virtual_ip   = '10.0.215.253'
+$public_virtual_ip   = '10.0.204.253'
 
 $nodes_harr = [
   {
@@ -119,43 +119,14 @@ if empty($node) {
 }
 $internal_address = $node[0]['internal_address']
 $public_address = $node[0]['public_address']
+
+
 $controller_internal_addresses = nodes_to_hash(filter_nodes($nodes,'role','controller'),'name','internal_address')
 $controller_public_addresses = nodes_to_hash(filter_nodes($nodes,'role','controller'),'name','public_address')
 $controller_hostnames = keys($controller_internal_addresses)
 $swift_proxies = nodes_to_hash(filter_nodes($nodes,'role','proxy'),'name','internal_address')
 
 
-#Network configuration
-stage {'netconfig':
-      before  => Stage['main'],
-}
-
-class {'l23network': stage=> 'netconfig'}
-class node_netconfig (
-  $mgmt_ipaddr,
-  $mgmt_netmask  = '255.255.255.0',
-  $public_ipaddr = undef,
-  $public_netmask= '255.255.255.0',
-  $save_default_gateway=false,
-) { 
-  l23network::l3::create_br_iface {'mgmt':
-     interface => $internal_interface,
-     bridge    => $internal_br,
-     ipaddr    => $mgmt_ipaddr,
-     netmask   => $mgmt_netmask,
-     dns_nameservers      => $dns_nameservers,
-     save_default_gateway => $save_default_gateway,
-  }
-  l23network::l3::create_br_iface {'ex':
-     interface => $public_interface,
-     bridge    => $public_br,
-     ipaddr    => $public_ipaddr,
-     netmask   => $public_netmask,
-     gateway   => $default_gateway,
-  }
-  L23network::L3::Create_br_iface['mgmt'] -> L23network::L3::Create_br_iface['ex']
-  l23network::l3::ifconfig {$private_interface: ipaddr=>'none' }
-}
 
 # Set hostname for master controller of HA cluster. 
 # It is strongly recommend that the master controller is deployed before all other controllers since it initializes the new cluster.  
@@ -211,8 +182,10 @@ $quantum_netnode_on_cnt  = true
 # Specify network creation criteria:
 # Should puppet automatically create networks?
 $create_networks = true
+
 # Fixed IP addresses are typically used for communication between VM instances.
 $fixed_range     = '10.0.198.128/27'
+
 # Floating IP addresses are used for communication of VM instances with the outside world (e.g. Internet).
 $floating_range  = '10.0.204.128/28'
 
@@ -264,6 +237,60 @@ $auto_assign_floating_ip = false
 # Database connection for Quantum configuration (quantum.conf)
 $quantum_sql_connection  = "mysql://${quantum_db_user}:${quantum_db_password}@${$internal_virtual_ip}/${quantum_db_dbname}"
 
+
+if $quantum {
+  $public_int   = $public_br
+  $internal_int = $internal_br
+} else {
+  $public_int   = $public_interface
+  $internal_int = $internal_interface
+}
+
+#Network configuration
+stage {'netconfig':
+      before  => Stage['main'],
+}
+
+class {'l23network': stage=> 'netconfig'}
+class node_netconfig (
+  $mgmt_ipaddr,
+  $mgmt_netmask  = '255.255.255.0',
+  $public_ipaddr = undef,
+  $public_netmask= '255.255.255.0',
+  $save_default_gateway=false,
+  $quantum = $quantum,
+) {
+  if $quantum {
+    l23network::l3::create_br_iface {'mgmt':
+      interface => $internal_interface, # !!! NO $internal_int /sv !!!
+      bridge    => $internal_br,
+      ipaddr    => $mgmt_ipaddr,
+      netmask   => $mgmt_netmask,
+      dns_nameservers      => $dns_nameservers,
+      save_default_gateway => $save_default_gateway,
+    } ->
+    l23network::l3::create_br_iface {'ex':
+      interface => $public_interface, # !! NO $public_int /sv !!!
+      bridge    => $public_br,
+      ipaddr    => $public_ipaddr,
+      netmask   => $public_netmask,
+      gateway   => $default_gateway,
+    }
+  } else {
+    # nova-network mode
+    l23network::l3::ifconfig {$public_int:
+      ipaddr  => $public_ipaddr,
+      netmask => $public_netmask,
+      gateway => $default_gateway,
+    }
+    l23network::l3::ifconfig {$internal_int:
+      ipaddr  => $mgmt_ipaddr,
+      netmask => $mgmt_netmask,
+      dns_nameservers      => $dns_nameservers,
+    }
+  }
+  l23network::l3::ifconfig {$private_interface: ipaddr=>'none' }
+}
 ### NETWORK/QUANTUM END ###
 
 
@@ -289,7 +316,7 @@ $manage_volumes          = true
 # Setup network interface, which Cinder uses to export iSCSI targets.
 # This interface defines which IP to use to listen on iscsi port for
 # incoming connections of initiators
-$cinder_iscsi_bind_iface = $internal_interface
+$cinder_iscsi_bind_iface = $internal_int
 
 # Below you can add physical volumes to cinder. Please replace values with the actual names of devices.
 # This parameter defines which partitions to aggregate into cinder-volumes or nova-volumes LVM VG
@@ -360,7 +387,7 @@ case $::osfamily {
     "RedHat": {
        $rabbitmq_version_string = '2.8.7-2.el6'
     }
- }
+}
 #
 # OpenStack packages and customized component versions to be installed. 
 # Use 'latest' to get the most recent ones or specify exact version if you need to install custom version.
@@ -381,7 +408,6 @@ $openstack_version = {
 # though it is NOT recommended.
 $mirror_type = 'default'
 $enable_test_repo = false
-
 
 # This parameter specifies the verbosity level of log messages
 # in openstack components config. Currently, it disables or enables debugging.
@@ -484,8 +510,8 @@ class ha_controller (
     controller_public_addresses   => $controller_public_addresses,
     controller_internal_addresses => $controller_internal_addresses,
     internal_address        => $internal_address,
-    public_interface        => $public_br,
-    internal_interface      => $internal_br,
+    public_interface        => $public_int,
+    internal_interface      => $internal_int,
     private_interface       => $private_interface,
     internal_virtual_ip     => $internal_virtual_ip,
     public_virtual_ip       => $public_virtual_ip,
@@ -598,7 +624,7 @@ node /fuel-compute-[\d+]/ {
   }
   
   class { 'openstack::compute':
-    public_interface       => $public_interface,
+    public_interface       => $public_int,
     private_interface      => $private_interface,
     internal_address       => $internal_address,
     libvirt_type           => 'qemu',
@@ -791,7 +817,7 @@ node /fuel-quantum/ {
       service_endpoint      => $internal_virtual_ip,
       auth_host             => $internal_virtual_ip,
       internal_address      => $internal_address,
-      public_interface      => $public_interface,
+      public_interface      => $public_int, # ??????????????????????????
       private_interface     => $private_interface,
       floating_range        => $floating_range,
       fixed_range           => $fixed_range,
