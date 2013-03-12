@@ -42,14 +42,6 @@ class quantum::agents::l3 (
     $l3_agent_package = $::quantum::params::package_name
   }
 
-  if !defined($::quantum::params::json_package) {
-    package { $::quantum::params::json_package: ensure => present }
-  }
-
-  if !defined($::quantum::params::restclient_package) {
-    package { $::quantum::params::restclient_package: ensure => present }
-  }
-
   include 'quantum::waist_setup'
 
   Quantum_l3_agent_config <| |> -> Class[quantum::waistline]
