@@ -67,7 +67,7 @@ class nova::compute::libvirt (
     'kvm': {
       package { $::nova::params::libvirt_type_kvm:
         ensure => present,
-        before => Package['nova-compute'],
+        before => Package[$::nova::params::compute_package_name],
       }
     }
   }
