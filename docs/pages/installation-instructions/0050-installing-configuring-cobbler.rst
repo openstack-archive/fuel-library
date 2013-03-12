@@ -108,12 +108,12 @@ Change the $domain_name to your own domain name. ::
     $cobbler_password = 'cobbler'
     $pxetimeout = '0'
 
-    # Predefined mirror type to use: internal or external (should be removed soon)
-    $mirror_type = 'external'
+    # Predefined mirror type to use: custom or default (should be removed soon)
+    $mirror_type = 'default'
 
 
 
-Change the $mirror_type to be external so Fuel knows to request
+Change the $mirror_type to be default so Fuel knows to request
 resources from Internet sources rather than having to set up your own
 internal repositories.
 

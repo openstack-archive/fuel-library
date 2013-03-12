@@ -131,7 +131,7 @@ hostonly adapters exist and are configured correctly:
 
 
 After creating these interfaces, reboot VirtualBox to make sure that
-DHCP isnt running in the background.
+DHCP isn't running in the background.
 
 
 
@@ -158,7 +158,7 @@ sure that you can boot your server from the DVD or USB drive. Once you've booted
 Creating fuel-pm on a Virtual Machine
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The process of creating a virtual machine in VirtualBox depends on
+The process of creating a virtual machine to host Fuel in VirtualBox depends on
 whether your deployment is purely virtual or consists of a virtual
 fuel-pm controlling physical hardware. If your deployment is purely
 virtual then Adapter 2 should be a Hostonly adapter attached to

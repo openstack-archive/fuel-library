@@ -21,7 +21,7 @@ Puppet Master::
 
 
 
-    cp /etc/puppet/modules/openstack/examples/site_openstack_swift_compact.pp /etc/puppet/manifests/site.pp
+    cp /etc/puppet/modules/openstack/examples/site_openstack_ha_compact.pp /etc/puppet/manifests/site.pp
 
 
 
@@ -343,6 +343,115 @@ The default value is loopback, which tells Swift to use a loopback storage devic
     ...
 
 
+Configuring OpenStack to use syslog
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+To use the syslog server, adjust the corresponding variables in the "if $use_syslog" clause::
+
+    $use_syslog = true
+        if $use_syslog {
+            class { "::rsyslog::client": 
+                log_local => true,
+                log_auth_local => true,
+                server => '127.0.0.1',
+                port => '514'
+            }
+    }
+
+For remote logging:
+
+            server => <syslog server hostname or ip>
+
+            port => <syslog server port>
+
+For local logging:
+
+            set log_local and log_auth_local to true
+   
+
+Setting the mirror type
+^^^^^^^^^^^^^^^^^^^^^^^
+
+
+
+
+To tell Fuel to download packages from external repos provided by Mirantis and your distribution vendors, set the $mirror_type variable to "default"::
+
+
+    ...
+    # If you want to set up a local repository, you will need to manually adjust mirantis_repos.pp,
+    # though it is NOT recommended.
+    $mirror_type = 'default'
+    $enable_test_repo = false
+    ...
+
+Future versions of Fuel will enable you to use your own internal repositories.
+ 
+Configuring Rate-Limits
+^^^^^^^^^^^^^^^^^^^^^^^
+
+Openstack has predefined limits on different HTTP queries for nova-compute and cinder services. Sometimes (e.g. for big clouds or test scenarios) these limits are too strict. (See http://docs.openstack.org/folsom/openstack-compute/admin/content/configuring-compute-API.html) In this case you can change them to more appropriate values.
+
+There are two hashes describing these limits: $nova_rate_limits and $cinder_rate_limits. ::
+
+    ...
+    #Rate Limits for cinder and Nova
+    #Cinder and Nova can rate-limit your requests to API services.
+    #These limits can be reduced for your installation or usage scenario.
+    #Change the following variables if you want. They are measured in requests per minute.
+    $nova_rate_limits = {
+      'POST' => 1000,
+      'POST_SERVERS' => 1000,
+      'PUT' => 1000, 'GET' => 1000,
+      'DELETE' => 1000 
+    }
+    $cinder_rate_limits = {
+      'POST' => 1000,
+      'POST_SERVERS' => 1000,
+      'PUT' => 1000, 'GET' => 1000,
+      'DELETE' => 1000 
+    }
+    ...
+
+
+Enabling Horizon HTTPS/SSL mode
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Using the $horizon_use_ssl variable, you have the option to decide whether the OpenStack dashboard (Horizon) uses HTTP or HTTPS::
+
+    ...
+    #  'custom': require fileserver static mount point [ssl_certs] and hostname based certificate existence
+    $horizon_use_ssl = false
+
+    class compact_controller (
+    ...
+
+This variable accepts the following values:
+
+  * 'false':  In this mode, the dashboard uses HTTP with no encryption
+  * 'default':  In this mode, the dashboard uses keys supplied with the standard Apache SSL module package
+  * 'exist':  In this case, the dashboard assumes that the domain name-based certificate, or keys, are provisioned in advance.  This can be a certificate signed by any authorized provider, such as Symantec/Verisign, Comodo, GoDaddy, and so on.  The system looks for the keys in these locations:
+
+    for Debian/Ubuntu:
+      * public  `/etc/ssl/certs/domain-name.pem`
+      * private `/etc/ssl/private/domain-name.key`
+    for Centos/RedHat:
+      * public  `/etc/pki/tls/certs/domain-name.crt`
+      * private `/etc/pki/tls/private/domain-name.key`
+
+  * 'custom':  This mode requires a static mount point on the fileserver for [ssl_certs] and certificate pre-existence.  To enable this mode, configure the puppet fileserver by editing /etc/puppet/fileserver.conf to add::
+
+      ...
+      [ssl_certs]
+        path /etc/puppet/templates/ssl
+        allow *
+      ..
+
+    From there, create the appropriate directory::
+
+      mkdir -p /etc/puppet/templates/ssl
+
+    Add the certificates to this directory.  (Reload the puppetmaster service for these changes to take effect.)
 
 Now we just need to make sure that all of our nodes get the proper
 values.
@@ -448,16 +557,24 @@ specify the individual controllers::
 Notice also that each controller has the swift_zone specified, so each
 of the three controllers can represent each of the three Swift zones.
 
-<<<<<<< HEAD
-=======
-In ``openstack/examples/site_openstack_full.pp`` example, the following nodes are specified:
->>>>>>> 5f32c0d... Rename and sync manifests
+
+In the ``openstack/examples/site_openstack_full.pp`` example, the following nodes are specified:
+
+* fuel-controller-01
+* fuel-controller-02
+* fuel-controller-03
+* fuel-compute-[\d+]
+* fuel-swift-01
+* fuel-swift-02
+* fuel-swift-03
+* fuel-swiftproxy-[\d+]
+* fuel-quantum
+
+Using this architecture, the system includes three stand-alone swift-storage servers, and one or more swift-proxy servers.
+
+In the ``openstack/examples/site_openstack_compact.pp`` example on the other hand, the role of swift-storage and swift-proxy are combined with the controllers.
 
 
-<<<<<<< HEAD
-=======
-In ``openstack/examples/site_openstack_compact.pp`` example, the role of swift-storage and swift-proxy combined with controllers.
->>>>>>> 5f32c0d... Rename and sync manifests
 
 One final fix
 ^^^^^^^^^^^^^
@@ -532,69 +649,6 @@ again grep for error messages.
 
 When you see no errors on any of your nodes, your OpenStack cluster is
 ready to go.
-
-Configuring OpenStack to use syslog
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-* If you want to use syslog server, you need to do the following steps:
-
-Adjust the corresponding variables in "if $use_syslog" clause::
-
-    $use_syslog = true
-        if $use_syslog {
-            class { "::rsyslog::client": 
-                log_local => true,
-                log_auth_local => true,
-                server => '127.0.0.1',
-                port => '514'
-            }
-    }
-
-For remote logging:
-
-            server => <syslog server hostname or ip>
-
-            port => <syslog server port>
-
-For local logging:
-
-            set log_local and log_auth_local to true
-   
-
-Setting the mirror type
-^^^^^^^^^^^^^^^^^^^^^^^
-
-
-To tell Fuel to download packages from external repos provided by Mirantis and your distribution vendors, set the $mirror_type variable to "external"::
-
-    ...
-    # If you want to set up a local repository, you will need to manually adjust mirantis_repos.pp,
-    # though it is NOT recommended.
-    $mirror_type = 'external'
-    $enable_test_repo = false
-    ...
-
-Future versions of Fuel will enable you to use your own internal repositories.
- 
-Configuring Rate-Limits
-^^^^^^^^^^^^^^^^^^^^^^^
-
-Openstack has predefined limits on different HTTP queries for nova-compute and cinder services. Some
-times (e.g. for big clouds or test scenarios) these limits are too strict. (See http://docs.openstac
-k.org/folsom/openstack-compute/admin/content/configuring-compute-API.html) In this case you can chan
-ge them to appropriate values.
-
-There are two hashes describing these limits: $nova_rate_limits and $cinder_rate_limits. ::
-
-    $nova_rate_limits = { 'POST' => '10',
-    'POST_SERVERS' => '50',
-    'PUT' => 10, 'GET' => 3,
-    'DELETE' => 100 }
-
-    $cinder_rate_limits = { 'POST' => '10',
-    'POST_SERVERS' => '50',
-    'PUT' => 10, 'GET' => 3,
-    'DELETE' => 100 }
 
 
 

@@ -15,7 +15,7 @@ You can download the latest release of Fuel here:
 [LINK HERE]
 
 
-Additionally, you can download a pre-built Puppet Master/Cobbler ISO,
+Alternatively, you can download a pre-built Puppet Master/Cobbler ISO,
 which will cut down the amount of time you'll need to spend getting
 Fuel up and running. You can download the ISO here:
 
@@ -28,14 +28,9 @@ Hardware for a virtual installation
 For a virtual installation, you need only a single machine. You can get
 by on 8GB of RAM, but 16GB will be better. To actually perform the
 installation, you need a way to create Virtual Machines. This guide
-assumes that you are using the latest version of VirtualBox (currently
-4.2.6), which you can download from
+assumes that you are using version 4.2.6 of VirtualBox, which you can download from
 
-
-
-`https://www.virtualbox.org/wiki/Downloads`
-
-
+https://www.virtualbox.org/wiki/Downloads
 
 You'll need to run VirtualBox on a stable host system. Mac OS 10.7.x,
 CentOS 6.3, or Ubuntu 12.04 are preferred; results in other operating 
