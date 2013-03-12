@@ -185,6 +185,10 @@ $horizon_use_ssl = false
 
 # Definition of OpenStack controller node.
 node /fuel-controller-[\d+]/ {
+  include stdlib
+  class { 'operatingsystem::checksupported':
+      stage => 'setup'
+  }
   
   class {'nagios':
     proj_name       => $proj_name,
@@ -249,6 +253,10 @@ node /fuel-controller-[\d+]/ {
 
 # Definition of OpenStack compute nodes.
 node /fuel-compute-[\d+]/ {
+  include stdlib
+  class { 'operatingsystem::checksupported':
+      stage => 'setup'
+  }
   
   class {'nagios':
     proj_name       => $proj_name,

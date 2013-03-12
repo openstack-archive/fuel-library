@@ -108,8 +108,10 @@ $openstack_version = {
 
 # Every node should be deployed as all-in-one openstack installations.
 node default {
-
-  # include 'apache'
+  include stdlib
+  class { 'operatingsystem::checksupported':
+      stage => 'setup'
+  }
 
   class { 'openstack::all':
     public_address          => $ipaddress_eth0,
