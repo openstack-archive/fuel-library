@@ -64,11 +64,15 @@ class quantum::agents::ovs (
 
   Quantum_config <| |> ~> Service['quantum-plugin-ovs-service']
   Quantum_plugin_ovs <| |> ~> Service['quantum-plugin-ovs-service']
+  Service<| title == 'quantum-server' |>->Service['quantum-plugin-ovs-service'] 
 
   L23network::L2::Bridge <| |> -> Service['quantum-plugin-ovs-service']
 
   if $service_provider == 'pacemaker' {
-    
+   Quantum_config <| |> -> Cs_shadow['ovs']
+   Quantum_plugin_ovs <| |> ->  Cs_shadow['ovs']
+   L23network::L2::Bridge <| |> -> Cs_shadow['ovs']
+   
     cs_shadow { 'ovs': cib => 'ovs' }
     cs_commit { 'ovs': cib => 'ovs' }
     

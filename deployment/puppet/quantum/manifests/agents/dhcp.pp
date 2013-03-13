@@ -77,7 +77,11 @@ class quantum::agents::dhcp (
     $ensure = 'stopped'
   }
 
+  Service<| title == 'quantum-server' |>->Service['quantum-dhcp-service'] 
+
   if $service_provider == 'pacemaker' {
+    Service<| title == 'quantum-server' |> -> Cs_shadow['dhcp']
+    Quantum_dhcp_agent_config <||> -> Cs_shadow['dhcp']
     cs_resource { "p_${::quantum::params::dhcp_agent_service}":
       ensure          => present,
       cib             => 'dhcp',
