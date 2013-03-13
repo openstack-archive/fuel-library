@@ -127,6 +127,10 @@ $controller_hostnames = keys($controller_internal_addresses)
 $swift_proxies = nodes_to_hash(filter_nodes($nodes,'role','proxy'),'name','internal_address')
 
 
+#Set this to anything other than pacemaker if you do not want Quantum HA
+#Also, if you do not want Quantum HA, you MUST enable $quantum_network_node
+#on the ONLY controller
+$ha_provider = 'pacemaker'
 
 # Set hostname for master controller of HA cluster. 
 # It is strongly recommend that the master controller is deployed before all other controllers since it initializes the new cluster.  
@@ -560,6 +564,7 @@ class ha_controller (
     nova_rate_limits        => $nova_rate_limits,
     cinder_rate_limits      => $cinder_rate_limits,
     horizon_use_ssl         => $horizon_use_ssl,
+    ha_provider             => $ha_provider
   }
   class { 'swift::keystone::auth':
     password         => $swift_user_password,

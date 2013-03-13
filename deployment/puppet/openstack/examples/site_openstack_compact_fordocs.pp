@@ -88,6 +88,10 @@ $controller_internal_addresses = nodes_to_hash(filter_nodes($nodes,'role','contr
 $controller_public_addresses = nodes_to_hash(filter_nodes($nodes,'role','controller'),'name','public_address')
 $controller_hostnames = keys($controller_internal_addresses)
 
+#Set this to anything other than pacemaker if you do not want Quantum HA
+#Also, if you do not want Quantum HA, you MUST enable $quantum_network_node
+#on the ONLY controller
+$ha_provider = 'pacemaker'
 
 if $quantum {
   $public_int   = $public_br
@@ -507,6 +511,7 @@ class compact_controller (
     nova_rate_limits        => $nova_rate_limits,
     cinder_rate_limits      => $cinder_rate_limits,
     horizon_use_ssl         => $horizon_use_ssl,
+    ha_provider             => $ha_provider
   }
   class { 'swift::keystone::auth':
     password         => $swift_user_password,
