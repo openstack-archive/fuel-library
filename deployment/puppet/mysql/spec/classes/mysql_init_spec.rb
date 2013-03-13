@@ -6,7 +6,7 @@ describe 'mysql' do
     let :facts do
       { :osfamily => 'Debian'}
     end
-    it { should contain_package('mysql_client').with(
+    it { should contain_package('mysql-client').with(
       :name   => 'mysql-client',
       :ensure => 'present'
     )}
@@ -16,7 +16,7 @@ describe 'mysql' do
     let :facts do
       { :osfamily => 'FreeBSD'}
     end
-    it { should contain_package('mysql_client').with(
+    it { should contain_package('mysql-client').with(
       :name   => 'databases/mysql55-client',
       :ensure => 'present'
     )}
@@ -26,16 +26,16 @@ describe 'mysql' do
     let :facts do
       {:osfamily => 'Redhat'}
     end
-    it { should contain_package('mysql_client').with(
+    it { should contain_package('mysql-client').with(
       :name   => 'mysql',
       :ensure => 'present'
     )}
     describe 'when parameters are supplied' do
       let :params do
-        {:package_ensure => 'latest', :package_name => 'mysql_client'}
+        {:package_ensure => 'latest', :package_name => 'mysql-client'}
       end
-      it { should contain_package('mysql_client').with(
-        :name   => 'mysql_client',
+      it { should contain_package('mysql-client').with(
+        :name   => 'mysql-client',
         :ensure => 'latest'
       )}
     end
