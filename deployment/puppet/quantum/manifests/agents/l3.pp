@@ -295,6 +295,7 @@ class quantum::agents::l3 (
       provider   => "pacemaker",
       require    => [Package[$l3_agent_package], Class['quantum'], Service['quantum-plugin-ovs-service']],
     }
+    Service['quantum-l3'] ~> Exec <| title == 'crm resource reprobe' |>
   } else {
     service { 'quantum-l3':
       name       => $::quantum::params::l3_agent_service,

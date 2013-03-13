@@ -115,6 +115,7 @@ class quantum::agents::ovs (
       provider   => $service_provider,
     }
 
+    Service['quantum-plugin-ovs-service'] ~> Exec <| title == 'crm resource reprobe' |>
   } else {
     service { 'quantum-plugin-ovs-service':
       name       => $::quantum::params::ovs_agent_service,

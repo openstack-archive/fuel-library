@@ -148,6 +148,7 @@ class quantum::agents::dhcp (
       require    => [Package[$dhcp_agent_package], Class['quantum'], Service['quantum-plugin-ovs-service']],
     }
 
+    Service['quantum-dhcp-service'] ~> Exec <| title == 'crm resource reprobe' |>
   } else {
     service { 'quantum-dhcp-service':
       name       => $::quantum::params::dhcp_agent_service,

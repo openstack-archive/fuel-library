@@ -96,5 +96,7 @@ cs_property { 'start-failure-is-fatal':
 #  value  => 'default',
 #}
 
+class {'corosync::reprobe':}
+
 anchor {'corosync_post':}
 }
