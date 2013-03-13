@@ -104,7 +104,8 @@ class openstack::controller_ha (
    $quantum_external_ipinfo = {},
    $mysql_skip_name_resolve = false,
    $ha_provider = "pacemaker",
-   $create_networks = true
+   $create_networks = true,
+   $use_unicast_corosync = false
  ) {
 
     # haproxy
@@ -358,8 +359,16 @@ local0.* -/var/log/haproxy.log'
       controller_node         => $internal_virtual_ip,
     }
     if $ha_provider == 'pacemaker' {
+      if $use_unicast_corosync {
+      $unicast_adresses = $controller_internal_addresses
+      }
+      else 
+      {
+        $unicast_addresses = undef
+      }
       class {'openstack::corosync':
-        bind_address => $internal_address
+        bind_address => $internal_address,
+        unicast_adresses => $unicast_adresses
       }
     }
 
