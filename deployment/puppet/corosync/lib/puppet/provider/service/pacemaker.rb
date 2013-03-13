@@ -180,16 +180,29 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Cor
       next if all_operations.nil?
       completed_ops = all_operations.select{|op| op.attributes['op-status'].to_i != -1 }
       next if completed_ops.nil?
-      start_stop_ops = completed_ops.select{|op| ["start","stop"].include? op.attributes['operation']}
+      start_stop_ops = completed_ops.select{|op| ["start","stop","monitor"].include? op.attributes['operation']}
       next if start_stop_ops.nil?
       sorted_operations = start_stop_ops.sort do
         |a,b| a.attributes['call-id'] <=> b.attributes['call-id']
       end
       good_operations = sorted_operations.select do |op|
-        op.attributes['rc-code'] == '0'
+        op.attributes['rc-code'] == '0' or 
+        op.attributes['operation'] == 'monitor'
       end
       next if good_operations.nil?
-      @last_successful_operations << good_operations.last.attributes['operation'] unless good_operations.last.nil?  
+      last_op = good_operations.last
+      if ['start','stop'].include?(last_op.attributes['operation'])
+          last_successful_op = last_op.attributes['operation']
+      else
+          if last_op.attributes['rc-code'].to_i == 7
+              last_successful_op = 'stop'
+          elsif last_op.attributes['rc-code'].to_i == 0 
+              last_successful_op = 'start'
+          elsif  last_op.attributes['rc-code'].to_i == 8 
+              last_successful_op = 'start'
+          end
+      end
+      @last_successful_operations << last_successful_op
     end
     @last_successful_operations
   end
@@ -254,7 +267,7 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Cor
     elsif @last_successful_operations.all? {|op| op == 'stop'} or @last_successful_operations.empty?
       return :stopped
     else
-      raise Puppet::Error("resource #{@resource[:name]} in unknown state")
+      raise(Puppet::Error,"resource #{@resource[:name]} in unknown state")
     end
   end
 
