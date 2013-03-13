@@ -208,10 +208,10 @@ class openstack::mirantis_repos (
           if defined (Yumrepo['puppetlabs-deps']) {yumrepo {'puppetlabs-deps': enabled=>0}}
       }
 
-      exec {'i_am_very_happy_that_centos_6_4_became_at_time':
+      exec {'yum_make_safe_cache':
         command => "/usr/bin/yum clean all",
       }
-      Yumrepo<||> -> Exec['i_am_very_happy_that_centos_6_4_became_at_time']
+      Yumrepo<||> -> Exec['yum_make_safe_cache']
     }
     default: {
       fail("Unsupported osfamily: ${osfamily} for os ${operatingsystem}")
