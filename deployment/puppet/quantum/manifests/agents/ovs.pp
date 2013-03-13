@@ -64,23 +64,30 @@ class quantum::agents::ovs (
 
   Quantum_config <| |> ~> Service['quantum-plugin-ovs-service']
   Quantum_plugin_ovs <| |> ~> Service['quantum-plugin-ovs-service']
-  Service<| title == 'quantum-server' |>->Service['quantum-plugin-ovs-service'] 
+  Service <| title == 'quantum-server' |> -> Service['quantum-plugin-ovs-service']
 
   L23network::L2::Bridge <| |> -> Service['quantum-plugin-ovs-service']
 
   if $service_provider == 'pacemaker' {
-   Quantum_config <| |> -> Cs_shadow['ovs']
-   Quantum_plugin_ovs <| |> ->  Cs_shadow['ovs']
-   L23network::L2::Bridge <| |> -> Cs_shadow['ovs']
-   
+    File <| title == 'quantum-ovs-agent' |> -> Cs_resource["p_${::quantum::params::ovs_agent_service}"]
+    Quantum_config <| |> -> Cs_shadow['ovs']
+    Quantum_plugin_ovs <| |> -> Cs_shadow['ovs']
+    L23network::L2::Bridge <| |> -> Cs_shadow['ovs']
+
     cs_shadow { 'ovs': cib => 'ovs' }
+
     cs_commit { 'ovs': cib => 'ovs' }
-    
-    Cs_commit['ovs']->Service['quantum-plugin-ovs-service'] 
-    
+
+    Cs_commit['ovs'] -> Service['quantum-plugin-ovs-service']
+
+    ::corosync::cleanup { "p_${::quantum::params::ovs_agent_service}": }
+
+    Cs_commit['ovs'] ~> ::Corosync::Cleanup["p_${::quantum::params::ovs_agent_service}"]
+    ::Corosync::Cleanup["p_${::quantum::params::ovs_agent_service}"] -> Service['quantum-plugin-ovs-service']
+
     cs_resource { "p_${::quantum::params::ovs_agent_service}":
       ensure          => present,
-      cib => 'ovs',
+      cib             => 'ovs',
       primitive_class => 'ocf',
       provided_by     => 'pacemaker',
       primitive_type  => 'quantum-agent-ovs',
@@ -91,16 +98,22 @@ class quantum::agents::ovs (
         'monitor'  => {
           'interval' => '20',
           'timeout'  => '30'
-        },
-        'start' => {'timeout'=>'120'},
-        'stop' => {'timeout'=>'120'}
-        
+        }
+        ,
+        'start'    => {
+          'timeout' => '120'
+        }
+        ,
+        'stop'     => {
+          'timeout' => '120'
+        }
+
       }
       ,
     }
-    Package[$ovs_agent_package] -> Service['quantum-plugin-ovs-service_stopped'] 
-    Service['quantum-plugin-ovs-service_stopped']->Cs_resource["p_${::quantum::params::ovs_agent_service}"]
-    
+    Package[$ovs_agent_package] -> Service['quantum-plugin-ovs-service_stopped']
+    Service['quantum-plugin-ovs-service_stopped'] -> Cs_resource["p_${::quantum::params::ovs_agent_service}"]
+
     service { 'quantum-plugin-ovs-service_stopped':
       name       => "${::quantum::params::ovs_agent_service}",
       enable     => false,
@@ -119,7 +132,6 @@ class quantum::agents::ovs (
       provider   => $service_provider,
     }
 
-    Service['quantum-plugin-ovs-service'] ~> Exec <| title == 'crm resource reprobe' |>
   } else {
     service { 'quantum-plugin-ovs-service':
       name       => $::quantum::params::ovs_agent_service,

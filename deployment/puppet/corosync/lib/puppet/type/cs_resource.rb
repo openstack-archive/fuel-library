@@ -76,7 +76,9 @@ module Puppet
       validate do |value|
         raise Puppet::Error, "Puppet::Type::Cs_Primitive: parameters property must be a hash." unless value.is_a? Hash
       end
-
+      munge do |parameters|
+        convert_to_sym(parameters)
+      end
       defaultto Hash.new
     end
     newproperty(:operations) do
@@ -91,7 +93,9 @@ module Puppet
       validate do |value|
         raise Puppet::Error, "Puppet::Type::Cs_Primitive: operations property must be a hash." unless value.is_a? Hash
       end
-
+      munge do |operations|
+        convert_to_sym(operations)
+      end
       defaultto Hash.new
     end
 
@@ -105,7 +109,9 @@ module Puppet
       validate do |value|
         raise Puppet::Error, "Puppet::Type::Cs_Primitive: metadata property must be a hash." unless value.is_a? Hash
       end
-
+      munge do |metadata|
+        convert_to_sym(metadata)
+      end
       defaultto Hash.new
     end
 
@@ -170,5 +176,22 @@ module Puppet
     autorequire(:service) do
       [ 'corosync' ]
     end
+  end
+end
+
+def convert_to_sym(hash)
+  if hash.is_a? Hash
+    hash.inject({}) do |memo,(key,value)|
+      value = convert_to_sym(value)
+      if value.is_a?(Array)
+        value.collect! do |arr_el|
+          convert_to_sym(arr_el)
+        end
+      end
+      memo[key.to_sym] = value
+      memo
+    end
+  else
+    hash
   end
 end
