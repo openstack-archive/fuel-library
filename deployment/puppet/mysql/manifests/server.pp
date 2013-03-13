@@ -40,15 +40,18 @@ class mysql::server (
 #      before => Package["mysql-server"],
 #      logoutput => true,
 #    }
+    if !defined(Package[mysql-client]) {
+      package { 'mysql-client':
+        name   => $package_name,
+       #ensure => $mysql::params::client_version,
+      }
+    }
     package { 'mysql-server':
       name   => $package_name,
-      ensure => $mysql::params::server_version,
-#      require=> Package['mysql-shared'],
+     #ensure => $mysql::params::server_version,
+     #require=> Package['mysql-shared'],
     }
-#    package { 'mysql-client':
-#      name   => $package_name,
-#      ensure => $mysql::params::client_version,
-#    }
+    Package[mysql-client] -> Package[mysql-server]
  
     service { 'mysqld':
       name     => $service_name,
