@@ -245,7 +245,7 @@ end
 
 parser.parse!(ARGV)
 
-if options[:config].nil? or options[:template].nil? or options[:output].nil?
+if options[:config].nil? or options[:template].nil? or options[:output].nil? or options[:astute].nil?
   puts parser
   exit 1
 end
