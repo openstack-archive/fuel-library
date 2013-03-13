@@ -465,7 +465,7 @@ $horizon_use_ssl = false
 
 
 class compact_controller (
-  $quantum_network_node = false
+  $quantum_network_node = $quantum_netnode_on_cnt
 ) {
   class { 'openstack::controller_ha':
     controller_public_addresses   => $controller_public_addresses,
@@ -560,7 +560,7 @@ node /fuel-controller-01/ {
     hostgroup       => 'controller',
   }
   
-  class { compact_controller: quantum_network_node => true }
+  class { compact_controller: }
   $swift_zone = 1
 
   class { 'openstack::swift::storage_node':
@@ -605,7 +605,7 @@ node /fuel-controller-02/ {
     hostgroup       => 'controller',
   }
   
-  class { 'compact_controller': quantum_network_node => true }
+  class { 'compact_controller': }
   $swift_zone = 2
 
   class { 'openstack::swift::storage_node':
@@ -650,7 +650,7 @@ node /fuel-controller-03/ {
     hostgroup       => 'controller',
   }
   
-  class { 'compact_controller': quantum_network_node => true }
+  class { 'compact_controller': }
   $swift_zone = 3
 
   class { 'openstack::swift::storage_node':
@@ -754,7 +754,7 @@ node /fuel-quantum/ {
       service_endpoint      => $internal_virtual_ip,
       auth_host             => $internal_virtual_ip,
       internal_address      => $internal_address,
-      public_interface      => $public_int, # ??????????????????????????
+      public_interface      => $public_int,
       private_interface     => $private_interface,
       floating_range        => $floating_range,
       fixed_range           => $fixed_range,

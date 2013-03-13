@@ -448,7 +448,7 @@ $horizon_use_ssl = false
 
 
 class compact_controller (
-  $quantum_network_node = false
+  $quantum_network_node = $quantum_netnode_on_cnt
 ) {
   class { 'openstack::controller_ha':
     controller_public_addresses   => $controller_public_addresses,
@@ -584,7 +584,7 @@ node /fuel-controller-03/ {
     whitelist       => ['127.0.0.1', $nagios_master],
     hostgroup       => 'controller',
   }
-  class { 'compact_controller': quantum_network_node => true }
+  class { 'compact_controller': }
 }
 
 # Definition of OpenStack compute nodes.
@@ -663,7 +663,7 @@ node /fuel-quantum/ {
       service_endpoint      => $internal_virtual_ip,
       auth_host             => $internal_virtual_ip,
       internal_address      => $internal_address,
-      public_interface      => $public_int, # ??????????????????????????
+      public_interface      => $public_int,
       private_interface     => $private_interface,
       floating_range        => $floating_range,
       fixed_range           => $fixed_range,

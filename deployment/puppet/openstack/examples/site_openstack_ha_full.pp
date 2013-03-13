@@ -488,7 +488,7 @@ $horizon_use_ssl = false
 
 
 class ha_controller (
-  $quantum_network_node = false
+  $quantum_network_node = $quantum_netnode_on_cnt
 ) {
   class {'::node_netconfig':
     mgmt_ipaddr    => $::internal_address,
@@ -581,7 +581,7 @@ node /fuel-controller-01/ {
       stage => 'setup'
   }
 
-  class { ha_controller: quantum_network_node => true }
+  class { ha_controller: }
 }
 
 node /fuel-controller-02/ {
@@ -590,7 +590,7 @@ node /fuel-controller-02/ {
       stage => 'setup'
   }
 
-  class { ha_controller: quantum_network_node => true }
+  class { ha_controller: }
 }
 
 node /fuel-controller-03/ {
@@ -599,7 +599,7 @@ node /fuel-controller-03/ {
       stage => 'setup'
   }
 
-  class { ha_controller: quantum_network_node => true }
+  class { ha_controller: }
 }
 
 
@@ -821,7 +821,7 @@ node /fuel-quantum/ {
       service_endpoint      => $internal_virtual_ip,
       auth_host             => $internal_virtual_ip,
       internal_address      => $internal_address,
-      public_interface      => $public_int, # ??????????????????????????
+      public_interface      => $public_int,
       private_interface     => $private_interface,
       floating_range        => $floating_range,
       fixed_range           => $fixed_range,
