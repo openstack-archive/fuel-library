@@ -62,11 +62,17 @@ module Astute
       Astute.logger.info "Starting deployment of controllers"
       deploy_piece(ctrl_nodes, attrs)
 
+      quantum_nodes = nodes.select { |n| n['role'] == 'quantum' }
+      unless quantum_nodes.empty?
+        Astute.logger.info "Starting deployment of 1st controller again"
+        deploy_piece(quantum_nodes, attrs, retries=0)
+      end
+
       compute_nodes = nodes.select {|n| n['role'] == 'compute'}
       Astute.logger.info "Starting deployment of computes"
       deploy_piece(compute_nodes, attrs)
 
-      other_nodes = nodes - ctrl_nodes - compute_nodes
+      other_nodes = nodes - ctrl_nodes - compute_nodes - quantum_nodes
       Astute.logger.info "Starting deployment of other nodes"
       deploy_piece(other_nodes, attrs)
       return
@@ -183,6 +189,31 @@ module Astute
 
       Astute.logger.info "Starting deployment of proxies"
       deploy_piece(proxy_nodes, attrs)
+
+      Astute.logger.info "Starting deployment of other nodes"
+      deploy_piece(other_nodes, attrs)
+      return
+    end
+
+    def deploy_ha_minimal(nodes, attrs)
+      ctrl_nodes = nodes.select { |n| n['role'] == 'controller' }
+      compute_nodes = nodes.select { |n| n['role'] == 'compute' }
+      quantum_nodes = nodes.select { |n| n['role'] == 'quantum' }
+      other_nodes = nodes - ctrl_nodes - compute_nodes - quantum_nodes
+
+      Astute.logger.info "Starting deployment of all controllers one by one"
+      ctrl_nodes.each { |n| deploy_piece([n], attrs, retries=0) }
+
+      Astute.logger.info "Starting deployment of 1st controller again"
+      deploy_piece(ctrl_nodes[0..0], attrs, retries=0)
+
+      unless quantum_nodes.empty?
+        Astute.logger.info "Starting deployment of 1st controller again"
+        deploy_piece(quantum_nodes, attrs, retries=0)
+      end
+
+      Astute.logger.info "Starting deployment of computes"
+      deploy_piece(compute_nodes, attrs)
 
       Astute.logger.info "Starting deployment of other nodes"
       deploy_piece(other_nodes, attrs)
