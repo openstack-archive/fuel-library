@@ -1,12 +1,14 @@
 import os
 from fuel_test.ci.ci_base import CiBase
-from fuel_test.environment import Environment, Node, Network
 from fuel_test.node_roles import NodeRoles
 from fuel_test.settings import CONTROLLERS, COMPUTES,\
     STORAGES, PROXIES
 
 
 class CiBM(CiBase):
+    def define(self):
+        pass
+
     def node_roles(self):
         return NodeRoles(
             master_names=['master'],
@@ -30,16 +32,6 @@ class CiBM(CiBase):
         """
         :rtype : Environment
         """
-        environment = Environment([
-            Node('master', '10.100.0.1', '10.100.1.1', '10.100.2.1'),
-            Node('master', '10.100.0.1', '10.100.1.1', '10.100.2.1'),
-            Node('master', '10.100.0.1', '10.100.1.1', '10.100.2.1'),
-            Node('master', '10.100.0.1', '10.100.1.1', '10.100.2.1'),
-            Node('master', '10.100.0.1', '10.100.1.1', '10.100.2.1'),
-            Node('master', '10.100.0.1', '10.100.1.1', '10.100.2.1'),
-            Node('master', '10.100.0.1', '10.100.1.1', '10.100.2.1'),
-        ], [Network('10.100.0.1')]
-        )
 
     def client_nodes(self):
         return self.nodes().controllers + self.nodes().computes + self.nodes().storages + self.nodes().proxies + self.nodes().quantums
