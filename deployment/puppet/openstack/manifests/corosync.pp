@@ -5,7 +5,8 @@ class openstack::corosync (
   $secauth = 'off',
   $stonith = 'false',
   $quorum_policy = 'ignore',
-  $expected_quorum_votes = "2"
+  $expected_quorum_votes = "2",
+  $unicast_addresses = undef
 )
 {
 
@@ -61,7 +62,8 @@ corosync::service { 'pacemaker':
 class { '::corosync':
   enable_secauth    => $secauth,
   bind_address      => $bind_address,
-  multicast_address => $multicast_address
+  multicast_address => $multicast_address,
+  unicast_addresses => $unicast_addresses
 }
 
 

@@ -364,7 +364,7 @@ local0.* -/var/log/haproxy.log'
     }
     if $ha_provider == 'pacemaker' {
       if $use_unicast_corosync {
-      $unicast_adresses = $controller_internal_addresses
+      $unicast_addresses = $controller_internal_addresses
       }
       else 
       {
@@ -372,7 +372,7 @@ local0.* -/var/log/haproxy.log'
       }
       class {'openstack::corosync':
         bind_address => $internal_address,
-        unicast_adresses => $unicast_adresses
+        unicast_addresses => $unicast_addresses
       }
     }
 }
