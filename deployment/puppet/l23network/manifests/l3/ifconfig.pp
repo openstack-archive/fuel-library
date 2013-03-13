@@ -130,6 +130,7 @@ define l23network::l3::ifconfig (
     require => File[$if_files_dir],
   }
 
+  notify {"ifconfig_${interface}": message=>"Interface:${interface} IP:${ipaddr}/${netmask}", withpath=>false} ->
   l3_if_downup {$interface:
     check_by_ping => $check_by_ping,
     check_by_ping_timeout => $check_by_ping_timeout,
