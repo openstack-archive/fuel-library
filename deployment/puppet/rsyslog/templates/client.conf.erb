@@ -1,5 +1,9 @@
 # file is managed by puppet
 
+<% unless scope.lookupvar('rsyslog::client::escapenewline') -%>
+$EscapeControlCharactersOnReceive off
+<% end -%>
+
 # An "In-Memory Queue" is created for remote logging.
 $WorkDirectory <%= scope.lookupvar('rsyslog::params::spool_dir') -%>    # where to place spool files
 $ActionQueueFileName queue      # unique name prefix for spool files

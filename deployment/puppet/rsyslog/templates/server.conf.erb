@@ -10,6 +10,10 @@ $ModLoad imudp
 $ModLoad imtcp
 <% end -%>
 
+<% unless scope.lookupvar('rsyslog::server::escapenewline') -%>
+$EscapeControlCharactersOnReceive off
+<% end -%>
+
 <% if scope.lookupvar('rsyslog::server::high_precision_timestamps') == false -%>
 #
 # Use traditional timestamp format.
