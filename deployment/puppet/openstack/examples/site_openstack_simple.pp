@@ -414,6 +414,7 @@ class simple_controller (
   }
   class { 'openstack::controller':
     admin_address           => $controller_internal_address,
+    service_endpoint        => $controller_internal_address,
     public_address          => $controller_public_address,
     public_interface        => $public_int,
     private_interface       => $private_interface,
