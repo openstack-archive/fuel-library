@@ -97,15 +97,17 @@ class openstack::controller_ha (
    $quantum_db_dbname  = 'quantum', $cinder = false, $cinder_iscsi_bind_iface = false, $tenant_network_type = 'gre', $segment_range = '1:4094',
    $nv_physical_volume = undef, $manage_volumes = false,$galera_nodes, $use_syslog = false,
    $cinder_rate_limits = undef, $nova_rate_limits = undef, 
-   $rabbit_node_ip_address  = $internal_address, $horizon_use_ssl = false,
+   $rabbit_node_ip_address  = $internal_address, 
+   $horizon_use_ssl         = false,
    $quantum_network_node    = false,
    $quantum_netnode_on_cnt  = false,
    $quantum_gre_bind_addr   = $internal_address,
    $quantum_external_ipinfo = {},
    $mysql_skip_name_resolve = false,
-   $ha_provider = "pacemaker",
-   $create_networks = true,
-   $use_unicast_corosync = false
+   $ha_provider             = "pacemaker",
+   $create_networks         = true,
+   $use_unicast_corosync    = false,
+   $ha_mode                 = true,
  ) {
 
     # haproxy
@@ -194,22 +196,22 @@ local0.* -/var/log/haproxy.log'
     }   
     sysctl::value { 'net.ipv4.ip_nonlocal_bind': value => '1' }
 
-        package {'socat': ensure => present}
-        exec { 'wait-for-haproxy-mysql-backend':
-                command => "echo show stat | socat unix-connect:///var/lib/haproxy/stats stdio | grep 'mysqld,BACKEND' | awk -F ',' '{print \$18}' | grep -q 'UP'",
-                path => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
-                require => [Service['haproxy'],Package['socat']],
-                try_sleep   => 5,
-                tries       => 60,
-                }
-        Exec<| title == 'wait-for-synced-state' |> -> Exec['wait-for-haproxy-mysql-backend']
-        Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'initial-db-sync' |>
-        Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'keystone-manage db_sync' |>
-        Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'glance-manage db_sync' |>
-        Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'cinder-manage db_sync' |>
-        Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'nova-db-sync' |>
-        Exec['wait-for-haproxy-mysql-backend'] -> Service <| title == 'cinder-volume' |>
-        Exec['wait-for-haproxy-mysql-backend'] -> Service <| title == 'cinder-api' |>
+    package {'socat': ensure => present}
+    exec { 'wait-for-haproxy-mysql-backend':
+      command => "echo show stat | socat unix-connect:///var/lib/haproxy/stats stdio | grep 'mysqld,BACKEND' | awk -F ',' '{print \$18}' | grep -q 'UP'",
+      path => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
+      require => [Service['haproxy'],Package['socat']],
+      try_sleep   => 5,
+      tries       => 60,
+    }
+    Exec<| title == 'wait-for-synced-state' |> -> Exec['wait-for-haproxy-mysql-backend']
+    Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'initial-db-sync' |>
+    Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'keystone-manage db_sync' |>
+    Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'glance-manage db_sync' |>
+    Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'cinder-manage db_sync' |>
+    Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'nova-db-sync' |>
+    Exec['wait-for-haproxy-mysql-backend'] -> Service <| title == 'cinder-volume' |>
+    Exec['wait-for-haproxy-mysql-backend'] -> Service <| title == 'cinder-api' |>
 
     class { 'haproxy':
       enable => true, 
@@ -318,6 +320,7 @@ local0.* -/var/log/haproxy.log'
       cinder_rate_limits      => $cinder_rate_limits,
       nova_rate_limits        => $nova_rate_limits,
       horizon_use_ssl         => $horizon_use_ssl,
+      ha_mode                 => $ha_mode,
     }
     if $quantum_network_node {
       class { '::openstack::quantum_router':
@@ -349,6 +352,7 @@ local0.* -/var/log/haproxy.log'
         external_ipinfo       => $external_ipinfo,
         api_bind_address      => $internal_address,
         use_syslog            => $use_syslog,
+        ha_mode               => $ha_mode,
       }
     }
     class { 'openstack::auth_file':
@@ -371,6 +375,5 @@ local0.* -/var/log/haproxy.log'
         unicast_adresses => $unicast_adresses
       }
     }
-
 }
 

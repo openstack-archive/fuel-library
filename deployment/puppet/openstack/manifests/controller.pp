@@ -165,6 +165,7 @@ class openstack::controller (
   $horizon_use_ssl         = false,
   $nova_rate_limits        = undef,
   $cinder_rate_limits      = undef,
+  $ha_mode                 = false,
 ) {
 
 
@@ -333,7 +334,7 @@ class openstack::controller (
     api_bind_address        => $api_bind_address,
     ensure_package          => $::openstack_version['nova'],
     use_syslog              => $use_syslog,
-    nova_rate_limits        => $nova_rate_limits
+    nova_rate_limits        => $nova_rate_limits,
   }
 
   ######### Cinder Controller Services ########
@@ -376,12 +377,11 @@ class openstack::controller (
     # Set up nova-volume
   }
 
- if !defined(Class['memcached']){
-  class { 'memcached':
-    #    listen_ip => $api_bind_address,
-  } 
- }
-
+  if !defined(Class['memcached']){
+    class { 'memcached':
+      #listen_ip => $api_bind_address,
+    } 
+  }
 
   ######## Horizon ########
   class { 'openstack::horizon':
