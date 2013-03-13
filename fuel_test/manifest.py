@@ -223,6 +223,7 @@ class Manifest(object):
             external_ipinfo=self.external_ip_info(ci, controllers),
             nodes=self.generate_nodes_configs_list(ci),
             dns_nameservers=self.generate_dns_nameservers_list(ci),
+            ntp_servers=['pool.ntp.org',ci.internal_router()],
             default_gateway=ci.public_router(),
             enable_test_repo=TEST_REPO,
             deployment_id = self.deployment_id(ci),
@@ -251,6 +252,7 @@ class Manifest(object):
             mirror_type=self.mirror_type(),
             use_syslog=use_syslog,
             cinder=cinder,
+            ntp_servers=['pool.ntp.org',ci.internal_router()],
             quantum=quantum,
             enable_test_repo = TEST_REPO,
         )
@@ -279,6 +281,7 @@ class Manifest(object):
             nodes=self.generate_nodes_configs_list(ci),
             dns_nameservers=self.generate_dns_nameservers_list(ci),
             default_gateway=ci.public_router(),
+            ntp_servers=['pool.ntp.org',ci.internal_router()],
             enable_test_repo=TEST_REPO,
             deployment_id = self.deployment_id(ci),
         )
@@ -307,6 +310,7 @@ class Manifest(object):
             nv_physical_volume=self.physical_volumes(),
             use_syslog=use_syslog,
             cinder=cinder,
+            ntp_servers=['pool.ntp.org',ci.internal_router()],
             cinder_on_computes=cinder,
             nagios_master = controllers[0].name + '.your-domain-name.com',
             external_ipinfo=self.external_ip_info(ci, quantums),
