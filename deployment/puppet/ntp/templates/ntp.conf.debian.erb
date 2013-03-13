@@ -27,7 +27,7 @@ filegen clockstats file clockstats type day enable
 
 # Managed by puppet class { "ntp": servers => [ ... ] }
 <% [servers_real].flatten.each do |server| -%>
-server <%= server %>
+server <%= server %> burst iburst
 <% end -%>
 
 <% if @restrict -%>
