@@ -89,4 +89,6 @@ puppet apply -e 'class { squid: }'
 iptables -A PREROUTING -t nat -i $mgmt_if -s $mgmt_ip/$mgmt_mask ! -d $mgmt_ip -p tcp --dport 80 -j REDIRECT --to-port 3128
 
 gem install /var/www/astute-0.0.1.gem
+
+cp `find / -name config.yaml -print0|grep -FzZ 'samples/config.yaml` /root
 ) >> $log

@@ -78,9 +78,10 @@ function apply_settings {
 
 # Domain/Hostname apply
     sed -i -e 's#^\(HOSTNAME=\).*$#\1'"$hostname"'#' /etc/sysconfig/network
-    [ -z $mgmt_ip ] && echo "prepend domain-name-servers 127.0.0.1;" >> /etc/dhclient-$mgmt_if.conf
-    [ -z $ext_ip ] && echo "prepend domain-name-servers 127.0.0.1;" >> /etc/dhclient-$ext_if.conf
-    [ -z $mgmt_ip ] || grep -q "^\s*$mgmt_ip\s+$hostname" /etc/hosts || echo "$mgmt_ip    $hostname.$domain $hostname" >> /etc/hosts
+    [ -n "$mgmt_ip" -a -n "$ext_ip" ] && echo "nameserver 127.0.0.1;" >> /etc/resolv.conf
+    [ -z "$mgmt_ip" ] && echo "prepend domain-name-servers 127.0.0.1;" >> /etc/dhclient-$mgmt_if.conf
+    [ -z "$ext_ip" ] && echo "prepend domain-name-servers 127.0.0.1;" >> /etc/dhclient-$ext_if.conf
+    [ -z "$mgmt_ip" ] || grep -q "^\s*$mgmt_ip\s+$hostname" /etc/hosts || echo "$mgmt_ip    $hostname.$domain $hostname" >> /etc/hosts
     service network restart
     sed -i "s%\(^.*address is:\).*$%\1 `ip address show $ext_if | awk '/inet / {print \$2}' | cut -d/ -f1 -`%" /etc/issue
 }
