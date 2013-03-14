@@ -12,7 +12,7 @@ Certificate signing requests and Puppet Master/Cobbler capacity
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 
-When deploying a large cluster, you may find that Puppet Master begins to have difficulty when you start exceeding 20 or more simultaneous requests. Part of this problem is because the initial process of requesting and signing certificates involves *.tmp files that can create conflicts.  To solve this problem, you have two options: reduce the number of simultaneous requests, or increase the number of Puppet Master/Cobbler servers.
+When deploying a large cluster, you may find that Puppet Master begins to have difficulty when you start exceeding 20 or more simultaneous requests. Part of this problem is because the initial process of requesting and signing certificates involves \*.tmp files that can create conflicts.  To solve this problem, you have two options: reduce the number of simultaneous requests, or increase the number of Puppet Master/Cobbler servers.
 
 Reducing the number of simultaneous requests is a simple matter of staggering Puppet agent runs.  Orchestration can provide a convenient way to accomplish this goal.  You don't need extreme staggering -- 1 to 5 seconds will do -- but if this method isn't practical, you can increase the number of Puppet Master/Cobbler servers.
 
