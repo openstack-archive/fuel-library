@@ -218,6 +218,10 @@ class ConfigYaml
     self.mandatory('segment_range')
   end
 
+  def repo_proxy()
+    self.mandatory('repo_proxy')
+  end
+
   def external_ip_info()
     self.mandatory('external_ip_info')
   end
@@ -252,7 +256,8 @@ class Manifest
                      :nodes => config.nodes(),
                      :dns_nameservers => config.dns_nameservers(),
                      :default_gateway => config.default_gateway(),
-                     :segment_range => config.segment_range()
+                     :segment_range => config.segment_range(),
+                     :repo_proxy => config.repo_proxy()
     )
 
     if config.swift()

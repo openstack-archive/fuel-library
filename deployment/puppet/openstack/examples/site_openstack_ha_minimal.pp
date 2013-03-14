@@ -369,6 +369,7 @@ $openstack_version = {
 # though it is NOT recommended.
 $mirror_type = 'default'
 $enable_test_repo = false
+$repo_proxy = undef
 
 #$quantum_sql_connection  = "mysql://${quantum_db_user}:${quantum_db_password}@${quantum_host}/${quantum_db_dbname}"
 
@@ -431,6 +432,7 @@ class { 'openstack::mirantis_repos':
   stage => 'openstack-custom-repo',
   type=>$mirror_type,
   enable_test_repo=>$enable_test_repo,
+  repo_proxy=>$repo_proxy,
 }
 
 if $::operatingsystem == 'Ubuntu' {

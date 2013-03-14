@@ -377,6 +377,7 @@ $openstack_version = {
 # though it is NOT recommended.
 $mirror_type = 'default'
 $enable_test_repo = false
+$repo_proxy = undef
 
 # This parameter specifies the verbosity level of log messages
 # in openstack components config. Currently, it disables or enables debugging.
@@ -436,6 +437,7 @@ class { 'openstack::mirantis_repos':
   stage => 'openstack-custom-repo',
   type=>$mirror_type,
   enable_test_repo=>$enable_test_repo,
+  repo_proxy=>$repo_proxy,
 }
 
 if $::operatingsystem == 'Ubuntu' {

@@ -1,6 +1,6 @@
 #
 class openstack::mirantis_repos (
-  # DO NOT change this value to 'defaults'. all our customers are relying on external repositories
+  # DO NOT change this value to 'defaults'. All our customers are relying on external repositories
   $type        = 'default',
   $originator  = 'Mirantis Product <product@mirantis.com>',
   $disable_puppet_labs_repos = true,
@@ -16,6 +16,7 @@ class openstack::mirantis_repos (
   $mirrorlist_base        = 'http://172.18.67.168/centos-repo/mirror-6.3-os.list',
   $mirrorlist_updates     = 'http://172.18.67.168/centos-repo/mirror-6.3-updates.list',
   $enable_test_repo = false,
+  $repo_proxy = undef,
 ) {
   case $::osfamily {
     'Debian': {
@@ -140,6 +141,9 @@ class openstack::mirantis_repos (
     }
 
     'RedHat': {
+      Yumrepo {
+        proxy =>$repo_proxy,
+      }
       #added internal/external network mirror
       if $type == 'default' {
         yumrepo { 'openstack-epel-fuel':

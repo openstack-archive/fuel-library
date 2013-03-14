@@ -53,6 +53,7 @@ $quantum_gre_bind_addr = $internal_address
 # Packages repo setup
 $mirror_type = 'default'
 $enable_test_repo = false
+$repo_proxy = undef
 
 #Specify desired NTP servers here.
 #If you leave it undef pool.ntp.org
@@ -83,6 +84,7 @@ class { 'openstack::mirantis_repos':
   stage => 'openstack-custom-repo',
   type=>$mirror_type,
   enable_test_repo=>$enable_test_repo,
+  repo_proxy=>$repo_proxy,
 }
 
 # OpenStack packages and customized component versions to be installed.
