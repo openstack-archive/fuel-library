@@ -42,7 +42,7 @@ class NovaSubClassesTestCase(CobblerTestCase):
     def test_deploy_nova_rabbitmq(self):
         self.validate(
             [self.nodes().controllers[0], self.nodes().controllers[1]],
-            'puppet agent --test --tagsopenstack::mirantis_repos,%s' % "nova::rabbitmq")
+            'puppet agent --test --tags openstack::mirantis_repos,%s' % "nova::rabbitmq")
 
     def test_deploy_nova_utilities(self):
         self.validate(

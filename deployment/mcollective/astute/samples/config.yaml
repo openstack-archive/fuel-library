@@ -27,7 +27,8 @@ common:
    internal_interface: eth0
    public_interface: eth1
    private_interface: eth2
-   default_gateway: 10.0.1.100
+   default_gateway_internal: 10.0.0.100
+   default_gateway_public:
    nagios_master: fuel-controller-01.your-domain-name.com
    loopback: loopback
    cinder: true
@@ -97,6 +98,7 @@ common:
     # for Centos
     name-servers: "10.0.0.100"
     name-servers-search: "your-domain-name.com"
+    gateway: 10.0.0.100
     ksmeta: "puppet_version=2.7.19-1.el6 \
       puppet_auto_setup=1 \
       puppet_master=fuel-pm.your-domain-name.com \

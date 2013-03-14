@@ -177,8 +177,12 @@ class ConfigYaml
     self.mandatory('swift')
   end
 
-  def default_gateway()
-    self.mandatory('default_gateway')
+  def default_gateway_internal()
+    self.obligatory('default_gateway_internal')
+  end
+
+  def default_gateway_public()
+    self.obligatory('default_gateway_public')
   end
 
   def nagios_master()
@@ -238,7 +242,8 @@ class Manifest
                      :external_ipinfo => config.external_ip_info(),
                      :nodes => config.nodes(),
                      :dns_nameservers => config.dns_nameservers(),
-                     :default_gateway => config.default_gateway(),
+                     :default_gateway_internal => config.default_gateway_internal(),
+                     :default_gateway_public => config.default_gateway_public(),
                      :segment_range => config.segment_range()
     )
 
