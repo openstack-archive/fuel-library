@@ -5,18 +5,18 @@
 
 class operatingsystem::checksupported (
 ) {
-  case $operatingsystem {
+  case $::operatingsystem {
     centos, redhat, ubuntu : { }
-    default                : { fail("Operating system $operatingsystem is not supported") }
+    default                : { fail("Operating system $::operatingsystem is not supported") }
   }
 
-  case $architecture {
+  case $::architecture {
     x86_64, amd64 : { }
-    default       : { fail("Architecture $architecture is not supported. 64-bit architecture is required") }
+    default       : { fail("Architecture $::architecture is not supported. 64-bit architecture is required") }
   }
 
   notify { 'operatingsystem':
-    message => "Detected OS $operatingsystem, architecture $architecture"
+    message => "Detected OS $::operatingsystem, architecture $::architecture"
   }
 
 }
