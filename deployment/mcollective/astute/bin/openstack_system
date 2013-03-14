@@ -2,6 +2,15 @@
 require 'optparse'
 
 ORCHESTRATION_ROLES = %w(controller compute quantum storage swift-proxy)
+HA_DEPLOYMENT_MODES = %w(ha_compute, ha_compact, ha_full, ha_minimal)
+SITE_PPS = {
+    :ha_compute.to_s => '/etc/puppet/modules/openstack/examples/site_openstack_ha_compact.pp',
+    :ha_compact.to_s => '/etc/puppet/modules/openstack/examples/site_openstack_ha_compact.pp',
+    :ha_full.to_s => '/etc/puppet/modules/openstack/examples/site_openstack_ha_full.pp',
+    :ha_minimal.to_s => '/etc/puppet/modules/openstack/examples/site_openstack_ha_minimal.pp',
+    :multinode_compute.to_s => '/etc/puppet/modules/openstack/examples/site_openstack_simple.pp',
+    :singlenode_compute.to_s => '/etc/puppet/modules/openstack/examples/site_openstack_single.pp',
+}
 
 class Template
   def self.p_(value)
@@ -89,8 +98,12 @@ class ConfigYaml
     self.common['orchestrator_common']
   end
 
+  def deployment_mode()
+    self.orchestrator_common['attributes']['deployment_mode']
+  end
+
   def ha?
-    self.orchestrator_common['attributes']['deployment_mode'].start_with?('ha_')
+    HA_DEPLOYMENT_MODES.include? self.deployment_mode()
   end
 
   def settings()
@@ -296,17 +309,27 @@ end
 
 parser.parse!(ARGV)
 
-if options[:config].nil? or options[:template].nil?
+if options[:config].nil?
   puts parser
   exit 1
 end
+
+config = ConfigYaml.load_file(options[:config])
 
 if options[:output].nil? and options[:astute].nil?
   puts parser
   exit 2
 end
 
-config = ConfigYaml.load_file(options[:config])
+if options[:template].nil?
+  options[:template] = SITE_PPS[config.deployment_mode]
+end
+
+if options[:template].nil?
+  puts parser
+  exit 4
+end
+
 template = Template.new(options[:template])
 
 unless options[:output].nil?
