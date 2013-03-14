@@ -19,6 +19,6 @@ v2.1-folsom
   * Updated RabbitMQ to 2.8.7 to improve handling on expired HA queues under Ubuntu
   * Changed RabbitMQ init script to automatically reassemble RabbitMQ cluster after failures
   * Configurable HTTP vs. HTTPS for Horizon
-  * Configuration options to deploy cinder-volume on controller and compute nodes
-
+  * Changed mirror type option to either be 'default' (installation from the internet) or 'custom' (installation from a local mirror containing packages)
+  * Option to allow cinder-volume deployment on controller nodes as well as compute nodes
 
