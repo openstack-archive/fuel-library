@@ -13,12 +13,12 @@ class MinimalTestCase(CobblerTestCase):
             controllers=self.nodes().controllers,
             quantums=self.nodes().quantums,
             quantum=True)
-        self.validate(self.nodes().controllers[:1], 'puppet agent --test')
-        self.validate(self.nodes().controllers[1:], 'puppet agent --test')
-        self.validate(self.nodes().controllers[:1], 'puppet agent --test')
+        self.validate(self.nodes().controllers[:1], 'puppet agent --test 2>&1')
+        self.validate(self.nodes().controllers[1:], 'puppet agent --test 2>&1')
+        self.validate(self.nodes().controllers[:1], 'puppet agent --test 2>&1')
         #if is_not_essex():
         #    self.validate(self.nodes().quantums, 'puppet agent --test')
-        self.validate(self.nodes().computes, 'puppet agent --test')
+        self.validate(self.nodes().computes, 'puppet agent --test 2>&1')
         if CREATE_SNAPSHOTS:
             self.environment().snapshot('minimal', force=True)
 
