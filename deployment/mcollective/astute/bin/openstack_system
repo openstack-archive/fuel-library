@@ -2,7 +2,7 @@
 require 'optparse'
 
 ORCHESTRATION_ROLES = %w(controller compute quantum storage swift-proxy)
-HA_DEPLOYMENT_MODES = %w(ha_compute, ha_compact, ha_full, ha_minimal)
+HA_DEPLOYMENT_MODES = %w(ha_compute ha_compact ha_full ha_minimal)
 SITE_PPS = {
     :ha_compute.to_s => '/etc/puppet/modules/openstack/examples/site_openstack_ha_compact.pp',
     :ha_compact.to_s => '/etc/puppet/modules/openstack/examples/site_openstack_ha_compact.pp',
