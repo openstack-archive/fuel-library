@@ -191,6 +191,8 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Cor
       end
       next if good_operations.nil?
       last_op = good_operations.last
+      next if last_op.nil?
+      last_successful_op = nil
       if ['start','stop'].include?(last_op.attributes['operation'])
         last_successful_op = last_op.attributes['operation']
       else
