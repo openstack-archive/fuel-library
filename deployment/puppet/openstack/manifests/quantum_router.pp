@@ -47,7 +47,6 @@ class openstack::quantum_router (
       rabbit_password      => $rabbit_password,
       rabbit_host          => $rabbit_nodes,
       rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
-     #sql_connection       => $quantum_sql_connection,
       verbose              => $verbose,
       debug                => $verbose,
       use_syslog           => $use_syslog,

@@ -345,9 +345,8 @@ class openstack::compute (
       rabbit_host     => $rabbit_nodes ? { false => $rabbit_host, default => $rabbit_nodes },
       rabbit_user     => $rabbit_user,
       rabbit_password => $rabbit_password,
-      use_syslog              => $use_syslog,
+      use_syslog           => $use_syslog,
       rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
-      #sql_connection  => $quantum_sql_connection,
     }
 
     class { 'quantum::plugins::ovs':

@@ -44,6 +44,9 @@ class nova::metadata_api (
   
   nova_config {'DEFAULT/quantum_connection_host':   value => $service_endpoint }
 
+  if !defined(Nova_config['DEFAULT/sql_connection']) {
+    nova_config {'DEFAULT/sql_connection': value => "mysql://nova:nova@${service_endpoint}/nova";}
+  }
   #if ! $quantum_netnode_on_cnt {
     nova_config {
       'DEFAULT/quantum_auth_strategy':     value => $auth_strategy; 
@@ -53,7 +56,6 @@ class nova::metadata_api (
       'DEFAULT/quantum_admin_username':    value => 'quantum';
       'DEFAULT/rabbit_userid':             value => $rabbit_user;
       'DEFAULT/rabbit_password':           value => $rabbit_password;
-      'DEFAULT/sql_connection':            value => "mysql://nova:nova@${service_endpoint}/nova";
       'DEFAULT/rabbit_virtual_host':       value => '/';
       'DEFAULT/quantum_admin_tenant_name': value => $admin_tenant_name;
       'DEFAULT/quantum_url':               value => "http://${service_endpoint}:9696" ;

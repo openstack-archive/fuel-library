@@ -102,6 +102,7 @@ $quantum_db_password     = 'quantum_pass'
 $quantum_db_user         = 'quantum'
 $quantum_db_dbname       = 'quantum'
 
+
 # End DB credentials section
 
 ### GENERAL CONFIG END ###
@@ -166,8 +167,9 @@ $network_manager = 'nova.network.manager.FlatDHCPManager'
 # Assign floating IPs to VMs on startup automatically?
 $auto_assign_floating_ip = false
 
-# Database connection for Quantum configuration (quantum.conf)
-$quantum_sql_connection  = "mysql://${quantum_db_user}:${quantum_db_password}@${$internal_virtual_ip}/${quantum_db_dbname}"
+# Database connections
+$sql_connection = "mysql://nova:${nova_db_password}@${controller_internal_address}/nova"
+$quantum_sql_connection  = "mysql://${quantum_db_user}:${quantum_db_password}@${controller_internal_address}/${quantum_db_dbname}"
 
 
 if $quantum {
@@ -444,6 +446,7 @@ class simple_controller (
     rabbit_user             => $rabbit_user,
     export_resources        => false,
     quantum                 => $quantum,
+      
     quantum_user_password   => $quantum_user_password,
     quantum_db_password     => $quantum_db_password,
     quantum_db_user         => $quantum_db_user,
@@ -513,7 +516,7 @@ node /fuel-controller-[\d+]/ {
     proj_name       => $proj_name,
     services        => [
       'host-alive','nova-novncproxy','keystone', 'nova-scheduler',
-      'nova-consoleauth', 'nova-cert', 'haproxy', 'nova-api', 'glance-api',
+      'nova-consoleauth', 'nova-cert', 'nova-api', 'glance-api',
       'glance-registry','horizon', 'rabbitmq', 'mysql',
     ],
     whitelist       => ['127.0.0.1', $nagios_master],
@@ -563,6 +566,7 @@ node /fuel-compute-[\d+]/ {
     vnc_enabled            => true,
     ssh_private_key        => 'puppet:///ssh_keys/openstack',
     ssh_public_key         => 'puppet:///ssh_keys/openstack.pub',
+    sql_connection         => $sql_connection,
     quantum                => $quantum,
     quantum_sql_connection => $quantum_sql_connection,
     quantum_user_password  => $quantum_user_password,

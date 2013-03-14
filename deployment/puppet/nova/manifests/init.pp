@@ -203,7 +203,9 @@ else {
     } else {
       fail("Invalid db connection ${sql_connection}")
     }
-    nova_config { 'DEFAULT/sql_connection': value => $sql_connection }
+    if !defined(Nova_config['DEFAULT/sql_connection']) {
+      nova_config { 'DEFAULT/sql_connection': value => $sql_connection }
+    }
   } else {
     Nova_config <<| tag == "${::deployment_id}::${::environment}" and title == 'sql_connection' |>>
   }
