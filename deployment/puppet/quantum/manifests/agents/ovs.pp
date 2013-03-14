@@ -69,7 +69,6 @@ class quantum::agents::ovs (
   L23network::L2::Bridge <| |> -> Service['quantum-plugin-ovs-service']
 
   if $service_provider == 'pacemaker' {
-    File <| title == 'quantum-ovs-agent' |> -> Cs_resource["p_${::quantum::params::ovs_agent_service}"]
     Quantum_config <| |> -> Cs_shadow['ovs']
     Quantum_plugin_ovs <| |> -> Cs_shadow['ovs']
     L23network::L2::Bridge <| |> -> Cs_shadow['ovs']
@@ -91,6 +90,7 @@ class quantum::agents::ovs (
       primitive_class => 'ocf',
       provided_by     => 'pacemaker',
       primitive_type  => 'quantum-agent-ovs',
+      require => File['quantum-ovs-agent'] ,
       parameters      => {
       }
       ,

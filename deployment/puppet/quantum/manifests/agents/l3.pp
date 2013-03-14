@@ -218,7 +218,6 @@ class quantum::agents::l3 (
 
   if $service_provider == 'pacemaker' {
     
-    File <| title == 'quantum-l3-agent'|> -> Cs_resource["p_${::quantum::params::l3_agent_service}"]
     Service<| title == 'quantum-server' |> -> Cs_shadow['l3']
     Quantum_l3_agent_config <||> -> Cs_shadow['l3']
     cs_resource { "p_${::quantum::params::l3_agent_service}":
@@ -227,6 +226,7 @@ class quantum::agents::l3 (
       primitive_class => 'ocf',
       provided_by     => 'pacemaker',
       primitive_type  => 'quantum-agent-l3',
+      require         => File['quantum-l3-agent'],
       parameters      => {
         'os_auth_url' => $auth_url,
         'tenant'      => $auth_tenant,

@@ -80,7 +80,6 @@ class quantum::agents::dhcp (
   Service <| title == 'quantum-server' |> -> Service['quantum-dhcp-service']
 
   if $service_provider == 'pacemaker' {
-    File <| title == 'quantum-agent-dhcp' |> -> Cs_resource["p_${::quantum::params::dhcp_agent_service}"]
     Service <| title == 'quantum-server' |> -> Cs_shadow['dhcp']
     Quantum_dhcp_agent_config <| |> -> Cs_shadow['dhcp']
 
@@ -90,6 +89,7 @@ class quantum::agents::dhcp (
       primitive_class => 'ocf',
       provided_by     => 'pacemaker',
       primitive_type  => 'quantum-agent-dhcp',
+      require => File['quantum-agent-dhcp'],
       parameters      => {
         'os_auth_url' => $auth_url,
         'tenant'      => $auth_tenant,
