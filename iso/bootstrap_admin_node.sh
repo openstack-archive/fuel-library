@@ -26,11 +26,13 @@ mkdir -p /var/lib/puppet/ssh_keys
 chown root:puppet /var/lib/puppet/ssh_keys/openstack*
 chmod g+r /var/lib/puppet/ssh_keys/openstack*
 puppet apply -e "
-    class {openstack::mirantis_repos: enable_epel => true }
+    class {openstack::mirantis_repos: enable_epel => true } ->
     class {puppet: } -> class {puppet::thin:} -> class {puppet::nginx: puppet_master_hostname => \"$hstname.$domain\"}
-    class {puppetdb: }"
+    "
 puppet apply -e "
     class {puppet::fileserver_config: } "
+puppet apply -e "
+    class {puppetdb: }"
 puppet apply -e "
     class {puppetdb::master::config: puppet_service_name=>'thin'} "
 service thin restart
