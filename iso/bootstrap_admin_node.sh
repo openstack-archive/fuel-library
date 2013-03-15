@@ -22,9 +22,7 @@ apply_settings
 echo;echo "Provisioning masternode role ..."
 (
 mkdir -p /var/lib/puppet/ssh_keys
-rm -f /var/lib/puppet/ssh_keys/openstack
-rm -f /var/lib/puppet/ssh_keys/openstack.pub
-ssh-keygen -f /var/lib/puppet/ssh_keys/openstack -N ''
+[ -f /var/lib/puppet/ssh_keys/openstack ] ssh-keygen -f /var/lib/puppet/ssh_keys/openstack -N ''
 chown root:puppet /var/lib/puppet/ssh_keys/openstack*
 chmod g+r /var/lib/puppet/ssh_keys/openstack*
 puppet apply -e "
