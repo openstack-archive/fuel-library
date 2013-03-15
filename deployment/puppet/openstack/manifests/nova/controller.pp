@@ -242,7 +242,6 @@ if ($rabbit_nodes) {
    }
      class { 'nova::network::quantum':
         quantum_admin_password    => $quantum_user_password,
-        quantum_connection_host   => $quantum_host, 
         quantum_auth_strategy     => 'keystone',
         quantum_url               => "http://${keystone_host}:9696",
         quantum_admin_tenant_name => 'services',
