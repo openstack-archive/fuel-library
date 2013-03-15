@@ -126,8 +126,15 @@ class galera (
     before => Package["galera", "MySQL-server"]
   }
 
+  if $::galera::params::mysql_version {
+   $wsrep_version = $::galera::params::mysql_version 
+  }
+  else
+  {
+   $wsrep_version = 'latest'
+  }
   package { "MySQL-server":
-    ensure   => $::galera::params::mysql_version,
+    ensure   => $wsrep_version,
     name     => $::galera::params::mysql_server_name,
     provider => $::galera::params::pkg_provider,
     require  => Package['galera']
