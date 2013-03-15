@@ -22,7 +22,7 @@ apply_settings
 echo;echo "Provisioning masternode role ..."
 (
 mkdir -p /var/lib/puppet/ssh_keys
-[ -f /var/lib/puppet/ssh_keys/openstack ] ssh-keygen -f /var/lib/puppet/ssh_keys/openstack -N ''
+[ -f /var/lib/puppet/ssh_keys/openstack ] || ssh-keygen -f /var/lib/puppet/ssh_keys/openstack -N ''
 chown root:puppet /var/lib/puppet/ssh_keys/openstack*
 chmod g+r /var/lib/puppet/ssh_keys/openstack*
 puppet apply -e "
@@ -97,5 +97,5 @@ iptables -A PREROUTING -t nat -i $mgmt_if -s $mgmt_ip/$mgmt_mask ! -d $mgmt_ip -
 
 gem install /var/www/astute-0.0.1.gem
 
-cp `find / -name config.yaml -print0|grep -FzZ 'samples/config.yaml` /root
+cp `find / -name config.yaml -print0 | grep -FzZ 'samples/config.yaml'` /root
 ) >> $log
