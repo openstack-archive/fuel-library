@@ -1,3 +1,5 @@
+import json
+import yaml
 class Config(object):
     @classmethod
     def generate(cls, ci):
@@ -11,6 +13,7 @@ class Config(object):
 
     @classmethod
     def orchestrator_common(cls):
+
         pass
 
     @classmethod
@@ -24,3 +27,8 @@ class Config(object):
     @classmethod
     def cobbler_nodes(cls):
         pass
+
+    def test(self):
+        with open('1.yaml') as f:
+            a = yaml.load(f)
+            print json.dumps(a, indent=4)
