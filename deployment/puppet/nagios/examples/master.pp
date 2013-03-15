@@ -19,6 +19,7 @@ node default {
     mysql_pass      => 'nova',
     rabbit_user     => 'nova',
     rabbit_pass     => 'nova',
+    rabbit_port     => '5673',
     templatehost    => {'name' => 'default-host', 'check_interval' => '10'},
     templateservice => {'name' => 'default-service', 'check_interval'=>'10'},
     hostgroups      => ['compute', 'controller', 'swift-storage', 'swift-proxy'],
