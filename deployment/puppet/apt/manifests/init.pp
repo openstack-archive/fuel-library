@@ -23,8 +23,6 @@
 class apt(
   $always_apt_update    = false,
   $disable_keys         = undef,
-  $proxy_host           = false,
-  $proxy_port           = '8080',
   $purge_sources_list   = false,
   $purge_sources_list_d = false,
   $purge_preferences_d  = false
@@ -97,14 +95,6 @@ class apt(
     }
     undef:   { } # do nothing
     default: { fail('Valid values for disable_keys are true or false') }
-  }
-
-  if ($proxy_host) {
-    file { 'configure-apt-proxy':
-      path    => "${apt_conf_d}/proxy",
-      content => "Acquire::http::Proxy \"http://${proxy_host}:${proxy_port}\";",
-      notify  => Exec['apt_update'],
-    }
   }
 
   # Need anchor to provide containment for dependencies.

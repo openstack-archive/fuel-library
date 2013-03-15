@@ -20,6 +20,11 @@ class openstack::mirantis_repos (
 ) {
   case $::osfamily {
     'Debian': {
+      class {'apt::proxy': 
+        proxy => $repo_proxy,
+        stage => $::openstack::mirantis_repos::stage
+      }
+
       if $type == 'default' {
         apt::source { 'cloud-archive':
           location    => 'http://ubuntu-cloud.archive.canonical.com/ubuntu',
