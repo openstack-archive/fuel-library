@@ -21,12 +21,16 @@ apply_settings
 # Installing puppetmaster/cobbler node role
 echo;echo "Provisioning masternode role ..."
 (
+mkdir -p /var/lib/puppet/ssh_keys
 puppet apply -e "
     class {openstack::mirantis_repos: enable_epel => true }
     class {puppet: } -> class {puppet::thin:} -> class {puppet::nginx: puppet_master_hostname => \"$hstname.$domain\"}
     class {puppetdb: }"
 puppet apply -e "
-    class {puppet::master_config: } "
+    class {puppet::fileserver_config: } "
+puppet apply -e "
+    class {puppet::master_config: puppet_service_name=>'thin'} "
+service thin restart
 
 # Walking aroung nginx's default server config
 rm -f /etc/nginx/conf.d/default.conf
