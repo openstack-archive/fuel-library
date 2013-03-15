@@ -33,6 +33,8 @@ puppet apply -e "
     class {puppet::fileserver_config: } "
 puppet apply -e "
     class {puppetdb: }"
+puppetdb-ssl-setup
+service puppetdb restart
 puppet apply -e "
     class {puppetdb::master::config: puppet_service_name=>'thin'} "
 service thin restart
