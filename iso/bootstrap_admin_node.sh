@@ -25,6 +25,8 @@ mkdir -p /var/lib/puppet/ssh_keys
 rm -f /var/lib/puppet/ssh_keys/openstack
 rm -f /var/lib/puppet/ssh_keys/openstack.pub
 ssh-keygen -f /var/lib/puppet/ssh_keys/openstack -N ''
+chown root:puppet /var/lib/puppet/ssh_keys/openstack*
+chmod g+r /var/lib/puppet/ssh_keys/openstack*
 puppet apply -e "
     class {openstack::mirantis_repos: enable_epel => true }
     class {puppet: } -> class {puppet::thin:} -> class {puppet::nginx: puppet_master_hostname => \"$hstname.$domain\"}
