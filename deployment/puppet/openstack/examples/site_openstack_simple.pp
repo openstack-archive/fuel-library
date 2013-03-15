@@ -564,7 +564,6 @@ node /fuel-compute-[\d+]/ {
     vnc_enabled            => true,
     ssh_private_key        => 'puppet:///ssh_keys/openstack',
     ssh_public_key         => 'puppet:///ssh_keys/openstack.pub',
-    sql_connection         => $sql_connection,
     quantum                => $quantum,
     quantum_sql_connection => $quantum_sql_connection,
     quantum_user_password  => $quantum_user_password,
