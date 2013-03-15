@@ -32,7 +32,7 @@ puppet apply -e "
 puppet apply -e "
     class {puppet::fileserver_config: } "
 puppet apply -e "
-    class {puppet::master_config: puppet_service_name=>'thin'} "
+    class {puppetdb::master::config: puppet_service_name=>'thin'} "
 service thin restart
 
 # Walking aroung nginx's default server config
