@@ -20,7 +20,7 @@ class nagios::command inherits nagios::master {
   }
 
   nagios::command::commands { 'check_galera_mysql':
-    command => "\$USER1$/check_mysql -H \$HOSTADDRESS$ -P 3307 -u ${nagios::master::mysql_user} -p ${nagios::master::mysql_pass}",
+    command => "\$USER1$/check_mysql -H \$HOSTADDRESS$ -P ${nagios::master::mysql_port} -u ${nagios::master::mysql_user} -p ${nagios::master::mysql_pass}",
   }
 
   nagios::command::commands { 'check_rabbitmq':
