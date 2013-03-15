@@ -8,7 +8,7 @@ common:
   openstack_common:
    internal_virtual_ip: 10.49.63.127
    public_virtual_ip: 10.49.54.127
-   create_networks: "pp"
+   create_networks: true
    fixed_range: 192.168.0.0/16
    floating_range: 10.49.54.0/24
    nv_physical_volumes:
