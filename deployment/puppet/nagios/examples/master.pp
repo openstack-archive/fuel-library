@@ -17,6 +17,7 @@ node default {
     rabbitmq        => false,
     mysql_user      => 'root',
     mysql_pass      => 'nova',
+    mysql_port      => '3307',
     rabbit_user     => 'nova',
     rabbit_pass     => 'nova',
     rabbit_port     => '5673',
