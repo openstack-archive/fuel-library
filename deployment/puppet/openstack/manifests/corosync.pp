@@ -28,12 +28,11 @@ Cs_property['no-quorum-policy']->Cs_property['stonith-enabled']->Cs_property['st
 file {'filter_quantum_ports.py':
   path=>'/usr/bin/filter_quantum_ports.py', 
   mode => 744,
-  require =>Package['corosync'],
+  require =>[Package['corosync'],File['/root/openrc']],
   owner => root,
   group => root,
   source => "puppet:///modules/openstack/filter_quantum_ports.py",
-  require => File['/root/openrc']
-} 
+  } 
 File['filter_quantum_ports.py'] -> File<| title == 'quantum-agent-dhcp' |>
 File['filter_quantum_ports.py'] -> File<| title == 'quantum-l3-agent' |>
 File['filter_quantum_ports.py'] -> File<| title == 'quantum-ovs-agent' |>
