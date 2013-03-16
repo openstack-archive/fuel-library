@@ -655,25 +655,30 @@ ready to go.
 Installing Nagios Monitoring using Puppet
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Installing nagios NRPE on compute or controller node: ::
+Fuel provides a way to deploy Nagios for monitoring your OpenStack cluster. It will require an installation of agent on controller, compute, and storage nodes, as well as having a master server for Nagios which will collect and display all the results. An agent, Nagios NRPE addon, allows to execute Nagios plugins on remote Linux/Unix machines. The main reason for doing this is to monitor basic resources (like CPU load, memory usage, etc.), as well as more advanced ones on remote machines.
+
+
+Nagios Agent
+~~~~~~~~~~~~
+
+In order to install Nagios NRPE on compute or controller node, a node should have the following applied: ::
 
   class {'nagios':
-  proj_name       => 'test',
-  services        => ['nova-compute','nova-network','libvirt'],
-  whitelist       => ['127.0.0.1','10.0.97.5'],
-  hostgroup       => 'compute',
+    proj_name       => 'test',
+    services        => ['nova-compute','nova-network','libvirt'],
+    whitelist       => ['127.0.0.1','10.0.97.5'],
+    hostgroup       => 'compute',
   }
 
-where ``proj_name`` is an environment for nagios commands and directory
-
-in this case:
-        "``/etc/nagios/test/``"
-
-* ``services``  - all services which nagios will monitor
+* ``proj_name`` - is an environment for nagios commands and directory (``/etc/nagios/test/``)
+* ``services`` - all services which nagios will monitor
 * ``whitelist`` - array of IP addreses which NRPE trusts
 * ``hostgroup`` - group to be used in nagios master (do not forget create it in nagios master)
 
-Installing nagios Master on any convenient node: ::
+Nagios Server
+~~~~~~~~~~~~~
+
+In order to install Nagios Master on any convenient node, a node should have the following applied: ::
 
   class {'nagios::master':
     proj_name       => 'test',
@@ -686,17 +691,56 @@ Installing nagios Master on any convenient node: ::
                  'group' => 'admins'},
   }
 
-where ``proj_name`` is an environment for nagios services and directory
+* ``proj_name`` - is an environment for nagios commands and directory (``/etc/nagios/test/``)
+* ``templatehost`` - group of checks and intervals parameters for hosts (as Hash)
+* ``templateservice`` - group of checks and intervals parameters for services  (as Hash)
+* ``hostgroups`` - just add all groups which were on NRPE nodes (as Array)
+* ``contactgroups`` - group of contacts {as Hash}
+* ``contacts`` - create contacts for send error reports to {as Hash}
 
-in this case:
-        "``/etc/nagios3/test/``"
 
-*  ``templatehost`` - group of checks and intervals parameters for hosts (as Hash)
-*  ``templateservice`` - group of checks and intervals parameters for services  (as Hash)
-*  ``hostgroups`` - just add all groups which were on NRPE nodes (as Array)
-*  ``contactgroups`` - group of contacts {as Hash}
-*  ``contacts`` - create contacts for send error reports to {as Hash}
+Health Checks
+~~~~~~~~~~~~~
 
+Complete definition of the available services to monitor and their health checks can be viewed at ``deployment/puppet/nagios/manifests/params.pp`` 
+
+Here is the list: ::
+
+  $services_list = {
+    'nova-compute' => 'check_nrpe_1arg!check_nova_compute',
+    'nova-network' => 'check_nrpe_1arg!check_nova_network',
+    'libvirt' => 'check_nrpe_1arg!check_libvirt',
+    'swift-proxy' => 'check_nrpe_1arg!check_swift_proxy',
+    'swift-account' => 'check_nrpe_1arg!check_swift_account',
+    'swift-container' => 'check_nrpe_1arg!check_swift_container',
+    'swift-object' => 'check_nrpe_1arg!check_swift_object',
+    'swift-ring' => 'check_nrpe_1arg!check_swift_ring',
+    'keystone' => 'check_http_api!5000',
+    'nova-novncproxy' => 'check_nrpe_1arg!check_nova_novncproxy',
+    'nova-scheduler' => 'check_nrpe_1arg!check_nova_scheduler',
+    'nova-consoleauth' => 'check_nrpe_1arg!check_nova_consoleauth',
+    'nova-cert' => 'check_nrpe_1arg!check_nova_cert',
+    'cinder-scheduler' => 'check_nrpe_1arg!check_cinder_scheduler',
+    'cinder-volume' => 'check_nrpe_1arg!check_cinder_volume',
+    'haproxy' => 'check_nrpe_1arg!check_haproxy',
+    'memcached' => 'check_nrpe_1arg!check_memcached',
+    'nova-api' => 'check_http_api!8774',
+    'cinder-api' => 'check_http_api!8776',
+    'glance-api' => 'check_http_api!9292',
+    'glance-registry' => 'check_nrpe_1arg!check_glance_registry',
+    'horizon' => 'check_http_api!80',
+    'rabbitmq' => 'check_rabbitmq',
+    'mysql' => 'check_galera_mysql',
+    'apt' => 'nrpe_check_apt',
+    'kernel' => 'nrpe_check_kernel',
+    'libs' => 'nrpe_check_libs',
+    'load' => 'nrpe_check_load!5.0!4.0!3.0!10.0!6.0!4.0',
+    'procs' => 'nrpe_check_procs!250!400',
+    'zombie' => 'nrpe_check_procs_zombie!5!10',
+    'swap' => 'nrpe_check_swap!20%!10%',
+    'user' => 'nrpe_check_users!5!10',
+    'host-alive' => 'check-host-alive',
+  }
 
 Examples of OpenStack installation sequences
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
