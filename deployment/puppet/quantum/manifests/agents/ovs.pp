@@ -81,6 +81,7 @@ class quantum::agents::ovs (
 
     ::corosync::cleanup { "p_${::quantum::params::ovs_agent_service}": }
 
+    Cs_commit['ovs'] -> ::Corosync::Cleanup["p_${::quantum::params::ovs_agent_service}"]
     Cs_commit['ovs'] ~> ::Corosync::Cleanup["p_${::quantum::params::ovs_agent_service}"]
     ::Corosync::Cleanup["p_${::quantum::params::ovs_agent_service}"] -> Service['quantum-plugin-ovs-service']
 

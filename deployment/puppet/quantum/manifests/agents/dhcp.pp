@@ -119,6 +119,7 @@ class quantum::agents::dhcp (
     Cs_commit['dhcp'] -> Service['quantum-dhcp-service']
 
     ::corosync::cleanup { "p_${::quantum::params::dhcp_agent_service}": }
+    Cs_commit['dhcp'] -> ::Corosync::Cleanup["p_${::quantum::params::dhcp_agent_service}"]
     Cs_commit['dhcp'] ~> ::Corosync::Cleanup["p_${::quantum::params::dhcp_agent_service}"]
     ::Corosync::Cleanup["p_${::quantum::params::dhcp_agent_service}"] -> Service['quantum-dhcp-service']
     Cs_resource["p_${::quantum::params::dhcp_agent_service}"] -> Cs_colocation['dhcp-with-ovs']

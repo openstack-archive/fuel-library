@@ -262,6 +262,7 @@ class quantum::agents::l3 (
     Cs_commit['l3'] -> Service['quantum-l3']
     ::corosync::cleanup{"p_${::quantum::params::l3_agent_service}":}
     
+    Cs_commit['l3'] -> ::Corosync::Cleanup["p_${::quantum::params::l3_agent_service}"]
     Cs_commit['l3'] ~> ::Corosync::Cleanup["p_${::quantum::params::l3_agent_service}"]
     ::Corosync::Cleanup["p_${::quantum::params::l3_agent_service}"]->Service['quantum-l3']
     
