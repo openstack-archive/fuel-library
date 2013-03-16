@@ -34,6 +34,7 @@ common:
    cinder_on_computes: true
    swift: true
    repo_proxy: http://10.0.0.100:3128
+   deployment_id: '53'
    dns_nameservers:
    - 10.0.0.100
    - 8.8.8.8
