@@ -101,11 +101,11 @@ class quantum::agents::ovs (
         }
         ,
         'start'    => {
-          'timeout' => '120'
+          'timeout' => '480'
         }
         ,
         'stop'     => {
-          'timeout' => '120'
+          'timeout' => '480'
         }
 
       }

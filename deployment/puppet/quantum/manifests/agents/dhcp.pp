@@ -104,11 +104,11 @@ class quantum::agents::dhcp (
         }
         ,
         'start'    => {
-          'timeout' => '120'
+          'timeout' => '360'
         }
         ,
         'stop'     => {
-          'timeout' => '120'
+          'timeout' => '360'
         }
       }
       ,
