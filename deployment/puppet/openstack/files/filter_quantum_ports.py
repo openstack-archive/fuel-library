@@ -83,16 +83,16 @@ class QuantumXxx(object):
             ret_count -= 1
         return rv
 
-    def get_active_ports(self):
+    def get_ports_by_owner(self, owner, activeonly=False):
         rv = []
-        for i in self.get_ports():
-            if i['status'] == 'ACTIVE':
-                rv.append(i)
-        return rv
-
-    def get_active_ports_by_owner(self, owner):
-        rv = []
-        for i in self.get_active_ports():
+        ports = self.get_ports()
+        if activeonly:
+            tmp = []
+            for i in ports:
+                if i['status'] == 'ACTIVE':
+                    tmp.append(i)
+                ports = tmp
+        for i in ports:
             if i['device_owner'] == owner:
                 rv.append(i)
         return rv
@@ -103,12 +103,12 @@ class QuantumXxx(object):
         'network:router_interface': 'qr-',
     }
 
-    def get_ifnames_for(self, port_owner, port_id_part_len=11):
+    def get_ifnames_for(self, port_owner, activeonly=False, port_id_part_len=11):
         port_name_prefix = self.PORT_NAME_PREFIXES.get(port_owner)
         if port_name_prefix is None:
             return []
         rv = []
-        for i in self.get_active_ports_by_owner(port_owner):
+        for i in self.get_ports_by_owner(port_owner, activeonly=activeonly):
             rv.append("{0}{1}".format(port_name_prefix, i['id'][:port_id_part_len]))
         return rv
 
@@ -119,12 +119,14 @@ if __name__ == '__main__':
                       help="Authenticatin config FILE", metavar="FILE")
     parser.add_option("-r", "--retries", dest="retries", type="int", default=50,
                       help="try NN retries for get keystone token", metavar="NN")
+    parser.add_option("-a", "--activeonly", dest="activeonly", action="store_true", default=False,
+                      help="get only active ports")
     (options, args) = parser.parse_args()
     #
     if len(args) != 1:
         parser.error("incorrect number of arguments")
     #
     Qu = QuantumXxx(get_authconfig(options.authconf), retries=options.retries)
-    for i in Qu.get_ifnames_for(args[0].strip(" \"\'")):
+    for i in Qu.get_ifnames_for(args[0].strip(" \"\'"), activeonly=options.activeonly):
         print(i)
 ###
