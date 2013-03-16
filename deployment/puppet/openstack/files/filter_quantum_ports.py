@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import re
 import time
+import sys
 import optparse
 from quantumclient.quantum import client as q_client
 from keystoneclient.v2_0 import client as ks_client
@@ -22,38 +23,65 @@ def get_authconfig(cfg_file):
 
 
 class QuantumXxx(object):
-
-    rc = {}
-    token = u''
-    ks = None
-
-    def __init__(self, rc, wait_server=True, tries_timeout=2):
-        self.rc = rc
+    def __init__(self, openrc, retries=20, sleep=2):
+        self.auth_config = openrc
+        self.connect_retries = retries
+        self.sleep = sleep
+        ret_count = retries
         while True:
+            if ret_count <= 0 :
+                print(">>> Keystone error: no more retries for connect to keystone server.")
+                sys.exit(1)
             try:
-                self.ks = ks_client.Client(
-                    username=rc['OS_USERNAME'],
-                    password=rc['OS_PASSWORD'],
-                    tenant_name=rc['OS_TENANT_NAME'],
-                    auth_url=rc['OS_AUTH_URL'],
+                self.keystone = ks_client.Client(
+                    username=openrc['OS_USERNAME'],
+                    password=openrc['OS_PASSWORD'],
+                    tenant_name=openrc['OS_TENANT_NAME'],
+                    auth_url=openrc['OS_AUTH_URL'],
                 )
                 break
             except Exception as e:
-                if wait_server and re.search(r"Connection\s+refused$", e.message, re.I):
-                    print(">>> Can't connect to {0}, wait for server ready...".format(rc['OS_AUTH_URL']))
-                    time.sleep(tries_timeout)
+                errmsg = e.message.strip()
+                if re.search(r"Connection\s+refused$", errmsg, re.I) or \
+                   re.search(r"Connection\s+timed\s+out$", errmsg, re.I) or\
+                   re.search(r"Service\s+Unavailable$", errmsg, re.I) or\
+                   re.search(r"'*NoneType'*\s+object\s+has\s+no\s+attribute\s+'*__getitem__'*$", errmsg, re.I) or \
+                   re.search(r"No\s+route\s+to\s+host$", errmsg, re.I):
+                      print(">>> Can't connect to {0}, wait for server ready...".format(self.auth_config['OS_AUTH_URL']))
+                      time.sleep(self.sleep)
                 else:
-                    print(">>> Keystone error:\n")
+                    print(">>> Keystone error:\n{0}".format(e.message))
                     raise e
-        self.token = self.ks.auth_token
+            ret_count -= 1
+        self.token = self.keystone.auth_token
         self.client = q_client.Client(
             API_VER,
-            endpoint_url=self.ks.service_catalog.url_for(service_type='network'),
+            endpoint_url=self.keystone.service_catalog.url_for(service_type='network'),
             token=self.token,
         )
 
     def get_ports(self):
-        return self.client.list_ports()['ports']
+        ret_count = self.connect_retries
+        while True:
+            if ret_count <= 0 :
+                print(">>> Quantum error: no more retries for connect to keystone server.")
+                sys.exit(1)
+            try:
+                rv = self.client.list_ports()['ports']
+                break
+            except Exception as e:
+                errmsg = e.message.strip()
+                if re.search(r"Connection\s+refused", errmsg, re.I) or\
+                   re.search(r"Connection\s+timed\s+out", errmsg, re.I) or\
+                   re.search(r"503\s+Service\s+Unavailable", errmsg, re.I) or\
+                   re.search(r"No\s+route\s+to\s+host", errmsg, re.I):
+                      print(">>> Can't connect to {0}, wait for server ready...".format(self.keystone.service_catalog.url_for(service_type='network')))
+                      time.sleep(self.sleep)
+                else:
+                    print(">>> Quantum error:\n{0}".format(e.message))
+                    raise e
+            ret_count -= 1
+        return rv
 
     def get_active_ports(self):
         rv = []
@@ -69,14 +97,15 @@ class QuantumXxx(object):
                 rv.append(i)
         return rv
 
+    PORT_NAME_PREFIXES = {
+        'network:dhcp':             'tap',
+        'network:router_gateway':   'qg-',
+        'network:router_interface': 'qr-',
+    }
+
     def get_ifnames_for(self, port_owner, port_id_part_len=11):
-        if port_owner == 'network:dhcp':
-            port_name_prefix='tap'
-        elif port_owner == 'network:router_gateway':
-            port_name_prefix='qg-'
-        elif port_owner == 'network:router_interface':
-            port_name_prefix='qr-'
-        else:
+        port_name_prefix = self.PORT_NAME_PREFIXES.get(port_owner)
+        if port_name_prefix is None:
             return []
         rv = []
         for i in self.get_active_ports_by_owner(port_owner):
@@ -88,15 +117,14 @@ if __name__ == '__main__':
     parser = optparse.OptionParser()
     parser.add_option("-c", "--auth-config", dest="authconf", default="/root/openrc",
                       help="Authenticatin config FILE", metavar="FILE")
+    parser.add_option("-r", "--retries", dest="retries", type="int", default=50,
+                      help="try NN retries for get keystone token", metavar="NN")
     (options, args) = parser.parse_args()
     #
     if len(args) != 1:
         parser.error("incorrect number of arguments")
     #
-    Qu = QuantumXxx(get_authconfig(options.authconf))
+    Qu = QuantumXxx(get_authconfig(options.authconf), retries=options.retries)
     for i in Qu.get_ifnames_for(args[0].strip(" \"\'")):
         print(i)
-
-    # print Qu.get_ifnames_for('network:dhcp')
-    # print Qu.get_ifnames_for('network:router_gateway')
-    # print Qu.get_ifnames_for('network:router_interface')
+###
