@@ -233,6 +233,10 @@ class ConfigYaml
   def nodes()
     self.mandatory('nodes')
   end
+
+  def deployment_id()
+    self.obligatory('nodes')
+  end
 end
 
 class Manifest
@@ -240,6 +244,9 @@ class Manifest
     if config.ha?
       template.replace(:internal_virtual_ip => config.internal_virtual_ip(),
                        :public_virtual_ip => config.public_virtual_ip())
+    end
+    if ! config.deployment_id().nil?
+      template.replace(:deployment_id => config.deployment_id())
     end
     template.replace(:floating_range => config.floating_range(),
                      :fixed_range => config.fixed_range(),
