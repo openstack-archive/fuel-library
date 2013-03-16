@@ -12,7 +12,7 @@ class openstack::mirantis_repos (
   $deb_cloud_archive_repo = 'http://172.18.67.168/ubuntu-cloud.archive.canonical.com/ubuntu',
   $deb_rabbit_repo        = 'http://172.18.67.168/ubuntu-repo/precise-fuel-folsom',
   $enable_epel = false,
-  $fuel_mirrorlist        = 'http://download.mirantis.com/epel-fuel-folsom/mirror.internal-stage.list',
+  $fuel_mirrorlist        = 'http://download.mirantis.com/epel-fuel-folsom-2.1/mirror.internal-stage.list',
   $mirrorlist_base        = 'http://172.18.67.168/centos-repo/mirror-6.3-os.list',
   $mirrorlist_updates     = 'http://172.18.67.168/centos-repo/mirror-6.3-updates.list',
   $enable_test_repo = false,
@@ -38,7 +38,7 @@ class openstack::mirantis_repos (
 
           apt::source { 'precise-fuel-folsom':
           location    => 'http://download.mirantis.com/precise-fuel-folsom',
-          release     => 'precise',
+          release     => 'precise-2.1',
           repos       => 'main',
           key         => 'F8AF89DD',
           key_source  => 'http://download.mirantis.com/precise-fuel-folsom/Mirantis.key',
@@ -78,7 +78,7 @@ class openstack::mirantis_repos (
 	else { 
          apt::source  { 'precise-fuel-folsom':
           location    => $deb_fuel_folsom_repo,
-          release     => 'precise',
+          release     => 'precise-2.1',
           repos       => 'main',
           key         => 'F8AF89DD',
           key_source  => 'http://172.18.67.168/ubuntu-repo/precise-fuel-folsom/Mirantis.key',
@@ -153,9 +153,9 @@ class openstack::mirantis_repos (
       if $type == 'default' {
         yumrepo { 'openstack-epel-fuel':
           descr      => 'Mirantis OpenStack Custom Packages',
-          mirrorlist => 'http://download.mirantis.com/epel-fuel-folsom/mirror.external.list',
+          mirrorlist => 'http://download.mirantis.com/epel-fuel-folsom-2.1/mirror.external.list',
           gpgcheck   => '1',
-          gpgkey     => 'http://download.mirantis.com/epel-fuel-folsom/epel.key  http://download.mirantis.com/epel-fuel-folsom/centos.key http://download.mirantis.com/epel-fuel-folsom/rabbit.key http://download.mirantis.com/epel-fuel-folsom/mirantis.key http://download.mirantis.com/epel-fuel-folsom/mysql.key',
+          gpgkey     => 'http://download.mirantis.com/epel-fuel-folsom-2.1/epel.key  http://download.mirantis.com/epel-fuel-folsom-2.1/centos.key http://download.mirantis.com/epel-fuel-folsom-2.1/rabbit.key http://download.mirantis.com/epel-fuel-folsom-2.1/mirantis.key http://download.mirantis.com/epel-fuel-folsom-2.1/mysql.key',
         }
       }
 
@@ -164,7 +164,7 @@ class openstack::mirantis_repos (
           descr      => 'Mirantis OpenStack Custom Packages',
           mirrorlist => $fuel_mirrorlist,
           gpgcheck   => '1',
-          gpgkey     => 'http://download.mirantis.com/epel-fuel-folsom/epel.key  http://download.mirantis.com/epel-fuel-folsom/centos.key http://download.mirantis.com/epel-fuel-folsom/rabbit.key http://download.mirantis.com/epel-fuel-folsom/mirantis.key http://download.mirantis.com/epel-fuel-folsom/mysql.key',
+          gpgkey     => 'http://download.mirantis.com/epel-fuel-folsom-2.1/epel.key  http://download.mirantis.com/epel-fuel-folsom-2.1/centos.key http://download.mirantis.com/epel-fuel-folsom-2.1/rabbit.key http://download.mirantis.com/epel-fuel-folsom-2.1/mirantis.key http://download.mirantis.com/epel-fuel-folsom-2.1/mysql.key',
         }
 
         if $upstream_mirror == true {
