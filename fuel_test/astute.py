@@ -18,7 +18,7 @@ class Astute(object):
         map(lambda x: config.update({str(x.name): {'role': 'controller'}}), controllers)
         map(lambda x: config.update({str(x.name): {'role': 'compute'}}), computes)
         map(lambda x: config.update({str(x.name): {'role': 'storage'}}), storages)
-        map(lambda x: config.update({str(x.name): {'role': 'proxy'}}), proxies)
+        map(lambda x: config.update({str(x.name): {'role': 'swift-proxy'}}), proxies)
         map(lambda x: config.update({str(x.name): {'role': 'quantum'}}), quantums)
         return yaml.dump(config)
 

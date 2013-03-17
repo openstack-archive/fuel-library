@@ -124,7 +124,7 @@ $public_address = $node[0]['public_address']
 $controller_internal_addresses = nodes_to_hash(filter_nodes($nodes,'role','controller'),'name','internal_address')
 $controller_public_addresses = nodes_to_hash(filter_nodes($nodes,'role','controller'),'name','public_address')
 $controller_hostnames = keys($controller_internal_addresses)
-$swift_proxies = nodes_to_hash(filter_nodes($nodes,'role','proxy'),'name','internal_address')
+$swift_proxies = nodes_to_hash(filter_nodes($nodes,'role','swift-proxy'),'name','internal_address')
 
 
 #Set this to anything other than pacemaker if you do not want Quantum HA

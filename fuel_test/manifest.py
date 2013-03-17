@@ -130,7 +130,7 @@ class Manifest(object):
             elif node in ci.nodes().storages:
                 rv = 'storage'
             elif node in ci.nodes().proxies:
-                rv = 'proxy'
+                rv = 'swift-proxy'
             elif node in ci.nodes().quantums:
                 rv = 'quantum'
             elif node in ci.nodes().masters:
