@@ -51,7 +51,7 @@ Deployment pipeline
   * Deploy
 
     In order to deploy the multiple environments that aren't interfere with each other
-    you should specify the ``$deployment_id`` option in ``/etc/puppet/manifests/site.pp`` (set it to an even integer value (valid range is 0..254)).
+    you should specify the ``$deployment_id`` option in ``/etc/puppet/manifests/site.pp`` (set it to an even integer value (valid range is 1..254)).
 
     First of all it is involved in the dynamic environment-based tag generation and globally apply that tag to all resources on each node.
     It is also used for keepalived daemon, there is a unique virtual_router_id evaluated.
