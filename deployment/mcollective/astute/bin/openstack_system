@@ -235,7 +235,7 @@ class ConfigYaml
   end
 
   def deployment_id()
-    self.obligatory('nodes')
+    self.obligatory('deployment_id')
   end
 end
 

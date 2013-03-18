@@ -258,7 +258,7 @@ $quantum_sql_connection  = "mysql://${quantum_db_user}:${quantum_db_password}@${
 
 # This parameter specifies the the identifier of the current cluster. This is needed in case of multiple environments.
 # installation. Each cluster requires a unique integer value. 
-# Valid identifier range is 0 to 254
+# Valid identifier range is 1 to 254
 $deployment_id = '79'
 
 # Below you can enable or disable various services based on the chosen deployment topology:
