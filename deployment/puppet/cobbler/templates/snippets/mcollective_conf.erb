@@ -7,7 +7,7 @@ collectives = mcollective
 libdir = /usr/libexec/mcollective
 logfile = /var/log/mcollective.log
 loglevel = info
-daemonize = 1
+daemonize = 0
 direct_addressing = 1
 
 # Plugins
@@ -26,6 +26,11 @@ factsource = yaml
 plugin.yaml = /etc/mcollective/facts.yaml
 EOCONF
 
+cat <<EOCONF > /etc/supervisord.d/mcollective.ini
+[program:mcollective]
+command=/usr/sbin/mcollectived --config=/etc/mcollective/server.cfg
+autostart=true
+EOCONF
 
 cat <<EOCONF > /usr/libexec/mcollective/mcollective/agent/puppetd.ddl
 metadata    :name        => "puppetd",
@@ -313,6 +318,11 @@ find / -name message.rb | grep mcollective | xargs sed -i 's/msg_age = Time.now.
 
 #if $str($getVar('mco_enable', '')) == "1"
 ## turn on mcollective service after reboot
-/sbin/chkconfig mcollective on
-service mcollective restart
+## /sbin/chkconfig mcollective on
+## service mcollective restart
+/sbin/chkconfig mcollective off
+service mcollective stop
+/sbin/chkconfig supervisord on
+service supervisord start
+supervisorctl start mcollective
 #end if
