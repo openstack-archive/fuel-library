@@ -48,14 +48,17 @@ common:
      role: controller
      internal_address: 10.0.0.101
      public_address: 10.0.1.101
+     swift_zone: 1
    - name: fuel-controller-02
      role: controller
      internal_address: 10.0.0.102
      public_address: 10.0.1.102
+     swift_zone: 2
    - name: fuel-controller-03
      role: controller
      internal_address: 10.0.0.104
      public_address: 10.0.1.104
+     swift_zone: 3
    - name: fuel-compute-01
      role: compute
      internal_address: 10.0.0.105
@@ -72,14 +75,17 @@ common:
      role: storage
      internal_address: 10.0.0.108
      public_address: 10.0.1.108
+     swift_zone: 4
    - name: fuel-swift-02
      role: storage
      internal_address: 10.0.0.109
      public_address: 10.0.1.109
+     swift_zone: 5
    - name: fuel-swift-03
      role: storage
      internal_address: 10.0.0.109
      public_address: 10.0.1.109
+     swift_zone: 6
    - name: fuel-swiftproxy-01
      role: swift-proxy
      internal_address: 10.0.0.110

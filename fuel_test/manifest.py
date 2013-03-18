@@ -120,37 +120,25 @@ class Manifest(object):
         return map(
             lambda x: x.get_ip_address_by_network_name('internal'), ci.nodes().cobblers)
 
+    def describe_node(self, node, role):
+        return {'name': str(node.name), 'role' : role,
+         'internal_address': node.get_ip_address_by_network_name('internal'),'public_address': node.get_ip_address_by_network_name('public'),}
+
+    def describe_swift_node(self, node, role, zone):
+        return self.describe_node(node, role).update('swift_zone', zone)
+
     def generate_nodes_configs_list(self, ci):
-        def get_role(ci, node):
-            rv = ''
-            if node in ci.nodes().computes:
-                rv = 'compute'
-            elif node in ci.nodes().controllers:
-                rv = 'controller'
-            elif node in ci.nodes().storages:
-                rv = 'storage'
-            elif node in ci.nodes().proxies:
-                rv = 'swift-proxy'
-            elif node in ci.nodes().quantums:
-                rv = 'quantum'
-            elif node in ci.nodes().masters:
-                rv = 'master'
-            elif node in ci.nodes().cobblers:
-                rv = 'cobbler'
-            elif node in ci.nodes().stomps:
-                rv = 'stomp'
-            return str(rv)
-        nodes = ci.nodes().all
-        return map(
-            lambda x:
-               {   
-                   'name': str(x.name),
-                   'role': get_role(ci, x),
-                   'internal_address': x.get_ip_address_by_network_name('internal'),
-                   'public_address': x.get_ip_address_by_network_name('public'),
-               }
-        ,
-            nodes)
+        zones = range(1, 50)
+        nodes = []
+        for node in ci.nodes().computes: nodes.append(self.describe_swift_node(node, 'compute', zones.pop()))
+        for node in ci.nodes().controllers: nodes.append(self.describe_node(node, 'controller'))
+        for node in ci.nodes().storages: nodes.append(self.describe_swift_node(node, 'storage', zones.pop()))
+        for node in ci.nodes().proxies: nodes.append(self.describe_node(node, 'swift-proxy'))
+        for node in ci.nodes().quantums: nodes.append(self.describe_node(node, 'quantum'))
+        for node in ci.nodes().masters: nodes.append(self.describe_node(node, 'master'))
+        for node in ci.nodes().cobblers: nodes.append(self.describe_node(node, 'cobbler'))
+        for node in ci.nodes().stomps: nodes.append(self.describe_node(node, 'stomp'))
+        return nodes
 
     def self_test(self):
         class Node(object):
