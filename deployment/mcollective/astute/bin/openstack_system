@@ -237,6 +237,10 @@ class ConfigYaml
   def deployment_id()
     self.obligatory('deployment_id')
   end
+
+  def swift_loopback()
+    self.obligatory('swift_loopback')
+  end
 end
 
 class Manifest
@@ -245,9 +249,10 @@ class Manifest
       template.replace(:internal_virtual_ip => config.internal_virtual_ip(),
                        :public_virtual_ip => config.public_virtual_ip())
     end
-    if ! config.deployment_id().nil?
-      template.replace(:deployment_id => config.deployment_id())
-    end
+
+    template.replace(:deployment_id => config.deployment_id()) unless config.deployment_id().nil?
+    template.replace(:swift_loopback => config.swift_loopback()) unless config.swift_loopback().nil?
+
     template.replace(:floating_range => config.floating_range(),
                      :fixed_range => config.fixed_range(),
                      :mirror_type => config.mirror_type(),
