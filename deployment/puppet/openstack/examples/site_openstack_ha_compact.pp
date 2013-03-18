@@ -44,18 +44,21 @@ $nodes_harr = [
     'role' => 'controller',
     'internal_address' => '10.0.0.103',
     'public_address'   => '10.0.204.103',
+    'swift_zone'       => 1,
   },
   {
     'name' => 'fuel-controller-02',
     'role' => 'controller',
     'internal_address' => '10.0.0.104',
     'public_address'   => '10.0.204.104',
+    'swift_zone'       => 2,
   },
   {
     'name' => 'fuel-controller-03',
     'role' => 'controller',
     'internal_address' => '10.0.0.105',
     'public_address'   => '10.0.204.105',
+    'swift_zone'       => 3,
   },
   {
     'name' => 'fuel-compute-01',
@@ -536,7 +539,7 @@ class compact_controller (
 }
 
 # Definition of the first OpenStack controller.
-node /fuel-controller-01/ {
+node /fuel-controller-[\d+]/ {
   include stdlib
   class { 'operatingsystem::checksupported':
       stage => 'setup'
@@ -563,97 +566,7 @@ node /fuel-controller-01/ {
   }
   
   class { compact_controller: }
-  $swift_zone = 1
-
-  class { 'openstack::swift::storage_node':
-    storage_type       => $swift_loopback,
-    swift_zone         => $swift_zone,
-    swift_local_net_ip => $internal_address,
-  }
-
-  class { 'openstack::swift::proxy':
-    swift_user_password     => $swift_user_password,
-    swift_proxies           => $swift_proxies,
-    primary_proxy           => $primary_proxy,
-    controller_node_address => $internal_virtual_ip,
-    swift_local_net_ip      => $internal_address,
-  }
-}
-
-# Definition of the second OpenStack controller.
-node /fuel-controller-02/ {
-  include stdlib
-  class { 'operatingsystem::checksupported':
-      stage => 'setup'
-  }
-
-  class {'::node_netconfig':
-      mgmt_ipaddr    => $::internal_address,
-      mgmt_netmask   => $::internal_netmask,
-      public_ipaddr  => $::public_address,
-      public_netmask => $::public_netmask,
-      stage          => 'netconfig',
-  }
-
-  class {'nagios':
-    proj_name       => $proj_name,
-    services        => [
-      'host-alive','nova-novncproxy','keystone', 'nova-scheduler',
-      'nova-consoleauth', 'nova-cert', 'haproxy', 'nova-api', 'glance-api',
-      'glance-registry','horizon', 'rabbitmq', 'mysql', 'swift-proxy',
-      'swift-account', 'swift-container', 'swift-object',
-    ],
-    whitelist       => ['127.0.0.1', $nagios_master],
-    hostgroup       => 'controller',
-  }
-  
-  class { 'compact_controller': }
-  $swift_zone = 2
-
-  class { 'openstack::swift::storage_node':
-    storage_type       => $swift_loopback,
-    swift_zone         => $swift_zone,
-    swift_local_net_ip => $internal_address,
-  }
-
-  class { 'openstack::swift::proxy':
-    swift_user_password     => $swift_user_password,
-    swift_proxies           => $swift_proxies,
-    primary_proxy           => $primary_proxy,
-    controller_node_address => $internal_virtual_ip,
-    swift_local_net_ip      => $internal_address,
-  }
-}
-
-# Definition of the third OpenStack controller.
-node /fuel-controller-03/ {
-  include stdlib
-  class { 'operatingsystem::checksupported':
-      stage => 'setup'
-  }
-
-  class {'::node_netconfig':
-      mgmt_ipaddr    => $::internal_address,
-      mgmt_netmask   => $::internal_netmask,
-      public_ipaddr  => $::public_address,
-      public_netmask => $::public_netmask,
-      stage          => 'netconfig',
-  }
-  
-  class {'nagios':
-    proj_name       => $proj_name,
-    services        => [
-      'host-alive','nova-novncproxy','keystone', 'nova-scheduler',
-      'nova-consoleauth', 'nova-cert', 'haproxy', 'nova-api', 'glance-api',
-      'glance-registry','horizon', 'rabbitmq', 'mysql', 'swift-proxy',
-      'swift-account', 'swift-container', 'swift-object',
-    ],
-    whitelist       => ['127.0.0.1', $nagios_master],
-    hostgroup       => 'controller',
-  }
-  
-  class { 'compact_controller': }
-  $swift_zone = 3
+  $swift_zone = $node[0]['swift_zone']
 
   class { 'openstack::swift::storage_node':
     storage_type       => $swift_loopback,

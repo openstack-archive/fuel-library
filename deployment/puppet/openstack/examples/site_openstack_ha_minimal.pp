@@ -511,7 +511,7 @@ class compact_controller (
 }
 
 # Definition of OpenStack controller nodes.
-node /fuel-controller-01/ {
+node /fuel-controller-[\d+]/ {
   include stdlib
   class { 'operatingsystem::checksupported':
       stage => 'setup'
@@ -537,57 +537,6 @@ node /fuel-controller-01/ {
   class { compact_controller: }
 }
 
-node /fuel-controller-02/ {
-  include stdlib
-  class { 'operatingsystem::checksupported':
-      stage => 'setup'
-  }
-
-  class {'::node_netconfig':
-      mgmt_ipaddr    => $::internal_address,
-      mgmt_netmask   => $::internal_netmask,
-      public_ipaddr  => $::public_address,
-      public_netmask => $::public_netmask,
-      stage          => 'netconfig',
-  }
-  class {'nagios':
-    proj_name       => $proj_name,
-    services        => [
-      'host-alive','nova-novncproxy','keystone', 'nova-scheduler',
-      'nova-consoleauth', 'nova-cert', 'haproxy', 'nova-api', 'glance-api',
-      'glance-registry','horizon', 'rabbitmq', 'mysql'
-    ],
-    whitelist       => ['127.0.0.1', $nagios_master],
-    hostgroup       => 'controller',
-  }
-  class { compact_controller: }
-}
-
-node /fuel-controller-03/ {
-  include stdlib
-  class { 'operatingsystem::checksupported':
-      stage => 'setup'
-  }
-
-  class {'::node_netconfig':
-      mgmt_ipaddr    => $::internal_address,
-      mgmt_netmask   => $::internal_netmask,
-      public_ipaddr  => $::public_address,
-      public_netmask => $::public_netmask,
-      stage          => 'netconfig',
-  }
-  class {'nagios':
-    proj_name       => $proj_name,
-    services        => [
-      'host-alive','nova-novncproxy','keystone', 'nova-scheduler',
-      'nova-consoleauth', 'nova-cert', 'haproxy', 'nova-api', 'glance-api',
-      'glance-registry','horizon', 'rabbitmq', 'mysql'
-    ],
-    whitelist       => ['127.0.0.1', $nagios_master],
-    hostgroup       => 'controller',
-  }
-  class { 'compact_controller': }
-}
 
 # Definition of OpenStack compute nodes.
 node /fuel-compute-[\d+]/ {

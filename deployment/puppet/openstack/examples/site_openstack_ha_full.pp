@@ -86,18 +86,21 @@ $nodes_harr = [
     'role' => 'storage',
     'internal_address' => '10.0.0.110',
     'public_address'   => '10.0.204.110',
+    'swift_zone'       => 1,
   },
   {
     'name' => 'fuel-swift-02',
     'role' => 'storage',
     'internal_address' => '10.0.0.111',
     'public_address'   => '10.0.204.111',
+    'swift_zone'       => 2,
   },
   {
     'name' => 'fuel-swift-03',
     'role' => 'storage',
     'internal_address' => '10.0.0.112',
     'public_address'   => '10.0.204.112',
+    'swift_zone'       => 3,
   }
 ]
 
@@ -577,25 +580,7 @@ class ha_controller (
 }
 
 # Definition of OpenStack controller nodes.
-node /fuel-controller-01/ {
-  include stdlib
-  class { 'operatingsystem::checksupported':
-      stage => 'setup'
-  }
-
-  class { ha_controller: }
-}
-
-node /fuel-controller-02/ {
-  include stdlib
-  class { 'operatingsystem::checksupported':
-      stage => 'setup'
-  }
-
-  class { ha_controller: }
-}
-
-node /fuel-controller-03/ {
+node /fuel-controller-[\d+]/ {
   include stdlib
   class { 'operatingsystem::checksupported':
       stage => 'setup'
@@ -694,75 +679,7 @@ node /fuel-swift-01/ {
     hostgroup       => 'swift-storage',
   }
   
-  $swift_zone = 1
-
-  class { 'openstack::swift::storage_node':
-    storage_type       => $swift_loopback,
-    swift_zone         => $swift_zone,
-    swift_local_net_ip => $internal_address,
-  }
-
-}
-
-# Definition of the second OpenStack Swift node.
-node /fuel-swift-02/ {
-  include stdlib
-  class { 'operatingsystem::checksupported':
-      stage => 'setup'
-  }
-
-  class {'::node_netconfig':
-    mgmt_ipaddr    => $::internal_address,
-    mgmt_netmask   => $::internal_netmask,
-    public_ipaddr  => $::public_address,
-    public_netmask => $::public_netmask,
-    stage          => 'netconfig',
-  }
-
-  class {'nagios':
-    proj_name       => $proj_name,
-    services        => [
-      'host-alive', 'swift-account', 'swift-container', 'swift-object',
-    ],
-    whitelist       => ['127.0.0.1', $nagios_master],
-    hostgroup       => 'swift-storage',
-  }
-  
-  $swift_zone = 2
-
-  class { 'openstack::swift::storage_node':
-    storage_type       => $swift_loopback,
-    swift_zone         => $swift_zone,
-    swift_local_net_ip => $internal_address,
-  }
-
-}
-
-# Definition of the third OpenStack Swift node.
-node /fuel-swift-03/ {
-  include stdlib
-  class { 'operatingsystem::checksupported':
-      stage => 'setup'
-  }
-
-  class {'::node_netconfig':
-    mgmt_ipaddr    => $::internal_address,
-    mgmt_netmask   => $::internal_netmask,
-    public_ipaddr  => $::public_address,
-    public_netmask => $::public_netmask,
-    stage          => 'netconfig',
-  }
-
-  class {'nagios':
-    proj_name       => $proj_name,
-    services        => [
-      'host-alive', 'swift-account', 'swift-container', 'swift-object',
-    ],
-    whitelist       => ['127.0.0.1', $nagios_master],
-    hostgroup       => 'swift-storage',
-  }
-
-  $swift_zone = 3
+  $swift_zone = $node[0]['swift_zone']
 
   class { 'openstack::swift::storage_node':
     storage_type       => $swift_loopback,
