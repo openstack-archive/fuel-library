@@ -47,7 +47,7 @@ define haproxy_service($order, $balancers, $virtual_ips, $port, $define_cookies 
       $balancermember_options = 'check inter 5000 rise 2 fall 3'
       $balancer_port = 5673
     }
-    
+
     default: {
       $haproxy_config_options = { 'option' => ['httplog'], 'balance' => 'roundrobin' }
       $balancermember_options = 'check'
@@ -96,8 +96,8 @@ class openstack::controller_ha (
    $quantum = false, $quantum_user_password='', $quantum_db_password='', $quantum_db_user = 'quantum',
    $quantum_db_dbname  = 'quantum', $cinder = false, $cinder_iscsi_bind_iface = false, $tenant_network_type = 'gre', $segment_range = '1:4094',
    $nv_physical_volume = undef, $manage_volumes = false,$galera_nodes, $use_syslog = false,
-   $cinder_rate_limits = undef, $nova_rate_limits = undef, 
-   $rabbit_node_ip_address  = $internal_address, 
+   $cinder_rate_limits = undef, $nova_rate_limits = undef,
+   $rabbit_node_ip_address  = $internal_address,
    $horizon_use_ssl         = false,
    $quantum_network_node    = false,
    $quantum_netnode_on_cnt  = false,
@@ -175,15 +175,15 @@ local0.* -/var/log/haproxy.log'
         path    => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
         before  => Service['keepalived'],
         require => Exec['up-public-interface'],
-      }   
-    }   
+      }
+    }
 
     keepalived_dhcp_hook {$public_interface:interface=>$public_interface}
     if $internal_interface != $public_interface {
       keepalived_dhcp_hook {$internal_interface:interface=>$internal_interface}
     }
 
-    Keepalived_dhcp_hook<| |> {before =>Service['keepalived']} 
+    Keepalived_dhcp_hook<| |> {before =>Service['keepalived']}
 
     if $primary_controller {
       exec { 'create-internal-virtual-ip':
@@ -192,8 +192,8 @@ local0.* -/var/log/haproxy.log'
         path    => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
         before  => Service['keepalived'],
         require => Exec['up-internal-interface'],
-      }   
-    }   
+      }
+    }
     sysctl::value { 'net.ipv4.ip_nonlocal_bind': value => '1' }
 
     package {'socat': ensure => present}
@@ -215,14 +215,14 @@ local0.* -/var/log/haproxy.log'
     Exec['wait-for-haproxy-mysql-backend'] -> Service <| title == 'cinder-api' |>
 
     class { 'haproxy':
-      enable => true, 
+      enable => true,
       global_options   => merge($::haproxy::params::global_options, {'log' => "${internal_address} local0"}),
       defaults_options => merge($::haproxy::params::defaults_options, {'mode' => 'http'}),
       require => Sysctl::Value['net.ipv4.ip_nonlocal_bind'],
     }
 
 #    exec { 'create-keepalived-rules':
-#        command => "iptables -I INPUT -m pkttype --pkt-type multicast -d 224.0.0.18 -j ACCEPT && /etc/init.d/iptables save ", 
+#        command => "iptables -I INPUT -m pkttype --pkt-type multicast -d 224.0.0.18 -j ACCEPT && /etc/init.d/iptables save ",
 #        unless => "iptables-save  | grep '\-A INPUT -d 224.0.0.18/32 -m pkttype --pkt-type multicast -j ACCEPT' -q",
 #        path => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
 #        before => Service['keepalived'],
@@ -233,8 +233,8 @@ local0.* -/var/log/haproxy.log'
     $public_vrid   = $::deployment_id
     $internal_vrid = $::deployment_id + 1
 
-    class { 'keepalived': 
-      require => [ Class['haproxy'], Class['::openstack::firewall']  ] 
+    class { 'keepalived':
+      require => [ Class['haproxy'], Class['::openstack::firewall']  ]
     }
 
     keepalived::instance { $public_vrid:
@@ -323,7 +323,7 @@ local0.* -/var/log/haproxy.log'
       horizon_use_ssl         => $horizon_use_ssl,
       ha_mode                 => $ha_mode,
     }
-    if $quantum_network_node {
+    if $quantum and $quantum_network_node {
       class { '::openstack::quantum_router':
         db_host               => $internal_virtual_ip,
         service_endpoint      => $internal_virtual_ip,
@@ -367,7 +367,7 @@ local0.* -/var/log/haproxy.log'
       if $use_unicast_corosync {
       $unicast_addresses = $controller_internal_addresses
       }
-      else 
+      else
       {
         $unicast_addresses = undef
       }
