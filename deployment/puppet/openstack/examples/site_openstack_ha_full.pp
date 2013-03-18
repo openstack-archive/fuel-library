@@ -656,7 +656,7 @@ node /fuel-compute-[\d+]/ {
 }
 
 # Definition of the first OpenStack Swift node.
-node /fuel-swift-01/ {
+node /fuel-swift-[\d+]/ {
   include stdlib
   class { 'operatingsystem::checksupported':
       stage => 'setup'
