@@ -125,13 +125,15 @@ class Manifest(object):
          'internal_address': node.get_ip_address_by_network_name('internal'),'public_address': node.get_ip_address_by_network_name('public'),}
 
     def describe_swift_node(self, node, role, zone):
-        return self.describe_node(node, role).update(swift_zone = zone)
+        node_dict = self.describe_node(node, role)
+        node_dict.update({'swift_zone': zone})
+        return node_dict
 
     def generate_nodes_configs_list(self, ci):
         zones = range(1, 50)
         nodes = []
-        for node in ci.nodes().computes: nodes.append(self.describe_swift_node(node, 'compute', zones.pop()))
-        for node in ci.nodes().controllers: nodes.append(self.describe_node(node, 'controller'))
+        for node in ci.nodes().computes: nodes.append(self.describe_node(node, 'compute'))
+        for node in ci.nodes().controllers: nodes.append(self.describe_swift_node(node, 'controller', zones.pop()))
         for node in ci.nodes().storages: nodes.append(self.describe_swift_node(node, 'storage', zones.pop()))
         for node in ci.nodes().proxies: nodes.append(self.describe_node(node, 'swift-proxy'))
         for node in ci.nodes().quantums: nodes.append(self.describe_node(node, 'quantum'))
