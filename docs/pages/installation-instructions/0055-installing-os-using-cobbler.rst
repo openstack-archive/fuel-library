@@ -66,8 +66,9 @@ record the corresponding mac address.
 
 
         * Enable Network Adapter
-        * Attached to: Hostonly Adapter
+        * Attached to: Internal
         * Name: vboxnet1
+        * Advanced -> Promiscuous mode: Allow All
 
 
 
@@ -76,7 +77,7 @@ record the corresponding mac address.
 
 
         * Enable Network Adapter
-        * Attached to: Hostonly Adapter
+        * Attached to: Internal
         * Name: vboxnet2
         * Advanced -> Promiscuous mode: Allow All
 
@@ -125,122 +126,6 @@ using Adapter 4 is much easier.
 Also, the additional drive volume will be used as storage space by Cinder, and configured later in the process.
 
 
-Configuring nodes in Cobbler
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Now you need to define nodes in the Cobbler configuration, so that it
-knows what OS to install, where to install it, and what configuration
-actions to take. On fuel-pm, create a directory for
-configuration (wherever you like) and copy the sample config file for
-Cobbler from Fuel::
-
-
-
-    mkdir cobbler_config
-    cd cobbler_config
-    cp /etc/puppet/modules/cobbler/examples/cobbler_system.py .
-    cp /etc/puppet/modules/cobbler/examples/config.yaml .
-
-
-
-This configuration file contains definitions for all of the OpenStack
-nodes in your cluster. You can either keep them together in one file,
-or create a separate file for each node. In any case, lets look at the
-configuration for a single node. As you can see, you will need to make
-sure that you check and/or edit the following values **for every single
-node**:
-
-
-
-
-* The name of the system in Cobbler
-* The profile -- switch to ubuntu_1204_x86_64 if necessary
-* The correct version of Puppet according to your target OS
-* Your domain name
-* The hostname and DNS IP
-* MAC addresses for every network interface
-* The static IP address on management interface eth0
-* The default gateway for your network
-* The mac address for eth3, **which doesnt exist** in the default  configuration
-
-
-**(Need to add the config.yaml information here.)**
-
-Heres what the file should look like for fuel-controller-01. Replace
-your-domain-name.com and the mac addresses with your own values to
-complete the changes::
-
-
-
-    fuel-controller-01:
-      # for Centos
-      profile: "centos63_x86_64"
-      # for Ubuntu
-      # profile: "ubuntu_1204_x86_64"
-      netboot-enabled: "1"
-      # for Ubuntu
-      # ksmeta: "puppet_version=2.7.19-1puppetlabs2 \
-      # for Centos
-    ksmeta: "puppet_version=2.7.19-1.el6\
-    puppet_auto_setup=1 \
-    puppet_master=fuel-pm.your-domain-name.com\
-    puppet_enable=0 \
-    ntp_enable=1 \
-    mco_auto_setup=1 \
-    mco_pskey=un0aez2ei9eiGaequaey4loocohjuch4Ievu3shaeweeg5Uthi \
-    mco_stomphost=10.0.0.100\
-    mco_stompport=61613 \
-    mco_stompuser=mcollective \
-    mco_stomppassword=AeN5mi5thahz2Aiveexo \
-    mco_enable=1"
-    # If you need create 'cinder-volumes' VG at install OS -- uncomment this line and move it above in middle of ksmeta section.
-    # At this line you need describe list of block devices, that must come in this group.
-    # cinder_bd_for_vg=/dev/sdb,/dev/sdc \
-      hostname: "fuel-controller-01"
-      name-servers: "10.0.0.100"
-      name-servers-search: "your-domain-name.com"
-      interfaces:
-        eth0:
-            mac: "52:54:00:0a:39:ec"
-            static: "1"
-            ip-address: "10.0.0.101"
-            netmask: "255.255.255.0"
-            dns-name: "fuel-controller-01.your-domain-name.com"
-            management: "1"
-        eth1:
-            mac: "52:54:00:e6:dc:c9"
-            static: "0"
-        eth2:
-            mac: "52:54:00:ae:22:04"
-            static: "1"
-        eth3:
-            mac: "52:54:00:ae:44:42"
-        interfaces_extra:
-            eth0:
-                peerdns: "no"
-            eth1:
-                peerdns: "no"
-            eth2:
-                promisc: "yes"
-                userctl: "yes"
-                peerdns: "no"
-
-
-Next you need to load these values into Cobbler. For the sake of
-convenience, Fuel includes the ./cobbler_system.py script, which reads
-the definition of the systems from the yaml file and makes calls to
-Cobbler API to insert these systems into the configuration. Run it
-using the following command::
-
-
-
-    ./cobbler_system.py -f nodes.yaml -l DEBUG
-
-
-
-If you've separated the configuration for your nodes into multiple
-files, be sure to run this once for each file.
-
 
 Installing OS on the nodes using Cobbler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -267,7 +152,9 @@ fuel-controller-02, fuel-controller-03, fuel-compute-01) as follows:
     ping fuel-pm.your-domain-name.com
     ping download.mirantis.com
 
+If you're unable to ping outside addresses, add the fuel-pm server as a default gateway::
 
+    route add default gw 10.20.0.10
 
 **It is important to note** that if you use VLANs in your network
 configuration, you always have to keep in mind the fact that PXE
@@ -331,7 +218,7 @@ fdisk and initialize it.  To do that, follow these steps:
 
 
 
-    echo "/div/sdv1 /srv/node/sdb1 xfs
+    echo "/dev/sdb1 /srv/node/sdb1 xfs
     noatime,nodiratime,nobarrier,logbufs=8 0 0" >> /etc/fstab
     mount -a
 
