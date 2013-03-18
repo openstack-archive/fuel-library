@@ -524,7 +524,7 @@ class compact_controller (
     nova_rate_limits        => $nova_rate_limits,
     cinder_rate_limits      => $cinder_rate_limits,
     horizon_use_ssl         => $horizon_use_ssl,
-    use_unicast_corosync  => $use_unicast_corosync,
+    use_unicast_corosync    => $use_unicast_corosync,
     ha_provider             => $ha_provider
   }
   class { 'swift::keystone::auth':
