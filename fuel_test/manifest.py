@@ -125,7 +125,7 @@ class Manifest(object):
          'internal_address': node.get_ip_address_by_network_name('internal'),'public_address': node.get_ip_address_by_network_name('public'),}
 
     def describe_swift_node(self, node, role, zone):
-        return self.describe_node(node, role).update('swift_zone', zone)
+        return self.describe_node(node, role).update(swift_zone = zone)
 
     def generate_nodes_configs_list(self, ci):
         zones = range(1, 50)
