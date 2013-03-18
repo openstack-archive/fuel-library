@@ -12,6 +12,7 @@
 #if $str($getVar('mco_auto_setup','')) == "1"
     #silent $pkgsel_packages.append("ruby-stomp")
     #silent $pkgsel_packages.append("mcollective")
+    #silent $pkgsel_packages.append("supervisor")
 #end if
 
 d-i pkgsel/include string #echo " ".join($pkgsel_packages)

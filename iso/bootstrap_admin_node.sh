@@ -102,4 +102,4 @@ iptables -A PREROUTING -t nat -i $mgmt_if -s $mgmt_ip/$mgmt_mask ! -d $mgmt_ip -
 gem install /var/www/astute-0.0.1.gem
 
 cp `find / -name config.yaml -print0 | grep -FzZ 'samples/config.yaml'` /root
-) >> $log
+) 2>&1 >> $log
