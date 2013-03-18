@@ -17,8 +17,10 @@
 define corosync::cleanup () {
   Cs_resource <| name == $name |> ~> Exec["crm resource cleanup $name"]
 
+  ##FIXME: we need to create a better way to workaround crm commit <-> cleanup race condition than a simple sleep 
+
   exec { "crm resource cleanup $name":
-    command     => "crm resource cleanup $name || :",
+    command     => "(sleep 5 && crm resource cleanup $name) || :",
     path        => ['/bin', '/usr/bin', '/sbin', '/usr/sbin'],
     refreshonly => true,
     timeout     => 600,
