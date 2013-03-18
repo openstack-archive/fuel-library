@@ -112,8 +112,6 @@ class quantum::agents::ovs (
       }
       ,
     }
-    Package[$ovs_agent_package] -> Exec['quantum-plugin-ovs-service_stopped']
-    Exec['quantum-plugin-ovs-service_stopped'] -> Cs_resource["p_${::quantum::params::ovs_agent_service}"]
 
     case $::osfamily {
       /(?i)redhat/: {
@@ -134,7 +132,10 @@ class quantum::agents::ovs (
       onlyif => "service ${::quantum::params::ovs_agent_service} status | grep \'${started_status}\'",
       path   => ['/usr/bin', '/usr/sbin', '/bin', '/sbin'],
     }
-    Service['quantum-plugin-ovs-service_stopped'] -> Exec['quantum-plugin-ovs-service_stopped']
+    Package[$ovs_agent_package] ->
+      Service['quantum-plugin-ovs-service_stopped'] ->
+        Exec['quantum-plugin-ovs-service_stopped'] ->
+          Cs_resource["p_${::quantum::params::ovs_agent_service}"]
 
     service { 'quantum-plugin-ovs-service':
       name       => "p_${::quantum::params::ovs_agent_service}",
