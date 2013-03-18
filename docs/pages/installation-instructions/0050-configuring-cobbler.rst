@@ -266,7 +266,7 @@ Repeat that step for any additional controllers::
         peerdns: "no"
   
 
-This file has been customized for the example in the docs, but in general you will need to be certain that IP and gateway information matches the decisions you made earlier in the process.
+This file has been customized for the example in the docs, but in general you will need to be certain that IP and gateway information -- in addition to the MAC addresses -- matches the decisions you made earlier in the process.
 
 
 
