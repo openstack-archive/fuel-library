@@ -11,8 +11,8 @@ class CompactTestCase(CobblerTestCase):
         self.do(self.nodes().controllers[1:], 'puppet agent --test 2>&1')
         if loopback:
             self.do(self.nodes().controllers, 'puppet agent --test 2>&1')
-        self.do(self.nodes().controllers[1:], 'puppet agent --test 2>&1')
         self.do(self.nodes().controllers[:1], 'puppet agent --test 2>&1')
+        self.do(self.nodes().controllers[1:], 'puppet agent --test 2>&1')
         self.validate(self.nodes().controllers, 'puppet agent --test 2>&1')
         if quantum:
             self.validate(self.nodes().quantums, 'puppet agent --test 2>&1')
