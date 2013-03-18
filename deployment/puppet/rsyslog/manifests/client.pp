@@ -6,8 +6,13 @@ class rsyslog::client (
   $custom_config  = undef,
   $server         = 'log',
   $port           = '514',
-  $escapenewline  = false
-) inherits rsyslog {
+  $escapenewline  = false,
+  $rservers       = undef
+  ) inherits rsyslog {
+
+  if $rservers == undef {
+    $rservers = [{'remote_type'=>$remote_type, 'server'=>$server, 'port'=>$port}]
+  }
 
   $content_real = $custom_config ? {
     ''      => template("${module_name}/client.conf.erb"),

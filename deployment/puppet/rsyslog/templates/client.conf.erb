@@ -14,12 +14,16 @@ $ActionResumeRetryCount -1      # infinety retries if host is down
 
 <% if scope.lookupvar('rsyslog::client::log_remote') -%>
 # Log to remote syslog server using <%= scope.lookupvar('rsyslog::client::remote_type') %>
-<% if scope.lookupvar('rsyslog::client::remote_type') == 'tcp' -%>
-*.* @@<%= scope.lookupvar('rsyslog::client::server') -%>:<%= scope.lookupvar('rsyslog::client::port') -%>;RSYSLOG_ForwardFormat
+<% scope.lookupvar('rsyslog::client::rservers').each do |rserver| -%>
+<% if rserver['remote_type'] == 'tcp' -%>
+*.* @@<%= rserver['server']-%>:<%= rserver['port'] -%>;RSYSLOG_ForwardFormat
 <% else -%>
-*.* @<%= scope.lookupvar('rsyslog::client::server') -%>:<%= scope.lookupvar('rsyslog::client::port') -%>;RSYSLOG_ForwardFormat
+*.* @<%= rserver['server'] -%>:<%= rserver['port'] -%>;RSYSLOG_ForwardFormat
 <% end -%>
 <% end -%>
+<% end -%>
+
+
 
 <% if scope.lookupvar('rsyslog::client::log_auth_local') or scope.lookupvar('rsyslog::client::log_local') -%>
 # We log locally, restore to default format
@@ -77,7 +81,7 @@ news.notice                     -/var/log/news/news.notice
 
 # The named pipe /dev/xconsole is for the `xconsole' utility.  To use it,
 # you must invoke `xconsole' with the `-file' option:
-# 
+#
 #    $ xconsole -file /dev/xconsole [...]
 #
 # NOTE: adjust the list below, or you'll go crazy if you have a reasonably
