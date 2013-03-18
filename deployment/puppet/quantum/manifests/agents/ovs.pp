@@ -128,7 +128,7 @@ class quantum::agents::ovs (
       hasstatus  => false,
     }
     exec { 'quantum-plugin-ovs-service_stopped':
-      name   => "service ${::quantum::params::ovs_agent_service} stop",
+      name   => "bash -c \"service ${::quantum::params::ovs_agent_service} stop || ( kill `pgrep -f quantum-openvswitch-agent` || : )\"",
       onlyif => "service ${::quantum::params::ovs_agent_service} status | grep \'${started_status}\'",
       path   => ['/usr/bin', '/usr/sbin', '/bin', '/sbin'],
     }
