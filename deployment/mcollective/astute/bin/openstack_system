@@ -279,7 +279,7 @@ class Manifest
                      :segment_range => config.segment_range(),
                      :repo_proxy => config.repo_proxy(),
                      :public_netmask => config.public_netmask(),
-                     :internal_netmask => config.internal_netmask(),
+                     :internal_netmask => config.internal_netmask()
     )
 
     if config.swift()
