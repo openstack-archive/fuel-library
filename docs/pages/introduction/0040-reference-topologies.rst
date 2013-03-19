@@ -16,10 +16,6 @@ requiring extensive customization:
 
     **Standalone Swift**: This option enables you to install independant Swift nodes, so that you can separate their operation from your controller nodes.
 
-[INSERT GRAPHIC, ALIGNED TO THE SIDE TO PREVENT TEXT BREAK,
-DEMONSTRATING THE DIFFERENCE BETWEEN COMPACT SWIFT AND STANDALONE
-SWIFT IN TERMS OF SERVERS REQUIRED.]
-
 **Multi-node (HA)**: When you're ready to begin your move to production, the Multi-node (HA) topology is a straightforward way to create an OpenStack cluster that provides high availability. With three controller nodes and the ability to individually specify services such as Cinder, Quantum, and Swift, Fuel provides the following variations of the Multi-node (HA) topology:
 
     **Compact Swift**: When you choose this variation, Swift will be installed on your controllers, reducing your hardware requirements by eliminating the need for additional Swift servers while still addressing high availability requirements.

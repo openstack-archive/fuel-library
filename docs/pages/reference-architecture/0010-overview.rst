@@ -79,12 +79,7 @@ is that your controller(s) are separate from your compute servers, on
 which your users' VMs will actually run. One arrangement that will
 enable you to achieve this separation while still keeping your
 hardware investment relatively modest is to house your storage on your
-controller nodes:
-
-
-
-[INSERT DIAGRAM HERE]
-
+controller nodes.
 
 
 Multi-node (non-HA) deployment (standalone Swift)
