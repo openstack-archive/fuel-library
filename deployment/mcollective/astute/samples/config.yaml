@@ -28,6 +28,8 @@ common:
    internal_interface: eth0
    public_interface: eth1
    private_interface: eth2
+   public_netmask: 255.255.255.0
+   internal_netmask: 255.255.255.0
    default_gateway: 10.0.1.100
    nagios_master: fuel-controller-01.your-domain-name.com
    loopback: loopback

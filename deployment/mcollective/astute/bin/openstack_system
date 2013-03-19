@@ -150,6 +150,14 @@ class ConfigYaml
     self.mandatory('mirror_type')
   end
 
+  def public_netmask()
+    self.mandatory('public_netmask')
+  end
+
+  def internal_netmask()
+    self.mandatory('internal_netmask')
+  end
+
   def template()
     self.obligatory('template')
   end
@@ -269,7 +277,9 @@ class Manifest
                      :dns_nameservers => config.dns_nameservers(),
                      :default_gateway => config.default_gateway(),
                      :segment_range => config.segment_range(),
-                     :repo_proxy => config.repo_proxy()
+                     :repo_proxy => config.repo_proxy(),
+                     :public_netmask => config.public_netmask(),
+                     :internal_netmask => config.internal_netmask(),
     )
 
     if config.swift()

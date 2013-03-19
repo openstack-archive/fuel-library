@@ -218,6 +218,8 @@ class Manifest(object):
             enable_test_repo=TEST_REPO,
             deployment_id = self.deployment_id(ci),
             use_syslog=use_syslog,
+            public_netmask = ci.public_net_mask(),
+            internal_netmask = ci.internal_net_mask(),
         )
         if is_not_essex():
             template.replace(
@@ -274,6 +276,8 @@ class Manifest(object):
             ntp_servers=['pool.ntp.org',ci.internal_router()],
             enable_test_repo=TEST_REPO,
             deployment_id = self.deployment_id(ci),
+            public_netmask = ci.public_net_mask(),
+            internal_netmask = ci.internal_net_mask(),
         )
         if is_not_essex():
             template.replace(
@@ -309,6 +313,8 @@ class Manifest(object):
             default_gateway=ci.public_router(),
             enable_test_repo=TEST_REPO,
             deployment_id = self.deployment_id(ci),
+            public_netmask = ci.public_net_mask(),
+            internal_netmask = ci.internal_net_mask(),
         )
         if swift:
             template.replace(swift_loopback=self.loopback(loopback))

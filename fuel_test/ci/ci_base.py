@@ -165,5 +165,8 @@ class CiBase(object):
     def internal_net_mask(self):
         return str(IPNetwork(self.environment().network_by_name('internal').ip_network).netmask)
 
+    def public_net_mask(self):
+        return str(IPNetwork(self.environment().network_by_name('public').ip_network).netmask)
+
     def public_network(self):
         return str(IPNetwork(self.environment().network_by_name('public').ip_network))
