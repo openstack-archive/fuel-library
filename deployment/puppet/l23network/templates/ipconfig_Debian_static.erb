@@ -1,5 +1,6 @@
 auto <%= interface %>
 iface <%= interface %> inet static
+<% if @vlan_mode %>vlan_raw_device <%= @vlan_dev %><% end %>
 address <%= ipaddr %>
 netmask <%= netmask %>
 <% if @def_gateway %>gateway <%= @def_gateway %><% end %>

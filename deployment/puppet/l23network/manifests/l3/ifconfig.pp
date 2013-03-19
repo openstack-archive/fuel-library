@@ -14,6 +14,10 @@
 # [*netmask*]
 #   Specify network mask. Default is '255.255.255.0'.
 #
+# [*vlandev*]
+#   If you configure 802.1q vlan interface wint name vlanXXX
+#   you must specify parent interface in this option
+#
 # [*ifname_order_prefix*]
 #   Centos and Ubuntu at boot time Up and configure network interfaces in
 #   alphabetical order of interface configuration file names.
@@ -36,18 +40,24 @@
 #
 # [*check_by_ping*]
 #   You can put here IP address, that will be pinged after interface UP. We will
-#   be wait that this IP will pinged. 
+#   be wait that this IP will pinged.
 #   Can be IP address, 'none', or 'gateway' for check awailability default gateway
 #   if it exists for this interface.
-#   
+#
 # [*check_by_ping_timeout*]
 #   Timeout for check_by_ping
+#
+#
+# If You configure 802.1q vlan interfaces -- You must declare relationships between
+# them in site.pp.
+# Ex: L23network:L3:Ifconfig['eth2'] -> L23network:L3:Ifconfig['eth2.128']
 #
 define l23network::l3::ifconfig (
     $ipaddr,
     $interface       = $name,
     $netmask         = '255.255.255.0',
     $gateway         = undef,
+    $vlandev         = undef,
     $dns_nameservers = undef,
     $dns_search      = undef,
     $dns_domain      = undef,
@@ -83,6 +93,28 @@ define l23network::l3::ifconfig (
     }
   }
 
+  # Detect VLAN mode configuration
+  case $interface {
+    /^vlan(\d+)/: {
+      $vlan_mode = 'vlan'
+      $vlan_id   = $1
+      if $vlandev {
+        $vlan_dev = $vlandev
+      } else {
+        fail("Can't configure vlan interface ${interface} without definition vlandev=>ethXX.")
+      }
+    }
+    /^(eth\d+)\.(\d+)/: {
+      $vlan_mode = 'eth'
+      $vlan_id   = $2
+      $vlan_dev  = $1
+    }
+    default: {
+      $vlan_mode = undef
+    }
+  }
+
+  # Specify interface file name prefix
   if $ifname_order_prefix {
     $interface_file= "${if_files_dir}/ifcfg-${ifname_order_prefix}-${interface}"
   } else {

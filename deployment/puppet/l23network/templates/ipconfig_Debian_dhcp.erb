@@ -1,3 +1,4 @@
 auto <%= interface %>
 iface <%= interface %> inet dhcp
 <% if @dhcp_hostname %>hostname <%= @dhcp_hostname %><% end %>
+<% if @vlan_mode %>vlan_raw_device <%= @vlan_dev %><% end %>
