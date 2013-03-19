@@ -19,11 +19,9 @@ ultimately PXE boot from. In a simulation environment fuel-pm only
 needs virtual network (hostonlyif) connectivity.
 
 The easiest way to create an instance of fuel-pm is to download the
-Mirantis custom iso from:
+Mirantis ISO from http://fuel.mirantis.com/your-downloads/
 
-[LINK HERE]
-
-This iso can be used to create fuel-pm on a physical or virtual
+This ISO can be used to create fuel-pm on a physical or virtual
 machine based on CentOS6.3x86_64minimal.iso. If for some reason you
 can't use this ISO, follow the instructions in :ref:`Creating the Puppet master <Create-PM>` to create
 your own fuel-pm, then skip ahead to :ref:`Configuring fuel-pm <Configuring-Fuel-PM>`.

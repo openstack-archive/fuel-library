@@ -8,6 +8,8 @@ When deploying large clusters -- those of 100 nodes or more -- there are two bas
 
 All of these bottlenecks can be mitigated with careful planning.
 
+If you are deploying Fuel 2.1 from the ISO, Fuel takes care of these problems by careful use of caching and orchestration, but it's good to have a sense of how to solve these problems.
+
 Certificate signing requests and Puppet Master/Cobbler capacity
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -33,4 +35,4 @@ Another option is to prevent the need to download so much data in the first plac
 
 To use apt-cacher, the kickstarts Cobbler provides to each node should specify Cobbler's IP address and the apt-cacher port as the proxy server.  This will prevent all of the nodes from having to download the software individually.
 
-Contact Mirantis for information on creating a private repository.
+`Contact Mirantis <http://www.mirantis.com/contact/>`_ for information on creating a private repository.

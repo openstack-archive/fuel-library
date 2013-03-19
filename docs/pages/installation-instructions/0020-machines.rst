@@ -8,14 +8,9 @@ hardware and software in place.
 Software
 ^^^^^^^^
 
-You can download the latest release of the Fuel ISO here:
+You can download the latest release of the Fuel ISO from http://fuel.mirantis.com/your-downloads/
 
-[LINK HERE]
-
-
-Alternatively, if you can't use the pre-built ISO, you can install Fuel Library and create the fuel-pm machine manually.  Download the library here:
-
-[LINK HERE]
+Alternatively, if you can't use the pre-built ISO, you can install Fuel Library and create the fuel-pm machine manually. The library can be downloaded as .tar.gz using the same link.
 
 
 Hardware for a virtual installation
