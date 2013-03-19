@@ -163,8 +163,7 @@ class quantum::agents::l3 (
       # turn down the current default route metric priority
       # TODO: make function for recognize REAL defaultroute
       # temporary use
-      $update_default_route_metric = "/sbin/ip route del default via ${::default_gateway};\
-        /sbin/ip route add default via ${::default_gateway} metric 100"
+      $update_default_route_metric = "/sbin/ip route replace default via ${::default_gateway} metric 100"
 
       exec { 'update_default_route_metric':
         command     => $update_default_route_metric,
