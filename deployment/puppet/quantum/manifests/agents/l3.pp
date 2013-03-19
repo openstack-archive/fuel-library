@@ -169,6 +169,7 @@ class quantum::agents::l3 (
         command     => $update_default_route_metric,
         returns     => [0, 7],
         refreshonly => true,
+        path      => ['/usr/bin', '/bin', '/sbin', '/usr/sbin']
       }
       Quantum::Network::Provider_router['router04'] -> Exec['update_default_route_metric']
       Class[quantum::waistline] -> Quantum::Network::Setup <| |>
