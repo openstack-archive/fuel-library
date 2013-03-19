@@ -321,8 +321,5 @@ find / -name message.rb | grep mcollective | xargs sed -i 's/msg_age = Time.now.
 ## /sbin/chkconfig mcollective on
 ## service mcollective restart
 /sbin/chkconfig mcollective off
-service mcollective stop
 /sbin/chkconfig supervisord on
-service supervisord start
-supervisorctl start mcollective
 #end if
