@@ -11,7 +11,10 @@ class rsyslog::client (
   ) inherits rsyslog {
 
   if $rservers == undef {
-    $rservers = [{'remote_type'=>$remote_type, 'server'=>$server, 'port'=>$port}]
+    $rservers_real = [{'remote_type'=>$remote_type, 'server'=>$server, 'port'=>$port}]
+  }
+  else {
+    $rservers_real = $rservers
   }
 
   $content_real = $custom_config ? {
