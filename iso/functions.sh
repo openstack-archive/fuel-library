@@ -112,7 +112,7 @@ echo "1. Change FQDN for masternode and cloud domain"
 echo "2. Configure openstack cloud management interface"
 echo "3. Configure external interface with repositories/internet access"
 echo "4. Change IP range to use for baremetal provisioning via PXE"
-echo "5. Choose set of mirror to use (iso/custom)"
+echo "5. Choose set of mirror to use (default/custom)"
 echo "6. Quit"
 echo -n "Please, select an action to do:"
 }
