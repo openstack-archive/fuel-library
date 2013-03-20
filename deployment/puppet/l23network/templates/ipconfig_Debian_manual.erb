@@ -3,3 +3,9 @@ iface <%= interface %> inet manual
 <% if @vlan_mode %>vlan_raw_device <%= @vlan_dev %><% end %>
 up ip l set <%= interface %> up
 down ip l set <%= interface %> down
+<% if @mtu %>mtu <%= @mtu %><% end %>
+<% if @bond_mode %>bond-mode <%= @bond_mode %>
+slaves none<% if @bond_mode == 4 %>
+bond-miimon <%= @bond_miimon %>
+bond-lacp-rate <%= @bond_lacp_rate %><% end %>
+<% end %>

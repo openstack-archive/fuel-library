@@ -112,6 +112,7 @@ Puppet::Type.type(:l3_if_downup).provide(:ruby) do
         notice("Can't flush interface '#{@resource[:interface]}'.")
       end
     end
+    return true if @resource[:onlydown]
     begin  # Put interface to UP state
       ifup(@resource[:interface])
       notice("Interface '#{@resource[:interface]}' up.")

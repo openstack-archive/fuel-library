@@ -18,6 +18,19 @@
 #   If you configure 802.1q vlan interface wint name vlanXXX
 #   you must specify parent interface in this option
 #
+# [*bond_master*]
+#   This option say, that this interface is a slave of bondX interface.
+#
+# [*bond_mode*]
+#   For interfaces bondNN this option specified bond mode. 
+#   All bond_* options ignored for non-master-bond interfaces.
+#
+# [*bond_miimon*]
+#   lacp MII monitor period. 
+# 
+# [*bond_lacp_rate*]
+#   lacp MII rate
+#
 # [*ifname_order_prefix*]
 #   Centos and Ubuntu at boot time Up and configure network interfaces in
 #   alphabetical order of interface configuration file names.
@@ -58,6 +71,11 @@ define l23network::l3::ifconfig (
     $netmask         = '255.255.255.0',
     $gateway         = undef,
     $vlandev         = undef,
+    $bond_master     = undef,
+    $bond_mode       = undef,
+    $bond_miimon     = 100,
+    $bond_lacp_rate  = 1,
+    $mtu             = undef,
     $dns_nameservers = undef,
     $dns_search      = undef,
     $dns_domain      = undef,
@@ -67,11 +85,27 @@ define l23network::l3::ifconfig (
     $check_by_ping   = 'gateway',
     $check_by_ping_timeout = 120,
 ){
-  case $ipaddr {
-    'dhcp':  { $method = 'dhcp' }
-    'none':  { $method = 'manual' }
-    default: { $method = 'static' }
+  $bond_modes = [
+    'balance-rr',
+    'active-backup',
+    'balance-xor',
+    'broadcast',
+    '802.3ad',
+    'balance-tlb',
+    'balance-alb'
+  ]
+
+  if $bond_master {
+    $method = 'bondslave'
+  } else {
+    case $ipaddr {
+      'dhcp':  { $method = 'dhcp' }
+      'none':  { $method = 'manual' }
+      default: { $method = 'static' }
+    }
   }
+
+  # OS depends constats and packages
   case $::osfamily {
     /(?i)debian/: {
       $if_files_dir = '/etc/network/interfaces.d'
@@ -79,6 +113,8 @@ define l23network::l3::ifconfig (
       if $dns_nameservers {
         $dns_nameservers_join = join($dns_nameservers, ' ')
       }
+      if !defined(Package['vlan']){ package {'vlan': ensure => installed } }
+      if !defined(Package['ifenslave']){ package {'ifenslave': ensure => installed } }
     }
     /(?i)redhat/: {
       $if_files_dir = '/etc/sysconfig/network-scripts'
@@ -87,13 +123,15 @@ define l23network::l3::ifconfig (
         $dns_nameservers_1 = $dns_nameservers[0]
         $dns_nameservers_2 = $dns_nameservers[1]
       }
+      if !defined(Package['vconfig']){ package {'vconfig': ensure => installed } }
     }
     default: {
       fail("Unsupported OS: ${::osfamily}/${::operatingsystem}")
     }
   }
+  if !defined(Package['ethtool']){ package {'ethtool': ensure => installed } }
 
-  # Detect VLAN mode configuration
+  # Detect VLAN and bond mode configuration
   case $interface {
     /^vlan(\d+)/: {
       $vlan_mode = 'vlan'
@@ -108,6 +146,12 @@ define l23network::l3::ifconfig (
       $vlan_mode = 'eth'
       $vlan_id   = $2
       $vlan_dev  = $1
+    }
+    /^(bond\d+)/: {
+      if ! $bond_mode or $bond_mode <0 or $bond_mode>6 {
+        fail("Option bond_mode must be between 0..6, not '${bond_mode}'.") 
+      }
+      $vlan_mode = undef
     }
     default: {
       $vlan_mode = undef
@@ -142,7 +186,8 @@ define l23network::l3::ifconfig (
         content => template('l23network/interfaces.erb'),
       }
     }
-    File[$interfaces] -> File[$if_files_dir]
+    #File[$interfaces] -> File[$if_files_dir]
+    #File<| title == $interfaces |> -> File<| title == $if_files_dir |>
   }
 
   if ! defined(File[$if_files_dir]) {
