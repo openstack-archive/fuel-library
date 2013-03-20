@@ -34,6 +34,7 @@ define l23network::l3::create_br_iface (
     $external_ids = '',
     $dns_nameservers      = undef,
     $save_default_gateway = false,
+    $interface_vlandev    = undef,
 ){
     if ! $external_ids {
       $ext_ids = "bridge-id=${bridge}"
@@ -57,6 +58,7 @@ define l23network::l3::create_br_iface (
     }
     l23network::l3::ifconfig {$interface:
       ipaddr    => 'none',
+      vlandev   => $interface_vlandev,
       require   => L23network::L2::Port[$interface],
     }
     l23network::l3::ifconfig {$bridge:
