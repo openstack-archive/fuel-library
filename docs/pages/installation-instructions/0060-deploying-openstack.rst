@@ -231,8 +231,8 @@ These values don't actually relate to Quantum; they are used by nova-network.  I
   $quantum_gre_bind_addr = $internal_address
 
   #Which IP have Quantum network node?
-  $quantum_net_node_hostname= 'fuel-controller-01'
-  $quantum_net_node_address = $controller_internal_addresses[$quantum_net_node_hostname]
+  $quantum_hostname = 'fuel-controller-01'
+  $quantum_host = $controller_internal_addresses[$quantum_hostname]
 
 If you are installing Quantum in non-HA mode, you will need to specify which single controller controls Quantum. :: 
 
