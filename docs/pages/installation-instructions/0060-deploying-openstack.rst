@@ -326,7 +326,7 @@ Fuel enables you to control multiple deployments simultaneously by setting an in
   ...
   # This parameter specifies the the identifier of the current cluster. This is needed in case of multiple environments.
   # installation. Each cluster requires a unique integer value. 
-  # Valid identifier range is 0 to 254
+  # Valid identifier range is 1 to 254
   $deployment_id = '79'
   ..
 
