@@ -21,6 +21,9 @@ common:
      pool_start: 10.49.54.225
      pool_end: 10.49.54.239
    segment_range: 900:999
+   network_manager: nova.network.manager.FlatDHCPManager
+   auto_assign_floating_ip: true
+   quantum_netnode_on_cnt: true
    use_syslog: true
    syslog_server: 10.49.63.12
    mirror_type: custom
@@ -32,7 +35,6 @@ common:
    internal_netmask: 255.255.255.0
    default_gateway: 10.0.1.100
    nagios_master: fuel-controller-01.your-domain-name.com
-   loopback: loopback
    cinder: true
    cinder_on_computes: true
    swift: true
