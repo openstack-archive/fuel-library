@@ -138,6 +138,14 @@ class ConfigYaml
     end
   end
 
+  def master_hostname()
+    if self.ha?
+      self.mandatory('master_hostname')
+    else
+      self.obligatory('master_hostname')
+    end
+  end
+
   def floating_range()
     self.obligatory('floating_range')
   end
@@ -249,18 +257,29 @@ class ConfigYaml
   def swift_loopback()
     self.obligatory('swift_loopback')
   end
+
+  def network_manager()
+    self.obligatory('network_manager')
+  end
+
+  def auto_assign_floating_ip()
+    self.obligatory('auto_assign_floating_ip')
+  end
+
+  def quantum_netnode_on_cnt()
+    self.obligatory('quantum_netnode_on_cnt')
+  end
 end
 
 class Manifest
   def self.prepare_manifest(template, config)
     if config.ha?
       template.replace(:internal_virtual_ip => config.internal_virtual_ip(),
-                       :public_virtual_ip => config.public_virtual_ip())
+                       :public_virtual_ip => config.public_virtual_ip(),
+                       :master_hostname => config.master_hostname()
+      )
     end
-
     template.replace(:deployment_id => config.deployment_id()) unless config.deployment_id().nil?
-    template.replace(:swift_loopback => config.swift_loopback()) unless config.swift_loopback().nil?
-
     template.replace(:floating_range => config.floating_range(),
                      :fixed_range => config.fixed_range(),
                      :mirror_type => config.mirror_type(),
@@ -279,11 +298,13 @@ class Manifest
                      :segment_range => config.segment_range(),
                      :repo_proxy => config.repo_proxy(),
                      :public_netmask => config.public_netmask(),
-                     :internal_netmask => config.internal_netmask()
+                     :internal_netmask => config.internal_netmask(),
+                     :network_manager => config.network_manager(),
+                     :auto_assign_floating_ip => config.auto_assign_floating_ip(),
+                     :quantum_netnode_on_cnt=> config.quantum_netnode_on_cnt()
     )
-
     if config.swift()
-      template.replace(:swift_loopback => config.loopback())
+      template.replace(:swift_loopback => config.swift_loopback()) unless config.swift_loopback().nil?
     end
     template.replace(:quantum => config.quantum())
   end
