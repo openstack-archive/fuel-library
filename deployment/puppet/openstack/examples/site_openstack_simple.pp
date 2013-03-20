@@ -139,9 +139,6 @@ $tenant_network_type     = 'gre'
 # Which IP address will be used for creating GRE tunnels.
 $quantum_gre_bind_addr = $internal_address
 
-#Which IP have Quantum network node?
-$quantum_net_node_address = $controller_internal_address
-
 # If $external_ipinfo option is not defined, the addresses will be allocated automatically from $floating_range:
 # the first address will be defined as an external default router,
 # the second address will be attached to an uplink bridge interface,
@@ -567,7 +564,7 @@ node /fuel-compute-[\d+]/ {
     quantum                => $quantum,
     quantum_sql_connection => $quantum_sql_connection,
     quantum_user_password  => $quantum_user_password,
-    quantum_host           => $quantum_net_node_address,
+    quantum_host           => $internal_virtual_ip,
     tenant_network_type    => $tenant_network_type,
     service_endpoint       => $controller_internal_address,
     db_host                => $controller_internal_address,
