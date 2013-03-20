@@ -27,8 +27,8 @@ class cobbler::profile::centos63_x86_64(
               "url"  => "http://mirror.stanford.edu/yum/pub/centos/6.3/os/x86_64",
               },
               {
-              "name" => "openstack-epel-fuel",
-              "url"  => "http://download.mirantis.com/epel-fuel-folsom-2.1",
+              "name" => "Epel",
+              "url"  => "http://dl.fedoraproject.org/pub/epel/6/x86_64",
               }],
 
   $ks_system_timezone         = "America/Los_Angeles",

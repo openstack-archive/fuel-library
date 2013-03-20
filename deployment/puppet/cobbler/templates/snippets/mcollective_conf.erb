@@ -26,7 +26,7 @@ factsource = yaml
 plugin.yaml = /etc/mcollective/facts.yaml
 EOCONF
 
-cat <<EOCONF > /etc/supervisord.d/mcollective.ini
+cat <<EOCONF >> /etc/supervisord.conf
 [program:mcollective]
 command=/usr/sbin/mcollectived --config=/etc/mcollective/server.cfg
 autostart=true
