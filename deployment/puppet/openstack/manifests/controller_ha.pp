@@ -196,14 +196,15 @@ local0.* -/var/log/haproxy.log'
     }
     sysctl::value { 'net.ipv4.ip_nonlocal_bind': value => '1' }
 
-    package {'socat': ensure => present}
+    package { 'socat': ensure => present }
     exec { 'wait-for-haproxy-mysql-backend':
-      command => "echo show stat | socat unix-connect:///var/lib/haproxy/stats stdio | grep 'mysqld,BACKEND' | awk -F ',' '{print \$18}' | grep -q 'UP'",
-      path => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
-      require => [Service['haproxy'],Package['socat']],
-      try_sleep   => 5,
-      tries       => 60,
+      command   => "echo show stat | socat unix-connect:///var/lib/haproxy/stats stdio | grep -q '^mysqld,BACKEND,.*,UP,'",
+      path      => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
+      require   => [Service['haproxy'], Package['socat']],
+      try_sleep => 5,
+      tries     => 60,
     }
+
     Exec<| title == 'wait-for-synced-state' |> -> Exec['wait-for-haproxy-mysql-backend']
     Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'initial-db-sync' |>
     Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'keystone-manage db_sync' |>
