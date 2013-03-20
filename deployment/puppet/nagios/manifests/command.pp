@@ -24,7 +24,7 @@ class nagios::command inherits nagios::master {
   }
 
   nagios::command::commands { 'check_rabbitmq':
-    command => "\$USER1$/check_os_rabbitmq connect -H \$HOSTADDRESS$ -P ${rabbit_port} -u ${nagios::master::rabbit_user} -p ${nagios::master::rabbit_pass}",
+    command => "\$USER1$/check_os_rabbitmq connect -H \$HOSTADDRESS$ -P ${nagios::master::rabbit_port} -u ${nagios::master::rabbit_user} -p ${nagios::master::rabbit_pass}",
   }
 
   nagios::command::commands { 'nrpe_check_apt':

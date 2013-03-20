@@ -13,6 +13,7 @@
 # Put all hostgroups from nrpe here (as Array)
 class nagios::master (
 $proj_name         = 'conf.d',
+$nginx            = false,
 $hostgroups        = [],
 $templatehost      = {'name' => 'default-host','check_interval' => '60'},
 $templateservice   = {'name' => 'default-service' ,'check_interval'=>'60'},
@@ -29,8 +30,8 @@ $rabbit_pass       = 'nova',
 $rabbit_port       = '5672',
 $mysql_port        = '3306',
 $nagios3pkg        = $nagios::params::nagios3pkg,
-$masterservice     = $nagios::params::masterservice,
-$masterdir         = $nagios::params::masterdir,
+$masterservice     = $nagios::params::nagios_os_name,
+$masterdir         = $nagios::params::nagios_os_name,
 $htpasswd_file     = $nagios::params::htpasswd_file,
 ) inherits nagios::params {
 
@@ -42,6 +43,9 @@ $htpasswd_file     = $nagios::params::htpasswd_file,
   validate_hash($contactgroups)
   validate_hash($contacts)
 
+  if $nginx == true {
+    include nagios::nginx
+  }
   include nagios::host
   include nagios::service
   include nagios::command

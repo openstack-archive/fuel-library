@@ -1,69 +1,29 @@
-# Class: nagios
-#   This module manages nagios
+#For run nagios nrpe
+#class {'nagios':
+#  proj_name       => 'test',
+#  services        => ['nova-compute','nova-network','libvirt'],
+#  whitelist       => ['127.0.0.1','10.0.97.5'],
+#  hostgroup       => 'compute',
+#}
 #
-# Definition:
-#   nagios::command::commands
-#   nagios::contact::contacts
-#   nagios::contact::contactgroups
-#   nagios::host::hosts
-#   nagios::host::hostgroups
-#   nagios::host::hostextinfo
-#   nagios::service::services
-#   nagios::service::servicegroups
-#   nagios-nrpe::whitelist
+#For nagios master
 #
-# Parameters:
-#   Commands:
-#      $command - specify the command_line
 #
-#   Contacts:
-#      $alias - specify the contact
-#      $email - specify the email, default is root@localhost
-#      $group - specify the contactgroup
-#
-#   Contactgroups:
-#      $alias - specify the contactgroup
-#
-#   Services:
-#      $command - specify the check_command
-#      $group   - specify the servicegroup
-#
-#   Nagios-NRPE:
-#      $whitelist - specify the whitelist, default is 127.0.0.1
-#
-# Actions:
-#   Installs the nagios.cfg etc.
-#
-# Requires:
-#   -
-#
-# Sample Usage:
-#   nagios::command::commands { "nrpe_check_apt":
-#      command => '$USER1$/check_nrpe -H $HOSTADDRESS$ -c check_apt',
-#   }
-#
-#   nagios::contact::contacts { $contacts[user]:
-#      alias => $contacts[alias],
-#      email => $contacts[email],
-#      group => $contacts[group],
-#   }
-#   
-#   nagios::contact::contactgroups { $contactgroups[group]:
-#      alias => $contactgroups[alias],
-#   }
-#   
-#   nagios::host::hosts { "$::hostname": }
-#   
-#   nagios::host::hostgroups { $hostgroups: }
-#   
-#   nagios::host::hostextinfo { "$::hostname": }
-#   
-#   nagios::service::services { "apt":
-#      command => "nrpe_check_apt",
-#   }
-#   
-#   nagios::service::servicegroups { $servicegroups: }
-#
-#   nagios-nrpe::whitelist { "/etc/nagios/nrpe.cfg":
-#      whitelist => hiera('whitelist'),
-#   }
+#class {'nagios::master':
+#  proj_name       => 'test',
+#  rabbitmq        => true,
+#  nginx           => false,
+#  mysql_user      => 'root',
+#  mysql_pass      => 'nova',
+#  mysql_port      => '3307',
+#  rabbit_user     => 'nova',
+#  rabbit_pass     => 'nova',
+#  rabbit_port     => '5673',
+#  templatehost    => {'name' => 'default-host', 'check_interval' => '10'},
+#  templateservice => {'name' => 'default-service', 'check_interval'=>'10'},
+#  hostgroups      => ['compute', 'controller', 'swift-storage', 'swift-proxy'],
+#  contactgroups   => {'group' => 'admins', 'alias' => 'Admins'},
+#  contacts        => {'user' => 'hotkey', 'alias' => 'Dennis Hoppe',
+#                 'email' => 'nagios@%{domain}',
+#                 'group' => 'admins'},
+#}

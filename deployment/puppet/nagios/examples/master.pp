@@ -14,7 +14,8 @@
 node default {
   class {'nagios::master':
     proj_name       => 'test',
-    rabbitmq        => false,
+    rabbitmq        => true,
+    nginx           => false,
     mysql_user      => 'root',
     mysql_pass      => 'nova',
     mysql_port      => '3307',

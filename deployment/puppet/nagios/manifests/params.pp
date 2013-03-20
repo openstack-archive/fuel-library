@@ -57,14 +57,22 @@ class nagios::params {
         'nagios-plugins-rpc', 'nagios-plugins-sensors', 'nagios-plugins-ssh',
         'nagios-plugins-swap', 'nagios-plugins-tcp', 'nagios-plugins-time',
         'nagios-plugins-users',  ]
-      $masterdir = 'nagios'
+      $nagios_os_name = 'nagios'
+      $masterdir = $nagios_os_name
+      $masterservice = $nagios_os_name
       $htpasswd_file  = 'passwd'
-      $libdir    = '/usr/lib64'
+      $libdir = '/usr/lib64'
       $nrpeservice = 'nrpe'
-      $masterservice = 'nagios'
       $distro = inline_template("<%= scope.lookupvar('::osfamily').downcase -%>")
       $icon_image = "${distro}.png"
-      $statusmap_image = "${distro}.gd2"
+      $statusmap_image  = "${distro}.gd2"
+      $nginx_pkgs = ['nginx', 'spawn-fcgi', 'fcgiwrap']
+      $nginx_sites_enabled = '/etc/nginx/conf.d/nagios.conf'
+      $apache_service = 'httpd'
+      $apache_user = 'apache'
+      $nginx_service = 'nginx'
+      $php_service = 'spawn-fcgi-php'
+      $fcgiwrap_service = 'spawn-fcgi'
     }
     'Debian': {
       $nagios3pkg = [
@@ -76,14 +84,22 @@ class nagios::params {
         'nagios-nrpe-server',
         'nagios-plugins-basic',
         'nagios-plugins-standard']
-      $masterdir = 'nagios3'
+      $nagios_os_name = 'nagios3'
+      $masterdir = $nagios_os_name
+      $masterservice = $nagios_os_name
       $htpasswd_file  = 'htpasswd.users'
       $libdir    = '/usr/lib'
       $nrpeservice = 'nagios-nrpe-server'
-      $masterservice = 'nagios3'
       $distro = inline_template("<%= scope.lookupvar('::lsbdistid').downcase -%>")
       $icon_image = "base/${distro}.png"
       $statusmap_image = "base/${distro}.gd2"
+      $nginx_pkgs = ['nginx','fcgiwrap','php5-fpm']
+      $apache_service  = 'apache2'
+      $apache_user = 'www-data'
+      $nginx_service = 'nginx'
+      $nginx_sites_enabled = '/etc/nginx/sites-enabled/nagios3'
+      $php_service = 'php5-fpm'
+      $fcgiwrap_service = 'fcgiwrap'
     }
   }
 }
