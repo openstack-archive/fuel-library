@@ -50,7 +50,7 @@ Deployment pipeline
   * Deploy
 
    In order to deploy multiple environments that don't interfere with each other,
-   you should specify the ``$deployment_id`` option in ``/etc/puppet/manifests/site.pp``.  It should be an even integer value in the range of 0-254.
+   you should specify the ``$deployment_id`` option in ``/etc/puppet/manifests/site.pp``.  It should be an even integer value in the range of 1-254.
 
    This value is used in dynamic environment-based tag generation.  Fuel also apply that tag globally to all resources on each node.  It is also used for the keepalived daemon, which evaluates a unique virtual_router_id.
 
