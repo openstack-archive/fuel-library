@@ -51,7 +51,7 @@ Set the ``public_net_router`` to be the master node.  The ``ext_bridge`` is, in 
    public_interface: eth1
    private_interface: eth2
 
-Earlier, we decided which interfaces to use for which networks; note that here.
+Earlier, we decided which interfaces to use for which networks; note that here. ::
 
    default_gateway: 10.20.0.10
 
@@ -121,7 +121,7 @@ The ``cobbler_common`` section applies to all machines::
     # for Ubuntu
     profile: "ubuntu_1204_x86_64"
 
-Fuel can install CentOS or Ubuntu on your servers, or you can add a profile of your own.
+Fuel can install CentOS or Ubuntu on your servers, or you can add a profile of your own. ::
 
     netboot-enabled: "1"
     # for Ubuntu
@@ -136,8 +136,8 @@ Set the default nameserver to be fuel-pm, and change the domain name to your own
       puppet_auto_setup=1 \
       puppet_master=fuel-pm.your-domain-name.com \
 
-Change the fully-qualified domain name for the Puppet Master to reflect your own domain name.
- ::
+Change the fully-qualified domain name for the Puppet Master to reflect your own domain name. ::
+
       puppet_enable=0 \
       ntp_enable=1 \
       mco_auto_setup=1 \
@@ -193,7 +193,7 @@ Repeat that step for any additional controllers::
         static: "1"
         ip-address: "10.20.0.102"
         netmask: "255.255.255.0"
-        dns-name: "fuel-controller-02.your-domain-name"
+        dns-name: "fuel-controller-02.your-domain-name.com"
         management: "1"
       eth1:
         static: "0"
@@ -221,7 +221,7 @@ Repeat that step for any additional controllers::
         static: "1"
         ip-address: "10.20.0.103"
         netmask: "255.255.255.0"
-        dns-name: "fuel-controller-03.your-domain-name"
+        dns-name: "fuel-controller-03.your-domain-name.com"
         management: "1"
       eth1:
         static: "0"
@@ -249,7 +249,7 @@ Repeat that step for any additional controllers::
         static: "1"
         ip-address: "10.20.0.201"
         netmask: "255.255.255.0"
-        dns-name: "fuel-compute-01.your-domain-name"
+        dns-name: "fuel-compute-01.your-domain-name.com"
         management: "1"
       eth1:
         static: "0"
@@ -268,6 +268,13 @@ Repeat that step for any additional controllers::
 
 This file has been customized for the example in the docs, but in general you will need to be certain that IP and gateway information -- in addition to the MAC addresses -- matches the decisions you made earlier in the process.
 
+Load the configuration
+^^^^^^^^^^^^^^^^^^^^^^
 
+Once you've completed the changes to ``config.yaml``, you need to load the information into Cobbler.  To do that, use the ``cobbler_system`` script::
+
+   cobbler_system -f config.yaml
+
+Now you're ready to start spinning up the controllers and compute nodes.
 
 
