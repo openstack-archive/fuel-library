@@ -35,6 +35,10 @@ define l23network::l3::create_br_iface (
     $dns_nameservers      = undef,
     $save_default_gateway = false,
     $interface_vlandev    = undef,
+    $interface_bond_mode      = undef,
+    $interface_bond_miimon    = 100,
+    $interface_bond_lacp_rate = 1,
+    $interface_order_prefix   = false,
 ){
     if ! $external_ids {
       $ext_ids = "bridge-id=${bridge}"
@@ -60,6 +64,10 @@ define l23network::l3::create_br_iface (
       ipaddr    => 'none',
       vlandev   => $interface_vlandev,
       require   => L23network::L2::Port[$interface],
+      bond_mode      => $interface_bond_mode,
+      bond_miimon    => $interface_bond_miimon,
+      bond_lacp_rate => $interface_bond_lacp_rate,
+      ifname_order_prefix => $interface_order_prefix,
     }
     l23network::l3::ifconfig {$bridge:
       ipaddr              => $ipaddr,

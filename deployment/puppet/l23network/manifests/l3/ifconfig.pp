@@ -22,12 +22,12 @@
 #   This option say, that this interface is a slave of bondX interface.
 #
 # [*bond_mode*]
-#   For interfaces bondNN this option specified bond mode. 
+#   For interfaces bondNN this option specified bond mode.
 #   All bond_* options ignored for non-master-bond interfaces.
 #
 # [*bond_miimon*]
-#   lacp MII monitor period. 
-# 
+#   lacp MII monitor period.
+#
 # [*bond_lacp_rate*]
 #   lacp MII rate
 #
@@ -142,14 +142,14 @@ define l23network::l3::ifconfig (
         fail("Can't configure vlan interface ${interface} without definition vlandev=>ethXX.")
       }
     }
-    /^(eth\d+)\.(\d+)/: {
+    /^(eth\d+)\.(\d+)/: { # TODO: bond0.123 -- also vlan
       $vlan_mode = 'eth'
       $vlan_id   = $2
       $vlan_dev  = $1
     }
     /^(bond\d+)/: {
       if ! $bond_mode or $bond_mode <0 or $bond_mode>6 {
-        fail("Option bond_mode must be between 0..6, not '${bond_mode}'.") 
+        fail("Option bond_mode must be between 0..6, not '${bond_mode}'.")
       }
       $vlan_mode = undef
     }
