@@ -8,8 +8,8 @@ netmask <%= netmask %>
 <% if @dns_search %>dns-search <%= @dns_search %><% end %>
 <% if @dns_domain %>dns-domain <%= @dns_domain %><% end %>
 <% if @mtu %>mtu <%= @mtu %><% end %>
-<% if @bond_mode %>bond-mode <%= @bond_mode %>
-slaves none<% if @bond_mode == 4 %>
-bond-miimon <%= @bond_miimon %>
+<% if @bond_mode %>slaves none
+bond-mode <%= @bond_mode %><% if @bond_miimon %>
+bond-miimon <%= @bond_miimon %><% end %><% if @bond_lacp_rate %>
 bond-lacp-rate <%= @bond_lacp_rate %><% end %>
 <% end %>
