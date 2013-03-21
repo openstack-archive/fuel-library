@@ -149,7 +149,7 @@ define l23network::l3::ifconfig (
     }
     /^(bond\d+)/: {
       if ! $bond_mode or $bond_mode <0 or $bond_mode>6 {
-        fail("Option bond_mode must be between 0..6, not '${bond_mode}'.")
+        fail("You configure interface bonding. In this mode option bond_mode required, and must be between 0..6, not '${bond_mode}'.")
       }
       $vlan_mode = undef
     }
