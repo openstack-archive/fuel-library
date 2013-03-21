@@ -68,7 +68,7 @@ class keystone(
   if $use_syslog {
     keystone_config {'DEFAULT/log_config': value => "/etc/keystone/logging.conf";}
     file {"keystone-logging.conf":
-      source=>"puppet:///modules/keystone/logging.conf",
+      content => template('keystone/logging.conf.erb'),
       path => "/etc/keystone/logging.conf",
       owner => "keystone",
       group => "keystone",
