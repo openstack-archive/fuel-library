@@ -36,7 +36,7 @@ class CompactTestCase(CobblerTestCase):
             template=Template.compact(), ci=self.ci(),
             controllers=self.nodes().controllers,
             quantums=self.nodes().quantums,
-            quantum=True, quantum_netnode_on_cnt=False)
+            quantum=True, quantum_netnode_on_cnt=False, ha_provider=False)
         self.deploy_compact(quantum_node=True)
         if CREATE_SNAPSHOTS:
             self.environment().snapshot('compact', force=True)
