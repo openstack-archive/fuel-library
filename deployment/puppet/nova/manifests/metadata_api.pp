@@ -22,9 +22,9 @@ class nova::metadata_api (
   if !defined(Package[$::nova::params::pymemcache_package_name]) {
     package { $::nova::params::pymemcache_package_name:
       ensure => present,
-      before => Nova::Generic_service['api'],
     }
   }
+  Package[$::nova::params::pymemcache_package_name]-> Nova::Generic_service<|title=='api'|>
 
   nova::generic_service { 'metadata-api':
     enabled        => true,

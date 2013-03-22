@@ -120,8 +120,8 @@ class quantum::agents::l3 (
         $external_alloc_pool = [$ext_ipinfo['pool_start'], $ext_ipinfo['pool_end']]
       }
 
-      Keystone_user_role["$auth_user@$auth_tenant"] -> Quantum::Network::Setup <| |>
-      Keystone_user_role["$auth_user@$auth_tenant"] -> Quantum::Network::Provider_router <| |>
+      Keystone_user_role<| title=="$auth_user@$auth_tenant"|> -> Quantum::Network::Setup <| |>
+      Keystone_user_role<| title=="$auth_user@$auth_tenant"|> -> Quantum::Network::Provider_router <| |>
 
       quantum::network::setup { 'net04':
         physnet      => $internal_physical_network,

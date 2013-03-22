@@ -28,7 +28,7 @@ define nova::generic_service(
   $nova_title = "nova-${name}"
   # ensure that the service is only started after
   # all nova config entries have been set
-  Exec['post-nova_config'] ~> Service<| title == $nova_title |>
+  Nova_config<| |> ~> Service<| title == $nova_title |>
   # ensure that the service has only been started
   # after the initial db sync
   Exec<| title == 'nova-db-sync' |> ~> Service<| title == $nova_title |>
@@ -59,8 +59,8 @@ define nova::generic_service(
       name    => $service_name,
       ensure  => $service_ensure,
       enable  => $enabled,
-      require => Package['nova-common'],
     }
+    Package<| title == 'nova-common' |> -> Service[$nova_title]
   }
 
 }
