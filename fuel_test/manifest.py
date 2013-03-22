@@ -254,7 +254,7 @@ class Manifest(object):
     def write_openstack_ha_minimal_manifest(self, remote, template, ci, controllers, quantums,
                                  proxies=None, use_syslog=True,
                                  quantum=True, loopback=True,
-                                 cinder=True, cinder_on_computes=False):
+                                 cinder=True, cinder_on_computes=False, quantum_netnode_on_cnt=True):
         template.replace(
             internal_virtual_ip=ci.internal_virtual_ip(),
             public_virtual_ip=ci.public_virtual_ip(),
@@ -282,7 +282,7 @@ class Manifest(object):
         if is_not_essex():
             template.replace(
                 quantum=quantum,
-                quantum_netnode_on_cnt=quantum,
+                quantum_netnode_on_cnt=quantum_netnode_on_cnt,
             )
 
         self.write_manifest(remote, template)
@@ -291,7 +291,7 @@ class Manifest(object):
     def write_openstack_manifest(self, remote, template, ci, controllers, quantums,
                                  proxies=None, use_syslog=True,
                                  quantum=True, loopback=True,
-                                 cinder=True, swift=True):
+                                 cinder=True, swift=True, quantum_netnode_on_cnt=True):
         template.replace(
             internal_virtual_ip=ci.internal_virtual_ip(),
             public_virtual_ip=ci.public_virtual_ip(),
@@ -321,6 +321,7 @@ class Manifest(object):
         if is_not_essex():
             template.replace(
                 quantum=quantum,
+                quantum_netnode_on_cnt=quantum_netnode_on_cnt,
             )
 
         self.write_manifest(remote, template)
