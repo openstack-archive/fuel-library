@@ -1,22 +1,17 @@
 
 If you already have Puppet Master installed, you can skip this
-installation step and go directly to :ref:`Configuring fuel-pm <Configuring-Fuel-PM>`.
+installation step and go directly to :ref:`Installing the OS Using Fuel <Install-OS-Using-Fuel>`.
 
 
 
-Installing Puppet master is a one-time procedure for the entire
-infrastructure. Once done, Puppet master will act as a single point of
+Installing Puppet Master is a one-time procedure for the entire
+infrastructure. Once done, Puppet Master will act as a single point of
 control for all of your servers, and you will never have to return to
 these installation steps again.
 
 
 Initial Setup
 -------------
-
-If you plan to provision the Puppet Master on hardware, you need to
-make sure that you can boot your server from an ISO.
-
-
 
 For VirtualBox, follow these steps to create the virtual hardware:
 
@@ -28,6 +23,7 @@ For VirtualBox, follow these steps to create the virtual hardware:
     * Name: fuel-pm
     * Type: Linux
     * Version: Red Hat (64 Bit) or Ubuntu (64 Bit)
+    * Memory: 2048MB
 
 
 
@@ -36,9 +32,6 @@ For VirtualBox, follow these steps to create the virtual hardware:
 
 
     * Adapter 1
-
-
-
         * Enable Network Adapter
         * Attached to: Host-only Adapter
         * Name: vboxnet0
@@ -46,20 +39,12 @@ For VirtualBox, follow these steps to create the virtual hardware:
 
 
     * Adapter 2
-
-
-
         * Enable Network Adapter
         * Attached to: Bridged Adapter
-        * Name: epn1 (Wi-Fi Airport), or whatever network interface of the host machine with Internet access
-
+        * Name: eth0 (or whichever physical network has your internet connection)
 
 
 It is important that host-only Adapter 1 goes first, as Cobbler will use vboxnet0 for PXE, and VirtualBox boots from the LAN on the first available network adapter.
-
-The Puppet Master doesn't need the third adapter; it is used for OpenStack hosts and communication between tenant VMs.
-
-
 
 OS Installation
 ---------------
@@ -84,24 +69,23 @@ OS Installation
 
 
 
-    * Boot the server (or VM) from the CD/DVD drive and install the chosen OS
-
-
-
-        * Choose root password carefully
+    * Boot the server (or VM) from the CD/DVD drive and install the chosen OS.  Be sure to choose the root password carefully.
 
 
 
 
 
-    * Set up the eth0 interface. This will be the public interface:
+    * Set up the eth0 interface. This interface will be used for communication between the Puppet Master and Puppet clients, as well as for Cobbler.
 
       ``vi/etc/sysconfig/network-scripts/ifcfg-eth0``::
 
         DEVICE="eth0"
-        BOOTPROTO="dhcp"
-        ONBOOT="no"
+        BOOTPROTO="static"
+        IPADDR="10.20.0.100"
+        NETMASK="255.255.255.0"
+        ONBOOT="yes"
         TYPE="Ethernet"
+        PEERDNS="no"
 
       Apply network settings::
 
@@ -110,18 +94,15 @@ OS Installation
 
 
 
-    * Set up the eth1 interface. This interface will be used for communication between the Puppet Master and Puppet clients, as well as for Cobbler:
+    * Set up the eth1 interface. This will be the public interface.
 
 
       ``vi /etc/sysconfig/network-scripts/ifcfg-eth1``::
 
         DEVICE="eth1"
-        BOOTPROTO="static"
-        IPADDR="10.0.0.100"
-        NETMASK="255.255.255.0"
-        ONBOOT="yes"
+        BOOTPROTO="dhcp"
+        ONBOOT="no"
         TYPE="Ethernet"
-        PEERDNS="no"
 
 
 
@@ -149,7 +130,7 @@ OS Installation
 
     * Check that a ping to your host machine works. This means that the management segment is available::
 
-        ping 10.0.0.1
+        ping 10.20.0.1
 
 
 

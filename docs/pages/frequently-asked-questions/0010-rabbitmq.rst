@@ -1,3 +1,6 @@
+Known Issues and Workarounds
+----------------------------
+
 
 RabbitMQ
 ^^^^^^^^
@@ -8,8 +11,8 @@ RabbitMQ
 **Issue:** 
 In general, all RabbitMQ nodes must not be shut down simultaneously. RabbitMQ requires
 that after a full shutdown of the cluster, the first node brought up should
-be the last one to shut down.  Version 2.1 of Fuel solves this problem by managing the restart of
-available nodes, so you should not experience diffuclty with this issue.
+be the last one to shut down, but it's not always possible to know which node that is, or even to ensure a clean shutdown.  Version 2.1 of Fuel solves this problem by managing the restart of
+available nodes, so you should not experience difficulty with this issue.
 
 If, however, you are still using previous versions of Fuel, here is how Fuel 2.1 works around this problem in case you need to do it yourself.
 

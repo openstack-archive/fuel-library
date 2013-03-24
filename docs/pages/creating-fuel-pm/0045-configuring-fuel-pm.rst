@@ -6,16 +6,6 @@ Once the installation is complete, you will need to finish the configuration to 
 
 * Check network settings and connectivity and correct any errors:
 
-    * Check host connectivity by pinging the host machine::
-
-        ping 10.0.0.1
-
-
-    * Check that Internet access works by pinging an outside host::
-
-        ping google.com
-
-
     * Check the hostname. Running ::
 
         hostname
@@ -26,17 +16,12 @@ Once the installation is complete, you will need to finish the configuration to 
 
       If not, set the hostname:
 
-        * CentOS/RHEL
 
-            ``vi /etc/sysconfig/network`` ::
 
-                HOSTNAME=fuel-pm
+      ``vi /etc/sysconfig/network`` ::
 
-        * Ubuntu
+           HOSTNAME=fuel-pm
 
-            ``vi /etc/hostname``::
-
-                fuel-pm
 
 
     * Check the fully qualified hostname (FQDN) value. ::
@@ -47,9 +32,9 @@ Once the installation is complete, you will need to finish the configuration to 
 
           fuel-pm.your-domain-name.com
 
-      If not, correct the /etc/resolv.conf file by replacing your-domain-name.com below with your actual domain name, and 8.8.8.8 with your actual DNS server.
+      If not, correct the ``/etc/resolv.conf`` file by replacing ``your-domain-name.com`` below with your actual domain name, and ``8.8.8.8`` with your actual DNS server.
 
-      (Note: you can look up your DNS server on your host machine using ipconfig /all on Windows, or using cat /etc/resolv.conf under Linux) ::
+      (Note: you can look up your DNS server on your host machine using ``ipconfig /all`` on Windows, or using ``cat /etc/resolv.conf`` under Linux) ::
 
           search your-domain-name.com
           nameserver 8.8.8.8
@@ -184,7 +169,7 @@ itself (replace your-domain-name. com with your domain name):
 
 
 Finally, to make sure everything is working properly, run puppet agent
-and to see the Hello World from fuel-pm output::
+and to see the ``Hello World from fuel-pm`` output::
 
     puppet agent --test
 
@@ -199,12 +184,12 @@ with the SSL setup. If so, remove the original files and start again,
 like so::
 
 
-    service puppetmaster stop
-    service puppetdb stop
-    rm -rf /etc/puppetdb/ssl
-    puppetdb-ssl-setup
-    service puppetdb start
-    service puppetmaster start
+    sudo service puppetmaster stop
+    sudo service puppetdb stop
+    sudo rm -rf /etc/puppetdb/ssl
+    sudo puppetdb-ssl-setup
+    sudo service puppetdb start
+    sudo service puppetmaster start
 
 Again, remember that it may take several minutes before puppetdb is
 fully running, despite appearances to the contrary.

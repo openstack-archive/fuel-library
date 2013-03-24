@@ -63,7 +63,7 @@ will need to make changes::
     # [server] IP address that will be used as address of cobbler server.
     # It is needed to download kickstart files, call cobbler API and
     # so on. Required.
-    $server = '10.0.0.100'
+    $server = '10.20.0.100'
 
 
 
@@ -73,7 +73,7 @@ Puppet Master and Cobbler servers. ::
 
 
     # Interface for cobbler instances
-    $dhcp_interface = 'eth1'
+    $dhcp_interface = 'eth0'
 
 
 
@@ -82,28 +82,28 @@ so you will need to specify which interface will handle that. ::
 
 
 
-    $dhcp_start_address = '10.0.0.201'
-    $dhcp_end_address = '10.0.0.254'
+    $dhcp_start_address = '10.20.0.110'
+    $dhcp_end_address = '10.20.0.126'
 
 
 
-Change the $dhcp_start_address and $dhcp_end_address to match the network allocations you made
+Change the ``$dhcp_start_address`` and ``$dhcp_end_address`` to match the network allocations you made
 earlier. The important thing is to make sure there are no conflicts with the static IPs you are allocating. ::
 
 
 
     $dhcp_netmask = '255.255.255.0'
-    $dhcp_gateway = '10.0.0.100'
+    $dhcp_gateway = '10.20.0.100'
     $domain_name = 'your-domain-name.com'
 
 
 
-Change the $domain_name to your own domain name. ::
+Change the ``$domain_name`` to your own domain name. ::
 
 
 
-    $name_server = '10.0.0.100'
-    $next_server = '10.0.0.100'
+    $name_server = '10.20.0.100'
+    $next_server = '10.20.0.100'
     $cobbler_user = 'cobbler'
     $cobbler_password = 'cobbler'
     $pxetimeout = '0'
@@ -113,7 +113,7 @@ Change the $domain_name to your own domain name. ::
 
 
 
-Change the $mirror_type to be default so Fuel knows to request
+**Change the $mirror_type to be default** so Fuel knows to request
 resources from Internet sources rather than having to set up your own
 internal repositories.
 
@@ -219,7 +219,7 @@ Cobbler dashboard from:
 
 
 
-http://10.0.0.100/cobbler_web
+http://10.20.0.100/cobbler_web
 
 
 

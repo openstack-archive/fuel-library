@@ -28,7 +28,5 @@ In addition to these configurations, Fuel is designed to be completely
 customizable. Upcoming editions of this guide discuss techniques for
 creating additional OpenStack deployment configurations.
 
-.. Need the correct location for the "contact Mirantis" link; do we have a special sales link?
-
 To configure Fuel immediately for more extensive variations on these
-use cases, you can `contact Mirantis for further assistance <http://www.mirantis.com>`_.
+use cases, you can `contact Mirantis for further assistance <http://www.mirantis.com/contact/>`_.

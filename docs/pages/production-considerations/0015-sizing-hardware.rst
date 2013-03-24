@@ -3,7 +3,7 @@ Sizing Hardware
 
 One of the first questions that comes to mind when planning an OpenStack deployment is "what kind of hardware do I need?"  Finding the answer is rarely simple, but getting some idea is not impossible.
 
-Many factors contribute to decisions regarding hardware for an OpenStack cluster -- contact Mirantis for information on your specific situation -- but in general, you will want to consider the following four areas:
+Many factors contribute to decisions regarding hardware for an OpenStack cluster -- `contact Mirantis <http://www.mirantis.com/contact/>`_ for information on your specific situation -- but in general, you will want to consider the following four areas:
 
 * CPU
 * Memory
@@ -13,7 +13,7 @@ Many factors contribute to decisions regarding hardware for an OpenStack cluster
 Your needs in each of these areas are going to determine your overall hardware requirements.
 
 CPU
----
+^^^
 
 The basic consideration when it comes to CPU is how many GHZ you're going to need.  To determine that, think about how many VMs you plan to support, and the average speed you plan to provide, as well as the maximum you plan to provide for a single VM.  For example, consider a situation in which you expect:
 
@@ -34,7 +34,7 @@ You will need to take into account a couple of additional notes:
 * Choose a good value CPU.
 
 Memory
-------
+^^^^^^
 
 The process of determining memory requirements is similar to determining CPU.  Start by deciding how much memory will be devoted to each VM.  In this example, with 4 GB per VM and a maximum of 32 GB for a single VM, you will need 400 GB of RAM.
 
@@ -45,7 +45,7 @@ However, remember that you need 6 servers to meet your CPU requirements, so inst
 Again, you do not want to oversubscribe memory.
 
 Disk Space
-----------
+^^^^^^^^^^
 
 When it comes to disk space there are several types that you need to consider:
 
@@ -63,7 +63,7 @@ As far as local drive space that must reside on the compute nodes, in our exampl
 Again you have 6 servers, so that means you're looking at .9TB per server (5 TB / 6 servers) for local drive space.
 
 Throughput
-^^^^^^^^^^
+~~~~~~~~~~
 
 As far as throughput, that's going to depend on what kind of storage you choose.  In general, you calculate IOPS based on the packing density (drive IOPS * drives in the server / VMs per server), but the actual drive IOPS will depend on what you choose.  For example:
 
@@ -82,7 +82,7 @@ As far as throughput, that's going to depend on what kind of storage you choose.
 Clearly, SSD gives you the best performance, but the difference in cost between that and the lower end solution is going to be signficant, to say the least.  You'll need to decide based on your own situation.
 
 Remote storage
-^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~
 
 IOPS will also be a factor in determining how you decide to handle persistent storage.  For example, consider these options for laying out your 50 TB of remote volume space:
 
@@ -91,19 +91,19 @@ IOPS will also be a factor in determining how you decide to handle persistent st
   * 36 TB raw, or 18 TB usable space per 2U frame
   * 3 frames (50 TB / 18 TB per server)
   * 12 slots x 100 IOPS per drive = 1200 Read IOPS, 600 Write IOPS per frame
-  * 3 frames x 1200 IOPS per frame / 100 VMs = **36 Read IOPS, 18 Write IOPS per frame**
+  * 3 frames x 1200 IOPS per frame / 100 VMs = 36 Read IOPS, 18 Write IOPS per frame
 
 * 24 drive storage frame using 1TB 7200 RPM 2.5" drives
 
   * 24 TB raw, or 12 TB usable space per 2U frame
   * 5 frames (50 TB / 12 TB per server)
   * 24 slots x 100 IOPS per drive = 2400 Read IOPS, 1200 Write IOPS per frame
-  * 5 frames x 2400 IOPS per frame / 100 VMs = **120 Read IOPS, 60 Write IOPS per frame**
+  * 5 frames x 2400 IOPS per frame / 100 VMs = 120 Read IOPS, 60 Write IOPS per frame
 
 You can accomplish the same thing with a single 36 drive frame using 3 TB drives, but this becomes a single point of failure in your cluster.
 
 Object storage
-^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~
 
 When it comes to object storage, you will find that you need more space than you think.  For example, this example specifies 50 TB of object storage.  Easy right?
 
@@ -118,7 +118,7 @@ So how do you put that together?  If you were to use 3 TB 3.5" drives, you could
 You could also use a 36 drive storage frame, with just 2 servers hosting 108 TB each, but it's not recommended due to several factors, from the high cost of failure to replication and capacity issues.
 
 Networking
-----------
+^^^^^^^^^^
 
 Perhaps the most complex part of designing an OpenStack cluster is the networking.  An OpenStack cluster can involve multiple networks even beyond the Public, Private, and Internal networks.  Your cluster may involve tenant networks, storage networks, multiple tenant private networks, and so on.  Many of these will be VLANs, and all of them will need to be planned out.
 
@@ -133,14 +133,14 @@ In order to achieve this, you can use 2 1Gb links per server (2 x 1000 Mbits/sec
 You can also increase throughput and decrease latency by using 2 10 Gb links, bringing the bandwidth per VM to 1 Gb/second, but if you're going to do that, you've got one more factor to consider.
 
 Scalability and oversubscription
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 It is one of the ironies of networking that 1Gb Ethernet generally scales better than 10Gb Ethernet -- at least until 100Gb switches are more commonly available.  It's possible to aggregate the 1Gb links in a 48 port switch, so that you have 48 1Gb links down, but 4 10GB links up.  Do the same thing with a 10Gb switch, however, and you have 48 10Gb links down and 4 100Gb links up, resulting in oversubscription.
 
 Like many other issues in OpenStack, you can avoid this problem to a great extent with careful planning.  Problems only arise when you are moving between racks, so plan to create "pods", each of which includes both storage and compute nodes.  Generally, a pod is the size of a non-oversubscribed L2 domain.
 
 Hardware for this example
-^^^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 In this example, you are looking at:
 
@@ -151,7 +151,7 @@ In this example, you are looking at:
 Because your network will in all likelihood grow, it's best to choose 48 port switches.  Also, as your network grows, you will need to consider uplinks and aggregation switches.
 
 Summary
--------
+^^^^^^^
 
 In general, your best bet is to choose a large multi-socket server, such as a 2 socket server with a balance in I/o, CPU, Memory, and Disk.  Look for a 1U low cost R-class or 2U high density C-class server.  Some good alternatives for compute nodes include:
 

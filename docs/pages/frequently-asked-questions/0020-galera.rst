@@ -127,7 +127,7 @@ and start the cluster operation from that node.
         
         In the case of OpenStack deployed by Fuel manifests with default settings (2 controllers), Fuel automatically removes local names and IP addresses from gcomm strings on every node to prevent a node from attempting to connect to itself.  This parameter should look like this:
 
-    ``wsrep_cluster_address="gcomm://fuel-controller-01:4567"``
+        ``wsrep_cluster_address="gcomm://fuel-controller-01:4567"``
 
     * If ``wsrep_cluster_address`` is set correctly, run ``rm -f /var/lib/mysql/grastate.dat`` and then ``service mysql start`` on this node.
 
@@ -262,6 +262,6 @@ Useful links
 
   * http://openlife.cc/blogs/2011/july/ultimate-mysql-high-availability-solution
 
-* Other questions (seriously, sometimes there is not enough info about Galera available in official Galera docs):
+* Other questions (seriously, sometimes there is not enough info about Galera available in the official Galera docs):
 
   * http://www.google.com

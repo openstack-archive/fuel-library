@@ -2,8 +2,8 @@ Redepolying an environment
 --------------------------
 
   Because Puppet is additive only, there is no ability to revert changes as you would in a typical application deployment.
-  If a change needs to be backed out, you must explicitly add configuration to reverse it, check this configuration in,
-  and promote it to production using the pipeline. This meant that if a breaking change did get deployed into production,
+  If a change needs to be backed out, you must explicitly add a configuration to reverse it, check this configuration in,
+  and promote it to production using the pipeline. This means that if a breaking change did get deployed into production,
   typically a manual fix was applied, with the proper fix subsequently checked into version control.
 
   Fuel combines the ability to isolate code changes while developing with minimizing the headaches associated
@@ -17,11 +17,11 @@ Environments
 
   * On the Master/Server Node
 
-    The puppetmaster tries to find modules using its ``modulepath`` setting, typically something like ``/etc/puppet/modules``.
-    You usually just set this value once in your ``/etc/puppet/puppet.conf`` and that’s it, all done.
+    The Puppet Master tries to find modules using its ``modulepath`` setting, which is typically something like ``/etc/puppet/modules``.
+    You usually just set this value once in your ``/etc/puppet/puppet.conf``.
     Environments expand on this idea and give you the ability to use different settings for different environments.
 
-    For example, you can specify several search paths. The following example dynamically sets the modulepath
+    For example, you can specify several search paths. The following example dynamically sets the ``modulepath``
     so Puppet will check a per-environment folder for a module before serving it from the main set::
 
       [master]
@@ -35,10 +35,10 @@ Environments
 
   * On the Agent Node
 
-    Once the agent node makes a request, the puppet master gets informed of its environment.
+    Once the agent node makes a request, the Puppet Master gets informed of its environment.
     If you don’t specify an environment, the agent uses the default ``production`` environment.
 
-    To set an environment agent-side, just specify the environment setting in the [agent] block of ``puppet.conf``::
+    To set an environment agent-side, just specify the environment setting in the ``[agent]`` block of ``puppet.conf``::
 
       [agent]
         environment = development
@@ -52,7 +52,7 @@ Deployment pipeline
    In order to deploy multiple environments that don't interfere with each other,
    you should specify the ``$deployment_id`` option in ``/etc/puppet/manifests/site.pp``.  It should be an even integer value in the range of 1-254.
 
-   This value is used in dynamic environment-based tag generation.  Fuel also apply that tag globally to all resources on each node.  It is also used for the keepalived daemon, which evaluates a unique virtual_router_id.
+   This value is used in dynamic environment-based tag generation.  Fuel also apply that tag globally to all resources on each node.  It is also used for the keepalived daemon, which evaluates a unique ``virtual_router_id``.
 
   * Clean/Revert
 
