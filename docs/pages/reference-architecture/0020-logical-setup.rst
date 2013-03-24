@@ -10,8 +10,7 @@ Controller Nodes
 The first order of business in achieving high availability (HA) is
 redundancy, so the first step is to provide multiple controller nodes.
 You must keep in mind, however, that the database uses Galera to
-achieve HA, and Galera is a quorum-based system. That means that in
-order to avoid split-brain problems, you must provide at least 3
+achieve HA, and Galera is a quorum-based system. That means that you must provide at least 3
 controller nodes.
 
 .. image:: https://docs.google.com/drawings/pub?id=1aftE8Yes7CdVSZgZD1A82T_2GqL2SMImtRYU914IMyQ&w=869&h=855

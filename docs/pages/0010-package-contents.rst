@@ -1,5 +1,5 @@
-Package Contents
-================
+Preface
+=======
 
 .. contents:: :local: 
 

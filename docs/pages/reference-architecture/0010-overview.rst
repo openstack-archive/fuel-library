@@ -13,44 +13,22 @@ basis for installing OpenStack in the next section.
 As you know, OpenStack provides the following basic services:
 
 
-**Compute**
-
-Compute servers are the workhorses of your installation; they're the
-servers on which your users' virtual machines are created. **Nova-scheduler** controls the life-cycle of these VMs.
+   * **Compute**: Compute servers are the workhorses of your installation; they're the servers on which your users' virtual machines are created. `Nova-scheduler` controls the life-cycle of these VMs.
 
 
-**Networking**
-
-Because an OpenStack cluster (virtually) always includes multiple
-servers, the ability for them to communicate with each other and with
-the outside world is crucial. Networking was originally handled by the
-**Nova-network** service, but it is slowly giving way to the newer **Quantum** networking service. Authentication and
-authorization for these transactions are handled by **Keystone**.
+   * **Networking**: Because an OpenStack cluster (virtually) always includes multiple servers, the ability for them to communicate with each other and with the outside world is crucial. Networking was originally handled by the `Nova-network` service, but it is slowly giving way to the newer `Quantum` networking service. Authentication and authorization for these transactions are handled by `Keystone`.
 
 
-**Storage**
+   * **Storage**: OpenStack provides for two different types of storage: block storage and object storage. Block storage is traditional data storage, with small, fixed-size blocks that are mapped to locations on storage media. At its simplest level, OpenStack provides block storage using `nova-volume`, but it is common to use `Cinder`.
+  
+     Object storage, on the other hand, consists of single variable-size objects that are described by system-level metadata, and you can access this capability using `Swift`.
 
-OpenStack provides for two different types of storage: block storage
-and object storage. Block storage is traditional data storage, with
-small, fixed-size blocks that are mapped to locations on storage media. At
-its simplest level, OpenStack provides block storage using **nova-volume**, but it is common to use **Cinder**.
-
-
-
-Object storage, on the other hand, consists of single variable-size
-objects that are described by system-level metadata, and you can
-access this capability using **Swift**.
-
-
-
-OpenStack storage is used for your users' objects, but it is also used
-for storing the images used to create new VMs. This capability is
-handled by **Glance**.
+     OpenStack storage is used for your users' objects, but it is also used for storing the images used to create new VMs. This capability is handled by `Glance`.
 
 
 
 These services can be combined in many different ways. Out of the box,
-Fuel supports the following topologies:
+Fuel supports the following deployment configurations:
 
 
 Single node deployment
@@ -96,15 +74,15 @@ number of controllers from three (or five, for a full Swift implementation) to o
 
 
 
-Multi-node (HA) deployment (Compact Swift)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Multi-node (HA) deployment (Compact)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Production environments typically require high availability, which
 involves several architectural requirements. Specifically, you will
-need at least three controllers (to prevent split-brain problems), and
+need at least three controllers, and
 certain components will be deployed in multiple locations to prevent
 single points of failure. That's not to say, however, that you can't
-reduce hardware requirements by combining your storage and controller
+reduce hardware requirements by combining your storage, network, and controller
 nodes:
 
 
@@ -146,11 +124,11 @@ Where Fuel really shines is in the creation of more complex
 architectures, so in this document you'll learn how to use Fuel to
 easily create a multi-node HA OpenStack cluster. To reduce the amount
 of hardware you'll need to follow the installation in section 3,
-however, the guide focuses on the Multi-node HA Compact Swift
+however, the guide focuses on the Multi-node HA Compact 
 architecture.
 
 
 
-Lets take a closer look at the details of this topology.
+Lets take a closer look at the details of this deployment configuration.
 
 
