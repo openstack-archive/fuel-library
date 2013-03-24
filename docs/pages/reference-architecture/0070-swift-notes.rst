@@ -1,7 +1,7 @@
 .. _Swift-and-object-storage-notes:
 
 Swift (object storage) notes
-----------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 FUEL currently supports several ways to deploy the swift service:
 

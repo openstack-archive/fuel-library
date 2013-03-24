@@ -1,6 +1,6 @@
 
 Quantum vs. nova-network
-------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 Quantum is a service which provides networking-as-a-service
 functionality in OpenStack. It has a rich tenant-facing API for
@@ -10,7 +10,7 @@ power their cloud networking.
 
 
 
-There are several common deployment use cases for Quantum. Fuel
+There are various deployment use cases for Quantum. Fuel
 supports the most common of them, called Provider Router with Private
 Networks. It provides each tenant with one or more private networks,
 which can communicate with the outside world via a Quantum router.

@@ -5,10 +5,7 @@ Network Architecture
 
 The current architecture assumes the presence of 3 NIC cards in
 hardware, but can be customized to a different number of NICs (less,
-or more). For example, in section 3 you will see how to deploy your
-cluster with four NICs.
-
-In this case, however, let's consider a typical example of 3 NIC cards.
+or more).  In this case, let's consider a typical example of 3 NIC cards.
 They're utilized as follows:
 
 
@@ -17,7 +14,7 @@ They're utilized as follows:
 * **eth2**: the private network, for communication between OpenStack VMs, and the bridge interface (VLANs)
 
 
-In the multi-host networking mode, you can choose between
+In the multi-host networking mode, you can choose between the
 FlatDHCPManager and VlanManager network managers in OpenStack. The
 figure below illustrates the relevant nodes and networks.
 
@@ -37,7 +34,7 @@ outbound connections from VMs to the outside world.
 
 
 For security reasons, the public network is usually isolated from the
-private network and internal (management) network. Typically, its a
+private network and internal (management) network. Typically, it's a
 single C class network from your globally routed or private network
 range.
 
