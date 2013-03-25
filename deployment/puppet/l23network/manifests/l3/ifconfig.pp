@@ -85,6 +85,8 @@ define l23network::l3::ifconfig (
     $check_by_ping   = 'gateway',
     $check_by_ping_timeout = 120,
 ){
+  include ::l23network::params
+
   $bond_modes = [
     'balance-rr',
     'active-backup',
@@ -113,8 +115,6 @@ define l23network::l3::ifconfig (
       if $dns_nameservers {
         $dns_nameservers_join = join($dns_nameservers, ' ')
       }
-      if !defined(Package['vlan']){ package {'vlan': ensure => installed } }
-      if !defined(Package['ifenslave']){ package {'ifenslave': ensure => installed } }
     }
     /(?i)redhat/: {
       $if_files_dir = '/etc/sysconfig/network-scripts'
@@ -123,13 +123,11 @@ define l23network::l3::ifconfig (
         $dns_nameservers_1 = $dns_nameservers[0]
         $dns_nameservers_2 = $dns_nameservers[1]
       }
-      if !defined(Package['vconfig']){ package {'vconfig': ensure => installed } }
     }
     default: {
       fail("Unsupported OS: ${::osfamily}/${::operatingsystem}")
     }
   }
-  if !defined(Package['ethtool']){ package {'ethtool': ensure => installed } }
 
   # Detect VLAN and bond mode configuration
   case $interface {

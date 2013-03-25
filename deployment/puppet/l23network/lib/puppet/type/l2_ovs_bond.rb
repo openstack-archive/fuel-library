@@ -1,29 +1,40 @@
-Puppet::Type.newtype(:l2_ovs_port) do
+Puppet::Type.newtype(:l2_ovs_bond) do
     @doc = "Manage a Open vSwitch port"
     desc @doc
 
     ensurable
 
-    newparam(:interface) do
+    newparam(:bond) do
       isnamevar
-      desc "The interface to attach to the bridge"
+      desc "The bond name"
       #
       validate do |val|
         if not val =~ /^[a-z][0-9a-z\.\-\_]*[0-9a-z]$/
-          fail("Invalid interface name: '#{val}'")
+          fail("Invalid bond name: '#{val}'")
         end
       end
     end
 
-    newparam(:type) do
-      newvalues('', :system, :internal, :tap, :gre, :ipsec_gre, :capwap, :patch, :null)
-      defaultto('')
-      desc "Ovs port type"
+    newparam(:ports) do
+      desc "List of ports, that will be added to the bond"
+      #
+      validate do |val|
+        val.each do |port|
+          if not port =~ /^[a-z][0-9a-z\.\-\_]*[0-9a-z]$/
+            fail("Invalid port name: '#{port}'")
+          end
+        end
+      end
     end
 
     newparam(:skip_existing) do
       defaultto(false)
-      desc "Allow skip existing port"
+      desc "Allow skip existing bond"
+    end
+
+    newparam(:options) do
+      defaultto([])
+      desc "Array of bond options"
     end
 
     newparam(:bridge) do

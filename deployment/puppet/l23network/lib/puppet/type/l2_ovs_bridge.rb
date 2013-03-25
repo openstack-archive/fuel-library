@@ -9,7 +9,7 @@ Puppet::Type.newtype(:l2_ovs_bridge) do
       desc "The bridge to configure"
       #
       validate do |val|
-        if not val =~ /^[0-9A-Za-z\.\-\_]+$/
+        if not val =~ /^[a-z][0-9a-z\.\-\_]*[0-9a-z]$/
           fail("Invalid bridge name: '#{val}'")
         end
       end

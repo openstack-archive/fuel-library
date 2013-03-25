@@ -4,42 +4,40 @@
 # Requirements, packages and services.
 #
 class l23network::l2 {
-  case $::osfamily {
-    /(?i)debian/: {
-      $service_name = 'openvswitch-switch'
-      $status_cmd   = '/etc/init.d/openvswitch-switch status'
-      $ovs_packages = ['openvswitch-datapath-dkms', 'openvswitch-switch']
-    }
-    /(?i)redhat/: {
-      $service_name = 'openvswitch' #'ovs-vswitchd'
-      $status_cmd   = '/etc/init.d/openvswitch status'
-      $ovs_packages = ['kmod-openvswitch', 'openvswitch']
-    }
-    /(?i)linux/: {
-      case $::operatingsystem {
-        /(?i)archlinux/: {
-          $service_name = 'openvswitch.service'
-          $status_cmd   = 'systemctl status openvswitch'
-          $ovs_packages = ['aur/openvswitch']
-        }
-        default: {
-          fail("Unsupported OS: ${::osfamily}/${::operatingsystem}")
-        }
-      }
-    }
-    default: {
-      fail("Unsupported OS: ${::osfamily}/${::operatingsystem}")
-    }
-  }
-  package {$ovs_packages:
+  include ::l23network::params
+
+  package {$::l23network::params::ovs_packages:
     ensure  => present,
     before  => Service['openvswitch-service'],
   }
+
   service {'openvswitch-service':
     ensure    => running,
-    name      => $service_name,
+    name      => $::l23network::params::ovs_service_name,
     enable    => true,
     hasstatus => true,
-    status    => $status_cmd,
+    status    => $::l23network::params::ovs_status_cmd,
   }
+
+  if $::osfamily =~ /(?i)debian/ and !defined(Package["$l23network::params::lnx_bond_tools"]) {
+    package {"$l23network::params::lnx_bond_tools": 
+      ensure => installed
+    }
+    Package["$l23network::params::lnx_bond_tools"] -> L23network::L3::Ifconfig<||>
+  }
+
+  if !defined(Package["$l23network::params::lnx_vlan_tools"]) {
+    package {"$l23network::params::lnx_vlan_tools":
+      ensure => installed
+    } 
+  }
+  Package["$l23network::params::lnx_vlan_tools"] -> L23network::L3::Ifconfig<||>
+
+  if !defined(Package["$l23network::params::lnx_ethernet_tools"]) {
+    package {"$l23network::params::lnx_ethernet_tools":
+      ensure => installed
+    }
+  }
+  Package["$l23network::params::lnx_ethernet_tools"] -> L23network::L3::Ifconfig<||>
+
 }

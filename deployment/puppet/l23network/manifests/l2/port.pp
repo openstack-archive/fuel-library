@@ -24,17 +24,18 @@
 #
 define l23network::l2::port (
   $bridge,
+  $port          = $name,
   $type          = '',
   $ensure        = present,
   $skip_existing = false,
 ) {
-  if ! defined (L2_ovs_port[$name]) {
-    l2_ovs_port { $name :
+  if ! defined (L2_ovs_port[$port]) {
+    l2_ovs_port { $port :
       ensure        => $ensure,
       bridge        => $bridge,
       type          => $type,
       skip_existing => $skip_existing,
     }
-    Service<| title == 'openvswitch-service' |> -> L2_ovs_port[$name]
+    Service<| title == 'openvswitch-service' |> -> L2_ovs_port[$port]
   }
 }
