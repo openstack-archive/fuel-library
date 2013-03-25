@@ -20,10 +20,10 @@ The process for each node looks like this:
 #. Wait for the installation to complete.
 #. Log into the new machine using root/r00tme.
 #. **Change the root password.**
-#. Check that networking is set up correctly and the machine can reach the Puppet Master and package repositories::
+#. Check that networking is set up correctly and the machine can reach the Internet::
 
     ping fuel-pm.your-domain-name.com
-    ping download.mirantis.com
+    ping www.mirantis.com
 
 If you're unable to ping outside addresses, add the fuel-pm server as a default gateway::
 
