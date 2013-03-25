@@ -1,0 +1,21 @@
+[loggers]
+keys = root
+
+[handlers]
+keys = syslog
+
+[formatters]
+keys = default
+
+[logger_root]
+level = DEBUG
+handlers = syslog
+qualname = cinder
+
+[handler_syslog]
+class = handlers.SysLogHandler
+args = ('/dev/log', handlers.SysLogHandler.LOG_LOCAL3)
+formatter = default
+
+[formatter_default]
+format = cinder %(name)s %(levelname)s %(message)s

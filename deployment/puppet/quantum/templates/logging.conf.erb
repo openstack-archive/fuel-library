@@ -1,0 +1,21 @@
+[loggers]
+keys = root
+
+[handlers]
+keys = syslog
+
+[formatters]
+keys = default
+
+[logger_root]
+level = DEBUG
+handlers = syslog
+qualname = quantum
+
+[handler_syslog]
+class = handlers.SysLogHandler
+args = ('/dev/log', handlers.SysLogHandler.LOG_LOCAL4)
+formatter = default
+
+[formatter_default]
+format = quantum %(name)s %(levelname)s %(message)s

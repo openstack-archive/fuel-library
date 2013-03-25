@@ -91,7 +91,7 @@ class quantum (
   if $use_syslog {
     quantum_config {'DEFAULT/log_config': value => "/etc/quantum/logging.conf";}
     file { "quantum-logging.conf":
-      source=>"puppet:///modules/quantum/logging.conf",
+      content => template('quantum/logging.conf.erb'),
       path => "/etc/quantum/logging.conf",
       owner => "quantum",
       group => "quantum",
