@@ -232,7 +232,7 @@ These values don't actually relate to Quantum; they are used by nova-network.  I
 
   #Which IP have Quantum network node?
   $quantum_net_node_hostname = 'fuel-controller-03'
-  $quantum_host = $controller_internal_addresses[$quantum_hostname]
+  $quantum_net_node_address = $controller_internal_addresses[$quantum_net_node_hostname]
 
 If you are installing Quantum in non-HA mode, you will need to specify which single controller controls Quantum. :: 
 
@@ -324,7 +324,7 @@ Fuel enables you to control multiple deployments simultaneously by setting an in
 
   # This parameter specifies the the identifier of the current cluster. This is needed in case of multiple environments.
   # installation. Each cluster requires a unique integer value. 
-  # Valid identifier range is 1 to 254
+  # Valid identifier range is 0 to 254
   $deployment_id = '79'
 
 Enabling Cinder
@@ -461,13 +461,13 @@ Configuring OpenStack to use syslog
 To use the syslog server, adjust the corresponding variables in the ``if $use_syslog`` clause::
 
     $use_syslog = true
-        if $use_syslog {
-            class { "::rsyslog::client": 
-                log_local => true,
-                log_auth_local => true,
-                server => '127.0.0.1',
-                port => '514'
-            }
+    if $use_syslog {
+        class { "::rsyslog::client": 
+            log_local => true,
+            log_auth_local => true,
+            server => '127.0.0.1',
+            port => '514'
+        }
     }
 
 
@@ -508,7 +508,7 @@ To tell Fuel to download packages from external repos provided by Mirantis and y
     $enable_test_repo = false
     $repo_proxy = 'http://10.20.0.100:3128'
 
-Once again, the ``$mirror_tyoe`` **must** be set to ``default``.  If you set it correctly in ``config.yaml`` and ran ``openstack_system`` this will already be taken care of.  Otherwise, **make sure** to set this value yourself.
+Once again, the ``$mirror_type`` **must** be set to ``default``.  If you set it correctly in ``config.yaml`` and ran ``openstack_system`` this will already be taken care of.  Otherwise, **make sure** to set this value yourself.
 
 Future versions of Fuel will enable you to use your own internal repositories.
 
@@ -554,8 +554,6 @@ Using the ``$horizon_use_ssl`` variable, you have the option to decide whether t
 
     #  'custom': require fileserver static mount point [ssl_certs] and hostname based certificate existence
     $horizon_use_ssl = false
-
-    class compact_controller (
 
 This variable accepts the following values:
 

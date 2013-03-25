@@ -22,7 +22,7 @@ The Fuel User's Guide is organized as follows:
 
 * Section 2, :ref:`Reference Architecture <Reference-Archiecture>`, provides a general look at the components that make up OpenStack, and describes the reference architecture to be instantiated in Section 3.
 
-* Section 3, :ref:`Create an example multi-node OpenStack cluster using Fuel <Create-Cluster>`, takes you step-by-step through the process of creating a high-availability OpenStack cluster.
+* Section 3, :ref:`Create a multi-node OpenStack cluster using Fuel <Create-Cluster>`, takes you step-by-step through the process of creating a high-availability OpenStack cluster.
 
 * Section 4, :ref:`Production Considerations <Production>`, looks at the real-world questions and problems involved in creating an OpenStack cluster for production use. It discusses issues such as network layout and hardware requirements, and provides tips and tricks for creating a cluster of up to 100 nodes.
 

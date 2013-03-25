@@ -1,7 +1,7 @@
 .. _Create-Cluster:
 
-Create an example multi-node OpenStack cluster using Fuel
-=========================================================
+Create a multi-node OpenStack cluster using Fuel
+================================================
 
 .. contents:: :local:
 
