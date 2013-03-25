@@ -63,6 +63,17 @@ class CompactTestCase(CobblerTestCase):
         if CREATE_SNAPSHOTS:
             self.environment().snapshot('compact_woloopback', force=True)
 
+    def test_deploy_compact_wo_ha_provider(self):
+        Manifest().write_openstack_manifest(
+            remote=self.remote(),
+            template=Template.compact(), ci=self.ci(),
+            controllers=self.nodes().controllers,
+            quantums=self.nodes().quantums,
+            quantum=False, use_syslog=False, ha_provider=False)
+        self.deploy_compact(quantum_node=False)
+        if CREATE_SNAPSHOTS:
+            self.environment().snapshot('compact_wo_ha_provider', force=True)
+
 
 if __name__ == '__main__':
     unittest.main()
