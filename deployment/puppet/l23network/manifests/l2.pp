@@ -19,11 +19,13 @@ class l23network::l2 {
     status    => $::l23network::params::ovs_status_cmd,
   }
 
-  if $::osfamily =~ /(?i)debian/ and !defined(Package["$l23network::params::lnx_bond_tools"]) {
-    package {"$l23network::params::lnx_bond_tools": 
-      ensure => installed
+  if $::osfamily =~ /(?i)debian/ {
+    if !defined(Package["$l23network::params::lnx_bond_tools"]) {
+      package {"$l23network::params::lnx_bond_tools":
+        ensure => installed
+      }
     }
-    Package["$l23network::params::lnx_bond_tools"] -> L23network::L3::Ifconfig<||>
+    Package["$l23network::params::lnx_bond_tools"] -> Service['openvswitch-service']
   }
 
   if !defined(Package["$l23network::params::lnx_vlan_tools"]) {
@@ -31,13 +33,13 @@ class l23network::l2 {
       ensure => installed
     } 
   }
-  Package["$l23network::params::lnx_vlan_tools"] -> L23network::L3::Ifconfig<||>
+  Package["$l23network::params::lnx_vlan_tools"] -> Service['openvswitch-service']
 
   if !defined(Package["$l23network::params::lnx_ethernet_tools"]) {
     package {"$l23network::params::lnx_ethernet_tools":
       ensure => installed
     }
   }
-  Package["$l23network::params::lnx_ethernet_tools"] -> L23network::L3::Ifconfig<||>
+  Package["$l23network::params::lnx_ethernet_tools"] -> Service['openvswitch-service']
 
 }
