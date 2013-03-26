@@ -42,7 +42,13 @@
 # [*dns_nameservers*]
 #   Specify pair of nameservers if need. Must be array, for example:
 #   nameservers => ['8.8.8.8', '8.8.4.4']
-# TODO: realize dns_domain derecive
+#
+# [*dns_domain*]
+#   Specify DOMAIN option for interface. Implemened only in ubuntu. 
+#
+# [*dns_search*]
+#   Specify SEARCH option for interface. Must be array, for example:
+#   dns_search => ['aaaa.com', 'bbbb.org']
 #
 # [*dhcp_hostname*]
 #   Specify hostname for DHCP if need.
@@ -112,20 +118,36 @@ define l23network::l3::ifconfig (
     /(?i)debian/: {
       $if_files_dir = '/etc/network/interfaces.d'
       $interfaces = '/etc/network/interfaces'
-      if $dns_nameservers {
-        $dns_nameservers_join = join($dns_nameservers, ' ')
-      }
     }
     /(?i)redhat/: {
       $if_files_dir = '/etc/sysconfig/network-scripts'
       $interfaces = false
-      if $dns_nameservers {
-        $dns_nameservers_1 = $dns_nameservers[0]
-        $dns_nameservers_2 = $dns_nameservers[1]
-      }
     }
     default: {
       fail("Unsupported OS: ${::osfamily}/${::operatingsystem}")
+    }
+  }
+
+  # DNS nameservers, search and domain options
+  if $dns_nameservers {
+    $dns_nameservers_list = merge_arrays( array_or_string_to_array($dns_nameservers), [false, false])
+    $dns_nameservers_1 = $dns_nameservers_list[0]
+    $dns_nameservers_2 = $dns_nameservers_list[1]
+  }
+  if $dns_search {
+    $dns_search_list = array_or_string_to_array($dns_search)
+    if $dns_search_list {
+      $dns_search_string = join($dns_search_list, ' ')
+    } else {
+      fail("dns_search option must be array or string")
+    }
+  }
+  if $dns_domain {
+    $dns_domain_list = array_or_string_to_array($dns_domain)
+    if $dns_domain_list {
+      $dns_domain_string = $dns_domain_list[0]
+    } else {
+      fail("dns_domain option must be array or string")
     }
   }
 
