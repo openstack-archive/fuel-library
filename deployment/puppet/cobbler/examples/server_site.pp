@@ -50,14 +50,33 @@ node fuel-cobbler {
 
     class { cobbler::distro::centos63_x86_64:
       http_iso => "http://172.18.67.168/CentOS-6.3-x86_64-minimal.iso",
-      ks_url   => "cobbler",
+      ks_url   => "http://172.18.67.168/centos-repo/centos-6.3",
     }
 
 
     Class[cobbler::distro::centos63_x86_64] ->
     Class[cobbler::profile::centos63_x86_64]
 
-    class { cobbler::profile::centos63_x86_64: }
+    class { cobbler::profile::centos63_x86_64:
+      ks_repo => [
+        {
+        "name" => "Puppet",
+        "url"  => "http://yum.puppetlabs.com/el/6/products/x86_64",
+        },
+        {
+        "name" => "PuppetDeps",
+        "url"  => "http://yum.puppetlabs.com/el/6/dependencies/x86_64",
+        },
+        {
+        "name" => "Stanford",
+        "url"  => "http://172.18.67.168/centos-repo/centos-6.3",
+        },
+        {
+        "name" => "Epel",
+        "url"  => "http://172.18.67.168/centos-repo/epel",
+        }
+      ]
+    }
 
     # UBUNTU distribution
       Class[cobbler::distro::ubuntu_1204_x86_64] ->
