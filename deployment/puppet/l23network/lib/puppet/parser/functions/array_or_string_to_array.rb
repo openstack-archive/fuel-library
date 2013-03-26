@@ -4,18 +4,17 @@
 
 module Puppet::Parser::Functions
   newfunction(:array_or_string_to_array, :type => :rvalue, :doc => <<-EOS
-This function get array or string with seperator (comma, colon or space).
+This function get array or string with separator (comma, colon or space).
 and return array without empty or false elements.
 
 *Examples:*
 
     array_or_string_to_array(['a','b','c','d'])
-    array_or_string_to_array('a,b:c d'])
+    array_or_string_to_array('a,b:c d')
 
 Would result in: ['a','b','c','d']
     EOS
   ) do |arguments|
-    # Technically we support two arguments but only first is mandatory ...
     raise(Puppet::ParseError, "array_or_string_to_array(): Wrong number of arguments " +
       "given (#{arguments.size} for 1)") if arguments.size < 1
 

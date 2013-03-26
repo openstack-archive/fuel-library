@@ -24,8 +24,17 @@
 #   If current network configuration contains a default gateway 
 #   this option allow try to save it.
 #
+# [*dns_nameservers*]
+#   Dns nameservers to use
+# 
+# [*dns_domain*]
+#   describe DNS domain
+#
+# [*dns_search*]
+#   DNS domain to search for
+#
 define l23network::l3::create_br_iface (
-    $interface,
+    $interface,  #TODO: if interface is array -- create bond, using bond_options.
     $bridge,
     $ipaddr,
     $netmask      = '255.255.255.0',
@@ -33,6 +42,8 @@ define l23network::l3::create_br_iface (
     $se           = true,
     $external_ids = '',
     $dns_nameservers      = undef,
+    $dns_domain           = undef,
+    $dns_search           = undef,
     $save_default_gateway = false,
     $interface_vlandev    = undef,
     $interface_bond_mode      = undef,
@@ -74,6 +85,8 @@ define l23network::l3::create_br_iface (
       netmask             => $netmask,
       gateway             => $gateway_ip_address_for_newly_created_interface,
       dns_nameservers     => $dns_nameservers,
+      dns_domain          => $dns_domain,
+      dns_search          => $dns_search,
       ifname_order_prefix => 'ovs',
       require             => L23network::L3::Ifconfig[$interface],
     }
