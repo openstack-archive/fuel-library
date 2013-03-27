@@ -32,12 +32,16 @@ $nodes_harr = [
     'role' => 'master',
     'internal_address' => '10.0.0.101',
     'public_address'   => '10.0.204.101',
+    'mountpoints'=> "1 1\n2 1",
+    'storage_local_net_ip' => '10.0.0.101',
   },
   {
     'name' => 'fuel-cobbler',
     'role' => 'cobbler',
     'internal_address' => '10.0.0.102',
     'public_address'   => '10.0.204.102',
+    'mountpoints'=> "1 1\n2 1",
+    'storage_local_net_ip' => '10.0.0.102',
   },
   {
     'name' => 'fuel-controller-01',
@@ -45,6 +49,8 @@ $nodes_harr = [
     'internal_address' => '10.0.0.103',
     'public_address'   => '10.0.204.103',
     'swift_zone'       => 1,
+    'mountpoints'=> "1 1\n2 1",
+    'storage_local_net_ip' => '10.0.0.103',
   },
   {
     'name' => 'fuel-controller-02',
@@ -569,6 +575,10 @@ node /fuel-controller-[\d+]/ {
     storage_type       => $swift_loopback,
     swift_zone         => $swift_zone,
     swift_local_net_ip => $internal_address,
+  }
+
+  ring_devices {'all':
+    storages => filter_nodes($nodes, 'role', 'controller')
   }
 
   class { 'openstack::swift::proxy':

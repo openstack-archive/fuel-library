@@ -19,12 +19,13 @@ class openstack::swift::proxy (
   $controller_node_address          = '10.0.0.1',
   $memcached                        = true,
   $swift_proxies			= { '127.0.0.1' => '127.0.0.1'},
-  $primary_proxy            =  false
+  $primary_proxy            =  false,
+  $swift_devices            = undef,
 ) {
 
 if !defined(Class['swift'])
 {
-  class { 'swift': 
+  class { 'swift':
     swift_hash_suffix => $swift_hash_suffix,
     package_ensure    => $package_ensure,
   }
@@ -49,7 +50,7 @@ if !defined(Class['swift'])
     '::swift::proxy::healthcheck',
     '::swift::proxy::swift3',
   ]: }
-  
+
    $cache_addresses =  inline_template("<%= @swift_proxies.keys.uniq.sort.collect {|ip| ip + ':11211' }.join ',' %>")
    class { '::swift::proxy::cache':
         memcache_servers => split($cache_addresses,',')
@@ -107,7 +108,7 @@ if !defined(Class['swift'])
    Swift::Ringsync<<| tag == "${::deployment_id}::${::environment}" |>>
    Swift::Ringsync<||> ~> Service["swift-proxy"]
  }
-    
+
   # deploy a script that can be used for testing
   file { '/tmp/swift_keystone_test.rb':
     source => 'puppet:///modules/swift/swift_keystone_test.rb'
