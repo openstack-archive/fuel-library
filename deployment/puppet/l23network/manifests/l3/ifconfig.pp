@@ -206,8 +206,7 @@ define l23network::l3::ifconfig (
         content => template('l23network/interfaces.erb'),
       }
     }
-    #File[$interfaces] -> File[$if_files_dir]
-    #File<| title == $interfaces |> -> File<| title == $if_files_dir |>
+    File<| title == $interfaces |> -> File<| title == $if_files_dir |>
   }
 
   if ! defined(File[$if_files_dir]) {
@@ -218,13 +217,13 @@ define l23network::l3::ifconfig (
       recurse => true,
     }
   }
+  File<| title == $if_files_dir |> -> File<| title == $interface_file |>
 
   file {$interface_file:
     ensure  => present,
     owner   => 'root',
     mode    => '0644',
     content => template("l23network/ipconfig_${::osfamily}_${method}.erb"),
-    require => File[$if_files_dir],
   }
 
   notify {"ifconfig_${interface}": message=>"Interface:${interface} IP:${ipaddr}/${netmask}", withpath=>false} ->

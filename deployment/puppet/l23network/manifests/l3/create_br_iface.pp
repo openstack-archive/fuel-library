@@ -9,7 +9,9 @@
 #   Bridge name
 #
 # [*interface*]
-#   Interface, that will be added to the bridge.
+#   Interface, that will be added to the bridge. If You set array of interface names -- 
+#   Open vSwitch bond will be builded on its. In this case You must set ovs_bond_name and
+#   ovs_bond_options options.3
 #
 # [*ipaddr*]
 #   IP address for port in bridge.
@@ -34,9 +36,9 @@
 #   DNS domain to search for
 #
 define l23network::l3::create_br_iface (
-    $interface,  #TODO: if interface is array -- create bond, using bond_options.
-    $bridge,
+    $interface,
     $ipaddr,
+    $bridge       = $name,
     $netmask      = '255.255.255.0',
     $gateway      = undef,
     $se           = true,
@@ -49,9 +51,9 @@ define l23network::l3::create_br_iface (
     $lnx_interface_bond_mode      = undef,
     $lnx_interface_bond_miimon    = 100,
     $lnx_interface_bond_lacp_rate = 1,
-    $lnx_interface_order_prefix   = false,
     $ovs_bond_name    = 'bond0',
     $ovs_bond_options = [],
+    $interface_order_prefix = false,
 ){
     if ! $external_ids {
       $ext_ids = "bridge-id=${bridge}"
@@ -64,23 +66,42 @@ define l23network::l3::create_br_iface (
     } else {
       $gateway_ip_address_for_newly_created_interface = undef
     }
+    # Build ovs bridge
     l23network::l2::bridge {$bridge:
       skip_existing => $se,
       external_ids  => $ext_ids,
     }
-    l23network::l2::port {$interface:
-      bridge        => $bridge,
-      skip_existing => $se,
-      require       => L23network::L2::Bridge[$bridge]
-    }
-    l23network::l3::ifconfig {$interface:
-      ipaddr    => 'none',
-      vlandev   => $lnx_interface_vlandev,
-      require   => L23network::L2::Port[$interface],
-      bond_mode      => $lnx_interface_bond_mode,
-      bond_miimon    => $lnx_interface_bond_miimon,
-      bond_lacp_rate => $lnx_interface_bond_lacp_rate,
-      ifname_order_prefix => $lnx_interface_order_prefix,
+    if is_array($interface) {
+      # Build ovs bridge, contains ovs bond with givet interfaces
+      l23network::l2::bond {$ovs_bond_name:
+        bridge        => $bridge,
+        ports         => $interface,
+        options       => $ovs_bond_options,
+        skip_existing => $se,
+        require       => L23network::L2::Bridge[$bridge]
+      } ->
+      l23network::l3::ifconfig {$interface:
+        ipaddr    => 'none',
+        require   => L23network::L2::Bond[$ovs_bond_name],
+        before    => L23network::L3::Ifconfig[$bridge]
+      }
+    } else {
+      # Build ovs bridge, contains one interface
+      l23network::l2::port {$interface:
+        bridge        => $bridge,
+        skip_existing => $se,
+        require       => L23network::L2::Bridge[$bridge]
+      } ->
+      l23network::l3::ifconfig {$interface:
+        ipaddr    => 'none',
+        vlandev   => $lnx_interface_vlandev,
+        require   => L23network::L2::Port[$interface],
+        bond_mode      => $lnx_interface_bond_mode,
+        bond_miimon    => $lnx_interface_bond_miimon,
+        bond_lacp_rate => $lnx_interface_bond_lacp_rate,
+        ifname_order_prefix => $interface_order_prefix,
+        before    => L23network::L3::Ifconfig[$bridge]
+      }
     }
     l23network::l3::ifconfig {$bridge:
       ipaddr              => $ipaddr,
@@ -90,6 +111,5 @@ define l23network::l3::create_br_iface (
       dns_domain          => $dns_domain,
       dns_search          => $dns_search,
       ifname_order_prefix => 'ovs',
-      require             => L23network::L3::Ifconfig[$interface],
     }
 }
