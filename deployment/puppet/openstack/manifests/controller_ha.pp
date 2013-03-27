@@ -108,6 +108,9 @@ class openstack::controller_ha (
    $create_networks         = true,
    $use_unicast_corosync    = false,
    $ha_mode                 = true,
+   $internal_virtual_ip_mask = undef, 
+   $public_virtual_ip_mask = undef, 
+   $keepalived_vrrp_script = "killall -0 haproxy",
  ) {
 
     # haproxy
@@ -240,15 +243,19 @@ local0.* -/var/log/haproxy.log'
 
     keepalived::instance { $public_vrid:
       interface => $public_interface,
-      virtual_ips => [$public_virtual_ip],
+      virtual_ips => $public_virtual_ip_mask ? { undef => ["${public_virtual_ip}"], default => ["${public_virtual_ip}/${public_virtual_ip_mask}"] },
       state    => $primary_controller ? { true => 'MASTER', default => 'BACKUP' },
-      priority => $primary_controller ? { true => 101,      default => 100      },
+      priority => $primary_controller ? { true => 100,      default => fqdn_rand(100) },
+      vrrp_script => $keepalived_vrrp_script,
+      weight => 101,
     }
     keepalived::instance { $internal_vrid:
       interface => $internal_interface,
-      virtual_ips => [$internal_virtual_ip],
+      virtual_ips => $internal_virtual_ip_mask ? { undef => ["${internal_virtual_ip}"], default => ["${internal_virtual_ip}/${internal_virtual_ip_mask}"] },
       state    => $primary_controller ? { true => 'MASTER', default => 'BACKUP' },
-      priority => $primary_controller ? { true => 101,      default => 100      },
+      priority => $primary_controller ? { true => 100,      default => fqdn_rand(100) },
+      vrrp_script => $keepalived_vrrp_script,
+      weight => 101,
     }
 
     class { '::openstack::firewall':

@@ -502,7 +502,10 @@ class compact_controller (
     nova_rate_limits        => $nova_rate_limits,
     cinder_rate_limits      => $cinder_rate_limits,
     horizon_use_ssl         => $horizon_use_ssl,
-    ha_provider             => $ha_provider
+    ha_provider             => $ha_provider,
+    internal_virtual_ip_mask => '24',
+    public_virtual_ip_mask  => '24',
+    keepalived_vrrp_script  => "killall -0 haproxy"
   }
 }
 
