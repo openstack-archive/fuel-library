@@ -11,7 +11,7 @@ class openstack::mirantis_repos (
   $deb_fuel_folsom_repo   = 'http://172.18.67.168/ubuntu-repo/precise-fuel-folsom',
   $deb_cloud_archive_repo = 'http://172.18.67.168/ubuntu-cloud.archive.canonical.com/ubuntu',
   $deb_rabbit_repo        = 'http://172.18.67.168/ubuntu-repo/precise-fuel-folsom',
-  $enable_epel = false,
+  $enable_epel = true,
   $fuel_mirrorlist        = 'http://download.mirantis.com/epel-fuel-folsom-2.1/mirror.internal-stage.list',
   $mirrorlist_base        = 'http://172.18.67.168/centos-repo/mirror-6.3-os.list',
   $mirrorlist_updates     = 'http://172.18.67.168/centos-repo/mirror-6.3-updates.list',
