@@ -4,20 +4,22 @@ class openstack::mirantis_repos (
   $type         = 'default',
   $originator   = 'Mirantis Product <product@mirantis.com>',
   $disable_puppet_labs_repos = true,
-  $upstream_mirror           = true,
-  $deb_mirror   = 'http://172.18.67.168/ubuntu-repo/mirror.yandex.ru/ubuntu',
-  $deb_updates  = 'http://172.18.67.168/ubuntu-repo/mirror.yandex.ru/ubuntu',
-  $deb_security = 'http://172.18.67.168/ubuntu-repo/mirror.yandex.ru/ubuntu',
-  $deb_fuel_folsom_repo      = 'http://172.18.67.168/ubuntu-repo/precise-fuel-folsom',
-  $deb_cloud_archive_repo    = 'http://172.18.67.168/ubuntu-cloud.archive.canonical.com/ubuntu',
-  $deb_rabbit_repo           = 'http://172.18.67.168/ubuntu-repo/precise-fuel-folsom',
-  $enable_epel  = false,
-  $fuel_mirrorlist           = 'http://download.mirantis.com/epel-fuel-folsom-2.1/mirror.internal-stage.list',
-  $mirrorlist_base           = 'http://172.18.67.168/centos-repo/mirror-6.3-os.list',
-  $mirrorlist_updates        = 'http://172.18.67.168/centos-repo/mirror-6.3-updates.list',
-  $enable_test_repo          = false,
-  $repo_proxy   = undef,
-  $use_upstream_mysql        = false,) {
+  $upstream_mirror        = true,
+  $deb_mirror             = 'http://172.18.67.168/ubuntu-repo/mirror.yandex.ru/ubuntu',
+  $deb_updates            = 'http://172.18.67.168/ubuntu-repo/mirror.yandex.ru/ubuntu',
+  $deb_security           = 'http://172.18.67.168/ubuntu-repo/mirror.yandex.ru/ubuntu',
+  $deb_fuel_folsom_repo   = 'http://172.18.67.168/ubuntu-repo/precise-fuel-folsom',
+  $deb_cloud_archive_repo = 'http://172.18.67.168/ubuntu-cloud.archive.canonical.com/ubuntu',
+  $deb_rabbit_repo        = 'http://172.18.67.168/ubuntu-repo/precise-fuel-folsom',
+  $enable_epel            = false,
+  $fuel_mirrorlist        = 'http://download.mirantis.com/epel-fuel-folsom-2.1/mirror.internal-stage.list',
+  $mirrorlist_base        = 'http://172.18.67.168/centos-repo/mirror-6.3-os.list',
+  $mirrorlist_updates     = 'http://172.18.67.168/centos-repo/mirror-6.3-updates.list',
+  $grizzly_baseurl        = 'http://osci-koji.srt.mirantis.net/mash/fuel-3.0/x86_64/',
+  $enable_test_repo       = false,
+  $repo_proxy             = undef,
+  $use_upstream_mysql     = false,
+) {
   case $::osfamily {
     'Debian' : {
       class { 'apt::proxy':
@@ -171,6 +173,11 @@ class openstack::mirantis_repos (
           mirrorlist => $fuel_mirrorlist,
           gpgcheck   => '1',
           gpgkey     => 'http://download.mirantis.com/epel-fuel-folsom-2.1/epel.key  http://download.mirantis.com/epel-fuel-folsom-2.1/centos.key http://download.mirantis.com/epel-fuel-folsom-2.1/rabbit.key http://download.mirantis.com/epel-fuel-folsom-2.1/mirantis.key http://download.mirantis.com/epel-fuel-folsom-2.1/mysql.key',
+        }
+
+        yumrepo { 'openstack-epel-fuel-grizzly':
+          descr      => 'Mirantis OpenStack grizzly Custom Packages',
+          baseurl    => $grizzly_baseurl,
         }
 
         if $upstream_mirror == true {
