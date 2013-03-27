@@ -67,43 +67,44 @@ define l23network::l3::create_br_iface (
       $gateway_ip_address_for_newly_created_interface = undef
     }
     # Build ovs bridge
-    l23network::l2::bridge {$bridge:
+    l23network::l2::bridge {"$bridge":
       skip_existing => $se,
       external_ids  => $ext_ids,
     }
     if is_array($interface) {
       # Build ovs bridge, contains ovs bond with givet interfaces
-      l23network::l2::bond {$ovs_bond_name:
+      l23network::l2::bond {"$ovs_bond_name":
         bridge        => $bridge,
         ports         => $interface,
         options       => $ovs_bond_options,
         skip_existing => $se,
-        require       => L23network::L2::Bridge[$bridge]
+        require       => L23network::L2::Bridge["$bridge"]
       } ->
-      l23network::l3::ifconfig {$interface:
+      l23network::l3::ifconfig {$interface: # do not quotas here, $interface may be array!!!
         ipaddr    => 'none',
-        require   => L23network::L2::Bond[$ovs_bond_name],
-        before    => L23network::L3::Ifconfig[$bridge]
+        ifname_order_prefix => '0',
+        require   => L23network::L2::Bond["$ovs_bond_name"],
+        before    => L23network::L3::Ifconfig["$bridge"]
       }
     } else {
       # Build ovs bridge, contains one interface
       l23network::l2::port {$interface:
         bridge        => $bridge,
         skip_existing => $se,
-        require       => L23network::L2::Bridge[$bridge]
+        require       => L23network::L2::Bridge["$bridge"]
       } ->
-      l23network::l3::ifconfig {$interface:
+      l23network::l3::ifconfig {"$interface": # USE quotas!!!!!
         ipaddr    => 'none',
         vlandev   => $lnx_interface_vlandev,
-        require   => L23network::L2::Port[$interface],
         bond_mode      => $lnx_interface_bond_mode,
         bond_miimon    => $lnx_interface_bond_miimon,
         bond_lacp_rate => $lnx_interface_bond_lacp_rate,
         ifname_order_prefix => $interface_order_prefix,
-        before    => L23network::L3::Ifconfig[$bridge]
+        require   => L23network::L2::Port["$interface"],
+        before    => L23network::L3::Ifconfig["$bridge"]
       }
     }
-    l23network::l3::ifconfig {$bridge:
+    l23network::l3::ifconfig {"$bridge":
       ipaddr              => $ipaddr,
       netmask             => $netmask,
       gateway             => $gateway_ip_address_for_newly_created_interface,
