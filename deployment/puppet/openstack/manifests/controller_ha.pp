@@ -94,7 +94,7 @@ class openstack::controller_ha (
    $nova_db_password, $nova_user_password, $rabbit_password, $rabbit_user,
    $rabbit_nodes, $memcached_servers, $export_resources, $glance_backend='file', $swift_proxies=undef,
    $quantum = false, $quantum_user_password='', $quantum_db_password='', $quantum_db_user = 'quantum',
-   $quantum_db_dbname  = 'quantum', $cinder = false, $cinder_iscsi_bind_iface = false, $tenant_network_type = 'gre', $segment_range = '1:4094',
+   $quantum_db_dbname  = 'quantum', $cinder = false, $cinder_iscsi_bind_addr = false, $tenant_network_type = 'gre', $segment_range = '1:4094',
    $nv_physical_volume = undef, $manage_volumes = false,$galera_nodes, $use_syslog = false,
    $cinder_rate_limits = undef, $nova_rate_limits = undef,
    $rabbit_node_ip_address  = $internal_address,
@@ -320,7 +320,7 @@ local0.* -/var/log/haproxy.log'
       segment_range           => $segment_range,
       tenant_network_type     => $tenant_network_type,
       cinder                  => $cinder,
-      cinder_iscsi_bind_iface => $cinder_iscsi_bind_iface,
+      cinder_iscsi_bind_addr => $cinder_iscsi_bind_addr,
       manage_volumes          => $manage_volumes,
       nv_physical_volume      => $nv_physical_volume,
       # turn on SWIFT_ENABLED option for Horizon dashboard
