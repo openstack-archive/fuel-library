@@ -137,7 +137,7 @@ class openstack::controller (
   $cinder_db_password      = 'cinder_db_pass',
   $cinder_db_user          = 'cinder',
   $cinder_db_dbname        = 'cinder',
-  $cinder_iscsi_bind_iface = false,
+  $cinder_iscsi_bind_addr  = false,
   #
   $quantum                 = false,
   $quantum_user_password   = 'quantum_pass',
@@ -339,11 +339,6 @@ class openstack::controller (
 
   ######### Cinder Controller Services ########
   if ($cinder) {
-    if ($cinder_iscsi_bind_iface) {
-      $cinder_iscsi_bind_addr = getvar("::ipaddress_${cinder_iscsi_bind_iface}")
-    } else {
-      $cinder_iscsi_bind_addr = $api_bind_address
-    }
     class {'openstack::cinder':
       sql_connection       => "mysql://${cinder_db_user}:${cinder_db_password}@${db_host}/${cinder_db_dbname}?charset=utf8",
       rabbit_password      => $rabbit_password,

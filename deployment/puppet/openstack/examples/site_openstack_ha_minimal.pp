@@ -291,10 +291,8 @@ $cinder_on_computes      = false
 #Otherwise it will install api and scheduler services
 $manage_volumes          = true
 
-# Setup network interface, which Cinder uses to export iSCSI targets.
-# This interface defines which IP to use to listen on iscsi port for
-# incoming connections of initiators
-$cinder_iscsi_bind_iface = $internal_int
+# Setup network address, which Cinder uses to export iSCSI targets.
+$cinder_iscsi_bind_addr = $internal_address
 
 # Below you can add physical volumes to cinder. Please replace values with the actual names of devices.
 # This parameter defines which partitions to aggregate into cinder-volumes or nova-volumes LVM VG
@@ -494,7 +492,7 @@ class compact_controller (
     tenant_network_type     => $tenant_network_type,
     segment_range           => $segment_range,
     cinder                  => $cinder,
-    cinder_iscsi_bind_iface => $cinder_iscsi_bind_iface,
+    cinder_iscsi_bind_addr  => $cinder_iscsi_bind_addr,
     manage_volumes          => $manage_volumes,
     galera_nodes            => $controller_hostnames,
     nv_physical_volume      => $nv_physical_volume,
@@ -582,7 +580,7 @@ node /fuel-compute-[\d+]/ {
     tenant_network_type    => $tenant_network_type,
     segment_range          => $segment_range,
     cinder                 => $cinder_on_computes,
-    cinder_iscsi_bind_iface=> $cinder_iscsi_bind_iface,
+    cinder_iscsi_bind_addr => $cinder_iscsi_bind_addr,
     nv_physical_volume     => $nv_physical_volume,
     db_host                => $internal_virtual_ip,
     ssh_private_key        => 'puppet:///ssh_keys/openstack',
