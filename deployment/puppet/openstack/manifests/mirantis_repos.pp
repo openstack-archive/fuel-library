@@ -153,12 +153,17 @@ class openstack::mirantis_repos (
       # ############### End of forced apt-get update block ###############
     }
 
-    'RedHat' : {
-      Yumrepo {
-        proxy => $repo_proxy, }
+    'RedHat': {
 
-      # added internal/external network mirror
+      exec {'/usr/bin/yum -d 0 -e 0 -y install yum-priorities':}
+
+      Yumrepo {
+        proxy   => $repo_proxy,
+      }
+      
+      #added internal/external network mirror
       if $type == 'default' {
+        
         yumrepo { 'openstack-epel-fuel':
           descr      => 'Mirantis OpenStack Custom Packages',
           mirrorlist => 'http://download.mirantis.com/epel-fuel-folsom-2.1/mirror.external.list',
@@ -171,25 +176,27 @@ class openstack::mirantis_repos (
         yumrepo { 'openstack-epel-fuel':
           descr      => 'Mirantis OpenStack Custom Packages',
           mirrorlist => $fuel_mirrorlist,
+          priority   => '10',
           gpgcheck   => '1',
           gpgkey     => 'http://download.mirantis.com/epel-fuel-folsom-2.1/epel.key  http://download.mirantis.com/epel-fuel-folsom-2.1/centos.key http://download.mirantis.com/epel-fuel-folsom-2.1/rabbit.key http://download.mirantis.com/epel-fuel-folsom-2.1/mirantis.key http://download.mirantis.com/epel-fuel-folsom-2.1/mysql.key',
         }
 
         yumrepo { 'openstack-epel-fuel-grizzly':
           descr      => 'Mirantis OpenStack grizzly Custom Packages',
-          baseurl    => $grizzly_baseurl,
+        baseurl    => 'http://repos.fedorapeople.org/repos/openstack/openstack-grizzly/epel-6/',
+          priority   => '1',
         }
 
         if $upstream_mirror == true {
           yumrepo { 'centos-base':
-            descr      => 'Local base mirror repository',
+            priority   => '1',
             name       => 'base',
             mirrorlist => $mirrorlist_base,
           }
 
           yumrepo { 'centos-updates':
-            descr      => 'Local updates mirror repository',
             name       => 'updates',
+            priority   => '1',
             mirrorlist => $mirrorlist_updates,
           }
         }
@@ -208,6 +215,7 @@ class openstack::mirantis_repos (
         Yumrepo {
           failovermethod => 'priority',
           gpgkey         => 'http://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-6',
+          priority       => '11',
           gpgcheck       => 1,
           enabled        => 1,
         }
@@ -215,6 +223,7 @@ class openstack::mirantis_repos (
         yumrepo { 'epel-testing':
           descr      => 'Extra Packages for Enterprise Linux 6 - Testing - $basearch',
           mirrorlist => 'http://mirrors.fedoraproject.org/metalink?repo=testing-epel6&arch=$basearch',
+          enabled    => 0,
         }
 
         yumrepo { 'epel':
