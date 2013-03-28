@@ -153,7 +153,7 @@ class openstack::mirantis_repos (
       #added internal/external network mirror
       if $type == 'default' {
         
-        package {'yum-plugin-priorities':
+        package {'yum-priorities':
           ensure => installed,
         }
 
