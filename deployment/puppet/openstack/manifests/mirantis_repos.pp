@@ -220,12 +220,12 @@ class openstack::mirantis_repos (
         yumrepo { 'epel-testing':
           descr      => 'Extra Packages for Enterprise Linux 6 - Testing - $basearch',
           mirrorlist => 'http://mirrors.fedoraproject.org/metalink?repo=testing-epel6&arch=$basearch',
+          enabled    => 0,
         }
 
         yumrepo { 'epel':
           descr      => 'Extra Packages for Enterprise Linux 6 - $basearch',
           mirrorlist => 'http://mirrors.fedoraproject.org/metalink?repo=epel-6&arch=$basearch',
-          enabled        => 0,
         }
       }
 
