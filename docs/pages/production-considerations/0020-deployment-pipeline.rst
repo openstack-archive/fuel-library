@@ -1,4 +1,4 @@
-Redepolying an environment
+Redeploying an environment
 --------------------------
 
 Because Puppet is additive only, there is no ability to revert changes as you would in a typical application deployment.
@@ -45,7 +45,7 @@ Deployment pipeline
 
 * Deploy
 
-  In order to deploy multiple environments that don't interfere with each other, you should specify the ``$deployment_id`` option in ``/etc/puppet/manifests/site.pp``.  It should be an even integer value in the range of 0-254.
+  In order to deploy multiple environments that don't interfere with each other, you should specify the ``$deployment_id`` option in ``/etc/puppet/manifests/site.pp``.  It should be an even integer value in the range of 2-254.
 
   This value is used in dynamic environment-based tag generation.  Fuel also apply that tag globally to all resources on each node.  It is also used for the keepalived daemon, which evaluates a unique ``virtual_router_id``.
 

@@ -1,6 +1,6 @@
 .. _orchestration:
 
-Depolying via orchestration
+Deploying via orchestration
 ----------------------------
 
 Manually installing a handful of servers might be managable, but repeatable installations, or those that involve a large number of servers, require automated orchestration.  Now you can use orchestration with Fuel through the ``astute`` script.  This script is configured using the ``astute.yaml`` file you created when you ran ``openstack_system``.
