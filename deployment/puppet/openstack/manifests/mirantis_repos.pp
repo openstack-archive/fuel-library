@@ -146,18 +146,19 @@ class openstack::mirantis_repos (
     }
 
     'RedHat': {
-      Yumrepo {
-        proxy =>$repo_proxy,
-      }
-      #added internal/external network mirror
-      if $type == 'default' {
-        
-        package {'yum-priorities':
+
+      package {'yum-priorities':
           ensure => installed,
         }
 
-        Yumrepo {require => Package['yum-plugin-priorities']}
+      Yumrepo {
+        proxy   => $repo_proxy,
+        require => Package['yum-priorities'],
+      }
 
+      #added internal/external network mirror
+      if $type == 'default' {
+        
         yumrepo { 'openstack-epel-fuel':
           descr      => 'Mirantis OpenStack Custom Packages',
           mirrorlist => 'http://download.mirantis.com/epel-fuel-folsom-2.1/mirror.external.list',
