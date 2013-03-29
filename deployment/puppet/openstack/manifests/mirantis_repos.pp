@@ -147,6 +147,12 @@ class openstack::mirantis_repos (
 
     'RedHat': {
 
+      exec {'/usr/bin/yum -d 0 -e 0 -y install yum-priorities':}
+
+      Yumrepo {
+        proxy   => $repo_proxy,
+      }
+      
       #added internal/external network mirror
       if $type == 'default' {
         
@@ -156,15 +162,6 @@ class openstack::mirantis_repos (
           gpgcheck   => '1',
           gpgkey     => 'http://download.mirantis.com/epel-fuel-folsom-2.1/epel.key  http://download.mirantis.com/epel-fuel-folsom-2.1/centos.key http://download.mirantis.com/epel-fuel-folsom-2.1/rabbit.key http://download.mirantis.com/epel-fuel-folsom-2.1/mirantis.key http://download.mirantis.com/epel-fuel-folsom-2.1/mysql.key',
         }
-      }
-
-      package {'yum-priorities':
-          ensure => installed,
-        }
-
-      Yumrepo {
-        proxy   => $repo_proxy,
-        require => Package['yum-priorities'],
       }
 
       if $type == 'custom' {
