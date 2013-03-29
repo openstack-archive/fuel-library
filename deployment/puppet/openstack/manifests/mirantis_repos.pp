@@ -15,7 +15,6 @@ class openstack::mirantis_repos (
   $fuel_mirrorlist        = 'http://download.mirantis.com/epel-fuel-folsom-2.1/mirror.internal-stage.list',
   $mirrorlist_base        = 'http://172.18.67.168/centos-repo/mirror-6.3-os.list',
   $mirrorlist_updates     = 'http://172.18.67.168/centos-repo/mirror-6.3-updates.list',
-  $grizzly_repolist       = 'http://repos.fedorapeople.org/repos/openstack/openstack-grizzly/epel-openstack-grizzly.repo',
   $enable_test_repo = false,
   $repo_proxy = undef,
 ) {
@@ -178,7 +177,7 @@ class openstack::mirantis_repos (
 
         yumrepo { 'openstack-epel-fuel-grizzly':
           descr      => 'Mirantis OpenStack grizzly Custom Packages',
-          mirrorlist => $grizzly_repolist,
+        baseurl    => 'http://repos.fedorapeople.org/repos/openstack/openstack-grizzly/epel-6/',
           priority   => '1',
         }
 
