@@ -100,7 +100,7 @@ class openstack::compute (
   $cinder_db_password      = 'cinder_db_pass',
   $cinder_db_user          = 'cinder',
   $cinder_db_dbname        = 'cinder',
-  $cinder_iscsi_bind_iface = false,
+  $cinder_iscsi_bind_addr  = false,
   $db_host                 = '127.0.0.1',
   $use_syslog              = false,
   $nova_rate_limits = undef,
@@ -174,11 +174,6 @@ class openstack::compute (
   }
 
   if ($cinder) {
-    if ($cinder_iscsi_bind_iface) {
-      $cinder_iscsi_bind_addr = getvar("::ipaddress_${cinder_iscsi_bind_iface}")
-    } else {
-      $cinder_iscsi_bind_addr = $internal_address
-    }
 
     $enabled_apis = 'metadata'
 

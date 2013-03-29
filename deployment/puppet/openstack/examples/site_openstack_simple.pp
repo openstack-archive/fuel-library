@@ -250,9 +250,7 @@ $cinder_on_computes      = false
 $manage_volumes          = true
 
 # Setup network interface, which Cinder uses to export iSCSI targets.
-# This interface defines which IP to use to listen on iscsi port for
-# incoming connections of initiators
-$cinder_iscsi_bind_iface = $internal_int
+$cinder_iscsi_bind_addr = $internal_address
 
 # Below you can add physical volumes to cinder. Please replace values with the actual names of devices.
 # This parameter defines which partitions to aggregate into cinder-volumes or nova-volumes LVM VG
@@ -442,7 +440,6 @@ class simple_controller (
     rabbit_user             => $rabbit_user,
     export_resources        => false,
     quantum                 => $quantum,
-      
     quantum_user_password   => $quantum_user_password,
     quantum_db_password     => $quantum_db_password,
     quantum_db_user         => $quantum_db_user,
@@ -454,7 +451,7 @@ class simple_controller (
     tenant_network_type     => $tenant_network_type,
     segment_range           => $segment_range,
     cinder                  => $cinder,
-    cinder_iscsi_bind_iface => $cinder_iscsi_bind_iface,
+    cinder_iscsi_bind_addr  => $cinder_iscsi_bind_addr,
     manage_volumes          => $manage_volumes,
     nv_physical_volume      => $nv_physical_volume,
     use_syslog              => $use_syslog,
@@ -572,7 +569,7 @@ node /fuel-compute-[\d+]/ {
     verbose                => $verbose,
     segment_range          => $segment_range,
     cinder                 => $cinder_on_computes,
-    cinder_iscsi_bind_iface=> $cinder_iscsi_bind_iface,
+    cinder_iscsi_bind_addr => $cinder_iscsi_bind_addr,
     use_syslog             => $use_syslog,
     nova_rate_limits       => $nova_rate_limits,
     cinder_rate_limits     => $cinder_rate_limits
