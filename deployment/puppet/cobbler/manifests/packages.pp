@@ -13,9 +13,9 @@ class cobbler::packages {
     }
     /(?i)(debian|ubuntu)/:  {
       $cobbler_package = "cobbler"
-      $cobbler_version = "2.2.2-0ubuntu33.1"
+      $cobbler_version = "2.2.2-0ubuntu33.2"
       $cobbler_web_package = "cobbler-web"
-      $cobbler_web_package_version = "2.2.2-0ubuntu33.1"
+      $cobbler_web_package_version = "2.2.2-0ubuntu33.2"
       $dnsmasq_package = "dnsmasq"
       $cobbler_additional_packages = ["tftpd-hpa", "syslinux", "wget", "python-ipaddr"]
       $django_package = "python-django"
