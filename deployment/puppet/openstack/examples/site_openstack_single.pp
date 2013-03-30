@@ -54,7 +54,7 @@ $quantum_gre_bind_addr = $internal_address
 $mirror_type = 'default'
 $enable_test_repo = false
 $repo_proxy = undef
-
+$use_upstream_mysql = true
 #Specify desired NTP servers here.
 #If you leave it undef pool.ntp.org
 #will be used
@@ -85,6 +85,7 @@ class { 'openstack::mirantis_repos':
   type=>$mirror_type,
   enable_test_repo=>$enable_test_repo,
   repo_proxy=>$repo_proxy,
+  use_upstream_mysql=>$use_upstream_mysql
 }
 
 # OpenStack packages and customized component versions to be installed.
