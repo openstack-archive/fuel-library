@@ -8,7 +8,11 @@ class openstack::swift::storage_node (
   $storage_devices      = ['1', '2'],
   $storage_weight       = 1,
   $package_ensure       = 'present',
-  $loopback_size        = '1048756',) {
+  $loopback_size        = '1048756',
+  $master_swift_proxy_ip = undef,
+  $collect_exported     = false,
+  $rings                = ['account', 'object', 'container'],
+) {
   if !defined(Class['swift']) {
     class { 'swift':
       swift_hash_suffix => $swift_hash_suffix,
@@ -29,10 +33,16 @@ class openstack::swift::storage_node (
   # install all swift storage servers together
   class { 'swift::storage::all':
     storage_local_net_ip => $swift_local_net_ip,
-    swift_zone           => $swift_zone
+    swift_zone           => $swift_zone,
   }
 
-  # collect resources for synchronizing the ring databases
-  Swift::Ringsync <<| tag == "${::deployment_id}::${::environment}" |>>
+  if $collect_exported {
+    # collect resources for synchronizing the ring databases
+    Swift::Ringsync <<| tag == "${::deployment_id}::${::environment}" |>>
+  }
+  else {
+    validate_string($master_swift_proxy_ip)
+    swift::ringsync { $rings: ring_server => $master_swift_proxy_ip }
+  }
 
 }

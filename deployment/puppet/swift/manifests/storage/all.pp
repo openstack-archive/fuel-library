@@ -25,7 +25,7 @@ class swift::storage::all(
   $object_pipeline    = undef,
   $container_pipeline = undef,
   $account_pipeline   = undef,
-  $export_devices     = false
+  $export_devices     = false,
 ) {
 
   class { 'swift::storage':

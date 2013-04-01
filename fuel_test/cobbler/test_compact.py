@@ -7,13 +7,9 @@ from fuel_test.settings import CREATE_SNAPSHOTS
 
 class CompactTestCase(CobblerTestCase):
     def deploy_compact(self, quantum_node=True, loopback=True):
-        self.do(self.nodes().controllers[:1], 'puppet agent --test 2>&1')
-        self.do(self.nodes().controllers[1:], 'puppet agent --test 2>&1')
-        if loopback:
-            self.do(self.nodes().controllers, 'puppet agent --test 2>&1')
-        self.do(self.nodes().controllers[:1], 'puppet agent --test 2>&1')
-        self.do(self.nodes().controllers[1:], 'puppet agent --test 2>&1')
-        self.validate(self.nodes().controllers, 'puppet agent --test 2>&1')
+        self.validate(self.nodes().controllers[:1], 'puppet agent --test 2>&1')
+        self.validate(self.nodes().controllers[1:], 'puppet agent --test 2>&1')
+        self.validate(self.nodes().controllers[:1], 'puppet agent --test 2>&1')
         if quantum_node:
             self.validate(self.nodes().quantums, 'puppet agent --test 2>&1')
         self.validate(self.nodes().computes, 'puppet agent --test 2>&1')

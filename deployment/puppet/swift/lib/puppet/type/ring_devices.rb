@@ -7,7 +7,7 @@ Puppet::Type.newtype(:ring_devices) do
     desc "list of all swift storages"
   end
 
-  def generate
+  def resources
     resources = []
 
     default_storage = {
@@ -21,7 +21,7 @@ Puppet::Type.newtype(:ring_devices) do
     }
 
     Puppet.notice("storages #{self[:storages].inspect}")
-    
+
     storages = self[:storages]
     if storages.is_a? Hash
       storages = [storages]
@@ -41,5 +41,11 @@ Puppet::Type.newtype(:ring_devices) do
     end
     resources
   end
+
+  def generate
+    resources
+  end
+
+
 
 end

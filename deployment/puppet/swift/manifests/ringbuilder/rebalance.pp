@@ -10,6 +10,15 @@ define swift::ringbuilder::rebalance() {
 
   validate_re($name, '^object|container|account$')
 
+  if ! defined(Anchor['rebalance_begin']) {
+    anchor {'rebalance_begin':}
+  }
+
+  if ! defined(Anchor['rebalance_end']) {
+    anchor {'rebalance_end':}
+  }
+
+  Anchor['rebalance_begin'] ->
   exec { "hours_passed_${name}":
     command     => "swift-ring-builder /etc/swift/${name}.builder pretend_min_part_hours_passed",
     path        => ['/usr/bin'],
@@ -20,5 +29,8 @@ define swift::ringbuilder::rebalance() {
     command     => "swift-ring-builder /etc/swift/${name}.builder rebalance",
     path        => ['/usr/bin'],
     returns     => [0,1],
-  }
+  } ->
+  Anchor['rebalance_end']
+
+
 }

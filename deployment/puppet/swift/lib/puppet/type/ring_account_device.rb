@@ -32,4 +32,8 @@ Puppet::Type.newtype(:ring_account_device) do
     end
   end
 
+  autorequire(:exec) do
+    ['create_account']
+  end
+
 end

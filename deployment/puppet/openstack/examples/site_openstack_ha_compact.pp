@@ -58,6 +58,8 @@ $nodes_harr = [
     'internal_address' => '10.0.0.104',
     'public_address'   => '10.0.204.104',
     'swift_zone'       => 2,
+    'mountpoints'=> '1 2\n 2 1',
+    'storage_local_net_ip' => '10.0.0.110',
   },
   {
     'name' => 'fuel-controller-03',
@@ -65,6 +67,8 @@ $nodes_harr = [
     'internal_address' => '10.0.0.105',
     'public_address'   => '10.0.204.105',
     'swift_zone'       => 3,
+    'mountpoints'=> '1 2\n 2 1',
+    'storage_local_net_ip' => '10.0.0.110',
   },
   {
     'name' => 'fuel-compute-01',
@@ -342,6 +346,8 @@ if $::hostname == 'fuel-controller-01' {
 } else {
   $primary_proxy = false
 }
+$master_swift_proxy_nodes = filter_nodes($nodes,'name','fuel-controller-01')
+$master_swift_proxy_ip = $master_swift_proxy_nodes[0]['internal_address']
 if $::hostname == $master_hostname {
   $primary_controller = true
 } else {
@@ -572,10 +578,13 @@ node /fuel-controller-[\d+]/ {
     storage_type       => $swift_loopback,
     swift_zone         => $swift_zone,
     swift_local_net_ip => $internal_address,
+    master_swift_proxy_ip  => $master_swift_proxy_ip,
   }
 
-  ring_devices {'all':
-    storages => filter_nodes($nodes, 'role', 'controller')
+  if $primary_proxy {
+    ring_devices {'all':
+      storages => filter_nodes($nodes, 'role', 'controller')
+    }
   }
 
   class { 'openstack::swift::proxy':
@@ -584,7 +593,10 @@ node /fuel-controller-[\d+]/ {
     primary_proxy           => $primary_proxy,
     controller_node_address => $internal_virtual_ip,
     swift_local_net_ip      => $internal_address,
+    master_swift_proxy_ip  => $master_swift_proxy_ip,
   }
+
+  Class ['openstack::swift::proxy'] -> Class['openstack::swift::storage_node']
 }
 
 # Definition of OpenStack compute nodes.
