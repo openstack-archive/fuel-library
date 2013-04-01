@@ -207,7 +207,7 @@ class openstack::mirantis_repos (
         Yumrepo {
           failovermethod => 'priority',
           gpgkey         => 'http://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-6',
-          priority       => '10',
+          priority       => '11',
           gpgcheck       => 1,
           enabled        => 1,
         }
