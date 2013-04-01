@@ -183,7 +183,7 @@ class openstack::mirantis_repos (
 
         yumrepo { 'openstack-epel-fuel-grizzly':
           descr      => 'Mirantis OpenStack grizzly Custom Packages',
-        baseurl    => 'http://repos.fedorapeople.org/repos/openstack/openstack-grizzly/epel-6/',
+          baseurl    => 'http://repos.fedorapeople.org/repos/openstack/openstack-grizzly/epel-6/',
           priority   => '1',
         }
 
@@ -191,12 +191,14 @@ class openstack::mirantis_repos (
           yumrepo { 'centos-base':
             priority   => '1',
             name       => 'base',
+            gpgcheck   => '0',
             mirrorlist => $mirrorlist_base,
           }
 
           yumrepo { 'centos-updates':
             name       => 'updates',
             priority   => '1',
+            gpgcheck   => '0',
             mirrorlist => $mirrorlist_updates,
           }
         }
