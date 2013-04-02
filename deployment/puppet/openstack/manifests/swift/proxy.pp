@@ -116,7 +116,17 @@ class openstack::swift::proxy (
   } else {
     validate_string($master_swift_proxy_ip)
 
-    swift::ringsync { $rings : ring_server => $master_swift_proxy_ip }
+    if member($rings, 'account') and ! defined(Swift::Ringsync['account']) {
+      swift::ringsync { 'account': ring_server => $master_swift_proxy_ip }
+    }
+
+    if member($rings, 'object') and ! defined(Swift::Ringsync['object']) {
+      swift::ringsync { 'object': ring_server => $master_swift_proxy_ip }
+    }
+
+    if member($rings, 'container') and ! defined(Swift::Ringsync['container']) {
+      swift::ringsync { 'container': ring_server => $master_swift_proxy_ip }
+    }
 
     Swift::Ringsync <| |> ~> Service["swift-proxy"]
   }

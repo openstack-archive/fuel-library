@@ -9,8 +9,7 @@ class openstack::swift::storage_node (
   $storage_weight       = 1,
   $package_ensure       = 'present',
   $loopback_size        = '1048756',
-  $master_swift_proxy_ip = undef,
-  $collect_exported     = false,
+  $master_swift_proxy_ip,
   $rings                = ['account', 'object', 'container'],
 ) {
   if !defined(Class['swift']) {
@@ -36,13 +35,20 @@ class openstack::swift::storage_node (
     swift_zone           => $swift_zone,
   }
 
-  if $collect_exported {
-    # collect resources for synchronizing the ring databases
-    Swift::Ringsync <<| tag == "${::deployment_id}::${::environment}" |>>
+  validate_string($master_swift_proxy_ip)
+
+  if member($rings, 'account') and ! defined(Swift::Ringsync['account']) {
+    swift::ringsync { 'account': ring_server => $master_swift_proxy_ip }
   }
-  else {
-    validate_string($master_swift_proxy_ip)
-    swift::ringsync { $rings: ring_server => $master_swift_proxy_ip }
+
+  if member($rings, 'object') and ! defined(Swift::Ringsync['object']) {
+    swift::ringsync { 'object': ring_server => $master_swift_proxy_ip }
   }
+
+  if member($rings, 'container') and ! defined(Swift::Ringsync['container']) {
+    swift::ringsync { 'container': ring_server => $master_swift_proxy_ip }
+  }
+
+  Swift::Ringsync <| |> ~> Class["swift::storage::all"]
 
 }
