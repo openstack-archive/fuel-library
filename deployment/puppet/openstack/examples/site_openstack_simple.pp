@@ -563,7 +563,7 @@ node /fuel-compute-[\d+]/ {
     quantum                => $quantum,
     quantum_sql_connection => $quantum_sql_connection,
     quantum_user_password  => $quantum_user_password,
-    quantum_host           => $internal_virtual_ip,
+    quantum_host           => $controller_internal_address,
     tenant_network_type    => $tenant_network_type,
     service_endpoint       => $controller_internal_address,
     db_host                => $controller_internal_address,
