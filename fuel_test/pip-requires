@@ -1,4 +1,4 @@
 nose
 python-glanceclient
 python-keystoneclient
-git+ssh://git@gitlab.vm.mirantis.net/devops.git
+git+ssh://git@github.com/Mirantis/devops.git@stable
