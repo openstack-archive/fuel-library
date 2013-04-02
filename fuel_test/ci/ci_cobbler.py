@@ -37,10 +37,10 @@ class CiCobbler(CiBase):
         environment = self.manager.environment_create(self.env_name())
         networks = []
         for name in INTERFACE_ORDER:
-            network = IPNetwork(POOLS.get(name)[0])
+            ip_networks = [ IPNetwork(x) for x in POOLS.get(name)[0].split(',')]
             new_prefix = int(POOLS.get(name)[1])
             pool = self.manager.create_network_pool(
-                networks=[network], prefix=int(new_prefix))
+                networks=ip_networks, prefix=int(new_prefix))
             networks.append(self.manager.network_create(
                 name=name, environment=environment, pool=pool,
                 forward='route' if name==ROUTED_INTERFACE else 'nat'))

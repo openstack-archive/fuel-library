@@ -38,12 +38,22 @@ class swift::ringbuilder(
     min_part_hours => $min_part_hours,
   }
 
-  Swift::Ringbuilder::Create['object'] -> Ring_object_device <| |> ~> Swift::Ringbuilder::Rebalance['object']
-
-  Swift::Ringbuilder::Create['container'] -> Ring_container_device <| |> ~> Swift::Ringbuilder::Rebalance['container']
-
-  Swift::Ringbuilder::Create['account'] -> Ring_account_device <| |> ~> Swift::Ringbuilder::Rebalance['account']
-
   swift::ringbuilder::rebalance{ ['object', 'account', 'container']: }
+
+  Swift::Ringbuilder::Create['object'] -> Ring_object_device <| |> ~> Anchor['rebalance_begin']
+
+  Swift::Ringbuilder::Create['container'] -> Ring_container_device <| |> ~> Anchor['rebalance_begin']
+
+  Swift::Ringbuilder::Create['account'] -> Ring_account_device <| |> ~> Anchor['rebalance_begin']
+
+  Swift::Ringbuilder::Create<||> -> Ring_devices<||>
+
+  Ring_devices<||> -> Ring_object_device <| |> -> Anchor['rebalance_begin']
+
+  Ring_devices<||> -> Ring_account_device <| |> -> Anchor['rebalance_begin']
+
+  Ring_devices<||> -> Ring_container_device <| |> -> Anchor['rebalance_begin']
+
+
 
 }
