@@ -49,6 +49,5 @@ class openstack::swift::storage_node (
     swift::ringsync { 'container': ring_server => $master_swift_proxy_ip }
   }
 
-  Swift::Ringsync <| |> ~> Class["swift::storage::all"]
-
+  Class <| title == 'swift::ringserver' |> -> Swift::Ringsync <| |> ~> Class["swift::storage::all"]
 }
