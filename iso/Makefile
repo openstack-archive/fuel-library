@@ -38,7 +38,8 @@ deep_clean: clean
 all: iso
 
 ISOROOT:=$(BUILD_DIR)/iso/isoroot
-ISOBASENAME:=fuel-centos-$(CENTOS_RELEASE)-$(CENTOS_ARCH)
+ISO_BUILD_TIMESTAMP=$(shell date +"%Y-%m-%d_%H-%M-%S")
+ISOBASENAME:=fuel-centos-$(CENTOS_RELEASE)-$(CENTOS_ARCH)-$(ISO_BUILD_TIMESTAMP)
 ISONAME:=$(BUILD_DIR)/iso/$(ISOBASENAME).iso
 
 iso: $(ISONAME)
