@@ -365,7 +365,8 @@ Exec<| title == 'clocksync' |>->Service<| title == 'quantum-ovs-plugin-service' 
 Exec<| title == 'clocksync' |>->Service<| title == 'cinder-volume' |>
 Exec<| title == 'clocksync' |>->Service<| title == 'cinder-api' |>
 Exec<| title == 'clocksync' |>->Service<| title == 'cinder-scheduler' |>
-Exec<| title == 'clocksync' |>->Exec<| title == 'keystone-manage db_sync' |>->Exec<| title == 'keystone-manage pki_setup' |>
+Exec<| title == 'clocksync' |>->Exec<| title == 'keystone-manage db_sync' |>
+Exec<| title == 'clocksync' |>->Exec<| title == 'keystone-manage pki_setup' |>
 Exec<| title == 'clocksync' |>->Exec<| title == 'glance-manage db_sync' |>
 Exec<| title == 'clocksync' |>->Exec<| title == 'nova-manage db sync' |>
 Exec<| title == 'clocksync' |>->Exec<| title == 'initial-db-sync' |>
