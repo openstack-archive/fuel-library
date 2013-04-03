@@ -175,23 +175,27 @@ class openstack::mirantis_repos (
 
         yumrepo { 'openstack-epel-fuel-grizzly':
           descr      => 'Mirantis OpenStack grizzly Custom Packages',
-          baseurl    => 'http://repos.fedorapeople.org/repos/openstack/openstack-grizzly/epel-6/',
+          #baseurl    => 'http://repos.fedorapeople.org/repos/openstack/openstack-grizzly/epel-6/',
+          baseurl    => 'http://osci-koji.srt.mirantis.net/mash/fuel-3.0/x86_64/',
           priority   => '1',
+          gpgkey     => 'http://download.mirantis.com/epel-fuel-folsom-2.1/epel.key  http://download.mirantis.com/epel-fuel-folsom-2.1/centos.key http://download.mirantis.com/epel-fuel-folsom-2.1/rabbit.key http://download.mirantis.com/epel-fuel-folsom-2.1/mirantis.key http://download.mirantis.com/epel-fuel-folsom-2.1/mysql.key',
         }
 
         if $upstream_mirror == true {
           yumrepo { 'centos-base':
             priority   => '1',
             name       => 'base',
-            gpgcheck   => '0',
+            gpgcheck   => '1',
             mirrorlist => $mirrorlist_base,
+            gpgkey    => 'http://centos.srt.mirantis.net/RPM-GPG-KEY-CentOS-6',
           }
 
           yumrepo { 'centos-updates':
             name       => 'updates',
             priority   => '1',
-            gpgcheck   => '0',
+            gpgcheck   => '1',
             mirrorlist => $mirrorlist_updates,
+            gpgkey    => 'http://centos.srt.mirantis.net/RPM-GPG-KEY-CentOS-6',
           }
         }
       }
