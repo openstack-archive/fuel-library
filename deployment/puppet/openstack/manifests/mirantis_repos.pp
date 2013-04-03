@@ -193,15 +193,17 @@ class openstack::mirantis_repos (
           yumrepo { 'centos-base':
             priority   => '1',
             name       => 'base',
-            gpgcheck   => '0',
+            gpgcheck   => '1',
             mirrorlist => $mirrorlist_base,
+            gpgkey    => 'http://centos.srt.mirantis.net/RPM-GPG-KEY-CentOS-6',
           }
 
           yumrepo { 'centos-updates':
             name       => 'updates',
             priority   => '1',
-            gpgcheck   => '0',
+            gpgcheck   => '1',
             mirrorlist => $mirrorlist_updates,
+            gpgkey    => 'http://centos.srt.mirantis.net/RPM-GPG-KEY-CentOS-6',
           }
         }
       }
