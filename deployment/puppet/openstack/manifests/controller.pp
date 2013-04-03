@@ -138,6 +138,7 @@ class openstack::controller (
   $cinder_db_user          = 'cinder',
   $cinder_db_dbname        = 'cinder',
   $cinder_iscsi_bind_addr  = false,
+  $cinder_volume_group     = 'cinder-volumes',
   #
   $quantum                 = false,
   $quantum_user_password   = 'quantum_pass',
@@ -344,7 +345,7 @@ class openstack::controller (
       rabbit_password      => $rabbit_password,
       rabbit_host          => false,
       rabbit_nodes         => $rabbit_nodes,
-      volume_group         => 'cinder-volumes',
+      volume_group         => $cinder_volume_group,
       physical_volume      => $nv_physical_volume,
       manage_volumes       => $manage_volumes,
       enabled              => true,
