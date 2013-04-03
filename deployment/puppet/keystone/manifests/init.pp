@@ -63,6 +63,7 @@ class keystone(
 
   Keystone_config<||> ~> Service['keystone']
   Keystone_config<||> ~> Exec<| title == 'keystone-manage db_sync'|>
+  Exec<| title == 'keystone-manage pki_setup'|> ~> Service['keystone']
 
   # TODO implement syslog features
   if $use_syslog {
@@ -231,6 +232,16 @@ class keystone(
     # created
     exec { 'keystone-manage db_sync':
       path        => '/usr/bin',
+      refreshonly => true,
+      notify      => Service['keystone'],
+      subscribe   => Package['keystone'],
+    }
+    # keystone-manage pki_setup Should be run as the same system user that will be running the Keystone service to ensure 
+    # proper ownership for the private key file and the associated certificates
+    exec { 'keystone-manage pki_setup':
+      path        => '/usr/bin',
+      user        => 'keystone',
+      group       => 'keystone',
       refreshonly => true,
       notify      => Service['keystone'],
       subscribe   => Package['keystone'],
