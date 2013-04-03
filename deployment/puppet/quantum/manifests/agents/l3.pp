@@ -5,14 +5,12 @@ class quantum::agents::l3 (
   $debug            = 'False',
   $fixed_range      = '10.0.1.0/24',
   $floating_range   = '192.168.10.0/24',
-  $ext_ipinfo       = {
-  }
-  ,
+  $ext_ipinfo       = { },
   $segment_range    = '1:4094',
-  $tenant_network_type          = 'gre',
+  $tenant_network_type = 'gre',
   $create_networks  = true,
   $interface_driver = 'quantum.agent.linux.interface.OVSInterfaceDriver',
-  $external_network_bridge      = 'br-ex',
+  $external_network_bridge = 'br-ex',
   $auth_url         = 'http://localhost:5000/v2.0',
   $auth_port        = '5000',
   $auth_region      = 'RegionOne',
@@ -27,7 +25,8 @@ class quantum::agents::l3 (
   $metadata_ip      = '169.254.169.254',
   $metadata_port    = 8775,
   $polling_interval = 3,
-  $service_provider = 'generic') {
+  $service_provider = 'generic'
+) {
   include 'quantum::params'
 
   if $::quantum::params::l3_agent_package {
@@ -45,6 +44,8 @@ class quantum::agents::l3 (
   include 'quantum::waist_setup'
 
   Quantum_l3_agent_config <| |> -> Class[quantum::waistline]
+
+  quantum::agents::sysctl{"$l3_agent_package": }
 
   Package[$l3_agent_package] -> Quantum_l3_agent_config <| |>
   Quantum_config <| |> -> Quantum_l3_agent_config <| |>
