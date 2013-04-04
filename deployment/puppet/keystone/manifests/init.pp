@@ -58,8 +58,9 @@ class keystone(
   $debug          = 'False',
   $use_syslog     = false,
   $catalog_type   = 'sql',
-#  $token_format   = 'UUID',
-  $token_format   = 'PKI',
+  $token_format   = 'UUID',
+# TODO fix "undefined method `<<' for {}:Hash" issue if PKI was choosed
+#  $token_format   = 'PKI',
   $cache_dir      = '/var/cache/keystone',
   $enabled        = true,
   $sql_connection = 'sqlite:////var/lib/keystone/keystone.db',
