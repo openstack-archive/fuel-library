@@ -45,7 +45,7 @@ class quantum::agents::l3 (
 
   Quantum_l3_agent_config <| |> -> Class[quantum::waistline]
 
-  quantum::agents::sysctl{"$l3_agent_package": }
+  #quantum::agents::sysctl{"$l3_agent_package": }
 
   Package[$l3_agent_package] -> Quantum_l3_agent_config <| |>
   Quantum_config <| |> -> Quantum_l3_agent_config <| |>
