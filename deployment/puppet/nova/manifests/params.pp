@@ -27,6 +27,7 @@ $libvirt_type_kvm = 'qemu-kvm'
       # service names
       $api_service_name         = 'openstack-nova-api'
       $cert_service_name        = 'openstack-nova-cert'
+      $compute_service_name     = 'openstack-nova-compute'
       $conductor_service_name   = 'openstack-nova-conductor'
       $consoleauth_service_name = 'openstack-nova-consoleauth'
       $console_service_name	= 'openstack-nova-console'
