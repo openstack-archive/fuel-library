@@ -154,7 +154,7 @@ def switch_off_ip_tables(remote):
 
 
 def puppet_apply(remote, script, module_path="/tmp/puppet/modules/"):
-    remote.sudo.ssh.check_stderr(
+    remote.sudo.ssh.check_call(
         "puppet apply --modulepath %s -e '%s'" % (module_path, script))
 
 

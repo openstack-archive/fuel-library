@@ -92,5 +92,7 @@ else {
   Cinder_config<||> -> Exec['cinder-manage db_sync']
   Nova_config<||> -> Exec['cinder-manage db_sync']
   Cinder_api_paste_ini<||> -> Exec['cinder-manage db_sync']
-
+ Exec['cinder-manage db_sync'] -> Service<| title == 'cinder-api' |>
+ Exec['cinder-manage db_sync'] -> Service<| title == 'cinder-volume' |>
+ Exec['cinder-manage db_sync'] -> Service<| title == 'cinder-scheduler' |>
 }
