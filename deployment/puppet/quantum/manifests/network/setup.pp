@@ -13,6 +13,7 @@ define quantum::network::setup (
   $alloc_pool      = undef,
   $enable_dhcp     = 'True',
   $nameservers     = undef,
+  $shared          = 'False',
 ) {
 
   Quantum_l3_agent_config <||> ->Quantum_net <||> 
@@ -28,6 +29,7 @@ define quantum::network::setup (
     network_type  => $network_type,
     segment_id    => $segment_id,
     router_ext    => $router_external,
+    shared        => $shared,
   } 
 
   # validate allocation pool
