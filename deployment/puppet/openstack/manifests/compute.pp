@@ -173,6 +173,7 @@ class openstack::compute (
     rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
   }
 
+
   if ($cinder) {
     if ($cinder_iscsi_bind_iface) {
       $cinder_iscsi_bind_addr = getvar("::ipaddress_${cinder_iscsi_bind_iface}")
@@ -213,6 +214,11 @@ class openstack::compute (
     vnc_enabled                   => $vnc_enabled,
     vncserver_proxyclient_address => $internal_address,
     vncproxy_host                 => $vncproxy_host,
+  }
+
+  class {'nova::conductor':
+    enabled => true,
+    ensure  => $::openstack_version['nova'],
   }
 
   # Configure libvirt for nova-compute
