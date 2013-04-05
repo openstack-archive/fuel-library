@@ -146,8 +146,12 @@ class ConfigYaml
     end
   end
 
+  def full?()
+    self.deployment_mode() == 'ha_full'
+  end
+
   def master_swift_proxy_name()
-    if self.deployment_mode() == 'ha_full'
+    if self.full?
       self.mandatory('master_swift_proxy_name')
     else
       self.obligatory('master_swift_proxy_name')
@@ -286,6 +290,9 @@ class Manifest
                        :public_virtual_ip => config.public_virtual_ip(),
                        :master_hostname => config.master_hostname()
       )
+    end
+    if config.full?
+      template.replace(:master_swift_proxy_name => config.master_swift_proxy_name())
     end
     template.replace(:deployment_id => config.deployment_id()) unless config.deployment_id().nil?
     template.replace(:floating_range => config.floating_range(),
