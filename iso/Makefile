@@ -1,3 +1,6 @@
+COMMIT_SHA:=$(shell git rev-parse --verify HEAD)
+FUEL_VERSION:=2.1-1
+
 CENTOS_MAJOR:=6
 CENTOS_MINOR:=3
 CENTOS_RELEASE:=$(CENTOS_MAJOR).$(CENTOS_MINOR)
@@ -39,11 +42,13 @@ all: iso
 
 ISOROOT:=$(BUILD_DIR)/iso/isoroot
 
-ifeq (foo, foo$(BUILD_ID))
-    BUILD_ID:=$(shell date +"%Y-%m-%d_%H-%M-%S")
-endif
+#ifeq (foo, foo$(BUILD_ID))
+#    BUILD_ID:=$(shell date +"%Y-%m-%d_%H-%M-%S")
+#endif
 
-ISOBASENAME:=fuel-centos-$(CENTOS_RELEASE)-$(CENTOS_ARCH)_$(BUILD_ID)
+ISOBASENAME:=fuel-centos-$(CENTOS_RELEASE)-$(CENTOS_ARCH)-$(FUEL_VERSION)
+#ISOBASENAME:=fuel-centos-$(CENTOS_RELEASE)-$(CENTOS_ARCH)_$(BUILD_ID)
+
 ISONAME:=$(BUILD_DIR)/iso/$(ISOBASENAME).iso
 
 iso: $(ISONAME)
@@ -97,10 +102,10 @@ $(ISOROOT)/bootstrap_admin_node.sh: $(SOURCE_DIR)/bootstrap_admin_node.sh ; $(AC
 $(ISOROOT)/functions.sh: $(SOURCE_DIR)/functions.sh ; $(ACTION.COPY)
 $(ISOROOT)/bootstrap_admin_node.conf: $(SOURCE_DIR)/bootstrap_admin_node.conf ; $(ACTION.COPY)
 $(ISOROOT)/version.yaml: $(call depv,COMMIT_SHA)
-$(ISOROOT)/version.yaml: $(call depv,PRODUCT_VERSION)
+$(ISOROOT)/version.yaml: $(call depv,FUEL_VERSION)
 $(ISOROOT)/version.yaml:
 	echo "COMMIT_SHA: $(COMMIT_SHA)" > $@
-	echo "PRODUCT_VERSION: $(PRODUCT_VERSION)" >> $@
+	echo "PRODUCT_VERSION: $(FUEL_VERSION)" >> $@
 
 ########################
 # Iso image root file system.
