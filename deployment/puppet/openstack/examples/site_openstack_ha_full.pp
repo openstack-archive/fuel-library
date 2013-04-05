@@ -360,12 +360,13 @@ $controller_node_public  = $internal_virtual_ip
 # It tells on which swift proxy node to build
 # *ring.gz files. Other swift proxies/storages
 # will rsync them.
-if $::hostname == 'fuel-swiftproxy-01' {
+$master_swift_proxy_name = 'fuel-swiftproxy-01'
+if $::hostname == $master_swift_proxy_name {
   $primary_proxy = true
 } else {
   $primary_proxy = false
 }
-$master_swift_proxy_nodes = filter_nodes($nodes,'name','fuel-swiftproxy-01')
+$master_swift_proxy_nodes = filter_nodes($nodes,'name',$master_swift_proxy_name)
 $master_swift_proxy_ip = $master_swift_proxy_nodes[0]['internal_address']
 if $::hostname == $master_hostname {
   $primary_controller = true

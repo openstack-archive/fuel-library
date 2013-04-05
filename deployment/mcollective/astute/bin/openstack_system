@@ -146,6 +146,14 @@ class ConfigYaml
     end
   end
 
+  def master_swift_proxy_name()
+    if self.deployment_mode() == 'ha_full'
+      self.mandatory('master_swift_proxy_name')
+    else
+      self.obligatory('master_swift_proxy_name')
+    end
+  end
+
   def floating_range()
     self.obligatory('floating_range')
   end

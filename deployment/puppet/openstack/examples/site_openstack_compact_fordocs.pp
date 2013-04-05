@@ -32,30 +32,43 @@ $nodes_harr = [
     'role' => 'master',
     'internal_address' => '10.0.0.101',
     'public_address'   => '10.0.204.101',
+    'mountpoints'=> "1 1\n2 1",
+    'storage_local_net_ip' => '10.0.0.101',
   },
   {
     'name' => 'fuel-cobbler',
     'role' => 'cobbler',
     'internal_address' => '10.0.0.102',
     'public_address'   => '10.0.204.102',
+    'mountpoints'=> "1 1\n2 1",
+    'storage_local_net_ip' => '10.0.0.102',
   },
   {
     'name' => 'fuel-controller-01',
     'role' => 'controller',
     'internal_address' => '10.0.0.103',
     'public_address'   => '10.0.204.103',
+    'swift_zone'       => 1,
+    'mountpoints'=> "1 1\n2 1",
+    'storage_local_net_ip' => '10.0.0.103',
   },
   {
     'name' => 'fuel-controller-02',
     'role' => 'controller',
     'internal_address' => '10.0.0.104',
     'public_address'   => '10.0.204.104',
+    'swift_zone'       => 2,
+    'mountpoints'=> '1 2\n 2 1',
+    'storage_local_net_ip' => '10.0.0.110',
   },
   {
     'name' => 'fuel-controller-03',
     'role' => 'controller',
     'internal_address' => '10.0.0.105',
     'public_address'   => '10.0.204.105',
+    'swift_zone'       => 3,
+    'mountpoints'=> '1 2\n 2 1',
+    'storage_local_net_ip' => '10.0.0.110',
   },
   {
     'name' => 'fuel-compute-01',
@@ -328,7 +341,7 @@ $swift_proxies = $controller_internal_addresses
 # It tells on which swift proxy node to build
 # *ring.gz files. Other swift proxies/storages
 # will rsync them.
-if $::hostname == 'fuel-controller-01' {
+if $::hostname == $master_hostname {
   $primary_proxy = true
 } else {
   $primary_proxy = false

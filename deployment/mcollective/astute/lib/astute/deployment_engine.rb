@@ -100,124 +100,53 @@ module Astute
     end
 
     def deploy_ha_compute(nodes, attrs)
-      ctrl_nodes = nodes.select {|n| n['role'] == 'controller'}
-      Astute.logger.info "Starting deployment of all controllers one by one, ignoring failure"
-      ctrl_nodes.each {|n| deploy_piece([n], attrs, retries=0, change_node_status=false)}
-
-      Astute.logger.info "Starting deployment of all controllers, ignoring failure"
-      deploy_piece(ctrl_nodes, attrs, retries=0, change_node_status=false)
-
-      Astute.logger.info "Starting deployment of 1st controller again, ignoring failure"
-      deploy_piece([ctrl_nodes[0]], attrs, retries=0, change_node_status=false)
-
-      retries = 1
-      Astute.logger.info "Starting deployment of all controllers until it completes, "\
-                         "allowed retries: #{retries}"
-      deploy_piece(ctrl_nodes, attrs, retries=retries)
-
-      compute_nodes = nodes.select {|n| n['role'] == 'compute'}
-      Astute.logger.info "Starting deployment of computes"
-      deploy_piece(compute_nodes, attrs)
-
-      other_nodes = nodes - ctrl_nodes - compute_nodes
-      Astute.logger.info "Starting deployment of other nodes"
-      deploy_piece(other_nodes, attrs)
-      return
+      deploy_ha_compact(nodes, attrs)
     end
 
     def deploy_ha_compact(nodes, attrs)
+      primary_ctrl_nodes = nodes.select {|n| n['role'] == 'primary-controller'}
       ctrl_nodes = nodes.select {|n| n['role'] == 'controller'}
       compute_nodes = nodes.select {|n| n['role'] == 'compute'}
-      other_nodes = nodes - ctrl_nodes - compute_nodes
+      quantum_nodes = nodes.select {|n| n['role'] == 'quantum'}
+      other_nodes = nodes - ctrl_nodes - compute_nodes - primary_ctrl_nodes -quantum_nodes
 
-      Astute.logger.info "Starting deployment of all controllers one by one, ignoring failure"
-      ctrl_nodes.each {|n| deploy_piece([n], attrs, retries=0, change_node_status=false)}
-
-      Astute.logger.info "Starting deployment of 1st controller again, ignoring failure"
-      deploy_piece(ctrl_nodes[0..0], attrs, retries=0, change_node_status=false)
-
-      Astute.logger.info "Starting deployment of controllers exclude first, ignoring failure"
-      deploy_piece(ctrl_nodes[1..-1], attrs, retries=0, change_node_status=false)
-
-      Astute.logger.info "Starting deployment of 1st controller again, ignoring failure"
-      deploy_piece(ctrl_nodes[0..0], attrs, retries=0)
-
-      Astute.logger.info "Starting deployment of controllers exclude first"
-      deploy_piece(ctrl_nodes[1..-1], attrs, retries=0)
+      Astute.logger.info "Starting deployment of 1st controller"
+      deploy_piece(primary_ctrl_nodes, attrs)
+      Astute.logger.info "Starting deployment of all controllers one by one"
+      ctrl_nodes.each {|n| deploy_piece([n], attrs)}
+      Astute.logger.info "Starting deployment of 1st controller again"
+      deploy_piece(primary_ctrl_nodes, attrs)
 
       Astute.logger.info "Starting deployment of other nodes"
-      deploy_piece(other_nodes, attrs)
-
-      Astute.logger.info "Starting deployment of computes"
-      deploy_piece(compute_nodes, attrs)
+      deploy_piece(compute_nodes + quantum_nodes + other_nodes, attrs)
       return
     end
 
     def deploy_ha_full(nodes, attrs)
+      primary_ctrl_nodes = nodes.select {|n| n['role'] == 'primary-controller'}
       ctrl_nodes = nodes.select {|n| n['role'] == 'controller'}
       compute_nodes = nodes.select {|n| n['role'] == 'compute'}
       quantum_nodes = nodes.select {|n| n['role'] == 'quantum'}
       storage_nodes = nodes.select {|n| n['role'] == 'storage'}
       proxy_nodes = nodes.select {|n| n['role'] == 'swift-proxy'}
-      other_nodes = nodes - ctrl_nodes - compute_nodes - quantum_nodes - storage_nodes -proxy_nodes
+      primary_proxy_nodes = nodes.select {|n| n['role'] == 'primary-swift-proxy'}
+      other_nodes = nodes - ctrl_nodes - compute_nodes - quantum_nodes -
+       storage_nodes - proxy_nodes - primary_ctrl_nodes - primary_proxy_nodes
+
+      Astute.logger.info "Starting deployment of primary proxy and controller"
+      deploy_piece(primary_proxy_nodes + primary_ctrl_nodes, attrs)
 
       Astute.logger.info "Starting deployment of all controllers one by one"
-      ctrl_nodes.each {|n| deploy_piece([n], attrs, retries=0)}
-
+      ctrl_nodes.each {|n| deploy_piece([n], attrs)}
       Astute.logger.info "Starting deployment of 1st controller again"
-      deploy_piece(ctrl_nodes[0..0], attrs, retries=0)
-
-      unless quantum_nodes.empty?
-        Astute.logger.info "Starting deployment of 1st controller again"
-        deploy_piece(quantum_nodes, attrs, retries=0)
-      end
-
-      Astute.logger.info "Starting deployment of computes"
-      deploy_piece(compute_nodes, attrs)
-
-      Astute.logger.info "Starting deployment of storages, ignoring failure"
-      deploy_piece(storage_nodes, attrs, change_node_status=false)
-
-      Astute.logger.info "Starting deployment of storages, ignoring failure"
-      deploy_piece(storage_nodes, attrs, change_node_status=false)
-
-      Astute.logger.info "Starting deployment of all proxies one by one, ignoring failure"
-      proxy_nodes.each {|n| deploy_piece([n], attrs, retries=0, change_node_status=false)}
-
-      Astute.logger.info "Starting deployment of storages"
-      deploy_piece(storage_nodes, attrs)
+      deploy_piece(primary_ctrl_nodes, attrs)
 
       Astute.logger.info "Starting deployment of proxies"
-      deploy_piece(proxy_nodes, attrs)
-
-      Astute.logger.info "Starting deployment of other nodes"
-      deploy_piece(other_nodes, attrs)
-      return
+      deploy_piece(proxy_nodes + compute_nodes + storage_nodes + other_nodes, attrs)
     end
 
     def deploy_ha_minimal(nodes, attrs)
-      ctrl_nodes = nodes.select { |n| n['role'] == 'controller' }
-      compute_nodes = nodes.select { |n| n['role'] == 'compute' }
-      quantum_nodes = nodes.select { |n| n['role'] == 'quantum' }
-      other_nodes = nodes - ctrl_nodes - compute_nodes - quantum_nodes
-
-      Astute.logger.info "Starting deployment of all controllers one by one"
-      ctrl_nodes.each { |n| deploy_piece([n], attrs, retries=0) }
-
-      Astute.logger.info "Starting deployment of 1st controller again"
-      deploy_piece(ctrl_nodes[0..0], attrs, retries=0)
-
-      unless quantum_nodes.empty?
-        Astute.logger.info "Starting deployment of 1st controller again"
-        deploy_piece(quantum_nodes, attrs, retries=0)
-      end
-
-      Astute.logger.info "Starting deployment of computes"
-      deploy_piece(compute_nodes, attrs)
-
-      Astute.logger.info "Starting deployment of other nodes"
-      deploy_piece(other_nodes, attrs)
-      return
+      deploy_ha_compact(nodes, attrs)
     end
 
     private
