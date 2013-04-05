@@ -579,6 +579,7 @@ node /fuel-controller-[\d+]/ {
     swift_zone         => $swift_zone,
     swift_local_net_ip => $internal_address,
     master_swift_proxy_ip  => $master_swift_proxy_ip,
+    sync_rings             => ! $primary_proxy
   }
 
   if $primary_proxy {
