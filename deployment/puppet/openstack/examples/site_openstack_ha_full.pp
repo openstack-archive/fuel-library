@@ -305,7 +305,7 @@ class node_netconfig (
 # This parameter specifies the the identifier of the current cluster. This is needed in case of multiple environments.
 # installation. Each cluster requires a unique integer value. 
 # Valid identifier range is 1 to 254
-$deployment_id = '79'
+$deployment_id = '99'
 
 # Below you can enable or disable various services based on the chosen deployment topology:
 ### CINDER/VOLUME ###

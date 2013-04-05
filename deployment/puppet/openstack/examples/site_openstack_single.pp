@@ -64,7 +64,7 @@ $ntp_servers = ['pool.ntp.org']
 # This parameter specifies the the identifier of the current cluster. This is needed in case of multiple environments.
 # installation. Each cluster requires a unique integer value.
 # Valid identifier range is 1 to 254
-$deployment_id = '79'
+$deployment_id = '59'
 
 # Globally apply an environment-based tag to all resources on each node.
 tag("${::deployment_id}::${::environment}")
