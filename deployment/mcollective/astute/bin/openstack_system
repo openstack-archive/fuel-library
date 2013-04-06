@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 require 'optparse'
 
-ORCHESTRATION_ROLES = %w(controller compute quantum storage swift-proxy)
+ORCHESTRATION_ROLES = %w(controller compute quantum storage swift-proxy primary-controller primary-swift-proxy)
 HA_DEPLOYMENT_MODES = %w(ha_compute ha_compact ha_full ha_minimal)
 SITE_PPS = {
     :ha_compute.to_s => '/etc/puppet/modules/openstack/examples/site_openstack_ha_compact.pp',
@@ -331,8 +331,8 @@ class Astute
       !(ORCHESTRATION_ROLES & [node['role']]).empty?
     end.
         collect do |node|
-      {:uid.to_s => node['name'], :role.to_s => node['role']}
-    end
+          {:uid.to_s => node['name'], :role.to_s => node['role']}
+        end
     YAML.dump({:nodes.to_s => nodes}.update(config.orchestrator_common()))
   end
 end
