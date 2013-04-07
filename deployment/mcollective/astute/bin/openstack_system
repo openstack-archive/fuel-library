@@ -49,7 +49,7 @@ class Template
     if ret[0..0] == '$'
       return ret
     end
-    """%s""" % ret
+    '"%s"' % ret
   end
 
   def self._replace(template, key, value)
