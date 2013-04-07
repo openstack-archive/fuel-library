@@ -67,7 +67,7 @@ $node = filter_nodes($nodes,'name',$::hostname)
 $internal_address = $node[0]['internal_address']
 $public_address = $node[0]['public_address']
 
-$controllers = filter_nodes($nodes,'role','controller')
+$controllers = merge_arrays(filter_nodes($nodes,'role','primary-controller'), filter_nodes($nodes,'role','controller'))
 $controller_internal_address = $controllers[0]['internal_address']
 $controller_public_address   = $controllers[0]['public_address']
 
