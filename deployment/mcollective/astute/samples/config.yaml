@@ -56,18 +56,21 @@ common:
      public_address: 10.0.1.101
      swift_zone: 1
      mountpoints: 1 2\n 2 1
+     storage_local_net_ip: 10.0.0.101
    - name: fuel-controller-02
      role: controller
      internal_address: 10.0.0.102
      public_address: 10.0.1.102
      swift_zone: 2
      mountpoints: 1 2\n 2 1
+     storage_local_net_ip: 10.0.0.102
    - name: fuel-controller-03
      role: controller
      internal_address: 10.0.0.104
      public_address: 10.0.1.104
      swift_zone: 3
      mountpoints: 1 2\n 2 1
+     storage_local_net_ip: 10.0.0.104
    - name: fuel-compute-01
      role: compute
      internal_address: 10.0.0.105
@@ -86,21 +89,24 @@ common:
      public_address: 10.0.1.108
      swift_zone: 4
      mountpoints: 1 2\n 2 1
+     storage_local_net_ip: 10.0.0.108
    - name: fuel-swift-02
      role: storage
      internal_address: 10.0.0.109
      public_address: 10.0.1.109
      swift_zone: 5
      mountpoints: 1 2\n 2 1
+     storage_local_net_ip: 10.0.0.109
    - name: fuel-swift-03
      role: storage
-     internal_address: 10.0.0.109
-     public_address: 10.0.1.109
+     internal_address: 10.0.0.110
+     public_address: 10.0.1.110
      swift_zone: 6
      mountpoints: 1 2\n 2 1
+     storage_local_net_ip: 10.0.0.110
    - name: fuel-swiftproxy-01
      role: primary-swift-proxy
-     internal_address: 10.0.0.110
+     internal_address: 10.0.0.111
      public_address: 10.0.1.111
    - name: fuel-swiftproxy-02
      role: swift-proxy
