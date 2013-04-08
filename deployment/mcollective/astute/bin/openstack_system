@@ -267,7 +267,7 @@ class Manifest
   def self.prepare_manifest(template, config)
     if config.ha?
       template.replace(:internal_virtual_ip => config.internal_virtual_ip(),
-                       :public_virtual_ip => config.public_virtual_ip(),
+                       :public_virtual_ip => config.public_virtual_ip()
       )
     end
     template.replace(:deployment_id => config.deployment_id()) unless config.deployment_id().nil?
