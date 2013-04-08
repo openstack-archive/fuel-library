@@ -45,7 +45,7 @@ $nodes_harr = [
   },
   {
     'name' => 'fuel-controller-01',
-    'role' => 'controller',
+    'role' => 'primary-controller',
     'internal_address' => '10.0.0.103',
     'public_address'   => '10.0.204.103',
     'swift_zone'       => 1,
@@ -58,7 +58,7 @@ $nodes_harr = [
     'internal_address' => '10.0.0.104',
     'public_address'   => '10.0.204.104',
     'swift_zone'       => 2,
-    'mountpoints'=> '1 2\n 2 1',
+    'mountpoints'=> "1 2\n 2 1",
     'storage_local_net_ip' => '10.0.0.110',
   },
   {
@@ -67,7 +67,7 @@ $nodes_harr = [
     'internal_address' => '10.0.0.105',
     'public_address'   => '10.0.204.105',
     'swift_zone'       => 3,
-    'mountpoints'=> '1 2\n 2 1',
+    'mountpoints'=> "1 2\n 2 1",
     'storage_local_net_ip' => '10.0.0.110',
   },
   {
@@ -103,9 +103,9 @@ if empty($node) {
 $internal_address = $node[0]['internal_address']
 $public_address = $node[0]['public_address']
 
-
-$controller_internal_addresses = nodes_to_hash(filter_nodes($nodes,'role','controller'),'name','internal_address')
-$controller_public_addresses = nodes_to_hash(filter_nodes($nodes,'role','controller'),'name','public_address')
+$controllers = merge_arrays(filter_nodes($nodes,'role','primary-controller'), filter_nodes($nodes,'role','controller'))
+$controller_internal_addresses = nodes_to_hash($controllers,'name','internal_address')
+$controller_public_addresses = nodes_to_hash($controllers,'name','public_address')
 $controller_hostnames = keys($controller_internal_addresses)
 
 #Set this to anything other than pacemaker if you do not want Quantum HA
@@ -114,11 +114,6 @@ $controller_hostnames = keys($controller_internal_addresses)
 $ha_provider = 'pacemaker'
 $use_unicast_corosync = false
 
-# Set hostname for master controller of HA cluster. 
-# It is strongly recommend that the master controller is deployed before all other controllers since it initializes the new cluster.  
-# Default is fuel-controller-01. 
-# Fully qualified domain name is also allowed.
-$master_hostname = 'fuel-controller-01'
 
 # Set nagios master fqdn
 $nagios_master        = 'nagios-server.your-domain-name.com'
@@ -341,18 +336,18 @@ $swift_proxies = $controller_internal_addresses
 # It tells on which swift proxy node to build
 # *ring.gz files. Other swift proxies/storages
 # will rsync them.
-if $::hostname == $master_hostname {
+if $node[0]['role'] == 'primary-controller' {
   $primary_proxy = true
 } else {
   $primary_proxy = false
 }
-$master_swift_proxy_nodes = filter_nodes($nodes,'name',$master_hostname)
-$master_swift_proxy_ip = $master_swift_proxy_nodes[0]['internal_address']
-if $::hostname == $master_hostname {
+if $node[0]['role'] == 'primary-controller' {
   $primary_controller = true
 } else {
   $primary_controller = false
 }
+$master_swift_proxy_nodes = filter_nodes($nodes,'role','primary-swift-proxy')
+$master_swift_proxy_ip = $master_swift_proxy_nodes[0]['internal_address']
 
 ### Glance and swift END ###
 
