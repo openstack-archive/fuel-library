@@ -213,8 +213,8 @@ class openstack::compute (
   }
 
   class {'nova::conductor':
-    enabled => true,
-    ensure  => $::openstack_version['nova'],
+    enabled => $enabled,
+    ensure_package  => $::openstack_version['nova'],
   }
 
   # Configure libvirt for nova-compute
