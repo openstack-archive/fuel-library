@@ -44,7 +44,7 @@ Puppet::Type.type(:quantum_net).provide(
         optional_opts.push(opt).push(@resource[param])
       end
     end
-    if @resource[:shared] == true
+    if @resource[:shared] == 'True'
         optional_opts.push("--shared")
     end
 
