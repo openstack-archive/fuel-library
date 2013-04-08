@@ -87,7 +87,7 @@ $nodes_harr = [
     'internal_address' => '10.0.0.110',
     'public_address'   => '10.0.204.110',
     'swift_zone'       => 1,
-    'mountpoints'=> '1 2\n 2 1',
+    'mountpoints'=> "1 2\n 2 1",
     'storage_local_net_ip' => '10.0.0.110',
   },
   {
@@ -96,7 +96,7 @@ $nodes_harr = [
     'internal_address' => '10.0.0.111',
     'public_address'   => '10.0.204.111',
     'swift_zone'       => 2,
-    'mountpoints'=> '1 2\n 2 1',
+    'mountpoints'=> "1 2\n 2 1",
     'storage_local_net_ip' => '10.0.0.111',
   },
   {
@@ -105,7 +105,7 @@ $nodes_harr = [
     'internal_address' => '10.0.0.112',
     'public_address'   => '10.0.204.112',
     'swift_zone'       => 3,
-    'mountpoints'=> '1 2\n 2 1',
+    'mountpoints'=> "1 2\n 2 1",
     'storage_local_net_ip' => '10.0.0.112',
   }
 ]
