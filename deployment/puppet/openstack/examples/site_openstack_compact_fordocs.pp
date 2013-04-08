@@ -345,7 +345,7 @@ if $node[0]['role'] == 'primary-controller' {
 } else {
   $primary_controller = false
 }
-$master_swift_proxy_nodes = filter_nodes($nodes,'role','primary-swift-proxy')
+$master_swift_proxy_nodes = filter_nodes($nodes,'role','primary-controller')
 $master_swift_proxy_ip = $master_swift_proxy_nodes[0]['internal_address']
 
 ### Glance and swift END ###
