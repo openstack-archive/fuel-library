@@ -579,7 +579,7 @@ node /fuel-controller-[\d+]/ {
 
   if $primary_proxy {
     ring_devices {'all':
-      storages => filter_nodes($nodes, 'role', 'controller')
+      storages => $controllers
     }
   }
 
