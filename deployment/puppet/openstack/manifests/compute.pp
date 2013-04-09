@@ -199,7 +199,7 @@ class openstack::compute (
     }
 
   } else {
-    $enabled_apis = 'metadata,osapi_volume'
+    $enabled_apis = 'metadata'
   }
 
 
