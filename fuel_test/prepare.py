@@ -16,8 +16,8 @@ class Prepare(object):
  #       self.internal_ip = self.ci().public_virtual_ip()
         self.controllers = self.ci().nodes().controllers
  #       if len(self.controllers) == 1:
-            self.public_ip = self.controllers[0].get_ip_address_by_network_name('public')
-            self.internal_ip = self.controllers[0].get_ip_address_by_network_name('internal')
+        self.public_ip = self.controllers[0].get_ip_address_by_network_name('public')
+        self.internal_ip = self.controllers[0].get_ip_address_by_network_name('internal')
             
     def remote(self):
         return ssh(self.public_ip,
