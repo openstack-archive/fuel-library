@@ -93,11 +93,11 @@ $(ISOROOT)/isolinux/isolinux.cfg: $(SOURCE_DIR)/isolinux/isolinux.cfg ; $(ACTION
 $(ISOROOT)/ks.cfg: $(SOURCE_DIR)/ks.cfg; $(ACTION.COPY)
 	[ -z "$$TGTDRIVE" ] || sed -i "s/^\(tgtdrive=\)\".*\"$$/\1\"$$TGTDRIVE\"/" $@
 	[ -z "$$USEEXTIF" ] || sed -i "s/^\(network\s*--bootproto=dhcp\.*\)/\1 --device=$$USEEXTIF/" $@
-	[ -z "$$ISO_URL" ] || sed -i "s/^#?url --url\.*/url --url $$ISO_URL/" $@
-	[ -z "$$BASE_MIRROR" ] || sed -i "s/^#?repo --name=Base\.*/repo --name=Base --mirrorlist=$$BASE_MIRROR/" $@
-	[ -z "$$UPDATES_MIRROR" ] || sed -i "s/^#?repo --name=Updates\.*/repo --name=Updates --mirrorlist=$$UPDATES_MIRROR/" $@
-	[ -z "$$MIRANTIS_MIRROR" ] || sed -i "s/^#?repo --name=Mirantis\.*/repo --name=Mirantis --mirrorlist=$$MIRANTIS_MIRROR/" $@
-	[ -z "$$PUPPETLABS_MIRROR" ] || sed -i "s/^#?repo --name=PuppetLabs\.*/repo --name=PuppetLabs --mirrorlist=$$PUPPETLABS_MIRROR/" $@
+	[ -z "$$ISO_URL" ] || sed -i "s|^#\?url --url.*|url --url $$ISO_URL|" $@
+	[ -z "$$BASE_MIRROR" ] || sed -i "s|^#\?repo --name=Base.*|repo --name=Base --mirrorlist=$$BASE_MIRROR|" $@
+	[ -z "$$UPDATES_MIRROR" ] || sed -i "s|^#\?repo --name=Updates.*|repo --name=Updates --mirrorlist=$$UPDATES_MIRROR|" $@
+	[ -z "$$MIRANTIS_MIRROR" ] || sed -i "s|^#\?repo --name=Mirantis.*|repo --name=Mirantis --mirrorlist=$$MIRANTIS_MIRROR|" $@
+	[ -z "$$PUPPETLABS_MIRROR" ] || sed -i "s|^#\?repo --name=PuppetLabs.*|repo --name=PuppetLabs --mirrorlist=$$PUPPETLABS_MIRROR|" $@
 $(ISOROOT)/bootstrap_admin_node.sh: $(SOURCE_DIR)/bootstrap_admin_node.sh ; $(ACTION.COPY)
 $(ISOROOT)/functions.sh: $(SOURCE_DIR)/functions.sh ; $(ACTION.COPY)
 $(ISOROOT)/bootstrap_admin_node.conf: $(SOURCE_DIR)/bootstrap_admin_node.conf ; $(ACTION.COPY)
