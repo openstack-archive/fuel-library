@@ -135,9 +135,11 @@ class Manifest(object):
         zones = range(1, 50)
         nodes = []
         for node in ci.nodes().computes: nodes.append(self.describe_node(node, 'compute'))
-        for node in ci.nodes().controllers: nodes.append(self.describe_swift_node(node, 'controller', zones.pop()))
+        for node in ci.nodes().controllers[:1]: nodes.append(self.describe_swift_node(node, 'primary-controller', zones.pop()))
+        for node in ci.nodes().controllers[1:]: nodes.append(self.describe_swift_node(node, 'controller', zones.pop()))
         for node in ci.nodes().storages: nodes.append(self.describe_swift_node(node, 'storage', zones.pop()))
-        for node in ci.nodes().proxies: nodes.append(self.describe_node(node, 'swift-proxy'))
+        for node in ci.nodes().proxies[:1]: nodes.append(self.describe_node(node, 'primary-swift-proxy'))
+        for node in ci.nodes().proxies[1:]: nodes.append(self.describe_node(node, 'swift-proxy'))
         for node in ci.nodes().quantums: nodes.append(self.describe_node(node, 'quantum'))
         for node in ci.nodes().masters: nodes.append(self.describe_node(node, 'master'))
         for node in ci.nodes().cobblers: nodes.append(self.describe_node(node, 'cobbler'))

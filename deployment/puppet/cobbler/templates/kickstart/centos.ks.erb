@@ -2,7 +2,7 @@
 install
 
 # INSTALLATION SOURCE (centos repository)
-url --url=$tree
+$SNIPPET('url_proxy')
 
 # ALTERNATIVE REPOSITORIES
 <% if ks_repo.kind_of?(Array)  %>
