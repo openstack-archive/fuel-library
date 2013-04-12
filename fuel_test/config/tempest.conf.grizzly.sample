@@ -3,6 +3,18 @@
 # test clients use when authenticating with different user/tenant
 # combinations
 
+# The type of endpoint for a Identity service. Unless you have a
+# custom Keystone service catalog implementation, you probably want to leave
+# this value as "identity"
+catalog_type = %(IDENTITY_CATALOG_TYPE)s
+# Ignore SSL certificate validation failures? Use when in testing
+# environments that have self-signed SSL certs.
+disable_ssl_certificate_validation = %(IDENTITY_DISABLE_SSL_CHECK)s
+# URL for where to find the OpenStack Identity API endpoint (Keystone)
+uri = %(IDENTITY_URI)s
+# Should typically be left as keystone unless you have a non-Keystone
+# authentication API service
+
 # Set to True if your test environment's Keystone authentication service should
 # be accessed over HTTPS
 use_ssl = %(IDENTITY_USE_SSL)s
@@ -18,6 +30,22 @@ path = %(IDENTITY_PATH)s
 # Should typically be left as keystone unless you have a non-Keystone
 # authentication API service
 strategy = %(IDENTITY_STRATEGY)s
+# The identity region
+region = %(IDENTITY_REGION)s
+# This should be the username of a user WITHOUT administrative privileges
+username = %(USERNAME)s
+# The above non-administrative user's password
+password = %(PASSWORD)s
+# The above non-administrative user's tenant name
+tenant_name = %(TENANT_NAME)s
+# This should be the username of an alternate user WITHOUT
+# administrative privileges
+alt_username = %(ALT_USERNAME)s
+# The above non-administrative user's password
+alt_password = %(ALT_PASSWORD)s
+# The above non-administrative user's tenant name
+alt_tenant_name = %(ALT_TENANT_NAME)s
+
 
 [compute]
 # This section contains configuration options used when executing tests
