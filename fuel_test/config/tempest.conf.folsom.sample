@@ -3,6 +3,18 @@
 # test clients use when authenticating with different user/tenant
 # combinations
 
+# The type of endpoint for a Identity service. Unless you have a
+# custom Keystone service catalog implementation, you probably want to leave
+# this value as "identity"
+catalog_type = identity
+# Ignore SSL certificate validation failures? Use when in testing
+# environments that have self-signed SSL certs.
+disable_ssl_certificate_validation = False
+# URL for where to find the OpenStack Identity API endpoint (Keystone)
+uri = http://127.0.0.1:5000/v2.0/
+# Should typically be left as keystone unless you have a non-Keystone
+# authentication API service
+
 # Set to True if your test environment's Keystone authentication service should
 # be accessed over HTTPS
 use_ssl = %(IDENTITY_USE_SSL)s
