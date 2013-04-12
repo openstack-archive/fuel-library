@@ -82,7 +82,7 @@ class Prepare(object):
                 image_ref_alt=image_ref_alt,
                 path_to_private_key=root('fuel_test', 'config', 'ssh_keys',
                                          'openstack'),
-                compute_db_uri='mysql://nova:nova@%s/nova' % self.internal_ip()
+                compute_db_uri='mysql://nova:nova@%s/nova' % self.internal_ip
             ))
 
     def tempest_config_grizzly(self, image_ref, image_ref_alt,
@@ -94,7 +94,7 @@ class Prepare(object):
             'IDENTITY_CATALOG_TYPE': 'identity',
             'IDENTITY_DISABLE_SSL_CHECK': 'true',
             'IDENTITY_USE_SSL': 'false',
-            'IDENTITY_URI': 'http://%s:5000/v2.0/' % self.public_ip(),
+            'IDENTITY_URI': 'http://%s:5000/v2.0/' % self.public_ip,
             'IDENTITY_REGION': 'RegionOne',
             'IDENTITY_HOST': self.public_ip,
             'IDENTITY_PORT': '5000',
