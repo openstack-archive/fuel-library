@@ -67,6 +67,10 @@ class horizon(
     mode    => '0644',
   }
 
+  file {'/usr/share/openstack-dashboard/':
+    recurse => true,
+  }
+
   case $use_ssl {
     'exist': { # SSL certificate already exists
       $generate_sslcert_names = true
