@@ -109,10 +109,9 @@ LOGGING = {
                 'class': 'logging.StreamHandler',
                 },
             'file': {
-                # Set the level to "DEBUG" for verbose output logging.
-                'level': 'DEBUG',
+                'level': '<%= log_level %>',
                 'class': 'logging.FileHandler',
-                'filename': '/var/log/horizon/horizon.log'
+                'filename': '<%= scope.lookupvar("horizon::params::logdir") %>/horizon.log'
                 },
             },
         'loggers': {
@@ -148,12 +147,10 @@ LOGGING = {
             }
         }
 }
-
-LOGIN_URL = '<%= root_url %>/auth/login/'
-LOGOUT_URL = '<%= root_url %>/auth/logout/'
-LOGIN_REDIRECT_URL = '<%= root_url %>/syspanel/'
+LOGIN_URL='<%=  scope.lookupvar("horizon::params::root_url") %>/auth/login/'
+LOGIN_REDIRECT_URL='<%=  scope.lookupvar("horizon::params::root_url") %>'
 
 # The Ubuntu package includes pre-compressed JS and compiled CSS to allow
 # offline compression by default.  To enable online compression, install
 # the node-less package and enable the following option.
-COMPRESS_OFFLINE = True
+COMPRESS_OFFLINE = False
