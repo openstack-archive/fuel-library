@@ -191,7 +191,7 @@ class Manifest(object):
             return ci.fixed_network()
 
     def write_openstack_simple_manifest(self, remote, ci, controllers,
-                                        use_syslog=True,
+                                        use_syslog=False,
                                         quantum=True,
                                         cinder=True, cinder_on_computes=False):
         template = Template(
