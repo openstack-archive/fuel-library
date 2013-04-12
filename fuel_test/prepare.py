@@ -95,7 +95,7 @@ class Prepare(object):
             'IDENTITY_DISABLE_SSL_CHECK': 'true',
             'IDENTITY_USE_SSL': 'false',
             'IDENTITY_URI': 'http://%s:5000/v2.0/' % self.public_ip(),
-            'IDENTITY_REGION': 'RegionOne'
+            'IDENTITY_REGION': 'RegionOne',
             'IDENTITY_HOST': self.public_ip,
             'IDENTITY_PORT': '5000',
             'IDENTITY_API_VERSION': 'v2.0',
