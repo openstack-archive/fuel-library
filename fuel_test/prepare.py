@@ -117,6 +117,8 @@ class Prepare(object):
             'COMPUTE_BUILD_TIMEOUT': '600',
             'RUN_SSH': 'false',
             'NETWORK_FOR_SSH': 'novanetwork',
+            'SSH_USER': 'cirros',
+            'LIVE_MIGRATION': 'true',
             'COMPUTE_CATALOG_TYPE': 'compute',
             'COMPUTE_CREATE_IMAGE_ENABLED': 'true',
             'COMPUTE_RESIZE_AVAILABLE': 'true',
@@ -135,6 +137,12 @@ class Prepare(object):
             'IMAGE_USERNAME': 'tempest1',
             'IMAGE_PASSWORD': 'secret',
             'IMAGE_TENANT_NAME': 'tenant1',
+            'ADMIN_USERNAME': ADMIN_USERNAME,
+            'ADMIN_PASSWORD': ADMIN_PASSWORD,
+            'ADMIN_TENANT_NAME': ADMIN_TENANT_FOLSOM,
+            'IDENTITY_ADMIN_USERNAME': ADMIN_USERNAME,
+            'IDENTITY_ADMIN_PASSWORD': ADMIN_PASSWORD,
+            'IDENTITY_ADMIN_TENANT_NAME': ADMIN_TENANT_FOLSOM,
             'COMPUTE_ADMIN_USERNAME': ADMIN_USERNAME,
             'COMPUTE_ADMIN_PASSWORD': ADMIN_PASSWORD,
             'COMPUTE_ADMIN_TENANT_NAME': ADMIN_TENANT_FOLSOM,
@@ -146,6 +154,13 @@ class Prepare(object):
             'VOLUME_BUILD_TIMEOUT': '300',
             'NETWORK_CATALOG_TYPE': 'network',
             'NETWORK_API_VERSION': 'v2.0',
+            'QUANTUM': 'false',
+            'TENANT_NETS_REACHABLE': 'true',
+            'TENANT_NETWORK_CIDR': '10.100.0.0/16',
+            'TENANT_NETWORK_MASK_BITS': '29',
+            #TODO extract values for pubnet & router id
+            #'PUBLIC_NETWORK_ID': '',
+            #'PUBLIC_ROUTER_ID': '',
         }
         return config
 

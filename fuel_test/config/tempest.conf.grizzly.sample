@@ -46,6 +46,12 @@ alt_password = %(ALT_PASSWORD)s
 # The above non-administrative user's tenant name
 alt_tenant_name = %(ALT_TENANT_NAME)s
 
+# This should be the username of a user WITH administrative privileges
+admin_username = %(ADMIN_USER_NAME)s
+# The above non-administrative user's password
+admin_password = %(ADMIN_PASSWORD)s
+# The above non-administrative user's tenant name
+admin_tenant_name = %(ADMIN_TENANT_NAME)s
 
 [compute]
 # This section contains configuration options used when executing tests
@@ -98,6 +104,16 @@ build_timeout = %(COMPUTE_BUILD_TIMEOUT)s
 #  executing the tests
 run_ssh = %(RUN_SSH)s
 network_for_ssh = %(NETWORK_FOR_SSH)s
+ssh_user = %(SSH_USER)s
+
+# IP version of the address used for SSH
+ip_version_for_ssh = 4
+
+# Number of seconds to wait to authenticate to an instance
+ssh_timeout = 300
+
+# Number of seconds to wait for output from ssh channel
+ssh_channel_timeout = 60
 
 # The type of endpoint for a Compute API service. Unless you have a
 # custom Keystone service catalog implementation, you probably want to leave
@@ -118,6 +134,20 @@ change_password_available = %(COMPUTE_CHANGE_PASSWORD_AVAILABLE)s
 # Level to log Compute API request/response details.
 log_level = %(COMPUTE_LOG_LEVEL)s
 
+# Run live migration tests (requires 2 hosts)
+live_migration_available = %(LIVE_MIGRATION)s
+
+# Use block live migration (Otherwise, non-block migration will be
+# performed, which requires XenServer pools in case of using XS)
+use_block_migration_for_live_migration = false
+
+# By default, rely on the status of the diskConfig extension to
+# decide if to execute disk config tests. When set to false, tests
+# are forced to skip, regardless of the extension status
+disk_config_enabled_override = true
+
+
+[whitebox]
 # Whitebox options for compute. Whitebox options enable the
 # whitebox test cases, which look at internal Nova database state,
 # SSH into VMs to check instance state, etc.
@@ -207,3 +237,25 @@ build_timeout = %(VOLUME_BUILD_TIMEOUT)s
 [network]
 catalog_type = %(NETWORK_CATALOG_TYPE)s
 api_version = %(NETWORK_API_VERSION)s
+# A large private cidr block from which to allocate smaller blocks for
+# tenant networks.
+tenant_network_cidr = %(TENANT_NETWORK_CIDR)s
+
+# The mask bits used to partition the tenant block.
+tenant_network_mask_bits = %(TENANT_NETWORK_MASK_BITS)s
+
+# If tenant networks are reachable, connectivity checks will be
+# performed directly against addresses on those networks.
+tenant_networks_reachable = %(TENANT_NETS_REACHABLE)s
+
+# Id of the public network that provides external connectivity.
+#public_network_id = %(PUBLIC_NETWORK_ID)s
+
+# Id of a shared public router that provides external connectivity.
+# A shared public router would commonly be used where IP namespaces
+# were disabled.  If namespaces are enabled, it would be preferable
+# for each tenant to have their own router.
+#public_router_id = %(PUBLIC_ROUTER_ID)s
+
+# Whether or not quantum is expected to be available
+quantum_available = %(QUANTUM)s
