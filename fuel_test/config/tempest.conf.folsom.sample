@@ -30,6 +30,22 @@ path = %(IDENTITY_PATH)s
 # Should typically be left as keystone unless you have a non-Keystone
 # authentication API service
 strategy = %(IDENTITY_STRATEGY)s
+# The identity region
+region = RegionOne
+# This should be the username of a user WITHOUT administrative privileges
+username = %(USERNAME)s
+# The above non-administrative user's password
+password = %(PASSWORD)s
+# The above non-administrative user's tenant name
+tenant_name = %(TENANT_NAME)s
+# This should be the username of an alternate user WITHOUT
+# administrative privileges
+alt_username = %(ALT_USERNAME)s
+# The above non-administrative user's password
+alt_password = %(ALT_PASSWORD)s
+# The above non-administrative user's tenant name
+alt_tenant_name = %(ALT_TENANT_NAME)s
+
 
 [compute]
 # This section contains configuration options used when executing tests
