@@ -55,6 +55,10 @@ define l23network::l3::create_br_iface (
     $ovs_bond_options = [],
     $interface_order_prefix = false,
 ){
+    if ! $::l23network::l2::use_ovs {
+      fail('You need enable using Open vSwitch. You yourself has prohibited it.')
+    }
+    
     if ! $external_ids {
       $ext_ids = "bridge-id=${bridge}"
     }

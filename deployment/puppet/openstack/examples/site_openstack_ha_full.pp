@@ -255,7 +255,8 @@ if $quantum {
 stage {'netconfig':
       before  => Stage['main'],
 }
-class {'l23network': stage=> 'netconfig'}
+
+class {'l23network': use_ovs=>$quantum, stage=> 'netconfig'}
 class node_netconfig (
   $mgmt_ipaddr,
   $mgmt_netmask  = '255.255.255.0',
