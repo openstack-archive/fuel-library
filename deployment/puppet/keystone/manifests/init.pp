@@ -245,14 +245,11 @@ class keystone(
     # keystone-manage pki_setup Should be run as the same system user that will be running the Keystone service to ensure 
     # proper ownership for the private key file and the associated certificates
     exec { 'keystone-manage pki_setup':
-      creates => '/etc/keystone/ssl/private/signing_key.pem',
       path        => '/usr/bin',
       user        => 'keystone',
-      group       => 'keystone',
       refreshonly => true,
       notify      => Service['keystone'],
       subscribe   => Package['keystone'],
-      require     => User['keystone'],
     }
   }
 
