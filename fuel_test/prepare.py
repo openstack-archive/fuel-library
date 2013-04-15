@@ -3,6 +3,7 @@ from time import sleep
 from devops.helpers.helpers import ssh
 import glanceclient
 import keystoneclient.v2_0
+from quantumclient.quantum import client as q_client
 import os
 from fuel_test.ci.ci_cobbler import CiCobbler
 from fuel_test.helpers import load, retry, install_packages, switch_off_ip_tables, is_not_essex
@@ -75,11 +76,13 @@ class Prepare(object):
             ))
 
     def prepare_tempest_grizzly_simple(self):
-        image_ref, image_ref_alt = self.make_tempest_objects()
+        image_ref, image_ref_alt, net_id, router_id = self.make_tempest_objects()
         self.tempest_write_config(
             self.tempest_config_grizzly(
                 image_ref=image_ref,
                 image_ref_alt=image_ref_alt,
+                public_network_id=net_id,
+                public_router_id=router_id,
                 path_to_private_key=root('fuel_test', 'config', 'ssh_keys',
                                          'openstack'),
                 compute_db_uri='mysql://nova:nova@%s/nova' % self.internal_ip
@@ -256,7 +259,8 @@ class Prepare(object):
         retry(10, keystone.users.create, name='tempest2', password='secret',
               email='tempest2@example.com', tenant_id=tenant2.id)
         image_ref, image_ref_alt = self.tempest_add_images()
-        return image_ref, image_ref_alt
+        net_id, router_id = self.tempest_get_netid_routerid
+        return image_ref, image_ref_alt, net_id, router_id
 
     def _get_identity_client(self):
         keystone = retry(10, keystoneclient.v2_0.client.Client,
@@ -271,6 +275,14 @@ class Prepare(object):
                                                     endpoint_type='publicURL')
         return glanceclient.Client('1', endpoint=endpoint,
                                    token=keystone.auth_token)
+
+    def _get_networking_client(self):
+        keystone = self._get_identity_client()
+        endpoint = keystone.service_catalog.url_for(service_type='network',
+                                                    endpoint_type='publicURL')
+        return q_client.Client('2.0', endpoint=endpoint,
+                                   token=keystone.auth_token)
+
 
     def upload(self, glance, name, path):
         image = glance.images.create(
@@ -289,6 +301,13 @@ class Prepare(object):
                            'cirros-0.3.0-x86_64-disk.img'), \
                self.upload(glance, 'cirros_0.3.0',
                            'cirros-0.3.0-x86_64-disk.img')
+    
+    def tempest_get_netid_routerid(self):
+        networking = self._get_networking_client()
+        params = {'router:external': True}
+        network = networking.list_networks(**params)['networks'])
+        router = quantumclient.list_routers()['routers']
+        return network, router
 
     def tempest_share_glance_images(self, network):
         if OS_FAMILY == "centos":
