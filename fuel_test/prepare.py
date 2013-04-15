@@ -237,7 +237,7 @@ class Prepare(object):
             'ALT_TENANT_NAME': 'tenant2',
             'IMAGE_ID': image_ref,
             'IMAGE_ID_ALT': image_ref_alt,
-            'ADMIN_USERNAME': ADMIN_USERNAME,
+            'ADMIN_USER_NAME': ADMIN_USERNAME,
             'ADMIN_PASSWORD': ADMIN_PASSWORD,
             'ADMIN_TENANT_NAME': ADMIN_TENANT_ESSEX,
         }
