@@ -157,7 +157,7 @@ class Prepare(object):
             'VOLUME_BUILD_TIMEOUT': '300',
             'NETWORK_CATALOG_TYPE': 'network',
             'NETWORK_API_VERSION': 'v2.0',
-            'QUANTUM': 'false',
+            'QUANTUM': 'true',
             'TENANT_NETS_REACHABLE': 'true',
             'TENANT_NETWORK_CIDR': '10.100.0.0/16',
             'TENANT_NETWORK_MASK_BITS': '29',
