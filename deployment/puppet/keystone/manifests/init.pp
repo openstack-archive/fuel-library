@@ -260,6 +260,7 @@ class keystone(
     # this probably needs to happen more often than just when the db is
     # created
     exec { 'keystone-manage db_sync':
+      user        => 'keystone',
       path        => '/usr/bin',
       refreshonly => true,
       notify      => Service['keystone'],
