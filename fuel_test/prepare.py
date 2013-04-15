@@ -137,7 +137,7 @@ class Prepare(object):
             'IMAGE_USERNAME': 'tempest1',
             'IMAGE_PASSWORD': 'secret',
             'IMAGE_TENANT_NAME': 'tenant1',
-            'ADMIN_USERNAME': ADMIN_USERNAME,
+            'ADMIN_USER_NAME': ADMIN_USERNAME,
             'ADMIN_PASSWORD': ADMIN_PASSWORD,
             'ADMIN_TENANT_NAME': ADMIN_TENANT_FOLSOM,
             'IDENTITY_ADMIN_USERNAME': ADMIN_USERNAME,
