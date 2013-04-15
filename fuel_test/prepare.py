@@ -88,7 +88,7 @@ class Prepare(object):
                 compute_db_uri='mysql://nova:nova@%s/nova' % self.internal_ip
             ))
 
-    def tempest_config_grizzly(self, image_ref, image_ref_alt,
+    def tempest_config_grizzly(self, image_ref, image_ref_alt, public_network_id, public_router_id,
                               path_to_private_key,
                               compute_db_uri='mysql://user:pass@localhost/nova'):
         sample = load(
@@ -162,8 +162,8 @@ class Prepare(object):
             'TENANT_NETWORK_CIDR': '10.100.0.0/16',
             'TENANT_NETWORK_MASK_BITS': '29',
             #TODO extract values for pubnet & router id
-            #'PUBLIC_NETWORK_ID': '',
-            #'PUBLIC_ROUTER_ID': '',
+            'PUBLIC_NETWORK_ID': public_network_id,
+            'PUBLIC_ROUTER_ID': public_router_id,
         }
         return config
 
