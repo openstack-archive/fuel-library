@@ -96,7 +96,6 @@ class keystone(
     owner   => 'keystone',
     group   => 'keystone',
     mode    => '0644',
-   #require => Package['keystone'],
     notify  => Service['keystone'],
   }
 
@@ -121,6 +120,7 @@ class keystone(
     owner   => 'keystone',
     group   => 'keystone',
     mode    => 0755,
+    subscribe => Package['keystone'],
   }
 
   case $::osfamily {
@@ -260,6 +260,7 @@ class keystone(
     # this probably needs to happen more often than just when the db is
     # created
     exec { 'keystone-manage db_sync':
+      user        => 'keystone',
       path        => '/usr/bin',
       refreshonly => true,
       notify      => Service['keystone'],

@@ -74,6 +74,96 @@ class Prepare(object):
                 compute_db_uri='mysql://nova:nova@%s/nova' % self.ci().internal_virtual_ip()
             ))
 
+    def prepare_tempest_grizzly_simple(self):
+        image_ref, image_ref_alt = self.make_tempest_objects()
+        self.tempest_write_config(
+            self.tempest_config_grizzly(
+                image_ref=image_ref,
+                image_ref_alt=image_ref_alt,
+                path_to_private_key=root('fuel_test', 'config', 'ssh_keys',
+                                         'openstack'),
+                compute_db_uri='mysql://nova:nova@%s/nova' % self.internal_ip
+            ))
+
+    def tempest_config_grizzly(self, image_ref, image_ref_alt,
+                              path_to_private_key,
+                              compute_db_uri='mysql://user:pass@localhost/nova'):
+        sample = load(
+            root('fuel_test', 'config', 'tempest.conf.grizzly.sample'))
+        config = sample % {
+            'IDENTITY_CATALOG_TYPE': 'identity',
+            'IDENTITY_DISABLE_SSL_CHECK': 'true',
+            'IDENTITY_USE_SSL': 'false',
+            'IDENTITY_URI': 'http://%s:5000/v2.0/' % self.public_ip,
+            'IDENTITY_REGION': 'RegionOne',
+            'IDENTITY_HOST': self.public_ip,
+            'IDENTITY_PORT': '5000',
+            'IDENTITY_API_VERSION': 'v2.0',
+            'IDENTITY_PATH': 'tokens',
+            'IDENTITY_STRATEGY': 'keystone',
+            'COMPUTE_ALLOW_TENANT_ISOLATION': 'true',
+            'COMPUTE_ALLOW_TENANT_REUSE': 'true',
+            'USERNAME': 'tempest1',
+            'PASSWORD': 'secret',
+            'TENANT_NAME': 'tenant1',
+            'ALT_USERNAME': 'tempest2',
+            'ALT_PASSWORD': 'secret',
+            'ALT_TENANT_NAME': 'tenant2',
+            'IMAGE_ID': image_ref,
+            'IMAGE_ID_ALT': image_ref_alt,
+            'FLAVOR_REF': '1',
+            'FLAVOR_REF_ALT': '2',
+            'COMPUTE_BUILD_INTERVAL': '10',
+            'COMPUTE_BUILD_TIMEOUT': '600',
+            'RUN_SSH': 'false',
+            'NETWORK_FOR_SSH': 'novanetwork',
+            'SSH_USER': 'cirros',
+            'LIVE_MIGRATION': 'true',
+            'COMPUTE_CATALOG_TYPE': 'compute',
+            'COMPUTE_CREATE_IMAGE_ENABLED': 'true',
+            'COMPUTE_RESIZE_AVAILABLE': 'true',
+            'COMPUTE_CHANGE_PASSWORD_AVAILABLE': 'false',
+            'COMPUTE_LOG_LEVEL': 'DEBUG',
+            'COMPUTE_WHITEBOX_ENABLED': 'true',
+            'COMPUTE_SOURCE_DIR': '/opt/stack/nova',
+            'COMPUTE_CONFIG_PATH': '/etc/nova/nova.conf',
+            'COMPUTE_BIN_DIR': '/usr/local/bin',
+            'COMPUTE_PATH_TO_PRIVATE_KEY': path_to_private_key,
+            'COMPUTE_DB_URI': compute_db_uri,
+            'IMAGE_CATALOG_TYPE': 'image',
+            'IMAGE_API_VERSION': '1',
+            'IMAGE_HOST': self.public_ip,
+            'IMAGE_PORT': '9292',
+            'IMAGE_USERNAME': 'tempest1',
+            'IMAGE_PASSWORD': 'secret',
+            'IMAGE_TENANT_NAME': 'tenant1',
+            'ADMIN_USERNAME': ADMIN_USERNAME,
+            'ADMIN_PASSWORD': ADMIN_PASSWORD,
+            'ADMIN_TENANT_NAME': ADMIN_TENANT_FOLSOM,
+            'IDENTITY_ADMIN_USERNAME': ADMIN_USERNAME,
+            'IDENTITY_ADMIN_PASSWORD': ADMIN_PASSWORD,
+            'IDENTITY_ADMIN_TENANT_NAME': ADMIN_TENANT_FOLSOM,
+            'COMPUTE_ADMIN_USERNAME': ADMIN_USERNAME,
+            'COMPUTE_ADMIN_PASSWORD': ADMIN_PASSWORD,
+            'COMPUTE_ADMIN_TENANT_NAME': ADMIN_TENANT_FOLSOM,
+            'IDENTITY_ADMIN_USERNAME': ADMIN_USERNAME,
+            'IDENTITY_ADMIN_PASSWORD': ADMIN_PASSWORD,
+            'IDENTITY_ADMIN_TENANT_NAME': ADMIN_TENANT_FOLSOM,
+            'VOLUME_CATALOG_TYPE': 'volume',
+            'VOLUME_BUILD_INTERVAL': '10',
+            'VOLUME_BUILD_TIMEOUT': '300',
+            'NETWORK_CATALOG_TYPE': 'network',
+            'NETWORK_API_VERSION': 'v2.0',
+            'QUANTUM': 'false',
+            'TENANT_NETS_REACHABLE': 'true',
+            'TENANT_NETWORK_CIDR': '10.100.0.0/16',
+            'TENANT_NETWORK_MASK_BITS': '29',
+            #TODO extract values for pubnet & router id
+            #'PUBLIC_NETWORK_ID': '',
+            #'PUBLIC_ROUTER_ID': '',
+        }
+        return config
+
     def tempest_config_folsom(self, image_ref, image_ref_alt,
                               path_to_private_key,
                               compute_db_uri='mysql://user:pass@localhost/nova'):
@@ -239,4 +329,4 @@ class Prepare(object):
 
 
 if __name__ == '__main__':
-    Prepare().prepare_tempest_folsom()
+    Prepare().prepare_tempest_grizzly_simple()
