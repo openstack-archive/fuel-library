@@ -96,7 +96,7 @@ class keystone(
     owner   => 'keystone',
     group   => 'keystone',
     mode    => '0644',
-    require => Package['keystone'], User['keystone'], Group['keystone'],
+   #require => Package['keystone'],
     notify  => Service['keystone'],
   }
 
@@ -118,11 +118,9 @@ class keystone(
 
   file { ['/etc/keystone', '/var/log/keystone', '/var/lib/keystone']:
     ensure  => directory,
-    recurse => true,
     owner   => 'keystone',
     group   => 'keystone',
     mode    => 0755,
-    subscribe => Package['keystone'],
   }
 
   case $::osfamily {
