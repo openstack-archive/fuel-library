@@ -96,6 +96,10 @@ class keystone(
     owner   => 'keystone',
     group   => 'keystone',
     mode    => '0644',
+<<<<<<< HEAD
+   #require => Package['keystone'],
+=======
+>>>>>>> zipfer-grizzly
     notify  => Service['keystone'],
   }
 
