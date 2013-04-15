@@ -96,7 +96,7 @@ class keystone(
     owner   => 'keystone',
     group   => 'keystone',
     mode    => '0644',
-    require => [User['keystone'], Group['keystone'],],
+    require => User['keystone'], Group['keystone'],
     notify  => Service['keystone'],
   }
 
