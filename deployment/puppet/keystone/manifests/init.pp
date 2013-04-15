@@ -120,7 +120,6 @@ class keystone(
     owner   => 'keystone',
     group   => 'keystone',
     mode    => 0755,
-    subscribe => Package['keystone'],
   }
 
   case $::osfamily {
