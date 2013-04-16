@@ -251,24 +251,24 @@ class Prepare(object):
         with open(root('..', 'tempest.conf'), 'w') as f:
             f.write(config)
     
-    def get_images(glance, name):
+    def _get_images(self, glance, name):
         """ Retrieve all images with a certain name """
         images = [x for x in glance.images.list() if x.name == name]
         return images
 
-    def get_tenants(keystone, name1, name2):
+    def _get_tenants(self, keystone, name1, name2):
         """ Retrieve all tenants with a certain names """
         tenants = [x for x in keystone.tenants.list() if x.name == name1 or x.name == name2]
         return tenants
        
-    def get_users(keystone, name1, name2):
+    def _get_users(self, keystone, name1, name2):
         """ Retrieve all users with a certain names """
         users = [x for x in keystone.users.list() if x.name == name1 or x.name == name2]
         return users
 
     def make_tempest_objects(self, ):
         keystone = self._get_identity_client()
-        tenants = get_tenants(keystone, 'tenant1', 'tenant2')
+        tenants = self._get_tenants(keystone, 'tenant1', 'tenant2')
         if len(tenants) > 1:
             tenant1 = tenants[0].id 
             tenant2 = tenants[1].id
@@ -276,7 +276,7 @@ class Prepare(object):
             tenant1 = retry(10, keystone.tenants.create, tenant_name='tenant1')
             tenant2 = retry(10, keystone.tenants.create, tenant_name='tenant2')
 
-        users = get_users(keystone, 'tempest1', 'tempest2')
+        users = self._get_users(keystone, 'tempest1', 'tempest2')
         if len(users) == 0:
             retry(10, keystone.users.create, name='tempest1', password='secret',
                   email='tempest1@example.com', tenant_id=tenant1.id)
@@ -321,7 +321,7 @@ class Prepare(object):
         if not os.path.isfile('cirros-0.3.0-x86_64-disk.img'):
             subprocess.check_call(['wget', CIRROS_IMAGE])
         glance = self._get_image_client()
-        images = get_images(glance, 'cirros_0.3.0')
+        images = self._get_images(glance, 'cirros_0.3.0')
         if len(images) > 1:
             return images[0].id, images[1].id
         else:
