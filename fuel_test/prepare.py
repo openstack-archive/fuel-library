@@ -305,7 +305,7 @@ class Prepare(object):
     def tempest_get_netid_routerid(self):
         networking = self._get_networking_client()
         params = {'router:external': True}
-        network = networking.list_networks(**params)['networks'])
+        network = networking.list_networks(**params)['networks']
         router = quantumclient.list_routers()['routers']
         return network, router
 
