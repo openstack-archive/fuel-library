@@ -253,12 +253,21 @@ class Prepare(object):
 
     def make_tempest_objects(self, ):
         keystone = self._get_identity_client()
-        tenant1 = retry(10, keystone.tenants.create, tenant_name='tenant1')
-        tenant2 = retry(10, keystone.tenants.create, tenant_name='tenant2')
-        retry(10, keystone.users.create, name='tempest1', password='secret',
-              email='tempest1@example.com', tenant_id=tenant1.id)
-        retry(10, keystone.users.create, name='tempest2', password='secret',
-              email='tempest2@example.com', tenant_id=tenant2.id)
+        tenants = get_tenants(keystone, 'tenant1', 'tenant2')
+        if len(tenants) > 1:
+            tenant1 = tenants[0].id 
+            tenant2 = tenants[1].id
+        else
+            tenant1 = retry(10, keystone.tenants.create, tenant_name='tenant1')
+            tenant2 = retry(10, keystone.tenants.create, tenant_name='tenant2')
+
+        users = get_users(keystone, 'tempest1', 'tempest2')
+        if len(users) == 0:
+            retry(10, keystone.users.create, name='tempest1', password='secret',
+                  email='tempest1@example.com', tenant_id=tenant1.id)
+            retry(10, keystone.users.create, name='tempest2', password='secret',
+                  email='tempest2@example.com', tenant_id=tenant2.id)
+        
         image_ref, image_ref_alt = self.tempest_add_images()
         net_id, router_id = self.tempest_get_netid_routerid()
         return image_ref, image_ref_alt, net_id, router_id
@@ -293,14 +302,33 @@ class Prepare(object):
         image.update(data=open(path, 'rb'))
         return image.id
 
+    def get_images(glance, name):
+        """ Retrieve all images with a certain name """
+        images = [x for x in glance.images.list() if x.name == name]
+        return images
+
+    def get_tenants(keystone, name1, name2):
+        """ Retrieve all tenants with a certain names """
+        tenants = [x for x in keystone.tenants.list() if x.name == name1 or x.name == name2]
+        return tenants
+       
+    def get_users(keystone, name1, name2):
+        """ Retrieve all users with a certain names """
+        users = [x for x in keystone.users.list() if x.name == name1 or x.name == name2]
+        return users
+       
     def tempest_add_images(self):
         if not os.path.isfile('cirros-0.3.0-x86_64-disk.img'):
             subprocess.check_call(['wget', CIRROS_IMAGE])
         glance = self._get_image_client()
-        return self.upload(glance, 'cirros_0.3.0',
-                           'cirros-0.3.0-x86_64-disk.img'), \
-               self.upload(glance, 'cirros_0.3.0',
-                           'cirros-0.3.0-x86_64-disk.img')
+        images = get_images(glance, 'cirros_0.3.0')
+        if len(images) > 1:
+            return images[0].id, images[1].id
+        else
+            return self.upload(glance, 'cirros_0.3.0',
+                       'cirros-0.3.0-x86_64-disk.img'), \
+                   self.upload(glance, 'cirros_0.3.0',
+                       'cirros-0.3.0-x86_64-disk.img')
     
     def tempest_get_netid_routerid(self):
         networking = self._get_networking_client()
