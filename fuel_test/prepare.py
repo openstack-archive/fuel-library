@@ -259,7 +259,7 @@ class Prepare(object):
         retry(10, keystone.users.create, name='tempest2', password='secret',
               email='tempest2@example.com', tenant_id=tenant2.id)
         image_ref, image_ref_alt = self.tempest_add_images()
-        net_id, router_id = self.tempest_get_netid_routerid
+        net_id, router_id = self.tempest_get_netid_routerid()
         return image_ref, image_ref_alt, net_id, router_id
 
     def _get_identity_client(self):
