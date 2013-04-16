@@ -3,6 +3,8 @@ from time import sleep
 from devops.helpers.helpers import ssh
 import glanceclient
 import keystoneclient.v2_0
+#from quantumclient.quantum import client as q_client
+from quantumclient.v2_0 import client as q_client
 import os
 from fuel_test.ci.ci_cobbler import CiCobbler
 from fuel_test.helpers import load, retry, install_packages, switch_off_ip_tables, is_not_essex
@@ -75,17 +77,19 @@ class Prepare(object):
             ))
 
     def prepare_tempest_grizzly_simple(self):
-        image_ref, image_ref_alt = self.make_tempest_objects()
+        image_ref, image_ref_alt, net_id, router_id = self.make_tempest_objects()
         self.tempest_write_config(
             self.tempest_config_grizzly(
                 image_ref=image_ref,
                 image_ref_alt=image_ref_alt,
+                public_network_id=net_id,
+                public_router_id=router_id,
                 path_to_private_key=root('fuel_test', 'config', 'ssh_keys',
                                          'openstack'),
                 compute_db_uri='mysql://nova:nova@%s/nova' % self.internal_ip
             ))
 
-    def tempest_config_grizzly(self, image_ref, image_ref_alt,
+    def tempest_config_grizzly(self, image_ref, image_ref_alt, public_network_id, public_router_id,
                               path_to_private_key,
                               compute_db_uri='mysql://user:pass@localhost/nova'):
         sample = load(
@@ -137,7 +141,7 @@ class Prepare(object):
             'IMAGE_USERNAME': 'tempest1',
             'IMAGE_PASSWORD': 'secret',
             'IMAGE_TENANT_NAME': 'tenant1',
-            'ADMIN_USERNAME': ADMIN_USERNAME,
+            'ADMIN_USER_NAME': ADMIN_USERNAME,
             'ADMIN_PASSWORD': ADMIN_PASSWORD,
             'ADMIN_TENANT_NAME': ADMIN_TENANT_FOLSOM,
             'IDENTITY_ADMIN_USERNAME': ADMIN_USERNAME,
@@ -154,13 +158,13 @@ class Prepare(object):
             'VOLUME_BUILD_TIMEOUT': '300',
             'NETWORK_CATALOG_TYPE': 'network',
             'NETWORK_API_VERSION': 'v2.0',
-            'QUANTUM': 'false',
+            'QUANTUM': 'true',
             'TENANT_NETS_REACHABLE': 'true',
             'TENANT_NETWORK_CIDR': '10.100.0.0/16',
             'TENANT_NETWORK_MASK_BITS': '29',
             #TODO extract values for pubnet & router id
-            #'PUBLIC_NETWORK_ID': '',
-            #'PUBLIC_ROUTER_ID': '',
+            'PUBLIC_NETWORK_ID': public_network_id,
+            'PUBLIC_ROUTER_ID': public_router_id,
         }
         return config
 
@@ -237,7 +241,7 @@ class Prepare(object):
             'ALT_TENANT_NAME': 'tenant2',
             'IMAGE_ID': image_ref,
             'IMAGE_ID_ALT': image_ref_alt,
-            'ADMIN_USERNAME': ADMIN_USERNAME,
+            'ADMIN_USER_NAME': ADMIN_USERNAME,
             'ADMIN_PASSWORD': ADMIN_PASSWORD,
             'ADMIN_TENANT_NAME': ADMIN_TENANT_ESSEX,
         }
@@ -246,17 +250,42 @@ class Prepare(object):
     def tempest_write_config(self, config):
         with open(root('..', 'tempest.conf'), 'w') as f:
             f.write(config)
+    
+    def _get_images(self, glance, name):
+        """ Retrieve all images with a certain name """
+        images = [x for x in glance.images.list() if x.name == name]
+        return images
+
+    def _get_tenants(self, keystone, name1, name2):
+        """ Retrieve all tenants with a certain names """
+        tenants = [x for x in keystone.tenants.list() if x.name == name1 or x.name == name2]
+        return tenants
+       
+    def _get_users(self, keystone, name1, name2):
+        """ Retrieve all users with a certain names """
+        users = [x for x in keystone.users.list() if x.name == name1 or x.name == name2]
+        return users
 
     def make_tempest_objects(self, ):
         keystone = self._get_identity_client()
-        tenant1 = retry(10, keystone.tenants.create, tenant_name='tenant1')
-        tenant2 = retry(10, keystone.tenants.create, tenant_name='tenant2')
-        retry(10, keystone.users.create, name='tempest1', password='secret',
-              email='tempest1@example.com', tenant_id=tenant1.id)
-        retry(10, keystone.users.create, name='tempest2', password='secret',
-              email='tempest2@example.com', tenant_id=tenant2.id)
+        tenants = self._get_tenants(keystone, 'tenant1', 'tenant2')
+        if len(tenants) > 1:
+            tenant1 = tenants[0].id 
+            tenant2 = tenants[1].id
+        else:
+            tenant1 = retry(10, keystone.tenants.create, tenant_name='tenant1')
+            tenant2 = retry(10, keystone.tenants.create, tenant_name='tenant2')
+
+        users = self._get_users(keystone, 'tempest1', 'tempest2')
+        if len(users) == 0:
+            retry(10, keystone.users.create, name='tempest1', password='secret',
+                  email='tempest1@example.com', tenant_id=tenant1.id)
+            retry(10, keystone.users.create, name='tempest2', password='secret',
+                  email='tempest2@example.com', tenant_id=tenant2.id)
+        
         image_ref, image_ref_alt = self.tempest_add_images()
-        return image_ref, image_ref_alt
+        net_id, router_id = self.tempest_get_netid_routerid()
+        return image_ref, image_ref_alt, net_id, router_id
 
     def _get_identity_client(self):
         keystone = retry(10, keystoneclient.v2_0.client.Client,
@@ -272,6 +301,13 @@ class Prepare(object):
         return glanceclient.Client('1', endpoint=endpoint,
                                    token=keystone.auth_token)
 
+    def _get_networking_client(self):
+        quantum = retry(10, q_client.Client,
+                         username=self.username(), password=self.password(),
+                         tenant_name=self.tenant(),
+                         auth_url=self.get_auth_url())
+        return quantum
+
     def upload(self, glance, name, path):
         image = glance.images.create(
             name=name,
@@ -285,10 +321,21 @@ class Prepare(object):
         if not os.path.isfile('cirros-0.3.0-x86_64-disk.img'):
             subprocess.check_call(['wget', CIRROS_IMAGE])
         glance = self._get_image_client()
-        return self.upload(glance, 'cirros_0.3.0',
-                           'cirros-0.3.0-x86_64-disk.img'), \
-               self.upload(glance, 'cirros_0.3.0',
-                           'cirros-0.3.0-x86_64-disk.img')
+        images = self._get_images(glance, 'cirros_0.3.0')
+        if len(images) > 1:
+            return images[0].id, images[1].id
+        else:
+            return self.upload(glance, 'cirros_0.3.0',
+                       'cirros-0.3.0-x86_64-disk.img'), \
+                   self.upload(glance, 'cirros_0.3.0',
+                       'cirros-0.3.0-x86_64-disk.img')
+    
+    def tempest_get_netid_routerid(self):
+        networking = self._get_networking_client()
+        params = {'router:external': True}
+        network = networking.list_networks(**params)['networks']
+        router = networking.list_routers()['routers']
+        return network, router
 
     def tempest_share_glance_images(self, network):
         if OS_FAMILY == "centos":
