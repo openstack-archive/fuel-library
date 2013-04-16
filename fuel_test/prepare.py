@@ -305,8 +305,11 @@ class Prepare(object):
     def tempest_get_netid_routerid(self):
         networking = self._get_networking_client()
         params = {'router:external': True}
-        network = networking.list_networks(**params)['networks']
-        router = quantumclient.list_routers()['routers']
+        try:
+            network = self.networking.list_networks(**params)['networks']
+            router = self.quantumclient.list_routers()['routers']
+        except:
+            print "Networking database querry failed"
         return network, router
 
     def tempest_share_glance_images(self, network):
