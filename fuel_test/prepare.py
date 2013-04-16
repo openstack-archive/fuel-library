@@ -3,7 +3,8 @@ from time import sleep
 from devops.helpers.helpers import ssh
 import glanceclient
 import keystoneclient.v2_0
-from quantumclient.quantum import client as q_client
+#from quantumclient.quantum import client as q_client
+from quantumclient.v2_0 import client as q_client
 import os
 from fuel_test.ci.ci_cobbler import CiCobbler
 from fuel_test.helpers import load, retry, install_packages, switch_off_ip_tables, is_not_essex
@@ -277,12 +278,11 @@ class Prepare(object):
                                    token=keystone.auth_token)
 
     def _get_networking_client(self):
-        keystone = self._get_identity_client()
-        endpoint = keystone.service_catalog.url_for(service_type='network',
-                                                    endpoint_type='publicURL')
-        return q_client.Client('2.0', endpoint=endpoint,
-                                   token=keystone.auth_token)
-
+        quantum = retry(10, q_client.Client,
+                         username=self.username(), password=self.password(),
+                         tenant_name=self.tenant(),
+                         auth_url=self.get_auth_url())
+        return quantum
 
     def upload(self, glance, name, path):
         image = glance.images.create(
@@ -305,11 +305,8 @@ class Prepare(object):
     def tempest_get_netid_routerid(self):
         networking = self._get_networking_client()
         params = {'router:external': True}
-        try:
-            network = self.networking.list_networks(**params)['networks']
-            router = self.quantumclient.list_routers()['routers']
-        except:
-            print "Networking database querry failed"
+        network = networking.list_networks(**params)['networks']
+        router = networking.list_routers()['routers']
         return network, router
 
     def tempest_share_glance_images(self, network):
