@@ -250,6 +250,21 @@ class Prepare(object):
     def tempest_write_config(self, config):
         with open(root('..', 'tempest.conf'), 'w') as f:
             f.write(config)
+    
+    def get_images(glance, name):
+        """ Retrieve all images with a certain name """
+        images = [x for x in glance.images.list() if x.name == name]
+        return images
+
+    def get_tenants(keystone, name1, name2):
+        """ Retrieve all tenants with a certain names """
+        tenants = [x for x in keystone.tenants.list() if x.name == name1 or x.name == name2]
+        return tenants
+       
+    def get_users(keystone, name1, name2):
+        """ Retrieve all users with a certain names """
+        users = [x for x in keystone.users.list() if x.name == name1 or x.name == name2]
+        return users
 
     def make_tempest_objects(self, ):
         keystone = self._get_identity_client()
@@ -302,21 +317,6 @@ class Prepare(object):
         image.update(data=open(path, 'rb'))
         return image.id
 
-    def get_images(glance, name):
-        """ Retrieve all images with a certain name """
-        images = [x for x in glance.images.list() if x.name == name]
-        return images
-
-    def get_tenants(keystone, name1, name2):
-        """ Retrieve all tenants with a certain names """
-        tenants = [x for x in keystone.tenants.list() if x.name == name1 or x.name == name2]
-        return tenants
-       
-    def get_users(keystone, name1, name2):
-        """ Retrieve all users with a certain names """
-        users = [x for x in keystone.users.list() if x.name == name1 or x.name == name2]
-        return users
-       
     def tempest_add_images(self):
         if not os.path.isfile('cirros-0.3.0-x86_64-disk.img'):
             subprocess.check_call(['wget', CIRROS_IMAGE])
