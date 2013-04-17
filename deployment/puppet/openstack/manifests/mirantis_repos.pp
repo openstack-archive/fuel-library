@@ -42,6 +42,12 @@ class openstack::mirantis_repos (
         }
       }
 
+      apt::pin{'mirantis-releases':  priority => 1001, originator => $originator }
+     if $use_upstream_mysql {
+      apt::pin{'upstream-mysql': priority => 1002, version => "5.5.29*", packages => "mysql*" }
+     }
+
+
       Apt::Source <| |> -> Apt::Pin <| |>
 
       if $type == 'default' {
