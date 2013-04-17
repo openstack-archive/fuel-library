@@ -204,9 +204,8 @@ class Manifest(object):
             internal_interface=self.internal_interface(),
             private_interface=self.private_interface(),
             mirror_type=self.mirror_type(),
-            #mock virtual IPs from public/internal IP
-            internal_virtual_ip=controllers[0].get_ip_address_by_network_name('internal'),
-            public_virtual_ip=controllers[0].get_ip_address_by_network_name('public'),
+            #controller_node_address=controllers[0].get_ip_address_by_network_name('internal'),
+            #controller_node_public=controllers[0].get_ip_address_by_network_name('public'),
             cinder=cinder,
             cinder_on_computes=cinder_on_computes,
             #nv_physical_volume=self.physical_volumes(),
