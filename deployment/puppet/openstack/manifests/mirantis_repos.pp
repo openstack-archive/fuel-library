@@ -17,6 +17,7 @@ class openstack::mirantis_repos (
   $mirrorlist_updates     = 'http://172.18.67.168/centos-repo/mirror-6.3-updates.list',
   $enable_test_repo = false,
   $repo_proxy = undef,
+  $use_upstream_mysql = false,
 ) {
   case $::osfamily {
     'Debian': {
@@ -24,6 +25,13 @@ class openstack::mirantis_repos (
         proxy => $repo_proxy,
         stage => $::openstack::mirantis_repos::stage
       }
+
+      apt::pin{'mirantis-releases':  priority => 1001, originator => $originator }
+     if $use_upstream_mysql {
+      apt::pin{'upstream-mysql': priority => 1002, version => "5.5.29*", packages => "mysql*" }
+     }
+
+     Apt::Source<||>->Apt::Pin<||>
 
       if $type == 'default' {
         apt::source { 'cloud-archive':
@@ -44,7 +52,6 @@ class openstack::mirantis_repos (
           key_source  => 'http://download.mirantis.com/precise-fuel-folsom/Mirantis.key',
           #key_server => "pgp.mit.edu",
           include_src => false,
-          pin         => '1001'
         }
 
         apt::source { 'rabbit-3.0':
@@ -58,7 +65,9 @@ class openstack::mirantis_repos (
       }
       # Below we set our internal repos for testing purposes. Some of them may match with external ones.
       if $type == 'custom' {
-	
+
+        
+
 	if $enable_test_repo { 
 
 	
@@ -69,11 +78,8 @@ class openstack::mirantis_repos (
           repos       => 'main',
           key         => 'F8AF89DD',
           key_source  => 'http://172.18.67.168/ubuntu-repo/precise-fuel-folsom/Mirantis.key',
-          #key_server  => "pgp.mit.edu",
           include_src => false,
-          #pin         => 1000,
-        }->
-        apt::pin{'mirantis-releases': priority=> 1001, originator=>$originator }
+        }
 	}
 	else { 
          apt::source  { 'precise-fuel-folsom':
@@ -82,11 +88,8 @@ class openstack::mirantis_repos (
           repos       => 'main',
           key         => 'F8AF89DD',
           key_source  => 'http://172.18.67.168/ubuntu-repo/precise-fuel-folsom/Mirantis.key',
-          #key_server  => "pgp.mit.edu",
           include_src => false,
-          #pin         => 1000,
-        }->
-        apt::pin{'mirantis-releases': priority=> 1001, originator=>$originator }
+        }
 	}
         apt::source { 'cloud-archive':
           location    => $deb_cloud_archive_repo,
