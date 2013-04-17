@@ -21,7 +21,7 @@
 #     Defaults to False.
 #   [catalog_type] Type of catalog that keystone uses to store endpoints,services. Optional.
 #     Defaults to sql. (Also accepts template)
-#   [token_format] Format keystone uses for tokens. Optional. Defaults to UUID.
+#   [token_format] Format keystone uses for tokens. Optional. Defaults to PKI.
 #     Supports PKI and UUID.
 #   [cache_dir] Directory created when token_format is PKI. Optional.
 #     Defaults to /var/cache/keystone.
@@ -60,7 +60,7 @@ class keystone(
   $catalog_type   = 'sql',
   $token_format   = 'UUID',
 # TODO fix "undefined method `<<' for {}:Hash" issue if PKI was choosed
-#  $token_format   = 'PKI',
+  $token_format   = 'PKI',
   $cache_dir      = '/var/cache/keystone',
   $enabled        = true,
   $sql_connection = 'sqlite:////var/lib/keystone/keystone.db',
@@ -82,7 +82,7 @@ class keystone(
       path => "/etc/keystone/logging.conf",
       owner => "keystone",
       group => "keystone",
-      require => [User['keystone'],Group['keystone'],File['/etc/keystone']]
+      require => File['/etc/keystone'],
     }
 ##TODO add rsyslog module config
   } else  {
@@ -248,7 +248,6 @@ class keystone(
       user        => 'keystone',
       refreshonly => true,
       notify      => Service['keystone'],
-      subscribe   => Package['keystone'],
     }
   }
 
