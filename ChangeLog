@@ -1,0 +1,23 @@
+[FUEL-518] Simple mysql server installation is broken in Ubuntu
+[FUEL-553] kmod openvswitch blocks bridge creation on CentOS 6.3
+Add bonding support:
+ for native Linux - stable
+ ovs - experimental
+nagios nginx support:
+[FUEL-508] Fuel extensibility and putting custom services in HA mode under
+HAProxy
+[FUEL-516] Cinder Ifaces, IP and parameters not passed correctly:
+ We need more accurate docs for this:
+ 1) if we turn cinder false for computes, volume api class for nova is
+ configured incorrectly.
+ 2) cinder iscsi bind iface being specified leads to incorrect iscsi_bind_host
+ because we change interfaces naming during puppet run - stable
+[FUEL-526] cinder services incorrect startup order
+Fix compute node deployment with quantum (simple scenario)
+[FUEL-521] Too many connections error for simple deployment
+ashaposhnikov iso fixes
+One pass swift
+Docs fixes
+Misc
+Tests
+
