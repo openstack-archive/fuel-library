@@ -193,7 +193,7 @@ class Manifest(object):
     def write_openstack_simple_manifest(self, remote, ci, controllers,
                                         use_syslog=False,
                                         quantum=True,
-                                        cinder=True, cinder_on_computes=False):
+                                        cinder=True, cinder_on_computes=True):
         template = Template(
             root(
                 'deployment', 'puppet', 'openstack', 'examples',
