@@ -42,12 +42,6 @@ class openstack::mirantis_repos (
         }
       }
 
-      apt::pin{'mirantis-releases':  priority => 1001, originator => $originator }
-     if $use_upstream_mysql {
-      apt::pin{'upstream-mysql': priority => 1002, version => "5.5.29*", packages => "mysql*" }
-     }
-
-
       Apt::Source <| |> -> Apt::Pin <| |>
 
       if $type == 'default' {
@@ -83,29 +77,29 @@ class openstack::mirantis_repos (
 
       # Below we set our internal repos for testing purposes. Some of them may match with external ones.
       if $type == 'custom' {
-        if $enable_test_repo {
-          apt::source { 'precise-fuel-folsom':
-            location    => $deb_fuel_folsom_repo,
-            release     => 'precise-2.1.0.1',
-            repos       => 'main',
-            key         => 'F8AF89DD',
-            key_source  => 'http://172.18.67.168/ubuntu-repo/precise-fuel-folsom/Mirantis.key',
-            include_src => false,
-          }
-        } else {
-          apt::source { 'precise-fuel-folsom':
-            location    => $deb_fuel_folsom_repo,
-            release     => 'precise-2.1.0.1',
-            repos       => 'main',
-            key         => 'F8AF89DD',
-            key_source  => 'http://172.18.67.168/ubuntu-repo/precise-fuel-folsom/Mirantis.key',
-            include_src => false,
-          }
-        }
+#        if $enable_test_repo {
+#          apt::source { 'precise-fuel-folsom':
+#            location    => $deb_fuel_folsom_repo,
+#            release     => 'precise-2.1.0.1',
+#            repos       => 'main',
+#            key         => 'F8AF89DD',
+#            key_source  => 'http://172.18.67.168/ubuntu-repo/precise-fuel-folsom/Mirantis.key',
+#            include_src => false,
+#          }
+#        } else {
+#          apt::source { 'precise-fuel-folsom':
+#            location    => $deb_fuel_folsom_repo,
+#            release     => 'precise-2.1.0.1',
+#            repos       => 'main',
+#            key         => 'F8AF89DD',
+#            key_source  => 'http://172.18.67.168/ubuntu-repo/precise-fuel-folsom/Mirantis.key',
+#            include_src => false,
+#          }
+#        }
 
         apt::source { 'cloud-archive':
           location    => $deb_cloud_archive_repo,
-          release     => 'precise-updates/folsom',
+          release     => 'precise-updates/grizzly',
           repos       => 'main',
           key         => '5EDB1B62EC4926EA',
           key_source  => 'http://172.18.67.168/ubuntu-repo/precise-fuel-folsom/cloud-archive.key',
