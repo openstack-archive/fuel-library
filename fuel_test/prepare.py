@@ -333,8 +333,9 @@ class Prepare(object):
     def tempest_get_netid_routerid(self):
         networking = self._get_networking_client()
         params = {'router:external': True}
-        network = networking.list_networks(**params)['networks']
-        router = networking.list_routers()['routers']
+        # Assume only 1 ext net and 1 ext router exists 
+        network = networking.list_networks(**params)['networks'][0]['id']
+        router = networking.list_routers()['routers'][0]['id']
         return network, router
 
     def tempest_share_glance_images(self, network):
