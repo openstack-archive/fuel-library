@@ -247,7 +247,6 @@ class keystone(
       path        => '/usr/bin',
       user        => 'keystone',
       refreshonly => true,
-      notify      => Service['keystone'],
     }
   }
 
