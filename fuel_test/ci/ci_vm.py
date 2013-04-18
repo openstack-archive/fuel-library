@@ -3,6 +3,7 @@ from time import sleep
 from ipaddr import IPNetwork
 import os
 from fuel_test.ci.ci_base import CiBase
+from fuel_test.helpers import add_nmap
 from fuel_test.node_roles import NodeRoles
 from fuel_test.settings import CONTROLLERS, COMPUTES, \
     STORAGES, PROXIES, \
@@ -66,13 +67,13 @@ class CiVM(CiBase):
 
     def setup_environment(self):
         master_node = self.nodes().masters[0]
-        logging.info("Starting test nodes ...")
+        print "Starting test nodes ..."
         start_nodes = self.get_startup_nodes()
         self.environment().start(start_nodes)
         for node in start_nodes:
             node.await('public', timeout=300)
-        # master_remote = master_node.remote('public', login='root',
-        #                                    password='r00tme')
-        # self.rename_nodes(start_nodes)
-        # self.setup_master_node(master_remote, self.environment().nodes)
+
+        master_remote = master_node.remote('public', login='root',
+                                            password='r00tme')
+        add_nmap(master_remote)
         self.environment().snapshot(EMPTY_SNAPSHOT)

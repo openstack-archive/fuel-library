@@ -81,8 +81,7 @@ class CiBase(object):
         for network in networks:
             self.manager.interface_create(network, node=node)
         self.add_empty_volume(node, name + '-system')
-        self.manager.node_attach_volume(node, self.manager.volume_get_predefined(
-            ISO), device='cdrom', bus="ide")
+        self.manager.node_attach_volume(node, self.manager.volume_get_predefined(ISO), device='cdrom', bus="ide")
         return node
 
     def describe_empty_node(self, name, networks, memory=1024):
