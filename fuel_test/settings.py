@@ -67,7 +67,7 @@ EMPTY_SNAPSHOT = os.environ.get('EMPTY_SNAPSHOT', 'empty')
 OPENSTACK_SNAPSHOT = os.environ.get('OPENSTACK_SNAPSHOT', 'openstack')
 
 INTERFACE_ORDER = ('public', 'internal', 'private')
-ROUTED_INTERFACE = 'public'
+ROUTED_INTERFACE = 'none'
 
 INTERFACES = {
     'public': 'eth0',
@@ -77,12 +77,12 @@ INTERFACES = {
 
 DEFAULT_POOLS = {
     'centos': {
-        'public': '172.18.95.0/24:27',
+        'public': '10.108.0.0/16:24',
         'private': '10.108.0.0/16:24',
         'internal': '10.108.0.0/16:24',
     },
     'ubuntu': {
-        'public': '172.18.94.0/24:27',
+        'public': '10.107.0.0/16:24',
         'private': '10.107.0.0/16:24',
         'internal': '10.107.0.0/16:24',
     },
@@ -102,4 +102,4 @@ EXIST_TAR = os.environ.get('EXIST_TAR', None)
 CREATE_SNAPSHOTS = os.environ.get('CREATE_SNAPSHOTS', 'true') == 'true'
 CLEAN = os.environ.get('CLEAN', 'true') == 'true'
 ISO = os.environ.get('ISO', '/var/lib/libvirt/images/fuel-centos-6.3-x86_64.iso')
-USE_ISO= os.environ.get('USE_ISO', 'false') == 'true'
+USE_ISO= os.environ.get('USE_ISO', 'true') == 'true'

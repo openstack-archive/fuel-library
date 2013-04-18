@@ -2,7 +2,7 @@ from ipaddr import IPNetwork
 import re
 from fuel_test.helpers import load, write_config, is_not_essex
 from fuel_test.root import root
-from fuel_test.settings import INTERFACES, TEST_REPO
+from fuel_test.settings import INTERFACES, TEST_REPO, USE_ISO
 
 
 class Template(object):
@@ -118,7 +118,7 @@ class Manifest(object):
 
     def generate_dns_nameservers_list(self, ci):
         return map(
-            lambda x: x.get_ip_address_by_network_name('internal'), ci.nodes().cobblers)
+            lambda x: x.get_ip_address_by_network_name('internal'), ci.nodes().masters)
 
     def generate_nodes_configs_list(self, ci):
         def get_role(ci, node):
@@ -333,23 +333,14 @@ class Manifest(object):
         self.write_manifest(remote, template)
 
     def write_cobbler_manifest(self, remote, ci, cobblers):
-        site_pp = Template(root('deployment', 'puppet', 'cobbler', 'examples',
-            'server_site.pp'))
+        site_pp = Template(root('deployment', 'puppet', 'cobbler', 'examples', 'server_site.pp'))
         cobbler = cobblers[0]
         cobbler_address = cobbler.get_ip_address_by_network_name('internal')
-        network = IPNetwork(ci.environment().network_by_name(
-            'internal').ip_network)
-        site_pp.replace(
-            server=cobbler_address,
-            name_server=cobbler_address,
-            next_server=cobbler_address,
-            dhcp_start_address=network[5],
-            dhcp_end_address=network[-1],
-            dhcp_netmask=network.netmask,
-            dhcp_gateway=network[1],
-            pxetimeout='3000',
-            mirror_type=self.mirror_type(),
-        )
+        network = IPNetwork(ci.environment().network_by_name('internal').ip_network)
+        self.replace = site_pp.replace(server=cobbler_address, name_server=cobbler_address, next_server=cobbler_address,
+                                       dhcp_start_address=network[5], dhcp_end_address=network[-1],
+                                       dhcp_netmask=network.netmask, dhcp_gateway=network[1], pxetimeout='3000',
+                                       mirror_type=self.mirror_type(), )
         self.write_manifest(remote, site_pp)
 
     def write_stomp_manifest(self, remote):

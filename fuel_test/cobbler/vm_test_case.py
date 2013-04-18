@@ -1,12 +1,14 @@
 from time import sleep
 import unittest
+from ipaddr import IPNetwork
 from devops.error import TimeoutError
+from fuel_test import iso_master
 from fuel_test.base_test_case import BaseTestCase
 from fuel_test.ci.ci_vm import CiVM
 from fuel_test.cobbler.cobbler_client import CobblerClient
-from fuel_test.helpers import tcp_ping, udp_ping, build_astute, install_astute, add_to_hosts, await_node_deploy
+from fuel_test.helpers import tcp_ping, udp_ping, build_astute, install_astute, add_to_hosts, await_node_deploy, write_config
 from fuel_test.manifest import Manifest, Template
-from fuel_test.settings import PUPPET_VERSION, OS_FAMILY, CLEAN, USE_ISO
+from fuel_test.settings import PUPPET_VERSION, OS_FAMILY, CLEAN, USE_ISO, INTERFACES
 
 
 class CobblerTestCase(BaseTestCase):
@@ -25,6 +27,17 @@ class CobblerTestCase(BaseTestCase):
         if not self.environment().has_snapshot('nodes-deployed'):
             self.ci().get_empty_state()
             self.update_modules()
+            self.remote().execute("killall bootstrap_admin_node.sh")
+            write_config(self.remote(), "/root/fuel.defaults", iso_master.get_config(hostname="master",
+                                                                                     domain="your-domain-name.com",
+                                                                                     management_interface=INTERFACES["internal"],
+                                                                                     management_ip=self.nodes().masters[0].get_ip_address_by_network_name("internal"),
+                                                                                     management_mask=self.ci().internal_net_mask(),
+                                                                                     external_interface=INTERFACES["public"],
+                                                                                     dhcp_start_address=IPNetwork(self.ci().internal_network())[50],
+                                                                                     dhcp_end_address=IPNetwork(self.ci().internal_network())[100],
+                                                                                     mirror_type='custom', external_ip="", external_mask=""))
+            self.remote().execute("/usr/local/sbin/bootstrap_admin_node.sh")
             self.prepare_cobbler_environment()
         self.environment().revert('nodes-deployed')
         for node in self.nodes():
@@ -36,18 +49,21 @@ class CobblerTestCase(BaseTestCase):
             self.configure_cobbler(self.ci().nodes().masters[0])
         else:
             self.configure_cobbler(self.ci().nodes().cobblers[0])
-        self.deploy_stomp_node()
+        #self.deploy_stomp_node()
         self.deploy_nodes()
 
     def deploy_cobbler(self):
-        Manifest().write_cobbler_manifest(self.remote(), self.ci(),
-            self.nodes().cobblers)
-        self.validate(
-            self.nodes().cobblers,
-            'puppet agent --test')
-        for node in self.nodes().cobblers:
-            self.assert_cobbler_ports(
-                node.get_ip_address_by_network_name('internal'))
+        if USE_ISO:
+            nodes = self.nodes().masters
+        else:
+            nodes = self.nodes().cobblers
+
+        # Manifest().write_cobbler_manifest(self.remote(), self.ci(), nodes)
+
+        # self.validate(nodes, 'puppet agent --test --server master.your-domain-name.com')
+
+        for node in nodes:
+            self.assert_cobbler_ports(node.get_ip_address_by_network_name('internal'))
         self.environment().snapshot('cobbler', force=True)
 
     def assert_cobbler_ports(self, ip):
@@ -101,7 +117,7 @@ class CobblerTestCase(BaseTestCase):
                 }
 
     def add_fake_nodes(self):
-        cobbler = self.ci().nodes().cobblers[0]
+        cobbler = self.ci().nodes().masters[0]
         stomp_name = self.ci().nodes().stomps[0].name
         client = CobblerClient(
             cobbler.get_ip_address_by_network_name('internal'))
@@ -167,7 +183,7 @@ class CobblerTestCase(BaseTestCase):
         self._add_node(
             client, token, cobbler, node_name,
             node_mac0, node_mac1, node_mac2, node_ip,
-            stomp_name=self.ci().nodes().stomps[0].name,
+            stomp_name=self.ci().nodes().masters[0].name,
             gateway=gateway, net_mask=net_mask,
         )
 
@@ -193,7 +209,7 @@ class CobblerTestCase(BaseTestCase):
         self.environment().snapshot('cobbler-configured', force=True)
 
     def deploy_nodes(self):
-        cobbler = self.ci().nodes().cobblers[0]
+        cobbler = self.ci().nodes().masters[0]
         for node in self.ci().client_nodes():
             node.start()
         for node in self.ci().client_nodes():
@@ -210,39 +226,40 @@ class CobblerTestCase(BaseTestCase):
         self.environment().snapshot('nodes-deployed', force=True)
 
     def generate_manifests(self):
-        Manifest().write_openstack_manifest(
-            remote=self.remote(),
-            template=Template.minimal(), ci=self.ci(),
-            controllers=self.nodes().controllers,
-            quantums=self.nodes().quantums,
-            swift=False,
-            quantum=True)
-        Manifest().write_openstack_manifest(
-            remote=self.remote(),
-            template=Template.compact(), ci=self.ci(),
-            controllers=self.nodes().controllers,
-            quantums=self.nodes().quantums,
-            quantum=False, loopback=False, use_syslog=False)
-        Manifest().write_openstack_manifest(
-            remote=self.remote(),
-            template=Template.compact(), ci=self.ci(),
-            controllers=self.nodes().controllers,
-            quantums=self.nodes().quantums,
-            quantum=False)
-        Manifest().write_openstack_manifest(
-            remote=self.remote(),
-            template=Template.full(), ci=self.ci(),
-            controllers=self.nodes().controllers,
-            quantums=self.nodes().quantums,
-            proxies=self.nodes().proxies,
-            quantum=True)
-        Manifest().write_openstack_simple_manifest(
-            remote=self.remote(),
-            ci=self.ci(),
-            controllers=self.nodes().controllers)
-        Manifest().write_openstack_single_manifest(
-            remote=self.remote(),
-            ci=self.ci())
+        pass
+        # Manifest().write_openstack_manifest(
+        #     remote=self.remote(),
+        #     template=Template.minimal(), ci=self.ci(),
+        #     controllers=self.nodes().controllers,
+        #     quantums=self.nodes().quantums,
+        #     swift=False,
+        #     quantum=True)
+        # Manifest().write_openstack_manifest(
+        #     remote=self.remote(),
+        #     template=Template.compact(), ci=self.ci(),
+        #     controllers=self.nodes().controllers,
+        #     quantums=self.nodes().quantums,
+        #     quantum=False, loopback=False, use_syslog=False)
+        # Manifest().write_openstack_manifest(
+        #     remote=self.remote(),
+        #     template=Template.compact(), ci=self.ci(),
+        #     controllers=self.nodes().controllers,
+        #     quantums=self.nodes().quantums,
+        #     quantum=False)
+        # Manifest().write_openstack_manifest(
+        #     remote=self.remote(),
+        #     template=Template.full(), ci=self.ci(),
+        #     controllers=self.nodes().controllers,
+        #     quantums=self.nodes().quantums,
+        #     proxies=self.nodes().proxies,
+        #     quantum=True)
+        # Manifest().write_openstack_simple_manifest(
+        #     remote=self.remote(),
+        #     ci=self.ci(),
+        #     controllers=self.nodes().controllers)
+        # Manifest().write_openstack_single_manifest(
+        #     remote=self.remote(),
+        #     ci=self.ci())
 
 if __name__ == '__main__':
     unittest.main()

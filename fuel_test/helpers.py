@@ -29,7 +29,6 @@ def tcp_ping(remote, host, port):
             return True
     return False
 
-
 def load(path):
     with open(path) as f:
         return f.read()
@@ -154,7 +153,7 @@ def switch_off_ip_tables(remote):
 
 
 def puppet_apply(remote, script, module_path="/tmp/puppet/modules/"):
-    remote.sudo.ssh.check_stderr(
+    remote.sudo.ssh.check_call(
         "puppet apply --modulepath %s -e '%s'" % (module_path, script))
 
 
@@ -176,7 +175,7 @@ def setup_puppet_master(remote):
         'class {puppetdb:}')
     puppet_apply(remote.sudo.ssh,
         'class {puppetdb::master::config: puppet_service_name=>"%s"}' % PUPPET_MASTER_SERVICE)
-    remote.sudo.ssh.check_stderr("service %s restart" % PUPPET_MASTER_SERVICE)
+    remote.sudo.ssh.check_call("service %s restart" % PUPPET_MASTER_SERVICE)
 
 
 def upload_recipes(remote, remote_dir="/etc/puppet/modules/"):

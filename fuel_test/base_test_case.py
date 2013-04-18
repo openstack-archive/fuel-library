@@ -55,7 +55,8 @@ class BaseTestCase(unittest.TestCase):
     def do(self, nodes, command):
         results = []
         for node in nodes:
-            remote = node.remote('internal', login='root', password='r00tme')
+            print "node", node.get_ip_address_by_network_name("public")
+            remote = node.remote('public', login='root', password='r00tme')
             results.append(remote.sudo.ssh.execute(command, verbose=True))
         return results
 
