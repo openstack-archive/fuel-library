@@ -6,7 +6,7 @@ from devops.helpers.helpers import wait
 import os
 import re
 from fuel_test.cobbler.cobbler_client import CobblerClient
-from fuel_test.settings import OS_FAMILY, PUPPET_CLIENT_PACKAGE, PUPPET_VERSION, PUPPET_MASTER_SERVICE, EXIST_TAR
+from fuel_test.settings import OS_FAMILY, PUPPET_CLIENT_PACKAGE, PUPPET_VERSION, PUPPET_MASTER_SERVICE, EXIST_TAR, USE_ISO
 from root import root
 
 def get_file_as_string(path):
@@ -67,7 +67,7 @@ def install_packages2(remotes, packages):
         remote.execute(cmd)
 
 def install_packages(remote, packages):
-    if OS_FAMILY == "centos":
+    if OS_FAMILY == "centos" or USE_ISO:
         remote.sudo.ssh.check_call('yum -y install %s' % packages)
     else:
         remote.sudo.ssh.check_call(
