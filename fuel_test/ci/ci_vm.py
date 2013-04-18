@@ -69,7 +69,7 @@ class CiVM(CiBase):
         start_nodes = self.get_startup_nodes()
         self.environment().start(start_nodes)
         for node in start_nodes:
-            node.await('public', timeout=300)
+            node.await('public', timeout=600)
 
         master_remote = master_node.remote('public', login='root',
                                             password='r00tme')
