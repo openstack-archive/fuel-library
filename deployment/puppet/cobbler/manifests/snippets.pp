@@ -15,6 +15,8 @@ class cobbler::snippets {
   cobbler_snippet {"post_part_controller":}
   cobbler_snippet {"post_part_storage":}
 
+  cobbler_snippet {"url_proxy":}
+
   cobbler_snippet {"puppet_install_if_enabled":}
   cobbler_snippet {"puppet_conf":}
   cobbler_snippet {"puppet_register_if_enabled":}

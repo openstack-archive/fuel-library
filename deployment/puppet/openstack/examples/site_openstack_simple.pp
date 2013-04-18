@@ -67,7 +67,7 @@ $node = filter_nodes($nodes,'name',$::hostname)
 $internal_address = $node[0]['internal_address']
 $public_address = $node[0]['public_address']
 
-$controllers = filter_nodes($nodes,'role','controller')
+$controllers = merge_arrays(filter_nodes($nodes,'role','primary-controller'), filter_nodes($nodes,'role','controller'))
 $controller_internal_address = $controllers[0]['internal_address']
 $controller_public_address   = $controllers[0]['public_address']
 
@@ -233,7 +233,7 @@ class node_netconfig (
 # This parameter specifies the the identifier of the current cluster. This is needed in case of multiple environments.
 # installation. Each cluster requires a unique integer value. 
 # Valid identifier range is 1 to 254
-$deployment_id = '79'
+$deployment_id = '69'
 
 # Below you can enable or disable various services based on the chosen deployment topology:
 ### CINDER/VOLUME ###
@@ -242,15 +242,15 @@ $deployment_id = '79'
 # Consult openstack docs for differences between them
 $cinder                  = true
 
+# Setup network interface, which Cinder uses to export iSCSI targets.
+$cinder_iscsi_bind_addr = $internal_address
+
 # Should we install cinder on compute nodes?
 $cinder_on_computes      = false
 
 #Set it to true if your want cinder-volume been installed to the host
 #Otherwise it will install api and scheduler services
 $manage_volumes          = true
-
-# Setup network interface, which Cinder uses to export iSCSI targets.
-$cinder_iscsi_bind_addr = $internal_address
 
 # Below you can add physical volumes to cinder. Please replace values with the actual names of devices.
 # This parameter defines which partitions to aggregate into cinder-volumes or nova-volumes LVM VG
@@ -567,10 +567,11 @@ node /fuel-compute-[\d+]/ {
     tenant_network_type    => $tenant_network_type,
     service_endpoint       => $controller_internal_address,
     db_host                => $controller_internal_address,
-    manage_volumes         => $manage_volumes,
     verbose                => $verbose,
     segment_range          => $segment_range,
     cinder                 => $cinder_on_computes,
+    manage_volumes         => $manage_volumes,
+    nv_physical_volume     => $nv_physical_volume,
     cinder_iscsi_bind_addr => $cinder_iscsi_bind_addr,
     use_syslog             => $use_syslog,
     nova_rate_limits       => $nova_rate_limits,

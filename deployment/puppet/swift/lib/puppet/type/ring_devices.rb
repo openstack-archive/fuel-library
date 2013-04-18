@@ -15,7 +15,7 @@ Puppet::Type.newtype(:ring_devices) do
       'object_port'=>6000,
       'container_port'=>6001,
       'account_port'=>6002,
-      'mountpoints'=> '1 1\n2 1',
+      'mountpoints'=> "1 1\n2 1",
       'weight'=> 100,
       'types'=>['container', 'object', 'account'],
     }
