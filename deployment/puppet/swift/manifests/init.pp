@@ -30,9 +30,9 @@ class swift(
     class{ 'ssh::server::install': }
   }
 
-    Class['ssh::server::install'] -> Class['swift']
+  Class['ssh::server::install'] -> Class['swift']
 
-      class {'rsync::server':}
+  class {'rsync::server':}
 
   if !defined(Package['swift']) {
     package { 'swift':

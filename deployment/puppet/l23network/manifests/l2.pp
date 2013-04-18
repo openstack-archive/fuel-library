@@ -3,20 +3,25 @@
 # Module for configuring L2 network.
 # Requirements, packages and services.
 #
-class l23network::l2 {
+class l23network::l2 (
+  $use_ovs   = true,
+  $use_lnxbr = true,
+){
   include ::l23network::params
 
-  package {$::l23network::params::ovs_packages:
-    ensure  => present,
-    before  => Service['openvswitch-service'],
-  }
-
-  service {'openvswitch-service':
-    ensure    => running,
-    name      => $::l23network::params::ovs_service_name,
-    enable    => true,
-    hasstatus => true,
-    status    => $::l23network::params::ovs_status_cmd,
+  if $use_ovs {
+    #include ::l23network::l2::use_ovs    
+    package {$::l23network::params::ovs_packages:
+      ensure  => present,
+      before  => Service['openvswitch-service'],
+    } 
+    service {'openvswitch-service':
+      ensure    => running,
+      name      => $::l23network::params::ovs_service_name,
+      enable    => true,
+      hasstatus => true,
+      status    => $::l23network::params::ovs_status_cmd,
+    }
   }
 
   if $::osfamily =~ /(?i)debian/ {
@@ -25,7 +30,6 @@ class l23network::l2 {
         ensure => installed
       }
     }
-    Package["$l23network::params::lnx_bond_tools"] -> Service['openvswitch-service']
   }
 
   if !defined(Package["$l23network::params::lnx_vlan_tools"]) {
@@ -33,13 +37,19 @@ class l23network::l2 {
       ensure => installed
     } 
   }
-  Package["$l23network::params::lnx_vlan_tools"] -> Service['openvswitch-service']
 
   if !defined(Package["$l23network::params::lnx_ethernet_tools"]) {
     package {"$l23network::params::lnx_ethernet_tools":
       ensure => installed
     }
   }
-  Package["$l23network::params::lnx_ethernet_tools"] -> Service['openvswitch-service']
+
+  if $use_ovs {
+    if $::osfamily =~ /(?i)debian/ {
+      Package["$l23network::params::lnx_bond_tools"] -> Service['openvswitch-service']
+    }
+    Package["$l23network::params::lnx_vlan_tools"] -> Service['openvswitch-service']
+    Package["$l23network::params::lnx_ethernet_tools"] -> Service['openvswitch-service']
+  }
 
 }
