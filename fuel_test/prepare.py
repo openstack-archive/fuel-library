@@ -160,7 +160,7 @@ class Prepare(object):
             'NETWORK_API_VERSION': 'v2.0',
             'QUANTUM': 'true',
             'TENANT_NETS_REACHABLE': 'true',
-            'TENANT_NETWORK_CIDR': self.fixed_network(),
+            'TENANT_NETWORK_CIDR': self.fixed_network,
             'TENANT_NETWORK_MASK_BITS': '27',
             #TODO extract values for pubnet & router id
             'PUBLIC_NETWORK_ID': public_network_id,
