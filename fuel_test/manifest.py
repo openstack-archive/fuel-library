@@ -185,15 +185,15 @@ class Manifest(object):
             return ci.floating_network()
 
     def fixed_network(self, ci, quantum):
-#        if quantum:
-#            return '192.168.111.0/24'
-#        else:
+        if quantum:
+            return '192.168.111.0/24'
+        else:
             return ci.fixed_network()
 
     def write_openstack_simple_manifest(self, remote, ci, controllers,
                                         use_syslog=False,
                                         quantum=True,
-                                        cinder=True, cinder_on_computes=True):
+                                        cinder=True, cinder_on_computes=True, nv_physical_volume=['/dev/vdb']):
         template = Template(
             root(
                 'deployment', 'puppet', 'openstack', 'examples',
@@ -208,7 +208,8 @@ class Manifest(object):
             #controller_node_public=controllers[0].get_ip_address_by_network_name('public'),
             cinder=cinder,
             cinder_on_computes=cinder_on_computes,
-            nv_physical_volume=self.physical_volumes(),
+            #nv_physical_volume=self.physical_volumes(),
+            nv_physical_volume=nv_physical_volume,
             nagios_master = controllers[0].name + '.your-domain-name.com',
             external_ipinfo=self.external_ip_info(ci, controllers),
             nodes=self.generate_nodes_configs_list(ci),
