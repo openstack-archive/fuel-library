@@ -3,7 +3,6 @@ from time import sleep
 from devops.helpers.helpers import ssh
 import glanceclient
 import keystoneclient.v2_0
-#from quantumclient.quantum import client as q_client
 from quantumclient.v2_0 import client as q_client
 import os
 from fuel_test.ci.ci_cobbler import CiCobbler
@@ -154,15 +153,14 @@ class Prepare(object):
             'IDENTITY_ADMIN_PASSWORD': ADMIN_PASSWORD,
             'IDENTITY_ADMIN_TENANT_NAME': ADMIN_TENANT_FOLSOM,
             'VOLUME_CATALOG_TYPE': 'volume',
-            'VOLUME_BUILD_INTERVAL': '10',
-            'VOLUME_BUILD_TIMEOUT': '300',
+            'VOLUME_BUILD_INTERVAL': '15',
+            'VOLUME_BUILD_TIMEOUT': '400',
             'NETWORK_CATALOG_TYPE': 'network',
             'NETWORK_API_VERSION': 'v2.0',
             'QUANTUM': 'true',
             'TENANT_NETS_REACHABLE': 'true',
-            'TENANT_NETWORK_CIDR': '10.100.0.0/16',
-            'TENANT_NETWORK_MASK_BITS': '29',
-            #TODO extract values for pubnet & router id
+            'TENANT_NETWORK_CIDR': '192.168.111.0/24',
+            'TENANT_NETWORK_MASK_BITS': '27',
             'PUBLIC_NETWORK_ID': public_network_id,
             'PUBLIC_ROUTER_ID': public_router_id,
         }
