@@ -1,3 +1,6 @@
+COMMIT_SHA:=$(shell git rev-parse --verify HEAD)
+FUEL_VERSION:=2.1-1
+
 CENTOS_MAJOR:=6
 CENTOS_MINOR:=3
 CENTOS_RELEASE:=$(CENTOS_MAJOR).$(CENTOS_MINOR)
@@ -11,7 +14,7 @@ FUEL_DIR:=$(PWD)/../deployment/puppet
 SOURCE_DIR:=$(PWD)
 BUILD_DIR:=$(PWD)/build
 
-LOCAL_MIRROR:=$(PWD)/local_mirror
+LOCAL_MIRROR:=$(PWD)/../../local_mirror
 LOCAL_MIRROR_CENTOS:=$(LOCAL_MIRROR)/centos
 LOCAL_MIRROR_CENTOS_OS_BASEURL:=$(LOCAL_MIRROR_CENTOS)/$(CENTOS_RELEASE)/os/$(CENTOS_ARCH)
 LOCAL_MIRROR_UBUNTU:=$(LOCAL_MIRROR)/ubuntu/dists/$(UBUNTU_DISTR)
@@ -38,7 +41,14 @@ deep_clean: clean
 all: iso
 
 ISOROOT:=$(BUILD_DIR)/iso/isoroot
-ISOBASENAME:=fuel-centos-$(CENTOS_RELEASE)-$(CENTOS_ARCH)
+
+#ifeq (foo, foo$(BUILD_ID))
+#    BUILD_ID:=$(shell date +"%Y-%m-%d_%H-%M-%S")
+#endif
+
+ISOBASENAME:=fuel-centos-$(CENTOS_RELEASE)-$(CENTOS_ARCH)-$(FUEL_VERSION)
+#ISOBASENAME:=fuel-centos-$(CENTOS_RELEASE)-$(CENTOS_ARCH)_$(BUILD_ID)
+
 ISONAME:=$(BUILD_DIR)/iso/$(ISOBASENAME).iso
 
 iso: $(ISONAME)
@@ -80,15 +90,22 @@ $(ISOROOT)/astute-0.0.1.gem:
 $(ISOROOT)/.discinfo: $(SOURCE_DIR)/.discinfo ; $(ACTION.COPY)
 $(ISOROOT)/.treeinfo: $(SOURCE_DIR)/.treeinfo ; $(ACTION.COPY)
 $(ISOROOT)/isolinux/isolinux.cfg: $(SOURCE_DIR)/isolinux/isolinux.cfg ; $(ACTION.COPY)
-$(ISOROOT)/ks.cfg: $(SOURCE_DIR)/ks.cfg ; $(ACTION.COPY)
+$(ISOROOT)/ks.cfg: $(SOURCE_DIR)/ks.cfg; $(ACTION.COPY)
+	[ -z "$$TGTDRIVE" ] || sed -i "s/^\(tgtdrive=\)\".*\"$$/\1\"$$TGTDRIVE\"/" $@
+	[ -z "$$USEEXTIF" ] || sed -i "s/^\(network\s*--bootproto=dhcp\.*\)/\1 --device=$$USEEXTIF/" $@
+	[ -z "$$ISO_URL" ] || sed -i "s|^#\?url --url.*|url --url $$ISO_URL|" $@
+	[ -z "$$BASE_MIRROR" ] || sed -i "s|^#\?repo --name=Base.*|repo --name=Base --mirrorlist=$$BASE_MIRROR|" $@
+	[ -z "$$UPDATES_MIRROR" ] || sed -i "s|^#\?repo --name=Updates.*|repo --name=Updates --mirrorlist=$$UPDATES_MIRROR|" $@
+	[ -z "$$MIRANTIS_MIRROR" ] || sed -i "s|^#\?repo --name=Mirantis.*|repo --name=Mirantis --mirrorlist=$$MIRANTIS_MIRROR|" $@
+	[ -z "$$PUPPETLABS_MIRROR" ] || sed -i "s|^#\?repo --name=PuppetLabs.*|repo --name=PuppetLabs --mirrorlist=$$PUPPETLABS_MIRROR|" $@
 $(ISOROOT)/bootstrap_admin_node.sh: $(SOURCE_DIR)/bootstrap_admin_node.sh ; $(ACTION.COPY)
 $(ISOROOT)/functions.sh: $(SOURCE_DIR)/functions.sh ; $(ACTION.COPY)
 $(ISOROOT)/bootstrap_admin_node.conf: $(SOURCE_DIR)/bootstrap_admin_node.conf ; $(ACTION.COPY)
 $(ISOROOT)/version.yaml: $(call depv,COMMIT_SHA)
-$(ISOROOT)/version.yaml: $(call depv,PRODUCT_VERSION)
+$(ISOROOT)/version.yaml: $(call depv,FUEL_VERSION)
 $(ISOROOT)/version.yaml:
 	echo "COMMIT_SHA: $(COMMIT_SHA)" > $@
-	echo "PRODUCT_VERSION: $(PRODUCT_VERSION)" >> $@
+	echo "PRODUCT_VERSION: $(FUEL_VERSION)" >> $@
 
 ########################
 # Iso image root file system.

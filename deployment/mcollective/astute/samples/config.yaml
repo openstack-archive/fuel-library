@@ -8,9 +8,10 @@ common:
   openstack_common:
    internal_virtual_ip: 10.49.63.127
    public_virtual_ip: 10.49.54.127
-   create_networks: "pp"
+   create_networks: true
    fixed_range: 192.168.0.0/16
    floating_range: 10.49.54.0/24
+   swift_loopback: loopback
    nv_physical_volumes:
     - /dev/sdz
     - /dev/sdy
@@ -20,6 +21,9 @@ common:
      pool_start: 10.49.54.225
      pool_end: 10.49.54.239
    segment_range: 900:999
+   network_manager: nova.network.manager.FlatDHCPManager
+   auto_assign_floating_ip: true
+   quantum_netnode_on_cnt: true
    use_syslog: true
    syslog_server: 10.49.63.12
    mirror_type: custom
@@ -27,12 +31,15 @@ common:
    internal_interface: eth0
    public_interface: eth1
    private_interface: eth2
+   public_netmask: 255.255.255.0
+   internal_netmask: 255.255.255.0
    default_gateway: 10.0.1.100
    nagios_master: fuel-controller-01.your-domain-name.com
-   loopback: loopback
    cinder: true
    cinder_on_computes: true
    swift: true
+   repo_proxy: http://10.0.0.100:3128
+   deployment_id: '53'
    dns_nameservers:
    - 10.0.0.100
    - 8.8.8.8
@@ -42,17 +49,26 @@ common:
      internal_address: 10.0.0.100
      public_address: 10.0.1.100
    - name: fuel-controller-01
-     role: controller
+     role: primary-controller
      internal_address: 10.0.0.101
      public_address: 10.0.1.101
+     swift_zone: 1
+     mountpoints: 1 2\n 2 1
+     storage_local_net_ip: 10.0.0.101
    - name: fuel-controller-02
      role: controller
      internal_address: 10.0.0.102
      public_address: 10.0.1.102
+     swift_zone: 2
+     mountpoints: 1 2\n 2 1
+     storage_local_net_ip: 10.0.0.102
    - name: fuel-controller-03
      role: controller
      internal_address: 10.0.0.104
      public_address: 10.0.1.104
+     swift_zone: 3
+     mountpoints: 1 2\n 2 1
+     storage_local_net_ip: 10.0.0.104
    - name: fuel-compute-01
      role: compute
      internal_address: 10.0.0.105
@@ -69,17 +85,26 @@ common:
      role: storage
      internal_address: 10.0.0.108
      public_address: 10.0.1.108
+     swift_zone: 4
+     mountpoints: 1 2\n 2 1
+     storage_local_net_ip: 10.0.0.108
    - name: fuel-swift-02
      role: storage
      internal_address: 10.0.0.109
      public_address: 10.0.1.109
+     swift_zone: 5
+     mountpoints: 1 2\n 2 1
+     storage_local_net_ip: 10.0.0.109
    - name: fuel-swift-03
      role: storage
-     internal_address: 10.0.0.109
-     public_address: 10.0.1.109
-   - name: fuel-swiftproxy-01
-     role: swift-proxy
      internal_address: 10.0.0.110
+     public_address: 10.0.1.110
+     swift_zone: 6
+     mountpoints: 1 2\n 2 1
+     storage_local_net_ip: 10.0.0.110
+   - name: fuel-swiftproxy-01
+     role: primary-swift-proxy
+     internal_address: 10.0.0.111
      public_address: 10.0.1.111
    - name: fuel-swiftproxy-02
      role: swift-proxy
@@ -97,6 +122,7 @@ common:
     # for Centos
     name-servers: "10.0.0.100"
     name-servers-search: "your-domain-name.com"
+    gateway: 10.0.0.100
     ksmeta: "puppet_version=2.7.19-1.el6 \
       puppet_auto_setup=1 \
       puppet_master=fuel-pm.your-domain-name.com \

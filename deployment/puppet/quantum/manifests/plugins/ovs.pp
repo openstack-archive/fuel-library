@@ -79,9 +79,11 @@ class quantum::plugins::ovs (
         'OVS/bridge_mappings':      value => $br_map_str;
       }
 
-      package { 'vconfig':
-        name    => $::quantum::params::vlan_package,
-        ensure  => latest,
+      if ! (defined(Package["$::quantum::params::vlan_package"]) or defined(Package["$::l23network::params::lnx_vlan_tools"])) {
+        package {"$::l23network::params::lnx_vlan_tools":
+          name    => "$::l23network::params::lnx_vlan_tools",
+          ensure  => latest,
+        }
       }
     } 
   }

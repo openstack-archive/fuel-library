@@ -8,16 +8,18 @@ class openstack::swift::storage_node (
   $storage_devices      = ['1', '2'],
   $storage_weight       = 1,
   $package_ensure       = 'present',
-  $loopback_size        = '1048756'
+  $loopback_size        = '1048756',
+  $master_swift_proxy_ip,
+  $rings                = ['account', 'object', 'container'],
+  $sync_rings           = true,
 ) {
-if !defined(Class['swift'])
-{
-
-  class { 'swift':
-    swift_hash_suffix => $swift_hash_suffix,
-    package_ensure    => $package_ensure,
+  if !defined(Class['swift']) {
+    class { 'swift':
+      swift_hash_suffix => $swift_hash_suffix,
+      package_ensure    => $package_ensure,
+    }
   }
-}
+
   if $storage_type == 'loopback' {
     # create xfs partitions on a loopback device and mount them
     swift::storage::loopback { $storage_devices:
@@ -31,31 +33,25 @@ if !defined(Class['swift'])
   # install all swift storage servers together
   class { 'swift::storage::all':
     storage_local_net_ip => $swift_local_net_ip,
-    swift_zone           => $swift_zone
+    swift_zone           => $swift_zone,
   }
 
-  define device_endpoint ($swift_local_net_ip, $zone, $weight) {
-    @@ring_object_device { "${swift_local_net_ip}:6000/${name}":
-      zone   => $swift_zone,
-#      weight => $weight,
+  validate_string($master_swift_proxy_ip)
+  
+  if $sync_rings {
+    if member($rings, 'account') and ! defined(Swift::Ringsync['account']) {
+      swift::ringsync { 'account': ring_server => $master_swift_proxy_ip }
     }
-    @@ring_container_device { "${swift_local_net_ip}:6001/${name}":
-      zone   => $swift_zone,
-#      weight => $weight,
+  
+    if member($rings, 'object') and ! defined(Swift::Ringsync['object']) {
+      swift::ringsync { 'object': ring_server => $master_swift_proxy_ip }
     }
-    @@ring_account_device { "${swift_local_net_ip}:6002/${name}":
-      zone   => $swift_zone,
-#      weight => $weight,
+  
+    if member($rings, 'container') and ! defined(Swift::Ringsync['container']) {
+      swift::ringsync { 'container': ring_server => $master_swift_proxy_ip }
     }
+    Swift::Ringsync <| |> ~> Class["swift::storage::all"]
   }
-
-#  device_endpoint { $storage_devices:
-#    swift_local_net_ip => $swift_local_net_ip,
-#    zone               => $swift_zone,
-#    weight             => $storage_weight,
-# }
-
-  # collect resources for synchronizing the ring databases
-  Swift::Ringsync<<| tag == "${::deployment_id}::${::environment}" |>>
-
+  
+  
 }

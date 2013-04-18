@@ -45,7 +45,7 @@ function default_settings {
     ext_if="eth1"
     dhcp_start_address="10.0.0.201"
     dhcp_end_address="10.0.0.254"
-    mirror_type="iso"
+    mirror_type="default"
 }
 
 function apply_settings {
@@ -78,9 +78,10 @@ function apply_settings {
 
 # Domain/Hostname apply
     sed -i -e 's#^\(HOSTNAME=\).*$#\1'"$hostname"'#' /etc/sysconfig/network
-    [ -z $mgmt_ip ] && echo "prepend domain-name-servers 127.0.0.1;" >> /etc/dhclient-$mgmt_if.conf
-    [ -z $ext_ip ] && echo "prepend domain-name-servers 127.0.0.1;" >> /etc/dhclient-$ext_if.conf
-    [ -z $mgmt_ip ] || grep -q "^\s*$mgmt_ip\s+$hostname" /etc/hosts || echo "$mgmt_ip    $hostname.$domain $hostname" >> /etc/hosts
+    [ -n "$mgmt_ip" -a -n "$ext_ip" ] && echo "nameserver 127.0.0.1;" >> /etc/resolv.conf
+    [ -z "$mgmt_ip" ] && echo "prepend domain-name-servers 127.0.0.1;" >> /etc/dhclient-$mgmt_if.conf
+    [ -z "$ext_ip" ] && echo "prepend domain-name-servers 127.0.0.1;" >> /etc/dhclient-$ext_if.conf
+    [ -z "$mgmt_ip" ] || grep -Eq "^\s*$mgmt_ip\s+$hostname" /etc/hosts || echo "$mgmt_ip    $hostname.$domain $hostname" >> /etc/hosts
     service network restart
     sed -i "s%\(^.*address is:\).*$%\1 `ip address show $ext_if | awk '/inet / {print \$2}' | cut -d/ -f1 -`%" /etc/issue
 }
@@ -111,7 +112,7 @@ echo "1. Change FQDN for masternode and cloud domain"
 echo "2. Configure openstack cloud management interface"
 echo "3. Configure external interface with repositories/internet access"
 echo "4. Change IP range to use for baremetal provisioning via PXE"
-echo "5. Choose set of mirror to use (iso/custom)"
+echo "5. Choose set of mirror to use (default/custom)"
 echo "6. Quit"
 echo -n "Please, select an action to do:"
 }
@@ -150,7 +151,7 @@ while [ $endconf -ne 1 ]; do
             ;;
         5)
             show_top
-            echo -n "Please select set of mirrors to use(iso/custom): "; read mirror_type
+            echo -n "Please select set of mirrors to use(default/custom): "; read mirror_type
             ;;
         6)
             echo;echo "Those changes are permanent!"

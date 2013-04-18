@@ -151,5 +151,7 @@ def main():
         update_system(name, nodes[name])
         update_system_interfaces(name, nodes[name]['interfaces'])
 
+    subprocess.call(['/usr/bin/cobbler','sync'])
+
 if __name__ == "__main__":
     main()

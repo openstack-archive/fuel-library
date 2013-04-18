@@ -1,0 +1,5 @@
+In this section, you’ll learn how to do an actual installation of OpenStack using Fuel. In addition to getting a feel for the steps involved, you’ll also gain some familiarity with some of your customization options. While Fuel does provide several different deployment configurations out of the box, its common to want to tweak those architectures for your own situation, so you’ll see how to move certain features around from the standard installation.
+
+The first step, however, is to commit to a deployment template. A fairly balanced small size, yet fully featured, deployment is the Multi-node (HA) Compact deployment, so that’s what we’ll be using through the rest of this guide.
+
+Real world installations require a physical hardware infrastructure, but you can easily deploy a small simulation cloud on a single physical machine using VirtualBox. You can follow these instructions in order to install an OpenStack cloud into a test environment using VirtualBox, or to get a production-grade installation using actual hardware.

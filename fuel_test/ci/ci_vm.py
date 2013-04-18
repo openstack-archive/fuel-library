@@ -1,6 +1,7 @@
 import logging
 from time import sleep
 from ipaddr import IPNetwork
+
 import os
 from fuel_test.ci.ci_base import CiBase
 from fuel_test.helpers import add_nmap
@@ -20,7 +21,6 @@ class CiVM(CiBase):
     def node_roles(self):
         return NodeRoles(
             master_names=['master'],
-            #cobbler_names=['fuel-cobbler'],
             controller_names=['fuel-controller-%02d' % x for x in
                               range(1, 1 + CONTROLLERS)],
             compute_names=['fuel-compute-%02d' % x for x in range(
@@ -30,7 +30,6 @@ class CiVM(CiBase):
             proxy_names=['fuel-swiftproxy-%02d' % x for x in range(
                 1, 1 + PROXIES)],
             quantum_names=['fuel-quantum'],
-            #stomp_names=['fuel-mcollective']
         )
 
     def env_name(self):
@@ -43,18 +42,17 @@ class CiVM(CiBase):
         environment = self.manager.environment_create(self.env_name())
         networks = []
         for name in INTERFACE_ORDER:
-            network = IPNetwork(POOLS.get(name)[0])
+            ip_networks = [ IPNetwork(x) for x in POOLS.get(name)[0].split(',')]
             new_prefix = int(POOLS.get(name)[1])
             pool = self.manager.create_network_pool(
-                networks=[network], prefix=int(new_prefix))
-            networks.append(self.manager.network_create(name=name, environment=environment, pool=pool,
-                                                        forward='route' if name == ROUTED_INTERFACE else 'nat'))
+                networks=ip_networks, prefix=int(new_prefix))
+            networks.append(self.manager.network_create(
+                name=name, environment=environment, pool=pool,
+                forward='route' if name==ROUTED_INTERFACE else 'nat'))
         for name in self.node_roles().master_names:
             self.describe_master_node(name, networks)
-        for name in self.node_roles().cobbler_names + self.node_roles().stomp_names:
-            self.describe_empty_node(name, networks)
         for name in self.node_roles().compute_names:
-            self.describe_empty_node(name, networks)
+            self.describe_empty_node(name, networks, memory=2048)
         for name in self.node_roles().controller_names + self.node_roles().storage_names + self.node_roles().quantum_names + self.node_roles().proxy_names:
             self.describe_empty_node(name, networks)
         return environment
@@ -67,7 +65,7 @@ class CiVM(CiBase):
 
     def setup_environment(self):
         master_node = self.nodes().masters[0]
-        print "Starting test nodes ..."
+        logging.info("Starting test nodes ...")
         start_nodes = self.get_startup_nodes()
         self.environment().start(start_nodes)
         for node in start_nodes:

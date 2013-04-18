@@ -1,40 +1,20 @@
 
-Deploying OpenStack
--------------------
+Understanding the Puppet manifest
+---------------------------------
 
 At this point you have functioning servers that are ready to have
 OpenStack installed. If you're using VirtualBox, save the current state
-of every virtual machine by taking a snapshot. (To do that while the
-machine is running, highlight the machine in the main VirtualBox
-console, click the Snapshots button, then click the camera icon.) This
+of every virtual machine by taking a snapshot using ``File->Take Snapshot``. This
 way you can go back to this point and try again if necessary.
 
 
+The next step will be to go through the ``/etc/puppet/manifests/site.pp`` file and make any
+necessary customizations.  If you have run ``openstack_system``, there shouldn't be anything to change (with one small exception) but if you are installing Fuel manually, you will need to make these changes yourself.  
 
-To install the new cluster, the Puppet Master needs a configuration
-file that defines all of the appropriate networks, nodes, and roles.
-Fortunately, Fuel provides several different configurations, and as we
-have discussed, we are going to use the Multi-node (HA) Swift Compact
-architecture, or Swift Compact. To configure the Puppet Master to use
-the Swift Compact topology, copy that configuration file into the
-Puppet Master::
+In either case, it's always good to understand what your system is doing. 
 
 
-
-    cp /etc/puppet/modules/openstack/examples/site_openstack_swift_compact.pp /etc/puppet/manifests/site.pp
-
-
-
-The next step will be to go through the site.pp file and make any
-necessary customizations. In our case, were going to do three things:
-
-#. Customize network settings to match our actual machines
-#. Turn off Quantum, since we made the decision not to use it in order to simplify matters
-#. Set up Cinder so that scheduling is handled by the controllers (as normal) but the actual storage happens on the compute node
-
-
-
-Lets start with the basic network customization::
+Let's start with the basic network customization::
 
 
 
@@ -57,183 +37,309 @@ In this case, we don't need to make any changes to the interface
 settings, because they match what we've already set up. ::
 
     # Public and Internal VIPs. These virtual addresses are required by HA topology and will be managed by keepalived.
-    $internal_virtual_ip = '10.0.0.10'
+    $internal_virtual_ip = '10.20.0.10'
+
     # Change this IP to IP routable from your 'public' network,
     # e. g. Internet or your office LAN, in which your public
     # interface resides
-    $public_virtual_ip = '10.0.1.10'
+    $public_virtual_ip = '192.168.0.10'
 
 
 
-The Virtual IPs, however, are not correct for our setup. The host IPs
-specified are in use elsewhere in the configuration, and the
-$public_virtual_ip needs to be on the public network we've already
-specified, so make the changes you see here to sync up with our actual
-setup. ::
+Make sure the virtual IPs you see here mesh with your actual setup; they should be IPs that are routeable, but not within the range of the DHCP scope.   These are the IPs through which your services will be accessed.  
 
+The next section sets up the servers themselves.  If you are setting up Fuel manually, make sure to add each server with the appropriate IP addresses; if you ran ``openstack_system``, the values will be overridden by the next section, and you can ignore this array. ::
 
-
-    # Array containing key/value pairs of controllers and IP addresses for their internal interfaces. Must have an entry for every controller node.
-    # Fully Qualified domain names are allowed here along with short hostnames.
-
-    $controller_internal_addresses = {'fuel-controller-01' => '10.0.0.101','fuel-controller-02' => '10.0.0.102','fuel-controller-03' =>'10.0.0.103'}
-
-    # Set hostname of swift_master.
-    ...
-
-
-
-Next, fix the internal IP addresses for the controllers to match the
-addresses they were given earlier.
-
-
-You'll need to make similar adjustments to the actual node definitions::
-
-
-    ...
-      $primary_controller = false
+  $nodes_harr = [
+    {
+      'name' => 'fuel-pm',
+      'role' => 'cobbler',
+      'internal_address' => '10.20.0.100',
+      'public_address'   => '192.168.0.100',
+    },
+    {
+      'name' => 'fuel-controller-01',
+      'role' => 'controller',
+      'internal_address' => '10.20.0.101',
+      'public_address'   => '192.168.0.101',
+    },
+    {
+      'name' => 'fuel-controller-02',
+      'role' => 'controller',
+      'internal_address' => '10.20.0.102',
+      'public_address'   => '192.168.0.102',
+    },
+    {
+      'name' => 'fuel-controller-03',
+      'role' => 'controller',
+      'internal_address' => '10.0.0.105',
+      'public_address'   => '192.168.0.105',
+    },
+    {
+      'name' => 'fuel-compute-01',
+      'role' => 'compute',
+      'internal_address' => '10.0.0.106',
+      'public_address'   => '192.168.0.106',
     }
+  ]
 
-    $addresses_hash = {
-      'fuel-controller-01' => {
-        'internal_address' => '10.0.0.101',
-        'public_address' => '10.0.1.101',
-      },
-      'fuel-controller-02' => {
-        'internal_address' => '10.0.0.102',
-        'public_address' => '10.0.1.102',
-      },
-      'fuel-controller-03' => {
-        'internal_address' => '10.0.0.103',
-        'public_address' => '10.0.1.103',
-      },
-      'fuel-compute-01' => {
-        'internal_address' => '10.0.0.110',
-        'public_address' => '10.0.1.110',
-      },
-      'fuel-compute-02' => {
-    ...
+Because this section comes from a template, it will likely include a number of servers you're not using; feel free to leave them or take them out. 
 
+Next the ``site.pp`` file lists all of the nodes and roles you defined in the ``config.yaml`` file::
 
+  $nodes = [{'public_address' => '10.20.1.101','name' => 'fuel-controller-01','role' => 
+             'controller','internal_address' => '10.20.0.101'},
+            {'public_address' => '10.20.1.102','name' => 'fuel-controller-02','role' => 
+             'controller','internal_address' => '10.20.0.102'},
+            {'public_address' => '10.20.1.101','name' => 'fuel-controller-01','role' => 
+             'compute','internal_address' => '10.20.0.101'},
+            {'public_address' => '10.20.1.102','name' => 'fuel-controller-02','role' => 
+             'compute','internal_address' => '10.20.0.102'},
+            {'public_address' => '10.20.1.101','name' => 'fuel-controller-01','role' => 
+             'storage','internal_address' => '10.20.0.101'},
+            {'public_address' => '10.20.1.102','name' => 'fuel-controller-02','role' => 
+             'storage','internal_address' => '10.20.0.102'},
+            {'public_address' => '10.20.1.101','name' => 'fuel-controller-01','role' => 
+             'swift-proxy','internal_address' => '10.20.0.101'},
+            {'public_address' => '10.20.1.102','name' => 'fuel-controller-02','role' => 
+             'swift-proxy','internal_address' => '10.20.0.102'},
+            {'public_address' => '10.20.1.101','name' => 'fuel-controller-01','role' => 
+             'quantum','internal_address' => '10.20.0.101'}]
 
-Again, the internal and public addresses need to match what has
-already been set. Don't worry about the fuel-compute-02 and fuel-quantum nodes; were not using them in this setup. (You can delete them
-if you want, but its not necessary.)
+Possible roles include ‘compute’, ‘controller’, ‘storage’, ‘swift-proxy’, ‘quantum’, ‘master’, and ‘cobbler’. Compute nodes cannot be described because it is required for them to disable network configuration. Alternatively, you can force DHCP configuration to ensure proper configuration of IP addresses, default gateways, and DNS servers. IMPORTANT: DNS servers must contain information about all nodes of the cluster. At the time of deployment of the cluster in a standard scenario, the cobbler node contains this information.
 
+The file also specifies the default gateway to be the fuel-pm machine::
 
+  $default_gateway = '10.20.0.10'
 
-Finally, you need to correct the gateway and DNS values::
+Next ``site.pp`` defines DNS servers and provides netmasks::
 
+  # Specify nameservers here.
+  # Need points to cobbler node IP, or to special prepared nameservers if you known what you do.
+  $dns_nameservers = ['10.20.0.10','8.8.8.8']
 
-
-    ...
-      'fuel-quantum' => {
-            'internal_address' => '10.0.0.108',
-            'public_address' => '10.0.204.108',
-      },
-    }
-    $addresses = $addresses_hash
-    $default_gateway = '10.0.1.1'
-    $dns_nameservers = [$addresses['fuel-pm']['internal_address'],] 
-    # Need point to cobbler node IP if you use default use case.
-
-    # Set internal address on which services should listen.
-    # We assume that this IP will is equal to one of the haproxy
-    ...
-
+  # Specify netmasks for internal and external networks.
+  $internal_netmask = '255.255.255.0'
+  $public_netmask = '255.255.255.0'
+  ...
+  #Set this to anything other than pacemaker if you do not want Quantum HA
+  #Also, if you do not want Quantum HA, you MUST enable $quantum_network_node
+  #on the ONLY controller
+  $ha_provider = 'pacemaker'
+  $use_unicast_corosync = false
 
 
-The default gateway is the host machine, or more specifically, the
-first Hostonly adapter we specified in VirtualBox, which we set to
-10.0.1.1.
+Quantum is actually specified further down in the file, but this is where you specify whether you want Quantum to be specified as High Availability or not. ::
 
+  # Set hostname for master controller of HA cluster. 
+  # It is strongly recommend that the master controller is deployed before all other controllers since it initializes the new cluster.  
+  # Default is fuel-controller-01. 
+  # Fully qualified domain name is also allowed.
+  $master_hostname = 'fuel-controller-01'
 
+Next specify the main controller. ::
 
-Finally, make sure that the $dns_nameservers value is looking for
-fuel-pm, rather than fuel-cobbler, because we've combined them into one
-machine.
+  # Set nagios master fqdn
+  $nagios_master = 'fuel-controller-01.your-domain-name.com'
+  ## proj_name  name of environment nagios configuration
+  $proj_name            = 'test'
 
+Here again we have a parameter that looks ahead to things to come; OpenStack supports monitoring via Nagios.  In this section, you can choose the Nagios master server as well as setting a project name. ::
 
+  #Specify if your installation contains multiple Nova controllers. Defaults to true as it is the most common scenario.
+  $multi_host              = true
 
-Now that the network is configured for the servers, lets look at the
-network services.
+A single host cloud isn't especially useful, but if you really want to, you can specify that here.
+
+Finally, you can define the various usernames and passwords for OpenStack services. ::
+
+  # Specify different DB credentials for various services
+  $mysql_root_password     = 'nova'
+  $admin_email             = 'openstack@openstack.org'
+  $admin_password          = 'nova'
+
+  $keystone_db_password    = 'nova'
+  $keystone_admin_token    = 'nova'
+
+  $glance_db_password      = 'nova'
+  $glance_user_password    = 'nova'
+
+  $nova_db_password        = 'nova'
+  $nova_user_password      = 'nova'
+
+  $rabbit_password         = 'nova'
+  $rabbit_user             = 'nova'
+
+  $swift_user_password     = 'swift_pass'
+  $swift_shared_secret     = 'changeme'
+
+  $quantum_user_password   = 'quantum_pass'
+  $quantum_db_password     = 'quantum_pass'
+  $quantum_db_user         = 'quantum'
+  $quantum_db_dbname       = 'quantum'
+
+  # End DB credentials section
+
+Now that the network is configured for the servers, let's look at the
+various OpenStack services.
 
 
 Enabling Quantum
-^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^
 
-In order to deploy OpenStack with Quantum you need to setup an
-additional node that will act as a L3 router, or run Quantum out of
-one of the existing nodes. In our case we've opted to turn off Quantum::
+In order to deploy OpenStack with Quantum you need to set up an
+additional node that will act as an L3 router, or run Quantum out of
+one of the existing nodes. ::
 
+  ### NETWORK/QUANTUM ###
+  # Specify network/quantum specific settings
 
-    ...
-    ### GENERAL CONFIG END ###
-    ### NETWORK/QUANTUM ###
-    # Specify network/quantum specific settings
-    
-    # Should we use quantum or nova-network(deprecated).
-    # Consult OpenStack documentation for differences between them.
-    $quantum = false
-    $quantum_netnode_on_cnt = false
-    
-Notice that if we were going to keep Quantum on, the $quantum_netnode_on_cnt lets us specify whether we want Quantum to run
-on the controllers. ::
+  # Should we use quantum or nova-network(deprecated).
+  # Consult OpenStack documentation for differences between them.
+  $quantum = true
+  $quantum_netnode_on_cnt  = true
 
+In this case, we're using a "compact" architecture, so we want to place Quantum on the controllers::
 
-    # Specify network creation criteria:
-    # Should puppet automatically create networks?
-    $create_networks = true
-    # Fixed IP addresses are typically used for communication between VM instances.
-    $fixed_range = '10.0.198.128/27'
-    # Floating IP addresses are used for communication of VM instances with the outside world (e.g. Internet).
-    $floating_range = '10.0.1.128/28'
+  # Specify network creation criteria:
+  # Should puppet automatically create networks?
+  $create_networks = true
 
+  # Fixed IP addresses are typically used for communication between VM instances.
+  $fixed_range = '172.16.0.0/16'
 
+  # Floating IP addresses are used for communication of VM instances with the outside world (e.g. Internet).
+  $floating_range = '192.168.0.0/24'
 
-The Floating IPs will be assigned to OpenStack VMs, and will be the
-way in which they will be accessed from the Internet, so the
-$floating_range needs to be on the public network. (Notice also that
-this range includes 10.0.1.253; that's why we had to move the
-$public_virtual_ip to 10.0.1.10.) ::
+OpenStack uses two ranges of IP addresses for virtual machines: fixed IPs, which are used for communication between VMs, and thus are part of the private network, and floating IPs, which are assigned to VMs for the purpose of communicating to and from the Internet. ::
 
+  # These parameters are passed to the previously specified network manager , e.g. nova-manage network create.
+  # Not used in Quantum.
+  $num_networks    = 1
+  $network_size    = 31
+  $vlan_start      = 300
 
+These values don't actually relate to Quantum; they are used by nova-network.  IDs for the VLANs OpenStack will create for tenants run from ``vlan_start`` to (``vlan_start + num_networks - 1``), and are generated automatically. ::
 
-    # These parameters are passed to the previously specified network manager , e.g. nova-manage network create.
-    # Not used in Quantum.
-    # Consult openstack docs for corresponding network manager.
-    # https://fuel-dev.mirantis.com/docs/0.2/pages/0050-installation-instructions.html#network-setup
-    $num_networks = 1
-    $network_size = 31
-    $vlan_start = 300
+  # Quantum
 
-    # Quantum
-    # Segmentation type for isolating traffic between tenants
-    ...
+  # Segmentation type for isolating traffic between tenants
+  # Consult Openstack Quantum docs 
+  $tenant_network_type     = 'gre'
 
+  # Which IP address will be used for creating GRE tunnels.
+  $quantum_gre_bind_addr = $internal_address
 
+  #Which IP have Quantum network node?
+  $quantum_net_node_hostname = 'fuel-controller-03'
+  $quantum_net_node_address = $controller_internal_addresses[$quantum_net_node_hostname]
 
-Finally, just as a note, you don't need to change anything here, but
-since this example uses nova-network its good to note these values.  You have the option to create multiple VLANs, and the 
-IDs for those VLANs run from vlan_start to (vlan_start + num_networks - 1), and are generated
-automatically.
+If you are installing Quantum in non-HA mode, you will need to specify which single controller controls Quantum. :: 
 
+  # If $external_ipinfo option is not defined, the addresses will be allocated automatically from $floating_range:
+  # the first address will be defined as an external default router,
+  # the second address will be attached to an uplink bridge interface,
+  # the remaining addresses will be utilized for the floating IP address pool.
+  $external_ipinfo = {'pool_start' => '192.168.56.30','public_net_router' => '192.168.0.1', 'pool_end' => '192.168.56.60','ext_bridge' => '192.168.0.1'}
+
+  # Quantum segmentation range.
+  # For VLAN networks: valid VLAN VIDs can be 1 through 4094.
+  # For GRE networks: Valid tunnel IDs can be any 32-bit unsigned integer.
+  $segment_range = '900:999'
+
+  # Set up OpenStack network manager. It is used ONLY in nova-network.
+  # Consult Openstack nova-network docs for possible values.
+  $network_manager = 'nova.network.manager.FlatDHCPManager'
+  
+  # Assign floating IPs to VMs on startup automatically?
+  $auto_assign_floating_ip = false
+
+  # Database connection for Quantum configuration (quantum.conf)
+  $quantum_sql_connection  = "mysql://${quantum_db_user}:${quantum_db_password}@${$internal_virtual_ip}/{quantum_db_dbname}"
+
+  if $quantum {
+    $public_int   = $public_br
+    $internal_int = $internal_br
+  } else {
+    $public_int   = $public_interface
+    $internal_int = $internal_interface
+  }
+
+If the system is set up to use Quantum, the public and internal interfaces are set to use the appropriate bridges, rather than the defined interfaces.
+
+The remaining configuration is used to define classes that will be added to each Quantum node::
+
+  #Network configuration
+  stage {'netconfig':
+        before  => Stage['main'],
+  }
+  class {'l23network': stage=> 'netconfig'}
+  class node_netconfig (
+    $mgmt_ipaddr,
+    $mgmt_netmask  = '255.255.255.0',
+    $public_ipaddr = undef,
+    $public_netmask= '255.255.255.0',
+    $save_default_gateway=true,
+    $quantum = $quantum,
+  ) {
+    if $quantum {
+      l23network::l3::create_br_iface {'mgmt':
+        interface => $internal_interface, # !!! NO $internal_int /sv !!!
+        bridge    => $internal_br,
+        ipaddr    => $mgmt_ipaddr,
+        netmask   => $mgmt_netmask,
+        dns_nameservers      => $dns_nameservers,
+        save_default_gateway => $save_default_gateway,
+      } ->
+      l23network::l3::create_br_iface {'ex':
+        interface => $public_interface, # !! NO $public_int /sv !!!
+        bridge    => $public_br,
+        ipaddr    => $public_ipaddr,
+        netmask   => $public_netmask,
+        gateway   => $default_gateway,
+      }
+    } else {
+      # nova-network mode
+      l23network::l3::ifconfig {$public_int:
+        ipaddr  => $public_ipaddr,
+        netmask => $public_netmask,
+        gateway => $default_gateway,
+      }
+      l23network::l3::ifconfig {$internal_int:
+        ipaddr  => $mgmt_ipaddr,
+        netmask => $mgmt_netmask,
+        dns_nameservers      => $dns_nameservers,
+      }
+    }
+    l23network::l3::ifconfig {$private_interface: ipaddr=>'none' }
+  }
+  ### NETWORK/QUANTUM END ###
+
+All of this assumes, of course, that you're using Quantum; if you're using nova-network instead, only those values apply.
+
+Defining the current cluster
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Fuel enables you to control multiple deployments simultaneously by setting an individual deployment ID::
+
+  # This parameter specifies the the identifier of the current cluster. This is needed in case of multiple environments.
+  # installation. Each cluster requires a unique integer value. 
+  # Valid identifier range is 0 to 254
+  $deployment_id = '79'
 
 Enabling Cinder
 ^^^^^^^^^^^^^^^
 
-While this example doesnt use Quantum, it does use Cinder, and with
+This example also uses Cinder, and with
 some very specific variations from the default. Specifically, as we
 said before, while the Cinder scheduler will continue to run on the
 controllers, the actual storage takes place on the compute nodes, on
-the /dev/sdb1 partition you created earlier. Cinder will be activated
+the ``/dev/sdb1`` partition you created earlier. Cinder will be activated
 on any node that contains the specified block devices -- unless
 specified otherwise -- so let's look at what all of that means for the
 configuration. ::
 
 
-
-    ...
     ### CINDER/VOLUME ###
     
     # Should we use cinder or nova-volume(obsolete)
@@ -243,7 +349,7 @@ configuration. ::
     # Should we install cinder on compute nodes?
     $cinder_on_computes = true
     
-We want Cinder to be on the compute nodes, so set this value to true. ::
+We want Cinder to be on the compute nodes, so set this value to ``true``. ::
 
 
 
@@ -254,14 +360,13 @@ We want Cinder to be on the compute nodes, so set this value to true. ::
     # Setup network interface, which Cinder uses to export iSCSI targets.
     # This interface defines which IP to use to listen on iscsi port for
     # incoming connections of initiators
-    $cinder_iscsi_bind_iface = 'eth3'
+    $cinder_iscsi_bind_iface = $internal_int
 
 
 
 Here you have the opportunity to specify which network interface
-Cinder uses for its own traffic. As you may recall, we set up a fourth
-NIC, and we can specify that here now, rather than using the default
-internal interface. ::
+Cinder uses for its own traffic. For example, you could set up a fourth NIC at ``eth3`` 
+and specify that rather than ``$internal_int``.  ::
 
 
 
@@ -276,12 +381,10 @@ internal interface. ::
     $nv_physical_volume = ['/dev/sdb']
     
     ### CINDER/VOLUME END ###
-    ...
 
 
-
-We only want to allocate the /dev/sdb value for Cinder, so adjust
-$nv_physical_volume accordingly. Note, however, that this is a global
+We only want to allocate the ``/dev/sdb`` value for Cinder, so adjust
+``$nv_physical_volume`` accordingly. Note, however, that this is a global
 value; it will apply to all servers, including the controllers --
 unless we specify otherwise, which we will in a moment.
 
@@ -296,13 +399,13 @@ destroyed after you allocate them for Cinder.
 Now lets look at the other storage-based service: Swift.
 
 
-Enabling Swift
-^^^^^^^^^^^^^^
+Enabling Glance and Swift
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 There aren't many changes that you will need to make to the default
 configuration in order to enable Swift to work properly in Swift
 Compact mode, but you will need to adjust for the fact that we are
-running Swift on physical partitions::
+running Swift on physical partitions ::
 
 
     ...
@@ -318,7 +421,7 @@ running Swift on physical partitions::
     # on physical partitions or inside loopback devices.
     $swift_loopback = false
     
-The default value is loopback, which tells Swift to use a loopback storage device, which is basically a file that acts like a drive, rather than an actual physical drive. ::
+The default value is ``loopback``, which tells Swift to use a loopback storage device, which is basically a file that acts like a drive, rather than an actual physical drive.  You can also set this value to ``false``, which tells OpenStack to use a physical file instead. ::
 
 
     # Which IP address to bind swift components to: e.g., which IP swift-proxy should listen on
@@ -327,22 +430,155 @@ The default value is loopback, which tells Swift to use a loopback storage devic
     # IP node of controller used during swift installation
     # and put into swift configs
     $controller_node_public = $internal_virtual_ip
-    
-    # Set hostname of swift_master.
-    # It tells on which swift proxy node to build
-    # *ring.gz files. Other swift proxies/storages
-    # will rsync them.
-    # Short hostnames allowed only. No FQDNs.
-    
+
     # Hash of proxies hostname|fqdn => ip mappings.
     # This is used by controller_ha.pp manifests for haproxy setup
     # of swift_proxy backends
     $swift_proxies = $controller_internal_addresses
-    
-    ### Glance and swift END ###
-    ...
+
+Next, you're specifying the ``swift-master``::
+
+  # Set hostname of swift_master.
+  # It tells on which swift proxy node to build
+  # *ring.gz files. Other swift proxies/storages
+  # will rsync them.
+  if $::hostname == 'fuel-swiftproxy-01' {
+    $primary_proxy = true
+  } else {
+    $primary_proxy = false
+  }
+  if $::hostname == $master_hostname {
+    $primary_controller = true
+  } else {
+    $primary_controller = false
+  }
+
+In this case, there's no separate ``fuel-swiftproxy-01``, so the master controller will be the primary Swift controller.
+
+Configuring OpenStack to use syslog
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+To use the syslog server, adjust the corresponding variables in the ``if $use_syslog`` clause::
+
+    $use_syslog = true
+    if $use_syslog {
+        class { "::rsyslog::client": 
+            log_local => true,
+            log_auth_local => true,
+            server => '127.0.0.1',
+            port => '514'
+        }
+    }
 
 
+For remote logging, use the IP or hostname of the server for the ``server`` value and set the ``port`` appropriately.  For local logging, ``set log_local`` and ``log_auth_local`` to ``true``.
+   
+
+Setting the version and mirror type
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+You can customize the various versions of OpenStack's components, though it's typical to use the latest versions::
+
+   ### Syslog END ###
+   case $::osfamily {
+       "Debian":  {
+          $rabbitmq_version_string = '2.8.7-1'
+       }
+       "RedHat": {
+          $rabbitmq_version_string = '2.8.7-2.el6'
+       }
+   }
+   # OpenStack packages and customized component versions to be installed. 
+   # Use 'latest' to get the most recent ones or specify exact version if you need to install custom version.
+   $openstack_version = {
+     'keystone'         => 'latest',
+     'glance'           => 'latest',
+     'horizon'          => 'latest',
+     'nova'             => 'latest',
+     'novncproxy'       => 'latest',
+     'cinder'           => 'latest',
+     'rabbitmq_version' => $rabbitmq_version_string,
+   }
+
+To tell Fuel to download packages from external repos provided by Mirantis and your distribution vendors, make sure the ``$mirror_type`` variable is set to ``default``::
+
+    # If you want to set up a local repository, you will need to manually adjust mirantis_repos.pp,
+    # though it is NOT recommended.
+    $mirror_type = 'default'
+    $enable_test_repo = false
+    $repo_proxy = 'http://10.20.0.100:3128'
+
+Once again, the ``$mirror_type`` **must** be set to ``default``.  If you set it correctly in ``config.yaml`` and ran ``openstack_system`` this will already be taken care of.  Otherwise, **make sure** to set this value yourself.
+
+Future versions of Fuel will enable you to use your own internal repositories.
+
+Setting verbosity
+^^^^^^^^^^^^^^^^^ 
+
+You also have the option to determine how much information OpenStack provides when performing configuration::
+
+  # This parameter specifies the verbosity level of log messages
+  # in openstack components config. Currently, it disables or enables debugging.
+  $verbose = true
+
+
+Configuring Rate-Limits
+^^^^^^^^^^^^^^^^^^^^^^^
+
+Openstack has predefined limits on different HTTP queries for nova-compute and cinder services. Sometimes (e.g. for big clouds or test scenarios) these limits are too strict. (See http://docs.openstack.org/folsom/openstack-compute/admin/content/configuring-compute-API.html.) In this case you can change them to more appropriate values.
+
+There are two hashes describing these limits: ``$nova_rate_limits`` and ``$cinder_rate_limits``. ::
+
+    #Rate Limits for cinder and Nova
+    #Cinder and Nova can rate-limit your requests to API services.
+    #These limits can be reduced for your installation or usage scenario.
+    #Change the following variables if you want. They are measured in requests per minute.
+    $nova_rate_limits = {
+      'POST' => 1000,
+      'POST_SERVERS' => 1000,
+      'PUT' => 1000, 'GET' => 1000,
+      'DELETE' => 1000 
+    }
+    $cinder_rate_limits = {
+      'POST' => 1000,
+      'POST_SERVERS' => 1000,
+      'PUT' => 1000, 'GET' => 1000,
+      'DELETE' => 1000 
+    }
+
+
+Enabling Horizon HTTPS/SSL mode
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Using the ``$horizon_use_ssl`` variable, you have the option to decide whether the OpenStack dashboard (Horizon) uses HTTP or HTTPS::
+
+    #  'custom': require fileserver static mount point [ssl_certs] and hostname based certificate existence
+    $horizon_use_ssl = false
+
+This variable accepts the following values:
+
+  * ``false``:  In this mode, the dashboard uses HTTP with no encryption.
+  * ``default``:  In this mode, the dashboard uses keys supplied with the standard Apache SSL module package.
+  * ``exist``:  In this case, the dashboard assumes that the domain name-based certificate, or keys, are provisioned in advance.  This can be a certificate signed by any authorized provider, such as Symantec/Verisign, Comodo, GoDaddy, and so on.  The system looks for the keys in these locations:
+
+    for Debian/Ubuntu:
+      * public  ``/etc/ssl/certs/domain-name.pem``
+      * private ``/etc/ssl/private/domain-name.key``
+    for Centos/RedHat:
+      * public  ``/etc/pki/tls/certs/domain-name.crt``
+      * private ``/etc/pki/tls/private/domain-name.key``
+
+  * ``custom``:  This mode requires a static mount point on the fileserver for ``[ssl_certs]`` and certificate pre-existence.  To enable this mode, configure the puppet fileserver by editing ``/etc/puppet/fileserver.conf`` to add::
+
+      [ssl_certs]
+        path /etc/puppet/templates/ssl
+        allow *
+
+    From there, create the appropriate directory::
+
+      mkdir -p /etc/puppet/templates/ssl
+
+    Add the certificates to this directory.  (Reload the puppetmaster service for these changes to take effect.)
 
 Now we just need to make sure that all of our nodes get the proper
 values.
@@ -353,37 +589,37 @@ Defining the node configurations
 
 Now that we've set all of the global values, its time to make sure that
 the actual node definitions are correct. For example, by default all
-nodes will enable Cinder on /dev/sdb, but we don't want that for the
-controllers, so set nv_physical_volume to null, and manage_volumes to false. ::
+nodes will enable Cinder on ``/dev/sdb``, but we don't want that for the
+controllers, so set ``nv_physical_volume`` to ``null``, and ``manage_volumes`` to ``false``. ::
 
 
 
     ...
     class compact_controller (
-        $quantum_network_node = false
+      $quantum_network_node = $quantum_netnode_on_cnt
     ) {
       class { 'openstack::controller_ha':
-        controller_public_addresses => $controller_public_addresses,
+        controller_public_addresses   => $controller_public_addresses,
         controller_internal_addresses => $controller_internal_addresses,
-        internal_address => $internal_address,
-    ...
-        tenant_network_type => $tenant_network_type,
-        segment_range => $segment_range,
-        cinder => $cinder,
-        cinder_iscsi_bind_iface => $cinder_iscsi_bind_iface,
-        manage_volumes => false,
-        galera_nodes => $controller_hostnames,
-        nv_physical_volume => null,
-        use_syslog => $use_syslog,
-        nova_rate_limits => $nova_rate_limits,
-        cinder_rate_limits => $cinder_rate_limits,
-        horizon_use_ssl => $horizon_use_ssl,
+        internal_address        => $internal_address,
+        public_interface        => $public_int,
+        internal_interface      => $internal_int,
+     ...
+        manage_volumes          => false,
+        galera_nodes            => $controller_hostnames,
+        nv_physical_volume      => null,
+        use_syslog              => $use_syslog,
+        nova_rate_limits        => $nova_rate_limits,
+        cinder_rate_limits      => $cinder_rate_limits,
+        horizon_use_ssl         => $horizon_use_ssl,
+        use_unicast_corosync    => $use_unicast_corosync,
+        ha_provider             => $ha_provider
       }
       class { 'swift::keystone::auth':
-        password => $swift_user_password,
-        public_address => $public_virtual_ip,
+        password         => $swift_user_password,
+        public_address   => $public_virtual_ip,
         internal_address => $internal_virtual_ip,
-        admin_address => $internal_virtual_ip,
+        admin_address    => $internal_virtual_ip,
       }
     }
     ...
@@ -394,99 +630,251 @@ Fortunately, Fuel includes a class for the controllers, so you don't
 have to make these changes for each individual controller. As you can
 see, the controllers generally use the global values, but in this case
 you're telling the controllers not to manage_volumes, and not to use
-/dev/sdb for Cinder.
+``/dev/sdb`` for Cinder.
 
 
 
 If you look down a little further, this class then goes on to help
-specify the individual controllers::
+specify the individual controllers and compute nodes::
 
 
     ...
-    # Definition of the first OpenStack controller.
-    node /fuel-controller-01/ {
-      class {'::node_netconfig':
-            mgmt_ipaddr => $::internal_address,
-            mgmt_netmask => $::internal_netmask,
-            public_ipaddr => $::public_address,
-            public_netmask => $::public_netmask,
-            stage => 'netconfig',
-      }
-      class {'nagios':
-            proj_name => $proj_name,
-            services => [
-                'host-alive','nova-novncproxy','keystone', 'nova-scheduler',
-                'nova-consoleauth', 'nova-cert', 'haproxy', 'nova-api', 'glance-api',
-                'glance-registry','horizon', 'rabbitmq', 'mysql', 'swift-proxy',
-                'swift-account', 'swift-container', 'swift-object',
-            ],
-            whitelist => ['127.0.0.1', $nagios_master],
-            hostgroup => 'controller',
-      }
+	node /fuel-controller-[\d+]/ {
+	  include stdlib
+	  class { 'operatingsystem::checksupported':
+	      stage => 'setup'
+	  }
 
-      class { compact_controller: }
-      $swift_zone = 1
+	  class {'::node_netconfig':
+	      mgmt_ipaddr    => $::internal_address,
+	      mgmt_netmask   => $::internal_netmask,
+	      public_ipaddr  => $::public_address,
+	      public_netmask => $::public_netmask,
+	      stage          => 'netconfig',
+	  }
 
-      class { 'openstack::swift::storage_node':
-        storage_type => $swift_loopback,
-        swift_zone => $swift_zone,
-        swift_local_net_ip => $internal_address,
-      }
+	  class {'nagios':
+	    proj_name       => $proj_name,
+	    services        => [
+	      'host-alive','nova-novncproxy','keystone', 'nova-scheduler',
+	      'nova-consoleauth', 'nova-cert', 'haproxy', 'nova-api', 'glance-api',
+	      'glance-registry','horizon', 'rabbitmq', 'mysql', 'swift-proxy',
+	      'swift-account', 'swift-container', 'swift-object',
+	    ],
+	    whitelist       => ['127.0.0.1', $nagios_master],
+	    hostgroup       => 'controller',
+	  }
+	  
+	  class { compact_controller: }
+	  $swift_zone = $node[0]['swift_zone']
 
-      class { 'openstack::swift::proxy':
-        swift_user_password     => $swift_user_password,
-        swift_proxies => $swift_proxies,
-        primary_proxy => $primary_proxy,
-        controller_node_address => $internal_virtual_ip,
-        swift_local_net_ip => $internal_address,
-      }
-    }
-    ...
+	  class { 'openstack::swift::storage_node':
+	    storage_type       => $swift_loopback,
+	    swift_zone         => $swift_zone,
+	    swift_local_net_ip => $internal_address,
+	  }
 
-
+	  class { 'openstack::swift::proxy':
+	    swift_user_password     => $swift_user_password,
+	    swift_proxies           => $swift_proxies,
+	    primary_proxy           => $primary_proxy,
+	    controller_node_address => $internal_virtual_ip,
+	    swift_local_net_ip      => $internal_address,
+	  }
+	}
 
 Notice also that each controller has the swift_zone specified, so each
 of the three controllers can represent each of the three Swift zones.
 
-<<<<<<< HEAD
-=======
-In ``openstack/examples/site_openstack_full.pp`` example, the following nodes are specified:
->>>>>>> 5f32c0d... Rename and sync manifests
+Installing Nagios Monitoring using Puppet
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Fuel provides a way to deploy Nagios for monitoring your OpenStack cluster. It will require the installation of an agent on the controller, compute, and storage nodes, as well as having a master server for Nagios which will collect and display all the results. An agent, the Nagios NRPE addon, allows OpenStack to execute Nagios plugins on remote Linux/Unix machines. The main reason for doing this is to monitor basic resources (such as CPU load, memory usage, etc.), as well as more advanced ones on remote machines.
 
 
-<<<<<<< HEAD
-=======
-In ``openstack/examples/site_openstack_compact.pp`` example, the role of swift-storage and swift-proxy combined with controllers.
->>>>>>> 5f32c0d... Rename and sync manifests
+Nagios Agent
+~~~~~~~~~~~~
 
-One final fix
-^^^^^^^^^^^^^
+In order to install Nagios NRPE on a compute or controller node, a node should have the following settings: ::
 
-Although the $controller_public_addresses value is deprecated, it must
-be specified correctly or your cluster will not function properly. You
-can find this value at the very bottom of the site.pp file::
+  class {'nagios':
+    proj_name       => 'test',
+    services        => ['nova-compute','nova-network','libvirt'],
+    whitelist       => ['127.0.0.1','10.0.97.5'],
+    hostgroup       => 'compute',
+  }
+
+* ``proj_name``: An environment for nagios commands and the directory (``/etc/nagios/test/``).
+* ``services``: All services to be monitored by nagios.
+* ``whitelist``: The array of IP addreses trusted by NRPE.
+* ``hostgroup``: The group to be used in the nagios master (do not forget create the group in the nagios master).
+
+Nagios Server
+~~~~~~~~~~~~~
+
+In order to install Nagios Master on any convenient node, a node should have the following applied: ::
+
+  class {'nagios::master':
+    proj_name       => 'test',
+    templatehost    => {'name' => 'default-host','check_interval' => '10'},
+    templateservice => {'name' => 'default-service' ,'check_interval'=>'10'},
+    hostgroups      => ['compute','controller'],
+    contactgroups   => {'group' => 'admins', 'alias' => 'Admins'}, 
+    contacts        => {'user' => 'hotkey', 'alias' => 'Dennis Hoppe',
+                 'email' => 'nagios@%{domain}',
+                 'group' => 'admins'},
+  }
+
+* ``proj_name``: The environment for nagios commands and the directory (``/etc/nagios/test/``).
+* ``templatehost``: The group of checks and intervals parameters for hosts (as a Hash).
+* ``templateservice``: The group of checks and intervals parameters for services  (as a Hash).
+* ``hostgroups``: All groups which on NRPE nodes (as an Array).
+* ``contactgroups``: The group of contacts (as a Hash).
+* ``contacts``: Contacts to receive error reports (as a Hash)
 
 
-    ...
-    # This configuration option is deprecated and will be removed in future releases. It's currently kept for backward compatibility.
-    $controller_public_addresses = {'fuel-controller-01' => '10.0.1.101','fuel-controller-02' => '10.0.1.102','fuel-controller-03' =>'10.0.1.103'}
+Health Checks
+~~~~~~~~~~~~~
+
+The complete definition of the available services to monitor and their health checks can be viewed at ``deployment/puppet/nagios/manifests/params.pp``.
+
+Here is the list: ::
+
+  $services_list = {
+    'nova-compute' => 'check_nrpe_1arg!check_nova_compute',
+    'nova-network' => 'check_nrpe_1arg!check_nova_network',
+    'libvirt' => 'check_nrpe_1arg!check_libvirt',
+    'swift-proxy' => 'check_nrpe_1arg!check_swift_proxy',
+    'swift-account' => 'check_nrpe_1arg!check_swift_account',
+    'swift-container' => 'check_nrpe_1arg!check_swift_container',
+    'swift-object' => 'check_nrpe_1arg!check_swift_object',
+    'swift-ring' => 'check_nrpe_1arg!check_swift_ring',
+    'keystone' => 'check_http_api!5000',
+    'nova-novncproxy' => 'check_nrpe_1arg!check_nova_novncproxy',
+    'nova-scheduler' => 'check_nrpe_1arg!check_nova_scheduler',
+    'nova-consoleauth' => 'check_nrpe_1arg!check_nova_consoleauth',
+    'nova-cert' => 'check_nrpe_1arg!check_nova_cert',
+    'cinder-scheduler' => 'check_nrpe_1arg!check_cinder_scheduler',
+    'cinder-volume' => 'check_nrpe_1arg!check_cinder_volume',
+    'haproxy' => 'check_nrpe_1arg!check_haproxy',
+    'memcached' => 'check_nrpe_1arg!check_memcached',
+    'nova-api' => 'check_http_api!8774',
+    'cinder-api' => 'check_http_api!8776',
+    'glance-api' => 'check_http_api!9292',
+    'glance-registry' => 'check_nrpe_1arg!check_glance_registry',
+    'horizon' => 'check_http_api!80',
+    'rabbitmq' => 'check_rabbitmq',
+    'mysql' => 'check_galera_mysql',
+    'apt' => 'nrpe_check_apt',
+    'kernel' => 'nrpe_check_kernel',
+    'libs' => 'nrpe_check_libs',
+    'load' => 'nrpe_check_load!5.0!4.0!3.0!10.0!6.0!4.0',
+    'procs' => 'nrpe_check_procs!250!400',
+    'zombie' => 'nrpe_check_procs_zombie!5!10',
+    'swap' => 'nrpe_check_swap!20%!10%',
+    'user' => 'nrpe_check_users!5!10',
+    'host-alive' => 'check-host-alive',
+  }
+
+Finally, back in ``site.pp``, you define the compute nodes::
+
+	# Definition of OpenStack compute nodes.
+	node /fuel-compute-[\d+]/ {
+	  ## Uncomment lines bellow if You want
+	  ## configure network of this nodes 
+	  ## by puppet.
+	  class {'::node_netconfig':
+	      mgmt_ipaddr    => $::internal_address,
+	      mgmt_netmask   => $::internal_netmask,
+	      public_ipaddr  => $::public_address,
+	      public_netmask => $::public_netmask,
+	      stage          => 'netconfig',
+	  }
+	  include stdlib
+	  class { 'operatingsystem::checksupported':
+	      stage => 'setup'
+	  }
+
+	  class {'nagios':
+	    proj_name       => $proj_name,
+	    services        => [
+	      'host-alive', 'nova-compute','nova-network','libvirt'
+	    ],
+	    whitelist       => ['127.0.0.1', $nagios_master],
+	    hostgroup       => 'compute',
+	  }
+	  
+	  class { 'openstack::compute':
+	    public_interface       => $public_int,
+	    private_interface      => $private_interface,
+	    internal_address       => $internal_address,
+	    libvirt_type           => 'kvm',
+	    fixed_range            => $fixed_range,
+	    network_manager        => $network_manager,
+	    network_config         => { 'vlan_start' => $vlan_start },
+	    multi_host             => $multi_host,
+	    sql_connection         => "mysql://nova:${nova_db_password}@${internal_virtual_ip}/nova",
+	    rabbit_nodes           => $controller_hostnames,
+	    rabbit_password        => $rabbit_password,
+	    rabbit_user            => $rabbit_user,
+	    rabbit_ha_virtual_ip   => $internal_virtual_ip,
+	    glance_api_servers     => "${internal_virtual_ip}:9292",
+	    vncproxy_host          => $public_virtual_ip,
+	    verbose                => $verbose,
+	    vnc_enabled            => true,
+	    manage_volumes         => $manage_volumes,
+	    nova_user_password     => $nova_user_password,
+	    cache_server_ip        => $controller_hostnames,
+	    service_endpoint       => $internal_virtual_ip,
+	    quantum                => $quantum,
+	    quantum_sql_connection => $quantum_sql_connection,
+	    quantum_user_password  => $quantum_user_password,
+	    quantum_host           => $quantum_net_node_address,
+	    tenant_network_type    => $tenant_network_type,
+	    segment_range          => $segment_range,
+	    cinder                 => $cinder_on_computes,
+	    cinder_iscsi_bind_iface=> $cinder_iscsi_bind_iface,
+	    nv_physical_volume     => $nv_physical_volume,
+	    db_host                => $internal_virtual_ip,
+	    ssh_private_key        => 'puppet:///ssh_keys/openstack',
+	    ssh_public_key         => 'puppet:///ssh_keys/openstack.pub',
+	    use_syslog             => $use_syslog,
+	    nova_rate_limits       => $nova_rate_limits,
+	    cinder_rate_limits     => $cinder_rate_limits
+	  }
+	}
 
 
+In the ``openstack/examples/site_openstack_full.pp`` example, the following nodes are specified:
 
-Now you're ready to perform the actual installation.
+* fuel-controller-01
+* fuel-controller-02
+* fuel-controller-03
+* fuel-compute-[\d+]
+* fuel-swift-01
+* fuel-swift-02
+* fuel-swift-03
+* fuel-swiftproxy-[\d+]
+* fuel-quantum
+
+Using this architecture, the system includes three stand-alone swift-storage servers, and one or more swift-proxy servers.
+
+With ``site.pp`` prepared, you're ready to perform the actual installation.
 
 
-Installing OpenStack on the nodes using Puppet
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Installing OpenStack using Puppet directly
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Now that you've set all of your configurations, all that's left to stand
 up your OpenStack cluster is to run Puppet on each of your nodes; the
 Puppet Master knows what to do for each of them.
 
+You have two options for performing this step.  The first, and by far the easiest, is to use the orchestrator.  If you're going to take that option, skip ahead to :ref:`Deploying OpenStack via Orchestration <orchestration>`.  If you choose not to use orchestration, or if for some reason you want to reload only one or two nodes, you can run Puppet manually on a the target nodes.
 
+If you're starting from scratch, start by logging in to fuel-controller-01 and running the Puppet
+agent.
 
-Start by logging in to fuel-controller-01 and running the Puppet
-agent. One optional step would be to use the script command to log all
+One optional step would be to use the script command to log all
 of your output so you can check for errors if necessary::
 
 
@@ -494,10 +882,8 @@ of your output so you can check for errors if necessary::
     script agent-01.log
     puppet agent --test
 
-
-
 You will to see a great number of messages scroll by, and the
-installation will take a significan't amount of time. When the process
+installation will take a significant amount of time. When the process
 has completed, press CTRL-D to stop logging and grep for errors::
 
 
@@ -525,7 +911,7 @@ in place.
 
 In some cases, you may find errors related to resources that are not
 yet available when the installation takes place. To solve that
-problem, simply re-run the puppet agent on the affected node, and
+problem, simply re-run the puppet agent on the affected node after running the other controllers, and
 again grep for error messages.
 
 
@@ -533,157 +919,44 @@ again grep for error messages.
 When you see no errors on any of your nodes, your OpenStack cluster is
 ready to go.
 
-Configuring OpenStack to use syslog
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-* If you want to use syslog server, you need to do the following steps:
-
-Adjust the corresponding variables in "if $use_syslog" clause::
-
-    $use_syslog = true
-        if $use_syslog {
-            class { "::rsyslog::client": 
-                log_local => true,
-                log_auth_local => true,
-                server => '127.0.0.1',
-                port => '514'
-            }
-    }
-
-For remote logging:
-
-            server => <syslog server hostname or ip>
-
-            port => <syslog server port>
-
-For local logging:
-
-            set log_local and log_auth_local to true
-   
-
-Setting the mirror type
-^^^^^^^^^^^^^^^^^^^^^^^
-
-
-To tell Fuel to download packages from external repos provided by Mirantis and your distribution vendors, set the $mirror_type variable to "external"::
-
-    ...
-    # If you want to set up a local repository, you will need to manually adjust mirantis_repos.pp,
-    # though it is NOT recommended.
-    $mirror_type = 'external'
-    $enable_test_repo = false
-    ...
-
-Future versions of Fuel will enable you to use your own internal repositories.
- 
-Configuring Rate-Limits
-^^^^^^^^^^^^^^^^^^^^^^^
-
-Openstack has predefined limits on different HTTP queries for nova-compute and cinder services. Some
-times (e.g. for big clouds or test scenarios) these limits are too strict. (See http://docs.openstac
-k.org/folsom/openstack-compute/admin/content/configuring-compute-API.html) In this case you can chan
-ge them to appropriate values.
-
-There are two hashes describing these limits: $nova_rate_limits and $cinder_rate_limits. ::
-
-    $nova_rate_limits = { 'POST' => '10',
-    'POST_SERVERS' => '50',
-    'PUT' => 10, 'GET' => 3,
-    'DELETE' => 100 }
-
-    $cinder_rate_limits = { 'POST' => '10',
-    'POST_SERVERS' => '50',
-    'PUT' => 10, 'GET' => 3,
-    'DELETE' => 100 }
-
-
-
-Installing Nagios Monitoring using Puppet
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Installing nagios NRPE on compute or controller node: ::
-
-  class {'nagios':
-  proj_name       => 'test',
-  services        => ['nova-compute','nova-network','libvirt'],
-  whitelist       => ['127.0.0.1','10.0.97.5'],
-  hostgroup       => 'compute',
-  }
-
-where ``proj_name`` is an environment for nagios commands and directory
-
-in this case:
-        "``/etc/nagios/test/``"
-
-* ``services``  - all services which nagios will monitor
-* ``whitelist`` - array of IP addreses which NRPE trusts
-* ``hostgroup`` - group to be used in nagios master (do not forget create it in nagios master)
-
-Installing nagios Master on any convenient node: ::
-
-  class {'nagios::master':
-    proj_name       => 'test',
-    templatehost    => {'name' => 'default-host','check_interval' => '10'},
-    templateservice => {'name' => 'default-service' ,'check_interval'=>'10'},
-    hostgroups      => ['compute','controller'],
-    contactgroups   => {'group' => 'admins', 'alias' => 'Admins'}, 
-    contacts        => {'user' => 'hotkey', 'alias' => 'Dennis Hoppe',
-                 'email' => 'nagios@%{domain}',
-                 'group' => 'admins'},
-  }
-
-where ``proj_name`` is an environment for nagios services and directory
-
-in this case:
-        "``/etc/nagios3/test/``"
-*  ``templatehost`` - group of checks and intervals parameters for hosts (as Hash)
-*  ``templateservice`` - group of checks and intervals parameters for services  (as Hash)
-*  ``hostgroups`` - just add all groups which were on NRPE nodes (as Array)
-*  ``contactgroups`` - group of contacts {as Hash}
-*  ``contacts`` - create contacts for send error reports to {as Hash}
-
 
 Examples of OpenStack installation sequences
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-**First, please see the link below for details about different deployment scenarios.**
-
-     :ref:`Swift-and-object-storage-notes`
-
-  **Note:** No changes to ``site.pp`` necessary between installation phases except the *Controller + Compute on the same node* case. You simply run the same puppet scenario in several passes over the already installed node. Every deployment pass Puppet collects and adds necessary absent information to OpenStack configuration, stores it to PuppedDB and applies necessary changes. But please use appropriate ``site.pp`` from OpenStack Examples as base file for your OpenStack deployment.
+When running Puppet manually, the exact sequence depends on what it is you're trying to achieve.  In most cases, you'll need to run Puppet more than once; with every deployment pass Puppet collects and adds necessary absent information to the OpenStack configuration, stores it to PuppedDB and applies necessary changes.  
 
   **Note:** *Sequentially run* means you don't start the next node deployment until previous one is finished.
 
-  **Example1:** **Full OpenStack deployment with standalone storage nodes**
+  **Example 1:** **Full OpenStack deployment with standalone storage nodes**
 
-    * Create necessary volumes on storage nodes as described in	 :ref:`create-the-XFS-partition`
-    * Sequentially run deployment pass on controller nodes (``fuel-controller-01 ... fuel-controller-xx``).
-    * Run additional deployment pass on Controller 1 only (``fuel-controller-01``) to finalize Galera cluster configuration.
-    * Run deployment pass on Quantum node (``fuel-quantum``) to install Quantum router.
-    * Run deployment pass on every compute node (``fuel-compute-01 ... fuel-compute-xx``) - unlike controllers these nodes may be deployed in parallel.
-    * Sequentially run deployment pass on every storage node (``fuel-sowift-01`` ... ``fuel-swift-xx``) node. By default these nodes named as ``fuel-swift-xx``. Errors in Swift storage like */Stage[main]/Swift::Storage::Container/Ring_container_device[<device address>]: Could not evaluate: Device not found check device on <device address>* are expected on Storage nodes during the deployment passes until the very final pass.
-    * In case loopback devices are used on storage nodes (``$swift_loopback = 'loopback'`` in ``site.pp``) - run deployment pass on every storage (``fuel-swift-01`` ... ``fuel-swift-xx``) node one more time. Skip this step in case loopback is off (``$swift_loopback = false`` in ``site.pp``). Again, ignore errors in *Swift::Storage::Container* during this deployment pass.
-    * Run deployment pass on every SwiftProxy node (``fuel-swiftproxy-01 ... fuel-swiftproxy-02``). Node names are set by ``$swift_proxies`` variable in ``site.pp``. There are 2 Swift Proxies by default.
-    * Repeat deployment pass on every storage (``fuel-swift-01`` ... ``fuel-swift-xx``) node. No Swift storage errors should appear during this deployment pass!
+    * Create necessary volumes on storage nodes as described in	 :ref:`create-the-XFS-partition`.
+    * Sequentially run a deployment pass on the controller nodes (``fuel-controller-01 ... fuel-controller-xx``).
+    * Run an additional deployment pass on Controller 1 only (``fuel-controller-01``) to finalize the Galera cluster configuration.
+    * Run a deployment pass on the Quantum node (``fuel-quantum``) to install the Quantum router.
+    * Run a deployment pass on every compute node (``fuel-compute-01 ... fuel-compute-xx``) - unlike the controllers, these nodes may be deployed in parallel.
+    * Sequentially run a deployment pass on every storage node (``fuel-swift-01`` ... ``fuel-swift-xx``). Errors in Swift storage such as */Stage[main]/Swift::Storage::Container/Ring_container_device[<device address>]: Could not evaluate: Device not found check device on <device address>* are expected on the Storage nodes during the deployment passes until the very final pass.
+    * If loopback devices are used on storage nodes (``$swift_loopback = 'loopback'`` in ``site.pp``) - run a deployment pass on every storage (``fuel-swift-01`` ... ``fuel-swift-xx``) node one more time. Skip this step if loopback is off (``$swift_loopback = false`` in ``site.pp``). Again, ignore errors in *Swift::Storage::Container* during this deployment pass.
+    * Run a deployment pass on every SwiftProxy node (``fuel-swiftproxy-01 ... fuel-swiftproxy-xx``). Node names are set by the ``$swift_proxies`` variable in ``site.pp``. There are 2 Swift Proxies by default.
+    * Repeat the deployment pass on every storage (``fuel-swift-01`` ... ``fuel-swift-xx``) node. No Swift storage errors should appear during this deployment pass.
 
-  **Example2:** **Compact OpenStack deployment with storage and swift-proxy combined with nova-controller on the same nodes**
+  **Example 2:** **Compact OpenStack deployment with storage and swift-proxy combined with nova-controller on the same nodes**
 
-    * Create necessary volumes on controller nodes as described in	 :ref:`create-the-XFS-partition`
-    * Sequentially run deployment pass on controller nodes (``fuel-controller-01 ... fuel-controller-xx``). Errors in Swift storage like */Stage[main]/Swift::Storage::Container/Ring_container_device[<device address>]: Could not evaluate: Device not found check device on <device address>* are expected during the deployment passes until the very final pass.
-    * Run deployment pass on Quantum node (``fuel-quantum``) to install Quantum router.
-    * Run deployment pass on every compute node (``fuel-compute-01 ... fuel-compute-xx``) - unlike controllers these nodes may be deployed in parallel.
+    * Create the necessary volumes on controller nodes as described in :ref:`create-the-XFS-partition`
+    * Sequentially run a deployment pass on the controller nodes (``fuel-controller-01 ... fuel-controller-xx``). Errors in Swift storage such as */Stage[main]/Swift::Storage::Container/Ring_container_device[<device address>]: Could not evaluate: Device not found check device on <device address>* are expected during the deployment passes until the very final pass.
+    * Run a deployment pass on the Quantum node (``fuel-quantum``) to install the Quantum router.
+    * Run a deployment pass on every compute node (``fuel-compute-01 ... fuel-compute-xx``) - unlike the controllers these nodes may be deployed in parallel.
     * Sequentially run one more deployment pass on every controller (``fuel-controller-01 ... fuel-controller-xx``) node. Again, ignore errors in *Swift::Storage::Container* during this deployment pass.
-    * Run additional deployment pass *only* on controller, which holds on the SwiftProxy service. By default it is ``fuel-controller-01``. And again, ignore errors in *Swift::Storage::Container* during this deployment pass.
-    * Sequentially run one more deployment pass on every controller (``fuel-controller-01 ... fuel-controller-xx``) node to finalize storage configuration. No Swift storage errors should appear during this deployment pass!
+    * Run an additional deployment pass *only* on the controller that hosts the SwiftProxy service. By default it is ``fuel-controller-01``. Again, ignore errors in *Swift::Storage::Container* during this deployment pass.
+    * Sequentially run one more deployment pass on every controller (``fuel-controller-01 ... fuel-controller-xx``) node to finalize storage configuration. No Swift storage errors should appear during this deployment pass.
 
-  **Example3:** **OpenStack HA installation without Swift**
+  **Example 3:** **OpenStack HA installation without Swift**
 
-    * Sequentially run deployment pass on controller nodes (``fuel-controller-01 ... fuel-controller-xx``). No errors should appear during this deployment pass.
-    * Run additional deployment pass on Controller 1 only (``fuel-controller-01``) to finalize Galera cluster configuration.
-    * Run deployment pass on Quantum node (``fuel-quantum``) to install Quantum router.
-    * Run deployment pass on every compute node (``fuel-compute-01 ... fuel-compute-xx``) - unlike controllers these nodes may be deployed in parallel.
+    * Sequentially run a deployment pass on the controller nodes (``fuel-controller-01 ... fuel-controller-xx``). No errors should appear during this deployment pass.
+    * Run an additional deployment pass on Controller 1 only (``fuel-controller-01``) to finalize the Galera cluster configuration.
+    * Run a deployment pass on the Quantum node (``fuel-quantum``) to install the Quantum router.
+    * Run a deployment pass on every compute node (``fuel-compute-01 ... fuel-compute-xx``) - unlike the controllers these nodes may be deployed in parallel.
 
-  **Example4:** **The most simple OpenStack installation Controller + Compute on the same node**
+  **Example 4:** **The most simple OpenStack installation: Controller + Compute on the same node**
 
-    * Set ``node /fuel-controller-[\d+]/`` variable in ``site.pp`` to match with node name you are going to deploy OpenStack. Set ``node /fuel-compute-[\d+]/`` variable to **mismatch** with node name. Run deployment pass on this node. No errors should appear during this deployment pass.
-    * Set ``node /fuel-compute-[\d+]/`` variable in ``site.pp`` to match with node name you are going to deploy OpenStack. Set ``node /fuel-controller-[\d+]/`` variable to **mismatch** with node name. Run deployment pass on this node. No errors should appear during this deployment pass.
+    * Set the ``node /fuel-controller-[\d+]/`` variable in ``site.pp`` to match the hostname of the node on which you are going to deploy OpenStack. Set the ``node /fuel-compute-[\d+]/`` variable to **mismatch** the node name. Run a deployment pass on this node. No errors should appear during this deployment pass.
+    * Set the ``node /fuel-compute-[\d+]/`` variable in ``site.pp`` to match the hostname of the node on which you are going to deploy OpenStack. Set the ``node /fuel-controller-[\d+]/`` variable to **mismatch** the node name. Run a deployment pass on this node. No errors should appear during this deployment pass.

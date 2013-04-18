@@ -24,17 +24,26 @@
 #
 define l23network::l2::port (
   $bridge,
+  $port          = $name,
   $type          = '',
+  $port_options  = [],
+  $interface_options  = [],
   $ensure        = present,
   $skip_existing = false,
 ) {
-  if ! defined (L2_ovs_port[$name]) {
-    l2_ovs_port { $name :
+  if ! $::l23network::l2::use_ovs {
+    fail('You need enable using Open vSwitch. You yourself has prohibited it.')
+  }
+  
+  if ! defined (L2_ovs_port[$port]) {
+    l2_ovs_port { $port :
       ensure        => $ensure,
       bridge        => $bridge,
       type          => $type,
+      port_options  => $port_options,
+      interface_options  => $interface_options,
       skip_existing => $skip_existing,
     }
-    Service<| title == 'openvswitch-service' |> -> L2_ovs_port[$name]
+    Service<| title == 'openvswitch-service' |> -> L2_ovs_port[$port]
   }
 }

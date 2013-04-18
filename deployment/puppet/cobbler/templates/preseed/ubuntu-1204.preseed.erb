@@ -80,7 +80,7 @@ d-i mirror/protocol string http
 d-i mirror/country string manual
 d-i mirror/http/hostname string $tree_host
 d-i mirror/http/directory string $tree_url
-d-i mirror/http/proxy string
+d-i mirror/http/proxy string $proxy
 
 d-i mirror/suite string precise
 # Suite to use for loading installer components (optional).

@@ -64,22 +64,34 @@ class quantum::agents::ovs (
 
   Quantum_config <| |> ~> Service['quantum-plugin-ovs-service']
   Quantum_plugin_ovs <| |> ~> Service['quantum-plugin-ovs-service']
+  Service <| title == 'quantum-server' |> -> Service['quantum-plugin-ovs-service']
 
   L23network::L2::Bridge <| |> -> Service['quantum-plugin-ovs-service']
 
   if $service_provider == 'pacemaker' {
-    
+    Quantum_config <| |> -> Cs_shadow['ovs']
+    Quantum_plugin_ovs <| |> -> Cs_shadow['ovs']
+    L23network::L2::Bridge <| |> -> Cs_shadow['ovs']
+
     cs_shadow { 'ovs': cib => 'ovs' }
+
     cs_commit { 'ovs': cib => 'ovs' }
-    
-    Cs_commit['ovs']->Service['quantum-plugin-ovs-service'] 
-    
+
+    Cs_commit['ovs'] -> Service['quantum-plugin-ovs-service']
+
+    ::corosync::cleanup { "p_${::quantum::params::ovs_agent_service}": }
+
+    Cs_commit['ovs'] -> ::Corosync::Cleanup["p_${::quantum::params::ovs_agent_service}"]
+    Cs_commit['ovs'] ~> ::Corosync::Cleanup["p_${::quantum::params::ovs_agent_service}"]
+    ::Corosync::Cleanup["p_${::quantum::params::ovs_agent_service}"] -> Service['quantum-plugin-ovs-service']
+
     cs_resource { "p_${::quantum::params::ovs_agent_service}":
       ensure          => present,
-      cib => 'ovs',
+      cib             => 'ovs',
       primitive_class => 'ocf',
       provided_by     => 'pacemaker',
       primitive_type  => 'quantum-agent-ovs',
+      require => File['quantum-ovs-agent'] ,
       parameters      => {
       }
       ,
@@ -87,24 +99,44 @@ class quantum::agents::ovs (
         'monitor'  => {
           'interval' => '20',
           'timeout'  => '30'
-        },
-        'start' => {'timeout'=>'120'},
-        'stop' => {'timeout'=>'120'}
-        
+        }
+        ,
+        'start'    => {
+          'timeout' => '480'
+        }
+        ,
+        'stop'     => {
+          'timeout' => '480'
+        }
+
       }
       ,
     }
-    Package[$ovs_agent_package] -> Service['quantum-plugin-ovs-service_stopped'] 
-    Service['quantum-plugin-ovs-service_stopped']->Cs_resource["p_${::quantum::params::ovs_agent_service}"]
-    
-    service { 'quantum-plugin-ovs-service_stopped':
-      name       => "${::quantum::params::ovs_agent_service}",
-      enable     => false,
-      ensure     => stopped,
-      hasstatus  => true,
-      hasrestart => true,
-      provider   => $::quantum::params::service_provider,
+
+    case $::osfamily {
+      /(?i)redhat/: {
+        $started_status = "is running"
+      }
+      /(?i)debian/: {
+        $started_status = "start/running"
+      }
+      default: { fail("The $::osfamily operating system is not supported.") }
     }
+    service { 'quantum-plugin-ovs-service_stopped':
+      name       => $::quantum::params::ovs_agent_service,
+      enable     => false,
+      hasstatus  => false,
+    }
+    exec { 'quantum-plugin-ovs-service_stopped':
+      name   => "bash -c \"service ${::quantum::params::ovs_agent_service} stop || ( kill `pgrep -f quantum-openvswitch-agent` || : )\"",
+      onlyif => "service ${::quantum::params::ovs_agent_service} status | grep \'${started_status}\'",
+      path   => ['/usr/bin', '/usr/sbin', '/bin', '/sbin'],
+      returns => [0,""]
+    }
+    Package[$ovs_agent_package] ->
+      Service['quantum-plugin-ovs-service_stopped'] ->
+        Exec['quantum-plugin-ovs-service_stopped'] ->
+          Cs_resource["p_${::quantum::params::ovs_agent_service}"]
 
     service { 'quantum-plugin-ovs-service':
       name       => "p_${::quantum::params::ovs_agent_service}",

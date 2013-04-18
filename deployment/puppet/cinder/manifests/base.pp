@@ -30,13 +30,13 @@ class cinder::base (
   }
 
 if $use_syslog {
-	cinder_config {'DEFAULT/log_config': value => "/etc/cinder/logging.conf";}
-	file { "cinder-logging.conf":
-	    source=>"puppet:///modules/cinder/logging.conf",
-	    path => "/etc/cinder/logging.conf",
-	    owner => "cinder",
-	    group => "cinder",
-	}
+  cinder_config {'DEFAULT/log_config': value => "/etc/cinder/logging.conf";}
+  file { "cinder-logging.conf":
+    content => template('cinder/logging.conf.erb'),
+	path => "/etc/cinder/logging.conf",
+	owner => "cinder",
+	group => "cinder",
+  }
 }
 else {
 	cinder_config {'DEFAULT/log_config': ensure=>absent;}
@@ -92,5 +92,7 @@ else {
   Cinder_config<||> -> Exec['cinder-manage db_sync']
   Nova_config<||> -> Exec['cinder-manage db_sync']
   Cinder_api_paste_ini<||> -> Exec['cinder-manage db_sync']
-
+ Exec['cinder-manage db_sync'] -> Service<| title == 'cinder-api' |>
+ Exec['cinder-manage db_sync'] -> Service<| title == 'cinder-volume' |>
+ Exec['cinder-manage db_sync'] -> Service<| title == 'cinder-scheduler' |>
 }

@@ -2,7 +2,7 @@
 install
 
 # INSTALLATION SOURCE (centos repository)
-url --url=$tree
+$SNIPPET('url_proxy')
 
 # ALTERNATIVE REPOSITORIES
 <% if ks_repo.kind_of?(Array)  %>
@@ -24,7 +24,6 @@ timezone --utc <%= @ks_system_timezone %>
 # REBOOT AFTER INSTALLATION
 reboot
 
-network --onboot yes --device eth0 --bootproto=dhcp
 firewall --disable
 
 # SET ROOT PASSWORD DEFAULT IS r00tme
@@ -49,7 +48,7 @@ skipx
 # --driveorder=sda,hda
 # APPEND STRING TO KERNEL BOOT COMMAND
 # --append=""
-bootloader --location=mbr --driveorder=sda,hda --append=" crashkernel=auto"
+bootloader --location=mbr --driveorder=sda,hda --append=" crashkernel=auto edd=off"
 
 # PARTITIONING
 # CLEAN ANY INVALID PARTITION TABLE

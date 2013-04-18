@@ -13,45 +13,22 @@ basis for installing OpenStack in the next section.
 As you know, OpenStack provides the following basic services:
 
 
-**Compute**
-
-Compute servers are the workhorses of your installation; they're the
-servers on which your users' virtual machines are created. **Nova-scheduler** controls the life-cycle of these VMs.
+   * **Compute**: Compute servers are the workhorses of your installation; they're the servers on which your users' virtual machines are created. `Nova-scheduler` controls the life-cycle of these VMs.
 
 
-**Networking**
-
-Because an OpenStack cluster (virtually) always includes multiple
-servers, the ability for them to communicate with each other and with
-the outside world is crucial. Networking was originally handled by the
-**Nova-network** service, but it is slowly giving way to the newer **Quantum** networking service. Authentication and
-authorization for these transactions are handled by **Keystone**.
+   * **Networking**: Because an OpenStack cluster (virtually) always includes multiple servers, the ability for them to communicate with each other and with the outside world is crucial. Networking was originally handled by the `Nova-network` service, but it is slowly giving way to the newer `Quantum` networking service. Authentication and authorization for these transactions are handled by `Keystone`.
 
 
-**Storage**
+   * **Storage**: OpenStack provides for two different types of storage: block storage and object storage. Block storage is traditional data storage, with small, fixed-size blocks that are mapped to locations on storage media. At its simplest level, OpenStack provides block storage using `nova-volume`, but it is common to use `Cinder`.
+  
+     Object storage, on the other hand, consists of single variable-size objects that are described by system-level metadata, and you can access this capability using `Swift`.
 
-OpenStack provides for two different types of storage: block storage
-and object storage. Block storage is traditional data storage, with
-small, fixed-size blocks that are mapped to locations on storage media. At
-its simplest level, OpenStack provides block storage using **nova-
-volume**, but it is common to use **Cinder**.
-
-
-
-Object storage, on the other hand, consists of single variable-size
-objects that are described by system-level metadata, and you can
-access this capability using **Swift**.
-
-
-
-OpenStack storage is used for your users' objects, but it is also used
-for storing the images used to create new VMs. This capability is
-handled by **Glance**.
+     OpenStack storage is used for your users' objects, but it is also used for storing the images used to create new VMs. This capability is handled by `Glance`.
 
 
 
 These services can be combined in many different ways. Out of the box,
-Fuel supports the following topologies:
+Fuel supports the following deployment configurations:
 
 
 Single node deployment
@@ -66,7 +43,7 @@ essential services run out of a single server:
 
 
 
-[INSERT DIAGRAM HERE]
+.. image:: https://docs.google.com/drawings/d/1gGNYYayPAPPHgOYi98Dmebry4hP1SOGF2APXWzbnNo8/pub?w=767&h=413
 
 
 
@@ -80,12 +57,7 @@ is that your controller(s) are separate from your compute servers, on
 which your users' VMs will actually run. One arrangement that will
 enable you to achieve this separation while still keeping your
 hardware investment relatively modest is to house your storage on your
-controller nodes:
-
-
-
-[INSERT DIAGRAM HERE]
-
+controller nodes.
 
 
 Multi-node (non-HA) deployment (standalone Swift)
@@ -97,26 +69,25 @@ provide; because Swift runs on its own servers, you can reduce the
 number of controllers from three (or five, for a full Swift implementation) to one, if desired:
 
 
-
-[INSERT DIAGRAM HERE]
-
+.. image:: https://docs.google.com/drawings/d/1nVEtfpNLaLV4EBKJQleLxovqMVrDCRT7yFWTYUQASB0/pub?w=767&h=413
 
 
 
-Multi-node (HA) deployment (Compact Swift)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Multi-node (HA) deployment (Compact)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Production environments typically require high availability, which
 involves several architectural requirements. Specifically, you will
-need at least three controllers (to prevent split-brain problems), and
+need at least three controllers, and
 certain components will be deployed in multiple locations to prevent
 single points of failure. That's not to say, however, that you can't
-reduce hardware requirements by combining your storage and controller
+reduce hardware requirements by combining your storage, network, and controller
 nodes:
 
 
 
-[INSERT DIAGRAM HERE]
+.. image:: https://docs.google.com/drawings/d/1xLv4zog19j0MThVGV9gSYa4wh1Ma4MQYsBz-4vE1xvg/pub?w=767&h=413
 
 
 
@@ -131,7 +102,7 @@ but avoids the need for a separate Quantum node:
 
 
 
-[INSERT DIAGRAM HERE]
+.. image:: https://docs.google.com/drawings/d/1GYNM5yTJSlZe9nB5SHnlrqyMfVRdVh02OFLwXlz-itc/pub?w=767&h=413
 
 
 Multi-node (HA) deployment (Standalone)
@@ -145,7 +116,7 @@ networking, and controller functionality:
 
 
 
-[INSERT DIAGRAM HERE]
+.. image:: https://docs.google.com/drawings/d/1rJEZi5-l9oemMmrkH5UPjitQQDVGuZQ1KS0pPWTuovY/pub?w=769&h=594
 
 
 
@@ -153,37 +124,11 @@ Where Fuel really shines is in the creation of more complex
 architectures, so in this document you'll learn how to use Fuel to
 easily create a multi-node HA OpenStack cluster. To reduce the amount
 of hardware you'll need to follow the installation in section 3,
-however, the guide focuses on the Multi-node HA Compact Swift
+however, the guide focuses on the Multi-node HA Compact 
 architecture.
 
 
 
-Lets take a closer look at the details of this topology.
+Lets take a closer look at the details of this deployment configuration.
 
-A closer look at the Multi-node (non-HA) deployment (compact Swift)
--------------------------------------------------------------------
-
-In this section, you'll learn more about the Multi-node (HA) Compact
-Swift topology and how it achieves high availability in preparation
-for installing this cluster in section 3. As you may recall, this
-topology looks something like this:
-
-[INSERT DIAGRAM HERE]
-
-
-
-OpenStack services are interconnected by RESTful HTTP-based APIs and
-AMQP-based RPC messages. So, redundancy for stateless OpenStack API
-services is implemented through the combination of Virtual IP(VIP)
-management using keepalived and load balancing using HAProxy. Stateful
-OpenStack components, such as state database and messaging server,
-rely on their respective active/active modes for high availability.
-For example, RabbitMQ uses built-in clustering capabilities, while the
-database uses MySQL/Galera replication.
-
-.. image:: https://docs.google.com/drawings/pub?id=1PzRBUaZEPMG25488mlb42fRdlFS3BygPwbAGBHudnTM&w=750&h=491
-
-Lets take a closer look at what an OpenStack deployment looks like, and
-what it will take to achieve high availability for an OpenStack
-deployment.
 

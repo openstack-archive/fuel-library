@@ -17,3 +17,17 @@ Fuel has been tested and is guaranteed to work with the following software compo
 
 * OpenStack
     * Folsom release
+
+* Hypervisor
+    * KVM
+
+* HA Proxy
+    * 1.4.19
+
+* Galera
+    * 23.2.1
+
+* Keepalived
+    * 1.2.4
+
+

@@ -21,12 +21,23 @@ apply_settings
 # Installing puppetmaster/cobbler node role
 echo;echo "Provisioning masternode role ..."
 (
+mkdir -p /var/lib/puppet/ssh_keys
+[ -f /var/lib/puppet/ssh_keys/openstack ] || ssh-keygen -f /var/lib/puppet/ssh_keys/openstack -N ''
+chown root:puppet /var/lib/puppet/ssh_keys/openstack*
+chmod g+r /var/lib/puppet/ssh_keys/openstack*
 puppet apply -e "
-    class {openstack::mirantis_repos: enable_epel => true }
+    class {openstack::mirantis_repos: enable_epel => true } ->
     class {puppet: } -> class {puppet::thin:} -> class {puppet::nginx: puppet_master_hostname => \"$hstname.$domain\"}
-    class {puppetdb: }"
+    "
 puppet apply -e "
-    class {puppet::master_config: } "
+    class {puppet::fileserver_config: } "
+puppet apply -e "
+    class {puppetdb: }"
+puppetdb-ssl-setup
+service puppetdb restart
+puppet apply -e "
+    class {puppetdb::master::config: puppet_service_name=>'thin'} "
+service thin restart
 
 # Walking aroung nginx's default server config
 rm -f /etc/nginx/conf.d/default.conf
@@ -89,4 +100,6 @@ puppet apply -e 'class { squid: }'
 iptables -A PREROUTING -t nat -i $mgmt_if -s $mgmt_ip/$mgmt_mask ! -d $mgmt_ip -p tcp --dport 80 -j REDIRECT --to-port 3128
 
 gem install /var/www/astute-0.0.1.gem
-) >> $log
+
+cp `find / -name config.yaml -print0 | grep -FzZ 'samples/config.yaml'` /root
+) 2>&1 >> $log

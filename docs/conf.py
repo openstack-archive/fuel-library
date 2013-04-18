@@ -41,14 +41,15 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Fuel for OpenStack'
-copyright = u'2012, Mirantis'
+copyright = u'2013, Mirantis'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 #
 # The short X.Y version.
-version = '1'
+version = '2.1'
+
 # The full version, including alpha/beta/rc tags.
 release = '2.1'
 

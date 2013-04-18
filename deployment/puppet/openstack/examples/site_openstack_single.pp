@@ -53,12 +53,21 @@ $quantum_gre_bind_addr = $internal_address
 # Packages repo setup
 $mirror_type = 'default'
 $enable_test_repo = false
+$repo_proxy = undef
+$use_upstream_mysql = true
 
 #Specify desired NTP servers here.
 #If you leave it undef pool.ntp.org
 #will be used
-
 $ntp_servers = ['pool.ntp.org']
+
+# This parameter specifies the the identifier of the current cluster. This is needed in case of multiple environments.
+# installation. Each cluster requires a unique integer value.
+# Valid identifier range is 1 to 254
+$deployment_id = '59'
+
+# Globally apply an environment-based tag to all resources on each node.
+tag("${::deployment_id}::${::environment}")
 
 class {'openstack::clocksync': ntp_servers=>$ntp_servers}
 
@@ -83,6 +92,8 @@ class { 'openstack::mirantis_repos':
   stage => 'openstack-custom-repo',
   type=>$mirror_type,
   enable_test_repo=>$enable_test_repo,
+  repo_proxy=>$repo_proxy,
+  use_upstream_mysql=>$use_upstream_mysql
 }
 
 # OpenStack packages and customized component versions to be installed.
@@ -108,8 +119,10 @@ $openstack_version = {
 
 # Every node should be deployed as all-in-one openstack installations.
 node default {
-
-  # include 'apache'
+  include stdlib
+  class { 'operatingsystem::checksupported':
+      stage => 'setup'
+  }
 
   class { 'openstack::all':
     public_address          => $ipaddress_eth0,
@@ -127,7 +140,7 @@ node default {
     mysql_root_password     => $mysql_root_password,
     rabbit_password         => $rabbit_password,
     rabbit_user             => $rabbit_user,
-    libvirt_type            => 'qemu',
+    libvirt_type            => 'kvm',
     floating_range          => $floating_range,
     fixed_range             => $fixed_range,
     verbose                 => $verbose,

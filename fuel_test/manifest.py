@@ -63,7 +63,7 @@ class Template(object):
     @classmethod
     def stomp(cls):
         return cls(root('deployment', 'puppet', 'mcollective', 'examples',
-            'site_openstack_ha_minimal.pp'))
+            'site.pp'))
 
     @classmethod
     def minimal(cls):
@@ -120,37 +120,31 @@ class Manifest(object):
         return map(
             lambda x: x.get_ip_address_by_network_name('internal'), ci.nodes().masters)
 
+    def describe_node(self, node, role):
+        return {'name': str(node.name), 'role' : role,
+         'internal_address': node.get_ip_address_by_network_name('internal'),'public_address': node.get_ip_address_by_network_name('public'),}
+
+    def describe_swift_node(self, node, role, zone):
+        node_dict = self.describe_node(node, role)
+        node_dict.update({'swift_zone': zone})
+        node_dict.update({'storage_local_net_ip': node.get_ip_address_by_network_name('internal')})
+        node_dict.update({'mountpoints': '1 2\n 2 1'})
+        return node_dict
+
     def generate_nodes_configs_list(self, ci):
-        def get_role(ci, node):
-            rv = ''
-            if node in ci.nodes().computes:
-                rv = 'compute'
-            elif node in ci.nodes().controllers:
-                rv = 'controller'
-            elif node in ci.nodes().storages:
-                rv = 'storage'
-            elif node in ci.nodes().proxies:
-                rv = 'proxy'
-            elif node in ci.nodes().quantums:
-                rv = 'quantum'
-            elif node in ci.nodes().masters:
-                rv = 'master'
-            elif node in ci.nodes().cobblers:
-                rv = 'cobbler'
-            elif node in ci.nodes().stomps:
-                rv = 'stomp'
-            return str(rv)
-        nodes = ci.nodes().all
-        return map(
-            lambda x:
-               {   
-                   'name': str(x.name),
-                   'role': get_role(ci, x),
-                   'internal_address': x.get_ip_address_by_network_name('internal'),
-                   'public_address': x.get_ip_address_by_network_name('public'),
-               }
-        ,
-            nodes)
+        zones = range(1, 50)
+        nodes = []
+        for node in ci.nodes().computes: nodes.append(self.describe_node(node, 'compute'))
+        for node in ci.nodes().controllers[:1]: nodes.append(self.describe_swift_node(node, 'primary-controller', zones.pop()))
+        for node in ci.nodes().controllers[1:]: nodes.append(self.describe_swift_node(node, 'controller', zones.pop()))
+        for node in ci.nodes().storages: nodes.append(self.describe_swift_node(node, 'storage', zones.pop()))
+        for node in ci.nodes().proxies[:1]: nodes.append(self.describe_node(node, 'primary-swift-proxy'))
+        for node in ci.nodes().proxies[1:]: nodes.append(self.describe_node(node, 'swift-proxy'))
+        for node in ci.nodes().quantums: nodes.append(self.describe_node(node, 'quantum'))
+        for node in ci.nodes().masters: nodes.append(self.describe_node(node, 'master'))
+        for node in ci.nodes().cobblers: nodes.append(self.describe_node(node, 'cobbler'))
+        for node in ci.nodes().stomps: nodes.append(self.describe_node(node, 'stomp'))
+        return nodes
 
     def self_test(self):
         class Node(object):
@@ -203,7 +197,7 @@ class Manifest(object):
     def write_openstack_simple_manifest(self, remote, ci, controllers,
                                         use_syslog=True,
                                         quantum=True,
-                                        cinder=True):
+                                        cinder=True, cinder_on_computes=False):
         template = Template(
             root(
                 'deployment', 'puppet', 'openstack', 'examples',
@@ -214,16 +208,28 @@ class Manifest(object):
             internal_interface=self.internal_interface(),
             private_interface=self.private_interface(),
             mirror_type=self.mirror_type(),
-            controller_node_address=controllers[
-                                    0].get_ip_address_by_network_name(
-                'internal'),
-            controller_node_public=controllers[
-                                   0].get_ip_address_by_network_name(
-                'public'),
+            #controller_node_address=controllers[0].get_ip_address_by_network_name('internal'),
+            #controller_node_public=controllers[0].get_ip_address_by_network_name('public'),
+            cinder=cinder,
+            cinder_on_computes=cinder_on_computes,
             nv_physical_volume=self.physical_volumes(),
+            nagios_master = controllers[0].name + '.your-domain-name.com',
+            external_ipinfo=self.external_ip_info(ci, controllers),
+            nodes=self.generate_nodes_configs_list(ci),
+            dns_nameservers=self.generate_dns_nameservers_list(ci),
+            ntp_servers=['pool.ntp.org',ci.internal_router()],
+            default_gateway=ci.public_router(),
+            enable_test_repo=TEST_REPO,
+            deployment_id = self.deployment_id(ci),
             use_syslog=use_syslog,
-            enable_test_repo = TEST_REPO,
+            public_netmask = ci.public_net_mask(),
+            internal_netmask = ci.internal_net_mask(),
         )
+        if is_not_essex():
+            template.replace(
+                quantum=quantum,
+                quantum_netnode_on_cnt=quantum,
+            )
         self.write_manifest(remote, template)
 
 
@@ -242,6 +248,7 @@ class Manifest(object):
             mirror_type=self.mirror_type(),
             use_syslog=use_syslog,
             cinder=cinder,
+            ntp_servers=['pool.ntp.org',ci.internal_router()],
             quantum=quantum,
             enable_test_repo = TEST_REPO,
         )
@@ -251,8 +258,8 @@ class Manifest(object):
     def write_openstack_ha_minimal_manifest(self, remote, template, ci, controllers, quantums,
                                  proxies=None, use_syslog=True,
                                  quantum=True, loopback=True,
-                                 cinder=True, cinder_on_computes=False,
-                                 ):
+                                 cinder=True, cinder_on_computes=False, quantum_netnode_on_cnt=True,
+                                 ha_provider='pacemaker'):
         template.replace(
             internal_virtual_ip=ci.internal_virtual_ip(),
             public_virtual_ip=ci.public_virtual_ip(),
@@ -271,13 +278,17 @@ class Manifest(object):
             nodes=self.generate_nodes_configs_list(ci),
             dns_nameservers=self.generate_dns_nameservers_list(ci),
             default_gateway=ci.public_router(),
+            ntp_servers=['pool.ntp.org',ci.internal_router()],
             enable_test_repo=TEST_REPO,
             deployment_id = self.deployment_id(ci),
+            public_netmask = ci.public_net_mask(),
+            internal_netmask = ci.internal_net_mask(),
         )
         if is_not_essex():
             template.replace(
                 quantum=quantum,
-                quantum_netnode_on_cnt=quantum,
+                quantum_netnode_on_cnt=quantum_netnode_on_cnt,
+                ha_provider=ha_provider,
             )
 
         self.write_manifest(remote, template)
@@ -286,7 +297,8 @@ class Manifest(object):
     def write_openstack_manifest(self, remote, template, ci, controllers, quantums,
                                  proxies=None, use_syslog=True,
                                  quantum=True, loopback=True,
-                                 cinder=True, swift=True):
+                                 cinder=True, swift=True, quantum_netnode_on_cnt=True,
+                                 ha_provider='pacemaker'):
         template.replace(
             internal_virtual_ip=ci.internal_virtual_ip(),
             public_virtual_ip=ci.public_virtual_ip(),
@@ -299,6 +311,7 @@ class Manifest(object):
             nv_physical_volume=self.physical_volumes(),
             use_syslog=use_syslog,
             cinder=cinder,
+            ntp_servers=['pool.ntp.org',ci.internal_router()],
             cinder_on_computes=cinder,
             nagios_master = controllers[0].name + '.your-domain-name.com',
             external_ipinfo=self.external_ip_info(ci, quantums),
@@ -307,12 +320,16 @@ class Manifest(object):
             default_gateway=ci.public_router(),
             enable_test_repo=TEST_REPO,
             deployment_id = self.deployment_id(ci),
+            public_netmask = ci.public_net_mask(),
+            internal_netmask = ci.internal_net_mask(),
         )
         if swift:
             template.replace(swift_loopback=self.loopback(loopback))
         if is_not_essex():
             template.replace(
                 quantum=quantum,
+                quantum_netnode_on_cnt=quantum_netnode_on_cnt,
+                ha_provider=ha_provider,
             )
 
         self.write_manifest(remote, template)
@@ -353,6 +370,6 @@ class Manifest(object):
 
     def deployment_id(self, ci):
         try:
-            return ci.internal_network().split('.')[2]
+            return str(int(ci.internal_network().split('.')[2]) + 1)
         except:
             return '250'

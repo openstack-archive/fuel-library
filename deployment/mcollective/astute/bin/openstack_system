@@ -1,7 +1,16 @@
 #!/usr/bin/env ruby
 require 'optparse'
 
-ORCHESTRATION_ROLES = %w(controller compute quantum storage swift-proxy)
+ORCHESTRATION_ROLES = %w(controller compute quantum storage swift-proxy primary-controller primary-swift-proxy)
+HA_DEPLOYMENT_MODES = %w(ha_compute ha_compact ha_full ha_minimal)
+SITE_PPS = {
+    :ha_compute.to_s => '/etc/puppet/modules/openstack/examples/site_openstack_ha_compact.pp',
+    :ha_compact.to_s => '/etc/puppet/modules/openstack/examples/site_openstack_ha_compact.pp',
+    :ha_full.to_s => '/etc/puppet/modules/openstack/examples/site_openstack_ha_full.pp',
+    :ha_minimal.to_s => '/etc/puppet/modules/openstack/examples/site_openstack_ha_minimal.pp',
+    :multinode_compute.to_s => '/etc/puppet/modules/openstack/examples/site_openstack_simple.pp',
+    :singlenode_compute.to_s => '/etc/puppet/modules/openstack/examples/site_openstack_single.pp',
+}
 
 class Template
   def self.p_(value)
@@ -40,7 +49,7 @@ class Template
     if ret[0..0] == '$'
       return ret
     end
-    "'%s'" % ret
+    '"%s"' % ret
   end
 
   def self._replace(template, key, value)
@@ -71,22 +80,36 @@ class ConfigYaml
     ConfigYaml.validate(yaml)
     @yaml=yaml
   end
+
   def self.validate(yaml)
 
   end
+
   def self.load_file(path)
     require 'yaml'
     return ConfigYaml.new(YAML.load_file(path))
   end
+
   def common()
     @yaml['common']
   end
+
   def orchestrator_common()
     self.common['orchestrator_common']
   end
+
+  def deployment_mode()
+    self.orchestrator_common['attributes']['deployment_mode']
+  end
+
+  def ha?
+    HA_DEPLOYMENT_MODES.include? self.deployment_mode()
+  end
+
   def settings()
     self.common()['openstack_common']
   end
+
   def mandatory(key)
     result = self.settings()[key]
     if result.nil?
@@ -94,91 +117,161 @@ class ConfigYaml
     end
     result
   end
+
   def obligatory(key)
     self.settings()[key]
   end
+
   def internal_virtual_ip()
-    self.mandatory('internal_virtual_ip')
+    if self.ha?
+      self.mandatory('internal_virtual_ip')
+    else
+      self.obligatory('internal_virtual_ip')
+    end
   end
+
   def public_virtual_ip()
-    self.mandatory('public_virtual_ip')
+    if self.ha?
+      self.mandatory('public_virtual_ip')
+    else
+      self.obligatory('public_virtual_ip')
+    end
   end
+
   def floating_range()
     self.obligatory('floating_range')
   end
+
   def fixed_range()
     self.mandatory('fixed_range')
   end
+
   def mirror_type()
     self.mandatory('mirror_type')
   end
+
+  def public_netmask()
+    self.mandatory('public_netmask')
+  end
+
+  def internal_netmask()
+    self.mandatory('internal_netmask')
+  end
+
   def template()
     self.obligatory('template')
   end
+
   def quantums()
 
   end
+
   def quantum()
     self.mandatory('quantum')
   end
+
   def swift_proxies()
 
   end
+
   def controllers()
 
   end
+
   def loopback()
     self.mandatory('loopback')
   end
+
   def cinder()
     self.mandatory('cinder')
   end
+
   def cinder_on_computes()
     self.mandatory('cinder_on_computes')
   end
+
   def use_syslog()
     self.mandatory('use_syslog')
   end
+
   def swift()
     self.mandatory('swift')
   end
+
   def default_gateway()
     self.mandatory('default_gateway')
   end
+
   def nagios_master()
     self.mandatory('nagios_master')
   end
+
   def public_interface()
     self.mandatory('public_interface')
   end
+
   def internal_interface()
     self.mandatory('internal_interface')
   end
+
   def private_interface()
     self.mandatory('private_interface')
   end
+
   def nv_physical_volumes()
     self.mandatory('nv_physical_volumes')
   end
+
   def segment_range()
     self.mandatory('segment_range')
   end
+
+  def repo_proxy()
+    self.mandatory('repo_proxy')
+  end
+
   def external_ip_info()
     self.mandatory('external_ip_info')
   end
+
   def dns_nameservers()
     self.mandatory('dns_nameservers')
   end
+
   def nodes()
     self.mandatory('nodes')
+  end
+
+  def deployment_id()
+    self.obligatory('deployment_id')
+  end
+
+  def swift_loopback()
+    self.obligatory('swift_loopback')
+  end
+
+  def network_manager()
+    self.obligatory('network_manager')
+  end
+
+  def auto_assign_floating_ip()
+    self.obligatory('auto_assign_floating_ip')
+  end
+
+  def quantum_netnode_on_cnt()
+    self.obligatory('quantum_netnode_on_cnt')
   end
 end
 
 class Manifest
   def self.prepare_manifest(template, config)
-    template.replace(:internal_virtual_ip => config.internal_virtual_ip(),
-                     :public_virtual_ip => config.public_virtual_ip(),
-                     :floating_range => config.floating_range(),
+    if config.ha?
+      template.replace(:internal_virtual_ip => config.internal_virtual_ip(),
+                       :public_virtual_ip => config.public_virtual_ip()
+      )
+    end
+    template.replace(:deployment_id => config.deployment_id()) unless config.deployment_id().nil?
+    template.replace(:floating_range => config.floating_range(),
                      :fixed_range => config.fixed_range(),
                      :mirror_type => config.mirror_type(),
                      :public_interface => config.public_interface(),
@@ -193,11 +286,16 @@ class Manifest
                      :nodes => config.nodes(),
                      :dns_nameservers => config.dns_nameservers(),
                      :default_gateway => config.default_gateway(),
-                     :segment_range => config.segment_range()
+                     :segment_range => config.segment_range(),
+                     :repo_proxy => config.repo_proxy(),
+                     :public_netmask => config.public_netmask(),
+                     :internal_netmask => config.internal_netmask(),
+                     :network_manager => config.network_manager(),
+                     :auto_assign_floating_ip => config.auto_assign_floating_ip(),
+                     :quantum_netnode_on_cnt=> config.quantum_netnode_on_cnt()
     )
-
     if config.swift()
-      template.replace(:swift_loopback => config.loopback())
+      template.replace(:swift_loopback => config.swift_loopback()) unless config.swift_loopback().nil?
     end
     template.replace(:quantum => config.quantum())
   end
@@ -208,9 +306,9 @@ class Astute
     nodes = config.nodes().select do |node|
       !(ORCHESTRATION_ROLES & [node['role']]).empty?
     end.
-    collect do |node|
-      {:uid.to_s => node['name'], :role.to_s => node['role']}
-    end
+        collect do |node|
+          {:uid.to_s => node['name'], :role.to_s => node['role']}
+        end
     YAML.dump({:nodes.to_s => nodes}.update(config.orchestrator_common()))
   end
 end
@@ -245,18 +343,37 @@ end
 
 parser.parse!(ARGV)
 
-if options[:config].nil? or options[:template].nil? or options[:output].nil?
+if options[:config].nil?
   puts parser
   exit 1
 end
 
 config = ConfigYaml.load_file(options[:config])
+
+if options[:output].nil? and options[:astute].nil?
+  puts parser
+  exit 2
+end
+
+if options[:template].nil?
+  options[:template] = SITE_PPS[config.deployment_mode]
+end
+
+if options[:template].nil?
+  puts parser
+  exit 4
+end
+
 template = Template.new(options[:template])
 
-File.open(options[:output], 'w') { |f|
-  f.write Manifest.prepare_manifest(template, config)
-}
+unless options[:output].nil?
+  File.open(options[:output], 'w') { |f|
+    f.write Manifest.prepare_manifest(template, config)
+  }
+end
 
-File.open(options[:astute], 'w') { |f|
-  f.write Astute.prepare_config(config)
-}
+unless options[:astute].nil?
+  File.open(options[:astute], 'w') { |f|
+    f.write Astute.prepare_config(config)
+  }
+end

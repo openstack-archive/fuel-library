@@ -28,6 +28,12 @@ $public_virtual_ip   = '10.0.204.253'
 
 $nodes_harr = [
   {
+    'name' => 'master',
+    'role' => 'master',
+    'internal_address' => '10.0.0.101',
+    'public_address'   => '10.0.204.101',
+  },
+  {
     'name' => 'fuel-cobbler',
     'role' => 'cobbler',
     'internal_address' => '10.0.0.102',
@@ -35,7 +41,7 @@ $nodes_harr = [
   },
   {
     'name' => 'fuel-controller-01',
-    'role' => 'controller',
+    'role' => 'primary-controller',
     'internal_address' => '10.0.0.103',
     'public_address'   => '10.0.204.103',
   },
@@ -63,7 +69,12 @@ $nodes_harr = [
     'internal_address' => '10.0.0.107',
     'public_address'   => '10.0.204.107',
   },
-]
+  {
+    'name' => 'fuel-compute-03',
+    'role' => 'compute',
+    'internal_address' => '10.0.0.108',
+    'public_address'   => '10.0.204.108',
+  },]
 $nodes = $nodes_harr
 $default_gateway = '10.0.204.1'
 
@@ -77,81 +88,21 @@ $public_netmask = '255.255.255.0'
 
 
 $node = filter_nodes($nodes,'name',$::hostname)
+if empty($node) {
+  fail("Node $::hostname is not defined in the hash structure")
+}
 $internal_address = $node[0]['internal_address']
 $public_address = $node[0]['public_address']
 
-
-$controller_internal_addresses = nodes_to_hash(filter_nodes($nodes,'role','controller'),'name','internal_address')
-$controller_public_addresses = nodes_to_hash(filter_nodes($nodes,'role','controller'),'name','public_address')
+$controllers = merge_arrays(filter_nodes($nodes,'role','primary-controller'), filter_nodes($nodes,'role','controller'))
+$controller_internal_addresses = nodes_to_hash($controllers,'name','internal_address')
+$controller_public_addresses = nodes_to_hash($controllers,'name','public_address')
 $controller_hostnames = keys($controller_internal_addresses)
 
-
-if $quantum {
-  $public_int   = $public_br
-  $internal_int = $internal_br
-} else {
-  $public_int   = $public_interface 
-  $internal_int = $internal_interface
-}
-
-if $::hostname == 'fuel-controller-01' {
-  $primary_controller = true
-} else {
-  $primary_controller = false
-}
-
-#Network configuration
-stage {'netconfig':
-      before  => Stage['main'],
-}
-
-class {'l23network': stage=> 'netconfig'}
-class node_netconfig (
-  $mgmt_ipaddr,
-  $mgmt_netmask  = '255.255.255.0',
-  $public_ipaddr = undef,
-  $public_netmask= '255.255.255.0',
-  $save_default_gateway=false,
-  $quantum = $quantum,
-) {
-  if $quantum { 
-    l23network::l3::create_br_iface {'mgmt':
-      interface => $internal_int,
-      bridge    => $internal_br,
-      ipaddr    => $mgmt_ipaddr,
-      netmask   => $mgmt_netmask,
-      dns_nameservers      => $dns_nameservers,
-      save_default_gateway => $save_default_gateway,
-    }
-    l23network::l3::create_br_iface {'ex':
-      interface => $public_int,
-      bridge    => $public_br,
-      ipaddr    => $public_ipaddr,
-      netmask   => $public_netmask,
-      gateway   => $default_gateway,
-    }
-    L23network::L3::Create_br_iface['mgmt'] -> L23network::L3::Create_br_iface['ex']
-  } else {
-    # nova-network mode
-    l23network::l3::ifconfig {$public_int:
-      ipaddr  => $public_ipaddr,
-      netmask => $public_netmask,
-      gateway => $default_gateway,
-    }
-    l23network::l3::ifconfig {$internal_int: 
-      ipaddr  => $mgmt_ipaddr,
-      netmask => $mgmt_netmask,
-      dns_nameservers      => $dns_nameservers,
-    }
-  }
-  l23network::l3::ifconfig {$private_interface: ipaddr=>'none' }
-}
-
-# Set hostname for master controller of HA cluster. 
-# It is strongly recommend that the master controller is deployed before all other controllers since it initializes the new cluster.  
-# Default is fuel-controller-01. 
-# Fully qualified domain name is also allowed.
-$master_hostname = 'fuel-controller-01'
+#Set this to anything other than pacemaker if you do not want Quantum HA
+#Also, if you do not want Quantum HA, you MUST enable $quantum_network_node
+#on the ONLY controller
+$ha_provider = 'pacemaker'
 
 # Set nagios master fqdn
 $nagios_master        = 'nagios-server.your-domain-name.com'
@@ -225,10 +176,6 @@ $tenant_network_type     = 'gre'
 # Which IP address will be used for creating GRE tunnels.
 $quantum_gre_bind_addr = $internal_address
 
-#Which IP have Quantum network node?
-$quantum_net_node_hostname= 'fuel-controller-03'
-$quantum_net_node_address = $controller_internal_addresses[$quantum_net_node_hostname]
-
 # If $external_ipinfo option is not defined, the addresses will be allocated automatically from $floating_range:
 # the first address will be defined as an external default router,
 # the second address will be attached to an uplink bridge interface,
@@ -256,13 +203,72 @@ $auto_assign_floating_ip = false
 # Database connection for Quantum configuration (quantum.conf)
 $quantum_sql_connection  = "mysql://${quantum_db_user}:${quantum_db_password}@${$internal_virtual_ip}/${quantum_db_dbname}"
 
+
+if $quantum {
+  $public_int   = $public_br
+  $internal_int = $internal_br
+} else {
+  $public_int   = $public_interface
+  $internal_int = $internal_interface
+}
+
+if $::hostname == 'fuel-controller-01' {
+  $primary_controller = true
+} else {
+  $primary_controller = false
+}
+
+#Network configuration
+stage {'netconfig':
+      before  => Stage['main'],
+}
+
+class {'l23network': use_ovs=>$quantum, stage=> 'netconfig'}
+class node_netconfig (
+  $mgmt_ipaddr,
+  $mgmt_netmask  = '255.255.255.0',
+  $public_ipaddr = undef,
+  $public_netmask= '255.255.255.0',
+  $save_default_gateway=false,
+  $quantum = $quantum,
+) {
+  if $quantum {
+    l23network::l3::create_br_iface {'mgmt':
+      interface => $internal_interface, # !!! NO $internal_int /sv !!!
+      bridge    => $internal_br,
+      ipaddr    => $mgmt_ipaddr,
+      netmask   => $mgmt_netmask,
+      dns_nameservers      => $dns_nameservers,
+      save_default_gateway => $save_default_gateway,
+    } ->
+    l23network::l3::create_br_iface {'ex':
+      interface => $public_interface, # !! NO $public_int /sv !!!
+      bridge    => $public_br,
+      ipaddr    => $public_ipaddr,
+      netmask   => $public_netmask,
+      gateway   => $default_gateway,
+    }
+  } else {
+    # nova-network mode
+    l23network::l3::ifconfig {$public_int:
+      ipaddr  => $public_ipaddr,
+      netmask => $public_netmask,
+      gateway => $default_gateway,
+    }
+    l23network::l3::ifconfig {$internal_int:
+      ipaddr  => $mgmt_ipaddr,
+      netmask => $mgmt_netmask,
+      dns_nameservers      => $dns_nameservers,
+    }
+  }
+  l23network::l3::ifconfig {$private_interface: ipaddr=>'none' }
+}
 ### NETWORK/QUANTUM END ###
 
 
 # This parameter specifies the the identifier of the current cluster. This is needed in case of multiple environments.
 # installation. Each cluster requires a unique integer value. 
-# Valid identifier range is 0 to 254
-
+# Valid identifier range is 1 to 254
 $deployment_id = '89'
 
 # Below you can enable or disable various services based on the chosen deployment topology:
@@ -279,10 +285,8 @@ $cinder_on_computes      = false
 #Otherwise it will install api and scheduler services
 $manage_volumes          = true
 
-# Setup network interface, which Cinder uses to export iSCSI targets.
-# This interface defines which IP to use to listen on iscsi port for
-# incoming connections of initiators
-$cinder_iscsi_bind_iface = $internal_int
+# Setup network address, which Cinder uses to export iSCSI targets.
+$cinder_iscsi_bind_addr = $internal_address
 
 # Below you can add physical volumes to cinder. Please replace values with the actual names of devices.
 # This parameter defines which partitions to aggregate into cinder-volumes or nova-volumes LVM VG
@@ -353,6 +357,7 @@ $openstack_version = {
 # though it is NOT recommended.
 $mirror_type = 'default'
 $enable_test_repo = false
+$repo_proxy = undef
 
 #$quantum_sql_connection  = "mysql://${quantum_db_user}:${quantum_db_password}@${quantum_host}/${quantum_db_dbname}"
 
@@ -379,6 +384,30 @@ $cinder_rate_limits = {
 
 
 Exec { logoutput => true }
+#Specify desired NTP servers here.
+#If you leave it undef pool.ntp.org
+#will be used
+
+$ntp_servers = ['pool.ntp.org']
+
+class {'openstack::clocksync': ntp_servers=>$ntp_servers}
+
+#Exec clocksync from openstack::clocksync before services
+#connectinq to AMQP server are started.
+
+Exec<| title == 'clocksync' |>->Nova::Generic_service<| |>
+Exec<| title == 'clocksync' |>->Service<| title == 'quantum-l3' |>
+Exec<| title == 'clocksync' |>->Service<| title == 'quantum-dhcp-service' |>
+Exec<| title == 'clocksync' |>->Service<| title == 'quantum-ovs-plugin-service' |>
+Exec<| title == 'clocksync' |>->Service<| title == 'cinder-volume' |>
+Exec<| title == 'clocksync' |>->Service<| title == 'cinder-api' |>
+Exec<| title == 'clocksync' |>->Service<| title == 'cinder-scheduler' |>
+Exec<| title == 'clocksync' |>->Exec<| title == 'keystone-manage db_sync' |>
+Exec<| title == 'clocksync' |>->Exec<| title == 'glance-manage db_sync' |>
+Exec<| title == 'clocksync' |>->Exec<| title == 'nova-manage db sync' |>
+Exec<| title == 'clocksync' |>->Exec<| title == 'initial-db-sync' |>
+Exec<| title == 'clocksync' |>->Exec<| title == 'post-nova_config' |>
+
 
 ### END OF PUBLIC CONFIGURATION PART ###
 # Normally, you do not need to change anything after this string 
@@ -391,6 +420,7 @@ class { 'openstack::mirantis_repos':
   stage => 'openstack-custom-repo',
   type=>$mirror_type,
   enable_test_repo=>$enable_test_repo,
+  repo_proxy=>$repo_proxy,
 }
 
 if $::operatingsystem == 'Ubuntu' {
@@ -406,8 +436,9 @@ sysctl::value { 'net.ipv4.conf.all.rp_filter': value => '0' }
 #  'custom': require fileserver static mount point [ssl_certs] and hostname based certificate existence
 $horizon_use_ssl = false
 
+
 class compact_controller (
-  $quantum_network_node = false
+  $quantum_network_node = $quantum_netnode_on_cnt
 ) {
   class { 'openstack::controller_ha':
     controller_public_addresses   => $controller_public_addresses,
@@ -455,7 +486,7 @@ class compact_controller (
     tenant_network_type     => $tenant_network_type,
     segment_range           => $segment_range,
     cinder                  => $cinder,
-    cinder_iscsi_bind_iface => $cinder_iscsi_bind_iface,
+    cinder_iscsi_bind_addr  => $cinder_iscsi_bind_addr,
     manage_volumes          => $manage_volumes,
     galera_nodes            => $controller_hostnames,
     nv_physical_volume      => $nv_physical_volume,
@@ -463,11 +494,17 @@ class compact_controller (
     nova_rate_limits        => $nova_rate_limits,
     cinder_rate_limits      => $cinder_rate_limits,
     horizon_use_ssl         => $horizon_use_ssl,
+    ha_provider             => $ha_provider
   }
 }
 
 # Definition of OpenStack controller nodes.
-node /fuel-controller-01/ {
+node /fuel-controller-[\d+]/ {
+  include stdlib
+  class { 'operatingsystem::checksupported':
+      stage => 'setup'
+  }
+
   class {'::node_netconfig':
       mgmt_ipaddr    => $::internal_address,
       mgmt_netmask   => $::internal_netmask,
@@ -487,56 +524,14 @@ node /fuel-controller-01/ {
   }
   class { compact_controller: }
 }
-node /fuel-controller-02/ {
-  class {'::node_netconfig':
-      mgmt_ipaddr    => $::internal_address,
-      mgmt_netmask   => $::internal_netmask,
-      public_ipaddr  => $::public_address,
-      public_netmask => $::public_netmask,
-      stage          => 'netconfig',
-  }
-  class {'nagios':
-    proj_name       => $proj_name,
-    services        => [
-      'host-alive','nova-novncproxy','keystone', 'nova-scheduler',
-      'nova-consoleauth', 'nova-cert', 'haproxy', 'nova-api', 'glance-api',
-      'glance-registry','horizon', 'rabbitmq', 'mysql'
-    ],
-    whitelist       => ['127.0.0.1', $nagios_master],
-    hostgroup       => 'controller',
-  }
-  class { compact_controller: }
-}
-node /fuel-controller-03/ {
-  class {'::node_netconfig':
-      mgmt_ipaddr    => $::internal_address,
-      mgmt_netmask   => $::internal_netmask,
-      public_ipaddr  => $::public_address,
-      public_netmask => $::public_netmask,
-      stage          => 'netconfig',
-  }
-  class {'nagios':
-    proj_name       => $proj_name,
-    services        => [
-      'host-alive','nova-novncproxy','keystone', 'nova-scheduler',
-      'nova-consoleauth', 'nova-cert', 'haproxy', 'nova-api', 'glance-api',
-      'glance-registry','horizon', 'rabbitmq', 'mysql'
-    ],
-    whitelist       => ['127.0.0.1', $nagios_master],
-    hostgroup       => 'controller',
-  }
-  class { 'compact_controller': quantum_network_node => true }
-}
+
 
 # Definition of OpenStack compute nodes.
 node /fuel-compute-[\d+]/ {
-  #class {'::node_netconfig':
-  #    mgmt_ipaddr    => $::internal_address,
-  #    mgmt_netmask   => $::internal_netmask,
-  #    public_ipaddr  => $::public_address,
-  #    public_netmask => $::public_netmask,
-  #    stage          => 'netconfig',
-  #}
+  include stdlib
+  class { 'operatingsystem::checksupported':
+      stage => 'setup'
+  }
 
   class {'nagios':
     proj_name       => $proj_name,
@@ -551,7 +546,7 @@ node /fuel-compute-[\d+]/ {
     public_interface       => $public_int,
     private_interface      => $private_interface,
     internal_address       => $internal_address,
-    libvirt_type           => 'qemu',
+    libvirt_type           => 'kvm',
     fixed_range            => $fixed_range,
     network_manager        => $network_manager,
     network_config         => { 'vlan_start' => $vlan_start },
@@ -572,11 +567,11 @@ node /fuel-compute-[\d+]/ {
     quantum                => $quantum,
     quantum_sql_connection => $quantum_sql_connection,
     quantum_user_password  => $quantum_user_password,
-    quantum_host           => $quantum_net_node_address,
+    quantum_host           => $internal_virtual_ip,
     tenant_network_type    => $tenant_network_type,
     segment_range          => $segment_range,
     cinder                 => $cinder_on_computes,
-    cinder_iscsi_bind_iface=> $cinder_iscsi_bind_iface,
+    cinder_iscsi_bind_addr => $cinder_iscsi_bind_addr,
     nv_physical_volume     => $nv_physical_volume,
     db_host                => $internal_virtual_ip,
     ssh_private_key        => 'puppet:///ssh_keys/openstack',
@@ -589,6 +584,11 @@ node /fuel-compute-[\d+]/ {
 
 # Definition of OpenStack Quantum node.
 node /fuel-quantum/ {
+  include stdlib
+  class { 'operatingsystem::checksupported':
+      stage => 'setup'
+  }
+
   class {'::node_netconfig':
       mgmt_ipaddr    => $::internal_address,
       mgmt_netmask   => $::internal_netmask,

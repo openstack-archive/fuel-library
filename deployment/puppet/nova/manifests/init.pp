@@ -145,16 +145,16 @@ nova_config
  value =>'%(levelname)s %(name)s [-] %(instance)s %(message)s';
 }
 
-file {"nova-logging.conf": 
-source=>"puppet:///modules/nova/logging.conf",
-path => "/etc/nova/logging.conf",
-owner => "nova",
-group => "nova",
-require => [Package['nova-common']]
+file {"nova-logging.conf":
+  content => template('nova/logging.conf.erb'),
+  path => "/etc/nova/logging.conf",
+  owner => "nova",
+  group => "nova",
+  require => [Package['nova-common']]
 }
 
 ##TODO: Add rsyslog module for nova logging to <splunkhost>
-  
+
 }
 else {
   nova_config {
@@ -203,13 +203,15 @@ else {
     } else {
       fail("Invalid db connection ${sql_connection}")
     }
-    nova_config { 'DEFAULT/sql_connection': value => $sql_connection }
+    if !defined(Nova_config['DEFAULT/sql_connection']) {
+      nova_config { 'DEFAULT/sql_connection': value => $sql_connection }
+    }
   } else {
     Nova_config <<| tag == "${::deployment_id}::${::environment}" and title == 'sql_connection' |>>
   }
   nova_config { 'DEFAULT/allow_resize_to_same_host': value => 'True' }
   nova_config { 'DEFAULT/image_service': value => $image_service }
-   
+
   if $image_service == 'nova.image.glance.GlanceImageService' {
     if $glance_api_servers {
       nova_config { 'DEFAULT/glance_api_servers': value => $glance_api_servers }

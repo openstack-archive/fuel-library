@@ -6,15 +6,11 @@ from fuel_test.settings import CREATE_SNAPSHOTS
 
 
 class CompactTestCase(CobblerTestCase):
-    def deploy_compact(self, quantum=True, loopback=True):
-        self.do(self.nodes().controllers[:1], 'puppet agent --test 2>&1')
-        self.do(self.nodes().controllers[1:], 'puppet agent --test 2>&1')
-        if loopback:
-            self.do(self.nodes().controllers, 'puppet agent --test 2>&1')
-        self.do(self.nodes().controllers[1:], 'puppet agent --test 2>&1')
-        self.do(self.nodes().controllers[:1], 'puppet agent --test 2>&1')
-        self.validate(self.nodes().controllers, 'puppet agent --test 2>&1')
-        if quantum:
+    def deploy_compact(self, quantum_node=True, loopback=True):
+        self.validate(self.nodes().controllers[:1], 'puppet agent --test 2>&1')
+        self.validate(self.nodes().controllers[1:], 'puppet agent --test 2>&1')
+        self.validate(self.nodes().controllers[:1], 'puppet agent --test 2>&1')
+        if quantum_node:
             self.validate(self.nodes().quantums, 'puppet agent --test 2>&1')
         self.validate(self.nodes().computes, 'puppet agent --test 2>&1')
 
@@ -26,7 +22,18 @@ class CompactTestCase(CobblerTestCase):
             controllers=self.nodes().controllers,
             quantums=self.nodes().quantums,
             quantum=True)
-        self.deploy_compact()
+        self.deploy_compact(quantum_node=False)
+        if CREATE_SNAPSHOTS:
+            self.environment().snapshot('compact', force=True)
+
+    def test_deploy_compact_quantum_standalone(self):
+        Manifest().write_openstack_manifest(
+            remote=self.remote(),
+            template=Template.compact(), ci=self.ci(),
+            controllers=self.nodes().controllers,
+            quantums=self.nodes().quantums,
+            quantum=True, quantum_netnode_on_cnt=False, ha_provider=False)
+        self.deploy_compact(quantum_node=True)
         if CREATE_SNAPSHOTS:
             self.environment().snapshot('compact', force=True)
 
@@ -37,7 +44,7 @@ class CompactTestCase(CobblerTestCase):
             controllers=self.nodes().controllers,
             quantums=self.nodes().quantums,
             quantum=False)
-        self.deploy_compact(quantum=False)
+        self.deploy_compact(quantum_node=False)
         if CREATE_SNAPSHOTS:
             self.environment().snapshot('compact_wo_quantum', force=True)
 
@@ -48,9 +55,20 @@ class CompactTestCase(CobblerTestCase):
             controllers=self.nodes().controllers,
             quantums=self.nodes().quantums,
             quantum=False, loopback=False, use_syslog=False)
-        self.deploy_compact(quantum=False, loopback=False)
+        self.deploy_compact(quantum_node=False, loopback=False)
         if CREATE_SNAPSHOTS:
             self.environment().snapshot('compact_woloopback', force=True)
+
+    def test_deploy_compact_wo_ha_provider(self):
+        Manifest().write_openstack_manifest(
+            remote=self.remote(),
+            template=Template.compact(), ci=self.ci(),
+            controllers=self.nodes().controllers,
+            quantums=self.nodes().quantums,
+            quantum=False, use_syslog=False, ha_provider=False)
+        self.deploy_compact(quantum_node=False)
+        if CREATE_SNAPSHOTS:
+            self.environment().snapshot('compact_wo_ha_provider', force=True)
 
 
 if __name__ == '__main__':

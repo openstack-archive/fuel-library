@@ -250,21 +250,15 @@ quantum_dhcp_agent_status() {
 
 clean_up()
 {
-	quantum --os-auth-url ${OCF_RESKEY_os_auth_url} --os-username ${OCF_RESKEY_username} --os-password ${OCF_RESKEY_password} --os-tenant-name ${OCF_RESKEY_tenant} port-list --quote minimal -f csv |	 awk -F ',' '{print $1}' |	 tail -n +2 |	
-	 while read port; do
-		 eval `quantum --os-auth-url ${OCF_RESKEY_os_auth_url} --os-username ${OCF_RESKEY_username} --os-password ${OCF_RESKEY_password} --os-tenant-name ${OCF_RESKEY_tenant} port-show -f shell ${port} | grep device_owner`
-		 if test -n "$device_owner" && test $device_owner == "network:dhcp"
-		 then
-			ocf_log info "Cleaning up port tap${port:0:11}"
-			ovs-vsctl -- --if-exists del-port tap${port:0:11};
-			rc=$?
-				if [ $rc -ne 0 ];
-				then
-					ocf_log err "Could not cleanup port tap${port:0:11}"
-					exit $OCF_ERR_GENERIC
-			fi
-		 fi
-	 done 
+    filter_quantum_ports.py "network:dhcp" | while read port; do
+        ocf_log info "Cleaning up port ${port}"
+        ovs-vsctl -- --if-exists del-port ${port};
+        rc=$?
+        if [ $rc -ne 0 ]; then
+            ocf_log err "Could not cleanup port ${port}"
+            exit $OCF_ERR_GENERIC
+        fi
+	 done
 }
 
 

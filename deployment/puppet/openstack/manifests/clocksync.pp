@@ -3,7 +3,7 @@ class openstack::clocksync ($ntp_servers = undef)
 
   if !$ntp_servers
   {
-    $one_shot_ntp_server = 'pool.ntp.orgfdafasdfasd'
+    $one_shot_ntp_server = 'pool.ntp.org'
   }
   else
   {

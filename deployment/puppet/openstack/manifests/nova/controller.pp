@@ -98,13 +98,12 @@ class openstack::nova::controller (
   }
   # Change the pool of rabbit server nodes for clients to single virtual IP for HA mode
     if $rabbit_ha_virtual_ip {
-      if $quantum_netnode_on_cnt { 
+      if $quantum and $quantum_netnode_on_cnt {
         $rabbit_hosts = "${rabbit_ha_virtual_ip}"
       } else {
         $rabbit_hosts = "${rabbit_ha_virtual_ip}:5672"
       }
-    }
-    else {
+    } else {
       $rabbit_hosts = inline_template("<%= @rabbit_nodes.map {|x| x + ':5672'}.join ',' %>")
     }
   if ($exported_resources) {
@@ -140,35 +139,35 @@ class openstack::nova::controller (
     rabbit_node_ip_address => $rabbit_node_ip_address,
     port                   => $rabbit_port,
   }
-if ($rabbit_nodes) {
-  # Configure Nova
-  class { 'nova':
-    sql_connection       => $sql_connection,
-    rabbit_userid        => $rabbit_user,
-    rabbit_password      => $rabbit_password,
-    image_service        => 'nova.image.glance.GlanceImageService',
-    glance_api_servers   => $glance_connection,
-    verbose              => $verbose,
-    rabbit_nodes         => $rabbit_nodes,
-    ensure_package       => $ensure_package,
-    api_bind_address     => $api_bind_address,
-    use_syslog           => $use_syslog,
-    rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
+  if ($rabbit_nodes) {
+    # Configure Nova
+    class { 'nova':
+      sql_connection       => $sql_connection,
+      rabbit_userid        => $rabbit_user,
+      rabbit_password      => $rabbit_password,
+      image_service        => 'nova.image.glance.GlanceImageService',
+      glance_api_servers   => $glance_connection,
+      verbose              => $verbose,
+      rabbit_nodes         => $rabbit_nodes,
+      ensure_package       => $ensure_package,
+      api_bind_address     => $api_bind_address,
+      use_syslog           => $use_syslog,
+      rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
+    }
+  } else {
+    class { 'nova':
+      sql_connection     => $sql_connection,
+      rabbit_userid      => $rabbit_user,
+      rabbit_password    => $rabbit_password,
+      image_service      => 'nova.image.glance.GlanceImageService',
+      glance_api_servers => $glance_connection,
+      verbose            => $verbose,
+      rabbit_host        => $rabbit_connection,
+      ensure_package     => $ensure_package,
+      api_bind_address   => $api_bind_address,
+      use_syslog         => $use_syslog,
+    }
   }
-} else {
-  class { 'nova':
-    sql_connection     => $sql_connection,
-    rabbit_userid      => $rabbit_user,
-    rabbit_password    => $rabbit_password,
-    image_service      => 'nova.image.glance.GlanceImageService',
-    glance_api_servers => $glance_connection,
-    verbose            => $verbose,
-    rabbit_host        => $rabbit_connection,
-    ensure_package     => $ensure_package,
-    api_bind_address   => $api_bind_address,
-    use_syslog         => $use_syslog,
-  }
-}
   class {'nova::quota':
     quota_instances                       => 100,
     quota_cores                           => 100,
@@ -227,7 +226,7 @@ if ($rabbit_nodes) {
       auth_host     => $internal_address,
       auth_password => $quantum_user_password,
     }
-    if ! $quantum_network_node {
+    if $quantum and !$quantum_network_node {
       class { '::quantum':
         bind_host            => $api_bind_address,
         rabbit_user          => $rabbit_user,
@@ -242,7 +241,6 @@ if ($rabbit_nodes) {
    }
      class { 'nova::network::quantum':
         quantum_admin_password    => $quantum_user_password,
-        quantum_connection_host   => $quantum_host, 
         quantum_auth_strategy     => 'keystone',
         quantum_url               => "http://${keystone_host}:9696",
         quantum_admin_tenant_name => 'services',

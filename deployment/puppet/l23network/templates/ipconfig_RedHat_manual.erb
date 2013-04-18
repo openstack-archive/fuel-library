@@ -2,3 +2,8 @@ DEVICE=<%= interface %>
 BOOTPROTO=none
 ONBOOT=yes
 USERCTL=no
+<% if @vlan_mode %>VLAN=yes<% end %>
+<% if @vlan_mode == 'vlan' %>VLAN_NAME_TYPE=VLAN_PLUS_VID_NO_PAD
+PHYSDEV=<%= @vlan_dev %><% end %>
+<% if @mtu %>MTU=<%= @mtu %><% end %>
+<% if @bond_mode %>BONDING_OPTS="mode=<%= @bond_mode %><% if @bond_miimon %> miimon=<%= @bond_miimon %><% end %><% if @bond_lacp_rate %> bond-lacp-rate=<%= @bond_lacp_rate %><% end %>"<% end %>

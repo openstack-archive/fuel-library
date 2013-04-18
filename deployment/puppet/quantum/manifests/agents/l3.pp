@@ -5,29 +5,28 @@ class quantum::agents::l3 (
   $debug            = 'False',
   $fixed_range      = '10.0.1.0/24',
   $floating_range   = '192.168.10.0/24',
-  $ext_ipinfo       = {
-  }
-  ,
+  $ext_ipinfo       = { },
   $segment_range    = '1:4094',
-  $tenant_network_type          = 'gre',
+  $tenant_network_type = 'gre',
   $create_networks  = true,
   $interface_driver = 'quantum.agent.linux.interface.OVSInterfaceDriver',
-  $external_network_bridge      = 'br-ex',
-  $auth_url                     = 'http://localhost:5000/v2.0',
-  $auth_port                    = '5000',
-  $auth_region                  = 'RegionOne',
-  $auth_tenant                  = 'services',
-  $auth_user                    = 'quantum',
-  $auth_password                = 'password',
-  $root_helper                  = 'sudo /usr/bin/quantum-rootwrap /etc/quantum/rootwrap.conf',
-  $use_namespaces               = 'True',
+  $external_network_bridge = 'br-ex',
+  $auth_url         = 'http://localhost:5000/v2.0',
+  $auth_port        = '5000',
+  $auth_region      = 'RegionOne',
+  $auth_tenant      = 'services',
+  $auth_user        = 'quantum',
+  $auth_password    = 'password',
+  $root_helper      = 'sudo /usr/bin/quantum-rootwrap /etc/quantum/rootwrap.conf',
+  $use_namespaces   = 'True',
   $router_id        = undef,
   $gateway_external_net_id      = undef,
   $handle_internal_only_routers = 'True',
   $metadata_ip      = '169.254.169.254',
   $metadata_port    = 8775,
   $polling_interval = 3,
-  $service_provider = 'generic') {
+  $service_provider = 'generic'
+) {
   include 'quantum::params'
 
   if $::quantum::params::l3_agent_package {
@@ -44,16 +43,18 @@ class quantum::agents::l3 (
 
   include 'quantum::waist_setup'
 
-  Quantum_l3_agent_config<||> -> Class[quantum::waistline]
+  Quantum_l3_agent_config <| |> -> Class[quantum::waistline]
+
+  #quantum::agents::sysctl{"$l3_agent_package": }
 
   Package[$l3_agent_package] -> Quantum_l3_agent_config <| |>
   Quantum_config <| |> -> Quantum_l3_agent_config <| |>
   Quantum_l3_agent_config <| |> -> Service['quantum-l3']
   Quantum_config <| |> ~> Service['quantum-l3']
   Quantum_l3_agent_config <| |> ~> Service['quantum-l3']
-  Quantum_l3_agent_config <||> ->Quantum_router <||> 
-  Quantum_l3_agent_config <||> ->Quantum_net <||> 
-  Quantum_l3_agent_config <||> ->Quantum_subnet <||> 
+  Quantum_l3_agent_config <| |> -> Quantum_router <| |>
+  Quantum_l3_agent_config <| |> -> Quantum_net <| |>
+  Quantum_l3_agent_config <| |> -> Quantum_subnet <| |>
 
   quantum_l3_agent_config {
     'DEFAULT/debug':
@@ -120,8 +121,8 @@ class quantum::agents::l3 (
         $external_alloc_pool = [$ext_ipinfo['pool_start'], $ext_ipinfo['pool_end']]
       }
 
-	Keystone_user_role["$auth_user@$auth_tenant"] -> Quantum::Network::Setup <||>
-	Keystone_user_role["$auth_user@$auth_tenant"] -> Quantum::Network::Provider_router <||>
+      Keystone_user_role<| title=="$auth_user@$auth_tenant"|> -> Quantum::Network::Setup <| |>
+      Keystone_user_role<| title=="$auth_user@$auth_tenant"|> -> Quantum::Network::Provider_router <| |>
 
       quantum::network::setup { 'net04':
         physnet      => $internal_physical_network,
@@ -147,36 +148,45 @@ class quantum::agents::l3 (
       }
       Quantum_l3_agent_config <| |> -> Quantum::Network::Setup['net04_ext']
 
-      #router_info = quantum('--os-tenant-name', @auth_hash['admin_tenant_name'], '--os-username', @auth_hash['admin_user'], '--os-password', @auth_hash['admin_password'], '--os-auth-url', @auth_hash['auth_url'], 'router-show', @name)
+      # router_info = quantum('--os-tenant-name', @auth_hash['admin_tenant_name'], '--os-username', @auth_hash['admin_user'],
+      # '--os-password', @auth_hash['admin_password'], '--os-auth-url', @auth_hash['auth_url'], 'router-show', @name)
       quantum::network::provider_router { 'router04':
         router_subnets => 'subnet04', # undef,
         router_extnet  => 'net04_ext', # undef,
         notify         => Service['quantum-l3'],
-        auth_tenant => $auth_tenant,
-        auth_user => $auth_user,
-        auth_password => $auth_password,
-        auth_url => $auth_url
+        auth_tenant    => $auth_tenant,
+        auth_user      => $auth_user,
+        auth_password  => $auth_password,
+        auth_url       => $auth_url
       }
       Quantum::Network::Setup['net04_ext'] -> Quantum::Network::Provider_router['router04']
 
       # turn down the current default route metric priority
       # TODO: make function for recognize REAL defaultroute
-      # temporary use 
-      $update_default_route_metric = "/sbin/ip route del default via ${::default_gateway};\
-        /sbin/ip route add default via ${::default_gateway} metric 100"
-    
+      # temporary use
+      $update_default_route_metric = "bash -c \"(/sbin/ip route delete default via ${::default_gateway} || exit 0 ) && /sbin/ip route replace default via ${::default_gateway} metric 100\""
+
       exec { 'update_default_route_metric':
         command     => $update_default_route_metric,
         returns     => [0, 7],
         refreshonly => true,
+        path      => ['/usr/bin', '/bin', '/sbin', '/usr/sbin']
       }
       Quantum::Network::Provider_router['router04'] -> Exec['update_default_route_metric']
-      Class[quantum::waistline] -> Quantum::Network::Setup<||>
-      Class[quantum::waistline] -> Quantum::Network::Provider_router<||>
+      Class[quantum::waistline] -> Quantum::Network::Setup <| |>
+      Class[quantum::waistline] -> Quantum::Network::Provider_router <| |>
       Class[quantum::waistline] -> Exec[update_default_route_metric]
-      quantum_l3_agent_routerid{'router04': value => 'router04'}
-      Quantum_l3_agent_config <||>->Quantum_l3_agent_routerid['router04']
-      Quantum_l3_agent_routerid['router04']~>Service['quantum-l3']
+
+      exec { 'setup_router_id':
+        command   => "/bin/bash -c \"eval `quantum --os-tenant-name ${auth_tenant} --os-auth-url ${auth_url} --os-username ${auth_user} --os-password ${auth_password} router-show router04 -f shell | grep -E '^id'` && sed -r -i -e \\\"s/^router_id\s*=.*\$//\\\" /etc/quantum/l3_agent.ini && echo router_id=\\\$id >> /etc/quantum/l3_agent.ini\"",
+        logoutput => 'on_failure',
+        tries     => 5,
+        try_sleep => 3,
+        path      => ['/usr/bin', '/bin', '/sbin', '/usr/sbin']
+      }
+
+      Quantum_l3_agent_config <| |> -> Exec['setup_router_id']
+      Exec['setup_router_id'] ~> Service['quantum-l3']
       Package[$l3_agent_package] ~> Exec['update_default_route_metric']
       Exec['update_default_route_metric'] -> Service['quantum-l3'] -> Exec['settle-down-default-route']
 
@@ -205,13 +215,19 @@ class quantum::agents::l3 (
     require => Package[$l3_agent_package],
   }
 
+  Service<| title == 'quantum-server' |>->Service['quantum-l3'] 
+
   if $service_provider == 'pacemaker' {
+    
+    Service<| title == 'quantum-server' |> -> Cs_shadow['l3']
+    Quantum_l3_agent_config <||> -> Cs_shadow['l3']
     cs_resource { "p_${::quantum::params::l3_agent_service}":
       ensure          => present,
       cib             => 'l3',
       primitive_class => 'ocf',
       provided_by     => 'pacemaker',
       primitive_type  => 'quantum-agent-l3',
+      require         => File['quantum-l3-agent'],
       parameters      => {
         'os_auth_url' => $auth_url,
         'tenant'      => $auth_tenant,
@@ -223,27 +239,37 @@ class quantum::agents::l3 (
         'monitor'  => {
           'interval' => '20',
           'timeout'  => '30'
-        },
-        'start' => {'timeout'=>'120'},
-        'stop' => {'timeout'=>'120'}
-        
+        }
+        ,
+        'start'    => {
+          'timeout' => '360'
+        }
+        ,
+        'stop'     => {
+          'timeout' => '360'
+        }
+
       }
       ,
     }
 
     cs_shadow { 'l3': cib => 'l3' }
-    cs_commit { 'l3': cib => 'l3' }
 
+    cs_commit { 'l3': cib => 'l3' }
 
     Cs_commit <| title == 'dhcp' |> -> Cs_shadow <| title == 'l3' |>
     Cs_commit <| title == 'ovs' |> -> Cs_shadow <| title == 'l3' |>
+
+    Cs_commit['l3'] -> Service['quantum-l3']
+    ::corosync::cleanup{"p_${::quantum::params::l3_agent_service}":}
     
-    Cs_commit['l3']->Service['quantum-l3'] 
+    Cs_commit['l3'] -> ::Corosync::Cleanup["p_${::quantum::params::l3_agent_service}"]
+    Cs_commit['l3'] ~> ::Corosync::Cleanup["p_${::quantum::params::l3_agent_service}"]
+    ::Corosync::Cleanup["p_${::quantum::params::l3_agent_service}"]->Service['quantum-l3']
     
-    Cs_resource["p_${::quantum::params::l3_agent_service}"]->Cs_colocation['l3-with-ovs']
-    Cs_resource["p_${::quantum::params::l3_agent_service}"]->Cs_order['l3-after-ovs'] 
-    
-    
+    Cs_resource["p_${::quantum::params::l3_agent_service}"] -> Cs_colocation['l3-with-ovs']
+    Cs_resource["p_${::quantum::params::l3_agent_service}"] -> Cs_order['l3-after-ovs']
+
     cs_colocation { 'l3-with-ovs':
       ensure     => present,
       cib        => 'l3',
@@ -258,10 +284,10 @@ class quantum::agents::l3 (
       second => "p_${::quantum::params::l3_agent_service}",
       score  => 'INFINITY',
     }
-    
-    #Ensure service is stopped  and disabled by upstart/init/etc.
-    Service['quantum-l3-init_stopped']->Cs_resource["p_${::quantum::params::l3_agent_service}"]
-    
+
+    # Ensure service is stopped  and disabled by upstart/init/etc.
+    Service['quantum-l3-init_stopped'] -> Cs_resource["p_${::quantum::params::l3_agent_service}"]
+
     service { 'quantum-l3-init_stopped':
       name       => "${::quantum::params::l3_agent_service}",
       enable     => false,
@@ -271,7 +297,7 @@ class quantum::agents::l3 (
       provider   => $::quantum::params::service_provider,
       require    => [Package[$l3_agent_package], Class['quantum']],
     }
- 
+
     service { 'quantum-l3':
       name       => "p_${::quantum::params::l3_agent_service}",
       enable     => $enabled,

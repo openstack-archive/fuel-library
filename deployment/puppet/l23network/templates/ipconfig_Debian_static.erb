@@ -1,8 +1,15 @@
 auto <%= interface %>
 iface <%= interface %> inet static
+<% if @vlan_mode %>vlan_raw_device <%= @vlan_dev %><% end %>
 address <%= ipaddr %>
 netmask <%= netmask %>
 <% if @def_gateway %>gateway <%= @def_gateway %><% end %>
-<% if @dns_nameservers_join %>dns-nameservers <%= @dns_nameservers_join %><% end %>
-<% if @dns_search %>dns-search <%= @dns_search %><% end %>
-<% if @dns_domain %>dns-domain <%= @dns_domain %><% end %>
+<% if @dns_nameservers_1 or @dns_nameservers_2 %>dns-nameservers <% if @dns_nameservers_1 %><%= @dns_nameservers_1 %><% end %> <% if @dns_nameservers_2 %><%= @dns_nameservers_2 %><% end %><% end %>
+<% if @dns_search_string %>dns-search <%= @dns_search_string %><% end %>
+<% if @dns_domain_string %>dns-domain <%= @dns_domain_string %><% end %>
+<% if @mtu %>mtu <%= @mtu %><% end %>
+<% if @bond_mode %>slaves none
+bond-mode <%= @bond_mode %><% if @bond_miimon %>
+bond-miimon <%= @bond_miimon %><% end %><% if @bond_lacp_rate %>
+bond-lacp-rate <%= @bond_lacp_rate %><% end %>
+<% end %>

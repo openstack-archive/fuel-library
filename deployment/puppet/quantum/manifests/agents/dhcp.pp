@@ -42,6 +42,8 @@ class quantum::agents::dhcp (
     }
   }
 
+  #quantum::agents::sysctl{"$dhcp_agent_package": }
+
   Package[$dhcp_agent_package] -> Quantum_dhcp_agent_config <| |>
   Package[$dhcp_agent_package] -> Quantum_config <| |>
 
@@ -77,13 +79,19 @@ class quantum::agents::dhcp (
     $ensure = 'stopped'
   }
 
+  Service <| title == 'quantum-server' |> -> Service['quantum-dhcp-service']
+
   if $service_provider == 'pacemaker' {
+    Service <| title == 'quantum-server' |> -> Cs_shadow['dhcp']
+    Quantum_dhcp_agent_config <| |> -> Cs_shadow['dhcp']
+
     cs_resource { "p_${::quantum::params::dhcp_agent_service}":
       ensure          => present,
       cib             => 'dhcp',
       primitive_class => 'ocf',
       provided_by     => 'pacemaker',
       primitive_type  => 'quantum-agent-dhcp',
+      require => File['quantum-agent-dhcp'],
       parameters      => {
         'os_auth_url' => $auth_url,
         'tenant'      => $auth_tenant,
@@ -95,20 +103,32 @@ class quantum::agents::dhcp (
         'monitor'  => {
           'interval' => '20',
           'timeout'  => '30'
-        },
-        'start' => {'timeout'=>'120'},
-        'stop' => {'timeout'=>'120'}
+        }
+        ,
+        'start'    => {
+          'timeout' => '360'
+        }
+        ,
+        'stop'     => {
+          'timeout' => '360'
+        }
       }
       ,
     }
 
     Cs_commit <| title == 'ovs' |> -> Cs_shadow <| title == 'dhcp' |>
-    
+
     Cs_commit['dhcp'] -> Service['quantum-dhcp-service']
-      
-    Cs_resource["p_${::quantum::params::dhcp_agent_service}"]->Cs_colocation['dhcp-with-ovs']
-    Cs_resource["p_${::quantum::params::dhcp_agent_service}"]->Cs_order['dhcp-after-ovs'] 
+
+    ::corosync::cleanup { "p_${::quantum::params::dhcp_agent_service}": }
+    Cs_commit['dhcp'] -> ::Corosync::Cleanup["p_${::quantum::params::dhcp_agent_service}"]
+    Cs_commit['dhcp'] ~> ::Corosync::Cleanup["p_${::quantum::params::dhcp_agent_service}"]
+    ::Corosync::Cleanup["p_${::quantum::params::dhcp_agent_service}"] -> Service['quantum-dhcp-service']
+    Cs_resource["p_${::quantum::params::dhcp_agent_service}"] -> Cs_colocation['dhcp-with-ovs']
+    Cs_resource["p_${::quantum::params::dhcp_agent_service}"] -> Cs_order['dhcp-after-ovs']
+
     cs_shadow { 'dhcp': cib => 'dhcp' }
+
     cs_commit { 'dhcp': cib => 'dhcp' }
 
     cs_colocation { 'dhcp-with-ovs':
@@ -125,8 +145,9 @@ class quantum::agents::dhcp (
       second => "p_${::quantum::params::dhcp_agent_service}",
       score  => 'INFINITY',
     }
-    
+
     Service['quantum-dhcp-service_stopped'] -> Cs_resource["p_${::quantum::params::dhcp_agent_service}"]
+
     service { 'quantum-dhcp-service_stopped':
       name       => "${::quantum::params::dhcp_agent_service}",
       enable     => false,
@@ -136,7 +157,6 @@ class quantum::agents::dhcp (
       provider   => $::quantum::params::service_provider,
       require    => [Package[$dhcp_agent_package], Class['quantum']],
     }
-
 
     service { 'quantum-dhcp-service':
       name       => "p_${::quantum::params::dhcp_agent_service}",

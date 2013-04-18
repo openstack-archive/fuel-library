@@ -14,11 +14,14 @@
 node default {
   class {'nagios::master':
     proj_name       => 'test',
-    rabbitmq        => false,
+    rabbitmq        => true,
+    nginx           => false,
     mysql_user      => 'root',
     mysql_pass      => 'nova',
+    mysql_port      => '3307',
     rabbit_user     => 'nova',
     rabbit_pass     => 'nova',
+    rabbit_port     => '5673',
     templatehost    => {'name' => 'default-host', 'check_interval' => '10'},
     templateservice => {'name' => 'default-service', 'check_interval'=>'10'},
     hostgroups      => ['compute', 'controller', 'swift-storage', 'swift-proxy'],

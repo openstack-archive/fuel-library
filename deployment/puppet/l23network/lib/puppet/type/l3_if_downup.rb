@@ -24,6 +24,11 @@ Puppet::Type.newtype(:l3_if_downup) do
       defaultto(true)
     end
 
+    newparam(:onlydown) do
+      newvalues(true, false)
+      defaultto(false)
+    end
+
     newparam(:kill_dhclient) do
       # workaround for https://bugs.launchpad.net/ubuntu/+source/dhcp3/+bug/38140
       newvalues(true, false)

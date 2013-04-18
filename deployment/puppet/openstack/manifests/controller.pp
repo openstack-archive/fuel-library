@@ -137,7 +137,8 @@ class openstack::controller (
   $cinder_db_password      = 'cinder_db_pass',
   $cinder_db_user          = 'cinder',
   $cinder_db_dbname        = 'cinder',
-  $cinder_iscsi_bind_iface = false,
+  $cinder_iscsi_bind_addr  = false,
+  $cinder_volume_group     = 'cinder-volumes',
   #
   $quantum                 = false,
   $quantum_user_password   = 'quantum_pass',
@@ -165,6 +166,7 @@ class openstack::controller (
   $horizon_use_ssl         = false,
   $nova_rate_limits        = undef,
   $cinder_rate_limits      = undef,
+  $ha_mode                 = false,
 ) {
 
 
@@ -172,6 +174,10 @@ class openstack::controller (
   Class['openstack::db::mysql'] -> Class['openstack::keystone']
   Class['openstack::db::mysql'] -> Class['openstack::glance']
   Class['openstack::db::mysql'] -> Class['openstack::nova::controller']
+  if defined(Class['openstack::cinder']) {
+    Class['openstack::db::mysql'] -> Class['openstack::cinder']
+  }
+
   $rabbit_addresses = inline_template("<%= @rabbit_nodes.map {|x| x + ':5672'}.join ',' %>")
     $memcached_addresses =  inline_template("<%= @cache_server_ip.collect {|ip| ip + ':' + @cache_server_port }.join ',' %>")
  
@@ -333,22 +339,17 @@ class openstack::controller (
     api_bind_address        => $api_bind_address,
     ensure_package          => $::openstack_version['nova'],
     use_syslog              => $use_syslog,
-    nova_rate_limits        => $nova_rate_limits
+    nova_rate_limits        => $nova_rate_limits,
   }
 
   ######### Cinder Controller Services ########
   if ($cinder) {
-    if ($cinder_iscsi_bind_iface) {
-      $cinder_iscsi_bind_addr = getvar("::ipaddress_${cinder_iscsi_bind_iface}")
-    } else {
-      $cinder_iscsi_bind_addr = $api_bind_address
-    }
     class {'openstack::cinder':
       sql_connection       => "mysql://${cinder_db_user}:${cinder_db_password}@${db_host}/${cinder_db_dbname}?charset=utf8",
       rabbit_password      => $rabbit_password,
       rabbit_host          => false,
       rabbit_nodes         => $rabbit_nodes,
-      volume_group         => 'cinder-volumes',
+      volume_group         => $cinder_volume_group,
       physical_volume      => $nv_physical_volume,
       manage_volumes       => $manage_volumes,
       enabled              => true,
@@ -376,12 +377,11 @@ class openstack::controller (
     # Set up nova-volume
   }
 
- if !defined(Class['memcached']){
-  class { 'memcached':
-    #    listen_ip => $api_bind_address,
-  } 
- }
-
+  if !defined(Class['memcached']){
+    class { 'memcached':
+      #listen_ip => $api_bind_address,
+    } 
+  }
 
   ######## Horizon ########
   class { 'openstack::horizon':

@@ -1,0 +1,15 @@
+#
+# THIS FILE IS MANAGED BY PUPPET
+#
+
+# You must set some working options before the "spawn-fcgi" service will work.
+# If SOCKET points to a file, then this file is cleaned up by the init script.
+#
+# See spawn-fcgi(1) for all possible options.
+#
+# Example :
+FCGI_SOCKET=/var/run/spawn-fcgi-php.sock
+FCGI_USER=apache
+FCGI_GROUP=apache
+FCGI_EXTRA_OPTIONS="-M 0600"
+OPTIONS="-u $FCGI_USER -g $FCGI_GROUP -s $FCGI_SOCKET -S $FCGI_EXTRA_OPTIONS -C 32 -F 1 -P /var/run/spawn-fcgi-php.pid -- /usr/bin/php-cgi"

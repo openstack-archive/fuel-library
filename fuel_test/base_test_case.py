@@ -43,7 +43,8 @@ class BaseTestCase(unittest.TestCase):
             if (line.find(ERROR_PREFIX) < 15) and (
                 line.find(ERROR_PREFIX) != -1):
                 if line.find("Loading failed for one or more files") == -1:
-                    errors.append(line)
+                    if line.find('to_stderr:') == -1:
+                        errors.append(line)
             if (line.find(WARNING_PREFIX) < 15) and (
                 line.find(WARNING_PREFIX) != -1):
                 if line.find(

@@ -67,7 +67,7 @@ EMPTY_SNAPSHOT = os.environ.get('EMPTY_SNAPSHOT', 'empty')
 OPENSTACK_SNAPSHOT = os.environ.get('OPENSTACK_SNAPSHOT', 'openstack')
 
 INTERFACE_ORDER = ('public', 'internal', 'private')
-ROUTED_INTERFACE = 'none'
+ROUTED_INTERFACE = 'public'
 
 INTERFACES = {
     'public': 'eth0',
@@ -77,12 +77,12 @@ INTERFACES = {
 
 DEFAULT_POOLS = {
     'centos': {
-        'public': '10.108.0.0/16:24',
+        'public': '172.18.95.0/24,172.18.91.0/24:27',
         'private': '10.108.0.0/16:24',
         'internal': '10.108.0.0/16:24',
     },
     'ubuntu': {
-        'public': '10.107.0.0/16:24',
+        'public': '172.18.94.0/24,172.18.90.0/24:27',
         'private': '10.107.0.0/16:24',
         'internal': '10.107.0.0/16:24',
     },

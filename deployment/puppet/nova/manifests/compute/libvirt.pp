@@ -47,7 +47,7 @@ class nova::compute::libvirt (
   if($::nova::params::compute_package_name and $::operatingsystem=='Ubuntu') {
     package { "nova-compute-${libvirt_type}":
       ensure => present,
-      before => Package['nova-compute'],
+      before => Package[$::nova::params::compute_package_name],
     }
   }
 
@@ -67,7 +67,7 @@ class nova::compute::libvirt (
     'kvm': {
       package { $::nova::params::libvirt_type_kvm:
         ensure => present,
-        before => Package['nova-compute'],
+        before => Package[$::nova::params::compute_package_name],
       }
     }
   }

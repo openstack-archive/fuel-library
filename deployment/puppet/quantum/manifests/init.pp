@@ -21,6 +21,7 @@ class quantum (
   $rabbit_user            = 'guest',
   $rabbit_virtual_host    = '/',
   $rabbit_ha_virtual_ip   = false,
+  $server_ha_mode         = false,
   $use_syslog = false
 ) {
   include 'quantum::params'
@@ -55,19 +56,23 @@ class quantum (
       'DEFAULT/rabbit_ha_queues': value => 'True';
       'DEFAULT/rabbit_hosts':     value => $rabbit_hosts;
     }
-
   } else {
     quantum_config {
       'DEFAULT/rabbit_host': value => is_array($rabbit_host) ? { false => $rabbit_host, true => join($rabbit_host) };
       'DEFAULT/rabbit_port': value => $rabbit_port;
     }
+  }
 
+  if $server_ha_mode {
+    $real_bind_host = $bind_host
+  } else {
+    $real_bind_host = '0.0.0.0'
   }
 
   quantum_config {
     'DEFAULT/verbose':                value => $verbose;
     'DEFAULT/debug':                  value => $debug;
-    'DEFAULT/bind_host':              value => $bind_host;
+    'DEFAULT/bind_host':              value => $real_bind_host;
     'DEFAULT/bind_port':              value => $bind_port;
     'DEFAULT/auth_strategy':          value => $auth_strategy;
     'DEFAULT/core_plugin':            value => $core_plugin;
@@ -86,14 +91,12 @@ class quantum (
   if $use_syslog {
     quantum_config {'DEFAULT/log_config': value => "/etc/quantum/logging.conf";}
     file { "quantum-logging.conf":
-      source=>"puppet:///modules/quantum/logging.conf",
+      content => template('quantum/logging.conf.erb'),
       path => "/etc/quantum/logging.conf",
       owner => "quantum",
       group => "quantum",
     }
-  }
-  else {
-    
+  } else {
     quantum_config {'DEFAULT/log_config': ensure=> absent;}
   }
 

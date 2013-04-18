@@ -260,35 +260,24 @@ quantum_l3_agent_status() {
 
 clean_up()
 {
-	quantum --os-auth-url ${OCF_RESKEY_os_auth_url} --os-username ${OCF_RESKEY_username} --os-password ${OCF_RESKEY_password} --os-tenant-name ${OCF_RESKEY_tenant} port-list --quote minimal -f csv |	 awk -F ',' '{print $1}' |	 tail -n +2 |
-	 while read port; do
-		eval `quantum --os-auth-url ${OCF_RESKEY_os_auth_url} --os-username ${OCF_RESKEY_username} --os-password ${OCF_RESKEY_password} --os-tenant-name ${OCF_RESKEY_tenant} port-show -f shell ${port} | grep device_owner`;
-		if test -n "$device_owner" && test $device_owner == "network:router_gateway"
-		 then
-			EXT_ROUTER_PORT=qg-${port:0:11}
-				ocf_log info "Cleaning up port $EXT_ROUTER_PORT"
-				ovs-vsctl -- --if-exists del-port $EXT_ROUTER_PORT;
-				rc=$?
-				if [ $rc -ne 0 ];
-				then
-					ocf_log err "Could not cleanup port $EXT_ROUTER_PORT"
-					exit $OCF_ERR_GENERIC
-				fi
-			
-		 fi
-		if test -n "$device_owner" && test $device_owner == "network:router_interface";
-		 then
-			INT_ROUTER_PORT=qr-${port:0:11}
-				ocf_log info "Cleaning up port $INT_ROUTER_PORT"
-				ovs-vsctl -- --if-exists del-port $INT_ROUTER_PORT;
-				rc=$?
-				if [ $rc -ne 0 ];
-				then
-					ocf_log err "Could not cleanup port $INT_ROUTER_PORT"
-					exit $OCF_ERR_GENERIC
-			fi
-		fi
-	 done 
+    filter_quantum_ports.py "network:router_gateway" | while read port; do
+        ocf_log info "Cleaning up port ${port}"
+        ovs-vsctl -- --if-exists del-port ${port};
+        rc=$?
+        if [ $rc -ne 0 ]; then
+            ocf_log err "Could not cleanup port ${port}"
+            exit $OCF_ERR_GENERIC
+        fi
+	done
+    filter_quantum_ports.py "network:router_interface" | while read port; do
+        ocf_log info "Cleaning up port ${port}"
+        ovs-vsctl -- --if-exists del-port ${port};
+        rc=$?
+        if [ $rc -ne 0 ]; then
+            ocf_log err "Could not cleanup port ${port}"
+            exit $OCF_ERR_GENERIC
+        fi
+	done
 }
 
 

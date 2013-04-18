@@ -25,7 +25,7 @@ class galera::params {
       $libssl_package       = 'libssl0.9.8'
       $libaio_package       = 'libaio1'
       # $mysql_client_package = 'mysql-client'
-      $mysql_version        = '5.5.28-23.7'
+#      $mysql_version        = '5.5.28-23.7'
 #      $mysql_server_package = 'mysql-server-wsrep-5.5.28-23.7-amd64.deb'
       $mysql_server_name    = 'mysql-server-wsrep'
       $galera_version       = '23.2.2'

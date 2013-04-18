@@ -9,7 +9,7 @@ Puppet::Type.newtype(:l2_ovs_port) do
       desc "The interface to attach to the bridge"
       #
       validate do |val|
-        if not val =~ /^[0-9A-Za-z\.\-\_]+$/
+        if not val =~ /^[a-z][0-9a-z\.\-\_]*[0-9a-z]$/
           fail("Invalid interface name: '#{val}'")
         end
       end
@@ -30,8 +30,28 @@ Puppet::Type.newtype(:l2_ovs_port) do
       desc "What bridge to use"
       #
       validate do |val|
-        if not val =~ /^[0-9A-Za-z\.\-\_]+$/
+        if not val =~ /^[a-z][0-9a-z\.\-\_]*[0-9a-z]$/
           fail("Invalid bridge name: '#{val}'")
+        end
+      end
+    end
+
+    newparam(:port_options) do
+      defaultto([])
+      desc "Array of port options"
+      validate do |val|
+        if not (val.is_a?(Array) or val.is_a?(String)) # String need for array with one element. it's a puppet's feature
+          fail("port_options must be array (not be #{val.class}).")
+        end
+      end
+    end
+
+    newparam(:interface_options) do
+      defaultto([])
+      desc "Array of port interface options"
+      validate do |val|
+        if not (val.is_a?(Array) or val.is_a?(String)) # String need for array with one element. it's a puppet's feature
+          fail("interface_options must be array (not be #{val.class}).")
         end
       end
     end

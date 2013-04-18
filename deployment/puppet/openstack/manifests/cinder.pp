@@ -60,15 +60,14 @@ class openstack::cinder(
     }
   }
   if $manage_volumes {
-
     class { 'cinder::volume':
       package_ensure => $::openstack_version['cinder'],
       enabled        => true,
     }
-
     class { 'cinder::volume::iscsi':
       iscsi_ip_address => $iscsi_bind_host,
-      physical_volume  => $nv_physical_volume,
+      physical_volume  => $physical_volume,
+      volume_group     => $volume_group,
     }
   }
 }
