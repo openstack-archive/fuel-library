@@ -242,15 +242,15 @@ $deployment_id = '69'
 # Consult openstack docs for differences between them
 $cinder                  = true
 
+# Setup network interface, which Cinder uses to export iSCSI targets.
+$cinder_iscsi_bind_addr = $internal_address
+
 # Should we install cinder on compute nodes?
 $cinder_on_computes      = true
 
 #Set it to true if your want cinder-volume been installed to the host
 #Otherwise it will install api and scheduler services
 $manage_volumes          = true
-
-# Setup network interface, which Cinder uses to export iSCSI targets.
-$cinder_iscsi_bind_addr = $internal_address
 
 # Below you can add physical volumes to cinder. Please replace values with the actual names of devices.
 # This parameter defines which partitions to aggregate into cinder-volumes or nova-volumes LVM VG
