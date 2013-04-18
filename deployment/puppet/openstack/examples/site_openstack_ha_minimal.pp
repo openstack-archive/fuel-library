@@ -41,7 +41,7 @@ $nodes_harr = [
   },
   {
     'name' => 'fuel-controller-01',
-    'role' => 'controller',
+    'role' => 'primary-controller',
     'internal_address' => '10.0.0.103',
     'public_address'   => '10.0.204.103',
   },
@@ -94,21 +94,15 @@ if empty($node) {
 $internal_address = $node[0]['internal_address']
 $public_address = $node[0]['public_address']
 
-
-$controller_internal_addresses = nodes_to_hash(filter_nodes($nodes,'role','controller'),'name','internal_address')
-$controller_public_addresses = nodes_to_hash(filter_nodes($nodes,'role','controller'),'name','public_address')
+$controllers = merge_arrays(filter_nodes($nodes,'role','primary-controller'), filter_nodes($nodes,'role','controller'))
+$controller_internal_addresses = nodes_to_hash($controllers,'name','internal_address')
+$controller_public_addresses = nodes_to_hash($controllers,'name','public_address')
 $controller_hostnames = keys($controller_internal_addresses)
 
 #Set this to anything other than pacemaker if you do not want Quantum HA
 #Also, if you do not want Quantum HA, you MUST enable $quantum_network_node
 #on the ONLY controller
 $ha_provider = 'pacemaker'
-
-# Set hostname for master controller of HA cluster. 
-# It is strongly recommend that the master controller is deployed before all other controllers since it initializes the new cluster.  
-# Default is fuel-controller-01. 
-# Fully qualified domain name is also allowed.
-$master_hostname = 'fuel-controller-01'
 
 # Set nagios master fqdn
 $nagios_master        = 'nagios-server.your-domain-name.com'
@@ -229,7 +223,7 @@ stage {'netconfig':
       before  => Stage['main'],
 }
 
-class {'l23network': stage=> 'netconfig'}
+class {'l23network': use_ovs=>$quantum, stage=> 'netconfig'}
 class node_netconfig (
   $mgmt_ipaddr,
   $mgmt_netmask  = '255.255.255.0',
@@ -291,10 +285,8 @@ $cinder_on_computes      = false
 #Otherwise it will install api and scheduler services
 $manage_volumes          = true
 
-# Setup network interface, which Cinder uses to export iSCSI targets.
-# This interface defines which IP to use to listen on iscsi port for
-# incoming connections of initiators
-$cinder_iscsi_bind_iface = $internal_int
+# Setup network address, which Cinder uses to export iSCSI targets.
+$cinder_iscsi_bind_addr = $internal_address
 
 # Below you can add physical volumes to cinder. Please replace values with the actual names of devices.
 # This parameter defines which partitions to aggregate into cinder-volumes or nova-volumes LVM VG
@@ -494,7 +486,7 @@ class compact_controller (
     tenant_network_type     => $tenant_network_type,
     segment_range           => $segment_range,
     cinder                  => $cinder,
-    cinder_iscsi_bind_iface => $cinder_iscsi_bind_iface,
+    cinder_iscsi_bind_addr  => $cinder_iscsi_bind_addr,
     manage_volumes          => $manage_volumes,
     galera_nodes            => $controller_hostnames,
     nv_physical_volume      => $nv_physical_volume,
@@ -502,10 +494,7 @@ class compact_controller (
     nova_rate_limits        => $nova_rate_limits,
     cinder_rate_limits      => $cinder_rate_limits,
     horizon_use_ssl         => $horizon_use_ssl,
-    ha_provider             => $ha_provider,
-    internal_virtual_ip_mask => '24',
-    public_virtual_ip_mask  => '24',
-    keepalived_vrrp_script  => "killall -0 haproxy"
+    ha_provider             => $ha_provider
   }
 }
 
@@ -582,7 +571,7 @@ node /fuel-compute-[\d+]/ {
     tenant_network_type    => $tenant_network_type,
     segment_range          => $segment_range,
     cinder                 => $cinder_on_computes,
-    cinder_iscsi_bind_iface=> $cinder_iscsi_bind_iface,
+    cinder_iscsi_bind_addr => $cinder_iscsi_bind_addr,
     nv_physical_volume     => $nv_physical_volume,
     db_host                => $internal_virtual_ip,
     ssh_private_key        => 'puppet:///ssh_keys/openstack',

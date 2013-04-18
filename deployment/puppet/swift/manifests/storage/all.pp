@@ -24,7 +24,8 @@ class swift::storage::all(
   $account_port       = '6002',
   $object_pipeline    = undef,
   $container_pipeline = undef,
-  $account_pipeline   = undef
+  $account_pipeline   = undef,
+  $export_devices     = false,
 ) {
 
   class { 'swift::storage':

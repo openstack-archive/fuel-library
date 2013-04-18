@@ -89,6 +89,7 @@ class openstack::compute (
   $verbose             = false,
   $manage_volumes      = false,
   $nv_physical_volume  = undef,
+  $cinder_volume_group = 'cinder-volumes',
   $cache_server_ip     = ['127.0.0.1'],
   $cache_server_port   = '11211',
   $nova_volume         = 'nova-volumes',
@@ -100,7 +101,7 @@ class openstack::compute (
   $cinder_db_password      = 'cinder_db_pass',
   $cinder_db_user          = 'cinder',
   $cinder_db_dbname        = 'cinder',
-  $cinder_iscsi_bind_iface = false,
+  $cinder_iscsi_bind_addr  = false,
   $db_host                 = '127.0.0.1',
   $use_syslog              = false,
   $nova_rate_limits = undef,
@@ -174,11 +175,6 @@ class openstack::compute (
   }
 
   if ($cinder) {
-    if ($cinder_iscsi_bind_iface) {
-      $cinder_iscsi_bind_addr = getvar("::ipaddress_${cinder_iscsi_bind_iface}")
-    } else {
-      $cinder_iscsi_bind_addr = $internal_address
-    }
 
     $enabled_apis = 'metadata'
 
@@ -188,7 +184,7 @@ class openstack::compute (
       rabbit_password      => $rabbit_password,
       rabbit_host          => false,
       rabbit_nodes         => $rabbit_nodes,
-      volume_group         => 'cinder-volumes',
+      volume_group         => $cinder_volume_group,
       physical_volume      => $nv_physical_volume,
       manage_volumes       => $manage_volumes,
       enabled              => true,

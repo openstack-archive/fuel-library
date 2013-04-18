@@ -54,24 +54,52 @@ define haproxy_service($order, $balancers, $virtual_ips, $port, $define_cookies 
       $balancer_port = $port
     }
   }
-
-  haproxy::listen { $name:
-    order            => $order - 1,
-    ipaddress        => $virtual_ips,
-    ports            => $port,
-    options          => $haproxy_config_options,
-    collect_exported => false
+  
+  add_haproxy_service { $name : 
+    order                    => $order, 
+    balancers                => $balancers, 
+    virtual_ips              => $virtual_ips, 
+    port                     => $port, 
+    haproxy_config_options   => $haproxy_config_options, 
+    balancer_port            => $balancer_port, 
+    balancermember_options   => $balancermember_options, 
+    define_cookies           => $define_cookies, 
+    define_backend           => $define_backend,
   }
-  @haproxy::balancermember { "${name}":
-    order                  => $order,
-    listening_service      => $name,
-    balancers              => $balancers,
-    balancer_port          => $balancer_port,
-    balancermember_options => $balancermember_options,
-    define_cookies         => $define_cookies,
-    define_backend        =>  $define_backend
-  }
+}
 
+# add_haproxy_service moved to separate define to allow adding custom sections 
+# to haproxy config without any default config options, except only required ones.
+define add_haproxy_service (
+    $order, 
+    $balancers, 
+    $virtual_ips, 
+    $port, 
+    $haproxy_config_options, 
+    $balancer_port, 
+    $balancermember_options,
+    $mode = 'tcp',
+    $define_cookies = false, 
+    $define_backend = false, 
+    $collect_exported = false
+    ) {
+    haproxy::listen { $name:
+      order            => $order - 1,
+      ipaddress        => $virtual_ips,
+      ports            => $port,
+      options          => $haproxy_config_options,
+      collect_exported => $collect_exported,
+      mode             => $mode,
+    }
+    @haproxy::balancermember { "${name}":
+      order                  => $order,
+      listening_service      => $name,
+      balancers              => $balancers,
+      balancer_port          => $balancer_port,
+      balancermember_options => $balancermember_options,
+      define_cookies         => $define_cookies,
+      define_backend        =>  $define_backend,
+    }
 }
 
 define keepalived_dhcp_hook($interface)
@@ -94,9 +122,12 @@ class openstack::controller_ha (
    $nova_db_password, $nova_user_password, $rabbit_password, $rabbit_user,
    $rabbit_nodes, $memcached_servers, $export_resources, $glance_backend='file', $swift_proxies=undef,
    $quantum = false, $quantum_user_password='', $quantum_db_password='', $quantum_db_user = 'quantum',
-   $quantum_db_dbname  = 'quantum', $cinder = false, $cinder_iscsi_bind_iface = false, $tenant_network_type = 'gre', $segment_range = '1:4094',
+   $quantum_db_dbname  = 'quantum', $cinder = false, $cinder_iscsi_bind_addr = false, $tenant_network_type = 'gre', $segment_range = '1:4094',
    $nv_physical_volume = undef, $manage_volumes = false,$galera_nodes, $use_syslog = false,
    $cinder_rate_limits = undef, $nova_rate_limits = undef,
+   $cinder_volume_group     = 'cinder-volumes',
+   $cinder_user_password    = 'cinder_user_pass',
+   $cinder_db_password      = 'cinder_db_pass',
    $rabbit_node_ip_address  = $internal_address,
    $horizon_use_ssl         = false,
    $quantum_network_node    = false,
@@ -108,9 +139,6 @@ class openstack::controller_ha (
    $create_networks         = true,
    $use_unicast_corosync    = false,
    $ha_mode                 = true,
-   $internal_virtual_ip_mask = undef, 
-   $public_virtual_ip_mask = undef, 
-   $keepalived_vrrp_script = "killall -0 haproxy",
  ) {
 
     # haproxy
@@ -243,19 +271,15 @@ local0.* -/var/log/haproxy.log'
 
     keepalived::instance { $public_vrid:
       interface => $public_interface,
-      virtual_ips => $public_virtual_ip_mask ? { undef => ["${public_virtual_ip}"], default => ["${public_virtual_ip}/${public_virtual_ip_mask}"] },
+      virtual_ips => [$public_virtual_ip],
       state    => $primary_controller ? { true => 'MASTER', default => 'BACKUP' },
-      priority => $primary_controller ? { true => 100,      default => fqdn_rand(100) },
-      vrrp_script => $keepalived_vrrp_script,
-      weight => 101,
+      priority => $primary_controller ? { true => 101,      default => 100      },
     }
     keepalived::instance { $internal_vrid:
       interface => $internal_interface,
-      virtual_ips => $internal_virtual_ip_mask ? { undef => ["${internal_virtual_ip}"], default => ["${internal_virtual_ip}/${internal_virtual_ip_mask}"] },
+      virtual_ips => [$internal_virtual_ip],
       state    => $primary_controller ? { true => 'MASTER', default => 'BACKUP' },
-      priority => $primary_controller ? { true => 100,      default => fqdn_rand(100) },
-      vrrp_script => $keepalived_vrrp_script,
-      weight => 101,
+      priority => $primary_controller ? { true => 101,      default => 100      },
     }
 
     class { '::openstack::firewall':
@@ -320,9 +344,12 @@ local0.* -/var/log/haproxy.log'
       segment_range           => $segment_range,
       tenant_network_type     => $tenant_network_type,
       cinder                  => $cinder,
-      cinder_iscsi_bind_iface => $cinder_iscsi_bind_iface,
+      cinder_iscsi_bind_addr  => $cinder_iscsi_bind_addr,
+      cinder_user_password    => $cinder_user_password,
+      cinder_db_password      => $cinder_db_password,
       manage_volumes          => $manage_volumes,
       nv_physical_volume      => $nv_physical_volume,
+      cinder_volume_group     => $cinder_volume_group,
       # turn on SWIFT_ENABLED option for Horizon dashboard
       swift                   => $glance_backend ? { 'swift' => true, default => false },
       use_syslog              => $use_syslog,

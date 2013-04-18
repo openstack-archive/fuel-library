@@ -32,4 +32,8 @@ Puppet::Type.newtype(:ring_container_device) do
     end
   end
 
+  autorequire(:exec) do
+    ['create_container']
+  end
+
 end

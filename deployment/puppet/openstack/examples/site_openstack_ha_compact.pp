@@ -32,19 +32,25 @@ $nodes_harr = [
     'role' => 'master',
     'internal_address' => '10.0.0.101',
     'public_address'   => '10.0.204.101',
+    'mountpoints'=> "1 1\n2 1",
+    'storage_local_net_ip' => '10.0.0.101',
   },
   {
     'name' => 'fuel-cobbler',
     'role' => 'cobbler',
     'internal_address' => '10.0.0.102',
     'public_address'   => '10.0.204.102',
+    'mountpoints'=> "1 1\n2 1",
+    'storage_local_net_ip' => '10.0.0.102',
   },
   {
     'name' => 'fuel-controller-01',
-    'role' => 'controller',
+    'role' => 'primary-controller',
     'internal_address' => '10.0.0.103',
     'public_address'   => '10.0.204.103',
     'swift_zone'       => 1,
+    'mountpoints'=> "1 1\n2 1",
+    'storage_local_net_ip' => '10.0.0.103',
   },
   {
     'name' => 'fuel-controller-02',
@@ -52,6 +58,8 @@ $nodes_harr = [
     'internal_address' => '10.0.0.104',
     'public_address'   => '10.0.204.104',
     'swift_zone'       => 2,
+    'mountpoints'=> "1 2\n 2 1",
+    'storage_local_net_ip' => '10.0.0.110',
   },
   {
     'name' => 'fuel-controller-03',
@@ -59,6 +67,8 @@ $nodes_harr = [
     'internal_address' => '10.0.0.105',
     'public_address'   => '10.0.204.105',
     'swift_zone'       => 3,
+    'mountpoints'=> "1 2\n 2 1",
+    'storage_local_net_ip' => '10.0.0.110',
   },
   {
     'name' => 'fuel-compute-01',
@@ -93,9 +103,9 @@ if empty($node) {
 $internal_address = $node[0]['internal_address']
 $public_address = $node[0]['public_address']
 
-
-$controller_internal_addresses = nodes_to_hash(filter_nodes($nodes,'role','controller'),'name','internal_address')
-$controller_public_addresses = nodes_to_hash(filter_nodes($nodes,'role','controller'),'name','public_address')
+$controllers = merge_arrays(filter_nodes($nodes,'role','primary-controller'), filter_nodes($nodes,'role','controller'))
+$controller_internal_addresses = nodes_to_hash($controllers,'name','internal_address')
+$controller_public_addresses = nodes_to_hash($controllers,'name','public_address')
 $controller_hostnames = keys($controller_internal_addresses)
 
 #Set this to anything other than pacemaker if you do not want Quantum HA
@@ -104,11 +114,6 @@ $controller_hostnames = keys($controller_internal_addresses)
 $ha_provider = 'pacemaker'
 $use_unicast_corosync = false
 
-# Set hostname for master controller of HA cluster. 
-# It is strongly recommend that the master controller is deployed before all other controllers since it initializes the new cluster.  
-# Default is fuel-controller-01. 
-# Fully qualified domain name is also allowed.
-$master_hostname = 'fuel-controller-01'
 
 # Set nagios master fqdn
 $nagios_master        = 'nagios-server.your-domain-name.com'
@@ -223,7 +228,7 @@ stage {'netconfig':
       before  => Stage['main'],
 }
 
-class {'l23network': stage=> 'netconfig'}
+class {'l23network': use_ovs=>$quantum, stage=> 'netconfig'}
 class node_netconfig (
   $mgmt_ipaddr,
   $mgmt_netmask  = '255.255.255.0',
@@ -286,9 +291,7 @@ $cinder_on_computes      = false
 $manage_volumes          = true
 
 # Setup network interface, which Cinder uses to export iSCSI targets.
-# This interface defines which IP to use to listen on iscsi port for
-# incoming connections of initiators
-$cinder_iscsi_bind_iface = $internal_int
+$cinder_iscsi_bind_addr = $internal_address
 
 # Below you can add physical volumes to cinder. Please replace values with the actual names of devices.
 # This parameter defines which partitions to aggregate into cinder-volumes or nova-volumes LVM VG
@@ -333,16 +336,18 @@ $swift_proxies = $controller_internal_addresses
 # It tells on which swift proxy node to build
 # *ring.gz files. Other swift proxies/storages
 # will rsync them.
-if $::hostname == 'fuel-controller-01' {
+if $node[0]['role'] == 'primary-controller' {
   $primary_proxy = true
 } else {
   $primary_proxy = false
 }
-if $::hostname == $master_hostname {
+if $node[0]['role'] == 'primary-controller' {
   $primary_controller = true
 } else {
   $primary_controller = false
 }
+$master_swift_proxy_nodes = filter_nodes($nodes,'role','primary-controller')
+$master_swift_proxy_ip = $master_swift_proxy_nodes[0]['internal_address']
 
 ### Glance and swift END ###
 
@@ -515,7 +520,7 @@ class compact_controller (
     tenant_network_type     => $tenant_network_type,
     segment_range           => $segment_range,
     cinder                  => $cinder,
-    cinder_iscsi_bind_iface => $cinder_iscsi_bind_iface,
+    cinder_iscsi_bind_addr  => $cinder_iscsi_bind_addr,
     manage_volumes          => $manage_volumes,
     galera_nodes            => $controller_hostnames,
     nv_physical_volume      => $nv_physical_volume,
@@ -524,10 +529,7 @@ class compact_controller (
     cinder_rate_limits      => $cinder_rate_limits,
     horizon_use_ssl         => $horizon_use_ssl,
     use_unicast_corosync    => $use_unicast_corosync,
-    ha_provider             => $ha_provider,
-    internal_virtual_ip_mask => '24',
-    public_virtual_ip_mask  => '24',
-    keepalived_vrrp_script  => "killall -0 haproxy"
+    ha_provider             => $ha_provider
   }
   class { 'swift::keystone::auth':
     password         => $swift_user_password,
@@ -571,6 +573,14 @@ node /fuel-controller-[\d+]/ {
     storage_type       => $swift_loopback,
     swift_zone         => $swift_zone,
     swift_local_net_ip => $internal_address,
+    master_swift_proxy_ip  => $master_swift_proxy_ip,
+    sync_rings             => ! $primary_proxy
+  }
+
+  if $primary_proxy {
+    ring_devices {'all':
+      storages => $controllers
+    }
   }
 
   class { 'openstack::swift::proxy':
@@ -579,7 +589,10 @@ node /fuel-controller-[\d+]/ {
     primary_proxy           => $primary_proxy,
     controller_node_address => $internal_virtual_ip,
     swift_local_net_ip      => $internal_address,
+    master_swift_proxy_ip  => $master_swift_proxy_ip,
   }
+
+  Class ['openstack::swift::proxy'] -> Class['openstack::swift::storage_node']
 }
 
 # Definition of OpenStack compute nodes.
@@ -637,7 +650,7 @@ node /fuel-compute-[\d+]/ {
     tenant_network_type    => $tenant_network_type,
     segment_range          => $segment_range,
     cinder                 => $cinder_on_computes,
-    cinder_iscsi_bind_iface=> $cinder_iscsi_bind_iface,
+    cinder_iscsi_bind_addr => $cinder_iscsi_bind_addr,
     nv_physical_volume     => $nv_physical_volume,
     db_host                => $internal_virtual_ip,
     ssh_private_key        => 'puppet:///ssh_keys/openstack',

@@ -67,7 +67,7 @@ $node = filter_nodes($nodes,'name',$::hostname)
 $internal_address = $node[0]['internal_address']
 $public_address = $node[0]['public_address']
 
-$controllers = filter_nodes($nodes,'role','controller')
+$controllers = merge_arrays(filter_nodes($nodes,'role','primary-controller'), filter_nodes($nodes,'role','controller'))
 $controller_internal_address = $controllers[0]['internal_address']
 $controller_public_address   = $controllers[0]['public_address']
 
@@ -187,7 +187,7 @@ stage {'netconfig':
       before  => Stage['main'],
 }
 
-class {'l23network': stage=> 'netconfig'}
+class {'l23network': use_ovs=>$quantum, stage=> 'netconfig'}
 class node_netconfig (
   $mgmt_ipaddr,
   $mgmt_netmask  = '255.255.255.0',
@@ -233,7 +233,7 @@ class node_netconfig (
 # This parameter specifies the the identifier of the current cluster. This is needed in case of multiple environments.
 # installation. Each cluster requires a unique integer value. 
 # Valid identifier range is 1 to 254
-$deployment_id = '79'
+$deployment_id = '69'
 
 # Below you can enable or disable various services based on the chosen deployment topology:
 ### CINDER/VOLUME ###
@@ -250,9 +250,7 @@ $cinder_on_computes      = false
 $manage_volumes          = true
 
 # Setup network interface, which Cinder uses to export iSCSI targets.
-# This interface defines which IP to use to listen on iscsi port for
-# incoming connections of initiators
-$cinder_iscsi_bind_iface = $internal_int
+$cinder_iscsi_bind_addr = $internal_address
 
 # Below you can add physical volumes to cinder. Please replace values with the actual names of devices.
 # This parameter defines which partitions to aggregate into cinder-volumes or nova-volumes LVM VG
@@ -324,6 +322,7 @@ $openstack_version = {
 $mirror_type = 'default'
 $enable_test_repo = false
 $repo_proxy = undef
+$use_upstream_mysql = true
 
 # This parameter specifies the verbosity level of log messages
 # in openstack components config. Currently, it disables or enables debugging.
@@ -387,6 +386,7 @@ class { 'openstack::mirantis_repos':
   type=>$mirror_type,
   enable_test_repo=>$enable_test_repo,
   repo_proxy=>$repo_proxy,
+  use_upstream_mysql=>$use_upstream_mysql
 }
 
 if $::operatingsystem == 'Ubuntu' {
@@ -442,7 +442,6 @@ class simple_controller (
     rabbit_user             => $rabbit_user,
     export_resources        => false,
     quantum                 => $quantum,
-      
     quantum_user_password   => $quantum_user_password,
     quantum_db_password     => $quantum_db_password,
     quantum_db_user         => $quantum_db_user,
@@ -454,7 +453,7 @@ class simple_controller (
     tenant_network_type     => $tenant_network_type,
     segment_range           => $segment_range,
     cinder                  => $cinder,
-    cinder_iscsi_bind_iface => $cinder_iscsi_bind_iface,
+    cinder_iscsi_bind_addr  => $cinder_iscsi_bind_addr,
     manage_volumes          => $manage_volumes,
     nv_physical_volume      => $nv_physical_volume,
     use_syslog              => $use_syslog,
@@ -564,7 +563,7 @@ node /fuel-compute-[\d+]/ {
     quantum                => $quantum,
     quantum_sql_connection => $quantum_sql_connection,
     quantum_user_password  => $quantum_user_password,
-    quantum_host           => $internal_virtual_ip,
+    quantum_host           => $controller_internal_address,
     tenant_network_type    => $tenant_network_type,
     service_endpoint       => $controller_internal_address,
     db_host                => $controller_internal_address,
@@ -572,7 +571,7 @@ node /fuel-compute-[\d+]/ {
     verbose                => $verbose,
     segment_range          => $segment_range,
     cinder                 => $cinder_on_computes,
-    cinder_iscsi_bind_iface=> $cinder_iscsi_bind_iface,
+    cinder_iscsi_bind_addr => $cinder_iscsi_bind_addr,
     use_syslog             => $use_syslog,
     nova_rate_limits       => $nova_rate_limits,
     cinder_rate_limits     => $cinder_rate_limits

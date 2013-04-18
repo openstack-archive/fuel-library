@@ -31,7 +31,7 @@ Change the virtual IPs to match the target networks, and set the fixed and float
      nv_physical_volumes:
       - /dev/sdb
 
-By setting the ``nv_physical_volumes`` value, you are not only telling OpenStack to use this value for Cinder (you'll see more aobut that in the ``site.pp`` file), you're also telling Fuel to create and mount the appropriate partition.
+By setting the ``nv_physical_volumes`` value, you are not only telling OpenStack to use this value for Cinder (you'll see more about that in the ``site.pp`` file), you're also telling Fuel to create and mount the appropriate partition.
 
 Later, we'll set up a new partition for Cinder, so tell Cobbler to create it here. ::
 
@@ -188,7 +188,11 @@ Next you'll define the actual servers. ::
 	      userctl: "yes"
 	      peerdns: "no"
 
-You can retrieve the MAC ids for your network adapters by expanding "Advanced" for the adapater in VirtualBox, or by executing ifconfig on the server itself.  Also, make sure the ``ip-address`` is correct, and that the ``dns-name`` has your own domain name in it.
+For a VirtualBox installation, you can retrieve the MAC ids for your network adapters by expanding "Advanced" for the adapater in VirtualBox, or by executing ifconfig on the server itself.  
+
+For a physical installation, the MAC address of the server is often printed on the sticker attached to the server for the LOM interfaces, or is available from the BIOS screen.  You may also be able to find the MAC address in the hardware inventory BMC/DRAC/ILO, though this may be server-dependent.
+
+Also, make sure the ``ip-address`` is correct, and that the ``dns-name`` has your own domain name in it.
 
 In this example, IP addresses should be assigned as follows::
 
