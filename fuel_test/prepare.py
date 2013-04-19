@@ -122,6 +122,7 @@ class Prepare(object):
             'NETWORK_FOR_SSH': 'public',
             'SSH_USER': 'cirros',
             'LIVE_MIGRATION': 'true',
+            'USE_BLOCKMIG_FOR_LIVEMIG' : 'true',
             'COMPUTE_CATALOG_TYPE': 'compute',
             'COMPUTE_CREATE_IMAGE_ENABLED': 'true',
             'COMPUTE_RESIZE_AVAILABLE': 'true',

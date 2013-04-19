@@ -139,7 +139,7 @@ live_migration_available = %(LIVE_MIGRATION)s
 
 # Use block live migration (Otherwise, non-block migration will be
 # performed, which requires XenServer pools in case of using XS)
-use_block_migration_for_live_migration = false
+use_block_migration_for_live_migration = %(USE_BLOCKMIG_FOR_LIVEMIG)s
 
 # By default, rely on the status of the diskConfig extension to
 # decide if to execute disk config tests. When set to false, tests
