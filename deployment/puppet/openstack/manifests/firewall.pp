@@ -5,8 +5,8 @@ class openstack::firewall (
 	$https_port = 443,
 	$mysql_port = 3306,
 	$mysql_backend_port = 3307,
-    $mysql_gcomm_port = 4567,
-        $galera_ist_port = 4568,
+  $mysql_gcomm_port = 4567,
+  $galera_ist_port = 4568,
 	$keystone_public_port =  5000,
 	$swift_proxy_port =  8080,
 	$swift_object_port =  6000,
@@ -22,26 +22,25 @@ class openstack::firewall (
 	$nova_vncproxy_port =  6080,
 	$erlang_epmd_port  =   4369,
 	$erlang_rabbitmq_port =  5672,
-    $erlang_inet_dist_port = 41055,
+  $erlang_inet_dist_port = 41055,
 	$memcached_port =  11211,
   $rsync_port = 873,
   $iscsi_port = 3260,
 	$quantum_api_port = 9696,
 ) {
 
-file {"iptables":
-  path     => $operatingsystem ? {
-      /(Debian|Ubuntu)/          => '/etc/network/rules.v4',
+  file {"iptables":
+    path     => $operatingsystem ? {
+      /(Debian|Ubuntu)/ => '/etc/network/rules.v4',
       /(RedHat|CentOS)/ => '/etc/sysconfig/iptables',
-    
- },
- source => "puppet:///modules/openstack/iptables"
-}->
-exec { 'startup-firewall':
-  command     => $operatingsystem ? {
-      /(Debian|Ubuntu)/          => '/sbin/iptables-restore  /etc/network/rules.v4',
-      /(RedHat|CentOS)/ => '/sbin/iptables-restore  /etc/sysconfig/iptables',
- }
-}
+      },
+    source => "puppet:///modules/openstack/iptables"
+  }->
 
-}
+  exec { 'startup-firewall':
+    command     => $operatingsystem ? {
+      /(Debian|Ubuntu)/ => '/sbin/iptables-restore  /etc/network/rules.v4',
+      /(RedHat|CentOS)/ => '/sbin/iptables-restore  /etc/sysconfig/iptables',
+      }
+    }
+  }
