@@ -1,5 +1,4 @@
 import logging
-from time import sleep
 from ipaddr import IPNetwork
 
 import os
@@ -8,7 +7,7 @@ from fuel_test.helpers import add_nmap
 from fuel_test.node_roles import NodeRoles
 from fuel_test.settings import CONTROLLERS, COMPUTES, \
     STORAGES, PROXIES, \
-    EMPTY_SNAPSHOT, POOLS, INTERFACE_ORDER, ROUTED_INTERFACE, ISO, FORWARDING, DHCP
+    EMPTY_SNAPSHOT, POOLS, INTERFACE_ORDER, FORWARDING, DHCP
 
 
 class CiVM(CiBase):
