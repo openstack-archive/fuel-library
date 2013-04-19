@@ -8,7 +8,7 @@ from fuel_test.helpers import add_nmap
 from fuel_test.node_roles import NodeRoles
 from fuel_test.settings import CONTROLLERS, COMPUTES, \
     STORAGES, PROXIES, \
-    EMPTY_SNAPSHOT, POOLS, INTERFACE_ORDER, ROUTED_INTERFACE, ISO
+    EMPTY_SNAPSHOT, POOLS, INTERFACE_ORDER, ROUTED_INTERFACE, ISO, FORWARDING, DHCP
 
 
 class CiVM(CiBase):
@@ -48,7 +48,7 @@ class CiVM(CiBase):
                 networks=ip_networks, prefix=int(new_prefix))
             networks.append(self.manager.network_create(
                 name=name, environment=environment, pool=pool,
-                forward='route' if name==ROUTED_INTERFACE else 'nat'))
+                forward=FORWARDING.get(name), has_dhcp_server=DHCP.get(name)))
         for name in self.node_roles().master_names:
             self.describe_master_node(name, networks)
         for name in self.node_roles().compute_names:
