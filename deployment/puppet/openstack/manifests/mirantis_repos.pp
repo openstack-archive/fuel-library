@@ -27,11 +27,11 @@ class openstack::mirantis_repos (
         stage => $::openstack::mirantis_repos::stage
       }
 
-      apt::pin { 'mirantis-releases':
-        order      => 20,
-        priority   => 1001,
-        originator => $originator
-      }
+#      apt::pin { 'mirantis-releases':
+#        order      => 20,
+#        priority   => 1001,
+#        originator => $originator
+#      }
 
       if $use_upstream_mysql {
         apt::pin { 'upstream-mysql':
