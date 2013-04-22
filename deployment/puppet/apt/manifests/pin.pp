@@ -7,7 +7,9 @@ define apt::pin(
   $priority   = 0,
   $release    = '',
   $origin     = '',
-  $originator = ''
+  $originator = '',
+  $version    = '',
+  $order ='' 
 ) {
 
   include apt::params
@@ -20,13 +22,22 @@ define apt::pin(
     $pin = "origin \"${origin}\""
   } elsif $originator != '' {
     $pin = "release o=${originator}"
-  } else {
+  } elsif $version != ''
+  {
+    $pin = "version ${version}"
+  }
+  else {
     $pin = "release a=${name}"
+  }
+
+  $path = $order ? {
+    '' => "${preferences_d}/${name}.pref",
+    default => "${preferences_d}/${order}-${name}.pref",
   }
 
   file { "${name}.pref":
     ensure  => $ensure,
-    path    => "${preferences_d}/${name}.pref",
+    path    => $path,
     owner   => root,
     group   => root,
     mode    => '0644',

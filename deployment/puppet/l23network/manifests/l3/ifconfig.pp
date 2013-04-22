@@ -200,38 +200,37 @@ define l23network::l3::ifconfig (
   }
 
   if $interfaces {
-    if ! defined(File[$interfaces]) {
-      file {$interfaces:
+    if ! defined(File["$interfaces"]) {
+      file {"$interfaces":
         ensure  => present,
         content => template('l23network/interfaces.erb'),
       }
     }
-    #File[$interfaces] -> File[$if_files_dir]
-    #File<| title == $interfaces |> -> File<| title == $if_files_dir |>
+    File<| title == "$interfaces" |> -> File<| title == "$if_files_dir" |>
   }
 
-  if ! defined(File[$if_files_dir]) {
-    file {$if_files_dir:
+  if ! defined(File["$if_files_dir"]) {
+    file {"$if_files_dir":
       ensure  => directory,
       owner   => 'root',
       mode    => '0755',
       recurse => true,
     }
   }
+  File<| title == "$if_files_dir" |> -> File<| title == "$interface_file" |>
 
-  file {$interface_file:
+  file {"$interface_file":
     ensure  => present,
     owner   => 'root',
     mode    => '0644',
     content => template("l23network/ipconfig_${::osfamily}_${method}.erb"),
-    require => File[$if_files_dir],
   }
 
   notify {"ifconfig_${interface}": message=>"Interface:${interface} IP:${ipaddr}/${netmask}", withpath=>false} ->
-  l3_if_downup {$interface:
+  l3_if_downup {"$interface":
     check_by_ping => $check_by_ping,
     check_by_ping_timeout => $check_by_ping_timeout,
-    subscribe     => File[$interface_file],
+    subscribe     => File["$interface_file"],
     refreshonly   => true,
   }
 }

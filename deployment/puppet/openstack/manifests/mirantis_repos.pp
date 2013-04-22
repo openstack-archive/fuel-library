@@ -17,21 +17,30 @@ class openstack::mirantis_repos (
   $mirrorlist_updates     = 'http://172.18.67.168/centos-repo/mirror-6.3-updates.list',
   $enable_test_repo = false,
   $repo_proxy = undef,
-  $use_upstream_mysql = false,
-) {
+  $use_upstream_mysql        = false,) {
   case $::osfamily {
-    'Debian': {
-      class {'apt::proxy': 
+    'Debian' : {
+      class { 'apt::proxy':
         proxy => $repo_proxy,
         stage => $::openstack::mirantis_repos::stage
       }
 
-      apt::pin{'mirantis-releases':  priority => 1001, originator => $originator }
-     if $use_upstream_mysql {
-      apt::pin{'upstream-mysql': priority => 1002, version => "5.5.29*", packages => "mysql*" }
-     }
+      apt::pin { 'mirantis-releases':
+        order      => 20,
+        priority   => 1001,
+        originator => $originator
+      }
 
-     Apt::Source<||>->Apt::Pin<||>
+      if $use_upstream_mysql {
+        apt::pin { 'upstream-mysql':
+          order    => 19,
+          priority => 1002,
+          version  => "5.5.29*",
+          packages => "mysql*"
+        }
+      }
+
+      Apt::Source <| |> -> Apt::Pin <| |>
 
       if $type == 'default' {
         apt::source { 'cloud-archive':
@@ -40,17 +49,17 @@ class openstack::mirantis_repos (
           repos       => 'main',
           key         => '5EDB1B62EC4926EA',
           key_source  => 'http://download.mirantis.com/precise-fuel-folsom/cloud-archive.key',
-          #key_server => 'keys.gnupg.net',
+          # key_server => 'keys.gnupg.net',
           include_src => false,
         }
 
           apt::source { 'precise-fuel-folsom':
           location    => 'http://download.mirantis.com/precise-fuel-folsom',
-          release     => 'precise-2.1',
+          release     => 'precise-2.1.0.1',
           repos       => 'main',
           key         => 'F8AF89DD',
           key_source  => 'http://download.mirantis.com/precise-fuel-folsom/Mirantis.key',
-          #key_server => "pgp.mit.edu",
+          # key_server => "pgp.mit.edu",
           include_src => false,
         }
 
@@ -63,41 +72,38 @@ class openstack::mirantis_repos (
           include_src => false,
         }
       }
+
       # Below we set our internal repos for testing purposes. Some of them may match with external ones.
       if $type == 'custom' {
-
         
 
 	if $enable_test_repo { 
-
-	
-
          apt::source  { 'precise-fuel-folsom':
           location    => $deb_fuel_folsom_repo,
-          release     => 'precise-2.1',
+            release     => 'precise-2.1.0.1',
+          repos       => 'main',
+          key         => 'F8AF89DD',
+          key_source  => 'http://172.18.67.168/ubuntu-repo/precise-fuel-folsom/Mirantis.key',
+          include_src => false,
+	}
+        } else {
+         apt::source  { 'precise-fuel-folsom':
+          location    => $deb_fuel_folsom_repo,
+            release     => 'precise-2.1.0.1',
           repos       => 'main',
           key         => 'F8AF89DD',
           key_source  => 'http://172.18.67.168/ubuntu-repo/precise-fuel-folsom/Mirantis.key',
           include_src => false,
         }
 	}
-	else { 
-         apt::source  { 'precise-fuel-folsom':
-          location    => $deb_fuel_folsom_repo,
-          release     => 'precise-2.1',
-          repos       => 'main',
-          key         => 'F8AF89DD',
-          key_source  => 'http://172.18.67.168/ubuntu-repo/precise-fuel-folsom/Mirantis.key',
-          include_src => false,
-        }
-	}
+
         apt::source { 'cloud-archive':
           location    => $deb_cloud_archive_repo,
           release     => 'precise-updates/folsom',
           repos       => 'main',
           key         => '5EDB1B62EC4926EA',
           key_source  => 'http://172.18.67.168/ubuntu-repo/precise-fuel-folsom/cloud-archive.key',
-          #key_server   => "pgp.mit.edu",
+          # key_server   => "pgp.mit.edu",
           include_src => false,
         }
 
@@ -111,9 +117,8 @@ class openstack::mirantis_repos (
         }
 
         if $upstream_mirror == true {
-
-          file {'/etc/apt/sources.list': ensure => absent }
-          File['/etc/apt/sources.list'] -> Apt::Source<||>
+          file { '/etc/apt/sources.list': ensure => absent }
+          File['/etc/apt/sources.list'] -> Apt::Source <| |>
 
           apt::source { 'ubuntu-mirror':
             location => $deb_mirror,
@@ -139,24 +144,20 @@ class openstack::mirantis_repos (
        class { 'apt::update': stage => $::openstack::mirantis_repos::stage }
       }
 
-#     In no one custom Debian repository is defined, it is necessary to force run apt-get update
-#     Please uncomment the following block to order puppet to force apt-get update
-################ Start of forced apt-get update block ##############
-#        class { 'apt':
-#          always_apt_update => true,
-#        }
-################ End of forced apt-get update block ###############
+      #     In no one custom Debian repository is defined, it is necessary to force run apt-get update
+      #     Please uncomment the following block to order puppet to force apt-get update
+      # ############### Start of forced apt-get update block ##############
+      #        class { 'apt':
+      #          always_apt_update => true,
+      #        }
+      # ############### End of forced apt-get update block ###############
     }
 
-    'RedHat': {
-
-      exec {'/usr/bin/yum -d 0 -e 0 -y install yum-priorities':}
-
+    'RedHat' : {
       Yumrepo {
-        proxy   => $repo_proxy,
-      }
+        proxy => $repo_proxy, }
       
-      #added internal/external network mirror
+      # added internal/external network mirror
       if $type == 'default' {
         
         yumrepo { 'openstack-epel-fuel':
@@ -205,7 +206,7 @@ class openstack::mirantis_repos (
       }
 
       if $enable_test_repo {
-        yumrepo {'openstack-osci-repo':
+        yumrepo { 'openstack-osci-repo':
           descr      => 'Mirantis OpenStack OSCI Packages',
           baseurl    => 'http://osci-koji.srt.mirantis.net/mash/fuel-folsom/x86_64/',
           gpgcheck   => '1',
@@ -234,19 +235,22 @@ class openstack::mirantis_repos (
         }
       }
 
-#Puppetlabs repos are really slow. This can slow deployment or even lead to yum timeout.
+      # Puppetlabs repos are really slow. This can slow deployment or even lead to yum timeout.
 
       if $disable_puppet_labs_repos {
-          if defined (Yumrepo['puppetlabs-products']) {yumrepo {'puppetlabs-products': enabled=>0 }}
-          if defined (Yumrepo['puppetlabs-deps']) {yumrepo {'puppetlabs-deps': enabled=>0}}
+        if defined(Yumrepo['puppetlabs-products']) {
+          yumrepo { 'puppetlabs-products': enabled => 0 }
       }
 
-      exec {'yum_make_safe_cache':
-        command => "/usr/bin/yum clean all",
+        if defined(Yumrepo['puppetlabs-deps']) {
+          yumrepo { 'puppetlabs-deps': enabled => 0 }
+        }
       }
-      Yumrepo<||> -> Exec['yum_make_safe_cache']
+
+      exec { 'yum_make_safe_cache': command => "/usr/bin/yum clean all", }
+      Yumrepo <| |> -> Exec['yum_make_safe_cache']
     }
-    default: {
+    default  : {
       fail("Unsupported osfamily: ${osfamily} for os ${operatingsystem}")
     }
   }

@@ -26,14 +26,18 @@ define l23network::l2::bond (
   $ensure        = present,
   $skip_existing = false,
 ) {
-  if ! defined (L2_ovs_bond[$bond]) {
-    l2_ovs_bond { $bond :
+  if ! $::l23network::l2::use_ovs {
+    fail('You need enable using Open vSwitch. You yourself has prohibited it.')
+  }
+  
+  if ! defined (L2_ovs_bond["$bond"]) {
+    l2_ovs_bond { "$bond" :
       ports         => $ports,
       ensure        => $ensure,
       bridge        => $bridge,
       options       => $options,
       skip_existing => $skip_existing,
     }
-    Service<| title == 'openvswitch-service' |> -> L2_ovs_bond[$bond]
+    Service<| title == 'openvswitch-service' |> -> L2_ovs_bond["$bond"]
   }
 }

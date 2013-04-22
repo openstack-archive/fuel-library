@@ -11,18 +11,42 @@ Puppet::Type.type(:l2_ovs_port).provide(:ovs) do
       if @resource[:skip_existing]
         return true
       else
-        raise ExecutionFailure, "Port '#{@resource[:interface]}' already exists."
+        raise Puppet::ExecutionFailure, "Port '#{@resource[:interface]}' already exists."
       end
     rescue Puppet::ExecutionFailure
       # pass
     end
+    # Port create begins from definition brodge and port
     cmd = [@resource[:bridge], @resource[:interface]]
+    # add port options (k/w) to command line
+    if @resource[:port_options]
+      for option in @resource[:port_options]
+        cmd += [option]
+      end
+    end
+    # set interface type
+    #TODO: implement type=>patch sintax as type=>'patch:peer-name'
     if @resource[:type] and @resource[:type].to_s != ''
       tt = "type=" + @resource[:type].to_s
       cmd += ['--', "set", "Interface", @resource[:interface], tt]
     end
+    # executing OVS add-port command
     cmd = ["add-port"] + cmd
-    vsctl(cmd)
+    begin
+      vsctl(cmd)
+    rescue Puppet::ExecutionFailure => error
+      raise Puppet::ExecutionFailure, "Can't add port '#{@resource[:interface]}'\n#{error}"
+    end
+    # set interface options
+    if @resource[:interface_options]
+      for option in @resource[:interface_options]
+        begin
+          vsctl('--', "set", "Interface", @resource[:interface], option.to_s)
+        rescue Puppet::ExecutionFailure => error
+          raise Puppet::ExecutionFailure, "Interface '#{@resource[:interface]}' can't set option '#{option}':\n#{error}"
+        end
+      end
+    end
   end
 
   def destroy

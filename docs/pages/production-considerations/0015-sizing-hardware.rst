@@ -21,7 +21,7 @@ The basic consideration when it comes to CPU is how many GHZ you're going to nee
 * 2 EC2 compute units (2 GHz) average
 * 16 EC2 compute units (16 GHz) max
 
-What does this mean?  Well, to make it possible to provide the maximum CPU, you will need at least 5 cores (16 GHz/2.4 GHz per core) per machine, and at least 84 cores ((100 VMs * 2 GHz per VM)/2.4 GHz per core) in total.
+What does this mean?  Well, to make it possible to provide the maximum CPU, you will need at least 5 cores (16 GHz/(2.4 GHz per core * 1.3 for hyperthreading)) per machine, and at least 84 cores ((100 VMs * 2 GHz per VM)/2.4 GHz per core) in total.
 
 If you were to choose the Intel E5 2650-70 8 core CPU, that means you need 10-11 sockets (84 cores / 8 cores per socket).
 
@@ -91,7 +91,7 @@ IOPS will also be a factor in determining how you decide to handle persistent st
   * 36 TB raw, or 18 TB usable space per 2U frame
   * 3 frames (50 TB / 18 TB per server)
   * 12 slots x 100 IOPS per drive = 1200 Read IOPS, 600 Write IOPS per frame
-  * 3 frames x 1200 IOPS per frame / 100 VMs = 36 Read IOPS, 18 Write IOPS per frame
+  * 3 frames x 1200 IOPS per frame / 100 VMs = 36 Read IOPS, 18 Write IOPS per VM
 
 * 24 drive storage frame using 1TB 7200 RPM 2.5" drives
 

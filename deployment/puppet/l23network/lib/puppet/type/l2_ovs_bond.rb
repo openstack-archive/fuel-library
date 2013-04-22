@@ -19,7 +19,10 @@ Puppet::Type.newtype(:l2_ovs_bond) do
       desc "List of ports, that will be added to the bond"
       #
       validate do |val|
-        val.each do |port|
+        if not val.is_a?(Array)
+          fail("Ports option must be array (not be #{val.class}).")
+        end
+        for port in val
           if not port =~ /^[a-z][0-9a-z\.\-\_]*[0-9a-z]$/
             fail("Invalid port name: '#{port}'")
           end

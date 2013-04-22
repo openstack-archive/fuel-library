@@ -127,15 +127,19 @@ class Manifest(object):
     def describe_swift_node(self, node, role, zone):
         node_dict = self.describe_node(node, role)
         node_dict.update({'swift_zone': zone})
+        node_dict.update({'storage_local_net_ip': node.get_ip_address_by_network_name('internal')})
+        node_dict.update({'mountpoints': '1 2\n 2 1'})
         return node_dict
 
     def generate_nodes_configs_list(self, ci):
         zones = range(1, 50)
         nodes = []
         for node in ci.nodes().computes: nodes.append(self.describe_node(node, 'compute'))
-        for node in ci.nodes().controllers: nodes.append(self.describe_swift_node(node, 'controller', zones.pop()))
+        for node in ci.nodes().controllers[:1]: nodes.append(self.describe_swift_node(node, 'primary-controller', zones.pop()))
+        for node in ci.nodes().controllers[1:]: nodes.append(self.describe_swift_node(node, 'controller', zones.pop()))
         for node in ci.nodes().storages: nodes.append(self.describe_swift_node(node, 'storage', zones.pop()))
-        for node in ci.nodes().proxies: nodes.append(self.describe_node(node, 'swift-proxy'))
+        for node in ci.nodes().proxies[:1]: nodes.append(self.describe_node(node, 'primary-swift-proxy'))
+        for node in ci.nodes().proxies[1:]: nodes.append(self.describe_node(node, 'swift-proxy'))
         for node in ci.nodes().quantums: nodes.append(self.describe_node(node, 'quantum'))
         for node in ci.nodes().masters: nodes.append(self.describe_node(node, 'master'))
         for node in ci.nodes().cobblers: nodes.append(self.describe_node(node, 'cobbler'))

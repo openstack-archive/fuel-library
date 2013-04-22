@@ -102,7 +102,7 @@ the network from Cobbler. You'll also need each server's mac address.
 If you're using VirtualBox, you will need to create the corresponding
 virtual machines for your OpenStack nodes. Follow these instructions
 to create machines named fuel-controller-01, fuel-controller-02, fuel-
-controller-03, and fuel-compute-02, but do not start them yet.
+controller-03, and fuel-compute-01, but do not start them yet.
 
 
 

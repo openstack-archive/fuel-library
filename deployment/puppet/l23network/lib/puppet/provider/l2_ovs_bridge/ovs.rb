@@ -15,7 +15,7 @@ Puppet::Type.type(:l2_ovs_bridge).provide(:ovs) do
         #external_ids = @resource[:external_ids] if @resource[:external_ids]
         return true
       else
-        raise ExecutionFailure, "Bridge '#{@resource[:bridge]}' already exists."
+        raise Puppet::ExecutionFailure, "Bridge '#{@resource[:bridge]}' already exists."
       end
     rescue Puppet::ExecutionFailure
       # pass
