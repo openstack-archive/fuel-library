@@ -273,14 +273,14 @@ class Prepare(object):
             tenant1 = tenants[0].id 
             tenant2 = tenants[1].id
         else:
-        tenant1 = retry(10, keystone.tenants.create, tenant_name='tenant1')
-        tenant2 = retry(10, keystone.tenants.create, tenant_name='tenant2')
+            tenant1 = retry(10, keystone.tenants.create, tenant_name='tenant1')
+            tenant2 = retry(10, keystone.tenants.create, tenant_name='tenant2')
 
         users = self._get_users(keystone, 'tempest1', 'tempest2')
         if len(users) == 0:
-        retry(10, keystone.users.create, name='tempest1', password='secret',
+            retry(10, keystone.users.create, name='tempest1', password='secret',
               email='tempest1@example.com', tenant_id=tenant1.id)
-        retry(10, keystone.users.create, name='tempest2', password='secret',
+            retry(10, keystone.users.create, name='tempest2', password='secret',
               email='tempest2@example.com', tenant_id=tenant2.id)
         
         image_ref, image_ref_alt = self.tempest_add_images()
@@ -325,10 +325,10 @@ class Prepare(object):
         if len(images) > 1:
             return images[0].id, images[1].id
         else:
-        return self.upload(glance, 'cirros_0.3.0',
-                           'cirros-0.3.0-x86_64-disk.img'), \
-               self.upload(glance, 'cirros_0.3.0',
-                           'cirros-0.3.0-x86_64-disk.img')
+            return self.upload(glance, 'cirros_0.3.0',
+                              'cirros-0.3.0-x86_64-disk.img'), \
+                   self.upload(glance, 'cirros_0.3.0',
+                              'cirros-0.3.0-x86_64-disk.img')
 
     def tempest_get_netid_routerid(self):
         networking = self._get_networking_client()
