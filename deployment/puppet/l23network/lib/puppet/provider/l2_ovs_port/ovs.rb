@@ -18,9 +18,9 @@ Puppet::Type.type(:l2_ovs_port).provide(:ovs) do
     end
     # Port create begins from definition brodge and port
     cmd = [@resource[:bridge], @resource[:interface]]
-    # add port options (k/w) to command line
-    if @resource[:port_options]
-      for option in @resource[:port_options]
+    # add port properties (k/w) to command line
+    if @resource[:port_properties]
+      for option in @resource[:port_properties]
         cmd += [option]
       end
     end
@@ -37,9 +37,9 @@ Puppet::Type.type(:l2_ovs_port).provide(:ovs) do
     rescue Puppet::ExecutionFailure => error
       raise Puppet::ExecutionFailure, "Can't add port '#{@resource[:interface]}'\n#{error}"
     end
-    # set interface options
-    if @resource[:interface_options]
-      for option in @resource[:interface_options]
+    # set interface properties
+    if @resource[:interface_properties]
+      for option in @resource[:interface_properties]
         begin
           vsctl('--', "set", "Interface", @resource[:interface], option.to_s)
         rescue Puppet::ExecutionFailure => error
