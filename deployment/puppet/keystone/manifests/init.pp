@@ -22,6 +22,7 @@
 #   [catalog_type] Type of catalog that keystone uses to store endpoints,services. Optional.
 #     Defaults to sql. (Also accepts template)
 #   [token_format] Format keystone uses for tokens. Optional. Defaults to PKI.
+#   [token_format] Format keystone uses for tokens. Optional. Defaults to UUID.
 #     Supports PKI and UUID.
 #   [cache_dir] Directory created when token_format is PKI. Optional.
 #     Defaults to /var/cache/keystone.
@@ -60,7 +61,7 @@ class keystone(
   $catalog_type   = 'sql',
   $token_format   = 'UUID',
 # TODO fix "undefined method `<<' for {}:Hash" issue if PKI was choosed
-  $token_format   = 'PKI',
+#  $token_format   = 'PKI',
   $cache_dir      = '/var/cache/keystone',
   $enabled        = true,
   $sql_connection = 'sqlite:////var/lib/keystone/keystone.db',
@@ -247,6 +248,7 @@ class keystone(
       path        => '/usr/bin',
       user        => 'keystone',
       refreshonly => true,
+      notify      => Service['keystone'],
       subscribe   => Package['keystone'],
     }
   }

@@ -183,7 +183,7 @@ class openstack::compute (
       rabbit_password      => $rabbit_password,
       rabbit_host          => false,
       rabbit_nodes         => $rabbit_nodes,
-        volume_group         => $cinder_volume_group,
+      volume_group         => $cinder_volume_group,
       physical_volume      => $nv_physical_volume,
       manage_volumes       => $manage_volumes,
       enabled              => true,

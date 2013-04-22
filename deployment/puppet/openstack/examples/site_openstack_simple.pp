@@ -246,7 +246,7 @@ $cinder                  = true
 $cinder_iscsi_bind_addr = $internal_address
 
 # Should we install cinder on compute nodes?
-$cinder_on_computes      = false
+$cinder_on_computes      = true
 
 #Set it to true if your want cinder-volume been installed to the host
 #Otherwise it will install api and scheduler services

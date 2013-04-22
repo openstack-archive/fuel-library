@@ -3,6 +3,7 @@ from time import sleep
 from devops.helpers.helpers import ssh
 import glanceclient
 import keystoneclient.v2_0
+#from quantumclient.quantum import client as q_client
 from quantumclient.v2_0 import client as q_client
 import os
 from fuel_test.ci.ci_cobbler import CiCobbler
@@ -19,7 +20,7 @@ class Prepare(object):
  #       if len(self.controllers) == 1:
         self.public_ip = self.controllers[0].get_ip_address_by_network_name('public')
         self.internal_ip = self.controllers[0].get_ip_address_by_network_name('internal')
-            
+
     def remote(self):
         return ssh(self.public_ip,
                    login='root',
@@ -249,7 +250,7 @@ class Prepare(object):
     def tempest_write_config(self, config):
         with open(root('..', 'tempest.conf'), 'w') as f:
             f.write(config)
-    
+
     def _get_images(self, glance, name):
         """ Retrieve all images with a certain name """
         images = [x for x in glance.images.list() if x.name == name]
@@ -272,15 +273,15 @@ class Prepare(object):
             tenant1 = tenants[0].id 
             tenant2 = tenants[1].id
         else:
-            tenant1 = retry(10, keystone.tenants.create, tenant_name='tenant1')
-            tenant2 = retry(10, keystone.tenants.create, tenant_name='tenant2')
+        tenant1 = retry(10, keystone.tenants.create, tenant_name='tenant1')
+        tenant2 = retry(10, keystone.tenants.create, tenant_name='tenant2')
 
         users = self._get_users(keystone, 'tempest1', 'tempest2')
         if len(users) == 0:
-            retry(10, keystone.users.create, name='tempest1', password='secret',
-                  email='tempest1@example.com', tenant_id=tenant1.id)
-            retry(10, keystone.users.create, name='tempest2', password='secret',
-                  email='tempest2@example.com', tenant_id=tenant2.id)
+        retry(10, keystone.users.create, name='tempest1', password='secret',
+              email='tempest1@example.com', tenant_id=tenant1.id)
+        retry(10, keystone.users.create, name='tempest2', password='secret',
+              email='tempest2@example.com', tenant_id=tenant2.id)
         
         image_ref, image_ref_alt = self.tempest_add_images()
         net_id, router_id = self.tempest_get_netid_routerid()
@@ -324,11 +325,11 @@ class Prepare(object):
         if len(images) > 1:
             return images[0].id, images[1].id
         else:
-            return self.upload(glance, 'cirros_0.3.0',
-                       'cirros-0.3.0-x86_64-disk.img'), \
-                   self.upload(glance, 'cirros_0.3.0',
-                       'cirros-0.3.0-x86_64-disk.img')
-    
+        return self.upload(glance, 'cirros_0.3.0',
+                           'cirros-0.3.0-x86_64-disk.img'), \
+               self.upload(glance, 'cirros_0.3.0',
+                           'cirros-0.3.0-x86_64-disk.img')
+
     def tempest_get_netid_routerid(self):
         networking = self._get_networking_client()
         params = {'router:external': True}
