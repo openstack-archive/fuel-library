@@ -22,7 +22,7 @@ define l23network::l2::bond (
   $bridge,
   $ports,
   $bond          = $name,
-  $options       = [],
+  $properties    = [],
   $ensure        = present,
   $skip_existing = false,
 ) {
@@ -31,7 +31,7 @@ define l23network::l2::bond (
       ports         => $ports,
       ensure        => $ensure,
       bridge        => $bridge,
-      options       => $options,
+      properties    => $properties,
       skip_existing => $skip_existing,
     }
     Service<| title == 'openvswitch-service' |> -> L2_ovs_bond["$bond"]

@@ -2,7 +2,7 @@ auto <%= interface %>
 iface <%= interface %> inet static
 <% if @vlan_mode %>vlan_raw_device <%= @vlan_dev %><% end %>
 address <%= ipaddr %>
-netmask <%= netmask %>
+netmask <%= effective_netmask %>
 <% if @def_gateway %>gateway <%= @def_gateway %><% end %>
 <% if @dns_nameservers_1 or @dns_nameservers_2 %>dns-nameservers <% if @dns_nameservers_1 %><%= @dns_nameservers_1 %><% end %> <% if @dns_nameservers_2 %><%= @dns_nameservers_2 %><% end %><% end %>
 <% if @dns_search_string %>dns-search <%= @dns_search_string %><% end %>
