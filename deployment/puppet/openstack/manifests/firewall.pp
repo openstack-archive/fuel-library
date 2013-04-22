@@ -29,18 +29,42 @@ class openstack::firewall (
 	$quantum_api_port = 9696,
 ) {
 
-  file {"iptables":
-    path     => $operatingsystem ? {
-      /(Debian|Ubuntu)/ => '/etc/network/rules.v4',
-      /(RedHat|CentOS)/ => '/etc/sysconfig/iptables',
-      },
-    source => "puppet:///modules/openstack/iptables"
-  }->
+#  file {"iptables":
+#    path     => $operatingsystem ? {
+#      /(Debian|Ubuntu)/ => '/etc/network/rules.v4',
+#      /(RedHat|CentOS)/ => '/etc/sysconfig/iptables',
+#      },
+#    source => "puppet:///modules/openstack/iptables"
+#  }->
+#
+#  exec { 'startup-firewall':
+#    command     => $operatingsystem ? {
+#      /(Debian|Ubuntu)/ => '/sbin/iptables-restore  /etc/network/rules.v4',
+#      /(RedHat|CentOS)/ => '/sbin/iptables-restore  /etc/sysconfig/iptables',
+#      }
+#    }
+#  }
 
-  exec { 'startup-firewall':
-    command     => $operatingsystem ? {
-      /(Debian|Ubuntu)/ => '/sbin/iptables-restore  /etc/network/rules.v4',
-      /(RedHat|CentOS)/ => '/sbin/iptables-restore  /etc/sysconfig/iptables',
-      }
-    }
+  firewall { "000 accept all icmp requests":
+    proto  => "icmp",
+    action => "accept",
   }
+
+  firewall { '100 openstack-ports':
+    port   => [$ssh_port, $http_port, $https_port,$mysql_port, $mysql_backend_port, 
+      $mysql_gcomm_port, $galera_ist_port, $keystone_public_port, $swift_proxy_port,
+      $swift_object_port, $swift_container_port, $swift_account_port, $keystone_admin_port,
+      $glance_api_port, $glance_reg_port, $glance_nova_api_ec2_port, $nova_api_compute_port,
+      $glance_reg_port, $glance_nova_api_ec2_port, $nova_api_compute_port, $nova_api_metadata_port,
+      $nova_api_volume_port, $nova_vncproxy_port, $erlang_epmd_port, $erlang_rabbitmq_port,
+      $erlang_inet_dist_port, $memcached_port, $rsync_port, $iscsi_port, $quantum_api_port,
+    ],
+    proto  => tcp,
+    action => accept,
+  }
+
+  firewall { "999 drop all other requests":
+    action => "drop",
+  }
+  
+}
