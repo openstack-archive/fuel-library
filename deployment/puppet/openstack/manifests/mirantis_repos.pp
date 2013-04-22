@@ -31,14 +31,14 @@ class openstack::mirantis_repos (
         originator => $originator
       }
 
-      if $use_upstream_mysql {
+     if $use_upstream_mysql {
         apt::pin { 'upstream-mysql':
           order    => 19,
           priority => 1002,
           version  => "5.5.29*",
           packages => "mysql*"
         }
-      }
+     }
 
       Apt::Source <| |> -> Apt::Pin <| |>
 
@@ -75,8 +75,8 @@ class openstack::mirantis_repos (
 
       # Below we set our internal repos for testing purposes. Some of them may match with external ones.
       if $type == 'custom' {
-        
 
+        
 	if $enable_test_repo { 
          apt::source  { 'precise-fuel-folsom':
           location    => $deb_fuel_folsom_repo,
@@ -85,7 +85,7 @@ class openstack::mirantis_repos (
           key         => 'F8AF89DD',
           key_source  => 'http://172.18.67.168/ubuntu-repo/precise-fuel-folsom/Mirantis.key',
           include_src => false,
-	}
+        }
         } else {
          apt::source  { 'precise-fuel-folsom':
           location    => $deb_fuel_folsom_repo,
@@ -153,7 +153,10 @@ class openstack::mirantis_repos (
       # ############### End of forced apt-get update block ###############
     }
 
-    'RedHat' : {
+    'RedHat': {
+
+      exec {'/usr/bin/yum -d 0 -e 0 -y install yum-priorities':}
+
       Yumrepo {
         proxy => $repo_proxy, }
       
