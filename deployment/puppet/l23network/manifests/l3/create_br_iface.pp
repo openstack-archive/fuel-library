@@ -11,7 +11,7 @@
 # [*interface*]
 #   Interface, that will be added to the bridge. If You set array of interface names -- 
 #   Open vSwitch bond will be builded on its. In this case You must set ovs_bond_name and
-#   ovs_bond_options options.3
+#   ovs_bond_properties properties.
 #
 # [*ipaddr*]
 #   IP address for port in bridge.
@@ -51,8 +51,8 @@ define l23network::l3::create_br_iface (
     $lnx_interface_bond_mode      = undef,
     $lnx_interface_bond_miimon    = 100,
     $lnx_interface_bond_lacp_rate = 1,
-    $ovs_bond_name    = 'bond0',
-    $ovs_bond_options = [],
+    $ovs_bond_name          = 'bond0',
+    $ovs_bond_properties    = [],
     $interface_order_prefix = false,
 ){
     if ! $::l23network::l2::use_ovs {
@@ -80,7 +80,7 @@ define l23network::l3::create_br_iface (
       l23network::l2::bond {"$ovs_bond_name":
         bridge        => $bridge,
         ports         => $interface,
-        options       => $ovs_bond_options,
+        properties    => $ovs_bond_properties,
         skip_existing => $se,
         require       => L23network::L2::Bridge["$bridge"]
       } ->
