@@ -67,7 +67,8 @@ EMPTY_SNAPSHOT = os.environ.get('EMPTY_SNAPSHOT', 'empty')
 OPENSTACK_SNAPSHOT = os.environ.get('OPENSTACK_SNAPSHOT', 'openstack')
 
 INTERFACE_ORDER = ('public', 'internal', 'private')
-ROUTED_INTERFACE = 'public'
+#ROUTED_INTERFACE = 'public'
+ROUTED_INTERFACE = none
 
 INTERFACES = {
     'public': 'eth0',
