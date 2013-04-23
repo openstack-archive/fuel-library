@@ -23,7 +23,7 @@
 #
 # [*bond_mode*]
 #   For interfaces bondNN this option specified bond mode.
-#   All bond_* options ignored for non-master-bond interfaces.
+#   All bond_* properties ignored for non-master-bond interfaces.
 #
 # [*bond_miimon*]
 #   lacp MII monitor period.
@@ -44,7 +44,7 @@
 #   nameservers => ['8.8.8.8', '8.8.4.4']
 #
 # [*dns_domain*]
-#   Specify DOMAIN option for interface. Implemened only in ubuntu. 
+#   Specify DOMAIN option for interface. Implemened only in ubuntu.
 #
 # [*dns_search*]
 #   Specify SEARCH option for interface. Must be array, for example:
@@ -90,6 +90,7 @@ define l23network::l3::ifconfig (
     $ifname_order_prefix = false,
     $check_by_ping   = 'gateway',
     $check_by_ping_timeout = 120,
+    #todo: label => "XXX", # -- "ip addr add..... label XXX"
 ){
   include ::l23network::params
 
@@ -103,6 +104,12 @@ define l23network::l3::ifconfig (
     'balance-alb'
   ]
 
+  # calculate effective_netmask
+  #todo: if ipaddr given in CIDR mode (A.B.C.D/E) -- ignore netmask and calculate effective_netmask from CIDR
+  $effective_netmask = $netmask
+  #todo: calculate CIDR netmask /XX
+
+  # setup configure method for inteface
   if $bond_master {
     $method = 'bondslave'
   } else {
@@ -159,7 +166,7 @@ define l23network::l3::ifconfig (
       if $vlandev {
         $vlan_dev = $vlandev
       } else {
-        fail("Can't configure vlan interface ${interface} without definition vlandev=>ethXX.")
+        fail("Can't configure vlan interface ${interface} without definition (ex: vlandev=>ethXX).")
       }
     }
     /^(eth\d+)\.(\d+)/: { # TODO: bond0.123 -- also vlan
@@ -226,7 +233,7 @@ define l23network::l3::ifconfig (
     content => template("l23network/ipconfig_${::osfamily}_${method}.erb"),
   }
 
-  notify {"ifconfig_${interface}": message=>"Interface:${interface} IP:${ipaddr}/${netmask}", withpath=>false} ->
+  notify {"ifconfig_${interface}": message=>"Interface:${interface} IP:${ipaddr}/${effective_netmask}", withpath=>false} ->
   l3_if_downup {"$interface":
     check_by_ping => $check_by_ping,
     check_by_ping_timeout => $check_by_ping_timeout,

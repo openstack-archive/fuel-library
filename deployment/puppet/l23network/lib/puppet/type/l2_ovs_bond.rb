@@ -35,9 +35,9 @@ Puppet::Type.newtype(:l2_ovs_bond) do
       desc "Allow skip existing bond"
     end
 
-    newparam(:options) do
+    newparam(:properties) do
       defaultto([])
-      desc "Array of bond options"
+      desc "Array of bond properties"
     end
 
     newparam(:bridge) do
