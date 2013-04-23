@@ -93,7 +93,11 @@ echo "Domain: $domain"
 echo "Hostname: $hostname"
 echo "PXE range: $dhcp_start_address - $dhcp_end_address"
 echo "Mirror set to use: $mirror_type"
-echo
+echo -n "Parent proxy: "
+if [ -z "$parent_proxy" ];then echo "none (direct access)"
+else
+echo $parent_proxy
+fi
 column -t -s% <(
 echo "Management interface: $mgmt_if%External interface: $ext_if"
 echo "IP address: ${mgmt_ip:="DHCP"}%IP address: ${ext_ip:="DHCP"}"
@@ -113,7 +117,8 @@ echo "2. Configure openstack cloud management interface"
 echo "3. Configure external interface with repositories/internet access"
 echo "4. Change IP range to use for baremetal provisioning via PXE"
 echo "5. Choose set of mirror to use (default/custom)"
-echo "6. Quit"
+echo "6. Configure to use parent proxy"
+echo "9. Quit"
 echo -n "Please, select an action to do:"
 }
 
@@ -154,6 +159,10 @@ while [ $endconf -ne 1 ]; do
             echo -n "Please select set of mirrors to use(default/custom): "; read mirror_type
             ;;
         6)
+            show_top
+            echo -n "Please specify parent proxy to use (ex: 11.12.13.14:3128 ): "; read parent_proxy
+            ;;
+        9)
             echo;echo "Those changes are permanent!"
             echo -n "Are you sure about applying them? (y/N):"; read -n 1 answ
             [[ $answ == "y" || $answ == "Y" ]] && endconf=1
