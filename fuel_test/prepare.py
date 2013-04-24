@@ -120,7 +120,7 @@ class Prepare(object):
             'COMPUTE_BUILD_INTERVAL': '10',
             'COMPUTE_BUILD_TIMEOUT': '600',
             'RUN_SSH': 'true',
-            'NETWORK_FOR_SSH': 'public',
+            'NETWORK_FOR_SSH': 'net04_ext',
             'SSH_USER': 'cirros',
             'LIVE_MIGRATION': 'true',
             'USE_BLOCKMIG_FOR_LIVEMIG' : 'true',
