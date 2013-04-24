@@ -15,6 +15,7 @@ HAProxy
  configured incorrectly.
  2) cinder iscsi bind iface being specified leads to incorrect iscsi_bind_host
  because we change interfaces naming during puppet run - stable
+ 3) remove $cinder_iscsi_bind_iface, add $cinder_iscsi_bind_addr 
 [FUEL-526] cinder services incorrect startup order
 Fix compute node deployment with quantum (simple scenario)
 [FUEL-521] Too many connections error for simple deployment
