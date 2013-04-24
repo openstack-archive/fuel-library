@@ -3,6 +3,9 @@
 Add bonding support:
  for native Linux - stable
  ovs - experimental
+Add 802.1q vlan support:
+ for native Linux - stable
+ ovs - experimental
 nagios nginx support:
 [FUEL-508] Fuel extensibility and putting custom services in HA mode under
 HAProxy
