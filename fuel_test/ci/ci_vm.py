@@ -3,7 +3,8 @@ from ipaddr import IPNetwork
 
 import os
 from fuel_test.ci.ci_base import CiBase
-from fuel_test.helpers import add_nmap, dhcp_checksum
+from fuel_test.helpers import add_nmap, dhcp_checksum, puppet_apply
+
 from fuel_test.node_roles import NodeRoles
 from fuel_test.settings import CONTROLLERS, COMPUTES, \
     STORAGES, PROXIES, \
@@ -20,14 +21,10 @@ class CiVM(CiBase):
     def node_roles(self):
         return NodeRoles(
             master_names=['master'],
-            controller_names=['fuel-controller-%02d' % x for x in
-                              range(1, 1 + CONTROLLERS)],
-            compute_names=['fuel-compute-%02d' % x for x in range(
-                1, 1 + COMPUTES)],
-            storage_names=['fuel-swift-%02d' % x for x in range(
-                1, 1 + STORAGES)],
-            proxy_names=['fuel-swiftproxy-%02d' % x for x in range(
-                1, 1 + PROXIES)],
+            controller_names=['fuel-controller-%02d' % x for x in range(1, 1 + CONTROLLERS)],
+            compute_names=['fuel-compute-%02d' % x for x in range(1, 1 + COMPUTES)],
+            storage_names=['fuel-swift-%02d' % x for x in range(1, 1 + STORAGES)],
+            proxy_names=['fuel-swiftproxy-%02d' % x for x in range(1, 1 + PROXIES)],
             quantum_names=['fuel-quantum'],
         )
 
@@ -64,6 +61,7 @@ class CiVM(CiBase):
 
     def setup_environment(self):
         master_node = self.nodes().masters[0]
+
         logging.info("Starting test nodes ...")
         start_nodes = self.get_startup_nodes()
         self.environment().start(start_nodes)
@@ -73,5 +71,6 @@ class CiVM(CiBase):
         master_remote = master_node.remote('public', login='root',
                                             password='r00tme')
         add_nmap(master_remote)
+        puppet_apply(master_remote, 'class {rsyslog::server: enable_tcp => false, enable_udp => true}')
         dhcp_checksum(master_remote)
         self.environment().snapshot(EMPTY_SNAPSHOT)
