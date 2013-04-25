@@ -12,6 +12,28 @@ class openstack::swift::storage_node (
   $master_swift_proxy_ip,
   $rings                = ['account', 'object', 'container'],
   $sync_rings           = true,
+  $loopback_size        = '1048756',
+  # if the cinder management components should be installed
+  $cinder                  = false,
+  $cinder_nodes            = false,
+  $manage_volumes          = false,
+  $nv_physical_volume      = undef,
+  $cinder_volume_group     = 'cinder-volumes',
+  $cinder_user_password    = 'cinder_user_pass',
+  $cinder_db_password      = 'cinder_db_pass',
+  $cinder_db_user          = 'cinder',
+  $cinder_db_dbname        = 'cinder',
+  $cinder_iscsi_bind_addr  = false,
+  $cinder_rate_limits      = false,
+  $db_host                 = '127.0.0.1',
+  $service_endpoint        = '127.0.0.1',
+  $use_syslog              = false,
+  # Rabbit details necessary for cinder
+  $rabbit_nodes            = false,
+  $rabbit_password         = 'rabbit_pw',
+  $rabbit_host             = false,
+  $rabbit_user             = 'nova',
+  $rabbit_ha_virtual_ip    = false,
 ) {
   if !defined(Class['swift']) {
     class { 'swift':
@@ -52,6 +74,52 @@ class openstack::swift::storage_node (
     }
     Swift::Ringsync <| |> ~> Class["swift::storage::all"]
   }
-  
+
+  #Evaluate cinder node selection
+  if ($cinder) {
+    if ($cinder_nodes == 'storage') or ($cinder_nodes == 'all') or (member($cinder_nodes,'all')) {
+      $cinder_swift = true
+    } elsif (is_array($cinder_nodes)) {
+      if (member($cinder_nodes,'storage')) {
+        $cinder_swift = true
+      } elsif (member($cinder_nodes,$::hostname)) {
+        $cinder_swift = true
+      } elsif (member($cinder_nodes,$internal_address)) {
+        $cinder_swift = true
+      } else {
+        $cinder_swift = false
+      }
+    } else {
+      $cinder_swift = false
+    }
+  } else {
+    $cinder_swift = false
+  }
+
+  $enabled_apis = 'ec2,osapi_compute'
+  if ($cinder_swift) and !defined(Class['swift']) {
+    package {'python-cinderclient': ensure => present}
+    class {'openstack::cinder':
+      sql_connection       => "mysql://${cinder_db_user}:${cinder_db_password}@${db_host}/${cinder_db_dbname}?charset=utf8",
+      rabbit_password      => $rabbit_password,
+      rabbit_host          => false,
+      rabbit_nodes         => $rabbit_nodes,
+      volume_group         => $cinder_volume_group,
+      physical_volume      => $nv_physical_volume,
+      manage_volumes       => $manage_volumes,
+      enabled              => true,
+      auth_host            => $service_endpoint,
+      bind_host            => false,
+      iscsi_bind_host      => $cinder_iscsi_bind_addr,
+      cinder_user_password => $cinder_user_password,
+      use_syslog           => $use_syslog,
+      cinder_rate_limits   => $cinder_rate_limits,
+      rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
+    }
+
+  } 
+
+ 
   
 }
+
