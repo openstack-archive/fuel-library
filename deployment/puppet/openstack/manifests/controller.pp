@@ -128,6 +128,7 @@ class openstack::controller (
   $cache_server_port       = '11211',
   $swift                   = false,
   $cinder                  = false,
+  $cinder_nodes            = false,
   $horizon_app_links       = undef,
   # General
   $verbose                 = 'False',
@@ -185,6 +186,26 @@ class openstack::controller (
   nova_config {'DEFAULT/memcached_servers':    value => $memcached_addresses;
   }
 
+  #Evaluate cinder node selection
+  if ($cinder) {
+    if ($cinder_nodes == 'controller') or ($cinder_nodes == 'all') or (member($cinder,'all')) {
+      $cinder_controller = true
+    } elsif (is_array($cinder_nodes)) {
+      if (member($cinder_nodes,'controller')) {
+        $cinder_controller = true
+      } elsif (member($cinder_nodes,$::hostname)) {
+        $cinder_controller = true
+      } elsif (member($cinder_nodes,$internal_address)) {
+        $cinder_controller = true
+      } else {
+        $cinder_controller = false
+      }
+    } else {
+      $cinder_controller = false
+    }
+  } else {
+    $cinder_controller = false
+  }
 
 
   ####### DATABASE SETUP ######
@@ -206,7 +227,7 @@ class openstack::controller (
       nova_db_user           => $nova_db_user,
       nova_db_password       => $nova_db_password,
       nova_db_dbname         => $nova_db_dbname,
-      cinder                 => $cinder,
+      cinder                 => $cinder_controller,
       cinder_db_user         => $cinder_db_user,
       cinder_db_password     => $cinder_db_password,
       cinder_db_dbname       => $cinder_db_dbname,
@@ -242,7 +263,7 @@ class openstack::controller (
     admin_address         => $admin_address,
     glance_user_password  => $glance_user_password,
     nova_user_password    => $nova_user_password,
-    cinder                => $cinder,
+    cinder                => $cinder_controller,
     cinder_user_password  => $cinder_user_password,
     quantum               => $quantum,
     bind_host             => $api_bind_address,
@@ -343,7 +364,7 @@ class openstack::controller (
   }
 
   ######### Cinder Controller Services ########
-  if ($cinder) {
+  if ($cinder_controller) {
     class {'openstack::cinder':
       sql_connection       => "mysql://${cinder_db_user}:${cinder_db_password}@${db_host}/${cinder_db_dbname}?charset=utf8",
       rabbit_password      => $rabbit_password,
@@ -398,3 +419,4 @@ class openstack::controller (
   }
 
 }
+
