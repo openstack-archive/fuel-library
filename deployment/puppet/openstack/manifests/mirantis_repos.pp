@@ -78,10 +78,6 @@ class openstack::mirantis_repos (
 
       # Below we set our internal repos for testing purposes. Some of them may match with external ones.
       if $type == 'custom' {
-#        apt::pin { 'cloud-archive':
-#          order      => 19,
-#          priority   => 1001,
-#        }
 #
 #        if $enable_test_repo {
 #
@@ -109,15 +105,25 @@ class openstack::mirantis_repos (
 #          }
 #        }
 #
-#        apt::source { 'cloud-archive':
-#          location    => $deb_cloud_archive_repo,
-#          release     => 'precise-updates/grizzly',
-#          repos       => 'main',
-#          key         => '5EDB1B62EC4926EA',
-#          key_source  => 'http://172.18.67.168/ubuntu-repo/precise-fuel-folsom/cloud-archive.key',
-#          # key_server   => "pgp.mit.edu",
-#          include_src => false,
-#        }
+        apt::pin { 'precise-fuel-grizzly':
+          order      => 19,
+          priority   => 1001,
+        }
+
+        apt::pin { 'cloud-archive':
+          order      => 20,
+          priority   => 1002,
+        }
+
+        apt::source { 'cloud-archive':
+          location    => $deb_cloud_archive_repo,
+          release     => 'precise-updates/grizzly',
+          repos       => 'main',
+          key         => '5EDB1B62EC4926EA',
+          key_source  => 'http://172.18.67.168/ubuntu-repo/precise-fuel-folsom/cloud-archive.key',
+          # key_server   => "pgp.mit.edu",
+          include_src => false,
+        }
 
         apt::source { 'precise-fuel-grizzly':
           location    => $deb_fuel_grizzly_repo,
