@@ -77,10 +77,10 @@ class openstack::swift::storage_node (
 
   #Evaluate cinder node selection
   if ($cinder) {
-    if ($cinder_nodes == 'storage') or ($cinder_nodes == 'all') or (member($cinder_nodes,'all')) {
+    if ($cinder_nodes == 'storage') or ($cinder_nodes == 'all') {
       $cinder_swift = true
-    } elsif (is_array($cinder_nodes)) {
-      if (member($cinder_nodes,'storage')) {
+    } elsif (is_array($cinder_nodes)){
+      if (member($cinder_nodes,'storage')) or (member($cinder_nodes,'all')) {
         $cinder_swift = true
       } elsif (member($cinder_nodes,$::hostname)) {
         $cinder_swift = true
