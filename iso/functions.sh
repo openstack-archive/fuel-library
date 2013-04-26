@@ -81,8 +81,7 @@ function apply_settings {
     [ -n "$mgmt_ip" -a -n "$ext_ip" ] && sed -i '/nameserver/d' /etc/resolv.conf && echo "nameserver 127.0.0.1;" >> /etc/resolv.conf
     [ -z "$mgmt_ip" ] && echo "prepend domain-name-servers 127.0.0.1;" >> /etc/dhclient-$mgmt_if.conf
     [ -z "$ext_ip" ] && echo "prepend domain-name-servers 127.0.0.1;" >> /etc/dhclient-$ext_if.conf
-    [ -z "$mgmt_ip" ] || grep -Eq "^\s*$mgmt_ip\s+$hostname" /etc/hosts || \ 
-    sed -i "/$mgmt_ip/d" /etc/hosts && echo "$mgmt_ip    $hostname.$domain $hostname" >> /etc/hosts
+    [ -z "$mgmt_ip" ] || grep -Eq "^\s*$mgmt_ip\s+$hostname" /etc/hosts || sed -i "/$mgmt_ip/d" /etc/hosts && echo "$mgmt_ip    $hostname.$domain $hostname" >> /etc/hosts
     sed -i '/kernel.hostname/d' /etc/sysctl.conf && echo "kernel.hostname=$hostname" >> /etc/sysctl.conf
     service network restart
     sed -i "s%\(^.*address is:\).*$%\1 `ip address show $ext_if | awk '/inet / {print \$2}' | cut -d/ -f1 -`%" /etc/issue
@@ -110,10 +109,10 @@ echo
 
 function show_msg {
 echo "Menu:"
-echo "1. Change FQDN for masternode and cloud domain"
+echo "1. Change hostname for masternode and cloud domain name"
 echo "2. Configure openstack cloud management interface"
 echo "3. Configure external interface with repositories/internet access"
-echo "4. Change IP range to use for baremetal provisioning via PXE"
+echo "4. Change IP range to use for bare-metal provisioning via PXE"
 echo "5. Choose set of mirror to use (default/custom)"
 echo "6. Quit"
 echo -n "Please, select an action to do:"
