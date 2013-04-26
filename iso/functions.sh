@@ -78,13 +78,17 @@ function apply_settings {
 
 # Domain/Hostname apply
     sed -i -e 's#^\(HOSTNAME=\).*$#\1'"$hostname.$domain"'#' /etc/sysconfig/network
+    rm -f /var/lib/puppet/ssl/ca/signed/*
     [ -n "$mgmt_ip" -a -n "$ext_ip" ] && sed -i '/nameserver/d' /etc/resolv.conf && echo "nameserver 127.0.0.1;" >> /etc/resolv.conf
     [ -z "$mgmt_ip" ] && echo "prepend domain-name-servers 127.0.0.1;" >> /etc/dhclient-$mgmt_if.conf
     [ -z "$ext_ip" ] && echo "prepend domain-name-servers 127.0.0.1;" >> /etc/dhclient-$ext_if.conf
     [ -z "$mgmt_ip" ] || grep -Eq "^\s*$mgmt_ip\s+$hostname" /etc/hosts || \ 
     sed -i "/$mgmt_ip/d" /etc/hosts && echo "$mgmt_ip    $hostname.$domain $hostname" >> /etc/hosts
     sed -i '/kernel.hostname/d' /etc/sysctl.conf && echo "kernel.hostname=$hostname" >> /etc/sysctl.conf
+    sed -i '/kernel.domainname/d' /etc/sysctl.conf && echo "kernel.domainname=$domain" >> /etc/sysctl.conf
+    sed -i '/server/d' /etc/puppet/puppetdb.conf && echo "server = $hostname.$domain" >> /etc/puppet/puppetdb.conf
     service network restart
+    service puppetdb restart
     sed -i "s%\(^.*address is:\).*$%\1 `ip address show $ext_if | awk '/inet / {print \$2}' | cut -d/ -f1 -`%" /etc/issue
 }
 
@@ -136,8 +140,19 @@ while [ $endconf -ne 1 ]; do
     case $answer in
         1)
             show_top
-            echo -n "Please enter hostname of this puppetmaster/cobbler: "; read hostname
-            echo -n "Please enter domain for this cloud: "; read domain
+            echo "WARNING. Changing master hostname or domain name will make you existing puppet"
+            echo "keys and configuration files invalid!!!"
+            echo "If you already have deployed any nodes using current hostname or domain name,"
+            echo "you have either to re-deploy existing nodes including operating system"
+            echo "installation or manually remove puppet cache and keys on every deployed node"
+            echo "with 'rm -rf /var/lib/puppet' and manually change all affected puppet and"
+            echo "mcollective configuration files!"
+            echo "If there is no deployed nodes in your current installation - then it is safe"
+            echo "to change hostname and domain name."
+            echo "This script will remove current puppet master key automatically."
+            echo
+            echo -n "Please enter hostname for this puppetmaster/cobbler: "; read hostname
+            echo -n "Please enter domain name for this cloud: "; read domain
             ;;
         2)
             show_top
