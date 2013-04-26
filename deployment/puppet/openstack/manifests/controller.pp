@@ -188,10 +188,10 @@ class openstack::controller (
 
   #Evaluate cinder node selection
   if ($cinder) {
-    if ($cinder_nodes == 'controller') or ($cinder_nodes == 'all') or (member($cinder,'all')) {
+    if ($cinder_nodes == 'controller') or ($cinder_nodes == 'all') {
       $cinder_controller = true
     } elsif (is_array($cinder_nodes)) {
-      if (member($cinder_nodes,'controller')) {
+      if (member($cinder_nodes,'controller')) or (member($cinder,'all')) {
         $cinder_controller = true
       } elsif (member($cinder_nodes,$::hostname)) {
         $cinder_controller = true
