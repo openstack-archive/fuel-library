@@ -161,10 +161,10 @@ class openstack::compute (
 
   #Evaluate cinder node selection
   if ($cinder) {
-    if ($cinder_nodes == 'compute') or ($cinder_nodes == 'all') or (member($cinder_nodes,'all')) {
+    if ($cinder_nodes == 'compute') or ($cinder_nodes == 'all') {
       $cinder_compute = true
     } elsif (is_array($cinder_nodes)) {
-      if (member($cinder_nodes,'compute')) {
+      if (member($cinder_nodes,'compute')) or (member($cinder_nodes,'all')) {
         $cinder_compute = true
       } elsif (member($cinder_nodes,$::hostname)) {
         $cinder_compute = true
