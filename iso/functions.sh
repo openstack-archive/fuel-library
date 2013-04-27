@@ -82,8 +82,7 @@ function apply_settings {
     [ -n "$mgmt_ip" -a -n "$ext_ip" ] && sed -i '/nameserver/d' /etc/resolv.conf && echo "nameserver 127.0.0.1;" >> /etc/resolv.conf
     [ -z "$mgmt_ip" ] && echo "prepend domain-name-servers 127.0.0.1;" >> /etc/dhclient-$mgmt_if.conf
     [ -z "$ext_ip" ] && echo "prepend domain-name-servers 127.0.0.1;" >> /etc/dhclient-$ext_if.conf
-    [ -z "$mgmt_ip" ] || grep -Eq "^\s*$mgmt_ip\s+$hostname" /etc/hosts || \ 
-    sed -i "/$mgmt_ip/d" /etc/hosts && echo "$mgmt_ip    $hostname.$domain $hostname" >> /etc/hosts
+    [ -z "$mgmt_ip" ] || grep -Eq "^\s*$mgmt_ip\s+$hostname" /etc/hosts || sed -i "/$mgmt_ip/d" /etc/hosts && echo "$mgmt_ip    $hostname.$domain $hostname" >> /etc/hosts
     sed -i '/kernel.hostname/d' /etc/sysctl.conf && echo "kernel.hostname=$hostname" >> /etc/sysctl.conf
     sed -i '/kernel.domainname/d' /etc/sysctl.conf && echo "kernel.domainname=$domain" >> /etc/sysctl.conf
     sed -i '/server/d' /etc/puppet/puppetdb.conf && echo "server = $hostname.$domain" >> /etc/puppet/puppetdb.conf
@@ -91,7 +90,6 @@ function apply_settings {
     service puppetdb restart
     sed -i "s%\(^.*address is:\).*$%\1 `ip address show $ext_if | awk '/inet / {print \$2}' | cut -d/ -f1 -`%" /etc/issue
 }
-
 
 function show_top {
 clear
@@ -129,62 +127,63 @@ echo -n "Please, select an action to do:"
 }
 
 function menu_conf {
-while [ $endconf -ne 1 ]; do
-    show_top
-    show_msg
-    read -n 1 -t 5 answer
     if [ $? -gt 128 -a -f /root/fuel.defaults ]; then
         source /root/fuel.defaults
         endconf=1
     else
-    case $answer in
-        1)
+        while [ $endconf -ne 1 ]; do
             show_top
-            echo "WARNING. Changing master hostname or domain name will make you existing puppet"
-            echo "keys and configuration files invalid!!!"
-            echo "If you already have deployed any nodes using current hostname or domain name,"
-            echo "you have either to re-deploy existing nodes including operating system"
-            echo "installation or manually remove puppet cache and keys on every deployed node"
-            echo "with 'rm -rf /var/lib/puppet' and manually change all affected puppet and"
-            echo "mcollective configuration files!"
-            echo "If there is no deployed nodes in your current installation - then it is safe"
-            echo "to change hostname and domain name."
-            echo "This script will remove current puppet master key automatically."
-            echo
-            echo -n "Please enter hostname for this puppetmaster/cobbler: "; read hostname
-            echo -n "Please enter domain name for this cloud: "; read domain
-            ;;
-        2)
-            show_top
-            echo -n "Please specify interface to use for management network: "; read mgmt_if
-            intf="mgmt"
-            set_if_conf
-            ;;
-        3)
-            show_top
-            echo -n "Please specify interface to access repositories/internet: "; read ext_if
-            intf="ext"
-            set_if_conf
-            ;;
-        4)
-            show_top
-            echo -n "Please enter start address: "; read dhcp_start_address
-            echo -n "Please enter end address: "; read dhcp_end_address
-            ;;
-        5)
-            show_top
-            echo -n "Please select set of mirrors to use(default/custom): "; read mirror_type
-            ;;
-        6)
+            show_msg
+            read -n 1 -t 5 answer
+
+            case $answer in
+            1)
+                show_top
+                echo "WARNING. Changing master hostname or domain name will make you existing puppet"
+                echo "keys and configuration files invalid!!!"
+                echo "If you already have deployed any nodes using current hostname or domain name,"
+                echo "you have either to re-deploy existing nodes including operating system"
+                echo "installation or manually remove puppet cache and keys on every deployed node"
+                echo "with 'rm -rf /var/lib/puppet' and manually change all affected puppet and"
+                echo "mcollective configuration files!"
+                echo "If there is no deployed nodes in your current installation - then it is safe"
+                echo "to change hostname and domain name."
+                echo "This script will remove current puppet master key automatically."
+                echo
+                echo -n "Please enter hostname for this puppetmaster/cobbler: "; read hostname
+                echo -n "Please enter domain name for this cloud: "; read domain
+                ;;
+            2)
+                show_top
+                echo -n "Please specify interface to use for management network: "; read mgmt_if
+                intf="mgmt"
+                set_if_conf
+                ;;
+            3)
+                show_top
+                echo -n "Please specify interface to access repositories/internet: "; read ext_if
+                intf="ext"
+                set_if_conf
+                ;;
+            4)
+                show_top
+                echo -n "Please enter start address: "; read dhcp_start_address
+                echo -n "Please enter end address: "; read dhcp_end_address
+                ;;
+            5)
+                show_top
+                echo -n "Please select set of mirrors to use(default/custom): "; read mirror_type
+                ;;
+            6)
             show_top
             echo -n "Please specify parent proxy to use (ex: 11.12.13.14:3128 ): "; read parent_proxy
-            ;;
-        9)
-            echo;echo "Those changes are permanent!"
-            echo -n "Are you sure about applying them? (y/N):"; read -n 1 answ
-            [[ $answ == "y" || $answ == "Y" ]] && endconf=1
-            ;;
-    esac
+                ;;
+            9)
+                echo;echo "Those changes are permanent!"
+                echo -n "Are you sure about applying them? (y/N):"; read -n 1 answ
+                [[ $answ == "y" || $answ == "Y" ]] && endconf=1
+                ;;
+            esac
+        done
     fi
-done
 }
