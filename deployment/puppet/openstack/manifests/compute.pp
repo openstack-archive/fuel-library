@@ -97,7 +97,6 @@ class openstack::compute (
   $nv_physical_volume      = undef,
   $cinder_volume_group     = 'cinder-volumes',
   $cinder                  = false,
-  $cinder_nodes            = false,
   $cinder_user_password    = 'cinder_user_pass',
   $cinder_db_password      = 'cinder_db_pass',
   $cinder_db_user          = 'cinder',
@@ -159,30 +158,6 @@ class openstack::compute (
     value => $memcached_addresses
   }
 
-  #Evaluate cinder node selection
-  if ($cinder) {
-    if ($cinder_nodes == 'compute') or ($cinder_nodes == 'all') {
-      $cinder_compute = true
-    } elsif (is_array($cinder_nodes)) {
-      if (member($cinder_nodes,'compute')) or (member($cinder_nodes,'all')) {
-        $cinder_compute = true
-      } elsif (member($cinder_nodes,$::hostname)) {
-        $cinder_compute = true
-      } elsif (member($cinder_nodes,$internal_address)) {
-        $cinder_compute = true
-      } else {
-        $cinder_compute = false
-      }
-    } else {
-      $cinder_compute = false
-    }
-  } else {
-    $cinder_compute = false
-  }
-
-
-
-
   class { 'nova':
     ensure_package     => $::openstack_version['nova'],
     sql_connection     => $sql_connection,
@@ -199,7 +174,6 @@ class openstack::compute (
   }
 
   #Cinder setup
-  #Always run cinder if $cinder is true, but only manage_volumes if $manage_volumes and $cinder_compute are true
   if ($cinder) {
     $enabled_apis = 'metadata'
     package {'python-cinderclient': ensure => present}
@@ -210,7 +184,7 @@ class openstack::compute (
       rabbit_nodes         => $rabbit_nodes,
       volume_group         => $cinder_volume_group,
       physical_volume      => $nv_physical_volume,
-      manage_volumes       => $cinder_compute ? { true => $manage_volumes, false => false},
+      manage_volumes       => $manage_volumes,
       enabled              => true,
       auth_host            => $service_endpoint,
       bind_host            => false,
