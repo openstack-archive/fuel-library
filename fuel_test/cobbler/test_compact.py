@@ -54,7 +54,11 @@ class CompactTestCase(CobblerTestCase):
             template=Template.compact(), ci=self.ci(), 
             controllers=self.nodes().controllers, 
             cinder=True,
-            cinder_nodes=lambda x: x.get_ip_address_by_network_name('internal'), ci.nodes().controllers + ci.nodes().computes+ ci.nodes().storages),
+            cinder_nodes=map(
+                lambda x: x.get_ip_address_by_network_name('internal'),
+                self.nodes().controllers
+                + self.nodes().computes
+                + self.nodes().storages),
             quantums=self.nodes().quantums, 
             quantum=False) 
         self.deploy_compact(quantum_node=False) 
