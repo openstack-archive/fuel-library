@@ -58,13 +58,9 @@ ADMIN_TENANT_ESSEX = 'openstack'
 ADMIN_TENANT_FOLSOM = 'admin'
 
 CIRROS_IMAGE = 'http://srv08-srt.srt.mirantis.net/cirros-0.3.0-x86_64-disk.img'
-#CONTROLLERS = int(os.environ.get('CONTROLLERS', 3))
-#COMPUTES = int(os.environ.get('COMPUTES', 3))
-#STORAGES = int(os.environ.get('STORAGES', 3))
-#PROXIES = int(os.environ.get('PROXIES', 2))
-CONTROLLERS = int(os.environ.get('CONTROLLERS', 2))
-COMPUTES = int(os.environ.get('COMPUTES', 2))
-STORAGES = int(os.environ.get('STORAGES', 1))
+CONTROLLERS = int(os.environ.get('CONTROLLERS', 3))
+COMPUTES = int(os.environ.get('COMPUTES', 3))
+STORAGES = int(os.environ.get('STORAGES', 3))
 PROXIES = int(os.environ.get('PROXIES', 2))
 
 EMPTY_SNAPSHOT = os.environ.get('EMPTY_SNAPSHOT', 'empty')
@@ -92,14 +88,12 @@ DHCP = {
 
 DEFAULT_POOLS = {
     'centos': {
-        # 'public': '172.18.95.0/24,172.18.91.0/24:27',
-        'public': '10.108.0.0/16:24',
+        'public': '172.18.95.0/24,172.18.91.0/24:27',
         'private': '10.108.0.0/16:24',
         'internal': '10.108.0.0/16:24',
     },
     'ubuntu': {
-        #'public': '172.18.94.0/24,172.18.90.0/24:27',
-        'public': '10.107.0.0/16:24',
+        'public': '172.18.94.0/24,172.18.90.0/24:27',
         'private': '10.107.0.0/16:24',
         'internal': '10.107.0.0/16:24',
     },
