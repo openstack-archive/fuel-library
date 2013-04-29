@@ -338,6 +338,21 @@ $cinder_iscsi_bind_addr = $internal_address
 # Leave this parameter empty if you want to create [cinder|nova]-volumes VG by yourself
 $nv_physical_volume     = ['/dev/sdz', '/dev/sdy', '/dev/sdx'] 
 
+#Evaluate cinder node selection
+if ($cinder) {
+  if (member($cinder_nodes,'all'))
+    $is_cinder_node = true
+  } elsif (member($cinder_nodes,$::hostname)) {
+    $is_cinder_node = true
+  } elsif (member($cinder_nodes,$internal_address)) {
+    $is_cinder_node = true
+  } elsif ($node[0]['role'] =~ /controller/ ) {
+    $is_cinder_node = member($cinder_nodes,'controller')
+  } else
+    $is_cinder_node = member($cinder_nodes,$node[0]['role'])
+} else {
+  $is_cinder_node = false
+}
 
 ### CINDER/VOLUME END ###
 
@@ -566,8 +581,7 @@ class ha_controller (
     quantum_external_ipinfo => $external_ipinfo,
     tenant_network_type     => $tenant_network_type,
     segment_range           => $segment_range,
-    cinder                  => $cinder,
-    cinder_nodes            => $cinder_nodes,
+    cinder                  => $is_cinder_node,
     cinder_iscsi_bind_addr  => $cinder_iscsi_bind_addr,
     manage_volumes          => $manage_volumes,
     galera_nodes            => $controller_hostnames,
@@ -649,9 +663,8 @@ node /fuel-compute-[\d+]/ {
     tenant_network_type    => $tenant_network_type,
     segment_range          => $segment_range,
     cinder                 => $cinder,
-    cinder_nodes           => $cinder_nodes,
+    manage_volumes         => $is_cinder_node ? { true => $manage_volumes, false => false},
     cinder_iscsi_bind_addr => $cinder_iscsi_bind_addr,
-    manage_volumes         => $manage_volumes,
     nv_physical_volume     => $nv_physical_volume,
     db_host                => $internal_virtual_ip,
     cinder_rate_limits     => $cinder_rate_limits,
@@ -693,8 +706,7 @@ node /fuel-swift-[\d+]/ {
     swift_zone             => $swift_zone,
     swift_local_net_ip     => $internal_address,
     master_swift_proxy_ip  => $master_swift_proxy_ip,
-    cinder                 => $cinder,
-    cinder_nodes           => $cinder_nodes,
+    cinder                 => $is_cindernode,
     cinder_iscsi_bind_addr => $cinder_iscsi_bind_addr,
     manage_volumes         => $manage_volumes,
     nv_physical_volume     => $nv_physical_volume,
