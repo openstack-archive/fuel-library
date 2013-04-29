@@ -3,15 +3,12 @@
 Grizzly CI job example
 ==============================================
 
-This is an example of grizzly job for lab deployment and TEMPEST run against it.
+This is an example of grizzly TEMPEST job for CI cycle, i.e. commit & verify.
 
 Quickstart
 ----------
 
-To create CI job using grizzly tempest and grizzly simple fuel forks...
-To deploy lab ...
-To run TEMPEST ...
-Shell commands for CI job:
+Shell commands for CI TEMPEST job:
 
 . ~/work/venv/bin/activate
 export ENV_NAME=$JOB_NAME
@@ -34,27 +31,12 @@ if [ "$test_name" == "TEMPEST" ]; then
   . venv/bin/activate
   pip install -r tempest/tools/pip-requires
   # grizzly feature: -l for logging
-  nosetests tempest/tempest/tests --with-xunit -d -l || echo ignore error code
+  nosetests tempest/tempest/tests --with-xunit -d || echo ignore error code
   deactivate
   #. ~/venv/bin/activate
 else
   #Uncomment dos.py string to erase vms and recreate lab from 0 (use BM provisioning)
   #dos.py erase $ENV_NAME
-  nosetests -w fuel $test_name --with-xunit -d -l || echo ignore exit code
+  nosetests -w fuel $test_name --with-xunit -d || echo ignore exit code
 fi
 
-.. note::
-
-    Note text...
-
-123
-
-Configuration
--------------
-
-Configuration ...
-
-Common Issues
--------------
-
-Issues ...
