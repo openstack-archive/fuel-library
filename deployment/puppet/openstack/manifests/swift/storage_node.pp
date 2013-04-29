@@ -15,7 +15,6 @@ class openstack::swift::storage_node (
   $loopback_size        = '1048756',
   # if the cinder management components should be installed
   $cinder                  = false,
-  $cinder_nodes            = false,
   $manage_volumes          = false,
   $nv_physical_volume      = undef,
   $cinder_volume_group     = 'cinder-volumes',
@@ -75,29 +74,8 @@ class openstack::swift::storage_node (
     Swift::Ringsync <| |> ~> Class["swift::storage::all"]
   }
 
-  #Evaluate cinder node selection
-  if ($cinder) {
-    if ($cinder_nodes == 'storage') or ($cinder_nodes == 'all') {
-      $cinder_swift = true
-    } elsif (is_array($cinder_nodes)){
-      if (member($cinder_nodes,'storage')) or (member($cinder_nodes,'all')) {
-        $cinder_swift = true
-      } elsif (member($cinder_nodes,$::hostname)) {
-        $cinder_swift = true
-      } elsif (member($cinder_nodes,$internal_address)) {
-        $cinder_swift = true
-      } else {
-        $cinder_swift = false
-      }
-    } else {
-      $cinder_swift = false
-    }
-  } else {
-    $cinder_swift = false
-  }
-
   $enabled_apis = 'ec2,osapi_compute'
-  if ($cinder_swift) and !defined(Class['swift']) {
+  if ($cinder) and !defined(Class['swift']) {
     package {'python-cinderclient': ensure => present}
     class {'openstack::cinder':
       sql_connection       => "mysql://${cinder_db_user}:${cinder_db_password}@${db_host}/${cinder_db_dbname}?charset=utf8",
