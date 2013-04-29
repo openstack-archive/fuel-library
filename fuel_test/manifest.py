@@ -195,9 +195,9 @@ class Manifest(object):
             return ci.fixed_network()
 
     def write_openstack_simple_manifest(self, remote, ci, controllers,
-                                        use_syslog=True,
-                                        quantum=True,
-                                        cinder=True, cinder_nodes=['controller']):
+                                        use_syslog=True, quantum=True,
+                                        cinder=True, cinder_nodes=None):
+        if not cinder_nodes: cinder_nodes = ['controller']
         template = Template(
             root(
                 'deployment', 'puppet', 'openstack', 'examples',
@@ -255,11 +255,14 @@ class Manifest(object):
         self.write_manifest(remote, template)
 
 
-    def write_openstack_ha_minimal_manifest(self, remote, template, ci, controllers, quantums,
-                                 proxies=None, use_syslog=True,
-                                 quantum=True, loopback=True,
-                                 cinder=True, cinder_nodes=['controller'], quantum_netnode_on_cnt=True,
-                                 ha_provider='pacemaker'):
+    def write_openstack_ha_minimal_manifest(self, remote, template, ci,
+                                            controllers, quantums, proxies=None,
+                                            use_syslog=True, quantum=True,
+                                            loopback=True, cinder=True,
+                                            cinder_nodes=None,
+                                            quantum_netnode_on_cnt=True,
+                                            ha_provider='pacemaker'):
+        if not cinder_nodes: cinder_nodes = ['controller']
         template.replace(
             internal_virtual_ip=ci.internal_virtual_ip(),
             public_virtual_ip=ci.public_virtual_ip(),
@@ -294,12 +297,13 @@ class Manifest(object):
         self.write_manifest(remote, template)
 
 
-    def write_openstack_manifest(self, remote, template, ci, controllers, quantums,
-                                 proxies=None, use_syslog=True,
-                                 quantum=True, loopback=True,
-                                 cinder=True, cinder_nodes=['controller'],
-                                 swift=True, quantum_netnode_on_cnt=True,
+    def write_openstack_manifest(self, remote, template, ci, controllers,
+                                 quantums, proxies=None, use_syslog=True,
+                                 quantum=True, loopback=True, cinder=True,
+                                 cinder_nodes=None, swift=True,
+                                 quantum_netnode_on_cnt=True,
                                  ha_provider='pacemaker'):
+        if not cinder_nodes: cinder_nodes = ['controller']
         template.replace(
             internal_virtual_ip=ci.internal_virtual_ip(),
             public_virtual_ip=ci.public_virtual_ip(),
