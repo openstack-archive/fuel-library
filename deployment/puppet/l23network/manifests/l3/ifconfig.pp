@@ -10,6 +10,8 @@
 # [*ipaddr*]
 #   IP address for interface. Can contains IP address, 'dhcp', or 'none'
 #   for up empty unaddressed interface.
+#   Can be array of CIDR-notated IP addresses ['192.168.1.3/24','10.0.0.4/16']
+#   for multiple IPs on one interface. In this case netmask parameter is ignored.
 #
 # [*netmask*]
 #   Specify network mask. Default is '255.255.255.0'.
@@ -104,20 +106,45 @@ define l23network::l3::ifconfig (
     'balance-alb'
   ]
 
-  # calculate effective_netmask
-  #todo: if ipaddr given in CIDR mode (A.B.C.D/E) -- ignore netmask and calculate effective_netmask from CIDR
-  $effective_netmask = $netmask
-  #todo: calculate CIDR netmask /XX
-
   # setup configure method for inteface
   if $bond_master {
     $method = 'bondslave'
-  } else {
+  } elsif is_array($ipaddr) {
+    # getting array of IP addresses for one interface
+    $method = 'static'
+    check_cidrs($ipaddr)
+    $effective_ipaddr  = cidr_to_ipaddr($ipaddr[0])
+    $effective_netmask = cidr_to_netmask($ipaddr[0])
+    $ipaddr_aliases    = array_part($ipaddr,1,0)
+  } elsif is_string($ipaddr) {
+    # getting single IP address for interface. It can be not address, but method.
+    $ipaddr_aliases = undef
     case $ipaddr {
-      'dhcp':  { $method = 'dhcp' }
-      'none':  { $method = 'manual' }
-      default: { $method = 'static' }
+      'dhcp':  { 
+        $method = 'dhcp' 
+        $effective_ipaddr  = $ipaddr
+        $effective_netmask = undef
+      }
+      'none':  { 
+        $method = 'manual' 
+        $effective_ipaddr  = $ipaddr
+        $effective_netmask = undef
+      }
+      default: { 
+        $method = 'static' 
+        if $ipaddr =~ /\/\d{1,2}\s*$/ {
+          # ipaddr can be cidr-notated
+          $effective_ipaddr = cidr_to_ipaddr($ipaddr)
+          $effective_netmask = cidr_to_netmask($ipaddr)
+        } else {
+          # or classic pair of ipaddr+netmask
+          $effective_ipaddr = $ipaddr
+          $effective_netmask = $netmask
+        }
+      }
     }
+  } else {
+    fail("Ipaddr must be string or array of strings")
   }
 
   # OS depends constats and packages
@@ -129,6 +156,7 @@ define l23network::l3::ifconfig (
     /(?i)redhat/: {
       $if_files_dir = '/etc/sysconfig/network-scripts'
       $interfaces = false
+      include '::l23network::l2::centos_upndown_scripts'
     }
     default: {
       fail("Unsupported OS: ${::osfamily}/${::operatingsystem}")
@@ -193,6 +221,7 @@ define l23network::l3::ifconfig (
   }
 
   if $method == 'static' {
+    # recognizing default gateway
     if $gateway {
       $def_gateway = $gateway
     } else {
@@ -232,8 +261,25 @@ define l23network::l3::ifconfig (
     mode    => '0644',
     content => template("l23network/ipconfig_${::osfamily}_${method}.erb"),
   }
+  if $::osfamily =~ /(?i)redhat/ and $ipaddr_aliases {
+    file {"${if_files_dir}/interface-up-script-${interface}":
+      ensure  => present,
+      owner   => 'root',
+      mode    => '0755',
+      recurse => true,
+      content => template("l23network/ipconfig_${::osfamily}_${method}_up-script.erb"),
+    } ->
+    # file {"${if_files_dir}/interface-down-script-${interface}":
+    #   ensure  => present,
+    #   owner   => 'root',
+    #   mode    => '0755',
+    #   recurse => true,
+    #   content => template("l23network/ipconfig_${::osfamily}_${method}_down-script.erb"),
+    # } ->
+    File <| title == $interface_file |>
+  }
 
-  notify {"ifconfig_${interface}": message=>"Interface:${interface} IP:${ipaddr}/${effective_netmask}", withpath=>false} ->
+  notify {"ifconfig_${interface}": message=>"Interface:${interface} IP:${effective_ipaddr}/${effective_netmask}", withpath=>false} ->
   l3_if_downup {"$interface":
     check_by_ping => $check_by_ping,
     check_by_ping_timeout => $check_by_ping_timeout,
