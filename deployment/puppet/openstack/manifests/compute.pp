@@ -212,11 +212,6 @@ class openstack::compute (
     vncproxy_host                 => $vncproxy_host,
   }
 
-  class {'nova::conductor':
-    enabled => $enabled,
-    ensure_package  => $::openstack_version['nova'],
-  }
-
   # Configure libvirt for nova-compute
   class { 'nova::compute::libvirt':
     libvirt_type     => $libvirt_type,
