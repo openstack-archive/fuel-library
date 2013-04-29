@@ -16,7 +16,7 @@ Would result in: ['a','b','c','d']
     EOS
   ) do |arguments|
     raise(Puppet::ParseError, "array_or_string_to_array(): Wrong number of arguments " +
-      "given (#{arguments.size} for 1)") if arguments.size < 1
+      "given (#{arguments.size} for 1)") if arguments.size != 1
 
     in_data = arguments[0]
 

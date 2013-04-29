@@ -1,7 +1,7 @@
 auto <%= interface %>
 iface <%= interface %> inet static
 <% if @vlan_mode %>vlan_raw_device <%= @vlan_dev %><% end %>
-address <%= ipaddr %>
+address <%= effective_ipaddr %>
 netmask <%= effective_netmask %>
 <% if @def_gateway %>gateway <%= @def_gateway %><% end %>
 <% if @dns_nameservers_1 or @dns_nameservers_2 %>dns-nameservers <% if @dns_nameservers_1 %><%= @dns_nameservers_1 %><% end %> <% if @dns_nameservers_2 %><%= @dns_nameservers_2 %><% end %><% end %>
@@ -13,3 +13,7 @@ bond-mode <%= @bond_mode %><% if @bond_miimon %>
 bond-miimon <%= @bond_miimon %><% end %><% if @bond_lacp_rate %>
 bond-lacp-rate <%= @bond_lacp_rate %><% end %>
 <% end %>
+<%- if @ipaddr_aliases -%><%- @ipaddr_aliases.each do |addr| -%>
+post-up ip addr add <%= addr %> dev <%= interface %>
+pre-down ip addr del <%= addr %> dev <%= interface %>
+<%- end -%><%- end -%>
