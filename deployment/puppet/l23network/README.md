@@ -1,16 +1,32 @@
-Puppet module for configuring L2 and L3 networks.
-Based on open vSwitch and iproute2. 
+L23network
+==========
+Puppet module for configuring network interfaces, 802.1q vlans, bonds on 2 and 3 level. Can work together with open vSwitch or standart linux way.  At this moment support Centos 6.3 (RHEL6) and Ubuntu 12.04 or above.
+
+
+Usage
+-----
+Place this module at /etc/puppet/modules/l23network or to another directory, contains your puppet modules.
+
+Include L23network module and initialize it. I recommend do it in early stage:
+
+    #Network configuration
+    stage {'netconfig':
+      before  => Stage['main'],
+    }
+    class {'l23network': stage=> 'netconfig'}
+
+If You not planned using open vSwitch -- you can disable it:
+
+    class {'l23network': use_ovs=>false, stage=> 'netconfig'}
+
 
 L2 network configuation
 -----------------------
 
 Current layout is:
-bridges - A "Bridge" is basically the thing you plug ports / interfaces into.
-ports - A Port is a interface you plug into the bridge (switch).
-
-USAGE:
-Place this directory at:
-<your module directory of choice>/l23network
+* *bridges* -- A "Bridge" is a virtual ethernet L2 switch. You can plug ports into it.
+* *ports* -- A Port is a interface you plug into the bridge (switch). It's a virtual.
+* *interface* -- A physical implementation of port.
 
 Then in your manifest you can either use the things as parameterized classes:
 

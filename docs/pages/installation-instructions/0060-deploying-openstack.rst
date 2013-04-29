@@ -56,30 +56,40 @@ The next section sets up the servers themselves.  If you are setting up Fuel man
       'role' => 'cobbler',
       'internal_address' => '10.20.0.100',
       'public_address'   => '192.168.0.100',
+      'mountpoints'=> "1 1\n2 1",
+      'storage_local_net_ip' => '10.20.0.100',
     },
     {
       'name' => 'fuel-controller-01',
-      'role' => 'controller',
+      'role' => 'primary-controller',
       'internal_address' => '10.20.0.101',
       'public_address'   => '192.168.0.101',
+      'mountpoints'=> "1 1\n2 1",
+      'storage_local_net_ip' => '10.20.0.101',
     },
     {
       'name' => 'fuel-controller-02',
       'role' => 'controller',
       'internal_address' => '10.20.0.102',
       'public_address'   => '192.168.0.102',
+      'mountpoints'=> "1 1\n2 1",
+      'storage_local_net_ip' => '10.20.0.102',
     },
     {
       'name' => 'fuel-controller-03',
       'role' => 'controller',
       'internal_address' => '10.0.0.105',
       'public_address'   => '192.168.0.105',
+      'mountpoints'=> "1 1\n2 1",
+      'storage_local_net_ip' => '10.20.0.105',
     },
     {
       'name' => 'fuel-compute-01',
       'role' => 'compute',
       'internal_address' => '10.0.0.106',
       'public_address'   => '192.168.0.106',
+      'mountpoints'=> "1 1\n2 1",
+      'storage_local_net_ip' => '10.20.0.106',
     }
   ]
 
@@ -127,15 +137,6 @@ Next ``site.pp`` defines DNS servers and provides netmasks::
   #on the ONLY controller
   $ha_provider = 'pacemaker'
   $use_unicast_corosync = false
-
-
-Quantum is actually specified further down in the file, but this is where you specify whether you want Quantum to be specified as High Availability or not. ::
-
-  # Set hostname for master controller of HA cluster. 
-  # It is strongly recommend that the master controller is deployed before all other controllers since it initializes the new cluster.  
-  # Default is fuel-controller-01. 
-  # Fully qualified domain name is also allowed.
-  $master_hostname = 'fuel-controller-01'
 
 Next specify the main controller. ::
 
@@ -442,16 +443,18 @@ Next, you're specifying the ``swift-master``::
   # It tells on which swift proxy node to build
   # *ring.gz files. Other swift proxies/storages
   # will rsync them.
-  if $::hostname == 'fuel-swiftproxy-01' {
+  if $node[0]['role'] == 'primary-controller' {
     $primary_proxy = true
   } else {
     $primary_proxy = false
   }
-  if $::hostname == $master_hostname {
+  if $node[0]['role'] == 'primary-controller' {
     $primary_controller = true
   } else {
     $primary_controller = false
   }
+  $master_swift_proxy_nodes = filter_nodes($nodes,'role','primary-controller')
+  $master_swift_proxy_ip = $master_swift_proxy_nodes[0]['internal_address']
 
 In this case, there's no separate ``fuel-swiftproxy-01``, so the master controller will be the primary Swift controller.
 
@@ -930,29 +933,25 @@ When running Puppet manually, the exact sequence depends on what it is you're tr
   **Example 1:** **Full OpenStack deployment with standalone storage nodes**
 
     * Create necessary volumes on storage nodes as described in	 :ref:`create-the-XFS-partition`.
-    * Sequentially run a deployment pass on the controller nodes (``fuel-controller-01 ... fuel-controller-xx``).
-    * Run an additional deployment pass on Controller 1 only (``fuel-controller-01``) to finalize the Galera cluster configuration.
+    * Sequentially run a deployment pass on every SwiftProxy node (``fuel-swiftproxy-01 ... fuel-swiftproxy-xx``), starting with the ``primary-swift-proxy node``. Node names are set by the ``$swift_proxies`` variable in ``site.pp``. There are 2 Swift Proxies by default.
+    * Sequentially run a deployment pass on every storage node (``fuel-swift-01`` ... ``fuel-swift-xx``). 
+    * Sequentially run a deployment pass on the controller nodes (``fuel-controller-01 ... fuel-controller-xx``). starting with the ``primary-controller`` node.
     * Run a deployment pass on the Quantum node (``fuel-quantum``) to install the Quantum router.
     * Run a deployment pass on every compute node (``fuel-compute-01 ... fuel-compute-xx``) - unlike the controllers, these nodes may be deployed in parallel.
-    * Sequentially run a deployment pass on every storage node (``fuel-swift-01`` ... ``fuel-swift-xx``). Errors in Swift storage such as */Stage[main]/Swift::Storage::Container/Ring_container_device[<device address>]: Could not evaluate: Device not found check device on <device address>* are expected on the Storage nodes during the deployment passes until the very final pass.
-    * If loopback devices are used on storage nodes (``$swift_loopback = 'loopback'`` in ``site.pp``) - run a deployment pass on every storage (``fuel-swift-01`` ... ``fuel-swift-xx``) node one more time. Skip this step if loopback is off (``$swift_loopback = false`` in ``site.pp``). Again, ignore errors in *Swift::Storage::Container* during this deployment pass.
-    * Run a deployment pass on every SwiftProxy node (``fuel-swiftproxy-01 ... fuel-swiftproxy-xx``). Node names are set by the ``$swift_proxies`` variable in ``site.pp``. There are 2 Swift Proxies by default.
-    * Repeat the deployment pass on every storage (``fuel-swift-01`` ... ``fuel-swift-xx``) node. No Swift storage errors should appear during this deployment pass.
+    * Run an additional deployment pass on Controller 1 only (``fuel-controller-01``) to finalize the Galera cluster configuration.
 
   **Example 2:** **Compact OpenStack deployment with storage and swift-proxy combined with nova-controller on the same nodes**
 
     * Create the necessary volumes on controller nodes as described in :ref:`create-the-XFS-partition`
-    * Sequentially run a deployment pass on the controller nodes (``fuel-controller-01 ... fuel-controller-xx``). Errors in Swift storage such as */Stage[main]/Swift::Storage::Container/Ring_container_device[<device address>]: Could not evaluate: Device not found check device on <device address>* are expected during the deployment passes until the very final pass.
+    * Sequentially run a deployment pass on the controller nodes (``fuel-controller-01 ... fuel-controller-xx``), starting with the ``primary-controller node``. Errors in Swift storage such as */Stage[main]/Swift::Storage::Container/Ring_container_device[<device address>]: Could not evaluate: Device not found check device on <device address>* are expected during the deployment passes until the very final pass.
+    * Run an additional deployment pass on Controller 1 only (``fuel-controller-01``) to finalize the Galera cluster configuration.
     * Run a deployment pass on the Quantum node (``fuel-quantum``) to install the Quantum router.
     * Run a deployment pass on every compute node (``fuel-compute-01 ... fuel-compute-xx``) - unlike the controllers these nodes may be deployed in parallel.
-    * Sequentially run one more deployment pass on every controller (``fuel-controller-01 ... fuel-controller-xx``) node. Again, ignore errors in *Swift::Storage::Container* during this deployment pass.
-    * Run an additional deployment pass *only* on the controller that hosts the SwiftProxy service. By default it is ``fuel-controller-01``. Again, ignore errors in *Swift::Storage::Container* during this deployment pass.
-    * Sequentially run one more deployment pass on every controller (``fuel-controller-01 ... fuel-controller-xx``) node to finalize storage configuration. No Swift storage errors should appear during this deployment pass.
 
   **Example 3:** **OpenStack HA installation without Swift**
 
-    * Sequentially run a deployment pass on the controller nodes (``fuel-controller-01 ... fuel-controller-xx``). No errors should appear during this deployment pass.
-    * Run an additional deployment pass on Controller 1 only (``fuel-controller-01``) to finalize the Galera cluster configuration.
+    * Sequentially run a deployment pass on the controller nodes (``fuel-controller-01 ... fuel-controller-xx``), starting with the primary controller. No errors should appear during this deployment pass.
+    * Run an additional deployment pass on the primary controller only (``fuel-controller-01``) to finalize the Galera cluster configuration.
     * Run a deployment pass on the Quantum node (``fuel-quantum``) to install the Quantum router.
     * Run a deployment pass on every compute node (``fuel-compute-01 ... fuel-compute-xx``) - unlike the controllers these nodes may be deployed in parallel.
 
