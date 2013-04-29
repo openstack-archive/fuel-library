@@ -271,7 +271,7 @@ $nv_physical_volume     = ['/dev/sdz', '/dev/sdy', '/dev/sdx']
 
 #Evaluate cinder node selection
 if ($cinder) {
-  if (member($cinder_nodes,'all'))
+  if (member($cinder_nodes,'all')) {
     $is_cinder_node = true
   } elsif (member($cinder_nodes,$::hostname)) {
     $is_cinder_node = true
@@ -279,8 +279,9 @@ if ($cinder) {
     $is_cinder_node = true
   } elsif ($node[0]['role'] =~ /controller/ ) {
     $is_cinder_node = member($cinder_nodes,'controller')
-  } else
+  } else {
     $is_cinder_node = member($cinder_nodes,$node[0]['role'])
+  }
 } else {
   $is_cinder_node = false
 }
