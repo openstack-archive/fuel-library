@@ -48,6 +48,19 @@ class CompactTestCase(CobblerTestCase):
         if CREATE_SNAPSHOTS:
             self.environment().snapshot('compact_wo_quantum', force=True)
 
+    def test_deploy_compact_wo_quantum_cinder_all(self): 
+        Manifest().write_openstack_manifest( 
+            remote=self.remote(), 
+            template=Template.compact(), ci=self.ci(), 
+            controllers=self.nodes().controllers, 
+            cinder=True,
+            cinder_nodes=['all'],
+            quantums=self.nodes().quantums, 
+            quantum=False) 
+        self.deploy_compact(quantum_node=False) 
+        if CREATE_SNAPSHOTS: 
+            self.environment().snapshot('compact_wo_quantum', force=True) 
+ 
     def test_deploy_compact_wo_loopback(self):
         Manifest().write_openstack_manifest(
             remote=self.remote(),
