@@ -24,16 +24,16 @@ class Config():
 
         return config
 
-    def openstack_common(self, ci, quantums=[]):
+    def openstack_common(self, ci, quantums=[], cinder=true, quantum_on_cnt=True):
         nodes = []
 
         for node in Manifest().generate_nodes_configs_list(ci):
             if node["role"] is not "master":
                 nodes.append(node)
+        
+        master = ci.nodes().masters[0]
 
-        config = {"auto_assign_floating_ip": True,
-                   "cinder": True,
-                   "cinder_on_computes": True,
+        config = {"auto_assign_floating_ip": True,                   
                    "create_networks": True,
                    "default_gateway": ci.public_router(),
                    "deployment_id": Manifest().deployment_id(ci),
@@ -47,21 +47,28 @@ class Config():
                    "mirror_type": Manifest().mirror_type(),
                    "nagios_master": "%s.your-domain-name.com" % ci.nodes().controllers[0].name,
                    "network_manager": "nova.network.manager.FlatDHCPManager",
-                   "nv_physical_volumes": ["/dev/sdz", "/dev/sdy"],
+                   "nv_physical_volumes": ["/dev/sdb"],
                    "private_interface": Manifest().private_interface(),
                    "public_interface": Manifest().public_interface(),
                    "public_netmask": ci.public_net_mask(),
                    "public_virtual_ip": ci.public_virtual_ip(),
                    "quantum": True,
-                   "quantum_netnode_on_cnt": True,
-                   "repo_proxy": "http://10.0.0.100:3128",
+                   "repo_proxy": "http://%s:3128" % master.get_ip_address_by_network_name('internal'),
                    "segment_range": "900:999",
                    "swift": True,
                    "swift_loopback": "loopback",
                    "syslog_server": "10.49.63.12",
-                   "use_syslog": True,
-                  "nodes": nodes
+                   "use_syslog": True
         }
+        
+        if cinder:
+            config.update({"cinder": True,
+                          "cinder_on_computes": True})
+
+        if quantum_on_cnt:
+            config.update({"quantum_netnode_on_cnt": True})
+
+        config.update({"nodes": nodes})
 
         return config
 
