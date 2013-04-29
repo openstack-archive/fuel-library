@@ -197,7 +197,7 @@ class Manifest(object):
     def write_openstack_simple_manifest(self, remote, ci, controllers,
                                         use_syslog=True,
                                         quantum=True,
-                                        cinder=True, cinder_on_computes=False):
+                                        cinder=True, cinder_nodes=['controller']):
         template = Template(
             root(
                 'deployment', 'puppet', 'openstack', 'examples',
@@ -211,7 +211,7 @@ class Manifest(object):
             #controller_node_address=controllers[0].get_ip_address_by_network_name('internal'),
             #controller_node_public=controllers[0].get_ip_address_by_network_name('public'),
             cinder=cinder,
-            cinder_on_computes=cinder_on_computes,
+            cinder_nodes=cinder_nodes,
             nv_physical_volume=self.physical_volumes(),
             nagios_master = controllers[0].name + '.your-domain-name.com',
             external_ipinfo=self.external_ip_info(ci, controllers),
@@ -258,7 +258,7 @@ class Manifest(object):
     def write_openstack_ha_minimal_manifest(self, remote, template, ci, controllers, quantums,
                                  proxies=None, use_syslog=True,
                                  quantum=True, loopback=True,
-                                 cinder=True, cinder_on_computes=False, quantum_netnode_on_cnt=True,
+                                 cinder=True, cinder_nodes=['controller'], quantum_netnode_on_cnt=True,
                                  ha_provider='pacemaker'):
         template.replace(
             internal_virtual_ip=ci.internal_virtual_ip(),
@@ -272,7 +272,7 @@ class Manifest(object):
             nv_physical_volume=self.physical_volumes(),
             use_syslog=use_syslog,
             cinder=cinder,
-            cinder_on_computes=cinder_on_computes,
+            cinder_nodes=cinder_nodes,
             nagios_master = controllers[0].name + '.your-domain-name.com',
             external_ipinfo=self.external_ip_info(ci, quantums),
             nodes=self.generate_nodes_configs_list(ci),
@@ -297,7 +297,8 @@ class Manifest(object):
     def write_openstack_manifest(self, remote, template, ci, controllers, quantums,
                                  proxies=None, use_syslog=True,
                                  quantum=True, loopback=True,
-                                 cinder=True, swift=True, quantum_netnode_on_cnt=True,
+                                 cinder=True, cinder_nodes=['controller'],
+                                 swift=True, quantum_netnode_on_cnt=True,
                                  ha_provider='pacemaker'):
         template.replace(
             internal_virtual_ip=ci.internal_virtual_ip(),
@@ -311,8 +312,8 @@ class Manifest(object):
             nv_physical_volume=self.physical_volumes(),
             use_syslog=use_syslog,
             cinder=cinder,
+            cinder_nodes=cinder_nodes,
             ntp_servers=['pool.ntp.org',ci.internal_router()],
-            cinder_on_computes=cinder,
             nagios_master = controllers[0].name + '.your-domain-name.com',
             external_ipinfo=self.external_ip_info(ci, quantums),
             nodes=self.generate_nodes_configs_list(ci),
