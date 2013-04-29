@@ -116,17 +116,17 @@ class Prepare(object):
             'IMAGE_ID': image_ref,
             'IMAGE_ID_ALT': image_ref_alt,
             'FLAVOR_REF': '1',
-            'FLAVOR_REF_ALT': '1',
+            'FLAVOR_REF_ALT': '1', # skip flavor '2' which provides 20Gb ephemerals and lots of RAM...
             'COMPUTE_BUILD_INTERVAL': '10',
             'COMPUTE_BUILD_TIMEOUT': '600',
-            'RUN_SSH': 'false',
+            'RUN_SSH': 'true',
             'NETWORK_FOR_SSH': 'net04_ext',
             'SSH_USER': 'cirros',
             'LIVE_MIGRATION': 'true',
             'USE_BLOCKMIG_FOR_LIVEMIG' : 'true',
             'COMPUTE_CATALOG_TYPE': 'compute',
             'COMPUTE_CREATE_IMAGE_ENABLED': 'true',
-            'COMPUTE_RESIZE_AVAILABLE': 'false',
+            'COMPUTE_RESIZE_AVAILABLE': 'false', # not supported with QEMU...
             'COMPUTE_CHANGE_PASSWORD_AVAILABLE': 'false',
             'COMPUTE_LOG_LEVEL': 'ERROR',
             'COMPUTE_WHITEBOX_ENABLED': 'true',
@@ -161,8 +161,8 @@ class Prepare(object):
             'NETWORK_API_VERSION': 'v2.0',
             'QUANTUM': 'true',
             'TENANT_NETS_REACHABLE': 'true',
-            'TENANT_NETWORK_CIDR': '192.168.111.0/24',
-            'TENANT_NETWORK_MASK_BITS': '28',
+            'TENANT_NETWORK_CIDR': '192.168.112.0/24', # choose do not overlap with 'net04'
+            'TENANT_NETWORK_MASK_BITS': '28', # 29 is too less to test quantum quotas (at least 50 ips needed)
             'PUBLIC_NETWORK_ID': public_network_id,
             'PUBLIC_ROUTER_ID': public_router_id,
         }
