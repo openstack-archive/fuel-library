@@ -13,7 +13,8 @@ Shell commands example for CI TEMPEST parameterized job
 
 Accepted values for test_name parameter are:
 TEMPEST                                                      = full tempest run onto lab was deployed before
-tempest/tempest/tests/.../ModuleName.py:ClassName.MethodName = run single tempest test specified only
+tempest/tempest/tests/.../ModuleName.py:ClassName.MethodName = run single tempest test specified only, 
+(e.g. tempest/tempest/tests/compute/servers/test_create_server.py:ServersTestJSON.test_can_log_into_created_server)
 Any other                                                    = redeploy lab from 'nodes-deployed' snapshots made after BM (dos.py uncomented will cause full redeploy with BM)
 
 Other shell script keys:
