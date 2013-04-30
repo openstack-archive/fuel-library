@@ -11,7 +11,15 @@ v2.1-folsom
   * Installation of Puppet Master & Cobbler Server node from ISO
   * Deployment orchestration based on mcollective eliminates the need to run Puppet manually on each node
   * Recommended master node setup for mid-scale deployments, tested up to 100 nodes
+  * NIC bonding support:
+    * for native Linux - stable
+    * ovs - experimental
+  * 802.1q vlan support:
+    * for native Linux - stable
+    * ovs - experimental
+  * One-pass swift
 
+  
 * Improvements
 
   * Support for multiple environments from a single Fuel master node
