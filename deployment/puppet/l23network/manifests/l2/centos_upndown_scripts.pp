@@ -15,5 +15,4 @@ class l23network::l2::centos_upndown_scripts {
     content => template("l23network/centos_ifdown-local.erb"),
   } ->
   anchor { 'l23network::l2::centos_upndown_scripts': } 
-  Anchor <| title == 'l23network::l2::centos_upndown_scripts' |> -> L23network::L3::Ifconfig <||>
 }
