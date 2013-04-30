@@ -1,140 +1,145 @@
-import yaml
-from fuel_test.ci.ci_vm import CiVM
 from fuel_test.manifest import Manifest
-from fuel_test.settings import CURRENT_PROFILE, PUPPET_VERSION
+from fuel_test.settings import CURRENT_PROFILE, PUPPET_VERSION, INTERFACE_ORDER, INTERFACES
+
 
 class Config():
-    def generate(self, ci):
+    def generate(self, ci, template, quantums=None, cinder=True, quantum_netnode_on_cnt=True, create_networks=True,
+                 quantum=True, swift=True, loopback="loopback", use_syslog=True):
         config = {
-           "common":
-               {"orchestrator_common": self.orchestrator_common(ci),
-                "openstack_common": self.openstack_common(ci),
-                "cobbler_common": self.cobbler_common(ci),
-              }
+            "common":
+                {"orchestrator_common": self.orchestrator_common(ci, template=template),
+                 "openstack_common": self.openstack_common(ci,
+                                                           quantums=quantums,
+                                                           cinder=cinder,
+                                                           quantum_netnode_on_cnt=quantum_netnode_on_cnt,
+                                                           create_networks=create_networks,
+                                                           quantum=quantum,
+                                                           swift=swift,
+                                                           loopback=loopback,
+                                                           use_syslog=use_syslog),
+                 "cobbler_common": self.cobbler_common(ci),
+                }
         }
 
-        config.update(self.cobbler_nodes(ci))
+        config.update(self.cobbler_nodes(ci, ci.nodes()))
 
         return config
 
-    def orchestrator_common(self, ci):
+    def orchestrator_common(self, ci, template):
         config = {"task_uuid": "deployment_task"}
-        attributes = {"attributes": {"deployment_mode": "multinode_compute", "deployment_engine": "simplepuppet"}}
+        attributes = {"attributes": {"deployment_mode": template.deployment_mode, "deployment_engine": "simplepuppet"}}
         config.update(attributes)
 
         return config
 
-    def openstack_common(self, ci, quantums=[]):
-        nodes = []
+    def openstack_common(self, ci, quantums, cinder, quantum_netnode_on_cnt, create_networks,
+                         quantum, swift, loopback, use_syslog):
+        if not quantums: quantums = []
 
-        for node in Manifest().generate_nodes_configs_list(ci):
-            if node["role"] is not "master":
-                nodes.append(node)
+        node_configs = filter(lambda node: node['role'] != 'master', Manifest().generate_node_configs_list(ci))
+
+        master = ci.nodes().masters[0]
 
         config = {"auto_assign_floating_ip": True,
-                   "cinder": True,
-                   "cinder_on_computes": True,
-                   "create_networks": True,
-                   "default_gateway": ci.public_router(),
-                   "deployment_id": Manifest().deployment_id(ci),
-                   "dns_nameservers": Manifest().generate_dns_nameservers_list(ci),
-                   #"external_ip_info": Manifest().external_ip_info(ci, quantums),
-                   "fixed_range": Manifest().fixed_network(ci),
-                   "floating_range": Manifest().floating_network(ci),
-                   "internal_interface": Manifest().internal_interface(),
-                   "internal_netmask": ci.internal_net_mask(),
-                   "internal_virtual_ip": ci.internal_virtual_ip(),
-                   "mirror_type": Manifest().mirror_type(),
-                   "nagios_master": "%s.your-domain-name.com" % ci.nodes().controllers[0].name,
-                   "network_manager": "nova.network.manager.FlatDHCPManager",
-                   "nv_physical_volumes": ["/dev/sdz", "/dev/sdy"],
-                   "private_interface": Manifest().private_interface(),
-                   "public_interface": Manifest().public_interface(),
-                   "public_netmask": ci.public_net_mask(),
-                   "public_virtual_ip": ci.public_virtual_ip(),
-                   "quantum": True,
-                   "quantum_netnode_on_cnt": True,
-                   "repo_proxy": "http://10.0.0.100:3128",
-                   "segment_range": "900:999",
-                   "swift": True,
-                   "swift_loopback": "loopback",
-                   "syslog_server": "10.49.63.12",
-                   "use_syslog": True,
-                  "nodes": nodes
+                  "create_networks": create_networks,
+                  "default_gateway": ci.public_router(),
+                  "deployment_id": Manifest().deployment_id(ci),
+                  "dns_nameservers": Manifest().generate_dns_nameservers_list(ci),
+                  "external_ip_info": Manifest().external_ip_info(ci, quantums),
+                  "fixed_range": Manifest().fixed_network(ci),
+                  "floating_range": Manifest().floating_network(ci),
+                  "internal_interface": Manifest().internal_interface(),
+                  "internal_netmask": ci.internal_net_mask(),
+                  "internal_virtual_ip": ci.internal_virtual_ip(),
+                  "mirror_type": Manifest().mirror_type(),
+                  "nagios_master": "%s.your-domain-name.com" % ci.nodes().controllers[0].name,
+                  "network_manager": "nova.network.manager.FlatDHCPManager",
+                  "nv_physical_volumes": ["/dev/sdb"],
+                  "private_interface": Manifest().private_interface(),
+                  "public_interface": Manifest().public_interface(),
+                  "public_netmask": ci.public_net_mask(),
+                  "public_virtual_ip": ci.public_virtual_ip(),
+                  "quantum": quantum,
+                  "repo_proxy": "http://%s:3128" % master.get_ip_address_by_network_name('internal'),
+                  "segment_range": "900:999",
+                  "swift": swift,
+                  "swift_loopback": loopback,
+                  "syslog_server": str(master.get_ip_address_by_network_name('internal')),
+                  "use_syslog": use_syslog,
+                  "cinder": cinder,
+                  "quantum_netnode_on_cnt": quantum_netnode_on_cnt
         }
+
+        # TODO to make Matt sad
+        config.update({"cinder_nodes": 'controllers'})
+        config.update({"nodes": node_configs})
 
         return config
 
     def cobbler_common(self, ci):
-        config = {"gateway": ci.public_router(),
-                  "name-servers": ci.public_router(),
+        config = {"gateway": str(ci.nodes().masters[0].get_ip_address_by_network_name('internal')),
+                  "name-servers": str(ci.nodes().masters[0].get_ip_address_by_network_name('internal')),
                   "name-servers-search": "your-domain-name.com",
                   "profile": CURRENT_PROFILE}
 
-        ksmeta_list = {"puppet_version": PUPPET_VERSION,
-                       "puppet_auto_setup": 1,
-                       "puppet_master": "%s.your-domain-name.com" % ci.nodes().masters[0].name,
-                       "puppet_enable": 0,
-                       "ntp_enable": 1,
-                       "mco_auto_setup": 1,
-                       "mco_pskey": "un0aez2ei9eiGaequaey4loocohjuch4Ievu3shaeweeg5Uthi",
-                       "mco_stomphost": "10.0.0.100",
-                       "mco_stompport": 61613,
-                       "mco_stompuser": "mcollective",
-                       "mco_stomppassword": "AeN5mi5thahz2Aiveexo",
-                       "mco_enable": 1}
+        ksmeta = self.get_ks_meta("%s.your-domain-name.com" % ci.nodes().masters[0].name, ci.nodes().masters[0].name)
 
-        ksmeta = {"ksmeta": ' '.join(['%s=%s' % (str(k), str(v)) for k, v in ksmeta_list.items()])}
-
-        config.update(ksmeta)
+        config.update({"ksmeta": ksmeta})
 
         return config
 
-    def cobbler_nodes(self, ci):
-        nodes = Manifest().generate_nodes_configs_list(ci)
+    def get_ks_meta(self, puppet_master, mco_host):
+        return ("puppet_auto_setup=1 "
+                "puppet_master=%(puppet_master)s "
+                "puppet_version=%(puppet_version)s "
+                "puppet_enable=0 "
+                "mco_auto_setup=1 "
+                "ntp_enable=1 "
+                "mco_pskey=un0aez2ei9eiGaequaey4loocohjuch4Ievu3shaeweeg5Uthi "
+                "mco_stomphost=%(mco_host)s "
+                "mco_stompport=61613 "
+                "mco_stompuser=mcollective "
+                "mco_stomppassword=AeN5mi5thahz2Aiveexo "
+                "mco_enable=1 "
+                "interface_extra_eth0_peerdns=no "
+                "interface_extra_eth1_peerdns=no "
+                "interface_extra_eth2_peerdns=no "
+                "interface_extra_eth2_promisc=yes "
+                "interface_extra_eth2_userctl=yes "
+               ) % {'puppet_master': puppet_master,
+                    'puppet_version': PUPPET_VERSION,
+                    'mco_host': mco_host
+               }
+
+    def cobbler_nodes(self, ci, nodes):
         all_nodes = {}
         for node in nodes:
-            node_name = str(node["name"])
-            interfaces = {"eth0":
-                              {"mac": ci.public_net_mask(),
-                               "static": 1,
-                               "ip-address": node["public_address"],
-                               "netmask": "255.255.255.0",
-                               "dns-name": "%s.your-domain-name.com" % node_name,
-                               "management": "1"},
-                          "eth1":
-                              {"mac": ci.internal_net_mask(),
-                               "static": "0"},
-                          "eth2":
-                              {"mac": ci.public_net_mask(),
-                               "static": "1"}
+            interfaces = {
+                INTERFACES.get('internal'):
+                    {
+                        "mac": node.interfaces.filter(network__name='internal')[0].mac_address,
+                        "static": 1,
+                        "ip-address": str(node.get_ip_address_by_network_name('internal')),
+                        "netmask": ci.internal_net_mask(),
+                        "dns-name": "%s.your-domain-name.com" % node.name,
+                        "management": "1"
+                    }
             }
-
-            interfaces_extra = {"eth0":
-                                    {"peerdns": 'no'},
-                                "eth1":
-                                    {"peerdns": 'no'},
-                                "eth2":
-                                    {"peerdns": 'no',
-                                     "promisc": 'yes',
-                                     "userctl": 'yes'}
+            interfaces_extra = {
+                "eth0":
+                    {"peerdns": 'no'},
+                "eth1":
+                    {"peerdns": 'no'},
+                "eth2":
+                    {"peerdns": 'no',
+                     "promisc": 'yes',
+                     "userctl": 'yes'}
             }
-
-            all_nodes.update({node_name: {"hostname": node_name,
+            all_nodes.update({node.name: {"hostname": node.name,
                                           "interfaces": interfaces,
                                           "interfaces_extra": interfaces_extra,
-                                          "role": node["role"]}
-                            }
-            )
+                                          }
+            }
+        )
 
         return all_nodes
-
-
-if __name__ == "__main__":
-    ci = CiVM()
-    config = Config().generate(ci)
-    print yaml.safe_dump(config, default_flow_style=False)
-
-    #with open("/home/alan/fuel/deployment/mcollective/astute/samples/config_test.yaml", "r") as f:
-    #    config = yaml.safe_load(f)
-    #   print config

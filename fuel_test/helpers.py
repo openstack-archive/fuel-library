@@ -45,7 +45,6 @@ def write_config(remote, path, text):
     logging.info('Write config %s' % text)
     config.close()
 
-
 def retry(count, func, **kwargs):
     i = 0
     while True:
@@ -179,12 +178,10 @@ def setup_puppet_master(remote):
         % PUPPET_VERSION)
     remote.mkdir('/var/lib/puppet/ssh_keys')
     puppet_apply(remote.sudo.ssh, 'class {puppet::fileserver_config:}')
-    puppet_apply(remote.sudo.ssh,
-        'class {puppetdb:}')
-    puppet_apply(remote.sudo.ssh,
-        'class {puppetdb::master::config: puppet_service_name=>"%s"}' % PUPPET_MASTER_SERVICE)
+    puppet_apply(remote.sudo.ssh, 'class {puppetdb:}')
+    puppet_apply(remote.sudo.ssh, 'class {puppetdb::master::config: puppet_service_name=>"%s"}' % PUPPET_MASTER_SERVICE)
+    puppet_apply(remote.sudo.ssh, 'class {rsyslog::server: enable_tcp => false, enable_udp => true}')
     remote.sudo.ssh.check_call("service %s restart" % PUPPET_MASTER_SERVICE)
-
 
 def upload_recipes(remote, remote_dir="/etc/puppet/modules/"):
     recipes_dir = root('deployment', 'puppet')
@@ -235,8 +232,7 @@ def await_node_deploy(ip, name):
     client = CobblerClient(ip)
     token = client.login('cobbler', 'cobbler')
     wait(
-        lambda: client.get_system(name, token)['netboot_enabled'] == False,
-        timeout=30 * 60)
+        lambda: client.get_system(name, token)['netboot_enabled'] == False, timeout=30 * 120)
 
 
 def build_astute():
@@ -254,4 +250,3 @@ def install_astute(remote):
 
 def is_not_essex():
     return os.environ.get('ENV_NAME', 'folsom').find('essex') == -1
-

@@ -38,19 +38,21 @@ class CiVM(CiBase):
         environment = self.manager.environment_create(self.env_name())
         networks = []
         for name in INTERFACE_ORDER:
-            ip_networks = [ IPNetwork(x) for x in POOLS.get(name)[0].split(',')]
+            ip_networks = [IPNetwork(x) for x in POOLS.get(name)[0].split(',')]
             new_prefix = int(POOLS.get(name)[1])
-            pool = self.manager.create_network_pool(
-                networks=ip_networks, prefix=int(new_prefix))
-            networks.append(self.manager.network_create(
-                name=name, environment=environment, pool=pool,
+            pool = self.manager.create_network_pool(networks=ip_networks, prefix=int(new_prefix))
+            networks.append(self.manager.network_create(name=name, environment=environment, pool=pool,
                 forward=FORWARDING.get(name), has_dhcp_server=DHCP.get(name)))
+
         for name in self.node_roles().master_names:
             self.describe_master_node(name, networks)
+
         for name in self.node_roles().compute_names:
             self.describe_empty_node(name, networks, memory=2048)
+
         for name in self.node_roles().controller_names + self.node_roles().storage_names + self.node_roles().quantum_names + self.node_roles().proxy_names:
             self.describe_empty_node(name, networks)
+
         return environment
 
     def get_startup_nodes(self):
@@ -65,12 +67,11 @@ class CiVM(CiBase):
         logging.info("Starting test nodes ...")
         start_nodes = self.get_startup_nodes()
         self.environment().start(start_nodes)
+
         for node in start_nodes:
             node.await('public', timeout=600)
 
-        master_remote = master_node.remote('public', login='root',
-                                            password='r00tme')
+        master_remote = master_node.remote('public', login='root', password='r00tme')
         add_nmap(master_remote)
-        puppet_apply(master_remote, 'class {rsyslog::server: enable_tcp => false, enable_udp => true}')
         dhcp_checksum(master_remote)
         self.environment().snapshot(EMPTY_SNAPSHOT)

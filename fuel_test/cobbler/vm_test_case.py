@@ -6,6 +6,7 @@ from fuel_test import iso_master
 from fuel_test.base_test_case import BaseTestCase
 from fuel_test.ci.ci_vm import CiVM
 from fuel_test.cobbler.cobbler_client import CobblerClient
+from fuel_test.config import Config
 from fuel_test.helpers import tcp_ping, udp_ping, build_astute, install_astute, add_to_hosts, await_node_deploy, write_config, puppet_apply
 from fuel_test.manifest import Manifest, Template
 from fuel_test.settings import PUPPET_VERSION, OS_FAMILY, CLEAN, USE_ISO, INTERFACES, PARENT_PROXY
@@ -20,13 +21,11 @@ class CobblerTestCase(BaseTestCase):
     def setUp(self):
         if CLEAN:
             self.get_nodes_deployed_state()
-        self.generate_manifests()
         self.update_modules()
 
     def get_nodes_deployed_state(self):
         if not self.environment().has_snapshot('nodes-deployed'):
             self.ci().get_empty_state()
-            self.update_config_yaml()
             self.update_modules()
             self.remote().execute("killall bootstrap_admin_node.sh")
             write_config(self.remote(), "/root/fuel.defaults", iso_master.get_config(hostname="master",
@@ -84,36 +83,6 @@ class CobblerTestCase(BaseTestCase):
     def deploy_stomp_node(self):
         Manifest().write_stomp_manifest(self.remote())
         self.validate(self.nodes().stomps, 'puppet agent --test')
-        self.install_astute_gem()
-
-    def install_astute_gem(self):
-        build_astute()
-        install_astute(self.nodes().stomps[0].remote('public',
-            login='root',
-            password='r00tme'))
-
-    def get_ks_meta(self, puppet_master, mco_host):
-        return  ("puppet_auto_setup=1 "
-                 "puppet_master=%(puppet_master)s "
-                 "puppet_version=%(puppet_version)s "
-                 "puppet_enable=0 "
-                 "mco_auto_setup=1 "
-                 "ntp_enable=1 "
-                 "mco_pskey=un0aez2ei9eiGaequaey4loocohjuch4Ievu3shaeweeg5Uthi "
-                 "mco_stomphost=%(mco_host)s "
-                 "mco_stompport=61613 "
-                 "mco_stompuser=mcollective "
-                 "mco_stomppassword=AeN5mi5thahz2Aiveexo "
-                 "mco_enable=1 "
-                 "interface_extra_eth0_peerdns=no "
-                 "interface_extra_eth1_peerdns=no "
-                 "interface_extra_eth2_peerdns=no "
-                 "interface_extra_eth2_promisc=yes "
-                 "interface_extra_eth2_userctl=yes "
-                    ) % {'puppet_master': puppet_master,
-                         'puppet_version': PUPPET_VERSION,
-                         'mco_host': mco_host
-                }
 
     def add_fake_nodes(self):
         cobbler = self.ci().nodes().masters[0]
@@ -150,8 +119,7 @@ class CobblerTestCase(BaseTestCase):
             profile = 'ubuntu_1204_x86_64'
         client.modify_system_args(
             system_id, token,
-            ks_meta=self.get_ks_meta('master.your-domain-name.com',
-                stomp_name),
+            ks_meta=Config().get_ks_meta('master.your-domain-name.com', stomp_name),
             name=node_name,
             hostname=node_name + ".your-domain-name.com",
             name_servers=cobbler.get_ip_address_by_network_name('internal'),
@@ -227,44 +195,10 @@ class CobblerTestCase(BaseTestCase):
         sleep(20)
         for node in self.ci().client_nodes():
             node_remote = node.remote('public', login='root', password='r00tme')
-            puppet_apply(node_remote, 'class {rsyslog::client: log_remote => true, server => "%s"}' % cobbler_ip)
+            #puppet_apply(node_remote, 'class {rsyslog::client: log_remote => true, server => "%s"}' % cobbler_ip)
         self.environment().snapshot('nodes-deployed', force=True)
 
-    def generate_manifests(self):
-        pass
-        # Manifest().write_openstack_manifest(
-        #     remote=self.remote(),
-        #     template=Template.minimal(), ci=self.ci(),
-        #     controllers=self.nodes().controllers,
-        #     quantums=self.nodes().quantums,
-        #     swift=False,
-        #     quantum=True)
-        # Manifest().write_openstack_manifest(
-        #     remote=self.remote(),
-        #     template=Template.compact(), ci=self.ci(),
-        #     controllers=self.nodes().controllers,
-        #     quantums=self.nodes().quantums,
-        #     quantum=False, loopback=False, use_syslog=False)
-        # Manifest().write_openstack_manifest(
-        #     remote=self.remote(),
-        #     template=Template.compact(), ci=self.ci(),
-        #     controllers=self.nodes().controllers,
-        #     quantums=self.nodes().quantums,
-        #     quantum=False)
-        # Manifest().write_openstack_manifest(
-        #     remote=self.remote(),
-        #     template=Template.full(), ci=self.ci(),
-        #     controllers=self.nodes().controllers,
-        #     quantums=self.nodes().quantums,
-        #     proxies=self.nodes().proxies,
-        #     quantum=True)
-        # Manifest().write_openstack_simple_manifest(
-        #     remote=self.remote(),
-        #     ci=self.ci(),
-        #     controllers=self.nodes().controllers)
-        # Manifest().write_openstack_single_manifest(
-        #     remote=self.remote(),
-        #     ci=self.ci())
+
 
 if __name__ == '__main__':
     unittest.main()
