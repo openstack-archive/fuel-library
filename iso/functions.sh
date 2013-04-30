@@ -87,6 +87,7 @@ function apply_settings {
     sed -i '/kernel.domainname/d' /etc/sysctl.conf && echo "kernel.domainname=$domain" >> /etc/sysctl.conf
     sed -i '/server/d' /etc/puppet/puppetdb.conf && echo "server = $hostname.$domain" >> /etc/puppet/puppetdb.conf
     service network restart
+    service dnsmasq restart
     service puppetdb restart
     sed -i "s%\(^.*address is:\).*$%\1 `ip address show $ext_if | awk '/inet / {print \$2}' | cut -d/ -f1 -`%" /etc/issue
 }
