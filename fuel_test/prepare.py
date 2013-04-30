@@ -161,7 +161,7 @@ class Prepare(object):
             'NETWORK_API_VERSION': 'v2.0',
             'QUANTUM': 'true',
             'TENANT_NETS_REACHABLE': 'true',
-            'TENANT_NETWORK_CIDR': '192.168.111.196/26', # choose do not overlap with 'net04'
+            'TENANT_NETWORK_CIDR': '192.168.112.0/24', # choose do not overlap with 'net04'
             'TENANT_NETWORK_MASK_BITS': '28', # 29 is too less to test quantum quotas (at least 50 ips needed)
             'PUBLIC_NETWORK_ID': public_network_id,
             'PUBLIC_ROUTER_ID': public_router_id,
