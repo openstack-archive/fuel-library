@@ -1,5 +1,5 @@
 COMMIT_SHA:=$(shell git rev-parse --verify HEAD)
-FUEL_VERSION:=2.1-1
+FUEL_VERSION:=2.2-rc
 
 CENTOS_MAJOR:=6
 CENTOS_MINOR:=3
@@ -131,7 +131,7 @@ $(ISONAME): $(BUILD_DIR)/iso/isoroot.done
 	rm -f $@
 	mkdir -p $(BUILD_DIR)/iso/isoroot-mkisofs
 	rsync -a --delete $(ISOROOT)/ $(BUILD_DIR)/iso/isoroot-mkisofs
-	mkisofs -r -V "Mirantis Nailgun" -p "Mirantis Inc." \
+	mkisofs -r -V "Mirantis Fuel-$(FUEL_VERSION)" -p "Mirantis Inc." \
 		-J -T -R -b isolinux/isolinux.bin \
 		-no-emul-boot \
 		-boot-load-size 4 -boot-info-table \
