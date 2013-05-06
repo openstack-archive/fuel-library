@@ -66,7 +66,7 @@ Depending on how you've set up your network, you can either set the ``default_ga
    nagios_master: fuel-controller-01.your-domain-name.com
    loopback: loopback
    cinder: true
-   cinder_on_computes: true
+   cinder_nodes: [ 'controller' ]
    swift: true
 
 In this example, you're using Cinder and including it on the compute nodes, so note that appropriately.  Also, you're using Swift, so turn that on here. ::
