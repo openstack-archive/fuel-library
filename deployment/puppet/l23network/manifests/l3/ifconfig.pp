@@ -156,7 +156,15 @@ define l23network::l3::ifconfig (
     /(?i)redhat/: {
       $if_files_dir = '/etc/sysconfig/network-scripts'
       $interfaces = false
-      include '::l23network::l2::centos_upndown_scripts'
+      if ! defined(Class[L23network::L2::Centos_upndown_scripts]) {
+        if defined(Stage[netconfig]) {
+          class{'l23network::l2::centos_upndown_scripts': stage=>'netconfig' }
+        } else {
+          class{'l23network::l2::centos_upndown_scripts': }
+        }
+      }
+      Anchor <| title == 'l23network::l2::centos_upndown_scripts' |> 
+        -> L23network::L3::Ifconfig <| interface == "$interface" |>
     }
     default: {
       fail("Unsupported OS: ${::osfamily}/${::operatingsystem}")
