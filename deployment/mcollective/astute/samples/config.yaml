@@ -36,7 +36,8 @@ common:
    default_gateway: 10.0.1.100
    nagios_master: fuel-controller-01.your-domain-name.com
    cinder: true
-   cinder_on_computes: true
+   cinder_nodes:
+   - controller
    swift: true
    repo_proxy: http://10.0.0.100:3128
    deployment_id: '53'

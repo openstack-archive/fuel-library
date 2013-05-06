@@ -17,7 +17,7 @@ Puppet::Type.newtype(:l2_ovs_bridge) do
 
     newparam(:skip_existing) do
       defaultto(false)
-      desc "Allow skip existing bridge"
+      desc "Allow to skip existing bridge"
     end
 
     newproperty(:external_ids) do

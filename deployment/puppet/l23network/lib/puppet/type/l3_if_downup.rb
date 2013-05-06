@@ -4,7 +4,7 @@ Puppet::Type.newtype(:l3_if_downup) do
 
     newparam(:interface) do
       isnamevar
-      desc "The interface, that will be down, flush and up"
+      desc "The interface that will be down, flush and up"
       #
       validate do |val|
         if not val =~ /^[0-9A-Za-z\.\-\_]+$/
