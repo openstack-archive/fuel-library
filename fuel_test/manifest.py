@@ -1,6 +1,6 @@
 from ipaddr import IPNetwork
 import re
-from fuel_test.helpers import load, write_config, is_not_essex
+from fuel_test.helpers import load, write_config
 from fuel_test.root import root
 from fuel_test.settings import INTERFACES, TEST_REPO
 
@@ -214,7 +214,8 @@ class Manifest(object):
     def write_openstack_simple_manifest(self, remote, ci, controllers,
                                         use_syslog=True,
                                         quantum=True,
-                                        cinder=True, cinder_on_computes=False):
+                                        cinder=True, cinder_nodes=None):
+        if not cinder_nodes: cinder_nodes = ['controller']
         template = Template(
             root(
                 'deployment', 'puppet', 'openstack', 'examples',
@@ -225,8 +226,6 @@ class Manifest(object):
             internal_interface=self.internal_interface(),
             private_interface=self.private_interface(),
             mirror_type=self.mirror_type(),
-            #controller_node_address=controllers[0].get_ip_address_by_network_name('internal'),
-            #controller_node_public=controllers[0].get_ip_address_by_network_name('public'),
             cinder=cinder,
             cinder_nodes=cinder_nodes,
             nv_physical_volume=self.physical_volumes(),
@@ -263,12 +262,13 @@ class Manifest(object):
             enable_test_repo=TEST_REPO,
         )
 
-    def generate_openstack_manifest(self, remote, template, ci,
+    def generate_openstack_manifest(self, template, ci,
                                     controllers, quantums, proxies=None,
                                     use_syslog=True, quantum=True,
                                     loopback=True, cinder=True,
                                     cinder_nodes=None,
                                     quantum_netnode_on_cnt=True,
+                                    swift=True,
                                     ha_provider='pacemaker'):
         if not cinder_nodes: cinder_nodes = ['controller']
         template.replace(
