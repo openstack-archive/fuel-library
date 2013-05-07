@@ -7,9 +7,9 @@ from fuel_test.base_test_case import BaseTestCase
 from fuel_test.ci.ci_vm import CiVM
 from fuel_test.cobbler.cobbler_client import CobblerClient
 from fuel_test.config import Config
-from fuel_test.helpers import tcp_ping, udp_ping, build_astute, install_astute, add_to_hosts, await_node_deploy, write_config, puppet_apply
-from fuel_test.manifest import Manifest, Template
-from fuel_test.settings import PUPPET_VERSION, OS_FAMILY, CLEAN, USE_ISO, INTERFACES, PARENT_PROXY
+from fuel_test.helpers import tcp_ping, udp_ping, add_to_hosts, await_node_deploy, write_config
+from fuel_test.manifest import Manifest
+from fuel_test.settings import OS_FAMILY, CLEAN, USE_ISO, INTERFACES, PARENT_PROXY
 
 
 class CobblerTestCase(BaseTestCase):
@@ -81,7 +81,7 @@ class CobblerTestCase(BaseTestCase):
             {'tcp': closed_tcp_ports, 'udp': closed_udp_ports})
 
     def deploy_stomp_node(self):
-        Manifest().write_stomp_manifest(self.remote())
+        Manifest().generate_stomp_manifest()
         self.validate(self.nodes().stomps, 'puppet agent --test')
 
     def add_fake_nodes(self):
