@@ -150,9 +150,7 @@ class openstack::controller_ha (
 
     file { '/etc/rsyslog.d/haproxy.conf':
       ensure => present,
-      content => '$ModLoad imudp
-$UDPServerRun 514
-local0.* -/var/log/haproxy.log'
+      content => 'local0.* -/var/log/haproxy.log'
     }
     Class['keepalived'] -> Class ['nova::rabbitmq']
     haproxy_service { 'horizon':    order => 15, port => 80, virtual_ips => [$public_virtual_ip], define_cookies => true  }
@@ -248,7 +246,7 @@ local0.* -/var/log/haproxy.log'
 
     class { 'haproxy':
       enable => true,
-      global_options   => merge($::haproxy::params::global_options, {'log' => "${internal_address} local0"}),
+      global_options   => merge($::haproxy::params::global_options, {'log' => "/dev/log local0"}),
       defaults_options => merge($::haproxy::params::defaults_options, {'mode' => 'http'}),
       require => Sysctl::Value['net.ipv4.ip_nonlocal_bind'],
     }
