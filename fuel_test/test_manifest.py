@@ -39,9 +39,9 @@ class TestManifest(BaseTestCase):
             quantum=True)
 
     def test_generate_simple(self):
-        Manifest().generate_openstack_simple_manifest(
-            ci=self.ci(),
-            controllers=self.nodes().controllers)
+        Manifest().generate_openstack_manifest(
+            ci=self.ci(), template=Template.simple(),
+            controllers=self.nodes().controllers, ha=False, quantums=self.nodes().quantums)
 
     def test_generate_single(self):
         Manifest().generate_openstack_single_manifest(

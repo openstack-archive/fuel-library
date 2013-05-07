@@ -211,40 +211,6 @@ class Manifest(object):
         else:
             return ci.fixed_network()
 
-    def write_openstack_simple_manifest(self, remote, ci, controllers,
-                                        use_syslog=True,
-                                        quantum=True,
-                                        cinder=True, cinder_nodes=None):
-        if not cinder_nodes: cinder_nodes = ['controller']
-        template = Template(
-            root(
-                'deployment', 'puppet', 'openstack', 'examples',
-                'site_openstack_simple.pp')).replace(
-            floating_range=self.floating_network(ci, quantum),
-            fixed_range=self.fixed_network(ci, quantum),
-            public_interface=self.public_interface(),
-            internal_interface=self.internal_interface(),
-            private_interface=self.private_interface(),
-            mirror_type=self.mirror_type(),
-            cinder=cinder,
-            cinder_nodes=cinder_nodes,
-            nv_physical_volume=self.physical_volumes(),
-            nagios_master=controllers[0].name + '.your-domain-name.com',
-            external_ipinfo=self.external_ip_info(ci, controllers),
-            nodes=self.generate_node_configs_list(ci),
-            dns_nameservers=self.generate_dns_nameservers_list(ci),
-            ntp_servers=['pool.ntp.org', ci.internal_router()],
-            default_gateway=ci.public_router(),
-            enable_test_repo=TEST_REPO,
-            deployment_id=self.deployment_id(ci),
-            use_syslog=use_syslog,
-            public_netmask=ci.public_net_mask(),
-            internal_netmask=ci.internal_net_mask(),
-            quantum=quantum,
-            quantum_netnode_on_cnt=quantum)
-        return template
-
-
     def generate_openstack_single_manifest(self, ci,
                                            use_syslog=True,
                                            quantum=True,
@@ -269,10 +235,13 @@ class Manifest(object):
                                     cinder_nodes=None,
                                     quantum_netnode_on_cnt=True,
                                     swift=True,
-                                    ha_provider='pacemaker'):
+                                    ha_provider='pacemaker', ha=True):
+        if ha:
+            template.replace(
+                internal_virtual_ip=ci.internal_virtual_ip(),
+                public_virtual_ip=ci.public_virtual_ip(),
+        )
         template.replace(
-            internal_virtual_ip=ci.internal_virtual_ip(),
-            public_virtual_ip=ci.public_virtual_ip(),
             floating_range=self.floating_network(ci, quantum),
             fixed_range=self.fixed_network(ci, quantum),
             mirror_type=self.mirror_type(),
