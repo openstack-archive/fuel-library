@@ -13,14 +13,10 @@ class CiBM(CiBase):
         return NodeRoles(
             master_names=['master'],
             cobbler_names=['fuel-cobbler'],
-            controller_names=['fuel-controller-%02d' % x for x in
-                              range(1, 1 + CONTROLLERS)],
-            compute_names=['fuel-compute-%02d' % x for x in range(
-                1, 1 + COMPUTES)],
-            storage_names=['fuel-swift-%02d' % x for x in range(
-                1, 1 + STORAGES)],
-            proxy_names=['fuel-swiftproxy-%02d' % x for x in range(
-                1, 1 + PROXIES)],
+            controller_names=['fuel-controller-%02d' % x for x in range(1, 1 + CONTROLLERS)],
+            compute_names=['fuel-compute-%02d' % x for x in range(1, 1 + COMPUTES)],
+            storage_names=['fuel-swift-%02d' % x for x in range(1, 1 + STORAGES)],
+            proxy_names=['fuel-swiftproxy-%02d' % x for x in range(1, 1 + PROXIES)],
             quantum_names=['fuel-quantum'],
             stomp_names=['fuel-mcollective']
         )

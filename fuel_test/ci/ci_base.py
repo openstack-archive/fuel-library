@@ -108,12 +108,10 @@ class CiBase(object):
         self.add_nodes_to_hosts(master_remote, nodes)
 
     def setup_agent_nodes(self, nodes):
-        agent_config = load(
-            root('fuel_test', 'config', 'puppet.agent.config'))
+        agent_config = load(root('fuel_test', 'config', 'puppet.agent.config'))
         for node in nodes:
             if node.name != 'master':
-                remote = node.remote('public', login='root',
-                    password='r00tme')
+                remote = node.remote('public', login='root', password='r00tme')
                 self.add_nodes_to_hosts(remote, self.environment().nodes)
                 setup_puppet_client(remote)
                 write_config(remote, '/etc/puppet/puppet.conf', agent_config)
@@ -122,8 +120,7 @@ class CiBase(object):
     def rename_nodes(self, nodes):
         for node in nodes:
             remote = node.remote('public', login='root', password='r00tme')
-            change_host_name(remote, node.name,
-                node.name + '.your-domain-name.com')
+            change_host_name(remote, node.name, node.name + '.your-domain-name.com')
             logging.info("Renamed %s" % node.name)
 
     @abstractmethod

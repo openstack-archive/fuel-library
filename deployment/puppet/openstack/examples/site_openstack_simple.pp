@@ -282,12 +282,13 @@ $swift_loopback = false
 ### Syslog ###
 # Enable error messages reporting to rsyslog. Rsyslog must be installed in this case.
 $use_syslog = false
+$syslog_server = '127.0.0.1'
 if $use_syslog {
   class { "::rsyslog::client":
-    log_local => true,
-    log_auth_local => true,
-    server => '127.0.0.1',
-    port => '514'
+    log_local       => true,
+    log_auth_local  => true,
+    server          => $syslog_server,
+    port            => '514',
   }
 }
 
