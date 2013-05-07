@@ -19,7 +19,9 @@ class CompactTestCase(CobblerTestCase):
             template=Template.compact(), ci=self.ci(),
             controllers=self.nodes().controllers,
             quantums=self.nodes().quantums,
-            quantum=True)
+            quantum=True,
+            cinder_nodes=['controller']
+            )
         Manifest().write_manifest(remote=self.remote(), manifest=manifest)
         self.deploy_compact(quantum_node=False)
 
@@ -28,7 +30,9 @@ class CompactTestCase(CobblerTestCase):
             template=Template.compact(), ci=self.ci(),
             controllers=self.nodes().controllers,
             quantums=self.nodes().quantums,
-            quantum=True, quantum_netnode_on_cnt=False, ha_provider=False)
+            quantum=True, quantum_netnode_on_cnt=False, ha_provider=False,
+            cinder_nodes=['controller']
+            )
         self.deploy_compact(quantum_node=True)
 
     def test_deploy_compact_wo_quantum(self):
@@ -36,7 +40,8 @@ class CompactTestCase(CobblerTestCase):
             template=Template.compact(), ci=self.ci(),
             controllers=self.nodes().controllers,
             quantums=self.nodes().quantums,
-            quantum=False)
+            quantum=False,
+            cinder_nodes=['controller'])
         self.deploy_compact(quantum_node=False)
 
     def test_deploy_compact_wo_quantum_cinder_all_by_ipaddr(self): 
@@ -50,7 +55,8 @@ class CompactTestCase(CobblerTestCase):
                 + self.nodes().computes
                 + self.nodes().storages),
             quantums=self.nodes().quantums, 
-            quantum=False) 
+            quantum=False,
+            )
         self.deploy_compact(quantum_node=False) 
 
     def test_deploy_compact_wo_quantum_cinder_all(self): 
@@ -68,7 +74,9 @@ class CompactTestCase(CobblerTestCase):
             template=Template.compact(), ci=self.ci(),
             controllers=self.nodes().controllers,
             quantums=self.nodes().quantums,
-            quantum=False, loopback=False, use_syslog=False)
+            quantum=False, loopback=False, use_syslog=False,
+            cinder_nodes=['controller']
+            )
         self.deploy_compact(quantum_node=False, loopback=False)
 
     def test_deploy_compact_wo_ha_provider(self):
@@ -76,7 +84,9 @@ class CompactTestCase(CobblerTestCase):
             template=Template.compact(), ci=self.ci(),
             controllers=self.nodes().controllers,
             quantums=self.nodes().quantums,
-            quantum=False, use_syslog=False, ha_provider=False)
+            quantum=False, use_syslog=False, ha_provider=False,
+            cinder_nodes=['controller']
+            )
         self.deploy_compact(quantum_node=False)
 
 

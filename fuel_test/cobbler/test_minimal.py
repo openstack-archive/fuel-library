@@ -40,7 +40,8 @@ class MinimalTestCase(CobblerTestCase):
                 template=Template.minimal(),
                 ci=self.ci(),
                 quantums=self.nodes().quantums,
-                quantum=True
+                quantum=True,
+                cinder_nodes=['controller']
             )
         config_path = "/root/config.yaml"
         write_config(self.remote(), config_path, str(config))

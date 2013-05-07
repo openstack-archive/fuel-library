@@ -5,13 +5,14 @@ from fuel_test.settings import CURRENT_PROFILE, PUPPET_VERSION, INTERFACE_ORDER,
 
 class Config():
     def generate(self, ci, template, quantums=None, cinder=True, quantum_netnode_on_cnt=True, create_networks=True,
-                 quantum=True, swift=True, loopback="loopback", use_syslog=True):
+                 quantum=True, swift=True, loopback="loopback", use_syslog=True, cinder_nodes=None):
         config = {
             "common":
                 {"orchestrator_common": self.orchestrator_common(ci, template=template),
                  "openstack_common": self.openstack_common(ci,
                                                            quantums=quantums,
                                                            cinder=cinder,
+                                                           cinder_nodes=cinder_nodes,
                                                            quantum_netnode_on_cnt=quantum_netnode_on_cnt,
                                                            create_networks=create_networks,
                                                            quantum=quantum,
@@ -34,7 +35,7 @@ class Config():
         return config
 
     def openstack_common(self, ci, quantums, cinder, quantum_netnode_on_cnt, create_networks,
-                         quantum, swift, loopback, use_syslog):
+                         quantum, swift, loopback, use_syslog, cinder_nodes):
         if not quantums: quantums = []
 
         node_configs = filter(lambda node: node['role'] != 'master', Manifest().generate_node_configs_list(ci))
@@ -71,8 +72,8 @@ class Config():
                   "quantum_netnode_on_cnt": quantum_netnode_on_cnt
         }
 
-        # TODO to make Matt sad
-        config.update({"cinder_nodes": 'controllers'})
+        config.update({"cinder_nodes": cinder_nodes})
+
         config.update({"nodes": node_configs})
 
         return config

@@ -270,7 +270,6 @@ class Manifest(object):
                                     quantum_netnode_on_cnt=True,
                                     swift=True,
                                     ha_provider='pacemaker'):
-        if not cinder_nodes: cinder_nodes = ['controller']
         template.replace(
             internal_virtual_ip=ci.internal_virtual_ip(),
             public_virtual_ip=ci.public_virtual_ip(),
@@ -286,7 +285,6 @@ class Manifest(object):
             ntp_servers=['pool.ntp.org', ci.internal_router()],
             nagios_master=controllers[0].name + '.your-domain-name.com',
             cinder_nodes=cinder_nodes,
-            nagios_master = controllers[0].name + '.your-domain-name.com',
             external_ipinfo=self.external_ip_info(ci, quantums),
             nodes=self.generate_node_configs_list(ci),
             dns_nameservers=self.generate_dns_nameservers_list(ci),
