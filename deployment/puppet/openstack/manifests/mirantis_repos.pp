@@ -35,8 +35,8 @@ class openstack::mirantis_repos (
         apt::pin { 'upstream-mysql':
           order    => 19,
           priority => 1002,
-          version  => "5.5.29*",
-          packages => "mysql*"
+          releasecustom  => "v=12.04,o=Ubuntu",
+          packages => "/^mysql/"
         }
       }
 
