@@ -211,11 +211,14 @@ class Manifest(object):
         else:
             return ci.fixed_network()
 
-    def generate_openstack_simple_manifest(self, ci, controllers,
-                                           use_syslog=True,
-                                           quantum=True,
-                                           cinder=True, cinder_on_computes=False):
-        template = Template.simple().replace(
+    def write_openstack_simple_manifest(self, remote, ci, controllers,
+                                        use_syslog=True,
+                                        quantum=True,
+                                        cinder=True, cinder_on_computes=False):
+        template = Template(
+            root(
+                'deployment', 'puppet', 'openstack', 'examples',
+                'site_openstack_simple.pp')).replace(
             floating_range=self.floating_network(ci, quantum),
             fixed_range=self.fixed_network(ci, quantum),
             public_interface=self.public_interface(),
@@ -225,7 +228,7 @@ class Manifest(object):
             #controller_node_address=controllers[0].get_ip_address_by_network_name('internal'),
             #controller_node_public=controllers[0].get_ip_address_by_network_name('public'),
             cinder=cinder,
-            cinder_on_computes=cinder_on_computes,
+            cinder_nodes=cinder_nodes,
             nv_physical_volume=self.physical_volumes(),
             nagios_master=controllers[0].name + '.your-domain-name.com',
             external_ipinfo=self.external_ip_info(ci, controllers),
@@ -260,11 +263,14 @@ class Manifest(object):
             enable_test_repo=TEST_REPO,
         )
 
-    def generate_openstack_manifest(self, template, ci, controllers, quantums,
-                                    proxies=None, use_syslog=True,
-                                    quantum=True, loopback=True,
-                                    cinder=True, cinder_on_computes=False, swift=True, quantum_netnode_on_cnt=True,
+    def generate_openstack_manifest(self, remote, template, ci,
+                                    controllers, quantums, proxies=None,
+                                    use_syslog=True, quantum=True,
+                                    loopback=True, cinder=True,
+                                    cinder_nodes=None,
+                                    quantum_netnode_on_cnt=True,
                                     ha_provider='pacemaker'):
+        if not cinder_nodes: cinder_nodes = ['controller']
         template.replace(
             internal_virtual_ip=ci.internal_virtual_ip(),
             public_virtual_ip=ci.public_virtual_ip(),
@@ -278,8 +284,9 @@ class Manifest(object):
             use_syslog=use_syslog,
             cinder=cinder,
             ntp_servers=['pool.ntp.org', ci.internal_router()],
-            cinder_on_computes=cinder_on_computes,
             nagios_master=controllers[0].name + '.your-domain-name.com',
+            cinder_nodes=cinder_nodes,
+            nagios_master = controllers[0].name + '.your-domain-name.com',
             external_ipinfo=self.external_ip_info(ci, quantums),
             nodes=self.generate_node_configs_list(ci),
             dns_nameservers=self.generate_dns_nameservers_list(ci),
@@ -339,5 +346,3 @@ class Manifest(object):
             return str(int(ci.internal_network().split('.')[2]) + 1)
         except:
             return '250'
-
-

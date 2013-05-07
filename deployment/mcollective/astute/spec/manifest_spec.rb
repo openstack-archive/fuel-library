@@ -36,7 +36,7 @@ describe "My behaviour" do
     config.controllers()
     config.loopback()
     config.cinder()
-    config.cinder_on_computes()
+    config.cinder_nodes()
     config.use_syslog()
     config.swift()
     config.default_gateway()

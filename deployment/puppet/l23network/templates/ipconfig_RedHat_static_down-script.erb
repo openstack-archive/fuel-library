@@ -1,0 +1,7 @@
+#!/bin/sh
+<%- if @ipaddr_aliases -%>
+<%- @ipaddr_aliases.each do |addr| -%>
+ip addr del <%= addr %> dev <%= interface %>
+<%- end -%>
+<%- end -%>
+true
