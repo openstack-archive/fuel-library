@@ -15,6 +15,7 @@ class TestConfig(BaseTestCase):
     def test_generate_minimal(self):
         print Config().generate(
             ci=self.ci(),
+            nodes = self.ci().nodes().controllers + self.ci().nodes().computes,
             template=Template.minimal(),
             quantums=self.nodes().quantums,
             swift=False,

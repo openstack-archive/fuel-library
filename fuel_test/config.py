@@ -4,12 +4,12 @@ from fuel_test.settings import CURRENT_PROFILE, PUPPET_VERSION, INTERFACE_ORDER,
 
 
 class Config():
-    def generate(self, ci, template, quantums=None, cinder=True, quantum_netnode_on_cnt=True, create_networks=True,
+    def generate(self, ci, nodes, template, quantums=None, cinder=True, quantum_netnode_on_cnt=True, create_networks=True,
                  quantum=True, swift=True, loopback="loopback", use_syslog=True, cinder_nodes=None):
         config = {
             "common":
                 {"orchestrator_common": self.orchestrator_common(ci, template=template),
-                 "openstack_common": self.openstack_common(ci,
+                 "openstack_common": self.openstack_common(ci, nodes = nodes,
                                                            quantums=quantums,
                                                            cinder=cinder,
                                                            cinder_nodes=cinder_nodes,
@@ -23,7 +23,7 @@ class Config():
                 }
         }
 
-        config.update(self.cobbler_nodes(ci, ci.nodes()))
+        config.update(self.cobbler_nodes(ci, nodes))
 
         return yaml.safe_dump(config, default_flow_style=False)
 
@@ -34,11 +34,11 @@ class Config():
 
         return config
 
-    def openstack_common(self, ci, quantums, cinder, quantum_netnode_on_cnt, create_networks,
+    def openstack_common(self, ci, nodes, quantums, cinder, quantum_netnode_on_cnt, create_networks,
                          quantum, swift, loopback, use_syslog, cinder_nodes):
         if not quantums: quantums = []
 
-        node_configs = filter(lambda node: node['role'] != 'master', Manifest().generate_node_configs_list(ci))
+        node_configs = Manifest().generate_node_configs_list(nodes)
 
         master = ci.nodes().masters[0]
 
@@ -54,7 +54,7 @@ class Config():
                   "internal_netmask": ci.internal_net_mask(),
                   "internal_virtual_ip": ci.internal_virtual_ip(),
                   "mirror_type": Manifest().mirror_type(),
-                  "nagios_master": "%s.your-domain-name.com" % ci.nodes().controllers[0].name,
+                  "nagios_master": "%s.your-domain-name.com" % nodes.controllers[0].name,
                   "network_manager": "nova.network.manager.FlatDHCPManager",
                   "nv_physical_volumes": ["/dev/sdb"],
                   "private_interface": Manifest().private_interface(),

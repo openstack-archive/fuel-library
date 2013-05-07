@@ -39,6 +39,7 @@ class MinimalTestCase(CobblerTestCase):
         config = Config().generate(
                 template=Template.minimal(),
                 ci=self.ci(),
+                nodes = self.ci().nodes().controllers + self.ci().nodes().computes,
                 quantums=self.nodes().quantums,
                 quantum=True,
                 cinder_nodes=['controller']

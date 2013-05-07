@@ -149,23 +149,23 @@ class Manifest(object):
         node_dict.update({'mountpoints': '1 2\n 2 1'})
         return node_dict
 
-    def generate_node_configs_list(self, ci):
+    def generate_node_configs_list(self, nodes):
         zones = range(1, 50)
-        nodes = []
+        node_configs = []
 
-        for node in ci.nodes().computes: nodes.append(self.describe_node(node, 'compute'))
-        for node in ci.nodes().controllers[:1]: nodes.append(
+        for node in nodes.computes: node_configs.append(self.describe_node(node, 'compute'))
+        for node in nodes.controllers[:1]: node_configs.append(
             self.describe_swift_node(node, 'primary-controller', zones.pop()))
-        for node in ci.nodes().controllers[1:]: nodes.append(self.describe_swift_node(node, 'controller', zones.pop()))
-        for node in ci.nodes().storages: nodes.append(self.describe_swift_node(node, 'storage', zones.pop()))
-        for node in ci.nodes().proxies[:1]: nodes.append(self.describe_node(node, 'primary-swift-proxy'))
-        for node in ci.nodes().proxies[1:]: nodes.append(self.describe_node(node, 'swift-proxy'))
-        for node in ci.nodes().quantums: nodes.append(self.describe_node(node, 'quantum'))
-        for node in ci.nodes().masters: nodes.append(self.describe_node(node, 'master'))
-        for node in ci.nodes().cobblers: nodes.append(self.describe_node(node, 'cobbler'))
-        for node in ci.nodes().stomps: nodes.append(self.describe_node(node, 'stomp'))
+        for node in nodes.controllers[1:]: node_configs.append(self.describe_swift_node(node, 'controller', zones.pop()))
+        for node in nodes.storages: node_configs.append(self.describe_swift_node(node, 'storage', zones.pop()))
+        for node in nodes.proxies[:1]: node_configs.append(self.describe_node(node, 'primary-swift-proxy'))
+        for node in nodes.proxies[1:]: node_configs.append(self.describe_node(node, 'swift-proxy'))
+        for node in nodes.quantums: node_configs.append(self.describe_node(node, 'quantum'))
+        for node in nodes.masters: node_configs.append(self.describe_node(node, 'master'))
+        for node in nodes.cobblers: node_configs.append(self.describe_node(node, 'cobbler'))
+        for node in nodes.stomps: node_configs.append(self.describe_node(node, 'stomp'))
 
-        return nodes
+        return node_configs
 
     def external_ip_info(self, ci, quantums):
         if len(quantums):
