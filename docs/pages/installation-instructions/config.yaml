@@ -28,7 +28,8 @@ common:
    nagios_master: fuel-controller-01.local
    loopback: loopback
    cinder: true
-   cinder_on_computes: true
+   cinder_nodes:
+   - controller
    swift: true
    dns_nameservers:
    - 10.0.0.100

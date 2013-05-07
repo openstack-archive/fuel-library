@@ -67,5 +67,108 @@ Centos and Ubuntu at startup started and configure network interfaces in alphabe
 
 And OS will configure interfaces br-ex and aaa0 after eth0
 
+Bonding
+-------
+### Using standart linux ifenslave bond
+For bonding two interfaces you need:
+* Specify this interfaces as interfaces without IP addresses
+* Specify that interfaces depends from master-bond-interface
+* Assign IP address to the master-bond-interface.
+* Specify bond-specific properties for master-bond-interface (if defaults not happy for you)
+
+for example (defaults included):   
+
+    l23network::l3::ifconfig {'eth1': ipaddr=>'none', bond_master=>'bond0'} ->
+    l23network::l3::ifconfig {'eth2': ipaddr=>'none', bond_master=>'bond0'} ->
+    l23network::l3::ifconfig {'bond0':
+        ipaddr          => '192.168.232.1',
+        netmask         => '255.255.255.0',
+        bond_mode       => 0,
+        bond_miimon     => 100,
+        bond_lacp_rate  => 1,
+    }
+
+
+more information about bonding network interfaces you can get in manuals for you operation system:
+* https://help.ubuntu.com/community/UbuntuBonding
+* http://wiki.centos.org/TipsAndTricks/BondingInterfaces
+
+### Using open vSwitch
+In open vSwitch for bonding two network interfaces you need add special resource "bond" to bridge. 
+In this example we add "eth1" and "eth2" interfaces to bridge "bridge0":
+
+    l23network::l2::bridge{'bridge0': } ->
+    l23network::l2::bond{'bond1':
+        bridge     => 'bridge0',
+        ports      => ['eth1', 'eth2'],
+        properties => [
+           'lacp=active',
+           'other_config:lacp-time=fast'
+        ],
+    }
+
+Open vSwitch provides lot of parameter for different configurations. 
+We can specify them in "properties" option as list of parameter=value 
+(or parameter:key=value) strings.
+The most of them you can see in [open vSwitch documentation page](http://openvswitch.org/support/).
+
+802.1q vlan access ports
+------------------------
+### Using standart linux way
+We can use tagged vlans over ordinary network interfaces and over bonds. 
+L23networks support two variants of naming vlan interfaces:
+* *vlanXXX* -- 802.1q tag gives from the vlan interface name, but you need specify 
+parent intarface name in the **vlandev** parameter.
+* *eth0.101* -- 802.1q tag and parent interface name gives from the vlan interface name
+
+If you need using 802.1q vlans over bonds -- you can use only first variant.
+
+In this example we can see both variants:
+
+    l23network::l3::ifconfig {'vlan6':
+        ipaddr  => '192.168.6.1',
+        netmask => '255.255.255.0',
+        vlandev => 'bond0',
+    } 
+    l23network::l3::ifconfig {'vlan5': 
+        ipaddr  => 'none',
+        vlandev => 'bond0',
+    } 
+    L23network:L3:Ifconfig['bond0'] -> L23network:L3:Ifconfig['vlan6'] -> L23network:L3:Ifconfig['vlan5']
+
+    l23network::l3::ifconfig {'eth0':
+        ipaddr  => '192.168.0.5',
+        netmask => '255.255.255.0',
+        gateway => '192.168.0.1',
+    } ->
+    l23network::l3::ifconfig {'eth0.101':
+        ipaddr  => '192.168.101.1',
+        netmask => '255.255.255.0',
+    } ->
+    l23network::l3::ifconfig {'eth0.102':
+        ipaddr  => 'none',    
+    } 
+
+### Using open vSwitch
+In the open vSwitch all internal traffic are virtually tagged.
+For creating 802.1q tagged access port you need specify vlan tag when adding port to bridge. 
+In example above we create two ports with tags 10 and 20:
+
+    l23network::l2::bridge{'bridge0': } ->
+    l23network::l2::port{'vl10':
+      bridge  => 'bridge0',
+      type    => 'internal',
+      port_properties => ['tag=10'],
+    } ->
+    l23network::l2::port{'vl20':
+      bridge  => 'bridge0',
+      type    => 'internal',
+      port_properties => ['tag=20'],
+    }
+    
+Information about vlans in open vSwitch you can get in [open vSwitch documentation page](http://openvswitch.org/support/config-cookbooks/vlan-configuration-cookbook/).
+
+**IMPORTANT:** You can't use vlan interface names like vlanXXX if you not want double-tagging you network traffic.
+
 ---
 When I began write this module, I seen to https://github.com/ekarlso/puppet-vswitch. Elcarso, big thanks...
