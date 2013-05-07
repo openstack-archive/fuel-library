@@ -1,7 +1,7 @@
 import os
 
 OS_FAMILY = os.environ.get('OS_FAMILY', "centos")
-PUPPET_GEN = os.environ.get('PUPPET_GEN', "3")
+PUPPET_GEN = os.environ.get('PUPPET_GEN', "2")
 
 DEFAULT_IMAGES = {
     'centos': '/var/lib/libvirt/images/centos63-cobbler-base.qcow2',
@@ -58,10 +58,14 @@ ADMIN_TENANT_ESSEX = 'openstack'
 ADMIN_TENANT_FOLSOM = 'admin'
 
 CIRROS_IMAGE = 'http://srv08-srt.srt.mirantis.net/cirros-0.3.0-x86_64-disk.img'
-CONTROLLERS = int(os.environ.get('CONTROLLERS', 3))
-COMPUTES = int(os.environ.get('COMPUTES', 3))
-STORAGES = int(os.environ.get('STORAGES', 3))
-PROXIES = int(os.environ.get('PROXIES', 2))
+#CONTROLLERS = int(os.environ.get('CONTROLLERS', 3))
+#COMPUTES = int(os.environ.get('COMPUTES', 3))
+#STORAGES = int(os.environ.get('STORAGES', 3))
+#PROXIES = int(os.environ.get('PROXIES', 2))
+CONTROLLERS = int(os.environ.get('CONTROLLERS', 2))
+COMPUTES = int(os.environ.get('COMPUTES', 1))
+STORAGES = int(os.environ.get('STORAGES', 1))
+PROXIES = int(os.environ.get('PROXIES', 1))
 
 EMPTY_SNAPSHOT = os.environ.get('EMPTY_SNAPSHOT', 'empty')
 OPENSTACK_SNAPSHOT = os.environ.get('OPENSTACK_SNAPSHOT', 'openstack')
@@ -88,12 +92,12 @@ DHCP = {
 
 DEFAULT_POOLS = {
     'centos': {
-        'public': '172.18.95.0/24,172.18.91.0/24:27',
+        'public': '10.108.0.0/16:24',
         'private': '10.108.0.0/16:24',
         'internal': '10.108.0.0/16:24',
     },
     'ubuntu': {
-        'public': '172.18.94.0/24,172.18.90.0/24:27',
+        'public': '10.107.0.0/16:24',
         'private': '10.107.0.0/16:24',
         'internal': '10.107.0.0/16:24',
     },
@@ -120,5 +124,5 @@ PROFILES_COBBLER_COMMON = {
     'ubuntu': 'ubuntu_1204_x86_64'
 }
 
+ASTUTE_USE = os.environ.get('ASTUTE_USE', 'true') == 'true'
 CURRENT_PROFILE = PROFILES_COBBLER_COMMON.get(OS_FAMILY)
-

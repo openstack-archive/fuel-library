@@ -55,10 +55,10 @@ class TestConfig(BaseTestCase):
 
 
     def test_generate_stomp(self):
-        print yaml.safe_dump(Config().generate(
+        print Config().generate(
             ci=self.ci(),
-            template=Template.stomp()),
-            default_flow_style=False)
+            template=Template.stomp())
+
 
 if __name__ == '__main__':
     unittest.main()

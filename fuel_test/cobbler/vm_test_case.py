@@ -104,12 +104,6 @@ class CobblerTestCase(BaseTestCase):
                     gateway=self.ci().internal_router()
                 )
 
-    def _static(self, node_name):
-        if node_name.count('quantum'):
-            return "1"
-        else:
-            return "0"
-
     def _add_node(self, client, token, cobbler, node_name, node_mac0, node_mac1,
                   node_mac2, node_ip, stomp_name, gateway, net_mask):
         system_id = client.new_system(token)
@@ -129,12 +123,12 @@ class CobblerTestCase(BaseTestCase):
             netboot_enabled="1")
         client.modify_system(system_id, 'modify_interface', {
             "macaddress-eth0": str(node_mac0),
-            "static-eth0": self._static(node_name),
+            "static-eth0": "1",
             "macaddress-eth1": str(node_mac1),
             "ipaddress-eth1": str(node_ip),
             "netmask-eth1": str(net_mask),
             "dnsname-eth1": node_name + ".your-domain-name.com",
-            "static-eth1": self._static(node_name),
+            "static-eth1": "1",
             "macaddress-eth2": str(node_mac2),
             "static-eth2": "1"
         }, token)
@@ -163,7 +157,7 @@ class CobblerTestCase(BaseTestCase):
                           token,
                           cobbler,
                           node,
-                          gateway=self.ci().internal_router(),
+                          gateway=cobbler.get_ip_address_by_network_name('internal'),
                           net_mask=self.ci().internal_net_mask()
             )
 
@@ -193,8 +187,8 @@ class CobblerTestCase(BaseTestCase):
                 node.start()
                 node.await('internal')
         sleep(20)
-        for node in self.ci().client_nodes():
-            node_remote = node.remote('public', login='root', password='r00tme')
+        #for node in self.ci().client_nodes():
+        #    node_remote = node.remote('public', login='root', password='r00tme')
             #puppet_apply(node_remote, 'class {rsyslog::client: log_remote => true, server => "%s"}' % cobbler_ip)
         self.environment().snapshot('nodes-deployed', force=True)
 

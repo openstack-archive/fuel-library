@@ -6,10 +6,14 @@ from fuel_test.settings import OPENSTACK_SNAPSHOT, CREATE_SNAPSHOTS
 
 class SimpleTestCase(CobblerTestCase):
     def test_simple(self):
-        Manifest().write_openstack_simple_manifest(
-            remote=self.remote(),
+        manifest = Manifest().generate_openstack_simple_manifest(
             ci=self.ci(),
-            controllers=self.nodes().controllers)
+            controllers=self.nodes().controllers,
+            use_syslog=False
+        )
+
+        Manifest().write_manifest(remote=self.remote(), manifest=manifest)
+
         self.validate(
             self.nodes().controllers[:1] + self.nodes().computes,
             'puppet agent --test 2>&1')

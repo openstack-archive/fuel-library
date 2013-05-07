@@ -1,3 +1,4 @@
+import yaml
 from fuel_test.manifest import Manifest
 from fuel_test.settings import CURRENT_PROFILE, PUPPET_VERSION, INTERFACE_ORDER, INTERFACES
 
@@ -23,7 +24,7 @@ class Config():
 
         config.update(self.cobbler_nodes(ci, ci.nodes()))
 
-        return config
+        return yaml.safe_dump(config, default_flow_style=False)
 
     def orchestrator_common(self, ci, template):
         config = {"task_uuid": "deployment_task"}
