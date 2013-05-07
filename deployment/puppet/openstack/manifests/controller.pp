@@ -185,8 +185,6 @@ class openstack::controller (
   nova_config {'DEFAULT/memcached_servers':    value => $memcached_addresses;
   }
 
-
-
   ####### DATABASE SETUP ######
   # set up mysql server
   if ($db_type == 'mysql') {
@@ -398,3 +396,4 @@ class openstack::controller (
   }
 
 }
+
