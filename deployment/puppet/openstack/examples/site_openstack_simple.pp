@@ -176,12 +176,6 @@ if $quantum {
   $internal_int = $internal_interface
 }
 
-if $::hostname == 'fuel-controller-01' {
-  $primary_controller = true
-} else {
-  $primary_controller = false
-}
-
 #Network configuration
 stage {'netconfig':
       before  => Stage['main'],

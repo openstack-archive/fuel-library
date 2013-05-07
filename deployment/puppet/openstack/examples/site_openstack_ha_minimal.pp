@@ -212,11 +212,12 @@ if $quantum {
   $internal_int = $internal_interface
 }
 
-if $::hostname == 'fuel-controller-01' {
+if $node[0]['role'] == 'primary-controller' {
   $primary_controller = true
 } else {
   $primary_controller = false
 }
+
 
 #Network configuration
 stage {'netconfig':
