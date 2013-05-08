@@ -24,8 +24,7 @@ PUBLIC_POOL                                                  = Use new IP alloca
 . ~/work/venv/bin/activate
 export ENV_NAME=$JOB_NAME
 export CREATE_SNAPSHOTS=false
-# Tempest dirty-hack for public pools
-#export PUBLIC_POOL=10.107.0.0/16:24
+#export PUBLIC_POOL=172.18.91.128/25:26
 export PUBLIC_POOL=172.18.91.0/24:27
 if [ "$test_name" == "TEMPEST" ] || [ "$(echo $test_name | cut -d"/" -f1)" == "tempest" ]; then
   export run_tests=tempest/tempest/tests
