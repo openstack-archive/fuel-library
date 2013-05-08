@@ -74,7 +74,7 @@ puppet apply -e "
         arch      => 'x86_64',
         breed     => 'redhat',
         osversion => 'rhel6',
-        ksmeta    => 'tree=http://vault.centos.org/6.3/os/x86_64', }
+        ksmeta    => 'tree=http://archive.kernel.org/centos/6.3/os/x86_64', }
     class { 'cobbler::profile::centos63_x86_64': }"
 
 puppet apply -e '
