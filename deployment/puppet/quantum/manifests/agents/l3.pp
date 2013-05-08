@@ -131,8 +131,8 @@ class quantum::agents::l3 (
         subnet_name  => 'subnet04',
         subnet_cidr  => $fixed_range,
         nameservers  => '8.8.4.4',
+        shared       => 'True',
       }
-      Quantum_l3_agent_config <| |> -> Quantum::Network::Setup['net04']
 
       quantum::network::setup { 'net04_ext':
         tenant_name     => 'services',
@@ -147,7 +147,7 @@ class quantum::agents::l3 (
         enable_dhcp     => 'False', # 'True',
         shared          => 'True',
       }
-      Quantum_l3_agent_config <| |> -> Quantum::Network::Setup['net04_ext']
+      Quantum_l3_agent_config <| |> -> Quantum::Network::Setup['net04'] -> Quantum::Network::Setup['net04_ext']
 
       # router_info = quantum('--os-tenant-name', @auth_hash['admin_tenant_name'], '--os-username', @auth_hash['admin_user'],
       # '--os-password', @auth_hash['admin_password'], '--os-auth-url', @auth_hash['auth_url'], 'router-show', @name)
