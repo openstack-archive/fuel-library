@@ -120,7 +120,7 @@ class Prepare(object):
             'COMPUTE_BUILD_INTERVAL': '10',
             'COMPUTE_BUILD_TIMEOUT': '600',
             'RUN_SSH': 'true',
-            'NETWORK_FOR_SSH': 'net04_ext', # todo use private instead of floating?
+            'NETWORK_FOR_SSH': 'net04', # todo use private instead of floating?
             'SSH_USER': 'cirros',
             'LIVE_MIGRATION': 'true',
             'USE_BLOCKMIG_FOR_LIVEMIG' : 'true',
@@ -160,8 +160,8 @@ class Prepare(object):
             'NETWORK_CATALOG_TYPE': 'network',
             'NETWORK_API_VERSION': 'v2.0',
             'QUANTUM': 'true',
-            'TENANT_NETS_REACHABLE': 'true',
-            'TENANT_NETWORK_CIDR': '192.168.111.128/25', # choose do not overlap with 'net04'
+            'TENANT_NETS_REACHABLE': 'false',
+            'TENANT_NETWORK_CIDR': '192.168.112.0/24', # choose do not overlap with 'net04'
             'TENANT_NETWORK_MASK_BITS': '28', # 29 is too less to test quantum quotas (at least 50 ips needed)
             'PUBLIC_NETWORK_ID': public_network_id,
             'PUBLIC_ROUTER_ID': public_router_id,
