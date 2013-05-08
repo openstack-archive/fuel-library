@@ -1,6 +1,5 @@
 import unittest
 from fuel_test.cobbler.vm_test_case import CobblerTestCase
-from fuel_test.helpers import is_not_essex
 from fuel_test.manifest import Manifest, Template
 from fuel_test.settings import CREATE_SNAPSHOTS
 

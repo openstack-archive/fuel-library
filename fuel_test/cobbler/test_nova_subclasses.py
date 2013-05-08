@@ -6,13 +6,15 @@ from fuel_test.manifest import Manifest, Template
 class NovaSubClassesTestCase(CobblerTestCase):
     def setUp(self):
         super(NovaSubClassesTestCase, self).setUp()
-        Manifest().write_openstack_manifest(
-            remote=self.remote(),
-            template=Template.full(), ci=self.ci(),
-            controllers=self.nodes().controllers,
-            proxies=self.nodes().proxies,
-            quantums=self.nodes().quantums,
-            quantum=True)
+        Manifest.write_manifest(
+            self.remote(),
+            Manifest().generate_openstack_manifest(
+                template=Template.full(), ci=self.ci(),
+                controllers=self.nodes().controllers,
+                proxies=self.nodes().proxies,
+                quantums=self.nodes().quantums,
+                quantum=True)
+        )
 
     def test_deploy_nova_compute(self):
         self.validate(

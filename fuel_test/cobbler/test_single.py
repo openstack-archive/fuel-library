@@ -6,10 +6,12 @@ from fuel_test.settings import OPENSTACK_SNAPSHOT, CREATE_SNAPSHOTS
 
 class SingleTestCase(CobblerTestCase):
     def test_single(self):
-        Manifest().write_openstack_single_manifest(
-            remote=self.remote(),
-            ci=self.ci(),
-            quantum=False,
+        Manifest.write_manifest(
+            self.remote(),
+            Manifest().generate_openstack_single_manifest(
+                ci=self.ci(),
+                quantum=False,
+            )
         )
         self.validate(
             self.nodes().controllers[:1],

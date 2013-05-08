@@ -1,5 +1,4 @@
 from fuel_test.cobbler.vm_test_case import CobblerTestCase
-from fuel_test.helpers import is_not_essex
 import unittest
 from fuel_test.manifest import Manifest, Template
 
@@ -13,7 +12,6 @@ class CompactTestCase(CobblerTestCase):
             self.validate(self.nodes().quantums, 'puppet agent --test 2>&1')
         self.validate(self.nodes().computes, 'puppet agent --test 2>&1')
 
-    @unittest.skipUnless(is_not_essex(), 'Quantum in essex is not supported')
     def test_deploy_compact_quantum(self):
         manifest = Manifest().generate_openstack_manifest(
             template=Template.compact(), ci=self.ci(),

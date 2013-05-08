@@ -1,7 +1,7 @@
 import os
 
 OS_FAMILY = os.environ.get('OS_FAMILY', "centos")
-PUPPET_GEN = os.environ.get('PUPPET_GEN', "2")
+PUPPET_GEN = os.environ.get('PUPPET_GEN', "3")
 
 DEFAULT_IMAGES = {
     'centos': '/var/lib/libvirt/images/centos63-cobbler-base.qcow2',
@@ -58,10 +58,6 @@ ADMIN_TENANT_ESSEX = 'openstack'
 ADMIN_TENANT_FOLSOM = 'admin'
 
 CIRROS_IMAGE = 'http://srv08-srt.srt.mirantis.net/cirros-0.3.0-x86_64-disk.img'
-#CONTROLLERS = int(os.environ.get('CONTROLLERS', 3))
-#COMPUTES = int(os.environ.get('COMPUTES', 3))
-#STORAGES = int(os.environ.get('STORAGES', 3))
-#PROXIES = int(os.environ.get('PROXIES', 2))
 CONTROLLERS = int(os.environ.get('CONTROLLERS', 2))
 COMPUTES = int(os.environ.get('COMPUTES', 1))
 STORAGES = int(os.environ.get('STORAGES', 1))
@@ -79,7 +75,7 @@ INTERFACES = {
 }
 
 FORWARDING = {
-    'public': 'nat',
+    'public': os.environ.get('PUBLIC_FORWARD', 'nat'),
     'internal': None,
     'private': None,
 }
