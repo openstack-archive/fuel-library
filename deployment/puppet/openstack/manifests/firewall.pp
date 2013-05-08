@@ -121,9 +121,15 @@ class openstack::firewall (
     action => 'accept',
   }
 
-  firewall {'107 memcached ':
+  firewall {'107 memcached tcp':
     port   => $memcached_port,
-    proto  => 'all',
+    proto  => 'tcp',
+    action => 'accept',
+  }
+
+  firewall {'107 memcached udp':
+    port   => $memcached_port,
+    proto  => 'udp',
     action => 'accept',
   }
 
