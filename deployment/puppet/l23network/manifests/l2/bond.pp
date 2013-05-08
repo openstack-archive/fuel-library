@@ -8,14 +8,13 @@
 #   Bond name.
 #
 # [*bridge*]
-#   Bridge, that will contain this bond.
+#   Bridge that will contain this bond.
 #
 # [*ports*]
-#   List of ports, incoming in this bond.
+#   List of ports in this bond.
 #
 # [*skip_existing*]
-#   If this bond already exists -- we ignore this fact and
-#   don't create it without generate error.
+#   If this bond already exists it will be ignored without any errors.
 #   Must be true or false.
 #
 define l23network::l2::bond (
@@ -27,7 +26,7 @@ define l23network::l2::bond (
   $skip_existing = false,
 ) {
   if ! $::l23network::l2::use_ovs {
-    fail('You need enable using Open vSwitch. You yourself has prohibited it.')
+    fail('You must enable Open vSwitch by setting the l23network::l2::use_ovs to true.')
   }
   
   if ! defined (L2_ovs_bond["$bond"]) {

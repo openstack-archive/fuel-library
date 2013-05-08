@@ -22,7 +22,7 @@ rm -rf $build_dir
 mkdir $build_dir
 
 # checkout fuel into it
-git clone ssh://$(whoami)@gerrit.mirantis.com:29418/fuel/fuel-folsom.git $build_dir
+git clone git@github.com:Mirantis/fuel.git $build_dir
 cd $build_dir
 git checkout $tag
 

@@ -186,8 +186,8 @@ class ConfigYaml
     self.mandatory('cinder')
   end
 
-  def cinder_on_computes()
-    self.mandatory('cinder_on_computes')
+  def cinder_nodes()
+    self.mandatory('cinder_nodes')
   end
 
   def use_syslog()
@@ -280,7 +280,7 @@ class Manifest
                      :nv_physical_volume => config.nv_physical_volumes(),
                      :use_syslog => config.use_syslog(),
                      :cinder => config.cinder(),
-                     :cinder_on_computes => config.cinder_on_computes(),
+                     :cinder_nodes => config.cinder_nodes(),
                      :nagios_master => config.nagios_master(),
                      :external_ipinfo => config.external_ip_info(),
                      :nodes => config.nodes(),

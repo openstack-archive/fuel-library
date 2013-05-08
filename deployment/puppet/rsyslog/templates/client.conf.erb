@@ -15,10 +15,13 @@ $ActionResumeRetryCount -1      # infinety retries if host is down
 <% if scope.lookupvar('rsyslog::client::log_remote') -%>
 # Log to remote syslog server using <%= scope.lookupvar('rsyslog::client::remote_type') %>
 <% scope.lookupvar('rsyslog::client::rservers_real').each do |rserver| -%>
+# Do not
+<% if ! (['localhost','127.0.0.1','::1'].include?(rserver['server']) and (scope.lookupvar('rsyslog::client::log_auth_local') or scope.lookupvar('rsyslog::client::log_local'))) -%>
 <% if rserver['remote_type'] == 'tcp' -%>
 *.* @@<%= rserver['server']-%>:<%= rserver['port'] -%>;RSYSLOG_ForwardFormat
 <% else -%>
 *.* @<%= rserver['server'] -%>:<%= rserver['port'] -%>;RSYSLOG_ForwardFormat
+<% end -%>
 <% end -%>
 <% end -%>
 <% end -%>
