@@ -411,6 +411,10 @@ class { 'openstack::mirantis_repos':
   repo_proxy=>$repo_proxy,
   use_upstream_mysql=>$use_upstream_mysql
 }
+ stage {'openstack-firewall': before => Stage['main'], require => Stage['netconfig'] } 
+ class { '::openstack::firewall':
+      stage => 'openstack-firewall'
+ }
 
 if $::operatingsystem == 'Ubuntu' {
   class { 'openstack::apparmor::disable': stage => 'openstack-custom-repo' }
