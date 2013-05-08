@@ -53,7 +53,7 @@ class openstack::firewall (
 #    }
 #  }
 
-  class {'firewall':}
+  class {'::firewall':}
 
   firewall { "000 accept all icmp requests":
     proto  => 'icmp',
