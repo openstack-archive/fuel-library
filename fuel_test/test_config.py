@@ -26,6 +26,7 @@ class TestConfig(BaseTestCase):
     def test_generate_compact(self):
         print Config().generate(
             ci=self.ci(),
+            nodes = self.ci().nodes().controllers + self.ci().nodes().computes,
             template=Template.compact(),
             quantums=self.nodes().quantums,
             swift=False,
