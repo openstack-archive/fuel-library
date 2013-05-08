@@ -710,7 +710,7 @@ node /fuel-swift-[\d+]/ {
   class { 'openstack::swift::storage_node':
     storage_type           => $swift_loopback,
     swift_zone             => $swift_zone,
-    swift_local_net_ip     => $internal_address,
+    swift_local_net_ip     => $swift_local_net_ip,
     master_swift_proxy_ip  => $master_swift_proxy_ip,
     cinder                 => $is_cindernode,
     cinder_iscsi_bind_addr => $cinder_iscsi_bind_addr,
@@ -760,7 +760,7 @@ node /fuel-swiftproxy-[\d+]/ {
     swift_proxies           => $swift_proxies,
     primary_proxy           => $primary_proxy,
     controller_node_address => $internal_virtual_ip,
-    swift_local_net_ip      => $internal_address,
+    swift_local_net_ip      => $swift_local_net_ip,
     master_swift_proxy_ip   => $master_swift_proxy_ip,
   }
 }
