@@ -96,7 +96,14 @@ puppet apply -e '
 	stomphost => $stomphost,
 	stompport => $stompport
     } '
-puppet apply -e 'class { squid: }'
+
+# Configuring squid with or without parent proxy
+[ -n "$parent_proxy" ] && IFS=: read server port <<< "$parent_proxy"
+puppet apply -e "
+\$squid_cache_parent = \"$server\"
+\$squid_cache_parent_port = \"$port\"
+class { squid: }"
+
 iptables -A PREROUTING -t nat -i $mgmt_if -s $mgmt_ip/$mgmt_mask ! -d $mgmt_ip -p tcp --dport 80 -j REDIRECT --to-port 3128
 
 gem install /var/www/astute-0.0.1.gem

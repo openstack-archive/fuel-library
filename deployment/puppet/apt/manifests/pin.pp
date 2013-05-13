@@ -9,14 +9,17 @@ define apt::pin(
   $origin     = '',
   $originator = '',
   $version    = '',
-  $order ='' 
+  $order ='',
+  $releasecustom = ''
 ) {
 
   include apt::params
 
   $preferences_d = $apt::params::preferences_d
-
-  if $release != '' {
+  if $releasecustom != '' {
+    $pin = "release $releasecustom"
+  }
+  elsif $release != '' {
     $pin = "release a=${release}"
   } elsif $origin != '' {
     $pin = "origin \"${origin}\""

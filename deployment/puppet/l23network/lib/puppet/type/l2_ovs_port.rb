@@ -36,22 +36,22 @@ Puppet::Type.newtype(:l2_ovs_port) do
       end
     end
 
-    newparam(:port_options) do
+    newparam(:port_properties) do
       defaultto([])
-      desc "Array of port options"
+      desc "Array of port properties"
       validate do |val|
         if not (val.is_a?(Array) or val.is_a?(String)) # String need for array with one element. it's a puppet's feature
-          fail("port_options must be array (not be #{val.class}).")
+          fail("port_properties must be array (not be #{val.class}).")
         end
       end
     end
 
-    newparam(:interface_options) do
+    newparam(:interface_properties) do
       defaultto([])
-      desc "Array of port interface options"
+      desc "Array of port interface properties"
       validate do |val|
         if not (val.is_a?(Array) or val.is_a?(String)) # String need for array with one element. it's a puppet's feature
-          fail("interface_options must be array (not be #{val.class}).")
+          fail("interface_properties must be array (not be #{val.class}).")
         end
       end
     end
