@@ -176,12 +176,6 @@ if $quantum {
   $internal_int = $internal_interface
 }
 
-if $::hostname == 'fuel-controller-01' {
-  $primary_controller = true
-} else {
-  $primary_controller = false
-}
-
 #Network configuration
 stage {'netconfig':
       before  => Stage['main'],
@@ -598,6 +592,7 @@ node /fuel-compute-[\d+]/ {
     segment_range          => $segment_range,
     cinder                 => $cinder,
     manage_volumes         => $is_cinder_node ? { true => $manage_volumes, false => false},
+    nv_physical_volume      => $nv_physical_volume,
     cinder_iscsi_bind_addr => $cinder_iscsi_bind_addr,
     use_syslog             => $use_syslog,
     nova_rate_limits       => $nova_rate_limits,
