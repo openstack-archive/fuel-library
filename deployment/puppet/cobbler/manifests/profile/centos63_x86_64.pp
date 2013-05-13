@@ -23,8 +23,8 @@ class cobbler::profile::centos63_x86_64(
               "url"  => "http://yum.puppetlabs.com/el/6/dependencies/x86_64",
               },
               {
-              "name" => "Stanford",
-              "url"  => "http://mirror.stanford.edu/yum/pub/centos/6.3/os/x86_64",
+              "name" => "Centos-archive-base",
+              "url"  => "http://archive.kernel.org/centos/6.3/os/x86_64/",
               },
               {
               "name" => "Epel",

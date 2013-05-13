@@ -68,7 +68,7 @@ node fuel-cobbler {
         "url"  => "http://yum.puppetlabs.com/el/6/dependencies/x86_64",
         },
         {
-        "name" => "Stanford",
+        "name" => "Centos-archive-base",
         "url"  => "http://172.18.67.168/centos-repo/centos-6.3",
         },
         {
