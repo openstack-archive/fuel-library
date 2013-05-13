@@ -1,6 +1,3 @@
-Known Issues and Workarounds
-----------------------------
-
 
 RabbitMQ
 ^^^^^^^^

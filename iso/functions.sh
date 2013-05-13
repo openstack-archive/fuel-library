@@ -116,11 +116,11 @@ echo
 
 function show_msg {
 echo "Menu:"
-echo "1. Change FQDN for masternode and cloud domain"
-echo "2. Configure openstack cloud management interface"
+echo "1. Change masternode hostname and domain"
+echo "2. Configure OpenStack cloud management interface"
 echo "3. Configure external interface with repositories/internet access"
 echo "4. Change IP range to use for baremetal provisioning via PXE"
-echo "5. Choose set of mirror to use (default/custom)"
+echo "5. Choose a set of mirror to use (default/custom)"
 echo "6. Configure to use parent proxy"
 echo "9. Quit"
 echo -n "Please, select an action to do:"
@@ -139,47 +139,47 @@ function menu_conf {
             case $answer in
             1)
                 show_top
-                echo "WARNING. Changing master hostname or domain name will make you existing puppet"
+                echo "WARNING! Changing MasterNode hostname or domain name will make you existing puppet"
                 echo "keys and configuration files invalid!!!"
-                echo "If you already have deployed any nodes using current hostname or domain name,"
+                echo "If you have already deployed any nodes using current hostname or domain name"
                 echo "you have either to re-deploy existing nodes including operating system"
                 echo "installation or manually remove puppet cache and keys on every deployed node"
                 echo "with 'rm -rf /var/lib/puppet' and manually change all affected puppet and"
                 echo "mcollective configuration files!"
                 echo "If there is no deployed nodes in your current installation - then it is safe"
-                echo "to change hostname and domain name."
+                echo "to change MasterNode hostname and domain name."
                 echo "This script will remove current puppet master key automatically."
                 echo
-                echo -n "Please enter hostname for this puppetmaster/cobbler: "; read hostname
+                echo -n "Please enter hostname for this puppetmaster/cobbler MasterNode: "; read hostname
                 echo -n "Please enter domain name for this cloud: "; read domain
                 ;;
             2)
                 show_top
-                echo -n "Please specify interface to use for management network: "; read mgmt_if
+                echo -n "Please specify the network interface to use for management network: "; read mgmt_if
                 intf="mgmt"
                 set_if_conf
                 ;;
             3)
                 show_top
-                echo -n "Please specify interface to access repositories/internet: "; read ext_if
+                echo -n "Please specify the network interface to access repositories/internet: "; read ext_if
                 intf="ext"
                 set_if_conf
                 ;;
             4)
                 show_top
-                echo -n "Please enter start address: "; read dhcp_start_address
-                echo -n "Please enter end address: "; read dhcp_end_address
+                echo -n "Please enter DHCP start address: "; read dhcp_start_address
+                echo -n "Please enter DHCP end address: "; read dhcp_end_address
                 ;;
             5)
                 show_top
-                echo -n "Please select set of mirrors to use(default/custom): "; read mirror_type
+                echo -n "Please select a set of mirrors to use(default/custom): "; read mirror_type
                 ;;
             6)
             show_top
-            echo -n "Please specify parent proxy to use (ex: 11.12.13.14:3128 ): "; read parent_proxy
+            echo -n "Please specify parent proxy address to be used (ex: 11.12.13.14:3128 ): "; read parent_proxy
                 ;;
             9)
-                echo;echo "Those changes are permanent!"
+                echo;echo "ATTENTION! The changes are permanent!"
                 echo -n "Are you sure about applying them? (y/N):"; read -n 1 answ
                 [[ $answ == "y" || $answ == "Y" ]] && endconf=1
                 ;;
