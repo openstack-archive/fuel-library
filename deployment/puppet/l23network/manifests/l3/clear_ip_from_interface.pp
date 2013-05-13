@@ -5,7 +5,7 @@
 # === Parameters
 #
 # [*name*]
-#   Specify interface.
+#   Interface to be flushed.
 #
 define l23network::l3::clear_ip_from_interface {
     exec { "ip addr flush ${name}":

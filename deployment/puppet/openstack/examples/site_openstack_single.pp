@@ -95,6 +95,10 @@ class { 'openstack::mirantis_repos':
   repo_proxy=>$repo_proxy,
   use_upstream_mysql=>$use_upstream_mysql
 }
+ stage {'openstack-firewall': before => Stage['main'], require => Stage['netconfig'] } 
+ class { '::openstack::firewall':
+      stage => 'openstack-firewall'
+ }
 
 # OpenStack packages and customized component versions to be installed.
 # Use 'latest' to get the most recent ones or specify exact version if you need to install custom version.
