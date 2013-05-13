@@ -1,5 +1,5 @@
 COMMIT_SHA:=$(shell git rev-parse --verify HEAD)
-FUEL_VERSION:=2.2
+FUEL_VERSION:=2.2-folsom
 
 CENTOS_MAJOR:=6
 CENTOS_MINOR:=3
@@ -47,6 +47,7 @@ ISOROOT:=$(BUILD_DIR)/iso/isoroot
 #endif
 
 ISOBASENAME:=fuel-centos-$(CENTOS_RELEASE)-$(CENTOS_ARCH)-$(FUEL_VERSION)
+[ -z "$$ISOSUFFIX" ] || ISOBASENAME:=$(ISOBASENAME)-$(ISOSUFFIX)
 #ISOBASENAME:=fuel-centos-$(CENTOS_RELEASE)-$(CENTOS_ARCH)_$(BUILD_ID)
 
 ISONAME:=$(BUILD_DIR)/iso/$(ISOBASENAME).iso
@@ -131,7 +132,7 @@ $(ISONAME): $(BUILD_DIR)/iso/isoroot.done
 	rm -f $@
 	mkdir -p $(BUILD_DIR)/iso/isoroot-mkisofs
 	rsync -a --delete $(ISOROOT)/ $(BUILD_DIR)/iso/isoroot-mkisofs
-	mkisofs -r -V "Mirantis Fuel-$(FUEL_VERSION)" -p "Mirantis Inc." \
+	mkisofs -r -V "Mirantis Fuel $(FUEL_VERSION)" -p "Mirantis Inc." \
 		-J -T -R -b isolinux/isolinux.bin \
 		-no-emul-boot \
 		-boot-load-size 4 -boot-info-table \
