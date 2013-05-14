@@ -164,7 +164,7 @@ function show_msg {
     echo "3. Configure external interface to access package repositories and Internet"
     echo "4. Change dhcp IP range to use for baremetal provisioning via PXE"
     echo "5. Choose a set of mirrors to use ('default' or 'custom')"
-    echo "6. Configure to use parent proxy"
+    echo "6. Configure MasterNode to use a parent proxy"
     echo "9. Quit"
     echo -n "Please, select an action to do:"
 }
@@ -228,7 +228,7 @@ function menu_conf {
                 ;;
             6)
                 show_top
-                echo -n "Please specify parent proxy address and port to be used (ex: 11.12.13.14:3128 ) [${parent_proxy}]: "; read val
+                echo -n "Please specify MasterNode parent proxy address and port to be used (ex: 11.12.13.14:3128 ) [${parent_proxy}]: "; read val
 				[ -z "$val" ] || parent_proxy=$val
                 ;;
             9)
