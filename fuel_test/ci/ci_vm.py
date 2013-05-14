@@ -1,4 +1,5 @@
 import logging
+from devops.error import TimeoutError
 from ipaddr import IPNetwork
 
 import os
@@ -68,10 +69,14 @@ class CiVM(CiBase):
         start_nodes = self.get_startup_nodes()
         self.environment().start(start_nodes)
 
+        net_name = 'public'
         for node in start_nodes:
-            node.await('public', timeout=600)
+            try:
+                node.await(net_name, timeout=600)
+            except TimeoutError as e:
+                raise TimeoutError("{err} for {node}".format(err=e.message, node=node.get_ip_address_by_network_name(net_name)))
 
-        master_remote = master_node.remote('public', login='root', password='r00tme')
+        master_remote = master_node.remote(net_name, login='root', password='r00tme')
         add_nmap(master_remote)
         dhcp_checksum(master_remote)
         self.environment().snapshot(EMPTY_SNAPSHOT)

@@ -33,7 +33,8 @@ class CobblerTestCase(BaseTestCase):
                              hostname="master",
                              domain="your-domain-name.com",
                              management_interface=INTERFACES["internal"],
-                             management_ip=self.nodes().masters[0].get_ip_address_by_network_name("internal"),
+                             management_ip=self.nodes().masters[
+                                 0].get_ip_address_by_network_name("internal"),
                              management_mask=self.ci().internal_net_mask(),
                              external_interface=INTERFACES["public"],
                              dhcp_start_address=
@@ -44,9 +45,7 @@ class CobblerTestCase(BaseTestCase):
                              external_ip="",
                              external_mask="",
                              parent_proxy=PARENT_PROXY))
-            print "fuel.defaults was created"
-            self.remote().execute("/usr/local/sbin/bootstrap_admin_node.sh")
-            print "bootstrap_admin_node.sh was started"
+            self.remote().execute("/usr/local/sbin/bootstrap_admin_node.sh --batch-mode")
             self.prepare_cobbler_environment()
         self.environment().revert('nodes-deployed')
         for node in self.nodes():
@@ -70,7 +69,7 @@ class CobblerTestCase(BaseTestCase):
         # Manifest().write_cobbler_manifest(self.remote(), self.ci(), nodes)
 
         # self.validate(nodes, 'puppet agent --test --server master.your-domain-name.com')
-        print "check cobbler ports "
+
         for node in nodes:
             self.assert_cobbler_ports(
                 node.get_ip_address_by_network_name('internal'))
