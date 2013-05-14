@@ -8,11 +8,12 @@ from fuel_test.settings import CREATE_SNAPSHOTS, ASTUTE_USE
 
 class MinimalTestCase(CobblerTestCase):
     def deploy(self):
-        self.prepare_astute()
         if ASTUTE_USE:
+            self.prepare_astute()
             self.deploy_by_astute()
         else:
-            self.deploy_one_by_one()
+            pass
+            #self.deploy_one_by_one()
 
     def deploy_one_by_one(self):
         self.validate(self.nodes().controllers[:1], 'puppet agent --test')
@@ -38,6 +39,7 @@ class MinimalTestCase(CobblerTestCase):
 
     def test_minimal(self):
         self.deploy()
+
         if CREATE_SNAPSHOTS:
             self.environment().snapshot('minimal', force=True)
 

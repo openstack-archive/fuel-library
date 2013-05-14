@@ -22,6 +22,7 @@ define corosync::cleanup () {
   exec { "crm resource cleanup $name":
     command     => "bash -c \"(sleep 5 && crm resource cleanup $name) || :\"",
     path        => ['/bin', '/usr/bin', '/sbin', '/usr/sbin'],
+    returns     => [0,""],
     refreshonly => true,
     timeout     => 600,
   }

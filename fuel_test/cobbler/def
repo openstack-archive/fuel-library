@@ -1,0 +1,47 @@
+@classmethod
+    def generate(cls, ci):
+        config_yaml = cls.load_yaml(cls.CONFIG)
+        cls.orchestrator_common(ci, config_yaml)
+        cls.openstack_common(ci, config_yaml)
+        cls.cobbler_common(ci, config_yaml)
+        cls.update_nodes_mac(ci, config_yaml)
+
+    @classmethod
+    def openstack_common(cls, ci, config_yaml):
+        pass
+
+    @classmethod
+    def cobbler_common(cls, ci, config_yaml):
+        config_yaml["common"]["cobbler_common"]["profile"] = CURRENT_PROFILE
+
+    @classmethod
+    def update_nodes_mac(cls, ci, config_yaml):
+        nodes = ci.nodes().computes
+        for node in nodes:
+            node_interfaces = config_yaml[node.name]["interfaces"]
+            for i in range(2):
+                node_interfaces["eth%d"%i]["mac"] = str(node.interfaces[i].mac_address)
+
+    @classmethod
+    def save_yaml(cls, config, filename):
+        with open(filename, "w") as f:
+            yaml.safe_dump(config, f, default_flow_style=False)
+
+    @classmethod
+    def load_yaml(cls, filename):
+        with open(filename, "r") as f:
+            config = yaml.safe_load(f)
+            return config
+z
+
+
+
+Failure
+Traceback (most recent call last):
+  File "/home/alan/fuel/fuel_test/cobbler/test_full.py", line 26, in test_full
+    self.validate(self.nodes().controllers[1:], 'puppet agent --test 2>&1')
+  File "/home/alan/fuel/fuel_test/base_test_case.py", line 70, in validate
+    self.assertResult(result)
+  File "/home/alan/fuel/fuel_test/base_test_case.py", line 37, in assertResult
+    self.assertEqual([], errors, errors)
+AssertionError: ['\x1b[1;35merr: /Stage[main]/Quantum::Agents::L3/Service[quantum-l3]: Failed to call refresh: execution expired\x1b[0m\n']

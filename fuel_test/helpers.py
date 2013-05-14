@@ -190,10 +190,10 @@ def upload_recipes(remote, remote_dir="/etc/puppet/modules/"):
             remote.upload(EXIST_TAR, '/tmp/recipes.tar')
         else:
             tar_file = remote.open('/tmp/recipes.tar', 'wb')
-            with tarfile.open(fileobj=tar_file, mode='w') as tar:
+            with tarfile.open(fileobj=tar_file, mode='w', dereference=True) as tar:
                 tar.add(recipes_dir, arcname='')
         remote.mkdir(remote_dir)
-        remote.check_call('tar -xf /tmp/recipes.tar -C %s' % remote_dir)
+        remote.check_call('tar xf /tmp/recipes.tar --overwrite -C %s' % remote_dir)
     finally:
         if tar_file:
             tar_file.close()
