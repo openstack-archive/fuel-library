@@ -54,20 +54,44 @@ function save_if_cfg {
 }
 
 function default_settings {
-    hostname="fuel-pm"
-    domain="local"
-    mgmt_if="eth0"
-    mgmt_ip="10.20.0.100"
-    mgmt_mask="255.255.255.0"
-    ext_if="eth1"
-    dhcp_start_address="10.20.0.110"
-    dhcp_end_address="10.20.0.126"
-    mirror_type="default"
+
+    # Read settings from file
+    [ -f $FUELCONF ] && source $FUELCONF
+
+    hostname=${hostname:-"fuel-pm"}
+    domain=${domain:-"local"}
+    mgmt_if=${mgmt_if:-"eth0"}
+    mgmt_ip=${mgmt_ip:-"10.20.0.100"}
+    mgmt_mask=${mgmt_mask:-"255.255.255.0"}
+    ext_if=${ext_if:-"eth1"}
+    dhcp_start_address=${dhcp_start_address:-"10.20.0.110"}
+    dhcp_end_address=${dhcp_end_address:-"10.20.0.126"}
+    mirror_type=${mirror_type:-"default"}
 }
 
 function apply_settings {
     echo;echo "Applying settings ..."
 
+# Let's save settings in rc file for future use
+	echo "hostname=$hostname" > $FUELCONF
+	echo "domain=$domain" >> $FUELCONF
+    echo "dhcp_start_address=${dhcp_start_address}" >> $FUELCONF
+	echo "dhcp_end_address=${dhcp_end_address}" >> $FUELCONF
+    echo "mirror_type=${mirror_type}" >> $FUELCONF
+    echo "parent_proxy=${parent_proxy}" >> $FUELCONF
+	echo "mgmt_if=$mgmt_if" >> $FUELCONF
+	echo "mgmt_ip=${mgmt_ip}" >> $FUELCONF
+    echo "mgmt_mask=${mgmt_mask}" >> $FUELCONF
+    echo "mgmt_gw=$mgmt_gw" >> $FUELCONF
+    echo "mgmt_dns1=$mgmt_dns1" >> $FUELCONF
+    echo "mgmt_dns2=$mgmt_dns2" >> $FUELCONF
+	echo "ext_if=$ext_if" >> $FUELCONF
+	echo "ext_ip=${ext_ip}" >> $FUELCONF
+    echo "ext_mask=${ext_mask}" >> $FUELCONF
+    echo "ext_gw=$ext_gw" >> $FUELCONF
+    echo "ext_dns1=$ext_dns1" >> $FUELCONF
+    echo "ext_dns2=$ext_dns2" >> $FUELCONF
+	
 # Network interfaces settings apply
     for iftype in ext mgmt
     do
