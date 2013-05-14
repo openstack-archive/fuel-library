@@ -24,12 +24,13 @@ class cobbler::profile::centos63_x86_64(
               },
               {
               "name" => "Centos-archive-base",
-              "url"  => "http://archive.kernel.org/centos/6.3/os/x86_64/",
+              "url"  => "http://archive.kernel.org/centos/6.3/os/x86_64",
               },
               {
-              "name" => "Epel",
-              "url"  => "http://dl.fedoraproject.org/pub/epel/6/x86_64",
-              }],
+              "name" => "Mirantis-CentOS-minimal",
+              "url"  => "http://download.mirantis.com/centos-minimal",
+              }
+              ],
 
   $ks_system_timezone         = "America/Los_Angeles",
 
