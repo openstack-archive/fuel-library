@@ -55,18 +55,19 @@ function save_if_cfg {
 
 function default_settings {
 
+    hostname="fuel-pm"
+    domain="your-domain-name.com"
+    mgmt_if="eth0"
+    mgmt_ip="10.20.0.100"
+    mgmt_mask="255.255.255.0"
+    ext_if="eth1"
+    dhcp_start_address="10.20.0.110"
+    dhcp_end_address="10.20.0.126"
+    mirror_type="default"
+
     # Read settings from file
     [ -f $FUELCONF ] && source $FUELCONF
 
-    hostname=${hostname:-"fuel-pm"}
-    domain=${domain:-"local"}
-    mgmt_if=${mgmt_if:-"eth0"}
-    mgmt_ip=${mgmt_ip:-"10.20.0.100"}
-    mgmt_mask=${mgmt_mask:-"255.255.255.0"}
-    ext_if=${ext_if:-"eth1"}
-    dhcp_start_address=${dhcp_start_address:-"10.20.0.110"}
-    dhcp_end_address=${dhcp_end_address:-"10.20.0.126"}
-    mirror_type=${mirror_type:-"default"}
 }
 
 function apply_settings {
