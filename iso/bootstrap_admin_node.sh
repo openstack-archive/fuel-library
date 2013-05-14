@@ -9,11 +9,26 @@ curTTY=`tty`
 set +x
 exec <$curTTY >$curTTY 2>&1
 
+# detecting batch mode for using fuel.defaults
+BATCH_MODE=''
+for xx in "$@" ; do
+    if [[ "x$xx" == "x--batch-mode" ]] ; then
+        BATCH_MODE=1
+    fi
+done
+
+
 # Applying default visible settings
 default_settings
 
-# Invoking menu for masternode configuration
-menu_conf
+# Invoking menu for masternode configuration or import settings from fuel.defaults
+if [[ "$BATCH_MODE" == "1" -a -f /root/fuel.defaults ]] ; then
+    echo "Processing fuel.defaults..."
+    source /root/fuel.defaults
+    endconf=1
+else
+    menu_conf
+fi
 
 # Applying configurations
 apply_settings
@@ -44,8 +59,8 @@ rm -f /etc/nginx/conf.d/default.conf
 service nginx restart
 
 puppet apply -e "
-    class { cobbler: 
-        server => \"$server\", 
+    class { cobbler:
+        server => \"$server\",
         domain_name => \"$domain_name\",
         name_server => \"$name_server\",
         next_server => \"$next_server\",
@@ -85,16 +100,16 @@ puppet apply -e '
     $stompport="61613"
 
     class { mcollective::rabbitmq:
-	stompuser => $stompuser,
-	stomppassword => $stomppassword,
+        stompuser => $stompuser,
+        stomppassword => $stomppassword,
     }
 
     class { mcollective::client:
-	pskey => $pskey,
-	stompuser => $stompuser,
-	stomppassword => $stomppassword,
-	stomphost => $stomphost,
-	stompport => $stompport
+        pskey => $pskey,
+        stompuser => $stompuser,
+        stomppassword => $stomppassword,
+        stomphost => $stomphost,
+        stompport => $stompport
     } '
 
 # Configuring squid with or without parent proxy

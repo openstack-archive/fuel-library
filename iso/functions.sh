@@ -127,10 +127,6 @@ echo -n "Please, select an action to do:"
 }
 
 function menu_conf {
-    if [ $? -gt 128 -a -f /root/fuel.defaults ]; then
-        source /root/fuel.defaults
-        endconf=1
-    else
         while [ $endconf -ne 1 ]; do
             show_top
             show_msg
@@ -185,5 +181,4 @@ function menu_conf {
                 ;;
             esac
         done
-    fi
 }

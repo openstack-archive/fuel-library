@@ -45,7 +45,7 @@ class CobblerTestCase(BaseTestCase):
                              external_ip="",
                              external_mask="",
                              parent_proxy=PARENT_PROXY))
-            self.remote().execute("/usr/local/sbin/bootstrap_admin_node.sh")
+            self.remote().execute("/usr/local/sbin/bootstrap_admin_node.sh --batch-mode")
             self.prepare_cobbler_environment()
         self.environment().revert('nodes-deployed')
         for node in self.nodes():
