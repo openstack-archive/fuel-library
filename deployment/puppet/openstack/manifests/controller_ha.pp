@@ -280,10 +280,7 @@ class openstack::controller_ha (
       priority => $primary_controller ? { true => 101,      default => 100      },
     }
 
-    class { '::openstack::firewall':
-      before => Class['galera']
-    }
-    Class['haproxy'] -> Class['galera']
+   Class['haproxy'] -> Class['galera']
 
     class { '::openstack::controller':
       public_address          => $public_virtual_ip,

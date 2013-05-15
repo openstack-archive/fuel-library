@@ -20,7 +20,7 @@ $mirror_type         = 'default'
 stage { 'openstack-custom-repo': before => Stage['main'] }
 class { 'openstack::mirantis_repos': stage => 'openstack-custom-repo', type=>$mirror_type }
 
-node default {
+node fuel-cobbler {
   class { cobbler:
     server              => $server,
 
@@ -68,7 +68,7 @@ node default {
         "url"  => "http://yum.puppetlabs.com/el/6/dependencies/x86_64",
         },
         {
-        "name" => "Stanford",
+        "name" => "Centos-archive-base",
         "url"  => "http://172.18.67.168/centos-repo/centos-6.3",
         },
         {

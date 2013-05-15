@@ -1,4 +1,5 @@
 import unittest
+from fuel_test.ci.ci_vm import CiVM
 from fuel_test.cobbler.vm_test_case import CobblerTestCase
 from fuel_test.config import Config
 from fuel_test.helpers import write_config
@@ -8,11 +9,12 @@ from fuel_test.settings import CREATE_SNAPSHOTS, ASTUTE_USE
 
 class MinimalTestCase(CobblerTestCase):
     def deploy(self):
-        self.prepare_astute()
         if ASTUTE_USE:
+            self.prepare_astute()
             self.deploy_by_astute()
         else:
-            self.deploy_one_by_one()
+            pass
+            #self.deploy_one_by_one()
 
     def deploy_one_by_one(self):
         self.validate(self.nodes().controllers[:1], 'puppet agent --test')
@@ -27,7 +29,7 @@ class MinimalTestCase(CobblerTestCase):
         config = Config().generate(
                 template=Template.minimal(),
                 ci=self.ci(),
-                nodes = self.ci().nodes().controllers + self.ci().nodes().computes,
+                nodes = self.ci().nodes(),
                 quantums=self.nodes().quantums,
                 quantum=True,
                 cinder_nodes=['controller']
@@ -38,6 +40,7 @@ class MinimalTestCase(CobblerTestCase):
 
     def test_minimal(self):
         self.deploy()
+
         if CREATE_SNAPSHOTS:
             self.environment().snapshot('minimal', force=True)
 

@@ -212,11 +212,12 @@ if $quantum {
   $internal_int = $internal_interface
 }
 
-if $::hostname == 'fuel-controller-01' {
+if $node[0]['role'] == 'primary-controller' {
   $primary_controller = true
 } else {
   $primary_controller = false
 }
+
 
 #Network configuration
 stage {'netconfig':
@@ -343,12 +344,11 @@ $swift_loopback = false
 ### Syslog ###
 # Enable error messages reporting to rsyslog. Rsyslog must be installed in this case.
 $use_syslog = false
-$syslog_server = '127.0.0.1'
 if $use_syslog {
   class { "::rsyslog::client":
     log_local => true,
     log_auth_local => true,
-    server => $syslog_server,
+    server => '127.0.0.1',
     port => '514'
   }
 }
@@ -447,6 +447,10 @@ class { 'openstack::mirantis_repos':
   enable_test_repo=>$enable_test_repo,
   repo_proxy=>$repo_proxy,
 }
+ stage {'openstack-firewall': before => Stage['main'], require => Stage['netconfig'] } 
+ class { '::openstack::firewall':
+      stage => 'openstack-firewall'
+ }
 
 if $::operatingsystem == 'Ubuntu' {
   class { 'openstack::apparmor::disable': stage => 'openstack-custom-repo' }

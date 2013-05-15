@@ -9,7 +9,7 @@ class Config():
         config = {
             "common":
                 {"orchestrator_common": self.orchestrator_common(ci, template=template),
-                 "openstack_common": self.openstack_common(ci, nodes = nodes,
+                 "openstack_common": self.openstack_common(ci, nodes=nodes,
                                                            quantums=quantums,
                                                            cinder=cinder,
                                                            cinder_nodes=cinder_nodes,

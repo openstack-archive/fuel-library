@@ -23,7 +23,7 @@ Puppet::Type.newtype(:l2_ovs_port) do
 
     newparam(:skip_existing) do
       defaultto(false)
-      desc "Allow skip existing port"
+      desc "Allow to skip existing port"
     end
 
     newparam(:bridge) do
@@ -41,7 +41,7 @@ Puppet::Type.newtype(:l2_ovs_port) do
       desc "Array of port properties"
       validate do |val|
         if not (val.is_a?(Array) or val.is_a?(String)) # String need for array with one element. it's a puppet's feature
-          fail("port_properties must be array (not be #{val.class}).")
+          fail("port_properties must be an array (not #{val.class}).")
         end
       end
     end
@@ -51,7 +51,7 @@ Puppet::Type.newtype(:l2_ovs_port) do
       desc "Array of port interface properties"
       validate do |val|
         if not (val.is_a?(Array) or val.is_a?(String)) # String need for array with one element. it's a puppet's feature
-          fail("interface_properties must be array (not be #{val.class}).")
+          fail("interface_properties must be an array (not #{val.class}).")
         end
       end
     end

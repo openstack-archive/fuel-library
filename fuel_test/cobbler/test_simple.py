@@ -27,7 +27,7 @@ class SimpleTestCase(CobblerTestCase):
             ci=self.ci(),
             controllers=self.nodes().controllers,
             use_syslog=False,
-            quantums=self.nodes().quantums,
+            quantums=self.nodes().controllers,
             quantum=True
         )
 
@@ -37,7 +37,7 @@ class SimpleTestCase(CobblerTestCase):
         config = Config().generate(
             template=Template.simple(),
             ci=self.ci(),
-            nodes = self.ci().nodes().controllers + self.ci().nodes().computes,
+            nodes = self.ci().nodes(),
             quantum=True,
             cinder_nodes=['controller']
         )
