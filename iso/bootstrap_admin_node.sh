@@ -1,5 +1,6 @@
 #!/bin/bash
 
+FUELCONF=/etc/fuel.conf
 source /usr/local/lib/functions.sh
 
 log="/var/log/firstboot-puppet.log"

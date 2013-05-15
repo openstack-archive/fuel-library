@@ -178,14 +178,19 @@ class openstack::mirantis_repos (
             baseurl => "http://archive.kernel.org/centos/6.3/os/x86_64/",
             mirrorlist => absent
           }
-
           yumrepo { 'centos-updates':
             descr      => 'Local updates mirror repository',
             baseurl => "http://archive.kernel.org/centos/6.3/updates/x86_64/",
             mirrorlist => absent,
             name       => 'updates'
           }
- 
+        yumrepo { 'vault6.3-base':
+            descr      => 'Vault 6.3 base mirror repository',
+            name       => 'v6.3-base',
+            baseurl => "http://vault.centos.org/6.3/os/x86_64/",
+            mirrorlist => absent
+          }
+
       }
 
       if $type == 'custom' {
