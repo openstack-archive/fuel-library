@@ -12,8 +12,9 @@ exec <$curTTY >$curTTY 2>&1
 # detecting batch mode for using fuel.defaults
 BATCH_MODE=''
 for xx in "$@" ; do
-    if [[ "x$xx" == "x--batch-mode" ]] ; then
+    if [[ "${xx}" == "--batch-mode" ]] ; then
         BATCH_MODE=1
+        break
     fi
 done
 
@@ -22,7 +23,7 @@ done
 default_settings
 
 # Invoking menu for masternode configuration or import settings from fuel.defaults
-if [[ "$BATCH_MODE" == "1" -a -f /root/fuel.defaults ]] ; then
+if [[ "${BATCH_MODE}" == "1" && -f /root/fuel.defaults ]] ; then
     echo "Processing fuel.defaults..."
     source /root/fuel.defaults
     endconf=1

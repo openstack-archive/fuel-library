@@ -16,23 +16,35 @@ function set_if_conf {
     echo
 }
 
-function save_if_cfg {
-    scrFile="/etc/sysconfig/network-scripts/ifcfg-$device"
-    hwaddr=`ifconfig $device | grep -i hwaddr | sed -e 's#^.*hwaddr[[:space:]]*##I'`
-    [ -z $gw ] || echo GATEWAY=$gw >> /etc/sysconfig/network
-    echo DEVICE=$device > $scrFile
-    echo ONBOOT=yes >> $scrFile
-    echo NM_CONTROLLED=no >> $scrFile
-    echo HWADDR=$hwaddr >> $scrFile
-    echo USERCTL=no >> $scrFile
-    if [ $ip ]; then
-        echo BOOTPROTO=static >> $scrFile
-        echo IPADDR=$ip >> $scrFile
-        echo NETMASK=$netmask >> $scrFile
-        [ $dns1 ] && echo DNS1=$dns1 >> $scrFile
-        [ $dns2 ] && echo DNS2=$dns2 >> $scrFile
+function save_if_cfg() {
+    local iftype=$1
+
+    eval local device=\$${iftype}_if
+    eval local ip=\$${iftype}_ip
+    eval local netmask=\$${iftype}_mask
+    eval local gw=\$${iftype}_gw
+    eval local dns1=\$${iftype}_dns1
+    eval local dns2=\$${iftype}_dns2
+    local hwaddr=`ip link show $device | grep -i 'link/ether' | awk '{print $2}'`
+
+    echo;echo "Applying network settings for interface ${device}:"
+    echo "  dev='${device}'  ip='${ip}' netmask='${netmask}' gw='${gw}' hwaddr='${hwaddr}' DNS=[${dns1}, ${dns2}]"
+
+    scrFile="/etc/sysconfig/network-scripts/ifcfg-${device}"
+    [[ -z ${gw} ]] || echo "GATEWAY=${gw}" >> /etc/sysconfig/network
+    echo "DEVICE=${device}" > "${scrFile}"
+    echo "ONBOOT=yes" >> "${scrFile}"
+    echo "NM_CONTROLLED=no" >> "${scrFile}"
+    echo "HWADDR=${hwaddr}" >> "${scrFile}"
+    echo "USERCTL=no" >> "${scrFile}"
+    if [[ ${ip} ]]; then
+        echo "BOOTPROTO=static" >> "${scrFile}"
+        echo "IPADDR=${ip}" >> "${scrFile}"
+        echo "NETMASK=${netmask}" >> "${scrFile}"
+        [[ ${dns1} ]] && echo "DNS1=${dns1}" >> "${scrFile}"
+        [[ ${dns2} ]] && echo "DNS2=${dns2}" >> "${scrFile}"
     else
-        echo BOOTPROTO=dhcp >> $scrFile
+        echo BOOTPROTO=dhcp >> "${scrFile}"
     fi
 }
 
@@ -52,16 +64,8 @@ function apply_settings {
     echo;echo "Applying settings ..."
 
 # Network interfaces settings apply
-    for iftype in ext mgmt
-    do
-        eval device=\$${iftype}_if
-        eval ip=\$${iftype}_ip
-        eval netmask=\$${iftype}_mask
-        eval gw=\$${iftype}_gw
-        eval dns1=\$${iftype}_dns1
-        eval dns2=\$${iftype}_dns2
-        hwaddr=`ifconfig $device | grep -i hwaddr | sed -e 's#^.*hwaddr[[:space:]]*##I'`
-        save_if_cfg
+    for iftype in ext mgmt ; do
+        save_if_cfg "${iftype}"
     done
 
 # Cobbler settings apply

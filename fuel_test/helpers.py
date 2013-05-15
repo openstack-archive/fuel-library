@@ -182,6 +182,7 @@ def setup_puppet_master(remote):
     puppet_apply(remote.sudo.ssh, 'class {puppetdb::master::config: puppet_service_name=>"%s"}' % PUPPET_MASTER_SERVICE)
     remote.sudo.ssh.check_call("service %s restart" % PUPPET_MASTER_SERVICE)
 
+
 def upload_recipes(remote, remote_dir="/etc/puppet/modules/"):
     recipes_dir = root('deployment', 'puppet')
     tar_file = None
