@@ -8,9 +8,10 @@ v2.2-folsom
   * New firewall (iptables) module
   * One-pass swift deployment
   * User choice on where to store Cinder volumes
+  * Ability to plug in custom services in HA mode under HAProxy
+  * Add controller and compute nodes without downtime
+  * Remove controller and compute nodes without downtime *(caveat with Cinder on controllers)*
 
 * Improvements
 
-  * Fixed defects in ISO bootstrap script 
-  * Updated a url to CentOS 6.3 package repository
-  * Fixes in documentation
+  * CentOS 6.3 package repository moved to Mirantis mirror
