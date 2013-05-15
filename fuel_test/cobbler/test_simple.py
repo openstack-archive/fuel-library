@@ -27,7 +27,7 @@ class SimpleTestCase(CobblerTestCase):
             ci=self.ci(),
             controllers=self.nodes().controllers,
             use_syslog=False,
-            quantums=self.nodes().quantums,
+            quantums=self.nodes().controllers,
             quantum=True
         )
 

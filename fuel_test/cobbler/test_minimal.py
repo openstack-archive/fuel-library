@@ -1,4 +1,5 @@
 import unittest
+from fuel_test.ci.ci_vm import CiVM
 from fuel_test.cobbler.vm_test_case import CobblerTestCase
 from fuel_test.config import Config
 from fuel_test.helpers import write_config
@@ -28,7 +29,7 @@ class MinimalTestCase(CobblerTestCase):
         config = Config().generate(
                 template=Template.minimal(),
                 ci=self.ci(),
-                nodes = self.ci().nodes().controllers + self.ci().nodes().computes,
+                nodes = self.ci().nodes(),
                 quantums=self.nodes().quantums,
                 quantum=True,
                 cinder_nodes=['controller']
