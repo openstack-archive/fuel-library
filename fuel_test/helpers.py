@@ -182,6 +182,7 @@ def setup_puppet_master(remote):
     puppet_apply(remote.sudo.ssh, 'class {puppetdb::master::config: puppet_service_name=>"%s"}' % PUPPET_MASTER_SERVICE)
     remote.sudo.ssh.check_call("service %s restart" % PUPPET_MASTER_SERVICE)
 
+
 def upload_recipes(remote, remote_dir="/etc/puppet/modules/"):
     recipes_dir = root('deployment', 'puppet')
     tar_file = None
@@ -193,7 +194,7 @@ def upload_recipes(remote, remote_dir="/etc/puppet/modules/"):
             with tarfile.open(fileobj=tar_file, mode='w', dereference=True) as tar:
                 tar.add(recipes_dir, arcname='')
         remote.mkdir(remote_dir)
-        remote.check_call('tar xf /tmp/recipes.tar --overwrite -C %s' % remote_dir)
+        remote.check_call('tar xmf /tmp/recipes.tar --overwrite -C %s' % remote_dir)
     finally:
         if tar_file:
             tar_file.close()
