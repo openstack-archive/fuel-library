@@ -58,11 +58,11 @@ function default_settings {
     hostname="fuel-pm"
     domain="your-domain-name.com"
     mgmt_if="eth0"
-    mgmt_ip="10.20.0.100"
-    mgmt_mask="255.255.255.0"
+    mgmt_ip="10.0.0.100"
+    mgmt_mask="255.255.0.0"
     ext_if="eth1"
-    dhcp_start_address="10.20.0.110"
-    dhcp_end_address="10.20.0.126"
+    dhcp_start_address="10.0.0.201"
+    dhcp_end_address="10.0.0.254"
     mirror_type="default"
 
     # Read settings from file
@@ -74,20 +74,20 @@ function apply_settings {
     echo;echo "Applying settings ..."
 
 # Let's save settings in rc file for future use
-	echo "hostname=$hostname" > $FUELCONF
-	echo "domain=$domain" >> $FUELCONF
+    echo "hostname=$hostname" > $FUELCONF
+    echo "domain=$domain" >> $FUELCONF
     echo "dhcp_start_address=${dhcp_start_address}" >> $FUELCONF
-	echo "dhcp_end_address=${dhcp_end_address}" >> $FUELCONF
+    echo "dhcp_end_address=${dhcp_end_address}" >> $FUELCONF
     echo "mirror_type=${mirror_type}" >> $FUELCONF
     echo "parent_proxy=${parent_proxy}" >> $FUELCONF
-	echo "mgmt_if=$mgmt_if" >> $FUELCONF
-	echo "mgmt_ip=${mgmt_ip}" >> $FUELCONF
+    echo "mgmt_if=$mgmt_if" >> $FUELCONF
+    echo "mgmt_ip=${mgmt_ip}" >> $FUELCONF
     echo "mgmt_mask=${mgmt_mask}" >> $FUELCONF
     echo "mgmt_gw=$mgmt_gw" >> $FUELCONF
     echo "mgmt_dns1=$mgmt_dns1" >> $FUELCONF
     echo "mgmt_dns2=$mgmt_dns2" >> $FUELCONF
-	echo "ext_if=$ext_if" >> $FUELCONF
-	echo "ext_ip=${ext_ip}" >> $FUELCONF
+    echo "ext_if=$ext_if" >> $FUELCONF
+    echo "ext_ip=${ext_ip}" >> $FUELCONF
     echo "ext_mask=${ext_mask}" >> $FUELCONF
     echo "ext_gw=$ext_gw" >> $FUELCONF
     echo "ext_dns1=$ext_dns1" >> $FUELCONF
@@ -166,7 +166,7 @@ function show_msg {
     echo "5. Choose a set of mirrors to use ('default' or 'custom')"
     echo "6. Configure MasterNode to use a parent proxy"
     echo "9. Quit"
-    echo -n "Please, select an action to do:"
+    echo -n "Please select an action to do:"
 }
 
 function menu_conf {
