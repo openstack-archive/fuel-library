@@ -14,8 +14,8 @@
 
 
 class cobbler::distro::centos63_x86_64(
-  $http_iso = 'http://mirror.stanford.edu/yum/pub/centos/6.3/isos/x86_64/CentOS-6.3-x86_64-minimal.iso',
-  $ks_url   = 'http://mirror.stanford.edu/yum/pub/centos/6.3/os/x86_64'
+  $http_iso = 'http://vault.centos.org/6.3/isos/x86_64/CentOS-6.3-x86_64-minimal.iso',
+  $ks_url   = 'http://download.mirantis.com/centos-minimal/'
   ) {
 
   Exec {path => '/usr/bin:/bin:/usr/sbin:/sbin'}
