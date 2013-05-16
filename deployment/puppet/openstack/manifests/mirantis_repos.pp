@@ -155,6 +155,15 @@ class openstack::mirantis_repos (
       Yumrepo {
         proxy => $repo_proxy, }
 
+        yumrepo { 'centos-extras':
+            descr      => 'Local extras mirror repository',
+            name       => 'extras',
+            enabled    => 0,
+            baseurl => "http://archive.kernel.org/centos/6.3/os/x86_64/",
+            mirrorlist => absent
+        }
+
+
       # added internal/external network mirror
       if $type == 'default' {
         yumrepo { 'openstack-epel-fuel':
@@ -169,6 +178,14 @@ class openstack::mirantis_repos (
             baseurl => "http://download.mirantis.com/centos-minimal/",
             mirrorlist => absent
         }
+        yumrepo { 'centos-updates':
+            descr      => 'Local updates mirror repository',
+            baseurl => "http://archive.kernel.org/centos/6.3/updates/x86_64/",
+            enabled    => 0,
+            mirrorlist => absent,
+            name       => 'updates'
+        }  
+
       }
 
       if $type == 'custom' {
