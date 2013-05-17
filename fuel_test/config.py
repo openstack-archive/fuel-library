@@ -1,6 +1,6 @@
 import yaml
 from fuel_test.manifest import Manifest
-from fuel_test.settings import CURRENT_PROFILE, PUPPET_VERSION, INTERFACE_ORDER, INTERFACES
+from fuel_test.settings import CURRENT_PROFILE, PUPPET_VERSION, INTERFACE_ORDER, INTERFACES, DOMAIN_NAME
 
 
 class Config():
@@ -38,7 +38,7 @@ class Config():
                          quantum, swift, loopback, use_syslog, cinder_nodes):
         if not quantums: quantums = []
 
-        node_configs = Manifest().generate_node_configs_list(nodes)
+        node_configs = Manifest().generate_node_configs_list(ci, nodes)
 
         master = ci.nodes().masters[0]
 
@@ -54,7 +54,7 @@ class Config():
                   "internal_netmask": ci.internal_net_mask(),
                   "internal_virtual_ip": ci.internal_virtual_ip(),
                   "mirror_type": Manifest().mirror_type(),
-                  "nagios_master": "%s.your-domain-name.com" % nodes.controllers[0].name,
+                  "nagios_master": ci.nodes().controllers[0].name + DOMAIN_NAME,
                   "network_manager": "nova.network.manager.FlatDHCPManager",
                   "nv_physical_volumes": ["/dev/sdb"],
                   "private_interface": Manifest().private_interface(),
@@ -84,7 +84,7 @@ class Config():
                   "name-servers-search": "your-domain-name.com",
                   "profile": CURRENT_PROFILE}
 
-        ksmeta = self.get_ks_meta("%s.your-domain-name.com" % ci.nodes().masters[0].name, ci.nodes().masters[0].name)
+        ksmeta = self.get_ks_meta(ci.nodes().masters[0].name + DOMAIN_NAME, ci.nodes().masters[0].name)
 
         config.update({"ksmeta": ksmeta})
 
@@ -123,7 +123,7 @@ class Config():
                         "static": 1,
                         "ip-address": str(node.get_ip_address_by_network_name('internal')),
                         "netmask": ci.internal_net_mask(),
-                        "dns-name": "%s.your-domain-name.com" % node.name,
+                        "dns-name": node.name + DOMAIN_NAME,
                         "management": "1"
                     }
             }

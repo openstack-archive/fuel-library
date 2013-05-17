@@ -3,7 +3,7 @@ from fuel_test.ci.ci_vm import CiVM
 from fuel_test.cobbler.vm_test_case import CobblerTestCase
 from fuel_test.config import Config
 from fuel_test.helpers import write_config
-from fuel_test.manifest import Template
+from fuel_test.manifest import Template, Manifest
 from fuel_test.settings import CREATE_SNAPSHOTS, ASTUTE_USE
 
 
@@ -13,30 +13,39 @@ class MinimalTestCase(CobblerTestCase):
             self.prepare_astute()
             self.deploy_by_astute()
         else:
-            pass
-            #self.deploy_one_by_one()
+            self.deploy_one_by_one()
 
     def deploy_one_by_one(self):
+        manifest = Manifest().generate_openstack_manifest(
+            template=Template.minimal(),
+            ci=self.ci(),
+            controllers=self.nodes().controllers,
+            quantums=self.nodes().quantums,
+            quantum=True
+        )
+        Manifest().write_manifest(remote=self.remote(), manifest=manifest)
+
         self.validate(self.nodes().controllers[:1], 'puppet agent --test')
         self.validate(self.nodes().controllers[1:], 'puppet agent --test')
         self.validate(self.nodes().controllers[:1], 'puppet agent --test')
         self.validate(self.nodes().computes, 'puppet agent --test')
 
     def deploy_by_astute(self):
-        self.remote().check_stderr("astute -f astute.yaml")
+        self.remote().check_stderr("astute -f /root/astute.yaml")
 
     def prepare_astute(self):
         config = Config().generate(
                 template=Template.minimal(),
                 ci=self.ci(),
-                nodes = self.ci().nodes(),
+                nodes = self.nodes().controllers + self.nodes().computes,
                 quantums=self.nodes().quantums,
                 quantum=True,
                 cinder_nodes=['controller']
             )
         config_path = "/root/config.yaml"
         write_config(self.remote(), config_path, str(config))
-        self.remote().check_stderr("openstack_system -c config.yaml -o /etc/puppet/manifests/site.pp -a astute.yaml")
+        self.remote().check_call("cobbler_system -f %s" % config_path)
+        self.remote().check_stderr("openstack_system -c %s -o /etc/puppet/manifests/site.pp -a /root/astute.yaml" % config_path)
 
     def test_minimal(self):
         self.deploy()

@@ -122,3 +122,4 @@ PROFILES_COBBLER_COMMON = {
 
 ASTUTE_USE = os.environ.get('ASTUTE_USE', 'true') == 'true'
 CURRENT_PROFILE = PROFILES_COBBLER_COMMON.get(OS_FAMILY)
+DOMAIN_NAME = os.environ.get('DOMAIN_NAME', '.your-domain-name.com')
