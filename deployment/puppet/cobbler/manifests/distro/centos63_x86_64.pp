@@ -15,7 +15,7 @@
 
 class cobbler::distro::centos63_x86_64(
   $http_iso = 'http://download.mirantis.com/epel-fuel-folsom-2.1/CentOS-6.3-x86_64-minimal.iso',
-  $ks_url   = 'http://download.mirantis.com/epel-fuel-folsom-2.1/mirror.external.list'
+  $ks_url   = 'http://download.mirantis.com/epel-fuel-folsom-2.1'
   ) {
 
   Exec {path => '/usr/bin:/bin:/usr/sbin:/sbin'}

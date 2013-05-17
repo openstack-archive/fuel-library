@@ -29,6 +29,10 @@ class cobbler::profile::centos63_x86_64(
               {
               "name" => "Mirantis-CentOS-minimal",
               "url"  => "http://download.mirantis.com/centos-minimal",
+              },
+              {
+              "name" => "Mirantis-epel-fuel-install",
+              "url"  => "http://download.mirantis.com/epel-fuel-folsom-2.1",
               }
               ],
 
