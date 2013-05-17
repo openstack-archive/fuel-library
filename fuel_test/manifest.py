@@ -2,7 +2,7 @@ from ipaddr import IPNetwork
 import re
 from fuel_test.helpers import load, write_config
 from fuel_test.root import root
-from fuel_test.settings import INTERFACES, TEST_REPO
+from fuel_test.settings import INTERFACES, TEST_REPO, DOMAIN_NAME
 
 
 class Template(object):
@@ -149,21 +149,21 @@ class Manifest(object):
         node_dict.update({'mountpoints': '1 2\n 2 1'})
         return node_dict
 
-    def generate_node_configs_list(self, nodes):
+    def generate_node_configs_list(self, ci, nodes):
         zones = range(1, 50)
         node_configs = []
 
-        for node in nodes.computes: node_configs.append(self.describe_node(node, 'compute'))
-        for node in nodes.controllers[:1]: node_configs.append(
-            self.describe_swift_node(node, 'primary-controller', zones.pop()))
-        for node in nodes.controllers[1:]: node_configs.append(self.describe_swift_node(node, 'controller', zones.pop()))
-        for node in nodes.storages: node_configs.append(self.describe_swift_node(node, 'storage', zones.pop()))
-        for node in nodes.proxies[:1]: node_configs.append(self.describe_node(node, 'primary-swift-proxy'))
-        for node in nodes.proxies[1:]: node_configs.append(self.describe_node(node, 'swift-proxy'))
-        for node in nodes.quantums: node_configs.append(self.describe_node(node, 'quantum'))
-        for node in nodes.masters: node_configs.append(self.describe_node(node, 'master'))
-        for node in nodes.cobblers: node_configs.append(self.describe_node(node, 'cobbler'))
-        for node in nodes.stomps: node_configs.append(self.describe_node(node, 'stomp'))
+        for node in nodes:
+            if node in ci.nodes().computes: node_configs.append(self.describe_node(node, 'compute'))
+            elif node in ci.nodes().controllers[:1]: node_configs.append(self.describe_swift_node(node, 'primary-controller', zones.pop()))
+            elif node in ci.nodes().controllers[1:]: node_configs.append(self.describe_swift_node(node, 'controller', zones.pop()))
+            elif node in ci.nodes().storages: node_configs.append(self.describe_swift_node(node, 'storage', zones.pop()))
+            elif node in ci.nodes().proxies[:1]: node_configs.append(self.describe_node(node, 'primary-swift-proxy'))
+            elif node in ci.nodes().proxies[1:]: node_configs.append(self.describe_node(node, 'swift-proxy'))
+            elif node in ci.nodes().quantums: node_configs.append(self.describe_node(node, 'quantum'))
+            elif node in ci.nodes().masters: node_configs.append(self.describe_node(node, 'master'))
+            elif node in ci.nodes().cobblers: node_configs.append(self.describe_node(node, 'cobbler'))
+            elif node in ci.nodes().stomps: node_configs.append(self.describe_node(node, 'stomp'))
 
         return node_configs
 
@@ -228,10 +228,15 @@ class Manifest(object):
             enable_test_repo=TEST_REPO,
         )
 
-    def generate_openstack_manifest(self, template, ci,
-                                    controllers, quantums, proxies=None,
-                                    use_syslog=True, quantum=True,
-                                    loopback=True, cinder=True,
+    def generate_openstack_manifest(self, template,
+                                    ci,
+                                    controllers,
+                                    quantums,
+                                    proxies=None,
+                                    use_syslog=True,
+                                    quantum=True,
+                                    loopback=True,
+                                    cinder=True,
                                     cinder_nodes=None,
                                     quantum_netnode_on_cnt=True,
                                     swift=True,
@@ -252,10 +257,10 @@ class Manifest(object):
             use_syslog=use_syslog,
             cinder=cinder,
             ntp_servers=['pool.ntp.org', ci.internal_router()],
-            nagios_master=controllers[0].name + '.your-domain-name.com',
+            nagios_master=controllers[0].name + DOMAIN_NAME,
             cinder_nodes=cinder_nodes,
             external_ipinfo=self.external_ip_info(ci, quantums),
-            nodes=self.generate_node_configs_list(ci),
+            nodes=self.generate_node_configs_list(ci, ci.nodes()),
             dns_nameservers=self.generate_dns_nameservers_list(ci),
             default_gateway=ci.public_router(),
             enable_test_repo=TEST_REPO,

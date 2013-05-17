@@ -37,13 +37,14 @@ class SimpleTestCase(CobblerTestCase):
         config = Config().generate(
             template=Template.simple(),
             ci=self.ci(),
-            nodes = self.ci().nodes(),
+            nodes = self.ci().nodes().computes + [self.ci().nodes().controllers[0]],
             quantum=True,
             cinder_nodes=['controller']
         )
         config_path = "/root/config.yaml"
         write_config(self.remote(), config_path, str(config))
-        self.remote().check_stderr("openstack_system -c config.yaml -o /etc/puppet/manifests/site.pp -a astute.yaml")
+        self.remote().check_call("cobbler_system -f %s" % config_path)
+        self.remote().check_stderr("openstack_system -c %s -o /etc/puppet/manifests/site.pp -a /root/astute.yaml" % config_path)
 
     def test_simple(self):
         self.deploy()

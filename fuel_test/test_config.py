@@ -15,7 +15,7 @@ class TestConfig(BaseTestCase):
     def test_generate_minimal(self):
         print Config().generate(
             ci=self.ci(),
-            nodes = self.ci().nodes().controllers + self.ci().nodes().computes,
+            nodes = self.nodes().controllers + self.nodes().computes,
             template=Template.minimal(),
             quantums=self.nodes().quantums,
             swift=False,
@@ -37,6 +37,7 @@ class TestConfig(BaseTestCase):
     def test_generate_full(self):
         print Config().generate(
             ci=self.ci(),
+            nodes=self.nodes().controllers,
             template=Template.full(),
             quantums=self.nodes().quantums,
             swift=False,
@@ -47,21 +48,26 @@ class TestConfig(BaseTestCase):
     def test_generate_simple(self):
         print Config().generate(
             ci=self.ci(),
+            nodes=self.nodes().storages + self.nodes().proxies + [self.nodes().controllers[0]],
             template=Template.simple())
 
 
     def test_generate_single(self):
         print Config().generate(
             ci=self.ci(),
+            nodes=[self.nodes().computes[0]],
             template=Template.single())
 
 
     def test_generate_stomp(self):
         print Config().generate(
             ci=self.ci(),
+            nodes=[self.nodes().computes[0]],
             template=Template.stomp())
 
 
 if __name__ == '__main__':
     unittest.main()
+
+
 
