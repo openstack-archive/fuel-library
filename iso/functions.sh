@@ -240,9 +240,9 @@ function menu_conf {
             4)
                 show_top
                 echo -n "Please enter PXE dhcp start address [${dhcp_start_address}]: "; read val
-                [ -z "$val" ] || dhcp_start_address=$val
+                validate_ip $val && dhcp_start_address=$val
                 echo -n "Please enter PXE dhcp end address [${dhcp_end_address}]: "; read val
-                [ -z "$val" ] || dhcp_end_address=$val
+                validate_ip $val && dhcp_end_address=$val
                 ;;
             5)
                 show_top
@@ -259,7 +259,7 @@ function menu_conf {
             9)
                 echo;echo "ATTENTION! The changes are permanent!"
                 echo -n "Are you sure about applying them? (y/N):"; read -n 1 answ
-                [[ $answ == "y" || $answ == "Y" ]] && endconf=1
+                [[ $answ =~ ^[yY] ]] && endconf=1
                 ;;
             esac
         done
