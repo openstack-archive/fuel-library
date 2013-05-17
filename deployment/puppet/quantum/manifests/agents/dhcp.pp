@@ -91,7 +91,7 @@ class quantum::agents::dhcp (
       primitive_class => 'ocf',
       provided_by     => 'pacemaker',
       primitive_type  => 'quantum-agent-dhcp',
-      require => File['quantum-agent-dhcp'],
+      require         => File['quantum-agent-dhcp'],
       parameters      => {
         'os_auth_url' => $auth_url,
         'tenant'      => $auth_tenant,
