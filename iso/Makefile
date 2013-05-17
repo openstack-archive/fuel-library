@@ -29,13 +29,13 @@ YUM_REPOS:=centos epel fuel_folsom puppetlabs rpmforge
 include $(SOURCE_DIR)/mirror/module.mk
 
 clean:
-	sudo rm -rf $(BUILD_DIR)
-	sudo rm -rf $(LOCAL_MIRROR)/ubuntu/dists
-	sudo rm -rf $(LOCAL_MIRROR)/ubuntu/etc
-	sudo rm -rf $(LOCAL_MIRROR)/ubuntu/var
+	rm -rf $(BUILD_DIR)
+	rm -rf $(LOCAL_MIRROR)/ubuntu/dists
+	rm -rf $(LOCAL_MIRROR)/ubuntu/etc
+	rm -rf $(LOCAL_MIRROR)/ubuntu/var
 
 deep_clean: clean
-	sudo rm -rf $(LOCAL_MIRROR)
+	rm -rf $(LOCAL_MIRROR)
 
 .PHONY: iso clean
 all: iso
