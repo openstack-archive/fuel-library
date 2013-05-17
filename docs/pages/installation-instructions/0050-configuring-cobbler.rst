@@ -41,7 +41,7 @@ Later, we'll set up a new partition for Cinder, so tell Cobbler to create it her
      pool_start: 192.168.0.110
      pool_end: 192.168.0.126
 
-Set the ``public_net_router`` to point to the real router at the public network.  The ``ext_bridge`` is the ip of the Quantum bridge. It should assigned to any available free IP on the public network that's outside the floating range.  You also have the option to simply set it to ``0.0.0.0``.  The ``pool_start`` and ``pool_end`` values represent the public addresses of your nodes, and should be within the ``floating_range``. ::
+Set the ``public_net_router`` to point to the real router at the public network.  The ``ext_bridge`` is the IP of the Quantum bridge. It should assigned to any available free IP on the public network that's outside the floating range.  You also have the option to simply set it to ``0.0.0.0``.  The ``pool_start`` and ``pool_end`` values represent the public addresses of your nodes, and should be within the ``floating_range``. ::
 
    segment_range: 900:999
    use_syslog: false
@@ -66,7 +66,8 @@ Depending on how you've set up your network, you can either set the ``default_ga
    nagios_master: fuel-controller-01.your-domain-name.com
    loopback: loopback
    cinder: true
-   cinder_nodes: [ 'controller' ]
+   cinder_nodes:
+   - controller
    swift: true
 
 The loopback setting determines how Swift stores data. If you set the value to ``loopback``, Swift will use 1gb files as storage devices. If you tuned Cobbler to create a partition for Swift and mounted it to ``/srv/nodes/``, then you should set ``loopback`` to ``false``.   

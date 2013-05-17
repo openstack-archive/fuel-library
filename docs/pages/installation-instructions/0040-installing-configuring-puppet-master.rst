@@ -53,9 +53,9 @@ for the purposes of this exercise we will assume the below network and
 ip assignments:
 
 
-#. 10.20.0.0/24: management or internal network, for communication between Puppet master and Puppet clients, as well as PXE/TFTP/DHCP for Cobbler
+#. 10.0.0.0/24: management or internal network, for communication between Puppet master and Puppet clients, as well as PXE/TFTP/DHCP for Cobbler
 #. 192.168.0.0/24: public network, for the High Availability (HA) Virtual IP (VIP), as well as floating IPs assigned to OpenStack guest VMs
-#. 10.20.1.0/24: private network, fixed IPs automatically assigned to guest VMs by OpenStack upon their creation 
+#. 10.0.1.0/24: private network, fixed IPs automatically assigned to guest VMs by OpenStack upon their creation 
 
 
 
@@ -72,10 +72,10 @@ on the interfaces:
 
 #. eth0: internal management network, where each machine will have a static IP address
 
-        * 10.20.0.100 for Puppet Master
-        * 10.20.0.101-10.0.0.103 for the controller nodes
-        * 10.20.0.110-10.0.0.126 for the compute nodes
-        * 10.20.0.10 internal Virtual IP for component access
+        * 10.0.0.100 for Puppet Master
+        * 10.0.0.101-10.0.0.103 for the controller nodes
+        * 10.0.0.110-10.0.0.126 for the compute nodes
+        * 10.0.0.10 internal Virtual IP for component access
         * 255.255.255.0 network mask
 
 #. eth1: public network
@@ -96,11 +96,11 @@ If you are on VirtualBox, create the following adapters:
 
 * VirtualBox -> Preferences...
     * Network -> Add HostOnly Adapter (vboxnet0)
-        * IPv4 Address:  10.20.0.1
+        * IPv4 Address:  10.0.0.1
         * IPv4 Network Mask:  255.255.255.0
         * DHCP server: disabled
     * Network -> Add HostOnly Adapter (vboxnet1)
-        * IPv4 Address:  10.20.1.1
+        * IPv4 Address:  10.0.1.1
         * IPv4 Network Mask:  255.255.255.0
         * DHCP server: disabled
     * Network -> Add HostOnly Adapter (vboxnet2)
