@@ -56,7 +56,7 @@ class Config():
                   "mirror_type": Manifest().mirror_type(),
                   "nagios_master": ci.nodes().controllers[0].name + DOMAIN_NAME,
                   "network_manager": "nova.network.manager.FlatDHCPManager",
-                  "nv_physical_volumes": ["/dev/sdb"],
+                  "nv_physical_volumes": ["/dev/vdb"],
                   "private_interface": Manifest().private_interface(),
                   "public_interface": Manifest().public_interface(),
                   "public_netmask": ci.public_net_mask(),
