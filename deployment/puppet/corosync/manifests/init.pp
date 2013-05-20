@@ -73,7 +73,8 @@ class corosync (
   $unicast_addresses = undef,
   $force_online      = false,
   $check_standby     = false,
-  $debug             = false,) {
+  $debug             = false,
+) {
   # Making it possible to provide data with parameterized class declarations or
   # Console.
   
