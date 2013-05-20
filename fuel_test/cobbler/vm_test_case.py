@@ -53,7 +53,9 @@ class CobblerTestCase(BaseTestCase):
 
     def prepare_cobbler_environment(self):
         self.deploy_cobbler()
-        if not USE_ISO:
+        if USE_ISO:
+            self.configure_cobbler(self.ci().nodes().masters[0])
+        else:
             self.configure_cobbler(self.ci().nodes().cobblers[0])
         self.deploy_nodes()
 
@@ -115,8 +117,7 @@ class CobblerTestCase(BaseTestCase):
             profile = 'centos63_x86_64'
         else:
             profile = 'ubuntu_1204_x86_64'
-        client.modify_system_args(
-            system_id, token,
+        client.modify_system_args(system_id, token,
             ks_meta=Config().get_ks_meta('master.your-domain-name.com',
                                          stomp_name),
             name=node_name,
@@ -154,8 +155,7 @@ class CobblerTestCase(BaseTestCase):
         )
 
     def configure_cobbler(self, cobbler):
-        client = CobblerClient(
-            cobbler.get_ip_address_by_network_name('internal'))
+        client = CobblerClient(cobbler.get_ip_address_by_network_name('internal'))
         token = client.login('cobbler', 'cobbler')
         master = self.environment().node_by_name('master')
         for node in self.ci().client_nodes():
@@ -163,8 +163,7 @@ class CobblerTestCase(BaseTestCase):
                           token,
                           cobbler,
                           node,
-                          gateway=cobbler.get_ip_address_by_network_name(
-                              'internal'),
+                          gateway=cobbler.get_ip_address_by_network_name('internal'),
                           net_mask=self.ci().internal_net_mask()
             )
 
@@ -185,8 +184,7 @@ class CobblerTestCase(BaseTestCase):
         for node in self.ci().client_nodes():
             node.start()
         for node in self.ci().client_nodes():
-            await_node_deploy(
-                cobbler.get_ip_address_by_network_name('internal'), node.name)
+            await_node_deploy(cobbler.get_ip_address_by_network_name('internal'), node.name)
         for node in self.ci().client_nodes():
             try:
                 node.await('internal')
