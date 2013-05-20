@@ -1,0 +1,1 @@
+This section explains how to perform tasks that go beyond a simple OpenStack cluster, from configuring OpenStack Networking for high-availability to adding your own custom components to your cluster using Fuel.

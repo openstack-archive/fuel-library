@@ -13,5 +13,6 @@ Table of contents
    pages/0040-reference-architecture
    pages/0050-installation-instructions
    pages/0055-production-considerations
+   pages/0058-advanced-configuration
    pages/0060-frequently-asked-questions
    pages/0090-creating-fuel-pm-from-scratch
