@@ -35,15 +35,15 @@ fi
 apply_settings
 
 # Installing puppetmaster/cobbler node role
-echo;echo "Provisioning masternode role ..."
+echo;echo "Provisioning Master Node role ..."
 (
 mkdir -p /var/lib/puppet/ssh_keys
 [ -f /var/lib/puppet/ssh_keys/openstack ] || ssh-keygen -f /var/lib/puppet/ssh_keys/openstack -N ''
 chown root:puppet /var/lib/puppet/ssh_keys/openstack*
 chmod g+r /var/lib/puppet/ssh_keys/openstack*
 puppet apply -e "
-    class {openstack::mirantis_repos: enable_epel => true } ->
-    class {puppet: } -> class {puppet::thin:} -> class {puppet::nginx: puppet_master_hostname => \"$hstname.$domain\"}
+    class {openstack::mirantis_repos: enable_epel => false } ->
+    class {puppet: } -> class {puppet::thin:} -> class {puppet::nginx: puppet_master_hostname => \"$hostname.$domain\"}
     "
 puppet apply -e "
     class {puppet::fileserver_config: } "
@@ -90,7 +90,7 @@ puppet apply -e "
         arch      => 'x86_64',
         breed     => 'redhat',
         osversion => 'rhel6',
-        ksmeta    => 'tree=http://mirror.stanford.edu/yum/pub/centos/6.3/os/x86_64', }
+        ksmeta    => 'tree=http://archive.kernel.org/centos/6.3/os/x86_64', }
     class { 'cobbler::profile::centos63_x86_64': }"
 
 puppet apply -e '
