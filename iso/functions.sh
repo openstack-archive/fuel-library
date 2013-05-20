@@ -38,7 +38,7 @@ function save_if_cfg {
 
 function default_settings {
     hostname="fuel-pm"
-    domain="local"
+    domain="your-domain-name.com"
     mgmt_if="eth0"
     mgmt_ip="10.0.0.100"
     mgmt_mask="255.255.0.0"
