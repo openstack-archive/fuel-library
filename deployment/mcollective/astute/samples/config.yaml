@@ -26,7 +26,7 @@ common:
    quantum_netnode_on_cnt: true
    use_syslog: true
    syslog_server: 10.49.63.12
-   mirror_type: custom
+   mirror_type: default
    quantum: true
    internal_interface: eth0
    public_interface: eth1
