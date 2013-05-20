@@ -30,7 +30,7 @@ class selinux::config(
   if $mode == 'enforcing' or $mode == 'permissive' or $mode == 'disabled' {
     exec { "set-selinux-config-to-${mode}":
       command => "sed -i \"s@^\\(SELINUX=\\).*@\\1${mode}@\" /etc/selinux/config",
-      command => "rm -f /.autorelabel"
+      command => "rm -f /.autorelabel", 
       unless  => "grep -q \"SELINUX=${mode}\" /etc/selinux/config",
     }
 
