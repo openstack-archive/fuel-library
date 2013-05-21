@@ -269,22 +269,13 @@ class quantum::agents::l3 (
     
     Cs_resource["p_${::quantum::params::l3_agent_service}"] -> Cs_colocation['l3-with-ovs']
     Cs_resource["p_${::quantum::params::l3_agent_service}"] -> Cs_order['l3-after-ovs']
+
     cs_colocation { 'l3-with-ovs':
       ensure     => present,
       cib        => 'l3',
       primitives => ["p_${::quantum::params::l3_agent_service}", "p_${::quantum::params::ovs_agent_service}"],
       score      => 'INFINITY',
     }
-
-    # start DHCP and L3 agents on different controllers if it's possible
-    cs_colocation { 'dhcp-without-l3':
-      ensure     => present,
-      cib        => 'dhcp',
-      primitives => ["p_${::quantum::params::dhcp_agent_service}", "p_${::quantum::params::l3_agent_service}"],
-      score      => -100,
-    }
-    Cs_colocation['l3-with-ovs'] -> Cs_colocation['dhcp-without-l3']
-    Cs_colocation['dhcp-with-ovs'] -> Cs_colocation['dhcp-without-l3']
 
     cs_order { 'l3-after-ovs':
       ensure => present,
