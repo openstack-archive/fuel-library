@@ -16,11 +16,11 @@ Puppet::Type.newtype(:l2_ovs_bond) do
     end
 
     newparam(:ports) do
-      desc "List of ports, that will be added to the bond"
+      desc "List of ports that will be added to the bond"
       #
       validate do |val|
         if not val.is_a?(Array)
-          fail("Ports option must be array (not be #{val.class}).")
+          fail("Ports parameter must be an array (not #{val.class}).")
         end
         for port in val
           if not port =~ /^[a-z][0-9a-z\.\-\_]*[0-9a-z]$/
@@ -32,7 +32,7 @@ Puppet::Type.newtype(:l2_ovs_bond) do
 
     newparam(:skip_existing) do
       defaultto(false)
-      desc "Allow skip existing bond"
+      desc "Allow to skip existing bond"
     end
 
     newparam(:properties) do

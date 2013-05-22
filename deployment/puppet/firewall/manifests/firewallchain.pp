@@ -1,4 +1,0 @@
-class firewallchain (
-  $ensure = present,
-) {
-}

@@ -2,16 +2,33 @@
 
 function set_if_conf {
     echo
-    echo -n "Should we use DHCP for that interface (Y/n)?";read -n 1 dhcpsw
+    echo -n "Should we use DHCP for the ${intf} interface (Y/n)?";read -n 1 dhcpsw
     if [[ $dhcpsw == "n" || $dhcpsw == "N" ]]; then
         echo
-        echo -n "Enter ip: "; read ${intf}_ip;
-        echo -n "Enter netmask: "; read ${intf}_mask
-        echo -n "Enter default gw: "; read ${intf}_gw
-        echo -n "Enter First DNS server: "; read ${intf}_dns1
-        echo -n "Enter Second DNS server: "; read ${intf}_dns2
+		eval "ip=\${${intf}_ip}"
+        echo -n "Enter IP address [$ip]: "; read val
+        [ -z "$val" ] || ip=$val
+		[ -z "$ip" ] && echo "No IP entered - will use DHCP" && return
+		eval ${intf}_ip="$ip"
+		eval "mask=\${${intf}_mask}"
+		[ -z "$mask" ] && mask="255.255.255.0"
+        echo -n "Enter netmask [$mask]: "; read val
+        [ -z "$val" ] || mask=$val
+		eval ${intf}_mask="$mask"
+		eval "gw=\${${intf}_gw}"
+        echo -n "Enter default gateway [$gw]: "; read val
+        [ -z "$val" ] || gw=$val
+		eval ${intf}_gw="$gw"
+		eval "dns1=\${${intf}_dns1}"
+        echo -n "Enter the 1st DNS server [$dns1]: "; read val
+        [ -z "$val" ] || dns1=$val
+		eval ${intf}_dns1="$dns1"
+		eval "dns2=\${${intf}_dns2}"
+        echo -n "Enter the 2nd DNS server [$dns2]: "; read val
+        [ -z "$val" ] || dns2=$val
+		eval ${intf}_dns2="$dns2"
     else
-        eval ${intf}_ip="";eval ${intf}_mask="";eval ${intf}_gw="";eval ${intf}_dns1="";eval ${intf}_dns2=""
+        eval ${intf}_ip=""; eval ${intf}_mask=""; eval ${intf}_gw=""; eval ${intf}_dns1=""; eval ${intf}_dns2=""
     fi
     echo
 }
@@ -37,8 +54,9 @@ function save_if_cfg {
 }
 
 function default_settings {
+
     hostname="fuel-pm"
-    domain="local"
+    domain="your-domain-name.com"
     mgmt_if="eth0"
     mgmt_ip="10.0.0.100"
     mgmt_mask="255.255.0.0"
@@ -46,11 +64,35 @@ function default_settings {
     dhcp_start_address="10.0.0.201"
     dhcp_end_address="10.0.0.254"
     mirror_type="default"
+
+    # Read settings from file
+    [ -f $FUELCONF ] && source $FUELCONF
+
 }
 
 function apply_settings {
     echo;echo "Applying settings ..."
 
+# Let's save settings in rc file for future use
+    echo "hostname=$hostname" > $FUELCONF
+    echo "domain=$domain" >> $FUELCONF
+    echo "dhcp_start_address=${dhcp_start_address}" >> $FUELCONF
+    echo "dhcp_end_address=${dhcp_end_address}" >> $FUELCONF
+    echo "mirror_type=${mirror_type}" >> $FUELCONF
+    echo "parent_proxy=${parent_proxy}" >> $FUELCONF
+    echo "mgmt_if=$mgmt_if" >> $FUELCONF
+    echo "mgmt_ip=${mgmt_ip}" >> $FUELCONF
+    echo "mgmt_mask=${mgmt_mask}" >> $FUELCONF
+    echo "mgmt_gw=$mgmt_gw" >> $FUELCONF
+    echo "mgmt_dns1=$mgmt_dns1" >> $FUELCONF
+    echo "mgmt_dns2=$mgmt_dns2" >> $FUELCONF
+    echo "ext_if=$ext_if" >> $FUELCONF
+    echo "ext_ip=${ext_ip}" >> $FUELCONF
+    echo "ext_mask=${ext_mask}" >> $FUELCONF
+    echo "ext_gw=$ext_gw" >> $FUELCONF
+    echo "ext_dns1=$ext_dns1" >> $FUELCONF
+    echo "ext_dns2=$ext_dns2" >> $FUELCONF
+	
 # Network interfaces settings apply
     for iftype in ext mgmt
     do
@@ -65,7 +107,7 @@ function apply_settings {
     done
 
 # Cobbler settings apply
-    : ${server:=$mgmt_ip}
+    : ${server=$mgmt_ip}
     : ${domain_name=$domain}
     : ${name_server=$mgmt_ip}
     : ${next_server=$mgmt_ip}
@@ -92,42 +134,43 @@ function apply_settings {
 }
 
 function show_top {
-clear
-echo "Domain: $domain"
-echo "Hostname: $hostname"
-echo "PXE range: $dhcp_start_address - $dhcp_end_address"
-echo "Mirror set to use: $mirror_type"
-echo -n "Parent proxy: "
-if [ -z "$parent_proxy" ];then echo "none (direct access)"
-else
-echo $parent_proxy
-fi
-column -t -s% <(
-echo "Management interface: $mgmt_if%External interface: $ext_if"
-echo "IP address: ${mgmt_ip:="DHCP"}%IP address: ${ext_ip:="DHCP"}"
-echo "Netmask: $mgmt_mask%Netmask: $ext_mask"
-echo "Gateway: $mgmt_gw%Gateway:$ext_gw"
-echo "DNS Server 1: $mgmt_dns1%DNS Server 1: $ext_dns1"
-echo "DNS Server 2: $mgmt_dns2%DNS Server 2: $ext_dns2"
-echo
-)
-echo
+    clear
+    echo "Hostname: $hostname"
+    echo "Domain: $domain"
+    echo "PXE dhcp range: ${dhcp_start_address} - ${dhcp_end_address}"
+    echo "Mirror set to use: ${mirror_type}"
+    echo -n "Parent proxy: "
+    if [ -z "${parent_proxy}" ];then 
+        echo "none (direct access)"
+    else
+        echo $parent_proxy
+    fi
+    column -t -s% <(
+        echo "Management interface: $mgmt_if%External interface: $ext_if"
+        echo "IP address: ${mgmt_ip:-"DHCP"}%IP address: ${ext_ip:-"DHCP"}"
+        echo "Netmask: $mgmt_mask%Netmask: $ext_mask"
+        echo "Gateway: $mgmt_gw%Gateway:$ext_gw"
+        echo "DNS Server 1: $mgmt_dns1%DNS Server 1: $ext_dns1"
+        echo "DNS Server 2: $mgmt_dns2%DNS Server 2: $ext_dns2"
+        echo
+    )
+    echo
 }
 
 function show_msg {
-echo "Menu:"
-echo "1. Change FQDN for masternode and cloud domain"
-echo "2. Configure openstack cloud management interface"
-echo "3. Configure external interface with repositories/internet access"
-echo "4. Change IP range to use for baremetal provisioning via PXE"
-echo "5. Choose set of mirror to use (default/custom)"
-echo "6. Configure to use parent proxy"
-echo "9. Quit"
-echo -n "Please, select an action to do:"
+    echo "Menu:"
+    echo "1. Change MasterNode hostname and domain"
+    echo "2. Configure OpenStack cloud management interface"
+    echo "3. Configure external interface to access package repositories and Internet"
+    echo "4. Change dhcp IP range to use for baremetal provisioning via PXE"
+    echo "5. Choose a set of mirrors to use ('default' or 'custom')"
+    echo "6. Configure MasterNode to use a parent proxy"
+    echo "9. Quit"
+    echo -n "Please select an action to do:"
 }
 
 function menu_conf {
-    if [ $? -gt 128 -a -f /root/fuel.defaults ]; then
+    if [ -f /root/fuel.defaults ]; then
         source /root/fuel.defaults
         endconf=1
     else
@@ -139,47 +182,57 @@ function menu_conf {
             case $answer in
             1)
                 show_top
-                echo "WARNING. Changing master hostname or domain name will make you existing puppet"
-                echo "keys and configuration files invalid!!!"
-                echo "If you already have deployed any nodes using current hostname or domain name,"
+                echo "WARNING! Changing MasterNode hostname or domain name will make your existing"
+                echo "puppet keys and configuration files invalid!!!"
+                echo "If you have already deployed any nodes using current hostname or domain name"
                 echo "you have either to re-deploy existing nodes including operating system"
                 echo "installation or manually remove puppet cache and keys on every deployed node"
                 echo "with 'rm -rf /var/lib/puppet' and manually change all affected puppet and"
                 echo "mcollective configuration files!"
-                echo "If there is no deployed nodes in your current installation - then it is safe"
-                echo "to change hostname and domain name."
+                echo "If there are no deployed nodes in your current installation - then it is safe"
+                echo "to change MasterNode hostname and domain name."
                 echo "This script will remove current puppet master key automatically."
                 echo
-                echo -n "Please enter hostname for this puppetmaster/cobbler: "; read hostname
-                echo -n "Please enter domain name for this cloud: "; read domain
+                echo -n "Please enter hostname for this puppetmaster/cobbler MasterNode [$hostname]: "; read val
+				[ -z "$val" ] || hostname=$val
+                echo -n "Please enter domain name for this OpenStack cloud [$domain]: "; read val
+				[ -z "$val" ] || domain=$val
                 ;;
             2)
                 show_top
-                echo -n "Please specify interface to use for management network: "; read mgmt_if
+                echo -n "Please specify the network interface to use for management network [${mgmt_if}]: "; read val
+				[ -z "$val" ] || mgmt_if=$val
                 intf="mgmt"
                 set_if_conf
                 ;;
             3)
                 show_top
-                echo -n "Please specify interface to access repositories/internet: "; read ext_if
+                echo -n "Please specify the network interface to access package repositories and Internet [${ext_if}]: "; read val
+				[ -z "$val" ] || ext_if=$val
                 intf="ext"
                 set_if_conf
-                ;;
+				;;
             4)
                 show_top
-                echo -n "Please enter start address: "; read dhcp_start_address
-                echo -n "Please enter end address: "; read dhcp_end_address
+                echo -n "Please enter PXE dhcp start address [${dhcp_start_address}]: "; read val
+				[ -z "$val" ] || dhcp_start_address=$val
+                echo -n "Please enter PXE dhcp end address [${dhcp_end_address}]: "; read val
+				[ -z "$val" ] || dhcp_end_address=$val
                 ;;
             5)
                 show_top
-                echo -n "Please select set of mirrors to use(default/custom): "; read mirror_type
+                echo -n "Please type a set of mirrors to use ('default' or 'custom') [${mirror_type}]: "; read val
+                if [ -n "$val" ]; then
+                    [[ "$val" == "default" || "$val" == "custom" ]] && mirror_type=$val
+                fi
                 ;;
             6)
-            show_top
-            echo -n "Please specify parent proxy to use (ex: 11.12.13.14:3128 ): "; read parent_proxy
+                show_top
+                echo -n "Please specify MasterNode parent proxy address and port to be used (ex: 11.12.13.14:3128 ) [${parent_proxy}]: "; read val
+				[ -z "$val" ] || parent_proxy=$val
                 ;;
             9)
-                echo;echo "Those changes are permanent!"
+                echo;echo "ATTENTION! The changes are permanent!"
                 echo -n "Are you sure about applying them? (y/N):"; read -n 1 answ
                 [[ $answ == "y" || $answ == "Y" ]] && endconf=1
                 ;;

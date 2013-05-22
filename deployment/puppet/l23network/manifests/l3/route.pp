@@ -12,7 +12,7 @@
 #   Specify gateway. Required.
 #
 # [*metric*]
-#   Specify metroc for this route. Undefined by default.
+#   Specify metric for this route. Undefined by default.
 #
 define l23network::l3::route (
     $gateway,

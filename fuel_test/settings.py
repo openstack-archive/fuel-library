@@ -57,7 +57,7 @@ ADMIN_PASSWORD = 'nova'
 ADMIN_TENANT_ESSEX = 'openstack'
 ADMIN_TENANT_FOLSOM = 'admin'
 
-CIRROS_IMAGE = 'http://srv08-srt.srt.mirantis.net/cirros-0.3.0-x86_64-disk.img'
+CIRROS_IMAGE = os.environ.get('CIRROS_IMAGE', 'http://srv08-srt.srt.mirantis.net/cirros-0.3.0-x86_64-disk.img')
 CONTROLLERS = int(os.environ.get('CONTROLLERS', 3))
 COMPUTES = int(os.environ.get('COMPUTES', 3))
 STORAGES = int(os.environ.get('STORAGES', 3))

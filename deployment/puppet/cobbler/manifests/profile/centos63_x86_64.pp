@@ -1,4 +1,4 @@
-#
+# 
 # This class is intended to make cobbler profile centos63_x86_64.
 #
 # [distro] The name of cobbler distro to bind profile to.
@@ -14,22 +14,27 @@
 class cobbler::profile::centos63_x86_64(
   $distro  = "centos63_x86_64",
   $ks_repo = [
+#              {
+#              "name" => "Puppet",
+#              "url"  => "http://yum.puppetlabs.com/el/6/products/x86_64",
+#              },
+#              {
+#              "name" => "PuppetDeps",
+#              "url"  => "http://yum.puppetlabs.com/el/6/dependencies/x86_64",
+#              },
+#              {
+#              "name" => "Centos-archive-base",
+#              "url"  => "http://archive.kernel.org/centos/6.3/os/x86_64",
+#              },
               {
-              "name" => "Puppet",
-              "url"  => "http://yum.puppetlabs.com/el/6/products/x86_64",
+              "name" => "Mirantis-CentOS-minimal",
+              "url"  => "http://download.mirantis.com/centos-minimal",
               },
               {
-              "name" => "PuppetDeps",
-              "url"  => "http://yum.puppetlabs.com/el/6/dependencies/x86_64",
-              },
-              {
-              "name" => "Stanford",
-              "url"  => "http://mirror.stanford.edu/yum/pub/centos/6.3/os/x86_64",
-              },
-              {
-              "name" => "Epel",
-              "url"  => "http://dl.fedoraproject.org/pub/epel/6/x86_64",
-              }],
+              "name" => "Mirantis-epel-fuel-install",
+              "url"  => "http://download.mirantis.com/epel-fuel-folsom-2.1",
+              }
+              ],
 
   $ks_system_timezone         = "America/Los_Angeles",
 

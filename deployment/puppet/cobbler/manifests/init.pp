@@ -27,7 +27,7 @@ class cobbler(
 
   $server             = $ipaddress,
 
-  $domain_name        = 'your-domain-name.com',
+  $domain_name        = 'local',
   $name_server        = $ipaddress,
   $next_server        = $ipaddress,
 
