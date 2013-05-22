@@ -1,7 +1,7 @@
 import unittest
 from fuel_test.cobbler.cobbler_test_case import CobblerTestCase
 from fuel_test.manifest import Manifest
-from fuel_test.settings import OPENSTACK_SNAPSHOT, CREATE_SNAPSHOTS
+from fuel_test.settings import OPENSTACK_SNAPSHOT, CREATE_SNAPSHOTS, DEBUG
 
 
 class SingleTestCase(CobblerTestCase):
@@ -11,9 +11,13 @@ class SingleTestCase(CobblerTestCase):
             ci=self.ci(),
             quantum=False,
         )
+        if DEBUG:
+            extargs = ' -vd --evaltrace'
+        else:
+            extargs = ''
         self.validate(
             self.nodes().controllers[:1],
-            'puppet agent --test 2>&1')
+            'puppet agent --test'+extargs+' 2>&1')
         if CREATE_SNAPSHOTS:
             self.environment().snapshot(OPENSTACK_SNAPSHOT, force=True)
 
