@@ -16,22 +16,22 @@ For the purposes of this discussion, the main difference between these two scena
 
 In most cases, best practices dictate that you deploy and test OpenStack first, and then add any custom services. Fuel works using puppet manifests, so the simplest way to install a new service is to edit the current site.pp file on the Puppet master machine and start an additional deployment paths on the target node.
 
-While that is the ideal means for installing a new service or component, it’s not an option in situations in which OpenStack actually requires the new service or component. For example, hardware drivers and management software often must be installed before OpenStack itself. You still, however, have the option to create a separate customized site.pp file and run a deployment pass before installing OpenStack. One advantage to this method is that any version mismatches between the component and OpenStack dependencies should be easy to isolate.
+While that is the ideal means for installing a new service or component, it's not an option in situations in which OpenStack actually requires the new service or component. For example, hardware drivers and management software often must be installed before OpenStack itself. You still, however, have the option to create a separate customized site.pp file and run a deployment pass before installing OpenStack. One advantage to this method is that any version mismatches between the component and OpenStack dependencies should be easy to isolate.
 
-Finally, if this is not an option, you can inject a custom component installation into the existing fuel manifests. If you elect to go this route, you’ll need to be aware of software source compatibility issues, as well as installation stages, component versions, incompatible dependencies, and declared resource names.
+Finally, if this is not an option, you can inject a custom component installation into the existing fuel manifests. If you elect to go this route, you'll need to be aware of software source compatibility issues, as well as installation stages, component versions, incompatible dependencies, and declared resource names.
 
 In short, simple custom component installation may be accomplished by editing the site.pp file, but more complex components should be added as new Fuel components. 
 
-Let’s look at what you need to know.
+Let's look at what you need to know.
 
 Installing the new service along with Fuel
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-When it comes to installing your new service or component alongside Fuel, you have several options. How you go about it depends on where in the process the component needs to be available. Let’s look at each step and how it can impact your installation.
+When it comes to installing your new service or component alongside Fuel, you have several options. How you go about it depends on where in the process the component needs to be available. Let's look at each step and how it can impact your installation.
 
 **Boot the master node**
 
-In most cases, you will be installing the master node from the Fuel ISO. This is a semiautomatic step, and doesn’t allow for any custom components. If for some reason you need to install a node at this level, you will need to use the manual Fuel installation procedure.
+In most cases, you will be installing the master node from the Fuel ISO. This is a semiautomatic step, and doesn't allow for any custom components. If for some reason you need to install a node at this level, you will need to use the manual Fuel installation procedure.
 
 **Cobbler configuration**
 
@@ -55,7 +55,7 @@ This step actually includes several different stages. (In fact, Puppet STDLib de
 
 **Post-OpenStack install**
 
-At this point, OpenStack is installed. You may add any components you like at this point, as long as they don’t break OpenStack itself.
+At this point, OpenStack is installed. You may add any components you like at this point, as long as they don't break OpenStack itself.
 
 Defining a new component
 ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -67,7 +67,7 @@ In general, we recommend you follow these steps to define a new component:
    Declare a custom stage or stages to help Puppet understand the required installation sequence.
    Stages are special markers indicating the sequence of actions. Best practice is to use the input parameter Before for every stage, to help define the correct sequence. The default built-in stage is "main". Every Puppet action is automatically assigned to the main stage if no stage is explicitly specified for the action. However, because Fuel installs almost all of OpenStack during the main stage, custom stages may not help, so future plans include breaking the OpenStack installation to several stages.
 
-   Don’t forget to take into account other existing stages; training several parallel sequences of stages increases the chances that Puppet will order them in correctly if you do not explicitly specify the order.
+   Don't forget to take into account other existing stages; training several parallel sequences of stages increases the chances that Puppet will order them in correctly if you do not explicitly specify the order.
 
    *Example*::
    
@@ -92,7 +92,7 @@ In general, we recommend you follow these steps to define a new component:
 
    It is also a good idea to assign all common operating system or condition-dependent variables to a single location, preferably near the other common variables. Also, be sure to always use a default section when defining conditional operators.
 
-   *Example*::
+*Example*::
 
    case $::osfamily {
       # RedHat in most cases should work for CentOS and Fedora as well
@@ -115,7 +115,7 @@ In general, we recommend you follow these steps to define a new component:
 
    You can think of public classes as singleton collections, or simply as a named block of code with its own namespace. Each class should be defined only once, but every class may be used with different input variable sets. The best practice is to define a separate class for every component, define required sub-classes for sub-components, and include class-dependent required resources within the actual class/subclass.
 
-   *Example*::
+*Example*::
 
    class add_custom_service (
       # Input parameter definitions:
@@ -168,9 +168,10 @@ In general, we recommend you follow these steps to define a new component:
 #. **Target nodes**
 
    Every component should be explicitly assigned to a particular target node or nodes.  
-   To do that, declare the node or nodes within site.pp. When Puppet runs the manifest for each node, it compares each node definition with the name of the current hostname and applies only to classes assigned to the current node.  Node definitions may include regular expressions. For example, you can apply the class “add custom service” to all controller nodes with hostnames fuel-controller-00 to fuel-controller-xxx, where xxx – any integer value using the following definition:
+   To do that, declare the node or nodes within site.pp. When Puppet runs the manifest for each node, it compares each node definition with the name of the current hostname and applies only to classes assigned to the current node.  Node definitions may include regular expressions. For example, you can apply the class 'add custom service' to all controller nodes with hostnames fuel-controller-00 to fuel-controller-xxx, where xxx = any integer value using the following definition:
 
-   *Example*::
+*Example*::
+
    node /fuel-controller-[\d+]/ {
      include stdlib
      class { 'add_custom_service':
@@ -182,7 +183,7 @@ In general, we recommend you follow these steps to define a new component:
    }
 
 FUEL API Reference
-------------------   
+^^^^^^^^^^^^^^^^^^   
 
 **add_haproxy_service**
 Location: Top level
@@ -199,25 +200,26 @@ As the name suggests, this function enables you to create a new HAProxy service.
 
 To accomplish this, you might create a Fuel statement such as::
 
-    add_haproxy_service { ‘keystone-2’ :
+    add_haproxy_service { 'keystone-2' :
         order => 30,
-        balancers => $balancers,
-        virtual_ips => $virtual_ips,
-        port => $port,
-        haproxy_config_options => $haproxy_config_options,
-        balancer_port => $balancer_port,
-        balancermember_options => $balancermember_options,
-        mode => $mode, #Optional. Default is 'tcp'.
-        define_cookies => $define_cookies, #Optional. Default false.
-        define_backend => $define_backend,#Optional. Default false.
-        collect_exported => $collect_exported, #Optional. Default false.
+        balancers => {'fuel-controller-01.msk.mirantis.net' => '10.0.0.101', 
+                      'fuel-controller-02.msk.mirantis.net' => '10.0.0.102'},
+        virtual_ips => {'10.0.74.253', '10.0.0.110'},
+        port => '35357',
+        haproxy_config_options => { 'option' => ['httplog'], 'balance' => 'roundrobin' },
+        balancer_port => '35357',
+        balancermember_options => 'check',
+        mode => 'tcp',
+        define_cookies => false,
+        define_backend => false,
+        collect_exported => false
         }
 
-Let’s look at how the command works.
+Let's look at how the command works.
 
 **Usage:** ::
 
-    add_haproxy_service { ‘<SERVICE_NAME>’ :
+    add_haproxy_service { '<SERVICE_NAME>' :
         order => $order,
         balancers => $balancers,
         virtual_ips => $virtual_ips,
@@ -233,19 +235,24 @@ Let’s look at how the command works.
 
 **Parameters:**
 
-``<’Service name’>``
+``<'Service name'>``
+
 The name of the new HAProxy listener section. In our example it was ``keystone-2``. If you want to include an IP address or port in the listener name, you have the option to use a name such as:: 
 
-    ‘stats 0.0.0.0:9000       #Listen on all IP's on port 9000’
+    'stats 0.0.0.0:9000       #Listen on all IP's on port 9000'
 
 ``order``
+
 This parameter determines the order of the file fragments. It is optional, but we strongly recommend setting it manually.
 Fuel already has several different order values from 1 to 100 hardcoded for HAProxy configuration. So if your HAProxy configuration fragments appear in the wrong places in ``/etc/haproxy/haproxy.cfg``, it is probably because of an incorrect order value. It is safe to set order values greater than 100 in order to place your custom configuration block at the end of ``haproxy.cfg``.
+
 Puppet assembles configuration files from fragments. First it creates several configuration fragments and temporarily stores all of them as separate files. Every fragment has a name such as ``${order}-${fragment_name}``, so the order determines the number of the current fragment in the fragment sequence.
 After all the fragments are created, Puppet reads the fragment names and sorts them in ascending order, concatenating all the fragments in that order. So a fragment with a smaller order value always goes before all fragments with a greater order value.
-The ``keystone-2`` fragment from the example above has ``order = 30`` so it’s placed after the ``keystone-1`` section (``order = 20``) and the ``nova-api-1`` section (order = 40).
+
+The ``keystone-2`` fragment from the example above has ``order = 30`` so it's placed after the ``keystone-1`` section (``order = 20``) and the ``nova-api-1`` section (order = 40).
 
 ``balancers``
+
 Balancers (or **Backends** in HAProxy terms) are a hash of ``{ "$::hostname" => $::ipaddress }`` values.
 The default is ``{ "<current hostname>" => <current ipaddress> }``, but that value is set for compatability only, and may not work correctly in HA mode.  Instead, the default for HA mode is to explicitly set the Balancers as ::
 
@@ -254,7 +261,8 @@ The default is ``{ "<current hostname>" => <current ipaddress> }``, but that val
   }
 
 which ``$controller_internal_addresses`` representing a hash of all the controllers with a corresponding internal IP address; this value is set in ``site.pp``.
-So, the ``balancers`` parameter is a list of HAProxy listener balance members (hostnames) with corresponding IP addresses. The following strings from the ``keystone-2`` listener example represent balancers::
+
+So the ``balancers`` parameter is a list of HAProxy listener balance members (hostnames) with corresponding IP addresses. The following strings from the ``keystone-2`` listener example represent balancers::
 
     server  fuel-controller-01.msk.mirantis.net 10.0.0.101:35357   check  
     server  fuel-controller-02.msk.mirantis.net 10.0.0.102:35357   check  
@@ -262,12 +270,14 @@ So, the ``balancers`` parameter is a list of HAProxy listener balance members (h
 Every key pair in the ``balancers`` hash adds a new string to the list of listener section balancers. Different options may be set for every string.
 
 ``virtual_ips``
+
 This parameter represents an array of IP addresses (or **Frontends** in HAProxy terms) of the current listener. Every IP address in this array adds a new string to the bind section of the current listeners. The following strings from the ``keystone-2`` listener example represent virtual IPs::
 
     bind 10.0.74.253:35357
     bind 10.0.0.110:35357
 
 ``port``
+
 This parameters specifies the frontend port for the listeners. Currently you must set the same port frontends.
 The following strings from the ``keystone-2`` listener example represent the frontend port, where the port is 35357::
 
@@ -275,30 +285,38 @@ The following strings from the ``keystone-2`` listener example represent the fro
     bind 10.0.0.110:35357
 
 ``haproxy_config_options``
+
 This parameter represents a hash of key pairs of HAProxy listener options in the form ``{ 'option name' => 'option value' }``.   Every key pair from this hash adds a new string to the listener options.
 Please note: Every HAProxy option may require a different input value type, such as strings or a list of multiple options per single string.
-The ‘`keystone-2`` listener example has the ``{ 'option' => ['httplog'], 'balance' => 'roundrobin' }`` option array and this array is represented as the following in the resulting /etc/haproxy/haproxy.cfg:
+
+The '`keystone-2`` listener example has the ``{ 'option' => ['httplog'], 'balance' => 'roundrobin' }`` option array and this array is represented as the following in the resulting /etc/haproxy/haproxy.cfg:
 balance  roundrobin
 option  httplog
 
 ``balancer_port``
+
 This parameter represents the balancer (backend) port. By default, the balancer_port is the same as the frontend ``port``. The following strings from the ``keystone-2`` listener example represent ``balancer_port``, where port is ``35357``::
 
     server  fuel-controller-01.msk.mirantis.net 10.0.0.101:35357   check  
     server  fuel-controller-02.msk.mirantis.net 10.0.0.102:35357   check  
 
 ``balancermember_options``
+
 This is a string of options added to each balancer (backend) member. The ``keystone-2`` listener example has the single ``check`` option::
 
     server  fuel-controller-01.msk.mirantis.net 10.0.0.101:35357   check  
     server  fuel-controller-02.msk.mirantis.net 10.0.0.102:35357   check  
 
 ``mode``
+
 This optional parameter represents the HAProxy listener mode. The default value is ``tcp``, but Fuel writes ``mode http`` to the defaults section of ``/etc/haproxy/haproxy.cfg``. You can set the same option via  ``haproxy_config_options``. A separate mode parameter is required to set some modes by default on every new listener addition. The ``keystone-2`` listener example has no ``mode`` option and so it works in the default Fuel-configured HTTP mode.
 
 ``define_cookies``
+
 This optional boolean parameter is a Fuel-only feature.  The default is ``false``, but if set to ``true``, Fuel directly adds ``cookie ${hostname}`` to every balance member (backend).
+
 The ``keystone-2`` listener example has no ``define_cookies`` option. Typically, frontend cookies are added with ``haproxy_config_options`` and backend cookies with ``balancermember_options``.
 
 ``collect_exported``
+
 This optional boolean parameter has a default value of ``false``.  True means 'collect exported @@balancermember resources' (when every balancermember node exports itself), while false means 'rely on the existing declared balancermember resources' (for when you know the full set of balancermembers in advance and use ``haproxy::balancermember`` with array arguments, which allows you to deploy everything in one run).
