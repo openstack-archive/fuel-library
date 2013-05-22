@@ -1,4 +1,4 @@
-# 
+#
 # This class is intended to make cobbler distro centos63_x86_64. It will
 # download and mount centos ISO image.
 #

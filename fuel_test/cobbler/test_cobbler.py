@@ -1,6 +1,6 @@
 import unittest
-#tests against empty environment
-class MyTestCase(unittest.TestCase):
+
+class CobblerTestCase(unittest.TestCase):
     def test_something(self):
         self.assertEqual(True, True)
 
