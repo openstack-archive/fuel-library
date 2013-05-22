@@ -1,21 +1,20 @@
 import logging
 from abc import abstractproperty, abstractmethod
-from devops.manager import Manager
 from ipaddr import IPNetwork
 from fuel_test.helpers import  write_config, change_host_name, request_cerificate, setup_puppet_client, setup_puppet_master, add_nmap, switch_off_ip_tables, add_to_hosts
 from fuel_test.node_roles import NodeRoles, Nodes
-from fuel_test.settings import BASE_IMAGE, EMPTY_SNAPSHOT
+from fuel_test.settings import EMPTY_SNAPSHOT, ISO, DOMAIN_NAME
 from fuel_test.root import root
 from fuel_test.helpers import load
-
+from devops.manager import Manager
 
 class CiBase(object):
     def __init__(self):
-        self.manager = Manager()
-        self.base_image = self.manager.volume_get_predefined(BASE_IMAGE)
         self._environment = None
+        self.manager = Manager()
+        # self.base_image = self.manager.volume_get_predefined(BASE_IMAGE)
 
-    def _get_or_create(self):
+    def get_or_create(self):
         try:
             return self.manager.environment_get(self.env_name())
         except:
@@ -33,13 +32,20 @@ class CiBase(object):
         """
         :rtype : devops.models.Environment
         """
-        self._environment = self._environment or self._get_or_create()
+        self._environment = self._environment or self.get_or_create()
         return self._environment
 
     @abstractproperty
     def env_name(self):
         """
         :rtype : string
+        """
+        pass
+
+    @abstractmethod
+    def define(self):
+        """
+        :rtype : devops.models.Environment
         """
         pass
 
@@ -57,9 +63,6 @@ class CiBase(object):
         """
         pass
 
-    def nodes(self):
-        return Nodes(self.environment(), self.node_roles())
-
     def add_empty_volume(self, node, name):
         self.manager.node_attach_volume(
             node=node,
@@ -73,16 +76,12 @@ class CiBase(object):
             memory=memory,
             environment=self.environment())
 
-    def describe_node(self, name, networks, memory=1024):
+    def describe_master_node(self, name, networks, memory=1024):
         node = self.add_node(memory, name)
         for network in networks:
             self.manager.interface_create(network, node=node)
-        self.manager.node_attach_volume(
-            node=node,
-            volume=self.manager.volume_create_child(
-                name=name + '-system', backing_store=self.base_image,
-                environment=self.environment()))
-        self.add_empty_volume(node, name + '-cinder')
+        self.add_empty_volume(node, name + '-system')
+        self.manager.node_attach_volume(node, self.manager.volume_get_predefined(ISO), device='cdrom', bus="ide")
         return node
 
     def describe_empty_node(self, name, networks, memory=1024):
@@ -92,6 +91,9 @@ class CiBase(object):
         self.add_empty_volume(node, name + '-system')
         self.add_empty_volume(node, name + '-cinder')
         return node
+
+    def nodes(self):
+        return Nodes(self.environment(), self.node_roles())
 
     def add_nodes_to_hosts(self, remote, nodes):
         for node in nodes:
