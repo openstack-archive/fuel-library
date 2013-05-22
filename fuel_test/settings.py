@@ -101,3 +101,15 @@ TEST_REPO = os.environ.get('TEST_REPO', 'false') == 'true'
 EXIST_TAR = os.environ.get('EXIST_TAR', None)
 CREATE_SNAPSHOTS = os.environ.get('CREATE_SNAPSHOTS', 'true') == 'true'
 CLEAN = os.environ.get('CLEAN', 'true') == 'true'
+CLEAN = os.environ.get('CLEAN', 'true') == 'true'
+ISO = os.environ.get('ISO', '/var/lib/libvirt/images/fuel-centos-6.3-x86_64.iso')
+USE_ISO= os.environ.get('USE_ISO', 'true') == 'true'
+PARENT_PROXY = os.environ.get('PARENT_PROXY', "172.18.3.14")
+PROFILES_COBBLER_COMMON = {
+    'centos': 'centos63_x86_64',
+    'ubuntu': 'ubuntu_1204_x86_64'
+}
+
+ASTUTE_USE = os.environ.get('ASTUTE_USE', 'true') == 'true'
+CURRENT_PROFILE = PROFILES_COBBLER_COMMON.get(OS_FAMILY)
+DOMAIN_NAME = os.environ.get('DOMAIN_NAME', '.your-domain-name.com')
