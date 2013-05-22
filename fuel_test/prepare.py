@@ -13,6 +13,7 @@ from fuel_test.settings import ADMIN_USERNAME, ADMIN_PASSWORD, ADMIN_TENANT_ESSE
 class Prepare(object):
     def __init__(self):
         self.public_ip = self.ci().public_virtual_ip()
+        print "public", self.public_ip
         self.internal_ip = self.ci().public_virtual_ip()
         self.controllers = self.ci().nodes().controllers
 
@@ -156,10 +157,8 @@ class Prepare(object):
         keystone = self._get_identity_client()
         tenant1 = retry(10, keystone.tenants.create, tenant_name='tenant1')
         tenant2 = retry(10, keystone.tenants.create, tenant_name='tenant2')
-        retry(10, keystone.users.create, name='tempest1', password='secret',
-              email='tempest1@example.com', tenant_id=tenant1.id)
-        retry(10, keystone.users.create, name='tempest2', password='secret',
-              email='tempest2@example.com', tenant_id=tenant2.id)
+        retry(10, keystone.users.create, name='tempest1', password='secret', email='tempest1@example.com', tenant_id=tenant1.id)
+        retry(10, keystone.users.create, name='tempest2', password='secret', email='tempest2@example.com', tenant_id=tenant2.id)
         image_ref, image_ref_alt = self.tempest_add_images()
         return image_ref, image_ref_alt
 
@@ -235,3 +234,4 @@ class Prepare(object):
 
 if __name__ == '__main__':
     Prepare().prepare_tempest_folsom()
+
