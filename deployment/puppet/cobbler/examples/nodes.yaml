@@ -1,6 +1,6 @@
 fuel-controller-01:
   # for Centos
-  profile: "centos63_x86_64"
+  profile: "centos64_x86_64"
   # for Ubuntu
   # profile: "ubuntu_1204_x86_64"
   netboot-enabled: "1"
@@ -50,7 +50,7 @@ mco_enable=1"
       peerdns: "no"
 fuel-controller-02:
   # for Centos
-  profile: "centos63_x86_64"
+  profile: "centos64_x86_64"
   # for Ubuntu
   # profile: "ubuntu_1204_x86_64"
   netboot-enabled: "1"
@@ -100,7 +100,7 @@ mco_enable=1"
       peerdns: "no"
 fuel-controller-03:
   # for Centos
-  profile: "centos63_x86_64"
+  profile: "centos64_x86_64"
   # for Ubuntu
   # profile: "ubuntu_1204_x86_64"
   netboot-enabled: "1"
@@ -150,7 +150,7 @@ mco_enable=1"
       peerdns: "no"
 fuel-quantum:
   # for Centos
-  profile: "centos63_x86_64"
+  profile: "centos64_x86_64"
   # for Ubuntu
   # profile: "ubuntu_1204_x86_64"
   netboot-enabled: "1"
@@ -197,7 +197,7 @@ mco_enable=1"
       peerdns: "no"
 fuel-compute-01:
   # for Centos
-  profile: "centos63_x86_64"
+  profile: "centos64_x86_64"
   # for Ubuntu
   # profile: "ubuntu_1204_x86_64"
   netboot-enabled: "1"
@@ -245,7 +245,7 @@ mco_enable=1"
 
 fuel-compute-02:
   # for Centos
-  profile: "centos63_x86_64"
+  profile: "centos64_x86_64"
   # for Ubuntu
   # profile: "ubuntu_1204_x86_64"
   netboot-enabled: "1"
