@@ -170,7 +170,7 @@ class CobblerTestCase(BaseTestCase):
                   node_mac2, node_ip, stomp_name, gateway, net_mask):
         system_id = client.new_system(token)
         if OS_FAMILY == 'centos':
-            profile = 'centos63_x86_64'
+            profile = 'centos64_x86_64'
         else:
             profile = 'ubuntu_1204_x86_64'
         client.modify_system_args(

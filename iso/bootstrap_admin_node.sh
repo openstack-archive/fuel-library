@@ -69,14 +69,14 @@ puppet apply -e "
         osversion => 'precise',
         ksmeta    => 'tree_host=us.archive.ubuntu.com tree_url=/ubuntu', }
     class { 'cobbler::profile::ubuntu_1204_x86_64': }
-    cobbler_distro {'centos63_x86_64':
-        kernel    => '/var/www/centos/6.3/os/x86_64/isolinux/vmlinuz',
-        initrd    => '/var/www/centos/6.3/os/x86_64/isolinux/initrd.img',
+    cobbler_distro {'centos64_x86_64':
+        kernel    => '/var/www/centos/6.4/os/x86_64/isolinux/vmlinuz',
+        initrd    => '/var/www/centos/6.4/os/x86_64/isolinux/initrd.img',
         arch      => 'x86_64',
         breed     => 'redhat',
         osversion => 'rhel6',
-        ksmeta    => 'tree=http://download.mirantis.com/centos-minimal', }
-    class { 'cobbler::profile::centos63_x86_64': }"
+        ksmeta    => 'tree=http://srv08-srt.srt.mirantis.net/centos-repo/centos-6.4/', }
+    class { 'cobbler::profile::centos64_x86_64': }"
 
 puppet apply -e '
     $stompuser="mcollective"
