@@ -102,7 +102,7 @@ describe firewall do
       end
     end
 
-    ['ACCEPT', 'DROP', 'REJECT', 'MARK', 'NOTRACK'].each do |jump|
+    ['ACCEPT', 'DROP', 'REJECT'].each do |jump|
       it "should now fail when value #{jump}" do
         lambda { @resource[:jump] = jump }.should raise_error(Puppet::Error)
       end
