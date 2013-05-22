@@ -1,20 +1,15 @@
 # Class: firewall
 #
-# This module manages firewall
+# Manages the installation of packages for operating systems that are
+# currently supported by the firewall type.
 #
-# Parameters: none
-#
-# Actions:
-#
-# Requires: see Modulefile
-#
-# Sample Usage:
-#
-class firewall (
-  $port   = '5432',
-  $chain  = 'INPUT',
-  $action = 'accept',
-  $proto  = 'tcp',
-  $dport  = $title,
-  $table  = 'filter',) {
+class firewall {
+  case $::kernel {
+    'Linux': {
+      class { "${title}::linux": }
+    }
+    default: {
+      fail("${title}: Kernel '${::kernel}' is not currently supported")
+    }
+  }
 }

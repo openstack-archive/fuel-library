@@ -1,5 +1,6 @@
 #!/bin/bash
 
+FUELCONF=/etc/fuel.conf
 source /usr/local/lib/functions.sh
 
 log="/var/log/firstboot-puppet.log"
@@ -19,15 +20,15 @@ menu_conf
 apply_settings
 
 # Installing puppetmaster/cobbler node role
-echo;echo "Provisioning masternode role ..."
+echo;echo "Provisioning Master Node role ..."
 (
 mkdir -p /var/lib/puppet/ssh_keys
 [ -f /var/lib/puppet/ssh_keys/openstack ] || ssh-keygen -f /var/lib/puppet/ssh_keys/openstack -N ''
 chown root:puppet /var/lib/puppet/ssh_keys/openstack*
 chmod g+r /var/lib/puppet/ssh_keys/openstack*
 puppet apply -e "
-    class {openstack::mirantis_repos: enable_epel => true } ->
-    class {puppet: } -> class {puppet::thin:} -> class {puppet::nginx: puppet_master_hostname => \"$hstname.$domain\"}
+    class {openstack::mirantis_repos: enable_epel => false } ->
+    class {puppet: } -> class {puppet::thin:} -> class {puppet::nginx: puppet_master_hostname => \"$hostname.$domain\"}
     "
 puppet apply -e "
     class {puppet::fileserver_config: } "
@@ -74,7 +75,7 @@ puppet apply -e "
         arch      => 'x86_64',
         breed     => 'redhat',
         osversion => 'rhel6',
-        ksmeta    => 'tree=http://mirror.stanford.edu/yum/pub/centos/6.3/os/x86_64', }
+        ksmeta    => 'tree=http://download.mirantis.com/centos-minimal', }
     class { 'cobbler::profile::centos63_x86_64': }"
 
 puppet apply -e '
@@ -98,13 +99,20 @@ puppet apply -e '
     } '
 
 # Configuring squid with or without parent proxy
-[ -n "$parent_proxy" ] && IFS=: read server port <<< "$parent_proxy"
-puppet apply -e "
-\$squid_cache_parent = \"$server\"
-\$squid_cache_parent_port = \"$port\"
-class { squid: }"
+if [[ -n "$parent_proxy" ]];then
+  IFS=: read server port <<< "$parent_proxy"
+  puppet apply -e "
+  \$squid_cache_parent = \"$server\"
+  \$squid_cache_parent_port = \"$port\"
+  class { squid: }"
+else
+  puppet apply -e "class { squid: }"
+fi
 
 iptables -A PREROUTING -t nat -i $mgmt_if -s $mgmt_ip/$mgmt_mask ! -d $mgmt_ip -p tcp --dport 80 -j REDIRECT --to-port 3128
+
+/etc/init.d/iptables save
+
 
 gem install /var/www/astute-0.0.1.gem
 

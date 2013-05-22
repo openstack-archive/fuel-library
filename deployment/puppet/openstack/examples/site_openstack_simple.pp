@@ -176,12 +176,6 @@ if $quantum {
   $internal_int = $internal_interface
 }
 
-if $::hostname == 'fuel-controller-01' {
-  $primary_controller = true
-} else {
-  $primary_controller = false
-}
-
 #Network configuration
 stage {'netconfig':
       before  => Stage['main'],
@@ -250,7 +244,7 @@ $cinder                  = true
 # 'XXX.XXX.XXX.XXX'    -> specify particular host(s) by IP address
 # 'all'                -> compute, controller, and storage nodes will run cinder (excluding swift and proxy nodes)
 
-$cinder_nodes          = ['compute']
+$cinder_nodes          = ['controller']
 
 #Set it to true if your want cinder-volume been installed to the host
 #Otherwise it will install api and scheduler services
@@ -412,6 +406,10 @@ class { 'openstack::mirantis_repos':
   repo_proxy=>$repo_proxy,
   use_upstream_mysql=>$use_upstream_mysql
 }
+ stage {'openstack-firewall': before => Stage['main'], require => Stage['netconfig'] } 
+ class { '::openstack::firewall':
+      stage => 'openstack-firewall'
+ }
 
 if $::operatingsystem == 'Ubuntu' {
   class { 'openstack::apparmor::disable': stage => 'openstack-custom-repo' }

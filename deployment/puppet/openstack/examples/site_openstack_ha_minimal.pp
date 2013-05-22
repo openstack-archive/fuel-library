@@ -103,6 +103,7 @@ $controller_hostnames = keys($controller_internal_addresses)
 #Also, if you do not want Quantum HA, you MUST enable $quantum_network_node
 #on the ONLY controller
 $ha_provider = 'pacemaker'
+$use_unicast_corosync = true
 
 # Set nagios master fqdn
 $nagios_master        = 'nagios-server.your-domain-name.com'
@@ -212,11 +213,12 @@ if $quantum {
   $internal_int = $internal_interface
 }
 
-if $::hostname == 'fuel-controller-01' {
+if $node[0]['role'] == 'primary-controller' {
   $primary_controller = true
 } else {
   $primary_controller = false
 }
+
 
 #Network configuration
 stage {'netconfig':
@@ -446,6 +448,10 @@ class { 'openstack::mirantis_repos':
   enable_test_repo=>$enable_test_repo,
   repo_proxy=>$repo_proxy,
 }
+ stage {'openstack-firewall': before => Stage['main'], require => Stage['netconfig'] } 
+ class { '::openstack::firewall':
+      stage => 'openstack-firewall'
+ }
 
 if $::operatingsystem == 'Ubuntu' {
   class { 'openstack::apparmor::disable': stage => 'openstack-custom-repo' }
@@ -518,6 +524,7 @@ class compact_controller (
     nova_rate_limits        => $nova_rate_limits,
     cinder_rate_limits      => $cinder_rate_limits,
     horizon_use_ssl         => $horizon_use_ssl,
+    use_unicast_corosync    => $use_unicast_corosync,
     ha_provider             => $ha_provider
   }
 }

@@ -13,11 +13,11 @@ Once fuel-pm finishes installing, you'll be presented with a basic menu.  You ca
    * The example specifies eth0 as the internal, or management interface, so enter that.
    * The management network in the example is using static IP addresses, so specify no for for using DHCP.
    * Enter the IP address of 10.20.0.100 for the Puppet Master, and the netmask of 255.255.255.0.
-   * Under most situations, you can leave the other three options blank and Fuel will automatically detect the appropriate gateway, but you can specifically set the gateway and DNS servers if desired.
+   * Set the gateway and DNS servers if desired.
 
 #. To configure the external interface, which will be used to send traffic to and from the internet, choose 3.  Set the interface to eth1.  By default, this interface uses DHCP, which is what the example calls for.
 
-#. To choose the start and end addresses for compute nodes, choose 4.  In the case of this example, the start address is  10.20.0.110 and the end address is 10.20.0.126.
+#. To choose the start and end addresses to be used during PXE boot, choose 4.  In the case of this example, the start address is  10.20.0.110 and the end address is 10.20.0.126.  Later, these notes will receive IP addresses from Cobbler.
 
 Future versions of Fuel will enable you to choose a custom set of repositories.
 

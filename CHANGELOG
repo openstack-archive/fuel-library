@@ -1,3 +1,6 @@
+3.0-alpha-136-g485bddf
+- Merged master branch 2.2-folsom-79-g13cd2ad into grizzly
+
 2.1-folsom-docs-324-g61d1599
 - Grizzly support for centos simple
 - Option for PKI auth for keystone (grizzly native)

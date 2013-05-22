@@ -4,21 +4,21 @@ class openstack::mirantis_repos (
   $type         = 'default',
   $originator   = 'Mirantis Product <product@mirantis.com>',
   $disable_puppet_labs_repos = true,
-  $upstream_mirror        = true,
-  $deb_mirror             = 'http://172.18.67.168/ubuntu-repo/mirror.yandex.ru/ubuntu',
-  $deb_updates            = 'http://172.18.67.168/ubuntu-repo/mirror.yandex.ru/ubuntu',
-  $deb_security           = 'http://172.18.67.168/ubuntu-repo/mirror.yandex.ru/ubuntu',
-  $deb_fuel_folsom_repo   = 'http://172.18.67.168/ubuntu-repo/precise-fuel-folsom',
+  $upstream_mirror           = true,
+  $deb_mirror   = 'http://172.18.67.168/ubuntu-repo/mirror.yandex.ru/ubuntu',
+  $deb_updates  = 'http://172.18.67.168/ubuntu-repo/mirror.yandex.ru/ubuntu',
+  $deb_security = 'http://172.18.67.168/ubuntu-repo/mirror.yandex.ru/ubuntu',
+  $deb_fuel_folsom_repo      = 'http://172.18.67.168/ubuntu-repo/precise-fuel-folsom',
   $deb_fuel_grizzly_repo  = 'http://osci-gbp.srt.mirantis.net/ubuntu/fuel/',
-  $deb_cloud_archive_repo = 'http://172.18.67.168/ubuntu-cloud.archive.canonical.com/ubuntu',
-  $deb_rabbit_repo        = 'http://172.18.67.168/ubuntu-repo/precise-fuel-folsom',
+  $deb_cloud_archive_repo    = 'http://172.18.67.168/ubuntu-cloud.archive.canonical.com/ubuntu',
+  $deb_rabbit_repo           = 'http://172.18.67.168/ubuntu-repo/precise-fuel-folsom',
   $enable_epel = true,
-  $fuel_mirrorlist        = 'http://download.mirantis.com/epel-fuel-folsom-2.1/mirror.internal-stage.list',
-  $mirrorlist_base        = 'http://172.18.67.168/centos-repo/mirror-6.3-os.list',
-  $mirrorlist_updates     = 'http://172.18.67.168/centos-repo/mirror-6.3-updates.list',
+  $fuel_mirrorlist           = 'http://download.mirantis.com/epel-fuel-folsom-2.1/mirror.internal-stage.list',
+  $mirrorlist_base           = 'http://172.18.67.168/centos-repo/mirror-6.3-os.list',
+  $mirrorlist_updates        = 'http://172.18.67.168/centos-repo/mirror-6.3-updates.list',
   $grizzly_baseurl        = 'http://osci-koji.srt.mirantis.net/mash/fuel-3.0/x86_64/',
-  $enable_test_repo       = false,
-  $repo_proxy             = undef,
+  $enable_test_repo          = false,
+  $repo_proxy   = undef,
   $use_upstream_mysql     = false,
 ) {
   case $::osfamily {
@@ -38,8 +38,8 @@ class openstack::mirantis_repos (
         apt::pin { 'upstream-mysql':
           order    => 19,
           priority => 1002,
-          version  => "5.5.29*",
-          packages => "mysql*"
+          releasecustom  => "v=12.04,o=Ubuntu",
+          packages => "/^mysql/"
         }
       }
 
@@ -108,13 +108,13 @@ class openstack::mirantis_repos (
         apt::pin { 'precise-fuel-grizzly':
           order      => 19,
           priority   => 1001,
-        }
+          }
 
         apt::pin { 'cloud-archive':
             order      => 20,
             priority   => 1002,
           }
-  
+
         apt::source { 'cloud-archive':
           location    => $deb_cloud_archive_repo,
           release     => 'precise-updates/grizzly',
@@ -187,25 +187,55 @@ class openstack::mirantis_repos (
       Yumrepo {
         proxy   => $repo_proxy,
       }
-      
-      #added internal/external network mirror
+
+        yumrepo { 'centos-extras':
+            descr      => 'Local extras mirror repository',
+            name       => 'extras',
+            enabled    => 0,
+            baseurl => "http://archive.kernel.org/centos/6.3/os/x86_64/",
+            mirrorlist => absent
+        }
+
+
+      # added internal/external network mirror
       if $type == 'default' {
         
         yumrepo { 'openstack-epel-fuel':
           descr      => 'Mirantis OpenStack Custom Packages',
           mirrorlist => 'http://download.mirantis.com/epel-fuel-folsom-2.1/mirror.external.list',
           gpgcheck   => '1',
-          gpgkey     => 'http://download.mirantis.com/epel-fuel-folsom-2.1/epel.key  http://download.mirantis.com/epel-fuel-folsom-2.1/centos.key http://download.mirantis.com/epel-fuel-folsom-2.1/rabbit.key http://download.mirantis.com/epel-fuel-folsom-2.1/mirantis.key http://download.mirantis.com/epel-fuel-folsom-2.1/mysql.key',
+          gpgkey     => 'http://download.mirantis.com/epel-fuel-folsom-2.1/epel.key  http://download.mirantis.com/epel-fuel-folsom-2.1/centos.key http://download.mirantis.com/epel-fuel-folsom-2.1/rabbit.key http://download.mirantis.com/epel-fuel-folsom-2.1/mirantis.key http://download.mirantis.com/epel-fuel-folsom-2.1/mysql.key http://download.mirantis.com/epel-fuel-folsom-2.1/nginx.key',
         }
+        yumrepo { 'centos-base':
+            descr      => 'Local base mirror repository',
+            name       => 'base',
+            baseurl => "http://download.mirantis.com/centos-minimal/",
+            mirrorlist => absent
+        }
+        yumrepo { 'centos-updates':
+            descr      => 'Local updates mirror repository',
+            baseurl => "http://archive.kernel.org/centos/6.3/updates/x86_64/",
+            enabled    => 0,
+            mirrorlist => absent,
+            name       => 'updates'
+        }
+        yumrepo { 'vault6.3-base':
+            descr      => 'Vault 6.3 base mirror repository',
+            name       => 'v6.3-base',
+            enabled    => 0,
+            baseurl => "http://vault.centos.org/6.3/os/x86_64/",
+            mirrorlist => absent
+      }
+
       }
 
       if $type == 'custom' {
         yumrepo { 'openstack-epel-fuel':
           descr      => 'Mirantis OpenStack Custom Packages',
           mirrorlist => $fuel_mirrorlist,
+          gpgcheck   => '1',
           priority   => '10',
-          gpgcheck   => '0',
-          gpgkey     => 'http://download.mirantis.com/epel-fuel-folsom-2.1/epel.key  http://download.mirantis.com/epel-fuel-folsom-2.1/centos.key http://download.mirantis.com/epel-fuel-folsom-2.1/rabbit.key http://download.mirantis.com/epel-fuel-folsom-2.1/mirantis.key http://download.mirantis.com/epel-fuel-folsom-2.1/mysql.key',
+          gpgkey     => 'http://download.mirantis.com/epel-fuel-folsom-2.1/epel.key  http://download.mirantis.com/epel-fuel-folsom-2.1/centos.key http://download.mirantis.com/epel-fuel-folsom-2.1/rabbit.key http://download.mirantis.com/epel-fuel-folsom-2.1/mirantis.key http://download.mirantis.com/epel-fuel-folsom-2.1/mysql.key http://download.mirantis.com/epel-fuel-folsom-2.1/nginx.key',
         }
 
         yumrepo { 'openstack-epel-fuel-grizzly':
@@ -214,7 +244,6 @@ class openstack::mirantis_repos (
           baseurl    => 'http://osci-koji.srt.mirantis.net/mash/fuel-3.0/x86_64/',
           priority   => '1',
           gpgcheck   => '0',
-          gpgkey     => 'http://download.mirantis.com/epel-fuel-folsom-2.1/epel.key  http://download.mirantis.com/epel-fuel-folsom-2.1/centos.key http://download.mirantis.com/epel-fuel-folsom-2.1/rabbit.key http://download.mirantis.com/epel-fuel-folsom-2.1/mirantis.key http://download.mirantis.com/epel-fuel-folsom-2.1/mysql.key',
         }
 
         if $upstream_mirror == true {
@@ -241,7 +270,7 @@ class openstack::mirantis_repos (
           descr    => 'Mirantis OpenStack OSCI Packages',
           baseurl  => 'http://osci-koji.srt.mirantis.net/mash/fuel-folsom/x86_64/',
           gpgcheck => '1',
-          gpgkey   => 'http://download.mirantis.com/epel-fuel-folsom/epel.key  http://download.mirantis.com/epel-fuel-folsom/centos.key http://download.mirantis.com/epel-fuel-folsom/rabbit.key http://download.mirantis.com/epel-fuel-folsom/mirantis.key http://download.mirantis.com/epel-fuel-folsom/mysql.key',
+          gpgkey   => 'http://download.mirantis.com/epel-fuel-folsom/epel.key  http://download.mirantis.com/epel-fuel-folsom/centos.key http://download.mirantis.com/epel-fuel-folsom/rabbit.key http://download.mirantis.com/epel-fuel-folsom/mirantis.key http://download.mirantis.com/epel-fuel-folsom/mysql.key http://download.mirantis.com/epel-fuel-folsom/nginx.key',
         }
       }
 

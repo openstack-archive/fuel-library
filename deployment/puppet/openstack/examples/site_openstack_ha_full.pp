@@ -142,6 +142,7 @@ $swift_proxies = nodes_to_hash($swift_proxy_nodes,'name','internal_address')
 #Also, if you do not want Quantum HA, you MUST enable $quantum_network_node
 #on the ONLY controller
 $ha_provider = 'pacemaker'
+$use_unicast_corosync = true
 
 # Set nagios master fqdn
 $nagios_master        = 'nagios-server.your-domain-name.com'
@@ -500,6 +501,10 @@ class { 'openstack::mirantis_repos':
   enable_test_repo=>$enable_test_repo,
   repo_proxy=>$repo_proxy,
 }
+ stage {'openstack-firewall': before => Stage['main'], require => Stage['netconfig'] } 
+ class { '::openstack::firewall':
+      stage => 'openstack-firewall'
+ }
 
 if $::operatingsystem == 'Ubuntu' {
   class { 'openstack::apparmor::disable': stage => 'openstack-custom-repo' }
@@ -592,6 +597,7 @@ class ha_controller (
     nova_rate_limits        => $nova_rate_limits,
     cinder_rate_limits      => $cinder_rate_limits,
     horizon_use_ssl         => $horizon_use_ssl,
+    use_unicast_corosync    => $use_unicast_corosync,
     ha_provider             => $ha_provider
   }
   class { 'swift::keystone::auth':
@@ -706,7 +712,7 @@ node /fuel-swift-[\d+]/ {
   class { 'openstack::swift::storage_node':
     storage_type           => $swift_loopback,
     swift_zone             => $swift_zone,
-    swift_local_net_ip     => $internal_address,
+    swift_local_net_ip     => $swift_local_net_ip,
     master_swift_proxy_ip  => $master_swift_proxy_ip,
     cinder                 => $is_cindernode,
     cinder_iscsi_bind_addr => $cinder_iscsi_bind_addr,
@@ -756,7 +762,7 @@ node /fuel-swiftproxy-[\d+]/ {
     swift_proxies           => $swift_proxies,
     primary_proxy           => $primary_proxy,
     controller_node_address => $internal_virtual_ip,
-    swift_local_net_ip      => $internal_address,
+    swift_local_net_ip      => $swift_local_net_ip,
     master_swift_proxy_ip   => $master_swift_proxy_ip,
   }
 }

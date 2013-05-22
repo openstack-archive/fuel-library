@@ -66,8 +66,8 @@ following hardware:
 * 1 server to host both Puppet Master and Cobbler. The minimum configuration for this server is:
 
     * 32-bit or 64-bit architecture
-    * 1+ CPU or vCPU
-    * 1024+ MB of RAM
+    * 1+ CPU or vCPU for up to 10 nodes (2 vCPU for up to 20 nodes, 4 vCPU for up to 100 nodes)
+    * 1024+ MB of RAM for up to 10 nodes (4096+ MB for up to 20 nodes, 8192+ MB for up to 100 nodes)
     * 16+ GB of HDD for OS, and Linux distro storage
 
 * 3 servers to act as OpenStack controllers (called fuel-controller-01, fuel-controller-02, and fuel-controller-03). The   minimum configuration for a controller in Compact mode is:

@@ -150,9 +150,7 @@ class openstack::controller_ha (
 
     file { '/etc/rsyslog.d/haproxy.conf':
       ensure => present,
-      content => '$ModLoad imudp
-$UDPServerRun 514
-local0.* -/var/log/haproxy.log'
+      content => 'local0.* -/var/log/haproxy.log'
     }
     Class['keepalived'] -> Class ['nova::rabbitmq']
     haproxy_service { 'horizon':    order => 15, port => 80, virtual_ips => [$public_virtual_ip], define_cookies => true  }
@@ -248,7 +246,7 @@ local0.* -/var/log/haproxy.log'
 
     class { 'haproxy':
       enable => true,
-      global_options   => merge($::haproxy::params::global_options, {'log' => "${internal_address} local0"}),
+      global_options   => merge($::haproxy::params::global_options, {'log' => "/dev/log local0"}),
       defaults_options => merge($::haproxy::params::defaults_options, {'mode' => 'http'}),
       require => Sysctl::Value['net.ipv4.ip_nonlocal_bind'],
     }
@@ -282,10 +280,7 @@ local0.* -/var/log/haproxy.log'
       priority => $primary_controller ? { true => 101,      default => 100      },
     }
 
-    class { '::openstack::firewall':
-      before => Class['galera']
-    }
-    Class['haproxy'] -> Class['galera']
+   Class['haproxy'] -> Class['galera']
 
     class { '::openstack::controller':
       public_address          => $public_virtual_ip,
@@ -400,10 +395,8 @@ local0.* -/var/log/haproxy.log'
     }
     if $ha_provider == 'pacemaker' {
       if $use_unicast_corosync {
-      $unicast_addresses = $controller_internal_addresses
-      }
-      else
-      {
+        $unicast_addresses = $controller_internal_addresses
+      } else {
         $unicast_addresses = undef
       }
       class {'openstack::corosync':
