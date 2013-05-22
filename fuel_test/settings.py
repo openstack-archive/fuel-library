@@ -4,7 +4,7 @@ OS_FAMILY = os.environ.get('OS_FAMILY', "centos")
 PUPPET_GEN = os.environ.get('PUPPET_GEN', "3")
 
 DEFAULT_IMAGES = {
-    'centos': '/var/lib/libvirt/images/centos64-cobbler-base.qcow2',
+    'centos': '/var/lib/libvirt/images/centos63-cobbler-base.qcow2',
     'ubuntu': '/var/lib/libvirt/images/ubuntu-12.04.1-server-amd64-base.qcow2',
 }
 
