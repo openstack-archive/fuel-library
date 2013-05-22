@@ -6,7 +6,7 @@ from fuel_test.ci.ci_cobbler import CiCobbler
 from fuel_test.cobbler.cobbler_client import CobblerClient
 from fuel_test.helpers import tcp_ping, udp_ping, build_astute, install_astute, add_to_hosts, await_node_deploy
 from fuel_test.manifest import Manifest, Template
-from fuel_test.settings import PUPPET_VERSION, OS_FAMILY, CLEAN
+from fuel_test.settings import PUPPET_VERSION, OS_FAMILY, CLEAN, DEBUG
 
 
 class CobblerTestCase(BaseTestCase):
@@ -74,9 +74,13 @@ class CobblerTestCase(BaseTestCase):
     def deploy_cobbler(self):
         Manifest().write_cobbler_manifest(self.remote(), self.ci(),
             self.nodes().cobblers)
+        if DEBUG:
+            extargs = ' -vd --evaltrace'
+        else:
+            extargs = ''
         self.validate(
             self.nodes().cobblers,
-            'puppet agent --test')
+            'puppet agent --test'+extargs)
         for node in self.nodes().cobblers:
             self.assert_cobbler_ports(
                 node.get_ip_address_by_network_name('internal'))
@@ -98,9 +102,13 @@ class CobblerTestCase(BaseTestCase):
 
     def deploy_stomp_node(self):
         Manifest().write_stomp_manifest(self.remote())
+        if DEBUG:
+            extargs = ' -vd --evaltrace'
+        else:
+            extargs = ''
         self.validate(
             self.nodes().stomps,
-            'puppet agent --test')
+            'puppet agent --test'+extargs)
         self.install_astute_gem()
 
     def install_astute_gem(self):
