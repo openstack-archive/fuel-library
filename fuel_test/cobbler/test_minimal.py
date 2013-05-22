@@ -42,6 +42,7 @@ class MinimalTestCase(CobblerTestCase):
                 quantum=True,
                 cinder_nodes=['controller']
             )
+        print "Generated config.yaml:", config
         config_path = "/root/config.yaml"
         write_config(self.remote(), config_path, str(config))
         self.remote().check_call("cobbler_system -f %s" % config_path)

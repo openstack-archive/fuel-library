@@ -49,7 +49,7 @@ class FullTestCase(CobblerTestCase):
             use_syslog=False,
             quantum=True
         )
-
+        print "Generated config.yaml:", config
         config_path = "/root/config.yaml"
         write_config(self.remote(), config_path, str(config))
         self.remote().check_call("cobbler_system -f %s" % config_path)
