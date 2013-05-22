@@ -26,16 +26,16 @@ $PrivDropToGroup <%= scope.lookupvar('rsyslog::params::run_group') %>
 # Disk-Assisted Memory Queues, async writes, no escape chars
 #
 $OMFileASyncWriting on
-$EscapeControlCharactersOnReceive off
+#$EscapeControlCharactersOnReceive off
 $MainMsgQueueType LinkedList
-$WorkDirectory /var/lib/rsyslog
+$WorkDirectory <%= scope.lookupvar('rsyslog::params::rsyslog_mainmsq_queue_dir') %>
 $MainMsgQueueFileName mainmsgqueue
 $MainMsgQueueSaveOnShutdown on
 $MainMsgQueueDequeueSlowdown 1000
 $MainMsgQueueWorkerThreads 2
 $MainMsgQueueDequeueBatchSize 128
 $ActionQueueType LinkedList
-$WorkDirectory /var/lib/rsyslog
+$WorkDirectory <%= scope.lookupvar('rsyslog::params::rsyslog_action_queue_dir') %>
 $ActionQueueFileName acsdbq
 $ActionQueueDequeueSlowdown 1000
 $ActionQueueWorkerThreads 2
