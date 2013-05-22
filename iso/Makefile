@@ -1,5 +1,5 @@
 COMMIT_SHA:=$(shell git rev-parse --verify HEAD)
-FUEL_VERSION:=2.2-folsom
+FUEL_VERSION:=2.1-folsom
 
 CENTOS_MAJOR:=6
 CENTOS_MINOR:=4
