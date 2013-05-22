@@ -19,26 +19,37 @@ Puppet::Type.type(:firewallchain).provide :iptables_chain do
 
   # chain name is greedy so we anchor from the end.
   # [\d+:\d+] doesn't exist on ebtables
-  Mapping = {
-    :IPv4 => {
-      :tables => method(:iptables),
-      :save   => method(:iptables_save),
-      :re     => /^:(.+)\s(\S+)\s\[\d+:\d+\]$/,
-    },
-    :IPv6 => {
-      :tables => method(:ip6tables),
-      :save   => method(:ip6tables_save),
-      :re     => /^:(.+)\s(\S+)\s\[\d+:\d+\]$/,
-    },
-    :ethernet => {
-      :tables => method(:ebtables),
-      :save   => method(:ebtables_save),
-      :re     => /^:(.+)\s(\S+)$/,
+  def Mapping
+    {
+      :IPv4 => {
+        :tables => method(:iptables),
+        :save   => method(:iptables_save),
+        :re     => /^:(.+)\s(\S+)\s\[\d+:\d+\]$/,
+      },
+      :IPv6 => {
+        :tables => method(:ip6tables),
+        :save   => method(:ip6tables_save),
+        :re     => /^:(.+)\s(\S+)\s\[\d+:\d+\]$/,
+      },
+      :ethernet => {
+        :tables => method(:ebtables),
+        :save   => method(:ebtables_save),
+        :re     => /^:(.+)\s(\S+)$/,
+      }
     }
-  }
-  InternalChains = /^(PREROUTING|POSTROUTING|BROUTING|INPUT|FORWARD|OUTPUT)$/
-  Tables = 'nat|mangle|filter|raw|rawpost|broute'
-  Nameformat = /^(.+):(#{Tables}):(IP(v[46])?|ethernet)$/
+  end
+  
+  def InternalChains 
+    /^(PREROUTING|POSTROUTING|BROUTING|INPUT|FORWARD|OUTPUT)$/
+  end
+
+  def Tables
+    'nat|mangle|filter|raw|rawpost|broute'
+  end
+  
+  def Nameformat
+    /^(.+):(#{Tables}):(IP(v[46])?|ethernet)$/
+  end
 
   def create
     # can't create internal chains

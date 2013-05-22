@@ -395,10 +395,8 @@ class openstack::controller_ha (
     }
     if $ha_provider == 'pacemaker' {
       if $use_unicast_corosync {
-      $unicast_addresses = $controller_internal_addresses
-      }
-      else
-      {
+        $unicast_addresses = $controller_internal_addresses
+      } else {
         $unicast_addresses = undef
       }
       class {'openstack::corosync':

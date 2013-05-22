@@ -1,5 +1,6 @@
 #!/bin/bash
 
+FUELCONF=/etc/fuel.conf
 source /usr/local/lib/functions.sh
 
 log="/var/log/firstboot-puppet.log"
@@ -9,27 +10,11 @@ curTTY=`tty`
 set +x
 exec <$curTTY >$curTTY 2>&1
 
-# detecting batch mode for using fuel.defaults
-BATCH_MODE=''
-for xx in "$@" ; do
-    if [[ "${xx}" == "--batch-mode" ]] ; then
-        BATCH_MODE=1
-        break
-    fi
-done
-
-
 # Applying default visible settings
 default_settings
 
-# Invoking menu for masternode configuration or import settings from fuel.defaults
-if [[ "${BATCH_MODE}" == "1" && -f /root/fuel.defaults ]] ; then
-    echo "Processing fuel.defaults..."
-    source /root/fuel.defaults
-    endconf=1
-else
-    menu_conf
-fi
+# Invoking menu for masternode configuration
+menu_conf
 
 # Applying configurations
 apply_settings
@@ -60,8 +45,8 @@ rm -f /etc/nginx/conf.d/default.conf
 service nginx restart
 
 puppet apply -e "
-    class { cobbler:
-        server => \"$server\",
+    class { cobbler: 
+        server => \"$server\", 
         domain_name => \"$domain_name\",
         name_server => \"$name_server\",
         next_server => \"$next_server\",
@@ -90,7 +75,7 @@ puppet apply -e "
         arch      => 'x86_64',
         breed     => 'redhat',
         osversion => 'rhel6',
-        ksmeta    => 'tree=http://archive.kernel.org/centos/6.3/os/x86_64', }
+        ksmeta    => 'tree=http://download.mirantis.com/centos-minimal', }
     class { 'cobbler::profile::centos63_x86_64': }"
 
 puppet apply -e '
@@ -101,26 +86,33 @@ puppet apply -e '
     $stompport="61613"
 
     class { mcollective::rabbitmq:
-        stompuser => $stompuser,
-        stomppassword => $stomppassword,
+	stompuser => $stompuser,
+	stomppassword => $stomppassword,
     }
 
     class { mcollective::client:
-        pskey => $pskey,
-        stompuser => $stompuser,
-        stomppassword => $stomppassword,
-        stomphost => $stomphost,
-        stompport => $stompport
+	pskey => $pskey,
+	stompuser => $stompuser,
+	stomppassword => $stomppassword,
+	stomphost => $stomphost,
+	stompport => $stompport
     } '
 
 # Configuring squid with or without parent proxy
-[ -n "$parent_proxy" ] && IFS=: read server port <<< "$parent_proxy"
-puppet apply -e "
-\$squid_cache_parent = \"$server\"
-\$squid_cache_parent_port = \"$port\"
-class { squid: }"
+if [[ -n "$parent_proxy" ]];then
+  IFS=: read server port <<< "$parent_proxy"
+  puppet apply -e "
+  \$squid_cache_parent = \"$server\"
+  \$squid_cache_parent_port = \"$port\"
+  class { squid: }"
+else
+  puppet apply -e "class { squid: }"
+fi
 
 iptables -A PREROUTING -t nat -i $mgmt_if -s $mgmt_ip/$mgmt_mask ! -d $mgmt_ip -p tcp --dport 80 -j REDIRECT --to-port 3128
+
+/etc/init.d/iptables save
+
 
 gem install /var/www/astute-0.0.1.gem
 

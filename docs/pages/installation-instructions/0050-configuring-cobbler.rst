@@ -14,7 +14,7 @@ You'll want to configure this example for your own situation, but the example lo
         deployment_engine: simplepuppet
       task_uuid: deployment_task
 
-Possible values for ``deployment_mode`` are ``singlenode_compute``, ``multinode_compute``, and ``ha_compute``.  Change the ``deployment_mode`` to ``ha_compute`` to tell Fuel to use HA architecture.  The ``simplepuppet`` ``deployment_engine`` means that the orchestrator will be calling Puppet on each of the nodes.
+Possible values for ``deployment_mode`` are ``singlenode_compute``, ``multinode_compute``, ``ha_compute``, ``ha_compact``, ``ha_full``, and ``ha_minimal``.  Change the ``deployment_mode`` to ``ha_compute`` to tell Fuel to use HA architecture.  The ``simplepuppet`` ``deployment_engine`` means that the orchestrator will be calling Puppet on each of the nodes.
 
 Next you'll need to set OpenStack's networking information::
 
@@ -31,7 +31,7 @@ Change the virtual IPs to match the target networks, and set the fixed and float
      nv_physical_volumes:
       - /dev/sdb
 
-By setting the ``nv_physical_volumes`` value, you are not only telling OpenStack to use this value for Cinder (you'll see more about that in the ``site.pp`` file), you're also telling Fuel to create and mount the appropriate partition.
+By setting the ``nv_physical_volumes`` value, you are not only telling OpenStack to use this value for Cinder (you'll see more about that in the ``site.pp`` file), you're also telling Fuel where Cinder should be storing data.
 
 Later, we'll set up a new partition for Cinder, so tell Cobbler to create it here. ::
 
@@ -41,7 +41,7 @@ Later, we'll set up a new partition for Cinder, so tell Cobbler to create it her
      pool_start: 192.168.0.110
      pool_end: 192.168.0.126
 
-Set the ``public_net_router`` to be the master node.  The ``ext_bridge`` is a legacy value, included for compatability reasons, so you can set it to the same value as the ``public_net_router``, or simply to ``0.0.0.0``.  The ``pool_start`` and ``pool_end`` values represent the public addresses of your nodes, and should be within the ``floating_range``. ::
+Set the ``public_net_router`` to point to the real router at the public network.  The ``ext_bridge`` is the ip of the Quantum bridge. It should assigned to any available free IP on the public network that's outside the floating range.  You also have the option to simply set it to ``0.0.0.0``.  The ``pool_start`` and ``pool_end`` values represent the public addresses of your nodes, and should be within the ``floating_range``. ::
 
    segment_range: 900:999
    use_syslog: false
@@ -69,11 +69,13 @@ Depending on how you've set up your network, you can either set the ``default_ga
    cinder_nodes: [ 'controller' ]
    swift: true
 
+The loopback setting determines how Swift stores data. If you set the value to ``loopback``, Swift will use 1gb files as storage devices. If you tuned Cobbler to create a partition for Swift and mounted it to ``/srv/nodes/``, then you should set ``loopback`` to ``false``.   
+   
 In this example, you're using Cinder and including it on the compute nodes, so note that appropriately.  Also, you're using Swift, so turn that on here. ::
 
    repo_proxy: http://10.20.0.100:3128
 
-One improvemenet in Fuel 2.1 is that ability for the master node to cache downloads in order to speed up installs; by default the ``repo_proxy`` is set to point to fuel-pm in order to let that happen. ::
+One improvement in Fuel 2.1 was the ability for the master node to cache downloads in order to speed up installs; by default the ``repo_proxy`` is set to point to fuel-pm in order to let that happen. ::
 
    deployment_id: '53'
 
@@ -136,7 +138,7 @@ Fuel can install CentOS or Ubuntu on your servers, or you can add a profile of y
     name-servers-search: "your-domain-name.com"
     gateway: 10.20.0.100
 
-Set the default nameserver to be fuel-pm, and change the domain name to your own domain name.  The master node will also serve as a default gateway for the nodes. ::
+Set the default nameserver to be fuel-pm, and change the domain name to your own domain name.  Set the ``gateway`` to the public network's default gateway. Alternatively, if you don't plan to use your public networks actual gateway, you can set this value to be the IP address of the master node. **Please note:** You must specify a working gateway (or proxy) in order to install OpenStack, because the system will need to communicate with public repositories. ::
 
     ksmeta: "puppet_version=2.7.19-1puppetlabs2 \
       puppet_auto_setup=1 \
