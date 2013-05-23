@@ -114,7 +114,7 @@ EXIST_TAR = os.environ.get('EXIST_TAR', None)
 CREATE_SNAPSHOTS = os.environ.get('CREATE_SNAPSHOTS', 'true') == 'true'
 DEBUG = os.environ.get('DEBUG', 'false') == 'true'
 ISO_IMAGE = os.environ.get('ISO_IMAGE', '~/fuel-centos-6.4-x86_64.iso')
-ISO = os.environ.get('ISO', '/var/lib/libvirt/images/fuel-centos-6.3-x86_64.iso')
+ISO = os.environ.get('ISO', '/var/lib/libvirt/images/fuel-centos-6.4-x86_64.iso')
 USE_ISO= os.environ.get('USE_ISO', 'true') == 'true'
 PARENT_PROXY = os.environ.get('PARENT_PROXY', '')
 PROFILES_COBBLER_COMMON = {
