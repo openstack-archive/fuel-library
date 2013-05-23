@@ -9,7 +9,7 @@ from fuel_test.helpers import add_nmap, dhcp_checksum, puppet_apply
 from fuel_test.node_roles import NodeRoles
 from fuel_test.settings import CONTROLLERS, COMPUTES, \
     STORAGES, PROXIES, \
-    EMPTY_SNAPSHOT, POOLS, INTERFACE_ORDER, FORWARDING, DHCP
+    EMPTY_SNAPSHOT, POOLS, INTERFACE_ORDER, FORWARDING, DHCP, ISO_IMAGE
 
 
 class CiVM(CiBase):
@@ -64,6 +64,7 @@ class CiVM(CiBase):
 
     def setup_environment(self):
         master_node = self.nodes().masters[0]
+        master_node.disk_devices.get(device='cdrom').volume.upload(ISO_IMAGE)
 
         logging.info("Starting test nodes ...")
         start_nodes = self.get_startup_nodes()
