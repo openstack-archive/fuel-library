@@ -31,7 +31,7 @@ $server              = '10.0.0.100'
 # [cobbler_password] Cobbler web interface password
 
 
-$domain_name         = 'your-domain-name.com'
+$domain_name         = 'localdomain'
 $name_server         = '10.0.0.100'
 $next_server         = '10.0.0.100'
 $dhcp_start_address  = '10.0.0.201'

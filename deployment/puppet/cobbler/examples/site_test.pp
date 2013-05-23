@@ -62,7 +62,7 @@ node default {
   class { cobbler :
     server              => '10.100.0.201',
 
-    domain_name         => 'your-domain-name.com',
+    domain_name         => 'localdomain',
     name_server         => '10.100.0.201',
     next_server         => '10.100.0.201',
 

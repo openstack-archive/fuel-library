@@ -13,7 +13,7 @@ class { '::openstack::mirantis_repos':
   disable_puppet_labs_repos => false,
 }
 
-node /fuel-mcollective.your-domain-name.com/ {
+node /fuel-mcollective.localdomain/ {
 
   class { mcollective::rabbitmq:
     stompuser => $stompuser,

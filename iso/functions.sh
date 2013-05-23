@@ -14,13 +14,10 @@ function validate_hostname {
 function validate_ip() {
         local ip=$@
         local res=1
-        if [[ $ip =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
-                OIFS=$IFS
-                IFS='.'
-                ip=($ip)
-                IFS=$OIFS
-                [[ ${ip[0]} -le 255 && ${ip[1]} -le 255 && ${ip[2]} -le 255 && ${ip[3]} -le 255 ]]
-                res=$?
+        if [[ $ip =~ ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$ ]] || [[ $ip = none ]]; then
+                res=0
+	else
+		res=1
         fi
         return $res
 }
@@ -31,7 +28,7 @@ function set_if_conf {
     if [[ $dhcpsw =~ ^[nN] ]]; then
         echo
         eval "ip=\${${intf}_ip}"
-        echo -n "Enter IP address [$ip]: "; read val
+        echo -n "Enter IP address or 'none' to disable interface [$ip]: "; read val
         validate_ip $val && ip=$val
         [ -z "$ip" ] && echo "No IP entered - will use DHCP" && return
         eval ${intf}_ip="$ip"
@@ -67,12 +64,15 @@ function save_if_cfg {
     echo NM_CONTROLLED=no >> $scrFile
     echo HWADDR=$hwaddr >> $scrFile
     echo USERCTL=no >> $scrFile
-    if [ $ip ]; then
+    if [ $ip ] && [[ $ip != none ]]; then
         echo BOOTPROTO=static >> $scrFile
         echo IPADDR=$ip >> $scrFile
         echo NETMASK=$netmask >> $scrFile
         [ $dns1 ] && echo DNS1=$dns1 >> $scrFile
         [ $dns2 ] && echo DNS2=$dns2 >> $scrFile
+    elif [[ $ip = none ]] ; then
+        echo BOOTPROTO=dhcp >> $scrFile
+        echo ONBOOT=no >> $scrFile
     else
         echo BOOTPROTO=dhcp >> $scrFile
     fi

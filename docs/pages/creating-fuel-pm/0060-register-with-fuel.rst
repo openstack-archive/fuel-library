@@ -34,7 +34,7 @@ Alternatively, you can sign only a single certificate using::
 
 
 
-    puppet cert sign fuel-XX.your-domain-name.com
+    puppet cert sign fuel-XX.localdomain
 
 
 

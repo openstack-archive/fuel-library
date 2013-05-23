@@ -105,7 +105,7 @@ $controller_hostnames = keys($controller_internal_addresses)
 $ha_provider = 'pacemaker'
 
 # Set nagios master fqdn
-$nagios_master        = 'nagios-server.your-domain-name.com'
+$nagios_master        = 'nagios-server.localdomain'
 ## proj_name  name of environment nagios configuration
 $proj_name            = 'test'
 

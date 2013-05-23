@@ -167,12 +167,12 @@ class CobblerTestCase(BaseTestCase):
             profile = 'ubuntu_1204_x86_64'
         client.modify_system_args(
             system_id, token,
-            ks_meta=self.get_ks_meta('master.your-domain-name.com',
+            ks_meta=self.get_ks_meta('master.localdomain',
                 stomp_name),
             name=node_name,
-            hostname=node_name + ".your-domain-name.com",
+            hostname=node_name + ".localdomain",
             name_servers=cobbler.get_ip_address_by_network_name('internal'),
-            name_servers_search="your-domain-name.com",
+            name_servers_search="localdomain",
             profile=profile,
             gateway=gateway,
             netboot_enabled="1")
@@ -182,7 +182,7 @@ class CobblerTestCase(BaseTestCase):
             "macaddress-eth1": str(node_mac1),
             "ipaddress-eth1": str(node_ip),
             "netmask-eth1": str(net_mask),
-            "dnsname-eth1": node_name + ".your-domain-name.com",
+            "dnsname-eth1": node_name + ".localdomain",
             "static-eth1": self._static(node_name),
             "macaddress-eth2": str(node_mac2),
             "static-eth2": "1"
@@ -222,7 +222,7 @@ class CobblerTestCase(BaseTestCase):
             remote,
             master.get_ip_address_by_network_name('internal'),
             master.name,
-            master.name + ".your-domain-name.com")
+            master.name + ".localdomain")
         self.environment().snapshot('cobbler-configured', force=True)
 
     def deploy_nodes(self):

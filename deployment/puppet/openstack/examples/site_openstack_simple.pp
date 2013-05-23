@@ -72,7 +72,7 @@ $controller_internal_address = $controllers[0]['internal_address']
 $controller_public_address   = $controllers[0]['public_address']
 
 # Set nagios master fqdn
-$nagios_master        = 'nagios-server.your-domain-name.com'
+$nagios_master        = 'nagios-server.localdomain'
 ## proj_name  name of environment nagios configuration
 $proj_name            = 'test'
 
