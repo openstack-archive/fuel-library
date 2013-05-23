@@ -1,9 +1,10 @@
 import logging
 from abc import abstractproperty, abstractmethod
+from devops.helpers.helpers import _get_file_size
 from ipaddr import IPNetwork
 from fuel_test.helpers import  write_config, change_host_name, request_cerificate, setup_puppet_client, setup_puppet_master, add_nmap, switch_off_ip_tables, add_to_hosts
 from fuel_test.node_roles import NodeRoles, Nodes
-from fuel_test.settings import EMPTY_SNAPSHOT, ISO, DOMAIN_NAME
+from fuel_test.settings import EMPTY_SNAPSHOT, ISO, DOMAIN_NAME, ISO_IMAGE
 from fuel_test.root import root
 from fuel_test.helpers import load
 from devops.manager import Manager
@@ -63,25 +64,27 @@ class CiBase(object):
         """
         pass
 
-    def add_empty_volume(self, node, name):
+    def add_empty_volume(self, node, name, capacity=20 * 1024 * 1024 * 1024, format="qcow2", device="disk", bus='virtio'):
         self.manager.node_attach_volume(
             node=node,
+            device=device,
+            bus=bus,
             volume=self.manager.volume_create(
-                name=name, capacity=20 * 1024 * 1024 * 1024,
+                name=name, capacity=capacity, format=format,
                 environment=self.environment()))
 
-    def add_node(self, memory, name):
+    def add_node(self, memory, name, boot=None):
         return self.manager.node_create(
             name=name,
             memory=memory,
             environment=self.environment())
 
     def describe_master_node(self, name, networks, memory=1024):
-        node = self.add_node(memory, name)
+        node = self.add_node(memory, name, boot=['cdrom', 'hd'])
         for network in networks:
             self.manager.interface_create(network, node=node)
         self.add_empty_volume(node, name + '-system')
-        self.manager.node_attach_volume(node, self.manager.volume_get_predefined(ISO), device='cdrom', bus="ide")
+        self.add_empty_volume(node, name + '-iso', capacity=_get_file_size(ISO_IMAGE), format='raw', device='cdrom', bus='ide')
         return node
 
     def describe_empty_node(self, name, networks, memory=1024):
