@@ -36,7 +36,9 @@ OS_FAMILY                                    = OS type for nodes, cetnos or ubun
 CONTROLLERS,COMPUTES,STORAGES,PROXIES        = number of nodes of corresponding role type to deploy (defaults 3)
 PARENT_PROXY                                 = proxy server for nodes (172.18.67.168 Saratov, 172.18.3.14 Moscow) (default none)
 CIRROS_IMAGE                                 = cirros url (default http://srv08-srt.srt.mirantis.net/cirros-0.3.0-x86_64-disk.img)
-ISO                                          = Fuel iso image to use for master node provisioning (default /var/lib/libvirt/images/fuel-centos-6.3-x86_64.iso)
+ISO (obsolete?)                              = Fuel iso image to use (default /var/lib/libvirt/images/fuel-centos-6.3-x86_64.iso)
+ISO_IMAGE                                    = Fuel iso image to use (default ~/fuel-centos-6.4-x86_64.iso)
+USE_ISO                                      = use ISO for deployment (default True)
 ASTUTE_USE                                   = use astute addon for mcollective to deploy nodes (default True)
 PUPPET_GEN				     = puppet generation (2,3) to use with master & agents nodes, i.e. 2 => v2.x.x, 3 => v3.x.x (default 3)
 DEBUG                                        = run puppet with '-tvd -evaltrace' args
