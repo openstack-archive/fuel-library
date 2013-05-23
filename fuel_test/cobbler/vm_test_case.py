@@ -1,7 +1,6 @@
 from time import sleep
 import unittest
 from ipaddr import IPNetwork
-from devops.error import TimeoutError
 from fuel_test import iso_master
 from fuel_test.base_test_case import BaseTestCase
 from fuel_test.ci.ci_vm import CiVM
@@ -180,18 +179,12 @@ class CobblerTestCase(BaseTestCase):
 
     def deploy_nodes(self):
         cobbler = self.ci().nodes().masters[0]
-        cobbler_ip = cobbler.get_ip_address_by_network_name('internal')
         for node in self.ci().client_nodes():
             node.start()
         for node in self.ci().client_nodes():
             await_node_deploy(cobbler.get_ip_address_by_network_name('internal'), node.name)
         for node in self.ci().client_nodes():
-            try:
-                node.await('internal')
-            except TimeoutError:
-                node.destroy()
-                node.start()
-                node.await('internal')
+            node.await('internal')
         sleep(20)
         #for node in self.ci().client_nodes():
         #    node_remote = node.remote('public', login='root', password='r00tme')
