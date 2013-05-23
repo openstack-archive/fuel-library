@@ -8,7 +8,7 @@ from fuel_test.cobbler.cobbler_client import CobblerClient
 from fuel_test.config import Config
 from fuel_test.helpers import tcp_ping, udp_ping, add_to_hosts, await_node_deploy, write_config
 from fuel_test.manifest import Manifest
-from fuel_test.settings import OS_FAMILY, CLEAN, USE_ISO, INTERFACES, PARENT_PROXY, DOMAIN_NAME
+from fuel_test.settings import CLEAN, USE_ISO, INTERFACES, PARENT_PROXY, DOMAIN_NAME, CURRENT_PROFILE
 
 
 class CobblerTestCase(BaseTestCase):
@@ -52,9 +52,7 @@ class CobblerTestCase(BaseTestCase):
 
     def prepare_cobbler_environment(self):
         self.deploy_cobbler()
-        if USE_ISO:
-            self.configure_cobbler(self.ci().nodes().masters[0])
-        else:
+        if not USE_ISO:
             self.configure_cobbler(self.ci().nodes().cobblers[0])
         self.deploy_nodes()
 
@@ -112,10 +110,7 @@ class CobblerTestCase(BaseTestCase):
     def _add_node(self, client, token, cobbler, node_name, node_mac0, node_mac1,
                   node_mac2, node_ip, stomp_name, gateway, net_mask):
         system_id = client.new_system(token)
-        if OS_FAMILY == 'centos':
-            profile = 'centos63_x86_64'
-        else:
-            profile = 'ubuntu_1204_x86_64'
+        profile = CURRENT_PROFILE
         client.modify_system_args(system_id, token,
             ks_meta=Config().get_ks_meta('master.your-domain-name.com',
                                          stomp_name),
