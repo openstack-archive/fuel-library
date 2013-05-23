@@ -102,7 +102,7 @@ class CiBase(object):
         for node in nodes:
             add_to_hosts(remote,
                 node.get_ip_address_by_network_name('internal'), node.name,
-                node.name + '.your-domain-name.com')
+                node.name + '.localdomain')
 
     def setup_master_node(self, master_remote, nodes):
         setup_puppet_master(master_remote)
@@ -126,7 +126,7 @@ class CiBase(object):
         for node in nodes:
             remote = node.remote('public', login='root', password='r00tme')
             change_host_name(remote, node.name,
-                node.name + '.your-domain-name.com')
+                node.name + '.localdomain')
             logging.info("Renamed %s" % node.name)
 
     @abstractmethod

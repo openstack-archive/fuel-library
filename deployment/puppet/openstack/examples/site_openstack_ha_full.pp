@@ -145,7 +145,7 @@ $ha_provider = 'pacemaker'
 $use_unicast_corosync = true
 
 # Set nagios master fqdn
-$nagios_master        = 'nagios-server.your-domain-name.com'
+$nagios_master        = 'nagios-server.localdomain'
 ## proj_name  name of environment nagios configuration
 $proj_name            = 'test'
 

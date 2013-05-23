@@ -120,9 +120,9 @@ OS Installation
 
 
 
-      Replace your-domain-name.com with your domain name, and replace 8.8.8.8 with your DNS IP. Note: you can look up your DNS server on your host machine using ipconfig /all on Windows, or using cat/etc/resolv.conf under Linux. ::
+      Replace localdomain with your domain name, and replace 8.8.8.8 with your DNS IP. Note: you can look up your DNS server on your host machine using ipconfig /all on Windows, or using cat/etc/resolv.conf under Linux. ::
 
-        search your-domain-name.com
+        search localdomain
         nameserver 8.8.8.8
 
 

@@ -34,7 +34,7 @@ common:
    public_netmask: 255.255.255.0
    internal_netmask: 255.255.255.0
    default_gateway: 10.0.1.100
-   nagios_master: fuel-controller-01.your-domain-name.com
+   nagios_master: fuel-controller-01.localdomain
    cinder: true
    cinder_nodes:
    - controller
@@ -122,11 +122,11 @@ common:
     # ksmeta: "puppet_version=2.7.19-1puppetlabs2 \
     # for Centos
     name-servers: "10.0.0.100"
-    name-servers-search: "your-domain-name.com"
+    name-servers-search: "localdomain"
     gateway: 10.0.0.100
     ksmeta: "puppet_version=2.7.19-1.el6 \
       puppet_auto_setup=1 \
-      puppet_master=fuel-pm.your-domain-name.com \
+      puppet_master=fuel-pm.localdomain \
       puppet_enable=0 \
       ntp_enable=1 \
       mco_auto_setup=1 \
@@ -147,7 +147,7 @@ fuel-controller-01:
       static: "1"
       ip-address: "10.0.0.101"
       netmask: "255.255.255.0"
-      dns-name: "fuel-controller-01.your-domain-name.com"
+      dns-name: "fuel-controller-01.localdomain"
       management: "1"
     eth1:
       mac: "52:54:00:e6:dc:c9"
@@ -177,7 +177,7 @@ fuel-controller-02:
       static: "1"
       ip-address: "10.0.0.102"
       netmask: "255.255.255.0"
-      dns-name: "fuel-controller-02.your-domain-name.com"
+      dns-name: "fuel-controller-02.localdomain"
       management: "1"
     eth1:
       mac: "52:54:00:b4:a5:25"
@@ -207,7 +207,7 @@ fuel-controller-03:
       static: "1"
       ip-address: "10.0.0.103"
       netmask: "255.255.255.0"
-      dns-name: "fuel-controller-03.your-domain-name.com"
+      dns-name: "fuel-controller-03.localdomain"
       management: "1"
     eth1:
       mac: "52:54:00:78:23:b7"
@@ -234,7 +234,7 @@ fuel-quantum:
       static: "1"
       ip-address: "10.0.0.105"
       netmask: "255.255.255.0"
-      dns-name: "fuel-quantum.your-domain-name.com"
+      dns-name: "fuel-quantum.localdomain"
       management: "1"
     eth1:
       mac: "52:54:00:27:49:44"
@@ -261,7 +261,7 @@ fuel-compute-01:
       static: "1"
       ip-address: "10.0.0.110"
       netmask: "255.255.255.0"
-      dns-name: "fuel-compute-01.your-domain-name.com"
+      dns-name: "fuel-compute-01.localdomain"
       management: "1"
     eth1:
       mac: "52:54:00:27:49:44"
@@ -288,7 +288,7 @@ fuel-compute-02:
       static: "1"
       ip-address: "10.0.0.111"
       netmask: "255.255.255.0"
-      dns-name: "fuel-compute-02.your-domain-name.com"
+      dns-name: "fuel-compute-02.localdomain"
       management: "1"
     eth1:
       mac: "52:54:00:27:49:44"
