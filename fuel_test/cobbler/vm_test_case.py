@@ -52,7 +52,9 @@ class CobblerTestCase(BaseTestCase):
 
     def prepare_cobbler_environment(self):
         self.deploy_cobbler()
-        if not USE_ISO:
+        if USE_ISO:
+            self.configure_cobbler(self.ci().nodes().masters[0])
+        else:
             self.configure_cobbler(self.ci().nodes().cobblers[0])
         self.deploy_nodes()
 
@@ -182,7 +184,7 @@ class CobblerTestCase(BaseTestCase):
             node.await('internal')
         sleep(20)
         #for node in self.ci().client_nodes():
-        #    node_remote = node.remote('public', login='root', password='r00tme')
+        #    node_remote = node.remote('internal', login='root', password='r00tme')
         #puppet_apply(node_remote, 'class {rsyslog::client: log_remote => true, server => "%s"}' % cobbler_ip)
         self.environment().snapshot('nodes-deployed', force=True)
 
