@@ -4,7 +4,7 @@ OS_FAMILY = os.environ.get('OS_FAMILY', "centos")
 PUPPET_GEN = os.environ.get('PUPPET_GEN', "3")
 
 DEFAULT_IMAGES = {
-    'centos': '/var/lib/libvirt/images/centos63-cobbler-base.qcow2',
+    'centos': '/var/lib/libvirt/images/centos64-cobbler-base.qcow2',
     'ubuntu': '/var/lib/libvirt/images/ubuntu-12.04.1-server-amd64-base.qcow2',
 }
 
@@ -101,3 +101,4 @@ TEST_REPO = os.environ.get('TEST_REPO', 'false') == 'true'
 EXIST_TAR = os.environ.get('EXIST_TAR', None)
 CREATE_SNAPSHOTS = os.environ.get('CREATE_SNAPSHOTS', 'true') == 'true'
 CLEAN = os.environ.get('CLEAN', 'true') == 'true'
+DEBUG = os.environ.get('DEBUG', 'false') == 'true'

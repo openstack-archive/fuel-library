@@ -91,7 +91,7 @@ common:
   cobbler_common:
     # for Centos
     #
-    profile: "centos63_x86_64"
+    profile: "centos64_x86_64"
     # for Ubuntu
     # profile: "ubuntu_1204_x86_64"
     netboot-enabled: "1"

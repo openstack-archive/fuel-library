@@ -17,6 +17,23 @@ class rsyslog::config {
         require => Class["rsyslog::install"],
         notify  => Class["rsyslog::service"],
     }
+
+    file { $rsyslog::params::rsyslog_mainmsg_queue_dir:
+        owner   => root,
+        group   => $rsyslog::params::run_group,
+        ensure  => directory,
+        require => Class["rsyslog::install"],
+        notify  => Class["rsyslog::service"],
+    }
+
+    file { $rsyslog::params::rsyslog_action_queue_dir:
+        owner   => root,
+        group   => $rsyslog::params::run_group,
+        ensure  => directory,
+        require => Class["rsyslog::install"],
+        notify  => Class["rsyslog::service"],
+    }
+
 if $osfamily == "Debian"
 {
     file { $rsyslog::params::rsyslog_default:

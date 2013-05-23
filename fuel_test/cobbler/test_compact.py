@@ -2,17 +2,21 @@ from fuel_test.cobbler.cobbler_test_case import CobblerTestCase
 from fuel_test.helpers import is_not_essex
 import unittest
 from fuel_test.manifest import Manifest, Template
-from fuel_test.settings import CREATE_SNAPSHOTS
+from fuel_test.settings import CREATE_SNAPSHOTS, DEBUG
 
 
 class CompactTestCase(CobblerTestCase):
     def deploy_compact(self, quantum_node=True, loopback=True):
-        self.validate(self.nodes().controllers[:1], 'puppet agent --test 2>&1')
-        self.validate(self.nodes().controllers[1:], 'puppet agent --test 2>&1')
-        self.validate(self.nodes().controllers[:1], 'puppet agent --test 2>&1')
+        if DEBUG:
+            extargs = ' -vd --evaltrace'
+        else:
+            extargs = ''
+        self.validate(self.nodes().controllers[:1], 'puppet agent --test'+extargs+' 2>&1')
+        self.validate(self.nodes().controllers[1:], 'puppet agent --test'+extargs+' 2>&1')
+        self.validate(self.nodes().controllers[:1], 'puppet agent --test'+extargs+' 2>&1')
         if quantum_node:
-            self.validate(self.nodes().quantums, 'puppet agent --test 2>&1')
-        self.validate(self.nodes().computes, 'puppet agent --test 2>&1')
+            self.validate(self.nodes().quantums, 'puppet agent --test'+extargs+' 2>&1')
+        self.validate(self.nodes().computes, 'puppet agent --test'+extargs+' 2>&1')
 
     @unittest.skipUnless(is_not_essex(), 'Quantum in essex is not supported')
     def test_deploy_compact_quantum(self):

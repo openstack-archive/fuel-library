@@ -175,7 +175,7 @@ class openstack::controller (
   Class['openstack::db::mysql'] -> Class['openstack::glance']
   Class['openstack::db::mysql'] -> Class['openstack::nova::controller']
   if defined(Class['openstack::cinder']) {
-    Class['openstack::db::mysql'] -> Class['openstack::cinder']
+        Class['openstack::db::mysql'] -> Class['openstack::cinder']
   }
 
   $rabbit_addresses = inline_template("<%= @rabbit_nodes.map {|x| x + ':5672'}.join ',' %>")

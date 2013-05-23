@@ -145,6 +145,7 @@ class quantum::agents::l3 (
         subnet_gw       => $external_gateway, # undef,
         alloc_pool      => $external_alloc_pool, # undef,
         enable_dhcp     => 'False', # 'True',
+        shared          => 'True',
       }
       Quantum_l3_agent_config <| |> -> Quantum::Network::Setup['net04_ext']
 

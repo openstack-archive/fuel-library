@@ -104,9 +104,9 @@ class openstack::compute (
   $cinder_iscsi_bind_addr  = false,
   $db_host                 = '127.0.0.1',
   $use_syslog              = false,
-  $nova_rate_limits        = undef,
-  $cinder_rate_limits      = undef,
-  $create_networks         = false
+  $nova_rate_limits = undef,
+  $cinder_rate_limits = undef,
+  $create_networks = false
 ) {
 
   #
@@ -159,18 +159,18 @@ class openstack::compute (
   }
 
   class { 'nova':
-    ensure_package     => $::openstack_version['nova'],
-    sql_connection     => $sql_connection,
-    rabbit_nodes       => $rabbit_nodes,
-    rabbit_userid      => $rabbit_user,
-    rabbit_password    => $rabbit_password,
-    image_service      => 'nova.image.glance.GlanceImageService',
-    glance_api_servers => $glance_api_servers,
-    verbose            => $verbose,
-    rabbit_host        => $rabbit_host,
-    use_syslog         => $use_syslog,
-    api_bind_address   => $internal_address,
-    rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
+      ensure_package       => $::openstack_version['nova'],
+      sql_connection       => $sql_connection,
+      rabbit_nodes         => $rabbit_nodes,
+      rabbit_userid        => $rabbit_user,
+      rabbit_password      => $rabbit_password,
+      image_service        => 'nova.image.glance.GlanceImageService',
+      glance_api_servers   => $glance_api_servers,
+      verbose              => $verbose,
+      rabbit_host          => $rabbit_host,
+      use_syslog           => $use_syslog,
+      api_bind_address     => $internal_address,
+      rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
   }
 
   #Cinder setup
@@ -178,25 +178,25 @@ class openstack::compute (
     $enabled_apis = 'metadata'
     package {'python-cinderclient': ensure => present}
     class {'openstack::cinder':
-      sql_connection       => "mysql://${cinder_db_user}:${cinder_db_password}@${db_host}/${cinder_db_dbname}?charset=utf8",
-      rabbit_password      => $rabbit_password,
-      rabbit_host          => false,
-      rabbit_nodes         => $rabbit_nodes,
-      volume_group         => $cinder_volume_group,
-      physical_volume      => $nv_physical_volume,
-      manage_volumes       => $manage_volumes,
-      enabled              => true,
-      auth_host            => $service_endpoint,
-      bind_host            => false,
-      iscsi_bind_host      => $cinder_iscsi_bind_addr,
-      cinder_user_password => $cinder_user_password,
-      use_syslog           => $use_syslog,
-      cinder_rate_limits   => $cinder_rate_limits,
-      rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
+        sql_connection       => "mysql://${cinder_db_user}:${cinder_db_password}@${db_host}/${cinder_db_dbname}?charset=utf8",
+        rabbit_password      => $rabbit_password,
+        rabbit_host          => false,
+        rabbit_nodes         => $rabbit_nodes,
+        volume_group         => $cinder_volume_group,
+        physical_volume      => $nv_physical_volume,
+        manage_volumes       => $manage_volumes,
+        enabled              => true,
+        auth_host            => $service_endpoint,
+        bind_host            => false,
+        iscsi_bind_host      => $cinder_iscsi_bind_addr,
+        cinder_user_password => $cinder_user_password,
+        use_syslog           => $use_syslog,
+        cinder_rate_limits   => $cinder_rate_limits,
+        rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
     }
 
   } else {
-    $enabled_apis = 'metadata,osapi_volume'
+    $enabled_apis = 'metadata'
   }
 
 
