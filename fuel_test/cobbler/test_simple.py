@@ -9,7 +9,7 @@ class SimpleTestCase(CobblerTestCase):
         Manifest().write_openstack_simple_manifest(
             remote=self.remote(),
             ci=self.ci(),
-            controllers=self.nodes().controllers)
+            controllers=self.nodes().controllers[:1])
         if DEBUG:
             extargs = ' -vd --evaltrace'
         else:
