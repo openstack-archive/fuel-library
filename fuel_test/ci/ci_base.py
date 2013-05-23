@@ -4,7 +4,7 @@ from devops.helpers.helpers import _get_file_size
 from ipaddr import IPNetwork
 from fuel_test.helpers import  write_config, change_host_name, request_cerificate, setup_puppet_client, setup_puppet_master, add_nmap, switch_off_ip_tables, add_to_hosts
 from fuel_test.node_roles import NodeRoles, Nodes
-from fuel_test.settings import EMPTY_SNAPSHOT, ISO, DOMAIN_NAME, ISO_IMAGE
+from fuel_test.settings import EMPTY_SNAPSHOT, ISO_IMAGE
 from fuel_test.root import root
 from fuel_test.helpers import load
 from devops.manager import Manager
