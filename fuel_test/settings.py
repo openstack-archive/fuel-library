@@ -117,7 +117,7 @@ ISO_IMAGE = os.environ.get('ISO_IMAGE', '~/fuel-centos-6.3-x86_64.iso')
 USE_ISO= os.environ.get('USE_ISO', 'true') == 'true'
 PARENT_PROXY = os.environ.get('PARENT_PROXY', "172.18.3.14")
 PROFILES_COBBLER_COMMON = {
-    'centos': 'centos63_x86_64',
+    'centos': 'centos64_x86_64',
     'ubuntu': 'ubuntu_1204_x86_64'
 }
 
