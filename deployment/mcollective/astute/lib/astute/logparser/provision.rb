@@ -67,7 +67,7 @@ module Astute
 	      #     {'pattern' => 'Installing glibc-common-2.12', 'supposed_time' => 9},
 	      #     {'pattern' => 'Installing bash-4.1.2', 'supposed_time' => 11},
 	      #     {'pattern' => 'Installing coreutils-8.4-19', 'supposed_time' => 20},
-	      #     {'pattern' => 'Installing centos-release-6-3', 'supposed_time' => 21},
+	      #     {'pattern' => 'Installing centos-release-6-4', 'supposed_time' => 21},
 	      #     {'pattern' => 'Installing attr-2.4.44', 'supposed_time' => 23},
 	      #     {'pattern' => 'leaving (1) step installpackages', 'supposed_time' => 60},
 	      #     {'pattern' => 'moving (1) to step postscripts', 'supposed_time' => 4},
