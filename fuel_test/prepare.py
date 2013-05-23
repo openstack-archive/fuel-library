@@ -6,8 +6,8 @@ import keystoneclient.v2_0
 #from quantumclient.quantum import client as q_client
 from quantumclient.v2_0 import client as q_client
 import os
-from fuel_test.ci.ci_cobbler import CiCobbler
-from fuel_test.helpers import load, retry, install_packages, switch_off_ip_tables, is_not_essex
+from fuel_test.ci.ci_vm import CiVM
+from fuel_test.helpers import load, retry, install_packages, switch_off_ip_tables
 from fuel_test.root import root
 from fuel_test.settings import ADMIN_USERNAME, ADMIN_PASSWORD, ADMIN_TENANT_ESSEX, ADMIN_TENANT_FOLSOM, OS_FAMILY, CIRROS_IMAGE
 
@@ -19,8 +19,9 @@ class Prepare(object):
             self.public_ip = self.controllers[0].get_ip_address_by_network_name('public')
             self.internal_ip = self.controllers[0].get_ip_address_by_network_name('internal')
         else:
-            self.public_ip = self.ci().public_virtual_ip()
-            self.internal_ip = self.ci().public_virtual_ip()
+        self.public_ip = self.ci().public_virtual_ip()
+        print "public", self.public_ip
+        self.internal_ip = self.ci().public_virtual_ip()
 
     def remote(self):
         return ssh(self.public_ip,
@@ -29,7 +30,7 @@ class Prepare(object):
 
     def ci(self):
         if not hasattr(self, '_ci'):
-            self._ci = CiCobbler()
+            self._ci = CiVM()
         return self._ci
 
     def username(self):
@@ -39,9 +40,7 @@ class Prepare(object):
         return ADMIN_PASSWORD
 
     def tenant(self):
-        if is_not_essex():
             return ADMIN_TENANT_FOLSOM
-        return ADMIN_TENANT_ESSEX
 
     def get_auth_url(self):
         return 'http://%s:5000/v2.0/' % self.public_ip
@@ -242,7 +241,7 @@ class Prepare(object):
             'ALT_TENANT_NAME': 'tenant2',
             'IMAGE_ID': image_ref,
             'IMAGE_ID_ALT': image_ref_alt,
-            'ADMIN_USER_NAME': ADMIN_USERNAME,
+            'ADMIN_USERNAME': ADMIN_USERNAME,
             'ADMIN_PASSWORD': ADMIN_PASSWORD,
             'ADMIN_TENANT_NAME': ADMIN_TENANT_ESSEX,
         }
@@ -274,8 +273,8 @@ class Prepare(object):
             tenant1 = tenants[0].id 
             tenant2 = tenants[1].id
         else:
-            tenant1 = retry(10, keystone.tenants.create, tenant_name='tenant1')
-            tenant2 = retry(10, keystone.tenants.create, tenant_name='tenant2')
+        tenant1 = retry(10, keystone.tenants.create, tenant_name='tenant1')
+        tenant2 = retry(10, keystone.tenants.create, tenant_name='tenant2')
 
         users = self._get_users(keystone, 'tempest1', 'tempest2')
         if len(users) == 0:
@@ -326,10 +325,10 @@ class Prepare(object):
         if len(images) > 1:
             return images[0].id, images[1].id
         else:
-            return self.upload(glance, 'cirros_0.3.0',
-                              'cirros-0.3.0-x86_64-disk.img'), \
-                   self.upload(glance, 'cirros_0.3.0',
-                              'cirros-0.3.0-x86_64-disk.img')
+        return self.upload(glance, 'cirros_0.3.0',
+                           'cirros-0.3.0-x86_64-disk.img'), \
+               self.upload(glance, 'cirros_0.3.0',
+                           'cirros-0.3.0-x86_64-disk.img')
 
     def tempest_get_netid_routerid(self):
         networking = self._get_networking_client()

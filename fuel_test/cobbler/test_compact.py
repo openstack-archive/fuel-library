@@ -1,8 +1,9 @@
-from fuel_test.cobbler.cobbler_test_case import CobblerTestCase
-from fuel_test.helpers import is_not_essex
+from fuel_test.cobbler.vm_test_case import CobblerTestCase
 import unittest
+from fuel_test.config import Config
+from fuel_test.helpers import write_config
 from fuel_test.manifest import Manifest, Template
-from fuel_test.settings import CREATE_SNAPSHOTS, DEBUG
+from fuel_test.settings import DEBUG, ASTUTE_USE
 
 
 class CompactTestCase(CobblerTestCase):
@@ -18,92 +19,160 @@ class CompactTestCase(CobblerTestCase):
             self.validate(self.nodes().quantums, 'puppet agent --test'+extargs+' 2>&1')
         self.validate(self.nodes().computes, 'puppet agent --test'+extargs+' 2>&1')
 
-    @unittest.skipUnless(is_not_essex(), 'Quantum in essex is not supported')
     def test_deploy_compact_quantum(self):
-        Manifest().write_openstack_manifest(
-            remote=self.remote(),
-            template=Template.compact(), ci=self.ci(),
-            controllers=self.nodes().controllers,
-            quantums=self.nodes().quantums,
-            quantum=True)
-        self.deploy_compact(quantum_node=False)
-        if CREATE_SNAPSHOTS:
-            self.environment().snapshot('compact', force=True)
+        if ASTUTE_USE:
+            config = Config().generate(
+                template=Template.compact(),
+                ci=self.ci(),
+                nodes = self.nodes().controllers,
+                quantums=self.nodes().quantums,
+                quantum=True,
+                cinder_nodes=['controller'])
+            self.deploy_by_astute(config)
+        else:
+            manifest = Manifest().generate_openstack_manifest(
+                template=Template.compact(), ci=self.ci(),
+                controllers=self.nodes().controllers,
+                quantums=self.nodes().quantums,
+                quantum=True,
+                cinder_nodes=['controller']
+            )
+            Manifest().write_manifest(remote=self.remote(), manifest=manifest)
+            self.deploy_compact(quantum_node=False)
 
     def test_deploy_compact_quantum_standalone(self):
-        Manifest().write_openstack_manifest(
-            remote=self.remote(),
-            template=Template.compact(), ci=self.ci(),
-            controllers=self.nodes().controllers,
-            quantums=self.nodes().quantums,
-            quantum=True, quantum_netnode_on_cnt=False, ha_provider=False)
-        self.deploy_compact(quantum_node=True)
-        if CREATE_SNAPSHOTS:
-            self.environment().snapshot('compact', force=True)
+        if ASTUTE_USE:
+            config = Config().generate(
+                template=Template.compact(),
+                ci=self.ci(),
+                nodes = self.nodes().controllers,
+                quantums=self.nodes().quantums,
+                quantum=True, quantum_netnode_on_cnt=False,
+                cinder_nodes=['controller'])
+            self.deploy_by_astute(config)
+        else:
+            Manifest().generate_openstack_manifest(
+                template=Template.compact(), ci=self.ci(),
+                controllers=self.nodes().controllers,
+                quantums=self.nodes().quantums,
+                quantum=True, quantum_netnode_on_cnt=False, ha_provider=False,
+                cinder_nodes=['controller'])
+            self.deploy_compact(quantum_node=True)
 
     def test_deploy_compact_wo_quantum(self):
-        Manifest().write_openstack_manifest(
-            remote=self.remote(),
-            template=Template.compact(), ci=self.ci(),
-            controllers=self.nodes().controllers,
-            quantums=self.nodes().quantums,
-            quantum=False)
-        self.deploy_compact(quantum_node=False)
-        if CREATE_SNAPSHOTS:
-            self.environment().snapshot('compact_wo_quantum', force=True)
+        if ASTUTE_USE:
+            config = Config().generate(
+                template=Template.compact(),
+                ci=self.ci(),
+                nodes = self.nodes().controllers,
+                quantums=self.nodes().quantums,
+                quantum=False,
+                cinder_nodes=['controller'])
+            self.deploy_by_astute(config)
+        else:
+            Manifest().generate_openstack_manifest(
+                template=Template.compact(), ci=self.ci(),
+                controllers=self.nodes().controllers,
+                quantums=self.nodes().quantums,
+                quantum=False,
+                cinder_nodes=['controller'])
+            self.deploy_compact(quantum_node=False)
 
-    def test_deploy_compact_wo_quantum_cinder_all_by_ipaddr(self): 
-        Manifest().write_openstack_manifest( 
-            remote=self.remote(), 
-            template=Template.compact(), ci=self.ci(), 
-            controllers=self.nodes().controllers, 
-            cinder=True,
-            cinder_nodes=map(
-                lambda x: x.get_ip_address_by_network_name('internal'),
-                self.nodes().controllers
-                + self.nodes().computes
-                + self.nodes().storages),
-            quantums=self.nodes().quantums, 
-            quantum=False) 
-        self.deploy_compact(quantum_node=False) 
-        if CREATE_SNAPSHOTS: 
-            self.environment().snapshot('compact_wo_quantum_cinderip', force=True) 
+    def test_deploy_compact_wo_quantum_cinder_all_by_ipaddr(self):
+        if ASTUTE_USE:
+            config = Config().generate(
+                template=Template.compact(),
+                ci=self.ci(),
+                nodes = self.nodes().controllers + self.nodes().computes,
+                quantums=self.nodes().quantums,
+                quantum=False,
+                cinder=True,
+                cinder_nodes=map(
+                    lambda x: x.get_ip_address_by_network_name('internal'),
+                    self.nodes().controllers
+                    + self.nodes().computes
+                    + self.nodes().storages),)
+            self.deploy_by_astute(config)
+        else:
+            Manifest().generate_openstack_manifest(
+                template=Template.compact(), ci=self.ci(),
+                controllers=self.nodes().controllers,
+                cinder=True,
+                cinder_nodes=map(
+                    lambda x: x.get_ip_address_by_network_name('internal'),
+                    self.nodes().controllers
+                    + self.nodes().computes
+                    + self.nodes().storages),
+                quantums=self.nodes().quantums,
+                quantum=False,)
+            self.deploy_compact(quantum_node=False)
 
-    def test_deploy_compact_wo_quantum_cinder_all(self): 
-        Manifest().write_openstack_manifest( 
-            remote=self.remote(), 
-            template=Template.compact(), ci=self.ci(), 
-            controllers=self.nodes().controllers, 
-            cinder=True,
-            cinder_nodes=['all'],
-            quantums=self.nodes().quantums, 
-            quantum=False) 
-        self.deploy_compact(quantum_node=False) 
-        if CREATE_SNAPSHOTS: 
-            self.environment().snapshot('compact_wo_quantum_cinderall', force=True) 
- 
+    def test_deploy_compact_wo_quantum_cinder_all(self):
+        if ASTUTE_USE:
+            config = Config().generate(
+                template=Template.compact(),
+                ci=self.ci(),
+                nodes = self.nodes().controllers + self.nodes().computes,
+                quantums=self.nodes().quantums,
+                quantum=True,
+                cinder=True,
+                cinder_nodes=['all'])
+            self.deploy_by_astute(config)
+        else:
+            Manifest().generate_openstack_manifest(
+                template=Template.compact(), ci=self.ci(),
+                controllers=self.nodes().controllers,
+                cinder=True,
+                cinder_nodes=['all'],
+                quantums=self.nodes().quantums,
+                quantum=False)
+            self.deploy_compact(quantum_node=False)
+
     def test_deploy_compact_wo_loopback(self):
-        Manifest().write_openstack_manifest(
-            remote=self.remote(),
-            template=Template.compact(), ci=self.ci(),
-            controllers=self.nodes().controllers,
-            quantums=self.nodes().quantums,
-            quantum=False, loopback=False, use_syslog=False)
-        self.deploy_compact(quantum_node=False, loopback=False)
-        if CREATE_SNAPSHOTS:
-            self.environment().snapshot('compact_woloopback', force=True)
+        if ASTUTE_USE:
+            config = Config().generate(
+                template=Template.compact(),
+                ci=self.ci(),
+                nodes = self.nodes().controllers,
+                quantums=self.nodes().quantums,
+                quantum=False, loopback=False, use_syslog=False,
+                cinder_nodes=['controller'])
+            self.deploy_by_astute(config)
+        else:
+            Manifest().generate_openstack_manifest(
+                template=Template.compact(), ci=self.ci(),
+                controllers=self.nodes().controllers,
+                quantums=self.nodes().quantums,
+                quantum=False, loopback=False, use_syslog=False,
+                cinder_nodes=['controller'])
+            self.deploy_compact(quantum_node=False, loopback=False)
 
     def test_deploy_compact_wo_ha_provider(self):
-        Manifest().write_openstack_manifest(
-            remote=self.remote(),
-            template=Template.compact(), ci=self.ci(),
-            controllers=self.nodes().controllers,
-            quantums=self.nodes().quantums,
-            quantum=False, use_syslog=False, ha_provider=False)
-        self.deploy_compact(quantum_node=False)
-        if CREATE_SNAPSHOTS:
-            self.environment().snapshot('compact_wo_ha_provider', force=True)
+        if ASTUTE_USE:
+            config = Config().generate(
+                template=Template.compact(),
+                ci=self.ci(),
+                nodes = self.nodes().controllers,
+                quantums=self.nodes().quantums,
+                quantum=False, use_syslog=False,
+                cinder_nodes=['controller'])
+            self.deploy_by_astute(config)
+        else:
+            Manifest().generate_openstack_manifest(
+                template=Template.compact(), ci=self.ci(),
+                controllers=self.nodes().controllers,
+                quantums=self.nodes().quantums,
+                quantum=False, use_syslog=False, ha_provider=False,
+                cinder_nodes=['controller'])
+            self.deploy_compact(quantum_node=False)
 
+    def deploy_by_astute(self, config):
+        print "config.yaml:", config
+        config_path = "/root/config.yaml"
+        write_config(self.remote(), config_path, str(config))
+        self.remote().check_call("cobbler_system -f %s" % config_path)
+        self.remote().check_stderr("openstack_system -c %s -o /etc/puppet/manifests/site.pp -a /root/astute.yaml" % config_path)
+        self.remote().check_stderr("astute -f /root/astute.yaml")
 
 if __name__ == '__main__':
     unittest.main()

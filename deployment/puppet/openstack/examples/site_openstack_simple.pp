@@ -71,6 +71,12 @@ $controllers = merge_arrays(filter_nodes($nodes,'role','primary-controller'), fi
 $controller_internal_address = $controllers[0]['internal_address']
 $controller_public_address   = $controllers[0]['public_address']
 
+#Set this to anything other than pacemaker if you do not want Quantum HA
+#Also, if you do not want Quantum HA, you MUST enable $quantum_network_node
+#on the ONLY controller
+$ha_provider = 'generic'
+#$use_unicast_corosync = false
+
 # Set nagios master fqdn
 $nagios_master        = 'nagios-server.your-domain-name.com'
 ## proj_name  name of environment nagios configuration
