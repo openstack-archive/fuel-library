@@ -34,7 +34,7 @@ Other shell script keys:
 DOMAIN_NAME                                  = domain name to use for nodes (default .your-domain-name.com)
 OS_FAMILY                                    = OS type for nodes, cetnos or ubuntu (default centos)
 CONTROLLERS,COMPUTES,STORAGES,PROXIES        = number of nodes of corresponding role type to deploy (defaults 3)
-PARENT_PROXY                                 = proxy server for nodes (172.18.67.168 Saratov, 172.18.3.14 Moscow) (default Moscow)
+PARENT_PROXY                                 = proxy server for nodes (172.18.67.168 Saratov, 172.18.3.14 Moscow) (default none)
 CIRROS_IMAGE                                 = cirros url (default http://srv08-srt.srt.mirantis.net/cirros-0.3.0-x86_64-disk.img)
 ISO                                          = Fuel iso image to use for master node provisioning (default /var/lib/libvirt/images/fuel-centos-6.3-x86_64.iso)
 ASTUTE_USE                                   = use astute addon for mcollective to deploy nodes (default True)
