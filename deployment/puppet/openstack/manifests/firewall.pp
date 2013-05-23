@@ -199,6 +199,13 @@ class openstack::firewall (
     action => 'accept',
   }
 
+  firewall {'199 gre-notrack':
+  chain => "PREROUTING",
+  table => 'raw',
+  proto => 'gre',
+  action => 'notrack',
+  }
+
   firewall { '999 drop all other requests':
     action => 'drop',
   }
