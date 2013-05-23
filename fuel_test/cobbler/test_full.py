@@ -1,19 +1,32 @@
 import unittest
-from fuel_test.cobbler.cobbler_test_case import CobblerTestCase
-from fuel_test.helpers import is_not_essex
+from fuel_test.cobbler.vm_test_case import CobblerTestCase
+from fuel_test.config import Config
+from fuel_test.helpers import write_config
 from fuel_test.manifest import Manifest, Template
-from fuel_test.settings import CREATE_SNAPSHOTS, DEBUG
+from fuel_test.settings import CREATE_SNAPSHOTS, DEBUG, ASTUTE_USE
 
 
 class FullTestCase(CobblerTestCase):
-    def test_full(self):
-        Manifest().write_openstack_manifest(
-            remote=self.remote(),
-            template=Template.full(), ci=self.ci(),
+    def deploy(self):
+        if ASTUTE_USE:
+            self.prepare_astute()
+            self.deploy_by_astute()
+        else:
+            self.deploy_one_by_one()
+
+    def deploy_one_by_one(self):
+        manifest = Manifest().generate_openstack_manifest(
+            template=Template.full(),
+            ci=self.ci(),
             controllers=self.nodes().controllers,
             proxies=self.nodes().proxies,
             quantums=self.nodes().quantums,
-            quantum=True)
+            quantum=True,
+            use_syslog=False
+        )
+
+        Manifest().write_manifest(remote=self.remote(), manifest=manifest)
+
         if DEBUG:
             extargs = ' -vd --evaltrace'
         else:
@@ -25,6 +38,31 @@ class FullTestCase(CobblerTestCase):
         self.validate(self.nodes().controllers[1:], 'puppet agent --test'+extargs+' 2>&1')
         self.validate(self.nodes().controllers[:1], 'puppet agent --test'+extargs+' 2>&1')
         self.validate(self.nodes().computes, 'puppet agent --test'+extargs+' 2>&1')
+
+    def deploy_by_astute(self):
+        self.remote().check_stderr("astute -f /root/astute.yaml")
+
+    def prepare_astute(self):
+        config = Config().generate(
+            ci=self.ci(),
+            nodes=self.nodes(),
+            template=Template.full(),
+            quantums=self.nodes().quantums,
+            swift=False,
+            loopback=False,
+            use_syslog=False,
+            quantum=True
+        )
+        print "Generated config.yaml:", config
+        config_path = "/root/config.yaml"
+        write_config(self.remote(), config_path, str(config))
+        self.remote().check_call("cobbler_system -f %s" % config_path)
+        self.remote().check_stderr("openstack_system -c %s -o /etc/puppet/manifests/site.pp -a /root/astute.yaml" % config_path)
+
+
+    def test_full(self):
+        self.deploy()
+
         if CREATE_SNAPSHOTS:
             self.environment().snapshot('full', force=True)
 

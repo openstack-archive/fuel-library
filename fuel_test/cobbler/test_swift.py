@@ -1,12 +1,17 @@
 import unittest
-from fuel_test.cobbler.cobbler_test_case import CobblerTestCase
+from fuel_test.cobbler.vm_test_case import CobblerTestCase
 from fuel_test.manifest import Manifest
 from fuel_test.settings import DEBUG
 
 class SwiftCase(CobblerTestCase):
+
+
     def test_swift(self):
-        Manifest().write_swift_manifest(remote=self.remote(),
+        Manifest.write_manifest(
+            self.remote(),
+            Manifest().generate_swift_manifest(
             controllers=self.nodes().controllers)
+        )
         if DEBUG:
             extargs = ' -vd --evaltrace'
         else:
