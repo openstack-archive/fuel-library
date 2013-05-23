@@ -50,7 +50,7 @@ node fuel-cobbler {
 
     class { cobbler::distro::centos64_x86_64:
       http_iso => "http://download.mirantis.com/epel-fuel-folsom-2.1/CentOS-6.4-x86_64-minimal.iso",
-      ks_url   => "http://srv08-srt.srt.mirantis.net/centos-repo/centos-6.4/",
+      ks_url   => "http://download.mirantis.com/centos-minimal-6.4",
     }
 
 
@@ -65,11 +65,11 @@ node fuel-cobbler {
         },
         {
         "name" => "centos-mr-base",
-        "url"  => "http://srv08-srt.srt.mirantis.net/centos-repo/centos-6.4/",
+        "url"  => "http://download.mirantis.com/centos-minimal-6.4",
         },
         {
         "name" => "centos-mr-updates",
-        "url"  => "http://srv08-srt.srt.mirantis.net/centos-repo/centos-6.4-updates/",
+        "url"  => "http://download.mirantis.com/centos-minimal-6.4-updates/",
         }
       ]
     }

@@ -209,12 +209,12 @@ class openstack::mirantis_repos (
         yumrepo { 'centos-base':
             descr      => 'Local base mirror repository',
             name       => 'base',
-            baseurl => "http://srv08-srt.srt.mirantis.net/centos-repo/centos-6.4/",
+            baseurl => "http://download.mirantis.com/centos-minimal-6.4",
             mirrorlist => absent
         }
         yumrepo { 'centos-updates':
             descr      => 'Local updates mirror repository',
-            baseurl => "http://srv08-srt.srt.mirantis.net/centos-repo/centos-6.4-updates/",
+            baseurl => "http://download.mirantis.com/centos-minimal-6.4-updates/",
             mirrorlist => absent,
             name       => 'updates'
         }
