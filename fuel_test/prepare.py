@@ -14,12 +14,13 @@ from fuel_test.settings import ADMIN_USERNAME, ADMIN_PASSWORD, ADMIN_TENANT_ESSE
 
 class Prepare(object):
     def __init__(self):
- #       self.public_ip = self.ci().public_virtual_ip()
- #       self.internal_ip = self.ci().public_virtual_ip()
         self.controllers = self.ci().nodes().controllers
- #       if len(self.controllers) == 1:
-        self.public_ip = self.controllers[0].get_ip_address_by_network_name('public')
-        self.internal_ip = self.controllers[0].get_ip_address_by_network_name('internal')
+        if len(self.controllers) == 1:
+            self.public_ip = self.controllers[0].get_ip_address_by_network_name('public')
+            self.internal_ip = self.controllers[0].get_ip_address_by_network_name('internal')
+        else:
+            self.public_ip = self.ci().public_virtual_ip()
+            self.internal_ip = self.ci().public_virtual_ip()
 
     def remote(self):
         return ssh(self.public_ip,
