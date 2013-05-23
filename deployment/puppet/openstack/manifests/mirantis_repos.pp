@@ -113,7 +113,7 @@ class openstack::mirantis_repos (
         apt::pin { 'cloud-archive':
             order      => 20,
             priority   => 1002,
-          }
+        }
 
         apt::source { 'cloud-archive':
           location    => $deb_cloud_archive_repo,
@@ -207,16 +207,10 @@ class openstack::mirantis_repos (
           gpgkey     => 'http://download.mirantis.com/epel-fuel-folsom-2.1/epel.key  http://download.mirantis.com/epel-fuel-folsom-2.1/centos.key http://download.mirantis.com/epel-fuel-folsom-2.1/rabbit.key http://download.mirantis.com/epel-fuel-folsom-2.1/mirantis.key http://download.mirantis.com/epel-fuel-folsom-2.1/mysql.key http://download.mirantis.com/epel-fuel-folsom-2.1/nginx.key',
         }
         yumrepo { 'centos-base':
-            descr      => 'Local base mirror repository',
+            descr      => 'Mirantis-CentOS',
             name       => 'base',
-            baseurl => "http://download.mirantis.com/centos-minimal-6.4",
+            baseurl => "http://download.mirantis.com/centos-6.4",
             mirrorlist => absent
-        }
-        yumrepo { 'centos-updates':
-            descr      => 'Local updates mirror repository',
-            baseurl => "http://download.mirantis.com/centos-minimal-6.4-updates/",
-            mirrorlist => absent,
-            name       => 'updates'
         }
         yumrepo { 'vault6.3-base':
             descr      => 'Vault 6.3 base mirror repository',
@@ -224,7 +218,7 @@ class openstack::mirantis_repos (
             enabled    => 0,
             baseurl => "http://vault.centos.org/6.3/os/x86_64/",
             mirrorlist => absent
-      }
+        }
 
       }
 
