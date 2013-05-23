@@ -1,8 +1,8 @@
 COMMIT_SHA:=$(shell git rev-parse --verify HEAD)
-FUEL_VERSION:=2.2-folsom
+FUEL_VERSION:=2.1-folsom
 
 CENTOS_MAJOR:=6
-CENTOS_MINOR:=3
+CENTOS_MINOR:=4
 CENTOS_RELEASE:=$(CENTOS_MAJOR).$(CENTOS_MINOR)
 CENTOS_ARCH:=x86_64
 
@@ -20,7 +20,7 @@ LOCAL_MIRROR_CENTOS_OS_BASEURL:=$(LOCAL_MIRROR_CENTOS)/$(CENTOS_RELEASE)/os/$(CE
 LOCAL_MIRROR_UBUNTU:=$(LOCAL_MIRROR)/ubuntu/dists/$(UBUNTU_DISTR)
 LOCAL_MIRROR_UBUNTU_DEB:=$(LOCAL_MIRROR_UBUNTU)/$(UBUNTU_COMP)/binary-$(UBUNTU_ARCH)
 LOCAL_MIRROR_UBUNTU_INSTALLER:=$(LOCAL_MIRROR_UBUNTU)/$(UBUNTU_COMP)/debian-installer/binary-$(UBUNTU_ARCH)
-MIRROR_CENTOS:=http://archive.kernel.org/centos
+MIRROR_CENTOS:=http://download.mirantis.com/centos-6.4
 MIRROR_CENTOS_OS_BASEURL:=$(MIRROR_CENTOS)/$(CENTOS_RELEASE)/os/$(CENTOS_ARCH)
 MIRROR_UBUNTU:=http://mirror.yandex.ru/ubuntu
 MIRROR_UBUNTU_OS_BASEURL:=$(MIRROR_UBUNTU)/dists/$(UBUNTU_DISTR)/$(UBUNTU_COMP)
@@ -29,13 +29,13 @@ YUM_REPOS:=centos epel fuel_folsom puppetlabs rpmforge
 include $(SOURCE_DIR)/mirror/module.mk
 
 clean:
-	sudo rm -rf $(BUILD_DIR)
-	sudo rm -rf $(LOCAL_MIRROR)/ubuntu/dists
-	sudo rm -rf $(LOCAL_MIRROR)/ubuntu/etc
-	sudo rm -rf $(LOCAL_MIRROR)/ubuntu/var
+	rm -rf $(BUILD_DIR)
+	rm -rf $(LOCAL_MIRROR)/ubuntu/dists
+	rm -rf $(LOCAL_MIRROR)/ubuntu/etc
+	rm -rf $(LOCAL_MIRROR)/ubuntu/var
 
 deep_clean: clean
-	sudo rm -rf $(LOCAL_MIRROR)
+	rm -rf $(LOCAL_MIRROR)
 
 .PHONY: iso clean
 all: iso
