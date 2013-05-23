@@ -242,9 +242,9 @@ class Manifest(object):
                                     swift=True,
                                     ha_provider='pacemaker', ha=True):
         if ha:
-        template.replace(
-            internal_virtual_ip=ci.internal_virtual_ip(),
-            public_virtual_ip=ci.public_virtual_ip(),
+            template.replace(
+                internal_virtual_ip=ci.internal_virtual_ip(),
+                public_virtual_ip=ci.public_virtual_ip(),
         )
         template.replace(
             floating_range=self.floating_network(ci, quantum),

@@ -75,7 +75,7 @@ puppet apply -e "
         arch      => 'x86_64',
         breed     => 'redhat',
         osversion => 'rhel6',
-        ksmeta    => 'tree=http://download.mirantis.com/centos-minimal-6.4', }
+        ksmeta    => 'tree=http://download.mirantis.com/centos-6.4', }
     class { 'cobbler::profile::centos64_x86_64': }"
 
 puppet apply -e '
