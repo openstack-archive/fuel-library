@@ -67,13 +67,25 @@ EMPTY_SNAPSHOT = os.environ.get('EMPTY_SNAPSHOT', 'empty')
 OPENSTACK_SNAPSHOT = os.environ.get('OPENSTACK_SNAPSHOT', 'openstack')
 
 INTERFACE_ORDER = ('public', 'internal', 'private')
-ROUTED_INTERFACE = 'public'
+#ROUTED_INTERFACE = 'public'
 
 INTERFACES = {
     'public': 'eth0',
     'internal': 'eth1',
     'private': 'eth2',
 }
+
+FORWARDING = {
+    'public': 'nat',
+    'internal': None,
+    'private': None,
+    }
+
+DHCP = {
+    'public': True,
+    'internal': False,
+    'private': False,
+    }
 
 DEFAULT_POOLS = {
     'centos': {
