@@ -7,10 +7,7 @@ class openstack::corosync (
   $quorum_policy = 'ignore',
   $expected_quorum_votes = "2",
   $unicast_addresses = undef
-)
-{
-
-
+) {
 
 #Define shadow CIB
 
@@ -32,7 +29,7 @@ file {'filter_quantum_ports.py':
   owner => root,
   group => root,
   source => "puppet:///modules/openstack/filter_quantum_ports.py",
-  } 
+} 
 File['filter_quantum_ports.py'] -> File<| title == 'quantum-agent-dhcp' |>
 File['filter_quantum_ports.py'] -> File<| title == 'quantum-l3-agent' |>
 File['filter_quantum_ports.py'] -> File<| title == 'quantum-ovs-agent' |>
@@ -63,8 +60,6 @@ file {'quantum-ovs-agent':
   source => "puppet:///modules/openstack/quantum-agent-ovs",
   before => Service['corosync']
 } 
-
-
 
 corosync::service { 'pacemaker':
   version => '0',

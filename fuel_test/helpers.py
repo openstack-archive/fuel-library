@@ -6,7 +6,7 @@ from devops.helpers.helpers import wait
 import os
 import re
 from fuel_test.cobbler.cobbler_client import CobblerClient
-from fuel_test.settings import OS_FAMILY, PUPPET_CLIENT_PACKAGE, PUPPET_VERSION, PUPPET_MASTER_SERVICE, EXIST_TAR
+from fuel_test.settings import OS_FAMILY, PUPPET_CLIENT_PACKAGE, PUPPET_VERSION, PUPPET_MASTER_SERVICE, EXIST_TAR, USE_ISO
 from root import root
 
 def get_file_as_string(path):
@@ -29,7 +29,6 @@ def tcp_ping(remote, host, port):
             return True
     return False
 
-
 def load(path):
     with open(path) as f:
         return f.read()
@@ -45,7 +44,6 @@ def write_config(remote, path, text):
     config.write(text)
     logging.info('Write config %s' % text)
     config.close()
-
 
 def retry(count, func, **kwargs):
     i = 0
@@ -67,8 +65,16 @@ def install_packages2(remotes, packages):
     for remote in remotes:
         remote.execute(cmd)
 
+
+def dhcp_checksum(remote):
+    if OS_FAMILY == "centos" or USE_ISO:
+        remote.sudo.ssh.execute("iptables -t mangle -A POSTROUTING -p udp --dport 68 -j CHECKSUM --checksum-fill; /etc/init.d/iptables save")
+    else:
+        remote.sudo.ssh.execute("iptables -t mangle -A POSTROUTING -p udp --dport 68 -j CHECKSUM --checksum-fill; iptables-save -c > /etc/iptables.rules")
+
+
 def install_packages(remote, packages):
-    if OS_FAMILY == "centos":
+    if OS_FAMILY == "centos" or USE_ISO:
         remote.sudo.ssh.check_call('yum -y install %s' % packages)
     else:
         remote.sudo.ssh.check_call(
@@ -172,10 +178,8 @@ def setup_puppet_master(remote):
         % PUPPET_VERSION)
     remote.mkdir('/var/lib/puppet/ssh_keys')
     puppet_apply(remote.sudo.ssh, 'class {puppet::fileserver_config:}')
-    puppet_apply(remote.sudo.ssh,
-        'class {puppetdb:}')
-    puppet_apply(remote.sudo.ssh,
-        'class {puppetdb::master::config: puppet_service_name=>"%s"}' % PUPPET_MASTER_SERVICE)
+    puppet_apply(remote.sudo.ssh, 'class {puppetdb:}')
+    puppet_apply(remote.sudo.ssh, 'class {puppetdb::master::config: puppet_service_name=>"%s"}' % PUPPET_MASTER_SERVICE)
     remote.sudo.ssh.check_call("service %s restart" % PUPPET_MASTER_SERVICE)
 
 
@@ -187,10 +191,10 @@ def upload_recipes(remote, remote_dir="/etc/puppet/modules/"):
             remote.upload(EXIST_TAR, '/tmp/recipes.tar')
         else:
             tar_file = remote.open('/tmp/recipes.tar', 'wb')
-            with tarfile.open(fileobj=tar_file, mode='w') as tar:
+            with tarfile.open(fileobj=tar_file, mode='w', dereference=True) as tar:
                 tar.add(recipes_dir, arcname='')
         remote.mkdir(remote_dir)
-        remote.check_call('tar -xf /tmp/recipes.tar -C %s' % remote_dir)
+        remote.check_call('tar xmf /tmp/recipes.tar --overwrite -C %s' % remote_dir)
     finally:
         if tar_file:
             tar_file.close()
@@ -228,8 +232,7 @@ def await_node_deploy(ip, name):
     client = CobblerClient(ip)
     token = client.login('cobbler', 'cobbler')
     wait(
-        lambda: client.get_system(name, token)['netboot_enabled'] == False,
-        timeout=30 * 60)
+        lambda: client.get_system(name, token)['netboot_enabled'] == False, timeout=30 * 120)
 
 
 def build_astute():
@@ -247,4 +250,3 @@ def install_astute(remote):
 
 def is_not_essex():
     return os.environ.get('ENV_NAME', 'folsom').find('essex') == -1
-

@@ -112,7 +112,7 @@ $controller_hostnames = keys($controller_internal_addresses)
 #Also, if you do not want Quantum HA, you MUST enable $quantum_network_node
 #on the ONLY controller
 $ha_provider = 'pacemaker'
-$use_unicast_corosync = false
+$use_unicast_corosync = true
 
 
 # Set nagios master fqdn

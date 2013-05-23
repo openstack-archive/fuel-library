@@ -69,14 +69,14 @@ puppet apply -e "
         osversion => 'precise',
         ksmeta    => 'tree_host=us.archive.ubuntu.com tree_url=/ubuntu', }
     class { 'cobbler::profile::ubuntu_1204_x86_64': }
-    cobbler_distro {'centos63_x86_64':
-        kernel    => '/var/www/centos/6.3/os/x86_64/isolinux/vmlinuz',
-        initrd    => '/var/www/centos/6.3/os/x86_64/isolinux/initrd.img',
+    cobbler_distro {'centos64_x86_64':
+        kernel    => '/var/www/centos/6.4/os/x86_64/isolinux/vmlinuz',
+        initrd    => '/var/www/centos/6.4/os/x86_64/isolinux/initrd.img',
         arch      => 'x86_64',
         breed     => 'redhat',
         osversion => 'rhel6',
-        ksmeta    => 'tree=http://archive.kernel.org/centos/6.3/os/x86_64', }
-    class { 'cobbler::profile::centos63_x86_64': }"
+        ksmeta    => 'tree=http://download.mirantis.com/centos-6.4', }
+    class { 'cobbler::profile::centos64_x86_64': }"
 
 puppet apply -e '
     $stompuser="mcollective"
@@ -99,13 +99,20 @@ puppet apply -e '
     } '
 
 # Configuring squid with or without parent proxy
-[ -n "$parent_proxy" ] && IFS=: read server port <<< "$parent_proxy"
-puppet apply -e "
-\$squid_cache_parent = \"$server\"
-\$squid_cache_parent_port = \"$port\"
-class { squid: }"
+if [[ -n "$parent_proxy" ]];then
+  IFS=: read server port <<< "$parent_proxy"
+  puppet apply -e "
+  \$squid_cache_parent = \"$server\"
+  \$squid_cache_parent_port = \"$port\"
+  class { squid: }"
+else
+  puppet apply -e "class { squid: }"
+fi
 
 iptables -A PREROUTING -t nat -i $mgmt_if -s $mgmt_ip/$mgmt_mask ! -d $mgmt_ip -p tcp --dport 80 -j REDIRECT --to-port 3128
+
+/etc/init.d/iptables save
+
 
 gem install /var/www/astute-0.0.1.gem
 
