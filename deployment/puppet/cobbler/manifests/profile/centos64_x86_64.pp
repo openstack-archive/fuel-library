@@ -28,11 +28,11 @@ class cobbler::profile::centos64_x86_64(
 #              },
               {
               "name" => "Mirantis-CentOS-base",
-              "url"  => "http://srv08-srt.srt.mirantis.net/centos-repo/centos-6.4",
+              "url"  => "http://download.mirantis.com/centos-minimal-6.4",
               },
               {
               "name" => "Mirantis-Centos-update",
-              "url"  => "http://srv08-srt.srt.mirantis.net/centos-repo/centos-6.4-updates",
+              "url"  => "http://download.mirantis.com/centos-minimal-6.4-updates",
               },
               {
               "name" => "Mirantis-epel-fuel-install",
