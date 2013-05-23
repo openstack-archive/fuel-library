@@ -4,8 +4,8 @@ from devops.helpers.helpers import ssh
 import glanceclient
 import keystoneclient.v2_0
 import os
-from fuel_test.ci.ci_cobbler import CiCobbler
-from fuel_test.helpers import load, retry, install_packages, switch_off_ip_tables, is_not_essex
+from fuel_test.ci.ci_vm import CiVM
+from fuel_test.helpers import load, retry, install_packages, switch_off_ip_tables
 from fuel_test.root import root
 from fuel_test.settings import ADMIN_USERNAME, ADMIN_PASSWORD, ADMIN_TENANT_ESSEX, ADMIN_TENANT_FOLSOM, OS_FAMILY, CIRROS_IMAGE
 
@@ -13,6 +13,7 @@ from fuel_test.settings import ADMIN_USERNAME, ADMIN_PASSWORD, ADMIN_TENANT_ESSE
 class Prepare(object):
     def __init__(self):
         self.public_ip = self.ci().public_virtual_ip()
+        print "public", self.public_ip
         self.internal_ip = self.ci().public_virtual_ip()
         self.controllers = self.ci().nodes().controllers
 
@@ -23,7 +24,7 @@ class Prepare(object):
 
     def ci(self):
         if not hasattr(self, '_ci'):
-            self._ci = CiCobbler()
+            self._ci = CiVM()
         return self._ci
 
     def username(self):
@@ -33,9 +34,7 @@ class Prepare(object):
         return ADMIN_PASSWORD
 
     def tenant(self):
-        if is_not_essex():
-            return ADMIN_TENANT_FOLSOM
-        return ADMIN_TENANT_ESSEX
+        return ADMIN_TENANT_FOLSOM
 
     def get_auth_url(self):
         return 'http://%s:5000/v2.0/' % self.public_ip
@@ -158,10 +157,8 @@ class Prepare(object):
         keystone = self._get_identity_client()
         tenant1 = retry(10, keystone.tenants.create, tenant_name='tenant1')
         tenant2 = retry(10, keystone.tenants.create, tenant_name='tenant2')
-        retry(10, keystone.users.create, name='tempest1', password='secret',
-              email='tempest1@example.com', tenant_id=tenant1.id)
-        retry(10, keystone.users.create, name='tempest2', password='secret',
-              email='tempest2@example.com', tenant_id=tenant2.id)
+        retry(10, keystone.users.create, name='tempest1', password='secret', email='tempest1@example.com', tenant_id=tenant1.id)
+        retry(10, keystone.users.create, name='tempest2', password='secret', email='tempest2@example.com', tenant_id=tenant2.id)
         image_ref, image_ref_alt = self.tempest_add_images()
         return image_ref, image_ref_alt
 
@@ -237,3 +234,4 @@ class Prepare(object):
 
 if __name__ == '__main__':
     Prepare().prepare_tempest_folsom()
+
