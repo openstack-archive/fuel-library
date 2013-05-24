@@ -264,7 +264,7 @@ class openstack::controller_ha (
     $internal_vrid = $::deployment_id + 1
 
     class { 'keepalived':
-      require => [ Class['haproxy'], Class['::openstack::firewall']  ]
+      require => Class['haproxy'] ,
     }
 
     keepalived::instance { $public_vrid:
