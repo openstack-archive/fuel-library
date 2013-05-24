@@ -176,9 +176,13 @@ class CobblerTestCase(BaseTestCase):
 
     def deploy_nodes(self):
         cobbler = self.ci().nodes().masters[0]
-        for node in self.ci().client_nodes():
+        for node in self.ci().client_nodes()[:1]:
             node.start()
-        for node in self.ci().client_nodes():
+        for node in self.ci().client_nodes()[:1]:
+            await_node_deploy(cobbler.get_ip_address_by_network_name('internal'), node.name)
+        for node in self.ci().client_nodes()[1:]:
+            node.start()
+        for node in self.ci().client_nodes()[1:]:
             await_node_deploy(cobbler.get_ip_address_by_network_name('internal'), node.name)
         for node in self.ci().client_nodes():
             node.await('internal')
