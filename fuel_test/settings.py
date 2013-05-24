@@ -16,8 +16,8 @@ PUPPET_VERSIONS = {
         "3": '3.0.1-1.el6',
         },
     'ubuntu': {
-        "2": '2.7.19-1puppetlabs1',
-        "3": '3.1.0-1puppetlabs1'
+        "2": '2.7.19-1puppetlabs2',
+        "3": '3.0.1-1puppetlabs1'
     },
     }
 
@@ -29,8 +29,8 @@ PUPPET_CLIENT_PACKAGES = {
         "3": 'puppet-3.0.1-1.el6',
         },
     'ubuntu': {
-        "2": 'puppet=2.7.19-1puppetlabs1 puppet-common=2.7.19-1puppetlabs1',
-        "3": 'puppet=3.1.0-1puppetlabs1 puppet-common=3.1.0-1puppetlabs1'
+        "2": 'puppet=2.7.19-1puppetlabs2 puppet-common=2.7.19-1puppetlabs2',
+        "3": 'puppet=3.0.1-1puppetlabs1 puppet-common=3.0.1-1puppetlabs1'
     },
     }
 
