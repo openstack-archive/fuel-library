@@ -185,7 +185,7 @@ class CobblerTestCase(BaseTestCase):
         for node in self.ci().client_nodes()[1:]:
             await_node_deploy(cobbler.get_ip_address_by_network_name('internal'), node.name)
         for node in self.ci().client_nodes():
-                node.await('internal')
+            node.await('internal')
         sleep(20)
         #for node in self.ci().client_nodes():
         #    node_remote = node.remote('internal', login='root', password='r00tme')

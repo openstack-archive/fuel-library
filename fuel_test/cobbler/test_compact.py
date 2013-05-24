@@ -3,21 +3,17 @@ import unittest
 from fuel_test.config import Config
 from fuel_test.helpers import write_config
 from fuel_test.manifest import Manifest, Template
-from fuel_test.settings import DEBUG, ASTUTE_USE
+from fuel_test.settings import ASTUTE_USE
 
 
 class CompactTestCase(CobblerTestCase):
     def deploy_compact(self, quantum_node=True, loopback=True):
-        if DEBUG:
-            extargs = ' -vd --evaltrace'
-        else:
-            extargs = ''
-        self.validate(self.nodes().controllers[:1], 'puppet agent --test'+extargs+' 2>&1')
-        self.validate(self.nodes().controllers[1:], 'puppet agent --test'+extargs+' 2>&1')
-        self.validate(self.nodes().controllers[:1], 'puppet agent --test'+extargs+' 2>&1')
+        self.validate(self.nodes().controllers[:1], 'puppet agent --test 2>&1')
+        self.validate(self.nodes().controllers[1:], 'puppet agent --test 2>&1')
+        self.validate(self.nodes().controllers[:1], 'puppet agent --test 2>&1')
         if quantum_node:
-            self.validate(self.nodes().quantums, 'puppet agent --test'+extargs+' 2>&1')
-        self.validate(self.nodes().computes, 'puppet agent --test'+extargs+' 2>&1')
+            self.validate(self.nodes().quantums, 'puppet agent --test 2>&1')
+        self.validate(self.nodes().computes, 'puppet agent --test 2>&1')
 
     def test_deploy_compact_quantum(self):
         if ASTUTE_USE:
