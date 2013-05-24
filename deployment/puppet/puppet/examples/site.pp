@@ -11,9 +11,9 @@
   class {puppet::thin: }
   
   class { "puppet::nginx":
-    puppet_master_hostname => "product-centos.your-domain-name.com",
+    puppet_master_hostname => "product-centos.localdomain",
   }
   
   class { "puppet::agent_config":
-    server => "product-centos.your-domain-name.com"
+    server => "product-centos.localdomain"
   }
