@@ -76,17 +76,11 @@ $(BUILD_DIR)/iso/isoroot-files.done: \
 		$(ISOROOT)/bootstrap_admin_node.conf \
 		$(ISOROOT)/version.yaml \
 		$(ISOROOT)/fuel-modules.tgz \
-		$(ISOROOT)/astute-0.0.1.gem
 	$(ACTION.TOUCH)
 
 $(ISOROOT)/fuel-modules.tgz: \
 		$(call find-files,$(FUEL_DIR))
 	(cd $(FUEL_DIR) && tar chzf $@ *)
-
-$(ISOROOT)/astute-0.0.1.gem:
-	mkdir -p $(@D)
-	( cd $(SOURCE_DIR)/../deployment/mcollective/astute && gem build astute.gemspec )
-	mv $(SOURCE_DIR)/../deployment/mcollective/astute/$(@F) $@
 
 $(ISOROOT)/.discinfo: $(SOURCE_DIR)/.discinfo ; $(ACTION.COPY)
 $(ISOROOT)/.treeinfo: $(SOURCE_DIR)/.treeinfo ; $(ACTION.COPY)
