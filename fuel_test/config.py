@@ -1,11 +1,12 @@
 import yaml
 from fuel_test.manifest import Manifest
-from fuel_test.settings import CURRENT_PROFILE, PUPPET_VERSION, INTERFACE_ORDER, INTERFACES, DOMAIN_NAME
+from fuel_test.settings import CURRENT_PROFILE, PUPPET_VERSION, INTERFACES, DOMAIN_NAME
 
 
 class Config():
-    def generate(self, ci, nodes, template, quantums=None, cinder=True, quantum_netnode_on_cnt=True, create_networks=True,
-                 quantum=True, swift=True, loopback="loopback", use_syslog=True, cinder_nodes=None):
+    def generate(self, ci, nodes, template, quantums=None, cinder=True, quantum_netnode_on_cnt=True,
+                 create_networks=True, quantum=True, swift=True, loopback="loopback", use_syslog=True,
+                 cinder_nodes=None):
         config = {
             "common":
                 {"orchestrator_common": self.orchestrator_common(ci, template=template),
@@ -34,8 +35,9 @@ class Config():
 
         return config
 
-    def openstack_common(self, ci, nodes, quantums, cinder, quantum_netnode_on_cnt, create_networks,
-                         quantum, swift, loopback, use_syslog, cinder_nodes):
+    def openstack_common(self, ci, nodes, quantums, cinder, quantum_netnode_on_cnt, create_networks, quantum, swift,
+                         loopback, use_syslog, cinder_nodes):
+        if not cinder_nodes: cinder_nodes = []
         if not quantums: quantums = []
 
         node_configs = Manifest().generate_node_configs_list(ci, nodes)
