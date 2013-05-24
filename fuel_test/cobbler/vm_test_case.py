@@ -1,7 +1,6 @@
 from time import sleep
 import unittest
 from ipaddr import IPNetwork
-from devops.error import TimeoutError
 from fuel_test import iso_master
 from fuel_test.base_test_case import BaseTestCase
 from fuel_test.ci.ci_vm import CiVM
@@ -9,7 +8,7 @@ from fuel_test.cobbler.cobbler_client import CobblerClient
 from fuel_test.config import Config
 from fuel_test.helpers import tcp_ping, udp_ping, add_to_hosts, await_node_deploy, write_config
 from fuel_test.manifest import Manifest
-from fuel_test.settings import OS_FAMILY, CLEAN, USE_ISO, INTERFACES, PARENT_PROXY, DOMAIN_NAME
+from fuel_test.settings import CLEAN, USE_ISO, INTERFACES, PARENT_PROXY, DOMAIN_NAME, CURRENT_PROFILE, PUPPET_VERSION
 
 
 class CobblerTestCase(BaseTestCase):
@@ -31,7 +30,7 @@ class CobblerTestCase(BaseTestCase):
             write_config(self.remote(), "/root/fuel.defaults",
                          iso_master.get_config(
                              hostname="master",
-                             domain="your-domain-name.com",
+                             domain="localdomain",
                              management_interface=INTERFACES["internal"],
                              management_ip=self.nodes().masters[
                                  0].get_ip_address_by_network_name("internal"),
@@ -44,7 +43,8 @@ class CobblerTestCase(BaseTestCase):
                              mirror_type='custom',
                              external_ip="",
                              external_mask="",
-                             parent_proxy=PARENT_PROXY))
+                             parent_proxy=PARENT_PROXY,
+                             puppet_master_version=PUPPET_VERSION))
             self.remote().execute("/usr/local/sbin/bootstrap_admin_node.sh --batch-mode")
             self.prepare_cobbler_environment()
         self.environment().revert('nodes-deployed')
@@ -67,7 +67,7 @@ class CobblerTestCase(BaseTestCase):
 
         # Manifest().write_cobbler_manifest(self.remote(), self.ci(), nodes)
 
-        # self.validate(nodes, 'puppet agent --test --server master.your-domain-name.com')
+        # self.validate(nodes, 'puppet agent --test --server master.localdomain')
 
         for node in nodes:
             self.assert_cobbler_ports(
@@ -113,17 +113,14 @@ class CobblerTestCase(BaseTestCase):
     def _add_node(self, client, token, cobbler, node_name, node_mac0, node_mac1,
                   node_mac2, node_ip, stomp_name, gateway, net_mask):
         system_id = client.new_system(token)
-        if OS_FAMILY == 'centos':
-            profile = 'centos63_x86_64'
-        else:
-            profile = 'ubuntu_1204_x86_64'
+        profile = CURRENT_PROFILE
         client.modify_system_args(system_id, token,
-            ks_meta=Config().get_ks_meta('master.your-domain-name.com',
+            ks_meta=Config().get_ks_meta('master.localdomain',
                                          stomp_name),
             name=node_name,
             hostname=node_name,
             name_servers=cobbler.get_ip_address_by_network_name('internal'),
-            name_servers_search="your-domain-name.com",
+            name_servers_search="localdomain",
             profile=profile,
             gateway=gateway,
             netboot_enabled="1")
@@ -180,21 +177,15 @@ class CobblerTestCase(BaseTestCase):
 
     def deploy_nodes(self):
         cobbler = self.ci().nodes().masters[0]
-        cobbler_ip = cobbler.get_ip_address_by_network_name('internal')
         for node in self.ci().client_nodes():
             node.start()
         for node in self.ci().client_nodes():
             await_node_deploy(cobbler.get_ip_address_by_network_name('internal'), node.name)
         for node in self.ci().client_nodes():
-            try:
-                node.await('internal')
-            except TimeoutError:
-                node.destroy()
-                node.start()
-                node.await('internal')
+            node.await('internal')
         sleep(20)
         #for node in self.ci().client_nodes():
-        #    node_remote = node.remote('public', login='root', password='r00tme')
+        #    node_remote = node.remote('internal', login='root', password='r00tme')
         #puppet_apply(node_remote, 'class {rsyslog::client: log_remote => true, server => "%s"}' % cobbler_ip)
         self.environment().snapshot('nodes-deployed', force=True)
 

@@ -1,32 +1,54 @@
 #!/bin/bash
 
+LC_CTYPE="C"
+function validate_hostname {
+        local hostname=$@
+        local res=1
+        if [[ $hostname =~ ^[.A-Za-z0-9]*$ ]]; then
+                res=0
+        else
+                res=1
+        fi
+        return $res
+}
+function validate_ip() {
+        local ip=$@
+        local res=1
+        if [[ $ip =~ ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$ ]] || [[ $ip = none ]]; then
+                res=0
+	else
+		res=1
+        fi
+        return $res
+}
+
 function set_if_conf {
     echo
     echo -n "Should we use DHCP for the ${intf} interface (Y/n)?";read -n 1 dhcpsw
-    if [[ $dhcpsw == "n" || $dhcpsw == "N" ]]; then
+    if [[ $dhcpsw =~ ^[nN] ]]; then
         echo
-		eval "ip=\${${intf}_ip}"
-        echo -n "Enter IP address [$ip]: "; read val
-        [ -z "$val" ] || ip=$val
-		[ -z "$ip" ] && echo "No IP entered - will use DHCP" && return
-		eval ${intf}_ip="$ip"
-		eval "mask=\${${intf}_mask}"
-		[ -z "$mask" ] && mask="255.255.255.0"
+        eval "ip=\${${intf}_ip}"
+        echo -n "Enter IP address or 'none' to disable interface [$ip]: "; read val
+        validate_ip $val && ip=$val
+        [ -z "$ip" ] && echo "No IP entered - will use DHCP" && return
+        eval ${intf}_ip="$ip"
+        eval "mask=\${${intf}_mask}"
+        [ -z "$mask" ] && mask="255.255.255.0"
         echo -n "Enter netmask [$mask]: "; read val
-        [ -z "$val" ] || mask=$val
-		eval ${intf}_mask="$mask"
-		eval "gw=\${${intf}_gw}"
+        validate_ip $val && mask=$val
+        eval ${intf}_mask="$mask"
+        eval "gw=\${${intf}_gw}"
         echo -n "Enter default gateway [$gw]: "; read val
-        [ -z "$val" ] || gw=$val
-		eval ${intf}_gw="$gw"
-		eval "dns1=\${${intf}_dns1}"
+        validate_ip $val && gw=$val
+        eval ${intf}_gw="$gw"
+        eval "dns1=\${${intf}_dns1}"
         echo -n "Enter the 1st DNS server [$dns1]: "; read val
-        [ -z "$val" ] || dns1=$val
-		eval ${intf}_dns1="$dns1"
-		eval "dns2=\${${intf}_dns2}"
+        validate_ip $val && dns1=$val
+        eval ${intf}_dns1="$dns1"
+        eval "dns2=\${${intf}_dns2}"
         echo -n "Enter the 2nd DNS server [$dns2]: "; read val
-        [ -z "$val" ] || dns2=$val
-		eval ${intf}_dns2="$dns2"
+        validate_ip $val && dns2=$val
+        eval ${intf}_dns2="$dns2"
     else
         eval ${intf}_ip=""; eval ${intf}_mask=""; eval ${intf}_gw=""; eval ${intf}_dns1=""; eval ${intf}_dns2=""
     fi
@@ -35,19 +57,22 @@ function set_if_conf {
 
 function save_if_cfg {
     scrFile="/etc/sysconfig/network-scripts/ifcfg-$device"
-    hwaddr=`ifconfig $device | grep -i hwaddr | sed -e 's#^.*hwaddr[[:space:]]*##I'`
+    hwaddr=$(cat /sys/class/net/$device/address)
     [ -z $gw ] || echo GATEWAY=$gw >> /etc/sysconfig/network
     echo DEVICE=$device > $scrFile
     echo ONBOOT=yes >> $scrFile
     echo NM_CONTROLLED=no >> $scrFile
     echo HWADDR=$hwaddr >> $scrFile
     echo USERCTL=no >> $scrFile
-    if [ $ip ]; then
+    if [ $ip ] && [[ $ip != none ]]; then
         echo BOOTPROTO=static >> $scrFile
         echo IPADDR=$ip >> $scrFile
         echo NETMASK=$netmask >> $scrFile
         [ $dns1 ] && echo DNS1=$dns1 >> $scrFile
         [ $dns2 ] && echo DNS2=$dns2 >> $scrFile
+    elif [[ $ip = none ]] ; then
+        echo BOOTPROTO=dhcp >> $scrFile
+        echo ONBOOT=no >> $scrFile
     else
         echo BOOTPROTO=dhcp >> $scrFile
     fi
@@ -56,7 +81,7 @@ function save_if_cfg {
 function default_settings {
 
     hostname="fuel-pm"
-    domain="your-domain-name.com"
+    domain="localdomain"
     mgmt_if="eth0"
     mgmt_ip="10.0.0.100"
     mgmt_mask="255.255.0.0"
@@ -64,6 +89,7 @@ function default_settings {
     dhcp_start_address="10.0.0.201"
     dhcp_end_address="10.0.0.254"
     mirror_type="default"
+    puppet_master_version="3.0.1-1.el6"
 
     # Read settings from file
     [ -f $FUELCONF ] && source $FUELCONF
@@ -92,7 +118,7 @@ function apply_settings {
     echo "ext_gw=$ext_gw" >> $FUELCONF
     echo "ext_dns1=$ext_dns1" >> $FUELCONF
     echo "ext_dns2=$ext_dns2" >> $FUELCONF
-	
+    
 # Network interfaces settings apply
     for iftype in ext mgmt
     do
@@ -194,30 +220,30 @@ function menu_conf {
                 echo "This script will remove current puppet master key automatically."
                 echo
                 echo -n "Please enter hostname for this puppetmaster/cobbler MasterNode [$hostname]: "; read val
-				[ -z "$val" ] || hostname=$val
+                [ -z "$val" ] || hostname=$val
                 echo -n "Please enter domain name for this OpenStack cloud [$domain]: "; read val
-				[ -z "$val" ] || domain=$val
+                [ -z "$val" ] || domain=$val
                 ;;
             2)
                 show_top
                 echo -n "Please specify the network interface to use for management network [${mgmt_if}]: "; read val
-				[ -z "$val" ] || mgmt_if=$val
+                [ -z "$val" ] || mgmt_if=$val
                 intf="mgmt"
                 set_if_conf
                 ;;
             3)
                 show_top
                 echo -n "Please specify the network interface to access package repositories and Internet [${ext_if}]: "; read val
-				[ -z "$val" ] || ext_if=$val
+                [ -z "$val" ] || ext_if=$val
                 intf="ext"
                 set_if_conf
-				;;
+                ;;
             4)
                 show_top
                 echo -n "Please enter PXE dhcp start address [${dhcp_start_address}]: "; read val
-				[ -z "$val" ] || dhcp_start_address=$val
+                validate_ip $val && dhcp_start_address=$val
                 echo -n "Please enter PXE dhcp end address [${dhcp_end_address}]: "; read val
-				[ -z "$val" ] || dhcp_end_address=$val
+                validate_ip $val && dhcp_end_address=$val
                 ;;
             5)
                 show_top
@@ -229,12 +255,12 @@ function menu_conf {
             6)
                 show_top
                 echo -n "Please specify MasterNode parent proxy address and port to be used (ex: 11.12.13.14:3128 ) [${parent_proxy}]: "; read val
-				[ -z "$val" ] || parent_proxy=$val
+                [ -z "$val" ] || parent_proxy=$val
                 ;;
             9)
                 echo;echo "ATTENTION! The changes are permanent!"
                 echo -n "Are you sure about applying them? (y/N):"; read -n 1 answ
-                [[ $answ == "y" || $answ == "Y" ]] && endconf=1
+                [[ $answ =~ ^[yY] ]] && endconf=1
                 ;;
             esac
         done

@@ -22,7 +22,7 @@ The process for each node looks like this:
 #. **Change the root password.**
 #. Check that networking is set up correctly and the machine can reach the Internet::
 
-    ping fuel-pm.your-domain-name.com
+    ping fuel-pm.localdomain
     ping www.mirantis.com
 
 If you're unable to ping outside addresses, add the fuel-pm server as a default gateway::
