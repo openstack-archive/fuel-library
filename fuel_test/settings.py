@@ -12,7 +12,7 @@ BASE_IMAGE = os.environ.get('BASE_IMAGE', DEFAULT_IMAGES.get(OS_FAMILY))
 
 PUPPET_VERSIONS = {
     'centos': {
-        "2": '2.7.20-1.el6',
+        "2": '2.7.19-1.el6',
         "3": '3.0.1-1.el6',
         },
     'ubuntu': {
@@ -25,7 +25,7 @@ PUPPET_VERSION = PUPPET_VERSIONS.get(OS_FAMILY).get(PUPPET_GEN)
 
 PUPPET_CLIENT_PACKAGES = {
     'centos': {
-        "2": 'puppet-2.7.20-1.el6',
+        "2": 'puppet-2.7.19-1.el6',
         "3": 'puppet-3.0.1-1.el6',
         },
     'ubuntu': {
