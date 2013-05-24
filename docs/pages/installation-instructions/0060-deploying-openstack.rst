@@ -141,7 +141,7 @@ Next ``site.pp`` defines DNS servers and provides netmasks::
 Next specify the main controller. ::
 
   # Set nagios master fqdn
-  $nagios_master = 'fuel-controller-01.your-domain-name.com'
+  $nagios_master = 'fuel-controller-01.localdomain'
   ## proj_name  name of environment nagios configuration
   $proj_name            = 'test'
 

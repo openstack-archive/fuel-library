@@ -76,7 +76,7 @@ INTERFACES = {
     }
 
 FORWARDING = {
-    'public': 'nat',
+    'public': os.environ.get('PUBLIC_FORWARD', 'nat'),
     'internal': None,
     'private': None,
     }
@@ -89,12 +89,12 @@ DHCP = {
 
 DEFAULT_POOLS = {
     'centos': {
-        'public': '172.18.95.0/24,172.18.91.0/24:27',
+        'public': '10.108.0.0/16:24',
         'private': '10.108.0.0/16:24',
         'internal': '10.108.0.0/16:24',
         },
     'ubuntu': {
-        'public': '172.18.94.0/24,172.18.90.0/24:27',
+        'public': '10.107.0.0/16:24',
         'private': '10.107.0.0/16:24',
         'internal': '10.107.0.0/16:24',
         },
@@ -114,11 +114,10 @@ EXIST_TAR = os.environ.get('EXIST_TAR', None)
 CREATE_SNAPSHOTS = os.environ.get('CREATE_SNAPSHOTS', 'true') == 'true'
 CLEAN = os.environ.get('CLEAN', 'true') == 'true'
 ISO_IMAGE = os.environ.get('ISO_IMAGE', '~/fuel-centos-6.3-x86_64.iso')
-ISO = os.environ.get('ISO', '/var/lib/libvirt/images/fuel-centos-6.3-x86_64.iso')
 USE_ISO= os.environ.get('USE_ISO', 'true') == 'true'
 PARENT_PROXY = os.environ.get('PARENT_PROXY', '')
 PROFILES_COBBLER_COMMON = {
-    'centos': 'centos63_x86_64',
+    'centos': 'centos64_x86_64',
     'ubuntu': 'ubuntu_1204_x86_64'
 }
 
