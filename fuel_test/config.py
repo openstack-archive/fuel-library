@@ -7,7 +7,6 @@ class Config():
     def generate(self, ci, nodes, template, quantums=None, cinder=True, quantum_netnode_on_cnt=True,
                  create_networks=True, quantum=True, swift=True, loopback="loopback", use_syslog=True,
                  cinder_nodes=None):
-        if not cinder_nodes: cinder_nodes = []
         config = {
             "common":
                 {"orchestrator_common": self.orchestrator_common(ci, template=template),
