@@ -96,12 +96,12 @@ common:
     # profile: "ubuntu_1204_x86_64"
     netboot-enabled: "1"
     # for Ubuntu
-    # ksmeta: "puppet_version=2.7.19-1puppetlabs2 \
+    # ksmeta: "puppet_version=3.0.1-1puppetlabs1 \
     # for Centos
     name-servers: "10.0.0.100"
     name-servers-search: "local"
     gateway: "10.0.0.100"
-    ksmeta: "puppet_version=2.7.19-1.el6 \
+    ksmeta: "puppet_version=3.0.1-1.el6 \
       puppet_auto_setup=1 \
       puppet_master=fuel-pm.local \
       puppet_enable=0 \
@@ -149,7 +149,7 @@ fuel-controller-02:
   hostname: "fuel-controller-02"
   role: controller
   profile: "ubuntu_1204_x86_64"
-  ksmeta: "puppet_version=2.7.19-1puppetlabs2 \
+  ksmeta: "puppet_version=3.0.1-1puppetlabs1 \
       puppet_auto_setup=1 \
       puppet_master=fuel-pm.local \
       puppet_enable=0 \

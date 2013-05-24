@@ -81,7 +81,7 @@ class Config():
     def cobbler_common(self, ci):
         config = {"gateway": str(ci.nodes().masters[0].get_ip_address_by_network_name('internal')),
                   "name-servers": str(ci.nodes().masters[0].get_ip_address_by_network_name('internal')),
-                  "name-servers-search": "your-domain-name.com",
+                  "name-servers-search": "localdomain",
                   "profile": CURRENT_PROFILE}
 
         ksmeta = self.get_ks_meta(ci.nodes().masters[0].name + DOMAIN_NAME, ci.nodes().masters[0].name)
