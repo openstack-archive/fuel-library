@@ -40,10 +40,14 @@ def extract_virtual_ips(ipaout):
 
 
 def write_config(remote, path, text):
-    config = remote.open(path, 'w')
-    config.write(text)
-    logging.info('Write config %s' % text)
-    config.close()
+    try:
+        #todo: move to down layer (paramiko)
+        config = remote.open(path, 'w')
+        config.write(text)
+        logging.info('Write config %s' % text)
+        config.close()
+    except IOError as e:
+        raise IOError('Filename: "{path}", error: {error}'.format(path=path, error=e.message or e.strerror))
 
 def retry(count, func, **kwargs):
     i = 0
