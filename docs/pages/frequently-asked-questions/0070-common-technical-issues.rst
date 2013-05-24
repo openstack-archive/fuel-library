@@ -39,7 +39,7 @@ Common Technical Issues
 
 #. On running "``puppet agent --test``", the error messages below occur::
 
-     | err: /File[/var/lib/puppet/lib]: Could not evaluate: Could not retrieve information from environment production source(s) puppet://fuel-pm.your-domain-name.com/plugins
+     | err: /File[/var/lib/puppet/lib]: Could not evaluate: Could not retrieve information from environment production source(s) puppet://fuel-pm.localdomain/plugins
 
    * Workaround: http://projects.reductivelabs.com/issues/2244
 

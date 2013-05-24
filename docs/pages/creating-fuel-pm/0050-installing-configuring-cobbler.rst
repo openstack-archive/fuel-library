@@ -94,7 +94,7 @@ earlier. The important thing is to make sure there are no conflicts with the sta
 
     $dhcp_netmask = '255.255.255.0'
     $dhcp_gateway = '10.20.0.100'
-    $domain_name = 'your-domain-name.com'
+    $domain_name = 'localdomain'
 
 
 

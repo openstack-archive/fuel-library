@@ -174,7 +174,7 @@ def setup_puppet_master(remote):
     puppet_apply(remote.sudo.ssh,
         'class {puppet: puppet_master_version => "%s"}'
         '-> class {puppet::thin:}'
-        '-> class {puppet::nginx: puppet_master_hostname => "master.your-domain-name.com"}'
+        '-> class {puppet::nginx: puppet_master_hostname => "master.localdomain"}'
         % PUPPET_VERSION)
     remote.mkdir('/var/lib/puppet/ssh_keys')
     puppet_apply(remote.sudo.ssh, 'class {puppet::fileserver_config:}')

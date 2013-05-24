@@ -30,13 +30,13 @@ Once the installation is complete, you will need to finish the configuration to 
 
       should return ::
 
-          fuel-pm.your-domain-name.com
+          fuel-pm.localdomain
 
-      If not, correct the ``/etc/resolv.conf`` file by replacing ``your-domain-name.com`` below with your actual domain name, and ``8.8.8.8`` with your actual DNS server.
+      If not, correct the ``/etc/resolv.conf`` file by replacing ``localdomain`` below with your actual domain name, and ``8.8.8.8`` with your actual DNS server.
 
       (Note: you can look up your DNS server on your host machine using ``ipconfig /all`` on Windows, or using ``cat /etc/resolv.conf`` under Linux) ::
 
-          search your-domain-name.com
+          search localdomain
           nameserver 8.8.8.8
 
     * Run ::
@@ -46,16 +46,16 @@ Once the installation is complete, you will need to finish the configuration to 
       or reboot to apply changes to the hostname.
 
 
-    * Add the OpenStack hostnames to your domain. You can do this by actually adding them to DNS, or by simply editing the /etc/hosts file.  In either case, replace your-domain-name.com with your domain name.
+    * Add the OpenStack hostnames to your domain. You can do this by actually adding them to DNS, or by simply editing the /etc/hosts file.  In either case, replace localdomain with your domain name.
 
       ``vi /etc/hosts``::
 
           127.0.0.1 localhost
-          10.0.0.100 fuel-pm.your-domain-name.com fuel-pm
-          10.0.0.101 fuel-controller-01.your-domain-name.com fuel-controller-01
-          10.0.0.102 fuel-controller-02.your-domain-name.com fuel-controller-02
-          10.0.0.103 fuel-controller-03.your-domain-name.com fuel-controller-03
-          10.0.0.110 fuel-compute-01.your-domain-name.com fuel-compute-01
+          10.0.0.100 fuel-pm.localdomain fuel-pm
+          10.0.0.101 fuel-controller-01.localdomain fuel-controller-01
+          10.0.0.102 fuel-controller-02.localdomain fuel-controller-02
+          10.0.0.103 fuel-controller-03.localdomain fuel-controller-03
+          10.0.0.110 fuel-compute-01.localdomain fuel-compute-01
 
 
 Enabling Stored Configuration
@@ -78,10 +78,10 @@ Puppet to use a technique called stored configuration.
 
 * Configure PuppetDB to use the correct hostname and port:
 
-     ``vi /etc/puppet/puppetdb.conf`` to create the ``puppetdb.conf`` file and add the following (replace ``your-domain-name.com`` with your domain name)::
+     ``vi /etc/puppet/puppetdb.conf`` to create the ``puppetdb.conf`` file and add the following (replace ``localdomain`` with your domain name)::
 
           [main]
-          server = fuel-pm.your-domain-name.com
+          server = fuel-pm.localdomain
           port = 8081
 
 * Configure Puppet Master's file server capability:
@@ -119,32 +119,32 @@ Puppet to use a technique called stored configuration.
 
 * **IMPORTANT**: Note that while these operations appear to finish quickly, it can actually take several minutes for puppetdb to complete its startup process. You'll know it has finished starting up when you can successfully telnet to port 8081::
 
-    telnet pm.your-domain-name.com 8081
+    telnet pm.localdomain 8081
 
 
 Testing Puppet
 ^^^^^^^^^^^^^^
 
-Put a simple configuration into Puppet -- replace your-domain-name.com
+Put a simple configuration into Puppet -- replace localdomain
 with your domain name -- so that when you run puppet on various nodes,
 it will display the appropriate Hello world message:
 
 ``vi /etc/puppet/manifests/site.pp``::
 
 
-    node /fuel-pm.your-domain-name.com/ {
+    node /fuel-pm.localdomain/ {
         notify{"Hello world from fuel-pm": }
     }
-    node /fuel-controller-01.your-domain-name.com/ {
+    node /fuel-controller-01.localdomain/ {
         notify{"Hello world from fuel-controller-01": }
     }
-    node /fuel-controller-02.your-domain-name.com/ {
+    node /fuel-controller-02.localdomain/ {
         notify{"Hello world from fuel-controller-02": }
     }
-    node /fuel-controller-03.your-domain-name.com/ {
+    node /fuel-controller-03.localdomain/ {
         notify{"Hello world from fuel-controller-03": }
     }
-    node /fuel-compute-01.your-domain-name.com/ {
+    node /fuel-compute-01.localdomain/ {
         notify{"Hello world from fuel-compute-01": }
     }
 
@@ -162,7 +162,7 @@ itself (replace your-domain-name. com with your domain name):
 
     [main]
     # server
-    server = fuel-pm.your-domain-name.com
+    server = fuel-pm.localdomain
 
     # enable plugin sync
     pluginsync = true

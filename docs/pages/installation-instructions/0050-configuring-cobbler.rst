@@ -63,7 +63,7 @@ Earlier, you decided which interfaces to use for which networks; note that here.
 
 Depending on how you've set up your network, you can either set the ``default_gateway`` to the master node (fuel-pm) or to the ``public_net_router``. ::
 
-   nagios_master: fuel-controller-01.your-domain-name.com
+   nagios_master: fuel-controller-01.localdomain
    loopback: loopback
    cinder: true
    cinder_nodes: [ 'controller' ]
@@ -135,14 +135,14 @@ Fuel can install CentOS or Ubuntu on your servers, or you can add a profile of y
     # ksmeta: "puppet_version=2.7.19-1puppetlabs2 \
     # for Centos
     name-servers: "10.20.0.100"
-    name-servers-search: "your-domain-name.com"
+    name-servers-search: "localdomain"
     gateway: 10.20.0.100
 
 Set the default nameserver to be fuel-pm, and change the domain name to your own domain name.  Set the ``gateway`` to the public network's default gateway. Alternatively, if you don't plan to use your public networks actual gateway, you can set this value to be the IP address of the master node. **Please note:** You must specify a working gateway (or proxy) in order to install OpenStack, because the system will need to communicate with public repositories. ::
 
     ksmeta: "puppet_version=2.7.19-1puppetlabs2 \
       puppet_auto_setup=1 \
-      puppet_master=fuel-pm.your-domain-name.com \
+      puppet_master=fuel-pm.localdomain \
 
 Change the fully-qualified domain name for the Puppet Master to reflect your own domain name. ::
 
@@ -172,7 +172,7 @@ Next you'll define the actual servers. ::
 	      static: "1"
 	      ip-address: "10.20.0.101"
 	      netmask: "255.255.255.0"
-	      dns-name: "fuel-controller-01.your-domain-name.com"
+	      dns-name: "fuel-controller-01.localdomain"
 	      management: "1"
 	    eth1:
 	      mac: "08:00:27:ED:9C:3C"
@@ -214,7 +214,7 @@ Repeat this step for each of the other controllers, and for the compute node.  N
 	      static: "1"
 	      ip-address: "10.20.0.110"
 	      netmask: "255.255.255.0"
-	      dns-name: "fuel-compute-01.your-domain-name.com"
+	      dns-name: "fuel-compute-01.localdomain"
 	      management: "1"
 	    eth1:
 	      mac: "08:00:27:B7:F9:CD"
