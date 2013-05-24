@@ -15,7 +15,7 @@ function sync_repo_osci {
   make_yum_conf "$binrepo" "$srcrepo"
   reposync -c "$YUMCONF" --repo "$(get_repo_name "$binrepo")" --norepopath -p .
   reposync -c "$YUMCONF" --source --repo "$(get_repo_name "$srcrepo")" --norepopath -p .
-  get_puppet27
+  #get_puppet27
   mv *.x86_64.rpm x86_64
   mv *.noarch.rpm noarch
   mv *.src.rpm SRPMS
