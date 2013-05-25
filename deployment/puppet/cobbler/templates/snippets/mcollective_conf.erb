@@ -16,10 +16,10 @@ plugin.psk = $mco_pskey
 connector = rabbitmq
 plugin.rabbitmq.vhost = mcollective
 plugin.rabbitmq.pool.size = 1
-plugin.rabbitmq.pool.1.host = %(mco_stomphost)s
-plugin.rabbitmq.pool.1.port = %(mco_stompport)s
-plugin.rabbitmq.pool.1.user = %(mco_stompuser)s
-plugin.rabbitmq.pool.1.password = %(mco_stomppassword)s
+plugin.rabbitmq.pool.1.host = $mco_stomphost
+plugin.rabbitmq.pool.1.port = $mco_stompport
+plugin.rabbitmq.pool.1.user = $mco_stompuser
+plugin.rabbitmq.pool.1.password = $mco_stomppassword
 
 # Facts
 factsource = yaml
