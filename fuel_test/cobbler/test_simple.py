@@ -26,10 +26,10 @@ class SimpleTestCase(CobblerTestCase):
             template=Template.simple(),
             ci=self.ci(),
             controllers=self.nodes().controllers,
-            use_syslog=False,
+            use_syslog=True,
             quantum=True, quantums=self.nodes().controllers,
             ha=False, ha_provider='generic',
-            cinder=False, swift=False
+            cinder=True, cinder_nodes=['All'], swift=False
         )
 
         Manifest().write_manifest(remote=self.remote(), manifest=manifest)
