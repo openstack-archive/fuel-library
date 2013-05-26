@@ -3,7 +3,7 @@ from fuel_test.cobbler.vm_test_case import CobblerTestCase
 from fuel_test.config import Config
 from fuel_test.helpers import write_config
 from fuel_test.manifest import Manifest, Template
-from fuel_test.settings import CREATE_SNAPSHOTS, ASTUTE_USE
+from fuel_test.settings import CREATE_SNAPSHOTS, ASTUTE_USE, PUPPET_AGENT_COMMAND
 
 
 class FullTestCase(CobblerTestCase):
@@ -27,16 +27,16 @@ class FullTestCase(CobblerTestCase):
 
         Manifest().write_manifest(remote=self.remote(), manifest=manifest)
 
-        self.validate(self.nodes().proxies[:1], 'puppet agent --test 2>&1')
-        self.validate(self.nodes().proxies[1:], 'puppet agent --test 2>&1')
-        self.validate(self.nodes().storages, 'puppet agent --test 2>&1')
-        self.validate(self.nodes().controllers[:1], 'puppet agent --test 2>&1')
-        self.validate(self.nodes().controllers[1:], 'puppet agent --test 2>&1')
-        self.validate(self.nodes().controllers[:1], 'puppet agent --test 2>&1')
-        self.validate(self.nodes().computes, 'puppet agent --test 2>&1')
+        self.validate(self.nodes().proxies[:1], PUPPET_AGENT_COMMAND)
+        self.validate(self.nodes().proxies[1:], PUPPET_AGENT_COMMAND)
+        self.validate(self.nodes().storages, PUPPET_AGENT_COMMAND)
+        self.validate(self.nodes().controllers[:1], PUPPET_AGENT_COMMAND)
+        self.validate(self.nodes().controllers[1:], PUPPET_AGENT_COMMAND)
+        self.validate(self.nodes().controllers[:1], PUPPET_AGENT_COMMAND)
+        self.validate(self.nodes().computes, PUPPET_AGENT_COMMAND)
 
     def deploy_by_astute(self):
-        self.remote().check_stderr("astute -f /root/astute.yaml")
+        self.remote().check_stderr("astute -f /root/astute.yaml -v")
 
     def prepare_astute(self):
         config = Config().generate(

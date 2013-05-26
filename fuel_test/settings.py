@@ -125,3 +125,4 @@ CURRENT_PROFILE = PROFILES_COBBLER_COMMON.get(OS_FAMILY)
 
 ASTUTE_USE = os.environ.get('ASTUTE_USE', 'true') == 'true'
 DOMAIN_NAME = os.environ.get('DOMAIN_NAME', '.localdomain')
+PUPPET_AGENT_COMMAND = 'puppet agent --test 2>&1'
