@@ -229,14 +229,14 @@ def add_to_hosts(remote, ip, short, full):
 
 
 def check_node_ready(client, token, name):
-    if not client.get_system(name, token)['netboot_enabled']:
+    if client.get_system(name, token)['netboot_enabled']:
         raise Exception("Cobbler doesn't finish hode deploy", name)
 
 
 def await_node_deploy(ip, name):
     client = CobblerClient(ip)
     token = client.login('cobbler', 'cobbler')
-    _wait(lambda: check_node_ready(client, token, name), timeout=30 * 120)
+    _wait(lambda: check_node_ready(client, token, name), timeout=30 * 60)
 
 
 def build_astute():
