@@ -1,5 +1,4 @@
 import unittest
-from fuel_test.ci.ci_vm import CiVM
 from fuel_test.cobbler.vm_test_case import CobblerTestCase
 from fuel_test.config import Config
 from fuel_test.helpers import write_config
@@ -31,7 +30,7 @@ class MinimalTestCase(CobblerTestCase):
         self.validate(self.nodes().computes, 'puppet agent --test')
 
     def deploy_by_astute(self):
-        self.remote().check_stderr("astute -f /root/astute.yaml")
+        self.remote().check_stderr("astute -f /root/astute.yaml -v")
 
     def prepare_astute(self):
         config = Config().generate(
