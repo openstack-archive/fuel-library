@@ -12,7 +12,7 @@ class openstack::mirantis_repos (
   $deb_fuel_grizzly_repo  = 'http://osci-gbp.srt.mirantis.net/ubuntu/fuel/',
   $deb_cloud_archive_repo    = 'http://172.18.67.168/ubuntu-cloud.archive.canonical.com/ubuntu',
   $deb_rabbit_repo           = 'http://172.18.67.168/ubuntu-repo/precise-fuel-folsom',
-  $enable_epel = true,
+  $enable_epel = false,
   $fuel_mirrorlist           = 'http://download.mirantis.com/epel-fuel-folsom-2.1/mirror.internal-stage.list',
   $mirrorlist_base           = 'http://172.18.67.168/centos-repo/mirror-6.3-os.list',
   $mirrorlist_updates        = 'http://172.18.67.168/centos-repo/mirror-6.3-updates.list',
@@ -175,7 +175,7 @@ class openstack::mirantis_repos (
             descr      => 'Mirantis OpenStack grizzly Custom Packages',
             # TODO provide external link and GPGCHECK=1
             baseurl    => 'http://osci-koji.srt.mirantis.net/mash/fuel-3.0/x86_64/',
-            gpgcheck   => '1',
+            gpgcheck   => '0',
             mirrorlist => absent,
         }
       }
