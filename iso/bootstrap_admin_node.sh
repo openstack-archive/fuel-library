@@ -104,7 +104,7 @@ if [[ -n "$parent_proxy" ]];then
   puppet apply -e "
   \$squid_cache_parent = \"$server\"
   \$squid_cache_parent_port = \"$port\"
-  \$squid_cache_parent_options = \"default\"
+  \$squid_cache_parent_options = \"no-query default\"
   class { squid: }"
 else
   puppet apply -e "class { squid: }"
