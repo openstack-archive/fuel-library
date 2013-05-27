@@ -15,14 +15,14 @@ function sync_repo_osci {
   make_yum_conf "$binrepo" "$srcrepo"
   reposync -c "$YUMCONF" --repo "$(get_repo_name "$binrepo")" --norepopath -p .
   reposync -c "$YUMCONF" --source --repo "$(get_repo_name "$srcrepo")" --norepopath -p .
-  get_puppet27
+  #get_puppet27
   mv *.x86_64.rpm x86_64
   mv *.noarch.rpm noarch
   mv *.src.rpm SRPMS
   createrepo .
 }
 function get_puppet27 {
-  puppetver="2.7.19-1.el6"
+  puppetver="3.0.1-1.el6"
   kojitag="puppet27"
   mkdir -p noarch/ SRPMS/
   wget "$REPOTOPDIR/$kojitag/$BINARYDIR/puppet-$puppetver.noarch.rpm" -O noarch/puppet-$puppetver.noarch.rpm

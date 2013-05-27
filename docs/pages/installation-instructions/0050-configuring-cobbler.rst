@@ -132,7 +132,7 @@ Fuel can install CentOS or Ubuntu on your servers, or you can add a profile of y
 
     netboot-enabled: "1"
     # for Ubuntu
-    # ksmeta: "puppet_version=2.7.19-1puppetlabs2 \
+    # ksmeta: "puppet_version=3.0.1-1puppetlabs1 \
     # for Centos
     name-servers: "10.20.0.100"
     name-servers-search: "localdomain"
@@ -140,7 +140,7 @@ Fuel can install CentOS or Ubuntu on your servers, or you can add a profile of y
 
 Set the default nameserver to be fuel-pm, and change the domain name to your own domain name.  Set the ``gateway`` to the public network's default gateway. Alternatively, if you don't plan to use your public networks actual gateway, you can set this value to be the IP address of the master node. **Please note:** You must specify a working gateway (or proxy) in order to install OpenStack, because the system will need to communicate with public repositories. ::
 
-    ksmeta: "puppet_version=2.7.19-1puppetlabs2 \
+    ksmeta: "puppet_version=3.0.1-1puppetlabs1 \
       puppet_auto_setup=1 \
       puppet_master=fuel-pm.localdomain \
 
