@@ -1,5 +1,6 @@
 #!/bin/bash
 
+FUELCONF=/etc/fuel.conf
 source /usr/local/lib/functions.sh
 
 log="/var/log/firstboot-puppet.log"
@@ -19,15 +20,15 @@ menu_conf
 apply_settings
 
 # Installing puppetmaster/cobbler node role
-echo;echo "Provisioning masternode role ..."
+echo;echo "Provisioning Master Node role ..."
 (
 mkdir -p /var/lib/puppet/ssh_keys
 [ -f /var/lib/puppet/ssh_keys/openstack ] || ssh-keygen -f /var/lib/puppet/ssh_keys/openstack -N ''
 chown root:puppet /var/lib/puppet/ssh_keys/openstack*
 chmod g+r /var/lib/puppet/ssh_keys/openstack*
 puppet apply -e "
-    class {openstack::mirantis_repos: enable_epel => true } ->
-    class {puppet: } -> class {puppet::thin:} -> class {puppet::nginx: puppet_master_hostname => \"$hstname.$domain\"}
+    class {openstack::mirantis_repos: enable_epel => false } ->
+    class {puppet: puppet_master_version => \"$puppet_master_version\"} -> class {puppet::thin:} -> class {puppet::nginx: puppet_master_hostname => \"$hostname.$domain\"}
     "
 puppet apply -e "
     class {puppet::fileserver_config: } "
@@ -68,14 +69,14 @@ puppet apply -e "
         osversion => 'precise',
         ksmeta    => 'tree_host=us.archive.ubuntu.com tree_url=/ubuntu', }
     class { 'cobbler::profile::ubuntu_1204_x86_64': }
-    cobbler_distro {'centos63_x86_64':
-        kernel    => '/var/www/centos/6.3/os/x86_64/isolinux/vmlinuz',
-        initrd    => '/var/www/centos/6.3/os/x86_64/isolinux/initrd.img',
+    cobbler_distro {'centos64_x86_64':
+        kernel    => '/var/www/centos/6.4/os/x86_64/isolinux/vmlinuz',
+        initrd    => '/var/www/centos/6.4/os/x86_64/isolinux/initrd.img',
         arch      => 'x86_64',
         breed     => 'redhat',
         osversion => 'rhel6',
-        ksmeta    => 'tree=http://mirror.stanford.edu/yum/pub/centos/6.3/os/x86_64', }
-    class { 'cobbler::profile::centos63_x86_64': }"
+        ksmeta    => 'tree=http://download.mirantis.com/centos-6.4', }
+    class { 'cobbler::profile::centos64_x86_64': }"
 
 puppet apply -e '
     $stompuser="mcollective"
@@ -96,10 +97,21 @@ puppet apply -e '
 	stomphost => $stomphost,
 	stompport => $stompport
     } '
-puppet apply -e 'class { squid: }'
+
+# Configuring squid with or without parent proxy
+if [[ -n "$parent_proxy" ]];then
+  IFS=: read server port <<< "$parent_proxy"
+  puppet apply -e "
+  \$squid_cache_parent = \"$server\"
+  \$squid_cache_parent_port = \"$port\"
+  \$squid_cache_parent_options = \"no-query default\"
+  class { squid: }"
+else
+  puppet apply -e "class { squid: }"
+fi
+
 iptables -A PREROUTING -t nat -i $mgmt_if -s $mgmt_ip/$mgmt_mask ! -d $mgmt_ip -p tcp --dport 80 -j REDIRECT --to-port 3128
 
-gem install /var/www/astute-0.0.1.gem
+/etc/init.d/iptables save
 
-cp `find / -name config.yaml -print0 | grep -FzZ 'samples/config.yaml'` /root
-) 2>&1 >> $log
+) >> $log 2>&1

@@ -28,7 +28,7 @@ logging {
   to_stderr:       no 
   to_logfile:      yes
   to_syslog:       yes
-  logfile:	   /var/log/corosync.log
+  logfile:         /var/log/corosync.log
   syslog_facility: daemon
   debug:           <%= scope.lookupvar('debug') ? 'on' : 'off' %>
   timestamp:       on

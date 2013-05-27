@@ -28,8 +28,8 @@ Puppet::Type.type(:l2_ovs_bond).provide(:ovs) do
     end
 
     bond_create_cmd = ['add-bond', @resource[:bridge], @resource[:bond]] + @resource[:ports]
-    if ! @resource[:options].empty?
-      bond_create_cmd += @resource[:options]
+    if ! @resource[:properties].empty?
+      bond_create_cmd += @resource[:properties]
     end
     begin
       vsctl(bond_create_cmd)

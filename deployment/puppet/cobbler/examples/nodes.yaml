@@ -1,15 +1,15 @@
 fuel-controller-01:
   # for Centos
-  profile: "centos63_x86_64"
+  profile: "centos64_x86_64"
   # for Ubuntu
   # profile: "ubuntu_1204_x86_64"
   netboot-enabled: "1"
   # for Ubuntu
-  # ksmeta: "puppet_version=2.7.19-1puppetlabs2 \
+  # ksmeta: "puppet_version=3.0.1-1puppetlabs1 \
   # for Centos
-  ksmeta: "puppet_version=2.7.19-1.el6 \
+  ksmeta: "puppet_version=3.0.1-1.el6 \
 puppet_auto_setup=1 \
-puppet_master=fuel-pm.your-domain-name.com \
+puppet_master=fuel-pm.localdomain \
 puppet_enable=0 \
 ntp_enable=1 \
 mco_auto_setup=1 \
@@ -24,14 +24,14 @@ mco_enable=1"
 # cinder_bd_for_vg=/dev/sdb,/dev/sdc \
   hostname: "fuel-controller-01"
   name-servers: "10.0.0.100"
-  name-servers-search: "your-domain-name.com"
+  name-servers-search: "localdomain"
   interfaces:
     eth0:
       mac: "52:54:00:0a:39:ec"
       static: "1"
       ip-address: "10.0.0.101"
       netmask: "255.255.255.0"
-      dns-name: "fuel-controller-01.your-domain-name.com"
+      dns-name: "fuel-controller-01.localdomain"
       management: "1"
     eth1:
       mac: "52:54:00:e6:dc:c9"
@@ -50,16 +50,16 @@ mco_enable=1"
       peerdns: "no"
 fuel-controller-02:
   # for Centos
-  profile: "centos63_x86_64"
+  profile: "centos64_x86_64"
   # for Ubuntu
   # profile: "ubuntu_1204_x86_64"
   netboot-enabled: "1"
   # for Ubuntu
-  # ksmeta: "puppet_version=2.7.19-1puppetlabs2 \
+  # ksmeta: "puppet_version=3.0.1-1puppetlabs1 \
   # for Centos
-  ksmeta: "puppet_version=2.7.19-1.el6 \
+  ksmeta: "puppet_version=3.0.1-1.el6 \
 puppet_auto_setup=1 \
-puppet_master=fuel-pm.your-domain-name.com \
+puppet_master=fuel-pm.localdomain \
 puppet_enable=0 \
 ntp_enable=1 \
 mco_auto_setup=1 \
@@ -74,14 +74,14 @@ mco_enable=1"
 # cinder_bd_for_vg=/dev/sdb,/dev/sdc \
   hostname: "fuel-controller-02"
   name-servers: "10.0.0.100"
-  name-servers-search: "your-domain-name.com"
+  name-servers-search: "localdomain"
   interfaces:
     eth0:
       mac: "52:54:00:e4:46:5c"
       static: "1"
       ip-address: "10.0.0.102"
       netmask: "255.255.255.0"
-      dns-name: "fuel-controller-02.your-domain-name.com"
+      dns-name: "fuel-controller-02.localdomain"
       management: "1"
     eth1:
       mac: "52:54:00:b4:a5:25"
@@ -100,16 +100,16 @@ mco_enable=1"
       peerdns: "no"
 fuel-controller-03:
   # for Centos
-  profile: "centos63_x86_64"
+  profile: "centos64_x86_64"
   # for Ubuntu
   # profile: "ubuntu_1204_x86_64"
   netboot-enabled: "1"
   # for Ubuntu
-  # ksmeta: "puppet_version=2.7.19-1puppetlabs2 \
+  # ksmeta: "puppet_version=3.0.1-1puppetlabs1 \
   # for Centos
-  ksmeta: "puppet_version=2.7.19-1.el6 \
+  ksmeta: "puppet_version=3.0.1-1.el6 \
 puppet_auto_setup=1 \
-puppet_master=fuel-pm.your-domain-name.com \
+puppet_master=fuel-pm.localdomain \
 puppet_enable=0 \
 ntp_enable=1 \
 mco_auto_setup=1 \
@@ -124,14 +124,14 @@ mco_enable=1"
 # cinder_bd_for_vg=/dev/sdb,/dev/sdc \
   hostname: "fuel-controller-03"
   name-servers: "10.0.0.100"
-  name-servers-search: "your-domain-name.com"
+  name-servers-search: "localdomain"
   interfaces:
     eth0:
       mac: "52:54:00:09:04:40"
       static: "1"
       ip-address: "10.0.0.103"
       netmask: "255.255.255.0"
-      dns-name: "fuel-controller-03.your-domain-name.com"
+      dns-name: "fuel-controller-03.localdomain"
       management: "1"
     eth1:
       mac: "52:54:00:78:23:b7"
@@ -150,16 +150,16 @@ mco_enable=1"
       peerdns: "no"
 fuel-quantum:
   # for Centos
-  profile: "centos63_x86_64"
+  profile: "centos64_x86_64"
   # for Ubuntu
   # profile: "ubuntu_1204_x86_64"
   netboot-enabled: "1"
   # for Ubuntu
-  # ksmeta: "puppet_version=2.7.19-1puppetlabs2 \
+  # ksmeta: "puppet_version=3.0.1-1puppetlabs1 \
   # for Centos
-  ksmeta: "puppet_version=2.7.19-1.el6 \
+  ksmeta: "puppet_version=3.0.1-1.el6 \
 puppet_auto_setup=1 \
-puppet_master=fuel-pm.your-domain-name.com \
+puppet_master=fuel-pm.localdomain \
 puppet_enable=0 \
 ntp_enable=1 \
 mco_auto_setup=1 \
@@ -171,14 +171,14 @@ mco_stomppassword=AeN5mi5thahz2Aiveexo \
 mco_enable=1"
   hostname: "fuel-quantum"
   name-servers: "10.0.0.100"
-  name-servers-search: "your-domain-name.com"
+  name-servers-search: "localdomain"
   interfaces:
     eth0:
       mac: "52:54:00:68:ff:9b"
       static: "1"
       ip-address: "10.0.0.105"
       netmask: "255.255.255.0"
-      dns-name: "fuel-quantum.your-domain-name.com"
+      dns-name: "fuel-quantum.localdomain"
       management: "1"
     eth1:
       mac: "52:54:00:27:49:44"
@@ -197,16 +197,16 @@ mco_enable=1"
       peerdns: "no"
 fuel-compute-01:
   # for Centos
-  profile: "centos63_x86_64"
+  profile: "centos64_x86_64"
   # for Ubuntu
   # profile: "ubuntu_1204_x86_64"
   netboot-enabled: "1"
   # for Ubuntu
-  # ksmeta: "puppet_version=2.7.19-1puppetlabs2 \
+  # ksmeta: "puppet_version=3.0.1-1puppetlabs1 \
   # for Centos
-  ksmeta: "puppet_version=2.7.19-1.el6 \
+  ksmeta: "puppet_version=3.0.1-1.el6 \
 puppet_auto_setup=1 \
-puppet_master=fuel-pm.your-domain-name.com \
+puppet_master=fuel-pm.localdomain \
 puppet_enable=0 \
 ntp_enable=1 \
 mco_auto_setup=1 \
@@ -218,14 +218,14 @@ mco_stomppassword=AeN5mi5thahz2Aiveexo \
 mco_enable=1"
   hostname: "fuel-compute-01"
   name-servers: "10.0.0.100"
-  name-servers-search: "your-domain-name.com"
+  name-servers-search: "localdomain"
   interfaces:
     eth0:
       mac: "52:54:00:68:ff:9b"
       static: "1"
       ip-address: "10.0.0.110"
       netmask: "255.255.255.0"
-      dns-name: "fuel-compute-01.your-domain-name.com"
+      dns-name: "fuel-compute-01.localdomain"
       management: "1"
     eth1:
       mac: "52:54:00:27:49:44"
@@ -245,16 +245,16 @@ mco_enable=1"
 
 fuel-compute-02:
   # for Centos
-  profile: "centos63_x86_64"
+  profile: "centos64_x86_64"
   # for Ubuntu
   # profile: "ubuntu_1204_x86_64"
   netboot-enabled: "1"
   # for Ubuntu
-  # ksmeta: "puppet_version=2.7.19-1puppetlabs2 \
+  # ksmeta: "puppet_version=3.0.1-1puppetlabs1 \
   # for Centos
-  ksmeta: "puppet_version=2.7.19-1.el6 \
+  ksmeta: "puppet_version=3.0.1-1.el6 \
 puppet_auto_setup=1 \
-puppet_master=fuel-pm.your-domain-name.com \
+puppet_master=fuel-pm.localdomain \
 puppet_enable=0 \
 ntp_enable=1 \
 mco_auto_setup=1 \
@@ -266,14 +266,14 @@ mco_stomppassword=AeN5mi5thahz2Aiveexo \
 mco_enable=1"
   hostname: "fuel-compute-02"
   name-servers: "10.0.0.100"
-  name-servers-search: "your-domain-name.com"
+  name-servers-search: "localdomain"
   interfaces:
     eth0:
       mac: "52:54:00:68:ff:9b"
       static: "1"
       ip-address: "10.0.0.111"
       netmask: "255.255.255.0"
-      dns-name: "fuel-compute-02.your-domain-name.com"
+      dns-name: "fuel-compute-02.localdomain"
       management: "1"
     eth1:
       mac: "52:54:00:27:49:44"

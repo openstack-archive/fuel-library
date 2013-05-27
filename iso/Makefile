@@ -1,8 +1,8 @@
 COMMIT_SHA:=$(shell git rev-parse --verify HEAD)
-FUEL_VERSION:=2.1-1
+FUEL_VERSION:=2.1-folsom
 
 CENTOS_MAJOR:=6
-CENTOS_MINOR:=3
+CENTOS_MINOR:=4
 CENTOS_RELEASE:=$(CENTOS_MAJOR).$(CENTOS_MINOR)
 CENTOS_ARCH:=x86_64
 
@@ -20,7 +20,7 @@ LOCAL_MIRROR_CENTOS_OS_BASEURL:=$(LOCAL_MIRROR_CENTOS)/$(CENTOS_RELEASE)/os/$(CE
 LOCAL_MIRROR_UBUNTU:=$(LOCAL_MIRROR)/ubuntu/dists/$(UBUNTU_DISTR)
 LOCAL_MIRROR_UBUNTU_DEB:=$(LOCAL_MIRROR_UBUNTU)/$(UBUNTU_COMP)/binary-$(UBUNTU_ARCH)
 LOCAL_MIRROR_UBUNTU_INSTALLER:=$(LOCAL_MIRROR_UBUNTU)/$(UBUNTU_COMP)/debian-installer/binary-$(UBUNTU_ARCH)
-MIRROR_CENTOS:=http://mirror.yandex.ru/centos
+MIRROR_CENTOS:=http://download.mirantis.com/centos-6.4
 MIRROR_CENTOS_OS_BASEURL:=$(MIRROR_CENTOS)/$(CENTOS_RELEASE)/os/$(CENTOS_ARCH)
 MIRROR_UBUNTU:=http://mirror.yandex.ru/ubuntu
 MIRROR_UBUNTU_OS_BASEURL:=$(MIRROR_UBUNTU)/dists/$(UBUNTU_DISTR)/$(UBUNTU_COMP)
@@ -29,13 +29,13 @@ YUM_REPOS:=centos epel fuel_folsom puppetlabs rpmforge
 include $(SOURCE_DIR)/mirror/module.mk
 
 clean:
-	sudo rm -rf $(BUILD_DIR)
-	sudo rm -rf $(LOCAL_MIRROR)/ubuntu/dists
-	sudo rm -rf $(LOCAL_MIRROR)/ubuntu/etc
-	sudo rm -rf $(LOCAL_MIRROR)/ubuntu/var
+	rm -rf $(BUILD_DIR)
+	rm -rf $(LOCAL_MIRROR)/ubuntu/dists
+	rm -rf $(LOCAL_MIRROR)/ubuntu/etc
+	rm -rf $(LOCAL_MIRROR)/ubuntu/var
 
 deep_clean: clean
-	sudo rm -rf $(LOCAL_MIRROR)
+	rm -rf $(LOCAL_MIRROR)
 
 .PHONY: iso clean
 all: iso
@@ -47,6 +47,7 @@ ISOROOT:=$(BUILD_DIR)/iso/isoroot
 #endif
 
 ISOBASENAME:=fuel-centos-$(CENTOS_RELEASE)-$(CENTOS_ARCH)-$(FUEL_VERSION)
+#[ -z "$$ISOSUFFIX" ] || ISOBASENAME:=$(ISOBASENAME)-$(ISOSUFFIX)
 #ISOBASENAME:=fuel-centos-$(CENTOS_RELEASE)-$(CENTOS_ARCH)_$(BUILD_ID)
 
 ISONAME:=$(BUILD_DIR)/iso/$(ISOBASENAME).iso
@@ -75,17 +76,11 @@ $(BUILD_DIR)/iso/isoroot-files.done: \
 		$(ISOROOT)/bootstrap_admin_node.conf \
 		$(ISOROOT)/version.yaml \
 		$(ISOROOT)/fuel-modules.tgz \
-		$(ISOROOT)/astute-0.0.1.gem
 	$(ACTION.TOUCH)
 
 $(ISOROOT)/fuel-modules.tgz: \
 		$(call find-files,$(FUEL_DIR))
 	(cd $(FUEL_DIR) && tar chzf $@ *)
-
-$(ISOROOT)/astute-0.0.1.gem:
-	mkdir -p $(@D)
-	( cd $(SOURCE_DIR)/../deployment/mcollective/astute && gem build astute.gemspec )
-	mv $(SOURCE_DIR)/../deployment/mcollective/astute/$(@F) $@
 
 $(ISOROOT)/.discinfo: $(SOURCE_DIR)/.discinfo ; $(ACTION.COPY)
 $(ISOROOT)/.treeinfo: $(SOURCE_DIR)/.treeinfo ; $(ACTION.COPY)
@@ -131,7 +126,7 @@ $(ISONAME): $(BUILD_DIR)/iso/isoroot.done
 	rm -f $@
 	mkdir -p $(BUILD_DIR)/iso/isoroot-mkisofs
 	rsync -a --delete $(ISOROOT)/ $(BUILD_DIR)/iso/isoroot-mkisofs
-	mkisofs -r -V "Mirantis Nailgun" -p "Mirantis Inc." \
+	mkisofs -r -V "Mirantis Fuel $(FUEL_VERSION)" -p "Mirantis Inc." \
 		-J -T -R -b isolinux/isolinux.bin \
 		-no-emul-boot \
 		-boot-load-size 4 -boot-info-table \

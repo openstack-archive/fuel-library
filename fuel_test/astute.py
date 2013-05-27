@@ -1,3 +1,5 @@
+from fuel_test.settings import DOMAIN_NAME
+
 __author__ = 'vic'
 import yaml
 
@@ -12,7 +14,7 @@ class Astute(object):
         if not computes: computes = []
         config = {
             'common' : {
-                'orchestrator_common' : { 'use_case': use_case, 'domain_name': 'your-domain-name.com' }
+                'orchestrator_common' : { 'use_case': use_case, 'domain_name': DOMAIN_NAME }
             }
         }
         map(lambda x: config.update({str(x.name): {'role': 'controller'}}), controllers)

@@ -8,22 +8,25 @@
 #   Specify interface.
 #
 # [*ipaddr*]
-#   IP address for interface. Can contains IP address, 'dhcp', or 'none'
-#   for up empty unaddressed interface.
+#   IP address for interface. Can contain IP address, 'dhcp' 
+#   or 'none' (with no IP address).
+#   Can be an array of CIDR IP addresses ['192.168.1.3/24','10.0.0.4/16']
+#   for multiple IPs on an interface. In this case netmask parameter is ignored.
 #
 # [*netmask*]
 #   Specify network mask. Default is '255.255.255.0'.
 #
 # [*vlandev*]
-#   If you configure 802.1q vlan interface wint name vlanXXX
-#   you must specify parent interface in this option
+#   If you configure 802.1q vlan interface with name like 'vlanXXX'
+#   you must specify a parent interface in this option
 #
 # [*bond_master*]
-#   This option say, that this interface is a slave of bondX interface.
+#   This parameter sets the bond_master interface and says that this interface 
+#   is a slave for bondX interface.
 #
 # [*bond_mode*]
-#   For interfaces bondNN this option specified bond mode.
-#   All bond_* options ignored for non-master-bond interfaces.
+#   This parameter specifies a bond mode for interfaces like bondNN.
+#   All bond_* properties are ignored for non-bond-master interfaces.
 #
 # [*bond_miimon*]
 #   lacp MII monitor period.
@@ -32,43 +35,41 @@
 #   lacp MII rate
 #
 # [*ifname_order_prefix*]
-#   Centos and Ubuntu at boot time Up and configure network interfaces in
-#   alphabetical order of interface configuration file names.
-#   This option helps You change this order at system startup.
+#    Sets the interface startup order
 #
 # [*gateway*]
-#   Specify default gateway if need.
+#   Specify default gateway if needed.
 #
 # [*dns_nameservers*]
-#   Specify pair of nameservers if need. Must be array, for example:
+#   Specify a pair of nameservers if need. Must be an array, for example:
 #   nameservers => ['8.8.8.8', '8.8.4.4']
 #
 # [*dns_domain*]
-#   Specify DOMAIN option for interface. Implemened only in ubuntu. 
+#   Specify DOMAIN option for interface. Implemented for Ubuntu only.
 #
 # [*dns_search*]
-#   Specify SEARCH option for interface. Must be array, for example:
+#   Specify SEARCH option for interface. Must be an array, for example:
 #   dns_search => ['aaaa.com', 'bbbb.org']
 #
 # [*dhcp_hostname*]
-#   Specify hostname for DHCP if need.
+#   Specify hostname for DHCP if needed.
 #
 # [*dhcp_nowait*]
-#   If you put 'true' to this option dhcp agent will be started in background.
-#   Puppet will not wait for obtain IP address and route.
+#   If you set this parameter as 'true' dhcp agent will start on the background.
+#   Puppet will not wait for obtaining IP address and routes.
 #
 # [*check_by_ping*]
-#   You can put here IP address, that will be pinged after interface UP. We will
-#   be wait that this IP will pinged.
-#   Can be IP address, 'none', or 'gateway' for check awailability default gateway
-#   if it exists for this interface.
+#   You can set an IP address that will be pinged when interface is UP.
+#   The given IP will be checked during the check_by_ping_timeout.
+#   Can be any IP address, 'none' or 'gateway' for checking the availability of
+#   default gateway if it is set for this interface.
 #
 # [*check_by_ping_timeout*]
 #   Timeout for check_by_ping
 #
 #
-# If You configure 802.1q vlan interfaces -- You must declare relationships between
-# them in site.pp.
+# If you configure 802.1q vlan interfaces then you must declare relationships 
+# between them in site.pp.
 # Ex: L23network:L3:Ifconfig['eth2'] -> L23network:L3:Ifconfig['eth2.128']
 #
 define l23network::l3::ifconfig (
@@ -90,6 +91,7 @@ define l23network::l3::ifconfig (
     $ifname_order_prefix = false,
     $check_by_ping   = 'gateway',
     $check_by_ping_timeout = 120,
+    #todo: label => "XXX", # -- "ip addr add..... label XXX"
 ){
   include ::l23network::params
 
@@ -103,17 +105,48 @@ define l23network::l3::ifconfig (
     'balance-alb'
   ]
 
+  # setup configure method for inteface
   if $bond_master {
     $method = 'bondslave'
-  } else {
+  } elsif is_array($ipaddr) {
+    # getting array of IP addresses for one interface
+    $method = 'static'
+    check_cidrs($ipaddr)
+    $effective_ipaddr  = cidr_to_ipaddr($ipaddr[0])
+    $effective_netmask = cidr_to_netmask($ipaddr[0])
+    $ipaddr_aliases    = array_part($ipaddr,1,0)
+  } elsif is_string($ipaddr) {
+    # getting single IP address for interface. It can be not address, but method.
+    $ipaddr_aliases = undef
     case $ipaddr {
-      'dhcp':  { $method = 'dhcp' }
-      'none':  { $method = 'manual' }
-      default: { $method = 'static' }
+      'dhcp':  { 
+        $method = 'dhcp' 
+        $effective_ipaddr  = $ipaddr
+        $effective_netmask = undef
+      }
+      'none':  { 
+        $method = 'manual' 
+        $effective_ipaddr  = $ipaddr
+        $effective_netmask = undef
+      }
+      default: { 
+        $method = 'static' 
+        if $ipaddr =~ /\/\d{1,2}\s*$/ {
+          # ipaddr can be cidr-notated
+          $effective_ipaddr = cidr_to_ipaddr($ipaddr)
+          $effective_netmask = cidr_to_netmask($ipaddr)
+        } else {
+          # or classic pair of ipaddr+netmask
+          $effective_ipaddr = $ipaddr
+          $effective_netmask = $netmask
+        }
+      }
     }
+  } else {
+    fail("Ipaddr must be a string or array of strings")
   }
 
-  # OS depends constats and packages
+  # OS dependent constants and packages
   case $::osfamily {
     /(?i)debian/: {
       $if_files_dir = '/etc/network/interfaces.d'
@@ -122,6 +155,15 @@ define l23network::l3::ifconfig (
     /(?i)redhat/: {
       $if_files_dir = '/etc/sysconfig/network-scripts'
       $interfaces = false
+      if ! defined(Class[L23network::L2::Centos_upndown_scripts]) {
+        if defined(Stage[netconfig]) {
+          class{'l23network::l2::centos_upndown_scripts': stage=>'netconfig' }
+        } else {
+          class{'l23network::l2::centos_upndown_scripts': }
+        }
+      }
+      Anchor <| title == 'l23network::l2::centos_upndown_scripts' |> 
+        -> L23network::L3::Ifconfig <| interface == "$interface" |>
     }
     default: {
       fail("Unsupported OS: ${::osfamily}/${::operatingsystem}")
@@ -159,7 +201,7 @@ define l23network::l3::ifconfig (
       if $vlandev {
         $vlan_dev = $vlandev
       } else {
-        fail("Can't configure vlan interface ${interface} without definition vlandev=>ethXX.")
+        fail("Can't configure vlan interface ${interface} without definition (ex: vlandev=>ethXX).")
       }
     }
     /^(eth\d+)\.(\d+)/: { # TODO: bond0.123 -- also vlan
@@ -168,8 +210,11 @@ define l23network::l3::ifconfig (
       $vlan_dev  = $1
     }
     /^(bond\d+)/: {
-      if ! $bond_mode or $bond_mode <0 or $bond_mode>6 {
-        fail("You configure interface bonding. In this mode option bond_mode required, and must be between 0..6, not '${bond_mode}'.")
+      if ! $bond_mode {
+        fail("To configure the interface bonding you must the bond_mode parameter is required and must be between 0..6.")
+      }
+      if $bond_mode <0 or $bond_mode>6 {
+        fail("For interface bonding the bond_mode must be between 0..6, not '${bond_mode}'.")
       }
       $vlan_mode = undef
     }
@@ -186,6 +231,7 @@ define l23network::l3::ifconfig (
   }
 
   if $method == 'static' {
+    # recognizing default gateway
     if $gateway {
       $def_gateway = $gateway
     } else {
@@ -225,8 +271,25 @@ define l23network::l3::ifconfig (
     mode    => '0644',
     content => template("l23network/ipconfig_${::osfamily}_${method}.erb"),
   }
+  if $::osfamily =~ /(?i)redhat/ and $ipaddr_aliases {
+    file {"${if_files_dir}/interface-up-script-${interface}":
+      ensure  => present,
+      owner   => 'root',
+      mode    => '0755',
+      recurse => true,
+      content => template("l23network/ipconfig_${::osfamily}_${method}_up-script.erb"),
+    } ->
+    # file {"${if_files_dir}/interface-down-script-${interface}":
+    #   ensure  => present,
+    #   owner   => 'root',
+    #   mode    => '0755',
+    #   recurse => true,
+    #   content => template("l23network/ipconfig_${::osfamily}_${method}_down-script.erb"),
+    # } ->
+    File <| title == $interface_file |>
+  }
 
-  notify {"ifconfig_${interface}": message=>"Interface:${interface} IP:${ipaddr}/${netmask}", withpath=>false} ->
+  notify {"ifconfig_${interface}": message=>"Interface:${interface} IP:${effective_ipaddr}/${effective_netmask}", withpath=>false} ->
   l3_if_downup {"$interface":
     check_by_ping => $check_by_ping,
     check_by_ping_timeout => $check_by_ping_timeout,

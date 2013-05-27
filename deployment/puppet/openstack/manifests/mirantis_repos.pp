@@ -35,8 +35,8 @@ class openstack::mirantis_repos (
         apt::pin { 'upstream-mysql':
           order    => 19,
           priority => 1002,
-          version  => "5.5.29*",
-          packages => "mysql*"
+          releasecustom  => "v=12.04,o=Ubuntu",
+          packages => "/^mysql/"
         }
       }
 
@@ -155,14 +155,37 @@ class openstack::mirantis_repos (
       Yumrepo {
         proxy => $repo_proxy, }
 
+        yumrepo { 'centos-extras':
+            descr      => 'Local extras mirror repository',
+            name       => 'extras',
+            enabled    => 0,
+            baseurl => "http://archive.kernel.org/centos/6.3/os/x86_64/",
+            mirrorlist => absent
+        }
+
+
       # added internal/external network mirror
       if $type == 'default' {
         yumrepo { 'openstack-epel-fuel':
           descr      => 'Mirantis OpenStack Custom Packages',
           mirrorlist => 'http://download.mirantis.com/epel-fuel-folsom-2.1/mirror.external.list',
           gpgcheck   => '1',
-          gpgkey     => 'http://download.mirantis.com/epel-fuel-folsom-2.1/epel.key  http://download.mirantis.com/epel-fuel-folsom-2.1/centos.key http://download.mirantis.com/epel-fuel-folsom-2.1/rabbit.key http://download.mirantis.com/epel-fuel-folsom-2.1/mirantis.key http://download.mirantis.com/epel-fuel-folsom-2.1/mysql.key',
+          gpgkey     => 'http://download.mirantis.com/epel-fuel-folsom-2.1/epel.key  http://download.mirantis.com/epel-fuel-folsom-2.1/centos.key http://download.mirantis.com/epel-fuel-folsom-2.1/rabbit.key http://download.mirantis.com/epel-fuel-folsom-2.1/mirantis.key http://download.mirantis.com/epel-fuel-folsom-2.1/mysql.key http://download.mirantis.com/epel-fuel-folsom-2.1/nginx.key',
         }
+        yumrepo { 'centos-base':
+            descr      => 'Mirantis-CentOS',
+            name       => 'base',
+            baseurl => "http://download.mirantis.com/centos-6.4",
+            mirrorlist => absent
+        }
+        yumrepo { 'vault6.3-base':
+            descr      => 'Vault 6.3 base mirror repository',
+            name       => 'v6.3-base',
+            enabled    => 0,
+            baseurl => "http://vault.centos.org/6.3/os/x86_64/",
+            mirrorlist => absent
+        }
+
       }
 
       if $type == 'custom' {
@@ -170,7 +193,7 @@ class openstack::mirantis_repos (
           descr      => 'Mirantis OpenStack Custom Packages',
           mirrorlist => $fuel_mirrorlist,
           gpgcheck   => '1',
-          gpgkey     => 'http://download.mirantis.com/epel-fuel-folsom-2.1/epel.key  http://download.mirantis.com/epel-fuel-folsom-2.1/centos.key http://download.mirantis.com/epel-fuel-folsom-2.1/rabbit.key http://download.mirantis.com/epel-fuel-folsom-2.1/mirantis.key http://download.mirantis.com/epel-fuel-folsom-2.1/mysql.key',
+          gpgkey     => 'http://download.mirantis.com/epel-fuel-folsom-2.1/epel.key  http://download.mirantis.com/epel-fuel-folsom-2.1/centos.key http://download.mirantis.com/epel-fuel-folsom-2.1/rabbit.key http://download.mirantis.com/epel-fuel-folsom-2.1/mirantis.key http://download.mirantis.com/epel-fuel-folsom-2.1/mysql.key http://download.mirantis.com/epel-fuel-folsom-2.1/nginx.key',
         }
 
         if $upstream_mirror == true {
@@ -193,7 +216,7 @@ class openstack::mirantis_repos (
           descr    => 'Mirantis OpenStack OSCI Packages',
           baseurl  => 'http://osci-koji.srt.mirantis.net/mash/fuel-folsom/x86_64/',
           gpgcheck => '1',
-          gpgkey   => 'http://download.mirantis.com/epel-fuel-folsom/epel.key  http://download.mirantis.com/epel-fuel-folsom/centos.key http://download.mirantis.com/epel-fuel-folsom/rabbit.key http://download.mirantis.com/epel-fuel-folsom/mirantis.key http://download.mirantis.com/epel-fuel-folsom/mysql.key',
+          gpgkey   => 'http://download.mirantis.com/epel-fuel-folsom/epel.key  http://download.mirantis.com/epel-fuel-folsom/centos.key http://download.mirantis.com/epel-fuel-folsom/rabbit.key http://download.mirantis.com/epel-fuel-folsom/mirantis.key http://download.mirantis.com/epel-fuel-folsom/mysql.key http://download.mirantis.com/epel-fuel-folsom/nginx.key',
         }
       }
 
