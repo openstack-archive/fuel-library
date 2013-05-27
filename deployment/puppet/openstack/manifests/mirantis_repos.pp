@@ -16,7 +16,7 @@ class openstack::mirantis_repos (
   $fuel_mirrorlist           = 'http://download.mirantis.com/epel-fuel-folsom-2.1/mirror.internal-stage.list',
   $mirrorlist_base           = 'http://172.18.67.168/centos-repo/mirror-6.3-os.list',
   $mirrorlist_updates        = 'http://172.18.67.168/centos-repo/mirror-6.3-updates.list',
-  $grizzly_baseurl        = 'http://osci-koji.srt.mirantis.net/mash/fuel-3.0/x86_64/',
+  $grizzly_baseurl           = 'http://download.mirantis.com/epel-fuel-grizzly/',
   $enable_test_repo          = false,
   $repo_proxy   = undef,
   $use_upstream_mysql     = false,
@@ -185,7 +185,7 @@ class openstack::mirantis_repos (
 
         yumrepo { 'openstack-epel-fuel-grizzly':
           descr      => 'Mirantis OpenStack grizzly Custom Packages',
-          baseurl    => 'http://osci-koji.srt.mirantis.net/mash/fuel-3.0/x86_64/',
+          baseurl    => 'http://download.mirantis.com/epel-fuel-grizzly/',
           gpgcheck   => '0',
         }
 
