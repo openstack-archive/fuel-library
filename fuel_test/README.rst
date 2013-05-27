@@ -10,13 +10,26 @@ Quickstart
 
 - Copy job from the nearest-best-fitting-one, edit job name to match its environment
 - Set up SCM for repos needed and provide its local directories names (fuel & tempest is a minimum required)
-- Add parameters for job, f.e.
+- Add parameters for job, f.e. ``test_name`` with values
 
-    -  fuel_test.cobbler.test_simple:SimpleTestCase.test_simple
-    -  TEMPEST
-    -  tempest/tempest/tests/network/test_network_basic_ops.py
-    -  tempest/tempest/tests/compute/servers/test_create_server.py:ServersTestJSON.test_can_log_into_created_server
-    -  tempest/tempest/tests/compute/floating_ips
+     - fuel_test.cobbler.test_simple:SimpleTestCase.test_simple
+     - fuel_test.cobbler.test_simple
+     - fuel_test.cobbler.test_single
+     - fuel_test.cobbler.test_full:FullTestCase.test_full
+     - fuel_test.cobbler.test_compact:CompactTestCase.test_deploy_compact_quantum
+     - fuel_test.cobbler.test_compact:CompactTestCase.test_deploy_compact_wo_quantum
+     - fuel_test.cobbler.test_quantum_standalone_no_swift:QstTestCase.test_quantum_standalone_no_swift
+     - fuel_test.cobbler.test_minimal:MinimalTestCase.test_minimal
+     - fuel_test.cobbler.test_orchestration:CobblerCase.test_orchestrating_minimal
+     - TEMPEST
+     - tempest/tempest/tests/network/test_network_basic_ops.py
+     - tempest/tempest/tests/compute/servers/test_create_server.py:ServersTestJSON.test_can_log_into_created_server
+     - tempest/tempest/tests/compute/floating_ips
+
+  and ``erase`` with values
+    
+     - false
+     - true
 
 - Configure shell command to execute
 - Run the job
@@ -24,29 +37,35 @@ Quickstart
 Shell env. varaibles used for job
 ---------------------------------
 
-Accepted values for test_name parameter are
+Accepted values for ``test_name`` parameter are
 
 - TEMPEST = full tempest run onto lab was deployed before
 - tempest/tempest/tests/.../ModuleName.py:ClassName.MethodName = run single tempest test specified only, e.g. tempest/tempest/tests/compute/servers/test_create_server.py:ServersTestJSON.test_can_log_into_created_server
 - Any other = redeploy lab from 'nodes-deployed' snapshots have been made after BM by cobbler have finished (uncomented dos.py would cause full erase and redeploy with BM including vm networks recreation)
 
+Accepted values for ``erase`` parameter are
+
+- false = do not erase existing virtual nodes and networks before nosetests execution
+- true = run dos.py script to erase and recreate virtual networks and nodes for lab, next run the nosetests (note: always use ``true`` if public_pool have changed)
+
 Other shell script keys
 
-- DOMAIN_NAME = domain name to use for nodes (default .your-domain-name.com), note: this option is a stub
-- OS_FAMILY   = OS type for nodes, cetnos or ubuntu (default centos)
-- CONTROLLERS,COMPUTES,STORAGES,PROXIES = number of nodes of corresponding role type to deploy (defaults 3,3,3,2)
-- PARENT_PROXY = parent-proxy server for squid at master node (172.18.67.168 Saratov, 172.18.3.14 Moscow) (default none)
-- CIRROS_IMAGE = cirros url (default http://srv08-srt.srt.mirantis.net/cirros-0.3.0-x86_64-disk.img)
-- ISO_IMAGE = Fuel iso image to use for master node (default ~/fuel-centos-6.4-x86_64.iso)
-- USE_ISO  = use ISO for deployment (default True), note: this option is a stub
-- ASTUTE_USE = use astute addon for mcollective to deploy nodes (default True)
-- PUPPET_GEN = puppet generation (2,3) to use, i.e. 2 => v2.x.x, 3 => v3.x.x (default 3)
-- DEBUG = run puppet agents with '-tvd -evaltrace' args
-- CLEAN = clean exitsting dirty state, will revert nodes to snapshot 'nodes-deployed', if any (default True)
-- CREATE_SNAPSHOTS = make 'openstack' snapshots after lab have deployed or 'openstack-upgraded' in case of upgrade (default False)
-- UPGRADE = tell jenkins to revert nodes to 'openstack' snapshots while cleaning (default False)
+- DOMAIN_NAME = domain name to use for nodes (default ``.your-domain-name.com``), note: this option is broken
+- OS_FAMILY   = OS type for nodes, ``cetnos`` or ``ubuntu`` (default ``centos``)
+- CURRENT_PROFILE = ``centos64_x86_64`` or ``ubuntu_1204_x86_64`` - cobbler ks profile to use (default depends on OS_FAMILY)
+- CONTROLLERS,COMPUTES,STORAGES,PROXIES = number of nodes of corresponding role type to deploy (defaults ``3,3,3,2``)
+- PARENT_PROXY = parent-proxy server for squid at master node (``172.18.67.168`` Saratov, ``172.18.3.14`` Moscow) (default none)
+- CIRROS_IMAGE = cirros url (default ``http://srv08-srt.srt.mirantis.net/cirros-0.3.0-x86_64-disk.img``)
+- ISO_IMAGE = Fuel iso image to use for master node (default ``~/fuel-centos-6.4-x86_64.iso``)
+- USE_ISO  = use ISO for deployment (default ``True``), note: this option is broken
+- ASTUTE_USE = use astute addon for mcollective to deploy nodes (default ``True``)
+- PUPPET_GEN = puppet generation ``(2,3)`` to use, i.e. ``2 => v2.x.x``, ``3 => v3.x.x`` (default ``3``)
+- DEBUG = run puppet agents with ``-tvd -evaltrace`` args
+- CLEAN = clean exitsting dirty state, will revert nodes to snapshot ``nodes-deployed``, if any (default ``True``)
+- CREATE_SNAPSHOTS = make ``openstack`` snapshots after lab have deployed or ``openstack-upgraded`` in case of upgrade (default ``False``)
+- UPGRADE = tell jenkins to revert nodes to ``openstack`` snapshots while cleaning (default ``False``)
 - PUBLIC_POOL = use custom IP allocation pool for public & ext networking (use with dos.py only). See also: fuel_test/settings.py, note: this option is broken
-- PUBLIC_FORWARD = 'nat' or 'route' forwarding mode for public pool, use route for custom forwarded pools (default nat)
+- PUBLIC_FORWARD = ``nat`` or ``route`` forwarding mode for public pool, use ``route`` for custom forwarded pools (default ``nat``)
 
 Shell script example
 --------------------
