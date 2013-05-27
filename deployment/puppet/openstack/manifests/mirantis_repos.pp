@@ -172,19 +172,6 @@ class openstack::mirantis_repos (
             mirrorlist => absent,
         }
 
-       yumrepo { 'centos-updates':
-#            descr      => 'Mirantis-CentOS-Updates',
-#            name       => 'updates',
-#            gpgcheck   => '1',
-#            baseurl    => 'http://download.mirantis.com/centos-6.4',
-#            gpgcheck   => '1',
-#            gpgkey     => 'file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-6',
-#            mirrorlist => absent,
-
-#            Mirantis Centos-base repo includes Centos-updates, disable default one
-             enabled    => '0',
-       }
-
         yumrepo { 'openstack-epel-fuel-grizzly':
             descr      => 'Mirantis OpenStack grizzly Custom Packages',
             baseurl    => 'http://download.mirantis.com/epel-fuel-grizzly',
