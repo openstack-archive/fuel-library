@@ -1,10 +1,8 @@
-import logging
-from devops.error import TimeoutError
 from ipaddr import IPNetwork
 
 import os
 from fuel_test.ci.ci_base import CiBase
-from fuel_test.helpers import add_nmap, dhcp_checksum, puppet_apply
+from fuel_test.helpers import add_nmap, dhcp_checksum
 
 from fuel_test.node_roles import NodeRoles
 from fuel_test.settings import CONTROLLERS, COMPUTES, \
@@ -65,19 +63,11 @@ class CiVM(CiBase):
     def setup_environment(self):
         master_node = self.nodes().masters[0]
         master_node.disk_devices.get(device='cdrom').volume.upload(ISO_IMAGE)
-
-        logging.info("Starting test nodes ...")
         start_nodes = self.get_startup_nodes()
         self.environment().start(start_nodes)
-
-        net_name = 'public'
         for node in start_nodes:
-            try:
-                node.await(net_name, timeout=600)
-            except TimeoutError as e:
-                raise TimeoutError("{err} for {node}".format(err=e.message, node=node.get_ip_address_by_network_name(net_name)))
-
-        master_remote = master_node.remote(net_name, login='root', password='r00tme')
+            node.await('public', timeout=600)
+        master_remote = master_node.remote('public', login='root', password='r00tme')
         add_nmap(master_remote)
         dhcp_checksum(master_remote)
         self.environment().snapshot(EMPTY_SNAPSHOT)

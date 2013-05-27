@@ -3,17 +3,17 @@ import unittest
 from fuel_test.config import Config
 from fuel_test.helpers import write_config
 from fuel_test.manifest import Manifest, Template
-from fuel_test.settings import ASTUTE_USE
+from fuel_test.settings import ASTUTE_USE, PUPPET_AGENT_COMMAND
 
 
 class CompactTestCase(CobblerTestCase):
     def deploy_compact(self, quantum_node=True, loopback=True):
-        self.validate(self.nodes().controllers[:1], 'puppet agent --test 2>&1')
-        self.validate(self.nodes().controllers[1:], 'puppet agent --test 2>&1')
-        self.validate(self.nodes().controllers[:1], 'puppet agent --test 2>&1')
+        self.validate(self.nodes().controllers[:1], PUPPET_AGENT_COMMAND)
+        self.validate(self.nodes().controllers[1:], PUPPET_AGENT_COMMAND)
+        self.validate(self.nodes().controllers[:1], PUPPET_AGENT_COMMAND)
         if quantum_node:
-            self.validate(self.nodes().quantums, 'puppet agent --test 2>&1')
-        self.validate(self.nodes().computes, 'puppet agent --test 2>&1')
+            self.validate(self.nodes().quantums, PUPPET_AGENT_COMMAND)
+        self.validate(self.nodes().computes, PUPPET_AGENT_COMMAND)
 
     def test_deploy_compact_quantum(self):
         if ASTUTE_USE:
@@ -168,7 +168,7 @@ class CompactTestCase(CobblerTestCase):
         write_config(self.remote(), config_path, str(config))
         self.remote().check_call("cobbler_system -f %s" % config_path)
         self.remote().check_stderr("openstack_system -c %s -o /etc/puppet/manifests/site.pp -a /root/astute.yaml" % config_path)
-        self.remote().check_stderr("astute -f /root/astute.yaml")
+        self.remote().check_stderr("astute -f /root/astute.yaml -v")
 
 if __name__ == '__main__':
     unittest.main()

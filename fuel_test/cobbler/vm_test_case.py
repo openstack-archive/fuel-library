@@ -8,7 +8,7 @@ from fuel_test.cobbler.cobbler_client import CobblerClient
 from fuel_test.config import Config
 from fuel_test.helpers import tcp_ping, udp_ping, add_to_hosts, await_node_deploy, write_config
 from fuel_test.manifest import Manifest
-from fuel_test.settings import CLEAN, USE_ISO, INTERFACES, PARENT_PROXY, DOMAIN_NAME, CURRENT_PROFILE
+from fuel_test.settings import CLEAN, USE_ISO, INTERFACES, PARENT_PROXY, DOMAIN_NAME, CURRENT_PROFILE, PUPPET_MASTER_VERSION
 
 
 class CobblerTestCase(BaseTestCase):
@@ -30,7 +30,7 @@ class CobblerTestCase(BaseTestCase):
             write_config(self.remote(), "/root/fuel.defaults",
                          iso_master.get_config(
                              hostname="master",
-                             domain="your-domain-name.com",
+                             domain="localdomain",
                              management_interface=INTERFACES["internal"],
                              management_ip=self.nodes().masters[
                                  0].get_ip_address_by_network_name("internal"),
@@ -43,7 +43,8 @@ class CobblerTestCase(BaseTestCase):
                              mirror_type='custom',
                              external_ip="",
                              external_mask="",
-                             parent_proxy=PARENT_PROXY))
+                             parent_proxy=PARENT_PROXY,
+                             puppet_master_version=PUPPET_MASTER_VERSION))
             self.remote().execute("/usr/local/sbin/bootstrap_admin_node.sh --batch-mode")
             self.prepare_cobbler_environment()
         self.environment().revert('nodes-deployed')
@@ -66,7 +67,7 @@ class CobblerTestCase(BaseTestCase):
 
         # Manifest().write_cobbler_manifest(self.remote(), self.ci(), nodes)
 
-        # self.validate(nodes, 'puppet agent --test --server master.your-domain-name.com')
+        # self.validate(nodes, 'puppet agent --test --server master.localdomain')
 
         for node in nodes:
             self.assert_cobbler_ports(
@@ -114,12 +115,12 @@ class CobblerTestCase(BaseTestCase):
         system_id = client.new_system(token)
         profile = CURRENT_PROFILE
         client.modify_system_args(system_id, token,
-            ks_meta=Config().get_ks_meta('master.your-domain-name.com',
+            ks_meta=Config().get_ks_meta('master.localdomain',
                                          stomp_name),
             name=node_name,
             hostname=node_name,
             name_servers=cobbler.get_ip_address_by_network_name('internal'),
-            name_servers_search="your-domain-name.com",
+            name_servers_search="localdomain",
             profile=profile,
             gateway=gateway,
             netboot_enabled="1")
@@ -176,13 +177,9 @@ class CobblerTestCase(BaseTestCase):
 
     def deploy_nodes(self):
         cobbler = self.ci().nodes().masters[0]
-        for node in self.ci().client_nodes()[:1]:
+        for node in self.ci().client_nodes():
             node.start()
-        for node in self.ci().client_nodes()[:1]:
-            await_node_deploy(cobbler.get_ip_address_by_network_name('internal'), node.name)
-        for node in self.ci().client_nodes()[1:]:
-            node.start()
-        for node in self.ci().client_nodes()[1:]:
+        for node in self.ci().client_nodes():
             await_node_deploy(cobbler.get_ip_address_by_network_name('internal'), node.name)
         for node in self.ci().client_nodes():
             node.await('internal')

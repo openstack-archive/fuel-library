@@ -1,10 +1,9 @@
 import unittest
-from fuel_test.ci.ci_vm import CiVM
 from fuel_test.cobbler.vm_test_case import CobblerTestCase
 from fuel_test.config import Config
 from fuel_test.helpers import write_config
 from fuel_test.manifest import Template, Manifest
-from fuel_test.settings import CREATE_SNAPSHOTS, ASTUTE_USE, DEBUG
+from fuel_test.settings import CREATE_SNAPSHOTS, ASTUTE_USE, PUPPET_AGENT_COMMAND
 
 
 class MinimalTestCase(CobblerTestCase):
@@ -22,19 +21,13 @@ class MinimalTestCase(CobblerTestCase):
             controllers=self.nodes().controllers,
             quantums=self.nodes().quantums,
             quantum=True)
-        if DEBUG:
-            extargs = ' -vd --evaltrace'
-        else:
-            extargs = ''
-        self.validate(self.nodes().controllers[:1], 'puppet agent --test'+extargs+' 2>&1')
-        self.validate(self.nodes().controllers[1:], 'puppet agent --test'+extargs+' 2>&1')
-        self.validate(self.nodes().controllers[:1], 'puppet agent --test'+extargs+' 2>&1')
-        #if is_not_essex():
-        #    self.validate(self.nodes().quantums, 'puppet agent --test'+extargs)
-        self.validate(self.nodes().computes, 'puppet agent --test'+extargs+' 2>&1')
+        self.validate(self.nodes().controllers[:1], PUPPET_AGENT_COMMAND)
+        self.validate(self.nodes().controllers[1:], PUPPET_AGENT_COMMAND)
+        self.validate(self.nodes().controllers[:1], PUPPET_AGENT_COMMAND)
+        self.validate(self.nodes().computes, PUPPET_AGENT_COMMAND)
 
     def deploy_by_astute(self):
-        self.remote().check_stderr("astute -f /root/astute.yaml")
+        self.remote().check_stderr("astute -f /root/astute.yaml -v")
 
     def prepare_astute(self):
         config = Config().generate(

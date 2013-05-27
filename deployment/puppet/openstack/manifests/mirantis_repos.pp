@@ -12,7 +12,7 @@ class openstack::mirantis_repos (
   $deb_fuel_grizzly_repo  = 'http://osci-gbp.srt.mirantis.net/ubuntu/fuel/',
   $deb_cloud_archive_repo    = 'http://172.18.67.168/ubuntu-cloud.archive.canonical.com/ubuntu',
   $deb_rabbit_repo           = 'http://172.18.67.168/ubuntu-repo/precise-fuel-folsom',
-  $enable_epel = true,
+  $enable_epel = false,
   $fuel_mirrorlist           = 'http://download.mirantis.com/epel-fuel-folsom-2.1/mirror.internal-stage.list',
   $mirrorlist_base           = 'http://172.18.67.168/centos-repo/mirror-6.3-os.list',
   $mirrorlist_updates        = 'http://172.18.67.168/centos-repo/mirror-6.3-updates.list',
@@ -78,33 +78,7 @@ class openstack::mirantis_repos (
 
       # Below we set our internal repos for testing purposes. Some of them may match with external ones.
       if $type == 'custom' {
-#
-#        if $enable_test_repo {
-#
-#          apt::pin { 'precise-fuel-folsom':
-#            order      => 20,
-#            priority   => 1002,
-#          }
-#  
-#          apt::source { 'precise-fuel-folsom':
-#            location    => $deb_fuel_folsom_repo,
-#            release     => 'precise-2.1.0.1',
-#            repos       => 'main',
-#            key         => 'F8AF89DD',
-#            key_source  => 'http://172.18.67.168/ubuntu-repo/precise-fuel-folsom/Mirantis.key',
-#            include_src => false,
-#          }
-#        } else {
-#          apt::source { 'precise-fuel-folsom':
-#            location    => $deb_fuel_folsom_repo,
-#            release     => 'precise-2.1.0.1',
-#            repos       => 'main',
-#            key         => 'F8AF89DD',
-#            key_source  => 'http://172.18.67.168/ubuntu-repo/precise-fuel-folsom/Mirantis.key',
-#            include_src => false,
-#          }
-#        }
-#
+        
         apt::pin { 'precise-fuel-grizzly':
           order      => 19,
           priority   => 1001,
@@ -182,66 +156,54 @@ class openstack::mirantis_repos (
 
     'RedHat': {
 
-      exec {'/usr/bin/yum -d 0 -e 0 -y install yum-priorities':}
-
       Yumrepo {
         proxy   => $repo_proxy,
       }
 
-        yumrepo { 'centos-extras':
-            descr      => 'Local extras mirror repository',
-            name       => 'extras',
-            enabled    => 0,
-            baseurl => "http://archive.kernel.org/centos/6.3/os/x86_64/",
-            mirrorlist => absent
-        }
-
-
-      # added internal/external network mirror
+      # added internal (custom)/external (default) network mirror
       if $type == 'default' {
         
-        yumrepo { 'openstack-epel-fuel':
-          descr      => 'Mirantis OpenStack Custom Packages',
-          mirrorlist => 'http://download.mirantis.com/epel-fuel-folsom-2.1/mirror.external.list',
-          gpgcheck   => '1',
-          gpgkey     => 'http://download.mirantis.com/epel-fuel-folsom-2.1/epel.key  http://download.mirantis.com/epel-fuel-folsom-2.1/centos.key http://download.mirantis.com/epel-fuel-folsom-2.1/rabbit.key http://download.mirantis.com/epel-fuel-folsom-2.1/mirantis.key http://download.mirantis.com/epel-fuel-folsom-2.1/mysql.key http://download.mirantis.com/epel-fuel-folsom-2.1/nginx.key',
-        }
         yumrepo { 'centos-base':
-            descr      => 'Mirantis-CentOS',
+            descr      => 'Mirantis-CentOS-Base',
             name       => 'base',
-            baseurl => "http://download.mirantis.com/centos-6.4",
-            mirrorlist => absent
-        }
-        yumrepo { 'vault6.3-base':
-            descr      => 'Vault 6.3 base mirror repository',
-            name       => 'v6.3-base',
-            enabled    => 0,
-            baseurl => "http://vault.centos.org/6.3/os/x86_64/",
-            mirrorlist => absent
+            baseurl    => 'http://download.mirantis.com/centos-6.4',
+            gpgcheck   => '1',
+            gpgkey     => 'file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-6',
+            mirrorlist => absent,
         }
 
+       yumrepo { 'centos-updates':
+#            descr      => 'Mirantis-CentOS-Updates',
+#            name       => 'updates',
+#            gpgcheck   => '1',
+#            baseurl    => 'http://download.mirantis.com/centos-6.4',
+#            gpgcheck   => '1',
+#            gpgkey     => 'file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-6',
+#            mirrorlist => absent,
+
+#            Mirantis Centos-base repo includes Centos-updates, disable default one
+             enabled    => '0',
+       }
+
+        yumrepo { 'openstack-epel-fuel-grizzly':
+            descr      => 'Mirantis OpenStack grizzly Custom Packages',
+            baseurl    => 'http://download.mirantis.com/epel-fuel-grizzly',
+            gpgcheck   => '1',
+            gpgkey     => 'http://download.mirantis.com/epel-fuel-grizzly/mirantis.key',
+            mirrorlist => absent,
+        }
       }
 
       if $type == 'custom' {
-        yumrepo { 'openstack-epel-fuel':
-          descr      => 'Mirantis OpenStack Custom Packages',
-          mirrorlist => $fuel_mirrorlist,
-          gpgcheck   => '1',
-          priority   => '10',
-          gpgkey     => 'http://download.mirantis.com/epel-fuel-folsom-2.1/epel.key  http://download.mirantis.com/epel-fuel-folsom-2.1/centos.key http://download.mirantis.com/epel-fuel-folsom-2.1/rabbit.key http://download.mirantis.com/epel-fuel-folsom-2.1/mirantis.key http://download.mirantis.com/epel-fuel-folsom-2.1/mysql.key http://download.mirantis.com/epel-fuel-folsom-2.1/nginx.key',
-        }
 
         yumrepo { 'openstack-epel-fuel-grizzly':
           descr      => 'Mirantis OpenStack grizzly Custom Packages',
-          #baseurl    => 'http://repos.fedorapeople.org/repos/openstack/openstack-grizzly/epel-6/',
           baseurl    => 'http://osci-koji.srt.mirantis.net/mash/fuel-3.0/x86_64/',
-          priority   => '1',
           gpgcheck   => '0',
         }
 
         if $upstream_mirror == true {
           yumrepo { 'centos-base':
-            priority   => '1',
             name       => 'base',
             gpgcheck   => '1',
             mirrorlist => $mirrorlist_base,
@@ -250,7 +212,6 @@ class openstack::mirantis_repos (
 
           yumrepo { 'centos-updates':
             name       => 'updates',
-            priority   => '1',
             gpgcheck   => '1',
             mirrorlist => $mirrorlist_updates,
             gpgkey    => 'http://centos.srt.mirantis.net/RPM-GPG-KEY-CentOS-6',
@@ -270,8 +231,7 @@ class openstack::mirantis_repos (
       if $enable_epel {
         Yumrepo {
           failovermethod => 'priority',
-          gpgkey         => 'http://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-6',
-          priority       => '11',
+          gpgkey         => 'file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-6',
           gpgcheck       => 1,
           enabled        => 1,
         }
@@ -279,7 +239,7 @@ class openstack::mirantis_repos (
         yumrepo { 'epel-testing':
           descr      => 'Extra Packages for Enterprise Linux 6 - Testing - $basearch',
           mirrorlist => 'http://mirrors.fedoraproject.org/metalink?repo=testing-epel6&arch=$basearch',
-          enabled    => 0,
+          enabled    => 1,
         }
 
         yumrepo { 'epel':
