@@ -8,7 +8,7 @@ from fuel_test.cobbler.cobbler_client import CobblerClient
 from fuel_test.config import Config
 from fuel_test.helpers import tcp_ping, udp_ping, add_to_hosts, await_node_deploy, write_config
 from fuel_test.manifest import Manifest
-from fuel_test.settings import CLEAN, USE_ISO, INTERFACES, PARENT_PROXY, DOMAIN_NAME, CURRENT_PROFILE, PUPPET_VERSION
+from fuel_test.settings import CLEAN, USE_ISO, INTERFACES, PARENT_PROXY, DOMAIN_NAME, CURRENT_PROFILE, PUPPET_MASTER_VERSION
 
 
 class CobblerTestCase(BaseTestCase):
@@ -44,7 +44,7 @@ class CobblerTestCase(BaseTestCase):
                              external_ip="",
                              external_mask="",
                              parent_proxy=PARENT_PROXY,
-                             puppet_master_version=PUPPET_VERSION))
+                             puppet_master_version=PUPPET_MASTER_VERSION))
             self.remote().execute("/usr/local/sbin/bootstrap_admin_node.sh --batch-mode")
             self.prepare_cobbler_environment()
         self.environment().revert('nodes-deployed')
