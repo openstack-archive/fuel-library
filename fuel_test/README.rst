@@ -60,7 +60,7 @@ Other shell script keys
 - USE_ISO  = use ISO for deployment (default ``True``), note: this option is broken
 - ASTUTE_USE = use astute addon for mcollective to deploy nodes (default ``True``)
 - PUPPET_GEN = puppet generation ``(2,3)`` to use, i.e. ``2 => v2.x.x``, ``3 => v3.x.x`` (default ``3``)
-- DEBUG = run puppet agents with ``-tvd -evaltrace`` args
+- PUPPET_AGENT_COMMAND = command to run puppet agents (default ``puppet agent -tvd -evaltrace 2>&1``)
 - CLEAN = clean exitsting dirty state, will revert nodes to snapshot ``nodes-deployed``, if any (default ``True``)
 - CREATE_SNAPSHOTS = make ``openstack`` snapshots after lab have deployed or ``openstack-upgraded`` in case of upgrade (default ``False``)
 - UPGRADE = tell jenkins to revert nodes to ``openstack`` snapshots while cleaning (default ``False``)
@@ -74,7 +74,7 @@ Shell script example
  
    . ~/work/venv/bin/activate
    export ENV_NAME=$JOB_NAME
-   export DEBUG=true
+   export PUPPET_AGENT_COMMAND='puppet agent -t 2>&1'
    export CREATE_SNAPSHOTS=true
    export UPGRADE=false
    export CLEAN=true
