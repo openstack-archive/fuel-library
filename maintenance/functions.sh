@@ -22,7 +22,7 @@ function sync_repo_osci {
   createrepo .
 }
 function get_puppet27 {
-  puppetver="3.0.1-1.el6"
+  puppetver="2.7.19-1.el6"
   kojitag="puppet27"
   mkdir -p noarch/ SRPMS/
   wget "$REPOTOPDIR/$kojitag/$BINARYDIR/puppet-$puppetver.noarch.rpm" -O noarch/puppet-$puppetver.noarch.rpm
