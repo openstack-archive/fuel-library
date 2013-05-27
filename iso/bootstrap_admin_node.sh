@@ -28,7 +28,7 @@ chown root:puppet /var/lib/puppet/ssh_keys/openstack*
 chmod g+r /var/lib/puppet/ssh_keys/openstack*
 puppet apply -e "
     class {openstack::mirantis_repos: enable_epel => false } ->
-    class {puppet: } -> class {puppet::thin:} -> class {puppet::nginx: puppet_master_hostname => \"$hostname.$domain\"}
+    class {puppet: puppet_master_version => \"$puppet_master_version\"} -> class {puppet::thin:} -> class {puppet::nginx: puppet_master_hostname => \"$hostname.$domain\"}
     "
 puppet apply -e "
     class {puppet::fileserver_config: } "
@@ -104,6 +104,7 @@ if [[ -n "$parent_proxy" ]];then
   puppet apply -e "
   \$squid_cache_parent = \"$server\"
   \$squid_cache_parent_port = \"$port\"
+  \$squid_cache_parent_options = \"no-query default\"
   class { squid: }"
 else
   puppet apply -e "class { squid: }"
@@ -113,8 +114,4 @@ iptables -A PREROUTING -t nat -i $mgmt_if -s $mgmt_ip/$mgmt_mask ! -d $mgmt_ip -
 
 /etc/init.d/iptables save
 
-
-gem install /var/www/astute-0.0.1.gem
-
-cp `find / -name config.yaml -print0 | grep -FzZ 'samples/config.yaml'` /root
-) 2>&1 >> $log
+) >> $log 2>&1
