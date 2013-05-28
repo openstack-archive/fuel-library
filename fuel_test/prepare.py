@@ -325,7 +325,7 @@ class Prepare(object):
         if len(images) > 1:
             return images[0].id, images[1].id
         else:
-        return self.upload(glance, 'cirros_0.3.0',
+            return self.upload(glance, 'cirros_0.3.0',
                            'cirros-0.3.0-x86_64-disk.img'), \
                self.upload(glance, 'cirros_0.3.0',
                            'cirros-0.3.0-x86_64-disk.img')
