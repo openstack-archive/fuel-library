@@ -273,8 +273,8 @@ class Prepare(object):
             tenant1 = tenants[0].id 
             tenant2 = tenants[1].id
         else:
-        tenant1 = retry(10, keystone.tenants.create, tenant_name='tenant1')
-        tenant2 = retry(10, keystone.tenants.create, tenant_name='tenant2')
+            tenant1 = retry(10, keystone.tenants.create, tenant_name='tenant1')
+            tenant2 = retry(10, keystone.tenants.create, tenant_name='tenant2')
 
         users = self._get_users(keystone, 'tempest1', 'tempest2')
         if len(users) == 0:
