@@ -29,7 +29,7 @@ class SimpleTestCase(CobblerTestCase):
             use_syslog=True,
             quantum=True, quantums=self.nodes().controllers,
             ha=False, ha_provider='generic',
-            cinder=True, cinder_nodes=['All'], swift=False
+            cinder=True, cinder_nodes=['all'], swift=False
         )
 
         Manifest().write_manifest(remote=self.remote(), manifest=manifest)

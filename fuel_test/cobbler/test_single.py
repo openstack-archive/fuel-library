@@ -8,9 +8,14 @@ class SingleTestCase(CobblerTestCase):
     def test_single(self):
         Manifest.write_manifest(
             self.remote(),
-            Manifest().generate_openstack_single_manifest(
+            Manifest().generate_openstack_manifest(
+                template=Template.single(),
                 ci=self.ci(),
+                controllers=self.nodes().controllers,
+                use_syslog=True,
                 quantum=False,
+                ha=False, ha_provider='generic',
+                cinder=True, cinder_nodes=['all'], swift=False
             )
         )
         self.validate(
