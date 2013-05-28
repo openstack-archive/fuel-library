@@ -70,7 +70,7 @@ class keystone(
 
   Keystone_config<||> ~> Service['keystone']
   Keystone_config<||> ~> Exec<| title == 'keystone-manage db_sync'|>
-  Exec<| title == 'keystone-manage pki_setup'|> ~> Service['keystone']
+  Package['keystone'] ~> Exec<| title == 'keystone-manage pki_setup'|> ~> Service['keystone']
 
   # TODO implement syslog features
   if $use_syslog {
@@ -245,8 +245,6 @@ class keystone(
       path        => '/usr/bin',
       user        => 'keystone',
       refreshonly => true,
-      notify      => Service['keystone'],
-      subscribe   => Package['keystone'],
     }
   }
 
