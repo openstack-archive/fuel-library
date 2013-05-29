@@ -237,7 +237,7 @@ class Manifest(object):
                                     quantum=True,
                                     loopback=True,
                                     cinder=True,
-                                            cinder_nodes=None,
+                                            cinder_nodes=[],
                                             quantum_netnode_on_cnt=True,
                                     swift=True,
                                     ha_provider='pacemaker', ha=True):
