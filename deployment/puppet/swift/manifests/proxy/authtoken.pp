@@ -51,7 +51,7 @@ class swift::proxy::authtoken(
     auth_host           => $auth_host,
     auth_port           => $auth_port,
     auth_protocol       => $auth_protocol,
-    signing_dir         => '/tmp/keystone_signing_swift',
+    signing_dir         => '/etc/swift',
   }
 
 }

@@ -75,7 +75,7 @@ class openstack::swift::storage_node (
   }
 
     package {'python-cinderclient': ensure => present}
-    if $manage_volumes && !(defined(Class['openstack::cinder'])) {
+    if ($manage_volumes and !(defined(Class['openstack::cinder']))) {
     class {'openstack::cinder':
       sql_connection       => "mysql://${cinder_db_user}:${cinder_db_password}@${db_host}/${cinder_db_dbname}?charset=utf8",
       rabbit_password      => $rabbit_password,
