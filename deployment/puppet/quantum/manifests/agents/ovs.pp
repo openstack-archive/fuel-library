@@ -127,20 +127,20 @@ class quantum::agents::ovs (
       }
       default: { fail("The $::osfamily operating system is not supported.") }
     }
-    service { 'quantum-plugin-ovs-service_stopped':
+    service { 'quantum-ovs-agent-service_stopped':
       name       => $::quantum::params::ovs_agent_service,
       enable     => false,
       hasstatus  => false,
     }
-    exec { 'quantum-plugin-ovs-service_stopped':
+    exec { 'quantum-ovs-agent-service_stopped':
       name   => "bash -c \"service ${::quantum::params::ovs_agent_service} stop || ( kill `pgrep -f quantum-openvswitch-agent` || : )\"",
       onlyif => "service ${::quantum::params::ovs_agent_service} status | grep \'${started_status}\'",
       path   => ['/usr/bin', '/usr/sbin', '/bin', '/sbin'],
       returns => [0,""]
     }
     Package[$ovs_agent_package] ->
-      Service['quantum-plugin-ovs-service_stopped'] ->
-        Exec['quantum-plugin-ovs-service_stopped'] ->
+      Service['quantum-ovs-agent-service_stopped'] ->
+        Exec['quantum-ovs-agent-service_stopped'] ->
           Cs_resource["p_${::quantum::params::ovs_agent_service}"]
 
     service { 'quantum-plugin-ovs-service':
