@@ -148,11 +148,6 @@ $network_manager = 'nova.network.manager.FlatDHCPManager'
 # Assign floating IPs to VMs on startup automatically?
 $auto_assign_floating_ip = false
 
-$cinder                  = true
-$quantum                 = false
-$swift                   = false
-$use_syslog              = true
-
 # Database connections
 $sql_connection = "mysql://nova:${nova_db_password}@${controller_internal_address}/nova"
 
@@ -403,15 +398,7 @@ sysctl::value { 'net.ipv4.conf.all.rp_filter': value => '0' }
 #   'exist': assumes that the keys (domain name based certificate) are provisioned in advance
 #  'custom': require fileserver static mount point [ssl_certs] and hostname based certificate existence
 $horizon_use_ssl = false
-
-$openstack_version = {
-  'keystone'         => 'latest',
-  'glance'           => 'latest',
-  'horizon'          => 'latest',
-  'nova'             => 'latest',
-  'novncproxy'       => 'latest',
-  'rabbitmq_version' => $rabbitmq_version_string,
-}
+$horizon_secret_key = 'dummy_secret_key'
 
 # Every node should be deployed as all-in-one openstack installations.
 node default {
