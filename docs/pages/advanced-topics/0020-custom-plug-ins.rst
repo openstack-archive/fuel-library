@@ -6,9 +6,9 @@ Fuel is designed to help you easily install a standard OpenStack cluster, but wh
 Fuel usage scenarios and how they affect installation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Two basic FUEL usage scenarios exist.
+Two basic Fuel usage scenarios exist.
 
-In the first scenario, a deployment engineer takes the FUEL ISO image, deploys the master node, makes necessary changes to configuration files, and then deploys OpenStack.  In this scenario, each node gets a clean OpenStack installation.
+In the first scenario, a deployment engineer takes the Fuel ISO image, deploys the master node, makes necessary changes to configuration files, and then deploys OpenStack.  In this scenario, each node gets a clean OpenStack installation.
 
 In the second scenario, the master node and other nodes in the cluster have already been installed, and the deployment engineer has to deploy OpenStack to an existing configuration.
 
@@ -182,7 +182,7 @@ In general, we recommend you follow these steps to define a new component:
      }
    }
 
-FUEL API Reference
+Fuel API Reference
 ^^^^^^^^^^^^^^^^^^   
 
 **add_haproxy_service**
@@ -195,15 +195,15 @@ As the name suggests, this function enables you to create a new HAProxy service.
       bind 10.0.0.110:35357
       balance  roundrobin
       option  httplog
-      server  fuel-controller-01.msk.mirantis.net 10.0.0.101:35357   check  
-      server  fuel-controller-02.msk.mirantis.net 10.0.0.102:35357   check  
+      server  fuel-controller-01.example.com 10.0.0.101:35357   check  
+      server  fuel-controller-02.example.com 10.0.0.102:35357   check  
 
 To accomplish this, you might create a Fuel statement such as::
 
     add_haproxy_service { 'keystone-2' :
         order => 30,
-        balancers => {'fuel-controller-01.msk.mirantis.net' => '10.0.0.101', 
-                      'fuel-controller-02.msk.mirantis.net' => '10.0.0.102'},
+        balancers => {'fuel-controller-01.example.com' => '10.0.0.101', 
+                      'fuel-controller-02.example.com' => '10.0.0.102'},
         virtual_ips => {'10.0.74.253', '10.0.0.110'},
         port => '35357',
         haproxy_config_options => { 'option' => ['httplog'], 'balance' => 'roundrobin' },
@@ -264,8 +264,8 @@ which ``$controller_internal_addresses`` representing a hash of all the controll
 
 So the ``balancers`` parameter is a list of HAProxy listener balance members (hostnames) with corresponding IP addresses. The following strings from the ``keystone-2`` listener example represent balancers::
 
-    server  fuel-controller-01.msk.mirantis.net 10.0.0.101:35357   check  
-    server  fuel-controller-02.msk.mirantis.net 10.0.0.102:35357   check  
+    server  fuel-controller-01.example.com 10.0.0.101:35357   check  
+    server  fuel-controller-02.example.com 10.0.0.102:35357   check  
 
 Every key pair in the ``balancers`` hash adds a new string to the list of listener section balancers. Different options may be set for every string.
 
@@ -297,15 +297,15 @@ option  httplog
 
 This parameter represents the balancer (backend) port. By default, the balancer_port is the same as the frontend ``port``. The following strings from the ``keystone-2`` listener example represent ``balancer_port``, where port is ``35357``::
 
-    server  fuel-controller-01.msk.mirantis.net 10.0.0.101:35357   check  
-    server  fuel-controller-02.msk.mirantis.net 10.0.0.102:35357   check  
+    server  fuel-controller-01.example.com 10.0.0.101:35357   check  
+    server  fuel-controller-02.example.com 10.0.0.102:35357   check  
 
 ``balancermember_options``
 
 This is a string of options added to each balancer (backend) member. The ``keystone-2`` listener example has the single ``check`` option::
 
-    server  fuel-controller-01.msk.mirantis.net 10.0.0.101:35357   check  
-    server  fuel-controller-02.msk.mirantis.net 10.0.0.102:35357   check  
+    server  fuel-controller-01.example.com 10.0.0.101:35357   check  
+    server  fuel-controller-02.example.com 10.0.0.102:35357   check  
 
 ``mode``
 
