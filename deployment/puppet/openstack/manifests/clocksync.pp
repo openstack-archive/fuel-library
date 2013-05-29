@@ -1,12 +1,9 @@
 class openstack::clocksync ($ntp_servers = undef)
 {
 
-  if !$ntp_servers
-  {
+  if !$ntp_servers {
     $one_shot_ntp_server = 'pool.ntp.org'
-  }
-  else
-  {
+  } else {
     $one_shot_ntp_server = $ntp_servers[0]
   }
   class { 'ntp': servers => $ntp_servers }

@@ -62,7 +62,7 @@ node default {
   class { cobbler :
     server              => '10.100.0.201',
 
-    domain_name         => 'your-domain-name.com',
+    domain_name         => 'localdomain',
     name_server         => '10.100.0.201',
     next_server         => '10.100.0.201',
 
@@ -79,19 +79,19 @@ node default {
   }
 
   # CENTOS distribution
-  Class[cobbler::distro::centos63_x86_64] ->
-  Class[cobbler::profile::centos63_x86_64]
+  Class[cobbler::distro::centos64_x86_64] ->
+  Class[cobbler::profile::centos64_x86_64]
 
-  class { cobbler::distro::centos63_x86_64 :
-    http_iso => "http://10.100.0.1/iso/CentOS-6.3-x86_64-minimal.iso",
+  class { cobbler::distro::centos64_x86_64 :
+    http_iso => "http://10.100.0.1/iso/CentOS-6.4-x86_64-minimal.iso",
     ks_url   => "cobbler",
     require  => Class[cobbler],
   }
 
-  class { cobbler::profile::centos63_x86_64 :
+  class { cobbler::profile::centos64_x86_64 :
     ks_repo => [{
                 "name" => "Local",
-                "url" => "http://10.100.0.1:1234/centos/6.3/os/x86_64"
+                "url" => "http://10.100.0.1:1234/centos/6.4/os/x86_64"
                 }],
   }
 

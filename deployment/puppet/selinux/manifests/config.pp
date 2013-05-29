@@ -32,6 +32,9 @@ class selinux::config(
       command => "sed -i \"s@^\\(SELINUX=\\).*@\\1${mode}@\" /etc/selinux/config",
       unless  => "grep -q \"SELINUX=${mode}\" /etc/selinux/config",
     }
+    exec { "disable-selinux-relabeling":
+      command => "rm -f /.autorelabel",
+    }
 
     case $mode {
       permissive,disabled: { 

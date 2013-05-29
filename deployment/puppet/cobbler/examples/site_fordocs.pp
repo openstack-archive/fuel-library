@@ -31,7 +31,7 @@ $server              = '10.0.0.100'
 # [cobbler_password] Cobbler web interface password
 
 
-$domain_name         = 'your-domain-name.com'
+$domain_name         = 'localdomain'
 $name_server         = '10.0.0.100'
 $next_server         = '10.0.0.100'
 $dhcp_start_address  = '10.0.0.201'
@@ -78,16 +78,16 @@ node fuel-pm {
   # Replace "http://address/of" with valid hostname and path to the mirror where the image is stored
 
   /*
-  Class[cobbler::distro::centos63_x86_64] ->
-  Class[cobbler::profile::centos63_x86_64]
+  Class[cobbler::distro::centos64_x86_64] ->
+  Class[cobbler::profile::centos64_x86_64]
 
-  class { cobbler::distro::centos63_x86_64:
-    http_iso => "http://address/of/CentOS-6.3-x86_64-minimal.iso",
+  class { cobbler::distro::centos64_x86_64:
+    http_iso => "http://address/of/CentOS-6.4-x86_64-minimal.iso",
     ks_url   => "cobbler",
     require  => Class[cobbler],
   }
 
-  class { cobbler::profile::centos63_x86_64: }
+  class { cobbler::profile::centos64_x86_64: }
   */
 
 

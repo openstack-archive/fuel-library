@@ -55,7 +55,6 @@ $mirror_type = 'default'
 $enable_test_repo = false
 $repo_proxy = undef
 $use_upstream_mysql = true
-
 #Specify desired NTP servers here.
 #If you leave it undef pool.ntp.org
 #will be used

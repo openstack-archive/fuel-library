@@ -44,6 +44,7 @@ class Nodes(object):
             self.stomps.append(environment.node_by_name(node_name))
         for node_name in node_roles.quantum_names:
             self.quantums.append(environment.node_by_name(node_name))
+
         self.all = self.controllers + self.computes + self.storages +\
                    self.proxies + self.cobblers + self.stomps +\
                    self.quantums + self.masters

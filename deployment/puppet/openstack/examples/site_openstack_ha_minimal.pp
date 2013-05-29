@@ -103,9 +103,10 @@ $controller_hostnames = keys($controller_internal_addresses)
 #Also, if you do not want Quantum HA, you MUST enable $quantum_network_node
 #on the ONLY controller
 $ha_provider = 'pacemaker'
+$use_unicast_corosync = true
 
 # Set nagios master fqdn
-$nagios_master        = 'nagios-server.your-domain-name.com'
+$nagios_master        = 'nagios-server.localdomain'
 ## proj_name  name of environment nagios configuration
 $proj_name            = 'test'
 
@@ -514,15 +515,16 @@ class compact_controller (
     quantum_external_ipinfo => $external_ipinfo,
     tenant_network_type     => $tenant_network_type,
     segment_range           => $segment_range,
-    cinder                  => $is_cinder_node,
+    cinder                  => $cinder,
     cinder_iscsi_bind_addr  => $cinder_iscsi_bind_addr,
-    manage_volumes          => $manage_volumes,
+    manage_volumes          => $is_cinder_node,
     galera_nodes            => $controller_hostnames,
     nv_physical_volume      => $nv_physical_volume,
     use_syslog              => $use_syslog,
     nova_rate_limits        => $nova_rate_limits,
     cinder_rate_limits      => $cinder_rate_limits,
     horizon_use_ssl         => $horizon_use_ssl,
+    use_unicast_corosync    => $use_unicast_corosync,
     ha_provider             => $ha_provider
   }
 }
@@ -600,7 +602,7 @@ node /fuel-compute-[\d+]/ {
     segment_range          => $segment_range,
     cinder                 => $cinder,
     cinder_iscsi_bind_addr => $cinder_iscsi_bind_addr,
-    manage_volumes         => $is_cinder_node ? { true => $manage_volumes, false => false},
+    manage_volumes         => $is_cinder_node,
     nv_physical_volume     => $nv_physical_volume,
     db_host                => $internal_virtual_ip,
     ssh_private_key        => 'puppet:///ssh_keys/openstack',

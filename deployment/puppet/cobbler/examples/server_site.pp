@@ -4,7 +4,7 @@
 #
 
 $server              = '10.0.0.100'
-$domain_name         = 'your-domain-name.com'
+$domain_name         = 'localdomain'
 $name_server         = '10.0.0.100'
 $next_server         = '10.0.0.100'
 $dhcp_start_address  = '10.0.0.201'
@@ -41,39 +41,26 @@ node fuel-cobbler {
   }
 
   Class[cobbler::server] ->
-    Class[cobbler::distro::centos63_x86_64]
+    Class[cobbler::distro::centos64_x86_64]
 
-    # class { cobbler::distro::centos63_x86_64:
-    #   http_iso => "http://10.100.0.1/iso/CentOS-6.3-x86_64-netinstall.iso",
-    #   ks_url   => "http://172.18.8.52/~hex/centos/6.3/os/x86_64",
-    # }
-
-    class { cobbler::distro::centos63_x86_64:
-      http_iso => "http://172.18.67.168/CentOS-6.3-x86_64-minimal.iso",
-      ks_url   => "http://172.18.67.168/centos-repo/centos-6.3",
+    class { cobbler::distro::centos64_x86_64:
+      http_iso => "http://download.mirantis.com/epel-fuel-folsom-2.1/CentOS-6.4-x86_64-minimal.iso",
+      ks_url   => "http://download.mirantis.com/centos-6.4",
     }
 
 
-    Class[cobbler::distro::centos63_x86_64] ->
-    Class[cobbler::profile::centos63_x86_64]
+    Class[cobbler::distro::centos64_x86_64] ->
+    Class[cobbler::profile::centos64_x86_64]
 
-    class { cobbler::profile::centos63_x86_64:
+    class { cobbler::profile::centos64_x86_64:
       ks_repo => [
         {
-        "name" => "Puppet",
-        "url"  => "http://yum.puppetlabs.com/el/6/products/x86_64",
+        "name" => "folsom-repo",
+        "url"  => "http://srv08-srt.srt.mirantis.net/centos-repo/epel-fuel-folsom-2.1/",
         },
         {
-        "name" => "PuppetDeps",
-        "url"  => "http://yum.puppetlabs.com/el/6/dependencies/x86_64",
-        },
-        {
-        "name" => "Centos-archive-base",
-        "url"  => "http://172.18.67.168/centos-repo/centos-6.3",
-        },
-        {
-        "name" => "Epel",
-        "url"  => "http://172.18.67.168/centos-repo/epel",
+        "name" => "mirantis-centos-repo",
+        "url"  => "http://download.mirantis.com/centos-6.4",
         }
       ]
     }

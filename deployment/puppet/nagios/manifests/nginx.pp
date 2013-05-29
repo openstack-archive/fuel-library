@@ -1,6 +1,6 @@
 class nagios::nginx(
 $port           = '8099',
-$server_name    = ['localhost','nagios.your-domain-name.com'],
+$server_name    = ['localhost','nagios.localdomain'],
 $nagios3pkg     = $nagios::params::nagios3pkg,
 $nginx_pkgs     = $nagios::params::nginx_pkgs,
 $apache_service = $nagios::params::apache_service,

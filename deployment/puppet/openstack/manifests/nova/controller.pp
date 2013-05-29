@@ -260,7 +260,12 @@ class openstack::nova::controller (
     nova_rate_limits  => $nova_rate_limits
   }
 
-  if $auto_assign_floating_ip {
+  class {'nova::conductor':
+    enabled => $enabled,
+    ensure_package  => $ensure_package,
+  }
+
+if $auto_assign_floating_ip {
     nova_config { 'DEFAULT/auto_assign_floating_ip': value => 'True' }
   }
 

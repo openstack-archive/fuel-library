@@ -14,7 +14,7 @@ class openstack::swift::storage_node (
   $sync_rings           = true,
   $loopback_size        = '1048756',
   # if the cinder management components should be installed
-  $cinder                  = false,
+  $cinder                  = true,
   $manage_volumes          = false,
   $nv_physical_volume      = undef,
   $cinder_volume_group     = 'cinder-volumes',
@@ -74,9 +74,8 @@ class openstack::swift::storage_node (
     Swift::Ringsync <| |> ~> Class["swift::storage::all"]
   }
 
-  $enabled_apis = 'ec2,osapi_compute'
-  if ($cinder) and !defined(Class['swift']) {
     package {'python-cinderclient': ensure => present}
+    if ($manage_volumes and !(defined(Class['openstack::cinder']))) {
     class {'openstack::cinder':
       sql_connection       => "mysql://${cinder_db_user}:${cinder_db_password}@${db_host}/${cinder_db_dbname}?charset=utf8",
       rabbit_password      => $rabbit_password,
@@ -94,7 +93,6 @@ class openstack::swift::storage_node (
       cinder_rate_limits   => $cinder_rate_limits,
       rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
     }
-
   } 
 
  
