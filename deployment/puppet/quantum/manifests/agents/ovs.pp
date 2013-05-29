@@ -133,6 +133,7 @@ class quantum::agents::ovs (
       hasstatus  => false,
     }
     exec { 'quantum-ovs-agent-service_stopped':
+      #todo: rewrite as script, that returns zero or wait, when it can return zero
       name   => "bash -c \"service ${::quantum::params::ovs_agent_service} stop || ( kill `pgrep -f quantum-openvswitch-agent` || : )\"",
       onlyif => "service ${::quantum::params::ovs_agent_service} status | grep \'${started_status}\'",
       path   => ['/usr/bin', '/usr/sbin', '/bin', '/sbin'],
