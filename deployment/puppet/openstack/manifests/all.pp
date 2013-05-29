@@ -293,6 +293,12 @@ class openstack::all (
     enabled_apis      => $enabled_apis,
   }
 
+  # Configure nova-conductor
+  class {'nova::conductor':
+    enabled => $enabled,
+    ensure_package  => $ensure_package,
+  }
+
   # Configure nova-quota
   class { 'nova::quota': }
 
