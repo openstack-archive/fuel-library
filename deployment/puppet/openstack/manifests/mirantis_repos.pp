@@ -209,9 +209,9 @@ class openstack::mirantis_repos (
       if $enable_test_repo {
         yumrepo { 'openstack-osci-repo':
           descr    => 'Mirantis OpenStack OSCI Packages',
-          baseurl  => 'http://osci-koji.srt.mirantis.net/mash/fuel-folsom/x86_64/',
+          baseurl  => 'http://osci-koji.srt.mirantis.net/mash/fuel-3.0/x86_64/',
           gpgcheck => '1',
-          gpgkey   => 'http://download.mirantis.com/epel-fuel-folsom/epel.key  http://download.mirantis.com/epel-fuel-folsom/centos.key http://download.mirantis.com/epel-fuel-folsom/rabbit.key http://download.mirantis.com/epel-fuel-folsom/mirantis.key http://download.mirantis.com/epel-fuel-folsom/mysql.key http://download.mirantis.com/epel-fuel-folsom/nginx.key',
+          gpgkey   => 'http://download.mirantis.com/epel-fuel-grizzly/mirantis.key',
         }
       }
 
