@@ -22,6 +22,7 @@ class nova::api(
   $auth_protocol     = 'http',
   $admin_tenant_name = 'services',
   $admin_user        = 'nova',
+  $cinder            = true,
   $enabled_apis      = 'ec2,osapi_compute,metadata',
   $nova_rate_limits  = undef,
   $nova_user_password= undef, #Empty password generates error and saves from non-working installation
@@ -80,10 +81,10 @@ class nova::api(
     service_name   => $::nova::params::api_service_name,
   }
   
-  if $enabled_apis =~ /osapi_volume/ {
-    $volume_api_class = 'nova.volume.api.API'
-  } else {
+  if $cinder {
     $volume_api_class = 'nova.volume.cinder.API'
+  } else {
+    $volume_api_class = 'nova.volume.api.API'
   }
 
   nova_config {

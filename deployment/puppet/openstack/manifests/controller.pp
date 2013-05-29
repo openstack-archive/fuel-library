@@ -279,7 +279,12 @@ class openstack::controller (
       purge => true,
     }
   }
+  if ($cinder) {
     $enabled_apis = 'ec2,osapi_compute'
+  }
+  else {
+    $enabled_apis = 'ec2,osapi_compute,osapi_volume'
+  } 
 
   class { 'openstack::nova::controller':
     # Database
@@ -334,11 +339,13 @@ class openstack::controller (
     ensure_package          => $::openstack_version['nova'],
     use_syslog              => $use_syslog,
     nova_rate_limits        => $nova_rate_limits,
+    cinder                  => $cinder
   }
 
   ######### Cinder Controller Services ########
-  if !defined(Class['openstack::cinder']) {
-    class {'openstack::cinder':
+  if $cinder {
+    if !defined(Class['openstack::cinder']) {
+      class {'openstack::cinder':
       sql_connection       => "mysql://${cinder_db_user}:${cinder_db_password}@${db_host}/${cinder_db_dbname}?charset=utf8",
       rabbit_password      => $rabbit_password,
       rabbit_host          => false,
@@ -355,7 +362,22 @@ class openstack::controller (
       cinder_rate_limits   => $cinder_rate_limits,
       rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
     }
+    }
   }
+  else { 
+  if $manage_volumes {
+    
+    class { 'nova::volume':
+      ensure_package => $::openstack_version['nova'],
+      enabled        => true,
+      }   
+    class { 'nova::volume::iscsi':
+      iscsi_ip_address => $api_bind_address,
+      physical_volume  => $nv_physical_volume,
+      }   
+  }
+  # Set up nova-volume
+  } 
 
   if !defined(Class['memcached']){
     class { 'memcached':
