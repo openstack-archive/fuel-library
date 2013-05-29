@@ -91,7 +91,13 @@ class quantum::agents::ovs (
       primitive_class => 'ocf',
       provided_by     => 'pacemaker',
       primitive_type  => 'quantum-agent-ovs',
-      require => File['quantum-ovs-agent'] ,
+      require         => File['quantum-ovs-agent'] ,
+      multistate_hash => {
+        'type' => 'clone',
+      },
+      ms_metadata     => {
+        'interleave' => 'true',
+      },
       parameters      => {
       }
       ,
@@ -108,7 +114,6 @@ class quantum::agents::ovs (
         'stop'     => {
           'timeout' => '480'
         }
-
       }
       ,
     }
