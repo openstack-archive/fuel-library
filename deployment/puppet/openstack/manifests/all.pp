@@ -108,6 +108,7 @@ class openstack::all (
   $quantum                 = false,
   # Rabbit
   $rabbit_user             = 'nova',
+  $rabbit_nodes            = ['127.0.0.1']
   # Horizon
   $horizon                 = true,
   $cache_server_ip         = '127.0.0.1',
@@ -118,8 +119,11 @@ class openstack::all (
   $cinder                  = false,
   $cinder_db_user          = 'cinder',
   $cinder_db_dbname        = 'cinder',
-  $volume_group            = 'cinder-volumes',
-  $cinder_test             = false,
+  $cinder_iscsi_bind_addr  = false,
+  $cinder_volume_group     = 'cinder-volumes',
+  $nv_physical_volume      = undef,
+  $manage_volumes          = false,
+  $cinder_rate_limits      = undef,
   #
   $quantum_db_user         = 'quantum',
   $quantum_db_dbname       = 'quantum',
@@ -136,7 +140,10 @@ class openstack::all (
   Class['openstack::db::mysql'] -> Class['openstack::keystone']
   Class['openstack::db::mysql'] -> Class['openstack::glance']
 
-  # set up mysql server
+  if defined(Class['openstack::cinder']) {
+        Class['openstack::db::mysql'] -> Class['openstack::cinder']
+  }
+ # set up mysql server
   if ($db_type == 'mysql') {
     if ($enabled) {
       Class['glance::db::mysql'] -> Class['glance::registry']
@@ -227,26 +234,22 @@ class openstack::all (
     }
   }
 
+  $enabled_apis_ = 'ec2,osapi_compute'
   ######### Cinder Controller Services ########
-  $enabled_apis_ = 'ec2,osapi_compute,metadata'
-
-  if ($cinder) {
-    class { "cinder::base":
-      verbose         => $verbose,
-      sql_connection  => "mysql://${cinder_db_user}:${cinder_db_password}@127.0.0.1/${cinder_db_dbname}?charset=utf8",
-      rabbit_password => $rabbit_password,
+  if !defined(Class['openstack::cinder']) {
+    class {'openstack::cinder':
+      sql_connection       => "mysql://${cinder_db_user}:${cinder_db_password}@127.0.0.1/${cinder_db_dbname}?charset=utf8",
+      rabbit_password      => $rabbit_password,
+      cinder_user_password => $cinder_user_password,
+      volume_group         => $cinder_volume_group,
+      physical_volume      => $nv_physical_volume,
+      manage_volumes       => true,
+      enabled              => true,
+      iscsi_bind_host      => $cinder_iscsi_bind_addr,
+      cinder_rate_limits   => $cinder_rate_limits,
     }
-
-    class { 'cinder::api':
-      keystone_password => $cinder_user_password,
-    }
-
-    class { 'cinder::scheduler': }
-    class { 'cinder::volume': }
-    class { 'cinder::volume::iscsi':
-      iscsi_ip_address => '127.0.0.1',
-    }
-    
+  }
+ 
     $enabled_apis = $enabled_apis_ 
   } else {
     # Set up nova-volume

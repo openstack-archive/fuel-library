@@ -431,6 +431,10 @@ node default {
     network_config          => { 'vlan_start' => $vlan_start },
     purge_nova_config       => false,
     cinder                  => $cinder,
+    manage_volumes          => $manage_volumes,
+    nv_physical_volume      => $nv_physical_volume,
+    cinder_rate_limits      => $cinder_rate_limits,
+    cinder_iscsi_bind_addr  => $cinder_iscsi_bind_addr,
     quantum                 => $quantum,
     swift                   => $swift,
   }
