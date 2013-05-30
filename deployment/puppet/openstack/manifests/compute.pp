@@ -175,7 +175,7 @@ class openstack::compute (
   #Cinder setup
     $enabled_apis = 'metadata'
     package {'python-cinderclient': ensure => present}
-    if $manage_volumes {
+    if $cinder and $manage_volumes {
     class {'openstack::cinder':
         sql_connection       => "mysql://${cinder_db_user}:${cinder_db_password}@${db_host}/${cinder_db_dbname}?charset=utf8",
         rabbit_password      => $rabbit_password,
@@ -267,6 +267,7 @@ class openstack::compute (
     admin_user        => 'nova',
     admin_password    => $nova_user_password,
     enabled_apis      => $enabled_apis,
+    cinder            => $cinder,
     auth_host         => $service_endpoint,
     nova_rate_limits  => $nova_rate_limits,
   }
