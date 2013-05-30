@@ -1,14 +1,10 @@
 L23network
 ==========
-<<<<<<< HEAD
-Puppet module for configuring network interfaces, 802.1q vlans and bondings on 2 and 3 level. 
-
-Can work together with open vSwitch or standart linux way.  At this moment support CentOS 6.3 (RHEL6) and Ubuntu 12.04 or above.
-=======
 Puppet module for configuring network interfaces on 2nd and 3rd level (802.1q vlans, access ports, NIC-bondind, assign IP addresses, dhcp, and interfaces without IP addresses). 
 Can work together with Open vSwitch or standart linux way.
-At this moment support Centos 6.3 (RHEL6) and Ubuntu 12.04 or above.
->>>>>>> 40f5fef25ce436470bb3a79b7ddf51048def404a
+At this moment support Centos 6.3+ (RHEL6) and Ubuntu 12.04 or above.
+
+L23network module have a same behavior for both operation systems.
 
 
 Usage
@@ -23,11 +19,7 @@ Include L23network module and initialize it. It is recommended to do it on the e
     }
     class {'l23network': stage=> 'netconfig'}
 
-<<<<<<< HEAD
 If you do not plan to use open vSwitch you can disable it:
-=======
-If you do not planned using Open vSwitch -- you can disable it:
->>>>>>> 40f5fef25ce436470bb3a79b7ddf51048def404a
 
     class {'l23network': use_ovs=>false, stage=> 'netconfig'}
 
@@ -64,15 +56,8 @@ If you do not define type for port (or define '') then ovs-vsctl will work by de
 
 You can use skip_existing option if you do not want to interrupt the configuration during adding of existing port or bridge.
 
-<<<<<<< HEAD
 L3 network configuration
 ------------------------
-=======
-
-
-L3 network configuation
------------------------
->>>>>>> 40f5fef25ce436470bb3a79b7ddf51048def404a
 
 ### Simple IP address definition, DHCP or address-less interfaces
 
@@ -169,21 +154,12 @@ Option *dns_domain* implemented only in Ubuntu.
 
 Bonding
 -------
-<<<<<<< HEAD
 ### Using standart linux ifenslave bonding
 For bonding of two interfaces you need to:
 * Configure the bonded interfaces as 'none' (with no IP address)
 * Specify that interfaces depend on bond_master interface
 * Assign IP address to the bond-master interface
 * Specify bond-specific properties for bond_master interface (if you are not happy with defaults)
-=======
-### Using standart linux bond (ifenslave)
-For bonding two interfaces you need:
-* Specify this interfaces as interfaces without IP addresses
-* Specify that interfaces depends from master-bond-interface
-* Assign IP address to the master-bond-interface.
-* Specify bond-specific properties for master-bond-interface (if defaults not happy for you)
->>>>>>> 40f5fef25ce436470bb3a79b7ddf51048def404a
 
 For example (defaults included):   
 
@@ -202,11 +178,6 @@ More information about bonding of network interfaces you can find in manuals for
 * https://help.ubuntu.com/community/UbuntuBonding
 * http://wiki.centos.org/TipsAndTricks/BondingInterfaces
 
-<<<<<<< HEAD
-### Using open vSwitch
-In open vSwitch for bonding of two network interfaces you need to add a special resource "bond" to bridge.
-In this example we add "eth1" and "eth2" interfaces to bridge "bridge0":
-=======
 ### Using Open vSwitch
 For bonding two interfaces you need:
 * Specify OVS bridge
@@ -214,7 +185,6 @@ For bonding two interfaces you need:
 * Assign IP address to the newly-created network interface (if need).
 
 In this example we add "eth1" and "eth2" interfaces to bridge "bridge0" as bond "bond1". 
->>>>>>> 40f5fef25ce436470bb3a79b7ddf51048def404a
 
     l23network::l2::bridge{'bridge0': } ->
     l23network::l2::bond{'bond1':
@@ -240,19 +210,12 @@ You can find more parameters in [open vSwitch documentation page](http://openvsw
 802.1q vlan access ports
 ------------------------
 ### Using standart linux way
-<<<<<<< HEAD
+
 We can use tagged vlans over ordinary network interfaces and over bonds. 
 L23networks module supports two types of vlan interface namings:
 * *vlanXXX* -- 802.1q tag XXX from the vlan interface name. You must specify the
 parent interface name in the **vlandev** parameter.
 * *eth0.XXX* -- 802.1q tag XXX and parent interface name from the vlan interface name
-=======
-We can use tagged vlans over ordinary network interfaces (or over bonds). 
-L23networks support two variants of naming vlan interfaces:
-* *vlanXXX* -- 802.1q tag gives from the vlan interface name, but you need specify 
-parent intarface name in the **vlandev** parameter.
-* *eth0.101* -- 802.1q tag and parent interface name gives from the vlan interface name
->>>>>>> 40f5fef25ce436470bb3a79b7ddf51048def404a
 
 If you are using 802.1q vlans over bonds it is strongly recommended to use the first one.
 
@@ -282,17 +245,11 @@ In this example we can see both types:
         ipaddr  => 'none',    
     } 
 
-<<<<<<< HEAD
 ### Using open vSwitch
 In the open vSwitch all internal traffic is virtually tagged.
 To create a 802.1q tagged access port you need to specify a vlan tag when adding a port to the bridge. 
-In example above we create two ports with tags 10 and 20:
-=======
-### Using Open vSwitch
-In the Open vSwitch all internal traffic are virtually tagged.
-For creating 802.1q tagged access port you need specify vlan tag when adding port to bridge. 
-In this example we create two ports with tags 10 and 20, and assign IP address to interface with tag 10:
->>>>>>> 40f5fef25ce436470bb3a79b7ddf51048def404a
+In example above we create two ports with tags 10 and 20, and assign IP address to interface with tag 10:
+
 
     l23network::l2::bridge{'bridge0': } ->
     l23network::l2::port{'vl10':
