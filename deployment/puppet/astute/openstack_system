@@ -311,7 +311,7 @@ class Astute
         end
     YAML.dump({:nodes.to_s => nodes}.update(
         config.orchestrator_common().update(
-            {:attributes.to_s => {:deployment_mode.to_s => 'ha_full'}})))
+            {:attributes.to_s => {:deployment_mode.to_s => 'ha_full', :deployment_engine.to_s =>'simplepuppet'}})))
   end
 end
 
