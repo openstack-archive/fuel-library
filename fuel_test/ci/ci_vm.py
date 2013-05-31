@@ -7,7 +7,8 @@ from fuel_test.helpers import add_nmap, dhcp_checksum
 from fuel_test.node_roles import NodeRoles
 from fuel_test.settings import CONTROLLERS, COMPUTES, \
     STORAGES, PROXIES, \
-    EMPTY_SNAPSHOT, POOLS, INTERFACE_ORDER, FORWARDING, DHCP, ISO_IMAGE
+    EMPTY_SNAPSHOT, POOLS, INTERFACE_ORDER, FORWARDING, DHCP, ISO_IMAGE, \
+    SETUP_TIMEOUT
 
 
 class CiVM(CiBase):
@@ -66,7 +67,7 @@ class CiVM(CiBase):
         start_nodes = self.get_startup_nodes()
         self.environment().start(start_nodes)
         for node in start_nodes:
-            node.await('public', timeout=1800)
+            node.await('public', timeout=SETUP_TIMEOUT)
         master_remote = master_node.remote('public', login='root', password='r00tme')
         add_nmap(master_remote)
         dhcp_checksum(master_remote)

@@ -1,7 +1,6 @@
 #if $str($getVar('mco_auto_setup','')) == "1"
 mkdir -p /etc/mcollective
 cat <<EOCONF > /etc/mcollective/server.cfg
-topicprefix = /topic/
 main_collective = mcollective
 collectives = mcollective
 libdir = /usr/libexec/mcollective
@@ -14,12 +13,13 @@ direct_addressing = 1
 securityprovider = psk
 plugin.psk = $mco_pskey
 
-connector = stomp
-plugin.stomp.host = $mco_stomphost
-plugin.stomp.port = $mco_stompport
-plugin.stomp.user = $mco_stompuser
-plugin.stomp.password = $mco_stomppassword
-
+connector = rabbitmq
+plugin.rabbitmq.vhost = mcollective
+plugin.rabbitmq.pool.size = 1
+plugin.rabbitmq.pool.1.host = $mco_stomphost
+plugin.rabbitmq.pool.1.port = $mco_stompport
+plugin.rabbitmq.pool.1.user = $mco_stompuser
+plugin.rabbitmq.pool.1.password = $mco_stomppassword
 
 # Facts
 factsource = yaml
@@ -39,7 +39,7 @@ metadata    :name        => "puppetd",
             :license     => "Apache License 2.0",
             :version     => "1.8",
             :url         => "https://github.com/puppetlabs/mcollective-plugins",
-            :timeout     => 2400
+            :timeout     => 240
 
 action "last_run_summary", :description => "Get a summary of the last puppet run" do
     display :always
@@ -207,15 +207,47 @@ module MCollective
         reply[:output]  = "Currently #{reply[:status]}; last completed run #{reply[:runtime]} seconds ago"
       end
 
+      def rm_file file
+        begin
+          File.unlink(file)
+          return true
+        rescue
+          return false
+        end
+      end
+
       def puppet_daemon_status
+        err_msg = ""
+        alive = false
+        if File.exists?(@pidfile)
+          pid = File.read(@pidfile)
+          begin
+            ::Process.kill(0, Integer(pid)) # check that pid is alive
+          alive = true
+          rescue
+            err_msg << "Pidfile is present but process not running. Trying to remove pidfile..."
+            err_msg << (rm_file(@pidfile) ? "ok. " : "failed. ")
+          end
+        end
+
         locked = File.exists?(@lockfile)
         disabled = locked && File::Stat.new(@lockfile).zero?
-        has_pid = File.exists?(@pidfile)
+        if locked && !disabled && !alive
+          err_msg << "Process not running but not empty lockfile is present. Trying to remove lockfile..."
+          err_msg << (rm_file(@lockfile) ? "ok." : "failed.")
+        end
 
-        return 'disabled' if disabled
-        return 'running'  if   locked && has_pid
-        return 'idling'   if ! locked && has_pid
-        return 'stopped'  if ! has_pid
+        reply[:err_msg] = err_msg if err_msg.any?
+
+        if disabled
+          'disabled'
+        elsif alive && locked
+          'running'
+        elsif alive && !locked
+          'idling'
+        elsif !alive
+          'stopped'
+        end
       end
 
       def runonce

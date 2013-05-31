@@ -126,3 +126,5 @@ CURRENT_PROFILE = PROFILES_COBBLER_COMMON.get(OS_FAMILY)
 ASTUTE_USE = os.environ.get('ASTUTE_USE', 'true') == 'true'
 DOMAIN_NAME = os.environ.get('DOMAIN_NAME', '.localdomain')
 PUPPET_AGENT_COMMAND = 'puppet agent -tvd --evaltrace 2>&1'
+SETUP_TIMEOUT = int(os.environ.get('SETUP_TIMEOUT',600))
+
