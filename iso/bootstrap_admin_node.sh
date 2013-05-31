@@ -40,6 +40,9 @@ puppet apply -e "
     class {puppetdb::master::config: puppet_service_name=>'thin'} "
 service thin restart
 
+yum versionlock puppet
+yum versionlock puppet-server
+
 # Walking aroung nginx's default server config
 rm -f /etc/nginx/conf.d/default.conf
 service nginx restart
