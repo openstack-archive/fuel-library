@@ -13,7 +13,7 @@ Puppet::Type.type(:nova_floating).provide(:nova_manage) do
   end
 
   def create
-     nova_manage("floating", "create", resource[:network])
+    nova_manage("floating", "create", resource[:network])
   end
 
   def destroy
