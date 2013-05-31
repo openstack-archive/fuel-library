@@ -85,7 +85,7 @@ define l23network::l3::create_br_iface (
         skip_existing => $se,
         require       => L23network::L2::Bridge["$bridge"]
       } ->
-      l23network::l3::ifconfig {$interface: # no quotes here, $interface is an array!!!
+      l23network::l3::ifconfig {$interface: # no quotes here, $interface _may_be_ array!!!
         ipaddr    => 'none',
         ifname_order_prefix => '0',
         require   => L23network::L2::Bond["$ovs_bond_name"],
@@ -98,7 +98,7 @@ define l23network::l3::create_br_iface (
         skip_existing => $se,
         require       => L23network::L2::Bridge["$bridge"]
       } ->
-      l23network::l3::ifconfig {"$interface": # USE quotes since the only one interface name is provided!!!!!
+      l23network::l3::ifconfig {"$interface": # USE quotes!!!!!
         ipaddr    => 'none',
         vlandev   => $lnx_interface_vlandev,
         bond_mode      => $lnx_interface_bond_mode,
