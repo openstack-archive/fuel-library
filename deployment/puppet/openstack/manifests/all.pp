@@ -108,7 +108,7 @@ class openstack::all (
   $quantum                 = false,
   # Rabbit
   $rabbit_user             = 'nova',
-  $rabbit_nodes            = ['127.0.0.1']
+  $rabbit_nodes            = ['127.0.0.1'],
   # Horizon
   $horizon                 = true,
   $cache_server_ip         = '127.0.0.1',
@@ -234,7 +234,13 @@ class openstack::all (
     }
   }
 
-  $enabled_apis_ = 'ec2,osapi_compute'
+  if ($cinder) {
+    $enabled_apis = 'ec2,osapi_compute'
+  }
+  else {
+    $enabled_apis = 'ec2,osapi_compute,osapi_volume'
+  }
+
   ######### Cinder Controller Services ########
   if !defined(Class['openstack::cinder']) {
     class {'openstack::cinder':
@@ -248,9 +254,6 @@ class openstack::all (
       iscsi_bind_host      => $cinder_iscsi_bind_addr,
       cinder_rate_limits   => $cinder_rate_limits,
     }
-  }
- 
-    $enabled_apis = $enabled_apis_ 
   } else {
     # Set up nova-volume
     class { 'lvm':
@@ -266,8 +269,6 @@ class openstack::all (
     }
     
     class { 'nova::volume::iscsi': }
-
-    $enabled_apis = "${enabled_apis_},osapi_volume"
   }
 
   # Install / configure rabbitmq
