@@ -3,7 +3,7 @@ from fuel_test.cobbler.vm_test_case import CobblerTestCase
 from fuel_test.config import Config
 from fuel_test.helpers import write_config
 from fuel_test.manifest import Manifest, Template
-from fuel_test.settings import OPENSTACK_SNAPSHOT, CREATE_SNAPSHOTS, ASTUTE_USE
+from fuel_test.settings import OPENSTACK_SNAPSHOT, CREATE_SNAPSHOTS, ASTUTE_USE, PUPPET_AGENT_COMMAND
 
 
 class SimpleTestCase(CobblerTestCase):
@@ -16,20 +16,20 @@ class SimpleTestCase(CobblerTestCase):
             self.deploy_one_by_one()
 
     def deploy_one_by_one(self):
-        self.validate(self.nodes().controllers[:1] + self.nodes().computes, 'puppet agent --test 2>&1')
+        self.validate(self.nodes().controllers[:1] + self.nodes().computes, PUPPET_AGENT_COMMAND)
 
     def deploy_by_astute(self):
-        self.remote().check_stderr("astute -f astute.yaml")
+        self.remote().check_stderr("astute -f /root/astute.yaml -v")
 
     def prepare_only_site_pp(self):
         manifest = Manifest().generate_openstack_manifest(
             template=Template.simple(),
             ci=self.ci(),
             controllers=self.nodes().controllers,
-            use_syslog=False,
+            use_syslog=True,
             quantum=True, quantums=self.nodes().controllers,
             ha=False, ha_provider='generic',
-            cinder=False, swift=False
+            cinder=True, cinder_nodes=['All'], swift=False
         )
 
         Manifest().write_manifest(remote=self.remote(), manifest=manifest)

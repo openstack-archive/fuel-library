@@ -90,13 +90,12 @@ class openstack::compute (
   $ssh_private_key     = undef,
   $cache_server_ip     = ['127.0.0.1'],
   $cache_server_port   = '11211',
-  $nova_volume         = 'nova-volumes',
   $ssh_public_key      = undef,
   # if the cinder management components should be installed
   $manage_volumes          = false,
   $nv_physical_volume      = undef,
   $cinder_volume_group     = 'cinder-volumes',
-  $cinder                  = false,
+  $cinder                  = true,
   $cinder_user_password    = 'cinder_user_pass',
   $cinder_db_password      = 'cinder_db_pass',
   $cinder_db_user          = 'cinder',
@@ -174,9 +173,9 @@ class openstack::compute (
   }
 
   #Cinder setup
-  if ($cinder) {
     $enabled_apis = 'metadata'
     package {'python-cinderclient': ensure => present}
+    if $cinder and $manage_volumes {
     class {'openstack::cinder':
         sql_connection       => "mysql://${cinder_db_user}:${cinder_db_password}@${db_host}/${cinder_db_dbname}?charset=utf8",
         rabbit_password      => $rabbit_password,
@@ -194,10 +193,8 @@ class openstack::compute (
         cinder_rate_limits   => $cinder_rate_limits,
         rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
     }
+    }
 
-  } else {
-    $enabled_apis = 'metadata'
-  }
 
 
   # Install / configure nova-compute
@@ -270,6 +267,7 @@ class openstack::compute (
     admin_user        => 'nova',
     admin_password    => $nova_user_password,
     enabled_apis      => $enabled_apis,
+    cinder            => $cinder,
     auth_host         => $service_endpoint,
     nova_rate_limits  => $nova_rate_limits,
   }

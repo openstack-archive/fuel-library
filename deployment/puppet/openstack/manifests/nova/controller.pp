@@ -82,6 +82,7 @@ class openstack::nova::controller (
   $api_bind_address          = '0.0.0.0',
   $use_syslog                = false,
   $nova_rate_limits          = undef,
+  $cinder                    = true
 ) {
 
   # Configure the db string
@@ -257,7 +258,8 @@ class openstack::nova::controller (
     auth_host         => $keystone_host,
     enabled_apis      => $_enabled_apis,
     ensure_package    => $ensure_package,
-    nova_rate_limits  => $nova_rate_limits
+    nova_rate_limits  => $nova_rate_limits,
+    cinder            => $cinder
   }
 
   class {'nova::conductor':

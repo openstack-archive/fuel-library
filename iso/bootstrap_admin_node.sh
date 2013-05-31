@@ -28,7 +28,7 @@ chown root:puppet /var/lib/puppet/ssh_keys/openstack*
 chmod g+r /var/lib/puppet/ssh_keys/openstack*
 puppet apply -e "
     class {openstack::mirantis_repos: enable_epel => false } ->
-    class {puppet: } -> class {puppet::thin:} -> class {puppet::nginx: puppet_master_hostname => \"$hostname.$domain\"}
+    class {puppet: puppet_master_version => \"$puppet_master_version\"} -> class {puppet::thin:} -> class {puppet::nginx: puppet_master_hostname => \"$hostname.$domain\"}
     "
 puppet apply -e "
     class {puppet::fileserver_config: } "
@@ -79,22 +79,22 @@ puppet apply -e "
     class { 'cobbler::profile::centos64_x86_64': }"
 
 puppet apply -e '
-    $stompuser="mcollective"
-    $stomppassword="AeN5mi5thahz2Aiveexo"
+    $user="mcollective"
+    $password="AeN5mi5thahz2Aiveexo"
     $pskey="un0aez2ei9eiGaequaey4loocohjuch4Ievu3shaeweeg5Uthi"
-    $stomphost="127.0.0.1"
+    $host="127.0.0.1"
     $stompport="61613"
 
     class { mcollective::rabbitmq:
-	stompuser => $stompuser,
-	stomppassword => $stomppassword,
+	user => $puser,
+	password => $password,
     }
 
     class { mcollective::client:
 	pskey => $pskey,
-	stompuser => $stompuser,
-	stomppassword => $stomppassword,
-	stomphost => $stomphost,
+	user => $user,
+	password => $password,
+	host => $host,
 	stompport => $stompport
     } '
 
@@ -104,6 +104,7 @@ if [[ -n "$parent_proxy" ]];then
   puppet apply -e "
   \$squid_cache_parent = \"$server\"
   \$squid_cache_parent_port = \"$port\"
+  \$squid_cache_parent_options = \"no-query default\"
   class { squid: }"
 else
   puppet apply -e "class { squid: }"
@@ -113,8 +114,4 @@ iptables -A PREROUTING -t nat -i $mgmt_if -s $mgmt_ip/$mgmt_mask ! -d $mgmt_ip -
 
 /etc/init.d/iptables save
 
-
-gem install /var/www/astute-0.0.1.gem
-
-cp `find / -name config.yaml -print0 | grep -FzZ 'samples/config.yaml'` /root
-) 2>&1 >> $log
+) >> $log 2>&1

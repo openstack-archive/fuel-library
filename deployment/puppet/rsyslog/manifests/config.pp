@@ -18,18 +18,11 @@ class rsyslog::config {
         notify  => Class["rsyslog::service"],
     }
 
-    file { $rsyslog::params::rsyslog_mainmsg_queue_dir:
+    file { '/var/lib/rsyslog' :
         owner   => root,
-        group   => $rsyslog::params::run_group,
+        group   => $::rsyslog::params::run_group,
         ensure  => directory,
-        require => Class["rsyslog::install"],
-        notify  => Class["rsyslog::service"],
-    }
-
-    file { $rsyslog::params::rsyslog_action_queue_dir:
-        owner   => root,
-        group   => $rsyslog::params::run_group,
-        ensure  => directory,
+        path    => $::rsyslog::params::rsyslog_queues_dir,
         require => Class["rsyslog::install"],
         notify  => Class["rsyslog::service"],
     }

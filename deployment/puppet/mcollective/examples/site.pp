@@ -1,7 +1,7 @@
-$stompuser="mcollective"
-$stomppassword="AeN5mi5thahz2Aiveexo"
+$user="mcollective"
+$password="AeN5mi5thahz2Aiveexo"
 $pskey="un0aez2ei9eiGaequaey4loocohjuch4Ievu3shaeweeg5Uthi"
-$stomphost="127.0.0.1"
+$host="127.0.0.1"
 $stompport="61613"
 $mirror_type="external"
 
@@ -16,15 +16,15 @@ class { '::openstack::mirantis_repos':
 node /fuel-mcollective.localdomain/ {
 
   class { mcollective::rabbitmq:
-    stompuser => $stompuser,
-    stomppassword => $stomppassword,
+    user => $user,
+    password => $password,
   }
 
   class { mcollective::client:
     pskey => $pskey,
-    stompuser => $stompuser,
-    stomppassword => $stomppassword,
-    stomphost => $stomphost,
+    user => $user,
+    password => $password,
+    host => $host,
     stompport => $stompport
   }
   

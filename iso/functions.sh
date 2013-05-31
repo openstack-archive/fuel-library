@@ -89,6 +89,7 @@ function default_settings {
     dhcp_start_address="10.0.0.201"
     dhcp_end_address="10.0.0.254"
     mirror_type="default"
+    puppet_master_version="2.7.19-1.el6"
 
     # Read settings from file
     [ -f $FUELCONF ] && source $FUELCONF

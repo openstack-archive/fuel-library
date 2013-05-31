@@ -22,7 +22,7 @@ LOCAL_MIRROR_UBUNTU_DEB:=$(LOCAL_MIRROR_UBUNTU)/$(UBUNTU_COMP)/binary-$(UBUNTU_A
 LOCAL_MIRROR_UBUNTU_INSTALLER:=$(LOCAL_MIRROR_UBUNTU)/$(UBUNTU_COMP)/debian-installer/binary-$(UBUNTU_ARCH)
 MIRROR_CENTOS:=http://download.mirantis.com/centos-6.4
 MIRROR_CENTOS_OS_BASEURL:=$(MIRROR_CENTOS)/$(CENTOS_RELEASE)/os/$(CENTOS_ARCH)
-MIRROR_UBUNTU:=http://download.mirantis.com/precise-fuel-folsom
+MIRROR_UBUNTU:=http://mirror.yandex.ru/ubuntu
 MIRROR_UBUNTU_OS_BASEURL:=$(MIRROR_UBUNTU)/dists/$(UBUNTU_DISTR)/$(UBUNTU_COMP)
 YUM_REPOS:=centos epel fuel_folsom puppetlabs rpmforge
 
@@ -47,7 +47,7 @@ ISOROOT:=$(BUILD_DIR)/iso/isoroot
 #endif
 
 ISOBASENAME:=fuel-centos-$(CENTOS_RELEASE)-$(CENTOS_ARCH)-$(FUEL_VERSION)
-[ -z "$$ISOSUFFIX" ] || ISOBASENAME:=$(ISOBASENAME)-$(ISOSUFFIX)
+#[ -z "$$ISOSUFFIX" ] || ISOBASENAME:=$(ISOBASENAME)-$(ISOSUFFIX)
 #ISOBASENAME:=fuel-centos-$(CENTOS_RELEASE)-$(CENTOS_ARCH)_$(BUILD_ID)
 
 ISONAME:=$(BUILD_DIR)/iso/$(ISOBASENAME).iso
@@ -76,17 +76,11 @@ $(BUILD_DIR)/iso/isoroot-files.done: \
 		$(ISOROOT)/bootstrap_admin_node.conf \
 		$(ISOROOT)/version.yaml \
 		$(ISOROOT)/fuel-modules.tgz \
-		$(ISOROOT)/astute-0.0.1.gem
 	$(ACTION.TOUCH)
 
 $(ISOROOT)/fuel-modules.tgz: \
 		$(call find-files,$(FUEL_DIR))
 	(cd $(FUEL_DIR) && tar chzf $@ *)
-
-$(ISOROOT)/astute-0.0.1.gem:
-	mkdir -p $(@D)
-	( cd $(SOURCE_DIR)/../deployment/mcollective/astute && gem build astute.gemspec )
-	mv $(SOURCE_DIR)/../deployment/mcollective/astute/$(@F) $@
 
 $(ISOROOT)/.discinfo: $(SOURCE_DIR)/.discinfo ; $(ACTION.COPY)
 $(ISOROOT)/.treeinfo: $(SOURCE_DIR)/.treeinfo ; $(ACTION.COPY)

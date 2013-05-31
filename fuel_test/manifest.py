@@ -241,6 +241,8 @@ class Manifest(object):
                                             quantum_netnode_on_cnt=True,
                                     swift=True,
                                     ha_provider='pacemaker', ha=True):
+        if not cinder_nodes:
+            cinder_nodes = []
         if ha:
             template.replace(
                 internal_virtual_ip=ci.internal_virtual_ip(),
