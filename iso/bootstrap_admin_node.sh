@@ -79,22 +79,22 @@ puppet apply -e "
     class { 'cobbler::profile::centos64_x86_64': }"
 
 puppet apply -e '
-    $stompuser="mcollective"
-    $stomppassword="AeN5mi5thahz2Aiveexo"
+    $user="mcollective"
+    $password="AeN5mi5thahz2Aiveexo"
     $pskey="un0aez2ei9eiGaequaey4loocohjuch4Ievu3shaeweeg5Uthi"
-    $stomphost="127.0.0.1"
+    $host="127.0.0.1"
     $stompport="61613"
 
     class { mcollective::rabbitmq:
-	stompuser => $stompuser,
-	stomppassword => $stomppassword,
+	user => $puser,
+	password => $password,
     }
 
     class { mcollective::client:
 	pskey => $pskey,
-	stompuser => $stompuser,
-	stomppassword => $stomppassword,
-	stomphost => $stomphost,
+	user => $user,
+	password => $password,
+	host => $host,
 	stompport => $stompport
     } '
 
@@ -109,6 +109,8 @@ if [[ -n "$parent_proxy" ]];then
 else
   puppet apply -e "class { squid: }"
 fi
+
+puppet apply -e "class { cobbler::checksum_bootpc: }"
 
 iptables -A PREROUTING -t nat -i $mgmt_if -s $mgmt_ip/$mgmt_mask ! -d $mgmt_ip -p tcp --dport 80 -j REDIRECT --to-port 3128
 

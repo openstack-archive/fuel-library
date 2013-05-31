@@ -5,7 +5,7 @@ class puppet::params
   
 	case $::osfamily {
 	    'RedHat': {
-         $puppet_master_version  = "3.0.1-1"
+         $puppet_master_version  = "2.7.19-1"
          $puppet_master_packages = ["puppet-server", "puppet"] 
          $mongrel_packages = "rubygem-mongrel"
          $thin_packages = "rubygem-thin"
@@ -14,7 +14,7 @@ class puppet::params
          $puppet_config_template = "puppet/puppet.conf.centos.erb"
       }
       'Debian': {
-         $puppet_master_version  = "3.0.1-1puppetlabs1"
+         $puppet_master_version  = "2.7.19-1puppetlabs2"
          $puppet_master_packages = ["puppetmaster", "puppetmaster-common", "puppet-common"]
          $mongrel_packages = "mongrel"
          $thin_packages = "thin"
