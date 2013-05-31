@@ -309,7 +309,9 @@ class Astute
         collect do |node|
           {:uid.to_s => node['name'], :role.to_s => node['role']}
         end
-    YAML.dump({:nodes.to_s => nodes}.update(config.orchestrator_common()))
+    YAML.dump({:nodes.to_s => nodes}.update(
+        config.orchestrator_common().update(
+            {:attributes.to_s => {:deployment_mode.to_s => 'ha_full', :deployment_engine.to_s =>'simplepuppet'}})))
   end
 end
 

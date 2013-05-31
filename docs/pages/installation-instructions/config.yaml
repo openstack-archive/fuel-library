@@ -1,36 +1,45 @@
-common:               
+common:
   orchestrator_common:
-    use_case: minimal
-    domain_name: local
+    attributes:
+      deployment_mode: multinode_compute
+    task_uuid: deployment_task
 
   openstack_common:
-   internal_virtual_ip: 10.0.1.10
-   public_virtual_ip: 10.0.0.10
-   create_networks: "pp"
+   internal_virtual_ip: 10.49.63.127
+   public_virtual_ip: 10.49.54.127
+   create_networks: true
    fixed_range: 192.168.0.0/16
    floating_range: 10.49.54.0/24
+   swift_loopback: loopback
    nv_physical_volumes:
-    - /dev/sdb
+    - /dev/sdz
+    - /dev/sdy
    external_ip_info:
-     public_net_router: 192.168.0.1
-     ext_bridge: 10.0.0.1
-     pool_start: 10.0.0.110
-     pool_end: 10.0.0.126
+     public_net_router: 10.49.54.1
+     ext_bridge: 10.49.54.15
+     pool_start: 10.49.54.225
+     pool_end: 10.49.54.239
    segment_range: 900:999
+   network_manager: nova.network.manager.FlatDHCPManager
+   auto_assign_floating_ip: true
+   quantum_netnode_on_cnt: true
    use_syslog: true
-   syslog_server: 10.0.0.100
+   syslog_server: 10.49.63.12
    mirror_type: default
    quantum: true
    internal_interface: eth0
    public_interface: eth1
    private_interface: eth2
-   default_gateway: 10.0.0.100
-   nagios_master: fuel-controller-01.local
-   loopback: loopback
+   public_netmask: 255.255.255.0
+   internal_netmask: 255.255.255.0
+   default_gateway: 10.0.1.100
+   nagios_master: fuel-controller-01.localdomain
    cinder: true
    cinder_nodes:
    - controller
    swift: true
+   repo_proxy: http://10.0.0.100:3128
+   deployment_id: '53'
    dns_nameservers:
    - 10.0.0.100
    - 8.8.8.8
@@ -40,21 +49,26 @@ common:
      internal_address: 10.0.0.100
      public_address: 10.0.1.100
    - name: fuel-controller-01
-     role: controller
+     role: primary-controller
      internal_address: 10.0.0.101
      public_address: 10.0.1.101
+     swift_zone: 1
+     mountpoints: 1 2\n 2 1
+     storage_local_net_ip: 10.0.0.101
    - name: fuel-controller-02
      role: controller
      internal_address: 10.0.0.102
      public_address: 10.0.1.102
+     swift_zone: 2
+     mountpoints: 1 2\n 2 1
+     storage_local_net_ip: 10.0.0.102
    - name: fuel-controller-03
      role: controller
-     internal_address: 10.0.0.103
-     public_address: 10.0.1.103
-   - name: fuel-quantum
-     role: quantum
      internal_address: 10.0.0.104
      public_address: 10.0.1.104
+     swift_zone: 3
+     mountpoints: 1 2\n 2 1
+     storage_local_net_ip: 10.0.0.104
    - name: fuel-compute-01
      role: compute
      internal_address: 10.0.0.105
@@ -71,16 +85,25 @@ common:
      role: storage
      internal_address: 10.0.0.108
      public_address: 10.0.1.108
+     swift_zone: 4
+     mountpoints: 1 2\n 2 1
+     storage_local_net_ip: 10.0.0.108
    - name: fuel-swift-02
      role: storage
      internal_address: 10.0.0.109
      public_address: 10.0.1.109
+     swift_zone: 5
+     mountpoints: 1 2\n 2 1
+     storage_local_net_ip: 10.0.0.109
    - name: fuel-swift-03
      role: storage
      internal_address: 10.0.0.110
      public_address: 10.0.1.110
+     swift_zone: 6
+     mountpoints: 1 2\n 2 1
+     storage_local_net_ip: 10.0.0.110
    - name: fuel-swiftproxy-01
-     role: swift-proxy
+     role: primary-swift-proxy
      internal_address: 10.0.0.111
      public_address: 10.0.1.111
    - name: fuel-swiftproxy-02
@@ -90,7 +113,6 @@ common:
 
   cobbler_common:
     # for Centos
-    #
     profile: "centos64_x86_64"
     # for Ubuntu
     # profile: "ubuntu_1204_x86_64"
@@ -99,11 +121,11 @@ common:
     # ksmeta: "puppet_version=2.7.19-1puppetlabs2 \
     # for Centos
     name-servers: "10.0.0.100"
-    name-servers-search: "local"
-    gateway: "10.0.0.100"
+    name-servers-search: "localdomain"
+    gateway: 10.0.0.100
     ksmeta: "puppet_version=2.7.19-1.el6 \
       puppet_auto_setup=1 \
-      puppet_master=fuel-pm.local \
+      puppet_master=fuel-pm.localdomain \
       puppet_enable=0 \
       ntp_enable=1 \
       mco_auto_setup=1 \
@@ -120,17 +142,17 @@ fuel-controller-01:
   role: controller
   interfaces:
     eth0:
-      mac: "08:00:27:08:35:b6"
+      mac: "52:54:00:0a:39:ec"
       static: "1"
       ip-address: "10.0.0.101"
       netmask: "255.255.255.0"
-      dns-name: "fuel-controller-01.local"
+      dns-name: "fuel-controller-01.localdomain"
       management: "1"
     eth1:
-      mac: "08:00:27:7d:e7:54"
+      mac: "52:54:00:e6:dc:c9"
       static: "0"
     eth2:
-      mac: "08:00:27:94:d6:6a"
+      mac: "52:54:00:ae:22:04"
       static: "1"
   interfaces_extra:
     eth0:
@@ -148,32 +170,19 @@ fuel-controller-02:
 # cinder_bd_for_vg=/dev/sdb,/dev/sdc \
   hostname: "fuel-controller-02"
   role: controller
-  profile: "ubuntu_1204_x86_64"
-  ksmeta: "puppet_version=2.7.19-1puppetlabs2 \
-      puppet_auto_setup=1 \
-      puppet_master=fuel-pm.local \
-      puppet_enable=0 \
-      ntp_enable=1 \
-      mco_auto_setup=1 \
-      mco_pskey=un0aez2ei9eiGaequaey4loocohjuch4Ievu3shaeweeg5Uthi \
-      mco_stomphost=10.0.0.100 \
-      mco_stompport=61613 \
-      mco_stompuser=mcollective \
-      mco_stomppassword=AeN5mi5thahz2Aiveexo \
-      mco_enable=1"
   interfaces:
     eth0:
-      mac: "08:00:27:15:77:01"
+      mac: "52:54:00:e4:46:5c"
       static: "1"
       ip-address: "10.0.0.102"
       netmask: "255.255.255.0"
-      dns-name: "fuel-controller-02.local"
+      dns-name: "fuel-controller-02.localdomain"
       management: "1"
     eth1:
-      mac: "08:00:27:cc:be:00"
+      mac: "52:54:00:b4:a5:25"
       static: "0"
     eth2:
-      mac: "08:00:27:f4:4a:26"
+      mac: "52:54:00:28:f8:06"
       static: "1"
   interfaces_extra:
     eth0:
@@ -193,17 +202,17 @@ fuel-controller-03:
   role: controller
   interfaces:
     eth0:
-      mac: "08:00:27:eb:e6:73"
+      mac: "52:54:00:09:04:40"
       static: "1"
       ip-address: "10.0.0.103"
       netmask: "255.255.255.0"
-      dns-name: "fuel-controller-03.local"
+      dns-name: "fuel-controller-03.localdomain"
       management: "1"
     eth1:
-      mac: "08:00:27:36:17:66"
+      mac: "52:54:00:78:23:b7"
       static: "0"
     eth2:
-      mac: "08:00:27:32:d1:89"
+      mac: "52:54:00:84:60:bf"
       static: "1"
   interfaces_extra:
     eth0:
@@ -220,11 +229,11 @@ fuel-quantum:
   role: quantum
   interfaces:
     eth0:
-      mac: "52:54:00:68:ff:7b"
+      mac: "52:54:00:68:ff:9b"
       static: "1"
-      ip-address: "10.0.0.104"
+      ip-address: "10.0.0.105"
       netmask: "255.255.255.0"
-      dns-name: "fuel-quantum.local"
+      dns-name: "fuel-quantum.localdomain"
       management: "1"
     eth1:
       mac: "52:54:00:27:49:44"
@@ -247,17 +256,17 @@ fuel-compute-01:
   role: compute
   interfaces:
     eth0:
-      mac: "08:00:27:46:69:56"
+      mac: "52:54:00:68:ff:9b"
       static: "1"
-      ip-address: "10.0.0.105"
+      ip-address: "10.0.0.110"
       netmask: "255.255.255.0"
-      dns-name: "fuel-compute-01.local"
+      dns-name: "fuel-compute-01.localdomain"
       management: "1"
     eth1:
-      mac: "08:00:27:cd:b3:b5"
+      mac: "52:54:00:27:49:44"
       static: "0"
     eth2:
-      mac: "08:00:27:b0:5b:c7"
+      mac: "52:54:00:19:0d:56"
       static: "1"
   interfaces_extra:
     eth0:
@@ -276,15 +285,15 @@ fuel-compute-02:
     eth0:
       mac: "52:54:00:68:ff:9b"
       static: "1"
-      ip-address: "10.0.0.106"
+      ip-address: "10.0.0.111"
       netmask: "255.255.255.0"
-      dns-name: "fuel-compute-02.local"
+      dns-name: "fuel-compute-02.localdomain"
       management: "1"
     eth1:
-      mac: "52:54:00:27:49:54"
+      mac: "52:54:00:27:49:44"
       static: "0"
     eth2:
-      mac: "52:54:00:19:0d:86"
+      mac: "52:54:00:19:0d:56"
       static: "1"
   interfaces_extra:
     eth0:
