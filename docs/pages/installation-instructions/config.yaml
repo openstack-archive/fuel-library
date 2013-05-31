@@ -2,7 +2,6 @@ common:
   orchestrator_common:
     attributes:
       deployment_mode: multinode_compute
-      deployment_engine: simplepuppet
     task_uuid: deployment_task
 
   openstack_common:
