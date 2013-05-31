@@ -80,19 +80,24 @@ Shell script example
    export CLEAN=true
    export PUPPET_GEN=2
    export ASTUTE_USE=false
+
    export PARENT_PROXY=172.18.67.168
    export CIRROS_IMAGE=http://download.cirros-cloud.net/0.3.1/cirros-0.3.1-x86_64-disk.img
    export ISO=/var/lib/libvirt/images/fuel-centos-6.3-x86_64.iso
+
    export CONTROLLERS=1
    export COMPUTES=3
    export STORAGES=0
    export PROXIES=0
+
    export OS_FAMILY=centos
    export CURRENT_PROFILE=centos64_x86_64
+
    if [ "$test_name" == "TEMPEST" ] || [ "$(echo $test_name | cut -d"/" -f1)" == "tempest" ]; then
       export run_tests=tempest/tempest/tests
       [ "$test_name" != "TEMPEST" ] && export run_tests="-v $test_name"
       pushd fuel
+          pip install -r fuel_test/pip-requires
           PYTHONPATH=. python fuel_test/prepare.py || true
       popd
       deactivate
