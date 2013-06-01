@@ -1,9 +1,5 @@
-.. _Install-OS-Using-Fuel:
-
-Installing the OS using Fuel
-----------------------------
-
-The first step in creating the actual OpenStack nodes is to let Fuel's Cobbler kickstart and preseed files assist in the installation of operating systems on the target servers.
+Installing the operating system
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Now that Cobbler has the correct configuration, the only thing you
 need to do is to PXE-boot your nodes. This means that they will boot over the network, with

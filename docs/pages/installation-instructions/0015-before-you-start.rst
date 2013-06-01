@@ -16,7 +16,7 @@ decisions:
 * **Network addresses.** OpenStack requires a minimum of three networks. If you are deploying on physical hardware, two of them -- the public network and the internal, or management network -- must be routable in your networking infrastructure. Also, if you intend for your cluster to be accessible from the Internet, you'll want the public network to be on the proper network segment.  For simplicity in this case, this example assumes an Internet router at 192.168.0.1.  Additionally, a set of private network addresses should be selected for automatic assignment to guest VMs. (These are fixed IPs for the private network). In our case, we are allocating network addresses as follows:
 
     * Public network: 192.168.0.0/24
-    * Internal network: 10.00.0.0/24
+    * Internal network: 10.0.0.0/24
     * Private network: 10.0.1.0/24
 
 * **Network interfaces.** All of those networks need to be assigned to the available NIC cards on the allocated machines. Additionally, if a fourth NIC is available, Cinder or block storage traffic can also be separated and delegated to the fourth NIC. In our case, we're assigning networks as follows:

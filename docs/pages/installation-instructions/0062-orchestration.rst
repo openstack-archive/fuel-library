@@ -1,7 +1,12 @@
+Deploying OpenStack
+-------------------
+
+You have two options for deploying OpenStack.  The eaiser method is to use orchestration, but you can also deploy your nodes manually.
+
 .. _orchestration:
 
 Deploying via orchestration
-----------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Manually installing a handful of servers might be managable, but repeatable installations, or those that involve a large number of servers, require automated orchestration.  Now you can use orchestration with Fuel through the ``astute`` script.  This script is configured using the ``astute.yaml`` file you created when you ran ``openstack_system``.
 

@@ -1,7 +1,15 @@
+.. _Install-OS-Using-Fuel:
+
+Installing the OS using Fuel
+----------------------------
+
+The first step in creating the actual OpenStack nodes is to let Fuel's Cobbler kickstart and preseed files assist in the installation of operating systems on the target servers.
+
+
 .. _Configuring-Cobbler:
 
-Configuring Cobbler
--------------------
+Configuring Cobbler with config.yaml
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Fuel uses a single file, ``config.yaml``, to both configure Cobbler and assist in the configuration of the ``site.pp`` file.  This file appears in the ``/root`` directory when the master node (fuel-pm) is provisioned and configured.
 
@@ -234,8 +242,8 @@ Repeat this step for each of the other controllers, and for the compute node.  N
 	      peerdns: "no"
   
 
-Load the configuration
-^^^^^^^^^^^^^^^^^^^^^^
+Loading the configuration
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Once you've completed the changes to ``config.yaml``, you need to load the information into Cobbler.  To do that, use the ``cobbler_system`` script::
 
