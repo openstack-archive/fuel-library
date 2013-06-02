@@ -10,8 +10,7 @@ Software
 
 You can download the latest release of the Fuel ISO from http://fuel.mirantis.com/your-downloads/.
 
-Alternatively, if you can't use the pre-built ISO, Mirantis also offers the Fuel Library as a tar.gz file downloadable from `Downloads <http://fuel.mirantis.com/your-downloads/>`_ section of the Fuel portal.
-
+Alternatively, if you can't use the pre-built ISO, Mirantis also offers the Fuel Library as a tar.gz file downloadable from `Downloads <http://fuel.mirantis.com/your-downloads/>`_ section of the Fuel portal.  Using this file requires a bit more manual effort, but will yeild the same results as using the ISO.
 
 
 Network setup
@@ -28,9 +27,7 @@ public traffic onto a single NIC.
 
 If you are deploying to a simulation environment, however, it makes
 sense to just allocate three NICs to each VM in your OpenStack
-infrastructure. For VirtualBox, this means creating three Host Only
-interfaces, vboxnet0, vboxnet1, and vboxnet2, for the internal,
-public, and private networks respectively.
+infrastructure, one each for the internal, public, and private networks respectively.
 
 
 
@@ -40,7 +37,7 @@ for the purposes of this exercise we will assume the below network and
 ip assignments:
 
 
-#. 10.0.0.0/24: management or internal network, for communication between Puppet master and Puppet clients, as well as PXE/TFTP/DHCP for Cobbler
+#. 10.0.0.0/24: management or internal network, for communication between Puppet master and Puppet clients, as well as PXE/TFTP/DHCP for Cobbler. 
 #. 192.168.0.0/24: public network, for the High Availability (HA) Virtual IP (VIP), as well as floating IPs assigned to OpenStack guest VMs
 #. 10.0.1.0/24: private network, fixed IPs automatically assigned to guest VMs by OpenStack upon their creation 
 
@@ -106,7 +103,7 @@ following hardware:
 additional server with specifications comparable to the controller
 nodes.)
 
-Make sure your hardware is capable of PXE booting over the network from Cobbler. You'll also need each server's mac address.
+Make sure your hardware is capable of PXE booting over the network from Cobbler. You'll also need each server's mac addresses.
 
 
 For a list of certified hardware configurations, please `contact the
@@ -120,14 +117,14 @@ by on 8GB of RAM, but 16GB will be better.
 
 To actually perform the
 installation, you need a way to create Virtual Machines. This guide
-assumes that you are using version 4.2.6 of VirtualBox, which you can download from
+assumes that you are using version 4.2.12 of VirtualBox, which you can download from
 
 https://www.virtualbox.org/wiki/Downloads
 
 Make sure to also install the Extension Pack.
 
 You'll need to run VirtualBox on a stable host system. Mac OS 10.7.x,
-CentOS 6.3, or Ubuntu 12.04 are preferred; results in other operating 
+CentOS 6.3+, or Ubuntu 12.04 are preferred; results in other operating 
 systems are unpredictable.
 
 
@@ -142,7 +139,7 @@ hostonly adapters exist and are configured correctly:
         * IPv4 Address:  10.0.0.1
         * IPv4 Network Mask:  255.255.255.0
         * DHCP server: disabled
-    * Network -> Add HostOnly Adapter (vboxnet1)
+    * Network -> Add HostOnly Adapter (vboxnet1)512
         * IPv4 Address:  10.0.1.1
         * IPv4 Network Mask:  255.255.255.0
         * DHCP server: disabled
@@ -150,8 +147,10 @@ hostonly adapters exist and are configured correctly:
         * IPv4 Address:  0.0.0.0
         * IPv4 Network Mask:  255.255.255.0
         * DHCP server: disabled
+512
+In this example, only the first two adapters will be used, but you can choose to use the third to handle your storage network traffic.
 
-After creating this interface, reboot the host machine to make sure that
+After creating these interfaces, reboot the host machine to make sure that
 DHCP isn't running in the background.
 
 Installing on Windows isn't recommended, but if you're attempting it,
@@ -165,21 +164,21 @@ Creating fuel-pm
 ++++++++++++++++
 
 The process of creating a virtual machine to host Fuel in VirtualBox depends on
-whether your deployment is purely virtual or consists of a virtual
+whether your deployment is purely virtual or consists of a physical or virtual
 fuel-pm controlling physical hardware. If your deployment is purely
 virtual then Adapter 1 may be a Hostonly adapter attached to
 vboxnet0, but if your deployment infrastructure consists of a virtual
-fuel-pm controlling physical machines Adapter 1 must be a Bridged
+fuel-pm controlling physical machines, Adapter 1 must be a Bridged
 Adapter, connected to whatever network interface of the host machine
 is connected to your physical machines.
 
-Start up VirtualBox and create a new machine as follows:
+To create fuel-pm, start up VirtualBox and create a new machine as follows:
 
 * Machine -> New...
 
     * Name: fuel-pm
     * Type: Linux
-    * Version: Red Hat (32 or 64 Bit)
+    * Version: Red Hat (64 Bit)
     * Memory: 2048 MB
     * Drive space: 16 GB HDD
 
@@ -206,6 +205,11 @@ Start up VirtualBox and create a new machine as follows:
 
     * Attach the downloaded ISO as a drive  
 
+* Machine -> Start
+
+    * To install Fuel
+
+Click 
 
 If you can't (or would rather not) install from the ISO, you can find instructions for installing from the Fuel Library in :ref:`Appendix A <Create-PM>`.
 
@@ -238,10 +242,10 @@ record the corresponding mac address.
     * Type: Linux
     * Version: Red Hat (64 Bit)
     * Memory: 2048MB
+    * Drive space: 8GB
 
 
-
-* Machine -> System -> Motherboard...
+* Machine -> Settings -> System 
 
     * Check Network in Boot sequence
 
@@ -252,7 +256,7 @@ record the corresponding mac address.
         * Click the Add icon at the bottom of the Storage Tree pane and choose Add Disk
         * Add a second VDI disk of 10GB for storage
 
-* Machine -> Settings... -> Network
+* Machine -> Settings -> Network
 
     * Adapter 1
 
@@ -270,7 +274,7 @@ record the corresponding mac address.
 
         * Enable Network Adapter
         * Attached to: Hostonly Adapter
-        * Name: vboxnet2
+        * Name: vboxnet1
         * Advanced -> Promiscuous mode: Allow All
 
 
