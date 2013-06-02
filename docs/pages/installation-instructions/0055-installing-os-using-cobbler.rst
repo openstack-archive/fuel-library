@@ -23,7 +23,7 @@ The process for each node looks like this:
 
 If you're unable to ping outside addresses, add the fuel-pm server as a default gateway::
 
-    route add default gw 10.20.0.100
+    route add default gw 10.0.0.100
 
 **It is important to note** that if you use VLANs in your network
 configuration, you always have to keep in mind the fact that PXE

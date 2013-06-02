@@ -205,10 +205,6 @@ To create fuel-pm, start up VirtualBox and create a new machine as follows:
 
     * Attach the downloaded ISO as a drive  
 
-* Machine -> Start
-
-    * To install Fuel
-
 If you can't (or would rather not) install from the ISO, you can find instructions for installing from the Fuel Library in :ref:`Appendix A <Create-PM>`.
 
 

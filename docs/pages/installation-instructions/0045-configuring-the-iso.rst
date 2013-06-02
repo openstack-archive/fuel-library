@@ -8,31 +8,25 @@ Configuring fuel-pm from the ISO installation
 
 Once fuel-pm finishes installing, you'll be presented with a basic menu.  You can use this menu to set the basic information Fuel will need to configure your installation.  You can customize these steps for your own situation, of course, but here are the steps to take for the example installation:
 
-#. To set the fully-qualified domain name for the master node and cloud domain, choose 1.
-
-   * Type ``fuel-pm`` for the hostname.
-   * Set your own domain name.
-
-   Note that you can set the domain name only **once**.  Changing the domain name after provisioning the master node requires re-installing the master node.
-
+#. Future versions of Fuel will enable you to change the hostname and domain name for your admin node and cluster, respectively.  For now, your admin node must be called ``fuel-pm``, and your domain name must be ``localdomain``.
 #. To configure the management interface, choose 2.
 
    * The example specifies eth0 as the internal, or management interface, so enter that.
    * The management network in the example is using static IP addresses, so specify no for for using DHCP.
-   * Enter the IP address of 10.20.0.100 for the Puppet Master, and the netmask of 255.255.255.0.
-   * Set the gateway and DNS servers if desired.  In this case, the router is at 192.168.0.1, so we'll set that.
+   * Enter the IP address of 10.0.0.100 for the Puppet Master, and the netmask of 255.255.255.0.  Future versions of Fuel will enable you to choose a different IP range for your management interface. 
+   * Set the gateway and DNS servers if desired.  In this example, we'll use the router at 192.168.0.1 as the gateway.
 
-#. To configure the external interface, which will be used to send traffic to and from the internet, choose 3.  Set the interface to eth1.  By default, this interface uses DHCP, which is what the example calls for.
+#. To configure the external interface, which VMs will use to send traffic to and from the internet, choose 3.  Set the interface to eth1.  By default, this interface uses DHCP, which is what the example calls for.
 
-#. To choose the start and end addresses to be used during PXE boot, choose 4.  In the case of this example, the start address is  10.20.0.110 and the end address is 10.20.0.126.  Later, these notes will receive IP addresses from Cobbler.
+#. To choose the start and end addresses to be used during PXE boot, choose 4.  In the case of this example, the start address is  10.0.0.201 and the end address is 10.0.0.254.  Later, these nodes will receive IP addresses from Cobbler.
 
-Future versions of Fuel will enable you to choose a custom set of repositories.
+#. Future versions of Fuel will enable you to choose a custom set of repositories.
 
+#. If you need to specify a proxy through which fuel-pm will access the Internet, press 6.
 
+#.  Once you've finished editing, choose 9 to save your changes and exit the menu.
 
-Please note:  You must set actual values; if you simply press "enter" you will wind up with empty values.
-
-5.  Once you've finished editing, choose 6 to save your changes and exit the menu.
+Please note:  Even though defaults are shown, you must set actual values; if you simply press "enter" you will wind up with empty values.
 
 To re-enter the menu at any time, type::
 
