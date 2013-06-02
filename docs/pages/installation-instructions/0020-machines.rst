@@ -147,7 +147,7 @@ hostonly adapters exist and are configured correctly:
         * IPv4 Address:  0.0.0.0
         * IPv4 Network Mask:  255.255.255.0
         * DHCP server: disabled
-512
+
 In this example, only the first two adapters will be used, but you can choose to use the third to handle your storage network traffic.
 
 After creating these interfaces, reboot the host machine to make sure that
@@ -208,8 +208,6 @@ To create fuel-pm, start up VirtualBox and create a new machine as follows:
 * Machine -> Start
 
     * To install Fuel
-
-Click 
 
 If you can't (or would rather not) install from the ISO, you can find instructions for installing from the Fuel Library in :ref:`Appendix A <Create-PM>`.
 
