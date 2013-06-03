@@ -142,7 +142,7 @@ hostonly adapters exist and are configured correctly:
         * IPv4 Network Mask:  255.255.255.0
         * DHCP server: disabled
 
-    * Network -> Add HostOnly Adapter (vboxnet1)512
+    * Network -> Add HostOnly Adapter (vboxnet1)
 
         * IPv4 Address:  10.0.1.1
         * IPv4 Network Mask:  255.255.255.0
