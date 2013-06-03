@@ -211,23 +211,6 @@ class Manifest(object):
         else:
             return ci.fixed_network()
 
-    def generate_openstack_single_manifest(self, ci,
-                                        use_syslog=True,
-                                        quantum=True,
-                                        cinder=True):
-        return Template.single().replace(
-            floating_range=self.floating_network(ci, quantum),
-            fixed_range=self.fixed_network(ci, quantum),
-            public_interface=self.public_interface(),
-            private_interface=self.private_interface(),
-            mirror_type=self.mirror_type(),
-            use_syslog=use_syslog,
-            cinder=cinder,
-            ntp_servers=['pool.ntp.org', ci.internal_router()],
-            quantum=quantum,
-            enable_test_repo=TEST_REPO,
-        )
-
     def generate_openstack_manifest(self, template,
                                     ci,
                                     controllers,

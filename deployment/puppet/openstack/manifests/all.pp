@@ -75,6 +75,7 @@ class openstack::all (
   $nova_user_password,
   $secret_key,
   $internal_address = '127.0.0.1',
+  $admin_address = '127.0.0.1',
   # cinder and quantum password are not required b/c they are
   # optional. Not sure what to do about this.
   $cinder_user_password    = 'cinder_pass',
@@ -103,11 +104,13 @@ class openstack::all (
   $floating_range          = false,
   $create_networks         = true,
   $num_networks            = 1,
+  $network_size            = 255,
   $auto_assign_floating_ip = false,
   $network_config          = {},
   $quantum                 = false,
   # Rabbit
   $rabbit_user             = 'nova',
+  $rabbit_nodes            = ['127.0.0.1'],
   # Horizon
   $horizon                 = true,
   $cache_server_ip         = '127.0.0.1',
@@ -118,8 +121,11 @@ class openstack::all (
   $cinder                  = false,
   $cinder_db_user          = 'cinder',
   $cinder_db_dbname        = 'cinder',
-  $volume_group            = 'cinder-volumes',
-  $cinder_test             = false,
+  $cinder_iscsi_bind_addr  = false,
+  $cinder_volume_group     = 'cinder-volumes',
+  $nv_physical_volume      = undef,
+  $manage_volumes          = false,
+  $cinder_rate_limits      = undef,
   #
   $quantum_db_user         = 'quantum',
   $quantum_db_dbname       = 'quantum',
@@ -129,14 +135,21 @@ class openstack::all (
   $vnc_enabled             = true,
   # General
   $enabled                 = true,
-  $verbose                 = 'False'
+  $verbose                 = 'False',
+  $service_endpoint        = '127.0.0.1',
+  $glance_backend          = 'file',
+  $use_syslog              = false,
+  $nova_rate_limits        = undef,
 ) {
 
   # Ensure things are run in order
   Class['openstack::db::mysql'] -> Class['openstack::keystone']
   Class['openstack::db::mysql'] -> Class['openstack::glance']
 
-  # set up mysql server
+  if defined(Class['openstack::cinder']) {
+        Class['openstack::db::mysql'] -> Class['openstack::cinder']
+  }
+ # set up mysql server
   if ($db_type == 'mysql') {
     if ($enabled) {
       Class['glance::db::mysql'] -> Class['glance::registry']
@@ -184,8 +197,8 @@ class openstack::all (
     admin_email               => $admin_email,
     admin_password            => $admin_password,
     public_address            => $public_address,
-    internal_address          => '127.0.0.1',
-    admin_address             => '127.0.0.1',
+    internal_address          => $internal_address,
+    admin_address             => $admin_address,
     #region                    => $region,
     glance_user_password      => $glance_user_password,
     nova_user_password        => $nova_user_password,
@@ -193,6 +206,7 @@ class openstack::all (
     cinder_user_password      => $cinder_user_password,
     quantum                   => $quantum,
     quantum_user_password     => $quantum_user_password,
+    use_syslog                => $use_syslog,
   }
 
   ######## GLANCE ##########
@@ -205,7 +219,12 @@ class openstack::all (
     glance_db_dbname          => $glance_db_dbname,
     glance_db_password        => $glance_db_password,
     glance_user_password      => $glance_user_password,
+    auth_uri                  => "http://${service_endpoint}:5000/",
+    keystone_host             => $service_endpoint,
     enabled                   => $enabled,
+    glance_backend            => $glance_backend,
+    registry_host             => $service_endpoint,
+    use_syslog                => $use_syslog,
   }
 
   ######## NOVA ###########
@@ -227,27 +246,26 @@ class openstack::all (
     }
   }
 
-  ######### Cinder Controller Services ########
-  $enabled_apis_ = 'ec2,osapi_compute,metadata'
-
   if ($cinder) {
-    class { "cinder::base":
-      verbose         => $verbose,
-      sql_connection  => "mysql://${cinder_db_user}:${cinder_db_password}@127.0.0.1/${cinder_db_dbname}?charset=utf8",
-      rabbit_password => $rabbit_password,
-    }
+    $enabled_apis = 'ec2,osapi_compute'
+  }
+  else {
+    $enabled_apis = 'ec2,osapi_compute,osapi_volume'
+  }
 
-    class { 'cinder::api':
-      keystone_password => $cinder_user_password,
+  ######### Cinder Controller Services ########
+  if !defined(Class['openstack::cinder']) {
+    class {'openstack::cinder':
+      sql_connection       => "mysql://${cinder_db_user}:${cinder_db_password}@127.0.0.1/${cinder_db_dbname}?charset=utf8",
+      rabbit_password      => $rabbit_password,
+      cinder_user_password => $cinder_user_password,
+      volume_group         => $cinder_volume_group,
+      physical_volume      => $nv_physical_volume,
+      manage_volumes       => true,
+      enabled              => true,
+      iscsi_bind_host      => $cinder_iscsi_bind_addr,
+      cinder_rate_limits   => $cinder_rate_limits,
     }
-
-    class { 'cinder::scheduler': }
-    class { 'cinder::volume': }
-    class { 'cinder::volume::iscsi':
-      iscsi_ip_address => '127.0.0.1',
-    }
-    
-    $enabled_apis = $enabled_apis_ 
   } else {
     # Set up nova-volume
     class { 'lvm':
@@ -263,8 +281,6 @@ class openstack::all (
     }
     
     class { 'nova::volume::iscsi': }
-
-    $enabled_apis = "${enabled_apis_},osapi_volume"
   }
 
   # Install / configure rabbitmq
@@ -280,7 +296,7 @@ class openstack::all (
     rabbit_userid      => $rabbit_user,
     rabbit_password    => $rabbit_password,
     image_service      => 'nova.image.glance.GlanceImageService',
-    glance_api_servers => '127.0.0.1:9292',
+    glance_api_servers => "$internal_address:9292",
     verbose            => $verbose,
     rabbit_host        => '127.0.0.1',
   }
@@ -289,8 +305,16 @@ class openstack::all (
   class { 'nova::api':
     enabled           => $enabled,
     admin_password    => $nova_user_password,
-    auth_host         => 'localhost',
+    auth_host         => $service_endpoint,
     enabled_apis      => $enabled_apis,
+    nova_rate_limits  => $nova_rate_limits,
+    cinder            => $cinder,
+  }
+
+  # Configure nova-conductor
+  class {'nova::conductor':
+    enabled => $enabled,
+    ensure_package  => $ensure_package,
   }
 
   # Configure nova-quota
@@ -313,6 +337,7 @@ class openstack::all (
       config_overrides  => $network_config,
       create_networks   => $really_create_networks,
       num_networks      => $num_networks,
+      network_size      => $network_size,
       enabled           => $enabled,
     }
   } else {
@@ -355,12 +380,12 @@ class openstack::all (
       quantum_admin_password    => $quantum_user_password,
     #$use_dhcp                  = 'True',
     #$public_interface          = undef,
-      quantum_connection_host   => 'localhost',
+      quantum_connection_host   => $service_endpoint,
       quantum_auth_strategy     => 'keystone',
-      quantum_url               => "http://127.0.0.1:9696",
+      quantum_url               => "http://$internal_address:9696",
       quantum_admin_tenant_name => 'services',
       #quantum_admin_username    => 'quantum',
-      quantum_admin_auth_url    => "http://127.0.0.1:35357/v2.0",
+      quantum_admin_auth_url    => "http://${admin_address}:35357/v2.0",
       public_interface          => $public_interface,
     }
   }
@@ -402,7 +427,7 @@ class openstack::all (
   ######## Horizon ########
   if ($horizon) {
     class { 'memcached':
-      listen_ip => '127.0.0.1',
+      listen_ip => '0.0.0.0',
     }
 
     class { 'openstack::horizon':
@@ -412,6 +437,7 @@ class openstack::all (
       swift             => $swift,
       quantum           => $quantum,
       horizon_app_links => $horizon_app_links,
+      bind_address      => $public_address,
     }
   }
 
