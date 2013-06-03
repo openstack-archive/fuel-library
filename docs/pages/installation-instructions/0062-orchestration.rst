@@ -10,6 +10,17 @@ Deploying via orchestration
 
 Manually installing a handful of servers might be managable, but repeatable installations, or those that involve a large number of servers, require automated orchestration.  Now you can use orchestration with Fuel through the ``astute`` script.  This script is configured using the ``astute.yaml`` file you created when you ran ``openstack_system``.
 
+To confirm that your servers are ready for orchestration, execute the command::
+
+  mco ping
+
+You should see all three controllers, plus the compute node, answer the call::
+
+  fuel-compute-01                                    time=107.26 ms
+  fuel-controller-01                                 time=120.14 ms
+  fuel-controller-02                                 time=135.94 ms
+  fuel-controller-03                                 time=139.33 ms
+
 To run the orchestrator, log in to ``fuel-pm`` and execute::
 
   astute -f astute.yaml
