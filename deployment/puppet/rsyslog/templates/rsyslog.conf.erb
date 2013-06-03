@@ -28,14 +28,14 @@ $PrivDropToGroup <%= scope.lookupvar('rsyslog::params::run_group') %>
 $OMFileASyncWriting on
 #$EscapeControlCharactersOnReceive off
 $MainMsgQueueType LinkedList
-$WorkDirectory <%= scope.lookupvar('rsyslog::params::rsyslog_mainmsq_queue_dir') %>
+$WorkDirectory <%= scope.lookupvar('rsyslog::params::rsyslog_msq_queues_dir') %>
 $MainMsgQueueFileName mainmsgqueue
 $MainMsgQueueSaveOnShutdown on
 $MainMsgQueueDequeueSlowdown 1000
 $MainMsgQueueWorkerThreads 2
 $MainMsgQueueDequeueBatchSize 128
 $ActionQueueType LinkedList
-$WorkDirectory <%= scope.lookupvar('rsyslog::params::rsyslog_action_queue_dir') %>
+$WorkDirectory <%= scope.lookupvar('rsyslog::params::rsyslog_msq_queues_dir') %>
 $ActionQueueFileName acsdbq
 $ActionQueueDequeueSlowdown 1000
 $ActionQueueWorkerThreads 2
