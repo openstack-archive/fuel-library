@@ -198,6 +198,7 @@ class node_netconfig (
     }
   }
   l23network::l3::ifconfig {$private_interface: ipaddr=>'none' }
+  class { cobbler::checksum_bootpc: }
 }
 ### NETWORK/QUANTUM END ###
 
