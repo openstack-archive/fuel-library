@@ -179,6 +179,24 @@ class openstack::mirantis_repos (
             gpgkey     => 'http://download.mirantis.com/epel-fuel-grizzly/mirantis.key',
             mirrorlist => absent,
         }
+      # completely disable additional out-of-box repos
+        yumrepo { 'extras':
+                descr => 'CentOS-$releasever - Extras',
+                mirrorlist => 'http://mirrorlist.centos.org/?release=$releasever&arch=$basearch&repo=extras',
+                gpgcheck => '1',
+                baseurl => absent,
+                gpgkey => 'file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-6',
+                enabled => '0',
+        }
+
+        yumrepo { 'updates':
+                descr => 'CentOS-$releasever - Updates',
+                mirrorlist => 'http://mirrorlist.centos.org/?release=$releasever&arch=$basearch&repo=updates',
+                gpgcheck => '1',
+                baseurl => absent,
+                gpgkey => 'file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-6',
+                enabled => '0',
+        }
       }
 
       if $type == 'custom' {
