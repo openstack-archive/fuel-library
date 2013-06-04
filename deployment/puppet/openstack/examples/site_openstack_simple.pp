@@ -160,7 +160,7 @@ $external_ipinfo = {}
 # Quantum segmentation range.
 # For VLAN networks: valid VLAN VIDs can be 1 through 4094.
 # For GRE networks: Valid tunnel IDs can be any 32-bit unsigned integer.
-$segment_range   = '300:399'
+$segment_range   = '300:349'
 
 # Set up OpenStack network manager. It is used ONLY in nova-network.
 # Consult Openstack nova-network docs for possible values.
