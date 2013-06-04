@@ -2,8 +2,7 @@ class quantum::agents::ovs (
   $package_ensure     = 'present',
   $enabled            = true,
   $bridge_uplinks     = ['br-ex:eth2'],
-  $bridge_mappings    = [
-    'physnet1:br-ex'],
+  $bridge_mappings    = ['physnet1:br-ex'],
   $integration_bridge = 'br-int',
   $enable_tunneling   = true,
   $local_ip           = undef,
@@ -46,14 +45,14 @@ class quantum::agents::ovs (
       skip_existing => true,
     # require      => Service['quantum-plugin-ovs-service'],
     }
-
     quantum_plugin_ovs { 'OVS/local_ip': value => $local_ip; }
   } else {
-    quantum::plugins::ovs::bridge { $bridge_mappings: # require      => Service['quantum-plugin-ovs-service'],
-     }
-
-    quantum::plugins::ovs::port { $bridge_uplinks: # require      => Service['quantum-plugin-ovs-service'],
-     }
+    quantum::plugins::ovs::bridge { $bridge_mappings: # Do not quote!!! may be array!
+      #require      => Service['quantum-plugin-ovs-service'],
+    }
+    quantum::plugins::ovs::port { $bridge_uplinks: # Do not quote!!! may be array!
+      #require      => Service['quantum-plugin-ovs-service'],
+    }
   }
 
   if $enabled {

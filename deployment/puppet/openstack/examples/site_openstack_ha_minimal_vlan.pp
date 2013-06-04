@@ -172,7 +172,7 @@ $vlan_start      = 300
 
 # Segmentation type for isolating traffic between tenants
 # Consult Openstack Quantum docs 
-$tenant_network_type     = 'gre'
+$tenant_network_type     = 'vlan'
 
 # Which IP address will be used for creating GRE tunnels.
 $quantum_gre_bind_addr = $internal_address
