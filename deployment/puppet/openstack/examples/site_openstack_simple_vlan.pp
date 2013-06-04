@@ -19,20 +19,7 @@ $internal_br         = 'br-mgmt'
 # This is the name of the private interface. All traffic within OpenStack tenants' networks will go through this interface.
 $private_interface   = 'eth2'
 
-# Public and Internal VIPs. These virtual addresses are required by HA topology and will be managed by keepalived.
-$internal_virtual_ip = '10.0.0.253'
-# Change this IP to IP routable from your 'public' network,
-# e. g. Internet or your office LAN, in which your public 
-# interface resides
-$public_virtual_ip   = '10.0.204.253'
-
 $nodes_harr = [
-  {
-    'name' => 'master',
-    'role' => 'master',
-    'internal_address' => '10.0.0.101',
-    'public_address'   => '10.0.204.101',
-  },
   {
     'name' => 'fuel-cobbler',
     'role' => 'cobbler',
@@ -41,21 +28,9 @@ $nodes_harr = [
   },
   {
     'name' => 'fuel-controller-01',
-    'role' => 'primary-controller',
+    'role' => 'controller',
     'internal_address' => '10.0.0.103',
     'public_address'   => '10.0.204.103',
-  },
-  {
-    'name' => 'fuel-controller-02',
-    'role' => 'controller',
-    'internal_address' => '10.0.0.104',
-    'public_address'   => '10.0.204.104',
-  },
-  {
-    'name' => 'fuel-controller-03',
-    'role' => 'controller',
-    'internal_address' => '10.0.0.105',
-    'public_address'   => '10.0.204.105',
   },
   {
     'name' => 'fuel-compute-01',
@@ -74,7 +49,8 @@ $nodes_harr = [
     'role' => 'compute',
     'internal_address' => '10.0.0.108',
     'public_address'   => '10.0.204.108',
-  },]
+  },
+]
 $nodes = $nodes_harr
 $default_gateway = '10.0.204.1'
 
@@ -88,22 +64,18 @@ $public_netmask = '255.255.255.0'
 
 
 $node = filter_nodes($nodes,'name',$::hostname)
-if empty($node) {
-  fail("Node $::hostname is not defined in the hash structure")
-}
 $internal_address = $node[0]['internal_address']
 $public_address = $node[0]['public_address']
 
 $controllers = merge_arrays(filter_nodes($nodes,'role','primary-controller'), filter_nodes($nodes,'role','controller'))
-$controller_internal_addresses = nodes_to_hash($controllers,'name','internal_address')
-$controller_public_addresses = nodes_to_hash($controllers,'name','public_address')
-$controller_hostnames = keys($controller_internal_addresses)
+$controller_internal_address = $controllers[0]['internal_address']
+$controller_public_address   = $controllers[0]['public_address']
 
 #Set this to anything other than pacemaker if you do not want Quantum HA
 #Also, if you do not want Quantum HA, you MUST enable $quantum_network_node
 #on the ONLY controller
-$ha_provider = 'pacemaker'
-$use_unicast_corosync = true
+$ha_provider = 'generic'
+#$use_unicast_corosync = false
 
 # Set nagios master fqdn
 $nagios_master        = 'nagios-server.localdomain'
@@ -135,6 +107,7 @@ $quantum_db_password     = 'quantum_pass'
 $quantum_db_user         = 'quantum'
 $quantum_db_dbname       = 'quantum'
 
+
 # End DB credentials section
 
 ### GENERAL CONFIG END ###
@@ -147,16 +120,11 @@ $quantum_db_dbname       = 'quantum'
 $quantum                 = true
 $quantum_netnode_on_cnt  = true
 
-#$quantum_host            = $internal_virtual_ip
-
-
 # Specify network creation criteria:
 # Should puppet automatically create networks?
 $create_networks = true
-
 # Fixed IP addresses are typically used for communication between VM instances.
 $fixed_range     = '10.0.198.128/27'
-
 # Floating IP addresses are used for communication of VM instances with the outside world (e.g. Internet).
 $floating_range  = '10.0.204.128/28'
 
@@ -201,24 +169,18 @@ $network_manager = 'nova.network.manager.FlatDHCPManager'
 # Assign floating IPs to VMs on startup automatically?
 $auto_assign_floating_ip = false
 
-# Database connection for Quantum configuration (quantum.conf)
-$quantum_sql_connection  = "mysql://${quantum_db_user}:${quantum_db_password}@${$internal_virtual_ip}/${quantum_db_dbname}"
+# Database connections
+$sql_connection = "mysql://nova:${nova_db_password}@${controller_internal_address}/nova"
+$quantum_sql_connection  = "mysql://${quantum_db_user}:${quantum_db_password}@${controller_internal_address}/${quantum_db_dbname}"
 
 
 if $quantum {
   $public_int   = $public_br
   $internal_int = $internal_br
 } else {
-  $public_int   = $public_interface
+  $public_int   = $public_interface 
   $internal_int = $internal_interface
 }
-
-if $node[0]['role'] == 'primary-controller' {
-  $primary_controller = true
-} else {
-  $primary_controller = false
-}
-
 
 #Network configuration
 stage {'netconfig':
@@ -271,7 +233,7 @@ class node_netconfig (
 # This parameter specifies the the identifier of the current cluster. This is needed in case of multiple environments.
 # installation. Each cluster requires a unique integer value. 
 # Valid identifier range is 1 to 254
-$deployment_id = '89'
+$deployment_id = '69'
 
 # Below you can enable or disable various services based on the chosen deployment topology:
 ### CINDER/VOLUME ###
@@ -294,7 +256,7 @@ $cinder_nodes          = ['controller']
 #Otherwise it will install api and scheduler services
 $manage_volumes          = true
 
-# Setup network address, which Cinder uses to export iSCSI targets.
+# Setup network interface, which Cinder uses to export iSCSI targets.
 $cinder_iscsi_bind_addr = $internal_address
 
 # Below you can add physical volumes to cinder. Please replace values with the actual names of devices.
@@ -324,14 +286,13 @@ if ($cinder) {
   $is_cinder_node = false
 }
 
-
 ### CINDER/VOLUME END ###
 
-### GLANCE ###
+### GLANCE and SWIFT ###
 
 # Which backend to use for glance
 # Supported backends are "swift" and "file"
-$glance_backend          = 'file'
+$glance_backend = 'file'
 
 # Use loopback device for swift:
 # set 'loopback' or false
@@ -340,7 +301,6 @@ $glance_backend          = 'file'
 $swift_loopback = false
 
 ### Glance and swift END ###
-
 
 ### Syslog ###
 # Enable error messages reporting to rsyslog. Rsyslog must be installed in this case.
@@ -355,6 +315,8 @@ if $use_syslog {
 }
 
 ### Syslog END ###
+
+
 case $::osfamily {
     "Debian":  {
        $rabbitmq_version_string = '2.8.7-1'
@@ -363,9 +325,8 @@ case $::osfamily {
        $rabbitmq_version_string = '2.8.7-2.el6'
     }
 }
-#
-# OpenStack packages and customized component versions to be installed. 
-# Use 'latest' to get the most recent ones or specify exact version if you need to install custom version.
+
+# OpenStack packages to be installed
 $openstack_version = {
   'keystone'         => 'latest',
   'glance'           => 'latest',
@@ -384,8 +345,7 @@ $openstack_version = {
 $mirror_type = 'default'
 $enable_test_repo = false
 $repo_proxy = undef
-
-#$quantum_sql_connection  = "mysql://${quantum_db_user}:${quantum_db_password}@${quantum_host}/${quantum_db_dbname}"
+$use_upstream_mysql = true
 
 # This parameter specifies the verbosity level of log messages
 # in openstack components config. Currently, it disables or enables debugging.
@@ -429,10 +389,13 @@ Exec<| title == 'clocksync' |>->Service<| title == 'cinder-volume' |>
 Exec<| title == 'clocksync' |>->Service<| title == 'cinder-api' |>
 Exec<| title == 'clocksync' |>->Service<| title == 'cinder-scheduler' |>
 Exec<| title == 'clocksync' |>->Exec<| title == 'keystone-manage db_sync' |>
+Exec<| title == 'clocksync' |>->Exec<| title == 'keystone-manage pki_setup' |>
 Exec<| title == 'clocksync' |>->Exec<| title == 'glance-manage db_sync' |>
 Exec<| title == 'clocksync' |>->Exec<| title == 'nova-manage db sync' |>
 Exec<| title == 'clocksync' |>->Exec<| title == 'initial-db-sync' |>
 Exec<| title == 'clocksync' |>->Exec<| title == 'post-nova_config' |>
+
+
 
 
 ### END OF PUBLIC CONFIGURATION PART ###
@@ -447,6 +410,7 @@ class { 'openstack::mirantis_repos':
   type=>$mirror_type,
   enable_test_repo=>$enable_test_repo,
   repo_proxy=>$repo_proxy,
+  use_upstream_mysql=>$use_upstream_mysql
 }
  stage {'openstack-firewall': before => Stage['main'], require => Stage['netconfig'] } 
  class { '::openstack::firewall':
@@ -467,19 +431,23 @@ sysctl::value { 'net.ipv4.conf.all.rp_filter': value => '0' }
 $horizon_use_ssl = false
 
 
-class compact_controller (
-  $quantum_network_node = $quantum_netnode_on_cnt
+class simple_controller (
+  $quantum_network_node = true
 ) {
-  class { 'openstack::controller_ha':
-    controller_public_addresses   => $controller_public_addresses,
-    controller_internal_addresses => $controller_internal_addresses,
-    internal_address        => $internal_address,
+  class {'::node_netconfig':
+    mgmt_ipaddr    => $::internal_address,
+    mgmt_netmask   => $::internal_netmask,
+    public_ipaddr  => $::public_address,
+    public_netmask => $::public_netmask,
+    stage          => 'netconfig',
+  }
+  class { 'openstack::controller':
+    admin_address           => $controller_internal_address,
+    service_endpoint        => $controller_internal_address,
+    public_address          => $controller_public_address,
     public_interface        => $public_int,
-    internal_interface      => $internal_int,
     private_interface       => $private_interface,
-    internal_virtual_ip     => $internal_virtual_ip,
-    public_virtual_ip       => $public_virtual_ip,
-    primary_controller      => $primary_controller,
+    internal_address        => $controller_internal_address,
     floating_range          => $floating_range,
     fixed_range             => $fixed_range,
     multi_host              => $multi_host,
@@ -500,10 +468,7 @@ class compact_controller (
     nova_user_password      => $nova_user_password,
     rabbit_password         => $rabbit_password,
     rabbit_user             => $rabbit_user,
-    rabbit_nodes            => $controller_hostnames,
-    memcached_servers       => $controller_hostnames,
     export_resources        => false,
-    glance_backend          => $glance_backend,
     quantum                 => $quantum,
     quantum_user_password   => $quantum_user_password,
     quantum_db_password     => $quantum_db_password,
@@ -518,120 +483,17 @@ class compact_controller (
     cinder                  => $cinder,
     cinder_iscsi_bind_addr  => $cinder_iscsi_bind_addr,
     manage_volumes          => $cinder ? { false => $manage_volumes, default =>$is_cinder_node },
-    galera_nodes            => $controller_hostnames,
     nv_physical_volume      => $nv_physical_volume,
     use_syslog              => $use_syslog,
     nova_rate_limits        => $nova_rate_limits,
     cinder_rate_limits      => $cinder_rate_limits,
     horizon_use_ssl         => $horizon_use_ssl,
-    use_unicast_corosync    => $use_unicast_corosync,
-    ha_provider             => $ha_provider
   }
-}
-
-# Definition of OpenStack controller nodes.
-node /fuel-controller-[\d+]/ {
-  include stdlib
-  class { 'operatingsystem::checksupported':
-      stage => 'setup'
-  }
-
-  class {'::node_netconfig':
-      mgmt_ipaddr    => $::internal_address,
-      mgmt_netmask   => $::internal_netmask,
-      public_ipaddr  => $::public_address,
-      public_netmask => $::public_netmask,
-      stage          => 'netconfig',
-  }
-  class {'nagios':
-    proj_name       => $proj_name,
-    services        => [
-      'host-alive','nova-novncproxy','keystone', 'nova-scheduler',
-      'nova-consoleauth', 'nova-cert', 'haproxy', 'nova-api', 'glance-api',
-      'glance-registry','horizon', 'rabbitmq', 'mysql'
-    ],
-    whitelist       => ['127.0.0.1', $nagios_master],
-    hostgroup       => 'controller',
-  }
-  class { compact_controller: }
-}
-
-
-# Definition of OpenStack compute nodes.
-node /fuel-compute-[\d+]/ {
-  include stdlib
-  class { 'operatingsystem::checksupported':
-      stage => 'setup'
-  }
-
-  class {'nagios':
-    proj_name       => $proj_name,
-    services        => [
-      'host-alive', 'nova-compute','nova-network','libvirt'
-    ],
-    whitelist       => ['127.0.0.1', $nagios_master],
-    hostgroup       => 'compute',
-  }
-  
-  class { 'openstack::compute':
-    public_interface       => $public_int,
-    private_interface      => $private_interface,
-    internal_address       => $internal_address,
-    libvirt_type           => 'kvm',
-    fixed_range            => $fixed_range,
-    network_manager        => $network_manager,
-    network_config         => { 'vlan_start' => $vlan_start },
-    multi_host             => $multi_host,
-    sql_connection         => "mysql://nova:${nova_db_password}@${internal_virtual_ip}/nova",
-    rabbit_nodes           => $controller_hostnames,
-    rabbit_password        => $rabbit_password,
-    rabbit_user            => $rabbit_user,
-    rabbit_ha_virtual_ip   => $internal_virtual_ip,
-    glance_api_servers     => "${internal_virtual_ip}:9292",
-    vncproxy_host          => $public_virtual_ip,
-    verbose                => $verbose,
-    vnc_enabled            => true,
-    nova_user_password     => $nova_user_password,
-    cache_server_ip        => $controller_hostnames,
-    service_endpoint       => $internal_virtual_ip,
-    quantum                => $quantum,
-    quantum_sql_connection => $quantum_sql_connection,
-    quantum_user_password  => $quantum_user_password,
-    quantum_host           => $internal_virtual_ip,
-    tenant_network_type    => $tenant_network_type,
-    segment_range          => $segment_range,
-    cinder                 => $cinder,
-    cinder_iscsi_bind_addr => $cinder_iscsi_bind_addr,
-    manage_volumes          => $cinder ? { false => $manage_volumes, default =>$is_cinder_node },
-    nv_physical_volume     => $nv_physical_volume,
-    db_host                => $internal_virtual_ip,
-    ssh_private_key        => 'puppet:///ssh_keys/openstack',
-    ssh_public_key         => 'puppet:///ssh_keys/openstack.pub',
-    use_syslog             => $use_syslog,
-    nova_rate_limits       => $nova_rate_limits,
-    cinder_rate_limits     => $cinder_rate_limits
-  }
-}
-
-# Definition of OpenStack Quantum node.
-node /fuel-quantum/ {
-  include stdlib
-  class { 'operatingsystem::checksupported':
-      stage => 'setup'
-  }
-
-  class {'::node_netconfig':
-      mgmt_ipaddr    => $::internal_address,
-      mgmt_netmask   => $::internal_netmask,
-      public_ipaddr  => 'none',
-      save_default_gateway => true,
-      stage          => 'netconfig',
-  }
-  if ! $quantum_netnode_on_cnt {
-    class { 'openstack::quantum_router':
-      db_host               => $internal_virtual_ip,
-      service_endpoint      => $internal_virtual_ip,
-      auth_host             => $internal_virtual_ip,
+  if $::quantum and $quantum_network_node {
+    class { '::openstack::quantum_router':
+      db_host               => $controller_internal_address,
+      service_endpoint      => $controller_internal_address,
+      auth_host             => $controller_internal_address,
       internal_address      => $internal_address,
       public_interface      => $public_int,
       private_interface     => $private_interface,
@@ -641,26 +503,106 @@ node /fuel-quantum/ {
       verbose               => $verbose,
       rabbit_password       => $rabbit_password,
       rabbit_user           => $rabbit_user,
-      rabbit_nodes          => $controller_hostnames,
-      rabbit_ha_virtual_ip  => $internal_virtual_ip,
+      rabbit_ha_virtual_ip  => $controller_internal_address,
+      rabbit_nodes           => [$controller_internal_address],
       quantum               => $quantum,
       quantum_user_password => $quantum_user_password,
       quantum_db_password   => $quantum_db_password,
       quantum_db_user       => $quantum_db_user,
       quantum_db_dbname     => $quantum_db_dbname,
-      quantum_netnode_on_cnt=> false,
-      quantum_network_node  => true,
+      quantum_gre_bind_addr => $quantum_gre_bind_addr,
+      quantum_network_node  => $quantum_network_node,
+      quantum_netnode_on_cnt=> $quantum_netnode_on_cnt,
       tenant_network_type   => $tenant_network_type,
       segment_range         => $segment_range,
       external_ipinfo       => $external_ipinfo,
       api_bind_address      => $internal_address,
       use_syslog            => $use_syslog,
     }
-    class { 'openstack::auth_file':
-      admin_password       => $admin_password,
-      keystone_admin_token => $keystone_admin_token,
-      controller_node      => $internal_virtual_ip,
-      before               => Class['openstack::quantum_router'],
-    }
+  }
+  class { 'openstack::auth_file':
+    admin_password       => $admin_password,
+    keystone_admin_token => $keystone_admin_token,
+    controller_node      => $controller_internal_address,
+  }
+}
+
+
+# Definition of OpenStack controller node.
+node /fuel-controller-[\d+]/ {
+  include stdlib
+  class { 'operatingsystem::checksupported':
+      stage => 'setup'
+  }
+  class {'nagios':
+    proj_name       => $proj_name,
+    services        => [
+      'host-alive','nova-novncproxy','keystone', 'nova-scheduler',
+      'nova-consoleauth', 'nova-cert', 'nova-api', 'glance-api',
+      'glance-registry','horizon', 'rabbitmq', 'mysql',
+    ],
+    whitelist       => ['127.0.0.1', $nagios_master],
+    hostgroup       => 'controller',
+  }
+  class { 'simple_controller': } 
+}
+
+# Definition of OpenStack compute nodes.
+node /fuel-compute-[\d+]/ {
+  include stdlib
+  class { 'operatingsystem::checksupported':
+      stage => 'setup'
+  }
+  class {'::node_netconfig':
+    mgmt_ipaddr    => $::internal_address,
+    mgmt_netmask   => $::internal_netmask,
+    public_ipaddr  => $::public_address,
+    public_netmask => $::public_netmask,
+    stage          => 'netconfig',
+  }
+  class {'nagios':
+    proj_name       => $proj_name,
+    services        => [
+      'host-alive', 'nova-compute','nova-network','libvirt'
+    ],
+    whitelist       => ['127.0.0.1', $nagios_master],
+    hostgroup       => 'compute',
+  }
+
+  class { 'openstack::compute':
+    public_interface       => $public_int,
+    private_interface      => $private_interface,
+    internal_address       => $internal_address,
+    libvirt_type           => 'kvm',
+    fixed_range            => $fixed_range,
+    network_manager        => $network_manager,
+    network_config         => { 'vlan_start' => $vlan_start },
+    multi_host             => $multi_host,
+    sql_connection         => $sql_connection,
+    nova_user_password     => $nova_user_password,
+    rabbit_nodes           => [$controller_internal_address],
+    rabbit_password        => $rabbit_password,
+    rabbit_user            => $rabbit_user,
+    glance_api_servers     => "${controller_internal_address}:9292",
+    vncproxy_host          => $controller_public_address,
+    vnc_enabled            => true,
+    ssh_private_key        => 'puppet:///ssh_keys/openstack',
+    ssh_public_key         => 'puppet:///ssh_keys/openstack.pub',
+    quantum                => $quantum,
+    quantum_sql_connection => $quantum_sql_connection,
+    quantum_user_password  => $quantum_user_password,
+    quantum_host           => $controller_internal_address,
+    tenant_network_type    => $tenant_network_type,
+    service_endpoint       => $controller_internal_address,
+    db_host                => $controller_internal_address,
+    verbose                => $verbose,
+    segment_range          => $segment_range,
+    cinder                 => $cinder,
+    manage_volumes          => $cinder ? { false => $manage_volumes, default =>$is_cinder_node },
+    nv_physical_volume     => $nv_physical_volume,
+    cinder_iscsi_bind_addr => $cinder_iscsi_bind_addr,
+    use_syslog             => $use_syslog,
+    nova_rate_limits       => $nova_rate_limits,
+    cinder_rate_limits     => $cinder_rate_limits
   }
 }
