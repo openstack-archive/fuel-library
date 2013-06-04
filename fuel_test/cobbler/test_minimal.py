@@ -21,6 +21,9 @@ class MinimalTestCase(CobblerTestCase):
             controllers=self.nodes().controllers,
             quantums=self.nodes().quantums,
             quantum=True)
+        
+        Manifest().write_manifest(remote=self.remote(), manifest=manifest)
+        
         self.validate(self.nodes().controllers[:1], PUPPET_AGENT_COMMAND)
         self.validate(self.nodes().controllers[1:], PUPPET_AGENT_COMMAND)
         self.validate(self.nodes().controllers[:1], PUPPET_AGENT_COMMAND)
