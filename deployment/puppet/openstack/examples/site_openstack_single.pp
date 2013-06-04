@@ -96,7 +96,7 @@ $rabbit_user             = 'nova'
 
 # Should we use quantum or nova-network(deprecated).
 # Consult OpenStack documentation for differences between them.
-$quantum                 = true
+$quantum                 = false
 $quantum_netnode_on_cnt  = true
 
 # Specify network creation criteria:
