@@ -199,6 +199,12 @@ class openstack::firewall (
     action => 'accept',
   }
 
+  firewall {'118 vnc ports':
+    port => "5900-6100",
+    proto => 'tcp',
+    action => 'accept',
+  }
+
   firewall { '999 drop all other requests':
     action => 'drop',
   }
