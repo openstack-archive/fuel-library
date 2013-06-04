@@ -195,7 +195,7 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Cor
       debug("GOOD OPERATIONS :\n\n #{good_operations.inspect}")
       next if good_operations.nil?
       last_op = good_operations.last
-      debug("LAST GOOD OPERATION :\n\n #{last_op.inspect}")
+      debug("LAST GOOD OPERATION :\n\n '#{last_op.inspect}' '#{last_op.nil?}' '#{last_op}'")
       next if last_op.nil?
       last_successful_op = nil
       if ['start','stop'].include?(last_op.attributes['operation'])
