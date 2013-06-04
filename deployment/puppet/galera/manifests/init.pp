@@ -22,16 +22,6 @@ class galera (
   $mysql_password = $::galera::params::mysql_password
   $libgalera_prefix = $::galera::params::libgalera_prefix
 
-  case $::osfamily {
-    'RedHat' : {
-
-      if (!$::selinux == 'false') and !defined(Class['selinux']) {
-        class { 'selinux':
-          mode   => 'disabled',
-          before => Package['MySQL-server']
-        }
-      }
-
       file { '/etc/init.d/mysql':
         ensure  => present,
         mode    => 755,
