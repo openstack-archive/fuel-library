@@ -14,8 +14,8 @@ class galera (
   $node_address         = $ipaddress_eth0,
   $setup_multiple_gcomm = true,
   $skip_name_resolve    = false,
-  $node_addresses       = [
-    $ipaddress_eth0]) {
+  $node_addresses       = [$ipaddress_eth0],
+  ) {
   include galera::params
 
   $mysql_user = $::galera::params::mysql_user
@@ -58,12 +58,6 @@ class galera (
       }
     }
     'Debian' : {
-      if (!$::selinux == 'false') and !defined(Class['selinux']) {
-        class { 'selinux':
-          mode   => 'disabled',
-          before => Package['MySQL-server']
-        }
-      }
 
       file { '/etc/init.d/mysql':
         ensure  => present,
@@ -180,7 +174,7 @@ class galera (
 
   exec { "wait-initial-sync":
     logoutput   => true,
-    command     => "/usr/bin/mysql -Nbe \"show status like 'wsrep_local_state_comment'\" | /bin/grep -q Synced && sleep 10",
+    command     => "/usr/bin/mysql -Nbe \"show status like 'wsrep_local_state_comment'\" | /bin/grep -q -e Synced -e Initialized && sleep 10",
     try_sleep   => 5,
     tries       => 60,
     refreshonly => true,
@@ -217,5 +211,16 @@ class galera (
     primary_controller => $primary_controller,
     node_addresses => $node_addresses,
     node_address   => $node_address,
+  }
+  
+  if $primary_controller {
+    exec { "start-new-galera-cluster":
+      path   => "/usr/bin:/usr/sbin:/bin:/sbin",
+      logoutput => true,
+      command   => '/etc/init.d/mysql stop; sleep 10; killall -w mysqld && ( killall -w -9 mysqld_safe || : ) && sleep 10; /etc/init.d/mysql start --wsrep-cluster-address=gcomm:// &',
+      onlyif    => "[ -f /var/lib/mysql/grastate.dat ] && (cat /var/lib/mysql/grastate.dat | awk '\$1 == \"uuid:\" {print \$2}' | awk '{if (\$0 == \"00000000-0000-0000-0000-000000000000\") exit 0; else exit 1}')",
+      require    => Service["mysql-galera"],
+      before     => Exec ["wait-for-synced-state"],
+    }
   }
 }
