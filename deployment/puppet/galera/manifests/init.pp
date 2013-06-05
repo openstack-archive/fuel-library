@@ -22,6 +22,9 @@ class galera (
   $mysql_password = $::galera::params::mysql_password
   $libgalera_prefix = $::galera::params::libgalera_prefix
 
+  case $::osfamily {
+    'RedHat' : {
+
       file { '/etc/init.d/mysql':
         ensure  => present,
         mode    => 755,
