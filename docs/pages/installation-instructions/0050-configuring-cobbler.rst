@@ -215,10 +215,10 @@ Also, make sure the ``ip-address`` is correct, and that the ``dns-name`` has you
 
 In this example, IP addresses should be assigned as follows::
 
-    fuel-controller-01:  10.20.0.101
-    fuel-controller-02:  10.20.0.102
-    fuel-controller-03:  10.20.0.103
-    fuel-compute-01:     10.20.0.110
+    fuel-controller-01:  10.0.0.101
+    fuel-controller-02:  10.0.0.102
+    fuel-controller-03:  10.0.0.103
+    fuel-compute-01:     10.0.0.110
 
 Repeat this step for each of the other controllers, and for the compute node.  Note that the compute node has its own role::
 
@@ -229,7 +229,7 @@ Repeat this step for each of the other controllers, and for the compute node.  N
 	    eth0:
 	      mac: "08:00:27:AE:A9:6E"
 	      static: "1"
-	      ip-address: "10.20.0.110"
+	      ip-address: "10.0.0.110"
 	      netmask: "255.255.255.0"
 	      dns-name: "fuel-compute-01.localdomain"
 	      management: "1"
