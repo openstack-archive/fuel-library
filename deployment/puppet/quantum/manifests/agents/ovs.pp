@@ -165,4 +165,14 @@ class quantum::agents::ovs (
   }
   Class[quantum::waistline] -> Service[quantum-plugin-ovs-service]
   Package[$ovs_agent_package] -> Service[quantum-plugin-ovs-service]
+
+  service { 'quantum-ovs-agent-cleanup':
+    name       => 'quantum-ovs-cleanup',
+    enable     => $enabled,
+    ensure     => false,
+    hasstatus  => false,
+    hasrestart => false,
+  }
+  Service['quantum-plugin-ovs-service'] -> Service['quantum-ovs-agent-cleanup']
+
 }
