@@ -25,7 +25,7 @@ OpenStack Grizzly is the seventh release of the open source software for buildin
  
 **Support for CentOS 6.4**
 
-CentOS 6.4 can now be used as the base operating system for the Fuel master node, as well as the deployed slave nodes.
+CentOS 6.4 is now the base operating system for the Fuel master node, as well as the deployed slave nodes.
  
 **Deployment Improvements**
  
