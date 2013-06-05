@@ -116,7 +116,7 @@ Puppet to use a technique called stored configuration.
 
 
 
-* Finally, if you are planning to install Cobbler on the Puppet Master node as well (as we are in this example), make configuration changes on the Puppet Master so that it actually knows how to provision software onto itself (replace your-domain-name. com with your domain name):
+* Finally, if you are planning to install Cobbler on the Puppet Master node as well (as we are in this example), make configuration changes on the Puppet Master so that it actually knows how to provision software onto itself:
 
   ``vi /etc/puppet/puppet.conf``::
 
@@ -139,8 +139,7 @@ Testing Puppet
 ^^^^^^^^^^^^^^
 
 
-Put a simple configuration into Puppet -- replace localdomain
-with your domain name -- so that when you run puppet on various nodes,
+Add a simple configuration to Puppet so that when you run puppet on various nodes,
 it will display the appropriate Hello world message:
 
 ``vi /etc/puppet/manifests/site.pp``::
