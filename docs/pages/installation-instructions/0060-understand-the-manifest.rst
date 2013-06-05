@@ -233,7 +233,12 @@ If you are installing Quantum in non-HA mode, you will need to specify which sin
   # the first address will be defined as an external default router,
   # the second address will be attached to an uplink bridge interface,
   # the remaining addresses will be utilized for the floating IP address pool.
-  $external_ipinfo = {'pool_start' => '192.168.0.115','public_net_router' => '192.168.0.1', 'pool_end' => '192.168.0.126','ext_bridge' => '0.0.0.0'}
+  $external_ipinfo = {
+     'pool_start' => '192.168.0.115',
+	 'public_net_router' => '192.168.0.1', 
+	 'pool_end' => '192.168.0.126',
+	 'ext_bridge' => '0.0.0.0'
+  }
 
   # Quantum segmentation range.
   # For VLAN networks: valid VLAN VIDs can be 1 through 4094.
