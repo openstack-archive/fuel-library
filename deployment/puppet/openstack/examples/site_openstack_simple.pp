@@ -140,7 +140,7 @@ $vlan_start      = 300
 
 # Segmentation type for isolating traffic between tenants
 # Consult Openstack Quantum docs 
-$tenant_network_type     = 'gre'
+$tenant_network_type     = 'vlan'
 
 # Which IP address will be used for creating GRE tunnels.
 $quantum_gre_bind_addr = $internal_address
@@ -160,7 +160,7 @@ $external_ipinfo = {}
 # Quantum segmentation range.
 # For VLAN networks: valid VLAN VIDs can be 1 through 4094.
 # For GRE networks: Valid tunnel IDs can be any 32-bit unsigned integer.
-$segment_range   = '900:999'
+$segment_range   = '300:349'
 
 # Set up OpenStack network manager. It is used ONLY in nova-network.
 # Consult Openstack nova-network docs for possible values.
