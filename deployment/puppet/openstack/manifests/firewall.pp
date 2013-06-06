@@ -22,6 +22,7 @@ class openstack::firewall (
   $nova_vncproxy_port =  6080,
   $erlang_epmd_port  =   4369,
   $erlang_rabbitmq_port =  5672,
+  $erlang_rabbitmq_backend_port = 5673,
   $erlang_inet_dist_port = 41055,
   $memcached_port =  11211,
   $rsync_port = 873,
@@ -116,7 +117,7 @@ class openstack::firewall (
   }
 
   firewall {'106 rabbitmq ':
-    port   => [$erlang_epmd_port, $erlang_rabbitmq_port, $erlang_inet_dist_port],
+    port   => [$erlang_epmd_port, $erlang_rabbitmq_port, $erlang_rabbitmq_backend_port, $erlang_inet_dist_port],
     proto  => 'tcp',
     action => 'accept',
   }
