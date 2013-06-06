@@ -140,7 +140,7 @@ Testing Puppet
 
 
 Add a simple configuration to Puppet so that when you run puppet on various nodes,
-it will display the appropriate Hello world message:
+it will display a "Hello world" message:
 
 ``vi /etc/puppet/manifests/site.pp``::
 
