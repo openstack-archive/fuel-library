@@ -22,7 +22,7 @@ At this point, you should have either a physical or virtual machine that
 can be booted from the Mirantis ISO, downloaded from http://fuel.mirantis.com/your-downloads/ .
 
 This ISO can be used to create fuel-pm on a physical or virtual
-machine based on CentOS6.4x86_64minimal.iso. If for some reason you
+machine based on CentOS 6.4. If for some reason you
 can't use this ISO, follow the instructions in :ref:`Creating the Puppet master <Create-PM>` to create
 your own fuel-pm, then skip ahead to :ref:`Configuring fuel-pm <Configuring-Fuel-PM>`.
 
