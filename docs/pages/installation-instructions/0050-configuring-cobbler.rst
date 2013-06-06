@@ -22,7 +22,7 @@ You'll want to configure this example for your own situation, but the example lo
         deployment_engine: simplepuppet
       task_uuid: deployment_task
 
-Possible values for ``deployment_mode`` are ``singlenode_compute``, ``multinode_compute``, ``ha_compute``, ``ha_compact``, ``ha_full``, and ``ha_minimal``.  Change the ``deployment_mode`` to ``ha_compact`` to tell Fuel to use HA architecture.  The ``simplepuppet`` ``deployment_engine`` means that the orchestrator will be calling Puppet on each of the nodes.
+Possible values for ``deployment_mode`` are ``singlenode_compute``, ``multinode_compute``, ``ha_compute``, ``ha_compact``, ``ha_full``, and ``ha_minimal``.  Change the ``deployment_mode`` to ``ha_compact`` to tell Fuel to use HA architecture.  Specifying the ``simplepuppet`` deployment engine means that the orchestrator will be calling Puppet on each of the nodes.
 
 Next you'll need to set OpenStack's networking information::
 
