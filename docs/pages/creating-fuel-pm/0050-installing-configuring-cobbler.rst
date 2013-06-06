@@ -224,5 +224,5 @@ http://10.0.0.100/cobbler_web
 
 
 At this point you should have a fully working instance of Cobbler,
-fully configured and capable of installing the chosen OS (CentOS 6.3, RHEL 6.3, or Ubuntu 12.04) on
+fully configured and capable of installing the chosen OS (CentOS 6.4 or Ubuntu 12.04) on
 the target OpenStack nodes.
