@@ -125,3 +125,12 @@ In most casts, Fuel creates the XFS partition for you.  If for some reason you n
     noatime,nodiratime,nobarrier,logbufs=8 0 0" >> /etc/fstab
     mount -a
 
+
+Redeploying a node from scratch
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Compute and Cinder nodes in an HA configuration and controller in any configuration cannot be redeployed without completely redeploying the cluster.  However, in a non-HA situation you can redeploy a compute or Cinder node.  Simply follow these steps:
+
+#. Remove the certificate for the node by executing the command ``puppet cert clean <hostname>`` on fuel-pm.
+#. Re-boot the node over the network so it can be picked up by cobbler.
+#. Run the puppet agent on the target node using ``puppet agent --test``.

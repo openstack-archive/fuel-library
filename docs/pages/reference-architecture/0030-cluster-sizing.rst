@@ -1,6 +1,6 @@
 
 Cluster Sizing
---------------
+^^^^^^^^^^^^^^
 
 This reference architecture is well suited for production-grade
 OpenStack deployments on a medium and large scale when you can afford

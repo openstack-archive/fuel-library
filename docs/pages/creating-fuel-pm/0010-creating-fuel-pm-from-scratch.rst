@@ -1,8 +1,4 @@
 
-If you already have Puppet Master installed, you can skip this
-installation step and go directly to :ref:`Installing the OS Using Fuel <Install-OS-Using-Fuel>`.
-
-
 
 Installing Puppet Master is a one-time procedure for the entire
 infrastructure. Once done, Puppet Master will act as a single point of
@@ -13,7 +9,41 @@ these installation steps again.
 Initial Setup
 -------------
 
-For VirtualBox, follow these steps to create the virtual hardware:
+On VirtualBox (https://www.virtualbox.org/wiki/Downloads), please create or make sure the following
+hostonly adapters exist and are configured correctly:
+
+* VirtualBox -> File -> Preferences...
+
+    * Network -> Add HostOnly Adapter (vboxnet0)
+
+        * IPv4 Address:  10.0.0.1
+        * IPv4 Network Mask:  255.255.255.0
+        * DHCP server: disabled
+
+    * Network -> Add HostOnly Adapter (vboxnet1)
+
+        * IPv4 Address:  10.0.1.1
+        * IPv4 Network Mask:  255.255.255.0
+        * DHCP server: disabled
+
+    * Network -> Add HostOnly Adapter (vboxnet2)
+
+        * IPv4 Address:  0.0.0.0
+        * IPv4 Network Mask:  255.255.255.0
+        * DHCP server: disabled
+
+In this example, only the first two adapters will be used, but you can choose to use the third to handle your storage network traffic.
+
+After creating these interfaces, reboot the host machine to make sure that
+DHCP isn't running in the background.
+
+Installing on Windows isn't recommended, but if you're attempting it,
+you will also need to set up the IP address & network mask under
+Control Panel > Network and Internet > Network and Sharing Center for the
+Virtual HostOnly Network adapter.
+
+
+Next, follow these steps to create the virtual hardware:
 
 
 * Machine -> New
@@ -29,16 +59,13 @@ For VirtualBox, follow these steps to create the virtual hardware:
 
 * Machine -> Settings -> Network
 
+   * Adapter 1
 
-
-    * Adapter 1
         * Enable Network Adapter
         * Attached to: Host-only Adapter
         * Name: vboxnet0
 
-
-
-    * Adapter 2
+   * Adapter 2
         * Enable Network Adapter
         * Attached to: Bridged Adapter
         * Name: eth0 (or whichever physical network has your internet connection)
@@ -50,13 +77,12 @@ OS Installation
 ---------------
 
 
-    * Pick and download an operating system image. This image will be used as the base OS for the Puppet master node. These insructions assume that you are using CentOS 6.3, but you can also use Ubuntu 12.04 or RHEL 6.3.  
+    * Pick and download an operating system image. This image will be used as the base OS for the Puppet master node. These insructions assume that you are using CentOS 6.4, but you can also use Ubuntu 12.04.  
 	
-	  **PLEASE NOTE**: These are the only operating systems on which Fuel has been certified. Using other operating systems can, and in many cases will, produce unpredictable results.
+	  **PLEASE NOTE**: These are the only operating systems on which Fuel 3.0 has been certified. Using other operating systems can, and in many cases will, produce unpredictable results.
 
-
-
-        * `CentOS 6.3 <http://isoredirect.centos.org/centos/6/isos/x86_64/>`_: download CentOS-6.3-x86_64-minimal.iso
+        * `CentOS 6.4 <http://isoredirect.centos.org/centos/6/isos/x86_64/>`_: download CentOS-6.4-x86_64-minimal.iso
+        * `Ubuntu 12.04 Precise Pangolin <https://help.ubuntu.com/community/Installation/MinimalCD>`_: download the Ubuntu Minimal CD
 
 
     * Mount the downloaded ISO to the machine's CD/DVD drive. In case of VirtualBox, mount it to the fuel-pm virtual machine:
@@ -72,16 +98,13 @@ OS Installation
     * Boot the server (or VM) from the CD/DVD drive and install the chosen OS.  Be sure to choose the root password carefully.
 
 
-
-
-
     * Set up the eth0 interface. This interface will be used for communication between the Puppet Master and Puppet clients, as well as for Cobbler.
 
-      ``vi/etc/sysconfig/network-scripts/ifcfg-eth0``::
+      ``vi /etc/sysconfig/network-scripts/ifcfg-eth0``::
 
         DEVICE="eth0"
         BOOTPROTO="static"
-        IPADDR="10.20.0.100"
+        IPADDR="10.0.0.100"
         NETMASK="255.255.255.0"
         ONBOOT="yes"
         TYPE="Ethernet"
@@ -116,7 +139,7 @@ OS Installation
 
     * Add DNS for Internet hostnames resolution::
 
-        vi/etc/resolv.conf
+        vi /etc/resolv.conf
 
 
 
@@ -130,7 +153,7 @@ OS Installation
 
     * Check that a ping to your host machine works. This means that the management segment is available::
 
-        ping 10.20.0.1
+        ping 10.0.0.1
 
 
 
@@ -147,30 +170,34 @@ OS Installation
 
     * Next, set up the packages repository:
 
+      ``vi /etc/yum.repos.d/puppet.repo``::
 
-
-
-      ``vi/etc/yum.repos.d/puppet.repo``::
+        [puppetlabs-dependencies]
+        name=Puppet Labs Dependencies
+        baseurl=http://yum.puppetlabs.com/el/$releasever/dependencies/$basearch/
+        enabled=1
+        gpgcheck=0
 
         [puppetlabs] 
         name=Puppet Labs Packages
         baseurl=http://yum.puppetlabs.com/el/$releasever/products/$basearch/
-        enabled=1 gpgcheck=1 gpgkey=http://yum.puppetlabs.com/RPM-GPG-KEY-puppetlabs
-
-
-
+        enabled=1 
+        gpgcheck=0
 
     * Install Puppet Master::
 
-
-        rpm -Uvh http://download.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
+        rpm -Uvh http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
         yum upgrade
         yum install puppet-server-2.7.19
-        service puppetmaster
-        start chkconfig puppetmaster on
+        service puppetmaster start
+        chkconfig puppetmaster on
         service iptables stop
         chkconfig iptables off
 
+    * Install PuppetDB::
+
+        yum install puppetdb puppetdb-terminus
+        chkconfig puppetdb on
 
 
 
