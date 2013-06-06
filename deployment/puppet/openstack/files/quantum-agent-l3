@@ -41,6 +41,7 @@ OCF_RESKEY_os_auth_url_default="http://localhost:5000/v2.0"
 OCF_RESKEY_username_default="quantum"
 OCF_RESKEY_password_default="quantum_pass"
 OCF_RESKEY_tenant_default="services"
+OCF_RESKEY_external_bridge_default="br-ex"
 
 
 : ${OCF_RESKEY_os_auth_url=${OCF_RESKEY_os_auth_url_default}}
@@ -52,6 +53,7 @@ OCF_RESKEY_tenant_default="services"
 : ${OCF_RESKEY_plugin_config=${OCF_RESKEY_plugin_config_default}}
 : ${OCF_RESKEY_user=${OCF_RESKEY_user_default}}
 : ${OCF_RESKEY_pid=${OCF_RESKEY_pid_default}}
+: ${OCF_RESKEY_external_bridge=${OCF_RESKEY_external_bridge_default}}
 
 
 
@@ -170,6 +172,15 @@ Admin tenant name
 <content type="string" default="${OCF_RESKEY_tenant_default}" />                                                                                                                                              
 </parameter>      
 
+<parameter name="external_bridge" unique="0" required="0">
+<longdesc lang="en">
+External bridge for l3-agent
+</longdesc>
+<shortdesc lang="en">External bridge</shortdesc>
+<content type="string" />
+</parameter>
+
+
 
 <parameter name="additional_parameters" unique="0" required="0">
 <longdesc lang="en">
@@ -260,8 +271,9 @@ quantum_l3_agent_status() {
 
 clean_up()
 {
-    filter_quantum_ports.py "network:router_gateway" | while read port; do
+    filter_quantum_ports.py "network:router_gateway" | while read port ip; do
         ocf_log info "Cleaning up port ${port}"
+        ( ip address delete ${ip} dev $OCF_RESKEY_external_bridge || : )
         ovs-vsctl -- --if-exists del-port ${port};
         rc=$?
         if [ $rc -ne 0 ]; then
@@ -269,7 +281,7 @@ clean_up()
             exit $OCF_ERR_GENERIC
         fi
 	done
-    filter_quantum_ports.py "network:router_interface" | while read port; do
+    filter_quantum_ports.py "network:router_interface" | while read port ip; do
         ocf_log info "Cleaning up port ${port}"
         ovs-vsctl -- --if-exists del-port ${port};
         rc=$?
