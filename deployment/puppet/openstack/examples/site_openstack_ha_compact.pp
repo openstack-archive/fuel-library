@@ -473,6 +473,7 @@ Exec { logoutput => true }
 # Globally apply an environment-based tag to all resources on each node.
 tag("${::deployment_id}::${::environment}")
 
+
 stage { 'openstack-custom-repo': before => Stage['netconfig'] }
 class { 'openstack::mirantis_repos':
   stage => 'openstack-custom-repo',
@@ -484,7 +485,15 @@ class { 'openstack::mirantis_repos':
  class { '::openstack::firewall':
       stage => 'openstack-firewall'
  }
- 
+
+ if !defined(Class['selinux']) and ($::osfamily == 'RedHat') {
+  class { 'selinux':
+    mode=>"disabled",
+    stage=>"openstack-custom-repo"
+  }
+}
+
+
 if $::operatingsystem == 'Ubuntu' {
   class { 'openstack::apparmor::disable': stage => 'openstack-custom-repo' }
 }

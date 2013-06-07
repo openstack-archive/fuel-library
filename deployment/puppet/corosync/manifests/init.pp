@@ -138,14 +138,16 @@ class corosync (
     require => Package['corosync']
   }
 
-  file { '/var/lib/pacemaker/cores/root':
-    ensure  => directory,
-    mode    => '0750',
-    owner   => 'hacluster',
-    group   => 'haclient',
-    recurse => true,
-    purge   => true,
-    require => Package['corosync']
+  if $::osfamily == "RedHat" {
+    file { '/var/lib/pacemaker/cores/root':
+      ensure  => directory,
+      mode    => '0750',
+      owner   => 'hacluster',
+      group   => 'haclient',
+      recurse => true,
+      purge   => true,
+      require => Package['corosync']
+    }
   }
 
   if $::osfamily == 'Debian' {

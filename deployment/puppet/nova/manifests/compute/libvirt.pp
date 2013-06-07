@@ -56,6 +56,13 @@ class nova::compute::libvirt (
     ensure => present,
   }
 
+  file_line { 'no_qemu_selinux':
+    path    => '/etc/libvirt/qemu.conf',
+    line    => 'security_driver="none"',
+    require => Package[$::nova::params::libvirt_package_name],
+    notify  => Service['libvirt']
+  }
+
   service { 'libvirt' :
     name     => $::nova::params::libvirt_service_name,
     ensure   => running,

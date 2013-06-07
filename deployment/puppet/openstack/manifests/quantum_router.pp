@@ -64,8 +64,8 @@ class openstack::quantum_router (
 
     if $quantum_network_node {
       class { 'quantum::agents::ovs':
-        bridge_uplinks   => ["br-ex:${public_interface}","br-prv:${private_interface}"],
-        bridge_mappings  => ['physnet1:br-ex', 'physnet2:br-prv'],
+        bridge_uplinks   => ["br-prv:${private_interface}"],
+        bridge_mappings  => ['physnet2:br-prv'],
         enable_tunneling => $enable_tunneling,
         local_ip         => $internal_address,
         service_provider => $service_provider

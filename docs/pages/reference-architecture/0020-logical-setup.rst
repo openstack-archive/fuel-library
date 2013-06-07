@@ -1,12 +1,14 @@
 
 Logical Setup 
--------------
+^^^^^^^^^^^^^
 
 An OpenStack HA cluster involves, at a minimum, three types of nodes:
 controller nodes, compute nodes, and storage nodes.
 
 Controller Nodes
-^^^^^^^^^^^^^^^^
+++++++++++++++++
+
+
 The first order of business in achieving high availability (HA) is
 redundancy, so the first step is to provide multiple controller nodes.
 You must keep in mind, however, that the database uses Galera to
@@ -45,7 +47,7 @@ mechanism for achieving HA:
 
 
 Compute Nodes
-^^^^^^^^^^^^^
++++++++++++++
 
 OpenStack compute nodes are, in many ways, the foundation of your
 cluster; they are the servers on which your users will create their
@@ -60,7 +62,7 @@ controller nodes using the VIP and going through HAProxy.
 
 
 Storage Nodes
-^^^^^^^^^^^^^
++++++++++++++
 
 
 In this OpenStack cluster reference architecture, shared storage acts
