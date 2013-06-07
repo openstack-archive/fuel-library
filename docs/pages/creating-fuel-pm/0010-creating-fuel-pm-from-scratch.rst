@@ -82,8 +82,6 @@ OS Installation
 	  **PLEASE NOTE**: These are the only operating systems on which Fuel 3.0 has been certified. Using other operating systems can, and in many cases will, produce unpredictable results.
 
         * `CentOS 6.4 <http://isoredirect.centos.org/centos/6/isos/x86_64/>`_: download CentOS-6.4-x86_64-minimal.iso
-        * `Ubuntu 12.04 Precise Pangolin <https://help.ubuntu.com/community/Installation/MinimalCD>`_: download the Ubuntu Minimal CD
-
 
     * Mount the downloaded ISO to the machine's CD/DVD drive. In case of VirtualBox, mount it to the fuel-pm virtual machine:
 
