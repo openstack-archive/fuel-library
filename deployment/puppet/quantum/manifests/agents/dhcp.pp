@@ -165,7 +165,7 @@ class quantum::agents::dhcp (
       hasstatus  => true,
       hasrestart => false,
       provider   => $service_provider,
-      require    => [Package[$dhcp_agent_package], Class['quantum'], Service['quantum-plugin-ovs-service']],
+      require    => [Package[$dhcp_agent_package], Class['quantum'], Service['quantum-ovs-agent']],
     }
 
   } else {
@@ -176,7 +176,7 @@ class quantum::agents::dhcp (
       hasstatus  => true,
       hasrestart => true,
       provider   => $::quantum::params::service_provider,
-      require    => [Package[$dhcp_agent_package], Class['quantum'], Service['quantum-plugin-ovs-service']],
+      require    => [Package[$dhcp_agent_package], Class['quantum'], Service['quantum-ovs-agent']],
     }
   }
   Class[quantum::waistline] -> Service[quantum-dhcp-service]
