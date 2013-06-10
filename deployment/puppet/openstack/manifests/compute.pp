@@ -63,7 +63,7 @@ class openstack::compute (
   $rabbit_user                   = 'nova',
   $rabbit_ha_virtual_ip          = false,
   # Glance
-  $glance_api_servers            = false,
+  $glance_api_servers            = undef,
   # Virtualization
   $libvirt_type                  = 'kvm',
   # VNC
@@ -185,6 +185,7 @@ class openstack::compute (
         physical_volume      => $nv_physical_volume,
         manage_volumes       => $manage_volumes,
         enabled              => true,
+        glance_api_servers   => $glance_api_servers,
         auth_host            => $service_endpoint,
         bind_host            => false,
         iscsi_bind_host      => $cinder_iscsi_bind_addr,

@@ -354,6 +354,7 @@ class openstack::controller (
       physical_volume      => $nv_physical_volume,
       manage_volumes       => $manage_volumes,
       enabled              => true,
+      glance_api_servers   => glance_api_servers,
       auth_host            => $service_endpoint,
       bind_host            => $api_bind_address,
       iscsi_bind_host      => $cinder_iscsi_bind_addr,
