@@ -26,7 +26,7 @@ class horizon(
   $cache_server_port     = '11211',
   $swift                 = false,
   $quantum               = false,
-  $package_ensure	 = present,
+  $package_ensure	       = present,
   $horizon_app_links     = false,
   $keystone_host         = '127.0.0.1',
   $keystone_port         = 5000,
@@ -37,6 +37,7 @@ class horizon(
   $http_port             = 80,
   $https_port            = 443,
   $use_ssl               = false,
+  $log_level             = 'DEBUG',
 ) {
 
   include horizon::params
@@ -64,6 +65,11 @@ class horizon(
   file { $::horizon::params::local_settings_path:
     content => template('horizon/local_settings.py.erb'),
     mode    => '0644',
+  }
+
+  file {'/usr/share/openstack-dashboard/':
+    recurse   => true,
+    subscribe => Package['dashboard'],
   }
 
   case $use_ssl {

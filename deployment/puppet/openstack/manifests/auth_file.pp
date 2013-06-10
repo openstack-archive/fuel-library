@@ -10,12 +10,15 @@ class openstack::auth_file(
   $admin_user           = 'admin',
   $admin_tenant         = 'admin'
 ) {
+  $escaped_tenant = shellescape($admin_tenant)
+  $escaped_user = shellescape($admin_user)
+  $escaped_password = shellescape($admin_password)
   file { '/root/openrc':
     content =>
   "
-  export OS_TENANT_NAME=${admin_tenant}
-  export OS_USERNAME=${admin_user}
-  export OS_PASSWORD=${admin_password}
+  export OS_TENANT_NAME=${escaped_tenant}
+  export OS_USERNAME=${escaped_user}
+  export OS_PASSWORD=${escaped_password}
   export OS_AUTH_URL=\"http://${controller_node}:5000/v2.0/\"
   export OS_AUTH_STRATEGY=keystone
   export SERVICE_TOKEN=${keystone_admin_token}

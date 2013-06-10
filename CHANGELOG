@@ -1,0 +1,12 @@
+3.0-alpha-174-g94a98d6
+- Merge from master branch
+- Rsyslog tuning
+- Puppet debug output
+- Centos 6.4
+
+2.1-folsom-docs-324-g61d1599
+- Grizzly support for centos simple
+- Option for PKI auth for keystone (grizzly native)
+- Nova-conductor as generic nova service at compute nodes
+- CI scripts changes for grizzly tempest (host only routed IP addresses for public pool)
+- 

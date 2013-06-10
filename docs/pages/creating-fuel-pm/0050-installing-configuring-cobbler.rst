@@ -1,4 +1,4 @@
-Installing & Configuring Cobbler
+Installing Fuel and Cobbler
 --------------------------------
 
 Cobbler performs bare metal provisioning and initial installation of

@@ -36,7 +36,6 @@ Puppet::Type.type(:quantum_net).provide(
     optional_opts = []
     {
       :router_ext   => '--router:external',
-      :shared       => '--shared',
       :network_type => '--provider:network_type',
       :physnet      => '--provider:physical_network',
       :segment_id   => '--provider:segmentation_id'
@@ -44,6 +43,9 @@ Puppet::Type.type(:quantum_net).provide(
       if @resource[param]
         optional_opts.push(opt).push(@resource[param])
       end
+    end
+    if @resource[:shared] == 'True'
+        optional_opts.push("--shared")
     end
 
     auth_quantum('net-create',

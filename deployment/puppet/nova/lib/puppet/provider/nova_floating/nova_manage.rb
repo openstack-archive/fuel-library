@@ -13,11 +13,16 @@ Puppet::Type.type(:nova_floating).provide(:nova_manage) do
   end
 
   def create
-     nova_manage("floating", "create", resource[:network])
+    nova_manage("floating", "create", resource[:network])
   end
 
   def destroy
     nova_manage("floating", "delete", resource[:network])
+  end
+
+  def parse
+    /([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})(\/([0-9]{1,2}))?/ =~ resource[:network]
+    [Regexp.last_match(1), Regexp.last_match(3)]
   end
 
 end

@@ -494,6 +494,7 @@ Exec { logoutput => true }
 # Globally apply an environment-based tag to all resources on each node.
 tag("${::deployment_id}::${::environment}")
 
+
 stage { 'openstack-custom-repo': before => Stage['netconfig'] }
 class { 'openstack::mirantis_repos':
   stage => 'openstack-custom-repo',
@@ -505,6 +506,14 @@ class { 'openstack::mirantis_repos':
  class { '::openstack::firewall':
       stage => 'openstack-firewall'
  }
+
+if !defined(Class['selinux']) and ($::osfamily == 'RedHat') {
+  class { 'selinux':
+    mode=>"disabled",
+    stage=>"openstack-custom-repo"
+  }
+}
+
 
 if $::operatingsystem == 'Ubuntu' {
   class { 'openstack::apparmor::disable': stage => 'openstack-custom-repo' }
@@ -588,9 +597,9 @@ class ha_controller (
     quantum_external_ipinfo => $external_ipinfo,
     tenant_network_type     => $tenant_network_type,
     segment_range           => $segment_range,
-    cinder                  => $is_cinder_node,
+    cinder                  => $cinder,
     cinder_iscsi_bind_addr  => $cinder_iscsi_bind_addr,
-    manage_volumes          => $manage_volumes,
+    manage_volumes          => $cinder ? { false => $manage_volumes, default =>$is_cinder_node },
     galera_nodes            => $controller_hostnames,
     nv_physical_volume      => $nv_physical_volume,
     use_syslog              => $use_syslog,
@@ -671,7 +680,7 @@ node /fuel-compute-[\d+]/ {
     tenant_network_type    => $tenant_network_type,
     segment_range          => $segment_range,
     cinder                 => $cinder,
-    manage_volumes         => $is_cinder_node ? { true => $manage_volumes, false => false},
+    manage_volumes          => $cinder ? { false => $manage_volumes, default =>$is_cinder_node },
     cinder_iscsi_bind_addr => $cinder_iscsi_bind_addr,
     nv_physical_volume     => $nv_physical_volume,
     db_host                => $internal_virtual_ip,
@@ -714,9 +723,9 @@ node /fuel-swift-[\d+]/ {
     swift_zone             => $swift_zone,
     swift_local_net_ip     => $swift_local_net_ip,
     master_swift_proxy_ip  => $master_swift_proxy_ip,
-    cinder                 => $is_cindernode,
+    cinder                 => $cinder,
     cinder_iscsi_bind_addr => $cinder_iscsi_bind_addr,
-    manage_volumes         => $manage_volumes,
+    manage_volumes          => $cinder ? { false => $manage_volumes, default =>$is_cinder_node },
     nv_physical_volume     => $nv_physical_volume,
     db_host                => $internal_virtual_ip,
     service_endpoint       => $internal_virtual_ip,

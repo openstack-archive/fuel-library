@@ -82,6 +82,7 @@ class openstack::nova::controller (
   $api_bind_address          = '0.0.0.0',
   $use_syslog                = false,
   $nova_rate_limits          = undef,
+  $cinder                    = true
 ) {
 
   # Configure the db string
@@ -257,10 +258,16 @@ class openstack::nova::controller (
     auth_host         => $keystone_host,
     enabled_apis      => $_enabled_apis,
     ensure_package    => $ensure_package,
-    nova_rate_limits  => $nova_rate_limits
+    nova_rate_limits  => $nova_rate_limits,
+    cinder            => $cinder
   }
 
-  if $auto_assign_floating_ip {
+  class {'nova::conductor':
+    enabled => $enabled,
+    ensure_package  => $ensure_package,
+  }
+
+if $auto_assign_floating_ip {
     nova_config { 'DEFAULT/auto_assign_floating_ip': value => 'True' }
   }
 

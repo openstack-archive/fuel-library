@@ -145,6 +145,7 @@ class quantum::agents::l3 (
         subnet_gw       => $external_gateway, # undef,
         alloc_pool      => $external_alloc_pool, # undef,
         enable_dhcp     => 'False', # 'True',
+        shared          => 'True',
       }
       Quantum_l3_agent_config <| |> -> Quantum::Network::Setup['net04_ext']
 
@@ -273,16 +274,23 @@ class quantum::agents::l3 (
     cs_colocation { 'l3-with-ovs':
       ensure     => present,
       cib        => 'l3',
-      primitives => ["p_${::quantum::params::l3_agent_service}", "p_${::quantum::params::ovs_agent_service}"],
+      primitives => ["p_${::quantum::params::l3_agent_service}", "clone_p_${::quantum::params::ovs_agent_service}"],
       score      => 'INFINITY',
     }
-
     cs_order { 'l3-after-ovs':
       ensure => present,
       cib    => 'l3',
-      first  => "p_${::quantum::params::ovs_agent_service}",
+      first  => "clone_p_${::quantum::params::ovs_agent_service}",
       second => "p_${::quantum::params::l3_agent_service}",
       score  => 'INFINITY',
+    }
+
+    # start DHCP and L3 agents on different controllers if it's possible
+    cs_colocation { 'dhcp-without-l3':
+      ensure     => present,
+      cib        => 'l3',
+      primitives => ["p_${::quantum::params::dhcp_agent_service}", "p_${::quantum::params::l3_agent_service}"],
+      score      => '-100',
     }
 
     # Ensure service is stopped  and disabled by upstart/init/etc.
