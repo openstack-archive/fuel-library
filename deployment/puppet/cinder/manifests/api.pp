@@ -78,9 +78,6 @@ if $cinder_rate_limits {
 
  if $keystone_enabled {
     cinder_config {
-      'DEFAULT/auth_strategy':     value => 'keystone' ;
-    }
-    cinder_config {
       'keystone_authtoken/auth_protocol':     value => $keystone_auth_protocol;
       'keystone_authtoken/auth_host':         value => $keystone_auth_host;
       'keystone_authtoken/auth_port':         value => $keystone_auth_port;

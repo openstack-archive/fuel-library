@@ -198,7 +198,9 @@ Puppet::Type.type(:firewall).provide :iptables, :parent => Puppet::Provider::Fir
 
     # Normalise all rules to CIDR notation.
     [:source, :destination].each do |prop|
-      hash[prop] = Puppet::Util::IPCidr.new(hash[prop]).cidr unless hash[prop].nil?
+      if hash[prop] =~ /^(\d{1,3}\.){3}\d{1,3}(:?\/(\d+))?$/
+        hash[prop] = Puppet::Util::IPCidr.new(hash[prop]).cidr \
+      end
     end
 
     [:dport, :sport, :port, :state].each do |prop|
@@ -252,9 +254,9 @@ Puppet::Type.type(:firewall).provide :iptables, :parent => Puppet::Provider::Fir
     # Proto should equal 'all' if undefined
     hash[:proto] = "all" if !hash.include?(:proto)
 
-    # If the jump parameter is set to one of: ACCEPT, REJECT or DROP then
+    # If the jump parameter is set to one of: ACCEPT, REJECT, NOTRACK or DROP then
     # we should set the action parameter instead.
-    if ['ACCEPT','REJECT','DROP'].include?(hash[:jump]) then
+    if ['ACCEPT','REJECT','DROP','NOTRACK'].include?(hash[:jump]) then
       hash[:action] = hash[:jump].downcase
       hash.delete(:jump)
     end

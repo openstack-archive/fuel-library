@@ -3,7 +3,7 @@ from fuel_test.cobbler.vm_test_case import CobblerTestCase
 from fuel_test.config import Config
 from fuel_test.helpers import write_config
 from fuel_test.manifest import Template, Manifest
-from fuel_test.settings import CREATE_SNAPSHOTS, ASTUTE_USE
+from fuel_test.settings import CREATE_SNAPSHOTS, ASTUTE_USE, PUPPET_AGENT_COMMAND
 
 
 class MinimalTestCase(CobblerTestCase):
@@ -20,14 +20,14 @@ class MinimalTestCase(CobblerTestCase):
             ci=self.ci(),
             controllers=self.nodes().controllers,
             quantums=self.nodes().quantums,
-            quantum=True
-        )
+            quantum=True)
+        
         Manifest().write_manifest(remote=self.remote(), manifest=manifest)
-
-        self.validate(self.nodes().controllers[:1], 'puppet agent --test')
-        self.validate(self.nodes().controllers[1:], 'puppet agent --test')
-        self.validate(self.nodes().controllers[:1], 'puppet agent --test')
-        self.validate(self.nodes().computes, 'puppet agent --test')
+        
+        self.validate(self.nodes().controllers[:1], PUPPET_AGENT_COMMAND)
+        self.validate(self.nodes().controllers[1:], PUPPET_AGENT_COMMAND)
+        self.validate(self.nodes().controllers[:1], PUPPET_AGENT_COMMAND)
+        self.validate(self.nodes().computes, PUPPET_AGENT_COMMAND)
 
     def deploy_by_astute(self):
         self.remote().check_stderr("astute -f /root/astute.yaml -v")

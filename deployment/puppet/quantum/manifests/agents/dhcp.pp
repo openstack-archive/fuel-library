@@ -134,14 +134,14 @@ class quantum::agents::dhcp (
     cs_colocation { 'dhcp-with-ovs':
       ensure     => present,
       cib        => 'dhcp',
-      primitives => ["p_${::quantum::params::dhcp_agent_service}", "p_${::quantum::params::ovs_agent_service}"],
+      primitives => ["p_${::quantum::params::dhcp_agent_service}", "clone_p_${::quantum::params::ovs_agent_service}"],
       score      => 'INFINITY',
     }
 
     cs_order { 'dhcp-after-ovs':
       ensure => present,
       cib    => 'dhcp',
-      first  => "p_${::quantum::params::ovs_agent_service}",
+      first  => "clone_p_${::quantum::params::ovs_agent_service}",
       second => "p_${::quantum::params::dhcp_agent_service}",
       score  => 'INFINITY',
     }

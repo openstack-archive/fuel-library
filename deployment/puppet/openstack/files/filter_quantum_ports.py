@@ -109,7 +109,7 @@ class QuantumXxx(object):
             return []
         rv = []
         for i in self.get_ports_by_owner(port_owner, activeonly=activeonly):
-            rv.append("{0}{1}".format(port_name_prefix, i['id'][:port_id_part_len]))
+            rv.append("{0}{1} {2}".format(port_name_prefix, i['id'][:port_id_part_len], i['fixed_ips'][0]['ip_address']))
         return rv
 
 

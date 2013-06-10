@@ -1,6 +1,6 @@
 
 Network Architecture
---------------------
+^^^^^^^^^^^^^^^^^^^^
 
 
 The current architecture assumes the presence of 3 NIC cards in
@@ -26,7 +26,8 @@ cluster.
 
 
 Public Network
-^^^^^^^^^^^^^^
+++++++++++++++
+
 This network allows inbound connections to VMs from the outside world
 (allowing users to connect to VMs from the Internet). It also allows
 outbound connections from VMs to the outside world.
@@ -61,7 +62,7 @@ The public network also provides VIPs for Endpoint nodes, which are
 used to connect to OpenStack services APIs.
 
 Internal (Management) Network
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
++++++++++++++++++++++++++++++
 
 The internal network connects all OpenStack nodes in the cluster. All
 components of an OpenStack cluster communicate with each other using
@@ -80,7 +81,7 @@ non-globally routed IP address range.
 
 
 Private Network
-^^^^^^^^^^^^^^^
++++++++++++++++
 
 The private network facilitates communication between each tenant's
 VMs. Private network address spaces are part of the enterprise network

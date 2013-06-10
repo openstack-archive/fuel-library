@@ -17,6 +17,16 @@ class rsyslog::config {
         require => Class["rsyslog::install"],
         notify  => Class["rsyslog::service"],
     }
+
+    file { '/var/lib/rsyslog' :
+        owner   => root,
+        group   => $::rsyslog::params::run_group,
+        ensure  => directory,
+        path    => $::rsyslog::params::rsyslog_queues_dir,
+        require => Class["rsyslog::install"],
+        notify  => Class["rsyslog::service"],
+    }
+
 if $osfamily == "Debian"
 {
     file { $rsyslog::params::rsyslog_default:

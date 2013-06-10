@@ -101,8 +101,4 @@ class quantum (
   }
 
   # SELINUX=permissive
-  if !defined(Class['selinux']) and ($::osfamily == 'RedHat') {
-    class { 'selinux' : }
-  }
-
 }

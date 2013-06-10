@@ -106,7 +106,7 @@ Puppet to use a technique called stored configuration.
 
 
 
-* Finally, set up SSL for PuppetDB and restart the puppetmaster and puppetdb services::
+* Set up SSL for PuppetDB and restart the puppetmaster and puppetdb services::
 
 
     service puppetmaster restart
@@ -116,18 +116,31 @@ Puppet to use a technique called stored configuration.
 
 
 
+* Finally, if you are planning to install Cobbler on the Puppet Master node as well (as we are in this example), make configuration changes on the Puppet Master so that it actually knows how to provision software onto itself:
+
+  ``vi /etc/puppet/puppet.conf``::
+
+
+     [main]
+     # server
+     server = fuel-pm.localdomain
+
+     # enable plugin sync
+     pluginsync = true
+
 
 * **IMPORTANT**: Note that while these operations appear to finish quickly, it can actually take several minutes for puppetdb to complete its startup process. You'll know it has finished starting up when you can successfully telnet to port 8081::
 
-    telnet pm.localdomain 8081
+     yum install telnet
+     telnet fuel-pm.localdomain 8081
 
 
 Testing Puppet
 ^^^^^^^^^^^^^^
 
-Put a simple configuration into Puppet -- replace localdomain
-with your domain name -- so that when you run puppet on various nodes,
-it will display the appropriate Hello world message:
+
+Add a simple configuration to Puppet so that when you run puppet on various nodes,
+it will display a "Hello world" message:
 
 ``vi /etc/puppet/manifests/site.pp``::
 
@@ -135,37 +148,8 @@ it will display the appropriate Hello world message:
     node /fuel-pm.localdomain/ {
         notify{"Hello world from fuel-pm": }
     }
-    node /fuel-controller-01.localdomain/ {
-        notify{"Hello world from fuel-controller-01": }
-    }
-    node /fuel-controller-02.localdomain/ {
-        notify{"Hello world from fuel-controller-02": }
-    }
-    node /fuel-controller-03.localdomain/ {
-        notify{"Hello world from fuel-controller-03": }
-    }
-    node /fuel-compute-01.localdomain/ {
-        notify{"Hello world from fuel-compute-01": }
-    }
 
 
-
-If you are planning to install Cobbler on the Puppet Master node as
-well (as we are in this example), make configuration changes on the
-Puppet Master so that it actually knows how to provision software onto
-itself (replace your-domain-name. com with your domain name):
-
-
-
-``vi /etc/puppet/puppet.conf``::
-
-
-    [main]
-    # server
-    server = fuel-pm.localdomain
-
-    # enable plugin sync
-    pluginsync = true
 
 
 Finally, to make sure everything is working properly, run puppet agent

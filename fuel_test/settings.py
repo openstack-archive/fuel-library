@@ -1,7 +1,7 @@
 import os
 
 OS_FAMILY = os.environ.get('OS_FAMILY', "centos")
-PUPPET_GEN = os.environ.get('PUPPET_GEN', "3")
+PUPPET_GEN = os.environ.get('PUPPET_GEN', "2")
 
 DEFAULT_IMAGES = {
     'centos': '/var/lib/libvirt/images/centos63-cobbler-base.qcow2',
@@ -14,7 +14,7 @@ PUPPET_VERSIONS = {
     'centos': {
         "2": '2.7.19-1.el6',
         "3": '3.0.1-1.el6',
-    },
+        },
     'ubuntu': {
         "2": '2.7.19-1puppetlabs2',
         "3": '3.0.1-1puppetlabs1'
@@ -28,7 +28,7 @@ PUPPET_CLIENT_PACKAGES = {
     'centos': {
         "2": 'puppet-2.7.19-1.el6',
         "3": 'puppet-3.0.1-1.el6',
-    },
+        },
     'ubuntu': {
         "2": 'puppet=2.7.19-1puppetlabs2 puppet-common=2.7.19-1puppetlabs2',
         "3": 'puppet=3.0.1-1puppetlabs1 puppet-common=3.0.1-1puppetlabs1'
@@ -58,7 +58,7 @@ ADMIN_PASSWORD = 'nova'
 ADMIN_TENANT_ESSEX = 'openstack'
 ADMIN_TENANT_FOLSOM = 'admin'
 
-CIRROS_IMAGE = 'http://srv08-srt.srt.mirantis.net/cirros-0.3.0-x86_64-disk.img'
+CIRROS_IMAGE = os.environ.get('CIRROS_IMAGE', 'http://srv08-srt.srt.mirantis.net/cirros-0.3.0-x86_64-disk.img')
 CONTROLLERS = int(os.environ.get('CONTROLLERS', 3))
 COMPUTES = int(os.environ.get('COMPUTES', 3))
 STORAGES = int(os.environ.get('STORAGES', 3))
@@ -92,12 +92,12 @@ DEFAULT_POOLS = {
         'public': '10.108.0.0/16:24',
         'private': '10.108.0.0/16:24',
         'internal': '10.108.0.0/16:24',
-    },
+        },
     'ubuntu': {
         'public': '10.107.0.0/16:24',
         'private': '10.107.0.0/16:24',
         'internal': '10.107.0.0/16:24',
-    },
+        },
 }
 
 POOLS = {
@@ -115,7 +115,7 @@ CREATE_SNAPSHOTS = os.environ.get('CREATE_SNAPSHOTS', 'true') == 'true'
 CLEAN = os.environ.get('CLEAN', 'true') == 'true'
 ISO_IMAGE = os.environ.get('ISO_IMAGE', '~/fuel-centos-6.3-x86_64.iso')
 USE_ISO = os.environ.get('USE_ISO', 'true') == 'true'
-PARENT_PROXY = os.environ.get('PARENT_PROXY', "172.18.3.14")
+PARENT_PROXY = os.environ.get('PARENT_PROXY', '')
 PROFILES_COBBLER_COMMON = {
     'centos': 'centos64_x86_64',
     'ubuntu': 'ubuntu_1204_x86_64'
@@ -125,4 +125,6 @@ CURRENT_PROFILE = PROFILES_COBBLER_COMMON.get(OS_FAMILY)
 
 ASTUTE_USE = os.environ.get('ASTUTE_USE', 'true') == 'true'
 DOMAIN_NAME = os.environ.get('DOMAIN_NAME', '.localdomain')
-PUPPET_AGENT_COMMAND = 'puppet agent --test 2>&1'
+PUPPET_AGENT_COMMAND = 'puppet agent -tvd --evaltrace 2>&1'
+SETUP_TIMEOUT = int(os.environ.get('SETUP_TIMEOUT',600))
+

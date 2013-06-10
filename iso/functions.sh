@@ -171,17 +171,13 @@ function show_top {
     else
         echo $parent_proxy
     fi
-    column -t -s% <(
-        echo "Management interface: $mgmt_if%External interface: $ext_if"
-        echo "IP address: ${mgmt_ip:-"DHCP"}%IP address: ${ext_ip:-"DHCP"}"
-        echo "Netmask: $mgmt_mask%Netmask: $ext_mask"
-        echo "Gateway: $mgmt_gw%Gateway:$ext_gw"
-        echo "DNS Server 1: $mgmt_dns1%DNS Server 1: $ext_dns1"
-        echo "DNS Server 2: $mgmt_dns2%DNS Server 2: $ext_dns2"
-        echo
-    )
-    echo
-}
+        echo -e "Management interface: $mgmt_if%External interface: $ext_if\n\
+IP address: ${mgmt_ip:-"DHCP"}%IP address: ${ext_ip:-"DHCP"}\n\
+Netmask: $mgmt_mask%Netmask: $ext_mask\n\
+Gateway: $mgmt_gw%Gateway:$ext_gw\n\
+DNS Server 1: $mgmt_dns1%DNS Server 1: $ext_dns1\n\
+DNS Server 2: $mgmt_dns2%DNS Server 2: $ext_dns2\n" | column -t -s%
+	}
 
 function show_msg {
     echo "Menu:"

@@ -123,11 +123,11 @@ class Manifest(object):
         return dict(map(
             lambda x:
             (str(x.name),
-             {
-                 'internal_address': x.get_ip_address_by_network_name('internal'),
-                 'public_address': x.get_ip_address_by_network_name('public'),
-             },
-            ),
+               {
+                   'internal_address': x.get_ip_address_by_network_name('internal'),
+                   'public_address': x.get_ip_address_by_network_name('public'),
+               },
+        ),
             nodes)
         )
 
@@ -211,23 +211,6 @@ class Manifest(object):
         else:
             return ci.fixed_network()
 
-    def generate_openstack_single_manifest(self, ci,
-                                           use_syslog=True,
-                                           quantum=True,
-                                           cinder=True):
-        return Template.single().replace(
-            floating_range=self.floating_network(ci, quantum),
-            fixed_range=self.fixed_network(ci, quantum),
-            public_interface=self.public_interface(),
-            private_interface=self.private_interface(),
-            mirror_type=self.mirror_type(),
-            use_syslog=use_syslog,
-            cinder=cinder,
-            ntp_servers=['pool.ntp.org', ci.internal_router()],
-            quantum=quantum,
-            enable_test_repo=TEST_REPO,
-        )
-
     def generate_openstack_manifest(self, template,
                                     ci,
                                     controllers,
@@ -237,10 +220,12 @@ class Manifest(object):
                                     quantum=True,
                                     loopback=True,
                                     cinder=True,
-                                    cinder_nodes=None,
-                                    quantum_netnode_on_cnt=True,
+                                            cinder_nodes=None,
+                                            quantum_netnode_on_cnt=True,
                                     swift=True,
                                     ha_provider='pacemaker', ha=True):
+        if not cinder_nodes:
+            cinder_nodes = []
         if ha:
             template.replace(
                 internal_virtual_ip=ci.internal_virtual_ip(),
@@ -267,24 +252,24 @@ class Manifest(object):
             deployment_id=self.deployment_id(ci),
             public_netmask=ci.public_net_mask(),
             internal_netmask=ci.internal_net_mask(),
-            quantum=quantum,
-            quantum_netnode_on_cnt=quantum_netnode_on_cnt,
+                quantum=quantum,
+                quantum_netnode_on_cnt=quantum_netnode_on_cnt,
             ha_provider=ha_provider
-        )
+            )
         if swift:
             template.replace(swift_loopback=self.loopback(loopback))
         return template
 
     def generate_swift_manifest(self, controllers,
-                                proxies=None):
+                             proxies=None):
         template = Template(
             root('deployment', 'puppet', 'swift', 'examples',
-                 'site.pp'))
+                'site.pp'))
         template.replace(
             swift_proxy_address=proxies[0].get_ip_address_by_network_name(
                 'internal'),
             controller_node_public=controllers[
-                0].get_ip_address_by_network_name(
+                                   0].get_ip_address_by_network_name(
                 'public'),
         )
         return template
@@ -295,14 +280,14 @@ class Manifest(object):
         cobbler_address = cobbler.get_ip_address_by_network_name('internal')
         network = IPNetwork(ci.environment().network_by_name('internal').ip_network)
         self.replace = site_pp.replace(server=cobbler_address,
-                                       name_server=cobbler_address,
-                                       next_server=cobbler_address,
-                                       dhcp_start_address=network[5],
-                                       dhcp_end_address=network[-1],
-                                       dhcp_netmask=network.netmask,
-                                       dhcp_gateway=network[1],
-                                       pxetimeout='3000',
-                                       mirror_type=self.mirror_type(),
+            name_server=cobbler_address,
+            next_server=cobbler_address,
+            dhcp_start_address=network[5],
+            dhcp_end_address=network[-1],
+            dhcp_netmask=network.netmask,
+            dhcp_gateway=network[1],
+            pxetimeout='3000',
+            mirror_type=self.mirror_type(),
         )
 
     def generate_stomp_manifest(self):
