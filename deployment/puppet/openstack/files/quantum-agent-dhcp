@@ -250,7 +250,7 @@ quantum_dhcp_agent_status() {
 
 clean_up()
 {
-    filter_quantum_ports.py "network:dhcp" | while read port; do
+    filter_quantum_ports.py "network:dhcp" | while read port ip; do
         ocf_log info "Cleaning up port ${port}"
         ovs-vsctl -- --if-exists del-port ${port};
         rc=$?
