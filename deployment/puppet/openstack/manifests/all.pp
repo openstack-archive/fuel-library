@@ -260,6 +260,7 @@ class openstack::all (
       rabbit_password      => $rabbit_password,
       cinder_user_password => $cinder_user_password,
       volume_group         => $cinder_volume_group,
+      glance_api_servers   => "localhost:9292",
       physical_volume      => $nv_physical_volume,
       manage_volumes       => true,
       enabled              => true,
