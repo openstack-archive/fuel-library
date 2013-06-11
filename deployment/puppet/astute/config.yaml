@@ -20,6 +20,7 @@ common:
      pool_start: 10.49.54.225
      pool_end: 10.49.54.239
    segment_range: 900:999
+   tenant_network_type: vlan
    network_manager: nova.network.manager.FlatDHCPManager
    auto_assign_floating_ip: true
    quantum_netnode_on_cnt: true

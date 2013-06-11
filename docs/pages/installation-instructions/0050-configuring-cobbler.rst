@@ -56,7 +56,7 @@ Set the ``public_net_router`` to point to the real router at the public network.
    auto_assign_floating_ip: true
    quantum_netnode_on_cnt: true   
 
-Fuel provides two choices for your network manager: FlatDHCPManager, and VlanManager.  By default, the system uses FlatDHCPManager.  Here you can see that we're also telling OpenStack to automatically assing a floating IP to an instance when it's created, and to put the Quantum services on the controllers rather than a sepearate node. ::
+Fuel provides two choices for your network manager: FlatDHCPManager, and VlanManager.  By default, the system uses FlatDHCPManager.  Here you can see that we're also telling OpenStack to automatically assing a floating IP to an instance when it's created, and to put the Quantum services on the controllers rather than a sepearate node.You can also choose ``tenant_network_type`` for network segmentation type and  segmentation range ``segment_range``  for network (consult Quantum documentation for details). ::
 
    use_syslog: false
    syslog_server: 127.0.0.1
