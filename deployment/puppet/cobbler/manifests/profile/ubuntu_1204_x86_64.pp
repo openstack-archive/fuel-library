@@ -1,5 +1,5 @@
 #
-# This class is intended to make cobbler profile rhel63_x86_64.
+# This class is intended to make cobbler profile ubuntu_1204_x86_64.
 #
 # [distro] The name of cobbler distro to bind profile to.
 #
@@ -13,6 +13,7 @@ class cobbler::profile::ubuntu_1204_x86_64(
     {
       "name" => "Puppet",
       "url"  => "http://apt.puppetlabs.com/",
+      "key"  => "http://apt.puppetlabs.com/pubkey.gpg",
       "release" => "precise",
       "repos" => "main dependencies",
     },
