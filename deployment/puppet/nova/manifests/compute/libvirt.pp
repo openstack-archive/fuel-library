@@ -40,6 +40,14 @@ class nova::compute::libvirt (
 
     Service['avahi-daemon'] -> Service['libvirt']
 
+    service { 'libvirt-guests':
+      name       => 'libvirt-guests',
+      enable     => false,
+      ensure     => true,
+      hasstatus  => false,
+      hasrestart => false,
+    }
+
   }
 
   Service['libvirt'] -> Service['nova-compute']
