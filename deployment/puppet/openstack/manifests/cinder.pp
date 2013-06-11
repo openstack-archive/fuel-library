@@ -5,6 +5,7 @@ class openstack::cinder(
   $rabbit_host     = false,
   $rabbit_nodes    = ['127.0.0.1'],
   $rabbit_ha_virtual_ip = false,
+  $glance_api_servers,
   $volume_group    = 'cinder-volumes',
   $physical_volume = undef,
   $manage_volumes  = false,
