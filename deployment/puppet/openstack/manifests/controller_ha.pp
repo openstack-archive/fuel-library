@@ -264,7 +264,7 @@ class openstack::controller_ha (
     $internal_vrid = $::deployment_id + 1
 
     class { 'keepalived':
-      require => [ Class['haproxy'], Class['::openstack::firewall']  ]
+      require => Class['haproxy'] ,
     }
 
     keepalived::instance { $public_vrid:
@@ -280,10 +280,7 @@ class openstack::controller_ha (
       priority => $primary_controller ? { true => 101,      default => 100      },
     }
 
-    class { '::openstack::firewall':
-      before => Class['galera']
-    }
-    Class['haproxy'] -> Class['galera']
+   Class['haproxy'] -> Class['galera']
 
     class { '::openstack::controller':
       public_address          => $public_virtual_ip,
@@ -315,6 +312,7 @@ class openstack::controller_ha (
       keystone_admin_tenant   => $keystone_admin_tenant,
       glance_db_password      => $glance_db_password,
       glance_user_password    => $glance_user_password,
+      glance_api_servers      => $glance_api_servers,
       nova_db_password        => $nova_db_password,
       nova_user_password      => $nova_user_password,
       rabbit_password         => $rabbit_password,
@@ -398,10 +396,8 @@ class openstack::controller_ha (
     }
     if $ha_provider == 'pacemaker' {
       if $use_unicast_corosync {
-      $unicast_addresses = $controller_internal_addresses
-      }
-      else
-      {
+        $unicast_addresses = $controller_internal_addresses
+      } else {
         $unicast_addresses = undef
       }
       class {'openstack::corosync':

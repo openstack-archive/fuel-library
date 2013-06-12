@@ -50,14 +50,10 @@ wsrep_provider_options="pc.ignore_sb = no;ist.recv_addr=<%= node_address %>;gmca
 # Logical cluster name. Should be the same for all nodes.
 wsrep_cluster_name="<%= cluster_name -%>"
 
-<% if primary_controller -%>
-wsrep_cluster_address="gcomm://"
+<% if setup_multiple_gcomm -%>
+wsrep_cluster_address="gcomm://<%= @node_addresses.reject{|ip| ip == hostname || ip == node_address || ip == l3_fqdn_hostname }.collect {|ip| ip + ':' + 4567.to_s }.join ',' %>?pc.wait_prim=no"
 <% else -%>
-    <% if setup_multiple_gcomm -%>
-wsrep_cluster_address="gcomm://<%= @node_addresses.reject{|ip| ip == hostname || ip == node_address || ip == l3_fqdn_hostname }.collect {|ip| ip + ':' + 4567.to_s }.join ',' %>"
-    <% else -%>
-wsrep_cluster_address="gcomm://<%= @node_addresses.first %>:4567"
-    <% end -%>
+wsrep_cluster_address="gcomm://<%= @node_addresses.first %>:4567?pc.wait_prim=no"
 <% end -%>
 
 # Human-readable node name (non-unique). Hostname by default.

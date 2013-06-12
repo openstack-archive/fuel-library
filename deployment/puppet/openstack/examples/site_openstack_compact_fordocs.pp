@@ -115,7 +115,7 @@ $ha_provider = 'pacemaker'
 $use_unicast_corosync = false
 
 # Set nagios master fqdn
-$nagios_master        = 'nagios-server.your-domain-name.com'
+$nagios_master        = 'nagios-server.localdomain'
 ## proj_name  name of environment nagios configuration
 $proj_name            = 'test'
 
@@ -472,6 +472,7 @@ Exec { logoutput => true }
 # Globally apply an environment-based tag to all resources on each node.
 tag("${::deployment_id}::${::environment}")
 
+
 stage { 'openstack-custom-repo': before => Stage['netconfig'] }
 class { 'openstack::mirantis_repos':
   stage => 'openstack-custom-repo',
@@ -479,6 +480,15 @@ class { 'openstack::mirantis_repos':
   enable_test_repo=>$enable_test_repo,
   repo_proxy=>$repo_proxy,
 }
+
+if !defined(Class['selinux']) and ($::osfamily == 'RedHat') {
+  class { 'selinux':
+    mode=>"disabled",
+    stage=>"openstack-custom-repo"
+  }
+}
+
+
 
 if $::operatingsystem == 'Ubuntu' {
   class { 'openstack::apparmor::disable': stage => 'openstack-custom-repo' }

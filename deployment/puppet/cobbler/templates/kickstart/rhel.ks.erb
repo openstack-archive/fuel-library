@@ -100,6 +100,8 @@ wget
 crontabs
 cronie
 ruby-augeas
+yum-plugin-versionlock
+
 # COBBLER EMBEDDED SNIPPET: 'puppet_install_if_enabled'
 # LISTS puppet PACKAGE IF puppet_auto_setup VARIABLE IS SET TO 1
 $SNIPPET('puppet_install_if_enabled')
@@ -112,6 +114,10 @@ $SNIPPET('mcollective_install_if_enabled')
 # HERE ARE COMMANDS THAT WILL BE LAUNCHED JUST AFTER
 # INSTALLATION ITSELF COMPLETED
 %post
+yum versionlock puppet
+echo -e "modprobe nf_conntrack_ipv4\nmodprobe nf_conntrack_ipv6" >> /etc/rc.modules
+chmod +x /etc/rc.modules
+echo -e "net.nf_conntrack_max=1048576" >> /etc/sysctl.conf
 
 # COBBLER EMBEDDED SNIPPET: 'log_ks_post'
 # CONFIGURES %post LOGGING

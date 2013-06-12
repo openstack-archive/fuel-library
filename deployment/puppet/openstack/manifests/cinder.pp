@@ -5,6 +5,7 @@ class openstack::cinder(
   $rabbit_host     = false,
   $rabbit_nodes    = ['127.0.0.1'],
   $rabbit_ha_virtual_ip = false,
+  $glance_api_servers,
   $volume_group    = 'cinder-volumes',
   $physical_volume = undef,
   $manage_volumes  = false,
@@ -22,6 +23,14 @@ class openstack::cinder(
   #   purge => true,
   # }
   #}
+  #  There are two assumptions - everyone should use keystone auth
+  #  and we had glance_api_servers set globally in every mode except 
+  #  single when service should authenticate itself against 
+  #  localhost anyway.
+
+  cinder_config { 'DEFAULT/auth_strategy': value => 'keystone' }
+  cinder_config { 'DEFAULT/glance_api_servers': value => $glance_api_servers }
+
   if $rabbit_nodes and !$rabbit_ha_virtual_ip {
     $rabbit_hosts = inline_template("<%= @rabbit_nodes.map {|x| x + ':5672'}.join ',' %>")
     Cinder_config['DEFAULT/rabbit_ha_queues']->Service<| title == 'cinder-api'|>

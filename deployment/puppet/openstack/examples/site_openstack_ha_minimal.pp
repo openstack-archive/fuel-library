@@ -103,9 +103,10 @@ $controller_hostnames = keys($controller_internal_addresses)
 #Also, if you do not want Quantum HA, you MUST enable $quantum_network_node
 #on the ONLY controller
 $ha_provider = 'pacemaker'
+$use_unicast_corosync = true
 
 # Set nagios master fqdn
-$nagios_master        = 'nagios-server.your-domain-name.com'
+$nagios_master        = 'nagios-server.localdomain'
 ## proj_name  name of environment nagios configuration
 $proj_name            = 'test'
 
@@ -171,7 +172,7 @@ $vlan_start      = 300
 
 # Segmentation type for isolating traffic between tenants
 # Consult Openstack Quantum docs 
-$tenant_network_type     = 'gre'
+$tenant_network_type     = 'vlan'
 
 # Which IP address will be used for creating GRE tunnels.
 $quantum_gre_bind_addr = $internal_address
@@ -191,7 +192,7 @@ $external_ipinfo = {}
 # Quantum segmentation range.
 # For VLAN networks: valid VLAN VIDs can be 1 through 4094.
 # For GRE networks: Valid tunnel IDs can be any 32-bit unsigned integer.
-$segment_range   = '900:999'
+$segment_range   = '300:349'
 
 # Set up OpenStack network manager. It is used ONLY in nova-network.
 # Consult Openstack nova-network docs for possible values.
@@ -212,11 +213,12 @@ if $quantum {
   $internal_int = $internal_interface
 }
 
-if $::hostname == 'fuel-controller-01' {
+if $node[0]['role'] == 'primary-controller' {
   $primary_controller = true
 } else {
   $primary_controller = false
 }
+
 
 #Network configuration
 stage {'netconfig':
@@ -439,6 +441,7 @@ Exec<| title == 'clocksync' |>->Exec<| title == 'post-nova_config' |>
 # Globally apply an environment-based tag to all resources on each node.
 tag("${::deployment_id}::${::environment}")
 
+
 stage { 'openstack-custom-repo': before => Stage['netconfig'] }
 class { 'openstack::mirantis_repos':
   stage => 'openstack-custom-repo',
@@ -446,6 +449,19 @@ class { 'openstack::mirantis_repos':
   enable_test_repo=>$enable_test_repo,
   repo_proxy=>$repo_proxy,
 }
+ stage {'openstack-firewall': before => Stage['main'], require => Stage['netconfig'] } 
+ class { '::openstack::firewall':
+      stage => 'openstack-firewall'
+ }
+
+if !defined(Class['selinux']) and ($::osfamily == 'RedHat') {
+  class { 'selinux':
+    mode=>"disabled",
+    stage=>"openstack-custom-repo"
+  }
+}
+
+
 
 if $::operatingsystem == 'Ubuntu' {
   class { 'openstack::apparmor::disable': stage => 'openstack-custom-repo' }
@@ -509,15 +525,16 @@ class compact_controller (
     quantum_external_ipinfo => $external_ipinfo,
     tenant_network_type     => $tenant_network_type,
     segment_range           => $segment_range,
-    cinder                  => $is_cinder_node,
+    cinder                  => $cinder,
     cinder_iscsi_bind_addr  => $cinder_iscsi_bind_addr,
-    manage_volumes          => $manage_volumes,
+    manage_volumes          => $cinder ? { false => $manage_volumes, default =>$is_cinder_node },
     galera_nodes            => $controller_hostnames,
     nv_physical_volume      => $nv_physical_volume,
     use_syslog              => $use_syslog,
     nova_rate_limits        => $nova_rate_limits,
     cinder_rate_limits      => $cinder_rate_limits,
     horizon_use_ssl         => $horizon_use_ssl,
+    use_unicast_corosync    => $use_unicast_corosync,
     ha_provider             => $ha_provider
   }
 }
@@ -595,7 +612,7 @@ node /fuel-compute-[\d+]/ {
     segment_range          => $segment_range,
     cinder                 => $cinder,
     cinder_iscsi_bind_addr => $cinder_iscsi_bind_addr,
-    manage_volumes         => $is_cinder_node ? { true => $manage_volumes, false => false},
+    manage_volumes          => $cinder ? { false => $manage_volumes, default =>$is_cinder_node },
     nv_physical_volume     => $nv_physical_volume,
     db_host                => $internal_virtual_ip,
     ssh_private_key        => 'puppet:///ssh_keys/openstack',

@@ -40,6 +40,14 @@ class nova::compute::libvirt (
 
     Service['avahi-daemon'] -> Service['libvirt']
 
+    service { 'libvirt-guests':
+      name       => 'libvirt-guests',
+      enable     => false,
+      ensure     => true,
+      hasstatus  => false,
+      hasrestart => false,
+    }
+
   }
 
   Service['libvirt'] -> Service['nova-compute']
@@ -54,6 +62,13 @@ class nova::compute::libvirt (
   package { 'libvirt':
     name   => $::nova::params::libvirt_package_name,
     ensure => present,
+  }
+
+  file_line { 'no_qemu_selinux':
+    path    => '/etc/libvirt/qemu.conf',
+    line    => 'security_driver="none"',
+    require => Package[$::nova::params::libvirt_package_name],
+    notify  => Service['libvirt']
   }
 
   service { 'libvirt' :

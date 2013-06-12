@@ -1,9 +1,11 @@
 class mcollective::client(
   $pskey = "secret",
-  $stompuser = "mcollective",
-  $stomppassword = "mcollective",
-  $stomphost = "127.0.0.1",
+  $user = "mcollective",
+  $password = "mcollective",
+  $host = "127.0.0.1",
   $stompport = "61613",
+  $vhost = "mcollective",
+  $stomp = false,
   ){
 
   case $::osfamily {
