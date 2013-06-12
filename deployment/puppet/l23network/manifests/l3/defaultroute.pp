@@ -3,20 +3,25 @@
 # Do not use this directly,
 # use l23network::l3::route instead
 #
-define l23network::l3::defaultroute (
-    $gateway,
+class l23network::l3::defaultroute (
+    $gateway = $name,
     $metric      = undef,
 ){
   case $::osfamily {
     /(?i)debian/: {
-      fail("Unsupported OS: ${::osfamily}/${::operatingsystem}")
+        fail("Unsupported for ${::osfamily}/${::operatingsystem}!!! Specify gateway directly for network interface.")
     }
     /(?i)redhat/: {
-      fail("Unsupported OS: ${::osfamily}/${::operatingsystem}")
+        cfg { 'GATEWAY':
+            file => '/etc/sysconfig/network',
+            value => $gateway,
+        }
     }
     default: {
-      fail("Unsupported OS: ${::osfamily}/${::operatingsystem}")
+        fail("Unsupported OS: ${::osfamily}/${::operatingsystem}")
     }
   }
 
 }
+#
+###
