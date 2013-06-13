@@ -166,7 +166,7 @@ class openstack::mirantis_repos (
         yumrepo { 'centos-base':
             descr      => 'Mirantis-CentOS-Base',
             name       => 'base',
-            baseurl    => 'http://download.mirantis.com/centos-6.4',
+            baseurl    => 'http://osci-koji.srt.mirantis.net/mash/fuel-3.0-testing/x86_64',
             gpgcheck   => '1',
             gpgkey     => 'file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-6',
             mirrorlist => absent,
@@ -174,7 +174,7 @@ class openstack::mirantis_repos (
 
         yumrepo { 'openstack-epel-fuel-grizzly':
             descr      => 'Mirantis OpenStack grizzly Custom Packages',
-            baseurl    => 'http://download.mirantis.com/epel-fuel-grizzly',
+            baseurl    => 'http://osci-koji.srt.mirantis.net/mash/fuel-3.0-testing/x86_64',
             gpgcheck   => '1',
             gpgkey     => 'http://download.mirantis.com/epel-fuel-grizzly/mirantis.key',
             mirrorlist => absent,
