@@ -17,9 +17,13 @@ class openstack::quantum_router (
   $segment_range            = '1:4094',
   $service_endpoint         = '127.0.0.1',
   $nova_api_vip             = '127.0.0.1',
+  $queue_provider           = 'rabbitmq',
   $rabbit_user              = 'nova',
   $rabbit_nodes             = ['127.0.0.1'],
   $rabbit_ha_virtual_ip     = false,
+  $qpid_password            = 'qpid_pw',
+  $qpid_user                = 'nova',
+  $qpid_nodes               = ['127.0.0.1'],
   $db_type                  = 'mysql',
   $auth_host                = '127.0.0.1',
   $verbose                  = 'False',
@@ -52,10 +56,14 @@ class openstack::quantum_router (
 
     class { '::quantum':
       bind_host            => $api_bind_address,
+      queue_provider       => $queue_provider,
       rabbit_user          => $rabbit_user,
       rabbit_password      => $rabbit_password,
       rabbit_host          => $rabbit_nodes,
       rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
+      qpid_user            => $qpid_user,
+      qpid_password        => $qpid_password,
+      qpid_host            => $qpid_nodes,
       verbose              => $verbose,
       debug                => $debug,
       use_syslog           => $use_syslog,
@@ -128,6 +136,23 @@ class openstack::quantum_router (
         auth_password       => $quantum_user_password,
         metadata_ip         => $internal_address,
         nova_api_vip        => $nova_api_vip,
+        service_provider    => $service_provider
+      }
+      #      if ! $quantum_netnode_on_cnt {
+      # class { 'nova::metadata_api':
+      #    admin_auth_url         => $admin_auth_url,
+      #    service_endpoint       => $service_endpoint,
+      #    listen_ip              => $internal_address,
+      #    controller_nodes       => $rabbit_nodes,
+      #    auth_password          => $quantum_user_password,
+      #    queue_provider         => $queue_provider,
+      #    rabbit_user            => $rabbit_user,
+      #    rabbit_password        => $rabbit_password,
+      #    rabbit_ha_virtual_ip   => $rabbit_ha_virtual_ip,
+      #    qpid_user              => $qpid_user,
+      #    qpid_password          => $qpid_password,
+      #    quantum_netnode_on_cnt => $quantum_netnode_on_cnt,
+      #  }
       }
     }
 

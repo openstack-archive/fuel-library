@@ -112,8 +112,8 @@ class openstack::controller_ha (
    $floating_range, $fixed_range, $multi_host, $network_manager, $verbose, $debug, $network_config = {}, $num_networks = 1, $network_size = 255,
    $auto_assign_floating_ip, $mysql_root_password, $admin_email, $admin_user = 'admin', $admin_password, $keystone_admin_tenant='admin',
    $keystone_db_password, $keystone_admin_token, $glance_db_password, $glance_user_password,
-   $nova_db_password, $nova_user_password, $rabbit_password, $rabbit_user,
-   $rabbit_nodes, $memcached_servers, $export_resources, $glance_backend='file', $swift_proxies=undef,
+   $nova_db_password, $nova_user_password, $queue_provider, $rabbit_password, $rabbit_user, $rabbit_nodes,
+   $qpid_password, $qpid_user, $qpid_nodes, $memcached_servers, $export_resources, $glance_backend='file', $swift_proxies=undef,
    $quantum = false, $quantum_user_password='', $quantum_db_password='', $quantum_db_user = 'quantum',
    $quantum_db_dbname  = 'quantum', $cinder = false, $cinder_iscsi_bind_addr = false, $tenant_network_type = 'gre', $segment_range = '1:4094',
    $nv_physical_volume = undef, $manage_volumes = false,$galera_nodes, $use_syslog = false, $syslog_log_level = 'WARNING',
@@ -205,8 +205,12 @@ class openstack::controller_ha (
     }
 
     haproxy_service { 'glance-reg': order => 90, port => 9191, virtual_ips => [$internal_virtual_ip]  }
-   #haproxy_service { 'rabbitmq-epmd':    order => 91, port => 4369, virtual_ips => [$internal_virtual_ip], define_backend => true }
-    haproxy_service { 'rabbitmq-openstack':    order => 92, port => 5672, virtual_ips => [$internal_virtual_ip], define_backend => true }
+
+    if $queue_provider == 'rabbitmq'{
+      haproxy_service { 'rabbitmq-openstack':    order => 92, port => 5672, virtual_ips => [$internal_virtual_ip], define_backend => true }
+      haproxy_service { 'rabbitmq-epmd':    order => 91, port => 4369, virtual_ips => [$internal_virtual_ip], define_backend => true }
+    }
+
     haproxy_service { 'mysqld': order => 95, port => 3306, virtual_ips => [$internal_virtual_ip], define_backend => true }
     if $glance_backend == 'swift' {
       haproxy_service { 'swift': order => 96, port => 8080, virtual_ips => [$public_virtual_ip,$internal_virtual_ip], balancers => $swift_proxies }
@@ -277,6 +281,7 @@ class openstack::controller_ha (
       glance_api_servers      => $glance_api_servers,
       nova_db_password        => $nova_db_password,
       nova_user_password      => $nova_user_password,
+      queue_provider          => 'qpid',
       rabbit_password         => $rabbit_password,
       rabbit_user             => $rabbit_user,
       rabbit_cluster          => true,
@@ -284,6 +289,12 @@ class openstack::controller_ha (
       rabbit_port             => '5673',
       rabbit_node_ip_address  => $rabbit_node_ip_address,
       rabbit_ha_virtual_ip    => $internal_virtual_ip,
+      qpid_password           => $rabbit_hash[password],
+      qpid_user               => $rabbit_user,
+      qpid_cluster            => true,
+      qpid_nodes              => $controller_hostnames,
+      qpid_port               => '5673',
+      qpid_node_ip_address    => $rabbit_node_ip_address,
       cache_server_ip         => $memcached_servers,
       export_resources        => false,
       api_bind_address        => $internal_address,
@@ -334,10 +345,14 @@ class openstack::controller_ha (
         create_networks       => $create_networks,
         verbose               => $verbose,
         debug                 => $debug,
+        queue_provider        => $queue_provider,
         rabbit_password       => $rabbit_password,
         rabbit_user           => $rabbit_user,
         rabbit_nodes          => $rabbit_nodes,
         rabbit_ha_virtual_ip  => $internal_virtual_ip,
+        qpid_password         => $rabbit_hash[password],
+        qpid_user             => $rabbit_user,
+        qpid_nodes            => $controller_hostnames,
         quantum               => $quantum,
         quantum_user_password => $quantum_user_password,
         quantum_db_password   => $quantum_db_password,
@@ -363,6 +378,18 @@ class openstack::controller_ha (
       admin_tenant            => $keystone_admin_tenant,
       keystone_admin_token    => $keystone_admin_token,
       controller_node         => $internal_virtual_ip,
+    }
+    if $ha_provider == 'pacemaker' {
+      if $use_unicast_corosync {
+        $unicast_addresses = $controller_internal_addresses
+      } else {
+        $unicast_addresses = undef
+      }
+      class {'openstack::corosync':
+        bind_address => $internal_address,
+        unicast_addresses => $unicast_addresses,
+        before => Class['qpid::server'],
+      }
     }
 }
 

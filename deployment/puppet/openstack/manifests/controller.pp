@@ -91,6 +91,8 @@ class openstack::controller (
   # not sure if this works correctly
   $internal_address,
   $admin_address,
+  # AMQP
+  $queue_provider          = 'rabbitmq',
   # Rabbit
   $rabbit_password         = 'rabbit_pw',
   $rabbit_user             = 'nova',
@@ -99,6 +101,13 @@ class openstack::controller (
   $rabbit_node_ip_address  = undef,
   $rabbit_ha_virtual_ip    = false, #Internal virtual IP for HA configuration
   $rabbit_port             = '5672',
+  # Qpid
+  $qpid_password           = 'qpid_pw',
+  $qpid_user               = 'nova',
+  $qpid_cluster            = false,
+  $qpid_nodes              = [$internal_address],
+  $qpid_port               = '5672',
+  $qpid_node_ip_address    = undef,
   # network configuration
   # this assumes that it is a flat network manager
   $network_manager         = 'nova.network.manager.FlatDHCPManager',
@@ -194,7 +203,8 @@ class openstack::controller (
     $memcached_addresses =  inline_template("<%= @cache_server_ip.collect {|ip| ip + ':' + @cache_server_port }.join ',' %>")
 
 
-  nova_config {'DEFAULT/memcached_servers':  value => $memcached_addresses; }
+  nova_config {'DEFAULT/memcached_servers':    value => $memcached_addresses;
+  }
 
   ####### DATABASE SETUP ######
   # set up mysql server
@@ -338,6 +348,8 @@ class openstack::controller (
     nova_db_password        => $nova_db_password,
     nova_db_user            => $nova_db_user,
     nova_db_dbname          => $nova_db_dbname,
+    # AMQP
+    queue_provider          => $queue_provider,
     # Rabbit
     rabbit_user             => $rabbit_user,
     rabbit_password         => $rabbit_password,
@@ -346,6 +358,13 @@ class openstack::controller (
     rabbit_node_ip_address  => $rabbit_node_ip_address,
     rabbit_port             => $rabbit_port,
     rabbit_ha_virtual_ip    => $rabbit_ha_virtual_ip,
+    # Qpid
+    qpid_password           => $qpid_password,
+    qpid_user               => $qpid_user,
+    qpid_cluster            => $qpid_cluster,
+    qpid_nodes              => $qpid_nodes,
+    qpid_port               => $qpid_port,
+    qpid_node_ip_address    => $qpid_node_ip_address,
     # Glance
     glance_api_servers      => $glance_api_servers,
     # General
@@ -388,6 +407,10 @@ class openstack::controller (
         syslog_log_level     => $syslog_log_level,
         cinder_rate_limits   => $cinder_rate_limits,
         rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
+        queue_provider       => $queue_provider,
+      qpid_password        => $qpid_password,
+      qpid_user            => $qpid_user,
+      qpid_nodes           => $qpid_nodes,
       } # end class
     } else { # defined
       if $manage_volumes {
@@ -403,7 +426,6 @@ class openstack::controller (
       } #end manage_volumes
     } #end else
   } #end cinder
-
   if !defined(Class['memcached']){
     class { 'memcached':
       #listen_ip => $api_bind_address,
