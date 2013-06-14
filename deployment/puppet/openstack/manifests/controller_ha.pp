@@ -293,7 +293,7 @@ class openstack::controller_ha (
       qpid_user               => $rabbit_user,
       qpid_cluster            => true,
       qpid_nodes              => $controller_hostnames,
-      qpid_port               => '5673',
+      qpid_port               => '5672',
       qpid_node_ip_address    => $rabbit_node_ip_address,
       cache_server_ip         => $memcached_servers,
       export_resources        => false,
