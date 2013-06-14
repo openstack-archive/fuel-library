@@ -20,6 +20,7 @@ $access_hash   = parsejson($access)
 $extra_rsyslog_hash = parsejson($syslog)
 $floating_hash = parsejson($floating_network_range)
 
+<<<<<<< HEAD
 if $auto_assign_floating_ip == 'true' {
   $bool_auto_assign_floating_ip = true
 } else {
