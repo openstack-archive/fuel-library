@@ -50,7 +50,6 @@ class qpid::server(
       before => File[$::qpid::params::config_file]
     }
   }
-
   file { $::qpid::params::config_file:
     ensure => present,
     owner => 'root',
@@ -58,7 +57,6 @@ class qpid::server(
     mode => 644,
     content => template('qpid/qpidd.conf.erb'),
     require => Package[$::qpid::params::package_name],
-    notify => Service[$::qpid::params::service_name],
   }
 
   if $log_to_file != 'UNSET' {
@@ -68,10 +66,17 @@ class qpid::server(
       group => 'qpidd',
       mode => 644,
       require => Package[$::qpid::params::package_name],
+      before => File[$::qpid::params::config_file],
     }
   }
-
   if $qpid_cluster {
+    exec { 'qpid-corosync-restart':
+      path => '/usr/bin/:/usr/sbin:/bin:/sbin',
+      command => "/sbin/service corosync restart",
+      before => Service[$::qpid::params::service_name],
+      require => [File[$::qpid::params::config_file],
+		  Package[$::qpid::params::cluster_package_name]]
+    }
     service { $::qpid::params::service_name:
       enable => true,
       ensure => $service_ensure,
@@ -81,7 +86,7 @@ class qpid::server(
                     File[$::qpid::params::config_file]],
       require => [Package[$::qpid::params::package_name],
                   File[$::qpid::params::config_file],
-                  Exec['corosync-restart']],
+                  Exec['qpid-corosync-restart']],
     }
   }
   else {
@@ -92,5 +97,7 @@ class qpid::server(
       hasrestart => true,
       require => [Package[$::qpid::params::package_name], File[$::qpid::params::config_file]],
     }
+
   }
 }
+
