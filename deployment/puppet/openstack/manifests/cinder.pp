@@ -64,7 +64,7 @@ class openstack::cinder(
     rabbit_password => $rabbit_password,
     rabbit_hosts    => $rabbit_hosts,
     qpid_password   => $qpid_password,
-    qpid_user       => $qpid_user,
+    qpid_userid     => $qpid_user,
     qpid_hosts      => $qpid_hosts,
     sql_connection  => $sql_connection,
     verbose         => $verbose,

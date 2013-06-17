@@ -10,18 +10,20 @@
 
 class cinder::base (
   $rabbit_password,
+  $qpid_password,
   $sql_connection,
   $rpc_backend            = 'cinder.openstack.common.rpc.impl_kombu',
+  $qpid_rpc_backend       = 'cinder.openstack.common.rpc.impl_qpid',
   $queue_provider         = 'rabbitmq',
   $rabbit_host            = false,
   $rabbit_hosts           = ['127.0.0.1'],
   $rabbit_port            = 5672,
   $rabbit_virtual_host    = '/',
   $rabbit_userid          = 'nova',
-  $qpid_password          = 'qpid_pw',
-  $qpid_user              = 'nova',
   $qpid_host              = false,
   $qpid_hosts             = ['127.0.0.1'],
+  $qpid_port              = 5672,
+  $qpid_userid            = 'nova',
   $package_ensure         = 'present',
   $verbose                = 'False',
   $debug                  = 'False',
@@ -116,7 +118,7 @@ else {
       if $qpid_host
       {
         cinder_config {
-        'DEFAULT/qpid_host':           value => $qpid_host;
+        'DEFAULT/qpid_hostname':           value => $qpid_host;
         }
       }
       if $qpid_hosts
@@ -126,10 +128,10 @@ else {
         }
       }
       cinder_config {
-        'DEFAULT/rpc_backend':         value => 'cinder.openstack.common.rpc.impl_qpid';
+        'DEFAULT/rpc_backend':         value => $qpid_rpc_backend;
         'DEFAULT/qpid_password':       value => $qpid_password;
         'DEFAULT/qpid_port':           value => $qpid_port;
-        'DEFAULT/qpid_userid':         value => $qpid_userid;
+        'DEFAULT/qpid_username':         value => $qpid_userid;
       }
     }
   }
