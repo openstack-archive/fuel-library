@@ -182,7 +182,7 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Cor
       completed_ops = all_operations.select{|op| op.attributes['op-status'].to_i != -1 }
       debug("COMPLETED OPERATIONS:\n\n #{completed_ops.inspect}")
       next if completed_ops.nil?
-      start_stop_ops = completed_ops.select{|op| ["start","stop","monitor"].include? op.attributes['operation']}
+      start_stop_ops = completed_ops.select{|op| ["start","stop","monitor","promote"].include? op.attributes['operation']}
       debug("START/STOP OPERATIONS:\n\n #{start_stop_ops.inspect}")
       next if start_stop_ops.nil?
       sorted_operations = start_stop_ops.sort do
@@ -198,7 +198,7 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Cor
       debug("LAST GOOD OPERATION :\n\n '#{last_op.inspect}' '#{last_op.nil?}' '#{last_op}'")
       next if last_op.nil?
       last_successful_op = nil
-      if ['start','stop'].include?(last_op.attributes['operation'])
+      if ['promote','start','stop'].include?(last_op.attributes['operation'])
         last_successful_op = last_op.attributes['operation']
       else
         if last_op.attributes['rc-code'].to_i == 7
@@ -270,7 +270,7 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Cor
   def status
     debug("getting last operations")
     get_last_successful_operations
-    if @last_successful_operations.any? {|op| op == 'start'}
+    if @last_successful_operations.any? {|op| ['start','promote'].include?(op)}
       return :running
     elsif @last_successful_operations.all? {|op| op == 'stop'} or @last_successful_operations.empty?
       return :stopped
