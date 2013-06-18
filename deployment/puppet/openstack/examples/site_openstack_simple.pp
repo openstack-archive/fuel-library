@@ -587,6 +587,7 @@ node /fuel-compute-[\d+]/ {
     network_manager        => $network_manager,
     network_config         => { 'vlan_start' => $vlan_start },
     multi_host             => $multi_host,
+    auto_assign_floating_ip => $auto_assign_floating_ip,
     sql_connection         => $sql_connection,
     nova_user_password     => $nova_user_password,
     rabbit_nodes           => [$controller_internal_address],
