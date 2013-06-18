@@ -385,6 +385,8 @@ class openstack::controller_ha (
       } else {
         $unicast_addresses = undef
       }
+    }
+    if $queue_provider == 'qpid' {
       class {'openstack::corosync':
         bind_address => $internal_address,
         unicast_addresses => $unicast_addresses,
