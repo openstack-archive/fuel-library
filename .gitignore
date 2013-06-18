@@ -1,4 +1,5 @@
 .idea
+fuel_test/settings.py
 iso/local_mirror
 iso/build
 *.pyc
