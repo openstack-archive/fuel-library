@@ -11,6 +11,7 @@ $ActionQueueMaxDiskSpace 1g     # 1gb space limit (use as much as possible)
 $ActionQueueSaveOnShutdown on   # save messages to disk on shutdown
 $ActionQueueType LinkedList     # run asynchronously
 $ActionResumeRetryCount -1      # infinety retries if host is down
+$SystemLogRateLimitInterval 0   # disable rate limits for rsyslog
 
 <% if scope.lookupvar('rsyslog::client::log_remote') -%>
 # Log to remote syslog server using <%= scope.lookupvar('rsyslog::client::remote_type') %>
