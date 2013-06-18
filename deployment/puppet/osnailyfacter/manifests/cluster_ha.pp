@@ -64,6 +64,12 @@ else {
   $rservers = [$base_syslog_rserver]
 }
 
+# can be 'qpid' or 'rabbitmq' only
+$queue_provider = 'rabbitmq'
+
+# do not edit the below line
+validate_re($queue_provider,  'rabbitmq|qpid')
+
 $rabbit_user   = 'nova'
 
 $quantum_user_password   = 'quantum_pass' # Quantum is turned off
@@ -257,7 +263,7 @@ class virtual_ips () {
         rabbit_user            => $rabbit_user,
         rabbit_ha_virtual_ip   => $management_vip,
         auto_assign_floating_ip => $bool_auto_assign_floating_ip,
-        queue_provider         => 'qpid',
+        queue_provider         => $::queue_provider,
         qpid_password          => $rabbit_hash[password],
         qpid_user              => $rabbit_user,
         qpid_nodes             => $controller_hostnames,
@@ -312,7 +318,7 @@ class virtual_ips () {
         manage_volumes       => true,
         enabled              => true,
         auth_host            => $management_vip,
-        queue_provider       => 'qpid',
+        queue_provider       => $::queue_provider,
         qpid_password        => $rabbit_hash[password],
         qpid_user            => $rabbit_user,
         qpid_nodes           => $controller_hostnames,
