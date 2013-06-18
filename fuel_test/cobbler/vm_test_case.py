@@ -40,7 +40,7 @@ class CobblerTestCase(BaseTestCase):
                              IPNetwork(self.ci().internal_network())[50],
                              dhcp_end_address=
                              IPNetwork(self.ci().internal_network())[100],
-                             mirror_type='custom',
+                             mirror_type='default',
                              external_ip="",
                              external_mask="",
                              parent_proxy=PARENT_PROXY,
