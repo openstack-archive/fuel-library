@@ -281,7 +281,7 @@ class openstack::controller_ha (
       glance_api_servers      => $glance_api_servers,
       nova_db_password        => $nova_db_password,
       nova_user_password      => $nova_user_password,
-      queue_provider          => 'qpid',
+      queue_provider          => $queue_provider,
       rabbit_password         => $rabbit_password,
       rabbit_user             => $rabbit_user,
       rabbit_cluster          => true,
