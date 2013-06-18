@@ -167,8 +167,8 @@ class CompactTestCase(CobblerTestCase):
         config_path = "/root/config.yaml"
         write_config(self.remote(), config_path, str(config))
         self.remote().check_call("cobbler_system -f %s" % config_path)
-        self.remote().check_stderr("openstack_system -c %s -o /etc/puppet/manifests/site.pp -a /root/astute.yaml" % config_path)
-        self.remote().check_stderr("astute -f /root/astute.yaml -v")
+        self.remote().check_stderr("openstack_system -c %s -o /etc/puppet/manifests/site.pp -a /root/astute.yaml" % config_path, True)
+        self.remote().check_stderr("astute -f /root/astute.yaml -v", True)
 
 if __name__ == '__main__':
     unittest.main()

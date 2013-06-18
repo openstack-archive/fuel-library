@@ -4,7 +4,7 @@ from devops.helpers.helpers import _get_file_size
 from ipaddr import IPNetwork
 from fuel_test.helpers import  write_config, change_host_name, request_cerificate, setup_puppet_client, setup_puppet_master, add_nmap, switch_off_ip_tables, add_to_hosts
 from fuel_test.node_roles import NodeRoles, Nodes
-from fuel_test.settings import EMPTY_SNAPSHOT, ISO_IMAGE
+from fuel_test.settings import EMPTY_SNAPSHOT, ISO_IMAGE, DEFAULT_RAM_SIZE
 from fuel_test.root import root
 from fuel_test.helpers import load
 from devops.manager import Manager
@@ -79,7 +79,7 @@ class CiBase(object):
             memory=memory,
             environment=self.environment())
 
-    def describe_master_node(self, name, networks, memory=1024):
+    def describe_master_node(self, name, networks, memory=DEFAULT_RAM_SIZE):
         node = self.add_node(memory, name, boot=['cdrom', 'hd'])
         for network in networks:
             self.manager.interface_create(network, node=node)
@@ -87,7 +87,7 @@ class CiBase(object):
         self.add_empty_volume(node, name + '-iso', capacity=_get_file_size(ISO_IMAGE), format='raw', device='cdrom', bus='ide')
         return node
 
-    def describe_empty_node(self, name, networks, memory=1024):
+    def describe_empty_node(self, name, networks, memory=DEFAULT_RAM_SIZE):
         node = self.add_node(memory, name)
         for network in networks:
             self.manager.interface_create(network, node=node)

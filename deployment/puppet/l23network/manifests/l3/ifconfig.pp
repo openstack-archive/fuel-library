@@ -38,7 +38,9 @@
 #    Sets the interface startup order
 #
 # [*gateway*]
-#   Specify default gateway if needed.
+#   Specify default gateway if need.
+#   You can specify IP address, or 'save' for save default route 
+#   if it lies through this interface now.
 #
 # [*dns_nameservers*]
 #   Specify a pair of nameservers if need. Must be an array, for example:
@@ -231,15 +233,18 @@ define l23network::l3::ifconfig (
   }
 
   if $method == 'static' {
-    # recognizing default gateway
-    if $gateway {
+    if $gateway and gateway != 'save' {
       $def_gateway = $gateway
     } else {
-      if $::l3_default_route and $::l3_default_route_interface == $interface {
+      # recognizing default gateway
+      if gateway == 'save' and $::l3_default_route and $::l3_default_route_interface == $interface {
         $def_gateway = $::l3_default_route
       } else {
         $def_gateway = undef
       }
+    }
+    if $::osfamily == 'RedHat' and $def_gateway and !defined(L23network::L3::Defaultroute[$def_gateway]) {
+      l23network::l3::defaultroute { $def_gateway: }
     }
   } else {
     $def_gateway = undef
@@ -279,13 +284,6 @@ define l23network::l3::ifconfig (
       recurse => true,
       content => template("l23network/ipconfig_${::osfamily}_${method}_up-script.erb"),
     } ->
-    # file {"${if_files_dir}/interface-down-script-${interface}":
-    #   ensure  => present,
-    #   owner   => 'root',
-    #   mode    => '0755',
-    #   recurse => true,
-    #   content => template("l23network/ipconfig_${::osfamily}_${method}_down-script.erb"),
-    # } ->
     File <| title == $interface_file |>
   }
 
