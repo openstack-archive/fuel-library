@@ -36,6 +36,13 @@ class openstack::cinder(
   #   purge => true,
   # }
   #}
+  #  There are two assumptions - everyone should use keystone auth
+  #  and we had rabbit_ha_virtual_ip set in every mode except single
+  #  when service should authenticate itself against localhost anyway.
+
+  cinder_config { 'DEFAULT/auth_strategy': value => 'keystone' }
+  cinder_config { 'DEFAULT/glance_api_servers': value => $glance_api_servers }
+ 
   case $queue_provider {
     "rabbitmq": {
       if $rabbit_nodes and !$rabbit_ha_virtual_ip {
