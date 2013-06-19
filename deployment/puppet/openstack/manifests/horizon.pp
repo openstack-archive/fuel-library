@@ -41,7 +41,7 @@ class openstack::horizon (
   #  tcp_port  => $cache_server_port,
   #  udp_port  => $cache_server_port,
   # }
- if $verbose ~= /(?i)(true|yes)/
+ if $verbose =~ /(?i)(true|yes)/
  {
    $django_debug = 'True'
  }
