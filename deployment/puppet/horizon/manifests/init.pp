@@ -175,7 +175,19 @@ class horizon(
           "rm directive[. = 'Listen']"
         ],
         before  => Service['httpd'],
-      } 
+      }
+      
+      if $use_syslog {
+        file {'/etc/httpd/conf.d/openstack-dashboard.conf':
+	  ensure  => present,
+	} ->
+	file_line { "enable_syslog": 
+	  path => "/etc/httpd/conf.d/openstack-dashboard.conf",
+	  line => 'ErrorLog syslog:local1',
+	  before  => Service['httpd'],
+	  require => [Package["$::horizon::params::http_service", "$::horizon::params::http_modwsgi"]],
+	}
+      }
     }
     'Debian': {
       A2mod {

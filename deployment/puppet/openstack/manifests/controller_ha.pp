@@ -150,7 +150,7 @@ class openstack::controller_ha (
 
     file { '/etc/rsyslog.d/haproxy.conf':
       ensure => present,
-      content => 'local0.* -/var/log/haproxy.log'
+      content => "local0.* -/var/log/haproxy.log \nlocal1.* -/var/log/horizon.log"
     }
     Class['keepalived'] -> Class ['nova::rabbitmq']
     haproxy_service { 'horizon':    order => 15, port => 80, virtual_ips => [$public_virtual_ip], define_cookies => true  }
