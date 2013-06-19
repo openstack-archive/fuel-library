@@ -400,10 +400,19 @@ class openstack::controller_ha (
       } else {
         $unicast_addresses = undef
       }
-      class {'openstack::corosync':
-        bind_address => $internal_address,
-        unicast_addresses => $unicast_addresses
+      if defined(Stage['corosync_setup']) {
+        class {'openstack::corosync':
+          bind_address      => $internal_address,
+          unicast_addresses => $unicast_addresses,
+          stage             => 'corosync_setup'
+        }
+      } else {
+        class {'openstack::corosync':
+          bind_address      => $internal_address,
+          unicast_addresses => $unicast_addresses
+        }
       }
+
     }
 }
 

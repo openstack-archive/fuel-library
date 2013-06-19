@@ -220,11 +220,15 @@ if $node[0]['role'] == 'primary-controller' {
 }
 
 
-#Network configuration
-stage {'netconfig':
-      before  => Stage['main'],
-}
+#Stages configuration
+stage {'openstack-custom-repo': } ->
+stage {'netconfig': } ->
+stage {'corosync_setup': } ->
+stage {'cluster_head': } ->
+stage {'openstack-firewall': } -> Stage['main']
 
+
+#Network configuration
 class {'l23network': use_ovs=>$quantum, stage=> 'netconfig'}
 class node_netconfig (
   $mgmt_ipaddr,
@@ -442,17 +446,15 @@ Exec<| title == 'clocksync' |>->Exec<| title == 'post-nova_config' |>
 tag("${::deployment_id}::${::environment}")
 
 
-stage { 'openstack-custom-repo': before => Stage['netconfig'] }
 class { 'openstack::mirantis_repos':
   stage => 'openstack-custom-repo',
   type=>$mirror_type,
   enable_test_repo=>$enable_test_repo,
   repo_proxy=>$repo_proxy,
 }
- stage {'openstack-firewall': before => Stage['main'], require => Stage['netconfig'] } 
- class { '::openstack::firewall':
-      stage => 'openstack-firewall'
- }
+class { '::openstack::firewall':
+    stage => 'openstack-firewall'
+}
 
 if !defined(Class['selinux']) and ($::osfamily == 'RedHat') {
   class { 'selinux':
