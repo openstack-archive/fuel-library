@@ -40,33 +40,34 @@ class openstack::db::mysql (
     $cinder_db_password,
     $quantum_db_password,
     # MySQL
-    $mysql_bind_address     = '0.0.0.0',
-    $mysql_account_security = true,
+    $mysql_bind_address      = '0.0.0.0',
+    $mysql_account_security  = true,
     # Keystone
-    $keystone_db_user       = 'keystone',
-    $keystone_db_dbname     = 'keystone',
+    $keystone_db_user        = 'keystone',
+    $keystone_db_dbname      = 'keystone',
     # Glance
-    $glance_db_user         = 'glance',
-    $glance_db_dbname       = 'glance',
+    $glance_db_user          = 'glance',
+    $glance_db_dbname        = 'glance',
     # Nova
-    $nova_db_user           = 'nova',
-    $nova_db_dbname         = 'nova',
-    $allowed_hosts          = false,
+    $nova_db_user            = 'nova',
+    $nova_db_dbname          = 'nova',
+    $allowed_hosts           = false,
     # Cinder
-    $cinder                 = true,
-    $cinder_db_user         = 'cinder',
-    $cinder_db_dbname       = 'cinder',
+    $cinder                  = true,
+    $cinder_db_user          = 'cinder',
+    $cinder_db_dbname        = 'cinder',
     # quantum
-    $quantum                = true,
-    $quantum_db_user        = 'quantum',
-    $quantum_db_dbname      = 'quantum',
-    $enabled                = true,
-    $galera_cluster_name    = 'openstack',
-    $primary_controller     = false,
-    $galera_node_address = '127.0.0.1',
-    $galera_nodes = ['127.0.0.1'],
+    $quantum                 = true,
+    $quantum_db_user         = 'quantum',
+    $quantum_db_dbname       = 'quantum',
+    $enabled                 = true,
+    $galera_cluster_name     = 'openstack',
+    $primary_controller      = false,
+    $galera_node_address     = '127.0.0.1',
+    $galera_nodes            = ['127.0.0.1'],
     $mysql_skip_name_resolve = false,
-    $custom_setup_class = undef
+    $custom_setup_class      = undef,
+    $use_syslog              = false,
 ) {
 
   # Install and configure MySQL Server
@@ -84,13 +85,14 @@ class openstack::db::mysql (
       # 'root_password' => $mysql_root_password,
       'bind_address'  => '0.0.0.0'
     },
-    galera_cluster_name	=> $galera_cluster_name,
-    primary_controller => $primary_controller,
-    galera_node_address	=> $galera_node_address,
-    galera_nodes      => $galera_nodes,
-    enabled => $enabled,
-    custom_setup_class => $custom_setup_class,
+    galera_cluster_name	    => $galera_cluster_name,
+    primary_controller      => $primary_controller,
+    galera_node_address	    => $galera_node_address,
+    galera_nodes            => $galera_nodes,
+    enabled                 => $enabled,
+    custom_setup_class      => $custom_setup_class,
     mysql_skip_name_resolve => $mysql_skip_name_resolve,
+    use_syslog              => $use_syslog,
   }
 
 

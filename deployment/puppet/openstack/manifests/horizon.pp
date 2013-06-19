@@ -34,6 +34,7 @@ class openstack::horizon (
   $api_result_limit      = 1000,
   $package_ensure        = present,
   $use_ssl               = false,
+  $use_syslog            = false,
 ) {
 
   # class { 'memcached':
@@ -65,5 +66,6 @@ class openstack::horizon (
     django_debug          => $django_debug,
     api_result_limit      => $api_result_limit,
     use_ssl               => $use_ssl,
+    use_syslog            => $use_syslog,
   }
 }

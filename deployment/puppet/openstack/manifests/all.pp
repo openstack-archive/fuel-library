@@ -439,6 +439,7 @@ class openstack::all (
       quantum           => $quantum,
       horizon_app_links => $horizon_app_links,
       bind_address      => $public_address,
+      use_syslog        => $use_syslog,
     }
   }
 
