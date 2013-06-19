@@ -304,7 +304,7 @@ $swift_loopback = false
 
 ### Syslog ###
 # Enable error messages reporting to rsyslog. Rsyslog must be installed in this case.
-$use_syslog = false
+$use_syslog = true
 if $use_syslog {
   class { "::rsyslog::client":
     log_local => true,

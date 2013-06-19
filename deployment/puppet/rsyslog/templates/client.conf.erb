@@ -5,12 +5,34 @@ $EscapeControlCharactersOnReceive off
 <% end -%>
 
 # An "In-Memory Queue" is created for remote logging.
-$WorkDirectory <%= scope.lookupvar('rsyslog::params::spool_dir') -%>    # where to place spool files
-$ActionQueueFileName queue      # unique name prefix for spool files
-$ActionQueueMaxDiskSpace 1g     # 1gb space limit (use as much as possible)
-$ActionQueueSaveOnShutdown on   # save messages to disk on shutdown
-$ActionQueueType LinkedList     # run asynchronously
-$ActionResumeRetryCount -1      # infinety retries if host is down
+#$WorkDirectory <%= scope.lookupvar('rsyslog::params::spool_dir') -%>    # where to place spool files
+#$ActionQueueFileName queue      # unique name prefix for spool files
+#$ActionQueueMaxDiskSpace 1g     # 1gb space limit (use as much as possible)
+#$ActionQueueSaveOnShutdown on   # save messages to disk on shutdown
+#$ActionQueueType LinkedList     # run asynchronously
+#$ActionResumeRetryCount -1      # infinety retries if host is down
+
+#
+# Disk-Assisted Memory Queues, async writes, no escape chars
+#
+$OMFileASyncWriting on
+$SystemLogRateLimitInterval 0   # disable rate limits for rsyslog
+$MainMsgQueueType LinkedList
+$WorkDirectory <%= scope.lookupvar('rsyslog::params::spool_dir') %>
+$MainMsgQueueFileName mainmsgqueue
+$MainMsgQueueSaveOnShutdown on
+$MainMsgQueueDequeueSlowdown 1000
+$MainMsgQueueWorkerThreads 2
+$MainMsgQueueDequeueBatchSize 128
+$ActionQueueType LinkedList
+$WorkDirectory <%= scope.lookupvar('rsyslog::params::spool_dir') %>
+$ActionQueueFileName acsdbq
+$ActionQueueMaxDiskSpace 1g
+$ActionQueueSaveOnShutdown on
+$ActionQueueDequeueSlowdown 1000
+$ActionQueueWorkerThreads 2
+$ActionQueueDequeueBatchSize 128
+$ActionResumeRetryCount -1
 $SystemLogRateLimitInterval 0   # disable rate limits for rsyslog
 
 <% if scope.lookupvar('rsyslog::client::log_remote') -%>
