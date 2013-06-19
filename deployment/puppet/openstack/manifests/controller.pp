@@ -398,7 +398,7 @@ class openstack::controller (
     horizon_app_links => $horizon_app_links,
     keystone_host     => $service_endpoint,
     use_ssl           => $horizon_use_ssl,
-    django_debug      => $verbose
+    verbose           => $verbose
   }
 
 }
