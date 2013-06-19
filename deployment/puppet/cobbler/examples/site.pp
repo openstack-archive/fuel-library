@@ -109,6 +109,7 @@ node fuel-cobbler {
           {
             'name'    => 'Puppet',
             'url'     => 'http://apt.puppetlabs.com/',
+            'key'     => 'http://apt.puppetlabs.com/pubkey.gpg',
             'release' => 'precise',
             'repos'   => 'main dependencies',
           },

@@ -354,6 +354,7 @@ class openstack::controller (
       physical_volume      => $nv_physical_volume,
       manage_volumes       => $manage_volumes,
       enabled              => true,
+      glance_api_servers   => "${service_endpoint}:9292",
       auth_host            => $service_endpoint,
       bind_host            => $api_bind_address,
       iscsi_bind_host      => $cinder_iscsi_bind_addr,
@@ -397,6 +398,7 @@ class openstack::controller (
     horizon_app_links => $horizon_app_links,
     keystone_host     => $service_endpoint,
     use_ssl           => $horizon_use_ssl,
+    verbose           => $verbose
   }
 
 }

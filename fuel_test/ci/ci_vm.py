@@ -2,7 +2,7 @@ from ipaddr import IPNetwork
 
 import os
 from fuel_test.ci.ci_base import CiBase
-from fuel_test.helpers import add_nmap, dhcp_checksum
+from fuel_test.helpers import add_nmap
 
 from fuel_test.node_roles import NodeRoles
 from fuel_test.settings import CONTROLLERS, COMPUTES, \
@@ -70,5 +70,4 @@ class CiVM(CiBase):
             node.await('public', timeout=SETUP_TIMEOUT)
         master_remote = master_node.remote('public', login='root', password='r00tme')
         add_nmap(master_remote)
-        dhcp_checksum(master_remote)
         self.environment().snapshot(EMPTY_SNAPSHOT)

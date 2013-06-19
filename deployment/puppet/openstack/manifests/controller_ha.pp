@@ -312,6 +312,7 @@ class openstack::controller_ha (
       keystone_admin_tenant   => $keystone_admin_tenant,
       glance_db_password      => $glance_db_password,
       glance_user_password    => $glance_user_password,
+      glance_api_servers      => $glance_api_servers,
       nova_db_password        => $nova_db_password,
       nova_user_password      => $nova_user_password,
       rabbit_password         => $rabbit_password,

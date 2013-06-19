@@ -65,6 +65,7 @@ class Template
 
   def replace(hash)
     hash.each do |key, value|
+      next if value.nil?
       @value = Template._replace(@value, key, value)
     end
     self
@@ -223,7 +224,11 @@ class ConfigYaml
   end
 
   def segment_range()
-    self.mandatory('segment_range')
+    self.obligatory('segment_range')
+  end
+
+  def tenant_network_type()
+    self.obligatory('tenant_network_type')
   end
 
   def repo_proxy()
@@ -280,6 +285,7 @@ class Manifest
                      :nv_physical_volume => config.nv_physical_volumes(),
                      :use_syslog => config.use_syslog(),
                      :cinder => config.cinder(),
+                     :tenant_network_type => config.tenant_network_type(),
                      :cinder_nodes => config.cinder_nodes(),
                      :nagios_master => config.nagios_master(),
                      :external_ipinfo => config.external_ip_info(),

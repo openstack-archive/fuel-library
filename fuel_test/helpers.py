@@ -66,13 +66,6 @@ def install_packages2(remotes, packages):
         remote.execute(cmd)
 
 
-def dhcp_checksum(remote):
-    if OS_FAMILY == "centos" or USE_ISO:
-        remote.sudo.ssh.execute("iptables -t mangle -A POSTROUTING -p udp --dport 68 -j CHECKSUM --checksum-fill; /etc/init.d/iptables save")
-    else:
-        remote.sudo.ssh.execute("iptables -t mangle -A POSTROUTING -p udp --dport 68 -j CHECKSUM --checksum-fill; iptables-save -c > /etc/iptables.rules")
-
-
 def install_packages(remote, packages):
     if OS_FAMILY == "centos" or USE_ISO:
         remote.sudo.ssh.check_call('yum -y install %s' % packages)
