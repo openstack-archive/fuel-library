@@ -628,7 +628,7 @@ node /fuel-controller-[\d+]/ {
     services        => [
       'host-alive','nova-novncproxy','keystone', 'nova-scheduler',
       'nova-consoleauth', 'nova-cert', 'nova-api', 'glance-api',
-      'glance-registry','horizon', 'rabbitmq', 'qpid', 'mysql',
+      'glance-registry','horizon', $queue_provider, 'mysql',
     ],
     whitelist       => ['127.0.0.1', $nagios_master],
     hostgroup       => 'controller',
