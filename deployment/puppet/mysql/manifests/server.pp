@@ -31,6 +31,7 @@ class mysql::server (
   $server_id         = $mysql::params::server_id,
   $rep_user = 'replicator',
   $rep_pass = 'replicant666',
+  $use_syslog              = false,
 ) inherits mysql::params {
 
   Exec {path => '/usr/bin:/bin:/usr/sbin:/sbin'}    
