@@ -105,7 +105,8 @@ class openstack::compute (
   $use_syslog              = false,
   $nova_rate_limits = undef,
   $cinder_rate_limits = undef,
-  $create_networks = false
+  $create_networks = false,
+  $state_path              = '/var/lib/nova'
 ) {
 
   #
@@ -170,6 +171,7 @@ class openstack::compute (
       use_syslog           => $use_syslog,
       api_bind_address     => $internal_address,
       rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
+      state_path           => $state_path,
   }
 
   #Cinder setup
@@ -220,9 +222,9 @@ class openstack::compute (
       }
     }
     if !defined(Package[$scp_package]) {
-      package {$scp_package: ensure => present } 
+      package {$scp_package: ensure => present }
     }
- 
+
   if ( $ssh_private_key != undef ) {
    file { '/var/lib/nova/.ssh':
       ensure => directory,
@@ -260,7 +262,7 @@ class openstack::compute (
     }
   }
 
-  # configure nova api 
+  # configure nova api
   class { 'nova::api':
     ensure_package    => $::openstack_version['nova'],
     enabled           => true,
