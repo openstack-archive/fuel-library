@@ -220,6 +220,7 @@ class openstack::controller (
       galera_nodes           => $galera_nodes,
       custom_setup_class     => $custom_mysql_setup_class,
       mysql_skip_name_resolve => $mysql_skip_name_resolve,
+      use_syslog             => $use_syslog,
     }
   }
   ####### KEYSTONE ###########
@@ -398,7 +399,8 @@ class openstack::controller (
     horizon_app_links => $horizon_app_links,
     keystone_host     => $service_endpoint,
     use_ssl           => $horizon_use_ssl,
-    verbose           => $verbose
+    verbose           => $verbose,
+    use_syslog        => $use_syslog,
   }
 
 }

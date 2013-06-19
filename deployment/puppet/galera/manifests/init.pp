@@ -15,6 +15,7 @@ class galera (
   $setup_multiple_gcomm = true,
   $skip_name_resolve    = false,
   $node_addresses       = [$ipaddress_eth0],
+  $use_syslog           = false,
   ) {
   include galera::params
 
@@ -34,7 +35,7 @@ class galera (
 
       file { '/etc/my.cnf':
         ensure => present,
-        source => 'puppet:///modules/galera/my.cnf',
+        content => template("galera/my.cnf.erb"),
         before => Service['mysql-galera']
       }
 
@@ -69,7 +70,7 @@ class galera (
 
       file { '/etc/my.cnf':
         ensure => present,
-        source => 'puppet:///modules/galera/my.cnf',
+        content => template("galera/my.cnf.erb"),
         before => Service['mysql-galera']
       }
 
