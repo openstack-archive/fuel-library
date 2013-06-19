@@ -221,6 +221,7 @@ if $node[0]['role'] == 'primary-controller' {
 
 
 #Stages configuration
+stage {'first': } ->
 stage {'openstack-custom-repo': } ->
 stage {'netconfig': } ->
 stage {'corosync_setup': } ->
@@ -545,7 +546,7 @@ class compact_controller (
 node /fuel-controller-[\d+]/ {
   include stdlib
   class { 'operatingsystem::checksupported':
-      stage => 'setup'
+      stage => 'first'
   }
 
   class {'::node_netconfig':
@@ -573,7 +574,7 @@ node /fuel-controller-[\d+]/ {
 node /fuel-compute-[\d+]/ {
   include stdlib
   class { 'operatingsystem::checksupported':
-      stage => 'setup'
+      stage => 'first'
   }
 
   class {'nagios':
@@ -629,7 +630,7 @@ node /fuel-compute-[\d+]/ {
 node /fuel-quantum/ {
   include stdlib
   class { 'operatingsystem::checksupported':
-      stage => 'setup'
+      stage => 'first'
   }
 
   class {'::node_netconfig':
