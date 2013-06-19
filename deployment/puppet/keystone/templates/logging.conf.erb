@@ -2,13 +2,13 @@
 keys = root
 
 [handlers]
-keys = syslog
+keys = rotated_file,syslog
 
 [formatters]
 keys = default
 
 [logger_root]
-level = DEBUG
+level = ERROR
 handlers = syslog
 qualname = keystone
 
@@ -16,6 +16,13 @@ qualname = keystone
 class = handlers.SysLogHandler
 args = ('/dev/log', handlers.SysLogHandler.LOG_LOCAL1)
 formatter = default
+
+[handler_rotated_file]
+class = handlers.TimedRotatingFileHandler
+level = DEBUG
+formatter = default
+# rotate at midnight, each day and keep 7 days
+args = ('/var/log/keystone-all.log', 'midnight', 1, 7)
 
 [formatter_default]
 format = keystone %(name)s %(levelname)s %(message)s
