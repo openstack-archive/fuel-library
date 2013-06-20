@@ -102,13 +102,13 @@ define add_haproxy_service (
     }
 }
 
-define keepalived_dhcp_hook($interface)
-{
-    $down_hook="ip addr show dev $interface | grep -w $interface:ka | awk '{print \$2}' > /tmp/keepalived_${interface}_ip\n"
-    $up_hook="cat /tmp/keepalived_${interface}_ip |  while read ip; do  ip addr add \$ip dev $interface label $interface:ka; done\n"
-    file {"/etc/dhcp/dhclient-${interface}-down-hooks": content=>$down_hook, mode => 744 }
-    file {"/etc/dhcp/dhclient-${interface}-up-hooks": content=>$up_hook, mode => 744 }
-}
+# define keepalived_dhcp_hook($interface)
+# {
+#     $down_hook="ip addr show dev $interface | grep -w $interface:ka | awk '{print \$2}' > /tmp/keepalived_${interface}_ip\n"
+#     $up_hook="cat /tmp/keepalived_${interface}_ip |  while read ip; do  ip addr add \$ip dev $interface label $interface:ka; done\n"
+#     file {"/etc/dhcp/dhclient-${interface}-down-hooks": content=>$down_hook, mode => 744 }
+#     file {"/etc/dhcp/dhclient-${interface}-up-hooks": content=>$up_hook, mode => 744 }
+# }
 
 
 
@@ -152,7 +152,7 @@ class openstack::controller_ha (
       ensure => present,
       content => 'local0.* -/var/log/haproxy.log'
     }
-    Class['keepalived'] -> Class ['nova::rabbitmq']
+    # Class['keepalived'] -> Class ['nova::rabbitmq']
     haproxy_service { 'horizon':    order => 15, port => 80, virtual_ips => [$public_virtual_ip], define_cookies => true  }
 
     if $horizon_use_ssl {
@@ -197,32 +197,32 @@ class openstack::controller_ha (
       path    => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
     }
 
-    if $primary_controller {
-      exec { 'create-public-virtual-ip':
-        command => "ip addr add ${public_virtual_ip} dev ${public_interface} label ${public_interface}:ka",
-        unless  => "ip addr show dev ${public_interface} | grep -w ${public_virtual_ip}",
-        path    => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
-        before  => Service['keepalived'],
-        require => Exec['up-public-interface'],
-      }
-    }
+    # if $primary_controller {
+    #   exec { 'create-public-virtual-ip':
+    #     command => "ip addr add ${public_virtual_ip} dev ${public_interface} label ${public_interface}:ka",
+    #     unless  => "ip addr show dev ${public_interface} | grep -w ${public_virtual_ip}",
+    #     path    => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
+    #     before  => Service['keepalived'],
+    #     require => Exec['up-public-interface'],
+    #   }
+    # }
 
-    keepalived_dhcp_hook {$public_interface:interface=>$public_interface}
-    if $internal_interface != $public_interface {
-      keepalived_dhcp_hook {$internal_interface:interface=>$internal_interface}
-    }
+# #    keepalived_dhcp_hook {$public_interface:interface=>$public_interface}
+#     if $internal_interface != $public_interface {
+#       keepalived_dhcp_hook {$internal_interface:interface=>$internal_interface}
+#     }
 
-    Keepalived_dhcp_hook<| |> {before =>Service['keepalived']}
+    # Keepalived_dhcp_hook<| |> {before =>Service['keepalived']}
 
-    if $primary_controller {
-      exec { 'create-internal-virtual-ip':
-        command => "ip addr add ${internal_virtual_ip} dev ${internal_interface} label ${internal_interface}:ka",
-        unless  => "ip addr show dev ${internal_interface} | grep -w ${internal_virtual_ip}",
-        path    => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
-        before  => Service['keepalived'],
-        require => Exec['up-internal-interface'],
-      }
-    }
+    # if $primary_controller {
+    #   exec { 'create-internal-virtual-ip':
+    #     command => "ip addr add ${internal_virtual_ip} dev ${internal_interface} label ${internal_interface}:ka",
+    #     unless  => "ip addr show dev ${internal_interface} | grep -w ${internal_virtual_ip}",
+    #     path    => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
+    #     before  => Service['keepalived'],
+    #     require => Exec['up-internal-interface'],
+    #   }
+    # }
     sysctl::value { 'net.ipv4.ip_nonlocal_bind': value => '1' }
 
     package { 'socat': ensure => present }
@@ -259,26 +259,26 @@ class openstack::controller_ha (
 #        require => Class['::openstack::firewall']
 #    }
 
-    # keepalived
-    $public_vrid   = $::deployment_id
-    $internal_vrid = $::deployment_id + 1
+    # # keepalived
+    # $public_vrid   = $::deployment_id
+    # $internal_vrid = $::deployment_id + 1
 
-    class { 'keepalived':
-      require => Class['haproxy'] ,
-    }
+    # class { 'keepalived':
+    #   require => Class['haproxy'] ,
+    # }
 
-    keepalived::instance { $public_vrid:
-      interface => $public_interface,
-      virtual_ips => [$public_virtual_ip],
-      state    => $primary_controller ? { true => 'MASTER', default => 'BACKUP' },
-      priority => $primary_controller ? { true => 101,      default => 100      },
-    }
-    keepalived::instance { $internal_vrid:
-      interface => $internal_interface,
-      virtual_ips => [$internal_virtual_ip],
-      state    => $primary_controller ? { true => 'MASTER', default => 'BACKUP' },
-      priority => $primary_controller ? { true => 101,      default => 100      },
-    }
+    # keepalived::instance { $public_vrid:
+    #   interface => $public_interface,
+    #   virtual_ips => [$public_virtual_ip],
+    #   state    => $primary_controller ? { true => 'MASTER', default => 'BACKUP' },
+    #   priority => $primary_controller ? { true => 101,      default => 100      },
+    # }
+    # keepalived::instance { $internal_vrid:
+    #   interface => $internal_interface,
+    #   virtual_ips => [$internal_virtual_ip],
+    #   state    => $primary_controller ? { true => 'MASTER', default => 'BACKUP' },
+    #   priority => $primary_controller ? { true => 101,      default => 100      },
+    # }
 
    Class['haproxy'] -> Class['galera']
 
@@ -328,11 +328,10 @@ class openstack::controller_ha (
       db_host                 => $internal_virtual_ip,
       service_endpoint        => $internal_virtual_ip,
       glance_backend          => $glance_backend,
-      require                 => Service['keepalived'],
+      #require                 => Service['keepalived'],
       quantum                 => $quantum,
       quantum_user_password   => $quantum_user_password,
       quantum_db_password     => $quantum_db_password,
-     #quantum_l3_enable       => $primary_controller,
       quantum_gre_bind_addr   => $quantum_gre_bind_addr,
       quantum_external_ipinfo => $quantum_external_ipinfo,
       quantum_network_node    => $quantum_network_node,
