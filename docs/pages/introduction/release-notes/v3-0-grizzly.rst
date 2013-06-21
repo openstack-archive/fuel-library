@@ -3,7 +3,9 @@ Release Notes for Fuel™ and Fuel™ Web Version 3.0
 
 June 6, 2013
 
-Mirantis, Inc. is releasing version 3.0 of the Fuel™ Library and Fuel™ Web products.  These release notes supplement the product documentation and list enhancements, resolved issues and known issues in this version. 
+Mirantis, Inc. is releasing version 3.0.1 of the Fuel™ Library and Fuel™ Web products.  This is a `cumulative` maintenance release to the previously available version 3.0.  It contains the complete distribution of version 3.0 as well as additional enhancements and defect fixes. Customers are strongly recommended to install version 3.0.1.
+
+These release notes supplement the product documentation and list enhancements, resolved issues and known issues.  Issues addressed specifically in version 3.0.1 will be clearly marked. 
 
  * :ref:`what-is-fuel`
  * :ref:`what-is-fuel-web`
@@ -35,7 +37,7 @@ Fuel™ Web is simplified way to deploy OpenStack with Fuel Library of scripts. 
 .. _new-features:
 
 
-New Features in Fuel and Fuel Web 3.0
+New Features in Fuel and Fuel Web 3.0.x
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
  * Support for OpenStack Grizzly
@@ -84,7 +86,7 @@ Deployment Improvements
 **Deployment of CentOS 6.4**
 
   CentOS 6.4 is now used as the base operating system for the Fuel master node as well as the deployed slave nodes when deploying via Fuel Web.  It is also the Operating System included in the Fuel Library ISO.
-  Red Hat Enterprise Linux continues to be an available choice when deploying through the Fuel Library CLI.  Support for Ubuntu® is expected in a near future maintenance release.
+  Red Hat Enterprise Linux continues to be an available choice when deploying through the Fuel Library CLI.  Support for Ubuntu® is expected in a near future release.
 
 **Deployment of Cinder from Fuel Web**
 
@@ -174,7 +176,7 @@ Resolved Issues in Fuel and Fuel Web 3.0
 
   Previously, the Cobbler snippet for partitioning the disk did not properly set the disk label to GPT to support partitions greater than 2TB. This has now been corrected.
 
-
+  
 .. _other-resolved-issues:
 
 
@@ -190,11 +192,69 @@ Other resolved issues
   * Fixed simultaneous operations to ensure that threads in astute are safe
   * Nodes with multiple NICs can now boot normally via cobbler 
 
+.. _resolved-in-301:
+  
+Resolved issues in Fuel and Fuel Web 3.0.1
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+**Support for CCISS controllers**
+
+  In some cases, the hard drives on target nodes were not detected during deployment because the nodes utilized a non-standard CCISS hard drive controller.  This situation has been resolved.  The target nodes can now use CCISS HD controllers and the hard drives will be recognized during deployment.
+
+**Increased timeout during provisioning**
+
+  On occasion, the deployment would fail due to a timeout while deploying the OS, especially for Cinder and Compute nodes with high capacity hard drives.  This is because the process to format the hard drives took longer than the timeout value.  This has been corrected by increasing the timeout value.
+
+**SSL certificate error**
+
+  Sometimes, puppet would produce an error stating “Failed to generate additional resources using 'eval_generate: Error 400 on SERVER”.  This issue has been corrected.
+
+**Recognizing network interfaces that start with em instead of eth**
+
+  When a NIC is embedded in the motherboard, some operating systems will use the prefix of ``em`` (meaning “embedded”) instead of ``eth``.  Fuel previously had an issue installing onto systems where the NIC used a prefix of em.  This has now been corrected.
+
+**Installing Fuel Web onto a system with multiple CD drives**
+
+  The installation script for Fuel Web is designed to mount ``/dev/cdrom`` and copy files to the system. When multiple CD drives exist on a system, the ``/dev/cdrom`` symbolic link does not always point to the expected device.  The scripts have been corrected to work properly in this scenario.
+
+**Sufficient disk space for Glance when using defaults**
+
+  Previously in Fuel Web, if the a controller node is deployed with the default disk configuration, only a small amount of space was allocated to the OS volume (28GB on a 2TB drive for instance). This limited the number of images that could be stored in Glance.   All available disk space is now allocated by default.  This default can be changed by selecting the Disk Configuration button when viewing the details of a node prior to deployment.
+
+**Logical volume for the base operating system properly allocated**
+
+  In previous releases, Fuel Web improperly allocated only a small percentage of the logical volume for the base operating system when a user requested that the entire volume be used for the base system.  Previously, this situation had to be resolved manually.  This issue has now been corrected and Fuel Web will properly allocate all of the available disk space for the base system when requested to do so. 
+
+**Creating a Cinder volume from a Glance image**
+
+  Previously, in a simple deployment you couldn’t create a Cinder volume from a Glance image. This was because the ``glance_host`` parameter was not set in ``cinder.conf`` and the default is ``localhost``.  The ``glance_host`` parameter is now set to the controller IP.
+
+**Auto-assigning floating IP addresses**
+
+  Previously in Fuel Web, even when a user enabled auto-assigning of floating IP addresses in the OpenStack settings tab, the feature still was not enabled and user had to manually associate floating IP addresses to instances.  Fuel Web now correctly assigns the floating IP addresses to instances when the option is enabled.
+
+**Floating IP address range**
+
+  In some isolated cases in the previous releases, Fuel would create only one floating IP address instead of a specified range defined by the user.  This issue has been resolved and Fuel will now properly create all of the floating IP addresses in the requested range.
+
+**Adding users to multiple projects in Horizon**
+
+  Previously, when adding a user to multiple projects in Horizon, only the first project was accessible.  There was no drop-down for selecting the other assigned projects.  This could lead to users, especially the admin user, being assigned to another projects as a member only - thus losing admin access to Horizon.  This issue has now been resolved and all of the projects are now visible when adding a user in Horizon.
+
+**Time synchronization issues no longer lead to error condition**
+
+  From time to time ntpd may fail to synchronize and when this happens, the offset gets progressively larger until it resets itself and starts the cycle again of getting further out of synchronization.  This issue could lead to an error condition within mCollective.  This issue has been addressed by increasing the Time-to-Live (TTL) value for mCollective and setting the panic threshold for NTP to zero.
+
+**Deployment on small capacity hard drives using Fuel Web**
+
+  In previous releases, Fuel Web would produce an error when trying to deploy OpenStack components onto nodes with hard drives less than 13GB.  Fuel Web now calculates the minimum size base on multiple factors including os size, boot size and swap size (which itself is calculated based on available RAM).  However, Mirantis still recommends a minimum hard drive size of 15GB if possible.
+
+  
 
 .. _known-issues:
 
 
-Known Issues in Fuel and Fuel Web 3.0
+Known Issues in Fuel and Fuel Web 3.0.x
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 **Support for OpenStack Grizzly**
@@ -207,7 +267,7 @@ Known Issues in Fuel and Fuel Web 3.0
     * Availability zones
     * Host aggregates
 
-  * Quantum
+  * Neutron (formerly Quantum)
 
     * LBaaS (Load Balancer as a Service)
     * Multiple L3 and DHCP agents per cloud
@@ -258,7 +318,7 @@ It is not possible to map logical OpenStack networks to physical interfaces with
   * The Quantum namespace metadata proxy is not supported unless netns is used.
   * Quantum multi-node balancing conflicts with pacemaker, so the two should not be used together in the same environment.
   * In order for Virtual machines to have access to internet and/or external networks you need to set the floating network prefix and public_address so that they do not intersect with the network external interface to which it belongs. This is due to specifics of how Quantum sets Network Address Translation (NAT) rules and a lack of namespaces support in CentOS 6.4. 
-
+  * The ``Total Space`` displayed in the ``Disk Configuration`` screen may be slightly larger than what is actually available.  Either choose “use all unallocated space” or enter a number significantly lower than the displayed value when modifying volume groups.
 
 .. _get-products:
 
