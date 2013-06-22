@@ -146,11 +146,11 @@ path_to_private_key = %(COMPUTE_PATH_TO_PRIVATE_KEY)s
 [compute-admin]
 # This should be the username of a user WITH administrative privileges
 # If not defined the admin user from the identity section will be used
-username = %(COMPUTE_ADMIN_USERNAME)
+username = %(COMPUTE_ADMIN_USERNAME)s
 # The above administrative user's password
-password = %(COMPUTE_ADMIN_PASSWORD)
+password = %(COMPUTE_ADMIN_PASSWORD)s
 # The above administrative user's tenant name
-tenant_name = %(COMPUTE_ADMIN_TENANT_NAME)
+tenant_name = %(COMPUTE_ADMIN_TENANT_NAME)s
 
 [image]
 # This section contains configuration options used when executing tests
@@ -169,9 +169,9 @@ api_version = %(IMAGE_API_VERSION)s
 # against the OpenStack Network API.
 
 # Version of the Quantum API
-api_version = %(NETWORK_API_VERSION)
+api_version = %(NETWORK_API_VERSION)s
 # Catalog type of the Quantum Service
-catalog_type = %(NETWORK_CATALOG_TYPE)
+catalog_type = %(NETWORK_CATALOG_TYPE)s
 
 # A large private cidr block from which to allocate smaller blocks for
 # tenant networks.
