@@ -12,6 +12,7 @@ if $auto_assign_floating_ip == 'true' {
   $bool_auto_assign_floating_ip = false
 }
 
+
 $create_networks = true
 
 $network_config = {
@@ -149,6 +150,7 @@ class compact_controller {
     cinder_db_password            => $cinder_hash[db_password],
     manage_volumes                => false,
     galera_nodes                  => $controller_nodes,
+    custom_mysql_setup_class      => $::custom_mysql_setup_class,
     mysql_skip_name_resolve       => true,
     use_syslog                    => true,
   }

@@ -126,9 +126,12 @@ $proj_name            = 'test'
 $multi_host              = true
 
 # Specify different DB credentials for various services
+# HA DB provided through pacemaker or galera
 $mysql_root_password     = 'nova'
 $admin_email             = 'openstack@openstack.org'
 $admin_password          = 'nova'
+$custom_mysql_setup_class = 'galera',
+validate_re($mysql_custom_setup_class,'galera|pacemaker')
 
 $keystone_db_password    = 'nova'
 $keystone_admin_token    = 'nova'
@@ -647,6 +650,7 @@ class compact_controller (
     cinder                  => $cinder,
     cinder_iscsi_bind_addr  => $cinder_iscsi_bind_addr,
     manage_volumes          => $cinder ? { false => $manage_volumes, default =>$is_cinder_node },
+    custom_mysql_setup_class=> $custom_mysql_setup_class,
     galera_nodes            => $controller_hostnames,
     nv_physical_volume      => $nv_physical_volume,
     use_syslog              => $use_syslog,

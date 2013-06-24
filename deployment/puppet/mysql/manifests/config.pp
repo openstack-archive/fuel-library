@@ -48,6 +48,7 @@ class mysql::config(
   $default_engine    = 'UNSET',
   $root_group        = $mysql::params::root_group,
   $use_syslog        = false,
+  $custom_setup_class = undef
 ) inherits mysql::params {
 
   File {

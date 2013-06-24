@@ -40,7 +40,12 @@ ssl-ca    = <%= ssl_ca %>
 ssl-cert  = <%= ssl_cert %>
 ssl-key   = <%= ssl_key %>
 <% end %>
-
+<% if custom_setup_class == 'pacemaker_mysql' %>
+server-id=<%= rand(999) %>
+log-bin=mysql-bin
+relay-log=mysqld-relay-bin
+replicate-ignore-db=mysql
+<% end %>
 [mysqldump]
 quick
 quote-names
