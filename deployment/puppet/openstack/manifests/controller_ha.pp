@@ -1,6 +1,3 @@
-#stage {'clocksync': before => Stage['main']}
-
-
 
 define haproxy_service(
   $order,
@@ -108,16 +105,6 @@ define add_haproxy_service (
     }
 }
 
-# define keepalived_dhcp_hook($interface)
-# {
-#     $down_hook="ip addr show dev $interface | grep -w $interface:ka | awk '{print \$2}' > /tmp/keepalived_${interface}_ip\n"
-#     $up_hook="cat /tmp/keepalived_${interface}_ip |  while read ip; do  ip addr add \$ip dev $interface label $interface:ka; done\n"
-#     file {"/etc/dhcp/dhclient-${interface}-down-hooks": content=>$down_hook, mode => 744 }
-#     file {"/etc/dhcp/dhclient-${interface}-up-hooks": content=>$up_hook, mode => 744 }
-# }
-
-
-
 class openstack::controller_ha (
    $primary_controller,
    $controller_public_addresses, $public_interface, $private_interface, $controller_internal_addresses,
@@ -182,40 +169,13 @@ class openstack::controller_ha (
     }
 
     haproxy_service { 'glance-reg': order => 90, port => 9191, virtual_ips => [$internal_virtual_ip]  }
-#    haproxy_service { 'rabbitmq-epmd':    order => 91, port => 4369, virtual_ips => [$internal_virtual_ip], define_backend => true }
+   #haproxy_service { 'rabbitmq-epmd':    order => 91, port => 4369, virtual_ips => [$internal_virtual_ip], define_backend => true }
     haproxy_service { 'rabbitmq-openstack':    order => 92, port => 5672, virtual_ips => [$internal_virtual_ip], define_backend => true }
     haproxy_service { 'mysqld': order => 95, port => 3306, virtual_ips => [$internal_virtual_ip], define_backend => true }
     if $glance_backend == 'swift' {
       haproxy_service { 'swift': order => 96, port => 8080, virtual_ips => [$public_virtual_ip,$internal_virtual_ip], balancers => $swift_proxies }
     }
 
-
-    # if $primary_controller {
-    #   exec { 'create-public-virtual-ip':
-    #     command => "ip addr add ${public_virtual_ip} dev ${public_interface} label ${public_interface}:ka",
-    #     unless  => "ip addr show dev ${public_interface} | grep -w ${public_virtual_ip}",
-    #     path    => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
-    #     before  => Service['keepalived'],
-    #     require => Exec['up-public-interface'],
-    #   }
-    # }
-
-# #    keepalived_dhcp_hook {$public_interface:interface=>$public_interface}
-#     if $internal_interface != $public_interface {
-#       keepalived_dhcp_hook {$internal_interface:interface=>$internal_interface}
-#     }
-
-    # Keepalived_dhcp_hook<| |> {before =>Service['keepalived']}
-
-    # if $primary_controller {
-    #   exec { 'create-internal-virtual-ip':
-    #     command => "ip addr add ${internal_virtual_ip} dev ${internal_interface} label ${internal_interface}:ka",
-    #     unless  => "ip addr show dev ${internal_interface} | grep -w ${internal_virtual_ip}",
-    #     path    => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
-    #     before  => Service['keepalived'],
-    #     require => Exec['up-internal-interface'],
-    #   }
-    # }
     sysctl::value { 'net.ipv4.ip_nonlocal_bind': value => '1' }
 
     package { 'socat': ensure => present }
@@ -244,34 +204,6 @@ class openstack::controller_ha (
       require => Sysctl::Value['net.ipv4.ip_nonlocal_bind'],
     }
 
-#    exec { 'create-keepalived-rules':
-#        command => "iptables -I INPUT -m pkttype --pkt-type multicast -d 224.0.0.18 -j ACCEPT && /etc/init.d/iptables save ",
-#        unless => "iptables-save  | grep '\-A INPUT -d 224.0.0.18/32 -m pkttype --pkt-type multicast -j ACCEPT' -q",
-#        path => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
-#        before => Service['keepalived'],
-#        require => Class['::openstack::firewall']
-#    }
-
-    # # keepalived
-    # $public_vrid   = $::deployment_id
-    # $internal_vrid = $::deployment_id + 1
-
-    # class { 'keepalived':
-    #   require => Class['haproxy'] ,
-    # }
-
-    # keepalived::instance { $public_vrid:
-    #   interface => $public_interface,
-    #   virtual_ips => [$public_virtual_ip],
-    #   state    => $primary_controller ? { true => 'MASTER', default => 'BACKUP' },
-    #   priority => $primary_controller ? { true => 101,      default => 100      },
-    # }
-    # keepalived::instance { $internal_vrid:
-    #   interface => $internal_interface,
-    #   virtual_ips => [$internal_virtual_ip],
-    #   state    => $primary_controller ? { true => 'MASTER', default => 'BACKUP' },
-    #   priority => $primary_controller ? { true => 101,      default => 100      },
-    # }
 
    Class['haproxy'] -> Class['galera']
 
