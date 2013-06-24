@@ -136,16 +136,55 @@ class openstack::controller_ha (
 
     # haproxy
     include haproxy::params
+    $global_options   = $haproxy::params::global_options
+    $defaults_options = $haproxy::params::defaults_options
+
+    Class['cluster::haproxy'] -> Anchor['haproxy_done']
+
+    file { '/etc/rsyslog.d/haproxy.conf':
+        ensure => present,
+        content => 'local0.* -/var/log/haproxy.log'
+    } -> Anchor['haproxy_done']
+
+    concat { '/etc/haproxy/haproxy.cfg':
+      owner   => '0',
+      group   => '0',
+      mode    => '0644',
+    } -> Anchor['haproxy_done']
+    
+
+    # Dirty hack, due Puppet can't send notify between stages
+    exec { 'restart_haproxy':
+      command     => 'crm resource restart clone_p_haproxy',
+      path        => '/usr/bin:/usr/sbin:/bin:/sbin',
+      logoutput   => true,
+      refreshonly => true,
+      tries       => 3,
+      try_sleep   => 1,
+      #returns    => [0, 1, ''],
+    }
+    Exec['restart_haproxy'] -> Anchor['haproxy_done']
+    Concat['/etc/haproxy/haproxy.cfg'] ~> Exec['restart_haproxy']
+
+    # Simple Header
+    concat::fragment { '00-header':
+      target  => '/etc/haproxy/haproxy.cfg',
+      order   => '01',
+      content => "# This file managed by Puppet\n",
+    } -> Haproxy_service<| |>
+
+    # Template uses $global_options, $defaults_options
+    concat::fragment { 'haproxy-base':
+      target  => '/etc/haproxy/haproxy.cfg',
+      order   => '10',
+      content => template('haproxy/haproxy-base.cfg.erb'),
+    } -> Haproxy_service<| |>
+
 
     Haproxy_service {
       balancers => $controller_internal_addresses
     }
 
-    file { '/etc/rsyslog.d/haproxy.conf':
-      ensure => present,
-      content => 'local0.* -/var/log/haproxy.log'
-    }
-    # Class['keepalived'] -> Class ['nova::rabbitmq']
     haproxy_service { 'horizon':    order => 15, port => 80, virtual_ips => [$public_virtual_ip], define_cookies => true  }
 
     if $horizon_use_ssl {
@@ -176,16 +215,24 @@ class openstack::controller_ha (
       haproxy_service { 'swift': order => 96, port => 8080, virtual_ips => [$public_virtual_ip,$internal_virtual_ip], balancers => $swift_proxies }
     }
 
-    sysctl::value { 'net.ipv4.ip_nonlocal_bind': value => '1' }
+    Haproxy_service<| |> ~> Exec['restart_haproxy']
+    Haproxy_service<| |> -> Anchor['haproxy_done']
+    Service<| title == 'haproxy' |> -> Anchor['haproxy_done']
+
+    anchor {'haproxy_done': }
+
+
+    ###
+    # Setup Galera's 
 
     package { 'socat': ensure => present }
     exec { 'wait-for-haproxy-mysql-backend':
       command   => "echo show stat | socat unix-connect:///var/lib/haproxy/stats stdio | grep -q '^mysqld,BACKEND,.*,UP,'",
       path      => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
-      require   => [Service['haproxy'], Package['socat']],
       try_sleep => 5,
       tries     => 60,
     }
+    Package['socat'] -> Exec['wait-for-haproxy-mysql-backend']
 
     Exec<| title == 'wait-for-synced-state' |> -> Exec['wait-for-haproxy-mysql-backend']
     Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'initial-db-sync' |>
@@ -196,16 +243,8 @@ class openstack::controller_ha (
     Exec['wait-for-haproxy-mysql-backend'] -> Service <| title == 'cinder-scheduler' |>
     Exec['wait-for-haproxy-mysql-backend'] -> Service <| title == 'cinder-volume' |>
     Exec['wait-for-haproxy-mysql-backend'] -> Service <| title == 'cinder-api' |>
-
-    class { 'haproxy':
-      enable => true,
-      global_options   => merge($::haproxy::params::global_options, {'log' => "/dev/log local0"}),
-      defaults_options => merge($::haproxy::params::defaults_options, {'mode' => 'http'}),
-      require => Sysctl::Value['net.ipv4.ip_nonlocal_bind'],
-    }
-
-
-   Class['haproxy'] -> Class['galera']
+    Anchor['haproxy_done'] -> Exec['wait-for-haproxy-mysql-backend']
+    Anchor['haproxy_done'] -> Class['galera']
 
     class { '::openstack::controller':
       public_address          => $public_virtual_ip,
@@ -317,26 +356,6 @@ class openstack::controller_ha (
       admin_tenant            => $keystone_admin_tenant,
       keystone_admin_token    => $keystone_admin_token,
       controller_node         => $internal_virtual_ip,
-    }
-    if $ha_provider == 'pacemaker' {
-      if $use_unicast_corosync {
-        $unicast_addresses = $controller_internal_addresses
-      } else {
-        $unicast_addresses = undef
-      }
-      if defined(Stage['corosync_setup']) {
-        class {'openstack::corosync':
-          bind_address      => $internal_address,
-          unicast_addresses => $unicast_addresses,
-          stage             => 'corosync_setup'
-        }
-      } else {
-        class {'openstack::corosync':
-          bind_address      => $internal_address,
-          unicast_addresses => $unicast_addresses
-        }
-      }
-
     }
 }
 

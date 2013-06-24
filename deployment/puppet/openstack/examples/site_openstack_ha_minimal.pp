@@ -503,6 +503,8 @@ class virtual_ips () {
   }
 }
 
+
+
 class compact_controller (
   $quantum_network_node = $quantum_netnode_on_cnt
 ) {
@@ -591,9 +593,21 @@ node /fuel-controller-[\d+]/ {
       hostgroup       => 'controller',
     }
   }
+
+  ###
+  # cluster init
+  class { '::cluster': stage => 'corosync_setup' } ->
   class { 'virtual_ips':
     stage => 'corosync_setup'
   }
+  include ::haproxy::params
+  class { 'cluster::haproxy':
+    global_options   => merge($::haproxy::params::global_options, {'log' => "/dev/log local0"}),
+    defaults_options => merge($::haproxy::params::defaults_options, {'mode' => 'http'}),
+    stage => 'cluster_head',
+  }
+  #
+  ###
   class { compact_controller: }
 }
 
