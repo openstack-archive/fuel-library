@@ -2,8 +2,14 @@
 
 
 
-define haproxy_service($order, $balancers, $virtual_ips, $port, $define_cookies = false, $define_backend = false) {
-
+define haproxy_service(
+  $order,
+  $balancers,
+  $virtual_ips,
+  $port,
+  $define_cookies = false,
+  $define_backend = false
+) {
   case $name {
     "mysqld": {
       $haproxy_config_options = { 'option' => ['mysql-check user cluster_watcher', 'tcplog','clitcpka','srvtcpka'], 'balance' => 'roundrobin', 'mode' => 'tcp', 'timeout server' => '28801s', 'timeout client' => '28801s' }
