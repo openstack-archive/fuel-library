@@ -1,3 +1,7 @@
+#
+#
+#
+
 class glance(
   $package_ensure = 'present',
   $syslog_log_facility = 'LOCAL2',
@@ -29,6 +33,10 @@ class glance(
     ensure => present,
     content => template('glance/rsyslog.d.erb'),
   }
+
+  # We must notify rsyslog to apply new logging rules
+  include rsyslog::params
+  File['/etc/rsyslog.d/glance.conf'] ~> Service <| title == "$rsyslog::params::service_name" |>
   
   group {'glance': gid=> 161, ensure=>present, system=>true}
   user  {'glance': uid=> 161, ensure=>present, system=>true, gid=>"glance", require=>Group['glance']}

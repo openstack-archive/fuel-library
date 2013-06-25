@@ -48,6 +48,7 @@ class openstack::glance (
   $verbose              = 'False',
   $enabled              = true,
   $use_syslog           = false,
+  # Facility is common for all glance services
   $syslog_log_facility  = 'LOCAL2',
 ) {
 
@@ -73,7 +74,6 @@ class openstack::glance (
     enabled           => $enabled,
     registry_host     => $registry_host,
     use_syslog        => $use_syslog,
-    syslog_log_facility => $syslog_log_facility,
   }
 
   # Install and configure glance-registry
@@ -90,7 +90,6 @@ class openstack::glance (
     sql_connection    => $sql_connection,
     enabled           => $enabled,
     use_syslog        => $use_syslog,
-    syslog_log_facility => $syslog_log_facility,
   }
 
   # Configure file storage backend

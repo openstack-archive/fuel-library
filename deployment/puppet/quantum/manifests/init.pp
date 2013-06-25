@@ -95,7 +95,11 @@ class quantum (
   }
 
   if $use_syslog {
-    quantum_config {'DEFAULT/log_config': value => "/etc/quantum/logging.conf";}
+    quantum_config {
+      'DEFAULT/log_config': value => "/etc/quantum/logging.conf";
+      'DEFAULT/log_file': ensure=> absent;
+      'DEFAULT/logdir': ensure=> absent;
+    }
     file { "quantum-logging.conf":
       content => template('quantum/logging.conf.erb'),
       path => "/etc/quantum/logging.conf",
@@ -113,6 +117,10 @@ class quantum (
       ensure => present,
       content => template('quantum/rsyslog.d.erb'),
     }
+    # We must notify rsyslog to apply new logging rules
+    include rsyslog::params
+    File['/etc/rsyslog.d/quantum.conf'] ~> Service <| title == "$rsyslog::params::service_name" |>
+
   } else {
     quantum_config {'DEFAULT/log_config': ensure=> absent;}
   }

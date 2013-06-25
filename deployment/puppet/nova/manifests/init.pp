@@ -140,6 +140,8 @@ if $use_syslog
 nova_config
  {
  'DEFAULT/log_config': value => "/etc/nova/logging.conf";
+ 'DEFAULT/log_file': ensure=> absent;
+ 'DEFAULT/logdir': ensure=> absent;
  'DEFAULT/use_syslog': value =>  "True";
  'DEFAULT/syslog_log_facility': value =>  $syslog_log_facility;
  'DEFAULT/logging_context_format_string':
@@ -165,11 +167,17 @@ file { '/etc/rsyslog.d/nova.conf':
   ensure => present,
   content => template('nova/rsyslog.d.erb'),
 }
+
+# We must notify rsyslog to apply new logging rules
+include rsyslog::params
+File['/etc/rsyslog.d/nova.conf'] ~> Service <| title == "$rsyslog::params::service_name" |>
+
 }
 else {
   nova_config {
    'DEFAULT/log_config': ensure=>absent;
    'DEFAULT/use_syslog': value =>"False";
+   'DEFAULT/logdir':     value => $logdir;
   }
 }
   file { $logdir:
@@ -259,7 +267,6 @@ else {
 
   nova_config {
     'DEFAULT/verbose':           value => $verbose;
-    'DEFAULT/logdir':            value => $logdir;
     # Following may need to be broken out to different nova services
     'DEFAULT/state_path':        value => $state_path;
     'DEFAULT/lock_path':         value => $lock_path;

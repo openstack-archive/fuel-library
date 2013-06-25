@@ -41,7 +41,11 @@ class cinder::base (
   }
 
 if $use_syslog {
-  cinder_config {'DEFAULT/log_config': value => "/etc/cinder/logging.conf";}
+  cinder_config {
+    'DEFAULT/log_config': value => "/etc/cinder/logging.conf";
+    'DEFAULT/log_file': ensure=> absent;
+    'DEFAULT/logdir': ensure=> absent;
+  }
   file { "cinder-logging.conf":
     content => template('cinder/logging.conf.erb'),
     path => "/etc/cinder/logging.conf",
@@ -58,6 +62,11 @@ if $use_syslog {
     ensure => present,
     content => template('cinder/rsyslog.d.erb'),
   }
+  
+  # We must notify rsyslog to apply new logging rules
+  include rsyslog::params
+  File['/etc/rsyslog.d/cinder.conf'] ~> Service <| title == "$rsyslog::params::service_name" |>
+
 }
 else {
 	cinder_config {'DEFAULT/log_config': ensure=>absent;}

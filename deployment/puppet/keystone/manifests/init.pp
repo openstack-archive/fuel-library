@@ -77,7 +77,11 @@ class keystone(
   Package['keystone'] ~> Exec<| title == 'keystone-manage pki_setup'|> ~> Service['keystone']
 
   if $use_syslog {
-    keystone_config {'DEFAULT/log_config': value => "/etc/keystone/logging.conf";}
+    keystone_config {
+      'DEFAULT/log_config': value => "/etc/keystone/logging.conf";
+      'DEFAULT/log_file': ensure=> absent;
+      'DEFAULT/logdir': ensure=> absent;
+    }
     file {"keystone-logging.conf":
       content => template('keystone/logging.conf.erb'),
       path => "/etc/keystone/logging.conf",
@@ -95,8 +99,16 @@ class keystone(
       ensure => present,
       content => template('keystone/rsyslog.d.erb'),
     }
+
+    # We must notify rsyslog to apply new logging rules
+    include rsyslog::params
+    File['/etc/rsyslog.d/keystone.conf'] ~> Service <| title == "$rsyslog::params::service_name" |>
+
   } else  {
-    keystone_config {'DEFAULT/log_config': ensure=> absent;}
+    keystone_config {
+     'DEFAULT/log_config': ensure => absent;
+     'DEFAULT/log_file': value => $log_file;
+    }
   }
 
   include 'keystone::params'
@@ -162,7 +174,6 @@ class keystone(
     'DEFAULT/compute_port': value => $compute_port;
     'DEFAULT/verbose':      value => $verbose;
     'DEFAULT/debug':        value => $debug;
-    'DEFAULT/log_file':     value => "/var/log/keystone/keystone.log";
     'DEFAULT/use_syslog':   value => $use_syslog;
     'identity/driver': value =>"keystone.identity.backends.sql.Identity";
     'token/driver': value =>"keystone.token.backends.sql.Token";

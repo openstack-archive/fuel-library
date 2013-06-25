@@ -86,15 +86,17 @@ class glance::api(
     fail("Invalid db connection ${sql_connection}")
   }
   
-if $use_syslog
-  {
- glance_api_config {'DEFAULT/log_config': value => "/etc/glance/logging.conf";}
-
-}
-else
-{
-
- glance_api_config {'DEFAULT/log_config': ensure => absent;}
+if $use_syslog {
+ glance_api_config {
+   'DEFAULT/log_config': value => "/etc/glance/logging.conf";
+   'DEFAULT/log_file': ensure=> absent;
+   'DEFAULT/logdir': ensure=> absent;
+ }
+} else {
+ glance_api_config {
+   'DEFAULT/log_config': ensure => absent;
+   'DEFAULT/log_file': value=> $log_file;
+ }
 }
 
   # basic service config
@@ -105,7 +107,6 @@ else
     'DEFAULT/bind_port': value => $bind_port;
     'DEFAULT/backlog':   value => $backlog;
     'DEFAULT/workers':   value => $workers;
-    'DEFAULT/log_file':  value => $log_file;
     'DEFAULT/use_syslog':  value => $use_syslog;
     'DEFAULT/registry_client_protocol':  value => "http";
     'DEFAULT/delayed_delete': value => "False";
