@@ -133,6 +133,14 @@ class nova(
     require => Package['nova-common'],
   }
 
+  File {
+    ensure  => present,
+    owner   => 'nova',
+    group   => 'nova',
+    mode    => '0644',
+    require => Package['nova-common'],
+  }
+
 #Configure logging in nova.conf
 if $use_syslog
  {
@@ -153,24 +161,35 @@ nova_config
 file {"nova-logging.conf":
   content => template('nova/logging.conf.erb'),
   path => "/etc/nova/logging.conf",
-  owner => "nova",
-  group => "nova",
-  require => [Package['nova-common']]
+  require => File[$logdir],
 }
 file { "nova-all.log":
   path => "/var/log/nova-all.log",
-  owner => "nova",
-  group => "nova",
-  mode => "0644",
 }
 file { '/etc/rsyslog.d/nova.conf':
   ensure => present,
   content => template('nova/rsyslog.d.erb'),
 }
 
-# We must notify rsyslog to apply new logging rules
+# We must notify rsyslog and services to apply new logging rules
 include rsyslog::params
 File['/etc/rsyslog.d/nova.conf'] ~> Service <| title == "$rsyslog::params::service_name" |>
+
+File['nova-logging.conf'] ~> Nova::Generic_service <| |>
+File['nova-logging.conf'] ~> Service <| title == "$nova::params::api_service_name" |>
+File['nova-logging.conf'] ~> Service <| title == "$nova::params::cert_service_name" |>
+File['nova-logging.conf'] ~> Service <| title == "$nova::params::compute_service_name" |>
+File['nova-logging.conf'] ~> Service <| title == "$nova::params::conductor_service_name" |>
+File['nova-logging.conf'] ~> Service <| title == "$nova::params::consoleauth_service_name" |>
+File['nova-logging.conf'] ~> Service <| title == "$nova::params::console_service_name" |>
+File['nova-logging.conf'] ~> Service <| title == "$nova::params::libvirt_service_name" |>
+File['nova-logging.conf'] ~> Service <| title == "$nova::params::network_service_name" |>
+File['nova-logging.conf'] ~> Service <| title == "$nova::params::objectstore_service_name" |>
+File['nova-logging.conf'] ~> Service <| title == "$nova::params::scheduler_service_name" |>
+File['nova-logging.conf'] ~> Service <| title == "$nova::params::tgt_service_name" |>
+File['nova-logging.conf'] ~> Service <| title == "$nova::params::vncproxy_service_name" |>
+File['nova-logging.conf'] ~> Service <| title == "$nova::params::volume_service_name" |>
+File['nova-logging.conf'] ~> Service <| title == "$nova::params::meta_api_service_name" |>
 
 }
 else {
@@ -183,22 +202,14 @@ else {
   file { $logdir:
     ensure  => directory,
     mode    => '0751',
-    require => Package['nova-common'],
-    owner   => 'nova',
-    group   => 'nova',
   }
   file { "${logdir}/nova.log":
       ensure => present,
       mode  => '0640',
       require => [Package['nova-common'], File[$logdir]],
-      owner   => 'nova',
-      group   => 'nova',
   }
   file { '/etc/nova/nova.conf':
     mode  => '0640',
-    require => Package['nova-common'],
-    owner   => 'nova',
-    group   => 'nova',
   }
 
   # used by debian/ubuntu in nova::network_bridge to refresh

@@ -76,6 +76,14 @@ class keystone(
   Keystone_config<||> ~> Exec<| title == 'keystone-manage db_sync'|>
   Package['keystone'] ~> Exec<| title == 'keystone-manage pki_setup'|> ~> Service['keystone']
 
+  File {
+    ensure  => present,
+    owner   => 'keystone',
+    group   => 'keystone',
+    mode    => '0644',
+    require => Package['keystone'],
+  }
+
   if $use_syslog {
     keystone_config {
       'DEFAULT/log_config': value => "/etc/keystone/logging.conf";
@@ -85,15 +93,12 @@ class keystone(
     file {"keystone-logging.conf":
       content => template('keystone/logging.conf.erb'),
       path => "/etc/keystone/logging.conf",
-      owner => "keystone",
-      group => "keystone",
       require => File['/etc/keystone'],
+      # We must notify service for new logging rules
+      notify => Service['keystone'],
     }
     file { "keystone-all.log":
       path => "/var/log/keystone-all.log",
-      owner => "keystone",
-      group => "keystone",
-      mode => "0644",
     }
     file { '/etc/rsyslog.d/keystone.conf':
       ensure => present,
@@ -112,14 +117,6 @@ class keystone(
   }
 
   include 'keystone::params'
-
-  File {
-    ensure  => present,
-    owner   => 'keystone',
-    group   => 'keystone',
-    mode    => '0644',
-    notify  => Service['keystone'],
-  }
 
   package { 'keystone':
     name   => $::keystone::params::package_name,
@@ -142,6 +139,7 @@ class keystone(
     owner   => 'keystone',
     group   => 'keystone',
     mode    => 0755,
+    notify  => Service['keystone'],
   }
 
   case $::osfamily {
@@ -150,7 +148,8 @@ class keystone(
         ensure  => present,
         owner   => 'keystone',
         group   => 'keystone',
-        require => File['/etc/keystone']
+        require => File['/etc/keystone'],
+        notify  => Service['keystone'],
       }
       User['keystone'] -> File['/etc/keystone']
       Group['keystone'] -> File['/etc/keystone']
@@ -261,6 +260,7 @@ class keystone(
   if($token_format  == 'PKI') {
     file { $cache_dir:
       ensure => directory,
+      notify  => Service['keystone'],
     }
 
     # keystone-manage pki_setup Should be run as the same system user that will be running the Keystone service to ensure 

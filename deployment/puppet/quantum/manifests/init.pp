@@ -35,12 +35,18 @@ class quantum (
   Package['quantum'] -> Quantum_config<||>
   Package['quantum'] -> Quantum_api_config<||>
 
+  File {
+    ensure  => present,
+    owner   => 'quantum',
+    group   => 'quantum',
+    mode    => '0644',
+    require => Package['quantum'],
+  }
+
   file {'/etc/quantum':
     ensure  => directory,
-    owner   => 'quantum',
     group   => 'root',
-    mode    => 770,
-    require => Package['quantum']
+    mode    => "0770",
   }
 
   package {'quantum':
@@ -104,23 +110,24 @@ class quantum (
     file { "quantum-logging.conf":
       content => template('quantum/logging.conf.erb'),
       path => "/etc/quantum/logging.conf",
-      owner => "quantum",
-      group => "quantum",
+      require => File['/etc/quantum'],
     }
     file { "quantum-all.log":
       path => "/var/log/quantum-all.log",
-      owner => "quantum",
-      group => "quantum",
-      mode => "0644",
-      require => File['/etc/quantum'],
     }
     file { '/etc/rsyslog.d/quantum.conf':
       ensure => present,
       content => template('quantum/rsyslog.d.erb'),
     }
-    # We must notify rsyslog to apply new logging rules
+
+    # We must notify rsyslog and services to apply new logging rules
     include rsyslog::params
     File['/etc/rsyslog.d/quantum.conf'] ~> Service <| title == "$rsyslog::params::service_name" |>
+
+    File['quantum-logging.conf'] ~> Service<| title == 'quantum-server' |>
+    File['quantum-logging.conf'] ~> Service<| title == 'quantum-plugin-ovs-service' |>
+    File['quantum-logging.conf'] ~> Service<| title == 'quantum-l3' |>
+    File['quantum-logging.conf'] ~> Service<| title == 'quantum-dhcp-agent' |>
 
   } else {
     quantum_config {

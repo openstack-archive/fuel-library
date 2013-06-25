@@ -40,6 +40,14 @@ class cinder::base (
     ensure => $package_ensure,
   }
 
+  File {
+    ensure  => present,
+    owner   => 'cinder',
+    group   => 'cinder',
+    mode    => '0644',
+    require => Package['cinder'],
+  }
+
 if $use_syslog {
   cinder_config {
     'DEFAULT/log_config': value => "/etc/cinder/logging.conf";
@@ -49,35 +57,28 @@ if $use_syslog {
   file { "cinder-logging.conf":
     content => template('cinder/logging.conf.erb'),
     path => "/etc/cinder/logging.conf",
-    owner => "cinder",
-    group => "cinder",
+    require => File[$::cinder::params::cinder_conf],
   }
   file { "cinder-all.log":
     path => "/var/log/cinder-all.log",
-    owner => "cinder",
-    group => "cinder",
-    mode => "0644",
   }
   file { '/etc/rsyslog.d/cinder.conf':
     ensure => present,
     content => template('cinder/rsyslog.d.erb'),
   }
   
-  # We must notify rsyslog to apply new logging rules
+  # We must notify rsyslog and services to apply new logging rules
   include rsyslog::params
   File['/etc/rsyslog.d/cinder.conf'] ~> Service <| title == "$rsyslog::params::service_name" |>
+
+  File['cinder-logging.conf'] ~> Service<| title == 'cinder-api' |>
+  File['cinder-logging.conf'] ~> Service<| title == 'cinder-volume' |>
+  File['cinder-logging.conf'] ~> Service<| title == 'cinder-scheduler' |>
 
 }
 else {
 	cinder_config {'DEFAULT/log_config': ensure=>absent;}
 }
-  File {
-    ensure  => present,
-    owner   => 'cinder',
-    group   => 'cinder',
-    mode    => '0644',
-    require => Package[$::cinder::params::package_name],
-  }
 
   file { $::cinder::params::cinder_conf: }
   file { $::cinder::params::cinder_paste_api_ini: }
