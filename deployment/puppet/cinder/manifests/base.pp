@@ -14,7 +14,8 @@ class cinder::base (
   $rabbit_userid          = 'nova',
   $package_ensure         = 'present',
   $verbose                = 'True',
-  $use_syslog             = false
+  $use_syslog             = false,
+  $syslog_log_facility    = "LOCAL3",
 ) {
 
   include cinder::params
@@ -49,10 +50,9 @@ if $use_syslog {
     group => "cinder",
     mode => "0644",
   }
-## Todo rsyslog config
   file { '/etc/rsyslog.d/cinder.conf':
     ensure => present,
-    content => "local3.* -/var/log/cinder-all.log"
+    content => template('cinder/rsyslog.d.erb'),
   }
 }
 else {
@@ -96,6 +96,7 @@ else {
     'DEFAULT/sql_connection':      value => $sql_connection;
     'DEFAULT/verbose':             value => $verbose;
     'DEFAULT/api_paste_config':    value => '/etc/cinder/api-paste.ini';
+    'DEFAULT/use_syslog':          value => $use_syslog;
   }
   exec { 'cinder-manage db_sync':
     command     => $::cinder::params::db_sync_command,

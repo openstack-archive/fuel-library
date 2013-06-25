@@ -14,7 +14,7 @@ qualname = nova
 
 [handler_syslog]
 class = handlers.SysLogHandler
-args = ('/dev/log', handlers.SysLogHandler.LOG_LOCAL0)
+args = ('/dev/log', handlers.SysLogHandler.LOG_<%= @syslog_log_facility %>)
 formatter = default
 
 [handler_rotated_file]

@@ -22,7 +22,8 @@ class quantum (
   $rabbit_virtual_host    = '/',
   $rabbit_ha_virtual_ip   = false,
   $server_ha_mode         = false,
-  $use_syslog = false
+  $use_syslog = false,
+  $syslog_log_facility    = 'LOCAL4',
 ) {
   include 'quantum::params'
 
@@ -86,6 +87,7 @@ class quantum (
     'DEFAULT/rabbit_userid':          value => $rabbit_user;
     'DEFAULT/rabbit_password':        value => $rabbit_password;
     'DEFAULT/rabbit_virtual_host':    value => $rabbit_virtual_host;
+    'DEFAULT/use_syslog':             value => $use_syslog;
   }
 
   if $use_syslog {
@@ -101,11 +103,11 @@ class quantum (
       owner => "quantum",
       group => "quantum",
       mode => "0644",
+      require => File['/etc/quantum'],
     }
-##TODO add rsyslog module config
     file { '/etc/rsyslog.d/quantum.conf':
       ensure => present,
-      content => "local4.* -/var/log/quantum-all.log"
+      content => template('quantum/rsyslog.d.erb'),
     }
   } else {
     quantum_config {'DEFAULT/log_config': ensure=> absent;}

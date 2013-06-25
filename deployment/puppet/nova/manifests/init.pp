@@ -158,10 +158,9 @@ file { "nova-all.log":
   group => "nova",
   mode => "0644",
 }
-##TODO add rsyslog module config
 file { '/etc/rsyslog.d/nova.conf':
   ensure => present,
-  content => "local0.* -/var/log/nova-all.log"
+  content => template('nova/rsyslog.d.erb'),
 }
 }
 else {

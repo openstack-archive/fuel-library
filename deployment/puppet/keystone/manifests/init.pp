@@ -57,6 +57,7 @@ class keystone(
   $verbose        = 'False',
   $debug          = 'False',
   $use_syslog     = false,
+  $syslog_log_facility = 'LOCAL1',
   $catalog_type   = 'sql',
   $token_format   = 'UUID',
 #  $token_format   = 'PKI',
@@ -73,7 +74,6 @@ class keystone(
   Keystone_config<||> ~> Exec<| title == 'keystone-manage db_sync'|>
   Package['keystone'] ~> Exec<| title == 'keystone-manage pki_setup'|> ~> Service['keystone']
 
-  # TODO implement syslog features
   if $use_syslog {
     keystone_config {'DEFAULT/log_config': value => "/etc/keystone/logging.conf";}
     file {"keystone-logging.conf":
@@ -89,10 +89,9 @@ class keystone(
       group => "keystone",
       mode => "0644",
     }
-##TODO add rsyslog module config
     file { '/etc/rsyslog.d/keystone.conf':
       ensure => present,
-      content => "local1.* -/var/log/keystone-all.log"
+      content => template('keystone/rsyslog.d.erb'),
     }
   } else  {
     keystone_config {'DEFAULT/log_config': ensure=> absent;}
@@ -161,7 +160,8 @@ class keystone(
     'DEFAULT/compute_port': value => $compute_port;
     'DEFAULT/verbose':      value => $verbose;
     'DEFAULT/debug':        value => $debug;
-    'DEFAULT/log_file':        value => "/var/log/keystone/keystone.log";
+    'DEFAULT/log_file':     value => "/var/log/keystone/keystone.log";
+    'DEFAULT/use_syslog':   value => $use_syslog;
     'identity/driver': value =>"keystone.identity.backends.sql.Identity";
     'token/driver': value =>"keystone.token.backends.sql.Token";
     'policy/driver': value =>"keystone.policy.backends.rules.Policy";

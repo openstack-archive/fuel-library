@@ -1,5 +1,6 @@
 class glance(
-  $package_ensure = 'present'
+  $package_ensure = 'present',
+  $syslog_log_facility = 'LOCAL2',
 ) {
 
   include glance::params
@@ -24,10 +25,9 @@ class glance(
     group => "glance",
     mode => "0644",
   }
-##TODO add rsyslog module config
   file { '/etc/rsyslog.d/glance.conf':
     ensure => present,
-    content => "local2.* -/var/log/glance-all.log"
+    content => template('glance/rsyslog.d.erb'),
   }
   
   group {'glance': gid=> 161, ensure=>present, system=>true}
