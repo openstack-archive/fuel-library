@@ -166,7 +166,7 @@ class quantum::agents::ovs (
     enable     => $enabled,
     ensure     => false,  # !!! Warning !!!
     hasstatus  => false,  # !!! 'false' is not mistake
-    hasrestart => false,  # !!! cleanup is simple script, runnung once at boot OS
+    hasrestart => false,  # !!! cleanup is simple script runnung once at OS boot
   }
 
   # This order is conditioned package dependencies
