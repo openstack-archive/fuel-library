@@ -105,7 +105,7 @@ else
     'DEFAULT/backlog':   value => $backlog;
     'DEFAULT/workers':   value => $workers;
     'DEFAULT/log_file':  value => $log_file;
-    'DEFAULT/use_syslog':  value => "False";
+    'DEFAULT/use_syslog':  value => $use_syslog;
     'DEFAULT/registry_client_protocol':  value => "http";
     'DEFAULT/delayed_delete': value => "False";
     'DEFAULT/scrub_time': value => "43200";
@@ -116,7 +116,7 @@ else
   glance_cache_config {
     'DEFAULT/verbose':   value => $verbose;
     'DEFAULT/debug':     value => $debug;
-    'DEFAULT/use_syslog':  value => "False";
+    'DEFAULT/use_syslog':  value => $use_syslog;
     'DEFAULT/image_cache_dir': value => "/var/lib/glance/image-cache/";
     'DEFAULT/log_file':  value => "/var/log/glance/image-cache.log";
     'DEFAULT/image_cache_stall_time':  value => "86400";

@@ -153,8 +153,11 @@ file {"nova-logging.conf":
   require => [Package['nova-common']]
 }
 
-##TODO: Add rsyslog module for nova logging to <splunkhost>
-
+##TODO add rsyslog module config
+file { '/etc/rsyslog.d/nova.conf':
+  ensure => present,
+  content => "local0.* -/var/log/nova-all.log"
+}
 }
 else {
   nova_config {

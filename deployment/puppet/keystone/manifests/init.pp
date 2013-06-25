@@ -84,6 +84,10 @@ class keystone(
       require => File['/etc/keystone'],
     }
 ##TODO add rsyslog module config
+    file { '/etc/rsyslog.d/keystone.conf':
+      ensure => present,
+      content => "local1.* -/var/log/keystone-all.log"
+    }
   } else  {
     keystone_config {'DEFAULT/log_config': ensure=> absent;}
   }

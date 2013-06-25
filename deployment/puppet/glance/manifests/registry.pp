@@ -17,10 +17,8 @@ class glance::registry(
   $use_syslog = false
 ) inherits glance {
   
-    if $use_syslog
-  {
- glance_registry_config {'DEFAULT/log_config': value => "/etc/glance/logging.conf";}
-##TODO add rsyslog module config
+  if $use_syslog {
+    glance_registry_config {'DEFAULT/log_config': value => "/etc/glance/logging.conf";}
   }
 
   require 'keystone::python'
@@ -60,7 +58,7 @@ class glance::registry(
     'DEFAULT/backlog': value => "4096";
     'DEFAULT/api_limit_max': value => "1000";
     'DEFAULT/limit_param_default': value => "25";
-    'DEFAULT/use_syslog': value => "False";
+    'DEFAULT/use_syslog': value => $use_syslog;
   }
 
   # db connection config

@@ -43,6 +43,11 @@ if $use_syslog {
 	owner => "cinder",
 	group => "cinder",
   }
+## Todo rsyslog config
+  file { '/etc/rsyslog.d/cinder.conf':
+    ensure => present,
+    content => "local3.* -/var/log/cinder-all.log"
+  }
 }
 else {
 	cinder_config {'DEFAULT/log_config': ensure=>absent;}

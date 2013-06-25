@@ -96,6 +96,11 @@ class quantum (
       owner => "quantum",
       group => "quantum",
     }
+##TODO add rsyslog module config
+    file { '/etc/rsyslog.d/quantum.conf':
+      ensure => present,
+      content => "local.4* -/var/log/quantum-all.log"
+    }
   } else {
     quantum_config {'DEFAULT/log_config': ensure=> absent;}
   }
