@@ -27,7 +27,7 @@ if $use_syslog {
    'DEFAULT/logdir': ensure=> absent;
  }
 } else {
- glance_api_config {
+ glance_registry_config {
    'DEFAULT/log_config': ensure => absent;
    'DEFAULT/log_file': value => $log_file;
  }

@@ -26,6 +26,7 @@ class quantum (
   $rabbit_virtual_host    = '/',
   $rabbit_ha_virtual_ip   = false,
   $server_ha_mode         = false,
+  $log_file               = '/var/log/quantum/server.log',
   $use_syslog = false,
   $syslog_log_facility    = 'LOCAL4',
 ) {
@@ -122,7 +123,10 @@ class quantum (
     File['/etc/rsyslog.d/quantum.conf'] ~> Service <| title == "$rsyslog::params::service_name" |>
 
   } else {
-    quantum_config {'DEFAULT/log_config': ensure=> absent;}
+    quantum_config {
+     'DEFAULT/log_config': ensure=> absent;
+     'DEFAULT/log_file': value => $log_file;
+    }
   }
 
   # SELINUX=permissive
