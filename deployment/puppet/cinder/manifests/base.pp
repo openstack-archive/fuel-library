@@ -39,9 +39,14 @@ if $use_syslog {
   cinder_config {'DEFAULT/log_config': value => "/etc/cinder/logging.conf";}
   file { "cinder-logging.conf":
     content => template('cinder/logging.conf.erb'),
-	path => "/etc/cinder/logging.conf",
-	owner => "cinder",
-	group => "cinder",
+    path => "/etc/cinder/logging.conf",
+    owner => "cinder",
+    group => "cinder",
+  }
+  file { "cinder-all.log":
+    path => "/var/log/cinder-all.log",
+    owner => "cinder",
+    group => "cinder",
   }
 ## Todo rsyslog config
   file { '/etc/rsyslog.d/cinder.conf':

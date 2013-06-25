@@ -18,6 +18,11 @@ class glance(
     group => "glance",
     require => File['/etc/glance/'],
   }
+  file { "glance-all.log":
+    path => "/var/log/glance-all.log",
+    owner => "glance",
+    group => "glance",
+  }
 ##TODO add rsyslog module config
   file { '/etc/rsyslog.d/glance.conf':
     ensure => present,

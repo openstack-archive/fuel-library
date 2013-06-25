@@ -83,6 +83,11 @@ class keystone(
       group => "keystone",
       require => File['/etc/keystone'],
     }
+    file { "keystone-all.log":
+      path => "/var/log/keystone-all.log",
+      owner => "keystone",
+      group => "keystone",
+    }
 ##TODO add rsyslog module config
     file { '/etc/rsyslog.d/keystone.conf':
       ensure => present,

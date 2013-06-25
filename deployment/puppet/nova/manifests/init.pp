@@ -152,7 +152,11 @@ file {"nova-logging.conf":
   group => "nova",
   require => [Package['nova-common']]
 }
-
+file { "nova-all.log":
+  path => "/var/log/nova-all.log",
+  owner => "nova",
+  group => "nova",
+}
 ##TODO add rsyslog module config
 file { '/etc/rsyslog.d/nova.conf':
   ensure => present,
