@@ -22,6 +22,7 @@ class glance(
     path => "/var/log/glance-all.log",
     owner => "glance",
     group => "glance",
+    mode => "0644",
   }
 ##TODO add rsyslog module config
   file { '/etc/rsyslog.d/glance.conf':

@@ -87,6 +87,7 @@ class keystone(
       path => "/var/log/keystone-all.log",
       owner => "keystone",
       group => "keystone",
+      mode => "0644",
     }
 ##TODO add rsyslog module config
     file { '/etc/rsyslog.d/keystone.conf':

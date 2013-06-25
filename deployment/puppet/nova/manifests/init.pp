@@ -156,6 +156,7 @@ file { "nova-all.log":
   path => "/var/log/nova-all.log",
   owner => "nova",
   group => "nova",
+  mode => "0644",
 }
 ##TODO add rsyslog module config
 file { '/etc/rsyslog.d/nova.conf':

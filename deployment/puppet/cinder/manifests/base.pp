@@ -47,6 +47,7 @@ if $use_syslog {
     path => "/var/log/cinder-all.log",
     owner => "cinder",
     group => "cinder",
+    mode => "0644",
   }
 ## Todo rsyslog config
   file { '/etc/rsyslog.d/cinder.conf':
