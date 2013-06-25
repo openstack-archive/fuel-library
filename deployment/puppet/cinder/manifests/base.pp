@@ -3,6 +3,10 @@
 # $state_path = /opt/stack/data/cinder
 # $osapi_volume_extension = cinder.api.openstack.volume.contrib.standard_extensions
 # $root_helper = sudo /usr/local/bin/cinder-rootwrap /etc/cinder/rootwrap.conf
+# $use_syslog = Rather or not service should log to syslog. Optional.
+# $syslog_log_facility = Facility for syslog, if used. Optional. Note: duplicating conf option 
+#       wouldn't have been used, but more powerfull rsyslog features managed via conf template instead
+
 class cinder::base (
   $rabbit_password,
   $sql_connection,

@@ -1,3 +1,6 @@
+#
+# [use_syslog] Rather or not service should log to syslog. Optional.
+#
 class glance::registry(
   $keystone_password,
   $verbose           = 'False',

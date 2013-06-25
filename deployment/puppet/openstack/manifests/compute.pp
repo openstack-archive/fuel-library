@@ -42,6 +42,9 @@
 #    Optional. Defaults to false.
 #  [nova_volumes] Name of volume group in which nova-volume will create logical volumes.
 #    Optional. Defaults to nova-volumes.
+# [use_syslog] Rather or not service should log to syslog. Optional.
+# [syslog_log_facility] Facility for syslog, if used. Optional. Note: duplicating conf option 
+#       wouldn't have been used, but more powerfull rsyslog features managed via conf template instead
 #
 # class { 'openstack::nova::compute':
 #   internal_address   => '192.168.2.2',
@@ -107,6 +110,7 @@ class openstack::compute (
   $cinder_iscsi_bind_addr  = false,
   $db_host                 = '127.0.0.1',
   $use_syslog              = false,
+  $syslog_log_facility     = 'LOCAL0',
   $nova_rate_limits = undef,
   $cinder_rate_limits = undef,
   $create_networks = false,
@@ -173,6 +177,7 @@ class openstack::compute (
       verbose              => $verbose,
       rabbit_host          => $rabbit_host,
       use_syslog           => $use_syslog,
+      syslog_log_facility  => $syslog_log_facility,
       api_bind_address     => $internal_address,
       rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
       state_path           => $state_path,
@@ -197,6 +202,7 @@ class openstack::compute (
         iscsi_bind_host      => $cinder_iscsi_bind_addr,
         cinder_user_password => $cinder_user_password,
         use_syslog           => $use_syslog,
+        syslog_log_facility  => $syslog_log_facility,
         cinder_rate_limits   => $cinder_rate_limits,
         rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
     }
@@ -350,6 +356,7 @@ class openstack::compute (
       rabbit_user     => $rabbit_user,
       rabbit_password => $rabbit_password,
       use_syslog           => $use_syslog,
+      syslog_log_facility  => $syslog_log_facility,
       rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
     }
 

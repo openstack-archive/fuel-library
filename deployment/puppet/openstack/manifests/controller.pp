@@ -44,6 +44,7 @@
 # [horizon_app_links]     array as in '[ ["Nagios","http://nagios_addr:port/path"],["Ganglia","http://ganglia_addr"] ]'
 # [enabled] Whether services should be enabled. This parameter can be used to
 #   implement services in active-passive modes for HA. Optional. Defaults to true.
+# [use_syslog] Rather or not service should log to syslog. Optional.
 #
 # === Examples
 #
@@ -248,6 +249,7 @@ class openstack::controller (
     enabled               => $enabled,
     package_ensure        => $::openstack_keystone_version,
     use_syslog            => $use_syslog,
+    syslog_log_facility   => 'LOCAL1',
   }
 
 
@@ -267,6 +269,7 @@ class openstack::controller (
     glance_backend            => $glance_backend,
     registry_host             => $service_endpoint,
     use_syslog                => $use_syslog,
+    syslog_log_facility       => 'LOCAL2',
   }
 
   ######## BEGIN NOVA ###########
@@ -338,6 +341,7 @@ class openstack::controller (
     api_bind_address        => $api_bind_address,
     ensure_package          => $::openstack_version['nova'],
     use_syslog              => $use_syslog,
+    syslog_log_facility     => 'LOCAL0',
     nova_rate_limits        => $nova_rate_limits,
     cinder                  => $cinder
   }
@@ -346,23 +350,23 @@ class openstack::controller (
   if $cinder {
     if !defined(Class['openstack::cinder']) {
       class {'openstack::cinder':
-        sql_connection       => "mysql://${cinder_db_user}:${cinder_db_password}@${db_host}/${cinder_db_dbname}?charset=utf8",
-        rabbit_password      => $rabbit_password,
-        rabbit_host          => false,
-        rabbit_nodes         => $rabbit_nodes,
-        volume_group         => $cinder_volume_group,
-        physical_volume      => $nv_physical_volume,
-        manage_volumes       => $manage_volumes,
-        enabled              => true,
-        glance_api_servers   => "${service_endpoint}:9292",
-        auth_host            => $service_endpoint,
-        bind_host            => $api_bind_address,
-        iscsi_bind_host      => $cinder_iscsi_bind_addr,
-        cinder_user_password => $cinder_user_password,
-        use_syslog           => $use_syslog,
-        cinder_rate_limits   => $cinder_rate_limits,
-        rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
-      }
+      sql_connection       => "mysql://${cinder_db_user}:${cinder_db_password}@${db_host}/${cinder_db_dbname}?charset=utf8",
+      rabbit_password      => $rabbit_password,
+      rabbit_host          => false,
+      rabbit_nodes         => $rabbit_nodes,
+      volume_group         => $cinder_volume_group,
+      physical_volume      => $nv_physical_volume,
+      manage_volumes       => $manage_volumes,
+      enabled              => true,
+      glance_api_servers   => "${service_endpoint}:9292",
+      auth_host            => $service_endpoint,
+      bind_host            => $api_bind_address,
+      iscsi_bind_host      => $cinder_iscsi_bind_addr,
+      cinder_user_password => $cinder_user_password,
+      use_syslog           => $use_syslog,
+      syslog_log_facility  => 'LOCAL3',
+      cinder_rate_limits   => $cinder_rate_limits,
+      rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
     }
   } else { 
     if $manage_volumes {

@@ -1,3 +1,7 @@
+# [use_syslog] Rather or not service should log to syslog. Optional.
+# [syslog_log_facility] Facility for syslog, if used. Optional. Note: duplicating conf option 
+#       wouldn't have been used, but more powerfull rsyslog features managed via conf template instead
+
 class openstack::cinder(
   $sql_connection,
   $cinder_user_password,
@@ -15,6 +19,7 @@ class openstack::cinder(
   $bind_host          = '0.0.0.0',
   $iscsi_bind_host    = '0.0.0.0',
   $use_syslog         = false,
+  $syslog_log_facility = 'LOCAL3',
   $cinder_rate_limits = undef
 ) {
   include cinder::params
@@ -52,7 +57,8 @@ class openstack::cinder(
     rabbit_hosts    => $rabbit_hosts,
     sql_connection  => $sql_connection,
     verbose         => $verbose,
-    use_syslog => $use_syslog
+    use_syslog      => $use_syslog,
+    syslog_log_facility => $syslog_log_facility,
   }
   if ($bind_host) {
     class { 'cinder::api':

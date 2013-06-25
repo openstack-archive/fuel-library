@@ -26,6 +26,7 @@
 #  $log_file - The path of file used for logging
 #  Optional. Default: /var/log/glance/api.log
 #
+# $use_syslog - Rather or not service should log to syslog. Optional.
 #
 class glance::api(
   $keystone_password,
