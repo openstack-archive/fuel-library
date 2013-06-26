@@ -67,15 +67,24 @@ class mysql::server (
     #Class['mysql::server'] -> Class['mysql::config']
     Package[mysql-server] -> Class['mysql::config']
     Package[mysql-client] -> Package[mysql-server]
-    #Cs_commit['mysql']    -> Service['mysqld']
+    Cs_commit['mysql']    -> Service['mysqld']
     #Cs_resource['p_mysql'] -> Cs_shadow['mysql']
     Cs_property <||> -> Cs_shadow <||>
     Cs_shadow['mysql']    -> Service['mysqld']
+    #Cs_commit['vip'] -> Cs_shadow['mysql']
 
     $config_hash['custom_setup_class'] = $custom_setup_class
-    $allowed_hosts = 'localhost'
+    $allowed_hosts = '%'
+    #$allowed_hosts = 'localhost'
     $rep_user = 'replicator'
     $rep_pass = 'replicant666'
+
+
+#    class {'mysql::server::vip':
+#      vip_address => '192.168.1.250',
+#      prefix      => '24'
+#    }
+
 
     create_resources( 'class', { 'mysql::config' => $config_hash } )
 
@@ -90,6 +99,12 @@ class mysql::server (
     }
 
     mysql::replicator { $allowed_hosts:
+      user      => $rep_user,
+      password  => $rep_pass,
+      require   => Exec['mysqld-restart'],
+      before    => Service['mysqld_stopped']
+    }
+    mysql::replicator { 'localhost':
       user      => $rep_user,
       password  => $rep_pass,
       require   => Exec['mysqld-restart'],
@@ -116,20 +131,21 @@ class mysql::server (
  
     Class['openstack::corosync'] -> Cs_resource['p_mysql']
 
-    cs_shadow { 'mysqlvip' : cib => 'mysqlvip' } ->
-    cs_resource { 'mysql_vip':
-      primitive_class => 'ocf',
-      primitive_type  => 'IPaddr2',
-      provided_by     => 'heartbeat',
-      parameters      => { 'ip' => $galera_node_address, 'cidr_netmask' => '24' },
-      operations      => { 'monitor' => { 'interval' => '15s' } },
-    }->
-
-    #cs_rsc_defaults { "resource-stickiness":
-    #  ensure => present,
-    #  value  => '110',
-    #}->
-    cs_commit { 'mysqlvip' : cib => "mysqlvip" } ->
+#    cs_shadow { 'mysqlvip' : cib => 'mysqlvip' } ->
+#    cs_resource { 'mysql_vip':
+#      primitive_class => 'ocf',
+#      primitive_type  => 'IPaddr2',
+#      provided_by     => 'heartbeat',
+#      parameters      => { 'ip' => $galera_node_address, 'cidr_netmask' => '24',
+#                           'no-quorum-policy' => 'ignore' },
+#      operations      => { 'monitor' => { 'interval' => '15s' } },
+#    }->
+#
+#    #cs_rsc_defaults { "resource-stickiness":
+#    #  ensure => present,
+#    #  value  => '110',
+#    #}->
+#    cs_commit { 'mysqlvip' : cib => "mysqlvip" } ->
 
 
     cs_shadow { 'mysql': cib => 'mysql' } ->
@@ -143,6 +159,7 @@ class mysql::server (
       ms_metadata     => {'notify'=>"true"},
       parameters      => {
         'binary' => "/usr/bin/mysqld_safe",
+        'test_table'         => 'mysql.user',
         'replication_user'   => $rep_user,
         'replication_passwd' => $rep_pass
       },
@@ -165,6 +182,12 @@ class mysql::server (
       enable   => true,
       require  => Package['mysql-server'],
       provider => 'pacemaker',
+    }
+
+    #Tie internal-vip to p_mysql
+    cs_colocation { 'mysql_to_internal-vip': 
+      primitives => ['internal-vip','p_mysql'],
+      require => [Cs_resource['internal-vip'],Cs_commit['mysql']],
     }
 
   }
