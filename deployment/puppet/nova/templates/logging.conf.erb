@@ -1,28 +1,42 @@
 [loggers]
-keys = root
+keys = root,service
 
 [handlers]
-keys = rotated_file,syslog
+keys = production,file,devel
 
 [formatters]
-keys = default
+keys = normal_with_name,debug
 
 [logger_root]
-level = ERROR
-handlers = syslog
+level = DEBUG
+#handlers = production
+handlers = devel
 qualname = nova
 
-[handler_syslog]
+[logger_service]
+level = DEBUG
+handlers = file
+qualname = nova
+
+[formatter_normal_with_name]
+#class = nova.openstack.common.log.LegacyFormatter
+format = %(asctime)s %(name)s: %(levelname)s %(message)s
+
+[formatter_debug]
+format = (%(name)s): %(asctime)s %(levelname)s %(module)s %(funcName)s %(message)s
+
+[handler_file]
+class = handlers.TimedRotatingFileHandler
+args = ('/var/log/nova-all.log', 'midnight', 1, 7)
+formatter = normal_with_name
+
+[handler_production]
 class = handlers.SysLogHandler
 args = ('/dev/log', handlers.SysLogHandler.LOG_<%= @syslog_log_facility %>)
-formatter = default
+formatter = debug
 
-[handler_rotated_file]
-class = handlers.TimedRotatingFileHandler
-level = DEBUG
-formatter = default
-# rotate at midnight, each day and keep 7 days
-args = ('/var/log/nova-all.log', 'midnight', 1, 7)
-
-[formatter_default]
-format = nova %(name)s %(levelname)s %(message)s
+# TODO find out how it could be usefull
+[handler_devel]
+class = StreamHandler
+formatter = debug
+args = (sys.stdout,)
