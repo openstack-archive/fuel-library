@@ -42,7 +42,7 @@ class nova(
   $nova_cluster_id='localcluster',
   $sql_connection = false,
   $use_syslog = false,
-  $syslog_log_facility = "LOCAL0",
+  $syslog_log_facility = "LOCAL6",
   $image_service = 'nova.image.glance.GlanceImageService',
   # these glance params should be optional
   # this should probably just be configured as a glance client

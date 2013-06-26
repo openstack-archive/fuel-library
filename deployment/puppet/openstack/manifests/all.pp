@@ -309,7 +309,7 @@ class openstack::all (
     glance_api_servers => "$internal_address:9292",
     verbose            => $verbose,
     use_syslog         => $use_syslog,
-    syslog_log_facility => 'LOCAL0',
+    syslog_log_facility => 'LOCAL6',
     rabbit_host        => '127.0.0.1',
   }
 

@@ -81,7 +81,7 @@ class openstack::nova::controller (
   $enabled_apis              = 'ec2,osapi_compute',
   $api_bind_address          = '0.0.0.0',
   $use_syslog                = false,
-  $syslog_log_facility       = 'LOCAL0',
+  $syslog_log_facility       = 'LOCAL6',
   $nova_rate_limits          = undef,
   $cinder                    = true
 ) {

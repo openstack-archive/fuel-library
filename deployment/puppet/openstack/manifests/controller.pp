@@ -341,7 +341,7 @@ class openstack::controller (
     api_bind_address        => $api_bind_address,
     ensure_package          => $::openstack_version['nova'],
     use_syslog              => $use_syslog,
-    syslog_log_facility     => 'LOCAL0',
+    syslog_log_facility     => 'LOCAL6',
     nova_rate_limits        => $nova_rate_limits,
     cinder                  => $cinder
   }

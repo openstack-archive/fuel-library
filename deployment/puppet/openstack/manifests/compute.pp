@@ -110,7 +110,7 @@ class openstack::compute (
   $cinder_iscsi_bind_addr  = false,
   $db_host                 = '127.0.0.1',
   $use_syslog              = false,
-  $syslog_log_facility     = 'LOCAL0',
+  $syslog_log_facility     = 'LOCAL6',
   $nova_rate_limits = undef,
   $cinder_rate_limits = undef,
   $create_networks = false,
