@@ -79,7 +79,7 @@ class openstack::keystone (
   $enabled                  = true,
   $package_ensure = present,
   $use_syslog = false,
-  $syslog_log_facility = 'LOCAL1',
+  $syslog_log_facility = 'LOCAL7',
 ) {
 
   # Install and configure Keystone

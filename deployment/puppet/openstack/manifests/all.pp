@@ -212,7 +212,7 @@ class openstack::all (
     quantum                   => $quantum,
     quantum_user_password     => $quantum_user_password,
     use_syslog                => $use_syslog,
-    syslog_log_facility       => 'LOCAL1',
+    syslog_log_facility       => 'LOCAL7',
   }
 
   ######## GLANCE ##########

@@ -59,7 +59,7 @@ class keystone(
   $verbose        = 'False',
   $debug          = 'False',
   $use_syslog     = false,
-  $syslog_log_facility = 'LOCAL1',
+  $syslog_log_facility = 'LOCAL7',
   $catalog_type   = 'sql',
   $token_format   = 'UUID',
 #  $token_format   = 'PKI',

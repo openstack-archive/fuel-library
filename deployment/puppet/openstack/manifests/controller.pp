@@ -249,7 +249,7 @@ class openstack::controller (
     enabled               => $enabled,
     package_ensure        => $::openstack_keystone_version,
     use_syslog            => $use_syslog,
-    syslog_log_facility   => 'LOCAL1',
+    syslog_log_facility   => 'LOCAL7',
   }
 
 
