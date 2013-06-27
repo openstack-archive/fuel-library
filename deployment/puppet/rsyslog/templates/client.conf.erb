@@ -62,10 +62,14 @@ auth,authpriv.*                 /var/log/auth.log
 <% if scope.lookupvar('rsyslog::client::log_local') -%>
 # First some standard log files.  Log by facility.
 #
-*.*;auth,authpriv.none         -/var/log/syslog
+# Skip duplicates - all common debug, info, notice, warn go to 
+# debug & messages files respectively; others should go to syslog
+#
+*.error;auth,authpriv.none     -/var/log/syslog
 cron.*                          /var/log/cron.log
 daemon.*                       -/var/log/daemon.log
-kern.*                         -/var/log/kern.log
+# Do not send info to kern.log - it duplicates messages
+kern.*;kern.!=info             -/var/log/kern.log
 #lpr.*                          -/var/log/lpr.log
 mail.*                         -/var/log/mail.log
 user.*                         -/var/log/user.log
