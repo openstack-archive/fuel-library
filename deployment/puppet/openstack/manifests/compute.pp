@@ -45,6 +45,7 @@
 # [use_syslog] Rather or not service should log to syslog. Optional.
 # [syslog_log_facility] Facility for syslog, if used. Optional. Note: duplicating conf option 
 #       wouldn't have been used, but more powerfull rsyslog features managed via conf template instead
+# [syslog_log_level] logging level for main syslog files (/var/log/{messages, syslog, kern.log}). Optional.
 #
 # class { 'openstack::nova::compute':
 #   internal_address   => '192.168.2.2',
@@ -92,29 +93,31 @@ class openstack::compute (
   $tenant_network_type           = 'gre',
   $segment_range                 = '1:4094',
   # nova compute configuration parameters
-  $verbose             = false,
-  $service_endpoint    = '127.0.0.1',
-  $ssh_private_key     = undef,
-  $cache_server_ip     = ['127.0.0.1'],
-  $cache_server_port   = '11211',
-  $ssh_public_key      = undef,
+  $verbose                       = false,
+  $service_endpoint              = '127.0.0.1',
+  $ssh_private_key               = undef,
+  $cache_server_ip               = ['127.0.0.1'],
+  $cache_server_port             = '11211',
+  $ssh_public_key                = undef,
   # if the cinder management components should be installed
-  $manage_volumes          = false,
-  $nv_physical_volume      = undef,
-  $cinder_volume_group     = 'cinder-volumes',
-  $cinder                  = true,
-  $cinder_user_password    = 'cinder_user_pass',
-  $cinder_db_password      = 'cinder_db_pass',
-  $cinder_db_user          = 'cinder',
-  $cinder_db_dbname        = 'cinder',
-  $cinder_iscsi_bind_addr  = false,
-  $db_host                 = '127.0.0.1',
-  $use_syslog              = false,
-  $syslog_log_facility     = 'LOCAL6',
-  $nova_rate_limits = undef,
-  $cinder_rate_limits = undef,
-  $create_networks = false,
-  $state_path              = '/var/lib/nova'
+  $manage_volumes                = false,
+  $nv_physical_volume            = undef,
+  $cinder_volume_group           = 'cinder-volumes',
+  $cinder                        = true,
+  $cinder_user_password          = 'cinder_user_pass',
+  $cinder_db_password            = 'cinder_db_pass',
+  $cinder_db_user                = 'cinder',
+  $cinder_db_dbname              = 'cinder',
+  $cinder_iscsi_bind_addr        = false,
+  $db_host                       = '127.0.0.1',
+  $use_syslog                    = false,
+# TODO syslog facilities for compute services from site.pp
+# TODO syslog common level for compute services from site.pp
+  $syslog_log_facility           = 'LOCAL6',
+  $syslog_log_level              = 'INFO',
+  $nova_rate_limits              = undef,
+  $cinder_rate_limits            = undef,
+  $create_networks               = false
 ) {
 
   #
@@ -178,6 +181,7 @@ class openstack::compute (
       rabbit_host          => $rabbit_host,
       use_syslog           => $use_syslog,
       syslog_log_facility  => $syslog_log_facility,
+      syslog_log_level     => $syslog_log_level,
       api_bind_address     => $internal_address,
       rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
       state_path           => $state_path,
@@ -202,7 +206,6 @@ class openstack::compute (
         iscsi_bind_host      => $cinder_iscsi_bind_addr,
         cinder_user_password => $cinder_user_password,
         use_syslog           => $use_syslog,
-        syslog_log_facility  => $syslog_log_facility,
         cinder_rate_limits   => $cinder_rate_limits,
         rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
     }
@@ -356,7 +359,6 @@ class openstack::compute (
       rabbit_user     => $rabbit_user,
       rabbit_password => $rabbit_password,
       use_syslog           => $use_syslog,
-      syslog_log_facility  => $syslog_log_facility,
       rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
     }
 

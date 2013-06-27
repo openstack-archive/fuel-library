@@ -38,6 +38,7 @@
 #  [use_syslog] Rather or not service should log to syslog. Optional.
 #  [syslog_log_facility] Facility for syslog, if used. Optional. Note: duplicating conf option 
 #       wouldn't have been used, but more powerfull rsyslog features managed via conf template instead
+#  [syslog_log_level] logging level for main syslog files (/var/log/{messages, syslog, kern.log}). Optional.
 #
 # === Examples
 #
@@ -143,6 +144,9 @@ class openstack::all (
   $service_endpoint        = '127.0.0.1',
   $glance_backend          = 'file',
   $use_syslog              = false,
+# TODO syslog facilities for services from site.pp
+# TODO syslog common level for services from site.pp
+  $syslog_log_level        = 'INFO',
   $nova_rate_limits        = undef,
 ) {
 
@@ -213,6 +217,7 @@ class openstack::all (
     quantum_user_password     => $quantum_user_password,
     use_syslog                => $use_syslog,
     syslog_log_facility       => 'LOCAL7',
+    syslog_log_level          => $syslog_log_level,
   }
 
   ######## GLANCE ##########
@@ -232,6 +237,7 @@ class openstack::all (
     registry_host             => $service_endpoint,
     use_syslog                => $use_syslog,
     syslog_log_facility       => 'LOCAL2',
+    syslog_log_level          => $syslog_log_level,
   }
 
   ######## NOVA ###########
@@ -310,6 +316,7 @@ class openstack::all (
     verbose            => $verbose,
     use_syslog         => $use_syslog,
     syslog_log_facility => 'LOCAL6',
+    syslog_log_level    => $syslog_log_level,
     rabbit_host        => '127.0.0.1',
   }
 
@@ -364,6 +371,7 @@ class openstack::all (
       rabbit_password => $rabbit_password,
       use_syslog      => $use_syslog,
       syslog_log_facility => 'LOCAL4',
+      syslog_log_level    => $syslog_log_level,
     }
 
     class { 'quantum::server':

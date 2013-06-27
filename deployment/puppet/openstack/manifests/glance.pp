@@ -24,6 +24,7 @@
 # [use_syslog] Rather or not service should log to syslog. Optional.
 # [syslog_log_facility] Facility for syslog, if used. Optional. Note: duplicating conf option 
 #       wouldn't have been used, but more powerfull rsyslog features managed via conf template instead
+# [syslog_log_level] logging level for main syslog files (/var/log/{messages, syslog, kern.log}). Optional.
 #
 # === Example
 #
@@ -50,6 +51,7 @@ class openstack::glance (
   $use_syslog           = false,
   # Facility is common for all glance services
   $syslog_log_facility  = 'LOCAL2',
+  $syslog_log_level     = 'INFO',
 ) {
 
   # Configure the db string

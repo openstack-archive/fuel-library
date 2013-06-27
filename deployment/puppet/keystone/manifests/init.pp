@@ -21,6 +21,7 @@
 #     Defaults to False.
 #   [syslog_log_facility] Facility for syslog, if used. Optional. Note: duplicating conf option 
 #     wouldn't have been used, but more powerfull rsyslog features managed via conf template instead
+#   [syslog_log_level] logging level for main syslog files (/var/log/{messages, syslog, kern.log}). Optional.
 #   [catalog_type] Type of catalog that keystone uses to store endpoints,services. Optional.
 #     Defaults to sql. (Also accepts template)
 #   [token_format] Format keystone uses for tokens. Optional. Defaults to UUID (PKI is grizzly native mode though).
@@ -51,22 +52,25 @@
 #
 class keystone(
   $admin_token,
-  $package_ensure = 'present',
-  $bind_host      = '0.0.0.0',
-  $public_port    = '5000',
-  $admin_port     = '35357',
-  $compute_port   = '3000',
-  $verbose        = 'False',
-  $debug          = 'False',
-  $use_syslog     = false,
+  $package_ensure      = 'present',
+  $bind_host           = '0.0.0.0',
+  $public_port         = '5000',
+  $admin_port          = '35357',
+  $compute_port        = '3000',
+  $verbose             = 'False',
+  $debug               = 'False',
+  $use_syslog          = false,
+# TODO syslog facilities from site.pp
+# TODO syslog common level from site.pp
   $syslog_log_facility = 'LOCAL7',
-  $catalog_type   = 'sql',
-  $token_format   = 'UUID',
-#  $token_format   = 'PKI',
-  $cache_dir      = '/var/cache/keystone',
-  $enabled        = true,
-  $sql_connection = 'sqlite:////var/lib/keystone/keystone.db',
-  $idle_timeout   = '200'
+  $syslog_log_level    = 'INFO',
+  $catalog_type        = 'sql',
+  $token_format        = 'UUID',
+#  $token_format        = 'PKI',
+  $cache_dir           = '/var/cache/keystone',
+  $enabled             = true,
+  $sql_connection      = 'sqlite:////var/lib/keystone/keystone.db',
+  $idle_timeout        = '200'
 ) {
 
   validate_re($catalog_type,   'template|sql')

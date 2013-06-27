@@ -6,6 +6,7 @@
 # $use_syslog = Rather or not service should log to syslog. Optional.
 # $syslog_log_facility = Facility for syslog, if used. Optional. Note: duplicating conf option 
 #       wouldn't have been used, but more powerfull rsyslog features managed via conf template instead
+# $syslog_log_level = logging level for main syslog files (/var/log/{messages, syslog, kern.log}). Optional.
 
 class cinder::base (
   $rabbit_password,
@@ -19,7 +20,10 @@ class cinder::base (
   $package_ensure         = 'present',
   $verbose                = 'True',
   $use_syslog             = false,
+# TODO syslog facilities from site.pp
+# TODO syslog common level from site.pp
   $syslog_log_facility    = "LOCAL3",
+  $syslog_log_level       = 'INFO',
 ) {
 
   include cinder::params

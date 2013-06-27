@@ -1,26 +1,30 @@
 # [use_syslog] Rather or not service should log to syslog. Optional.
 # [syslog_log_facility] Facility for syslog, if used. Optional. Note: duplicating conf option 
 #       wouldn't have been used, but more powerfull rsyslog features managed via conf template instead
+# [syslog_log_level] logging level for main syslog files (/var/log/{messages, syslog, kern.log}). Optional.
 
 class openstack::cinder(
   $sql_connection,
   $cinder_user_password,
   $rabbit_password,
-  $rabbit_host     = false,
-  $rabbit_nodes    = ['127.0.0.1'],
-  $rabbit_ha_virtual_ip = false,
+  $rabbit_host            = false,
+  $rabbit_nodes           = ['127.0.0.1'],
+  $rabbit_ha_virtual_ip   = false,
   $glance_api_servers,
-  $volume_group    = 'cinder-volumes',
-  $physical_volume = undef,
-  $manage_volumes  = false,
-  $enabled         = true,
-  $purge_cinder_config = true,
-  $auth_host          = '127.0.0.1',
-  $bind_host          = '0.0.0.0',
-  $iscsi_bind_host    = '0.0.0.0',
-  $use_syslog         = false,
-  $syslog_log_facility = 'LOCAL3',
-  $cinder_rate_limits = undef
+  $volume_group           = 'cinder-volumes',
+  $physical_volume        = undef,
+  $manage_volumes         = false,
+  $enabled                = true,
+  $purge_cinder_config    = true,
+  $auth_host              = '127.0.0.1',
+  $bind_host              = '0.0.0.0',
+  $iscsi_bind_host        = '0.0.0.0',
+  $use_syslog             = false,
+# TODO syslog facilities from site.pp
+# TODO syslog common level from site.pp
+  $syslog_log_facility    = 'LOCAL3',
+  $syslog_log_level       = 'INFO',
+  $cinder_rate_limits     = undef
 ) {
   include cinder::params
   #  if ($purge_cinder_config) {
@@ -59,6 +63,7 @@ class openstack::cinder(
     verbose         => $verbose,
     use_syslog      => $use_syslog,
     syslog_log_facility => $syslog_log_facility,
+    syslog_log_level    => $syslog_log_level,
   }
   if ($bind_host) {
     class { 'cinder::api':

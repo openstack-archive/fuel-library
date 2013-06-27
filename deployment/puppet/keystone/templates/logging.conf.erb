@@ -1,30 +1,35 @@
 [loggers]
 keys = root,service
 
+# devel is reserved for future usage
 [handlers]
 keys = production,file,devel
 
 [formatters]
 keys = normal_with_name,debug
 
+# defines level and logger for /var/log/{messages,syslog,kern.log} files
+# includes node FQDN, duplicates to corresponding -all.log file, 
+# so level should be greater than one for service logger
 [logger_root]
-level = DEBUG
-#handlers = production
-handlers = devel
+level = <%= @syslog_log_level %>
+handlers = production
 qualname = keystone
 
+# defines level and logger for -all.log file
+# no node FQDN provided, duplicates nothing
 [logger_service]
 level = DEBUG
 handlers = file
 qualname = keystone
 
 [formatter_normal_with_name]
-#class = keystone.openstack.common.log.LegacyFormatter
 format = %(asctime)s %(name)s: %(levelname)s %(message)s
 
 [formatter_debug]
 format = (%(name)s): %(asctime)s %(levelname)s %(module)s %(funcName)s %(message)s
 
+# defines -all.log file location and rotation
 [handler_file]
 class = handlers.TimedRotatingFileHandler
 args = ('/var/log/keystone-all.log', 'midnight', 1, 7)
@@ -32,10 +37,11 @@ formatter = normal_with_name
 
 [handler_production]
 class = handlers.SysLogHandler
+level = <%= @syslog_log_level %>
 args = ('/dev/log', handlers.SysLogHandler.LOG_<%= @syslog_log_facility %>)
 formatter = debug
 
-# TODO find out how it could be usefull
+# TODO find out how it could be usefull and how it should be used
 [handler_devel]
 class = StreamHandler
 formatter = debug

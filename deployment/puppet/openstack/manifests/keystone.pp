@@ -28,6 +28,7 @@
 # [use_syslog] Rather or not service should log to syslog. Optional.
 # [syslog_log_facility] Facility for syslog, if used. Optional. Note: duplicating conf option 
 #       wouldn't have been used, but more powerfull rsyslog features managed via conf template instead
+# [syslog_log_level] logging level for main syslog files (/var/log/{messages, syslog, kern.log}). Optional.
 #
 # === Example
 #
@@ -77,9 +78,12 @@ class openstack::keystone (
   $cinder                   = true,
   $quantum                  = true,
   $enabled                  = true,
-  $package_ensure = present,
-  $use_syslog = false,
-  $syslog_log_facility = 'LOCAL7',
+  $package_ensure           = present,
+  $use_syslog               = false,
+# TODO syslog facilities from site.pp
+# TODO syslog common level from site.pp
+  $syslog_log_facility      = 'LOCAL7',
+  $syslog_log_level         = 'INFO',
 ) {
 
   # Install and configure Keystone
@@ -173,6 +177,7 @@ class openstack::keystone (
     package_ensure => $package_ensure,
     use_syslog => $use_syslog,
     syslog_log_facility => $syslog_log_facility,
+    syslog_log_level    => $syslog_log_level,
   }
 
   if ($enabled) {
