@@ -12,7 +12,7 @@ keys = normal_with_name,debug
 # includes node FQDN, duplicates to corresponding -all.log file, 
 # so level should be greater than one for service logger
 [logger_root]
-level = <%= @syslog_log_level %>
+level = DEBUG
 handlers = production
 qualname = quantum
 
@@ -32,12 +32,23 @@ format = (%(name)s): %(asctime)s %(levelname)s %(module)s %(funcName)s %(message
 # defines -all.log file location and rotation
 [handler_file]
 class = handlers.TimedRotatingFileHandler
+<% if @debug then -%>
+level = DEBUG
+<% elsif @verbose then -%>
+level = INFO
+<% else -%>
+level = WARNING
+<% end -%>
 args = ('/var/log/quantum-all.log', 'midnight', 1, 7)
 formatter = normal_with_name
 
 [handler_production]
 class = handlers.SysLogHandler
+<% if not @debug and not @verbose then -%>
+level = WARNING
+<% else -%>
 level = <%= @syslog_log_level %>
+<% end -%>
 args = ('/dev/log', handlers.SysLogHandler.LOG_<%= @syslog_log_facility %>)
 formatter = debug
 
