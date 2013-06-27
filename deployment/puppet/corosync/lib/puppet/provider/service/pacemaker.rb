@@ -247,6 +247,7 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Cor
         sleep 1
       end
     end
+    sleep 3
   end
 
   def stop
