@@ -61,8 +61,11 @@ ADMIN_TENANT_FOLSOM = 'admin'
 CIRROS_IMAGE = os.environ.get('CIRROS_IMAGE', 'http://srv08-srt.srt.mirantis.net/cirros-0.3.0-x86_64-disk.img')
 CONTROLLERS = int(os.environ.get('CONTROLLERS', 3))
 COMPUTES = int(os.environ.get('COMPUTES', 3))
-STORAGES = int(os.environ.get('STORAGES', 3))
-PROXIES = int(os.environ.get('PROXIES', 2))
+STORAGES = int(os.environ.get('STORAGES', 0))
+PROXIES = int(os.environ.get('PROXIES', 0))
+QUANTUMS = int(os.environ.get('QUANTUMS', 0))
+DEFAULT_RAM_SIZE = int(os.environ.get('DEFAULT_RAM_SIZE', 1024))
+COMPUTE_RAM_SIZE = int(os.environ.get('COMPUTE_RAM_SIZE', 2048))
 
 EMPTY_SNAPSHOT = os.environ.get('EMPTY_SNAPSHOT', 'empty')
 OPENSTACK_SNAPSHOT = os.environ.get('OPENSTACK_SNAPSHOT', 'openstack')
@@ -113,7 +116,7 @@ TEST_REPO = os.environ.get('TEST_REPO', 'false') == 'true'
 EXIST_TAR = os.environ.get('EXIST_TAR', None)
 CREATE_SNAPSHOTS = os.environ.get('CREATE_SNAPSHOTS', 'true') == 'true'
 CLEAN = os.environ.get('CLEAN', 'true') == 'true'
-ISO_IMAGE = os.environ.get('ISO_IMAGE', '~/fuel-centos-6.3-x86_64.iso')
+ISO_IMAGE = os.environ.get('ISO_IMAGE', '~/fuel-centos-6.4-x86_64-3.0.iso')
 USE_ISO = os.environ.get('USE_ISO', 'true') == 'true'
 PARENT_PROXY = os.environ.get('PARENT_PROXY', '')
 PROFILES_COBBLER_COMMON = {
@@ -126,5 +129,5 @@ CURRENT_PROFILE = PROFILES_COBBLER_COMMON.get(OS_FAMILY)
 ASTUTE_USE = os.environ.get('ASTUTE_USE', 'true') == 'true'
 DOMAIN_NAME = os.environ.get('DOMAIN_NAME', '.localdomain')
 PUPPET_AGENT_COMMAND = 'puppet agent -tvd --evaltrace 2>&1'
-SETUP_TIMEOUT = int(os.environ.get('SETUP_TIMEOUT',600))
+SETUP_TIMEOUT = int(os.environ.get('SETUP_TIMEOUT', 600))
 
