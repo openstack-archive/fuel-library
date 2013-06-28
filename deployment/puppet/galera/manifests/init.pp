@@ -1,13 +1,44 @@
-# 
-# wget https://launchpad.net/codership-mysql/5.5/5.5.23-23.6/+download/mysql-server-wsrep-5.5.23-23.6-amd64.deb
-# wget https://launchpad.net/galera/2.x/23.2.1/+download/galera-23.2.1-amd64.deb
-# aptitude install mysql-client libdbd-mysql-perl libdbi-perl
-# aptitude install libssl0.9.8
-# dpkg -i mysql-server-wsrep-5.5.23-23.6-amd64.deb
-# dpkg -i galera-23.2.1-amd64.deb
-# vi /etc/mysql/conf.d/wsrep.cnf
-# /etc/init.d/mysql start
+# == Define: galera
 #
+# Class for installation and configuration of galer Master/Master cluster.
+#
+# === Parameters
+#
+# [*cluster_name*]
+#   Cluster name for `wsrep_cluster_name` variable.
+#
+# [*primary_controller*]
+#   Set to true if current node is the initial master/primary
+#   controller.
+#
+# [*node_address*]
+#   Which value to use as node address for filtering in gcomm address.
+#   This is done due to some bugs in galera configuration. Thus we are
+#   filtering this address from `wsrep_cluster_address` to avoid these
+#   problems.
+#
+# [*setup_multiple_gcomm*]
+#   Should gcomm address contain multiple nodes or not.
+#
+# [*skip_name_resolve*]
+#  By default, MySQL tries to do reverse name mapping IP->hostname. In this
+#  case MySQL requests can be timed out by clients in case of broken name  
+#  resolving system. If you are not sure that your DNS/NIS/whatever are configured
+#  correctly, set this value to true.
+#
+# [*node_addresses*]
+#  Array with IPs/hostnames of cluster members.
+#
+# === Authors
+#
+# Mirantis Inc. <product@mirantis.com>
+#
+# === Copyright
+#
+# FIXME: Insert copyrights and licenses
+#
+
+
 class galera (
   $cluster_name,
   $primary_controller   = false,
@@ -141,11 +172,6 @@ class galera (
   #    logoutput => true,
   #  }
 
-  #  exec { "download-galera" :
-  #    command     => "/usr/bin/wget -P/tmp ${galera_prefix}/${::galera::params::galera_package}",
-  #    creates     => "/tmp/${::galera::params::galera_package}",
-  #  }
-
   file { ["/etc/mysql", "/etc/mysql/conf.d"]: ensure => directory, }
 
   if $::galera_gcomm_empty == "true" {
@@ -161,16 +187,24 @@ class galera (
     File["/etc/mysql/conf.d/wsrep.cnf"] -> Package['MySQL-server']
   }
 
+#TODO: find another way of mysql initial replication users creation
+
+
+# This file contains initial sql requests for creating replication users.
+
   file { "/tmp/wsrep-init-file":
     ensure  => present,
     content => template("galera/wsrep-init-file.erb"),
   }
 
+# This exec calls mysqld_safe with aforementioned file as --init-file argument, thus creating replication user.
   exec { "set-mysql-password":
     unless      => "/usr/bin/mysql -u${mysql_user} -p${mysql_password}",
     command     => "/usr/bin/mysqld_safe --init-file=/tmp/wsrep-init-file --port=3307 &",
     refreshonly => true,
   }
+
+# This exec waits for initial sync of galera cluster after mysql replication user creation.
 
   exec { "wait-initial-sync":
     logoutput   => true,
@@ -179,6 +213,8 @@ class galera (
     tries       => 60,
     refreshonly => true,
   }
+
+# This exec kills initialized mysql to allow its management with generic service providers (init/upstart/pacemaker/etc.)
 
   exec { "kill-initial-mysql":
     path        => "/usr/bin:/usr/sbin:/bin:/sbin",
@@ -206,6 +242,8 @@ class galera (
   Exec["kill-initial-mysql"] -> Exec["rm-init-file"]
   Package["MySQL-server"] ~> Exec["set-mysql-password"] ~> Exec ["wait-initial-sync"] ~> Exec["kill-initial-mysql"]
 
+# FIXME: This class is deprecated and should be removed in future releases.
+ 
   class { 'galera::galera_master_final_config':
     require        => Exec["wait-for-haproxy-mysql-backend"],
     primary_controller => $primary_controller,
