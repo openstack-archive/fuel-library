@@ -9,6 +9,7 @@ class cluster {
       $unicast_addresses = undef
     }
 
+    #todo: move half of openstack::corosync to this module, another half -- to quantum
     if defined(Stage['corosync_setup']) {
       class {'openstack::corosync':
         bind_address      => $internal_address,

@@ -1,4 +1,5 @@
-
+# todo: move this file and ocf scripts to cluster module
+# todo: refactor quantum-* ocf scripts
 class openstack::corosync (
   $bind_address = '127.0.0.1',
   $multicast_address = '239.1.1.2',
