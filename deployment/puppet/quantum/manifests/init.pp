@@ -49,7 +49,7 @@ class quantum (
       $rabbit_hosts = inline_template("<%= @rabbit_host.map {|x| x + ':' + @rabbit_port}.join ',' %>")
     }
     Quantum_config['DEFAULT/rabbit_ha_queues'] -> Service<| title == 'quantum-server' |>
-    Quantum_config['DEFAULT/rabbit_ha_queues'] -> Service<| title == 'quantum-plugin-ovs-service' |>
+    Quantum_config['DEFAULT/rabbit_ha_queues'] -> Service<| title == 'quantum-ovs-agent' |>
     Quantum_config['DEFAULT/rabbit_ha_queues'] -> Service<| title == 'quantum-l3' |>
     Quantum_config['DEFAULT/rabbit_ha_queues'] -> Service<| title == 'quantum-dhcp-agent' |>
     quantum_config {
