@@ -280,10 +280,11 @@ $swift_loopback = false
 $use_syslog = true
 if $use_syslog {
   class { "::rsyslog::client":
-    log_local => true,
+    log_remote => true,
     log_auth_local => true,
-    server => '127.0.0.1',
-    port => '514'
+# TODO configurable master node name, default is 'master:514'
+    #server => '127.0.0.1',
+    #port => '514'
   }
 }
 
