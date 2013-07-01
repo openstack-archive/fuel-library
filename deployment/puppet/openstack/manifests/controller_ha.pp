@@ -211,7 +211,7 @@ class openstack::controller_ha (
       haproxy_service { 'rabbitmq-epmd':    order => 91, port => 4369, virtual_ips => [$internal_virtual_ip], define_backend => true }
     }
 
-    if $custom_mysql_provider_name == 'galera' {
+    if $custom_mysql_setup_class == 'galera' {
       haproxy_service { 'mysqld': order => 95, port => 3306, virtual_ips => [$internal_virtual_ip], define_backend => true }
     }
     if $glance_backend == 'swift' {
