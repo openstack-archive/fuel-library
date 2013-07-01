@@ -2,6 +2,6 @@ IF (SELECT EXISTS(SELECT 1 FROM `mysql`.`user` WHERE `user` = '<%= rep_user %>')
     CREATE USER '<%= rep_user %>'@'%' IDENTIFIED BY '<%= rep_pass %>'
     CREATE USER '<%= rep_user %>'@'localhost' IDENTIFIED BY '<%= rep_pass %>'
 END IF;
-grant SUPER on *.* to '<%= rep_user %>'@'%'
+grant REPLICATION SLAVE on *.* to '<%= rep_user %>'@'%'
 grant SUPER on *.* to '<%= rep_user %>'@'localhost'
 flush privileges;
