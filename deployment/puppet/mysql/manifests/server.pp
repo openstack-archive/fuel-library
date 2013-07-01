@@ -180,7 +180,7 @@ class mysql::server (
         'test_table'         => 'mysql.user',
         'replication_user'   => $rep_user,
         'replication_passwd' => $rep_pass,
-        'additional_parameters' => '"--init-file\ /tmp/repl_create.sql"',
+        'additional_parameters' => '"--init-file=/tmp/repl_create.sql"',
       },
       operations   => {
         'monitor'  => { 'interval' => '20', 'timeout'  => '30' },
