@@ -278,10 +278,12 @@ $swift_loopback = false
 ### Syslog ###
 # Enable error messages reporting to rsyslog. Rsyslog must be installed in this case.
 $use_syslog = true
+stage { 'rsyslogs': before => Stage['main'], require => Stage['openstack-custom-repo'] }
 if $use_syslog {
   class { "::rsyslog::client":
     log_remote => true,
     log_auth_local => true,
+    stage => 'rsyslogs',
 # TODO configurable master node name, default is 'master:514'
     #server => '127.0.0.1',
     #port => '514'
