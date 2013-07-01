@@ -41,7 +41,7 @@ ssl-cert  = <%= ssl_cert %>
 ssl-key   = <%= ssl_key %>
 <% end %>
 <% if custom_setup_class == 'pacemaker_mysql' %>
-server-id=<%= rand(999) %>
+server-id=<%= server_id %>
 log-bin=mysql-bin
 relay-log=mysqld-relay-bin
 replicate-ignore-db=mysql

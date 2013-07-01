@@ -28,6 +28,7 @@ class mysql::server (
   $galera_nodes = undef,
   $mysql_skip_name_resolve = false,
   $use_syslog              = false,
+  $server_id         = $mysql::params::server_id,
 ) inherits mysql::params {
     
   if ($custom_setup_class == undef) {
@@ -35,7 +36,7 @@ class mysql::server (
     Class['mysql::server'] -> Class['mysql::config']
     Class['mysql']         -> Class['mysql::server']
 
-    create_resources( 'class', { 'mysql::config' => $config_hash } )
+    create_resources( 'class', { 'mysql::config' => $config_hash })
 #    exec { "debug-mysql-server-installation" :
 #      command     => "/usr/bin/yum -d 10 -e 10 -y install MySQL-server-5.5.28-6 2>&1 | tee mysql_install.log",
 #      before => Package["mysql-server"],
@@ -71,6 +72,7 @@ class mysql::server (
     #Cs_resource['p_mysql'] -> Cs_shadow['mysql']
     Cs_property <||> -> Cs_shadow <||>
     Cs_shadow['mysql']    -> Service['mysqld']
+    Cs_commit <| title == 'internal-vip' |> -> Cs_shadow['mysql']
     #Cs_commit['vip'] -> Cs_shadow['mysql']
 
     $config_hash['custom_setup_class'] = $custom_setup_class
@@ -86,7 +88,8 @@ class mysql::server (
 #    }
 
 
-    create_resources( 'class', { 'mysql::config' => $config_hash } )
+    create_resources( 'class', { 'mysql::config' => $config_hash })
+    Class['mysql::config'] -> Cs_resource['p_mysql']
 
     if !defined(Package[mysql-client]) {
       package { 'mysql-client':
@@ -98,36 +101,47 @@ class mysql::server (
       name   => $package_name,
     }
 
-    mysql::replicator { $allowed_hosts:
-      user      => $rep_user,
-      password  => $rep_pass,
-      require   => Exec['mysqld-restart'],
-      before    => Service['mysqld_stopped']
-    }
-    mysql::replicator { 'localhost':
-      user      => $rep_user,
-      password  => $rep_pass,
-      require   => Exec['mysqld-restart'],
-      before    => Service['mysqld_stopped']
-    }
-
-
-    service { 'mysqld_stopped':
-      name     => $service_name,
-      ensure   => 'stopped',
-      enable   => false,
-      require  => Class['mysql::config'],
-      #require  => Package['mysql-server'],
-      #provider => $service_provider,
-    }
-    Service['mysqld_stopped'] -> Service['mysqld']
-
+#    service { 'mysqld-setup':
+#      name     => $service_name,
+#      ensure   => 'running',
+#      enable   => false,
+#      require  => Package['mysql-server'],
+#      provider => $service_provider,
+#    }
+#
+#    mysql::replicator { $allowed_hosts:
+#      user      => $rep_user,
+#      password  => $rep_pass,
+#      require   => Service['mysqld-setup'],
+#      before    => Service['mysqld_stopped']
+#    }
+#    mysql::replicator { 'localhost':
+#      user      => $rep_user,
+#      password  => $rep_pass,
+#      #require   => Exec['mysqld-restart'],
+#      require   => Service['mysqld-setup'],
+#      before    => Service['mysqld_stopped']
+#    }
+#
+#    Service[$service_name] {
+#      ensure => 'stopped',
+#    }
+#    #service { 'mysqld_stopped':
+#    #  name     => $service_name,
+#    #  ensure   => 'stopped',
+#    #  enable   => false,
+#    #  require  => Class['mysql::config'],
+#      #require  => Package['mysql-server'],
+#      #provider => $service_provider,
+#    #}
+#    Service['mysqld-setup'] -> Service['mysqld']
+#
     #if !defined(Class['openstack::corosync']) {
     #  class {'openstack::corosync' :
     #    bind_address => $galera_node_address,
     #  }
     #}
-    Service['mysqld_stopped'] -> Class['openstack::corosync']
+    #Service['mysqld_setup'] -> Class['openstack::corosync']
  
     Class['openstack::corosync'] -> Cs_resource['p_mysql']
 
@@ -147,6 +161,10 @@ class mysql::server (
 #    #}->
 #    cs_commit { 'mysqlvip' : cib => "mysqlvip" } ->
 
+  file { "/tmp/repl_create.sql" :
+    ensure  => present,
+    content => template("mysql/repl_create.sql.erb"),
+  } ->
 
     cs_shadow { 'mysql': cib => 'mysql' } ->
     cs_resource { "p_mysql":
@@ -161,7 +179,8 @@ class mysql::server (
         'binary' => "/usr/bin/mysqld_safe",
         'test_table'         => 'mysql.user',
         'replication_user'   => $rep_user,
-        'replication_passwd' => $rep_pass
+        'replication_passwd' => $rep_pass,
+        'additional_parameters' => '"--init-file\ /tmp/repl_create.sql"',
       },
       operations   => {
         'monitor'  => { 'interval' => '20', 'timeout'  => '30' },
@@ -186,8 +205,9 @@ class mysql::server (
 
     #Tie internal-vip to p_mysql
     cs_colocation { 'mysql_to_internal-vip': 
-      primitives => ['internal-vip','p_mysql'],
-      require => [Cs_resource['internal-vip'],Cs_commit['mysql']],
+      primitives => ['internal-vip','master_p_mysql:Master'],
+      score      => 'INFINITY',
+      require    => [Cs_resource['p_mysql'], Cs_commit['mysql']],
     }
 
   }
