@@ -1,8 +1,13 @@
+#
+# [fuel_logs] remote logging mode for Fuel.
+#
+
 class rsyslog::server (
   $enable_tcp                = true,
   $enable_udp                = true,
   $server_dir                = '/srv/log/',
   $custom_config             = undef,
+  $fuel_logs                 = true,
   $high_precision_timestamps = false,
   $escapenewline             = false
 ) inherits rsyslog {

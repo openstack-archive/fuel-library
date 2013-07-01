@@ -1,48 +1,52 @@
 class rsyslog::config {
+
+  File {
+    owner => root,
+    group => $rsyslog::params::run_group,
+    mode => 0640,
+    require => Class["rsyslog::install"],
+    notify  => Class["rsyslog::service"],
+  }  
+
     file { $rsyslog::params::rsyslog_d:
-        owner   => root,
-        group   => $rsyslog::params::run_group,
         purge   => true,
         recurse => true,
         force   => true,
-        require => Class["rsyslog::install"],
         ensure  => directory,
+    }
+
+    file { "${rsyslog::params::rsyslog_d}30-remote-log.conf":
+        content => template("rsyslog/30-remote-log.conf.erb"),
+        require => File["$rsyslog::params::rsyslog_d"],
     }
 
     file { $rsyslog::params::rsyslog_conf:
-        owner   => root,
-        group   => $rsyslog::params::run_group,
         ensure  => file,
         content => template("${module_name}/rsyslog.conf.erb"),
-        require => Class["rsyslog::install"],
-        notify  => Class["rsyslog::service"],
     }
 
     file { '/var/lib/rsyslog' :
-        owner   => root,
-        group   => $::rsyslog::params::run_group,
         ensure  => directory,
         path    => $::rsyslog::params::rsyslog_queues_dir,
-        require => Class["rsyslog::install"],
-        notify  => Class["rsyslog::service"],
     }
 
-if $osfamily == "Debian"
-{
-    file { $rsyslog::params::rsyslog_default:
-        owner   => root,
-        group   => $rsyslog::params::run_group,
+case $osfamily {
+    'Debian': {
+      file { $rsyslog::params::rsyslog_default:
         ensure  => file,
         source  => "puppet:///modules/rsyslog/rsyslog_default",
-        require => Class["rsyslog::install"],
-        notify  => Class["rsyslog::service"],
+      }
+    }
+    'RedHat': {
+      file { "/etc/sysconfig/rsyslog":
+         content => template("rsyslog/rsyslog.erb"),
+      }
+    }
+    default: {
+        fail("Unsupported osfamily: ${osfamily} for os ${operatingsystem}")
     }
 }
     file { $rsyslog::params::spool_dir:
-        owner   => root,
-        group   => $rsyslog::params::run_group,
         ensure  => directory,
-        require => Class["rsyslog::install"],
-        notify  => Class["rsyslog::service"],
     }
 }

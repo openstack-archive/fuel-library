@@ -1,0 +1,9 @@
+# file is managed by puppet
+#
+# remote anaconda logs, uses predefined Fuel templates
+$template RemoteLog, "%$NOW%T%TIMESTAMP:8:$% %syslogseverity-text%: %msg%\n"
+$template RemoteLogFile, "/var/log/remote/%FROMHOST%/%APP-NAME%.log"#
+
+:FROMHOST, regex, "^[1-9]" ?RemoteLogFile;RemoteLog
+# Drop message here and do not forward
+:FROMHOST, regex, "^[1-9]" ~

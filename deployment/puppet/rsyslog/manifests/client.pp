@@ -1,10 +1,15 @@
+#
+# [fuel_logs] remote logging mode for Fuel.
+#
+
 class rsyslog::client (
   $log_remote     = true,
-  $remote_type    = 'tcp',
+  $remote_type    = 'udp',
   $log_local      = false,
   $log_auth_local = false,
+  $fuel_logs      = true,
   $custom_config  = undef,
-  $server         = 'log',
+  $server         = 'master',
   $port           = '514',
   $escapenewline  = false,
   $rservers       = undef

@@ -14,6 +14,29 @@ $ModLoad imtcp
 $EscapeControlCharactersOnReceive off
 <% end -%>
 
+#
+# Disk-Assisted Memory Queues, async writes, no escape chars
+#
+$OMFileASyncWriting on
+$SystemLogRateLimitInterval 0   # disable rate limits for rsyslog
+$MainMsgQueueType LinkedList
+$WorkDirectory <%= scope.lookupvar('rsyslog::params::spool_dir') %>
+$MainMsgQueueFileName mainmsgqueue
+$MainMsgQueueSaveOnShutdown on
+$MainMsgQueueDequeueSlowdown 1000
+$MainMsgQueueWorkerThreads 2
+$MainMsgQueueDequeueBatchSize 128
+$ActionQueueType LinkedList
+$WorkDirectory <%= scope.lookupvar('rsyslog::params::spool_dir') %>
+$ActionQueueFileName acsdbq
+$ActionQueueMaxDiskSpace 1g
+$ActionQueueSaveOnShutdown on
+$ActionQueueDequeueSlowdown 1000
+$ActionQueueWorkerThreads 2
+$ActionQueueDequeueBatchSize 128
+$ActionResumeRetryCount -1
+$SystemLogRateLimitInterval 0   # disable rate limits for rsyslog
+
 <% if scope.lookupvar('rsyslog::server::high_precision_timestamps') == false -%>
 #
 # Use traditional timestamp format.
@@ -35,6 +58,10 @@ $Template dynUserLog,"<%= scope.lookupvar('rsyslog::server::server_dir') -%>%sou
 $Template dynMailLog,"<%= scope.lookupvar('rsyslog::server::server_dir') -%>%source:R,ERE,1,DFLT:([A-Za-z-]*)--end%/mail.log"
 $Template dynDebug,"<%= scope.lookupvar('rsyslog::server::server_dir') -%>%source:R,ERE,1,DFLT:([A-Za-z-]*)--end%/debug"
 $Template dynMessages,"<%= scope.lookupvar('rsyslog::server::server_dir') -%>%source:R,ERE,1,DFLT:([A-Za-z-]*)--end%/messages"
+<% if scope.lookupvar('rsyslog::server::fuel_logs') -%>
+$template CustomLog, "%$NOW%T%TIMESTAMP:8:$%Z %syslogseverity-text% %syslogtag% %msg%\n"
+$ActionFileDefaultTemplate CustomLog
+<% end -%>
 
 # Rules
 auth,authpriv.*         ?dynAuthLog
