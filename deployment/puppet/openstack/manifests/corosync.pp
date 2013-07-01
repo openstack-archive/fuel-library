@@ -1,4 +1,5 @@
-
+# todo: move this file and ocf scripts to cluster module
+# todo: refactor quantum-* ocf scripts
 class openstack::corosync (
   $bind_address = '127.0.0.1',
   $multicast_address = '239.1.1.2',
@@ -25,7 +26,8 @@ Cs_property['no-quorum-policy']->Cs_property['stonith-enabled']->Cs_property['st
 file {'filter_quantum_ports.py':
   path=>'/usr/bin/filter_quantum_ports.py', 
   mode => 744,
-  require =>[Package['corosync'],File['/root/openrc']],
+  #require =>[Package['corosync'],File['/root/openrc']],
+  require =>Package['corosync'],
   owner => root,
   group => root,
   source => "puppet:///modules/openstack/filter_quantum_ports.py",

@@ -182,8 +182,7 @@ class openstack::controller (
     $memcached_addresses =  inline_template("<%= @cache_server_ip.collect {|ip| ip + ':' + @cache_server_port }.join ',' %>")
  
   
-  nova_config {'DEFAULT/memcached_servers':    value => $memcached_addresses;
-  }
+  nova_config {'DEFAULT/memcached_servers':  value => $memcached_addresses; }
 
   ####### DATABASE SETUP ######
   # set up mysql server
@@ -346,38 +345,36 @@ class openstack::controller (
   if $cinder {
     if !defined(Class['openstack::cinder']) {
       class {'openstack::cinder':
-      sql_connection       => "mysql://${cinder_db_user}:${cinder_db_password}@${db_host}/${cinder_db_dbname}?charset=utf8",
-      rabbit_password      => $rabbit_password,
-      rabbit_host          => false,
-      rabbit_nodes         => $rabbit_nodes,
-      volume_group         => $cinder_volume_group,
-      physical_volume      => $nv_physical_volume,
-      manage_volumes       => $manage_volumes,
-      enabled              => true,
-      glance_api_servers   => "${service_endpoint}:9292",
-      auth_host            => $service_endpoint,
-      bind_host            => $api_bind_address,
-      iscsi_bind_host      => $cinder_iscsi_bind_addr,
-      cinder_user_password => $cinder_user_password,
-      use_syslog           => $use_syslog,
-      cinder_rate_limits   => $cinder_rate_limits,
-      rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
+        sql_connection       => "mysql://${cinder_db_user}:${cinder_db_password}@${db_host}/${cinder_db_dbname}?charset=utf8",
+        rabbit_password      => $rabbit_password,
+        rabbit_host          => false,
+        rabbit_nodes         => $rabbit_nodes,
+        volume_group         => $cinder_volume_group,
+        physical_volume      => $nv_physical_volume,
+        manage_volumes       => $manage_volumes,
+        enabled              => true,
+        glance_api_servers   => "${service_endpoint}:9292",
+        auth_host            => $service_endpoint,
+        bind_host            => $api_bind_address,
+        iscsi_bind_host      => $cinder_iscsi_bind_addr,
+        cinder_user_password => $cinder_user_password,
+        use_syslog           => $use_syslog,
+        cinder_rate_limits   => $cinder_rate_limits,
+        rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
+      }
     }
+  } else { 
+    if $manage_volumes {
+      # Set up nova-volume
+      class { 'nova::volume':
+        ensure_package => $::openstack_version['nova'],
+        enabled        => true,
+      }
+      class { 'nova::volume::iscsi':
+        iscsi_ip_address => $api_bind_address,
+        physical_volume  => $nv_physical_volume,
+      }
     }
-  }
-  else { 
-  if $manage_volumes {
-    
-    class { 'nova::volume':
-      ensure_package => $::openstack_version['nova'],
-      enabled        => true,
-      }   
-    class { 'nova::volume::iscsi':
-      iscsi_ip_address => $api_bind_address,
-      physical_volume  => $nv_physical_volume,
-      }   
-  }
-  # Set up nova-volume
   } 
 
   if !defined(Class['memcached']){
