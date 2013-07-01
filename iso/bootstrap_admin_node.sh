@@ -27,7 +27,13 @@ mkdir -p /var/lib/puppet/ssh_keys
 chown root:puppet /var/lib/puppet/ssh_keys/openstack*
 chmod g+r /var/lib/puppet/ssh_keys/openstack*
 puppet apply -e "
-    class {openstack::mirantis_repos: enable_epel => false } ->
+    firewall {'514 syslog':
+    port => 514,
+    proto => 'udp',
+    action => 'accept',
+  }"
+puppet apply -e "
+    class {openstack::mirantis_repos: enable_epel => false } -> class {rsyslog::server: enable_tcp => false, server_dir => '/var/log/'} ->
     class {puppet: puppet_master_version => \"$puppet_master_version\"} -> class {puppet::thin:} -> class {puppet::nginx: puppet_master_hostname => \"$hostname.$domain\"}
     "
 puppet apply -e "
