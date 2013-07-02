@@ -24,10 +24,10 @@ handlers = file
 qualname = nova
 
 [formatter_normal_with_name]
-format = %(asctime)s %(name)s: %(levelname)s %(message)s
+format = %(asctime)s nova-%(name)s: %(levelname)s %(message)s
 
 [formatter_debug]
-format = (%(name)s): %(asctime)s %(levelname)s %(module)s %(funcName)s %(message)s
+format = nova-%(name)s: %(levelname)s %(module)s %(funcName)s %(message)s
 
 # defines -all.log file location and rotation
 [handler_file]
