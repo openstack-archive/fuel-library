@@ -4,14 +4,6 @@
 $EscapeControlCharactersOnReceive off
 <% end -%>
 
-# An "In-Memory Queue" is created for remote logging.
-#$WorkDirectory <%= scope.lookupvar('rsyslog::params::spool_dir') -%>    # where to place spool files
-#$ActionQueueFileName queue      # unique name prefix for spool files
-#$ActionQueueMaxDiskSpace 1g     # 1gb space limit (use as much as possible)
-#$ActionQueueSaveOnShutdown on   # save messages to disk on shutdown
-#$ActionQueueType LinkedList     # run asynchronously
-#$ActionResumeRetryCount -1      # infinety retries if host is down
-
 #
 # Disk-Assisted Memory Queues, async writes, no escape chars
 #
@@ -36,23 +28,19 @@ $ActionResumeRetryCount -1
 $SystemLogRateLimitInterval 0   # disable rate limits for rsyslog
 
 # Templates
-$Template RemoteLog, "%$NOW%T%TIMESTAMP:8:$% %syslogseverity-text%: %msg%\n"
-$Template RemoteLogFile, "/var/log/remote/%FROMHOST%/%APP-NAME%.log"
-$Template CustomLog, "%$NOW%T%TIMESTAMP:8:$%Z %syslogseverity-text% %syslogtag% %msg%\n"
+# Would match 'kernel:'  -> 'kernel'    ;  'rsyslog[12345]:'  -> 'rsyslog' ; '<180>(nova.api.wsgi):'  ->  'nova.api.wsgi'
+$Template CustomLog, "%$NOW%T%TIMESTAMP:8:$%Z %syslogseverity-text% %programname% %msg:drop-last-lf%\n"
 
 <% if scope.lookupvar('rsyslog::client::log_remote') -%>
 # Log to remote syslog server using <%= scope.lookupvar('rsyslog::client::remote_type') %>
 <% scope.lookupvar('rsyslog::client::rservers_real').each do |rserver| -%>
-# Do not
 <% if ! (['localhost','127.0.0.1','::1'].include?(rserver['server']) and (scope.lookupvar('rsyslog::client::log_auth_local') or scope.lookupvar('rsyslog::client::log_local'))) -%>
 <% if rserver['remote_type'] == 'tcp' -%>
-*.* ?RemoteLogFile
 # Send messages we receive to master node via tcp
-*.* @@<%= rserver['server']-%>:<%= rserver['port'] -%>;RSYSLOG_ForwardFormat
+*.* @@<%= rserver['server']-%>:<%= rserver['port'] -%>;CustomLog
 <% else -%>
-*.* ?RemoteLogFile
 # Send messages we receive to master node via udp
-*.* @<%= rserver['server'] -%>:<%= rserver['port'] -%>;RSYSLOG_ForwardFormat
+*.* @<%= rserver['server'] -%>:<%= rserver['port'] -%>;CustomLog
 <% end -%>
 <% end -%>
 <% end -%>
@@ -62,12 +50,6 @@ $Template CustomLog, "%$NOW%T%TIMESTAMP:8:$%Z %syslogseverity-text% %syslogtag% 
 
 <% if scope.lookupvar('rsyslog::client::log_auth_local') or scope.lookupvar('rsyslog::client::log_local') -%>
 # We log locally, restore to default format
-<% if scope.lookupvar('rsyslog::client::fuel_logs') -%>
-#
-# Use logging for Fuel. Excludes RSYSLOG_TraditionalFileFormat.
-#
-$ActionFileDefaultTemplate CustomLog
-<% else -%>
 $ActionFileDefaultTemplate RSYSLOG_TraditionalFileFormat
 <% end -%>
 

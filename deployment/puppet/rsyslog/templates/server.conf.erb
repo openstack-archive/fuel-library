@@ -37,16 +37,11 @@ $ActionQueueDequeueBatchSize 128
 $ActionResumeRetryCount -1
 $SystemLogRateLimitInterval 0   # disable rate limits for rsyslog
 
-<% if scope.lookupvar('rsyslog::server::high_precision_timestamps') == false -%>
 #
 # Use traditional timestamp format.
 # To enable high precision timestamps, comment out the following line.
 #
 $ActionFileDefaultTemplate RSYSLOG_TraditionalFileFormat
-<% end -%>
-
-# Switch to remote ruleset
-$RuleSet remote
 
 # Templates
 $Template dynAuthLog,"<%= scope.lookupvar('rsyslog::server::server_dir') -%>%source:R,ERE,1,DFLT:([A-Za-z-]*)--end%/auth.log"
@@ -58,10 +53,7 @@ $Template dynUserLog,"<%= scope.lookupvar('rsyslog::server::server_dir') -%>%sou
 $Template dynMailLog,"<%= scope.lookupvar('rsyslog::server::server_dir') -%>%source:R,ERE,1,DFLT:([A-Za-z-]*)--end%/mail.log"
 $Template dynDebug,"<%= scope.lookupvar('rsyslog::server::server_dir') -%>%source:R,ERE,1,DFLT:([A-Za-z-]*)--end%/debug"
 $Template dynMessages,"<%= scope.lookupvar('rsyslog::server::server_dir') -%>%source:R,ERE,1,DFLT:([A-Za-z-]*)--end%/messages"
-<% if scope.lookupvar('rsyslog::server::fuel_logs') -%>
-$template CustomLog, "%$NOW%T%TIMESTAMP:8:$%Z %syslogseverity-text% %syslogtag% %msg%\n"
-$ActionFileDefaultTemplate CustomLog
-<% end -%>
+$ActionFileDefaultTemplate RSYSLOG_TraditionalFileFormat
 
 # Rules
 auth,authpriv.*         ?dynAuthLog
@@ -76,15 +68,10 @@ user.*              -?dynUserLog
     cron.none,daemon.none;\
     mail.none,news.none     -?dynMessages
 
-# Switch back to default ruleset
-$RuleSet RSYSLOG_DefaultRuleset
-
 <% if scope.lookupvar('rsyslog::server::enable_udp') -%>
-$InputUDPServerBindRuleset remote
 $UDPServerRun 514
 <% end -%>
 
 <% if scope.lookupvar('rsyslog::server::enable_tcp') -%>
-$InputTCPServerBindRuleset remote
 $InputTCPServerRun 514
 <% end -%>
