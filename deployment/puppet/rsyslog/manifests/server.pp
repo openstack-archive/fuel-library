@@ -23,6 +23,11 @@ class rsyslog::server (
         content => template("rsyslog/30-remote-log.conf.erb"),
 
     }
+
+    file { "${rsyslog::params::rsyslog_d}40-puppet-master.conf":
+        content => template("rsyslog/40-puppet-master.conf.erb"),
+
+    }
     
     file { $rsyslog::params::server_conf:
         ensure  => present,
