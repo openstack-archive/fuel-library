@@ -51,7 +51,6 @@ $Template CustomLog, "%$NOW%T%TIMESTAMP:8:$%Z %syslogseverity-text% %programname
 <% if scope.lookupvar('rsyslog::client::log_auth_local') or scope.lookupvar('rsyslog::client::log_local') -%>
 # We log locally, restore to default format
 $ActionFileDefaultTemplate RSYSLOG_TraditionalFileFormat
-<% end -%>
 
 # Log auth messages locally
 auth,authpriv.*                 /var/log/auth.log
