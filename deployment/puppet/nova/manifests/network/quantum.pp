@@ -30,8 +30,8 @@ class nova::network::quantum (
   }
 
   nova_config {
-#    'DEFAULT/fixed_range':               value => $fixed_range;
-#    'DEFAULT/quantum_use_dhcp':          value => $use_dhcp;
+##    'DEFAULT/fixed_range':               value => $fixed_range;
+##    'DEFAULT/quantum_use_dhcp':          value => $use_dhcp;
     'DEFAULT/quantum_auth_strategy':     value => $quantum_auth_strategy;
     'DEFAULT/network_api_class':         value => 'nova.network.quantumv2.api.API';
     'DEFAULT/quantum_url':               value => $quantum_url;

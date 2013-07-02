@@ -96,19 +96,6 @@ class openstack::quantum_router (
         metadata_ip         => $internal_address,
         service_provider    => $service_provider
       }
-      if ! $quantum_netnode_on_cnt {
-        class { 'nova::metadata_api':
-          admin_auth_url         => $admin_auth_url,
-          service_endpoint       => $service_endpoint,
-          listen_ip              => $internal_address,
-          controller_nodes       => $rabbit_nodes,
-          auth_password          => $quantum_user_password,
-          rabbit_user            => $rabbit_user,
-          rabbit_password        => $rabbit_password,
-          rabbit_ha_virtual_ip   => $rabbit_ha_virtual_ip,
-          quantum_netnode_on_cnt => $quantum_netnode_on_cnt,
-        }
-      }
     }
 
     if !defined(Sysctl::Value['net.ipv4.ip_forward']) {

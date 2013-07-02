@@ -4,6 +4,7 @@
 #
 class cluster {
     if $use_unicast_corosync {
+      #todo: make as parameter
       $unicast_addresses = $controller_internal_addresses
     } else {
       $unicast_addresses = undef
