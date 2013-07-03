@@ -286,10 +286,12 @@ if $use_syslog {
   anchor { '::rsyslog::begin': }
   class { "::rsyslog::client":
     log_remote => true,
+    log_local  => true,
     log_auth_local => true,
     stage => 'rsyslogs',
 # TODO configurable master node name, default is 'master:514'
-    #server => '127.0.0.1',
+    #server => 'master',
+    #rservers => ['server1', 'server2', 'server3']
     #port => '514'
   }
   anchor { '::rsyslog::end': }
