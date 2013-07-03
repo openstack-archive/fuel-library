@@ -10,6 +10,14 @@ $ModLoad imudp
 $ModLoad imtcp
 <% end -%>
 
+<% if scope.lookupvar('rsyslog::server::enable_udp') -%>
+$UDPServerRun 514
+<% end -%>
+
+<% if scope.lookupvar('rsyslog::server::enable_tcp') -%>
+$InputTCPServerRun 514
+<% end -%>
+
 <% unless scope.lookupvar('rsyslog::server::escapenewline') -%>
 $EscapeControlCharactersOnReceive off
 <% end -%>
@@ -56,22 +64,24 @@ $Template dynMessages,"<%= scope.lookupvar('rsyslog::server::server_dir') -%>%so
 $ActionFileDefaultTemplate RSYSLOG_TraditionalFileFormat
 
 # Rules
+# Skip duplicates - all common debug, info, notice, warn go to 
+# debug & messages files respectively; others should go to syslog
 auth,authpriv.*         ?dynAuthLog
-*.*;auth,authpriv.none,mail.none,cron.none      -?dynSyslog
+*.error;auth,authpriv.none,mail.none,cron.none      -?dynSyslog
 cron.*              ?dynCronLog
 daemon.*            -?dynDaemonLog
+# Do not send info to kern.log - it duplicates messages
 kern.*;kern.!=info  -?dynKernLog
 mail.*              -?dynMailLog
 user.*              -?dynUserLog
+
+#
+# Some "catch-all" log files.
+#
+*.=debug;\
+       auth,authpriv.none;\
+       news.none;mail.none   -?dynDebug
 *.=info;*.=notice;*.=warn;\
     auth.none,authpriv.none;\
     cron.none,daemon.none;\
     mail.none,news.none     -?dynMessages
-
-<% if scope.lookupvar('rsyslog::server::enable_udp') -%>
-$UDPServerRun 514
-<% end -%>
-
-<% if scope.lookupvar('rsyslog::server::enable_tcp') -%>
-$InputTCPServerRun 514
-<% end -%>

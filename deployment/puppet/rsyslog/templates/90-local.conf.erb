@@ -14,7 +14,7 @@ auth,authpriv.*                 /var/log/auth.log
 # Skip duplicates - all common debug, info, notice, warn go to 
 # debug & messages files respectively; others should go to syslog
 #
-*.*;auth,authpriv.none         -/var/log/syslog
+*.error;auth,authpriv.none     -/var/log/syslog
 cron.*                          /var/log/cron.log
 daemon.*                       -/var/log/daemon.log
 # Do not send info to kern.log - it duplicates messages
