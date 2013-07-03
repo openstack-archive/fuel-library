@@ -45,7 +45,7 @@ class rabbitmq::server(
   $config='UNSET',
   $env_config='UNSET',
   $erlang_cookie='EOKOWXQREETZSHFNTPEY',
-  $wipe_db_on_cookie_change=false,
+  $wipe_db_on_cookie_change=true,
   $inet_dist_listen_min = '41055',
   $inet_dist_listen_max = '41055',
 ) {
