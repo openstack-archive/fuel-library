@@ -278,7 +278,7 @@ class openstack::nova::controller (
     ensure_package => $ensure_package,
   }
 
-if $auto_assign_floating_ip {
+  if $auto_assign_floating_ip {
     nova_config { 'DEFAULT/auto_assign_floating_ip': value => 'True' }
   }
 
