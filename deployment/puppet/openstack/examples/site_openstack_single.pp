@@ -5,6 +5,12 @@
 # Please consult with the latest Fuel User Guide before making edits.
 #
 
+# Run stages for puppet
+stage {'rsyslogs': before => Stage['openstack-custom-repo']}
+stage {'openstack-custom-repo': before => Stage['netconfig'] }
+stage {'netconfig': before  => Stage['main'] }
+stage {'openstack-firewall': before => Stage['main'], require => Stage['netconfig'] }
+
 ### GENERAL CONFIG ###
 # This section sets main parameters such as hostnames and IP addresses of different nodes
 
@@ -155,10 +161,6 @@ $public_int   = $public_interface
 $internal_int = $internal_interface
 
 #Network configuration
-stage {'netconfig':
-      before  => Stage['main'],
-}
-
 class {'l23network': use_ovs=>$quantum, stage=> 'netconfig'}
 class node_netconfig (
   $mgmt_ipaddr,
@@ -276,16 +278,21 @@ $swift_loopback = false
 ### Glance and swift END ###
 
 ### Syslog ###
-# Enable error messages reporting to rsyslog. Rsyslog must be installed in this case.
+# Enable error messages reporting to rsyslog. Rsyslog must be installed in this case,
+# and configured to start at the very beginning of puppet agent run. 
 $use_syslog = true
+
 if $use_syslog {
+  anchor { '::rsyslog::begin': }
   class { "::rsyslog::client":
     log_remote => true,
     log_auth_local => true,
+    stage => 'rsyslogs',
 # TODO configurable master node name, default is 'master:514'
     #server => '127.0.0.1',
     #port => '514'
   }
+  anchor { '::rsyslog::end': }
 }
 
 ### Syslog END ###
@@ -376,7 +383,6 @@ Exec<| title == 'clocksync' |>->Exec<| title == 'post-nova_config' |>
 tag("${::deployment_id}::${::environment}")
 
 
-stage { 'openstack-custom-repo': before => Stage['netconfig'] }
 class { 'openstack::mirantis_repos':
   stage => 'openstack-custom-repo',
   type=>$mirror_type,
@@ -384,7 +390,7 @@ class { 'openstack::mirantis_repos':
   repo_proxy=>$repo_proxy,
   use_upstream_mysql=>$use_upstream_mysql
 }
- stage {'openstack-firewall': before => Stage['main'], require => Stage['netconfig'] } 
+
  class { '::openstack::firewall':
       stage => 'openstack-firewall'
  }
