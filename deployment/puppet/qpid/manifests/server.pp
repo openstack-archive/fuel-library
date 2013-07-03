@@ -32,13 +32,10 @@ class qpid::server(
     }
   }
 
-  qpid_safe_package { $qpid::params:additional_packages : }
 
   if size($qpid_nodes) > 1 {
-    package { $::qpid::params::cluster_package_name:
-      ensure => $package_ensure,
-      require => Package[$::qpid::params::package_name],
-    }
+    qpid_safe_package { $qpid::params:additional_packages : }
+    
     file { '/usr/local/bin/qpid-setup-routes.sh':
       ensure => present,
       owner => 'root',
