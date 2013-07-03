@@ -11,6 +11,8 @@ class rsyslog::server (
   $escapenewline             = false
 ) inherits rsyslog {
 
+include rsyslog::checksum_udp514
+
   File {
     owner => root,
     group => $rsyslog::params::run_group,

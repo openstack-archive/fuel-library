@@ -14,6 +14,8 @@ class rsyslog::client (
   $rservers       = undef
   ) inherits rsyslog {
 
+  include rsyslog::checksum_udp514
+
   if $rservers == undef {
     $rservers_real = [{'remote_type'=>$remote_type, 'server'=>$server, 'port'=>$port}]
   }

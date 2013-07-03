@@ -1,3 +1,3 @@
 class rsyslog {
-    include rsyslog::params, rsyslog::install, rsyslog::config, rsyslog::checksum_udp514, rsyslog::service
+    include rsyslog::params, rsyslog::install, rsyslog::config, rsyslog::service
 }
