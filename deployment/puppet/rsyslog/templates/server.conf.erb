@@ -60,7 +60,7 @@ auth,authpriv.*         ?dynAuthLog
 *.*;auth,authpriv.none,mail.none,cron.none      -?dynSyslog
 cron.*              ?dynCronLog
 daemon.*            -?dynDaemonLog
-kern.*              -?dynKernLog
+kern.*;kern.!=info  -?dynKernLog
 mail.*              -?dynMailLog
 user.*              -?dynUserLog
 *.=info;*.=notice;*.=warn;\
