@@ -23,6 +23,15 @@ class cluster {
         unicast_addresses => $unicast_addresses
       }
     }
+    file {'ocf-mirantis-path':
+      path=>'/usr/lib/ocf/resource.d/mirantis', 
+      #mode => 755,
+      ensure => directory,
+      recurse => true,
+      owner => root,
+      group => root,
+    } 
+    Package['corosync'] -> File['ocf-mirantis-path']
 }
 #
 ###
