@@ -27,6 +27,18 @@ class rsyslog::client (
     ''      => template("${module_name}/client.conf.erb"),
     default => template($custom_config),
   }
+
+  File {
+    owner => root,
+    group => $rsyslog::params::run_group,
+    mode => 0640,
+    notify  => Class["rsyslog::service"],
+  }
+
+  file { "${rsyslog::params::rsyslog_d}puppet-agent.conf":
+    content => template("rsyslog/puppet-agent.conf.erb"),
+
+  }
   
   # TODO test if both client and server classes could be defined for same node
   file { $rsyslog::params::rsyslog_d:                                                                                                                         
@@ -38,10 +50,7 @@ class rsyslog::client (
 
   file { $rsyslog::params::client_conf:
     ensure  => present,
-    owner   => root,
-    group   => $rsyslog::params::run_group,
     content => $content_real,
     require => File[$rsyslog::params::rsyslog_d],
-    notify  => Class['rsyslog::service'],
   }
 }
