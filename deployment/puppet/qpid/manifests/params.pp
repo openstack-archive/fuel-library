@@ -5,14 +5,17 @@ class qpid::params {
     'RedHat': {
       $package_name          = 'qpid-cpp-server'
       $cluster_package_name  = 'qpid-cpp-server-cluster'
+      $additional_packages   = ['qpid-cpp-server-store','qpid-cpp-server-ssl',
+                                'qpid-tests', 'qpid-tools']
       $service_name          = 'qpidd'
       $config_file           = '/etc/qpidd.conf'
     }
     'Debian': {
-     $package_name           = 'qpidd'
-     $cluster_package_name   = 'qpidd'
-     $service_name           = 'qpidd'
-     $config_file            = '/etc/qpid/qpidd.conf'
+      $package_name           = 'qpidd'
+      $cluster_package_name   = 'qpidd'
+      $additional_packages    = 'qpidd'
+      $service_name           = 'qpidd'
+      $config_file            = '/etc/qpid/qpidd.conf'
     }
     default: {
       fail("Unsupported osfamily: ${::osfamily} operatingsystem: ${::operatingsystem}, module ${module_name} only support osfamily RedHat and Debian")

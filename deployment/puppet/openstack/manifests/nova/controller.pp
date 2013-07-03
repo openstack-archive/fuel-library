@@ -166,6 +166,7 @@ class openstack::nova::controller (
         qpid_cluster_name      => 'qpid_cluster',
         qpid_username          => $qpid_user,
         qpid_password          => $qpid_password,
+        qpid_nodes             => $qpid_nodes,
       }
     }
   }
