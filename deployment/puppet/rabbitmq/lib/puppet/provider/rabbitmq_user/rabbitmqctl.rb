@@ -1,6 +1,7 @@
 require 'puppet'
 Puppet::Type.type(:rabbitmq_user).provide(:rabbitmqctl) do
-
+  
+  #TODO: change optional_commands -> commands when puppet >= 3.0
   optional_commands :rabbitmqctl => 'rabbitmqctl'
   defaultfor :feature => :posix
 
