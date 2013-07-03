@@ -262,11 +262,16 @@ class openstack::nova::controller (
     cinder            => $cinder
   }
 
+  # Do not enable it!!!!!
+  # metadata service provides by nova api 
+  # while enabled_apis=ec2,osapi_compute,metadata
+  # and by quantum-metadata-agent on network node as proxy
+  #
   # enable nova-metadata-api service
-  class { 'nova::metadata_api':
-    enabled => $enabled,
-    ensure_package => $ensure_package,
-  }
+  #class { 'nova::metadata_api':
+  #  enabled => $enabled,
+  #  ensure_package => $ensure_package,
+  #}
 
   class {'nova::conductor':
     enabled => $enabled,
