@@ -124,7 +124,7 @@ class quantum (
 
     # We must notify rsyslog and services to apply new logging rules
     include rsyslog::params
-    File['/etc/rsyslog.d/quantum.conf'] ~> Service <| title == "$rsyslog::params::service_name" |>
+    File['/etc/rsyslog.d/50-quantum.conf'] ~> Service <| title == "$rsyslog::params::service_name" |>
 
     File['quantum-logging.conf'] ~> Service<| title == 'quantum-server' |>
     File['quantum-logging.conf'] ~> Service<| title == 'quantum-plugin-ovs-service' |>

@@ -73,7 +73,7 @@ if $use_syslog {
   
   # We must notify rsyslog and services to apply new logging rules
   include rsyslog::params
-  File['/etc/rsyslog.d/cinder.conf'] ~> Service <| title == "$rsyslog::params::service_name" |>
+  File['/etc/rsyslog.d/30-cinder.conf'] ~> Service <| title == "$rsyslog::params::service_name" |>
 
   File['cinder-logging.conf'] ~> Service<| title == 'cinder-api' |>
   File['cinder-logging.conf'] ~> Service<| title == 'cinder-volume' |>

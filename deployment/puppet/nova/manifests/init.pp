@@ -177,7 +177,7 @@ file { '/etc/rsyslog.d/10-nova.conf':
 
 # We must notify rsyslog and services to apply new logging rules
 include rsyslog::params
-File['/etc/rsyslog.d/nova.conf'] ~> Service <| title == "$rsyslog::params::service_name" |>
+File['/etc/rsyslog.d/10-nova.conf'] ~> Service <| title == "$rsyslog::params::service_name" |>
 
 File['nova-logging.conf'] ~> Nova::Generic_service <| |>
 File['nova-logging.conf'] ~> Service <| title == "$nova::params::api_service_name" |>

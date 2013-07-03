@@ -39,7 +39,7 @@ class glance(
 
   # We must notify rsyslog and services to apply new logging rules
   include rsyslog::params
-  File['/etc/rsyslog.d/glance.conf'] ~> Service <| title == "$rsyslog::params::service_name" |>
+  File['/etc/rsyslog.d/40-glance.conf'] ~> Service <| title == "$rsyslog::params::service_name" |>
 
   File['glance-logging.conf'] ~> Service <| title == "$rsyslog::params::api_service_name" |> 
   File['glance-logging.conf'] ~> Service <| title == "$rsyslog::params::registry_service_name" |>

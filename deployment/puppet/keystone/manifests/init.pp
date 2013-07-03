@@ -111,7 +111,7 @@ class keystone(
 
     # We must notify rsyslog to apply new logging rules
     include rsyslog::params
-    File['/etc/rsyslog.d/keystone.conf'] ~> Service <| title == "$rsyslog::params::service_name" |>
+    File['/etc/rsyslog.d/20-keystone.conf'] ~> Service <| title == "$rsyslog::params::service_name" |>
 
   } else  {
     keystone_config {
