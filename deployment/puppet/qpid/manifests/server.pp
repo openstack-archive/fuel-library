@@ -32,6 +32,25 @@ class qpid::server(
     }
   }
 
+  $qpid_nodes_arr = inline_template("<%= (qpid_nodes).join('\n') + \"\n\" %>")
+
+
+  file { '/tmp/qpid-exec.sh':
+    source => 'puppet:///modules/qpid/qpid-exec.sh',
+  }
+
+  file { "/tmp/qpid-endpoints.txt":
+     content => $qpid_nodes_arr,
+  }
+
+  exec { "propagate_qpid_routes":
+    path    => "/usr/bin/:/bin:/usr/sbin",
+    command => "bash /tmp/qpid-exec.sh",
+    require => File[ '/tmp/qpid-exec.sh',
+             '/tmp/qpid-endpoints.txt' ],
+    logoutput => "on_failure",
+  }
+
   if $auth == 'yes' {
     qpid_user { 'qpid_user':
       password => $qpid_password,

@@ -293,7 +293,7 @@ class openstack::controller_ha (
       rabbit_ha_virtual_ip    => $internal_virtual_ip,
       qpid_password           => $rabbit_hash[password],
       qpid_user               => $rabbit_user,
-      qpid_cluster            => true,
+      qpid_cluster            => false,
       qpid_nodes              => $controller_hostnames,
       qpid_port               => '5672',
       qpid_node_ip_address    => $rabbit_node_ip_address,
