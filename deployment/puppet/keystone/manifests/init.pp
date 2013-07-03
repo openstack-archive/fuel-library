@@ -104,7 +104,7 @@ class keystone(
     file { "keystone-all.log":
       path => "/var/log/keystone-all.log",
     }
-    file { '/etc/rsyslog.d/keystone.conf':
+    file { '/etc/rsyslog.d/20-keystone.conf':
       ensure => present,
       content => template('keystone/rsyslog.d.erb'),
     }

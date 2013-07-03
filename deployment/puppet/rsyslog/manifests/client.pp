@@ -5,8 +5,8 @@
 class rsyslog::client (
   $log_remote     = true,
   $remote_type    = 'udp',
-  $log_local      = false,
-  $log_auth_local = false,
+  $log_local      = true,
+  $log_auth_local = true,
   $custom_config  = undef,
   $server         = 'master',
   $port           = '514',
@@ -24,7 +24,7 @@ class rsyslog::client (
   }
 
   $content_real = $custom_config ? {
-    ''      => template("${module_name}/client.conf.erb"),
+    ''      => template("${module_name}/01-client.conf.erb"),
     default => template($custom_config),
   }
 
@@ -35,12 +35,21 @@ class rsyslog::client (
     notify  => Class["rsyslog::service"],
   }
 
-  file { "${rsyslog::params::rsyslog_d}puppet-agent.conf":
-    content => template("rsyslog/puppet-agent.conf.erb"),
+  file { "${rsyslog::params::rsyslog_d}60-puppet-agent.conf":
+    content => template("${module_name}/60-puppet-agent.conf.erb"),
+
+  }
+
+  file { "${rsyslog::params::rsyslog_d}90-local.conf":
+    content => template("${module_name}/90-local.conf.erb"),
+
+  }
+
+  file { "${rsyslog::params::rsyslog_d}99-remote.conf":
+    content => template("${module_name}/99-remote.conf.erb"),
 
   }
   
-  # TODO test if both client and server classes could be defined for same node
   file { $rsyslog::params::rsyslog_d:                                                                                                                         
     purge   => true,                                                                                                                                        
     recurse => true,                                                                                                                                        

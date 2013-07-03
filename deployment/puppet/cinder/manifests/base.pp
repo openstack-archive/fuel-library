@@ -66,7 +66,7 @@ if $use_syslog {
   file { "cinder-all.log":
     path => "/var/log/cinder-all.log",
   }
-  file { '/etc/rsyslog.d/cinder.conf':
+  file { '/etc/rsyslog.d/30-cinder.conf':
     ensure => present,
     content => template('cinder/rsyslog.d.erb'),
   }

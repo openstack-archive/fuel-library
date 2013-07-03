@@ -21,7 +21,6 @@ include rsyslog::checksum_udp514
     notify  => Class["rsyslog::service"],
   }
   
-    # TODO test if both client and server classes could be defined for same node
     file { $rsyslog::params::rsyslog_d:  
         purge   => true,    
         recurse => true,    
@@ -30,19 +29,19 @@ include rsyslog::checksum_udp514
     }
 
     file { "${rsyslog::params::rsyslog_d}30-remote-log.conf":
-        content => template("rsyslog/30-remote-log.conf.erb"),
+        content => template("${module_name}/30-server-remote-log.conf.erb"),
 
     }
 
     file { "${rsyslog::params::rsyslog_d}40-puppet-master.conf":
-        content => template("rsyslog/40-puppet-master.conf.erb"),
+        content => template("${module_name}/40-server-puppet-master.conf.erb"),
 
     }
     
     file { $rsyslog::params::server_conf:
         ensure  => present,
         content => $custom_config ? {
-            ''      => template("${module_name}/server.conf.erb"),
+            ''      => template("${module_name}/00-server.conf.erb"),
             default => template($custom_config),
         },
     }

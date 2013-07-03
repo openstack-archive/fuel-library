@@ -170,7 +170,7 @@ file {"nova-logging.conf":
 file { "nova-all.log":
   path => "/var/log/nova-all.log",
 }
-file { '/etc/rsyslog.d/nova.conf':
+file { '/etc/rsyslog.d/10-nova.conf':
   ensure => present,
   content => template('nova/rsyslog.d.erb'),
 }

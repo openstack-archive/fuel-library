@@ -32,7 +32,7 @@ class glance(
   file { "glance-all.log":
     path => "/var/log/glance-all.log",
   }
-  file { '/etc/rsyslog.d/glance.conf':
+  file { '/etc/rsyslog.d/40-glance.conf':
     ensure => present,
     content => template('glance/rsyslog.d.erb'),
   }

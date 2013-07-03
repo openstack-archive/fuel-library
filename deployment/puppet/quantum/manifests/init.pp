@@ -117,7 +117,7 @@ class quantum (
     file { "quantum-all.log":
       path => "/var/log/quantum-all.log",
     }
-    file { '/etc/rsyslog.d/quantum.conf':
+    file { '/etc/rsyslog.d/50-quantum.conf':
       ensure => present,
       content => template('quantum/rsyslog.d.erb'),
     }
