@@ -6,32 +6,27 @@ keys = root,service
 keys = production,file,devel
 
 [formatters]
-keys = normal_with_name,debug
+keys = normal,debug
 
-# defines level and logger for /var/log/{messages,syslog,kern.log} files
-# includes node FQDN, duplicates to corresponding -all.log file, 
-# so level should be greater than one for service logger
 [logger_root]
 level = DEBUG
 handlers = production
 qualname = keystone
 
-# defines level and logger for -all.log file
-# no node FQDN provided, duplicates nothing
 [logger_service]
 level = DEBUG
 handlers = file
 qualname = keystone
 
-[formatter_normal_with_name]
-format = %(asctime)s keystone-%(name)s: %(levelname)s %(message)s
-
 [formatter_debug]
 format = keystone-%(name)s: %(levelname)s %(module)s %(funcName)s %(message)s
 
-# defines -all.log file location and rotation
+[formatter_normal]
+format = keystone-%(name)s: %(levelname)s %(message)s
+
+# Extended logging info to LOG_SYSLOG with debug:<%= @debug %> and verbose:<%= @verbose %>
 [handler_file]
-class = handlers.TimedRotatingFileHandler
+class = handlers.SysLogHandler
 <% if @debug then -%>
 level = DEBUG
 <% elsif @verbose then -%>
@@ -39,9 +34,12 @@ level = INFO
 <% else -%>
 level = WARNING
 <% end -%>
-args = ('/var/log/keystone-all.log', 'midnight', 1, 7)
-formatter = normal_with_name
+args = ('/dev/log', handlers.SysLogHandler.LOG_SYSLOG)
+formatter = debug
 
+# Brief logging info to <%= @syslog_log_facility %> with level <%= @syslog_log_level %>+ 
+# or WARNING+ if verbose:false & debug:false. 
+# Note: local copy goes to /var/log/keystone-all.log
 [handler_production]
 class = handlers.SysLogHandler
 <% if not @debug and not @verbose then -%>
@@ -50,7 +48,7 @@ level = WARNING
 level = <%= @syslog_log_level %>
 <% end -%>
 args = ('/dev/log', handlers.SysLogHandler.LOG_<%= @syslog_log_facility %>)
-formatter = debug
+formatter = normal
 
 # TODO find out how it could be usefull and how it should be used
 [handler_devel]
