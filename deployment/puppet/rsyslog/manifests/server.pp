@@ -20,6 +20,14 @@ include rsyslog::checksum_udp514
     require => Class["rsyslog::config"],
     notify  => Class["rsyslog::service"],
   }
+  
+    # TODO test if both client and server classes could be defined for same node
+    file { $rsyslog::params::rsyslog_d:  
+        purge   => true,    
+        recurse => true,    
+        force   => true,    
+        ensure  => directory,    
+    }
 
     file { "${rsyslog::params::rsyslog_d}30-remote-log.conf":
         content => template("rsyslog/30-remote-log.conf.erb"),

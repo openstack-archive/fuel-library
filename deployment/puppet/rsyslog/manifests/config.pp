@@ -8,13 +8,6 @@ class rsyslog::config {
     notify  => Class["rsyslog::service"],
   }  
 
-    file { $rsyslog::params::rsyslog_d:
-        purge   => true,
-        recurse => true,
-        force   => true,
-        ensure  => directory,
-    }
-
     file { $rsyslog::params::rsyslog_conf:
         ensure  => file,
         content => template("${module_name}/rsyslog.conf.erb"),

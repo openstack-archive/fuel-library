@@ -27,13 +27,21 @@ class rsyslog::client (
     ''      => template("${module_name}/client.conf.erb"),
     default => template($custom_config),
   }
+  
+  # TODO test if both client and server classes could be defined for same node
+  file { $rsyslog::params::rsyslog_d:                                                                                                                         
+    purge   => true,                                                                                                                                        
+    recurse => true,                                                                                                                                        
+    force   => true,                                                                                                                                        
+    ensure  => directory,                                                                                                                                   
+  }
 
   file { $rsyslog::params::client_conf:
     ensure  => present,
     owner   => root,
     group   => $rsyslog::params::run_group,
     content => $content_real,
-    require => Class['rsyslog::config'],
+    require => File[$rsyslog::params::rsyslog_d],
     notify  => Class['rsyslog::service'],
   }
 }
