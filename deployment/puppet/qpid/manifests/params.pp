@@ -6,7 +6,7 @@ class qpid::params {
       $package_name          = 'qpid-cpp-server'
       $cluster_package_name  = 'qpid-cpp-server-cluster'
       $additional_packages   = ['qpid-cpp-server-store','qpid-cpp-server-ssl',
-                                'qpid-tests', 'qpid-tools']
+                                'qpid-tools']
       $service_name          = 'qpidd'
       $config_file           = '/etc/qpidd.conf'
     }

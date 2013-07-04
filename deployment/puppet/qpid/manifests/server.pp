@@ -34,7 +34,10 @@ class qpid::server(
 
 
   if size($qpid_nodes) > 1 {
-    qpid_safe_package { $qpid::params:additional_packages : }
+    package { [$qpid::params::additional_packages]:
+      ensure => $package_ensure,
+    }
+    qpid_safe_package { $qpid::params::additional_packages : }
     
     file { '/usr/local/bin/qpid-setup-routes.sh':
       ensure => present,
@@ -47,11 +50,10 @@ class qpid::server(
     exec { "propagate_qpid_routes":
       path    => "/usr/bin/:/bin:/usr/sbin",
       command => "bash /usr/local/bin/qpid-setup-routes.sh",
-      require => File['/usr/local/bin/qpid-setup-routes.sh']
-      logoutput => "on_failure",
+      subscribe => File['/usr/local/bin/qpid-setup-routes.sh'],
+      logoutput => true,
     }
   }
-
   if $auth == 'yes' {
     qpid_user { 'qpid_user':
       password => $qpid_password,

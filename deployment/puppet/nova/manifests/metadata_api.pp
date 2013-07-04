@@ -54,7 +54,7 @@ class nova::metadata_api (
       }
       nova_config {
         'DEFAULT/qpid_hosts':              value => $qpid_hosts;
-        'DEFAULT/qpid_userid':             value => $qpid_user;
+        'DEFAULT/qpid_username':             value => $qpid_user;
         'DEFAULT/qpid_password':           value => $qpid_password;
         'DEFAULT/rpc_backend':             value => 'nova.rpc.impl_qpid';
       }

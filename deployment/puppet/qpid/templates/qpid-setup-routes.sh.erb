@@ -3,7 +3,7 @@
      qpid_nodes.each do |nodeb| -%>
         localaddr="<%= nodea %>"
         remoteaddr="<%= nodeb %>"
-	if [ $localaddr != $remoteaddr  ] ; then
+	if [[ "$localaddr" != "$remoteaddr" ]] ; then
 		qpid-route -d dynamic add $localaddr $remoteaddr amq.direct
 		qpid-route -d dynamic add $localaddr $remoteaddr amq.fanout
 		qpid-route -d dynamic add $localaddr $remoteaddr qmf.default.topic

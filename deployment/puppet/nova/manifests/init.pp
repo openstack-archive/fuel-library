@@ -300,7 +300,7 @@ else {
       nova_config {
         'DEFAULT/qpid_password':     value => $qpid_password;
         'DEFAULT/qpid_port':         value => $qpid_port;
-        'DEFAULT/qpid_userid':       value => $qpid_userid;
+        'DEFAULT/qpid_username':       value => $qpid_userid;
         'DEFAULT/rpc_backend':       value => 'nova.rpc.impl_qpid';
       }
     }

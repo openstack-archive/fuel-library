@@ -124,7 +124,7 @@ class quantum (
       }
       quantum_config {
         'DEFAULT/rpc_backend':          value => 'quantum.openstack.common.rpc.impl_qpid';
-        'DEFAULT/qpid_userid':          value => $qpid_user;
+        'DEFAULT/qpid_username':          value => $qpid_user;
         'DEFAULT/qpid_password':        value => $qpid_password;
       }
     }
