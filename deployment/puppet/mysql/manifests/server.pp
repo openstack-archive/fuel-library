@@ -30,8 +30,8 @@ class mysql::server (
   $use_syslog              = false,
   $server_id         = $mysql::params::server_id,
   $replication_roles = "SELECT, PROCESS, FILE, SUPER, REPLICATION CLIENT, REPLICATION SLAVE, RELOAD",
-  $rep_user = 'replicator'
-  $rep_pass = 'replicant666'
+  $rep_user = 'replicator',
+  $rep_pass = 'replicant666',
 ) inherits mysql::params {
     
   if ($custom_setup_class == undef) {
