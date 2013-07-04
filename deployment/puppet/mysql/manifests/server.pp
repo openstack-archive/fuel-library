@@ -29,6 +29,9 @@ class mysql::server (
   $mysql_skip_name_resolve = false,
   $use_syslog              = false,
   $server_id         = $mysql::params::server_id,
+  $replication_roles = "SELECT, PROCESS, FILE, SUPER, REPLICATION CLIENT, REPLICATION SLAVE, RELOAD",
+  $rep_user = 'replicator'
+  $rep_pass = 'replicant666'
 ) inherits mysql::params {
     
   if ($custom_setup_class == undef) {
@@ -65,27 +68,17 @@ class mysql::server (
   }
   elsif ($custom_setup_class == 'pacemaker_mysql')  {
     include mysql
-    #Class['mysql::server'] -> Class['mysql::config']
     Package[mysql-server] -> Class['mysql::config']
     Package[mysql-client] -> Package[mysql-server]
     Cs_commit['mysql']    -> Service['mysqld']
-    #Cs_resource['p_mysql'] -> Cs_shadow['mysql']
     Cs_property <||> -> Cs_shadow <||>
     Cs_shadow['mysql']    -> Service['mysqld']
     Cs_commit <| title == 'internal-vip' |> -> Cs_shadow['mysql']
-    #Cs_commit['vip'] -> Cs_shadow['mysql']
 
     $config_hash['custom_setup_class'] = $custom_setup_class
     $allowed_hosts = '%'
     #$allowed_hosts = 'localhost'
-    $rep_user = 'replicator'
-    $rep_pass = 'replicant666'
 
-
-#    class {'mysql::server::vip':
-#      vip_address => '192.168.1.250',
-#      prefix      => '24'
-#    }
 
 
     create_resources( 'class', { 'mysql::config' => $config_hash })
@@ -101,60 +94,9 @@ class mysql::server (
       name   => $package_name,
     }
 
-#    service { 'mysqld-setup':
-#      name     => $service_name,
-#      ensure   => 'running',
-#      enable   => false,
-#      require  => Package['mysql-server'],
-#      provider => $service_provider,
-#    }
-#
-#    mysql::replicator { $allowed_hosts:
-#      user      => $rep_user,
-#      password  => $rep_pass,
-#      require   => Service['mysqld-setup'],
-#      before    => Service['mysqld_stopped']
-#    }
-#    mysql::replicator { 'localhost':
-#      user      => $rep_user,
-#      password  => $rep_pass,
-#      #require   => Exec['mysqld-restart'],
-#      require   => Service['mysqld-setup'],
-#      before    => Service['mysqld_stopped']
-#    }
-#
-#    Service[$service_name] {
-#      ensure => 'stopped',
-#    }
-#    #service { 'mysqld_stopped':
-#    #  name     => $service_name,
-#    #  ensure   => 'stopped',
-#    #  enable   => false,
-#    #  require  => Class['mysql::config'],
-#      #require  => Package['mysql-server'],
-#      #provider => $service_provider,
-#    #}
-#    Service['mysqld-setup'] -> Service['mysqld']
-#
-    #if !defined(Class['openstack::corosync']) {
-    #  class {'openstack::corosync' :
-    #    bind_address => $galera_node_address,
-    #  }
-    #}
-    #Service['mysqld_setup'] -> Class['openstack::corosync']
  
     Class['openstack::corosync'] -> Cs_resource['p_mysql']
 
-#    cs_shadow { 'mysqlvip' : cib => 'mysqlvip' } ->
-#    cs_resource { 'mysql_vip':
-#      primitive_class => 'ocf',
-#      primitive_type  => 'IPaddr2',
-#      provided_by     => 'heartbeat',
-#      parameters      => { 'ip' => $galera_node_address, 'cidr_netmask' => '24',
-#                           'no-quorum-policy' => 'ignore' },
-#      operations      => { 'monitor' => { 'interval' => '15s' } },
-#    }->
-#
 #    #cs_rsc_defaults { "resource-stickiness":
 #    #  ensure => present,
 #    #  value  => '110',
@@ -199,7 +141,7 @@ class mysql::server (
       name     => "p_${service_name}",
       ensure   => 'running',
       enable   => true,
-      require  => Package['mysql-server'],
+      require  => [Package['mysql-server'], Cs_commit['mysql']],
       provider => 'pacemaker',
     }
 
@@ -208,7 +150,7 @@ class mysql::server (
       primitives => ['internal-vip','master_p_mysql:Master'],
       score      => 'INFINITY',
       require    => [Cs_resource['p_mysql'], Cs_commit['mysql']],
-    }
+    } 
 
   }
   elsif ($custom_setup_class == 'galera')  {
@@ -228,3 +170,4 @@ class mysql::server (
     require($custom_setup_class)
   }
 }
+
