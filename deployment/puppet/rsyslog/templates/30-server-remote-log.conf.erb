@@ -3,7 +3,7 @@
 # remote anaconda logs, uses predefined Fuel templates
 $template RemoteLog, "%$NOW%T%TIMESTAMP:8:$% %syslogseverity-text%: %msg%\n"
 # Would match 'kernel:'  -> 'kernel'    ;  'rsyslog[12345]:'  -> 'rsyslog' ; '<180>(nova.api.wsgi):'  ->  'nova.api.wsgi'
-$template RemoteLogFile, "/var/log/remote/%FROMHOST%/%syslogtag:R,ERE,1,DFLT:([A-Za-z-].*(\.)?.*[A-Za-z])--end%.log"
+$template RemoteLogFile, "/var/log/remote/%FROMHOST%/%syslogtag:R,ERE,1,DFLT:([A-Za-z][A-Za-z0-9_.-]*)--end%.log"
 
 :FROMHOST, regex, "^[1-9]" ?RemoteLogFile;RemoteLog
 # Drop message here and do not forward
