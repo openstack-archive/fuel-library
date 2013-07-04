@@ -14,7 +14,7 @@ class qpid::server(
   $qpid_cluster = false,
   $qpid_cluster_name = 'qpid_cluster',
   $qpid_username = 'nova',
-  $qpid_password = 'nova'
+  $qpid_password = 'nova',
   $qpid_nodes = [$::ipaddress],
 ) {
 
