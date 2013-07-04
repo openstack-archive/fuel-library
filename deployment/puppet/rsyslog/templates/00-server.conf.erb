@@ -52,16 +52,24 @@ $SystemLogRateLimitInterval 0   # disable rate limits for rsyslog
 $ActionFileDefaultTemplate RSYSLOG_TraditionalFileFormat
 
 # Templates
-$Template dynAuthLog,"<%= scope.lookupvar('rsyslog::server::server_dir') -%>%source:R,ERE,1,DFLT:([A-Za-z-]*)--end%/auth.log"
-$Template dynSyslog,"<%= scope.lookupvar('rsyslog::server::server_dir') -%>%source:R,ERE,1,DFLT:([A-Za-z-]*)--end%/syslog"
-$Template dynCronLog,"<%= scope.lookupvar('rsyslog::server::server_dir') -%>%source:R,ERE,1,DFLT:([A-Za-z-]*)--end%/cron.log"
-$Template dynDaemonLog,"<%= scope.lookupvar('rsyslog::server::server_dir') -%>%source:R,ERE,1,DFLT:([A-Za-z-]*)--end%/daemon.log"
-$Template dynKernLog,"<%= scope.lookupvar('rsyslog::server::server_dir') -%>%source:R,ERE,1,DFLT:([A-Za-z-]*)--end%/kern.log"
-$Template dynUserLog,"<%= scope.lookupvar('rsyslog::server::server_dir') -%>%source:R,ERE,1,DFLT:([A-Za-z-]*)--end%/user.log"
-$Template dynMailLog,"<%= scope.lookupvar('rsyslog::server::server_dir') -%>%source:R,ERE,1,DFLT:([A-Za-z-]*)--end%/mail.log"
-$Template dynDebug,"<%= scope.lookupvar('rsyslog::server::server_dir') -%>%source:R,ERE,1,DFLT:([A-Za-z-]*)--end%/debug"
-$Template dynMessages,"<%= scope.lookupvar('rsyslog::server::server_dir') -%>%source:R,ERE,1,DFLT:([A-Za-z-]*)--end%/messages"
-$ActionFileDefaultTemplate RSYSLOG_TraditionalFileFormat
+#$Template dynAuthLog,"<%= scope.lookupvar('rsyslog::server::server_dir') -%>%source:R,ERE,1,DFLT:([A-Za-z-]*)--end%/auth.log"
+#$Template dynSyslog,"<%= scope.lookupvar('rsyslog::server::server_dir') -%>%source:R,ERE,1,DFLT:([A-Za-z-]*)--end%/syslog"
+#$Template dynCronLog,"<%= scope.lookupvar('rsyslog::server::server_dir') -%>%source:R,ERE,1,DFLT:([A-Za-z-]*)--end%/cron.log"
+#$Template dynDaemonLog,"<%= scope.lookupvar('rsyslog::server::server_dir') -%>%source:R,ERE,1,DFLT:([A-Za-z-]*)--end%/daemon.log"
+#$Template dynKernLog,"<%= scope.lookupvar('rsyslog::server::server_dir') -%>%source:R,ERE,1,DFLT:([A-Za-z-]*)--end%/kern.log"
+#$Template dynUserLog,"<%= scope.lookupvar('rsyslog::server::server_dir') -%>%source:R,ERE,1,DFLT:([A-Za-z-]*)--end%/user.log"
+#$Template dynMailLog,"<%= scope.lookupvar('rsyslog::server::server_dir') -%>%source:R,ERE,1,DFLT:([A-Za-z-]*)--end%/mail.log"
+#$Template dynDebug,"<%= scope.lookupvar('rsyslog::server::server_dir') -%>%source:R,ERE,1,DFLT:([A-Za-z-]*)--end%/debug"
+#$Template dynMessages,"<%= scope.lookupvar('rsyslog::server::server_dir') -%>%source:R,ERE,1,DFLT:([A-Za-z-]*)--end%/messages"
+$Template dynAuthLog,"<%= scope.lookupvar('rsyslog::server::server_dir') -%>/auth.log"
+$Template dynSyslog,"<%= scope.lookupvar('rsyslog::server::server_dir') -%>/syslog"
+$Template dynCronLog,"<%= scope.lookupvar('rsyslog::server::server_dir') -%>/cron.log"
+$Template dynDaemonLog,"<%= scope.lookupvar('rsyslog::server::server_dir') -%>/daemon.log"
+$Template dynKernLog,"<%= scope.lookupvar('rsyslog::server::server_dir') -%>/kern.log"
+$Template dynUserLog,"<%= scope.lookupvar('rsyslog::server::server_dir') -%>/user.log"
+$Template dynMailLog,"<%= scope.lookupvar('rsyslog::server::server_dir') -%>/mail.log"
+$Template dynDebug,"<%= scope.lookupvar('rsyslog::server::server_dir') -%>/debug"
+$Template dynMessages,"<%= scope.lookupvar('rsyslog::server::server_dir') -%>/messages"
 
 # Rules
 # Skip duplicates - all common debug, info, notice, warn go to 
@@ -79,8 +87,8 @@ user.*              -?dynUserLog
 # Some "catch-all" log files.
 #
 *.=debug;\
-       auth,authpriv.none;\
-       news.none;mail.none   -?dynDebug
+    auth,authpriv.none;\
+    news.none;mail.none      -?dynDebug
 *.=info;*.=notice;*.=warn;\
     auth.none,authpriv.none;\
     cron.none,daemon.none;\

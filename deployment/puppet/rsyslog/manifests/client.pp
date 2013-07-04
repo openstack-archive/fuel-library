@@ -49,12 +49,12 @@ class rsyslog::client (
     content => template("${module_name}/99-remote.conf.erb"),
 
   }
-  
-  file { $rsyslog::params::rsyslog_d:                                                                                                                         
-    purge   => true,                                                                                                                                        
-    recurse => true,                                                                                                                                        
-    force   => true,                                                                                                                                        
-    ensure  => directory,                                                                                                                                   
+
+ file { $rsyslog::params::rsyslog_d:
+    purge   => true,
+    recurse => true,
+    force   => true,
+    ensure  => directory,
   }
 
   file { $rsyslog::params::client_conf:
