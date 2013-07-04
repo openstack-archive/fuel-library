@@ -89,16 +89,33 @@ class quantum (
   }
 
   if $use_syslog {
-    quantum_config {'DEFAULT/log_config': value => "/etc/quantum/logging.conf";}
     file { "quantum-logging.conf":
-      content => template('quantum/logging.conf.erb'),
-      path => "/etc/quantum/logging.conf",
-      owner => "quantum",
-      group => "quantum",
+      content => template('quantum/logging.conf-syslog.erb'),
+      path  => "/etc/quantum/logging.conf",
+      owner => "root",
+      group => "root",
+      mode  => 644,
     }
   } else {
-    quantum_config {'DEFAULT/log_config': ensure=> absent;}
+    file { "quantum-logging.conf":
+      content => template('quantum/logging.conf.erb'),
+      path  => "/etc/quantum/logging.conf",
+      owner => "root",
+      group => "root",
+      mode  => 644,
+    }
   }
+  quantum_config {'DEFAULT/log_config': value => "/etc/quantum/logging.conf";}
 
   # SELINUX=permissive
+
+  Anchor['quantum-init'] -> 
+    Package['quantum'] -> 
+      Quantum_config<||> -> 
+        Quantum_api_config<||> ->
+          File['quantum-logging.conf'] ->
+            Anchor['quantum-init-done']
+
+  anchor {'quantum-init-done':}
+  Anchor['quantum-init'] -> Anchor['quantum-init-done'] 
 }
