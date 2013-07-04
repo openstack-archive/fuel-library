@@ -26,6 +26,18 @@ $internal_virtual_ip = '10.0.0.253'
 # interface resides
 $public_virtual_ip   = '10.0.204.253'
 
+$vips = { # Do not convert to ARRAY, It's can't work in 2.7
+  public_old => {
+    nic    => $public_br,
+    ip     => $public_virtual_ip,
+  },
+  management_old => {
+    nic    => $internal_br,
+    ip     => $internal_virtual_ip,
+  },
+}
+
+
 $nodes_harr = [
   {
     'name' => 'master',
@@ -114,7 +126,7 @@ $controller_hostnames = keys($controller_internal_addresses)
 $ha_provider = 'pacemaker'
 $use_unicast_corosync = true
 
-
+$nagios = true
 # Set nagios master fqdn
 $nagios_master        = 'nagios-server.localdomain'
 ## proj_name  name of environment nagios configuration
@@ -223,11 +235,16 @@ if $quantum {
   $internal_int = $internal_interface
 }
 
-#Network configuration
-stage {'netconfig':
-      before  => Stage['main'],
-}
+#Stages configuration
+stage {'first': } ->
+stage {'openstack-custom-repo': } ->
+stage {'netconfig': } ->
+stage {'corosync_setup': } ->
+stage {'cluster_head': } ->
+stage {'openstack-firewall': } -> Stage['main']
 
+
+#Network configuration
 class {'l23network': use_ovs=>$quantum, stage=> 'netconfig'}
 class node_netconfig (
   $mgmt_ipaddr,
@@ -297,7 +314,7 @@ $cinder_nodes          = ['controller']
 #Otherwise it will install api and scheduler services
 $manage_volumes          = true
 
-# Setup network interface, which Cinder uses to export iSCSI targets.
+# Setup network address, which Cinder uses to export iSCSI targets.
 $cinder_iscsi_bind_addr = $internal_address
 
 # Below you can add physical volumes to cinder. Please replace values with the actual names of devices.
@@ -440,6 +457,8 @@ $cinder_rate_limits = {
   'DELETE' => 1000 
 }
 
+
+Exec { logoutput => true }
 #Specify desired NTP servers here.
 #If you leave it undef pool.ntp.org
 #will be used
@@ -465,8 +484,6 @@ Exec<| title == 'clocksync' |>->Exec<| title == 'initial-db-sync' |>
 Exec<| title == 'clocksync' |>->Exec<| title == 'post-nova_config' |>
 
 
-Exec { logoutput => true }
-
 ### END OF PUBLIC CONFIGURATION PART ###
 # Normally, you do not need to change anything after this string 
 
@@ -474,17 +491,16 @@ Exec { logoutput => true }
 tag("${::deployment_id}::${::environment}")
 
 
-stage { 'openstack-custom-repo': before => Stage['netconfig'] }
 class { 'openstack::mirantis_repos':
   stage => 'openstack-custom-repo',
   type=>$mirror_type,
   enable_test_repo=>$enable_test_repo,
   repo_proxy=>$repo_proxy,
 }
- stage {'openstack-firewall': before => Stage['main'], require => Stage['netconfig'] } 
- class { '::openstack::firewall':
-      stage => 'openstack-firewall'
- }
+
+class { '::openstack::firewall':
+  stage => 'openstack-firewall'
+}
 
  if !defined(Class['selinux']) and ($::osfamily == 'RedHat') {
   class { 'selinux':
@@ -506,6 +522,16 @@ sysctl::value { 'net.ipv4.conf.all.rp_filter': value => '0' }
 #   'exist': assumes that the keys (domain name based certificate) are provisioned in advance
 #  'custom': require fileserver static mount point [ssl_certs] and hostname based certificate existence
 $horizon_use_ssl = false
+
+
+# Class for calling corosync::virtual_ip in the specifis stage
+$vip_keys = keys($vips)
+class virtual_ips () {
+  cluster::virtual_ips { $vip_keys:
+    vips => $vips,
+  }
+}
+
 
 
 class compact_controller (
@@ -581,7 +607,7 @@ class compact_controller (
 node /fuel-controller-[\d+]/ {
   include stdlib
   class { 'operatingsystem::checksupported':
-      stage => 'setup'
+      stage => 'first'
   }
 
   class {'::node_netconfig':
@@ -591,19 +617,33 @@ node /fuel-controller-[\d+]/ {
       public_netmask => $::public_netmask,
       stage          => 'netconfig',
   }
-
-  class {'nagios':
-    proj_name       => $proj_name,
-    services        => [
-      'host-alive','nova-novncproxy','keystone', 'nova-scheduler',
-      'nova-consoleauth', 'nova-cert', 'haproxy', 'nova-api', 'glance-api',
-      'glance-registry','horizon', 'rabbitmq', 'mysql', 'swift-proxy',
-      'swift-account', 'swift-container', 'swift-object',
-    ],
-    whitelist       => ['127.0.0.1', $nagios_master],
-    hostgroup       => 'controller',
+  if $nagios {
+    class {'nagios':
+      proj_name       => $proj_name,
+      services        => [
+        'host-alive','nova-novncproxy','keystone', 'nova-scheduler',
+        'nova-consoleauth', 'nova-cert', 'haproxy', 'nova-api', 'glance-api',
+        'glance-registry','horizon', 'rabbitmq', 'mysql', 'swift-proxy',
+        'swift-account', 'swift-container', 'swift-object',
+      ],
+      whitelist       => ['127.0.0.1', $nagios_master],
+      hostgroup       => 'controller',
+    }
   }
-  
+  ###
+  # cluster init
+  class { '::cluster': stage => 'corosync_setup' } ->
+  class { 'virtual_ips':
+    stage => 'corosync_setup'
+  }
+  include ::haproxy::params
+  class { 'cluster::haproxy':
+    global_options   => merge($::haproxy::params::global_options, {'log' => "/dev/log local0"}),
+    defaults_options => merge($::haproxy::params::defaults_options, {'mode' => 'http'}),
+    stage => 'cluster_head',
+  }
+  #
+  ###
   class { compact_controller: }
   $swift_zone = $node[0]['swift_zone']
 
@@ -660,16 +700,18 @@ node /fuel-compute-[\d+]/ {
   }
   include stdlib
   class { 'operatingsystem::checksupported':
-      stage => 'setup'
+      stage => 'first'
   }
 
-  class {'nagios':
-    proj_name       => $proj_name,
-    services        => [
-      'host-alive', 'nova-compute','nova-network','libvirt'
-    ],
-    whitelist       => ['127.0.0.1', $nagios_master],
-    hostgroup       => 'compute',
+  if $nagios {
+    class {'nagios':
+      proj_name       => $proj_name,
+      services        => [
+        'host-alive', 'nova-compute','nova-network','libvirt'
+      ],
+      whitelist       => ['127.0.0.1', $nagios_master],
+      hostgroup       => 'compute',
+    }
   }
   
   class { 'openstack::compute':
@@ -716,7 +758,7 @@ node /fuel-compute-[\d+]/ {
 node /fuel-quantum/ {
   include stdlib
   class { 'operatingsystem::checksupported':
-      stage => 'setup'
+      stage => 'first'
   }
 
   class {'::node_netconfig':
