@@ -313,7 +313,7 @@ class quantum::agents::l3 (
       hasstatus  => true,
       hasrestart => false,
       provider   => "pacemaker",
-      require    => [Package[$l3_agent_package], Class['quantum'], Service['quantum-plugin-ovs-service']],
+      require    => [Package[$l3_agent_package], Class['quantum'], Service['quantum-ovs-agent']],
     }
   } else {
     service { 'quantum-l3':
@@ -323,7 +323,7 @@ class quantum::agents::l3 (
       hasstatus  => true,
       hasrestart => true,
       provider   => $::quantum::params::service_provider,
-      require    => [Package[$l3_agent_package], Class['quantum'], Service['quantum-plugin-ovs-service']],
+      require    => [Package[$l3_agent_package], Class['quantum'], Service['quantum-ovs-agent']],
     }
   }
 }
