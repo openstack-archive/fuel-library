@@ -503,6 +503,7 @@ class simple_controller (
       db_host               => $controller_internal_address,
       service_endpoint      => $controller_internal_address,
       auth_host             => $controller_internal_address,
+      nova_api_vip          => $controller_internal_address,
       internal_address      => $internal_address,
       public_interface      => $public_int,
       private_interface     => $private_interface,

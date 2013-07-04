@@ -12,6 +12,7 @@ class openstack::quantum_router (
   $create_networks          = true,
   $segment_range            = '1:4094',
   $service_endpoint         = '127.0.0.1',
+  $nova_api_vip             = '127.0.0.1',
   $rabbit_user              = 'nova',
   $rabbit_nodes             = ['127.0.0.1'],
   $rabbit_ha_virtual_ip     = false,
@@ -94,6 +95,7 @@ class openstack::quantum_router (
         auth_password       => $quantum_user_password,
         use_namespaces      => False,
         metadata_ip         => $internal_address,
+        nova_api_vip        => $nova_api_vip,
         service_provider    => $service_provider
       }
     }

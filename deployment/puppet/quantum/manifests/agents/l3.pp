@@ -23,6 +23,7 @@ class quantum::agents::l3 (
   $gateway_external_net_id      = undef,
   $handle_internal_only_routers = 'True',
   $metadata_ip      = '169.254.169.254',
+  $nova_api_vip     = '127.0.0.1',
   $metadata_port    = 8775,
   $polling_interval = 3,
   $service_provider = 'generic'
@@ -71,8 +72,8 @@ class quantum::agents::l3 (
     'DEFAULT/admin_password': value => $auth_password;
     'DEFAULT/admin_tenant_name': value => $auth_tenant;
     'DEFAULT/external_network_bridge': value => $external_network_bridge;
-    # todo: check for compatible with quantum-metadata-agent
-    'DEFAULT/metadata_ip': value => $metadata_ip;
+    ## todo: check for compatible with quantum-metadata-agent
+    #'DEFAULT/metadata_ip': value => $metadata_ip;
    #'DEFAULT/router_id':               value => $router_id;
    #'DEFAULT/gateway_external_net_id': value => $gateway_external_net_id;
   }
@@ -315,14 +316,15 @@ class quantum::agents::l3 (
     # Quantum metadata agent starts only under pacemaker
     # and co-located with l3-agent
     class {'quantum::agents::metadata':
-      debug       => $debug,
-      auth_tenant => $auth_tenant,
-      auth_user   => $auth_user,
-      auth_url    => $auth_url,
-      auth_region => $auth_region,
-      #$metadata_ip                  = '127.0.0.1',
-      #$auth_password
-      #$shared_secret
+      debug         => $debug,
+      auth_tenant   => $auth_tenant,
+      auth_user     => $auth_user,
+      auth_url      => $auth_url,
+      auth_region   => $auth_region,
+      metadata_ip   => $nova_api_vip,
+      metadata_port => $metadata_port,
+      auth_password => $auth_password,
+      shared_secret => $::quantum_metadata_proxy_shared_secret
     }
   } else {
     service { 'quantum-l3':
@@ -335,8 +337,9 @@ class quantum::agents::l3 (
     }
   }
 
+  anchor {'quantum-l3-cellar': }
+  Anchor['quantum-l3-cellar'] -> Anchor['quantum-l3-done']
   anchor {'quantum-l3-done': }
   Anchor['quantum-l3'] -> Anchor['quantum-l3-done']
-
 
 }
