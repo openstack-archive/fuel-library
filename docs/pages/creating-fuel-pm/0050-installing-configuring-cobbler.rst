@@ -63,7 +63,7 @@ will need to make changes::
     # [server] IP address that will be used as address of cobbler server.
     # It is needed to download kickstart files, call cobbler API and
     # so on. Required.
-    $server = '10.20.0.100'
+    $server = '10.0.0.100'
 
 
 
@@ -83,7 +83,7 @@ so you will need to specify which interface will handle that. ::
 
 
     $dhcp_start_address = '10.20.0.110'
-    $dhcp_end_address = '10.20.0.126'
+    $dhcp_end_address = '10.0.0.126'
 
 
 
@@ -93,7 +93,7 @@ earlier. The important thing is to make sure there are no conflicts with the sta
 
 
     $dhcp_netmask = '255.255.255.0'
-    $dhcp_gateway = '10.20.0.100'
+    $dhcp_gateway = '10.0.0.100'
     $domain_name = 'localdomain'
 
 
@@ -102,8 +102,8 @@ Change the ``$domain_name`` to your own domain name. ::
 
 
 
-    $name_server = '10.20.0.100'
-    $next_server = '10.20.0.100'
+    $name_server = '10.0.0.100'
+    $next_server = '10.0.0.100'
     $cobbler_user = 'cobbler'
     $cobbler_password = 'cobbler'
     $pxetimeout = '0'
@@ -219,10 +219,10 @@ Cobbler dashboard from:
 
 
 
-http://10.20.0.100/cobbler_web
+http://10.0.0.100/cobbler_web
 
 
 
 At this point you should have a fully working instance of Cobbler,
-fully configured and capable of installing the chosen OS (CentOS 6.3, RHEL 6.3, or Ubuntu 12.04) on
+fully configured and capable of installing the chosen OS (CentOS 6.4 or Ubuntu 12.04) on
 the target OpenStack nodes.
