@@ -18,6 +18,7 @@
 # $keystone_default_role default keystone role for new users
 # $django_debug         True/False. enable/disables debugging. defaults to false
 # $api_result_limit     max number of Swift containers/objects to display on a single page
+# $use_syslog           Redirect all apache logging to syslog. Required for FUEL-WEB.
 #
 class horizon(
   $secret_key,
@@ -38,6 +39,7 @@ class horizon(
   $https_port            = 443,
   $use_ssl               = false,
   $log_level             = 'DEBUG',
+  $use_syslog            = false,
 ) {
 
   include horizon::params
@@ -173,7 +175,19 @@ class horizon(
           "rm directive[. = 'Listen']"
         ],
         before  => Service['httpd'],
-      } 
+      }
+      
+      if $use_syslog {
+        file {'/etc/httpd/conf.d/openstack-dashboard.conf':
+	  ensure  => present,
+	} ->
+	file_line { "enable_syslog": 
+	  path => "/etc/httpd/conf.d/openstack-dashboard.conf",
+	  line => 'ErrorLog syslog:local1',
+	  before  => Service['httpd'],
+	  require => [Package["$::horizon::params::http_service", "$::horizon::params::http_modwsgi"]],
+	}
+      }
     }
     'Debian': {
       A2mod {

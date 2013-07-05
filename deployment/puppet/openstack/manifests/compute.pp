@@ -13,6 +13,9 @@
 #   Defaults to false.
 # [fixed_range] Range of ipv4 network for vms.
 # [network_manager] Nova network manager to use.
+# [auto_assign_floating_ip] Rather configured to automatically allocate and
+#   assign a floating IP address to virtual instances when they are launched.
+#   Defaults to false.
 # [multi_host] Rather node should support multi-host networking mode for HA.
 #   Optional. Defaults to false.
 # [network_config] Hash that can be used to pass implementation specifc
@@ -72,6 +75,7 @@ class openstack::compute (
   # General
   $enabled                       = true,
   $multi_host                    = false,
+  $auto_assign_floating_ip       = false,
   $network_config                = {},
   $public_interface,
   $private_interface,
@@ -297,6 +301,11 @@ class openstack::compute (
       }
 
       $enable_network_service = true
+
+      if $auto_assign_floating_ip {
+         nova_config { 'DEFAULT/auto_assign_floating_ip': value => 'True' }
+      }
+
 
     } else {
       $enable_network_service = false
