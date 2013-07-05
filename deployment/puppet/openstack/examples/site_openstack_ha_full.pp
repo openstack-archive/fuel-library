@@ -468,8 +468,13 @@ $enable_test_repo = false
 $repo_proxy = undef
 
 # This parameter specifies the verbosity level of log messages
-# in openstack components config. Currently, it disables or enables debugging.
+# in openstack components config. 
+# Debug would have set DEBUG level and ignore verbose settings, if any.
+# Verbose would have set INFO level messages
+# In case of non debug and non verbose - WARNING, default level would have set. 
+# Note: if syslog on, this default level may be configured (for syslog) with syslog_log_level option.
 $verbose = true
+$debug = false
 
 #Rate Limits for cinder and Nova
 #Cinder and Nova can rate-limit your requests to API services.
@@ -619,6 +624,7 @@ class ha_controller (
     network_size            => $network_size,
     network_config          => { 'vlan_start' => $vlan_start },
     verbose                 => $verbose,
+    debug                   => $debug,
     auto_assign_floating_ip => $auto_assign_floating_ip,
     mysql_root_password     => $mysql_root_password,
     admin_email             => $admin_email,
@@ -728,6 +734,7 @@ node /fuel-compute-[\d+]/ {
     glance_api_servers     => "${internal_virtual_ip}:9292",
     vncproxy_host          => $public_virtual_ip,
     verbose                => $verbose,
+    debug                  => $debug,
     vnc_enabled            => true,
     nova_user_password     => $nova_user_password,
     cache_server_ip        => $controller_hostnames,
@@ -871,6 +878,7 @@ node /fuel-quantum/ {
       fixed_range           => $fixed_range,
       create_networks       => $create_networks,
       verbose               => $verbose,
+      debug                 => $debug,
       rabbit_password       => $rabbit_password,
       rabbit_user           => $rabbit_user,
       rabbit_nodes          => $controller_hostnames,

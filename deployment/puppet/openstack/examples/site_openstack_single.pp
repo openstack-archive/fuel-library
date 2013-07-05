@@ -339,8 +339,13 @@ $repo_proxy = undef
 $use_upstream_mysql = true
 
 # This parameter specifies the verbosity level of log messages
-# in openstack components config. Currently, it disables or enables debugging.
+# in openstack components config. 
+# Debug would have set DEBUG level and ignore verbose settings, if any.
+# Verbose would have set INFO level messages
+# In case of non debug and non verbose - WARNING, default level would have set. 
+# Note: if syslog on, this default level may be configured (for syslog) with syslog_log_level option.
 $verbose = true
+$debug = false
 
 #Rate Limits for cinder and Nova
 #Cinder and Nova can rate-limit your requests to API services.
@@ -468,6 +473,7 @@ node default {
     network_size            => $network_size,
     network_config          => { 'vlan_start' => $vlan_start },
     verbose                 => $verbose,
+    debug                   => $debug,
     auto_assign_floating_ip => $auto_assign_floating_ip,
     mysql_root_password     => $mysql_root_password,
     admin_email             => $admin_email,
