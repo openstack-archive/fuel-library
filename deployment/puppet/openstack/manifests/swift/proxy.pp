@@ -1,3 +1,4 @@
+#
 class openstack::swift::proxy (
   $swift_user_password      = 'swift_pass',
   $swift_hash_suffix        = 'swift_secret',

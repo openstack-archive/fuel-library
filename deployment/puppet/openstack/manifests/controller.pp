@@ -167,9 +167,12 @@ class openstack::controller (
   $manage_volumes          = false,
   $nv_physical_volume      = undef,
   $use_syslog              = false,
-  # TODO syslog facilities for controller services from site.pp
-  # TODO syslog common level for controller services from site.pp
   $syslog_log_level        = 'INFO',
+  $syslog_log_facility_glance   = 'LOCAL2',
+  $syslog_log_facility_cinder   = 'LOCAL3',
+  $syslog_log_facility_quantum  = 'LOCAL4',
+  $syslog_log_facility_nova     = 'LOCAL6',
+  $syslog_log_facility_keystone = 'LOCAL7',
   $horizon_use_ssl         = false,
   $nova_rate_limits        = undef,
   $cinder_rate_limits      = undef,
@@ -255,7 +258,7 @@ class openstack::controller (
     enabled               => $enabled,
     package_ensure        => $::openstack_keystone_version,
     use_syslog            => $use_syslog,
-    syslog_log_facility   => 'LOCAL7',
+    syslog_log_facility   => $syslog_log_facility_keystone,
     syslog_log_level      => $syslog_log_level,
   }
 
@@ -276,7 +279,7 @@ class openstack::controller (
     glance_backend            => $glance_backend,
     registry_host             => $service_endpoint,
     use_syslog                => $use_syslog,
-    syslog_log_facility       => 'LOCAL2',
+    syslog_log_facility       => $syslog_log_facility_glance,
     syslog_log_level          => $syslog_log_level,
   }
 
@@ -349,7 +352,8 @@ class openstack::controller (
     api_bind_address        => $api_bind_address,
     ensure_package          => $::openstack_version['nova'],
     use_syslog              => $use_syslog,
-    syslog_log_facility     => 'LOCAL6',
+    syslog_log_facility     => $syslog_log_facility_nova,
+    syslog_log_facility_quantum => $syslog_log_facility_quantum,
     syslog_log_level        => $syslog_log_level,
     nova_rate_limits        => $nova_rate_limits,
     cinder                  => $cinder
@@ -373,7 +377,7 @@ class openstack::controller (
       iscsi_bind_host      => $cinder_iscsi_bind_addr,
       cinder_user_password => $cinder_user_password,
       use_syslog           => $use_syslog,
-      syslog_log_facility  => 'LOCAL3',
+      syslog_log_facility  => $syslog_log_facility_cinder,
       syslog_log_level     => $syslog_log_level,
       cinder_rate_limits   => $cinder_rate_limits,
       rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,

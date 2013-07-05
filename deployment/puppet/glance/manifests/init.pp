@@ -4,8 +4,6 @@
 
 class glance(
   $package_ensure = 'present',
-# TODO syslog facilities from site.pp
-# TODO syslog common level from site.pp
   $syslog_log_facility = 'LOCAL2',
   $syslog_log_level    = 'INFO',
 ) {

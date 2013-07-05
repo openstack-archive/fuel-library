@@ -116,7 +116,12 @@ class openstack::controller_ha (
    $rabbit_nodes, $memcached_servers, $export_resources, $glance_backend='file', $swift_proxies=undef,
    $quantum = false, $quantum_user_password='', $quantum_db_password='', $quantum_db_user = 'quantum',
    $quantum_db_dbname  = 'quantum', $cinder = false, $cinder_iscsi_bind_addr = false, $tenant_network_type = 'gre', $segment_range = '1:4094',
-   $nv_physical_volume = undef, $manage_volumes = false,$galera_nodes, $use_syslog = false,
+   $nv_physical_volume = undef, $manage_volumes = false,$galera_nodes, $use_syslog = false, $syslog_log_level = 'INFO', 
+   $syslog_log_facility_glance   = 'LOCAL2'
+   $syslog_log_facility_cinder   = 'LOCAL3',
+   $syslog_log_facility_quantum  = 'LOCAL4',
+   $syslog_log_facility_nova     = 'LOCAL6',
+   $syslog_log_facility_keystone = 'LOCAL7',
    $cinder_rate_limits = undef, $nova_rate_limits = undef,
    $cinder_volume_group     = 'cinder-volumes',
    $cinder_user_password    = 'cinder_user_pass',
@@ -312,6 +317,11 @@ class openstack::controller_ha (
       # turn on SWIFT_ENABLED option for Horizon dashboard
       swift                   => $glance_backend ? { 'swift' => true, default => false },
       use_syslog              => $use_syslog,
+      syslog_log_level        => $syslog_log_level,
+      syslog_log_facility_glance   => $syslog_log_facility_glance,
+      syslog_log_facility_cinder   => $syslog_log_facility_cinder,
+      syslog_log_facility_nova     => $syslog_log_facility_nova,
+      syslog_log_facility_keystone => $syslog_log_facility_keystone,
       cinder_rate_limits      => $cinder_rate_limits,
       nova_rate_limits        => $nova_rate_limits,
       horizon_use_ssl         => $horizon_use_ssl,
@@ -347,6 +357,8 @@ class openstack::controller_ha (
         external_ipinfo       => $external_ipinfo,
         api_bind_address      => $internal_address,
         use_syslog            => $use_syslog,
+        syslog_log_level      => $syslog_log_level,
+        syslog_log_facility   => $syslog_log_facility_quantum,
         ha_mode               => $ha_mode,
       }
     }

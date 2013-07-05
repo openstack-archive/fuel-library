@@ -365,6 +365,15 @@ $swift_loopback = false
 ### Syslog ###
 # Enable error messages reporting to rsyslog. Rsyslog must be installed in this case.
 $use_syslog = false
+# Default log level would have been used, if non verbose and non debug
+$syslog_log_level             = 'ERROR'
+# Syslog facilities for main openstack services, choose any, may overlap if needed
+$syslog_log_facility_glance   = 'LOCAL2'
+$syslog_log_facility_cinder   = 'LOCAL3'
+$syslog_log_facility_quantum  = 'LOCAL4'
+$syslog_log_facility_nova     = 'LOCAL6'
+$syslog_log_facility_keystone = 'LOCAL7'
+
 if $use_syslog {
   class { "::rsyslog::client":
     log_local => true,
@@ -559,6 +568,12 @@ class compact_controller (
     galera_nodes            => $controller_hostnames,
     nv_physical_volume      => $nv_physical_volume,
     use_syslog              => $use_syslog,
+    syslog_log_level        => $syslog_log_level,
+    syslog_log_facility_glance   => syslog_log_facility_glance,
+    syslog_log_facility_cinder   => syslog_log_facility_cinder,
+    syslog_log_facility_quantum  => syslog_log_facility_quantum,
+    syslog_log_facility_nova     => syslog_log_facility_nova,
+    syslog_log_facility_keystone => syslog_log_facility_keystone,
     nova_rate_limits        => $nova_rate_limits,
     cinder_rate_limits      => $cinder_rate_limits,
     horizon_use_ssl         => $horizon_use_ssl,
@@ -666,6 +681,9 @@ node /fuel-compute-[\d+]/ {
     ssh_private_key        => 'puppet:///ssh_keys/openstack',
     ssh_public_key         => 'puppet:///ssh_keys/openstack.pub',
     use_syslog             => $use_syslog,
+    syslog_log_level       => $syslog_log_level,
+    syslog_log_facility_quantum => $syslog_log_facility_quantum,
+    syslog_log_facility_cinder  => $syslog_log_facility_cinder,
     nova_rate_limits       => $nova_rate_limits,
     cinder_rate_limits     => $cinder_rate_limits
   }
@@ -713,6 +731,8 @@ node /fuel-quantum/ {
       external_ipinfo       => $external_ipinfo,
       api_bind_address      => $internal_address,
       use_syslog            => $use_syslog,
+      syslog_log_level => $syslog_log_level,
+      syslog_log_facility_quantum  => syslog_log_facility_quantum,
     }
     class { 'openstack::auth_file':
       admin_password       => $admin_password,

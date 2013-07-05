@@ -43,8 +43,6 @@ class nova(
   $nova_cluster_id='localcluster',
   $sql_connection = false,
   $use_syslog = false,
-# TODO syslog facilities from site.pp
-# TODO syslog common level from site.pp
   $syslog_log_facility = "LOCAL6",
   $syslog_log_level    = 'INFO',
   $image_service = 'nova.image.glance.GlanceImageService',

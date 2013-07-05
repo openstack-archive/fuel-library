@@ -81,9 +81,8 @@ class openstack::nova::controller (
   $enabled_apis              = 'ec2,osapi_compute',
   $api_bind_address          = '0.0.0.0',
   $use_syslog                = false,
-# TODO syslog facilities for nova services from site.pp
-# TODO syslog common level for nova services from site.pp
   $syslog_log_facility       = 'LOCAL6',
+  $syslog_log_facility_quantum = 'LOCAL4',
   $syslog_log_level          = 'INFO',
   $nova_rate_limits          = undef,
   $cinder                    = true
@@ -246,8 +245,8 @@ class openstack::nova::controller (
         verbose              => $verbose,
         debug                => $verbose,
         use_syslog           => $use_syslog,
-# TODO syslog facilities from site.pp
-# TODO syslog common level from site.pp
+        syslog_log_facility  => $syslog_log_facility_quantum,
+        syslog_log_level     => $syslog_log_level,
       }
    }
      class { 'nova::network::quantum':

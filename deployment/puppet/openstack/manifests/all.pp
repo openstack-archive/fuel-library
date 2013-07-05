@@ -144,9 +144,12 @@ class openstack::all (
   $service_endpoint        = '127.0.0.1',
   $glance_backend          = 'file',
   $use_syslog              = false,
-# TODO syslog facilities for services from site.pp
-# TODO syslog common level for services from site.pp
   $syslog_log_level        = 'INFO',
+  $syslog_log_facility_glance   = 'LOCAL2',
+  $syslog_log_facility_cinder   = 'LOCAL3',
+  $syslog_log_facility_quantum  = 'LOCAL4'
+  $syslog_log_facility_nova     = 'LOCAL6',
+  $syslog_log_facility_keystone = 'LOCAL7',
   $nova_rate_limits        = undef,
 ) {
 
@@ -216,7 +219,7 @@ class openstack::all (
     quantum                   => $quantum,
     quantum_user_password     => $quantum_user_password,
     use_syslog                => $use_syslog,
-    syslog_log_facility       => 'LOCAL7',
+    syslog_log_facility       => $syslog_log_facility_keystone,
     syslog_log_level          => $syslog_log_level,
   }
 
@@ -236,7 +239,7 @@ class openstack::all (
     glance_backend            => $glance_backend,
     registry_host             => $service_endpoint,
     use_syslog                => $use_syslog,
-    syslog_log_facility       => 'LOCAL2',
+    syslog_log_facility       => $syslog_log_facility_glance,
     syslog_log_level          => $syslog_log_level,
   }
 
@@ -280,7 +283,8 @@ class openstack::all (
       iscsi_bind_host      => $cinder_iscsi_bind_addr,
       cinder_rate_limits   => $cinder_rate_limits,
       use_syslog           => $use_syslog,
-      syslog_log_facility  => 'LOCAL3',
+      syslog_log_facility  => $syslog_log_facility_cinder,
+      syslog_log_level     => $syslog_log_level,
     }
   } else {
     # Set up nova-volume
@@ -315,7 +319,7 @@ class openstack::all (
     glance_api_servers => "$internal_address:9292",
     verbose            => $verbose,
     use_syslog         => $use_syslog,
-    syslog_log_facility => 'LOCAL6',
+    syslog_log_facility => $syslog_log_facility_nova,
     syslog_log_level    => $syslog_log_level,
     rabbit_host        => '127.0.0.1',
   }
@@ -370,7 +374,7 @@ class openstack::all (
       rabbit_user     => $rabbit_user,
       rabbit_password => $rabbit_password,
       use_syslog      => $use_syslog,
-      syslog_log_facility => 'LOCAL4',
+      syslog_log_facility => $syslog_log_facility_quantum,
       syslog_log_level    => $syslog_log_level,
     }
 

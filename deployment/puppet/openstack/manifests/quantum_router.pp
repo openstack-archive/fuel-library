@@ -37,8 +37,6 @@ class openstack::quantum_router (
   $quantum_netnode_on_cnt   = false,  
   $tenant_network_type      = 'gre',
   $use_syslog               = false,
-# TODO syslog facility from site.pp
-# TODO syslog common level from site.pp
   $syslog_log_facility      = 'LOCAL4',
   $syslog_log_level         = 'INFO',
   $ha_mode                  = false,

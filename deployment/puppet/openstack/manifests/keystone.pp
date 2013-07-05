@@ -80,8 +80,6 @@ class openstack::keystone (
   $enabled                  = true,
   $package_ensure           = present,
   $use_syslog               = false,
-# TODO syslog facilities from site.pp
-# TODO syslog common level from site.pp
   $syslog_log_facility      = 'LOCAL7',
   $syslog_log_level         = 'INFO',
 ) {

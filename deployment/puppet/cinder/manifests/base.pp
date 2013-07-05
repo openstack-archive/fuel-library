@@ -20,8 +20,6 @@ class cinder::base (
   $package_ensure         = 'present',
   $verbose                = 'True',
   $use_syslog             = false,
-# TODO syslog facilities from site.pp
-# TODO syslog common level from site.pp
   $syslog_log_facility    = "LOCAL3",
   $syslog_log_level       = 'INFO',
 ) {

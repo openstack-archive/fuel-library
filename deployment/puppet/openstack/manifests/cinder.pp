@@ -20,8 +20,6 @@ class openstack::cinder(
   $bind_host              = '0.0.0.0',
   $iscsi_bind_host        = '0.0.0.0',
   $use_syslog             = false,
-# TODO syslog facilities from site.pp
-# TODO syslog common level from site.pp
   $syslog_log_facility    = 'LOCAL3',
   $syslog_log_level       = 'INFO',
   $cinder_rate_limits     = undef

@@ -281,6 +281,14 @@ $swift_loopback = false
 # Enable error messages reporting to rsyslog. Rsyslog must be installed in this case,
 # and configured to start at the very beginning of puppet agent run. 
 $use_syslog = true
+# Default log level would have been used, if non verbose and non debug
+$syslog_log_level             = 'ERROR'
+# Syslog facilities for main openstack services, choose any, may overlap if needed
+$syslog_log_facility_glance   = 'LOCAL2'
+$syslog_log_facility_cinder   = 'LOCAL3'
+$syslog_log_facility_quantum  = 'LOCAL4'
+$syslog_log_facility_nova     = 'LOCAL6'
+$syslog_log_facility_keystone = 'LOCAL7'
 
 if $use_syslog {
   anchor { '::rsyslog::begin': }
@@ -479,6 +487,12 @@ node default {
     manage_volumes          => $cinder ? { false => $manage_volumes, default =>$is_cinder_node },
     nv_physical_volume      => $nv_physical_volume,
     use_syslog              => $use_syslog,
+    syslog_log_level        => $syslog_log_level,
+    syslog_log_facility_glance   => syslog_log_facility_glance,
+    syslog_log_facility_cinder   => syslog_log_facility_cinder,
+    syslog_log_facility_quantum  => syslog_log_facility_quantum,
+    syslog_log_facility_nova     => syslog_log_facility_nova,
+    syslog_log_facility_keystone => syslog_log_facility_keystone,
     nova_rate_limits        => $nova_rate_limits,
     cinder_rate_limits      => $cinder_rate_limits,
     quantum                 => $quantum,

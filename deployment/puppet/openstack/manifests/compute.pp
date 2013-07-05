@@ -111,9 +111,9 @@ class openstack::compute (
   $cinder_iscsi_bind_addr        = false,
   $db_host                       = '127.0.0.1',
   $use_syslog                    = false,
-# TODO syslog facilities for compute services from site.pp
-# TODO syslog common level for compute services from site.pp
   $syslog_log_facility           = 'LOCAL6',
+  $syslog_log_facility_cinder    = 'LOCAL3',
+  $syslog_log_facility_quantum   = 'LOCAL4',
   $syslog_log_level              = 'INFO',
   $nova_rate_limits              = undef,
   $cinder_rate_limits            = undef,
@@ -206,6 +206,8 @@ class openstack::compute (
         iscsi_bind_host      => $cinder_iscsi_bind_addr,
         cinder_user_password => $cinder_user_password,
         use_syslog           => $use_syslog,
+        syslog_log_facility  => $syslog_log_facility_cinder,
+        syslog_log_level     => $syslog_log_level,
         cinder_rate_limits   => $cinder_rate_limits,
         rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
     }
@@ -359,6 +361,8 @@ class openstack::compute (
       rabbit_user     => $rabbit_user,
       rabbit_password => $rabbit_password,
       use_syslog           => $use_syslog,
+      syslog_log_level     => $syslog_log_level,
+      syslog_log_facility  => $syslog_log_facility_quantum,
       rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
     }
 
