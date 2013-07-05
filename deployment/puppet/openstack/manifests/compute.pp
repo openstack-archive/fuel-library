@@ -36,8 +36,8 @@
 #    Defaults to false. False indicates that a vnc proxy should not be configured.
 #  [vnc_enabled] Rather vnc console should be enabled.
 #    Optional. Defaults to 'true',
-#  [verbose] Rather components should log verbosely.
-#    Optional. Defaults to false.
+# [verbose] Rather to print more verbose (INFO+) output. If non verbose and non debug, would give WARNING+ output. Optional. Defaults to false.
+# [debug] Rather to print even more verbose (DEBUG+) output. If true, would ignore verbose option. Optional. Defaults to false.
 #  [manage_volumes] Rather nova-volume should be enabled on this compute node.
 #    Optional. Defaults to false.
 #  [nova_volumes] Name of volume group in which nova-volume will create logical volumes.
@@ -94,6 +94,7 @@ class openstack::compute (
   $segment_range                 = '1:4094',
   # nova compute configuration parameters
   $verbose                       = false,
+  $debug               = false,
   $service_endpoint              = '127.0.0.1',
   $ssh_private_key               = undef,
   $cache_server_ip               = ['127.0.0.1'],
@@ -178,6 +179,7 @@ class openstack::compute (
       image_service        => 'nova.image.glance.GlanceImageService',
       glance_api_servers   => $glance_api_servers,
       verbose              => $verbose,
+      debug                => $debug,
       rabbit_host          => $rabbit_host,
       use_syslog           => $use_syslog,
       syslog_log_facility  => $syslog_log_facility,
@@ -205,6 +207,8 @@ class openstack::compute (
         bind_host            => false,
         iscsi_bind_host      => $cinder_iscsi_bind_addr,
         cinder_user_password => $cinder_user_password,
+        verbose              => $verbose,
+        debug                => $debug,
         use_syslog           => $use_syslog,
         syslog_log_facility  => $syslog_log_facility_cinder,
         syslog_log_level     => $syslog_log_level,
@@ -356,10 +360,11 @@ class openstack::compute (
 
     class { '::quantum':
       verbose         => $verbose,
-      debug           => $verbose,
       rabbit_host     => $rabbit_nodes ? { false => $rabbit_host, default => $rabbit_nodes },
       rabbit_user     => $rabbit_user,
       rabbit_password => $rabbit_password,
+      verbose         => $verbose,
+      debug           => $debug,
       use_syslog           => $use_syslog,
       syslog_log_level     => $syslog_log_level,
       syslog_log_facility  => $syslog_log_facility_quantum,

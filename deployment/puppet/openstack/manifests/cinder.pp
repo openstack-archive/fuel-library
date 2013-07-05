@@ -22,7 +22,9 @@ class openstack::cinder(
   $use_syslog             = false,
   $syslog_log_facility    = 'LOCAL3',
   $syslog_log_level       = 'INFO',
-  $cinder_rate_limits     = undef
+  $cinder_rate_limits     = undef,
+  $verbose          = 'False',
+  $debug             = 'False',
 ) {
   include cinder::params
   #  if ($purge_cinder_config) {
@@ -62,6 +64,8 @@ class openstack::cinder(
     use_syslog      => $use_syslog,
     syslog_log_facility => $syslog_log_facility,
     syslog_log_level    => $syslog_log_level,
+    debug           => $debug,
+    use_syslog => $use_syslog
   }
   if ($bind_host) {
     class { 'cinder::api':

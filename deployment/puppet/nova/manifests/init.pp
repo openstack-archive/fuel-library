@@ -22,7 +22,8 @@
 # [logdir] Directory where logs should be stored. Optional. Defaults to '/var/log/nova'.
 # [state_path] Directory for storing state. Optional. Defaults to '/var/lib/nova'.
 # [lock_path] Directory for lock files. Optional. Distro specific default.
-# [verbose] Rather to print more verbose output. Optional. Defaults to false.
+# [verbose] Rather to print more verbose (INFO+) output. If non verbose and non debug, would give WARNING+ output. Optional. Defaults to false.
+# [debug] Rather to print even more verbose (DEBUG+) output. If true, would ignore verbose option. Optional. Defaults to false.
 # [periodic_interval] Seconds between running periodic tasks. Optional.
 #   Defaults to '60'.
 # [report_interval] Interval at which nodes report to data store. Optional.
@@ -63,6 +64,7 @@ class nova(
   $state_path = '/var/lib/nova',
   $lock_path = $::nova::params::lock_path,
   $verbose = false,
+  $debug   = false,
   $periodic_interval = '60',
   $report_interval = '10',
   $root_wrap_config = '/etc/nova/rootwrap.conf',
@@ -279,6 +281,7 @@ else {
   }
 
   nova_config {
+    'DEFAULT/debug':             value => $debug;
     'DEFAULT/verbose':           value => $verbose;
     # Following may need to be broken out to different nova services
     'DEFAULT/state_path':        value => $state_path;

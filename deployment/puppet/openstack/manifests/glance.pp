@@ -18,7 +18,8 @@
 # [db_type] Type of sql databse to use. Optional. Defaults to 'mysql'
 # [glance_db_user] Name of glance DB user. Optional. Defaults to 'glance'
 # [glance_db_dbname] Name of glance DB. Optional. Defaults to 'glance'
-# [verbose] Log verbosely. Optional. Defaults to 'False'
+# [verbose] Rather to print more verbose (INFO+) output. If non verbose and non debug, would give WARNING+ output. Optional. Defaults to false.
+# [debug] Rather to print even more verbose (DEBUG+) output. If true, would ignore verbose option. Optional. Defaults to false.
 # [enabled] Used to indicate if the service should be active (true) or passive (false).
 #   Optional. Defaults to true
 # [use_syslog] Rather or not service should log to syslog. Optional.
@@ -47,6 +48,7 @@ class openstack::glance (
   $glance_db_dbname     = 'glance',
   $glance_backend       = 'file',
   $verbose              = 'False',
+  $debug                = 'False',
   $enabled              = true,
   $use_syslog           = false,
   # Facility is common for all glance services
@@ -64,7 +66,7 @@ class openstack::glance (
   # Install and configure glance-api
   class { 'glance::api':
     verbose           => $verbose,
-    debug             => $verbose,
+    debug             => $debug,
     bind_host         => $bind_host,
     auth_type         => 'keystone',
     auth_port         => '35357',
@@ -81,7 +83,7 @@ class openstack::glance (
   # Install and configure glance-registry
   class { 'glance::registry':
     verbose           => $verbose,
-    debug             => $verbose,
+    debug             => $debug,
     bind_host         => $bind_host,
     auth_host         => $keystone_host,
     auth_port         => '35357',

@@ -56,7 +56,7 @@ class openstack::quantum_router (
       rabbit_host          => $rabbit_nodes,
       rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
       verbose              => $verbose,
-      debug                => $verbose,
+      debug                => $debug,
       use_syslog           => $use_syslog,
       syslog_log_facility  => $syslog_log_facility,
       syslog_log_level     => $syslog_log_level,
@@ -81,7 +81,8 @@ class openstack::quantum_router (
         service_provider => $service_provider
       }
       class { 'quantum::agents::dhcp':
-        debug            => True,
+        verbose          => $verbose,
+        debug            => $debug,
         use_namespaces   => $use_namespaces,
         service_provider => $service_provider,
         auth_url         => $admin_auth_url,
@@ -91,7 +92,8 @@ class openstack::quantum_router (
       }
       class { 'quantum::agents::l3':
        #enabled             => $quantum_l3_enable,
-        debug               => True,
+        verbose             => $verbose,
+        debug               => $debug,
         fixed_range         => $fixed_range,
         floating_range      => $floating_range,
         ext_ipinfo          => $external_ipinfo,

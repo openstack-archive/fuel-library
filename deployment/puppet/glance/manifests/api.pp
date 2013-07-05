@@ -101,8 +101,8 @@ if $use_syslog {
 
   # basic service config
   glance_api_config {
-    'DEFAULT/verbose':   value => $verbose;
     'DEFAULT/debug':     value => $debug;
+    'DEFAULT/verbose':   value => $verbose;
     'DEFAULT/bind_host': value => $bind_host;
     'DEFAULT/bind_port': value => $bind_port;
     'DEFAULT/backlog':   value => $backlog;
@@ -116,8 +116,8 @@ if $use_syslog {
   }
 
   glance_cache_config {
-    'DEFAULT/verbose':   value => $verbose;
     'DEFAULT/debug':     value => $debug;
+    'DEFAULT/verbose':   value => $verbose;
     'DEFAULT/use_syslog':  value => $use_syslog;
     'DEFAULT/image_cache_dir': value => "/var/lib/glance/image-cache/";
     'DEFAULT/log_file':  value => "/var/log/glance/image-cache.log";

@@ -62,8 +62,8 @@ if $use_syslog {
 
   # basic service config
   glance_registry_config {
-    'DEFAULT/verbose':   value => $verbose;
     'DEFAULT/debug':     value => $debug;
+    'DEFAULT/verbose':   value => $verbose;
     'DEFAULT/bind_host': value => $bind_host;
     'DEFAULT/bind_port': value => $bind_port;
     'DEFAULT/backlog': value => "4096";

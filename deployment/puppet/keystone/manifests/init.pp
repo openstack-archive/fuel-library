@@ -173,8 +173,8 @@ class keystone(
     'DEFAULT/public_port':  value => $public_port;
     'DEFAULT/admin_port':   value => $admin_port;
     'DEFAULT/compute_port': value => $compute_port;
-    'DEFAULT/verbose':      value => $verbose;
     'DEFAULT/debug':        value => $debug;
+    'DEFAULT/verbose':      value => $verbose;
     'DEFAULT/use_syslog':   value => $use_syslog;
     'identity/driver': value =>"keystone.identity.backends.sql.Identity";
     'token/driver': value =>"keystone.token.backends.sql.Token";

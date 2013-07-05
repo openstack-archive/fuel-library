@@ -18,7 +18,8 @@ class cinder::base (
   $rabbit_virtual_host    = '/',
   $rabbit_userid          = 'nova',
   $package_ensure         = 'present',
-  $verbose                = 'True',
+  $verbose                = 'False',
+  $debug                  = 'False',
   $use_syslog             = false,
   $syslog_log_facility    = "LOCAL3",
   $syslog_log_level       = 'INFO',
@@ -110,6 +111,7 @@ else {
     'DEFAULT/rabbit_virtual_host': value => $rabbit_virtual_host;
     'DEFAULT/rabbit_userid':       value => $rabbit_userid;
     'DEFAULT/sql_connection':      value => $sql_connection;
+    'DEFAULT/debug':               value => $debug;
     'DEFAULT/verbose':             value => $verbose;
     'DEFAULT/api_paste_config':    value => '/etc/cinder/api-paste.ini';
     'DEFAULT/use_syslog':          value => $use_syslog;

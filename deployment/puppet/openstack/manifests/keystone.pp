@@ -17,7 +17,8 @@
 # [keystone_db_user] Name of keystone db user. Optional. Defaults to  'keystone'
 # [keystone_db_dbname] Name of keystone DB. Optional. Defaults to  'keystone'
 # [keystone_admin_tenant] Name of keystone admin tenant. Optional. Defaults to  'admin'
-# [verbose] Log verbosely. Optional. Defaults to  'False'
+# [verbose] Rather to print more verbose (INFO+) output. If non verbose and non debug, would give WARNING+ output. Optional. Defaults to false.
+# [debug] Rather to print even more verbose (DEBUG+) output. If true, would ignore verbose option. Optional. Defaults to false.
 # [bind_host] Address that keystone binds to. Optional. Defaults to  '0.0.0.0'
 # [internal_address] Internal address for keystone. Optional. Defaults to  $public_address
 # [admin_address] Keystone admin address. Optional. Defaults to  $internal_address
@@ -58,6 +59,7 @@ class openstack::keystone (
   $db_name                  = 'keystone',
   $admin_tenant             = 'admin',
   $verbose                  = 'False',
+  $debug                    = 'False',
   $bind_host                = '0.0.0.0',
   $internal_address         = false,
   $admin_address            = false,
@@ -166,7 +168,7 @@ class openstack::keystone (
 
   class { '::keystone':
     verbose    => $verbose,
-    debug      => $verbose,
+    debug      => $debug,
     catalog_type   => 'sql',
     admin_token    => $admin_token,
     enabled        => $enabled,

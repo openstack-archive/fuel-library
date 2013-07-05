@@ -30,7 +30,8 @@
 #   Defaults to false.
 # [network_config] Hash that can be used to pass implementation specifc
 #   network settings. Optioal. Defaults to {}
-# [verbose] Whether to log services at verbose.
+# [verbose] Rather to print more verbose (INFO+) output. If non verbose and non debug, would give WARNING+ output. Optional. Defaults to false.
+# [debug] Rather to print even more verbose (DEBUG+) output. If true, would ignore verbose option. Optional. Defaults to false.
 # [export_resources] Rather to export resources.
 # Horizon related config - assumes puppetlabs-horizon code
 # [secret_key]          secret key to encode cookies, …
@@ -135,6 +136,7 @@ class openstack::controller (
   $horizon_app_links       = undef,
   # General
   $verbose                 = 'False',
+  $debug                   = 'False',
   $export_resources        = true,
   # if the cinder management components should be installed
   $cinder_user_password    = 'cinder_user_pass',
@@ -235,6 +237,7 @@ class openstack::controller (
   ####### KEYSTONE ###########
   class { 'openstack::keystone':
     verbose               => $verbose,
+    debug                 => $debug,
     db_type               => $db_type,
     db_host               => $db_host,
     db_password           => $keystone_db_password,
@@ -266,6 +269,7 @@ class openstack::controller (
   ######## BEGIN GLANCE ##########
   class { 'openstack::glance':
     verbose                   => $verbose,
+    debug                     => $debug,
     db_type                   => $db_type,
     db_host                   => $db_host,
     glance_db_user            => $glance_db_user,
@@ -346,6 +350,7 @@ class openstack::controller (
     glance_api_servers      => $glance_api_servers,
     # General
     verbose                 => $verbose,
+    debug                   => $debug,
     enabled                 => $enabled,
     exported_resources      => $export_resources,
     enabled_apis            => $enabled_apis,
@@ -377,6 +382,8 @@ class openstack::controller (
       iscsi_bind_host      => $cinder_iscsi_bind_addr,
       cinder_user_password => $cinder_user_password,
       use_syslog           => $use_syslog,
+        verbose              => $verbose,
+        debug                => $debug,
       syslog_log_facility  => $syslog_log_facility_cinder,
       syslog_log_level     => $syslog_log_level,
       cinder_rate_limits   => $cinder_rate_limits,
