@@ -220,10 +220,11 @@ class Manifest(object):
                                     quantum=True,
                                     loopback=True,
                                     cinder=True,
-                                            cinder_nodes=None,
-                                            quantum_netnode_on_cnt=True,
+                                    cinder_nodes=None,
+                                    quantum_netnode_on_cnt=True,
                                     swift=True,
-                                    ha_provider='pacemaker', ha=True):
+                                    ha_provider='pacemaker',
+                                    ha=True):
         if not cinder_nodes:
             cinder_nodes = []
         if ha:
@@ -252,8 +253,8 @@ class Manifest(object):
             deployment_id=self.deployment_id(ci),
             public_netmask=ci.public_net_mask(),
             internal_netmask=ci.internal_net_mask(),
-                quantum=quantum,
-                quantum_netnode_on_cnt=quantum_netnode_on_cnt,
+            quantum=quantum,
+            quantum_netnode_on_cnt=quantum_netnode_on_cnt,
             ha_provider=ha_provider
             )
         if swift:

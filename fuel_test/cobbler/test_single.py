@@ -22,17 +22,6 @@ class SingleTestCase(CobblerTestCase):
         self.remote().check_stderr("astute -f /root/astute.yaml -v", True)
 
     def prepare_only_site_pp(self):
-
-# Which one is right?
-
-#        manifest = Manifest().generate_openstack_manifest(
-#            template=Template.single(),
-#            ci=self.ci(),
-#            controllers=self.nodes().controllers,
-#            quantum=False,
-#            quantums=[]
-#        )
-
         manifest = Manifest().generate_openstack_manifest(
                 template=Template.single(),
                 ci=self.ci(),
@@ -41,11 +30,10 @@ class SingleTestCase(CobblerTestCase):
                 quantum=False, quantums=[],
                 ha=False, ha_provider='generic',
                 cinder=True, cinder_nodes=['all'], swift=False,
-            )
+        )
 
         Manifest().write_manifest(remote=self.remote(), manifest=manifest)
 
-# TODO fix astute deploy
     def prepare_astute(self):
         config = Config().generate(
             template=Template.single(),

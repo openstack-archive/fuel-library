@@ -30,7 +30,7 @@ class MinimalTestCase(CobblerTestCase):
         self.validate(self.nodes().computes, PUPPET_AGENT_COMMAND)
 
     def deploy_by_astute(self):
-        self.remote().check_stderr("astute -f /root/astute.yaml -v")
+        self.remote().check_stderr("astute -f /root/astute.yaml -v", True)
 
     def prepare_astute(self):
         config = Config().generate(
@@ -45,7 +45,7 @@ class MinimalTestCase(CobblerTestCase):
         config_path = "/root/config.yaml"
         write_config(self.remote(), config_path, str(config))
         self.remote().check_call("cobbler_system -f %s" % config_path)
-        self.remote().check_stderr("openstack_system -c %s -o /etc/puppet/manifests/site.pp -a /root/astute.yaml" % config_path)
+        self.remote().check_stderr("openstack_system -c %s -o /etc/puppet/manifests/site.pp -a /root/astute.yaml" % config_path, True)
 
     def test_minimal(self):
         self.deploy()

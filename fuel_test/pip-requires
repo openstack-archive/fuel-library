@@ -1,5 +1,5 @@
 nose
 python-glanceclient
 python-keystoneclient
-python-quantumclient
+python-quantumclient>=2.1
 git+ssh://git@github.com/Mirantis/devops.git@stable
