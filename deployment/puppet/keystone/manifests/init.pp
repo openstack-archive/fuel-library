@@ -21,7 +21,7 @@
 #     Defaults to False.
 #   [syslog_log_facility] Facility for syslog, if used. Optional. Note: duplicating conf option 
 #     wouldn't have been used, but more powerfull rsyslog features managed via conf template instead
-#   [syslog_log_level] logging level for main syslog files (/var/log/{messages, syslog, kern.log}). Optional.
+#   [syslog_log_level] logging level for non verbose and non debug mode. Optional.
 #   [catalog_type] Type of catalog that keystone uses to store endpoints,services. Optional.
 #     Defaults to sql. (Also accepts template)
 #   [token_format] Format keystone uses for tokens. Optional. Defaults to UUID (PKI is grizzly native mode though).
@@ -61,7 +61,7 @@ class keystone(
   $debug               = 'False',
   $use_syslog          = false,
   $syslog_log_facility = 'LOCAL7',
-  $syslog_log_level    = 'INFO',
+  $syslog_log_level = 'WARNING',
   $catalog_type        = 'sql',
   $token_format        = 'UUID',
 #  $token_format        = 'PKI',

@@ -33,7 +33,7 @@ class openstack::swift::storage_node (
   $service_endpoint       = '127.0.0.1',
   $use_syslog             = false,
   $syslog_log_facility_cinder = 'LOCAL3',
-  $syslog_log_level       = 'INFO',
+  $syslog_log_level = 'WARNING',
   # Rabbit details necessary for cinder
   $rabbit_nodes           = false,
   $rabbit_password        = 'rabbit_pw',

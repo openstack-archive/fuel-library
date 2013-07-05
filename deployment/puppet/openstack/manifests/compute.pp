@@ -36,7 +36,7 @@
 #    Defaults to false. False indicates that a vnc proxy should not be configured.
 #  [vnc_enabled] Rather vnc console should be enabled.
 #    Optional. Defaults to 'true',
-# [verbose] Rather to print more verbose (INFO+) output. If non verbose and non debug, would give WARNING+ output. Optional. Defaults to false.
+# [verbose] Rather to print more verbose (INFO+) output. If non verbose and non debug, would give syslog_log_level (default is WARNING) output. Optional. Defaults to false.
 # [debug] Rather to print even more verbose (DEBUG+) output. If true, would ignore verbose option. Optional. Defaults to false.
 #  [manage_volumes] Rather nova-volume should be enabled on this compute node.
 #    Optional. Defaults to false.
@@ -45,7 +45,7 @@
 # [use_syslog] Rather or not service should log to syslog. Optional.
 # [syslog_log_facility] Facility for syslog, if used. Optional. Note: duplicating conf option 
 #       wouldn't have been used, but more powerfull rsyslog features managed via conf template instead
-# [syslog_log_level] logging level for main syslog files (/var/log/{messages, syslog, kern.log}). Optional.
+# [syslog_log_level] logging level for non verbose and non debug mode. Optional.
 #
 # class { 'openstack::nova::compute':
 #   internal_address   => '192.168.2.2',
@@ -115,7 +115,7 @@ class openstack::compute (
   $syslog_log_facility           = 'LOCAL6',
   $syslog_log_facility_cinder    = 'LOCAL3',
   $syslog_log_facility_quantum   = 'LOCAL4',
-  $syslog_log_level              = 'INFO',
+  $syslog_log_level = 'WARNING',
   $nova_rate_limits              = undef,
   $cinder_rate_limits            = undef,
   $create_networks               = false
@@ -359,7 +359,6 @@ class openstack::compute (
     $enable_tunneling = $tenant_network_type ? { 'gre' => true, 'vlan' => false }
 
     class { '::quantum':
-      verbose         => $verbose,
       rabbit_host     => $rabbit_nodes ? { false => $rabbit_host, default => $rabbit_nodes },
       rabbit_user     => $rabbit_user,
       rabbit_password => $rabbit_password,

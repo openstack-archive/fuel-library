@@ -84,7 +84,7 @@ class openstack::nova::controller (
   $use_syslog                = false,
   $syslog_log_facility       = 'LOCAL6',
   $syslog_log_facility_quantum = 'LOCAL4',
-  $syslog_log_level          = 'INFO',
+  $syslog_log_level = 'WARNING',
   $nova_rate_limits          = undef,
   $cinder                    = true
 ) {

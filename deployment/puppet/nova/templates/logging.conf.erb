@@ -32,18 +32,18 @@ level = DEBUG
 <% elsif @verbose then -%>
 level = INFO
 <% else -%>
-level = WARNING
+level = <%= @syslog_log_level %>
 <% end -%>
 args = ('/dev/log', handlers.SysLogHandler.LOG_SYSLOG)
 formatter = debug
 
-# Brief logging info to <%= @syslog_log_facility %> with level <%= @syslog_log_level %>+ 
-# or WARNING+ if verbose:false & debug:false. 
 # Note: local copy goes to /var/log/nova-all.log
 [handler_production]
 class = handlers.SysLogHandler
-<% if not @debug and not @verbose then -%>
-level = WARNING
+<% if @debug then -%>
+level = DEBUG
+<% elsif @verbose then -%>
+level = INFO
 <% else -%>
 level = <%= @syslog_log_level %>
 <% end -%>

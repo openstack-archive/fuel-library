@@ -30,7 +30,7 @@
 #   Defaults to false.
 # [network_config] Hash that can be used to pass implementation specifc
 #   network settings. Optioal. Defaults to {}
-# [verbose] Rather to print more verbose (INFO+) output. If non verbose and non debug, would give WARNING+ output. Optional. Defaults to false.
+# [verbose] Rather to print more verbose (INFO+) output. If non verbose and non debug, would give syslog_log_level (default is WARNING) output. Optional. Defaults to false.
 # [debug] Rather to print even more verbose (DEBUG+) output. If true, would ignore verbose option. Optional. Defaults to false.
 # [export_resources] Rather to export resources.
 # Horizon related config - assumes puppetlabs-horizon code
@@ -48,7 +48,7 @@
 # [use_syslog] Rather or not service should log to syslog. Optional.
 # [syslog_log_facility] Facility for syslog, if used. Optional. Note: duplicating conf option 
 #       wouldn't have been used, but more powerfull rsyslog features managed via conf template instead
-# [syslog_log_level] logging level for main syslog files (/var/log/{messages, syslog, kern.log}). Optional.
+# [syslog_log_level] logging level for non verbose and non debug mode. Optional.
 #
 # === Examples
 #
@@ -169,7 +169,7 @@ class openstack::controller (
   $manage_volumes          = false,
   $nv_physical_volume      = undef,
   $use_syslog              = false,
-  $syslog_log_level        = 'INFO',
+  $syslog_log_level = 'WARNING',
   $syslog_log_facility_glance   = 'LOCAL2',
   $syslog_log_facility_cinder   = 'LOCAL3',
   $syslog_log_facility_quantum  = 'LOCAL4',

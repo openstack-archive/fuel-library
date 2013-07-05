@@ -22,7 +22,7 @@
 # [logdir] Directory where logs should be stored. Optional. Defaults to '/var/log/nova'.
 # [state_path] Directory for storing state. Optional. Defaults to '/var/lib/nova'.
 # [lock_path] Directory for lock files. Optional. Distro specific default.
-# [verbose] Rather to print more verbose (INFO+) output. If non verbose and non debug, would give WARNING+ output. Optional. Defaults to false.
+# [verbose] Rather to print more verbose (INFO+) output. If non verbose and non debug, would give syslog_log_level (default is WARNING) output. Optional. Defaults to false.
 # [debug] Rather to print even more verbose (DEBUG+) output. If true, would ignore verbose option. Optional. Defaults to false.
 # [periodic_interval] Seconds between running periodic tasks. Optional.
 #   Defaults to '60'.
@@ -36,7 +36,7 @@
 # [use_syslog] Rather or not service should log to syslog. Optional.
 # [syslog_log_facility] Facility for syslog, if used. Optional. Note: duplicating conf option 
 #       wouldn't have been used, but more powerfull rsyslog features managed via conf template instead
-# [syslog_log_level] logging level for main syslog files (/var/log/{messages, syslog, kern.log}). Optional.
+# [syslog_log_level] logging level for non verbose and non debug mode. Optional.
 #
 class nova(
   $ensure_package = 'present',
@@ -45,7 +45,7 @@ class nova(
   $sql_connection = false,
   $use_syslog = false,
   $syslog_log_facility = "LOCAL6",
-  $syslog_log_level    = 'INFO',
+  $syslog_log_level = 'WARNING',
   $image_service = 'nova.image.glance.GlanceImageService',
   # these glance params should be optional
   # this should probably just be configured as a glance client

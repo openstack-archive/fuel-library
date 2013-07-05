@@ -2,7 +2,7 @@
 # [use_syslog] Rather or not service should log to syslog. Optional.
 # [syslog_log_facility] Facility for syslog, if used. Optional. Note: duplicating conf option 
 #       wouldn't have been used, but more powerfull rsyslog features managed via conf template instead
-# [syslog_log_level] logging level for main syslog files (/var/log/{messages, syslog, kern.log}). Optional.
+# [syslog_log_level] logging level for non verbose and non debug mode. Optional.
 
 class openstack::quantum_router (
   $db_host,
@@ -38,7 +38,7 @@ class openstack::quantum_router (
   $tenant_network_type      = 'gre',
   $use_syslog               = false,
   $syslog_log_facility      = 'LOCAL4',
-  $syslog_log_level         = 'INFO',
+  $syslog_log_level = 'WARNING',
   $ha_mode                  = false,
   $service_provider         = 'generic'
 ) {

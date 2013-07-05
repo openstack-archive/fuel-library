@@ -654,11 +654,11 @@ class ha_controller (
     nv_physical_volume      => $nv_physical_volume,
     use_syslog              => $use_syslog,
     syslog_log_level        => $syslog_log_level,
-    syslog_log_facility_glance   => syslog_log_facility_glance,
-    syslog_log_facility_cinder   => syslog_log_facility_cinder,
-    syslog_log_facility_quantum  => syslog_log_facility_quantum,
-    syslog_log_facility_nova     => syslog_log_facility_nova,
-    syslog_log_facility_keystone => syslog_log_facility_keystone,
+    syslog_log_facility_glance   => $syslog_log_facility_glance,
+    syslog_log_facility_cinder => $syslog_log_facility_cinder,
+    syslog_log_facility_quantum => $syslog_log_facility_quantum,
+    syslog_log_facility_nova => $syslog_log_facility_nova,
+    syslog_log_facility_keystone => $syslog_log_facility_keystone,
     nova_rate_limits        => $nova_rate_limits,
     cinder_rate_limits      => $cinder_rate_limits,
     horizon_use_ssl         => $horizon_use_ssl,
@@ -749,7 +749,7 @@ node /fuel-compute-[\d+]/ {
     use_syslog             => $use_syslog,
     syslog_log_level       => $syslog_log_level,
     syslog_log_facility_quantum => $syslog_log_facility_quantum,
-    syslog_log_facility_cinder  => $syslog_log_facility_cinder,
+    syslog_log_facility_cinder => $syslog_log_facility_cinder,
     nova_rate_limits       => $nova_rate_limits,
   }
 }
@@ -800,7 +800,7 @@ node /fuel-swift-[\d+]/ {
     rabbit_ha_virtual_ip   => $internal_virtual_ip,
     sync_rings             => ! $primary_proxy,
     syslog_log_level => $syslog_log_level,
-    syslog_log_facility_cinder   => syslog_log_facility_cinder,
+    syslog_log_facility_cinder => $syslog_log_facility_cinder,
   }
 
 }
@@ -888,7 +888,7 @@ node /fuel-quantum/ {
       api_bind_address      => $internal_address,
       use_syslog            => $use_syslog,
       syslog_log_level      => $syslog_log_level,
-      syslog_log_facility_quantum  => syslog_log_facility_quantum,
+      syslog_log_facility_quantum => $syslog_log_facility_quantum,
     }
     class { 'openstack::auth_file':
       admin_password       => $admin_password,

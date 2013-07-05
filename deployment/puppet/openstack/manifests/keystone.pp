@@ -17,7 +17,7 @@
 # [keystone_db_user] Name of keystone db user. Optional. Defaults to  'keystone'
 # [keystone_db_dbname] Name of keystone DB. Optional. Defaults to  'keystone'
 # [keystone_admin_tenant] Name of keystone admin tenant. Optional. Defaults to  'admin'
-# [verbose] Rather to print more verbose (INFO+) output. If non verbose and non debug, would give WARNING+ output. Optional. Defaults to false.
+# [verbose] Rather to print more verbose (INFO+) output. If non verbose and non debug, would give syslog_log_level (default is WARNING) output. Optional. Defaults to false.
 # [debug] Rather to print even more verbose (DEBUG+) output. If true, would ignore verbose option. Optional. Defaults to false.
 # [bind_host] Address that keystone binds to. Optional. Defaults to  '0.0.0.0'
 # [internal_address] Internal address for keystone. Optional. Defaults to  $public_address
@@ -29,7 +29,7 @@
 # [use_syslog] Rather or not service should log to syslog. Optional.
 # [syslog_log_facility] Facility for syslog, if used. Optional. Note: duplicating conf option 
 #       wouldn't have been used, but more powerfull rsyslog features managed via conf template instead
-# [syslog_log_level] logging level for main syslog files (/var/log/{messages, syslog, kern.log}). Optional.
+# [syslog_log_level] logging level for non verbose and non debug mode. Optional.
 #
 # === Example
 #
@@ -83,7 +83,7 @@ class openstack::keystone (
   $package_ensure           = present,
   $use_syslog               = false,
   $syslog_log_facility      = 'LOCAL7',
-  $syslog_log_level         = 'INFO',
+  $syslog_log_level = 'WARNING',
 ) {
 
   # Install and configure Keystone

@@ -5,7 +5,7 @@
 class glance(
   $package_ensure = 'present',
   $syslog_log_facility = 'LOCAL2',
-  $syslog_log_level    = 'INFO',
+  $syslog_log_level = 'WARNING',
 ) {
 
   include glance::params
