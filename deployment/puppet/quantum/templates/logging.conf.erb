@@ -1,9 +1,9 @@
 [loggers]
-keys = root,service
+keys = root
 
 # devel is reserved for future usage
 [handlers]
-keys = production,file,devel
+keys = production,devel
 
 [formatters]
 keys = normal,debug
@@ -13,30 +13,13 @@ level = DEBUG
 handlers = production
 qualname = quantum
 
-[logger_service]
-level = DEBUG
-handlers = file
-qualname = quantum
-
 [formatter_debug]
 format = quantum-%(name)s: %(levelname)s %(module)s %(funcName)s %(message)s
 
 [formatter_normal]
 format = quantum-%(name)s: %(levelname)s %(message)s
 
-# Extended logging info to LOG_SYSLOG with debug:<%= @debug %> and verbose:<%= @verbose %>
-[handler_file]
-class = handlers.SysLogHandler
-<% if @debug then -%>
-level = DEBUG
-<% elsif @verbose then -%>
-level = INFO
-<% else -%>
-level = <%= @syslog_log_level %>
-<% end -%>
-args = ('/dev/log', handlers.SysLogHandler.LOG_SYSLOG)
-formatter = debug
-
+# Extended logging info to LOG_<%= @syslog_log_facility %> with debug:<%= @debug %> and verbose:<%= @verbose %>
 # Note: local copy goes to /var/log/quantum-all.log
 [handler_production]
 class = handlers.SysLogHandler
