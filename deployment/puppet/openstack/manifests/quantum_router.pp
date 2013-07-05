@@ -52,8 +52,12 @@ class openstack::quantum_router (
       debug                => $verbose,
       use_syslog           => $use_syslog,
       server_ha_mode       => $ha_mode,
-
-    }
+      auth_host            => $auth_host,
+      auth_tenant          => 'services',
+      auth_user            => 'quantum',
+      auth_password        => $quantum_user_password,
+    } 
+    #todo: add quantum::server here (into IF)
     class { 'quantum::plugins::ovs':
       bridge_mappings     => ["physnet1:br-ex","physnet2:br-prv"],
       network_vlan_ranges => "physnet1,physnet2:${segment_range}",
@@ -62,6 +66,7 @@ class openstack::quantum_router (
       tenant_network_type => $tenant_network_type,
       enable_tunneling    => $enable_tunneling,
     }
+
 
     if $quantum_network_node {
       class { 'quantum::agents::ovs':
@@ -103,4 +108,5 @@ class openstack::quantum_router (
     if !defined(Sysctl::Value['net.ipv4.ip_forward']) {
       sysctl::value { 'net.ipv4.ip_forward': value => '1'}
     }
+
 }

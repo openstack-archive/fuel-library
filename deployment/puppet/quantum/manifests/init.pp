@@ -1,6 +1,7 @@
 #
 class quantum (
   $rabbit_password,
+  $auth_password,
   $enabled                = true,
   $package_ensure         = 'present',
   $verbose                = 'False',
@@ -22,20 +23,24 @@ class quantum (
   $rabbit_virtual_host    = '/',
   $rabbit_ha_virtual_ip   = false,
   $server_ha_mode         = false,
+  $auth_type        = 'keystone',
+  $auth_host        = 'localhost',
+  $auth_port        = '35357',
+  $auth_tenant      = 'services',
+  $auth_user        = 'quantum',
   $use_syslog = false
 ) {
   include 'quantum::params'
 
-  Package['quantum'] -> Quantum_config<||>
-  Package['quantum'] -> Quantum_api_config<||>
+  anchor {'quantum-init':}
 
-  file {'/etc/quantum':
-    ensure  => directory,
-    owner   => 'quantum',
-    group   => 'root',
-    mode    => 770,
-    require => Package['quantum']
-  }
+  #file {'/etc/quantum':
+  #  ensure  => directory,
+  #  owner   => 'quantum',
+  #  group   => 'root',
+  #  mode    => 770,
+  #  require => Package['quantum']
+  #}
 
   package {'quantum':
     name   => $::quantum::params::package_name,
@@ -86,8 +91,12 @@ class quantum (
     'DEFAULT/rabbit_userid':          value => $rabbit_user;
     'DEFAULT/rabbit_password':        value => $rabbit_password;
     'DEFAULT/rabbit_virtual_host':    value => $rabbit_virtual_host;
+    'keystone_authtoken/auth_host':         value => $auth_host;
+    'keystone_authtoken/auth_port':         value => $auth_port;
+    'keystone_authtoken/admin_tenant_name': value => $auth_tenant;
+    'keystone_authtoken/admin_user':        value => $auth_user;
+    'keystone_authtoken/admin_password':    value => $auth_password;
   }
-
   if $use_syslog {
     file { "quantum-logging.conf":
       content => template('quantum/logging.conf-syslog.erb'),
@@ -117,5 +126,4 @@ class quantum (
             Anchor['quantum-init-done']
 
   anchor {'quantum-init-done':}
-  Anchor['quantum-init'] -> Anchor['quantum-init-done'] 
 }

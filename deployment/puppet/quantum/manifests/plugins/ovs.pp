@@ -15,9 +15,9 @@ class quantum::plugins::ovs (
 ) {
 
   include 'quantum::params'
-
-  Package['quantum'] -> Package['quantum-plugin-ovs']
-  Package['quantum-plugin-ovs'] -> Quantum_plugin_ovs<||>
+  
+  Anchor['quantum-init-done'] -> Anchor['quantum-plugin-ovs']
+  anchor {'quantum-plugin-ovs':}
 
   Quantum_plugin_ovs<||> ~> Service<| title == 'quantum-server' |>
   Quantum_plugin_ovs<||> ~> Service<| title == 'quantum-ovs-agent' |>
@@ -83,9 +83,17 @@ class quantum::plugins::ovs (
         package {"$::l23network::params::lnx_vlan_tools":
           name    => "$::l23network::params::lnx_vlan_tools",
           ensure  => latest,
-        }
+        } -> Package['quantum-plugin-ovs']
       }
     } 
   }
 
+  Anchor['quantum-plugin-ovs'] ->
+    Package['quantum-plugin-ovs'] ->
+      File['/etc/quantum/plugin.ini'] ->
+        Quantum_plugin_ovs<||> ->
+          Anchor['quantum-plugin-ovs-done']
+
+  anchor {'quantum-plugin-ovs-done':}
+  Anchor['quantum-plugin-ovs'] -> Anchor['quantum-plugin-ovs-done']
 }

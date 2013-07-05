@@ -14,6 +14,13 @@ class quantum::server (
 
   require 'keystone::python'
 
+  Anchor['quantum-init-done'] -> 
+    Anchor['quantum-plugin-ovs-done'] -> 
+      Anchor['quantum-server']
+
+  anchor {'quantum-server':}
+
+
   if $::quantum::params::server_package {
     $server_package = 'quantum-server'
 
@@ -21,6 +28,8 @@ class quantum::server (
       name   => $::quantum::params::server_package,
       ensure => $package_ensure
     }
+    Anchor['quantum-server'] ->
+      Package["$server_package"]
   } else {
     $server_package = 'quantum'
   }
@@ -61,6 +70,7 @@ class quantum::server (
   }
 
 
+  Anchor['quantum-server'] ->
   service {'quantum-server':
     name       => $::quantum::params::server_service,
     ensure     => $service_ensure,
@@ -68,6 +78,8 @@ class quantum::server (
     hasstatus  => true,
     hasrestart => true,
     provider   => $::quantum::params::service_provider,
-  }
+  } -> Anchor['quantum-server-done']
 
+  anchor {'quantum-server-done':}
+  Anchor['quantum-server'] -> Anchor['quantum-server-done']
 }

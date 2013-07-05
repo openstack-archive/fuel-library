@@ -224,7 +224,9 @@ class openstack::nova::controller (
     $quantum_sql_connection = "$db_type://${quantum_db_user}:${quantum_db_password}@${db_host}/${quantum_db_dbname}?charset=utf8"
 
     class { 'quantum::server':
-      auth_host     => $internal_address,
+      auth_host     => $keystone_host,
+      auth_tenant   => 'services',
+      auth_user     => 'quantum',
       auth_password => $quantum_user_password,
     }
     if $quantum and !$quantum_network_node {
