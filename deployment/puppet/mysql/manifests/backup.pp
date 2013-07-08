@@ -25,10 +25,18 @@ class mysql::backup (
   $backupuser,
   $backuppassword,
   $backupdir,
-  $ensure = 'present'
+  $ensure = 'present',
+  $host = false,
+  $port = false,
+  $authorized_user = false,
+  $authorized_pass = false,
 ) {
 
   database_user { "${backupuser}@localhost":
+    host            => $host,
+    port            => $port,
+    authorized_user => $authorized_user,
+    authorized_pass => $authorized_pass,
     ensure        => $ensure,
     password_hash => mysql_password($backuppassword),
     provider      => 'mysql',
@@ -36,6 +44,10 @@ class mysql::backup (
   }
 
   database_grant { "${backupuser}@localhost":
+    host            => $host,
+    port            => $port,
+    authorized_user => $authorized_user,
+    authorized_pass => $authorized_pass,
     privileges => [ 'Select_priv', 'Reload_priv', 'Lock_tables_priv' ],
     require    => Database_user["${backupuser}@localhost"],
   }

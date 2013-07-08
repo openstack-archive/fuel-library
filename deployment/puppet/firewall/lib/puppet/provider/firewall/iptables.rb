@@ -157,6 +157,8 @@ Puppet::Type.type(:firewall).provide :iptables, :parent => Puppet::Provider::Fir
     # --tcp-flags takes two values; we cheat by adding " around it
     # so it behaves like --comment
     values = values.sub(/--tcp-flags (\S*) (\S*)/, '--tcp-flags "\1 \2"')
+    values = values.sub(/-s (!)\s?(\S*)/, '-s "\1 \2"')
+    values = values.sub(/-d (!)\s?(\S*)/, '-d "\1 \2"')
 
     # Trick the system for booleans
     known_booleans.each do |bool|
@@ -198,9 +200,11 @@ Puppet::Type.type(:firewall).provide :iptables, :parent => Puppet::Provider::Fir
 
     # Normalise all rules to CIDR notation.
     [:source, :destination].each do |prop|
-      if hash[prop] =~ /^(\d{1,3}\.){3}\d{1,3}(:?\/(\d+))?$/
-        hash[prop] = Puppet::Util::IPCidr.new(hash[prop]).cidr \
-      end
+      next if hash[prop].nil?
+      m = hash[prop].match(/(!?)\s?(.*)/)
+      neg = nil
+      neg = '! ' if m[1] == '!'
+      hash[prop] = "#{neg}#{Puppet::Util::IPCidr.new(m[2]).cidr}"
     end
 
     [:dport, :sport, :port, :state].each do |prop|
