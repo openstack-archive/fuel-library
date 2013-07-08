@@ -1,4 +1,4 @@
-
+#
 define haproxy_service(
   $order,
   $balancers,
@@ -117,7 +117,7 @@ class openstack::controller_ha (
    $quantum = false, $quantum_user_password='', $quantum_db_password='', $quantum_db_user = 'quantum',
    $quantum_db_dbname  = 'quantum', $cinder = false, $cinder_iscsi_bind_addr = false, $tenant_network_type = 'gre', $segment_range = '1:4094',
    $nv_physical_volume = undef, $manage_volumes = false,$galera_nodes, $use_syslog = false, $syslog_log_level = 'WARNING', 
-   $syslog_log_facility_glance   = 'LOCAL2'
+   $syslog_log_facility_glance   = 'LOCAL2',
    $syslog_log_facility_cinder   = 'LOCAL3',
    $syslog_log_facility_quantum  = 'LOCAL4',
    $syslog_log_facility_nova     = 'LOCAL6',
