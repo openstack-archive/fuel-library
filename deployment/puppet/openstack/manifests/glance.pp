@@ -78,6 +78,8 @@ class openstack::glance (
     enabled           => $enabled,
     registry_host     => $registry_host,
     use_syslog        => $use_syslog,
+    syslog_log_facility => $syslog_log_facility,
+    syslog_log_level    => $syslog_log_level,
   }
 
   # Install and configure glance-registry
@@ -94,6 +96,8 @@ class openstack::glance (
     sql_connection    => $sql_connection,
     enabled           => $enabled,
     use_syslog        => $use_syslog,
+    syslog_log_facility => $syslog_log_facility,
+    syslog_log_level    => $syslog_log_level,
   }
 
   # Configure file storage backend

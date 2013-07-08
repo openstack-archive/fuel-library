@@ -17,7 +17,9 @@ class glance::registry(
   $keystone_tenant   = 'admin',
   $keystone_user     = 'admin',
   $enabled           = true,
-  $use_syslog = false
+  $use_syslog        = false,
+  $syslog_log_facility = 'LOCAL2',
+  $syslog_log_level  = 'WARNING',
 ) inherits glance {
   
 if $use_syslog {
@@ -48,6 +50,13 @@ if $use_syslog {
     mode    => '0640',
     notify  => Service['glance-registry'],
     require => Class['glance']
+  }
+
+  if !defined(File["glance-logging.conf"]) {
+    file {"glance-logging.conf":
+      content => template('glance/logging.conf.erb'),
+      path => "/etc/glance/logging.conf",
+    }
   }
 
   if($sql_connection =~ /mysql:\/\/\S+:\S+@\S+\/\S+/) {

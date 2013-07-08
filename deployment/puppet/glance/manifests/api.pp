@@ -49,7 +49,9 @@ class glance::api(
   $enabled           = true,
   $sql_idle_timeout  = '3600',
   $sql_connection    = 'sqlite:///var/lib/glance/glance.sqlite',
-  $use_syslog = false
+  $use_syslog        = false,
+  $syslog_log_facility = 'LOCAL2',
+  $syslog_log_level  = 'WARNING',
 ) inherits glance {
 
   # used to configure concat
@@ -74,6 +76,13 @@ class glance::api(
     mode    => '0640',
     notify  => Service['glance-api'],
     require => Class['glance'],
+  }
+
+  if !defined(File["glance-logging.conf"]) {
+    file {"glance-logging.conf":
+      content => template('glance/logging.conf.erb'),
+      path => "/etc/glance/logging.conf",
+    }
   }
 
   if($sql_connection =~ /mysql:\/\/\S+:\S+@\S+\/\S+/) {
