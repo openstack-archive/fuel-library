@@ -1,0 +1,26 @@
+"/var/log/*-all.log" "/var/log/remote/*/*log"
+"/var/log/kern.log" "/var/log/debug" "/var/log/daemon.log"
+"/var/log/auth.log" "/var/log/user.log" "var/log/mail.log"
+"/var/log/cron.log"
+{
+  sharedscripts
+  <%= @rotation %>
+  # truncate file, do not delete & recreate
+  copytruncate
+  # rotate only if 30M size or bigger
+  size 30M
+  # also rotate if 300M size have exceeded
+  minsize <%= @limitsize %>
+  # keep logs for 7 rotations
+  rotate <%= @keep %>
+  # compression is postponed to next rotation
+  compress
+  delaycompress
+  # ignore missing files
+  missingok
+  # do not rotate empty files
+  notifempty
+  postrotate
+      /bin/kill -HUP `cat /var/run/syslogd.pid 2> /dev/null` 2> /dev/null || true
+  endscript
+}

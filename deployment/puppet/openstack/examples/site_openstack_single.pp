@@ -6,10 +6,10 @@
 #
 
 # Run stages for puppet
-stage {'rsyslogs': before => Stage['openstack-custom-repo']}
-stage {'openstack-custom-repo': before => Stage['netconfig'] }
-stage {'netconfig': before  => Stage['main'] }
-stage {'openstack-firewall': before => Stage['main'], require => Stage['netconfig'] }
+stage {'first': } ->
+stage {'openstack-custom-repo': } ->
+stage {'netconfig': } ->
+stage {'openstack-firewall': } -> Stage['main']
 
 ### GENERAL CONFIG ###
 # This section sets main parameters such as hostnames and IP addresses of different nodes
@@ -291,19 +291,33 @@ $syslog_log_facility_nova     = 'LOCAL6'
 $syslog_log_facility_keystone = 'LOCAL7'
 
 if $use_syslog {
-  anchor { '::rsyslog::begin': }
-  class { "::rsyslog::client":
-    log_remote => true,
-    log_local  => true,
+  anchor { '::openstack::logging::begin': } ->
+  class { "::openstack::logging":
+    role           => 'client',
+    log_remote     => true,
+    log_local      => true,
     log_auth_local => true,
-    stage => 'rsyslogs',
-# TODO configurable master node name, default is 'master:514'
-    #server => 'master',
-    #rservers => ['server1', 'server2', 'server3']
-    #port => '514'
-  }
-  anchor { '::rsyslog::end': }
+    rotation       => 'weekly',
+    keep           => '4',
+    limitsize      => '300M',
+    stage          => 'first',
+    rservers       => [{'remote_type'=>'udp', 'server'=>'master', 'port'=>'514'},],
+  } ->
+  anchor { '::openstack::logging::end': }  
 }
+
+# Example for server role class definition for remote logging node:
+#   class {::openstack::logging:
+#      role           => 'server',
+#      log_remote     => false,
+#      log_local      => true,
+#      log_auth_local => true,
+#      rotation       => 'daily',
+#      keep           => '7',
+#      limitsize      => '100M',
+#      port           => '514',
+#      proto          => 'udp',
+#   }
 
 ### Syslog END ###
 

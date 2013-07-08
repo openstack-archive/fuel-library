@@ -406,13 +406,33 @@ $syslog_log_facility_nova     = 'LOCAL6'
 $syslog_log_facility_keystone = 'LOCAL7'
 
 if $use_syslog {
-  class { "::rsyslog::client":
-    log_local => true,
+  anchor { '::openstack::logging::begin': } ->
+  class { "::openstack::logging":
+    role           => 'client',
+    log_remote     => true,
+    log_local      => true,
     log_auth_local => true,
-    server => '127.0.0.1',
-    port => '514'
-  }
+    rotation       => 'weekly',
+    keep           => '4',
+    limitsize      => '300M',
+    stage          => 'first',
+    rservers       => [{'remote_type'=>'udp', 'server'=>'master', 'port'=>'514'},],
+  } ->
+  anchor { '::openstack::logging::end': }
 }
+
+# Example for server role class definition for remote logging node:
+#   class {::openstack::logging:
+#      role           => 'server',
+#      log_remote     => false,
+#      log_local      => true,
+#      log_auth_local => true,
+#      rotation       => 'daily', 
+#      keep           => '7',
+#      limitsize      => '100M',
+#      port           => '514', 
+#      proto          => 'udp',
+#   }
 
 ### Syslog END ###
 case $::osfamily {
