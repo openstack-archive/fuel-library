@@ -6,13 +6,16 @@ describe Puppet::Type.type(:cs_location).provider(:crm) do
   let(:provider) { resource.provider }
 
   describe "#create" do
+    before(:each) do
+      provider.class.stubs(:exec_withenv).returns(0)
+    end
+
     it "should create location with corresponding members" do
       resource[:primitive] = "p_1"
       resource[:rules] = [
         {:score=> "inf",:expressions => [{:attribute=>"pingd",:operation=>"defined"}]}
       ]
 
-      provider.stubs(:crm)
       tmpfile = StringIO.new()
       Tempfile.stubs(:open).with("puppet_crm_update").yields(tmpfile)
       tmpfile.stubs(:path)
@@ -27,7 +30,6 @@ describe Puppet::Type.type(:cs_location).provider(:crm) do
         {:score=> "inf",:date_expressions => [{:date_spec=>{:hours=>"10", :weeks=>"5"}, :operation=>"date_spec", :start=>"", :end=>""}]}
       ]
 
-      provider.stubs(:crm)
       tmpfile = StringIO.new()
       Tempfile.stubs(:open).with("puppet_crm_update").yields(tmpfile)
       tmpfile.stubs(:path)
@@ -42,7 +44,6 @@ describe Puppet::Type.type(:cs_location).provider(:crm) do
         {:score=> "inf",:date_expressions => [{:operation=>"lt", :end=>"20131212",:start=>""}]}
       ]
 
-      provider.stubs(:crm)
       tmpfile = StringIO.new()
       Tempfile.stubs(:open).with("puppet_crm_update").yields(tmpfile)
       tmpfile.stubs(:path)
@@ -57,7 +58,6 @@ describe Puppet::Type.type(:cs_location).provider(:crm) do
         {:score=> "inf",:date_expressions => [{:operation=>"gt", :end=>"",:start=>"20121212"}]}
       ]
 
-      provider.stubs(:crm)
       tmpfile = StringIO.new()
       Tempfile.stubs(:open).with("puppet_crm_update").yields(tmpfile)
       tmpfile.stubs(:path)
@@ -73,7 +73,6 @@ describe Puppet::Type.type(:cs_location).provider(:crm) do
         {:score=> "inf",:date_expressions => [{:operation=>"in_range", :end=>"",:start=>"20121212", :duration=>{:weeks=>"5"}}]}
       ]
 
-      provider.stubs(:crm)
       tmpfile = StringIO.new()
       Tempfile.stubs(:open).with("puppet_crm_update").yields(tmpfile)
       tmpfile.stubs(:path)
