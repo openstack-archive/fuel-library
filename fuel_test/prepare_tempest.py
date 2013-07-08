@@ -239,7 +239,7 @@ class PrepareTempest():
             'ADMIN_USER_NAME': self.username,
             'ADMIN_PASSWORD': self.password,
             'ADMIN_TENANT_NAME': self.tenant,
-            'COMPUTE_ALLOW_TENANT_ISOLATION': 'true',
+            'COMPUTE_ALLOW_TENANT_ISOLATION': 'false',
             'COMPUTE_ALLOW_TENANT_REUSE': 'true',
             'IMAGE_ID': image_ref,
             'IMAGE_ID_ALT': image_ref_alt,
@@ -267,7 +267,7 @@ class PrepareTempest():
             'COMPUTE_ADMIN_TENANT_NAME': self.tenant,
             'IMAGE_CATALOG_TYPE': 'image',
             'IMAGE_API_VERSION': '1',
-            'NETWORK_API_VERSION': 'v2.0',
+            'NETWORK_API_VERSION': 'v1.1',
             'NETWORK_CATALOG_TYPE': 'network',
             'TENANT_NETWORK_CIDR': '192.168.112.0/24', #TODO: ask Bogdan why # choose do not overlap with 'net04'
             'TENANT_NETWORK_MASK_BITS': '28', # 29 is too less to test quantum quotas (at least 50 ips needed)
