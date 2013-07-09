@@ -101,6 +101,7 @@ Puppet::Type.newtype(:database_grant) do
     defaultto '3306'
 
     validate do |value|
+      return if value.instance_of?(FalseClass) and value == false
       port_range = (1025..48999)
       return if value.respond_to?(:to_i) && port_range.include?(value.to_i)
       raise(ArgumentError, "#{value} is incorrect port range #{port_range.min}-#{port_range.max}")
