@@ -6,7 +6,7 @@ $LOAD_PATH.push(File.join(File.dirname(__FILE__), '..', '..', '..'))
 require 'puppet/provider/mysql'
 Puppet::Type.type(:database_grant).provide(
     :mysql,
-    :parent => Puppet::Provider::Mysql,
+    :parent => Puppet::Provider::Mysql
 ) do
 
   desc "Uses mysql as database."

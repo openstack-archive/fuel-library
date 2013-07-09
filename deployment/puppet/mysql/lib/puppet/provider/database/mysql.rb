@@ -3,7 +3,7 @@ require 'puppet/provider/mysql'
 
 Puppet::Type.type(:database).provide(
   :mysql,
-  :parent => Puppet::Provider::Mysql,
+  :parent => Puppet::Provider::Mysql
 ) do
 
   desc "Manages MySQL database."
