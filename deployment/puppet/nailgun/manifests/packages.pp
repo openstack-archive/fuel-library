@@ -11,9 +11,13 @@ class nailgun::packages(
   nailgun_safe_package { "supervisor": }
   nailgun_safe_package { "nginx": }
   nailgun_safe_package { "python-virtualenv": }
+
+  #FIXME: provide only binary packages, do not build gems and eggs
+
   nailgun_safe_package { "python-devel": }
   nailgun_safe_package { "postgresql-libs": }
   nailgun_safe_package { "postgresql-devel": }
+  nailgun_safe_package { "ruby-devel": }
   nailgun_safe_package { "gcc": }
   nailgun_safe_package { "gcc-c++": }
   nailgun_safe_package { "make": }
