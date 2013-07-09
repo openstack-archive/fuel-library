@@ -780,6 +780,7 @@ node /fuel-swift-[\d+]/ {
     rabbit_password        => $rabbit_password,
     rabbit_user            => $rabbit_user,
     rabbit_ha_virtual_ip   => $internal_virtual_ip,
+    sync_rings             => ! $primary_proxy,
   }
 
 }
