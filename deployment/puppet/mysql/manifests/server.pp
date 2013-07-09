@@ -29,11 +29,11 @@ class mysql::server (
   $mysql_skip_name_resolve = false,
   $use_syslog              = false,
   $server_id         = $mysql::params::server_id,
-  $replication_roles = "SELECT, PROCESS, FILE, SUPER, REPLICATION CLIENT, REPLICATION SLAVE, RELOAD",
   $rep_user = 'replicator',
   $rep_pass = 'replicant666',
 ) inherits mysql::params {
-    
+
+  Exec {path => '/usr/bin:/bin:/usr/sbin:/sbin'}    
   if ($custom_setup_class == undef) {
     include mysql
     Class['mysql::server'] -> Class['mysql::config']
@@ -69,20 +69,12 @@ class mysql::server (
   elsif ($custom_setup_class == 'pacemaker_mysql')  {
     include mysql
     Package[mysql-server] -> Class['mysql::config']
-    Package[mysql-client] -> Package[mysql-server]
-    Cs_commit['mysql']    -> Service['mysqld']
-    Cs_property <||> -> Cs_shadow <||>
-    Cs_shadow['mysql']    -> Service['mysqld']
-    Cs_commit <| title == 'internal-vip' |> -> Cs_shadow['mysql']
-
+    Package[mysql-client] -> Package['mysql-server']
+    Class['mysql::config'] -> Class['mysql::replicator']
     $config_hash['custom_setup_class'] = $custom_setup_class
     $allowed_hosts = '%'
-    #$allowed_hosts = 'localhost'
-
-
-
     create_resources( 'class', { 'mysql::config' => $config_hash })
-    Class['mysql::config'] -> Cs_resource['p_mysql']
+
 
     if !defined(Package[mysql-client]) {
       package { 'mysql-client':
@@ -93,64 +85,13 @@ class mysql::server (
     package { 'mysql-server':
       name   => $package_name,
     }
-
- 
-    Class['openstack::corosync'] -> Cs_resource['p_mysql']
-
-#    #cs_rsc_defaults { "resource-stickiness":
-#    #  ensure => present,
-#    #  value  => '110',
-#    #}->
-#    cs_commit { 'mysqlvip' : cib => "mysqlvip" } ->
-
-  file { "/tmp/repl_create.sql" :
-    ensure  => present,
-    content => template("mysql/repl_create.sql.erb"),
-  } ->
-
-    cs_shadow { 'mysql': cib => 'mysql' } ->
-    cs_resource { "p_mysql":
-      ensure          => present,
-      primitive_class => 'ocf',
-      provided_by     => 'heartbeat',
-      primitive_type  => 'mysql',
-      cib             => 'mysql',
-      multistate_hash => {'type'=>'master'},
-      ms_metadata     => {'notify'=>"true"},
-      parameters      => {
-        'binary' => "/usr/bin/mysqld_safe",
-        'test_table'         => 'mysql.user',
-        'replication_user'   => $rep_user,
-        'replication_passwd' => $rep_pass,
-        'additional_parameters' => '"--init-file=/tmp/repl_create.sql"',
-      },
-      operations   => {
-        'monitor'  => { 'interval' => '20', 'timeout'  => '30' },
-        'start'    => { 'timeout' => '360' },
-        'stop'     => { 'timeout' => '360' },
-        'promote'  => { 'timeout' => '360' },
-        'demote'   => { 'timeout' => '360' },
-        'notify'   => { 'timeout' => '360' },
-      }
-    }->
-
-
-    cs_commit { 'mysql': cib => 'mysql' } ->
-
-    service { 'mysqld':
-      name     => "p_${service_name}",
-      ensure   => 'running',
-      enable   => true,
-      require  => [Package['mysql-server'], Cs_commit['mysql']],
-      provider => 'pacemaker',
+    class { 'mysql::replicator':
+      node_addresses => $galera_nodes,
+      node_address   => $galera_node_address,
+      service_name   => $service_name,
+      rep_user       => $rep_pass,
+      rep_pass       => $rep_pass,
     }
-
-    #Tie internal-vip to p_mysql
-    cs_colocation { 'mysql_to_internal-vip': 
-      primitives => ['internal-vip','master_p_mysql:Master'],
-      score      => 'INFINITY',
-      require    => [Cs_resource['p_mysql'], Cs_commit['mysql']],
-    } 
 
   }
   elsif ($custom_setup_class == 'galera')  {

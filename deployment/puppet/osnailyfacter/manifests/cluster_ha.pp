@@ -66,7 +66,7 @@ else {
 }
 
 # can be 'qpid' or 'rabbitmq' only
-$queue_provider = 'rabbitmq'
+$queue_provider = 'qpid'
 
 # do not edit the below line
 validate_re($queue_provider,  'rabbitmq|qpid')
