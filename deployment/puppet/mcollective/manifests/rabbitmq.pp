@@ -17,6 +17,14 @@ class mcollective::rabbitmq (
     }
   }
 
+  # unused code from fuelweb. will be deleted in next release
+  #  define mcollective_rabbitmq_safe_package(){
+  #  if ! defined(Package[$name]){
+  #    @package { $name : }
+  #  }
+  # }
+
+
   case $::osfamily {
     'Debian' : {
     }
@@ -58,14 +66,6 @@ class mcollective::rabbitmq (
     read_permission      => '.*',
     provider             => 'rabbitmqctl',
     require              => [Class['rabbitmq::server'], Rabbitmq_user[$user],]
-  }
-
-  if !defined(Package['rabbitmq-server']) {
-    @package { 'rabbitmq-server': }
-  }
-
-  if !defined(Service['rabbitmq-server']) {
-    @service { 'rabbitmq-server': }
   }
 
   file { "/etc/rabbitmq/enabled_plugins":
