@@ -30,10 +30,11 @@ class openstack::horizon (
   $keystone_host         = '127.0.0.1',
   $keystone_scheme       = 'http',
   $keystone_default_role = 'Member',
-  $django_debug          = 'False',
+  $verbose               = 'false',
   $api_result_limit      = 1000,
   $package_ensure        = present,
   $use_ssl               = false,
+  $use_syslog            = false,
 ) {
 
   # class { 'memcached':
@@ -41,6 +42,14 @@ class openstack::horizon (
   #  tcp_port  => $cache_server_port,
   #  udp_port  => $cache_server_port,
   # }
+ if $verbose =~ /(?i)(true|yes)/
+ {
+   $django_debug = 'True'
+ }
+ else
+ {
+   $django_debug = 'False'
+ }
 
   class { '::horizon':
     bind_address          => $bind_address,
@@ -57,5 +66,6 @@ class openstack::horizon (
     django_debug          => $django_debug,
     api_result_limit      => $api_result_limit,
     use_ssl               => $use_ssl,
+    use_syslog            => $use_syslog,
   }
 }

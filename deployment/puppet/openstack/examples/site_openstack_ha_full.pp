@@ -708,6 +708,7 @@ node /fuel-compute-[\d+]/ {
     network_manager        => $network_manager,
     network_config         => { 'vlan_start' => $vlan_start },
     multi_host             => $multi_host,
+    auto_assign_floating_ip => $auto_assign_floating_ip,
     sql_connection         => "mysql://nova:${nova_db_password}@${internal_virtual_ip}/nova",
     rabbit_nodes           => $controller_hostnames,
     rabbit_password        => $rabbit_password,
@@ -783,6 +784,7 @@ node /fuel-swift-[\d+]/ {
     rabbit_password        => $rabbit_password,
     rabbit_user            => $rabbit_user,
     rabbit_ha_virtual_ip   => $internal_virtual_ip,
+    sync_rings             => ! $primary_proxy,
   }
 
 }

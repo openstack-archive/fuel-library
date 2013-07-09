@@ -18,6 +18,12 @@ class cinder::base (
 ) {
 
   include cinder::params
+
+  if !defined(Package[$::cinder::params::qemuimg_package_name])
+  {
+    package {"$::cinder::params::qemuimg_package_name":}
+  }
+
   package { 'python-cinder':
         ensure  => $package_ensure,
          }
