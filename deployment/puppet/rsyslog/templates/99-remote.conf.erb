@@ -3,7 +3,6 @@
 <% if scope.lookupvar('rsyslog::client::log_remote') -%>
 # Log to remote syslog server using <%= scope.lookupvar('rsyslog::client::remote_type') %>
 # Templates
-# Would match 'kernel:'  -> 'kernel'    ;  'rsyslog[12345]:'  -> 'rsyslog' ; '<180>(nova.api.wsgi):'  ->  'nova.api.wsgi'
 $Template CustomLog, "%$NOW%T%TIMESTAMP:8:$%Z %syslogseverity-text% %syslogtag% %msg:drop-last-lf%\n"
 
 <% scope.lookupvar('rsyslog::client::rservers_real').each do |rserver| -%>

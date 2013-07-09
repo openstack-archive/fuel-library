@@ -9,6 +9,8 @@
 # [rservers] array of hashes which represents remote logging servers for client role.
 # [port] port to use by server role for remote logging.
 # [proto] tcp/udp proto for remote log server role.
+# [show_timezone] if enabled, high_precision_timestamps with GMT would be used for server role. 
+# [virtual] if node is virtual, fix for udp checksums should be applied
 
 class openstack::logging (
     $role           = 'client',
@@ -21,6 +23,8 @@ class openstack::logging (
     $rservers       = [{'remote_type'=>'udp', 'server'=>'master', 'port'=>'514'},],
     $port           = '514',
     $proto          = 'udp',
+    $show_timezone  = false,
+    $virtual        = false,
 ) {
 
 validate_re($proto, 'tcp|udp')
@@ -33,6 +37,7 @@ if $role == 'client' {
     log_local      => $log_local,
     log_auth_local => $log_auth_local,
     rservers       => $rservers,
+    virtual        => $virtual,
   } ->
 # FIXME Find more appropriate way to ensure rsyslog service would be restarted
 # while custom runstage openstack::logging class has been called within
@@ -49,8 +54,11 @@ if $role == 'client' {
     action  => 'accept',
   } ->
   class {"::rsyslog::server": 
-    enable_tcp => false, 
-    server_dir => '/var/log/'
+    enable_tcp => $proto == 'tcp' ? { true => 'true', default =>'false' },
+    enable_udp => $proto == 'udp' ? { true => 'true', default =>'true' },
+    server_dir => '/var/log/',
+    high_precision_timestamps => $show_timezone,
+    virtual    => $virtual,
   } -> 
 # FIXME Find more appropriate way to ensure rsyslog service would be restarted
 # while custom runstage openstack::logging class has been called within

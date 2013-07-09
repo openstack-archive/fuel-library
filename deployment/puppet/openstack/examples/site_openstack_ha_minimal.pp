@@ -376,15 +376,20 @@ $syslog_log_facility_keystone = 'LOCAL7'
 
 if $use_syslog {
   class { "::openstack::logging":
+    stage          => 'first',
     role           => 'client',
+    # log both locally include auth, and remote
     log_remote     => true,
     log_local      => true,
     log_auth_local => true,
+    # keep four weekly log rotations, force rotate if 300M size have exceeded
     rotation       => 'weekly',
     keep           => '4',
     limitsize      => '300M',
-    stage          => 'first',
+    # remote servers to send logs to
     rservers       => [{'remote_type'=>'udp', 'server'=>'master', 'port'=>'514'},],
+    # should be true, if client is running at virtual node
+    virtual        => true,
   }
 }
 
@@ -394,13 +399,16 @@ if $use_syslog {
 #      log_remote     => false,
 #      log_local      => true,
 #      log_auth_local => true,
-#      rotation       => 'daily', 
+#      rotation       => 'daily',
 #      keep           => '7',
 #      limitsize      => '100M',
-#      port           => '514', 
+#      port           => '514',
 #      proto          => 'udp',
+#     #high precision timespamps
+#      show_timezone  => true,
+#     #should be true, if server is running at virtual node
+#     #virtual        => false,
 #   }
-
 ### Syslog END ###
 case $::osfamily {
     "Debian":  {

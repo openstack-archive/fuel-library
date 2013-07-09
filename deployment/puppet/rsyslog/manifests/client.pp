@@ -11,10 +11,12 @@ class rsyslog::client (
   $server         = 'master',
   $port           = '514',
   $escapenewline  = false,
-  $rservers       = undef
+  $rservers       = undef,
+  $virtual        = false,
   ) inherits rsyslog {
 
-  include rsyslog::checksum_udp514
+# Fix for udp checksums should be applied if running on virtual node
+if $virtual { include rsyslog::checksum_udp514 }
 
   if $rservers == undef {
     $rservers_real = [{'remote_type'=>$remote_type, 'server'=>$server, 'port'=>$port}]

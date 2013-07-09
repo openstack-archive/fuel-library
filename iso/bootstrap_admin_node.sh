@@ -37,6 +37,8 @@ puppet apply -e "
       limitsize      => '100M',
       port           => '514',
       proto          => 'udp',
+      show_timezone  => true,
+     #virtual        => false,
     }"
 puppet apply -e "
     class {openstack::mirantis_repos: enable_epel => false } -> 

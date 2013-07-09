@@ -8,10 +8,12 @@ class rsyslog::server (
   $server_dir                = '/srv/log/',
   $custom_config             = undef,
   $high_precision_timestamps = false,
-  $escapenewline             = false
+  $escapenewline             = false,
+  $virtual                   = true,
 ) inherits rsyslog {
 
-include rsyslog::checksum_udp514
+# Fix for udp checksums should be applied if running on virtual node
+if $virtual { include rsyslog::checksum_udp514 }
 
   File {
     owner => root,
