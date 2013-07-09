@@ -406,7 +406,6 @@ $syslog_log_facility_nova     = 'LOCAL6'
 $syslog_log_facility_keystone = 'LOCAL7'
 
 if $use_syslog {
-  anchor { '::openstack::logging::begin': } ->
   class { "::openstack::logging":
     role           => 'client',
     log_remote     => true,
@@ -417,8 +416,7 @@ if $use_syslog {
     limitsize      => '300M',
     stage          => 'first',
     rservers       => [{'remote_type'=>'udp', 'server'=>'master', 'port'=>'514'},],
-  } ->
-  anchor { '::openstack::logging::end': }
+  }
 }
 
 # Example for server role class definition for remote logging node:
