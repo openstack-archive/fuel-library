@@ -43,10 +43,7 @@ class nailgun::cobbler(
   # ADDING send2syslog.py SCRIPT AND CORRESPONDING SNIPPET
 
   file { "/var/www/cobbler/aux/send2syslog.py":
-    content => template("nailgun/cobbler/send2syslog.py"),
-    owner => "root",
-    group => "root",
-    mode => 0644,
+    ensure => '/bin/send2syslog.py',
     require => Class["cobbler::server"],
   }
 
