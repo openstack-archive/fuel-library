@@ -14,8 +14,8 @@
 
 
 class cobbler::distro::centos64_x86_64(
-  $http_iso = 'http://download.mirantis.com/epel-fuel-grizzly/isos/x86_64/CentOS-6.4-x86_64-minimal.iso',
-  $ks_url   = 'http://download.mirantis.com/epel-fuel-grizzly'
+  $http_iso = 'http://download.mirantis.com/epel-fuel-grizzly-3.1/isos/x86_64/CentOS-6.4-x86_64-minimal.iso',
+  $ks_url   = 'http://download.mirantis.com/epel-fuel-grizzly-3.1'
   ) {
 
   Exec {path => '/usr/bin:/bin:/usr/sbin:/sbin'}
