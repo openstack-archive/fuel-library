@@ -294,6 +294,7 @@ if $use_syslog {
   class { "::openstack::logging":
     # FIXME #stage          => 'first',
     role           => 'client',
+    show_timezone => true,
     # log both locally include auth, and remote
     log_remote     => true,
     log_local      => true,
