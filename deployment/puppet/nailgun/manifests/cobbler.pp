@@ -16,12 +16,12 @@ class nailgun::cobbler(
   anchor { "nailgun-cobbler-end": }
 
   Anchor<| title == "nailgun-cobbler-begin" |> ->
-  Class["cobbler::server"] ->
+  Class["::cobbler"] ->
   Anchor<| title == "nailgun-cobbler-end" |>
 
   $half_of_network = ipcalc_network_count_addresses($ipaddress, $netmask) / 2
 
-  class { "cobbler::server":
+  class { "::cobbler":
     server              => $ipaddress,
 
     domain_name         => $domain,
@@ -44,58 +44,35 @@ class nailgun::cobbler(
 
   file { "/var/www/cobbler/aux/send2syslog.py":
     ensure => '/bin/send2syslog.py',
-    require => Class["cobbler::server"],
+    require => Class["::cobbler::server"],
   }
 
-  file {"/var/lib/cobbler/snippets/send2syslog":
-    content => template("nailgun/cobbler/send2syslog.snippet.erb"),
-    owner => root,
-    group => root,
+  file { "/etc/cobbler/power/fence_ssh.template":
+    content => template("nailgun/cobbler/fence_ssh.template.erb"),
+    owner => 'root',
+    group => 'root',
     mode => 0644,
-    require => Class["cobbler::server"],
+    require => Class["::cobbler::server"],
   }
 
-  file {"/var/lib/cobbler/snippets/target_logs_to_master":
-    content => template("nailgun/cobbler/target_logs_to_master.snippet.erb"),
-    owner => root,
-    group => root,
-    mode => 0644,
-    require => Class["cobbler::server"],
+  file { "/usr/sbin/fence_ssh":
+    content => template("nailgun/cobbler/fence_ssh.erb"),
+    owner => 'root',
+    group => 'root',
+    mode => 0755,
+    require => Class["::cobbler::server"],
   }
 
-  file {"/var/lib/cobbler/snippets/kickstart_ntp":
-    content => template("nailgun/cobbler/kickstart_ntp.snippet.erb"),
-    owner => root,
-    group => root,
-    mode => 0644,
-    require => Class["cobbler::server"],
-  }
-
-  file {"/var/lib/cobbler/snippets/ntp_to_masternode":
-    content => template("nailgun/cobbler/ntp_to_masternode.snippet.erb"),
-    owner => root,
-    group => root,
-    mode => 0644,
-    require => Class["cobbler::server"],
-  }
-
-file {"/var/lib/cobbler/snippets/dhclient_ignore_routers_opt":
-    content => template("nailgun/cobbler/dhclient_ignore_routers_opt.snippet.erb"),
-    owner => root,
-    group => root,
-    mode => 0644,
-    require => Class["cobbler::server"],
-  }
 
   # THIS VARIABLE IS NEEDED FOR TEMPLATING centos-x86_64.ks
   $ks_repo = $centos_repos
 
   file { "/var/lib/cobbler/kickstarts/centos-x86_64.ks":
-    content => template("nailgun/cobbler/centos.ks.erb"),
+    content => template("cobbler/kickstart/centos.ks.erb"),
     owner => root,
     group => root,
     mode => 0644,
-    require => Class["cobbler::server"],
+    require => Class["::cobbler::server"],
   } ->
 
   cobbler_distro { "centos-x86_64":
@@ -105,7 +82,7 @@ file {"/var/lib/cobbler/snippets/dhclient_ignore_routers_opt":
     breed => "redhat",
     osversion => "rhel6",
     ksmeta => "tree=http://@@server@@:8080/centos/fuelweb/x86_64/",
-    require => Class["cobbler::server"],
+    require => Class["::cobbler::server"],
   }
 
   cobbler_profile { "centos-x86_64":
@@ -124,7 +101,7 @@ file {"/var/lib/cobbler/snippets/dhclient_ignore_routers_opt":
     breed => "redhat",
     osversion => "rhel6",
     ksmeta => "",
-    require => Class["cobbler::server"],
+    require => Class["::cobbler::server"],
   }
 
   cobbler_profile { "bootstrap":
@@ -135,6 +112,8 @@ file {"/var/lib/cobbler/snippets/dhclient_ignore_routers_opt":
     ksmeta => "",
     require => Cobbler_distro["bootstrap"],
   }
+
+  class { cobbler::checksum_bootpc: }
 
   exec { "cobbler_system_add_default":
     command => "cobbler system add --name=default \
@@ -158,78 +137,10 @@ file {"/var/lib/cobbler/snippets/dhclient_ignore_routers_opt":
   Exec["cobbler_system_add_default"] ~> Exec["nailgun_cobbler_sync"]
   Exec["cobbler_system_edit_default"] ~> Exec["nailgun_cobbler_sync"]
 
-  file { "/etc/cobbler/power/fence_ssh.template":
-    content => template("nailgun/cobbler/fence_ssh.template.erb"),
-    owner => 'root',
-    group => 'root',
-    mode => 0644,
-    require => Class["cobbler::server"],
-  }
+  #FIXME: do we really need this NAT rules ?
+  #  class { 'cobbler::nat': nat_range => \"$dhcp_start_address/$dhcp_netmask\" }
 
-  file { "/usr/sbin/fence_ssh":
-    content => template("nailgun/cobbler/fence_ssh.erb"),
-    owner => 'root',
-    group => 'root',
-    mode => 0755,
-    require => Class["cobbler::server"],
-  }
-
-  file {"/var/lib/cobbler/snippets/authorized_keys":
-    content => template("nailgun/cobbler/authorized_keys.snippet.erb"),
-    owner => root,
-    group => root,
-    mode => 0644,
-    require => Class["cobbler::server"],
-  }
-
-  file {"/var/lib/cobbler/snippets/pre_install_network_config":
-    content => template("nailgun/cobbler/pre_install_network_config.snippet.erb"),
-    owner => root,
-    group => root,
-    mode => 0644,
-    require => Class["cobbler::server"],
-  }
-
-  file {"/var/lib/cobbler/snippets/pre_install_partition":
-    content => template("nailgun/cobbler/pre_install_partition.snippet.erb"),
-    owner => root,
-    group => root,
-    mode => 0644,
-    require => Class["cobbler::server"],
-  }
-
-  file {"/var/lib/cobbler/snippets/pre_install_partition_lvm":
-    content => template("nailgun/cobbler/pre_install_partition_lvm.snippet.erb"),
-    owner => root,
-    group => root,
-    mode => 0644,
-    require => Class["cobbler::server"],
-  }
-
-  file { "/var/lib/cobbler/snippets/nailgun_repo":
-    content => template("nailgun/cobbler/nailgun_repo.snippet.erb"),
-    owner => root,
-    group => root,
-    mode => 0644,
-    require => Class["cobbler::server"],
-  }
-
-  file { "/var/lib/cobbler/snippets/ssh_disable_gssapi":
-    content => template("nailgun/cobbler/ssh_disable_gssapi.snippet.erb"),
-    owner => root,
-    group => root,
-    mode => 0644,
-    require => Class["cobbler::server"],
-  }
-
-  file { "/var/lib/cobbler/snippets/sshd_auth_pubkey_only":
-    content => template("nailgun/cobbler/sshd_auth_pubkey_only.snippet.erb"),
-    owner => root,
-    group => root,
-    mode => 0644,
-    require => Class["cobbler::server"],
-  }
-
-  Package<| title == "cman" |>
-  Package<| title == "fence-agents"|>
+  #  Package<| title == "cman" |>
+  # Package<| title == "fence-agents"|>
 }
+
