@@ -3,6 +3,7 @@
 #
 
 class rsyslog::client (
+  $high_precision_timestamps = false,
   $log_remote     = true,
   $remote_type    = 'udp',
   $log_local      = true,

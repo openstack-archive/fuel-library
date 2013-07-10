@@ -9,7 +9,14 @@
 # [rservers] array of hashes which represents remote logging servers for client role.
 # [port] port to use by server role for remote logging.
 # [proto] tcp/udp proto for remote log server role.
-# [show_timezone] if enabled, high_precision_timestamps with GMT would be used for server role. 
+# [show_timezone] if enabled, high_precision_timestamps (date-rfc3339) with GMT would be used 
+#   for local (and remote) logging. Default is false (date-rfc3164 based), in this case
+#   local logging would use date-rfc3164 traditional format, but remote logging would use 
+#   slightly modified traditional timestamps
+#   Examples:
+#     date-rfc3339: 2010-12-05T02:21:41.889482+01:00, 
+#     date-rfc3164: Dec 5 02:21:13,
+#     modified traditional timestamps: 2013-05-12T02:21:13
 # [virtual] if node is virtual, fix for udp checksums should be applied
 
 class openstack::logging (
@@ -33,6 +40,7 @@ validate_re($rotation, 'daily|weekly|monthly|yearly')
 
 if $role == 'client' {
   class { "::rsyslog::client":
+    high_precision_timestamps => $show_timezone,
     log_remote     => $log_remote,
     log_local      => $log_local,
     log_auth_local => $log_auth_local,
