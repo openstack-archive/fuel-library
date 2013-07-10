@@ -3,18 +3,12 @@
 <% if scope.lookupvar('rsyslog::server::enable_udp') -%>
 # Load UDP module
 $ModLoad imudp
+$UDPServerRun <%= scope.lookupvar('rsyslog::server::port') %>
 <% end -%>
 
 <% if scope.lookupvar('rsyslog::server::enable_tcp') -%>
 # Load TCP module
 $ModLoad imtcp
-<% end -%>
-
-<% if scope.lookupvar('rsyslog::server::enable_udp') -%>
-$UDPServerRun <%= scope.lookupvar('rsyslog::server::port') %>
-<% end -%>
-
-<% if scope.lookupvar('rsyslog::server::enable_tcp') -%>
 $InputTCPServerRun <%= scope.lookupvar('rsyslog::server::port') %>
 <% end -%>
 

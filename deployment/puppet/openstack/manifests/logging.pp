@@ -54,9 +54,10 @@ if $role == 'client' {
     action  => 'accept',
   } ->
   class {"::rsyslog::server": 
-    enable_tcp => $proto == 'tcp' ? { true => 'true', default =>'false' },
-    enable_udp => $proto == 'udp' ? { true => 'true', default =>'true' },
+    enable_tcp => $proto ? { 'tcp' => true, default => false },
+    enable_udp => $proto ? { 'udp' => true, default => true },
     server_dir => '/var/log/',
+    port       => $port,
     high_precision_timestamps => $show_timezone,
     virtual    => $virtual,
   } -> 
