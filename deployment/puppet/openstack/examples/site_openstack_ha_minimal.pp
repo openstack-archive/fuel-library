@@ -376,7 +376,7 @@ $syslog_log_facility_keystone = 'LOCAL7'
 
 if $use_syslog {
   class { "::openstack::logging":
-    stage          => 'first',
+    # FIXME #stage          => 'first',
     role           => 'client',
     # log both locally include auth, and remote
     log_remote     => true,
