@@ -34,13 +34,15 @@ class quantum (
 
   anchor {'quantum-init':}
 
-  #file {'/etc/quantum':
-  #  ensure  => directory,
-  #  owner   => 'quantum',
-  #  group   => 'root',
-  #  mode    => 770,
-  #  require => Package['quantum']
-  #}
+  if ! defined(File['/etc/quantum']) {
+    file {'/etc/quantum':
+      ensure  => directory,
+      owner   => 'root',
+      group   => 'root',
+      mode    => 755,
+      #require => Package['quantum']
+    }
+  }
 
   package {'quantum':
     name   => $::quantum::params::package_name,
@@ -115,15 +117,19 @@ class quantum (
     }
   }
   quantum_config {'DEFAULT/log_config': value => "/etc/quantum/logging.conf";}
+  File['/etc/quantum'] -> File['quantum-logging.conf']
 
-  # SELINUX=permissive
+  if defined(Anchor['quantum-server-config-done']) {
+    $endpoint_quantum_main_configuration = 'quantum-server-config-done'
+  } else {
+    $endpoint_quantum_main_configuration = 'quantum-init-done'
+  }
 
   Anchor['quantum-init'] -> 
     Package['quantum'] -> 
       Quantum_config<||> -> 
         Quantum_api_config<||> ->
-          File['quantum-logging.conf'] ->
-            Anchor['quantum-init-done']
+          Anchor[$endpoint_quantum_main_configuration]
 
   anchor {'quantum-init-done':}
 }

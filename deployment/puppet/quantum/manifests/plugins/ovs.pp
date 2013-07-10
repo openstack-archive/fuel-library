@@ -14,19 +14,26 @@ class quantum::plugins::ovs (
   $root_helper          = 'sudo /usr/bin/quantum-rootwrap /etc/quantum/rootwrap.conf'
 ) {
 
+
+  # todo: Remove plugin section, add plugin to server class
+
   include 'quantum::params'
+  validate_re($sql_connection, '(sqlite|mysql|posgres):\/\/(\S+:\S+@\S+\/\S+)?')
+  $br_map_str = join($bridge_mappings, ',')
   
-  Anchor['quantum-init-done'] -> Anchor['quantum-plugin-ovs']
+
+  Anchor['quantum-server-config-done'] -> 
+    Anchor['quantum-plugin-ovs']
+  Anchor['quantum-plugin-ovs-done'] -> 
+    Anchor['quantum-server-done']
+  
   anchor {'quantum-plugin-ovs':}
 
   Quantum_plugin_ovs<||> ~> Service<| title == 'quantum-server' |>
-  Quantum_plugin_ovs<||> ~> Service<| title == 'quantum-ovs-agent' |>
-
-  Package['quantum-plugin-ovs'] -> Service<| title == 'quantum-server' |>
-  File['/etc/quantum/plugin.ini'] -> Service<| title == 'quantum-server' |>
-
-  validate_re($sql_connection, '(sqlite|mysql|posgres):\/\/(\S+:\S+@\S+\/\S+)?')
-
+  # not need!!!
+  # agent starts after server
+  # Quantum_plugin_ovs<||> ~> Service<| title == 'quantum-ovs-agent' |>
+  
   case $sql_connection {
     /mysql:\/\/\S+:\S+@\S+\/\S+/: {
       require 'mysql::python'
@@ -42,19 +49,31 @@ class quantum::plugins::ovs (
     }
   }
 
-  file { '/etc/quantum/plugin.ini':
-    ensure  => link,
-    target  => '/etc/quantum/plugins/openvswitch/ovs_quantum_plugin.ini',
-    require => Package['quantum-plugin-ovs']
+  if ! defined(File['/etc/quantum']) {
+    file {'/etc/quantum':
+      ensure  => directory,
+      owner   => 'root',
+      group   => 'root',
+      mode    => '0755',
+    } 
   }
-
   package { 'quantum-plugin-ovs':
     name    => $::quantum::params::ovs_server_package,
     ensure  => $package_ensure,
+  } ->
+  File['/etc/quantum'] ->
+  file {'/etc/quantum/plugins':
+    ensure  => directory,
+    mode    => '0755',
+  } ->
+  file {'/etc/quantum/plugins/openvswitch':
+    ensure  => directory,
+    mode    => '0755',
+  } ->
+  file { '/etc/quantum/plugin.ini':
+    ensure  => link,
+    target  => '/etc/quantum/plugins/openvswitch/ovs_quantum_plugin.ini',
   }
-
-  $br_map_str = join($bridge_mappings, ',')
-
   quantum_plugin_ovs {
     'DATABASE/sql_connection':      value => $sql_connection;
     'DATABASE/sql_max_retries':     value => $sql_max_retries;
@@ -88,12 +107,15 @@ class quantum::plugins::ovs (
     } 
   }
 
-  Anchor['quantum-plugin-ovs'] ->
-    Package['quantum-plugin-ovs'] ->
-      File['/etc/quantum/plugin.ini'] ->
-        Quantum_plugin_ovs<||> ->
-          Anchor['quantum-plugin-ovs-done']
+  File['/etc/quantum/plugin.ini'] -> 
+    Quantum_plugin_ovs<||> -> 
+      Anchor['quantum-server-config-done']
+
+  File['/etc/quantum/plugin.ini'] -> 
+    Anchor['quantum-plugin-ovs-done']
+  Anchor['quantum-plugin-ovs'] -> Anchor['quantum-plugin-ovs-done']
 
   anchor {'quantum-plugin-ovs-done':}
-  Anchor['quantum-plugin-ovs'] -> Anchor['quantum-plugin-ovs-done']
 }
+#
+###

@@ -219,6 +219,7 @@ class quantum::agents::l3 (
     Service<| title == 'quantum-server' |> -> Cs_shadow['l3']
     Quantum_l3_agent_config <||> -> Cs_shadow['l3']
 
+    File<| title=='quantum-logging.conf' |> ->
     cs_resource { "p_${::quantum::params::l3_agent_service}":
       ensure          => present,
       cib             => 'l3',
@@ -327,6 +328,7 @@ class quantum::agents::l3 (
       shared_secret => $::quantum_metadata_proxy_shared_secret
     }
   } else {
+    File<| title=='quantum-logging.conf' |> ->
     service { 'quantum-l3':
       name       => $::quantum::params::l3_agent_service,
       enable     => $enabled,

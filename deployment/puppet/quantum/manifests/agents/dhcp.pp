@@ -85,6 +85,7 @@ class quantum::agents::dhcp (
     Service <| title == 'quantum-server' |> -> Cs_shadow['dhcp']
     Quantum_dhcp_agent_config <| |> -> Cs_shadow['dhcp']
 
+    File<| title=='quantum-logging.conf' |> ->
     cs_resource { "p_${::quantum::params::dhcp_agent_service}":
       ensure          => present,
       cib             => 'dhcp',
@@ -169,6 +170,7 @@ class quantum::agents::dhcp (
     }
 
   } else {
+    File<| title=='quantum-logging.conf' |> ->
     service { 'quantum-dhcp-service':
       name       => $::quantum::params::dhcp_agent_service,
       enable     => $enabled,

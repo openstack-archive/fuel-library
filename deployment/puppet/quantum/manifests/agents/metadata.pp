@@ -76,7 +76,8 @@ class quantum::agents::metadata (
   cs_shadow { $res_name: cib => $cib_name }
   cs_commit { $res_name: cib => $cib_name }
 
-  cs_resource { $res_name:
+  File<| title=='quantum-logging.conf' |> ->
+  cs_resource { "$res_name":
     ensure          => present,
     cib             => $cib_name,
     primitive_class => 'ocf',
