@@ -55,6 +55,7 @@ class quantum::agents::ovs (
 
   if $enable_tunneling {
     L23network::L2::Bridge<| |> ->
+      Anchor['quantum-ovs-agent-done']
     l23network::l2::bridge { $tunnel_bridge:
       external_ids  => "bridge-id=${tunnel_bridge}",
       ensure        => present,
@@ -65,6 +66,7 @@ class quantum::agents::ovs (
 
   } else {
     L23network::L2::Bridge[$integration_bridge] ->
+      Anchor['quantum-ovs-agent-done']
     quantum::plugins::ovs::bridge { $bridge_mappings: # Do not quote!!! may be array!
     } ->
     quantum::plugins::ovs::port { $bridge_uplinks: # Do not quote!!! may be array!
