@@ -22,10 +22,10 @@ class quantum::plugins::ovs (
   $br_map_str = join($bridge_mappings, ',')
   
 
-  Anchor['quantum-server-config-done'] -> 
+  Anchor<| title=='quantum-server-config-done' |> -> 
     Anchor['quantum-plugin-ovs']
   Anchor['quantum-plugin-ovs-done'] -> 
-    Anchor['quantum-server-done']
+    Anchor<| title=='quantum-server-done' |>
   
   anchor {'quantum-plugin-ovs':}
 
@@ -78,6 +78,8 @@ class quantum::plugins::ovs (
     'DATABASE/sql_connection':      value => $sql_connection;
     'DATABASE/sql_max_retries':     value => $sql_max_retries;
     'DATABASE/reconnect_interval':  value => $reconnect_interval;
+  } ->
+  quantum_plugin_ovs {
     'OVS/integration_bridge':       value => $integration_bridge;
     'OVS/tenant_network_type':      value => $tenant_network_type;
     'OVS/enable_tunneling':         value => $enable_tunneling;
@@ -109,7 +111,7 @@ class quantum::plugins::ovs (
 
   File['/etc/quantum/plugin.ini'] -> 
     Quantum_plugin_ovs<||> -> 
-      Anchor['quantum-server-config-done']
+      Anchor<| title=='quantum-server-config-done' |>
 
   File['/etc/quantum/plugin.ini'] -> 
     Anchor['quantum-plugin-ovs-done']
