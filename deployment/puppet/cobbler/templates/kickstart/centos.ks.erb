@@ -2,16 +2,11 @@
 install
 
 # INSTALLATION SOURCE (centos repository)
-$SNIPPET('url_proxy')
+url --url=$tree
 
 # ALTERNATIVE REPOSITORIES
-<% if ks_repo.kind_of?(Array)  %>
-  <% ks_repo.each do |repo| %>
+<% ks_repo.each do |repo| %>
 repo --name=<%= repo['name'] %> --baseurl=<%= repo['url'] %>
-  <% end %>
-<% else %>
-  # No repos add
-  # in order to add repo declare the puppet "ks_repo" variable as Array
 <% end %>
 
 # KEYBOARD AND LANGUAGE CUSTOMIZATION
@@ -19,7 +14,7 @@ lang en_US.UTF-8
 keyboard us
 
 # WHICH TIMEZONE TO USE ON INSTALLED SYSTEM
-timezone --utc <%= @ks_system_timezone %>
+timezone --utc <%= ks_system_timezone %>
 
 # REBOOT AFTER INSTALLATION
 reboot
@@ -27,7 +22,7 @@ reboot
 firewall --disable
 
 # SET ROOT PASSWORD DEFAULT IS r00tme
-rootpw --iscrypted <%= @ks_encrypted_root_password %>
+rootpw --iscrypted <%= ks_encrypted_root_password %>
 
 # AUTHENTICATION CUSTOMIZATION
 authconfig --enableshadow --passalgo=sha512
@@ -48,7 +43,7 @@ skipx
 # --driveorder=sda,hda
 # APPEND STRING TO KERNEL BOOT COMMAND
 # --append=""
-bootloader --location=mbr --driveorder=sda,hda --append=" crashkernel=auto edd=off"
+%include /tmp/bootloader.ks
 
 # PARTITIONING
 # CLEAN ANY INVALID PARTITION TABLE
@@ -57,7 +52,8 @@ zerombr
 # REMOVE ALL PARTITIONS BEFORE CREATING NEW ONES
 clearpart --all --initlabel
 
-$SNIPPET('main_partition_select')
+# AUTOMATICALLY CREATE / AND swap PARTITIONS
+%include /tmp/partition.ks
 
 # COBBLER EMBEDDED SNIPPET: 'network_config'
 # CONFIGURES NETWORK INTERFACES DEPENDING ON
@@ -73,6 +69,15 @@ $SNIPPET('network_config')
 # CONFIGURES %pre LOGGING
 $SNIPPET('log_ks_pre')
 
+# DOWNLOADS send2syslog.py AND LAUNCHES IT
+# IN ORDER TO MONITOR LOG FILES AND SEND
+# LINES FROM THOSE FILES TO SYSLOG
+$SNIPPET('send2syslog')
+
+# SNIPPET: 'kickstart_ntp'
+# SYNC LOCAL TIME VIA NTP
+$SNIPPET('kickstart_ntp')
+
 # COBBLER EMBEDDED SNIPPET: 'kickstart_start'
 # LAUNCHES %pre TRIGGERS IF THOSE INSTALLED
 $SNIPPET('kickstart_start')
@@ -85,31 +90,43 @@ $SNIPPET('kickstart_start')
 # INTO KICKSTART BY 'network_config' SNIPPET
 $SNIPPET('pre_install_network_config')
 
-$SNIPPET('pre_partition_select')
-
+# COBBLER EMBEDDED SNIPPET: 'pre_install_partition'
+# DETECTS HARD DRIVES AND SETS FIRST OF THEM
+# AS INSTALLATION TARGET AND BOOTLOADER INSTALLATION TARGET
+$SNIPPET('pre_install_partition_lvm')
 
 # PACKAGES SECTION
 # HERE ARE LIST OF PACKAGES THAT WILL BE INSTALLED
-%packages --nobase
+# FIXME --ignoremissing
+%packages --nobase --ignoremissing
 @Core
-yum
+authconfig
+bind-utils
+cronie
+crontabs
+curl
+gcc
+make
+mlocate
+nailgun-agent
+nailgun-mcagents
+nailgun-net-check
 ntp
-openssh-server
 openssh
 openssh-clients
-curl
-wget
-crontabs
-cronie
+openssh-server
 ruby-augeas
-yum-plugin-versionlock
+ruby-devel
+system-config-firewall-base
+wget
+yum
 
 # COBBLER EMBEDDED SNIPPET: 'puppet_install_if_enabled'
 # LISTS puppet PACKAGE IF puppet_auto_setup VARIABLE IS SET TO 1
 $SNIPPET('puppet_install_if_enabled')
 
 # COBBLER EMBEDDED SNIPPET: 'mcollective_install_if_enabled'
-# LISTS mcollective PACKAGE IF mcollective_auto_setup VARIABLE IS SET TO 1
+# LISTS mcollective PACKAGE IF mco_auto_setup VARIABLE IS SET TO 1
 $SNIPPET('mcollective_install_if_enabled')
 
 # POSTINSTALL SECTION
@@ -123,6 +140,15 @@ yum versionlock iproute2
 echo -e "modprobe nf_conntrack_ipv4\nmodprobe nf_conntrack_ipv6" >> /etc/rc.modules
 chmod +x /etc/rc.modules
 echo -e "net.nf_conntrack_max=1048576" >> /etc/sysctl.conf
+gem install httpclient --version 2.2.5  --source <%= gem_source %> --no-ri --no-rdoc
+gem install json       --version 1.6.1  --source <%= gem_source %> --no-ri --no-rdoc
+gem install ohai       --version 6.14.0 --source <%= gem_source %> --no-ri --no-rdoc
+gem install rethtool   --version 0.0.3  --source <%= gem_source %> --no-ri --no-rdoc
+mkdir -p /etc/nailgun-agent/
+cat > /etc/nailgun-agent/config.yaml << EOA
+---
+url: '<%= scope.lookupvar('nailgun::nailgun_api_url') %>'
+EOA
 
 # COBBLER EMBEDDED SNIPPET: 'log_ks_post'
 # CONFIGURES %post LOGGING
@@ -135,7 +161,7 @@ $SNIPPET('post_install_kernel_options')
 # COBBLER EMBEDDED SNIPPET: 'post_install_network_config'
 # CONFIGURES NETWORK INTERFACES DEPENDING ON
 # COBBLER SYSTEM PARAMETERS
-$SNIPPET('post_install_network_config')
+$SNIPPET('post_install_network_config_fuel')
 
 # COBBLER EMBEDDED SNIPPET: 'puppet_conf'
 # CONFIGURES PUPPET AGENT
@@ -143,19 +169,56 @@ $SNIPPET('puppet_conf')
 
 # COBBLER EMBEDDED SNIPPET: 'puppet_register_if_enabled'
 # CREATES CERTIFICATE REQUEST AND SENDS IT TO PUPPET MASTER
-$SNIPPET('puppet_register_if_enabled')
-
-# COBBLER EMBEDDED SNIPPET: 'ntp_register_if_enabled'
-# SYNC NTPDATE AND RUN NTP SERVICE
-$SNIPPET('ntp_register_if_enabled')
-
-# CREATING LVM GROUP FOR CINDER
-$SNIPPET('cinder_create_lvm_group')
+$SNIPPET('puppet_register_if_enabled_fuel')
 
 # COBBLER EMBEDDED SNIPPET: 'mcollective_conf'
 # CONFIGURES MCOLLECTIVE AGENT
 $SNIPPET('mcollective_conf')
 
+# SNIPPET: 'ntp_to_masternode'
+# CONFIGURES NTPD POOL TO MASTER NODE
+$SNIPPET('ntp_to_masternode')
+
+# Let's not to use separate snippet for just one line of code. Complexity eats my time.
+echo 'flock -w 0 -o /var/lock/agent.lock -c "/opt/nailgun/bin/agent >> /var/log/nailgun-agent.log 2>&1"' >> /etc/rc.local
+
+# It is for the internal nailgun using
+echo target > /etc/nailgun_systemtype
+
+# COBBLER EMBEDDED SNIPPET: 'authorized_keys'
+# PUTS authorized_keys file into /root/.ssh/authorized_keys
+$SNIPPET('authorized_keys')
+
+# COBBLER EMBEDDED SNIPPET: 'nailgun_repo'
+# REMOVES ALL *.repo FILES FROM /etc/yum.repos.d AND
+# CREATES /etc/yum.repos.d/nailgun.repo FILE AND
+# PUTS IN IT ALL THE REPOSITORIES DEFINED IN ks_repo VARIABLE
+$SNIPPET('nailgun_repo')
+
+# COBBLER EMBEDDED SNIPPET: 'ssh_disable_gssapi'
+# REMOVES "GSSAPICleanupCredentials yes" AND "GSSAPIAuthentication yes" LINES
+# FROM /etc/ssh/sshd_config
+$SNIPPET('ssh_disable_gssapi')
+
+# Let's not wait forewer when ssh'ing:
+sed -i --follow-symlinks -e '/UseDNS/d' /etc/ssh/sshd_config
+echo 'UseDNS no' >> /etc/ssh/sshd_config
+
+# COBBLER EMBEDDED SNIPPET: 'sshd_auth_pubkey_only'
+# DISABLE PASSWORD AUTH. ALLOW PUBKEY AUTH ONLY IN /etc/ssh/sshd_config
+$SNIPPET('sshd_auth_pubkey_only')
+
+# Copying default bash settings to the root directory
+cp -f /etc/skel/.bash* /root/
+
+# Rsyslogd should send all messages to master node
+$SNIPPET('target_logs_to_master')
+
+# Dhclient should ignore option 'routers' on all interfaces.
+$SNIPPET('dhclient_ignore_routers_opt')
+
 # COBBLER EMBEDDED SNIPPET: 'kickstart_done'
 # DISABLES PXE BOOTING
 $SNIPPET('kickstart_done')
+
+%end

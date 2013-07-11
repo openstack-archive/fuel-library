@@ -41,8 +41,8 @@ build_reporting_smtp_server: "localhost"
 build_reporting_subject: ""
 
 # Cheetah-language kickstart templates can import Python modules.
-# while this is a useful feature, it is not safe to allow them to
-# import anything they want. This whitelists which modules can be
+# while this is a useful feature, it is not safe to allow them to 
+# import anything they want. This whitelists which modules can be 
 # imported through Cheetah.  Users can expand this as needed but
 # should never allow modules such as subprocess or those that
 # allow access to the filesystem as Cheetah templates are evaluated
@@ -52,7 +52,6 @@ cheetah_import_whitelist:
    - "re"
    - "time"
    - "orchestra"
-   - "late_command"
 
 # Default createrepo_flags to use for new repositories. If you have
 # createrepo >= 0.4.10, consider "-c cache --update -C", which can
@@ -109,13 +108,13 @@ default_virt_type: qemu
 # basis when adding/editing profiles with --enable-menu=0/1.  Users
 # should ordinarily leave this setting enabled unless they are concerned
 # with accidental reinstalls from users who select an entry at the PXE
-# boot menu.  Adding a password to the boot menus templates
+# boot menu.  Adding a password to the boot menus templates 
 # may also be a good solution to prevent unwanted reinstallations
 enable_menu: 1
 
 # enable Func-integration?  This makes sure each installed machine is set up
 # to use func out of the box, which is a powerful way to script and control
-# remote machines.
+# remote machines.  
 # Func lives at http://fedorahosted.org/func
 # read more at https://fedorahosted.org/cobbler/wiki/FuncIntegration
 # you will need to mirror Fedora/EPEL packages for this feature, so see
@@ -161,7 +160,7 @@ ldap_search_passwd: ''
 ldap_search_prefix: 'uid='
 
 # cobbler has a feature that allows for integration with config management
-# systems such as Puppet.  The following parameters work in conjunction with
+# systems such as Puppet.  The following parameters work in conjunction with 
 # --mgmt-classes  and are described in furhter detail at:
 # https://fedorahosted.org/cobbler/wiki/UsingCobblerWithConfigManagementSystem
 mgmt_classes: []
@@ -231,7 +230,7 @@ power_management_default_type: 'ether_wake'
 power_template_dir: "/etc/cobbler/power"
 
 # if this setting is set to 1, cobbler systems that pxe boot
-# will request at the end of their installation to toggle the
+# will request at the end of their installation to toggle the 
 # --netboot-enabled record in the cobbler system record.  This eliminates
 # the potential for a PXE boot loop if the system is set to PXE
 # first in it's BIOS order.  Enable this if PXE is first in your BIOS
@@ -243,7 +242,7 @@ pxe_just_once: 1
 # from what directory?
 pxe_template_dir: "/etc/cobbler/pxe"
 
-# Path to where system consoles are
+# Path to where system consoles are 
 consoles: "/var/consoles"
 
 # Are you using a Red Hat management platform in addition to Cobbler?
@@ -265,12 +264,12 @@ redhat_management_server: "xmlrpc.rhn.redhat.com"
 
 # specify the default Red Hat authorization key to use to register
 # system.  If left blank, no registration will be attempted.  Similarly
-# you can set the --redhat-management-key to blank on any system to
+# you can set the --redhat-management-key to blank on any system to 
 # keep it from trying to register.
 redhat_management_key: ""
 
-# if using authn_spacewalk in modules.conf to let cobbler authenticate
-# against Satellite/Spacewalk's auth system, by default it will not allow per user
+# if using authn_spacewalk in modules.conf to let cobbler authenticate 
+# against Satellite/Spacewalk's auth system, by default it will not allow per user 
 # access into Cobbler Web and Cobbler XMLRPC.
 # in order to permit this, the following setting must be enabled HOWEVER
 # doing so will permit all Spacewalk/Satellite users of certain types to edit all
@@ -318,7 +317,7 @@ run_install_triggers: 1
 # enables a trigger which version controls all changes to /var/lib/cobbler
 # when add, edit, or sync events are performed.  This can be used
 # to revert to previous database versions, generate RSS feeds, or for
-# other auditing or backup purposes. "git" and "hg" are currently suported,
+# other auditing or backup purposes. "git" and "hg" are currently suported, 
 # but git is the recommend SCM for use with this feature.
 scm_track_enabled: 0
 scm_track_mode: "git"
@@ -343,7 +342,7 @@ snippetsdir: /var/lib/cobbler/snippets
 # and serve a templated version of the file to the client.
 template_remote_kickstarts: 0
 
-# cobbler uses pxe booting by default, enable this option if you want to
+# cobbler uses pxe booting by default, enable this option if you want to 
 # use gpxe
 use_gpxe: 0
 
@@ -378,7 +377,7 @@ yum_post_install_mirror: 1
 # if yum-priorities plugin is used.  1=maximum.  Tweak with caution.
 yum_distro_priority: 1
 
-# Flags to use for yumdownloader.  Not all versions may support
+# Flags to use for yumdownloader.  Not all versions may support 
 # --resolve.
 yumdownloader_flags: "--resolve"
 

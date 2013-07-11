@@ -1,7 +1,7 @@
 # WHAT TO DO (install fresh system rather than upgrade)
 install
 
-# INSTALLATION SOURCE (rhel repository)
+# INSTALLATION SOURCE (centos repository)
 url --url=$tree
 
 # ALTERNATIVE REPOSITORIES
@@ -87,7 +87,6 @@ $SNIPPET('pre_install_network_config')
 # HERE ARE LIST OF PACKAGES THAT WILL BE INSTALLED
 # FIXME --ignoremissing
 %packages --nobase --ignoremissing 
-@Core
 yum
 openssh-server
 openssh
@@ -97,6 +96,10 @@ wget
 crontabs
 cronie
 ruby-augeas
+authconfig
+system-config-firewall-base
+policycoreutils
+selinux-policy-targeted
 # COBBLER EMBEDDED SNIPPET: 'puppet_install_if_enabled'
 # LISTS puppet PACKAGE IF puppet_auto_setup VARIABLE IS SET TO 1
 $SNIPPET('puppet_install_if_enabled')
@@ -109,13 +112,6 @@ $SNIPPET('mcollective_install_if_enabled')
 # HERE ARE COMMANDS THAT WILL BE LAUNCHED JUST AFTER 
 # INSTALLATION ITSELF COMPLETED
 %post
-yum versionlock puppet
-yum versionlock kernel
-yum versionlock iproute2
-
-echo -e "modprobe nf_conntrack_ipv4\nmodprobe nf_conntrack_ipv6" >> /etc/rc.modules
-chmod +x /etc/rc.modules
-echo -e "net.nf_conntrack_max=1048576" >> /etc/sysctl.conf
 
 # COBBLER EMBEDDED SNIPPET: 'log_ks_post'
 # CONFIGURES %post LOGGING 
@@ -142,12 +138,8 @@ $SNIPPET('puppet_register_if_enabled_fuel')
 # CONFIGURES MCOLLECTIVE AGENT
 $SNIPPET('mcollective_conf')
 
-# COBBLER EMBEDDED SNIPPET: 'redhat_register'
-# REGISTER AT REDHAT WITH ACTIVATION KEY
-$SNIPPET('redhat_register')
-# REGISTER AT REDHAT WITH lOGIN/PASSWORD
-$SNIPPET('rhn_certificate_based_register')
-
 # COBBLER EMBEDDED SNIPPET: 'kickstart_done'
 # DISABLES PXE BOOTING
 $SNIPPET('kickstart_done')
+
+%end
