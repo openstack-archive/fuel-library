@@ -10,7 +10,10 @@
 # [rservers] array of hashes which represents remote logging servers for client role.
 # [port] port to use by server role for remote logging.
 # [proto] tcp/udp proto for remote log server role.
-# [show_timezone] if enabled, high_precision_timestamps with GMT would be used for server role.
+# [show_timezone] if enabled, high_precision_timestamps (date-rfc3339) with GMT would be used 
+#   for logging. Default is false (date-rfc3164), examples:
+#     date-rfc3339: 2010-12-05T02:21:41.889482+01:00, 
+#     date-rfc3164: Dec 5 02:21:13,
 # [virtual] if node is virtual, fix for udp checksums should be applied
 
 class openstack::logging (

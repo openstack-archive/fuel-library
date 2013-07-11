@@ -3,11 +3,12 @@
 # remote logs parsing based on syslogtag, uses predefined Fuel templates
 <% if scope.lookupvar('rsyslog::server::high_precision_timestamps') -%>
 # Use high precision timestamps (date-rfc3339, 2010-12-05T02:21:41.889482+01:00)
-$Template RemoteLog, "%TIMESTAMP:32::date-rfc3339% %syslogseverity-text%: %msg:drop-last-lf%\n"
+$Template RemoteLog, "%timegenerated:1:32:date-rfc3339% %syslogseverity-text%: %msg%\n"
 <% else -%>
-# Use modified traditional timestamps (date-rfc3164, Dec 5 02:21:13 -> 2013-05-12T02:21:13)
-$Template RemoteLog, "%$NOW%T%TIMESTAMP:8:$%Z %syslogseverity-text% %syslogtag% %msg:drop-last-lf%\n"
+# Use traditional timestamps (date-rfc3164, Dec 5 02:21:13)
+$Template RemoteLog, "%timegenerated:1:15:date-rfc3164% %syslogseverity-text%: %msg%\n"
 <% end -%>
+$ActionFileDefaultTemplate RemoteLog
 
 # Would match 'kernel:' -> 'kernel'  ;  'rsyslogd[12345]:' -> 'rsyslogd'  ;  '<180>(nova.api.wsgi):'  ->  'nova.api.wsgi'
 $template RemoteLogFile, "/var/log/remote/%FROMHOST%/%syslogtag:R,ERE,1,DFLT:([A-Za-z][A-Za-z0-9_.-]*)--end%.log"
