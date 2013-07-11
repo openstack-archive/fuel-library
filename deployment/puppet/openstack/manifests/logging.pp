@@ -10,14 +10,7 @@
 # [rservers] array of hashes which represents remote logging servers for client role.
 # [port] port to use by server role for remote logging.
 # [proto] tcp/udp proto for remote log server role.
-# [show_timezone] if enabled, high_precision_timestamps (date-rfc3339) with GMT would be used 
-#   for local (and remote) logging. Default is false (date-rfc3164 based), in this case
-#   local logging would use date-rfc3164 traditional format, but remote logging would use 
-#   slightly modified traditional timestamps
-#   Examples:
-#     date-rfc3339: 2010-12-05T02:21:41.889482+01:00, 
-#     date-rfc3164: Dec 5 02:21:13,
-#     modified traditional timestamps: 2013-05-12T02:21:13
+# [show_timezone] if enabled, high_precision_timestamps with GMT would be used for server role.
 # [virtual] if node is virtual, fix for udp checksums should be applied
 
 class openstack::logging (
@@ -62,14 +55,14 @@ if $role == 'client' {
     proto   => $proto,
     action  => 'accept',
   } ->
-  class {"::rsyslog::server": 
+  class {"::rsyslog::server":
     enable_tcp => $proto ? { 'tcp' => true, default => false },
     enable_udp => $proto ? { 'udp' => true, default => true },
     server_dir => '/var/log/',
     port       => $port,
     high_precision_timestamps => $show_timezone,
     virtual    => $virtual,
-  } -> 
+  } ->
 # FIXME Find more appropriate way to ensure rsyslog service would be restarted
 # while custom runstage openstack::logging class has been called within
   exec {'rsyslog_forcerestart':
@@ -79,7 +72,7 @@ if $role == 'client' {
   }
 }
 
-  class {"::openstack::logrotate": 
+  class {"::openstack::logrotate":
     rotation       => $rotation,
     keep           => $keep,
     limitsize      => $limitsize,

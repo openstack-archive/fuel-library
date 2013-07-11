@@ -1,6 +1,6 @@
 # Make periodic cron jobs run in the idle scheduling class to reduce
 # their impact on other system activities.
-# Make anacron being manage 20-fuel logrotate job in /etc/cron.hourly 
+# Make anacron being manage 20-fuel logrotate job in /etc/cron.hourly
 # for RHEL/CENTOS, and same by cron (it does by default) for DEBIAN/UBUNTU
 class anacron::config {
 
@@ -24,7 +24,7 @@ case $::operatingsystem {
         file { '/etc/anacrontab': source  => 'puppet:///modules/anacron/anacrontab-ubuntu', }
         file { '/etc/cron.d/anacron' : source => 'puppet:///modules/anacron/anacron-ubuntu', }
         file { '/etc/cron.hourly/logrotate' : mode => 0755, source => 'puppet:///modules/anacron/logrotate-hourly-ubuntu', }
-        file { '/etc/cron.hourly/0anacron' : mode => 0755, source => 'puppet:///modules/anacron/0anacron-hourly-ubuntu', }
+        #file { '/etc/cron.hourly/0anacron' : mode => 0755, source => 'puppet:///modules/anacron/0anacron-hourly-ubuntu', }
     }
   }
 }
