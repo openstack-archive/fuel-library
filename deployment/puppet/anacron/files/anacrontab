@@ -1,5 +1,5 @@
 # /etc/anacrontab: configuration file for anacron
-
+# managed by puppet
 # See anacron(8) and anacrontab(5) for details.
 
 SHELL=/bin/sh
@@ -11,7 +11,7 @@ RANDOM_DELAY=25
 START_HOURS_RANGE=3-22
 
 #period in days   delay in minutes   job-identifier   command
-@hourly           5                  cron.hourly      nice ionice -c3 run-parts /etc/cron.hourly
-1                 5                  cron.daily       nice ionice -c3 run-parts /etc/cron.daily
-7                 25                 cron.weekly      nice ionice -c3 run-parts /etc/cron.weekly
-@monthly          45                 cron.monthly     nice ionice -c3 run-parts /etc/cron.monthly
+@hourly           5                  cron.hourly      nice ionice -c3 run-parts --report /etc/cron.hourly
+1                 5                  cron.daily       nice ionice -c3 run-parts --report /etc/cron.daily
+7                 25                 cron.weekly      nice ionice -c3 run-parts --report /etc/cron.weekly
+@monthly          45                 cron.monthly     nice ionice -c3 run-parts --report /etc/cron.monthly
