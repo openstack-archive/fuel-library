@@ -1,4 +1,5 @@
 # Class for rsyslog server/client logging
+# (assumes package rsyslog were installed at BM)
 #
 # [role] log server or client
 # [log_remote] send logs to remote server(s). Can be used with local logging.
