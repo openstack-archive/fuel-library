@@ -115,6 +115,9 @@ $SNIPPET('mcollective_install_if_enabled')
 # INSTALLATION ITSELF COMPLETED
 %post
 yum versionlock puppet
+yum versionlock kernel
+yum versionlock iproute2
+
 echo -e "modprobe nf_conntrack_ipv4\nmodprobe nf_conntrack_ipv6" >> /etc/rc.modules
 chmod +x /etc/rc.modules
 echo -e "net.nf_conntrack_max=1048576" >> /etc/sysctl.conf
