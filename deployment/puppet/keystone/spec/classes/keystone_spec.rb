@@ -72,8 +72,8 @@ describe 'keystone' do
             'ensure'     => 'directory',
             'owner'      => 'keystone',
             'group'      => 'keystone',
-            'mode'       => '0644',
-            'require'    => 'Package[keystone]'
+            'mode'       => '0755'
+            #'require'    => 'Package[keystone]'
           )
         end
       end
