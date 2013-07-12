@@ -3,7 +3,7 @@ from fuel_test.cobbler.vm_test_case import CobblerTestCase
 from fuel_test.config import Config
 from fuel_test.helpers import write_config
 from fuel_test.manifest import Template, Manifest
-from fuel_test.settings import CREATE_SNAPSHOTS, ASTUTE_USE, PUPPET_AGENT_COMMAND
+from fuel_test.settings import CREATE_SNAPSHOTS, ASTUTE_USE, PUPPET_AGENT_COMMAND, QUANTUM_USE_NAMESPACES, TENANT_NETWORK_TYPE
 
 
 class MinimalTestCase(CobblerTestCase):
@@ -20,7 +20,9 @@ class MinimalTestCase(CobblerTestCase):
             ci=self.ci(),
             controllers=self.nodes().controllers,
             quantums=self.nodes().quantums,
-            quantum=True)
+            quantum=True,
+            quantum_use_namespaces=QUANTUM_USE_NAMESPACES,
+            tenant_network_type=TENANT_NETWORK_TYPE)
         
         Manifest().write_manifest(remote=self.remote(), manifest=manifest)
         
