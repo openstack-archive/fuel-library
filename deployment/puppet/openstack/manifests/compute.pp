@@ -182,9 +182,14 @@ class openstack::compute (
       class { 'nova':
           ensure_package       => $::openstack_version['nova'],
           sql_connection       => $sql_connection,
+          queue_provider       => $queue_provider,
           rabbit_nodes         => $rabbit_nodes,
           rabbit_userid        => $rabbit_user,
           rabbit_password      => $rabbit_password,
+          qpid_userid          => $qpid_user,
+          qpid_password        => $qpid_password,
+          qpid_nodes           => $qpid_nodes,
+          qpid_host            => $qpid_host,
           image_service        => 'nova.image.glance.GlanceImageService',
           glance_api_servers   => $glance_api_servers,
           verbose              => $verbose,
@@ -192,26 +197,8 @@ class openstack::compute (
           use_syslog           => $use_syslog,
           api_bind_address     => $internal_address,
           rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
-      }
-    }
-    'qpid': {
-      class { 'nova':
-        sql_connection     => $sql_connection,
-        queue_provider     => $queue_provider,
-        qpid_userid        => $qpid_user,
-        qpid_password      => $qpid_password,
-        qpid_nodes         => $qpid_nodes,
-        qpid_host          => $qpid_host,
-        image_service      => 'nova.image.glance.GlanceImageService',
-        glance_api_servers => $glance_connection,
-        verbose            => $verbose,
-        ensure_package     => $ensure_package,
-        api_bind_address   => $api_bind_address,
-        use_syslog         => $use_syslog,
-      }
-    }
   }
-
+  
   #Cinder setup
     $enabled_apis = 'metadata'
     package {'python-cinderclient': ensure => present}
@@ -256,7 +243,6 @@ class openstack::compute (
           }
         }
       }
-
     }
 
 
@@ -324,6 +310,12 @@ class openstack::compute (
   }
 
   # configure nova api
+
+  if $auto_assign_floating_ip {
+    nova_config { 'DEFAULT/auto_assign_floating_ip': value => 'True' }
+  }
+ 
+
   class { 'nova::api':
     ensure_package    => $::openstack_version['nova'],
     enabled           => true,

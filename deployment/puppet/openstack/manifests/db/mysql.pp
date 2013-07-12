@@ -109,7 +109,6 @@ class openstack::db::mysql (
       password      => $keystone_db_password,
       dbname        => $keystone_db_dbname,
       allowed_hosts => $allowed_hosts,
-      host          => $db_host
     }
 
     # Create the Glance db
@@ -118,7 +117,6 @@ class openstack::db::mysql (
       password      => $glance_db_password,
       dbname        => $glance_db_dbname,
       allowed_hosts => $allowed_hosts,
-      host          => $db_host
     }
 
     # Create the Nova db
@@ -127,7 +125,6 @@ class openstack::db::mysql (
       password      => $nova_db_password,
       dbname        => $nova_db_dbname,
       allowed_hosts => $allowed_hosts,
-      host          => $db_host
     }
 
     # create cinder db
@@ -137,7 +134,6 @@ class openstack::db::mysql (
         password      => $cinder_db_password,
         dbname        => $cinder_db_dbname,
         allowed_hosts => $allowed_hosts,
-        host          => $db_host
       }
     }
 
@@ -148,8 +144,8 @@ class openstack::db::mysql (
         password      => $quantum_db_password,
         dbname        => $quantum_db_dbname,
         allowed_hosts => $allowed_hosts,
-        host          => $db_host
       }
     }
   }
 }
+

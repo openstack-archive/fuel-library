@@ -68,7 +68,6 @@ class openstack::nova::controller (
   # Qpid
   $qpid_password             = 'qpid_pw',
   $qpid_user                 = 'nova',
-  $qpid_cluster              = false,
   $qpid_nodes                = [$internal_address],
   $qpid_port                 = '5672',
   $qpid_node_ip_address      = undef,
@@ -162,8 +161,6 @@ class openstack::nova::controller (
         auth_realm             => 'QPID',
         log_to_file            => '/var/log/qpidd.log',
         cluster_mechanism      => 'DIGEST-MD5',
-        qpid_cluster           => $qpid_cluster,
-        qpid_cluster_name      => 'qpid_cluster',
         qpid_username          => $qpid_user,
         qpid_password          => $qpid_password,
         qpid_nodes             => $qpid_nodes,
