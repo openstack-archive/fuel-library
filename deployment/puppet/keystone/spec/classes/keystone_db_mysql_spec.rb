@@ -46,7 +46,7 @@ describe 'keystone::db::mysql' do
       'password' => param_values['password'],
       'host'     => param_values['host'],
       'charset'  => param_values['charset'],
-      'require'  => 'Class[Mysql::Config]'
+      'require'  => 'Class[Mysql::Server]'
     )}
 
   end
