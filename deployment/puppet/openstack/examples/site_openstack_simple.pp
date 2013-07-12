@@ -119,6 +119,7 @@ $quantum_db_dbname       = 'quantum'
 # Consult OpenStack documentation for differences between them.
 $quantum                 = true
 $quantum_netnode_on_cnt  = true
+$quantum_use_namespaces  = false
 
 # Specify network creation criteria:
 # Should puppet automatically create networks?

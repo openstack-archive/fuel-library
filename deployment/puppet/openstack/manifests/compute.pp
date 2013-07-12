@@ -383,7 +383,7 @@ class openstack::compute (
 
     # class { 'quantum::agents::dhcp':
     #   debug          => True,
-    #   use_namespaces => False,
+    #   use_namespaces => $::quantum_use_namespaces,
     # }
 
     # class { 'quantum::agents::l3':
@@ -392,7 +392,7 @@ class openstack::compute (
     #   auth_tenant    => 'services',
     #   auth_user      => 'quantum',
     #   auth_password  => $quantum_user_password,
-    #   use_namespaces => False,
+    #   use_namespaces => $::quantum_use_namespaces,
     # }
 
     class { 'nova::compute::quantum': }

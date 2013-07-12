@@ -6,7 +6,7 @@ class quantum::agents::dhcp (
   $resync_interval  = 30,
   $interface_driver = 'quantum.agent.linux.interface.OVSInterfaceDriver',
   $dhcp_driver      = 'quantum.agent.linux.dhcp.Dnsmasq',
-  $use_namespaces   = 'True',
+  $use_namespaces   = $::quantum_use_namespaces,
   $root_helper      = 'sudo /usr/bin/quantum-rootwrap /etc/quantum/rootwrap.conf',
   $service_provider = 'generic',
   $auth_url         = 'http://localhost:5000/v2.0',
@@ -31,6 +31,8 @@ class quantum::agents::dhcp (
 
   include 'quantum::waist_setup'
 
+  anchor {'quantum-dhcp-agent': }
+
   case $dhcp_driver {
     /\.Dnsmasq/ : {
       package { $::quantum::params::dnsmasq_packages: ensure => present, }
@@ -42,35 +44,17 @@ class quantum::agents::dhcp (
     }
   }
 
-  #quantum::agents::sysctl{"$dhcp_agent_package": }
-
   Package[$dhcp_agent_package] -> Quantum_dhcp_agent_config <| |>
   Package[$dhcp_agent_package] -> Quantum_config <| |>
 
-  Quantum_config <| |> ~> Service['quantum-dhcp-service']
-  Quantum_dhcp_agent_config <| |> ~> Service['quantum-dhcp-service']
-
   quantum_dhcp_agent_config {
-    'DEFAULT/debug':
-      value => $debug;
-
-    'DEFAULT/state_path':
-      value => $state_path;
-
-    'DEFAULT/resync_interval':
-      value => $resync_interval;
-
-    'DEFAULT/interface_driver':
-      value => $interface_driver;
-
-    'DEFAULT/dhcp_driver':
-      value => $dhcp_driver;
-
-    'DEFAULT/use_namespaces':
-      value => $use_namespaces;
-
-    'DEFAULT/root_helper':
-      value => $root_helper;
+    'DEFAULT/debug':            value => $debug;
+    'DEFAULT/state_path':       value => $state_path;
+    'DEFAULT/resync_interval':  value => $resync_interval;
+    'DEFAULT/interface_driver': value => $interface_driver;
+    'DEFAULT/dhcp_driver':      value => $dhcp_driver;
+    'DEFAULT/use_namespaces':   value => $use_namespaces;
+    'DEFAULT/root_helper':      value => $root_helper;
   }
 
   if $enabled {
@@ -170,6 +154,8 @@ class quantum::agents::dhcp (
     }
 
   } else {
+    Quantum_config <| |> ~> Service['quantum-dhcp-service']
+    Quantum_dhcp_agent_config <| |> ~> Service['quantum-dhcp-service']
     File<| title=='quantum-logging.conf' |> ->
     service { 'quantum-dhcp-service':
       name       => $::quantum::params::dhcp_agent_service,
@@ -182,4 +168,13 @@ class quantum::agents::dhcp (
     }
   }
   Class[quantum::waistline] -> Service[quantum-dhcp-service]
+
+  Anchor['quantum-dhcp-agent'] ->
+    Quantum_dhcp_agent_config <| |> ->  
+      Cs_resource<| title=="p_${::quantum::params::dhcp_agent_service}" |> ->
+        Service['quantum-dhcp-service'] ->
+          Anchor['quantum-dhcp-agent-done'] ->
+
+  anchor {'quantum-dhcp-agent-done': }
+
 }

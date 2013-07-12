@@ -171,6 +171,7 @@ $quantum_db_dbname       = 'quantum'
 # Consult OpenStack documentation for differences between them.
 $quantum                 = true
 $quantum_netnode_on_cnt  = true
+$quantum_use_namespaces  = false
 
 # a string "password" value that should be configured to authenticate requests for metadata
 # from quantum-metadata-proxy to nova-api

@@ -18,7 +18,7 @@ class quantum::agents::l3 (
   $auth_user        = 'quantum',
   $auth_password    = 'password',
   $root_helper      = 'sudo /usr/bin/quantum-rootwrap /etc/quantum/rootwrap.conf',
-  $use_namespaces   = 'True',
+  $use_namespaces   = $::quantum_use_namespaces,
   $router_id        = undef,
   $gateway_external_net_id      = undef,
   $handle_internal_only_routers = 'True',
@@ -50,14 +50,12 @@ class quantum::agents::l3 (
 
   include 'quantum::waist_setup'
 
-  Quantum_l3_agent_config <| |> -> Class[quantum::waistline]
+  #Quantum_l3_agent_config <| |> -> Class[quantum::waistline]
 
   #quantum::agents::sysctl{"$l3_agent_package": }
 
   Quantum_config <| |> -> Quantum_l3_agent_config <| |>
   Quantum_l3_agent_config <| |> -> Service['quantum-l3']
-  Quantum_config <| |> ~> Service['quantum-l3']
-  Quantum_l3_agent_config <| |> ~> Service['quantum-l3']
   Quantum_l3_agent_config <| |> -> Quantum_router <| |>
   Quantum_l3_agent_config <| |> -> Quantum_net <| |>
   Quantum_l3_agent_config <| |> -> Quantum_subnet <| |>
@@ -153,18 +151,18 @@ class quantum::agents::l3 (
       # turn down the current default route metric priority
       # TODO: make function for recognize REAL defaultroute
       # temporary use
-      $update_default_route_metric = "bash -c \"(/sbin/ip route delete default via ${::default_gateway} || exit 0 ) && /sbin/ip route replace default via ${::default_gateway} metric 100\""
+      # $update_default_route_metric = "bash -c \"(/sbin/ip route delete default via ${::default_gateway} || exit 0 ) && /sbin/ip route replace default via ${::default_gateway} metric 100\""
+      # exec { 'update_default_route_metric':
+      #   command     => $update_default_route_metric,
+      #   returns     => [0, 7],
+      #   refreshonly => true,
+      #   path      => ['/usr/bin', '/bin', '/sbin', '/usr/sbin']
+      # }
+      #Quantum::Network::Provider_router['router04'] -> Exec['update_default_route_metric']
+      #Class[quantum::waistline] -> Exec[update_default_route_metric]
 
-      exec { 'update_default_route_metric':
-        command     => $update_default_route_metric,
-        returns     => [0, 7],
-        refreshonly => true,
-        path      => ['/usr/bin', '/bin', '/sbin', '/usr/sbin']
-      }
-      Quantum::Network::Provider_router['router04'] -> Exec['update_default_route_metric']
       Class[quantum::waistline] -> Quantum::Network::Setup <| |>
       Class[quantum::waistline] -> Quantum::Network::Provider_router <| |>
-      Class[quantum::waistline] -> Exec[update_default_route_metric]
 
       exec { 'setup_router_id':
         command   => "/bin/bash -c \"eval `quantum --os-tenant-name ${auth_tenant} --os-auth-url ${auth_url} --os-username ${auth_user} --os-password ${auth_password} router-show router04 -f shell | grep -E '^id'` && sed -r -i -e \\\"s/^router_id\s*=.*\$//\\\" /etc/quantum/l3_agent.ini && echo router_id=\\\$id >> /etc/quantum/l3_agent.ini\"",
@@ -174,16 +172,16 @@ class quantum::agents::l3 (
         path      => ['/usr/bin', '/bin', '/sbin', '/usr/sbin']
       }
 
-      Package[$l3_agent_package] ~> Exec['update_default_route_metric']
+      # Package[$l3_agent_package] ~> Exec['update_default_route_metric']
 
-      exec { 'settle-down-default-route':
-        command     => "/bin/ping -q -W2 -c1 ${external_gateway}",
-        subscribe   => Exec['update_default_route_metric'],
-        logoutput   => 'on_failure',
-        refreshonly => true,
-        try_sleep   => 3,
-        tries       => 5,
-      }
+      # exec { 'settle-down-default-route':
+      #   command     => "/bin/ping -q -W2 -c1 ${external_gateway}",
+      #   subscribe   => Exec['update_default_route_metric'],
+      #   logoutput   => 'on_failure',
+      #   refreshonly => true,
+      #   try_sleep   => 3,
+      #   tries       => 5,
+      # }
 
     }
   } else {
@@ -193,9 +191,9 @@ class quantum::agents::l3 (
   Anchor['quantum-l3'] ->
     Quantum_l3_agent_config <| |> ->
       Exec<| title=='setup_router_id' |> ->
-        Exec<| title=='update_default_route_metric' |> ->
+        #Exec<| title=='update_default_route_metric' |> ->
           Service<| title=='quantum-l3' |>  ->
-            Exec<| title=='settle-down-default-route' |> ->
+            #Exec<| title=='settle-down-default-route' |> ->
               Anchor['quantum-l3-done']
 
   #todo: remove all settles for default routing.
@@ -219,7 +217,6 @@ class quantum::agents::l3 (
     Service<| title == 'quantum-server' |> -> Cs_shadow['l3']
     Quantum_l3_agent_config <||> -> Cs_shadow['l3']
 
-    File<| title=='quantum-logging.conf' |> ->
     cs_resource { "p_${::quantum::params::l3_agent_service}":
       ensure          => present,
       cib             => 'l3',
@@ -248,6 +245,8 @@ class quantum::agents::l3 (
         }
       },
     }
+    File<| title=='quantum-logging.conf' |> -> Cs_resource["p_${::quantum::params::l3_agent_service}"]
+    Exec<| title=='setup_router_id' |> -> Cs_resource["p_${::quantum::params::l3_agent_service}"]
 
     cs_shadow { 'l3': cib => 'l3' } -> Anchor['quantum-l3-done']
 
@@ -328,6 +327,8 @@ class quantum::agents::l3 (
       shared_secret => $::quantum_metadata_proxy_shared_secret
     }
   } else {
+    Quantum_config <| |> ~> Service['quantum-l3']
+    Quantum_l3_agent_config <| |> ~> Service['quantum-l3']
     File<| title=='quantum-logging.conf' |> ->
     service { 'quantum-l3':
       name       => $::quantum::params::l3_agent_service,

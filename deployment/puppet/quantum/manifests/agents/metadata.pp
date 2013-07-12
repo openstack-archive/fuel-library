@@ -103,6 +103,8 @@ class quantum::agents::metadata (
   }
   Cs_commit <| title == 'l3' |> -> Cs_shadow <| title == "$res_name" |>
 
+  Cs_resource <| title=="p_${::quantum::params::l3_agent_service}" |> -> Cs_resource["$res_name"]
+
   cs_colocation { 'quantum-metadata-agent__with__quantum-l3-agent':
     ensure     => present,
     cib        => $cib_name,
@@ -112,16 +114,16 @@ class quantum::agents::metadata (
     ],
     score      => 'INFINITY',
   }
-  cs_order { 'quantum-metadata-agent__after__quantum-l3-agent':
+  cs_order { 'quantum-metadata-agent__before__quantum-l3-agent':
     ensure => present,
     cib    => $cib_name,
-    first  => "p_${::quantum::params::l3_agent_service}",
-    second => "$res_name",
+    first  => "$res_name",
+    second => "p_${::quantum::params::l3_agent_service}",
     score  => 'INFINITY',
   }
   Cs_resource["$res_name"] -> 
     Cs_colocation['quantum-metadata-agent__with__quantum-l3-agent'] ->
-      Cs_order['quantum-metadata-agent__after__quantum-l3-agent'] ->
+      Cs_order['quantum-metadata-agent__before__quantum-l3-agent'] ->
         Cs_commit["$res_name"] -> 
           Service["$res_name"]
 

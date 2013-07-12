@@ -204,6 +204,10 @@ class quantum::agents::ovs (
         Anchor['quantum-ovs-agent-done']
 
   anchor{'quantum-ovs-agent-done': }
+
+  Anchor['quantum-ovs-agent-done'] -> Anchor<| title=='quantum-l3' |>
+  Anchor['quantum-ovs-agent-done'] -> Anchor<| title=='quantum-dhcp-agent' |>
+
 }
 #
 ###
