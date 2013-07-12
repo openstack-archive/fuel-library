@@ -179,7 +179,6 @@ class horizon(
         ],
         before  => Service['httpd'],
       }
-
       if $use_syslog {
         file {'/etc/httpd/conf.d/openstack-dashboard.conf':
 	  ensure  => present,
@@ -229,3 +228,4 @@ class horizon(
     Class['memcached'] -> Class['horizon']
   }
 }
+

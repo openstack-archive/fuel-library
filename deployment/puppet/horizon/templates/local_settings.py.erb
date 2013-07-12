@@ -131,6 +131,12 @@ LOGGING = {
                 'address': '/dev/log',
                 'formatter': 'normal'
                 },
+            'syslog': {
+                'level': '<%= log_level %>',
+                'facility': 'local1',
+                'class': 'logging.handlers.SysLogHandler',
+                'address': '/dev/log'
+                },
             },
         'loggers': {
             # The logger name '' indicates the root of all loggers in Django, so
@@ -191,3 +197,4 @@ LOGIN_REDIRECT_URL='<%=  scope.lookupvar("horizon::params::root_url") %>'
 # offline compression by default.  To enable online compression, install
 # the node-less package and enable the following option.
 COMPRESS_OFFLINE = False
+
