@@ -4,6 +4,7 @@
 #
 class cluster {
     if $use_unicast_corosync {
+      #todo: make as parameter
       $unicast_addresses = $controller_internal_addresses
     } else {
       $unicast_addresses = undef
@@ -22,6 +23,15 @@ class cluster {
         unicast_addresses => $unicast_addresses
       }
     }
+    file {'ocf-mirantis-path':
+      path=>'/usr/lib/ocf/resource.d/mirantis', 
+      #mode => 755,
+      ensure => directory,
+      recurse => true,
+      owner => root,
+      group => root,
+    } 
+    Package['corosync'] -> File['ocf-mirantis-path']
 }
 #
 ###

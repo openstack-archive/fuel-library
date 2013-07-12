@@ -224,7 +224,9 @@ class openstack::nova::controller (
     $quantum_sql_connection = "$db_type://${quantum_db_user}:${quantum_db_password}@${db_host}/${quantum_db_dbname}?charset=utf8"
 
     class { 'quantum::server':
-      auth_host     => $internal_address,
+      auth_host     => $keystone_host,
+      auth_tenant   => 'services',
+      auth_user     => 'quantum',
       auth_password => $quantum_user_password,
     }
     if $quantum and !$quantum_network_node {
@@ -240,7 +242,7 @@ class openstack::nova::controller (
         use_syslog           => $use_syslog,
       }
    }
-     class { 'nova::network::quantum':
+      class { 'nova::network::quantum':
         quantum_admin_password    => $quantum_user_password,
         quantum_auth_strategy     => 'keystone',
         quantum_url               => "http://${keystone_host}:9696",
@@ -262,12 +264,23 @@ class openstack::nova::controller (
     cinder            => $cinder
   }
 
+  # Do not enable it!!!!!
+  # metadata service provides by nova api 
+  # while enabled_apis=ec2,osapi_compute,metadata
+  # and by quantum-metadata-agent on network node as proxy
+  #
+  # enable nova-metadata-api service
+  #class { 'nova::metadata_api':
+  #  enabled => $enabled,
+  #  ensure_package => $ensure_package,
+  #}
+
   class {'nova::conductor':
     enabled => $enabled,
-    ensure_package  => $ensure_package,
+    ensure_package => $ensure_package,
   }
 
-if $auto_assign_floating_ip {
+  if $auto_assign_floating_ip {
     nova_config { 'DEFAULT/auto_assign_floating_ip': value => 'True' }
   }
 

@@ -23,20 +23,27 @@ class quantum::agents::l3 (
   $gateway_external_net_id      = undef,
   $handle_internal_only_routers = 'True',
   $metadata_ip      = '169.254.169.254',
+  $nova_api_vip     = '127.0.0.1',
   $metadata_port    = 8775,
   $polling_interval = 3,
   $service_provider = 'generic'
 ) {
   include 'quantum::params'
 
+  anchor {'quantum-l3': }
+  #Class['quantum'] -> Anchor['quantum-l3']
+  Service<| title=='quantum-server' |> -> Anchor['quantum-l3']
+
   if $::quantum::params::l3_agent_package {
-    Package['quantum'] -> Package['quantum-l3']
+    #Package['quantum'] -> Package['quantum-l3']
     $l3_agent_package = 'quantum-l3'
 
     package { 'quantum-l3':
       name   => $::quantum::params::l3_agent_package,
       ensure => $package_ensure,
     }
+    # do not move it to outside this IF
+    Package['quantum-l3'] -> Quantum_l3_agent_config <| |>
   } else {
     $l3_agent_package = $::quantum::params::package_name
   }
@@ -47,7 +54,6 @@ class quantum::agents::l3 (
 
   #quantum::agents::sysctl{"$l3_agent_package": }
 
-  Package[$l3_agent_package] -> Quantum_l3_agent_config <| |>
   Quantum_config <| |> -> Quantum_l3_agent_config <| |>
   Quantum_l3_agent_config <| |> -> Service['quantum-l3']
   Quantum_config <| |> ~> Service['quantum-l3']
@@ -57,37 +63,19 @@ class quantum::agents::l3 (
   Quantum_l3_agent_config <| |> -> Quantum_subnet <| |>
 
   quantum_l3_agent_config {
-    'DEFAULT/debug':
-      value => $debug;
-
-    'DEFAULT/auth_url':
-      value => $auth_url;
-
-    'DEFAULT/auth_port':
-      value => $auth_port;
-
-    'DEFAULT/admin_tenant_name':
-      value => $auth_tenant;
-
-    'DEFAULT/admin_user':
-      value => $auth_user;
-
-    'DEFAULT/admin_password':
-      value => $auth_password;
-
-    'DEFAULT/use_namespaces':
-      value => $use_namespaces;
-
-    # 'DEFAULT/router_id':                      value => $router_id;
-    # 'DEFAULT/gateway_external_net_id':        value => $gateway_external_net_id;
-    'DEFAULT/metadata_ip':
-      value => $metadata_ip;
-
-    'DEFAULT/external_network_bridge':
-      value => $external_network_bridge;
-
-    'DEFAULT/root_helper':
-      value => $root_helper;
+    'DEFAULT/use_namespaces': value => $use_namespaces;
+    'DEFAULT/debug':          value => $debug;
+    'DEFAULT/root_helper':    value => $root_helper;
+    'DEFAULT/auth_url':       value => $auth_url;
+    'DEFAULT/auth_port':      value => $auth_port;
+    'DEFAULT/admin_user':     value => $auth_user;
+    'DEFAULT/admin_password': value => $auth_password;
+    'DEFAULT/admin_tenant_name': value => $auth_tenant;
+    'DEFAULT/external_network_bridge': value => $external_network_bridge;
+    ## todo: check for compatible with quantum-metadata-agent
+    #'DEFAULT/metadata_ip': value => $metadata_ip;
+   #'DEFAULT/router_id':               value => $router_id;
+   #'DEFAULT/gateway_external_net_id': value => $gateway_external_net_id;
   }
 
   if $enabled {
@@ -186,10 +174,7 @@ class quantum::agents::l3 (
         path      => ['/usr/bin', '/bin', '/sbin', '/usr/sbin']
       }
 
-      Quantum_l3_agent_config <| |> -> Exec['setup_router_id']
-      Exec['setup_router_id'] ~> Service['quantum-l3']
       Package[$l3_agent_package] ~> Exec['update_default_route_metric']
-      Exec['update_default_route_metric'] -> Service['quantum-l3'] -> Exec['settle-down-default-route']
 
       exec { 'settle-down-default-route':
         command     => "/bin/ping -q -W2 -c1 ${external_gateway}",
@@ -205,23 +190,36 @@ class quantum::agents::l3 (
     $ensure = 'stopped'
   }
 
+  Anchor['quantum-l3'] ->
+    Quantum_l3_agent_config <| |> ->
+      Exec<| title=='setup_router_id' |> ->
+        Exec<| title=='update_default_route_metric' |> ->
+          Service<| title=='quantum-l3' |>  ->
+            Exec<| title=='settle-down-default-route' |> ->
+              Anchor['quantum-l3-done']
+
+  #todo: remove all settles for default routing.
+
   $iptables_manager = "/usr/lib/${::quantum::params::python_path}/quantum/agent/linux/iptables_manager.py"
 
   # rootwrap error with L3 agent
   # https://bugs.launchpad.net/quantum/+bug/1069966
+  
   exec { 'patch-iptables-manager':
     command => "sed -i '272 s|/sbin/||' ${iptables_manager}",
     onlyif  => "sed -n '272p' ${iptables_manager} | grep -q '/sbin/'",
-    path    => '/bin/',
-    require => Package[$l3_agent_package],
+    path    => ['/bin', '/sbin', '/usr/bin', '/usr/sbin'],
+    require => [Anchor['quantum-l3'], Package[$l3_agent_package]],
   }
-
-  Service<| title == 'quantum-server' |>->Service['quantum-l3'] 
+  
+  Service<| title == 'quantum-server' |> -> Service['quantum-l3'] 
 
   if $service_provider == 'pacemaker' {
     
     Service<| title == 'quantum-server' |> -> Cs_shadow['l3']
     Quantum_l3_agent_config <||> -> Cs_shadow['l3']
+
+    File<| title=='quantum-logging.conf' |> ->
     cs_resource { "p_${::quantum::params::l3_agent_service}":
       ensure          => present,
       cib             => 'l3',
@@ -234,8 +232,7 @@ class quantum::agents::l3 (
         'tenant'      => $auth_tenant,
         'username'    => $auth_user,
         'password'    => $auth_password,
-      }
-      ,
+      },
       operations      => {
         'monitor'  => {
           'interval' => '20',
@@ -249,27 +246,24 @@ class quantum::agents::l3 (
         'stop'     => {
           'timeout' => '360'
         }
-
-      }
-      ,
+      },
     }
 
-    cs_shadow { 'l3': cib => 'l3' }
+    cs_shadow { 'l3': cib => 'l3' } -> Anchor['quantum-l3-done']
 
-    cs_commit { 'l3': cib => 'l3' }
+    cs_commit { 'l3': cib => 'l3' } -> Anchor['quantum-l3-done']
 
     Cs_commit <| title == 'dhcp' |> -> Cs_shadow <| title == 'l3' |>
     Cs_commit <| title == 'ovs' |> -> Cs_shadow <| title == 'l3' |>
 
-    Cs_commit['l3'] -> Service['quantum-l3']
-    ::corosync::cleanup{"p_${::quantum::params::l3_agent_service}":}
+    ::corosync::cleanup{"p_${::quantum::params::l3_agent_service}": }
     
     Cs_commit['l3'] -> ::Corosync::Cleanup["p_${::quantum::params::l3_agent_service}"]
     Cs_commit['l3'] ~> ::Corosync::Cleanup["p_${::quantum::params::l3_agent_service}"]
-    ::Corosync::Cleanup["p_${::quantum::params::l3_agent_service}"]->Service['quantum-l3']
+    ::Corosync::Cleanup["p_${::quantum::params::l3_agent_service}"] -> Service['quantum-l3']
     
-    Cs_resource["p_${::quantum::params::l3_agent_service}"] -> Cs_colocation['l3-with-ovs']
-    Cs_resource["p_${::quantum::params::l3_agent_service}"] -> Cs_order['l3-after-ovs']
+    Cs_resource["p_${::quantum::params::l3_agent_service}"] -> Cs_colocation['l3-with-ovs'] -> Anchor['quantum-l3-done']
+    Cs_resource["p_${::quantum::params::l3_agent_service}"] -> Cs_order['l3-after-ovs'] -> Anchor['quantum-l3-done']
 
     cs_colocation { 'l3-with-ovs':
       ensure     => present,
@@ -289,12 +283,18 @@ class quantum::agents::l3 (
     cs_colocation { 'dhcp-without-l3':
       ensure     => present,
       cib        => 'l3',
-      primitives => ["p_${::quantum::params::dhcp_agent_service}", "p_${::quantum::params::l3_agent_service}"],
       score      => '-100',
+      primitives => [
+        "p_${::quantum::params::dhcp_agent_service}", 
+        "p_${::quantum::params::l3_agent_service}"
+      ],
     }
 
     # Ensure service is stopped  and disabled by upstart/init/etc.
-    Service['quantum-l3-init_stopped'] -> Cs_resource["p_${::quantum::params::l3_agent_service}"]
+    Anchor['quantum-l3'] -> 
+      Service['quantum-l3-init_stopped'] -> 
+        Cs_resource["p_${::quantum::params::l3_agent_service}"] -> 
+          Anchor['quantum-l3-done']
 
     service { 'quantum-l3-init_stopped':
       name       => "${::quantum::params::l3_agent_service}",
@@ -303,7 +303,6 @@ class quantum::agents::l3 (
       hasstatus  => true,
       hasrestart => true,
       provider   => $::quantum::params::service_provider,
-      require    => [Package[$l3_agent_package], Class['quantum']],
     }
 
     service { 'quantum-l3':
@@ -313,9 +312,23 @@ class quantum::agents::l3 (
       hasstatus  => true,
       hasrestart => false,
       provider   => "pacemaker",
-      require    => [Package[$l3_agent_package], Class['quantum'], Service['quantum-ovs-agent']],
+    }
+
+    # Quantum metadata agent starts only under pacemaker
+    # and co-located with l3-agent
+    class {'quantum::agents::metadata':
+      debug         => $debug,
+      auth_tenant   => $auth_tenant,
+      auth_user     => $auth_user,
+      auth_url      => $auth_url,
+      auth_region   => $auth_region,
+      metadata_ip   => $nova_api_vip,
+      metadata_port => $metadata_port,
+      auth_password => $auth_password,
+      shared_secret => $::quantum_metadata_proxy_shared_secret
     }
   } else {
+    File<| title=='quantum-logging.conf' |> ->
     service { 'quantum-l3':
       name       => $::quantum::params::l3_agent_service,
       enable     => $enabled,
@@ -323,7 +336,12 @@ class quantum::agents::l3 (
       hasstatus  => true,
       hasrestart => true,
       provider   => $::quantum::params::service_provider,
-      require    => [Package[$l3_agent_package], Class['quantum'], Service['quantum-ovs-agent']],
     }
   }
+
+  anchor {'quantum-l3-cellar': }
+  Anchor['quantum-l3-cellar'] -> Anchor['quantum-l3-done']
+  anchor {'quantum-l3-done': }
+  Anchor['quantum-l3'] -> Anchor['quantum-l3-done']
+
 }

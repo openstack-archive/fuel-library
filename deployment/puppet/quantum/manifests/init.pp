@@ -1,6 +1,7 @@
 #
 class quantum (
   $rabbit_password,
+  $auth_password,
   $enabled                = true,
   $package_ensure         = 'present',
   $verbose                = 'False',
@@ -22,19 +23,25 @@ class quantum (
   $rabbit_virtual_host    = '/',
   $rabbit_ha_virtual_ip   = false,
   $server_ha_mode         = false,
+  $auth_type        = 'keystone',
+  $auth_host        = 'localhost',
+  $auth_port        = '35357',
+  $auth_tenant      = 'services',
+  $auth_user        = 'quantum',
   $use_syslog = false
 ) {
   include 'quantum::params'
 
-  Package['quantum'] -> Quantum_config<||>
-  Package['quantum'] -> Quantum_api_config<||>
+  anchor {'quantum-init':}
 
-  file {'/etc/quantum':
-    ensure  => directory,
-    owner   => 'quantum',
-    group   => 'root',
-    mode    => 770,
-    require => Package['quantum']
+  if ! defined(File['/etc/quantum']) {
+    file {'/etc/quantum':
+      ensure  => directory,
+      owner   => 'root',
+      group   => 'root',
+      mode    => 755,
+      #require => Package['quantum']
+    }
   }
 
   package {'quantum':
@@ -86,19 +93,43 @@ class quantum (
     'DEFAULT/rabbit_userid':          value => $rabbit_user;
     'DEFAULT/rabbit_password':        value => $rabbit_password;
     'DEFAULT/rabbit_virtual_host':    value => $rabbit_virtual_host;
+    'keystone_authtoken/auth_host':         value => $auth_host;
+    'keystone_authtoken/auth_port':         value => $auth_port;
+    'keystone_authtoken/admin_tenant_name': value => $auth_tenant;
+    'keystone_authtoken/admin_user':        value => $auth_user;
+    'keystone_authtoken/admin_password':    value => $auth_password;
   }
-
   if $use_syslog {
-    quantum_config {'DEFAULT/log_config': value => "/etc/quantum/logging.conf";}
     file { "quantum-logging.conf":
-      content => template('quantum/logging.conf.erb'),
-      path => "/etc/quantum/logging.conf",
-      owner => "quantum",
-      group => "quantum",
+      content => template('quantum/logging.conf-syslog.erb'),
+      path  => "/etc/quantum/logging.conf",
+      owner => "root",
+      group => "root",
+      mode  => 644,
     }
   } else {
-    quantum_config {'DEFAULT/log_config': ensure=> absent;}
+    file { "quantum-logging.conf":
+      content => template('quantum/logging.conf.erb'),
+      path  => "/etc/quantum/logging.conf",
+      owner => "root",
+      group => "root",
+      mode  => 644,
+    }
+  }
+  quantum_config {'DEFAULT/log_config': value => "/etc/quantum/logging.conf";}
+  File['/etc/quantum'] -> File['quantum-logging.conf']
+
+  if defined(Anchor['quantum-server-config-done']) {
+    $endpoint_quantum_main_configuration = 'quantum-server-config-done'
+  } else {
+    $endpoint_quantum_main_configuration = 'quantum-init-done'
   }
 
-  # SELINUX=permissive
+  Anchor['quantum-init'] -> 
+    Package['quantum'] -> 
+      Quantum_config<||> -> 
+        Quantum_api_config<||> ->
+          Anchor[$endpoint_quantum_main_configuration]
+
+  anchor {'quantum-init-done':}
 }

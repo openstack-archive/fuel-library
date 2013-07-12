@@ -723,6 +723,7 @@ node /fuel-quantum/ {
       db_host               => $internal_virtual_ip,
       service_endpoint      => $internal_virtual_ip,
       auth_host             => $internal_virtual_ip,
+      nova_api_vip          => $internal_virtual_ip,
       internal_address      => $internal_address,
       public_interface      => $public_int,
       private_interface     => $private_interface,

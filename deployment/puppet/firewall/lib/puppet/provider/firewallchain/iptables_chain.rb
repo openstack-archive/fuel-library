@@ -19,7 +19,9 @@ Puppet::Type.type(:firewallchain).provide :iptables_chain do
 
   # chain name is greedy so we anchor from the end.
   # [\d+:\d+] doesn't exist on ebtables
-  def Mapping
+  # FIX ME:
+  # mapping should be constant with puppet >= 3.0
+  def self.mapping
     {
       :IPv4 => {
         :tables => method(:iptables),
@@ -38,22 +40,20 @@ Puppet::Type.type(:firewallchain).provide :iptables_chain do
       }
     }
   end
-  
-  def InternalChains 
-    /^(PREROUTING|POSTROUTING|BROUTING|INPUT|FORWARD|OUTPUT)$/
-  end
 
-  def Tables
-    'nat|mangle|filter|raw|rawpost|broute'
-  end
-  
-  def Nameformat
-    /^(.+):(#{Tables}):(IP(v[46])?|ethernet)$/
-  end
+  # FIX ME:
+  # internalChains should be constant with puppet >= 3.0
+  internalChains = /^(PREROUTING|POSTROUTING|BROUTING|INPUT|FORWARD|OUTPUT)$/
+
+  tables = 'nat|mangle|filter|raw|rawpost|broute'
+
+  # FIX ME:
+  # nameformat should be constant with puppet >= 3.0
+  nameformat = /^(.+):(#{tables}):(IP(v[46])?|ethernet)$/
 
   def create
     # can't create internal chains
-    if @resource[:name] =~ InternalChains
+    if @resource[:name] =~ internalChains
       self.warn "Attempting to create internal chain #{@resource[:name]}"
     end
     allvalidchains do |t, chain, table, protocol|
@@ -71,7 +71,7 @@ Puppet::Type.type(:firewallchain).provide :iptables_chain do
 
   def destroy
     # can't delete internal chains
-    if @resource[:name] =~ InternalChains
+    if @resource[:name] =~ internalChains
       self.warn "Attempting to destroy internal chain #{@resource[:name]}"
     end
     allvalidchains do |t, chain, table|
@@ -109,7 +109,7 @@ Puppet::Type.type(:firewallchain).provide :iptables_chain do
 
   def flush
     debug("[flush]")
-    persist_iptables(@resource[:name].match(Nameformat)[3])
+    persist_iptables(@resource[:name].match(nameformat)[3])
     # Clear the property hash so we re-initialize with updated values
     @property_hash.clear
   end
@@ -139,7 +139,7 @@ Puppet::Type.type(:firewallchain).provide :iptables_chain do
     table = nil
     chains = []
 
-    Mapping.each { |p, c|
+    mapping.each { |p, c|
       begin
         c[:save].call.each_line do |line|
           if line =~ c[:re] then
@@ -168,11 +168,11 @@ Puppet::Type.type(:firewallchain).provide :iptables_chain do
   end
 
   def allvalidchains
-    @resource[:name].match(Nameformat)
+    @resource[:name].match(nameformat)
     chain = $1
     table = $2
     protocol = $3
-    yield Mapping[protocol.to_sym][:tables],chain,table,protocol.to_sym
+    yield mapping[protocol.to_sym][:tables],chain,table,protocol.to_sym
   end
 
 end

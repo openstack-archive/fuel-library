@@ -113,36 +113,42 @@ LOGGING = {
                 'class': 'logging.FileHandler',
                 'filename': '<%= scope.lookupvar("horizon::params::logdir") %>/horizon.log'
                 },
+            'syslog': {
+                'level': '<%= log_level %>',
+                'facility': 'local1',
+                'class': 'logging.handlers.SysLogHandler',
+                'address': '/dev/log'
+                },
             },
         'loggers': {
             # Logging from django.db.backends is VERY verbose, send to null
             # by default.
             'django.db.backends': {
-                'handlers': ['null'],
+                'handlers':<% if django_debug=='True' -%> ['syslog']<% else -%> ['null']<% end -%>, 
                 'propagate': False,
                 },
             'horizon': {
-                'handlers': ['file'],
+                'handlers':<% if use_syslog -%> ['syslog']<% else -%> ['file']<% end -%>,
                 'propagate': False,
             },
             'openstack_dashboard': {
-                'handlers': ['file'],
+                'handlers':<% if use_syslog -%> ['syslog']<% else -%> ['file']<% end -%>,
                 'propagate': False,
             },
             'novaclient': {
-                'handlers': ['file'],
+                'handlers':<% if use_syslog -%> ['syslog']<% else -%> ['file']<% end -%>,
                 'propagate': False,
             },
            'glanceclient': {
-                'handlers': ['file'],
+                'handlers':<% if use_syslog -%> ['syslog']<% else -%> ['file']<% end -%>,
                 'propagate': False,
             },
             'keystoneclient': {
-                'handlers': ['file'],
+                'handlers':<% if use_syslog -%> ['syslog']<% else -%> ['file']<% end -%>,
                 'propagate': False,
             },
             'nose.plugins.manager': {
-                'handlers': ['file'],
+                'handlers':<% if use_syslog -%> ['syslog']<% else -%> ['file']<% end -%>,
                 'propagate': False,
             }
         }

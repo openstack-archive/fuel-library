@@ -195,10 +195,7 @@ class openstack::controller_ha (
     haproxy_service { 'keystone-2': order => 30, port => 35357, virtual_ips => [$public_virtual_ip, $internal_virtual_ip]  }
     haproxy_service { 'nova-api-1': order => 40, port => 8773, virtual_ips => [$public_virtual_ip, $internal_virtual_ip]  }
     haproxy_service { 'nova-api-2': order => 50, port => 8774, virtual_ips => [$public_virtual_ip, $internal_virtual_ip]  }
-
-    if ! $multi_host {
-      haproxy_service { 'nova-api-3': order => 60, port => 8775, virtual_ips => [$public_virtual_ip, $internal_virtual_ip]  }
-    }
+    haproxy_service { 'nova-metadata-api': order => 60, port => 8775, virtual_ips => [$internal_virtual_ip]  }
 
     haproxy_service { 'nova-api-4': order => 70, port => 8776, virtual_ips => [$public_virtual_ip, $internal_virtual_ip]  }
     haproxy_service { 'glance-api': order => 80, port => 9292, virtual_ips => [$public_virtual_ip, $internal_virtual_ip]  }
@@ -322,6 +319,7 @@ class openstack::controller_ha (
         db_host               => $internal_virtual_ip,
         service_endpoint      => $internal_virtual_ip,
         auth_host             => $internal_virtual_ip,
+        nova_api_vip          => $internal_virtual_ip,
         internal_address      => $internal_address,
         public_interface      => $public_interface,
         private_interface     => $private_interface,
