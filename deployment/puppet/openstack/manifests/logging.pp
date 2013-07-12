@@ -57,7 +57,12 @@ if $role == 'client' {
     port    => $port,
     proto   => $proto,
     action  => 'accept',
-  } ->
+  } # ->
+# FIXME unless firewall module rule parser's idempotency would have been fixed,
+# do not add firewall to dependency chains cuz it would broke it on reapply.
+# If we want to change logging settings at server node, we would have to reappy
+# this class with new settings provided, ignoring firewall module's broken 
+# idempotency as well...
   class {"::rsyslog::server":
     enable_tcp => $proto ? { 'tcp' => true, default => false },
     enable_udp => $proto ? { 'udp' => true, default => true },
