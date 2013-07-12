@@ -131,3 +131,9 @@ DOMAIN_NAME = os.environ.get('DOMAIN_NAME', '.localdomain')
 PUPPET_AGENT_COMMAND = 'puppet agent -tvd --evaltrace 2>&1'
 SETUP_TIMEOUT = int(os.environ.get('SETUP_TIMEOUT', 600))
 
+QUANTUM_USE_NAMESPACES = os.environ.get('QUANTUM_USE_NAMESPACES', 'true') == 'true'
+TENANT_NETWORK_TYPE = os.environ.get('TENANT_NETWORK_TYPE', 'gre')
+
+
+
+
