@@ -1,10 +1,11 @@
 class rsyslog::config {
-
+# assumes rsyslog packages installed at BM or included in distro
   File {
     owner => root,
     group => $rsyslog::params::run_group,
     mode => 0640,
-    require => Class["rsyslog::install"],
+    # To avoid dependency loops for custom runstages
+    #require => Class["rsyslog::install"],
     notify  => Class["rsyslog::service"],
   }  
 
