@@ -299,16 +299,22 @@ if $use_syslog {
     show_timezone => true,
     # log both locally include auth, and remote
     log_remote     => true,
-    log_local      => true,
-    log_auth_local => true,
+    log_local      => false,
+    log_auth_local => false,
     # keep four weekly log rotations, force rotate if 300M size have exceeded
     rotation       => 'weekly',
     keep           => '4',
-    limitsize      => '300M',
+    limitsize      => '3M',
     # remote servers to send logs to
     rservers       => [{'remote_type'=>'udp', 'server'=>'master', 'port'=>'514'},],
     # should be true, if client is running at virtual node
     virtual        => true,
+    # facilities
+    syslog_log_facility_glance   => $syslog_log_facility_glance,
+    syslog_log_facility_cinder   => $syslog_log_facility_cinder,
+    syslog_log_facility_quantum  => $syslog_log_facility_quantum,
+    syslog_log_facility_nova     => $syslog_log_facility_nova,
+    syslog_log_facility_keystone => $syslog_log_facility_keystone,
   }
 }
 
@@ -366,7 +372,7 @@ $use_upstream_mysql = true
 # In case of non debug and non verbose - WARNING, default level would have set.
 # Note: if syslog on, this default level may be configured (for syslog) with syslog_log_level option.
 $verbose = true
-$debug = false
+$debug = true
 
 #Rate Limits for cinder and Nova
 #Cinder and Nova can rate-limit your requests to API services.

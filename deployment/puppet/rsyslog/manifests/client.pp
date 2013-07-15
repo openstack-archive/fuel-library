@@ -14,6 +14,11 @@ class rsyslog::client (
   $escapenewline  = false,
   $rservers       = undef,
   $virtual        = false,
+  $syslog_log_facility_glance   = 'LOCAL2',
+  $syslog_log_facility_cinder   = 'LOCAL3',
+  $syslog_log_facility_quantum  = 'LOCAL4',
+  $syslog_log_facility_nova     = 'LOCAL6',
+  $syslog_log_facility_keystone = 'LOCAL7',
   ) inherits rsyslog {
 
 # Fix for udp checksums should be applied if running on virtual node

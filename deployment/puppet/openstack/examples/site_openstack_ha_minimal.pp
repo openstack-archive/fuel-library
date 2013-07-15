@@ -393,6 +393,12 @@ if $use_syslog {
     rservers       => [{'remote_type'=>'udp', 'server'=>'master', 'port'=>'514'},],
     # should be true, if client is running at virtual node
     virtual        => true,
+    # facilities
+    syslog_log_facility_glance   => $syslog_log_facility_glance,
+    syslog_log_facility_cinder   => $syslog_log_facility_cinder,
+    syslog_log_facility_quantum  => $syslog_log_facility_quantum,
+    syslog_log_facility_nova     => $syslog_log_facility_nova,
+    syslog_log_facility_keystone => $syslog_log_facility_keystone,
   }
 }
 
