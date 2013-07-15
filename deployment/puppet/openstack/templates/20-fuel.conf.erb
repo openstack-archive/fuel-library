@@ -1,0 +1,25 @@
+"/var/log/*-all.log" "/var/log/remote/*/*log"
+"/var/log/kern.log" "/var/log/debug" "/var/log/syslog"
+# This file is used for hourly log rotations, use (min)size options here
+{
+  sharedscripts
+  # truncate file, do not delete & recreate
+  copytruncate
+  # rotate only if 30M size or bigger
+  minsize 30M
+  # also rotate if 300M size have exceeded, should be size > minsize
+  size <%= @limitsize %>
+  # keep logs for <%= @keep %> rotations
+  rotate <%= @keep %>
+  # compression is postponed to next rotation
+  compress
+  delaycompress
+  # ignore missing files
+  missingok
+  # do not rotate empty files
+  notifempty
+  postrotate
+      /bin/kill -HUP `cat /var/run/syslogd.pid 2> /dev/null` 2> /dev/null || true
+  endscript
+}
+

@@ -3,7 +3,6 @@ class quantum::server (
   $auth_password,
   $package_ensure   = 'present',
   $enabled          = true,
-  $log_file         = '/var/log/quantum/server.log',
   $auth_type        = 'keystone',
   $auth_host        = 'localhost',
   $auth_port        = '35357',
@@ -41,10 +40,6 @@ class quantum::server (
 
   Quantum_config<||> ~> Service['quantum-server']
   Quantum_api_config<||> ~> Service['quantum-server']
-
-  quantum_config {
-    'DEFAULT/log_file':  value => $log_file
-  }
 
   quantum_api_config {
     'filter:authtoken/auth_host':         value => $auth_host;

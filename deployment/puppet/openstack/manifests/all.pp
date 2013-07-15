@@ -30,11 +30,17 @@
 #  [glance_db_password] The password for the db user for glance. Optional. Defaults to 'glance_pass'.
 #  [glance_user_password] The password of the glance service user. Optional. Defaults to 'glance_pass'.
 #  [secret_key] The secret key for horizon. Optional. Defaults to 'dummy_secret_key'.
-#  [verbose] If the services should log verbosely. Optional. Defaults to false.
+# [verbose] Rather to print more verbose (INFO+) output. If non verbose and non debug, would give syslog_log_level (default is WARNING) output. Optional. Defaults to false.
+# [debug] Rather to print even more verbose (DEBUG+) output. If true, would ignore verbose option. Optional. Defaults to false.
 #  [purge_nova_config] Whether unmanaged nova.conf entries should be purged. Optional. Defaults to true.
 #  [libvirt_type] The virualization type being controlled by libvirt.  Optional. Defaults to 'kvm'.
 #  [nova_volume] The name of the volume group to use for nova volume allocation. Optional. Defaults to 'nova-volumes'.
 #  [horizon] (bool) is horizon installed. Defaults to: true
+#  [use_syslog] Rather or not service should log to syslog. Optional.
+#  [syslog_log_facility] Facility for syslog, if used. Optional. Note: duplicating conf option 
+#       wouldn't have been used, but more powerfull rsyslog features managed via conf template instead
+#  [syslog_log_level] logging level for non verbose and non debug mode. Optional.
+#
 # === Examples
 #
 #  class { 'openstack::all':
@@ -136,9 +142,16 @@ class openstack::all (
   # General
   $enabled                 = true,
   $verbose                 = 'False',
+  $debug                   = 'False',
   $service_endpoint        = '127.0.0.1',
   $glance_backend          = 'file',
   $use_syslog              = false,
+  $syslog_log_level = 'WARNING',
+  $syslog_log_facility_glance   = 'LOCAL2',
+  $syslog_log_facility_cinder   = 'LOCAL3',
+  $syslog_log_facility_quantum  = 'LOCAL4',
+  $syslog_log_facility_nova     = 'LOCAL6',
+  $syslog_log_facility_keystone = 'LOCAL7',
   $nova_rate_limits        = undef,
 ) {
 
@@ -179,6 +192,7 @@ class openstack::all (
       quantum_db_dbname      => $quantum_db_dbname,
       allowed_hosts          => $allowed_hosts,
       enabled                => $enabled,
+      use_syslog             => $use_syslog,
     }
   } else {
     fail("unsupported db type: ${db_type}")
@@ -187,6 +201,7 @@ class openstack::all (
   ####### KEYSTONE ###########
   class { 'openstack::keystone':
     verbose                   => $verbose,
+    debug                     => $debug,
     db_type                   => $db_type,
     db_host                   => '127.0.0.1',
     db_password               => $keystone_db_password,
@@ -207,11 +222,14 @@ class openstack::all (
     quantum                   => $quantum,
     quantum_user_password     => $quantum_user_password,
     use_syslog                => $use_syslog,
+    syslog_log_facility       => $syslog_log_facility_keystone,
+    syslog_log_level          => $syslog_log_level,
   }
 
   ######## GLANCE ##########
   class { 'openstack::glance':
     verbose                   => $verbose,
+    debug                     => $debug,
     db_type                   => $db_type,
     db_host                   => '127.0.0.1',
     bind_host                 => '0.0.0.0',
@@ -225,6 +243,8 @@ class openstack::all (
     glance_backend            => $glance_backend,
     registry_host             => $service_endpoint,
     use_syslog                => $use_syslog,
+    syslog_log_facility       => $syslog_log_facility_glance,
+    syslog_log_level          => $syslog_log_level,
   }
 
   ######## NOVA ###########
@@ -266,6 +286,11 @@ class openstack::all (
       enabled              => true,
       iscsi_bind_host      => $cinder_iscsi_bind_addr,
       cinder_rate_limits   => $cinder_rate_limits,
+      use_syslog           => $use_syslog,
+      syslog_log_facility  => $syslog_log_facility_cinder,
+      syslog_log_level     => $syslog_log_level,
+      verbose              => $verbose,
+      debug                => $debug,
     }
   } else {
     # Set up nova-volume
@@ -299,6 +324,10 @@ class openstack::all (
     image_service      => 'nova.image.glance.GlanceImageService',
     glance_api_servers => "$internal_address:9292",
     verbose            => $verbose,
+    use_syslog         => $use_syslog,
+    syslog_log_facility => $syslog_log_facility_nova,
+    syslog_log_level    => $syslog_log_level,
+    debug              => $debug,
     rabbit_host        => '127.0.0.1',
   }
 
@@ -347,10 +376,13 @@ class openstack::all (
 
     class { 'quantum':
       verbose         => $verbose,
-      debug           => $verbose,
+      debug           => $debug,
       rabbit_host     => '127.0.0.1',
       rabbit_user     => $rabbit_user,
       rabbit_password => $rabbit_password,
+      use_syslog      => $use_syslog,
+      syslog_log_facility => $syslog_log_facility_quantum,
+      syslog_log_level    => $syslog_log_level,
     }
 
     class { 'quantum::server':

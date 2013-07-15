@@ -36,12 +36,16 @@
 #    Defaults to false. False indicates that a vnc proxy should not be configured.
 #  [vnc_enabled] Rather vnc console should be enabled.
 #    Optional. Defaults to 'true',
-#  [verbose] Rather components should log verbosely.
-#    Optional. Defaults to false.
+# [verbose] Rather to print more verbose (INFO+) output. If non verbose and non debug, would give syslog_log_level (default is WARNING) output. Optional. Defaults to false.
+# [debug] Rather to print even more verbose (DEBUG+) output. If true, would ignore verbose option. Optional. Defaults to false.
 #  [manage_volumes] Rather nova-volume should be enabled on this compute node.
 #    Optional. Defaults to false.
 #  [nova_volumes] Name of volume group in which nova-volume will create logical volumes.
 #    Optional. Defaults to nova-volumes.
+# [use_syslog] Rather or not service should log to syslog. Optional.
+# [syslog_log_facility] Facility for syslog, if used. Optional. Note: duplicating conf option 
+#       wouldn't have been used, but more powerfull rsyslog features managed via conf template instead
+# [syslog_log_level] logging level for non verbose and non debug mode. Optional.
 #
 # class { 'openstack::nova::compute':
 #   internal_address   => '192.168.2.2',
@@ -89,28 +93,32 @@ class openstack::compute (
   $tenant_network_type           = 'gre',
   $segment_range                 = '1:4094',
   # nova compute configuration parameters
-  $verbose             = false,
-  $service_endpoint    = '127.0.0.1',
-  $ssh_private_key     = undef,
-  $cache_server_ip     = ['127.0.0.1'],
-  $cache_server_port   = '11211',
-  $ssh_public_key      = undef,
+  $verbose                       = false,
+  $debug               = false,
+  $service_endpoint              = '127.0.0.1',
+  $ssh_private_key               = undef,
+  $cache_server_ip               = ['127.0.0.1'],
+  $cache_server_port             = '11211',
+  $ssh_public_key                = undef,
   # if the cinder management components should be installed
-  $manage_volumes          = false,
-  $nv_physical_volume      = undef,
-  $cinder_volume_group     = 'cinder-volumes',
-  $cinder                  = true,
-  $cinder_user_password    = 'cinder_user_pass',
-  $cinder_db_password      = 'cinder_db_pass',
-  $cinder_db_user          = 'cinder',
-  $cinder_db_dbname        = 'cinder',
-  $cinder_iscsi_bind_addr  = false,
-  $db_host                 = '127.0.0.1',
-  $use_syslog              = false,
-  $nova_rate_limits = undef,
-  $cinder_rate_limits = undef,
-  $create_networks = false,
-  $state_path              = '/var/lib/nova'
+  $manage_volumes                = false,
+  $nv_physical_volume            = undef,
+  $cinder_volume_group           = 'cinder-volumes',
+  $cinder                        = true,
+  $cinder_user_password          = 'cinder_user_pass',
+  $cinder_db_password            = 'cinder_db_pass',
+  $cinder_db_user                = 'cinder',
+  $cinder_db_dbname              = 'cinder',
+  $cinder_iscsi_bind_addr        = false,
+  $db_host                       = '127.0.0.1',
+  $use_syslog                    = false,
+  $syslog_log_facility           = 'LOCAL6',
+  $syslog_log_facility_cinder    = 'LOCAL3',
+  $syslog_log_facility_quantum   = 'LOCAL4',
+  $syslog_log_level = 'WARNING',
+  $nova_rate_limits              = undef,
+  $cinder_rate_limits            = undef,
+  $create_networks               = false
 ) {
 
   #
@@ -171,8 +179,11 @@ class openstack::compute (
       image_service        => 'nova.image.glance.GlanceImageService',
       glance_api_servers   => $glance_api_servers,
       verbose              => $verbose,
+      debug                => $debug,
       rabbit_host          => $rabbit_host,
       use_syslog           => $use_syslog,
+      syslog_log_facility  => $syslog_log_facility,
+      syslog_log_level     => $syslog_log_level,
       api_bind_address     => $internal_address,
       rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
       state_path           => $state_path,
@@ -196,7 +207,11 @@ class openstack::compute (
         bind_host            => false,
         iscsi_bind_host      => $cinder_iscsi_bind_addr,
         cinder_user_password => $cinder_user_password,
+        verbose              => $verbose,
+        debug                => $debug,
         use_syslog           => $use_syslog,
+        syslog_log_facility  => $syslog_log_facility_cinder,
+        syslog_log_level     => $syslog_log_level,
         cinder_rate_limits   => $cinder_rate_limits,
         rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
     }
@@ -344,12 +359,14 @@ class openstack::compute (
     $enable_tunneling = $tenant_network_type ? { 'gre' => true, 'vlan' => false }
 
     class { '::quantum':
-      verbose         => $verbose,
-      debug           => $verbose,
       rabbit_host     => $rabbit_nodes ? { false => $rabbit_host, default => $rabbit_nodes },
       rabbit_user     => $rabbit_user,
       rabbit_password => $rabbit_password,
+      verbose         => $verbose,
+      debug           => $debug,
       use_syslog           => $use_syslog,
+      syslog_log_level     => $syslog_log_level,
+      syslog_log_facility  => $syslog_log_facility_quantum,
       rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
     }
 

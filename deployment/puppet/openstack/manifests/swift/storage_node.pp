@@ -1,3 +1,4 @@
+#
 class openstack::swift::storage_node (
   $swift_zone,
   $swift_hash_suffix      = 'swift_secret',
@@ -31,6 +32,8 @@ class openstack::swift::storage_node (
   $db_host                = '127.0.0.1',
   $service_endpoint       = '127.0.0.1',
   $use_syslog             = false,
+  $syslog_log_facility_cinder = 'LOCAL3',
+  $syslog_log_level = 'WARNING',
   # Rabbit details necessary for cinder
   $rabbit_nodes           = false,
   $rabbit_password        = 'rabbit_pw',
@@ -93,6 +96,8 @@ class openstack::swift::storage_node (
         iscsi_bind_host      => $cinder_iscsi_bind_addr,
         cinder_user_password => $cinder_user_password,
         use_syslog           => $use_syslog,
+        syslog_log_facility  => $syslog_log_facility_cinder,
+        syslog_log_level     => $syslog_log_level,
         cinder_rate_limits   => $cinder_rate_limits,
         rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
       }
