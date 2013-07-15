@@ -29,8 +29,8 @@ describe 'rsync::server::module', :type => :define do
     it { should contain_file(fragment_file).with_content(/^list\s*=\s*yes$/) }
     it { should contain_file(fragment_file).with_content(/^uid\s*=\s*0$/) }
     it { should contain_file(fragment_file).with_content(/^gid\s*=\s*0$/) }
-    it { should contain_file(fragment_file).with_content(/^incoming chmod\s*=\s*0644$/) }
-    it { should contain_file(fragment_file).with_content(/^outgoing chmod\s*=\s*0644$/) }
+    it { should contain_file(fragment_file).with_content(/^incoming chmod\s*=\s*a=r,u\+w,D\+x$/) }
+    it { should contain_file(fragment_file).with_content(/^outgoing chmod\s*=\s*a=r,u\+w,D\+x$/) }
     it { should contain_file(fragment_file).with_content(/^max connections\s*=\s*0$/) }
     it { should_not contain_file(fragment_file).with_content(/^lock file\s*=.*$/) }
     it { should_not contain_file(fragment_file).with_content(/^secrets file\s*=.*$/) }
