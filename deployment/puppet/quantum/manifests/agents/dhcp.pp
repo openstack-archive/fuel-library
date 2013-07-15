@@ -1,6 +1,8 @@
+#
 class quantum::agents::dhcp (
   $package_ensure   = 'present',
   $enabled          = true,
+  $verbose          = 'False',
   $debug            = 'False',
   $state_path       = '/var/lib/quantum',
   $resync_interval  = 30,
@@ -53,6 +55,9 @@ class quantum::agents::dhcp (
   quantum_dhcp_agent_config {
     'DEFAULT/debug':
       value => $debug;
+
+    'DEFAULT/verbose':
+      value => $verbose;
 
     'DEFAULT/state_path':
       value => $state_path;

@@ -1,0 +1,13 @@
+#!/bin/sh
+# managed by puppet
+#
+# Due to bug existing, logrotate always returns 0. Use grep for detect errors:
+# would return 1 (considered as normal result), if logrotate returns no errors, return 0, if any. 
+#/usr/sbin/logrotate /etc/logrotate.d/20-fuel.conf >/dev/null 2>&1
+nice ionice -c3 /usr/sbin/logrotate /etc/logrotate.d/20-fuel.conf >& /tmp/logrotate && grep -q error /tmp/logrotate
+
+EXITVALUE=$?
+if [ $EXITVALUE != 1 ]; then
+    /usr/bin/logger -t logrotate "ALERT exited abnormally with [$EXITVALUE] (1 was expected)"
+fi
+exit 0

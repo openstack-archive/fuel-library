@@ -1,0 +1,5 @@
+= anacron
+
+This module configures anacron to run jobs in the *idle* i/o class.
+(source ttp://code.seas.harvard.edu/puppet/puppet/trees/master/modules/anacron)
+

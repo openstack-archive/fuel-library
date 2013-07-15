@@ -1,0 +1,23 @@
+"/var/log/*-all.log" "/var/log/remote/*/*log"
+"/var/log/kern.log" "/var/log/debug" "/var/log/daemon.log"
+"/var/log/auth.log" "/var/log/user.log" "var/log/mail.log"
+"/var/log/cron.log"
+{
+# This file is used for daily log rotations, do not use (min)size options here
+  sharedscripts
+  <%= @rotation %>
+  # truncate file, do not delete & recreate
+  copytruncate
+  # keep logs for <%= @keep %> rotations
+  rotate <%= @keep %>
+  # compression is postponed to next rotation
+  compress
+  delaycompress
+  # ignore missing files
+  missingok
+  # do not rotate empty files
+  notifempty
+  postrotate
+      /bin/kill -HUP `cat /var/run/syslogd.pid 2> /dev/null` 2> /dev/null || true
+  endscript
+}

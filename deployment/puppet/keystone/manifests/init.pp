@@ -19,6 +19,9 @@
 #     Defaults to False.
 #   [use_syslog] Rather or not keystone should log to syslog. Optional.
 #     Defaults to False.
+#   [syslog_log_facility] Facility for syslog, if used. Optional. Note: duplicating conf option 
+#     wouldn't have been used, but more powerfull rsyslog features managed via conf template instead
+#   [syslog_log_level] logging level for non verbose and non debug mode. Optional.
 #   [catalog_type] Type of catalog that keystone uses to store endpoints,services. Optional.
 #     Defaults to sql. (Also accepts template)
 #   [token_format] Format keystone uses for tokens. Optional. Defaults to UUID (PKI is grizzly native mode though).
@@ -49,21 +52,23 @@
 #
 class keystone(
   $admin_token,
-  $package_ensure = 'present',
-  $bind_host      = '0.0.0.0',
-  $public_port    = '5000',
-  $admin_port     = '35357',
-  $compute_port   = '3000',
-  $verbose        = 'False',
-  $debug          = 'False',
-  $use_syslog     = false,
-  $catalog_type   = 'sql',
-  $token_format   = 'UUID',
-#  $token_format   = 'PKI',
-  $cache_dir      = '/var/cache/keystone',
-  $enabled        = true,
-  $sql_connection = 'sqlite:////var/lib/keystone/keystone.db',
-  $idle_timeout   = '200'
+  $package_ensure      = 'present',
+  $bind_host           = '0.0.0.0',
+  $public_port         = '5000',
+  $admin_port          = '35357',
+  $compute_port        = '3000',
+  $verbose             = 'False',
+  $debug               = 'False',
+  $use_syslog          = false,
+  $syslog_log_facility = 'LOCAL7',
+  $syslog_log_level = 'WARNING',
+  $catalog_type        = 'sql',
+  $token_format        = 'UUID',
+#  $token_format        = 'PKI',
+  $cache_dir           = '/var/cache/keystone',
+  $enabled             = true,
+  $sql_connection      = 'sqlite:////var/lib/keystone/keystone.db',
+  $idle_timeout        = '200'
 ) {
 
   validate_re($catalog_type,   'template|sql')
@@ -73,30 +78,47 @@ class keystone(
   Keystone_config<||> ~> Exec<| title == 'keystone-manage db_sync'|>
   Package['keystone'] ~> Exec<| title == 'keystone-manage pki_setup'|> ~> Service['keystone']
 
-  # TODO implement syslog features
-  if $use_syslog {
-    keystone_config {'DEFAULT/log_config': value => "/etc/keystone/logging.conf";}
-    file {"keystone-logging.conf":
-      content => template('keystone/logging.conf.erb'),
-      path => "/etc/keystone/logging.conf",
-      owner => "keystone",
-      group => "keystone",
-      require => File['/etc/keystone'],
-    }
-##TODO add rsyslog module config
-  } else  {
-    keystone_config {'DEFAULT/log_config': ensure=> absent;}
-  }
-
-  include 'keystone::params'
-
   File {
     ensure  => present,
     owner   => 'keystone',
     group   => 'keystone',
     mode    => '0644',
-    notify  => Service['keystone'],
+    require => Package['keystone'],
   }
+
+  if $use_syslog {
+    keystone_config {
+      'DEFAULT/log_config': value => "/etc/keystone/logging.conf";
+      'DEFAULT/log_file': ensure=> absent;
+      'DEFAULT/logdir': ensure=> absent;
+    }
+    file {"keystone-logging.conf":
+      content => template('keystone/logging.conf.erb'),
+      path => "/etc/keystone/logging.conf",
+      require => File['/etc/keystone'],
+      # We must notify service for new logging rules
+      notify => Service['keystone'],
+    }
+    file { "keystone-all.log":
+      path => "/var/log/keystone-all.log",
+    }
+    file { '/etc/rsyslog.d/20-keystone.conf':
+      ensure => present,
+      content => template('keystone/rsyslog.d.erb'),
+    }
+
+    # We must notify rsyslog to apply new logging rules
+    include rsyslog::params
+    File['/etc/rsyslog.d/20-keystone.conf'] ~> Service <| title == "$rsyslog::params::service_name" |>
+
+  } else  {
+    keystone_config {
+     'DEFAULT/log_config': ensure => absent;
+     'DEFAULT/log_file': value => $log_file;
+    }
+  }
+
+  include 'keystone::params'
 
   package { 'keystone':
     name   => $::keystone::params::package_name,
@@ -119,6 +141,7 @@ class keystone(
     owner   => 'keystone',
     group   => 'keystone',
     mode    => 0755,
+    notify  => Service['keystone'],
   }
 
   case $::osfamily {
@@ -127,7 +150,8 @@ class keystone(
         ensure  => present,
         owner   => 'keystone',
         group   => 'keystone',
-        require => File['/etc/keystone']
+        require => File['/etc/keystone'],
+        notify  => Service['keystone'],
       }
       User['keystone'] -> File['/etc/keystone']
       Group['keystone'] -> File['/etc/keystone']
@@ -149,9 +173,9 @@ class keystone(
     'DEFAULT/public_port':  value => $public_port;
     'DEFAULT/admin_port':   value => $admin_port;
     'DEFAULT/compute_port': value => $compute_port;
-    'DEFAULT/verbose':      value => $verbose;
     'DEFAULT/debug':        value => $debug;
-    'DEFAULT/log_file':        value => "/var/log/keystone/keystone.log";
+    'DEFAULT/verbose':      value => $verbose;
+    'DEFAULT/use_syslog':   value => $use_syslog;
     'identity/driver': value =>"keystone.identity.backends.sql.Identity";
     'token/driver': value =>"keystone.token.backends.sql.Token";
     'policy/driver': value =>"keystone.policy.backends.rules.Policy";
@@ -238,6 +262,7 @@ class keystone(
   if($token_format  == 'PKI') {
     file { $cache_dir:
       ensure => directory,
+      notify  => Service['keystone'],
     }
 
     # keystone-manage pki_setup Should be run as the same system user that will be running the Keystone service to ensure 

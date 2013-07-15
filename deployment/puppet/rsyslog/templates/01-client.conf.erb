@@ -1,0 +1,28 @@
+# file is managed by puppet
+
+<% unless scope.lookupvar('rsyslog::client::escapenewline') -%>
+$EscapeControlCharactersOnReceive off
+<% end -%>
+
+#
+# Disk-Assisted Memory Queues, async writes, no escape chars
+#
+$OMFileASyncWriting on
+$SystemLogRateLimitInterval 0   # disable rate limits for rsyslog
+$MainMsgQueueType LinkedList
+$WorkDirectory <%= scope.lookupvar('rsyslog::params::spool_dir') %>
+$MainMsgQueueFileName mainmsgqueue
+$MainMsgQueueSaveOnShutdown on
+$MainMsgQueueDequeueSlowdown 1000
+$MainMsgQueueWorkerThreads 2
+$MainMsgQueueDequeueBatchSize 128
+$ActionQueueType LinkedList
+$WorkDirectory <%= scope.lookupvar('rsyslog::params::spool_dir') %>
+$ActionQueueFileName acsdbq
+$ActionQueueMaxDiskSpace 1g
+$ActionQueueSaveOnShutdown on
+$ActionQueueDequeueSlowdown 1000
+$ActionQueueWorkerThreads 2
+$ActionQueueDequeueBatchSize 128
+$ActionResumeRetryCount -1
+$SystemLogRateLimitInterval 0   # disable rate limits for rsyslog

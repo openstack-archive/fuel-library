@@ -1,21 +1,40 @@
 [loggers]
 keys = root
 
+# devel is reserved for future usage
 [handlers]
-keys = syslog
+keys = production,devel
 
 [formatters]
-keys = default
+keys = normal,debug
 
 [logger_root]
 level = DEBUG
-handlers = syslog
+handlers = production
 qualname = quantum
 
-[handler_syslog]
-class = handlers.SysLogHandler
-args = ('/dev/log', handlers.SysLogHandler.LOG_LOCAL4)
-formatter = default
+[formatter_debug]
+format = quantum-%(name)s: %(levelname)s %(module)s %(funcName)s %(message)s
 
-[formatter_default]
-format = quantum %(name)s %(levelname)s %(message)s
+[formatter_normal]
+format = quantum-%(name)s: %(levelname)s %(message)s
+
+# Extended logging info to LOG_<%= @syslog_log_facility %> with debug:<%= @debug %> and verbose:<%= @verbose %>
+# Note: local copy goes to /var/log/quantum-all.log
+[handler_production]
+class = handlers.SysLogHandler
+<% if @debug then -%>
+level = DEBUG
+<% elsif @verbose then -%>
+level = INFO
+<% else -%>
+level = <%= @syslog_log_level %>
+<% end -%>
+args = ('/dev/log', handlers.SysLogHandler.LOG_<%= @syslog_log_facility %>)
+formatter = normal
+
+# TODO find out how it could be usefull and how it should be used
+[handler_devel]
+class = StreamHandler
+formatter = debug
+args = (sys.stdout,)

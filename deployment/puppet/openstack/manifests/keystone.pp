@@ -17,7 +17,8 @@
 # [keystone_db_user] Name of keystone db user. Optional. Defaults to  'keystone'
 # [keystone_db_dbname] Name of keystone DB. Optional. Defaults to  'keystone'
 # [keystone_admin_tenant] Name of keystone admin tenant. Optional. Defaults to  'admin'
-# [verbose] Log verbosely. Optional. Defaults to  'False'
+# [verbose] Rather to print more verbose (INFO+) output. If non verbose and non debug, would give syslog_log_level (default is WARNING) output. Optional. Defaults to false.
+# [debug] Rather to print even more verbose (DEBUG+) output. If true, would ignore verbose option. Optional. Defaults to false.
 # [bind_host] Address that keystone binds to. Optional. Defaults to  '0.0.0.0'
 # [internal_address] Internal address for keystone. Optional. Defaults to  $public_address
 # [admin_address] Keystone admin address. Optional. Defaults to  $internal_address
@@ -25,6 +26,10 @@
 # [nova] Set up nova endpoints and auth. Optional. Defaults to  true
 # [enabled] If the service is active (true) or passive (false).
 #   Optional. Defaults to  true
+# [use_syslog] Rather or not service should log to syslog. Optional.
+# [syslog_log_facility] Facility for syslog, if used. Optional. Note: duplicating conf option 
+#       wouldn't have been used, but more powerfull rsyslog features managed via conf template instead
+# [syslog_log_level] logging level for non verbose and non debug mode. Optional.
 #
 # === Example
 #
@@ -54,6 +59,7 @@ class openstack::keystone (
   $db_name                  = 'keystone',
   $admin_tenant             = 'admin',
   $verbose                  = 'False',
+  $debug                    = 'False',
   $bind_host                = '0.0.0.0',
   $internal_address         = false,
   $admin_address            = false,
@@ -74,8 +80,10 @@ class openstack::keystone (
   $cinder                   = true,
   $quantum                  = true,
   $enabled                  = true,
-  $package_ensure = present,
-  $use_syslog = false,
+  $package_ensure           = present,
+  $use_syslog               = false,
+  $syslog_log_facility      = 'LOCAL7',
+  $syslog_log_level = 'WARNING',
 ) {
 
   # Install and configure Keystone
@@ -160,14 +168,16 @@ class openstack::keystone (
 
   class { '::keystone':
     verbose    => $verbose,
-    debug      => $verbose,
+    debug      => $debug,
     catalog_type   => 'sql',
     admin_token    => $admin_token,
     enabled        => $enabled,
     sql_connection => $sql_conn,
     bind_host	=> $bind_host,
     package_ensure => $package_ensure,
-    use_syslog => $use_syslog
+    use_syslog => $use_syslog,
+    syslog_log_facility => $syslog_log_facility,
+    syslog_log_level    => $syslog_log_level,
   }
 
   if ($enabled) {

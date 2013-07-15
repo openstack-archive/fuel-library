@@ -1,0 +1,18 @@
+# /etc/anacrontab: configuration file for anacron
+# managed by puppet
+# See anacron(8) and anacrontab(5) for details.
+
+SHELL=/bin/sh
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+HOME=/root
+LOGNAME=root
+# the maximal random delay added to the base delay of the jobs
+RANDOM_DELAY=25
+# the jobs will be started during the following hours only
+START_HOURS_RANGE=3-22
+
+# These, except hourly, replace cron's entries
+#period in days   delay in minutes   job-identifier   command
+1                 5                  cron.daily       nice ionice -c3 run-parts /etc/cron.daily
+7                 25                 cron.weekly      nice ionice -c3 run-parts /etc/cron.weekly
+@monthly          45                 cron.monthly     nice ionice -c3 run-parts /etc/cron.monthly

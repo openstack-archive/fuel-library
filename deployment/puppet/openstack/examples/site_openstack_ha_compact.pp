@@ -396,15 +396,51 @@ $master_swift_proxy_ip = $master_swift_proxy_nodes[0]['internal_address']
 ### Syslog ###
 # Enable error messages reporting to rsyslog. Rsyslog must be installed in this case.
 $use_syslog = false
+# Default log level would have been used, if non verbose and non debug
+$syslog_log_level             = 'ERROR'
+# Syslog facilities for main openstack services, choose any, may overlap if needed
+$syslog_log_facility_glance   = 'LOCAL2'
+$syslog_log_facility_cinder   = 'LOCAL3'
+$syslog_log_facility_quantum  = 'LOCAL4'
+$syslog_log_facility_nova     = 'LOCAL6'
+$syslog_log_facility_keystone = 'LOCAL7'
+
 if $use_syslog {
-  class { "::rsyslog::client":
-    log_local => true,
+  class { "::openstack::logging":
+    # FIXME #stage          => 'first',
+    role           => 'client',
+    show_timezone => true,
+    # log both locally include auth, and remote
+    log_remote     => true,
+    log_local      => true,
     log_auth_local => true,
-    server => '127.0.0.1',
-    port => '514'
+    # keep four weekly log rotations, force rotate if 300M size have exceeded
+    rotation       => 'weekly',
+    keep           => '4',
+    limitsize      => '300M',
+    # remote servers to send logs to
+    rservers       => [{'remote_type'=>'udp', 'server'=>'master', 'port'=>'514'},],
+    # should be true, if client is running at virtual node
+    virtual        => true,
   }
 }
 
+# Example for server role class definition for remote logging node:
+#   class {::openstack::logging:
+#      role           => 'server',
+#      log_remote     => false,
+#      log_local      => true,
+#      log_auth_local => true,
+#      rotation       => 'daily',
+#      keep           => '7',
+#      limitsize      => '100M',
+#      port           => '514',
+#      proto          => 'udp',
+#     #high precision timespamps
+#      show_timezone  => true,
+#     #should be true, if server is running at virtual node
+#     #virtual        => false,
+#   }
 ### Syslog END ###
 case $::osfamily {
     "Debian":  {
@@ -437,8 +473,13 @@ $enable_test_repo = false
 $repo_proxy = undef
 
 # This parameter specifies the verbosity level of log messages
-# in openstack components config. Currently, it disables or enables debugging.
+# in openstack components config. 
+# Debug would have set DEBUG level and ignore verbose settings, if any.
+# Verbose would have set INFO level messages
+# In case of non debug and non verbose - WARNING, default level would have set. 
+# Note: if syslog on, this default level may be configured (for syslog) with syslog_log_level option.
 $verbose = true
+$debug = false
 
 #Rate Limits for cinder and Nova
 #Cinder and Nova can rate-limit your requests to API services.
@@ -555,6 +596,7 @@ class compact_controller (
     network_size            => $network_size,
     network_config          => { 'vlan_start' => $vlan_start },
     verbose                 => $verbose,
+    debug                   => $debug,
     auto_assign_floating_ip => $auto_assign_floating_ip,
     mysql_root_password     => $mysql_root_password,
     admin_email             => $admin_email,
@@ -589,6 +631,12 @@ class compact_controller (
     galera_nodes            => $controller_hostnames,
     nv_physical_volume      => $nv_physical_volume,
     use_syslog              => $use_syslog,
+    syslog_log_level        => $syslog_log_level,
+    syslog_log_facility_glance   => $syslog_log_facility_glance,
+    syslog_log_facility_cinder => $syslog_log_facility_cinder,
+    syslog_log_facility_quantum => $syslog_log_facility_quantum,
+    syslog_log_facility_nova => $syslog_log_facility_nova,
+    syslog_log_facility_keystone => $syslog_log_facility_keystone,
     nova_rate_limits        => $nova_rate_limits,
     cinder_rate_limits      => $cinder_rate_limits,
     horizon_use_ssl         => $horizon_use_ssl,
@@ -665,7 +713,9 @@ node /fuel-controller-[\d+]/ {
     rabbit_nodes           => $controller_hostnames,
     rabbit_password        => $rabbit_password,
     rabbit_user            => $rabbit_user,
-    rabbit_ha_virtual_ip   => $internal_virtual_ip
+    rabbit_ha_virtual_ip   => $internal_virtual_ip,
+    syslog_log_level       => $syslog_log_level,
+    syslog_log_facility_cinder => $syslog_log_facility_cinder,
   }
 
   if $primary_proxy {
@@ -732,6 +782,7 @@ node /fuel-compute-[\d+]/ {
     glance_api_servers     => "${internal_virtual_ip}:9292",
     vncproxy_host          => $public_virtual_ip,
     verbose                => $verbose,
+    debug                  => $debug,
     vnc_enabled            => true,
     nova_user_password     => $nova_user_password,
     cache_server_ip        => $controller_hostnames,
@@ -750,6 +801,9 @@ node /fuel-compute-[\d+]/ {
     ssh_private_key        => 'puppet:///ssh_keys/openstack',
     ssh_public_key         => 'puppet:///ssh_keys/openstack.pub',
     use_syslog             => $use_syslog,
+    syslog_log_level       => $syslog_log_level,
+    syslog_log_facility_quantum => $syslog_log_facility_quantum,
+    syslog_log_facility_cinder => $syslog_log_facility_cinder,
     nova_rate_limits       => $nova_rate_limits,
     cinder_rate_limits     => $cinder_rate_limits
   }
@@ -781,6 +835,7 @@ node /fuel-quantum/ {
       fixed_range           => $fixed_range,
       create_networks       => $create_networks,
       verbose               => $verbose,
+      debug                 => $debug,
       rabbit_password       => $rabbit_password,
       rabbit_user           => $rabbit_user,
       rabbit_nodes          => $controller_hostnames,
@@ -797,6 +852,8 @@ node /fuel-quantum/ {
       external_ipinfo       => $external_ipinfo,
       api_bind_address      => $internal_address,
       use_syslog            => $use_syslog,
+      syslog_log_level => $syslog_log_level,
+      syslog_log_facility_quantum => $syslog_log_facility_quantum,
     }
     class { 'openstack::auth_file':
       admin_password       => $admin_password,
