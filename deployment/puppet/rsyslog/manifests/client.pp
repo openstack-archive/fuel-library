@@ -38,6 +38,16 @@ if $virtual { include rsyslog::checksum_udp514 }
     notify  => Class["rsyslog::service"],
   }
 
+  file { "${rsyslog::params::rsyslog_d}02-ha.conf":
+    ensure => present,
+    content => template("${module_name}/02-ha.conf.erb"),
+  }
+
+  file { "${rsyslog::params::rsyslog_d}03-dashboard.conf":
+    ensure => present,
+    content => template("${module_name}/03-dashboard.conf.erb"),
+  }
+
   file { "${rsyslog::params::rsyslog_d}10-nova.conf":
     ensure => present,
     content => template("${module_name}/10-nova.conf.erb"),
@@ -65,17 +75,14 @@ if $virtual { include rsyslog::checksum_udp514 }
 
   file { "${rsyslog::params::rsyslog_d}60-puppet-agent.conf":
     content => template("${module_name}/60-puppet-agent.conf.erb"),
-
   }
 
   file { "${rsyslog::params::rsyslog_d}90-local.conf":
     content => template("${module_name}/90-local.conf.erb"),
-
   }
 
   file { "${rsyslog::params::rsyslog_d}99-remote.conf":
     content => template("${module_name}/99-remote.conf.erb"),
-
   }
 
  file { $rsyslog::params::rsyslog_d:
