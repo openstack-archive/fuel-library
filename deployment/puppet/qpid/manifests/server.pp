@@ -91,26 +91,6 @@ class qpid::server(
       before => File[$::qpid::params::config_file],
     }
   }
-  if $qpid_cluster {
-    exec { 'qpid-corosync-restart':
-      path => '/usr/bin/:/usr/sbin:/bin:/sbin',
-      command => "/sbin/service corosync restart",
-      before => Service[$::qpid::params::service_name],
-      require => [File[$::qpid::params::config_file],
-		  Package[$::qpid::params::cluster_package_name]]
-    }
-    service { $::qpid::params::service_name:
-      enable => true,
-      ensure => $service_ensure,
-      hasstatus  => true,
-      hasrestart => true,
-      subscribe => File[$::qpid::params::config_file],
-      require => [Package[$::qpid::params::package_name],
-                  File[$::qpid::params::config_file],
-                  Exec['qpid-corosync-restart']],
-    }
-  }
-  else {
     service { $::qpid::params::service_name:
       enable => true,
       ensure => $service_ensure,
@@ -119,6 +99,6 @@ class qpid::server(
       require => [Package[$::qpid::params::package_name], File[$::qpid::params::config_file]],
     }
 
-  }
 }
+
 
