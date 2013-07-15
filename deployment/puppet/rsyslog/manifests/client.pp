@@ -43,6 +43,21 @@ if $virtual { include rsyslog::checksum_udp514 }
     notify  => Class["rsyslog::service"],
   }
 
+# Rabbitmq does not support syslogging, use imfile
+  ::rsyslog::imfile { "04-rabbitmq" :
+    file_name     => "/var/log/rabbitmq/rabbit@${hostname}.log",
+    file_tag      => "rabbitmq",
+    file_facility => "syslog",
+    notify  => Class["rsyslog::service"],
+  }
+
+  ::rsyslog::imfile { "04-rabbitmq-sasl" :
+    file_name     => "/var/log/rabbitmq/rabbit@${hostname}-sasl.log",
+    file_tag      => "rabbitmq-sasl",
+    file_facility => "syslog",
+    notify  => Class["rsyslog::service"],
+  }
+
   file { "${rsyslog::params::rsyslog_d}02-ha.conf":
     ensure => present,
     content => template("${module_name}/02-ha.conf.erb"),

@@ -55,13 +55,6 @@ if $role == 'client' {
     syslog_log_facility_nova => $syslog_log_facility_nova,
     syslog_log_facility_keystone => $syslog_log_facility_keystone,
   }
-# FIXME Find more appropriate way to ensure rsyslog service would be restarted
-# while custom runstage openstack::logging class has been called within
-#  exec {'rsyslog_forcerestart':
-#    path    => ["/usr/bin", "/usr/sbin", "/sbin", "/bin"],
-#    command => "service ${::rsyslog::params::service_name} restart",
-#    returns => 0,
-#  }
 
 } else { # server
   firewall { "$port $proto rsyslog":
@@ -82,13 +75,6 @@ if $role == 'client' {
     high_precision_timestamps => $show_timezone,
     virtual    => $virtual,
   }
-# FIXME Find more appropriate way to ensure rsyslog service would be restarted
-# while custom runstage openstack::logging class has been called within
-#  exec {'rsyslog_forcerestart':
-#    path    => ["/usr/bin", "/usr/sbin", "/sbin", "/bin"],
-#    command => "service ${::rsyslog::params::service_name} restart",
-#    returns => 0,
-#  }
 }
 
   class {"::openstack::logrotate":
