@@ -4,7 +4,7 @@ $controller_internal_addresses = parsejson($ctrl_management_addresses)
 $controller_public_addresses = parsejson($ctrl_public_addresses)
 $controller_storage_addresses = parsejson($ctrl_storage_addresses)
 $controller_hostnames = keys($controller_internal_addresses)
-$controller_nodes = values($controller_internal_addresses)
+$controller_nodes = sort(values($controller_internal_addresses))
 
 if $auto_assign_floating_ip == 'true' {
   $bool_auto_assign_floating_ip = true
@@ -12,6 +12,12 @@ if $auto_assign_floating_ip == 'true' {
   $bool_auto_assign_floating_ip = false
 }
 
+
+if $auto_assign_floating_ip == 'true' {
+  $bool_auto_assign_floating_ip = true
+} else {
+  $bool_auto_assign_floating_ip = false
+}
 
 $create_networks = true
 
@@ -268,7 +274,8 @@ class virtual_ips () {
         queue_provider         => $::queue_provider,
         qpid_password          => $rabbit_hash[password],
         qpid_user              => $rabbit_user,
-        qpid_nodes             => $controller_hostnames,
+        qpid_nodes             => $controller_nodes,
+        auto_assign_floating_ip => $bool_auto_assign_floating_ip,
         glance_api_servers     => "${management_vip}:9292",
         vncproxy_host          => $public_vip,
         verbose                => $verbose,
@@ -310,9 +317,10 @@ class virtual_ips () {
       class { 'openstack::cinder':
         sql_connection       => "mysql://cinder:${cinder_hash[db_password]}@${management_vip}/cinder?charset=utf8",
         glance_api_servers   => "${management_vip}:9292",
+        queue_provider       => $::queue_provider,
         rabbit_password      => $rabbit_hash[password],
         rabbit_host          => false,
-        rabbit_nodes         => $controller_hostnames,
+        rabbit_nodes         => $management_vip,
         qpid_password        => $rabbit_hash[password],
         qpid_user            => $rabbit_user,
         qpid_nodes           => $controller_hostnames,
