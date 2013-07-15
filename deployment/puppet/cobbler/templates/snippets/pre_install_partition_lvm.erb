@@ -9,6 +9,7 @@ echo > /tmp/partition.ks
     #set $partitions = []
     #set $volume_groups = {}
     #set $logical_volumes = []
+    #set $post_logical_volumes = []
     #set $pvnum = 0
     ##
     #for $space in $spaces
@@ -58,10 +59,26 @@ echo "bootloader --location=mbr --driveorder=\$(basename `readlink -f /dev/$spac
             ## Parsing logical volumes
             #if $space_type == "vg" and $volume_type == "lv"
                 #set $volume_mount = $volume.get("mount")
+                ## getting volume size in MB
                 #set $volume_size = $int($volume.get("size") or 0) / 1024 ** 2
                 #set $volume_name = $volume.get("name")
-                #if $volume_size > 0
+                ##
+                ## Anaconda has hard coded limitation of 16TB for ext3/4 and xfs filesystems (the only filesystems we are supposed to use).
+                ## Besides there is no stable 64-bit ext4 implementation at the moment, so the limitation of 16TB is not only anaconda limitation.
+                ## Root partition can not be located on xfs filesystem therefore we check if root filesystem is larger
+                ## than 16TB and set it size into 16TB if it is. It is necessary to note that to format 16TB volume on ext4 it is needed about 1G memory.
+                #if $volume_size > 16777216 and $volume_mount == "/"
+                    #set $volume_size = 16777216
+                #end if
+                ## volume_size is less than or equal to 16TB
+                #if $volume_size > 0 and $volume_size <= 16777216
                     $logical_volumes.append("logvol %s --vgname=%s --size=%s --name=%s" % ($volume_mount, $space_id, $volume_size, $volume_name))
+                ## volume_size is more than 16TB, use xfs file system
+                #else
+                    $post_logical_volumes.append("lvcreate --size %s --name %s %s" % ($volume_size, $volume_name, $space_id))
+                    $post_logical_volumes.append("mkfs.xfs /dev/mapper/%s-%s" % ($space_id, $volume_name))
+                    $post_logical_volumes.append("mkdir -p /mnt/sysimage%s" % $volume_mount)
+                    $post_logical_volumes.append("echo '/dev/mapper/%s-%s %s xfs defaults 0 0' >> /mnt/sysimage/etc/fstab" % ($space_id, $volume_name, $volume_mount))
                 #end if
             #end if
             ##
@@ -72,6 +89,9 @@ echo "bootloader --location=mbr --driveorder=\$(basename `readlink -f /dev/$spac
     #if $clearpart_drives
         #set $clearpart_drives_string = ','.join(list($clearpart_drives))
 echo "clearpart --initlabel --all --drives=$clearpart_drives_string" >> /tmp/partition.ks
+        #for $d in list($clearpart_drives)
+/usr/sbin/parted -s "/dev/$d" mklabel gpt
+        #end for
     #end if
     ##
     ## Creating bare partitions
@@ -93,6 +113,12 @@ echo "volgroup $volgroup $ks_pvs" >> /tmp/partition.ks
     ## Creating logical volumes
     #for $lv in $logical_volumes
 echo "$lv" >> /tmp/partition.ks
+    #end for
+    ##
+    ## Creating logical volumes in %post section
+echo "%post --nochroot" > /tmp/post_partition.ks
+    #for $lv in $post_logical_volumes
+echo "$lv" >> /tmp/post_partition.ks
     #end for
     ##
     ##
