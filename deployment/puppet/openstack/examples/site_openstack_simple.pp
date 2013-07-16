@@ -1,7 +1,7 @@
 #
 # Parameter values in this file should be changed, taking into consideration your
 # networking setup and desired OpenStack settings.
-# 
+#
 # Please consult with the latest Fuel User Guide before making edits.
 #
 # Run stages for puppet
@@ -135,7 +135,7 @@ $floating_range  = '10.0.204.128/28'
 
 # These parameters are passed to the previously specified network manager , e.g. nova-manage network create.
 # Not used in Quantum.
-# Consult openstack docs for corresponding network manager. 
+# Consult openstack docs for corresponding network manager.
 # https://fuel-dev.mirantis.com/docs/0.2/pages/0050-installation-instructions.html#network-setup
 $num_networks    = 1
 $network_size    = 31
@@ -144,7 +144,7 @@ $vlan_start      = 300
 # Quantum
 
 # Segmentation type for isolating traffic between tenants
-# Consult Openstack Quantum docs 
+# Consult Openstack Quantum docs
 $tenant_network_type     = 'vlan'
 
 # Which IP address will be used for creating GRE tunnels.
@@ -183,7 +183,7 @@ if $quantum {
   $public_int   = $public_br
   $internal_int = $internal_br
 } else {
-  $public_int   = $public_interface 
+  $public_int   = $public_interface
   $internal_int = $internal_interface
 }
 
@@ -232,7 +232,7 @@ class node_netconfig (
 
 
 # This parameter specifies the the identifier of the current cluster. This is needed in case of multiple environments.
-# installation. Each cluster requires a unique integer value. 
+# installation. Each cluster requires a unique integer value.
 # Valid identifier range is 1 to 254
 $deployment_id = '69'
 
@@ -263,12 +263,12 @@ $cinder_iscsi_bind_addr = $internal_address
 # Below you can add physical volumes to cinder. Please replace values with the actual names of devices.
 # This parameter defines which partitions to aggregate into cinder-volumes or nova-volumes LVM VG
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-# USE EXTREME CAUTION WITH THIS SETTING! IF THIS PARAMETER IS DEFINED, 
+# USE EXTREME CAUTION WITH THIS SETTING! IF THIS PARAMETER IS DEFINED,
 # IT WILL AGGREGATE THE VOLUMES INTO AN LVM VOLUME GROUP
 # AND ALL THE DATA THAT RESIDES ON THESE VOLUMES WILL BE LOST!
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 # Leave this parameter empty if you want to create [cinder|nova]-volumes VG by yourself
-$nv_physical_volume     = ['/dev/sdz', '/dev/sdy', '/dev/sdx'] 
+$nv_physical_volume     = ['/dev/sdz', '/dev/sdy', '/dev/sdx']
 
 #Evaluate cinder node selection
 if ($cinder) {
@@ -303,13 +303,15 @@ $swift_loopback = false
 
 ### Glance and swift END ###
 
-### Syslog ###                                                                
+### Syslog ###
 # Enable error messages reporting to rsyslog. Rsyslog must be installed in this case,
-# and configured to start at the very beginning of puppet agent run.          
+# and configured to start at the very beginning of puppet agent run.
 $use_syslog = true
 # Default log level would have been used, if non verbose and non debug
 $syslog_log_level             = 'ERROR'
 # Syslog facilities for main openstack services, choose any, may overlap if needed.
+# local0 is reserved for HA provisioning and orchestration services (not applicable here),
+# local1 is reserved for openstack-dashboard
 $syslog_log_facility_glance   = 'LOCAL2'
 $syslog_log_facility_cinder   = 'LOCAL3'
 $syslog_log_facility_quantum  = 'LOCAL4'
@@ -318,7 +320,7 @@ $syslog_log_facility_keystone = 'LOCAL7'
 
 if $use_syslog {
   class { "::openstack::logging":
-    # FIXME #stage          => 'first',
+    stage          => 'first',
     role           => 'client',
     show_timezone => true,
     # log both locally include auth, and remote
@@ -333,6 +335,15 @@ if $use_syslog {
     rservers       => [{'remote_type'=>'udp', 'server'=>'master', 'port'=>'514'},],
     # should be true, if client is running at virtual node
     virtual        => true,
+    # facilities
+    syslog_log_facility_glance   => $syslog_log_facility_glance,
+    syslog_log_facility_cinder   => $syslog_log_facility_cinder,
+    syslog_log_facility_quantum  => $syslog_log_facility_quantum,
+    syslog_log_facility_nova     => $syslog_log_facility_nova,
+    syslog_log_facility_keystone => $syslog_log_facility_keystone,
+    # Rabbit doesn't support syslog directly, should be >= syslog_log_level,
+    # otherwise none rabbit's messages would have gone to syslog
+    rabbit_log_level => $syslog_log_level,
   }
 }
 
@@ -384,10 +395,10 @@ $repo_proxy = undef
 $use_upstream_mysql = true
 
 # This parameter specifies the verbosity level of log messages
-# in openstack components config. 
+# in openstack components config.
 # Debug would have set DEBUG level and ignore verbose settings, if any.
 # Verbose would have set INFO level messages
-# In case of non debug and non verbose - WARNING, default level would have set. 
+# In case of non debug and non verbose - WARNING, default level would have set.
 # Note: if syslog on, this default level may be configured (for syslog) with syslog_log_level option.
 $verbose = true
 $debug = false
@@ -400,13 +411,13 @@ $nova_rate_limits = {
   'POST' => 1000,
   'POST_SERVERS' => 1000,
   'PUT' => 1000, 'GET' => 1000,
-  'DELETE' => 1000 
+  'DELETE' => 1000
 }
 $cinder_rate_limits = {
   'POST' => 1000,
   'POST_SERVERS' => 1000,
   'PUT' => 1000, 'GET' => 1000,
-  'DELETE' => 1000 
+  'DELETE' => 1000
 }
 
 
@@ -440,7 +451,7 @@ Exec<| title == 'clocksync' |>->Exec<| title == 'post-nova_config' |>
 
 
 ### END OF PUBLIC CONFIGURATION PART ###
-# Normally, you do not need to change anything after this string 
+# Normally, you do not need to change anything after this string
 
 # Globally apply an environment-based tag to all resources on each node.
 tag("${::deployment_id}::${::environment}")
@@ -602,7 +613,7 @@ node /fuel-controller-[\d+]/ {
     whitelist       => ['127.0.0.1', $nagios_master],
     hostgroup       => 'controller',
   }
-  class { 'simple_controller': } 
+  class { 'simple_controller': }
 }
 
 # Definition of OpenStack compute nodes.

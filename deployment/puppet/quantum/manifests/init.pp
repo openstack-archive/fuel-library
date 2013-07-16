@@ -117,15 +117,8 @@ class quantum (
     file { "quantum-all.log":
       path => "/var/log/quantum-all.log",
     }
-    file { '/etc/rsyslog.d/50-quantum.conf':
-      ensure => present,
-      content => template('quantum/rsyslog.d.erb'),
-    }
 
-    # We must notify rsyslog and services to apply new logging rules
-    include rsyslog::params
-    File['/etc/rsyslog.d/50-quantum.conf'] ~> Service <| title == "$rsyslog::params::service_name" |>
-
+    # We must notify services to apply new logging rules
     File['quantum-logging.conf'] ~> Service<| title == 'quantum-server' |>
     File['quantum-logging.conf'] ~> Service<| title == 'quantum-plugin-ovs-service' |>
     File['quantum-logging.conf'] ~> Service<| title == 'quantum-l3' |>

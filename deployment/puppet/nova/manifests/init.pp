@@ -170,15 +170,8 @@ file {"nova-logging.conf":
 file { "nova-all.log":
   path => "/var/log/nova-all.log",
 }
-file { '/etc/rsyslog.d/10-nova.conf':
-  ensure => present,
-  content => template('nova/rsyslog.d.erb'),
-}
 
-# We must notify rsyslog and services to apply new logging rules
-include rsyslog::params
-File['/etc/rsyslog.d/10-nova.conf'] ~> Service <| title == "$rsyslog::params::service_name" |>
-
+# We must notify services to apply new logging rules
 File['nova-logging.conf'] ~> Nova::Generic_service <| |>
 File['nova-logging.conf'] ~> Service <| title == "$nova::params::api_service_name" |>
 File['nova-logging.conf'] ~> Service <| title == "$nova::params::cert_service_name" |>

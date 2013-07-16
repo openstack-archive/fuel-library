@@ -102,15 +102,6 @@ class keystone(
     file { "keystone-all.log":
       path => "/var/log/keystone-all.log",
     }
-    file { '/etc/rsyslog.d/20-keystone.conf':
-      ensure => present,
-      content => template('keystone/rsyslog.d.erb'),
-    }
-
-    # We must notify rsyslog to apply new logging rules
-    include rsyslog::params
-    File['/etc/rsyslog.d/20-keystone.conf'] ~> Service <| title == "$rsyslog::params::service_name" |>
-
   } else  {
     keystone_config {
      'DEFAULT/log_config': ensure => absent;
