@@ -155,9 +155,12 @@ $proj_name            = 'test'
 $multi_host              = true
 
 # Specify different DB credentials for various services
+# HA DB provided through pacemaker_mysql or galera
 $mysql_root_password     = 'nova'
 $admin_email             = 'openstack@openstack.org'
 $admin_password          = 'nova'
+custom_mysql_setup_class = 'galera',
+validate_re($mysql_custom_setup_class,'galera|pacemaker_mysql')
 
 $keystone_db_password    = 'nova'
 $keystone_admin_token    = 'nova'
@@ -167,6 +170,10 @@ $glance_user_password    = 'nova'
 
 $nova_db_password        = 'nova'
 $nova_user_password      = 'nova'
+
+#AMQP backend rabbitmq or qpid
+$queue_provider          = 'rabbitmq'
+validate_re($queue_provider,  'rabbitmq|qpid')
 
 $rabbit_password         = 'nova'
 $rabbit_user             = 'nova'
@@ -682,9 +689,13 @@ class ha_controller (
     glance_user_password    => $glance_user_password,
     nova_db_password        => $nova_db_password,
     nova_user_password      => $nova_user_password,
+    queue_provider          => $queue_provider,
     rabbit_password         => $rabbit_password,
     rabbit_user             => $rabbit_user,
     rabbit_nodes            => $controller_hostnames,
+    qpid_password           => $rabbit_password,
+    qpid_user               => $rabbit_user,
+    qpid_nodes              => $controller_internal_addresses,
     memcached_servers       => $controller_hostnames,
     export_resources        => false,
     glance_backend          => $glance_backend,
@@ -704,6 +715,7 @@ class ha_controller (
     cinder_iscsi_bind_addr  => $cinder_iscsi_bind_addr,
     manage_volumes          => $cinder ? { false => $manage_volumes, default =>$is_cinder_node },
     galera_nodes            => $controller_hostnames,
+    custom_mysql_setup_class => $custom_mysql_setup_class,
     nv_physical_volume      => $nv_physical_volume,
     use_syslog              => $use_syslog,
     syslog_log_level        => $syslog_log_level,
@@ -774,10 +786,14 @@ node /fuel-compute-[\d+]/ {
     multi_host             => $multi_host,
     auto_assign_floating_ip => $auto_assign_floating_ip,
     sql_connection         => "mysql://nova:${nova_db_password}@${internal_virtual_ip}/nova",
+    queue_provider         => $queue_provider,
     rabbit_nodes           => $controller_hostnames,
     rabbit_password        => $rabbit_password,
     rabbit_user            => $rabbit_user,
     rabbit_ha_virtual_ip   => $internal_virtual_ip,
+    qpid_password          => $rabbit_password,
+    qpid_user              => $rabbit_user,
+    qpid_nodes             => $controller_internal_addresses,
     glance_api_servers     => "${internal_virtual_ip}:9292",
     vncproxy_host          => $public_virtual_ip,
     verbose                => $verbose,
@@ -848,6 +864,7 @@ node /fuel-swift-[\d+]/ {
     db_host                => $internal_virtual_ip,
     service_endpoint       => $internal_virtual_ip,
     cinder_rate_limits     => $cinder_rate_limits,
+    queue_provider         => $queue_provider,
     rabbit_nodes           => $controller_hostnames,
     rabbit_password        => $rabbit_password,
     rabbit_user            => $rabbit_user,
@@ -855,6 +872,9 @@ node /fuel-swift-[\d+]/ {
     sync_rings             => ! $primary_proxy,
     syslog_log_level => $syslog_log_level,
     syslog_log_facility_cinder => $syslog_log_facility_cinder,
+    qpid_password          => $rabbit_password,
+    qpid_user              => $rabbit_user,
+    qpid_nodes             => $controller_internal_addresses,
   }
 
 }
@@ -927,10 +947,14 @@ node /fuel-quantum/ {
       create_networks       => $create_networks,
       verbose               => $verbose,
       debug                 => $debug,
+      queue_provider        => $queue_provider,
       rabbit_password       => $rabbit_password,
       rabbit_user           => $rabbit_user,
       rabbit_nodes          => $controller_hostnames,
       rabbit_ha_virtual_ip  => $internal_virtual_ip,
+      qpid_password         => $rabbit_password,
+      qpid_user             => $rabbit_user,
+      qpid_nodes            => $controller_internal_addresses,
       quantum               => $quantum,
       quantum_user_password => $quantum_user_password,
       quantum_db_password   => $quantum_db_password,

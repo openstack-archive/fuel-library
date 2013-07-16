@@ -224,7 +224,6 @@ class openstack::controller_ha (
 
     anchor {'haproxy_done': }
 
-
     ###
     # Setup Galera's
 
