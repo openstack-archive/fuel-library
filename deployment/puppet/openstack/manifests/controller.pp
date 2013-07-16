@@ -46,7 +46,7 @@
 # [enabled] Whether services should be enabled. This parameter can be used to
 #   implement services in active-passive modes for HA. Optional. Defaults to true.
 # [use_syslog] Rather or not service should log to syslog. Optional.
-# [syslog_log_facility] Facility for syslog, if used. Optional. Note: duplicating conf option 
+# [syslog_log_facility] Facility for syslog, if used. Optional. Note: duplicating conf option
 #       wouldn't have been used, but more powerfull rsyslog features managed via conf template instead
 # [syslog_log_level] logging level for non verbose and non debug mode. Optional.
 #
@@ -192,8 +192,8 @@ class openstack::controller (
 
   $rabbit_addresses = inline_template("<%= @rabbit_nodes.map {|x| x + ':5672'}.join ',' %>")
     $memcached_addresses =  inline_template("<%= @cache_server_ip.collect {|ip| ip + ':' + @cache_server_port }.join ',' %>")
- 
-  
+
+
   nova_config {'DEFAULT/memcached_servers':  value => $memcached_addresses; }
 
   ####### DATABASE SETUP ######
@@ -302,7 +302,7 @@ class openstack::controller (
   }
   else {
     $enabled_apis = 'ec2,osapi_compute,osapi_volume'
-  } 
+  }
 
   class { 'openstack::nova::controller':
     # Database
@@ -407,7 +407,7 @@ class openstack::controller (
   if !defined(Class['memcached']){
     class { 'memcached':
       #listen_ip => $api_bind_address,
-    } 
+    }
   }
 
   ######## Horizon ########
@@ -423,7 +423,9 @@ class openstack::controller (
     keystone_host     => $service_endpoint,
     use_ssl           => $horizon_use_ssl,
     verbose           => $verbose,
+    debug             => $debug,
     use_syslog        => $use_syslog,
+    log_level         => $syslog_log_level,
   }
 
 }
