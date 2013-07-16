@@ -19,6 +19,7 @@ class rsyslog::client (
   $syslog_log_facility_quantum  = 'LOCAL4',
   $syslog_log_facility_nova     = 'LOCAL6',
   $syslog_log_facility_keystone = 'LOCAL7',
+  $log_level      = 'NOTICE',
   ) inherits rsyslog {
 
 # Fix for udp checksums should be applied if running on virtual node
@@ -44,10 +45,13 @@ if $virtual { include rsyslog::checksum_udp514 }
   }
 
 # Rabbitmq does not support syslogging, use imfile
+# log_level should be >= global syslog_log_level option,
+# otherwise none messages would have gone to syslog
   ::rsyslog::imfile { "04-rabbitmq" :
     file_name     => "/var/log/rabbitmq/rabbit@${hostname}.log",
     file_tag      => "rabbitmq",
     file_facility => "syslog",
+    file_severity => $log_level,
     notify  => Class["rsyslog::service"],
   }
 
@@ -55,6 +59,7 @@ if $virtual { include rsyslog::checksum_udp514 }
     file_name     => "/var/log/rabbitmq/rabbit@${hostname}-sasl.log",
     file_tag      => "rabbitmq-sasl",
     file_facility => "syslog",
+    file_severity => $log_level,
     notify  => Class["rsyslog::service"],
   }
 

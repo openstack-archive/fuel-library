@@ -315,6 +315,9 @@ if $use_syslog {
     syslog_log_facility_quantum  => $syslog_log_facility_quantum,
     syslog_log_facility_nova     => $syslog_log_facility_nova,
     syslog_log_facility_keystone => $syslog_log_facility_keystone,
+    # Rabbit doesn't support syslog directly, should be >= syslog_log_level,
+    # otherwise none rabbit's messages would have gone to syslog
+    rabbit_log_level => $syslog_log_level,
   }
 }
 

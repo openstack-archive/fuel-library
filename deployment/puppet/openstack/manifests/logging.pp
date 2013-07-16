@@ -4,7 +4,7 @@
 # [role] log server or client
 # [log_remote] send logs to remote server(s). Can be used with local logging.
 # [log_local], [log_auth_local] local & auth logging. Can be used with remote logging.
-# [syslog_log_facility_XXX] syslog facility for service XXX.
+# [syslog_log_facility_XXX] syslog (client role only) facility for service XXX.
 # [rotation] logrotate option for rotation period - daily, weekly, monthly, yearly.
 # [keep] logrotate option for number or rotated log files to keep.
 # [limitsize] logrotate option for log files would be rotated, if exceeded.
@@ -16,6 +16,8 @@
 #     date-rfc3339: 2010-12-05T02:21:41.889482+01:00,
 #     date-rfc3164: Dec 5 02:21:13,
 # [virtual] if node is virtual, fix for udp checksums should be applied
+# [rabbit_log_level] should be >= global syslog_log_level option,
+#   otherwise none messages would have gone to syslog (client role only)
 
 class openstack::logging (
     $role           = 'client',
@@ -35,6 +37,7 @@ class openstack::logging (
     $syslog_log_facility_quantum  = 'LOCAL4',
     $syslog_log_facility_nova     = 'LOCAL6',
     $syslog_log_facility_keystone = 'LOCAL7',
+    $rabbit_log_level = 'NOTICE',
 ) {
 
 validate_re($proto, 'tcp|udp')
@@ -54,6 +57,7 @@ if $role == 'client' {
     syslog_log_facility_quantum => $syslog_log_facility_quantum,
     syslog_log_facility_nova => $syslog_log_facility_nova,
     syslog_log_facility_keystone => $syslog_log_facility_keystone,
+    log_level      => $rabbit_log_level,
   }
 
 } else { # server
