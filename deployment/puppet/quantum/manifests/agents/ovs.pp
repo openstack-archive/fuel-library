@@ -90,10 +90,7 @@ class quantum::agents::ovs (
     L23network::L2::Bridge <| |> -> Cs_shadow['ovs']
 
     cs_shadow { 'ovs': cib => 'ovs' }
-
     cs_commit { 'ovs': cib => 'ovs' }
-
-    Cs_commit['ovs'] -> Service['quantum-ovs-agent']
 
     ::corosync::cleanup { "p_${::quantum::params::ovs_agent_service}": }
 

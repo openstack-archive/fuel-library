@@ -86,6 +86,18 @@ class openstack::quantum_router (
         local_ip         => $internal_address,
         service_provider => $service_provider
       }
+      # Quantum metadata agent starts only under pacemaker
+      # and co-located with l3-agent
+      class {'quantum::agents::metadata':
+        debug         => $debug,
+        auth_tenant   => 'services',
+        auth_user     => 'quantum',
+        auth_url      => $admin_auth_url,
+        auth_region   => 'RegionOne',
+        metadata_ip   => $nova_api_vip,
+        auth_password => $quantum_user_password,
+        shared_secret => $::quantum_metadata_proxy_shared_secret,
+      }
       class { 'quantum::agents::dhcp':
         verbose          => $verbose,
         debug            => $debug,

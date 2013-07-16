@@ -263,12 +263,15 @@ class quantum::agents::l3 (
     File<| title=='quantum-logging.conf' |> -> Cs_resource["p_${::quantum::params::l3_agent_service}"]
     Exec<| title=='setup_router_id' |> -> Cs_resource["p_${::quantum::params::l3_agent_service}"]
 
-    cs_shadow { 'l3': cib => 'l3' } -> Anchor['quantum-l3-done']
+    cs_shadow { 'l3': cib => 'l3' }
+    cs_commit { 'l3': cib => 'l3' }
 
-    cs_commit { 'l3': cib => 'l3' } -> Anchor['quantum-l3-done']
-
+    ###
+    # Do not remember to be carefylly with Cs_shadow and Cs_commit orders. 
+    # at one time onli one Shadow can be without commit
     Cs_commit <| title == 'dhcp' |> -> Cs_shadow <| title == 'l3' |>
     Cs_commit <| title == 'ovs' |> -> Cs_shadow <| title == 'l3' |>
+    Cs_commit <| title == 'quantum-metadata-agent' |> -> Cs_shadow <| title == 'l3' |>
 
     ::corosync::cleanup{"p_${::quantum::params::l3_agent_service}": }
     
@@ -276,22 +279,41 @@ class quantum::agents::l3 (
     Cs_commit['l3'] ~> ::Corosync::Cleanup["p_${::quantum::params::l3_agent_service}"]
     ::Corosync::Cleanup["p_${::quantum::params::l3_agent_service}"] -> Service['quantum-l3']
     
-    Cs_resource["p_${::quantum::params::l3_agent_service}"] -> Cs_colocation['l3-with-ovs'] -> Anchor['quantum-l3-done']
-    Cs_resource["p_${::quantum::params::l3_agent_service}"] -> Cs_order['l3-after-ovs'] -> Anchor['quantum-l3-done']
+    Cs_resource["p_${::quantum::params::l3_agent_service}"] -> Cs_colocation['l3-with-ovs']
+    Cs_resource["p_${::quantum::params::l3_agent_service}"] -> Cs_order['l3-after-ovs']
+    Cs_resource["p_${::quantum::params::l3_agent_service}"] -> Cs_colocation['l3-with-metadata']
+    Cs_resource["p_${::quantum::params::l3_agent_service}"] -> Cs_order['l3-after-metadata']
 
     cs_colocation { 'l3-with-ovs':
       ensure     => present,
       cib        => 'l3',
       primitives => ["p_${::quantum::params::l3_agent_service}", "clone_p_${::quantum::params::ovs_agent_service}"],
       score      => 'INFINITY',
-    }
+    } ->
     cs_order { 'l3-after-ovs':
       ensure => present,
       cib    => 'l3',
       first  => "clone_p_${::quantum::params::ovs_agent_service}",
       second => "p_${::quantum::params::l3_agent_service}",
       score  => 'INFINITY',
-    }
+    } -> Service['quantum-l3']
+
+    cs_colocation { 'l3-with-metadata':
+      ensure     => present,
+      cib        => 'l3',
+      primitives => [
+          "p_${::quantum::params::l3_agent_service}", 
+          "clone_p_quantum-metadata-agent"
+      ],
+      score      => 'INFINITY',
+    } ->
+    cs_order { 'l3-after-metadata':
+      ensure => present,
+      cib    => "l3",
+      first  => "clone_p_quantum-metadata-agent",
+      second => "p_${::quantum::params::l3_agent_service}",
+      score  => 'INFINITY',
+    } -> Service['quantum-l3']
 
     # start DHCP and L3 agents on different controllers if it's possible
     cs_colocation { 'dhcp-without-l3':
@@ -308,7 +330,8 @@ class quantum::agents::l3 (
     Anchor['quantum-l3'] -> 
       Service['quantum-l3-init_stopped'] -> 
         Cs_resource["p_${::quantum::params::l3_agent_service}"] -> 
-          Anchor['quantum-l3-done']
+          Service['quantum-l3'] ->
+            Anchor['quantum-l3-done']
 
     service { 'quantum-l3-init_stopped':
       name       => "${::quantum::params::l3_agent_service}",
@@ -328,19 +351,19 @@ class quantum::agents::l3 (
       provider   => "pacemaker",
     }
 
-    # Quantum metadata agent starts only under pacemaker
-    # and co-located with l3-agent
-    class {'quantum::agents::metadata':
-      debug         => $debug,
-      auth_tenant   => $auth_tenant,
-      auth_user     => $auth_user,
-      auth_url      => $auth_url,
-      auth_region   => $auth_region,
-      metadata_ip   => $nova_api_vip,
-      metadata_port => $metadata_port,
-      auth_password => $auth_password,
-      shared_secret => $::quantum_metadata_proxy_shared_secret
-    }
+    # # Quantum metadata agent starts only under pacemaker
+    # # and co-located with l3-agent
+    # class {'quantum::agents::metadata':
+    #   debug         => $debug,
+    #   auth_tenant   => $auth_tenant,
+    #   auth_user     => $auth_user,
+    #   auth_url      => $auth_url,
+    #   auth_region   => $auth_region,
+    #   metadata_ip   => $nova_api_vip,
+    #   metadata_port => $metadata_port,
+    #   auth_password => $auth_password,
+    #   shared_secret => $::quantum_metadata_proxy_shared_secret
+    # }
   } else {
     Quantum_config <| |> ~> Service['quantum-l3']
     Quantum_l3_agent_config <| |> ~> Service['quantum-l3']

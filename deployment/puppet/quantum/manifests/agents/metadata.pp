@@ -1,16 +1,17 @@
 class quantum::agents::metadata (
   $auth_password,
   $shared_secret,
-  $package_ensure               = 'present',
-  $enabled                      = true,
-  $debug                        = false,
-  $auth_tenant                  = 'services',
-  $auth_user                    = 'quantum',
-  $auth_url                     = 'http://localhost:35357/v2.0',
-  $auth_region                  = 'RegionOne',
-  $metadata_ip                  = '127.0.0.1',
-  $metadata_port                = '8775'
-  ) {
+  $package_ensure   = 'present',
+  $enabled          = true,
+  $debug            = false,
+  $auth_tenant      = 'services',
+  $auth_user        = 'quantum',
+  $auth_url         = 'http://localhost:35357/v2.0',
+  $auth_region      = 'RegionOne',
+  $metadata_ip      = '127.0.0.1',
+  $metadata_port    = '8775',
+  $service_provider = 'generic'
+) {
 
   $cib_name = "quantum-metadata-agent"
   $res_name = "p_$cib_name"
@@ -25,7 +26,7 @@ class quantum::agents::metadata (
 
   anchor {'quantum-metadata-agent': }
 
-  Anchor['quantum-l3-done'] -> Anchor['quantum-metadata-agent']
+  Service<| title=='quantum-server' |> -> Anchor['quantum-metadata-agent']
 
   # OCF script for pacemaker
   # and his dependences
@@ -73,6 +74,8 @@ class quantum::agents::metadata (
     ensure  => stopped,
   }
   
+  Cs_commit <| title == 'ovs' |> -> Cs_shadow <| title == "$res_name" |>
+
   cs_shadow { $res_name: cib => $cib_name }
   cs_commit { $res_name: cib => $cib_name }
 
@@ -88,6 +91,12 @@ class quantum::agents::metadata (
       #'ip'      => $vip[ip],
       #'iflabel' => $vip[iflabel] ? { undef => 'ka', default => $vip[iflabel] },
     },
+    multistate_hash => {
+      'type' => 'clone',
+    },
+    ms_metadata     => {
+      'interleave' => 'true',
+    },
     operations => {
       'monitor' => {
         'interval' => '60',
@@ -101,31 +110,13 @@ class quantum::agents::metadata (
       },
     },
   }
-  Cs_commit <| title == 'l3' |> -> Cs_shadow <| title == "$res_name" |>
 
-  Cs_resource <| title=="p_${::quantum::params::l3_agent_service}" |> -> Cs_resource["$res_name"]
-
-  cs_colocation { 'quantum-metadata-agent__with__quantum-l3-agent':
-    ensure     => present,
-    cib        => $cib_name,
-    primitives => [
-        "p_${::quantum::params::l3_agent_service}", 
-        "$res_name"
-    ],
-    score      => 'INFINITY',
-  }
-  cs_order { 'quantum-metadata-agent__before__quantum-l3-agent':
-    ensure => present,
-    cib    => $cib_name,
-    first  => "$res_name",
-    second => "p_${::quantum::params::l3_agent_service}",
-    score  => 'INFINITY',
-  }
+  ::corosync::cleanup { $res_name: }
+  
   Cs_resource["$res_name"] -> 
-    Cs_colocation['quantum-metadata-agent__with__quantum-l3-agent'] ->
-      Cs_order['quantum-metadata-agent__before__quantum-l3-agent'] ->
-        Cs_commit["$res_name"] -> 
-          Service["$res_name"]
+    Cs_commit["$res_name"] -> 
+      ::Corosync::Cleanup["$res_name"] -> 
+        Service["$res_name"]
 
   service {"$res_name":
     name       => $res_name,
