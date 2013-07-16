@@ -115,7 +115,7 @@ class QuantumCleaner(object):
                    re.search(r"503\s+Service\s+Unavailable", errmsg, re.I) or\
                    re.search(r"No\s+route\s+to\s+host", errmsg, re.I):
                       self.log.info("Can't connect to {0}, wait for server ready...".format(self.keystone.service_catalog.url_for(service_type='network')))
-                      time.sleep(self.sleep)
+                      time.sleep(self.options.sleep)
                 else:
                     self.log.error("Quantum error:\n{0}".format(e.message))
                     raise e
@@ -246,7 +246,7 @@ class QuantumCleaner(object):
                    re.search(r"503\s+Service\s+Unavailable", errmsg, re.I) or\
                    re.search(r"No\s+route\s+to\s+host", errmsg, re.I):
                       self.log.info("Can't connect to {0}, wait for server ready...".format(self.keystone.service_catalog.url_for(service_type='network')))
-                      time.sleep(self.sleep)
+                      time.sleep(self.options.sleep)
                 else:
                     self.log.error("Quantum error:\n{0}".format(e.message))
                     raise e
@@ -316,6 +316,8 @@ if __name__ == '__main__':
                       help="Authenticating config FILE", metavar="FILE")
     parser.add_argument("--retries", dest="retries", type=int, default=50,
                       help="try NN retries for get keystone token", metavar="NN")
+    parser.add_argument("--sleep", dest="sleep", type=int, default=2,
+                      help="sleep seconds between retries", metavar="SEC")
     parser.add_argument("-a", "--agent", dest="agent", action="append",
                       help="specyfy agents for cleaning", required=True)
     parser.add_argument("--cleanup-ports", dest="cleanup-ports", action="store_true", default=False,
