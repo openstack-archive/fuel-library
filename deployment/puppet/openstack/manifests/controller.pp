@@ -238,7 +238,7 @@ class openstack::controller (
       galera_cluster_name    => $galera_cluster_name,
       primary_controller     => $primary_controller,
       galera_node_address    => $galera_node_address ,
-      db_host                => $internal_address,
+      #db_host                => $internal_address,
       galera_nodes           => $galera_nodes,
       custom_setup_class     => $custom_mysql_setup_class,
       mysql_skip_name_resolve => $mysql_skip_name_resolve,
@@ -362,7 +362,7 @@ class openstack::controller (
     # Qpid
     qpid_password           => $qpid_password,
     qpid_user               => $qpid_user,
-    qpid_cluster            => $qpid_cluster,
+    #qpid_cluster            => $qpid_cluster,
     qpid_nodes              => $qpid_nodes,
     qpid_port               => $qpid_port,
     qpid_node_ip_address    => $qpid_node_ip_address,

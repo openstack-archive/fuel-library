@@ -31,6 +31,7 @@ class mysql::server (
   $server_id         = $mysql::params::server_id,
   $rep_user = 'replicator',
   $rep_pass = 'replicant666',
+  $replication_roles = "SELECT, PROCESS, FILE, SUPER, REPLICATION CLIENT, REPLICATION SLAVE, RELOAD",
   $use_syslog              = false,
 ) inherits mysql::params {
 
