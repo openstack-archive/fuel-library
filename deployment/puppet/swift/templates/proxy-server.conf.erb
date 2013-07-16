@@ -4,6 +4,7 @@
 bind_ip = <%= proxy_local_net_ip %>
 bind_port = <%= port %>
 workers = <%= workers %>
+log_facility = LOG_SYSLOG
 user = swift
 
 [pipeline:main]
