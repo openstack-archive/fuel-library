@@ -161,7 +161,7 @@ $quantum_db_dbname       = 'quantum'
 # Consult OpenStack documentation for differences between them.
 $quantum                 = true
 $quantum_netnode_on_cnt  = true
-$quantum_use_namespaces  = false
+$quantum_use_namespaces  = true
 
 #$quantum_host            = $internal_virtual_ip
 
@@ -455,7 +455,7 @@ $repo_proxy = undef
 # In case of non debug and non verbose - WARNING, default level would have set. 
 # Note: if syslog on, this default level may be configured (for syslog) with syslog_log_level option.
 $verbose = true
-$debug = false
+$debug = true
 
 #Rate Limits for cinder and Nova
 #Cinder and Nova can rate-limit your requests to API services.
