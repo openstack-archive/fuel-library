@@ -217,13 +217,26 @@ class quantum::agents::l3 (
     Service<| title == 'quantum-server' |> -> Cs_shadow['l3']
     Quantum_l3_agent_config <||> -> Cs_shadow['l3']
 
+    # OCF script for pacemaker
+    # and his dependences
+    file {'quantum-l3-agent-ocf':
+      path=>'/usr/lib/ocf/resource.d/mirantis/quantum-agent-l3', 
+      mode => 744,
+      owner => root,
+      group => root,
+      source => "puppet:///modules/quantum/ocf/quantum-agent-l3",
+    }
+    Package['pacemaker'] -> File['quantum-l3-agent-ocf']
+    File['quantum-l3-agent-ocf'] -> Cs_resource["p_${::quantum::params::l3_agent_service}"]
+    File['q-agent-cleanup.py'] -> Cs_resource["p_${::quantum::params::l3_agent_service}"]
+
     cs_resource { "p_${::quantum::params::l3_agent_service}":
       ensure          => present,
       cib             => 'l3',
       primitive_class => 'ocf',
-      provided_by     => 'pacemaker',
+      provided_by     => 'mirantis',
       primitive_type  => 'quantum-agent-l3',
-      require         => File['quantum-l3-agent'],
+      #require         => File['quantum-l3-agent'],
       parameters      => {
         'os_auth_url' => $auth_url,
         'tenant'      => $auth_tenant,

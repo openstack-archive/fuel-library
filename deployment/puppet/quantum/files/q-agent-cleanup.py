@@ -103,8 +103,8 @@ class QuantumCleaner(object):
         ret_count = self.options.get('retries')
         while True:
             if ret_count <= 0 :
-                self.log.error("Q-server error: no more retries for connect to keystone server.")
-                sys.exit(1)
+                self.log.error("Q-server error: no more retries for connect to server.")
+                return []
             try:
                 rv = self.client.list_ports()['ports']
                 break
@@ -120,8 +120,7 @@ class QuantumCleaner(object):
                     self.log.error("Quantum error:\n{0}".format(e.message))
                     raise e
             ret_count -= 1
-        self.log.debug("__get_ports: rv='{0}'".format(rv))
-        self.log.debug("__get_ports: end.")
+        self.log.debug("__get_ports: end, rv='{0}'".format(rv))
         return rv
 
     def _get_ports_by_agent(self, agent, activeonly=False):
@@ -162,7 +161,7 @@ class QuantumCleaner(object):
             cmd.extend(self.CMD__remove_ovs_port)
             cmd.append(port)
             if self.options.get('noop'):
-                self.log.info("NOOP-execution:{0}".format(cmd))
+                self.log.info("NOOP-execution: '{0}'".format(' '.join(cmd)))
             else:
                 process = subprocess.Popen(
                     cmd,
@@ -215,7 +214,7 @@ class QuantumCleaner(object):
                         cmd.extend(self.CMD__remove_ip_addr)
                         cmd.extend([ip,'dev',iface])
                         if self.options.get('noop'):
-                            self.log.info("NOOP-execution:{0}".format(cmd))
+                            self.log.info("NOOP-execution:{0}".format(' '.join(cmd)))
                         else:
                             process = subprocess.Popen(
                                 cmd,
@@ -235,8 +234,8 @@ class QuantumCleaner(object):
         ret_count = self.options.get('retries')
         while True:
             if ret_count <= 0 :
-                self.log.error("Q-server error: no more retries for connect to keystone server.")
-                sys.exit(1)
+                self.log.error("Q-server error: no more retries for connect to server.")
+                return []
             try:
                 rv = self.client.list_agents()['agents']
                 break
@@ -290,9 +289,14 @@ class QuantumCleaner(object):
             self.log.debug("Removing agent {id} trought API".format(id=aid))
             if self.options.get('noop'):
                 self.log.info("NOOP-API-call:{0}".format(aid))
-                rc = 204
+                rc = 'OK'
             else:
-                rc = self.client.delete_agent(aid)
+                try:
+                    self.client.delete_agent(aid)
+                    rc = 'OK'
+                except Exception as e:
+                    self.log.error("API call for remove {agent} agent {id} failed\n{e}".format(agent=agent, id=aid, e=e))
+                    rc = 'ERR'
             self.log.debug("Agent {id} rc={rc}".format(id=aid, rc=rc))
         self.log.debug("_cleanup_agent: end.")
         
@@ -307,7 +311,6 @@ class QuantumCleaner(object):
 
 
 if __name__ == '__main__':
-    # parser = optparse.OptionParser()
     parser = argparse.ArgumentParser(description='Quantum network node cleaning tool.')
     parser.add_argument("-c", "--auth-config", dest="authconf", default="/root/openrc",
                       help="Authenticating config FILE", metavar="FILE")
@@ -333,8 +336,6 @@ if __name__ == '__main__':
                       help="do not execute, print to log instead")
     parser.add_argument("--debug", dest="debug", action="store_true", default=False,
                       help="debug")
-
-    # (options, args) = parser.parse_args()
     args = parser.parse_args()
     # if len(args) != 1:
     #     parser.error("incorrect number of arguments")

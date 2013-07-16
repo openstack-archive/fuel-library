@@ -49,6 +49,14 @@ class quantum (
     ensure => $package_ensure
   }
 
+  file {'q-agent-cleanup.py':
+    path   => '/usr/bin/q-agent-cleanup.py', 
+    mode   => 744,
+    owner  => root,
+    group  => root,
+    source => "puppet:///modules/quantum/q-agent-cleanup.py",
+  } 
+
   if is_array($rabbit_host) and size($rabbit_host) > 1 {
     if $rabbit_ha_virtual_ip {
       $rabbit_hosts = "${rabbit_ha_virtual_ip}:${rabbit_port}"

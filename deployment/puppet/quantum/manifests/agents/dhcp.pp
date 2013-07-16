@@ -69,14 +69,27 @@ class quantum::agents::dhcp (
     Service <| title == 'quantum-server' |> -> Cs_shadow['dhcp']
     Quantum_dhcp_agent_config <| |> -> Cs_shadow['dhcp']
 
+    # OCF script for pacemaker
+    # and his dependences
+    file {'quantum-dhcp-agent-ocf':
+      path=>'/usr/lib/ocf/resource.d/mirantis/quantum-agent-dhcp', 
+      mode => 744,
+      owner => root,
+      group => root,
+      source => "puppet:///modules/quantum/ocf/quantum-agent-dhcp",
+    }
+    Package['pacemaker'] -> File['quantum-dhcp-agent-ocf']
+    File['quantum-dhcp-agent-ocf'] -> Cs_resource["p_${::quantum::params::dhcp_agent_service}"]
+    File['q-agent-cleanup.py'] -> Cs_resource["p_${::quantum::params::dhcp_agent_service}"]
+    
     File<| title=='quantum-logging.conf' |> ->
     cs_resource { "p_${::quantum::params::dhcp_agent_service}":
       ensure          => present,
       cib             => 'dhcp',
       primitive_class => 'ocf',
-      provided_by     => 'pacemaker',
+      provided_by     => 'mirantis',
       primitive_type  => 'quantum-agent-dhcp',
-      require => File['quantum-agent-dhcp'],
+      #require => File['quantum-agent-dhcp'],
       parameters      => {
         'os_auth_url' => $auth_url,
         'tenant'      => $auth_tenant,
