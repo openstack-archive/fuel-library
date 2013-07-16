@@ -26,6 +26,7 @@
 #  $log_file - The path of file used for logging
 #  Optional. Default: /var/log/glance/api.log
 #
+# $use_syslog - Rather or not service should log to syslog. Optional.
 #
 class glance::api(
   $keystone_password,
@@ -48,7 +49,9 @@ class glance::api(
   $enabled           = true,
   $sql_idle_timeout  = '3600',
   $sql_connection    = 'sqlite:///var/lib/glance/glance.sqlite',
-  $use_syslog = false
+  $use_syslog        = false,
+  $syslog_log_facility = 'LOCAL2',
+  $syslog_log_level  = 'WARNING',
 ) inherits glance {
 
   # used to configure concat
@@ -75,6 +78,13 @@ class glance::api(
     require => Class['glance'],
   }
 
+  if !defined(File["glance-logging.conf"]) {
+    file {"glance-logging.conf":
+      content => template('glance/logging.conf.erb'),
+      path => "/etc/glance/logging.conf",
+    }
+  }
+
   if($sql_connection =~ /mysql:\/\/\S+:\S+@\S+\/\S+/) {
     require 'mysql::python'
   } elsif($sql_connection =~ /postgresql:\/\/\S+:\S+@\S+\/\S+/) {
@@ -85,27 +95,28 @@ class glance::api(
     fail("Invalid db connection ${sql_connection}")
   }
   
-if $use_syslog
-  {
- glance_api_config {'DEFAULT/log_config': value => "/etc/glance/logging.conf";}
-
-}
-else
-{
-
- glance_api_config {'DEFAULT/log_config': ensure => absent;}
+if $use_syslog {
+ glance_api_config {
+   'DEFAULT/log_config': value => "/etc/glance/logging.conf";
+   'DEFAULT/log_file': ensure=> absent;
+   'DEFAULT/logdir': ensure=> absent;
+ }
+} else {
+ glance_api_config {
+   'DEFAULT/log_config': ensure => absent;
+   'DEFAULT/log_file': value=> $log_file;
+ }
 }
 
   # basic service config
   glance_api_config {
-    'DEFAULT/verbose':   value => $verbose;
     'DEFAULT/debug':     value => $debug;
+    'DEFAULT/verbose':   value => $verbose;
     'DEFAULT/bind_host': value => $bind_host;
     'DEFAULT/bind_port': value => $bind_port;
     'DEFAULT/backlog':   value => $backlog;
     'DEFAULT/workers':   value => $workers;
-    'DEFAULT/log_file':  value => $log_file;
-    'DEFAULT/use_syslog':  value => "False";
+    'DEFAULT/use_syslog':  value => $use_syslog;
     'DEFAULT/registry_client_protocol':  value => "http";
     'DEFAULT/delayed_delete': value => "False";
     'DEFAULT/scrub_time': value => "43200";
@@ -114,9 +125,9 @@ else
   }
 
   glance_cache_config {
-    'DEFAULT/verbose':   value => $verbose;
     'DEFAULT/debug':     value => $debug;
-    'DEFAULT/use_syslog':  value => "False";
+    'DEFAULT/verbose':   value => $verbose;
+    'DEFAULT/use_syslog':  value => $use_syslog;
     'DEFAULT/image_cache_dir': value => "/var/lib/glance/image-cache/";
     'DEFAULT/log_file':  value => "/var/log/glance/image-cache.log";
     'DEFAULT/image_cache_stall_time':  value => "86400";

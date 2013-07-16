@@ -1,4 +1,9 @@
 #
+# [use_syslog] Rather or not service should log to syslog. Optional.
+# [syslog_log_facility] Facility for syslog, if used. Optional. Note: duplicating conf option 
+#       wouldn't have been used, but more powerfull rsyslog features managed via conf template instead
+# [syslog_log_level] logging level for non verbose and non debug mode. Optional.
+#
 class quantum (
   $rabbit_password,
   $auth_password,
@@ -28,7 +33,10 @@ class quantum (
   $auth_port        = '35357',
   $auth_tenant      = 'services',
   $auth_user        = 'quantum',
-  $use_syslog = false
+  $log_file               = '/var/log/quantum/server.log',
+  $use_syslog = false,
+  $syslog_log_facility    = 'LOCAL4',
+  $syslog_log_level = 'WARNING',
 ) {
   include 'quantum::params'
 
@@ -101,6 +109,7 @@ class quantum (
     'DEFAULT/rabbit_userid':          value => $rabbit_user;
     'DEFAULT/rabbit_password':        value => $rabbit_password;
     'DEFAULT/rabbit_virtual_host':    value => $rabbit_virtual_host;
+    'DEFAULT/use_syslog':             value => $use_syslog;
     'keystone_authtoken/auth_host':         value => $auth_host;
     'keystone_authtoken/auth_port':         value => $auth_port;
     'keystone_authtoken/admin_tenant_name': value => $auth_tenant;
@@ -108,6 +117,11 @@ class quantum (
     'keystone_authtoken/admin_password':    value => $auth_password;
   }
   if $use_syslog {
+    quantum_config {
+      'DEFAULT/log_config': value => "/etc/quantum/logging.conf";
+      'DEFAULT/log_file': ensure=> absent;
+      'DEFAULT/logdir': ensure=> absent;
+    }
     file { "quantum-logging.conf":
       content => template('quantum/logging.conf.erb'),
       path  => "/etc/quantum/logging.conf",
@@ -115,16 +129,37 @@ class quantum (
       group => "root",
       mode  => 644,
     }
-  } else {
-    file { "quantum-logging.conf":
-      content => template('quantum/logging.conf-nosyslog.erb'),
-      path  => "/etc/quantum/logging.conf",
-      owner => "root",
-      group => "root",
-      mode  => 644,
+    file { "quantum-all.log":
+      path => "/var/log/quantum-all.log",
     }
+    file { '/etc/rsyslog.d/50-quantum.conf':
+      ensure => present,
+      content => template('quantum/rsyslog.d.erb'),
+    }
+
+    # We must notify rsyslog and services to apply new logging rules
+    include rsyslog::params
+    File['/etc/rsyslog.d/50-quantum.conf'] ~> Service <| title == "$rsyslog::params::service_name" |>
+
+    File['quantum-logging.conf'] -> Service<| title == 'quantum-server' |>
+    File['quantum-logging.conf'] -> Anchor<| title == 'quantum-ovs-agent' |>
+    File['quantum-logging.conf'] -> Anchor<| title == 'quantum-l3' |>
+    File['quantum-logging.conf'] -> Anchor<| title == 'quantum-dhcp-agent' |>
+
+  } else {
+    quantum_config {
+      'DEFAULT/log_config': ensure=> absent;
+      'DEFAULT/log_file':   value => $log_file;
+    }
+    # file { "quantum-logging.conf":
+    #   content => template('quantum/logging.conf-nosyslog.erb'),
+    #   path  => "/etc/quantum/logging.conf",
+    #   owner => "root",
+    #   group => "root",
+    #   mode  => 644,
+    # }
   }
-  quantum_config {'DEFAULT/log_config': value => "/etc/quantum/logging.conf";}
+
   File['/etc/quantum'] -> File['quantum-logging.conf']
 
   if defined(Anchor['quantum-server-config-done']) {

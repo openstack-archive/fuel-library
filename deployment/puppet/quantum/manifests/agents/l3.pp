@@ -2,6 +2,7 @@
 class quantum::agents::l3 (
   $package_ensure   = 'present',
   $enabled          = true,
+  $verbose          = 'False',
   $debug            = 'False',
   $fixed_range      = '10.0.1.0/24',
   $floating_range   = '192.168.10.0/24',
@@ -63,6 +64,7 @@ class quantum::agents::l3 (
   quantum_l3_agent_config {
     'DEFAULT/use_namespaces': value => $use_namespaces;
     'DEFAULT/debug':          value => $debug;
+    'DEFAULT/verbose':        value => $verbose;
     'DEFAULT/root_helper':    value => $root_helper;
     'DEFAULT/auth_url':       value => $auth_url;
     'DEFAULT/auth_port':      value => $auth_port;

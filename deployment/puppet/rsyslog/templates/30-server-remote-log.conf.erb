@@ -1,0 +1,18 @@
+# file is managed by puppet
+#
+# remote logs parsing based on syslogtag, uses predefined Fuel templates
+<% if scope.lookupvar('rsyslog::server::high_precision_timestamps') -%>
+# Use high precision timestamps (date-rfc3339, 2010-12-05T02:21:41.889482+01:00)
+$Template RemoteLog, "%timegenerated:1:32:date-rfc3339% %syslogseverity-text%: %msg%\n"
+<% else -%>
+# Use traditional timestamps (date-rfc3164, Dec 5 02:21:13)
+$Template RemoteLog, "%timegenerated:1:15:date-rfc3164% %syslogseverity-text%: %msg%\n"
+<% end -%>
+$ActionFileDefaultTemplate RemoteLog
+
+# Would match 'kernel:' -> 'kernel'  ;  'rsyslogd[12345]:' -> 'rsyslogd'  ;  '<180>(nova.api.wsgi):'  ->  'nova.api.wsgi'
+$template RemoteLogFile, "/var/log/remote/%FROMHOST%/%syslogtag:R,ERE,1,DFLT:([A-Za-z][A-Za-z0-9_.-]*)--end%.log"
+
+:FROMHOST, regex, "^[1-9]" ?RemoteLogFile;RemoteLog
+# Drop message here and do not forward
+:FROMHOST, regex, "^[1-9]" ~

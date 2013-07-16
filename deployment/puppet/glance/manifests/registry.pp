@@ -1,3 +1,6 @@
+#
+# [use_syslog] Rather or not service should log to syslog. Optional.
+#
 class glance::registry(
   $keystone_password,
   $verbose           = 'False',
@@ -14,14 +17,23 @@ class glance::registry(
   $keystone_tenant   = 'admin',
   $keystone_user     = 'admin',
   $enabled           = true,
-  $use_syslog = false
+  $use_syslog        = false,
+  $syslog_log_facility = 'LOCAL2',
+  $syslog_log_level  = 'WARNING',
 ) inherits glance {
   
-    if $use_syslog
-  {
- glance_registry_config {'DEFAULT/log_config': value => "/etc/glance/logging.conf";}
-##TODO add rsyslog module config
-  }
+if $use_syslog {
+ glance_registry_config {
+   'DEFAULT/log_config': value => "/etc/glance/logging.conf";
+   'DEFAULT/log_file': ensure=> absent;
+   'DEFAULT/logdir': ensure=> absent;
+ }
+} else {
+ glance_registry_config {
+   'DEFAULT/log_config': ensure => absent;
+   'DEFAULT/log_file': value => $log_file;
+ }
+}
 
   require 'keystone::python'
 
@@ -40,6 +52,13 @@ class glance::registry(
     require => Class['glance']
   }
 
+  if !defined(File["glance-logging.conf"]) {
+    file {"glance-logging.conf":
+      content => template('glance/logging.conf.erb'),
+      path => "/etc/glance/logging.conf",
+    }
+  }
+
   if($sql_connection =~ /mysql:\/\/\S+:\S+@\S+\/\S+/) {
     require 'mysql::python'
   } elsif($sql_connection =~ /postgresql:\/\/\S+:\S+@\S+\/\S+/) {
@@ -52,15 +71,14 @@ class glance::registry(
 
   # basic service config
   glance_registry_config {
-    'DEFAULT/verbose':   value => $verbose;
     'DEFAULT/debug':     value => $debug;
+    'DEFAULT/verbose':   value => $verbose;
     'DEFAULT/bind_host': value => $bind_host;
     'DEFAULT/bind_port': value => $bind_port;
-    'DEFAULT/log_file': value => "/var/log/glance/registry.log";
     'DEFAULT/backlog': value => "4096";
     'DEFAULT/api_limit_max': value => "1000";
     'DEFAULT/limit_param_default': value => "25";
-    'DEFAULT/use_syslog': value => "False";
+    'DEFAULT/use_syslog': value => $use_syslog;
   }
 
   # db connection config

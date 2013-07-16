@@ -27,7 +27,21 @@ mkdir -p /var/lib/puppet/ssh_keys
 chown root:puppet /var/lib/puppet/ssh_keys/openstack*
 chmod g+r /var/lib/puppet/ssh_keys/openstack*
 puppet apply -e "
-    class {openstack::mirantis_repos: enable_epel => false } ->
+    class {openstack::logging:
+      role           => 'server',
+      log_remote     => false,
+      log_local      => true,
+      log_auth_local => true,
+      rotation       => 'daily',
+      keep           => '7',
+      limitsize      => '100M',
+      port           => '514',
+      proto          => 'udp',
+      show_timezone  => true,
+     #virtual        => false,
+    }"
+puppet apply -e "
+    class {openstack::mirantis_repos: enable_epel => false } -> 
     class {puppet: puppet_master_version => \"$puppet_master_version\"} -> class {puppet::thin:} -> class {puppet::nginx: puppet_master_hostname => \"$hostname.$domain\"}
     "
 puppet apply -e "

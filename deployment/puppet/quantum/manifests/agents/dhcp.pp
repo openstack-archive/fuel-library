@@ -1,6 +1,8 @@
+#
 class quantum::agents::dhcp (
   $package_ensure   = 'present',
   $enabled          = true,
+  $verbose          = 'False',
   $debug            = 'False',
   $state_path       = '/var/lib/quantum',
   $resync_interval  = 30,
@@ -55,6 +57,7 @@ class quantum::agents::dhcp (
     'DEFAULT/dhcp_driver':      value => $dhcp_driver;
     'DEFAULT/use_namespaces':   value => $use_namespaces;
     'DEFAULT/root_helper':      value => $root_helper;
+    'DEFAULT/verbose':          value => $verbose;
   }
 
   if $enabled {

@@ -57,8 +57,8 @@ class rsync::server(
     path        => '/bin:/usr/bin',
   }
 
-  anchor{"rsync_server_end":}
-  Exec ['compile fragments'] -> Anchor["rsync_server_end"]
-  Service <| title=='xinetd' |> -> Anchor["rsync_server_end"]
-  Service <| title=='rsync' |> -> Anchor["rsync_server_end"]
+  anchor{'rsync_server_end':}
+  Exec ['compile fragments'] -> Anchor['rsync_server_end']
+  Service <| title=='xinetd' |> -> Anchor['rsync_server_end']
+  Service <| title=='rsync' |> -> Anchor['rsync_server_end']
 }

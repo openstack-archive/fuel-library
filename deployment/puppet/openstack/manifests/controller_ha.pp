@@ -1,4 +1,4 @@
-
+#
 define haproxy_service(
   $order,
   $balancers,
@@ -46,13 +46,43 @@ define haproxy_service(
       $balancer_port = 4369
     }
     "rabbitmq-openstack": {
-      $haproxy_config_options = { 'option' => ['tcpka'], 'timeout client' => '48h', 'timeout server' => '48h', 'balance' => 'roundrobin', 'mode' => 'tcp'}
+      $haproxy_config_options = { 'option' => ['tcpka'], 'timeout client' => '48h', 'timeout server' => '48h', 'balance' => 'source', 'mode' => 'tcp'}
       $balancermember_options = 'check inter 5000 rise 2 fall 3'
       $balancer_port = 5673
     }
 
+    "stats": {
+       $haproxy_config_options = {
+        'timeout'     => ['client 5000', 'server 30000', 'connect 4000'],
+        'balance' => '',
+        'stats'  => ['uri /haproxy_stats', 'realm HAProxy\ Statistics', 'auth admin:admin', 'admin if TRUE'],
+        'mode'        => 'http'
+      }
+      $balancermember_options = ''
+      $balancer_port = ''
+     }
+     
+     "nova-api-1": {
+       $haproxy_config_options = { 'option' => ['tcplog'], 'balance' => 'source',  }
+       $balancermember_options = 'check'
+       $balancer_port = $port
+     }
+     
+     "nova-api-3": {
+       $haproxy_config_options = { 'option' => ['tcplog'], 'balance' => 'source' }
+       $balancermember_options = 'check'
+       $balancer_port = $port
+     }
+     
+     "glance-reg": {
+       $haproxy_config_options = { 'option' => ['tcplog'], 'balance' => 'source' }
+       $balancermember_options = 'check'
+       $balancer_port = $port
+     }
+     
+
     default: {
-      $haproxy_config_options = { 'option' => ['httplog'], 'balance' => 'roundrobin' }
+      $haproxy_config_options = { 'option' => ['httplog', 'httpchk'], 'balance' => 'source', 'mode' => 'http' }
       $balancermember_options = 'check'
       $balancer_port = $port
     }
@@ -109,14 +139,19 @@ class openstack::controller_ha (
    $primary_controller,
    $controller_public_addresses, $public_interface, $private_interface, $controller_internal_addresses,
    $internal_virtual_ip, $public_virtual_ip, $internal_interface, $internal_address,
-   $floating_range, $fixed_range, $multi_host, $network_manager, $verbose, $network_config = {}, $num_networks = 1, $network_size = 255,
+   $floating_range, $fixed_range, $multi_host, $network_manager, $verbose, $debug, $network_config = {}, $num_networks = 1, $network_size = 255,
    $auto_assign_floating_ip, $mysql_root_password, $admin_email, $admin_user = 'admin', $admin_password, $keystone_admin_tenant='admin',
    $keystone_db_password, $keystone_admin_token, $glance_db_password, $glance_user_password,
    $nova_db_password, $nova_user_password, $rabbit_password, $rabbit_user,
    $rabbit_nodes, $memcached_servers, $export_resources, $glance_backend='file', $swift_proxies=undef,
    $quantum = false, $quantum_user_password='', $quantum_db_password='', $quantum_db_user = 'quantum',
    $quantum_db_dbname  = 'quantum', $cinder = false, $cinder_iscsi_bind_addr = false, $tenant_network_type = 'gre', $segment_range = '1:4094',
-   $nv_physical_volume = undef, $manage_volumes = false,$galera_nodes, $use_syslog = false,
+   $nv_physical_volume = undef, $manage_volumes = false,$galera_nodes, $use_syslog = false, $syslog_log_level = 'WARNING', 
+   $syslog_log_facility_glance   = 'LOCAL2',
+   $syslog_log_facility_cinder   = 'LOCAL3',
+   $syslog_log_facility_quantum  = 'LOCAL4',
+   $syslog_log_facility_nova     = 'LOCAL6',
+   $syslog_log_facility_keystone = 'LOCAL7',
    $cinder_rate_limits = undef, $nova_rate_limits = undef,
    $cinder_volume_group     = 'cinder-volumes',
    $cinder_user_password    = 'cinder_user_pass',
@@ -257,6 +292,7 @@ class openstack::controller_ha (
       network_size            => $network_size,
       network_manager         => $network_manager,
       verbose                 => $verbose,
+      debug                   => $debug,
       auto_assign_floating_ip => $auto_assign_floating_ip,
       mysql_root_password     => $mysql_root_password,
       custom_mysql_setup_class=> 'galera',
@@ -309,6 +345,11 @@ class openstack::controller_ha (
       # turn on SWIFT_ENABLED option for Horizon dashboard
       swift                   => $glance_backend ? { 'swift' => true, default => false },
       use_syslog              => $use_syslog,
+      syslog_log_level        => $syslog_log_level,
+      syslog_log_facility_glance   => $syslog_log_facility_glance,
+      syslog_log_facility_cinder => $syslog_log_facility_cinder,
+      syslog_log_facility_nova => $syslog_log_facility_nova,
+      syslog_log_facility_keystone => $syslog_log_facility_keystone,
       cinder_rate_limits      => $cinder_rate_limits,
       nova_rate_limits        => $nova_rate_limits,
       horizon_use_ssl         => $horizon_use_ssl,
@@ -327,6 +368,7 @@ class openstack::controller_ha (
         fixed_range           => $fixed_range,
         create_networks       => $create_networks,
         verbose               => $verbose,
+        debug                 => $debug,
         rabbit_password       => $rabbit_password,
         rabbit_user           => $rabbit_user,
         rabbit_nodes          => $rabbit_nodes,
@@ -345,6 +387,8 @@ class openstack::controller_ha (
         external_ipinfo       => $external_ipinfo,
         api_bind_address      => $internal_address,
         use_syslog            => $use_syslog,
+        syslog_log_level      => $syslog_log_level,
+        syslog_log_facility   => $syslog_log_facility_quantum,
         ha_mode               => $ha_mode,
       }
     }
