@@ -63,6 +63,22 @@ if $virtual { include rsyslog::checksum_udp514 }
     notify  => Class["rsyslog::service"],
   }
 
+  ::rsyslog::imfile { "04-rabbitmq-startup_err" :
+    file_name     => "/var/log/rabbitmq/startup_err",
+    file_tag      => "rabbitmq-startup_err",
+    file_facility => "syslog",
+    file_severity => "ERROR",
+    notify  => Class["rsyslog::service"],
+  }
+
+  ::rsyslog::imfile { "04-rabbitmq-shutdown_err" :
+    file_name     => "/var/log/rabbitmq/shutdown_err",
+    file_tag      => "rabbitmq-shutdown_err",
+    file_facility => "syslog",
+    file_severity => "ERROR",
+    notify  => Class["rsyslog::service"],
+  }
+
   file { "${rsyslog::params::rsyslog_d}02-ha.conf":
     ensure => present,
     content => template("${module_name}/02-ha.conf.erb"),
