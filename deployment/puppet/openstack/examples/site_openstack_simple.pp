@@ -108,9 +108,6 @@ $nova_user_password      = 'nova'
 $queue_provider          = 'rabbitmq'
 validate_re($queue_provider,  'rabbitmq|qpid')
  
-$qpid_password           = 'openstack_qpid_password'
-$qpid_user               = 'openstack_qpid_user'
-
 $rabbit_password         = 'nova'
 $rabbit_user             = 'nova'
 
@@ -541,8 +538,8 @@ class simple_controller (
     queue_provider          => $queue_provider,
     rabbit_password         => $rabbit_password,
     rabbit_user             => $rabbit_user,
-    qpid_password           => $qpid_password,
-    qpid_user               => $qpid_user,
+    qpid_password           => $rabbit_password,
+    qpid_user               => $rabbit_user,
     export_resources        => false,
     quantum                 => $quantum,
     quantum_user_password   => $quantum_user_password,
@@ -589,8 +586,8 @@ class simple_controller (
       rabbit_user           => $rabbit_user,
       rabbit_ha_virtual_ip  => $controller_internal_address,
       rabbit_nodes          => [$controller_internal_address],
-      qpid_password         => $qpid_password,
-      qpid_user             => $qpid_user,
+      qpid_password         => $rabbit_password,
+      qpid_user             => $rabbit_user,
       qpid_nodes            => [$controller_internal_address],
       quantum               => $quantum,
       quantum_user_password => $quantum_user_password,
@@ -674,9 +671,9 @@ node /fuel-compute-[\d+]/ {
     rabbit_nodes           => [$controller_internal_address],
     rabbit_password        => $rabbit_password,
     rabbit_user            => $rabbit_user,
-    qpid_nodes             => [$controller_node_internal],
-    qpid_password          => $qpid_password,
-    qpid_user              => $qpid_user,
+    qpid_nodes             => [$controller_internal_address],
+    qpid_password          => $rabbit_password,
+    qpid_user              => $rabbit_user,
     glance_api_servers     => "${controller_internal_address}:9292",
     vncproxy_host          => $controller_public_address,
     vnc_enabled            => true,

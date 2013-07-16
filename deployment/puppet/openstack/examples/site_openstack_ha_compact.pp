@@ -114,7 +114,7 @@ $controller_hostnames = keys($controller_internal_addresses)
 #Also, if you do not want Quantum HA, you MUST enable $quantum_network_node
 #on the ONLY controller
 $ha_provider = 'pacemaker'
-$use_unicast_corosync = true
+$use_unicast_corosync = tru/
 
 $nagios = false
 # Set nagios master fqdn
@@ -126,12 +126,12 @@ $proj_name            = 'test'
 $multi_host              = true
 
 # Specify different DB credentials for various services
-# HA DB provided through pacemaker or galera
+# HA DB provided through pacemaker_mysql or galera
 $mysql_root_password     = 'nova'
 $admin_email             = 'openstack@openstack.org'
 $admin_password          = 'nova'
 $custom_mysql_setup_class = 'galera',
-validate_re($mysql_custom_setup_class,'galera|pacemaker')
+validate_re($mysql_custom_setup_class,'galera|pacemaker_mysql')
 
 $keystone_db_password    = 'nova'
 $keystone_admin_token    = 'nova'
@@ -141,6 +141,10 @@ $glance_user_password    = 'nova'
 
 $nova_db_password        = 'nova'
 $nova_user_password      = 'nova'
+
+#AMQP backend rabbitmq or qpid
+$queue_provider          = 'rabbitmq'
+validate_re($queue_provider,  'rabbitmq|qpid')
 
 $rabbit_password         = 'nova'
 $rabbit_user             = 'nova'
@@ -629,9 +633,13 @@ class compact_controller (
     glance_user_password    => $glance_user_password,
     nova_db_password        => $nova_db_password,
     nova_user_password      => $nova_user_password,
+    queue_provider          => $queue_provider,
     rabbit_password         => $rabbit_password,
     rabbit_user             => $rabbit_user,
     rabbit_nodes            => $controller_hostnames,
+    qpid_password           => $rabbit_password,
+    qpid_user               => $rabbit_user,
+    qpid_nodes              => $controller_internal_addresses,
     memcached_servers       => $controller_hostnames,
     export_resources        => false,
     glance_backend          => $glance_backend,
@@ -734,12 +742,16 @@ node /fuel-controller-[\d+]/ {
     db_host                => $internal_virtual_ip,
     service_endpoint       => $internal_virtual_ip,
     cinder_rate_limits     => $cinder_rate_limits,
+    queue_provider         => $queue_provider,
     rabbit_nodes           => $controller_hostnames,
     rabbit_password        => $rabbit_password,
     rabbit_user            => $rabbit_user,
     rabbit_ha_virtual_ip   => $internal_virtual_ip,
     syslog_log_level       => $syslog_log_level,
     syslog_log_facility_cinder => $syslog_log_facility_cinder,
+    qpid_nodes             => $controller_internal_addresses,
+    qpid_password          => $rabbit_password,
+    qpid_user              => $rabbit_user,
   }
 
   if $primary_proxy {
@@ -799,10 +811,14 @@ node /fuel-compute-[\d+]/ {
     multi_host             => $multi_host,
     auto_assign_floating_ip => $auto_assign_floating_ip,
     sql_connection         => "mysql://nova:${nova_db_password}@${internal_virtual_ip}/nova",
+    queue_provider         => $queue_provider,
     rabbit_nodes           => $controller_hostnames,
     rabbit_password        => $rabbit_password,
     rabbit_user            => $rabbit_user,
     rabbit_ha_virtual_ip   => $internal_virtual_ip,
+    qpid_nodes             => $controller_internal_addresses,
+    qpid_password          => $rabbit_password,
+    qpid_user              => $rabbit_user,
     glance_api_servers     => "${internal_virtual_ip}:9292",
     vncproxy_host          => $public_virtual_ip,
     verbose                => $verbose,
@@ -861,10 +877,14 @@ node /fuel-quantum/ {
       create_networks       => $create_networks,
       verbose               => $verbose,
       debug                 => $debug,
+      queue_provider         => $queue_provider,
       rabbit_password       => $rabbit_password,
       rabbit_user           => $rabbit_user,
       rabbit_nodes          => $controller_hostnames,
       rabbit_ha_virtual_ip  => $internal_virtual_ip,
+      qpid_nodes             => $controller_internal_addresses,
+      qpid_password          => $rabbit_password,
+      qpid_user              => $rabbit_user,
       quantum               => $quantum,
       quantum_user_password => $quantum_user_password,
       quantum_db_password   => $quantum_db_password,
