@@ -109,7 +109,7 @@ class quantum (
   }
   if $use_syslog {
     file { "quantum-logging.conf":
-      content => template('quantum/logging.conf-syslog.erb'),
+      content => template('quantum/logging.conf.erb'),
       path  => "/etc/quantum/logging.conf",
       owner => "root",
       group => "root",
@@ -117,7 +117,7 @@ class quantum (
     }
   } else {
     file { "quantum-logging.conf":
-      content => template('quantum/logging.conf.erb'),
+      content => template('quantum/logging.conf-nosyslog.erb'),
       path  => "/etc/quantum/logging.conf",
       owner => "root",
       group => "root",
