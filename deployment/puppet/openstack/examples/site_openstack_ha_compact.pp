@@ -130,8 +130,8 @@ $multi_host              = true
 $mysql_root_password     = 'nova'
 $admin_email             = 'openstack@openstack.org'
 $admin_password          = 'nova'
-$custom_mysql_setup_class = 'galera',
-validate_re($mysql_custom_setup_class,'galera|pacemaker_mysql')
+$custom_mysql_setup_class = 'galera'
+validate_re($custom_mysql_setup_class,'galera|pacemaker_mysql')
 
 $keystone_db_password    = 'nova'
 $keystone_admin_token    = 'nova'
