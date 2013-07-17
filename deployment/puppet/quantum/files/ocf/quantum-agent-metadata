@@ -311,7 +311,8 @@ case "$1" in
   stop)         quantum_metadata_agent_stop;;
   status)       quantum_metadata_agent_status;;
   monitor)      quantum_metadata_agent_monitor;;
-  validate-all) ;;
+  validate)     quantum_metadata_agent_validate;;
+  validate-all) quantum_metadata_agent_validate;;
   *)            usage
                 exit $OCF_ERR_UNIMPLEMENTED;;
 esac
