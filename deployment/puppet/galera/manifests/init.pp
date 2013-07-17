@@ -75,11 +75,6 @@ class galera (
         before => Package['MySQL-server']
       }
 
-      package { 'MySQL-shared':
-        ensure => present,
-        before => Package['MySQL-server']
-      }
-
       package { 'wget':
         ensure => present,
       }
