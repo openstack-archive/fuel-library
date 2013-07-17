@@ -74,10 +74,10 @@ class swift::proxy(
   }
   if $::osfamily == "Debian"
   {
-    package { 'swift-plugin-s3': 
-    ensure => present, 
+    package { 'swift-plugin-s3':
+    ensure => present,
     before=>Package['swift-proxy']
-    } 
+    }
   }
 
   package { 'swift-proxy':
