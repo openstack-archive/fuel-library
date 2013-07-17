@@ -34,6 +34,7 @@ puppet apply -e "
       log_auth_local => true,
       rotation       => 'daily',
       keep           => '7',
+      # should be > 30M
       limitsize      => '100M',
       port           => '514',
       proto          => 'udp',

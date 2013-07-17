@@ -330,6 +330,7 @@ if $use_syslog {
     # keep four weekly log rotations, force rotate if 300M size have exceeded
     rotation       => 'weekly',
     keep           => '4',
+    # should be > 30M
     limitsize      => '300M',
     # remote servers to send logs to
     rservers       => [{'remote_type'=>'udp', 'server'=>'master', 'port'=>'514'},],

@@ -417,7 +417,7 @@ $master_swift_proxy_ip = $master_swift_proxy_nodes[0]['internal_address']
 
 ### Syslog ###
 # Enable error messages reporting to rsyslog. Rsyslog must be installed in this case.
-$use_syslog = false
+$use_syslog = true
 # Default log level would have been used, if non verbose and non debug
 $syslog_log_level             = 'ERROR'
 # Syslog facilities for main openstack services, choose any, may overlap if needed
@@ -441,6 +441,7 @@ if $use_syslog {
     # keep four weekly log rotations, force rotate if 300M size have exceeded
     rotation       => 'weekly',
     keep           => '4',
+    # should be > 30M
     limitsize      => '300M',
     # remote servers to send logs to
     rservers       => [{'remote_type'=>'udp', 'server'=>'master', 'port'=>'514'},],
