@@ -9,9 +9,10 @@ keys = production,devel
 keys = normal,debug
 
 [logger_root]
-level = DEBUG
+level = NOTSET
 handlers = production
-qualname = quantum
+propagate = 1
+#qualname = quantum
 
 [formatter_debug]
 format = quantum-%(name)s: %(levelname)s %(module)s %(funcName)s %(message)s

@@ -9,9 +9,10 @@ keys = production,devel
 keys = normal,debug
 
 [logger_root]
-level = DEBUG
+level = NOTSET
 handlers = production
-qualname = glance
+propagate = 1
+#qualname = glance
 
 [formatter_debug]
 format = glance-%(name)s: %(levelname)s %(module)s %(funcName)s %(message)s
