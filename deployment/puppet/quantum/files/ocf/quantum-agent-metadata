@@ -30,6 +30,8 @@
 
 # Fill in some defaults if no values are specified
 
+PATH=/sbin:/usr/sbin:/bin:/usr/bin
+
 OCF_RESKEY_binary_default="quantum-metadata-agent"
 OCF_RESKEY_config_default="/etc/quantum/quantum.conf"
 OCF_RESKEY_agent_config_default="/etc/quantum/metadata_agent.ini"

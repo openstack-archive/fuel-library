@@ -59,7 +59,7 @@ class quantum (
 
   file {'q-agent-cleanup.py':
     path   => '/usr/bin/q-agent-cleanup.py', 
-    mode   => 744,
+    mode   => 755,
     owner  => root,
     group  => root,
     source => "puppet:///modules/quantum/q-agent-cleanup.py",

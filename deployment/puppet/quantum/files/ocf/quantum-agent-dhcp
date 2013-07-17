@@ -32,6 +32,8 @@
 
 # Fill in some defaults if no values are specified
 
+PATH=/sbin:/usr/sbin:/bin:/usr/bin
+
 OCF_RESKEY_binary_default="quantum-dhcp-agent"
 OCF_RESKEY_config_default="/etc/quantum/quantum.conf"
 OCF_RESKEY_plugin_config_default="/etc/quantum/dhcp_agent.ini"
@@ -250,7 +252,8 @@ quantum_dhcp_agent_status() {
 
 clean_up()
 {
-    q-agent-cleanup.py --debug --agent=dhcp --cleanup-ports --remove-agent
+    q-agent-cleanup.py --debug --agent=dhcp --cleanup-ports 
+    #--remove-agent
 }
 
 
