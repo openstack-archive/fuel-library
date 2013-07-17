@@ -159,6 +159,7 @@ class compact_controller {
     custom_mysql_setup_class      => $::custom_mysql_setup_class,
     mysql_skip_name_resolve       => true,
     use_syslog                    => true,
+    use_unicast_corosync          => true,
   }
 
   class { "::rsyslog::client":
