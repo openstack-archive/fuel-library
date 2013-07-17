@@ -144,42 +144,42 @@ LOGGING = {
             # by default.
             'django.db.backends': {
                 'handlers':<% if django_debug=='False' and use_syslog -%> ['syslog']<% else -%> ['null']<% end -%>,
-                'level': 'NOTSET',
+                'level': 'DEBUG',
                 'propagate': False
                 },
             'horizon': {
                 'handlers':<% if use_syslog -%> ['syslog']<% else -%> ['file']<% end -%>,
-                'level': 'NOTSET',
+                'level': 'DEBUG',
                 'propagate': False
             },
             'openstack_dashboard': {
                 'handlers':<% if use_syslog -%> ['syslog']<% else -%> ['file']<% end -%>,
-                'level': 'NOTSET',
+                'level': 'DEBUG',
                 'propagate': False
             },
             'novaclient': {
                 'handlers':<% if use_syslog -%> ['syslog']<% else -%> ['file']<% end -%>,
-                'level': 'NOTSET',
+                'level': 'DEBUG',
                 'propagate': False
             },
            'glanceclient': {
                 'handlers':<% if use_syslog -%> ['syslog']<% else -%> ['file']<% end -%>,
-                'level': 'NOTSET',
+                'level': 'DEBUG',
                 'propagate': False
             },
             'keystoneclient': {
                 'handlers':<% if use_syslog -%> ['syslog']<% else -%> ['file']<% end -%>,
-                'level': 'NOTSET',
+                'level': 'DEBUG',
                 'propagate': False
             },
             'quantumclient': {
                 'handlers':<% if use_syslog -%> ['syslog']<% else -%> ['file']<% end -%>,
-                'level': 'NOTSET',
+                'level': 'DEBUG',
                 'propagate': False
             },
             'nose.plugins.manager': {
                 'handlers':<% if use_syslog -%> ['syslog']<% else -%> ['file']<% end -%>,
-                'level': 'NOTSET',
+                'level': 'DEBUG',
                 'propagate': False
             }
         }
