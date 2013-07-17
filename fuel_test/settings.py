@@ -134,6 +134,8 @@ SETUP_TIMEOUT = int(os.environ.get('SETUP_TIMEOUT', 600))
 QUANTUM_USE_NAMESPACES = os.environ.get('QUANTUM_USE_NAMESPACES', 'true') == 'true'
 TENANT_NETWORK_TYPE = os.environ.get('TENANT_NETWORK_TYPE', 'gre')
 
+SLEEP4SV = os.environ.get('SLEEP4SV', 60)
+
 
 
 
