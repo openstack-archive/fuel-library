@@ -47,7 +47,7 @@ class rabbitmq::server(
   $erlang_cookie='EOKOWXQREETZSHFNTPEY',
   $wipe_db_on_cookie_change=true,
   $inet_dist_listen_min = '41055',
-  $inet_dist_listen_max = '41055',
+  $inet_dist_listen_max = '41055'
 ) {
 
   validate_bool($delete_guest_user, $config_stomp)
@@ -145,17 +145,17 @@ class rabbitmq::server(
   
   case $::osfamily {
     'RedHat' : {
-  file { 'rabbitmq-server':
-    ensure  => present,
-    path    => '/etc/init.d/rabbitmq-server',
-        source => 'puppet:///modules/rabbitmq/rabbitmq-server_redhat',
-    replace => true,
-    owner   => '0',
-    group   => '0',
-    mode    => '0755',
-    #notify  => Class['rabbitmq::service'],
-    require => Package[$package_name],
-  }
+      file { 'rabbitmq-server':
+        ensure  => present,
+        path    => '/etc/init.d/rabbitmq-server',
+            source => 'puppet:///modules/rabbitmq/rabbitmq-server_redhat',
+        replace => true,
+        owner   => '0',
+        group   => '0',
+        mode    => '0755',
+        #notify  => Class['rabbitmq::service'],
+        require => Package[$package_name],
+      }
     }
     'Debian' : {
       file { 'rabbitmq-server':
