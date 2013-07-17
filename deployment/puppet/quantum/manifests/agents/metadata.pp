@@ -31,11 +31,11 @@ class quantum::agents::metadata (
   # OCF script for pacemaker
   # and his dependences
   file {'quantum-metadata-agent-ocf':
-    path=>'/usr/lib/ocf/resource.d/mirantis/quantum-metadata-agent', 
+    path=>'/usr/lib/ocf/resource.d/mirantis/quantum-agent-metadata', 
     mode => 744,
     owner => root,
     group => root,
-    source => "puppet:///modules/quantum/ocf/quantum-metadata-agent",
+    source => "puppet:///modules/quantum/ocf/quantum-agent-metadata",
   }
   Package['pacemaker'] -> File['quantum-metadata-agent-ocf']
 
