@@ -9,9 +9,10 @@ keys = production,devel
 keys = normal,debug
 
 [logger_root]
-level = DEBUG
+level = NOTSET
 handlers = production
-qualname = keystone
+propagate = 1
+#qualname = keystone
 
 [formatter_debug]
 format = keystone-%(name)s: %(levelname)s %(module)s %(funcName)s %(message)s
