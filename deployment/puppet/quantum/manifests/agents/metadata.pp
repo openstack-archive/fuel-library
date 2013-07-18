@@ -112,8 +112,6 @@ class quantum::agents::metadata (
     },
   }
 
-  ::corosync::cleanup { $res_name: }
-  
   Cs_resource["$res_name"] -> 
     Cs_commit["$res_name"] -> 
       ::Corosync::Cleanup["$res_name"] -> 
