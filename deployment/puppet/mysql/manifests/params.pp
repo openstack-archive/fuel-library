@@ -16,7 +16,7 @@ class mysql::params {
   $port                = 3306
   $etc_root_password   = false
   $ssl                 = false
-  $server_id           = delete($::hostname,'controller-')
+  $server_id           = delete(delete($::hostname,'controller-'),'fuel-')
   case $::operatingsystem {
     "Ubuntu": {
       $service_provider = upstart
