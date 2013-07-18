@@ -65,6 +65,15 @@ class quantum (
     source => "puppet:///modules/quantum/q-agent-cleanup.py",
   } 
 
+  file {'/var/cache/quantum':
+    ensure  => directory,
+    path   => '/var/cache/quantum', 
+    mode   => 755,
+    owner  => quantum,
+    group  => quantum,
+  } 
+
+
   if is_array($rabbit_host) and size($rabbit_host) > 1 {
     if $rabbit_ha_virtual_ip {
       $rabbit_hosts = "${rabbit_ha_virtual_ip}:${rabbit_port}"
@@ -163,9 +172,10 @@ class quantum (
 
   Anchor['quantum-init'] -> 
     Package['quantum'] -> 
-      Quantum_config<||> -> 
-        Quantum_api_config<||> ->
-          Anchor[$endpoint_quantum_main_configuration]
+      File['/var/cache/quantum'] ->
+        Quantum_config<||> -> 
+          Quantum_api_config<||> ->
+            Anchor[$endpoint_quantum_main_configuration]
 
   anchor {'quantum-init-done':}
 }
