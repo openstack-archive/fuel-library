@@ -77,7 +77,8 @@ class quantum::agents::metadata (
   Cs_commit <| title == 'ovs' |> -> Cs_shadow <| title == "$res_name" |>
 
   cs_shadow { $res_name: cib => $cib_name }
-  cs_commit { $res_name: cib => $cib_name }
+  cs_commit { $res_name: cib => $cib_name } ~> ::Corosync::Cleanup["$res_name"]
+  ::corosync::cleanup { $res_name: }
 
   File<| title=='quantum-logging.conf' |> ->
   cs_resource { "$res_name":
