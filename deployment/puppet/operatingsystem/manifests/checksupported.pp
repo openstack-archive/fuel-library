@@ -18,12 +18,4 @@ class operatingsystem::checksupported (
   notify { 'operatingsystem':
     message => "Detected OS $::operatingsystem, architecture $::architecture"
   }
-
-  limits::fragment {
-    "*/soft/nofile":
-      value => "32768";
-    "*/hard/nofile":
-      value => "32768";
-  }
-
 }
