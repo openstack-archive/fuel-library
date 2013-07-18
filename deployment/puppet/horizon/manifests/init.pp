@@ -16,7 +16,9 @@
 # $keystone_port        public port of the keystone service
 # $keystone_scheme      http or https
 # $keystone_default_role default keystone role for new users
-# $django_debug         True/False. enable/disables debugging. defaults to false
+# $django_debug         True/False. enable/disables debugging (debug level). defaults to false
+# $django_verbose       True/False. enable/disables verbose logging (info level). defaults to false
+# $log_level            Syslog level would be used for logging. If Verbose -> INFO, Debug -> DEBUG, otherwise -> the value given
 # $api_result_limit     max number of Swift containers/objects to display on a single page
 # $use_syslog           Redirect all apache logging to syslog. Required for FUEL-WEB.
 #
@@ -34,11 +36,12 @@ class horizon(
   $keystone_scheme       = 'http',
   $keystone_default_role = 'Member',
   $django_debug          = 'False',
+  $django_verbose        = 'False',
   $api_result_limit      = 1000,
   $http_port             = 80,
   $https_port            = 443,
   $use_ssl               = false,
-  $log_level             = 'DEBUG',
+  $log_level             = 'WARNING',
   $use_syslog            = false,
 ) {
 
@@ -152,7 +155,7 @@ class horizon(
   }
 
   case $::osfamily {
-    'RedHat': { 
+    'RedHat': {
       file { '/etc/httpd/conf.d/wsgi.conf':
         mode   => 644,
         owner  => root,
@@ -169,19 +172,19 @@ class horizon(
         }
       }
 
-      augeas { "remove_listen_directive": 
+      augeas { "remove_listen_directive":
         context => "/files/etc/httpd/conf/httpd.conf",
-        changes => [ 
+        changes => [
           "rm directive[. = 'Listen']"
         ],
         before  => Service['httpd'],
       }
-      
+
       if $use_syslog {
         file {'/etc/httpd/conf.d/openstack-dashboard.conf':
 	  ensure  => present,
 	} ->
-	file_line { "enable_syslog": 
+	file_line { "enable_syslog":
 	  path => "/etc/httpd/conf.d/openstack-dashboard.conf",
 	  line => 'ErrorLog syslog:local1',
 	  before  => Service['httpd'],

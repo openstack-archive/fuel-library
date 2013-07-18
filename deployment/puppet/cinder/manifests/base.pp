@@ -65,15 +65,8 @@ if $use_syslog {
   file { "cinder-all.log":
     path => "/var/log/cinder-all.log",
   }
-  file { '/etc/rsyslog.d/30-cinder.conf':
-    ensure => present,
-    content => template('cinder/rsyslog.d.erb'),
-  }
-  
-  # We must notify rsyslog and services to apply new logging rules
-  include rsyslog::params
-  File['/etc/rsyslog.d/30-cinder.conf'] ~> Service <| title == "$rsyslog::params::service_name" |>
 
+  # We must notify services to apply new logging rules
   File['cinder-logging.conf'] ~> Service<| title == 'cinder-api' |>
   File['cinder-logging.conf'] ~> Service<| title == 'cinder-volume' |>
   File['cinder-logging.conf'] ~> Service<| title == 'cinder-scheduler' |>

@@ -37,7 +37,7 @@
 #  [nova_volume] The name of the volume group to use for nova volume allocation. Optional. Defaults to 'nova-volumes'.
 #  [horizon] (bool) is horizon installed. Defaults to: true
 #  [use_syslog] Rather or not service should log to syslog. Optional.
-#  [syslog_log_facility] Facility for syslog, if used. Optional. Note: duplicating conf option 
+#  [syslog_log_facility] Facility for syslog, if used. Optional. Note: duplicating conf option
 #       wouldn't have been used, but more powerfull rsyslog features managed via conf template instead
 #  [syslog_log_level] logging level for non verbose and non debug mode. Optional.
 #
@@ -300,12 +300,12 @@ class openstack::all (
       #pv       => '/dev/sdb',
       before   => Class['nova::volume'],
     }
-    
+
     class { 'nova::volume':
       enabled => true,
       require => Class['lvm']
     }
-    
+
     class { 'nova::volume::iscsi': }
   }
 
@@ -471,7 +471,10 @@ class openstack::all (
       quantum           => $quantum,
       horizon_app_links => $horizon_app_links,
       bind_address      => $public_address,
+      verbose           => $verbose,
+      debug             => $debug,
       use_syslog        => $use_syslog,
+      log_level         => $syslog_log_level,
     }
   }
 

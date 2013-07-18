@@ -1,11 +1,13 @@
 "/var/log/*-all.log" "/var/log/remote/*/*log"
 "/var/log/kern.log" "/var/log/debug" "/var/log/daemon.log"
 "/var/log/auth.log" "/var/log/user.log" "var/log/mail.log"
-"/var/log/cron.log"
+"/var/log/cron.log" "/var/log/dashboard.log" "/var/log/ha.log"
 {
-# This file is used for daily log rotations, do not use (min)size options here
+# This file is used for daily log rotations, do not use size options here
   sharedscripts
   <%= @rotation %>
+  # rotate only if 30M size or bigger
+  minsize 30M
   # truncate file, do not delete & recreate
   copytruncate
   # keep logs for <%= @keep %> rotations
