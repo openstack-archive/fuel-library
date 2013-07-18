@@ -8,7 +8,7 @@ class quantum::agents::dhcp (
   $resync_interval  = 30,
   $interface_driver = 'quantum.agent.linux.interface.OVSInterfaceDriver',
   $dhcp_driver      = 'quantum.agent.linux.dhcp.Dnsmasq',
-  $use_namespaces   = 'True',
+  $use_namespaces   = $::quantum_use_namespaces,
   $root_helper      = 'sudo /usr/bin/quantum-rootwrap /etc/quantum/rootwrap.conf',
   $service_provider = 'generic',
   $auth_url         = 'http://localhost:5000/v2.0',
@@ -33,6 +33,11 @@ class quantum::agents::dhcp (
 
   include 'quantum::waist_setup'
 
+  anchor {'quantum-dhcp-agent': }
+
+  #Anchor['quantum-metadata-agent-done'] -> Anchor['quantum-dhcp-agent']
+  Service<| title=='quantum-server' |> -> Anchor['quantum-dhcp-agent']
+
   case $dhcp_driver {
     /\.Dnsmasq/ : {
       package { $::quantum::params::dnsmasq_packages: ensure => present, }
@@ -44,38 +49,18 @@ class quantum::agents::dhcp (
     }
   }
 
-  #quantum::agents::sysctl{"$dhcp_agent_package": }
-
   Package[$dhcp_agent_package] -> Quantum_dhcp_agent_config <| |>
   Package[$dhcp_agent_package] -> Quantum_config <| |>
 
-  Quantum_config <| |> ~> Service['quantum-dhcp-service']
-  Quantum_dhcp_agent_config <| |> ~> Service['quantum-dhcp-service']
-
   quantum_dhcp_agent_config {
-    'DEFAULT/debug':
-      value => $debug;
-
-    'DEFAULT/verbose':
-      value => $verbose;
-
-    'DEFAULT/state_path':
-      value => $state_path;
-
-    'DEFAULT/resync_interval':
-      value => $resync_interval;
-
-    'DEFAULT/interface_driver':
-      value => $interface_driver;
-
-    'DEFAULT/dhcp_driver':
-      value => $dhcp_driver;
-
-    'DEFAULT/use_namespaces':
-      value => $use_namespaces;
-
-    'DEFAULT/root_helper':
-      value => $root_helper;
+    'DEFAULT/debug':            value => $debug;
+    'DEFAULT/state_path':       value => $state_path;
+    'DEFAULT/resync_interval':  value => $resync_interval;
+    'DEFAULT/interface_driver': value => $interface_driver;
+    'DEFAULT/dhcp_driver':      value => $dhcp_driver;
+    'DEFAULT/use_namespaces':   value => $use_namespaces;
+    'DEFAULT/root_helper':      value => $root_helper;
+    'DEFAULT/verbose':          value => $verbose;
   }
 
   if $enabled {
@@ -90,13 +75,27 @@ class quantum::agents::dhcp (
     Service <| title == 'quantum-server' |> -> Cs_shadow['dhcp']
     Quantum_dhcp_agent_config <| |> -> Cs_shadow['dhcp']
 
+    # OCF script for pacemaker
+    # and his dependences
+    file {'quantum-dhcp-agent-ocf':
+      path=>'/usr/lib/ocf/resource.d/mirantis/quantum-agent-dhcp', 
+      mode => 744,
+      owner => root,
+      group => root,
+      source => "puppet:///modules/quantum/ocf/quantum-agent-dhcp",
+    }
+    Package['pacemaker'] -> File['quantum-dhcp-agent-ocf']
+    File['quantum-dhcp-agent-ocf'] -> Cs_resource["p_${::quantum::params::dhcp_agent_service}"]
+    File['q-agent-cleanup.py'] -> Cs_resource["p_${::quantum::params::dhcp_agent_service}"]
+    
+    File<| title=='quantum-logging.conf' |> ->
     cs_resource { "p_${::quantum::params::dhcp_agent_service}":
       ensure          => present,
       cib             => 'dhcp',
       primitive_class => 'ocf',
-      provided_by     => 'pacemaker',
+      provided_by     => 'mirantis',
       primitive_type  => 'quantum-agent-dhcp',
-      require => File['quantum-agent-dhcp'],
+      #require => File['quantum-agent-dhcp'],
       parameters      => {
         'os_auth_url' => $auth_url,
         'tenant'      => $auth_tenant,
@@ -122,8 +121,7 @@ class quantum::agents::dhcp (
     }
 
     Cs_commit <| title == 'ovs' |> -> Cs_shadow <| title == 'dhcp' |>
-
-    Cs_commit['dhcp'] -> Service['quantum-dhcp-service']
+    Cs_commit <| title == 'quantum-metadata-agent' |> -> Cs_shadow <| title == 'dhcp' |>
 
     ::corosync::cleanup { "p_${::quantum::params::dhcp_agent_service}": }
     Cs_commit['dhcp'] -> ::Corosync::Cleanup["p_${::quantum::params::dhcp_agent_service}"]
@@ -131,25 +129,45 @@ class quantum::agents::dhcp (
     ::Corosync::Cleanup["p_${::quantum::params::dhcp_agent_service}"] -> Service['quantum-dhcp-service']
     Cs_resource["p_${::quantum::params::dhcp_agent_service}"] -> Cs_colocation['dhcp-with-ovs']
     Cs_resource["p_${::quantum::params::dhcp_agent_service}"] -> Cs_order['dhcp-after-ovs']
+    Cs_resource["p_${::quantum::params::dhcp_agent_service}"] -> Cs_colocation['dhcp-with-metadata']
+    Cs_resource["p_${::quantum::params::dhcp_agent_service}"] -> Cs_order['dhcp-after-metadata']
 
     cs_shadow { 'dhcp': cib => 'dhcp' }
-
     cs_commit { 'dhcp': cib => 'dhcp' }
 
     cs_colocation { 'dhcp-with-ovs':
       ensure     => present,
       cib        => 'dhcp',
-      primitives => ["p_${::quantum::params::dhcp_agent_service}", "clone_p_${::quantum::params::ovs_agent_service}"],
+      primitives => [
+        "p_${::quantum::params::dhcp_agent_service}", 
+        "clone_p_${::quantum::params::ovs_agent_service}"
+      ],
       score      => 'INFINITY',
-    }
-
+    } ->
     cs_order { 'dhcp-after-ovs':
       ensure => present,
       cib    => 'dhcp',
       first  => "clone_p_${::quantum::params::ovs_agent_service}",
       second => "p_${::quantum::params::dhcp_agent_service}",
       score  => 'INFINITY',
-    }
+    } -> Service['quantum-dhcp-service']
+
+    cs_colocation { 'dhcp-with-metadata':
+      ensure     => present,
+      cib        => 'dhcp',
+      primitives => [
+        "p_${::quantum::params::dhcp_agent_service}", 
+        "clone_p_quantum-metadata-agent"
+      ],
+      score      => 'INFINITY',
+    } -> 
+    cs_order { 'dhcp-after-metadata':
+      ensure => present,
+      cib    => 'dhcp',
+      first  => "clone_p_quantum-metadata-agent",
+      second => "p_${::quantum::params::dhcp_agent_service}",
+      score  => 'INFINITY',
+    } -> Service['quantum-dhcp-service']
 
     Service['quantum-dhcp-service_stopped'] -> Cs_resource["p_${::quantum::params::dhcp_agent_service}"]
 
@@ -174,6 +192,9 @@ class quantum::agents::dhcp (
     }
 
   } else {
+    Quantum_config <| |> ~> Service['quantum-dhcp-service']
+    Quantum_dhcp_agent_config <| |> ~> Service['quantum-dhcp-service']
+    File<| title=='quantum-logging.conf' |> ->
     service { 'quantum-dhcp-service':
       name       => $::quantum::params::dhcp_agent_service,
       enable     => $enabled,
@@ -185,4 +206,13 @@ class quantum::agents::dhcp (
     }
   }
   Class[quantum::waistline] -> Service[quantum-dhcp-service]
+
+  Anchor['quantum-dhcp-agent'] ->
+    Quantum_dhcp_agent_config <| |> ->  
+      Cs_resource<| title=="p_${::quantum::params::dhcp_agent_service}" |> ->
+        Service['quantum-dhcp-service'] ->
+          Anchor['quantum-dhcp-agent-done']
+
+  anchor {'quantum-dhcp-agent-done': }
+
 }

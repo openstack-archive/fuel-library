@@ -6,6 +6,7 @@
 #
 class quantum (
   $rabbit_password,
+  $auth_password,
   $enabled                = true,
   $package_ensure         = 'present',
   $verbose                = 'False',
@@ -27,6 +28,11 @@ class quantum (
   $rabbit_virtual_host    = '/',
   $rabbit_ha_virtual_ip   = false,
   $server_ha_mode         = false,
+  $auth_type        = 'keystone',
+  $auth_host        = 'localhost',
+  $auth_port        = '35357',
+  $auth_tenant      = 'services',
+  $auth_user        = 'quantum',
   $log_file               = '/var/log/quantum/server.log',
   $use_syslog = false,
   $syslog_log_facility    = 'LOCAL4',
@@ -34,27 +40,30 @@ class quantum (
 ) {
   include 'quantum::params'
 
-  Package['quantum'] -> Quantum_config<||>
-  Package['quantum'] -> Quantum_api_config<||>
+  anchor {'quantum-init':}
 
-  File {
-    ensure  => present,
-    owner   => 'quantum',
-    group   => 'quantum',
-    mode    => '0644',
-    require => Package['quantum'],
-  }
-
-  file {'/etc/quantum':
-    ensure  => directory,
-    group   => 'root',
-    mode    => "0770",
+  if ! defined(File['/etc/quantum']) {
+    file {'/etc/quantum':
+      ensure  => directory,
+      owner   => 'root',
+      group   => 'root',
+      mode    => 755,
+      #require => Package['quantum']
+    }
   }
 
   package {'quantum':
     name   => $::quantum::params::package_name,
     ensure => $package_ensure
   }
+
+  file {'q-agent-cleanup.py':
+    path   => '/usr/bin/q-agent-cleanup.py', 
+    mode   => 755,
+    owner  => root,
+    group  => root,
+    source => "puppet:///modules/quantum/q-agent-cleanup.py",
+  } 
 
   if is_array($rabbit_host) and size($rabbit_host) > 1 {
     if $rabbit_ha_virtual_ip {
@@ -101,8 +110,12 @@ class quantum (
     'DEFAULT/rabbit_password':        value => $rabbit_password;
     'DEFAULT/rabbit_virtual_host':    value => $rabbit_virtual_host;
     'DEFAULT/use_syslog':             value => $use_syslog;
+    'keystone_authtoken/auth_host':         value => $auth_host;
+    'keystone_authtoken/auth_port':         value => $auth_port;
+    'keystone_authtoken/admin_tenant_name': value => $auth_tenant;
+    'keystone_authtoken/admin_user':        value => $auth_user;
+    'keystone_authtoken/admin_password':    value => $auth_password;
   }
-
   if $use_syslog {
     quantum_config {
       'DEFAULT/log_config': value => "/etc/quantum/logging.conf";
@@ -111,25 +124,48 @@ class quantum (
     }
     file { "quantum-logging.conf":
       content => template('quantum/logging.conf.erb'),
-      path => "/etc/quantum/logging.conf",
-      require => File['/etc/quantum'],
+      path  => "/etc/quantum/logging.conf",
+      owner => "root",
+      group => "root",
+      mode  => 644,
     }
     file { "quantum-all.log":
       path => "/var/log/quantum-all.log",
     }
 
-    # We must notify services to apply new logging rules
-    File['quantum-logging.conf'] ~> Service<| title == 'quantum-server' |>
-    File['quantum-logging.conf'] ~> Service<| title == 'quantum-plugin-ovs-service' |>
-    File['quantum-logging.conf'] ~> Service<| title == 'quantum-l3' |>
-    File['quantum-logging.conf'] ~> Service<| title == 'quantum-dhcp-agent' |>
+    # We must setup logging before start services under pacemaker
+    File['quantum-logging.conf'] -> Service<| title == 'quantum-server' |>
+    File['quantum-logging.conf'] -> Anchor<| title == 'quantum-ovs-agent' |>
+    File['quantum-logging.conf'] -> Anchor<| title == 'quantum-l3' |>
+    File['quantum-logging.conf'] -> Anchor<| title == 'quantum-dhcp-agent' |>
 
   } else {
     quantum_config {
-     'DEFAULT/log_config': ensure=> absent;
-     'DEFAULT/log_file': value => $log_file;
+      'DEFAULT/log_config': ensure=> absent;
+      'DEFAULT/log_file':   value => $log_file;
     }
+    # file { "quantum-logging.conf":
+    #   content => template('quantum/logging.conf-nosyslog.erb'),
+    #   path  => "/etc/quantum/logging.conf",
+    #   owner => "root",
+    #   group => "root",
+    #   mode  => 644,
+    # }
   }
 
-  # SELINUX=permissive
+  File['/etc/quantum'] -> File['quantum-logging.conf']
+
+  if defined(Anchor['quantum-server-config-done']) {
+    $endpoint_quantum_main_configuration = 'quantum-server-config-done'
+  } else {
+    $endpoint_quantum_main_configuration = 'quantum-init-done'
+  }
+
+  Anchor['quantum-init'] -> 
+    Package['quantum'] -> 
+      Quantum_config<||> -> 
+        Quantum_api_config<||> ->
+          Anchor[$endpoint_quantum_main_configuration]
+
+  anchor {'quantum-init-done':}
 }

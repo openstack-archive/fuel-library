@@ -1,0 +1,66 @@
+[loggers]
+keys = root, l3agent, ovsagent, dhcpagent, metadata
+
+[handlers]
+keys = quantum, l3agent, ovsagent, dhcpagent, metadata
+
+[formatters]
+keys = default
+
+[formatter_default]
+format=%(asctime)s %(levelname)s %(name)s:%(lineno)d %(message)s
+
+
+[logger_root]
+level = DEBUG
+handlers = quantum
+qualname = quantum
+
+[handler_quantum]
+class = logging.FileHandler
+args = ('/var/log/quantum/quantum.log',)
+formatter = default
+
+
+[logger_l3agent]
+handlers = l3agent
+level=NOTSET
+qualname = quantum.agent.l3_agent
+
+[handler_l3agent]
+class = logging.FileHandler
+args = ('/var/log/quantum/quantum_l3.log',)
+formatter = default
+
+
+[logger_dhcpagent]
+handlers = dhcpagent
+level=NOTSET
+qualname = quantum.agent.dhcp_agent
+
+[handler_dhcpagent]
+class = logging.FileHandler
+args = ('/var/log/quantum/quantum_dhcp.log',)
+formatter = default
+
+
+[logger_ovsagent]
+handlers = ovsagent
+level=NOTSET
+qualname = quantum.plugins.openvswitch.agent.ovs_quantum_agent
+
+[handler_ovsagent]
+class = logging.FileHandler
+args = ('/var/log/quantum/quantum_ovs.log',)
+formatter = default
+
+
+[logger_metadata]
+handlers = metadata
+level=NOTSET
+qualname = quantum.agent.metadata
+
+[handler_metadata]
+class = logging.FileHandler
+args = ('/var/log/quantum/quantum_metadata.log',)
+formatter = default

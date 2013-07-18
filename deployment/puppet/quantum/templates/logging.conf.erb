@@ -1,3 +1,16 @@
+<% if @debug then -%>
+[loggers]
+keys = root, l3agent, ovsagent, dhcpagent, metadata
+
+[handlers]
+keys = production,devel, quantum, l3agent, ovsagent, dhcpagent, metadata
+
+[logger_root]
+level = NOTSET
+handlers = quantum
+propagate = 1
+
+<% else -%>
 [loggers]
 keys = root
 
@@ -5,20 +18,24 @@ keys = root
 [handlers]
 keys = production,devel
 
-[formatters]
-keys = normal,debug
-
 [logger_root]
 level = NOTSET
 handlers = production
 propagate = 1
 #qualname = quantum
+<% end -%>
+
+[formatters]
+keys = normal,debug,default
 
 [formatter_debug]
 format = quantum-%(name)s: %(levelname)s %(module)s %(funcName)s %(message)s
 
 [formatter_normal]
 format = quantum-%(name)s: %(levelname)s %(message)s
+
+[formatter_default]
+format=%(asctime)s %(levelname)s %(module)s %(name)s:%(lineno)d %(funcName)s  %(message)s
 
 # Extended logging info to LOG_<%= @syslog_log_facility %> with debug:<%= @debug %> and verbose:<%= @verbose %>
 # Note: local copy goes to /var/log/quantum-all.log
@@ -39,3 +56,52 @@ formatter = normal
 class = StreamHandler
 formatter = debug
 args = (sys.stdout,)
+
+[handler_quantum]
+class = logging.FileHandler
+args = ('/var/log/quantum/all.log',)
+formatter = default
+
+
+[logger_l3agent]
+handlers = l3agent
+level=NOTSET
+qualname = quantum.agent.l3_agent
+
+[handler_l3agent]
+class = logging.FileHandler
+args = ('/var/log/quantum/l3.log',)
+formatter = default
+
+
+[logger_dhcpagent]
+handlers = dhcpagent
+level=NOTSET
+qualname = quantum.agent.dhcp_agent
+
+[handler_dhcpagent]
+class = logging.FileHandler
+args = ('/var/log/quantum/dhcp.log',)
+formatter = default
+
+
+[logger_ovsagent]
+handlers = ovsagent
+level=NOTSET
+qualname = quantum.plugins.openvswitch.agent.ovs_quantum_agent
+
+[handler_ovsagent]
+class = logging.FileHandler
+args = ('/var/log/quantum/ovs.log',)
+formatter = default
+
+
+[logger_metadata]
+handlers = metadata
+level=NOTSET
+qualname = quantum.agent.metadata
+
+[handler_metadata]
+class = logging.FileHandler
+args = ('/var/log/quantum/metadata.log',)
+formatter = default

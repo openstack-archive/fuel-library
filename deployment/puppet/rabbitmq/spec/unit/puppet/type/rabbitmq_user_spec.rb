@@ -14,6 +14,7 @@ describe Puppet::Type.type(:rabbitmq_user) do
     @user[:password].should == 'foo'
   end
   it 'should require a password' do
+    # TODO: change ArgumentError -> Puppet::ResourceError when when puppet >= 3.0
     expect {
       Puppet::Type.type(:rabbitmq_user).new(:name => 'foo')
     }.to raise_error(ArgumentError, /must set password/)

@@ -13,6 +13,11 @@ class quantum::server (
 
   require 'keystone::python'
 
+  Anchor['quantum-init-done'] -> 
+      Anchor['quantum-server']
+
+  anchor {'quantum-server':}
+
   if $::quantum::params::server_package {
     $server_package = 'quantum-server'
 
@@ -24,18 +29,18 @@ class quantum::server (
     $server_package = 'quantum'
   }
 
-  case $::osfamily
-  {
-    'Debian':
-      {
+  case $::osfamily {
+    'Debian': {
        Quantum_config<||>->Package[$server_package]
        Quantum_api_config<||>->Package[$server_package]
-      }
-      'RedHat':
-        {
+    }
+    'RedHat': {
         Package[$server_package] -> Quantum_config<||>
         Package[$server_package] -> Quantum_api_config<||>
-      }
+    }
+  }
+  if defined(Anchor['quantum-plugin-ovs']) {
+    Package["$server_package"] -> Anchor['quantum-plugin-ovs']
   }
 
   Quantum_config<||> ~> Service['quantum-server']
@@ -55,7 +60,7 @@ class quantum::server (
     $service_ensure = 'stopped'
   }
 
-
+  File<| title=='quantum-logging.conf' |> ->
   service {'quantum-server':
     name       => $::quantum::params::server_service,
     ensure     => $service_ensure,
@@ -65,4 +70,21 @@ class quantum::server (
     provider   => $::quantum::params::service_provider,
   }
 
+
+  Anchor['quantum-server'] ->
+      Quantum_config<||> ->
+        Quantum_api_config<||> ->
+  Anchor['quantum-server-config-done'] -> 
+     Service['quantum-server'] ->
+  Anchor['quantum-server-done']
+
+  # if defined(Anchor['quantum-plugin-ovs-done']) {
+  #   Anchor['quantum-server-config-done'] -> 
+  #     Anchor['quantum-plugin-ovs-done'] -> 
+  #       Anchor['quantum-server-done']
+  # }
+
+  anchor {'quantum-server-config-done':}
+  anchor {'quantum-server-done':}
+  Anchor['quantum-server'] -> Anchor['quantum-server-done']
 }

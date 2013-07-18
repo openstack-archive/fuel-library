@@ -368,6 +368,10 @@ class openstack::compute (
       syslog_log_level     => $syslog_log_level,
       syslog_log_facility  => $syslog_log_facility_quantum,
       rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
+      auth_host            => $auth_host,
+      auth_tenant          => 'services',
+      auth_user            => 'quantum',
+      auth_password        => $quantum_user_password,
     }
 
     class { 'quantum::plugins::ovs':
@@ -396,7 +400,7 @@ class openstack::compute (
 
     # class { 'quantum::agents::dhcp':
     #   debug          => True,
-    #   use_namespaces => False,
+    #   use_namespaces => $::quantum_use_namespaces,
     # }
 
     # class { 'quantum::agents::l3':
@@ -405,7 +409,7 @@ class openstack::compute (
     #   auth_tenant    => 'services',
     #   auth_user      => 'quantum',
     #   auth_password  => $quantum_user_password,
-    #   use_namespaces => False,
+    #   use_namespaces => $::quantum_use_namespaces,
     # }
 
     class { 'nova::compute::quantum': }

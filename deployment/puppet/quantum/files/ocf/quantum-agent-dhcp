@@ -32,6 +32,8 @@
 
 # Fill in some defaults if no values are specified
 
+PATH=/sbin:/usr/sbin:/bin:/usr/bin
+
 OCF_RESKEY_binary_default="quantum-dhcp-agent"
 OCF_RESKEY_config_default="/etc/quantum/quantum.conf"
 OCF_RESKEY_plugin_config_default="/etc/quantum/dhcp_agent.ini"
@@ -250,15 +252,8 @@ quantum_dhcp_agent_status() {
 
 clean_up()
 {
-    filter_quantum_ports.py "network:dhcp" | while read port ip; do
-        ocf_log info "Cleaning up port ${port}"
-        ovs-vsctl -- --if-exists del-port ${port};
-        rc=$?
-        if [ $rc -ne 0 ]; then
-            ocf_log err "Could not cleanup port ${port}"
-            exit $OCF_ERR_GENERIC
-        fi
-	 done
+    q-agent-cleanup.py --debug --agent=dhcp --cleanup-ports 
+    #--remove-agent
 }
 
 
@@ -271,14 +266,14 @@ quantum_dhcp_agent_monitor() {
 quantum_dhcp_agent_start() {
     local rc
     
-    clean_up
-    
     quantum_dhcp_agent_status
     rc=$?
     if [ $rc -eq $OCF_SUCCESS ]; then
         ocf_log info "OpenStack DHCP Server (quantum-dhcp-agent) already running"
         return $OCF_SUCCESS
     fi
+
+    clean_up    
 
     # run the actual quantum-dhcp-agent daemon. Don't use ocf_run as we're sending the tool's output
     # straight to /dev/null anyway and using ocf_run would break stdout-redirection here.
