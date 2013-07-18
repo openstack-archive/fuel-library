@@ -93,6 +93,7 @@ class openstack::swift::storage_node (
         rabbit_password      => $rabbit_password,
         rabbit_host          => false,
         rabbit_nodes         => $rabbit_nodes,
+        qpid_user            => $qpid_user,
         qpid_password        => $qpid_password,
         qpid_nodes           => $qpid_nodes,
         volume_group         => $cinder_volume_group,
