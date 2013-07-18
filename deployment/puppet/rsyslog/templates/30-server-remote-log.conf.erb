@@ -10,8 +10,8 @@ $Template RemoteLog, "%timegenerated:1:15:date-rfc3164% %syslogseverity-text%: %
 <% end -%>
 $ActionFileDefaultTemplate RemoteLog
 
-# Would match 'kernel:' -> 'kernel'  ;  'rsyslogd[12345]:' -> 'rsyslogd'  ;  '<180>(nova.api.wsgi):'  ->  'nova.api.wsgi'
-$template RemoteLogFile, "/var/log/remote/%FROMHOST%/%syslogtag:R,ERE,1,DFLT:([A-Za-z][A-Za-z0-9_.-]*)--end%.log"
+# Would match 'kernel:' -> 'kernel'  ;  'rsyslogd[12345]:' -> 'rsyslogd'  ;  '<180>(nova.api.wsgi):'  ->  'nova.api.wsgi'  ;  'install/anaconda'  ->  'install/anaconda'
+$template RemoteLogFile, "/var/log/remote/%FROMHOST%/%syslogtag:R,ERE,1,DFLT:([A-Za-z][A-Za-z0-9_./-]*)--end%.log"
 
 :FROMHOST, regex, "^[1-9]" ?RemoteLogFile;RemoteLog
 # Drop message here and do not forward
