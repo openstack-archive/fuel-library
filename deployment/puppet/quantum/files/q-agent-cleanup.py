@@ -64,6 +64,7 @@ class QuantumCleaner(object):
         self.log = log
         self.auth_config = openrc
         self.options = options
+        self.agents = {}
         self.debug = options.get('debug')
         ret_count = self.options.get('retries',1)
         while True:
@@ -230,7 +231,7 @@ class QuantumCleaner(object):
                             break
         #
 
-    def _get_agents(self):
+    def _get_agents(self, use_cache=True):
         ret_count = self.options.get('retries')
         while True:
             if ret_count <= 0 :
@@ -253,14 +254,18 @@ class QuantumCleaner(object):
             ret_count -= 1
         return rv
 
-    def _get_agent_by_type(self, agent):
-        self.log.debug("_get_agent_by_type: start.")
-        rv = []
-        agents = self._get_agents()
-        for i in agents:
-            if i['binary'] == self.AGENT_BINARY_NAME.get(agent):
-                rv.append(i)
-        self.log.debug("_get_agent_by_type: end, rv: {0}".format(rv))
+    def _get_agents_by_type(self, agent, use_cache=True):
+        self.log.debug("_get_agents_by_type: start.")
+        rv = self.agents.get(agent, []) if use_cache else []
+        if not rv:
+            agents = self._get_agents(use_cache=use_cache)
+            for i in agents:
+                if i['binary'] == self.AGENT_BINARY_NAME.get(agent):
+                    rv.append(i)
+            from_cache = ''
+        else:
+            from_cache = ' from local cache'
+        self.log.debug("_get_agents_by_type: end, rv: {0} {1}".format(rv, from_cache))
         return rv
 
     def _cleanup_ports(self, agent, activeonly=False):
@@ -278,12 +283,12 @@ class QuantumCleaner(object):
 
 
     def _cleanup_ns(self, agent):
-        self.log.debug("_cleanup_ns -- not implemented")
+        self.log.info("_cleanup_ns -- not implemented")
         pass
 
-    def _cleanup_agent(self, agent):
-        self.log.debug("_cleanup_agent: start.")
-        agents = self._get_agent_by_type(agent)
+    def _cleanup_agents(self, agent):
+        self.log.debug("_cleanup_agents: start.")
+        agents = self._get_agents_by_type(agent)
         for i in agents:
             aid = i['id']
             self.log.debug("Removing agent {id} trought API".format(id=aid))
@@ -298,15 +303,25 @@ class QuantumCleaner(object):
                     self.log.error("API call for remove {agent} agent {id} failed\n{e}".format(agent=agent, id=aid, e=e))
                     rc = 'ERR'
             self.log.debug("Agent {id} rc={rc}".format(id=aid, rc=rc))
-        self.log.debug("_cleanup_agent: end.")
+        self.log.debug("_cleanup_agents: end.")
+        
+    def _list_agents(self, agent):
+        self.log.debug("_list_agents: start.")
+        agents = self._get_agents_by_type(agent)
+        for i in agents:
+            aid = i['id']
+            self.log.debug("Removing agent {id} trought API".format(id=aid))
+        self.log.debug("_list_agents: end.")
         
     def do(self, agent):
+        if self.options.get('list-agents'):
+            self._list_agents(agent)
         if self.options.get('cleanup-ports'):
             self._cleanup_ports(agent)
         if self.options.get('cleanup-ns'):
             self._cleanup_ns(agent)
-        if self.options.get('remove-agent'):
-            self._cleanup_agent(agent)
+        # if self.options.get('remove-agent'):
+        #     self._cleanup_agents(agent)
 
 
 
@@ -315,19 +330,21 @@ if __name__ == '__main__':
     parser.add_argument("-c", "--auth-config", dest="authconf", default="/root/openrc",
                       help="Authenticating config FILE", metavar="FILE")
     parser.add_argument("--retries", dest="retries", type=int, default=50,
-                      help="try NN retries for get keystone token", metavar="NN")
+                      help="try NN retries for API call", metavar="NN")
     parser.add_argument("--sleep", dest="sleep", type=int, default=2,
                       help="sleep seconds between retries", metavar="SEC")
     parser.add_argument("-a", "--agent", dest="agent", action="append",
                       help="specyfy agents for cleaning", required=True)
     parser.add_argument("--cleanup-ports", dest="cleanup-ports", action="store_true", default=False,
-                      help="cleanup ports for given agents")
+                      help="cleanup ports for given agents on this node")
     parser.add_argument("--activeonly", dest="activeonly", action="store_true", default=False,
                       help="cleanup only active ports")
-    parser.add_argument("--cleanup-ns", dest="cleanup-ns", action="store_true", default=False,
-                      help="cleanup namespaces for given agents")
-    parser.add_argument("--remove-agent", dest="remove-agent", action="store_true", default=False,
-                      help="cleanup namespaces for given agents")
+    # parser.add_argument("--cleanup-ns", dest="cleanup-ns", action="store_true", default=False,
+    #                   help="cleanup namespaces for given agents")
+    # parser.add_argument("--remove-agent", dest="remove-agent", action="store_true", default=False,
+    #                   help="cleanup namespaces for given agents")
+    parser.add_argument("--list", dest="list-agents", action="store_true", default=False,
+                      help="list agents and some additional information")
     parser.add_argument("--external-bridge", dest="external-bridge", default="br-ex",
                       help="external bridge name", metavar="IFACE")
     parser.add_argument("--integration-bridge", dest="integration-bridge", default="br-int",
