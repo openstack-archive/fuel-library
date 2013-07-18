@@ -378,7 +378,7 @@ class openstack::controller (
         enabled              => true,
         glance_api_servers   => "${service_endpoint}:9292",
         auth_host            => $service_endpoint,
-        bind_host            => $ha_mode ? { true => $internal_address, default => $api_bind_address },
+        bind_host            => $api_bind_address,
         iscsi_bind_host      => $cinder_iscsi_bind_addr,
         cinder_user_password => $cinder_user_password,
         use_syslog           => $use_syslog,

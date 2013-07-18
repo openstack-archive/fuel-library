@@ -289,7 +289,7 @@ class openstack::controller_ha (
       rabbit_ha_virtual_ip    => $internal_virtual_ip,
       cache_server_ip         => $memcached_servers,
       export_resources        => false,
-      api_bind_address        => $internal_address,
+      api_bind_address        => $internal_virtual_ip,
       db_host                 => $internal_virtual_ip,
       service_endpoint        => $internal_virtual_ip,
       glance_backend          => $glance_backend,
