@@ -19,27 +19,3 @@ defaults
   <%= key %>  <%= val %>
 <% end -%>
 <% end %>
-
-#  UNcomment the following block and restart haproxy in order to enable statistics
-#  ####Start of stats block
-# listen stats 0.0.0.0:9000       #Listen on all IP's on port 9000
-#     mode http
-#     balance
-#     timeout client 5000
-#     timeout connect 4000
-#     timeout server 30000
-# 
-#     #This is the virtual URL to access the stats page
-#     stats uri /haproxy_stats        
-# 
-#     #Authentication realm. This can be set to anything. Escape space characters with a backslash.
-#     stats realm HAProxy\ Statistics 
-# 
-#     #The user/pass you want to use. Change this password!
-#     stats auth admin:admin   
-# 
-#     #This allows you to take down and bring up back end servers.
-#     #This will produce an error on older versions of HAProxy.
-#     stats admin if TRUE
-#     #####End of stats block
-#     

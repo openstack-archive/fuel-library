@@ -46,43 +46,13 @@ define haproxy_service(
       $balancer_port = 4369
     }
     "rabbitmq-openstack": {
-      $haproxy_config_options = { 'option' => ['tcpka'], 'timeout client' => '48h', 'timeout server' => '48h', 'balance' => 'source', 'mode' => 'tcp'}
+      $haproxy_config_options = { 'option' => ['tcpka'], 'timeout client' => '48h', 'timeout server' => '48h', 'balance' => 'roundrobin', 'mode' => 'tcp'}
       $balancermember_options = 'check inter 5000 rise 2 fall 3'
       $balancer_port = 5673
     }
 
-    "stats": {
-       $haproxy_config_options = {
-        'timeout'     => ['client 5000', 'server 30000', 'connect 4000'],
-        'balance' => '',
-        'stats'  => ['uri /haproxy_stats', 'realm HAProxy\ Statistics', 'auth admin:admin', 'admin if TRUE'],
-        'mode'        => 'http'
-      }
-      $balancermember_options = ''
-      $balancer_port = ''
-     }
-     
-     "nova-api-1": {
-       $haproxy_config_options = { 'option' => ['tcplog'], 'balance' => 'source',  }
-       $balancermember_options = 'check'
-       $balancer_port = $port
-     }
-     
-     "nova-api-3": {
-       $haproxy_config_options = { 'option' => ['tcplog'], 'balance' => 'source' }
-       $balancermember_options = 'check'
-       $balancer_port = $port
-     }
-     
-     "glance-reg": {
-       $haproxy_config_options = { 'option' => ['tcplog'], 'balance' => 'source' }
-       $balancermember_options = 'check'
-       $balancer_port = $port
-     }
-     
-
     default: {
-      $haproxy_config_options = { 'option' => ['httplog', 'httpchk'], 'balance' => 'source', 'mode' => 'http' }
+      $haproxy_config_options = { 'option' => ['httplog'], 'balance' => 'roundrobin' }
       $balancermember_options = 'check'
       $balancer_port = $port
     }
@@ -319,7 +289,7 @@ class openstack::controller_ha (
       rabbit_ha_virtual_ip    => $internal_virtual_ip,
       cache_server_ip         => $memcached_servers,
       export_resources        => false,
-      api_bind_address        => $internal_address,
+      api_bind_address        => $internal_virtual_ip,
       db_host                 => $internal_virtual_ip,
       service_endpoint        => $internal_virtual_ip,
       glance_backend          => $glance_backend,
