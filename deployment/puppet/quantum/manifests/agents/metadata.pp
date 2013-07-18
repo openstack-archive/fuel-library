@@ -41,8 +41,8 @@ class quantum::agents::metadata (
 
   # add instructions to nova.conf
   nova_config { 
-    'service_quantum_metadata_proxy':       value => true; 
-    'quantum_metadata_proxy_shared_secret': value => $shared_secret; 
+    'DEFAULT/service_quantum_metadata_proxy':       value => true;
+    'DEFAULT/quantum_metadata_proxy_shared_secret': value => $shared_secret;
   } -> Nova::Generic_service<| title=='api' |>
 
   quantum_metadata_agent_config {
@@ -77,7 +77,8 @@ class quantum::agents::metadata (
   Cs_commit <| title == 'ovs' |> -> Cs_shadow <| title == "$res_name" |>
 
   cs_shadow { $res_name: cib => $cib_name }
-  cs_commit { $res_name: cib => $cib_name }
+  cs_commit { $res_name: cib => $cib_name } ~> ::Corosync::Cleanup["$res_name"]
+  ::corosync::cleanup { $res_name: }
 
   File<| title=='quantum-logging.conf' |> ->
   cs_resource { "$res_name":
