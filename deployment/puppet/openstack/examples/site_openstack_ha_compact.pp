@@ -109,6 +109,7 @@ $controllers = merge_arrays(filter_nodes($nodes,'role','primary-controller'), fi
 $controller_internal_addresses = nodes_to_hash($controllers,'name','internal_address')
 $controller_public_addresses = nodes_to_hash($controllers,'name','public_address')
 $controller_hostnames = keys($controller_internal_addresses)
+$controller_internal_ipaddresses = values($controller_internal_addresses)
 
 #Set this to anything other than pacemaker if you do not want Quantum HA
 #Also, if you do not want Quantum HA, you MUST enable $quantum_network_node
@@ -130,7 +131,7 @@ $multi_host              = true
 $mysql_root_password     = 'nova'
 $admin_email             = 'openstack@openstack.org'
 $admin_password          = 'nova'
-$custom_mysql_setup_class = 'galera'
+$custom_mysql_setup_class = 'pacemaker_mysql'
 validate_re($custom_mysql_setup_class,'galera|pacemaker_mysql')
 
 $keystone_db_password    = 'nova'
@@ -143,7 +144,7 @@ $nova_db_password        = 'nova'
 $nova_user_password      = 'nova'
 
 #AMQP backend rabbitmq or qpid
-$queue_provider          = 'rabbitmq'
+$queue_provider          = 'qpid'
 validate_re($queue_provider,  'rabbitmq|qpid')
 
 $rabbit_password         = 'nova'
@@ -639,7 +640,7 @@ class compact_controller (
     rabbit_nodes            => $controller_hostnames,
     qpid_password           => $rabbit_password,
     qpid_user               => $rabbit_user,
-    qpid_nodes              => $controller_internal_addresses,
+    qpid_nodes              => $controller_internal_ipaddresses,
     memcached_servers       => $controller_hostnames,
     export_resources        => false,
     glance_backend          => $glance_backend,

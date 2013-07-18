@@ -105,7 +105,7 @@ $nova_db_password        = 'nova'
 $nova_user_password      = 'nova'
 
 #AMQP backend rabbitmq or qpid
-$queue_provider          = 'rabbitmq'
+$queue_provider          = 'qpid'
 validate_re($queue_provider,  'rabbitmq|qpid')
  
 $rabbit_password         = 'nova'
