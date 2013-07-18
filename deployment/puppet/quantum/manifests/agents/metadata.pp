@@ -41,8 +41,8 @@ class quantum::agents::metadata (
 
   # add instructions to nova.conf
   nova_config { 
-    'service_quantum_metadata_proxy':       value => true; 
-    'quantum_metadata_proxy_shared_secret': value => $shared_secret; 
+    'DEFAULT/service_quantum_metadata_proxy':       value => true;
+    'DEFAULT/quantum_metadata_proxy_shared_secret': value => $shared_secret;
   } -> Nova::Generic_service<| title=='api' |>
 
   quantum_metadata_agent_config {
