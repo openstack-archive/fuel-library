@@ -140,7 +140,6 @@ Lock file
 <action name="stop" timeout="20" />
 <action name="status" timeout="20" />
 <action name="monitor" timeout="30" interval="20" />
-<action name="validate" timeout="5" />
 <action name="validate-all" timeout="5" />
 <action name="meta-data" timeout="5" />
 </actions>
@@ -215,6 +214,13 @@ rabbit_mq_monitor() {
 clean_up() {
 	ocf_log info "cleaning up Rabbit-MQ server. nothing to do."
 }
+
+# rotate_logs_rabbitmq() {
+#     $OCF_RESKEY_control rotate_logs > /dev/null 2>&1
+#     if [ $? != 0 ] ; then
+#         RETVAL=1
+#     fi
+# }
 
 rabbit_mq_start() {
     local rc

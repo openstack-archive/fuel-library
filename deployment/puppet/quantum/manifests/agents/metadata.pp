@@ -85,7 +85,7 @@ class quantum::agents::metadata (
     cib             => $cib_name,
     primitive_class => 'ocf',
     provided_by     => 'mirantis',
-    primitive_type  => 'quantum-metadata-agent',
+    primitive_type  => 'quantum-agent-metadata',
     parameters => {
       #'nic'     => $vip[nic],
       #'ip'      => $vip[ip],
