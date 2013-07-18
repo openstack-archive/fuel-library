@@ -121,6 +121,12 @@ class mysql::server (
       group => 'root',
       mode => 0755,
     } ->
+    file { '/root/.ssh/':
+      ensure => directory,
+      owner => 'root',
+      group => 'root',
+      mode => 0700,
+    } ->
     file { '/root/.ssh/id_rsa_mysql':
       ensure => present,
       source => 'puppet:///modules/mysql/id_rsa_mysql',
