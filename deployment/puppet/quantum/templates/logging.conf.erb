@@ -3,12 +3,7 @@
 keys = root, l3agent, ovsagent, dhcpagent, metadata
 
 [handlers]
-keys = production,devel, quantum, l3agent, ovsagent, dhcpagent, metadata
-
-[logger_root]
-level = NOTSET
-handlers = quantum
-propagate = 1
+keys = production,devel, l3agent, ovsagent, dhcpagent, metadata
 
 <% else -%>
 [loggers]
@@ -57,12 +52,7 @@ class = StreamHandler
 formatter = debug
 args = (sys.stdout,)
 
-[handler_quantum]
-class = logging.FileHandler
-args = ('/var/log/quantum/all.log',)
-formatter = default
-
-
+<% if @debug then -%>
 [logger_l3agent]
 handlers = l3agent
 level=NOTSET
@@ -105,3 +95,4 @@ qualname = quantum.agent.metadata
 class = logging.FileHandler
 args = ('/var/log/quantum/metadata.log',)
 formatter = default
+<% end -%>
