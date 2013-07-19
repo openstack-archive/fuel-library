@@ -8,3 +8,4 @@ $ActionFileDefaultTemplate RSYSLOG_TraditionalFileFormat
 <% end -%>
 
 <%= @syslog_log_facility_cinder %>.* -/var/log/cinder-all.log
+if $syslogtag contains "cinder" then -/var/log/cinder-all.log
