@@ -57,6 +57,7 @@ class = StreamHandler
 formatter = debug
 args = (sys.stdout,)
 
+<% if @debug then -%>
 [handler_quantum]
 class = logging.FileHandler
 args = ('/var/log/quantum/all.log',)
@@ -105,3 +106,4 @@ qualname = quantum.agent.metadata
 class = logging.FileHandler
 args = ('/var/log/quantum/metadata.log',)
 formatter = default
+<% end -%>
