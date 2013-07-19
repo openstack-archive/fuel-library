@@ -16,10 +16,10 @@ $ActionFileDefaultTemplate RemoteLog
 <% if ! ['localhost','127.0.0.1','::1'].include?(rserver['server']) -%>
 <% if rserver['remote_type'] == 'tcp' -%>
 # Send messages we receive to master node via tcp
-*.* @@<%= rserver['server']-%>:<%= rserver['port'] -%>;RSYSLOG_TraditionalFileFormat
+*.* @@<%= rserver['server']-%>:<%= rserver['port'] -%>
 <% else -%>
 # Send messages we receive to master node via udp
-*.* @<%= rserver['server'] -%>:<%= rserver['port'] -%>;RSYSLOG_TraditionalFileFormat
+*.* @<%= rserver['server'] -%>:<%= rserver['port'] -%>
 <% end -%>
 <% end -%>
 <% end -%>
