@@ -162,7 +162,7 @@ class quantum (
     # }
   }
 
-  File['/etc/quantum'] -> File['quantum-logging.conf']
+  File <| title=='/etc/quantum' |> -> File <| title=='quantum-logging.conf' |>
 
   if defined(Anchor['quantum-server-config-done']) {
     $endpoint_quantum_main_configuration = 'quantum-server-config-done'
