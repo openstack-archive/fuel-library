@@ -100,7 +100,7 @@ $controllers = merge_arrays(filter_nodes($nodes,'role','primary-controller'), fi
 $controller_internal_addresses = nodes_to_hash($controllers,'name','internal_address')
 $controller_public_addresses = nodes_to_hash($controllers,'name','public_address')
 $controller_hostnames = keys($controller_internal_addresses)
-$controller_internal_ipaddresses = values($controller_internal_addresses)
+$controller_internal_ipaddresses = sort(values($controller_internal_addresses))
 
 #Set this to anything other than pacemaker if you do not want Quantum HA
 #Also, if you do not want Quantum HA, you MUST enable $quantum_network_node
@@ -625,7 +625,7 @@ class compact_controller (
     cinder                  => $cinder,
     cinder_iscsi_bind_addr  => $cinder_iscsi_bind_addr,
     manage_volumes          => $cinder ? { false => $manage_volumes, default =>$is_cinder_node },
-    galera_nodes            => $controller_hostnames,
+    galera_nodes            => $controller_internal_ipaddresses,
     custom_mysql_setup_class => $custom_mysql_setup_class,
     nv_physical_volume      => $nv_physical_volume,
     use_syslog              => $use_syslog,
@@ -734,7 +734,7 @@ node /fuel-compute-[\d+]/ {
     rabbit_ha_virtual_ip   => $internal_virtual_ip,
     qpid_password          => $rabbit_password,
     qpid_user              => $rabbit_user,
-    qpid_nodes             => $controller_internal_addresses,
+    qpid_nodes             => $controller_internal_ipaddresses,
     glance_api_servers     => "${internal_virtual_ip}:9292",
     vncproxy_host          => $public_virtual_ip,
     verbose                => $verbose,
@@ -800,7 +800,7 @@ node /fuel-quantum/ {
       rabbit_ha_virtual_ip  => $internal_virtual_ip,
       qpid_password         => $rabbit_password,
       qpid_user             => $rabbit_user,
-      qpid_nodes            => $controller_internal_addresses,
+      qpid_nodes            => $controller_internal_ipaddresses,
       quantum               => $quantum,
       quantum_user_password => $quantum_user_password,
       quantum_db_password   => $quantum_db_password,
