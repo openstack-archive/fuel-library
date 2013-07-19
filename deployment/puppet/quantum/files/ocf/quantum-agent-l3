@@ -274,7 +274,6 @@ quantum_l3_agent_status() {
 clean_up()
 {
     q-agent-cleanup.py --agent=l3 --cleanup-ports
-    #--remove-agent
 }
 
 

@@ -3,6 +3,7 @@ import re
 import time
 import os
 import sys
+import json
 import argparse
 import logging
 import logging.handlers
@@ -14,7 +15,7 @@ from keystoneclient.v2_0 import client as ks_client
 LOG_NAME='q-agent-cleanup'
 
 API_VER = '2.0'
-
+PORT_ID_PART_LEN=11
 
 
 def get_authconfig(cfg_file):
@@ -37,15 +38,20 @@ class QuantumCleaner(object):
         'network:router_interface': 'qr-',
     }    
     PORT_NAME_PREFIXES = {
-        'dhcp': PORT_NAME_PREFIXES_BY_DEV_OWNER['network:dhcp'],
-        'l3': [
+        # contains tuples of prefixes
+        'dhcp': (PORT_NAME_PREFIXES_BY_DEV_OWNER['network:dhcp'],),
+        'l3': (
             PORT_NAME_PREFIXES_BY_DEV_OWNER['network:router_gateway'],
             PORT_NAME_PREFIXES_BY_DEV_OWNER['network:router_interface']
-        ]
+        )
+    }
+    BRIDGES_FOR_PORTS_BY_AGENT ={
+        'dhcp': ('br-int',),
+        'l3':   ('br-int', 'br-ex'),
     }
     PORT_OWNER_PREFIXES = {
-        'dhcp': ['network:dhcp'],
-        'l3': ['network:router_gateway', 'network:router_interface']
+        'dhcp': ('network:dhcp',),
+        'l3':   ('network:router_gateway', 'network:router_interface')
     }
     NS_NAME_PREFIXES = {
         'dhcp': 'qdhcp',
@@ -57,6 +63,7 @@ class QuantumCleaner(object):
         'ovs':  'quantum-openvswitch-agent'
     }
 
+    CMD__list_ovs_port = ['ovs-vsctl', 'list-ports']
     CMD__remove_ovs_port = ['ovs-vsctl', '--', '--if-exists', 'del-port']
     CMD__remove_ip_addr = ['ip', 'address', 'delete']
 
@@ -121,42 +128,74 @@ class QuantumCleaner(object):
                     self.log.error("Quantum error:\n{0}".format(e.message))
                     raise e
             ret_count -= 1
-        self.log.debug("__get_ports: end, rv='{0}'".format(rv))
+        self.log.debug("__get_ports: end, rv='{0}'".format(json.dumps(rv, indent=4)))
         return rv
 
-    def _get_ports_by_agent(self, agent, activeonly=False):
+    def _get_ports_by_agent(self, agent, activeonly=False, localnode=False, port_id_part_len=PORT_ID_PART_LEN):
         self.log.debug("__get_ports_by_agent: start, agent='{0}', activeonly='{1}'".format(agent, activeonly))
-        rv = []
         ports = self._get_ports()
+        #self.log.debug(json.dumps(ports, indent=4))
         if activeonly:
             tmp = []
             for i in ports:
                 if i['status'] == 'ACTIVE':
                     tmp.append(i)
-                ports = tmp
+            ports = tmp
+        agent_ports = []
         for i in ports:
             if i['device_owner'] in self.PORT_OWNER_PREFIXES.get(agent):
-                rv.append(i)
-        self.log.debug("__get_ports_by_agent: end, rv='{0}'".format(rv))
+                agent_ports.append(i)
+        if localnode:
+            # get ports for this agent, existing on this node
+            port_id_starts = set()
+            for i in self.BRIDGES_FOR_PORTS_BY_AGENT.get(agent,[]):
+                cmd = []
+                cmd.extend(self.CMD__list_ovs_port)
+                cmd.append(i)
+                process = subprocess.Popen(
+                    cmd,
+                    shell=False,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE
+                )
+                rc = process.wait()
+                if rc != 0:
+                    self.log.error("ERROR (rc={0}) while execution '{1}'".format(rc,' '.join(cmd)))
+                else:
+                    stdout = process.communicate()[0]
+                    for port in StringIO.StringIO(stdout):
+                        port = port.strip()
+                        for j in self.PORT_NAME_PREFIXES.get(agent,[]):
+                            if port.startswith(j):
+                                port_id_starts.add(port[len(j):])
+                                break
+            rv = []
+            for i in agent_ports:
+                id_part = i['id'][:port_id_part_len]
+                if id_part in port_id_starts:
+                    rv.append(i)
+        else:
+            rv = agent_ports
+        self.log.debug("__get_ports_by_agent: end, rv='{0}'".format(json.dumps(rv, indent=4)))
         return rv
 
-    def _get_portnames_and_IPs_for_agent(self, agent, port_id_part_len=11):
+    def _get_portnames_and_IPs_for_agent(self, agent, port_id_part_len=PORT_ID_PART_LEN, localnode=False):
         self.log.debug("_get_portnames_and_IPs_for_agent: start, agent='{0}'".format(agent))
         port_name_prefix = self.PORT_NAME_PREFIXES.get(agent)
         if port_name_prefix is None:
             self.log.debug("port_name_prefix is None")
             return []
         rv = []
-        for i in self._get_ports_by_agent(agent, activeonly=self.options.get('activeonly')):
+        for i in self._get_ports_by_agent(agent, activeonly=self.options.get('activeonly'), localnode=localnode):
             # _rr = "{0}{1} {2}".format(self.PORT_NAME_PREFIXES_BY_DEV_OWNER[i['device_owner']], i['id'][:port_id_part_len], i['fixed_ips'][0]['ip_address'])
             _rr = ("{0}{1}".format(self.PORT_NAME_PREFIXES_BY_DEV_OWNER[i['device_owner']], i['id'][:port_id_part_len]), i['fixed_ips'][0]['ip_address'])
-            #self.log.debug(_rr)
+            #todo: returns array of IPs. IPs may be more than one
             rv.append(_rr)
-        self.log.debug("_get_portnames_and_IPs_for_agent: end, rv='{0}'".format(rv))
+        self.log.debug("_get_portnames_and_IPs_for_agent: end, rv='{0}'".format(json.dumps(rv, indent=4)))
         return rv
 
     def _cleanup_ovs_ports(self, portlist):
-        self.log.debug("Ports {0} will be cleaned.".format(portlist))
+        self.log.info("Ports {0} will be cleaned.".format(json.dumps(portlist)))
         for port in portlist:
             cmd = []
             cmd.extend(self.CMD__remove_ovs_port)
@@ -176,7 +215,7 @@ class QuantumCleaner(object):
         #
 
     def _cleanup_ip_addresses(self, addrlist):
-        self.log.debug("IP addresses {0} will be cleaned.".format(addrlist))
+        self.log.info("IP addresses {0} will be cleaned.".format(json.dumps(addrlist)))
         addrs=set([str(x) for x in addrlist])
         re_inet = re.compile(r'\s*inet\s')
         re_addrline = re.compile(r'inet\s+(\d+\.\d+\.\d+\.\d+\/\d+)\s+.*\s([\w\-\.\_]+)$')
@@ -192,7 +231,7 @@ class QuantumCleaner(object):
         stdout = process.communicate()[0]
         rc = process.wait()
         if rc != 0:
-            self.log.error("ERROR (rc={0}) while execution {1}".format(rc,cmd))
+            self.log.error("ERROR (rc={0}) while execution {1}".format(rc,' '.join(cmd)))
             return False
         for i in StringIO.StringIO(stdout):
             if re_inet.match(i):
@@ -225,7 +264,7 @@ class QuantumCleaner(object):
                             )
                             rc = process.wait()
                             if rc != 0:
-                                self.log.error("ERROR (rc={0}) while execution {1}".format(rc,cmd))            
+                                self.log.error("ERROR (rc={0}) while execution {1}".format(rc,' '.join(cmd)))
                         addrs.remove(addr)
                         if len(addrs) == 0:
                             break
@@ -271,7 +310,7 @@ class QuantumCleaner(object):
     def _cleanup_ports(self, agent, activeonly=False):
         self.log.debug("_cleanup_ports: start.")
         rv = False
-        port_ip_list = self._get_portnames_and_IPs_for_agent(agent)
+        port_ip_list = self._get_portnames_and_IPs_for_agent(agent, localnode=True)
         # Cleanup ports
         port_list = [x[0] for x in port_ip_list]
         self._cleanup_ovs_ports(port_list)
@@ -282,28 +321,28 @@ class QuantumCleaner(object):
         #return rv
 
 
-    def _cleanup_ns(self, agent):
-        self.log.info("_cleanup_ns -- not implemented")
-        pass
+    # def _cleanup_ns(self, agent):
+    #     self.log.info("_cleanup_ns -- not implemented")
+    #     pass
 
-    def _cleanup_agents(self, agent):
-        self.log.debug("_cleanup_agents: start.")
-        agents = self._get_agents_by_type(agent)
-        for i in agents:
-            aid = i['id']
-            self.log.debug("Removing agent {id} trought API".format(id=aid))
-            if self.options.get('noop'):
-                self.log.info("NOOP-API-call:{0}".format(aid))
-                rc = 'OK'
-            else:
-                try:
-                    self.client.delete_agent(aid)
-                    rc = 'OK'
-                except Exception as e:
-                    self.log.error("API call for remove {agent} agent {id} failed\n{e}".format(agent=agent, id=aid, e=e))
-                    rc = 'ERR'
-            self.log.debug("Agent {id} rc={rc}".format(id=aid, rc=rc))
-        self.log.debug("_cleanup_agents: end.")
+    # def _cleanup_agents(self, agent):
+    #     self.log.debug("_cleanup_agents: start.")
+    #     agents = self._get_agents_by_type(agent)
+    #     for i in agents:
+    #         aid = i['id']
+    #         self.log.debug("Removing agent {id} trought API".format(id=aid))
+    #         if self.options.get('noop'):
+    #             self.log.info("NOOP-API-call:{0}".format(aid))
+    #             rc = 'OK'
+    #         else:
+    #             try:
+    #                 self.client.delete_agent(aid)
+    #                 rc = 'OK'
+    #             except Exception as e:
+    #                 self.log.error("API call for remove {agent} agent {id} failed\n{e}".format(agent=agent, id=aid, e=e))
+    #                 rc = 'ERR'
+    #         self.log.debug("Agent {id} rc={rc}".format(id=aid, rc=rc))
+    #     self.log.debug("_cleanup_agents: end.")
         
     def _list_agents(self, agent):
         self.log.debug("_list_agents: start.")

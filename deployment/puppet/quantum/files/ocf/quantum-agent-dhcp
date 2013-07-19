@@ -253,7 +253,6 @@ quantum_dhcp_agent_status() {
 clean_up()
 {
     q-agent-cleanup.py --agent=dhcp --cleanup-ports
-    #--remove-agent
 }
 
 
