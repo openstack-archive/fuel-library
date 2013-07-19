@@ -19,7 +19,7 @@
 #     Defaults to False.
 #   [use_syslog] Rather or not keystone should log to syslog. Optional.
 #     Defaults to False.
-#   [syslog_log_facility] Facility for syslog, if used. Optional. Note: duplicating conf option 
+#   [syslog_log_facility] Facility for syslog, if used. Optional. Note: duplicating conf option
 #     wouldn't have been used, but more powerfull rsyslog features managed via conf template instead
 #   [syslog_log_level] logging level for non verbose and non debug mode. Optional.
 #   [catalog_type] Type of catalog that keystone uses to store endpoints,services. Optional.
@@ -62,6 +62,8 @@ class keystone(
   $use_syslog          = false,
   $syslog_log_facility = 'LOCAL7',
   $syslog_log_level = 'WARNING',
+  $log_dir             = '/var/log/keystone',
+  $log_file            = 'keystone.log',
   $catalog_type        = 'sql',
   $token_format        = 'UUID',
 #  $token_format        = 'PKI',
@@ -106,6 +108,7 @@ class keystone(
     keystone_config {
      'DEFAULT/log_config': ensure => absent;
      'DEFAULT/log_file': value => $log_file;
+     'DEFAULT/log_dir': value => $log_dir;
     }
   }
 
@@ -256,7 +259,7 @@ class keystone(
       notify  => Service['keystone'],
     }
 
-    # keystone-manage pki_setup Should be run as the same system user that will be running the Keystone service to ensure 
+    # keystone-manage pki_setup Should be run as the same system user that will be running the Keystone service to ensure
     # proper ownership for the private key file and the associated certificates
     exec { 'keystone-manage pki_setup':
       path        => '/usr/bin',
