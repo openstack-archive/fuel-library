@@ -659,7 +659,7 @@ class compact_controller (
     cinder                  => $cinder,
     cinder_iscsi_bind_addr  => $cinder_iscsi_bind_addr,
     manage_volumes          => $cinder ? { false => $manage_volumes, default =>$is_cinder_node },
-    galera_nodes            => $controller_internal_ipaddresses,
+    galera_nodes            => $controller_hostnames,
     custom_mysql_setup_class => $custom_mysql_setup_class,
     nv_physical_volume      => $nv_physical_volume,
     use_syslog              => $use_syslog,
