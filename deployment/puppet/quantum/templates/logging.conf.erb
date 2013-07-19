@@ -3,12 +3,7 @@
 keys = root, l3agent, ovsagent, dhcpagent, metadata
 
 [handlers]
-keys = production,devel, quantum, l3agent, ovsagent, dhcpagent, metadata
-
-[logger_root]
-level = NOTSET
-handlers = quantum
-propagate = 1
+keys = production,devel, l3agent, ovsagent, dhcpagent, metadata
 
 <% else -%>
 [loggers]
@@ -58,12 +53,6 @@ formatter = debug
 args = (sys.stdout,)
 
 <% if @debug then -%>
-[handler_quantum]
-class = logging.FileHandler
-args = ('/var/log/quantum/all.log',)
-formatter = default
-
-
 [logger_l3agent]
 handlers = l3agent
 level=NOTSET
