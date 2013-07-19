@@ -36,7 +36,7 @@ class QuantumCleaner(object):
         'network:dhcp':             'tap',
         'network:router_gateway':   'qg-',
         'network:router_interface': 'qr-',
-    }    
+    }
     PORT_NAME_PREFIXES = {
         # contains tuples of prefixes
         'dhcp': (PORT_NAME_PREFIXES_BY_DEV_OWNER['network:dhcp'],),
@@ -73,7 +73,13 @@ class QuantumCleaner(object):
         self.options = options
         self.agents = {}
         self.debug = options.get('debug')
+        self.RESCHEDULING_CALLS = {
+            'dhcp': self._reschedule_agent_dhcp,
+            'l3':   self._reschedule_agent_l3,
+        }
+
         ret_count = self.options.get('retries',1)
+
         while True:
             if ret_count <= 0 :
                 print(">>> Keystone error: no more retries for connect to keystone server.")
@@ -106,15 +112,14 @@ class QuantumCleaner(object):
             token=self.token,
         )
 
-    def _get_ports(self):
-        self.log.debug("__get_ports: start.")
+    def _quantum_API_call(self, method, *args):
         ret_count = self.options.get('retries')
         while True:
             if ret_count <= 0 :
                 self.log.error("Q-server error: no more retries for connect to server.")
                 return []
             try:
-                rv = self.client.list_ports()['ports']
+                rv = method (*args)
                 break
             except Exception as e:
                 errmsg = e.message.strip()
@@ -128,8 +133,19 @@ class QuantumCleaner(object):
                     self.log.error("Quantum error:\n{0}".format(e.message))
                     raise e
             ret_count -= 1
-        self.log.debug("__get_ports: end, rv='{0}'".format(json.dumps(rv, indent=4)))
         return rv
+
+    def _add_network_to_dhcp_agent(self, agent_id, req_body):
+        return self._quantum_API_call(self.client.add_network_to_dhcp_agent, agent_id, req_body)
+
+    def _list_networks_on_dhcp_agent(self, agent_id):
+        return self._quantum_API_call(self.client.list_networks_on_dhcp_agent, agent_id)['networks']
+
+    def _get_ports(self):
+        return self._quantum_API_call(self.client.list_ports)['ports']
+
+    def _get_agents(self, use_cache=True):
+        return self._quantum_API_call(self.client.list_agents)['agents']
 
     def _get_ports_by_agent(self, agent, activeonly=False, localnode=False, port_id_part_len=PORT_ID_PART_LEN):
         self.log.debug("__get_ports_by_agent: start, agent='{0}', activeonly='{1}'".format(agent, activeonly))
@@ -211,7 +227,7 @@ class QuantumCleaner(object):
                 )
                 rc = process.wait()
                 if rc != 0:
-                    self.log.error("ERROR (rc={0}) while execution {1}".format(rc,cmd))            
+                    self.log.error("ERROR (rc={0}) while execution {1}".format(rc,cmd))
         #
 
     def _cleanup_ip_addresses(self, addrlist):
@@ -270,29 +286,6 @@ class QuantumCleaner(object):
                             break
         #
 
-    def _get_agents(self, use_cache=True):
-        ret_count = self.options.get('retries')
-        while True:
-            if ret_count <= 0 :
-                self.log.error("Q-server error: no more retries for connect to server.")
-                return []
-            try:
-                rv = self.client.list_agents()['agents']
-                break
-            except Exception as e:
-                errmsg = e.message.strip()
-                if re.search(r"Connection\s+refused", errmsg, re.I) or\
-                   re.search(r"Connection\s+timed\s+out", errmsg, re.I) or\
-                   re.search(r"503\s+Service\s+Unavailable", errmsg, re.I) or\
-                   re.search(r"No\s+route\s+to\s+host", errmsg, re.I):
-                      self.log.info("Can't connect to {0}, wait for server ready...".format(self.keystone.service_catalog.url_for(service_type='network')))
-                      time.sleep(self.options.sleep)
-                else:
-                    self.log.error("Quantum error:\n{0}".format(e.message))
-                    raise e
-            ret_count -= 1
-        return rv
-
     def _get_agents_by_type(self, agent, use_cache=True):
         self.log.debug("_get_agents_by_type: start.")
         rv = self.agents.get(agent, []) if use_cache else []
@@ -304,7 +297,7 @@ class QuantumCleaner(object):
             from_cache = ''
         else:
             from_cache = ' from local cache'
-        self.log.debug("_get_agents_by_type: end, rv: {0} {1}".format(rv, from_cache))
+        self.log.debug("_get_agents_by_type: end, {0} rv: {1}".format(from_cache, json.dumps(rv, indent=4)))
         return rv
 
     def _cleanup_ports(self, agent, activeonly=False):
@@ -320,47 +313,92 @@ class QuantumCleaner(object):
         self.log.debug("_cleanup_ports: end.")
         #return rv
 
+    def _reschedule_agent_dhcp(self, agent_type):
+        self.log.debug("_reschedule_agent_dhcp: start.")
+        agents = {
+            'alive': [],
+            'dead':  []
+        }
+        # collect networklist from dead DHCP-agents
+        dead_networks = []
+        for agent in self._get_agents_by_type(agent_type):
+            if agent['alive']:
+                self.log.info("found alive agent: {0}".format(agent['id']))
+                agents['alive'].append(agent)
+            else:
+                # dead agent
+                self.log.info("found dead agent: {0}".format(agent['id']))
+                agents['dead'].append(agent)
+                for net in self._list_networks_on_dhcp_agent(agent['id']):
+                    dead_networks.append(net)
 
-    # def _cleanup_ns(self, agent):
-    #     self.log.info("_cleanup_ns -- not implemented")
-    #     pass
+        if dead_networks and agents['alive']:
+            # get network-ID list of already attached to alive agent networks
+            lucky_ids = set()
+            for net in self._list_networks_on_dhcp_agent(agents['alive'][0]['id']):
+                lucky_ids.add(net['id'])
+            # add dead networks to alive agent
+            for net in dead_networks:
+                if net['id'] not in lucky_ids:
+                    # attach network to agent
+                    self.log.info("attach network {net} to agent {agent}".format(
+                        net=net['id'],
+                        agent=agents['alive'][0]['id']
+                    ))
+                    if not self.options.get('noop'):
+                        self._add_network_to_dhcp_agent(agents['alive'][0]['id'], {
+                            "network_id": net['id']
+                        })
+                        #if error:
+                        #    return
+            # remove dead agents if need (and if found alive agent)
+            if self.options.get('remove-dead'):
+                for agent in agents['dead']:
+                    self.log.info("remove dead agent: {0}".format(agent['id']))
+                    if not self.options.get('noop'):
+                        self._quantum_API_call(self.client.delete_agent, agent['id'])
+        self.log.debug("_reschedule_agent_dhcp: end.")
 
-    # def _cleanup_agents(self, agent):
-    #     self.log.debug("_cleanup_agents: start.")
-    #     agents = self._get_agents_by_type(agent)
-    #     for i in agents:
-    #         aid = i['id']
-    #         self.log.debug("Removing agent {id} trought API".format(id=aid))
-    #         if self.options.get('noop'):
-    #             self.log.info("NOOP-API-call:{0}".format(aid))
-    #             rc = 'OK'
-    #         else:
-    #             try:
-    #                 self.client.delete_agent(aid)
-    #                 rc = 'OK'
-    #             except Exception as e:
-    #                 self.log.error("API call for remove {agent} agent {id} failed\n{e}".format(agent=agent, id=aid, e=e))
-    #                 rc = 'ERR'
-    #         self.log.debug("Agent {id} rc={rc}".format(id=aid, rc=rc))
-    #     self.log.debug("_cleanup_agents: end.")
-        
-    def _list_agents(self, agent):
-        self.log.debug("_list_agents: start.")
-        agents = self._get_agents_by_type(agent)
-        for i in agents:
-            aid = i['id']
-            self.log.debug("Removing agent {id} trought API".format(id=aid))
-        self.log.debug("_list_agents: end.")
-        
+    def _reschedule_agent_l3(self, agent):
+        self.log.debug("_reschedule_agent_l3: NOT_IMPLEMENTED.")
+        # agents = self._get_agents_by_type(agent)
+        # for i in agents:
+        #     aid = i['id']
+        # self.log.debug("_reschedule_agent_l3: end.")
+
+    def _reschedule_agent(self, agent):
+        self.log.debug("_reschedule_agents: start.")
+        task = self.RESCHEDULING_CALLS.get(agent, None)
+        if task:
+            task (agent)
+        self.log.debug("_reschedule_agents: end.")
+
     def do(self, agent):
         if self.options.get('list-agents'):
             self._list_agents(agent)
+            return 0
         if self.options.get('cleanup-ports'):
             self._cleanup_ports(agent)
-        if self.options.get('cleanup-ns'):
-            self._cleanup_ns(agent)
+        if self.options.get('reschedule'):
+            self._reschedule_agent(agent)
         # if self.options.get('remove-agent'):
         #     self._cleanup_agents(agent)
+
+    def _test_healthy(self, agent_list, hostname):
+        rv = False
+        for agent in agent_list:
+            if agent['host'] == hostname and agent['alive']:
+                return True
+        return rv
+
+    def test_healthy(self, agent_type):
+        rc = 9 # OCF_FAILED_MASTER, http://www.linux-ha.org/doc/dev-guides/_literal_ocf_failed_master_literal_9.html
+        agentlist = self._get_agents_by_type(agent_type)
+        for hostname in self.options.get('test-hostnames'):
+            if self._test_healthy(agentlist, hostname):
+                return 0
+        return rc
+
 
 
 
@@ -382,8 +420,14 @@ if __name__ == '__main__':
     #                   help="cleanup namespaces for given agents")
     # parser.add_argument("--remove-agent", dest="remove-agent", action="store_true", default=False,
     #                   help="cleanup namespaces for given agents")
-    parser.add_argument("--list", dest="list-agents", action="store_true", default=False,
-                      help="list agents and some additional information")
+    parser.add_argument("--reschedule", dest="reschedule", action="store_true", default=False,
+                      help="reschedule given agents")
+    parser.add_argument("--remove-dead", dest="remove-dead", action="store_true", default=False,
+                      help="remove dead agents while rescheduling")
+    parser.add_argument("--test-alive-for-hostname", dest="test-hostnames", action="append",
+                      help="testing agent's healthy for given hostname")
+    # parser.add_argument("--list", dest="list-agents", action="store_true", default=False,
+    #                   help="list agents and some additional information")
     parser.add_argument("--external-bridge", dest="external-bridge", default="br-ex",
                       help="external bridge name", metavar="IFACE")
     parser.add_argument("--integration-bridge", dest="integration-bridge", default="br-int",
@@ -424,8 +468,13 @@ if __name__ == '__main__':
 
     LOG.debug("Started")
     cleaner = QuantumCleaner(get_authconfig(args.authconf), options=vars(args), log=LOG)
-    for i in args.agent:
-        cleaner.do(i)
+    rc = 0
+    if vars(args).get('test-hostnames'):
+        rc = cleaner.test_healthy(args.agent[0])
+    else:
+        for i in args.agent:
+            cleaner.do(i)
     LOG.debug("End.")
+    sys.exit(rc)
 #
 ###
