@@ -28,17 +28,6 @@ class quantum::agents::metadata (
 
   Service<| title=='quantum-server' |> -> Anchor['quantum-metadata-agent']
 
-  # OCF script for pacemaker
-  # and his dependences
-  file {'quantum-metadata-agent-ocf':
-    path=>'/usr/lib/ocf/resource.d/mirantis/quantum-agent-metadata', 
-    mode => 744,
-    owner => root,
-    group => root,
-    source => "puppet:///modules/quantum/ocf/quantum-agent-metadata",
-  }
-  Package['pacemaker'] -> File['quantum-metadata-agent-ocf']
-
   # add instructions to nova.conf
   nova_config { 
     'DEFAULT/service_quantum_metadata_proxy':       value => true;
@@ -59,8 +48,9 @@ class quantum::agents::metadata (
 
   if $::quantum::params::metadata_agent_package {
     package { 'quantum-metadata-agent':
-      name    => $::quantum::params::metadata_agent_package,
-      ensure  => $package_ensure,
+      name   => $::quantum::params::metadata_agent_package,
+      enable => $enabled,
+      ensure => $ensure,
     }
     # do not move it to outside this IF
     Anchor['quantum-metadata-agent'] -> 
@@ -68,72 +58,96 @@ class quantum::agents::metadata (
         Quantum_metadata_agent_config<||>
   }
 
-  service { 'quantum-metadata-agent__disabled':
-    name    => $::quantum::params::metadata_agent_service,
-    enable  => false,
-    ensure  => stopped,
-  }
-  
-  Cs_commit <| title == 'ovs' |> -> Cs_shadow <| title == "$res_name" |>
+  if $service_provider == 'generic' {
+    # non-HA architecture
+    service { 'quantum-metadata-agent':
+      name    => $::quantum::params::metadata_agent_service,
+      enable  => true,
+      ensure  => $ensure,
+    }
 
-  cs_shadow { $res_name: cib => $cib_name }
-  cs_commit { $res_name: cib => $cib_name } ~> ::Corosync::Cleanup["$res_name"]
-  ::corosync::cleanup { $res_name: }
+    Anchor['quantum-metadata-agent'] ->
+      Quantum_metadata_agent_config<||> ->
+        Service['quantum-metadata-agent'] ->
+          Anchor['quantum-metadata-agent-done']
+  } else {
+    # OCF script for pacemaker
+    # and his dependences
+    file {'quantum-metadata-agent-ocf':
+      path=>'/usr/lib/ocf/resource.d/mirantis/quantum-agent-metadata', 
+      mode => 744,
+      owner => root,
+      group => root,
+      source => "puppet:///modules/quantum/ocf/quantum-agent-metadata",
+    }
+    Package['pacemaker'] -> File['quantum-metadata-agent-ocf']
 
-  File<| title=='quantum-logging.conf' |> ->
-  cs_resource { "$res_name":
-    ensure          => present,
-    cib             => $cib_name,
-    primitive_class => 'ocf',
-    provided_by     => 'mirantis',
-    primitive_type  => 'quantum-agent-metadata',
-    parameters => {
-      #'nic'     => $vip[nic],
-      #'ip'      => $vip[ip],
-      #'iflabel' => $vip[iflabel] ? { undef => 'ka', default => $vip[iflabel] },
-    },
-    multistate_hash => {
-      'type' => 'clone',
-    },
-    ms_metadata     => {
-      'interleave' => 'true',
-    },
-    operations => {
-      'monitor' => {
-        'interval' => '60',
-        'timeout'  => '30'
+    service { 'quantum-metadata-agent__disabled':
+      name    => $::quantum::params::metadata_agent_service,
+      enable  => false,
+      ensure  => stopped,
+    }
+    
+    Cs_commit <| title == 'ovs' |> -> Cs_shadow <| title == "$res_name" |>
+
+    cs_shadow { $res_name: cib => $cib_name }
+    cs_commit { $res_name: cib => $cib_name } ~> ::Corosync::Cleanup["$res_name"]
+    ::corosync::cleanup { $res_name: }
+
+    File<| title=='quantum-logging.conf' |> ->
+    cs_resource { "$res_name":
+      ensure          => present,
+      cib             => $cib_name,
+      primitive_class => 'ocf',
+      provided_by     => 'mirantis',
+      primitive_type  => 'quantum-agent-metadata',
+      parameters => {
+        #'nic'     => $vip[nic],
+        #'ip'      => $vip[ip],
+        #'iflabel' => $vip[iflabel] ? { undef => 'ka', default => $vip[iflabel] },
       },
-      'start' => {
-        'timeout' => '30'
+      multistate_hash => {
+        'type' => 'clone',
       },
-      'stop' => {
-        'timeout' => '30'
+      ms_metadata     => {
+        'interleave' => 'true',
       },
-    },
+      operations => {
+        'monitor' => {
+          'interval' => '60',
+          'timeout'  => '30'
+        },
+        'start' => {
+          'timeout' => '30'
+        },
+        'stop' => {
+          'timeout' => '30'
+        },
+      },
+    }
+
+    Cs_resource["$res_name"] -> 
+      Cs_commit["$res_name"] -> 
+        ::Corosync::Cleanup["$res_name"] -> 
+          Service["$res_name"]
+
+    service {"$res_name":
+      name       => $res_name,
+      enable     => $enabled,
+      ensure     => $ensure,
+      hasstatus  => true,
+      hasrestart => true,
+      provider   => "pacemaker"
+    }
+
+    Anchor['quantum-metadata-agent'] ->
+      Quantum_metadata_agent_config<||> ->
+        File['quantum-metadata-agent-ocf'] ->
+          Service['quantum-metadata-agent__disabled'] ->
+            Cs_resource["$res_name"] ->
+              Service["$res_name"] ->
+                Anchor['quantum-metadata-agent-done']
   }
-
-  Cs_resource["$res_name"] -> 
-    Cs_commit["$res_name"] -> 
-      ::Corosync::Cleanup["$res_name"] -> 
-        Service["$res_name"]
-
-  service {"$res_name":
-    name       => $res_name,
-    enable     => $enabled,
-    ensure     => $ensure,
-    hasstatus  => true,
-    hasrestart => true,
-    provider   => "pacemaker"
-  }
-
-  Anchor['quantum-metadata-agent'] ->
-    Quantum_metadata_agent_config<||> ->
-      File['quantum-metadata-agent-ocf'] ->
-        Service['quantum-metadata-agent__disabled'] ->
-          Cs_resource["$res_name"] ->
-            Service["$res_name"] ->
-              Anchor['quantum-metadata-agent-done']
-
   anchor {'quantum-metadata-agent-done': }
 }
 #
