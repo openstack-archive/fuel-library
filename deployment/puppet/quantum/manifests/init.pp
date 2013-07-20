@@ -1,6 +1,6 @@
 #
 # [use_syslog] Rather or not service should log to syslog. Optional.
-# [syslog_log_facility] Facility for syslog, if used. Optional. Note: duplicating conf option 
+# [syslog_log_facility] Facility for syslog, if used. Optional. Note: duplicating conf option
 #       wouldn't have been used, but more powerfull rsyslog features managed via conf template instead
 # [syslog_log_level] logging level for non verbose and non debug mode. Optional.
 #
@@ -37,6 +37,9 @@ class quantum (
   $use_syslog = false,
   $syslog_log_facility    = 'LOCAL4',
   $syslog_log_level = 'WARNING',
+  $network_auto_schedule  = true,
+  $router_auto_schedule   = true,
+  $agent_down_time        = 15,
 ) {
   include 'quantum::params'
 
@@ -58,20 +61,20 @@ class quantum (
   }
 
   file {'q-agent-cleanup.py':
-    path   => '/usr/bin/q-agent-cleanup.py', 
+    path   => '/usr/bin/q-agent-cleanup.py',
     mode   => 755,
     owner  => root,
     group  => root,
     source => "puppet:///modules/quantum/q-agent-cleanup.py",
-  } 
+  }
 
   file {'/var/cache/quantum':
     ensure  => directory,
-    path   => '/var/cache/quantum', 
+    path   => '/var/cache/quantum',
     mode   => 755,
     owner  => quantum,
     group  => quantum,
-  } 
+  }
 
 
   if is_array($rabbit_host) and size($rabbit_host) > 1 {
@@ -80,10 +83,10 @@ class quantum (
     } else {
       $rabbit_hosts = inline_template("<%= @rabbit_host.map {|x| x + ':' + @rabbit_port}.join ',' %>")
     }
-    Quantum_config['DEFAULT/rabbit_ha_queues'] -> Service<| title == 'quantum-server' |>
-    Quantum_config['DEFAULT/rabbit_ha_queues'] -> Service<| title == 'quantum-ovs-agent' |>
-    Quantum_config['DEFAULT/rabbit_ha_queues'] -> Service<| title == 'quantum-l3' |>
-    Quantum_config['DEFAULT/rabbit_ha_queues'] -> Service<| title == 'quantum-dhcp-agent' |>
+    Quantum_config<| title=='DEFAULT/rabbit_ha_queues' |> -> Service<| title == 'quantum-server' |>
+    Quantum_config<| title=='DEFAULT/rabbit_ha_queues' |> -> Service<| title == 'quantum-ovs-agent' |>
+    Quantum_config<| title=='DEFAULT/rabbit_ha_queues' |> -> Service<| title == 'quantum-l3' |>
+    Quantum_config<| title=='DEFAULT/rabbit_ha_queues' |> -> Service<| title == 'quantum-dhcp-agent' |>
     quantum_config {
       'DEFAULT/rabbit_ha_queues': value => 'True';
       'DEFAULT/rabbit_hosts':     value => $rabbit_hosts;
@@ -115,6 +118,9 @@ class quantum (
     'DEFAULT/allow_overlapping_ips':  value => $allow_overlapping_ips;
     'DEFAULT/rpc_backend':            value => $rpc_backend;
     'DEFAULT/control_exchange':       value => $control_exchange;
+    'DEFAULT/network_auto_schedule':  value => $network_auto_schedule;
+    'DEFAULT/router_auto_schedule':   value => $router_auto_schedule;
+    'DEFAULT/agent_down_time':        value => $agent_down_time;
     'DEFAULT/rabbit_userid':          value => $rabbit_user;
     'DEFAULT/rabbit_password':        value => $rabbit_password;
     'DEFAULT/rabbit_virtual_host':    value => $rabbit_virtual_host;
@@ -170,10 +176,10 @@ class quantum (
     $endpoint_quantum_main_configuration = 'quantum-init-done'
   }
 
-  Anchor['quantum-init'] -> 
-    Package['quantum'] -> 
+  Anchor['quantum-init'] ->
+    Package['quantum'] ->
       File['/var/cache/quantum'] ->
-        Quantum_config<||> -> 
+        Quantum_config<||> ->
           Quantum_api_config<||> ->
             Anchor[$endpoint_quantum_main_configuration]
 
