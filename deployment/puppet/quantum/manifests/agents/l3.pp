@@ -147,10 +147,22 @@ class quantum::agents::l3 (
         auth_password  => $auth_password,
         auth_url       => $auth_url
       }
-      Quantum::Network::Setup['net04'] -> Quantum::Network::Provider_router['router04']
-      Quantum::Network::Setup['net04_ext'] -> Quantum::Network::Provider_router['router04']
-      Quantum::Network::Provider_router['router04'] ~> Service<| title=='quantum-l3' |>
-      Quantum::Network::Setup['net04'] ~> Service<| title=='quantum-dhcp-service' |>
+      Quantum::Network::Provider_router<||> -> Service<| title=='quantum-l3' |>
+
+      # NEVER!!! do not notify services about newly-created networks!!!
+      # their cleanup kill ovs-interfaces !!!
+      #
+      # Quantum::Network::Provider_router<||> ~> Service<| title=='quantum-l3' |>
+      # Quantum::Network::Setup<||> ~> Service<| title=='quantum-dhcp-service' |>
+      #
+      #todo: implement search and scheduling unscheduled networks/routers, instead restart agents:
+      #
+      # Service<| title=='quantum-server' |> ->
+      # exec {'attach-unscheduled-l3':
+      #   command => "q-agent-tools.py --agent=l3 --attach-unscheduled",
+      #   path    => ["/sbin", "/bin", "/usr/sbin", "/usr/bin"],
+      #   refreshonly => true
+      # }
 
       # turn down the current default route metric priority
       # TODO: make function for recognize REAL defaultroute

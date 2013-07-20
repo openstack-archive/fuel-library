@@ -305,15 +305,17 @@ quantum_l3_agent_start() {
     # Spin waiting for the server to come up.
     # Let the CRM/LRM time us out if required
     while true; do
-    quantum_l3_agent_monitor
-    rc=$?
-    [ $rc -eq $OCF_SUCCESS ] && break
-    if [ $rc -ne $OCF_NOT_RUNNING ]; then
-        ocf_log err "OpenStack L3 Server (quantum-l3-agent) start failed"
-        exit $OCF_ERR_GENERIC
-    fi
-    sleep 1
+        quantum_l3_agent_monitor
+        rc=$?
+        [ $rc -eq $OCF_SUCCESS ] && break
+        if [ $rc -ne $OCF_NOT_RUNNING ]; then
+            ocf_log err "OpenStack L3 Server (quantum-l3-agent) start failed"
+            exit $OCF_ERR_GENERIC
+        fi
+        sleep 1
     done
+
+    q-agent-cleanup.py --agent=l3 --reschedule --remove-dead
 
     ocf_log info "OpenStack L3 Server (quantum-l3-agent) started"
     return $OCF_SUCCESS

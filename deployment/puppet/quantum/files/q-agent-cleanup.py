@@ -135,17 +135,23 @@ class QuantumCleaner(object):
             ret_count -= 1
         return rv
 
-    def _add_network_to_dhcp_agent(self, agent_id, req_body):
-        return self._quantum_API_call(self.client.add_network_to_dhcp_agent, agent_id, req_body)
-
-    def _list_networks_on_dhcp_agent(self, agent_id):
-        return self._quantum_API_call(self.client.list_networks_on_dhcp_agent, agent_id)['networks']
-
     def _get_ports(self):
         return self._quantum_API_call(self.client.list_ports)['ports']
 
     def _get_agents(self, use_cache=True):
         return self._quantum_API_call(self.client.list_agents)['agents']
+
+    def _list_networks_on_dhcp_agent(self, agent_id):
+        return self._quantum_API_call(self.client.list_networks_on_dhcp_agent, agent_id)['networks']
+
+    def _list_routers_on_l3_agent(self, agent_id):
+        return self._quantum_API_call(self.client.list_routers_on_l3_agent, agent_id)['routers']
+
+    def _add_network_to_dhcp_agent(self, agent_id, req_body):
+        return self._quantum_API_call(self.client.add_network_to_dhcp_agent, agent_id, req_body)
+
+    def _add_router_to_l3_agent(self, agent_id, req_body):
+        return self._quantum_API_call(self.client.add_router_to_l3_agent, agent_id, req_body)
 
     def _get_ports_by_agent(self, agent, activeonly=False, localnode=False, port_id_part_len=PORT_ID_PART_LEN):
         self.log.debug("__get_ports_by_agent: start, agent='{0}', activeonly='{1}'".format(agent, activeonly))
@@ -323,11 +329,11 @@ class QuantumCleaner(object):
         dead_networks = []
         for agent in self._get_agents_by_type(agent_type):
             if agent['alive']:
-                self.log.info("found alive agent: {0}".format(agent['id']))
+                self.log.info("found alive DHCP agent: {0}".format(agent['id']))
                 agents['alive'].append(agent)
             else:
                 # dead agent
-                self.log.info("found dead agent: {0}".format(agent['id']))
+                self.log.info("found dead DHCP agent: {0}".format(agent['id']))
                 agents['dead'].append(agent)
                 for net in self._list_networks_on_dhcp_agent(agent['id']):
                     dead_networks.append(net)
@@ -341,7 +347,7 @@ class QuantumCleaner(object):
             for net in dead_networks:
                 if net['id'] not in lucky_ids:
                     # attach network to agent
-                    self.log.info("attach network {net} to agent {agent}".format(
+                    self.log.info("attach network {net} to DHCP agent {agent}".format(
                         net=net['id'],
                         agent=agents['alive'][0]['id']
                     ))
@@ -354,17 +360,57 @@ class QuantumCleaner(object):
             # remove dead agents if need (and if found alive agent)
             if self.options.get('remove-dead'):
                 for agent in agents['dead']:
-                    self.log.info("remove dead agent: {0}".format(agent['id']))
+                    self.log.info("remove dead DHCP agent: {0}".format(agent['id']))
                     if not self.options.get('noop'):
                         self._quantum_API_call(self.client.delete_agent, agent['id'])
         self.log.debug("_reschedule_agent_dhcp: end.")
 
-    def _reschedule_agent_l3(self, agent):
-        self.log.debug("_reschedule_agent_l3: NOT_IMPLEMENTED.")
-        # agents = self._get_agents_by_type(agent)
-        # for i in agents:
-        #     aid = i['id']
-        # self.log.debug("_reschedule_agent_l3: end.")
+    def _reschedule_agent_l3(self, agent_type):
+        self.log.debug("_reschedule_agent_l3: start.")
+        agents = {
+            'alive': [],
+            'dead':  []
+        }
+        # collect router-list from dead DHCP-agents
+        dead_routers = []
+        for agent in self._get_agents_by_type(agent_type):
+            if agent['alive']:
+                self.log.info("found alive L3 agent: {0}".format(agent['id']))
+                agents['alive'].append(agent)
+            else:
+                # dead agent
+                self.log.info("found dead L3 agent: {0}".format(agent['id']))
+                agents['dead'].append(agent)
+                map(
+                    lambda net: dead_routers.append(net),
+                    self._list_routers_on_l3_agent(agent['id'])
+                )
+        if dead_routers and agents['alive']:
+            # get router-ID list of already attached to alive agent routerss
+            lucky_ids = set()
+            map(
+                lambda rou: lucky_ids.add(rou['id']),
+                self._list_routers_on_l3_agent(agents['alive'][0]['id'])
+            )
+            # add dead routers to alive agent
+
+            for rou in filter(lambda rou: rou['id'] in lucky_ids, dead_routers):
+                # attach network to agent
+                self.log.info("schedule router {rou} to L3 agent {agent}".format(
+                    rou=rou['id'],
+                    agent=agents['alive'][0]['id']
+                ))
+                if not self.options.get('noop'):
+                    self._add_router_to_l3_agent(agents['alive'][0]['id'], {
+                        "router_id": rou['id']
+                    })
+                    #todo: if error:
+            # remove dead agents after rescheduling
+            for agent in agents['dead']:
+                self.log.info("remove dead L3 agent: {0}".format(agent['id']))
+                if not self.options.get('noop'):
+                    self._quantum_API_call(self.client.delete_agent, agent['id'])
+        self.log.debug("_reschedule_agent_l3: end.")
 
     def _reschedule_agent(self, agent):
         self.log.debug("_reschedule_agents: start.")
