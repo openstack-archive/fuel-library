@@ -5,10 +5,10 @@
 # Templates
 <% if scope.lookupvar('rsyslog::client::high_precision_timestamps') -%>
 # Use high precision timestamps (date-rfc3339, 2010-12-05T02:21:41.889482+01:00)
-$Template RemoteLog, "%timegenerated:1:32:date-rfc3339% %syslogseverity-text%: %msg:drop-last-lf%\n"
+$Template RemoteLog, "<%PRI%>%TIMEGENERATED:1:32:date-rfc3339% %HOSTNAME% %syslogtag%%msg:::sp-if-no-1st-sp%%msg%\n"
 <% else -%>
 # Use traditional timestamps (date-rfc3164, Dec 5 02:21:13)
-$Template RemoteLog, "%timegenerated:1:15:date-rfc3164% %syslogseverity-text%: %msg:drop-last-lf%\n"
+$Template RemoteLog, "<%PRI%>%TIMEGENERATED:1:15:date-rfc3164% %HOSTNAME% %syslogtag%%msg:::sp-if-no-1st-sp%%msg%\n"
 <% end -%>
 $ActionFileDefaultTemplate RemoteLog
 
@@ -16,10 +16,10 @@ $ActionFileDefaultTemplate RemoteLog
 <% if ! ['localhost','127.0.0.1','::1'].include?(rserver['server']) -%>
 <% if rserver['remote_type'] == 'tcp' -%>
 # Send messages we receive to master node via tcp
-*.* @@<%= rserver['server']-%>:<%= rserver['port'] -%>;RSYSLOG_TraditionalFileFormat
+*.* @@<%= rserver['server']-%>:<%= rserver['port'] -%>;RemoteLog
 <% else -%>
 # Send messages we receive to master node via udp
-*.* @<%= rserver['server'] -%>:<%= rserver['port'] -%>;RSYSLOG_TraditionalFileFormat
+*.* @<%= rserver['server'] -%>:<%= rserver['port'] -%>;RemoteLog
 <% end -%>
 <% end -%>
 <% end -%>

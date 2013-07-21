@@ -122,8 +122,8 @@ if $virtual { include rsyslog::checksum_udp514 }
     content => template("${module_name}/90-local.conf.erb"),
   }
 
-  file { "${rsyslog::params::rsyslog_d}99-remote.conf":
-    content => template("${module_name}/99-remote.conf.erb"),
+  file { "${rsyslog::params::rsyslog_d}00-remote.conf":
+    content => template("${module_name}/00-remote.conf.erb"),
   }
 
  file { $rsyslog::params::rsyslog_d:
