@@ -9,14 +9,13 @@ $openstack_version = {
 
 tag("${deployment_id}::${::environment}")
 
-stage {'netconfig':
-  before => Stage['main'],
-}
-
-stage {'openstack-firewall':
-  before  => Stage['main'],
-  require => Stage['netconfig'],
-}
+#Stages configuration
+stage {'first': } ->
+stage {'openstack-custom-repo': } ->
+stage {'netconfig': } ->
+stage {'corosync_setup': } ->
+stage {'cluster_head': } ->
+stage {'openstack-firewall': } -> Stage['main']
 
 stage {'glance-image':
   require => Stage['main'],

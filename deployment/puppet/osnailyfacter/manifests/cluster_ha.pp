@@ -25,7 +25,6 @@ $manage_volumes          = false
 $glance_backend          = 'swift'
 
 $network_manager = "nova.network.manager.${network_manager}"
-
 $nova_hash     = parsejson($nova)
 $mysql_hash    = parsejson($mysql)
 $rabbit_hash   = parsejson($rabbit)
@@ -77,7 +76,17 @@ $quantum_host            = $management_vip # Quantum is turned off
 $mirror_type = 'external'
 $quantum_sql_connection  = "mysql://${quantum_db_user}:${quantum_db_password}@${quantum_host}/${quantum_db_dbname}" # Quantum is turned off
 $verbose = true
+$debug = true
 Exec { logoutput => true }
+
+if $quantum {
+  $public_int   = $public_br
+  $internal_int = $internal_br
+} else {
+  $public_int   = $public_interface
+  $internal_int = $management_interface
+}
+
 
 class compact_controller {
   class { 'openstack::controller_ha':
@@ -98,6 +107,7 @@ class compact_controller {
     network_size                  => $network_size,
     network_config                => $network_config,
     verbose                       => $verbose,
+    debug                         => $debug,
     auto_assign_floating_ip       => $bool_auto_assign_floating_ip,
     mysql_root_password           => $mysql_hash[root_password],
     admin_email                   => $access_hash[email],
@@ -147,11 +157,41 @@ class compact_controller {
      admin_address    => $management_vip,
   }
 }
+$vips = { # Do not convert to ARRAY, It's can't work in 2.7
+  public_old => {
+    nic    => $public_int,
+    ip     => $public_vip,
+  },
+  management_old => {
+    nic    => $internal_int,
+    ip     => $management_vip,
+  },
+}
+
+$vip_keys = keys($vips)
+class virtual_ips () {
+  cluster::virtual_ips { $vip_keys:
+    vips => $vips,
+  }
+}
+
 
 
   case $role {
     "controller" : {
       include osnailyfacter::test_controller
+
+	
+  class { '::cluster': stage => 'corosync_setup' } ->
+  class { 'virtual_ips':
+    stage => 'corosync_setup'
+  }
+  include ::haproxy::params
+  class { 'cluster::haproxy':
+    global_options   => merge($::haproxy::params::global_options, {'log' => "/dev/log local0"}),
+    defaults_options => merge($::haproxy::params::defaults_options, {'mode' => 'http'}),
+    stage => 'cluster_head',
+  }
 
       class { compact_controller: }
       class { 'openstack::swift::storage_node':
@@ -178,7 +218,6 @@ class compact_controller {
       nova_config { 'DEFAULT/start_guests_on_host_boot': value => $start_guests_on_host_boot }
       nova_config { 'DEFAULT/use_cow_images': value => $use_cow_images }
       nova_config { 'DEFAULT/compute_scheduler_driver': value => $compute_scheduler_driver }
-      nova_config { 'DEFAULT/debug': value => 'true' }
 
       if $hostname == $master_hostname {
         class { 'openstack::img::cirros':
@@ -246,7 +285,6 @@ class compact_controller {
       nova_config { 'DEFAULT/start_guests_on_host_boot': value => $start_guests_on_host_boot }
       nova_config { 'DEFAULT/use_cow_images': value => $use_cow_images }
       nova_config { 'DEFAULT/compute_scheduler_driver': value => $compute_scheduler_driver }
-      nova_config { 'DEFAULT/debug': value => 'true' }
     }
 
     "cinder" : {
