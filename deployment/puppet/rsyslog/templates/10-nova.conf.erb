@@ -8,8 +8,6 @@ $ActionFileDefaultTemplate RSYSLOG_TraditionalFileFormat
 <% end -%>
 
 <%= @syslog_log_facility_nova %>.* -/var/log/nova-all.log
-if $syslogtag contains "nova" then {
--/var/log/nova-all.log
-~
-}
 <%= @syslog_log_facility_nova %>.* ~
+:syslogtag, contains, "nova" -/var/log/nova-all.log
+:syslogtag, contains, "nova" ~
