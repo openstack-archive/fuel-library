@@ -26,17 +26,6 @@ $internal_virtual_ip = '10.0.0.253'
 # interface resides
 $public_virtual_ip   = '10.0.204.253'
 
-$vips = { # Do not convert to ARRAY, It's can't work in 2.7
-  public_old => {
-    nic    => $public_br,
-    ip     => $public_virtual_ip,
-  },
-  management_old => {
-    nic    => $internal_br,
-    ip     => $internal_virtual_ip,
-  },
-}
-
 
 $nodes_harr = [
   {
@@ -194,6 +183,7 @@ $quantum_db_dbname       = 'quantum'
 
 ### GENERAL CONFIG END ###
 
+
 ### NETWORK/QUANTUM ###
 # Specify network/quantum specific settings
 
@@ -229,7 +219,7 @@ $vlan_start      = 300
 
 # Segmentation type for isolating traffic between tenants
 # Consult Openstack Quantum docs
-$tenant_network_type     = 'gre'
+$tenant_network_type     = 'vlan'
 
 # Which IP address will be used for creating GRE tunnels.
 $quantum_gre_bind_addr = $internal_address
@@ -259,6 +249,7 @@ $network_manager = 'nova.network.manager.FlatDHCPManager'
 $auto_assign_floating_ip = false
 
 # Database connection for Quantum configuration (quantum.conf)
+#todo: check passing following line to quantum::*
 $quantum_sql_connection  = "mysql://${quantum_db_user}:${quantum_db_password}@${$internal_virtual_ip}/${quantum_db_dbname}"
 
 
@@ -268,6 +259,17 @@ if $quantum {
 } else {
   $public_int   = $public_interface
   $internal_int = $internal_interface
+}
+
+$vips = { # Do not convert to ARRAY, It's can't work in 2.7
+  public_old => {
+    nic    => $public_int,
+    ip     => $public_virtual_ip,
+  },
+  management_old => {
+    nic    => $internal_int,
+    ip     => $internal_virtual_ip,
+  },
 }
 
 #Stages configuration
@@ -536,6 +538,9 @@ $cinder_rate_limits = {
   'PUT' => 1000, 'GET' => 1000,
   'DELETE' => 1000
 }
+
+
+Exec { logoutput => true }
 #Specify desired NTP servers here.
 #If you leave it undef pool.ntp.org
 #will be used
@@ -560,9 +565,6 @@ Exec<| title == 'clocksync' |>->Exec<| title == 'nova-manage db sync' |>
 Exec<| title == 'clocksync' |>->Exec<| title == 'initial-db-sync' |>
 Exec<| title == 'clocksync' |>->Exec<| title == 'post-nova_config' |>
 
-
-
-Exec { logoutput => true }
 
 ### END OF PUBLIC CONFIGURATION PART ###
 # Normally, you do not need to change anything after this string
@@ -602,6 +604,7 @@ sysctl::value { 'net.ipv4.conf.all.rp_filter': value => '0' }
 #   'exist': assumes that the keys (domain name based certificate) are provisioned in advance
 #  'custom': require fileserver static mount point [ssl_certs] and hostname based certificate existence
 $horizon_use_ssl = false
+
 
 # Class for calling corosync::virtual_ip in the specifis stage
 $vip_keys = keys($vips)
@@ -784,14 +787,14 @@ node /fuel-compute-[\d+]/ {
     cache_server_ip        => $controller_hostnames,
     service_endpoint       => $internal_virtual_ip,
     quantum                => $quantum,
-    quantum_host           => $internal_virtual_ip,
     quantum_sql_connection => $quantum_sql_connection,
     quantum_user_password  => $quantum_user_password,
+    quantum_host           => $internal_virtual_ip,
     tenant_network_type    => $tenant_network_type,
     segment_range          => $segment_range,
     cinder                 => $cinder,
-    manage_volumes          => $cinder ? { false => $manage_volumes, default =>$is_cinder_node },
     cinder_iscsi_bind_addr => $cinder_iscsi_bind_addr,
+    manage_volumes         => $cinder ? { false => $manage_volumes, default =>$is_cinder_node },
     nv_physical_volume     => $nv_physical_volume,
     db_host                => $internal_virtual_ip,
     cinder_rate_limits     => $cinder_rate_limits,

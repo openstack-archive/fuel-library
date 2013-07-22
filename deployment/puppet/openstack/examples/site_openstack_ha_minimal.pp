@@ -26,17 +26,6 @@ $internal_virtual_ip = '10.0.0.253'
 # interface resides
 $public_virtual_ip   = '10.0.204.253'
 
-$vips = { # Do not convert to ARRAY, It's can't work in 2.7
-  public_old => {
-    nic    => $public_br,
-    ip     => $public_virtual_ip,
-  },
-  management_old => {
-    nic    => $internal_br,
-    ip     => $internal_virtual_ip,
-  },
-}
-
 
 $nodes_harr = [
   {
@@ -106,6 +95,7 @@ if empty($node) {
 $internal_address = $node[0]['internal_address']
 $public_address = $node[0]['public_address']
 
+
 $controllers = merge_arrays(filter_nodes($nodes,'role','primary-controller'), filter_nodes($nodes,'role','controller'))
 $controller_internal_addresses = nodes_to_hash($controllers,'name','internal_address')
 $controller_public_addresses = nodes_to_hash($controllers,'name','public_address')
@@ -153,7 +143,6 @@ $quantum_db_dbname       = 'quantum'
 ### GENERAL CONFIG END ###
 
 
-
 ### NETWORK/QUANTUM ###
 # Specify network/quantum specific settings
 
@@ -162,8 +151,6 @@ $quantum_db_dbname       = 'quantum'
 $quantum                 = true
 $quantum_netnode_on_cnt  = true
 $quantum_use_namespaces  = true
-
-#$quantum_host            = $internal_virtual_ip
 
 # a string "password" value that should be configured to authenticate requests for metadata
 # from quantum-metadata-proxy to nova-api
@@ -211,7 +198,7 @@ $external_ipinfo = {}
 # Quantum segmentation range.
 # For VLAN networks: valid VLAN VIDs can be 1 through 4094.
 # For GRE networks: Valid tunnel IDs can be any 32-bit unsigned integer.
-$segment_range   = '300:349'
+$segment_range   = '900:999'
 
 # Set up OpenStack network manager. It is used ONLY in nova-network.
 # Consult Openstack nova-network docs for possible values.
@@ -233,12 +220,16 @@ if $quantum {
   $internal_int = $internal_interface
 }
 
-if $node[0]['role'] == 'primary-controller' {
-  $primary_controller = true
-} else {
-  $primary_controller = false
+$vips = { # Do not convert to ARRAY, It's can't work in 2.7
+  public_old => {
+    nic    => $public_int,
+    ip     => $public_virtual_ip,
+  },
+  management_old => {
+    nic    => $internal_int,
+    ip     => $internal_virtual_ip,
+  },
 }
-
 
 #Stages configuration
 stage {'first': } ->
@@ -367,6 +358,14 @@ $swift_loopback = false
 ### Glance and swift END ###
 
 
+
+if $node[0]['role'] == 'primary-controller' {
+  $primary_controller = true
+} else {
+  $primary_controller = false
+}
+
+
 ### Syslog ###
 # Enable error messages reporting to rsyslog. Rsyslog must be installed in this case.
 $use_syslog = true
@@ -458,8 +457,6 @@ $mirror_type = 'default'
 $enable_test_repo = false
 $repo_proxy = undef
 
-#$quantum_sql_connection  = "mysql://${quantum_db_user}:${quantum_db_password}@${quantum_host}/${quantum_db_dbname}"
-
 # This parameter specifies the verbosity level of log messages
 # in openstack components config.
 # Debug would have set DEBUG level and ignore verbose settings, if any.
@@ -526,8 +523,9 @@ class { 'openstack::mirantis_repos':
   enable_test_repo=>$enable_test_repo,
   repo_proxy=>$repo_proxy,
 }
+
 class { '::openstack::firewall':
-    stage => 'openstack-firewall'
+  stage => 'openstack-firewall'
 }
 
 if !defined(Class['selinux']) and ($::osfamily == 'RedHat') {
@@ -536,7 +534,6 @@ if !defined(Class['selinux']) and ($::osfamily == 'RedHat') {
     stage=>"openstack-custom-repo"
   }
 }
-
 
 
 if $::operatingsystem == 'Ubuntu' {
@@ -679,6 +676,16 @@ node /fuel-controller-[\d+]/ {
 
 # Definition of OpenStack compute nodes.
 node /fuel-compute-[\d+]/ {
+  ## Uncomment lines bellow if You want
+  ## configure network of this nodes
+  ## by puppet.
+  class {'::node_netconfig':
+      mgmt_ipaddr    => $::internal_address,
+      mgmt_netmask   => $::internal_netmask,
+      public_ipaddr  => $::public_address,
+      public_netmask => $::public_netmask,
+      stage          => 'netconfig',
+  }
   include stdlib
   class { 'operatingsystem::checksupported':
       stage => 'first'
@@ -726,9 +733,10 @@ node /fuel-compute-[\d+]/ {
     segment_range          => $segment_range,
     cinder                 => $cinder,
     cinder_iscsi_bind_addr => $cinder_iscsi_bind_addr,
-    manage_volumes          => $cinder ? { false => $manage_volumes, default =>$is_cinder_node },
+    manage_volumes         => $cinder ? { false => $manage_volumes, default =>$is_cinder_node },
     nv_physical_volume     => $nv_physical_volume,
     db_host                => $internal_virtual_ip,
+    cinder_rate_limits     => $cinder_rate_limits,
     ssh_private_key        => 'puppet:///ssh_keys/openstack',
     ssh_public_key         => 'puppet:///ssh_keys/openstack.pub',
     use_syslog             => $use_syslog,
@@ -784,7 +792,7 @@ node /fuel-quantum/ {
       external_ipinfo       => $external_ipinfo,
       api_bind_address      => $internal_address,
       use_syslog            => $use_syslog,
-      syslog_log_level => $syslog_log_level,
+      syslog_log_level      => $syslog_log_level,
       syslog_log_facility_quantum => $syslog_log_facility_quantum,
     }
     class { 'openstack::auth_file':

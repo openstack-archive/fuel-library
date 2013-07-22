@@ -244,11 +244,11 @@ class openstack::controller_ha (
     Anchor['haproxy_done'] -> Class['galera']
 
     class { '::openstack::controller':
-      public_address          => $public_virtual_ip,
-      public_interface        => $public_interface,
       private_interface       => $private_interface,
-      internal_address        => $internal_virtual_ip,
-      admin_address           => $internal_virtual_ip,
+      public_interface        => $public_interface,
+      public_address          => $public_virtual_ip,    # It is feature for HA mode.
+      internal_address        => $internal_virtual_ip,  # All internal traffic goes
+      admin_address           => $internal_virtual_ip,  # through load balancer.
       floating_range          => $floating_range,
       fixed_range             => $fixed_range,
       multi_host              => $multi_host,
