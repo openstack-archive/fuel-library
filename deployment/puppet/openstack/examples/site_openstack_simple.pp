@@ -170,7 +170,7 @@ $external_ipinfo = {}
 # Quantum segmentation range.
 # For VLAN networks: valid VLAN VIDs can be 1 through 4094.
 # For GRE networks: Valid tunnel IDs can be any 32-bit unsigned integer.
-$segment_range   = '300:349'
+$segment_range   = '900:999'
 
 # Set up OpenStack network manager. It is used ONLY in nova-network.
 # Consult Openstack nova-network docs for possible values.
@@ -262,7 +262,7 @@ $cinder_nodes          = ['controller']
 #Otherwise it will install api and scheduler services
 $manage_volumes          = true
 
-# Setup network interface, which Cinder uses to export iSCSI targets.
+# Setup network address, which Cinder uses to export iSCSI targets.
 $cinder_iscsi_bind_addr = $internal_address
 
 # Below you can add physical volumes to cinder. Please replace values with the actual names of devices.
@@ -407,7 +407,7 @@ $use_upstream_mysql = true
 # In case of non debug and non verbose - WARNING, default level would have set.
 # Note: if syslog on, this default level may be configured (for syslog) with syslog_log_level option.
 $verbose = true
-$debug = false
+$debug = true
 
 #Rate Limits for cinder and Nova
 #Cinder and Nova can rate-limit your requests to API services.
@@ -454,8 +454,6 @@ Exec<| title == 'clocksync' |>->Exec<| title == 'initial-db-sync' |>
 Exec<| title == 'clocksync' |>->Exec<| title == 'post-nova_config' |>
 
 
-
-
 ### END OF PUBLIC CONFIGURATION PART ###
 # Normally, you do not need to change anything after this string
 
@@ -470,9 +468,10 @@ class { 'openstack::mirantis_repos':
   repo_proxy=>$repo_proxy,
   use_upstream_mysql=>$use_upstream_mysql
 }
- class { '::openstack::firewall':
-      stage => 'openstack-firewall'
- }
+
+class { '::openstack::firewall':
+  stage => 'openstack-firewall'
+}
 
 if !defined(Class['selinux']) and ($::osfamily == 'RedHat') {
   class { 'selinux':
@@ -608,7 +607,7 @@ class simple_controller (
 node /fuel-controller-[\d+]/ {
   include stdlib
   class { 'operatingsystem::checksupported':
-      stage => 'setup'
+      stage => 'first'
   }
   class {'nagios':
     proj_name       => $proj_name,
@@ -627,7 +626,7 @@ node /fuel-controller-[\d+]/ {
 node /fuel-compute-[\d+]/ {
   include stdlib
   class { 'operatingsystem::checksupported':
-      stage => 'setup'
+      stage => 'first'
   }
   class {'::node_netconfig':
     mgmt_ipaddr    => $::internal_address,
