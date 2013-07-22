@@ -62,7 +62,7 @@ usage() {
     cat <<UEND
         usage: $0 (start|stop|validate-all|meta-data|status|monitor)
 
-        $0 manages an OpenStack DHCP Service (quantum-dhcp-agent) process as an HA resource 
+        $0 manages an OpenStack DHCP Service (quantum-dhcp-agent) process as an HA resource
 
         The 'start' operation starts the networking service.
         The 'stop' operation stops the networking service.
@@ -83,7 +83,7 @@ meta_data() {
 
 <longdesc lang="en">
 Resource agent for the OpenStack Quantum DHCP Service (quantum-dhcp-agent)
-May manage a quantum-dhcp-agent instance or a clone set that 
+May manage a quantum-dhcp-agent instance or a clone set that
 creates a distributed quantum-dhcp-agent cluster.
 </longdesc>
 <shortdesc lang="en">Manages the OpenStack DHCP Service (quantum-dhcp-agent)</shortdesc>
@@ -127,40 +127,40 @@ The pid file to use for this OpenStack DHCP Service (quantum-dhcp-agent) instanc
 </longdesc>
 <shortdesc lang="en">OpenStack DHCP Service (quantum-dhcp-agent) pid file</shortdesc>
 <content type="string" default="${OCF_RESKEY_pid_default}" />
-</parameter>  
+</parameter>
 
-<parameter name="username" unique="0" required="0">                                                                                                                                                              
-<longdesc lang="en">                                                                                                                                                                                                      
-Quantum username for port list fetching                                                                                                                                        
-</longdesc>                                                                                                                                                                                                               
-<shortdesc lang="en">Quantum username</shortdesc>                                                                                                                                                                      
-<content type="string" default="${OCF_RESKEY_username_default}" />                                                                                                                                              
-</parameter>      
+<parameter name="username" unique="0" required="0">
+<longdesc lang="en">
+Quantum username for port list fetching
+</longdesc>
+<shortdesc lang="en">Quantum username</shortdesc>
+<content type="string" default="${OCF_RESKEY_username_default}" />
+</parameter>
 
 
-<parameter name="password" unique="0" required="0">                                                                                                                                                              
-<longdesc lang="en">                                                                                                                                                                                                      
-Quantum password for port list fetching                                                                                                                                        
-</longdesc>                                                                                                                                                                                                               
-<shortdesc lang="en">Quantum password</shortdesc>                                                                                                                                                                      
-<content type="string" default="${OCF_RESKEY_password_default}" />                                                                                                                                              
-</parameter>      
+<parameter name="password" unique="0" required="0">
+<longdesc lang="en">
+Quantum password for port list fetching
+</longdesc>
+<shortdesc lang="en">Quantum password</shortdesc>
+<content type="string" default="${OCF_RESKEY_password_default}" />
+</parameter>
 
-<parameter name="os_auth_url" unique="0" required="0">                                                                                                                                                              
-<longdesc lang="en">                                                                                                                                                                                                      
-URL of keystone                                                                                                                                        
-</longdesc>                                                                                                                                                                                                               
-<shortdesc lang="en">Keystone URL</shortdesc>                                                                                                                                                                      
-<content type="string" default="${OCF_RESKEY_os_auth_url_default}" />                                                                                                                                              
-</parameter>      
+<parameter name="os_auth_url" unique="0" required="0">
+<longdesc lang="en">
+URL of keystone
+</longdesc>
+<shortdesc lang="en">Keystone URL</shortdesc>
+<content type="string" default="${OCF_RESKEY_os_auth_url_default}" />
+</parameter>
 
-<parameter name="tenant" unique="0" required="0">                                                                                                                                                              
-<longdesc lang="en">                                                                                                                                                                                                      
-Admin tenant name                                                                                                                                        
-</longdesc>                                                                                                                                                                                                               
-<shortdesc lang="en">Admin tenant</shortdesc>                                                                                                                                                                      
-<content type="string" default="${OCF_RESKEY_tenant_default}" />                                                                                                                                              
-</parameter>      
+<parameter name="tenant" unique="0" required="0">
+<longdesc lang="en">
+Admin tenant name
+</longdesc>
+<shortdesc lang="en">Admin tenant</shortdesc>
+<content type="string" default="${OCF_RESKEY_tenant_default}" />
+</parameter>
 
 
 <parameter name="additional_parameters" unique="0" required="0">
@@ -222,9 +222,9 @@ quantum_dhcp_agent_status() {
 
     if [ ! -f $OCF_RESKEY_pid ]; then
         ocf_log info "OpenStack OVS Server (quantum-dhcp-agent) seems not to exist"
-        
+
         pid=`pgrep -f ${OCF_RESKEY_binary}`
-        
+
         if [ $? -eq 0 ]
         then
         	ocf_log warn "OpenStack OVS Server (quantum-dhcp-agent) was run, but no pid file found."
@@ -243,17 +243,25 @@ quantum_dhcp_agent_status() {
     if [ $rc -eq 0 ]; then
         return $OCF_SUCCESS
     else
-        ocf_log info "Old PID file $OCF_RESKEY_pid found (with pid $pid), but OpenStack OVS Server (quantum-dhcp-agent) is not running"
+        ocf_log info "Old PID file $OCF_RESKEY_pid found (with pid $pid), but quantum-dhcp-agent is not running"
         return $OCF_NOT_RUNNING
     fi
+
+    # ocf_run q-agent-cleanup.py --agent=dhcp --test-alive-for-hostname=`hostname` --test-alive-for-hostname=`hostname -f`
+    # rc=$?
+    # if [ $rc -eq 0 ]; then
+    #     return $OCF_SUCCESS
+    # else
+    #     ocf_log info "quantum-dhcp-agent (with pid $pid) running, but quantum-server means that agent dead."
+    #     return $OCF_ERR_GENERIC
+    # fi
 }
 
 
 
 clean_up()
 {
-    q-agent-cleanup.py --debug --agent=dhcp --cleanup-ports 
-    #--remove-agent
+    q-agent-cleanup.py --agent=dhcp --cleanup-ports
 }
 
 
@@ -265,7 +273,7 @@ quantum_dhcp_agent_monitor() {
 
 quantum_dhcp_agent_start() {
     local rc
-    
+
     quantum_dhcp_agent_status
     rc=$?
     if [ $rc -eq $OCF_SUCCESS ]; then
@@ -273,7 +281,7 @@ quantum_dhcp_agent_start() {
         return $OCF_SUCCESS
     fi
 
-    clean_up    
+    clean_up
 
     # run the actual quantum-dhcp-agent daemon. Don't use ocf_run as we're sending the tool's output
     # straight to /dev/null anyway and using ocf_run would break stdout-redirection here.
@@ -284,15 +292,17 @@ quantum_dhcp_agent_start() {
     # Spin waiting for the server to come up.
     # Let the CRM/LRM time us out if required
     while true; do
-    quantum_dhcp_agent_monitor
-    rc=$?
-    [ $rc -eq $OCF_SUCCESS ] && break
-    if [ $rc -ne $OCF_NOT_RUNNING ]; then
-        ocf_log err "OpenStack DHCP Server (quantum-dhcp-agent) start failed"
-        exit $OCF_ERR_GENERIC
-    fi
-    sleep 1
+        quantum_dhcp_agent_monitor
+        rc=$?
+        [ $rc -eq $OCF_SUCCESS ] && break
+        if [ $rc -ne $OCF_NOT_RUNNING ]; then
+            ocf_log err "OpenStack DHCP Server (quantum-dhcp-agent) start failed"
+            exit $OCF_ERR_GENERIC
+        fi
+        sleep 1
     done
+
+    sleep 7 ; q-agent-cleanup.py --agent=dhcp --reschedule --remove-dead 2>&1 >> /var/log/quantum/rescheduling.log
 
     ocf_log info "OpenStack DHCP Server (quantum-dhcp-agent) started"
     return $OCF_SUCCESS

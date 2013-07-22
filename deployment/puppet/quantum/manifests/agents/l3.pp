@@ -142,13 +142,27 @@ class quantum::agents::l3 (
       quantum::network::provider_router { 'router04':
         router_subnets => 'subnet04', # undef,
         router_extnet  => 'net04_ext', # undef,
-        notify         => Service['quantum-l3'],
         auth_tenant    => $auth_tenant,
         auth_user      => $auth_user,
         auth_password  => $auth_password,
         auth_url       => $auth_url
       }
-      Quantum::Network::Setup['net04_ext'] -> Quantum::Network::Provider_router['router04']
+      Quantum::Network::Provider_router<||> -> Service<| title=='quantum-l3' |>
+
+      # NEVER!!! do not notify services about newly-created networks!!!
+      # their cleanup kill ovs-interfaces !!!
+      #
+      # Quantum::Network::Provider_router<||> ~> Service<| title=='quantum-l3' |>
+      # Quantum::Network::Setup<||> ~> Service<| title=='quantum-dhcp-service' |>
+      #
+      #todo: implement search and scheduling unscheduled networks/routers, instead restart agents:
+      #
+      # Service<| title=='quantum-server' |> ->
+      # exec {'attach-unscheduled-l3':
+      #   command => "q-agent-tools.py --agent=l3 --attach-unscheduled",
+      #   path    => ["/sbin", "/bin", "/usr/sbin", "/usr/bin"],
+      #   refreshonly => true
+      # }
 
       # turn down the current default route metric priority
       # TODO: make function for recognize REAL defaultroute
@@ -204,25 +218,25 @@ class quantum::agents::l3 (
 
   # rootwrap error with L3 agent
   # https://bugs.launchpad.net/quantum/+bug/1069966
-  
+
   exec { 'patch-iptables-manager':
     command => "sed -i '272 s|/sbin/||' ${iptables_manager}",
     onlyif  => "sed -n '272p' ${iptables_manager} | grep -q '/sbin/'",
     path    => ['/bin', '/sbin', '/usr/bin', '/usr/sbin'],
     require => [Anchor['quantum-l3'], Package[$l3_agent_package]],
   }
-  
-  Service<| title == 'quantum-server' |> -> Service['quantum-l3'] 
+
+  Service<| title == 'quantum-server' |> -> Service['quantum-l3']
 
   if $service_provider == 'pacemaker' {
-    
+
     Service<| title == 'quantum-server' |> -> Cs_shadow['l3']
     Quantum_l3_agent_config <||> -> Cs_shadow['l3']
 
     # OCF script for pacemaker
     # and his dependences
     file {'quantum-l3-agent-ocf':
-      path=>'/usr/lib/ocf/resource.d/mirantis/quantum-agent-l3', 
+      path=>'/usr/lib/ocf/resource.d/mirantis/quantum-agent-l3',
       mode => 744,
       owner => root,
       group => root,
@@ -267,18 +281,18 @@ class quantum::agents::l3 (
     cs_commit { 'l3': cib => 'l3' }
 
     ###
-    # Do not remember to be carefylly with Cs_shadow and Cs_commit orders. 
+    # Do not remember to be carefylly with Cs_shadow and Cs_commit orders.
     # at one time onli one Shadow can be without commit
     Cs_commit <| title == 'dhcp' |> -> Cs_shadow <| title == 'l3' |>
     Cs_commit <| title == 'ovs' |> -> Cs_shadow <| title == 'l3' |>
     Cs_commit <| title == 'quantum-metadata-agent' |> -> Cs_shadow <| title == 'l3' |>
 
     ::corosync::cleanup{"p_${::quantum::params::l3_agent_service}": }
-    
+
     Cs_commit['l3'] -> ::Corosync::Cleanup["p_${::quantum::params::l3_agent_service}"]
     Cs_commit['l3'] ~> ::Corosync::Cleanup["p_${::quantum::params::l3_agent_service}"]
     ::Corosync::Cleanup["p_${::quantum::params::l3_agent_service}"] -> Service['quantum-l3']
-    
+
     Cs_resource["p_${::quantum::params::l3_agent_service}"] -> Cs_colocation['l3-with-ovs']
     Cs_resource["p_${::quantum::params::l3_agent_service}"] -> Cs_order['l3-after-ovs']
     Cs_resource["p_${::quantum::params::l3_agent_service}"] -> Cs_colocation['l3-with-metadata']
@@ -302,7 +316,7 @@ class quantum::agents::l3 (
       ensure     => present,
       cib        => 'l3',
       primitives => [
-          "p_${::quantum::params::l3_agent_service}", 
+          "p_${::quantum::params::l3_agent_service}",
           "clone_p_quantum-metadata-agent"
       ],
       score      => 'INFINITY',
@@ -321,15 +335,15 @@ class quantum::agents::l3 (
       cib        => 'l3',
       score      => '-100',
       primitives => [
-        "p_${::quantum::params::dhcp_agent_service}", 
+        "p_${::quantum::params::dhcp_agent_service}",
         "p_${::quantum::params::l3_agent_service}"
       ],
     }
 
     # Ensure service is stopped  and disabled by upstart/init/etc.
-    Anchor['quantum-l3'] -> 
-      Service['quantum-l3-init_stopped'] -> 
-        Cs_resource["p_${::quantum::params::l3_agent_service}"] -> 
+    Anchor['quantum-l3'] ->
+      Service['quantum-l3-init_stopped'] ->
+        Cs_resource["p_${::quantum::params::l3_agent_service}"] ->
           Service['quantum-l3'] ->
             Anchor['quantum-l3-done']
 
