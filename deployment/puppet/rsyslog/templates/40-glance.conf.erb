@@ -8,8 +8,6 @@ $ActionFileDefaultTemplate RSYSLOG_TraditionalFileFormat
 <% end -%>
 
 <%= @syslog_log_facility_glance %>.* -/var/log/glance-all.log
-if $syslogtag contains "glance" then {
--/var/log/glance-all.log
-~
-}
 <%= @syslog_log_facility_glance %>.* ~
+:syslogtag, contains, "glance" -/var/log/glance-all.log
+:syslogtag, contains, "glance" ~

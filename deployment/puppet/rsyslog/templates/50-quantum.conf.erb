@@ -8,8 +8,6 @@ $ActionFileDefaultTemplate RSYSLOG_TraditionalFileFormat
 <% end -%>
 
 <%= @syslog_log_facility_quantum %>.* -/var/log/quantum-all.log
-if $syslogtag contains "quantum" then {
--/var/log/quantum-all.log
-~
-}
 <%= @syslog_log_facility_quantum %>.* ~
+:syslogtag, contains, "quantum" -/var/log/quantum-all.log
+:syslogtag, contains, "quantum" ~
