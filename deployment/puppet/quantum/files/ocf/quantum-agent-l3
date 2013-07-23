@@ -65,7 +65,7 @@ usage() {
     cat <<UEND
         usage: $0 (start|stop|validate-all|meta-data|status|monitor)
 
-        $0 manages an OpenStack L3 Service (quantum-l3-agent) process as an HA resource 
+        $0 manages an OpenStack L3 Service (quantum-l3-agent) process as an HA resource
 
         The 'start' operation starts the networking service.
         The 'stop' operation stops the networking service.
@@ -86,8 +86,7 @@ meta_data() {
 
 <longdesc lang="en">
 Resource agent for the OpenStack Quantum L3 Service (quantum-l3-agent)
-May manage a quantum-l3-agent instance or a clone set that 
->>>>>>> pull in quantum changes to work with rhos
+May manage a quantum-l3-agent instance or a clone set that
 creates a distributed quantum-l3-agent cluster.
 </longdesc>
 <shortdesc lang="en">Manages the OpenStack L3 Service (quantum-l3-agent)</shortdesc>
@@ -246,7 +245,7 @@ quantum_l3_agent_status() {
         ocf_log info "OpenStack OVS Server (quantum-l3-agent) seems not to exist"
 
         pid=`pgrep -f ${OCF_RESKEY_binary}`
-        
+
         if [ $? -eq 0 ]
         then
         	ocf_log warn "OpenStack OVS Server (quantum-l3-agent) was run, but no pid file found."
@@ -371,7 +370,7 @@ quantum_l3_agent_stop() {
 
     rm -f $OCF_RESKEY_pid
 	clean_up
-	
+
     return $OCF_SUCCESS
 }
 
@@ -397,3 +396,4 @@ case "$1" in
   *)            usage
                 exit $OCF_ERR_UNIMPLEMENTED;;
 esac
+
