@@ -114,6 +114,8 @@ Exec { logoutput => true }
         controller_node      => $controller_node_address,
       }
 
+      class {'osnailyfacter::tinyproxy': }
+
       # glance_image is currently broken in fuel
 
       # glance_image {'testvm':
