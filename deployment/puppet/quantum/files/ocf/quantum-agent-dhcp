@@ -83,7 +83,7 @@ meta_data() {
 
 <longdesc lang="en">
 Resource agent for the OpenStack Quantum DHCP Service (quantum-dhcp-agent)
-May manage a quantum-dhcp-agent instance or a clone set that
+May manage a quantum-dhcp-agent instance or a clone set that 
 creates a distributed quantum-dhcp-agent cluster.
 </longdesc>
 <shortdesc lang="en">Manages the OpenStack DHCP Service (quantum-dhcp-agent)</shortdesc>
@@ -224,7 +224,6 @@ quantum_dhcp_agent_status() {
         ocf_log info "OpenStack OVS Server (quantum-dhcp-agent) seems not to exist"
 
         pid=`pgrep -f ${OCF_RESKEY_binary}`
-
         if [ $? -eq 0 ]
         then
         	ocf_log warn "OpenStack OVS Server (quantum-dhcp-agent) was run, but no pid file found."
@@ -273,7 +272,6 @@ quantum_dhcp_agent_monitor() {
 
 quantum_dhcp_agent_start() {
     local rc
-
     quantum_dhcp_agent_status
     rc=$?
     if [ $rc -eq $OCF_SUCCESS ]; then

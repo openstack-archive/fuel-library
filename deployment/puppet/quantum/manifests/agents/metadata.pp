@@ -88,7 +88,6 @@ class quantum::agents::metadata (
       enable  => false,
       ensure  => stopped,
     }
-
     Cs_commit <| title == 'ovs' |> -> Cs_shadow <| title == "$res_name" |>
 
     cs_shadow { $res_name: cib => $cib_name }

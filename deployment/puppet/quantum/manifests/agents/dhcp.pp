@@ -92,7 +92,6 @@ class quantum::agents::dhcp (
     Package['pacemaker'] -> File['quantum-dhcp-agent-ocf']
     File['quantum-dhcp-agent-ocf'] -> Cs_resource["p_${::quantum::params::dhcp_agent_service}"]
     File['q-agent-cleanup.py'] -> Cs_resource["p_${::quantum::params::dhcp_agent_service}"]
-
     File<| title=='quantum-logging.conf' |> ->
     cs_resource { "p_${::quantum::params::dhcp_agent_service}":
       ensure          => present,

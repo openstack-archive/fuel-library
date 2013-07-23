@@ -80,7 +80,6 @@ class quantum (
     owner  => quantum,
     group  => quantum,
   }
-
   case $queue_provider {
     'rabbitmq': {
       if is_array($rabbit_host) and size($rabbit_host) > 1 {
@@ -89,10 +88,10 @@ class quantum (
         } else {
           $rabbit_hosts = inline_template("<%= @rabbit_host.map {|x| x + ':' + @rabbit_port}.join ',' %>")
         }
-        Quantum_config['DEFAULT/rabbit_ha_queues'] -> Service<| title == 'quantum-server' |>
-        Quantum_config['DEFAULT/rabbit_ha_queues'] -> Service<| title == 'quantum-plugin-ovs-service' |>
-        Quantum_config['DEFAULT/rabbit_ha_queues'] -> Service<| title == 'quantum-l3' |>
-        Quantum_config['DEFAULT/rabbit_ha_queues'] -> Service<| title == 'quantum-dhcp-agent' |>
+        #Quantum_config['DEFAULT/rabbit_ha_queues'] -> Service<| title == 'quantum-server' |>
+        #Quantum_config['DEFAULT/rabbit_ha_queues'] -> Service<| title == 'quantum-plugin-ovs-service' |>
+        #Quantum_config['DEFAULT/rabbit_ha_queues'] -> Service<| title == 'quantum-l3' |>
+        #Quantum_config['DEFAULT/rabbit_ha_queues'] -> Service<| title == 'quantum-dhcp-agent' |>
         quantum_config {
           'DEFAULT/rabbit_ha_queues': value => 'True';
           'DEFAULT/rabbit_hosts':     value => $rabbit_hosts;
@@ -124,7 +123,7 @@ class quantum (
       }
       quantum_config {
         'DEFAULT/rpc_backend':          value => 'quantum.openstack.common.rpc.impl_qpid';
-        'DEFAULT/qpid_username':          value => $qpid_user;
+        'DEFAULT/qpid_username':        value => $qpid_user;
         'DEFAULT/qpid_password':        value => $qpid_password;
       }
     }

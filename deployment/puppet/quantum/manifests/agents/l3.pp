@@ -221,14 +221,12 @@ class quantum::agents::l3 (
 
   # rootwrap error with L3 agent
   # https://bugs.launchpad.net/quantum/+bug/1069966
-
   exec { 'patch-iptables-manager':
     command => "sed -i '272 s|/sbin/||' ${iptables_manager}",
     onlyif  => "sed -n '272p' ${iptables_manager} | grep -q '/sbin/'",
     path    => ['/bin', '/sbin', '/usr/bin', '/usr/sbin'],
     require => [Anchor['quantum-l3'], Package[$l3_agent_package]],
   }
-
   Service<| title == 'quantum-server' |> -> Service['quantum-l3']
 
   if $service_provider == 'pacemaker' {
