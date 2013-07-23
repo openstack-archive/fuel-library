@@ -826,7 +826,6 @@ node /fuel-compute-[\d+]/ {
     syslog_log_facility_quantum => $syslog_log_facility_quantum,
     syslog_log_facility_cinder => $syslog_log_facility_cinder,
     nova_rate_limits       => $nova_rate_limits,
-    cinder_rate_limits     => $cinder_rate_limits
   }
 }
 
