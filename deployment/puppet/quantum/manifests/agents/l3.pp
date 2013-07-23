@@ -74,7 +74,6 @@ class quantum::agents::l3 (
     'DEFAULT/external_network_bridge': value => $external_network_bridge;
     ## todo: check for compatible with quantum-metadata-agent
     #'DEFAULT/metadata_ip': value => $metadata_ip;
-   #'DEFAULT/router_id':               value => $router_id;
    #'DEFAULT/gateway_external_net_id': value => $gateway_external_net_id;
   }
 
@@ -180,12 +179,16 @@ class quantum::agents::l3 (
       Class[quantum::waistline] -> Quantum::Network::Setup <| |>
       Class[quantum::waistline] -> Quantum::Network::Provider_router <| |>
 
-      exec { 'setup_router_id':
-        command   => "/bin/bash -c \"eval `quantum --os-tenant-name ${auth_tenant} --os-auth-url ${auth_url} --os-username ${auth_user} --os-password ${auth_password} router-show router04 -f shell | grep -E '^id'` && sed -r -i -e \\\"s/^router_id\s*=.*\$//\\\" /etc/quantum/l3_agent.ini && echo router_id=\\\$id >> /etc/quantum/l3_agent.ini\"",
-        logoutput => 'on_failure',
-        tries     => 5,
-        try_sleep => 3,
-        path      => ['/usr/bin', '/bin', '/sbin', '/usr/sbin']
+      if $use_namespaces {
+        quantum_l3_agent_config{'DEFAULT/router_id': ensure => absent }
+      } else {
+        exec { 'setup_router_id':
+          command   => "/bin/bash -c \"eval `quantum --os-tenant-name ${auth_tenant} --os-auth-url ${auth_url} --os-username ${auth_user} --os-password ${auth_password} router-show router04 -f shell | grep -E '^id'` && sed -r -i -e \\\"s/^router_id\s*=.*\$//\\\" /etc/quantum/l3_agent.ini && echo router_id=\\\$id >> /etc/quantum/l3_agent.ini\"",
+          logoutput => 'on_failure',
+          tries     => 5,
+          try_sleep => 3,
+          path      => ['/usr/bin', '/bin', '/sbin', '/usr/sbin']
+        }
       }
 
       # Package[$l3_agent_package] ~> Exec['update_default_route_metric']
