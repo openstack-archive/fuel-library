@@ -84,7 +84,7 @@ class keystone(
     ensure  => present,
     owner   => 'keystone',
     group   => 'keystone',
-    mode    => '0644',
+    mode    => '0640',
     require => Package['keystone'],
   }
 
@@ -100,9 +100,6 @@ class keystone(
       require => File['/etc/keystone'],
       # We must notify service for new logging rules
       notify => Service['keystone'],
-    }
-    file { "keystone-all.log":
-      path => "/var/log/keystone-all.log",
     }
   } else  {
     keystone_config {

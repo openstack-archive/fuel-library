@@ -181,10 +181,7 @@ class quantum (
       path  => "/etc/quantum/logging.conf",
       owner => "root",
       group => "root",
-      mode  => 644,
-    }
-    file { "quantum-all.log":
-      path => "/var/log/quantum-all.log",
+      mode  => 640,
     }
 
     # We must setup logging before start services under pacemaker
