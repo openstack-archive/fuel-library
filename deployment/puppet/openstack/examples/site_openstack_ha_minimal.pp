@@ -622,9 +622,9 @@ class compact_controller (
     syslog_log_facility_nova => $syslog_log_facility_nova,
     syslog_log_facility_keystone => $syslog_log_facility_keystone,
     nova_rate_limits        => $nova_rate_limits,
-    cinder_rate_limits      => $cinder_rate_limits,
     horizon_use_ssl         => $horizon_use_ssl,
     use_unicast_corosync    => $use_unicast_corosync,
+    cinder_rate_limits      => $cinder_rate_limits,
     ha_provider             => $ha_provider
   }
 }
@@ -744,7 +744,6 @@ node /fuel-compute-[\d+]/ {
     syslog_log_facility_quantum => $syslog_log_facility_quantum,
     syslog_log_facility_cinder => $syslog_log_facility_cinder,
     nova_rate_limits       => $nova_rate_limits,
-    cinder_rate_limits     => $cinder_rate_limits
   }
 }
 
