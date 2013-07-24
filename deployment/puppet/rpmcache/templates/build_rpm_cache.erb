@@ -84,7 +84,15 @@ for tries in $(seq 1 <%= numtries %>); do
   /usr/local/bin/repotrack -a x86_64 -p "<%= pkgdir %>/Packages" $(cat /etc/nailgun/required-rpms.txt | xargs echo -en)
   status=$?
   #Purge any corrupt downloaded RPMs
+  # FIXME: There is a error with a path substitution
+  # At least hide path if there is no packages.
+  shopt -s nullglob
+  before=`ls -1 "<%= pkgdir %>/Packages/|wc -l`
+  echo Packages in local repo: $before
   env LANG=C rpm --checksig <%= pkgdir %>/Packages/* | grep 'md5 NOT OK' | cut -d':' -f1| xargs rm -f
+  after=`ls -1 "<%= pkgdir %>/Packages/|wc -l`
+  echo Correct packages in local repo: $after
+  [ $before -eq $after ] || status=1
 done
 if [ $status -ne 0 ]; then
   echo "ERROR: Repotrack did not exit cleanly after <%= numtries %> tries."
