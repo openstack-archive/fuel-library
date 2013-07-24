@@ -6,3 +6,7 @@ _build
 metadata.json
 .project
 *.swp
+
+# Vagrant
+.vagrant
+Vagrantfile
