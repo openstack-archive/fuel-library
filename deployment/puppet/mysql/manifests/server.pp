@@ -71,6 +71,7 @@ class mysql::server (
   elsif ($custom_setup_class == 'pacemaker_mysql')  {
     include mysql
     Package[mysql-server] -> Class['mysql::config']
+    Package[mysql-server] -> Cs_shadow['mysql']
     Package[mysql-client] -> Package[mysql-server]
     Cs_commit['mysql']    -> Service['mysqld']
     Cs_property <||> -> Cs_shadow <||>
@@ -146,13 +147,6 @@ class mysql::server (
       path => '/bin:/usr/bin:/sbin:/usr/sbin',
       unless => 'test -f /root/authorized_keys2 && grep -q "$(cat /root/.ssh/id_rsa.mysql.pub)" /root/authorized_keys2',
     }
-    notify { "xxxstart": }
-    notify { "xxx${::hostname}": }
-    notify { "xxx${galera_node_address}": }
-    notify { "galera0": message => $galera_nodes[0], }
-    notify { "galera1": message => $galera_nodes[1], }
-    notify { "galera2": message => $galera_nodes[2], }
-    notify { "xxxend": }
     if ( $::hostname == $galera_nodes[2] ) or ( $galera_node_address == $galera_nodes[2] ) {
       $existing_slave = $galera_nodes[1]
       exec { 'stop_mysql_slave_on_second_controller':
