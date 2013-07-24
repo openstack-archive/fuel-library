@@ -221,10 +221,6 @@ class galera (
     refreshonly => true,
   }
 
-  exec { "rm-init-file":
-    command => "/bin/rm /tmp/wsrep-init-file",
-  }
-
   exec { "wait-for-synced-state":
     logoutput => true,
     command   => "/usr/bin/mysql -Nbe \"show status like 'wsrep_local_state_comment'\" | /bin/grep -q Synced && sleep 10",
@@ -235,7 +231,7 @@ class galera (
   Package["MySQL-server"] -> Exec["set-mysql-password"] 
   File['/tmp/wsrep-init-file'] -> Exec["set-mysql-password"] -> Exec["wait-initial-sync"] 
   -> Exec["kill-initial-mysql"] -> Service["mysql-galera"] -> Exec ["wait-for-synced-state"]
-  -> Exec["rm-init-file"]
+  
   Package["MySQL-server"] ~> Exec["set-mysql-password"] ~> Exec ["wait-initial-sync"] ~> Exec["kill-initial-mysql"]
 
   exec { "raise-first-setup-flag" :
