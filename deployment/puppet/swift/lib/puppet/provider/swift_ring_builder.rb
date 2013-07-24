@@ -14,7 +14,7 @@ class Puppet::Provider::SwiftRingBuilder < Puppet::Provider
     if File.exists?(builder_file_path)
       if rows = swift_ring_builder(builder_file_path).split("\n")[4..-1]
         rows.each do |row|
-          if row =~ /^\s+(\d+)\s+(\d+)\s+(\d+)\s+(\S+)\s+(\d+)\s+(\S+)\s+(\d+\.\d+)\s+(\d+)\s+(-?\d+\.\d+)\s+(\S*)$/
+          if row =~ /^\s+(\d+)\s+(\d+)\s+(\d+)\s+(\S+)\s+(\d+)\s+(\S+)\s+(\d+\.\d+)\s+(\d+)\s+(\d?-?\d+\.\d+)\s+(\S*)$/
             object_hash["#{$4}:#{$5}"] = {
               :id          => $1,
               :region      => $2,
