@@ -337,7 +337,8 @@ case "$mode" in
                    if [ "$WINNER_NODE" = "$(hostname)" ] ; then
                        crm_attribute -t crm_config --name mysqlmaster --update 1
                        echo "mysql: Assuming current node as a new master..."
-                       service mysql stop
+                       kill `cat "$mysqld_pid_file_path"`
+                       sleep 30
                        $bindir/mysqld_safe --datadir="$datadir" --pid-file="$mysqld_pid_file_path" --wsrep-cluster-address="gcomm://" $other_args >/dev/null 2>&1 &
                        wait_for_pid created "$!" "$mysqld_pid_file_path"; return_value=$?
                        crm_attribute -t crm_config --name mysqlmaster --delete
