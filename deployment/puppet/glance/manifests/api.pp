@@ -78,13 +78,6 @@ class glance::api(
     require => Class['glance'],
   }
 
-  if !defined(File["glance-logging.conf"]) {
-    file {"glance-logging.conf":
-      content => template('glance/logging.conf.erb'),
-      path => "/etc/glance/logging.conf",
-    }
-  }
-
   if($sql_connection =~ /mysql:\/\/\S+:\S+@\S+\/\S+/) {
     require 'mysql::python'
   } elsif($sql_connection =~ /postgresql:\/\/\S+:\S+@\S+\/\S+/) {
@@ -94,18 +87,42 @@ class glance::api(
   } else {
     fail("Invalid db connection ${sql_connection}")
   }
-  
-if $use_syslog {
+
+ glance_api_config {
+   'DEFAULT/log_file': ensure=> absent;
+   'DEFAULT/log_dir': ensure=> absent;
+   'DEFAULT/logfile':   ensure=> absent;
+   'DEFAULT/logdir':    ensure=> absent;
+ }
+
+if $use_syslog and !$debug =~ /(?i)(true|yes)/ {
  glance_api_config {
    'DEFAULT/log_config': value => "/etc/glance/logging.conf";
-   'DEFAULT/log_file': ensure=> absent;
-   'DEFAULT/logdir': ensure=> absent;
+   'DEFAULT/use_stderr':  ensure=> absent;
+   'DEFAULT/use_syslog':  value => true;
+   'DEFAULT/syslog_log_facility': value =>  $syslog_log_facility;
+ }
+ if !defined(File["glance-logging.conf"]) {
+   file {"glance-logging.conf":
+     content => template('glance/logging.conf.erb'),
+     path => "/etc/glance/logging.conf",
+   }
  }
 } else {
  glance_api_config {
-   'DEFAULT/log_config': ensure => absent;
-   'DEFAULT/log_file': value=> $log_file;
+   # logging for agents grabbing from stderr
+   'DEFAULT/log_config': ensure=> absent;
+   'DEFAULT/use_syslog': ensure=> absent;
+   'DEFAULT/syslog_log_facility': ensure=> absent;
+   'DEFAULT/use_stderr': value => true;
  }
+ # might be used for stdout logging instead, if configured
+   if !defined(File["glance-logging.conf"]) {
+      file {"glance-logging.conf":
+         content => template('glance/logging.conf-nosyslog.erb'),
+         path => "/etc/glance/logging.conf",
+      }
+   }
 }
 
   # basic service config
@@ -116,7 +133,6 @@ if $use_syslog {
     'DEFAULT/bind_port': value => $bind_port;
     'DEFAULT/backlog':   value => $backlog;
     'DEFAULT/workers':   value => $workers;
-    'DEFAULT/use_syslog':  value => $use_syslog;
     'DEFAULT/registry_client_protocol':  value => "http";
     'DEFAULT/delayed_delete': value => "False";
     'DEFAULT/scrub_time': value => "43200";

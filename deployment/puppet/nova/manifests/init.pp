@@ -34,8 +34,7 @@
 # $rabbit_nodes = ['node001', 'node002', 'node003']
 # add rabbit nodes hostname
 # [use_syslog] Rather or not service should log to syslog. Optional.
-# [syslog_log_facility] Facility for syslog, if used. Optional. Note: duplicating conf option
-#       wouldn't have been used, but more powerfull rsyslog features managed via conf template instead
+# [syslog_log_facility] Facility for syslog, if used. Optional.
 # [syslog_log_level] logging level for non verbose and non debug mode. Optional.
 #
 class nova(
@@ -161,27 +160,49 @@ class nova(
     require => Package['nova-common'],
   }
 
+nova_config {
+ 'DEFAULT/log_file': ensure=> absent;
+ 'DEFAULT/log_dir': ensure=> absent;
+ 'DEFAULT/logfile':   ensure=> absent;
+ 'DEFAULT/logdir': ensure=> absent;
+}
+
 #Configure logging in nova.conf
-if $use_syslog
+if $use_syslog and !$debug =~ /(?i)(true|yes)/
  {
 
 nova_config
  {
  'DEFAULT/log_config': value => "/etc/nova/logging.conf";
- 'DEFAULT/log_file': ensure=> absent;
- 'DEFAULT/logdir': ensure=> absent;
- 'DEFAULT/use_syslog': value =>  "True";
+ 'DEFAULT/use_syslog': value =>  true;
+ 'DEFAULT/use_stderr': ensure=> absent;
  'DEFAULT/syslog_log_facility': value =>  $syslog_log_facility;
- 'DEFAULT/logging_context_format_string':
-  value => '%(levelname)s %(name)s [%(request_id)s %(user_id)s %(project_id)s] %(instance)s %(message)s';
- 'DEFAULT/logging_default_format_string':
- value =>'%(levelname)s %(name)s [-] %(instance)s %(message)s';
+# 'DEFAULT/logging_context_format_string':
+#  value => '%(levelname)s %(name)s [%(request_id)s %(user_id)s %(project_id)s] %(instance)s %(message)s';
+# 'DEFAULT/logging_default_format_string':
+# value =>'%(levelname)s %(name)s [-] %(instance)s %(message)s';
 }
 
 file {"nova-logging.conf":
   content => template('nova/logging.conf.erb'),
   path => "/etc/nova/logging.conf",
   require => File[$logdir],
+}
+}
+else {
+  nova_config {
+   # logging for agents grabbing from stderr
+   'DEFAULT/log_config': ensure=> absent;
+   'DEFAULT/use_syslog': ensure=> absent;
+   'DEFAULT/syslog_log_facility': ensure=> absent;
+   'DEFAULT/use_stderr': value => true;
+  }
+  # might be used for stdout logging instead, if configured
+  file {"nova-logging.conf":
+    content => template('nova/logging.conf-nosyslog.erb'),
+    path => "/etc/nova/logging.conf",
+    require => File[$logdir],
+  }
 }
 
 # We must notify services to apply new logging rules
@@ -201,14 +222,6 @@ File['nova-logging.conf'] ~> Service <| title == "$nova::params::vncproxy_servic
 File['nova-logging.conf'] ~> Service <| title == "$nova::params::volume_service_name" |>
 File['nova-logging.conf'] ~> Service <| title == "$nova::params::meta_api_service_name" |>
 
-}
-else {
-  nova_config {
-   'DEFAULT/log_config': ensure=>absent;
-   'DEFAULT/use_syslog': value =>"False";
-   'DEFAULT/logdir':     value => $logdir;
-  }
-}
   file { $logdir:
     ensure  => directory,
     mode    => '0751',

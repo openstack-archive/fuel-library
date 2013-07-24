@@ -21,17 +21,50 @@ class glance::registry(
   $syslog_log_facility = 'LOCAL2',
   $syslog_log_level  = 'WARNING',
 ) inherits glance {
-  
-if $use_syslog {
+
+File {
+  ensure  => present,
+  owner   => 'glance',
+  group   => 'glance',
+  mode    => '0640',
+  notify  => Service['glance-registry'],
+  require => Class['glance']
+}
+
+glance_registry_config {
+   'DEFAULT/log_file': ensure=> absent;
+   'DEFAULT/log_dir': ensure=> absent;
+   'DEFAULT/logfile':   ensure=> absent;
+   'DEFAULT/logdir':    ensure=> absent;
+}
+
+if $use_syslog and !$debug =~ /(?i)(true|yes)/ {
  glance_registry_config {
    'DEFAULT/log_config': value => "/etc/glance/logging.conf";
-   'DEFAULT/log_file': ensure=> absent;
-   'DEFAULT/logdir': ensure=> absent;
+   'DEFAULT/use_stderr': ensure=> absent;
+   'DEFAULT/use_syslog': value => true;
+   'DEFAULT/syslog_log_facility': value =>  $syslog_log_facility;
+ }
+ if !defined(File["glance-logging.conf"]) {
+   file {"glance-logging.conf":
+     content => template('glance/logging.conf.erb'),
+     path => "/etc/glance/logging.conf",
+   }
  }
 } else {
+# might be used for stdout logging instead, if configured
  glance_registry_config {
-   'DEFAULT/log_config': ensure => absent;
-   'DEFAULT/log_file': value => $log_file;
+   'DEFAULT/log_config':    ensure=> absent;
+   'DEFAULT/use_syslog': ensure=> absent;
+   'DEFAULT/syslog_log_facility': ensure=> absent;
+   'DEFAULT/use_stderr': value => true;
+ }
+ # might be used for stdout logging instead, if configured
+ if !defined(File["glance-logging.conf"]) {
+   file {"glance-logging.conf":
+     content => template('glance/logging.conf-nosyslog.erb'),
+     path => "/etc/glance/logging.conf",
+   }
  }
 }
 
@@ -42,22 +75,6 @@ if $use_syslog {
   Package['glance'] -> Glance_registry_config<||>
   Glance_registry_config<||> ~> Exec<| title == 'glance-manage db_sync' |>
   Glance_registry_config<||> ~> Service['glance-registry']
-
-  File {
-    ensure  => present,
-    owner   => 'glance',
-    group   => 'glance',
-    mode    => '0640',
-    notify  => Service['glance-registry'],
-    require => Class['glance']
-  }
-
-  if !defined(File["glance-logging.conf"]) {
-    file {"glance-logging.conf":
-      content => template('glance/logging.conf.erb'),
-      path => "/etc/glance/logging.conf",
-    }
-  }
 
   if($sql_connection =~ /mysql:\/\/\S+:\S+@\S+\/\S+/) {
     require 'mysql::python'
@@ -78,7 +95,6 @@ if $use_syslog {
     'DEFAULT/backlog': value => "4096";
     'DEFAULT/api_limit_max': value => "1000";
     'DEFAULT/limit_param_default': value => "25";
-    'DEFAULT/use_syslog': value => $use_syslog;
   }
 
   # db connection config
@@ -131,7 +147,7 @@ if $use_syslog {
   {
  package {'glance-registry':
 	 name => $::glance::params::registry_package_name,
- 	 ensure => $package_ensure 
+ 	 ensure => $package_ensure
  }
   File['/etc/glance/glance-registry.conf'] -> Glance_registry_config<||>
   Package['glance-registry']->Service['glance-registry']

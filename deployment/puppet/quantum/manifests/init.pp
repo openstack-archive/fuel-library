@@ -1,7 +1,6 @@
 #
 # [use_syslog] Rather or not service should log to syslog. Optional.
-# [syslog_log_facility] Facility for syslog, if used. Optional. Note: duplicating conf option
-#       wouldn't have been used, but more powerfull rsyslog features managed via conf template instead
+# [syslog_log_facility] Facility for syslog, if used. Optional.
 # [syslog_log_level] logging level for non verbose and non debug mode. Optional.
 #
 class quantum (
@@ -166,16 +165,7 @@ class quantum (
     'keystone_authtoken/admin_user':        value => $auth_user;
     'keystone_authtoken/admin_password':    value => $auth_password;
   }
-  # logging for agents grabbing from stderr. It's workarround for bug in quantum-logging
-  # server givs this parameters from command line
-  quantum_config {
-      'DEFAULT/log_config': ensure=> absent;
-      'DEFAULT/log_file':   ensure=> absent;
-      'DEFAULT/log_dir':    ensure=> absent;
-      'DEFAULT/use_syslog': ensure=> absent;
-      'DEFAULT/use_stderr': value => true;
-  }
-  if $use_syslog {
+  if $use_syslog and !$debug =~ /(?i)(true|yes)/ {
     file { "quantum-logging.conf":
       content => template('quantum/logging.conf.erb'),
       path  => "/etc/quantum/logging.conf",
@@ -183,23 +173,27 @@ class quantum (
       group => "quantum",
       mode  => 640,
     }
-
-    # We must setup logging before start services under pacemaker
-    File['quantum-logging.conf'] -> Service<| title == 'quantum-server' |>
-    File['quantum-logging.conf'] -> Anchor<| title == 'quantum-ovs-agent' |>
-    File['quantum-logging.conf'] -> Anchor<| title == 'quantum-l3' |>
-    File['quantum-logging.conf'] -> Anchor<| title == 'quantum-dhcp-agent' |>
-
   } else {
+    quantum_config {
+    # logging for agents grabbing from stderr. It's workarround for bug in quantum-logging
+      'DEFAULT/log_file':   ensure=> absent;
+      'DEFAULT/log_dir':    ensure=> absent;
+      'DEFAULT/use_syslog': ensure=> absent;
+      'DEFAULT/use_stderr': value => true;
+    }
     file { "quantum-logging.conf":
       content => template('quantum/logging.conf-nosyslog.erb'),
       path  => "/etc/quantum/logging.conf",
       owner => "root",
-      group => "root",
-      mode  => 644,
+      group => "quantum",
+      mode  => 640,
     }
   }
-
+  # We must setup logging before start services under pacemaker
+  File['quantum-logging.conf'] -> Service<| title == 'quantum-server' |>
+  File['quantum-logging.conf'] -> Anchor<| title == 'quantum-ovs-agent' |>
+  File['quantum-logging.conf'] -> Anchor<| title == 'quantum-l3' |>
+  File['quantum-logging.conf'] -> Anchor<| title == 'quantum-dhcp-agent' |>
   File <| title=='/etc/quantum' |> -> File <| title=='quantum-logging.conf' |>
 
   if defined(Anchor['quantum-server-config-done']) {

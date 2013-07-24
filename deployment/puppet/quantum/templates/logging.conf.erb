@@ -1,34 +1,22 @@
-<% if @debug then -%>
-[loggers]
-keys = root, l3agent, ovsagent, dhcpagent, metadata
-
-[handlers]
-keys = production,devel, l3agent, ovsagent, dhcpagent, metadata
-
-<% else -%>
 [loggers]
 keys = root
 
-# devel is reserved for future usage
 [handlers]
-keys = production,devel
+keys = production,devel,stderr
 
-<% end -%>
+[formatters]
+keys = normal,debug
 
 [logger_root]
 level = NOTSET
-handlers = production
+handlers = production,devel,stderr
 propagate = 1
-#qualname = quantum
-
-[formatters]
-keys = normal,debug,default
 
 [formatter_debug]
-format = quantum-%(name)s %(levelname)s: %(module)s %(funcName)s %(message)s
+format = quantum-%(name)s %(levelname)s: %(module)s %(name)s:%(lineno)d %(funcName)s %(message)s
 
 [formatter_normal]
-format = quantum-%(name)s %(levelname)s: %(message)s
+format = quantum-%(name)s %(levelname)s: %(module)s %(message)s
 
 [formatter_default]
 format=%(asctime)s %(levelname)s: %(module)s %(name)s:%(lineno)d %(funcName)s  %(message)s
@@ -39,61 +27,41 @@ format=%(asctime)s %(levelname)s: %(module)s %(name)s:%(lineno)d %(funcName)s  %
 class = handlers.SysLogHandler
 <% if @debug then -%>
 level = DEBUG
+formatter = debug
 <% elsif @verbose then -%>
 level = INFO
+formatter = normal
 <% else -%>
 level = <%= @syslog_log_level %>
+formatter = normal
 <% end -%>
 args = ('/dev/log', handlers.SysLogHandler.LOG_<%= @syslog_log_facility %>)
-formatter = normal
 
 # TODO find out how it could be usefull and how it should be used
+[handler_stderr]
+class = StreamHandler
+<% if @debug then -%>
+level = DEBUG
+formatter = debug
+<% elsif @verbose then -%>
+level = INFO
+formatter = normal
+<% else -%>
+level = <%= @syslog_log_level %>
+formatter = normal
+<% end -%>
+args = (sys.stderr,)
+
 [handler_devel]
 class = StreamHandler
-formatter = debug
-args = (sys.stdout,)
-
 <% if @debug then -%>
-[logger_l3agent]
-handlers = l3agent
-level=NOTSET
-qualname = quantum.agent.l3_agent
-
-[handler_l3agent]
-class = logging.FileHandler
-args = ('/var/log/quantum/l3.log',)
-formatter = default
-
-
-[logger_dhcpagent]
-handlers = dhcpagent
-level=NOTSET
-qualname = quantum.agent.dhcp_agent
-
-[handler_dhcpagent]
-class = logging.FileHandler
-args = ('/var/log/quantum/dhcp.log',)
-formatter = default
-
-
-[logger_ovsagent]
-handlers = ovsagent
-level=NOTSET
-qualname = quantum.plugins.openvswitch.agent.ovs_quantum_agent
-
-[handler_ovsagent]
-class = logging.FileHandler
-args = ('/var/log/quantum/ovs.log',)
-formatter = default
-
-
-[logger_metadata]
-handlers = metadata
-level=NOTSET
-qualname = quantum.agent.metadata
-
-[handler_metadata]
-class = logging.FileHandler
-args = ('/var/log/quantum/metadata.log',)
-formatter = default
+level = DEBUG
+formatter = debug
+<% elsif @verbose then -%>
+level = INFO
+formatter = normal
+<% else -%>
+level = <%= @syslog_log_level %>
+formatter = normal
 <% end -%>
+args = (sys.stdout,)
