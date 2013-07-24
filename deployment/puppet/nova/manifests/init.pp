@@ -295,7 +295,7 @@ else {
       if $qpid_nodes  {
         nova_config { 'DEFAULT/qpid_hosts': value => inline_template("<%= @qpid_nodes.map {|x| x+':5672'}.join ',' %>") }
       } else {
-        nova_config { 'DEFAULT/hostname':   value => $qpid_host}
+        nova_config { 'DEFAULT/qpid_hostname':   value => $qpid_host}
       }
       nova_config {
         'DEFAULT/qpid_password':     value => $qpid_password;

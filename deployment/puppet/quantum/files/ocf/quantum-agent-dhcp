@@ -83,7 +83,7 @@ meta_data() {
 
 <longdesc lang="en">
 Resource agent for the OpenStack Quantum DHCP Service (quantum-dhcp-agent)
-May manage a quantum-dhcp-agent instance or a clone set that 
+May manage a quantum-dhcp-agent instance or a clone set that
 creates a distributed quantum-dhcp-agent cluster.
 </longdesc>
 <shortdesc lang="en">Manages the OpenStack DHCP Service (quantum-dhcp-agent)</shortdesc>

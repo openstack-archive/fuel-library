@@ -75,7 +75,7 @@ class mysql::server (
     Cs_commit['mysql']    -> Service['mysqld']
     Cs_property <||> -> Cs_shadow <||>
     Cs_shadow['mysql']    -> Service['mysqld']
-    Cs_commit <| title == 'internal-vip' |> -> Cs_shadow['mysql']
+    #Cs_commit <| title == 'internal-vip' |> -> Cs_shadow['mysql']
 
     $config_hash['custom_setup_class'] = $custom_setup_class
     $allowed_hosts = '%'
@@ -173,7 +173,7 @@ class mysql::server (
          #before  => Cs_shadow['mysql'],
       }
     }
- 
+    ### end hacks 
          
 
     cs_shadow { 'mysql': cib => 'mysql' } ->
@@ -213,12 +213,12 @@ class mysql::server (
       provider => 'pacemaker',
     }
 
-    #Tie internal-vip to p_mysql
-    cs_colocation { 'mysql_to_internal-vip': 
-      primitives => ['internal-vip','master_p_mysql:Master'],
-      score      => 'INFINITY',
-      require    => [Cs_resource['p_mysql'], Cs_commit['mysql']],
-    } 
+#    #Tie internal-vip to p_mysql
+#    cs_colocation { 'mysql_to_internal-vip': 
+#      primitives => ['vip__management_old','master_p_mysql:Master'],
+#      score      => 'INFINITY',
+#      require    => [Cs_resource['p_mysql'], Cs_commit['mysql']],
+#    } 
 
   }
   elsif ($custom_setup_class == 'galera')  {

@@ -131,12 +131,6 @@ LOGGING = {
                 'address': '/dev/log',
                 'formatter': 'normal'
                 },
-            'syslog': {
-                'level': '<%= log_level %>',
-                'facility': 'local1',
-                'class': 'logging.handlers.SysLogHandler',
-                'address': '/dev/log'
-                },
             },
         'loggers': {
             # The logger name '' indicates the root of all loggers in Django, so
