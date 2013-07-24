@@ -221,10 +221,6 @@ class galera (
     refreshonly => true,
   }
 
-  exec { "rm-init-file":
-    command => "/bin/rm /tmp/wsrep-init-file",
-  }
-
   exec { "wait-for-synced-state":
     logoutput => true,
     command   => "/usr/bin/mysql -Nbe \"show status like 'wsrep_local_state_comment'\" | /bin/grep -q Synced && sleep 10",
@@ -235,8 +231,14 @@ class galera (
   Package["MySQL-server"] -> Exec["set-mysql-password"] 
   File['/tmp/wsrep-init-file'] -> Exec["set-mysql-password"] -> Exec["wait-initial-sync"] 
   -> Exec["kill-initial-mysql"] -> Service["mysql-galera"] -> Exec ["wait-for-synced-state"]
-  Exec["kill-initial-mysql"] -> Exec["rm-init-file"]
+  
   Package["MySQL-server"] ~> Exec["set-mysql-password"] ~> Exec ["wait-initial-sync"] ~> Exec["kill-initial-mysql"]
+
+  exec { "raise-first-setup-flag" :
+   path    => "/usr/bin:/usr/sbin:/bin:/sbin",
+   command => "crm_attribute -t crm_config --name mysqlprimaryinit --update done",
+   refreshonly => true,
+  }
 
 # FIXME: This class is deprecated and should be removed in future releases.
  
@@ -255,6 +257,7 @@ class galera (
       onlyif    => "[ -f /var/lib/mysql/grastate.dat ] && (cat /var/lib/mysql/grastate.dat | awk '\$1 == \"uuid:\" {print \$2}' | awk '{if (\$0 == \"00000000-0000-0000-0000-000000000000\") exit 0; else exit 1}')",
       require    => Service["mysql-galera"],
       before     => Exec ["wait-for-synced-state"],
+      notify     => Exec ["raise-first-setup-flag"], 
     }
   }
 }
