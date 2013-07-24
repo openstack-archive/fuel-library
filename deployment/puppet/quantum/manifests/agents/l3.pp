@@ -238,7 +238,7 @@ class quantum::agents::l3 (
     # and his dependences
     file {'quantum-l3-agent-ocf':
       path=>'/usr/lib/ocf/resource.d/mirantis/quantum-agent-l3',
-      mode => 744,
+      mode => 755,
       owner => root,
       group => root,
       source => "puppet:///modules/quantum/ocf/quantum-agent-l3",

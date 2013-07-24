@@ -84,7 +84,7 @@ class quantum::agents::dhcp (
     # and his dependences
     file {'quantum-dhcp-agent-ocf':
       path=>'/usr/lib/ocf/resource.d/mirantis/quantum-agent-dhcp',
-      mode => 744,
+      mode => 755,
       owner => root,
       group => root,
       source => "puppet:///modules/quantum/ocf/quantum-agent-dhcp",

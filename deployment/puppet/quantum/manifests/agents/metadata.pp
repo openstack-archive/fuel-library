@@ -76,7 +76,7 @@ class quantum::agents::metadata (
     # and his dependences
     file {'quantum-metadata-agent-ocf':
       path=>'/usr/lib/ocf/resource.d/mirantis/quantum-agent-metadata',
-      mode => 744,
+      mode => 755,
       owner => root,
       group => root,
       source => "puppet:///modules/quantum/ocf/quantum-agent-metadata",
