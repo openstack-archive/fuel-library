@@ -177,8 +177,7 @@ class openstack::compute (
     value => $memcached_addresses
   }
 
-  case $queue_provider {
-    'rabbitmq': {
+  
       class { 'nova':
           ensure_package       => $::openstack_version['nova'],
           sql_connection       => $sql_connection,
