@@ -180,7 +180,7 @@ class quantum (
       content => template('quantum/logging.conf.erb'),
       path  => "/etc/quantum/logging.conf",
       owner => "root",
-      group => "root",
+      group => "quantum",
       mode  => 640,
     }
 
