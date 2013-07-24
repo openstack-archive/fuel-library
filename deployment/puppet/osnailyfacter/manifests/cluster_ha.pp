@@ -72,10 +72,8 @@ else {
 }
 
 # can be 'qpid' or 'rabbitmq' only
-$queue_provider = 'qpid'
-
 # do not edit the below line
-validate_re($queue_provider,  'rabbitmq|qpid')
+validate_re($::queue_provider,  'rabbitmq|qpid')
 
 $rabbit_user   = 'nova'
 
@@ -329,7 +327,6 @@ class virtual_ips () {
         manage_volumes       => true,
         enabled              => true,
         auth_host            => $management_vip,
-        queue_provider       => $::queue_provider,
         qpid_password        => $rabbit_hash[password],
         qpid_user            => $rabbit_user,
         qpid_nodes           => $controller_hostnames,

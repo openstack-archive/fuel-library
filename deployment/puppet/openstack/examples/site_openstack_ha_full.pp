@@ -26,6 +26,16 @@ $internal_virtual_ip = '10.0.0.253'
 # interface resides
 $public_virtual_ip   = '10.0.204.253'
 
+case $::operatingsystem {
+  'redhat' : { 
+          $queue_provider = 'qpid'
+          $custom_mysql_setup_class = 'mysql_pacemaker'
+  }
+  default: {
+    $queue_provider='rabbitmq'
+    $custom_mysql_setup_class='galera'
+  }
+}
 
 $nodes_harr = [
   {

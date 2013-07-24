@@ -23,6 +23,16 @@ $internal_br         = 'br-mgmt'
 
 # This is the name of the private interface. All traffic within OpenStack tenants' networks will go through this interface.
 $private_interface   = 'eth2'
+case $::operatingsystem {
+  'redhat' : { 
+          $queue_provider = 'qpid'
+          $custom_mysql_setup_class = 'mysql_pacemaker'
+  }
+  default: {
+    $queue_provider='rabbitmq'
+    $custom_mysql_setup_class='galera'
+  }
+}
 
 $nodes_harr = [
   {
