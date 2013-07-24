@@ -1,10 +1,10 @@
 GeoIP-1.4.8-1.el6.x86_64.rpm
-MySQL-client-5.5.28-6.x86_64.rpm
+MySQL-client-5.5.28-7.x86_64.rpm
 MySQL-client-wsrep-5.5.28_wsrep_23.7-12.x86_64.rpm
 MySQL-python-1.2.3-0.3.c1.2.el6.x86_64.rpm
-MySQL-server-5.5.28-6.x86_64.rpm
+MySQL-server-5.5.28-7.x86_64.rpm
 MySQL-server-wsrep-5.5.28_wsrep_23.7-12.x86_64.rpm
-MySQL-shared-5.5.28-6.x86_64.rpm
+MySQL-shared-5.5.28-7.x86_64.rpm
 MySQL-shared-wsrep-5.5.28_wsrep_23.7-12.x86_64.rpm
 cirros-testvm-0.3.0-3.x86_64.rpm
 crmsh-1.2.5-55.2.x86_64.rpm
