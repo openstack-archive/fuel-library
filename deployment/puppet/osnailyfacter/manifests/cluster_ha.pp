@@ -181,7 +181,7 @@ class virtual_ips () {
     "controller" : {
       include osnailyfacter::test_controller
 
-	
+
   class { '::cluster': stage => 'corosync_setup' } ->
   class { 'virtual_ips':
     stage => 'corosync_setup'
@@ -274,6 +274,7 @@ class virtual_ips () {
         tenant_network_type    => $tenant_network_type,
         segment_range          => $segment_range,
         use_syslog             => true,
+        state_path             => $nova_hash[state_path],
       }
 
       class { "::rsyslog::client":
