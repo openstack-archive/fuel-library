@@ -12,13 +12,6 @@ if $auto_assign_floating_ip == 'true' {
   $bool_auto_assign_floating_ip = false
 }
 
-
-if $auto_assign_floating_ip == 'true' {
-  $bool_auto_assign_floating_ip = true
-} else {
-  $bool_auto_assign_floating_ip = false
-}
-
 $create_networks = true
 
 $network_config = {
