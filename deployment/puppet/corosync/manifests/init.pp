@@ -184,7 +184,6 @@ class corosync (
   service { 'corosync':
     ensure    => running,
     enable    => true,
-    hasstatus  => true,
-    hasrestart => true,
+    subscribe => File[['/etc/corosync/corosync.conf', '/etc/corosync/service.d']],     subscribe => File[['/etc/corosync/corosync.conf', '/etc/corosync/service.d']],
   }
 }
