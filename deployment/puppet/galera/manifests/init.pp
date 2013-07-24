@@ -79,6 +79,10 @@ class galera (
         ensure => present,
       }
 
+      package { 'bc':
+        ensure => present,
+      }
+
       package { 'perl':
         ensure => present,
         before => Package['MySQL-client']
