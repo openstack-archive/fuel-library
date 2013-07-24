@@ -235,7 +235,7 @@ class galera (
   Package["MySQL-server"] -> Exec["set-mysql-password"] 
   File['/tmp/wsrep-init-file'] -> Exec["set-mysql-password"] -> Exec["wait-initial-sync"] 
   -> Exec["kill-initial-mysql"] -> Service["mysql-galera"] -> Exec ["wait-for-synced-state"]
-  Exec["kill-initial-mysql"] -> Exec["rm-init-file"]
+  -> Exec["rm-init-file"]
   Package["MySQL-server"] ~> Exec["set-mysql-password"] ~> Exec ["wait-initial-sync"] ~> Exec["kill-initial-mysql"]
 
 # FIXME: This class is deprecated and should be removed in future releases.

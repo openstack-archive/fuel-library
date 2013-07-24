@@ -282,22 +282,74 @@ case "$mode" in
     cd $basedir
 
     echo $echo_n "Starting MySQL"
-    if test -x $bindir/mysqld_safe
-    then
-      # Give extra arguments to mysqld with the my.cnf file. This script
-      # may be overwritten at next upgrade.
-      $bindir/mysqld_safe --datadir="$datadir" --pid-file="$mysqld_pid_file_path" $other_args >/dev/null 2>&1 &
-      wait_for_pid created "$!" "$mysqld_pid_file_path"; return_value=$?
+    if [ -f /tmp/wsrep-init-file ]; then
+     if test -x $bindir/mysqld_safe
+     then
+       # Give extra arguments to mysqld with the my.cnf file. This script
+       # may be overwritten at next upgrade.
+       $bindir/mysqld_safe --datadir="$datadir" --pid-file="$mysqld_pid_file_path" $other_args >/dev/null 2>&1 &
+       wait_for_pid created "$!" "$mysqld_pid_file_path"; return_value=$?
 
-      # Make lock for RedHat / SuSE
-      if test -w "$lockdir"
-      then
-        touch "$lock_file_path"
-      fi
+       # Make lock for RedHat / SuSE
+       if test -w "$lockdir"
+       then
+         touch "$lock_file_path"
+       fi
 
-      exit $return_value
+       exit $return_value
+     else
+       log_failure_msg "Couldn't find MySQL server ($bindir/mysqld_safe)"
+     fi
     else
-      log_failure_msg "Couldn't find MySQL server ($bindir/mysqld_safe)"
+       if [ "$(crm_attribute -t crm_config --name mysqlprimaryinit --query 2> /dev/null | awk -F\= '{print $4}')" = 'done' ] ; then
+            CRM_ONLINE_NODES=( $(crm node list | grep -v \(offline\) | sed 's/\://g') )
+            sleep 90
+            WSREP_EPOCH=$(echo 'show status;' | mysql -u root | grep wsrep_protocol_version | awk '{print $2}')
+            WSREP_STATE=$(echo 'show status;' | mysql -u root | grep wsrep_cluster_status | awk '{print $2}')
+            if [ "$WSREP_STATE" = 'non-Primary' ]; then
+                WINNER_NODE=$(hostname)
+                MAX_EPOCH=$WSREP_EPOCH
+                crm_attribute -t crm_config --node $(hostname) --name mysqlepoch --update $WSREP_EPOCH
+                # Seems to be more or less legitimate solution explicitly for "datacenter power switch" situation:
+                #  - first of all, more complex logic does not bring more precise knowledge of which node
+                #    should be a master, because it related to such property as an epoch and user may simply
+                #    decide to not start node which was online during entire disaster holding "bad" data.
+                #  - five minutes are enough for man who turns servers in the rack and for crm to push significant
+                #    percentage of the epoch values to the shared resource and not too large for such type of disaster at all.
+                sleep 300
+                # Check if someone already decided to declare himself master...
+                RAISED_MASTER=$(crm_attribute -t crm_config --name mysqlmaster --query 2> /dev/null | awk -F\= '{print $4}')
+                # ... and if nobody did:
+                for node in "${CRM_ONLINE_NODES[@]}" ; do
+                    CUR_EPOCH=$(crm_attribute -t crm_config --node $node --name mysqlepoch --query 2> /dev/null | awk -F\= '{print $4}')
+                    if [ -z "$CUR_EPOCH" ] ; then
+                      echo "Skipping comparison with node $node"
+                    else
+                        if [ "$(echo ''$CUR_EPOCH' > '$MAX_EPOCH'' | bc)" -eq '1' ] ; then
+                          WINNER_NODE=$node
+                          MAX_EPOCH=$CUR_EPOCH
+                        fi
+                    fi
+                done
+                if [ "$RAISED_MASTER" != '1' ]; then 
+                   if [ "$WINNER_NODE" = "$(hostname)" ] ; then
+                       crm_attribute -t crm_config --name mysqlmaster --update 1
+                       echo "mysql: Assuming current node as a new master..."
+                       service mysql stop
+                       $bindir/mysqld_safe --datadir="$datadir" --pid-file="$mysqld_pid_file_path" --wsrep-cluster-address="gcomm://" $other_args >/dev/null 2>&1 &
+                       wait_for_pid created "$!" "$mysqld_pid_file_path"; return_value=$?
+                       crm_attribute -t crm_config --name mysqlmaster --delete
+                   fi
+                else
+                      echo "mysql: Master flag was already set, skipping our (probably legitimate yet) promotion"
+                      sleep 90
+                      $bindir/mysqld_safe --datadir="$datadir" --pid-file="$mysqld_pid_file_path" $other_args >/dev/null 2>&1 &
+                      wait_for_pid created "$!" "$mysqld_pid_file_path"; return_value=$?
+                fi
+            else
+                echo Nothing to do
+            fi
+        fi
     fi
     ;;
 
