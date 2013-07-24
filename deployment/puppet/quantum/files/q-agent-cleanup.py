@@ -147,11 +147,14 @@ class QuantumCleaner(object):
     def _list_routers_on_l3_agent(self, agent_id):
         return self._quantum_API_call(self.client.list_routers_on_l3_agent, agent_id)['routers']
 
-    def _add_network_to_dhcp_agent(self, agent_id, req_body):
-        return self._quantum_API_call(self.client.add_network_to_dhcp_agent, agent_id, req_body)
+    def _add_network_to_dhcp_agent(self, agent_id, net_id):
+        return self._quantum_API_call(self.client.add_network_to_dhcp_agent, agent_id, {"network_id": net_id})
 
-    def _add_router_to_l3_agent(self, agent_id, req_body):
-        return self._quantum_API_call(self.client.add_router_to_l3_agent, agent_id, req_body)
+    def _add_router_to_l3_agent(self, agent_id, router_id):
+        return self._quantum_API_call(self.client.add_router_to_l3_agent, agent_id, {"router_id": router_id})
+
+    def _remove_router_from_l3_agent(self, agent_id, router_id):
+        return self._quantum_API_call(self.client.remove_router_from_l3_agent, agent_id, router_id)
 
     def _get_ports_by_agent(self, agent, activeonly=False, localnode=False, port_id_part_len=PORT_ID_PART_LEN):
         self.log.debug("__get_ports_by_agent: start, agent='{0}', activeonly='{1}'".format(agent, activeonly))
@@ -341,8 +344,10 @@ class QuantumCleaner(object):
         if dead_networks and agents['alive']:
             # get network-ID list of already attached to alive agent networks
             lucky_ids = set()
-            for net in self._list_networks_on_dhcp_agent(agents['alive'][0]['id']):
-                lucky_ids.add(net['id'])
+            map(
+                lambda net: lucky_ids.add(net['id']),
+                self._list_networks_on_dhcp_agent(agents['alive'][0]['id'])
+            )
             # add dead networks to alive agent
             for net in dead_networks:
                 if net['id'] not in lucky_ids:
@@ -352,9 +357,7 @@ class QuantumCleaner(object):
                         agent=agents['alive'][0]['id']
                     ))
                     if not self.options.get('noop'):
-                        self._add_network_to_dhcp_agent(agents['alive'][0]['id'], {
-                            "network_id": net['id']
-                        })
+                        self._add_network_to_dhcp_agent(agents['alive'][0]['id'], net['id'])
                         #if error:
                         #    return
             # remove dead agents if need (and if found alive agent)
@@ -372,7 +375,7 @@ class QuantumCleaner(object):
             'dead':  []
         }
         # collect router-list from dead DHCP-agents
-        dead_routers = []
+        dead_routers = []  # array of tuples (router, agentID)
         for agent in self._get_agents_by_type(agent_type):
             if agent['alive']:
                 self.log.info("found alive L3 agent: {0}".format(agent['id']))
@@ -382,9 +385,11 @@ class QuantumCleaner(object):
                 self.log.info("found dead L3 agent: {0}".format(agent['id']))
                 agents['dead'].append(agent)
                 map(
-                    lambda net: dead_routers.append(net),
+                    lambda rou: dead_routers.append((rou, agent['id'])),
                     self._list_routers_on_l3_agent(agent['id'])
                 )
+        self.log.debug("L3 agents in cluster: {ags}".format(ags=json.dumps(agents, indent=4)))
+        self.log.debug("Routers, attached to dead L3 agents: {rr}".format(rr=json.dumps(dead_routers, indent=4)))
         if dead_routers and agents['alive']:
             # get router-ID list of already attached to alive agent routerss
             lucky_ids = set()
@@ -392,18 +397,22 @@ class QuantumCleaner(object):
                 lambda rou: lucky_ids.add(rou['id']),
                 self._list_routers_on_l3_agent(agents['alive'][0]['id'])
             )
-            # add dead routers to alive agent
-
-            for rou in filter(lambda rou: rou['id'] in lucky_ids, dead_routers):
-                # attach network to agent
+            # move routers from dead to alive agent
+            for rou in filter(lambda rr: not(rr[0]['id'] in lucky_ids), dead_routers):
+                self.log.info("unschedule router {rou} from L3 agent {agent}".format(
+                    rou=rou[0]['id'],
+                    agent=rou[1]
+                ))
+                if not self.options.get('noop'):
+                    self._remove_router_from_l3_agent(rou[1], rou[0]['id'])
+                    #todo: if error:
+                #
                 self.log.info("schedule router {rou} to L3 agent {agent}".format(
-                    rou=rou['id'],
+                    rou=rou[0]['id'],
                     agent=agents['alive'][0]['id']
                 ))
                 if not self.options.get('noop'):
-                    self._add_router_to_l3_agent(agents['alive'][0]['id'], {
-                        "router_id": rou['id']
-                    })
+                    self._add_router_to_l3_agent(agents['alive'][0]['id'], rou[0]['id'])
                     #todo: if error:
             # remove dead agents after rescheduling
             for agent in agents['dead']:
