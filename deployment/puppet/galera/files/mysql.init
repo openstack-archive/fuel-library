@@ -345,8 +345,8 @@ case "$mode" in
                    fi
                 else
                       echo "mysql: Master flag was already set, skipping our (probably legitimate yet) promotion"
-                      service mysql stop
-                      sleep 90
+                      kill `cat "$mysqld_pid_file_path"`
+                      sleep 30
                       $bindir/mysqld_safe --datadir="$datadir" --pid-file="$mysqld_pid_file_path" $other_args >/dev/null 2>&1 &
                       wait_for_pid created "$!" "$mysqld_pid_file_path"; return_value=$?
                 fi
