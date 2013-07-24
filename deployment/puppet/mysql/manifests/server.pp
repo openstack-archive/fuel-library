@@ -213,12 +213,12 @@ class mysql::server (
       provider => 'pacemaker',
     }
 
-#    #Tie internal-vip to p_mysql
-#    cs_colocation { 'mysql_to_internal-vip': 
-#      primitives => ['vip__management_old','master_p_mysql:Master'],
-#      score      => 'INFINITY',
-#      require    => [Cs_resource['p_mysql'], Cs_commit['mysql']],
-#    } 
+    #Tie vip__management_old to p_mysql
+    cs_colocation { 'mysql_to_internal-vip': 
+      primitives => ['vip__management_old','master_p_mysql:Master'],
+      score      => 'INFINITY',
+      require    => [Cs_resource['p_mysql'], Cs_commit['mysql']],
+    } 
 
   }
   elsif ($custom_setup_class == 'galera')  {
