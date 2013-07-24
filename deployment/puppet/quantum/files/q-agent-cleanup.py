@@ -521,7 +521,7 @@ if __name__ == '__main__':
         LOG.addHandler(logging.handlers.WatchedFileHandler(args.log))
         LOG.setLevel(_log_level)
 
-    LOG.debug("Started")
+    LOG.info("Started: {0}".format(' '.join(sys.argv)))
     cleaner = QuantumCleaner(get_authconfig(args.authconf), options=vars(args), log=LOG)
     rc = 0
     if vars(args).get('test-hostnames'):
