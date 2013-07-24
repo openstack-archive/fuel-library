@@ -177,6 +177,10 @@ class nailgun(
 
   class { "nailgun::logrotate": }
 
+  class { "nailgun::ostf":
+    pip_opts => "${pip_index} ${pip_find_links}",
+  }
+
   class { "nailgun::gateone":
     pip_opts => "${pip_index} ${pip_find_links}",
   }
