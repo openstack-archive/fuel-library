@@ -26,16 +26,16 @@ $internal_virtual_ip = '10.0.0.253'
 # interface resides
 $public_virtual_ip   = '10.0.204.253'
 
-#case $::operatingsystem {
-#  'redhat' : { 
-#          $queue_provider = 'qpid'
-#          $custom_mysql_setup_class = 'pacemaker_mysql'
-#  }
-#  default: {
-#    $queue_provider='rabbitmq'
-#    $custom_mysql_setup_class='galera'
-#  }
-#}
+case $::operatingsystem {
+  'redhat' : { 
+          $queue_provider = 'qpid'
+          $custom_mysql_setup_class = 'pacemaker_mysql'
+  }
+  default: {
+    $queue_provider='rabbitmq'
+    $custom_mysql_setup_class='galera'
+  }
+}
 
 $nodes_harr = [
   {
@@ -146,7 +146,6 @@ $nova_db_password        = 'nova'
 $nova_user_password      = 'nova'
 
 #AMQP backend rabbitmq or qpid
-$queue_provider          = 'qpid'
 validate_re($queue_provider,  'rabbitmq|qpid')
 
 $rabbit_password         = 'nova'
