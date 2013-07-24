@@ -24,7 +24,7 @@ stage {'glance-image':
 case $::operatingsystem {
   'redhat' : { 
           $queue_provider = 'qpid'
-          $custom_mysql_setup_class = 'mysql_pacemaker'
+          $custom_mysql_setup_class = 'pacemaker_mysql'
   }
   default: {
     $queue_provider='rabbitmq'

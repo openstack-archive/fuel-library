@@ -136,7 +136,6 @@ class openstack::quantum_router (
         auth_password       => $quantum_user_password,
         metadata_ip         => $internal_address,
         nova_api_vip        => $nova_api_vip,
-        service_provider    => $service_provider
       }
    }
 
