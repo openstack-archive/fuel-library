@@ -19,7 +19,7 @@ $quantum_params       = parsejson($::quantum_parameters)
 $nova-network_params  = parsejson($::nova-network_parameters)
 $base_syslog_hash     = parsejson($::base_syslog)
 $syslog_hash          = parsejson($::syslog)
-
+$nodes_hash           = parsejson($::nodes)
 $tenant_network_type  = $quantum_params['tenant_network_type']
 $segment_range        = $quantum_params['segment_range']
 $rabbit_user          = $rabbit_hash['user']
@@ -31,20 +31,27 @@ $cinder_nodes          = ['controller']
 
 
 ##
-$internal_br         = 'br-mgmt'
-$public_br           = 'br-ex'
-
 $verbose = true
 $debug = true
-
+$ntp_servers = ['pool.ntp.org']
 $nv_physical_volume     = ['/dev/sdz', '/dev/sdy', '/dev/sdx']
 ##CALCULATED PARAMETERS
 
 ##NO NEED TO CHANGE
 
-$controller_node_public  = $internal_virtual_ip
-$swift_proxies = $controller_internal_addresses
+$node = filter_nodes($nodes_hash,'name',$::hostname)
+if empty($node) {
+  fail("Node $::hostname is not defined in the hash structure")
+}
 
+
+if $quantum {
+  $public_int   = $public_br
+  $internal_int = $internal_br
+} else {
+  $public_int   = $public_interface
+  $internal_int = $management_interface
+}
 
 $vips = { # Do not convert to ARRAY, It can't work in 2.7
   public_old => {
@@ -103,14 +110,19 @@ $quantum_host            = $management_vip
 
 
 ##TODO: simply parse nodes array
-$controller_internal_addresses = parsejson($ctrl_management_addresses)
-$controller_public_addresses = parsejson($ctrl_public_addresses)
-$controller_storage_addresses = parsejson($ctrl_storage_addresses)
+$controller_internal_addresses = nodes_to_hash($controllers,'name','internal_address')
+$controller_public_addresses = nodes_to_hash($controllers,'name','public_address')
+$controller_storage_addresses = nodes_to_hash($controllers,'name','storage_address')
 $controller_hostnames = keys($controller_internal_addresses)
 $controller_nodes = values($controller_internal_addresses)
+$controllers = merge_arrays(filter_nodes($nodes_hash,'role','primary-controller'), filter_nodes($nodes_hash,'role','controller'))
 
-$internal_address = $node[0]['internal_address']
-$public_address = $node[0]['public_address']
+
+$controller_node_public  = $management_vip
+$swift_proxies = $controller_internal_addresses
+
+$internal_address = $nodes_hash[0]['internal_address']
+$public_address = $nodes_hash[0]['public_address']
 $quantum_gre_bind_addr = $internal_address
 
 $swift_local_net_ip      = $internal_address
@@ -138,7 +150,7 @@ if $node[0]['role'] == 'primary-controller' {
 } else {
   $primary_controller = false
 }
-$master_swift_proxy_nodes = filter_nodes($nodes,'role','primary-controller')
+$master_swift_proxy_nodes = filter_nodes($nodes_hash,'role','primary-controller')
 $master_swift_proxy_ip = $master_swift_proxy_nodes[0]['internal_address']
 
 
@@ -207,12 +219,7 @@ if $use_syslog {
 }
 
 
-
- # Quantum is turned off
-
 $mirror_type = 'external'
- # Quantum is turned off
-
 Exec { logoutput => true }
 
 
@@ -224,8 +231,8 @@ class compact_controller {
     controller_public_addresses   => $controller_public_addresses,
     controller_internal_addresses => $controller_internal_addresses,
     internal_address              => $internal_address,
-    public_interface              => $public_interface,
-    internal_interface            => $management_interface,
+    public_interface              => $public_int,
+    internal_interface            => $internal_int,
     private_interface             => $fixed_interface,
     internal_virtual_ip           => $management_vip,
     public_virtual_ip             => $public_vip,
@@ -322,8 +329,7 @@ class virtual_ips () {
       }
       if $primary_proxy {
         ring_devices {'all':
-          storages => parsejson($nodes)
-        }
+          storages => $controllers
       }
       class { 'openstack::swift::proxy':
         swift_user_password     => $swift_hash[user_password],
@@ -338,7 +344,7 @@ class virtual_ips () {
       nova_config { 'DEFAULT/use_cow_images': value => $use_cow_images }
       nova_config { 'DEFAULT/compute_scheduler_driver': value => $compute_scheduler_driver }
 
-      if $hostname == $master_hostname {
+      if $::hostname == $master_hostname {
         class { 'openstack::img::cirros':
           os_username => shellescape($access_hash[user]),
           os_password => shellescape($access_hash[password]),

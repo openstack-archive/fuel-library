@@ -21,15 +21,18 @@ stage {'glance-image':
   require => Stage['main'],
 }
 
+$nodes_hash = parsejson($nodes)
+
+$node = filter_nodes($nodes_hash,'name',$::hostname)
+if empty($node) {
+  fail("Node $::hostname is not defined in the hash structure")
+}
+$internal_address = $node[0]['internal_address']
+$public_address = $node[0]['public_address']
+$internal_netmask = $node[0]['internal_netmask']
+$public_netmask = $node[0]['public_netmask']
+
 ###
-$default_gateway = '10.0.204.1'
-$dns_nameservers = ['10.0.204.1','8.8.8.8']
-$internal_netmask = '255.255.255.0'
-$public_netmask = '255.255.255.0'
-
-parsejson($::network_data)
-
-
 class node_netconfig (
   $mgmt_ipaddr,
   $mgmt_netmask  = '255.255.255.0',
@@ -45,8 +48,8 @@ class node_netconfig (
       bridge    => $internal_br,
       ipaddr    => $mgmt_ipaddr,
       netmask   => $mgmt_netmask,
-      dns_nameservers      => $dns_nameservers,
-      save_default_gateway => $save_default_gateway,
+      dns_nameservers  => $dns_nameservers,
+      gateway => $default_gateway,
     } ->
     l23network::l3::create_br_iface {'ex':
       interface => $public_interface, # !! NO $public_int /sv !!!
@@ -66,9 +69,10 @@ class node_netconfig (
       ipaddr  => $mgmt_ipaddr,
       netmask => $mgmt_netmask,
       dns_nameservers      => $dns_nameservers,
+      gateway => $default_gateway
     }
   }
-  l23network::l3::ifconfig {$private_interface: ipaddr=>'none' }
+  l23network::l3::ifconfig {$fixed_interface: ipaddr=>'none' }
 }
 
 
@@ -77,11 +81,12 @@ class os_common {
   { 
      class {'l23network': use_ovs=>$quantum, stage=> 'netconfig'}  
       class {'::node_netconfig':
-      mgmt_ipaddr    => $::internal_address,
-      mgmt_netmask   => $::internal_netmask,
-      public_ipaddr  => $::public_address,
-      public_netmask => $::public_netmask,
+      mgmt_ipaddr    => $internal_address,
+      mgmt_netmask   => $internal_netmask,
+      public_ipaddr  => $public_address,
+      public_netmask => $public_netmask,
       stage          => 'netconfig',
+      default_gateway => $default_gateway
   }
   }
   else
@@ -101,7 +106,7 @@ class os_common {
 node default {
   case $deployment_mode {
     "singlenode": { 
-      include osnailyfacter::cluster_simple 
+      include osnailyfacter::"cluster_simple_${deployment_source}" 
       class {'os_common':}
       }
     "multinode": { 
@@ -109,7 +114,7 @@ node default {
       class {'os_common':}
       }
     "ha": { 
-      include osnailyfacter::cluster_ha
+      include osnailyfacter::"cluster_ha_${deployment_source}""
       class {'os_common':}
       }
     "rpmcache": { include osnailyfacter::rpmcache }
