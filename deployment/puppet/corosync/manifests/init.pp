@@ -96,7 +96,7 @@ class corosync (
     owner   => '0',
     group   => '0',
     mode    => '0644',
-    before  =>  before => Service["corosync"],
+    before => Service["corosync"],
   }
   
   
