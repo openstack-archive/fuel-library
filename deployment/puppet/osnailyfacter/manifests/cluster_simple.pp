@@ -173,6 +173,7 @@ Exec { logoutput => true }
         db_host                => $controller_node_address,
         verbose                => $verbose,
         use_syslog             => true,
+        state_path             => $nova_hash[state_path],
       }
 
       class { "::rsyslog::client":
