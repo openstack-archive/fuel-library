@@ -38,21 +38,21 @@ class qpid::server(
       ensure => $package_ensure,
     }
     qpid_safe_package { $qpid::params::additional_packages : }
-    
-    file { '/usr/local/bin/qpid-setup-routes.sh':
-      ensure => present,
-      owner => 'root',
-      group => 'root',
-      mode => 755,
-      content => template('qpid/qpid-setup-routes.sh.erb'),
-    }
-
-    exec { "propagate_qpid_routes":
-      path    => "/usr/bin/:/bin:/usr/sbin",
-      command => "bash /usr/local/bin/qpid-setup-routes.sh",
-      subscribe => File['/usr/local/bin/qpid-setup-routes.sh'],
-      logoutput => true,
-    }
+    #Disable routing because it creates duplicates. Need upstream fixes
+#    file { '/usr/local/bin/qpid-setup-routes.sh':
+#      ensure => present,
+#      owner => 'root',
+#      group => 'root',
+#      mode => 755,
+#      content => template('qpid/qpid-setup-routes.sh.erb'),
+#    }
+#
+#    exec { "propagate_qpid_routes":
+#      path    => "/usr/bin/:/bin:/usr/sbin",
+#      command => "bash /usr/local/bin/qpid-setup-routes.sh",
+#      subscribe => File['/usr/local/bin/qpid-setup-routes.sh'],
+#      logoutput => true,
+#    }
   }
   if $auth == 'yes' {
     qpid_user { 'qpid_user':
