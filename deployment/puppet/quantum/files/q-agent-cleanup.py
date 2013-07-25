@@ -397,16 +397,21 @@ class QuantumCleaner(object):
                 lambda rou: lucky_ids.add(rou['id']),
                 self._list_routers_on_l3_agent(agents['alive'][0]['id'])
             )
+            # remove dead agents after rescheduling
+            for agent in agents['dead']:
+                self.log.info("remove dead L3 agent: {0}".format(agent['id']))
+                if not self.options.get('noop'):
+                    self._quantum_API_call(self.client.delete_agent, agent['id'])
             # move routers from dead to alive agent
             for rou in filter(lambda rr: not(rr[0]['id'] in lucky_ids), dead_routers):
-                self.log.info("unschedule router {rou} from L3 agent {agent}".format(
-                    rou=rou[0]['id'],
-                    agent=rou[1]
-                ))
-                if not self.options.get('noop'):
-                    self._remove_router_from_l3_agent(rou[1], rou[0]['id'])
-                    #todo: if error:
-                #
+                # self.log.info("unschedule router {rou} from L3 agent {agent}".format(
+                #     rou=rou[0]['id'],
+                #     agent=rou[1]
+                # ))
+                # if not self.options.get('noop'):
+                #     self._remove_router_from_l3_agent(rou[1], rou[0]['id'])
+                #     #todo: if error:
+                # #
                 self.log.info("schedule router {rou} to L3 agent {agent}".format(
                     rou=rou[0]['id'],
                     agent=agents['alive'][0]['id']
@@ -414,11 +419,6 @@ class QuantumCleaner(object):
                 if not self.options.get('noop'):
                     self._add_router_to_l3_agent(agents['alive'][0]['id'], rou[0]['id'])
                     #todo: if error:
-            # remove dead agents after rescheduling
-            for agent in agents['dead']:
-                self.log.info("remove dead L3 agent: {0}".format(agent['id']))
-                if not self.options.get('noop'):
-                    self._quantum_API_call(self.client.delete_agent, agent['id'])
         self.log.debug("_reschedule_agent_l3: end.")
 
     def _reschedule_agent(self, agent):
