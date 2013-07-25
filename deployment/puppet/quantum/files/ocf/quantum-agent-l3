@@ -58,7 +58,7 @@ OCF_RESKEY_debug_syslog=false
 : ${OCF_RESKEY_pid=${OCF_RESKEY_pid_default}}
 : ${OCF_RESKEY_external_bridge=${OCF_RESKEY_external_bridge_default}}
 : ${OCF_RESKEY_debug=${OCF_RESKEY_debug_default}}
-: ${OCF_RESKEY_debug=${OCF_RESKEY_syslog_default}}
+: ${OCF_RESKEY_syslog=${OCF_RESKEY_syslog_default}}
 
 
 #######################################################################
