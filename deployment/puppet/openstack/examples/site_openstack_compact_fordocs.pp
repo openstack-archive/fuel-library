@@ -106,7 +106,7 @@ $public_address = $node[0]['public_address']
 $controllers = merge_arrays(filter_nodes($nodes,'role','primary-controller'), filter_nodes($nodes,'role','controller'))
 $controller_internal_addresses = nodes_to_hash($controllers,'name','internal_address')
 $controller_public_addresses = nodes_to_hash($controllers,'name','public_address')
-$controller_hostnames = keys($controller_internal_addresses)
+$controller_hostnames = sort(keys($controller_internal_addresses))
 
 #Set this to anything other than pacemaker if you do not want Quantum HA
 #Also, if you do not want Quantum HA, you MUST enable $quantum_network_node
