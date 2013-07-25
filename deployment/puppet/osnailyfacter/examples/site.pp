@@ -21,6 +21,17 @@ stage {'glance-image':
   require => Stage['main'],
 }
 
+case $::operatingsystem {
+  'redhat' : { 
+          $queue_provider = 'qpid'
+          $custom_mysql_setup_class = 'pacemaker_mysql'
+  }
+  default: {
+    $queue_provider='rabbitmq'
+    $custom_mysql_setup_class='galera'
+  }
+}
+
 class os_common {
   class {'osnailyfacter::network_setup': stage => 'netconfig'}
   class {'openstack::firewall': stage => 'openstack-firewall'}

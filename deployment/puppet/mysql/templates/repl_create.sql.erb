@@ -1,0 +1,14 @@
+USE mysql;
+grant <%= replication_roles %> on *.* to '<%= rep_user %>'@'%' IDENTIFIED by '<%= rep_pass %>';
+grant <%= replication_roles %> on *.* to '<%= rep_user %>'@'localhost' IDENTIFIED by '<%= rep_pass %>';
+<% @galera_nodes.each do |node| -%>
+grant <%= replication_roles %> on *.* to '<%= rep_user %>'@'<%= node %>' IDENTIFIED by '<%= rep_pass %>';
+<% end -%>
+<%- interfaces.split(',').each do |int|
+  if has_variable?("ipaddress_#{int}") then %>
+grant <%= replication_roles %> on *.* to '<%= rep_user %>'@'<%= scope.lookupvar("ipaddress_#{int}") %>' IDENTIFIED by '<%= rep_pass %>';
+<%- end
+end %>
+grant <%= replication_roles %> on *.* to '<%= rep_user %>'@'<%= internal_address %>' IDENTIFIED by '<%= rep_pass %>';
+grant <%= replication_roles %> on *.* to '<%= rep_user %>'@'<%= server_id %>' IDENTIFIED by '<%= rep_pass %>';
+flush privileges;

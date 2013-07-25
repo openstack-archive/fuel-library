@@ -179,7 +179,6 @@ class horizon(
         ],
         before  => Service['httpd'],
       }
-
       if $use_syslog {
         file {'/etc/httpd/conf.d/openstack-dashboard.conf':
 	  ensure  => present,

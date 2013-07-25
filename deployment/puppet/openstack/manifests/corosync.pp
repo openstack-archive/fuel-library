@@ -41,7 +41,7 @@ File['filter_quantum_ports.py'] -> File<| title == 'quantum-ovs-agent' |>
 
 file {'quantum-ovs-agent':
   path=>'/usr/lib/ocf/resource.d/pacemaker/quantum-agent-ovs', 
-  mode => 744,
+  mode => 755,
   owner => root,
   group => root,
   source => "puppet:///modules/openstack/quantum-agent-ovs",

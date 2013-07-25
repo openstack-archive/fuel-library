@@ -4,7 +4,7 @@ $controller_internal_addresses = parsejson($ctrl_management_addresses)
 $controller_public_addresses = parsejson($ctrl_public_addresses)
 $controller_storage_addresses = parsejson($ctrl_storage_addresses)
 $controller_hostnames = keys($controller_internal_addresses)
-$controller_nodes = values($controller_internal_addresses)
+$controller_nodes = sort(values($controller_internal_addresses))
 
 if $auto_assign_floating_ip == 'true' {
   $bool_auto_assign_floating_ip = true
@@ -63,6 +63,10 @@ if $syslog_hash['syslog_server'] != "" and $syslog_hash['syslog_port'] != "" and
 else {
   $rservers = [$base_syslog_rserver]
 }
+
+# can be 'qpid' or 'rabbitmq' only
+# do not edit the below line
+validate_re($::queue_provider,  'rabbitmq|qpid')
 
 $rabbit_user   = 'nova'
 
@@ -123,6 +127,10 @@ class compact_controller {
     rabbit_password               => $rabbit_hash[password],
     rabbit_user                   => $rabbit_user,
     rabbit_nodes                  => $controller_nodes,
+    queue_provider                => $::queue_provider,
+    qpid_password                 => $rabbit_hash[password],
+    qpid_user                     => $rabbit_user,
+    qpid_nodes                    => [$management_vip],
     memcached_servers             => $controller_nodes,
     export_resources              => false,
     glance_backend                => $glance_backend,
@@ -140,8 +148,10 @@ class compact_controller {
     cinder_db_password            => $cinder_hash[db_password],
     manage_volumes                => false,
     galera_nodes                  => $controller_nodes,
+    custom_mysql_setup_class      => $::custom_mysql_setup_class,
     mysql_skip_name_resolve       => true,
     use_syslog                    => true,
+    use_unicast_corosync          => true,
   }
 
   class { "::rsyslog::client":
@@ -256,6 +266,11 @@ class virtual_ips () {
         rabbit_user            => $rabbit_user,
         rabbit_ha_virtual_ip   => $management_vip,
         auto_assign_floating_ip => $bool_auto_assign_floating_ip,
+        queue_provider         => $::queue_provider,
+        qpid_password          => $rabbit_hash[password],
+        qpid_user              => $rabbit_user,
+        qpid_nodes             => [$management_vip],
+        auto_assign_floating_ip => $bool_auto_assign_floating_ip,
         glance_api_servers     => "${management_vip}:9292",
         vncproxy_host          => $public_vip,
         verbose                => $verbose,
@@ -298,13 +313,20 @@ class virtual_ips () {
       class { 'openstack::cinder':
         sql_connection       => "mysql://cinder:${cinder_hash[db_password]}@${management_vip}/cinder?charset=utf8",
         glance_api_servers   => "${management_vip}:9292",
+        queue_provider       => $::queue_provider,
         rabbit_password      => $rabbit_hash[password],
         rabbit_host          => false,
         rabbit_nodes         => $management_vip,
+        qpid_password        => $rabbit_hash[password],
+        qpid_user            => $rabbit_user,
+        qpid_nodes           => [$management_vip],
         volume_group         => 'cinder',
         manage_volumes       => true,
         enabled              => true,
         auth_host            => $management_vip,
+        qpid_password        => $rabbit_hash[password],
+        qpid_user            => $rabbit_user,
+        qpid_nodes           => $controller_hostnames,
         iscsi_bind_host      => $storage_address,
         cinder_user_password => $cinder_hash[user_password],
         use_syslog           => true,

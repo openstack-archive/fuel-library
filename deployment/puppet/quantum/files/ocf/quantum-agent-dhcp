@@ -224,7 +224,6 @@ quantum_dhcp_agent_status() {
         ocf_log info "OpenStack OVS Server (quantum-dhcp-agent) seems not to exist"
 
         pid=`pgrep -f ${OCF_RESKEY_binary}`
-
         if [ $? -eq 0 ]
         then
         	ocf_log warn "OpenStack OVS Server (quantum-dhcp-agent) was run, but no pid file found."
@@ -273,7 +272,6 @@ quantum_dhcp_agent_monitor() {
 
 quantum_dhcp_agent_start() {
     local rc
-
     quantum_dhcp_agent_status
     rc=$?
     if [ $rc -eq $OCF_SUCCESS ]; then

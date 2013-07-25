@@ -1,6 +1,6 @@
 #This class installs quantum WITHOUT quantum api server which is installed on controller nodes
 # [use_syslog] Rather or not service should log to syslog. Optional.
-# [syslog_log_facility] Facility for syslog, if used. Optional. Note: duplicating conf option
+# [syslog_log_facility] Facility for syslog, if used. Optional. Note: duplicating conf option 
 #       wouldn't have been used, but more powerfull rsyslog features managed via conf template instead
 # [syslog_log_level] logging level for non verbose and non debug mode. Optional.
 
@@ -17,9 +17,13 @@ class openstack::quantum_router (
   $segment_range            = '1:4094',
   $service_endpoint         = '127.0.0.1',
   $nova_api_vip             = '127.0.0.1',
+  $queue_provider           = 'rabbitmq',
   $rabbit_user              = 'nova',
   $rabbit_nodes             = ['127.0.0.1'],
   $rabbit_ha_virtual_ip     = false,
+  $qpid_password            = 'qpid_pw',
+  $qpid_user                = 'nova',
+  $qpid_nodes               = ['127.0.0.1'],
   $db_type                  = 'mysql',
   $auth_host                = '127.0.0.1',
   $verbose                  = 'False',
@@ -35,7 +39,7 @@ class openstack::quantum_router (
   $exported_resources       = true,
   $quantum_gre_bind_addr    = $internal_address,
   $quantum_network_node     = false,
-  $quantum_netnode_on_cnt   = false,
+  $quantum_netnode_on_cnt   = false,  
   $tenant_network_type      = 'gre',
   $use_syslog               = false,
   $syslog_log_facility      = 'LOCAL4',
@@ -52,10 +56,14 @@ class openstack::quantum_router (
 
     class { '::quantum':
       bind_host            => $api_bind_address,
+      queue_provider       => $queue_provider,
       rabbit_user          => $rabbit_user,
       rabbit_password      => $rabbit_password,
       rabbit_host          => $rabbit_nodes,
       rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
+      qpid_user            => $qpid_user,
+      qpid_password        => $qpid_password,
+      qpid_host            => $qpid_nodes,
       verbose              => $verbose,
       debug                => $debug,
       use_syslog           => $use_syslog,
@@ -66,7 +74,7 @@ class openstack::quantum_router (
       auth_tenant          => 'services',
       auth_user            => 'quantum',
       auth_password        => $quantum_user_password,
-    }
+    } 
     #todo: add quantum::server here (into IF)
     class { 'quantum::plugins::ovs':
       bridge_mappings     => ["physnet1:br-ex","physnet2:br-prv"],
@@ -129,10 +137,11 @@ class openstack::quantum_router (
         metadata_ip         => $internal_address,
         nova_api_vip        => $nova_api_vip,
       }
-    }
+   }
 
     if !defined(Sysctl::Value['net.ipv4.ip_forward']) {
       sysctl::value { 'net.ipv4.ip_forward': value => '1'}
     }
 
 }
+

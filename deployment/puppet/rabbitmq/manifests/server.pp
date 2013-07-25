@@ -75,10 +75,8 @@ class rabbitmq::server(
   $plugin_dir = "/usr/lib/rabbitmq/lib/rabbitmq_server-${version_real}/plugins"
 
   if $::osfamily == 'RedHat' {
-    package { 'qpid-cpp-server':
-      ensure => 'purged',
-      before => Package[$package_name]
-    }
+    stdlib::safe_package {'qpid-cpp-server': ensure => 'purged' }
+    Package['qpid-cpp-server'] -> Package[$package_name]
   }
 
   package { $package_name:

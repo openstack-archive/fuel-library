@@ -47,6 +47,9 @@ else {
   $rservers = [$base_syslog_rserver]
 }
 
+# do not edit the below line
+validate_re($::queue_provider,  'rabbitmq|qpid')
+
 $rabbit_user   = 'nova'
 
 $sql_connection           = "mysql://nova:${nova_hash[db_password]}@${controller_node_address}/nova"
@@ -85,8 +88,11 @@ Exec { logoutput => true }
         glance_user_password    => $glance_hash[user_password],
         nova_db_password        => $nova_hash[db_password],
         nova_user_password      => $nova_hash[user_password],
+        queue_provider          => $::queue_provider,
         rabbit_password         => $rabbit_hash[password],
         rabbit_user             => $rabbit_user,
+        qpid_password           => $rabbit_hash[password],
+        qpid_user               => $rabbit_user,
         export_resources        => false,
         quantum                 => $quantum,
         cinder                  => true,
@@ -153,10 +159,14 @@ Exec { logoutput => true }
         multi_host             => $multi_host,
         sql_connection         => $sql_connection,
         nova_user_password     => $nova_hash[user_password],
+        queue_provider         => $::queue_provider,
         rabbit_nodes           => [$controller_node_address],
         rabbit_password        => $rabbit_hash[password],
         rabbit_user            => $rabbit_user,
         auto_assign_floating_ip => $bool_auto_assign_floating_ip,
+        qpid_nodes             => [$controller_node_address],
+        qpid_password          => $rabbit_hash[password],
+        qpid_user              => $rabbit_user,
         glance_api_servers     => "${controller_node_address}:9292",
         vncproxy_host          => $controller_node_public,
         vnc_enabled            => true,
@@ -197,9 +207,13 @@ Exec { logoutput => true }
       class { 'openstack::cinder':
         sql_connection       => "mysql://cinder:${cinder_hash[db_password]}@${controller_node_address}/cinder?charset=utf8",
         glance_api_servers   => "${controller_node_address}:9292",
+        queue_provider       => $::queue_provider,
         rabbit_password      => $rabbit_hash[password],
         rabbit_host          => false,
         rabbit_nodes         => [$controller_node_address],
+        qpid_password        => $rabbit_hash[password],
+        qpid_user            => $rabbit_user,
+        qpid_nodes           => [$controller_node_address],
         volume_group         => 'cinder',
         manage_volumes       => true,
         enabled              => true,
