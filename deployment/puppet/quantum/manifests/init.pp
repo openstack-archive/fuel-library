@@ -76,7 +76,6 @@ class quantum (
     group  => quantum,
   }
 
-
   if is_array($rabbit_host) and size($rabbit_host) > 1 {
     if $rabbit_ha_virtual_ip {
       $rabbit_hosts = "${rabbit_ha_virtual_ip}:${rabbit_port}"
@@ -124,19 +123,22 @@ class quantum (
     'DEFAULT/rabbit_userid':          value => $rabbit_user;
     'DEFAULT/rabbit_password':        value => $rabbit_password;
     'DEFAULT/rabbit_virtual_host':    value => $rabbit_virtual_host;
-    'DEFAULT/use_syslog':             value => $use_syslog;
     'keystone_authtoken/auth_host':         value => $auth_host;
     'keystone_authtoken/auth_port':         value => $auth_port;
     'keystone_authtoken/admin_tenant_name': value => $auth_tenant;
     'keystone_authtoken/admin_user':        value => $auth_user;
     'keystone_authtoken/admin_password':    value => $auth_password;
   }
+  # logging for agents grabbing from stderr. It's workarround for bug in quantum-logging
+  # server givs this parameters from command line
+  quantum_config {
+      'DEFAULT/log_config': ensure=> absent;
+      'DEFAULT/log_file':   ensure=> absent;
+      'DEFAULT/log_dir':    ensure=> absent;
+      'DEFAULT/use_syslog': ensure=> absent;
+      'DEFAULT/use_stderr': value => true;
+  }
   if $use_syslog {
-    quantum_config {
-      'DEFAULT/log_config': value => "/etc/quantum/logging.conf";
-      'DEFAULT/log_file': ensure=> absent;
-      'DEFAULT/logdir': ensure=> absent;
-    }
     file { "quantum-logging.conf":
       content => template('quantum/logging.conf.erb'),
       path  => "/etc/quantum/logging.conf",
@@ -155,17 +157,13 @@ class quantum (
     File['quantum-logging.conf'] -> Anchor<| title == 'quantum-dhcp-agent' |>
 
   } else {
-    quantum_config {
-      'DEFAULT/log_config': ensure=> absent;
-      'DEFAULT/log_file':   value => $log_file;
+    file { "quantum-logging.conf":
+      content => template('quantum/logging.conf-nosyslog.erb'),
+      path  => "/etc/quantum/logging.conf",
+      owner => "root",
+      group => "root",
+      mode  => 644,
     }
-    # file { "quantum-logging.conf":
-    #   content => template('quantum/logging.conf-nosyslog.erb'),
-    #   path  => "/etc/quantum/logging.conf",
-    #   owner => "root",
-    #   group => "root",
-    #   mode  => 644,
-    # }
   }
 
   File <| title=='/etc/quantum' |> -> File <| title=='quantum-logging.conf' |>

@@ -261,6 +261,8 @@ class quantum::agents::l3 (
         'tenant'      => $auth_tenant,
         'username'    => $auth_user,
         'password'    => $auth_password,
+        'debug'       => $debug,
+        'syslog'      => $::use_syslog,
       },
       operations      => {
         'monitor'  => {

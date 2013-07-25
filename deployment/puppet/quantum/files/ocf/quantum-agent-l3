@@ -44,7 +44,8 @@ OCF_RESKEY_username_default="quantum"
 OCF_RESKEY_password_default="quantum_pass"
 OCF_RESKEY_tenant_default="services"
 OCF_RESKEY_external_bridge_default="br-ex"
-
+OCF_RESKEY_debug_default=false
+OCF_RESKEY_debug_syslog=false
 
 : ${OCF_RESKEY_os_auth_url=${OCF_RESKEY_os_auth_url_default}}
 : ${OCF_RESKEY_username=${OCF_RESKEY_username_default}}
@@ -56,7 +57,8 @@ OCF_RESKEY_external_bridge_default="br-ex"
 : ${OCF_RESKEY_user=${OCF_RESKEY_user_default}}
 : ${OCF_RESKEY_pid=${OCF_RESKEY_pid_default}}
 : ${OCF_RESKEY_external_bridge=${OCF_RESKEY_external_bridge_default}}
-
+: ${OCF_RESKEY_debug=${OCF_RESKEY_debug_default}}
+: ${OCF_RESKEY_syslog=${OCF_RESKEY_syslog_default}}
 
 
 #######################################################################
@@ -182,7 +184,21 @@ External bridge for l3-agent
 <content type="string" />
 </parameter>
 
+<parameter name="debug" unique="0" required="0">
+  <longdesc lang="en">
+  Enable debug logging
+  </longdesc>
+  <shortdesc lang="en">Enable debug logging</shortdesc>
+  <content type="boolean" default="false"/>
+</parameter>
 
+<parameter name="syslog" unique="0" required="0">
+  <longdesc lang="en">
+  Enable logging to syslog
+  </longdesc>
+  <shortdesc lang="en">Enable logging to syslog</shortdesc>
+  <content type="boolean" default="false"/>
+</parameter>
 
 <parameter name="additional_parameters" unique="0" required="0">
 <longdesc lang="en">
@@ -296,11 +312,27 @@ quantum_l3_agent_start() {
 
     clean_up
 
+    if ocf_is_true ${OCF_RESKEY_syslog} ; then
+        L3_SYSLOG=" | logger -t quantum-quantum.agent.l3 "
+        if ocf_is_true ${OCF_RESKEY_debug} ; then
+            L3_LOG=" | tee -ia /var/log/quantum/l3.log "
+        else
+            L3_LOG=" "
+        fi
+    else
+        L3_SYSLOG=""
+        if ocf_is_true ${OCF_RESKEY_debug} ; then
+            L3_LOG=" >> /var/log/quantum/l3.log "
+        else
+            L3_LOG=" >> /dev/null "
+        fi
+    fi
+
     # run the actual quantum-l3-agent daemon. Don't use ocf_run as we're sending the tool's output
     # straight to /dev/null anyway and using ocf_run would break stdout-redirection here.
     su ${OCF_RESKEY_user} -s /bin/sh -c "${OCF_RESKEY_binary} --config-file=$OCF_RESKEY_config \
-       --config-file=$OCF_RESKEY_plugin_config $OCF_RESKEY_additional_parameters"' >> \
-	/dev/null 2>&1 & echo $!' > $OCF_RESKEY_pid
+       --config-file=$OCF_RESKEY_plugin_config $OCF_RESKEY_additional_parameters  "' \
+        2>&1 '" $L3_LOG $L3_SYSLOG "' & echo $!' > $OCF_RESKEY_pid
 
     # Spin waiting for the server to come up.
     # Let the CRM/LRM time us out if required
