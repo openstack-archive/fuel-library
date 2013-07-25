@@ -264,13 +264,13 @@ quantum_l3_agent_status() {
 
         if [ $? -eq 0 ]
         then
-        	ocf_log warn "OpenStack OVS Server (quantum-l3-agent) was run, but no pid file found."
-        	ocf_log warn "Will use $pid as PID of process (quantum-l3-agent)"
-        	ocf_log warn "Writing $pid into $OCF_RESKEY_pid"
-        	echo $pid > $OCF_RESKEY_pid
-    	else
-    		return $OCF_NOT_RUNNING
-    	fi
+            ocf_log warn "OpenStack quantum-l3-agent was run, but no pid file found."
+            ocf_log warn "Will use $pid as PID of process (quantum-l3-agent)"
+            ocf_log warn "Writing $pid into $OCF_RESKEY_pid"
+            echo $pid > $OCF_RESKEY_pid
+        else
+            return $OCF_NOT_RUNNING
+        fi
     else
         pid=`cat $OCF_RESKEY_pid`
     fi
@@ -280,7 +280,7 @@ quantum_l3_agent_status() {
     if [ $rc -eq 0 ]; then
         return $OCF_SUCCESS
     else
-        ocf_log info "Old PID file found, but OpenStack OVS Server (quantum-l3-agent) is not running"
+        ocf_log info "Old PID file found, but OpenStack quantum-l3-agent is not running"
         return $OCF_NOT_RUNNING
     fi
 }
@@ -306,7 +306,13 @@ quantum_l3_agent_start() {
     quantum_l3_agent_status
     rc=$?
     if [ $rc -eq $OCF_SUCCESS ]; then
-        ocf_log info "OpenStack L3 Server (quantum-l3-agent) already running"
+        ocf_log info "OpenStack quantum-l3-agent already running"
+        return $OCF_SUCCESS
+    fi
+
+    L3_PID=`pgrep -u ${OCF_RESKEY_user} -f ${OCF_RESKEY_binary}`
+    if [ "xx$L3_PID" != "xx" ]; then
+        ocf_log info "OpenStack quantum-l3-agent already running with PID=$L3_PID"
         return $OCF_SUCCESS
     fi
 
@@ -330,9 +336,12 @@ quantum_l3_agent_start() {
 
     # run the actual quantum-l3-agent daemon. Don't use ocf_run as we're sending the tool's output
     # straight to /dev/null anyway and using ocf_run would break stdout-redirection here.
+
     su ${OCF_RESKEY_user} -s /bin/sh -c "${OCF_RESKEY_binary} --config-file=$OCF_RESKEY_config \
        --config-file=$OCF_RESKEY_plugin_config $OCF_RESKEY_additional_parameters  "' \
-        2>&1 '" $L3_LOG $L3_SYSLOG "' & echo $!' > $OCF_RESKEY_pid
+        2>&1 '" $L3_LOG $L3_SYSLOG &"
+    L3_PID=`pgrep -u ${OCF_RESKEY_user} -f ${OCF_RESKEY_binary}`
+    echo "$L3_PID" > $OCF_RESKEY_pid
 
     # Spin waiting for the server to come up.
     # Let the CRM/LRM time us out if required
@@ -341,7 +350,7 @@ quantum_l3_agent_start() {
         rc=$?
         [ $rc -eq $OCF_SUCCESS ] && break
         if [ $rc -ne $OCF_NOT_RUNNING ]; then
-            ocf_log err "OpenStack L3 Server (quantum-l3-agent) start failed"
+            ocf_log err "OpenStack quantum-l3-agent start failed"
             exit $OCF_ERR_GENERIC
         fi
         sleep 1
@@ -360,7 +369,7 @@ quantum_l3_agent_stop() {
     quantum_l3_agent_status
     rc=$?
     if [ $rc -eq $OCF_NOT_RUNNING ]; then
-    	clean_up
+        clean_up
         ocf_log info "OpenStack L3 Server (quantum-l3-agent) already stopped"
         return $OCF_SUCCESS
     fi
@@ -400,11 +409,11 @@ quantum_l3_agent_stop() {
         ocf_run kill -s KILL $pid
     fi
 
-    ocf_log info "OpenStack L3 Server (quantum-l3-agent) stopped"
+    ocf_log info "OpenStack quantum-l3-agent stopped"
 
     rm -f $OCF_RESKEY_pid
 
-	clean_up
+    clean_up
 
     return $OCF_SUCCESS
 }
