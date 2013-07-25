@@ -68,6 +68,15 @@ class quantum (
     source => "puppet:///modules/quantum/q-agent-cleanup.py",
   }
 
+  file {'quantum-root':
+    path => '/etc/sudoers.d/quantum-root',
+    mode => 600,
+    owner => root,
+    group => root,
+    source => "puppet:///modules/quantum/quantum-root",
+    before => Package['quantum'],
+  }
+
   file {'/var/cache/quantum':
     ensure  => directory,
     path   => '/var/cache/quantum',
