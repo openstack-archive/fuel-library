@@ -82,6 +82,7 @@ class mysql::server (
     $allowed_hosts = '%'
     #$allowed_hosts = 'localhost'
 
+    ::corosync::cleanup{'p_mysql': } 
     Cs_commit['mysql']->::Corosync::Cleanup['p_mysql']
     Cs_commit['mysql']~>::Corosync::Cleanup["p_mysql"]
     ::Corosync::Cleanup["p_mysql"] -> Service['mysqld']
