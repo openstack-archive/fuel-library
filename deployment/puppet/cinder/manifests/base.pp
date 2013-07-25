@@ -159,4 +159,3 @@ else {
  Exec['cinder-manage db_sync'] -> Service<| title == 'cinder-volume' |>
  Exec['cinder-manage db_sync'] -> Service<| title == 'cinder-scheduler' |>
 }
-
