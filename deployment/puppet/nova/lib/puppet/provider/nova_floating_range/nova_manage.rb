@@ -1,7 +1,6 @@
-$LOAD_PATH.unshift(File.join(File.dirname(__FILE__),'..','..','..','..','..','gems'))
+$LOAD_PATH.unshift(File.join(File.dirname(__FILE__),'..','..','..','..','..'))
 require 'ruby-openstack/lib/openstack'
 require 'netaddr'
-
 Puppet::Type.type(:nova_floating_range).provide :nova_manage do
   desc 'Create nova floating range'
 
