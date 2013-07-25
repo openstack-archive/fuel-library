@@ -106,7 +106,7 @@ class os_common {
 node default {
   case $deployment_mode {
     "singlenode": { 
-      include osnailyfacter::"cluster_simple_${deployment_source}" 
+      include "osnailyfacter::cluster_simple_${deployment_source}" 
       class {'os_common':}
       }
     "multinode": { 
@@ -114,7 +114,7 @@ node default {
       class {'os_common':}
       }
     "ha": { 
-      include osnailyfacter::"cluster_ha_${deployment_source}""
+      include "osnailyfacter::cluster_ha_${deployment_source}"
       class {'os_common':}
       }
     "rpmcache": { include osnailyfacter::rpmcache }
