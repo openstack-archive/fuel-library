@@ -401,6 +401,7 @@ class openstack::compute (
           rabbit_password => $rabbit_password,
           use_syslog           => $use_syslog,
           rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
+          auth_password        => $quantum_user_password
         }
       }
       'qpid': {
@@ -412,6 +413,7 @@ class openstack::compute (
           qpid_user       => $qpid_user,
           qpid_password   => $qpid_password,
           use_syslog      => $use_syslog,
+          auth_password        => $quantum_user_password
         }
       }
     }
