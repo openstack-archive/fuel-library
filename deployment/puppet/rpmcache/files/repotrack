@@ -137,8 +137,9 @@ def main():
     my.doConfigSetup(fn=opts.config,init_plugins=True) # init yum, WITH plugins
     
     if opts.arch:
-        archlist = []
-        archlist.extend(rpmUtils.arch.getArchList(opts.arch))
+        #archlist = []
+        #archlist.extend(rpmUtils.arch.getArchList(opts.arch))
+        archlist = opts.arch.split(',') # Change to this
     else:
         archlist = rpmUtils.arch.getArchList()
         

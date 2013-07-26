@@ -25,7 +25,7 @@ if ! [ -f /root/centos-release/centos-release*.rpm ]; then
   exit 1
 fi
 #Download RHN packages needed for RHN Satellite registration
-rhnpackages="m2crypto rhn-check rhn-client-tools rhnlib rhnsd rhn-setup yum-rhn-plugin redhat-release-sever"
+rhnpackages="m2crypto rhn-check rhn-client-tools rhnlib rhnsd rhn-setup yum-rhn-plugin redhat-release-server"
 mkdir -p /root/rhnpackages
 yum-config-manager --enable rhel-6-server-rpms
 yumdownloader --releasever=<%= releasever %> --disablerepo='*' --enablerepo='*rhel*' --resolve --destdir /root/rhnpackages $rhnpackages
@@ -53,8 +53,9 @@ if [ $? -ne 0 ]; then
 fi
 #Ensure channels are enabled:
 errors=0
+rhnchanneloutput="$(rhn-channel -l)"
 for channel in <%= sat_base_channels %> <%= sat_openstack_channel %>; do
-  if rhn-channel -l | grep -q "$channel"; then
+  if grep -q "$channel" <<< "rhnchanneloutput"; then
     echo "Found $channel."
   else
     echo "ERROR: $channel not found. Fix this in RHN Satellite manually or run the following command:"
@@ -71,7 +72,6 @@ fi
 
 #Download packages
 mkdir -p <%= pkgdir %>/repodata <%= pkgdir %>/Packages
-#yumdownloader --releasever=<%= releasever %> --disablerepo='*' --enablerepo='rhel*' --resolve --destdir "<%= pkgdir %>/Packages" $(cat /etc/nailgun/required-rpms.txt | xargs echo -en)
 
 rm -f /etc/yum/vars/releasever
 yum-config-manager --disable 'nailgun' &> /dev/null
@@ -87,10 +87,10 @@ for tries in $(seq 1 <%= numtries %>); do
   # FIXME: There is a error with a path substitution
   # At least hide path if there is no packages.
   shopt -s nullglob
-  before=`ls -1 "<%= pkgdir %>/Packages/|wc -l`
+  before=`ls -1 "<%= pkgdir %>/Packages/" |wc -l`
   echo Packages in local repo: $before
   env LANG=C rpm --checksig <%= pkgdir %>/Packages/* | grep 'md5 NOT OK' | cut -d':' -f1| xargs rm -f
-  after=`ls -1 "<%= pkgdir %>/Packages/|wc -l`
+  after=`ls -1 "<%= pkgdir %>/Packages/" |wc -l`
   echo Correct packages in local repo: $after
   [ $before -eq $after ] || status=1
 done
