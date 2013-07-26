@@ -17,8 +17,11 @@
 #     date-rfc3164: Dec 5 02:21:13,
 # [virtual] if node is virtual, fix for udp checksums should be applied
 # [rabbit_log_level] should be >= global syslog_log_level option,
-#   otherwise none messages would have gone to syslog (client role only)
-# [debug] switch between debug and standard cases, client role only. imfile monitors for local logs would be used if debug.
+#   otherwise none messages would have gone to syslog (client role only).
+# [logstash_node|_port] node and port for logstash server. Both for client and server roles
+# [elasticsearch_node] node for elasticsearch service (port is 9200). For server role only.
+# [kibana_host|_port] node and port for kibana WEB UI. Both for client and server roles.
+# [cluster_name] name for logstash cluster
 
 class openstack::logging (
     $role           = 'client',
@@ -28,7 +31,7 @@ class openstack::logging (
     $rotation       = 'daily',
     $keep           = '7',
     $limitsize      = '300M',
-    $rservers       = [{'remote_type'=>'udp', 'server'=>'master', 'port'=>'514'},],
+    $rservers       = [{'remote_type'=>'udp', 'server'=>'fuel', 'port'=>'514'},],
     $port           = '514',
     $proto          = 'udp',
     $show_timezone  = false,
@@ -43,6 +46,12 @@ class openstack::logging (
     $syslog_log_facility_savanna  = 'LOG_LOCAL0',
     $rabbit_log_level = 'NOTICE',
     $debug          = false,
+    $logstash_node = 'fuel',
+    $logstash_port = '55514',
+    $elasticsearch_node = 'localhost',
+    $kibana_host = '0.0.0.0',
+    $kibana_port = '5601',
+    $cluster_name = 'fuel_001',
 ) {
 
 validate_re($proto, 'tcp|udp|both')
@@ -50,6 +59,7 @@ validate_re($role, 'client|server')
 validate_re($rotation, 'daily|weekly|monthly|yearly')
 
 if $role == 'client' {
+  # Configure clients to send remote logs to rsyslog and Logstash
   class { "::rsyslog::client":
     high_precision_timestamps => $show_timezone,
     log_remote     => $log_remote,
@@ -57,15 +67,18 @@ if $role == 'client' {
     log_auth_local => $log_auth_local,
     rservers       => $rservers,
     virtual        => $virtual,
-    syslog_log_facility_glance   => $syslog_log_facility_glance,
-    syslog_log_facility_cinder   => $syslog_log_facility_cinder,
+    syslog_log_facility_glance => $syslog_log_facility_glance,
+    syslog_log_facility_cinder => $syslog_log_facility_cinder,
     syslog_log_facility_neutron  => $syslog_log_facility_neutron,
-    syslog_log_facility_nova     => $syslog_log_facility_nova,
+    syslog_log_facility_nova => $syslog_log_facility_nova,
     syslog_log_facility_keystone => $syslog_log_facility_keystone,
     syslog_log_facility_heat     => $syslog_log_facility_heat,
     syslog_log_facility_savanna  => $syslog_log_facility_savanna,
     log_level      => $rabbit_log_level,
     debug          => $debug,
+    logstash_node  => $logstash_node,
+    logstash_port  => $logstash_port,
+    proto          => $proto,
   }
 
 } else { # server
@@ -95,6 +108,26 @@ if $proto == 'both' {
     port       => $port,
     high_precision_timestamps => $show_timezone,
     virtual    => $virtual,
+  }
+
+  # Rules for logstash, need both tcp&udp
+  firewall { "9200, 9300-9400, ${kibana_port} tcp kibana-elasticsearch":
+    port    => [ $kibana_port, '9200', '9300-9400' ],
+    proto   => 'tcp',
+    action  => 'accept',
+  } ->
+  firewall { "${logstash_port} ${proto} logstash":
+    port    => $logstash_port,
+    proto   => $proto,
+    action  => 'accept',
+  } ->
+  # Configure logstash and advanced logfilter UI
+  class { "::openstack::logfilter":
+     logstash_node      => $logstash_node,
+     logstash_port      => $logstash_port,
+     elasticsearch_node => $elasticsearch_node,
+     kibana_host        => $kibana_host,
+     kibana_port        => $kibana_port,
   }
 }
 

@@ -1,20 +1,11 @@
-<% if @debug then -%>
-[loggers]
-keys = root, l3agent, ovsagent, dhcpagent, metadata
-
-[handlers]
-keys = production,devel,stderr, l3agent, ovsagent, dhcpagent, metadata
-
-<% else -%>
 [loggers]
 keys = root
 
 [handlers]
 keys = production,devel,stderr
 
-<% end -%>
 [formatters]
-keys = normal,debug,default
+keys = normal,debug
 
 [logger_root]
 level = NOTSET
@@ -72,8 +63,9 @@ formatter = normal
 level = <%= @syslog_log_level %>
 formatter = normal
 <% end -%>
-args = (sys.stdout,)
 
+[handler_devel]
+class = StreamHandler
 <% if @debug then -%>
 [logger_l3agent]
 handlers = l3agent
@@ -118,3 +110,4 @@ class = logging.FileHandler
 args = ('/var/log/neutron/metadata.log',)
 formatter = default
 <% end -%>
+args = (sys.stdout,)
