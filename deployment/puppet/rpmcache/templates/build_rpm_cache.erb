@@ -26,9 +26,13 @@ if ! [ -f /root/centos-release/centos-release*.rpm ]; then
 fi
 #Download RHN packages needed for RHN Satellite registration
 rhnpackages="m2crypto rhn-check rhn-client-tools rhnlib rhnsd rhn-setup yum-rhn-plugin redhat-release-server"
+rm -rf /root/rhnpackages
 mkdir -p /root/rhnpackages
 yum-config-manager --enable rhel-6-server-rpms
 yumdownloader --releasever=<%= releasever %> --disablerepo='*' --enablerepo='*rhel*' --resolve --destdir /root/rhnpackages $rhnpackages
+#Delete in case yumdownloader gets extra packages
+repomanage -o /root/rhnpackages | xargs rm -f
+
 rpm -ivh --force /root/rhnpackages/*.rpm
 
 
@@ -45,6 +49,7 @@ subscription-manager unregister
 rm -rf /etc/yum.repos.d/redhat.repo
 
 #Run registration
+
 rhnreg_ks "--serverUrl=http://<%= sat_hostname %>/XMLRPC" --profilename=fuelweb "--activationkey=<%= activation_key %>" --sslCACert=/etc/sysconfig/rhn/RHNS-CA-CERT --nopackages --nohardware --novirtinfo --norhnsd --force
 
 if [ $? -ne 0 ]; then
@@ -78,10 +83,11 @@ yum-config-manager --disable 'nailgun' &> /dev/null
 yum-config-manager --disable 'centos' &> /dev/null
 yum-config-manager --disable 'base' &> /dev/null
 echo 6Server > /etc/yum/vars/releasever
+echo "Building initial cache. This may take several minutes."
 yum --releasever=<%= releasever %> makecache
 
 for tries in $(seq 1 <%= numtries %>); do
-  /usr/local/bin/repotrack -a x86_64 -p "<%= pkgdir %>/Packages" $(cat /etc/nailgun/required-rpms.txt | xargs echo -en)
+  /usr/local/bin/repotrack -a x86_64,noarch -p "<%= pkgdir %>/Packages" $(cat /etc/nailgun/required-rpms.txt | xargs echo -en)
   status=$?
   #Purge any corrupt downloaded RPMs
   # FIXME: There is a error with a path substitution
