@@ -205,6 +205,7 @@ class virtual_ips () {
 
       class { compact_controller: }
       class { 'openstack::swift::storage_node':
+        storage_base_dir      => '/var/lib/glance/loopback-device',
         storage_type          => 'loopback',
         loopback_size         => '5243780',
         swift_zone            => $uid,
