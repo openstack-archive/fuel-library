@@ -7,7 +7,7 @@ node default {
    {
    "id" => "nailgun",
    "name" => "Nailgun",
-   "url"  => "http://${ipaddress}:8080/centos/fuelweb/x86_64"
+   "url"  => "\$tree"
    },
    ]
 
@@ -27,7 +27,7 @@ node default {
 
   $repo_root = "/var/www/nailgun"
   $pip_repo = "/var/www/nailgun/eggs"
-  $gem_source = "http://$ipaddress:8080/gems/"
+  $gem_source = "http://${ipaddress}:8080/gems/"
 
   class {"puppetdb::database::postgresql":
   }->
