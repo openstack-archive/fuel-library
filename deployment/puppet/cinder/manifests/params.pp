@@ -22,7 +22,10 @@ class cinder::params {
     }
 
     'RedHat': {
-      $qemuimg_package_name = 'qemu-img'
+      $qemuimg_package_name = $::operatingsystem ? {
+                               redhat => 'qemu-img-rhev',
+                               default => 'qemu-img',
+                              }
       $package_name      = 'openstack-cinder'
       $api_package       = false
       $scheduler_package = false

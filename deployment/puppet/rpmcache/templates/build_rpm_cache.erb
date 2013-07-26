@@ -25,10 +25,14 @@ if ! [ -f /root/centos-release/centos-release*.rpm ]; then
   exit 1
 fi
 #Download RHN packages needed for RHN Satellite registration
-rhnpackages="m2crypto rhn-check rhn-client-tools rhnlib rhnsd rhn-setup yum-rhn-plugin redhat-release-sever"
+rhnpackages="m2crypto rhn-check rhn-client-tools rhnlib rhnsd rhn-setup yum-rhn-plugin redhat-release-server"
+rm -rf /root/rhnpackages
 mkdir -p /root/rhnpackages
 yum-config-manager --enable rhel-6-server-rpms
 yumdownloader --releasever=<%= releasever %> --disablerepo='*' --enablerepo='*rhel*' --resolve --destdir /root/rhnpackages $rhnpackages
+#Delete in case yumdownloader gets extra packages
+repomanage -o /root/rhnpackages | xargs rm -f
+
 rpm -ivh --force /root/rhnpackages/*.rpm
 
 
@@ -45,6 +49,7 @@ subscription-manager unregister
 rm -rf /etc/yum.repos.d/redhat.repo
 
 #Run registration
+
 rhnreg_ks "--serverUrl=http://<%= sat_hostname %>/XMLRPC" --profilename=fuelweb "--activationkey=<%= activation_key %>" --sslCACert=/etc/sysconfig/rhn/RHNS-CA-CERT --nopackages --nohardware --novirtinfo --norhnsd --force
 
 if [ $? -ne 0 ]; then
@@ -53,8 +58,9 @@ if [ $? -ne 0 ]; then
 fi
 #Ensure channels are enabled:
 errors=0
+rhnchanneloutput="$(rhn-channel -l)"
 for channel in <%= sat_base_channels %> <%= sat_openstack_channel %>; do
-  if rhn-channel -l | grep -q "$channel"; then
+  if grep -q "$channel" <<< "rhnchanneloutput"; then
     echo "Found $channel."
   else
     echo "ERROR: $channel not found. Fix this in RHN Satellite manually or run the following command:"
@@ -71,26 +77,26 @@ fi
 
 #Download packages
 mkdir -p <%= pkgdir %>/repodata <%= pkgdir %>/Packages
-#yumdownloader --releasever=<%= releasever %> --disablerepo='*' --enablerepo='rhel*' --resolve --destdir "<%= pkgdir %>/Packages" $(cat /etc/nailgun/required-rpms.txt | xargs echo -en)
 
 rm -f /etc/yum/vars/releasever
 yum-config-manager --disable 'nailgun' &> /dev/null
 yum-config-manager --disable 'centos' &> /dev/null
 yum-config-manager --disable 'base' &> /dev/null
 echo 6Server > /etc/yum/vars/releasever
+echo "Building initial cache. This may take several minutes."
 yum --releasever=<%= releasever %> makecache
 
 for tries in $(seq 1 <%= numtries %>); do
-  /usr/local/bin/repotrack -a x86_64 -p "<%= pkgdir %>/Packages" $(cat /etc/nailgun/required-rpms.txt | xargs echo -en)
+  /usr/local/bin/repotrack -a x86_64,noarch -p "<%= pkgdir %>/Packages" $(cat /etc/nailgun/required-rpms.txt | xargs echo -en)
   status=$?
   #Purge any corrupt downloaded RPMs
   # FIXME: There is a error with a path substitution
   # At least hide path if there is no packages.
   shopt -s nullglob
-  before=`ls -1 "<%= pkgdir %>/Packages/|wc -l`
+  before=`ls -1 "<%= pkgdir %>/Packages/" |wc -l`
   echo Packages in local repo: $before
   env LANG=C rpm --checksig <%= pkgdir %>/Packages/* | grep 'md5 NOT OK' | cut -d':' -f1| xargs rm -f
-  after=`ls -1 "<%= pkgdir %>/Packages/|wc -l`
+  after=`ls -1 "<%= pkgdir %>/Packages/" |wc -l`
   echo Correct packages in local repo: $after
   [ $before -eq $after ] || status=1
 done
