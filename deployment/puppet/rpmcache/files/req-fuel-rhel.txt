@@ -69,6 +69,7 @@ erlang-wx-R14B-04.8.el6.x86_64.rpm
 erlang-xmerl-R14B-04.8.el6.x86_64.rpm
 euca2ools-2.1.1-2.el6.noarch.rpm
 galera-23.2.2-1.rhel5.x86_64.rpm
+http-parser-2.0-4.20121128gitcd01361.el6.x86_64.rpm
 libicu-4.2.1-9.1.el6_2.x86_64.rpm
 libuv-0.10.4-1.el6.x86_64.rpm
 mcollective-2.3.1-2.el6.noarch.rpm
