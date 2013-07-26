@@ -285,6 +285,7 @@ class openstack::nova::controller (
     }
     if $quantum and !$quantum_network_node {
       class { '::quantum':
+        auth_password        => $quantum_user_password,
         bind_host            => $api_bind_address,
         queue_provider       => $queue_provider,
         rabbit_user          => $rabbit_user,

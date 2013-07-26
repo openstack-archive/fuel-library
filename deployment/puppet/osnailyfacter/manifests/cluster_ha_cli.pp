@@ -6,7 +6,7 @@ class osnailyfacter::cluster_ha_cli {
 
 
 $nova_hash            = parsejson($::nova)
-$quantum_hash         = parsejson($::quantum)
+$quantum_hash         = parsejson($::quantum_access)
 $mysql_hash           = parsejson($::mysql)
 $rabbit_hash          = parsejson($::rabbit)
 $glance_hash          = parsejson($::glance)
@@ -101,24 +101,21 @@ $quantum_host            = $management_vip
 
 
 ##TODO: simply parse nodes array
+$controllers = merge_arrays(filter_nodes($nodes_hash,'role','primary-controller'), filter_nodes($nodes_hash,'role','controller'))
 $controller_internal_addresses = nodes_to_hash($controllers,'name','internal_address')
 $controller_public_addresses = nodes_to_hash($controllers,'name','public_address')
 $controller_storage_addresses = nodes_to_hash($controllers,'name','storage_address')
 $controller_hostnames = keys($controller_internal_addresses)
 $controller_nodes = values($controller_internal_addresses)
-$controllers = merge_arrays(filter_nodes($nodes_hash,'role','primary-controller'), filter_nodes($nodes_hash,'role','controller'))
-
-
 $controller_node_public  = $management_vip
 $swift_proxies = $controller_internal_addresses
+$quantum_metadata_proxy_shared_secret = $quantum_params['metadata_proxy_shared_secret']
 
-$internal_address = $nodes_hash[0]['internal_address']
-$public_address = $nodes_hash[0]['public_address']
-$quantum_gre_bind_addr = $internal_address
+$quantum_gre_bind_addr = $::internal_address
 
-$swift_local_net_ip      = $internal_address
+$swift_local_net_ip      = $::internal_address
 
-$cinder_iscsi_bind_addr = $internal_address
+$cinder_iscsi_bind_addr = $::internal_address
 
 if $auto_assign_floating_ip == 'true' {
   $bool_auto_assign_floating_ip = true
@@ -143,7 +140,7 @@ if $node[0]['role'] == 'primary-controller' {
 }
 $master_swift_proxy_nodes = filter_nodes($nodes_hash,'role','primary-controller')
 $master_swift_proxy_ip = $master_swift_proxy_nodes[0]['internal_address']
-$master_hostname = $master_swift_proxy_nodes[0]['name']
+#$master_hostname = $master_swift_proxy_nodes[0]['name']
 
 #HARDCODED PARAMETERS
 
@@ -161,6 +158,18 @@ $syslog_log_facility_quantum  = 'LOCAL4'
 $syslog_log_facility_nova     = 'LOCAL6'
 $syslog_log_facility_keystone = 'LOCAL7'
 
+$nova_rate_limits = {
+  'POST' => 1000,
+  'POST_SERVERS' => 1000,
+  'PUT' => 1000, 'GET' => 1000,
+  'DELETE' => 1000
+}
+$cinder_rate_limits = {
+  'POST' => 1000,
+  'POST_SERVERS' => 1000,
+  'PUT' => 1000, 'GET' => 1000,
+  'DELETE' => 1000
+}
 
 $multi_host              = true
 $manage_volumes          = false
@@ -211,8 +220,8 @@ class compact_controller {
     controller_public_addresses   => $controller_public_addresses,
     controller_internal_addresses => $controller_internal_addresses,
     internal_address              => $internal_address,
-    public_interface              => $public_int,
-    internal_interface            => $internal_int,
+    public_interface              => $::public_int,
+    internal_interface            => $::internal_int,
     private_interface             => $fixed_interface,
     internal_virtual_ip           => $management_vip,
     public_virtual_ip             => $public_vip,
@@ -226,6 +235,10 @@ class compact_controller {
     network_config                => $network_config,
     verbose                       => $verbose,
     debug                         => $debug,
+    queue_provider                => $::queue_provider,
+    qpid_password                 => $rabbit_hash[password],
+    qpid_user                     => $rabbit_user,
+    qpid_nodes                    => [$management_vip],
     auto_assign_floating_ip       => $bool_auto_assign_floating_ip,
     mysql_root_password           => $mysql_hash[root_password],
     admin_email                   => $access_hash[email],
@@ -260,11 +273,11 @@ class compact_controller {
     use_syslog                    => true,
   }
 
-  class { "::rsyslog::client":
-    log_local => true,
-    log_auth_local => true,
-    rservers => $rservers,
-  }
+#  class { "::rsyslog::client":
+#    log_local => true,
+#    log_auth_local => true,
+#    rservers => $rservers,
+#  }
 
   class { 'swift::keystone::auth':
      password         => $swift_hash[user_password],
@@ -283,7 +296,7 @@ class virtual_ips () {
 
 
   case $role {
-    "controller" : {
+    /controller/ : {
       include osnailyfacter::test_controller
 
 	
@@ -304,7 +317,7 @@ class virtual_ips () {
         loopback_size         => '5243780',
         swift_zone            => $uid,
         swift_local_net_ip    => $storage_address,
-        master_swift_proxy_ip => $controller_internal_addresses[$master_hostname],
+        master_swift_proxy_ip   => $master_swift_proxy_ip, 
         sync_rings            => ! $primary_proxy
       }
       if $primary_proxy {
@@ -317,7 +330,7 @@ class virtual_ips () {
         primary_proxy           => $primary_proxy,
         controller_node_address => $management_vip,
         swift_local_net_ip      => $internal_address,
-        master_swift_proxy_ip   => $controller_internal_addresses[$master_hostname],
+        master_swift_proxy_ip   => $master_swift_proxy_ip 
       }
       #TODO: PUT this configuration stanza into nova class
       nova_config { 'DEFAULT/start_guests_on_host_boot': value => $start_guests_on_host_boot }
@@ -382,11 +395,11 @@ class virtual_ips () {
         use_syslog             => true,
       }
 
-      class { "::rsyslog::client":
-        log_local => true,
-        log_auth_local => true,
-        rservers => $rservers,
-      }
+#      class { "::rsyslog::client":
+#        log_local => true,
+#        log_auth_local => true,
+#        rservers => $rservers,
+#      }
       #TODO: PUT this configuration stanza into nova class
       nova_config { 'DEFAULT/start_guests_on_host_boot': value => $start_guests_on_host_boot }
       nova_config { 'DEFAULT/use_cow_images': value => $use_cow_images }
@@ -412,11 +425,11 @@ class virtual_ips () {
         cinder_user_password => $cinder_hash[user_password],
         use_syslog           => true,
       }
-      class { "::rsyslog::client":
-        log_local => true,
-        log_auth_local => true,
-        rservers => $rservers,
-      }
+#      class { "::rsyslog::client":
+#        log_local => true,
+#        log_auth_local => true,
+#        rservers => $rservers,
+#      }
     }
   }
 }
