@@ -48,14 +48,25 @@ class mysql::config(
   $default_engine    = 'UNSET',
   $root_group        = $mysql::params::root_group,
   $use_syslog        = false,
+  $custom_setup_class = undef,
+  $server_id         = $mysql::params::server_id,
 ) inherits mysql::params {
 
-  File {
-    owner  => 'root',
-    group  => $root_group,
-    mode   => '0400',
-    notify => Exec['mysqld-restart'],
-  }
+  if $custom_setup_class != "pacemaker_mysql" {
+    File {
+      owner  => 'root',
+      group  => $root_group,
+      mode   => '0400',
+      notify => Exec['mysqld-restart'],
+    }
+  } else {
+    File {
+      owner  => 'root',
+      group  => $root_group,
+      mode   => '0400',
+      notify => Service['mysqld'],
+    }
+  } 
 
   if $ssl and $ssl_ca == undef {
     fail('The ssl_ca parameter is required when ssl is true')

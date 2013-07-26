@@ -1,0 +1,16 @@
+# Qpid Puppet Module
+Dan Prince <dprince@redhat.com>
+
+This module manages the Qpid.
+
+examples:
+
+class { 'qpid::server': }
+
+qpid_user { 'foo':
+  password  => 'changeme',
+  file  => '/var/lib/qpidd/qpidd.sasldb',
+  realm  => 'TEST',
+  provider => 'saslpasswd2',
+  require   => Class['qpid::server'],
+}

@@ -76,7 +76,7 @@ class quantum::agents::metadata (
     # and his dependences
     file {'quantum-metadata-agent-ocf':
       path=>'/usr/lib/ocf/resource.d/mirantis/quantum-agent-metadata',
-      mode => 744,
+      mode => 755,
       owner => root,
       group => root,
       source => "puppet:///modules/quantum/ocf/quantum-agent-metadata",
@@ -88,12 +88,13 @@ class quantum::agents::metadata (
       enable  => false,
       ensure  => stopped,
     }
-
     Cs_commit <| title == 'ovs' |> -> Cs_shadow <| title == "$res_name" |>
 
     cs_shadow { $res_name: cib => $cib_name }
+    cs_commit { $res_name: cib => $cib_name } -> ::Corosync::Cleanup["$res_name"]
     cs_commit { $res_name: cib => $cib_name } ~> ::Corosync::Cleanup["$res_name"]
     ::corosync::cleanup { $res_name: }
+    ::Corosync::Cleanup["$res_name"] -> Service[$res_name]
 
     File<| title=='quantum-logging.conf' |> ->
     cs_resource { "$res_name":

@@ -199,6 +199,7 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Cor
       next if last_op.nil?
       last_successful_op = nil
       if ['promote','start','stop'].include?(last_op.attributes['operation'])
+        debug("last operations: #{last_op.attributes['operation']}")
         last_successful_op = last_op.attributes['operation']
       else
         if last_op.attributes['rc-code'].to_i == 7
@@ -246,6 +247,7 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Cor
         sleep 1
       end
     end
+    sleep 3
   end
 
   def stop

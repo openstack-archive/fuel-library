@@ -21,6 +21,7 @@ stage {'glance-image':
   require => Stage['main'],
 }
 
+
 $nodes_hash = parsejson($nodes)
 
 $node = filter_nodes($nodes_hash,'name',$::hostname)
@@ -85,6 +86,16 @@ class node_netconfig (
   l23network::l3::ifconfig {$fixed_interface: ipaddr=>'none' }
 }
 
+case $::operatingsystem {
+  'redhat' : { 
+          $queue_provider = 'qpid'
+          $custom_mysql_setup_class = 'pacemaker_mysql'
+  }
+  default: {
+    $queue_provider='rabbitmq'
+    $custom_mysql_setup_class='galera'
+  }
+}
 
 class os_common {
   if $deployment_source == 'cli'
@@ -108,6 +119,7 @@ class os_common {
   # Workaround for fuel bug with firewall
   firewall {'003 remote rabbitmq ':
     sport   => [ 4369, 5672, 41055, 55672, 61613 ],
+    source  => $master_ip,
     proto   => 'tcp',
     action  => 'accept',
     require => Class['openstack::firewall'],

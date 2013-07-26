@@ -50,6 +50,8 @@ class nova(
   # these glance params should be optional
   # this should probably just be configured as a glance client
   $glance_api_servers = 'localhost:9292',
+  # AMQP
+  $queue_provider = 'rabbitmq',
   # for use rabbitmq in HA mode
   $rabbit_nodes = false,
   $rabbit_host = 'localhost',
@@ -58,6 +60,12 @@ class nova(
   $rabbit_userid='guest',
   $rabbit_virtual_host='/',
   $rabbit_ha_virtual_ip = false,
+  # Qpid
+  $qpid_nodes = false,
+  $qpid_host = 'localhost',
+  $qpid_password = 'guest',
+  $qpid_port = '5672',
+  $qpid_userid = 'guest',
   $auth_strategy = 'keystone',
   $service_down_time = 60,
   $logdir = '/var/log/nova',
@@ -103,15 +111,23 @@ class nova(
     require => Package['python-greenlet']
   }
 
-  # turn on rabbitmq ha/cluster mode
-  if $rabbit_nodes {
-
-      package { ['python-kombu', 'python-anyjson', 'python-amqp']:
+  case $queue_provider{
+    'rabbitmq': {
+      if $rabbit_nodes {
+        package { ['python-kombu', 'python-anyjson', 'python-amqp']:
+          ensure => present
+        }
+        Nova_config['DEFAULT/rabbit_ha_queues'] -> Nova::Generic_service<| title != 'api' |>
+        nova_config { 'DEFAULT/rabbit_ha_queues': value => 'True' }
+      }
+    }
+    'qpid': {
+      package { ['python-qpid', 'python-anyjson', 'python-amqp']:
         ensure => present
       }
-      Nova_config['DEFAULT/rabbit_ha_queues'] -> Nova::Generic_service<| title != 'api' |>
-      nova_config { 'DEFAULT/rabbit_ha_queues': value => 'True' }
+    }
   }
+  # turn on rabbitmq ha/cluster mode
 
   if (defined(Exec['update-kombu']))
   {
@@ -256,21 +272,38 @@ else {
 #     Nova_config <<| tag == "${::deployment_id}::${::environment}" and title == 'rabbit_host' |>>
 #  }
 
-
-  if $rabbit_nodes and !$rabbit_ha_virtual_ip {
-    nova_config { 'DEFAULT/rabbit_hosts': value => inline_template("<%= @rabbit_nodes.map {|x| x+':5672'}.join ',' %>") }
-  } elsif $rabbit_ha_virtual_ip{
-    nova_config { 'DEFAULT/rabbit_hosts': value => "${rabbit_ha_virtual_ip}:5672" }
-  } else {
-    Nova_config <<| tag == "${::deployment_id}::${::environment}" and title == 'rabbit_hosts' |>>
-  }
   # I may want to support exporting and collecting these
-  nova_config {
-    'DEFAULT/rabbit_password':     value => $rabbit_password;
-    'DEFAULT/rabbit_port':         value => $rabbit_port;
-    'DEFAULT/rabbit_userid':       value => $rabbit_userid;
-    'DEFAULT/rabbit_virtual_host': value => $rabbit_virtual_host;
-    'DEFAULT/rpc_backend': value => 'nova.rpc.impl_kombu';
+  case $queue_provider {
+    "rabbitmq": {
+      if $rabbit_nodes and !$rabbit_ha_virtual_ip {
+        nova_config { 'DEFAULT/rabbit_hosts': value => inline_template("<%= @rabbit_nodes.map {|x| x+':5672'}.join ',' %>") }
+      } elsif $rabbit_ha_virtual_ip {
+        nova_config { 'DEFAULT/rabbit_hosts': value => "${rabbit_ha_virtual_ip}:5672" }
+      } else {
+        Nova_config <<| tag == "${::deployment_id}::${::environment}" and title == 'rabbit_hosts' |>>
+      }
+
+      nova_config {
+        'DEFAULT/rabbit_password':     value => $rabbit_password;
+        'DEFAULT/rabbit_port':         value => $rabbit_port;
+        'DEFAULT/rabbit_userid':       value => $rabbit_userid;
+        'DEFAULT/rabbit_virtual_host': value => $rabbit_virtual_host;
+        'DEFAULT/rpc_backend':         value => 'nova.rpc.impl_kombu';
+      }
+    }
+    "qpid": {
+      if $qpid_nodes  {
+        nova_config { 'DEFAULT/qpid_hosts': value => inline_template("<%= @qpid_nodes.map {|x| x+':5672'}.join ',' %>") }
+      } else {
+        nova_config { 'DEFAULT/qpid_hostname':   value => $qpid_host}
+      }
+      nova_config {
+        'DEFAULT/qpid_password':     value => $qpid_password;
+        'DEFAULT/qpid_port':         value => $qpid_port;
+        'DEFAULT/qpid_username':       value => $qpid_userid;
+        'DEFAULT/rpc_backend':       value => 'nova.rpc.impl_qpid';
+      }
+    }
   }
 
   nova_config {

@@ -2,8 +2,6 @@ upstream nailgun-application {
     server 127.0.0.1:8001;
 }
 
-
-
 server {
     listen   8000;
 
@@ -23,6 +21,11 @@ server {
     location /static {
         autoindex on;
         alias <%= staticdir %>;
+    }
+
+    location ~ ^/ostf/(.*) {
+        proxy_pass http://127.0.0.1:8777/v1/$1;
+        proxy_buffering off;
     }
 
     location / {

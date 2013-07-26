@@ -78,3 +78,4 @@ class openstack::horizon (
     log_level             => $log_level_real,
   }
 }
+

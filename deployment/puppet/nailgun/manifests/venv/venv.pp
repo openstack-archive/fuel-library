@@ -24,7 +24,7 @@ define nailgun::venv::venv(
       cwd => "/tmp",
     }
 
-    exec { "nailgun::venv $root":
+    exec { "nailgun::venv $venv":
       command => "virtualenv ${opts} ${venv}",
       creates => $venv,
       notify => Exec["update distribute and pip in $venv"],

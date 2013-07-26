@@ -112,11 +112,11 @@ class openstack::controller_ha (
    $floating_range, $fixed_range, $multi_host, $network_manager, $verbose, $debug, $network_config = {}, $num_networks = 1, $network_size = 255,
    $auto_assign_floating_ip, $mysql_root_password, $admin_email, $admin_user = 'admin', $admin_password, $keystone_admin_tenant='admin',
    $keystone_db_password, $keystone_admin_token, $glance_db_password, $glance_user_password,
-   $nova_db_password, $nova_user_password, $rabbit_password, $rabbit_user,
-   $rabbit_nodes, $memcached_servers, $export_resources, $glance_backend='file', $swift_proxies=undef,
+   $nova_db_password, $nova_user_password, $queue_provider, $rabbit_password, $rabbit_user, $rabbit_nodes,
+   $qpid_password, $qpid_user, $qpid_nodes, $memcached_servers, $export_resources, $glance_backend='file', $swift_proxies=undef,
    $quantum = false, $quantum_user_password='', $quantum_db_password='', $quantum_db_user = 'quantum',
    $quantum_db_dbname  = 'quantum', $cinder = false, $cinder_iscsi_bind_addr = false, $tenant_network_type = 'gre', $segment_range = '1:4094',
-   $nv_physical_volume = undef, $manage_volumes = false,$galera_nodes, $use_syslog = false, $syslog_log_level = 'WARNING',
+   $nv_physical_volume = undef, $manage_volumes = false,  $custom_mysql_setup_class = 'galera', $galera_nodes, $use_syslog = false, $syslog_log_level = 'WARNING',
    $syslog_log_facility_glance   = 'LOCAL2',
    $syslog_log_facility_cinder   = 'LOCAL3',
    $syslog_log_facility_quantum  = 'LOCAL4',
@@ -205,9 +205,15 @@ class openstack::controller_ha (
     }
 
     haproxy_service { 'glance-reg': order => 90, port => 9191, virtual_ips => [$internal_virtual_ip]  }
-   #haproxy_service { 'rabbitmq-epmd':    order => 91, port => 4369, virtual_ips => [$internal_virtual_ip], define_backend => true }
-    haproxy_service { 'rabbitmq-openstack':    order => 92, port => 5672, virtual_ips => [$internal_virtual_ip], define_backend => true }
-    haproxy_service { 'mysqld': order => 95, port => 3306, virtual_ips => [$internal_virtual_ip], define_backend => true }
+
+    if $queue_provider == 'rabbitmq'{
+      haproxy_service { 'rabbitmq-openstack':    order => 92, port => 5672, virtual_ips => [$internal_virtual_ip], define_backend => true }
+      haproxy_service { 'rabbitmq-epmd':    order => 91, port => 4369, virtual_ips => [$internal_virtual_ip], define_backend => true }
+    }
+
+    if $custom_mysql_setup_class == 'galera' {
+      haproxy_service { 'mysqld': order => 95, port => 3306, virtual_ips => [$internal_virtual_ip], define_backend => true }
+    }
     if $glance_backend == 'swift' {
       haproxy_service { 'swift': order => 96, port => 8080, virtual_ips => [$public_virtual_ip,$internal_virtual_ip], balancers => $swift_proxies }
     }
@@ -215,33 +221,32 @@ class openstack::controller_ha (
     Haproxy_service<| |> ~> Exec['restart_haproxy']
     Haproxy_service<| |> -> Anchor['haproxy_done']
     Service<| title == 'haproxy' |> -> Anchor['haproxy_done']
-
     anchor {'haproxy_done': }
 
+   if ( $custom_mysql_setup_class == 'galera' ) {
+     ###
+     # Setup Galera
+     package { 'socat': ensure => present }
+     exec { 'wait-for-haproxy-mysql-backend':
+       command   => "echo show stat | socat unix-connect:///var/lib/haproxy/stats stdio | grep -q '^mysqld,BACKEND,.*,UP,'",
+       path      => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
+       try_sleep => 5,
+       tries     => 60,
+     }
+     Package['socat'] -> Exec['wait-for-haproxy-mysql-backend']
 
-    ###
-    # Setup Galera's
-
-    package { 'socat': ensure => present }
-    exec { 'wait-for-haproxy-mysql-backend':
-      command   => "echo show stat | socat unix-connect:///var/lib/haproxy/stats stdio | grep -q '^mysqld,BACKEND,.*,UP,'",
-      path      => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
-      try_sleep => 5,
-      tries     => 60,
-    }
-    Package['socat'] -> Exec['wait-for-haproxy-mysql-backend']
-
-    Exec<| title == 'wait-for-synced-state' |> -> Exec['wait-for-haproxy-mysql-backend']
-    Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'initial-db-sync' |>
-    Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'keystone-manage db_sync' |>
-    Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'glance-manage db_sync' |>
-    Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'cinder-manage db_sync' |>
-    Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'nova-db-sync' |>
-    Exec['wait-for-haproxy-mysql-backend'] -> Service <| title == 'cinder-scheduler' |>
-    Exec['wait-for-haproxy-mysql-backend'] -> Service <| title == 'cinder-volume' |>
-    Exec['wait-for-haproxy-mysql-backend'] -> Service <| title == 'cinder-api' |>
-    Anchor['haproxy_done'] -> Exec['wait-for-haproxy-mysql-backend']
-    Anchor['haproxy_done'] -> Class['galera']
+     Exec<| title == 'wait-for-synced-state' |> -> Exec['wait-for-haproxy-mysql-backend']
+     Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'initial-db-sync' |>
+     Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'keystone-manage db_sync' |>
+     Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'glance-manage db_sync' |>
+     Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'cinder-manage db_sync' |>
+     Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'nova-db-sync' |>
+     Exec['wait-for-haproxy-mysql-backend'] -> Service <| title == 'cinder-scheduler' |>
+     Exec['wait-for-haproxy-mysql-backend'] -> Service <| title == 'cinder-volume' |>
+     Exec['wait-for-haproxy-mysql-backend'] -> Service <| title == 'cinder-api' |>
+     Anchor['haproxy_done'] -> Exec['wait-for-haproxy-mysql-backend']
+     Anchor['haproxy_done'] -> Class['galera']
+   }
 
     class { '::openstack::controller':
       private_interface       => $private_interface,
@@ -260,7 +265,7 @@ class openstack::controller_ha (
       debug                   => $debug,
       auto_assign_floating_ip => $auto_assign_floating_ip,
       mysql_root_password     => $mysql_root_password,
-      custom_mysql_setup_class=> 'galera',
+      custom_mysql_setup_class=> $custom_mysql_setup_class,
       galera_cluster_name     => 'openstack',
       primary_controller      => $primary_controller,
       galera_node_address     => $internal_address,
@@ -277,6 +282,7 @@ class openstack::controller_ha (
       glance_api_servers      => $glance_api_servers,
       nova_db_password        => $nova_db_password,
       nova_user_password      => $nova_user_password,
+      queue_provider          => $queue_provider,
       rabbit_password         => $rabbit_password,
       rabbit_user             => $rabbit_user,
       rabbit_cluster          => true,
@@ -284,6 +290,11 @@ class openstack::controller_ha (
       rabbit_port             => '5673',
       rabbit_node_ip_address  => $rabbit_node_ip_address,
       rabbit_ha_virtual_ip    => $internal_virtual_ip,
+      qpid_password           => $qpid_password,
+      qpid_user               => $qpid_user,
+      qpid_nodes              => $qpid_nodes,
+      qpid_port               => '5672',
+      qpid_node_ip_address    => $rabbit_node_ip_address,
       cache_server_ip         => $memcached_servers,
       export_resources        => false,
       api_bind_address        => $internal_address,
@@ -334,10 +345,14 @@ class openstack::controller_ha (
         create_networks       => $create_networks,
         verbose               => $verbose,
         debug                 => $debug,
+        queue_provider        => $queue_provider,
         rabbit_password       => $rabbit_password,
         rabbit_user           => $rabbit_user,
         rabbit_nodes          => $rabbit_nodes,
         rabbit_ha_virtual_ip  => $internal_virtual_ip,
+        qpid_password         => $qpid_password,
+        qpid_user             => $qpid_user,
+        qpid_nodes            => $qpid_nodes,
         quantum               => $quantum,
         quantum_user_password => $quantum_user_password,
         quantum_db_password   => $quantum_db_password,
