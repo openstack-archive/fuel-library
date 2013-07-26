@@ -103,6 +103,7 @@ crontabs
 cronie
 ruby-augeas
 yum-plugin-versionlock
+yum-utils
 
 # COBBLER EMBEDDED SNIPPET: 'puppet_install_if_enabled'
 # LISTS puppet PACKAGE IF puppet_auto_setup VARIABLE IS SET TO 1
@@ -119,7 +120,7 @@ $SNIPPET('mcollective_install_if_enabled')
 yum versionlock puppet
 yum versionlock kernel
 yum versionlock iproute2
-sed -i 's/enabled=1/enabled=0/g' /etc/yum/pluginconf.d/fastestmirror.conf
+yum-config-manager --disableplugin=fastestmirror --save &>/dev/null
 
 echo -e "modprobe nf_conntrack_ipv4\nmodprobe nf_conntrack_ipv6" >> /etc/rc.modules
 chmod +x /etc/rc.modules
