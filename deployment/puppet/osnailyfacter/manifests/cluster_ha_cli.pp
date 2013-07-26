@@ -1,4 +1,4 @@
-class osnailyfacter::cluster_ha {
+class osnailyfacter::cluster_ha_cli {
 
 
 ##PARAMETERS DERIVED FROM YAML FILE
@@ -16,17 +16,17 @@ $cinder_hash          = parsejson($::cinder)
 $access_hash          = parsejson($::access)
 $floating_hash        = parsejson($::floating_network_range)
 $quantum_params       = parsejson($::quantum_parameters)
-$nova-network_params  = parsejson($::nova-network_parameters)
+$novanetwork_params  = parsejson($::novanetwork_parameters)
 $base_syslog_hash     = parsejson($::base_syslog)
 $syslog_hash          = parsejson($::syslog)
 $nodes_hash           = parsejson($::nodes)
 $tenant_network_type  = $quantum_params['tenant_network_type']
 $segment_range        = $quantum_params['segment_range']
 $rabbit_user          = $rabbit_hash['user']
-$fixed_network_range  = $nova-network_params['fixed_network_range']
-$vlan_start           = $nova-network_params['vlan_start']
-$network_manager      = "nova.network.manager.${nova-network_params['network_manager']}"
-$network_size         = $nova-network_params['network_size']
+$fixed_network_range  = $novanetwork_params['fixed_network_range']
+$vlan_start           = $novanetwork_params['vlan_start']
+$network_manager      = "nova.network.manager.${novanetwork_params['network_manager']}"
+$network_size         = $novanetwork_params['network_size']
 $cinder_nodes          = ['controller']
 
 
@@ -44,22 +44,13 @@ if empty($node) {
   fail("Node $::hostname is not defined in the hash structure")
 }
 
-
-if $quantum {
-  $public_int   = $public_br
-  $internal_int = $internal_br
-} else {
-  $public_int   = $public_interface
-  $internal_int = $management_interface
-}
-
 $vips = { # Do not convert to ARRAY, It can't work in 2.7
   public_old => {
-    nic    => $public_int,
+    nic    => $::public_int,
     ip     => $public_vip,
   },
   management_old => {
-    nic    => $internal_int,
+    nic    => $::internal_int,
     ip     => $management_vip,
   },
 }
@@ -152,18 +143,7 @@ if $node[0]['role'] == 'primary-controller' {
 }
 $master_swift_proxy_nodes = filter_nodes($nodes_hash,'role','primary-controller')
 $master_swift_proxy_ip = $master_swift_proxy_nodes[0]['internal_address']
-
-
-
-if $::hostname == $master_hostname {
-  $primary_proxy = true
-  $primary_controller = true
-} else {
-  $primary_proxy = false
-  $primary_controller = false
-}
-
-
+$master_hostname = $master_swift_proxy_nodes[0]['name']
 
 #HARDCODED PARAMETERS
 
@@ -360,6 +340,7 @@ class virtual_ips () {
         Service[swift-proxy]                  -> Class[openstack::img::cirros]
       }
     }
+   }
 
     "compute" : {
       include osnailyfacter::test_compute

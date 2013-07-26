@@ -27,11 +27,21 @@ $node = filter_nodes($nodes_hash,'name',$::hostname)
 if empty($node) {
   fail("Node $::hostname is not defined in the hash structure")
 }
-$internal_address = $node[0]['internal_address']
-$public_address = $node[0]['public_address']
-$internal_netmask = $node[0]['internal_netmask']
-$public_netmask = $node[0]['public_netmask']
 
+$default_gateway = $node[0]['default_gateway']
+$internal_address = $node[0]['internal_address']
+$internal_netmask = $node[0]['internal_netmask']
+$public_address = $node[0]['public_address']
+$public_netmask = $node[0]['public_netmask']
+$storage_address = $node[0]['storage_address']
+$storage_netmask = $node[0]['storage_netmask']
+if $quantum {
+  $public_int   = $public_br
+  $internal_int = $internal_br
+} else {
+  $public_int   = $public_interface
+  $internal_int = $management_interface
+}
 ###
 class node_netconfig (
   $mgmt_ipaddr,
@@ -44,7 +54,7 @@ class node_netconfig (
 ) {
   if $quantum {
     l23network::l3::create_br_iface {'mgmt':
-      interface => $internal_interface, # !!! NO $internal_int /sv !!!
+      interface => $management_interface, # !!! NO $internal_int /sv !!!
       bridge    => $internal_br,
       ipaddr    => $mgmt_ipaddr,
       netmask   => $mgmt_netmask,
