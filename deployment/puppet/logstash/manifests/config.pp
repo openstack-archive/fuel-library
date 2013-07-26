@@ -44,6 +44,14 @@ class logstash::config {
       recurse => true,
       notify  => Service['logstash']
     }
+
+    file { "${logstash::configdir}/conf.d/pattern":
+      ensure  => directory,
+      mode    => '0640',
+      purge   => true,
+      recurse => true,
+      notify  => Service['logstash']
+    }
   }
 
   $tmp_dir = "${logstash::installpath}/tmp"

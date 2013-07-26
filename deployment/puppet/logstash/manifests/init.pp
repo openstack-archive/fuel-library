@@ -54,6 +54,18 @@
 # a look at the corresponding <tt>params.pp</tt> manifest file if you need more
 # technical information about them.
 #
+# [*jarfile*]
+#   Specify jarfile, if package creates binary not at installpath, f.e. at
+#   /usr/share/java/logstash.jar (same for custom provider case)
+#   Default undef.
+#
+# [*agentname*]
+#   Specify executable name to override one was provided in jarfile, if any.
+#   Default undef.
+#
+# [*port*]
+#   TCP & UDP ports to listen. Default 55514
+#
 #
 # === Examples
 #
@@ -82,6 +94,8 @@ class logstash(
   $version        = false,
   $provider       = 'package',
   $jarfile        = undef,
+  $agentname      = undef,
+  $port           = '55514',
   $installpath    = $logstash::params::installpath,
   $java_install   = false,
   $java_package   = undef,
@@ -89,8 +103,10 @@ class logstash(
   $multi_instance = true,
   $initfiles      = undef,
   $defaultsfiles  = undef,
+  $patternfiles   = [],
   $logstash_user  = $logstash::params::logstash_user,
-  $logstash_group = $logstash::params::logstash_group
+  $logstash_group = $logstash::params::logstash_group,
+  $heap_size      = '1024m'
 ) inherits logstash::params {
 
   anchor {'logstash::begin': }
@@ -135,6 +151,9 @@ class logstash(
   # configuration
   class { 'logstash::config': }
 
+  # patterns
+  class { 'logstash::pattern': }
+
   # service(s)
   class { 'logstash::service': }
 
@@ -155,10 +174,12 @@ class logstash(
     Anchor['logstash::begin']
     -> Class['logstash::package']
     -> Class['logstash::config']
+    -> Class['logstash::pattern']
 
     # we need the software and a working configuration before running a service
     Class['logstash::package'] -> Class['logstash::service']
     Class['logstash::config']  -> Class['logstash::service']
+    Class['logstash::pattern'] -> Class['logstash::service']
 
     Class['logstash::service'] -> Anchor['logstash::end']
 

@@ -30,7 +30,7 @@ class logstash::java {
         $package = 'java-1.6.0-openjdk'
       }
       'Debian', 'Ubuntu': {
-        $package = 'openjdk-6-jre-headless'
+        $package = 'openjdk-7-jre-headless'
       }
       default: {
         fail("\"${module_name}\" provides no java package

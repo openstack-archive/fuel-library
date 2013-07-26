@@ -55,12 +55,54 @@ class logstash::package {
     $package_ensure = 'purged'
   }
 
+  case $::operatingsystem {
+    'Debian', 'Ubuntu': {
+      package { 'libzmq1':
+        ensure => installed,
+      } ->
+      file { '/usr/lib64/libzmq.so':
+        ensure => 'link',
+        target => '/usr/lib64/libzmq.so.1',
+      }
+    }
+    'RedHat', 'CentOS': {
+      package { 'zeromq':
+        ensure => installed,
+      } ->
+      package { 'zeromq-devel':
+        ensure => installed,
+      } ->
+      file { '/usr/lib64/libzmq.so':
+        ensure => 'link',
+        target => '/usr/lib64/libzmq.so.1',
+      }
+    }
+    default: {
+      fail("\"${module_name}\" provides no libzeromq
+            for \"${::operatingsystem}\"")
+    }
+  }
+
   if ($logstash::provider == 'package') {
     # We are using a package provided by a repository
     package { $logstash::params::package:
       ensure => $package_ensure,
     }
-
+    # create symlink if jarfile defined
+    if $logstash::jarfile {
+      if $logstash::agentname {
+        $basefilename = $logstash::agentname
+      } else {
+        $filenameArray = split($logstash::jarfile, '/')
+        $basefilename = $filenameArray[-1]
+      }
+      file { "${logstash::installpath}/${basefilename}":
+        ensure  => 'link',
+        target  => $logstash::jarfile,
+        require => Package[$logstash::params::package],
+        backup  => false
+      }
+    }
   } elsif ($logstash::provider == 'custom') {
     if $logstash::ensure == 'present' {
 

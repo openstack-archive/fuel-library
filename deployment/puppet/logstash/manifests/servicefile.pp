@@ -78,7 +78,7 @@ define logstash::servicefile (
       if $def_file {
         $defaults_file = $def_file
       } else {
-        $defaults_file = "puppet:///modules/${module_name}/etc/sysconfig/logstash.defaults"
+        $defaults_file = template("${module_name}/logstash.defaults.erb")
       }
 
       # Write service file
@@ -95,13 +95,13 @@ define logstash::servicefile (
       if $defaults_file {
         # Write defaults file if we have one
         file { "${logstash::params::defaults_location}/logstash-${name}":
-          ensure => present,
-          source => $defaults_file,
-          owner  => 'root',
-          group  => 'root',
-          mode   => '0644',
-          before => Service[ "logstash-${name}" ],
-          notify => Service[ "logstash-${name}" ],
+          ensure  => present,
+          content => $defaults_file,
+          owner   => 'root',
+          group   => 'root',
+          mode    => '0644',
+          before  => Service[ "logstash-${name}" ],
+          notify  => Service[ "logstash-${name}" ],
         }
       }
     }

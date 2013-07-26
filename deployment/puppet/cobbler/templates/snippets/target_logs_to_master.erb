@@ -2,6 +2,9 @@
 cat >/etc/rsyslog.d/10-log2master.conf <<EOF
 # Log all messages to master node
 \$template LogToMaster, "<%%PRI%>1 %\$NOW%T%TIMESTAMP:8:\$%Z %HOSTNAME% %APP-NAME% %PROCID% %MSGID% -%msg%\n"
+# Log all to Logstash as well, assumes logstash node is $server and port is 55514 and proto us tcp
+\$template LogToLogstash, "%rawmsg%\n"
 #end raw
-*.* @$server;LogToMaster
+*.* @@$server;LogToMaster
+*.* @@$server:55514;LogToLogstash
 EOF

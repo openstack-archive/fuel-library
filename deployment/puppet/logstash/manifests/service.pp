@@ -116,6 +116,8 @@ class logstash::service {
 
       if $logstash::provider == 'custom' {
 
+        $configdir = "${logstash::configdir}/conf.d"
+
         case $::operatingsystem {
           'RedHat', 'CentOS', 'Fedora', 'Scientific', 'Amazon': {
             $initscript = template("${module_name}/etc/init.d/logstash.init.RedHat.erb")
@@ -165,6 +167,16 @@ class logstash::service {
       service { 'logstash':
         ensure => $service_ensure,
         enable => $service_enable
+      }
+
+      file { "${logstash::params::defaults_location}/logstash":
+        ensure  => present,
+        content => template("${module_name}/logstash.defaults.erb"),
+        owner   => 'root',
+        group   => 'root',
+        mode    => '0644',
+        before  => Service[ "logstash" ],
+        notify  => Service[ "logstash" ],
       }
 
     }
