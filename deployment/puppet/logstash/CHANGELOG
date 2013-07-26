@@ -1,0 +1,57 @@
+0.3.2 ( May 23, 2013 )
+  Fixing issue when using jar file without multi-instance feature
+  Added rspec tests to cover this issue
+
+0.3.1 ( May 15, 2013 )
+  Missed changes for enabling/disabling multi-instance feature
+  Adding a few spec tests for the multi-instance feature
+
+0.3.0 ( May 09, 2013 )
+  Update defines for Logstash 1.1.12
+  Adding license file
+  Deleted old init file removal to avoid issues. ( Issue #50 ) 
+  Allow file owner/group to be variable ( Issue/PR #47 )
+  Ensure log directory exists before starting ( PR #53 by Brian Lalor )
+  Provide complete containment of the class ( PR #53 by Brian Lalor )
+  Update rspec tests for new defines
+
+0.2.0 ( Apr 30, 2013 )
+  Update defines for logstash 1.1.10
+  New feature for plugins to automatically transfer files ( Issue #24 )
+  Create correct tmp dir ( Issue #35 )
+  Change file modes to be more secure ( Issue #36 )
+  Update defines for better input validation ( Issue #43 )
+  Adding rspec tests for plugin defines
+  Fix tmp dir Debian init script ( PR #44 by Dan Carley )
+
+0.1.0 ( Mar 25, 2013 )
+  Don't backup the Jar file or the symlink ( Issue #25 by Garth Kidd )
+  First implementation of the multi-instance feature. This will break certain functionality.
+
+0.0.6 ( Mar 07, 2013 )
+  Fix issue that the init file was overwritten
+  Ensure we install java first before starting logstash if enabled
+
+0.0.5 ( Mar 02, 2013 )
+  Adding spec tests
+  Update Readme ( PR #20 by rjw1 )
+  New feature to install java
+
+0.0.4 ( Feb 10, 2013 )
+  Rename Redhat to RedHat for init file ( PR #12 by pkubat )
+  Adding Amazon as Operating system ( PR #12 by pkubat )
+  Symlinking Jar file to generic name ( PR #12 by pkubat )
+  Correting symlink ( PR #14 by Jeff Wong )
+
+0.0.3 ( Feb  5, 2013 )
+  Clarify jarfile usage and validation ( PR #6 by Garth Kidd )
+  Add default Debian Init script when non provided and using custom source ( PR #7 by Garth Kidd )
+  Add RedHat as OS type ( PR #8 by Dan )
+  Skip init script when status = unmanaged ( PR #9 by Tavis Aitken )
+  Refactored the custom provider part ( With help of Garth Kidd )
+
+0.0.2 ( Jan 19, 2013 )
+  Adding a way to provide jar and init file instead of depending on a package
+
+0.0.1 ( Jan 13, 2013 )
+  Initial release of the module
