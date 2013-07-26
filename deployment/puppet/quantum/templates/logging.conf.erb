@@ -1,11 +1,20 @@
+<% if @debug then -%>
+[loggers]
+keys = root, l3agent, ovsagent, dhcpagent, metadata
+
+[handlers]
+keys = production,devel,stderr, l3agent, ovsagent, dhcpagent, metadata
+
+<% else -%>
 [loggers]
 keys = root
 
 [handlers]
 keys = production,devel,stderr
 
+<% end -%>
 [formatters]
-keys = normal,debug
+keys = normal,debug,default
 
 [logger_root]
 level = NOTSET
@@ -13,16 +22,15 @@ handlers = production,devel,stderr
 propagate = 1
 
 [formatter_debug]
-format = quantum-%(name)s %(levelname)s: %(module)s %(name)s:%(lineno)d %(funcName)s %(message)s
+format = quantum-%(name)s %(levelname)s %(module)s %(funcName)s %(message)s
 
 [formatter_normal]
-format = quantum-%(name)s %(levelname)s: %(module)s %(message)s
+format = quantum-%(name)s %(levelname)s %(message)s
 
 [formatter_default]
 format=%(asctime)s %(levelname)s: %(module)s %(name)s:%(lineno)d %(funcName)s  %(message)s
 
-# Extended logging info to LOG_<%= @syslog_log_facility %> with debug:<%= @debug %> and verbose:<%= @verbose %>
-# Note: local copy goes to /var/log/quantum-all.log
+# logging info to LOG_<%= @syslog_log_facility %> with debug:<%= @debug %> and verbose:<%= @verbose %>
 [handler_production]
 class = handlers.SysLogHandler
 <% if @debug then -%>
@@ -65,3 +73,48 @@ level = <%= @syslog_log_level %>
 formatter = normal
 <% end -%>
 args = (sys.stdout,)
+
+<% if @debug then -%>
+[logger_l3agent]
+handlers = l3agent
+level=NOTSET
+qualname = quantum.agent.l3_agent
+
+[handler_l3agent]
+class = logging.FileHandler
+args = ('/var/log/quantum/l3.log',)
+formatter = default
+
+
+[logger_dhcpagent]
+handlers = dhcpagent
+level=NOTSET
+qualname = quantum.agent.dhcp_agent
+
+[handler_dhcpagent]
+class = logging.FileHandler
+args = ('/var/log/quantum/dhcp.log',)
+formatter = default
+
+
+[logger_ovsagent]
+handlers = ovsagent
+level=NOTSET
+qualname = quantum.plugins.openvswitch.agent.ovs_quantum_agent
+
+[handler_ovsagent]
+class = logging.FileHandler
+args = ('/var/log/quantum/ovs.log',)
+formatter = default
+
+
+[logger_metadata]
+handlers = metadata
+level=NOTSET
+qualname = quantum.agent.metadata
+
+[handler_metadata]
+class = logging.FileHandler
+args = ('/var/log/quantum/metadata.log',)
+formatter = default
+<% end -%>

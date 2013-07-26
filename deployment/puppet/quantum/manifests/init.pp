@@ -165,7 +165,29 @@ class quantum (
     'keystone_authtoken/admin_user':        value => $auth_user;
     'keystone_authtoken/admin_password':    value => $auth_password;
   }
+  # logging for agents grabbing from stderr. It's workarround for bug in quantum-logging
+  # server givs this parameters from command line
+  # FIXME change init.d scripts for q&agents for non HA mode, change daemon launch commands (CENTOS/RHEL):
+  # FIXME quantum-server:
+  # FIXME	daemon --user quantum --pidfile $pidfile "$exec --config-file $config --config-file /etc/$prog/plugin.ini &>>/var/log/quantum/server.log & echo \$!
+  # FIXME quantum-ovs-cleanup:
+  # FIXME	daemon --user quantum $exec --config-file /etc/$proj/$proj.conf --config-file $config &>>/var/log/$proj/$plugin.log
+  # quantum-ovs/metadata/l3/dhcp/-agents:
+  # FIXME	daemon --user quantum --pidfile $pidfile "$exec --config-file /etc/$proj/$proj.conf --config-file $config &>>/var/log/$proj/$plugin.log & echo \$! > $pidfile"
+
+  quantum_config {
+      'DEFAULT/log_file':   ensure=> absent;
+      'DEFAULT/log_dir':    ensure=> absent;
+      'DEFAULT/logfile':    ensure=> absent;
+      'DEFAULT/logdir':     ensure=> absent;
+  }
   if $use_syslog and !$debug =~ /(?i)(true|yes)/ {
+    quantum_config {
+        'DEFAULT/log_config':   value => "/etc/quantum/logging.conf";
+        'DEFAULT/use_stderr': ensure=> absent;
+        'DEFAULT/use_syslog': value=> true;
+        'DEFAULT/syslog_log_facility': value=> $syslog_log_facility;
+    }
     file { "quantum-logging.conf":
       content => template('quantum/logging.conf.erb'),
       path  => "/etc/quantum/logging.conf",
@@ -176,9 +198,9 @@ class quantum (
   } else {
     quantum_config {
     # logging for agents grabbing from stderr. It's workarround for bug in quantum-logging
-      'DEFAULT/log_file':   ensure=> absent;
-      'DEFAULT/log_dir':    ensure=> absent;
       'DEFAULT/use_syslog': ensure=> absent;
+      'DEFAULT/syslog_log_facility': ensure=> absent;
+      'DEFAULT/log_config': ensure=> absent;
       'DEFAULT/use_stderr': value => true;
     }
     file { "quantum-logging.conf":

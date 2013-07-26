@@ -317,7 +317,9 @@ quantum_l3_agent_start() {
     clean_up
 
     if ocf_is_true ${OCF_RESKEY_syslog} ; then
-        L3_SYSLOG=" | logger -t quantum-quantum.agent.l3 "
+# Disable logger because we use imfile for log files grabbing to rsyslog
+#      L3_SYSLOG=" | logger -t quantum-quantum.agent.l3 "
+        L3_SYSLOG=""
         if ocf_is_true ${OCF_RESKEY_debug} ; then
             L3_LOG=" | tee -ia /var/log/quantum/l3.log "
         else

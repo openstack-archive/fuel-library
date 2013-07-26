@@ -57,16 +57,13 @@ class cinder::base (
     require => Package['cinder'],
   }
 
+if $use_syslog and !$debug =~ /(?i)(true|yes)/ {
   cinder_config {
+    'DEFAULT/log_config': value => "/etc/cinder/logging.conf";
     'DEFAULT/log_file':   ensure=> absent;
     'DEFAULT/log_dir':    ensure=> absent;
     'DEFAULT/logfile':   ensure=> absent;
     'DEFAULT/logdir':    ensure=> absent;
-  }
-
-if $use_syslog and !$debug =~ /(?i)(true|yes)/ {
-  cinder_config {
-    'DEFAULT/log_config': value => "/etc/cinder/logging.conf";
     'DEFAULT/use_stderr': ensure=> absent;
     'DEFAULT/use_syslog': value => true;
     'DEFAULT/syslog_log_facility': value =>  $syslog_log_facility;
@@ -78,12 +75,15 @@ if $use_syslog and !$debug =~ /(?i)(true|yes)/ {
   }
 }
 else {
-  # logging for agents grabbing from stderr
   cinder_config {
     'DEFAULT/log_config': ensure=> absent;
     'DEFAULT/use_syslog': ensure=> absent;
     'DEFAULT/syslog_log_facility': ensure=> absent;
-    'DEFAULT/use_stderr': value => true;
+    'DEFAULT/use_stderr': ensure=> absent;
+    'DEFAULT/logging_context_format_string':
+     value => '%(asctime)s %(levelname)s %(name)s [%(request_id)s %(user_id)s %(project_id)s] %(instance)s %(message)s';
+    'DEFAULT/logging_default_format_string':
+     value => '%(asctime)s %(levelname)s %(name)s [-] %(instance)s %(message)s';
   }
   # might be used for stdout logging instead, if configured
   file { "cinder-logging.conf":

@@ -13,13 +13,12 @@ handlers = production,devel,stderr
 propagate = 1
 
 [formatter_debug]
-format = cinder-%(name)s %(levelname)s: %(module)s %(name)s:%(lineno)d %(funcName)s %(message)s
+format = cinder-%(name)s %(levelname)s %(module)s %(funcName)s %(message)s
 
 [formatter_normal]
-format = cinder-%(name)s %(levelname)s: %(module)s %(message)s
+format = cinder-%(name)s %(levelname)s %(message)s
 
-# Extended logging info to LOG_<%= @syslog_log_facility %> with debug:<%= @debug %> and verbose:<%= @verbose %>
-# Note: local copy goes to /var/log/cinder-all.log
+# logging info to LOG_<%= @syslog_log_facility %> with debug:<%= @debug %> and verbose:<%= @verbose %>
 [handler_production]
 class = handlers.SysLogHandler
 <% if @debug then -%>

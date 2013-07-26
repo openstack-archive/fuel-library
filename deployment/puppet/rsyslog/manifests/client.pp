@@ -195,28 +195,28 @@ if $::debug =~ /(?i)(true|yes)/ {
     notify  => Class["rsyslog::service"],
 }
 ::rsyslog::imfile { "50-quantum-ovs-agent_debug" :
-    file_name     => "/var/log/quantum/ovs-agent.log",
+    file_name     => "/var/log/quantum/ovs.log",
     file_tag      => "quantum-ovs-agent",
     file_facility => $::syslog_log_facility_quantum,
     file_severity => "DEBUG",
     notify  => Class["rsyslog::service"],
 }
 ::rsyslog::imfile { "50-quantum-l3-agent_debug" :
-    file_name     => "/var/log/quantum/l3-agent.log",
+    file_name     => "/var/log/quantum/l3.log",
     file_tag      => "quantum-l3-agent",
     file_facility => $::syslog_log_facility_quantum,
     file_severity => "DEBUG",
     notify  => Class["rsyslog::service"],
 }
 ::rsyslog::imfile { "50-quantum-dhcp-agent_debug" :
-    file_name     => "/var/log/quantum/dhcp-agent.log",
+    file_name     => "/var/log/quantum/dhcp.log",
     file_tag      => "quantum-dhcp-agent",
     file_facility => $::syslog_log_facility_quantum,
     file_severity => "DEBUG",
     notify  => Class["rsyslog::service"],
 }
 ::rsyslog::imfile { "50-quantum-metadata-agent_debug" :
-    file_name     => "/var/log/quantum/metadata-agent.log",
+    file_name     => "/var/log/quantum/metadata.log",
     file_tag      => "quantum-metadata-agent",
     file_facility => $::syslog_log_facility_quantum,
     file_severity => "DEBUG",
