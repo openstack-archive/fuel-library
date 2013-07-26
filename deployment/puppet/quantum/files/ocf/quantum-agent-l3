@@ -356,7 +356,7 @@ quantum_l3_agent_start() {
         sleep 1
     done
 
-    sleep 7 ; q-agent-cleanup.py --agent=l3 --reschedule --remove-dead 2>&1 >> /var/log/quantum/rescheduling.log
+    sleep 13 ; q-agent-cleanup.py --agent=l3 --reschedule --remove-dead 2>&1 >> /var/log/quantum/rescheduling.log
 
     ocf_log info "OpenStack L3 Server (quantum-l3-agent) started"
     return $OCF_SUCCESS
