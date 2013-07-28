@@ -60,7 +60,7 @@ fi
 errors=0
 rhnchanneloutput="$(rhn-channel -l)"
 for channel in <%= sat_base_channels %> <%= sat_openstack_channel %>; do
-  if grep -q "$channel" <<< "rhnchanneloutput"; then
+  if grep -q "$channel" <<< "$rhnchanneloutput"; then
     echo "Found $channel."
   else
     echo "ERROR: $channel not found. Fix this in RHN Satellite manually or run the following command:"
@@ -80,7 +80,7 @@ mkdir -p <%= pkgdir %>/repodata <%= pkgdir %>/Packages
 
 rm -f /etc/yum/vars/releasever
 yum-config-manager --disable 'nailgun' &> /dev/null
-yum-config-manager --disable 'centos' &> /dev/null
+yum-config-manager --disable 'centos' --disable 'extras' --disable 'updates' &> /dev/null
 yum-config-manager --disable 'base' &> /dev/null
 echo 6Server > /etc/yum/vars/releasever
 echo "Building initial cache. This may take several minutes."
