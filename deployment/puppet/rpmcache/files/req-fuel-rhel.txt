@@ -1,10 +1,7 @@
 GeoIP-1.4.8-1.el6.x86_64.rpm
-MySQL-client-5.5.28-7.x86_64.rpm
 MySQL-client-wsrep-5.5.28_wsrep_23.7-12.x86_64.rpm
 MySQL-python-1.2.3-0.3.c1.2.el6.x86_64.rpm
-MySQL-server-5.5.28-7.x86_64.rpm
 MySQL-server-wsrep-5.5.28_wsrep_23.7-12.x86_64.rpm
-MySQL-shared-5.5.28-7.x86_64.rpm
 MySQL-shared-wsrep-5.5.28_wsrep_23.7-12.x86_64.rpm
 cirros-testvm-0.3.0-3.x86_64.rpm
 crmsh-1.2.5-55.2.x86_64.rpm
@@ -73,7 +70,6 @@ http-parser-2.0-4.20121128gitcd01361.el6.x86_64.rpm
 libicu-4.2.1-9.1.el6_2.x86_64.rpm
 libuv-0.10.4-1.el6.x86_64.rpm
 mcollective-2.3.1-2.el6.noarch.rpm
-mcollective-2.3.1-2.el6.src.rpm
 mcollective-client-2.3.1-2.el6.noarch.rpm
 mcollective-common-2.3.1-2.el6.noarch.rpm
 nailgun-agent-0.1.0-1.x86_64.rpm
@@ -99,6 +95,8 @@ rubygem-daemons-1.0.10-2.el6.noarch.rpm
 rubygem-fastthread-1.0.7-2.el6.x86_64.rpm
 rubygem-gem_plugin-0.2.3-3.el6.noarch.rpm
 rubygem-mongrel-1.1.5-3.el6.x86_64.rpm
+rubygem-netaddr-1.5.0-2.el6.noarch.rpm
+rubygem-openstack-1.1.1-2.el6.noarch.rpm
 rubygem-rake-0.8.7-2.1.el6.noarch.rpm
 rubygem-stomp-1.2.8-1.el6.noarch.rpm
 rubygems-1.3.7-1.el6.noarch.rpm
