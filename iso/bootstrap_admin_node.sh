@@ -32,13 +32,13 @@ puppet apply -e "
       log_remote     => false,
       log_local      => true,
       log_auth_local => true,
-      rotation       => 'daily',
-      keep           => '7',
+      rotation       => 'weekly',
+      keep           => '4',
       # should be > 30M
       limitsize      => '100M',
       port           => '514',
       proto          => 'udp',
-      show_timezone  => true,
+      show_timezone  => false,
      #virtual        => false,
     }"
 puppet apply -e "
