@@ -751,7 +751,6 @@ rebuild_cluster() {
   if [ "$(crm_attribute -t crm_config --name mysqlprimaryinit --query 2> /dev/null | awk -F\= '{print $4}')" = 'done' ] && [ ! -f /tmp/wsrep-init-file ]; then
         mysql_status info
         if [ $? = $OCF_SUCCESS ] ; then
-            CRM_ONLINE_NODES=( $(crm node list | grep -v \(offline\) | sed 's/\://g') )
             WSREP_EPOCH=$(echo 'show status;' | mysql -u root | grep wsrep_protocol_version | awk '{print $2}')
             WSREP_STATE=$(echo 'show status;' | mysql -u root | grep wsrep_cluster_status | awk '{print $2}')
             if [ "$WSREP_STATE" = 'non-Primary' ]; then
@@ -768,6 +767,7 @@ rebuild_cluster() {
                 # Check if someone already decided to declare himself master...
                 RAISED_MASTER=$(crm_attribute -t crm_config --name mysqlmaster --query 2> /dev/null | awk -F\= '{print $4}')
                 # ... and if nobody did:
+                CRM_ONLINE_NODES=( $(crm node list | grep -v \(offline\) | sed 's/\://g') )
                 for node in "${CRM_ONLINE_NODES[@]}" ; do
                     CUR_EPOCH=$(crm_attribute -t crm_config --node $node --name mysqlepoch --query 2> /dev/null | awk -F\= '{print $4}')
                     if [ -z "$CUR_EPOCH" ] ; then
