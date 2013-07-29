@@ -1,15 +1,9 @@
 #!/bin/bash
 #
 #
-# OpenStack OVS Service (quantum-metadata-agent)
+# OpenStack RabbitMQ Service (rabbitmq)
 #
-# Description:  Manages an OpenStack OVS Service (quantum-metadata-agent) process as an HA resource
-#
-# Authors: Emilien Macchi
-# Mainly inspired by the Nova Network resource agent written by Emilien Macchi & Sebastien Han
-#
-# Support:      openstack@lists.launchpad.net
-# License:      Apache Software License (ASL) 2.0
+# Description:  Manages RabbitMQ instances (rabbitmq) process as an HA resource
 #
 #
 # See usage() function below for more details ...
