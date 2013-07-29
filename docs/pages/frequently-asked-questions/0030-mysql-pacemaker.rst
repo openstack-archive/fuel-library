@@ -2,7 +2,7 @@ Corosync crashes without network
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 **Issue:**
-TOTEM, the network protocol used by Corosync exceeds its timeout. Corosync sometimes crashes when networking is unavailable for a length of time. Additionall, MySQL has stopped working.
+TOTEM, the network protocol used by Corosync exceeds its timeout. Corosync sometimes crashes when networking is unavailable for a length of time. Additionally, MySQL has stopped working.
 
 **Workaround:**
 
