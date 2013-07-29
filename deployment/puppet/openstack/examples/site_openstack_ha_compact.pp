@@ -27,7 +27,7 @@ $internal_virtual_ip = '10.0.0.253'
 $public_virtual_ip   = '10.0.204.253'
 
 case $::operatingsystem {
-  'redhat' : { 
+  'redhat' : {
           $queue_provider = 'qpid'
           $custom_mysql_setup_class = 'pacemaker_mysql'
   }
@@ -438,7 +438,7 @@ if $use_syslog {
   class { "::openstack::logging":
     stage          => 'first',
     role           => 'client',
-    show_timezone => true,
+    show_timezone => false,
     # log both locally include auth, and remote
     log_remote     => true,
     log_local      => true,

@@ -57,7 +57,7 @@ class nailgun(
   Class["nailgun::nginx-nailgun"] ->
   Class["nailgun::cobbler"] ->
   Class["nailgun::pm"] ->
-  Class["nailgun::rsyslog"] ->
+  Class["openstack::logging"] ->
   Class["nailgun::supervisor"] ->
   Anchor<| title == "nailgun-end" |>
 
@@ -79,7 +79,20 @@ class nailgun(
                ],
   }
 
-  class { "nailgun::rsyslog": }
+  class {openstack::logging:
+    role           => 'server',
+    log_remote     => false,
+    log_local      => true,
+    log_auth_local => true,
+    rotation       => 'weekly',
+    keep           => '4',
+    # should be > 30M
+    limitsize      => '100M',
+    port           => '514',
+    proto          => 'udp',
+    show_timezone  => false,
+    virtual        => true,
+  }
 
   class { "nailgun::user":
     nailgun_group => $nailgun_group,

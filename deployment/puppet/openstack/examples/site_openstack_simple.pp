@@ -24,7 +24,7 @@ $internal_br         = 'br-mgmt'
 # This is the name of the private interface. All traffic within OpenStack tenants' networks will go through this interface.
 $private_interface   = 'eth2'
 case $::operatingsystem {
-  'redhat' : { 
+  'redhat' : {
           $queue_provider = 'qpid'
           $custom_mysql_setup_class = 'pacemaker_mysql'
   }
@@ -117,7 +117,7 @@ $nova_user_password      = 'nova'
 #AMQP backend rabbitmq or qpid
 $queue_provider          = 'qpid'
 validate_re($queue_provider,  'rabbitmq|qpid')
- 
+
 $rabbit_password         = 'nova'
 $rabbit_user             = 'nova'
 
@@ -341,7 +341,7 @@ if $use_syslog {
   class { "::openstack::logging":
     stage          => 'first',
     role           => 'client',
-    show_timezone => true,
+    show_timezone => false,
     # log both locally include auth, and remote
     log_remote     => true,
     log_local      => true,
