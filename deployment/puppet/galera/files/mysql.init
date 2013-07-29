@@ -302,7 +302,6 @@ case "$mode" in
      fi
     else
        if [ "$(crm_attribute -t crm_config --name mysqlprimaryinit --query 2> /dev/null | awk -F\= '{print $4}')" = 'done' ] ; then
-            CRM_ONLINE_NODES=( $(crm node list | grep -v \(offline\) | sed 's/\://g') )
             $bindir/mysqld_safe --datadir="$datadir" --pid-file="$mysqld_pid_file_path" $other_args >/dev/null 2>&1 &
             wait_for_pid created "$!" "$mysqld_pid_file_path"; return_value=$?
             sleep 90
@@ -322,6 +321,7 @@ case "$mode" in
                 # Check if someone already decided to declare himself master...
                 RAISED_MASTER=$(crm_attribute -t crm_config --name mysqlmaster --query 2> /dev/null | awk -F\= '{print $4}')
                 # ... and if nobody did:
+                CRM_ONLINE_NODES=( $(crm node list | grep -v \(offline\) | sed 's/\://g') )
                 for node in "${CRM_ONLINE_NODES[@]}" ; do
                     CUR_EPOCH=$(crm_attribute -t crm_config --node $node --name mysqlepoch --query 2> /dev/null | awk -F\= '{print $4}')
                     if [ -z "$CUR_EPOCH" ] ; then

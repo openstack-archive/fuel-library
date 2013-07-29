@@ -50,26 +50,26 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Cor
     @service={}
     default_start_timeout = 30
     default_stop_timeout = 30
-    resource = XPath.first(@@resources, "//primitive[@id='#{@resource[:name]}']")
-    @service[:msname] = ['master','clone'].include?(resource.parent.name) ? resource.parent.attributes['id'] : nil
+    cib_resource =  XPath.match(@@resources, "//primitive[@id=\'#{@resource[:name]}\']").first
+    @service[:msname] = ['master','clone'].include?(cib_resource.parent.name) ? cib_resource.parent.attributes['id'] : nil
     @service[:name] = @resource[:name]
-    @service[:class] = resource.attributes['class']
-    @service[:provider] = resource.attributes['provider']
-    @service[:type] = resource.attributes['type']
+    @service[:class] = cib_resource.attributes['class']
+    @service[:provider] = cib_resource.attributes['provider']
+    @service[:type] = cib_resource.attributes['type']
     @service[:metadata] = {}
-    if !resource.elements['meta_attributes'].nil?
-      resource.elements['meta_attributes'].each_element do |m|
+    if !cib_resource.elements['meta_attributes'].nil?
+      cib_resource.elements['meta_attributes'].each_element do |m|
         @service[:metadata][m.attributes['name'].to_sym] = m.attributes['value']
       end
     end
     if @service[:class] == 'ocf'
       stdin, stdout, stderr =  Open3.popen3("/bin/bash -c 'OCF_ROOT=/usr/lib/ocf /usr/lib/ocf/resource.d/#{@service[:provider]}/#{@service[:type]} meta-data'")
       metadata = REXML::Document.new(stdout)
-      default_start_timeout = XPath.first(metadata, "//actions/action[@name=\'start\']").attributes['timeout'].to_i
-      default_stop_timeout = XPath.first(metadata, "//actions/action[@name=\'stop\']").attributes['timeout'].to_i
+      default_start_timeout = XPath.match(metadata, "//actions/action[@name=\'start\']").first.attributes['timeout'].to_i
+      default_stop_timeout = XPath.match(metadata, "//actions/action[@name=\'stop\']").first.attributes['timeout'].to_i
     end
-    op_start=XPath.first(resource,"//operations/op[@name=\'start\']")
-    op_stop=XPath.first(resource,"//operations/op[@name=\'stop\']")
+    op_start=XPath.match(REXML::Document.new(cib_resource.to_s),"//operations/op[@name='start']").first
+    op_stop=XPath.match(REXML::Document.new(cib_resource.to_s),"//operations/op[@name='stop']").first
     @service[:start_timeout] =  default_start_timeout
     @service[:stop_timeout] =  default_stop_timeout
     if !op_start.nil?
@@ -201,12 +201,12 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Cor
       if ['promote','start','stop'].include?(last_op.attributes['operation'])
         last_successful_op = last_op.attributes['operation']
       else
-        if last_op.attributes['rc-code'].to_i == 7
-          last_successful_op = 'stop'
-        elsif last_op.attributes['rc-code'].to_i == 0
+        if last_op.attributes['rc-code'].to_i == 0
           last_successful_op = 'start'
         elsif  last_op.attributes['rc-code'].to_i == 8
           last_successful_op = 'start'
+        else
+          last_successful_op = 'stop'
         end
       end
       debug("LAST SUCCESSFUL OP :\n\n #{last_successful_op.inspect}")

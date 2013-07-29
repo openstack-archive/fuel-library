@@ -50,6 +50,9 @@ class galera (
   ) {
   include galera::params
 
+  $cib_name = "mysql"
+  $res_name = "p_$cib_name"
+
   $mysql_user = $::galera::params::mysql_user
   $mysql_password = $::galera::params::mysql_password
   $libgalera_prefix = $::galera::params::libgalera_prefix
@@ -59,15 +62,15 @@ class galera (
 
       file { '/etc/init.d/mysql':
         ensure  => present,
-        mode    => 755,
+        mode    => 644,
         require => Package['MySQL-server'],
-        before  => Service['mysql-galera']
+        before  => Service["$cib_name"]
       }
 
       file { '/etc/my.cnf':
         ensure => present,
         content => template("galera/my.cnf.erb"),
-        before => Service['mysql-galera']
+        before => Service["$cib_name"]
       }
 
       package { 'MySQL-client':
@@ -92,16 +95,16 @@ class galera (
 
       file { '/etc/init.d/mysql':
         ensure  => present,
-        mode    => 755,
+        mode    => 644,
         source => 'puppet:///modules/galera/mysql.init' , 
         require => Package['MySQL-server'],
-        before  => Service['mysql-galera']
+        before  => Service["$cib_name"]
       }
 
       file { '/etc/my.cnf':
         ensure => present,
         content => template("galera/my.cnf.erb"),
-        before => Service['mysql-galera']
+        before => Service["$cib_name"]
       }
 
       package { 'wget':
@@ -123,21 +126,48 @@ class galera (
         before => Package['MySQL-server']
       }
 
-      package { 'libc6':
-        ensure => latest,
-        before => Package['MySQL-server']
-      }
     }
   }
+ cs_shadow { $res_name: cib => $cib_name }
+ cs_commit { $res_name: cib => $cib_name } ~> ::Corosync::Cleanup["$res_name"]
+    ::corosync::cleanup { $res_name: }
+ cs_resource { "$res_name":
+      ensure => present,
+      cib => $cib_name,
+      primitive_class => 'ocf',
+      provided_by     => 'mirantis', 
+      primitive_type => 'mysql',
+      multistate_hash => {
+        'type' => 'clone',
+      },
+      ms_metadata => {
+        'interleave' => 'true',
+      },
+      operations => {
+        'monitor' => {
+          'interval' => '60',
+          'timeout' => '30'
+        },
+        'start' => {
+          'timeout' => '450'
+        },
+        'stop' => {
+          'timeout' => '150'
+        },
+     },
+   }
 
-  service { "mysql-galera":
-    name       => "mysql",
+  service { "mysql":
+    name       => "p_mysql",
     enable     => true,
     ensure     => "running",
     require    => [Package["MySQL-server", "galera"]],
-    hasrestart => true,
-    hasstatus  => true,
+    provider   => "pacemaker",
   }
+  Package['pacemaker'] -> File['mysql-wss']
+   Cs_resource["$res_name"] ->
+      Cs_commit["$res_name"] ->
+          Service["$cib_name"]
 
   package { [$::galera::params::libssl_package, $::galera::params::libaio_package]:
     ensure => present,
@@ -180,10 +210,6 @@ class galera (
       content => template("galera/wsrep.cnf.erb"),
       require => [File["/etc/mysql/conf.d"], File["/etc/mysql"]],
     }
-    File["/etc/mysql/conf.d/wsrep.cnf"] -> Exec['set-mysql-password']
-    File["/etc/mysql/conf.d/wsrep.cnf"] ~> Exec['set-mysql-password']
-    File["/etc/mysql/conf.d/wsrep.cnf"] -> Service['mysql-galera']
-    File["/etc/mysql/conf.d/wsrep.cnf"] ~> Service['mysql-galera']
     File["/etc/mysql/conf.d/wsrep.cnf"] -> Package['MySQL-server']
   }
 
@@ -197,13 +223,6 @@ class galera (
     content => template("galera/wsrep-init-file.erb"),
   }
 
-# This exec calls mysqld_safe with aforementioned file as --init-file argument, thus creating replication user.
-  exec { "set-mysql-password":
-    unless      => "/usr/bin/mysql -u${mysql_user} -p${mysql_password}",
-    command     => "/usr/bin/mysqld_safe --init-file=/tmp/wsrep-init-file --port=3307 &",
-    refreshonly => true,
-  }
-
 # This exec waits for initial sync of galera cluster after mysql replication user creation.
 
   exec { "wait-initial-sync":
@@ -214,15 +233,8 @@ class galera (
     refreshonly => true,
   }
 
-# This exec kills initialized mysql to allow its management with generic service providers (init/upstart/pacemaker/etc.)
-
-  exec { "kill-initial-mysql":
-    path        => "/usr/bin:/usr/sbin:/bin:/sbin",
-    command     => "killall -w mysqld && ( killall -w -9 mysqld_safe || : ) && sleep 10",
-    #      onlyif    => "pidof mysqld",
-    try_sleep   => 5,
-    tries       => 6,
-    refreshonly => true,
+  exec { "rm-init-file":
+    command => "/bin/rm /tmp/wsrep-init-file",
   }
 
   exec { "wait-for-synced-state":
@@ -231,18 +243,17 @@ class galera (
     try_sleep => 5,
     tries     => 60,
   }
-  
-  Package["MySQL-server"] -> Exec["set-mysql-password"] 
-  File['/tmp/wsrep-init-file'] -> Exec["set-mysql-password"] -> Exec["wait-initial-sync"] 
-  -> Exec["kill-initial-mysql"] -> Service["mysql-galera"] -> Exec ["wait-for-synced-state"]
-  
-  Package["MySQL-server"] ~> Exec["set-mysql-password"] ~> Exec ["wait-initial-sync"] ~> Exec["kill-initial-mysql"]
 
   exec { "raise-first-setup-flag" :
    path    => "/usr/bin:/usr/sbin:/bin:/sbin",
    command => "crm_attribute -t crm_config --name mysqlprimaryinit --update done",
    refreshonly => true,
   }
+
+
+
+  File["/tmp/wsrep-init-file"] -> Service["$cib_name"] -> Exec["wait-initial-sync"] -> Exec ["wait-for-synced-state"] -> Exec ["rm-init-file"]
+  Package["MySQL-server"] ~> Exec ["wait-initial-sync"]
 
 # FIXME: This class is deprecated and should be removed in future releases.
  
@@ -257,11 +268,10 @@ class galera (
     exec { "start-new-galera-cluster":
       path   => "/usr/bin:/usr/sbin:/bin:/sbin",
       logoutput => true,
-      command   => '/etc/init.d/mysql stop; sleep 10; killall -w mysqld && ( killall -w -9 mysqld_safe || : ) && sleep 10; /etc/init.d/mysql start --wsrep-cluster-address=gcomm:// &',
-      onlyif    => "[ -f /var/lib/mysql/grastate.dat ] && (cat /var/lib/mysql/grastate.dat | awk '\$1 == \"uuid:\" {print \$2}' | awk '{if (\$0 == \"00000000-0000-0000-0000-000000000000\") exit 0; else exit 1}')",
-      require    => Service["mysql-galera"],
+      command   => 'echo Primary-controller completed',
+      require    => Service["$cib_name"],
       before     => Exec ["wait-for-synced-state"],
-      notify     => Exec ["raise-first-setup-flag"], 
+      notify     => Exec ["raise-first-setup-flag"],
     }
   }
 }
