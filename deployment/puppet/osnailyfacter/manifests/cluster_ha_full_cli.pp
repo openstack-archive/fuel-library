@@ -17,8 +17,6 @@ $access_hash          = parsejson($::access)
 $floating_hash        = parsejson($::floating_network_range)
 $quantum_params       = parsejson($::quantum_parameters)
 $novanetwork_params  = parsejson($::novanetwork_parameters)
-$base_syslog_hash     = parsejson($::base_syslog)
-$syslog_hash          = parsejson($::syslog)
 $nodes_hash           = parsejson($::nodes)
 $tenant_network_type  = $quantum_params['tenant_network_type']
 $segment_range        = $quantum_params['segment_range']
@@ -74,27 +72,6 @@ if ($cinder) {
 }
 
 $quantum_sql_connection  = "mysql://${quantum_db_user}:${quantum_db_password}@${quantum_host}/${quantum_db_dbname}"
-
-$base_syslog_rserver  = {
-  'remote_type' => 'udp',
-  'server' => $base_syslog_hash['syslog_server'],
-  'port' => $base_syslog_hash['syslog_port']
-}
-
-
-$syslog_rserver = {
-  'remote_type' => $syslog_hash['syslog_transport'],
-  'server' => $syslog_hash['syslog_server'],
-  'port' => $syslog_hash['syslog_port'],
-}
-
-if $syslog_hash['syslog_server'] != "" and $syslog_hash['syslog_port'] != "" and $syslog_hash['syslog_transport'] != "" {
-  $rservers = [$base_syslog_rserver, $syslog_rserver]
-}
-else {
-  $rservers = [$base_syslog_rserver]
-}
-
 $quantum_host            = $management_vip
 
 ##REFACTORING NEEDED
@@ -145,21 +122,6 @@ $master_swift_proxy_ip = $master_swift_proxy_nodes[0]['internal_address']
 $master_hostname = filter_nodes($nodes_hash,'role','primary-controller')[0]['name']
 
 #HARDCODED PARAMETERS
-
-### Syslog ###
-# Enable error messages reporting to rsyslog. Rsyslog must be installed in this case.
-$use_syslog = true
-# Default log level would have been used, if non verbose and non debug
-$syslog_log_level             = 'ERROR'
-# Syslog facilities for main openstack services, choose any, may overlap if needed
-# local0 is reserved for HA provisioning and orchestration services,
-# local1 is reserved for openstack-dashboard
-$syslog_log_facility_glance   = 'LOCAL2'
-$syslog_log_facility_cinder   = 'LOCAL3'
-$syslog_log_facility_quantum  = 'LOCAL4'
-$syslog_log_facility_nova     = 'LOCAL6'
-$syslog_log_facility_keystone = 'LOCAL7'
-
 $nova_rate_limits = {
   'POST' => 1000,
   'POST_SERVERS' => 1000,
@@ -178,36 +140,6 @@ $manage_volumes          = false
 $glance_backend          = 'swift'
 $quantum_netnode_on_cnt  = true
 $swift_loopback = 'loopback'
-
-if $use_syslog {
-  class { "::openstack::logging":
-    stage          => 'first',
-    role           => 'client',
-    show_timezone => true,
-    # log both locally include auth, and remote
-    log_remote     => true,
-    log_local      => true,
-    log_auth_local => true,
-    # keep four weekly log rotations, force rotate if 300M size have exceeded
-    rotation       => 'weekly',
-    keep           => '4',
-    # should be > 30M
-    limitsize      => '300M',
-    # remote servers to send logs to
-    rservers       => [{'remote_type'=>'udp', 'server'=>'master', 'port'=>'514'},],
-    # should be true, if client is running at virtual node
-    virtual        => true,
-    # facilities
-    syslog_log_facility_glance   => $syslog_log_facility_glance,
-    syslog_log_facility_cinder   => $syslog_log_facility_cinder,
-    syslog_log_facility_quantum  => $syslog_log_facility_quantum,
-    syslog_log_facility_nova     => $syslog_log_facility_nova,
-    syslog_log_facility_keystone => $syslog_log_facility_keystone,
-    # Rabbit doesn't support syslog directly, should be >= syslog_log_level,
-    # otherwise none rabbit's messages would have gone to syslog
-    rabbit_log_level => $syslog_log_level,
-  }
-}
 
 
 $mirror_type = 'external'

@@ -32,7 +32,7 @@ Puppet::Type.newtype(:ring_devices) do
       merged_storage['types'].collect do |type|
         port = merged_storage["#{type}_port"]
         options = {
-          :name=>"#{merged_storage['storage_local_net_ip']}:#{port}",
+          :name=>"#{merged_storage['storage_address']}:#{port}",
           :mountpoints=>merged_storage['mountpoints'],
           :zone=>merged_storage['zone']
         }
