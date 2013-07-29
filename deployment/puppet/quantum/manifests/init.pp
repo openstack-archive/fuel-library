@@ -38,6 +38,7 @@ class quantum (
   $auth_tenant      = 'services',
   $auth_user        = 'quantum',
   $log_file               = '/var/log/quantum/server.log',
+  $log_dir          = '/var/log/quantum',
   $use_syslog = false,
   $syslog_log_facility    = 'LOCAL4',
   $syslog_log_level = 'WARNING',
@@ -177,12 +178,12 @@ class quantum (
 
   quantum_config {
       'DEFAULT/log_file':   ensure=> absent;
-      'DEFAULT/log_dir':    ensure=> absent;
       'DEFAULT/logfile':    ensure=> absent;
-      'DEFAULT/logdir':     ensure=> absent;
   }
   if $use_syslog and !$debug =~ /(?i)(true|yes)/ {
     quantum_config {
+        'DEFAULT/log_dir':    ensure=> absent;
+        'DEFAULT/logdir':     ensure=> absent;
         'DEFAULT/log_config':   value => "/etc/quantum/logging.conf";
         'DEFAULT/use_stderr': ensure=> absent;
         'DEFAULT/use_syslog': value=> true;
@@ -204,6 +205,7 @@ class quantum (
       # FIXME stderr should not be used unless quantum+agents init & OCF scripts would be fixed to redirect its output to stderr!
       #'DEFAULT/use_stderr': value => true;
       'DEFAULT/use_stderr': ensure=> absent;
+      'DEFAULT/log_dir': value => $log_dir;
     }
     file { "quantum-logging.conf":
       content => template('quantum/logging.conf-nosyslog.erb'),

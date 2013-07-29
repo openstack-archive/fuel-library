@@ -54,6 +54,7 @@ if $use_syslog and !$debug =~ /(?i)(true|yes)/ {
    'DEFAULT/use_syslog': ensure=> absent;
    'DEFAULT/syslog_log_facility': ensure=> absent;
    'DEFAULT/use_stderr': ensure=> absent;
+   'DEFAULT/log_file':value=>$log_file;
    'DEFAULT/logging_context_format_string':
     value => '%(asctime)s %(levelname)s %(name)s [%(request_id)s %(user_id)s %(project_id)s] %(instance)s %(message)s';
    'DEFAULT/logging_default_format_string':

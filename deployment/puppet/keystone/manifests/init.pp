@@ -111,6 +111,7 @@ class keystone(
       'DEFAULT/use_syslog': ensure=> absent;
       'DEFAULT/syslog_log_facility': ensure=> absent;
       'DEFAULT/use_stderr': ensure=> absent;
+      'DEFAULT/log_dir':value=> $log_dir;
     }
     # might be used for stdout logging instead, if configured
     file {"keystone-logging.conf":

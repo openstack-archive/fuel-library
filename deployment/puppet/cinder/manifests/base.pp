@@ -29,6 +29,7 @@ class cinder::base (
   $use_syslog             = false,
   $syslog_log_facility    = "LOCAL3",
   $syslog_log_level = 'WARNING',
+  $log_dir                = '/var/log/cinder',
 ) {
 
   include cinder::params
@@ -80,6 +81,7 @@ else {
     'DEFAULT/use_syslog': ensure=> absent;
     'DEFAULT/syslog_log_facility': ensure=> absent;
     'DEFAULT/use_stderr': ensure=> absent;
+    'DEFAULT/logdir':value=> $log_dir;
     'DEFAULT/logging_context_format_string':
      value => '%(asctime)s %(levelname)s %(name)s [%(request_id)s %(user_id)s %(project_id)s] %(instance)s %(message)s';
     'DEFAULT/logging_default_format_string':

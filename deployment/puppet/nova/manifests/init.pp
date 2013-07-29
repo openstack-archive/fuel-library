@@ -168,9 +168,7 @@ nova_config
  {
  'DEFAULT/log_config': value => "/etc/nova/logging.conf";
  'DEFAULT/log_file': ensure=> absent;
- 'DEFAULT/log_dir': ensure=> absent;
  'DEFAULT/logfile':   ensure=> absent;
- 'DEFAULT/logdir': ensure=> absent;
  'DEFAULT/use_syslog': value =>  true;
  'DEFAULT/use_stderr': ensure=> absent;
  'DEFAULT/syslog_log_facility': value =>  $syslog_log_facility;
@@ -188,6 +186,7 @@ else {
    'DEFAULT/use_syslog': ensure=> absent;
    'DEFAULT/syslog_log_facility': ensure=> absent;
    'DEFAULT/use_stderr': ensure=> absent;
+   'DEFAULT/logdir': value=> $logdir;
    'DEFAULT/logging_context_format_string':
     value => '%(asctime)s %(levelname)s %(name)s [%(request_id)s %(user_id)s %(project_id)s] %(instance)s %(message)s';
    'DEFAULT/logging_default_format_string':
