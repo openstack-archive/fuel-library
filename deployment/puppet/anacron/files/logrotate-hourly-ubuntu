@@ -1,0 +1,19 @@
+#!/bin/sh
+# managed by puppet
+# Clean non existent log file entries from status file
+cd /var/lib/logrotate
+test -e status || touch status
+head -1 status > status.clean
+sed 's/"//g' status | while read logfile date
+do
+    [ -e "$logfile" ] && echo "\"$logfile\" $date"
+done >> status.clean
+mv status.clean status
+test -x /usr/sbin/logrotate || exit 0
+nice ionice -c3 /usr/sbin/logrotate /etc/logrotate.d/20-fuel.conf
+EXITVALUE=$?
+if [ $EXITVALUE != 0 ]; then
+    /usr/bin/logger -t logrotate "ALERT exited abnormally with [$EXITVALUE] (0 was expected)"
+fi
+exit 0
+

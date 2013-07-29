@@ -1,21 +1,41 @@
 [loggers]
 keys = root
 
+# devel is reserved for future usage
 [handlers]
-keys = syslog
+keys = production,devel
 
 [formatters]
-keys = default
+keys = normal,debug
 
 [logger_root]
-level = DEBUG
-handlers = syslog
-qualname = glance
+level = NOTSET
+handlers = production
+propagate = 1
+#qualname = glance
 
-[handler_syslog]
+[formatter_debug]
+format = glance-%(name)s: %(levelname)s %(module)s %(funcName)s %(message)s
+
+[formatter_normal]
+format = glance-%(name)s: %(levelname)s %(message)s
+
+# Extended logging info to LOG_<%= @syslog_log_facility %> with debug:<%= @debug %> and verbose:<%= @verbose %>
+# Note: local copy goes to /var/log/glance-all.log
+[handler_production]
 class = handlers.SysLogHandler
-args = ('/dev/log', handlers.SysLogHandler.LOG_LOCAL2)
-formatter = default
+<% if @debug then -%>
+level = DEBUG
+<% elsif @verbose then -%>
+level = INFO
+<% else -%>
+level = <%= @syslog_log_level %>
+<% end -%>
+args = ('/dev/log', handlers.SysLogHandler.LOG_<%= @syslog_log_facility %>)
+formatter = normal
 
-[formatter_default]
-format = glance %(name)s %(levelname)s %(message)s
+# TODO find out how it could be usefull and how it should be used
+[handler_devel]
+class = StreamHandler
+formatter = debug
+args = (sys.stdout,)

@@ -1,0 +1,13 @@
+# managed by puppet
+<% unless scope.lookupvar('rsyslog::client::high_precision_timestamps') -%>
+#
+# Use traditional timestamp format date-rfc3164 (Dec 5 02:21:13).
+# To enable high precision timestamps date-rfc3339 (2010-12-05T02:21:41.889482+01:00), comment out the following line.
+#
+$ActionFileDefaultTemplate RSYSLOG_TraditionalFileFormat
+<% end -%>
+
+<%= @syslog_log_facility_quantum %>.* -/var/log/quantum-all.log
+<%= @syslog_log_facility_quantum %>.* ~
+:syslogtag, contains, "quantum" -/var/log/quantum-all.log
+:syslogtag, contains, "quantum" ~

@@ -1,3 +1,4 @@
+#
 class nova::compute::libvirt (
   $libvirt_type = 'kvm',
   $vncserver_listen = '127.0.0.1'

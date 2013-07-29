@@ -23,6 +23,12 @@ Puppet::Type.newtype(:firewallchain) do
     those packages to ensure that any required binaries are installed.
   EOS
 
+  internalChains = /^(PREROUTING|POSTROUTING|BROUTING|INPUT|FORWARD|OUTPUT)$/
+
+  tables = 'nat|mangle|filter|raw|rawpost|broute'
+
+  nameformat = /^(.+):(#{tables}):(IP(v[46])?|ethernet)$/
+
   feature :iptables_chain, "The provider provides iptables chain features."
   feature :policy, "Default policy (inbuilt chains only)"
 
@@ -40,7 +46,7 @@ Puppet::Type.newtype(:firewallchain) do
     isnamevar
 
     validate do |value|
-      if value !~ Nameformat then
+      if value !~ nameformat then
         raise ArgumentError, "Inbuilt chains must be in the form {chain}:{table}:{protocol} where {table} is one of FILTER, NAT, MANGLE, RAW, RAWPOST, BROUTE or empty (alias for filter), chain can be anything without colons or one of PREROUTING, POSTROUTING, BROUTING, INPUT, FORWARD, OUTPUT for the inbuilt chains, and {protocol} being IPv4, IPv6, ethernet (ethernet bridging) got '#{value}' table:'#{$1}' chain:'#{$2}' protocol:'#{$3}'"
       else
         chain = $1
@@ -52,7 +58,7 @@ Puppet::Type.newtype(:firewallchain) do
             raise ArgumentError, "INPUT, OUTPUT and FORWARD are the only inbuilt chains that can be used in table 'filter'"
           end
         when 'mangle'
-          if chain =~ InternalChains && chain == 'BROUTING'
+          if chain =~ internalChains && chain == 'BROUTING'
             raise ArgumentError, "PREROUTING, POSTROUTING, INPUT, FORWARD and OUTPUT are the only inbuilt chains that can be used in table 'mangle'"
           end
         when 'nat'
@@ -119,13 +125,13 @@ Puppet::Type.newtype(:firewallchain) do
   validate do
     debug("[validate]")
 
-    value(:name).match(Nameformat)
+    value(:name).match(nameformat)
     chain = $1
     table = $2
     protocol = $3
 
     # Check that we're not removing an internal chain
-    if chain =~ InternalChains && value(:ensure) == :absent
+    if chain =~ internalChains && value(:ensure) == :absent
       self.fail "Cannot remove in-built chains"
     end
 
@@ -134,7 +140,7 @@ Puppet::Type.newtype(:firewallchain) do
     end
 
     # Check that we're not setting a policy on a user chain
-    if chain !~ InternalChains &&
+    if chain !~ internalChains &&
       !value(:policy).nil? &&
       protocol != 'ethernet'
 

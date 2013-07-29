@@ -9,7 +9,7 @@ describe Puppet::Type.type(:cs_colocation).provider(:crm) do
     it "should create colocation with corresponding members" do
       resource[:primitives] = ["p_1", "p_2"]
       resource[:score] = "inf"
-      provider.stubs(:crm)
+      provider.class.stubs(:exec_withenv).returns(0)
       tmpfile = StringIO.new()
       Tempfile.stubs(:open).with("puppet_crm_update").yields(tmpfile)
       tmpfile.stubs(:path)

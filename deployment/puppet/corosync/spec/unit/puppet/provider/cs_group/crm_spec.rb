@@ -8,7 +8,7 @@ describe Puppet::Type.type(:cs_group).provider(:crm) do
   describe "#create" do
     it "should create group with corresponding mebers" do
       resource[:primitives] = ["p_1", "p_2"]
-      provider.stubs(:crm)
+      provider.class.stubs(:exec_withenv).returns(0)
       tmpfile = StringIO.new()
       Tempfile.stubs(:open).with("puppet_crm_update").yields(tmpfile)
       tmpfile.stubs(:path)

@@ -72,6 +72,7 @@ class openstack::nova::controller (
   # General
   $keystone_host             = '127.0.0.1',
   $verbose                   = 'False',
+  $debug                     = 'False',
   $enabled                   = true,
   $exported_resources        = true,
   $rabbit_nodes              = [$internal_address],
@@ -81,6 +82,9 @@ class openstack::nova::controller (
   $enabled_apis              = 'ec2,osapi_compute',
   $api_bind_address          = '0.0.0.0',
   $use_syslog                = false,
+  $syslog_log_facility       = 'LOCAL6',
+  $syslog_log_facility_quantum = 'LOCAL4',
+  $syslog_log_level = 'WARNING',
   $nova_rate_limits          = undef,
   $cinder                    = true
 ) {
@@ -149,10 +153,13 @@ class openstack::nova::controller (
       image_service        => 'nova.image.glance.GlanceImageService',
       glance_api_servers   => $glance_connection,
       verbose              => $verbose,
+      debug                => $debug,
       rabbit_nodes         => $rabbit_nodes,
       ensure_package       => $ensure_package,
       api_bind_address     => $api_bind_address,
       use_syslog           => $use_syslog,
+      syslog_log_facility  => $syslog_log_facility,
+      syslog_log_level     => $syslog_log_level,
       rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
     }
   } else {
@@ -163,10 +170,13 @@ class openstack::nova::controller (
       image_service      => 'nova.image.glance.GlanceImageService',
       glance_api_servers => $glance_connection,
       verbose            => $verbose,
+      debug              => $debug,
       rabbit_host        => $rabbit_connection,
       ensure_package     => $ensure_package,
       api_bind_address   => $api_bind_address,
       use_syslog         => $use_syslog,
+      syslog_log_facility => $syslog_log_facility,
+      syslog_log_level    => $syslog_log_level,
     }
   }
   class {'nova::quota':
@@ -224,7 +234,9 @@ class openstack::nova::controller (
     $quantum_sql_connection = "$db_type://${quantum_db_user}:${quantum_db_password}@${db_host}/${quantum_db_dbname}?charset=utf8"
 
     class { 'quantum::server':
-      auth_host     => $internal_address,
+      auth_host     => $keystone_host,
+      auth_tenant   => 'services',
+      auth_user     => 'quantum',
       auth_password => $quantum_user_password,
     }
     if $quantum and !$quantum_network_node {
@@ -236,11 +248,13 @@ class openstack::nova::controller (
         rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
        #sql_connection       => $quantum_sql_connection,
         verbose              => $verbose,
-        debug                => $verbose,
+        debug                => $debug,
         use_syslog           => $use_syslog,
+        syslog_log_facility  => $syslog_log_facility_quantum,
+        syslog_log_level     => $syslog_log_level,
       }
    }
-     class { 'nova::network::quantum':
+      class { 'nova::network::quantum':
         quantum_admin_password    => $quantum_user_password,
         quantum_auth_strategy     => 'keystone',
         quantum_url               => "http://${keystone_host}:9696",
@@ -262,12 +276,23 @@ class openstack::nova::controller (
     cinder            => $cinder
   }
 
+  # Do not enable it!!!!!
+  # metadata service provides by nova api 
+  # while enabled_apis=ec2,osapi_compute,metadata
+  # and by quantum-metadata-agent on network node as proxy
+  #
+  # enable nova-metadata-api service
+  #class { 'nova::metadata_api':
+  #  enabled => $enabled,
+  #  ensure_package => $ensure_package,
+  #}
+
   class {'nova::conductor':
     enabled => $enabled,
-    ensure_package  => $ensure_package,
+    ensure_package => $ensure_package,
   }
 
-if $auto_assign_floating_ip {
+  if $auto_assign_floating_ip {
     nova_config { 'DEFAULT/auto_assign_floating_ip': value => 'True' }
   }
 

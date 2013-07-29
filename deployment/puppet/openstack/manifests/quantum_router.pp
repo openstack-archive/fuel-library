@@ -1,4 +1,8 @@
 #This class installs quantum WITHOUT quantum api server which is installed on controller nodes
+# [use_syslog] Rather or not service should log to syslog. Optional.
+# [syslog_log_facility] Facility for syslog, if used. Optional. Note: duplicating conf option
+#       wouldn't have been used, but more powerfull rsyslog features managed via conf template instead
+# [syslog_log_level] logging level for non verbose and non debug mode. Optional.
 
 class openstack::quantum_router (
   $db_host,
@@ -12,6 +16,7 @@ class openstack::quantum_router (
   $create_networks          = true,
   $segment_range            = '1:4094',
   $service_endpoint         = '127.0.0.1',
+  $nova_api_vip             = '127.0.0.1',
   $rabbit_user              = 'nova',
   $rabbit_nodes             = ['127.0.0.1'],
   $rabbit_ha_virtual_ip     = false,
@@ -30,9 +35,11 @@ class openstack::quantum_router (
   $exported_resources       = true,
   $quantum_gre_bind_addr    = $internal_address,
   $quantum_network_node     = false,
-  $quantum_netnode_on_cnt   = false,  
+  $quantum_netnode_on_cnt   = false,
   $tenant_network_type      = 'gre',
   $use_syslog               = false,
+  $syslog_log_facility      = 'LOCAL4',
+  $syslog_log_level = 'WARNING',
   $ha_mode                  = false,
   $service_provider         = 'generic'
 ) {
@@ -41,6 +48,8 @@ class openstack::quantum_router (
     $enable_tunneling       = $tenant_network_type ? { 'gre' => true, 'vlan' => false }
     $admin_auth_url = "http://${auth_host}:35357/v2.0"
 
+    $use_namespaces = True
+
     class { '::quantum':
       bind_host            => $api_bind_address,
       rabbit_user          => $rabbit_user,
@@ -48,11 +57,17 @@ class openstack::quantum_router (
       rabbit_host          => $rabbit_nodes,
       rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
       verbose              => $verbose,
-      debug                => $verbose,
+      debug                => $debug,
       use_syslog           => $use_syslog,
+      syslog_log_facility  => $syslog_log_facility,
+      syslog_log_level     => $syslog_log_level,
       server_ha_mode       => $ha_mode,
-
+      auth_host            => $auth_host,
+      auth_tenant          => 'services',
+      auth_user            => 'quantum',
+      auth_password        => $quantum_user_password,
     }
+    #todo: add quantum::server here (into IF)
     class { 'quantum::plugins::ovs':
       bridge_mappings     => ["physnet1:br-ex","physnet2:br-prv"],
       network_vlan_ranges => "physnet1,physnet2:${segment_range}",
@@ -62,6 +77,7 @@ class openstack::quantum_router (
       enable_tunneling    => $enable_tunneling,
     }
 
+
     if $quantum_network_node {
       class { 'quantum::agents::ovs':
         bridge_uplinks   => ["br-prv:${private_interface}"],
@@ -70,9 +86,24 @@ class openstack::quantum_router (
         local_ip         => $internal_address,
         service_provider => $service_provider
       }
+      # Quantum metadata agent starts only under pacemaker
+      # and co-located with l3-agent
+      class {'quantum::agents::metadata':
+        verbose          => $verbose,
+        debug            => $debug,
+        service_provider => $service_provider,
+        auth_tenant      => 'services',
+        auth_user        => 'quantum',
+        auth_url         => $admin_auth_url,
+        auth_region      => 'RegionOne',
+        auth_password    => $quantum_user_password,
+        shared_secret    => $::quantum_metadata_proxy_shared_secret,
+        metadata_ip      => $nova_api_vip,
+      }
       class { 'quantum::agents::dhcp':
-        debug            => True,
-        use_namespaces   => False,
+        verbose          => $verbose,
+        debug            => $debug,
+        use_namespaces   => $use_namespaces,
         service_provider => $service_provider,
         auth_url         => $admin_auth_url,
         auth_tenant      => 'services',
@@ -81,7 +112,10 @@ class openstack::quantum_router (
       }
       class { 'quantum::agents::l3':
        #enabled             => $quantum_l3_enable,
-        debug               => True,
+        verbose             => $verbose,
+        debug               => $debug,
+        use_namespaces      => $use_namespaces,
+        service_provider    => $service_provider,
         fixed_range         => $fixed_range,
         floating_range      => $floating_range,
         ext_ipinfo          => $external_ipinfo,
@@ -92,26 +126,13 @@ class openstack::quantum_router (
         auth_tenant         => 'services',
         auth_user           => 'quantum',
         auth_password       => $quantum_user_password,
-        use_namespaces      => False,
         metadata_ip         => $internal_address,
-        service_provider    => $service_provider
-      }
-      if ! $quantum_netnode_on_cnt {
-        class { 'nova::metadata_api':
-          admin_auth_url         => $admin_auth_url,
-          service_endpoint       => $service_endpoint,
-          listen_ip              => $internal_address,
-          controller_nodes       => $rabbit_nodes,
-          auth_password          => $quantum_user_password,
-          rabbit_user            => $rabbit_user,
-          rabbit_password        => $rabbit_password,
-          rabbit_ha_virtual_ip   => $rabbit_ha_virtual_ip,
-          quantum_netnode_on_cnt => $quantum_netnode_on_cnt,
-        }
+        nova_api_vip        => $nova_api_vip,
       }
     }
 
     if !defined(Sysctl::Value['net.ipv4.ip_forward']) {
       sysctl::value { 'net.ipv4.ip_forward': value => '1'}
     }
+
 }

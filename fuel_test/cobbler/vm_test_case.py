@@ -8,7 +8,7 @@ from fuel_test.cobbler.cobbler_client import CobblerClient
 from fuel_test.config import Config
 from fuel_test.helpers import tcp_ping, udp_ping, add_to_hosts, await_node_deploy, write_config
 from fuel_test.manifest import Manifest
-from fuel_test.settings import CLEAN, USE_ISO, INTERFACES, PARENT_PROXY, DOMAIN_NAME, CURRENT_PROFILE, PUPPET_MASTER_VERSION
+from fuel_test.settings import CLEAN, USE_ISO, INTERFACES, PARENT_PROXY, DOMAIN_NAME, CURRENT_PROFILE, PUPPET_MASTER_VERSION, SLEEP4SV
 
 
 class CobblerTestCase(BaseTestCase):
@@ -183,10 +183,10 @@ class CobblerTestCase(BaseTestCase):
             await_node_deploy(cobbler.get_ip_address_by_network_name('internal'), node.name)
         for node in self.ci().client_nodes():
             node.await('internal')
-        sleep(20)
-        #for node in self.ci().client_nodes():
-        #    node_remote = node.remote('internal', login='root', password='r00tme')
-        #puppet_apply(node_remote, 'class {rsyslog::client: log_remote => true, server => "%s"}' % cobbler_ip)
+
+        if SLEEP4SV > 60:
+            sleep(float(SLEEP4SV))
+
         self.environment().snapshot('nodes-deployed', force=True)
 
 

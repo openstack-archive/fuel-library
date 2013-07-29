@@ -14,19 +14,26 @@ class quantum::plugins::ovs (
   $root_helper          = 'sudo /usr/bin/quantum-rootwrap /etc/quantum/rootwrap.conf'
 ) {
 
-  include 'quantum::params'
 
-  Package['quantum'] -> Package['quantum-plugin-ovs']
-  Package['quantum-plugin-ovs'] -> Quantum_plugin_ovs<||>
+  # todo: Remove plugin section, add plugin to server class
+
+  include 'quantum::params'
+  validate_re($sql_connection, '(sqlite|mysql|posgres):\/\/(\S+:\S+@\S+\/\S+)?')
+  $br_map_str = join($bridge_mappings, ',')
+  
+
+  Anchor<| title=='quantum-server-config-done' |> -> 
+    Anchor['quantum-plugin-ovs']
+  Anchor['quantum-plugin-ovs-done'] -> 
+    Anchor<| title=='quantum-server-done' |>
+  
+  anchor {'quantum-plugin-ovs':}
 
   Quantum_plugin_ovs<||> ~> Service<| title == 'quantum-server' |>
-  Quantum_plugin_ovs<||> ~> Service<| title == 'quantum-ovs-agent' |>
-
-  Package['quantum-plugin-ovs'] -> Service<| title == 'quantum-server' |>
-  File['/etc/quantum/plugin.ini'] -> Service<| title == 'quantum-server' |>
-
-  validate_re($sql_connection, '(sqlite|mysql|posgres):\/\/(\S+:\S+@\S+\/\S+)?')
-
+  # not need!!!
+  # agent starts after server
+  # Quantum_plugin_ovs<||> ~> Service<| title == 'quantum-ovs-agent' |>
+  
   case $sql_connection {
     /mysql:\/\/\S+:\S+@\S+\/\S+/: {
       require 'mysql::python'
@@ -42,23 +49,37 @@ class quantum::plugins::ovs (
     }
   }
 
-  file { '/etc/quantum/plugin.ini':
-    ensure  => link,
-    target  => '/etc/quantum/plugins/openvswitch/ovs_quantum_plugin.ini',
-    require => Package['quantum-plugin-ovs']
+  if ! defined(File['/etc/quantum']) {
+    file {'/etc/quantum':
+      ensure  => directory,
+      owner   => 'root',
+      group   => 'root',
+      mode    => '0755',
+    } 
   }
-
   package { 'quantum-plugin-ovs':
     name    => $::quantum::params::ovs_server_package,
     ensure  => $package_ensure,
+  } ->
+  File['/etc/quantum'] ->
+  file {'/etc/quantum/plugins':
+    ensure  => directory,
+    mode    => '0755',
+  } ->
+  file {'/etc/quantum/plugins/openvswitch':
+    ensure  => directory,
+    mode    => '0755',
+  } ->
+  file { '/etc/quantum/plugin.ini':
+    ensure  => link,
+    target  => '/etc/quantum/plugins/openvswitch/ovs_quantum_plugin.ini',
   }
-
-  $br_map_str = join($bridge_mappings, ',')
-
   quantum_plugin_ovs {
     'DATABASE/sql_connection':      value => $sql_connection;
     'DATABASE/sql_max_retries':     value => $sql_max_retries;
     'DATABASE/reconnect_interval':  value => $reconnect_interval;
+  } ->
+  quantum_plugin_ovs {
     'OVS/integration_bridge':       value => $integration_bridge;
     'OVS/tenant_network_type':      value => $tenant_network_type;
     'OVS/enable_tunneling':         value => $enable_tunneling;
@@ -83,9 +104,20 @@ class quantum::plugins::ovs (
         package {"$::l23network::params::lnx_vlan_tools":
           name    => "$::l23network::params::lnx_vlan_tools",
           ensure  => latest,
-        }
+        } -> Package['quantum-plugin-ovs']
       }
     } 
   }
 
+  File['/etc/quantum/plugin.ini'] -> 
+    Quantum_plugin_ovs<||> -> 
+      Anchor<| title=='quantum-server-config-done' |>
+
+  File['/etc/quantum/plugin.ini'] -> 
+    Anchor['quantum-plugin-ovs-done']
+  Anchor['quantum-plugin-ovs'] -> Anchor['quantum-plugin-ovs-done']
+
+  anchor {'quantum-plugin-ovs-done':}
 }
+#
+###

@@ -1,4 +1,4 @@
-
+#
 define haproxy_service(
   $order,
   $balancers,
@@ -57,33 +57,33 @@ define haproxy_service(
       $balancer_port = $port
     }
   }
-  
-  add_haproxy_service { $name : 
-    order                    => $order, 
-    balancers                => $balancers, 
-    virtual_ips              => $virtual_ips, 
-    port                     => $port, 
-    haproxy_config_options   => $haproxy_config_options, 
-    balancer_port            => $balancer_port, 
-    balancermember_options   => $balancermember_options, 
-    define_cookies           => $define_cookies, 
+
+  add_haproxy_service { $name :
+    order                    => $order,
+    balancers                => $balancers,
+    virtual_ips              => $virtual_ips,
+    port                     => $port,
+    haproxy_config_options   => $haproxy_config_options,
+    balancer_port            => $balancer_port,
+    balancermember_options   => $balancermember_options,
+    define_cookies           => $define_cookies,
     define_backend           => $define_backend,
   }
 }
 
-# add_haproxy_service moved to separate define to allow adding custom sections 
+# add_haproxy_service moved to separate define to allow adding custom sections
 # to haproxy config without any default config options, except only required ones.
 define add_haproxy_service (
-    $order, 
-    $balancers, 
-    $virtual_ips, 
-    $port, 
-    $haproxy_config_options, 
-    $balancer_port, 
+    $order,
+    $balancers,
+    $virtual_ips,
+    $port,
+    $haproxy_config_options,
+    $balancer_port,
     $balancermember_options,
     $mode = 'tcp',
-    $define_cookies = false, 
-    $define_backend = false, 
+    $define_cookies = false,
+    $define_backend = false,
     $collect_exported = false
     ) {
     haproxy::listen { $name:
@@ -109,14 +109,19 @@ class openstack::controller_ha (
    $primary_controller,
    $controller_public_addresses, $public_interface, $private_interface, $controller_internal_addresses,
    $internal_virtual_ip, $public_virtual_ip, $internal_interface, $internal_address,
-   $floating_range, $fixed_range, $multi_host, $network_manager, $verbose, $network_config = {}, $num_networks = 1, $network_size = 255,
+   $floating_range, $fixed_range, $multi_host, $network_manager, $verbose, $debug, $network_config = {}, $num_networks = 1, $network_size = 255,
    $auto_assign_floating_ip, $mysql_root_password, $admin_email, $admin_user = 'admin', $admin_password, $keystone_admin_tenant='admin',
    $keystone_db_password, $keystone_admin_token, $glance_db_password, $glance_user_password,
    $nova_db_password, $nova_user_password, $rabbit_password, $rabbit_user,
    $rabbit_nodes, $memcached_servers, $export_resources, $glance_backend='file', $swift_proxies=undef,
    $quantum = false, $quantum_user_password='', $quantum_db_password='', $quantum_db_user = 'quantum',
    $quantum_db_dbname  = 'quantum', $cinder = false, $cinder_iscsi_bind_addr = false, $tenant_network_type = 'gre', $segment_range = '1:4094',
-   $nv_physical_volume = undef, $manage_volumes = false,$galera_nodes, $use_syslog = false,
+   $nv_physical_volume = undef, $manage_volumes = false,$galera_nodes, $use_syslog = false, $syslog_log_level = 'WARNING',
+   $syslog_log_facility_glance   = 'LOCAL2',
+   $syslog_log_facility_cinder   = 'LOCAL3',
+   $syslog_log_facility_quantum  = 'LOCAL4',
+   $syslog_log_facility_nova     = 'LOCAL6',
+   $syslog_log_facility_keystone = 'LOCAL7',
    $cinder_rate_limits = undef, $nova_rate_limits = undef,
    $cinder_volume_group     = 'cinder-volumes',
    $cinder_user_password    = 'cinder_user_pass',
@@ -141,17 +146,12 @@ class openstack::controller_ha (
 
     Class['cluster::haproxy'] -> Anchor['haproxy_done']
 
-    file { '/etc/rsyslog.d/haproxy.conf':
-        ensure => present,
-        content => 'local0.* -/var/log/haproxy.log'
-    } -> Anchor['haproxy_done']
-
     concat { '/etc/haproxy/haproxy.cfg':
       owner   => '0',
       group   => '0',
       mode    => '0644',
     } -> Anchor['haproxy_done']
-    
+
 
     # Dirty hack, due Puppet can't send notify between stages
     exec { 'restart_haproxy':
@@ -195,16 +195,13 @@ class openstack::controller_ha (
     haproxy_service { 'keystone-2': order => 30, port => 35357, virtual_ips => [$public_virtual_ip, $internal_virtual_ip]  }
     haproxy_service { 'nova-api-1': order => 40, port => 8773, virtual_ips => [$public_virtual_ip, $internal_virtual_ip]  }
     haproxy_service { 'nova-api-2': order => 50, port => 8774, virtual_ips => [$public_virtual_ip, $internal_virtual_ip]  }
-
-    if ! $multi_host {
-      haproxy_service { 'nova-api-3': order => 60, port => 8775, virtual_ips => [$public_virtual_ip, $internal_virtual_ip]  }
-    }
+    haproxy_service { 'nova-metadata-api': order => 60, port => 8775, virtual_ips => [$internal_virtual_ip]  }
 
     haproxy_service { 'nova-api-4': order => 70, port => 8776, virtual_ips => [$public_virtual_ip, $internal_virtual_ip]  }
     haproxy_service { 'glance-api': order => 80, port => 9292, virtual_ips => [$public_virtual_ip, $internal_virtual_ip]  }
 
     if $quantum {
-      haproxy_service { 'quantum': order => 85, port => 9696, virtual_ips => [$public_virtual_ip, $internal_virtual_ip]  }
+      haproxy_service { 'quantum': order => 85, port => 9696, virtual_ips => [$public_virtual_ip, $internal_virtual_ip], define_backend => true  }
     }
 
     haproxy_service { 'glance-reg': order => 90, port => 9191, virtual_ips => [$internal_virtual_ip]  }
@@ -223,7 +220,7 @@ class openstack::controller_ha (
 
 
     ###
-    # Setup Galera's 
+    # Setup Galera's
 
     package { 'socat': ensure => present }
     exec { 'wait-for-haproxy-mysql-backend':
@@ -247,11 +244,11 @@ class openstack::controller_ha (
     Anchor['haproxy_done'] -> Class['galera']
 
     class { '::openstack::controller':
-      public_address          => $public_virtual_ip,
-      public_interface        => $public_interface,
       private_interface       => $private_interface,
-      internal_address        => $internal_virtual_ip,
-      admin_address           => $internal_virtual_ip,
+      public_interface        => $public_interface,
+      public_address          => $public_virtual_ip,    # It is feature for HA mode.
+      internal_address        => $internal_virtual_ip,  # All internal traffic goes
+      admin_address           => $internal_virtual_ip,  # through load balancer.
       floating_range          => $floating_range,
       fixed_range             => $fixed_range,
       multi_host              => $multi_host,
@@ -260,6 +257,7 @@ class openstack::controller_ha (
       network_size            => $network_size,
       network_manager         => $network_manager,
       verbose                 => $verbose,
+      debug                   => $debug,
       auto_assign_floating_ip => $auto_assign_floating_ip,
       mysql_root_password     => $mysql_root_password,
       custom_mysql_setup_class=> 'galera',
@@ -312,6 +310,11 @@ class openstack::controller_ha (
       # turn on SWIFT_ENABLED option for Horizon dashboard
       swift                   => $glance_backend ? { 'swift' => true, default => false },
       use_syslog              => $use_syslog,
+      syslog_log_level        => $syslog_log_level,
+      syslog_log_facility_glance   => $syslog_log_facility_glance,
+      syslog_log_facility_cinder => $syslog_log_facility_cinder,
+      syslog_log_facility_nova => $syslog_log_facility_nova,
+      syslog_log_facility_keystone => $syslog_log_facility_keystone,
       cinder_rate_limits      => $cinder_rate_limits,
       nova_rate_limits        => $nova_rate_limits,
       horizon_use_ssl         => $horizon_use_ssl,
@@ -322,6 +325,7 @@ class openstack::controller_ha (
         db_host               => $internal_virtual_ip,
         service_endpoint      => $internal_virtual_ip,
         auth_host             => $internal_virtual_ip,
+        nova_api_vip          => $internal_virtual_ip,
         internal_address      => $internal_address,
         public_interface      => $public_interface,
         private_interface     => $private_interface,
@@ -329,6 +333,7 @@ class openstack::controller_ha (
         fixed_range           => $fixed_range,
         create_networks       => $create_networks,
         verbose               => $verbose,
+        debug                 => $debug,
         rabbit_password       => $rabbit_password,
         rabbit_user           => $rabbit_user,
         rabbit_nodes          => $rabbit_nodes,
@@ -347,6 +352,8 @@ class openstack::controller_ha (
         external_ipinfo       => $external_ipinfo,
         api_bind_address      => $internal_address,
         use_syslog            => $use_syslog,
+        syslog_log_level      => $syslog_log_level,
+        syslog_log_facility   => $syslog_log_facility_quantum,
         ha_mode               => $ha_mode,
       }
     }

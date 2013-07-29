@@ -4,7 +4,15 @@ bind_ip = <%= storage_local_net_ip %>
 bind_port = <%= bind_port %>
 mount_check = <%= mount_check %>
 user = <%= user %>
-log_facility = LOG_LOCAL2
+log_facility = LOG_SYSLOG
+<% if scope.lookupvar('::debug') then -%>
+log_level = DEBUG
+<% elsif scope.lookupvar('::verbose') then -%>
+log_level = INFO
+<% else -%>
+log_level = <%= scope.lookupvar('::syslog_log_level') %>
+<% end -%>
+log_name = swift-object-server
 workers = <%= workers %>
 
 [pipeline:main]
