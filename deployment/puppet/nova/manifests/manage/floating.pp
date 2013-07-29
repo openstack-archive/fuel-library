@@ -1,3 +1,4 @@
+# This class nova::manage::floating has been deprecated in favor of nova::manage::floating_range
 define nova::manage::floating (
   $network = $name
 ) {
