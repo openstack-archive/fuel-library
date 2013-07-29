@@ -201,7 +201,9 @@ class quantum (
       'DEFAULT/use_syslog': ensure=> absent;
       'DEFAULT/syslog_log_facility': ensure=> absent;
       'DEFAULT/log_config': ensure=> absent;
-      'DEFAULT/use_stderr': value => true;
+      # FIXME stderr should not be used unless quantum+agents init & OCF scripts would be fixed to redirect its output to stderr!
+      #'DEFAULT/use_stderr': value => true;
+      'DEFAULT/use_stderr': ensure=> absent;
     }
     file { "quantum-logging.conf":
       content => template('quantum/logging.conf-nosyslog.erb'),
