@@ -9,6 +9,7 @@ echo > /tmp/partition.ks
     #set $clearpart_drives = []
     #set $physical_volumes = []
     #set $grub_drives = []
+    #set $custom_grub_drives = []
     #set $partitions = []
     #set $volume_groups = {}
     #set $raid_volumes = {}
@@ -48,19 +49,22 @@ echo > /tmp/partition.ks
                 ## embed its code later, useable for legacy boot.
                 ## May be way smaller, but be aware that the parted may
                 ## shrink 1M partition to zero at some disks and versions.
-                $parted_commands.append("parted -a minimal -s /dev/%s unit MB mkpart primary 0 24M" % $space_id)
-                $parted_commands.append("parted -s /dev/%s set 1 bios_grub on" % $space_id)
+                ## The following two lines are for future.
+                ## $parted_commands.append("parted -a minimal -s /dev/%s unit MB mkpart primary 0 24M" % $space_id)
+                ## $parted_commands.append("parted -s /dev/%s set 1 bios_grub on" % $space_id)
                 ## Create partition for the EFI boot, minimum size is 100M,
                 ## recommended is 200M, with fat32 and future mountpoint in
                 ## the /boot/efi
                 ## There is also '/usr/sbin/parted -s /dev/sda set 2 boot on'
                 ## which is strictly needed for EFI boot itself.
-                $parted_commands.append("parted -a minimal -s /dev/%s unit MB mkpart primary fat32 24M 300M" % $space_id)
-                $parted_commands.append("parted -s /dev/%s set 2 boot on" % $space_id)
+                ## The following two lines are for future.
+                ## $parted_commands.append("parted -a minimal -s /dev/%s unit MB mkpart primary fat32 24M 300M" % $space_id)
+                ## $parted_commands.append("parted -s /dev/%s set 2 boot on" % $space_id)
                 #######################################
                 ## Installing bootloader
                 #######################################
                 $grub_drives.append("\$(basename `readlink -f /dev/%s`)" % $space_id)
+                $custom_grub_drives.append("`readlink -f /dev/%s`" % $space_id)
             #end if
             #######################################
             ## Configuring plain partitions
@@ -172,11 +176,11 @@ echo "partition $p['name'] --size=$p['size'] --ondisk=$p['ondisk']" >> /tmp/part
             #end for
             #set $num_spares = $len($raid_volumes[$raid_mount]) - 2
             #set $md_name = "md%d" % $mdnum
-            #if $num_spares > 0
-echo "raid $raid_mount --device $md_name --spares=$num_spares --fstype ext3 --level=RAID1 $ks_raids" >> /tmp/partition.ks
-            #else
-echo "raid $raid_mount --device $md_name --fstype ext3 --level=RAID1 $ks_raids" >> /tmp/partition.ks
-            #end if
+##            #if $num_spares > 0
+##echo "raid $raid_mount --device $md_name --spares=$num_spares --fstype ext2 --level=RAID1 $ks_raids" >> /tmp/partition.ks
+##            #else
+echo "raid $raid_mount --device $md_name --fstype ext2 --level=RAID1 $ks_raids" >> /tmp/partition.ks
+##            #end if
         #end if
         #set $mdnum += 1
     #end for
@@ -203,6 +207,8 @@ echo "$lv" >> /tmp/partition.ks
     ## Actual creating logical volumes in %post section
     #######################################
 echo "%post --nochroot" > /tmp/post_partition.ks
+echo "set -x -v" >> /tmp/post_partition.ks
+echo "exec 1>/mnt/sysimage/root/post_partition.log 2>&1" >> /tmp/post_partition.ks
     #for $lv in $post_logical_volumes
 echo "$lv" >> /tmp/post_partition.ks
     #end for
@@ -212,4 +218,21 @@ echo "$lv" >> /tmp/post_partition.ks
     #set $drives = ",".join($grub_drives)
 echo "bootloader --location=mbr --driveorder=$drives --append=' biosdevname=0 crashkernel=none'" > /tmp/bootloader.ks
     ##
+    #######################################
+    ## Actual custom bootloader installing
+    #######################################
+    #set $num = 0
+    #for $drive in $custom_grub_drives
+echo "stage2_devnum=\\$((\\$(fdisk -l $drive | grep -E '^\/.+\*' | awk '{print \\$1}' | sed s/[^0-9]//g) - 1))" >> /tmp/post_partition.ks
+echo "chroot /mnt/sysimage /bin/cp /boot/grub/grub.conf /boot/grub/grub${num}.conf" >> /tmp/post_partition.ks
+echo "chroot /mnt/sysimage /bin/sed -i -re \"s/\(hd[0-9]+\,[0-9]+\)/\(hd0\,\\${stage2_devnum}\)/g\" /boot/grub/grub${num}.conf"  >> /tmp/post_partition.ks
+echo "echo -n > /tmp/grub.script" >> /tmp/post_partition.ks
+echo "echo \"device (hd0) $drive\" >> /tmp/grub.script" >> /tmp/post_partition.ks
+echo "echo \"root (hd0,\\${stage2_devnum})\" >> /tmp/grub.script" >> /tmp/post_partition.ks
+echo "echo \"install /grub/stage1 (hd0) /grub/stage2 p /grub/grub${num}.conf\" >> /tmp/grub.script" >> /tmp/post_partition.ks
+echo "echo quit >> /tmp/grub.script" >> /tmp/post_partition.ks
+echo "cat /tmp/grub.script | chroot /mnt/sysimage /sbin/grub --batch" >> /tmp/post_partition.ks
+        #set $num += 1
+    #end for
+echo "cp /tmp/post_partition.ks /mnt/sysimage/root/post_partition.ks" >> /tmp/post_partition.ks
 #end if
