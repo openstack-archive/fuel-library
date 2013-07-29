@@ -174,7 +174,7 @@ class openstack::mirantis_repos (
 
         yumrepo { 'openstack-koji-fuel-grizzly':
             descr      => 'Mirantis OpenStack grizzly Custom Packages',
-            baseurl    => 'http://osci-koji.srt.mirantis.net/mash/fuel-3.0-testing/x86_64',
+            baseurl    => 'http://osci-koji.srt.mirantis.net/mash/fuel-3.1-testing/x86_64',
             gpgcheck   => '1',
             gpgkey     => 'http://download.mirantis.com/epel-fuel-grizzly/mirantis.key',
             mirrorlist => absent,
@@ -236,7 +236,7 @@ class openstack::mirantis_repos (
       if $enable_test_repo {
         yumrepo { 'openstack-osci-repo':
           descr    => 'Mirantis OpenStack OSCI Packages',
-          baseurl  => 'http://osci-koji.srt.mirantis.net/mash/fuel-3.0/x86_64/',
+          baseurl  => 'http://osci-koji.srt.mirantis.net/mash/fuel-3.1-testing/x86_64',
           gpgcheck => '1',
           gpgkey   => 'http://download.mirantis.com/epel-fuel-grizzly/mirantis.key',
         }
