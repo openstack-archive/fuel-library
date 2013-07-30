@@ -40,11 +40,11 @@ define haproxy_service(
       $balancer_port = 443
     }
 
-    "rabbitmq-epmd": {
-      $haproxy_config_options = { 'option' => ['clitcpka'], 'balance' => 'roundrobin', 'mode' => 'tcp'}
-      $balancermember_options = 'check inter 5000 rise 2 fall 3'
-      $balancer_port = 4369
-    }
+    #    "rabbitmq-epmd": {
+    #  $haproxy_config_options = { 'option' => ['clitcpka'], 'balance' => 'roundrobin', 'mode' => 'tcp'}
+    #  $balancermember_options = 'check inter 5000 rise 2 fall 3'
+    #  $balancer_port = 4369
+    #}
     "rabbitmq-openstack": {
       $haproxy_config_options = { 'option' => ['tcpka'], 'timeout client' => '48h', 'timeout server' => '48h', 'balance' => 'roundrobin', 'mode' => 'tcp'}
       $balancermember_options = 'check inter 5000 rise 2 fall 3'
@@ -208,7 +208,7 @@ class openstack::controller_ha (
 
     if $queue_provider == 'rabbitmq'{
       haproxy_service { 'rabbitmq-openstack':    order => 92, port => 5672, virtual_ips => [$internal_virtual_ip], define_backend => true }
-      haproxy_service { 'rabbitmq-epmd':    order => 91, port => 4369, virtual_ips => [$internal_virtual_ip], define_backend => true }
+      #      haproxy_service { 'rabbitmq-epmd':    order => 91, port => 4369, virtual_ips => [$internal_virtual_ip], define_backend => true }
     }
 
     if $custom_mysql_setup_class == 'galera' {
