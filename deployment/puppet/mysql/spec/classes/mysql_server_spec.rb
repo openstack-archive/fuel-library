@@ -35,7 +35,7 @@ describe 'mysql::server' do
         :package_name => 'databases/mysql55-server'
       },
       'Redhat' => {
-        :service_name => 'mysqld',
+        :service_name => 'mysql',
         :package_name => 'mysql-server'
       }
     }.each do |osfamily, osparams|
