@@ -22,10 +22,10 @@ handlers = production,devel,stderr
 propagate = 1
 
 [formatter_debug]
-format = quantum-%(name)s %(levelname)s %(module)s %(funcName)s %(message)s
+format = quantum-%(name)s %(levelname)s: %(module)s %(funcName)s %(message)s
 
 [formatter_normal]
-format = quantum-%(name)s %(levelname)s %(message)s
+format = quantum-%(name)s %(levelname)s: %(message)s
 
 [formatter_default]
 format=%(asctime)s %(levelname)s: %(module)s %(name)s:%(lineno)d %(funcName)s  %(message)s

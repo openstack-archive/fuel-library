@@ -13,10 +13,10 @@ handlers = production,devel,stderr
 propagate = 1
 
 [formatter_debug]
-format = keystone-%(name)s %(levelname)s %(module)s %(funcName)s %(message)s
+format = keystone-%(name)s %(levelname)s: %(module)s %(funcName)s %(message)s
 
 [formatter_normal]
-format = keystone-%(name)s %(levelname)s %(message)s
+format = keystone-%(name)s %(levelname)s: %(message)s
 
 # logging info to LOG_<%= @syslog_log_facility %> with debug:<%= @debug %> and verbose:<%= @verbose %>
 [handler_production]
