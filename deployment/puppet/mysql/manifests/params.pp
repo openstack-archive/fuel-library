@@ -31,12 +31,24 @@ class mysql::params {
       $basedir               = '/usr'
       $datadir               = '/var/lib/mysql'
       $service_name          = 'mysql'
-      $client_package_name   = 'MySQL-client'
-      $client_version        = '5.5.28-6'
-      $server_package_name   = 'MySQL-server'
-      $server_version        = '5.5.28-6'
-      $shared_package_name   = 'MySQL-shared'
-      $shared_version        = '5.5.28_wsrep_23.7'
+      case $::operatingsystem {
+        'RedHat': {
+           $client_package_name   = 'mysql'
+           $client_version        = '5.1.69-1'
+           $server_package_name   = 'mysql-server'
+           $server_version        = '5.1.69-1'
+           $shared_package_name   = 'mysql-libs'
+           $shared_version        = '5.1.69-1'
+         }
+      default: {
+           $client_package_name   = 'MySQL-client'
+           $client_version        = '5.5.28-6'
+           $server_package_name   = 'MySQL-server'
+           $server_version        = '5.5.28-6'
+           $shared_package_name   = 'MySQL-shared'
+           $shared_version        = '5.5.28_wsrep_23.7'
+         }
+      }
       $socket                = '/var/lib/mysql/mysql.sock'
       $pidfile               = '/var/run/mysqld/mysqld.pid'
       $config_file           = '/etc/my.cnf'
