@@ -194,34 +194,72 @@ if $::debug =~ /(?i)(true|yes)/ {
     file_severity => "DEBUG",
     notify  => Class["rsyslog::service"],
 }
+::rsyslog::imfile { "50-quantum-rescheduling_debug" :
+   file_name     => "/var/log/quantum/rescheduling.log",
+   file_tag      => "quantum-rescheduling",
+   file_facility => $::syslog_log_facility_quantum,
+   file_severity => "DEBUG",
+   notify  => Class["rsyslog::service"],
+}
 ::rsyslog::imfile { "50-quantum-ovs-agent_debug" :
-    file_name     => "/var/log/quantum/ovs.log",
-    file_tag      => "quantum-ovs-agent",
+    file_name     => "/var/log/quantum/openvswitch-agent.log",
+    file_tag      => "quantum-agent-ovs",
     file_facility => $::syslog_log_facility_quantum,
     file_severity => "DEBUG",
     notify  => Class["rsyslog::service"],
 }
 ::rsyslog::imfile { "50-quantum-l3-agent_debug" :
-    file_name     => "/var/log/quantum/l3.log",
-    file_tag      => "quantum-l3-agent",
+    file_name     => "/var/log/quantum/l3-agent.log",
+    file_tag      => "quantum-agent-l3",
     file_facility => $::syslog_log_facility_quantum,
     file_severity => "DEBUG",
     notify  => Class["rsyslog::service"],
 }
 ::rsyslog::imfile { "50-quantum-dhcp-agent_debug" :
-    file_name     => "/var/log/quantum/dhcp.log",
-    file_tag      => "quantum-dhcp-agent",
+    file_name     => "/var/log/quantum/dhcp-agent.log",
+    file_tag      => "quantum-agent-dhcp",
     file_facility => $::syslog_log_facility_quantum,
     file_severity => "DEBUG",
     notify  => Class["rsyslog::service"],
 }
 ::rsyslog::imfile { "50-quantum-metadata-agent_debug" :
-    file_name     => "/var/log/quantum/metadata.log",
-    file_tag      => "quantum-metadata-agent",
+    file_name     => "/var/log/quantum/metadata-agent.log",
+    file_tag      => "quantum-agent-metadata",
     file_facility => $::syslog_log_facility_quantum,
     file_severity => "DEBUG",
     notify  => Class["rsyslog::service"],
 }
+# FIXME Workaround for FUEL-843 (HA any)
+# FIXME remove after FUEL-843 have reolved
+::rsyslog::imfile { "50-ha-quantum-ovs-agent_debug" :
+    file_name     => "/var/log/quantum/quantum-openvswitch-agent.log",
+    file_tag      => "quantum-agent-ovs",
+    file_facility => $::syslog_log_facility_quantum,
+    file_severity => "DEBUG",
+    notify  => Class["rsyslog::service"],
+}
+::rsyslog::imfile { "50-ha-quantum-l3-agent_debug" :
+    file_name     => "/var/log/quantum/quantum-l3-agent.log",
+    file_tag      => "quantum-agent-l3",
+    file_facility => $::syslog_log_facility_quantum,
+    file_severity => "DEBUG",
+    notify  => Class["rsyslog::service"],
+}
+::rsyslog::imfile { "50-ha-quantum-dhcp-agent_debug" :
+    file_name     => "/var/log/quantum/quantum-dhcp-agent.log",
+    file_tag      => "quantum-agent-dhcp",
+    file_facility => $::syslog_log_facility_quantum,
+    file_severity => "DEBUG",
+    notify  => Class["rsyslog::service"],
+}
+::rsyslog::imfile { "50-ha-quantum-metadata-agent_debug" :
+    file_name     => "/var/log/quantum/quantum-metadata-agent.log",
+    file_tag      => "quantum-agent-metadata",
+    file_facility => $::syslog_log_facility_quantum,
+    file_severity => "DEBUG",
+    notify  => Class["rsyslog::service"],
+}
+# END fixme
 } else { #non debug case
 # standard logging configs for syslog client
   file { "${rsyslog::params::rsyslog_d}10-nova.conf":

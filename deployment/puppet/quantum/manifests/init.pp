@@ -168,13 +168,13 @@ class quantum (
   }
   # logging for agents grabbing from stderr. It's workarround for bug in quantum-logging
   # server givs this parameters from command line
-  # FIXME change init.d scripts for q&agents for non HA mode, change daemon launch commands (CENTOS/RHEL):
-  # FIXME quantum-server:
-  # FIXME	daemon --user quantum --pidfile $pidfile "$exec --config-file $config --config-file /etc/$prog/plugin.ini &>>/var/log/quantum/server.log & echo \$!
-  # FIXME quantum-ovs-cleanup:
-  # FIXME	daemon --user quantum $exec --config-file /etc/$proj/$proj.conf --config-file $config &>>/var/log/$proj/$plugin.log
+  # FIXME change init.d scripts for q&agents, fix daemon launch commands (CENTOS/RHEL):
+  # quantum-server:
+  #	daemon --user quantum --pidfile $pidfile "$exec --config-file $config --config-file /etc/$prog/plugin.ini &>>/var/log/quantum/server.log & echo \$!
+  # quantum-ovs-cleanup:
+  # 	daemon --user quantum $exec --config-file /etc/$proj/$proj.conf --config-file $config &>>/var/log/$proj/$plugin.log
   # quantum-ovs/metadata/l3/dhcp/-agents:
-  # FIXME	daemon --user quantum --pidfile $pidfile "$exec --config-file /etc/$proj/$proj.conf --config-file $config &>>/var/log/$proj/$plugin.log & echo \$! > $pidfile"
+  # 	daemon --user quantum --pidfile $pidfile "$exec --config-file /etc/$proj/$proj.conf --config-file $config &>>/var/log/$proj/$plugin.log & echo \$! > $pidfile"
 
   quantum_config {
       'DEFAULT/log_file':   ensure=> absent;
@@ -228,11 +228,11 @@ class quantum (
     $endpoint_quantum_main_configuration = 'quantum-init-done'
   }
 
-  # FIXME remove explicit --log-config from init scripts cuz it breaks logging!
+  # FIXME Workaround for FUEL-842: remove explicit --log-config from init scripts cuz it breaks logging!
+  # FIXME this hack should be deleted after FUEL-842 have resolved
   exec {'init-dirty-hack':
     command => "sed -i 's/\-\-log\-config=\$loggingconf//g' /etc/init.d/quantum-*",
     path    => ["/sbin", "/bin", "/usr/sbin", "/usr/bin"],
-    refreshonly => true,
   }
 
   Anchor['quantum-init'] ->
