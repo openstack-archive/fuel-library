@@ -30,9 +30,9 @@ class mysql::params {
     'RedHat': {
       $basedir               = '/usr'
       $datadir               = '/var/lib/mysql'
-      $service_name          = 'mysql'
       case $::operatingsystem {
         'RedHat': {
+           $service_name          = 'mysqld'
            $client_package_name   = 'mysql'
            $client_version        = '5.1.69-1'
            $server_package_name   = 'mysql-server'
@@ -41,6 +41,7 @@ class mysql::params {
            $shared_version        = '5.1.69-1'
          }
       default: {
+           $service_name          = 'mysql'
            $client_package_name   = 'MySQL-client'
            $client_version        = '5.5.28-6'
            $server_package_name   = 'MySQL-server'
