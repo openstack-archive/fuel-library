@@ -60,7 +60,7 @@ class mysql::server (
     }
     Package[mysql-client] -> Package[mysql-server]
  
-    service { 'mysqld':
+    service { 'mysql':
       name     => $service_name,
       ensure   => $enabled ? { true => 'running', default => 'stopped' },
       enable   => $enabled,
@@ -73,9 +73,9 @@ class mysql::server (
     Package[mysql-server] -> Class['mysql::config']
     Package[mysql-server] -> Cs_shadow['mysql']
     Package[mysql-client] -> Package[mysql-server]
-    Cs_commit['mysql']    -> Service['mysqld']
+    Cs_commit['mysql']    -> Service['mysql']
     Cs_property <||> -> Cs_shadow <||>
-    Cs_shadow['mysql']    -> Service['mysqld']
+    Cs_shadow['mysql']    -> Service['mysql']
     #Cs_commit <| title == 'internal-vip' |> -> Cs_shadow['mysql']
 
     $config_hash['custom_setup_class'] = $custom_setup_class
@@ -85,7 +85,7 @@ class mysql::server (
     ::corosync::cleanup{"p_${service_name}": } 
     Cs_commit['mysql']->::Corosync::Cleanup["p_${service_name}"]
     Cs_commit['mysql']~>::Corosync::Cleanup["p_${service_name}"]
-    ::Corosync::Cleanup["p_${service_name}"] -> Service['mysqld']
+    ::Corosync::Cleanup["p_${service_name}"] -> Service['mysql']
 
     create_resources( 'class', { 'mysql::config' => $config_hash })
     Class['mysql::config'] -> Cs_resource["p_${service_name}"]
@@ -208,7 +208,7 @@ class mysql::server (
 
     cs_commit { 'mysql': cib => 'mysql' } ->
 
-    service { 'mysqld':
+    service { 'mysql':
       name     => "p_${service_name}",
       ensure   => 'running',
       enable   => true,
