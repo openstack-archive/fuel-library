@@ -4,6 +4,11 @@ $use_satellite = false, $sat_hostname = false, $activation_key = false,
 $sat_base_channels, $sat_openstack_channel, $numtries = 3)  {
 
   Exec  {path => '/usr/bin:/bin:/usr/sbin:/sbin'}
+  $redhat_management_type = $use_satellite ?
+    True              => "site",
+    False             => "cert",
+    default           => undef,
+  }
   package { "yum-utils":
     ensure => "latest"
   } ->
@@ -95,7 +100,7 @@ $sat_base_channels, $sat_openstack_channel, $numtries = 3)  {
     kickstart => "/var/lib/cobbler/kickstarts/centos-x86_64.ks",
     kopts => "",
     distro => "rhel-x86_64",
-    ksmeta => "redhat_register_user=${rh_username} redhat_register_password=${rh_password} redhat_management_type=cert",
+    ksmeta => "redhat_register_user=${rh_username} redhat_register_password=${rh_password} redhat_management_type=$redhat_management_type redhat_management_server=$sat_hostname activationkey=$activation_key",
     menu => true,
     require => Cobbler_distro["rhel-x86_64"],
   } ->
