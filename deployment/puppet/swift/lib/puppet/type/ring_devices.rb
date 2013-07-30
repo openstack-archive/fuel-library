@@ -4,14 +4,19 @@ Puppet::Type.newtype(:ring_devices) do
   end
 
   newparam(:storages) do
-    desc "list of all swift storages"
+    desc 'list of all swift storages'
+
+    validate do |value|
+      fail(Puppet::Error, "#{value} should be a Hash and include ip address") unless value.is_a?(Hash) && value['storage_local_net_ip']
+    end
   end
 
+  # Default resources for swift ring builder
   def resources
     resources = []
 
     default_storage = {
-      'zone' => 100,
+      'swift_zone' => 100,
       'object_port'=>6000,
       'container_port'=>6001,
       'account_port'=>6002,
@@ -20,21 +25,16 @@ Puppet::Type.newtype(:ring_devices) do
       'types'=>['container', 'object', 'account'],
     }
 
-    Puppet.notice("storages #{self[:storages].inspect}")
-
-    storages = self[:storages]
-    if storages.is_a? Hash
-      storages = [storages]
-    end
+    storages = self[:storages].is_a?(Hash) ? [self[:storages]] : self[:storages]
 
     storages.each do |storage|
       merged_storage = default_storage.merge(storage)
       merged_storage['types'].collect do |type|
         port = merged_storage["#{type}_port"]
         options = {
-          :name=>"#{merged_storage['storage_local_net_ip']}:#{port}",
-          :mountpoints=>merged_storage['mountpoints'],
-          :zone=>merged_storage['zone']
+          :name => "#{merged_storage['storage_local_net_ip']}:#{port}",
+          :mountpoints => merged_storage['mountpoints'],
+          :zone => merged_storage['swift_zone']
         }
         resources += [Puppet::Type.type("ring_#{type}_device".to_sym).new(options)]
       end
