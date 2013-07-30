@@ -8,7 +8,7 @@ subscription-manager attach "--pool=$poolid"
 
 #Enable channels
 for channel in <%= rh_base_channels %> <%= rh_openstack_channel %>; do
-  yum-config-manager --enable "$channel"
+  yum-config-manager --enable "$channel" &> /dev/null
 done
 
 #Tell RHSM to let CentOS accept packages from Red Hat
