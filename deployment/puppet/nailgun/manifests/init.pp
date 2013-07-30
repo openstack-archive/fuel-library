@@ -90,7 +90,8 @@ class nailgun(
     limitsize      => '100M',
     port           => '514',
     proto          => 'udp',
-    show_timezone  => false,
+    # use date-rfc3339 timestamps
+    show_timezone  => true,
     virtual        => true,
   }
 

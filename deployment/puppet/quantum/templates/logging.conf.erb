@@ -25,13 +25,13 @@ propagate = 1
 keys = normal,debug,default
 
 [formatter_debug]
-format = quantum-%(name)s: %(levelname)s %(module)s %(funcName)s %(message)s
+format = quantum-%(name)s %(levelname)s: %(module)s %(funcName)s %(message)s
 
 [formatter_normal]
-format = quantum-%(name)s: %(levelname)s %(message)s
+format = quantum-%(name)s %(levelname)s: %(message)s
 
 [formatter_default]
-format=%(asctime)s %(levelname)s %(module)s %(name)s:%(lineno)d %(funcName)s  %(message)s
+format=%(asctime)s %(levelname)s: %(module)s %(name)s:%(lineno)d %(funcName)s  %(message)s
 
 # Extended logging info to LOG_<%= @syslog_log_facility %> with debug:<%= @debug %> and verbose:<%= @verbose %>
 # Note: local copy goes to /var/log/quantum-all.log
