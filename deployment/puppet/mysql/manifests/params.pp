@@ -30,7 +30,7 @@ class mysql::params {
     'RedHat': {
       $basedir               = '/usr'
       $datadir               = '/var/lib/mysql'
-      $service_name          = 'mysql'
+      $service_name          = 'mysqld'
       case $::operatingsystem {
         'RedHat': {
            $client_package_name   = 'mysql'

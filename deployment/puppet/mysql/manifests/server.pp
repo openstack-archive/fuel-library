@@ -82,13 +82,13 @@ class mysql::server (
     $allowed_hosts = '%'
     #$allowed_hosts = 'localhost'
 
-    ::corosync::cleanup{'p_mysql': } 
-    Cs_commit['mysql']->::Corosync::Cleanup['p_mysql']
-    Cs_commit['mysql']~>::Corosync::Cleanup["p_mysql"]
-    ::Corosync::Cleanup["p_mysql"] -> Service['mysqld']
+    ::corosync::cleanup{"p_${service_name}": } 
+    Cs_commit['mysql']->::Corosync::Cleanup["p_${service_name}"]
+    Cs_commit['mysql']~>::Corosync::Cleanup["p_${service_name}"]
+    ::Corosync::Cleanup["p_${service_name}"] -> Service['mysqld']
 
     create_resources( 'class', { 'mysql::config' => $config_hash })
-    Class['mysql::config'] -> Cs_resource['p_mysql']
+    Class['mysql::config'] -> Cs_resource["p_${service_name}"]
 
     if !defined(Package[mysql-client]) {
       package { 'mysql-client':
@@ -107,7 +107,7 @@ class mysql::server (
 
 
  
-    Class['openstack::corosync'] -> Cs_resource['p_mysql']
+    Class['openstack::corosync'] -> Cs_resource["p_${service_name}"]
 
 #    #cs_rsc_defaults { "resource-stickiness":
 #    #  ensure => present,
@@ -180,7 +180,7 @@ class mysql::server (
          
 
     cs_shadow { 'mysql': cib => 'mysql' } ->
-    cs_resource { "p_mysql":
+    cs_resource { "p_${service_name}":
       ensure          => present,
       primitive_class => 'ocf',
       provided_by     => 'heartbeat',
@@ -216,11 +216,11 @@ class mysql::server (
       provider => 'pacemaker',
     }
 
-    #Tie vip__management_old to p_mysql
+    #Tie vip__management_old to p_mysqld
     cs_colocation { 'mysql_to_internal-vip': 
-      primitives => ['vip__management_old','master_p_mysql:Master'],
+      primitives => ['vip__management_old',"master_p_${service_name}:Master"],
       score      => 'INFINITY',
-      require    => [Cs_resource['p_mysql'], Cs_commit['mysql']],
+      require    => [Cs_resource["p_${service_name}"], Cs_commit['mysql']],
     } 
 
   }
