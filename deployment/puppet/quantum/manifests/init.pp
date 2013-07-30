@@ -160,7 +160,6 @@ class quantum (
     'DEFAULT/network_auto_schedule':  value => $network_auto_schedule;
     'DEFAULT/router_auto_schedule':   value => $router_auto_schedule;
     'DEFAULT/agent_down_time':        value => $agent_down_time;
-    'DEFAULT/use_syslog':             value => $use_syslog;
     'keystone_authtoken/auth_host':         value => $auth_host;
     'keystone_authtoken/auth_port':         value => $auth_port;
     'keystone_authtoken/admin_tenant_name': value => $auth_tenant;
