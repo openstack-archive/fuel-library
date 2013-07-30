@@ -5,9 +5,9 @@ $sat_base_channels, $sat_openstack_channel, $numtries = 10)  {
 
   Exec  {path => '/usr/bin:/bin:/usr/sbin:/sbin'}
   $redhat_management_type = $use_satellite ? {
-    true              => "site",
-    false             => "cert",
-    default           => undef,
+    "true"              => "site",
+    "false"             => "cert",
+    default             => "cert",
   }
   package { "yum-utils":
     ensure => "latest"
