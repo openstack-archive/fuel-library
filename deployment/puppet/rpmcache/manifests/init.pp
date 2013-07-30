@@ -58,10 +58,10 @@ $sat_base_channels, $sat_openstack_channel, $numtries = 3)  {
     mode => 0644,
     require => File['/etc/nailgun/']
   } ->
+
   file { '/usr/local/bin':
     ensure => directory,
   } ->
-
   file { '/usr/local/bin/repotrack':
     ensure => present,
     source => 'puppet:///modules/rpmcache/repotrack',
@@ -100,12 +100,7 @@ $sat_base_channels, $sat_openstack_channel, $numtries = 3)  {
     require => Cobbler_distro["rhel-x86_64"],
   } ->
   exec {'rebuild-fuel-repo':
-    command => "/bin/cp /var/www/nailgun/centos/fuelweb/x86_64/repodata/comps.xml ${pkgdir}/repodata/comps.xml; /usr/bin/createrepo -g ${pkgdir}/repodata/comps.xml ${pkgdir}",
-  }->
-  exec {'check-rpm':
-    command   => "/bin/find ${pkgdir} -name '*.rpm' | /usr/bin/xargs /bin/rpm --checksig | grep 'MD5 NOT OK'",
-    logoutput => true,
-    returns   => 1,
+    command => "/bin/cp -f /var/www/nailgun/centos/fuelweb/x86_64/repodata/comps.xml ${pkgdir}/repodata/comps.xml; /usr/bin/createrepo --simple-md-filenames -g ${pkgdir}/repodata/comps.xml ${pkgdir}",
   }
 
   file { '/etc/nailgun/req-fuel-rhel.txt':
