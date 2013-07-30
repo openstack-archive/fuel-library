@@ -99,6 +99,8 @@ cronie
 ruby-augeas
 yum-plugin-versionlock
 yum-utils
+rubygem-openstack
+rubygem-netaddr
 # COBBLER EMBEDDED SNIPPET: 'puppet_install_if_enabled'
 # LISTS puppet PACKAGE IF puppet_auto_setup VARIABLE IS SET TO 1
 $SNIPPET('puppet_install_if_enabled')
@@ -146,10 +148,10 @@ $SNIPPET('puppet_register_if_enabled_fuel')
 $SNIPPET('mcollective_conf')
 
 # COBBLER EMBEDDED SNIPPET: 'redhat_register'
-# REGISTER AT REDHAT WITH ACTIVATION KEY
+# REGISTER TO RED HAT RHN SATELLITE WITH ACTIVATION KEY
 $SNIPPET('redhat_register')
-# REGISTER AT REDHAT WITH lOGIN/PASSWORD
-$SNIPPET('rhn_certificate_based_register')
+# REGISTER TO RED HAT SUBSCRIPTION MANAGER WITH lOGIN/PASSWORD
+$SNIPPET('red_hat_register_rhsm')
 
 # COBBLER EMBEDDED SNIPPET: 'kickstart_done'
 # DISABLES PXE BOOTING

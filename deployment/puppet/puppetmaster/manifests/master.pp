@@ -23,14 +23,15 @@ class puppetmaster::master (
     notify => Service["puppetmaster"],
   }
 
-  if $puppet_master_log == "syslog" {
-    file { "/etc/rsyslog.d/40-puppet-master.conf":
-      content => "if \$programname == 'puppet-master' then /var/log/puppet/master.log",
-      owner => "root",
-      group => "root",
-      mode => 0644,
-    }->Service["rsyslog"]->Service["puppetmaster"]
-  }
+  # Already declared @ rsyslog::server class
+  #  if $puppet_master_log == "syslog" {
+  #  file { "/etc/rsyslog.d/40-puppet-master.conf":
+  #    content => "if \$programname == 'puppet-master' then /var/log/puppet/master.log",
+  #    owner => "root",
+  #    group => "root",
+  #    mode => 0644,
+  #  }->Service["rsyslog"]->Service["puppetmaster"]
+  #}
 
   file { "/etc/puppet/puppet.conf":
     content => template("puppetmaster/puppet.conf.erb"),
@@ -49,7 +50,7 @@ class puppetmaster::master (
     require => Package["puppet-server"],
     notify => Service["puppetmaster"],
   }
- 
+
  package {"puppetdb-terminus": ensure => present }
 
   service { "puppetmaster":

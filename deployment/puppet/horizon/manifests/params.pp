@@ -10,6 +10,7 @@ class horizon::params {
       $vhosts_file               = '/etc/httpd/conf.d/ssl.conf'
       $http_modwsgi              = 'mod_wsgi'
       $package_name              = 'openstack-dashboard'
+      $horizon_additional_packages = ['nodejs', 'nodejs-less']
       $httpd_listen_config_file  = '/etc/httpd/conf.d/ports.conf'
       $local_settings_path       = '/etc/openstack-dashboard/local_settings'
       $root_url                  = '/dashboard'

@@ -4,6 +4,11 @@ $use_satellite = false, $sat_hostname = false, $activation_key = false,
 $sat_base_channels, $sat_openstack_channel, $numtries = 3)  {
 
   Exec  {path => '/usr/bin:/bin:/usr/sbin:/sbin'}
+  $redhat_management_type = $use_satellite ?
+    True              => "site",
+    False             => "cert",
+    default           => undef,
+  }
   package { "yum-utils":
     ensure => "latest"
   } ->
@@ -58,10 +63,10 @@ $sat_base_channels, $sat_openstack_channel, $numtries = 3)  {
     mode => 0644,
     require => File['/etc/nailgun/']
   } ->
+
   file { '/usr/local/bin':
     ensure => directory,
   } ->
-
   file { '/usr/local/bin/repotrack':
     ensure => present,
     source => 'puppet:///modules/rpmcache/repotrack',
@@ -95,17 +100,12 @@ $sat_base_channels, $sat_openstack_channel, $numtries = 3)  {
     kickstart => "/var/lib/cobbler/kickstarts/centos-x86_64.ks",
     kopts => "",
     distro => "rhel-x86_64",
-    ksmeta => "redhat_register_user=${rh_username} redhat_register_password=${rh_password} redhat_management_type=cert",
+    ksmeta => "redhat_register_user=${rh_username} redhat_register_password=${rh_password} redhat_management_type=$redhat_management_type redhat_management_server=$sat_hostname activationkey=$activation_key",
     menu => true,
     require => Cobbler_distro["rhel-x86_64"],
   } ->
   exec {'rebuild-fuel-repo':
-    command => "/bin/cp /var/www/nailgun/centos/fuelweb/x86_64/repodata/comps.xml ${pkgdir}/repodata/comps.xml; /usr/bin/createrepo -g ${pkgdir}/repodata/comps.xml ${pkgdir}",
-  }->
-  exec {'check-rpm':
-    command   => "/bin/find ${pkgdir} -name '*.rpm' | /usr/bin/xargs /bin/rpm --checksig | grep 'MD5 NOT OK'",
-    logoutput => true,
-    returns   => 1,
+    command => "/bin/cp -f /var/www/nailgun/centos/fuelweb/x86_64/repodata/comps.xml ${pkgdir}/repodata/comps.xml; /usr/bin/createrepo --simple-md-filenames -g ${pkgdir}/repodata/comps.xml ${pkgdir}",
   }
 
   file { '/etc/nailgun/req-fuel-rhel.txt':

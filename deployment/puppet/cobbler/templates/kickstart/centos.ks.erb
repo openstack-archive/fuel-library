@@ -115,8 +115,11 @@ ntp
 openssh
 openssh-clients
 openssh-server
+rhn-setup
 ruby-augeas
 ruby-devel
+rubygem-openstack
+rubygem-netaddr
 system-config-firewall-base
 wget
 yum
@@ -130,6 +133,11 @@ $SNIPPET('puppet_install_if_enabled')
 # COBBLER EMBEDDED SNIPPET: 'mcollective_install_if_enabled'
 # LISTS mcollective PACKAGE IF mco_auto_setup VARIABLE IS SET TO 1
 $SNIPPET('mcollective_install_if_enabled')
+
+# POST INSTALLATION PARTITIONING
+# THERE ARE SOME COMMANDS TO CREATE LARGE (>1TB) VOLUMES
+# AND INSTALL GRUB BOOTLOADER TO MAKE NODES ABLE TO BOOT FROM ANY HARDDRIVE
+%include /tmp/post_partition.ks
 
 # POSTINSTALL SECTION
 # HERE ARE COMMANDS THAT WILL BE LAUNCHED JUST AFTER
@@ -156,6 +164,10 @@ EOA
 # COBBLER EMBEDDED SNIPPET: 'log_ks_post'
 # CONFIGURES %post LOGGING
 $SNIPPET('log_ks_post')
+
+# COBBLER EMBEDDED SNIPPET: 'redhat_register'
+# REGISTER AT REDHAT WITH ACTIVATION KEY
+$SNIPPET('redhat_register')
 
 # COBBLER EMBEDDED SNIPPET: 'post_install_kernel_options'
 # CONFIGURES KERNEL PARAMETERS ON INSTALLED SYSTEM
