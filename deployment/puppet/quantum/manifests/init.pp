@@ -73,6 +73,15 @@ class quantum (
     source => "puppet:///modules/quantum/q-agent-cleanup.py",
   } 
 
+  file {'quantum-root':
+    path => '/etc/sudoers.d/quantum-root',
+    mode => 600,
+    owner => root,
+    group => root,
+    source => "puppet:///modules/quantum/quantum-root",
+    before => Package['quantum'],
+  }
+
   file {'/var/cache/quantum':
     ensure  => directory,
     path   => '/var/cache/quantum',
@@ -158,12 +167,16 @@ class quantum (
     'keystone_authtoken/admin_user':        value => $auth_user;
     'keystone_authtoken/admin_password':    value => $auth_password;
   }
+  # logging for agents grabbing from stderr. It's workarround for bug in quantum-logging
+  # server givs this parameters from command line
+  quantum_config {
+      'DEFAULT/log_config': ensure=> absent;
+      'DEFAULT/log_file':   ensure=> absent;
+      'DEFAULT/log_dir':    ensure=> absent;
+      'DEFAULT/use_syslog': ensure=> absent;
+      'DEFAULT/use_stderr': value => true;
+  }
   if $use_syslog {
-    quantum_config {
-      'DEFAULT/log_config': value => "/etc/quantum/logging.conf";
-      'DEFAULT/log_file': ensure=> absent;
-      'DEFAULT/logdir': ensure=> absent;
-    }
     file { "quantum-logging.conf":
       content => template('quantum/logging.conf.erb'),
       path  => "/etc/quantum/logging.conf",
@@ -182,17 +195,13 @@ class quantum (
     File['quantum-logging.conf'] -> Anchor<| title == 'quantum-dhcp-agent' |>
 
   } else {
-    quantum_config {
-      'DEFAULT/log_config': ensure=> absent;
-      'DEFAULT/log_file':   value => $log_file;
+    file { "quantum-logging.conf":
+      content => template('quantum/logging.conf-nosyslog.erb'),
+      path  => "/etc/quantum/logging.conf",
+      owner => "root",
+      group => "root",
+      mode  => 644,
     }
-    # file { "quantum-logging.conf":
-    #   content => template('quantum/logging.conf-nosyslog.erb'),
-    #   path  => "/etc/quantum/logging.conf",
-    #   owner => "root",
-    #   group => "root",
-    #   mode  => 644,
-    # }
   }
 
   File <| title=='/etc/quantum' |> -> File <| title=='quantum-logging.conf' |>

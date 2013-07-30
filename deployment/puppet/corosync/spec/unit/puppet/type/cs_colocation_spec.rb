@@ -37,7 +37,7 @@ describe Puppet::Type.type(:cs_colocation) do
     end
 
     it "should validate the score values" do
-      ["fadsfasdf",Complex(1,1)].each do |value|
+      ['fadsfasdf', nil].each do |value|
         expect { subject.new(
           :name       => "mock_colocation",
           :primitives => ['foo','bar'],

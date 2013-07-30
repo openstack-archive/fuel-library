@@ -282,20 +282,24 @@ case "$mode" in
     cd $basedir
 
     echo $echo_n "Starting MySQL"
-    if test -x $bindir/mysqld_safe
-    then
-      # Give extra arguments to mysqld with the my.cnf file. This script
-      # may be overwritten at next upgrade.
-      $bindir/mysqld_safe --datadir="$datadir" --pid-file="$mysqld_pid_file_path" $other_args >/dev/null 2>&1 &
-      wait_for_pid created "$!" "$mysqld_pid_file_path"; return_value=$?
+    if [ -f /tmp/wsrep-init-file ]; then
+     if test -x $bindir/mysqld_safe
+     then
+       # Give extra arguments to mysqld with the my.cnf file. This script
+       # may be overwritten at next upgrade.
+       $bindir/mysqld_safe --datadir="$datadir" --pid-file="$mysqld_pid_file_path" $other_args >/dev/null 2>&1 &
+       wait_for_pid created "$!" "$mysqld_pid_file_path"; return_value=$?
 
-      # Make lock for RedHat / SuSE
-      if test -w "$lockdir"
-      then
-        touch "$lock_file_path"
-      fi
+       # Make lock for RedHat / SuSE
+       if test -w "$lockdir"
+       then
+         touch "$lock_file_path"
+       fi
 
-      exit $return_value
+       exit $return_value
+     else
+       log_failure_msg "Couldn't find MySQL server ($bindir/mysqld_safe)"
+     fi
     else
        if [ "$(crm_attribute -t crm_config --name mysqlprimaryinit --query 2> /dev/null | awk -F\= '{print $4}')" = 'done' ] ; then
             $bindir/mysqld_safe --datadir="$datadir" --pid-file="$mysqld_pid_file_path" $other_args >/dev/null 2>&1 &
