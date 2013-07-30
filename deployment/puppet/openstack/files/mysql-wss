@@ -1001,6 +1001,10 @@ mysql_start() {
         mysql_extra_params="--skip-slave-start"
     fi
     if [ -f /tmp/wsrep-init-file ] ; then
+      killall mysqld mysqld_safe
+      sleep 15
+      killall -s KILL mysqld mysqld_safe
+      sleep 2
       if [ "$(crm_attribute -t crm_config --name mysqlprimaryinit --query 2> /dev/null | awk -F\= '{print $4}')" = 'done' ] ; then
         ${OCF_RESKEY_binary} \
         --pid-file=$OCF_RESKEY_pid \
