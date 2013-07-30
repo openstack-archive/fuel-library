@@ -129,7 +129,7 @@ redhat-release-server
 redhat-rpm-config
 resource-agents
 rhel-boot-image
-rhn_register
+rhn-setup
 rsyslog-relp
 ruby
 ruby-devel
