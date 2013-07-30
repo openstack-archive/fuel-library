@@ -3,7 +3,7 @@
 subscription-manager register "--username=<%= rh_username %>" "--password=<%= rh_password %>" --autosubscribe --force 
 
 #Attach to RHOS product
-poolid="$(subscription-manager list --available | grep -A2 "Red Hat OpenStack" | tail -1 | cut -c15- | tr -d ' ')"
+poolid="$(subscription-manager list --available | grep -A2 "OpenStack" | tail -1 | cut -c15- | tr -d ' \t')"
 subscription-manager attach "--pool=$poolid"
 
 #Enable channels
@@ -98,12 +98,20 @@ for tries in $(seq 1 <%= numtries %>); do
   env LANG=C rpm --checksig <%= pkgdir %>/Packages/* | grep 'md5 NOT OK' | cut -d':' -f1| xargs rm -f
   after=`ls -1 "<%= pkgdir %>/Packages/" |wc -l`
   echo Correct packages in local repo: $after
-  [ $before -eq $after ] || status=1
+  if [ $before -eq $after -a $status -eq 0 ]; then
+    break
+  fi
 done
+
 if [ $status -ne 0 ]; then
   echo "ERROR: Repotrack did not exit cleanly after <%= numtries %> tries."
   exit 1
 fi
+if [ $before -ne $after ]; then
+  echo "ERROR: There are still some packages with broken md5 sum after last (<%= numtries %>) retry to download them."
+  exit 1
+fi
+
 
 rm -f /etc/yum/vars/releasever
 yum-config-manager --enable 'nailgun' &> /dev/null
