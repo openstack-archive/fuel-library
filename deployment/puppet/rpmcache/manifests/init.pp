@@ -4,9 +4,9 @@ $use_satellite = false, $sat_hostname = false, $activation_key = false,
 $sat_base_channels, $sat_openstack_channel, $numtries = 3)  {
 
   Exec  {path => '/usr/bin:/bin:/usr/sbin:/sbin'}
-  $redhat_management_type = $use_satellite ?
-    True              => "site",
-    False             => "cert",
+  $redhat_management_type = $use_satellite ? {
+    true              => "site",
+    false             => "cert",
     default           => undef,
   }
   package { "yum-utils":
