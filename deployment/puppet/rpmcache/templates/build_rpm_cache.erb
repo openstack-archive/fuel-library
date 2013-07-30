@@ -3,7 +3,7 @@
 subscription-manager register "--username=<%= rh_username %>" "--password=<%= rh_password %>" --autosubscribe --force 
 
 #Attach to RHOS product
-poolid="$(subscription-manager list --available | grep -A2 "Red Hat OpenStack" | tail -1 | cut -c15- | tr -d ' ')"
+poolid="$(subscription-manager list --available | grep -A2 "OpenStack" | tail -1 | cut -c15- | tr -d ' \t')"
 subscription-manager attach "--pool=$poolid"
 
 #Enable channels
