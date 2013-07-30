@@ -115,6 +115,7 @@ ntp
 openssh
 openssh-clients
 openssh-server
+rhn-setup
 ruby-augeas
 ruby-devel
 rubygem-openstack
@@ -160,6 +161,10 @@ EOA
 # COBBLER EMBEDDED SNIPPET: 'log_ks_post'
 # CONFIGURES %post LOGGING
 $SNIPPET('log_ks_post')
+
+# COBBLER EMBEDDED SNIPPET: 'redhat_register'
+# REGISTER AT REDHAT WITH ACTIVATION KEY
+$SNIPPET('redhat_register')
 
 # COBBLER EMBEDDED SNIPPET: 'post_install_kernel_options'
 # CONFIGURES KERNEL PARAMETERS ON INSTALLED SYSTEM
