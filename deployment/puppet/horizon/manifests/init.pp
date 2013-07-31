@@ -65,18 +65,13 @@ class horizon(
     if ! defined(Package[$name]){
       @package { $name : }
     }
-  }
-  if $::operatingsystem == 'redhat' {
-    horizon_safe_package { $horizon_additional_packages : }
-  }
-
+  } 
 
   File {
     require => Package['dashboard'],
     owner   => $wsgi_user,
     group   => $wsgi_group,
   }
-
   file { $::horizon::params::local_settings_path:
     content => template('horizon/local_settings.py.erb'),
     mode    => '0644',
@@ -166,6 +161,7 @@ class horizon(
 
   case $::osfamily {
     'RedHat': {
+      horizon_safe_package { $::horizon::params::horizon_additional_packages : }
       file { '/etc/httpd/conf.d/wsgi.conf':
         mode   => 644,
         owner  => root,
