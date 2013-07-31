@@ -95,9 +95,9 @@ else {
   }
 }
   # We must notify services to apply new logging rules
-  File['cinder-logging.conf'] ~> Service<| title == 'cinder-api' |>
-  File['cinder-logging.conf'] ~> Service<| title == 'cinder-volume' |>
-  File['cinder-logging.conf'] ~> Service<| title == 'cinder-scheduler' |>
+  File['cinder-logging.conf'] ~> Service<| title == 'openstack-cinder-api' |>
+  File['cinder-logging.conf'] ~> Service<| title == 'openstack-cinder-volume' |>
+  File['cinder-logging.conf'] ~> Service<| title == 'openstack-cinder-scheduler' |>
 
   file { $::cinder::params::cinder_conf: }
   file { $::cinder::params::cinder_paste_api_ini: }
