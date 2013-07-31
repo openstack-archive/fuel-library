@@ -113,8 +113,6 @@ if !$debug
  $debug = 'true'
 }
 
-
-
   case $role {
     "controller" : {
       include osnailyfacter::test_controller
