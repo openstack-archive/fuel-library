@@ -136,33 +136,21 @@ $syslog_log_facility_quantum  = 'LOCAL4'
 $syslog_log_facility_nova     = 'LOCAL6'
 $syslog_log_facility_keystone = 'LOCAL7'
 
-$nova_rate_limits = {
-  'POST' => 1000,
-  'POST_SERVERS' => 1000,
-  'PUT' => 1000, 'GET' => 1000,
-  'DELETE' => 1000
-}
-$cinder_rate_limits = {
-  'POST' => 1000,
-  'POST_SERVERS' => 1000,
-  'PUT' => 1000, 'GET' => 1000,
-  'DELETE' => 1000
-}
-
 $multi_host              = true
 $manage_volumes          = false
 $glance_backend          = 'swift'
 $quantum_netnode_on_cnt  = true
 $swift_loopback = 'loopback'
-
 $mirror_type = 'external'
 Exec { logoutput => true }
 
 
 
 
+class compact_controller (
+  $quantum_network_node = $quantum_netnode_on_cnt
+) {
 
-class compact_controller {
   class { 'openstack::controller_ha':
     controller_public_addresses   => $controller_public_addresses,
     controller_internal_addresses => $controller_internal_addresses,
@@ -208,6 +196,10 @@ class compact_controller {
     quantum                       => $quantum,
     quantum_user_password         => $quantum_hash[user_password],
     quantum_db_password           => $quantum_hash[db_password],
+    quantum_network_node          => $quantum_network_node,
+    quantum_netnode_on_cnt        => $quantum_netnode_on_cnt,
+    quantum_gre_bind_addr         => $quantum_gre_bind_addr,
+    quantum_external_ipinfo       => $external_ipinfo,
     tenant_network_type           => $tenant_network_type,
     segment_range                 => $segment_range,
     cinder                        => true,
@@ -218,6 +210,15 @@ class compact_controller {
     galera_nodes                  => $controller_nodes,
     mysql_skip_name_resolve       => true,
     use_syslog                    => true,
+    syslog_log_facility_glance   => $syslog_log_facility_glance,
+    syslog_log_facility_cinder => $syslog_log_facility_cinder,
+    syslog_log_facility_quantum => $syslog_log_facility_quantum,
+    syslog_log_facility_nova => $syslog_log_facility_nova,
+    syslog_log_facility_keystone => $syslog_log_facility_keystone,
+    nova_rate_limits        => $nova_rate_limits,
+    cinder_rate_limits      => $cinder_rate_limits,
+    horizon_use_ssl         => $::horizon_use_ssl,
+    use_unicast_corosync    => $::use_unicast_corosync,
   }
 
 #  class { "::rsyslog::client":
@@ -306,7 +307,7 @@ class virtual_ips () {
       include osnailyfacter::test_compute
 
       class { 'openstack::compute':
-        public_interface       => $public_interface,
+        public_interface       => $public_int,
         private_interface      => $fixed_interface,
         internal_address       => $internal_address,
         libvirt_type           => $libvirt_type,
@@ -323,8 +324,9 @@ class virtual_ips () {
         glance_api_servers     => "${management_vip}:9292",
         vncproxy_host          => $public_vip,
         verbose                => $verbose,
+        debug                  => $debug,
         vnc_enabled            => true,
-        manage_volumes         => false,
+        manage_volumes         => $cinder ? { false =>, $manage_volumes, default =>$is_cinder_node },
         nova_user_password     => $nova_hash[user_password],
         cache_server_ip        => $controller_nodes,
         service_endpoint       => $management_vip,
@@ -339,7 +341,10 @@ class virtual_ips () {
         quantum_user_password  => $quantum_user_password,
         tenant_network_type    => $tenant_network_type,
         segment_range          => $segment_range,
-        use_syslog             => true,
+        syslog_log_level       => $syslog_log_level,
+        syslog_log_facility_quantum => $syslog_log_facility_quantum,
+        syslog_log_facility_cinder => $syslog_log_facility_cinder,
+        nova_rate_limits       => $nova_rate_limits,
       }
 
 #      class { "::rsyslog::client":

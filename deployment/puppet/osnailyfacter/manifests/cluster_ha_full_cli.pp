@@ -122,19 +122,6 @@ $master_swift_proxy_ip = $master_swift_proxy_nodes[0]['internal_address']
 $master_hostname = filter_nodes($nodes_hash,'role','primary-controller')[0]['name']
 
 #HARDCODED PARAMETERS
-$nova_rate_limits = {
-  'POST' => 1000,
-  'POST_SERVERS' => 1000,
-  'PUT' => 1000, 'GET' => 1000,
-  'DELETE' => 1000
-}
-$cinder_rate_limits = {
-  'POST' => 1000,
-  'POST_SERVERS' => 1000,
-  'PUT' => 1000, 'GET' => 1000,
-  'DELETE' => 1000
-}
-
 $multi_host              = true
 $manage_volumes          = false
 $glance_backend          = 'swift'
@@ -243,7 +230,6 @@ class ha_controller (
     cinder_rate_limits      => $cinder_rate_limits,
     horizon_use_ssl         => $horizon_use_ssl,
     use_unicast_corosync    => $use_unicast_corosync,
-    ha_provider             => $ha_provider
   }
   class { 'swift::keystone::auth':
     password         => $swift_user_password,
@@ -286,7 +272,7 @@ case $role {
     public_interface       => $public_int,
     private_interface      => $private_interface,
     internal_address       => $internal_address,
-    libvirt_type           => 'kvm',
+    libvirt_type           => $libvirt_type,
     fixed_range            => $fixed_range,
     network_manager        => $network_manager,
     network_config         => { 'vlan_start' => $vlan_start },

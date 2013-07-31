@@ -66,6 +66,19 @@ $syslog_log_facility_nova     = 'LOCAL6'
 $syslog_log_facility_keystone = 'LOCAL7'
 
 
+$nova_rate_limits = {
+  'POST' => 1000,
+  'POST_SERVERS' => 1000,
+  'PUT' => 1000, 'GET' => 1000,
+  'DELETE' => 1000
+}
+$cinder_rate_limits = {
+  'POST' => 1000,
+  'POST_SERVERS' => 1000,
+  'PUT' => 1000, 'GET' => 1000,
+  'DELETE' => 1000
+}
+
 
 ###
 class node_netconfig (
