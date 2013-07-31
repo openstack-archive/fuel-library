@@ -28,11 +28,6 @@ $network_size         = $novanetwork_params['network_size']
 $cinder_nodes          = ['controller']
 
 
-##
-$verbose = true
-$debug = true
-$ntp_servers = ['pool.ntp.org']
-$nv_physical_volume     = ['/dev/sdz', '/dev/sdy', '/dev/sdx']
 ##CALCULATED PARAMETERS
 
 ##NO NEED TO CHANGE
@@ -92,9 +87,9 @@ $swift_proxies = $controller_internal_addresses
 $quantum_metadata_proxy_shared_secret = $quantum_params['metadata_proxy_shared_secret']
 $quantum_gre_bind_addr = $::internal_address
 
-$swift_local_net_ip      = $::internal_address
+$swift_local_net_ip      = $::storage_address
 
-$cinder_iscsi_bind_addr = $::internal_address
+$cinder_iscsi_bind_addr = $::storage_address
 
 if $auto_assign_floating_ip == 'true' {
   $bool_auto_assign_floating_ip = true
@@ -107,7 +102,7 @@ $network_config = {
 }
 
 
-if $node[0]['role'] == 'primary-controller' {
+if $node[0]['role'] == 'primary-swift-proxy' {
   $primary_proxy = true
 } else {
   $primary_proxy = false
@@ -166,57 +161,57 @@ class ha_controller (
     controller_public_addresses   => $controller_public_addresses,
     controller_internal_addresses => $controller_internal_addresses,
     internal_address        => $internal_address,
-    public_interface        => $public_int,
-    internal_interface      => $internal_int,
-    private_interface       => $private_interface,
-    internal_virtual_ip     => $internal_virtual_ip,
-    public_virtual_ip       => $public_virtual_ip,
+    public_interface        => $::public_int,
+    internal_interface      => $::internal_int,
+    private_interface       => $fixed_interface,
+    internal_virtual_ip     => $management_vip,
+    public_virtual_ip       => $public_vip,
     primary_controller      => $primary_controller,
-    floating_range          => $floating_range,
-    fixed_range             => $fixed_range,
+    floating_range          => $floating_hash,
+    fixed_range             => $fixed_network_range,
     multi_host              => $multi_host,
     network_manager         => $network_manager,
     num_networks            => $num_networks,
     network_size            => $network_size,
-    network_config          => { 'vlan_start' => $vlan_start },
+    network_config          => $network_config,
     verbose                 => $verbose,
     debug                   => $debug,
-    auto_assign_floating_ip => $auto_assign_floating_ip,
-    mysql_root_password     => $mysql_root_password,
-    admin_email             => $admin_email,
-    admin_password          => $admin_password,
-    keystone_db_password    => $keystone_db_password,
-    keystone_admin_token    => $keystone_admin_token,
-    glance_db_password      => $glance_db_password,
-    glance_user_password    => $glance_user_password,
-    nova_db_password        => $nova_db_password,
-    nova_user_password      => $nova_user_password,
-    queue_provider          => $queue_provider,
-    rabbit_password         => $rabbit_password,
-    rabbit_user             => $rabbit_user,
-    rabbit_nodes            => $controller_hostnames,
-    qpid_password           => $rabbit_password,
-    qpid_user               => $rabbit_user,
-    qpid_nodes              => [$internal_virtual_ip],
-    memcached_servers       => $controller_hostnames,
+    auto_assign_floating_ip => $bool_auto_assign_floating_ip,
+    mysql_root_password     => $mysql_hash[root_password],
+    admin_email             => $access_hash[email],
+    admin_password          => $access_hash[password],
+    admin_user              => $access_hash[user],
+    keystone_db_password    => $keystone_hash[db_password],
+    keystone_admin_token    => $keystone_hash[admin_token],
+    keystone_admin_tenant   => $access_hash[tenant],
+    glance_db_password      => $glance_hash[db_password],
+    glance_user_password    => $glance_hash[user_password],
+    nova_db_password        => $nova_hash[db_password],
+    nova_user_password      => $nova_hash[user_password],
+    queue_provider          => $::queue_provider,
+    rabbit_password         => $rabbit_hash[password],
+    rabbit_user             => $rabbit_hash[user],
+    rabbit_nodes            => $controller_nodes,
+    qpid_password           => $rabbit_hash[password],
+    qpid_user               => $rabbit_hash[user],
+    qpid_nodes              => [$management_vip],
+    memcached_servers       => $controller_nodes,
     export_resources        => false,
     glance_backend          => $glance_backend,
     swift_proxies           => $swift_proxies,
     quantum                 => $quantum,
-    quantum_user_password   => $quantum_user_password,
-    quantum_db_password     => $quantum_db_password,
-    quantum_db_user         => $quantum_db_user,
-    quantum_db_dbname       => $quantum_db_dbname,
+    quantum_user_password   => $quantum_hash[user_password],
+    quantum_db_password     => $quantum_hash[db_password],
     quantum_network_node    => $quantum_network_node,
     quantum_netnode_on_cnt  => $quantum_netnode_on_cnt,
     quantum_gre_bind_addr   => $quantum_gre_bind_addr,
     quantum_external_ipinfo => $external_ipinfo,
     tenant_network_type     => $tenant_network_type,
     segment_range           => $segment_range,
-    cinder                  => $cinder,
+    cinder                  => true,
     cinder_iscsi_bind_addr  => $cinder_iscsi_bind_addr,
     manage_volumes          => $cinder ? { false => $manage_volumes, default =>$is_cinder_node },
-    galera_nodes            => $controller_hostnames,
+    galera_nodes            => $controller_nodes,
     custom_mysql_setup_class => $custom_mysql_setup_class,
     nv_physical_volume      => $nv_physical_volume,
     use_syslog              => $use_syslog,
@@ -228,8 +223,8 @@ class ha_controller (
     syslog_log_facility_keystone => $syslog_log_facility_keystone,
     nova_rate_limits        => $nova_rate_limits,
     cinder_rate_limits      => $cinder_rate_limits,
-    horizon_use_ssl         => $horizon_use_ssl,
-    use_unicast_corosync    => $use_unicast_corosync,
+    horizon_use_ssl         => $::horizon_use_ssl,
+    use_unicast_corosync    => $::use_unicast_corosync,
   }
   class { 'swift::keystone::auth':
     password         => $swift_user_password,
@@ -269,51 +264,51 @@ case $role {
   }
 
   class { 'openstack::compute':
-    public_interface       => $public_int,
-    private_interface      => $private_interface,
+    public_interface       => $::public_int,
+    private_interface      => $fixed_interface,
     internal_address       => $internal_address,
     libvirt_type           => $libvirt_type,
     fixed_range            => $fixed_range,
     network_manager        => $network_manager,
-    network_config         => { 'vlan_start' => $vlan_start },
+    network_config         => $network_config,
     multi_host             => $multi_host,
-    auto_assign_floating_ip => $auto_assign_floating_ip,
-    sql_connection         => "mysql://nova:${nova_db_password}@${internal_virtual_ip}/nova",
-    queue_provider         => $queue_provider,
-    rabbit_nodes           => $controller_hostnames,
+    auto_assign_floating_ip => $bool_auto_assign_floating_ip,
+    sql_connection         => "mysql://nova:${nova_hash[db_password]}@${management_vip}/nova",
+    queue_provider         => $::queue_provider,
+    rabbit_nodes           => $controller_nodes,
     rabbit_password        => $rabbit_password,
     rabbit_user            => $rabbit_user,
-    rabbit_ha_virtual_ip   => $internal_virtual_ip,
-    qpid_password          => $rabbit_password,
-    qpid_user              => $rabbit_user,
-    qpid_nodes             => [$internal_virtual_ip],
-    glance_api_servers     => "${internal_virtual_ip}:9292",
-    vncproxy_host          => $public_virtual_ip,
+    rabbit_ha_virtual_ip   => $management_vip,
+    qpid_password          => $rabbit_hash[password],
+    qpid_user              => $rabbit_hash[user],
+    qpid_nodes             => [$management_vip],
+    glance_api_servers     => "${management_vip}:9292",
+    vncproxy_host          => $public_vip,
     verbose                => $verbose,
     debug                  => $debug,
     vnc_enabled            => true,
-    nova_user_password     => $nova_user_password,
-    cache_server_ip        => $controller_hostnames,
-    service_endpoint       => $internal_virtual_ip,
+    nova_user_password     => $nova_hash[user_password],
+    cache_server_ip        => $controller_nodes,
+    service_endpoint       => $management_vip,
     quantum                => $quantum,
     quantum_sql_connection => $quantum_sql_connection,
-    quantum_user_password  => $quantum_user_password,
-    quantum_host           => $internal_virtual_ip,
+    quantum_user_password  => $quantum_hash[user_password],
+    quantum_host           => $management_vip,
     tenant_network_type    => $tenant_network_type,
     segment_range          => $segment_range,
     cinder                 => $cinder,
     cinder_iscsi_bind_addr => $cinder_iscsi_bind_addr,
     manage_volumes         => $cinder ? { false => $manage_volumes, default =>$is_cinder_node },
     nv_physical_volume     => $nv_physical_volume,
-    db_host                => $internal_virtual_ip,
-    cinder_rate_limits     => $cinder_rate_limits,
+    db_host                => $management_vip,
+    cinder_rate_limits     => $::cinder_rate_limits,
     ssh_private_key        => 'puppet:///ssh_keys/openstack',
     ssh_public_key         => 'puppet:///ssh_keys/openstack.pub',
     use_syslog             => $use_syslog,
     syslog_log_level       => $syslog_log_level,
     syslog_log_facility_quantum => $syslog_log_facility_quantum,
     syslog_log_facility_cinder => $syslog_log_facility_cinder,
-    nova_rate_limits       => $nova_rate_limits,
+    nova_rate_limits       => $::nova_rate_limits,
   }
 }
 
@@ -353,17 +348,17 @@ case $role {
     cinder_iscsi_bind_addr => $cinder_iscsi_bind_addr,
     manage_volumes          => $cinder ? { false => $manage_volumes, default =>$is_cinder_node },
     nv_physical_volume     => $nv_physical_volume,
-    db_host                => $internal_virtual_ip,
-    service_endpoint       => $internal_virtual_ip,
+    db_host                => $management_vip,
+    service_endpoint       => $management_vip,
     cinder_rate_limits     => $cinder_rate_limits,
-    queue_provider         => $queue_provider,
-    rabbit_nodes           => $controller_hostnames,
-    rabbit_password        => $rabbit_password,
-    rabbit_user            => $rabbit_user,
-    rabbit_ha_virtual_ip   => $internal_virtual_ip,
-    qpid_password          => $rabbit_password,
-    qpid_user              => $rabbit_user,
-    qpid_nodes             => [$internal_virtual_ip],
+    queue_provider         => $::queue_provider,
+    rabbit_nodes           => $controller_nodes,
+    rabbit_password        => $rabbit_hash[password],
+    rabbit_user            => $rabbit_hash[user],
+    rabbit_ha_virtual_ip   => $management_vip,
+    qpid_password          => $rabbit_hash[password],
+    qpid_user              => $rabbit_hash[user],
+    qpid_nodes             => [$management_vip],
     sync_rings             => ! $primary_proxy,
     syslog_log_level => $syslog_log_level,
     syslog_log_facility_cinder => $syslog_log_facility_cinder,
@@ -374,15 +369,7 @@ case $role {
 # Definition of OpenStack Swift proxy nodes.
 /swift-proxy/: {
   class { 'operatingsystem::checksupported':
-      stage => 'setup'
-  }
-
-  class {'::node_netconfig':
-    mgmt_ipaddr    => $::internal_address,
-    mgmt_netmask   => $::internal_netmask,
-    public_ipaddr  => $::public_address,
-    public_netmask => $::public_netmask,
-    stage          => 'netconfig',
+      stage => 'first'
   }
 
   if $nagios {
@@ -396,76 +383,17 @@ case $role {
 
   if $primary_proxy {
     ring_devices {'all':
-      storages => filter_nodes($nodes, 'role', 'storage')
+      storages => $swift_storages 
     }
   }
 
   class { 'openstack::swift::proxy':
-    swift_user_password     => $swift_user_password,
+    swift_user_password     => $swift_hash[user_password],
     swift_proxies           => $swift_proxies,
     primary_proxy           => $primary_proxy,
-    controller_node_address => $internal_virtual_ip,
+    controller_node_address => $management_vip,
     swift_local_net_ip      => $swift_local_net_ip,
     master_swift_proxy_ip   => $master_swift_proxy_ip,
-  }
-}
-
-# Definition of OpenStack Quantum node.
-/quantum/ : {
-  class { 'operatingsystem::checksupported':
-      stage => 'first'
-  }
-
-  class {'::node_netconfig':
-      mgmt_ipaddr    => $::internal_address,
-      mgmt_netmask   => $::internal_netmask,
-      public_ipaddr  => 'none',
-      save_default_gateway => true,
-      stage          => 'netconfig',
-  }
-  if ! $quantum_netnode_on_cnt {
-    class { 'openstack::quantum_router':
-      db_host               => $internal_virtual_ip,
-      service_endpoint      => $internal_virtual_ip,
-      auth_host             => $internal_virtual_ip,
-      nova_api_vip          => $internal_virtual_ip,
-      internal_address      => $internal_address,
-      public_interface      => $public_int,
-      private_interface     => $private_interface,
-      floating_range        => $floating_range,
-      fixed_range           => $fixed_range,
-      create_networks       => $create_networks,
-      verbose               => $verbose,
-      debug                 => $debug,
-      queue_provider        => $queue_provider,
-      rabbit_password       => $rabbit_password,
-      rabbit_user           => $rabbit_user,
-      rabbit_nodes          => $controller_hostnames,
-      rabbit_ha_virtual_ip  => $internal_virtual_ip,
-      qpid_password         => $rabbit_password,
-      qpid_user             => $rabbit_user,
-      qpid_nodes            => [$internal_virtual_ip],
-      quantum               => $quantum,
-      quantum_user_password => $quantum_user_password,
-      quantum_db_password   => $quantum_db_password,
-      quantum_db_user       => $quantum_db_user,
-      quantum_db_dbname     => $quantum_db_dbname,
-      quantum_netnode_on_cnt=> false,
-      quantum_network_node  => true,
-      tenant_network_type   => $tenant_network_type,
-      segment_range         => $segment_range,
-      external_ipinfo       => $external_ipinfo,
-      api_bind_address      => $internal_address,
-      use_syslog            => $use_syslog,
-      syslog_log_level      => $syslog_log_level,
-      syslog_log_facility_quantum => $syslog_log_facility_quantum,
-    }
-    class { 'openstack::auth_file':
-      admin_password       => $admin_password,
-      keystone_admin_token => $keystone_admin_token,
-      controller_node      => $internal_virtual_ip,
-      before               => Class['openstack::quantum_router'],
-    }
   }
 }
 
@@ -487,11 +415,6 @@ case $role {
         iscsi_bind_host      => $storage_address,
         cinder_user_password => $cinder_hash[user_password],
         use_syslog           => true,
-      }
-      class { "::rsyslog::client":
-        log_local => true,
-        log_auth_local => true,
-        rservers => $rservers,
       }
     }
 }
