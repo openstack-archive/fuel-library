@@ -64,7 +64,7 @@ class mysql::config(
       owner  => 'root',
       group  => $root_group,
       mode   => '0400',
-      notify => Service['mysqld'],
+      notify => Service['mysql'],
     }
   } 
 

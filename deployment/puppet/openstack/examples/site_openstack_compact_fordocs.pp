@@ -338,7 +338,6 @@ if ($cinder) {
 ### CINDER/VOLUME END ###
 
 ### GLANCE and SWIFT ###
-
 # Which backend to use for glance
 # Supported backends are "swift" and "file"
 $glance_backend          = 'swift'
@@ -400,7 +399,8 @@ if $use_syslog {
   class { "::openstack::logging":
     stage          => 'first',
     role           => 'client',
-    show_timezone => false,
+    # use date-rfc3339 timestamps
+    show_timezone => true,
     # log both locally include auth, and remote
     log_remote     => true,
     log_local      => true,

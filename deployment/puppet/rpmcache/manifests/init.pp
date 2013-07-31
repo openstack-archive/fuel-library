@@ -1,13 +1,13 @@
 class rpmcache::rpmcache ( $releasever, $pkgdir, $numtries,
 $rh_username, $rh_password, $rh_base_channels, $rh_openstack_channel,
 $use_satellite = false, $sat_hostname = false, $activation_key = false,
-$sat_base_channels, $sat_openstack_channel, $numtries = 3)  {
+$sat_base_channels, $sat_openstack_channel, $numtries = 10)  {
 
   Exec  {path => '/usr/bin:/bin:/usr/sbin:/sbin'}
-  $redhat_management_type = $use_satellite ?
-    True              => "site",
-    False             => "cert",
-    default           => undef,
+  $redhat_management_type = $use_satellite ? {
+    "true"              => "site",
+    "false"             => "cert",
+    default             => "cert",
   }
   package { "yum-utils":
     ensure => "latest"
