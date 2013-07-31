@@ -102,7 +102,7 @@ class mysql::server (
     exec { "create-mysql-table-if-missing": 
       command => "/usr/bin/mysql_install_db --datadir=$mysql::params::datadir --user=mysql && chown -R mysql:mysql $mysql::params::datadir",
       path => '/bin:/usr/bin:/sbin:/usr/sbin',
-      unless => 'test -d $mysl::params::datadir',
+      unless => "test -d $mysql::params::datadir/mysql",
     }
 
 

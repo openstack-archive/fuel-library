@@ -61,16 +61,6 @@ class horizon(
     require => Package[$::horizon::params::http_service],
   }
 
-  define horizon_safe_package(){
-    if ! defined(Package[$name]){
-      @package { $name : }
-    }
-  }
-  if $::operatingsystem == 'redhat' {
-    horizon_safe_package { $horizon_additional_packages : }
-  }
-
-
   File {
     require => Package['dashboard'],
     owner   => $wsgi_user,
@@ -166,6 +156,9 @@ class horizon(
 
   case $::osfamily {
     'RedHat': {
+      package { $::horizon::params::horizon_additional_packages :
+        ensure => present,
+      }
       file { '/etc/httpd/conf.d/wsgi.conf':
         mode   => 644,
         owner  => root,
