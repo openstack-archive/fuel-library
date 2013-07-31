@@ -161,7 +161,7 @@ class horizon(
 
   case $::osfamily {
     'RedHat': {
-      horizon_safe_package { $::horizon::params::horizon_additional_packages : }
+      package { $::horizon::params::horizon_additional_packages : ensure => present }
       file { '/etc/httpd/conf.d/wsgi.conf':
         mode   => 644,
         owner  => root,
