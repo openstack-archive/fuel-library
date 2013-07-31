@@ -14,7 +14,6 @@ $keystone_hash        = parsejson($::keystone)
 $swift_hash           = parsejson($::swift)
 $cinder_hash          = parsejson($::cinder)
 $access_hash          = parsejson($::access)
-$floating_hash        = parsejson($::floating_network_range)
 $quantum_params       = parsejson($::quantum_parameters)
 $novanetwork_params  = parsejson($::novanetwork_parameters)
 $nodes_hash           = parsejson($::nodes)
@@ -27,6 +26,12 @@ $network_manager      = "nova.network.manager.${novanetwork_params['network_mana
 $network_size         = $novanetwork_params['network_size']
 $cinder_nodes          = ['controller']
 
+if $quantum {
+$floating_hash =  $::floating_network_range
+}
+else {
+  $floating_hash = parsejson($::floating_network_range)
+}
 
 ##
 $verbose = true
@@ -161,7 +166,7 @@ class compact_controller (
     internal_virtual_ip           => $management_vip,
     public_virtual_ip             => $public_vip,
     primary_controller            => $primary_controller,
-    floating_range                => false,
+    floating_range                => $floating_hash,
     fixed_range                   => $fixed_network_range,
     multi_host                    => $multi_host,
     network_manager               => $network_manager,
@@ -294,7 +299,10 @@ class virtual_ips () {
           img_name    => "TestVM",
           stage          => 'glance-image',
         }
+        if !$quantum
+        {
         nova::manage::floating{$floating_hash:}
+        }
         Class[glance::api]                    -> Class[openstack::img::cirros]
         Class[openstack::swift::storage_node] -> Class[openstack::img::cirros]
         Class[openstack::swift::proxy]        -> Class[openstack::img::cirros]
@@ -326,7 +334,7 @@ class virtual_ips () {
         verbose                => $verbose,
         debug                  => $debug,
         vnc_enabled            => true,
-        manage_volumes         => $cinder ? { false =>, $manage_volumes, default =>$is_cinder_node },
+        manage_volumes         => $cinder ? { false => $manage_volumes, default =>$is_cinder_node },
         nova_user_password     => $nova_hash[user_password],
         cache_server_ip        => $controller_nodes,
         service_endpoint       => $management_vip,

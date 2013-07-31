@@ -45,7 +45,8 @@ class openstack::quantum_router (
   $syslog_log_facility      = 'LOCAL4',
   $syslog_log_level = 'WARNING',
   $ha_mode                  = false,
-  $service_provider         = 'generic'
+  $service_provider         = 'generic',
+  $quantum_metadata_proxy_shared_secret = 'shared_secret'
 ) {
     # Set up Quantum
     $quantum_sql_connection = "$db_type://${quantum_db_user}:${quantum_db_password}@${db_host}/${quantum_db_dbname}?charset=utf8"
@@ -105,7 +106,7 @@ class openstack::quantum_router (
         auth_url         => $admin_auth_url,
         auth_region      => 'RegionOne',
         auth_password    => $quantum_user_password,
-        shared_secret    => $::quantum_metadata_proxy_shared_secret,
+        shared_secret    => $quantum_metadata_proxy_shared_secret,
         metadata_ip      => $nova_api_vip,
       }
       class { 'quantum::agents::dhcp':
