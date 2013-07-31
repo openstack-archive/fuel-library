@@ -66,7 +66,11 @@ class horizon(
     owner   => $wsgi_user,
     group   => $wsgi_group,
   }
-
+  define horizon_safe_package(){
+    if ! defined(Package[$name]){
+      @package { $name : }
+    }
+  } 
   file { $::horizon::params::local_settings_path:
     content => template('horizon/local_settings.py.erb'),
     mode    => '0644',
@@ -156,8 +160,7 @@ class horizon(
 
   case $::osfamily {
     'RedHat': {
-      package { $::horizon::params::horizon_additional_packages :
-        ensure => present,
+        horizon_safe_package { $::horizon::params::horizon_additional_packages : }
       }
       file { '/etc/httpd/conf.d/wsgi.conf':
         mode   => 644,
