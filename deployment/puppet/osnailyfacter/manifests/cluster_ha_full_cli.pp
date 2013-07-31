@@ -21,12 +21,10 @@ $nodes_hash           = parsejson($::nodes)
 $tenant_network_type  = $quantum_params['tenant_network_type']
 $segment_range        = $quantum_params['segment_range']
 $rabbit_user          = $rabbit_hash['user']
-$fixed_network_range  = $novanetwork_params['fixed_network_range']
 $vlan_start           = $novanetwork_params['vlan_start']
 $network_manager      = "nova.network.manager.${novanetwork_params['network_manager']}"
 $network_size         = $novanetwork_params['network_size']
-$cinder_nodes          = ['controller']
-
+$cinder_nodes_array   = parsejson($::cinder_nodes)
 
 ##CALCULATED PARAMETERS
 
@@ -51,16 +49,16 @@ $vips = { # Do not convert to ARRAY, It can't work in 2.7
 $vip_keys = keys($vips)
 
 if ($cinder) {
-  if (member($cinder_nodes,'all')) {
+  if (member($cinder_nodes_array,'all')) {
     $is_cinder_node = true
-  } elsif (member($cinder_nodes,$::hostname)) {
+  } elsif (member($cinder_nodes_array,$::hostname)) {
     $is_cinder_node = true
-  } elsif (member($cinder_nodes,$internal_address)) {
+  } elsif (member($cinder_nodes_array,$internal_address)) {
     $is_cinder_node = true
   } elsif ($node[0]['role'] =~ /controller/ ) {
-    $is_cinder_node = member($cinder_nodes,'controller')
+    $is_cinder_node = member($cinder_nodes_array,'controller')
   } else {
-    $is_cinder_node = member($cinder_nodes,$node[0]['role'])
+    $is_cinder_node = member($cinder_nodes_array,$node[0]['role'])
   }
 } else {
   $is_cinder_node = false
@@ -268,7 +266,7 @@ case $role {
     private_interface      => $fixed_interface,
     internal_address       => $internal_address,
     libvirt_type           => $libvirt_type,
-    fixed_range            => $fixed_range,
+    fixed_range            => $fixed_network_range,
     network_manager        => $network_manager,
     network_config         => $network_config,
     multi_host             => $multi_host,
