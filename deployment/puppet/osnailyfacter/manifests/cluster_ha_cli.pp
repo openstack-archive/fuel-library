@@ -24,7 +24,6 @@ $fixed_network_range  = $novanetwork_params['fixed_network_range']
 $vlan_start           = $novanetwork_params['vlan_start']
 $network_manager      = "nova.network.manager.${novanetwork_params['network_manager']}"
 $network_size         = $novanetwork_params['network_size']
-$cinder_nodes          = ['controller']
 
 if $quantum {
 $floating_hash =  $::floating_network_range
@@ -33,11 +32,6 @@ else {
   $floating_hash = parsejson($::floating_network_range)
 }
 
-##
-$verbose = true
-$debug = true
-$ntp_servers = ['pool.ntp.org']
-$nv_physical_volume     = ['/dev/sdz', '/dev/sdy', '/dev/sdx']
 ##CALCULATED PARAMETERS
 
 ##NO NEED TO CHANGE
@@ -96,9 +90,9 @@ $quantum_metadata_proxy_shared_secret = $quantum_params['metadata_proxy_shared_s
 
 $quantum_gre_bind_addr = $::internal_address
 
-$swift_local_net_ip      = $::internal_address
+$swift_local_net_ip      = $::storage_address
 
-$cinder_iscsi_bind_addr = $::internal_address
+$cinder_iscsi_bind_addr = $::storage_address
 
 if $auto_assign_floating_ip == 'true' {
   $bool_auto_assign_floating_ip = true
@@ -126,20 +120,6 @@ $master_swift_proxy_ip = $master_swift_proxy_nodes[0]['internal_address']
 #$master_hostname = $master_swift_proxy_nodes[0]['name']
 
 #HARDCODED PARAMETERS
-
-### Syslog ###
-# Enable error messages reporting to rsyslog. Rsyslog must be installed in this case.
-$use_syslog = true
-# Default log level would have been used, if non verbose and non debug
-$syslog_log_level             = 'ERROR'
-# Syslog facilities for main openstack services, choose any, may overlap if needed
-# local0 is reserved for HA provisioning and orchestration services,
-# local1 is reserved for openstack-dashboard
-$syslog_log_facility_glance   = 'LOCAL2'
-$syslog_log_facility_cinder   = 'LOCAL3'
-$syslog_log_facility_quantum  = 'LOCAL4'
-$syslog_log_facility_nova     = 'LOCAL6'
-$syslog_log_facility_keystone = 'LOCAL7'
 
 $multi_host              = true
 $manage_volumes          = false
@@ -177,7 +157,7 @@ class compact_controller (
     debug                         => $debug,
     queue_provider                => $::queue_provider,
     qpid_password                 => $rabbit_hash[password],
-    qpid_user                     => $rabbit_user,
+    qpid_user                     => $rabbit_hash[user],
     qpid_nodes                    => [$management_vip],
     auto_assign_floating_ip       => $bool_auto_assign_floating_ip,
     mysql_root_password           => $mysql_hash[root_password],
@@ -213,6 +193,7 @@ class compact_controller (
     cinder_db_password            => $cinder_hash[db_password],
     manage_volumes                => false,
     galera_nodes                  => $controller_nodes,
+    custom_mysql_setup_class => $custom_mysql_setup_class,
     mysql_skip_name_resolve       => true,
     use_syslog                    => true,
     syslog_log_facility_glance   => $syslog_log_facility_glance,
@@ -282,7 +263,7 @@ class virtual_ips () {
         swift_proxies           => $controller_internal_addresses,
         primary_proxy           => $primary_proxy,
         controller_node_address => $management_vip,
-        swift_local_net_ip      => $internal_address,
+        swift_local_net_ip      => $swift_local_net_ip,
         master_swift_proxy_ip   => $master_swift_proxy_ip 
       }
       #TODO: PUT this configuration stanza into nova class
@@ -290,7 +271,7 @@ class virtual_ips () {
       nova_config { 'DEFAULT/use_cow_images': value => $use_cow_images }
       nova_config { 'DEFAULT/compute_scheduler_driver': value => $compute_scheduler_driver }
 
-      if $::hostname == $master_hostname {
+      if $primary_controller { 
         class { 'openstack::img::cirros':
           os_username => shellescape($access_hash[user]),
           os_password => shellescape($access_hash[password]),
@@ -346,7 +327,7 @@ class virtual_ips () {
         quantum                => $quantum,
         quantum_host           => $quantum_host,
         quantum_sql_connection => $quantum_sql_connection,
-        quantum_user_password  => $quantum_user_password,
+        quantum_user_password  => $quantum_hash[user_password],
         tenant_network_type    => $tenant_network_type,
         segment_range          => $segment_range,
         syslog_log_level       => $syslog_log_level,
