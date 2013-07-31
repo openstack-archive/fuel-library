@@ -19,7 +19,8 @@ define haproxy_service(
         'option'  => ['forwardfor', 'httpchk', 'httpclose', 'httplog'],
         'rspidel' => '^Set-cookie:\ IP=',
         # 'stick'   => 'on src table horizon-ssl',
-        'balance' => 'roundrobin',
+        'balance' => 'source',
+        'mode'    => 'http',
         'cookie'  => 'SERVERID insert indirect nocache',
         'capture' => 'cookie vgnvisitor= len 32'
       }
