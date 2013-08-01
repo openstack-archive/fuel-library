@@ -1,4 +1,4 @@
-class osnailyfacter::cluster_ha_cli {
+class osnailyfacter::cluster_ha_full_cli {
 
 
 ##PARAMETERS DERIVED FROM YAML FILE
@@ -6,7 +6,7 @@ class osnailyfacter::cluster_ha_cli {
 
 
 $nova_hash            = parsejson($::nova)
-$quantum_hash         = parsejson($::quantum)
+$quantum_hash         = parsejson($::quantum_access)
 $mysql_hash           = parsejson($::mysql)
 $rabbit_hash          = parsejson($::rabbit)
 $glance_hash          = parsejson($::glance)
@@ -14,7 +14,6 @@ $keystone_hash        = parsejson($::keystone)
 $swift_hash           = parsejson($::swift)
 $cinder_hash          = parsejson($::cinder)
 $access_hash          = parsejson($::access)
-$floating_hash        = parsejson($::floating_network_range)
 $quantum_params       = parsejson($::quantum_parameters)
 $novanetwork_params  = parsejson($::novanetwork_parameters)
 $nodes_hash           = parsejson($::nodes)
@@ -25,6 +24,15 @@ $vlan_start           = $novanetwork_params['vlan_start']
 $network_manager      = "nova.network.manager.${novanetwork_params['network_manager']}"
 $network_size         = $novanetwork_params['network_size']
 $cinder_nodes_array   = parsejson($::cinder_nodes)
+
+if $quantum {
+$floating_hash =  $::floating_network_range
+}
+else {
+  $floating_hash = parsejson($::floating_network_range)
+}
+
+
 
 ##CALCULATED PARAMETERS
 
@@ -81,7 +89,6 @@ $swift_proxy_nodes = merge_arrays(filter_nodes($nodes_hash,'role','primary-swift
 $swift_proxies = nodes_to_hash($swift_proxy_nodes,'name','internal_address')
 $swift_storages = filter_nodes($nodes_hash, 'role', 'storage')
 $controller_node_public  = $management_vip
-$swift_proxies = $controller_internal_addresses
 $quantum_metadata_proxy_shared_secret = $quantum_params['metadata_proxy_shared_secret']
 $quantum_gre_bind_addr = $::internal_address
 
@@ -112,13 +119,14 @@ if $node[0]['role'] == 'primary-controller' {
 }
 $master_swift_proxy_nodes = filter_nodes($nodes_hash,'role','primary-swift-proxy')
 $master_swift_proxy_ip = $master_swift_proxy_nodes[0]['internal_address']
-$master_hostname = filter_nodes($nodes_hash,'role','primary-controller')[0]['name']
+#$master_hostname = filter_nodes($nodes_hash,'role','primary-controller')[0]['name']
 
 #HARDCODED PARAMETERS
 $multi_host              = true
 $manage_volumes          = false
 $glance_backend          = 'swift'
 $quantum_netnode_on_cnt  = true
+
 $swift_loopback = 'loopback'
 
 
@@ -141,19 +149,6 @@ class ha_controller (
   }
   #
   ###
-
-  if $nagios {
-    class {'nagios':
-      proj_name       => $proj_name,
-      services        => [
-        'host-alive','nova-novncproxy','keystone', 'nova-scheduler',
-        'nova-consoleauth', 'nova-cert', 'haproxy', 'nova-api', 'glance-api',
-        'glance-registry','horizon', 'rabbitmq', 'mysql',
-      ],
-      whitelist       => ['127.0.0.1', $nagios_master],
-      hostgroup       => 'controller',
-    }
-  }
 
   class { 'openstack::controller_ha':
     controller_public_addresses   => $controller_public_addresses,
@@ -250,16 +245,6 @@ case $role {
       stage => 'first'
   }
 
-  if $nagios {
-    class {'nagios':
-      proj_name       => $proj_name,
-      services        => [
-        'host-alive', 'nova-compute','nova-network','libvirt'
-      ],
-      whitelist       => ['127.0.0.1', $nagios_master],
-      hostgroup       => 'compute',
-    }
-  }
 
   class { 'openstack::compute':
     public_interface       => $::public_int,
@@ -316,25 +301,6 @@ case $role {
       stage => 'setup'
   }
 
-  class {'::node_netconfig':
-    mgmt_ipaddr    => $::internal_address,
-    mgmt_netmask   => $::internal_netmask,
-    public_ipaddr  => $::public_address,
-    public_netmask => $::public_netmask,
-    stage          => 'netconfig',
-  }
-
-  if $nagios {
-    class {'nagios':
-      proj_name       => $proj_name,
-      services        => [
-        'host-alive', 'swift-account', 'swift-container', 'swift-object',
-      ],
-      whitelist       => ['127.0.0.1', $nagios_master],
-      hostgroup       => 'swift-storage',
-    }
-  }
-
   $swift_zone = $node[0]['swift_zone']
 
   class { 'openstack::swift::storage_node':
@@ -370,15 +336,6 @@ case $role {
       stage => 'first'
   }
 
-  if $nagios {
-    class {'nagios':
-      proj_name       => $proj_name,
-      services        => ['host-alive', 'swift-proxy'],
-      whitelist       => ['127.0.0.1', $nagios_master],
-      hostgroup       => 'swift-proxy',
-    }
-  }
-
   if $primary_proxy {
     ring_devices {'all':
       storages => $swift_storages 
@@ -393,7 +350,8 @@ case $role {
     swift_local_net_ip      => $swift_local_net_ip,
     master_swift_proxy_ip   => $master_swift_proxy_ip,
   }
-}
+  }
+
 
     "cinder" : {
       include keystone::python
@@ -415,4 +373,5 @@ case $role {
         use_syslog           => true,
       }
     }
+}
 }

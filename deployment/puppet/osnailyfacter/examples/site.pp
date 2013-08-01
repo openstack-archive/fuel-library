@@ -204,6 +204,29 @@ if $use_syslog {
   }
 }
 
+case $role {
+      /controller/:          { $hostgroup = 'controller' } 
+      /swift-proxy/: { $hostgroup = 'swift-proxy' }
+      /storage/:{ $hostgroup = 'swift-storage'  }
+      /compute/: { $hostgroup = 'compute'  }
+      /cinder/: { $hostgroup = 'cinder'  }
+      default: { $hostgroup = 'generic' } 
+  }
+
+  if $nagios != 'false' {
+    class {'nagios':
+      proj_name       => $proj_name,
+      services        => [
+        'host-alive','nova-novncproxy','keystone', 'nova-scheduler',
+        'nova-consoleauth', 'nova-cert', 'haproxy', 'nova-api', 'glance-api',
+        'glance-registry','horizon', 'rabbitmq', 'mysql',
+      ],
+      whitelist       => ['127.0.0.1', $nagios_master],
+      hostgroup       => $hostgroup ,
+    }
+  }
+
+
 
   # Workaround for fuel bug with firewall
   firewall {'003 remote rabbitmq ':
@@ -224,8 +247,12 @@ node default {
       include osnailyfacter::cluster_simple
       class {'os_common':}
       }
-    "ha": { 
+    /^(ha|ha_compact)$/: {
       include "osnailyfacter::cluster_ha_${deployment_source}"
+      class {'os_common':}
+      }
+     ha_full: {
+      include "osnailyfacter::cluster_ha_full_${deployment_source}"
       class {'os_common':}
       }
     "rpmcache": { include osnailyfacter::rpmcache }

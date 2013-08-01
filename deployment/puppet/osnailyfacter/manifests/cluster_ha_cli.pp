@@ -234,6 +234,7 @@ class virtual_ips () {
     /controller/ : {
       include osnailyfacter::test_controller
 
+ $swift_zone = $node[0]['swift_zone']
 	
   class { '::cluster': stage => 'corosync_setup' } ->
   class { 'virtual_ips':
@@ -250,7 +251,7 @@ class virtual_ips () {
       class { 'openstack::swift::storage_node':
         storage_type          => 'loopback',
         loopback_size         => '5243780',
-        swift_zone            => $uid,
+        swift_zone            => $swift_zone,
         swift_local_net_ip    => $storage_address,
         master_swift_proxy_ip   => $master_swift_proxy_ip, 
         sync_rings            => ! $primary_proxy
