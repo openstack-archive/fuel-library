@@ -128,8 +128,6 @@ $glance_backend          = 'swift'
 $quantum_netnode_on_cnt  = true
 
 $swift_loopback = 'loopback'
-
-
 $mirror_type = 'external'
 
 class ha_controller (
@@ -206,7 +204,6 @@ class ha_controller (
     manage_volumes          => $cinder ? { false => $manage_volumes, default =>$is_cinder_node },
     galera_nodes            => $controller_nodes,
     custom_mysql_setup_class => $custom_mysql_setup_class,
-    nv_physical_volume      => $nv_physical_volume,
     use_syslog              => $use_syslog,
     syslog_log_level        => $syslog_log_level,
     syslog_log_facility_glance   => $syslog_log_facility_glance,
@@ -219,13 +216,37 @@ class ha_controller (
     horizon_use_ssl         => $::horizon_use_ssl,
     use_unicast_corosync    => $::use_unicast_corosync,
   }
+
+      if $primary_controller { 
+        class { 'openstack::img::cirros':
+          os_username => shellescape($access_hash[user]),
+          os_password => shellescape($access_hash[password]),
+          os_tenant_name => shellescape($access_hash[tenant]),
+          os_auth_url => "http://${management_vip}:5000/v2.0/",
+          img_name    => "TestVM",
+          stage          => 'glance-image',
+        }
+        if !$quantum
+        {
+        nova::manage::floating{$floating_hash:}
+        }
+        Class[glance::api]                    -> Class[openstack::img::cirros]
+      }
+ 
+
   class { 'swift::keystone::auth':
-    password         => $swift_user_password,
-    public_address   => $public_virtual_ip,
-    internal_address => $internal_virtual_ip,
-    admin_address    => $internal_virtual_ip,
+    password         => $swift_hash[user_password],
+    public_address   => $public_vip,
+    internal_address => $management_vip,
+    admin_address    => $management_vip,
   }
 }
+class virtual_ips () {
+  cluster::virtual_ips { $vip_keys:
+    vips => $vips,
+  }
+}
+
 
 # Definition of OpenStack controller nodes.
 include stdlib
@@ -282,7 +303,6 @@ case $role {
     cinder                 => $cinder,
     cinder_iscsi_bind_addr => $cinder_iscsi_bind_addr,
     manage_volumes         => $cinder ? { false => $manage_volumes, default =>$is_cinder_node },
-    nv_physical_volume     => $nv_physical_volume,
     db_host                => $management_vip,
     cinder_rate_limits     => $::cinder_rate_limits,
     ssh_private_key        => 'puppet:///ssh_keys/openstack',
@@ -311,7 +331,6 @@ case $role {
     cinder                 => $cinder,
     cinder_iscsi_bind_addr => $cinder_iscsi_bind_addr,
     manage_volumes          => $cinder ? { false => $manage_volumes, default =>$is_cinder_node },
-    nv_physical_volume     => $nv_physical_volume,
     db_host                => $management_vip,
     service_endpoint       => $management_vip,
     cinder_rate_limits     => $cinder_rate_limits,

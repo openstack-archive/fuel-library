@@ -22,6 +22,8 @@ stage {'glance-image':
 }
 
 
+
+
 $nodes_hash = parsejson($nodes)
 
 $node = filter_nodes($nodes_hash,'name',$::hostname)
