@@ -20,6 +20,7 @@ class rsyslog::client (
   $syslog_log_facility_nova     = 'LOCAL6',
   $syslog_log_facility_keystone = 'LOCAL7',
   $log_level      = 'NOTICE',
+  $debug          = false,
   ) inherits rsyslog {
 
 # Fix for udp checksums should be applied if running on virtual node
@@ -81,151 +82,151 @@ if $virtual { include rsyslog::checksum_udp514 }
 
 # openstack syslog compatible mode, would work only for debug case.
 # because of its poor syslog debug messages quality, use local logs convertion
-if $::debug =~ /(?i)(true|yes)/ {
+if $debug =~ /(?i)(true|yes)/ {
 ::rsyslog::imfile { "10-nova-api_debug" :
     file_name     => "/var/log/nova/api.log",
     file_tag      => "nova-api",
-    file_facility => $::syslog_log_facility_nova,
+    file_facility => $syslog_log_facility_nova,
     file_severity => "DEBUG",
     notify  => Class["rsyslog::service"],
 }
 ::rsyslog::imfile { "10-nova-cert_debug" :
     file_name     => "/var/log/nova/cert.log",
     file_tag      => "nova-cert",
-    file_facility => $::syslog_log_facility_nova,
+    file_facility => $syslog_log_facility_nova,
     file_severity => "DEBUG",
     notify  => Class["rsyslog::service"],
 }
 ::rsyslog::imfile { "10-nova-consoleauth_debug" :
     file_name     => "/var/log/nova/consoleauth.log",
     file_tag      => "nova-consoleauth",
-    file_facility => $::syslog_log_facility_nova,
+    file_facility => $syslog_log_facility_nova,
     file_severity => "DEBUG",
     notify  => Class["rsyslog::service"],
 }
 ::rsyslog::imfile { "10-nova-scheduler_debug" :
     file_name     => "/var/log/nova/scheduler.log",
     file_tag      => "nova-scheduler",
-    file_facility => $::syslog_log_facility_nova,
+    file_facility => $syslog_log_facility_nova,
     file_severity => "DEBUG",
     notify  => Class["rsyslog::service"],
 }
 ::rsyslog::imfile { "10-nova-network_debug" :
     file_name     => "/var/log/nova/network.log",
     file_tag      => "nova-network",
-    file_facility => $::syslog_log_facility_nova,
+    file_facility => $syslog_log_facility_nova,
     file_severity => "DEBUG",
     notify  => Class["rsyslog::service"],
 }
 ::rsyslog::imfile { "10-nova-compute_debug" :
     file_name     => "/var/log/nova/compute.log",
     file_tag      => "nova-compute",
-    file_facility => $::syslog_log_facility_nova,
+    file_facility => $syslog_log_facility_nova,
     file_severity => "DEBUG",
     notify  => Class["rsyslog::service"],
 }
 ::rsyslog::imfile { "10-nova-conductor_debug" :
     file_name     => "/var/log/nova/conductor.log",
     file_tag      => "nova-conductor",
-    file_facility => $::syslog_log_facility_nova,
+    file_facility => $syslog_log_facility_nova,
     file_severity => "DEBUG",
     notify  => Class["rsyslog::service"],
 }
 ::rsyslog::imfile { "10-nova-objectstore_debug" :
     file_name     => "/var/log/nova/objectstore.log",
     file_tag      => "nova-objectstore",
-    file_facility => $::syslog_log_facility_nova,
+    file_facility => $syslog_log_facility_nova,
     file_severity => "DEBUG",
     notify  => Class["rsyslog::service"],
 }
 ::rsyslog::imfile { "20-keystone_debug" :
     file_name     => "/var/log/keystone/keystone.log",
     file_tag      => "keystone",
-    file_facility => $::syslog_log_facility_keystone,
+    file_facility => $syslog_log_facility_keystone,
     file_severity => "DEBUG",
     notify  => Class["rsyslog::service"],
 }
 ::rsyslog::imfile { "30-cinder-api_debug" :
     file_name     => "/var/log/cinder/api.log",
     file_tag      => "cinder-api",
-    file_facility => $::syslog_log_facility_cinder,
+    file_facility => $syslog_log_facility_cinder,
     file_severity => "DEBUG",
     notify  => Class["rsyslog::service"],
 }
 ::rsyslog::imfile { "30-cinder-volume_debug" :
     file_name     => "/var/log/cinder/volume.log",
     file_tag      => "cinder-volume",
-    file_facility => $::syslog_log_facility_cinder,
+    file_facility => $syslog_log_facility_cinder,
     file_severity => "DEBUG",
     notify  => Class["rsyslog::service"],
 }
 ::rsyslog::imfile { "30-cinder-scheduler_debug" :
     file_name     => "/var/log/cinder/scheduler.log",
     file_tag      => "cinder-scheduler",
-    file_facility => $::syslog_log_facility_cinder,
+    file_facility => $syslog_log_facility_cinder,
     file_severity => "DEBUG",
     notify  => Class["rsyslog::service"],
 }
 ::rsyslog::imfile { "40-glance-api_debug" :
     file_name     => "/var/log/glance/api.log",
     file_tag      => "glance-api",
-    file_facility => $::syslog_log_facility_glance,
+    file_facility => $syslog_log_facility_glance,
     file_severity => "DEBUG",
     notify  => Class["rsyslog::service"],
 }
 ::rsyslog::imfile { "40-glance-registry_debug" :
     file_name     => "/var/log/glance/registry.log",
     file_tag      => "glance-registry",
-    file_facility => $::syslog_log_facility_glance,
+    file_facility => $syslog_log_facility_glance,
     file_severity => "DEBUG",
     notify  => Class["rsyslog::service"],
 }
 ::rsyslog::imfile { "50-quantum-server_debug" :
     file_name     => "/var/log/quantum/server.log",
     file_tag      => "quantum-server",
-    file_facility => $::syslog_log_facility_quantum,
+    file_facility => $syslog_log_facility_quantum,
     file_severity => "DEBUG",
     notify  => Class["rsyslog::service"],
 }
 ::rsyslog::imfile { "50-quantum-ovs-cleanup_debug" :
     file_name     => "/var/log/quantum/ovs-cleanup.log",
     file_tag      => "quantum-ovs-cleanup",
-    file_facility => $::syslog_log_facility_quantum,
+    file_facility => $syslog_log_facility_quantum,
     file_severity => "DEBUG",
     notify  => Class["rsyslog::service"],
 }
 ::rsyslog::imfile { "50-quantum-rescheduling_debug" :
    file_name     => "/var/log/quantum/rescheduling.log",
    file_tag      => "quantum-rescheduling",
-   file_facility => $::syslog_log_facility_quantum,
+   file_facility => $syslog_log_facility_quantum,
    file_severity => "DEBUG",
    notify  => Class["rsyslog::service"],
 }
 ::rsyslog::imfile { "50-quantum-ovs-agent_debug" :
     file_name     => "/var/log/quantum/openvswitch-agent.log",
     file_tag      => "quantum-agent-ovs",
-    file_facility => $::syslog_log_facility_quantum,
+    file_facility => $syslog_log_facility_quantum,
     file_severity => "DEBUG",
     notify  => Class["rsyslog::service"],
 }
 ::rsyslog::imfile { "50-quantum-l3-agent_debug" :
     file_name     => "/var/log/quantum/l3-agent.log",
     file_tag      => "quantum-agent-l3",
-    file_facility => $::syslog_log_facility_quantum,
+    file_facility => $syslog_log_facility_quantum,
     file_severity => "DEBUG",
     notify  => Class["rsyslog::service"],
 }
 ::rsyslog::imfile { "50-quantum-dhcp-agent_debug" :
     file_name     => "/var/log/quantum/dhcp-agent.log",
     file_tag      => "quantum-agent-dhcp",
-    file_facility => $::syslog_log_facility_quantum,
+    file_facility => $syslog_log_facility_quantum,
     file_severity => "DEBUG",
     notify  => Class["rsyslog::service"],
 }
 ::rsyslog::imfile { "50-quantum-metadata-agent_debug" :
     file_name     => "/var/log/quantum/metadata-agent.log",
     file_tag      => "quantum-agent-metadata",
-    file_facility => $::syslog_log_facility_quantum,
+    file_facility => $syslog_log_facility_quantum,
     file_severity => "DEBUG",
     notify  => Class["rsyslog::service"],
 }
@@ -234,28 +235,28 @@ if $::debug =~ /(?i)(true|yes)/ {
 ::rsyslog::imfile { "50-ha-quantum-ovs-agent_debug" :
     file_name     => "/var/log/quantum/quantum-openvswitch-agent.log",
     file_tag      => "quantum-agent-ovs",
-    file_facility => $::syslog_log_facility_quantum,
+    file_facility => $syslog_log_facility_quantum,
     file_severity => "DEBUG",
     notify  => Class["rsyslog::service"],
 }
 ::rsyslog::imfile { "50-ha-quantum-l3-agent_debug" :
     file_name     => "/var/log/quantum/quantum-l3-agent.log",
     file_tag      => "quantum-agent-l3",
-    file_facility => $::syslog_log_facility_quantum,
+    file_facility => $syslog_log_facility_quantum,
     file_severity => "DEBUG",
     notify  => Class["rsyslog::service"],
 }
 ::rsyslog::imfile { "50-ha-quantum-dhcp-agent_debug" :
     file_name     => "/var/log/quantum/quantum-dhcp-agent.log",
     file_tag      => "quantum-agent-dhcp",
-    file_facility => $::syslog_log_facility_quantum,
+    file_facility => $syslog_log_facility_quantum,
     file_severity => "DEBUG",
     notify  => Class["rsyslog::service"],
 }
 ::rsyslog::imfile { "50-ha-quantum-metadata-agent_debug" :
     file_name     => "/var/log/quantum/quantum-metadata-agent.log",
     file_tag      => "quantum-agent-metadata",
-    file_facility => $::syslog_log_facility_quantum,
+    file_facility => $syslog_log_facility_quantum,
     file_severity => "DEBUG",
     notify  => Class["rsyslog::service"],
 }
