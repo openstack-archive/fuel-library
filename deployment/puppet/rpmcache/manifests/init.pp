@@ -1,6 +1,6 @@
 class rpmcache::rpmcache ( $releasever, $pkgdir, $numtries,
 $rh_username, $rh_password, $rh_base_channels, $rh_openstack_channel,
-$use_satellite = false, $sat_hostname = false, $activation_key = false,
+$use_satellite = false, $sat_hostname = "", $activation_key = "",
 $sat_base_channels, $sat_openstack_channel, $numtries = 10)  {
 
   Exec  {path => '/usr/bin:/bin:/usr/sbin:/sbin'}
@@ -9,6 +9,12 @@ $sat_base_channels, $sat_openstack_channel, $numtries = 10)  {
     "false"             => "cert",
     default             => "cert",
   }
+
+  $redhat_management_key = $activation_key ? {
+    /[[:alnum:]]/       => "redhat_management_key=$activation_key",
+    default             => undef,
+  }
+
   package { "yum-utils":
     ensure => "latest"
   } ->
@@ -100,7 +106,7 @@ $sat_base_channels, $sat_openstack_channel, $numtries = 10)  {
     kickstart => "/var/lib/cobbler/kickstarts/centos-x86_64.ks",
     kopts => "",
     distro => "rhel-x86_64",
-    ksmeta => "redhat_register_user=${rh_username} redhat_register_password=${rh_password} redhat_management_type=$redhat_management_type redhat_management_server=$sat_hostname redhat_management_key=$activation_key",
+    ksmeta => "redhat_register_user=${rh_username} redhat_register_password=${rh_password} redhat_management_type=$redhat_management_type redhat_management_server=$sat_hostname $redhat_management_key",
     menu => true,
     require => Cobbler_distro["rhel-x86_64"],
   } ->

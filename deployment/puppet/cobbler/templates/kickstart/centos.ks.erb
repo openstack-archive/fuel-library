@@ -163,12 +163,6 @@ EOA
 # CONFIGURES %post LOGGING
 $SNIPPET('log_ks_post')
 
-# COBBLER EMBEDDED SNIPPET: 'redhat_register'
-# REGISTER AT REDHAT WITH ACTIVATION KEY
-$SNIPPET('redhat_register')
-# REGISTER TO RED HAT SUBSCRIPTION MANAGER WITH lOGIN/PASSWORD
-$SNIPPET('red_hat_register_rhsm')
-
 # COBBLER EMBEDDED SNIPPET: 'post_install_kernel_options'
 # CONFIGURES KERNEL PARAMETERS ON INSTALLED SYSTEM
 $SNIPPET('post_install_kernel_options')
@@ -214,6 +208,13 @@ $SNIPPET('nailgun_repo')
 # REMOVES "GSSAPICleanupCredentials yes" AND "GSSAPIAuthentication yes" LINES
 # FROM /etc/ssh/sshd_config
 $SNIPPET('ssh_disable_gssapi')
+
+# COBBLER EMBEDDED SNIPPET: 'redhat_register'
+# REGISTER AT REDHAT WITH ACTIVATION KEY
+$SNIPPET('redhat_register')
+# REGISTER TO RED HAT SUBSCRIPTION MANAGER WITH LOGIN/PASSWORD
+$SNIPPET('red_hat_register_rhsm')
+
 
 # Let's not wait forewer when ssh'ing:
 sed -i --follow-symlinks -e '/UseDNS/d' /etc/ssh/sshd_config
