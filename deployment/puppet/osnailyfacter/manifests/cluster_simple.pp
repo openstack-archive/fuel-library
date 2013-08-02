@@ -35,8 +35,10 @@ else {
   $floating_hash = parsejson($::floating_network_range)
 }
 
+$controller = filter_nodes($nodes_hash,'role','controller')[0]
 
-
+$controller_node_address = $controller['internal_address']
+$controller_node_public = $controller['public_address']
 
 
 if ($cinder) {
