@@ -312,6 +312,7 @@ case $role {
     syslog_log_facility_quantum => $syslog_log_facility_quantum,
     syslog_log_facility_cinder => $syslog_log_facility_cinder,
     nova_rate_limits       => $::nova_rate_limits,
+    state_path             => $nova_hash[state_path],
   }
 }
 
@@ -389,6 +390,9 @@ case $role {
         auth_host            => $management_vip,
         iscsi_bind_host      => $storage_address,
         cinder_user_password => $cinder_hash[user_password],
+        debug                => $debug ? { 'true' => 'True', default=>'False' },
+        verbose              => $verbose ? { 'false' => 'False', default=>'True' },
+        syslog_log_facility  => $syslog_log_facility_cinder,
         use_syslog           => true,
       }
     }

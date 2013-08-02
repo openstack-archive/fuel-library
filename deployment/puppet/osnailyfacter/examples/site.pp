@@ -206,27 +206,27 @@ if $use_syslog {
   }
 }
 
-case $role {
-      /controller/:          { $hostgroup = 'controller' } 
-      /swift-proxy/: { $hostgroup = 'swift-proxy' }
-      /storage/:{ $hostgroup = 'swift-storage'  }
-      /compute/: { $hostgroup = 'compute'  }
-      /cinder/: { $hostgroup = 'cinder'  }
-      default: { $hostgroup = 'generic' } 
-  }
+#case $role {
+  #    /controller/:          { $hostgroup = 'controller' } 
+  #    /swift-proxy/: { $hostgroup = 'swift-proxy' }
+  #    /storage/:{ $hostgroup = 'swift-storage'  }
+  #    /compute/: { $hostgroup = 'compute'  }
+  #    /cinder/: { $hostgroup = 'cinder'  }
+  #    default: { $hostgroup = 'generic' } 
+  #}
 
-  if $nagios != 'false' {
-    class {'nagios':
-      proj_name       => $proj_name,
-      services        => [
-        'host-alive','nova-novncproxy','keystone', 'nova-scheduler',
-        'nova-consoleauth', 'nova-cert', 'haproxy', 'nova-api', 'glance-api',
-        'glance-registry','horizon', 'rabbitmq', 'mysql',
-      ],
-      whitelist       => ['127.0.0.1', $nagios_master],
-      hostgroup       => $hostgroup ,
-    }
-  }
+  #  if $nagios != 'false' {
+  #  class {'nagios':
+  #    proj_name       => $proj_name,
+  #    services        => [
+  #      'host-alive','nova-novncproxy','keystone', 'nova-scheduler',
+  #      'nova-consoleauth', 'nova-cert', 'haproxy', 'nova-api', 'glance-api',
+  #      'glance-registry','horizon', 'rabbitmq', 'mysql',
+  #    ],
+  #    whitelist       => ['127.0.0.1', $nagios_master],
+  #    hostgroup       => $hostgroup ,
+  #  }
+  # }
 
 
 
@@ -242,7 +242,7 @@ case $role {
 node default {
   case $deployment_mode {
     "singlenode": { 
-      include "osnailyfacter::cluster_simple_${deployment_source}" 
+      include "osnailyfacter::cluster_simple" 
       class {'os_common':}
       }
     "multinode": { 
@@ -250,11 +250,11 @@ node default {
       class {'os_common':}
       }
     /^(ha|ha_compact)$/: {
-      include "osnailyfacter::cluster_ha_${deployment_source}"
+      include "osnailyfacter::cluster_ha"
       class {'os_common':}
       }
      ha_full: {
-      include "osnailyfacter::cluster_ha_full_${deployment_source}"
+      include "osnailyfacter::cluster_ha_full"
       class {'os_common':}
       }
     "rpmcache": { include osnailyfacter::rpmcache }
