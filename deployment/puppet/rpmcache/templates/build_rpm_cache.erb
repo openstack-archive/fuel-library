@@ -130,6 +130,6 @@ rm -f <%= pkgdir %>/Packages/Django-1.3*
 rpm -i <%= pkgdir %>/Packages/rhel-boot-image-6.4-20130130.0.el6ost.noarch.rpm
 mkdir -p /mnt/rhel_iso
 mount -o loop /usr/share/rhel-boot-image/rhel-boot-image-6.4-20130130.0.el6ost.iso /mnt/rhel_iso
-cp -R /mnt/rhel_iso/* <%= pkgdir %>
+cp -R /mnt/rhel_iso/. <%= pkgdir %>
 umount /mnt/rhel_iso
 rpm -e rhel-boot-image-6.4-20130130.0.el6ost.noarch
