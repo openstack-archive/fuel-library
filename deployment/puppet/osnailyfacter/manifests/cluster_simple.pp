@@ -18,7 +18,15 @@ $swift_hash    = parsejson($swift)
 $cinder_hash   = parsejson($cinder)
 $access_hash   = parsejson($access)
 $extra_rsyslog_hash = parsejson($syslog)
-$floating_hash = parsejson($floating_network_range)
+$floating_ips_range = parsejson($floating_network_range)
+
+$nova_rate_limits = {
+  'GET'          => 1000,
+  'POST'         => 1000,
+  'POST_SERVERS' => 1000,
+  'PUT'          => 1000,
+  'DELETE'       => 1000
+}
 
 if $auto_assign_floating_ip == 'true' {
   $bool_auto_assign_floating_ip = true
@@ -72,7 +80,7 @@ Exec { logoutput => true }
         fixed_range             => $fixed_network_range,
         multi_host              => $multi_host,
         network_manager         => $network_manager,
-        num_networks             => $num_networks,
+        num_networks            => $num_networks,
         network_size            => $network_size,
         network_config          => $network_config,
         verbose                 => $verbose,
@@ -88,6 +96,7 @@ Exec { logoutput => true }
         glance_user_password    => $glance_hash[user_password],
         nova_db_password        => $nova_hash[db_password],
         nova_user_password      => $nova_hash[user_password],
+        nova_rate_limits        => $nova_rate_limits,
         queue_provider          => $::queue_provider,
         rabbit_password         => $rabbit_hash[password],
         rabbit_user             => $rabbit_user,
@@ -141,7 +150,17 @@ Exec { logoutput => true }
         img_name                  => "TestVM",
         stage                     => 'glance-image',
       }
-      nova::manage::floating{$floating_hash:}
+
+      nova_floating_range{ $floating_ips_range:
+        ensure          => 'present',
+        pool            => 'nova',
+        username        => $access_hash[user],
+        api_key         => $access_hash[password],
+        auth_method     => 'password',
+        auth_url        => "http://${controller_node_address}:5000/v2.0/",
+        authtenant_name => $access_hash[tenant],
+      }
+
       Class[glance::api]        -> Class[openstack::img::cirros]
     }
 
