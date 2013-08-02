@@ -1,4 +1,4 @@
-class osnailyfacter::cluster_ha_cli {
+class osnailyfacter::cluster_ha {
 
 
 ##PARAMETERS DERIVED FROM YAML FILE
