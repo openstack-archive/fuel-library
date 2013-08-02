@@ -113,15 +113,13 @@ class QuantumCleaner(object):
         )
 
     def _quantum_API_call(self, method, *args):
-    def _get_ports(self):
-        self.log.debug("__get_ports: start.")
         ret_count = self.options.get('retries')
         while True:
             if ret_count <= 0 :
                 self.log.error("Q-server error: no more retries for connect to server.")
                 return []
             try:
-                rv = self.client.list_ports()['ports']
+                rv = method (*args)
                 break
             except Exception as e:
                 errmsg = e.message.strip()
@@ -455,6 +453,7 @@ class QuantumCleaner(object):
             if self._test_healthy(agentlist, hostname):
                 return 0
         return rc
+
 
 
 
