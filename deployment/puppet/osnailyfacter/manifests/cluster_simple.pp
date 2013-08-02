@@ -35,10 +35,10 @@ else {
   $floating_hash = parsejson($::floating_network_range)
 }
 
-$controller = filter_nodes($nodes_hash,'role','controller')[0]
+$controller = filter_nodes($nodes_hash,'role','controller')
 
-$controller_node_address = $controller['internal_address']
-$controller_node_public = $controller['public_address']
+$controller_node_address = $controller[0]['internal_address']
+$controller_node_public = $controller[0]['public_address']
 
 
 if ($cinder) {
@@ -84,6 +84,7 @@ $quantum_gre_bind_addr = $::internal_address
     "controller" : {
       include osnailyfacter::test_controller
 
+      class {'osnailyfacter::tinyproxy': }
       class { 'openstack::controller':
         admin_address           => $controller_node_address,
         public_address          => $controller_node_public,
@@ -145,7 +146,7 @@ $quantum_gre_bind_addr = $::internal_address
       nova_config { 'DEFAULT/start_guests_on_host_boot': value => $start_guests_on_host_boot }
       nova_config { 'DEFAULT/use_cow_images': value => $use_cow_images }
       nova_config { 'DEFAULT/compute_scheduler_driver': value => $compute_scheduler_driver }
- if $::quantum and $quantum_network_node {
+ if $::quantum {
     class { '::openstack::quantum_router':
       db_host               => $controller_node_address,
       service_endpoint      => $controller_node_address,
@@ -192,7 +193,6 @@ $quantum_gre_bind_addr = $::internal_address
         controller_node      => $controller_node_address,
       }
 
-      class {'osnailyfacter::tinyproxy': }
 
       # glance_image is currently broken in fuel
 
@@ -247,7 +247,7 @@ $quantum_gre_bind_addr = $::internal_address
         quantum                => $quantum,
         quantum_host           => $quantum_host,
         quantum_sql_connection => $quantum_sql_connection,
-        quantum_user_password  => $quantum_user_password,
+        quantum_user_password  => $quantum_hash[user_password],
         tenant_network_type    => $tenant_network_type,
         service_endpoint       => $controller_node_address,
         cinder                 => true,

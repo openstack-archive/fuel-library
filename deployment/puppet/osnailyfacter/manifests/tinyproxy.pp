@@ -9,9 +9,9 @@ class osnailyfacter::tinyproxy {
   }
   package{'tinyproxy':} ->
   exec{'tinyproxy-init':
-    command => "/bin/echo Allow $master_ip >> /etc/tinyproxy/tinyproxy.conf;
-      /sbin/chkconfig tinyproxy on;
-      /etc/init.d/tinyproxy restart;",
+    command => "/bin/echo Allow $master_ip >> /etc/tinyproxy/tinyproxy.conf; 
+      /sbin/chkconfig tinyproxy on; 
+      /etc/init.d/tinyproxy restart; ",
   }
 }
 
