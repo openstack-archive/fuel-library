@@ -8,11 +8,18 @@ if $quantum == 'true'
 {
   $quantum_hash   = parsejson($::quantum_access)
   $quantum_params = parsejson($::quantum_parameters)
+  $tenant_network_type  = $quantum_params['tenant_network_type']
+  $segment_range        = $quantum_params['segment_range']
+
 }
 else
 {
   $quantum_hash = {}
+  $quantum_params = {}
   $novanetwork_params  = parsejson($::novanetwork_parameters)
+  $vlan_start           = $novanetwork_params['vlan_start']
+  $network_manager      = "nova.network.manager.${novanetwork_params['network_manager']}"
+  $network_size         = $novanetwork_params['network_size']
 }
 
 if $cinder_nodes {
@@ -21,6 +28,9 @@ if $cinder_nodes {
 else {
   $cinder_nodes_array = []
 }
+
+
+
 
 
 
@@ -174,7 +184,7 @@ class ha_controller (
     internal_virtual_ip     => $management_vip,
     public_virtual_ip       => $public_vip,
     primary_controller      => $primary_controller,
-    floating_range          => $floating_hash,
+    floating_range          => $quantum ? { 'true' =>$floating_hash, default=>false},
     fixed_range             => $fixed_network_range,
     multi_host              => $multi_host,
     network_manager         => $network_manager,
@@ -244,7 +254,7 @@ class ha_controller (
         }
         if !$quantum
         {
-        nova::manage::floating{$floating_hash:}
+          nova::manage::floating{$floating_hash:}
         }
         Class[glance::api]                    -> Class[openstack::img::cirros]
       }
@@ -296,8 +306,8 @@ case $role {
     sql_connection         => "mysql://nova:${nova_hash[db_password]}@${management_vip}/nova",
     queue_provider         => $::queue_provider,
     rabbit_nodes           => $controller_nodes,
-    rabbit_password        => $rabbit_password,
-    rabbit_user            => $rabbit_user,
+    rabbit_password        => $rabbit_hash[password],
+    rabbit_user            => $rabbit_hash[user],
     rabbit_ha_virtual_ip   => $management_vip,
     qpid_password          => $rabbit_hash[password],
     qpid_user              => $rabbit_hash[user],

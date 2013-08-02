@@ -5,11 +5,18 @@ if $quantum == 'true'
 {
   $quantum_hash   = parsejson($::quantum_access)
   $quantum_params = parsejson($::quantum_parameters)
+  $tenant_network_type  = $quantum_params['tenant_network_type']
+  $segment_range        = $quantum_params['segment_range']
+
 }
 else
 {
   $quantum_hash = {}
+  $quantum_params = {}
   $novanetwork_params  = parsejson($::novanetwork_parameters)
+  $vlan_start           = $novanetwork_params['vlan_start']
+  $network_manager      = "nova.network.manager.${novanetwork_params['network_manager']}"
+  $network_size         = $novanetwork_params['network_size']
 }
 
 if $cinder_nodes {
@@ -30,12 +37,7 @@ $swift_hash           = parsejson($::swift)
 $cinder_hash          = parsejson($::cinder)
 $access_hash          = parsejson($::access)
 $nodes_hash           = parsejson($::nodes)
-$tenant_network_type  = $quantum_params['tenant_network_type']
-$segment_range        = $quantum_params['segment_range']
 $rabbit_user          = $rabbit_hash['user']
-$vlan_start           = $novanetwork_params['vlan_start']
-$network_manager      = "nova.network.manager.${novanetwork_params['network_manager']}"
-$network_size         = $novanetwork_params['network_size']
 
 if $auto_assign_floating_ip == 'true' {
   $bool_auto_assign_floating_ip = true
@@ -106,7 +108,7 @@ $quantum_gre_bind_addr = $::internal_address
         public_interface        => $public_int,
         private_interface       => $fixed_interface,
         internal_address        => $controller_node_address,
-        floating_range          => $floating_hash,
+        floating_range          => $quantum ? { 'true' =>$floating_hash, default=>false},
         fixed_range             => $fixed_network_range,
         multi_host              => $multi_host,
         network_manager         => $network_manager,
@@ -228,7 +230,9 @@ $quantum_gre_bind_addr = $::internal_address
         img_name                  => "TestVM",
         stage                     => 'glance-image',
       }
-      nova::manage::floating{$floating_hash:}
+      if !$quantum {
+         nova::manage::floating{ $floating_hash: }
+      }
       Class[glance::api]        -> Class[openstack::img::cirros]
     }
 
