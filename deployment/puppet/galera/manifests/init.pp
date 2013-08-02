@@ -51,7 +51,7 @@ class galera (
   include galera::params
 
   $cib_name = "mysql"
-  $res_name = "p_$cib_name"
+  $res_name = "p_${cib_name}"
 
   $mysql_user = $::galera::params::mysql_user
   $mysql_password = $::galera::params::mysql_password
@@ -157,6 +157,7 @@ class galera (
      },
    }
 
+  Package['MySQL-server'] -> Cs_resource['p_mysql']
   service { "mysql":
     name       => "p_mysql",
     enable     => true,
