@@ -46,7 +46,6 @@ $novanetwork_params  = parsejson($::novanetwork_parameters)
 $nodes_hash           = parsejson($::nodes)
 $tenant_network_type  = $quantum_params['tenant_network_type']
 $segment_range        = $quantum_params['segment_range']
-$rabbit_user          = $rabbit_hash['user']
 
 if $quantum {
 $floating_hash =  $::floating_network_range
@@ -54,6 +53,25 @@ $floating_hash =  $::floating_network_range
 else {
   $floating_hash = parsejson($::floating_network_range)
 }
+
+
+if !$rabbit_hash[user]
+{
+  $rabbit_hash[user] = 'nova'
+}
+$rabbit_user          = $rabbit_hash['user']
+
+
+if !$verbose 
+{
+ $verbose = 'true'
+}
+
+if !$debug
+{
+ $debug = 'true'
+}
+
 
 
 

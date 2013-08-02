@@ -37,7 +37,15 @@ $swift_hash           = parsejson($::swift)
 $cinder_hash          = parsejson($::cinder)
 $access_hash          = parsejson($::access)
 $nodes_hash           = parsejson($::nodes)
+
+
+if !$rabbit_hash[user]
+{
+  $rabbit_hash[user] = 'nova'
+}
 $rabbit_user          = $rabbit_hash['user']
+
+
 
 if $auto_assign_floating_ip == 'true' {
   $bool_auto_assign_floating_ip = true
@@ -93,7 +101,15 @@ $quantum_sql_connection  = "mysql://${quantum_db_user}:${quantum_db_password}@${
 $quantum_metadata_proxy_shared_secret = $quantum_params['metadata_proxy_shared_secret']
 $quantum_gre_bind_addr = $::internal_address
 
+if !$verbose 
+{
+ $verbose = 'true'
+}
 
+if !$debug
+{
+ $debug = 'true'
+}
 
 
 

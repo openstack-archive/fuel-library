@@ -30,7 +30,7 @@ else {
 }
 
 
-
+$nova_hash	      = parsejson($::nova)
 $mysql_hash           = parsejson($::mysql)
 $rabbit_hash          = parsejson($::rabbit)
 $glance_hash          = parsejson($::glance)
@@ -41,6 +41,12 @@ $access_hash          = parsejson($::access)
 $nodes_hash           = parsejson($::nodes)
 $tenant_network_type  = $quantum_params['tenant_network_type']
 $segment_range        = $quantum_params['segment_range']
+
+if !$rabbit_hash[user]
+{
+  $rabbit_hash[user] = 'nova'
+}
+
 $rabbit_user          = $rabbit_hash['user']
 
 if $quantum {
@@ -122,6 +128,20 @@ if $auto_assign_floating_ip == 'true' {
 $network_config = {
   'vlan_start'     => $vlan_start,
 }
+
+
+
+if !$verbose 
+{
+ $verbose = 'true'
+}
+
+if !$debug
+{
+ $debug = 'true'
+}
+
+
 
 
 if $node[0]['role'] == 'primary-controller' {
