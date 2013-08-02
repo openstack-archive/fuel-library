@@ -197,6 +197,7 @@ class compact_controller (
     custom_mysql_setup_class => $custom_mysql_setup_class,
     mysql_skip_name_resolve       => true,
     use_syslog                    => true,
+    syslog_log_level              => $syslog_log_level,
     syslog_log_facility_glance   => $syslog_log_facility_glance,
     syslog_log_facility_cinder => $syslog_log_facility_cinder,
     syslog_log_facility_quantum => $syslog_log_facility_quantum,
@@ -235,7 +236,7 @@ class virtual_ips () {
       include osnailyfacter::test_controller
 
  $swift_zone = $node[0]['swift_zone']
-	
+
   class { '::cluster': stage => 'corosync_setup' } ->
   class { 'virtual_ips':
     stage => 'corosync_setup'
@@ -253,7 +254,7 @@ class virtual_ips () {
         loopback_size         => '5243780',
         swift_zone            => $swift_zone,
         swift_local_net_ip    => $storage_address,
-        master_swift_proxy_ip   => $master_swift_proxy_ip, 
+        master_swift_proxy_ip   => $master_swift_proxy_ip,
         sync_rings            => ! $primary_proxy
       }
       if $primary_proxy {
@@ -266,14 +267,14 @@ class virtual_ips () {
         primary_proxy           => $primary_proxy,
         controller_node_address => $management_vip,
         swift_local_net_ip      => $swift_local_net_ip,
-        master_swift_proxy_ip   => $master_swift_proxy_ip 
+        master_swift_proxy_ip   => $master_swift_proxy_ip
       }
       #TODO: PUT this configuration stanza into nova class
       nova_config { 'DEFAULT/start_guests_on_host_boot': value => $start_guests_on_host_boot }
       nova_config { 'DEFAULT/use_cow_images': value => $use_cow_images }
       nova_config { 'DEFAULT/compute_scheduler_driver': value => $compute_scheduler_driver }
 
-      if $primary_controller { 
+      if $primary_controller {
         class { 'openstack::img::cirros':
           os_username => shellescape($access_hash[user]),
           os_password => shellescape($access_hash[password]),
@@ -332,6 +333,7 @@ class virtual_ips () {
         quantum_user_password  => $quantum_hash[user_password],
         tenant_network_type    => $tenant_network_type,
         segment_range          => $segment_range,
+        use_syslog             => true,
         syslog_log_level       => $syslog_log_level,
         syslog_log_facility_quantum => $syslog_log_facility_quantum,
         syslog_log_facility_cinder => $syslog_log_facility_cinder,
@@ -368,6 +370,7 @@ class virtual_ips () {
         iscsi_bind_host      => $storage_address,
         cinder_user_password => $cinder_hash[user_password],
         syslog_log_facility  => $syslog_log_facility_cinder,
+        syslog_log_level     => $syslog_log_level,
         debug                => $debug ? { 'true' => 'True', default=>'False' },
         verbose              => $verbose ? { 'false' => 'False', default=>'True' },
         use_syslog           => true,

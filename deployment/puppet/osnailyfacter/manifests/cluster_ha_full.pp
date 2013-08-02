@@ -217,7 +217,7 @@ class ha_controller (
     use_unicast_corosync    => $::use_unicast_corosync,
   }
 
-      if $primary_controller { 
+      if $primary_controller {
         class { 'openstack::img::cirros':
           os_username => shellescape($access_hash[user]),
           os_password => shellescape($access_hash[password]),
@@ -232,7 +232,7 @@ class ha_controller (
         }
         Class[glance::api]                    -> Class[openstack::img::cirros]
       }
- 
+
 
   class { 'swift::keystone::auth':
     password         => $swift_hash[user_password],
@@ -358,7 +358,7 @@ case $role {
 
   if $primary_proxy {
     ring_devices {'all':
-      storages => $swift_storages 
+      storages => $swift_storages
     }
   }
 
@@ -393,6 +393,7 @@ case $role {
         debug                => $debug ? { 'true' => 'True', default=>'False' },
         verbose              => $verbose ? { 'false' => 'False', default=>'True' },
         syslog_log_facility  => $syslog_log_facility_cinder,
+        syslog_log_level     => $syslog_log_level,
         use_syslog           => true,
       }
     }
