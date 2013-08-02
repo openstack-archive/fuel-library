@@ -1,4 +1,4 @@
-class osnailyfacter::cluster_ha {
+class osnailyfacter::cluster_ha_old {
 
 $controller_internal_addresses = parsejson($ctrl_management_addresses)
 $controller_public_addresses = parsejson($ctrl_public_addresses)

@@ -1,9 +1,27 @@
 class osnailyfacter::cluster_simple {
 
 
+if $quantum == 'true'
+{
+  $quantum_hash   = parsejson($::quantum_access)
+  $quantum_params = parsejson($::quantum_parameters)
+}
+else
+{
+  $quantum_hash = {}
+  $novanetwork_params  = parsejson($::novanetwork_parameters)
+}
+
+if $cinder_nodes {
+   $cinder_nodes_array   = parsejson($::cinder_nodes)
+}
+else {
+  $cinder_nodes_array = []
+}
+
+
 
 $nova_hash            = parsejson($::nova)
-$quantum_hash         = parsejson($::quantum_access)
 $mysql_hash           = parsejson($::mysql)
 $rabbit_hash          = parsejson($::rabbit)
 $glance_hash          = parsejson($::glance)
@@ -11,8 +29,6 @@ $keystone_hash        = parsejson($::keystone)
 $swift_hash           = parsejson($::swift)
 $cinder_hash          = parsejson($::cinder)
 $access_hash          = parsejson($::access)
-$quantum_params       = parsejson($::quantum_parameters)
-$novanetwork_params  = parsejson($::novanetwork_parameters)
 $nodes_hash           = parsejson($::nodes)
 $tenant_network_type  = $quantum_params['tenant_network_type']
 $segment_range        = $quantum_params['segment_range']
@@ -20,7 +36,6 @@ $rabbit_user          = $rabbit_hash['user']
 $vlan_start           = $novanetwork_params['vlan_start']
 $network_manager      = "nova.network.manager.${novanetwork_params['network_manager']}"
 $network_size         = $novanetwork_params['network_size']
-$cinder_nodes_array   = parsejson($::cinder_nodes)
 
 if $auto_assign_floating_ip == 'true' {
   $bool_auto_assign_floating_ip = true
