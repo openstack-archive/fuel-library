@@ -29,8 +29,13 @@ node default {
   $pip_repo = "/var/www/nailgun/eggs"
   $gem_source = "http://${ipaddress}:8080/gems/"
 
-  class {"puppetdb::database::postgresql":
-  }->
+  class { 'postgresql::server':
+    config_hash => {
+      'ip_mask_allow_all_users' => '0.0.0.0/0',
+      'listen_addresses'        => $puppetdb::params::database_host,
+    },
+  }
+
   class { "nailgun":
     package => "Nailgun",
     version => "0.1.0",
@@ -68,9 +73,9 @@ node default {
     rabbitmq_naily_user => $rabbitmq_naily_user,
     rabbitmq_naily_password => $rabbitmq_naily_password,
     puppet_master_hostname => $puppet_master_hostname,
-  }->
-  class {"puppetdb::server":
-    listen_port => 8082,
   }
-  Class["puppetdb::database::postgresql"]->Class["puppetdb::server::validate_db"]
+
+  Class['postgresql::server'] -> Class['nailgun']
+
 }
+
