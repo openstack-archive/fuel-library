@@ -5,8 +5,7 @@ if $quantum == 'true'
 {
   $quantum_hash   = parsejson($::quantum_access)
   $quantum_params = parsejson($::quantum_parameters)
-  $tenant_network_type  = $quantum_params['tenant_network_type']
-  $segment_range        = $quantum_params['segment_range']
+  $novanetwork_params  = {} 
 
 }
 else
@@ -14,9 +13,6 @@ else
   $quantum_hash = {}
   $quantum_params = {}
   $novanetwork_params  = parsejson($::novanetwork_parameters)
-  $vlan_start           = $novanetwork_params['vlan_start']
-  $network_manager      = "nova.network.manager.${novanetwork_params['network_manager']}"
-  $network_size         = $novanetwork_params['network_size']
 }
 
 if $cinder_nodes {
@@ -37,7 +33,11 @@ $swift_hash           = parsejson($::swift)
 $cinder_hash          = parsejson($::cinder)
 $access_hash          = parsejson($::access)
 $nodes_hash           = parsejson($::nodes)
-
+$vlan_start           = $novanetwork_params['vlan_start']
+$network_manager      = "nova.network.manager.${novanetwork_params['network_manager']}"
+$network_size         = $novanetwork_params['network_size']
+$tenant_network_type  = $quantum_params['tenant_network_type']
+$segment_range        = $quantum_params['segment_range']
 
 if !$rabbit_hash[user]
 {
