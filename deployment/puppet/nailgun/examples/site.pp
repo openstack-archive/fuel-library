@@ -32,7 +32,7 @@ node default {
   class { 'postgresql::server':
     config_hash => {
       'ip_mask_allow_all_users' => '0.0.0.0/0',
-      'listen_addresses'        => $puppetdb::params::database_host,
+      'listen_addresses'        => '127.0.0.1',
     },
   }
 
