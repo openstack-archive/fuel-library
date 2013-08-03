@@ -186,6 +186,7 @@ class ha_controller (
   #
   ###
 
+  class {'osnailyfacter::tinyproxy': }
   class { 'openstack::controller_ha':
     controller_public_addresses   => $controller_public_addresses,
     controller_internal_addresses => $controller_internal_addresses,
