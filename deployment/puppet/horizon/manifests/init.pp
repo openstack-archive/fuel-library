@@ -171,7 +171,7 @@ class horizon(
         before  => Package['dashboard'],
       }  # ensure there is a HTTP redirect from / to /dashboard
 
-      if $use_ssl {
+      if $use_ssl =~ /^(default|exist|custom)$/ {
         package { 'mod_ssl':
           ensure => present,
           before => Service['httpd'],
@@ -206,7 +206,7 @@ class horizon(
 
       a2mod { 'wsgi': }
 
-      if $use_ssl {
+      if $use_ssl =~ /^(default|exist|custom)$/ {
         a2mod { ['rewrite', 'ssl']: }
       }
 
