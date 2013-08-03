@@ -21,7 +21,7 @@ yum --releasever=<%= releasever %> repolist || :
 mkdir -p /root/centos-release
 yumdownloader --destdir /root/centos-release --disablerepo='*rhel*' centos-release
 if ! [ -f /root/centos-release/centos-release*.rpm ]; then
-  echo "Unable to download centos-release RPM. Aborting."
+  echo "Unable to download centos-release RPM. Aborting." 1>&2
   exit 1
 fi
 #Download RHN packages needed for RHN Satellite registration
@@ -29,7 +29,22 @@ rhnpackages="m2crypto rhn-check rhn-client-tools rhnlib rhnsd rhn-setup yum-rhn-
 rm -rf /root/rhnpackages
 mkdir -p /root/rhnpackages
 yum-config-manager --enable rhel-6-server-rpms
-yumdownloader --releasever=<%= releasever %> --disablerepo='*' --enablerepo='*rhel*' --resolve --destdir /root/rhnpackages $rhnpackages
+success="false"
+for tries in 1 2 3; do
+  yumdownloader --releasever=<%= releasever %> --disablerepo='nailgun*' --disablerepo='fuel*' --setopt='*.skip_if_unavailable=1' --resolve --destdir /root/rhnpackages $rhnpackages
+  if [ $? -eq 0 ]; then
+    #Verify we have packages downloaded
+    if [[ "$(find /root/rhnpackages | wc -l)" > 2 ]]; then
+      success="true"
+      break
+    fi
+  fi
+  yum clean expire-cache
+done
+if [[ "$success" == "false" ]];then
+  echo "Unable to download rhn-setup and redhat-release-server from RHSM." 1>&2
+  echo "This may be due to a network error or yum configuration." 1>&2
+fi
 #Delete in case yumdownloader gets extra packages
 repomanage -o /root/rhnpackages | xargs rm -f
 
@@ -69,7 +84,7 @@ for channel in <%= sat_base_channels %> <%= sat_openstack_channel %>; do
   fi
 done
 if [ $errors -gt 0 ]; then
-  echo "There were problems enabling channels. Please check puppet manifests and your RHN Satellite channel configuration to ensure the necessary channels are enabled."
+  echo "There were problems enabling channels. Please check puppet manifests and your RHN Satellite channel configuration to ensure the necessary channels are enabled." 1>&2
   exit 1
 fi
 
@@ -104,19 +119,17 @@ for tries in $(seq 1 <%= numtries %>); do
 done
 
 if [ $status -ne 0 ]; then
-  echo "ERROR: Repotrack did not exit cleanly after <%= numtries %> tries."
+  echo "ERROR: Repotrack did not exit cleanly after <%= numtries %> tries." 1>&2
   exit 1
 fi
 if [ $before -ne $after ]; then
-  echo "ERROR: There are still some packages with broken md5 sum after last (<%= numtries %>) retry to download them."
+  echo "ERROR: There are still some packages with broken md5 sum after last (<%= numtries %>) retry to download them." 1>&2
   exit 1
 fi
 
 
 rm -f /etc/yum/vars/releasever
 yum-config-manager --enable 'nailgun' &> /dev/null
-yum-config-manager --enable 'centos' &> /dev/null
-yum-config-manager --enable 'base' &> /dev/null
 
 #Run again just for good measure
 #yumdownloader --releasever=<%= releasever %> --disablerepo='*' --enablerepo='rhel*' --resolve --destdir "<%= pkgdir %>/Packages" $(cat /etc/nailgun/required-rpms.txt | xargs echo -en)
