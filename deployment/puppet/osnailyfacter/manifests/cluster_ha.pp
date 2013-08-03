@@ -210,6 +210,7 @@ class compact_controller (
     glance_user_password          => $glance_hash[user_password],
     nova_db_password              => $nova_hash[db_password],
     nova_user_password            => $nova_hash[user_password],
+    nova_rate_limits              => $nova_rate_limits,
     rabbit_password               => $rabbit_hash[password],
     rabbit_user                   => $rabbit_hash[user],
     rabbit_nodes                  => $controller_nodes,
@@ -323,8 +324,18 @@ class virtual_ips () {
         }
         if !$quantum
         {
-           nova::manage::floating{$floating_hash:}
+
+        nova_floating_range{ $floating_ips_range:
+          ensure          => 'present',
+          pool            => 'nova',
+          username        => $access_hash[user],
+          api_key         => $access_hash[password],
+          auth_method     => 'password',
+          auth_url        => "http://${management_vip}:5000/v2.0/",
+          authtenant_name => $access_hash[tenant],
         }
+	}
+
         Class[glance::api]                    -> Class[openstack::img::cirros]
         Class[openstack::swift::storage_node] -> Class[openstack::img::cirros]
         Class[openstack::swift::proxy]        -> Class[openstack::img::cirros]

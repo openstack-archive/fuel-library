@@ -54,10 +54,11 @@ if $auto_assign_floating_ip == 'true' {
 }
 
 if $quantum {
-$floating_hash =  $::floating_network_range
+   $floating_hash =  $::floating_network_range
 }
 else {
-  $floating_hash = parsejson($::floating_network_range)
+  $floating_hash = {}
+  $floating_ips_range = parsejson($floating_network_range)
 }
 
 $controller = filter_nodes($nodes_hash,'role','controller')
@@ -128,7 +129,7 @@ if !$debug
         fixed_range             => $fixed_network_range,
         multi_host              => $multi_host,
         network_manager         => $network_manager,
-        num_networks             => $num_networks,
+        num_networks            => $num_networks,
         network_size            => $network_size,
         network_config          => $network_config,
         verbose                 => $verbose,
@@ -145,6 +146,7 @@ if !$debug
         glance_user_password    => $glance_hash[user_password],
         nova_db_password        => $nova_hash[db_password],
         nova_user_password      => $nova_hash[user_password],
+        nova_rate_limits        => $nova_rate_limits,
         queue_provider          => $::queue_provider,
         rabbit_password         => $rabbit_hash[password],
         rabbit_user             => $rabbit_hash[user],
@@ -172,7 +174,6 @@ if !$debug
         syslog_log_facility_quantum => $syslog_log_facility_quantum,
         syslog_log_facility_nova => $syslog_log_facility_nova,
         syslog_log_facility_keystone => $syslog_log_facility_keystone,
-        nova_rate_limits        => $nova_rate_limits,
         cinder_rate_limits      => $cinder_rate_limits,
         horizon_use_ssl         => $horizon_use_ssl,
       }
@@ -247,8 +248,17 @@ if !$debug
         stage                     => 'glance-image',
       }
       if !$quantum {
-         nova::manage::floating{ $floating_hash: }
+      nova_floating_range{ $floating_ips_range:
+        ensure          => 'present',
+        pool            => 'nova',
+        username        => $access_hash[user],
+        api_key         => $access_hash[password],
+        auth_method     => 'password',
+        auth_url        => "http://${controller_node_address}:5000/v2.0/",
+        authtenant_name => $access_hash[tenant],
       }
+      }
+
       Class[glance::api]        -> Class[openstack::img::cirros]
     }
 
