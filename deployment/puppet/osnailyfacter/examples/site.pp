@@ -23,34 +23,34 @@ stage {'glance-image':
 
 
 
+if $nodes != undef {
+  $nodes_hash = parsejson($nodes)
 
-$nodes_hash = parsejson($nodes)
+  $node = filter_nodes($nodes_hash,'name',$::hostname)
+  if empty($node) {
+    fail("Node $::hostname is not defined in the hash structure")
+  }
 
-$node = filter_nodes($nodes_hash,'name',$::hostname)
-if empty($node) {
-  fail("Node $::hostname is not defined in the hash structure")
+  $default_gateway = $node[0]['default_gateway']
+  $internal_address = $node[0]['internal_address']
+  $internal_netmask = $node[0]['internal_netmask']
+  $public_address = $node[0]['public_address']
+  $public_netmask = $node[0]['public_netmask']
+  $storage_address = $node[0]['storage_address']
+  $storage_netmask = $node[0]['storage_netmask']
+  $public_br = $node[0]['public_br']
+  $internal_br = $node[0]['internal_br']
+  $base_syslog_hash     = parsejson($::base_syslog)
+  $syslog_hash          = parsejson($::syslog)
+
+  if $quantum {
+    $public_int   = $public_br
+    $internal_int = $internal_br
+  } else {
+    $public_int   = $public_interface
+    $internal_int = $management_interface
+  }
 }
-
-$default_gateway = $node[0]['default_gateway']
-$internal_address = $node[0]['internal_address']
-$internal_netmask = $node[0]['internal_netmask']
-$public_address = $node[0]['public_address']
-$public_netmask = $node[0]['public_netmask']
-$storage_address = $node[0]['storage_address']
-$storage_netmask = $node[0]['storage_netmask']
-$public_br = $node[0]['public_br']
-$internal_br = $node[0]['internal_br']
-$base_syslog_hash     = parsejson($::base_syslog)
-$syslog_hash          = parsejson($::syslog)
-
-if $quantum {
-  $public_int   = $public_br
-  $internal_int = $internal_br
-} else {
-  $public_int   = $public_interface
-  $internal_int = $management_interface
-}
-
 
 
 ### Syslog ###
@@ -137,98 +137,90 @@ case $::operatingsystem {
 }
 
 class os_common {
-  if $deployment_source == 'cli'
-  { 
-     class {'l23network': use_ovs=>$quantum, stage=> 'netconfig'}  
-      class {'::node_netconfig':
+  if $deployment_source == 'cli' {
+    class {'l23network': use_ovs=>$quantum, stage=> 'netconfig'}
+    class {'::node_netconfig':
       mgmt_ipaddr    => $internal_address,
       mgmt_netmask   => $internal_netmask,
       public_ipaddr  => $public_address,
       public_netmask => $public_netmask,
       stage          => 'netconfig',
       default_gateway => $default_gateway
-  }
-  }
-  else
-  {
+    }
+  } else {
     class {'osnailyfacter::network_setup': stage => 'netconfig'}
   }
+
   class {'openstack::firewall': stage => 'openstack-firewall'}
 
-$base_syslog_rserver  = {
-  'remote_type' => 'udp',
-  'server' => $base_syslog_hash['syslog_server'],
-  'port' => $base_syslog_hash['syslog_port']
-}
-
-
-$syslog_rserver = {
-  'remote_type' => $syslog_hash['syslog_transport'],
-  'server' => $syslog_hash['syslog_server'],
-  'port' => $syslog_hash['syslog_port'],
-}
-
-if $syslog_hash['syslog_server'] != "" and $syslog_hash['syslog_port'] != "" and $syslog_hash['syslog_transport'] != "" {
-  $rservers = [$base_syslog_rserver, $syslog_rserver]
-}
-else {
-  $rservers = [$base_syslog_rserver]
-}
-
-
-if $use_syslog {
-  class { "::openstack::logging":
-    stage          => 'first',
-    role           => 'client',
-    show_timezone => true,
-    # log both locally include auth, and remote
-    log_remote     => true,
-    log_local      => true,
-    log_auth_local => true,
-    # keep four weekly log rotations, force rotate if 300M size have exceeded
-    rotation       => 'weekly',
-    keep           => '4',
-    # should be > 30M
-    limitsize      => '300M',
-    # remote servers to send logs to
-    rservers       => $rservers, 
-    # should be true, if client is running at virtual node
-    virtual        => true,
-    # facilities
-    syslog_log_facility_glance   => $syslog_log_facility_glance,
-    syslog_log_facility_cinder   => $syslog_log_facility_cinder,
-    syslog_log_facility_quantum  => $syslog_log_facility_quantum,
-    syslog_log_facility_nova     => $syslog_log_facility_nova,
-    syslog_log_facility_keystone => $syslog_log_facility_keystone,
-    # Rabbit doesn't support syslog directly, should be >= syslog_log_level,
-    # otherwise none rabbit's messages would have gone to syslog
-    rabbit_log_level => $syslog_log_level,
+  $base_syslog_rserver  = {
+    'remote_type' => 'udp',
+    'server' => $base_syslog_hash['syslog_server'],
+    'port' => $base_syslog_hash['syslog_port']
   }
-}
 
-#case $role {
-  #    /controller/:          { $hostgroup = 'controller' } 
-  #    /swift-proxy/: { $hostgroup = 'swift-proxy' }
-  #    /storage/:{ $hostgroup = 'swift-storage'  }
-  #    /compute/: { $hostgroup = 'compute'  }
-  #    /cinder/: { $hostgroup = 'cinder'  }
-  #    default: { $hostgroup = 'generic' } 
-  #}
+  $syslog_rserver = {
+    'remote_type' => $syslog_hash['syslog_transport'],
+    'server' => $syslog_hash['syslog_server'],
+    'port' => $syslog_hash['syslog_port'],
+  }
+  if $syslog_hash['syslog_server'] != "" and $syslog_hash['syslog_port'] != "" and $syslog_hash['syslog_transport'] != "" {
+    $rservers = [$base_syslog_rserver, $syslog_rserver]
+  } else {
+    $rservers = [$base_syslog_rserver]
+  }
 
-  #  if $nagios != 'false' {
-  #  class {'nagios':
-  #    proj_name       => $proj_name,
-  #    services        => [
-  #      'host-alive','nova-novncproxy','keystone', 'nova-scheduler',
-  #      'nova-consoleauth', 'nova-cert', 'haproxy', 'nova-api', 'glance-api',
-  #      'glance-registry','horizon', 'rabbitmq', 'mysql',
-  #    ],
-  #    whitelist       => ['127.0.0.1', $nagios_master],
-  #    hostgroup       => $hostgroup ,
-  #  }
-  # }
+  if $use_syslog {
+    class { "::openstack::logging":
+      stage          => 'first',
+      role           => 'client',
+      show_timezone => true,
+      # log both locally include auth, and remote
+      log_remote     => true,
+      log_local      => true,
+      log_auth_local => true,
+      # keep four weekly log rotations, force rotate if 300M size have exceeded
+      rotation       => 'weekly',
+      keep           => '4',
+      # should be > 30M
+      limitsize      => '300M',
+      # remote servers to send logs to
+      rservers       => $rservers, 
+      # should be true, if client is running at virtual node
+      virtual        => true,
+      # facilities
+      syslog_log_facility_glance   => $syslog_log_facility_glance,
+      syslog_log_facility_cinder   => $syslog_log_facility_cinder,
+      syslog_log_facility_quantum  => $syslog_log_facility_quantum,
+      syslog_log_facility_nova     => $syslog_log_facility_nova,
+      syslog_log_facility_keystone => $syslog_log_facility_keystone,
+      # Rabbit doesn't support syslog directly, should be >= syslog_log_level,
+      # otherwise none rabbit's messages would have gone to syslog
+      rabbit_log_level => $syslog_log_level,
+    }
+  }
 
+  #case $role {
+    #    /controller/:          { $hostgroup = 'controller' } 
+    #    /swift-proxy/: { $hostgroup = 'swift-proxy' }
+    #    /storage/:{ $hostgroup = 'swift-storage'  }
+    #    /compute/: { $hostgroup = 'compute'  }
+    #    /cinder/: { $hostgroup = 'cinder'  }
+    #    default: { $hostgroup = 'generic' } 
+    #}
 
+    #  if $nagios != 'false' {
+    #  class {'nagios':
+    #    proj_name       => $proj_name,
+    #    services        => [
+    #      'host-alive','nova-novncproxy','keystone', 'nova-scheduler',
+    #      'nova-consoleauth', 'nova-cert', 'haproxy', 'nova-api', 'glance-api',
+    #      'glance-registry','horizon', 'rabbitmq', 'mysql',
+    #    ],
+    #    whitelist       => ['127.0.0.1', $nagios_master],
+    #    hostgroup       => $hostgroup ,
+    #  }
+    # }
 
   # Workaround for fuel bug with firewall
   firewall {'003 remote rabbitmq ':
@@ -239,6 +231,9 @@ if $use_syslog {
     require => Class['openstack::firewall'],
   }
 }
+
+
+
 node default {
   case $deployment_mode {
     "singlenode": { 
