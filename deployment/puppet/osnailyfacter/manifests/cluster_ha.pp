@@ -321,6 +321,11 @@ class virtual_ips () {
           img_name    => "TestVM",
           stage          => 'glance-image',
         }
+        Class[glance::api]                    -> Class[openstack::img::cirros]
+        Class[openstack::swift::storage_node] -> Class[openstack::img::cirros]
+        Class[openstack::swift::proxy]        -> Class[openstack::img::cirros]
+        Service[swift-proxy]                  -> Class[openstack::img::cirros]
+ 
       }
         if !$quantum
         {
@@ -336,11 +341,7 @@ class virtual_ips () {
         }
        }	
 
-        Class[glance::api]                    -> Class[openstack::img::cirros]
-        Class[openstack::swift::storage_node] -> Class[openstack::img::cirros]
-        Class[openstack::swift::proxy]        -> Class[openstack::img::cirros]
-        Service[swift-proxy]                  -> Class[openstack::img::cirros]
-      }
+     }
 
     "compute" : {
       include osnailyfacter::test_compute
