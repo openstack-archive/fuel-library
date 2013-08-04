@@ -52,7 +52,8 @@ if $quantum {
 $floating_hash =  $::floating_network_range
 }
 else {
-  $floating_hash = parsejson($::floating_network_range)
+  $floating_hash = {}
+  $floating_ips_range = parsejson($floating_network_range)
 }
 
 ##CALCULATED PARAMETERS
@@ -312,7 +313,7 @@ class virtual_ips () {
       nova_config { 'DEFAULT/use_cow_images': value => $use_cow_images }
       nova_config { 'DEFAULT/compute_scheduler_driver': value => $compute_scheduler_driver }
 
-      if $primary_controller {
+      if $last_controller == 'true' {
         class { 'openstack::img::cirros':
           os_username => shellescape($access_hash[user]),
           os_password => shellescape($access_hash[password]),

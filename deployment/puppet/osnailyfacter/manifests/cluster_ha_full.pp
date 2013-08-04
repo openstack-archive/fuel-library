@@ -45,10 +45,11 @@ $network_manager      = "nova.network.manager.${novanetwork_params['network_mana
 $network_size         = $novanetwork_params['network_size']
 
 if $quantum {
-$floating_hash =  $::floating_network_range
+  $floating_hash =  $::floating_network_range
 }
 else {
-  $floating_hash = parsejson($::floating_network_range)
+  $floating_hash = {}
+  $floating_ips_range = parsejson($floating_network_range)
 }
 
 
