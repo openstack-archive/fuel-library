@@ -297,8 +297,7 @@ class virtual_ips () {
         sync_rings            => ! $primary_proxy
       }
       if $primary_proxy {
-        ring_devices {'all':
-          storages => $controllers
+        ring_devices {'all': storages => $controllers }
       }
       class { 'openstack::swift::proxy':
         swift_user_password     => $swift_hash[user_password],
@@ -322,6 +321,7 @@ class virtual_ips () {
           img_name    => "TestVM",
           stage          => 'glance-image',
         }
+      }
         if !$quantum
         {
 
@@ -334,15 +334,13 @@ class virtual_ips () {
           auth_url        => "http://${management_vip}:5000/v2.0/",
           authtenant_name => $access_hash[tenant],
         }
-	}
+       }	
 
         Class[glance::api]                    -> Class[openstack::img::cirros]
         Class[openstack::swift::storage_node] -> Class[openstack::img::cirros]
         Class[openstack::swift::proxy]        -> Class[openstack::img::cirros]
         Service[swift-proxy]                  -> Class[openstack::img::cirros]
       }
-    }
-   }
 
     "compute" : {
       include osnailyfacter::test_compute
