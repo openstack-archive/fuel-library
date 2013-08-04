@@ -7,7 +7,9 @@ Puppet::Type.newtype(:ring_devices) do
     desc 'list of all swift storages'
 
     validate do |value|
-      fail(Puppet::Error, "#{value} should be a Hash and include ip address") unless value.is_a?(Hash) && value['storage_local_net_ip']
+      value.each do |element|
+        fail(Puppet::Error, "#{value} should be a Hash and include ip address") unless element.is_a?(Hash) && element['storage_address']
+      end
     end
   end
 
