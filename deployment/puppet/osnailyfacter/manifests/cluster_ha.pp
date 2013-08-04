@@ -110,7 +110,7 @@ $controller_storage_addresses = nodes_to_hash($controllers,'name','storage_addre
 $controller_hostnames = keys($controller_internal_addresses)
 $controller_nodes = sort(values($controller_internal_addresses))
 $controller_node_public  = $management_vip
-$swift_proxies = $controller_internal_addresses
+$swift_proxies = $controller_storage_addresses
 $quantum_metadata_proxy_shared_secret = $quantum_params['metadata_proxy_shared_secret']
 
 $quantum_gre_bind_addr = $::internal_address
@@ -217,7 +217,7 @@ class compact_controller (
     memcached_servers             => $controller_nodes,
     export_resources              => false,
     glance_backend                => $glance_backend,
-    swift_proxies                 => $controller_internal_addresses,
+    swift_proxies                 => $swift_proxies,
     quantum                       => $quantum,
     quantum_user_password         => $quantum_hash[user_password],
     quantum_db_password           => $quantum_hash[db_password],
