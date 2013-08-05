@@ -345,8 +345,6 @@ case $role {
     manage_volumes         => $cinder ? { false => $manage_volumes, default =>$is_cinder_node },
     db_host                => $management_vip,
     cinder_rate_limits     => $::cinder_rate_limits,
-    ssh_private_key        => 'puppet:///ssh_keys/openstack',
-    ssh_public_key         => 'puppet:///ssh_keys/openstack.pub',
     use_syslog             => $use_syslog,
     syslog_log_level       => $syslog_log_level,
     syslog_log_facility_quantum => $syslog_log_facility_quantum,
