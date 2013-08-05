@@ -36,6 +36,7 @@ $nodes_hash           = parsejson($::nodes)
 $vlan_start           = $novanetwork_params['vlan_start']
 $network_manager      = "nova.network.manager.${novanetwork_params['network_manager']}"
 $network_size         = $novanetwork_params['network_size']
+$num_networks         = $novanetwork_params['num_networks']
 $tenant_network_type  = $quantum_params['tenant_network_type']
 $segment_range        = $quantum_params['segment_range']
 

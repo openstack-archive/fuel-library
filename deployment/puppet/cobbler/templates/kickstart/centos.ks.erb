@@ -152,6 +152,11 @@ yum-config-manager --disableplugin=fastestmirror --save &>/dev/null
 echo -e "modprobe nf_conntrack_ipv4\nmodprobe nf_conntrack_ipv6" >> /etc/rc.modules
 chmod +x /etc/rc.modules
 echo -e "net.nf_conntrack_max=1048576" >> /etc/sysctl.conf
+mkdir -p /var/log/coredump
+echo -e "kernel.core_pattern=/var/log/coredump/core.%e.%p.%h.%t" >> /etc/sysctl.conf
+chmod 777 /var/log/coredump
+echo -e "* soft core unlimited\n* hard core unlimited" >> /etc/security/limits.conf
+
 gem install httpclient --version 2.2.5  --source <%= gem_source %> --no-ri --no-rdoc
 gem install json       --version 1.6.1  --source <%= gem_source %> --no-ri --no-rdoc
 gem install ohai       --version 6.14.0 --source <%= gem_source %> --no-ri --no-rdoc
