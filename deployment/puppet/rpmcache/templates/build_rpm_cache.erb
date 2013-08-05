@@ -100,7 +100,6 @@ rhnreg_ks "--serverUrl=http://<%= sat_hostname %>/XMLRPC" --profilename=fuelweb 
 
 if [ $? -ne 0 ]; then
   echo "Registration failed. Aborting."
-  revert_back_to_centos
   exit 1
 fi
 #Ensure channels are enabled:
@@ -117,7 +116,6 @@ for channel in <%= sat_base_channels %> <%= sat_openstack_channel %>; do
 done
 if [ $errors -gt 0 ]; then
   echo "There were problems enabling channels. Please check puppet manifests and your RHN Satellite channel configuration to ensure the necessary channels are enabled." 1>&2
-  revert_back_to_centos
   exit 1
 fi
 
@@ -153,12 +151,10 @@ done
 
 if [ $status -ne 0 ]; then
   echo "ERROR: Repotrack did not exit cleanly after <%= numtries %> tries." 1>&2
-  revert_back_to_centos
   exit 1
 fi
 if [ $before -ne $after ]; then
   echo "ERROR: There are still some packages with broken md5 sum after last (<%= numtries %>) retry to download them." 1>&2
-  revert_back_to_centos
   exit 1
 fi
 
@@ -178,6 +174,7 @@ mount -o loop /usr/share/rhel-boot-image/rhel-boot-image-6.4-20130130.0.el6ost.i
 cp -R /mnt/rhel_iso/. <%= pkgdir %>
 umount /mnt/rhel_iso
 rpm -e rhel-boot-image-6.4-20130130.0.el6ost.noarch
+revert_back_to_centos
 
 trap - EXIT
 revert_back_to_centos
