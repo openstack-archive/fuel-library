@@ -43,6 +43,7 @@ $segment_range        = $quantum_params['segment_range']
 $vlan_start           = $novanetwork_params['vlan_start']
 $network_manager      = "nova.network.manager.${novanetwork_params['network_manager']}"
 $network_size         = $novanetwork_params['network_size']
+$num_networks         = $novanetwork_params['num_networks']
 
 if $quantum {
   $floating_hash =  $::floating_network_range
