@@ -133,7 +133,8 @@ echo "Building initial cache. This may take several minutes."
 yum --releasever=<%= releasever %> makecache
 
 for tries in $(seq 1 <%= numtries %>); do
-  /usr/local/bin/repotrack -a x86_64,noarch -p "<%= pkgdir %>/Packages" $(cat /etc/nailgun/required-rpms.txt | xargs echo -en)
+  #Retry if repotrack fails
+  /usr/local/bin/repotrack -a x86_64,noarch -p "<%= pkgdir %>/Packages" $(cat /etc/nailgun/required-rpms.txt | xargs echo -en) || continue
   status=$?
   #Purge any corrupt downloaded RPMs
   # FIXME: There is a error with a path substitution
@@ -149,7 +150,7 @@ for tries in $(seq 1 <%= numtries %>); do
   fi
 done
 
-if [ $status -ne 0 ]; then
+if [ "$status" -ne 0 ]; then
   echo "ERROR: Repotrack did not exit cleanly after <%= numtries %> tries." 1>&2
   exit 1
 fi
@@ -174,8 +175,5 @@ mount -o loop /usr/share/rhel-boot-image/rhel-boot-image-6.4-20130130.0.el6ost.i
 cp -R /mnt/rhel_iso/. <%= pkgdir %>
 umount /mnt/rhel_iso
 rpm -e rhel-boot-image-6.4-20130130.0.el6ost.noarch
-revert_back_to_centos
 
-trap - EXIT
-revert_back_to_centos
 exit 0
