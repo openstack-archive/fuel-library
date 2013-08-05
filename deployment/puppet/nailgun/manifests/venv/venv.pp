@@ -14,7 +14,6 @@ define nailgun::venv::venv(
     if !defined(File[$root_parent]) {
       file { $root_parent:
         ensure => directory,
-        recurse => true
       }
     }
 
