@@ -15,7 +15,7 @@ function revert_back_to_centos() {
   rm -f /etc/yum/vars/releasever
   yum-config-manager --enable 'nailgun' &> /dev/null
   echo "Unsubscribing from RHSM..."
-  subscription-manager unregister || :`
+  subscription-manager unregister || :
 }
 
 trap revert_back_to_centos EXIT
