@@ -14,6 +14,7 @@ Puppet::Type.type(:firewall).provide :iptables, :parent => Puppet::Provider::Fir
   has_feature :icmp_match
   has_feature :owner
   has_feature :state_match
+  has_feature :ctstate_match
   has_feature :reject_type
   has_feature :log_level
   has_feature :log_prefix
@@ -42,7 +43,8 @@ Puppet::Type.type(:firewall).provide :iptables, :parent => Puppet::Provider::Fir
   @resource_map = {
     :burst => "--limit-burst",
     :destination => "-d",
-    :dport => ["-m multiport --dports", "-m (udp|tcp) --dport"],
+    #--sport 68 
+    :dport => ["-m multiport --dports", '-m (udp|tcp)\s+(?:--sport\s+\d+\s+)?--dport'],
     :gid => "-m owner --gid-owner",
     :icmp => "-m icmp --icmp-type",
     :iniface => "-i",
@@ -160,8 +162,8 @@ Puppet::Type.type(:firewall).provide :iptables, :parent => Puppet::Provider::Fir
     debug("BEFORE REPLACE #{values.inspect}")
     values = values.sub(/--tcp-flags (\S*) (\S*)/, '--tcp-flags "\1 \2"')
     values = values.sub(/(!)\s+--ctstate\s?(\S*)/, '--ctstate "\1 \2"')
-    values = values.sub(/(!)\s+-s\s?(\S*)/, '-s "\1 \2"')
-    values = values.sub(/(!)\s+-d\s?(\S*)/, '-d "\1 \2"')
+    values = values.sub(/(!)\s+-s\s?(\S*)/, '-s \1 \2')
+    values = values.sub(/(!)\s+-d\s?(\S*)/, '-d \1 \2')
     values = values.sub(/-s (!)\s?(\S*)/, '-s "\1 \2"')
     values = values.sub(/-d (!)\s?(\S*)/, '-d "\1 \2"')
     debug("AFTER REPLACE #{values.inspect}")
@@ -183,9 +185,13 @@ Puppet::Type.type(:firewall).provide :iptables, :parent => Puppet::Provider::Fir
 
     # Here we iterate across our values to generate an array of keys
     @resource_list.reverse.each do |k|
+      debug("searching for key #{k}")
       resource_map_key = @resource_map[k]
+      debug("resource_map for key #{k} is #{resource_map_key}")
       [resource_map_key].flatten.each do |opt|
         if values.slice!(/\s#{opt}/)
+          debug("values is  #{values}")
+          debug("adding key #{k}")
           keys << k
           break
         end
@@ -199,15 +205,18 @@ Puppet::Type.type(:firewall).provide :iptables, :parent => Puppet::Provider::Fir
     # Here we generate the main hash
     keys.zip(values.scan(/"[^"]*"|\S+/).reverse) { |f, v| hash[f] = v.gsub(/"/, '') }
 
+    debug(hash.inspect)
     #####################
     # POST PARSE CLUDGING
     #####################
 
+
+    cidr_regex = /(!?)\s*((?:(?:[0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}(?:[0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(?:\/(?:\d|[1-2]\d|3[0-2])))/
     # Normalise all rules to CIDR notation.
     [:source, :destination].each do |prop|
       next if hash[prop].nil?
-      debug("processing #{prop} with value #{hash[prop]}")
-      m = hash[prop].match(/(!?)\s*(.*)/)
+      debug("processing #{prop} with value '#{hash[prop]}'")
+      m = hash[prop].match(cidr_regex)
       neg = nil
       neg = '! ' if m[1] == '!'
       hash[prop] = "#{neg}#{Puppet::Util::IPCidr.new(m[2]).cidr}"
