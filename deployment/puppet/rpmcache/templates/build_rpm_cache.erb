@@ -174,8 +174,5 @@ mount -o loop /usr/share/rhel-boot-image/rhel-boot-image-6.4-20130130.0.el6ost.i
 cp -R /mnt/rhel_iso/. <%= pkgdir %>
 umount /mnt/rhel_iso
 rpm -e rhel-boot-image-6.4-20130130.0.el6ost.noarch
-revert_back_to_centos
 
-trap - EXIT
-revert_back_to_centos
 exit 0
