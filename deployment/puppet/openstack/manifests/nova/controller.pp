@@ -179,12 +179,13 @@ class openstack::nova::controller (
           image_service        => 'nova.image.glance.GlanceImageService',
           glance_api_servers   => $glance_connection,
           verbose              => $verbose,
+          debug                => $debug,
           rabbit_nodes         => $rabbit_nodes,
           ensure_package       => $ensure_package,
           api_bind_address     => $api_bind_address,
           use_syslog           => $use_syslog,
-      syslog_log_facility  => $syslog_log_facility,
-      syslog_log_level     => $syslog_log_level,
+          syslog_log_facility  => $syslog_log_facility,
+          syslog_log_level     => $syslog_log_level,
           rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
         }
       } else {
@@ -195,11 +196,12 @@ class openstack::nova::controller (
           image_service      => 'nova.image.glance.GlanceImageService',
           glance_api_servers => $glance_connection,
           verbose            => $verbose,
+          debug              => $debug,
           rabbit_host        => $rabbit_connection,
           ensure_package     => $ensure_package,
           api_bind_address   => $api_bind_address,
-      syslog_log_facility  => $syslog_log_facility,
-      syslog_log_level     => $syslog_log_level,
+          syslog_log_facility => $syslog_log_facility,
+          syslog_log_level   => $syslog_log_level,
           use_syslog         => $use_syslog,
         }
       }
@@ -214,10 +216,11 @@ class openstack::nova::controller (
         image_service      => 'nova.image.glance.GlanceImageService',
         glance_api_servers => $glance_connection,
         verbose            => $verbose,
+        debug              => $debug,
         ensure_package     => $ensure_package,
         api_bind_address   => $api_bind_address,
-      syslog_log_facility  => $syslog_log_facility,
-      syslog_log_level     => $syslog_log_level,
+        syslog_log_facility => $syslog_log_facility,
+        syslog_log_level   => $syslog_log_level,
         use_syslog         => $use_syslog,
       }
     }
@@ -326,7 +329,7 @@ class openstack::nova::controller (
   }
 
   # Do not enable it!!!!!
-  # metadata service provides by nova api 
+  # metadata service provides by nova api
   # while enabled_apis=ec2,osapi_compute,metadata
   # and by quantum-metadata-agent on network node as proxy
   #

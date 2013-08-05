@@ -339,6 +339,7 @@ if $use_syslog {
     # Rabbit doesn't support syslog directly, should be >= syslog_log_level,
     # otherwise none rabbit's messages would have gone to syslog
     rabbit_log_level => $syslog_log_level,
+    debug => $debug,
   }
 }
 

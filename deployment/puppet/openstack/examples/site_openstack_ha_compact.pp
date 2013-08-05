@@ -471,6 +471,7 @@ if $use_syslog {
     # Rabbit doesn't support syslog directly, should be >= syslog_log_level,
     # otherwise none rabbit's messages would have gone to syslog
     rabbit_log_level => $syslog_log_level,
+    debug => $debug,
   }
 }
 
@@ -761,6 +762,8 @@ node /fuel-controller-[\d+]/ {
     rabbit_password        => $rabbit_password,
     rabbit_user            => $rabbit_user,
     rabbit_ha_virtual_ip   => $internal_virtual_ip,
+    debug                  => $debug,
+    verbose                => $verbose,
     syslog_log_level       => $syslog_log_level,
     syslog_log_facility_cinder => $syslog_log_facility_cinder,
     qpid_nodes             => [$internal_virtual_ip],
@@ -781,6 +784,9 @@ node /fuel-controller-[\d+]/ {
     controller_node_address => $internal_virtual_ip,
     swift_local_net_ip      => $swift_local_net_ip,
     master_swift_proxy_ip  => $master_swift_proxy_ip,
+    debug                   => $debug,
+    verbose                 => $verbose,
+    syslog_log_level        => $syslog_log_level,
   }
 
   Class ['openstack::swift::proxy'] -> Class['openstack::swift::storage_node']
@@ -857,6 +863,7 @@ node /fuel-compute-[\d+]/ {
     ssh_public_key         => 'puppet:///ssh_keys/openstack.pub',
     use_syslog             => $use_syslog,
     syslog_log_level       => $syslog_log_level,
+    syslog_log_facility    => $syslog_log_facility_nova,
     syslog_log_facility_quantum => $syslog_log_facility_quantum,
     syslog_log_facility_cinder => $syslog_log_facility_cinder,
     nova_rate_limits       => $nova_rate_limits,

@@ -52,6 +52,14 @@ if $nodes != undef {
   }
 }
 
+# This parameter specifies the verbosity level of log messages
+# in openstack components config.
+# Debug would have set DEBUG level and ignore verbose settings, if any.
+# Verbose would have set INFO level messages
+# In case of non debug and non verbose - WARNING, default level would have set.
+# Note: if syslog on, this default level may be configured (for syslog) with syslog_log_level option.
+$verbose = true
+$debug = false
 
 ### Syslog ###
 # Enable error messages reporting to rsyslog. Rsyslog must be installed in this case.
@@ -126,7 +134,7 @@ class node_netconfig (
 }
 
 case $::operatingsystem {
-  'redhat' : { 
+  'redhat' : {
           $queue_provider = 'qpid'
           $custom_mysql_setup_class = 'pacemaker_mysql'
   }
@@ -185,7 +193,7 @@ class os_common {
       # should be > 30M
       limitsize      => '300M',
       # remote servers to send logs to
-      rservers       => $rservers, 
+      rservers       => $rservers,
       # should be true, if client is running at virtual node
       virtual        => true,
       # facilities
@@ -197,16 +205,18 @@ class os_common {
       # Rabbit doesn't support syslog directly, should be >= syslog_log_level,
       # otherwise none rabbit's messages would have gone to syslog
       rabbit_log_level => $syslog_log_level,
+      # debug mode
+      debug          => $debug ? { 'true' => true, true => true, default=> false },
     }
   }
 
   #case $role {
-    #    /controller/:          { $hostgroup = 'controller' } 
+    #    /controller/:          { $hostgroup = 'controller' }
     #    /swift-proxy/: { $hostgroup = 'swift-proxy' }
     #    /storage/:{ $hostgroup = 'swift-storage'  }
     #    /compute/: { $hostgroup = 'compute'  }
     #    /cinder/: { $hostgroup = 'cinder'  }
-    #    default: { $hostgroup = 'generic' } 
+    #    default: { $hostgroup = 'generic' }
     #}
 
     #  if $nagios != 'false' {
@@ -236,11 +246,11 @@ class os_common {
 
 node default {
   case $deployment_mode {
-    "singlenode": { 
-      include "osnailyfacter::cluster_simple" 
+    "singlenode": {
+      include "osnailyfacter::cluster_simple"
       class {'os_common':}
       }
-    "multinode": { 
+    "multinode": {
       include osnailyfacter::cluster_simple
       class {'os_common':}
       }

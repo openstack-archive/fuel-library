@@ -374,6 +374,7 @@ if $use_syslog {
     # Rabbit doesn't support syslog directly, should be >= syslog_log_level,
     # otherwise none rabbit's messages would have gone to syslog
     rabbit_log_level => $syslog_log_level,
+    debug => $debug,
   }
 }
 
@@ -706,6 +707,7 @@ node /fuel-compute-[\d+]/ {
     cinder_iscsi_bind_addr => $cinder_iscsi_bind_addr,
     use_syslog             => $use_syslog,
     syslog_log_level       => $syslog_log_level,
+    syslog_log_facility    => $syslog_log_facility_nova,
     syslog_log_facility_quantum => $syslog_log_facility_quantum,
     syslog_log_facility_cinder => $syslog_log_facility_cinder,
     nova_rate_limits       => $nova_rate_limits,
