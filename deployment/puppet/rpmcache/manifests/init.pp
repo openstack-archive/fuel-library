@@ -15,6 +15,12 @@ $sat_base_channels, $sat_openstack_channel, $numtries = 10)  {
     default             => undef,
   }
 
+  $redhat_management_server = $sat_hostname ? {
+    /[[:alnum:]]/       => "redhat_management_server=$sat_hostname",
+    default             => undef,
+  }
+
+
   package { "yum-utils":
     ensure => "latest"
   } ->
@@ -106,7 +112,7 @@ $sat_base_channels, $sat_openstack_channel, $numtries = 10)  {
     kickstart => "/var/lib/cobbler/kickstarts/centos-x86_64.ks",
     kopts => "",
     distro => "rhel-x86_64",
-    ksmeta => "redhat_register_user=${rh_username} redhat_register_password=${rh_password} redhat_management_type=$redhat_management_type redhat_management_server=$sat_hostname $redhat_management_key",
+    ksmeta => "redhat_register_user=${rh_username} redhat_register_password=${rh_password} redhat_management_type=$redhat_management_type $redhat_management_server $redhat_management_key",
     menu => true,
     require => Cobbler_distro["rhel-x86_64"],
   } ->
