@@ -1,10 +1,11 @@
 #!/bin/bash -xe
 
 function revert_back_to_centos() {
-# Removes redhat-release-server rpm and replaces it with centos-release
+  # Removes redhat-release-server rpm and replaces it with centos-release
   echo "Removing Red Hat temporary configuration."
   if rpm -q redhat-release-server &>/dev/null; then
     rpm -Uvh --force /root/centos-release/centos-release*.rpm
+    rm -f /etc/yum.repos.d/CentOS*
     rpm -e --nodeps --noscripts redhat-release-server
   fi
   #Disable subscription-manager and rhn plugins
@@ -13,6 +14,7 @@ function revert_back_to_centos() {
   done
   rm -f /etc/yum/vars/releasever
   yum-config-manager --enable 'nailgun' &> /dev/null
+  subscription-manager unregister
 }
 trap revert_back_to_centos EXIT
 
@@ -52,7 +54,7 @@ fi
 rhnpackages="m2crypto rhn-check rhn-client-tools rhnlib rhnsd rhn-setup yum-rhn-plugin redhat-release-server"
 rm -rf /root/rhnpackages
 mkdir -p /root/rhnpackages
-yum-config-manager --enable rhel-6-server-rpms
+yum-config-manager --enable rhel-6-server-rpms &> /dev/null
 success="false"
 for tries in 1 2 3; do
   yumdownloader --releasever=<%= releasever %> --disablerepo='nailgun*' --disablerepo='fuel*' --setopt='*.skip_if_unavailable=1' --resolve --destdir /root/rhnpackages $rhnpackages
@@ -87,7 +89,7 @@ rm -rf /etc/yum.repos.d/redhat.repo
 
 #Disable subscription-manager plugins
 for plugin in $rhsm_plugins; do
-  sed -i 's/^enabled.*/enabled=1/' "/etc/yum/pluginconf.d/${plugin}.conf" 2>/dev/null || :
+  sed -i 's/^enabled.*/enabled=0/' "/etc/yum/pluginconf.d/${plugin}.conf" 2>/dev/null || :
 done
 
 #Run registration
