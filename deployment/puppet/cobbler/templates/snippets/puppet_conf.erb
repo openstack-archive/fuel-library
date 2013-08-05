@@ -30,6 +30,8 @@ cat <<EOCONF > /etc/puppet/puppet.conf
     # How long the client should wait for the configuration to be retrieved before considering it a failure.
     # It may help with 'execution expired' issue we've experienced.
     configtimeout = 600
+    # Don't send reports after every run.
+    report = false
 
 EOCONF
 #end if
