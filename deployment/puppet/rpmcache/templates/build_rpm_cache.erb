@@ -1,4 +1,28 @@
-#!/bin/bash -x
+#!/bin/bash -xe
+
+function revert_back_to_centos() {
+# Removes redhat-release-server rpm and replaces it with centos-release
+  echo "Removing Red Hat temporary configuration."
+  if rpm -q redhat-release-server &>/dev/null; then
+    rpm -Uvh --force /root/centos-release/centos-release*.rpm
+    rpm -e --nodeps --noscripts redhat-release-server
+  fi
+  #Disable subscription-manager and rhn plugins
+  for plugin in $rhsm_plugins $rhn_plugins; do
+    sed -i 's/^enabled.*/enabled=0/' "/etc/yum/pluginconf.d/${plugin}.conf" 2>/dev/null || :
+  done
+  rm -f /etc/yum/vars/releasever
+  yum-config-manager --enable 'nailgun' &> /dev/null
+}
+trap revert_back_to_centos EXIT
+
+rhsm_plugins="product-id subscription-manager"
+rhn_plugins="rhnplugin"
+#Enable subscription-manager plugins
+for plugin in $rhsm_plugins; do
+  sed -i 's/^enabled.*/enabled=1/' "/etc/yum/pluginconf.d/${plugin}.conf" 2>/dev/null || :
+done
+
 #Register
 subscription-manager register "--username=<%= rh_username %>" "--password=<%= rh_password %>" --autosubscribe --force 
 
@@ -32,12 +56,10 @@ yum-config-manager --enable rhel-6-server-rpms
 success="false"
 for tries in 1 2 3; do
   yumdownloader --releasever=<%= releasever %> --disablerepo='nailgun*' --disablerepo='fuel*' --setopt='*.skip_if_unavailable=1' --resolve --destdir /root/rhnpackages $rhnpackages
-  if [ $? -eq 0 ]; then
-    #Verify we have packages downloaded
-    if [[ "$(find /root/rhnpackages | wc -l)" > 2 ]]; then
-      success="true"
-      break
-    fi
+  #Verify we have packages downloaded
+  if [[ "$(find /root/rhnpackages | wc -l)" > 2 ]]; then
+    success="true"
+    break
   fi
   yum clean expire-cache
 done
@@ -63,12 +85,18 @@ fi
 subscription-manager unregister
 rm -rf /etc/yum.repos.d/redhat.repo
 
+#Disable subscription-manager plugins
+for plugin in $rhsm_plugins; do
+  sed -i 's/^enabled.*/enabled=1/' "/etc/yum/pluginconf.d/${plugin}.conf" 2>/dev/null || :
+done
+
 #Run registration
 
 rhnreg_ks "--serverUrl=http://<%= sat_hostname %>/XMLRPC" --profilename=fuelweb "--activationkey=<%= activation_key %>" --sslCACert=/etc/sysconfig/rhn/RHNS-CA-CERT --nopackages --nohardware --novirtinfo --norhnsd --force
 
 if [ $? -ne 0 ]; then
   echo "Registration failed. Aborting."
+  revert_back_to_centos
   exit 1
 fi
 #Ensure channels are enabled:
@@ -85,6 +113,7 @@ for channel in <%= sat_base_channels %> <%= sat_openstack_channel %>; do
 done
 if [ $errors -gt 0 ]; then
   echo "There were problems enabling channels. Please check puppet manifests and your RHN Satellite channel configuration to ensure the necessary channels are enabled." 1>&2
+  revert_back_to_centos
   exit 1
 fi
 
@@ -120,19 +149,18 @@ done
 
 if [ $status -ne 0 ]; then
   echo "ERROR: Repotrack did not exit cleanly after <%= numtries %> tries." 1>&2
+  revert_back_to_centos
   exit 1
 fi
 if [ $before -ne $after ]; then
   echo "ERROR: There are still some packages with broken md5 sum after last (<%= numtries %>) retry to download them." 1>&2
+  revert_back_to_centos
   exit 1
 fi
 
 
 rm -f /etc/yum/vars/releasever
 yum-config-manager --enable 'nailgun' &> /dev/null
-
-#Run again just for good measure
-#yumdownloader --releasever=<%= releasever %> --disablerepo='*' --enablerepo='rhel*' --resolve --destdir "<%= pkgdir %>/Packages" $(cat /etc/nailgun/required-rpms.txt | xargs echo -en)
 
 #Disable all RHEL repos so you don't accidentally update and break master node
 yum-config-manager --disable '*rhel*' &> /dev/null
@@ -146,3 +174,7 @@ mount -o loop /usr/share/rhel-boot-image/rhel-boot-image-6.4-20130130.0.el6ost.i
 cp -R /mnt/rhel_iso/. <%= pkgdir %>
 umount /mnt/rhel_iso
 rpm -e rhel-boot-image-6.4-20130130.0.el6ost.noarch
+
+trap - EXIT
+revert_back_to_centos
+exit 0
