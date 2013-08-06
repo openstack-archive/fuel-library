@@ -7,7 +7,9 @@ Puppet::Type.newtype(:ring_devices) do
     desc 'list of all swift storages'
 
     validate do |value|
-      fail(Puppet::Error, "#{value} should be a Hash and include ip address") unless value.is_a?(Hash) && value['storage_local_net_ip']
+      value.each do |element|
+        fail(Puppet::Error, "#{value} should be a Hash and include ip address") unless element.is_a?(Hash) && element['storage_address']
+      end
     end
   end
 
@@ -32,8 +34,8 @@ Puppet::Type.newtype(:ring_devices) do
       merged_storage['types'].collect do |type|
         port = merged_storage["#{type}_port"]
         options = {
-          :name => "#{merged_storage['storage_local_net_ip']}:#{port}",
-          :mountpoints => merged_storage['mountpoints'],
+          :name=>"#{merged_storage['storage_address']}:#{port}",
+          :mountpoints=>merged_storage['mountpoints'],
           :zone => merged_storage['swift_zone']
         }
         resources += [Puppet::Type.type("ring_#{type}_device".to_sym).new(options)]

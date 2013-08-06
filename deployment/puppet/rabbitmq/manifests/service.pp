@@ -30,6 +30,8 @@ class rabbitmq::service(
     $enable_real = false
   }
 
+  File <| title == '/etc/rabbitmq/enabled_plugins'|> -> Service[$service_name]
+
   service { $service_name:
     ensure     => $ensure_real,
     enable     => $enable_real,

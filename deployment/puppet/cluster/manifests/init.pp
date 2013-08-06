@@ -3,7 +3,7 @@
 # Module for configuring cluster resources.
 #
 class cluster {
-    if $use_unicast_corosync {
+    if $use_unicast_corosync != 'false' {
       #todo: make as parameter
       $unicast_addresses = $controller_internal_addresses
     } else {

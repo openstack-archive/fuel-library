@@ -77,7 +77,7 @@ class corosync (
 ) {
   # Making it possible to provide data with parameterized class declarations or
   # Console.
-  
+
   if $unicast_addresses == undef {
     $corosync_conf = "${module_name}/corosync.conf.erb"
   } else {

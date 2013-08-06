@@ -1,0 +1,15 @@
+#!/bin/bash
+TIMEOUT="--timeout 3"
+<% qpid_nodes.each do |nodea| 
+     qpid_nodes.each do |nodeb| -%>
+        localaddr="<%= nodea %>"
+        remoteaddr="<%= nodeb %>"
+	if [[ "$localaddr" != "$remoteaddr" ]] ; then
+		qpid-route $TIMEOUT -d dynamic add $localaddr $remoteaddr amq.direct
+		qpid-route $TIMEOUT -d dynamic add $localaddr $remoteaddr amq.fanout
+		qpid-route $TIMEOUT -d dynamic add $localaddr $remoteaddr qmf.default.topic
+		qpid-route $TIMEOUT -d dynamic add $localaddr $remoteaddr qmf.default.direct
+	fi
+<%   end
+   end -%>
+exit 0

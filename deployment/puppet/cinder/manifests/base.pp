@@ -10,13 +10,20 @@
 
 class cinder::base (
   $rabbit_password,
+  $qpid_password,
   $sql_connection,
   $rpc_backend            = 'cinder.openstack.common.rpc.impl_kombu',
+  $qpid_rpc_backend       = 'cinder.openstack.common.rpc.impl_qpid',
+  $queue_provider         = 'rabbitmq',
   $rabbit_host            = false,
   $rabbit_hosts           = ['127.0.0.1'],
   $rabbit_port            = 5672,
   $rabbit_virtual_host    = '/',
   $rabbit_userid          = 'nova',
+  $qpid_host              = false,
+  $qpid_hosts             = ['127.0.0.1'],
+  $qpid_port              = 5672,
+  $qpid_userid            = 'nova',
   $package_ensure         = 'present',
   $verbose                = 'False',
   $debug                  = 'False',
@@ -85,24 +92,51 @@ else {
     owner  => 'cinder',
     group  => 'cinder',
   }
-  if $rabbit_host
-  {
-    cinder_config {
-    'DEFAULT/rabbit_host':         value => $rabbit_host;
+  case $queue_provider {
+    'rabbitmq': {
+      if $rabbit_host
+      {
+        cinder_config {
+        'DEFAULT/rabbit_host':         value => $rabbit_host;
+        }
+      }
+      if $rabbit_hosts
+      {
+        cinder_config {
+        'DEFAULT/rabbit_hosts':         value => $rabbit_hosts;
+        }
+      }
+      cinder_config {
+        'DEFAULT/rpc_backend':         value => $rpc_backend;
+        'DEFAULT/rabbit_password':     value => $rabbit_password;
+        'DEFAULT/rabbit_port':         value => $rabbit_port;
+        'DEFAULT/rabbit_virtual_host': value => $rabbit_virtual_host;
+        'DEFAULT/rabbit_userid':       value => $rabbit_userid;
+      }
+    }
+    'qpid': {
+      if $qpid_host
+      {
+        cinder_config {
+        'DEFAULT/qpid_hostname':           value => $qpid_host;
+        }
+      }
+      if $qpid_hosts
+      {
+        cinder_config {
+        'DEFAULT/qpid_hosts':         value => $qpid_hosts;
+        }
+      }
+      cinder_config {
+        'DEFAULT/rpc_backend':         value => $qpid_rpc_backend;
+        'DEFAULT/qpid_password':       value => $qpid_password;
+        'DEFAULT/qpid_port':           value => $qpid_port;
+        'DEFAULT/qpid_username':         value => $qpid_userid;
+      }
     }
   }
-  if $rabbit_hosts
-  {
-    cinder_config {
-    'DEFAULT/rabbit_hosts':         value => $rabbit_hosts;
-    }
-  }
+
   cinder_config {
-    'DEFAULT/rpc_backend':         value => $rpc_backend;
-    'DEFAULT/rabbit_password':     value => $rabbit_password;
-    'DEFAULT/rabbit_port':         value => $rabbit_port;
-    'DEFAULT/rabbit_virtual_host': value => $rabbit_virtual_host;
-    'DEFAULT/rabbit_userid':       value => $rabbit_userid;
     'DEFAULT/sql_connection':      value => $sql_connection;
     'DEFAULT/debug':               value => $debug;
     'DEFAULT/verbose':             value => $verbose;

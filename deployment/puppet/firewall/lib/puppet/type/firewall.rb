@@ -35,6 +35,7 @@ Puppet::Type.newtype(:firewall) do
   feature :icmp_match, "Matching ICMP types"
   feature :owner, "Matching owners"
   feature :state_match, "Matching stateful firewall states"
+  feature :ctstate_match, "Matching stateful firewall states in CONNTRACK table"
   feature :reject_type, "The ability to control reject messages"
   feature :log_level, "The ability to control the log level"
   feature :log_prefix, "The ability to add prefixes to log messages"
@@ -469,6 +470,41 @@ Puppet::Type.newtype(:firewall) do
       value.join(',')
     end
   end
+
+  newproperty(:ctstate, :array_matching => :all, :required_features =>
+    :ctstate_match) do
+
+    desc <<-EOS
+      Matches a packet based on its state in the firewall CONNTRACK table. Values can be:
+
+      * INVALID
+      * ESTABLISHED
+      * NEW
+      * RELATED
+      * UNTRACKED
+      * SNAT
+      * DNAT
+    EOS
+
+    newvalues(:INVALID,:ESTABLISHED,:NEW,:RELATED,:RELATED,:UNTRACKED,:SNAT,:DNAT)
+
+    # States should always be sorted. This normalizes the resource states to
+    # keep it consistent with the sorted result from iptables-save.
+    def should=(values)
+      @should = super(values).sort_by {|sym| sym.to_s}
+    end
+
+    def is_to_s(value)
+      should_to_s(value)
+    end
+
+    def should_to_s(value)
+      value = [value] unless value.is_a?(Array)
+      value.join(',')
+    end
+  end
+
+
 
   # Rate limiting properties
   newproperty(:limit, :required_features => :rate_limiting) do

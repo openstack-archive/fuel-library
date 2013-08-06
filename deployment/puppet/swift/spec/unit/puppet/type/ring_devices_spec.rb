@@ -5,15 +5,15 @@ describe 'Puppet::Type.type(:ring_devices)' do
   before :all do
 
     @ring_devices = Puppet::Type.type(:ring_devices).new(:name => 'all',
-                                                 :storages => {
+                                                 :storages => [{
                                                    'name' => 'fuel-swift-01',
                                                    'role' => 'storage',
                                                    'internal_address' => '10.0.0.110',
                                                    'public_address'   => '10.0.204.110',
                                                    'swift_zone'       => 1,
                                                    'mountpoints'=> "dev 1\n dev2 55",
-                                                   'storage_local_net_ip' => '10.0.0.110',
-                                                 })
+                                                   'storage_address' => '10.0.0.110',
+                                                 }])
   end
 
   #it ':storages param should require a value when Hash and contain "storage_local_net_ip" key' do
@@ -46,7 +46,7 @@ describe 'Puppet::Type.type(:ring_devices)' do
 
   it 'should correctly accept default parameters' do
     ring_devices = Puppet::Type.type(:ring_devices).new(:name => 'all',
-                                                        :storages => {'storage_local_net_ip' => '10.0.0.110'})
+                                                        :storages => [ {'storage_address' => '10.0.0.110'}])
     ring_devices.resources[0][:name].should == '10.0.0.110:6001'
     ring_devices.resources[0][:zone].should == 100
     ring_devices.resources[0][:mountpoints].should == "1 1\n2 1"

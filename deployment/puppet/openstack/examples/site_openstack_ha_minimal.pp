@@ -26,6 +26,16 @@ $internal_virtual_ip = '10.0.0.253'
 # interface resides
 $public_virtual_ip   = '10.0.204.253'
 
+case $::operatingsystem {
+  'redhat' : {
+          $queue_provider = 'qpid'
+          $custom_mysql_setup_class = 'pacemaker_mysql'
+  }
+  default: {
+    $queue_provider='rabbitmq'
+    $custom_mysql_setup_class='galera'
+  }
+}
 
 $nodes_harr = [
   {
@@ -99,7 +109,8 @@ $public_address = $node[0]['public_address']
 $controllers = merge_arrays(filter_nodes($nodes,'role','primary-controller'), filter_nodes($nodes,'role','controller'))
 $controller_internal_addresses = nodes_to_hash($controllers,'name','internal_address')
 $controller_public_addresses = nodes_to_hash($controllers,'name','public_address')
-$controller_hostnames = keys($controller_internal_addresses)
+$controller_hostnames = sort(keys($controller_internal_addresses))
+$controller_internal_ipaddresses = sort(values($controller_internal_addresses))
 
 #Set this to anything other than pacemaker if you do not want Quantum HA
 #Also, if you do not want Quantum HA, you MUST enable $quantum_network_node
@@ -117,9 +128,13 @@ $proj_name            = 'test'
 $multi_host              = true
 
 # Specify different DB credentials for various services
+# HA DB provided through pacemaker_mysql or galera
 $mysql_root_password     = 'nova'
 $admin_email             = 'openstack@openstack.org'
 $admin_password          = 'nova'
+
+validate_re($custom_mysql_setup_class,'galera|pacemaker_mysql')
+
 
 $keystone_db_password    = 'nova'
 $keystone_admin_token    = 'nova'
@@ -129,6 +144,9 @@ $glance_user_password    = 'nova'
 
 $nova_db_password        = 'nova'
 $nova_user_password      = 'nova'
+
+#AMQP backend rabbitmq or qpid
+validate_re($queue_provider,  'rabbitmq|qpid')
 
 $rabbit_password         = 'nova'
 $rabbit_user             = 'nova'
@@ -155,7 +173,6 @@ $quantum_use_namespaces  = true
 # a string "password" value that should be configured to authenticate requests for metadata
 # from quantum-metadata-proxy to nova-api
 $quantum_metadata_proxy_shared_secret = "connecting_nova-api_and_quantum-metadata-agent"
-
 # Specify network creation criteria:
 # Should puppet automatically create networks?
 $create_networks = true
@@ -384,6 +401,7 @@ if $use_syslog {
   class { "::openstack::logging":
     stage          => 'first',
     role           => 'client',
+    # use date-rfc3339 timestamps
     show_timezone => true,
     # log both locally include auth, and remote
     log_remote     => true,
@@ -592,9 +610,13 @@ class compact_controller (
     glance_user_password    => $glance_user_password,
     nova_db_password        => $nova_db_password,
     nova_user_password      => $nova_user_password,
+    queue_provider          => $queue_provider,
     rabbit_password         => $rabbit_password,
     rabbit_user             => $rabbit_user,
     rabbit_nodes            => $controller_hostnames,
+    qpid_password           => $rabbit_password,
+    qpid_user               => $rabbit_user,
+    qpid_nodes              => [$internal_virtual_ip],
     memcached_servers       => $controller_hostnames,
     export_resources        => false,
     glance_backend          => $glance_backend,
@@ -613,6 +635,7 @@ class compact_controller (
     cinder_iscsi_bind_addr  => $cinder_iscsi_bind_addr,
     manage_volumes          => $cinder ? { false => $manage_volumes, default =>$is_cinder_node },
     galera_nodes            => $controller_hostnames,
+    custom_mysql_setup_class => $custom_mysql_setup_class,
     nv_physical_volume      => $nv_physical_volume,
     use_syslog              => $use_syslog,
     syslog_log_level        => $syslog_log_level,
@@ -713,10 +736,14 @@ node /fuel-compute-[\d+]/ {
     multi_host             => $multi_host,
     auto_assign_floating_ip => $auto_assign_floating_ip,
     sql_connection         => "mysql://nova:${nova_db_password}@${internal_virtual_ip}/nova",
+    queue_provider         => $queue_provider,
     rabbit_nodes           => $controller_hostnames,
     rabbit_password        => $rabbit_password,
     rabbit_user            => $rabbit_user,
     rabbit_ha_virtual_ip   => $internal_virtual_ip,
+    qpid_password          => $rabbit_password,
+    qpid_user              => $rabbit_user,
+    qpid_nodes             => [$internal_virtual_ip],
     glance_api_servers     => "${internal_virtual_ip}:9292",
     vncproxy_host          => $public_virtual_ip,
     verbose                => $verbose,
@@ -775,10 +802,14 @@ node /fuel-quantum/ {
       create_networks       => $create_networks,
       verbose               => $verbose,
       debug                 => $debug,
+      queue_provider        => $queue_provider,
       rabbit_password       => $rabbit_password,
       rabbit_user           => $rabbit_user,
       rabbit_nodes          => $controller_hostnames,
       rabbit_ha_virtual_ip  => $internal_virtual_ip,
+      qpid_password         => $rabbit_password,
+      qpid_user             => $rabbit_user,
+      qpid_nodes            => [$internal_virtual_ip],
       quantum               => $quantum,
       quantum_user_password => $quantum_user_password,
       quantum_db_password   => $quantum_db_password,

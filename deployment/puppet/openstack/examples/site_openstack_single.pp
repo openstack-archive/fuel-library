@@ -25,6 +25,16 @@ $internal_interface  = 'eth0'
 
 # This is the name of the private interface. All traffic within OpenStack tenants' networks will go through this interface.
 $private_interface   = 'eth2'
+case $::operatingsystem {
+  'redhat' : {
+          $queue_provider = 'qpid'
+          $custom_mysql_setup_class = 'pacemaker_mysql'
+  }
+  default: {
+    $queue_provider='rabbitmq'
+    $custom_mysql_setup_class='galera'
+  }
+}
 
 $nodes_harr = [
   {
@@ -296,6 +306,7 @@ if $use_syslog {
   class { "::openstack::logging":
     stage          => 'first',
     role           => 'client',
+    # use date-rfc3339 timestamps
     show_timezone => true,
     # log both locally include auth, and remote
     log_remote     => true,

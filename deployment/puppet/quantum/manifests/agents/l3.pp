@@ -97,7 +97,7 @@ class quantum::agents::l3 (
         $external_segment_id = undef
       }
 
-      if empty($ext_ipinfo) {
+      if empty($ext_ipinfo) and $floating_range {
         $floating_net = regsubst($floating_range, '(.+\.)\d+/\d+', '\1')
         $floating_host = regsubst($floating_range, '.+\.(\d+)/\d+', '\1') + 1
 
@@ -221,14 +221,12 @@ class quantum::agents::l3 (
 
   # rootwrap error with L3 agent
   # https://bugs.launchpad.net/quantum/+bug/1069966
-
   exec { 'patch-iptables-manager':
     command => "sed -i '272 s|/sbin/||' ${iptables_manager}",
     onlyif  => "sed -n '272p' ${iptables_manager} | grep -q '/sbin/'",
     path    => ['/bin', '/sbin', '/usr/bin', '/usr/sbin'],
     require => [Anchor['quantum-l3'], Package[$l3_agent_package]],
   }
-
   Service<| title == 'quantum-server' |> -> Service['quantum-l3']
 
   if $service_provider == 'pacemaker' {
@@ -240,7 +238,7 @@ class quantum::agents::l3 (
     # and his dependences
     file {'quantum-l3-agent-ocf':
       path=>'/usr/lib/ocf/resource.d/mirantis/quantum-agent-l3',
-      mode => 744,
+      mode => 755,
       owner => root,
       group => root,
       source => "puppet:///modules/quantum/ocf/quantum-agent-l3",

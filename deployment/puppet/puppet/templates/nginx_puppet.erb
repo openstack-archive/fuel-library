@@ -9,7 +9,7 @@ server {
     server_name <%= puppet_master_hostname %> localhost;
 
     # PREVENTING 413 Request Entity Too Large errors
-    client_max_body_size 20M;
+    client_max_body_size 256M;
     
     ssl                     on;
     ssl_session_timeout     20m;

@@ -61,12 +61,17 @@ class horizon(
     require => Package[$::horizon::params::http_service],
   }
 
+  define horizon_safe_package(){
+    if ! defined(Package[$name]){
+      @package { $name : }
+    }
+  } 
+
   File {
     require => Package['dashboard'],
     owner   => $wsgi_user,
     group   => $wsgi_group,
   }
-
   file { $::horizon::params::local_settings_path:
     content => template('horizon/local_settings.py.erb'),
     mode    => '0644',
@@ -156,6 +161,7 @@ class horizon(
 
   case $::osfamily {
     'RedHat': {
+      package { $::horizon::params::horizon_additional_packages : ensure => present }
       file { '/etc/httpd/conf.d/wsgi.conf':
         mode   => 644,
         owner  => root,
@@ -165,7 +171,7 @@ class horizon(
         before  => Package['dashboard'],
       }  # ensure there is a HTTP redirect from / to /dashboard
 
-      if $use_ssl {
+      if $use_ssl =~ /^(default|exist|custom)$/ {
         package { 'mod_ssl':
           ensure => present,
           before => Service['httpd'],
@@ -179,7 +185,6 @@ class horizon(
         ],
         before  => Service['httpd'],
       }
-
       if $use_syslog {
         file {'/etc/httpd/conf.d/openstack-dashboard.conf':
 	  ensure  => present,
@@ -201,7 +206,7 @@ class horizon(
 
       a2mod { 'wsgi': }
 
-      if $use_ssl {
+      if $use_ssl =~ /^(default|exist|custom)$/ {
         a2mod { ['rewrite', 'ssl']: }
       }
 

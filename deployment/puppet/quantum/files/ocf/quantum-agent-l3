@@ -289,7 +289,7 @@ quantum_l3_agent_status() {
 
 clean_up()
 {
-    q-agent-cleanup.py --agent=l3 --cleanup-ports
+    q-agent-cleanup.py --debug --agent=l3 --cleanup-ports 
 }
 
 
@@ -302,7 +302,6 @@ quantum_l3_agent_monitor() {
 
 quantum_l3_agent_start() {
     local rc
-
     quantum_l3_agent_status
     rc=$?
     if [ $rc -eq $OCF_SUCCESS ]; then
@@ -315,7 +314,6 @@ quantum_l3_agent_start() {
         ocf_log info "OpenStack quantum-l3-agent already running with PID=$L3_PID"
         return $OCF_SUCCESS
     fi
-
     clean_up
 
     if ocf_is_true ${OCF_RESKEY_syslog} ; then
@@ -412,7 +410,6 @@ quantum_l3_agent_stop() {
     ocf_log info "OpenStack quantum-l3-agent stopped"
 
     rm -f $OCF_RESKEY_pid
-
     clean_up
 
     return $OCF_SUCCESS
@@ -440,3 +437,4 @@ case "$1" in
   *)            usage
                 exit $OCF_ERR_UNIMPLEMENTED;;
 esac
+

@@ -15,7 +15,7 @@ class swift::params {
       $account_replicator_service_name   = 'swift-account-replicator'
       $python_path		= 'python2.7/dist-packages'
       if $::operatingsystem == 'Debian' {
-        $service_proivider    = 'debian'
+        $service_provider    = 'debian'
       } else {
         $service_provider     = 'upstart'
       }
