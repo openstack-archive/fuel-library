@@ -127,7 +127,11 @@ echo > /tmp/partition.ks
                 #end if
                 ## volume_size is less than or equal to 16TB
                 #if $volume_size > 0 and $volume_size <= 16777216
-                    $logical_volumes.append("logvol %s --vgname=%s --size=%s --name=%s" % ($volume_mount, $space_id, $volume_size, $volume_name))
+                    #set $fstype = "ext4"
+                    #if $volume_name == "glance"
+                        #set $fstype = "xfs"
+                    #end if
+                    $logical_volumes.append("logvol %s --vgname=%s --size=%s --name=%s --fstype=%s" % ($volume_mount, $space_id, $volume_size, $volume_name, $fstype))
                 ## volume_size is more than 16TB, use xfs file system
                 #else
                     $post_logical_volumes.append("lvcreate --size %s --name %s %s" % ($volume_size, $volume_name, $space_id))
