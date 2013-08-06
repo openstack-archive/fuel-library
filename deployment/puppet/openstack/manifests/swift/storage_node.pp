@@ -65,6 +65,8 @@ class openstack::swift::storage_node (
   # install all swift storage servers together
   class { 'swift::storage::all':
     storage_local_net_ip => $swift_local_net_ip,
+    devices              => $storage_mnt_base_dir,
+    devices_dirs         => $storage_devices,
     swift_zone           => $swift_zone,
   }
 

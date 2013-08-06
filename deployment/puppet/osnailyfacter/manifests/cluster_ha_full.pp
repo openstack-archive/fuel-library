@@ -38,6 +38,7 @@ $swift_hash           = parsejson($::swift)
 $cinder_hash          = parsejson($::cinder)
 $access_hash          = parsejson($::access)
 $nodes_hash           = parsejson($::nodes)
+$mp_hash              = parsejson($::mp)
 $tenant_network_type  = $quantum_params['tenant_network_type']
 $segment_range        = $quantum_params['segment_range']
 $vlan_start           = $novanetwork_params['vlan_start']
@@ -71,7 +72,10 @@ if !$debug
  $debug = 'true'
 }
 
-
+if !$swift_partition
+{
+  $swift_partition = '/srv/node'
+}
 
 
 ##CALCULATED PARAMETERS
@@ -128,6 +132,7 @@ $controller_nodes = sort(values($controller_internal_addresses))
 $swift_proxy_nodes = merge_arrays(filter_nodes($nodes_hash,'role','primary-swift-proxy'),filter_nodes($nodes,'role','swift-proxy'))
 $swift_proxies = nodes_to_hash($swift_proxy_nodes,'name','storage_address')
 $swift_storages = filter_nodes($nodes_hash, 'role', 'storage')
+$mountpoints = filter_hash($mp_hash,'point')
 $controller_node_public  = $management_vip
 $quantum_metadata_proxy_shared_secret = $quantum_params['metadata_proxy_shared_secret']
 $quantum_gre_bind_addr = $::internal_address
@@ -167,7 +172,7 @@ $manage_volumes          = false
 $glance_backend          = 'swift'
 $quantum_netnode_on_cnt  = true
 
-$swift_loopback = 'loopback'
+$swift_loopback = false
 $mirror_type = 'external'
 
 class ha_controller (
@@ -242,6 +247,7 @@ class ha_controller (
     segment_range           => $segment_range,
     cinder                  => true,
     cinder_iscsi_bind_addr  => $cinder_iscsi_bind_addr,
+    cinder_volume_group     => "cinder",
     manage_volumes          => $cinder ? { false => $manage_volumes, default =>$is_cinder_node },
     galera_nodes            => $controller_nodes,
     custom_mysql_setup_class => $custom_mysql_setup_class,
@@ -343,6 +349,7 @@ case $role {
     segment_range          => $segment_range,
     cinder                 => $cinder,
     cinder_iscsi_bind_addr => $cinder_iscsi_bind_addr,
+    cinder_volume_group     => "cinder",
     manage_volumes         => $cinder ? { false => $manage_volumes, default =>$is_cinder_node },
     db_host                => $management_vip,
     cinder_rate_limits     => $::cinder_rate_limits,
@@ -364,12 +371,16 @@ case $role {
   $swift_zone = $node[0]['swift_zone']
 
   class { 'openstack::swift::storage_node':
-    storage_type           => $swift_loopback,
+    storage_type          => $swift_loopback,
+    loopback_size         => '5243780',
+    storage_mnt_base_dir  => $swift_partition,
+    storage_devices       =>  $mountpoints,
     swift_zone             => $swift_zone,
     swift_local_net_ip     => $swift_local_net_ip,
     master_swift_proxy_ip  => $master_swift_proxy_ip,
     cinder                 => $cinder,
     cinder_iscsi_bind_addr => $cinder_iscsi_bind_addr,
+    cinder_volume_group     => "cinder",
     manage_volumes          => $cinder ? { false => $manage_volumes, default =>$is_cinder_node },
     db_host                => $management_vip,
     service_endpoint       => $management_vip,
