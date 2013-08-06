@@ -72,7 +72,10 @@ if !$debug
  $debug = 'true'
 }
 
-
+if !$swift_partition
+{
+  $swift_partition = '/srv/node'
+}
 
 
 ##CALCULATED PARAMETERS
@@ -244,6 +247,7 @@ class ha_controller (
     segment_range           => $segment_range,
     cinder                  => true,
     cinder_iscsi_bind_addr  => $cinder_iscsi_bind_addr,
+    cinder_volume_group     => "cinder",
     manage_volumes          => $cinder ? { false => $manage_volumes, default =>$is_cinder_node },
     galera_nodes            => $controller_nodes,
     custom_mysql_setup_class => $custom_mysql_setup_class,
@@ -345,6 +349,7 @@ case $role {
     segment_range          => $segment_range,
     cinder                 => $cinder,
     cinder_iscsi_bind_addr => $cinder_iscsi_bind_addr,
+    cinder_volume_group     => "cinder",
     manage_volumes         => $cinder ? { false => $manage_volumes, default =>$is_cinder_node },
     db_host                => $management_vip,
     cinder_rate_limits     => $::cinder_rate_limits,
@@ -368,13 +373,14 @@ case $role {
   class { 'openstack::swift::storage_node':
     storage_type          => $swift_loopback,
     loopback_size         => '5243780',
-    storage_mnt_base_dir  => "/var/lib/glance/node",
+    storage_mnt_base_dir  => $swift_partition,
     storage_devices       =>  $mountpoints,
     swift_zone             => $swift_zone,
     swift_local_net_ip     => $swift_local_net_ip,
     master_swift_proxy_ip  => $master_swift_proxy_ip,
     cinder                 => $cinder,
     cinder_iscsi_bind_addr => $cinder_iscsi_bind_addr,
+    cinder_volume_group     => "cinder",
     manage_volumes          => $cinder ? { false => $manage_volumes, default =>$is_cinder_node },
     db_host                => $management_vip,
     service_endpoint       => $management_vip,

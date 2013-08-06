@@ -58,6 +58,12 @@ else {
   $floating_ips_range = parsejson($floating_network_range)
 }
 
+if !$swift_partition
+{
+  $swift_partition = '/var/lib/glance/node'
+}
+
+
 ##CALCULATED PARAMETERS
 
 
@@ -234,7 +240,8 @@ class compact_controller (
     cinder_user_password          => $cinder_hash[user_password],
     cinder_iscsi_bind_addr        => $cinder_iscsi_bind_addr,
     cinder_db_password            => $cinder_hash[db_password],
-    manage_volumes                => false,
+    cinder_volume_group           => "cinder",
+    manage_volumes                => $is_cinder_node,
     galera_nodes                  => $controller_nodes,
     custom_mysql_setup_class      => $custom_mysql_setup_class,
     mysql_skip_name_resolve       => true,
@@ -294,7 +301,7 @@ class virtual_ips () {
       class { 'openstack::swift::storage_node':
         storage_type          => $swift_loopback,
         loopback_size         => '5243780',
-        storage_mnt_base_dir  => "/var/lib/glance/node",
+        storage_mnt_base_dir  => $swift_partition,
         storage_devices       => $mountpoints,
         swift_zone            => $swift_zone,
         swift_local_net_ip    => $storage_address,
@@ -374,6 +381,7 @@ class virtual_ips () {
         vncproxy_host          => $public_vip,
         verbose                => $verbose,
         debug                  => $debug,
+        cinder_volume_group    => "cinder",
         vnc_enabled            => true,
         manage_volumes         => $cinder ? { false => $manage_volumes, default =>$is_cinder_node },
         nova_user_password     => $nova_hash[user_password],
