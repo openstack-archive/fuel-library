@@ -95,7 +95,7 @@ class cluster::haproxy (
 
 }
 
-Class['corosync'] -> Class['cluster::haproxy']
+#Class['corosync'] -> Class['cluster::haproxy']
 if defined(Corosync::Service['pacemaker']) {
   Corosync::Service['pacemaker'] -> Class['cluster::haproxy']
 }

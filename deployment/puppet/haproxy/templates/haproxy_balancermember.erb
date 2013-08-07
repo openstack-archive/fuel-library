@@ -1,6 +1,6 @@
   <% for @host in @balancers.keys.sort %>server  <%= @host %> <%= @balancers[@host] %>:<%= balancer_port %> <%
     items = balancermember_options
     items = [items] unless balancermember_options.instance_of? Array
-    items.each do |item| %> <% if @define_cookies == true %> cookie <%= @host %> <% end %> <%= item %> <% if @define_backend == true and @balancers.keys.first != @host %> backup <% end %> <% end %>
+    items.each do |item| %> <% if @define_cookies == true %> cookie <%= @host %> <% end %> <%= item %> <% if @define_backend == true && (@balancers.keys.sort.first != @host) %> backup <% end %> <% end %>
   <% end -%>
 

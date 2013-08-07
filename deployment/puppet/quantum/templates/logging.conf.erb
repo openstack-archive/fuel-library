@@ -1,21 +1,99 @@
+<% if @debug then -%>
+[loggers]
+keys = root, l3agent, ovsagent, dhcpagent, metadata
+
+[handlers]
+keys = production,devel, l3agent, ovsagent, dhcpagent, metadata
+
+<% else -%>
 [loggers]
 keys = root
 
+# devel is reserved for future usage
 [handlers]
-keys = syslog
+keys = production,devel
 
-[formatters]
-keys = default
+<% end -%>
 
 [logger_root]
-level = DEBUG
-handlers = syslog
-qualname = quantum
+level = NOTSET
+handlers = production
+propagate = 1
+#qualname = quantum
 
-[handler_syslog]
-class = handlers.SysLogHandler
-args = ('/dev/log', handlers.SysLogHandler.LOG_LOCAL4)
-formatter = default
+[formatters]
+keys = normal,debug,default
+
+[formatter_debug]
+format = quantum-%(name)s %(levelname)s: %(module)s %(funcName)s %(message)s
+
+[formatter_normal]
+format = quantum-%(name)s %(levelname)s: %(message)s
 
 [formatter_default]
-format = quantum %(name)s %(levelname)s %(message)s
+format=%(asctime)s %(levelname)s: %(module)s %(name)s:%(lineno)d %(funcName)s  %(message)s
+
+# Extended logging info to LOG_<%= @syslog_log_facility %> with debug:<%= @debug %> and verbose:<%= @verbose %>
+# Note: local copy goes to /var/log/quantum-all.log
+[handler_production]
+class = handlers.SysLogHandler
+<% if @debug then -%>
+level = DEBUG
+<% elsif @verbose then -%>
+level = INFO
+<% else -%>
+level = <%= @syslog_log_level %>
+<% end -%>
+args = ('/dev/log', handlers.SysLogHandler.LOG_<%= @syslog_log_facility %>)
+formatter = normal
+
+# TODO find out how it could be usefull and how it should be used
+[handler_devel]
+class = StreamHandler
+formatter = debug
+args = (sys.stdout,)
+
+<% if @debug then -%>
+[logger_l3agent]
+handlers = l3agent
+level=NOTSET
+qualname = quantum.agent.l3_agent
+
+[handler_l3agent]
+class = logging.FileHandler
+args = ('/var/log/quantum/l3.log',)
+formatter = default
+
+
+[logger_dhcpagent]
+handlers = dhcpagent
+level=NOTSET
+qualname = quantum.agent.dhcp_agent
+
+[handler_dhcpagent]
+class = logging.FileHandler
+args = ('/var/log/quantum/dhcp.log',)
+formatter = default
+
+
+[logger_ovsagent]
+handlers = ovsagent
+level=NOTSET
+qualname = quantum.plugins.openvswitch.agent.ovs_quantum_agent
+
+[handler_ovsagent]
+class = logging.FileHandler
+args = ('/var/log/quantum/ovs.log',)
+formatter = default
+
+
+[logger_metadata]
+handlers = metadata
+level=NOTSET
+qualname = quantum.agent.metadata
+
+[handler_metadata]
+class = logging.FileHandler
+args = ('/var/log/quantum/metadata.log',)
+formatter = default
+<% end -%>

@@ -1,5 +1,5 @@
 class cobbler::selinux {
-  if ($::selinux==false) {
+  if ($::selinux != 'false') {
 
   	  Exec {path => '/usr/bin:/bin:/usr/sbin:/sbin'}
 

@@ -5,13 +5,8 @@ install
 url --url=$tree
 
 # ALTERNATIVE REPOSITORIES
-<% if ks_repo.kind_of?(Array)  %>
-  <% ks_repo.each do |repo| %>
+<% ks_repo.each do |repo| %>
 repo --name=<%= repo['name'] %> --baseurl=<%= repo['url'] %>
-  <% end %>
-<% else %>
-  # No reopos add
-  # in order to add repo declare the puppet "ks_repo" variable as Array
 <% end %>
 
 # KEYBOARD AND LANGUAGE CUSTOMIZATION
@@ -19,15 +14,16 @@ lang en_US.UTF-8
 keyboard us
 
 # WHICH TIMEZONE TO USE ON INSTALLED SYSTEM
-timezone --utc <%= @ks_system_timezone %>
+timezone --utc <%= ks_system_timezone %>
 
-# REBOOT AFTER INSTALLATION
+# REBOOT AFTER INSTALLATION 
 reboot
 
+network --onboot yes --device eth0 --bootproto=dhcp
 firewall --disable
 
 # SET ROOT PASSWORD DEFAULT IS r00tme
-rootpw --iscrypted <%= @ks_encrypted_root_password %>
+rootpw --iscrypted <%= ks_encrypted_root_password %>
 
 # AUTHENTICATION CUSTOMIZATION
 authconfig --enableshadow --passalgo=sha512
@@ -44,7 +40,7 @@ skipx
 # BOOTLOADER CUSTOMIZATION
 # INSTALL BOOTLOADER INTO MASTER BOOT RECORD
 # --location=mbr
-# WHICH ORDER OF DRIVES TO USE DURING TRYING TO INSTALL BOOTLOADER
+# WHICH ORDER OF DRIVES TO USE DURING TRYING TO INSTALL BOOTLOADER 
 # --driveorder=sda,hda
 # APPEND STRING TO KERNEL BOOT COMMAND
 # --append=""
@@ -57,10 +53,11 @@ zerombr
 # REMOVE ALL PARTITIONS BEFORE CREATING NEW ONES
 clearpart --all --initlabel
 
-$SNIPPET('main_partition_select')
+# AUTOMATICALLY CREATE / /boot AND swap PARTITIONS
+autopart
 
 # COBBLER EMBEDDED SNIPPET: 'network_config'
-# CONFIGURES NETWORK INTERFACES DEPENDING ON
+# CONFIGURES NETWORK INTERFACES DEPENDING ON 
 # COBBLER SYSTEM PARAMETERS
 $SNIPPET('network_config')
 
@@ -70,7 +67,7 @@ $SNIPPET('network_config')
 %pre
 
 # COBBLER EMBEDDED SNIPPET: 'log_ks_pre'
-# CONFIGURES %pre LOGGING
+# CONFIGURES %pre LOGGING 
 $SNIPPET('log_ks_pre')
 
 # COBBLER EMBEDDED SNIPPET: 'kickstart_start'
@@ -78,18 +75,18 @@ $SNIPPET('log_ks_pre')
 $SNIPPET('kickstart_start')
 
 # COBBLER EMBEDDED SNIPPET: 'pre_install_network_config'
-# PRECONFIGURES NETWORK INTERFACES DEPENDING ON
+# PRECONFIGURES NETWORK INTERFACES DEPENDING ON 
 # COBBLER SYSTEM PARAMETERS
-# IN PARTICULAR IT WRITES KICKSTART NETWORK CONFIGURATION
+# IN PARTICULAR IT WRITES KICKSTART NETWORK CONFIGURATION 
 # INTO /tmp/pre_install_network_config WHICH IS INCLUDED
 # INTO KICKSTART BY 'network_config' SNIPPET
 $SNIPPET('pre_install_network_config')
 
-$SNIPPET('pre_partition_select')
 
 # PACKAGES SECTION
 # HERE ARE LIST OF PACKAGES THAT WILL BE INSTALLED
-%packages --nobase
+# FIXME --ignoremissing
+%packages --nobase --ignoremissing 
 @Core
 yum
 openssh-server
@@ -101,7 +98,9 @@ crontabs
 cronie
 ruby-augeas
 yum-plugin-versionlock
-
+yum-utils
+rubygem-openstack
+rubygem-netaddr
 # COBBLER EMBEDDED SNIPPET: 'puppet_install_if_enabled'
 # LISTS puppet PACKAGE IF puppet_auto_setup VARIABLE IS SET TO 1
 $SNIPPET('puppet_install_if_enabled')
@@ -111,16 +110,24 @@ $SNIPPET('puppet_install_if_enabled')
 $SNIPPET('mcollective_install_if_enabled')
 
 # POSTINSTALL SECTION
-# HERE ARE COMMANDS THAT WILL BE LAUNCHED JUST AFTER
+# HERE ARE COMMANDS THAT WILL BE LAUNCHED JUST AFTER 
 # INSTALLATION ITSELF COMPLETED
 %post
 yum versionlock puppet
+yum versionlock kernel
+yum versionlock iproute2
+yum-config-manager --disableplugin=fastestmirror --save &>/dev/null
+
 echo -e "modprobe nf_conntrack_ipv4\nmodprobe nf_conntrack_ipv6" >> /etc/rc.modules
 chmod +x /etc/rc.modules
 echo -e "net.nf_conntrack_max=1048576" >> /etc/sysctl.conf
+mkdir -p /var/log/coredump
+echo -e "kernel.core_pattern=/var/log/coredump/core.%e.%p.%h.%t" >> /etc/sysctl.conf
+chmod 777 /var/log/coredump
+echo -e "* soft core unlimited\n* hard core unlimited" >> /etc/security/limits.conf
 
 # COBBLER EMBEDDED SNIPPET: 'log_ks_post'
-# CONFIGURES %post LOGGING
+# CONFIGURES %post LOGGING 
 $SNIPPET('log_ks_post')
 
 # COBBLER EMBEDDED SNIPPET: 'post_install_kernel_options'
@@ -128,9 +135,9 @@ $SNIPPET('log_ks_post')
 $SNIPPET('post_install_kernel_options')
 
 # COBBLER EMBEDDED SNIPPET: 'post_install_network_config'
-# CONFIGURES NETWORK INTERFACES DEPENDING ON
+# CONFIGURES NETWORK INTERFACES DEPENDING ON 
 # COBBLER SYSTEM PARAMETERS
-$SNIPPET('post_install_network_config')
+$SNIPPET('post_install_network_config_fuel')
 
 # COBBLER EMBEDDED SNIPPET: 'puppet_conf'
 # CONFIGURES PUPPET AGENT
@@ -138,20 +145,17 @@ $SNIPPET('puppet_conf')
 
 # COBBLER EMBEDDED SNIPPET: 'puppet_register_if_enabled'
 # CREATES CERTIFICATE REQUEST AND SENDS IT TO PUPPET MASTER
-$SNIPPET('puppet_register_if_enabled')
-
-# CREATING LVM GROUP FOR CINDER
-$SNIPPET('cinder_create_lvm_group')
+$SNIPPET('puppet_register_if_enabled_fuel')
 
 # COBBLER EMBEDDED SNIPPET: 'mcollective_conf'
 # CONFIGURES MCOLLECTIVE AGENT
 $SNIPPET('mcollective_conf')
 
 # COBBLER EMBEDDED SNIPPET: 'redhat_register'
-# REGISTER AT REDHAT WITH ACTIVATION KEY
+# REGISTER TO RED HAT RHN SATELLITE WITH ACTIVATION KEY
 $SNIPPET('redhat_register')
-# REGISTER AT REDHAT WITH lOGIN/PASSWORD
-$SNIPPET('rhn_certificate_based_register')
+# REGISTER TO RED HAT SUBSCRIPTION MANAGER WITH lOGIN/PASSWORD
+$SNIPPET('red_hat_register_rhsm')
 
 # COBBLER EMBEDDED SNIPPET: 'kickstart_done'
 # DISABLES PXE BOOTING

@@ -1,0 +1,10 @@
+# file is managed by puppet
+<% unless @high_precision_timestamps -%>
+#
+# Use traditional timestamp format date-rfc3164 (Dec 5 02:21:13).
+# To enable high precision timestamps date-rfc3339 (2010-12-05T02:21:41.889482+01:00), comment out the following line.
+#
+$ActionFileDefaultTemplate RSYSLOG_TraditionalFileFormat
+<% end -%>
+
+if $programname == 'puppet-agent' then /var/log/puppet/agent.log

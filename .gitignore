@@ -1,8 +1,25 @@
+# IDEs
 .idea
+.settings
+.project
+
+# ISO
 iso/local_mirror
 iso/build
+
+# Python
 *.pyc
+
+# Doc
 _build
-metadata.json
-.project
+
+# Editors
 *.swp
+*~
+
+# Vagrant
+.vagrant
+Vagrantfile
+
+metadata.json
+Gemfile.lock

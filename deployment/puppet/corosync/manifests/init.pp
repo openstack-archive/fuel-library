@@ -77,7 +77,7 @@ class corosync (
 ) {
   # Making it possible to provide data with parameterized class declarations or
   # Console.
-  
+
   if $unicast_addresses == undef {
     $corosync_conf = "${module_name}/corosync.conf.erb"
   } else {
@@ -88,6 +88,16 @@ class corosync (
   # this value is provided.  This is emulating a required variable as defined in
   # parameterized class.
 
+  file { 'limitsconf':
+    ensure  => present,
+    path    => '/etc/security/limits.conf',
+    source => 'puppet:///modules/corosync/limits.conf',
+    replace => true,
+    owner   => '0',
+    group   => '0',
+    mode    => '0644',
+    before => Service["corosync"],
+  }
   
   
   # Using the Puppet infrastructure's ca as the authkey, this means any node in

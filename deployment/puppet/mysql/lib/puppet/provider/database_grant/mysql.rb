@@ -2,7 +2,6 @@
 # of the name:
 #   user@host => global
 #   user@host/db => per-db
-
 Puppet::Type.type(:database_grant).provide(:mysql) do
 
   desc "Uses mysql as database."

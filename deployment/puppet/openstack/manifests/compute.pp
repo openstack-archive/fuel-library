@@ -13,6 +13,9 @@
 #   Defaults to false.
 # [fixed_range] Range of ipv4 network for vms.
 # [network_manager] Nova network manager to use.
+# [auto_assign_floating_ip] Rather configured to automatically allocate and
+#   assign a floating IP address to virtual instances when they are launched.
+#   Defaults to false.
 # [multi_host] Rather node should support multi-host networking mode for HA.
 #   Optional. Defaults to false.
 # [network_config] Hash that can be used to pass implementation specifc
@@ -33,12 +36,16 @@
 #    Defaults to false. False indicates that a vnc proxy should not be configured.
 #  [vnc_enabled] Rather vnc console should be enabled.
 #    Optional. Defaults to 'true',
-#  [verbose] Rather components should log verbosely.
-#    Optional. Defaults to false.
+# [verbose] Rather to print more verbose (INFO+) output. If non verbose and non debug, would give syslog_log_level (default is WARNING) output. Optional. Defaults to false.
+# [debug] Rather to print even more verbose (DEBUG+) output. If true, would ignore verbose option. Optional. Defaults to false.
 #  [manage_volumes] Rather nova-volume should be enabled on this compute node.
 #    Optional. Defaults to false.
 #  [nova_volumes] Name of volume group in which nova-volume will create logical volumes.
 #    Optional. Defaults to nova-volumes.
+# [use_syslog] Rather or not service should log to syslog. Optional.
+# [syslog_log_facility] Facility for syslog, if used. Optional. Note: duplicating conf option
+#       wouldn't have been used, but more powerfull rsyslog features managed via conf template instead
+# [syslog_log_level] logging level for non verbose and non debug mode. Optional.
 #
 # class { 'openstack::nova::compute':
 #   internal_address   => '192.168.2.2',
@@ -56,12 +63,19 @@ class openstack::compute (
   $sql_connection                = false,
   # Nova
   $purge_nova_config             = false,
+  # AMQP
+  $queue_provider                = 'rabbitmq',
   # Rabbit
   $rabbit_nodes                  = false,
   $rabbit_password               = 'rabbit_pw',
   $rabbit_host                   = false,
   $rabbit_user                   = 'nova',
   $rabbit_ha_virtual_ip          = false,
+  # Qpid
+  $qpid_nodes                    = false,
+  $qpid_password                 = 'qpid_pw',
+  $qpid_host                     = false,
+  $qpid_user                     = 'nova',
   # Glance
   $glance_api_servers            = undef,
   # Virtualization
@@ -72,6 +86,7 @@ class openstack::compute (
   # General
   $enabled                       = true,
   $multi_host                    = false,
+  $auto_assign_floating_ip       = false,
   $network_config                = {},
   $public_interface,
   $private_interface,
@@ -85,28 +100,33 @@ class openstack::compute (
   $tenant_network_type           = 'gre',
   $segment_range                 = '1:4094',
   # nova compute configuration parameters
-  $verbose             = false,
-  $service_endpoint    = '127.0.0.1',
-  $ssh_private_key     = undef,
-  $cache_server_ip     = ['127.0.0.1'],
-  $cache_server_port   = '11211',
-  $ssh_public_key      = undef,
+  $verbose                       = false,
+  $debug               = false,
+  $service_endpoint              = '127.0.0.1',
+  $ssh_private_key               = undef,
+  $cache_server_ip               = ['127.0.0.1'],
+  $cache_server_port             = '11211',
+  $ssh_public_key                = undef,
   # if the cinder management components should be installed
-  $manage_volumes          = false,
-  $nv_physical_volume      = undef,
-  $cinder_volume_group     = 'cinder-volumes',
-  $cinder                  = true,
-  $cinder_user_password    = 'cinder_user_pass',
-  $cinder_db_password      = 'cinder_db_pass',
-  $cinder_db_user          = 'cinder',
-  $cinder_db_dbname        = 'cinder',
-  $cinder_iscsi_bind_addr  = false,
-  $db_host                 = '127.0.0.1',
-  $use_syslog              = false,
-  $nova_rate_limits = undef,
-  $cinder_rate_limits = undef,
-  $create_networks = false,
-  $state_path              = '/var/lib/nova'
+  $manage_volumes                = false,
+  $nv_physical_volume            = undef,
+  $cinder_volume_group           = 'cinder-volumes',
+  $cinder                        = true,
+  $cinder_user_password          = 'cinder_user_pass',
+  $cinder_db_password            = 'cinder_db_pass',
+  $cinder_db_user                = 'cinder',
+  $cinder_db_dbname              = 'cinder',
+  $cinder_iscsi_bind_addr        = false,
+  $db_host                       = '127.0.0.1',
+  $use_syslog                    = false,
+  $syslog_log_facility           = 'LOCAL6',
+  $syslog_log_facility_cinder    = 'LOCAL3',
+  $syslog_log_facility_quantum   = 'LOCAL4',
+  $syslog_log_level = 'WARNING',
+  $nova_rate_limits              = undef,
+  $cinder_rate_limits            = undef,
+  $create_networks               = false,
+  $state_path                    = '/var/lib/nova'
 ) {
 
   #
@@ -157,32 +177,43 @@ class openstack::compute (
   nova_config {'DEFAULT/memcached_servers':
     value => $memcached_addresses
   }
-
   class { 'nova':
       ensure_package       => $::openstack_version['nova'],
       sql_connection       => $sql_connection,
+      queue_provider       => $queue_provider,
       rabbit_nodes         => $rabbit_nodes,
       rabbit_userid        => $rabbit_user,
       rabbit_password      => $rabbit_password,
+      qpid_userid          => $qpid_user,
+      qpid_password        => $qpid_password,
+      qpid_nodes           => $qpid_nodes,
+      qpid_host            => $qpid_host,
       image_service        => 'nova.image.glance.GlanceImageService',
       glance_api_servers   => $glance_api_servers,
       verbose              => $verbose,
+      debug                => $debug,
       rabbit_host          => $rabbit_host,
       use_syslog           => $use_syslog,
+      syslog_log_facility  => $syslog_log_facility,
+      syslog_log_level     => $syslog_log_level,
       api_bind_address     => $internal_address,
       rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
       state_path           => $state_path,
   }
-
+  
   #Cinder setup
     $enabled_apis = 'metadata'
     package {'python-cinderclient': ensure => present}
     if $cinder and $manage_volumes {
-    class {'openstack::cinder':
+      class {'openstack::cinder':
         sql_connection       => "mysql://${cinder_db_user}:${cinder_db_password}@${db_host}/${cinder_db_dbname}?charset=utf8",
+        queue_provider       => $queue_provider,
         rabbit_password      => $rabbit_password,
         rabbit_host          => false,
         rabbit_nodes         => $rabbit_nodes,
+        qpid_password        => $qpid_password,
+        qpid_host            => false,
+        qpid_nodes           => $qpid_nodes,
         volume_group         => $cinder_volume_group,
         physical_volume      => $nv_physical_volume,
         manage_volumes       => $manage_volumes,
@@ -192,10 +223,14 @@ class openstack::compute (
         bind_host            => false,
         iscsi_bind_host      => $cinder_iscsi_bind_addr,
         cinder_user_password => $cinder_user_password,
+        verbose              => $verbose,
+        debug                => $debug,
         use_syslog           => $use_syslog,
+        syslog_log_facility  => $syslog_log_facility_cinder,
+        syslog_log_level     => $syslog_log_level,
         cinder_rate_limits   => $cinder_rate_limits,
         rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
-    }
+      }
     }
 
 
@@ -298,6 +333,11 @@ class openstack::compute (
 
       $enable_network_service = true
 
+      if $auto_assign_floating_ip {
+         nova_config { 'DEFAULT/auto_assign_floating_ip': value => 'True' }
+      }
+
+
     } else {
       $enable_network_service = false
 
@@ -335,13 +375,23 @@ class openstack::compute (
     $enable_tunneling = $tenant_network_type ? { 'gre' => true, 'vlan' => false }
 
     class { '::quantum':
-      verbose         => $verbose,
-      debug           => $verbose,
+      queue_provider  => $queue_provider,
       rabbit_host     => $rabbit_nodes ? { false => $rabbit_host, default => $rabbit_nodes },
       rabbit_user     => $rabbit_user,
       rabbit_password => $rabbit_password,
+      qpid_host       => $qpid_nodes ? { false => $qpid_host, default => $qpid_nodes },
+      qpid_user       => $qpid_user,
+      qpid_password   => $qpid_password,
+      verbose         => $verbose,
+      debug           => $debug,
       use_syslog           => $use_syslog,
+      syslog_log_level     => $syslog_log_level,
+      syslog_log_facility  => $syslog_log_facility_quantum,
       rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
+      auth_host            => $auth_host,
+      auth_tenant          => 'services',
+      auth_user            => 'quantum',
+      auth_password        => $quantum_user_password,
     }
 
     class { 'quantum::plugins::ovs':
@@ -370,7 +420,7 @@ class openstack::compute (
 
     # class { 'quantum::agents::dhcp':
     #   debug          => True,
-    #   use_namespaces => False,
+    #   use_namespaces => $::quantum_use_namespaces,
     # }
 
     # class { 'quantum::agents::l3':
@@ -379,7 +429,7 @@ class openstack::compute (
     #   auth_tenant    => 'services',
     #   auth_user      => 'quantum',
     #   auth_password  => $quantum_user_password,
-    #   use_namespaces => False,
+    #   use_namespaces => $::quantum_use_namespaces,
     # }
 
     class { 'nova::compute::quantum': }

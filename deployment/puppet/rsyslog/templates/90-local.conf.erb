@@ -1,0 +1,74 @@
+# file is managed by puppet
+#
+<% unless scope.lookupvar('rsyslog::client::high_precision_timestamps') -%>
+#
+# Use traditional timestamp format date-rfc3164 (Dec 5 02:21:13).
+# To enable high precision timestamps date-rfc3339 (2010-12-05T02:21:41.889482+01:00), comment out the following line.
+#
+$ActionFileDefaultTemplate RSYSLOG_TraditionalFileFormat
+<% end -%>
+
+<% if scope.lookupvar('rsyslog::client::log_auth_local') or scope.lookupvar('rsyslog::client::log_local') -%>
+# Log auth messages locally
+auth,authpriv.*                 /var/log/auth.log
+<% end -%>
+
+<% if scope.lookupvar('rsyslog::client::log_local') -%>
+# First some standard log files.  Log by facility.
+#
+# Skip duplicates - all common debug, info, notice, warn go to 
+# debug & messages files respectively; others should go to syslog
+#
+*.error;auth,authpriv.none     -/var/log/syslog
+cron.*                          /var/log/cron.log
+daemon.*                       -/var/log/daemon.log
+# Do not send info to kern.log - it duplicates messages
+kern.*;kern.!=info             -/var/log/kern.log
+#lpr.*                          -/var/log/lpr.log
+mail.*                         -/var/log/mail.log
+user.*                         -/var/log/user.log
+
+#
+# Logging for the mail system.  Split it up so that
+# it is easy to write scripts to parse these files.
+#
+mail.info                      -/var/log/mail.info
+mail.warn                      -/var/log/mail.warn
+mail.err                        /var/log/mail.err
+
+#
+# Logging for INN news system.
+#
+news.crit                       /var/log/news/news.crit
+news.err                        /var/log/news/news.err
+news.notice                     -/var/log/news/news.notice
+
+#
+# Some "catch-all" log files.
+#
+*.=debug;\
+       auth,authpriv.none;\
+       news.none;mail.none     -/var/log/debug
+*.=info;*.=notice;*.=warn;\
+       auth,authpriv.none;\
+       cron,daemon.none;\
+       mail,news.none          -/var/log/messages
+
+#
+# I like to have messages displayed on the console, but only on a virtual
+# console I usually leave idle.
+#
+#daemon,mail.*;\
+#       news.=crit;news.=err;news.=notice;\
+#       *.=debug;*.=info;\
+#       *.=notice;*.=warn       /dev/tty8
+
+# The named pipe /dev/xconsole is for the `xconsole' utility.  To use it,
+# you must invoke `xconsole' with the `-file' option:
+#
+#    $ xconsole -file /dev/xconsole [...]
+#
+# NOTE: adjust the list below, or you'll go crazy if you have a reasonably
+#      busy site..
+#
+<% end -%>

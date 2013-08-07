@@ -1,3 +1,4 @@
+#
 define rsyslog::imfile(
   $file_name,
   $file_tag,
@@ -13,7 +14,7 @@ define rsyslog::imfile(
     owner   => 'root',
     group   => $rsyslog::params::run_group,
     content => template('rsyslog/imfile.erb'),
-    require => Class['rsyslog::install'],
+    #require => Class['rsyslog::install'],
     notify  => Class['rsyslog::service'],
   }
 }

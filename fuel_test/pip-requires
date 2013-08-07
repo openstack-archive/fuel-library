@@ -2,4 +2,7 @@ nose
 python-glanceclient
 python-keystoneclient
 python-quantumclient>=2.1
+pyyaml
+psycopg2
+ipaddr
 git+ssh://git@github.com/Mirantis/devops.git@stable

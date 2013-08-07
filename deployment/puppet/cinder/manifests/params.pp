@@ -18,10 +18,14 @@ class cinder::params {
       $tgt_package_name  = 'tgt'
       $tgt_service_name  = 'tgt'
       $python_path       = 'python2.7/dist-packages'
-
+      $qemuimg_package_name = 'qemu-utils'
     }
 
     'RedHat': {
+      $qemuimg_package_name = $::operatingsystem ? {
+                               redhat => 'qemu-img-rhev',
+                               default => 'qemu-img',
+                              }
       $package_name      = 'openstack-cinder'
       $api_package       = false
       $scheduler_package = false

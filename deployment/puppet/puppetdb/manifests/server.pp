@@ -113,9 +113,17 @@ class puppetdb::server(
     enable => true,
   }
 
+  exec {'puppetdb-ssl-setup':
+    path => "/usr/bin:/usr/sbin:/bin:/sbin",
+    command => 'puppetdb-ssl-setup',
+    require => [Package['puppetdb']],
+    notify => [Service['puppetdb']],
+
+  }
   Package['puppetdb'] ->
   Class['puppetdb::server::firewall'] ->
   Class['puppetdb::server::database_ini'] ->
   Class['puppetdb::server::jetty_ini'] ->
+  Exec['puppetdb-ssl-setup'] ->
   Service['puppetdb']
 }

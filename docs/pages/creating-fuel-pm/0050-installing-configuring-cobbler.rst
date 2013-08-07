@@ -63,7 +63,7 @@ will need to make changes::
     # [server] IP address that will be used as address of cobbler server.
     # It is needed to download kickstart files, call cobbler API and
     # so on. Required.
-    $server = '10.20.0.100'
+    $server = '10.0.0.100'
 
 
 
@@ -82,8 +82,9 @@ so you will need to specify which interface will handle that. ::
 
 
 
-    $dhcp_start_address = '10.20.0.110'
-    $dhcp_end_address = '10.20.0.126'
+
+    $dhcp_start_address = '10.0.0.110'
+    $dhcp_end_address = '10.0.0.126'
 
 
 
@@ -93,7 +94,7 @@ earlier. The important thing is to make sure there are no conflicts with the sta
 
 
     $dhcp_netmask = '255.255.255.0'
-    $dhcp_gateway = '10.20.0.100'
+    $dhcp_gateway = '10.0.0.100'
     $domain_name = 'localdomain'
 
 
@@ -102,8 +103,8 @@ Change the ``$domain_name`` to your own domain name. ::
 
 
 
-    $name_server = '10.20.0.100'
-    $next_server = '10.20.0.100'
+    $name_server = '10.0.0.100'
+    $next_server = '10.0.0.100'
     $cobbler_user = 'cobbler'
     $cobbler_password = 'cobbler'
     $pxetimeout = '0'
@@ -147,7 +148,7 @@ installation.
 
 In this example we'll focus on CentOs, so uncomment these lines and
 change the location of ISO image files to either a local mirror or the
-fastest available Internet mirror for CentOS6.3x86_64minimal.iso::
+fastest available Internet mirror for CentOS-6.4-x86_64-minimal.iso::
 
 
 
@@ -156,16 +157,16 @@ fastest available Internet mirror for CentOS6.3x86_64minimal.iso::
     # Uncomment the following section if you want CentOS image to be downloaded and imported into Cobbler
     # Replace "http://address/of" with valid hostname and path to the mirror where the image is stored
 
-    Class[cobbler::distro::centos63_x86_64] ->
-    Class[cobbler::profile::centos63_x86_64]
+    Class[cobbler::distro::centos64_x86_64] ->
+    Class[cobbler::profile::centos64_x86_64]
 
-    class { cobbler::distro::centos63_x86_64:
-        http_iso => "http://address/of/CentOS-6.3-x86_64-minimal.iso",
+    class { cobbler::distro::centos64_x86_64:
+        http_iso => "http://address/of/CentOS-6.4-x86_64-minimal.iso",
         ks_url => "cobbler",
         require => Class[cobbler],
     }
 
-    class { cobbler::profile::centos63_x86_64: }
+    class { cobbler::profile::centos64_x86_64: }
 
     # Ubuntu distribution
     # Uncomment the following section if you want Ubuntu image to be downloaded and imported into Cobbler
@@ -214,15 +215,15 @@ http://fuel-pm/cobbler_web/ (u: cobbler, p: cobbler)
 
 
 
-If fuel-pm doesnt resolve on your host machine, you can access the
+If fuel-pm doesn't resolve on your host machine, you can access the
 Cobbler dashboard from:
 
 
 
-http://10.20.0.100/cobbler_web
+http://10.0.0.100/cobbler_web
 
 
 
 At this point you should have a fully working instance of Cobbler,
-fully configured and capable of installing the chosen OS (CentOS 6.3, RHEL 6.3, or Ubuntu 12.04) on
+fully configured and capable of installing the chosen OS (CentOS 6.4 or Ubuntu 12.04) on
 the target OpenStack nodes.

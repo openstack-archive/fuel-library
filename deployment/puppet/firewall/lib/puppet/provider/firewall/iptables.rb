@@ -14,6 +14,7 @@ Puppet::Type.type(:firewall).provide :iptables, :parent => Puppet::Provider::Fir
   has_feature :icmp_match
   has_feature :owner
   has_feature :state_match
+  has_feature :ctstate_match
   has_feature :reject_type
   has_feature :log_level
   has_feature :log_prefix
@@ -42,7 +43,8 @@ Puppet::Type.type(:firewall).provide :iptables, :parent => Puppet::Provider::Fir
   @resource_map = {
     :burst => "--limit-burst",
     :destination => "-d",
-    :dport => ["-m multiport --dports", "-m (udp|tcp) --dport"],
+    #--sport 68 
+    :dport => ["-m multiport --dports", '-m (udp|tcp)\s+(?:--sport\s+\d+\s+)?--dport'],
     :gid => "-m owner --gid-owner",
     :icmp => "-m icmp --icmp-type",
     :iniface => "-i",
@@ -61,6 +63,7 @@ Puppet::Type.type(:firewall).provide :iptables, :parent => Puppet::Provider::Fir
     :sport => ["-m multiport --sports", "-m (udp|tcp) --sport"],
     :state => "-m state --state",
     :table => "-t",
+    :ctstate => '-m conntrack --ctstate',
     :tcp_flags => "-m tcp --tcp-flags",
     :todest => "--to-destination",
     :toports => "--to-ports",
@@ -86,8 +89,8 @@ Puppet::Type.type(:firewall).provide :iptables, :parent => Puppet::Provider::Fir
   # changes between puppet runs, the changed rules will be re-applied again.
   # This order can be determined by going through iptables source code or just tweaking and trying manually
   @resource_list = [:table, :source, :destination, :iniface, :outiface,
-    :proto, :isfragment, :tcp_flags, :gid, :uid, :sport, :dport, :port, :socket, :pkttype, :name, :state, :icmp, :limit, :burst,
-    :jump, :todest, :tosource, :toports, :log_level, :log_prefix, :reject, :set_mark]
+    :proto, :isfragment, :tcp_flags, :gid, :uid, :sport, :dport, :port, :socket, :pkttype, :name, :state, :ctstate, :icmp, :limit, :burst,
+    :jump, :todest, :tosource, :toports, :log_level, :log_prefix, :reject, :set_mark ]
 
   def insert
     debug 'Inserting rule %s' % resource[:name]
@@ -156,8 +159,14 @@ Puppet::Type.type(:firewall).provide :iptables, :parent => Puppet::Provider::Fir
 
     # --tcp-flags takes two values; we cheat by adding " around it
     # so it behaves like --comment
+    debug("BEFORE REPLACE #{values.inspect}")
     values = values.sub(/--tcp-flags (\S*) (\S*)/, '--tcp-flags "\1 \2"')
-
+    values = values.sub(/(!)\s+--ctstate\s?(\S*)/, '--ctstate "\1 \2"')
+    values = values.sub(/(!)\s+-s\s?(\S*)/, '-s \1 \2')
+    values = values.sub(/(!)\s+-d\s?(\S*)/, '-d \1 \2')
+    values = values.sub(/-s (!)\s?(\S*)/, '-s "\1 \2"')
+    values = values.sub(/-d (!)\s?(\S*)/, '-d "\1 \2"')
+    debug("AFTER REPLACE #{values.inspect}")
     # Trick the system for booleans
     known_booleans.each do |bool|
       if bool == :socket then
@@ -176,9 +185,13 @@ Puppet::Type.type(:firewall).provide :iptables, :parent => Puppet::Provider::Fir
 
     # Here we iterate across our values to generate an array of keys
     @resource_list.reverse.each do |k|
+      debug("searching for key #{k}")
       resource_map_key = @resource_map[k]
+      debug("resource_map for key #{k} is #{resource_map_key}")
       [resource_map_key].flatten.each do |opt|
         if values.slice!(/\s#{opt}/)
+          debug("values is  #{values}")
+          debug("adding key #{k}")
           keys << k
           break
         end
@@ -192,18 +205,24 @@ Puppet::Type.type(:firewall).provide :iptables, :parent => Puppet::Provider::Fir
     # Here we generate the main hash
     keys.zip(values.scan(/"[^"]*"|\S+/).reverse) { |f, v| hash[f] = v.gsub(/"/, '') }
 
+    debug(hash.inspect)
     #####################
     # POST PARSE CLUDGING
     #####################
 
+
+    cidr_regex = /(!?)\s*((?:(?:[0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}(?:[0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(?:\/(?:\d|[1-2]\d|3[0-2])))/
     # Normalise all rules to CIDR notation.
     [:source, :destination].each do |prop|
-      if hash[prop] =~ /^(\d{1,3}\.){3}\d{1,3}(:?\/(\d+))?$/
-        hash[prop] = Puppet::Util::IPCidr.new(hash[prop]).cidr \
-      end
+      next if hash[prop].nil?
+      debug("processing #{prop} with value '#{hash[prop]}'")
+      m = hash[prop].match(cidr_regex)
+      neg = nil
+      neg = '! ' if m[1] == '!'
+      hash[prop] = "#{neg}#{Puppet::Util::IPCidr.new(m[2]).cidr}"
     end
 
-    [:dport, :sport, :port, :state].each do |prop|
+    [:dport, :sport, :port, :state, :ctstate].each do |prop|
       hash[prop] = hash[prop].split(',') if ! hash[prop].nil?
     end
 
@@ -229,6 +248,7 @@ Puppet::Type.type(:firewall).provide :iptables, :parent => Puppet::Provider::Fir
     # States should always be sorted. This ensures that the output from
     # iptables-save and user supplied resources is consistent.
     hash[:state] = hash[:state].sort unless hash[:state].nil?
+    hash[:ctstate] = hash[:ctstate].sort unless hash[:ctstate].nil?
 
     # This forces all existing, commentless rules to be moved to the bottom of the stack.
     # Puppet-firewall requires that all rules have comments (resource names) and will fail if
@@ -256,7 +276,7 @@ Puppet::Type.type(:firewall).provide :iptables, :parent => Puppet::Provider::Fir
 
     # If the jump parameter is set to one of: ACCEPT, REJECT, NOTRACK or DROP then
     # we should set the action parameter instead.
-    if ['ACCEPT','REJECT','DROP','NOTRACK'].include?(hash[:jump]) then
+    if ['ACCEPT','REJECT','DROP','NOTRACK','CHECKSUM'].include?(hash[:jump]) then
       hash[:action] = hash[:jump].downcase
       hash.delete(:jump)
     end

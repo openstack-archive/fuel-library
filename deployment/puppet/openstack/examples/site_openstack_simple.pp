@@ -1,9 +1,14 @@
 #
 # Parameter values in this file should be changed, taking into consideration your
 # networking setup and desired OpenStack settings.
-# 
+#
 # Please consult with the latest Fuel User Guide before making edits.
 #
+# Run stages for puppet
+stage {'first': } ->
+stage {'openstack-custom-repo': } ->
+stage {'netconfig': } ->
+stage {'openstack-firewall': } -> Stage['main']
 
 ### GENERAL CONFIG ###
 # This section sets main parameters such as hostnames and IP addresses of different nodes
@@ -18,6 +23,16 @@ $internal_br         = 'br-mgmt'
 
 # This is the name of the private interface. All traffic within OpenStack tenants' networks will go through this interface.
 $private_interface   = 'eth2'
+case $::operatingsystem {
+  'redhat' : {
+          $queue_provider = 'qpid'
+          $custom_mysql_setup_class = 'pacemaker_mysql'
+  }
+  default: {
+    $queue_provider='rabbitmq'
+    $custom_mysql_setup_class='galera'
+  }
+}
 
 $nodes_harr = [
   {
@@ -99,6 +114,10 @@ $glance_user_password    = 'nova'
 $nova_db_password        = 'nova'
 $nova_user_password      = 'nova'
 
+#AMQP backend rabbitmq or qpid
+$queue_provider          = 'qpid'
+validate_re($queue_provider,  'rabbitmq|qpid')
+
 $rabbit_password         = 'nova'
 $rabbit_user             = 'nova'
 
@@ -119,6 +138,11 @@ $quantum_db_dbname       = 'quantum'
 # Consult OpenStack documentation for differences between them.
 $quantum                 = true
 $quantum_netnode_on_cnt  = true
+$quantum_use_namespaces  = true
+
+# a string "password" value that should be configured to authenticate requests for metadata
+# from quantum-metadata-proxy to nova-api
+$quantum_metadata_proxy_shared_secret = "connecting_nova-api_and_quantum-metadata-agent"
 
 # Specify network creation criteria:
 # Should puppet automatically create networks?
@@ -130,7 +154,7 @@ $floating_range  = '10.0.204.128/28'
 
 # These parameters are passed to the previously specified network manager , e.g. nova-manage network create.
 # Not used in Quantum.
-# Consult openstack docs for corresponding network manager. 
+# Consult openstack docs for corresponding network manager.
 # https://fuel-dev.mirantis.com/docs/0.2/pages/0050-installation-instructions.html#network-setup
 $num_networks    = 1
 $network_size    = 31
@@ -139,8 +163,8 @@ $vlan_start      = 300
 # Quantum
 
 # Segmentation type for isolating traffic between tenants
-# Consult Openstack Quantum docs 
-$tenant_network_type     = 'vlan'
+# Consult Openstack Quantum docs
+$tenant_network_type     = 'gre'
 
 # Which IP address will be used for creating GRE tunnels.
 $quantum_gre_bind_addr = $internal_address
@@ -160,7 +184,7 @@ $external_ipinfo = {}
 # Quantum segmentation range.
 # For VLAN networks: valid VLAN VIDs can be 1 through 4094.
 # For GRE networks: Valid tunnel IDs can be any 32-bit unsigned integer.
-$segment_range   = '300:349'
+$segment_range   = '900:999'
 
 # Set up OpenStack network manager. It is used ONLY in nova-network.
 # Consult Openstack nova-network docs for possible values.
@@ -178,15 +202,11 @@ if $quantum {
   $public_int   = $public_br
   $internal_int = $internal_br
 } else {
-  $public_int   = $public_interface 
+  $public_int   = $public_interface
   $internal_int = $internal_interface
 }
 
 #Network configuration
-stage {'netconfig':
-      before  => Stage['main'],
-}
-
 class {'l23network': use_ovs=>$quantum, stage=> 'netconfig'}
 class node_netconfig (
   $mgmt_ipaddr,
@@ -231,7 +251,7 @@ class node_netconfig (
 
 
 # This parameter specifies the the identifier of the current cluster. This is needed in case of multiple environments.
-# installation. Each cluster requires a unique integer value. 
+# installation. Each cluster requires a unique integer value.
 # Valid identifier range is 1 to 254
 $deployment_id = '69'
 
@@ -256,18 +276,18 @@ $cinder_nodes          = ['controller']
 #Otherwise it will install api and scheduler services
 $manage_volumes          = true
 
-# Setup network interface, which Cinder uses to export iSCSI targets.
+# Setup network address, which Cinder uses to export iSCSI targets.
 $cinder_iscsi_bind_addr = $internal_address
 
 # Below you can add physical volumes to cinder. Please replace values with the actual names of devices.
 # This parameter defines which partitions to aggregate into cinder-volumes or nova-volumes LVM VG
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-# USE EXTREME CAUTION WITH THIS SETTING! IF THIS PARAMETER IS DEFINED, 
+# USE EXTREME CAUTION WITH THIS SETTING! IF THIS PARAMETER IS DEFINED,
 # IT WILL AGGREGATE THE VOLUMES INTO AN LVM VOLUME GROUP
 # AND ALL THE DATA THAT RESIDES ON THESE VOLUMES WILL BE LOST!
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 # Leave this parameter empty if you want to create [cinder|nova]-volumes VG by yourself
-$nv_physical_volume     = ['/dev/sdz', '/dev/sdy', '/dev/sdx'] 
+$nv_physical_volume     = ['/dev/sdz', '/dev/sdy', '/dev/sdx']
 
 #Evaluate cinder node selection
 if ($cinder) {
@@ -303,20 +323,68 @@ $swift_loopback = false
 ### Glance and swift END ###
 
 ### Syslog ###
-# Enable error messages reporting to rsyslog. Rsyslog must be installed in this case.
-$use_syslog = false
+# Enable error messages reporting to rsyslog. Rsyslog must be installed in this case,
+# and configured to start at the very beginning of puppet agent run.
+$use_syslog = true
+# Default log level would have been used, if non verbose and non debug
+$syslog_log_level             = 'ERROR'
+# Syslog facilities for main openstack services, choose any, may overlap if needed.
+# local0 is reserved for HA provisioning and orchestration services (not applicable here),
+# local1 is reserved for openstack-dashboard
+$syslog_log_facility_glance   = 'LOCAL2'
+$syslog_log_facility_cinder   = 'LOCAL3'
+$syslog_log_facility_quantum  = 'LOCAL4'
+$syslog_log_facility_nova     = 'LOCAL6'
+$syslog_log_facility_keystone = 'LOCAL7'
+
 if $use_syslog {
-  class { "::rsyslog::client":
-    log_local => true,
+  class { "::openstack::logging":
+    stage          => 'first',
+    role           => 'client',
+    # use date-rfc3339 timestamps
+    show_timezone => true,
+    # log both locally include auth, and remote
+    log_remote     => true,
+    log_local      => true,
     log_auth_local => true,
-    server => '127.0.0.1',
-    port => '514'
+    # keep four weekly log rotations, force rotate if 300M size have exceeded
+    rotation       => 'weekly',
+    keep           => '4',
+    # should be > 30M
+    limitsize      => '300M',
+    # remote servers to send logs to
+    rservers       => [{'remote_type'=>'udp', 'server'=>'master', 'port'=>'514'},],
+    # should be true, if client is running at virtual node
+    virtual        => true,
+    # facilities
+    syslog_log_facility_glance   => $syslog_log_facility_glance,
+    syslog_log_facility_cinder   => $syslog_log_facility_cinder,
+    syslog_log_facility_quantum  => $syslog_log_facility_quantum,
+    syslog_log_facility_nova     => $syslog_log_facility_nova,
+    syslog_log_facility_keystone => $syslog_log_facility_keystone,
+    # Rabbit doesn't support syslog directly, should be >= syslog_log_level,
+    # otherwise none rabbit's messages would have gone to syslog
+    rabbit_log_level => $syslog_log_level,
   }
 }
 
+# Example for server role class definition for remote logging node:
+#   class {::openstack::logging:
+#      role           => 'server',
+#      log_remote     => false,
+#      log_local      => true,
+#      log_auth_local => true,
+#      rotation       => 'daily',
+#      keep           => '7',
+#      limitsize      => '100M',
+#      port           => '514',
+#      proto          => 'udp',
+#     #high precision timespamps
+#      show_timezone  => true,
+#     #should be true, if server is running at virtual node
+#     #virtual        => false,
+#   }
 ### Syslog END ###
-
-
 case $::osfamily {
     "Debian":  {
        $rabbitmq_version_string = '2.8.7-1'
@@ -348,8 +416,13 @@ $repo_proxy = undef
 $use_upstream_mysql = true
 
 # This parameter specifies the verbosity level of log messages
-# in openstack components config. Currently, it disables or enables debugging.
+# in openstack components config.
+# Debug would have set DEBUG level and ignore verbose settings, if any.
+# Verbose would have set INFO level messages
+# In case of non debug and non verbose - WARNING, default level would have set.
+# Note: if syslog on, this default level may be configured (for syslog) with syslog_log_level option.
 $verbose = true
+$debug = true
 
 #Rate Limits for cinder and Nova
 #Cinder and Nova can rate-limit your requests to API services.
@@ -359,13 +432,13 @@ $nova_rate_limits = {
   'POST' => 1000,
   'POST_SERVERS' => 1000,
   'PUT' => 1000, 'GET' => 1000,
-  'DELETE' => 1000 
+  'DELETE' => 1000
 }
 $cinder_rate_limits = {
   'POST' => 1000,
   'POST_SERVERS' => 1000,
   'PUT' => 1000, 'GET' => 1000,
-  'DELETE' => 1000 
+  'DELETE' => 1000
 }
 
 
@@ -396,16 +469,13 @@ Exec<| title == 'clocksync' |>->Exec<| title == 'initial-db-sync' |>
 Exec<| title == 'clocksync' |>->Exec<| title == 'post-nova_config' |>
 
 
-
-
 ### END OF PUBLIC CONFIGURATION PART ###
-# Normally, you do not need to change anything after this string 
+# Normally, you do not need to change anything after this string
 
 # Globally apply an environment-based tag to all resources on each node.
 tag("${::deployment_id}::${::environment}")
 
 
-stage { 'openstack-custom-repo': before => Stage['netconfig'] }
 class { 'openstack::mirantis_repos':
   stage => 'openstack-custom-repo',
   type=>$mirror_type,
@@ -413,10 +483,10 @@ class { 'openstack::mirantis_repos':
   repo_proxy=>$repo_proxy,
   use_upstream_mysql=>$use_upstream_mysql
 }
- stage {'openstack-firewall': before => Stage['main'], require => Stage['netconfig'] } 
- class { '::openstack::firewall':
-      stage => 'openstack-firewall'
- }
+
+class { '::openstack::firewall':
+  stage => 'openstack-firewall'
+}
 
 if !defined(Class['selinux']) and ($::osfamily == 'RedHat') {
   class { 'selinux':
@@ -465,6 +535,7 @@ class simple_controller (
     network_size            => $network_size,
     network_config          => { 'vlan_start' => $vlan_start },
     verbose                 => $verbose,
+    debug                   => $debug,
     auto_assign_floating_ip => $auto_assign_floating_ip,
     mysql_root_password     => $mysql_root_password,
     admin_email             => $admin_email,
@@ -475,8 +546,11 @@ class simple_controller (
     glance_user_password    => $glance_user_password,
     nova_db_password        => $nova_db_password,
     nova_user_password      => $nova_user_password,
+    queue_provider          => $queue_provider,
     rabbit_password         => $rabbit_password,
     rabbit_user             => $rabbit_user,
+    qpid_password           => $rabbit_password,
+    qpid_user               => $rabbit_user,
     export_resources        => false,
     quantum                 => $quantum,
     quantum_user_password   => $quantum_user_password,
@@ -494,6 +568,12 @@ class simple_controller (
     manage_volumes          => $cinder ? { false => $manage_volumes, default =>$is_cinder_node },
     nv_physical_volume      => $nv_physical_volume,
     use_syslog              => $use_syslog,
+    syslog_log_level        => $syslog_log_level,
+    syslog_log_facility_glance   => $syslog_log_facility_glance,
+    syslog_log_facility_cinder => $syslog_log_facility_cinder,
+    syslog_log_facility_quantum => $syslog_log_facility_quantum,
+    syslog_log_facility_nova => $syslog_log_facility_nova,
+    syslog_log_facility_keystone => $syslog_log_facility_keystone,
     nova_rate_limits        => $nova_rate_limits,
     cinder_rate_limits      => $cinder_rate_limits,
     horizon_use_ssl         => $horizon_use_ssl,
@@ -503,6 +583,7 @@ class simple_controller (
       db_host               => $controller_internal_address,
       service_endpoint      => $controller_internal_address,
       auth_host             => $controller_internal_address,
+      nova_api_vip          => $controller_internal_address,
       internal_address      => $internal_address,
       public_interface      => $public_int,
       private_interface     => $private_interface,
@@ -510,10 +591,15 @@ class simple_controller (
       fixed_range           => $fixed_range,
       create_networks       => $create_networks,
       verbose               => $verbose,
+      debug                 => $debug,
+      queue_provider        => $queue_provider,
       rabbit_password       => $rabbit_password,
       rabbit_user           => $rabbit_user,
       rabbit_ha_virtual_ip  => $controller_internal_address,
-      rabbit_nodes           => [$controller_internal_address],
+      rabbit_nodes          => [$controller_internal_address],
+      qpid_password         => $rabbit_password,
+      qpid_user             => $rabbit_user,
+      qpid_nodes            => [$controller_internal_address],
       quantum               => $quantum,
       quantum_user_password => $quantum_user_password,
       quantum_db_password   => $quantum_db_password,
@@ -527,6 +613,8 @@ class simple_controller (
       external_ipinfo       => $external_ipinfo,
       api_bind_address      => $internal_address,
       use_syslog            => $use_syslog,
+      syslog_log_level      => $syslog_log_level,
+      syslog_log_facility   => $syslog_log_facility_quantum,
     }
   }
   class { 'openstack::auth_file':
@@ -541,7 +629,7 @@ class simple_controller (
 node /fuel-controller-[\d+]/ {
   include stdlib
   class { 'operatingsystem::checksupported':
-      stage => 'setup'
+      stage => 'first'
   }
   class {'nagios':
     proj_name       => $proj_name,
@@ -553,14 +641,14 @@ node /fuel-controller-[\d+]/ {
     whitelist       => ['127.0.0.1', $nagios_master],
     hostgroup       => 'controller',
   }
-  class { 'simple_controller': } 
+  class { 'simple_controller': }
 }
 
 # Definition of OpenStack compute nodes.
 node /fuel-compute-[\d+]/ {
   include stdlib
   class { 'operatingsystem::checksupported':
-      stage => 'setup'
+      stage => 'first'
   }
   class {'::node_netconfig':
     mgmt_ipaddr    => $::internal_address,
@@ -587,11 +675,16 @@ node /fuel-compute-[\d+]/ {
     network_manager        => $network_manager,
     network_config         => { 'vlan_start' => $vlan_start },
     multi_host             => $multi_host,
+    auto_assign_floating_ip => $auto_assign_floating_ip,
     sql_connection         => $sql_connection,
     nova_user_password     => $nova_user_password,
+    queue_provider         => $queue_provider,
     rabbit_nodes           => [$controller_internal_address],
     rabbit_password        => $rabbit_password,
     rabbit_user            => $rabbit_user,
+    qpid_nodes             => [$controller_internal_address],
+    qpid_password          => $rabbit_password,
+    qpid_user              => $rabbit_user,
     glance_api_servers     => "${controller_internal_address}:9292",
     vncproxy_host          => $controller_public_address,
     vnc_enabled            => true,
@@ -605,12 +698,16 @@ node /fuel-compute-[\d+]/ {
     service_endpoint       => $controller_internal_address,
     db_host                => $controller_internal_address,
     verbose                => $verbose,
+    debug                  => $debug,
     segment_range          => $segment_range,
     cinder                 => $cinder,
     manage_volumes          => $cinder ? { false => $manage_volumes, default =>$is_cinder_node },
     nv_physical_volume     => $nv_physical_volume,
     cinder_iscsi_bind_addr => $cinder_iscsi_bind_addr,
     use_syslog             => $use_syslog,
+    syslog_log_level       => $syslog_log_level,
+    syslog_log_facility_quantum => $syslog_log_facility_quantum,
+    syslog_log_facility_cinder => $syslog_log_facility_cinder,
     nova_rate_limits       => $nova_rate_limits,
     cinder_rate_limits     => $cinder_rate_limits
   }

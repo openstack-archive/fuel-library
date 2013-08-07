@@ -98,52 +98,89 @@ LOGGING = {
         # if nothing is specified here and disable_existing_loggers is True,
         # django.db.backends will still log unless it is disabled explicitly.
         'disable_existing_loggers': False,
+        'formatters': {
+            'debug': {
+                'format': 'dashboard-%(name)s: %(levelname)s %(module)s %(funcName)s %(message)s'
+            },
+            'normal': {
+                'format': 'dashboard-%(name)s: %(levelname)s %(message)s'
+            },
+        },
         'handlers': {
             'null': {
-                'level': 'DEBUG',
+                'level': '<%= log_level %>',
                 'class': 'django.utils.log.NullHandler',
+                'formatter': 'debug'
                 },
             'console': {
                 # Set the level to "DEBUG" for verbose output logging.
-                'level': 'INFO',
+                'level': '<%= log_level %>',
                 'class': 'logging.StreamHandler',
+                'formatter': 'debug'
                 },
             'file': {
                 'level': '<%= log_level %>',
                 'class': 'logging.FileHandler',
-                'filename': '<%= scope.lookupvar("horizon::params::logdir") %>/horizon.log'
+                'filename': '<%= scope.lookupvar("horizon::params::logdir") %>/horizon.log',
+                'formatter': 'normal'
+                },
+            'syslog': {
+                'level': '<%= log_level %>',
+                'facility': 'local1',
+                'class': 'logging.handlers.SysLogHandler',
+                'address': '/dev/log',
+                'formatter': 'normal'
                 },
             },
         'loggers': {
+            # The logger name '' indicates the root of all loggers in Django, so
+            # logs from any application in this project will go here.
+            '': {
+                'handlers':<% if use_syslog -%> ['syslog']<% else -%> ['file']<% end -%>,
+                'level': 'NOTSET',
+                'propagate': True
+                },
             # Logging from django.db.backends is VERY verbose, send to null
             # by default.
             'django.db.backends': {
-                'handlers': ['null'],
-                'propagate': False,
+                'handlers':<% if django_debug=='False' and use_syslog -%> ['syslog']<% else -%> ['null']<% end -%>,
+                'level': 'DEBUG',
+                'propagate': False
                 },
             'horizon': {
-                'handlers': ['file'],
-                'propagate': False,
+                'handlers':<% if use_syslog -%> ['syslog']<% else -%> ['file']<% end -%>,
+                'level': 'DEBUG',
+                'propagate': False
             },
             'openstack_dashboard': {
-                'handlers': ['file'],
-                'propagate': False,
+                'handlers':<% if use_syslog -%> ['syslog']<% else -%> ['file']<% end -%>,
+                'level': 'DEBUG',
+                'propagate': False
             },
             'novaclient': {
-                'handlers': ['file'],
-                'propagate': False,
+                'handlers':<% if use_syslog -%> ['syslog']<% else -%> ['file']<% end -%>,
+                'level': 'DEBUG',
+                'propagate': False
             },
            'glanceclient': {
-                'handlers': ['file'],
-                'propagate': False,
+                'handlers':<% if use_syslog -%> ['syslog']<% else -%> ['file']<% end -%>,
+                'level': 'DEBUG',
+                'propagate': False
             },
             'keystoneclient': {
-                'handlers': ['file'],
-                'propagate': False,
+                'handlers':<% if use_syslog -%> ['syslog']<% else -%> ['file']<% end -%>,
+                'level': 'DEBUG',
+                'propagate': False
+            },
+            'quantumclient': {
+                'handlers':<% if use_syslog -%> ['syslog']<% else -%> ['file']<% end -%>,
+                'level': 'DEBUG',
+                'propagate': False
             },
             'nose.plugins.manager': {
-                'handlers': ['file'],
-                'propagate': False,
+                'handlers':<% if use_syslog -%> ['syslog']<% else -%> ['file']<% end -%>,
+                'level': 'DEBUG',
+                'propagate': False
             }
         }
 }

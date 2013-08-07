@@ -59,10 +59,18 @@ class openstack::nova::controller (
   # Nova
   $nova_db_user              = 'nova',
   $nova_db_dbname            = 'nova',
+  # AMQP
+  $queue_provider             = 'rabbitmq',
   # Rabbit
   $rabbit_user               = 'nova',
   $rabbit_node_ip_address    = undef,
   $rabbit_port               = '5672',
+  # Qpid
+  $qpid_password             = 'qpid_pw',
+  $qpid_user                 = 'nova',
+  $qpid_nodes                = [$internal_address],
+  $qpid_port                 = '5672',
+  $qpid_node_ip_address      = undef,
   # Database
   $db_type                   = 'mysql',
   # Glance
@@ -72,6 +80,7 @@ class openstack::nova::controller (
   # General
   $keystone_host             = '127.0.0.1',
   $verbose                   = 'False',
+  $debug                     = 'False',
   $enabled                   = true,
   $exported_resources        = true,
   $rabbit_nodes              = [$internal_address],
@@ -81,6 +90,9 @@ class openstack::nova::controller (
   $enabled_apis              = 'ec2,osapi_compute',
   $api_bind_address          = '0.0.0.0',
   $use_syslog                = false,
+  $syslog_log_facility       = 'LOCAL6',
+  $syslog_log_facility_quantum = 'LOCAL4',
+  $syslog_log_level = 'WARNING',
   $nova_rate_limits          = undef,
   $cinder                    = true
 ) {
@@ -130,45 +142,87 @@ class openstack::nova::controller (
     $rabbit_connection = $internal_address
   }
 
-  # Install / configure rabbitmq
-  class { 'nova::rabbitmq':
-    userid                 => $rabbit_user,
-    password               => $rabbit_password,
-    enabled                => $enabled,
-    cluster                => $rabbit_cluster,
-    cluster_nodes          => $rabbit_nodes, #Real node names to install RabbitMQ server onto
-    rabbit_node_ip_address => $rabbit_node_ip_address,
-    port                   => $rabbit_port,
-  }
-  if ($rabbit_nodes) {
-    # Configure Nova
-    class { 'nova':
-      sql_connection       => $sql_connection,
-      rabbit_userid        => $rabbit_user,
-      rabbit_password      => $rabbit_password,
-      image_service        => 'nova.image.glance.GlanceImageService',
-      glance_api_servers   => $glance_connection,
-      verbose              => $verbose,
-      rabbit_nodes         => $rabbit_nodes,
-      ensure_package       => $ensure_package,
-      api_bind_address     => $api_bind_address,
-      use_syslog           => $use_syslog,
-      rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
+  # Install / configure queue provider
+  case $queue_provider {
+    'rabbitmq': {
+      class { 'nova::rabbitmq':
+        userid                 => $rabbit_user,
+        password               => $rabbit_password,
+        enabled                => $enabled,
+        cluster                => $rabbit_cluster,
+        cluster_nodes          => $rabbit_nodes, #Real node names to install RabbitMQ server onto
+        rabbit_node_ip_address => $rabbit_node_ip_address,
+        port                   => $rabbit_port,
+      }
     }
-  } else {
-    class { 'nova':
-      sql_connection     => $sql_connection,
-      rabbit_userid      => $rabbit_user,
-      rabbit_password    => $rabbit_password,
-      image_service      => 'nova.image.glance.GlanceImageService',
-      glance_api_servers => $glance_connection,
-      verbose            => $verbose,
-      rabbit_host        => $rabbit_connection,
-      ensure_package     => $ensure_package,
-      api_bind_address   => $api_bind_address,
-      use_syslog         => $use_syslog,
+    'qpid': {
+      class { 'qpid::server':
+        auth                   => 'yes',
+        auth_realm             => 'QPID',
+        log_to_file            => '/var/log/qpidd.log',
+        cluster_mechanism      => 'DIGEST-MD5',
+        qpid_username          => $qpid_user,
+        qpid_password          => $qpid_password,
+        qpid_nodes             => $qpid_nodes,
+      }
     }
   }
+
+  case $queue_provider {
+    'rabbitmq': {
+      if ($rabbit_nodes) {
+        # Configure Nova
+        class { 'nova':
+          sql_connection       => $sql_connection,
+          rabbit_userid        => $rabbit_user,
+          rabbit_password      => $rabbit_password,
+          image_service        => 'nova.image.glance.GlanceImageService',
+          glance_api_servers   => $glance_connection,
+          verbose              => $verbose,
+          rabbit_nodes         => $rabbit_nodes,
+          ensure_package       => $ensure_package,
+          api_bind_address     => $api_bind_address,
+          use_syslog           => $use_syslog,
+      syslog_log_facility  => $syslog_log_facility,
+      syslog_log_level     => $syslog_log_level,
+          rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
+        }
+      } else {
+        class { 'nova':
+          sql_connection     => $sql_connection,
+          rabbit_userid      => $rabbit_user,
+          rabbit_password    => $rabbit_password,
+          image_service      => 'nova.image.glance.GlanceImageService',
+          glance_api_servers => $glance_connection,
+          verbose            => $verbose,
+          rabbit_host        => $rabbit_connection,
+          ensure_package     => $ensure_package,
+          api_bind_address   => $api_bind_address,
+      syslog_log_facility  => $syslog_log_facility,
+      syslog_log_level     => $syslog_log_level,
+          use_syslog         => $use_syslog,
+        }
+      }
+    }
+    'qpid': {
+      class { 'nova':
+        sql_connection     => $sql_connection,
+        queue_provider     => $queue_provider,
+        qpid_userid        => $qpid_user,
+        qpid_password      => $qpid_password,
+        qpid_nodes         => $qpid_nodes,
+        image_service      => 'nova.image.glance.GlanceImageService',
+        glance_api_servers => $glance_connection,
+        verbose            => $verbose,
+        ensure_package     => $ensure_package,
+        api_bind_address   => $api_bind_address,
+      syslog_log_facility  => $syslog_log_facility,
+      syslog_log_level     => $syslog_log_level,
+        use_syslog         => $use_syslog,
+      }
+    }
+  }
+
   class {'nova::quota':
     quota_instances                       => 100,
     quota_cores                           => 100,
@@ -224,23 +278,32 @@ class openstack::nova::controller (
     $quantum_sql_connection = "$db_type://${quantum_db_user}:${quantum_db_password}@${db_host}/${quantum_db_dbname}?charset=utf8"
 
     class { 'quantum::server':
-      auth_host     => $internal_address,
+      auth_host     => $keystone_host,
+      auth_tenant   => 'services',
+      auth_user     => 'quantum',
       auth_password => $quantum_user_password,
     }
     if $quantum and !$quantum_network_node {
       class { '::quantum':
+        auth_password        => $quantum_user_password,
         bind_host            => $api_bind_address,
+        queue_provider       => $queue_provider,
         rabbit_user          => $rabbit_user,
         rabbit_password      => $rabbit_password,
         rabbit_host          => $rabbit_nodes,
         rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
+        qpid_user            => $qpid_user,
+        qpid_password        => $qpid_password,
+        qpid_host            => $qpid_nodes,
        #sql_connection       => $quantum_sql_connection,
         verbose              => $verbose,
-        debug                => $verbose,
+        debug                => $debug,
         use_syslog           => $use_syslog,
+        syslog_log_facility  => $syslog_log_facility_quantum,
+        syslog_log_level     => $syslog_log_level,
       }
    }
-     class { 'nova::network::quantum':
+      class { 'nova::network::quantum':
         quantum_admin_password    => $quantum_user_password,
         quantum_auth_strategy     => 'keystone',
         quantum_url               => "http://${keystone_host}:9696",
@@ -262,12 +325,23 @@ class openstack::nova::controller (
     cinder            => $cinder
   }
 
+  # Do not enable it!!!!!
+  # metadata service provides by nova api 
+  # while enabled_apis=ec2,osapi_compute,metadata
+  # and by quantum-metadata-agent on network node as proxy
+  #
+  # enable nova-metadata-api service
+  #class { 'nova::metadata_api':
+  #  enabled => $enabled,
+  #  ensure_package => $ensure_package,
+  #}
+
   class {'nova::conductor':
     enabled => $enabled,
-    ensure_package  => $ensure_package,
+    ensure_package => $ensure_package,
   }
 
-if $auto_assign_floating_ip {
+  if $auto_assign_floating_ip {
     nova_config { 'DEFAULT/auto_assign_floating_ip': value => 'True' }
   }
 

@@ -18,5 +18,4 @@ class operatingsystem::checksupported (
   notify { 'operatingsystem':
     message => "Detected OS $::operatingsystem, architecture $::architecture"
   }
-
 }

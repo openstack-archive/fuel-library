@@ -35,7 +35,7 @@ describe 'mysql::config' do
       },
       'Redhat' => {
          :datadir      => '/var/lib/mysql',
-         :service_name => 'mysqld',
+         :service_name => 'mysql',
          :config_file  => '/etc/my.cnf',
          :socket       => '/var/lib/mysql/mysql.sock',
          :root_group   => 'root',

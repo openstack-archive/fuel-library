@@ -1,9 +1,15 @@
 #
 # Parameter values in this file should be changed, taking into consideration your
 # networking setup and desired OpenStack settings.
-# 
+#
 # Please consult with the latest Fuel User Guide before making edits.
 #
+
+# Run stages for puppet
+stage {'first': } ->
+stage {'openstack-custom-repo': } ->
+stage {'netconfig': } ->
+stage {'openstack-firewall': } -> Stage['main']
 
 ### GENERAL CONFIG ###
 # This section sets main parameters such as hostnames and IP addresses of different nodes
@@ -19,6 +25,16 @@ $internal_interface  = 'eth0'
 
 # This is the name of the private interface. All traffic within OpenStack tenants' networks will go through this interface.
 $private_interface   = 'eth2'
+case $::operatingsystem {
+  'redhat' : {
+          $queue_provider = 'qpid'
+          $custom_mysql_setup_class = 'pacemaker_mysql'
+  }
+  default: {
+    $queue_provider='rabbitmq'
+    $custom_mysql_setup_class='galera'
+  }
+}
 
 $nodes_harr = [
   {
@@ -109,7 +125,7 @@ $floating_range  = '10.0.204.128/28'
 
 # These parameters are passed to the previously specified network manager , e.g. nova-manage network create.
 # Not used in Quantum.
-# Consult openstack docs for corresponding network manager. 
+# Consult openstack docs for corresponding network manager.
 # https://fuel-dev.mirantis.com/docs/0.2/pages/0050-installation-instructions.html#network-setup
 $num_networks    = 1
 $network_size    = 31
@@ -118,7 +134,7 @@ $vlan_start      = 300
 # Quantum
 
 # Segmentation type for isolating traffic between tenants
-# Consult Openstack Quantum docs 
+# Consult Openstack Quantum docs
 $tenant_network_type     = 'gre'
 
 # Which IP address will be used for creating GRE tunnels.
@@ -151,14 +167,10 @@ $auto_assign_floating_ip = false
 # Database connections
 $sql_connection = "mysql://nova:${nova_db_password}@${controller_internal_address}/nova"
 
-$public_int   = $public_interface 
+$public_int   = $public_interface
 $internal_int = $internal_interface
 
 #Network configuration
-stage {'netconfig':
-      before  => Stage['main'],
-}
-
 class {'l23network': use_ovs=>$quantum, stage=> 'netconfig'}
 class node_netconfig (
   $mgmt_ipaddr,
@@ -204,7 +216,7 @@ class node_netconfig (
 
 
 # This parameter specifies the the identifier of the current cluster. This is needed in case of multiple environments.
-# installation. Each cluster requires a unique integer value. 
+# installation. Each cluster requires a unique integer value.
 # Valid identifier range is 1 to 254
 $deployment_id = '69'
 
@@ -235,12 +247,12 @@ $cinder_iscsi_bind_addr = $internal_address
 # Below you can add physical volumes to cinder. Please replace values with the actual names of devices.
 # This parameter defines which partitions to aggregate into cinder-volumes or nova-volumes LVM VG
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-# USE EXTREME CAUTION WITH THIS SETTING! IF THIS PARAMETER IS DEFINED, 
+# USE EXTREME CAUTION WITH THIS SETTING! IF THIS PARAMETER IS DEFINED,
 # IT WILL AGGREGATE THE VOLUMES INTO AN LVM VOLUME GROUP
 # AND ALL THE DATA THAT RESIDES ON THESE VOLUMES WILL BE LOST!
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 # Leave this parameter empty if you want to create [cinder|nova]-volumes VG by yourself
-$nv_physical_volume     = ['/dev/sdz', '/dev/sdy', '/dev/sdx'] 
+$nv_physical_volume     = ['/dev/sdz', '/dev/sdy', '/dev/sdx']
 
 #Evaluate cinder node selection
 if ($cinder) {
@@ -276,20 +288,68 @@ $swift_loopback = false
 ### Glance and swift END ###
 
 ### Syslog ###
-# Enable error messages reporting to rsyslog. Rsyslog must be installed in this case.
-$use_syslog = false
+# Enable error messages reporting to rsyslog. Rsyslog must be installed in this case,
+# and configured to start at the very beginning of puppet agent run.
+$use_syslog = true
+# Default log level would have been used, if non verbose and non debug
+$syslog_log_level             = 'ERROR'
+# Syslog facilities for main openstack services, choose any, may overlap if needed
+# local0 is reserved for HA provisioning and orchestration services (not applicable here),
+# local1 is reserved for openstack-dashboard
+$syslog_log_facility_glance   = 'LOCAL2'
+$syslog_log_facility_cinder   = 'LOCAL3'
+$syslog_log_facility_quantum  = 'LOCAL4'
+$syslog_log_facility_nova     = 'LOCAL6'
+$syslog_log_facility_keystone = 'LOCAL7'
+
 if $use_syslog {
-  class { "::rsyslog::client":
-    log_local => true,
+  class { "::openstack::logging":
+    stage          => 'first',
+    role           => 'client',
+    # use date-rfc3339 timestamps
+    show_timezone => true,
+    # log both locally include auth, and remote
+    log_remote     => true,
+    log_local      => true,
     log_auth_local => true,
-    server => '127.0.0.1',
-    port => '514'
+    # keep four weekly log rotations, force rotate if 300M size have exceeded
+    rotation       => 'weekly',
+    keep           => '4',
+    # should be > 30M
+    limitsize      => '300M',
+    # remote servers to send logs to
+    rservers       => [{'remote_type'=>'udp', 'server'=>'master', 'port'=>'514'},],
+    # should be true, if client is running at virtual node
+    virtual        => true,
+    # facilities
+    syslog_log_facility_glance   => $syslog_log_facility_glance,
+    syslog_log_facility_cinder   => $syslog_log_facility_cinder,
+    syslog_log_facility_quantum  => $syslog_log_facility_quantum,
+    syslog_log_facility_nova     => $syslog_log_facility_nova,
+    syslog_log_facility_keystone => $syslog_log_facility_keystone,
+    # Rabbit doesn't support syslog directly, should be >= syslog_log_level,
+    # otherwise none rabbit's messages would have gone to syslog
+    rabbit_log_level => $syslog_log_level,
   }
 }
 
+# Example for server role class definition for remote logging node:
+#   class {::openstack::logging:
+#      role           => 'server',
+#      log_remote     => false,
+#      log_local      => true,
+#      log_auth_local => true,
+#      rotation       => 'daily',
+#      keep           => '7',
+#      limitsize      => '100M',
+#      port           => '514',
+#      proto          => 'udp',
+#     #high precision timespamps
+#      show_timezone  => true,
+#     #should be true, if server is running at virtual node
+#     #virtual        => false,
+#   }
 ### Syslog END ###
-
-
 case $::osfamily {
     "Debian":  {
        $rabbitmq_version_string = '2.8.7-1'
@@ -321,8 +381,13 @@ $repo_proxy = undef
 $use_upstream_mysql = true
 
 # This parameter specifies the verbosity level of log messages
-# in openstack components config. Currently, it disables or enables debugging.
+# in openstack components config.
+# Debug would have set DEBUG level and ignore verbose settings, if any.
+# Verbose would have set INFO level messages
+# In case of non debug and non verbose - WARNING, default level would have set.
+# Note: if syslog on, this default level may be configured (for syslog) with syslog_log_level option.
 $verbose = true
+$debug = false
 
 #Rate Limits for cinder and Nova
 #Cinder and Nova can rate-limit your requests to API services.
@@ -332,13 +397,13 @@ $nova_rate_limits = {
   'POST' => 1000,
   'POST_SERVERS' => 1000,
   'PUT' => 1000, 'GET' => 1000,
-  'DELETE' => 1000 
+  'DELETE' => 1000
 }
 $cinder_rate_limits = {
   'POST' => 1000,
   'POST_SERVERS' => 1000,
   'PUT' => 1000, 'GET' => 1000,
-  'DELETE' => 1000 
+  'DELETE' => 1000
 }
 
 
@@ -369,13 +434,12 @@ Exec<| title == 'clocksync' |>->Exec<| title == 'post-nova_config' |>
 
 
 ### END OF PUBLIC CONFIGURATION PART ###
-# Normally, you do not need to change anything after this string 
+# Normally, you do not need to change anything after this string
 
 # Globally apply an environment-based tag to all resources on each node.
 tag("${::deployment_id}::${::environment}")
 
 
-stage { 'openstack-custom-repo': before => Stage['netconfig'] }
 class { 'openstack::mirantis_repos':
   stage => 'openstack-custom-repo',
   type=>$mirror_type,
@@ -383,7 +447,7 @@ class { 'openstack::mirantis_repos':
   repo_proxy=>$repo_proxy,
   use_upstream_mysql=>$use_upstream_mysql
 }
- stage {'openstack-firewall': before => Stage['main'], require => Stage['netconfig'] } 
+
  class { '::openstack::firewall':
       stage => 'openstack-firewall'
  }
@@ -451,6 +515,7 @@ node default {
     network_size            => $network_size,
     network_config          => { 'vlan_start' => $vlan_start },
     verbose                 => $verbose,
+    debug                   => $debug,
     auto_assign_floating_ip => $auto_assign_floating_ip,
     mysql_root_password     => $mysql_root_password,
     admin_email             => $admin_email,
@@ -470,6 +535,12 @@ node default {
     manage_volumes          => $cinder ? { false => $manage_volumes, default =>$is_cinder_node },
     nv_physical_volume      => $nv_physical_volume,
     use_syslog              => $use_syslog,
+    syslog_log_level        => $syslog_log_level,
+    syslog_log_facility_glance   => $syslog_log_facility_glance,
+    syslog_log_facility_cinder => $syslog_log_facility_cinder,
+    syslog_log_facility_quantum => $syslog_log_facility_quantum,
+    syslog_log_facility_nova => $syslog_log_facility_nova,
+    syslog_log_facility_keystone => $syslog_log_facility_keystone,
     nova_rate_limits        => $nova_rate_limits,
     cinder_rate_limits      => $cinder_rate_limits,
     quantum                 => $quantum,

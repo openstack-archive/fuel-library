@@ -6,13 +6,16 @@ describe Puppet::Type.type(:cs_resource).provider(:crm) do
   let(:provider) { resource.provider }
 
   describe "#create" do
+    before(:each) do
+      provider.class.stubs(:exec_withenv).returns(0)
+    end
+
     it "should create resource with corresponding members" do
       provider.class.stubs(:prefetch)
       resource[:primitive_type] = "Dummy"
       resource[:provided_by] = "pacemaker"
       resource[:primitive_class] = "ocf"
       resource[:operations] =  {"monitor"=>{"interval"=>"20"}}
-      provider.stubs(:crm)
       tmpfile = StringIO.new()
       Tempfile.stubs(:open).with("puppet_crm_update").yields(tmpfile)
       tmpfile.stubs(:path)

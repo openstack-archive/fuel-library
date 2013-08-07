@@ -5,7 +5,7 @@
 
 RedirectMatch permanent ^/$ <%= @root_url %>/
 
-<% if @use_ssl -%>
+<% if @use_ssl =~ /^(default|exist|custom)$/ -%>
 # SSL support
 <% if @osfamily == 'RedHat' -%>
 LoadModule ssl_module modules/mod_ssl.so
@@ -20,8 +20,12 @@ SSLRandomSeed connect builtin
 SSLCryptoDevice builtin
 <% end -%>
 
+<% if @use_syslog -%>
+ErrorLog syslog:local1
+<% end -%>
+
 <VirtualHost *:<%= @http_port %>>
-<% if @use_ssl -%>
+<% if @use_ssl =~ /^(default|exist|custom)$/ -%>
   RewriteEngine On
   RewriteCond %{HTTPS} off
   RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R]

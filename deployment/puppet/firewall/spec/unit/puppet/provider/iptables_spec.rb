@@ -78,7 +78,7 @@ describe 'iptables provider' do
         let(:resource) { provider.rule_to_hash(data[:line], data[:table], 0) }
 
         # If this option is enabled, make sure the parameters exactly match
-        if data[:compare_all] then
+        if data[:compare_all]
           it "the parameter hash keys should be the same as returned by rules_to_hash" do
             resource.keys.should =~ data[:params].keys
           end
@@ -88,7 +88,7 @@ describe 'iptables provider' do
         data[:params].each do |param_name, param_value|
           it "the parameter '#{param_name.to_s}' should match #{param_value.inspect}" do
             # booleans get cludged to string "true"
-            if param_value == true then
+            if param_value == true
               resource[param_name].should == "true"
             else
               resource[param_name].should == data[:params][param_name]

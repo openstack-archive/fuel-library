@@ -7,7 +7,8 @@ from fuel_test.settings import ASTUTE_USE, PUPPET_AGENT_COMMAND
 
 
 class CompactTestCase(CobblerTestCase):
-    def deploy_compact(self, quantum_node=True, loopback=True):
+    def deploy_compact(self, manifest, quantum_node=True, loopback=True):
+        Manifest().write_manifest(remote=self.remote(), manifest=manifest)
         self.validate(self.nodes().controllers[:1], PUPPET_AGENT_COMMAND)
         self.validate(self.nodes().controllers[1:], PUPPET_AGENT_COMMAND)
         self.validate(self.nodes().controllers[:1], PUPPET_AGENT_COMMAND)
@@ -33,8 +34,8 @@ class CompactTestCase(CobblerTestCase):
                 quantum=True,
                 cinder_nodes=['controller']
             )
-            Manifest().write_manifest(remote=self.remote(), manifest=manifest)
-            self.deploy_compact(quantum_node=False)
+
+            self.deploy_compact(manifest=manifest, quantum_node=False)
 
     def test_deploy_compact_quantum_standalone(self):
         if ASTUTE_USE:
@@ -47,13 +48,13 @@ class CompactTestCase(CobblerTestCase):
                 cinder_nodes=['controller'])
             self.deploy_by_astute(config)
         else:
-            Manifest().generate_openstack_manifest(
+            manifest = Manifest().generate_openstack_manifest(
                 template=Template.compact(), ci=self.ci(),
                 controllers=self.nodes().controllers,
                 quantums=self.nodes().quantums,
                 quantum=True, quantum_netnode_on_cnt=False, ha_provider=False,
                 cinder_nodes=['controller'])
-            self.deploy_compact(quantum_node=True)
+            self.deploy_compact(manifest=manifest, quantum_node=True)
 
     def test_deploy_compact_wo_quantum(self):
         if ASTUTE_USE:
@@ -66,13 +67,13 @@ class CompactTestCase(CobblerTestCase):
                 cinder_nodes=['controller'])
             self.deploy_by_astute(config)
         else:
-            Manifest().generate_openstack_manifest(
+            manifest = Manifest().generate_openstack_manifest(
                 template=Template.compact(), ci=self.ci(),
                 controllers=self.nodes().controllers,
                 quantums=self.nodes().quantums,
                 quantum=False,
                 cinder_nodes=['controller'])
-            self.deploy_compact(quantum_node=False)
+            self.deploy_compact(manifest=manifest, quantum_node=False)
 
     def test_deploy_compact_wo_quantum_cinder_all_by_ipaddr(self):
         if ASTUTE_USE:
@@ -90,7 +91,7 @@ class CompactTestCase(CobblerTestCase):
                     + self.nodes().storages),)
             self.deploy_by_astute(config)
         else:
-            Manifest().generate_openstack_manifest(
+            manifest = Manifest().generate_openstack_manifest(
                 template=Template.compact(), ci=self.ci(),
                 controllers=self.nodes().controllers,
                 cinder=True,
@@ -101,7 +102,7 @@ class CompactTestCase(CobblerTestCase):
                     + self.nodes().storages),
                 quantums=self.nodes().quantums,
                 quantum=False,)
-            self.deploy_compact(quantum_node=False)
+            self.deploy_compact(manifest=manifest,  quantum_node=False)
 
     def test_deploy_compact_wo_quantum_cinder_all(self):
         if ASTUTE_USE:
@@ -115,14 +116,14 @@ class CompactTestCase(CobblerTestCase):
                 cinder_nodes=['all'])
             self.deploy_by_astute(config)
         else:
-            Manifest().generate_openstack_manifest(
+            manifest = Manifest().generate_openstack_manifest(
                 template=Template.compact(), ci=self.ci(),
                 controllers=self.nodes().controllers,
                 cinder=True,
                 cinder_nodes=['all'],
                 quantums=self.nodes().quantums,
                 quantum=False)
-            self.deploy_compact(quantum_node=False)
+            self.deploy_compact(manifest=manifest, quantum_node=False)
 
     def test_deploy_compact_wo_loopback(self):
         if ASTUTE_USE:
@@ -135,13 +136,13 @@ class CompactTestCase(CobblerTestCase):
                 cinder_nodes=['controller'])
             self.deploy_by_astute(config)
         else:
-            Manifest().generate_openstack_manifest(
+            manifest = Manifest().generate_openstack_manifest(
                 template=Template.compact(), ci=self.ci(),
                 controllers=self.nodes().controllers,
                 quantums=self.nodes().quantums,
                 quantum=False, loopback=False, use_syslog=False,
                 cinder_nodes=['controller'])
-            self.deploy_compact(quantum_node=False, loopback=False)
+            self.deploy_compact(manifest=manifest, quantum_node=False, loopback=False)
 
     def test_deploy_compact_wo_ha_provider(self):
         if ASTUTE_USE:
@@ -154,13 +155,13 @@ class CompactTestCase(CobblerTestCase):
                 cinder_nodes=['controller'])
             self.deploy_by_astute(config)
         else:
-            Manifest().generate_openstack_manifest(
+            manifest = Manifest().generate_openstack_manifest(
                 template=Template.compact(), ci=self.ci(),
                 controllers=self.nodes().controllers,
                 quantums=self.nodes().quantums,
                 quantum=False, use_syslog=False, ha_provider=False,
                 cinder_nodes=['controller'])
-            self.deploy_compact(quantum_node=False)
+            self.deploy_compact(manifest=manifest, quantum_node=False)
 
     def deploy_by_astute(self, config):
         print "config.yaml:", config
