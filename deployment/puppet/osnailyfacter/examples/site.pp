@@ -188,8 +188,9 @@ class os_common {
       keep           => '4',
       # should be > 30M
       limitsize      => '300M',
-      # remote servers to send logs to
+      # remote servers to send logs to. Assume logstash node is also base syslog node (master)
       rservers       => $rservers,
+      logstash_node  => $rservers[0][server],
       # should be true, if client is running at virtual node
       virtual        => str2bool($::is_virtual),
       # facilities

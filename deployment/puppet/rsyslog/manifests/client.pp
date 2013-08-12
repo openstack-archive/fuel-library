@@ -9,7 +9,7 @@ class rsyslog::client (
   $log_local      = true,
   $log_auth_local = true,
   $custom_config  = undef,
-  $server         = 'master',
+  $server         = undef,
   $port           = '514',
   $escapenewline  = false,
   $rservers       = undef,
@@ -24,6 +24,9 @@ class rsyslog::client (
   $syslog_log_facility_savanna  = 'LOG_LOCAL0',
   $log_level      = 'NOTICE',
   $debug          = false,
+  $logstash_node  = undef,
+  $logstash_port  = '55514',
+  $proto          = 'udp',
   ) inherits rsyslog {
 
 # Fix for udp checksums should be applied if running on virtual node
@@ -63,8 +66,10 @@ if $virtual { include rsyslog::checksum_udp514 }
 # Rabbitmq does not support syslogging, use imfile
 # log_level should be >= global syslog_log_level option,
 # otherwise none messages would have gone to syslog
+# For Logstash imfile rabbitmq type detecting, set file_mode = 1 (paragraph (there is a blank line between log messages))
   ::rsyslog::imfile { "04-rabbitmq" :
     file_name     => "/var/log/rabbitmq/rabbit@${hostname}.log",
+    file_mode     => 1,
     file_tag      => "rabbitmq",
     file_facility => "syslog",
     file_severity => $log_level,
@@ -73,6 +78,7 @@ if $virtual { include rsyslog::checksum_udp514 }
 
   ::rsyslog::imfile { "04-rabbitmq-sasl" :
     file_name     => "/var/log/rabbitmq/rabbit@${hostname}-sasl.log",
+    file_mode     => 1,
     file_tag      => "rabbitmq-sasl",
     file_facility => "syslog",
     file_severity => $log_level,
@@ -81,6 +87,7 @@ if $virtual { include rsyslog::checksum_udp514 }
 
   ::rsyslog::imfile { "04-rabbitmq-startup_err" :
     file_name     => "/var/log/rabbitmq/startup_err",
+    file_mode     => 1,
     file_tag      => "rabbitmq-startup_err",
     file_facility => "syslog",
     file_severity => "ERROR",
@@ -89,6 +96,7 @@ if $virtual { include rsyslog::checksum_udp514 }
 
   ::rsyslog::imfile { "04-rabbitmq-shutdown_err" :
     file_name     => "/var/log/rabbitmq/shutdown_err",
+    file_mode     => 1,
     file_tag      => "rabbitmq-shutdown_err",
     file_facility => "syslog",
     file_severity => "ERROR",
@@ -188,122 +196,122 @@ if $virtual { include rsyslog::checksum_udp514 }
     }
   }
 
-  # openstack syslog compatible mode, would work only for debug case.
-  # because of its poor syslog debug messages quality, use local logs convertion
+# openstack syslog compatible mode, would work only for debug case.
+# because of its poor syslog debug messages quality, use local logs convertion
   if $debug {
-    ::rsyslog::imfile { "10-nova-api_debug" :
+::rsyslog::imfile { "10-nova-api_debug" :
         file_name     => $napi,
-        file_tag      => "nova-api",
+    file_tag      => "nova-api",
         file_facility => $syslog_log_facility_nova_matched,
-        file_severity => "DEBUG",
-        notify  => Class["rsyslog::service"],
-    }
-    ::rsyslog::imfile { "10-nova-cert_debug" :
+    file_severity => "DEBUG",
+    notify  => Class["rsyslog::service"],
+}
+::rsyslog::imfile { "10-nova-cert_debug" :
         file_name     => $ncert,
-        file_tag      => "nova-cert",
+    file_tag      => "nova-cert",
         file_facility => $syslog_log_facility_nova_matched,
-        file_severity => "DEBUG",
-        notify  => Class["rsyslog::service"],
-    }
-    ::rsyslog::imfile { "10-nova-consoleauth_debug" :
+    file_severity => "DEBUG",
+    notify  => Class["rsyslog::service"],
+}
+::rsyslog::imfile { "10-nova-consoleauth_debug" :
         file_name     => $nauth,
-        file_tag      => "nova-consoleauth",
+    file_tag      => "nova-consoleauth",
         file_facility => $syslog_log_facility_nova_matched,
-        file_severity => "DEBUG",
-        notify  => Class["rsyslog::service"],
-    }
-    ::rsyslog::imfile { "10-nova-scheduler_debug" :
+    file_severity => "DEBUG",
+    notify  => Class["rsyslog::service"],
+}
+::rsyslog::imfile { "10-nova-scheduler_debug" :
         file_name     => $nschd,
-        file_tag      => "nova-scheduler",
+    file_tag      => "nova-scheduler",
         file_facility => $syslog_log_facility_nova_matched,
-        file_severity => "DEBUG",
-        notify  => Class["rsyslog::service"],
-    }
-    ::rsyslog::imfile { "10-nova-network_debug" :
+    file_severity => "DEBUG",
+    notify  => Class["rsyslog::service"],
+}
+::rsyslog::imfile { "10-nova-network_debug" :
         file_name     => $nnetw,
-        file_tag      => "nova-network",
+    file_tag      => "nova-network",
         file_facility => $syslog_log_facility_nova_matched,
-        file_severity => "DEBUG",
-        notify  => Class["rsyslog::service"],
-    }
-    ::rsyslog::imfile { "10-nova-compute_debug" :
+    file_severity => "DEBUG",
+    notify  => Class["rsyslog::service"],
+}
+::rsyslog::imfile { "10-nova-compute_debug" :
         file_name     => $ncomp,
-        file_tag      => "nova-compute",
+    file_tag      => "nova-compute",
         file_facility => $syslog_log_facility_nova_matched,
-        file_severity => "DEBUG",
-        notify  => Class["rsyslog::service"],
-    }
-    ::rsyslog::imfile { "10-nova-conductor_debug" :
+    file_severity => "DEBUG",
+    notify  => Class["rsyslog::service"],
+}
+::rsyslog::imfile { "10-nova-conductor_debug" :
         file_name     => $ncond,
-        file_tag      => "nova-conductor",
+    file_tag      => "nova-conductor",
         file_facility => $syslog_log_facility_nova_matched,
-        file_severity => "DEBUG",
-        notify  => Class["rsyslog::service"],
-    }
-    ::rsyslog::imfile { "10-nova-objectstore_debug" :
+    file_severity => "DEBUG",
+    notify  => Class["rsyslog::service"],
+}
+::rsyslog::imfile { "10-nova-objectstore_debug" :
         file_name     => $nobjs,
-        file_tag      => "nova-objectstore",
+    file_tag      => "nova-objectstore",
         file_facility => $syslog_log_facility_nova_matched,
-        file_severity => "DEBUG",
-        notify  => Class["rsyslog::service"],
-    }
-    ::rsyslog::imfile { "20-keystone_debug" :
-        file_name     => "/var/log/keystone/keystone.log",
-        file_tag      => "keystone",
+    file_severity => "DEBUG",
+    notify  => Class["rsyslog::service"],
+}
+::rsyslog::imfile { "20-keystone_debug" :
+    file_name     => "/var/log/keystone/keystone.log",
+    file_tag      => "keystone",
         file_facility => $syslog_log_facility_keystone_matched,
-        file_severity => "DEBUG",
-        notify  => Class["rsyslog::service"],
-    }
-    ::rsyslog::imfile { "30-cinder-api_debug" :
+    file_severity => "DEBUG",
+    notify  => Class["rsyslog::service"],
+}
+::rsyslog::imfile { "30-cinder-api_debug" :
         file_name     => $capi,
-        file_tag      => "cinder-api",
+    file_tag      => "cinder-api",
         file_facility => $syslog_log_facility_cinder_matched,
-        file_severity => "DEBUG",
-        notify  => Class["rsyslog::service"],
-    }
-    ::rsyslog::imfile { "30-cinder-volume_debug" :
+    file_severity => "DEBUG",
+    notify  => Class["rsyslog::service"],
+}
+::rsyslog::imfile { "30-cinder-volume_debug" :
         file_name     => $cvol,
-        file_tag      => "cinder-volume",
+    file_tag      => "cinder-volume",
         file_facility => $syslog_log_facility_cinder_matched,
-        file_severity => "DEBUG",
-        notify  => Class["rsyslog::service"],
-    }
-    ::rsyslog::imfile { "30-cinder-scheduler_debug" :
+    file_severity => "DEBUG",
+    notify  => Class["rsyslog::service"],
+}
+::rsyslog::imfile { "30-cinder-scheduler_debug" :
         file_name     => $csch,
-        file_tag      => "cinder-scheduler",
+    file_tag      => "cinder-scheduler",
         file_facility => $syslog_log_facility_cinder_matched,
-        file_severity => "DEBUG",
-        notify  => Class["rsyslog::service"],
-    }
-    ::rsyslog::imfile { "40-glance-api_debug" :
-        file_name     => "/var/log/glance/api.log",
-        file_tag      => "glance-api",
+    file_severity => "DEBUG",
+    notify  => Class["rsyslog::service"],
+}
+::rsyslog::imfile { "40-glance-api_debug" :
+    file_name     => "/var/log/glance/api.log",
+    file_tag      => "glance-api",
         file_facility => $syslog_log_facility_glance_matched,
-        file_severity => "DEBUG",
-        notify  => Class["rsyslog::service"],
-    }
-    ::rsyslog::imfile { "40-glance-registry_debug" :
-        file_name     => "/var/log/glance/registry.log",
-        file_tag      => "glance-registry",
+    file_severity => "DEBUG",
+    notify  => Class["rsyslog::service"],
+}
+::rsyslog::imfile { "40-glance-registry_debug" :
+    file_name     => "/var/log/glance/registry.log",
+    file_tag      => "glance-registry",
         file_facility => $syslog_log_facility_glance_matched,
-        file_severity => "DEBUG",
-        notify  => Class["rsyslog::service"],
-    }
+    file_severity => "DEBUG",
+    notify  => Class["rsyslog::service"],
+}
     # murano
     ::rsyslog::imfile { "53-murano-api_debug" :
         file_name     => "/var/log/murano/murano-api.log",
         file_tag      => "murano-api",
         file_facility => $syslog_log_facility_murano_matched,
-        file_severity => "DEBUG",
-        notify  => Class["rsyslog::service"],
-    }
+    file_severity => "DEBUG",
+    notify  => Class["rsyslog::service"],
+}
     ::rsyslog::imfile { "53-murano-conductor_debug" :
         file_name     => "/var/log/murano/murano-conductor.log",
         file_tag      => "murano-conductor",
         file_facility => $syslog_log_facility_murano_matched,
-        file_severity => "DEBUG",
-        notify  => Class["rsyslog::service"],
-    }
+    file_severity => "DEBUG",
+    notify  => Class["rsyslog::service"],
+}
     ::rsyslog::imfile { "53-murano-repository_debug" :
         file_name     => "/var/log/murano/murano-repository.log",
         file_tag      => "murano-repository",
@@ -316,23 +324,23 @@ if $virtual { include rsyslog::checksum_udp514 }
         file_name     => "/var/log/heat/heat-engine.log",
         file_tag      => "heat-engine",
         file_facility => $syslog_log_facility_heat_matched,
-        file_severity => "DEBUG",
-        notify  => Class["rsyslog::service"],
-    }
+    file_severity => "DEBUG",
+    notify  => Class["rsyslog::service"],
+}
     ::rsyslog::imfile { "54-heat_api_debug" :
         file_name     => "/var/log/heat/heat-api.log",
         file_tag      => "heat-api",
         file_facility => $syslog_log_facility_heat_matched,
-        file_severity => "DEBUG",
-        notify  => Class["rsyslog::service"],
-    }
+    file_severity => "DEBUG",
+    notify  => Class["rsyslog::service"],
+}
     ::rsyslog::imfile { "54-heat_api_cfn_debug" :
         file_name     => "/var/log/heat/heat-api-cfn.log",
         file_tag      => "heat-api-cfn",
         file_facility => $syslog_log_facility_heat_matched,
-        file_severity => "DEBUG",
-        notify  => Class["rsyslog::service"],
-    }
+    file_severity => "DEBUG",
+    notify  => Class["rsyslog::service"],
+}
     ::rsyslog::imfile { "54-heat_api_cloudwatch_debug" :
         file_name     => "/var/log/heat/heat-api-cloudwatch.log",
         file_tag      => "heat-api-cloudwatch",
@@ -344,9 +352,9 @@ if $virtual { include rsyslog::checksum_udp514 }
         file_name     => "/var/log/heat/heat-manage.log",
         file_tag      => "heat-manage",
         file_facility => $syslog_log_facility_heat_matched,
-        file_severity => "DEBUG",
-        notify  => Class["rsyslog::service"],
-    }
+    file_severity => "DEBUG",
+    notify  => Class["rsyslog::service"],
+}
     # savanna
     ::rsyslog::imfile { "52-savanna-api_debug" :
         file_name     => $sapi,
@@ -355,27 +363,28 @@ if $virtual { include rsyslog::checksum_udp514 }
         file_severity => "DEBUG",
         notify  => Class["rsyslog::service"],
     }
-  } else { #non debug case
-    # standard logging configs for syslog client
-    file { "${rsyslog::params::rsyslog_d}10-nova.conf":
-      ensure => present,
-      content => template("${module_name}/10-nova.conf.erb"),
-    }
+# END fixme
+} else { #non debug case
+# standard logging configs for syslog client
+  file { "${rsyslog::params::rsyslog_d}10-nova.conf":
+    ensure => present,
+    content => template("${module_name}/10-nova.conf.erb"),
+  }
 
-    file { "${rsyslog::params::rsyslog_d}20-keystone.conf":
-      ensure => present,
-      content => template("${module_name}/20-keystone.conf.erb"),
-    }
+  file { "${rsyslog::params::rsyslog_d}20-keystone.conf":
+    ensure => present,
+    content => template("${module_name}/20-keystone.conf.erb"),
+  }
 
-    file { "${rsyslog::params::rsyslog_d}/30-cinder.conf":
-      ensure => present,
-      content => template("${module_name}/30-cinder.conf.erb"),
-    }
+  file { "${rsyslog::params::rsyslog_d}/30-cinder.conf":
+    ensure => present,
+    content => template("${module_name}/30-cinder.conf.erb"),
+  }
 
-    file { "${rsyslog::params::rsyslog_d}40-glance.conf":
-      ensure => present,
-      content => template("${module_name}/40-glance.conf.erb"),
-    }
+  file { "${rsyslog::params::rsyslog_d}40-glance.conf":
+    ensure => present,
+    content => template("${module_name}/40-glance.conf.erb"),
+  }
 
     file { "${rsyslog::params::rsyslog_d}50-neutron.conf":
       ensure => present,
@@ -398,11 +407,11 @@ if $virtual { include rsyslog::checksum_udp514 }
     }
 
     file { "${rsyslog::params::rsyslog_d}52-savanna.conf":
-      ensure => present,
+    ensure => present,
       content => template("${module_name}/52-savanna.conf.erb"),
-    }
+  }
 
-  } #end if
+} #end if
 
   file { "${rsyslog::params::rsyslog_d}02-ha.conf":
     ensure => present,
@@ -435,7 +444,7 @@ if $virtual { include rsyslog::checksum_udp514 }
     content => template("${module_name}/00-remote.conf.erb"),
   }
 
-  file { $rsyslog::params::rsyslog_d:
+ file { $rsyslog::params::rsyslog_d:
     purge   => true,
     recurse => true,
     force   => true,
