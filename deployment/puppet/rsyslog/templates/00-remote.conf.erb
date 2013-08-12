@@ -8,6 +8,19 @@ $Template RemoteLog, "<%%pri%>%timestamp% %hostname% %syslogtag%%msg:::sp-if-no-
 # RFC5424 emulation would be: "<%%pri%>1 %timestamp:::date-rfc3339% %hostname% %syslogtag% %procid% %msgid% %structured-data% %msg%\n"
 # Note: don't use %app-name% cuz it would be empty for some cases
 $ActionFileDefaultTemplate RemoteLog
+# Templates for Logstash
+$Template LogToLogstash, "%rawmsg%\n"
+$Template ImfileToLogstash, "<%%pri%>%syslogtag%%msg:::sp-if-no-1st-sp%%msg%\n"
+# Send logs to Logstash
+<% if scope.lookupvar('rsyslog::client::proto') == 'tcp' -%>
+USER.* @@<%= scope.lookupvar('rsyslog::client::logstash_node') %>:<%= scope.lookupvar('rsyslog::client::logstash_port') %>;ImfileToLogstash
+USER.* ~
+*.* @@<%= scope.lookupvar('rsyslog::client::logstash_node') %>:<%= scope.lookupvar('rsyslog::client::logstash_port') %>;LogToLogstash
+<% else -%>
+USER.* @<%= scope.lookupvar('rsyslog::client::logstash_node') %>:<%= scope.lookupvar('rsyslog::client::logstash_port') %>;ImfileToLogstash
+USER.* ~
+*.* @<%= scope.lookupvar('rsyslog::client::logstash_node') %>:<%= scope.lookupvar('rsyslog::client::logstash_port') %>;LogToLogstash
+<% end -%>
 
 <% scope.lookupvar('rsyslog::client::rservers_real').each do |rserver| -%>
 <% if ! ['localhost','127.0.0.1','::1'].include?(rserver['server']) -%>

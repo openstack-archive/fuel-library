@@ -63,8 +63,10 @@ if $virtual { include rsyslog::checksum_udp514 }
 # Rabbitmq does not support syslogging, use imfile
 # log_level should be >= global syslog_log_level option,
 # otherwise none messages would have gone to syslog
+# For Logstash imfile rabbitmq type detecting, set file_mode = 1 (paragraph (there is a blank line between log messages))
   ::rsyslog::imfile { "04-rabbitmq" :
     file_name     => "/var/log/rabbitmq/rabbit@${hostname}.log",
+    file_mode     => 1,
     file_tag      => "rabbitmq",
     file_facility => "syslog",
     file_severity => $log_level,
@@ -73,6 +75,7 @@ if $virtual { include rsyslog::checksum_udp514 }
 
   ::rsyslog::imfile { "04-rabbitmq-sasl" :
     file_name     => "/var/log/rabbitmq/rabbit@${hostname}-sasl.log",
+    file_mode     => 1,
     file_tag      => "rabbitmq-sasl",
     file_facility => "syslog",
     file_severity => $log_level,
@@ -81,6 +84,7 @@ if $virtual { include rsyslog::checksum_udp514 }
 
   ::rsyslog::imfile { "04-rabbitmq-startup_err" :
     file_name     => "/var/log/rabbitmq/startup_err",
+    file_mode     => 1,
     file_tag      => "rabbitmq-startup_err",
     file_facility => "syslog",
     file_severity => "ERROR",
@@ -89,6 +93,7 @@ if $virtual { include rsyslog::checksum_udp514 }
 
   ::rsyslog::imfile { "04-rabbitmq-shutdown_err" :
     file_name     => "/var/log/rabbitmq/shutdown_err",
+    file_mode     => 1,
     file_tag      => "rabbitmq-shutdown_err",
     file_facility => "syslog",
     file_severity => "ERROR",
