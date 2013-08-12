@@ -1,6 +1,7 @@
 #
 define rsyslog::imfile(
   $file_name,
+  $file_mode = 0,
   $file_tag,
   $file_facility,
   $polling_interval = 10,
