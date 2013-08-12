@@ -101,9 +101,9 @@ class nova(
 
   # turn on rabbitmq ha/cluster mode
   if $queue_provider == 'rabbitmq' and $rabbit_ha_queues {
-    Nova_config['DEFAULT/rabbit_ha_queues'] -> Nova::Generic_service<| title != 'api' |>
-    nova_config { 'DEFAULT/rabbit_ha_queues': value => 'True' }
-  }
+        Nova_config['DEFAULT/rabbit_ha_queues'] -> Nova::Generic_service<| title != 'api' |>
+        nova_config { 'DEFAULT/rabbit_ha_queues': value => 'True' }
+      }
 
   if (defined(Exec['update-kombu']))
   {
@@ -140,25 +140,26 @@ class nova(
 #Configure logging in nova.conf
 if $use_syslog and !$debug { #syslog and nondebug case
   nova_config {
-     'DEFAULT/log_config': value => "/etc/nova/logging.conf";
-     'DEFAULT/use_syslog': value =>  true;
-     'DEFAULT/syslog_log_facility': value =>  $syslog_log_facility;
-  }
-  file {"nova-logging.conf":
-    content => template('nova/logging.conf.erb'),
-    path => "/etc/nova/logging.conf",
-    require => File[$logdir],
-  }
+ 'DEFAULT/log_config': value => "/etc/nova/logging.conf";
+ 'DEFAULT/use_syslog': value =>  true;
+ 'DEFAULT/syslog_log_facility': value =>  $syslog_log_facility;
+}
+file {"nova-logging.conf":
+  content => template('nova/logging.conf.erb'),
+  path => "/etc/nova/logging.conf",
+  require => File[$logdir],
+}
   # We must notify services to apply new logging rules
   File['nova-logging.conf'] ~> Nova::Generic_service <| |>
   File['nova-logging.conf'] ~> Service <| title == 'nova-api'|>
   File['nova-logging.conf'] ~> Service <| title == 'nova-compute'|>
 } else { #other syslog debug or nonsyslog debug/nondebug cases
   nova_config {
+   'DEFAULT/use_stderr': ensure=> absent;
    'DEFAULT/logdir': value=> $logdir;
    'DEFAULT/use_syslog': value =>  false;
   }
-}
+  }
 
   file { $logdir:
     ensure  => directory,
@@ -229,7 +230,7 @@ if $use_syslog and !$debug { #syslog and nondebug case
         'DEFAULT/qpid_hosts':    value => $amqp_hosts;
         'DEFAULT/qpid_username': value => $amqp_user;
         'DEFAULT/qpid_password': value => $rabbit_virtual_host;
-        'DEFAULT/rpc_backend':   value => 'nova.rpc.impl_qpid';
+        'DEFAULT/rpc_backend':       value => 'nova.rpc.impl_qpid';
       }
     }
   }

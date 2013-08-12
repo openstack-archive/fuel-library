@@ -39,7 +39,7 @@
 #  $clean_minute - cron minute to launch glance-cache-cleaner.
 #  Optional. Default: 0
 #
-#  $use_syslog - Rather or not service should log to syslog. Optional.
+# $use_syslog - Rather or not service should log to syslog. Optional.
 #  Default: false
 #
 class glance::api(
@@ -74,7 +74,7 @@ class glance::api(
   $clean_ensure      = 'present',
   $image_cache_max_size = '10737418240',
   $notify_mech        = 'noop',
-  ) inherits glance {
+) inherits glance {
 
   # used to configure concat
   require 'keystone::python'
@@ -120,24 +120,25 @@ class glance::api(
   }
 
   if $use_syslog and !$debug { #syslog and nondebug case
-    glance_api_config {
-      'DEFAULT/log_config': value => "/etc/glance/logging.conf";
-      'DEFAULT/use_syslog':  value => true;
-      'DEFAULT/syslog_log_facility': value =>  $syslog_log_facility;
-    }
-    if !defined(File["glance-logging.conf"]) {
-      file {"glance-logging.conf":
-        content => template('glance/logging.conf.erb'),
-        path => "/etc/glance/logging.conf",
+ glance_api_config {
+   'DEFAULT/log_config': value => "/etc/glance/logging.conf";
+   'DEFAULT/use_syslog':  value => true;
+   'DEFAULT/syslog_log_facility': value =>  $syslog_log_facility;
+ }
+ if !defined(File["glance-logging.conf"]) {
+   file {"glance-logging.conf":
+     content => template('glance/logging.conf.erb'),
+     path => "/etc/glance/logging.conf",
         notify => Service['glance-api'],
-      }
-    }
+   }
+ }
   } else {  #other syslog debug or nonsyslog debug/nondebug cases
-    glance_api_config {
-      'DEFAULT/log_config': ensure=> absent;
+ glance_api_config {
+   'DEFAULT/log_config': ensure=> absent;
+   'DEFAULT/use_stderr': ensure=> absent;
       'DEFAULT/log_file':value=> $log_file;
       'DEFAULT/use_syslog': value =>  false;
-    }
+ }
   } #end if
 
   # basic service config
@@ -226,15 +227,15 @@ class glance::api(
   Glance_api_config<| |> -> Service['glance-api']
   if $::osfamily == "Debian"
   {
-    package{ 'glance-api':
-      name => $::glance::params::api_package_name,
-      ensure => $package_ensure,
-    }
-    File['/etc/glance/glance-api.conf']->Glance_api_config<| |>
-    Glance_api_config<| |> -> Package['glance-api']
-    File['/etc/glance/glance-cache.conf']->Glance_cache_config<| |>
-    Glance_cache_config<| |> -> Package['glance-api']
-    Package['glance-api'] -> Service['glance-api']
+  package{ 'glance-api':
+    name => $::glance::params::api_package_name,
+    ensure => $package_ensure,
+   }
+   File['/etc/glance/glance-api.conf']->Glance_api_config<| |>
+   Glance_api_config<| |> -> Package['glance-api']
+   File['/etc/glance/glance-cache.conf']->Glance_cache_config<| |>
+   Glance_cache_config<| |> -> Package['glance-api']
+   Package['glance-api'] -> Service['glance-api']
   }
 
   cron { 'glance-cache-prune':

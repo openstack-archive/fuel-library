@@ -50,26 +50,31 @@ class cinder::base (
   }
 
   if $use_syslog and !$debug { #syslog and nondebug case
-    cinder_config {
-      'DEFAULT/log_config': value => "/etc/cinder/logging.conf";
-      'DEFAULT/use_syslog': value => true;
-      'DEFAULT/syslog_log_facility': value =>  $syslog_log_facility;
-    }
-    file { "cinder-logging.conf":
-      content => template('cinder/logging.conf.erb'),
-      path => "/etc/cinder/logging.conf",
-      require => File[$::cinder::params::cinder_conf],
-    }
+  cinder_config {
+    'DEFAULT/log_config': value => "/etc/cinder/logging.conf";
+    'DEFAULT/use_syslog': value => true;
+    'DEFAULT/syslog_log_facility': value =>  $syslog_log_facility;
+  }
+  file { "cinder-logging.conf":
+    content => template('cinder/logging.conf.erb'),
+    path => "/etc/cinder/logging.conf",
+    require => File[$::cinder::params::cinder_conf],
+  }
     # We must notify services to apply new logging rules
     File['cinder-logging.conf'] ~> Service <| title == 'cinder-api' |>
     File['cinder-logging.conf'] ~> Service <| title == 'cinder-volume' |>
     File['cinder-logging.conf'] ~> Service <| title == 'cinder-scheduler' |>
   } else { #other syslog debug or nonsyslog debug/nondebug cases
-    cinder_config {
+  cinder_config {
+    'DEFAULT/use_stderr': ensure=> absent;
       'DEFAULT/logdir': value=> $log_dir;
       'DEFAULT/use_syslog': value =>  false;
-    }
   }
+}
+  # We must notify services to apply new logging rules
+  File['cinder-logging.conf'] ~> Service<| title == "$::cinder::params::api_service" |>
+  File['cinder-logging.conf'] ~> Service<| title == "$::cinder::params::volume_service" |>
+  File['cinder-logging.conf'] ~> Service<| title == "$::cinder::params::scheduler_service" |>
 
   file { $::cinder::params::cinder_conf: }
   file { $::cinder::params::cinder_paste_api_ini: }
@@ -83,7 +88,7 @@ class cinder::base (
 
   case $queue_provider {
     'rabbitmq': {
-      cinder_config {
+        cinder_config {
         'DEFAULT/rpc_backend':         value => 'cinder.openstack.common.rpc.impl_kombu';
         'DEFAULT/rabbit_hosts':        value => $amqp_hosts;
         'DEFAULT/rabbit_userid':       value => $amqp_user;
@@ -92,7 +97,7 @@ class cinder::base (
       }
     }
     'qpid': {
-      cinder_config {
+        cinder_config {
         'DEFAULT/rpc_backend':   value => 'cinder.openstack.common.rpc.impl_qpid';
         'DEFAULT/qpid_hosts':    value => $amqp_hosts;
         'DEFAULT/qpid_username': value => $amqp_user;

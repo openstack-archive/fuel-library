@@ -1,11 +1,20 @@
+<% if @debug then -%>
+[loggers]
+keys = root, l3agent, ovsagent, dhcpagent, metadata
+
+[handlers]
+keys = production,devel,stderr, l3agent, ovsagent, dhcpagent, metadata
+
+<% else -%>
 [loggers]
 keys = root
 
 [handlers]
 keys = production,devel,stderr
 
+<% end -%>
 [formatters]
-keys = normal,debug
+keys = normal,debug,default
 
 [logger_root]
 level = NOTSET
@@ -60,4 +69,5 @@ formatter = normal
 level = <%= @syslog_log_level %>
 formatter = normal
 <% end -%>
+args = (sys.stdout,)
 args = (sys.stdout,)
