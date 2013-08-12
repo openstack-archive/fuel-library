@@ -133,6 +133,7 @@ class openstack::controller (
   $glance_db_user          = 'glance',
   $glance_db_dbname        = 'glance',
   $glance_api_servers      = undef,
+  $glance_image_cache_max_size = '10737418240',
   # Nova
   $nova_db_user            = 'nova',
   $nova_db_dbname          = 'nova',
@@ -296,6 +297,7 @@ class openstack::controller (
     use_syslog                => $use_syslog,
     syslog_log_facility       => $syslog_log_facility_glance,
     syslog_log_level          => $syslog_log_level,
+    glance_image_cache_max_size => $glance_image_cache_max_size,
   }
 
   ######## BEGIN NOVA ###########

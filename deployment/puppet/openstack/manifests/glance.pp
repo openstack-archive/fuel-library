@@ -23,9 +23,10 @@
 # [enabled] Used to indicate if the service should be active (true) or passive (false).
 #   Optional. Defaults to true
 # [use_syslog] Rather or not service should log to syslog. Optional.
-# [syslog_log_facility] Facility for syslog, if used. Optional. Note: duplicating conf option 
+# [syslog_log_facility] Facility for syslog, if used. Optional. Note: duplicating conf option
 #       wouldn't have been used, but more powerfull rsyslog features managed via conf template instead
 # [syslog_log_level] logging level for non verbose and non debug mode. Optional.
+# [glance_image_cache_max_size] the maximum size of glance image cache. Optional. Default is 10G.
 #
 # === Example
 #
@@ -54,6 +55,7 @@ class openstack::glance (
   # Facility is common for all glance services
   $syslog_log_facility  = 'LOCAL2',
   $syslog_log_level = 'WARNING',
+  $glance_image_cache_max_size = '10737418240',
 ) {
 
   # Configure the db string
@@ -80,6 +82,7 @@ class openstack::glance (
     use_syslog        => $use_syslog,
     syslog_log_facility => $syslog_log_facility,
     syslog_log_level    => $syslog_log_level,
+    image_cache_max_size => $glance_image_cache_max_size,
   }
 
   # Install and configure glance-registry
