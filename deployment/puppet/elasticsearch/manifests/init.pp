@@ -166,6 +166,17 @@ class elasticsearch(
   # package(s)
   class { 'elasticsearch::package': }
 
+  #$user  = $service_settings['ES_USER']
+  #$group = $service_settings['ES_GROUP']
+  #$dir   = $service_settings['ES_DIRECTORY']
+
+  #exec { 'chown_elasticsearch' :
+  #  command     => "chown -R ${user}:${group} ${dir}",
+  #  path        => [ '/usr/sbin', '/usr/bin', '/sbin', '/bin' ],
+  #  refreshonly => true,
+  #  provider    => 'shell',
+  #}
+
   # config
   class { 'elasticsearch::config': }
 
@@ -190,7 +201,8 @@ class elasticsearch(
     -> Class['elasticsearch::package']
     -> Class['elasticsearch::config']
 
-    # we need the software before running a service
+    # we need the software and access before running a service
+    #Class['elasticsearch::package'] -> Exec['chown_elasticsearch'] -> Class['elasticsearch::service']
     Class['elasticsearch::package'] -> Class['elasticsearch::service']
     Class['elasticsearch::config']  -> Class['elasticsearch::service']
 

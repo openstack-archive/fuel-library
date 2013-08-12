@@ -56,6 +56,7 @@ class elasticsearch::params {
   $service_settings = {
     'ES_USER'      => 'elasticsearch',
     'ES_GROUP'     => 'elasticsearch',
+    #'ES_DIRECTORY' => '/etc/elasticsearch',
   }
 
   #### Internal module values

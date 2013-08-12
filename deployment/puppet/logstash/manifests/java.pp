@@ -27,7 +27,7 @@ class logstash::java {
     # Default Java package
     case $::operatingsystem {
       'CentOS', 'Fedora', 'Scientific', 'RedHat', 'Amazon': {
-        $package = 'java-1.7.0-openjdk'
+        $package = 'java-1.6.0-openjdk'
       }
       'Debian', 'Ubuntu': {
         $package = 'openjdk-7-jre-headless'

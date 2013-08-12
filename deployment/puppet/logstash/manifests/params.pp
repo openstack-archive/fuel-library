@@ -61,7 +61,7 @@ class logstash::params {
     'RedHat', 'CentOS', 'Fedora', 'Scientific', 'Amazon': {
       # main application
       $package     = [ 'logstash' ]
-      $installpath = '/usr/share/logstash'
+      $installpath = '/var/lib/logstash'
     }
     'Debian', 'Ubuntu': {
       # main application

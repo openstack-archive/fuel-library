@@ -1,0 +1,10 @@
+# file is managed by puppet
+cluster.name: <%= @cluster_name %>
+index.number_of_replicas: 0
+#path.data: /elasticsearch/data
+#path.work: /elasticsearch/work
+#path.logs: /elasticsearch/logs
+bootstrap.mlockall: true
+discovery.zen.ping.multicast.enabled: false
+discovery.zen.ping.unicast.hosts: [ "<%= @elasticsearch_node %>[9300-9400]", ]
+discovery.zen.minimum_master_nodes: 1

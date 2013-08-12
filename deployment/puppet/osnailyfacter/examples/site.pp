@@ -188,8 +188,12 @@ class os_common {
       keep           => '4',
       # should be > 30M
       limitsize      => '300M',
-      # remote servers to send logs to
+      # remote servers to send logs to.
+      # Configures target base syslog node (rservers[0] - Fuel master node) also as a logstash one.
+      # Assumes logstash uses the same proto as base syslog node and fixed port.
       rservers       => $rservers,
+      logstash_node  => $rservers[0][server],
+      logstash_port  => '55514',
       # should be true, if client is running at virtual node
       virtual        => str2bool($::is_virtual),
       # facilities

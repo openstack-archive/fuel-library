@@ -57,6 +57,15 @@
 # [*jarfile*]
 #   Specify jarfile, if package creates binary not at installpath, f.e. at
 #   /usr/share/java/logstash.jar (same for custom provider case)
+#   Default undef.
+#
+# [*agentname*]
+#   Specify executable name to override one was provided in jarfile, if any.
+#   Default undef.
+#
+# [*port*]
+#   TCP & UDP ports to listen. Default 55514
+#
 #
 # === Examples
 #
@@ -85,6 +94,8 @@ class logstash(
   $version        = false,
   $provider       = 'package',
   $jarfile        = undef,
+  $agentname      = undef,
+  $port           = '55514',
   $installpath    = $logstash::params::installpath,
   $java_install   = false,
   $java_package   = undef,

@@ -40,15 +40,15 @@ class elasticsearch::config {
     mode    => '0644',
   }
 
-  file { "${elasticsearch::confdir}/elasticsearch.yml":
-    ensure  => file,
-    content => template("${module_name}/etc/elasticsearch/elasticsearch.yml.erb"),
-    owner   => 'root',
-    group   => 'root',
-    mode    => '0644',
-    require => [ Class['elasticsearch::package'], File[$elasticsearch::confdir] ],
-    notify  => $notify_elasticsearch,
-  }
+  #file { "${elasticsearch::confdir}/elasticsearch.yml":
+  #  ensure  => file,
+  #  content => template("${module_name}/etc/elasticsearch/elasticsearch.yml.erb"),
+  #  owner   => 'root',
+  #  group   => 'root',
+  #  mode    => '0644',
+  #  require => [ Class['elasticsearch::package'], File[$elasticsearch::confdir] ],
+  #  notify  => $notify_elasticsearch,
+  #}
 
   exec { 'mkdir_templates':
     command => "mkdir -p ${elasticsearch::confdir}/templates_import",

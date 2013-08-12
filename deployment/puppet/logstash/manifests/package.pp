@@ -90,8 +90,12 @@ class logstash::package {
     }
     # create symlink if jarfile defined
     if $logstash::jarfile {
-      $filenameArray = split($logstash::jarfile, '/')
-      $basefilename = $filenameArray[-1]
+      if $logstash::agentname {
+        $basefilename = $logstash::agentname
+      } else {
+        $filenameArray = split($logstash::jarfile, '/')
+        $basefilename = $filenameArray[-1]
+      }
       file { "${logstash::installpath}/${basefilename}":
         ensure  => 'link',
         target  => $logstash::jarfile,
