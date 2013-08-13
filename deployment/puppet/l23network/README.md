@@ -163,15 +163,15 @@ For bonding of two interfaces you need to:
 
 For example (defaults included):   
 
-    l23network::l3::ifconfig {'eth1': ipaddr=>'none', bond_master=>'bond0'} ->
-    l23network::l3::ifconfig {'eth2': ipaddr=>'none', bond_master=>'bond0'} ->
     l23network::l3::ifconfig {'bond0':
         ipaddr          => '192.168.232.1',
         netmask         => '255.255.255.0',
         bond_mode       => 0,
         bond_miimon     => 100,
         bond_lacp_rate  => 1,
-    }
+    } ->
+    l23network::l3::ifconfig {'eth1': ipaddr=>'none', bond_master=>'bond0'} ->
+    l23network::l3::ifconfig {'eth2': ipaddr=>'none', bond_master=>'bond0'}
 
 
 More information about bonding of network interfaces you can find in manuals for you operation system:
