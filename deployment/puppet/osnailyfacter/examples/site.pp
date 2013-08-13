@@ -91,6 +91,7 @@ $cinder_rate_limits = {
 
 
 ###
+class {'l23network': use_ovs=>$quantum, stage=> 'netconfig'}
 class node_netconfig (
   $mgmt_ipaddr,
   $mgmt_netmask  = '255.255.255.0',
