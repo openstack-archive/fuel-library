@@ -7,7 +7,7 @@ class ceph::glance (
   if str2bool($::glance_api_conf) {
     package {['python-ceph']:
       ensure  => latest,
-      require => Class['apt::update']
+      #require => Class['apt::update']
     }
     exec {'Copy config':
       command => "scp -r ${nodes[-1]}:/etc/ceph/* /etc/ceph/",

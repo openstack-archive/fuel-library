@@ -25,8 +25,11 @@ $pools = [ 'volumes', 'images' ]
 # Determine CEPH and OpenStack nodes.
 node 'default' {
 
-  include 'ceph::apt'
+  include 'ceph::yum'
+  #TODO: this needs to be pulled back into mirantis mirrors
   include 'ceph::ssh'
+  #TODO: this should be pulled back into existing modules for settingup ssh-key
+  #TODO: OR need to atleast generate the key
   include 'ntp'
 
   package { 'ceph':
@@ -35,7 +38,7 @@ node 'default' {
   if $fqdn == $nodes[-1] and !str2bool($::ceph_conf) {
     package {['ceph-deploy']:
       ensure  => latest,
-      require => Class['apt::update']
+      #require => Class['apt::update']
     }
     class { 'ceph::deploy':
       #Global settings 
