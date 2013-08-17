@@ -3,9 +3,9 @@ Exec { path => [ '/bin/', '/sbin/' , '/usr/bin/', '/usr/sbin/' ] }
 
 # This parameters defines nodes for CEPH cluster.
 # The last node in this case is the master node of CEPH cluster and should be deployed last.
-$nodes = [
-  'fuel-controller-02.local.try',
-  'fuel-controller-03.local.try',
+$ceph_nodes = [
+  'fuel-ceph-01.local.try',
+  'fuel-ceph-02.local.try'
 ]
 
 # Uncomment this line if you want to install RadosGW.
@@ -19,7 +19,7 @@ $mds_server = 'fuel-controller-03.local.try'
 $osd_devices = [ 'sdb', 'sdc' ]
 
 # This parameter defines rbd pools for Cinder & Glance. It is not necessary to change.
-$pools = [ 'volumes', 'images' ]
+$ceph_pools = [ 'volumes', 'images' ]
 
 
 # Determine CEPH and OpenStack nodes.
@@ -32,11 +32,17 @@ node 'default' {
   #TODO: OR need to atleast generate the key
   include 'ntp'
 
-  package { 'ceph':
+  package { ['ceph', 'redhat-lsb-core']:
     ensure => latest,
   }
-  if $fqdn == $nodes[-1] and !str2bool($::ceph_conf) {
-    package {['ceph-deploy']:
+  #TODO: RHEL suoders needs Defaults !requiretty
+  if $fqdn == $ceph_nodes[-1] and !str2bool($::ceph_conf) {
+    class { 'ceph::deploy':
+      auth_supported   => 'cephx',
+      osd_journal_size => '2048',
+      osd_mkfs_type    => 'xfs',
+    }
+    package {['ceph-deploy', 'python-pushy']:
       ensure  => latest,
       #require => Class['apt::update']
     }

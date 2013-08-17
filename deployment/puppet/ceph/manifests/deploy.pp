@@ -23,8 +23,8 @@ class ceph::deploy (
   $nss_db_path = '/etc/ceph/nss',
 ) {
   include p_osd, c_osd, c_pools
-
-  $range = join($nodes, " ")
+  
+  $range = join($ceph_nodes, " ")
   exec { 'ceph-deploy-s1':
     command => "ceph-deploy new ${range}",
     require => Package['ceph-deploy', 'ceph']
@@ -75,7 +75,7 @@ class ceph::deploy (
   }
   class p_osd {
     define int {
-      $devices = join(suffix($nodes, ":${name}"), " ")
+      $devices = join(suffix($ceph_nodes, ":${name}"), " ")
       exec { "Cleaning drive`s on ${devices}":
         command => "ceph-deploy disk zap ${devices}",
         returns => [0,1],
@@ -86,7 +86,7 @@ class ceph::deploy (
   }
   class c_osd {
     define int {
-      $devices = join(suffix($nodes, ":${name}"), " ")
+      $devices = join(suffix($ceph_nodes, ":${name}"), " ")
       exec { "Creating osd`s on ${devices}":
         command => "ceph-deploy osd create ${devices}",
         returns => [0,1],
@@ -108,14 +108,14 @@ class ceph::deploy (
         require => Class['c_osd']
       }
     }
-    int { $pools: }
+    int { $ceph_pools: }
   }
   exec { 'CLIENT AUTHENTICATION':
-    command => "ceph auth get-or-create client.${pools[0]} \
+    command => "ceph auth get-or-create client.${ceph_pools[0]} \
     mon 'allow r' osd 'allow class-read object_prefix rbd_children, \
-    allow rwx pool=${pools[0]}, allow rx pool=${pools[1]}' && \
-    ceph auth get-or-create client.${pools[1]} mon 'allow r' osd \
-    'allow class-read object_prefix rbd_children, allow rwx pool=${pools[1]}'",
+    allow rwx pool=${ceph_pools[0]}, allow rx pool=${ceph_pools[1]}' && \
+    ceph auth get-or-create client.${ceph_pools[1]} mon 'allow r' osd \
+    'allow class-read object_prefix rbd_children, allow rwx pool=${ceph_pools[1]}'",
     require => Class['c_pools']
   }
 }

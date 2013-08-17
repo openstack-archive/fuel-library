@@ -3,7 +3,7 @@ class ceph::nova_compute (
 ) {
   if str2bool($::nova_compute) {
     exec {'Copy conf':
-      command => "scp -r ${nodes[-1]}:/etc/ceph/* /etc/ceph/",
+      command => "scp -r ${ceph_nodes[-1]}:/etc/ceph/* /etc/ceph/",
       require => Package['ceph'],
       returns => [0,1],
     }
