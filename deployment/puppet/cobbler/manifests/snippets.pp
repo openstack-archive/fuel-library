@@ -53,10 +53,22 @@ class cobbler::snippets {
         group => root,
         mode => 0644,
       }
+      file { "/usr/bin/pmanager.py" :
+        content => template("cobbler/scripts/pmanager.py"),
+        owner => root,
+        group => root,
+        mode => 0644,
+      }
     }
     /(?i)(centos|redhat)/:  {
       file { "/usr/lib/python2.6/site-packages/cobbler/late_command.py" :
         content => template("cobbler/scripts/late_command.py"),
+        owner => root,
+        group => root,
+        mode => 0644,
+      }
+      file { "/usr/lib/python2.6/site-packages/cobbler/pmanager.py" :
+        content => template("cobbler/scripts/pmanager.py"),
         owner => root,
         group => root,
         mode => 0644,
