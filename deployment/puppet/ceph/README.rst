@@ -2,6 +2,11 @@
 puppet-ceph
 ===========
 
+Copy right
+==========
+
+Copyright: (C) 2013 Mirantis. Licensed under the Apache 2.0 License.
+
 About
 =====
 
@@ -42,7 +47,7 @@ This module requires the puppet agents to have `pluginsync = true`.
 Understanding Puppet manifest:
 ===========================================================
 
-      $nodes = [
+      $ceph_nodes = [
       'fuel-ceph-01',
       'fuel-ceph-02',
       ]
@@ -64,7 +69,7 @@ This parameter defines which drive or partition will be used in CEPH cluster on 
 
 -----------------------------------------------------------
 
-      $pools = [ 'volumes', 'images' ]
+      $ceph_pools = [ 'volumes', 'images' ]
 
 Determine pools for Glance = `images` and Cinder = `volumes`.
 
@@ -114,3 +119,22 @@ Check it again:
 Cluster working. And everything nice!
 
 After that start deployment on any node of OpenStack.
+
+Hacking into Fuel
+=================
+
+After installing onto a fuel cluster
+CentOS
+------
+#. disable iptables
+#. put `!` infornt of requiretty on `Defaults requiretty`
+
+  Defaults !requiretty
+
+Installing
+----------
+#. copy fuel-pm:/etc/puppet/modules/* to {ceph_nodes}:/etc/puppet/modules
+#. copy /etc/puppet/modules/ceph/examples/site.pp to /root/ceph.pp
+#. edit for desired changes to $ceph_nodes and $osd_disks
+#. run puppet apply ceph.pp to all nodes _(ensure that $ceph_nodes[-1] is LAST)_
+

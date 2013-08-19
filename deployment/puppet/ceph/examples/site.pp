@@ -16,11 +16,23 @@ $mds_server = 'fuel-controller-03.local.try'
 
 # This parameter defines which devices to aggregate into CEPH cluster.
 # ALL THE DATA THAT RESIDES ON THESE DEVICES WILL BE LOST!
-$osd_devices = [ 'sdb', 'sdc' ]
+$osd_devices = [ 'vdb2', 'vdc2' ]
 
 # This parameter defines rbd pools for Cinder & Glance. It is not necessary to change.
 $ceph_pools = [ 'volumes', 'images' ]
 
+#TODO: need resolve firewall dep.
+#TODO: need to seperate mon and osd list
+#TODO: need to resolve single node changes
+
+#TODO: need to remove this hack for epel repos
+class {'openstack::mirantis_repos':
+  type=> 'default',
+}
+
+file {'/etc/yum.repos.d/openstack-koji-fuel-grizzly.repo':
+  ensure => absent,
+}
 
 # Determine CEPH and OpenStack nodes.
 node 'default' {
