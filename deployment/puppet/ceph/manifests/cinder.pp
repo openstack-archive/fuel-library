@@ -15,10 +15,6 @@ class ceph::cinder (
       require => Package['ceph'],
       returns => [0,1],
     }
-
-    Cinder_config<||> ~> Service['cinder-volume']
-    File_line<||> ~> Service['cinder-volume']
-
     cinder_config {
       'DEFAULT/volume_driver':           value => $volume_driver;
       'DEFAULT/rbd_pool':                value => $rbd_pool;
@@ -30,22 +26,23 @@ class ceph::cinder (
       path => '/etc/init/cinder-volume.conf',
       line => 'env CEPH_ARGS="--id volumes"',
     }
-    service { 'cinder-volume':
-      ensure     => "running",
-      enable     => true,
-      hasstatus  => true,
-      hasrestart => true,
-    }
+    File_line<||> ~> Service['cinder-volume']
+    Cinder_config<||> ~> Service['cinder-volume']
     exec { 'Create keys for pool volumes':
       command => 'ceph auth get-or-create client.volumes > /etc/ceph/ceph.client.volumes.keyring',
       before  => File['/etc/ceph/ceph.client.volumes.keyring'],
       require => [Package['ceph'], Exec['Copy configs']],
+      notify  => Service['cinder-volume'],
       returns => [0,1],
     }
     file { '/etc/ceph/ceph.client.volumes.keyring':
-      owner  => cinder,
-      group  => cinder,
+      owner   => cinder,
+      group   => cinder,
       require => Exec['Create keys for pool volumes'],
+    }
+    service { 'cinder-volume':
+      ensure => 'running',
+      enable => true,
     }
   }
 }
