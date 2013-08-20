@@ -71,7 +71,7 @@ class quantum (
     owner  => root,
     group  => root,
     source => "puppet:///modules/quantum/q-agent-cleanup.py",
-  } 
+  }
 
   file {'quantum-root':
     path => '/etc/sudoers.d/quantum-root',
@@ -216,7 +216,7 @@ class quantum (
     }
   }
   # We must setup logging before start services under pacemaker
-  File['quantum-logging.conf'] -> Service<| title == 'quantum-server' |>
+  File['quantum-logging.conf'] -> Service<| title == "$::quantum::params::server_service" |>
   File['quantum-logging.conf'] -> Anchor<| title == 'quantum-ovs-agent' |>
   File['quantum-logging.conf'] -> Anchor<| title == 'quantum-l3' |>
   File['quantum-logging.conf'] -> Anchor<| title == 'quantum-dhcp-agent' |>

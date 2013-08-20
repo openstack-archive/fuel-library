@@ -95,9 +95,9 @@ else {
   }
 }
   # We must notify services to apply new logging rules
-  File['cinder-logging.conf'] ~> Service<| title == 'openstack-cinder-api' |>
-  File['cinder-logging.conf'] ~> Service<| title == 'openstack-cinder-volume' |>
-  File['cinder-logging.conf'] ~> Service<| title == 'openstack-cinder-scheduler' |>
+  File['cinder-logging.conf'] ~> Service<| title == "$::cinder::params::api_service" |>
+  File['cinder-logging.conf'] ~> Service<| title == "$::cinder::params::volume_service" |>
+  File['cinder-logging.conf'] ~> Service<| title == "$::cinder::params::scheduler_service" |>
 
   file { $::cinder::params::cinder_conf: }
   file { $::cinder::params::cinder_paste_api_ini: }
@@ -170,7 +170,7 @@ else {
   Cinder_config<||> -> Exec['cinder-manage db_sync']
   Nova_config<||> -> Exec['cinder-manage db_sync']
   Cinder_api_paste_ini<||> -> Exec['cinder-manage db_sync']
- Exec['cinder-manage db_sync'] -> Service<| title == 'cinder-api' |>
- Exec['cinder-manage db_sync'] -> Service<| title == 'cinder-volume' |>
- Exec['cinder-manage db_sync'] -> Service<| title == 'cinder-scheduler' |>
+ Exec['cinder-manage db_sync'] -> Service<| title == $::cinder::params::api_service |>
+ Exec['cinder-manage db_sync'] -> Service<| title == $::cinder::params::volume_service |>
+ Exec['cinder-manage db_sync'] -> Service<| title == $::cinder::params::scheduler_service |>
 }
