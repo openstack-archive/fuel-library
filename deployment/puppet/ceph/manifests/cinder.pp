@@ -8,7 +8,6 @@ class ceph::cinder (
   if str2bool($::cinder_conf) {
     package {['ceph-common']:
       ensure  => latest,
-      #require => Class['apt::update']
     }
     exec {'Copy configs':
       command => "scp -r ${nodes[-1]}:/etc/ceph/* /etc/ceph/",

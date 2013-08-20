@@ -27,7 +27,7 @@ class ceph::deploy (
   $range = join($ceph_nodes, " ")
   exec { 'ceph-deploy-s1':
     command => "ceph-deploy new ${range}",
-    require => Package['ceph-deploy', 'ceph']
+    require => Package['ceph-deploy', 'ceph', 'python-pushy']
   }
   Ceph_conf {require => Exec['ceph-deploy-s1']}
   ceph_conf {

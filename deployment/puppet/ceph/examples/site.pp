@@ -38,6 +38,9 @@ node 'default' {
   package { ['ceph', 'redhat-lsb-core']:
     ensure => latest,
   }
+  package {['ceph-deploy', 'python-pushy']:
+    ensure  => latest,
+  }
   #TODO: RHEL suoders needs Defaults !requiretty
   if $fqdn == $ceph_nodes[-1] and !str2bool($::ceph_conf) {
     class { 'ceph::deploy':
