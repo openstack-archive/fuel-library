@@ -55,7 +55,7 @@ class PManager(object):
         if vol["mount"] == "/":
             return "ext4"
         elif vol["mount"] == "/boot":
-            return "ext2"
+            return "ext3"
         elif vol["mount"] == "swap":
             return "swap"
         return "xfs"
@@ -67,11 +67,7 @@ class PManager(object):
         return "--fstype=%s" % fstype
 
     def _parttype(self, n):
-        if n <= 3:
-            return "primary"
-        elif n == 4:
-            return "extended"
-        return "logical"
+        return "primary"
 
     def _getsize(self, vol):
         """Anaconda has hard coded limitation in 16TB
