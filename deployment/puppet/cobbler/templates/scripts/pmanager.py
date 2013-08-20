@@ -260,9 +260,17 @@ class PManager(object):
                             tabfstype, vg["id"], lv["name"]))
                         self.post("mkdir -p /mnt/sysimage{0}"
                                   "".format(lv["mount"]))
+                    """
+                    The name of the device. An LVM device is
+                    expressed as the volume group name and the logical
+                    volume name separated by a hyphen. A hyphen in
+                    the original name is translated to two hyphens.
+                    """
                     self.post("echo '/dev/mapper/{0}-{1} {2} {3} defaults 0 0'"
                               " >> /mnt/sysimage/etc/fstab".format(
-                                  vg["id"], lv["name"], tabmount, tabfstype))
+                                  vg["id"].replace("-", "--"),
+                                  lv["name"].replace("-", "--"),
+                                  tabmount, tabfstype))
 
     def bootloader(self):
         devs = []
