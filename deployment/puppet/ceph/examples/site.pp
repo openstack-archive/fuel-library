@@ -25,15 +25,6 @@ $ceph_pools = [ 'volumes', 'images' ]
 #TODO: need to seperate mon and osd list
 #TODO: need to resolve single node changes
 
-#TODO: need to remove this hack for epel repos
-class {'openstack::mirantis_repos':
-  type=> 'default',
-}
-
-file {'/etc/yum.repos.d/openstack-koji-fuel-grizzly.repo':
-  ensure => absent,
-}
-
 # Determine CEPH and OpenStack nodes.
 node 'default' {
 
