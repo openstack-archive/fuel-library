@@ -127,12 +127,12 @@ After installing onto a fuel cluster
 CentOS
 ------
 #. disable iptables
-
+#. define your partations. If you will re-define any partations you must reboot before they can be used
 
 Installing
 ----------
-#. copy fuel-pm:/etc/puppet/modules/* to {ceph_nodes}:/etc/puppet/modules
+#. copy fuel-pm:/etc/puppet/modules/* to `${ceph_nodes}`:/etc/puppet/modules
 #. copy /etc/puppet/modules/ceph/examples/site.pp to /root/ceph.pp
-#. edit for desired changes to $ceph_nodes and $osd_disks
-#. run puppet apply ceph.pp to all nodes _(ensure that $ceph_nodes[-1] is LAST)_
+#. edit for desired changes to $ceph_nodes and `$osd_disks`
+#. run puppet apply ceph.pp to all nodes _(ensure that `$ceph_nodes[-1]` is LAST)_
 

@@ -42,7 +42,7 @@ node 'default' {
     ensure  => latest,
   }
   file {'/etc/sudoers.d/ceph':
-    content => '#This is required for ceph-deploy\nDefault !requiretty'
+    content => "#This is required for ceph-deploy\nDefaults !requiretty\n"
   }
 
   if $fqdn == $ceph_nodes[-1] and !str2bool($::ceph_conf) {
