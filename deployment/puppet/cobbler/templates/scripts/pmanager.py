@@ -87,8 +87,11 @@ class PManager(object):
         return vol["size"]
 
     def clean(self, disk):
+        self.pre("hdparm -z /dev/{0}".format(disk["id"]))
         self.pre("test -e /dev/{0} && dd if=/dev/zero "
                         "of=/dev/{0} bs=1M count=10".format(disk["id"]))
+        self.pre("sleep 5")
+        self.pre("hdparm -z /dev/{0}".format(disk["id"]))
 
     def gpt(self, disk):
         self.pre("parted -s /dev/{0} mklabel gpt".format(disk["id"]))
