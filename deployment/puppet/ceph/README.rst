@@ -127,9 +127,7 @@ After installing onto a fuel cluster
 CentOS
 ------
 #. disable iptables
-#. put `!` infornt of requiretty on `Defaults requiretty`
 
-  Defaults !requiretty
 
 Installing
 ----------

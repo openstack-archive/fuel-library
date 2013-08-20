@@ -4,8 +4,8 @@ Exec { path => [ '/bin/', '/sbin/' , '/usr/bin/', '/usr/sbin/' ] }
 # This parameters defines nodes for CEPH cluster.
 # The last node in this case is the master node of CEPH cluster and should be deployed last.
 $ceph_nodes = [
-  'fuel-ceph-01.local.try',
-  'fuel-ceph-02.local.try'
+  'ceph-01.domain.tld',
+  'ceph-02.domain.tld'
 ]
 
 # Uncomment this line if you want to install RadosGW.
@@ -41,7 +41,10 @@ node 'default' {
   package {['ceph-deploy', 'python-pushy']:
     ensure  => latest,
   }
-  #TODO: RHEL suoders needs Defaults !requiretty
+  file {'/etc/sudoers.d/ceph':
+    content => '#This is required for ceph-deploy\nDefault !requiretty'
+  }
+
   if $fqdn == $ceph_nodes[-1] and !str2bool($::ceph_conf) {
     class { 'ceph::deploy':
       auth_supported   => 'cephx',
