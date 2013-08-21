@@ -139,12 +139,6 @@ cluster. The output of `ceph -s` should include:
   pgmap v275: 448 pgs: 448 active+clean; 9518 bytes data, 141 MB used, 28486 MB / 28627 MB avail
   mdsmap e4: 1/1/1 up {0=fuel-ceph-02.local.try=up:active}
 
-
-  monmap e1: 2 mons at {fuel-ceph-01=10.0.0.253:6789/0,fuel-ceph-02=10.0.0.252:6789/0}, election epoch 4, quorum 0,1 fuel-ceph-01,fuel-ceph-02
-  osdmap e23: 4 osds: 4 up, 4 in
-  pgmap v57: 448 pgs: 172 active, 213 active+clean, 63 peering; 8116 bytes data, 138 MB used, 28489 MB / 28627 MB avail; 0B/s rd, 494B/s wr, 0op/s; 2/34 degraded (5.882%)
-  mdsmap e3: 1/1/1 up {0=fuel-ceph-02.local.try=up:creating}
-
 ===Common issues===
 
 `ceph -s` returned `health HEALTH_WARN`
@@ -163,9 +157,8 @@ osd, and mon. If any are missing this could be the cause.
 Try to run `ceph-deploy gatherkeys {mon-server-name}`. If this dosn't work then
 there may have been an issue starting the cluster.
 
-#TODO: Fix this with actual commands
 check to see running ceph processes `ps axu | grep ceph` if there is a python
-process running for ceph-generatekeys then there is likely a problem with the
+process running for `ceph-authtool` then there is likely a problem with the
 mon processes talking to each other. Check their network and firewall. the 
 monitor defaults to a port 6789
 
@@ -175,7 +168,8 @@ missing ods instances
 
 by default there should be one OSD instance per volume per OSD node listed in
 in the configuration. If one or more of them is missing you might have a 
-problem with the initialization of the disks.
+problem with the initialization of the disks. Properly working block devices
+be mounted for  you.
 
 common issues:
 * the disk or volume is in use
