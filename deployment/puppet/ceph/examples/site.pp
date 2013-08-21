@@ -40,15 +40,16 @@ node 'default' {
   #TODO: OR need to at least generate the key
   include 'ntp'
   
+  $role = []
   if $fqdn in $mon_nodes {
-    class { 'ceph::deps':
+    ceph::deps {'deps-mon':
       type => 'mon',
     }
   }
   
   if $fqdn in $osd_nodes {
-    class { 'ceph::deps':
-      type => 'osd'
+    ceph::deps {'deps-osd':
+      type => 'osd',
     }
   }
 
