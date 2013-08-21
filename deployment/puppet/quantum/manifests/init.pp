@@ -180,11 +180,8 @@ class quantum (
       content => template('quantum/logging.conf.erb'),
       path  => "/etc/quantum/logging.conf",
       owner => "root",
-      group => "root",
-      mode  => 644,
-    }
-    file { "quantum-all.log":
-      path => "/var/log/quantum-all.log",
+      group => "quantum",
+      mode  => 640,
     }
 
     # We must setup logging before start services under pacemaker

@@ -34,7 +34,7 @@
 # $rabbit_nodes = ['node001', 'node002', 'node003']
 # add rabbit nodes hostname
 # [use_syslog] Rather or not service should log to syslog. Optional.
-# [syslog_log_facility] Facility for syslog, if used. Optional. Note: duplicating conf option 
+# [syslog_log_facility] Facility for syslog, if used. Optional. Note: duplicating conf option
 #       wouldn't have been used, but more powerfull rsyslog features managed via conf template instead
 # [syslog_log_level] logging level for non verbose and non debug mode. Optional.
 #
@@ -157,7 +157,7 @@ class nova(
     ensure  => present,
     owner   => 'nova',
     group   => 'nova',
-    mode    => '0644',
+    mode    => '0640',
     require => Package['nova-common'],
   }
 
@@ -182,9 +182,6 @@ file {"nova-logging.conf":
   content => template('nova/logging.conf.erb'),
   path => "/etc/nova/logging.conf",
   require => File[$logdir],
-}
-file { "nova-all.log":
-  path => "/var/log/nova-all.log",
 }
 
 # We must notify services to apply new logging rules
