@@ -12,6 +12,10 @@ class ceph::cinder (
       require => Package['ceph'],
       returns => [0,1],
     }
+
+    Cinder_config<||> ~> Service['openstack-cinder-volume']
+    File_line<||> ~> Service['openstack-cinder-volume']
+
     cinder_config {
       'DEFAULT/volume_driver':           value => $volume_driver;
       'DEFAULT/rbd_pool':                value => $rbd_pool;
@@ -25,9 +29,6 @@ class ceph::cinder (
       path => '/etc/sysconfig/openstack-cinder-volume',
       line => 'CEPH_ARGS="--id volumes"',
     }
-
-    File_line<||> ~> Service['cinder-volume']
-    Cinder_config<||> ~> Service['cinder-volume']
 
     service { 'openstack-cinder-volume':
       ensure     => "running",
