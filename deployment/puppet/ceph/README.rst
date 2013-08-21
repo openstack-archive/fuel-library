@@ -124,9 +124,9 @@ Hacking into Fuel
 =================
 
 After installing onto a fuel cluster
+
 CentOS
 ------
-#. disable iptables
 #. define your partations. If you will re-define any partations you must reboot before they can be used
 
 Installing

@@ -1,11 +1,17 @@
 # Global settings
 Exec { path => [ '/bin/', '/sbin/' , '/usr/bin/', '/usr/sbin/' ] }
 
-# This parameters defines nodes for CEPH cluster.
-# The last node in this case is the master node of CEPH cluster and should be deployed last.
-$ceph_nodes = [
-  'ceph-01.domain.tld',
-  'ceph-02.domain.tld'
+#This permater defines the monitor nodes, these may be the same as the OSD's 
+# if you want. There should be one or 3+
+$mon_nodes = [
+  'controller-3.domain.tld',
+]
+
+#This parameter defines the OSD storage nodes. One OSD will run per $osd_device
+# per $osd_node. betweeen the two there must be two OSD processes
+$osd_nodes = [
+  'compute-1.domain.tld',
+  'compute-2.domain.tld'
 ]
 
 # Uncomment this line if you want to install RadosGW.
@@ -21,7 +27,6 @@ $osd_devices = [ 'vdb2', 'vdc2' ]
 # This parameter defines rbd pools for Cinder & Glance. It is not necessary to change.
 $ceph_pools = [ 'volumes', 'images' ]
 
-#TODO: need resolve firewall dep.
 #TODO: need to seperate mon and osd list
 #TODO: need to resolve single node changes
 
@@ -31,21 +36,23 @@ node 'default' {
   include 'ceph::yum'
   #TODO: this needs to be pulled back into mirantis mirrors
   include 'ceph::ssh'
-  #TODO: this should be pulled back into existing modules for settingup ssh-key
-  #TODO: OR need to atleast generate the key
+  #TODO: this should be pulled back into existing modules for setting up ssh-key
+  #TODO: OR need to at least generate the key
   include 'ntp'
+  
+  if $fqdn in $mon_nodes {
+    class { 'ceph::deps':
+      type => 'mon',
+    }
+  }
+  
+  if $fqdn in $osd_nodes {
+    class { 'ceph::deps':
+      type => 'osd'
+    }
+  }
 
-  package { ['ceph', 'redhat-lsb-core']:
-    ensure => latest,
-  }
-  package {['ceph-deploy', 'python-pushy']:
-    ensure  => latest,
-  }
-  file {'/etc/sudoers.d/ceph':
-    content => "#This is required for ceph-deploy\nDefaults !requiretty\n"
-  }
-
-  if $fqdn == $ceph_nodes[-1] and !str2bool($::ceph_conf) {
+  if $fqdn == $mon_nodes[-1] and !str2bool($::ceph_conf) {
     class { 'ceph::deploy':
       auth_supported   => 'cephx',
       osd_journal_size => '2048',
