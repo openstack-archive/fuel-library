@@ -6,11 +6,9 @@ class ceph::cinder (
   $rbd_secret_uuid,
 ) {
   if str2bool($::cinder_conf) {
-    package {['ceph-common']:
-      ensure  => latest,
-    }
+
     exec {'Copy configs':
-      command => "scp -r ${nodes[-1]}:/etc/ceph/* /etc/ceph/",
+      command => "scp -r ${mon_nodes[-1]}:/etc/ceph/* /etc/ceph/",
       require => Package['ceph'],
       returns => [0,1],
     }
@@ -22,11 +20,21 @@ class ceph::cinder (
       'DEFAULT/rbd_secret_uuid':         value => $rbd_secret_uuid;
     }
     file_line { 'cinder-volume.conf':
-      path => '/etc/init/cinder-volume.conf',
-      line => 'env CEPH_ARGS="--id volumes"',
+      #TODO: CentOS conversion
+      #path => '/etc/init/cinder-volume.conf',
+      path => '/etc/sysconfig/openstack-cinder-volume',
+      line => 'CEPH_ARGS="--id volumes"',
     }
+
     File_line<||> ~> Service['cinder-volume']
     Cinder_config<||> ~> Service['cinder-volume']
+
+    service { 'openstack-cinder-volume':
+      ensure     => "running",
+      enable     => true,
+      hasstatus  => true,
+      hasrestart => true,
+    }
     exec { 'Create keys for pool volumes':
       command => 'ceph auth get-or-create client.volumes > /etc/ceph/ceph.client.volumes.keyring',
       before  => File['/etc/ceph/ceph.client.volumes.keyring'],

@@ -24,7 +24,7 @@ class ceph::deploy (
 ) {
   include p_osd, c_osd, c_pools
   
-  $range = join($ceph_nodes, " ")
+  $range = join($mon_nodes, " ")
   exec { 'ceph-deploy-s1':
     command => "ceph-deploy new ${range}",
     require => Package['ceph-deploy', 'ceph', 'python-pushy']
@@ -75,9 +75,9 @@ class ceph::deploy (
   }
   class p_osd {
     define int {
-      $devices = join(suffix($ceph_nodes, ":${name}"), " ")
+      $devices = join(suffix($osd_nodes, ":${name}"), " ")
       exec { "Cleaning drive`s on ${devices}":
-        command => "ceph-deploy disk zap ${devices}",
+        command => "ceph-deploy osd prepare ${devices}",
         returns => [0,1],
         require => File['/root/ceph.bootstrap-osd.keyring','/root/ceph.bootstrap-mds.keyring','/root/ceph.client.admin.keyring']
       }
@@ -86,9 +86,9 @@ class ceph::deploy (
   }
   class c_osd {
     define int {
-      $devices = join(suffix($ceph_nodes, ":${name}"), " ")
+      $devices = join(suffix($osd_nodes, ":${name}"), " ")
       exec { "Creating osd`s on ${devices}":
-        command => "ceph-deploy osd create ${devices}",
+        command => "ceph-deploy osd activate ${devices}",
         returns => [0,1],
         require => Class['p_osd']
       }

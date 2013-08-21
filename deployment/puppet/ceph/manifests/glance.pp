@@ -9,7 +9,7 @@ class ceph::glance (
       ensure  => latest,
     }
     exec {'Copy config':
-      command => "scp -r ${ceph_nodes[-1]}:/etc/ceph/* /etc/ceph/",
+      command => "scp -r ${mon_nodes[-1]}:/etc/ceph/* /etc/ceph/",
       require => Package['ceph'],
       returns => [0,1],
     }
@@ -18,10 +18,9 @@ class ceph::glance (
       'DEFAULT/rbd_store_user':          value => $rbd_store_user;
       'DEFAULT/rbd_store_pool':          value => $rbd_store_pool;
       'DEFAULT/show_image_direct_url':   value => $show_image_direct_url;
-    }
-    Glance_api_config<||> ~> Service['glance-api']
-    service { 'glance-api':
-      ensure     => 'running',
+    }~>
+    service { 'openstack-glance-api':
+      ensure     => "running",
       enable     => true,
       hasstatus  => true,
       hasrestart => true,
