@@ -40,19 +40,24 @@ node 'default' {
   #TODO: OR need to at least generate the key
   include 'ntp'
   
-  $role = []
   if $fqdn in $mon_nodes {
-    ceph::deps {'deps-mon':
-      type => 'mon',
-    }
-  }
-  
-  if $fqdn in $osd_nodes {
-    ceph::deps {'deps-osd':
-      type => 'osd',
-    }
+    firewall {'010 ceph-mon allow':
+      chain => 'INPUT',
+      dport => 6789,
+      proto => 'tcp',
+      action  => accept,
+    } 
   }
 
+  #TODO: These should only except traffic on the storage network 
+  if $fqdn in $osd_nodes {
+    firewall {'011 ceph-osd allow':
+      chain => 'INPUT',
+      dport => '6800-7100',
+      proto => 'tcp',
+      action  => accept,
+    }
+  }
   if $fqdn == $mon_nodes[-1] and !str2bool($::ceph_conf) {
     class { 'ceph::deploy':
       auth_supported   => 'cephx',
