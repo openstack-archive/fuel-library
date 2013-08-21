@@ -159,14 +159,12 @@ Puppet::Type.type(:firewall).provide :iptables, :parent => Puppet::Provider::Fir
 
     # --tcp-flags takes two values; we cheat by adding " around it
     # so it behaves like --comment
-    debug("BEFORE REPLACE #{values.inspect}")
     values = values.sub(/--tcp-flags (\S*) (\S*)/, '--tcp-flags "\1 \2"')
     values = values.sub(/(!)\s+--ctstate\s?(\S*)/, '--ctstate "\1 \2"')
     values = values.sub(/(!)\s+-s\s?(\S*)/, '-s \1 \2')
     values = values.sub(/(!)\s+-d\s?(\S*)/, '-d \1 \2')
     values = values.sub(/-s (!)\s?(\S*)/, '-s "\1 \2"')
     values = values.sub(/-d (!)\s?(\S*)/, '-d "\1 \2"')
-    debug("AFTER REPLACE #{values.inspect}")
     # Trick the system for booleans
     known_booleans.each do |bool|
       if bool == :socket then
@@ -185,13 +183,9 @@ Puppet::Type.type(:firewall).provide :iptables, :parent => Puppet::Provider::Fir
 
     # Here we iterate across our values to generate an array of keys
     @resource_list.reverse.each do |k|
-      debug("searching for key #{k}")
       resource_map_key = @resource_map[k]
-      debug("resource_map for key #{k} is #{resource_map_key}")
       [resource_map_key].flatten.each do |opt|
         if values.slice!(/\s#{opt}/)
-          debug("values is  #{values}")
-          debug("adding key #{k}")
           keys << k
           break
         end
@@ -205,7 +199,6 @@ Puppet::Type.type(:firewall).provide :iptables, :parent => Puppet::Provider::Fir
     # Here we generate the main hash
     keys.zip(values.scan(/"[^"]*"|\S+/).reverse) { |f, v| hash[f] = v.gsub(/"/, '') }
 
-    debug(hash.inspect)
     #####################
     # POST PARSE CLUDGING
     #####################
@@ -215,7 +208,6 @@ Puppet::Type.type(:firewall).provide :iptables, :parent => Puppet::Provider::Fir
     # Normalise all rules to CIDR notation.
     [:source, :destination].each do |prop|
       next if hash[prop].nil?
-      debug("processing #{prop} with value '#{hash[prop]}'")
       m = hash[prop].match(cidr_regex)
       neg = nil
       neg = '! ' if m[1] == '!'
