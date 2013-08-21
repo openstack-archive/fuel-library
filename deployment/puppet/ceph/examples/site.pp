@@ -39,6 +39,7 @@ node 'default' {
   #TODO: this should be pulled back into existing modules for setting up ssh-key
   #TODO: OR need to at least generate the key
   include 'ntp'
+  include 'ceph::deps'
   
   if $fqdn in $mon_nodes {
     firewall {'010 ceph-mon allow':

@@ -76,7 +76,7 @@ class ceph::deploy (
   class p_osd {
     define int {
       $devices = join(suffix($osd_nodes, ":${name}"), " ")
-      exec { "Cleaning drive`s on ${devices}":
+      exec { "preparing drives`s on ${devices}":
         command => "ceph-deploy osd prepare ${devices}",
         returns => [0,1],
         require => File['/root/ceph.bootstrap-osd.keyring','/root/ceph.bootstrap-mds.keyring','/root/ceph.client.admin.keyring']
