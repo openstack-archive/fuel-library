@@ -45,7 +45,10 @@ class swift::proxy(
   $workers = $::processorcount,
   $allow_account_management = true,
   $account_autocreate = true,
-  $package_ensure = 'present'
+  $package_ensure = 'present',
+  $debug = false,
+  $verbose = true,
+  $syslog_log_level = 'WARNING',
 ) {
 
   include 'swift::params'

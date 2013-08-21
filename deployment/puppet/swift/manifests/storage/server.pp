@@ -20,7 +20,10 @@ define swift::storage::server(
   $updater_concurrency    = $::processorcount,
   $reaper_concurrency     = $::processorcount,
   # this parameters needs to be specified after type and name
-  $config_file_path       = "${type}-server/${name}.conf"
+  $config_file_path       = "${type}-server/${name}.conf",
+  $debug                  = false,
+  $verbose                = true,
+  $syslog_log_level       = 'WARNING',
 ) {
   if (is_array($pipeline)) {
     $pipeline_real = $pipeline

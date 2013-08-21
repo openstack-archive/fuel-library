@@ -322,6 +322,15 @@ $swift_loopback = false
 
 ### Glance and swift END ###
 
+# This parameter specifies the verbosity level of log messages
+# in openstack components config.
+# Debug would have set DEBUG level and ignore verbose settings, if any.
+# Verbose would have set INFO level messages
+# In case of non debug and non verbose - WARNING, default level would have set.
+# Note: if syslog on, this default level may be configured (for syslog) with syslog_log_level option.
+$verbose = true
+$debug = false
+
 ### Syslog ###
 # Enable error messages reporting to rsyslog. Rsyslog must be installed in this case,
 # and configured to start at the very beginning of puppet agent run.
@@ -365,6 +374,7 @@ if $use_syslog {
     # Rabbit doesn't support syslog directly, should be >= syslog_log_level,
     # otherwise none rabbit's messages would have gone to syslog
     rabbit_log_level => $syslog_log_level,
+    debug => $debug,
   }
 }
 
@@ -414,15 +424,6 @@ $mirror_type = 'default'
 $enable_test_repo = false
 $repo_proxy = undef
 $use_upstream_mysql = true
-
-# This parameter specifies the verbosity level of log messages
-# in openstack components config.
-# Debug would have set DEBUG level and ignore verbose settings, if any.
-# Verbose would have set INFO level messages
-# In case of non debug and non verbose - WARNING, default level would have set.
-# Note: if syslog on, this default level may be configured (for syslog) with syslog_log_level option.
-$verbose = true
-$debug = true
 
 #Rate Limits for cinder and Nova
 #Cinder and Nova can rate-limit your requests to API services.
@@ -706,6 +707,7 @@ node /fuel-compute-[\d+]/ {
     cinder_iscsi_bind_addr => $cinder_iscsi_bind_addr,
     use_syslog             => $use_syslog,
     syslog_log_level       => $syslog_log_level,
+    syslog_log_facility    => $syslog_log_facility_nova,
     syslog_log_facility_quantum => $syslog_log_facility_quantum,
     syslog_log_facility_cinder => $syslog_log_facility_cinder,
     nova_rate_limits       => $nova_rate_limits,

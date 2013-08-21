@@ -8,7 +8,7 @@ if $quantum == 'true'
 {
   $quantum_hash   = parsejson($::quantum_access)
   $quantum_params = parsejson($::quantum_parameters)
-  $novanetwork_params  = {} 
+  $novanetwork_params  = {}
 }
 else
 {
@@ -62,14 +62,14 @@ if !$rabbit_hash[user]
 $rabbit_user          = $rabbit_hash['user']
 
 
-if !$verbose 
+if !$verbose
 {
- $verbose = 'true'
+ $verbose = 'false'
 }
 
 if !$debug
 {
- $debug = 'true'
+ $debug = 'false'
 }
 
 if !$swift_partition
@@ -211,8 +211,8 @@ class ha_controller (
     num_networks            => $num_networks,
     network_size            => $network_size,
     network_config          => $network_config,
-    verbose                 => $verbose,
-    debug                   => $debug,
+    debug                   => $debug ? { 'true' => true, true => true, default=> false },
+    verbose                 => $verbose ? { 'true' => true, true => true, default=> false },
     auto_assign_floating_ip => $bool_auto_assign_floating_ip,
     mysql_root_password     => $mysql_hash[root_password],
     admin_email             => $access_hash[email],
@@ -335,8 +335,8 @@ case $role {
     qpid_nodes             => [$management_vip],
     glance_api_servers     => "${management_vip}:9292",
     vncproxy_host          => $public_vip,
-    verbose                => $verbose,
-    debug                  => $debug,
+    debug                  => $debug ? { 'true' => true, true => true, default=> false },
+    verbose                => $verbose ? { 'true' => true, true => true, default=> false },
     vnc_enabled            => true,
     nova_user_password     => $nova_hash[user_password],
     cache_server_ip        => $controller_nodes,
@@ -355,6 +355,7 @@ case $role {
     cinder_rate_limits     => $::cinder_rate_limits,
     use_syslog             => $use_syslog,
     syslog_log_level       => $syslog_log_level,
+    syslog_log_facility    => $syslog_log_facility_nova,
     syslog_log_facility_quantum => $syslog_log_facility_quantum,
     syslog_log_facility_cinder => $syslog_log_facility_cinder,
     nova_rate_limits       => $::nova_rate_limits,
@@ -394,7 +395,9 @@ case $role {
     qpid_user              => $rabbit_hash[user],
     qpid_nodes             => [$management_vip],
     sync_rings             => ! $primary_proxy,
-    syslog_log_level => $syslog_log_level,
+    syslog_log_level       => $syslog_log_level,
+    debug                  => $debug ? { 'true' => true, true => true, default=> false },
+    verbose                => $verbose ? { 'true' => true, true => true, default=> false },
     syslog_log_facility_cinder => $syslog_log_facility_cinder,
   }
 
@@ -419,6 +422,9 @@ case $role {
     controller_node_address => $management_vip,
     swift_local_net_ip      => $swift_local_net_ip,
     master_swift_proxy_ip   => $master_swift_proxy_ip,
+    syslog_log_level        => $syslog_log_level,
+    debug                   => $debug ? { 'true' => true, true => true, default=> false },
+    verbose                 => $verbose ? { 'true' => true, true => true, default=> false },
   }
   }
 
@@ -440,8 +446,8 @@ case $role {
         auth_host            => $management_vip,
         iscsi_bind_host      => $storage_address,
         cinder_user_password => $cinder_hash[user_password],
-        debug                => $debug ? { 'true' => 'True', default=>'False' },
-        verbose              => $verbose ? { 'false' => 'False', default=>'True' },
+        debug                => $debug ? { 'true' => true, true => true, default=> false },
+        verbose              => $verbose ? { 'true' => true, true => true, default=> false },
         syslog_log_facility  => $syslog_log_facility_cinder,
         syslog_log_level     => $syslog_log_level,
         use_syslog           => true,
