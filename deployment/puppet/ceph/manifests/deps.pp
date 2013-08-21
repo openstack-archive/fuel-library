@@ -1,4 +1,4 @@
-class deps (
+class ceph::deps (
   $type = 'base'
 ){
   
