@@ -27,7 +27,7 @@ Cuttlefish Ceph release.
 * Puppet 3.2.2
 * Ceph 0.61.7
 
-_Ubuntu support is currently broken but will be back soon_
+**Ubuntu support is currently broken but will be back soon**
 
 Currently working on CentOS 6.4 with CEPH Cuttlefish.
 
@@ -42,9 +42,8 @@ Features
 * Ceph package
 * Ceph MONs
 * Ceph OSDs
-* Ceph MDS
-
-============
+* Ceph MDS (slightly broken)
+* Ceph RDOS-gw (comming soon)
 
 Using
 =====
@@ -53,63 +52,64 @@ To deploy a CEPH cluster you need at least one monitor and two OSD devices. If
 you are deploying CEPH outside of Fuel, see the example/site.pp for the 
 parameters necessary to adjust.
 
-This module requires the puppet agents to have `pluginsync = true`.
+This module requires the puppet agents to have ``pluginsync = true``.
 
 Understanding example Puppet manifest:
-===========================================================
-
-  $mon_nodes = [
-  'ceph-mon-1',
-  ]
+======================================
+::
+   $mon_nodes = [
+   'ceph-mon-1',
+   ]
 
 This parameter defines the nodes for which the monitor process will be 
-installed. This should be one, three or more monitors. 
------------------------------------------------------------
+installed. This should be one, three or more monitors.
 
-  $osd_nodes = [
-  'ceph-osd-1',
-  'ceph-osd-2',
-  ]
+------------------------------------------------------
+::
+   $osd_nodes = [
+   'ceph-osd-1',
+   'ceph-osd-2',
+   ]
 
 This parameter defines the nodes for which the OSD process` will run. One OSD
-will be created for each `$osd_volume` per `$osd_nodes`. There is a minimum
+will be created for each ``$osd_volume`` per ``$osd_nodes``. There is a minimum
 requirement of two OSD instances. 
 
 -----------------------------------------------------------
-
-  $mds_server = 'ceph-mds-01'
+::
+   $mds_server = 'ceph-mds-01'
 
 Uncomment this line if you want to install metadata server. Metadata is only
 necessary for CephFS and should run on separate hardware from the other
 OpenStack nodes.
 
 -----------------------------------------------------------
-
-  $osd_devices = [ 'vdb', 'vdc1' ]
+::
+   $osd_devices = [ 'vdb', 'vdc1' ]
 
 This parameter defines which drive, partition or path will be used in Ceph
 OSD on each OSD node. when referring to whole devices or partitions, 
 /dev/<device> is not necessary 
 
 -----------------------------------------------------------
-
-  $ceph_pools = [ 'volumes', 'images' ]
+::
+   $ceph_pools = [ 'volumes', 'images' ]
 
 This parameter defines the names of the ceph pools we want to pre-create.
-By default `volumes` and `images` are necessary for the hooks to setup the
+By default ``volumes`` and ``images`` are necessary for the hooks to setup the
 OpenStack hooks.
 
 -----------------------------------------------------------
-
-  node 'default' {
-  ...
+::
+   node 'default' {
+   ...
       }
 
 This section configure components for all nodes of CEPH and OpenStack.
 
 -----------------------------------------------------------
-
-  class { 'ceph::deploy':
+::
+   class { 'ceph::deploy':
     auth_supported   => 'cephx',
     osd_journal_size => '2048',
     osd_mkfs_type    => 'xfs',
@@ -125,40 +125,48 @@ There are several commands that we can run post cluster creation.
 Verifying deployment
 --------------------
 
-You can issue `ceph -s` or `ceph health` (terse) to check the current status of the 
-cluster. The output of `ceph -s` should include:
+You can issue ``ceph -s`` or ``ceph health`` (terse) to check the current status of the 
+cluster. The output of ``ceph -s`` should include:
 
-* `monmap`: this should contain the correct number of monitors
-* `osdmap`: this should contain the correct number of osd instances (one per
+* ``monmap``: this should contain the correct number of monitors
+* ``osdmap``: this should contain the correct number of osd instances (one per
  node per volume)
 
-  root@fuel-ceph-02:~# ceph -s
-  health HEALTH_OK
-  monmap e1: 2 mons at {fuel-ceph-01=10.0.0.253:6789/0,fuel-ceph-02=10.0.0.252:6789/0}, election epoch 4, quorum 0,1 fuel-ceph-01,fuel-ceph-02
-  osdmap e23: 4 osds: 4 up, 4 in
-  pgmap v275: 448 pgs: 448 active+clean; 9518 bytes data, 141 MB used, 28486 MB / 28627 MB avail
-  mdsmap e4: 1/1/1 up {0=fuel-ceph-02.local.try=up:active}
-
-===Common issues===
-
-`ceph -s` returned `health HEALTH_WARN`
-
-  root@fuel-ceph-01:~# ceph -s
-  health HEALTH_WARN 63 pgs peering; 54 pgs stuck inactive; 208 pgs stuck unclean; recovery 2/34 degraded (5.882%)
-  ...
+::
+   root@fuel-ceph-02:~# ceph -s
+   health HEALTH_OK
+   monmap e1: 2 mons at {fuel-ceph-01=10.0.0.253:6789/0,fuel-ceph-02=10.0.0.252:6789/0}, election epoch 4, quorum 0,1 fuel-ceph-01,fuel-ceph-02
+   osdmap e23: 4 osds: 4 up, 4 in
+   pgmap v275: 448 pgs: 448 active+clean; 9518 bytes data, 141 MB used, 28486 MB / 28627 MB avail
+   mdsmap e4: 1/1/1 up {0=fuel-ceph-02.local.try=up:active}
 
 -----------------------------------------------------------
 
-`ceph` commands return key errors
+``ceph -s`` returned ``health HEALTH_WARN``
+
+::
+   root@fuel-ceph-01:~# ceph -s
+   health HEALTH_WARN 63 pgs peering; 54 pgs stuck inactive; 208 pgs stuck unclean; recovery 2/34 degraded (5.882%)
+   ...
+
+-----------------------------------------------------------
+
+``ceph`` commands return key errors
+
+::
+	[root@controller-13 ~]# ceph -s
+	2013-08-22 00:06:19.513437 7f79eedea760 -1 monclient(hunting): ERROR: missing keyring, cannot use cephx for authentication
+	2013-08-22 00:06:19.513466 7f79eedea760 -1 ceph_tool_common_init failed.
+  
 
 check the links in /root/ceph*.keyring there should be one for each admin, 
 osd, and mon. If any are missing this could be the cause.
 
-Try to run `ceph-deploy gatherkeys {mon-server-name}`. If this dosn't work then
+Try to run ``ceph-deploy gatherkeys {mon-server-name}``. If this dosn't work then
 there may have been an issue starting the cluster.
 
-check to see running ceph processes `ps axu | grep ceph` if there is a python
-process running for `ceph-authtool` then there is likely a problem with the
+check to see running ceph processes ``ps axu | grep ceph`` if there is a python
+process running for ``ceph-authtool`` then there is likely a problem with the
 mon processes talking to each other. Check their network and firewall. the 
 monitor defaults to a port 6789
 
@@ -175,8 +183,42 @@ common issues:
 * the disk or volume is in use
 * the disk partition didn't refresh in the kernel
 
+check the osd tree::
+
+	#ceph osd tree
+	
+	# id    weight  type name       up/down reweight
+	-1      6       root default
+	-2      2               host controller-1
+	0       1                       osd.0   up      1
+	3       1                       osd.3   up      1
+	-3      2               host controller-2
+	1       1                       osd.1   up      1
+	4       1                       osd.4   up      1
+	-4      2               host controller-3
+	2       1                       osd.2   up      1
+	5       1                       osd.5   up      1
+
 -----------------------------------------------------------
 
+ceph pools
+
+by default we create two pools ``image``, and ``volumes``, there should also be
+defaults of ``data``, ``metadata``, and ``rdb``. ``ceph osd lspools`` can show the 
+current pools. 
+
+::
+	# ceph osd lspools
+	0 data,1 metadata,2 rbd,3 images,4 volumes,
+
+-----------------------------------------------------------
+
+Testing openstack
+-----------------
+
+to be continued...
+
+-----------------------------------------------------------
 
 Hacking into Fuel
 =================
@@ -187,12 +229,12 @@ CentOS
 ------
 #. define your partitions. If you will re-define any partations you must 
  make sure they are exposed in the kernel before running the scripts see 
- `partx -a /dev/<device>` after `umount /boot`.
+ ``partx -a /dev/<device>`` after ``umount /boot``.
 
 Installing
 ----------
 #. copy fuel-pm:/etc/puppet/modules/* to {node}:/etc/puppet/modules
 #. copy /etc/puppet/modules/ceph/examples/site.pp to /root/ceph.pp
-#. edit for desired changes to $mon_nodes and $osd_nodes and `$osd_disks`
-#. run puppet apply ceph.pp to all nodes _(ensure that `$ceph_nodes[-1]` is LAST)_
+#. edit for desired changes to $mon_nodes and $osd_nodes and ``$osd_disks``
+#. run puppet apply ceph.pp to all nodes **(ensure that ``$ceph_nodes[-1]`` is LAST)**
 
