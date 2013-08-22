@@ -31,6 +31,7 @@ class ceph::glance (
       command => 'ceph auth get-or-create client.images > /etc/ceph/ceph.client.images.keyring',
       before  => File['/etc/ceph/ceph.client.images.keyring'],
       require => [Package['ceph'], Exec['Copy config']],
+      notify  => Service['glance-api'],
       returns => [0,1],
     }
     file { '/etc/ceph/ceph.client.images.keyring':
