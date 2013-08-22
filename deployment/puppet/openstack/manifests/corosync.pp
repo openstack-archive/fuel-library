@@ -4,7 +4,6 @@ class openstack::corosync (
   $bind_address = '127.0.0.1',
   $multicast_address = '239.1.1.2',
   $secauth = 'off',
-  $stonith = 'false',
   $quorum_policy = 'ignore',
   $expected_quorum_votes = "2",
   $unicast_addresses = undef
@@ -24,9 +23,10 @@ Anchor['corosync'] -> Cs_property<||>
 #Cs_group {cib => 'shadow'}
 
 Class['::corosync']->Cs_shadow<||>
-Class['::corosync']->Cs_property<||>->Cs_resource<||>
-Cs_property<||>->Cs_shadow<||>
-Cs_property['no-quorum-policy']->Cs_property['stonith-enabled']->Cs_property['start-failure-is-fatal']
+#Class['::corosync']->Cs_property<||>->Cs_resource<||>
+Class['::corosync']->Cs_resource<||>
+#Cs_property<||>->Cs_shadow<||>
+Cs_property['no-quorum-policy']->Cs_property['start-failure-is-fatal']
 
 file {'filter_quantum_ports.py':
   path   =>'/usr/bin/filter_quantum_ports.py',
@@ -60,17 +60,10 @@ class { '::corosync':
 #}
 cs_property { 'no-quorum-policy':
   ensure => present,
-# cib => 'properties',
   value  => $quorum_policy,
   retries => 5
 } -> Anchor['corosync-done']
-cs_property { 'stonith-enabled':
-#  cib => 'properties',
-  ensure => present,
-  value  => $stonith,
-} -> Anchor['corosync-done']
 cs_property { 'start-failure-is-fatal':
-#  cib => 'properties',
   ensure => present,
   value  => "false",
 } -> Anchor['corosync-done']
@@ -80,7 +73,11 @@ cs_property { 'start-failure-is-fatal':
 #  ensure => absent,
 #  value  => 'default',
 #}
-
+# Change default value (15min)
+cs_property { 'cluster-recheck-interval':
+  ensure => present,
+  value  => "3min",
+} -> Anchor['corosync-done']
 
 anchor {'corosync-done':}
 }

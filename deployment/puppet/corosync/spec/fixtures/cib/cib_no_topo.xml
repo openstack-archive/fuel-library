@@ -50,11 +50,5 @@
 			<rsc_location id="l_12" rsc="master_bar" node="ubuntu-1" score="INFINITY"/>
 
 		</constraints>
-		<fencing-topology>
-			<fencing-level devices="stonith__ipmi_reset__node-1" id="fencing" index="1" target="node-1.test.local"/>
-			<fencing-level devices="stonith__psu_off__node-1,stonith__psu_on__node-1" id="fencing-0" index="2" target="node-1.test.local"/>
-			<fencing-level devices="stonith__ilo_reset__node-2" id="fencing-1" index="1" target="node-2.test.local"/>
-			<fencing-level devices="stonith__psu_snmp_off__node-2,stonith__psu_snmp_on__node-2" id="fencing-2" index="2" target="node-2.test.local"/>
-		</fencing-topology>
 	</configuration>
 </cib>

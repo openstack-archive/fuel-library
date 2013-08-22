@@ -85,7 +85,7 @@ Puppet::Type.type(:cs_property).provide(:crm, :parent => Puppet::Provider::Coros
       retries = @resource[:retries]
       env["CIB_shadow"] = @resource[:cib].to_s if !@resource[:cib].nil?
       command_to_exec="#{command(:crm)}  --force configure property \\$id=\"cib-bootstrap-options\" #{@property_hash[:name]}=#{@property_hash[:value]} 2>&1"
-     while !success do
+      while !success do
         retries -= 1
         raise(Puppet::Error,"unable to set cluster property") if retries < 0
         notice("will try to set cluster property value. #{retries} retries left")
