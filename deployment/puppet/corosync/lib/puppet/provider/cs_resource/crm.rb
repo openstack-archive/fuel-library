@@ -108,10 +108,13 @@ Puppet::Type.type(:cs_resource).provide(:crm, :parent => Puppet::Provider::Coros
       :name            => @resource[:name],
       :ensure          => :present,
       :primitive_class => @resource[:primitive_class],
-      :provided_by     => @resource[:provided_by],
       :primitive_type  => @resource[:primitive_type],
       :multistate_hash      => @resource[:multistate_hash],
     }
+    if @resource[:primitive_class] != 'stonith'
+
+    end
+    @property_hash[:provided_by] = @resource[:provided_by] if @resource[:primitive_class] != 'stonith'
     @property_hash[:parameters] = @resource[:parameters] if ! @resource[:parameters].nil?
     @property_hash[:operations] = @resource[:operations] if ! @resource[:operations].nil?
     @property_hash[:metadata] = @resource[:metadata] if ! @resource[:metadata].nil?

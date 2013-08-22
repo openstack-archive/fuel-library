@@ -304,15 +304,38 @@ class osnailyfacter::cluster_ha {
     }
   }
 
+  # Fetch fencing settings
+  $fencing_enabled  = $::fuel_settings['fence_policy'] ? { 'disabled'=>false, 'reboot'=>true, 'poweroff'=>true, default=>false }
+  if $fencing_enabled {
+    $fence_primitives = $::fuel_settings['fence_primitives']
+    $fence_topology   = $::fuel_settings['fence_topology']
+  }
 
 
   case $::fuel_settings['role'] {
     /controller/ : {
       include osnailyfacter::test_controller
 
-      class { '::cluster': stage => 'corosync_setup' } ->
-      class { 'virtual_ips':
-        stage => 'corosync_setup'
+      if $fencing_enabled {
+        class { '::cluster':
+          stage   => 'corosync_setup'
+        } ->
+        # Configure fencing for pacemaker
+        class { '::cluster::fencing_primitives':
+          fence_primitives => $fence_primitives,
+          fence_topology   => $fence_topology,
+          stage => 'corosync_setup',
+        } ->
+        class { 'virtual_ips':
+          stage => 'corosync_setup'
+        }
+      } else {
+        class { '::cluster':
+          stage   => 'corosync_setup'
+        } ->
+        class { 'virtual_ips':
+          stage => 'corosync_setup'
+        }
       }
       include ::haproxy::params
       class { 'cluster::haproxy':
