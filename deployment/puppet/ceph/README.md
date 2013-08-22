@@ -136,20 +136,20 @@ Here are some errors that may be reported.
 
 ``ceph -s`` returned ``health HEALTH_WARN``:
 
-``
+```
    root@fuel-ceph-01:~# ceph -s
    health HEALTH_WARN 63 pgs peering; 54 pgs stuck inactive; 208 pgs stuck unclean; recovery 2/34 degraded (5.882%)
    ...
-``
+```
 
 ``ceph`` commands return key errors:
 
-``
+```
 	[root@controller-13 ~]# ceph -s
 	2013-08-22 00:06:19.513437 7f79eedea760 -1 monclient(hunting): ERROR: missing keyring, cannot use cephx for authentication
 	2013-08-22 00:06:19.513466 7f79eedea760 -1 ceph_tool_common_init failed.
   
-``
+```
 
 Check the links in ``/root/ceph\*.keyring``. There should be one for each of
 admin, osd, and mon. If any are missing this could be the cause.
@@ -205,6 +205,48 @@ Testing openstack
 -----------------
 
 to be continued...
+
+### Glance
+
+To test Glance, upload an image to Glance to see if it is saved in Ceph:
+
+```shell
+glance image-create --name cirros --container-format bare \
+  --disk-format qcow2 --is-public yes --location \
+  https://launchpad.net/cirros/trunk/0.3.0/+download/cirros-0.3.0-x86_64-disk.img
+```
+
+This will return somthing like:
+
+```
+   +------------------+--------------------------------------+
+   | Property         | Value                                |
+   +------------------+--------------------------------------+
+   | checksum         | None                                 |
+   | container_format | bare                                 |
+   | created_at       | 2013-08-22T19:54:28                  |
+   | deleted          | False                                |
+   | deleted_at       | None                                 |
+   | disk_format      | qcow2                                |
+   | id               | f52fb13e-29cf-4a2f-8ccf-a170954907b8 |
+   | is_public        | True                                 |
+   | min_disk         | 0                                    |
+   | min_ram          | 0                                    |
+   | name             | cirros                               |
+   | owner            | baa3187b7df94d9ea5a8a14008fa62f5     |
+   | protected        | False                                |
+   | size             | 0                                    |
+   | status           | active                               |
+   | updated_at       | 2013-08-22T19:54:30                  |
+   +------------------+--------------------------------------+
+```
+
+Then check RADOS:
+
+```shell
+rados -p images ls
+```
+
 
 Hacking into Fuel
 -----------------
