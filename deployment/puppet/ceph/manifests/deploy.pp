@@ -27,7 +27,8 @@ class ceph::deploy (
   $range = join($mon_nodes, " ")
   exec { 'ceph-deploy-s1':
     command => "ceph-deploy new ${range}",
-    require => Package['ceph-deploy', 'ceph', 'python-pushy']
+    require => Package['ceph-deploy', 'ceph', 'python-pushy'],
+    logoutput => true,
   }
   Ceph_conf {require => Exec['ceph-deploy-s1']}
   ceph_conf {
@@ -57,8 +58,10 @@ class ceph::deploy (
   }
   Ceph_conf <||> -> Exec ['ceph-deploy-s2']
   exec { 'ceph-deploy-s2':
+    #TODO: evaluate if this is idempotent
     command => "ceph-deploy --overwrite-conf mon create ${range}",
     #    require => Ceph_conf['global/auth supported', 'global/osd journal size', 'global/osd mkfs type']
+    logoutput => true,
   }
   File {
     ensure => 'link',
@@ -78,8 +81,12 @@ class ceph::deploy (
       $devices = join(suffix($osd_nodes, ":${name}"), " ")
       exec { "preparing drives`s on ${devices}":
         command => "ceph-deploy osd prepare ${devices}",
-        returns => [0,1],
-        require => File['/root/ceph.bootstrap-osd.keyring','/root/ceph.bootstrap-mds.keyring','/root/ceph.client.admin.keyring']
+        returns => 0,
+        timeout => 0, #TODO: make this something reasonable
+        tries => 40, 
+        try_sleep => 1,
+        require => File['/root/ceph.bootstrap-osd.keyring','/root/ceph.bootstrap-mds.keyring','/root/ceph.client.admin.keyring'],
+        logoutput => true,
       }
     }
     int { $osd_devices: }
@@ -89,8 +96,9 @@ class ceph::deploy (
       $devices = join(suffix($osd_nodes, ":${name}"), " ")
       exec { "Creating osd`s on ${devices}":
         command => "ceph-deploy osd activate ${devices}",
-        returns => [0,1],
-        require => Class['p_osd']
+        returns => 0,
+        require => Class['p_osd'],
+        logoutput => true,
       }
     }
     int { $osd_devices: }
@@ -99,6 +107,7 @@ class ceph::deploy (
     exec { 'ceph-deploy-s4':
       command => "ceph-deploy mds create ${mds_server}",
       require => Class['c_osd']
+      logoutput => true,
     }
   }
   class c_pools {
@@ -106,6 +115,7 @@ class ceph::deploy (
       exec { "Creating pool ${name}":
         command => "ceph osd pool create ${name} ${osd_pool_default_pg_num} ${osd_pool_default_pgp_num}",
         require => Class['c_osd']
+        logoutput => true,
       }
     }
     int { $ceph_pools: }
@@ -116,6 +126,7 @@ class ceph::deploy (
     allow rwx pool=${ceph_pools[0]}, allow rx pool=${ceph_pools[1]}' && \
     ceph auth get-or-create client.${ceph_pools[1]} mon 'allow r' osd \
     'allow class-read object_prefix rbd_children, allow rwx pool=${ceph_pools[1]}'",
-    require => Class['c_pools']
+    require => Class['c_pools'],
+    logoutput => true,
   }
 }
