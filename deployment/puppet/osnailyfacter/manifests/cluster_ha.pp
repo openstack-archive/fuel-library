@@ -93,13 +93,13 @@ class osnailyfacter::cluster_ha {
 
   $vips = { # Do not convert to ARRAY, It can't work in 2.7
     public_old => {
-      nic          => $::public_int,
-      ip           => $::fuel_settings['public_vip'],
+      nic    => $::public_int,
+      ip     => $::fuel_settings['public_vip'],
       cidr_netmask => '32',
     },
     management_old => {
-      nic          => $::internal_int,
-      ip           => $::fuel_settings['management_vip'],
+      nic    => $::internal_int,
+      ip     => $::fuel_settings['management_vip'],
       cidr_netmask => '32',
     },
   }
@@ -322,18 +322,39 @@ class osnailyfacter::cluster_ha {
     }
   }
 
+  # Fetch fencing settings
+  $fencing_enabled  = $::fuel_settings['fence_policy'] ? { 'disabled'=>false, 'reboot'=>true, 'poweroff'=>true, default=>false }
+  if $fencing_enabled {
+    $fence_primitives = $::fuel_settings['fence_primitives']
+    $fence_topology   = $::fuel_settings['fence_topology']
+  }
 
 
   case $::fuel_settings['role'] {
     /controller/ : {
       include osnailyfacter::test_controller
 
-      class { '::cluster':
-        stage             => 'corosync_setup',
-        internal_address  => $::internal_address,
-        unicast_addresses => $::osnailyfacter::cluster_ha::controller_internal_addresses,
-      } ->
-      class { 'virtual_ips': stage => 'corosync_setup' }
+      if $fencing_enabled {
+        class { '::cluster':
+          stage => 'corosync_setup',
+          internal_address  => $::internal_address,
+          unicast_addresses => $::osnailyfacter::cluster_ha::controller_internal_addresses,
+        } ->
+        # Configure fencing for pacemaker
+        class { '::cluster::fencing_primitives':
+          fence_primitives => $fence_primitives,
+          fence_topology   => $fence_topology,
+          stage => 'corosync_setup',
+        } ->
+        class { 'virtual_ips': stage => 'corosync_setup' }
+      } else {
+         class { '::cluster':
+          stage => 'corosync_setup',
+          internal_address  => $::internal_address,
+          unicast_addresses => $::osnailyfacter::cluster_ha::controller_internal_addresses,
+        } ->
+        class { 'virtual_ips': stage => 'corosync_setup' }
+      }
 
       class { 'cluster::haproxy': haproxy_maxconn => '16000' }
 
@@ -390,7 +411,7 @@ class osnailyfacter::cluster_ha {
       nova_config { 'DEFAULT/compute_scheduler_driver':  value => $::fuel_settings['compute_scheduler_driver'] }
 
       if ! $::use_quantum {
-        nova_floating_range { $floating_ips_range:
+        nova_floating_range{ $floating_ips_range:
           ensure          => 'present',
           pool            => 'nova',
           username        => $access_hash[user],
@@ -410,18 +431,18 @@ class osnailyfacter::cluster_ha {
 
       if $savanna_hash['enabled'] {
         class { 'savanna' :
-          savanna_api_host            => $controller_node_address,
+          savanna_api_host          => $controller_node_address,
 
-          savanna_db_password         => $savanna_hash['db_password'],
-          savanna_db_host             => $controller_node_address,
+          savanna_db_password       => $savanna_hash['db_password'],
+          savanna_db_host           => $controller_node_address,
 
-          savanna_keystone_host       => $controller_node_address,
-          savanna_keystone_user       => 'savanna',
-          savanna_keystone_password   => $savanna_hash['user_password'],
-          savanna_keystone_tenant     => 'services',
+          savanna_keystone_host     => $controller_node_address,
+          savanna_keystone_user     => 'savanna',
+          savanna_keystone_password => $savanna_hash['user_password'],
+          savanna_keystone_tenant   => 'services',
 
-          use_neutron                 => $::use_quantum,
-          use_floating_ips            => $::fuel_settings['auto_assign_floating_ip'],
+          use_neutron               => $::use_quantum,
+          use_floating_ips          => $::fuel_settings['auto_assign_floating_ip'],
 
           syslog_log_facility_savanna => $syslog_log_facility_savanna,
           syslog_log_level            => $syslog_log_level,
