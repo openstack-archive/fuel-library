@@ -2,7 +2,7 @@
 Exec { path => [ '/bin/', '/sbin/' , '/usr/bin/', '/usr/sbin/' ] }
 
 #This permater defines the monitor nodes, these may be the same as the OSD's 
-# if you want. There should be one or 3+
+# if you want. There should be one or >=3
 $mon_nodes = [
   'controller-3.domain.tld',
 ]
@@ -64,7 +64,7 @@ node 'default' {
       auth_supported   => 'cephx',
       osd_journal_size => '2048',
       osd_mkfs_type    => 'xfs',
-    }
+    } #TODO Fix duplicate ceph-deploy
     package {['ceph-deploy', 'python-pushy']:
       ensure  => latest,
       #require => Class['apt::update']
@@ -99,7 +99,9 @@ node 'default' {
   if $fqdn == $rados_GW {
     ceph::radosgw {"${::hostname}":
       require => Class['apt::update', 'ceph::deploy']
-    }
+    #TODO: fix this
+    #All classes that should run after ceph::deploy should be below
+    } -> Class[['ceph::glance', 'ceph::cinder', 'ceph::nova_compute']]
   }
   class { 'ceph::glance':
     default_store         => 'rbd',

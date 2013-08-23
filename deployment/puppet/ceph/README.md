@@ -216,13 +216,13 @@ current pools:
 Testing openstack
 -----------------
 
-to be continued...
 
 ### Glance
 
 To test Glance, upload an image to Glance to see if it is saved in Ceph:
 
 ```shell
+source ~/openrc
 glance image-create --name cirros --container-format bare \
   --disk-format qcow2 --is-public yes --location \
   https://launchpad.net/cirros/trunk/0.3.0/+download/cirros-0.3.0-x86_64-disk.img
@@ -232,6 +232,7 @@ glance image-create --name cirros --container-format bare \
 below instead**
 
 ```
+source ~/openrc
 wget https://launchpad.net/cirros/trunk/0.3.0/+download/cirros-0.3.0-x86_64-disk.img
 glance image-create --name cirros --container-format bare \
   --disk-format qcow2 --is-public yes < cirros-0.3.0-x86_64-disk.img
@@ -265,7 +266,7 @@ This will return somthing like:
 Then check rdb:
 
 ```shell
-rdb images ls
+rdb ls images
 ```
 
 ```shell

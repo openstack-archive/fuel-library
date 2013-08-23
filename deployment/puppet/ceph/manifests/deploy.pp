@@ -83,7 +83,7 @@ class ceph::deploy (
         command => "ceph-deploy osd prepare ${devices}",
         returns => 0,
         timeout => 0, #TODO: make this something reasonable
-        tries => 60, 
+        tries => 60,  #This is necessary because of race for mon creating keys
         try_sleep => 1,
         require => File['/root/ceph.bootstrap-osd.keyring','/root/ceph.bootstrap-mds.keyring','/root/ceph.client.admin.keyring'],
         logoutput => true,
