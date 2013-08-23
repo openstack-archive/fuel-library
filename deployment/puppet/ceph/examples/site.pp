@@ -33,7 +33,8 @@ $ceph_pools = [ 'volumes', 'images' ]
 # Determine CEPH and OpenStack nodes.
 node 'default' {
 
-  include 'ceph::yum'
+  #RE-enable this if not using fuelweb iso with Cehp packages
+  #include 'ceph::yum'
   #TODO: this needs to be pulled back into mirantis mirrors
   include 'ceph::ssh'
   #TODO: this should be pulled back into existing modules for setting up ssh-key
