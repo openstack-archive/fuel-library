@@ -83,7 +83,7 @@ class ceph::deploy (
         command => "ceph-deploy osd prepare ${devices}",
         returns => 0,
         timeout => 0, #TODO: make this something reasonable
-        tries => 40, 
+        tries => 60, 
         try_sleep => 1,
         require => File['/root/ceph.bootstrap-osd.keyring','/root/ceph.bootstrap-mds.keyring','/root/ceph.client.admin.keyring'],
         logoutput => true,
@@ -121,11 +121,9 @@ class ceph::deploy (
     int { $ceph_pools: }
   }
   exec { 'CLIENT AUTHENTICATION':
-    command => "ceph auth get-or-create client.${ceph_pools[0]} \
-    mon 'allow r' osd 'allow class-read object_prefix rbd_children, \
-    allow rwx pool=${ceph_pools[0]}, allow rx pool=${ceph_pools[1]}' && \
-    ceph auth get-or-create client.${ceph_pools[1]} mon 'allow r' osd \
-    'allow class-read object_prefix rbd_children, allow rwx pool=${ceph_pools[1]}'",
+    #DO NOT SPLIT ceph auth command lines See http://tracker.ceph.com/issues/3279
+    command => "ceph auth get-or-create client.${ceph_pools[0]} mon 'allow r' osd 'allow class-read object_prefix rbd_children, allow rwx pool=${ceph_pools[0]}, allow rx pool=${ceph_pools[1]}' && \
+    ceph auth get-or-create client.${ceph_pools[1]} mon 'allow r' osd 'allow class-read object_prefix rbd_children, allow rwx pool=${ceph_pools[1]}'",
     require => Class['c_pools'],
     logoutput => true,
   }

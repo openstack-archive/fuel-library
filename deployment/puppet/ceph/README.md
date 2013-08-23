@@ -30,6 +30,16 @@ Currently working on CentOS 6.4 with Ceph 0.61:
 * Puppet 2.7.19
 * Ceph 0.61.8
 
+Known Issues
+------------
+
+**Glance**
+
+There are currently issues with glance 2013.1.2 (grizzly) that cause ``glance 
+image-create`` with ``--location`` to not function. see 
+https://bugs.launchpad.net/glance/+bug/1215682 
+
+
 Features
 --------
 
@@ -37,7 +47,7 @@ Features
 * Ceph Monitors
 * Ceph OSDs
 * Ceph MDS (slightly broken)
-* Ceph Object Gateway (radosgw): comming soon
+* Ceph Object Gateway (radosgw): coming soon
 
 Using
 -----
@@ -123,14 +133,14 @@ status of the cluster. The output of ``ceph -s`` should include:
 * ``osdmap``: this should contain the correct number of osd instances (one per
   node per volume)
 
-``
+```
    root@fuel-ceph-02:~# ceph -s
    health HEALTH_OK
    monmap e1: 2 mons at {fuel-ceph-01=10.0.0.253:6789/0,fuel-ceph-02=10.0.0.252:6789/0}, election epoch 4, quorum 0,1 fuel-ceph-01,fuel-ceph-02
    osdmap e23: 4 osds: 4 up, 4 in
    pgmap v275: 448 pgs: 448 active+clean; 9518 bytes data, 141 MB used, 28486 MB / 28627 MB avail
    mdsmap e4: 1/1/1 up {0=fuel-ceph-02.local.try=up:active}
-``
+```
 
 Here are some errors that may be reported.
 
@@ -177,6 +187,7 @@ Common issues:
 
 Check the osd tree:
 
+```
 	#ceph osd tree
 	
 	# id    weight  type name       up/down reweight
@@ -190,6 +201,7 @@ Check the osd tree:
 	-4      2               host controller-3
 	2       1                       osd.2   up      1
 	5       1                       osd.5   up      1
+```
 
 Ceph pools
 ----------
@@ -214,6 +226,15 @@ To test Glance, upload an image to Glance to see if it is saved in Ceph:
 glance image-create --name cirros --container-format bare \
   --disk-format qcow2 --is-public yes --location \
   https://launchpad.net/cirros/trunk/0.3.0/+download/cirros-0.3.0-x86_64-disk.img
+```
+
+**Note: ``--location`` is currently broken in glance see known issues above use
+below instead**
+
+```
+wget https://launchpad.net/cirros/trunk/0.3.0/+download/cirros-0.3.0-x86_64-disk.img
+glance image-create --name cirros --container-format bare \
+  --disk-format qcow2 --is-public yes < cirros-0.3.0-x86_64-disk.img
 ```
 
 This will return somthing like:
@@ -241,12 +262,15 @@ This will return somthing like:
    +------------------+--------------------------------------+
 ```
 
-Then check RADOS:
+Then check rdb:
 
 ```shell
-rados -p images ls
+rdb images ls
 ```
 
+```shell
+rados -p images df
+```
 
 Hacking into Fuel
 -----------------

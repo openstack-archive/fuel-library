@@ -10,7 +10,7 @@ class ceph::cinder (
     exec {'Copy configs':
       command => "scp -r ${mon_nodes[-1]}:/etc/ceph/* /etc/ceph/",
       require => Package['ceph'],
-      returns => [0,1],
+      returns => 0,
     }
 
     Cinder_config<||> ~> Service['openstack-cinder-volume']
@@ -23,7 +23,9 @@ class ceph::cinder (
       'DEFAULT/rbd_user':                value => $rbd_user;
       'DEFAULT/rbd_secret_uuid':         value => $rbd_secret_uuid;
     }
-    file_line { 'cinder-volume.conf':
+     file { '/etc/sysconfig/openstack-cinder-volume':
+      ensure => 'present',
+    } -> file_line { 'cinder-volume.conf':
       #TODO: CentOS conversion
       #path => '/etc/init/cinder-volume.conf',
       path => '/etc/sysconfig/openstack-cinder-volume',
@@ -40,8 +42,8 @@ class ceph::cinder (
       command => 'ceph auth get-or-create client.volumes > /etc/ceph/ceph.client.volumes.keyring',
       before  => File['/etc/ceph/ceph.client.volumes.keyring'],
       require => [Package['ceph'], Exec['Copy configs']],
-      notify  => Service['cinder-volume'],
-      returns => [0,1],
+      notify  => Service['openstack-cinder-volume'],
+      returns => 0,
     }
     file { '/etc/ceph/ceph.client.volumes.keyring':
       owner   => cinder,

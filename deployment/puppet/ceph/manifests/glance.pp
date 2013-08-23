@@ -11,7 +11,7 @@ class ceph::glance (
     exec {'Copy config':
       command => "scp -r ${mon_nodes[-1]}:/etc/ceph/* /etc/ceph/",
       require => Package['ceph'],
-      returns => [0,1],
+      returns => 0,
     }
     glance_api_config {
       'DEFAULT/default_store':           value => $default_store;
@@ -29,8 +29,8 @@ class ceph::glance (
       command => 'ceph auth get-or-create client.images > /etc/ceph/ceph.client.images.keyring',
       before  => File['/etc/ceph/ceph.client.images.keyring'],
       require => [Package['ceph'], Exec['Copy config']],
-      notify  => Service['glance-api'],
-      returns => [0,1],
+      notify  => Service['openstack-glance-api'],
+      returns => 0,
     }
     file { '/etc/ceph/ceph.client.images.keyring':
       owner   => glance,
