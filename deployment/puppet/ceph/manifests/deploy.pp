@@ -127,4 +127,43 @@ class ceph::deploy (
     require => Class['c_pools'],
     logoutput => true,
   }
+
+#TODO: remove blow here when we can do deploy from each mon (PRD-1570)
+  exec { 'Create keys for pool volumes':
+    command => 'ceph auth get-or-create client.volumes > /etc/ceph/ceph.client.volumes.keyring',
+    before  => File['/etc/ceph/ceph.client.volumes.keyring'],
+    require => [Package['ceph']],
+    returns => 0,
+  }
+  file { '/etc/ceph/ceph.client.volumes.keyring':
+    owner   => cinder,
+    group   => cinder,
+    require => Exec['Create keys for pool volumes'],
+    mode    => '0600',
+  }
+  exec { 'Create keys for pool images':
+    command => 'ceph auth get-or-create client.images > /etc/ceph/ceph.client.images.keyring',
+    before  => File['/etc/ceph/ceph.client.images.keyring'],
+    require => [Package['ceph']],
+    returns => 0,
+  }
+  file { '/etc/ceph/ceph.client.images.keyring':
+    owner   => glance,
+    group   => glance,
+    require => Exec['Create keys for pool images'],
+    mode    => '0600',
+  }
+
+  exec {'Deploy push config':
+    #This pushes config and keyrings  to other nodes
+    command => "for node in ${mon_nodes} 
+  do 
+    scp -r /etc/ceph/* \${node}:/etc/ceph/ 
+  done",
+    require => [Exec['CLIENT AUTHENTICATION'], 
+                File['/etc/ceph/ceph.client.images.keyring',
+                     '/etc/ceph/ceph.client.volumes.keyring'],
+               ],
+    returns => 0,
+  }
 }

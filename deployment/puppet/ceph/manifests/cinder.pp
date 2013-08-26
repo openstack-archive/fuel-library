@@ -28,8 +28,9 @@ class ceph::cinder (
     } -> file_line { 'cinder-volume.conf':
       #TODO: CentOS conversion
       #path => '/etc/init/cinder-volume.conf',
+      #line => 'env CEPH_ARGS="--id volumes"',
       path => '/etc/sysconfig/openstack-cinder-volume',
-      line => 'CEPH_ARGS="--id volumes"',
+      line => 'export CEPH_ARGS="--id volumes"',
     }
 
     service { 'openstack-cinder-volume':
@@ -49,6 +50,7 @@ class ceph::cinder (
       owner   => cinder,
       group   => cinder,
       require => Exec['Create keys for pool volumes'],
+      mode    => '0600',
     }
     service { 'cinder-volume':
       ensure => 'running',

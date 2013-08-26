@@ -36,6 +36,7 @@ class ceph::glance (
       owner   => glance,
       group   => glance,
       require => Exec['Create keys for pool images'],
+      mode    => '0600',
     }
   }
 }
