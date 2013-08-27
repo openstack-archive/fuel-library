@@ -52,9 +52,5 @@ class ceph::cinder (
       require => Exec['Create keys for pool volumes'],
       mode    => '0600',
     }
-    service { 'cinder-volume':
-      ensure => 'running',
-      enable => true,
-    }
   }
 }

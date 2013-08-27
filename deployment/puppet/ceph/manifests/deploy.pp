@@ -25,12 +25,13 @@ class ceph::deploy (
   include p_osd, c_osd, c_pools
   
   $range = join($mon_nodes, " ")
-  exec { 'ceph-deploy-s1':
+  exec { 'ceph-deploy init config':
     command => "ceph-deploy new ${range}",
     require => Package['ceph-deploy', 'ceph', 'python-pushy'],
+    #TODO: see if add creates is relevant
     logoutput => true,
   }
-  Ceph_conf {require => Exec['ceph-deploy-s1']}
+  Ceph_conf {require => Exec['ceph-deploy init config']}
   ceph_conf {
     'global/auth supported':                                   value => $auth_supported;
     'global/osd journal size':                                 value => $osd_journal_size;
@@ -56,12 +57,18 @@ class ceph::deploy (
     'client.radosgw.gateway/rgw print continue':               value => $rgw_print_continue;
     'client.radosgw.gateway/nss db path':                      value => $nss_db_path;
   }
-  Ceph_conf <||> -> Exec ['ceph-deploy-s2']
-  exec { 'ceph-deploy-s2':
+  Ceph_conf <||> -> Exec ['ceph-deploy deploy monitors']
+  exec { 'ceph-deploy deploy monitors':
     #TODO: evaluate if this is idempotent
     command => "ceph-deploy --overwrite-conf mon create ${range}",
     #    require => Ceph_conf['global/auth supported', 'global/osd journal size', 'global/osd mkfs type']
     logoutput => true,
+  } -> exec { 'ceph-deploy gather-keys':
+    command   => 'ceph-deploy gather-keys',
+    returns   => 0,
+    tries     => 60,  #This is necessary to prevent race, mon must establish
+    # a quorum before it can generate keys, observed this takes upto 15 times.
+    try_sleep => 1,
   }
   File {
     ensure => 'link',
@@ -83,7 +90,7 @@ class ceph::deploy (
         command => "ceph-deploy osd prepare ${devices}",
         returns => 0,
         timeout => 0, #TODO: make this something reasonable
-        tries => 60,  #This is necessary because of race for mon creating keys
+        tries => 2,  #This is necessary because of race for mon creating keys
         try_sleep => 1,
         require => File['/root/ceph.bootstrap-osd.keyring','/root/ceph.bootstrap-mds.keyring','/root/ceph.client.admin.keyring'],
         logoutput => true,

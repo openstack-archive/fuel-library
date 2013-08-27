@@ -62,15 +62,6 @@ node 'default' {
   }
   if $fqdn == $mon_nodes[-1] and !str2bool($::ceph_conf) {
     class { 'ceph::deploy':
-      auth_supported   => 'cephx',
-      osd_journal_size => '2048',
-      osd_mkfs_type    => 'xfs',
-    } #TODO Fix duplicate ceph-deploy
-    package {['ceph-deploy', 'python-pushy']:
-      ensure  => latest,
-      #require => Class['apt::update']
-    }
-    class { 'ceph::deploy':
       #Global settings 
       auth_supported                   => 'cephx',
       osd_journal_size                 => '2048',
@@ -96,13 +87,15 @@ node 'default' {
       rgw_print_continue               => 'false',
       nss_db_path                      => '/etc/ceph/nss',
     }
+    package {['ceph-deploy', 'python-pushy']:
+      ensure  => latest,
+    } -> Class[['ceph::glance', 'ceph::cinder', 'ceph::nova_compute']]
+    #All classes that should run after ceph::deploy should be below
   }
   if $fqdn == $rados_GW {
     ceph::radosgw {"${::hostname}":
-      require => Class['apt::update', 'ceph::deploy']
-    #TODO: fix this
-    #All classes that should run after ceph::deploy should be below
-    } -> Class[['ceph::glance', 'ceph::cinder', 'ceph::nova_compute']]
+      require => Class['ceph::deploy']
+    } 
   }
   class { 'ceph::glance':
     default_store         => 'rbd',
