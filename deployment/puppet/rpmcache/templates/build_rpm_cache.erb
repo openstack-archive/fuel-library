@@ -28,8 +28,15 @@ for plugin in $rhsm_plugins; do
 done
 
 #Register
-subscription-manager register "--username=<%= rh_username %>" "--password=<%= rh_password %>" --autosubscribe --force 
-
+rhsmoutput=$(subscription-manager register "--username=<%= rh_username %>" "--password=<%= rh_password %>" --autosubscribe --force 2>&1)
+case $? in
+0) echo "Register succeeded"
+   ;;
+1) echo "Register succeeded"
+   ;;
+*) echo -e "Register failed: $rhmsoutput"
+   ;;
+esac
 #Attach to RHOS product
 poolid="$(subscription-manager list --available | grep -A2 "OpenStack" | tail -1 | cut -c15- | tr -d ' \t')"
 subscription-manager attach "--pool=$poolid"
