@@ -18,7 +18,6 @@ function revert_back_to_centos() {
   subscription-manager unregister || :
 }
 
-trap revert_back_to_centos EXIT
 
 rhsm_plugins="product-id subscription-manager"
 rhn_plugins="rhnplugin"
@@ -42,6 +41,8 @@ esac
 #Attach to RHOS product
 poolid="$(subscription-manager list --available | grep -A2 "OpenStack" | tail -1 | cut -c15- | tr -d ' \t')"
 subscription-manager attach "--pool=$poolid"
+
+trap revert_back_to_centos EXIT
 
 #Enable channels
 for channel in <%= rh_base_channels %> <%= rh_openstack_channel %>; do
