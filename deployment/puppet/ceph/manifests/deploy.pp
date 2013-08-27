@@ -68,6 +68,7 @@ class ceph::deploy (
     returns   => 0,
     tries     => 60,  #This is necessary to prevent race, mon must establish
     # a quorum before it can generate keys, observed this takes upto 15 times.
+    # Keys must exist prior to other commands running
     try_sleep => 1,
   }
   File {
@@ -86,13 +87,22 @@ class ceph::deploy (
   class p_osd {
     define int {
       $devices = join(suffix($osd_nodes, ":${name}"), " ")
-      exec { "preparing drives`s on ${devices}":
+      exec { "ceph-deploy osd prepare ${devices}":
+        #ceph-deploy osd prepare is ensuring there is a filesystem on the 
+        # disk according to the args passed to ceph.conf (above).
+        #timeout: It has a long timeout because of the format taking forever. 
+        # A resonable amount of time would be around 300 times the length 
+        # of $osd_nodes. Right now its 0 to prevent puppet from aborting it.
         command => "ceph-deploy osd prepare ${devices}",
         returns => 0,
         timeout => 0, #TODO: make this something reasonable
         tries => 2,  #This is necessary because of race for mon creating keys
         try_sleep => 1,
-        require => File['/root/ceph.bootstrap-osd.keyring','/root/ceph.bootstrap-mds.keyring','/root/ceph.client.admin.keyring'],
+        require => [File['/root/ceph.bootstrap-osd.keyring',
+                         '/root/ceph.bootstrap-mds.keyring',
+                         '/root/ceph.client.admin.keyring'],
+                    Exec['ceph-deploy gather-keys'],
+                    ],
         logoutput => true,
       }
     }

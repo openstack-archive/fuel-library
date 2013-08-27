@@ -8,6 +8,7 @@ class ceph::nova_compute (
       returns => [0,1],
     }
     file { '/tmp/secret.xml':
+      #TODO: use mktemp
       content => template('ceph/secret.erb')
     }
     exec { 'Set value':
@@ -21,6 +22,8 @@ class ceph::nova_compute (
       hasstatus  => true,
       hasrestart => true,
       subscribe  => Exec['Set value']
+    } -> file {'/tmp/secret.xml':
+      ensure => absent,
     }
   }
 }

@@ -68,6 +68,7 @@ node 'default' {
       osd_mkfs_type                    => 'xfs',
       osd_pool_default_size            => '2',
       osd_pool_default_min_size        => '1',
+      #TODO: calculate PG numbers
       osd_pool_default_pg_num          => '100',
       osd_pool_default_pgp_num         => '100',
       cluster_network                  => '10.0.0.0/24',
@@ -108,6 +109,7 @@ node 'default' {
     rbd_pool              => 'volumes',
     glance_api_version    => '2',
     rbd_user              => 'volumes',
+    #TODO: generate rbd_secret_uuid
     rbd_secret_uuid       => 'a5d0dd94-57c4-ae55-ffe0-7e3732a24455',
   }
   class { 'ceph::nova_compute': }
