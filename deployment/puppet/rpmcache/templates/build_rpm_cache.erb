@@ -29,12 +29,14 @@ done
 
 #Register
 rhsmoutput=$(subscription-manager register "--username=<%= rh_username %>" "--password=<%= rh_password %>" --autosubscribe --force 2>&1)
-case $? in
+exitcode=$?
+case $exitcode in
 0) echo "Register succeeded"
    ;;
 1) echo "Register succeeded"
    ;;
 *) echo -e "Register failed: $rhmsoutput"
+   exit $exitcode
    ;;
 esac
 #Attach to RHOS product
