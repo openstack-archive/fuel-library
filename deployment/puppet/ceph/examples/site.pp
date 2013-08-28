@@ -87,16 +87,16 @@ node 'default' {
       rgw_dns_name                     => $::hostname,
       rgw_print_continue               => 'false',
       nss_db_path                      => '/etc/ceph/nss',
-    } -> Class[['ceph::glance', 
-                'ceph::cinder', 
-                'ceph::nova_compute', 
+    } -> Class[['ceph::glance',
+                'ceph::cinder',
+                'ceph::nova_compute',
                 'ceph::keystone']]
     #All classes that should run after ceph::deploy should be below
   }
   if $fqdn == $rados_GW {
     ceph::radosgw {"${::hostname}":
       require => Class['ceph::deploy']
-    } 
+    }
   }
   class { 'ceph::glance':
     default_store         => 'rbd',

@@ -91,10 +91,10 @@ class ceph::deploy (
     define int {
       $devices = join(suffix($osd_nodes, ":${name}"), " ")
       exec { "ceph-deploy osd prepare ${devices}":
-        #ceph-deploy osd prepare is ensuring there is a filesystem on the 
+        #ceph-deploy osd prepare is ensuring there is a filesystem on the
         # disk according to the args passed to ceph.conf (above).
-        #timeout: It has a long timeout because of the format taking forever. 
-        # A resonable amount of time would be around 300 times the length 
+        #timeout: It has a long timeout because of the format taking forever.
+        # A resonable amount of time would be around 300 times the length
         # of $osd_nodes. Right now its 0 to prevent puppet from aborting it.
         command => "ceph-deploy osd prepare ${devices}",
         returns => 0,
@@ -148,7 +148,7 @@ class ceph::deploy (
     logoutput => true,
   }
 
-#TODO: remove blow here when we can do deploy from each mon (PRD-1570)
+#TODO: remove below here when we can do deploy from each mon (PRD-1570)
   exec { 'ceph auth get client.volumes':
     command => 'ceph auth get-or-create client.volumes > /etc/ceph/ceph.client.volumes.keyring',
     before  => File['/etc/ceph/ceph.client.volumes.keyring'],
@@ -163,13 +163,13 @@ class ceph::deploy (
   }
   exec {'Deploy push config':
     #This pushes config and keyrings  to other nodes
-    command => "for node in ${mon_nodes} 
-  do 
+    command => "for node in ${mon_nodes}
+  do
     scp -r /etc/ceph/* \${node}:/etc/ceph/ 
   done",
     require => [Exec['CLIENT AUTHENTICATION',
                      'ceph auth get client.volumes',
-                     'ceph auth get client.images'], 
+                     'ceph auth get client.images'],
                ],
     returns => 0,
   }
