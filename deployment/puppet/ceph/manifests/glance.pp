@@ -29,6 +29,7 @@ class ceph::glance (
       command => 'ceph auth get-or-create client.images > /etc/ceph/ceph.client.images.keyring',
       before  => File['/etc/ceph/ceph.client.images.keyring'],
       require => [Package['ceph'], Exec['Copy config']],
+      #TODO: centos conversion
       notify  => Service['openstack-glance-api'],
       returns => 0,
     }

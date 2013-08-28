@@ -168,7 +168,7 @@ Try to run ``ceph-deploy gatherkeys {mon-server-name}``. If this dosn't work
 then there may have been an issue starting the cluster.
 
 Check to see running ceph processes ``ps axu | grep ceph``. If there is a
-python process running for ``ceph-authtool`` then there is likely a problem
+python process running for ``ceph-create-keys`` then there is likely a problem
 with the MON processes talking to each other. Check their network and firewall.
 The monitor defaults to a port 6789
 
@@ -271,6 +271,21 @@ rdb ls images
 
 ```shell
 rados -p images df
+```
+
+### Cinder
+
+To test cinder, we will create a small volume and see if it was saved in cinder
+
+```shell
+source openrc
+cinder create 1
+```
+
+This will instruct cinder to create a 1 GiB volume, it should respond with
+something similar to:
+
+```
 ```
 
 Hacking into Fuel
