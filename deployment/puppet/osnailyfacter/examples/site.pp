@@ -59,8 +59,8 @@ if $nodes != undef {
 # Verbose would have set INFO level messages
 # In case of non debug and non verbose - WARNING, default level would have set.
 # Note: if syslog on, this default level may be configured (for syslog) with syslog_log_level option.
-$verbose = true
-$debug = false
+# $verbose = true
+# $debug = false
 
 ### Syslog ###
 # Enable error messages reporting to rsyslog. Rsyslog must be installed in this case.
