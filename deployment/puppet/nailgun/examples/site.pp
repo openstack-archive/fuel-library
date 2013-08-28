@@ -74,6 +74,7 @@ node default {
     rabbitmq_naily_user => $rabbitmq_naily_user,
     rabbitmq_naily_password => $rabbitmq_naily_password,
     puppet_master_hostname => $puppet_master_hostname,
+    puppet_master_ip => $mnbs_internal_ipaddress,
   }
 
   Class['postgresql::server'] -> Class['nailgun']
