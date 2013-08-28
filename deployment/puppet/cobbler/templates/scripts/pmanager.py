@@ -280,6 +280,24 @@ class PManager(object):
             self.kick("bootloader --location=mbr --driveorder={0} "
                       "--append=' biosdevname=0 "
                       "crashkernel=none'".format(",".join(devs)))
+            for dev in devs:
+                self.post("echo -n > /tmp/grub.script")
+                self.post("echo \\\"device (hd0) /dev/{0}\\\" >> "
+                          "/tmp/grub.script".format(dev))
+                """
+                This means that we set drive geometry manually into to
+                avoid grub register overlapping. We set it so that grub
+                thinks disk size is equal to 1G.
+                130 cylinders * (16065 * 512 = 8225280 bytes) = 1G
+                """
+                self.post("echo \\\"geometry (hd0) 130 255 63\\\" >> "
+                          "/tmp/grub.script")
+                self.post("echo \\\"root (hd0,2)\\\" >> /tmp/grub.script")
+                self.post("echo \\\"install /grub/stage1 (hd0) /grub/stage2 p "
+                          "/grub/grub.conf\\\" >> /tmp/grub.script")
+                self.post("echo quit >> /tmp/grub.script")
+                self.post("cat /tmp/grub.script | chroot /mnt/sysimage "
+                          "/sbin/grub --no-floppy --batch")
 
     def expose(self,
                kickfile="/tmp/partition.ks",
@@ -293,9 +311,13 @@ class PManager(object):
         for kick in self.kick():
             result += "echo \"{0}\" >> {1}\n".format(kick, kickfile)
 
-        result += "echo > {0}\n".format(postfile)
+        result += "echo \"%post --nochroot\" > {0}\n".format(postfile)
+        result += "echo \"set -x -v\" >> {0}\n".format(postfile)
+        result += ("echo \"exec 1>/mnt/sysimage/root/post-partition.log "
+                   "2>&1\" >> {0}\n".format(postfile))
         for post in self.post():
             result += "echo \"{0}\" >> {1}\n".format(post, postfile)
+        result += "echo \"%end\" >> {0}\n".format(postfile)
         return result
 
     def eval(self):
