@@ -3,6 +3,7 @@ class nailgun::mcollective(
   $mco_user = "mcollective",
   $mco_password = "marionette",
   $mco_vhost = "mcollective",
+  $mco_host = "localhost",
   ){
 
   class { "mcollective::rabbitmq":
@@ -16,7 +17,7 @@ class nailgun::mcollective(
     vhost => $mco_vhost,
     user => $mco_user,
     password => $mco_password,
-    host => $ipaddress,
+    host => $mco_host,
     stomp => false,
   }
    class { "mcollective::server":
@@ -24,7 +25,7 @@ class nailgun::mcollective(
     vhost => $mco_vhost,
     user => $mco_user,
     password => $mco_password,
-    host => $ipaddress,
+    host => $mco_host,
     stomp => false,
   }
  
