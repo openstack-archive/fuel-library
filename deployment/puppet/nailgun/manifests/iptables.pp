@@ -21,5 +21,5 @@ class nailgun::iptables {
 
   access_to_nailgun_port { "nailgun_web":    port => '8000' }
   access_to_nailgun_port { "nailgun_repo":    port => '8080' }
-  ip_forward {'forward_slaves': network => "${ipaddress}/${netmask}"}
+  ip_forward {'forward_slaves': network => "${mnbs_internal_ipaddress}/${mnbs_internal_netmask}"}
 }
