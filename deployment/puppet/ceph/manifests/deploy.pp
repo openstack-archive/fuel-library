@@ -67,12 +67,13 @@ class ceph::deploy (
     command   => "ceph-deploy gatherkeys $fqdn",
     returns   => 0,
     tries     => 60,  #This is necessary to prevent race, mon must establish
-    # a quorum before it can generate keys, observed this takes upto 15 times.
+    # a quorum before it can generate keys, observed this takes upto 15 seconds
     # Keys must exist prior to other commands running
     try_sleep => 1,
     creates   => ['/root/ceph.bootstrap-osd.keyring',
                   '/root/ceph.bootstrap-mds.keyring',
                   '/root/ceph.client.admin.keyring'],
+    require   => File['/usr/bin/ceph-deploy']
   }
   File {
 #    ensure => 'link',
@@ -152,13 +153,13 @@ class ceph::deploy (
   exec { 'ceph auth get client.volumes':
     command => 'ceph auth get-or-create client.volumes > /etc/ceph/ceph.client.volumes.keyring',
     before  => File['/etc/ceph/ceph.client.volumes.keyring'],
-    require => [Package['ceph']],
+    require => [Package['ceph'], Exec['CLIENT AUTHENTICATION']],
     returns => 0,
   }
   exec { 'ceph auth get client.images':
     command => 'ceph auth get-or-create client.images > /etc/ceph/ceph.client.images.keyring',
     before  => File['/etc/ceph/ceph.client.images.keyring'],
-    require => [Package['ceph']],
+    require => [Package['ceph'], Exec['CLIENT AUTHENTICATION']],
     returns => 0,
   }
   exec {'Deploy push config':
@@ -167,8 +168,7 @@ class ceph::deploy (
   do
     scp -r /etc/ceph/* \${node}:/etc/ceph/ 
   done",
-    require => [Exec['CLIENT AUTHENTICATION',
-                     'ceph auth get client.volumes',
+    require => [Exec['ceph auth get client.volumes',
                      'ceph auth get client.images'],
                ],
     returns => 0,

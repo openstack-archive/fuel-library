@@ -6,7 +6,7 @@ class ceph::deps (
   }
   file {'/usr/bin/ceph-deploy':
     source => 'puppet://ceph/ceph-deploy',
-    mode   => 0774,
+    mode   => 0755,
     #This applies necessary patch from
     # https://github.com/ceph/ceph-deploy/pull/54
     #This can be removed if patch is present in the current package.

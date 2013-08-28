@@ -1,4 +1,4 @@
-define ceph::keystone (
+class ceph::keystone (
   $pub_ip,
   $adm_ip,
   $int_ip,

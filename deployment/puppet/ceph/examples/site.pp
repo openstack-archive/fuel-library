@@ -1,6 +1,9 @@
 # Global settings
 Exec { path => [ '/bin/', '/sbin/' , '/usr/bin/', '/usr/sbin/' ] }
 
+#hostnames MUST match either cluser_network, or public_network or
+#ceph will not setup correctly.
+
 #This permater defines the monitor nodes, these may be the same as the OSD's 
 # if you want. There should be one or >=3
 $mon_nodes = [
@@ -113,7 +116,7 @@ node 'default' {
     rbd_secret_uuid       => 'a5d0dd94-57c4-ae55-ffe0-7e3732a24455',
   }
   class { 'ceph::nova_compute': }
-  ceph::keystone { "Keystone":
+  class { 'ceph::keystone': #{ "Keystone":
     pub_ip => "${rados_GW}",
     adm_ip => "${rados_GW}",
     int_ip => "${rados_GW}",
