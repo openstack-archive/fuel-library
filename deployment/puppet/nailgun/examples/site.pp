@@ -66,6 +66,7 @@ node default {
 
     mco_pskey => $mco_pskey,
     mco_vhost => $mco_vhost,
+    mco_host => $mnbs_internal_ipaddress,
     mco_user => $mco_user,
     mco_password => $mco_password,
     mco_connector => "rabbitmq",
