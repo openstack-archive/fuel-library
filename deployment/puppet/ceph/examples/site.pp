@@ -21,7 +21,7 @@ $osd_nodes = [
 $rados_GW = 'fuel-controller-03.local.try'
 
 # Uncomment this line if you want to install metadata server.
-$mds_server = 'fuel-controller-03.local.try'
+#$mds_server = 'fuel-controller-03.local.try'
 
 # This parameter defines which devices to aggregate into CEPH cluster.
 # ALL THE DATA THAT RESIDES ON THESE DEVICES WILL BE LOST!

@@ -5,7 +5,7 @@ class ceph::deps (
     ensure => latest,
   }
   file {'/usr/bin/ceph-deploy':
-    source => 'puppet://ceph/ceph-deploy',
+    source => 'puppet:///ceph/ceph-deploy',
     mode   => 0755,
     #This applies necessary patch from
     # https://github.com/ceph/ceph-deploy/pull/54

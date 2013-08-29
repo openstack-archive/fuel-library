@@ -162,15 +162,17 @@ class ceph::deploy (
     require => [Package['ceph'], Exec['CLIENT AUTHENTICATION']],
     returns => 0,
   }
+  $mons_as_string_list = join($mon_nodes, ' ')
   exec {'Deploy push config':
     #This pushes config and keyrings  to other nodes
-    command => "for node in ${mon_nodes}
+    provider => 'shell',
+    command  => "for node in ${mons_as_string_list}
   do
     scp -r /etc/ceph/* \${node}:/etc/ceph/ 
   done",
-    require => [Exec['ceph auth get client.volumes',
+    require  => [Exec['ceph auth get client.volumes',
                      'ceph auth get client.images'],
                ],
-    returns => 0,
+    returns  => 0,
   }
 }
