@@ -207,7 +207,7 @@ Ceph pools
 ----------
 
 By default we create two pools ``image``, and ``volumes``, there should also be
-defaults of ``data``, ``metadata``, and ``rdb``. ``ceph osd lspools`` can show the 
+defaults of ``data``, ``metadata``, and ``rbd``. ``ceph osd lspools`` can show the 
 current pools:
 
 	# ceph osd lspools
@@ -263,10 +263,10 @@ This will return somthing like:
    +------------------+--------------------------------------+
 ```
 
-Then check rdb:
+Then check rbd:
 
 ```shell
-rdb ls images
+rbd ls images
 ```
 
 ```shell
