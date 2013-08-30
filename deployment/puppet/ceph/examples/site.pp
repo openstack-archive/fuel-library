@@ -31,7 +31,6 @@ $osd_devices = split($::osd_devices_list, "\n")
 # This parameter defines rbd pools for Cinder & Glance. It is not necessary to change.
 $ceph_pools = [ 'volumes', 'images' ]
 
-#TODO: need to seperate mon and osd list
 #TODO: need to resolve single node changes
 
 # Determine CEPH and OpenStack nodes.
@@ -39,7 +38,6 @@ node 'default' {
 
   #RE-enable this if not using fuelweb iso with Cehp packages
   #include 'ceph::yum'
-  #TODO: this needs to be pulled back into mirantis mirrors
   include 'ceph::ssh'
   #TODO: this should be pulled back into existing modules for setting up ssh-key
   #TODO: OR need to at least generate the key

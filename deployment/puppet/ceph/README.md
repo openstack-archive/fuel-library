@@ -286,6 +286,57 @@ This will instruct cinder to create a 1 GiB volume, it should respond with
 something similar to:
 
 ```
++---------------------+--------------------------------------+
+|       Property      |                Value                 |
++---------------------+--------------------------------------+
+|     attachments     |                  []                  |
+|  availability_zone  |                 nova                 |
+|       bootable      |                false                 |
+|      created_at     |      2013-08-30T00:01:39.011655      |
+| display_description |                 None                 |
+|     display_name    |                 None                 |
+|          id         | 78bf2750-e99c-4c52-b5ca-09764af367b5 |
+|       metadata      |                  {}                  |
+|         size        |                  1                   |
+|     snapshot_id     |                 None                 |
+|     source_volid    |                 None                 |
+|        status       |               creating               |
+|     volume_type     |                 None                 |
++---------------------+--------------------------------------+
+```
+
+Then we can check the status of the image using its ``id`` using 
+``cinder show <id>``
+
+```
+cinder show 78bf2750-e99c-4c52-b5ca-09764af367b5
++------------------------------+--------------------------------------+
+|           Property           |                Value                 |
++------------------------------+--------------------------------------+
+|         attachments          |                  []                  |
+|      availability_zone       |                 nova                 |
+|           bootable           |                false                 |
+|          created_at          |      2013-08-30T00:01:39.000000      |
+|     display_description      |                 None                 |
+|         display_name         |                 None                 |
+|              id              | 78bf2750-e99c-4c52-b5ca-09764af367b5 |
+|           metadata           |                  {}                  |
+|    os-vol-host-attr:host     |       controller-19.domain.tld       |
+| os-vol-tenant-attr:tenant_id |   b11a96140e8e4522b81b0b58db6874b0   |
+|             size             |                  1                   |
+|         snapshot_id          |                 None                 |
+|         source_volid         |                 None                 |
+|            status            |              available               |
+|         volume_type          |                 None                 |
++------------------------------+--------------------------------------+
+``` 
+
+Since the image is ``status`` ``available`` it should have been created in 
+ceph. we can check this with ``rbd ls volumes``
+
+```shell
+rbd ls volumes
+volume-78bf2750-e99c-4c52-b5ca-09764af367b5
 ```
 
 Hacking into Fuel
@@ -293,15 +344,24 @@ Hacking into Fuel
 
 After installing onto a fuel cluster
 
-1. Define your partitions. If you will re-define any partations you must make
+1. Define your partitions. If you will re-define any partitions you must make
 sure they are exposed in the kernel before running the scripts see ``partx -a
-/dev/<device>`` after ``umount /boot``.
+/dev/<device>`` (you may need to run it two or three times.
 
 2. Copy ``fuel-pm:/etc/puppet/modules/*`` to ``{node}:/etc/puppet/modules``
-3. Copy ``/etc/puppet/modules/ceph/examples/site.pp`` to ``/root/ceph.pp``.
-4. Edit ceph.pp for desired changes to ``$mon_nodes``, ``$osd_nodes``, and ``$osd_disks``.
-5. Run ``puppet apply ceph.pp`` on each node **except** ``$ceph_nodes[-1]``,
-then run the same command on that last node.
+3. Copy ``/etc/puppet/modules/ceph/examples/site.pp`` to ``/root/site.pp``.
+4. Edit ceph.pp for desired changes to 
+* ``$mon_nodes``
+* ``$osd_nodes``
+* ``$osd_disks``
+* ``$public_network`` if you use dns names, this needs to be set to PXE network
+* ``$cluster_network`` set this to storage network
+5. Run ``puppet apply site.pp`` must be run on all nodes **before** 
+   ``$mon_nodes[-1]``. This will set up the ssh keys that ``ceph-deploy`` needs
+   to run and deploy the actual services. Now you can run 
+   ``puppet apply site.pp`` on the ``$mon_nodes[-1]``.
+
+Note: errors related to keystone and libnss3 are OK
 
 Copyright and License
 ---------------------
