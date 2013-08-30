@@ -1,5 +1,5 @@
 node default {
-  $rh_base_channels = "rhel-6-server-rpms rhel-6-server-optional-rpms rhel-lb-for-rhel-6-server-rpms rhel-rs-for-rhel-6-server-rpms rhel-ha-for-rhel-6-server-rpms rhel-server-ost-6-folsom-rpms"
+  $rh_base_channels = "rhel-6-server-rpms rhel-6-server-optional-rpms rhel-lb-for-rhel-6-server-rpms rhel-rs-for-rhel-6-server-rpms rhel-ha-for-rhel-6-server-rpms"
   $rh_openstack_channel = "rhel-server-ost-6-3-rpms"
   $numtries = "3"
   $sat_base_channels = "rhel-x86_64-server-6 rhel-x86_64-server-optional-6 rhel-x86_64-server-lb-6 rhel-x86_64-server-rs-6 rhel-x86_64-server-ha-6"
