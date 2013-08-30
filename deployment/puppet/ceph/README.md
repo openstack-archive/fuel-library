@@ -169,8 +169,10 @@ then there may have been an issue starting the cluster.
 
 Check to see running ceph processes ``ps axu | grep ceph``. If there is a
 python process running for ``ceph-create-keys`` then there is likely a problem
-with the MON processes talking to each other. Check their network and firewall.
-The monitor defaults to a port 6789
+with the MON processes talking to each other. 
+* Check each mon's network and firewall. The monitor defaults to a port 6789
+* If public_network is defined in ceph.conf, mon_host and DNS names **MUST**
+  be inside the public_network or ceph-deploy wont create mon's
 
 Missing OSD instances
 ---------------------
@@ -361,6 +363,25 @@ sure they are exposed in the kernel before running the scripts see ``partx -a
    to run and deploy the actual services. Now you can run 
    ``puppet apply site.pp`` on the ``$mon_nodes[-1]``.
 
+Note: errors related to keystone and libnss3 are OK
+
+==== Clean re-run site.pp ====
+
+set ``all`` to contain all monitors, osds, and computes want to re-initalize.
+
+```shell
+export all="compute-4 controller-1 controller-2 controller-3"
+for node in $all
+do
+ ssh $node 'service ceph -a stop ;
+ umount /var/lib/ceph/osd/ceph*';
+done;
+ceph-deploy purgedata $all;
+ceph-deploy purge $all;
+yum install -y ceph-deploy;
+rm ~/ceph* ;
+ceph-deploy install $all
+```
 Note: errors related to keystone and libnss3 are OK
 
 Copyright and License
