@@ -35,8 +35,8 @@ Known Issues
 
 **Glance**
 
-There are currently issues with glance 2013.1.2 (grizzly) that cause ``glance 
-image-create`` with ``--location`` to not function. see 
+There are currently issues with glance 2013.1.2 (grizzly) that cause ``glance
+image-create`` with ``--location`` to not function. see
 https://bugs.launchpad.net/glance/+bug/1215682 
 
 
@@ -67,7 +67,7 @@ $mon_nodes = [
 ]
 ```
 
-This parameter defines the nodes for which the monitor process will be 
+This parameter defines the nodes for which the monitor process will be
 installed. This should be one, three or more monitors.
 
 ```puppet
@@ -79,7 +79,7 @@ $osd_nodes = [
 
 This parameter defines the nodes for which the OSD process` will run. One OSD
 will be created for each ``$osd_volume`` per ``$osd_nodes``. There is a minimum
-requirement of two OSD instances. 
+requirement of two OSD instances.
 
 ```puppet
 $mds_server = 'ceph-mds-01'
@@ -169,7 +169,7 @@ then there may have been an issue starting the cluster.
 
 Check to see running ceph processes ``ps axu | grep ceph``. If there is a
 python process running for ``ceph-create-keys`` then there is likely a problem
-with the MON processes talking to each other. 
+with the MON processes talking to each other.
 * Check each mon's network and firewall. The monitor defaults to a port 6789
 * If public_network is defined in ceph.conf, mon_host and DNS names **MUST**
   be inside the public_network or ceph-deploy wont create mon's
@@ -209,8 +209,8 @@ Ceph pools
 ----------
 
 By default we create two pools ``image``, and ``volumes``, there should also be
-defaults of ``data``, ``metadata``, and ``rbd``. ``ceph osd lspools`` can show the 
-current pools:
+defaults of ``data``, ``metadata``, and ``rbd``. ``ceph osd lspools`` can show
+the current pools:
 
 	# ceph osd lspools
 	0 data,1 metadata,2 rbd,3 images,4 volumes,
@@ -307,7 +307,7 @@ something similar to:
 +---------------------+--------------------------------------+
 ```
 
-Then we can check the status of the image using its ``id`` using 
+Then we can check the status of the image using its ``id`` using
 ``cinder show <id>``
 
 ```
@@ -333,7 +333,7 @@ cinder show 78bf2750-e99c-4c52-b5ca-09764af367b5
 +------------------------------+--------------------------------------+
 ``` 
 
-Since the image is ``status`` ``available`` it should have been created in 
+Since the image is ``status`` ``available`` it should have been created in
 ceph. we can check this with ``rbd ls volumes``
 
 ```shell
@@ -358,9 +358,9 @@ sure they are exposed in the kernel before running the scripts see ``partx -a
 * ``$osd_disks``
 * ``$public_network`` if you use dns names, this needs to be set to PXE network
 * ``$cluster_network`` set this to storage network
-5. Run ``puppet apply site.pp`` must be run on all nodes **before** 
+5. Run ``puppet apply site.pp`` must be run on all nodes **before**
    ``$mon_nodes[-1]``. This will set up the ssh keys that ``ceph-deploy`` needs
-   to run and deploy the actual services. Now you can run 
+   to run and deploy the actual services. Now you can run
    ``puppet apply site.pp`` on the ``$mon_nodes[-1]``.
 
 Note: errors related to keystone and libnss3 are OK
