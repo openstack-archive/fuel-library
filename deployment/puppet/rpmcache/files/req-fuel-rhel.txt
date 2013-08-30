@@ -97,6 +97,7 @@ rubygem-gem_plugin-0.2.3-3.el6.noarch.rpm
 rubygem-mongrel-1.1.5-3.el6.x86_64.rpm
 rubygem-netaddr-1.5.0-3.el6.noarch.rpm
 rubygem-openstack-1.1.1-3.el6.noarch.rpm
+rubygem-json-1.7.7-101.el6.x86_64.rpm
 rubygem-rake-0.8.7-2.el6.noarch.rpm
 rubygem-stomp-1.2.8-1.el6.noarch.rpm
 rubygems-1.3.7-1.el6.noarch.rpm
