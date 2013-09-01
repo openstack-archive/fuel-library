@@ -5,7 +5,7 @@ if $quantum == 'true'
 {
   $quantum_hash   = parsejson($::quantum_access)
   $quantum_params = parsejson($::quantum_parameters)
-  $novanetwork_params  = {} 
+  $novanetwork_params  = {}
 
 }
 else
@@ -103,17 +103,15 @@ $quantum_sql_connection  = "mysql://${quantum_db_user}:${quantum_db_password}@${
 $quantum_metadata_proxy_shared_secret = $quantum_params['metadata_proxy_shared_secret']
 $quantum_gre_bind_addr = $::internal_address
 
-if !$verbose 
+if !$verbose
 {
- $verbose = 'true'
+ $verbose = 'false'
 }
 
 if !$debug
 {
- $debug = 'true'
+ $debug = 'false'
 }
-
-
 
   case $role {
     "controller" : {
@@ -133,8 +131,8 @@ if !$debug
         num_networks            => $num_networks,
         network_size            => $network_size,
         network_config          => $network_config,
-        verbose                 => $verbose,
-        debug                   => $debug,
+        debug                   => $debug ? { 'true' => true, true => true, default=> false },
+        verbose                 => $verbose ? { 'true' => true, true => true, default=> false },
         auto_assign_floating_ip => $bool_auto_assign_floating_ip,
         mysql_root_password     => $mysql_hash[root_password],
         admin_email             => $access_hash[email],
@@ -194,8 +192,8 @@ if !$debug
       floating_range        => $floating_hash,
       fixed_range           => $fixed_network_range,
       create_networks       => $create_networks,
-      verbose               => $verbose,
-      debug                 => $debug,
+      debug                 => $debug ? { 'true' => true, true => true, default=> false },
+      verbose               => $verbose ? { 'true' => true, true => true, default=> false },
       queue_provider        => $queue_provider,
       rabbit_password       => $rabbit_hash[password],
       rabbit_user           => $rabbit_hash[user],
@@ -304,10 +302,11 @@ if !$debug
         cinder_volume_group     => "cinder",
         manage_volumes          => $cinder ? { false => $manage_volumes, default =>$is_cinder_node },
         db_host                => $controller_node_address,
-        verbose                => $verbose,
-        debug                   => $debug,
+        debug                  => $debug ? { 'true' => true, true => true, default=> false },
+        verbose                => $verbose ? { 'true' => true, true => true, default=> false },
         use_syslog             => true,
         syslog_log_level       => $syslog_log_level,
+	syslog_log_facility    => $syslog_log_facility_nova,
         syslog_log_facility_quantum => $syslog_log_facility_quantum,
         syslog_log_facility_cinder => $syslog_log_facility_cinder,
         state_path             => $nova_hash[state_path],
@@ -342,8 +341,8 @@ if !$debug
         cinder_user_password => $cinder_hash[user_password],
         syslog_log_facility  => $syslog_log_facility_cinder,
         syslog_log_level     => $syslog_log_level,
-        debug                => $debug ? { 'true' => 'True', default=>'False' },
-        verbose              => $verbose ? { 'false' => 'False', default=>'True' },
+        debug                => $debug ? { 'true' => true, true => true, default=> false },
+        verbose              => $verbose ? { 'true' => true, true => true, default=> false },
         use_syslog           => true,
       }
    }

@@ -316,22 +316,25 @@ quantum_l3_agent_start() {
     fi
     clean_up
 
-    if ocf_is_true ${OCF_RESKEY_syslog} ; then
-        L3_SYSLOG=" | logger -t quantum-quantum.agent.l3 "
-        if ocf_is_true ${OCF_RESKEY_debug} ; then
-            L3_LOG=" | tee -ia /var/log/quantum/l3.log "
-        else
-            L3_LOG=" "
-        fi
-    else
-        L3_SYSLOG=""
-        if ocf_is_true ${OCF_RESKEY_debug} ; then
-            L3_LOG=" >> /var/log/quantum/l3.log "
-        else
-            L3_LOG=" >> /dev/null "
-        fi
-    fi
-
+# FIXME stderr should not be used unless quantum+agents init & OCF would reditect to stderr
+#    if ocf_is_true ${OCF_RESKEY_syslog} ; then
+# Disable logger because we use imfile for log files grabbing to rsyslog
+#      L3_SYSLOG=" | logger -t quantum-quantum.agent.l3 "
+#        if ocf_is_true ${OCF_RESKEY_debug} ; then
+#            L3_LOG=" | tee -ia /var/log/quantum/l3.log "
+#        else
+#            L3_LOG=" "
+#        fi
+#    else
+#        L3_SYSLOG=""
+#        if ocf_is_true ${OCF_RESKEY_debug} ; then
+#            L3_LOG=" >> /var/log/quantum/l3.log "
+#        else
+#            L3_LOG=" >> /dev/null "
+#        fi
+#    fi
+    L3_SYSLOG=""
+    L3_LOG=" > /dev/null "
     # run the actual quantum-l3-agent daemon. Don't use ocf_run as we're sending the tool's output
     # straight to /dev/null anyway and using ocf_run would break stdout-redirection here.
 

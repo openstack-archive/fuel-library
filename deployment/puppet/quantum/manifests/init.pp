@@ -1,7 +1,6 @@
 #
 # [use_syslog] Rather or not service should log to syslog. Optional.
-# [syslog_log_facility] Facility for syslog, if used. Optional. Note: duplicating conf option
-#       wouldn't have been used, but more powerfull rsyslog features managed via conf template instead
+# [syslog_log_facility] Facility for syslog, if used. Optional.
 # [syslog_log_level] logging level for non verbose and non debug mode. Optional.
 #
 class quantum (
@@ -39,6 +38,7 @@ class quantum (
   $auth_tenant      = 'services',
   $auth_user        = 'quantum',
   $log_file               = '/var/log/quantum/server.log',
+  $log_dir          = '/var/log/quantum',
   $use_syslog = false,
   $syslog_log_facility    = 'LOCAL4',
   $syslog_log_level = 'WARNING',
@@ -71,7 +71,7 @@ class quantum (
     owner  => root,
     group  => root,
     source => "puppet:///modules/quantum/q-agent-cleanup.py",
-  } 
+  }
 
   file {'quantum-root':
     path => '/etc/sudoers.d/quantum-root',
@@ -168,41 +168,58 @@ class quantum (
   }
   # logging for agents grabbing from stderr. It's workarround for bug in quantum-logging
   # server givs this parameters from command line
+  # FIXME change init.d scripts for q&agents, fix daemon launch commands (CENTOS/RHEL):
+  # quantum-server:
+  #	daemon --user quantum --pidfile $pidfile "$exec --config-file $config --config-file /etc/$prog/plugin.ini &>>/var/log/quantum/server.log & echo \$!
+  # quantum-ovs-cleanup:
+  # 	daemon --user quantum $exec --config-file /etc/$proj/$proj.conf --config-file $config &>>/var/log/$proj/$plugin.log
+  # quantum-ovs/metadata/l3/dhcp/-agents:
+  # 	daemon --user quantum --pidfile $pidfile "$exec --config-file /etc/$proj/$proj.conf --config-file $config &>>/var/log/$proj/$plugin.log & echo \$! > $pidfile"
+
   quantum_config {
-      'DEFAULT/log_config': ensure=> absent;
       'DEFAULT/log_file':   ensure=> absent;
-      'DEFAULT/log_dir':    ensure=> absent;
-      'DEFAULT/use_syslog': ensure=> absent;
-      'DEFAULT/use_stderr': value => true;
+      'DEFAULT/logfile':    ensure=> absent;
   }
-  if $use_syslog {
+  if $use_syslog and !$debug =~ /(?i)(true|yes)/ {
+    quantum_config {
+        'DEFAULT/log_dir':    ensure=> absent;
+        'DEFAULT/logdir':     ensure=> absent;
+        'DEFAULT/log_config':   value => "/etc/quantum/logging.conf";
+        'DEFAULT/use_stderr': ensure=> absent;
+        'DEFAULT/use_syslog': value=> true;
+        'DEFAULT/syslog_log_facility': value=> $syslog_log_facility;
+    }
     file { "quantum-logging.conf":
       content => template('quantum/logging.conf.erb'),
       path  => "/etc/quantum/logging.conf",
       owner => "root",
-      group => "root",
-      mode  => 644,
+      group => "quantum",
+      mode  => 640,
     }
-    file { "quantum-all.log":
-      path => "/var/log/quantum-all.log",
-    }
-
-    # We must setup logging before start services under pacemaker
-    File['quantum-logging.conf'] -> Service<| title == 'quantum-server' |>
-    File['quantum-logging.conf'] -> Anchor<| title == 'quantum-ovs-agent' |>
-    File['quantum-logging.conf'] -> Anchor<| title == 'quantum-l3' |>
-    File['quantum-logging.conf'] -> Anchor<| title == 'quantum-dhcp-agent' |>
-
   } else {
+    quantum_config {
+    # logging for agents grabbing from stderr. It's workarround for bug in quantum-logging
+      'DEFAULT/use_syslog': ensure=> absent;
+      'DEFAULT/syslog_log_facility': ensure=> absent;
+      'DEFAULT/log_config': ensure=> absent;
+      # FIXME stderr should not be used unless quantum+agents init & OCF scripts would be fixed to redirect its output to stderr!
+      #'DEFAULT/use_stderr': value => true;
+      'DEFAULT/use_stderr': ensure=> absent;
+      'DEFAULT/log_dir': value => $log_dir;
+    }
     file { "quantum-logging.conf":
       content => template('quantum/logging.conf-nosyslog.erb'),
       path  => "/etc/quantum/logging.conf",
       owner => "root",
-      group => "root",
-      mode  => 644,
+      group => "quantum",
+      mode  => 640,
     }
   }
-
+  # We must setup logging before start services under pacemaker
+  File['quantum-logging.conf'] -> Service<| title == "$::quantum::params::server_service" |>
+  File['quantum-logging.conf'] -> Anchor<| title == 'quantum-ovs-agent' |>
+  File['quantum-logging.conf'] -> Anchor<| title == 'quantum-l3' |>
+  File['quantum-logging.conf'] -> Anchor<| title == 'quantum-dhcp-agent' |>
   File <| title=='/etc/quantum' |> -> File <| title=='quantum-logging.conf' |>
 
   if defined(Anchor['quantum-server-config-done']) {
@@ -211,8 +228,16 @@ class quantum (
     $endpoint_quantum_main_configuration = 'quantum-init-done'
   }
 
+  # FIXME Workaround for FUEL-842: remove explicit --log-config from init scripts cuz it breaks logging!
+  # FIXME this hack should be deleted after FUEL-842 have resolved
+  exec {'init-dirty-hack':
+    command => "sed -i 's/\-\-log\-config=\$loggingconf//g' /etc/init.d/quantum-*",
+    path    => ["/sbin", "/bin", "/usr/sbin", "/usr/bin"],
+  }
+
   Anchor['quantum-init'] ->
     Package['quantum'] ->
+     Exec['init-dirty-hack'] ->
       File['/var/cache/quantum'] ->
         Quantum_config<||> ->
           Quantum_api_config<||> ->

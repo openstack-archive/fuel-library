@@ -18,7 +18,6 @@ function revert_back_to_centos() {
   subscription-manager unregister || :
 }
 
-trap revert_back_to_centos EXIT
 
 rhsm_plugins="product-id subscription-manager"
 rhn_plugins="rhnplugin"
@@ -28,11 +27,29 @@ for plugin in $rhsm_plugins; do
 done
 
 #Register
-subscription-manager register "--username=<%= rh_username %>" "--password=<%= rh_password %>" --autosubscribe --force 
+exitcode=0
+rhsmoutput=$(subscription-manager register "--username=<%= rh_username %>" "--password=<%= rh_password %>" --autosubscribe --force 2>&1) || exitcode=$?
+exitcode=$?
+case $exitcode in
+0) echo "Register succeeded"
+   ;;
+1) echo "Register succeeded"
+   ;;
+*) echo -e "Register failed: $rhmsoutput"
+   exit $exitcode
+   ;;
+esac
+
 
 #Attach to RHOS product
 poolid="$(subscription-manager list --available | grep -A2 "OpenStack" | tail -1 | cut -c15- | tr -d ' \t')"
 subscription-manager attach "--pool=$poolid"
+
+trap revert_back_to_centos EXIT
+
+#Set releasever and refresh repos
+echo 6Server > /etc/yum/vars/releasever
+yum clean expire-cache
 
 #Enable channels
 for channel in <%= rh_base_channels %> <%= rh_openstack_channel %>; do
@@ -124,17 +141,15 @@ fi
 #Download packages
 mkdir -p <%= pkgdir %>/repodata <%= pkgdir %>/Packages
 
-rm -f /etc/yum/vars/releasever
 yum-config-manager --disable 'nailgun' &> /dev/null
 yum-config-manager --disable 'centos' --disable 'extras' --disable 'updates' &> /dev/null
 yum-config-manager --disable 'base' &> /dev/null
-echo 6Server > /etc/yum/vars/releasever
 echo "Building initial cache. This may take several minutes."
 yum --releasever=<%= releasever %> makecache
 
 for tries in $(seq 1 <%= numtries %>); do
   #Retry if repotrack fails
-  /usr/local/bin/repotrack -a x86_64,noarch -p "<%= pkgdir %>/Packages" $(cat /etc/nailgun/required-rpms.txt | xargs echo -en) || continue
+  /usr/local/bin/repotrack -a x86_64,noarch -p "<%= pkgdir %>/Packages" $(cat /etc/nailgun/required-rpms.txt | xargs echo -en) 2>&1 || continue
   status=$?
   #Purge any corrupt downloaded RPMs
   # FIXME: There is a error with a path substitution
@@ -150,7 +165,7 @@ for tries in $(seq 1 <%= numtries %>); do
   fi
 done
 
-if [ "$status" -ne 0 ]; then
+if [ $status -ne 0 ]; then
   echo "ERROR: Repotrack did not exit cleanly after <%= numtries %> tries." 1>&2
   exit 1
 fi
@@ -177,3 +192,4 @@ umount /mnt/rhel_iso
 rpm -e rhel-boot-image-6.4-20130130.0.el6ost.noarch
 
 exit 0
+

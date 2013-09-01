@@ -37,6 +37,9 @@ class openstack::swift::proxy (
   $master_swift_proxy_ip    = undef,
   $collect_exported         = false,
   $rings                    = ['account', 'object', 'container'],
+  $debug                    = false,
+  $verbose                  = true,
+  $syslog_log_level         = 'WARNING',
 ) {
   if !defined(Class['swift']) {
     class { 'swift':
@@ -57,6 +60,9 @@ class openstack::swift::proxy (
     allow_account_management => $proxy_allow_account_management,
     account_autocreate       => $proxy_account_autocreate,
     package_ensure           => $package_ensure,
+    debug                    => $debug,
+    verbose                  => $verbose,
+    syslog_log_level         => $syslog_log_level,
   }
 
   # configure all of the middlewares

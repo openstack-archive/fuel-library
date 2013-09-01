@@ -8,7 +8,7 @@ if $quantum == 'true'
 {
   $quantum_hash   = parsejson($::quantum_access)
   $quantum_params = parsejson($::quantum_parameters)
-  $novanetwork_params  = {} 
+  $novanetwork_params  = {}
 
 }
 else
@@ -140,14 +140,14 @@ $network_config = {
 
 
 
-if !$verbose 
+if !$verbose
 {
- $verbose = 'true'
+ $verbose = 'false'
 }
 
 if !$debug
 {
- $debug = 'true'
+ $debug = 'false'
 }
 
 
@@ -173,7 +173,7 @@ $multi_host              = true
 $manage_volumes          = false
 $glance_backend          = 'swift'
 $quantum_netnode_on_cnt  = true
-$swift_loopback = false 
+$swift_loopback = false
 $mirror_type = 'external'
 Exec { logoutput => true }
 
@@ -183,7 +183,7 @@ Exec { logoutput => true }
 class compact_controller (
   $quantum_network_node = $quantum_netnode_on_cnt
 ) {
-   
+
   class {'osnailyfacter::tinyproxy': }
   class { 'openstack::controller_ha':
     controller_public_addresses   => $controller_public_addresses,
@@ -202,8 +202,8 @@ class compact_controller (
     num_networks                  => $num_networks,
     network_size                  => $network_size,
     network_config                => $network_config,
-    verbose                       => $verbose,
-    debug                         => $debug,
+    debug                         => $debug ? { 'true' => true, true => true, default=> false },
+    verbose                       => $verbose ? { 'true' => true, true => true, default=> false },
     queue_provider                => $::queue_provider,
     qpid_password                 => $rabbit_hash[password],
     qpid_user                     => $rabbit_hash[user],
@@ -306,7 +306,10 @@ class virtual_ips () {
         swift_zone            => $swift_zone,
         swift_local_net_ip    => $storage_address,
         master_swift_proxy_ip   => $master_swift_proxy_ip,
-        sync_rings            => ! $primary_proxy
+        sync_rings            => ! $primary_proxy,
+        syslog_log_level      => $syslog_log_level,
+        debug                 => $debug ? { 'true' => true, true => true, default=> false },
+        verbose               => $verbose ? { 'true' => true, true => true, default=> false },
       }
       if $primary_proxy {
         ring_devices {'all': storages => $controllers }
@@ -317,7 +320,10 @@ class virtual_ips () {
         primary_proxy           => $primary_proxy,
         controller_node_address => $management_vip,
         swift_local_net_ip      => $swift_local_net_ip,
-        master_swift_proxy_ip   => $master_swift_proxy_ip
+        master_swift_proxy_ip   => $master_swift_proxy_ip,
+        syslog_log_level        => $syslog_log_level,
+        debug                   => $debug ? { 'true' => true, true => true, default=> false },
+        verbose                 => $verbose ? { 'true' => true, true => true, default=> false },
       }
       #TODO: PUT this configuration stanza into nova class
       nova_config { 'DEFAULT/start_guests_on_host_boot': value => $start_guests_on_host_boot }
@@ -337,7 +343,7 @@ class virtual_ips () {
         Class[openstack::swift::storage_node] -> Class[openstack::img::cirros]
         Class[openstack::swift::proxy]        -> Class[openstack::img::cirros]
         Service[swift-proxy]                  -> Class[openstack::img::cirros]
- 
+
       }
         if !$quantum
         {
@@ -351,7 +357,7 @@ class virtual_ips () {
           auth_url        => "http://${management_vip}:5000/v2.0/",
           authtenant_name => $access_hash[tenant],
         }
-       }	
+       }
 
      }
 
@@ -379,8 +385,8 @@ class virtual_ips () {
         auto_assign_floating_ip => $bool_auto_assign_floating_ip,
         glance_api_servers     => "${management_vip}:9292",
         vncproxy_host          => $public_vip,
-        verbose                => $verbose,
-        debug                  => $debug,
+        debug                  => $debug ? { 'true' => true, true => true, default=> false },
+        verbose                => $verbose ? { 'true' => true, true => true, default=> false },
         cinder_volume_group    => "cinder",
         vnc_enabled            => true,
         manage_volumes         => $cinder ? { false => $manage_volumes, default =>$is_cinder_node },
@@ -400,6 +406,7 @@ class virtual_ips () {
         segment_range          => $segment_range,
         use_syslog             => true,
         syslog_log_level       => $syslog_log_level,
+	syslog_log_facility    => $syslog_log_facility_nova,
         syslog_log_facility_quantum => $syslog_log_facility_quantum,
         syslog_log_facility_cinder => $syslog_log_facility_cinder,
         nova_rate_limits       => $nova_rate_limits,
@@ -440,8 +447,8 @@ class virtual_ips () {
         cinder_user_password => $cinder_hash[user_password],
         syslog_log_facility  => $syslog_log_facility_cinder,
         syslog_log_level     => $syslog_log_level,
-        debug                => $debug ? { 'true' => 'True', default=>'False' },
-        verbose              => $verbose ? { 'false' => 'False', default=>'True' },
+        debug                => $debug ? { 'true' => true, true => true, default=> false },
+        verbose              => $verbose ? { 'true' => true, true => true, default=> false },
         use_syslog           => true,
       }
 #      class { "::rsyslog::client":

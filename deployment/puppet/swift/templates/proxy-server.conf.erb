@@ -5,12 +5,12 @@ bind_ip = <%= proxy_local_net_ip %>
 bind_port = <%= port %>
 workers = <%= workers %>
 log_facility = LOG_SYSLOG
-<% if scope.lookupvar('::debug') then -%>
+<% if @debug then -%>
 log_level = DEBUG
-<% elsif scope.lookupvar('::verbose') then -%>
+<% elsif @verbose then -%>
 log_level = INFO
 <% else -%>
-log_level = <%= scope.lookupvar('::syslog_log_level') %>
+log_level = <%= @syslog_log_level %>
 <% end -%>
 log_name = swift-proxy-server
 user = swift

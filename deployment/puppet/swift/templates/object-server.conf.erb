@@ -5,12 +5,12 @@ bind_port = <%= bind_port %>
 mount_check = <%= mount_check %>
 user = <%= user %>
 log_facility = LOG_SYSLOG
-<% if scope.lookupvar('::debug') then -%>
+<% if @debug then -%>
 log_level = DEBUG
-<% elsif scope.lookupvar('::verbose') then -%>
+<% elsif @verbose then -%>
 log_level = INFO
 <% else -%>
-log_level = <%= scope.lookupvar('::syslog_log_level') %>
+log_level = <%= @syslog_log_level %>
 <% end -%>
 log_name = swift-object-server
 workers = <%= workers %>
