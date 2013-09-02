@@ -1,0 +1,27 @@
+#
+# THIS FILE IS MANAGED BY PUPPET
+# <%= file %>
+#
+Listen 0.0.0.0:8888
+NameVirtualHost *:8888
+
+<VirtualHost *:8888>
+  ProxyRequests on
+  ProxyVia On
+  AllowCONNECT 443 563
+  ServerAdmin webmaster@localhost
+  HostnameLookups off
+
+  ErrorLog syslog:local1
+  # Possible values: debug, info, notice, warn, error, crit, alert, emerg
+  LogLevel debug
+
+  <Proxy *>
+    Order Allow,Deny
+    <% if master_ip.kind_of?(Array) -%>
+    Allow from <%= master_ip.join(",") %>;
+    <% else -%>
+    Allow from <%= master_ip %>;
+    <% end -%>
+  </Proxy>
+</VirtualHost>
