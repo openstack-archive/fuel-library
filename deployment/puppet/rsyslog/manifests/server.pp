@@ -23,12 +23,12 @@ if $virtual { include rsyslog::checksum_udp514 }
     require => Class["rsyslog::config"],
     notify  => Class["rsyslog::service"],
   }
-  
-    file { $rsyslog::params::rsyslog_d:  
-        purge   => true,    
-        recurse => true,    
-        force   => true,    
-        ensure  => directory,    
+
+    file { $rsyslog::params::rsyslog_d:
+        purge   => true,
+        recurse => true,
+        force   => true,
+        ensure  => directory,
     }
 
     file { "${rsyslog::params::rsyslog_d}30-remote-log.conf":
@@ -40,7 +40,11 @@ if $virtual { include rsyslog::checksum_udp514 }
         content => template("${module_name}/40-server-puppet-master.conf.erb"),
 
     }
-    
+
+    file { "${rsyslog::params::rsyslog_d}60-puppet-agent.conf":
+        content => template("${module_name}/60-puppet-agent.conf.erb"),
+    }
+
     file { $rsyslog::params::server_conf:
         ensure  => present,
         content => $custom_config ? {

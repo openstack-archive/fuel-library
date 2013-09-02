@@ -11,7 +11,8 @@ class osnailyfacter::tinyproxy {
   exec{'tinyproxy-init':
     command => "/bin/echo Allow $master_ip >> /etc/tinyproxy/tinyproxy.conf;
       /sbin/chkconfig tinyproxy on;
-      /etc/init.d/tinyproxy restart;",
+      /etc/init.d/tinyproxy restart; ",
+    unless  => "/bin/grep -q '^Allow $master_ip' /etc/tinyproxy/tinyproxy.conf",
   }
 }
 

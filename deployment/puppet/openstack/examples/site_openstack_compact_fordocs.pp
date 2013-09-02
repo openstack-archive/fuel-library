@@ -381,6 +381,15 @@ $master_swift_proxy_ip = $master_swift_proxy_nodes[0]['internal_address']
 
 ### Glance and swift END ###
 
+# This parameter specifies the verbosity level of log messages
+# in openstack components config.
+# Debug would have set DEBUG level and ignore verbose settings, if any.
+# Verbose would have set INFO level messages
+# In case of non debug and non verbose - WARNING, default level would have set.
+# Note: if syslog on, this default level may be configured (for syslog) with syslog_log_level option.
+$verbose = true
+$debug = false
+
 ### Syslog ###
 # Enable error messages reporting to rsyslog. Rsyslog must be installed in this case.
 $use_syslog = true
@@ -423,6 +432,7 @@ if $use_syslog {
     # Rabbit doesn't support syslog directly, should be >= syslog_log_level,
     # otherwise none rabbit's messages would have gone to syslog
     rabbit_log_level => $syslog_log_level,
+    debug => $debug,
   }
 }
 
@@ -472,15 +482,6 @@ $openstack_version = {
 $mirror_type = 'default'
 $enable_test_repo = false
 $repo_proxy = undef
-
-# This parameter specifies the verbosity level of log messages
-# in openstack components config.
-# Debug would have set DEBUG level and ignore verbose settings, if any.
-# Verbose would have set INFO level messages
-# In case of non debug and non verbose - WARNING, default level would have set.
-# Note: if syslog on, this default level may be configured (for syslog) with syslog_log_level option.
-$verbose = true
-$debug = false
 
 #Rate Limits for cinder and Nova
 #Cinder and Nova can rate-limit your requests to API services.
@@ -688,6 +689,8 @@ node /fuel-controller-[\d+]/ {
     db_host                => $internal_virtual_ip,
     service_endpoint       => $internal_virtual_ip,
     cinder_rate_limits     => $cinder_rate_limits,
+    debug                  => $debug,
+    verbose                => $verbose,
     syslog_log_level       => $syslog_log_level,
     syslog_log_facility_cinder => $syslog_log_facility_cinder,
   }
@@ -705,6 +708,9 @@ node /fuel-controller-[\d+]/ {
     controller_node_address => $internal_virtual_ip,
     swift_local_net_ip      => $swift_local_net_ip,
     master_swift_proxy_ip  => $master_swift_proxy_ip,
+    debug                   => $debug,
+    verbose                 => $verbose,
+    syslog_log_level        => $syslog_log_level,
   }
 
   Class ['openstack::swift::proxy'] -> Class['openstack::swift::storage_node']
@@ -778,6 +784,7 @@ node /fuel-compute-[\d+]/ {
     ssh_public_key         => 'puppet:///ssh_keys/openstack.pub',
     use_syslog             => $use_syslog,
     syslog_log_level       => $syslog_log_level,
+    syslog_log_facility    => $syslog_log_facility_nova,
     syslog_log_facility_quantum => $syslog_log_facility_quantum,
     syslog_log_facility_cinder => $syslog_log_facility_cinder,
     nova_rate_limits       => $nova_rate_limits,

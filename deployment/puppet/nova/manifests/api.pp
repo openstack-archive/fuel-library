@@ -91,6 +91,7 @@ class nova::api(
     'DEFAULT/api_paste_config': value => '/etc/nova/api-paste.ini';
     'DEFAULT/enabled_apis':     value => $enabled_apis;
     'DEFAULT/volume_api_class': value => $volume_api_class;
+    'DEFAULT/keystone_ec2_url': value => "http://${auth_host}:5000/v2.0/ec2tokens";
   }
   nova_config {
     'keystone_authtoken/auth_host':         value => $auth_host;

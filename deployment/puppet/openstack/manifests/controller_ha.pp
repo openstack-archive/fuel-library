@@ -19,7 +19,8 @@ define haproxy_service(
         'option'  => ['forwardfor', 'httpchk', 'httpclose', 'httplog'],
         'rspidel' => '^Set-cookie:\ IP=',
         # 'stick'   => 'on src table horizon-ssl',
-        'balance' => 'roundrobin',
+        'balance' => 'source',
+        'mode'    => 'http',
         'cookie'  => 'SERVERID insert indirect nocache',
         'capture' => 'cookie vgnvisitor= len 32'
       }
@@ -135,6 +136,7 @@ class openstack::controller_ha (
    $mysql_skip_name_resolve = false,
    $ha_provider             = "pacemaker",
    $create_networks         = true,
+   $quantum_metadata_proxy_shared_secret = 'shared_secret',
    $use_unicast_corosync    = false,
    $ha_mode                 = true,
  ) {
@@ -366,6 +368,7 @@ class openstack::controller_ha (
         segment_range         => $segment_range,
         external_ipinfo       => $external_ipinfo,
         api_bind_address      => $internal_address,
+        quantum_metadata_proxy_shared_secret => $quantum_metadata_proxy_shared_secret,
         use_syslog            => $use_syslog,
         syslog_log_level      => $syslog_log_level,
         syslog_log_facility   => $syslog_log_facility_quantum,

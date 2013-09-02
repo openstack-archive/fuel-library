@@ -12,16 +12,13 @@ class glance(
     ensure  => present,
     owner   => 'glance',
     group   => 'glance',
-    mode    => '0644',
+    mode    => '0640',
     require => Package['glance'],
   }
 
   file { '/etc/glance/':
     ensure  => directory,
     mode    => '0770',
-  }
-  file { "glance-all.log":
-    path => "/var/log/glance-all.log",
   }
 
   group {'glance': gid=> 161, ensure=>present, system=>true}

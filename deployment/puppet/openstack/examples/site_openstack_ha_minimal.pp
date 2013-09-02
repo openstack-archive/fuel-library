@@ -195,7 +195,7 @@ $vlan_start      = 300
 
 # Segmentation type for isolating traffic between tenants
 # Consult Openstack Quantum docs
-$tenant_network_type     = 'vlan'
+$tenant_network_type     = 'gre'
 
 # Which IP address will be used for creating GRE tunnels.
 $quantum_gre_bind_addr = $internal_address
@@ -382,6 +382,14 @@ if $node[0]['role'] == 'primary-controller' {
   $primary_controller = false
 }
 
+# This parameter specifies the verbosity level of log messages
+# in openstack components config.
+# Debug would have set DEBUG level and ignore verbose settings, if any.
+# Verbose would have set INFO level messages
+# In case of non debug and non verbose - WARNING, default level would have set.
+# Note: if syslog on, this default level may be configured (for syslog) with syslog_log_level option.
+$verbose = true
+$debug = false
 
 ### Syslog ###
 # Enable error messages reporting to rsyslog. Rsyslog must be installed in this case.
@@ -425,6 +433,7 @@ if $use_syslog {
     # Rabbit doesn't support syslog directly, should be >= syslog_log_level,
     # otherwise none rabbit's messages would have gone to syslog
     rabbit_log_level => $syslog_log_level,
+    debug => $debug,
   }
 }
 
@@ -474,15 +483,6 @@ $openstack_version = {
 $mirror_type = 'default'
 $enable_test_repo = false
 $repo_proxy = undef
-
-# This parameter specifies the verbosity level of log messages
-# in openstack components config.
-# Debug would have set DEBUG level and ignore verbose settings, if any.
-# Verbose would have set INFO level messages
-# In case of non debug and non verbose - WARNING, default level would have set.
-# Note: if syslog on, this default level may be configured (for syslog) with syslog_log_level option.
-$verbose = true
-$debug = true
 
 #Rate Limits for cinder and Nova
 #Cinder and Nova can rate-limit your requests to API services.

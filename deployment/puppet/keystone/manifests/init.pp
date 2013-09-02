@@ -19,8 +19,7 @@
 #     Defaults to False.
 #   [use_syslog] Rather or not keystone should log to syslog. Optional.
 #     Defaults to False.
-#   [syslog_log_facility] Facility for syslog, if used. Optional. Note: duplicating conf option
-#     wouldn't have been used, but more powerfull rsyslog features managed via conf template instead
+#   [syslog_log_facility] Facility for syslog, if used. Optional.
 #   [syslog_log_level] logging level for non verbose and non debug mode. Optional.
 #   [catalog_type] Type of catalog that keystone uses to store endpoints,services. Optional.
 #     Defaults to sql. (Also accepts template)
@@ -84,15 +83,20 @@ class keystone(
     ensure  => present,
     owner   => 'keystone',
     group   => 'keystone',
-    mode    => '0644',
+    mode    => '0640',
     require => Package['keystone'],
   }
 
-  if $use_syslog {
+  if $use_syslog and !$debug =~ /(?i)(true|yes)/ {
     keystone_config {
       'DEFAULT/log_config': value => "/etc/keystone/logging.conf";
       'DEFAULT/log_file': ensure=> absent;
-      'DEFAULT/logdir': ensure=> absent;
+      'DEFAULT/log_dir': ensure=> absent;
+      'DEFAULT/logfile':   ensure=> absent;
+      'DEFAULT/logdir':    ensure=> absent;
+      'DEFAULT/use_stderr': ensure=> absent;
+      'DEFAULT/use_syslog': value => true;
+      'DEFAULT/syslog_log_facility': value =>  $syslog_log_facility;
     }
     file {"keystone-logging.conf":
       content => template('keystone/logging.conf.erb'),
@@ -101,14 +105,21 @@ class keystone(
       # We must notify service for new logging rules
       notify => Service['keystone'],
     }
-    file { "keystone-all.log":
-      path => "/var/log/keystone-all.log",
-    }
   } else  {
     keystone_config {
-     'DEFAULT/log_config': ensure => absent;
-     'DEFAULT/log_file': value => $log_file;
-     'DEFAULT/log_dir': value => $log_dir;
+      'DEFAULT/log_config': ensure=> absent;
+      'DEFAULT/use_syslog': ensure=> absent;
+      'DEFAULT/syslog_log_facility': ensure=> absent;
+      'DEFAULT/use_stderr': ensure=> absent;
+      'DEFAULT/log_dir':value=> $log_dir;
+    }
+    # might be used for stdout logging instead, if configured
+    file {"keystone-logging.conf":
+      content => template('keystone/logging.conf-nosyslog.erb'),
+      path => "/etc/keystone/logging.conf",
+      require => File['/etc/keystone'],
+      # We must notify service for new logging rules
+      notify => Service['keystone'],
     }
   }
 
@@ -169,7 +180,6 @@ class keystone(
     'DEFAULT/compute_port': value => $compute_port;
     'DEFAULT/debug':        value => $debug;
     'DEFAULT/verbose':      value => $verbose;
-    'DEFAULT/use_syslog':   value => $use_syslog;
     'identity/driver': value =>"keystone.identity.backends.sql.Identity";
     'token/driver': value =>"keystone.token.backends.sql.Token";
     'policy/driver': value =>"keystone.policy.backends.rules.Policy";

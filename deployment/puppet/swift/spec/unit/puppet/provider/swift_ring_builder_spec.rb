@@ -1,5 +1,5 @@
 require 'puppet'
-require 'mocha'
+require 'mocha/api'
 require File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'lib', 'puppet', 'provider', 'swift_ring_builder')
 RSpec.configure do |config|
   config.mock_with :mocha
@@ -15,19 +15,17 @@ describe provider_class do
     File.expects(:exists?).with(builder_file_path).returns(true)
     provider_class.expects(:builder_file_path).twice.returns(builder_file_path)
     provider_class.expects(:swift_ring_builder).returns(
-'/etc/swift/account.builder, build version 3
-262144 partitions, 3 replicas, 3 zones, 3 devices, 0.00 balance
+'/etc/swift/account.builder, build version 7
+262144 partitions, 3.000000 replicas, 1 regions, 1 zones, 6 devices, 50.31 balance
 The minimum number of hours before a partition can be reassigned is 1
-Devices:    id  zone      ip address  port      name weight partitions balance meta
-             2     2  192.168.101.14  6002         1   1.00     262144    0.00 
-             0     3  192.168.101.15  6002         1   1.00     262144    0.00 
-             1     1  192.168.101.13  6002         1   1.00     262144    0.00 
-
-'
+Devices:    id  region  zone      ip address  port      name weight partitions balance meta
+             1     1   100      10.108.7.8  6002         1   2.00     130798 -25.16
+             2     1   100      10.108.7.6  6002         2   1.00     130935  49.84 
+             5     1   100      10.108.7.7  6002         1   2.00     174762  -0.00 '
     )
     resources = provider_class.lookup_ring.inspect
-    resources['192.168.101.15:6002'].should_not be_nil
-    resources['192.168.101.13:6002'].should_not be_nil
-    resources['192.168.101.14:6002'].should_not be_nil
+    resources['10.108.7.8:6002'].should_not be_nil
+    resources['10.108.7.6:6002'].should_not be_nil
+    resources['10.108.7.7:6002'].should_not be_nil
   end
 end

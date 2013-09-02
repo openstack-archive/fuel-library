@@ -5,7 +5,7 @@ NameVirtualHost *:<%= @http_port %>
 Listen <%= @bind_address %>:<%= @http_port %>
 
 <% if @osfamily == 'RedHat' -%>
-<% if @use_ssl -%>
+<% if @use_ssl =~ /^(default|exist|custom)$/ -%>
 NameVirtualHost *:<%= @https_port %>
 Listen <%= @bind_address %>:<%= @https_port %>
 <% end %>

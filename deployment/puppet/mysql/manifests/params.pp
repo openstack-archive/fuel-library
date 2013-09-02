@@ -43,9 +43,9 @@ class mysql::params {
       default: {
            $service_name          = 'mysql'
            $client_package_name   = 'MySQL-client'
-           $client_version        = '5.5.28-6'
+           $client_version        = '5.5.28_wsrep_23.7'
            $server_package_name   = 'MySQL-server'
-           $server_version        = '5.5.28-6'
+           $server_version        = '5.5.28_wsrep_23.7'
            $shared_package_name   = 'MySQL-shared'
            $shared_version        = '5.5.28_wsrep_23.7'
          }

@@ -1,18 +1,16 @@
 [loggers]
 keys = root
 
-# devel is reserved for future usage
 [handlers]
-keys = production,devel
+keys = production,devel,stderr
 
 [formatters]
 keys = normal,debug
 
 [logger_root]
 level = NOTSET
-handlers = production
+handlers = production,devel,stderr
 propagate = 1
-#qualname = cinder
 
 [formatter_debug]
 format = cinder-%(name)s %(levelname)s: %(module)s %(funcName)s %(message)s
@@ -20,22 +18,46 @@ format = cinder-%(name)s %(levelname)s: %(module)s %(funcName)s %(message)s
 [formatter_normal]
 format = cinder-%(name)s %(levelname)s: %(message)s
 
-# Extended logging info to LOG_<%= @syslog_log_facility %> with debug:<%= @debug %> and verbose:<%= @verbose %>
-# Note: local copy goes to /var/log/cinder-all.log
+# logging info to LOG_<%= @syslog_log_facility %> with debug:<%= @debug %> and verbose:<%= @verbose %>
 [handler_production]
 class = handlers.SysLogHandler
 <% if @debug then -%>
 level = DEBUG
+formatter = debug
 <% elsif @verbose then -%>
 level = INFO
+formatter = normal
 <% else -%>
 level = <%= @syslog_log_level %>
+formatter = normal
 <% end -%>
 args = ('/dev/log', handlers.SysLogHandler.LOG_<%= @syslog_log_facility %>)
-formatter = normal
 
 # TODO find out how it could be usefull and how it should be used
+[handler_stderr]
+class = StreamHandler
+<% if @debug then -%>
+level = DEBUG
+formatter = debug
+<% elsif @verbose then -%>
+level = INFO
+formatter = normal
+<% else -%>
+level = <%= @syslog_log_level %>
+formatter = normal
+<% end -%>
+args = (sys.stderr,)
+
 [handler_devel]
 class = StreamHandler
+<% if @debug then -%>
+level = DEBUG
 formatter = debug
+<% elsif @verbose then -%>
+level = INFO
+formatter = normal
+<% else -%>
+level = <%= @syslog_log_level %>
+formatter = normal
+<% end -%>
 args = (sys.stdout,)

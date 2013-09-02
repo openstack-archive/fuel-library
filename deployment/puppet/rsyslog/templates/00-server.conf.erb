@@ -20,7 +20,6 @@ $EscapeControlCharactersOnReceive off
 # Disk-Assisted Memory Queues, async writes, no escape chars
 #
 $OMFileASyncWriting on
-$SystemLogRateLimitInterval 0   # disable rate limits for rsyslog
 $MainMsgQueueType LinkedList
 $WorkDirectory <%= scope.lookupvar('rsyslog::params::spool_dir') %>
 $MainMsgQueueFileName mainmsgqueue

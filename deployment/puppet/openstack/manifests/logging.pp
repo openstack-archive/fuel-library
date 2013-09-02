@@ -18,6 +18,7 @@
 # [virtual] if node is virtual, fix for udp checksums should be applied
 # [rabbit_log_level] should be >= global syslog_log_level option,
 #   otherwise none messages would have gone to syslog (client role only)
+# [debug] switch between debug and standard cases, client role only. imfile monitors for local logs would be used if debug.
 
 class openstack::logging (
     $role           = 'client',
@@ -38,6 +39,7 @@ class openstack::logging (
     $syslog_log_facility_nova     = 'LOCAL6',
     $syslog_log_facility_keystone = 'LOCAL7',
     $rabbit_log_level = 'NOTICE',
+    $debug          = false,
 ) {
 
 validate_re($proto, 'tcp|udp')
@@ -58,6 +60,7 @@ if $role == 'client' {
     syslog_log_facility_nova => $syslog_log_facility_nova,
     syslog_log_facility_keystone => $syslog_log_facility_keystone,
     log_level      => $rabbit_log_level,
+    debug          => $debug,
   }
 
 } else { # server

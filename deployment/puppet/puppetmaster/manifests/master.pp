@@ -63,4 +63,10 @@ class puppetmaster::master (
                 ],
   }
 
+
+  class { "puppetmaster::fileserver_config":
+    notify_service=> "puppetmaster"
+  }
+
+ 
 }

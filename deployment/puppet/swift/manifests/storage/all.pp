@@ -19,6 +19,7 @@ class swift::storage::all(
   $swift_zone,
   $storage_local_net_ip,
   $devices            = '/srv/node',
+  $devices_dirs       = undef, 
   $object_port        = '6000',
   $container_port     = '6001',
   $account_port       = '6002',
@@ -26,14 +27,17 @@ class swift::storage::all(
   $container_pipeline = undef,
   $account_pipeline   = undef,
   $export_devices     = false,
+  $debug              = false,
+  $verbose            = true,
+  $syslog_log_level   = 'WARNING',
 ) {
 
   class { 'swift::storage':
     storage_local_net_ip => $storage_local_net_ip,
   }
 
-  if(!defined(File['/srv/node'])) {
-    file {'/srv/node':
+  if(!defined(File[$devices])) {
+    file {$devices:
       ensure       => 'directory',
       owner        => 'swift',
       group        => 'swift',
@@ -42,10 +46,35 @@ class swift::storage::all(
     }
   }
 
+
+  define device_directory($devices){
+    if ! defined(File["${devices}/${name}"]){
+      file{"${devices}/${name}":
+        ensure => 'directory',
+        owner => 'swift',
+        group => 'swift',
+        recurse => true,
+        recurselimit => 1,
+      }
+    }
+  }
+
+  if ($devices_dirs != undef){
+    device_directory {$devices_dirs :
+      devices => $devices,
+      require => File[$devices]
+    }
+  }
+
+
+
   Swift::Storage::Server {
     swift_zone           => $swift_zone,
     devices              => $devices,
     storage_local_net_ip => $storage_local_net_ip,
+    debug                => $debug,
+    verbose              => $verbose,
+    syslog_log_level     => $syslog_log_level,
   }
 
   swift::storage::server { $account_port:

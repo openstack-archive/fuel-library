@@ -36,23 +36,6 @@ text
 # SKIP CONFIGURING X
 skipx
 
-# BOOTLOADER CUSTOMIZATION
-# INSTALL BOOTLOADER INTO MASTER BOOT RECORD
-# --location=mbr
-# WHICH ORDER OF DRIVES TO USE DURING TRYING TO INSTALL BOOTLOADER
-# --driveorder=sda,hda
-# APPEND STRING TO KERNEL BOOT COMMAND
-# --append=""
-%include /tmp/bootloader.ks
-
-# PARTITIONING
-# CLEAN ANY INVALID PARTITION TABLE
-zerombr
-
-# REMOVE ALL PARTITIONS BEFORE CREATING NEW ONES
-clearpart --all --initlabel
-
-# AUTOMATICALLY CREATE / AND swap PARTITIONS
 %include /tmp/partition.ks
 
 # COBBLER EMBEDDED SNIPPET: 'network_config'
@@ -123,6 +106,9 @@ rubygem-netaddr
 system-config-firewall-base
 wget
 yum
+yum-plugin-versionlock
+yum-utils
+perl
 
 # COBBLER EMBEDDED SNIPPET: 'puppet_install_if_enabled'
 # LISTS puppet PACKAGE IF puppet_auto_setup VARIABLE IS SET TO 1
@@ -144,10 +130,16 @@ $SNIPPET('mcollective_install_if_enabled')
 yum versionlock puppet
 yum versionlock kernel
 yum versionlock iproute2
+yum-config-manager --disableplugin=fastestmirror --save &>/dev/null
 
 echo -e "modprobe nf_conntrack_ipv4\nmodprobe nf_conntrack_ipv6" >> /etc/rc.modules
 chmod +x /etc/rc.modules
 echo -e "net.nf_conntrack_max=1048576" >> /etc/sysctl.conf
+mkdir -p /var/log/coredump
+echo -e "kernel.core_pattern=/var/log/coredump/core.%e.%p.%h.%t" >> /etc/sysctl.conf
+chmod 777 /var/log/coredump
+echo -e "* soft core unlimited\n* hard core unlimited" >> /etc/security/limits.conf
+
 gem install httpclient --version 2.2.5  --source <%= gem_source %> --no-ri --no-rdoc
 gem install json       --version 1.6.1  --source <%= gem_source %> --no-ri --no-rdoc
 gem install ohai       --version 6.14.0 --source <%= gem_source %> --no-ri --no-rdoc
@@ -161,12 +153,6 @@ EOA
 # COBBLER EMBEDDED SNIPPET: 'log_ks_post'
 # CONFIGURES %post LOGGING
 $SNIPPET('log_ks_post')
-
-# COBBLER EMBEDDED SNIPPET: 'redhat_register'
-# REGISTER AT REDHAT WITH ACTIVATION KEY
-$SNIPPET('redhat_register')
-# REGISTER TO RED HAT SUBSCRIPTION MANAGER WITH lOGIN/PASSWORD
-$SNIPPET('red_hat_register_rhsm')
 
 # COBBLER EMBEDDED SNIPPET: 'post_install_kernel_options'
 # CONFIGURES KERNEL PARAMETERS ON INSTALLED SYSTEM
@@ -213,6 +199,13 @@ $SNIPPET('nailgun_repo')
 # REMOVES "GSSAPICleanupCredentials yes" AND "GSSAPIAuthentication yes" LINES
 # FROM /etc/ssh/sshd_config
 $SNIPPET('ssh_disable_gssapi')
+
+# COBBLER EMBEDDED SNIPPET: 'redhat_register'
+# REGISTER AT REDHAT WITH ACTIVATION KEY
+$SNIPPET('redhat_register')
+# REGISTER TO RED HAT SUBSCRIPTION MANAGER WITH LOGIN/PASSWORD
+$SNIPPET('red_hat_register_rhsm')
+
 
 # Let's not wait forewer when ssh'ing:
 sed -i --follow-symlinks -e '/UseDNS/d' /etc/ssh/sshd_config

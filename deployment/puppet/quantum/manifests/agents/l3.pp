@@ -97,7 +97,7 @@ class quantum::agents::l3 (
         $external_segment_id = undef
       }
 
-      if empty($ext_ipinfo) {
+      if empty($ext_ipinfo) and $floating_range {
         $floating_net = regsubst($floating_range, '(.+\.)\d+/\d+', '\1')
         $floating_host = regsubst($floating_range, '.+\.(\d+)/\d+', '\1') + 1
 
@@ -259,6 +259,8 @@ class quantum::agents::l3 (
         'tenant'      => $auth_tenant,
         'username'    => $auth_user,
         'password'    => $auth_password,
+        'debug'       => $debug,
+        'syslog'      => $::use_syslog,
       },
       operations      => {
         'monitor'  => {
