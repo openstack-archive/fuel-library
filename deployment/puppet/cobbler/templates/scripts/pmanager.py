@@ -86,6 +86,12 @@ class PManager(object):
             return 16777216
         return vol["size"]
 
+    def erase_lvm_metadata(self):
+        self.pre("for v in $(vgs | awk '{print $1}'); do" 
+                    "vgreduce -ff --removemissing $v; vgremove -ff $v; done")
+        self.pre("for p in $(pvs | grep '\/dev' | awk '{print $1}'); do"
+                    "pvremove -ff -y $p ; done")
+
     def clean(self, disk):
         self.pre("hdparm -z /dev/{0}".format(disk["id"]))
         self.pre("test -e /dev/{0} && dd if=/dev/zero "
@@ -342,6 +348,7 @@ class PManager(object):
         self.pre("sleep 10")
         for disk in [d for d in self.data if d["type"] == "disk"]:
             self.pre("hdparm -z /dev/{0}".format(disk["id"]))
+        self.erase_lvm_metadata()
 
 
 def pm(data):
