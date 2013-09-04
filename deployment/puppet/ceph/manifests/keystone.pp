@@ -1,7 +1,7 @@
 class ceph::keystone (
-  $pub_ip,
-  $adm_ip,
-  $int_ip,
+  $pub_ip = $::ceph::rgw_pub_ip,
+  $adm_ip = $::ceph::rgw_adm_ip,
+  $int_ip = $::ceph::rgw_int_ip,
   $directory = '/etc/ceph/nss',
 ) {
   if str2bool($::keystone_conf) {

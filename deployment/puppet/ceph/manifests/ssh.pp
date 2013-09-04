@@ -1,9 +1,5 @@
 class ceph::ssh{
-  package {['openssh-server', 'openssh-clients']:
-    #TODO: debian == openssh-client
-    #TODO: rhel == openssh-clients
-    ensure => latest
-  }
+
   $ssh_private_key = 'puppet:///modules/ceph/openstack'
   $ssh_public_key = 'puppet:///modules/ceph/openstack.pub'
 

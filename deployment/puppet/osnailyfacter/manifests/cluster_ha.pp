@@ -114,7 +114,8 @@ $controller_public_addresses = nodes_to_hash($controllers,'name','public_address
 $controller_storage_addresses = nodes_to_hash($controllers,'name','storage_address')
 $controller_hostnames = keys($controller_internal_addresses)
 $controller_nodes = sort(values($controller_internal_addresses))
-$controller_node_public  = $management_vip
+$controller_node_public  = $public_vip
+$controller_node_address = $management_vip
 $mountpoints = filter_hash($mp_hash,'point')
 $swift_proxies = $controller_storage_addresses
 $quantum_metadata_proxy_shared_secret = $quantum_params['metadata_proxy_shared_secret']
@@ -124,6 +125,13 @@ $quantum_gre_bind_addr = $::internal_address
 $swift_local_net_ip      = $::storage_address
 
 $cinder_iscsi_bind_addr = $::storage_address
+
+#todo fix static $ceph
+$ceph = true
+if ($ceph) {
+  primary_mons = filter_nodes($nodes_hash,'role','primary-controller')
+  primary_mon = primary_mons[0]['public_address']
+}
 
 if $auto_assign_floating_ip == 'true' {
   $bool_auto_assign_floating_ip = true
