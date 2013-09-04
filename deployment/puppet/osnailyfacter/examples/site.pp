@@ -43,7 +43,8 @@ if $nodes != undef {
   $base_syslog_hash     = parsejson($::base_syslog)
   $syslog_hash          = parsejson($::syslog)
 
-  if $quantum {
+  $use_quantum = str2bool($quantum)
+  if $use_quantum {
     $public_int   = $public_br
     $internal_int = $internal_br
   } else {
@@ -91,16 +92,17 @@ $cinder_rate_limits = {
 
 
 ###
+class {'l23network': use_ovs=>$use_quantum, stage=> 'netconfig'}
 class node_netconfig (
   $mgmt_ipaddr,
   $mgmt_netmask  = '255.255.255.0',
   $public_ipaddr = undef,
   $public_netmask= '255.255.255.0',
   $save_default_gateway=false,
-  $quantum = $quantum,
+  $quantum = $use_quantum,
   $default_gateway
 ) {
-  if $quantum {
+  if $use_quantum {
     l23network::l3::create_br_iface {'mgmt':
       interface => $management_interface, # !!! NO $internal_int /sv !!!
       bridge    => $internal_br,
@@ -146,7 +148,7 @@ case $::operatingsystem {
 
 class os_common {
   if $deployment_source == 'cli' {
-    class {'l23network': use_ovs=>$quantum, stage=> 'netconfig'}
+    class {'l23network': use_ovs=>$use_quantum, stage=> 'netconfig'}
     class {'::node_netconfig':
       mgmt_ipaddr    => $internal_address,
       mgmt_netmask   => $internal_netmask,

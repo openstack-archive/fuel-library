@@ -4,15 +4,12 @@ class osnailyfacter::cluster_ha {
 ##PARAMETERS DERIVED FROM YAML FILE
 
 
-if $quantum == 'true'
-{
+if $::use_quantum {
   $quantum_hash   = parsejson($::quantum_access)
   $quantum_params = parsejson($::quantum_parameters)
   $novanetwork_params  = {}
 
-}
-else
-{
+} else {
   $quantum_hash = {}
   $quantum_params = {}
   $novanetwork_params  = parsejson($::novanetwork_parameters)
@@ -50,7 +47,7 @@ if !$rabbit_hash[user]
 
 $rabbit_user          = $rabbit_hash['user']
 
-if $quantum {
+if $::use_quantum {
 $floating_hash =  $::floating_network_range
 }
 else {
@@ -195,7 +192,7 @@ class compact_controller (
     internal_virtual_ip           => $management_vip,
     public_virtual_ip             => $public_vip,
     primary_controller            => $primary_controller,
-    floating_range                => $quantum ? { 'true' =>$floating_hash, default=>false},
+    floating_range                => $::use_quantum ? { true=>$floating_hash, default=>false},
     fixed_range                   => $fixed_network_range,
     multi_host                    => $multi_host,
     network_manager               => $network_manager,
@@ -227,7 +224,7 @@ class compact_controller (
     export_resources              => false,
     glance_backend                => $glance_backend,
     swift_proxies                 => $swift_proxies,
-    quantum                       => $quantum,
+    quantum                       => $::use_quantum,
     quantum_user_password         => $quantum_hash[user_password],
     quantum_db_password           => $quantum_hash[db_password],
     quantum_network_node          => $quantum_network_node,
@@ -345,9 +342,7 @@ class virtual_ips () {
         Service[swift-proxy]                  -> Class[openstack::img::cirros]
 
       }
-        if !$quantum
-        {
-
+      if ! $::use_quantum {
         nova_floating_range{ $floating_ips_range:
           ensure          => 'present',
           pool            => 'nova',
@@ -357,7 +352,7 @@ class virtual_ips () {
           auth_url        => "http://${management_vip}:5000/v2.0/",
           authtenant_name => $access_hash[tenant],
         }
-       }
+      }
 
      }
 
@@ -398,7 +393,7 @@ class virtual_ips () {
         cinder_user_password   => $cinder_hash[user_password],
         cinder_db_password     => $cinder_hash[db_password],
         db_host                => $management_vip,
-        quantum                => $quantum,
+        quantum                => $::use_quantum,
         quantum_host           => $quantum_host,
         quantum_sql_connection => $quantum_sql_connection,
         quantum_user_password  => $quantum_hash[user_password],
