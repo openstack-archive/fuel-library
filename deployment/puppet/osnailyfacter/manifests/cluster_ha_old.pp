@@ -230,8 +230,6 @@ class virtual_ips () {
       nova_config { 'DEFAULT/use_cow_images': value => $use_cow_images }
       nova_config { 'DEFAULT/compute_scheduler_driver': value => $compute_scheduler_driver }
 
-      class {'osnailyfacter::tinyproxy': }
-
       if $hostname == $master_hostname {
         class { 'openstack::img::cirros':
           os_username => shellescape($access_hash[user]),
