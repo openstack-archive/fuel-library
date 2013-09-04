@@ -87,9 +87,9 @@ class PManager(object):
         return vol["size"]
 
     def erase_lvm_metadata(self):
-        self.pre("for v in $(vgs | awk '{print $1}'); do" 
+        self.pre("for v in $(vgs | awk '{print $1}'); do "
                     "vgreduce -ff --removemissing $v; vgremove -ff $v; done")
-        self.pre("for p in $(pvs | grep '\/dev' | awk '{print $1}'); do"
+        self.pre("for p in $(pvs | grep '\/dev' | awk '{print $1}'); do "
                     "pvremove -ff -y $p ; done")
 
     def clean(self, disk):
