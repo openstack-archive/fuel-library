@@ -78,19 +78,6 @@ node fuel-cobbler {
 
     class { cobbler::profile::centos63-x86_64: }
 
-    # RHEL distribution
-    # class { cobbler::distro::rhel63-x86_64:
-    #   http_iso => "http://address/of/rhel-server-6.3-x86_64-boot.iso",
-    #   ks_url   => "http://address/of/rhel/base/mirror/6.3/os/x86_64",
-    # }
-    #
-    # Class[cobbler::distro::rhel63-x86_64] ->
-    # Class[cobbler::profile::rhel63-x86_64]
-    #
-    # class { cobbler::profile::rhel63-x86_64: }
-
-
-
     # IT IS NEEDED IN ORDER TO USE cobbler_system.py SCRIPT
     # WHICH USES argparse PYTHON MODULE
     package {"python-argparse": }
