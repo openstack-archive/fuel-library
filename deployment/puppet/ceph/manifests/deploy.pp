@@ -123,7 +123,7 @@ class ceph::deploy (
   if $mds_server {
     exec { 'ceph-deploy-s4':
       command => "ceph-deploy mds create ${mds_server}",
-      require => Class['c_osd']
+      require => Class['c_osd'],
       logoutput => true,
     }
   }
@@ -131,7 +131,7 @@ class ceph::deploy (
     define int {
       exec { "Creating pool ${name}":
         command => "ceph osd pool create ${name} ${osd_pool_default_pg_num} ${osd_pool_default_pgp_num}",
-        require => Class['c_osd']
+        require => Class['c_osd'],
         logoutput => true,
       }
     }

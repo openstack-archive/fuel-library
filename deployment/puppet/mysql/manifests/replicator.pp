@@ -1,4 +1,4 @@
-class mysql::replicator (
+#class mysql::replicator (
 # Not used because we need to start mysql for the first time 
 # with corosync with init script to create users
 #  database_user { "${user}@${name}":
@@ -10,4 +10,4 @@ class mysql::replicator (
 #    provider => 'mysql',
 #    require => Database_user["${user}@${name}"]
 #  }
-}
+#}
