@@ -45,7 +45,8 @@ class openstack::horizon (
   #  udp_port  => $cache_server_port,
   # }
  if $debug =~ /(?i)(true|yes)/ {
-   $django_debug   = 'True'
+   #We don't realy want django debug, it is too verbose.
+   $django_debug   = 'False'
    $django_verbose = 'False'
    $log_level_real = 'DEBUG'
  } elsif $verbose =~ /(?i)(true|yes)/ {
