@@ -1,13 +1,16 @@
 # Global settings
 Exec { path => [ '/bin/', '/sbin/' , '/usr/bin/', '/usr/sbin/' ] }
 
-#This permater defines the monitor nodes, these may be the same as the OSD's 
-# if you want. There should be one or >=3
+# Hostnames MUST match either cluster_network, or public_network or
+# ceph will not setup correctly.
+
+# This parameter defines the monitor nodes, these may be the same as the
+# OSD's if you want. There should be one or >=3 monitor nodes.
 $mon_nodes = [
   'controller-3.domain.tld',
 ]
 
-#This parameter defines the OSD storage nodes. One OSD will run per $osd_device
+# This parameter defines the OSD storage nodes. One OSD will run per $osd_device
 # per $osd_node. betweeen the two there must be two OSD processes
 $osd_nodes = [
   'compute-1.domain.tld',
@@ -18,16 +21,16 @@ $osd_nodes = [
 $rados_GW = 'fuel-controller-03.local.try'
 
 # Uncomment this line if you want to install metadata server.
-$mds_server = 'fuel-controller-03.local.try'
+#$mds_server = 'fuel-controller-03.local.try'
 
+$osd_devices = split($::osd_devices_list, "\n")
 # This parameter defines which devices to aggregate into CEPH cluster.
 # ALL THE DATA THAT RESIDES ON THESE DEVICES WILL BE LOST!
-$osd_devices = [ 'vdb2', 'vdc2' ]
+#$osd_devices = [ 'vdb2', 'vdc2' ]
 
 # This parameter defines rbd pools for Cinder & Glance. It is not necessary to change.
 $ceph_pools = [ 'volumes', 'images' ]
 
-#TODO: need to seperate mon and osd list
 #TODO: need to resolve single node changes
 
 # Determine CEPH and OpenStack nodes.
@@ -35,11 +38,9 @@ node 'default' {
 
   #RE-enable this if not using fuelweb iso with Cehp packages
   #include 'ceph::yum'
-  #TODO: this needs to be pulled back into mirantis mirrors
   include 'ceph::ssh'
   #TODO: this should be pulled back into existing modules for setting up ssh-key
   #TODO: OR need to at least generate the key
-  include 'ntp'
   include 'ceph::deps'
   
   if $fqdn in $mon_nodes {
@@ -87,16 +88,16 @@ node 'default' {
       rgw_dns_name                     => $::hostname,
       rgw_print_continue               => 'false',
       nss_db_path                      => '/etc/ceph/nss',
-    }
-    package {['ceph-deploy', 'python-pushy']:
-      ensure  => latest,
-    } -> Class[['ceph::glance', 'ceph::cinder', 'ceph::nova_compute']]
+    } -> Class[['ceph::glance',
+                'ceph::cinder',
+                'ceph::nova_compute',
+                'ceph::keystone']]
     #All classes that should run after ceph::deploy should be below
   }
   if $fqdn == $rados_GW {
     ceph::radosgw {"${::hostname}":
       require => Class['ceph::deploy']
-    } 
+    }
   }
   class { 'ceph::glance':
     default_store         => 'rbd',
@@ -113,7 +114,7 @@ node 'default' {
     rbd_secret_uuid       => 'a5d0dd94-57c4-ae55-ffe0-7e3732a24455',
   }
   class { 'ceph::nova_compute': }
-  ceph::keystone { "Keystone":
+  class { 'ceph::keystone': #{ "Keystone":
     pub_ip => "${rados_GW}",
     adm_ip => "${rados_GW}",
     int_ip => "${rados_GW}",

@@ -86,6 +86,12 @@ class PManager(object):
             return 16777216
         return vol["size"]
 
+    def erase_lvm_metadata(self):
+        self.pre("for v in $(vgs | awk '{print $1}'); do "
+                    "vgreduce -ff --removemissing $v; vgremove -ff $v; done")
+        self.pre("for p in $(pvs | grep '\/dev' | awk '{print $1}'); do "
+                    "pvremove -ff -y $p ; done")
+
     def clean(self, disk):
         self.pre("hdparm -z /dev/{0}".format(disk["id"]))
         self.pre("test -e /dev/{0} && dd if=/dev/zero "
@@ -150,7 +156,7 @@ class PManager(object):
                                volume_filter(p), disk["volumes"]):
                 if part["size"] <= 0:
                     continue
-                pcount = self.pcount(disk["id"], 1)
+                pcount = self.pcount(disk["id"],   1)
                 self.pre("parted -a none -s /dev/{0} "
                          "unit {4} mkpart {1} {2} {3}".format(
                              disk["id"],
@@ -163,19 +169,28 @@ class PManager(object):
                 size = self._getsize(part)
                 tabmount = part["mount"] if part["mount"] != "swap" else "none"
                 tabfstype = self._gettabfstype(part)
-                if size > 0 and size <= 16777216:
+                if size > 0 and size <= 16777216 and part["mount"] != "none":
                     self.kick("partition {0} "
                               "--onpart=$(readlink -f /dev/{2})"
                               "{3}".format(part["mount"], size,
                                            disk["id"], pcount))
                 else:
                     if part["mount"] != "swap":
-                        self.post("mkfs.{0} $(basename `readlink -f /dev/{1}`)"
-                                  "{2}".format(tabfstype, disk["id"], pcount))
-                        self.post("mkdir -p /mnt/sysimage{0}".format(
-                            part["mount"]))
+                        disk_label = ""
+                        if part.get("disk_label"):
+                            # XFS will refuse to format a partition if the
+                            # disk label is > 12 characters.
+                            disk_label = "-L {0}".format(
+                                part["disk_label"][:12])
+                        self.post("mkfs.{0} $(readlink -f /dev/{1})"
+                                  "{2} {3}".format(tabfstype, disk["id"],
+                                                   pcount, disk_label))
+                        if part["mount"] != "none":
+                            self.post("mkdir -p /mnt/sysimage{0}".format(
+                                part["mount"]))
+
                     self.post("echo 'UUID=$(blkid -s UUID -o value "
-                              "$(basename `readlink -f /dev/{0}`){1}) "
+                              "$(readlink -f /dev/{0}){1}) "
                               "{2} {3} defaults 0 0'"
                               " >> /mnt/sysimage/etc/fstab".format(
                                   disk["id"], pcount, tabmount, tabfstype))
@@ -333,6 +348,7 @@ class PManager(object):
         self.pre("sleep 10")
         for disk in [d for d in self.data if d["type"] == "disk"]:
             self.pre("hdparm -z /dev/{0}".format(disk["id"]))
+        self.erase_lvm_metadata()
 
 
 def pm(data):

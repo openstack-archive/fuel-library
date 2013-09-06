@@ -35,8 +35,8 @@ Known Issues
 
 **Glance**
 
-There are currently issues with glance 2013.1.2 (grizzly) that cause ``glance 
-image-create`` with ``--location`` to not function. see 
+There are currently issues with glance 2013.1.2 (grizzly) that cause ``glance
+image-create`` with ``--location`` to not function. see
 https://bugs.launchpad.net/glance/+bug/1215682 
 
 
@@ -67,7 +67,7 @@ $mon_nodes = [
 ]
 ```
 
-This parameter defines the nodes for which the monitor process will be 
+This parameter defines the nodes for which the monitor process will be
 installed. This should be one, three or more monitors.
 
 ```puppet
@@ -79,7 +79,7 @@ $osd_nodes = [
 
 This parameter defines the nodes for which the OSD process` will run. One OSD
 will be created for each ``$osd_volume`` per ``$osd_nodes``. There is a minimum
-requirement of two OSD instances. 
+requirement of two OSD instances.
 
 ```puppet
 $mds_server = 'ceph-mds-01'
@@ -168,9 +168,11 @@ Try to run ``ceph-deploy gatherkeys {mon-server-name}``. If this dosn't work
 then there may have been an issue starting the cluster.
 
 Check to see running ceph processes ``ps axu | grep ceph``. If there is a
-python process running for ``ceph-authtool`` then there is likely a problem
-with the MON processes talking to each other. Check their network and firewall.
-The monitor defaults to a port 6789
+python process running for ``ceph-create-keys`` then there is likely a problem
+with the MON processes talking to each other.
+* Check each mon's network and firewall. The monitor defaults to a port 6789
+* If public_network is defined in ceph.conf, mon_host and DNS names **MUST**
+  be inside the public_network or ceph-deploy wont create mon's
 
 Missing OSD instances
 ---------------------
@@ -207,8 +209,8 @@ Ceph pools
 ----------
 
 By default we create two pools ``image``, and ``volumes``, there should also be
-defaults of ``data``, ``metadata``, and ``rdb``. ``ceph osd lspools`` can show the 
-current pools:
+defaults of ``data``, ``metadata``, and ``rbd``. ``ceph osd lspools`` can show
+the current pools:
 
 	# ceph osd lspools
 	0 data,1 metadata,2 rbd,3 images,4 volumes,
@@ -263,14 +265,80 @@ This will return somthing like:
    +------------------+--------------------------------------+
 ```
 
-Then check rdb:
+Then check rbd:
 
 ```shell
-rdb ls images
+rbd ls images
 ```
 
 ```shell
 rados -p images df
+```
+
+### Cinder
+
+To test cinder, we will create a small volume and see if it was saved in cinder
+
+```shell
+source openrc
+cinder create 1
+```
+
+This will instruct cinder to create a 1 GiB volume, it should respond with
+something similar to:
+
+```
++---------------------+--------------------------------------+
+|       Property      |                Value                 |
++---------------------+--------------------------------------+
+|     attachments     |                  []                  |
+|  availability_zone  |                 nova                 |
+|       bootable      |                false                 |
+|      created_at     |      2013-08-30T00:01:39.011655      |
+| display_description |                 None                 |
+|     display_name    |                 None                 |
+|          id         | 78bf2750-e99c-4c52-b5ca-09764af367b5 |
+|       metadata      |                  {}                  |
+|         size        |                  1                   |
+|     snapshot_id     |                 None                 |
+|     source_volid    |                 None                 |
+|        status       |               creating               |
+|     volume_type     |                 None                 |
++---------------------+--------------------------------------+
+```
+
+Then we can check the status of the image using its ``id`` using
+``cinder show <id>``
+
+```
+cinder show 78bf2750-e99c-4c52-b5ca-09764af367b5
++------------------------------+--------------------------------------+
+|           Property           |                Value                 |
++------------------------------+--------------------------------------+
+|         attachments          |                  []                  |
+|      availability_zone       |                 nova                 |
+|           bootable           |                false                 |
+|          created_at          |      2013-08-30T00:01:39.000000      |
+|     display_description      |                 None                 |
+|         display_name         |                 None                 |
+|              id              | 78bf2750-e99c-4c52-b5ca-09764af367b5 |
+|           metadata           |                  {}                  |
+|    os-vol-host-attr:host     |       controller-19.domain.tld       |
+| os-vol-tenant-attr:tenant_id |   b11a96140e8e4522b81b0b58db6874b0   |
+|             size             |                  1                   |
+|         snapshot_id          |                 None                 |
+|         source_volid         |                 None                 |
+|            status            |              available               |
+|         volume_type          |                 None                 |
++------------------------------+--------------------------------------+
+``` 
+
+Since the image is ``status`` ``available`` it should have been created in
+ceph. we can check this with ``rbd ls volumes``
+
+```shell
+rbd ls volumes
+volume-78bf2750-e99c-4c52-b5ca-09764af367b5
 ```
 
 Hacking into Fuel
@@ -278,15 +346,43 @@ Hacking into Fuel
 
 After installing onto a fuel cluster
 
-1. Define your partitions. If you will re-define any partations you must make
+1. Define your partitions. If you will re-define any partitions you must make
 sure they are exposed in the kernel before running the scripts see ``partx -a
-/dev/<device>`` after ``umount /boot``.
+/dev/<device>`` (you may need to run it two or three times.
 
 2. Copy ``fuel-pm:/etc/puppet/modules/*`` to ``{node}:/etc/puppet/modules``
-3. Copy ``/etc/puppet/modules/ceph/examples/site.pp`` to ``/root/ceph.pp``.
-4. Edit ceph.pp for desired changes to ``$mon_nodes``, ``$osd_nodes``, and ``$osd_disks``.
-5. Run ``puppet apply ceph.pp`` on each node **except** ``$ceph_nodes[-1]``,
-then run the same command on that last node.
+3. Copy ``/etc/puppet/modules/ceph/examples/site.pp`` to ``/root/site.pp``.
+4. Edit ceph.pp for desired changes to 
+* ``$mon_nodes``
+* ``$osd_nodes``
+* ``$osd_disks``
+* ``$public_network`` if you use dns names, this needs to be set to PXE network
+* ``$cluster_network`` set this to storage network
+5. Run ``puppet apply site.pp`` must be run on all nodes **before**
+   ``$mon_nodes[-1]``. This will set up the ssh keys that ``ceph-deploy`` needs
+   to run and deploy the actual services. Now you can run
+   ``puppet apply site.pp`` on the ``$mon_nodes[-1]``.
+
+Note: errors related to keystone and libnss3 are OK
+
+==== Clean re-run site.pp ====
+
+set ``all`` to contain all monitors, osds, and computes want to re-initalize.
+
+```shell
+export all="compute-4 controller-1 controller-2 controller-3"
+for node in $all
+do
+ ssh $node 'service ceph -a stop ;
+ umount /var/lib/ceph/osd/ceph*';
+done;
+ceph-deploy purgedata $all;
+ceph-deploy purge $all;
+yum install -y ceph-deploy;
+rm ~/ceph* ;
+ceph-deploy install $all
+```
+Note: errors related to keystone and libnss3 are OK
 
 Copyright and License
 ---------------------

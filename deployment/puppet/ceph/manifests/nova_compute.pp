@@ -1,9 +1,9 @@
 class ceph::nova_compute (
   $rbd_secret_uuid = $::ceph::cinder::rbd_secret_uuid
 ) {
-  if str2bool($::nova_compute) {
+  if $::role == "compute" {
     exec {'Copy conf':
-      command => "scp -r ${ceph_nodes[-1]}:/etc/ceph/* /etc/ceph/",
+      command => "scp -r ${mon_nodes[-1]}:/etc/ceph/* /etc/ceph/",
       require => Package['ceph'],
       returns => [0,1],
     }
@@ -16,14 +16,15 @@ class ceph::nova_compute (
       require => [File['/tmp/secret.xml'], Package ['ceph'], Exec['Copy conf']],
       returns => [0,1],
     }
-    service {'nova-compute':
+    #TODO: RHEL conversion
+    service {'openstack-nova-compute':
       ensure     => "running",
       enable     => true,
       hasstatus  => true,
       hasrestart => true,
       subscribe  => Exec['Set value']
-    } -> file {'/tmp/secret.xml':
-      ensure => absent,
+    } -> exec {'rm secret.xml':
+      command => "rm /tmp/secret.xml",
     }
   }
 }

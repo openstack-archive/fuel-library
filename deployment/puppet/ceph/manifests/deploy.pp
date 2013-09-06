@@ -63,35 +63,39 @@ class ceph::deploy (
     command => "ceph-deploy --overwrite-conf mon create ${range}",
     #    require => Ceph_conf['global/auth supported', 'global/osd journal size', 'global/osd mkfs type']
     logoutput => true,
-  } -> exec { 'ceph-deploy gather-keys':
-    command   => 'ceph-deploy gather-keys',
+  } -> exec { 'ceph-deploy gatherkeys':
+    command   => "ceph-deploy gatherkeys $fqdn",
     returns   => 0,
-    tries     => 60,  #This is necessary to prevent race, mon must establish
-    # a quorum before it can generate keys, observed this takes upto 15 times.
+    tries     => 60,  # This is necessary to prevent race, mon must establish
+    # a quorum before it can generate keys, observed this takes up to 15 seconds
     # Keys must exist prior to other commands running
     try_sleep => 1,
+    creates   => ['/root/ceph.bootstrap-osd.keyring',
+                  '/root/ceph.bootstrap-mds.keyring',
+                  '/root/ceph.client.admin.keyring'],
+    require   => File['/usr/bin/ceph-deploy']
   }
   File {
-    ensure => 'link',
-    require => Exec['ceph-deploy-s2']
+#    ensure => 'link',
+    require => Exec['ceph-deploy gatherkeys']
   }
   file { '/root/ceph.bootstrap-osd.keyring':
-    target => '/var/lib/ceph/bootstrap-osd/ceph.keyring',
+#    target => '/var/lib/ceph/bootstrap-osd/ceph.keyring',
   }
   file { '/root/ceph.bootstrap-mds.keyring':
-    target => '/var/lib/ceph/bootstrap-mds/ceph.keyring',
+#    target => '/var/lib/ceph/bootstrap-mds/ceph.keyring',
   }
   file { '/root/ceph.client.admin.keyring':
-    target => "/etc/ceph/ceph.client.admin.keyring",
+#    target => "/etc/ceph/ceph.client.admin.keyring",
   }
   class p_osd {
     define int {
       $devices = join(suffix($osd_nodes, ":${name}"), " ")
       exec { "ceph-deploy osd prepare ${devices}":
-        #ceph-deploy osd prepare is ensuring there is a filesystem on the 
+        #ceph-deploy osd prepare is ensuring there is a filesystem on the
         # disk according to the args passed to ceph.conf (above).
-        #timeout: It has a long timeout because of the format taking forever. 
-        # A resonable amount of time would be around 300 times the length 
+        #timeout: It has a long timeout because of the format taking forever.
+        # A resonable amount of time would be around 300 times the length
         # of $osd_nodes. Right now its 0 to prevent puppet from aborting it.
         command => "ceph-deploy osd prepare ${devices}",
         returns => 0,
@@ -101,7 +105,7 @@ class ceph::deploy (
         require => [File['/root/ceph.bootstrap-osd.keyring',
                          '/root/ceph.bootstrap-mds.keyring',
                          '/root/ceph.client.admin.keyring'],
-                    Exec['ceph-deploy gather-keys'],
+                    Exec['ceph-deploy gatherkeys'],
                     ],
         logoutput => true,
       }
@@ -145,42 +149,30 @@ class ceph::deploy (
     logoutput => true,
   }
 
-#TODO: remove blow here when we can do deploy from each mon (PRD-1570)
-  exec { 'Create keys for pool volumes':
+#TODO: remove below here when we can do deploy from each mon (PRD-1570)
+  exec { 'ceph auth get client.volumes':
     command => 'ceph auth get-or-create client.volumes > /etc/ceph/ceph.client.volumes.keyring',
     before  => File['/etc/ceph/ceph.client.volumes.keyring'],
-    require => [Package['ceph']],
+    require => [Package['ceph'], Exec['CLIENT AUTHENTICATION']],
     returns => 0,
   }
-  file { '/etc/ceph/ceph.client.volumes.keyring':
-    owner   => cinder,
-    group   => cinder,
-    require => Exec['Create keys for pool volumes'],
-    mode    => '0600',
-  }
-  exec { 'Create keys for pool images':
+  exec { 'ceph auth get client.images':
     command => 'ceph auth get-or-create client.images > /etc/ceph/ceph.client.images.keyring',
     before  => File['/etc/ceph/ceph.client.images.keyring'],
-    require => [Package['ceph']],
+    require => [Package['ceph'], Exec['CLIENT AUTHENTICATION']],
     returns => 0,
   }
-  file { '/etc/ceph/ceph.client.images.keyring':
-    owner   => glance,
-    group   => glance,
-    require => Exec['Create keys for pool images'],
-    mode    => '0600',
-  }
-
+  $mons_as_string_list = join($mon_nodes, ' ')
   exec {'Deploy push config':
     #This pushes config and keyrings  to other nodes
-    command => "for node in ${mon_nodes} 
-  do 
+    provider => 'shell',
+    command  => "for node in ${mons_as_string_list}
+  do
     scp -r /etc/ceph/* \${node}:/etc/ceph/ 
   done",
-    require => [Exec['CLIENT AUTHENTICATION'], 
-                File['/etc/ceph/ceph.client.images.keyring',
-                     '/etc/ceph/ceph.client.volumes.keyring'],
+    require  => [Exec['ceph auth get client.volumes',
+                     'ceph auth get client.images'],
                ],
-    returns => 0,
+    returns  => 0,
   }
 }
