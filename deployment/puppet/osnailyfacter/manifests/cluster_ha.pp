@@ -126,11 +126,13 @@ $swift_local_net_ip      = $::storage_address
 
 $cinder_iscsi_bind_addr = $::storage_address
 
-#todo fix static $ceph
-$ceph = true
-if ($ceph) {
+#TODO: awoodward fix static $use_ceph
+$use_ceph = true
+if ($use_ceph) {
   primary_mons = filter_nodes($nodes_hash,'role','primary-controller')
   primary_mon = primary_mons[0]['public_address']
+  class {'ceph':
+  }
 }
 
 if $auto_assign_floating_ip == 'true' {
