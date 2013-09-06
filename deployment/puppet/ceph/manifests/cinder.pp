@@ -29,12 +29,13 @@ class ceph::cinder (
       path => "$::ceph::params::service_cinder_volume_opts",
       line => 'export CEPH_ARGS="--id volumes"',
     }
-
-    service { "$::ceph::params::service_cinder_volume":
-      ensure     => "running",
-      enable     => true,
-      hasstatus  => true,
-      hasrestart => true,
+    if ! defined(Service["$::ceph::params::service_cinder_volume"]) {
+      service { "$::ceph::params::service_cinder_volume":
+        ensure     => "running",
+        enable     => true,
+        hasstatus  => true,
+        hasrestart => true,
+      }
     }
     exec { 'Create keys for pool volumes':
       command => 'ceph auth get-or-create client.volumes > /etc/ceph/ceph.client.volumes.keyring',

@@ -1,7 +1,7 @@
 class ceph::osd (
   $devices = join(prefix($::ceph::osd_devices, "${::hostname}:"), " "),
 ){
- if str2bool($::ceph::osd_devices) {
+ if ! empty($::ceph::osd_devices) {
 
   firewall {'011 ceph-osd allow':
     chain   => 'INPUT',

@@ -46,9 +46,7 @@ class ceph::mon {
     # a quorum before it can generate keys, observed this takes upto 15 seconds
     # Keys must exist prior to other commands running
     try_sleep => 1,
-    require   => [File['/usr/bin/ceph-deploy'],
-                  Firewall['010 ceph-mon allow']
-                 ],
+    require   => [Firewall['010 ceph-mon allow']],
   }
   File {
     require => Exec['ceph-deploy gatherkeys']

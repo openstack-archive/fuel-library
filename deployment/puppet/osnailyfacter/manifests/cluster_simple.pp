@@ -113,6 +113,14 @@ if !$debug
  $debug = 'false'
 }
 
+#TODO: awoodward fix static $use_ceph
+$use_ceph = true
+if ($use_ceph) {
+  $primary_mons = filter_nodes($nodes_hash,'role','controller')
+  $primary_mon = $primary_mons[0]['public_address']
+}
+
+
   case $role {
     "controller" : {
       include osnailyfacter::test_controller
@@ -259,6 +267,9 @@ if !$debug
       }
 
       Class[glance::api]        -> Class[openstack::img::cirros]
+      if defined(Class['ceph']){
+        Class['glance::api'] -> Class['ceph']
+      }
     }
 
     "compute" : {
@@ -315,6 +326,10 @@ if !$debug
       nova_config { 'DEFAULT/start_guests_on_host_boot': value => $start_guests_on_host_boot }
       nova_config { 'DEFAULT/use_cow_images': value => $use_cow_images }
       nova_config { 'DEFAULT/compute_scheduler_driver': value => $compute_scheduler_driver }
+
+      if defined(Class['ceph']){
+        Class['openstack::compute'] -> Class['ceph']
+      }
     }
 
     "cinder" : {
@@ -344,6 +359,9 @@ if !$debug
         verbose              => $verbose ? { 'true' => true, true => true, default=> false },
         use_syslog           => true,
       }
+   }
+   "ceph-osd" : {
+     class {'ceph': }
    }
   }
 }

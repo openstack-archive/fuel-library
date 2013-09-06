@@ -129,8 +129,8 @@ $cinder_iscsi_bind_addr = $::storage_address
 #TODO: awoodward fix static $use_ceph
 $use_ceph = true
 if ($use_ceph) {
-  primary_mons = filter_nodes($nodes_hash,'role','primary-controller')
-  primary_mon = primary_mons[0]['public_address']
+  $primary_mons = filter_nodes($nodes_hash,'role','primary-controller')
+  $primary_mon = $primary_mons[0]['public_address']
   class {'ceph':
   }
 }
@@ -349,6 +349,9 @@ class virtual_ips () {
         Class[openstack::swift::storage_node] -> Class[openstack::img::cirros]
         Class[openstack::swift::proxy]        -> Class[openstack::img::cirros]
         Service[swift-proxy]                  -> Class[openstack::img::cirros]
+        if defined(Class['ceph']){
+          Class['glance::api'] -> Class['ceph']
+        }
 
       }
       if ! $::use_quantum {
@@ -417,6 +420,10 @@ class virtual_ips () {
         state_path             => $nova_hash[state_path],
       }
 
+        if defined(Class['ceph']){
+          Class['openstack::compute'] -> Class['ceph']
+        }
+
 #      class { "::rsyslog::client":
 #        log_local => true,
 #        log_auth_local => true,
@@ -461,5 +468,9 @@ class virtual_ips () {
 #        rservers => $rservers,
 #      }
     }
+    "ceph-osd" : {
+      class {'ceph': }
+    }
+    
   }
 }

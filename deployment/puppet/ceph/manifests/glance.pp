@@ -18,12 +18,14 @@ class ceph::glance (
       'DEFAULT/rbd_store_user':          value => $rbd_store_user;
       'DEFAULT/rbd_store_pool':          value => $rbd_store_pool;
       'DEFAULT/show_image_direct_url':   value => $show_image_direct_url;
-    }~>
-    service { "$::ceph::params::service_glance_api":
-      ensure     => "running",
-      enable     => true,
-      hasstatus  => true,
-      hasrestart => true,
+    }~> Service["$::ceph::params::service_glance_api"]
+    if ! defined(Service["$::ceph::params::service_glance_api"]) {
+      service { "$::ceph::params::service_glance_api":
+        ensure     => "running",
+        enable     => true,
+        hasstatus  => true,
+        hasrestart => true,
+      }
     }
     exec { 'Create keys for pool images':
       command => 'ceph auth get-or-create client.images > /etc/ceph/ceph.client.images.keyring',

@@ -10,8 +10,7 @@ class ceph::params {
       $service_glance_registry    = 'openstack-glance-registry'
       $service_nova_compute       = 'openstack-nova-compute'
 
-      package { ['ceph', 'redhat-lsb-core','ceph-deploy', 'python-pushy',
-                 'openssh-server', 'openssh-clients']:
+      package { ['ceph', 'redhat-lsb-core','ceph-deploy', 'pushy',]:
         ensure => latest,
       }
       file {'/etc/sudoers.d/ceph':
@@ -25,8 +24,7 @@ class ceph::params {
       $service_glance_registry    = 'glance-registry'
       $service_nova_compute       = 'nova-compute'
 
-      package { ['ceph','ceph-deploy', 'python-pushy', 'openssh-server',
-                 'openssh-client']:
+      package { ['ceph','ceph-deploy', 'pushy', ]:
         ensure => latest,
       }
     }

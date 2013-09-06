@@ -46,6 +46,8 @@ class ceph (
       $osd_devices                      = split($::osd_devices_list, "\n"),
 ) {
 
+  Exec { path => [ '/bin/', '/sbin/' , '/usr/bin/', '/usr/sbin/' ] }
+
   #RE-enable this if not using fuelweb iso with Cehp packages
   #include 'ceph::yum'
   include 'ceph::params'
@@ -55,28 +57,25 @@ class ceph (
 
   #Prepare nodes for futher actions
   #TODO: add ceph service
-  case $::role {
-    'primary-controller': {
-      exec { 'ceph-deploy init config':
-        command => "ceph-deploy new ${::hostname}:${::public_address}",
-        require => Package['ceph-deploy', 'ceph'],
-        logoutput => true,
-      }
+  if $::public_address == $::primary_mon {
+    exec { 'ceph-deploy init config':
+      command => "ceph-deploy new ${::hostname}:${::public_address}",
+      require => Package['ceph-deploy', 'ceph'],
+      logoutput => true,
     }
-    default: {
-      exec {'ceph-deploy init config':
-        command => "ceph-deploy --overwrite-conf config pull ${::primary_mon} && \
-                    ceph-deploy gatherkeys ${::primary_mon} && \
-                    ceph-deploy --overwrite-conf config push ${::hostname}",
-        require => Package['ceph-deploy', 'ceph'],
-        creates => ['/root/ceph.conf',
-                    '/etc/ceph.conf',
-                    '/root/ceph.bootstrap-mds.keyring',
-                    '/root/ceph.bootstrap-osd.keyring',
-                    '/root/ceph.admin.keyring',
-                    '/root/ceph.mon.keyring'
-                   ]
-      }
+  } else {
+    exec {'ceph-deploy init config':
+      command => "ceph-deploy --overwrite-conf config pull ${::primary_mon} && \
+                  ceph-deploy gatherkeys ${::primary_mon} && \
+                  ceph-deploy --overwrite-conf config push ${::hostname}",
+      require => Package['ceph-deploy', 'ceph'],
+      creates => ['/root/ceph.conf',
+                  '/etc/ceph.conf',
+                  '/root/ceph.bootstrap-mds.keyring',
+                  '/root/ceph.bootstrap-osd.keyring',
+                  '/root/ceph.admin.keyring',
+                  '/root/ceph.mon.keyring'
+                 ]
     }
   }
 
