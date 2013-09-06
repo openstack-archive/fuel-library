@@ -1,16 +1,16 @@
 # Global settings
 Exec { path => [ '/bin/', '/sbin/' , '/usr/bin/', '/usr/sbin/' ] }
 
-#hostnames MUST match either cluser_network, or public_network or
-#ceph will not setup correctly.
+# Hostnames MUST match either cluster_network, or public_network or
+# ceph will not setup correctly.
 
-#This permater defines the monitor nodes, these may be the same as the OSD's 
-# if you want. There should be one or >=3
+# This parameter defines the monitor nodes, these may be the same as the
+# OSD's if you want. There should be one or >=3 monitor nodes.
 $mon_nodes = [
   'controller-3.domain.tld',
 ]
 
-#This parameter defines the OSD storage nodes. One OSD will run per $osd_device
+# This parameter defines the OSD storage nodes. One OSD will run per $osd_device
 # per $osd_node. betweeen the two there must be two OSD processes
 $osd_nodes = [
   'compute-1.domain.tld',

@@ -66,8 +66,8 @@ class ceph::deploy (
   } -> exec { 'ceph-deploy gatherkeys':
     command   => "ceph-deploy gatherkeys $fqdn",
     returns   => 0,
-    tries     => 60,  #This is necessary to prevent race, mon must establish
-    # a quorum before it can generate keys, observed this takes upto 15 seconds
+    tries     => 60,  # This is necessary to prevent race, mon must establish
+    # a quorum before it can generate keys, observed this takes up to 15 seconds
     # Keys must exist prior to other commands running
     try_sleep => 1,
     creates   => ['/root/ceph.bootstrap-osd.keyring',
