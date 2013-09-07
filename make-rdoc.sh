@@ -15,16 +15,8 @@ if [ -d 'rdoc' ]; then
   rm -rf 'rdoc'
 fi
 
-puppet doc --mode "rdoc" --outputdir 'rdoc' --charset "utf-8" --modulepath='deployment/puppet/' --manifestdir='deployment/puppet/nailgun/examples/'
+puppet doc --verbose --mode "rdoc" --outputdir 'rdoc' --charset "utf-8" --modulepath='deployment/puppet/' --manifestdir='deployment/puppet/nailgun/examples/'
 
 if [ $? -gt 0 ]; then
-  exit 1
-fi
-
-if [ "`uname`" = 'Darwin' ]; then
-  open 'rdoc/index.html'
-elif [ "`uname`" = 'Linux' ]; then
-  xdg-open 'rdoc/index.html'
-else
   exit 1
 fi
