@@ -8,7 +8,7 @@ class ceph::cinder (
   if str2bool($::cinder_conf) {
 
     exec {'Copy configs':
-      command => "scp -r ${::primary_mon}:/etc/ceph/* /etc/ceph/",
+      command => "scp -r ${::ceph::primary_mon}:/etc/ceph/* /etc/ceph/",
       require => Package['ceph'],
       returns => 0,
     }
@@ -29,7 +29,7 @@ class ceph::cinder (
       path => "$::ceph::params::service_cinder_volume_opts",
       line => 'export CEPH_ARGS="--id volumes"',
     }
-    if ! defined(Service["$::ceph::params::service_cinder_volume"]) {
+    if ! defined(Class['cinder::volume']) {
       service { "$::ceph::params::service_cinder_volume":
         ensure     => "running",
         enable     => true,

@@ -3,7 +3,7 @@ class ceph::nova_compute (
 ) {
   if $::role == "compute" {
     exec {'Copy conf':
-      command => "scp -r ${::primary_mon}:/etc/ceph/* /etc/ceph/",
+      command => "scp -r ${::ceph::primary_mon}:/etc/ceph/* /etc/ceph/",
       require => Package['ceph'],
       returns => [0,1],
     }

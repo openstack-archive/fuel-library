@@ -129,10 +129,15 @@ $cinder_iscsi_bind_addr = $::storage_address
 #TODO: awoodward fix static $use_ceph
 $use_ceph = true
 if ($use_ceph) {
-  $primary_mons = filter_nodes($nodes_hash,'role','primary-controller')
-  $primary_mon = $primary_mons[0]['public_address']
+  $primary_mons   = filter_nodes($nodes_hash,'role','primary-controller')
+  $primary_mon    = $primary_mons[0]['name']
+  $glance_backend = 'ceph'
   class {'ceph':
+    primary_mon  => $primary_mon,
+    cluster_node_address => $controller_node_address,
   }
+} else {
+  $glance_backend = 'swift'
 }
 
 if $auto_assign_floating_ip == 'true' {
@@ -178,7 +183,8 @@ $master_swift_proxy_ip = $master_swift_proxy_nodes[0]['internal_address']
 
 $multi_host              = true
 $manage_volumes          = false
-$glance_backend          = 'swift'
+#Moved to CEPH if block
+#$glance_backend          = 'swift'
 $quantum_netnode_on_cnt  = true
 $swift_loopback = false
 $mirror_type = 'external'
@@ -469,7 +475,7 @@ class virtual_ips () {
 #      }
     }
     "ceph-osd" : {
-      class {'ceph': }
+      #Class Ceph is already defined so it will do it's thing.
     }
     
   }

@@ -116,10 +116,16 @@ if !$debug
 #TODO: awoodward fix static $use_ceph
 $use_ceph = true
 if ($use_ceph) {
-  $primary_mons = filter_nodes($nodes_hash,'role','controller')
-  $primary_mon = $primary_mons[0]['public_address']
+  $primary_mons   = $controller
+  $primary_mon    = $controller[0]['name']
+  $glance_backend = 'ceph'
+  class {'ceph': 
+    primary_mon  => $primary_mon,
+    cluster_node_address => $controller_node_address,
+  }
+} else {
+  $glance_backend = 'file'
 }
-
 
   case $role {
     "controller" : {
@@ -150,6 +156,7 @@ if ($use_ceph) {
         keystone_admin_tenant   => $access_hash[tenant],
         glance_db_password      => $glance_hash[db_password],
         glance_user_password    => $glance_hash[user_password],
+        glance_backend          => $glance_backend,
         nova_db_password        => $nova_hash[db_password],
         nova_user_password      => $nova_hash[user_password],
         nova_rate_limits        => $nova_rate_limits,
@@ -361,7 +368,7 @@ if ($use_ceph) {
       }
    }
    "ceph-osd" : {
-     class {'ceph': }
+     #Nothing needs to be done Class Ceph is already defined
    }
   }
 }

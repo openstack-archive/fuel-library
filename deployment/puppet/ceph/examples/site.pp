@@ -18,6 +18,11 @@ $controller_node_address = '10.0.0.3'
 
 node 'default' {
   class {'ceph':
+      #General settings
+      $cluster_node_address             => $cluster_node_adress,
+      $primary_mon                      => $primary_mon,
+      $ceph_pools                       => [ 'volumes', 'images' ],
+      $osd_devices                      => split($::osd_devices_list, "\n"),
       #ceph.conf Global settings
       $auth_supported                   => 'cephx',
       $osd_journal_size                 => '2048',

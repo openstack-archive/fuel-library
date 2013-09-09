@@ -1,4 +1,9 @@
 class ceph (
+      #General settings
+      $cluster_node_address             = $::ipaddress, #This should be the cluster service address
+      $primary_mon                      = $::hostname, #This should be the first controller
+      $ceph_pools                       = [ 'volumes', 'images' ],
+      $osd_devices                      = split($::osd_devices_list, "\n"),
       #ceph.conf Global settings
       $auth_supported                   = 'cephx',
       $osd_journal_size                 = '2048',
@@ -16,7 +21,7 @@ class ceph (
       $rgw_socket_path                  = '/tmp/radosgw.sock',
       $log_file                         = '/var/log/ceph/radosgw.log',
       $user                             = 'www-data',
-      $rgw_keystone_url                 = "${::controller_node_address}:5000",
+      $rgw_keystone_url                 = "${cluster_node_address}:5000",
       $rgw_keystone_admin_token         = 'nova',
       $rgw_keystone_token_cache_size    = '10',
       $rgw_keystone_accepted_roles      = undef, #TODO: find a default value for this
@@ -38,12 +43,9 @@ class ceph (
       $rbd_store_pool                   = 'images',
       $show_image_direct_url            = 'True',
       #Keystone settings
-      $rgw_pub_ip                       = "${::controller_node_address}",
-      $rgw_adm_ip                       = "${::controller_node_address}",
-      $rgw_int_ip                       = "${::controller_node_address}",
-      #Other settings
-      $ceph_pools                       = [ 'volumes', 'images' ],
-      $osd_devices                      = split($::osd_devices_list, "\n"),
+      $rgw_pub_ip                       = "${cluster_node_address}",
+      $rgw_adm_ip                       = "${cluster_node_address}",
+      $rgw_int_ip                       = "${cluster_node_address}",
 ) {
 
   Exec { path => [ '/bin/', '/sbin/' , '/usr/bin/', '/usr/sbin/' ] }
@@ -57,7 +59,7 @@ class ceph (
 
   #Prepare nodes for futher actions
   #TODO: add ceph service
-  if $::public_address == $::primary_mon {
+  if $::hostname == $::ceph::primary_mon {
     exec { 'ceph-deploy init config':
       command => "ceph-deploy new ${::hostname}:${::public_address}",
       require => Package['ceph-deploy', 'ceph'],
@@ -65,8 +67,8 @@ class ceph (
     }
   } else {
     exec {'ceph-deploy init config':
-      command => "ceph-deploy --overwrite-conf config pull ${::primary_mon} && \
-                  ceph-deploy gatherkeys ${::primary_mon} && \
+      command => "ceph-deploy --overwrite-conf config pull ${::ceph::primary_mon} && \
+                  ceph-deploy gatherkeys ${::ceph::primary_mon} && \
                   ceph-deploy --overwrite-conf config push ${::hostname}",
       require => Package['ceph-deploy', 'ceph'],
       creates => ['/root/ceph.conf',

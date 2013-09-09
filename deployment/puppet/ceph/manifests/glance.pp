@@ -9,23 +9,23 @@ class ceph::glance (
       ensure  => latest,
     }
     exec {'Copy config':
-      command => "scp -r ${::primary_mon}:/etc/ceph/* /etc/ceph/",
+      command => "scp -r ${::ceph::primary_mon}:/etc/ceph/* /etc/ceph/",
       require => Package['ceph'],
       returns => 0,
     }
-    glance_api_config {
-      'DEFAULT/default_store':           value => $default_store;
-      'DEFAULT/rbd_store_user':          value => $rbd_store_user;
-      'DEFAULT/rbd_store_pool':          value => $rbd_store_pool;
-      'DEFAULT/show_image_direct_url':   value => $show_image_direct_url;
-    }~> Service["$::ceph::params::service_glance_api"]
-    if ! defined(Service["$::ceph::params::service_glance_api"]) {
-      service { "$::ceph::params::service_glance_api":
-        ensure     => "running",
-        enable     => true,
-        hasstatus  => true,
-        hasrestart => true,
-      }
+    if ! defined('glance::backend::ceph') {
+      glance_api_config {
+        'DEFAULT/default_store':           value => $default_store;
+        'DEFAULT/rbd_store_user':          value => $rbd_store_user;
+        'DEFAULT/rbd_store_pool':          value => $rbd_store_pool;
+        'DEFAULT/show_image_direct_url':   value => $show_image_direct_url;
+      }~> Service["$::ceph::params::service_glance_api"]
+        service { "$::ceph::params::service_glance_api":
+          ensure     => "running",
+          enable     => true,
+          hasstatus  => true,
+          hasrestart => true,
+        }
     }
     exec { 'Create keys for pool images':
       command => 'ceph auth get-or-create client.images > /etc/ceph/ceph.client.images.keyring',
