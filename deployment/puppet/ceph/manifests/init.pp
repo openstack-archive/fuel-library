@@ -48,7 +48,9 @@ class ceph (
       $rgw_int_ip                       = "${cluster_node_address}",
 ) {
 
-  Exec { path => [ '/bin/', '/sbin/' , '/usr/bin/', '/usr/sbin/' ] }
+  Exec { path => [ '/bin/', '/sbin/' , '/usr/bin/', '/usr/sbin/' ],
+         cwd  => '/root',
+  }
 
   #RE-enable this if not using fuelweb iso with Cehp packages
   #include 'ceph::yum'
@@ -61,28 +63,34 @@ class ceph (
   #TODO: add ceph service
   if $::hostname == $::ceph::primary_mon {
     exec { 'ceph-deploy init config':
-      command => "ceph-deploy new ${::hostname}:${::public_address}",
-      require => Package['ceph-deploy', 'ceph'],
+      command   => "ceph-deploy new ${::hostname}:${::internal_address}",
+      require   => Package['ceph-deploy', 'ceph'],
       logoutput => true,
+      creates   => '/root/ceph.conf',
     }
   } else {
-    exec {'ceph-deploy init config':
-      command => "ceph-deploy --overwrite-conf config pull ${::ceph::primary_mon} && \
-                  ceph-deploy gatherkeys ${::ceph::primary_mon} && \
-                  ceph-deploy --overwrite-conf config push ${::hostname}",
+    exec {'ceph-deploy config pull':
+      command => "ceph-deploy --overwrite-conf config pull ${::ceph::primary_mon}",
       require => Package['ceph-deploy', 'ceph'],
-      creates => ['/root/ceph.conf',
-                  '/etc/ceph.conf',
-                  '/root/ceph.bootstrap-mds.keyring',
+      creates => '/root/ceph.conf',
+      }
+    exec {'ceph-deploy gatherkeys':
+      command => "ceph-deploy gatherkeys ${::ceph::primary_mon}",
+      require => [Exec['ceph-deploy config pull']],
+      creates => ['/root/ceph.bootstrap-mds.keyring',
                   '/root/ceph.bootstrap-osd.keyring',
                   '/root/ceph.admin.keyring',
                   '/root/ceph.mon.keyring'
-                 ]
+                 ],
+    }
+    exec {'ceph-deploy init config':
+      command => "ceph-deploy --overwrite-conf config push ${::hostname}",
+      require => [Exec['ceph-deploy gatherkeys']],
+      creates => '/etc/ceph/ceph.conf',
     }
   }
-
   case $::role {
-    'primary-controller', 'controller', 'ceph-monitor': {
+    'primary-controller', 'controller', 'ceph-mon': {
       include ceph::glance, ceph::cinder, ceph::nova_compute
       class {'ceph::mon':
       } -> Class[['ceph::glance',

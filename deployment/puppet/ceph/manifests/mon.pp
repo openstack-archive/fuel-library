@@ -33,20 +33,23 @@ class ceph::mon {
     'client.radosgw.gateway/rgw print continue':               value => $::ceph::rgw_print_continue;
     'client.radosgw.gateway/nss db path':                      value => $::ceph::nss_db_path;
   }
-  Ceph_conf {require => Exec['ceph-deploy init config']}
-  Ceph_conf <||> -> Exec ['ceph-deploy deploy monitors']
   exec { 'ceph-deploy deploy monitors':
-    command => "ceph-deploy --overwrite-conf mon create ${::hostname}:${::public_address}",
+    command   => "ceph-deploy --overwrite-conf mon create ${::hostname}:${::internal_address}",
     logoutput => true,
+    require   => [Exec['ceph-deploy init config'],
+                  Ceph_conf <||>,
+    ],
     #TODO: need method to update mon_nodes in ceph.conf
-  } -> exec { 'ceph-deploy gatherkeys':
+  }
+  exec { 'ceph-deploy gatherkeys':
     command   => "ceph-deploy gatherkeys ${::hostname}",
     returns   => 0,
     tries     => 60,  #This is necessary to prevent race, mon must establish
     # a quorum before it can generate keys, observed this takes upto 15 seconds
     # Keys must exist prior to other commands running
     try_sleep => 1,
-    require   => [Firewall['010 ceph-mon allow']],
+    require   => [Firewall['010 ceph-mon allow'],
+                  Exec['ceph-deploy deploy monitors']],
   }
   File {
     require => Exec['ceph-deploy gatherkeys']
@@ -63,7 +66,7 @@ class ceph::mon {
     define int {
       exec { "Creating pool ${name}":
         command => "ceph osd pool create ${name} ${::ceph::osd_pool_default_pg_num} ${::ceph::osd_pool_default_pgp_num}",
-        require => Exec['ceph-deploy deploy monitors'],
+        require => Exec['ceph-deploy gatherkeys'],
         logoutput => true,
       }
     }
