@@ -14,6 +14,7 @@ class PManager(object):
         self._pre = []
         self._kick = []
         self._post = []
+        self.raid_count = 0
 
         self._pcount = {}
         self._pend = {}
@@ -91,6 +92,10 @@ class PManager(object):
                     "vgreduce -ff --removemissing $v; vgremove -ff $v; done")
         self.pre("for p in $(pvs | grep '\/dev' | awk '{print $1}'); do "
                     "pvremove -ff -y $p ; done")
+
+    def erase_raid_metadata(self):
+        for disk in [d for d in self.data if d["type"] == "disk"]:
+            self.pre("mdadm --zero-superblock /dev/{0}*".format(disk['id']))
 
     def clean(self, disk):
         self.pre("hdparm -z /dev/{0}".format(disk["id"]))
@@ -222,8 +227,9 @@ class PManager(object):
 
         for (num, (mount, rnames)) in enumerate(raids.iteritems()):
             fstype = self._gettabfstype({"mount": mount})
-            self.kick("raid {0} --device md{1} --fstype ext2 "
-                      "--level=RAID1 {2}".format(mount, num, " ".join(rnames)))
+            self.kick("raid {0} --device md{1} --fstype {3} "
+                      "--level=RAID1 {2}".format(mount, self.raid_count, " ".join(rnames), fstype))
+            self.raid_count += 1
 
     def pvs(self):
         pvs = {}
@@ -349,6 +355,7 @@ class PManager(object):
         for disk in [d for d in self.data if d["type"] == "disk"]:
             self.pre("hdparm -z /dev/{0}".format(disk["id"]))
         self.erase_lvm_metadata()
+        self.erase_raid_metadata()
 
 
 def pm(data):
