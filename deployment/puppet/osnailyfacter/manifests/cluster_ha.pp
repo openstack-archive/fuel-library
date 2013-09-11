@@ -342,24 +342,22 @@ class virtual_ips () {
       nova_config { 'DEFAULT/use_cow_images': value => $use_cow_images }
       nova_config { 'DEFAULT/compute_scheduler_driver': value => $compute_scheduler_driver }
 
-      if $::hostname == $::last_controller {
-        class { 'openstack::img::cirros':
-          os_username => shellescape($access_hash[user]),
-          os_password => shellescape($access_hash[password]),
-          os_tenant_name => shellescape($access_hash[tenant]),
-          os_auth_url => "http://${management_vip}:5000/v2.0/",
-          img_name    => "TestVM",
-          stage          => 'glance-image',
-        }
-        Class[glance::api]                    -> Class[openstack::img::cirros]
-        Class[openstack::swift::storage_node] -> Class[openstack::img::cirros]
-        Class[openstack::swift::proxy]        -> Class[openstack::img::cirros]
-        Service[swift-proxy]                  -> Class[openstack::img::cirros]
-        if defined(Class['ceph']){
-          Class['glance::api'] -> Class['ceph']
-        }
+#TODO: fix this so it dosn't break ceph
+#      if $::hostname == $::last_controller {
+#        class { 'openstack::img::cirros':
+#          os_username => shellescape($access_hash[user]),
+#          os_password => shellescape($access_hash[password]),
+#          os_tenant_name => shellescape($access_hash[tenant]),
+#          os_auth_url => "http://${management_vip}:5000/v2.0/",
+#          img_name    => "TestVM",
+#          stage          => 'glance-image',
+#        }
+#        Class[glance::api]                    -> Class[openstack::img::cirros]
+#        Class[openstack::swift::storage_node] -> Class[openstack::img::cirros]
+#        Class[openstack::swift::proxy]        -> Class[openstack::img::cirros]
+#        Service[swift-proxy]                  -> Class[openstack::img::cirros]
 
-      }
+      #}
       if ! $::use_quantum {
         nova_floating_range{ $floating_ips_range:
           ensure          => 'present',
@@ -371,7 +369,11 @@ class virtual_ips () {
           authtenant_name => $access_hash[tenant],
         }
       }
-
+      if defined(Class['ceph']){
+        Class['openstack::controller'] -> Class['ceph::glance']
+        Class['glance::api']           -> Class['ceph::glance']
+        Class['openstack::controller'] -> Class['ceph::cinder']
+      }
      }
 
     "compute" : {
@@ -476,6 +478,8 @@ class virtual_ips () {
     }
     "ceph-osd" : {
       #Class Ceph is already defined so it will do it's thing.
+      notify {"ceph_osd: ${::ceph::osd_devices}": }
+      notify {"osd_devices:  ${::osd_devices_list}": }
     }
     
   }

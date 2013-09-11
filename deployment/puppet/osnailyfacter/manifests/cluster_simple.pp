@@ -253,14 +253,16 @@ if ($use_ceph) {
       #   source           => '/opt/vm/cirros-0.3.0-x86_64-disk.img',
       #   require          => Class[glance::api],
       # }
+#TODO: fix this so it dosn't break ceph
+#      class { 'openstack::img::cirros':
+#        os_username               => shellescape($access_hash[user]),
+#        os_password               => shellescape($access_hash[password]),
+#        os_tenant_name            => shellescape($access_hash[tenant]),
+#        img_name                  => "TestVM",
+#        stage                     => 'glance-image',
+#      }
+#      Class[glance::api]        -> Class[openstack::img::cirros]
 
-      class { 'openstack::img::cirros':
-        os_username               => shellescape($access_hash[user]),
-        os_password               => shellescape($access_hash[password]),
-        os_tenant_name            => shellescape($access_hash[tenant]),
-        img_name                  => "TestVM",
-        stage                     => 'glance-image',
-      }
       if !$quantum {
       nova_floating_range{ $floating_ips_range:
         ensure          => 'present',
@@ -273,9 +275,10 @@ if ($use_ceph) {
       }
       }
 
-      Class[glance::api]        -> Class[openstack::img::cirros]
       if defined(Class['ceph']){
-        Class['glance::api'] -> Class['ceph']
+        Class['openstack::controller'] -> Class['ceph::glance']
+        Class['glance::api']           -> Class['ceph::glance']
+        Class['openstack::controller'] -> Class['ceph::cinder']
       }
     }
 
@@ -369,6 +372,8 @@ if ($use_ceph) {
    }
    "ceph-osd" : {
      #Nothing needs to be done Class Ceph is already defined
+     notify {"ceph-osd: ${::ceph::osd_devices}": }
+     notify {"osd_devices:  ${::osd_devices_list}": }
    }
   }
 }

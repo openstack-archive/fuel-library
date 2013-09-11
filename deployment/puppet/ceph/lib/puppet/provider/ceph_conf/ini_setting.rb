@@ -16,7 +16,7 @@ Puppet::Type.type(:ceph_conf).provide(
   end
 
   def self.file_path
-    './ceph.conf'
+    '/etc/ceph/ceph.conf'
   end
 
   # this needs to be removed. This has been replaced with the class method
