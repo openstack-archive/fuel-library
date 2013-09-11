@@ -33,11 +33,12 @@ class ceph::mon {
     'client.radosgw.gateway/rgw print continue':               value => $::ceph::rgw_print_continue;
     'client.radosgw.gateway/nss db path':                      value => $::ceph::nss_db_path;
   }
+  Ceph_conf {require => Exec['ceph-deploy init config']}
+  Ceph_conf <||> -> Exec ['ceph-deploy deploy monitors']
   exec { 'ceph-deploy deploy monitors':
-    command   => "ceph-deploy --overwrite-conf mon create ${::hostname}:${::internal_address}",
+    command   => "ceph-deploy mon create ${::hostname}:${::internal_address}",
     logoutput => true,
     require   => [Exec['ceph-deploy init config'],
-                  Ceph_conf <||>,
     ],
     #TODO: need method to update mon_nodes in ceph.conf
   }

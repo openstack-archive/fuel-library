@@ -22,7 +22,7 @@ class ceph::osd (
     timeout   => 0, #TODO: make this something reasonable
     tries     => 2,  #This is necessary because of race for mon creating keys
     try_sleep => 1,
-    require   => [Exec[['ceph-deploy init config', 'ceph-deploy gatherkeys']],
+    require   => [Exec['ceph-deploy init config'],
                   Firewall['011 ceph-osd allow'],
                  ],
     logoutput => true,

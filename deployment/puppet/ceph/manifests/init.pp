@@ -52,7 +52,7 @@ class ceph (
          cwd  => '/root',
   }
 
-  #RE-enable this if not using fuelweb iso with Cehp packages
+  #RE-enable this if not using fuelweb iso with Ceph packages
   #include 'ceph::yum'
   include 'ceph::params'
   include 'ceph::ssh'
@@ -64,9 +64,17 @@ class ceph (
   if $::hostname == $::ceph::primary_mon {
     exec { 'ceph-deploy init config':
       command   => "ceph-deploy new ${::hostname}:${::internal_address}",
+      cwd       => '/etc/ceph',
       require   => Package['ceph-deploy', 'ceph'],
       logoutput => true,
-      creates   => '/root/ceph.conf',
+      creates   => ['/etc/ceph/ceph.conf'],
+    } -> file {'/root/ceph.conf':
+      #link is necessary to work around http://tracker.ceph.com/issues/6281
+      ensure => link, 
+      target => '/etc/ceph/ceph.conf',
+    } -> file {'/root/ceph.mon.keyring':
+      ensure => link,
+      target => '/etc/ceph/ceph.mon.keyring',
     }
   } else {
     exec {'ceph-deploy config pull':
@@ -76,7 +84,7 @@ class ceph (
       }
     exec {'ceph-deploy gatherkeys':
       command => "ceph-deploy gatherkeys ${::ceph::primary_mon}",
-      require => [Exec['ceph-deploy config pull']],
+      require => [Exec['ceph-deploy --overwirte-conf config pull']],
       creates => ['/root/ceph.bootstrap-mds.keyring',
                   '/root/ceph.bootstrap-osd.keyring',
                   '/root/ceph.admin.keyring',
