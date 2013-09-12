@@ -260,41 +260,21 @@ class openstack::compute (
       package {$scp_package: ensure => present }
     }
 
-  if ( $ssh_private_key != undef ) {
-   file { '/var/lib/nova/.ssh':
-      ensure => directory,
-      owner  => 'nova',
-      group  => 'nova',
-      mode   => '0700'
-    }
-    file { '/var/lib/nova/.ssh/authorized_keys':
-      ensure => present,
-      owner  => 'nova',
-      group  => 'nova',
-      mode   => '0400',
-      source => $ssh_public_key,
-    }
-    file { '/var/lib/nova/.ssh/id_rsa':
-      ensure => present,
-      owner  => 'nova',
-      group  => 'nova',
-      mode   => '0400',
-      source => $ssh_private_key,
-    }
-    file { '/var/lib/nova/.ssh/id_rsa.pub':
-      ensure => present,
-      owner  => 'nova',
-      group  => 'nova',
-      mode   => '0400',
-      source => $ssh_public_key,
-    }
-    file { '/var/lib/nova/.ssh/config':
-      ensure  => present,
-      owner   => 'nova',
-      group   => 'nova',
-      mode    => '0600',
-      content => "Host *\n  StrictHostKeyChecking no\n  UserKnownHostsFile=/dev/null\n",
-    }
+  install_ssh_keys {'nova_ssh_key_for_migration':
+    ensure           => present,
+    user             => 'nova',
+    private_key_path => '/var/lib/astute/nova/nova',
+    public_key_path  => '/var/lib/astute/nova/nova.pub',
+    private_key_name => 'id_rsa',
+    public_key_name  => 'id_rsa.pub',
+    authorized_keys  => 'authorized_keys',
+  } ->
+  file { '/var/lib/nova/.ssh/config':
+    ensure  => present,
+    owner   => 'nova',
+    group   => 'nova',
+    mode    => '0600',
+    content => "Host *\n  StrictHostKeyChecking no\n  UserKnownHostsFile=/dev/null\n",
   }
 
   # configure nova api
