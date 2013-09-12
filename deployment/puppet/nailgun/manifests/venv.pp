@@ -84,6 +84,12 @@ class nailgun::venv(
     require => File["/etc/nailgun"],
   }
 
+  file { "/usr/local/bin/fuel":
+    ensure  => link,
+    target  => "/opt/nailgun/bin/fuel",
+    require => Nailgun::Venv::Pip["$venv_$package"],
+  }
+
   exec {"nailgun_syncdb":
     command => "${venv}/bin/nailgun_syncdb",
     require => [
