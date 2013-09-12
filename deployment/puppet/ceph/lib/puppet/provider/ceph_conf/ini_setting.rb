@@ -10,9 +10,9 @@ Puppet::Type.type(:ceph_conf).provide(
   def setting
     resource[:name].split('/', 2).last
   end
-
+  #Ceph-deploy 1.2.3 uses ' = ' not '='
   def separator
-    '='
+    ' = '
   end
 
   def self.file_path
