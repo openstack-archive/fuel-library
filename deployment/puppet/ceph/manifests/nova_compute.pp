@@ -21,12 +21,14 @@ class ceph::nova_compute (
       require => [File['/tmp/secret.xml'], Package ['ceph'], Exec['Copy conf']],
       returns => [0,1],
     }
-    service {"$::ceph::params::service_nova_compute":
-      ensure     => "running",
-      enable     => true,
-      hasstatus  => true,
-      hasrestart => true,
-      subscribe  => Exec['Set value']
+    if ! defined('nova::compute') {
+      service {"$::ceph::params::service_nova_compute":
+        ensure     => "running",
+        enable     => true,
+        hasstatus  => true,
+        hasrestart => true,
+        subscribe  => Exec['Set value']
+      }
     }
   }
 }

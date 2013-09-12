@@ -84,7 +84,7 @@ class ceph (
       }
     exec {'ceph-deploy gatherkeys':
       command => "ceph-deploy gatherkeys ${::ceph::primary_mon}",
-      require => [Exec['ceph-deploy --overwirte-conf config pull']],
+      require => [Exec['ceph-deploy config pull']],
       creates => ['/root/ceph.bootstrap-mds.keyring',
                   '/root/ceph.bootstrap-osd.keyring',
                   '/root/ceph.admin.keyring',
