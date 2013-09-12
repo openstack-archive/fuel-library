@@ -92,7 +92,6 @@ $cinder_rate_limits = {
 
 
 ###
-class {'l23network': use_ovs=>$use_quantum, stage=> 'netconfig'}
 class node_netconfig (
   $mgmt_ipaddr,
   $mgmt_netmask  = '255.255.255.0',
@@ -147,8 +146,8 @@ case $::operatingsystem {
 }
 
 class os_common {
+  class {'l23network': use_ovs=>$use_quantum, stage=> 'netconfig'}
   if $deployment_source == 'cli' {
-    class {'l23network': use_ovs=>$use_quantum, stage=> 'netconfig'}
     class {'::node_netconfig':
       mgmt_ipaddr    => $internal_address,
       mgmt_netmask   => $internal_netmask,
