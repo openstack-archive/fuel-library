@@ -689,8 +689,6 @@ node /fuel-compute-[\d+]/ {
     glance_api_servers     => "${controller_internal_address}:9292",
     vncproxy_host          => $controller_public_address,
     vnc_enabled            => true,
-    ssh_private_key        => 'puppet:///ssh_keys/openstack',
-    ssh_public_key         => 'puppet:///ssh_keys/openstack.pub',
     quantum                => $quantum,
     quantum_sql_connection => $quantum_sql_connection,
     quantum_user_password  => $quantum_user_password,

@@ -7,6 +7,8 @@ class ceph::ssh {
     default  => 'openssh-clients',
   }
   $ssh_config = '/root/.ssh/config'
+  $private_key = '/var/lib/astute/ceph/ceph'
+  $public_key  = '/var/lib/astute/ceph/ceph.pub'
 
   if !defined(Package[$server_package]) {
     package { $server_package :
@@ -23,8 +25,8 @@ class ceph::ssh {
   install_ssh_keys {'root_ssh_keys_for_ceph':
     ensure           => present,
     user             => 'root',
-    private_key_path => '/var/lib/astute/ceph/ceph',
-    public_key_path  => '/var/lib/astute/ceph/ceph.pub',
+    private_key_path => $private_key,
+    public_key_path  => $public_key,
     private_key_name => 'id_rsa',
     public_key_name  => 'id_rsa.pub',
     authorized_keys  => 'authorized_keys',

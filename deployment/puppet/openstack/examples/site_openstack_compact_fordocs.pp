@@ -780,8 +780,6 @@ node /fuel-compute-[\d+]/ {
     cinder_iscsi_bind_addr => $cinder_iscsi_bind_addr,
     nv_physical_volume     => $nv_physical_volume,
     db_host                => $internal_virtual_ip,
-    ssh_private_key        => 'puppet:///ssh_keys/openstack',
-    ssh_public_key         => 'puppet:///ssh_keys/openstack.pub',
     use_syslog             => $use_syslog,
     syslog_log_level       => $syslog_log_level,
     syslog_log_facility    => $syslog_log_facility_nova,
