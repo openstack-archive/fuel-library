@@ -1,11 +1,12 @@
+#ceph::mon will install the ceph-mon
 class ceph::mon {
   include c_pools
 
   firewall {'010 ceph-mon allow':
-    chain => 'INPUT',
-    dport => 6789,
-    proto => 'tcp',
-    action  => accept,
+    chain  => 'INPUT',
+    dport  => 6789,
+    proto  => 'tcp',
+    action => accept,
   }
 
   exec { 'ceph-deploy deploy monitors':
@@ -36,11 +37,12 @@ class ceph::mon {
   }
   file { '/root/ceph.client.mon.keyring':
   }
+  #c_pools is used to loop through the list of $::ceph::ceph_pools
   class c_pools {
     define int {
       exec { "Creating pool ${name}":
-        command => "ceph osd pool create ${name} ${::ceph::osd_pool_default_pg_num} ${::ceph::osd_pool_default_pgp_num}",
-        require => Exec['ceph-deploy gatherkeys'],
+        command   => "ceph osd pool create ${name} ${::ceph::osd_pool_default_pg_num} ${::ceph::osd_pool_default_pgp_num}",
+        require   => Exec['ceph-deploy gatherkeys'],
         logoutput => true,
       }
     }
@@ -48,9 +50,9 @@ class ceph::mon {
   }
   exec { 'CLIENT AUTHENTICATION':
     #DO NOT SPLIT ceph auth command lines See http://tracker.ceph.com/issues/3279
-    command => "ceph auth get-or-create client.${::ceph::ceph_pools[0]} mon 'allow r' osd 'allow class-read object_prefix rbd_children, allow rwx pool=${::ceph::ceph_pools[0]}, allow rx pool=${::ceph::ceph_pools[1]}' && \
+    command   => "ceph auth get-or-create client.${::ceph::ceph_pools[0]} mon 'allow r' osd 'allow class-read object_prefix rbd_children, allow rwx pool=${::ceph::ceph_pools[0]}, allow rx pool=${::ceph::ceph_pools[1]}' && \
     ceph auth get-or-create client.${::ceph::ceph_pools[1]} mon 'allow r' osd 'allow class-read object_prefix rbd_children, allow rwx pool=${::ceph::ceph_pools[1]}'",
-    require => Class['c_pools'],
+    require   => Class['c_pools'],
     logoutput => true,
   }
 }

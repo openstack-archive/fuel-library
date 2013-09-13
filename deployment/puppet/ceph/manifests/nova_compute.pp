@@ -1,3 +1,4 @@
+#ceph::nova_compute will configure the nova_compure parts if present
 class ceph::nova_compute (
   $rbd_secret_uuid = $::ceph::rbd_secret_uuid
 ) {
@@ -18,11 +19,13 @@ class ceph::nova_compute (
         egrep -o "[0-9a-fA-F]{8}(-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}") \
         --base64 $(ceph auth get-key client.volumes) && \
         rm /tmp/secret.xml',
-      require => [File['/tmp/secret.xml'], Package ['ceph'], Exec['Copy conf']],
+      require => [File['/tmp/secret.xml'],
+                  Package ['ceph'],
+                  Exec['Copy conf']],
       returns => [0,1],
     }
     if ! defined('nova::compute') {
-      service {"$::ceph::params::service_nova_compute":
+      service {"${::ceph::params::service_nova_compute}":
         ensure     => "running",
         enable     => true,
         hasstatus  => true,

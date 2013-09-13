@@ -1,3 +1,4 @@
+#Ceph::osd will prepare and online devices in $::ceph::osd_devices
 class ceph::osd (
   $devices = join(prefix($::ceph::osd_devices, "${::hostname}:"), " "),
 ){
@@ -7,11 +8,10 @@ class ceph::osd (
     chain   => 'INPUT',
     dport   => '6800-7100',
     proto   => 'tcp',
-    source  => "$::ceph::cluster_network",
     action  => accept,
   }
 
-  exec { "ceph-deploy osd prepare":
+  exec { 'ceph-deploy osd prepare':
     #ceph-deploy osd prepare is ensuring there is a filesystem on the
     # disk according to the args passed to ceph.conf (above).
     #timeout: It has a long timeout because of the format taking forever.
@@ -27,10 +27,10 @@ class ceph::osd (
                  ],
     logoutput => true,
   }
-  exec { "ceph-deploy osd activate":
+  exec { 'ceph-deploy osd activate':
     command   => "ceph-deploy osd activate ${devices}",
     returns   => 0,
-    require   => Exec["ceph-deploy osd prepare"],
+    require   => Exec['ceph-deploy osd prepare'],
     logoutput => true,
   }
  }

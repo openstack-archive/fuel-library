@@ -1,5 +1,4 @@
 #These are per-OS parameters and should be considered static
-
 class ceph::params {
 
   case $::osfamily {
@@ -20,7 +19,7 @@ class ceph::params {
     'Debian': {
       $service_cinder_volume      = 'cinder-volume'
       $service_cinder_volume_opts = '/etc/init/cinder-volume.conf'
-      $servic_glance_api         = 'glance-api'
+      $servic_glance_api          = 'glance-api'
       $service_glance_registry    = 'glance-registry'
       $service_nova_compute       = 'nova-compute'
 

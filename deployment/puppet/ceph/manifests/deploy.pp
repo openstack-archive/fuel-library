@@ -1,3 +1,4 @@
+#Ceph::deploy will installl mds server if invoked
 class ceph::deploy (
 ) {
   if $mds_server {

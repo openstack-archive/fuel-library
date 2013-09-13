@@ -1,3 +1,4 @@
+#ceph will install ceph parts
 class ceph (
       #General settings
       $cluster_node_address             = $::ipaddress, #This should be the cluster service address
@@ -13,8 +14,8 @@ class ceph (
       #TODO: calculate PG numbers
       $osd_pool_default_pg_num          = '100',
       $osd_pool_default_pgp_num         = '100',
-      $cluster_network                  = "$::storage_network_range",
-      $public_network                   = "$::management_network_range",
+      $cluster_network                  = "${::storage_network_range}",
+      $public_network                   = "${::management_network_range}",
       #RadosGW settings
       $host                             = $::hostname,
       $keyring_path                     = '/etc/ceph/keyring.radosgw.gateway',
