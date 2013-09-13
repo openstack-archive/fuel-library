@@ -4,7 +4,7 @@ class ceph (
       $cluster_node_address             = $::ipaddress, #This should be the cluster service address
       $primary_mon                      = $::hostname, #This should be the first controller
       $ceph_pools                       = [ 'volumes', 'images' ],
-      $osd_devices                      = split($::osd_devices_list, "\n"),
+      $osd_devices                      = split($::osd_devices_list, " "),
       #ceph.conf Global settings
       $auth_supported                   = 'cephx',
       $osd_journal_size                 = '2048',

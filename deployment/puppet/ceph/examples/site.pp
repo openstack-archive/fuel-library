@@ -13,7 +13,7 @@ Exec { path => [ '/bin/', '/sbin/' , '/usr/bin/', '/usr/sbin/' ] }
 $primary_mon = 'controller-1.domain.tld'
 $cluster_network = '10.0.0.0/24'
 $public_network = '192.168.0.0/24'
-$osd_devices = split($::osd_devices_list, "\n")
+$osd_devices = split($::osd_devices_list, " ")
 $cluster_node_address = '10.0.0.3'
 
 node 'default' {
@@ -22,7 +22,7 @@ node 'default' {
       cluster_node_address             => $cluster_node_address,
       primary_mon                      => $primary_mon,
       ceph_pools                       => [ 'volumes', 'images' ],
-      osd_devices                      => split($::osd_devices_list, "\n"),
+      osd_devices                      => split($::osd_devices_list, " "),
       #ceph.conf Global settings
       auth_supported                   => 'cephx',
       osd_journal_size                 => '2048',
