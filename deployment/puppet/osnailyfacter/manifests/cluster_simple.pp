@@ -114,7 +114,7 @@ if !$debug
 }
 
 #TODO: awoodward fix static $use_ceph
-$use_ceph = true
+$use_ceph = false
 if ($use_ceph) {
   $primary_mons   = $controller
   $primary_mon    = $controller[0]['name']
@@ -254,14 +254,14 @@ if ($use_ceph) {
       #   require          => Class[glance::api],
       # }
 #TODO: fix this so it dosn't break ceph
-#      class { 'openstack::img::cirros':
-#        os_username               => shellescape($access_hash[user]),
-#        os_password               => shellescape($access_hash[password]),
-#        os_tenant_name            => shellescape($access_hash[tenant]),
-#        img_name                  => "TestVM",
-#        stage                     => 'glance-image',
-#      }
-#      Class[glance::api]        -> Class[openstack::img::cirros]
+      class { 'openstack::img::cirros':
+        os_username               => shellescape($access_hash[user]),
+        os_password               => shellescape($access_hash[password]),
+        os_tenant_name            => shellescape($access_hash[tenant]),
+        img_name                  => "TestVM",
+        stage                     => 'glance-image',
+      }
+      Class[glance::api]        -> Class[openstack::img::cirros]
 
       if !$quantum {
       nova_floating_range{ $floating_ips_range:
