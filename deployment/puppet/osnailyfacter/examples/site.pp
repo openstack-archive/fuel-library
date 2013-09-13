@@ -42,7 +42,6 @@ if $nodes != undef {
   $internal_br = $node[0]['internal_br']
   $base_syslog_hash     = parsejson($::base_syslog)
   $syslog_hash          = parsejson($::syslog)
-
   $use_quantum = str2bool($quantum)
   if $use_quantum {
     $public_int   = $public_br
@@ -101,6 +100,7 @@ class node_netconfig (
   $quantum = $use_quantum,
   $default_gateway
 ) {
+  class {"l23network::hosts_file": stage => 'netconfig', hosts => $nodes_hash }
   if $use_quantum {
     l23network::l3::create_br_iface {'mgmt':
       interface => $management_interface, # !!! NO $internal_int /sv !!!
