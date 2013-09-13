@@ -114,7 +114,8 @@ $swift_local_net_ip      = $::storage_address
 $cinder_iscsi_bind_addr = $::storage_address
 
 #TODO: awoodward fix static $use_ceph
-if ($::use_ceph) {
+$use_ceph = true
+if ($use_ceph) {
   $primary_mons   = filter_nodes($nodes_hash,'role','primary-controller')
   $primary_mon    = $primary_mons[0]['name']
   $glance_backend = 'ceph'
@@ -312,6 +313,7 @@ class virtual_ips () {
       nova_config { 'DEFAULT/compute_scheduler_driver': value => $::fuel_settings['compute_scheduler_driver'] }
 
 #TODO: fix this so it dosn't break ceph
+      if !(use_ceph) {
       if $::hostname == $::fuel_settings['last_controller'] {
         class { 'openstack::img::cirros':
           os_username => shellescape($access_hash[user]),
@@ -326,7 +328,7 @@ class virtual_ips () {
         Class[openstack::swift::proxy]        -> Class[openstack::img::cirros]
         Service[swift-proxy]                  -> Class[openstack::img::cirros]
 
-      }
+      }}
       if ! $::use_quantum {
         nova_floating_range{ $floating_ips_range:
           ensure          => 'present',

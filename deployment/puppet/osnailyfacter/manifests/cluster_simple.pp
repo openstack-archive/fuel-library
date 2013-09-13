@@ -106,7 +106,8 @@ if !$::fuel_settings['debug']
 }
 
 #TODO: awoodward fix static $use_ceph
-if ($::use_ceph) {
+$use_ceph = true
+if ($use_ceph) {
   $primary_mons   = $controller
   $primary_mon    = $controller[0]['name']
   $glance_backend = 'ceph'
@@ -247,6 +248,7 @@ if ($::use_ceph) {
       #   require          => Class[glance::api],
       # }
 #TODO: fix this so it dosn't break ceph
+      if !(use_ceph) {
       class { 'openstack::img::cirros':
         os_username               => shellescape($access_hash[user]),
         os_password               => shellescape($access_hash[password]),
@@ -255,6 +257,7 @@ if ($::use_ceph) {
         stage                     => 'glance-image',
       }
       Class[glance::api]        -> Class[openstack::img::cirros]
+      }
 
       if !$::use_quantum {
         nova_floating_range{ $floating_ips_range:
