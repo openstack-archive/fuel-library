@@ -54,7 +54,6 @@ class ceph (
   }
   resources {'ceph_conf':
     require           => Exec['ceph-deploy init config'],
-    key_val_separator => ' = ',
   }
   ceph_conf {
     'global/auth supported':                                   value => $auth_supported;
