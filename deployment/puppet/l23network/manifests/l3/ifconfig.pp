@@ -8,7 +8,7 @@
 #   Specify interface.
 #
 # [*ipaddr*]
-#   IP address for interface. Can contain IP address, 'dhcp' 
+#   IP address for interface. Can contain IP address, 'dhcp'
 #   or 'none' (with no IP address).
 #   Can be an array of CIDR IP addresses ['192.168.1.3/24','10.0.0.4/16']
 #   for multiple IPs on an interface. In this case netmask parameter is ignored.
@@ -21,7 +21,7 @@
 #   you must specify a parent interface in this option
 #
 # [*bond_master*]
-#   This parameter sets the bond_master interface and says that this interface 
+#   This parameter sets the bond_master interface and says that this interface
 #   is a slave for bondX interface.
 #
 # [*bond_mode*]
@@ -39,7 +39,7 @@
 #
 # [*gateway*]
 #   Specify default gateway if need.
-#   You can specify IP address, or 'save' for save default route 
+#   You can specify IP address, or 'save' for save default route
 #   if it lies through this interface now.
 #
 # [*dns_nameservers*]
@@ -70,7 +70,7 @@
 #   Timeout for check_by_ping
 #
 #
-# If you configure 802.1q vlan interfaces then you must declare relationships 
+# If you configure 802.1q vlan interfaces then you must declare relationships
 # between them in site.pp.
 # Ex: L23network:L3:Ifconfig['eth2'] -> L23network:L3:Ifconfig['eth2.128']
 #
@@ -121,18 +121,18 @@ define l23network::l3::ifconfig (
     # getting single IP address for interface. It can be not address, but method.
     $ipaddr_aliases = undef
     case $ipaddr {
-      'dhcp':  { 
-        $method = 'dhcp' 
+      'dhcp':  {
+        $method = 'dhcp'
         $effective_ipaddr  = $ipaddr
         $effective_netmask = undef
       }
-      'none':  { 
-        $method = 'manual' 
+      'none':  {
+        $method = 'manual'
         $effective_ipaddr  = $ipaddr
         $effective_netmask = undef
       }
-      default: { 
-        $method = 'static' 
+      default: {
+        $method = 'static'
         if $ipaddr =~ /\/\d{1,2}\s*$/ {
           # ipaddr can be cidr-notated
           $effective_ipaddr = cidr_to_ipaddr($ipaddr)
@@ -164,7 +164,7 @@ define l23network::l3::ifconfig (
           class{'l23network::l2::centos_upndown_scripts': }
         }
       }
-      Anchor <| title == 'l23network::l2::centos_upndown_scripts' |> 
+      Anchor <| title == 'l23network::l2::centos_upndown_scripts' |>
         -> L23network::L3::Ifconfig <| interface == "$interface" |>
     }
     default: {
@@ -233,11 +233,11 @@ define l23network::l3::ifconfig (
   }
 
   if $method == 'static' {
-    if $gateway and gateway != 'save' {
+    if $gateway and $gateway != 'save' {
       $def_gateway = $gateway
     } else {
       # recognizing default gateway
-      if gateway == 'save' and $::l3_default_route and $::l3_default_route_interface == $interface {
+      if $gateway == 'save' and $::l3_default_route and $::l3_default_route_interface == $interface {
         $def_gateway = $::l3_default_route
       } else {
         $def_gateway = undef
