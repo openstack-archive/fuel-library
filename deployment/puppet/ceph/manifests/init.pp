@@ -52,6 +52,10 @@ class ceph (
   Exec { path => [ '/bin/', '/sbin/' , '/usr/bin/', '/usr/sbin/' ],
          cwd  => '/root',
   }
+  resources {'ceph_conf':
+    require           => Exec['ceph-deploy init config'],
+    key_val_separator => ' = ',
+  }
   ceph_conf {
     'global/auth supported':                                   value => $auth_supported;
     'global/osd journal size':                                 value => $osd_journal_size;
@@ -77,7 +81,6 @@ class ceph (
     'client.radosgw.gateway/rgw print continue':               value => $rgw_print_continue;
     'client.radosgw.gateway/nss db path':                      value => $nss_db_path;
   }
-  Ceph_conf {require => Exec['ceph-deploy init config']}
   #RE-enable this if not using fuelweb iso with Ceph packages
   #include 'ceph::yum'
   include 'ceph::params'

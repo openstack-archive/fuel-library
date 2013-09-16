@@ -8,12 +8,6 @@ class ceph::cinder (
 ) {
   if str2bool($::cinder_conf) {
 
-    exec {'Copy configs':
-      command => "scp -r ${::ceph::primary_mon}:/etc/ceph/* /etc/ceph/",
-      require => Package['ceph'],
-      returns => 0,
-    }
-
     Cinder_config<||> ~> Service["${::ceph::params::service_cinder_volume}" ]
     File_line<||> ~> Service["${::ceph::params::service_cinder_volume}"]
 
@@ -42,7 +36,7 @@ class ceph::cinder (
       command => 'ceph auth get-or-create client.volumes > /etc/ceph/ceph.client.volumes.keyring',
       before  => File['/etc/ceph/ceph.client.volumes.keyring'],
       creates => '/etc/ceph/ceph.client.volumes.keyring',
-      require => [Package['ceph'], Exec['Copy configs']],
+      require => [Package['ceph'], Exec['ceph-deploy init config']],
       notify  => Service["${::ceph::params::service_cinder_volume}"],
       returns => 0,
     }

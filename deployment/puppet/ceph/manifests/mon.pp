@@ -14,6 +14,7 @@ class ceph::mon {
     logoutput => true,
     require   => [Exec['ceph-deploy init config'],
     ],
+    unless    => 'ceph -s'
     #TODO: need method to update mon_nodes in ceph.conf
   }
   exec { 'ceph-deploy gatherkeys':

@@ -343,7 +343,6 @@ class virtual_ips () {
       }
       if defined(Class['ceph']){
         Class['openstack::controller'] -> Class['ceph::glance']
-        Class['glance::api']           -> Class['ceph::glance']
         Class['openstack::controller'] -> Class['ceph::cinder']
       }
 
