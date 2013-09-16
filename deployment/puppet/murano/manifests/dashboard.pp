@@ -8,15 +8,12 @@ class murano::dashboard (
 
   if $enabled {
     $service_ensure = 'running'
-    $line_in_settings_py__ensure = 'present'
     $package_ensure = 'installed'
 
   } else {
     $service_ensure = 'stopped'
-    $line_in_settings_py_ensure = 'absent'
     $package_ensure = 'absent'
   }
-
 
 
   exec { 'fix_horizon_config':
