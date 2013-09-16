@@ -14,6 +14,7 @@ class PManager(object):
         self._pre = []
         self._kick = []
         self._post = []
+        self.raid_count = 0
 
         self._pcount = {}
         self._pend = {}
@@ -66,6 +67,13 @@ class PManager(object):
             return ""
         return "--fstype=%s" % fstype
 
+    def _getlabel(self, label):
+        if not label:
+            return ""
+        # XFS will refuse to format a partition if the
+        # disk label is > 12 characters.
+        return " -L {0} ".format(label[:12])
+
     def _parttype(self, n):
         return "primary"
 
@@ -91,6 +99,10 @@ class PManager(object):
                     "vgreduce -ff --removemissing $v; vgremove -ff $v; done")
         self.pre("for p in $(pvs | grep '\/dev' | awk '{print $1}'); do "
                     "pvremove -ff -y $p ; done")
+
+    def erase_raid_metadata(self):
+        for disk in [d for d in self.data if d["type"] == "disk"]:
+            self.pre("mdadm --zero-superblock --force /dev/{0}*".format(disk['id']))
 
     def clean(self, disk):
         self.pre("hdparm -z /dev/{0}".format(disk["id"]))
@@ -176,13 +188,8 @@ class PManager(object):
                                            disk["id"], pcount))
                 else:
                     if part["mount"] != "swap":
-                        disk_label = ""
-                        if part.get("disk_label"):
-                            # XFS will refuse to format a partition if the
-                            # disk label is > 12 characters.
-                            disk_label = "-L {0}".format(
-                                part["disk_label"][:12])
-                        self.post("mkfs.{0} $(readlink -f /dev/{1})"
+                        disk_label = self._getlabel(part.get('disk_label'))
+                        self.post("mkfs.{0} -f $(readlink -f /dev/{1})"
                                   "{2} {3}".format(tabfstype, disk["id"],
                                                    pcount, disk_label))
                         if part["mount"] != "none":
@@ -199,12 +206,22 @@ class PManager(object):
         if not volume_filter:
             volume_filter = lambda x: True
         raids = {}
+        raid_info = {}
+        phys = {}
         for disk in [d for d in self.data if d["type"] == "disk"]:
             for raid in filter(lambda p: p["type"] == "raid" and
                                volume_filter(p), disk["volumes"]):
                 if raid["size"] <= 0:
                     continue
+                raid_info[raid["mount"]] = {
+                    'label': raid.get("disk_label"),
+                    'fs': raid["file_system"],
+                }
                 pcount = self.pcount(disk["id"], 1)
+                if not phys.get(raid["mount"]):
+                    phys[raid["mount"]] = []
+                phys[raid["mount"]].append("$(readlink -f /dev/{0}){1}".
+                    format(disk["id"], pcount))
                 rname = "raid.{0:03d}".format(self.rcount(1))
                 begin_size = self.psize(disk["id"])
                 end_size = self.psize(disk["id"], raid["size"] * self.factor)
@@ -222,8 +239,31 @@ class PManager(object):
 
         for (num, (mount, rnames)) in enumerate(raids.iteritems()):
             fstype = self._gettabfstype({"mount": mount})
-            self.kick("raid {0} --device md{1} --fstype ext2 "
-                      "--level=RAID1 {2}".format(mount, num, " ".join(rnames)))
+            # Anaconda won't label a RAID array. It also can't create
+            # a single-drive RAID1 array, but mdadm can.
+            if raid_info[mount].get('label') or len(rnames) == 1:
+                if len(rnames) == 1:
+                    phys[mount].append('missing')
+                ri = raid_info[mount]
+                self.post("mdadm --create /dev/md{0} --run --level=1 "
+                            "--raid-devices={1} {2}".format(self.raid_count,
+                            len(phys[mount]), ' '.join(phys[mount])))
+                self.post("mkfs.{0} -f {1} /dev/md{2}".format(ri["fs"],
+                          self._getlabel(ri.get("label")), self.raid_count))
+                self.post("mdadm --detail --scan | grep '\/dev\/md{0}'"
+                          ">> /mnt/sysimage/etc/mdadm.conf".format(
+                          self.raid_count))
+                self.post("mkdir -p /mnt/sysimage{0}".format(mount))
+                self.post("echo \\\"UUID=\$(blkid -s UUID -o value "
+                          "/dev/md{0}) "
+                          "{1} {2} defaults 0 0\\\""
+                          " >> /mnt/sysimage/etc/fstab".format(
+                             self.raid_count, mount, ri["fs"]))
+            else:
+                self.kick("raid {0} --device md{1} --fstype {3} "
+                    "--level=RAID1 {2}".format(mount, self.raid_count,
+                    " ".join(rnames), fstype))
+            self.raid_count += 1
 
     def pvs(self):
         pvs = {}
@@ -349,6 +389,7 @@ class PManager(object):
         for disk in [d for d in self.data if d["type"] == "disk"]:
             self.pre("hdparm -z /dev/{0}".format(disk["id"]))
         self.erase_lvm_metadata()
+        self.erase_raid_metadata()
 
 
 def pm(data):

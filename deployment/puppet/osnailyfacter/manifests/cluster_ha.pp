@@ -114,7 +114,8 @@ $controller_public_addresses = nodes_to_hash($controllers,'name','public_address
 $controller_storage_addresses = nodes_to_hash($controllers,'name','storage_address')
 $controller_hostnames = keys($controller_internal_addresses)
 $controller_nodes = sort(values($controller_internal_addresses))
-$controller_node_public  = $management_vip
+$controller_node_public  = $public_vip
+$controller_node_address = $management_vip
 $mountpoints = filter_hash($mp_hash,'point')
 $swift_proxies = $controller_storage_addresses
 $quantum_metadata_proxy_shared_secret = $quantum_params['metadata_proxy_shared_secret']
@@ -124,6 +125,20 @@ $quantum_gre_bind_addr = $::internal_address
 $swift_local_net_ip      = $::storage_address
 
 $cinder_iscsi_bind_addr = $::storage_address
+
+#TODO: awoodward fix static $use_ceph
+$use_ceph = false
+if ($use_ceph) {
+  $primary_mons   = filter_nodes($nodes_hash,'role','primary-controller')
+  $primary_mon    = $primary_mons[0]['name']
+  $glance_backend = 'ceph'
+  class {'ceph':
+    primary_mon  => $primary_mon,
+    cluster_node_address => $controller_node_address,
+  }
+} else {
+  $glance_backend = 'swift'
+}
 
 if $auto_assign_floating_ip == 'true' {
   $bool_auto_assign_floating_ip = true
@@ -168,7 +183,8 @@ $master_swift_proxy_ip = $master_swift_proxy_nodes[0]['internal_address']
 
 $multi_host              = true
 $manage_volumes          = false
-$glance_backend          = 'swift'
+#Moved to CEPH if block
+#$glance_backend          = 'swift'
 $quantum_netnode_on_cnt  = true
 $swift_loopback = false
 $mirror_type = 'external'
@@ -326,6 +342,7 @@ class virtual_ips () {
       nova_config { 'DEFAULT/use_cow_images': value => $use_cow_images }
       nova_config { 'DEFAULT/compute_scheduler_driver': value => $compute_scheduler_driver }
 
+#TODO: fix this so it dosn't break ceph
       if $::hostname == $::last_controller {
         class { 'openstack::img::cirros':
           os_username => shellescape($access_hash[user]),
@@ -352,7 +369,11 @@ class virtual_ips () {
           authtenant_name => $access_hash[tenant],
         }
       }
-
+      if defined(Class['ceph']){
+        Class['openstack::controller'] -> Class['ceph::glance']
+        Class['glance::api']           -> Class['ceph::glance']
+        Class['openstack::controller'] -> Class['ceph::cinder']
+      }
      }
 
     "compute" : {
@@ -407,6 +428,10 @@ class virtual_ips () {
         state_path             => $nova_hash[state_path],
       }
 
+        if defined(Class['ceph']){
+          Class['openstack::compute'] -> Class['ceph']
+        }
+
 #      class { "::rsyslog::client":
 #        log_local => true,
 #        log_auth_local => true,
@@ -451,5 +476,11 @@ class virtual_ips () {
 #        rservers => $rservers,
 #      }
     }
+    "ceph-osd" : {
+      #Class Ceph is already defined so it will do it's thing.
+      notify {"ceph_osd: ${::ceph::osd_devices}": }
+      notify {"osd_devices:  ${::osd_devices_list}": }
+    }
+    
   }
 }
