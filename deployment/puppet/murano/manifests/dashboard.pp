@@ -6,6 +6,8 @@ class murano::dashboard (
 
   include murano::params
 
+  Package['murano_dashboard'] -> Exec['fix_horizon_config']  ~> Service['httpd']
+
   if $enabled {
     $service_ensure = 'running'
     $package_ensure = 'installed'
@@ -19,7 +21,6 @@ class murano::dashboard (
   exec { 'fix_horizon_config':
     command     => "/usr/bin/modify-horizon-config.sh install  /usr/share/openstack-dashboard/openstack_dashboard/settings.py",
     notify      => Service['httpd'],
-    require     => Package['murano_dashboard']
 }
   package { 'murano_dashboard':
     ensure => $package_ensure,
