@@ -18,6 +18,7 @@ class quantum::plugins::ovs (
   # todo: Remove plugin section, add plugin to server class
 
   include 'quantum::params'
+  include 'l23network::params'
   validate_re($sql_connection, '(sqlite|mysql|posgres):\/\/(\S+:\S+@\S+\/\S+)?')
   $br_map_str = join($bridge_mappings, ',')
   
