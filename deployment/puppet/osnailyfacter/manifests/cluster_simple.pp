@@ -131,6 +131,7 @@ if ($use_ceph) {
     "controller" : {
       include osnailyfacter::test_controller
 
+      class {'osnailyfacter::apache_api_proxy':}
       class { 'openstack::controller':
         admin_address           => $controller_node_address,
         public_address          => $controller_node_public,
