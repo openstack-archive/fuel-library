@@ -10,7 +10,7 @@ class ceph::cinder (
 
     Cinder_config<||> ~> Service["${::ceph::params::service_cinder_volume}" ]
     File_line<||> ~> Service["${::ceph::params::service_cinder_volume}"]
-
+    #TODO: this needs to be re-worked to follow https://wiki.openstack.org/wiki/Cinder-multi-backend
     cinder_config {
       'DEFAULT/volume_driver':           value => $volume_driver;
       'DEFAULT/rbd_pool':                value => $rbd_pool;
