@@ -368,6 +368,7 @@ class virtual_ips () {
           auth_url        => "http://${management_vip}:5000/v2.0/",
           authtenant_name => $access_hash[tenant],
         }
+        Class[nova::api] -> Nova_floating_range <| |>
       }
       if defined(Class['ceph']){
         Class['openstack::controller'] -> Class['ceph::glance']
