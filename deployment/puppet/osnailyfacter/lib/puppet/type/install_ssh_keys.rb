@@ -7,10 +7,10 @@ install_ssh_keys {'root_ssh_key':
   user             => 'root',
   private_key_path => '/root/key',
   public_key_path  => '/root/key.pub',
-  private_key_name => 'id_rsa', #*
-  public_key_name  => 'id_rsa_pub', #*
-  authorized_keys  => 'authorized_keys2', #*
-  # * optional
+  # Optional parameters
+  private_key_name => 'id_rsa',
+  public_key_name  => 'id_rsa_pub',
+  authorized_keys  => 'authorized_keys2',
 }
 ENDOFDOC
 ) do
@@ -51,7 +51,7 @@ ENDOFDOC
     defaultto 'id_rsa'
 
     validate do |value|
-      raise Puppet::Error, "Private key name is empty!" unless value && !value.empty?
+      raise Puppet::Error, "Private key name is empty!" if value.empty?
     end
   end
 
@@ -61,7 +61,7 @@ ENDOFDOC
     defaultto 'id_rsa.pub'
 
     validate do |value|
-      raise Puppet::Error, "Public key name is empty!" unless value && !value.empty?
+      raise Puppet::Error, "Public key name is empty!" if value.empty?
     end
   end
 
