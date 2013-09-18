@@ -4,24 +4,31 @@ Puppet::Type.type(:install_ssh_keys).provide :ssh do
   desc 'install ssh keys'
 
   def exists?
-    File.exist?("#{sshdir}/#{@resource[:authkey]}") && File.read("#{sshdir}/#{@resource[:authkey]}").grep(sshkey).any?
+    return false unless File.exists? pubkey
+    return false unless File.exists? privkey
+    authkey_present?
   end
 
   def create
-    FileUtils.mkdir_p sshdir
-    FileUtils.cp @resource[:keypath], sshdir
-    FileUtils.cp @resource[:pub_keypath], sshdir
-    FileUtils.chown_R Etc.getpwnam(@resource[:user]).uid, Etc.getpwnam(@resource[:user]).uid, sshdir
+    FileUtils.mkdir_p sshdir unless File.exists? sshdir
+    FileUtils.cp @resource[:private_key_path], pubkey
+    FileUtils.cp @resource[:public_key_path], privkey
+    FileUtils.chown_R uid, gid, sshdir
     FileUtils.chmod_R 0600, sshdir
     FileUtils.chmod 0700, sshdir
-    File.open("#{sshdir}/#{@resource[:authkey]}", 'a') { |file| file.write sshkey }
+    File.open(authfile, 'a') { |file| file.write sshkey } unless authkey_present?
   end
 
   def destroy
-    FileUtils.rm @resource[:keypath]
-    FileUtils.rm @resource[:pub_keypath]
-    authkey = File.read("#{sshdir}/#{@resource[:authkey]}").gsub(/#{sshkey}\n?/, '')
-    File.open("#{sshdir}/#{@resource[:authkey]}", 'w') { |file| file.puts authkey }
+    FileUtils.rm pubkey if File.exists? pubkey
+    FileUtils.rm privkey if File.exists? privkey
+    authkey = File.read(authfile).gsub(sshkey, '')
+    File.open(authfile, 'w') { |file| file.puts authkey } if File.exists? authfile
+  end
+
+  def authkey_present?
+    return false unless File.exist? authfile
+    File.read(authfile).grep(sshkey).any?
   end
 
   def sshdir
@@ -29,6 +36,26 @@ Puppet::Type.type(:install_ssh_keys).provide :ssh do
   end
 
   def sshkey
-    File.read @resource[:pub_keypath]
+    File.read @resource[:public_key_path]
+  end
+
+  def pubkey
+    "#{sshdir}/#{@resource[:private_key_name]}"
+  end
+
+  def privkey
+    "#{sshdir}/#{@resource[:public_key_name]}"
+  end
+
+  def authfile
+    "#{sshdir}/#{@resource[:authorized_keys]}"
+  end
+
+  def uid
+    Etc.getpwnam(@resource[:user]).uid
+  end
+
+  def gid
+    Etc.getpwnam(@resource[:user]).gid
   end
 end
