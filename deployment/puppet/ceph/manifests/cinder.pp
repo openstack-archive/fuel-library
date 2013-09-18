@@ -6,7 +6,7 @@ class ceph::cinder (
   $rbd_user           = $::ceph::rbd_user,
   $rbd_secret_uuid    = $::ceph::rbd_secret_uuid,
 ) {
-  if str2bool($::cinder_conf) {
+  if str2bool($::cinder_conf) or defined(Class['openstack::cinder']){
 
     Cinder_config<||> ~> Service["${::ceph::params::service_cinder_volume}" ]
     File_line<||> ~> Service["${::ceph::params::service_cinder_volume}"]

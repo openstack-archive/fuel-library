@@ -5,7 +5,7 @@ class ceph::glance (
   $rbd_store_pool        = $::ceph::rbd_store_pool,
   $show_image_direct_url = $::ceph::show_image_direct_url,
 ) {
-  if str2bool($::glance_api_conf) {
+  if str2bool($::glance_api_conf) or defined(Class['openstack::glance']) {
 
     if ! defined('glance::backend::ceph') {
       package {['python-ceph']:
