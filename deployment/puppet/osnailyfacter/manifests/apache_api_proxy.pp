@@ -1,5 +1,5 @@
 # Proxy realization via apache
-class osnailyfacter::apache_api_proxy inherits osnailyfacter::params {
+class osnailyfacter::apache_api_proxy {
 
   $apache_site_dir = $osnailyfacter::params::apache_site_dir
 
@@ -22,7 +22,7 @@ class osnailyfacter::apache_api_proxy inherits osnailyfacter::params {
     file { '/etc/apache2/sites-enabled/api_proxy.conf':
       ensure => 'link',
       target => '/etc/apache2/sites-available/api_proxy.conf',
-      notify  => Service['httpd'],
+      notify => Service['httpd'],
     }
   } elsif ($::osfamily == 'RedHat') {
 
