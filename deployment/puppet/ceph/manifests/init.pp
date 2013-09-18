@@ -52,34 +52,7 @@ class ceph (
   Exec { path => [ '/bin/', '/sbin/' , '/usr/bin/', '/usr/sbin/' ],
          cwd  => '/root',
   }
-  resources {'ceph_conf':
-    require           => Exec['ceph-deploy init config'],
-  }
-  ceph_conf {
-    'global/auth supported':                                   value => $auth_supported;
-    'global/osd journal size':                                 value => $osd_journal_size;
-    'global/osd mkfs type':                                    value => $osd_mkfs_type;
-    'global/osd pool default size':                            value => $osd_pool_default_size;
-    'global/osd pool default min size':                        value => $osd_pool_default_min_size;
-    'global/osd pool default pg num':                          value => $osd_pool_default_pg_num;
-    'global/osd pool default pgp num':                         value => $osd_pool_default_pgp_num;
-    'global/cluster network':                                  value => $cluster_network;
-    'global/public network':                                   value => $public_network;
-    'client.radosgw.gateway/host':                             value => $host;
-    'client.radosgw.gateway/keyring':                          value => $keyring_path;
-    'client.radosgw.gateway/rgw socket path':                  value => $rgw_socket_path;
-    'client.radosgw.gateway/log file':                         value => $log_file;
-    'client.radosgw.gateway/user':                             value => $user;
-    'client.radosgw.gateway/rgw keystone url':                 value => $rgw_keystone_url;
-    'client.radosgw.gateway/rgw keystone admin token':         value => $rgw_keystone_admin_token;
-    'client.radosgw.gateway/rgw keystone accepted roles':      value => $rgw_keystone_accepted_roles;
-    'client.radosgw.gateway/rgw keystone token cache size':    value => $rgw_keystone_token_cache_size;
-    'client.radosgw.gateway/rgw keystone revocation interval': value => $rgw_keystone_revocation_interval;
-    'client.radosgw.gateway/rgw data':                         value => $rgw_data;
-    'client.radosgw.gateway/rgw dns name':                     value => $rgw_dns_name;
-    'client.radosgw.gateway/rgw print continue':               value => $rgw_print_continue;
-    'client.radosgw.gateway/nss db path':                      value => $nss_db_path;
-  }
+
   #RE-enable this if not using fuelweb iso with Ceph packages
   #include 'ceph::yum'
   include 'ceph::params'
@@ -90,6 +63,34 @@ class ceph (
   #Prepare nodes for futher actions
   #TODO: add ceph service
   if $::hostname == $::ceph::primary_mon {
+	  resources {'ceph_conf':
+	    require           => Exec['ceph-deploy init config'],
+	  }
+	  ceph_conf {
+	    'global/auth supported':                                   value => $auth_supported;
+	    'global/osd journal size':                                 value => $osd_journal_size;
+	    'global/osd mkfs type':                                    value => $osd_mkfs_type;
+	    'global/osd pool default size':                            value => $osd_pool_default_size;
+	    'global/osd pool default min size':                        value => $osd_pool_default_min_size;
+	    'global/osd pool default pg num':                          value => $osd_pool_default_pg_num;
+	    'global/osd pool default pgp num':                         value => $osd_pool_default_pgp_num;
+	    'global/cluster network':                                  value => $cluster_network;
+	    'global/public network':                                   value => $public_network;
+	    'client.radosgw.gateway/host':                             value => $host;
+	    'client.radosgw.gateway/keyring':                          value => $keyring_path;
+	    'client.radosgw.gateway/rgw socket path':                  value => $rgw_socket_path;
+	    'client.radosgw.gateway/log file':                         value => $log_file;
+	    'client.radosgw.gateway/user':                             value => $user;
+	    'client.radosgw.gateway/rgw keystone url':                 value => $rgw_keystone_url;
+	    'client.radosgw.gateway/rgw keystone admin token':         value => $rgw_keystone_admin_token;
+	    'client.radosgw.gateway/rgw keystone accepted roles':      value => $rgw_keystone_accepted_roles;
+	    'client.radosgw.gateway/rgw keystone token cache size':    value => $rgw_keystone_token_cache_size;
+	    'client.radosgw.gateway/rgw keystone revocation interval': value => $rgw_keystone_revocation_interval;
+	    'client.radosgw.gateway/rgw data':                         value => $rgw_data;
+	    'client.radosgw.gateway/rgw dns name':                     value => $rgw_dns_name;
+	    'client.radosgw.gateway/rgw print continue':               value => $rgw_print_continue;
+	    'client.radosgw.gateway/nss db path':                      value => $nss_db_path;
+	  }
     exec { 'ceph-deploy init config':
       command   => "ceph-deploy new ${::hostname}:${::internal_address}",
       cwd       => '/etc/ceph',
