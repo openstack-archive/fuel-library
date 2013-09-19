@@ -120,8 +120,10 @@ if ($use_ceph) {
   $primary_mon    = $primary_mons[0]['name']
   $glance_backend = 'ceph'
   class {'ceph':
-    primary_mon  => $primary_mon,
+    primary_mon          => $primary_mon,
     cluster_node_address => $controller_node_address,
+    use_rgw              => true,
+    use_ssl              => false,
   }
 } else {
   $glance_backend = 'swift'
