@@ -3,7 +3,7 @@
 # Comments are ignored by rsync
 # Exclude is "- pattern"
 + GeoIP*
-+ MySQL*
++ MySQL*wsrep*
 + MySQL-python*
 + cirros-testvm*
 + crmsh*
