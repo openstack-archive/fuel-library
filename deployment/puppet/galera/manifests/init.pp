@@ -197,8 +197,7 @@ class galera (
 
 
   package { "galera":
-    ensure   => $::galera::params::galera_version,
-    provider => $::galera::params::pkg_provider,
+    ensure   => present,
   }
 
   # Uncomment the following Exec and sequence arrow to obtain full MySQL server installation log
