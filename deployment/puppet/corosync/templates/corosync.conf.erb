@@ -25,7 +25,9 @@ logging {
   logfile:         /var/log/corosync.log
   to_syslog:       yes
   syslog_facility: daemon
-  debug:           <%= scope.lookupvar('debug') ? 'on' : 'off' %>
+# We don't really want corosync debugs, it is TOO verbose
+#  debug:           <%= scope.lookupvar('debug') ? 'on' : 'off' %>
+  debug:           off
   timestamp:       on
   logger_subsys {
     subsys: AMF
