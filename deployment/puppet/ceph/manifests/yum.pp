@@ -1,3 +1,4 @@
+# configure yum repos for Ceph
 class ceph::yum (
   $release = 'cuttlefish'
   )
@@ -65,5 +66,4 @@ class ceph::yum (
 	        gpgkey => 'file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-6',
 	        enabled => '0',
 	  }
-
 }

@@ -36,7 +36,7 @@ class ceph::cinder (
       command => 'ceph auth get-or-create client.volumes > /etc/ceph/ceph.client.volumes.keyring',
       before  => File['/etc/ceph/ceph.client.volumes.keyring'],
       creates => '/etc/ceph/ceph.client.volumes.keyring',
-      require => [Package['ceph'], Exec['ceph-deploy init config']],
+      require => Class['ceph::conf'],
       notify  => Service["${::ceph::params::service_cinder_volume}"],
       returns => 0,
     }

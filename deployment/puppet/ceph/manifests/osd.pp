@@ -1,6 +1,6 @@
 #Ceph::osd will prepare and online devices in $::ceph::osd_devices
 class ceph::osd (
-  $devices = join(prefix($::ceph::osd_devices, "${::hostname}:"), " "),
+  $devices = join(prefix($::ceph::osd_devices, "${::hostname}:"), ' '),
 ){
  if ! empty($::ceph::osd_devices) {
 
@@ -27,6 +27,7 @@ class ceph::osd (
                  ],
     logoutput => true,
   }
+
   exec { 'ceph-deploy osd activate':
     command   => "ceph-deploy osd activate ${devices}",
     returns   => 0,

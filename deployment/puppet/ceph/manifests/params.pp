@@ -1,4 +1,4 @@
-#These are per-OS parameters and should be considered static
+# These are per-OS parameters and should be considered static
 class ceph::params {
 
   case $::osfamily {
@@ -24,10 +24,12 @@ class ceph::params {
       package { ['ceph', 'redhat-lsb-core','ceph-deploy', 'pushy',]:
         ensure => latest,
       }
+
       file {'/etc/sudoers.d/ceph':
-        content => "#This is required for ceph-deploy\nDefaults !requiretty\n"
+        content => "# This is required for ceph-deploy\nDefaults !requiretty\n"
       }
     }
+
     'Debian': {
       $service_cinder_volume      = 'cinder-volume'
       $service_cinder_volume_opts = '/etc/init/cinder-volume.conf'
@@ -47,12 +49,29 @@ class ceph::params {
       $dir_httpd_sites            = '/etc/apache2/sites-available/'
       $dir_httpd_ssl              = '/etc/apache2/ssl/'
 
-      package { ['ceph','ceph-deploy', 'pushy', ]:
+      package { ['ceph','ceph-deploy', 'python-pushy', ]:
         ensure => latest,
       }
     }
+
     default: {
       fail("Unsupported osfamily: ${::osfamily} operatingsystem: ${::operatingsystem}, module ${module_name} only support osfamily RedHat and Debian")
     }
+  }
+
+  service {'ceph':
+    # Left blank, will set later for roles that need it
+  }
+}
+
+# ceph::libnss sets up the OS-specific libnss package for Ceph
+class ceph::libnss {
+  package {$::ceph::params::package_libnss:
+    ensure => 'latest',
+  }
+
+  file {$::ceph::rgw_nss_db_path:
+    ensure => 'directory',
+    mode   => '0755',
   }
 }
