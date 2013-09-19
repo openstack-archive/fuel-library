@@ -33,7 +33,7 @@ ENDOFDOC
     desc 'Path to private key in temporary location'
     validate do |value|
       raise Puppet::Error, "#{value} does not look like PATH" unless value =~ /^\/\S/
-      raise Puppet::Error, "#{value} no such file" unless File.exist? value
+      raise Puppet::Error, "#{value} no such file" unless File.exists? value
     end
   end
 
@@ -41,7 +41,7 @@ ENDOFDOC
     desc 'Path to public key in temporary location'
     validate do |value|
       raise Puppet::Error, "#{value} does not look like PATH" unless value =~ /^\/\S/
-      raise Puppet::Error, "#{value} no such file" unless File.exist? value
+      raise Puppet::Error, "#{value} no such file" unless File.exists? value
     end
   end
 
