@@ -8,6 +8,17 @@ class ceph::params {
       $service_glance_api         = 'openstack-glance-api'
       $service_glance_registry    = 'openstack-glance-registry'
       $service_nova_compute       = 'openstack-nova-compute'
+      #RadosGW
+      $service_httpd              = 'httpd'
+      $package_httpd              = 'httpd'
+      $package_libnss             = 'nss-tools'
+      $service_radosgw            = 'ceph-radosgw'
+      $package_radiosgw           = 'ceph-radosgw'
+      $package_modssl             = 'mod_ssl'
+      $package_fastcgi            = 'mod_fcgid'
+      $dir_httpd_conf             = '/etc/httpd/conf/'
+      $dir_httpd_sites            = '/etc/httpd/conf.d/'
+      $dir_httpd_ssl              = '/etc/httpd/ssl/'
 
       package { ['ceph', 'redhat-lsb-core','ceph-deploy', 'pushy',]:
         ensure => latest,
@@ -22,6 +33,17 @@ class ceph::params {
       $servic_glance_api          = 'glance-api'
       $service_glance_registry    = 'glance-registry'
       $service_nova_compute       = 'nova-compute'
+      #RadosGW
+      $service_httpd              = 'apache2'
+      $package_httpd              = 'apache2'
+      $package_libnss             = 'libnss3-tools'
+      $service_radosgw            = 'radosgw'
+      $package_radiosgw           = 'radosgw'
+      $package_fastcgi            = 'libapache2-mod-fastcgi'
+      $package_modssl             = ''
+      $dir_httpd_conf             = '/etc/httpd/conf/'
+      $dir_httpd_sites            = '/etc/apache2/sites-available/'
+      $dir_httpd_ssl              = '/etc/apache2/ssl/'
 
       package { ['ceph','ceph-deploy', 'pushy', ]:
         ensure => latest,

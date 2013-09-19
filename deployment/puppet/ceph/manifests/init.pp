@@ -5,6 +5,8 @@ class ceph (
       $primary_mon                      = $::hostname, #This should be the first controller
       $ceph_pools                       = [ 'volumes', 'images' ],
       $osd_devices                      = split($::osd_devices_list, " "),
+      $use_ssl                          = false,
+      $use_rgw                          = false,
       #ceph.conf Global settings
       $auth_supported                   = 'cephx',
       $osd_journal_size                 = '2048',
@@ -14,23 +16,27 @@ class ceph (
       #TODO: calculate PG numbers
       $osd_pool_default_pg_num          = '100',
       $osd_pool_default_pgp_num         = '100',
-      $cluster_network                  = "${::storage_network_range}",
-      $public_network                   = "${::management_network_range}",
+      $cluster_network                  = $::storage_network_range,
+      $public_network                   = $::management_network_range,
       #RadosGW settings
-      $host                             = $::hostname,
-      $keyring_path                     = '/etc/ceph/keyring.radosgw.gateway',
+      $rgw_host                         = $::hostname,
+      $rgw_keyring_path                 = '/etc/ceph/keyring.radosgw.gateway',
       $rgw_socket_path                  = '/tmp/radosgw.sock',
-      $log_file                         = '/var/log/ceph/radosgw.log',
-      $user                             = 'www-data',
+      $rgw_log_file                     = '/var/log/ceph/radosgw.log',
+      $rgw_user                         = 'www-data',
       $rgw_keystone_url                 = "${cluster_node_address}:5000",
       $rgw_keystone_admin_token         = 'nova',
       $rgw_keystone_token_cache_size    = '10',
-      $rgw_keystone_accepted_roles      = undef, #TODO: find a default value for this
+      $rgw_keystone_accepted_roles      = "_member_, Member, admin, swiftoperator",
       $rgw_keystone_revocation_interval = '60',
       $rgw_data                         = '/var/lib/ceph/rados',
-      $rgw_dns_name                     = $::hostname,
+      $rgw_dns_name                     = "*.${::domain}",
       $rgw_print_continue               = 'false',
-      $nss_db_path                      = '/etc/ceph/nss',
+      $rgw_nss_db_path                  = '/etc/ceph/nss',
+      #Keystone settings
+      $rgw_pub_ip                       = $cluster_node_address,
+      $rgw_adm_ip                       = $cluster_node_address,
+      $rgw_int_ip                       = $cluster_node_address,
       #Cinder settings
       $volume_driver                    = 'cinder.volume.drivers.rbd.RBDDriver',
       $rbd_pool                         = 'volumes',
@@ -43,10 +49,6 @@ class ceph (
       $rbd_store_user                   = 'images',
       $rbd_store_pool                   = 'images',
       $show_image_direct_url            = 'True',
-      #Keystone settings
-      $rgw_pub_ip                       = "${cluster_node_address}",
-      $rgw_adm_ip                       = "${cluster_node_address}",
-      $rgw_int_ip                       = "${cluster_node_address}",
 ) {
 
   Exec { path => [ '/bin/', '/sbin/' , '/usr/bin/', '/usr/sbin/' ],
@@ -61,36 +63,24 @@ class ceph (
   #TODO: OR need to at least generate the key
 
   #Prepare nodes for futher actions
-  #TODO: add ceph service
+  service {'ceph':
+    #Left blank, will set later
+  }
   if $::hostname == $::ceph::primary_mon {
-	  resources {'ceph_conf':
-	    require           => Exec['ceph-deploy init config'],
-	  }
-	  ceph_conf {
-	    'global/auth supported':                                   value => $auth_supported;
-	    'global/osd journal size':                                 value => $osd_journal_size;
-	    'global/osd mkfs type':                                    value => $osd_mkfs_type;
-	    'global/osd pool default size':                            value => $osd_pool_default_size;
-	    'global/osd pool default min size':                        value => $osd_pool_default_min_size;
-	    'global/osd pool default pg num':                          value => $osd_pool_default_pg_num;
-	    'global/osd pool default pgp num':                         value => $osd_pool_default_pgp_num;
-	    'global/cluster network':                                  value => $cluster_network;
-	    'global/public network':                                   value => $public_network;
-	    'client.radosgw.gateway/host':                             value => $host;
-	    'client.radosgw.gateway/keyring':                          value => $keyring_path;
-	    'client.radosgw.gateway/rgw socket path':                  value => $rgw_socket_path;
-	    'client.radosgw.gateway/log file':                         value => $log_file;
-	    'client.radosgw.gateway/user':                             value => $user;
-	    'client.radosgw.gateway/rgw keystone url':                 value => $rgw_keystone_url;
-	    'client.radosgw.gateway/rgw keystone admin token':         value => $rgw_keystone_admin_token;
-	    'client.radosgw.gateway/rgw keystone accepted roles':      value => $rgw_keystone_accepted_roles;
-	    'client.radosgw.gateway/rgw keystone token cache size':    value => $rgw_keystone_token_cache_size;
-	    'client.radosgw.gateway/rgw keystone revocation interval': value => $rgw_keystone_revocation_interval;
-	    'client.radosgw.gateway/rgw data':                         value => $rgw_data;
-	    'client.radosgw.gateway/rgw dns name':                     value => $rgw_dns_name;
-	    'client.radosgw.gateway/rgw print continue':               value => $rgw_print_continue;
-	    'client.radosgw.gateway/nss db path':                      value => $nss_db_path;
-	  }
+    resources {'ceph_conf':
+      require           => Exec['ceph-deploy init config'],
+    }
+    ceph_conf {
+      'global/auth supported':             value => $auth_supported;
+      'global/osd journal size':           value => $osd_journal_size;
+      'global/osd mkfs type':              value => $osd_mkfs_type;
+      'global/osd pool default size':      value => $osd_pool_default_size;
+      'global/osd pool default min size':  value => $osd_pool_default_min_size;
+      'global/osd pool default pg num':    value => $osd_pool_default_pg_num;
+      'global/osd pool default pgp num':   value => $osd_pool_default_pgp_num;
+      'global/cluster network':            value => $cluster_network;
+      'global/public network':             value => $public_network;
+    }
     exec { 'ceph-deploy init config':
       command   => "ceph-deploy new ${::hostname}:${::internal_address}",
       cwd       => '/etc/ceph',
@@ -128,19 +118,40 @@ class ceph (
   }
   case $::fuel_settings['role'] {
     'primary-controller', 'controller', 'ceph-mon': {
-      class {['ceph::glance', 'ceph::cinder', 'ceph::nova_compute']: }
+      class {['ceph::glance', 'ceph::cinder', 'ceph::nova_compute',]: }
+      package { "$::ceph::params::package_libnss" :
+        ensure => 'latest',
+      }
+
       class {'ceph::mon':
       } -> Class[['ceph::glance',
                   'ceph::cinder',
                   'ceph::nova_compute',
-                  #'ceph::keystone', #ceph::keystone is currently disabled
                 ]]
-      #include ceph::keystone #Keystone is currently disabled
+      if ($use_rgw) {
+        file {$rgw_nss_db_path:
+          ensure => 'directory',
+          mode => 755,
+        }
+        Class['ceph::mon'] ->
+        class {['ceph::keystone', 'ceph::radosgw']:
+          enabled => true,
+          use_ssl => false,
+        }
+      }
+      Service['ceph'] {
+        enable => true,
+        ensure => 'running',
+      }
     }
     #TODO: remove cinder from this list.
     #This will still NOOP on cinder if $::osd_device_list is empty
     'ceph-osd', 'cinder': {
       class {'ceph::osd': }
+      Service['ceph'] {
+        enable => true,
+        ensure => 'running',
+      }
     }
     'ceph-mds': {
       class {'ceph::deploy': }
