@@ -309,8 +309,6 @@ if ($use_ceph) {
         glance_api_servers     => "${controller_node_address}:9292",
         vncproxy_host          => $controller_node_public,
         vnc_enabled            => true,
-        #ssh_private_key        => 'puppet:///ssh_keys/openstack',
-        #ssh_public_key         => 'puppet:///ssh_keys/openstack.pub',
         quantum                => $quantum,
         quantum_host           => $quantum_host,
         quantum_sql_connection => $quantum_sql_connection,

@@ -115,69 +115,50 @@ class mysql::server (
 #    #}->
 #    cs_commit { 'mysqlvip' : cib => "mysqlvip" } ->
 
-    file { "/tmp/repl_create.sql" :
+    file { '/tmp/repl_create.sql' :
       ensure  => present,
-      content => template("mysql/repl_create.sql.erb"),
+      content => template('mysql/repl_create.sql.erb'),
       owner => 'root',
       group => 'root',
       mode => 0644,
+    }
   
     ### Start hacks
-    } ->
     file { '/usr/lib/ocf/resource.d/heartbeat/mysql': 
-      ensure => present,
-      source => 'puppet:///modules/mysql/ocf-mysql',
-      owner => 'root',
-      group => 'root',
-      mode => 0755,
+      ensure  => present,
+      source  => 'puppet:///modules/mysql/ocf-mysql',
+      owner   => 'root',
+      group   => 'root',
+      mode    => 0755,
+      require => File['/tmp/repl_create.sql'],
     } ->
-    file { '/root/.ssh/':
-      ensure => directory,
-      owner => 'root',
-      group => 'root',
-      mode => 0700,
-    } ->
-    file { '/root/.ssh/id_rsa_mysql':
-      ensure => present,
-      source => 'puppet:///modules/mysql/id_rsa_mysql',
-      owner => 'root',
-      group => 'root',
-      mode => 0600,
-    } ->
-    file { '/root/.ssh/id_rsa_mysql.pub':  
-      ensure => present,
-      source => 'puppet:///modules/mysql/id_rsa_mysql.pub',
-      owner => 'root',
-      group => 'root',
-      mode => 0600,
-    } ->
-    exec { 'add_mysql_ssh_pubkey':
-      command => 'cat /root/.ssh/id_rsa_mysql.pub > /root/.ssh/authorized_keys2 && chmod 600 /root/.ssh/authorized_keys2',
-      path => '/bin:/usr/bin:/sbin:/usr/sbin',
-      unless => 'test -f /root/authorized_keys2 && grep -q "$(cat /root/.ssh/id_rsa.mysql.pub)" /root/authorized_keys2',
+    install_ssh_keys {'root_ssh_key_for_mysql':
+      ensure           => present,
+      user             => 'root',
+      private_key_path => '/var/lib/astute/mysql/mysql',
+      public_key_path  => '/var/lib/astute/mysql/mysql.pub',
+      private_key_name => 'id_rsa_mysql',
+      public_key_name  => 'id_rsa_mysql.pub',
+      authorized_keys  => 'authorized_keys',
     }
     if ( $::hostname == $galera_nodes[2] ) or ( $galera_node_address == $galera_nodes[2] ) {
       $existing_slave = $galera_nodes[1]
       exec { 'stop_mysql_slave_on_second_controller':
          command => "ssh -i /root/.ssh/id_rsa_mysql -o StrictHostKeyChecking=no root@${existing_slave} 'mysql -NBe \"stop slave;\"'",
-         require => Exec['add_mysql_ssh_pubkey'],
+         require => Install_ssh_keys['root_ssh_key_for_mysql'],
          unless  => "mysql -NBe 'show slave status;' | grep -q ${rep_user}",
-         before  => Exec['copy_mysql_data_dir'],
-      }
+      } ->
       exec { 'copy_mysql_data_dir': 
          command => "rsync -e 'ssh -i /root/.ssh/id_rsa_mysql -o StrictHostKeyChecking=no' -vaz root@${existing_slave}:/var/lib/mysql/. /var/lib/mysql/.",
-         require => Exec['add_mysql_ssh_pubkey'],
          unless  => "mysql -NBe 'show slave status;' | grep -q ${rep_user}",
       } ->
       exec { 'start_mysql_slave_on_second_controller':
          command => "ssh -i /root/.ssh/id_rsa_mysql -o StrictHostKeyChecking=no root@${existing_slave} 'mysql -NBe \"start slave;\"'",
-         require => Exec['add_mysql_ssh_pubkey'],
          unless  => "mysql -NBe 'show slave status;' | grep -q ${rep_user}",
          #before  => Cs_shadow['mysql'],
       }
     }
     ### end hacks 
-         
 
     cs_shadow { 'mysql': cib => 'mysql' } ->
     cs_resource { "p_${service_name}":
