@@ -12,18 +12,22 @@ require 'facter'
 #end
 
 if File.exist?("/etc/naily.facts")
-    File.open("/var/log/facter.log", "a") {|f| f.write("#{Time.now} facts exist\n")}
-    File.readlines("/etc/naily.facts").each do |line|
-        if line =~ /^(.+)=(.+)$/
-            var = $1.strip; 
-            val = $2.strip
-
-            Facter.add(var) do
-                setcode { val }
-            end
-            File.open("/var/log/facter.log", "a") {|f| f.write("#{Time.now} fact '#{var}' = '#{val}'\n")}
-        end
-    end
+    # File.open("/var/log/facter.log", "a") {|f| f.write("#{Time.now} facts exist\n")}
+#     File.readlines("/etc/naily.facts").each do |line|
+#         if line =~ /^(.+)=(.+)$/
+#             var = $1.strip; 
+#             val = $2.strip
+# 
+#             Facter.add(var) do
+#                 setcode { val }
+#             end
+#             File.open("/var/log/facter.log", "a") {|f| f.write("#{Time.now} fact '#{var}' = '#{val}'\n")}
+#         end
+#     end
+  data = YAML.load_file('/etc/naily.facts')
+  Facter.add('settings') do
+    setcode { "#{data.to_yaml}" }
+  end
 else
     File.open("/var/log/facter.log", "a") {|f| f.write("#{Time.now} facts NOT exist\n")}
 end
