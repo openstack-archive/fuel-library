@@ -1,10 +1,9 @@
 class osnailyfacter::cluster_simple {
 
-
-if $quantum == 'true'
+if $::fuel_settings['quantum']
 {
-  $quantum_hash   = parsejson($::quantum_access)
-  $quantum_params = parsejson($::quantum_parameters)
+  $quantum_hash   = $::fuel_settings['quantum_access']
+  $quantum_params = $::fuel_settings['quantum_parameters']
   $novanetwork_params  = {}
 
 }
@@ -12,11 +11,11 @@ else
 {
   $quantum_hash = {}
   $quantum_params = {}
-  $novanetwork_params  = parsejson($::novanetwork_parameters)
+  $novanetwork_params  = $::fuel_settings['novanetwork_parameters']
 }
 
-if $cinder_nodes {
-   $cinder_nodes_array   = parsejson($::cinder_nodes)
+if $fuel_settings['cinder_nodes'] {
+   $cinder_nodes_array   = $::fuel_settings['cinder_nodes']
 }
 else {
   $cinder_nodes_array = []
@@ -24,15 +23,15 @@ else {
 
 
 
-$nova_hash            = parsejson($::nova)
-$mysql_hash           = parsejson($::mysql)
-$rabbit_hash          = parsejson($::rabbit)
-$glance_hash          = parsejson($::glance)
-$keystone_hash        = parsejson($::keystone)
-$swift_hash           = parsejson($::swift)
-$cinder_hash          = parsejson($::cinder)
-$access_hash          = parsejson($::access)
-$nodes_hash           = parsejson($::nodes)
+$nova_hash            = $::fuel_settings['nova']
+$mysql_hash           = $::fuel_settings['mysql']
+$rabbit_hash          = $::fuel_settings['rabbit']
+$glance_hash          = $::fuel_settings['glance']
+$keystone_hash        = $::fuel_settings['keystone']
+$swift_hash           = $::fuel_settings['swift']
+$cinder_hash          = $::fuel_settings['cinder']
+$access_hash          = $::fuel_settings['access']
+$nodes_hash           = $::fuel_settings['nodes']
 $vlan_start           = $novanetwork_params['vlan_start']
 $network_manager      = "nova.network.manager.${novanetwork_params['network_manager']}"
 $network_size         = $novanetwork_params['network_size']
@@ -47,19 +46,18 @@ if !$rabbit_hash[user]
 $rabbit_user          = $rabbit_hash['user']
 
 
-
-if $auto_assign_floating_ip == 'true' {
+if $::fuel_settings['auto_assign_floating_ip'] {
   $bool_auto_assign_floating_ip = true
 } else {
   $bool_auto_assign_floating_ip = false
 }
 
 if $quantum {
-   $floating_hash =  $::floating_network_range
+   $floating_hash = $::fuel_settings['floating_network_range']
 }
 else {
   $floating_hash = {}
-  $floating_ips_range = parsejson($floating_network_range)
+  $floating_ips_range = $::fuel_settings['floating_network_range']
 }
 
 $controller = filter_nodes($nodes_hash,'role','controller')
@@ -68,7 +66,7 @@ $controller_node_address = $controller[0]['internal_address']
 $controller_node_public = $controller[0]['public_address']
 
 
-if ($cinder) {
+if ($::fuel_settings['cinder']) {
   if (member($cinder_nodes_array,'all')) {
     $is_cinder_node = true
   } elsif (member($cinder_nodes_array,$::hostname)) {
@@ -127,7 +125,7 @@ if ($use_ceph) {
   $glance_backend = 'file'
 }
 
-  case $role {
+  case $::fuel_settings['role'] {
     "controller" : {
       include osnailyfacter::test_controller
 
@@ -139,7 +137,7 @@ if ($use_ceph) {
         private_interface       => $fixed_interface,
         internal_address        => $controller_node_address,
         floating_range          => $quantum ? { 'true' =>$floating_hash, default=>false},
-        fixed_range             => $fixed_network_range,
+        fixed_range             => $::fuel_settings['fixed_network_range'],
         multi_host              => $multi_host,
         network_manager         => $network_manager,
         num_networks            => $num_networks,
@@ -181,7 +179,7 @@ if ($use_ceph) {
         cinder_db_password      => $cinder_hash[db_password],
         cinder_iscsi_bind_addr  => $cinder_iscsi_bind_addr,
         cinder_volume_group     => "cinder",
-        manage_volumes          => $cinder ? { false => $manage_volumes, default =>$is_cinder_node },
+        manage_volumes          => $::fuel_settings['cinder'] ? { false => $manage_volumes, default =>$is_cinder_node },
         use_syslog              => true,
         syslog_log_level        => $syslog_log_level,
         syslog_log_facility_glance   => $syslog_log_facility_glance,
@@ -192,9 +190,9 @@ if ($use_ceph) {
         cinder_rate_limits      => $cinder_rate_limits,
         horizon_use_ssl         => $horizon_use_ssl,
       }
-      nova_config { 'DEFAULT/start_guests_on_host_boot': value => $start_guests_on_host_boot }
-      nova_config { 'DEFAULT/use_cow_images': value => $use_cow_images }
-      nova_config { 'DEFAULT/compute_scheduler_driver': value => $compute_scheduler_driver }
+      nova_config { 'DEFAULT/start_guests_on_host_boot': value => $::fuel_settings['start_guests_on_host_boot'] }
+      nova_config { 'DEFAULT/use_cow_images': value => $::fuel_settings['use_cow_images'] }
+      nova_config { 'DEFAULT/compute_scheduler_driver': value => $::fuel_settings['compute_scheduler_driver'] }
  if $::quantum {
     class { '::openstack::quantum_router':
       db_host               => $controller_node_address,
@@ -205,7 +203,7 @@ if ($use_ceph) {
       public_interface      => $public_int,
       private_interface     => $fixed_interface,
       floating_range        => $floating_hash,
-      fixed_range           => $fixed_network_range,
+      fixed_range           => $::fuel_settings['fixed_network_range'],
       create_networks       => $create_networks,
       debug                 => $debug ? { 'true' => true, true => true, default=> false },
       verbose               => $verbose ? { 'true' => true, true => true, default=> false },
@@ -291,8 +289,8 @@ if ($use_ceph) {
         public_interface       => $public_int,
         private_interface      => $fixed_interface,
         internal_address       => $internal_address,
-        libvirt_type           => $libvirt_type,
-        fixed_range            => $fixed_network_range,
+        libvirt_type           => $::fuel_settings['libvirt_type'],
+        fixed_range            => $::fuel_settings['fixed_network_range'],
         network_manager        => $network_manager,
         network_config         => $network_config,
         multi_host             => $multi_host,
@@ -326,7 +324,7 @@ if ($use_ceph) {
         verbose                => $verbose ? { 'true' => true, true => true, default=> false },
         use_syslog             => true,
         syslog_log_level       => $syslog_log_level,
-	syslog_log_facility    => $syslog_log_facility_nova,
+        syslog_log_facility    => $syslog_log_facility_nova,
         syslog_log_facility_quantum => $syslog_log_facility_quantum,
         syslog_log_facility_cinder => $syslog_log_facility_cinder,
         state_path             => $nova_hash[state_path],

@@ -1,3 +1,5 @@
+$fuel_settings = parseyaml($settings)
+
 $openstack_version = {
   'keystone'   => 'latest',
   'glance'     => 'latest',
@@ -7,7 +9,7 @@ $openstack_version = {
   'cinder'     => 'latest',
 }
 
-tag("${deployment_id}::${::environment}")
+tag("${::fuel_settings['deployment_id']}::${::fuel_settings['environment']}")
 
 #Stages configuration
 stage {'first': } ->
@@ -23,8 +25,8 @@ stage {'glance-image':
 
 
 
-if $nodes != undef {
-  $nodes_hash = parsejson($nodes)
+if $::fuel_settings['nodes'] {
+  $nodes_hash = $::fuel_settings['nodes']
 
   $node = filter_nodes($nodes_hash,'name',$::hostname)
   if empty($node) {
@@ -40,16 +42,17 @@ if $nodes != undef {
   $storage_netmask = $node[0]['storage_netmask']
   $public_br = $node[0]['public_br']
   $internal_br = $node[0]['internal_br']
-  $base_syslog_hash     = parsejson($::base_syslog)
-  $syslog_hash          = parsejson($::syslog)
+  $base_syslog_hash     = $::fuel_settings['base_syslog']
+  $syslog_hash          = $::fuel_settings['syslog']
 
-  $use_quantum = str2bool($quantum)
+  # str2bool
+  $use_quantum = $::fuel_settings['quantum']
   if $use_quantum {
     $public_int   = $public_br
     $internal_int = $internal_br
   } else {
-    $public_int   = $public_interface
-    $internal_int = $management_interface
+    $public_int   = $::fuel_settings['public_interface']
+    $internal_int = $::fuel_settings['management_interface']
   }
 }
 
@@ -59,8 +62,8 @@ if $nodes != undef {
 # Verbose would have set INFO level messages
 # In case of non debug and non verbose - WARNING, default level would have set.
 # Note: if syslog on, this default level may be configured (for syslog) with syslog_log_level option.
-# $verbose = true
-# $debug = false
+$verbose = $::fuel_settings['verbose']
+$debug = $::fuel_settings['debug']
 
 ### Syslog ###
 # Enable error messages reporting to rsyslog. Rsyslog must be installed in this case.
@@ -103,7 +106,7 @@ class node_netconfig (
 ) {
   if $use_quantum {
     l23network::l3::create_br_iface {'mgmt':
-      interface => $management_interface, # !!! NO $internal_int /sv !!!
+      interface => $::fuel_settings['management_interface'], # !!! NO $internal_int /sv !!!
       bridge    => $internal_br,
       ipaddr    => $mgmt_ipaddr,
       netmask   => $mgmt_netmask,
@@ -111,7 +114,7 @@ class node_netconfig (
       gateway => $default_gateway,
     } ->
     l23network::l3::create_br_iface {'ex':
-      interface => $public_interface, # !! NO $public_int /sv !!!
+      interface => $::fuel_settings['public_interface'], # !! NO $public_int /sv !!!
       bridge    => $public_br,
       ipaddr    => $public_ipaddr,
       netmask   => $public_netmask,
@@ -131,7 +134,7 @@ class node_netconfig (
       gateway => $default_gateway
     }
   }
-  l23network::l3::ifconfig {$fixed_interface: ipaddr=>'none' }
+  l23network::l3::ifconfig {$::fuel_settings['fixed_interface']: ipaddr=>'none' }
 }
 
 case $::operatingsystem {
@@ -147,7 +150,7 @@ case $::operatingsystem {
 
 class os_common {
   class {'l23network': use_ovs=>$use_quantum, stage=> 'netconfig'}
-  if $deployment_source == 'cli' {
+  if $::fuel_settings['deployment_source'] == 'cli' {
     class {'::node_netconfig':
       mgmt_ipaddr    => $internal_address,
       mgmt_netmask   => $internal_netmask,
@@ -236,7 +239,7 @@ class os_common {
   # Workaround for fuel bug with firewall
   firewall {'003 remote rabbitmq ':
     sport   => [ 4369, 5672, 41055, 55672, 61613 ],
-    source  => $master_ip,
+    source  => $::fuel_settings['master_ip'],
     proto   => 'tcp',
     action  => 'accept',
     require => Class['openstack::firewall'],
@@ -246,7 +249,7 @@ class os_common {
 
 
 node default {
-  case $deployment_mode {
+  case $::fuel_settings['deployment_mode'] {
     "singlenode": {
       include "osnailyfacter::cluster_simple"
       class {'os_common':}
@@ -259,7 +262,7 @@ node default {
       include "osnailyfacter::cluster_ha"
       class {'os_common':}
       }
-     'ha_full': {
+    'ha_full': {
       include "osnailyfacter::cluster_ha_full"
       class {'os_common':}
       }

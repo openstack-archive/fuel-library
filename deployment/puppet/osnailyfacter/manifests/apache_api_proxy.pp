@@ -6,7 +6,7 @@ class osnailyfacter::apache_api_proxy {
   # Allow connection to the apache for ostf tests
   firewall {'007 tinyproxy':
     dport   => [ 8888 ],
-    source  => $master_ip,
+    source  => $::fuel_settings['master_ip'],
     proto   => 'tcp',
     action  => 'accept',
     require => Class['openstack::firewall'],
