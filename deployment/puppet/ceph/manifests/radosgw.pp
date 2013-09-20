@@ -95,7 +95,7 @@ class ceph::radosgw (
       }
     }
     file { "${::ceph::params::dir_httpd_sites}/rgw.conf":
-      content => template('ceph/rgw.conf.erb'),
+      content => template("ceph/${::ceph::params::template_rgw_conf}"),
       notify  => Service['httpd'],
       require => Package[$::ceph::params::package_httpd],
     }

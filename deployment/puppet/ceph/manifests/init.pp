@@ -143,6 +143,7 @@ class ceph (
         enable => true,
         ensure => 'running',
       }
+      Class ['ceph::mon'] -> Service['ceph']
     }
     #TODO: remove cinder from this list.
     #This will still NOOP on cinder if $::osd_device_list is empty

@@ -1,0 +1,21 @@
+<VirtualHost *:80>
+  ServerName <%= @fqdn %>
+  DocumentRoot /var/www
+
+  RewriteEngine On
+  RewriteRule ^/([a-zA-Z0-9-_.]*)([/]?.*) /s3gw.fcgi?page=$1&params=$2&%{QUERY_STRING} [E=HTTP_AUTHORIZATION:%{HTTP:Authorization},L]
+
+  <IfModule mod_fcgid.c>
+    <Directory /var/www>
+      Options +ExecCGI
+      AllowOverride All
+      SetHandler fastcgi-script
+      Order allow,deny
+      Allow from all
+      AuthBasicAuthoritative Off
+    </Directory>
+  </IfModule>
+
+  AllowEncodedSlashes On
+  ServerSignature Off
+</VirtualHost>

@@ -25,7 +25,6 @@ class ceph::keystone (
       ensure      => present,
       type        => 'object-store',
       description => 'Openstack Object-Store Service',
-      notify      => Service['keystone'],
     }
     keystone_endpoint { 'swift':
       ensure       => present,
@@ -33,7 +32,6 @@ class ceph::keystone (
       public_url   => "http://${pub_ip}/swift/v1",
       admin_url    => "http://${adm_ip}/swift/v1",
       internal_url => "http://${int_ip}/swift/v1",
-      notify       => Service['keystone'],
     }
     if ! defined(Class['keystone']) {
       service { 'keystone':
