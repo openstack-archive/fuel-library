@@ -42,6 +42,17 @@ class osnailyfacter::cluster_ha {
     $heat_hash = $::fuel_settings['heat']
   }
 
+  if !$::fuel_settings['ceilometer'] {
+    $ceilometer_hash = {
+      enabled => false,
+      db_password => 'ceilometer',
+      user_password => 'ceilometer',
+      metering_secret => 'ceilometer',
+    }
+  } else {
+    $ceilometer_hash = $::fuel_settings['ceilometer']
+  }
+
   if $::fuel_settings['role'] == 'primary-controller' {
     package { 'cirros-testvm':
       ensure => "present"
@@ -261,6 +272,10 @@ class osnailyfacter::cluster_ha {
       cinder_db_password            => $cinder_hash[db_password],
       cinder_volume_group           => "cinder",
       manage_volumes                => $manage_volumes,
+      ceilometer                    => $ceilometer_hash[enabled],
+      ceilometer_db_password        => $ceilometer_hash[db_password],
+      ceilometer_user_password      => $ceilometer_hash[user_password],
+      ceilometer_metering_secret    => $ceilometer_hash[metering_secret],
       galera_nodes                  => $controller_nodes,
       custom_mysql_setup_class      => $custom_mysql_setup_class,
       mysql_skip_name_resolve       => true,
@@ -460,6 +475,9 @@ class osnailyfacter::cluster_ha {
         cinder_iscsi_bind_addr => $cinder_iscsi_bind_addr,
         cinder_user_password   => $cinder_hash[user_password],
         cinder_db_password     => $cinder_hash[db_password],
+        ceilometer             => $ceilometer_hash[enabled],
+        ceilometer_metering_secret => $ceilometer_hash[metering_secret],
+        ceilometer_user_password => $ceilometer_hash[user_password],
         db_host                => $::fuel_settings['management_vip'],
         quantum                => $::use_quantum,
         quantum_config         => $quantum_config,

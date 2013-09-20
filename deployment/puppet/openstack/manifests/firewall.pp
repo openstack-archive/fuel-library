@@ -36,6 +36,7 @@ class openstack::firewall (
   $openvswitch_db_port = 58882,
   $libvirt_port = 16509,
   $nrpe_server_port = 5666,
+  $ceilometer_port = 8777,
 ) {
 
 #  file {"iptables":
@@ -202,6 +203,12 @@ class openstack::firewall (
 
   firewall {'118 vnc ports':
     port => "5900-6100",
+    proto => 'tcp',
+    action => 'accept',
+  }
+
+  firewall {'119 ceilometer':
+    port => $ceilometer_port,
     proto => 'tcp',
     action => 'accept',
   }

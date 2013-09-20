@@ -128,6 +128,10 @@ class openstack::controller_ha (
    $cinder_volume_group     = 'cinder-volumes',
    $cinder_user_password    = 'cinder_user_pass',
    $cinder_db_password      = 'cinder_db_pass',
+   $ceilometer                 = false,
+   $ceilometer_db_password     = 'ceilometer_pass',
+   $ceilometer_user_password   = 'ceilometer_pass',
+   $ceilometer_metering_secret = 'ceilometer',
    $rabbit_node_ip_address  = $internal_address,
    $horizon_use_ssl         = false,
    $quantum_network_node    = false,
@@ -217,6 +221,10 @@ class openstack::controller_ha (
     }
     if $glance_backend == 'swift' {
       haproxy_service { 'swift': order => 96, port => 8080, virtual_ips => [$public_virtual_ip,$internal_virtual_ip], balancers => $swift_proxies }
+    }
+
+    if $ceilometer {
+      haproxy_service { 'ceilometer': order => 97, port => 8777, virtual_ips => [$public_virtual_ip, $internal_virtual_ip]  }
     }
 
     Haproxy_service<| |> ~> Exec['restart_haproxy']
@@ -317,6 +325,10 @@ class openstack::controller_ha (
       manage_volumes          => $manage_volumes,
       nv_physical_volume      => $nv_physical_volume,
       cinder_volume_group     => $cinder_volume_group,
+      ceilometer              => $ceilometer,
+      ceilometer_db_password  => $ceilometer_db_password,
+      ceilometer_user_password => $ceilometer_user_password,
+      ceilometer_metering_secret => $ceilometer_metering_secret,
       # turn on SWIFT_ENABLED option for Horizon dashboard
       swift                        => $glance_backend ? { 'swift'    => true, default => false },
       use_syslog                   => $use_syslog,

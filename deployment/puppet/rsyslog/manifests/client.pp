@@ -287,6 +287,11 @@ if $debug =~ /(?i)(true|yes)/ {
     ensure => present,
     content => template("${module_name}/50-quantum.conf.erb"),
   }
+
+  file { "${rsyslog::params::rsyslog_d}51-ceilometer.conf":
+    ensure => present,
+    content => template("${module_name}/51-ceilometer.conf.erb"),
+  }
 } #end if
 
   file { "${rsyslog::params::rsyslog_d}02-ha.conf":

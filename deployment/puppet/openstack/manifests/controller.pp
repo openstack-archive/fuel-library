@@ -87,6 +87,11 @@ class openstack::controller (
   # Required Nova
   $nova_db_password        = 'nova_pass',
   $nova_user_password      = 'nova_pass',
+  # Required Ceilometer
+  $ceilometer              = false,
+  $ceilometer_db_password  = 'ceilometer_pass',
+  $ceilometer_user_password = 'ceilometer_pass',
+  $ceilometer_metering_secret = 'ceilometer',
   # Required Horizon
   $secret_key              = 'dummy_secret_key',
   # not sure if this works correctly
@@ -139,6 +144,9 @@ class openstack::controller (
   $nova_db_user            = 'nova',
   $nova_db_dbname          = 'nova',
   $purge_nova_config       = false,
+  # Ceilometer
+  $ceilometer_db_user      = 'ceilometer',
+  $ceilometer_db_dbname    = 'ceilometer',
   # Horizon
   $cache_server_ip         = ['127.0.0.1'],
   $cache_server_port       = '11211',
@@ -191,6 +199,9 @@ class openstack::controller (
 
   # Ensure things are run in order
   Class['openstack::db::mysql'] -> Class['openstack::keystone']
+  if ($ceilometer) {
+    Class['openstack::db::mysql'] -> Class['openstack::ceilometer']
+  }
   Class['openstack::db::mysql'] -> Class['openstack::glance']
   Class['openstack::db::mysql'] -> Class['openstack::nova::controller']
   Class['openstack::db::mysql'] -> Cinder_config <||>
@@ -220,6 +231,10 @@ class openstack::controller (
       nova_db_user           => $nova_db_user,
       nova_db_password       => $nova_db_password,
       nova_db_dbname         => $nova_db_dbname,
+      ceilometer             => $ceilometer,
+      ceilometer_db_user     => $ceilometer_db_user,
+      ceilometer_db_password => $ceilometer_db_password,
+      ceilometer_db_dbname   => $ceilometer_db_dbname,
       cinder                 => $cinder,
       cinder_db_user         => $cinder_db_user,
       cinder_db_password     => $cinder_db_password,
@@ -263,6 +278,8 @@ class openstack::controller (
     cinder_user_password  => $cinder_user_password,
     quantum               => $quantum,
     quantum_config        => $quantum_config,
+    ceilometer                => $ceilometer,
+    ceilometer_user_password  => $ceilometer_user_password,
     bind_host             => $api_bind_address,
     enabled               => $enabled,
     package_ensure        => $::openstack_keystone_version,
@@ -426,6 +443,35 @@ class openstack::controller (
   if !defined(Class['memcached']){
     class { 'memcached':
       #listen_ip => $api_bind_address,
+    }
+  }
+
+  ######## Ceilometer ########
+
+  if ($ceilometer) {
+    class { 'openstack::ceilometer':
+      verbose              => $verbose,
+      debug                => $debug,
+      use_syslog           => $use_syslog,
+      db_type              => $db_type,
+      db_host              => $db_host,
+      db_user              => $ceilometer_db_user,
+      db_password          => $ceilometer_db_password,
+      db_dbname            => $ceilometer_db_dbname,
+      metering_secret      => $ceilometer_metering_secret,
+      rabbit_password      => $rabbit_password,
+      rabbit_userid        => $rabbit_user,
+      rabbit_host          => $rabbit_nodes[0],
+      rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
+      queue_provider       => $queue_provider,
+      qpid_password        => $qpid_password,
+      qpid_userid          => $qpid_user,
+      qpid_nodes           => $qpid_nodes,
+      keystone_host        => $internal_address,
+      keystone_password    => $ceilometer_user_password,
+      bind_host            => $api_bind_address,
+      ha_mode              => $ha_mode,
+      on_controller        => true,
     }
   }
 
