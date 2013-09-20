@@ -134,7 +134,7 @@ if ($use_ceph) {
         admin_address           => $controller_node_address,
         public_address          => $controller_node_public,
         public_interface        => $public_int,
-        private_interface       => $fixed_interface,
+        private_interface       => $::fuel_settings['fixed_interface'],
         internal_address        => $controller_node_address,
         floating_range          => $quantum ? { 'true' =>$floating_hash, default=>false},
         fixed_range             => $::fuel_settings['fixed_network_range'],
@@ -201,7 +201,7 @@ if ($use_ceph) {
       nova_api_vip          => $controller_node_address,
       internal_address      => $internal_address,
       public_interface      => $public_int,
-      private_interface     => $fixed_interface,
+      private_interface     => $::fuel_settings['fixed_interface'],
       floating_range        => $floating_hash,
       fixed_range           => $::fuel_settings['fixed_network_range'],
       create_networks       => $create_networks,
@@ -287,7 +287,7 @@ if ($use_ceph) {
 
       class { 'openstack::compute':
         public_interface       => $public_int,
-        private_interface      => $fixed_interface,
+        private_interface      => $::fuel_settings['fixed_interface'],
         internal_address       => $internal_address,
         libvirt_type           => $::fuel_settings['libvirt_type'],
         fixed_range            => $::fuel_settings['fixed_network_range'],
