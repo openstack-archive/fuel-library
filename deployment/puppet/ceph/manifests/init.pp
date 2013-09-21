@@ -4,7 +4,8 @@ class ceph (
       # General settings
       $cluster_node_address             = $::ipaddress, #This should be the cluster service address
       $primary_mon                      = $::hostname, #This should be the first controller
-      $ceph_pools                       = ['volumes', 'images'],
+      $cinder_pool                      = 'volumes',
+      $glance_pool                      = 'images',
       $osd_devices                      = split($::osd_devices_list, ' '),
       $use_ssl                          = false,
       $use_rgw                          = false,

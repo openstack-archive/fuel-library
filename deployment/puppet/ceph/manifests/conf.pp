@@ -56,8 +56,8 @@ class ceph::conf_pull {
     command => "ceph-deploy gatherkeys ${::ceph::primary_mon}",
     creates => ['/root/ceph.bootstrap-mds.keyring',
                 '/root/ceph.bootstrap-osd.keyring',
-                '/root/ceph.admin.keyring',
-                '/root/ceph.mon.keyring'
+                '/root/ceph.client.admin.keyring',
+                '/root/ceph.mon.keyring',
                ],
   }
 

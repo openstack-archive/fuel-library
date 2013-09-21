@@ -6,7 +6,7 @@ class ceph::cinder (
   $rbd_user           = $::ceph::rbd_user,
   $rbd_secret_uuid    = $::ceph::rbd_secret_uuid,
 ) {
-  if str2bool($::cinder_conf) or defined(Class['openstack::cinder']){
+  if defined(Class['openstack::cinder']){
 
     Cinder_config<||> ~> Service["${::ceph::params::service_cinder_volume}" ]
     File_line<||> ~> Service["${::ceph::params::service_cinder_volume}"]
@@ -18,32 +18,41 @@ class ceph::cinder (
       'DEFAULT/rbd_user':                value => $rbd_user;
       'DEFAULT/rbd_secret_uuid':         value => $rbd_secret_uuid;
     }
-     file { "${::ceph::params::service_cinder_volume_opts}":
+    file {$::ceph::params::service_cinder_volume_opts:
       ensure => 'present',
-    } -> file_line { 'cinder-volume.conf':
-      path => "${::ceph::params::service_cinder_volume_opts}",
-      line => 'export CEPH_ARGS="--id volumes"',
+    } -> file_line {'cinder-volume.conf':
+      path => $::ceph::params::service_cinder_volume_opts,
+      line => "export CEPH_ARGS='--id ${::ceph::cinder_pool}'",
     }
     if ! defined(Class['cinder::volume']) {
-      service { "${::ceph::params::service_cinder_volume}":
+      service {$::ceph::params::service_cinder_volume:
         ensure     => 'running',
         enable     => true,
         hasstatus  => true,
         hasrestart => true,
       }
     }
-    exec { 'Create keys for pool volumes':
-      command => 'ceph auth get-or-create client.volumes > /etc/ceph/ceph.client.volumes.keyring',
-      before  => File['/etc/ceph/ceph.client.volumes.keyring'],
-      creates => '/etc/ceph/ceph.client.volumes.keyring',
-      require => Class['ceph::conf'],
+
+    exec {'Create Cinder Ceph client ACL':
+      # DO NOT SPLIT ceph auth command lines! See http://tracker.ceph.com/issues/3279
+      command   => "ceph auth get-or-create client.${::ceph::cinder_pool} mon 'allow r' osd 'allow class-read object_prefix rbd_children, allow rwx pool=${::ceph::cinder_pool}, allow rx pool=${::ceph::glance_pool}'",
+      logoutput => true,
+    }
+
+    $cinder_keyring = "/etc/ceph/ceph.client.${::ceph::cinder_pool}.keyring"
+    exec {'Create keys for the Cinder pool':
+      command => "ceph auth get-or-create client.${::ceph::cinder_pool} > ${cinder_keyring}",
+      before  => File[$cinder_keyring],
+      creates => $cinder_keyring,
+      require => Exec['Create Cinder Ceph client ACL'],
       notify  => Service["${::ceph::params::service_cinder_volume}"],
       returns => 0,
     }
-    file { '/etc/ceph/ceph.client.volumes.keyring':
+
+    file {$cinder_keyring:
       owner   => cinder,
       group   => cinder,
-      require => Exec['Create keys for pool volumes'],
+      require => Exec['Create keys for the Cinder pool'],
       mode    => '0600',
     }
   }
