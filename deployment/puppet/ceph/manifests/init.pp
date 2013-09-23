@@ -81,20 +81,29 @@ class ceph (
   }
 
   case $::fuel_settings['role'] {
-    'primary-controller', 'controller',
-    'ceph-mon': { include ceph::controller   }
+    'primary-controller', 'controller', 'ceph-mon': {
+      include ceph::controller
+    }
 
-    'ceph-osd': { include ceph::osd          }
+    'ceph-osd': {
+      if ! empty($osd_devices) {
+        include ceph::osd
+        Class['ceph::conf'] -> Class['ceph::osd']
+      }
+    }
+
     'ceph-mds': { include ceph::mds          }
     'compute':  { include ceph::nova_compute }
     'cinder':   { include ceph::cinder       }
   }
 }
 
-# setup Ceph on a controller node: setup mon and radosgw; add Ceph to
-# configuraiton of glance, cinder, nova, and keystone
+# setup Ceph on a controller node:
+# - setup mon and radosgw
+# - add Ceph to configuraiton of glance, cinder, nova, and keystone
+#
 class ceph::controller {
-  include ceph::glance, ceph::cinder, ceph::nova_compute
+  include ceph::mon, ceph::glance, ceph::cinder, ceph::nova_compute
   Class['ceph::conf'] ->
   Class['ceph::mon']  ->
   Service['ceph'] ->
