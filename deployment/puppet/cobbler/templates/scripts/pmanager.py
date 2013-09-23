@@ -54,7 +54,9 @@ class PManager(object):
         return self._post
 
     def _gettabfstype(self, vol):
-        if vol["mount"] == "/":
+        if vol.get("file_system"):
+            return vol["file_system"]
+        elif vol["mount"] == "/":
             return "ext4"
         elif vol["mount"] == "/boot":
             return "ext3"
