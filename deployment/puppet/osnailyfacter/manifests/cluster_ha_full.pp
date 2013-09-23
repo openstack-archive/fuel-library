@@ -1,44 +1,36 @@
 class osnailyfacter::cluster_ha_full {
 
-
 ##PARAMETERS DERIVED FROM YAML FILE
 
-
-if $quantum == 'true'
-{
-  $quantum_hash   = parsejson($::quantum_access)
-  $quantum_params = parsejson($::quantum_parameters)
+if $::use_quantum {
+  $quantum_hash   = $::fuel_settings['quantum_access']
+  $quantum_params = $::fuel_settings['quantum_parameters']
   $novanetwork_params  = {}
-}
-else
-{
+} 
+else {
   $quantum_hash = {}
   $quantum_params = {}
-  $novanetwork_params  = parsejson($::novanetwork_parameters)
+  $novanetwork_params  = $::fuel_settings['novanetwork_parameters']
 }
 
 if $cinder_nodes {
-   $cinder_nodes_array   = parsejson($::cinder_nodes)
+   $cinder_nodes_array   = $::fuel_settings['cinder_nodes']
 }
 else {
   $cinder_nodes_array = []
 }
 
+$nova_hash            = $::fuel_settings['nova']
+$mysql_hash           = $::fuel_settings['mysql']
+$rabbit_hash          = $::fuel_settings['rabbit']
+$glance_hash          = $::fuel_settings['glance']
+$keystone_hash        = $::fuel_settings['keystone']
+$swift_hash           = $::fuel_settings['swift']
+$cinder_hash          = $::fuel_settings['cinder']
+$access_hash          = $::fuel_settings['access']
+$nodes_hash           = $::fuel_settings['nodes']
+$mp_hash              = $::fuel_settings['mp']
 
-
-
-
-
-$nova_hash            = parsejson($::nova)
-$mysql_hash           = parsejson($::mysql)
-$rabbit_hash          = parsejson($::rabbit)
-$glance_hash          = parsejson($::glance)
-$keystone_hash        = parsejson($::keystone)
-$swift_hash           = parsejson($::swift)
-$cinder_hash          = parsejson($::cinder)
-$access_hash          = parsejson($::access)
-$nodes_hash           = parsejson($::nodes)
-$mp_hash              = parsejson($::mp)
 $tenant_network_type  = $quantum_params['tenant_network_type']
 $segment_range        = $quantum_params['segment_range']
 $vlan_start           = $novanetwork_params['vlan_start']
@@ -46,14 +38,13 @@ $network_manager      = "nova.network.manager.${novanetwork_params['network_mana
 $network_size         = $novanetwork_params['network_size']
 $num_networks         = $novanetwork_params['num_networks']
 
-if $quantum {
-  $floating_hash =  $::floating_network_range
+if $::use_quantum {
+  $floating_hash =  $::fuel_settings['floating_network_range']
 }
 else {
   $floating_hash = {}
-  $floating_ips_range = parsejson($floating_network_range)
+  $floating_ips_range = $::fuel_settings['floating_network_range']
 }
-
 
 if !$rabbit_hash[user]
 {
@@ -90,11 +81,11 @@ if empty($node) {
 $vips = { # Do not convert to ARRAY, It can't work in 2.7
   public_old => {
     nic    => $::public_int,
-    ip     => $public_vip,
+    ip     => $::fuel_settings['public_vip'],
   },
   management_old => {
     nic    => $::internal_int,
-    ip     => $management_vip,
+    ip     => $::fuel_settings['management_vip'],
   },
 }
 
@@ -117,7 +108,7 @@ if ($cinder) {
 }
 
 $quantum_sql_connection  = "mysql://${quantum_db_user}:${quantum_db_password}@${quantum_host}/${quantum_db_dbname}"
-$quantum_host            = $management_vip
+$quantum_host            = $::fuel_settings['management_vip']
 
 ##REFACTORING NEEDED
 
@@ -133,7 +124,7 @@ $swift_proxy_nodes = merge_arrays(filter_nodes($nodes_hash,'role','primary-swift
 $swift_proxies = nodes_to_hash($swift_proxy_nodes,'name','storage_address')
 $swift_storages = filter_nodes($nodes_hash, 'role', 'storage')
 $mountpoints = filter_hash($mp_hash,'point')
-$controller_node_public  = $management_vip
+$controller_node_public  = $::fuel_settings['management_vip']
 $quantum_metadata_proxy_shared_secret = $quantum_params['metadata_proxy_shared_secret']
 $quantum_gre_bind_addr = $::internal_address
 
@@ -202,8 +193,8 @@ class ha_controller (
     public_interface        => $::public_int,
     internal_interface      => $::internal_int,
     private_interface       => $fixed_interface,
-    internal_virtual_ip     => $management_vip,
-    public_virtual_ip       => $public_vip,
+    internal_virtual_ip     => $::fuel_settings['management_vip'],
+    public_virtual_ip       => $::fuel_settings['public_vip'],
     primary_controller      => $primary_controller,
     floating_range          => $quantum ? { 'true' =>$floating_hash, default=>false},
     fixed_range             => $fixed_network_range,
@@ -232,7 +223,7 @@ class ha_controller (
     rabbit_nodes            => $controller_nodes,
     qpid_password           => $rabbit_hash[password],
     qpid_user               => $rabbit_hash[user],
-    qpid_nodes              => [$management_vip],
+    qpid_nodes              => [$::fuel_settings['management_vip']],
     memcached_servers       => $controller_nodes,
     export_resources        => false,
     glance_backend          => $glance_backend,
@@ -270,7 +261,7 @@ class ha_controller (
           os_username => shellescape($access_hash[user]),
           os_password => shellescape($access_hash[password]),
           os_tenant_name => shellescape($access_hash[tenant]),
-          os_auth_url => "http://${management_vip}:5000/v2.0/",
+          os_auth_url => "http://${::fuel_settings['management_vip']}:5000/v2.0/",
           img_name    => "TestVM",
           stage          => 'glance-image',
         }
@@ -284,9 +275,9 @@ class ha_controller (
 
   class { 'swift::keystone::auth':
     password         => $swift_hash[user_password],
-    public_address   => $public_vip,
-    internal_address => $management_vip,
-    admin_address    => $management_vip,
+    public_address   => $::fuel_settings['public_vip'],
+    internal_address => $::fuel_settings['management_vip'],
+    admin_address    => $::fuel_settings['management_vip'],
   }
 }
 class virtual_ips () {
@@ -325,34 +316,34 @@ case $role {
     network_config         => $network_config,
     multi_host             => $multi_host,
     auto_assign_floating_ip => $bool_auto_assign_floating_ip,
-    sql_connection         => "mysql://nova:${nova_hash[db_password]}@${management_vip}/nova",
+    sql_connection         => "mysql://nova:${nova_hash[db_password]}@${::fuel_settings['management_vip']}/nova",
     queue_provider         => $::queue_provider,
     rabbit_nodes           => $controller_nodes,
     rabbit_password        => $rabbit_hash[password],
     rabbit_user            => $rabbit_hash[user],
-    rabbit_ha_virtual_ip   => $management_vip,
+    rabbit_ha_virtual_ip   => $::fuel_settings['management_vip'],
     qpid_password          => $rabbit_hash[password],
     qpid_user              => $rabbit_hash[user],
-    qpid_nodes             => [$management_vip],
-    glance_api_servers     => "${management_vip}:9292",
-    vncproxy_host          => $public_vip,
+    qpid_nodes             => [$::fuel_settings['management_vip']],
+    glance_api_servers     => "${::fuel_settings['management_vip']}:9292",
+    vncproxy_host          => $::fuel_settings['public_vip'],
     debug                  => $debug ? { 'true' => true, true => true, default=> false },
     verbose                => $verbose ? { 'true' => true, true => true, default=> false },
     vnc_enabled            => true,
     nova_user_password     => $nova_hash[user_password],
     cache_server_ip        => $controller_nodes,
-    service_endpoint       => $management_vip,
+    service_endpoint       => $::fuel_settings['management_vip'],
     quantum                => $quantum,
     quantum_sql_connection => $quantum_sql_connection,
     quantum_user_password  => $quantum_hash[user_password],
-    quantum_host           => $management_vip,
+    quantum_host           => $::fuel_settings['management_vip'],
     tenant_network_type    => $tenant_network_type,
     segment_range          => $segment_range,
     cinder                 => $cinder,
     cinder_iscsi_bind_addr => $cinder_iscsi_bind_addr,
     cinder_volume_group     => "cinder",
     manage_volumes         => $cinder ? { false => $manage_volumes, default =>$is_cinder_node },
-    db_host                => $management_vip,
+    db_host                => $::fuel_settings['management_vip'],
     cinder_rate_limits     => $::cinder_rate_limits,
     use_syslog             => $use_syslog,
     syslog_log_level       => $syslog_log_level,
@@ -384,17 +375,17 @@ case $role {
     cinder_iscsi_bind_addr => $cinder_iscsi_bind_addr,
     cinder_volume_group     => "cinder",
     manage_volumes          => $cinder ? { false => $manage_volumes, default =>$is_cinder_node },
-    db_host                => $management_vip,
-    service_endpoint       => $management_vip,
+    db_host                => $::fuel_settings['management_vip'],
+    service_endpoint       => $::fuel_settings['management_vip'],
     cinder_rate_limits     => $cinder_rate_limits,
     queue_provider         => $::queue_provider,
     rabbit_nodes           => $controller_nodes,
     rabbit_password        => $rabbit_hash[password],
     rabbit_user            => $rabbit_hash[user],
-    rabbit_ha_virtual_ip   => $management_vip,
+    rabbit_ha_virtual_ip   => $::fuel_settings['management_vip'],
     qpid_password          => $rabbit_hash[password],
     qpid_user              => $rabbit_hash[user],
-    qpid_nodes             => [$management_vip],
+    qpid_nodes             => [$::fuel_settings['management_vip']],
     sync_rings             => ! $primary_proxy,
     syslog_log_level       => $syslog_log_level,
     debug                  => $debug ? { 'true' => true, true => true, default=> false },
@@ -420,7 +411,7 @@ case $role {
     swift_user_password     => $swift_hash[user_password],
     swift_proxies           => $swift_proxies,
     primary_proxy           => $primary_proxy,
-    controller_node_address => $management_vip,
+    controller_node_address => $::fuel_settings['management_vip'],
     swift_local_net_ip      => $swift_local_net_ip,
     master_swift_proxy_ip   => $master_swift_proxy_ip,
     syslog_log_level        => $syslog_log_level,
@@ -436,15 +427,15 @@ case $role {
         ensure => present
       }
       class { 'openstack::cinder':
-        sql_connection       => "mysql://cinder:${cinder_hash[db_password]}@${management_vip}/cinder?charset=utf8",
-        glance_api_servers   => "${management_vip}:9292",
+        sql_connection       => "mysql://cinder:${cinder_hash[db_password]}@${::fuel_settings['management_vip']}/cinder?charset=utf8",
+        glance_api_servers   => "${::fuel_settings['management_vip']}:9292",
         rabbit_password      => $rabbit_hash[password],
         rabbit_host          => false,
-        rabbit_nodes         => $management_vip,
+        rabbit_nodes         => $::fuel_settings['management_vip'],
         volume_group         => 'cinder',
         manage_volumes       => true,
         enabled              => true,
-        auth_host            => $management_vip,
+        auth_host            => $::fuel_settings['management_vip'],
         iscsi_bind_host      => $storage_address,
         cinder_user_password => $cinder_hash[user_password],
         debug                => $debug ? { 'true' => true, true => true, default=> false },
