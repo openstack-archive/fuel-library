@@ -82,7 +82,16 @@ class ceph (
 
   case $::fuel_settings['role'] {
     'primary-controller', 'controller', 'ceph-mon': {
-      include ceph::controller
+      include ceph::mon, ceph::glance, ceph::cinder
+      Class['ceph::conf'] ->
+      Class['ceph::mon']  ->
+      Service['ceph'] ->
+      Class[['ceph::glance', 'ceph::cinder']]
+
+      if ($::ceph::use_rgw) {
+        include ceph::keystone, ceph::radosgw
+        Class['ceph::libnss'] -> Class[['ceph::keystone, ceph::radosgw']]
+      }
     }
 
     'ceph-osd': {
@@ -92,25 +101,16 @@ class ceph (
       }
     }
 
-    'ceph-mds': { include ceph::mds          }
-    'compute':  { include ceph::nova_compute }
-    'cinder':   { include ceph::cinder       }
-  }
-}
+    'compute': {
+      include nova::compute, ceph::nova_compute
+      Class['ceph::conf'] ->
+      Class['ceph::nova_compute'] ~>
+      Service[$::ceph::params::service_nova_compute]
+    }
 
-# setup Ceph on a controller node:
-# - setup mon and radosgw
-# - add Ceph to configuraiton of glance, cinder, nova, and keystone
-#
-class ceph::controller {
-  include ceph::mon, ceph::glance, ceph::cinder, ceph::nova_compute
-  Class['ceph::conf'] ->
-  Class['ceph::mon']  ->
-  Service['ceph'] ->
-  Class[['ceph::glance', 'ceph::cinder', 'ceph::nova_compute']]
+    'cinder':   { include ceph::cinder  }
+    'ceph-mds': { include ceph::mds     }
 
-  if ($::ceph::use_rgw) {
-    include ceph::keystone, ceph::radosgw
-    Class['ceph::libnss'] -> Class[['ceph::keystone, ceph::radosgw']]
+    'default': {}
   }
 }
