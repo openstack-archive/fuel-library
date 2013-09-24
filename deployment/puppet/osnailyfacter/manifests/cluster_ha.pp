@@ -47,12 +47,6 @@ if ! $::use_quantum {
 }
 $floating_hash = {}
 
-
-if !$::fuel_settings['swift_partition'] {
-  $swift_partition = '/var/lib/glance/node'
-}
-
-
 ##CALCULATED PARAMETERS
 
 
@@ -107,9 +101,10 @@ $controller_nodes = sort(values($controller_internal_addresses))
 $controller_node_public  = $::fuel_settings['public_vip']
 $controller_node_address = $::fuel_settings['management_vip']
 $mountpoints = filter_hash($mp_hash,'point')
-$swift_proxies = $controller_storage_addresses
+$quantum_metadata_proxy_shared_secret = $quantum_params['metadata_proxy_shared_secret']
 
-$swift_local_net_ip      = $::storage_address
+$quantum_gre_bind_addr = $::internal_address
+
 
 $cinder_iscsi_bind_addr = $::storage_address
 
@@ -128,7 +123,28 @@ if ($use_ceph) {
 } else {
   $glance_backend = 'swift'
 }
+$use_swift = false
+if ($use_swift){
+  if !$::fuel_settings['swift_partition'] {
+    $swift_partition = '/var/lib/glance/node'
+  }
+  $swift_proxies = $controller_storage_addresses
+  $swift_local_net_ip      = $::storage_address
+  $master_swift_proxy_nodes = filter_nodes($nodes_hash,'role','primary-controller')
+  $master_swift_proxy_ip = $master_swift_proxy_nodes[0]['internal_address']
+  #$master_hostname = $master_swift_proxy_nodes[0]['name']
+  #Moved to CEPH if block
+  #$glance_backend          = 'swift'
+  $swift_loopback = false
+  if $::fuel_settings['role'] == 'primary-controller' {
+    $primary_proxy = true
+  } else {
+    $primary_proxy = false
+  }
+}
 
+
+}
 $network_config = {
   'vlan_start'     => $vlan_start,
 }
@@ -143,29 +159,17 @@ if !$::fuel_settings['debug']
   $debug = false
 }
 
-
-if $::fuel_settings['role'] == 'primary-controller' {
-  $primary_proxy = true
-} else {
-  $primary_proxy = false
-}
 if $::fuel_settings['role'] == 'primary-controller' {
   $primary_controller = true
 } else {
   $primary_controller = false
 }
-$master_swift_proxy_nodes = filter_nodes($nodes_hash,'role','primary-controller')
-$master_swift_proxy_ip = $master_swift_proxy_nodes[0]['internal_address']
-#$master_hostname = $master_swift_proxy_nodes[0]['name']
 
 #HARDCODED PARAMETERS
 
 $multi_host              = true
 $manage_volumes          = false
-#Moved to CEPH if block
-#$glance_backend          = 'swift'
 $quantum_netnode_on_cnt  = true
-$swift_loopback = false
 $mirror_type = 'external'
 Exec { logoutput => true }
 
@@ -248,14 +252,6 @@ class compact_controller (
   }
 
 
-  class { 'swift::keystone::auth':
-    password         => $swift_hash[user_password],
-    public_address   => $::fuel_settings['public_vip'],
-    internal_address => $::fuel_settings['management_vip'],
-    admin_address    => $::fuel_settings['management_vip'],
-  }
-}
-
 class virtual_ips () {
   cluster::virtual_ips { $vip_keys:
     vips => $vips,
@@ -267,8 +263,6 @@ class virtual_ips () {
   case $::fuel_settings['role'] {
     /controller/ : {
       include osnailyfacter::test_controller
-
-  $swift_zone = $node[0]['swift_zone']
 
   class { '::cluster': stage => 'corosync_setup' } ->
   class { 'virtual_ips':
@@ -282,6 +276,9 @@ class virtual_ips () {
   }
 
       class { compact_controller: }
+      if ($use_swift) {
+        $swift_zone = $node[0]['swift_zone']
+
       class { 'openstack::swift::storage_node':
         storage_type          => $swift_loopback,
         loopback_size         => '5243780',
@@ -308,6 +305,14 @@ class virtual_ips () {
         syslog_log_level        => $syslog_log_level,
         debug                   => $debug ? { 'true' => true, true => true, default=> false },
         verbose                 => $verbose ? { 'true' => true, true => true, default=> false },
+      }
+
+      class { 'swift::keystone::auth':
+        password         => $swift_hash[user_password],
+        public_address   => $::fuel_settings['public_vip'],
+        internal_address => $::fuel_settings['management_vip'],
+        admin_address    => $::fuel_settings['management_vip'],
+      }
       }
       #TODO: PUT this configuration stanza into nova class
       nova_config { 'DEFAULT/start_guests_on_host_boot': value => $::fuel_settings['start_guests_on_host_boot'] }
