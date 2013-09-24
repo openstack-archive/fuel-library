@@ -53,7 +53,7 @@ else {
   $floating_ips_range = $::fuel_settings['floating_network_range']
 }
 
-if !$swift_partition
+if !$::fuel_settings['swift_partition']
 {
   $swift_partition = '/var/lib/glance/node'
 }
@@ -290,7 +290,7 @@ class virtual_ips () {
 
 
 
-  case $role {
+  case $::fuel_settings['role'] {
     /controller/ : {
       include osnailyfacter::test_controller
 
@@ -336,9 +336,9 @@ class virtual_ips () {
         verbose                 => $verbose ? { 'true' => true, true => true, default=> false },
       }
       #TODO: PUT this configuration stanza into nova class
-      nova_config { 'DEFAULT/start_guests_on_host_boot': value => $start_guests_on_host_boot }
-      nova_config { 'DEFAULT/use_cow_images': value => $use_cow_images }
-      nova_config { 'DEFAULT/compute_scheduler_driver': value => $compute_scheduler_driver }
+      nova_config { 'DEFAULT/start_guests_on_host_boot': value => $::fuel_settings['start_guests_on_host_boot'] }
+      nova_config { 'DEFAULT/use_cow_images': value => $::fuel_settings['use_cow_images'] }
+      nova_config { 'DEFAULT/compute_scheduler_driver': value => $::fuel_settings['compute_scheduler_driver'] }
 
 #TODO: fix this so it dosn't break ceph
       if $::hostname == $::last_controller {
@@ -437,9 +437,9 @@ class virtual_ips () {
 #        rservers => $rservers,
 #      }
       #TODO: PUT this configuration stanza into nova class
-      nova_config { 'DEFAULT/start_guests_on_host_boot': value => $start_guests_on_host_boot }
-      nova_config { 'DEFAULT/use_cow_images': value => $use_cow_images }
-      nova_config { 'DEFAULT/compute_scheduler_driver': value => $compute_scheduler_driver }
+      nova_config { 'DEFAULT/start_guests_on_host_boot': value => $::fuel_settings['start_guests_on_host_boot'] }
+      nova_config { 'DEFAULT/use_cow_images': value => $::fuel_settings['use_cow_images'] }
+      nova_config { 'DEFAULT/compute_scheduler_driver': value => $::fuel_settings['compute_scheduler_driver'] }
     }
 
     "cinder" : {

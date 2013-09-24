@@ -331,9 +331,9 @@ if ($use_ceph) {
         nova_rate_limits       => $nova_rate_limits,
         cinder_rate_limits     => $cinder_rate_limits
       }
-      nova_config { 'DEFAULT/start_guests_on_host_boot': value => $start_guests_on_host_boot }
-      nova_config { 'DEFAULT/use_cow_images': value => $use_cow_images }
-      nova_config { 'DEFAULT/compute_scheduler_driver': value => $compute_scheduler_driver }
+      nova_config { 'DEFAULT/start_guests_on_host_boot': value => $::fuel_settings['start_guests_on_host_boot'] }
+      nova_config { 'DEFAULT/use_cow_images': value => $::fuel_settings['use_cow_images'] }
+      nova_config { 'DEFAULT/compute_scheduler_driver': value => $::fuel_settings['compute_scheduler_driver'] }
 
       if defined(Class['ceph']){
         Class['openstack::compute'] -> Class['ceph']

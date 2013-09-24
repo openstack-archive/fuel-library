@@ -262,7 +262,7 @@ node default {
       include "osnailyfacter::cluster_ha"
       class {'os_common':}
       }
-    'ha_full': {
+    "ha_full": {
       include "osnailyfacter::cluster_ha_full"
       class {'os_common':}
       }
