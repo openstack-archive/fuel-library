@@ -53,17 +53,17 @@ if !$rabbit_hash[user]
 $rabbit_user          = $rabbit_hash['user']
 
 
-if !$verbose
+if !$::fuel_settings['verbose']
 {
  $verbose = 'false'
 }
 
-if !$debug
+if !$::fuel_settings['debug']
 {
  $debug = 'false'
 }
 
-if !$swift_partition
+if !$::fuel_settings['swift_partition']
 {
   $swift_partition = '/srv/node'
 }
@@ -132,12 +132,6 @@ $swift_local_net_ip      = $::storage_address
 
 $cinder_iscsi_bind_addr = $::storage_address
 
-if $auto_assign_floating_ip == 'true' {
-  $bool_auto_assign_floating_ip = true
-} else {
-  $bool_auto_assign_floating_ip = false
-}
-
 $network_config = {
   'vlan_start'     => $vlan_start,
 }
@@ -157,10 +151,20 @@ $master_swift_proxy_nodes = filter_nodes($nodes_hash,'role','primary-swift-proxy
 $master_swift_proxy_ip = $master_swift_proxy_nodes[0]['internal_address']
 #$master_hostname = filter_nodes($nodes_hash,'role','primary-controller')[0]['name']
 
+if ($::use_ceph) {
+  $primary_mons   = filter_nodes($nodes_hash,'role','primary-controller')
+  $primary_mon    = $primary_mons[0]['name']
+  $glance_backend = 'ceph'
+  class {'ceph':
+    primary_mon  => $primary_mon,
+    cluster_node_address => $controller_node_address,
+  }
+} else {
+  $glance_backend = 'swift'
+}
 #HARDCODED PARAMETERS
 $multi_host              = true
 $manage_volumes          = false
-$glance_backend          = 'swift'
 $quantum_netnode_on_cnt  = true
 
 $swift_loopback = false
@@ -192,12 +196,12 @@ class ha_controller (
     internal_address        => $internal_address,
     public_interface        => $::public_int,
     internal_interface      => $::internal_int,
-    private_interface       => $fixed_interface,
+    private_interface       => $::fuel_settings['fixed_interface'],
     internal_virtual_ip     => $::fuel_settings['management_vip'],
     public_virtual_ip       => $::fuel_settings['public_vip'],
     primary_controller      => $primary_controller,
-    floating_range          => $quantum ? { 'true' =>$floating_hash, default=>false},
-    fixed_range             => $fixed_network_range,
+    floating_range          => $::use_quantum ? { 'true' =>$floating_hash, default=>false},
+    fixed_range             => $::fuel_settings['fixed_network_range'],
     multi_host              => $multi_host,
     network_manager         => $network_manager,
     num_networks            => $num_networks,
@@ -205,7 +209,7 @@ class ha_controller (
     network_config          => $network_config,
     debug                   => $debug ? { 'true' => true, true => true, default=> false },
     verbose                 => $verbose ? { 'true' => true, true => true, default=> false },
-    auto_assign_floating_ip => $bool_auto_assign_floating_ip,
+    auto_assign_floating_ip => $::fuel_settings['auto_assign_floating_ip'],
     mysql_root_password     => $mysql_hash[root_password],
     admin_email             => $access_hash[email],
     admin_password          => $access_hash[password],
@@ -228,7 +232,7 @@ class ha_controller (
     export_resources        => false,
     glance_backend          => $glance_backend,
     swift_proxies           => $swift_proxies,
-    quantum                 => $quantum,
+    quantum                 => $::use_quantum,
     quantum_user_password   => $quantum_hash[user_password],
     quantum_db_password     => $quantum_hash[db_password],
     quantum_network_node    => $quantum_network_node,
@@ -265,10 +269,19 @@ class ha_controller (
           img_name    => "TestVM",
           stage          => 'glance-image',
         }
-        if !$quantum
-        {
-          nova::manage::floating{$floating_hash:}
+
+      if ! $::use_quantum {
+        nova_floating_range{ $floating_ips_range:
+          ensure          => 'present',
+          pool            => 'nova',
+          username        => $access_hash[user],
+          api_key         => $access_hash[password],
+          auth_method     => 'password',
+          auth_url        => "http://${::fuel_settings['management_vip']}:5000/v2.0/",
+          authtenant_name => $access_hash[tenant],
         }
+        Class[nova::api] -> Nova_floating_range <| |>
+      }
         Class[glance::api]                    -> Class[openstack::img::cirros]
       }
 
@@ -280,6 +293,7 @@ class ha_controller (
     admin_address    => $::fuel_settings['management_vip'],
   }
 }
+
 class virtual_ips () {
   cluster::virtual_ips { $vip_keys:
     vips => $vips,
@@ -289,13 +303,18 @@ class virtual_ips () {
 
 # Definition of OpenStack controller nodes.
 include stdlib
-case $role {
- /controller/ : {
- class { 'operatingsystem::checksupported':
+case $::fuel_settings['role'] {
+   /controller/ : {
+   class { 'operatingsystem::checksupported':
       stage => 'first'
   }
 
   class { ha_controller: }
+  nova_config { 'DEFAULT/start_guests_on_host_boot': value => $::fuel_settings['start_guests_on_host_boot'] }
+  nova_config { 'DEFAULT/use_cow_images': value => $::fuel_settings['use_cow_images'] }
+  nova_config { 'DEFAULT/compute_scheduler_driver': value => $::fuel_settings['compute_scheduler_driver'] }
+
+
 }
 
 
@@ -308,14 +327,14 @@ case $role {
 
   class { 'openstack::compute':
     public_interface       => $::public_int,
-    private_interface      => $fixed_interface,
+    private_interface      => $::fuel_settings['fixed_interface'],
     internal_address       => $internal_address,
-    libvirt_type           => $libvirt_type,
-    fixed_range            => $fixed_network_range,
+    libvirt_type           => $::fuel_settings['libvirt_type'],
+    fixed_range            => $::fuel_settings['fixed_network_range'],
     network_manager        => $network_manager,
     network_config         => $network_config,
     multi_host             => $multi_host,
-    auto_assign_floating_ip => $bool_auto_assign_floating_ip,
+    auto_assign_floating_ip => $::fuel_settings['auto_assign_floating_ip'],
     sql_connection         => "mysql://nova:${nova_hash[db_password]}@${::fuel_settings['management_vip']}/nova",
     queue_provider         => $::queue_provider,
     rabbit_nodes           => $controller_nodes,
@@ -333,7 +352,7 @@ case $role {
     nova_user_password     => $nova_hash[user_password],
     cache_server_ip        => $controller_nodes,
     service_endpoint       => $::fuel_settings['management_vip'],
-    quantum                => $quantum,
+    quantum                => $::use_quantum,
     quantum_sql_connection => $quantum_sql_connection,
     quantum_user_password  => $quantum_hash[user_password],
     quantum_host           => $::fuel_settings['management_vip'],
@@ -353,6 +372,11 @@ case $role {
     nova_rate_limits       => $::nova_rate_limits,
     state_path             => $nova_hash[state_path],
   }
+  nova_config { 'DEFAULT/start_guests_on_host_boot': value => $::fuel_settings['start_guests_on_host_boot'] }
+  nova_config { 'DEFAULT/use_cow_images': value => $::fuel_settings['use_cow_images'] }
+  nova_config { 'DEFAULT/compute_scheduler_driver': value => $::fuel_settings['compute_scheduler_driver'] }
+
+
 }
 
 # Definition of the first OpenStack Swift node.

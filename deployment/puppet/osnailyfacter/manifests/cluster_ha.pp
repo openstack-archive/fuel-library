@@ -53,6 +53,18 @@ else {
   $floating_ips_range = $::fuel_settings['floating_network_range']
 }
 
+if !$::fuel_settings['verbose']
+{
+ $verbose = 'false'
+}
+
+if !$::fuel_settings['debug']
+{
+ $debug = 'false'
+}
+
+
+
 if !$::fuel_settings['swift_partition']
 {
   $swift_partition = '/var/lib/glance/node'
@@ -125,8 +137,7 @@ $swift_local_net_ip      = $::storage_address
 $cinder_iscsi_bind_addr = $::storage_address
 
 #TODO: awoodward fix static $use_ceph
-$use_ceph = false
-if ($use_ceph) {
+if ($::use_ceph) {
   $primary_mons   = filter_nodes($nodes_hash,'role','primary-controller')
   $primary_mon    = $primary_mons[0]['name']
   $glance_backend = 'ceph'
@@ -138,27 +149,19 @@ if ($use_ceph) {
   $glance_backend = 'swift'
 }
 
-if $::fuel_settings['auto_assign_floating_ip'] {
-  $bool_auto_assign_floating_ip = true
-} else {
-  $bool_auto_assign_floating_ip = false
-}
-
 $network_config = {
   'vlan_start'     => $vlan_start,
 }
 
-if !$verbose
+if !$::fuel_settings['verbose']
 {
- $verbose = 'false'
+  $verbose = false
 }
 
-if !$debug
+if !$::fuel_settings['debug']
 {
- $debug = 'false'
+  $debug = false
 }
-
-
 
 
 if $node[0]['role'] == 'primary-controller' {
@@ -201,12 +204,12 @@ class compact_controller (
     internal_address              => $internal_address,
     public_interface              => $::public_int,
     internal_interface            => $::internal_int,
-    private_interface             => $fixed_interface,
+    private_interface             => $::fuel_settings['fixed_interface'],
     internal_virtual_ip           => $::fuel_settings['management_vip'],
     public_virtual_ip             => $::fuel_settings['public_vip'],
     primary_controller            => $primary_controller,
     floating_range                => $::use_quantum ? { true=>$floating_hash, default=>false},
-    fixed_range                   => $fixed_network_range,
+    fixed_range                   => $::fuel_settings['fixed_network_range'],
     multi_host                    => $multi_host,
     network_manager               => $network_manager,
     num_networks                  => $num_networks,
@@ -218,7 +221,7 @@ class compact_controller (
     qpid_password                 => $rabbit_hash[password],
     qpid_user                     => $rabbit_hash[user],
     qpid_nodes                    => [$::fuel_settings['management_vip']],
-    auto_assign_floating_ip       => $bool_auto_assign_floating_ip,
+    auto_assign_floating_ip       => $::fuel_settings['auto_assign_floating_ip'],
     mysql_root_password           => $mysql_hash[root_password],
     admin_email                   => $access_hash[email],
     admin_user                    => $access_hash[user],
@@ -264,21 +267,16 @@ class compact_controller (
     syslog_log_facility_keystone => $syslog_log_facility_keystone,
     nova_rate_limits        => $nova_rate_limits,
     cinder_rate_limits      => $cinder_rate_limits,
-    horizon_use_ssl         => $::horizon_use_ssl,
-    use_unicast_corosync    => $::use_unicast_corosync,
+    horizon_use_ssl         => $::fuel_settings['horizon_use_ssl'],
+    use_unicast_corosync    => $::fuel_settings['use_unicast_corosync'],
   }
 
-#  class { "::rsyslog::client":
-#    log_local => true,
-#    log_auth_local => true,
-#    rservers => $rservers,
-#  }
 
   class { 'swift::keystone::auth':
-     password         => $swift_hash[user_password],
-     public_address   => $::fuel_settings['piblic_vip'],
-     internal_address => $::fuel_settings['management_vip'],
-     admin_address    => $::fuel_settings['management_vip'],
+    password         => $swift_hash[user_password],
+    public_address   => $::fuel_settings['piblic_vip'],
+    internal_address => $::fuel_settings['management_vip'],
+    admin_address    => $::fuel_settings['management_vip'],
   }
 }
 
@@ -294,7 +292,7 @@ class virtual_ips () {
     /controller/ : {
       include osnailyfacter::test_controller
 
- $swift_zone = $node[0]['swift_zone']
+  $swift_zone = $node[0]['swift_zone']
 
   class { '::cluster': stage => 'corosync_setup' } ->
   class { 'virtual_ips':
@@ -379,11 +377,11 @@ class virtual_ips () {
       include osnailyfacter::test_compute
 
       class { 'openstack::compute':
-        public_interface       => $public_int,
-        private_interface      => $fixed_interface,
+        public_interface       => $::public_int,
+        private_interface      => $::fuel_settings['fixed_interface'],
         internal_address       => $internal_address,
-        libvirt_type           => $libvirt_type,
-        fixed_range            => $fixed_network_range,
+        libvirt_type           => $::fuel_settings['libvirt_type'],
+        fixed_range            => $::fuel_settings['fixed_network_range'],
         network_manager        => $network_manager,
         network_config         => $network_config,
         multi_host             => $multi_host,
@@ -396,7 +394,7 @@ class virtual_ips () {
         rabbit_password        => $rabbit_hash[password],
         rabbit_user            => $rabbit_hash[user],
         rabbit_ha_virtual_ip   => $::fuel_settings['management_vip'],
-        auto_assign_floating_ip => $bool_auto_assign_floating_ip,
+        auto_assign_floating_ip => $::fuel_settings['auto_assign_floating_ip'],
         glance_api_servers     => "${::fuel_settings['management_vip']}:9292",
         vncproxy_host          => $::fuel_settings['public_vip'],
         debug                  => $debug ? { 'true' => true, true => true, default=> false },

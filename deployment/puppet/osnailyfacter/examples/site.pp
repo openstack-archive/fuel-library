@@ -48,8 +48,8 @@ if $::fuel_settings['nodes'] {
   # str2bool
   $use_quantum = $::fuel_settings['quantum']
   if $use_quantum {
-    $public_int   = $public_br
-    $internal_int = $internal_br
+    $public_int   = $::fuel_settings['public_br']
+    $internal_int = $::fuel_settings['internal_br']
   } else {
     $public_int   = $::fuel_settings['public_interface']
     $internal_int = $::fuel_settings['management_interface']
@@ -64,6 +64,7 @@ if $::fuel_settings['nodes'] {
 # Note: if syslog on, this default level may be configured (for syslog) with syslog_log_level option.
 $verbose = $::fuel_settings['verbose']
 $debug = $::fuel_settings['debug']
+$use_ceph =  $::fuel_settings['storage']['glance'] ? { 'ceph' => true, default => false }
 
 ### Syslog ###
 # Enable error messages reporting to rsyslog. Rsyslog must be installed in this case.

@@ -1,6 +1,6 @@
 class osnailyfacter::cluster_simple {
 
-if $::fuel_settings['quantum']
+if $::use_quantum
 {
   $quantum_hash   = $::fuel_settings['quantum_access']
   $quantum_params = $::fuel_settings['quantum_parameters']
@@ -46,13 +46,7 @@ if !$rabbit_hash[user]
 $rabbit_user          = $rabbit_hash['user']
 
 
-if $::fuel_settings['auto_assign_floating_ip'] {
-  $bool_auto_assign_floating_ip = true
-} else {
-  $bool_auto_assign_floating_ip = false
-}
-
-if $quantum {
+if $::use_quantum {
    $floating_hash = $::fuel_settings['floating_network_range']
 }
 else {
@@ -101,19 +95,18 @@ $quantum_sql_connection  = "mysql://${quantum_db_user}:${quantum_db_password}@${
 $quantum_metadata_proxy_shared_secret = $quantum_params['metadata_proxy_shared_secret']
 $quantum_gre_bind_addr = $::internal_address
 
-if !$verbose
+if !$::fuel_settings['verbose']
 {
  $verbose = 'false'
 }
 
-if !$debug
+if !$::fuel_settings['debug']
 {
  $debug = 'false'
 }
 
 #TODO: awoodward fix static $use_ceph
-$use_ceph = false
-if ($use_ceph) {
+if ($::use_ceph) {
   $primary_mons   = $controller
   $primary_mon    = $controller[0]['name']
   $glance_backend = 'ceph'
@@ -133,10 +126,10 @@ if ($use_ceph) {
       class { 'openstack::controller':
         admin_address           => $controller_node_address,
         public_address          => $controller_node_public,
-        public_interface        => $public_int,
+        public_interface        => $::public_int,
         private_interface       => $::fuel_settings['fixed_interface'],
         internal_address        => $controller_node_address,
-        floating_range          => $quantum ? { 'true' =>$floating_hash, default=>false},
+        floating_range          => $::use_quantum ? { 'true' =>$floating_hash, default=>false},
         fixed_range             => $::fuel_settings['fixed_network_range'],
         multi_host              => $multi_host,
         network_manager         => $network_manager,
@@ -145,7 +138,7 @@ if ($use_ceph) {
         network_config          => $network_config,
         debug                   => $debug ? { 'true' => true, true => true, default=> false },
         verbose                 => $verbose ? { 'true' => true, true => true, default=> false },
-        auto_assign_floating_ip => $bool_auto_assign_floating_ip,
+        auto_assign_floating_ip => $::fuel_settings['auto_assign_floating_ip'], 
         mysql_root_password     => $mysql_hash[root_password],
         admin_email             => $access_hash[email],
         admin_user              => $access_hash[user],
@@ -165,10 +158,10 @@ if ($use_ceph) {
         qpid_password           => $rabbit_hash[password],
         qpid_user               => $rabbit_hash[user],
         export_resources        => false,
-        quantum                 => $quantum,
+        quantum                 => $::use_quantum,
         quantum_user_password         => $quantum_hash[user_password],
         quantum_db_password           => $quantum_hash[db_password],
-        quantum_network_node          => $quantum,
+        quantum_network_node          => $::use_quantum,
         quantum_netnode_on_cnt        => true,
         quantum_gre_bind_addr         => $quantum_gre_bind_addr,
         quantum_external_ipinfo       => $external_ipinfo,
@@ -200,7 +193,7 @@ if ($use_ceph) {
       auth_host             => $controller_node_address,
       nova_api_vip          => $controller_node_address,
       internal_address      => $internal_address,
-      public_interface      => $public_int,
+      public_interface      => $::public_int,
       private_interface     => $::fuel_settings['fixed_interface'],
       floating_range        => $floating_hash,
       fixed_range           => $::fuel_settings['fixed_network_range'],
@@ -215,12 +208,12 @@ if ($use_ceph) {
       qpid_password         => $rabbit_hash[password],
       qpid_user             => $rabbit_hash[user],
       qpid_nodes            => [$controller_node_address],
-      quantum               => $quantum,
+      quantum               => $::use_quantum,
       quantum_user_password => $quantum_hash[user_password],
       quantum_db_password   => $quantum_hash[db_password],
       quantum_gre_bind_addr => $quantum_gre_bind_addr,
       quantum_network_node  => true,
-      quantum_netnode_on_cnt=> $quantum,
+      quantum_netnode_on_cnt=> $::use_quantum,
       tenant_network_type   => $tenant_network_type,
       segment_range         => $segment_range,
       external_ipinfo       => $external_ipinfo,
@@ -262,7 +255,7 @@ if ($use_ceph) {
       }
       Class[glance::api]        -> Class[openstack::img::cirros]
 
-      if !$quantum {
+      if !$::use_quantum {
         nova_floating_range{ $floating_ips_range:
           ensure          => 'present',
           pool            => 'nova',
@@ -286,7 +279,7 @@ if ($use_ceph) {
       include osnailyfacter::test_compute
 
       class { 'openstack::compute':
-        public_interface       => $public_int,
+        public_interface       => $::public_int,
         private_interface      => $::fuel_settings['fixed_interface'],
         internal_address       => $internal_address,
         libvirt_type           => $::fuel_settings['libvirt_type'],
@@ -300,14 +293,14 @@ if ($use_ceph) {
         rabbit_nodes           => [$controller_node_address],
         rabbit_password        => $rabbit_hash[password],
         rabbit_user            => $rabbit_user,
-        auto_assign_floating_ip => $bool_auto_assign_floating_ip,
+        auto_assign_floating_ip => $::fuel_settings['auto_assign_floating_ip'], 
         qpid_nodes             => [$controller_node_address],
         qpid_password          => $rabbit_hash[password],
         qpid_user              => $rabbit_user,
         glance_api_servers     => "${controller_node_address}:9292",
         vncproxy_host          => $controller_node_public,
         vnc_enabled            => true,
-        quantum                => $quantum,
+        quantum                => $::use_quantum,
         quantum_host           => $quantum_host,
         quantum_sql_connection => $quantum_sql_connection,
         quantum_user_password  => $quantum_hash[user_password],
@@ -367,11 +360,11 @@ if ($use_ceph) {
         verbose              => $verbose ? { 'true' => true, true => true, default=> false },
         use_syslog           => true,
       }
-   }
-   "ceph-osd" : {
-     #Nothing needs to be done Class Ceph is already defined
-     notify {"ceph-osd: ${::ceph::osd_devices}": }
-     notify {"osd_devices:  ${::osd_devices_list}": }
-   }
+  }
+  "ceph-osd" : {
+  #Nothing needs to be done Class Ceph is already defined
+  notify {"ceph-osd: ${::ceph::osd_devices}": }
+  notify {"osd_devices:  ${::osd_devices_list}": }
+  }
   }
 }
