@@ -23,6 +23,10 @@ server {
         alias <%= staticdir %>;
     }
 
+    location /dump {
+        alias <%= logdumpdir %>;
+    }
+
     location ~ ^/ostf/(.*) {
         proxy_pass http://127.0.0.1:8777/v1/$1;
         proxy_buffering off;
