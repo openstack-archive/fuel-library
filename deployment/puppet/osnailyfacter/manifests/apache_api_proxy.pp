@@ -16,7 +16,7 @@ class osnailyfacter::apache_api_proxy {
 
     file { '/etc/apache2/sites-available/api_proxy.conf':
       content => template('osnailyfacter/api_proxy.conf.erb'),
-      require => Package['httpd'],
+      require => Package['dashboard'],
     }->
 
     file { '/etc/apache2/sites-enabled/api_proxy.conf':
