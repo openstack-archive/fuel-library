@@ -32,6 +32,7 @@ $swift_hash           = $::fuel_settings['swift']
 $cinder_hash          = $::fuel_settings['cinder']
 $access_hash          = $::fuel_settings['access']
 $nodes_hash           = $::fuel_settings['nodes']
+$storage_hash         = $::fuel_settings['storage']
 $vlan_start           = $novanetwork_params['vlan_start']
 $network_manager      = "nova.network.manager.${novanetwork_params['network_manager']}"
 $network_size         = $novanetwork_params['network_size']
@@ -105,20 +106,37 @@ if !$::fuel_settings['debug']
  $debug = false
 }
 
-#TODO: awoodward fix static $use_ceph
-$use_ceph = true
+# Determine if any ceph parts have been asked for.
+# This will ensure that monitors are set up on controllers, even if no 
+#  ceph-osd roles during deployment
+
+if (filter_nodes($node_hash, 'role', 'ceph-osd') or
+    $storage_hash['cinder'] == 'ceph' or
+    $storage_hash['glance'] == 'ceph' or
+    $storage_hash['object'] == 'ceph'
+) {
+  $use_ceph = true
+} else {
+  $use_ceph = false
+}
+
+#Determine who should be the default backend
+
+case $storage_hash['glance'] {
+  'ceph':           { $glance_backend = 'ceph' }
+  'file', default:  { $glance_backend = 'file' }
+}
+
 if ($use_ceph) {
   $primary_mons   = $controller
   $primary_mon    = $controller[0]['name']
-  $glance_backend = 'ceph'
   class {'ceph': 
     primary_mon          => $primary_mon,
     cluster_node_address => $controller_node_address,
-    use_rgw              => true,
+    use_rgw              => $storage_hash['object'] ? {'ceph'  => true,
+                                                       default => false},
     use_ssl              => false,
   }
-} else {
-  $glance_backend = 'file'
 }
 
   case $::fuel_settings['role'] {
@@ -250,7 +268,7 @@ if ($use_ceph) {
       #   require          => Class[glance::api],
       # }
 #TODO: fix this so it dosn't break ceph
-      if !(use_ceph) {
+      if !($use_ceph) {
       class { 'openstack::img::cirros':
         os_username               => shellescape($access_hash[user]),
         os_password               => shellescape($access_hash[password]),
@@ -274,7 +292,7 @@ if ($use_ceph) {
       Class[nova::api] -> Nova_floating_range <| |>
       }
 
-      if defined(Class['ceph']){
+      if ($use_ceph){
         Class['openstack::controller'] -> Class['ceph::glance']
         Class['openstack::controller'] -> Class['ceph::cinder']
       }
@@ -345,7 +363,7 @@ if ($use_ceph) {
       nova_config { 'DEFAULT/use_cow_images': value => $::fuel_settings['use_cow_images'] }
       nova_config { 'DEFAULT/compute_scheduler_driver': value => $::fuel_settings['compute_scheduler_driver'] }
 
-      if defined(Class['ceph']){
+      if ($use_ceph){
         Class['openstack::compute'] -> Class['ceph']
       }
     }

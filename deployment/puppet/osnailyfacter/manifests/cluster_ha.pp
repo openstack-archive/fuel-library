@@ -35,6 +35,7 @@ $cinder_hash          = $::fuel_settings['cinder']
 $access_hash          = $::fuel_settings['access']
 $nodes_hash           = $::fuel_settings['nodes']
 $mp_hash              = $::fuel_settings['mp']
+$storage_hash         = $::fuel_settings['storage']
 $network_manager      = "nova.network.manager.${novanetwork_params['network_manager']}"
 
 if !$rabbit_hash['user'] {
@@ -108,22 +109,49 @@ $quantum_gre_bind_addr = $::internal_address
 
 $cinder_iscsi_bind_addr = $::storage_address
 
-#TODO: awoodward fix static $use_ceph
-$use_ceph = true
+# Determine if any ceph parts have been asked for.
+# This will ensure that monitors are set up on controllers, even if no
+#  ceph-osd roles during deployment
+
+if (filter_nodes($node_hash, 'role', 'ceph-osd') or
+    $storage_hash['cinder'] == 'ceph' or
+    $storage_hash['glance'] == 'ceph' or
+    $storage_hash['object'] == 'ceph'
+) {
+  $use_ceph = true
+} else {
+  $use_ceph = false
+}
+
+#Determine who should be the default backend
+
+case $storage_hash['glance'] {
+  'ceph':            { $glance_backend = 'ceph' }
+  'file':            { $glance_backend = 'file'}
+  'swift', default:  { $glance_backend = 'swift' }
+}
+
 if ($use_ceph) {
-  $primary_mons   = filter_nodes($nodes_hash,'role','primary-controller')
-  $primary_mon    = $primary_mons[0]['name']
-  $glance_backend = 'ceph'
+  $primary_mons   = $controllers
+  $primary_mon    = $controllers[0]['name']
   class {'ceph':
     primary_mon          => $primary_mon,
     cluster_node_address => $controller_node_address,
-    use_rgw              => true,
+    use_rgw              => $storage_hash['object'] ? {'ceph'  => true,
+                                                       default => false},
     use_ssl              => false,
   }
-} else {
-  $glance_backend = 'swift'
 }
-$use_swift = false
+
+#Test to determine if swift should be installed
+if ($storage_hash['object'] == 'swift' or
+    $storage_hash['glance'] == 'swift'
+) {
+  $use_swift = true
+} else {
+  $use_swift = false
+}
+
 if ($use_swift){
   if !$::fuel_settings['swift_partition'] {
     $swift_partition = '/var/lib/glance/node'
@@ -306,12 +334,13 @@ class virtual_ips () {
         debug                   => $debug ? { 'true' => true, true => true, default=> false },
         verbose                 => $verbose ? { 'true' => true, true => true, default=> false },
       }
-
+      if $storage_hash['object'] == 'swift' {
       class { 'swift::keystone::auth':
         password         => $swift_hash[user_password],
         public_address   => $::fuel_settings['public_vip'],
         internal_address => $::fuel_settings['management_vip'],
         admin_address    => $::fuel_settings['management_vip'],
+      }
       }
       }
       #TODO: PUT this configuration stanza into nova class
@@ -320,7 +349,7 @@ class virtual_ips () {
       nova_config { 'DEFAULT/compute_scheduler_driver': value => $::fuel_settings['compute_scheduler_driver'] }
 
 #TODO: fix this so it dosn't break ceph
-      if !(use_ceph) {
+      if !($::use_ceph) {
       if $::hostname == $::fuel_settings['last_controller'] {
         class { 'openstack::img::cirros':
           os_username => shellescape($access_hash[user]),
@@ -348,7 +377,7 @@ class virtual_ips () {
         }
         Class[nova::api] -> Nova_floating_range <| |>
       }
-      if defined(Class['ceph']){
+      if ($use_ceph){
         Class['openstack::controller'] -> Class['ceph::glance']
         Class['openstack::controller'] -> Class['ceph::cinder']
       }
@@ -414,7 +443,7 @@ class virtual_ips () {
         state_path             => $nova_hash[state_path],
       }
 
-        if defined(Class['ceph']){
+        if ($use_ceph){
           Class['openstack::compute'] -> Class['ceph']
         }
 
