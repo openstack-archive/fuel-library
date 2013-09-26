@@ -58,20 +58,4 @@ class ceph::params {
       fail("Unsupported osfamily: ${::osfamily} operatingsystem: ${::operatingsystem}, module ${module_name} only support osfamily RedHat and Debian")
     }
   }
-
-  service {'ceph':
-    # Left blank, will set later for roles that need it
-  }
-}
-
-# ceph::libnss sets up the OS-specific libnss package for Ceph
-class ceph::libnss {
-  package {$::ceph::params::package_libnss:
-    ensure => 'latest',
-  }
-
-  file {$::ceph::rgw_nss_db_path:
-    ensure => 'directory',
-    mode   => '0755',
-  }
 }

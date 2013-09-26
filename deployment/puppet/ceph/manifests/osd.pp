@@ -23,6 +23,7 @@ class ceph::osd (
     tries     => 2, # This is necessary because of race for mon creating keys
     try_sleep => 1,
     logoutput => true,
+    unless    => "grep -q '^${ $::ceph::osd_devices[0] }' /proc/mounts",
   }
 
   exec { 'ceph-deploy osd activate':

@@ -68,15 +68,14 @@ class ceph (
   # TODO: this should be pulled back into existing modules for setting up ssh-key
   # TODO: OR need to at least generate the key
   include ceph::ssh
-
   include ceph::params
   include ceph::conf
-  Class['ceph::params'] -> Class['ceph::conf']
+  Class[['ceph::ssh', 'ceph::params']] -> Class['ceph::conf']
 
   if $::role =~ /controller|ceph/ {
-    Service['ceph'] {
-      enable => true,
+    service {'ceph':
       ensure => 'running',
+      enable => true,
     }
   }
 
@@ -85,19 +84,19 @@ class ceph (
       include ceph::mon, ceph::glance, ceph::cinder
       Class['ceph::conf'] ->
       Class['ceph::mon']  ->
-      Service['ceph'] ->
+      Service['ceph']     ->
       Class[['ceph::glance', 'ceph::cinder']]
 
       if ($::ceph::use_rgw) {
-        include ceph::keystone, ceph::radosgw
-        Class['ceph::libnss'] -> Class[['ceph::keystone, ceph::radosgw']]
+        include ceph::libnss, ceph::keystone, ceph::radosgw
+        Class['ceph::libnss'] -> Class[['ceph::keystone', 'ceph::radosgw']]
       }
     }
 
     'ceph-osd': {
       if ! empty($osd_devices) {
         include ceph::osd
-        Class['ceph::conf'] -> Class['ceph::osd']
+        Class['ceph::conf'] -> Class['ceph::osd'] -> Service['ceph']
       }
     }
 
@@ -111,6 +110,6 @@ class ceph (
     'cinder':   { include ceph::cinder  }
     'ceph-mds': { include ceph::mds     }
 
-    'default': {}
+    default: {}
   }
 }

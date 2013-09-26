@@ -1,6 +1,5 @@
 # setup Ceph monitors
 class ceph::mon {
-  include ceph::osd_pools
 
   firewall {'010 ceph-mon allow':
     chain  => 'INPUT',
@@ -26,21 +25,26 @@ class ceph::mon {
     try_sleep => 1,
   }
 
-  Firewall['010 ceph-mon allow'] ->
-  Exec['ceph-deploy mon create'] ->
-  Exec['Wait for Ceph quorum']   ->
-  Class['ceph::osd_pools']
-}
+  exec {'ceph-deploy gatherkeys':
+    command => "ceph-deploy gatherkeys ${::hostname}",
+    creates => ['/root/ceph.bootstrap-mds.keyring',
+                '/root/ceph.bootstrap-osd.keyring',
+                '/root/ceph.client.admin.keyring',
+               ],
+  }
 
-# creates Ceph OSD pools for Cinder and Glance
-class ceph::osd_pools {
-  # creates the named osd pool
+  # creates the named OSD pool
   define osd_pool {
     exec { "Creating pool ${name}":
       command   => "ceph osd pool create ${name} ${::ceph::osd_pool_default_pg_num} ${::ceph::osd_pool_default_pgp_num}",
       logoutput => true,
     }
   }
-  $pools = [ $::ceph::cinder_pool, $::ceph::glance_pool ]
-  osd_pool { $pools: }
+  osd_pool {[$::ceph::cinder_pool, $::ceph::glance_pool]: }
+
+  Firewall['010 ceph-mon allow'] ->
+  Exec['ceph-deploy mon create'] ->
+  Exec['Wait for Ceph quorum']   ->
+  Exec['ceph-deploy gatherkeys'] ->
+  Osd_pool <||>
 }
