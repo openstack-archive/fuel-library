@@ -114,9 +114,9 @@ $cinder_iscsi_bind_addr = $::storage_address
 #  ceph-osd roles during deployment
 
 if (filter_nodes($node_hash, 'role', 'ceph-osd') or
-    $storage_hash['cinder'] == 'ceph' or
-    $storage_hash['glance'] == 'ceph' or
-    $storage_hash['object'] == 'ceph'
+    $storage_hash['volumes_ceph'] or
+    $storage_hash['images_ceph'] or
+    $storage_hash['objects_ceph']
 ) {
   $use_ceph = true
 } else {
@@ -125,10 +125,10 @@ if (filter_nodes($node_hash, 'role', 'ceph-osd') or
 
 #Determine who should be the default backend
 
-case $storage_hash['glance'] {
-  'ceph':            { $glance_backend = 'ceph' }
-  'file':            { $glance_backend = 'file'}
-  'swift', default:  { $glance_backend = 'swift' }
+if ($storage_hash['images_ceph']) {
+  $glance_backend = 'ceph'
+} else {
+  $glance_backend = 'swift'
 }
 
 if ($use_ceph) {
@@ -137,15 +137,14 @@ if ($use_ceph) {
   class {'ceph':
     primary_mon          => $primary_mon,
     cluster_node_address => $controller_node_address,
-    use_rgw              => $storage_hash['object'] ? {'ceph'  => true,
-                                                       default => false},
+    use_rgw              => $storage_hash['objects_ceph'],
     use_ssl              => false,
   }
 }
 
 #Test to determine if swift should be installed
-if ($storage_hash['object'] == 'swift' or
-    $storage_hash['glance'] == 'swift'
+if ($storage_hash['objects_swift'] or
+    ! $storage_hash['images_ceph']
 ) {
   $use_swift = true
 } else {
@@ -334,7 +333,7 @@ class virtual_ips () {
         debug                   => $debug ? { 'true' => true, true => true, default=> false },
         verbose                 => $verbose ? { 'true' => true, true => true, default=> false },
       }
-      if $storage_hash['object'] == 'swift' {
+      if $storage_hash['objects_swift'] {
       class { 'swift::keystone::auth':
         password         => $swift_hash[user_password],
         public_address   => $::fuel_settings['public_vip'],
