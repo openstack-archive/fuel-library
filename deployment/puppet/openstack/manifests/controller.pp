@@ -188,6 +188,7 @@ class openstack::controller (
   $nova_rate_limits        = undef,
   $cinder_rate_limits      = undef,
   $ha_mode                 = false,
+  $nameservers             = undef,
 ) {
 
 
@@ -319,6 +320,7 @@ class openstack::controller (
     # Database
     db_host                 => $db_host,
     # Network
+    nameservers             => $nameservers,
     network_manager         => $network_manager,
     floating_range          => $floating_range,
     fixed_range             => $fixed_range,

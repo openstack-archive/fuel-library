@@ -36,9 +36,11 @@ Puppet::Type.newtype(:nova_network) do
   end
 
   newparam(:dns1) do
+      desc 'first dns server'
   end
 
   newparam(:dns2) do
+      desc 'second dns server'
   end
 
   newparam(:vlan_start) do
