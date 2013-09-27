@@ -145,7 +145,7 @@ case $::operatingsystem {
 }
 
 class os_common {
-  class {"l23network::hosts_file": stage => 'netconfig', hosts => $nodes_hash }
+  class {"l23network::hosts_file": stage => 'netconfig', nodes => $nodes_hash }
   class {'l23network': use_ovs=>$use_quantum, stage=> 'netconfig'}
   if $deployment_source == 'cli' {
     class {'::node_netconfig':
