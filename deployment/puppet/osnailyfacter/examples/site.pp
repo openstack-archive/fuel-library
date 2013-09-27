@@ -100,7 +100,6 @@ class node_netconfig (
   $quantum = $use_quantum,
   $default_gateway
 ) {
-  class {"l23network::hosts_file": stage => 'netconfig', hosts => $nodes_hash }
   if $use_quantum {
     l23network::l3::create_br_iface {'mgmt':
       interface => $management_interface, # !!! NO $internal_int /sv !!!
@@ -146,6 +145,7 @@ case $::operatingsystem {
 }
 
 class os_common {
+  class {"l23network::hosts_file": stage => 'netconfig', hosts => $nodes_hash }
   class {'l23network': use_ovs=>$use_quantum, stage=> 'netconfig'}
   if $deployment_source == 'cli' {
     class {'::node_netconfig':
