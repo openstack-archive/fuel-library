@@ -377,8 +377,7 @@ class virtual_ips () {
         Class[nova::api] -> Nova_floating_range <| |>
       }
       if ($use_ceph){
-        Class['openstack::controller'] -> Class['ceph::glance']
-        Class['openstack::controller'] -> Class['ceph::cinder']
+        Class['openstack::controller'] -> Class['ceph']
       }
 
       #ADDONS START

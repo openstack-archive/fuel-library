@@ -293,8 +293,7 @@ if ($use_ceph) {
       }
 
       if ($use_ceph){
-        Class['openstack::controller'] -> Class['ceph::glance']
-        Class['openstack::controller'] -> Class['ceph::cinder']
+        Class['openstack::controller'] -> Class['ceph']
       }
 
       #ADDONS START
