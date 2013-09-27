@@ -29,6 +29,7 @@ Puppet::Type.type(:nova_network).provide(:nova_manage) do
     {
       # this needs to be converted from a project name to an id
       :project          => '--project_id',
+      :dns1             => '--dns1',
       :dns2             => '--dns2',
       :gateway          => '--gateway',
       :bridge           => '--bridge',
@@ -38,10 +39,6 @@ Puppet::Type.type(:nova_network).provide(:nova_manage) do
         optional_opts.push(opt).push(resource[param])
       end
     end
-
-    # if resource[:network_size].to_i <= 2**(32-resource[:name].split('/')[1].to_i)-1
-    #     optional_opts.push('--network_size').push(resource[:network_size])
-    # end
 
     nova_manage('network', 'create',
       resource[:label],

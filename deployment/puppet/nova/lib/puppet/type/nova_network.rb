@@ -35,6 +35,9 @@ Puppet::Type.newtype(:nova_network) do
   newparam(:gateway) do
   end
 
+  newparam(:dns1) do
+  end
+
   newparam(:dns2) do
   end
 
