@@ -97,12 +97,12 @@ $quantum_gre_bind_addr = $::internal_address
 
 if !$::fuel_settings['verbose']
 {
- $verbose = 'false'
+ $verbose = false
 }
 
 if !$::fuel_settings['debug']
 {
- $debug = 'false'
+ $debug = false
 }
 
 #TODO: awoodward fix static $use_ceph

@@ -53,17 +53,6 @@ else {
   $floating_ips_range = $::fuel_settings['floating_network_range']
 }
 
-if !$::fuel_settings['verbose']
-{
- $verbose = 'false'
-}
-
-if !$::fuel_settings['debug']
-{
- $debug = 'false'
-}
-
-
 
 if !$::fuel_settings['swift_partition']
 {

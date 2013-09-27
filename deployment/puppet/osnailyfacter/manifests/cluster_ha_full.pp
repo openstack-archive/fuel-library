@@ -55,12 +55,12 @@ $rabbit_user          = $rabbit_hash['user']
 
 if !$::fuel_settings['verbose']
 {
- $verbose = 'false'
+ $verbose = false
 }
 
 if !$::fuel_settings['debug']
 {
- $debug = 'false'
+ $debug = false
 }
 
 if !$::fuel_settings['swift_partition']
