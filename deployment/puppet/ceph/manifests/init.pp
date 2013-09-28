@@ -52,7 +52,7 @@ class ceph (
       $rbd_secret_uuid                  = 'a5d0dd94-57c4-ae55-ffe0-7e3732a24455',
 
       # Glance settings
-      $default_store                    = 'rbd',
+      $glance_backend                   = 'ceph',
       $rbd_store_user                   = 'images',
       $rbd_store_pool                   = 'images',
       $show_image_direct_url            = 'True',
@@ -81,15 +81,16 @@ class ceph (
 
   case $::fuel_settings['role'] {
     'primary-controller', 'controller', 'ceph-mon': {
-      include ceph::mon, ceph::glance, ceph::cinder
+      include ceph::mon #FIXME: ceph::glance, ceph::cinder
       Class['ceph::conf'] ->
       Class['ceph::mon']  ->
-      Service['ceph']     ->
-      Class[['ceph::glance', 'ceph::cinder']]
+      Service['ceph']
 
       if ($::ceph::use_rgw) {
         include ceph::libnss, ceph::keystone, ceph::radosgw
-        Class['ceph::libnss'] -> Class[['ceph::keystone', 'ceph::radosgw']]
+        Class['ceph::params'] ->
+        Class['ceph::libnss'] ->
+        Class[['ceph::keystone', 'ceph::radosgw']]
       }
     }
 

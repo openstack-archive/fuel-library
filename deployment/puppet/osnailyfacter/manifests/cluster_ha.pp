@@ -131,6 +131,17 @@ if ($storage_hash['images_ceph']) {
   $glance_backend = 'swift'
 }
 
+# Determine who should get the volume service
+if ($::role == 'cinder' or
+    $storage_hash['volumes_lvm'] 
+) {
+  $manage_volumes = 'iscsi'
+} elsif ($storage_hash['volumes_ceph']) {
+  $manage_volumes = 'ceph'
+} else {
+  $manage_volumes = false
+}
+
 if ($use_ceph) {
   $primary_mons   = $controllers
   $primary_mon    = $controllers[0]['name']
@@ -139,6 +150,7 @@ if ($use_ceph) {
     cluster_node_address => $controller_node_address,
     use_rgw              => $storage_hash['objects_ceph'],
     use_ssl              => false,
+    glance_backend       => $glance_backend,
   }
 }
 
@@ -160,8 +172,6 @@ if ($use_swift){
   $master_swift_proxy_nodes = filter_nodes($nodes_hash,'role','primary-controller')
   $master_swift_proxy_ip = $master_swift_proxy_nodes[0]['internal_address']
   #$master_hostname = $master_swift_proxy_nodes[0]['name']
-  #Moved to CEPH if block
-  #$glance_backend          = 'swift'
   $swift_loopback = false
   if $::fuel_settings['role'] == 'primary-controller' {
     $primary_proxy = true
@@ -195,7 +205,6 @@ if $::fuel_settings['role'] == 'primary-controller' {
 #HARDCODED PARAMETERS
 
 $multi_host              = true
-$manage_volumes          = false
 $quantum_netnode_on_cnt  = true
 $mirror_type = 'external'
 Exec { logoutput => true }
@@ -261,7 +270,7 @@ class compact_controller (
     cinder_iscsi_bind_addr        => $cinder_iscsi_bind_addr,
     cinder_db_password            => $cinder_hash[db_password],
     cinder_volume_group           => "cinder",
-    manage_volumes                => $is_cinder_node,
+    manage_volumes                => $manage_volumes,
     galera_nodes                  => $controller_nodes,
     custom_mysql_setup_class      => $custom_mysql_setup_class,
     mysql_skip_name_resolve       => true,
@@ -421,7 +430,7 @@ class virtual_ips () {
         verbose                => $verbose ? { 'true' => true, true => true, default=> false },
         cinder_volume_group    => "cinder",
         vnc_enabled            => true,
-        manage_volumes         => $cinder ? { false => $manage_volumes, default =>$is_cinder_node },
+        manage_volumes         => $manage_volumes,
         nova_user_password     => $nova_hash[user_password],
         cache_server_ip        => $controller_nodes,
         service_endpoint       => $::fuel_settings['management_vip'],
@@ -478,7 +487,7 @@ class virtual_ips () {
         rabbit_host          => false,
         rabbit_nodes         => $::fuel_settings['management_vip'],
         volume_group         => 'cinder',
-        manage_volumes       => true,
+        manage_volumes       => $manage_volumes,
         enabled              => true,
         auth_host            => $::fuel_settings['management_vip'],
         iscsi_bind_host      => $storage_address,

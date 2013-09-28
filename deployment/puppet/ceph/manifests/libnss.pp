@@ -5,8 +5,9 @@ class ceph::libnss {
   }
 
   file {$::ceph::rgw_nss_db_path:
-    ensure => 'directory',
-    mode   => '0755',
+    ensure  => 'directory',
+    mode    => '0755',
+    require => Package['ceph']
   }
 }
 

@@ -128,6 +128,17 @@ if ($storage_hash['images_ceph']) {
   $glance_backend = 'file'
 }
 
+# Determine who should get the volume service
+if ($::role == 'cinder' or
+    $storage_hash['volumes_lvm'] 
+) {
+  $manage_volumes = 'iscsi'
+} elsif ($storage_hash['volumes_ceph']) {
+  $manage_volumes = 'ceph'
+} else {
+  $manage_volumes = false
+}
+
 if ($use_ceph) {
   $primary_mons   = $controller
   $primary_mon    = $controller[0]['name']
@@ -136,6 +147,7 @@ if ($use_ceph) {
     cluster_node_address => $controller_node_address,
     use_rgw              => $storage_hash['objects_ceph'],
     use_ssl              => false,
+    glance_backend       => $glance_backend,
   }
 }
 
@@ -194,7 +206,7 @@ if ($use_ceph) {
         cinder_db_password      => $cinder_hash[db_password],
         cinder_iscsi_bind_addr  => $cinder_iscsi_bind_addr,
         cinder_volume_group     => "cinder",
-        manage_volumes          => $::fuel_settings['cinder'] ? { false => $manage_volumes, default =>$is_cinder_node },
+        manage_volumes          => $manage_volumes,
         use_syslog              => true,
         syslog_log_level        => $syslog_log_level,
         syslog_log_facility_glance   => $syslog_log_facility_glance,
@@ -345,7 +357,7 @@ if ($use_ceph) {
         cinder_db_password     => $cinder_hash[db_password],
         cinder_iscsi_bind_addr  => $cinder_iscsi_bind_addr,
         cinder_volume_group     => "cinder",
-        manage_volumes          => $cinder ? { false => $manage_volumes, default =>$is_cinder_node },
+        manage_volumes          => $manage_volumes,
         db_host                => $controller_node_address,
         debug                  => $debug ? { 'true' => true, true => true, default=> false },
         verbose                => $verbose ? { 'true' => true, true => true, default=> false },
@@ -389,7 +401,7 @@ if ($use_ceph) {
         qpid_user            => $rabbit_hash[user],
         qpid_nodes           => [$controller_node_address],
         volume_group         => 'cinder',
-        manage_volumes       => true,
+        manage_volumes       => $manage_volumes,
         enabled              => true,
         bind_host            => $bind_host,
         auth_host            => $controller_node_address,
