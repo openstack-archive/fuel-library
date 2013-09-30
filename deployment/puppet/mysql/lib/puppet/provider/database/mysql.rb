@@ -14,7 +14,15 @@ Puppet::Type.type(:database).provide(:mysql) do
   end
 
   def create
-    mysql('-NBe', "create database `#{@resource[:name]}` character set #{resource[:charset]}")
+    tries=10
+    begin
+        debug("Trying to create database #{@resource[:name]} ")
+        mysql('-NBe', "create database `#{@resource[:name]}` character set #{resource[:charset]}")
+    rescue
+        debug("Can't connect to the server: #{tries} tries to reconnect")
+        sleep 5
+        retry unless (tries -= 1) <= 0
+    end
   end
 
   def destroy

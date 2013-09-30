@@ -11,6 +11,8 @@ in-target $late_command.late_file("""[main]
     classfile = $vardir/classes.txt
     localconfig = $vardir/localconfig
     server = %(puppet_master)s
+    report = false
+    configtimeout = 600
 """ % {"puppet_master": $puppet_master},
     "/etc/puppet/puppet.conf", source_method="content") \
     #else

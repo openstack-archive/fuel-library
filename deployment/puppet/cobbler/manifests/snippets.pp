@@ -59,6 +59,8 @@ class cobbler::snippets {
   cobbler_snippet {"ubuntu_puppet_config":}
   cobbler_snippet {"ubuntu_mcollective_config":}
   cobbler_snippet {"ubuntu_network":}
+  cobbler_snippet {"ubuntu_partition":}
+  cobbler_snippet {"ubuntu_partition_late":}
 
   case $operatingsystem {
     /(?i)(debian|ubuntu)/:  {

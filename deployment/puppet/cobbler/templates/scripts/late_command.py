@@ -25,26 +25,42 @@ import commands, os
 
 TEMPLATE_FILE = (
     "sh -c 'filename=${1}; shift; echo ${0} | base64 --decode | "
-    "gunzip > ${filename} && chmod %(mode)s ${filename}' "
+    "gunzip -c > ${filename} && chmod %(mode)s ${filename}' "
     "%(content64)s %(destfile)s"
 )
 
 
 TEMPLATE_COMMAND = (
-    "sh -c 'echo ${0} | base64 --decode | gunzip | sh -' %(content64)s"
+    "sh -c 'echo ${0} | base64 --decode | gunzip -c | sh -' %(content64)s"
 )
 
 
-def base64_gzip(content):
+TEMPLATE_FILE_PLAIN = (
+    "sh -c 'filename=${1}; shift; echo ${0} | base64 --decode "
+    "> ${filename} && chmod %(mode)s ${filename}' "
+    "%(content64)s %(destfile)s"
+)
+
+
+TEMPLATE_COMMAND_PLAIN = (
+    "sh -c 'echo ${0} | base64 --decode | sh -' %(content64)s"
+)
+
+
+def base64_gzip(content, gzip=True):
     """
     This method returns content gzipped and then base64 encoded
     so such line can be inserted into preseed file
     """
-    gzipped = StringIO()
-    gzip_file = GzipFile(fileobj=gzipped, mode="wb", compresslevel=9)
-    gzip_file.write(content)
-    gzip_file.close()
-    return b64encode(gzipped.getvalue())
+    if gzip:
+        gzipped = StringIO()
+        gzip_file = GzipFile(fileobj=gzipped, mode="wb", compresslevel=9)
+        gzip_file.write(content)
+        gzip_file.close()
+        content2 = gzipped.getvalue()
+    else:
+        content2 = content
+    return b64encode(content2)
 
 
 def get_content(source, source_method):
@@ -60,19 +76,31 @@ def get_content(source, source_method):
     return source
 
 
-def get_content64(source, source_method):
-    return base64_gzip(get_content(source, source_method)).strip()
+def get_content64(source, source_method, gzip=True):
+    return base64_gzip(get_content(source, source_method), gzip).strip()
 
 
-def late_file(source, destfile, source_method='file', mode='0644'):
-    return TEMPLATE_FILE % {
-        'mode': mode,
-        'content64': get_content64(source, source_method),
-        'destfile': destfile,
-    }
+def late_file(source, destfile, source_method='file', mode='0644', gzip=True):
+    if gzip:
+        return TEMPLATE_FILE % {
+            'mode': mode,
+            'content64': get_content64(source, source_method, True),
+            'destfile': destfile,
+        }
+    else:
+        return TEMPLATE_FILE_PLAIN % {
+            'mode': mode,
+            'content64': get_content64(source, source_method, False),
+            'destfile': destfile,
+        }
 
 
-def late_command(source, source_method='file'):
-    return TEMPLATE_COMMAND % {
-        'content64': get_content64(source, source_method)
-    }
+def late_command(source, source_method='file', gzip=True):
+    if gzip:
+        return TEMPLATE_COMMAND % {
+            'content64': get_content64(source, source_method, True)
+        }
+    else:
+        return TEMPLATE_COMMAND_PLAIN % {
+            'content64': get_content64(source, source_method, False)
+        }

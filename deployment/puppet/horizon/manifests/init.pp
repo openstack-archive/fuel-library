@@ -132,6 +132,8 @@ class horizon(
   file { $::horizon::params::logdir:
     ensure  => directory,
     mode    => '0751',
+    owner   => $wsgi_user,
+    group   => $wsgi_group,
     before  => Service['httpd'],
   }
 

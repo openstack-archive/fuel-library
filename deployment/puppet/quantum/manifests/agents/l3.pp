@@ -34,6 +34,14 @@ class quantum::agents::l3 (
   anchor {'quantum-l3': }
   #Class['quantum'] -> Anchor['quantum-l3']
   Service<| title=='quantum-server' |> -> Anchor['quantum-l3']
+  if $::operatingsystem == 'Ubuntu' {
+       file { "/etc/init/quantum-l3-agent.override":
+         replace => "no",
+         ensure  => "present",
+         content => "manual",
+         mode    => 644,
+       }
+  }
 
   if $::quantum::params::l3_agent_package {
     #Package['quantum'] -> Package['quantum-l3']

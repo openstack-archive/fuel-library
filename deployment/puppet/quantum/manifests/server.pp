@@ -18,6 +18,15 @@ class quantum::server (
 
   anchor {'quantum-server':}
 
+  if $::operatingsystem == 'Ubuntu' {
+       file { "/etc/init/quantum-metadata-agent.override":
+         replace => "no",
+         ensure  => "present",
+         content => "manual",
+         mode    => 644,
+       }
+  }
+
   if $::quantum::params::server_package {
     $server_package = 'quantum-server'
 
@@ -29,16 +38,9 @@ class quantum::server (
     $server_package = 'quantum'
   }
 
-  case $::osfamily {
-    'Debian': {
-       Quantum_config<||>->Package[$server_package]
-       Quantum_api_config<||>->Package[$server_package]
-    }
-    'RedHat': {
-        Package[$server_package] -> Quantum_config<||>
-        Package[$server_package] -> Quantum_api_config<||>
-    }
-  }
+  Package[$server_package] -> Quantum_config<||>
+  Package[$server_package] -> Quantum_api_config<||>
+
   if defined(Anchor['quantum-plugin-ovs']) {
     Package["$server_package"] -> Anchor['quantum-plugin-ovs']
   }

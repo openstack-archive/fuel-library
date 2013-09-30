@@ -50,8 +50,7 @@ class quantum::agents::metadata (
   if $::quantum::params::metadata_agent_package {
     package { 'quantum-metadata-agent':
       name   => $::quantum::params::metadata_agent_package,
-      enable => $enabled,
-      ensure => $ensure,
+      ensure => present,
     }
     # do not move it to outside this IF
     Anchor['quantum-metadata-agent'] ->

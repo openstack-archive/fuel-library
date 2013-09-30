@@ -20,10 +20,10 @@ define corosync::cleanup () {
   ##FIXME: we need to create a better way to workaround crm commit <-> cleanup race condition than a simple sleep 
   #Workaround for hostname bugs with FQDN vs short hostname
   exec { "crm resource cleanup $name":
-    command     => "bash -c \"(sleep 5 && crm_resource --resource $name  --cleanup --node `uname -n`) || :\"",
+    command     => "bash -c \"(sleep 5 && crm_resource --resource ${name}  --cleanup --node `uname -n`) || :\"",
     path        => ['/bin', '/usr/bin', '/sbin', '/usr/sbin'],
     returns     => [0,""],
     refreshonly => true,
     timeout     => 600,
   }
-}
+}  

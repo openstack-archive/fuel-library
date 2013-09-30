@@ -3,7 +3,7 @@ class l23network::params {
     /(?i)debian/: {
       $ovs_service_name   = 'openvswitch-switch'
       $ovs_status_cmd     = '/etc/init.d/openvswitch-switch status'
-      $ovs_packages       = ['openvswitch-datapath-dkms', 'openvswitch-switch']
+      $ovs_packages       = ['openvswitch-switch']
       $lnx_vlan_tools     = 'vlan'
       $lnx_bond_tools     = 'ifenslave'
       $lnx_ethernet_tools = 'ethtool'

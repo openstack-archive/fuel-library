@@ -26,11 +26,11 @@ class cobbler::profile::ubuntu_1204_x86_64(
   $distro  = "ubuntu_1204_x86_64",
   $ks_repo = [
     {
-      "name" => "Puppet",
-      "url"  => "http://apt.puppetlabs.com/",
-      "key"  => "http://apt.puppetlabs.com/pubkey.gpg",
+      "name" => "Mirantis",
+      "url"  => "http://download.mirantis.com/precise-grizzly-fuel-3.2/",
+      "key"  => "http://download.mirantis.com/precise-grizzly-fuel-3.2/Mirantis.key",
       "release" => "precise",
-      "repos" => "main dependencies",
+      "repos" => "main",
     },
   ],
 
