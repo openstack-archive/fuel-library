@@ -44,8 +44,6 @@ if $::fuel_settings['nodes'] {
   $internal_br = $node[0]['internal_br']
   $base_syslog_hash     = $::fuel_settings['base_syslog']
   $syslog_hash          = $::fuel_settings['syslog']
-
-  # str2bool
   $use_quantum = $::fuel_settings['quantum']
   if $use_quantum {
     $public_int   = $::fuel_settings['public_br']
@@ -112,6 +110,7 @@ class node_netconfig (
   $quantum = $use_quantum,
   $default_gateway
 ) {
+  class {"l23network::hosts_file": stage => 'netconfig', hosts => $nodes_hash }
   if $use_quantum {
     l23network::l3::create_br_iface {'mgmt':
       interface => $::fuel_settings['management_interface'], # !!! NO $internal_int /sv !!!

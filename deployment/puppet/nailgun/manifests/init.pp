@@ -19,6 +19,7 @@ class nailgun(
 
   $staticdir = "/opt/nailgun/share/nailgun/static",
   $templatedir = "/opt/nailgun/share/nailgun/static",
+  $logdumpdir = "/var/www/nailgun/dump",
 
   $cobbler_url = "http://localhost/cobbler_api",
   $cobbler_user = "cobbler",
@@ -145,6 +146,7 @@ class nailgun(
 
   class { "nailgun::nginx-nailgun":
     staticdir => $staticdir,
+    logdumpdir => $logdumpdir,
     notify => Service["nginx"],
   }
 
