@@ -1,0 +1,31 @@
+#import pmanager
+#set $pm = $pmanager.PreseedPManager($getVar("ks_spaces","[]"))
+#silent $pm.eval()
+
+d-i partman/early_command string \
+true
+
+d-i partman-auto/disk string $pm.expose_disks()
+
+d-i partman-iscsi/mainmenu string finish
+d-i partman-md/device_remove_md boolean true
+d-i partman-lvm/device_remove_lvm boolean true
+d-i partman-lvm/device_remove_lvm_span boolean true
+d-i partman-lvm/confirm boolean true
+d-i partman-lvm/confirm_nooverwrite boolean true
+d-i partman-auto/purge_lvm_from_device  boolean true
+d-i partman-auto/method string regular
+d-i partman-auto/choose_recipe select customrecipe
+d-i partman-auto/expert_recipe string \
+customrecipe :: \
+$pm.expose_recipe()
+
+d-i partman-partitioning/confirm_write_new_label boolean true
+
+d-i partman/confirm boolean true
+d-i partman/confirm_nooverwrite boolean true
+d-i partman/confirm_write_new_label boolean true
+d-i partman/choose_partition select Finish partitioning and write changes to disk
+d-i partman/default_filesystem string ext4
+
+d-i grub-installer/bootdev  string $pm.expose_bootdevs()
