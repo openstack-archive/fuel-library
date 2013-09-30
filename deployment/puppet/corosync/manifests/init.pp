@@ -121,7 +121,9 @@ class corosync (
          content => "manual",
          mode    => 644,
       }
-  }
+   } else {
+     package { ['corosync', 'pacemaker']: ensure => present }
+   }
 
   if $::osfamily == "RedHat"
   {
