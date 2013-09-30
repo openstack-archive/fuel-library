@@ -64,7 +64,14 @@ if $::fuel_settings['nodes'] {
 # Note: if syslog on, this default level may be configured (for syslog) with syslog_log_level option.
 $verbose = $::fuel_settings['verbose']
 $debug = $::fuel_settings['debug']
-$use_ceph =  $::fuel_settings['storage']['glance'] ? { 'ceph' => true, default => false }
+
+if $::fuel_settings['storage']['glance'] == 'ceph'
+{
+  $use_ceph=true
+}
+else {
+  $use_ceph=false
+}
 
 ### Syslog ###
 # Enable error messages reporting to rsyslog. Rsyslog must be installed in this case.
