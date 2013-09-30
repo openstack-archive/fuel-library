@@ -152,12 +152,12 @@ $network_config = {
 }
 
 
-if $node[0]['role'] == 'primary-swift-proxy' {
+if $::role == 'primary-swift-proxy' {
   $primary_proxy = true
 } else {
   $primary_proxy = false
 }
-if $node[0]['role'] == 'primary-controller' {
+if $::role == 'primary-controller' {
   $primary_controller = true
 } else {
   $primary_controller = false

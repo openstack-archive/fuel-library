@@ -165,12 +165,12 @@ if !$debug
 
 
 
-if $node[0]['role'] == 'primary-controller' {
+if $::role == 'primary-controller' {
   $primary_proxy = true
 } else {
   $primary_proxy = false
 }
-if $node[0]['role'] == 'primary-controller' {
+if $::role == 'primary-controller' {
   $primary_controller = true
 } else {
   $primary_controller = false
