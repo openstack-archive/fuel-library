@@ -149,6 +149,7 @@ class keystone(
     notify  => Service['keystone'],
   }
   if $::operatingsystem == 'Ubuntu' {
+   if $service_provider == 'pacemaker' {
       file { '/etc/init/keystone.override':
         ensure  => present,
         content => "manual",
@@ -165,6 +166,7 @@ class keystone(
         path    => ['/bin', '/usr/bin'],
         require => Package['keystone']
       }
+    }
   }
 
       Package['keystone'] -> User['keystone']

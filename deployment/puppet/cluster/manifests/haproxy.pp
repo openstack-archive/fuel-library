@@ -85,12 +85,14 @@ class cluster::haproxy (
     ensure => directory 
   } 
   if $::operatingsystem == 'Ubuntu' {
+    if $service_provider == 'pacemaker' {
       file { "/etc/init/haproxy.override":
       replace => "no",
       ensure  => "present",
       content => "manual",
       mode    => 644,
       }
+    }
   }
   service { 'haproxy-init-stopped':
     enable     => false,
