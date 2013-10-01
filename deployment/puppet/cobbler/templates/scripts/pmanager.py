@@ -309,7 +309,7 @@ class PManager(object):
                 else:
                     self.post("lvcreate --size {0} --name {1} {2}".format(
                         size, lv["name"], vg["id"]))
-                    if lv["mount"] != swap:
+                    if lv["mount"] != "swap":
                         self.post("mkfs.{0} /dev/mapper/{1}-{2}".format(
                             tabfstype, vg["id"], lv["name"]))
                         self.post("mkdir -p /mnt/sysimage{0}"
