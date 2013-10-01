@@ -30,6 +30,7 @@ if $cinder_rate_limits {
   Cinder_config<||> ~> Service['cinder-api']
   Cinder_config<||> ~> Exec['cinder-manage db_sync']
   Cinder_api_paste_ini<||> ~> Service['cinder-api']
+  Exec['cinder-manage db_sync'] -> Service['cinder-api']
 
   if $enabled {
     $ensure = 'running'
