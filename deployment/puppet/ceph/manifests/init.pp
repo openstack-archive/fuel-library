@@ -24,6 +24,7 @@ class ceph (
 
       # RadosGW settings
       $rgw_host                         = $::hostname,
+      $rgw_port                         = '6780',
       $rgw_keyring_path                 = '/etc/ceph/keyring.radosgw.gateway',
       $rgw_socket_path                  = '/tmp/radosgw.sock',
       $rgw_log_file                     = '/var/log/ceph/radosgw.log',
@@ -88,9 +89,10 @@ class ceph (
 
       if ($::ceph::use_rgw) {
         include ceph::libnss, ceph::keystone, ceph::radosgw
-        Class['ceph::params'] ->
+        Class['ceph::mon'] ->
         Class['ceph::libnss'] ->
-        Class[['ceph::keystone', 'ceph::radosgw']]
+        Class[['ceph::keystone', 'ceph::radosgw']] ~>
+        Service['ceph']
       }
     }
 
@@ -102,13 +104,12 @@ class ceph (
     }
 
     'compute': {
-      include nova::compute, ceph::nova_compute
+      include ceph::nova_compute
       Class['ceph::conf'] ->
       Class['ceph::nova_compute'] ~>
       Service[$::ceph::params::service_nova_compute]
     }
 
-    'cinder':   { include ceph::cinder  }
     'ceph-mds': { include ceph::mds     }
 
     default: {}

@@ -10,25 +10,29 @@ class ceph::radosgw (
   $httpd_ssl        = $::ceph::params::dir_httpd_ssl,
   $radosgw_auth_key = 'client.radosgw.gateway',
   #RadosGW settings
-  $rgw_host                         = $::hostname,
-  $rgw_keyring_path                 = '/etc/ceph/keyring.radosgw.gateway',
-  $rgw_socket_path                  = '/tmp/radosgw.sock',
-  $rgw_log_file                     = '/var/log/ceph/radosgw.log',
-  $rgw_user                         = 'www-data',
-  $rgw_keystone_url                 = "${cluster_node_address}:5000",
-  $rgw_keystone_admin_token         = 'nova',
-  $rgw_keystone_token_cache_size    = '10',
-  $rgw_keystone_accepted_roles      = "_member_, Member, admin, swiftoperator",
-  $rgw_keystone_revocation_interval = '60',
-  $rgw_data                         = '/var/lib/ceph/rados',
-  $rgw_dns_name                     = "*.${::domain}",
-  $rgw_print_continue               = 'false',
-  $rgw_nss_db_path                  = '/etc/ceph/nss',
+  $rgw_host                         = $::ceph::rgw_host,
+  $rgw_port                         = $::ceph::rgw_port,
+  $rgw_keyring_path                 = $::ceph::rgw_keyring_path,
+  $rgw_socket_path                  = $::ceph::rgw_socket_path,
+  $rgw_log_file                     = $::ceph::rgw_log_file,
+  $rgw_user                         = $::ceph::rgw_user,
+  $rgw_keystone_url                 = $::ceph::rgw_keystone_url,
+  $rgw_keystone_admin_token         = $::ceph::rgw_admin_token,
+  $rgw_keystone_token_cache_size    = $::ceph::rgw_token_cache_size,
+  $rgw_keystone_accepted_roles      = $::ceph::rgw_accepted_roles,
+  $rgw_keystone_revocation_interval = $::ceph::rgw_revocation_interval,
+  $rgw_data                         = $::ceph::rgw_data,
+  $rgw_dns_name                     = $::ceph::rgw_dns_name,
+  $rgw_print_continue               = $::ceph::rgw_print_continue,
+  $rgw_nss_db_path                  = $::ceph::rgw_nss_db_path,
 
   $use_ssl   = $::ceph::use_ssl,
   $enabled   = $::ceph::use_rgw,
 ) {
   if ($enabled) {
+    
+    $dir_httpd_root = '/var/www/radosgw'
+    
     package { [$::ceph::params::package_radiosgw,
                $::ceph::params::package_fastcgi,
                $::ceph::params::package_modssl
@@ -100,7 +104,12 @@ class ceph::radosgw (
       require => Package[$::ceph::params::package_httpd],
     }
     Exec {require => File["${::ceph::params::dir_httpd_sites}/rgw.conf"]}
-    file { '/var/www/s3gw.fcgi':
+    
+    file { $dir_httpd_root:
+      ensure => 'directory',
+      mode   => '755'
+    } ->
+    file { "${dir_httpd_root}/s3gw.fcgi":
       content => template('ceph/s3gw.fcgi.erb'),
       notify  => Service['httpd'],
       require => Package[$::ceph::params::package_httpd],

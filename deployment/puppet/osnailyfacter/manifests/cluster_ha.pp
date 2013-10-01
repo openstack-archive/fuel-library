@@ -147,7 +147,7 @@ if ($use_ceph) {
   $primary_mon    = $controllers[0]['name']
   class {'ceph':
     primary_mon          => $primary_mon,
-    cluster_node_address => $controller_node_address,
+    cluster_node_address => $controller_node_public,
     use_rgw              => $storage_hash['objects_ceph'],
     use_ssl              => false,
     glance_backend       => $glance_backend,

@@ -1,8 +1,8 @@
 FastCgiExternalServer /var/www/s3gw.fcgi -socket /tmp/radosgw.sock
 
-<VirtualHost *:80>
+<VirtualHost *:<%= @rgw_port %>>
   ServerName <%= @fqdn %>
-  DocumentRoot /var/www
+  DocumentRoot <%= @dir_httpd_root %>
 
   RewriteEngine On
   RewriteRule ^/([a-zA-Z0-9-_.]*)([/]?.*) /s3gw.fcgi?page=$1&params=$2&%{QUERY_STRING} [E=HTTP_AUTHORIZATION:%{HTTP:Authorization},L]

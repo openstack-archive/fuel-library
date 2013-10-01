@@ -3,6 +3,7 @@ class ceph::keystone (
   $pub_ip    = $::ceph::rgw_pub_ip,
   $adm_ip    = $::ceph::rgw_adm_ip,
   $int_ip    = $::ceph::rgw_int_ip,
+  $rgw_port  = $::ceph::rgw_port,
   $use_ssl   = $::ceph::use_ssl,
   $enabled   = $::ceph::use_rgw,
   $directory = $::ceph::rgw_nss_db_path,
@@ -29,9 +30,9 @@ class ceph::keystone (
     keystone_endpoint { 'swift':
       ensure       => present,
       region       => 'RegionOne',
-      public_url   => "http://${pub_ip}/swift/v1",
-      admin_url    => "http://${adm_ip}/swift/v1",
-      internal_url => "http://${int_ip}/swift/v1",
+      public_url   => "http://${pub_ip}:${rgw_port}/swift/v1",
+      admin_url    => "http://${adm_ip}:${rgw_port}/swift/v1",
+      internal_url => "http://${int_ip}:${rgw_port}/swift/v1",
     }
     if ! defined(Class['keystone']) {
       service { 'keystone':
