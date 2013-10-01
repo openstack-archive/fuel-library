@@ -51,6 +51,7 @@ d-i mirror/udeb/components multiselect main, restricted
 d-i apt-setup/restricted boolean true
 d-i apt-setup/universe boolean true
 d-i apt-setup/use_mirror boolean true
+d-i apt-setup/security_host 127.0.0.1
 
 d-i debian-installer/allow_unauthenticated boolean true
 
@@ -125,5 +126,5 @@ echo -e "---\nurl: '<%= scope.lookupvar('nailgun::nailgun_api_url') %>'" > /targ
 echo target > /target/etc/nailgun_systemtype && \
 echo 'APT::Get::AllowUnauthenticated 1;' > /target/etc/apt/apt.conf.d/02mirantis-allow-unsigned && \
 echo 'deb http://@@server@@:8080/ubuntu/fuelweb/x86_64 precise main' > /target/etc/apt/sources.list && \
-in-target update-initramfs -u && \
+in-target apt-get -y install linux-image-3.5 && \
 true
