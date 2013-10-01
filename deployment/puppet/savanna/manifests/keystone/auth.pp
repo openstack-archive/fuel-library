@@ -1,5 +1,5 @@
-class savanna::keystone::auth(
-  $password,
+class savanna::keystone::auth (
+  $password         = 'savanna',
   $auth_name        = 'savanna',
   $public_address   = '127.0.0.1',
   $admin_address    = '127.0.0.1',
@@ -10,7 +10,6 @@ class savanna::keystone::auth(
   $email            = 'savanna@localhost'
 ) {
 
-  notify {"Keystone":}
   keystone_user { $auth_name:
     ensure   => present,
     password => $password,
@@ -18,16 +17,15 @@ class savanna::keystone::auth(
     tenant   => $tenant,
   }
 
-
   keystone_service { $auth_name:
     ensure      => present,
     type        => 'orchestration',
     description => 'Openstack_Savanna_Service',
   }
-#
-  keystone_endpoint { "$auth_name":
+
+  keystone_endpoint { $auth_name:
     ensure       => present,
-    region       => "${region}",
+    region       => $region,
     public_url   => "http://${public_address}:${savanna_port}/v1/%(tenant_id)s",
     internal_url => "http://${internal_address}:${savanna_port}/v1/%(tenant_id)s",
     admin_url    => "http://${admin_address}:${savanna_port}/v1/%(tenant_id)s",

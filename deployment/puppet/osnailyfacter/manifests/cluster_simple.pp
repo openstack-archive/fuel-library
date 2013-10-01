@@ -282,6 +282,18 @@ if ($use_ceph) {
         Class['glance::api']           -> Class['ceph::glance']
         Class['openstack::controller'] -> Class['ceph::cinder']
       }
+
+      #ADDONS START
+
+      if $savanna_hash['enabled'] {
+        class { 'savanna' :
+          savanna_enabled     => true,
+          savanna_db_password => $savanna_hash['db_password'],
+        }
+      }
+
+      #ADDONS END
+
     }
 
     "compute" : {
