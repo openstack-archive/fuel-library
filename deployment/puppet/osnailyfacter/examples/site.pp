@@ -42,6 +42,8 @@ if $nodes != undef {
   $internal_br = $node[0]['internal_br']
   $base_syslog_hash     = parsejson($::base_syslog)
   $syslog_hash          = parsejson($::syslog)
+  $savanna_hash         = parsejson($::savanna)
+
   $use_quantum = str2bool($quantum)
   if $use_quantum {
     $public_int   = $public_br

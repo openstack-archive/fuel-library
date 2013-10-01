@@ -20,12 +20,6 @@ class savanna::api (
 
   validate_string($keystone_password)
 
-  Savanna_config<||> ~> Service['savanna-api']
-
-
-  Package['savanna'] -> Savanna_config<||>
-  Package['savanna'] -> Service['savanna-api']
-
   package { 'savanna':
     ensure => installed,
     name   => $::savanna::params::savanna_package_name,
@@ -36,7 +30,6 @@ class savanna::api (
   } else {
     $service_ensure = 'stopped'
   }
-
 
   service { 'savanna-api':
     ensure     => $service_ensure,
@@ -59,4 +52,7 @@ class savanna::api (
     'plugin:vanilla/plugin_class'          : value => $vanilla_plugin_plugin_class;
     'database/connection'                  : value => $sql_connection;
   }
+
+  Package['savanna'] -> Savanna_config<||> -> Service['savanna-api']
+
 }
