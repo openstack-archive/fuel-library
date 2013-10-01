@@ -17,14 +17,7 @@ class mysql::params {
   $etc_root_password   = false
   $ssl                 = false
   $server_id           = delete(delete("$::hostname",'controller-'),'fuel-')
-  case $::operatingsystem {
-    "Ubuntu": {
-      $service_provider = upstart
-    }
-    default: {
-      $service_provider = undef
-    }
-  }
+  $service_provider = undef
 
   case $::osfamily {
     'RedHat': {
