@@ -409,6 +409,7 @@ class PreseedPManager(object):
         self._pend = {}
         self._recipe = []
         self._late = []
+        self._early = []
 
     def recipe(self, command=None):
         if command:
@@ -419,6 +420,11 @@ class PreseedPManager(object):
         if command:
             return self._late.append((command, in_target))
         return self._late
+
+    def early(self, command=None):
+        if command:
+            return self._early.append(command)
+        return self._early
 
     def pcount(self, disk_id, increment=0):
         if ((self._pcount.get(disk_id, 0) == 0 and increment == 1) or
@@ -519,6 +525,7 @@ class PreseedPManager(object):
 
     def lv(self):
         devices_dict = {}
+
         for disk in [d for d in self.data if d["type"] == "disk"]:
             for pv in [p for p in disk["volumes"] if p["type"] == "pv" and p["vg"] != "os"]:
                 if pv["size"] <= 0:
@@ -543,12 +550,17 @@ class PreseedPManager(object):
                                 end_size,
                                 disk["size"]))
                     self.late("hdparm -z /dev/{0}".format(disk["name"]))
-                self.late("dd if=/dev/zero of=/dev/{0}{1} bs=1M count=64".format(disk["name"], pcount))
                 self.late("pvcreate /dev/{0}{1}".format(disk["name"], pcount))
                 if not devices_dict.get(pv["vg"]):
+                    self.early("vgremove -f {0}".format(pv["vg"]))
                     devices_dict[pv["vg"]] = []
                 devices_dict[pv["vg"]].append(
                     "/dev/{0}{1}".format(disk["name"], pcount))
+
+                self.early("pvremove -f /dev/{0}{1}".format(disk["name"], pcount))
+                offset = lambda x: ((x - 10) + abs(x - 10))/2
+                self.early("dd if=/dev/zero of=/dev/{0} bs=1M count=200 skip={1}".format(disk["name"], offset(begin_size)))
+            self.early("hdparm -z /dev/{0}".format(disk["name"]))
         for vg, devs in devices_dict.iteritems():
             self.late("vgremove -f {0}".format(vg))
             self.late("vgcreate -s 32m {0} {1}".format(vg, " ".join(devs)))
@@ -592,6 +604,12 @@ class PreseedPManager(object):
         result = ""
         for line, in_target in self.late():
             result += "{0}{1};\\\n".format(("in-target " if in_target else ""), line)
+        return result.rstrip()
+
+    def expose_early(self):
+        result = ""
+        for line in self.early():
+            result += "{0};\\\n".format(line)
         return result.rstrip()
 
     def expose_disks(self):
