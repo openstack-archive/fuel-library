@@ -543,6 +543,7 @@ class PreseedPManager(object):
                                 end_size,
                                 disk["size"]))
                     self.late("hdparm -z /dev/{0}".format(disk["name"]))
+                self.late("dd if=/dev/zero of=/dev/{0}{1} bs=1M count=64".format(disk["name"], pcount))
                 self.late("pvcreate /dev/{0}{1}".format(disk["name"], pcount))
                 if not devices_dict.get(pv["vg"]):
                     devices_dict[pv["vg"]] = []

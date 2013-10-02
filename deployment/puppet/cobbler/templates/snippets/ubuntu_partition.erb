@@ -3,6 +3,7 @@
 #silent $pm.eval()
 
 d-i partman/early_command string \
+anna-install parted-udeb && \
 true
 
 d-i partman-auto/disk string $pm.expose_disks()
