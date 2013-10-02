@@ -167,11 +167,11 @@ if ($use_swift){
   if !$::fuel_settings['swift_partition'] {
     $swift_partition = '/var/lib/glance/node'
   }
-  $swift_proxies = $controller_storage_addresses
-  $swift_local_net_ip      = $::storage_address
+  $swift_proxies            = $controller_storage_addresses
+  $swift_local_net_ip       = $::storage_address
   $master_swift_proxy_nodes = filter_nodes($nodes_hash,'role','primary-controller')
-  $master_swift_proxy_ip = $master_swift_proxy_nodes[0]['internal_address']
-  #$master_hostname = $master_swift_proxy_nodes[0]['name']
+  $master_swift_proxy_ip    = $master_swift_proxy_nodes[0]['internal_address']
+  #$master_hostname         = $master_swift_proxy_nodes[0]['name']
   $swift_loopback = false
   if $::fuel_settings['role'] == 'primary-controller' {
     $primary_proxy = true
@@ -300,16 +300,16 @@ class virtual_ips () {
     /controller/ : {
       include osnailyfacter::test_controller
 
-  class { '::cluster': stage => 'corosync_setup' } ->
-  class { 'virtual_ips':
-    stage => 'corosync_setup'
-  }
-  include ::haproxy::params
-  class { 'cluster::haproxy':
-    global_options   => merge($::haproxy::params::global_options, {'log' => "/dev/log local0"}),
-    defaults_options => merge($::haproxy::params::defaults_options, {'mode' => 'http'}),
-    stage => 'cluster_head',
-  }
+      class { '::cluster': stage => 'corosync_setup' } ->
+      class { 'virtual_ips':
+        stage => 'corosync_setup'
+      }
+      include ::haproxy::params
+      class { 'cluster::haproxy':
+        global_options   => merge($::haproxy::params::global_options, {'log' => "/dev/log local0"}),
+        defaults_options => merge($::haproxy::params::defaults_options, {'mode' => 'http'}),
+        stage            => 'cluster_head',
+      }
 
       class { compact_controller: }
       if ($use_swift) {
@@ -366,13 +366,9 @@ class virtual_ips () {
           os_auth_url => "http://${::fuel_settings['management_vip']}:5000/v2.0/",
           img_name    => "TestVM",
           stage          => 'glance-image',
-        }
-        Class[glance::api]                    -> Class[openstack::img::cirros]
-        Class[openstack::swift::storage_node] -> Class[openstack::img::cirros]
-        Class[openstack::swift::proxy]        -> Class[openstack::img::cirros]
-        Service[swift-proxy]                  -> Class[openstack::img::cirros]
 
-      }}
+        }
+      }
       if ! $::use_quantum {
         nova_floating_range{ $floating_ips_range:
           ensure          => 'present',
