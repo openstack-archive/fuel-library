@@ -25,6 +25,7 @@ class quantum::server (
          ensure  => "present",
          content => "manual",
          mode    => 644,
+         before  => Package['quantum-server'],
        }
     }
   }

@@ -91,6 +91,7 @@ class cluster::haproxy (
       ensure  => "present",
       content => "manual",
       mode    => 644,
+      before  => Package['haproxy'],
       }
     }
   }

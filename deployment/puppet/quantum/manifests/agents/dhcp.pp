@@ -26,6 +26,7 @@ class quantum::agents::dhcp (
          ensure  => "present",
          content => "manual",
          mode    => 644,
+         before  => Package['quantum-dhcp-agent'],
        }
     }
   }

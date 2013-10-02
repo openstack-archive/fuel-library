@@ -36,6 +36,7 @@ class quantum::agents::ovs (
          ensure  => "present",
          content => "manual",
          mode    => 644,
+         before  => Package['quantum-plugin-ovs-agent'],
       }
     }
   }

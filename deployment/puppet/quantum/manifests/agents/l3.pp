@@ -41,6 +41,7 @@ class quantum::agents::l3 (
          ensure  => "present",
          content => "manual",
          mode    => 644,
+         before  => Package['quantum-l3'],
        }
      }
   }
