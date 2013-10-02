@@ -17,14 +17,7 @@ class mysql::params {
   $etc_root_password   = false
   $ssl                 = false
   $server_id           = delete(delete("$::hostname",'controller-'),'fuel-')
-  case $::operatingsystem {
-    "Ubuntu": {
-      $service_provider = upstart
-    }
-    default: {
-      $service_provider = undef
-    }
-  }
+  $service_provider = undef
 
   case $::osfamily {
     'RedHat': {
@@ -69,11 +62,8 @@ class mysql::params {
       $datadir              = '/var/lib/mysql'
       $service_name         = 'mysql'
       $client_package_name  = 'mysql-client'
-      $client_version       = '5.5.29-0ubuntu0.12.04.1' # not used now 20130313 /sv
-      $server_package_name  = 'mysql-server'
-      $server_version       = '5.5.29-0ubuntu0.12.04.1' # not used now 20130313 /sv
+      $server_package_name  = 'mysql-server-wsrep'
       $shared_package_name  = 'mysql-common'
-      $shared_version       = '5.5.29-0ubuntu0.12.04.1' # not used now 20130313 /sv
       $socket               = '/var/run/mysqld/mysqld.sock'
       $pidfile              = '/var/run/mysqld/mysqld.pid'
       $config_file          = '/etc/mysql/my.cnf'

@@ -113,7 +113,15 @@ class corosync (
       notify => Service['corosync'],
     }
   }
-
+  if $::operatingsystem == 'Ubuntu' {
+       file { "/etc/init/corosync.override":
+         replace => "no",
+         ensure  => "present",
+         content => "manual",
+         mode    => 644,
+         before  => Package[corosync],
+      }
+  }
   package { ['corosync', 'pacemaker']: ensure => present }
 
   if $::osfamily == "RedHat"
@@ -168,7 +176,14 @@ class corosync (
       require => Package['corosync'],
       before  => Service['corosync'],
     }
+    if $::operatingsystem == 'Ubuntu' {
+      exec { 'rm_corosync_override':
+        command => '/bin/rm -f /etc/init/corosync.override',
+        path    => ['/bin', '/usr/bin'],
+      }
+    } 
   }
+
 
   if $check_standby == true {
     # Throws a puppet error if node is on standby
@@ -196,4 +211,5 @@ class corosync (
     enable    => true,
     subscribe => File[['/etc/corosync/corosync.conf', '/etc/corosync/service.d']],
   }
+ 
 }

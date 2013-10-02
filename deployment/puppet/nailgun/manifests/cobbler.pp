@@ -2,6 +2,7 @@ class nailgun::cobbler(
   $cobbler_user = "cobbler",
   $cobbler_password = "cobbler",
 
+#  $ubuntu_repos,
   $centos_repos,
   $gem_source,
 
@@ -85,6 +86,25 @@ class nailgun::cobbler(
     require => Class["::cobbler::server"],
   }
 
+  file { "/var/lib/cobbler/kickstarts/ubuntu-amd64.preseed":
+    content => template("cobbler/preseed/ubuntu-1204.preseed.erb"),
+    owner => root,
+    group => root,
+    mode => 0644,
+    require => Class["::cobbler::server"],
+  } ->
+
+  cobbler_distro { "ubuntu_1204_x86_64":
+    kernel => "${repo_root}/ubuntu/fuelweb/x86_64/images/linux",
+    initrd => "${repo_root}/ubuntu/fuelweb/x86_64/images/initrd.gz",
+    arch => "x86_64",
+    breed => "ubuntu",
+    osversion => "precise",
+    ksmeta => "",
+    require => Class["::cobbler::server"],
+  }
+
+
   cobbler_profile { "centos-x86_64":
     kickstart => "/var/lib/cobbler/kickstarts/centos-x86_64.ks",
     kopts => "biosdevname=0",
@@ -93,6 +113,16 @@ class nailgun::cobbler(
     menu => true,
     require => Cobbler_distro["centos-x86_64"],
   }
+
+  cobbler_profile { "ubuntu_1204_x86_64":
+    kickstart => "/var/lib/cobbler/kickstarts/ubuntu-amd64.preseed",
+    kopts => "netcfg/choose_interface=eth0",
+    distro => "ubuntu_1204_x86_64",
+    ksmeta => "",
+    menu => true,
+    require => Cobbler_distro["ubuntu_1204_x86_64"],
+  }
+
 
   cobbler_distro { "bootstrap":
     kernel => "${repo_root}/bootstrap/linux",

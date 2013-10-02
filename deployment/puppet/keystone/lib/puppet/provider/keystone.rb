@@ -54,7 +54,7 @@ class Puppet::Provider::Keystone < Puppet::Provider
         rv = keystone('--token', admin_token, '--endpoint', admin_endpoint, args)
         break
       rescue Exception => e
-        if e.message =~ /(\(HTTP\s+400\))|(\[Errno 111\]\s+Connection\s+refused)|(503\s+Service\s+Unavailable)|(Max\s+retries\s+exceeded)/
+        if e.message =~ /(\(HTTP\s+400\))|(\[Errno 111\]\s+Connection\s+refused)|(503\s+Service\s+Unavailable)|(Max\s+retries\s+exceeded)|(HTTP\sUnable\sto\sestablish\sconnection\sto)/
           notice("Can't connect to keystone backend. Waiting for retry...")
           retries -= 1
           sleep 2

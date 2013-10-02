@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import json
+import re
 
 class PManager(object):
     def __init__(self, data):
@@ -96,9 +97,9 @@ class PManager(object):
 
     def erase_lvm_metadata(self):
         self.pre("for v in $(vgs | awk '{print $1}'); do "
-                    "vgreduce -ff --removemissing $v; vgremove -ff $v; done")
+                 "vgreduce -ff --removemissing $v; vgremove -ff $v; done")
         self.pre("for p in $(pvs | grep '\/dev' | awk '{print $1}'); do "
-                    "pvremove -ff -y $p ; done")
+                 "pvremove -ff -y $p ; done")
 
     def erase_raid_metadata(self):
         for disk in [d for d in self.data if d["type"] == "disk"]:
@@ -168,7 +169,7 @@ class PManager(object):
                                volume_filter(p), disk["volumes"]):
                 if part["size"] <= 0:
                     continue
-                pcount = self.pcount(disk["id"],   1)
+                pcount = self.pcount(disk["id"], 1)
                 self.pre("parted -a none -s /dev/{0} "
                          "unit {4} mkpart {1} {2} {3}".format(
                              disk["id"],
@@ -392,8 +393,329 @@ class PManager(object):
         self.erase_raid_metadata()
 
 
+class PreseedPManager(object):
+    def __init__(self, data):
+        if isinstance(data, (str, unicode)):
+            self.data = json.loads(data)
+        else:
+            self.data = data
+
+        self.factor = 1
+        self.unit = "MiB"
+        self.disks = sorted(["/dev/" + d["name"] for d in self.data
+                                  if d["type"] == "disk"])
+
+        self._pcount = {}
+        self._pend = {}
+        self._recipe = []
+        self._late = []
+
+    def recipe(self, command=None):
+        if command:
+            return self._recipe.append(command)
+        return self._recipe
+
+    def late(self, command=None, in_target=False):
+        if command:
+            return self._late.append((command, in_target))
+        return self._late
+
+    def pcount(self, disk_id, increment=0):
+        if ((self._pcount.get(disk_id, 0) == 0 and increment == 1) or
+            (self._pcount.get(disk_id, 0) >= 5)):
+            self._pcount[disk_id] = self._pcount.get(disk_id, 0) + increment
+        elif self._pcount.get(disk_id, 0) == 1:
+            self._pcount[disk_id] = self._pcount.get(disk_id, 0) + increment + 3
+        return self._pcount.get(disk_id, 0)
+
+    def psize(self, disk_id, increment=0):
+        self._pend[disk_id] = self._pend.get(disk_id, 0) + increment
+        return self._pend.get(disk_id, 0)
+
+    def boot(self):
+        self.recipe("200 200 200 ext3 $primary{ } "
+                    "$bootable{ } method{ format } format{ } use_filesystem{ } "
+                    "filesystem{ ext3 } mountpoint{ /boot } .")
+        self.pcount(self.disks[0], 1)
+        self.psize(self.disks[0], 200 * self.factor)
+
+    def os(self):
+        for vg in [v for v in self.data
+                   if v["type"] == "vg" and v["id"] == "os"]:
+            for vol in vg["volumes"]:
+                if vol["mount"] == "swap":
+                    swap_size = vol["size"]
+                elif vol["mount"] == "/":
+                    root_size = vol["size"]
+
+        self.recipe("{0} {0} {0} ext4 "
+                    "method{{ format }} format{{ }} use_filesystem{{ }} "
+                    "filesystem{{ ext4 }} mountpoint{{ / }} .".format(root_size))
+        self.pcount(self.disks[0], 1)
+        self.psize(self.disks[0], root_size * self.factor)
+        self.recipe("{0} {0} {0} linux-swap "
+                    "method{{ swap }} format{{ }} .".format(swap_size))
+        self.pcount(self.disks[0], 1)
+        self.psize(self.disks[0], swap_size * self.factor)
+        """
+        We need this line because debian-installer takes total disk space
+        for the last partition. So to be able to allocate custom partitions
+        during the late stage we need to create fake swap partition that
+        we then destroy.
+        """
+        self.recipe("1 1 -1 linux-swap method{ swap } format{ } .")
+        self.late("sed -i /$(blkid -s UUID -o value {0}7)/d /target/etc/fstab".format(self.disks[0]))
+        self.late("swapoff {0}7".format(self.disks[0]))
+        self.late("parted {0} rm 7".format(self.disks[0]))
+
+    def _parttype(self, n):
+        if n == 1:
+            return "primary"
+        else:
+            return "logical"
+
+    def partitions(self):
+        for disk in [d for d in self.data if d["type"] == "disk"]:
+            for part in filter(lambda p: p["type"] == "partition" and
+                               p["mount"] != "/boot", disk["volumes"]):
+                if part["size"] <= 0:
+                    continue
+                pcount = self.pcount("/dev/%s" % disk["name"], 1)
+                tabmount = part["mount"] if part["mount"] != "swap" else "none"
+                if pcount == 1:
+                    self.late("parted -s /dev/{0} mklabel msdos".format(disk["name"]))
+                self.late("parted -a none -s /dev/{0} "
+                          "unit {4} mkpart {1} {2} {3}".format(
+                             disk["name"],
+                             self._parttype(pcount),
+                             self.psize("/dev/%s" % disk["name"]),
+                             self.psize("/dev/%s" % disk["name"], part["size"] * self.factor),
+                             self.unit))
+                if pcount == 1:
+                    self.late("parted -a none -s /dev/{0} unit {1} "
+                              "mkpart extended {2} {3}".format(
+                                disk["name"],
+                                self.unit,
+                                end_size,
+                                disk["size"]))
+                    self.late("hdparm -z /dev/{0}".format(disk["name"]))
+
+                if not part.get("file_system", "xfs") in ("swap", None, "none"):
+                    self.late("mkfs.{0} $(basename `readlink -f /dev/{1}`)"
+                              "{2}".format(part.get("file_system", "xfs"),
+                                           disk["name"], pcount))
+                if not part["mount"] in (None, "none", "swap"):
+                    self.late("mkdir -p /target{0}".format(part["mount"]))
+                if not part["mount"] in (None, "none"):
+                    self.late("echo 'UUID=$(blkid -s UUID -o value "
+                              "$(basename `readlink -f /dev/{0}`){1}) "
+                              "{2} {3} {4} 0 0'"
+                              " >> /target/etc/fstab"
+                              "".format(
+                                  disk["name"], pcount, tabmount,
+                                  part.get("file_system", "xfs"),
+                                  ("defaults" if part["mount"] != "swap"
+                                   else "sw" )))
+
+    def lv(self):
+        devices_dict = {}
+        for disk in [d for d in self.data if d["type"] == "disk"]:
+            for pv in [p for p in disk["volumes"] if p["type"] == "pv" and p["vg"] != "os"]:
+                if pv["size"] <= 0:
+                    continue
+                pcount = self.pcount("/dev/%s" % disk["name"], 1)
+                begin_size = self.psize("/dev/%s" % disk["name"])
+                end_size = self.psize("/dev/%s" % disk["name"], pv["size"] * self.factor)
+                if pcount == 1:
+                    self.late("parted -s /dev/{0} mklabel msdos".format(disk["name"]))
+                self.late("parted -a none -s /dev/{0} "
+                          "unit {4} mkpart {1} {2} {3}".format(
+                             disk["name"],
+                             self._parttype(pcount),
+                             begin_size,
+                             end_size,
+                             self.unit))
+                if pcount == 1:
+                    self.late("parted -a none -s /dev/{0} unit {1} "
+                              "mkpart extended {2} {3}".format(
+                                disk["name"],
+                                self.unit,
+                                end_size,
+                                disk["size"]))
+                    self.late("hdparm -z /dev/{0}".format(disk["name"]))
+                self.late("dd if=/dev/zero of=/dev/{0}{1} bs=1M count=64".format(disk["name"], pcount))
+                self.late("pvcreate /dev/{0}{1}".format(disk["name"], pcount))
+                if not devices_dict.get(pv["vg"]):
+                    devices_dict[pv["vg"]] = []
+                devices_dict[pv["vg"]].append(
+                    "/dev/{0}{1}".format(disk["name"], pcount))
+        for vg, devs in devices_dict.iteritems():
+            self.late("vgremove -f {0}".format(vg))
+            self.late("vgcreate -s 32m {0} {1}".format(vg, " ".join(devs)))
+
+        for vg in [v for v in self.data if v["type"] == "vg" and v["id"] != "os"]:
+            for lv in vg["volumes"]:
+                if lv["size"] <= 0:
+                    continue
+                self.late("lvcreate -L {0}m -n {1} {2}".format(
+                    lv["size"], lv["name"], vg["id"]))
+
+                tabmount = lv["mount"] if lv["mount"] != "swap" else "none"
+                if ((not lv.get("file_system", "xfs") in ("swap", None, "none")) and
+                    (not lv["mount"] in ("swap", "/"))):
+                    self.late("mkfs.{0} /dev/mapper/{1}-{2}".format(
+                        lv.get("file_system", "xfs"),
+                        vg["id"].replace("-", "--"), lv["name"].replace("-", "--")))
+                if not lv["mount"] in (None, "none", "swap", "/"):
+                    self.late("mkdir -p /target{0}".format(lv["mount"]))
+                if not lv["mount"] in (None, "none", "swap", "/"):
+                    self.late("echo '/dev/mapper/{0}-{1} "
+                              "{2} {3} {4} 0 0' >> /target/etc/fstab"
+                              "".format(
+                                  vg["id"].replace("-", "--"),
+                                  lv["name"].replace("-", "--"),
+                                  tabmount,
+                                  lv.get("file_system", "xfs"),
+                                  ("defaults" if lv["mount"] != "swap"
+                                   else "sw" )))
+
+    def eval(self):
+        self.boot()
+        self.os()
+        self.lv()
+        self.partitions()
+
+    def expose_recipe(self):
+        return " \\\n".join(self.recipe())
+
+    def expose_late(self, gzip=False):
+        result = ""
+        for line, in_target in self.late():
+            result += "{0}{1};\\\n".format(("in-target " if in_target else ""), line)
+        return result.rstrip()
+
+    def expose_disks(self):
+        return self.disks[0]
+
+    def expose_bootdevs(self):
+        bootdevs = []
+        for num, disk in enumerate([d for d in self.data if d["type"] == "disk"]):
+            bootdevs.append("(hd{0}, 0)".format(num))
+        return " ".join(bootdevs)
+
+
 def pm(data):
     pmanager = PManager(data)
     pmanager.eval()
     return pmanager.expose()
 
+example = """
+[
+    {
+        "name": "sda",
+        "free_space": 101772,
+        "volumes": [
+            {
+                "type": "boot",
+                "size": 300
+            },
+            {
+                "mount": "/boot",
+                "type": "raid",
+                "size": 200
+            },
+            {
+                "type": "lvm_meta_pool",
+                "size": 0
+            },
+            {
+                "size": 12352,
+                "type": "pv",
+                "lvm_meta_size": 64,
+                "vg": "os"
+            },
+            {
+                "size": 89548,
+                "type": "pv",
+                "lvm_meta_size": 64,
+                "vg": "image"
+            }
+        ],
+        "type": "disk",
+        "id": "disk/by-path/pci-0000:00:06.0-scsi-0:0:0:0",
+        "size": 102400
+    },
+    {
+        "name": "sdb",
+        "free_space": 101772,
+        "volumes": [
+            {
+                "type": "boot",
+                "size": 300
+            },
+            {
+                "mount": "/boot",
+                "type": "raid",
+                "size": 200
+            },
+            {
+                "type": "lvm_meta_pool",
+                "size": 64
+            },
+            {
+                "size": 0,
+                "type": "pv",
+                "lvm_meta_size": 0,
+                "vg": "os"
+            },
+            {
+                "size": 101836,
+                "type": "pv",
+                "lvm_meta_size": 64,
+                "vg": "image"
+            }
+        ],
+        "type": "disk",
+        "id": "disk/by-path/pci-0000:00:06.0-scsi-0:0:1:0",
+        "size": 102400
+    },
+    {
+        "min_size": 12288,
+        "type": "vg",
+        "id": "os",
+        "volumes": [
+            {
+                "mount": "/",
+                "type": "lv",
+                "name": "root",
+                "size": 10240
+            },
+            {
+                "mount": "swap",
+                "type": "lv",
+                "name": "swap",
+                "size": 2048
+            }
+        ],
+        "label": "Base System"
+    },
+    {
+        "min_size": 5120,
+        "type": "vg",
+        "id": "image",
+        "volumes": [
+            {
+                "mount": "/var/lib/glance",
+                "type": "lv",
+                "name": "glance",
+                "size": 191256
+            }
+        ],
+        "label": "Image Storage"
+    }
+]
+"""
+
+# pmanager = PreseedPManager(example)
+# pmanager.eval()
+# print pmanager.expose_late()

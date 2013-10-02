@@ -148,28 +148,31 @@ class keystone(
     mode    => 0755,
     notify  => Service['keystone'],
   }
-
-  case $::osfamily {
-    'Debian' : {
-      file { '/etc/keystone/keystone.conf':
+  if $::operatingsystem == 'Ubuntu' {
+   if $service_provider == 'pacemaker' {
+      file { '/etc/init/keystone.override':
         ensure  => present,
-        owner   => 'keystone',
-        group   => 'keystone',
-        require => File['/etc/keystone'],
-        notify  => Service['keystone'],
+        content => "manual",
+        mode    => 644,
+        replace => "no",
+        owner   => 'root',
+        group   => 'root',
       }
-      User['keystone'] -> File['/etc/keystone']
-      Group['keystone'] -> File['/etc/keystone']
-      Keystone_config <| |> -> Package['keystone']
-      File['/etc/keystone/keystone.conf'] -> Keystone_config <| |>
+
+      File['/etc/init/keystone.override'] -> Package['keystone']
+
+      exec { 'remove-keystone-bootblockr':
+        command => 'rm -rf /etc/init/keystone.override',
+        path    => ['/bin', '/usr/bin'],
+        require => Package['keystone']
+      }
     }
-    'RedHat' : {
+  }
+
       Package['keystone'] -> User['keystone']
       Package['keystone'] -> Group['keystone']
       Package['keystone'] -> File['/etc/keystone']
       Package['keystone'] -> Keystone_config <| |>
-    }
-  }
 
   # default config
   keystone_config {
@@ -248,10 +251,6 @@ class keystone(
     $service_ensure = 'stopped'
   }
   Keystone_config <| |> -> Service['keystone']
-  if $::osfamily == "Debian"
-  {
-    Keystone_config <| |> -> Package['keystone']
-  }
   service { 'keystone':
     name       => $::keystone::params::service_name,
     ensure     => $service_ensure,

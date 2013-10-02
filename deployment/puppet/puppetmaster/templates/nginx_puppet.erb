@@ -30,7 +30,7 @@ server {
     ssl_client_certificate  <%= puppet_ca %>;
     ssl_crl <%= puppet_crl %>;
 
-    ssl_ciphers             SSLv2:-LOW:-EXPORT:RC4+RSA;
+#    ssl_ciphers             SSLv2:-LOW:-EXPORT:RC4+RSA;
     ssl_session_cache       shared:SSL:8m;
 
     ssl_verify_client       optional;

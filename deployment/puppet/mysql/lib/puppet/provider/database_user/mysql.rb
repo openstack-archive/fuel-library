@@ -31,7 +31,14 @@ Puppet::Type.type(:database_user).provide(:mysql) do
   end
 
   def exists?
-    not mysql("mysql", "-NBe", "select '1' from user where CONCAT(user, '@', host) = '%s'" % @resource.value(:name)).empty?
+    tries=10
+    begin
+        not mysql("mysql", "-NBe", "select '1' from user where CONCAT(user, '@', host) = '%s'" % @resource.value(:name)).empty?
+    rescue
+        debug("Can't connect to the mysql server: #{tries} tries to reconnect")
+        sleep 5
+        retry unless (tries -= 1) <= 0
+    end
   end
 
   def flush

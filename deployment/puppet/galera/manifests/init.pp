@@ -134,9 +134,18 @@ class galera (
 
     }
   }
- cs_shadow { $res_name: cib => $cib_name }
- cs_commit { $res_name: cib => $cib_name } ~> ::Corosync::Cleanup["$res_name"]
-    ::corosync::cleanup { $res_name: }
+
+
+  cs_shadow { $res_name: cib => $cib_name }
+  if $primary_controller {
+    cs_commit { $res_name: cib => $cib_name } ~> ::Corosync::Cleanup["$res_name"]
+      ::corosync::cleanup { $res_name: }
+    }
+  else {
+    cs_commit { $res_name: cib => $cib_name } ~> ::Corosync::Clonecleanup["$res_name"]
+     ::corosync::clonecleanup { $res_name: }
+  }
+
  cs_resource { "$res_name":
       ensure => present,
       cib => $cib_name,

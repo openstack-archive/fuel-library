@@ -243,6 +243,14 @@ class os_common {
     action  => 'accept',
     require => Class['openstack::firewall'],
   }
+
+  firewall {'004 remote puppet ':
+    sport   => [ 8140 ],
+    source  => $master_ip,
+    proto   => 'tcp',
+    action  => 'accept',
+    require => Class['openstack::firewall'],
+  }
 }
 
 

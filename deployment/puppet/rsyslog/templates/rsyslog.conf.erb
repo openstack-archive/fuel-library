@@ -22,6 +22,8 @@ $DirCreateMode 0755
 $PrivDropToUser <%= scope.lookupvar('rsyslog::params::run_user') %>
 $PrivDropToGroup <%= scope.lookupvar('rsyslog::params::run_group') %>
 
+$MaxMessageSize 32k
+
 #
 # Include all config files in <%= scope.lookupvar('rsyslog::params::rsyslog_d') %>
 #

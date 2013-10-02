@@ -54,7 +54,6 @@ class openstack::quantum_router (
     $admin_auth_url = "http://${auth_host}:35357/v2.0"
 
     $use_namespaces = True
-
     class { '::quantum':
       bind_host            => $api_bind_address,
       queue_provider       => $queue_provider,
