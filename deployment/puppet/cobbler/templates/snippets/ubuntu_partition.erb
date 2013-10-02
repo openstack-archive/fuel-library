@@ -4,6 +4,8 @@
 
 d-i partman/early_command string \
 anna-install parted-udeb && \
+anna-install hdparm-udeb && \
+$pm.expose_early()
 true
 
 d-i partman-auto/disk string $pm.expose_disks()
