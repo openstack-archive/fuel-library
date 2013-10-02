@@ -20,20 +20,18 @@ class nailgun::cobbler(
   Class["::cobbler"] ->
   Anchor<| title == "nailgun-cobbler-end" |>
 
-  $half_of_network = ipcalc_network_count_addresses($ipaddress, $netmask) / 2
-
   class { "::cobbler":
-    server              => $ipaddress,
+    server              => $mnbs_internal_ipaddress,
 
     domain_name         => $domain,
-    name_server         => $ipaddress,
-    next_server         => $ipaddress,
+    name_server         => $mnbs_internal_ipaddress,
+    next_server         => $mnbs_internal_ipaddress,
 
-    dhcp_start_address  => ipcalc_network_nth_address($ipaddress, $netmask, "first"),
-    dhcp_end_address    => ipcalc_network_nth_address($ipaddress, $netmask, $half_of_network),
-    dhcp_netmask        => $netmask,
-    dhcp_gateway        => $ipaddress,
-    dhcp_interface      => 'eth0',
+    dhcp_start_address  => $mnbs_dhcp_pool_start,
+    dhcp_end_address    => $mnbs_dhcp_pool_end,
+    dhcp_netmask        => $mnbs_internal_netmask,
+    dhcp_gateway        => $mnbs_internal_ipaddress,
+    dhcp_interface      => $mnbs_internal_interface,
 
     cobbler_user        => $cobbler_user,
     cobbler_password    => $cobbler_password,
@@ -138,7 +136,7 @@ class nailgun::cobbler(
     distro => "bootstrap",
     menu => true,
     kickstart => "",
-    kopts => "biosdevname=0 url=http://${ipaddress}:8000/api",
+    kopts => "biosdevname=0 url=http://${mnbs_internal_ipaddress}:8000/api",
     ksmeta => "",
     require => Cobbler_distro["bootstrap"],
   }
@@ -167,10 +165,5 @@ class nailgun::cobbler(
   Exec["cobbler_system_add_default"] ~> Exec["nailgun_cobbler_sync"]
   Exec["cobbler_system_edit_default"] ~> Exec["nailgun_cobbler_sync"]
 
-  #FIXME: do we really need this NAT rules ?
-  #  class { 'cobbler::nat': nat_range => \"$dhcp_start_address/$dhcp_netmask\" }
-
-  #  Package<| title == "cman" |>
-  # Package<| title == "fence-agents"|>
 }
 

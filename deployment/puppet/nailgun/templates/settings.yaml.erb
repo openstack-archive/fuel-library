@@ -49,7 +49,7 @@ API_LOG: "/var/log/nailgun/api.log"
 PATH_TO_SSH_KEY: "/root/.ssh/id_rsa"
 PATH_TO_BOOTSTRAP_SSH_KEY: "/root/.ssh/bootstrap.rsa"
 
-MASTER_IP: "<%= ipaddress %>"
+MASTER_IP: "<%= admin_network_ip %>"
 
 COBBLER_URL: "<%= scope.lookupvar('nailgun::cobbler_url') %>"
 COBBLER_USER: "<%= cobbler_user %>"
