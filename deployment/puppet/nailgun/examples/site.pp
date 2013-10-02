@@ -1,3 +1,5 @@
+$fuel_settings = parseyaml($astute_settings_yaml)
+
 node default {
 
   Exec  {path => '/usr/bin:/bin:/usr/sbin:/sbin'}
@@ -27,7 +29,7 @@ node default {
 
   $repo_root = "/var/www/nailgun"
   $pip_repo = "/var/www/nailgun/eggs"
-  $gem_source = "http://${mnbs_internal_ipaddress}:8080/gems/"
+  $gem_source = "http://${::fuel_settings['ADMIN_NETWORK']['ipaddress']}:8080/gems/"
 
   class { 'postgresql::server':
     config_hash => {
@@ -66,7 +68,7 @@ node default {
 
     mco_pskey => $mco_pskey,
     mco_vhost => $mco_vhost,
-    mco_host => $mnbs_internal_ipaddress,
+    mco_host => $::fuel_settings['ADMIN_NETWORK']['address'],
     mco_user => $mco_user,
     mco_password => $mco_password,
     mco_connector => "rabbitmq",
@@ -74,7 +76,7 @@ node default {
     rabbitmq_naily_user => $rabbitmq_naily_user,
     rabbitmq_naily_password => $rabbitmq_naily_password,
     puppet_master_hostname => $puppet_master_hostname,
-    puppet_master_ip => $mnbs_internal_ipaddress,
+    puppet_master_ip => $::fuel_settings['ADMIN_NETWORK']['address'],
   }
 
   Class['postgresql::server'] -> Class['nailgun']

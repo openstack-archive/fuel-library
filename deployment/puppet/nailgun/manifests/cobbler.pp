@@ -21,17 +21,17 @@ class nailgun::cobbler(
   Anchor<| title == "nailgun-cobbler-end" |>
 
   class { "::cobbler":
-    server              => $mnbs_internal_ipaddress,
+    server              => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
 
     domain_name         => $domain,
-    name_server         => $mnbs_internal_ipaddress,
-    next_server         => $mnbs_internal_ipaddress,
+    name_server         => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
+    next_server         => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
 
-    dhcp_start_address  => $mnbs_dhcp_pool_start,
-    dhcp_end_address    => $mnbs_dhcp_pool_end,
-    dhcp_netmask        => $mnbs_internal_netmask,
-    dhcp_gateway        => $mnbs_internal_ipaddress,
-    dhcp_interface      => $mnbs_internal_interface,
+    dhcp_start_address  => $::fuel_settings['ADMIN_NETWORK']['dhcp_pool_start'],
+    dhcp_end_address    => $::fuel_settings['ADMIN_NETWORK']['dhcp_pool_end'],
+    dhcp_netmask        => $::fuel_settings['ADMIN_NETWORK']['netmask'],
+    dhcp_gateway        => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
+    dhcp_interface      => $::fuel_settings['ADMIN_NETWORK']['interface'],
 
     cobbler_user        => $cobbler_user,
     cobbler_password    => $cobbler_password,
@@ -136,7 +136,7 @@ class nailgun::cobbler(
     distro => "bootstrap",
     menu => true,
     kickstart => "",
-    kopts => "biosdevname=0 url=http://${mnbs_internal_ipaddress}:8000/api",
+    kopts => "biosdevname=0 url=http://${::fuel_settings['ADMIN_NETWORK']['ipaddress']}:8000/api",
     ksmeta => "",
     require => Cobbler_distro["bootstrap"],
   }

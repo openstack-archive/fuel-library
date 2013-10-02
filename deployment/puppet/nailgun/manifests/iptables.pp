@@ -21,7 +21,7 @@ class nailgun::iptables {
 
   access_to_nailgun_port { "nailgun_web":    port => '8000' }
   access_to_nailgun_port { "nailgun_repo":    port => '8080' }
-  $network_address = ipcalc_network_by_address_netmask($mnbs_internal_ipaddress, $mnbs_internal_netmask)
-  $network_cidr = ipcalc_network_cidr_by_netmask($mnbs_internal_netmask)
+  $network_address = ipcalc_network_by_address_netmask($::fuel_settings['ADMIN_NETWORK']['ipaddress'],$::fuel_settings['ADMIN_NETWORK']['netmask'])
+  $network_cidr = ipcalc_network_cidr_by_netmask($::fuel_settings['ADMIN_NETWORK']['netmask'])
   ip_forward {'forward_slaves': network => "${network_address}/${network_cidr}"}
 }
