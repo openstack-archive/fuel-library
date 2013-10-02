@@ -159,7 +159,7 @@ class keystone(
         group   => 'root',
       }
 
-      Package['keystone'] -> File['/etc/init/keystone.override']
+      File['/etc/init/keystone.override'] -> Package['keystone']
 
       exec { 'remove-keystone-bootblockr':
         command => 'rm -rf /etc/init/keystone.override',
