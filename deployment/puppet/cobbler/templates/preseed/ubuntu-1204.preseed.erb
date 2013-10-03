@@ -126,5 +126,10 @@ echo -e "---\nurl: '<%= scope.lookupvar('nailgun::nailgun_api_url') %>'" > /targ
 echo target > /target/etc/nailgun_systemtype && \
 echo 'APT::Get::AllowUnauthenticated 1;' > /target/etc/apt/apt.conf.d/02mirantis-allow-unsigned && \
 echo 'deb http://@@server@@:8080/ubuntu/fuelweb/x86_64 precise main' > /target/etc/apt/sources.list && \
+#set $authorized_keys = str(open("/etc/cobbler/authorized_keys", "r").read()).rstrip('\n')
+mkdir -p /target/root/.ssh && \
+echo "$authorized_keys" > /target/root/.ssh/authorized_keys && \
+sed -i -e "/^\s*GSSAPICleanupCredentials yes/d" -e "/^\s*GSSAPIAuthentication yes/d" -e "s/.*PasswordAuthentication.*/PasswordAuthentication\ no/g" -e "/UseDNS/d" /target/etc/ssh/sshd_config && \
+echo "UseDNS no" >> /target/etc/ssh/sshd_config && \
 in-target apt-get -y install linux-image-3.5 && \
 true
