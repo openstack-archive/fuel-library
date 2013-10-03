@@ -4,21 +4,21 @@ Puppet::Type.type(:l2_ovs_bond).provide(:ovs) do
     :appctl => "/usr/bin/ovs-appctl"
   )
 
-  def _exists(bond)
+  def _exists?(bond)
     begin
       appctl('bond/show', bond)
-      return true
+      true
     rescue Puppet::ExecutionFailure
-      return false
+      false
     end
   end
 
   def exists?
-    _exists(@resource[:bond])
+    _exists?(@resource[:bond])
   end
 
   def create
-    if _exists(@resource[:bond])
+    if _exists?(@resource[:bond])
       msg = "Bond '#{@resource[:bond]}' already exists"
       if @resource[:skip_existing]
         notice("#{msg}, skip creating.")
@@ -27,15 +27,23 @@ Puppet::Type.type(:l2_ovs_bond).provide(:ovs) do
       end
     end
 
-    bond_create_cmd = ['add-bond', @resource[:bridge], @resource[:bond]] + @resource[:ports]
-    if ! @resource[:properties].empty?
-      bond_create_cmd += @resource[:properties]
+    bond_properties = @resource[:properties]
+    if @resource[:tag] > 0
+      bond_properties.insert(-1, "tag=#{@resource[:tag]}")
+    end
+    if not @resource[:trunks].empty?
+      bond_properties.insert(-1, "trunks=[#{@resource[:trunks].join(',')}]")
+    end
+
+    bond_create_cmd = ['add-bond', @resource[:bridge], @resource[:bond]] + @resource[:interfaces]
+    if ! bond_properties.empty?
+      bond_create_cmd += bond_properties
     end
     begin
       vsctl(bond_create_cmd)
     rescue Puppet::ExecutionFailure => error
       notice(">>>#{bond_create_cmd.join(',')}<<<")
-      fail("Can't create bond '#{@resource[:bond]}' (ports: #{@resource[:ports].join(',')}) for bridge '#{@resource[:bridge]}'.\n#{error}")
+      fail("Can't create bond '#{@resource[:bond]}' (interfaces: #{@resource[:interfaces].join(',')}) for bridge '#{@resource[:bridge]}'.\n#{error}")
     end
   end
 

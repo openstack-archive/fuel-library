@@ -21,7 +21,8 @@ stage {'glance-image':
   require => Stage['main'],
 }
 
-
+# ANC: Advanced network configuration. Discovering.
+#prepare_network_config(parsejson($::network_scheme))
 
 if $nodes != undef {
   $nodes_hash = parsejson($nodes)
@@ -134,6 +135,17 @@ class node_netconfig (
   }
   l23network::l3::ifconfig {$fixed_interface: ipaddr=>'none' }
 }
+
+# ANC: Advanced network configuration. Creating resources.
+#class advanced_node_netconfig {
+#    $sdn = generate_network_config()
+#    notify {"SDN: ${sdn}": }
+#}
+#
+#class {'advanced_node_netconfig':
+#  stage => 'netconfig'
+#}
+
 
 case $::operatingsystem {
   'redhat' : {
