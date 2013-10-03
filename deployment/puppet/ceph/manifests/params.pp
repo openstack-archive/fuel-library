@@ -11,6 +11,7 @@ class ceph::params {
       #RadosGW
       $service_httpd              = 'httpd'
       $package_httpd              = 'httpd'
+      $user_httpd                 = 'apache'
       $package_libnss             = 'nss-tools'
       $service_radosgw            = 'ceph-radosgw'
       $package_radiosgw           = 'ceph-radosgw'
@@ -39,6 +40,7 @@ class ceph::params {
       #RadosGW
       $service_httpd              = 'apache2'
       $package_httpd              = 'apache2'
+      $user_httpd                 = 'www-data'
       $package_libnss             = 'libnss3-tools'
       $service_radosgw            = 'radosgw'
       $package_radiosgw           = 'radosgw'

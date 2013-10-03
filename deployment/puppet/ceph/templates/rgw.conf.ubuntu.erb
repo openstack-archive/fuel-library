@@ -1,3 +1,4 @@
+Listen *:<%= @rgw_port %>
 FastCgiExternalServer /var/www/s3gw.fcgi -socket /tmp/radosgw.sock
 
 <VirtualHost *:<%= @rgw_port %>>

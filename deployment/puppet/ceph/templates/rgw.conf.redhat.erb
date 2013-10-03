@@ -1,3 +1,5 @@
+Listen *:<%= @rgw_port %>
+
 <VirtualHost *:<%= @rgw_port %>>
   ServerName <%= @fqdn %>
   DocumentRoot <%= @dir_httpd_root %>

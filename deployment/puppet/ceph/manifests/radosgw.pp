@@ -53,11 +53,6 @@ class ceph::radosgw (
       }
     }
 
-    service {$::ceph::params::service_radosgw:
-      enable  => true,
-      ensure  => 'running',
-      require => Package[$::ceph::params::package_radiosgw]
-    }
     ceph_conf {
       'client.radosgw.gateway/host':                             value => $host;
       'client.radosgw.gateway/keyring':                          value => $keyring_path;
@@ -73,7 +68,14 @@ class ceph::radosgw (
       'client.radosgw.gateway/rgw dns name':                     value => $rgw_dns_name;
       'client.radosgw.gateway/rgw print continue':               value => $rgw_print_continue;
     }
-    #TODO: CentOS conversion
+    Ceph_conf <| |> ->
+    service {$::ceph::params::service_radosgw:
+      enable  => true,
+      ensure  => 'running',
+      require => Package[$::ceph::params::package_radiosgw]
+    }
+
+# TODO: CentOS conversion
 #    apache::loadmodule{['rewrite', 'fastcgi', 'ssl']: }
 
 #    file {"${::ceph::params::dir_httpd_conf}/httpd.conf":
@@ -82,9 +84,9 @@ class ceph::radosgw (
 #      notify  => Service['httpd'],
 #      require => Package[$::ceph::params::package_httpd],
 #    }
-    file {["${::ceph::params::dir_httpd_ssl}",
-           '/var/lib/ceph/radosgw/ceph-radosgw.gateway',
-           '/var/lib/ceph/radosgw',
+    file {[$::ceph::params::dir_httpd_ssl,
+           "${::ceph::rgw_data}/ceph-radosgw.gateway",
+           $::ceph::rgw_data,
           ]:
     ensure => 'directory',
     mode   => 755,
