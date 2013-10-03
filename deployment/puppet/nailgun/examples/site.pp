@@ -27,7 +27,7 @@ node default {
 
   $repo_root = "/var/www/nailgun"
   $pip_repo = "/var/www/nailgun/eggs"
-  $gem_source = "http://${mnbs_internal_ipaddress}:8080/gems/"
+  $gem_source = "http://${ipaddress}:8080/gems/"
 
   class { 'postgresql::server':
     config_hash => {
@@ -66,7 +66,6 @@ node default {
 
     mco_pskey => $mco_pskey,
     mco_vhost => $mco_vhost,
-    mco_host => $mnbs_internal_ipaddress,
     mco_user => $mco_user,
     mco_password => $mco_password,
     mco_connector => "rabbitmq",
@@ -74,7 +73,6 @@ node default {
     rabbitmq_naily_user => $rabbitmq_naily_user,
     rabbitmq_naily_password => $rabbitmq_naily_password,
     puppet_master_hostname => $puppet_master_hostname,
-    puppet_master_ip => $mnbs_internal_ipaddress,
   }
 
   Class['postgresql::server'] -> Class['nailgun']

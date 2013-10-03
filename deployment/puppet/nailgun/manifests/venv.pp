@@ -20,18 +20,6 @@ class nailgun::venv(
 
   $rabbitmq_naily_user,
   $rabbitmq_naily_password,
-
-  $admin_network,
-  $admin_network_cidr,
-  $admin_network_size,
-  $admin_network_first,
-  $admin_network_last,
-  $admin_network_netmask,
-  $admin_network_ip,
-
-  $exclude_network = $admin_network,
-  $exclude_cidr = $admin_network_cidr,
-
   ) {
 
   nailgun::venv::venv { $venv:
@@ -75,6 +63,16 @@ class nailgun::venv(
     mode => 0755,
   }
 
+  $exclude_network = ipcalc_network_by_address_netmask($ipaddress, $netmask)
+  $exclude_cidr = ipcalc_network_cidr_by_netmask($netmask)
+
+  $admin_network = ipcalc_network_by_address_netmask($ipaddress, $netmask)
+  $admin_network_cidr = ipcalc_network_cidr_by_netmask($netmask)
+  $admin_network_size = ipcalc_network_count_addresses($ipaddress, $netmask)
+  $first_in_second_half = ipcalc_network_count_addresses($ipaddress, $netmask) / 2 + 1
+  $admin_network_first = ipcalc_network_nth_address($ipaddress, $netmask, $first_in_second_half)
+  $admin_network_last = ipcalc_network_nth_address($ipaddress, $netmask, "last")
+  $admin_network_netmask = $netmask
 
   $fuel_key = $::generate_fuel_key
 
