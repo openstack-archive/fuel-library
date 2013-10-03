@@ -1,38 +1,36 @@
 class osnailyfacter::cluster_ha {
 
-
 ##PARAMETERS DERIVED FROM YAML FILE
 
-
 if $::use_quantum {
-  $quantum_hash   = parsejson($::quantum_access)
-  $quantum_params = parsejson($::quantum_parameters)
+  $quantum_hash   = $::fuel_settings['quantum_access']
+  $quantum_params = $::fuel_settings['quantum_parameters']
   $novanetwork_params  = {}
-
-} else {
+} 
+else {
   $quantum_hash = {}
   $quantum_params = {}
-  $novanetwork_params  = parsejson($::novanetwork_parameters)
+  $novanetwork_params  = $::fuel_settings['novanetwork_parameters']
 }
 
 if $cinder_nodes {
-   $cinder_nodes_array   = parsejson($::cinder_nodes)
+   $cinder_nodes_array   = $::fuel_settings['cinder_nodes']
 }
 else {
   $cinder_nodes_array = []
 }
 
 
-$nova_hash	      = parsejson($::nova)
-$mysql_hash           = parsejson($::mysql)
-$rabbit_hash          = parsejson($::rabbit)
-$glance_hash          = parsejson($::glance)
-$keystone_hash        = parsejson($::keystone)
-$swift_hash           = parsejson($::swift)
-$cinder_hash          = parsejson($::cinder)
-$access_hash          = parsejson($::access)
-$nodes_hash           = parsejson($::nodes)
-$mp_hash              = parsejson($::mp)
+$nova_hash            = $::fuel_settings['nova']
+$mysql_hash           = $::fuel_settings['mysql']
+$rabbit_hash          = $::fuel_settings['rabbit']
+$glance_hash          = $::fuel_settings['glance']
+$keystone_hash        = $::fuel_settings['keystone']
+$swift_hash           = $::fuel_settings['swift']
+$cinder_hash          = $::fuel_settings['cinder']
+$access_hash          = $::fuel_settings['access']
+$nodes_hash           = $::fuel_settings['nodes']
+$mp_hash              = $::fuel_settings['mp']
 $network_manager      = "nova.network.manager.${novanetwork_params['network_manager']}"
 $network_size         = $novanetwork_params['network_size']
 $num_networks         = $novanetwork_params['num_networks']
@@ -48,14 +46,15 @@ if !$rabbit_hash[user]
 $rabbit_user          = $rabbit_hash['user']
 
 if $::use_quantum {
-$floating_hash =  $::floating_network_range
+$floating_hash =  $::fuel_settings['floating_network_range']
 }
 else {
   $floating_hash = {}
-  $floating_ips_range = parsejson($floating_network_range)
+  $floating_ips_range = $::fuel_settings['floating_network_range']
 }
 
-if !$swift_partition
+
+if !$::fuel_settings['swift_partition']
 {
   $swift_partition = '/var/lib/glance/node'
 }
@@ -74,11 +73,11 @@ if empty($node) {
 $vips = { # Do not convert to ARRAY, It can't work in 2.7
   public_old => {
     nic    => $::public_int,
-    ip     => $public_vip,
+    ip     => $::fuel_settings['public_vip'],
   },
   management_old => {
     nic    => $::internal_int,
-    ip     => $management_vip,
+    ip     => $::fuel_settings['management_vip'],
   },
 }
 
@@ -102,7 +101,7 @@ if ($cinder) {
 
 $quantum_sql_connection  = "mysql://${quantum_db_user}:${quantum_db_password}@${quantum_host}/${quantum_db_dbname}"
 
-$quantum_host            = $management_vip
+$quantum_host            = $::fuel_settings['management_vip']
 
 ##REFACTORING NEEDED
 
@@ -114,8 +113,8 @@ $controller_public_addresses = nodes_to_hash($controllers,'name','public_address
 $controller_storage_addresses = nodes_to_hash($controllers,'name','storage_address')
 $controller_hostnames = keys($controller_internal_addresses)
 $controller_nodes = sort(values($controller_internal_addresses))
-$controller_node_public  = $public_vip
-$controller_node_address = $management_vip
+$controller_node_public  = $::fuel_settings['public_vip']
+$controller_node_address = $::fuel_settings['management_vip']
 $mountpoints = filter_hash($mp_hash,'point')
 $swift_proxies = $controller_storage_addresses
 $quantum_metadata_proxy_shared_secret = $quantum_params['metadata_proxy_shared_secret']
@@ -127,8 +126,7 @@ $swift_local_net_ip      = $::storage_address
 $cinder_iscsi_bind_addr = $::storage_address
 
 #TODO: awoodward fix static $use_ceph
-$use_ceph = false
-if ($use_ceph) {
+if ($::use_ceph) {
   $primary_mons   = filter_nodes($nodes_hash,'role','primary-controller')
   $primary_mon    = $primary_mons[0]['name']
   $glance_backend = 'ceph'
@@ -140,37 +138,27 @@ if ($use_ceph) {
   $glance_backend = 'swift'
 }
 
-if $auto_assign_floating_ip == 'true' {
-  $bool_auto_assign_floating_ip = true
-} else {
-  $bool_auto_assign_floating_ip = false
-}
-
 $network_config = {
   'vlan_start'     => $vlan_start,
 }
 
-
-
-if !$verbose
+if !$::fuel_settings['verbose']
 {
- $verbose = 'false'
+  $verbose = false
 }
 
-if !$debug
+if !$::fuel_settings['debug']
 {
- $debug = 'false'
+  $debug = false
 }
 
 
-
-
-if $::role == 'primary-controller' {
+if $::fuel_settings['role'] == 'primary-controller' {
   $primary_proxy = true
 } else {
   $primary_proxy = false
 }
-if $::role == 'primary-controller' {
+if $::fuel_settings['role'] == 'primary-controller' {
   $primary_controller = true
 } else {
   $primary_controller = false
@@ -205,12 +193,12 @@ class compact_controller (
     internal_address              => $internal_address,
     public_interface              => $::public_int,
     internal_interface            => $::internal_int,
-    private_interface             => $fixed_interface,
-    internal_virtual_ip           => $management_vip,
-    public_virtual_ip             => $public_vip,
+    private_interface             => $::fuel_settings['fixed_interface'],
+    internal_virtual_ip           => $::fuel_settings['management_vip'],
+    public_virtual_ip             => $::fuel_settings['public_vip'],
     primary_controller            => $primary_controller,
     floating_range                => $::use_quantum ? { true=>$floating_hash, default=>false},
-    fixed_range                   => $fixed_network_range,
+    fixed_range                   => $::fuel_settings['fixed_network_range'],
     multi_host                    => $multi_host,
     network_manager               => $network_manager,
     num_networks                  => $num_networks,
@@ -221,8 +209,8 @@ class compact_controller (
     queue_provider                => $::queue_provider,
     qpid_password                 => $rabbit_hash[password],
     qpid_user                     => $rabbit_hash[user],
-    qpid_nodes                    => [$management_vip],
-    auto_assign_floating_ip       => $bool_auto_assign_floating_ip,
+    qpid_nodes                    => [$::fuel_settings['management_vip']],
+    auto_assign_floating_ip       => $::fuel_settings['auto_assign_floating_ip'],
     mysql_root_password           => $mysql_hash[root_password],
     admin_email                   => $access_hash[email],
     admin_user                    => $access_hash[user],
@@ -268,21 +256,16 @@ class compact_controller (
     syslog_log_facility_keystone => $syslog_log_facility_keystone,
     nova_rate_limits        => $nova_rate_limits,
     cinder_rate_limits      => $cinder_rate_limits,
-    horizon_use_ssl         => $::horizon_use_ssl,
-    use_unicast_corosync    => $::use_unicast_corosync,
+    horizon_use_ssl         => $::fuel_settings['horizon_use_ssl'],
+    use_unicast_corosync    => $::fuel_settings['use_unicast_corosync'],
   }
 
-#  class { "::rsyslog::client":
-#    log_local => true,
-#    log_auth_local => true,
-#    rservers => $rservers,
-#  }
 
   class { 'swift::keystone::auth':
-     password         => $swift_hash[user_password],
-     public_address   => $public_vip,
-     internal_address => $management_vip,
-     admin_address    => $management_vip,
+    password         => $swift_hash[user_password],
+    public_address   => $::fuel_settings['public_vip'],
+    internal_address => $::fuel_settings['management_vip'],
+    admin_address    => $::fuel_settings['management_vip'],
   }
 }
 
@@ -294,11 +277,11 @@ class virtual_ips () {
 
 
 
-  case $role {
+  case $::fuel_settings['role'] {
     /controller/ : {
       include osnailyfacter::test_controller
 
- $swift_zone = $node[0]['swift_zone']
+  $swift_zone = $node[0]['swift_zone']
 
   class { '::cluster': stage => 'corosync_setup' } ->
   class { 'virtual_ips':
@@ -332,7 +315,7 @@ class virtual_ips () {
         swift_user_password     => $swift_hash[user_password],
         swift_proxies           => $controller_internal_addresses,
         primary_proxy           => $primary_proxy,
-        controller_node_address => $management_vip,
+        controller_node_address => $::fuel_settings['management_vip'],
         swift_local_net_ip      => $swift_local_net_ip,
         master_swift_proxy_ip   => $master_swift_proxy_ip,
         syslog_log_level        => $syslog_log_level,
@@ -340,17 +323,17 @@ class virtual_ips () {
         verbose                 => $verbose ? { 'true' => true, true => true, default=> false },
       }
       #TODO: PUT this configuration stanza into nova class
-      nova_config { 'DEFAULT/start_guests_on_host_boot': value => $start_guests_on_host_boot }
-      nova_config { 'DEFAULT/use_cow_images': value => $use_cow_images }
-      nova_config { 'DEFAULT/compute_scheduler_driver': value => $compute_scheduler_driver }
+      nova_config { 'DEFAULT/start_guests_on_host_boot': value => $::fuel_settings['start_guests_on_host_boot'] }
+      nova_config { 'DEFAULT/use_cow_images': value => $::fuel_settings['use_cow_images'] }
+      nova_config { 'DEFAULT/compute_scheduler_driver': value => $::fuel_settings['compute_scheduler_driver'] }
 
 #TODO: fix this so it dosn't break ceph
-      if $::hostname == $::last_controller {
+      if $::hostname == $::fuel_settings['last_controller'] {
         class { 'openstack::img::cirros':
           os_username => shellescape($access_hash[user]),
           os_password => shellescape($access_hash[password]),
           os_tenant_name => shellescape($access_hash[tenant]),
-          os_auth_url => "http://${management_vip}:5000/v2.0/",
+          os_auth_url => "http://${::fuel_settings['management_vip']}:5000/v2.0/",
           img_name    => "TestVM",
           stage          => 'glance-image',
         }
@@ -367,7 +350,7 @@ class virtual_ips () {
           username        => $access_hash[user],
           api_key         => $access_hash[password],
           auth_method     => 'password',
-          auth_url        => "http://${management_vip}:5000/v2.0/",
+          auth_url        => "http://${::fuel_settings['management_vip']}:5000/v2.0/",
           authtenant_name => $access_hash[tenant],
         }
         Class[nova::api] -> Nova_floating_range <| |>
@@ -395,26 +378,26 @@ class virtual_ips () {
       include osnailyfacter::test_compute
 
       class { 'openstack::compute':
-        public_interface       => $public_int,
-        private_interface      => $fixed_interface,
+        public_interface       => $::public_int,
+        private_interface      => $::fuel_settings['fixed_interface'],
         internal_address       => $internal_address,
-        libvirt_type           => $libvirt_type,
-        fixed_range            => $fixed_network_range,
+        libvirt_type           => $::fuel_settings['libvirt_type'],
+        fixed_range            => $::fuel_settings['fixed_network_range'],
         network_manager        => $network_manager,
         network_config         => $network_config,
         multi_host             => $multi_host,
-        sql_connection         => "mysql://nova:${nova_hash[db_password]}@${management_vip}/nova",
+        sql_connection         => "mysql://nova:${nova_hash[db_password]}@${::fuel_settings['management_vip']}/nova",
         queue_provider         => $::queue_provider,
         qpid_password          => $rabbit_hash[password],
         qpid_user              => $rabbit_hash[user],
-        qpid_nodes             => [$management_vip],
+        qpid_nodes             => [$::fuel_settings['management_vip']],
         rabbit_nodes           => $controller_nodes,
         rabbit_password        => $rabbit_hash[password],
         rabbit_user            => $rabbit_hash[user],
-        rabbit_ha_virtual_ip   => $management_vip,
-        auto_assign_floating_ip => $bool_auto_assign_floating_ip,
-        glance_api_servers     => "${management_vip}:9292",
-        vncproxy_host          => $public_vip,
+        rabbit_ha_virtual_ip   => $::fuel_settings['management_vip'],
+        auto_assign_floating_ip => $::fuel_settings['auto_assign_floating_ip'],
+        glance_api_servers     => "${::fuel_settings['management_vip']}:9292",
+        vncproxy_host          => $::fuel_settings['public_vip'],
         debug                  => $debug ? { 'true' => true, true => true, default=> false },
         verbose                => $verbose ? { 'true' => true, true => true, default=> false },
         cinder_volume_group    => "cinder",
@@ -422,12 +405,12 @@ class virtual_ips () {
         manage_volumes         => $cinder ? { false => $manage_volumes, default =>$is_cinder_node },
         nova_user_password     => $nova_hash[user_password],
         cache_server_ip        => $controller_nodes,
-        service_endpoint       => $management_vip,
+        service_endpoint       => $::fuel_settings['management_vip'],
         cinder                 => true,
         cinder_iscsi_bind_addr => $cinder_iscsi_bind_addr,
         cinder_user_password   => $cinder_hash[user_password],
         cinder_db_password     => $cinder_hash[db_password],
-        db_host                => $management_vip,
+        db_host                => $::fuel_settings['management_vip'],
         quantum                => $::use_quantum,
         quantum_host           => $quantum_host,
         quantum_sql_connection => $quantum_sql_connection,
@@ -436,7 +419,7 @@ class virtual_ips () {
         segment_range          => $segment_range,
         use_syslog             => true,
         syslog_log_level       => $syslog_log_level,
-	syslog_log_facility    => $syslog_log_facility_nova,
+        syslog_log_facility    => $syslog_log_facility_nova,
         syslog_log_facility_quantum => $syslog_log_facility_quantum,
         syslog_log_facility_cinder => $syslog_log_facility_cinder,
         nova_rate_limits       => $nova_rate_limits,
@@ -453,9 +436,9 @@ class virtual_ips () {
 #        rservers => $rservers,
 #      }
       #TODO: PUT this configuration stanza into nova class
-      nova_config { 'DEFAULT/start_guests_on_host_boot': value => $start_guests_on_host_boot }
-      nova_config { 'DEFAULT/use_cow_images': value => $use_cow_images }
-      nova_config { 'DEFAULT/compute_scheduler_driver': value => $compute_scheduler_driver }
+      nova_config { 'DEFAULT/start_guests_on_host_boot': value => $::fuel_settings['start_guests_on_host_boot'] }
+      nova_config { 'DEFAULT/use_cow_images': value => $::fuel_settings['use_cow_images'] }
+      nova_config { 'DEFAULT/compute_scheduler_driver': value => $::fuel_settings['compute_scheduler_driver'] }
     }
 
     "cinder" : {
@@ -464,19 +447,19 @@ class virtual_ips () {
         ensure => present
       }
       class { 'openstack::cinder':
-        sql_connection       => "mysql://cinder:${cinder_hash[db_password]}@${management_vip}/cinder?charset=utf8",
-        glance_api_servers   => "${management_vip}:9292",
+        sql_connection       => "mysql://cinder:${cinder_hash[db_password]}@${::fuel_settings['management_vip']}/cinder?charset=utf8",
+        glance_api_servers   => "${::fuel_settings['management_vip']}:9292",
         queue_provider       => $::queue_provider,
         qpid_password        => $rabbit_hash[password],
         qpid_user            => $rabbit_hash[user],
-        qpid_nodes           => [$management_vip],
+        qpid_nodes           => [$::fuel_settings['management_vip']],
         rabbit_password      => $rabbit_hash[password],
         rabbit_host          => false,
-        rabbit_nodes         => $management_vip,
+        rabbit_nodes         => $::fuel_settings['management_vip'],
         volume_group         => 'cinder',
         manage_volumes       => true,
         enabled              => true,
-        auth_host            => $management_vip,
+        auth_host            => $::fuel_settings['management_vip'],
         iscsi_bind_host      => $storage_address,
         cinder_user_password => $cinder_hash[user_password],
         syslog_log_facility  => $syslog_log_facility_cinder,
@@ -496,6 +479,6 @@ class virtual_ips () {
       notify {"ceph_osd: ${::ceph::osd_devices}": }
       notify {"osd_devices:  ${::osd_devices_list}": }
     }
-    
+  
   }
 }
