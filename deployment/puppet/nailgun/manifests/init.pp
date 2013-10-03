@@ -33,7 +33,7 @@ class nailgun(
   $mco_connector = "rabbitmq",
 
   $naily_version,
-  $nailgun_api_url = "http://${mnbs_internal_ipaddress}:8000/api",
+  $nailgun_api_url = "http://$ipaddress:8000/api",
   $rabbitmq_naily_user = "naily",
   $rabbitmq_naily_password = "naily",
   $puppet_master_hostname = "${hostname}.${domain}",
@@ -121,15 +121,6 @@ class nailgun(
     templatedir => $templatedir,
     rabbitmq_naily_user => $rabbitmq_naily_user,
     rabbitmq_naily_password => $rabbitmq_naily_password,
-
-    admin_network => ipcalc_network_by_address_netmask($mnbs_internal_ipaddress, $mnbs_internal_netmask),
-    admin_network_cidr => ipcalc_network_cidr_by_netmask($mnbs_internal_netmask),
-    admin_network_size => ipcalc_network_count_addresses($mnbs_internal_ipaddress, $mnbs_internal_netmask),
-    admin_network_first => $mnbs_static_pool_start,
-    admin_network_last => $mnbs_static_pool_end,
-    admin_network_netmask => $mnbs_internal_netmask,
-    admin_network_ip => $mnbs_internal_ipaddress,
-
   }
 
   class {"nailgun::naily":
