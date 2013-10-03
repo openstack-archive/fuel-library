@@ -93,6 +93,7 @@ class Puppet::Provider::Quantum < Puppet::Provider
   # end
 
   def self.auth_quantum(*args)
+    #todo: Rewrite, using ruby-openstack
     begin
       q = quantum_credentials
     rescue Exception => e
