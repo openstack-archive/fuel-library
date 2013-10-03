@@ -33,7 +33,7 @@ class nailgun(
   $mco_connector = "rabbitmq",
 
   $naily_version,
-  $nailgun_api_url = "http://$ipaddress:8000/api",
+  $nailgun_api_url = "http://{$::fuel_settings['ADMIN_NETWORK']['ipaddress']}:8000/api",
   $rabbitmq_naily_user = "naily",
   $rabbitmq_naily_password = "naily",
   $puppet_master_hostname = "${hostname}.${domain}",
@@ -121,6 +121,14 @@ class nailgun(
     templatedir => $templatedir,
     rabbitmq_naily_user => $rabbitmq_naily_user,
     rabbitmq_naily_password => $rabbitmq_naily_password,
+
+    admin_network => ipcalc_network_by_address_netmask($::fuel_settings['ADMIN_NETWORK']['ipaddress'], $::fuel_settings['ADMIN_NETWORK']['netmask']),
+    admin_network_cidr => ipcalc_network_cidr_by_netmask($::fuel_settings['ADMIN_NETWORK']['netmask']),
+    admin_network_size => ipcalc_network_count_addresses($::fuel_settings['ADMIN_NETWORK']['ipaddress'], $::fuel_settings['ADMIN_NETWORK']['netmask']),
+    admin_network_first => $::fuel_settings['ADMIN_NETWORK']['static_pool_start'],
+    admin_network_last => $::fuel_settings['ADMIN_NETWORK']['static_pool_end'],
+    admin_network_netmask => $::fuel_settings['ADMIN_NETWORK']['netmask'],
+
   }
 
   class {"nailgun::naily":
