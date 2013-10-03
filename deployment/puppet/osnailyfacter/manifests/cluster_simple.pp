@@ -106,18 +106,15 @@ if !$::fuel_settings['debug']
  $debug = false
 }
 
-# Determine if any ceph parts have been asked for.
-# This will ensure that monitors are set up on controllers, even if no 
-#  ceph-osd roles during deployment
-
-if (filter_nodes($node_hash, 'role', 'ceph-osd') or
-    $storage_hash['volumes_ceph'] or
-    $storage_hash['images_ceph'] or
-    $storage_hash['objects_ceph']
+# Determine who should get the volume service
+if ($::fuel_settings['role'] == 'cinder' or
+    $storage_hash['volumes_lvm']
 ) {
-  $use_ceph = true
+  $manage_volumes = 'iscsi'
+} elsif ($storage_hash['volumes_ceph']) {
+  $manage_volumes = 'ceph'
 } else {
-  $use_ceph = false
+  $manage_volumes = false
 }
 
 #Determine who should be the default backend
@@ -126,17 +123,6 @@ if ($storage_hash['images_ceph']) {
   $glance_backend = 'ceph'
 } else {
   $glance_backend = 'file'
-}
-
-# Determine who should get the volume service
-if ($::role == 'cinder' or
-    $storage_hash['volumes_lvm'] 
-) {
-  $manage_volumes = 'iscsi'
-} elsif ($storage_hash['volumes_ceph']) {
-  $manage_volumes = 'ceph'
-} else {
-  $manage_volumes = false
 }
 
 if ($use_ceph) {

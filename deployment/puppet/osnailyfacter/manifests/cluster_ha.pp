@@ -109,37 +109,24 @@ $quantum_gre_bind_addr = $::internal_address
 
 $cinder_iscsi_bind_addr = $::storage_address
 
-# Determine if any ceph parts have been asked for.
-# This will ensure that monitors are set up on controllers, even if no
-#  ceph-osd roles during deployment
-
-if (filter_nodes($node_hash, 'role', 'ceph-osd') or
-    $storage_hash['volumes_ceph'] or
-    $storage_hash['images_ceph'] or
-    $storage_hash['objects_ceph']
-) {
-  $use_ceph = true
-} else {
-  $use_ceph = false
-}
-
-#Determine who should be the default backend
-
-if ($storage_hash['images_ceph']) {
-  $glance_backend = 'ceph'
-} else {
-  $glance_backend = 'swift'
-}
-
 # Determine who should get the volume service
-if ($::role == 'cinder' or
-    $storage_hash['volumes_lvm'] 
+if ($::fuel_settings['role'] == 'cinder' or
+    $storage_hash['volumes_lvm']
 ) {
   $manage_volumes = 'iscsi'
 } elsif ($storage_hash['volumes_ceph']) {
   $manage_volumes = 'ceph'
 } else {
   $manage_volumes = false
+}
+
+}
+#Determine who should be the default backend
+
+if ($storage_hash['images_ceph']) {
+  $glance_backend = 'ceph'
+} else {
+  $glance_backend = 'swift'
 }
 
 if ($use_ceph) {
@@ -154,7 +141,7 @@ if ($use_ceph) {
   }
 }
 
-#Test to determine if swift should be installed
+#Test to determine if swift should be enabled
 if ($storage_hash['objects_swift'] or
     ! $storage_hash['images_ceph']
 ) {
@@ -315,58 +302,58 @@ class virtual_ips () {
       if ($use_swift) {
         $swift_zone = $node[0]['swift_zone']
 
-      class { 'openstack::swift::storage_node':
-        storage_type          => $swift_loopback,
-        loopback_size         => '5243780',
-        storage_mnt_base_dir  => $swift_partition,
-        storage_devices       => $mountpoints,
-        swift_zone            => $swift_zone,
-        swift_local_net_ip    => $storage_address,
-        master_swift_proxy_ip   => $master_swift_proxy_ip,
-        sync_rings            => ! $primary_proxy,
-        syslog_log_level      => $syslog_log_level,
-        debug                 => $debug ? { 'true' => true, true => true, default=> false },
-        verbose               => $verbose ? { 'true' => true, true => true, default=> false },
-      }
-      if $primary_proxy {
-        ring_devices {'all': storages => $controllers }
-      }
-      class { 'openstack::swift::proxy':
-        swift_user_password     => $swift_hash[user_password],
-        swift_proxies           => $controller_internal_addresses,
-        primary_proxy           => $primary_proxy,
-        controller_node_address => $::fuel_settings['management_vip'],
-        swift_local_net_ip      => $swift_local_net_ip,
-        master_swift_proxy_ip   => $master_swift_proxy_ip,
-        syslog_log_level        => $syslog_log_level,
-        debug                   => $debug ? { 'true' => true, true => true, default=> false },
-        verbose                 => $verbose ? { 'true' => true, true => true, default=> false },
-      }
-      if $storage_hash['objects_swift'] {
-      class { 'swift::keystone::auth':
-        password         => $swift_hash[user_password],
-        public_address   => $::fuel_settings['public_vip'],
-        internal_address => $::fuel_settings['management_vip'],
-        admin_address    => $::fuel_settings['management_vip'],
-      }
-      }
+        class { 'openstack::swift::storage_node':
+          storage_type          => $swift_loopback,
+          loopback_size         => '5243780',
+          storage_mnt_base_dir  => $swift_partition,
+          storage_devices       => $mountpoints,
+          swift_zone            => $swift_zone,
+          swift_local_net_ip    => $storage_address,
+          master_swift_proxy_ip => $master_swift_proxy_ip,
+          sync_rings            => ! $primary_proxy,
+          syslog_log_level      => $syslog_log_level,
+          debug                 => $debug ? { 'true' => true, true => true, default=> false },
+          verbose               => $verbose ? { 'true' => true, true => true, default=> false },
+        }
+        if $primary_proxy {
+          ring_devices {'all': storages => $controllers }
+        }
+        class { 'openstack::swift::proxy':
+          swift_user_password     => $swift_hash[user_password],
+          swift_proxies           => $controller_internal_addresses,
+          primary_proxy           => $primary_proxy,
+          controller_node_address => $::fuel_settings['management_vip'],
+          swift_local_net_ip      => $swift_local_net_ip,
+          master_swift_proxy_ip   => $master_swift_proxy_ip,
+          syslog_log_level        => $syslog_log_level,
+          debug                   => $debug ? { 'true' => true, true => true, default=> false },
+          verbose                 => $verbose ? { 'true' => true, true => true, default=> false },
+        }
+        if $storage_hash['objects_swift'] {
+          class { 'swift::keystone::auth':
+            password         => $swift_hash[user_password],
+            public_address   => $::fuel_settings['public_vip'],
+            internal_address => $::fuel_settings['management_vip'],
+            admin_address    => $::fuel_settings['management_vip'],
+          }
+        }
       }
       #TODO: PUT this configuration stanza into nova class
       nova_config { 'DEFAULT/start_guests_on_host_boot': value => $::fuel_settings['start_guests_on_host_boot'] }
-      nova_config { 'DEFAULT/use_cow_images': value => $::fuel_settings['use_cow_images'] }
-      nova_config { 'DEFAULT/compute_scheduler_driver': value => $::fuel_settings['compute_scheduler_driver'] }
+      nova_config { 'DEFAULT/use_cow_images':            value => $::fuel_settings['use_cow_images'] }
+      nova_config { 'DEFAULT/compute_scheduler_driver':  value => $::fuel_settings['compute_scheduler_driver'] }
 
 #TODO: fix this so it dosn't break ceph
       if !($::use_ceph) {
-      if $::hostname == $::fuel_settings['last_controller'] {
-        class { 'openstack::img::cirros':
-          os_username => shellescape($access_hash[user]),
-          os_password => shellescape($access_hash[password]),
-          os_tenant_name => shellescape($access_hash[tenant]),
-          os_auth_url => "http://${::fuel_settings['management_vip']}:5000/v2.0/",
-          img_name    => "TestVM",
-          stage          => 'glance-image',
-
+        if $::hostname == $::fuel_settings['last_controller'] {
+          class { 'openstack::img::cirros':
+            os_username => shellescape($access_hash[user]),
+            os_password => shellescape($access_hash[password]),
+            os_tenant_name => shellescape($access_hash[tenant]),
+            os_auth_url => "http://${::fuel_settings['management_vip']}:5000/v2.0/",
+            img_name    => "TestVM",
+            stage          => 'glance-image',
+          }
         }
       }
       if ! $::use_quantum {
@@ -446,7 +433,7 @@ class virtual_ips () {
         state_path             => $nova_hash[state_path],
       }
 
-        if ($use_ceph){
+        if ($::use_ceph){
           Class['openstack::compute'] -> Class['ceph']
         }
 

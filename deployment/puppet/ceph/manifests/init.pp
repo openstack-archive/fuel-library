@@ -73,7 +73,7 @@ class ceph (
   include ceph::conf
   Class[['ceph::ssh', 'ceph::params']] -> Class['ceph::conf']
 
-  if $::role =~ /controller|ceph/ {
+  if $::fuel_settings['role'] =~ /controller|ceph/ {
     service {'ceph':
       ensure => 'running',
       enable => true,
