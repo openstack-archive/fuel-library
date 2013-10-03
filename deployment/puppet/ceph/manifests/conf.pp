@@ -21,15 +21,15 @@ class ceph::conf {
     }
 
     ceph_conf {
-      'global/auth supported':            value => $::ceph::auth_supported;
-      'global/osd journal size':          value => $::ceph::osd_journal_size;
-      'global/osd mkfs type':             value => $::ceph::osd_mkfs_type;
-      'global/osd pool default size':     value => $::ceph::osd_pool_default_size;
-      'global/osd pool default min size': value => $::ceph::osd_pool_default_min_size;
-      'global/osd pool default pg num':   value => $::ceph::osd_pool_default_pg_num;
-      'global/osd pool default pgp num':  value => $::ceph::osd_pool_default_pgp_num;
-      'global/cluster network':           value => $::ceph::cluster_network;
-      'global/public network':            value => $::ceph::public_network;
+      'global/auth_supported':            value => $::ceph::auth_supported;
+      'global/osd_journal_size':          value => $::ceph::osd_journal_size;
+      'global/osd_mkfs_type':             value => $::ceph::osd_mkfs_type;
+      'global/osd_pool_default_size':     value => $::ceph::osd_pool_default_size;
+      'global/osd_pool_default_min_size': value => $::ceph::osd_pool_default_min_size;
+      'global/osd_pool_default_pg_num':   value => $::ceph::osd_pool_default_pg_num;
+      'global/osd_pool_default_pgp_num':  value => $::ceph::osd_pool_default_pgp_num;
+      'global/cluster_network':           value => $::ceph::cluster_network;
+      'global/public_network':            value => $::ceph::public_network;
     }
 
     Exec['ceph-deploy new'] ->

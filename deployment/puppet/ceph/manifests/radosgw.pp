@@ -56,17 +56,17 @@ class ceph::radosgw (
     ceph_conf {
       'client.radosgw.gateway/host':                             value => $host;
       'client.radosgw.gateway/keyring':                          value => $keyring_path;
-      'client.radosgw.gateway/rgw socket path':                  value => $rgw_socket_path;
-      'client.radosgw.gateway/log file':                         value => $rgw_log_file;
+      'client.radosgw.gateway/rgw_socket_path':                  value => $rgw_socket_path;
+      'client.radosgw.gateway/log_file':                         value => $rgw_log_file;
       'client.radosgw.gateway/user':                             value => $rgw_user;
-      'client.radosgw.gateway/rgw keystone url':                 value => $rgw_keystone_url;
-      'client.radosgw.gateway/rgw keystone admin token':         value => $rgw_keystone_admin_token;
-      'client.radosgw.gateway/rgw keystone accepted roles':      value => $rgw_keystone_accepted_roles;
-      'client.radosgw.gateway/rgw keystone token cache size':    value => $rgw_keystone_token_cache_size;
-      'client.radosgw.gateway/rgw keystone revocation interval': value => $rgw_keystone_revocation_interval;
-      'client.radosgw.gateway/rgw data':                         value => $rgw_data;
-      'client.radosgw.gateway/rgw dns name':                     value => $rgw_dns_name;
-      'client.radosgw.gateway/rgw print continue':               value => $rgw_print_continue;
+      'client.radosgw.gateway/rgw_keystone_url':                 value => $rgw_keystone_url;
+      'client.radosgw.gateway/rgw_keystone_admin_token':         value => $rgw_keystone_admin_token;
+      'client.radosgw.gateway/rgw_keystone_accepted_roles':      value => $rgw_keystone_accepted_roles;
+      'client.radosgw.gateway/rgw_keystone_token_cache_size':    value => $rgw_keystone_token_cache_size;
+      'client.radosgw.gateway/rgw_keystone_revocation_interval': value => $rgw_keystone_revocation_interval;
+      'client.radosgw.gateway/rgw_data':                         value => $rgw_data;
+      'client.radosgw.gateway/rgw_dns_name':                     value => $rgw_dns_name;
+      'client.radosgw.gateway/rgw_print_continue':               value => $rgw_print_continue;
     }
     Ceph_conf <| |> ->
     service {$::ceph::params::service_radosgw:
