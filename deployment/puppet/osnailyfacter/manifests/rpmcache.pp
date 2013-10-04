@@ -9,15 +9,16 @@ class osnailyfacter::rpmcache {
   class { 'rpmcache::rpmcache':
     releasever => "6Server",
     pkgdir => "/var/www/nailgun/rhel/6.4/nailgun/x86_64",
-    rh_username => $rh_username,
-    rh_password => $rh_password,
+    rh_username => $::fuel_settings['rh_username'],
+    rh_password => $::fuel_settings['rh_password'],
     rh_base_channels => $rh_base_channels,
     rh_openstack_channel => $rh_openstack_channel,
-    use_satellite => $use_satellite,
-    sat_hostname => $sat_hostname,
-    activation_key => $activation_key,
+    use_satellite => $::fuel_settings['use_satellite'],
+    sat_hostname => $::fuel_settings['sat_hostname'],
+    activation_key => $::fuel_settings['activation_key'],
     sat_base_channels => $sat_base_channels,
     sat_openstack_channel => $sat_openstack_channel
+
   }
 
 }
