@@ -1,19 +1,20 @@
 # Installs & configure the savanna API service
 
 class savanna::api (
-  $enabled            = true,
-  $keystone_host      = '127.0.0.1',
-  $keystone_port      = '35357',
-  $keystone_protocol  = 'http',
-  $keystone_user      = 'admin',
-  $keystone_tenant    = 'services',
-  $keystone_password  = false,
-  $bind_port          = '8386',
-  $use_floading_ips   = 'False',
-  $node_domain        = 'novalocal',
-  $plugins            = 'vanilla',
-  $vanilla_plugin_plugin_class = 'savanna.plugins.vanilla.plugin:VanillaProvider',
-  $sql_connection         = 'mysql://savanna:savanna@localhost/savanna',
+  $enabled              = true,
+  $keystone_host        = '127.0.0.1',
+  $keystone_port        = '35357',
+  $keystone_protocol    = 'http',
+  $keystone_user        = 'admin',
+  $keystone_tenant      = 'services',
+  $keystone_password    = 'admin',
+  $bind_port            = '8386',
+  $node_domain          = 'novalocal',
+  $plugins              = 'vanilla',
+  $vanilla_plugin_class = 'savanna.plugins.vanilla.plugin:VanillaProvider',
+  $sql_connection       = 'mysql://savanna:savanna@localhost/savanna',
+  $use_neutron          = false,
+  $use_floating_ips     = false,
 ) {
 
   include savanna::params
@@ -37,7 +38,6 @@ class savanna::api (
     enable     => $enabled,
     hasstatus  => true,
     hasrestart => true,
-    require    => Package['savanna'],
   }
 
   savanna_config {
@@ -46,10 +46,11 @@ class savanna::api (
     'DEFAULT/os_admin_password'            : value => $keystone_password;
     'DEFAULT/os_auth_host'                 : value => $keystone_host;
     'DEFAULT/os_auth_port'                 : value => $keystone_port;
-    'DEFAULT/use_floating_ips'             : value => $use_floading_ips;
+    'DEFAULT/use_floating_ips'             : value => $use_floating_ips;
+    'DEFAULT/use_neutron'                  : value => $use_neutron;
     'DEFAULT/node_domain'                  : value => $node_domain;
     'DEFAULT/plugins'                      : value => $plugins;
-    'plugin:vanilla/plugin_class'          : value => $vanilla_plugin_plugin_class;
+    'plugin:vanilla/plugin_class'          : value => $vanilla_plugin_class;
     'database/connection'                  : value => $sql_connection;
   }
 

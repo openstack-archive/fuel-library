@@ -9,11 +9,11 @@ class heat::cli (
     name   => $::heat::params::deps_pbr_package_name,
   }
 
-
   package { 'heat-cli':
     ensure => $ensure,
     name   => $::heat::params::heat_cli_package_name,
-    require => Package['deps_pbr_package_name'],
   }
+
+  Package['deps_pbr_package_name'] -> Package['heat-cli']
 
 }

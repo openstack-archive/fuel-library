@@ -1,5 +1,3 @@
-# Installs & configure the heat engine service
-
 class heat::engine (
   $enabled           = true,
   $keystone_host     = '127.0.0.1',
@@ -31,22 +29,12 @@ class heat::engine (
   $rpc_backend                   = 'heat.openstack.common.rpc.impl_kombu',
   $use_stderr                    = 'False',
   $use_syslog                    = 'False',
-
-
-
-
-
-
 ) {
 
   include heat::params
 
   validate_string($keystone_password)
 
-  Heat_engine_config<||> ~> Service['heat-engine']
-
-  Package['heat-engine'] -> Heat_engine_config<||>
-  Package['heat-engine'] -> Service['heat-engine']
   package { 'heat-engine':
     ensure => installed,
     name   => $::heat::params::engine_package_name,
@@ -65,13 +53,13 @@ class heat::engine (
   }
 
   if $rabbit_hosts {
-    if  is_array($rabbit_hosts) {
+    if is_array($rabbit_hosts) {
       $rabbit_hosts_v = join($rabbit_hosts, ',')
     } else {
       $rabbit_hosts_v = $rabbit_hosts
     }
-    heat_engine_config { 'DEFAULT/rabbit_host': ensure => absent }
-    heat_engine_config { 'DEFAULT/rabbit_port': ensure => absent }
+    heat_engine_config { 'DEFAULT/rabbit_host':  ensure => absent }
+    heat_engine_config { 'DEFAULT/rabbit_port':  ensure => absent }
     heat_engine_config { 'DEFAULT/rabbit_hosts': value => $rabbit_hosts_v }
   } else {
     heat_engine_config { 'DEFAULT/rabbit_host': value => $rabbit_host }
@@ -87,25 +75,19 @@ class heat::engine (
     heat_engine_config { 'DEFAULT/rabbit_ha_queues': value => false }
   }
 
-
   service { 'heat-engine':
     ensure     => $service_ensure,
     name       => $::heat::params::engine_service_name,
     enable     => $enabled,
     hasstatus  => true,
     hasrestart => true,
-    require    => [ File['/etc/heat/heat-engine.conf'],
-                    Exec['heat-encryption-key-replacement'],
-                    Package['heat-common'],
-		    Package['heat-engine'],
-		    Class['heat::db']],
   }
 
   exec {'heat-encryption-key-replacement':
     command => 'sed -i "s/%ENCRYPTION_KEY%/`hexdump -n 16 -v -e \'/1 "%02x"\' /dev/random`/" /etc/heat/heat-engine.conf',
-    path => [ '/usr/bin', '/bin'],
-    onlyif => 'grep -c ENCRYPTION_KEY /etc/heat/heat-engine.conf',
-    }
+    path    => [ '/usr/bin', '/bin' ],
+    onlyif  => 'grep -c ENCRYPTION_KEY /etc/heat/heat-engine.conf',
+  }
 
   heat_engine_config {
     'DEFAULT/rabbit_userid'                                   : value => $rabbit_userid;
@@ -129,4 +111,10 @@ class heat::engine (
     'DEFAULT/use_stderr'                                      : value => $use_stderr;
     'DEFAULT/use_syslog'                                      : value => $use_syslog;
   }
+
+  Package['heat-common'] -> Package['heat-engine'] -> File['/etc/heat/heat-engine.conf'] -> Heat_engine_config<||> ~> Service['heat-engine']
+  File['/etc/heat/heat-engine.conf'] -> Exec['heat-encryption-key-replacement'] -> Service['heat-engine']
+  File['/etc/heat/heat-engine.conf'] ~> Service['heat-engine']
+  Class['heat::db'] -> Service['heat-engine']
+
 }

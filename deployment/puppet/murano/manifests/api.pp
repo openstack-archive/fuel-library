@@ -1,5 +1,3 @@
-# Installs & configure the murano conductor  service
-
 class murano::api (
     $enabled                        = true,
     $verbose                        = 'True',
@@ -8,7 +6,7 @@ class murano::api (
     $api_paste_app_factory          = 'muranoapi.api.v1.router:API.factory',
     $api_paste_filter_factory       = 'muranoapi.api.middleware.context:ContextMiddleware.factory',
     $api_paste_paste_filter_factory = 'keystoneclient.middleware.auth_token:filter_factory',
-    $api_paste_auth_host            = '192.168.1.2',
+    $api_paste_auth_host            = '127.0.0.1',
     $api_paste_auth_port            = '35357',
     $api_paste_auth_protocol        = 'http',
     $api_paste_admin_tenant_name    = 'admin',
@@ -34,14 +32,6 @@ class murano::api (
 ) {
 
   include murano::params
-
-  validate_string($keystone_password)
-  Murano_api_config<||> ~> Service['murano_api']
-  Murano_api_paste_ini_config<||> ~> Service['murano_api']
-
-  Package['murano_api'] -> Murano_api_config<||>
-  Package['murano_api'] -> Murano_api_paste_ini_config<||>
-  Package['murano_api'] -> Service['murano_api']
 
   package { 'murano_api':
     ensure => installed,
@@ -98,6 +88,10 @@ class murano::api (
     'filter:authtoken/signing_dir'          : value => $api_paste_signing_dir;
   }
 
-
+  Murano_api_config<||> ~> Service['murano_api']
+  Murano_api_paste_ini_config<||> ~> Service['murano_api']
+  Package['murano_api'] -> Murano_api_config<||>
+  Package['murano_api'] -> Murano_api_paste_ini_config<||>
+  Package['murano_api'] -> Service['murano_api']
 
 }

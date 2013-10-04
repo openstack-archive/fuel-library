@@ -2,15 +2,14 @@ class heat::db (
   $sql_connection = 'mysql://heat:heat@localhost/heat'
 ) {
 
-  notify {"Heat DB init":}
-
   include heat::params
+
+  $db_sync_command = $::heat::params::db_sync_command
+  $legacy_db_sync_command = $::heat::params::legacy_db_sync_command
 
   Package<| title == 'heat-common' |> -> Class['heat::db']
   Class['heat::db::mysql']            -> Class['heat::db']
   Class['heat::cli']                  -> Class['heat::db']
-
-
 
   validate_re($sql_connection,
     '(mysql):\/\/(\S+:\S+@\S+\/\S+)?')
@@ -37,13 +36,24 @@ class heat::db (
   }
 
   exec { 'heat-manage db_sync':
-      command     => $::heat::params::db_sync_command,
-      path        => '/usr/bin',
-      user        => 'heat',
-      refreshonly => true,
-      logoutput   => on_failure,
-      subscribe   => [Package['heat-engine'], Package['heat-api'],],
+    command     => $db_sync_command,
+    path        => '/usr/bin',
+    user        => 'heat',
+    refreshonly => true,
+    logoutput   => on_failure,
+    onlyif      => "test -f $db_sync_command",
+    subscribe   => [Package['heat-engine'], Package['heat-api'],],
+  }
 
-    }
+  # Lagacy part - support old rpms before 2013.2.xx without heat-manage tool
+  exec { 'python -m heat.db.sync':
+    command     => $legacy_db_sync_command,
+    path        => '/usr/bin',
+    user        => 'heat',
+    refreshonly => true,
+    logoutput   => on_failure,
+    unless      => "test -f $db_sync_command",
+    subscribe   => [Package['heat-engine'], Package['heat-api'],],
+  }
 
 }

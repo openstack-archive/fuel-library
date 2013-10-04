@@ -1,5 +1,5 @@
-class heat::keystone::auth(
-  $password,
+class heat::keystone::auth (
+  $password         = 'heat',
   $auth_name        = 'heat',
   $public_address   = '127.0.0.1',
   $admin_address    = '127.0.0.1',
@@ -10,7 +10,6 @@ class heat::keystone::auth(
   $email            = 'heat@localhost'
 ) {
 
-  notify {"Keystone":}
   keystone_user { $auth_name:
     ensure   => present,
     password => $password,
@@ -18,16 +17,15 @@ class heat::keystone::auth(
     tenant   => $tenant,
   }
 
-
   keystone_service { $auth_name:
     ensure      => present,
     type        => 'orchestration',
     description => 'Openstack_HEAT_Service',
   }
-#
-  keystone_endpoint { "$auth_name":
+
+  keystone_endpoint { $auth_name :
     ensure       => present,
-    region       => "${region}",
+    region       => $region,
     public_url   => "http://${public_address}:${heat_port}/v1/%(tenant_id)s",
     internal_url => "http://${internal_address}:${heat_port}/v1/%(tenant_id)s",
     admin_url    => "http://${admin_address}:${heat_port}/v1/%(tenant_id)s",
@@ -39,5 +37,3 @@ class heat::keystone::auth(
   }
 
 }
-
-

@@ -42,9 +42,13 @@ if $::fuel_settings['nodes'] {
   $storage_netmask = $node[0]['storage_netmask']
   $public_br = $node[0]['public_br']
   $internal_br = $node[0]['internal_br']
+
   $base_syslog_hash     = $::fuel_settings['base_syslog']
   $syslog_hash          = $::fuel_settings['syslog']
   $savanna_hash         = $::fuel_settings['savanna']
+  $murano_hash          = $::fuel_settings['murano']
+  $heat_hash            = $::fuel_settings['heat']
+
   $use_quantum = $::fuel_settings['quantum']
   if $use_quantum {
     $public_int   = $::fuel_settings['public_br']

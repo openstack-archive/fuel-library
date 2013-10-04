@@ -1,13 +1,11 @@
-# Installs & configure the heat CloudFormation API service
-
-class heat::api-cfn (
+class heat::api_cfn (
   $enabled            = true,
   $keystone_host      = '127.0.0.1',
   $keystone_port      = '35357',
   $keystone_protocol  = 'http',
   $keystone_user      = 'heat',
   $keystone_tenant    = 'services',
-  $keystone_password  = 'false',
+  $keystone_password  = false,
   $keystone_ec2_uri   = 'http://127.0.0.1:5000/v2.0/ec2tokens',
   $auth_uri           = 'http://127.0.0.1:5000/v2.0',
   $bind_host          = '0.0.0.0',
@@ -32,10 +30,6 @@ class heat::api-cfn (
 
   validate_string($keystone_password)
 
-  Heat_api_cfn_config<||> ~> Service['heat-api-cfn']
-
-  Package['heat-api-cfn'] -> Heat_api_cfn_config<||>
-  Package['heat-api-cfn'] -> Service['heat-api-cfn']
   package { 'heat-api-cfn':
     ensure => installed,
     name   => $::heat::params::api_cfn_package_name,
@@ -47,20 +41,14 @@ class heat::api-cfn (
     $service_ensure = 'stopped'
   }
 
-  Package['heat-common'] -> Service['heat-api-cfn']
-
   if $rabbit_hosts {
-    heat_api_cfn_config { 'DEFAULT/rabbit_host': ensure => absent }
-    heat_api_cfn_config { 'DEFAULT/rabbit_port': ensure => absent }
-    heat_api_cfn_config { 'DEFAULT/rabbit_hosts':
-      value => join($rabbit_hosts, ',')
-    }
+    heat_api_cfn_config { 'DEFAULT/rabbit_host':  ensure => absent }
+    heat_api_cfn_config { 'DEFAULT/rabbit_port':  ensure => absent }
+    heat_api_cfn_config { 'DEFAULT/rabbit_hosts': value => join($rabbit_hosts, ',') }
   } else {
-    heat_api_cfn_config { 'DEFAULT/rabbit_host': value => $rabbit_host }
-    heat_api_cfn_config { 'DEFAULT/rabbit_port': value => $rabbit_port }
-    heat_api_cfn_config { 'DEFAULT/rabbit_hosts':
-      value => "${rabbit_host}:${rabbit_port}"
-    }
+    heat_api_cfn_config { 'DEFAULT/rabbit_host':  value => $rabbit_host }
+    heat_api_cfn_config { 'DEFAULT/rabbit_port':  value => $rabbit_port }
+    heat_api_cfn_config { 'DEFAULT/rabbit_hosts': value => "${rabbit_host}:${rabbit_port}" }
   }
 
   if size($rabbit_hosts) > 1 {
@@ -75,7 +63,6 @@ class heat::api-cfn (
     enable     => $enabled,
     hasstatus  => true,
     hasrestart => true,
-    require    => Class['heat::db'],
   }
 
   heat_api_cfn_config {
@@ -101,7 +88,9 @@ class heat::api-cfn (
     'keystone_authtoken/admin_password'    : value => $keystone_password;
     'keystone_authtoken/auth_uri'          : value => "${keystone_protocol}${keystone_host}:5000/v2";
   }
+
+  Package['heat-common'] -> Package['heat-api-cfn'] -> Heat_api_cfn_config<||> ~> Service['heat-api-cfn']
+  Package['heat-api-cfn'] ~> Service['heat-api-cfn']
+  Class['heat::db'] -> Service['heat-api-cfn']
+
 }
-
-
-

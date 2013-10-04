@@ -1,5 +1,3 @@
-# Installs & configure the heat API service
-
 class heat::api (
   $enabled            = true,
   $keystone_host      = '127.0.0.1',
@@ -25,28 +23,21 @@ class heat::api (
   $rpc_backend        = 'heat.openstack.common.rpc.impl_kombu',
   $use_stderr         = 'False',
   $use_syslog         = 'False',
-
-
+  $keystone_service_port  = '5000',
 ) {
 
   include heat::params
 
   validate_string($keystone_password)
 
-  Heat_api_config<||> ~> Service['heat-api']
-
-  Package['heat-api'] -> Heat_api_config<||>
-  Package['heat-api'] -> Service['heat-api']
-
   package { 'python-routes':
-    ensure => $::heat::params::deps_routes_package_vesion,
+    ensure => installed,
     name   => $::heat::params::deps_routes_package_name,
   }
 
-
   package { 'heat-api':
-    ensure => installed,
-    name   => $::heat::params::api_package_name,
+    ensure  => installed,
+    name    => $::heat::params::api_package_name,
     require => Package['python-routes'],
   }
 
@@ -57,17 +48,13 @@ class heat::api (
   }
 
   if $rabbit_hosts {
-    heat_api_config { 'DEFAULT/rabbit_host': ensure => absent }
-    heat_api_config { 'DEFAULT/rabbit_port': ensure => absent }
-    heat_api_config { 'DEFAULT/rabbit_hosts':
-      value => join($rabbit_hosts, ',')
-    }
+    heat_api_config { 'DEFAULT/rabbit_host':  ensure => absent }
+    heat_api_config { 'DEFAULT/rabbit_port':  ensure => absent }
+    heat_api_config { 'DEFAULT/rabbit_hosts': value => join($rabbit_hosts, ',') }
   } else {
-    heat_api_config { 'DEFAULT/rabbit_host': value => "$rabbit_host" }
-    heat_api_config { 'DEFAULT/rabbit_port': value => "$rabbit_port" }
-    heat_api_config { 'DEFAULT/rabbit_hosts':
-      value => "${rabbit_host}:${rabbit_port}"
-    }
+    heat_api_config { 'DEFAULT/rabbit_host':  value => $rabbit_host }
+    heat_api_config { 'DEFAULT/rabbit_port':  value => $rabbit_port }
+    heat_api_config { 'DEFAULT/rabbit_hosts': value => "${rabbit_host}:${rabbit_port}" }
   }
 
   if size($rabbit_hosts) > 1 {
@@ -82,9 +69,6 @@ class heat::api (
     enable     => $enabled,
     hasstatus  => true,
     hasrestart => true,
-    require    => [Package['heat-common'],
-		  Package['heat-api'],
-		  Class['heat::db']],
   }
 
   heat_api_config {
@@ -108,7 +92,11 @@ class heat::api (
     'keystone_authtoken/admin_tenant_name' : value => $keystone_tenant;
     'keystone_authtoken/admin_user'        : value => $keystone_user;
     'keystone_authtoken/admin_password'    : value => $keystone_password;
-    'keystone_authtoken/auth_uri'          : value => "${keystone_protocol}${keystone_host}:5000/v2";
-
+    'keystone_authtoken/auth_uri'          : value => "${keystone_protocol}://${keystone_host}:${keystone_service_port}/v2";
   }
+
+  Package['heat-common'] -> Package['heat-api'] -> Heat_api_config<||> ~> Service['heat-api']
+  Package['heat-api'] ~> Service['heat-api']
+  Class['heat::db'] -> Service['heat-api']
+
 }
