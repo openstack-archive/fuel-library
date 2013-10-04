@@ -33,7 +33,7 @@ class nailgun(
   $mco_connector = "rabbitmq",
 
   $naily_version,
-  $nailgun_api_url = "http://{$::fuel_settings['ADMIN_NETWORK']['ipaddress']}:8000/api",
+  $nailgun_api_url = "http://${::fuel_settings['ADMIN_NETWORK']['ipaddress']}:8000/api",
   $rabbitmq_naily_user = "naily",
   $rabbitmq_naily_password = "naily",
   $puppet_master_hostname = "${hostname}.${domain}",
