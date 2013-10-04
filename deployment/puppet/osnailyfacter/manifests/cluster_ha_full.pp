@@ -137,12 +137,12 @@ $network_config = {
 }
 
 
-if $::role == 'primary-swift-proxy' {
+if $::fuel_settings['role'] == 'primary-swift-proxy' {
   $primary_proxy = true
 } else {
   $primary_proxy = false
 }
-if $::role == 'primary-controller' {
+if $::fuel_settings['role'] == 'primary-controller' {
   $primary_controller = true
 } else {
   $primary_controller = false
