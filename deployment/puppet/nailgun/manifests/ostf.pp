@@ -48,13 +48,13 @@ class nailgun::ostf(
     package => 'd2to1==0.2.10',
   }->
   nailgun::venv::pip { 'pbr':
-    package => 'pbr==0.5.17',
+    package => 'pbr==0.5.21',
   }->
   nailgun::venv::pip { 'ostf-req':
     package => "-r $venv/pip-requires.txt",
   }->
   nailgun::venv::pip { 'ostf':
-    package => 'ostf-tests==0.1 testing-adapter==0.2',
+    package => 'fuel-ostf',
   }
   exec {'ostf-init':
     command => "$venv/bin/ostf-server \
