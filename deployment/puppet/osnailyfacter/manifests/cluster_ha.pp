@@ -447,7 +447,7 @@ class virtual_ips () {
         ensure => present
       }
       $roles = node_roles($nodes_hash, $::fuel_settings['id'])
-      if member($roles, 'controller') {
+      if member($roles, 'controller') or member($roles, 'primary-controller') {
         $bind_host = $internal_address
       } else {
         $bind_host = false
