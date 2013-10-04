@@ -61,6 +61,7 @@ class cobbler::snippets {
   cobbler_snippet {"ubuntu_network":}
   cobbler_snippet {"ubuntu_partition":}
   cobbler_snippet {"ubuntu_partition_late":}
+  cobbler_snippet {"ubuntu_static_net":}
 
   case $operatingsystem {
     /(?i)(debian|ubuntu)/:  {
