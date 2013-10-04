@@ -53,6 +53,14 @@ if $::fuel_settings['nodes'] {
     $public_int   = $::fuel_settings['public_interface']
     $internal_int = $::fuel_settings['management_interface']
   }
+
+  if $::fuel_settings['storage']['glance'] == 'ceph'
+  {
+    $use_ceph=true
+  }
+  else {
+    $use_ceph=false
+  }
 }
 
 # This parameter specifies the verbosity level of log messages
@@ -64,13 +72,6 @@ if $::fuel_settings['nodes'] {
 $verbose = $::fuel_settings['verbose']
 $debug = $::fuel_settings['debug']
 
-if $::fuel_settings['storage']['glance'] == 'ceph'
-{
-  $use_ceph=true
-}
-else {
-  $use_ceph=false
-}
 
 ### Syslog ###
 # Enable error messages reporting to rsyslog. Rsyslog must be installed in this case.
