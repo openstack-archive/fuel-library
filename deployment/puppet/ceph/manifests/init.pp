@@ -123,7 +123,7 @@ class ceph (
       creates => '/etc/ceph/ceph.conf',
     }
   }
-  case $::role {
+  case $::fuel_settings['role'] {
     'primary-controller', 'controller', 'ceph-mon': {
       class {['ceph::glance', 'ceph::cinder', 'ceph::nova_compute']: }
       class {'ceph::mon':
