@@ -119,7 +119,6 @@ $SNIPPET('ubuntu_network') && \
 $SNIPPET('cinder_create_lvm_group__ubuntu') && \
 $SNIPPET('ubuntu_puppet_config') && \
 $SNIPPET('ubuntu_mcollective_config') && \
-$SNIPPET('ubuntu_static_net') && \
 echo -e "nf_conntrack_ipv4\nnf_conntrack_ipv6" >> /target/etc/modules && \
 echo -e "net.nf_conntrack_max=1048576" >> /target/etc/sysctl.conf && \
 mkdir -p /target/etc/nailgun-agent && \
@@ -133,4 +132,5 @@ echo "$authorized_keys" > /target/root/.ssh/authorized_keys && \
 sed -i -e "/^\s*GSSAPICleanupCredentials yes/d" -e "/^\s*GSSAPIAuthentication yes/d" -e "s/.*PasswordAuthentication.*/PasswordAuthentication\ no/g" -e "/UseDNS/d" /target/etc/ssh/sshd_config && \
 echo "UseDNS no" >> /target/etc/ssh/sshd_config && \
 in-target apt-get -y install linux-image-3.5 && \
+$SNIPPET('ubuntu_static_net')
 true
