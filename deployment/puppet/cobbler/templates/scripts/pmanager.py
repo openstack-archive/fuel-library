@@ -426,6 +426,13 @@ class PreseedPManager(object):
             return self._early.append(command)
         return self._early
 
+    def _getlabel(self, label):
+        if not label:
+            return ""
+        # XFS will refuse to format a partition if the
+        # disk label is > 12 characters.
+        return " -L {0} ".format(label[:12])
+
     def pcount(self, disk_id, increment=0):
         if ((self._pcount.get(disk_id, 0) == 0 and increment == 1) or
             (self._pcount.get(disk_id, 0) >= 5)):
@@ -507,14 +514,15 @@ class PreseedPManager(object):
                     self.late("hdparm -z /dev/{0}".format(disk["name"]))
 
                 if not part.get("file_system", "xfs") in ("swap", None, "none"):
-                    self.late("mkfs.{0} $(basename `readlink -f /dev/{1}`)"
-                              "{2}".format(part.get("file_system", "xfs"),
-                                           disk["name"], pcount))
+                    disk_label = self._getlabel(part.get("disk_label"))
+                    self.late("mkfs.{0} -f $(readlink -f /dev/{1})"
+                              "{2} {3}".format(part.get("file_system", "xfs"),
+                                           disk["name"], pcount, disk_label))
                 if not part["mount"] in (None, "none", "swap"):
                     self.late("mkdir -p /target{0}".format(part["mount"]))
                 if not part["mount"] in (None, "none"):
                     self.late("echo 'UUID=$(blkid -s UUID -o value "
-                              "$(basename `readlink -f /dev/{0}`){1}) "
+                              "$(readlink -f /dev/{0}){1}) "
                               "{2} {3} {4} 0 0'"
                               " >> /target/etc/fstab"
                               "".format(
