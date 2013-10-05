@@ -40,6 +40,13 @@ class ceph::radosgw (
       ensure  => 'latest',
     }
 
+    service { 'radosgw':
+      name    => $::ceph::params::service_radosgw,
+      enable  => true,
+      ensure  => 'running',
+      require => Package[$::ceph::params::package_radiosgw]
+    }
+
     if !(defined('horizon') or 
          defined($::ceph::params::package_httpd) or
          defined($::ceph::params::service_httpd) ) {
@@ -51,6 +58,12 @@ class ceph::radosgw (
         enable => true,
         ensure => 'running',
       }
+    }
+    #All files need to be owned by the rgw / http user.
+    File {
+      owner    => $rgw_user,
+      group    => $rgw_user,
+      require  => Package [$::ceph::params::package_httpd]
     }
 
     ceph_conf {
@@ -68,12 +81,6 @@ class ceph::radosgw (
       'client.radosgw.gateway/rgw_dns_name':                     value => $rgw_dns_name;
       'client.radosgw.gateway/rgw_print_continue':               value => $rgw_print_continue;
     }
-    Ceph_conf <| |> ->
-    service {$::ceph::params::service_radosgw:
-      enable  => true,
-      ensure  => 'running',
-      require => Package[$::ceph::params::package_radiosgw]
-    }
 
 # TODO: CentOS conversion
 #    apache::loadmodule{['rewrite', 'fastcgi', 'ssl']: }
@@ -87,10 +94,12 @@ class ceph::radosgw (
     file {[$::ceph::params::dir_httpd_ssl,
            "${::ceph::rgw_data}/ceph-radosgw.gateway",
            $::ceph::rgw_data,
+           $dir_httpd_root,
           ]:
-    ensure => 'directory',
-    mode   => 755,
+      ensure => 'directory',
+      mode   => 755,
     }
+
     if ($use_ssl) {
       exec {"generate SSL certificate on ${name}":
         command => "openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout ${httpd_ssl}apache.key -out ${httpd_ssl}apache.crt -subj '/C=RU/ST=Russia/L=Saratov/O=Mirantis/OU=CA/CN=localhost'",
@@ -100,42 +109,49 @@ class ceph::radosgw (
         'client.radosgw.gateway/nss db path': value => $rgw_nss_db_path;
       }
     }
+
     file { "${::ceph::params::dir_httpd_sites}/rgw.conf":
-      content => template("ceph/${::ceph::params::template_rgw_conf}"),
+      content => template("ceph/rgw.conf.erb"),
       notify  => Service['httpd'],
       require => Package[$::ceph::params::package_httpd],
     }
-    Exec {require => File["${::ceph::params::dir_httpd_sites}/rgw.conf"]}
-    
-    file { $dir_httpd_root:
-      ensure => 'directory',
-      mode   => '755'
-    } ->
+
     file { "${dir_httpd_root}/s3gw.fcgi":
       content => template('ceph/s3gw.fcgi.erb'),
       notify  => Service['httpd'],
-      require => Package[$::ceph::params::package_httpd],
-      mode    => '+x',
+      mode    => '766',
     }
     exec { "ceph-create-radosgw-keyring-on $name":
       command => "ceph-authtool --create-keyring ${keyring_path}",
-      require => Package['ceph'],
-    } ->
-    file { "${keyring_path}":
-      mode    => '+r',
-    } ->
+      creates => $keyring_path
+    }
+
+    file { $keyring_path: mode => '650', }
+    
     exec { "ceph-generate-key-on $name":
       command => "ceph-authtool ${keyring_path} -n ${radosgw_auth_key} --gen-key",
-      require => Package[$::ceph::params::package_httpd],
-    } ->
+    }
     exec { "ceph-add-capabilities-to-the-key-on $name":
       command => "ceph-authtool -n ${radosgw_auth_key} --cap osd 'allow rwx' --cap mon 'allow rw' ${keyring_path}",
-      require => Package[$::ceph::params::package_httpd],
-    } ->
+    }
     exec { "ceph-add-to-ceph-keyring-entries-on $name":
       command => "ceph -k /etc/ceph/ceph.client.admin.keyring auth add ${radosgw_auth_key} -i ${keyring_path}",
-      require => Package[$::ceph::params::package_httpd],
-      notify  => Service[$::ceph::params::service_radosgw]
     }
+
+    #Order
+    Package [$::ceph::params::package_httpd] ->
+    File [["${::ceph::params::dir_httpd_sites}/rgw.conf",
+          $::ceph::params::dir_httpd_ssl,
+          "${::ceph::rgw_data}/ceph-radosgw.gateway",
+          $::ceph::rgw_data,
+          $dir_httpd_root,]] ->
+    Exec ["ceph-create-radosgw-keyring-on $name"] ->
+    File [$keyring_path] ->
+    Exec ["ceph-generate-key-on $name"] ->
+    Exec ["ceph-add-capabilities-to-the-key-on $name"] ->
+    Exec ["ceph-add-to-ceph-keyring-entries-on $name"] ->
+    Ceph_conf <| |> ~>
+    Service ['httpd'] ~>
+    Service ['radosgw']
   }
 }
