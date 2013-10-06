@@ -350,6 +350,12 @@ if ($::use_ceph) {
       package { 'python-amqp':
         ensure => present
       }
+      $roles = node_roles($nodes_hash, $::fuel_settings['id'])
+      if member($roles, 'controller') or member($roles, 'primary-controller') {
+        $bind_host = '0.0.0.0'
+      } else {
+        $bind_host = false
+      }
       class { 'openstack::cinder':
         sql_connection       => "mysql://cinder:${cinder_hash[db_password]}@${controller_node_address}/cinder?charset=utf8",
         glance_api_servers   => "${controller_node_address}:9292",
@@ -363,6 +369,7 @@ if ($::use_ceph) {
         volume_group         => 'cinder',
         manage_volumes       => true,
         enabled              => true,
+        bind_host            => $bind_host,
         auth_host            => $controller_node_address,
         iscsi_bind_host      => $cinder_iscsi_bind_addr,
         cinder_user_password => $cinder_hash[user_password],

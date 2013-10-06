@@ -195,13 +195,10 @@ class openstack::controller (
   Class['openstack::db::mysql'] -> Class['openstack::keystone']
   Class['openstack::db::mysql'] -> Class['openstack::glance']
   Class['openstack::db::mysql'] -> Class['openstack::nova::controller']
-  if defined(Class['openstack::cinder']) {
-        Class['openstack::db::mysql'] -> Class['openstack::cinder']
-  }
+  Class['openstack::db::mysql'] -> Cinder_config <||>
 
   $rabbit_addresses = inline_template("<%= @rabbit_nodes.map {|x| x + ':5672'}.join ',' %>")
-    $memcached_addresses =  inline_template("<%= @cache_server_ip.collect {|ip| ip + ':' + @cache_server_port }.join ',' %>")
-
+  $memcached_addresses =  inline_template("<%= @cache_server_ip.collect {|ip| ip + ':' + @cache_server_port }.join ',' %>")
 
   nova_config {'DEFAULT/memcached_servers':    value => $memcached_addresses;
   }

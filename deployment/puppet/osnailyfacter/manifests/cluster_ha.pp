@@ -446,6 +446,12 @@ class virtual_ips () {
       package { 'python-amqp':
         ensure => present
       }
+      $roles = node_roles($nodes_hash, $::fuel_settings['id'])
+      if member($roles, 'controller') or member($roles, 'primary-controller') {
+        $bind_host = $internal_address
+      } else {
+        $bind_host = false
+      }
       class { 'openstack::cinder':
         sql_connection       => "mysql://cinder:${cinder_hash[db_password]}@${::fuel_settings['management_vip']}/cinder?charset=utf8",
         glance_api_servers   => "${::fuel_settings['management_vip']}:9292",
@@ -459,6 +465,7 @@ class virtual_ips () {
         volume_group         => 'cinder',
         manage_volumes       => true,
         enabled              => true,
+        bind_host            => $bind_host,
         auth_host            => $::fuel_settings['management_vip'],
         iscsi_bind_host      => $storage_address,
         cinder_user_password => $cinder_hash[user_password],
