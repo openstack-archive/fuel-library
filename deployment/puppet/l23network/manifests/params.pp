@@ -11,7 +11,7 @@ class l23network::params {
     /(?i)redhat/: {
       $ovs_service_name   = 'openvswitch' #'ovs-vswitchd'
       $ovs_status_cmd     = '/etc/init.d/openvswitch status'
-      $ovs_packages       = ['kmod-openvswitch', 'openvswitch']
+      $ovs_packages       = ['openvswitch']
       $lnx_vlan_tools     = 'vconfig'
       $lnx_bond_tools     = undef
       $lnx_ethernet_tools = 'ethtool'
