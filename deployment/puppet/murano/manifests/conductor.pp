@@ -12,18 +12,13 @@ class murano::conductor (
   $rabbit_port                         = '5672',
   $rabbit_ssl                          = 'False',
   $rabbit_ca_certs                     = '',
-  $rabbit_login                        = '',
-  $rabbit_password                     = '',
+  $rabbit_ca                           = '',
+  $rabbit_login                        = 'murano',
+  $rabbit_password                     = 'murano',
   $rabbit_virtual_host                 = '/',
 ) {
 
   include murano::params
-
-  validate_string($keystone_password)
-  Murano_conductor_config<||> ~> Service['murano_conductor']
-
-  Package['murano_conductor'] -> Murano_conductor_config<||>
-  Package['murano_conductor'] -> Service['murano_conductor']
 
   package { 'murano_conductor':
     ensure => installed,
@@ -42,7 +37,6 @@ class murano::conductor (
     enable     => $enabled,
     hasstatus  => true,
     hasrestart => true,
-    require    => Package['murano_conductor'],
   }
 
   murano_conductor_config {
@@ -60,4 +54,7 @@ class murano::conductor (
     'rabbitmq/password'                : value => $rabbit_password;
     'rabbitmq/virtual_host'            : value => $rabbit_virtual_host;
   }
+
+  Package['murano_conductor'] -> Murano_conductor_config<||> ~> Service['murano_conductor']
+
 }

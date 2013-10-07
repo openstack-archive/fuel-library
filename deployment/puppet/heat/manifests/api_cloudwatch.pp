@@ -1,13 +1,11 @@
-# Installs & configure the heat CloudWatch API service
-
-class heat::api-cloudwatch (
+class heat::api_cloudwatch (
   $enabled            = true,
   $keystone_host      = '127.0.0.1',
   $keystone_port      = '35357',
   $keystone_protocol  = 'http',
   $keystone_user      = 'heat',
   $keystone_tenant    = 'services',
-  $keystone_password  = 'false',
+  $keystone_password  = false,
   $keystone_ec2_uri   = 'http://127.0.0.1:5000/v2.0/ec2tokens',
   $auth_uri           = 'http://127.0.0.1:5000/v2.0',
   $bind_host          = '0.0.0.0',
@@ -25,17 +23,12 @@ class heat::api-cloudwatch (
   $rpc_backend        = 'heat.openstack.common.rpc.impl_kombu',
   $use_stderr         = 'False',
   $use_syslog         = 'False',
-
 ) {
 
   include heat::params
 
   validate_string($keystone_password)
 
-  Heat_api_cloudwatch_config<||> ~> Service['heat-api-cloudwatch']
-
-  Package['heat-api-cloudwatch'] -> Heat_api_cloudwatch_config<||>
-  Package['heat-api-cloudwatch'] -> Service['heat-api-cloudwatch']
   package { 'heat-api-cloudwatch':
     ensure => installed,
     name   => $::heat::params::api_cloudwatch_package_name,
@@ -47,20 +40,14 @@ class heat::api-cloudwatch (
     $service_ensure = 'stopped'
   }
 
-  Package['heat-common'] -> Service['heat-api-cloudwatch']
-
   if $rabbit_hosts {
     heat_api_config { 'DEFAULT/rabbit_host': ensure => absent }
     heat_api_config { 'DEFAULT/rabbit_port': ensure => absent }
-    heat_api_config { 'DEFAULT/rabbit_hosts':
-      value => join($rabbit_hosts, ',')
-    }
+    heat_api_config { 'DEFAULT/rabbit_hosts': value => join($rabbit_hosts, ',') }
   } else {
     heat_api_cloudwatch_config { 'DEFAULT/rabbit_host': value => $rabbit_host }
     heat_api_cloudwatch_config { 'DEFAULT/rabbit_port': value => $rabbit_port }
-    heat_api_cloudwatch_config { 'DEFAULT/rabbit_hosts':
-      value => "${rabbit_host}:${rabbit_port}"
-    }
+    heat_api_cloudwatch_config { 'DEFAULT/rabbit_hosts': value => "${rabbit_host}:${rabbit_port}" }
   }
 
   if size($rabbit_hosts) > 1 {
@@ -75,7 +62,6 @@ class heat::api-cloudwatch (
     enable     => $enabled,
     hasstatus  => true,
     hasrestart => true,
-    require    => Class['heat::db'],
   }
 
   heat_api_cloudwatch_config {
@@ -100,4 +86,9 @@ class heat::api-cloudwatch (
     'keystone_authtoken/admin_user'        : value => $keystone_user;
     'keystone_authtoken/admin_password'    : value => $keystone_password;
   }
+
+  Package['heat-common'] -> Package['heat-api-cloudwatch'] -> Heat_api_cloudwatch_config<||> ~> Service['heat-api-cloudwatch']
+  Package['heat-api-cloudwatch'] ~> Service['heat-api-cloudwatch']
+  Class['heat::db'] -> Service['heat-api-cloudwatch']
+
 }

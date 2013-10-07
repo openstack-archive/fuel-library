@@ -48,6 +48,18 @@ if $::fuel_settings['nodes'] {
     $savanna_hash = $::fuel_settings['savanna']
   }
 
+  if !$::fuel_settings['murano'] {
+    $murano_hash = {}
+  } else {
+    $murano_hash = $::fuel_settings['murano']
+  }
+
+  if !$::fuel_settings['heat'] {
+    $heat_hash = {}
+  } else {
+    $heat_hash = $::fuel_settings['heat']
+  }
+
   $use_quantum = $::fuel_settings['quantum']
   if $use_quantum {
     prepare_network_config($::fuel_settings['network_scheme'])

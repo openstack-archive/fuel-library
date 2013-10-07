@@ -281,7 +281,31 @@ if ($::use_ceph) {
         class { 'savanna' :
           savanna_enabled     => true,
           savanna_db_password => $savanna_hash['db_password'],
+          use_neutron         => $quantum,
+          use_floating_ips    => $bool_auto_assign_floating_ip,
         }
+      }
+
+      if $murano_hash['enabled'] {
+
+        class { 'murano' :
+          murano_enabled         => true,
+          murano_rabbit_host     => $controller_node_address,
+          murano_rabbit_login    => $heat_hash['rabbit_user'], # heat_hash is not mistake here
+          murano_rabbit_password => $heat_hash['rabbit_password'],
+          murano_db_password     => $murano_hash['db_password'],
+        }
+
+        class { 'heat' :
+          heat_enabled         => true,
+          heat_rabbit_host     => $controller_node_address,
+          heat_rabbit_userid   => $heat_hash['rabbit_user'],
+          heat_rabbit_password => $heat_hash['rabbit_password'],
+          heat_db_password     => $heat_hash['db_password'],
+        }
+
+        Class['heat'] -> Class['murano']
+
       }
 
       #ADDONS END

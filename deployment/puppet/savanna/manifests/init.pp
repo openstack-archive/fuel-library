@@ -10,10 +10,12 @@ class savanna (
   $savanna_use_floading_ips             = 'False',
   $savanna_node_domain                  = 'novalocal',
   $savanna_plugins                      = 'vanilla',
-  $savanna_vanilla_plugin_plugin_class  = 'savanna.plugins.vanilla.plugin:VanillaProvider',
+  $savanna_vanilla_plugin_class         = 'savanna.plugins.vanilla.plugin:VanillaProvider',
   $savanna_db_password                  = 'savanna',
   $savanna_db_name                      = 'savanna',
   $savanna_db_user                      = 'savanna',
+  $use_neutron                          = false,
+  $use_floating_ips                     = false,
 ) {
 
   $savanna_sql_connection               = "mysql://${$savanna_db_user}:${savanna_db_password}@localhost/${savanna_db_name}"
@@ -33,11 +35,12 @@ class savanna (
     keystone_tenant                     => $savanna_keystone_tenant,
     keystone_password                   => $savanna_keystone_password,
     bind_port                           => $savanna_api_bind_port,
-    use_floading_ips                    => $savanna_use_floading_ips,
     node_domain                         => $savanna_node_domain,
     plugins                             => $savanna_plugins,
-    vanilla_plugin_plugin_class         => $savanna_vanilla_plugin_plugin_class,
+    vanilla_plugin_class                => $savanna_vanilla_plugin_class,
     sql_connection                      => $savanna_sql_connection,
+    use_neutron                         => $use_neutron,
+    use_floating_ips                    => $use_floating_ips,
   }
 
   class { 'savanna::dashboard' :
@@ -45,6 +48,8 @@ class savanna (
     settings_py        => '/usr/share/openstack-dashboard/openstack_dashboard/settings.py',
     local_settings     => '/etc/openstack-dashboard/local_settings',
     savanna_url_string => "SAVANNA_URL = 'http://localhost:8386/v1.0'",
+    use_neutron        => $use_neutron,
+    use_floating_ips   => $use_floating_ips,
   }
 
   Class['mysql::server']  -> Class['savanna::db::mysql'] -> Class['savanna::api'] -> Class['savanna::dashboard']

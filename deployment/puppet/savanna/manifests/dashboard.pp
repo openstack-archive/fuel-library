@@ -4,7 +4,9 @@ class savanna::dashboard (
   $enabled            = true,
   $settings_py        = '/usr/share/openstack-dashboard/openstack_dashboard/settings.py',
   $local_settings     = '/etc/openstack-dashboard/local_settings',
-  $savanna_url_string = "SAVANNA_URL = 'http://localhost:8386/v1.0'"
+  $savanna_url_string = "SAVANNA_URL = 'http://localhost:8386/v1.0'",
+  $use_neutron        = false,
+  $use_floating_ips   = false,
 ) {
 
   include savanna::params
@@ -19,6 +21,18 @@ class savanna::dashboard (
     $package_ensure = 'absent'
   }
 
+  if $use_neutron {
+    $floating_ips_value = 'False'
+    $use_neutron_value = 'True'
+  } else {
+    $use_neutron_value = 'False'
+    if $use_floating_ips {
+      $floating_ips_value = 'True'
+    } else {
+      $floating_ips_value = 'False'
+    }
+  }
+
   File_line {
     ensure => $line_ensure,
   }
@@ -29,19 +43,29 @@ class savanna::dashboard (
     }
   }
 
-  file_line{'savanna' :
+  file_line{ 'savanna' :
     path    => $settings_py,
     line    => "HORIZON_CONFIG['dashboards'].append('savanna')",
     require => File[$settings_py],
   }
 
-  file_line{'savanna_dashboard' :
+  file_line{ 'savanna_dashboard' :
     path    => $settings_py,
     line    => "INSTALLED_APPS.append('savannadashboard')",
     require => File[$settings_py],
   }
 
-  file_line{'savanna_url' :
+  file_line{ 'savanna_use_neutron' :
+    path    => $local_settings,
+    line    => "SAVANNA_USE_NEUTRON=${use_neutron_value}",
+  }
+
+  file_line{ 'savanna_floating_ips' :
+    path    => $local_settings,
+    line    => "AUTO_ASSIGNMENT_ENABLED=${floating_ips_value}",
+  }
+
+  file_line{ 'savanna_url' :
     path    => $local_settings,
     line    => $savanna_url_string,
     require => File[$local_settings],
