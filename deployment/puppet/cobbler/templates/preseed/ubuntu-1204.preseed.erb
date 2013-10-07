@@ -119,6 +119,7 @@ $SNIPPET('ubuntu_network') && \
 $SNIPPET('cinder_create_lvm_group__ubuntu') && \
 $SNIPPET('ubuntu_puppet_config') && \
 $SNIPPET('ubuntu_mcollective_config') && \
+$SNIPPET('ntp_to_masternode_ubuntu')
 echo -e "nf_conntrack_ipv4\nnf_conntrack_ipv6" >> /target/etc/modules && \
 echo -e "net.nf_conntrack_max=1048576" >> /target/etc/sysctl.conf && \
 mkdir -p /target/etc/nailgun-agent && \

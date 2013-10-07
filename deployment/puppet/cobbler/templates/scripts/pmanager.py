@@ -54,7 +54,9 @@ class PManager(object):
         return self._post
 
     def _gettabfstype(self, vol):
-        if vol["mount"] == "/":
+        if vol.get("file_system"):
+            return vol["file_system"]
+        elif vol["mount"] == "/":
             return "ext4"
         elif vol["mount"] == "/boot":
             return "ext3"
@@ -214,10 +216,7 @@ class PManager(object):
                                volume_filter(p), disk["volumes"]):
                 if raid["size"] <= 0:
                     continue
-                raid_info[raid["mount"]] = {
-                    'label': raid.get("disk_label"),
-                    'fs': raid["file_system"],
-                }
+                raid_info[raid["mount"]] = raid
                 pcount = self.pcount(disk["id"], 1)
                 if not phys.get(raid["mount"]):
                     phys[raid["mount"]] = []
@@ -239,18 +238,19 @@ class PManager(object):
                 raids[raid["mount"]].append(rname)
 
         for (num, (mount, rnames)) in enumerate(raids.iteritems()):
-            fstype = self._gettabfstype({"mount": mount})
+            raid = raid_info[mount]
+            fstype = self._gettabfstype(raid)
+            label = raid.get('disk_label')
             # Anaconda won't label a RAID array. It also can't create
             # a single-drive RAID1 array, but mdadm can.
-            if raid_info[mount].get('label') or len(rnames) == 1:
+            if label or len(rnames) == 1:
                 if len(rnames) == 1:
                     phys[mount].append('missing')
-                ri = raid_info[mount]
                 self.post("mdadm --create /dev/md{0} --run --level=1 "
                             "--raid-devices={1} {2}".format(self.raid_count,
                             len(phys[mount]), ' '.join(phys[mount])))
-                self.post("mkfs.{0} -f {1} /dev/md{2}".format(ri["fs"],
-                          self._getlabel(ri.get("label")), self.raid_count))
+                self.post("mkfs.{0} -f {1} /dev/md{2}".format(
+                          fstype, self._getlabel(label), self.raid_count))
                 self.post("mdadm --detail --scan | grep '\/dev\/md{0}'"
                           ">> /mnt/sysimage/etc/mdadm.conf".format(
                           self.raid_count))
@@ -259,7 +259,7 @@ class PManager(object):
                           "/dev/md{0}) "
                           "{1} {2} defaults 0 0\\\""
                           " >> /mnt/sysimage/etc/fstab".format(
-                             self.raid_count, mount, ri["fs"]))
+                             self.raid_count, mount, fstype))
             else:
                 self.kick("raid {0} --device md{1} --fstype {3} "
                     "--level=RAID1 {2}".format(mount, self.raid_count,

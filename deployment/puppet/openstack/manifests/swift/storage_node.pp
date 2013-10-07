@@ -92,33 +92,5 @@ class openstack::swift::storage_node (
     Swift::Ringsync <| |> ~> Class["swift::storage::all"]
   }
 
-  if ($cinder and $manage_volumes) {
-    if !(defined(Class['openstack::cinder'])) {
-      class { 'openstack::cinder':
-        sql_connection       => "mysql://${cinder_db_user}:${cinder_db_password}@${db_host}/${cinder_db_dbname}?charset=utf8",
-        queue_provider       => $queue_provider,
-        rabbit_password      => $rabbit_password,
-        rabbit_host          => false,
-        rabbit_nodes         => $rabbit_nodes,
-        qpid_user            => $qpid_user,
-        qpid_password        => $qpid_password,
-        qpid_nodes           => $qpid_nodes,
-        volume_group         => $cinder_volume_group,
-        physical_volume      => $nv_physical_volume,
-        manage_volumes       => $manage_volumes,
-        enabled              => true,
-        auth_host            => $service_endpoint,
-        bind_host            => false,
-        iscsi_bind_host      => $cinder_iscsi_bind_addr,
-        cinder_user_password => $cinder_user_password,
-        use_syslog           => $use_syslog,
-        syslog_log_facility  => $syslog_log_facility_cinder,
-        syslog_log_level     => $syslog_log_level,
-        cinder_rate_limits   => $cinder_rate_limits,
-        rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
-      }
-    }
-  }
-
 }
 
