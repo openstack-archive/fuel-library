@@ -46,21 +46,24 @@ if $::fuel_settings['nodes'] {
 
   $base_syslog_hash     = $::fuel_settings['base_syslog']
   $syslog_hash          = $::fuel_settings['syslog']
-  $savanna_hash         = $::fuel_settings['savanna']
-  $murano_hash          = $::fuel_settings['murano']
-  $heat_hash            = $::fuel_settings['heat']
  
   # set default empty hashes for savanna and murano if facts are absent 
-  if !$savanna_hash {
-    $savanna_hash={}
-  }
-  
-  if !$murano_hash {
-    $murano_hash={}
+  if !$::fuel_settings['savanna'] {
+    $savanna_hash = {}
+  } else {
+    $savanna_hash = $::fuel_settings['savanna']
   }
 
-  if !$heat_hash {
-    $heat_hash={}
+  if !$::fuel_settings['murano'] {
+    $murano_hash = {}
+  } else {
+    $murano_hash = $::fuel_settings['murano']
+  }
+
+  if !$::fuel_settings['heat'] {
+    $heat_hash = {}
+  } else {
+    $heat_hash = $::fuel_settings['heat']
   }
 
   $use_quantum = $::fuel_settings['quantum']
