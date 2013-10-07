@@ -518,8 +518,8 @@ class PreseedPManager(object):
 
                 if not part.get("file_system", "xfs") in ("swap", None, "none"):
                     disk_label = self._getlabel(part.get("disk_label"))
-                    self.late("mkfs.{0} $(readlink -f /dev/{1})"
-                              "{2}".format(part.get("file_system", "xfs"),
+                    self.late("mkfs.{0} -f $(readlink -f /dev/{1})"
+                              "{2} {3}".format(part.get("file_system", "xfs"),
                                            disk["id"], pcount, disk_label))
                 if not part["mount"] in (None, "none", "swap"):
                     self.late("mkdir -p /target{0}".format(part["mount"]))
