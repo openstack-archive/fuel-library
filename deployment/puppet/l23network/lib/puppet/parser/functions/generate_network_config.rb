@@ -70,21 +70,21 @@ module L23network
       raise(Puppet::ParseError, "Unnamed transformation: '#{action}'.")
     end
     name = rv[:name]
-    if not rv[:bridge].is_a? String && !["add-patch", "add-br"].index(action)
+    if not rv[:bridge].is_a? String and !["add-patch", "add-br"].index(action)
       raise(Puppet::ParseError, "Undefined bridge for transformation '#{action}' with name '#{name}'.")
     end
     if action == "add-patch"
-      if not rv[:bridges].is_a? Array  &&  rv[:bridges].size() != 2
+      if not rv[:bridges].is_a? Array  and  rv[:bridges].size() != 2
         raise(Puppet::ParseError, "Transformation patch have wrong 'bridges' parameter.")
       end
       name = "patch__#{rv[:bridges][0]}__#{rv[:bridges][1]}"
-      if not rv[:peers].is_a? Array  &&  rv[:peers].size() != 2
+      if not rv[:peers].is_a? Array  and  rv[:peers].size() != 2
         raise(Puppet::ParseError, "Transformation patch '#{name}' have wrong 'peers' parameter.")
       end
       rv[:name] = name
     end
     if action == "add-bond"
-      if not rv[:interfaces].is_a? Array || rv[:interfaces].size() != 2
+      if not rv[:interfaces].is_a? Array or rv[:interfaces].size() != 2
         raise(Puppet::ParseError, "Transformation bond '#{name}' have wrong 'interfaces' parameter.")
       end
       # rv[:interfaces].each do |i|
