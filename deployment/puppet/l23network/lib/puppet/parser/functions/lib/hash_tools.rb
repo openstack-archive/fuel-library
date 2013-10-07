@@ -45,7 +45,7 @@ module L23network
   def self.sanitize_bool_in_hash(hh)
     rv = {}
     hh.each do |k, v|
-      if v.is_a? String || v.is_a? Symbol
+      if (v.is_a? String or v.is_a? Symbol)
         rv[k] = case v.upcase()
           when 'TRUE', :TRUE then true
           when 'FALSE', :FALSE then false
