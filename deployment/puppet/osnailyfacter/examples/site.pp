@@ -48,9 +48,18 @@ if $::fuel_settings['nodes'] {
   $savanna_hash         = $::fuel_settings['savanna']
   $murano_hash          = $::fuel_settings['murano']
   $heat_hash            = $::fuel_settings['heat']
-  
+ 
+  # set default empty hashes for savanna and murano if facts are absent 
   if !$savanna_hash {
     $savanna_hash={}
+  }
+  
+  if !$murano_hash {
+    $murano_hash={}
+  }
+
+  if !$heat_hash {
+    $heat_hash={}
   }
 
   $use_quantum = $::fuel_settings['quantum']
