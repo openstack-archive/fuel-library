@@ -107,10 +107,9 @@ class murano (
   }
 
   class { 'murano::dashboard' :
-    enabled              => $murano_enabled,
-    settings_py          => '/usr/share/openstack-dashboard/openstack_dashboard/settings.py',
-    collectstatic_script => '/usr/share/openstack-dashboard/manage.py',
-
+    enabled               => $murano_enabled,
+    settings_py           => '/usr/share/openstack-dashboard/openstack_dashboard/settings.py',
+    collect_static_script => '/usr/share/openstack-dashboard/manage.py',
   }
 
   class { 'murano::rabbitmq' :

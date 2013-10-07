@@ -2,7 +2,7 @@ class murano::db::mysql(
   $murano_db_password = 'murano',
   $murano_db_name     = 'murano',
   $murano_db_user     = 'murano',
-  $urano_db_host      = 'localhost',
+  $murano_db_host     = 'localhost',
   $allowed_hosts      = undef,
   $charset            = 'utf8',
 ) {
