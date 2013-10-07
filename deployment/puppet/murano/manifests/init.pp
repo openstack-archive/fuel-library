@@ -31,7 +31,7 @@ class murano (
   $murano_api_bind_host                 = '0.0.0.0',
   $murano_api_bind_port                 = '8082',
   $murano_api_log_file                  = '/var/log/murano/murano-api.log',
-  $murano_api_database_connection       = 'sqlite:////etc/murano/murano.sqlite',
+  $murano_api_database_connection       = 'mysql://murano:murano@localhost:3306/murano',
   $murano_api_database_auto_create      = 'True',
   $murano_api_reports_results_exchange  = 'task-results',
   $murano_api_reports_results_queue     = 'task-results',
@@ -40,7 +40,17 @@ class murano (
   $murano_db_password                   = 'murano',
   $murano_db_name                       = 'murano',
   $murano_db_user                       = 'murano',
+  $murano_db_password                   = 'murano',
+  $murano_db_name                       = 'murano',
+  $murano_db_user                       = 'murano',
+
 ) {
+
+  class { 'murano::db::mysql':
+    password                            => $murano_db_password,
+    dbname                              => $murano_db_name,
+    user                                => $murano_db_user,
+  }
 
   class { 'murano::conductor' :
     enabled                              => $murano_enabled,
@@ -94,8 +104,10 @@ class murano (
   }
 
   class { 'murano::dashboard' :
-    enabled     => $murano_enabled,
-    settings_py => '/usr/share/openstack-dashboard/openstack_dashboard/settings.py',
+    enabled              => $murano_enabled,
+    settings_py          => '/usr/share/openstack-dashboard/openstack_dashboard/settings.py',
+    collectstatic_script => '/usr/share/openstack-dashboard/manage.py',
+
   }
 
   class { 'murano::rabbitmq' :
@@ -105,6 +117,6 @@ class murano (
     rabbitmq_main_port => $murano_rabbit_port,
   }
 
-  Class['murano::rabbitmq'] -> Class['murano::conductor'] -> Class['murano::api'] -> Class['murano::dashboard']
+  Class['mysql::server'] -> Class['murano::db::mysql'] -> Class['murano::rabbitmq'] -> Class['murano::conductor'] -> Class['murano::api'] -> Class['murano::dashboard']
 
 }

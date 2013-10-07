@@ -16,7 +16,7 @@ class murano::api (
     $api_bind_host                  = '0.0.0.0',
     $api_bind_port                  = '8082',
     $api_log_file                   = '/var/log/murano/murano-api.log',
-    $api_database_connection        = 'sqlite:////etc/murano/murano.sqlite',
+    $api_database_connection        = 'mysql://murano:murano@localhost:3306/murano',
     $api_database_auto_create       = 'True',
     $api_reports_results_exchange   = 'task-results',
     $api_reports_results_queue      = 'task-results',

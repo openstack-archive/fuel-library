@@ -1,7 +1,8 @@
 class murano::dashboard (
-  $enabled            = true,
-  $settings_py        = '/usr/share/openstack-dashboard/openstack_dashboard/settings.py',
-  $modify_config      = '/usr/bin/modify-horizon-config.sh',
+  $enabled              = true,
+  $settings_py          = '/usr/share/openstack-dashboard/openstack_dashboard/settings.py',
+  $modify_config        = '/usr/bin/modify-horizon-config.sh',
+  $collectstatic_script = '/usr/share/openstack-dashboard/manage.py'
 ) {
 
   include murano::params
@@ -28,6 +29,10 @@ class murano::dashboard (
     command => "${modify_config} install ${settings_py}",
   }
 
+  exec { 'collectstatic':
+    command => "${collectstatic_script} collectstatic --noinput",
+  }
+
   package { 'murano_dashboard':
     ensure => $package_ensure,
     name   => $package_name,
@@ -37,7 +42,7 @@ class murano::dashboard (
     ensure => installed,
   }
 
-  Package[$dashboard_deps] -> Package['murano_dashboard'] -> File[$modify_config] -> Exec['fix_horizon_config'] ~> Service <| title == 'httpd' |>
+  Package[$dashboard_deps] -> Package['murano_dashboard'] -> File[$modify_config] -> Exec['fix_horizon_config'] -> Exec['collectstatic'] ~> Service <| title == 'httpd' |>
   Package['murano_dashboard'] ~> Service <| title == 'httpd' |>
 
 }
