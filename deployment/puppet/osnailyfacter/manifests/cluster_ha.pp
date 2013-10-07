@@ -24,7 +24,29 @@ else {
   $cinder_nodes_array = []
 }
 
+# All hash assignment from a dimensional hash must be in the local scope or they will
+#  be undefined (don't move to site.pp)
 
+#These aren't always present.
+if !$::fuel_settings['savanna'] {
+  $savanna_hash={}
+} else {
+  $savanna_hash = $::fuel_settings['savanna']
+}
+
+if !$::fuel_settings['murano'] {
+  $murano_hash = {}
+} else {
+  $murano_hash = $::fuel_settings['murano']
+}
+
+if !$::fuel_settings['heat'] {
+  $heat_hash = {}
+} else {
+  $heat_hash = $::fuel_settings['heat']
+}
+
+$storage_hash         = $::fuel_settings['storage']
 $nova_hash            = $::fuel_settings['nova']
 $mysql_hash           = $::fuel_settings['mysql']
 $rabbit_hash          = $::fuel_settings['rabbit']
@@ -35,7 +57,6 @@ $cinder_hash          = $::fuel_settings['cinder']
 $access_hash          = $::fuel_settings['access']
 $nodes_hash           = $::fuel_settings['nodes']
 $mp_hash              = $::fuel_settings['mp']
-$storage_hash         = $::fuel_settings['storage']
 $network_manager      = "nova.network.manager.${novanetwork_params['network_manager']}"
 
 if !$rabbit_hash['user'] {
@@ -71,7 +92,7 @@ $vips = { # Do not convert to ARRAY, It can't work in 2.7
 
 $vip_keys = keys($vips)
 
-if ($cinder) {
+if ($::fuel_settings['cinder']) {
   if (member($cinder_nodes_array,'all')) {
     $is_cinder_node = true
   } elsif (member($cinder_nodes_array,$::hostname)) {
@@ -129,7 +150,7 @@ if ($storage_hash['images_ceph']) {
   $glance_backend = 'swift'
 }
 
-if ($use_ceph) {
+if ($::use_ceph) {
   $primary_mons   = $controllers
   $primary_mon    = $controllers[0]['name']
   class {'ceph':
@@ -368,7 +389,7 @@ class virtual_ips () {
         }
         Class[nova::api] -> Nova_floating_range <| |>
       }
-      if ($use_ceph){
+      if ($::use_ceph){
         Class['openstack::controller'] -> Class['ceph']
       }
 
@@ -378,7 +399,7 @@ class virtual_ips () {
         class { 'savanna' :
           savanna_enabled     => true,
           savanna_db_password => $savanna_hash['db_password'],
-          use_neutron         => $quantum,
+          use_neutron         => $::use_quantum,
           use_floating_ips    => $bool_auto_assign_floating_ip,
         }
       }

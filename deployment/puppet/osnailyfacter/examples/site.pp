@@ -25,7 +25,6 @@ stage {'glance-image':
 
 if $::fuel_settings['nodes'] {
   $nodes_hash = $::fuel_settings['nodes']
-
   $dns_nameservers=$::fuel_settings['dns_nameservers']
   $node = filter_nodes($nodes_hash,'name',$::hostname)
   if empty($node) {
@@ -34,32 +33,9 @@ if $::fuel_settings['nodes'] {
 
   $default_gateway = $node[0]['default_gateway']
 
-  if $::fuel_settings['storage']['glance'] == 'ceph' {
-    $use_ceph=true
-  } else {
-    $use_ceph=false
-  }
-
   $base_syslog_hash     = $::fuel_settings['base_syslog']
   $syslog_hash          = $::fuel_settings['syslog']
 
-  if !$::fuel_settings['savanna'] {
-    $savanna_hash={}
-  } else {
-    $savanna_hash = $::fuel_settings['savanna']
-  }
-
-  if !$::fuel_settings['murano'] {
-    $murano_hash = {}
-  } else {
-    $murano_hash = $::fuel_settings['murano']
-  }
-
-  if !$::fuel_settings['heat'] {
-    $heat_hash = {}
-  } else {
-    $heat_hash = $::fuel_settings['heat']
-  }
 
   $use_quantum = $::fuel_settings['quantum']
   if $use_quantum {
@@ -84,6 +60,8 @@ if $::fuel_settings['nodes'] {
     $public_int   = $::fuel_settings['public_interface']
     $internal_int = $::fuel_settings['management_interface']
   }
+} else {
+  fail("Error parsing nodes <${fuel_settings['nodes']}>")
 }
 
 # This parameter specifies the verbosity level of log messages
