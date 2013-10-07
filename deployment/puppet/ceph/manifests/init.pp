@@ -66,8 +66,6 @@ class ceph (
   # Re-enable ceph::yum if not using a Fuel iso with Ceph packages
   #include ceph::yum
 
-  # TODO: this should be pulled back into existing modules for setting up ssh-key
-  # TODO: OR need to at least generate the key
   include ceph::ssh
   include ceph::params
   include ceph::conf
@@ -82,7 +80,7 @@ class ceph (
 
   case $::fuel_settings['role'] {
     'primary-controller', 'controller', 'ceph-mon': {
-      include ceph::mon #FIXME: ceph::glance, ceph::cinder
+      include ceph::mon
       Class['ceph::conf'] ->
       Class['ceph::mon']  ->
       Service['ceph']
@@ -110,7 +108,7 @@ class ceph (
       Service[$::ceph::params::service_nova_compute]
     }
 
-    'ceph-mds': { include ceph::mds     }
+    'ceph-mds': { include ceph::mds }
 
     default: {}
   }

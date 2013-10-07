@@ -1,9 +1,9 @@
+# generate and install SSH keys for Ceph
 class ceph::ssh {
 
   $ssh_config = '/root/.ssh/config'
   $private_key = '/var/lib/astute/ceph/ceph'
   $public_key  = '/var/lib/astute/ceph/ceph.pub'
-
 
   install_ssh_keys {'root_ssh_keys_for_ceph':
     ensure           => present,
