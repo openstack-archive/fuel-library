@@ -1,23 +1,20 @@
 class murano::db::mysql(
-  $password      = false,
-  $dbname        = 'murano',
-  $user          = 'murano',
-  $dbhost        = 'localhost',
-  $allowed_hosts = undef,
-  $charset       = 'latin1',
+  $murano_db_password = 'murano',
+  $murano_db_name     = 'murano',
+  $murano_db_user     = 'murano',
+  $urano_db_host      = 'localhost',
+  $allowed_hosts      = undef,
+  $charset            = 'utf8',
 ) {
 
   include 'murano::params'
 
-
-  mysql::db {
-    $dbname:
-    user         => $user,
-    password     => $password,
-    host         => $::murano::db::mysql::dbhost,
-    charset      => $murano::params::murano_db_charset,
-    # I may want to inject some sql
-    #require      => Class['mysql::server'],
-    grant         => ['all'],
+  mysql::db { $murano_db_name :
+    user         => $murano_db_user,
+    password     => $murano_db_password,
+    host         => $murano_db_host,
+    charset      => $charset,
+    grant        => ['all'],
   }
+
 }

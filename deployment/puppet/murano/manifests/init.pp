@@ -31,25 +31,24 @@ class murano (
   $murano_api_bind_host                 = '0.0.0.0',
   $murano_api_bind_port                 = '8082',
   $murano_api_log_file                  = '/var/log/murano/murano-api.log',
-  $murano_api_database_connection       = 'mysql://murano:murano@localhost:3306/murano',
   $murano_api_database_auto_create      = 'True',
   $murano_api_reports_results_exchange  = 'task-results',
   $murano_api_reports_results_queue     = 'task-results',
   $murano_api_reports_reports_exchange  = 'task-reports',
   $murano_api_reports_reports_queue     = 'task-reports',
+  # mysql
   $murano_db_password                   = 'murano',
   $murano_db_name                       = 'murano',
   $murano_db_user                       = 'murano',
-  $murano_db_password                   = 'murano',
-  $murano_db_name                       = 'murano',
-  $murano_db_user                       = 'murano',
+  $murano_db_host                       = 'localhost',
 
 ) {
 
   class { 'murano::db::mysql':
-    password                            => $murano_db_password,
-    dbname                              => $murano_db_name,
-    user                                => $murano_db_user,
+    murano_db_password                   => $murano_db_password,
+    murano_db_name                       => $murano_db_name,
+    murano_db_user                       => $murano_db_user,
+    murano_db_host                       => $murano_db_host,
   }
 
   class { 'murano::conductor' :
@@ -87,7 +86,6 @@ class murano (
     api_bind_host                        => $murano_api_bind_host,
     api_bind_port                        => $murano_api_bind_port,
     api_log_file                         => $murano_api_log_file,
-    api_database_connection              => $murano_api_database_connection,
     api_database_auto_create             => $murano_api_database_auto_create,
     api_reports_results_exchange         => $murano_api_reports_results_exchange,
     api_reports_results_queue            => $murano_api_reports_results_queue,
@@ -101,6 +99,11 @@ class murano (
     api_rabbit_login                     => $murano_rabbit_login,
     api_rabbit_password                  => $murano_rabbit_password,
     api_rabbit_virtual_host              => $murano_rabbit_virtual_host,
+
+    murano_db_password                   => $murano_db_password,
+    murano_db_name                       => $murano_db_name,
+    murano_db_user                       => $murano_db_user,
+    murano_db_host                       => $murano_db_host,
   }
 
   class { 'murano::dashboard' :

@@ -13,8 +13,8 @@ class murano::conductor (
   $rabbit_ssl                          = 'False',
   $rabbit_ca_certs                     = '',
   $rabbit_ca                           = '',
-  $rabbit_login                        = '',
-  $rabbit_password                     = '',
+  $rabbit_login                        = 'murano',
+  $rabbit_password                     = 'murano',
   $rabbit_virtual_host                 = '/',
 ) {
 

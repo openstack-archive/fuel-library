@@ -16,20 +16,24 @@ class murano::api (
     $api_bind_host                  = '0.0.0.0',
     $api_bind_port                  = '8082',
     $api_log_file                   = '/var/log/murano/murano-api.log',
-    $api_database_connection        = 'mysql://murano:murano@localhost:3306/murano',
     $api_database_auto_create       = 'True',
     $api_reports_results_exchange   = 'task-results',
     $api_reports_results_queue      = 'task-results',
-    $api_reports_reports_exchange   = 'task-reports',
-    $api_reports_reports_queue      = 'task-reports',
     $api_rabbit_host                = '127.0.0.1',
     $api_rabbit_port                = '5672',
     $api_rabbit_ssl                 = 'False',
     $api_rabbit_ca_certs            = '',
-    $api_rabbit_login               = '',
-    $api_rabbit_password            = '',
+    $api_rabbit_login               = 'murano',
+    $api_rabbit_password            = 'murano',
     $api_rabbit_virtual_host        = '/',
+
+    $murano_db_password             = 'murano',
+    $murano_db_name                 = 'murano',
+    $murano_db_user                 = 'murano',
+    $murano_db_host                 = 'localhost',
 ) {
+
+  $api_database_connection = "mysql://${murano_db_name}:${murano_db_password}@${murano_db_host}:3306/${murano_db_name}",
 
   include murano::params
 
@@ -61,10 +65,8 @@ class murano::api (
     'DEFAULT/log_file'                      : value => $api_log_file;
     'database/connection'                   : value => $api_database_connection;
     'database/auto_create'                  : value => $api_database_auto_create;
-    'reports/results_exchange'               : value => $api_reports_results_exchange;
-    'reports/results_queue'                  : value => $api_reports_results_queue;
-    'reports/reports_exchange'               : value => $api_reports_reports_exchange;
-    'reports/reports_queue'                  : value => $api_reports_reports_queue;
+    'reports/reports_exchange'              : value => $api_reports_reports_exchange;
+    'reports/reports_queue'                 : value => $api_reports_reports_queue;
     'rabbitmq/host'                         : value => $api_rabbit_host;
     'rabbitmq/port'                         : value => $api_rabbit_port;
     'rabbitmq/ssl'                          : value => $api_rabbit_ssl;
