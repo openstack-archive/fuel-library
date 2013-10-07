@@ -496,7 +496,7 @@ class PreseedPManager(object):
                 pcount = self.pcount("/dev/%s" % disk["name"], 1)
                 tabmount = part["mount"] if part["mount"] != "swap" else "none"
                 if pcount == 1:
-                    self.late("parted -s /dev/{0} mklabel msdos".format(disk["name"]), True)
+                    self.late("parted -s /dev/{0} mklabel gpt".format(disk["name"]), True)
                 self.late("parted -a none -s /dev/{0} "
                           "unit {4} mkpart {1} {2} {3}".format(
                              disk["name"],
@@ -542,7 +542,7 @@ class PreseedPManager(object):
                 begin_size = self.psize("/dev/%s" % disk["name"])
                 end_size = self.psize("/dev/%s" % disk["name"], pv["size"] * self.factor)
                 if pcount == 1:
-                    self.late("parted -s /dev/{0} mklabel msdos".format(disk["name"]), True)
+                    self.late("parted -s /dev/{0} mklabel gpt".format(disk["name"]), True)
                 self.late("parted -a none -s /dev/{0} "
                           "unit {4} mkpart {1} {2} {3}".format(
                              disk["name"],

@@ -168,7 +168,6 @@ if ($use_swift){
 }
 
 
-}
 $network_config = {
   'vlan_start'     => $vlan_start,
 }
