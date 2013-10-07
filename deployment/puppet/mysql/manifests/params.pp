@@ -16,7 +16,7 @@ class mysql::params {
   $port                = 3306
   $etc_root_password   = false
   $ssl                 = false
-  $server_id           = delete(delete("$::hostname",'controller-'),'fuel-')
+  $server_id           = delete(delete(delete("$::hostname",'controller-'),'fuel-'),"node-")
   $service_provider = undef
 
   case $::osfamily {
