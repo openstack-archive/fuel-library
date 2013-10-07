@@ -54,6 +54,11 @@ class savanna::api (
     'database/connection'                  : value => $sql_connection;
   }
 
+  nova_config {
+    'DEFAULT/scheduler_driver'             : value => 'nova.scheduler.filter_scheduler.FilterScheduler';
+    'DEFAULT/scheduler_default_filters'    : value => 'DifferentHostFilter,SameHostFilter';
+  }
+
   Package['savanna'] -> Savanna_config<||> -> Service['savanna-api']
 
 }
