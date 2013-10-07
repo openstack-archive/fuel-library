@@ -107,4 +107,11 @@ class nailgun::venv(
     require => Exec["nailgun_syncdb"],
   }
 
+  file {"/etc/cron.daily/capacity":
+    content => template("nailgun/cron_daily_capacity.erb"),
+    owner => 'root',
+    group => 'root',
+    mode => 0644
+  }
+
   }
