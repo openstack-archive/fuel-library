@@ -258,6 +258,7 @@ class ha_controller (
     cinder_rate_limits      => $cinder_rate_limits,
     horizon_use_ssl         => $::horizon_use_ssl,
     use_unicast_corosync    => $::use_unicast_corosync,
+    nameservers                   => $::dns_nameservers,
   }
 
       if $primary_controller {

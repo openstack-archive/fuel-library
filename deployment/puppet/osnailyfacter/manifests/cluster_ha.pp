@@ -221,8 +221,8 @@ class compact_controller (
     num_networks                  => $num_networks,
     network_size                  => $network_size,
     network_config                => $network_config,
-    debug                         => $debug ? { 'true' => true, true => true, default=> false },
-    verbose                       => $verbose ? { 'true' => true, true => true, default=> false },
+    debug                         => $debug ? { 'true'               => true, true              => true, default => false },
+    verbose                       => $verbose ? { 'true'             => true, true              => true, default => false },
     queue_provider                => $::queue_provider,
     qpid_password                 => $rabbit_hash[password],
     qpid_user                     => $rabbit_hash[user],
@@ -271,6 +271,7 @@ class compact_controller (
     cinder_rate_limits      => $cinder_rate_limits,
     horizon_use_ssl         => $::fuel_settings['horizon_use_ssl'],
     use_unicast_corosync    => $::fuel_settings['use_unicast_corosync'],
+    nameservers                   => $::dns_nameservers,
   }
 
 

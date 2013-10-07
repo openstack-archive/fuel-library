@@ -26,6 +26,7 @@ stage {'glance-image':
 if $::fuel_settings['nodes'] {
   $nodes_hash = $::fuel_settings['nodes']
 
+  $dns_nameservers=$::fuel_settings['dns_nameservers']
   $node = filter_nodes($nodes_hash,'name',$::hostname)
   if empty($node) {
     fail("Node $::hostname is not defined in the hash structure")

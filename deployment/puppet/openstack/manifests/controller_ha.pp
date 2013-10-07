@@ -139,6 +139,7 @@ class openstack::controller_ha (
    $quantum_metadata_proxy_shared_secret = 'shared_secret',
    $use_unicast_corosync    = false,
    $ha_mode                 = true,
+   $nameservers             = undef,
  ) {
 
     # haproxy
@@ -322,17 +323,18 @@ class openstack::controller_ha (
       nv_physical_volume      => $nv_physical_volume,
       cinder_volume_group     => $cinder_volume_group,
       # turn on SWIFT_ENABLED option for Horizon dashboard
-      swift                   => $glance_backend ? { 'swift' => true, default => false },
-      use_syslog              => $use_syslog,
-      syslog_log_level        => $syslog_log_level,
+      swift                        => $glance_backend ? { 'swift'    => true, default => false },
+      use_syslog                   => $use_syslog,
+      syslog_log_level             => $syslog_log_level,
       syslog_log_facility_glance   => $syslog_log_facility_glance,
-      syslog_log_facility_cinder => $syslog_log_facility_cinder,
-      syslog_log_facility_nova => $syslog_log_facility_nova,
+      syslog_log_facility_cinder   => $syslog_log_facility_cinder,
+      syslog_log_facility_nova     => $syslog_log_facility_nova,
       syslog_log_facility_keystone => $syslog_log_facility_keystone,
-      cinder_rate_limits      => $cinder_rate_limits,
-      nova_rate_limits        => $nova_rate_limits,
-      horizon_use_ssl         => $horizon_use_ssl,
-      ha_mode                 => $ha_mode,
+      cinder_rate_limits           => $cinder_rate_limits,
+      nova_rate_limits             => $nova_rate_limits,
+      horizon_use_ssl              => $horizon_use_ssl,
+      ha_mode                      => $ha_mode,
+      nameservers                  => $nameservers,
     }
     if $quantum and $quantum_network_node {
       class { '::openstack::quantum_router':

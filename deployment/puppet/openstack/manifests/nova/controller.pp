@@ -86,6 +86,7 @@ class openstack::nova::controller (
   $rabbit_nodes              = [$internal_address],
   $rabbit_cluster            = false,
   $rabbit_ha_virtual_ip      = false,
+  $nameservers               = undef,
   $ensure_package            = present,
   $enabled_apis              = 'ec2,osapi_compute',
   $api_bind_address          = '0.0.0.0',
