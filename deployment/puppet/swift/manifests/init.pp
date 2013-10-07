@@ -43,9 +43,18 @@ class swift(
 
   File { owner => 'swift', group => 'swift', require => Package['swift'] }
 
-  file { '/home/swift':
+  file { '/tmp/keystone-signing-swift':
     ensure  => directory,
+    owner  => 'swift',
+    group  => 'swift',
     mode    => '0700',
+  }
+  file { '/var/lib/glance':
+    ensure => directory,
+    owner  => 'glance',
+    group  => 'glance',
+    mode   => '0775',
+
   }
 
   file { '/etc/swift':

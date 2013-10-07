@@ -10,7 +10,7 @@ class nailgun::iptables {
   }
 
   define ip_forward($network) {
-    $rule = "--source $network -j MASQUERADE"
+    $rule = "-s $network -j MASQUERADE"
     exec { "ip_forward: $network":
       command => "iptables -t nat -I POSTROUTING 1 $rule; \
       /etc/init.d/iptables save",
@@ -21,5 +21,7 @@ class nailgun::iptables {
 
   access_to_nailgun_port { "nailgun_web":    port => '8000' }
   access_to_nailgun_port { "nailgun_repo":    port => '8080' }
-  ip_forward {'forward_slaves': network => "${ipaddress}/${netmask}"}
+  $network_address = ipcalc_network_by_address_netmask($::fuel_settings['ADMIN_NETWORK']['ipaddress'],$::fuel_settings['ADMIN_NETWORK']['netmask'])
+  $network_cidr = ipcalc_network_cidr_by_netmask($::fuel_settings['ADMIN_NETWORK']['netmask'])
+  ip_forward {'forward_slaves': network => "${network_address}/${network_cidr}"}
 }

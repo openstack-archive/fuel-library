@@ -18,6 +18,7 @@ NameVirtualHost *:8888
 
   <Proxy *>
     Order Deny,Allow
+    <% master_ip = fuel_settings['master_ip'] %>
     <% if master_ip.kind_of?(Array) -%>
     Allow from <%= master_ip.join(",") %>
     <% else -%>

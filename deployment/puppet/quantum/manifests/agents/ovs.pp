@@ -29,6 +29,18 @@ class quantum::agents::ovs (
 
   anchor {'quantum-ovs-agent': }
 
+  if $::operatingsystem == 'Ubuntu' {
+    if $service_provider == 'pacemaker' {
+       file { "/etc/init/quantum-plugin-openvswitch-agent.override":
+         replace => "no",
+         ensure  => "present",
+         content => "manual",
+         mode    => 644,
+         before  => Package['quantum-plugin-ovs-agent'],
+      }
+    }
+  }
+
   if $::quantum::params::ovs_agent_package {
     Package['quantum'] -> Package['quantum-plugin-ovs-agent']
 

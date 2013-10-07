@@ -3,10 +3,14 @@ Puppet::Type.newtype(:install_ssh_keys,
   Copy and append key to authorized_keys for users:
 
 install_ssh_keys {'root_ssh_key':
-  ensure      => present,
-  user        => 'root',
-  keypath     => '/root/key',
-  pub_keypath => '/root/key.pub',
+  ensure           => present,
+  user             => 'root',
+  private_key_path => '/root/key',
+  public_key_path  => '/root/key.pub',
+  # Optional parameters
+  private_key_name => 'id_rsa',
+  public_key_name  => 'id_rsa_pub',
+  authorized_keys  => 'authorized_keys2',
 }
 ENDOFDOC
 ) do
@@ -25,25 +29,45 @@ ENDOFDOC
     end
   end
 
-  newparam :keypath do
-    desc 'path to private key'
+  newparam :private_key_path do
+    desc 'Path to private key in temporary location'
     validate do |value|
       raise Puppet::Error, "#{value} does not look like PATH" unless value =~ /^\/\S/
-      raise Puppet::Error, "#{value} no such file" unless File.exist? value
+      raise Puppet::Error, "#{value} no such file" unless File.exists? value
     end
   end
 
-  newparam :pub_keypath do
-    desc 'path to public key'
+  newparam :public_key_path do
+    desc 'Path to public key in temporary location'
     validate do |value|
       raise Puppet::Error, "#{value} does not look like PATH" unless value =~ /^\/\S/
-      raise Puppet::Error, "#{value} no such file" unless File.exist? value
+      raise Puppet::Error, "#{value} no such file" unless File.exists? value
     end
   end
 
-  newparam :authkey do
+  newparam :private_key_name do
+    desc 'Name of private key inside user\'s directory'
 
-    defaultto 'authorized_keys2'
+    defaultto 'id_rsa'
+
+    validate do |value|
+      raise Puppet::Error, "Private key name is empty!" if value.empty?
+    end
+  end
+
+  newparam :public_key_name do
+    desc 'Name of public key inside user\'s directory'
+
+    defaultto 'id_rsa.pub'
+
+    validate do |value|
+      raise Puppet::Error, "Public key name is empty!" if value.empty?
+    end
+  end
+
+  newparam :authorized_keys do
+
+    defaultto 'authorized_keys'
 
     validate do |value|
       unless ['authorized_keys', 'authorized_keys2'].include? value

@@ -46,6 +46,8 @@
 # [syslog_log_facility] Facility for syslog, if used. Optional. Note: duplicating conf option
 #       wouldn't have been used, but more powerfull rsyslog features managed via conf template instead
 # [syslog_log_level] logging level for non verbose and non debug mode. Optional.
+# [ssh_private_key] path to private ssh key temporary location on this server where it was uploaded or generated
+# [ssh_public_key] path to public ssh key temporary location on this server where it was uploaded or generated
 #
 # class { 'openstack::nova::compute':
 #   internal_address   => '192.168.2.2',
@@ -103,10 +105,10 @@ class openstack::compute (
   $verbose                       = false,
   $debug               = false,
   $service_endpoint              = '127.0.0.1',
-  $ssh_private_key               = undef,
+  $ssh_private_key               = '/var/lib/astute/nova/nova',
+  $ssh_public_key                = '/var/lib/astute/nova/nova.pub',
   $cache_server_ip               = ['127.0.0.1'],
   $cache_server_port             = '11211',
-  $ssh_public_key                = undef,
   # if the cinder management components should be installed
   $manage_volumes                = false,
   $nv_physical_volume            = undef,
@@ -202,38 +204,8 @@ class openstack::compute (
   }
   
   #Cinder setup
-    $enabled_apis = 'metadata'
-    package {'python-cinderclient': ensure => present}
-    if $cinder and $manage_volumes {
-      class {'openstack::cinder':
-        sql_connection       => "mysql://${cinder_db_user}:${cinder_db_password}@${db_host}/${cinder_db_dbname}?charset=utf8",
-        queue_provider       => $queue_provider,
-        rabbit_password      => $rabbit_password,
-        rabbit_host          => false,
-        rabbit_nodes         => $rabbit_nodes,
-        qpid_password        => $qpid_password,
-        qpid_host            => false,
-        qpid_nodes           => $qpid_nodes,
-        volume_group         => $cinder_volume_group,
-        physical_volume      => $nv_physical_volume,
-        manage_volumes       => $manage_volumes,
-        enabled              => true,
-        glance_api_servers   => $glance_api_servers,
-        auth_host            => $service_endpoint,
-        bind_host            => false,
-        iscsi_bind_host      => $cinder_iscsi_bind_addr,
-        cinder_user_password => $cinder_user_password,
-        verbose              => $verbose,
-        debug                => $debug,
-        use_syslog           => $use_syslog,
-        syslog_log_facility  => $syslog_log_facility_cinder,
-        syslog_log_level     => $syslog_log_level,
-        cinder_rate_limits   => $cinder_rate_limits,
-        rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
-      }
-    }
-
-
+  $enabled_apis = 'metadata'
+  package {'python-cinderclient': ensure => present}
 
   # Install / configure nova-compute
   class { '::nova::compute':
@@ -249,52 +221,35 @@ class openstack::compute (
     libvirt_type     => $libvirt_type,
     vncserver_listen => $internal_address,
   }
-    case $::osfamily {
-      'Debian': {$scp_package='openssh-client'}
-      'RedHat': {$scp_package='openssh-clients'}
-       default: {
-                 fail("Unsupported osfamily: ${osfamily}")
-      }
-    }
-    if !defined(Package[$scp_package]) {
-      package {$scp_package: ensure => present }
-    }
 
-  if ( $ssh_private_key != undef ) {
-   file { '/var/lib/nova/.ssh':
-      ensure => directory,
-      owner  => 'nova',
-      group  => 'nova',
-      mode   => '0700'
+  # Ensure ssh clients are installed
+  case $::osfamily {
+    'Debian': { $scp_package='openssh-client' }
+    'RedHat': { $scp_package='openssh-clients' }
+    default: { fail("Unsupported osfamily: ${osfamily}") }
+  }
+  if !defined(Package[$scp_package]) {
+    package { $scp_package:
+      ensure => installed
     }
-    file { '/var/lib/nova/.ssh/authorized_keys':
-      ensure => present,
-      owner  => 'nova',
-      group  => 'nova',
-      mode   => '0400',
-      source => $ssh_public_key,
-    }
-    file { '/var/lib/nova/.ssh/id_rsa':
-      ensure => present,
-      owner  => 'nova',
-      group  => 'nova',
-      mode   => '0400',
-      source => $ssh_private_key,
-    }
-    file { '/var/lib/nova/.ssh/id_rsa.pub':
-      ensure => present,
-      owner  => 'nova',
-      group  => 'nova',
-      mode   => '0400',
-      source => $ssh_public_key,
-    }
-    file { '/var/lib/nova/.ssh/config':
-      ensure  => present,
-      owner   => 'nova',
-      group   => 'nova',
-      mode    => '0600',
-      content => "Host *\n  StrictHostKeyChecking no\n  UserKnownHostsFile=/dev/null\n",
-    }
+  }
+
+  # Install ssh keys and config file
+  install_ssh_keys {'nova_ssh_key_for_migration':
+    ensure           => present,
+    user             => 'nova',
+    private_key_path => $ssh_private_key,
+    public_key_path  => $ssh_public_key,
+    private_key_name => 'id_rsa',
+    public_key_name  => 'id_rsa.pub',
+    authorized_keys  => 'authorized_keys',
+  } ->
+  file { '/var/lib/nova/.ssh/config':
+    ensure  => present,
+    owner   => 'nova',
+    group   => 'nova',
+    mode    => '0600',
+    content => "Host *\n  StrictHostKeyChecking no\n  UserKnownHostsFile=/dev/null\n",
   }
 
   # configure nova api

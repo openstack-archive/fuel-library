@@ -1,5 +1,6 @@
 class nailgun::nginx-nailgun(
   $staticdir,
+  $logdumpdir,
   ) {
 
   file { "/etc/nginx/conf.d/nailgun.conf":

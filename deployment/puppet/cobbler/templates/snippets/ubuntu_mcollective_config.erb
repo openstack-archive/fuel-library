@@ -1,5 +1,6 @@
 #import late_command
 #if $str($getVar('mco_auto_setup','')) == "1"
+#set $mco_port = $getVar('mco_port', '61613')
 in-target mkdir -p /etc/mcollective && \
 in-target $late_command.late_file("""
 main_collective = mcollective
@@ -17,20 +18,20 @@ plugin.psk = %(mco_pskey)s
 connector = rabbitmq
 plugin.rabbitmq.vhost = mcollective
 plugin.rabbitmq.pool.size = 1
-plugin.rabbitmq.pool.1.host = %(mco_stomphost)s
-plugin.rabbitmq.pool.1.port = %(mco_stompport)s
-plugin.rabbitmq.pool.1.user = %(mco_stompuser)s
-plugin.rabbitmq.pool.1.password = %(mco_stomppassword)s
+plugin.rabbitmq.pool.1.host = %(mco_host)s
+plugin.rabbitmq.pool.1.port = %(mco_port)s
+plugin.rabbitmq.pool.1.user = %(mco_user)s
+plugin.rabbitmq.pool.1.password = %(mco_password)s
 
 # Facts
 factsource = yaml
 plugin.yaml = /etc/mcollective/facts.yaml
 """ % {
     "mco_pskey": $mco_pskey,
-    "mco_stomphost": $mco_stomphost,
-    "mco_stompport": $mco_stompport,
-    "mco_stompuser": $mco_stompuser,
-    "mco_stomppassword": $mco_stomppassword
+    "mco_host": $mco_host,
+    "mco_port": $mco_port,
+    "mco_user": $mco_user,
+    "mco_password": $mco_password
     }, "/etc/mcollective/server.cfg", source_method='content', mode="0600");\
 in-target mkdir -p /usr/share/mcollective/plugins/mcollective/agent/ && \
 in-target $late_command.late_file("""
@@ -124,13 +125,6 @@ action "status", :description => "Get puppet agent's status" do
 end
 """
 , "/usr/share/mcollective/plugins/mcollective/agent/puppetd.ddl", source_method='content', mode="0600");\
-in-target $late_command.late_file("""
-[program:mcollective]
-command=/usr/sbin/mcollectived --config=/etc/mcollective/server.cfg
-autostart=true
-"""
-, "/etc/supervisor/conf.d/mcollective.conf", source_method='content', mode="0644");\
-
 
 in-target $late_command.late_file("""
 module MCollective

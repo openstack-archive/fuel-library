@@ -2,7 +2,7 @@
 class ceph::nova_compute (
   $rbd_secret_uuid = $::ceph::rbd_secret_uuid
 ) {
-  if $::role == "compute" {
+  if $::fuel_settings['role'] == "compute" {
     exec {'Copy conf':
       command => "scp -r ${::ceph::primary_mon}:/etc/ceph/* /etc/ceph/",
       require => Package['ceph'],

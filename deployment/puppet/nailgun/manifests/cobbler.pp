@@ -2,6 +2,7 @@ class nailgun::cobbler(
   $cobbler_user = "cobbler",
   $cobbler_password = "cobbler",
 
+#  $ubuntu_repos,
   $centos_repos,
   $gem_source,
 
@@ -19,20 +20,18 @@ class nailgun::cobbler(
   Class["::cobbler"] ->
   Anchor<| title == "nailgun-cobbler-end" |>
 
-  $half_of_network = ipcalc_network_count_addresses($ipaddress, $netmask) / 2
-
   class { "::cobbler":
-    server              => $ipaddress,
+    server              => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
 
     domain_name         => $domain,
-    name_server         => $ipaddress,
-    next_server         => $ipaddress,
+    name_server         => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
+    next_server         => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
 
-    dhcp_start_address  => ipcalc_network_nth_address($ipaddress, $netmask, "first"),
-    dhcp_end_address    => ipcalc_network_nth_address($ipaddress, $netmask, $half_of_network),
-    dhcp_netmask        => $netmask,
-    dhcp_gateway        => $ipaddress,
-    dhcp_interface      => 'eth0',
+    dhcp_start_address  => $::fuel_settings['ADMIN_NETWORK']['dhcp_pool_start'],
+    dhcp_end_address    => $::fuel_settings['ADMIN_NETWORK']['dhcp_pool_end'],
+    dhcp_netmask        => $::fuel_settings['ADMIN_NETWORK']['netmask'],
+    dhcp_gateway        => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
+    dhcp_interface      => $::fuel_settings['ADMIN_NETWORK']['interface'],
 
     cobbler_user        => $cobbler_user,
     cobbler_password    => $cobbler_password,
@@ -85,6 +84,25 @@ class nailgun::cobbler(
     require => Class["::cobbler::server"],
   }
 
+  file { "/var/lib/cobbler/kickstarts/ubuntu-amd64.preseed":
+    content => template("cobbler/preseed/ubuntu-1204.preseed.erb"),
+    owner => root,
+    group => root,
+    mode => 0644,
+    require => Class["::cobbler::server"],
+  } ->
+
+  cobbler_distro { "ubuntu_1204_x86_64":
+    kernel => "${repo_root}/ubuntu/fuelweb/x86_64/images/linux",
+    initrd => "${repo_root}/ubuntu/fuelweb/x86_64/images/initrd.gz",
+    arch => "x86_64",
+    breed => "ubuntu",
+    osversion => "precise",
+    ksmeta => "",
+    require => Class["::cobbler::server"],
+  }
+
+
   cobbler_profile { "centos-x86_64":
     kickstart => "/var/lib/cobbler/kickstarts/centos-x86_64.ks",
     kopts => "biosdevname=0",
@@ -93,6 +111,16 @@ class nailgun::cobbler(
     menu => true,
     require => Cobbler_distro["centos-x86_64"],
   }
+
+  cobbler_profile { "ubuntu_1204_x86_64":
+    kickstart => "/var/lib/cobbler/kickstarts/ubuntu-amd64.preseed",
+    kopts => "netcfg/choose_interface=eth0",
+    distro => "ubuntu_1204_x86_64",
+    ksmeta => "",
+    menu => true,
+    require => Cobbler_distro["ubuntu_1204_x86_64"],
+  }
+
 
   cobbler_distro { "bootstrap":
     kernel => "${repo_root}/bootstrap/linux",
@@ -108,7 +136,7 @@ class nailgun::cobbler(
     distro => "bootstrap",
     menu => true,
     kickstart => "",
-    kopts => "biosdevname=0 url=http://${ipaddress}:8000/api",
+    kopts => "biosdevname=0 url=http://${::fuel_settings['ADMIN_NETWORK']['ipaddress']}:8000/api",
     ksmeta => "",
     require => Cobbler_distro["bootstrap"],
   }
@@ -137,10 +165,5 @@ class nailgun::cobbler(
   Exec["cobbler_system_add_default"] ~> Exec["nailgun_cobbler_sync"]
   Exec["cobbler_system_edit_default"] ~> Exec["nailgun_cobbler_sync"]
 
-  #FIXME: do we really need this NAT rules ?
-  #  class { 'cobbler::nat': nat_range => \"$dhcp_start_address/$dhcp_netmask\" }
-
-  #  Package<| title == "cman" |>
-  # Package<| title == "fence-agents"|>
 }
 

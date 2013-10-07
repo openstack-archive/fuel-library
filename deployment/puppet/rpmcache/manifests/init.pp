@@ -129,7 +129,7 @@ $sat_base_channels, $sat_openstack_channel, $numtries = 10)  {
     require => File['/etc/nailgun/']
   } ->
   exec {'fuel-rpms':
-    command => "/bin/mkdir -p ${pkgdir}/fuel/Packages; /bin/cat /etc/nailgun/req-fuel-rhel.txt | /usr/bin/xargs -n 1 -I xxx /bin/cp /var/www/nailgun/centos/fuelweb/x86_64/Packages/xxx ${pkgdir}/fuel/Packages/",
+    command => "/bin/mkdir -p ${pkgdir}/fuel/Packages; rsync -ra --include-from=/etc/nailgun/req-fuel-rhel.txt /var/www/nailgun/centos/fuelweb/x86_64/Packages/. ${pkgdir}/fuel/Packages/.",
     logoutput => true,
     before    => Exec['rebuild-fuel-repo'],
   }

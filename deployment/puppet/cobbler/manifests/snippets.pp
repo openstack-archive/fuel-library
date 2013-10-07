@@ -29,6 +29,7 @@ class cobbler::snippets {
   cobbler_snippet {"target_logs_to_master": }
   cobbler_snippet {"kickstart_ntp": }
   cobbler_snippet {"ntp_to_masternode": }
+  cobbler_snippet {"ntp_to_masternode_ubuntu": }
   cobbler_snippet {"dhclient_ignore_routers_opt": }
   cobbler_snippet {"authorized_keys": }
   cobbler_snippet {"pre_install_network_config": }
@@ -59,6 +60,9 @@ class cobbler::snippets {
   cobbler_snippet {"ubuntu_puppet_config":}
   cobbler_snippet {"ubuntu_mcollective_config":}
   cobbler_snippet {"ubuntu_network":}
+  cobbler_snippet {"ubuntu_partition":}
+  cobbler_snippet {"ubuntu_partition_late":}
+  cobbler_snippet {"ubuntu_static_net":}
 
   case $operatingsystem {
     /(?i)(debian|ubuntu)/:  {

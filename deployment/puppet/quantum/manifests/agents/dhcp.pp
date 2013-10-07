@@ -19,6 +19,18 @@ class quantum::agents::dhcp (
   $auth_password    = 'password') {
   include 'quantum::params'
 
+  if $::operatingsystem == 'Ubuntu' {
+    if $service_provider == 'pacemaker' {
+       file { "/etc/init/quantum-dhcp-agent.override":
+         replace => "no",
+         ensure  => "present",
+         content => "manual",
+         mode    => 644,
+         before  => Package['quantum-dhcp-agent'],
+       }
+    }
+  }
+
   if $::quantum::params::dhcp_agent_package {
     Package['quantum'] -> Package['quantum-dhcp-agent']
 
