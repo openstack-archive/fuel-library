@@ -45,6 +45,11 @@ if $::fuel_settings['nodes'] {
   $base_syslog_hash     = $::fuel_settings['base_syslog']
   $syslog_hash          = $::fuel_settings['syslog']
   $savanna_hash         = $::fuel_settings['savanna']
+  if !$savanna_hash 
+  {
+    $savanna_hash={}
+  }
+
   $use_quantum = $::fuel_settings['quantum']
   if $use_quantum {
     $public_int   = $::fuel_settings['public_br']
