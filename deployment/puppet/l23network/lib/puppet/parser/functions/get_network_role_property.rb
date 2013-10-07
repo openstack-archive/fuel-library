@@ -67,7 +67,7 @@ Puppet::Parser::Functions::newfunction(:get_network_role_property, :type => :rva
     return interface.to_s
   end
 
-  case ep[:IP].class().to_s()
+  case ep[:IP].class().to_s
     when "Array"
       ipaddr_cidr = ep[:IP][0] ? ep[:IP][0] : nil
     when "String"
@@ -81,19 +81,19 @@ Puppet::Parser::Functions::newfunction(:get_network_role_property, :type => :rva
     return nil
   end
 
+  rv = nil
   case mode
     when 'CIDR'
-      return ipaddr_cidr
+      rv = ipaddr_cidr
     when 'NETMASK'
-      return IPAddr.new('255.255.255.255').mask(prepare_cidr(ipaddr_cidr)[1]).to_s()
+      rv = IPAddr.new('255.255.255.255').mask(prepare_cidr(ipaddr_cidr)[1]).to_s
     when 'IPADDR'
-      return prepare_cidr(ipaddr_cidr)[0].to_s()
+      rv = prepare_cidr(ipaddr_cidr)[0].to_s
     when 'IPADDR_NETMASK_PAIR'
-      return prepare_cidr(ipaddr_cidr)[0].to_s(), IPAddr.new('255.255.255.255').mask(prepare_cidr(ipaddr_cidr)[1]).to_s()
-    end
+      rv = prepare_cidr(ipaddr_cidr)[0].to_s, IPAddr.new('255.255.255.255').mask(prepare_cidr(ipaddr_cidr)[1]).to_s
+  end
 
-
-
+  rv
 end
 
 # vim: set ts=2 sw=2 et :
