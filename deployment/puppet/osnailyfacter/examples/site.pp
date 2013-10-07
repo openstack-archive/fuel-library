@@ -23,9 +23,6 @@ stage {'glance-image':
   require => Stage['main'],
 }
 
-# ANC: Advanced network configuration. Discovering.
-#prepare_network_config(parsejson($::network_scheme))
-
 if $::fuel_settings['nodes'] {
   $nodes_hash = $::fuel_settings['nodes']
 
@@ -35,39 +32,44 @@ if $::fuel_settings['nodes'] {
   }
 
   $default_gateway = $node[0]['default_gateway']
-  $internal_address = $node[0]['internal_address']
-  $internal_netmask = $node[0]['internal_netmask']
-  $public_address = $node[0]['public_address']
-  $public_netmask = $node[0]['public_netmask']
-  $storage_address = $node[0]['storage_address']
-  $storage_netmask = $node[0]['storage_netmask']
-  $public_br = $node[0]['public_br']
-  $internal_br = $node[0]['internal_br']
+
+  if $::fuel_settings['storage']['glance'] == 'ceph' {
+    $use_ceph=true
+  } else {
+    $use_ceph=false
+  }
+
   $base_syslog_hash     = $::fuel_settings['base_syslog']
   $syslog_hash          = $::fuel_settings['syslog']
-  if !$::fuel_settings['savanna']
-  {
+
+  if !$::fuel_settings['savanna'] {
     $savanna_hash={}
-  }
-  else {
-    $savanna_hash         = $::fuel_settings['savanna']
+  } else {
+    $savanna_hash = $::fuel_settings['savanna']
   }
 
   $use_quantum = $::fuel_settings['quantum']
   if $use_quantum {
-    $public_int   = $::fuel_settings['public_br']
-    $internal_int = $::fuel_settings['internal_br']
+    prepare_network_config($::fuel_settings['network_scheme'])
+    $public_int   = get_network_role_property('ex', 'interface')
+    $internal_int = get_network_role_property('management', 'interface')
+    $internal_address = get_network_role_property('management', 'ipaddr')
+    $internal_netmask = get_network_role_property('management', 'netmask')
+    $public_address = get_network_role_property('ex', 'ipaddr')
+    $public_netmask = get_network_role_property('ex', 'netmask')
+    $storage_address = get_network_role_property('storage', 'ipaddr')
+    $storage_netmask = get_network_role_property('storage', 'netmask')
   } else {
+    $internal_address = $node[0]['internal_address']
+    $internal_netmask = $node[0]['internal_netmask']
+    $public_address = $node[0]['public_address']
+    $public_netmask = $node[0]['public_netmask']
+    $storage_address = $node[0]['storage_address']
+    $storage_netmask = $node[0]['storage_netmask']
+    $public_br = $node[0]['public_br']
+    $internal_br = $node[0]['internal_br']
     $public_int   = $::fuel_settings['public_interface']
     $internal_int = $::fuel_settings['management_interface']
-  }
-
-  if $::fuel_settings['storage']['glance'] == 'ceph'
-  {
-    $use_ceph=true
-  }
-  else {
-    $use_ceph=false
   }
 }
 
@@ -109,60 +111,11 @@ $cinder_rate_limits = {
   'DELETE' => 1000
 }
 
-
 ###
-class node_netconfig (
-  $mgmt_ipaddr,
-  $mgmt_netmask  = '255.255.255.0',
-  $public_ipaddr = undef,
-  $public_netmask= '255.255.255.0',
-  $save_default_gateway=false,
-  $quantum = $use_quantum,
-  $default_gateway
-) {
-  if $use_quantum {
-    l23network::l3::create_br_iface {'mgmt':
-      interface => $::fuel_settings['management_interface'], # !!! NO $internal_int /sv !!!
-      bridge    => $internal_br,
-      ipaddr    => $mgmt_ipaddr,
-      netmask   => $mgmt_netmask,
-      dns_nameservers  => $dns_nameservers,
-      gateway => $default_gateway,
-    } ->
-    l23network::l3::create_br_iface {'ex':
-      interface => $::fuel_settings['public_interface'], # !! NO $public_int /sv !!!
-      bridge    => $public_br,
-      ipaddr    => $public_ipaddr,
-      netmask   => $public_netmask,
-      gateway   => $default_gateway,
-    }
-  } else {
-    # nova-network mode
-    l23network::l3::ifconfig {$public_int:
-      ipaddr  => $public_ipaddr,
-      netmask => $public_netmask,
-      gateway => $default_gateway,
-    }
-    l23network::l3::ifconfig {$internal_int:
-      ipaddr  => $mgmt_ipaddr,
-      netmask => $mgmt_netmask,
-      dns_nameservers      => $dns_nameservers,
-      gateway => $default_gateway
-    }
-  }
-  l23network::l3::ifconfig {$::fuel_settings['fixed_interface']: ipaddr=>'none' }
+class advanced_node_netconfig {
+    $sdn = generate_network_config()
+    notify {"SDN: ${sdn}": }
 }
-
-# ANC: Advanced network configuration. Creating resources.
-#class advanced_node_netconfig {
-#    $sdn = generate_network_config()
-#    notify {"SDN: ${sdn}": }
-#}
-#
-#class {'advanced_node_netconfig':
-#  stage => 'netconfig'
-#}
-
 
 case $::operatingsystem {
   'redhat' : {
@@ -178,17 +131,10 @@ case $::operatingsystem {
 class os_common {
   class {"l23network::hosts_file": stage => 'netconfig', nodes => $nodes_hash }
   class {'l23network': use_ovs=>$use_quantum, stage=> 'netconfig'}
-  if $::fuel_settings['deployment_source'] == 'cli' {
-    class {'::node_netconfig':
-      mgmt_ipaddr    => $internal_address,
-      mgmt_netmask   => $internal_netmask,
-      public_ipaddr  => $public_address,
-      public_netmask => $public_netmask,
-      stage          => 'netconfig',
-      default_gateway => $default_gateway
-    }
+  if $use_quantum {
+      class {'advanced_node_netconfig': stage => 'netconfig' }
   } else {
-    class {'osnailyfacter::network_setup': stage => 'netconfig'}
+      class {'osnailyfacter::network_setup': stage => 'netconfig'}
   }
 
   class {'openstack::firewall': stage => 'openstack-firewall'}
@@ -304,5 +250,4 @@ node default {
       }
     "rpmcache": { include osnailyfacter::rpmcache }
   }
-
 }
