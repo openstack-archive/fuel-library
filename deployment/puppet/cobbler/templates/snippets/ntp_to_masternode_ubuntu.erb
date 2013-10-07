@@ -1,0 +1,5 @@
+sed -i '/^\s*tinker panic/ d' /target/etc/ntp.conf && \
+sed -i '1 i tinker panic 0' /target/etc/ntp.conf && \
+echo 0 > /target/var/lib/ntp/drift && \
+sed -i '/^\s*server/ d' /target/etc/ntp.conf && \
+echo "server $server burst iburst" >> /target/etc/ntp.conf && \
