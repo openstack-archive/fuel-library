@@ -33,6 +33,7 @@ class cinder::volume (
   Cinder_config<||> ~> Service['cinder-volume']
   Cinder_config<||> ~> Exec['cinder-manage db_sync']
   Cinder_api_paste_ini<||> ~> Service['cinder-volume']
+  Exec['cinder-manage db_sync'] -> Service['cinder-volume']
 
   if $enabled {
     $ensure = 'running'

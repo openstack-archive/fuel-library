@@ -426,6 +426,13 @@ class PreseedPManager(object):
             return self._early.append(command)
         return self._early
 
+    def _getlabel(self, label):
+        if not label:
+            return ""
+        # XFS will refuse to format a partition if the
+        # disk label is > 12 characters.
+        return " -L {0} ".format(label[:12])
+
     def pcount(self, disk_id, increment=0):
         if ((self._pcount.get(disk_id, 0) == 0 and increment == 1) or
             (self._pcount.get(disk_id, 0) >= 5)):
@@ -472,7 +479,7 @@ class PreseedPManager(object):
         self.recipe("1 1 -1 linux-swap method{ swap } format{ } .")
         self.late("sed -i /$(blkid -s UUID -o value {0}7)/d /target/etc/fstab".format(self.disks[0]))
         self.late("swapoff {0}7".format(self.disks[0]))
-        self.late("parted {0} rm 7".format(self.disks[0]))
+        self.late("parted {0} rm 7".format(self.disks[0]), True)
 
     def _parttype(self, n):
         if n == 1:
@@ -489,32 +496,33 @@ class PreseedPManager(object):
                 pcount = self.pcount("/dev/%s" % disk["name"], 1)
                 tabmount = part["mount"] if part["mount"] != "swap" else "none"
                 if pcount == 1:
-                    self.late("parted -s /dev/{0} mklabel msdos".format(disk["name"]))
+                    self.late("parted -s /dev/{0} mklabel gpt".format(disk["name"]), True)
                 self.late("parted -a none -s /dev/{0} "
                           "unit {4} mkpart {1} {2} {3}".format(
                              disk["name"],
                              self._parttype(pcount),
                              self.psize("/dev/%s" % disk["name"]),
                              self.psize("/dev/%s" % disk["name"], part["size"] * self.factor),
-                             self.unit))
+                             self.unit), True)
                 if pcount == 1:
                     self.late("parted -a none -s /dev/{0} unit {1} "
                               "mkpart extended {2} {3}".format(
                                 disk["name"],
                                 self.unit,
                                 end_size,
-                                disk["size"]))
+                                disk["size"]), True)
                     self.late("hdparm -z /dev/{0}".format(disk["name"]))
 
                 if not part.get("file_system", "xfs") in ("swap", None, "none"):
-                    self.late("mkfs.{0} $(basename `readlink -f /dev/{1}`)"
-                              "{2}".format(part.get("file_system", "xfs"),
-                                           disk["name"], pcount))
+                    disk_label = self._getlabel(part.get("disk_label"))
+                    self.late("mkfs.{0} -f $(readlink -f /dev/{1})"
+                              "{2} {3}".format(part.get("file_system", "xfs"),
+                                           disk["name"], pcount, disk_label))
                 if not part["mount"] in (None, "none", "swap"):
                     self.late("mkdir -p /target{0}".format(part["mount"]))
                 if not part["mount"] in (None, "none"):
                     self.late("echo 'UUID=$(blkid -s UUID -o value "
-                              "$(basename `readlink -f /dev/{0}`){1}) "
+                              "$(readlink -f /dev/{0}){1}) "
                               "{2} {3} {4} 0 0'"
                               " >> /target/etc/fstab"
                               "".format(
@@ -534,21 +542,21 @@ class PreseedPManager(object):
                 begin_size = self.psize("/dev/%s" % disk["name"])
                 end_size = self.psize("/dev/%s" % disk["name"], pv["size"] * self.factor)
                 if pcount == 1:
-                    self.late("parted -s /dev/{0} mklabel msdos".format(disk["name"]))
+                    self.late("parted -s /dev/{0} mklabel gpt".format(disk["name"]), True)
                 self.late("parted -a none -s /dev/{0} "
                           "unit {4} mkpart {1} {2} {3}".format(
                              disk["name"],
                              self._parttype(pcount),
                              begin_size,
                              end_size,
-                             self.unit))
+                             self.unit), True)
                 if pcount == 1:
                     self.late("parted -a none -s /dev/{0} unit {1} "
                               "mkpart extended {2} {3}".format(
                                 disk["name"],
                                 self.unit,
                                 end_size,
-                                disk["size"]))
+                                disk["size"]), True)
                     self.late("hdparm -z /dev/{0}".format(disk["name"]))
                 self.late("pvcreate /dev/{0}{1}".format(disk["name"], pcount))
                 if not devices_dict.get(pv["vg"]):

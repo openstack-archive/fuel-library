@@ -32,6 +32,7 @@ $swift_hash           = $::fuel_settings['swift']
 $cinder_hash          = $::fuel_settings['cinder']
 $access_hash          = $::fuel_settings['access']
 $nodes_hash           = $::fuel_settings['nodes']
+$storage_hash         = $::fuel_settings['storage']
 $vlan_start           = $novanetwork_params['vlan_start']
 $network_manager      = "nova.network.manager.${novanetwork_params['network_manager']}"
 $network_size         = $novanetwork_params['network_size']
@@ -105,17 +106,35 @@ if !$::fuel_settings['debug']
  $debug = false
 }
 
-#TODO: awoodward fix static $use_ceph
-if ($::use_ceph) {
-  $primary_mons   = $controller
-  $primary_mon    = $controller[0]['name']
+# Determine who should get the volume service
+if ($::fuel_settings['role'] == 'cinder' or
+    $storage_hash['volumes_lvm']
+) {
+  $manage_volumes = 'iscsi'
+} elsif ($storage_hash['volumes_ceph']) {
+  $manage_volumes = 'ceph'
+} else {
+  $manage_volumes = false
+}
+
+#Determine who should be the default backend
+
+if ($storage_hash['images_ceph']) {
   $glance_backend = 'ceph'
-  class {'ceph': 
-    primary_mon  => $primary_mon,
-    cluster_node_address => $controller_node_address,
-  }
 } else {
   $glance_backend = 'file'
+}
+
+if ($use_ceph) {
+  $primary_mons   = $controller
+  $primary_mon    = $controller[0]['name']
+  class {'ceph': 
+    primary_mon          => $primary_mon,
+    cluster_node_address => $controller_node_public,
+    use_rgw              => $storage_hash['objects_ceph'],
+    use_ssl              => false,
+    glance_backend       => $glance_backend,
+  }
 }
 
   case $::fuel_settings['role'] {
@@ -173,7 +192,7 @@ if ($::use_ceph) {
         cinder_db_password      => $cinder_hash[db_password],
         cinder_iscsi_bind_addr  => $cinder_iscsi_bind_addr,
         cinder_volume_group     => "cinder",
-        manage_volumes          => $::fuel_settings['cinder'] ? { false => $manage_volumes, default =>$is_cinder_node },
+        manage_volumes          => $manage_volumes,
         use_syslog              => true,
         syslog_log_level        => $syslog_log_level,
         syslog_log_facility_glance   => $syslog_log_facility_glance,
@@ -247,14 +266,16 @@ if ($::use_ceph) {
       #   require          => Class[glance::api],
       # }
 #TODO: fix this so it dosn't break ceph
-      class { 'openstack::img::cirros':
-        os_username               => shellescape($access_hash[user]),
-        os_password               => shellescape($access_hash[password]),
-        os_tenant_name            => shellescape($access_hash[tenant]),
-        img_name                  => "TestVM",
-        stage                     => 'glance-image',
+      if !($use_ceph) {
+        class { 'openstack::img::cirros':
+          os_username               => shellescape($access_hash[user]),
+          os_password               => shellescape($access_hash[password]),
+          os_tenant_name            => shellescape($access_hash[tenant]),
+          img_name                  => "TestVM",
+          stage                     => 'glance-image',
+        }
+        Class[glance::api]        -> Class[openstack::img::cirros]
       }
-      Class[glance::api]        -> Class[openstack::img::cirros]
 
       if !$::use_quantum {
         nova_floating_range{ $floating_ips_range:
@@ -269,10 +290,8 @@ if ($::use_ceph) {
       Class[nova::api] -> Nova_floating_range <| |>
       }
 
-      if defined(Class['ceph']){
-        Class['openstack::controller'] -> Class['ceph::glance']
-        Class['glance::api']           -> Class['ceph::glance']
-        Class['openstack::controller'] -> Class['ceph::cinder']
+      if ($use_ceph){
+        Class['openstack::controller'] -> Class['ceph']
       }
 
       #ADDONS START
@@ -348,7 +367,7 @@ if ($::use_ceph) {
         cinder_db_password     => $cinder_hash[db_password],
         cinder_iscsi_bind_addr  => $cinder_iscsi_bind_addr,
         cinder_volume_group     => "cinder",
-        manage_volumes          => $cinder ? { false => $manage_volumes, default =>$is_cinder_node },
+        manage_volumes          => $manage_volumes,
         db_host                => $controller_node_address,
         debug                  => $debug ? { 'true' => true, true => true, default=> false },
         verbose                => $verbose ? { 'true' => true, true => true, default=> false },
@@ -365,7 +384,7 @@ if ($::use_ceph) {
       nova_config { 'DEFAULT/use_cow_images': value => $::fuel_settings['use_cow_images'] }
       nova_config { 'DEFAULT/compute_scheduler_driver': value => $::fuel_settings['compute_scheduler_driver'] }
 
-      if defined(Class['ceph']){
+      if ($use_ceph){
         Class['openstack::compute'] -> Class['ceph']
       }
     }
@@ -392,7 +411,7 @@ if ($::use_ceph) {
         qpid_user            => $rabbit_hash[user],
         qpid_nodes           => [$controller_node_address],
         volume_group         => 'cinder',
-        manage_volumes       => true,
+        manage_volumes       => $manage_volumes,
         enabled              => true,
         bind_host            => $bind_host,
         auth_host            => $controller_node_address,

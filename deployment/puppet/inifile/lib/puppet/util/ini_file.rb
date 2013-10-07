@@ -6,13 +6,13 @@ module Util
   class IniFile
 
     def section_regex
-    	/^\s*\[([\w\d\.\\\/\-\:]+)\]\s*$/
+      /^\s*\[([\w\d\.\\\/\-\:]+)\]\s*$/
     end
     def setting_regex
-    	/^(\s*)([\w\d\.\\\/\-]+)(\s*=\s*)([\S\s]*\S)\s*$/
+      /^(\s*)([\w\d\.\\\/\-\s]*[\w\d\.\\\/\-])([ \t]*=[ \t]*)([\S\s]*?)\s*$/
     end
     def commented_setting_regex
-    	/^(\s*)[#;]+(\s*)([\w\d\.\\\/\-]+)(\s*=\s*)([\S\s]*\S)\s*$/
+      /^(\s*)[#;]+(\s*)([\w\d\.\\\/\-]+)([ \t]*=[ \t]*)([\S\s]*?)\s*$/
     end
 
     def initialize(path, key_val_separator = ' = ')

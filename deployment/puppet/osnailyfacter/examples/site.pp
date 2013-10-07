@@ -94,6 +94,21 @@ if $::fuel_settings['nodes'] {
 $verbose = $::fuel_settings['verbose']
 $debug = $::fuel_settings['debug']
 
+### Storage Settings ###
+# Determine if any ceph parts have been asked for.
+# This will ensure that monitors are set up on controllers, even if no
+#  ceph-osd roles during deployment
+
+if (filter_nodes($::fuel_settings['nodes'], 'role', 'ceph-osd') or
+    $::fuel_settings['storage']['volumes_ceph'] or
+    $::fuel_settings['storage']['images_ceph'] or
+    $::fuel_settings['storage']['objects_ceph']
+) {
+  $use_ceph = true
+} else {
+  $use_ceph = false
+}
+
 
 ### Syslog ###
 # Enable error messages reporting to rsyslog. Rsyslog must be installed in this case.

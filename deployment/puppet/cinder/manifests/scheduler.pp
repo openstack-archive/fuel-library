@@ -30,6 +30,7 @@ class cinder::scheduler (
   Cinder_config<||> ~> Service['cinder-scheduler']
   Cinder_config<||> ~> Exec['cinder-manage db_sync']
   Cinder_api_paste_ini<||> ~> Service['cinder-scheduler']
+  Exec['cinder-manage db_sync'] -> Service['cinder-scheduler']
 
 
 

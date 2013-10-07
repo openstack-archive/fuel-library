@@ -1,14 +1,15 @@
-FastCgiExternalServer /var/www/s3gw.fcgi -socket /tmp/radosgw.sock
+Listen *:<%= @rgw_port %>
+FastCgiExternalServer <%= @dir_httpd_root %>/s3gw.fcgi -socket /tmp/radosgw.sock
 
-<VirtualHost *:80>
+<VirtualHost *:<%= @rgw_port %>>
   ServerName <%= @fqdn %>
-  DocumentRoot /var/www
+  DocumentRoot <%= @dir_httpd_root %>
 
   RewriteEngine On
   RewriteRule ^/([a-zA-Z0-9-_.]*)([/]?.*) /s3gw.fcgi?page=$1&params=$2&%{QUERY_STRING} [E=HTTP_AUTHORIZATION:%{HTTP:Authorization},L]
 
   <IfModule mod_fastcgi.c>
-    <Directory /var/www>
+    <Directory <%= @dir_httpd_root %>>
       Options +ExecCGI
       AllowOverride All
       SetHandler fastcgi-script

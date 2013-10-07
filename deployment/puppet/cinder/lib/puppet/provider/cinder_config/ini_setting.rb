@@ -15,8 +15,13 @@ Puppet::Type.type(:cinder_config).provide(
     '='
   end
 
-  def file_path
+  def self.file_path
     '/etc/cinder/cinder.conf'
+  end
+
+  # added for backwards compatibility with older versions of inifile
+  def file_path
+    self.class.file_path
   end
 
 end
