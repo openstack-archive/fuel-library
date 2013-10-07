@@ -1,4 +1,3 @@
-
 #
 # cidr_to_netmask.rb
 #
@@ -20,7 +19,7 @@ EOS
   ) do |arguments|
     if arguments.size != 1
       raise(Puppet::ParseError, "cidr_to_netmask(): Wrong number of arguments " +
-        "given (#{arguments.size} for 1)") 
+        "given (#{arguments.size} for 1)")
     end
 
     masklen = prepare_cidr(arguments[0])[1]

@@ -44,6 +44,13 @@ Puppet::Type.newtype(:l2_ovs_port) do
           fail("port_properties must be an array (not #{val.class}).")
         end
       end
+      munge do |val|
+        if val.is_a?(String)
+          [val]
+        else
+          val
+        end
+      end
     end
 
     newparam(:interface_properties) do
@@ -52,6 +59,54 @@ Puppet::Type.newtype(:l2_ovs_port) do
       validate do |val|
         if not (val.is_a?(Array) or val.is_a?(String)) # String need for array with one element. it's a puppet's feature
           fail("interface_properties must be an array (not #{val.class}).")
+        end
+      end
+      munge do |val|
+        if val.is_a?(String)
+          [val]
+        else
+          val
+        end
+      end
+    end
+
+    newparam(:tag) do
+      defaultto(0)
+      desc "802.1q tag"
+      validate do |val|
+        if not (val.is_a?(Integer) or val.is_a?(String))
+          fail("tag must be an integer (not #{val.class}).")
+        end
+        v = val.to_i
+        if v < 0 or v > 4094
+          fail("tag must be an integer in 2..4094 interval")
+        end
+      end
+      munge do |val|
+        val.to_i
+      end
+    end
+
+    newparam(:trunks) do
+      defaultto([])
+      desc "Array of trunks id, for configure port in trunk mode"
+      validate do |val|
+        if not (val.is_a?(Array) or val.is_a?(String) or val.is_a?(Integer)) # String need for array with one element. it's a puppet's feature
+          fail("trunks must be an array (not #{val.class}).")
+        end
+      end
+
+      munge do |val|
+        if val.is_a?(String)
+          [val.to_i]
+        elsif val.is_a?(Integer)
+          if val >= 0 and val < 4095
+            [val]
+          else
+            []
+          end
+        else
+          val
         end
       end
     end

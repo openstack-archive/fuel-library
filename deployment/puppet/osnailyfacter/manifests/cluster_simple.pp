@@ -149,6 +149,7 @@ if ($::use_ceph) {
         glance_db_password      => $glance_hash[db_password],
         glance_user_password    => $glance_hash[user_password],
         glance_backend          => $glance_backend,
+        glance_image_cache_max_size => $glance_hash[image_cache_max_size],
         nova_db_password        => $nova_hash[db_password],
         nova_user_password      => $nova_hash[user_password],
         nova_rate_limits        => $nova_rate_limits,
