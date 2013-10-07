@@ -45,10 +45,12 @@ if $::fuel_settings['nodes'] {
   $internal_br = $node[0]['internal_br']
   $base_syslog_hash     = $::fuel_settings['base_syslog']
   $syslog_hash          = $::fuel_settings['syslog']
-  $savanna_hash         = $::fuel_settings['savanna']
-  if !$savanna_hash 
+  if !$::fuel_settings['savanna']
   {
     $savanna_hash={}
+  }
+  else {
+    $savanna_hash         = $::fuel_settings['savanna']
   }
 
   $use_quantum = $::fuel_settings['quantum']
