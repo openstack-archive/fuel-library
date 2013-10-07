@@ -1,29 +1,17 @@
 require 'ipaddr'
 require 'yaml'
 require 'json'
-begin
-  require 'puppet/parser/functions/lib/sanitize_bool_in_hash.rb'
-rescue LoadError => e
-  # puppet apply does not add module lib directories to the $LOAD_PATH (See
-  # #4248). It should (in the future) but for the time being we need to be
-  # defensive which is what this rescue block is doing.
-  rb_file = File.join(File.dirname(__FILE__),'lib','sanitize_bool_in_hash.rb')
-  load rb_file if File.exists?(rb_file) or raise e
-end
 
 class MrntQuantum
   #class method
   def self.sanitize_array(aa)
-    rv = []
-    aa.each do |v|
-      rv.insert(-1,  case v.class.to_s
-          when "Hash"  then sanitize_hash(v)
-          when "Array" then sanitize_array(v)
+    aa.reduce([]) do |rv, v|
+      rv << case v.class
+          when Hash  then sanitize_hash(v)
+          when Array  then sanitize_array(v)
           else v
-        end
-      )
+      end
     end
-    return rv
   end
 
   #class method
@@ -48,27 +36,19 @@ class MrntQuantum
   end
 
   def get_management_vip()
-    @scope.lookupvar('management_vip')
+    @fuel_config[:management_vip]
   end
 
   def get_amqp_vip(port)
     #todo myst give string like  "hostname1:5672, hostname2:5672" # rabbit_nodes.map {|x| x + ':5672'}.join ','
     #calculated from $controller_nodes
-    vip = @scope.lookupvar('amqp_vip')
-    if [nil, :undefined].index(vip)
-      # todo: use network_roles
-      vip = get_management_vip()
-    end
+    vip = @fuel_config[:amqp_vip]  ||  @fuel_config[:management_vip]
     port  ?  "#{vip}:#{port}"  :  vip
   end
 
   def get_database_vip()
-    rv = @scope.lookupvar('database_vip')
-    if [nil, :undefined].index(rv)
-      # todo: use network_roles
-      return get_management_vip()
-    end
-    return rv
+    # todo: use network_roles
+    @fuel_config[:database_vip]  ||  @fuel_config[:management_vip]
   end
 
   # classmethod
@@ -142,20 +122,11 @@ class MrntQuantum
   end
 
   def get_quantum_srv_vip()
-    rv = @scope.lookupvar('quantum_server_vip')
-    if [nil, :undefined].index(rv)
-      # todo: use network_roles
-      return get_management_vip()
-    end
-    return rv
+    @fuel_config[:quantum_server_vip]  ||  @fuel_config[:management_vip]
   end
 
   def get_quantum_gre_ip() # IP, not VIP !!!
-    rv = @scope.lookupvar('quantum_gre_address')
-    if [nil, :undefined].index(rv)
-      return @scope.function_get_network_role_property('management', 'ipaddr')
-    end
-    return rv
+    @fuel_config[:management_vip]
   end
 
   def get_bridge_name(bb)
@@ -322,7 +293,7 @@ class MrntQuantum
       :root_helper => "sudo quantum-rootwrap /etc/quantum/rootwrap.conf",
       :polling_interval => 2,
     }
-    rv[:database][:port] = case rv[:database][:provider].upcase().to_sym()
+    rv[:database][:port] = case rv[:database][:provider].upcase.to_sym
       when :MYSQL then 3306
       when :PGSQL then 5432
       when :SQLITE then nil
@@ -332,26 +303,27 @@ class MrntQuantum
     rv[:L2][:bridge_mappings] = MrntQuantum.get_bridge_mappings(rv[:L2])
     rv[:L2][:phys_bridges] = MrntQuantum.get_phys_bridges(rv[:L2])
     rv[:L2][:network_vlan_ranges] = MrntQuantum.get_network_vlan_ranges(rv[:L2])
-    if ['gre', 'vxlan', 'lisp'].include?(rv[:L2][:segmentation_type])
+    return rv
+  end
+
+  def initialize(scope, cfg, section_name)
+    @scope = scope
+    @fuel_config = cfg
+    @quantum_config = cfg[section_name.to_sym()]
+  end
+
+  def generate_config()
+    rv = _generate_config(generate_default_quantum_config(), @quantum_config, [])
+    rv[:database][:url] ||= MrntQuantum.get_database_url(rv[:database])
+    rv[:keystone][:auth_url] ||= MrntQuantum.get_keystone_auth_url(rv[:keystone])
+    rv[:server][:api_url] ||= MrntQuantum.get_quantum_srv_api_url(rv[:server])
+    rv[:amqp] ||= MrntQuantum.get_amqp_config(rv[:amqp])
+    if [:gre, :vxlan, :lisp].include? rv[:L2][:segmentation_type].downcase.to_sym
       rv[:L2][:enable_tunneling] = true
     else
       rv[:L2][:enable_tunneling] = false
       rv[:L2][:tunnel_id_ranges] = nil
     end
-    return rv
-  end
-
-  def initialize(scope, cfg)
-    @scope = scope
-    @given_config = cfg
-  end
-
-  def generate_config()
-    rv = _generate_config(generate_default_quantum_config(), @given_config, [])
-    rv[:database][:url] ||= MrntQuantum.get_database_url(rv[:database])
-    rv[:keystone][:auth_url] ||= MrntQuantum.get_keystone_auth_url(rv[:keystone])
-    rv[:server][:api_url] ||= MrntQuantum.get_quantum_srv_api_url(rv[:server])
-    rv[:amqp] ||= MrntQuantum.get_amqp_config(rv[:amqp])
     return rv
   end
 
@@ -370,6 +342,7 @@ class MrntQuantum
         when "Hash"     then cfg_user[k] ? _generate_config(v,cfg_user[k], path.clone.insert(-1, k)) : v
         when "Array"    then cfg_user[k]&&cfg_user[k].empty?() ? v : cfg_user[k]
         when "String"   then cfg_user[k] ? cfg_user[k] : v
+        when "Fixnum"   then cfg_user[k] ? cfg_user[k] : v
         when "NilClass" then cfg_user[k] ? cfg_user[k] : v
         else v
       end
@@ -384,18 +357,16 @@ Puppet::Parser::Functions::newfunction(:sanitize_quantum_config, :type => :rvalu
     and sanitize it.
 
     Example call this:
-    $config = sanitize_quantum_config(parse_json($quantum_json_config))
+    $config = sanitize_quantum_config($::fuel_settings, 'quantum_settings')
 
     EOS
   ) do |argv|
   Puppet::Parser::Functions.autoloader.loadall
-  given_config = MrntQuantum.sanitize_hash(sanitize_bool_in_hash(argv[0]))
-  q_conf = MrntQuantum.new(self, given_config)
+  given_config = MrntQuantum.sanitize_hash(argv[0])
+  q_conf = MrntQuantum.new(self, given_config, argv[1])
   rv = q_conf.generate_config()
   # pUPPET not allow hashes with SYM keys. normalize keys
-  rv = JSON.load(rv.to_json)
-  return sanitize_bool_in_hash(rv)
-
+  JSON.load(rv.to_json)
 end
 
 # vim: set ts=2 sw=2 et :
