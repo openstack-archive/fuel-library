@@ -38,6 +38,17 @@ if $::fuel_settings['nodes'] {
 
 
   $use_quantum = $::fuel_settings['quantum']
+  if (filter_nodes($::fuel_settings['nodes'], 'role', 'ceph-osd') or
+    $::fuel_settings['storage']['volumes_ceph'] or
+    $::fuel_settings['storage']['images_ceph'] or
+    $::fuel_settings['storage']['objects_ceph']
+  ) {
+    $use_ceph = true
+  } else {
+    $use_ceph = false
+  }
+
+
   if $use_quantum {
     prepare_network_config($::fuel_settings['network_scheme'])
     $public_int   = get_network_role_property('ex', 'interface')
@@ -60,10 +71,7 @@ if $::fuel_settings['nodes'] {
     $public_int   = $::fuel_settings['public_interface']
     $internal_int = $::fuel_settings['management_interface']
   }
-} else {
-  fail("Error parsing nodes <${fuel_settings['nodes']}>")
 }
-
 # This parameter specifies the verbosity level of log messages
 # in openstack components config.
 # Debug would have set DEBUG level and ignore verbose settings, if any.
@@ -77,16 +85,6 @@ $debug = $::fuel_settings['debug']
 # Determine if any ceph parts have been asked for.
 # This will ensure that monitors are set up on controllers, even if no
 #  ceph-osd roles during deployment
-
-if (filter_nodes($::fuel_settings['nodes'], 'role', 'ceph-osd') or
-    $::fuel_settings['storage']['volumes_ceph'] or
-    $::fuel_settings['storage']['images_ceph'] or
-    $::fuel_settings['storage']['objects_ceph']
-) {
-  $use_ceph = true
-} else {
-  $use_ceph = false
-}
 
 
 ### Syslog ###
