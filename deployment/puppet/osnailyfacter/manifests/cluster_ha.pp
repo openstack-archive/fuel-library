@@ -141,7 +141,6 @@ if ($::fuel_settings['role'] == 'cinder' or
   $manage_volumes = false
 }
 
-}
 #Determine who should be the default backend
 
 if ($storage_hash['images_ceph']) {
@@ -294,6 +293,7 @@ class compact_controller (
     use_unicast_corosync    => $::fuel_settings['use_unicast_corosync'],
     nameservers                   => $::dns_nameservers,
   }
+}
 
 
 class virtual_ips () {
