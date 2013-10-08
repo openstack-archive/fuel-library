@@ -7,6 +7,8 @@ class ceph::libnss {
   file {$::ceph::rgw_nss_db_path:
     ensure  => 'directory',
     mode    => '0755',
+    owner   => $::ceph::params::user_httpd,
+    group   => $::ceph::params::user_httpd,
     require => Package['ceph']
   }
 }
