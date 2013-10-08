@@ -107,7 +107,7 @@ get_pid_and_conf_file()
 	fi
 
 	if [ -n "${OCF_RESKEY_pidfile}" ]; then
-		PIDFILE="`grep -v \"#\" ${CONF_FILE} | grep \"pidfile\" | sed 's/^[ \t]*pidfile[ \t]*//'`"
+		PIDFILE=$(grep -v "#" ${CONF_FILE} | grep "pidfile" | sed 's/^[ \t]*pidfile[ \t]*//')
 	else
 		PIDFILE=${OCF_RESKEY_pidfile_default}
 	fi
