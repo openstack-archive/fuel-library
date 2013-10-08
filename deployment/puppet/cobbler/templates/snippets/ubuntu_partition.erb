@@ -9,6 +9,13 @@ debconf-set partman-auto/disk $pm.expose_disks();\
 $pm.expose_early()
 true
 
+d-i partman-basicfilesystems/choose_label string gpt
+d-i partman-basicfilesystems/default_label string gpt
+d-i partman-partitioning/choose_label string gpt
+d-i partman-partitioning/default_label string gpt
+d-i partman/choose_label string gpt
+d-i partman/default_label string gpt
+
 d-i partman-iscsi/mainmenu string finish
 d-i partman-md/device_remove_md boolean true
 d-i partman-lvm/device_remove_lvm boolean true
@@ -18,6 +25,7 @@ d-i partman-lvm/confirm_nooverwrite boolean true
 d-i partman-auto/purge_lvm_from_device  boolean true
 d-i partman-auto/method string regular
 d-i partman-auto/choose_recipe select customrecipe
+d-i partman-basicmethods/method_only boolean false
 d-i partman-auto/expert_recipe string \
 customrecipe :: \
 $pm.expose_recipe()
