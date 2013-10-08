@@ -395,7 +395,7 @@ class osnailyfacter::cluster_ha {
           savanna_db_host       => $controller_node_address,
           savanna_keystone_host => $controller_node_address,
           use_neutron           => $::use_quantum,
-          use_floating_ips      => $bool_auto_assign_floating_ip,
+          use_floating_ips      => $::fuel_settings['auto_assign_floating_ip'],
         }
       }
 
