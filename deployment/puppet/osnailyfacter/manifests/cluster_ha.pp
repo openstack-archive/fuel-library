@@ -12,8 +12,6 @@ class osnailyfacter::cluster_ha {
     $novanetwork_params  = $::fuel_settings['novanetwork_parameters']
     $network_size         = $novanetwork_params['network_size']
     $num_networks         = $novanetwork_params['num_networks']
-    ##$tenant_network_type  = $quantum_params['tenant_network_type']
-    ##$segment_range        = $quantum_params['segment_range']
     $vlan_start           = $novanetwork_params['vlan_start']
   }
 
@@ -123,7 +121,7 @@ class osnailyfacter::cluster_ha {
   $controller_node_public  = $::fuel_settings['public_vip']
   $controller_node_address = $::fuel_settings['management_vip']
   $mountpoints = filter_hash($mp_hash,'point')
-  $quantum_metadata_proxy_shared_secret = $quantum_params['metadata_proxy_shared_secret']
+  $quantum_metadata_proxy_shared_secret = $quantum_config['metadata']['metadata_proxy_shared_secret']
 
   $quantum_gre_bind_addr = $::internal_address
 
@@ -529,7 +527,7 @@ class osnailyfacter::cluster_ha {
 #        rservers => $rservers,
 #      }
     } # CINDER ENDS
-    
+
     "ceph-osd" : {
       #Class Ceph is already defined so it will do it's thing.
       notify {"ceph_osd: ${::ceph::osd_devices}": }
