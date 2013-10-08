@@ -15,9 +15,7 @@ class savanna::api (
   $sql_connection       = 'mysql://savanna:savanna@localhost/savanna',
   $use_neutron          = false,
   $use_floating_ips     = false,
-) {
-
-  include savanna::params
+) inherits savanna::params {
 
   validate_string($keystone_password)
 
