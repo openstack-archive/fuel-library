@@ -2,14 +2,13 @@
 
 class savanna::dashboard (
   $enabled            = true,
-  $settings_py        = '/usr/share/openstack-dashboard/openstack_dashboard/settings.py',
-  $local_settings     = '/etc/openstack-dashboard/local_settings',
-  $savanna_url_string = "SAVANNA_URL = 'http://localhost:8386/v1.0'",
+  $settings_py        = $::savanna::params::settings_path,
+  $local_settings     = $::savanna::params::local_settings_path,
+  $savanna_url_string = $::savanna::params::default_url_string,
   $use_neutron        = false,
   $use_floating_ips   = false,
-) {
+) inherits savanna::params {
 
-  include savanna::params
   include stdlib
 
   if $enabled {
