@@ -345,7 +345,7 @@ class osnailyfacter::cluster_ha {
           debug                   => $debug ? { 'true' => true, true => true, default=> false },
           verbose                 => $verbose ? { 'true' => true, true => true, default=> false },
         }
-        if $storage_hash['objects_swift'] {
+        if ($storage_hash['objects_swift'] or !$storage_hash['images_ceph']) {
           class { 'swift::keystone::auth':
             password         => $swift_hash[user_password],
             public_address   => $::fuel_settings['public_vip'],
