@@ -230,7 +230,7 @@ class os_common {
     action  => 'accept',
     require => Class['openstack::firewall'],
   }
-}
+} # OS_COMMON ENDS
 
 
 
