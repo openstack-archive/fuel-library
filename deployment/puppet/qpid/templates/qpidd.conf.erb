@@ -9,8 +9,10 @@ port=<%= qpid_port %>
 auth=<%= auth %>
 auth-realm=<%= auth_realm %>
 cluster-mechanism=<%= cluster_mechanism %>
-<% if qpid_cluster %>cluster-name=<%= qpid_cluster_name %>
-<% if auth == 'yes' %>cluster-username=<%= qpid_username %>
-cluster-password=<%= qpid_password %><% end %><% end %>
+<% if qpid_cluster %>cluster-name=<%= qpid_cluster_name %><% end %>
+<% if auth == 'yes' %>
+cluster-username=<%= qpid_username %>
+cluster-password=<%= qpid_password %>
+<% end %>
 <% if log_to_file != 'UNSET' %>log-to-file=<%= log_to_file %>
 log-enable=debug<% end %>
