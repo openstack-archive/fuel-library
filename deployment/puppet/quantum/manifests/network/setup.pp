@@ -16,8 +16,6 @@ define quantum::network::setup (
   $shared          = 'False',
 ) {
 
-  Quantum_l3_agent_config <||> ->Quantum_net <||> 
-  Quantum_l3_agent_config <||> ->Quantum_subnet <||> 
   Quantum_net<||> -> Quantum_subnet<||>
   Service <| title == 'keystone' |> -> Quantum_net <| |>
   Service <| title == 'keystone' |> -> Quantum_subnet <| |>
@@ -30,7 +28,7 @@ define quantum::network::setup (
     segment_id    => $segment_id,
     router_ext    => $router_external,
     shared        => $shared,
-  } 
+  }
 
   # validate allocation pool
   if $alloc_pool and size($alloc_pool) == 2 {
@@ -49,6 +47,8 @@ define quantum::network::setup (
     alloc_pool  => $alloc_pool_str,
     enable_dhcp => $enable_dhcp,
     nameservers => $nameservers,
-  } 
+  }
 
 }
+
+# vim: set ts=2 sw=2 et :

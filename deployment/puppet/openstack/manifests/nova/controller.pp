@@ -36,6 +36,7 @@ class openstack::nova::controller (
   $floating_range            = false,
   $internal_address,
   $admin_address,
+  $service_endpoint          = '127.0.0.1',
   $auto_assign_floating_ip   = false,
   $create_networks           = true,
   $num_networks              = 1,
@@ -45,15 +46,9 @@ class openstack::nova::controller (
   $network_manager           = 'nova.network.manager.FlatDHCPManager',
   # Quantum
   $quantum                   = false,
-  $quantum_db_dbname         = 'quantum',
-  $quantum_db_user           = 'quantum',
-  $quantum_db_password       = 'quantum_pass',
-  $quantum_user_password     = 'quantum_pass',
-  #$quantum_l3_enable         = true,
+  $quantum_config            = {},
   $quantum_network_node      = false,
   $quantum_netnode_on_cnt    = false,
-  $quantum_gre_bind_addr     = $internal_address,
-  $quantum_external_ipinfo   = {},
   $segment_range             = '1:4094',
   $tenant_network_type       = 'gre',
   # Nova
@@ -278,44 +273,24 @@ class openstack::nova::controller (
     }
   } else {
     # Set up Quantum
-    $enable_tunneling       = $tenant_network_type ? { 'gre' => true, 'vlan' => false }
-    $quantum_sql_connection = "$db_type://${quantum_db_user}:${quantum_db_password}@${db_host}/${quantum_db_dbname}?charset=utf8"
 
     class { 'quantum::server':
-      auth_host     => $keystone_host,
-      auth_tenant   => 'services',
-      auth_user     => 'quantum',
-      auth_password => $quantum_user_password,
+      quantum_config => $quantum_config
     }
     if $quantum and !$quantum_network_node {
       class { '::quantum':
-        auth_password        => $quantum_user_password,
-        bind_host            => $api_bind_address,
-        queue_provider       => $queue_provider,
-        rabbit_user          => $rabbit_user,
-        rabbit_password      => $rabbit_password,
-        rabbit_host          => $rabbit_nodes,
-        rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
-        qpid_user            => $qpid_user,
-        qpid_password        => $qpid_password,
-        qpid_host            => $qpid_nodes,
-       #sql_connection       => $quantum_sql_connection,
+        quantum_config       => $quantum_config,
         verbose              => $verbose,
         debug                => $debug,
         use_syslog           => $use_syslog,
         syslog_log_facility  => $syslog_log_facility_quantum,
         syslog_log_level     => $syslog_log_level,
       }
-   }
-      class { 'nova::network::quantum':
-        quantum_admin_password    => $quantum_user_password,
-        quantum_auth_strategy     => 'keystone',
-        quantum_url               => "http://${keystone_host}:9696",
-        quantum_admin_tenant_name => 'services',
-        quantum_admin_username    => 'quantum',
-        quantum_admin_auth_url    => "http://${keystone_host}:35357/v2.0",
-        public_interface          => $public_interface,
-      }
+    }
+    class { 'nova::network::quantum':
+      quantum_config => $quantum_config,
+      quantum_connection_host => $service_endpoint
+    }
   }
 
   # Configure nova-api
@@ -373,3 +348,5 @@ class openstack::nova::controller (
   }
 
 }
+
+# vim: set ts=2 sw=2 et :

@@ -1,7 +1,5 @@
-define quantum::plugins::ovs::bridge {
-  $mapping = split($name, ":")
-  $bridge = $mapping[1]
-
+define quantum::agents::utils::bridges {
+  $bridge = $name
   if !defined(L23network::L2::Bridge[$bridge]) {
     l23network::l2::bridge {$bridge:
       ensure        => present,
@@ -10,3 +8,5 @@ define quantum::plugins::ovs::bridge {
     }
   }
 }
+
+# vim: set ts=2 sw=2 et :

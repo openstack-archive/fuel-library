@@ -96,11 +96,7 @@ class openstack::compute (
   $fixed_range                   = undef,
   # Quantum
   $quantum                       = false,
-  $quantum_sql_connection        = false,
-  $quantum_host                  = false,
-  $quantum_user_password         = false,
-  $tenant_network_type           = 'gre',
-  $segment_range                 = '1:4094',
+  $quantum_config                = {},
   # nova compute configuration parameters
   $verbose                       = false,
   $debug               = false,
@@ -202,7 +198,7 @@ class openstack::compute (
       rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
       state_path           => $state_path,
   }
-  
+
   #Cinder setup
   $enabled_apis = 'metadata'
   package {'python-cinderclient': ensure => present}
@@ -317,52 +313,36 @@ class openstack::compute (
     }
   } else {
 
-    if ! $quantum_sql_connection {
-      fail('quantum sql connection must be specified when quantum is installed on compute instances')
-    }
-    if ! $quantum_host {
-      fail('quantum host must be specified when quantum is installed on compute instances')
-    }
-    if ! $quantum_user_password {
-      fail('quantum user password must be set when quantum is configured')
-    }
-
-    $enable_tunneling = $tenant_network_type ? { 'gre' => true, 'vlan' => false }
+    # if ! $quantum_sql_connection {
+    #   fail('quantum sql connection must be specified when quantum is installed on compute instances')
+    # }
+    # if ! $quantum_host {
+    #   fail('quantum host must be specified when quantum is installed on compute instances')
+    # }
+    # if ! $quantum_user_password {
+    #   fail('quantum user password must be set when quantum is configured')
+    # }
 
     class { '::quantum':
-      queue_provider  => $queue_provider,
-      rabbit_host     => $rabbit_nodes ? { false => $rabbit_host, default => $rabbit_nodes },
-      rabbit_user     => $rabbit_user,
-      rabbit_password => $rabbit_password,
-      qpid_host       => $qpid_nodes ? { false => $qpid_host, default => $qpid_nodes },
-      qpid_user       => $qpid_user,
-      qpid_password   => $qpid_password,
+      quantum_config  => $quantum_config,
       verbose         => $verbose,
       debug           => $debug,
       use_syslog           => $use_syslog,
       syslog_log_level     => $syslog_log_level,
       syslog_log_facility  => $syslog_log_facility_quantum,
-      rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
-      auth_host            => $auth_host,
-      auth_tenant          => 'services',
-      auth_user            => 'quantum',
-      auth_password        => $quantum_user_password,
     }
 
+    #todo: Quantum plugin and database connection not need on compute.
     class { 'quantum::plugins::ovs':
-      sql_connection      => $quantum_sql_connection,
-      tenant_network_type => $tenant_network_type,
-      enable_tunneling    => $enable_tunneling,
-      bridge_mappings     => ['physnet2:br-prv'],
-      network_vlan_ranges => "physnet1,physnet2:${segment_range}",
-      tunnel_id_ranges    => "${segment_range}",
+      quantum_config  => $quantum_config
     }
 
     class { 'quantum::agents::ovs':
-      bridge_uplinks   => ["br-prv:${private_interface}"],
-      bridge_mappings  => ['physnet2:br-prv'],
-      enable_tunneling => $enable_tunneling,
-      local_ip         => $internal_address,
+      quantum_config   => $quantum_config,
+      # bridge_uplinks   => ["br-prv:${private_interface}"],
+      # bridge_mappings  => ['physnet2:br-prv'],
+      # enable_tunneling => $enable_tunneling,
+      # local_ip         => $internal_address,
     }
 
 
@@ -373,41 +353,20 @@ class openstack::compute (
       source => 'puppet:///modules/nova/libvirt_qemu.conf',
     }
 
-    # class { 'quantum::agents::dhcp':
-    #   debug          => True,
-    #   use_namespaces => $::quantum_use_namespaces,
-    # }
-
-    # class { 'quantum::agents::l3':
-    #   debug          => True,
-    #   auth_url       => "http://${service_endpoint}:35357/v2.0",
-    #   auth_tenant    => 'services',
-    #   auth_user      => 'quantum',
-    #   auth_password  => $quantum_user_password,
-    #   use_namespaces => $::quantum_use_namespaces,
-    # }
-
     class { 'nova::compute::quantum': }
 
     # does this have to be installed on the compute node?
     # NOTE
     class { 'nova::network::quantum':
-    #$fixed_range,
-      quantum_admin_password    => $quantum_user_password,
-    #$use_dhcp                  = 'True',
-    #$public_interface          = undef,
-      quantum_connection_host   => $quantum_host,
-      quantum_auth_strategy     => 'keystone',
-      quantum_url               => "http://${service_endpoint}:9696",
-      quantum_admin_tenant_name => 'services',
-      quantum_admin_username    => 'quantum',
-      quantum_admin_auth_url    => "http://${service_endpoint}:35357/v2.0",
-      public_interface          => $public_interface,
+      quantum_config => $quantum_config,
+      quantum_connection_host => $service_endpoint
     }
 
     nova_config {
       'linuxnet_interface_driver':       value => 'nova.network.linux_net.LinuxOVSInterfaceDriver';
-      'linuxnet_ovs_integration_bridge': value => 'br-int';
+      'linuxnet_ovs_integration_bridge': value => $quantum_config['L2']['integration_bridge'];
     }
   }
 }
+
+# vim: set ts=2 sw=2 et :

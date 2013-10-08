@@ -92,7 +92,6 @@ class QuantumConfig
           'base_mac' => "fa:16:3e:00:00:00",
           'mac_generation_retries' => 32,
           'segmentation_type' => "gre",
-          'enable_tunneling'=>true,
           'tunnel_id_ranges' => "3000:65535",
           'phys_nets' => {
             'physnet1' => {
@@ -141,6 +140,7 @@ class QuantumConfig
         'predefined_networks' => {
           'net04_ext' => {
             'shared' => false,
+            'tenant' => 'admin',
             'L2' => {
               'router_ext'   => true,
               'network_type' => 'flat',
@@ -156,6 +156,7 @@ class QuantumConfig
           },
           'net04' => {
             'shared' => false,
+            'tenant' => 'admin',
             'L2' => {
               'router_ext'   => false,
               'network_type' => 'gre', # or vlan
@@ -213,7 +214,7 @@ describe 'sanitize_quantum_config' , :type => :puppet_function do
     @cfg = @q_config.get_def_config()
     cfg_q = @cfg['quantum_settings']
     @res_cfg = Marshal.load(Marshal.dump(cfg_q))
-
+    @res_cfg['L2']['enable_tunneling'] = true
   end
 
   it 'should exist' do
@@ -262,6 +263,7 @@ describe 'sanitize_quantum_config' , :type => :puppet_function do
     @cfg['quantum_settings']['predefined_networks']['net04_ext']['L3']['nameservers'] = ["127.0.0.1"]
     res_cfg = Marshal.load(Marshal.dump(@cfg['quantum_settings']))
     res_cfg['database']['url'] = 'mysql://quantum:quantum@192.168.0.254:3306/quantum'
+    res_cfg['L2']['enable_tunneling'] = true
     should run.with_params(@cfg,'quantum_settings').and_return(res_cfg)
   end
 

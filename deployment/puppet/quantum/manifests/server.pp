@@ -1,19 +1,12 @@
 #
 class quantum::server (
-  $auth_password,
-  $package_ensure   = 'present',
-  $enabled          = true,
-  $auth_type        = 'keystone',
-  $auth_host        = 'localhost',
-  $auth_port        = '35357',
-  $auth_tenant      = 'services',
-  $auth_user        = 'quantum'
+  $quantum_config     = {},
 ) {
   include 'quantum::params'
 
   require 'keystone::python'
 
-  Anchor['quantum-init-done'] -> 
+  Anchor['quantum-init-done'] ->
       Anchor['quantum-server']
 
   anchor {'quantum-server':}
@@ -52,44 +45,48 @@ class quantum::server (
   Quantum_api_config<||> ~> Service['quantum-server']
 
   quantum_api_config {
-    'filter:authtoken/auth_host':         value => $auth_host;
-    'filter:authtoken/auth_port':         value => $auth_port;
-    'filter:authtoken/admin_tenant_name': value => $auth_tenant;
-    'filter:authtoken/admin_user':        value => $auth_user;
-    'filter:authtoken/admin_password':    value => $auth_password;
-  }
-
-  if $enabled {
-    $service_ensure = 'running'
-  } else {
-    $service_ensure = 'stopped'
+    'filter:authtoken/auth_host':         value => $quantum_config['keystone']['auth_host'];
+    'filter:authtoken/auth_port':         value => $quantum_config['keystone']['auth_port'];
+    'filter:authtoken/admin_tenant_name': value => $quantum_config['keystone']['admin_tenant_name'];
+    'filter:authtoken/admin_user':        value => $quantum_config['keystone']['admin_user'];
+    'filter:authtoken/admin_password':    value => $quantum_config['keystone']['admin_password'];
   }
 
   File<| title=='quantum-logging.conf' |> ->
   service {'quantum-server':
     name       => $::quantum::params::server_service,
-    ensure     => $service_ensure,
-    enable     => $enabled,
+    ensure     => running,
+    enable     => true,
     hasstatus  => true,
     hasrestart => true,
     provider   => $::quantum::params::service_provider,
   }
 
-
   Anchor['quantum-server'] ->
       Quantum_config<||> ->
         Quantum_api_config<||> ->
-  Anchor['quantum-server-config-done'] -> 
+  Anchor['quantum-server-config-done'] ->
      Service['quantum-server'] ->
   Anchor['quantum-server-done']
 
   # if defined(Anchor['quantum-plugin-ovs-done']) {
-  #   Anchor['quantum-server-config-done'] -> 
-  #     Anchor['quantum-plugin-ovs-done'] -> 
+  #   Anchor['quantum-server-config-done'] ->
+  #     Anchor['quantum-plugin-ovs-done'] ->
   #       Anchor['quantum-server-done']
   # }
 
   anchor {'quantum-server-config-done':}
+
+  if $::fuel_settings['role'] == 'primary-controller' {
+    Anchor['quantum-server-config-done'] ->
+    class { 'quantum::network::predefined_netwoks':
+      quantum_config => $quantum_config,
+    } -> Anchor['quantum-server-done']
+    Service['quantum-server'] -> Class['quantum::network::predefined_netwoks']
+  }
+
   anchor {'quantum-server-done':}
   Anchor['quantum-server'] -> Anchor['quantum-server-done']
 }
+
+# vim: set ts=2 sw=2 et :

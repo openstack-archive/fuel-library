@@ -12,8 +12,6 @@ class osnailyfacter::cluster_ha {
     $novanetwork_params  = $::fuel_settings['novanetwork_parameters']
     $network_size         = $novanetwork_params['network_size']
     $num_networks         = $novanetwork_params['num_networks']
-    ##$tenant_network_type  = $quantum_params['tenant_network_type']
-    ##$segment_range        = $quantum_params['segment_range']
     $vlan_start           = $novanetwork_params['vlan_start']
   }
 
@@ -123,7 +121,7 @@ class osnailyfacter::cluster_ha {
   $controller_node_public  = $::fuel_settings['public_vip']
   $controller_node_address = $::fuel_settings['management_vip']
   $mountpoints = filter_hash($mp_hash,'point')
-  $quantum_metadata_proxy_shared_secret = $quantum_params['metadata_proxy_shared_secret']
+  $quantum_metadata_proxy_shared_secret = $quantum_config['metadata']['metadata_proxy_shared_secret']
 
   $quantum_gre_bind_addr = $::internal_address
 
@@ -223,7 +221,7 @@ class osnailyfacter::cluster_ha {
       controller_public_addresses   => $controller_public_addresses,
       controller_internal_addresses => $controller_internal_addresses,
       internal_address              => $internal_address,
-      internal_interface            => $::internal_int,
+      #internal_interface            => $::internal_int,
       public_interface              => $::public_int,
       private_interface             => $::use_quantum ? { true=>false, default=>$::fuel_settings['fixed_interface']},
       internal_virtual_ip           => $::fuel_settings['management_vip'],
@@ -263,7 +261,7 @@ class osnailyfacter::cluster_ha {
       glance_backend                => $glance_backend,
       swift_proxies                 => $swift_proxies,
       quantum                       => $::use_quantum,
-      #quantum_config                => $quantum_config,
+      quantum_config                => $quantum_config,
       quantum_network_node          => $quantum_network_node,
       quantum_netnode_on_cnt        => $quantum_netnode_on_cnt,
       cinder                        => true,
@@ -463,7 +461,7 @@ class osnailyfacter::cluster_ha {
         cinder_db_password     => $cinder_hash[db_password],
         db_host                => $::fuel_settings['management_vip'],
         quantum                => $::use_quantum,
-        #quantum_config         => $quantum_config,
+        quantum_config         => $quantum_config,
         use_syslog             => true,
         syslog_log_level       => $syslog_log_level,
         syslog_log_facility    => $syslog_log_facility_nova,
@@ -529,7 +527,7 @@ class osnailyfacter::cluster_ha {
 #        rservers => $rservers,
 #      }
     } # CINDER ENDS
-    
+
     "ceph-osd" : {
       #Class Ceph is already defined so it will do it's thing.
       notify {"ceph_osd: ${::ceph::osd_devices}": }

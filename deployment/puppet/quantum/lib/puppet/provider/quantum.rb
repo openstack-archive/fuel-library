@@ -10,32 +10,21 @@ class Puppet::Provider::Quantum < Puppet::Provider
   end
 
   def self.get_quantum_credentials
-    # if quantum_file and quantum_file['filter:authtoken'] and
-    #   quantum_file['filter:authtoken']['auth_host'] and
-    #   quantum_file['filter:authtoken']['auth_port'] and
-    #   quantum_file['filter:authtoken']['auth_protocol'] and
-    #   quantum_file['filter:authtoken']['admin_tenant_name'] and
-    #   quantum_file['filter:authtoken']['admin_user'] and
-    #   quantum_file['filter:authtoken']['admin_password']
-
-    if quantum_file and quantum_file['DEFAULT'] and
-    quantum_file['DEFAULT']['auth_url'] and
-    quantum_file['DEFAULT']['admin_tenant_name'] and
-    quantum_file['DEFAULT']['admin_user'] and
-    quantum_file['DEFAULT']['admin_password']
+    if quantum_file and quantum_file['keystone_authtoken'] and
+    quantum_file['keystone_authtoken']['auth_url'] and
+    quantum_file['keystone_authtoken']['admin_tenant_name'] and
+    quantum_file['keystone_authtoken']['admin_user'] and
+    quantum_file['keystone_authtoken']['admin_password']
 
       q = {}
-      # q['auth_host'] = quantum_file['filter:authtoken']['auth_host'].strip
-      # q['auth_port'] = quantum_file['filter:authtoken']['auth_port'].strip
-      # q['auth_protocol'] = quantum_file['filter:authtoken']['auth_protocol'].strip
-      q['auth_url'] = quantum_file['DEFAULT']['auth_url'].strip
-      q['admin_tenant_name'] = quantum_file['DEFAULT']['admin_tenant_name'].strip
-      q['admin_user'] = quantum_file['DEFAULT']['admin_user'].strip
-      q['admin_password'] = quantum_file['DEFAULT']['admin_password'].strip
+      q['auth_url'] = quantum_file['keystone_authtoken']['auth_url'].strip
+      q['admin_user'] = quantum_file['keystone_authtoken']['admin_user'].strip
+      q['admin_password'] = quantum_file['keystone_authtoken']['admin_password'].strip
+      q['admin_tenant_name'] = quantum_file['keystone_authtoken']['admin_tenant_name'].strip
       return q
     else
       # raise(Puppet::Error, 'File: /etc/quantum/api-paste.ini does not contain all required sections.')
-      raise(Puppet::Error, 'File: /etc/quantum/l3_agent.ini does not contain all required sections.')
+      raise(Puppet::Error, 'File: /etc/quantum/quantum.conf does not contain all required sections.')
     end
   end
 
@@ -48,38 +37,13 @@ class Puppet::Provider::Quantum < Puppet::Provider
   end
 
   def self.get_auth_endpoint
-    q = quantum_credentials
-    # "#{q['auth_protocol']}://#{q['auth_host']}:#{q['auth_port']}/v2.0/"
-    q['auth_url']
+    quantum_credentials()['auth_url']
   end
 
   def self.quantum_file
     return @quantum_file if @quantum_file
-
-    # quantum_apipaste = '/etc/quantum/api-paste.ini'
-    # tf_apipaste = Tempfile.new('api-paste-ini-')
-    #
-    # conf_opt = File.open(quantum_apipaste).read
-
-    # inside = false
-    # conf_opt.each do |line|
-    #   if line.strip == '[filter:authtoken]'
-    #     inside = true
-    #   elsif inside and line.match(/^\s*\[/)
-    #     inside = false
-    #   end
-    #   tf_apipaste.print line if inside
-    # end
-
-    # tf_apipaste.flush
-
-    # @quantum_file = Puppet::Util::IniConfig::File.new
-    # @quantum_file.read(tf_apipaste.path)
-
-    # tf_apipaste.close
-
     @quantum_file = Puppet::Util::IniConfig::File.new
-    @quantum_file.read('/etc/quantum/l3_agent.ini')
+    @quantum_file.read('/etc/quantum/quantum.conf')
 
     @quantum_file
   end

@@ -72,6 +72,7 @@ if $::fuel_settings['nodes'] {
     $internal_int = $::fuel_settings['management_interface']
   }
 }
+
 # This parameter specifies the verbosity level of log messages
 # in openstack components config.
 # Debug would have set DEBUG level and ignore verbose settings, if any.
@@ -123,8 +124,8 @@ class advanced_node_netconfig {
 
 case $::operatingsystem {
   'redhat' : {
-          $queue_provider = 'qpid'
-          $custom_mysql_setup_class = 'pacemaker_mysql'
+    $queue_provider = 'qpid'
+    $custom_mysql_setup_class = 'pacemaker_mysql'
   }
   default: {
     $queue_provider='rabbitmq'
