@@ -115,6 +115,7 @@ get_pid_and_conf_file()
 
 haproxy_status()
 {
+	get_pid_and_conf_file
 	if [ -n "$PIDFILE" -a -f "$PIDFILE" ]; then
 		# haproxy is probably running
 		PID=`cat $PIDFILE`
@@ -131,7 +132,6 @@ haproxy_status()
 			return $OCF_ERR_GENERIC
 		fi
 	fi
-
 	# haproxy is not running
 	ocf_log info "haproxy daemon is not running"
 	return $OCF_NOT_RUNNING
