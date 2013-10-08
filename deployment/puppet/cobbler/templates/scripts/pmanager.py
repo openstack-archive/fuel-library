@@ -402,7 +402,7 @@ class PreseedPManager(object):
 
         self.factor = 1
         self.unit = "MiB"
-        self.disks = sorted(["/dev/" + d["name"] for d in self.data
+        self.disks = sorted(["/dev/" + d["id"] for d in self.data
                                   if d["type"] == "disk"])
 
         self._pcount = {}
@@ -433,12 +433,28 @@ class PreseedPManager(object):
         # disk label is > 12 characters.
         return " -L {0} ".format(label[:12])
 
+    """ Please do not remove this commented piece of code. It might be useful for future.
+    This method can be used to count partitions on msdos table.
+    """
+    # def pcount(self, disk_id, increment=0):
+    #     if ((self._pcount.get(disk_id, 0) == 0 and increment == 1) or
+    #         (self._pcount.get(disk_id, 0) >= 5)):
+    #         self._pcount[disk_id] = self._pcount.get(disk_id, 0) + increment
+    #     elif self._pcount.get(disk_id, 0) == 1:
+    #         self._pcount[disk_id] = self._pcount.get(disk_id, 0) + increment + 3
+    #     return self._pcount.get(disk_id, 0)
+
+    # def _parttype(self, n):
+    #     if n == 1:
+    #         return "primary"
+    #     else:
+    #         return "logical"
+
+    def _parttype(self, n):
+        return "primary"
+
     def pcount(self, disk_id, increment=0):
-        if ((self._pcount.get(disk_id, 0) == 0 and increment == 1) or
-            (self._pcount.get(disk_id, 0) >= 5)):
-            self._pcount[disk_id] = self._pcount.get(disk_id, 0) + increment
-        elif self._pcount.get(disk_id, 0) == 1:
-            self._pcount[disk_id] = self._pcount.get(disk_id, 0) + increment + 3
+        self._pcount[disk_id] = self._pcount.get(disk_id, 0) + increment
         return self._pcount.get(disk_id, 0)
 
     def psize(self, disk_id, increment=0):
@@ -446,7 +462,22 @@ class PreseedPManager(object):
         return self._pend.get(disk_id, 0)
 
     def boot(self):
+        self.recipe("24 24 24 ext3 "
+                    "$gptonly{ } "
+                    "method{ keep } .")
+        self.psize(self.disks[0], 24 * self.factor)
+        self.pcount(self.disks[0], 1)
+
+        # self.late("sed -i /$(blkid -s UUID -o value $(readlink -f {0})1)/d /target/etc/fstab".format(self.disks[0]))
+        # self.late("swapoff $(readlink -f {0})1".format(self.disks[0]))
+        self.late("parted -s $(readlink -f {0}) set {1} bios_grub on".format(
+                    self.disks[0],
+                    self.pcount(self.disks[0])
+            )
+        )
+
         self.recipe("200 200 200 ext3 $primary{ } "
+                    "$gptonly{ } "
                     "$bootable{ } method{ format } format{ } use_filesystem{ } "
                     "filesystem{ ext3 } mountpoint{ /boot } .")
         self.pcount(self.disks[0], 1)
@@ -462,11 +493,13 @@ class PreseedPManager(object):
                     root_size = vol["size"]
 
         self.recipe("{0} {0} {0} ext4 "
+                    "$gptonly{{ }} "
                     "method{{ format }} format{{ }} use_filesystem{{ }} "
                     "filesystem{{ ext4 }} mountpoint{{ / }} .".format(root_size))
         self.pcount(self.disks[0], 1)
         self.psize(self.disks[0], root_size * self.factor)
         self.recipe("{0} {0} {0} linux-swap "
+                    "$gptonly{{ }} "
                     "method{{ swap }} format{{ }} .".format(swap_size))
         self.pcount(self.disks[0], 1)
         self.psize(self.disks[0], swap_size * self.factor)
@@ -476,16 +509,13 @@ class PreseedPManager(object):
         during the late stage we need to create fake swap partition that
         we then destroy.
         """
-        self.recipe("1 1 -1 linux-swap method{ swap } format{ } .")
-        self.late("sed -i /$(blkid -s UUID -o value {0}7)/d /target/etc/fstab".format(self.disks[0]))
-        self.late("swapoff {0}7".format(self.disks[0]))
-        self.late("parted {0} rm 7".format(self.disks[0]), True)
-
-    def _parttype(self, n):
-        if n == 1:
-            return "primary"
-        else:
-            return "logical"
+        # self.recipe("1 1 -1 linux-swap $gptonly{ } method{ swap } format{ } .")
+        self.recipe("1 1 -1 ext3 $gptonly{ } method{ keep } .")
+        # self.late("sed -i /$(blkid -s UUID -o value $(readlink -f {0})5)/d /target/etc/fstab".format(self.disks[0]))
+        # self.late("swapoff $(readlink -f {0})5".format(self.disks[0]))
+        self.late("parted $(readlink -f {0}) rm 5".format(self.disks[0]))
+        self.late("sleep 3")
+        self.late("hdparm -z $(readlink -f {0})".format(self.disks[0]))
 
     def partitions(self):
         for disk in [d for d in self.data if d["type"] == "disk"]:
@@ -493,31 +523,50 @@ class PreseedPManager(object):
                                p["mount"] != "/boot", disk["volumes"]):
                 if part["size"] <= 0:
                     continue
-                pcount = self.pcount("/dev/%s" % disk["name"], 1)
+
+                if self.pcount("/dev/%s" % disk["id"]) == 0:
+                    self.late("parted -s $(readlink -f /dev/{0}) mklabel gpt".format(disk["id"]))
+                    self.late("parted -a none -s $(readlink -f /dev/{0}) "
+                        "unit {3} mkpart primary {1} {2}".format(
+                            disk["id"],
+                            self.psize("/dev/%s" % disk["id"]),
+                            self.psize("/dev/%s" % disk["id"], 24 * self.factor),
+                            self.unit
+                        )
+                    )
+                    self.late("parted -s $(readlink -f /dev/{0}) set {1} bios_grub on".format(
+                            disk["id"],
+                            self.pcount("/dev/%s" % disk["id"], 1)
+                        )
+                    )
+
+                pcount = self.pcount("/dev/%s" % disk["id"], 1)
                 tabmount = part["mount"] if part["mount"] != "swap" else "none"
-                if pcount == 1:
-                    self.late("parted -s /dev/{0} mklabel gpt".format(disk["name"]), True)
-                self.late("parted -a none -s /dev/{0} "
+                self.late("parted -a none -s $(readlink -f /dev/{0}) "
                           "unit {4} mkpart {1} {2} {3}".format(
-                             disk["name"],
+                             disk["id"],
                              self._parttype(pcount),
-                             self.psize("/dev/%s" % disk["name"]),
-                             self.psize("/dev/%s" % disk["name"], part["size"] * self.factor),
-                             self.unit), True)
-                if pcount == 1:
-                    self.late("parted -a none -s /dev/{0} unit {1} "
-                              "mkpart extended {2} {3}".format(
-                                disk["name"],
-                                self.unit,
-                                end_size,
-                                disk["size"]), True)
-                    self.late("hdparm -z /dev/{0}".format(disk["name"]))
+                             self.psize("/dev/%s" % disk["id"]),
+                             self.psize("/dev/%s" % disk["id"], part["size"] * self.factor),
+                             self.unit))
+                """ Please do not remove this commented piece of code. It might be useful for future.
+                This can be used for msdos table.
+                """
+                # if pcount == 1:
+                #     self.late("parted -a none -s $(readlink -f /dev/{0}) unit {1} "
+                #               "mkpart extended {2} {3}".format(
+                #                 disk["id"],
+                #                 self.unit,
+                #                 end_size,
+                #                 disk["size"]))
+                self.late("sleep 3")
+                self.late("hdparm -z $(readlink -f /dev/{0})".format(disk["id"]))
 
                 if not part.get("file_system", "xfs") in ("swap", None, "none"):
                     disk_label = self._getlabel(part.get("disk_label"))
                     self.late("mkfs.{0} -f $(readlink -f /dev/{1})"
                               "{2} {3}".format(part.get("file_system", "xfs"),
-                                           disk["name"], pcount, disk_label))
+                                           disk["id"], pcount, disk_label))
                 if not part["mount"] in (None, "none", "swap"):
                     self.late("mkdir -p /target{0}".format(part["mount"]))
                 if not part["mount"] in (None, "none"):
@@ -526,7 +575,7 @@ class PreseedPManager(object):
                               "{2} {3} {4} 0 0'"
                               " >> /target/etc/fstab"
                               "".format(
-                                  disk["name"], pcount, tabmount,
+                                  disk["id"], pcount, tabmount,
                                   part.get("file_system", "xfs"),
                                   ("defaults" if part["mount"] != "swap"
                                    else "sw" )))
@@ -538,37 +587,58 @@ class PreseedPManager(object):
             for pv in [p for p in disk["volumes"] if p["type"] == "pv" and p["vg"] != "os"]:
                 if pv["size"] <= 0:
                     continue
-                pcount = self.pcount("/dev/%s" % disk["name"], 1)
-                begin_size = self.psize("/dev/%s" % disk["name"])
-                end_size = self.psize("/dev/%s" % disk["name"], pv["size"] * self.factor)
-                if pcount == 1:
-                    self.late("parted -s /dev/{0} mklabel gpt".format(disk["name"]), True)
-                self.late("parted -a none -s /dev/{0} "
+                if self.pcount("/dev/%s" % disk["id"]) == 0:
+                    self.late("parted -s $(readlink -f /dev/{0}) mklabel gpt".format(disk["id"]))
+                    self.late("parted -a none -s $(readlink -f /dev/{0}) "
+                        "unit {3} mkpart primary {1} {2}".format(
+                            disk["id"],
+                            self.psize("/dev/%s" % disk["id"]),
+                            self.psize("/dev/%s" % disk["id"], 24 * self.factor),
+                            self.unit
+                        )
+                    )
+                    self.late("parted -s $(readlink -f /dev/{0}) set {1} bios_grub on".format(
+                            disk["id"],
+                            self.pcount("/dev/%s" % disk["id"], 1)
+                        )
+                    )
+
+                pcount = self.pcount("/dev/%s" % disk["id"], 1)
+                begin_size = self.psize("/dev/%s" % disk["id"])
+                end_size = self.psize("/dev/%s" % disk["id"], pv["size"] * self.factor)
+
+                self.late("parted -a none -s $(readlink -f /dev/{0}) "
                           "unit {4} mkpart {1} {2} {3}".format(
-                             disk["name"],
+                             disk["id"],
                              self._parttype(pcount),
                              begin_size,
                              end_size,
-                             self.unit), True)
-                if pcount == 1:
-                    self.late("parted -a none -s /dev/{0} unit {1} "
-                              "mkpart extended {2} {3}".format(
-                                disk["name"],
-                                self.unit,
-                                end_size,
-                                disk["size"]), True)
-                    self.late("hdparm -z /dev/{0}".format(disk["name"]))
-                self.late("pvcreate /dev/{0}{1}".format(disk["name"], pcount))
+                             self.unit))
+
+                """ Please do not remove this commented piece of code. It might be useful for future.
+                This can be used for msdos table.
+                """
+                # if pcount == 1:
+                #     self.late("parted -a none -s $(readlink -f /dev/{0}) unit {1} "
+                #               "mkpart extended {2} {3}".format(
+                #                 disk["id"],
+                #                 self.unit,
+                #                 end_size,
+                #                 disk["size"]))
+                self.late("sleep 3")
+                self.late("hdparm -z $(readlink -f /dev/{0})".format(disk["id"]))
+                self.late("pvcreate $(readlink -f /dev/{0}){1}".format(disk["id"], pcount))
                 if not devices_dict.get(pv["vg"]):
                     self.early("vgremove -f {0}".format(pv["vg"]))
                     devices_dict[pv["vg"]] = []
                 devices_dict[pv["vg"]].append(
-                    "/dev/{0}{1}".format(disk["name"], pcount))
+                    "$(readlink -f /dev/{0}){1}".format(disk["id"], pcount))
 
-                self.early("pvremove -f /dev/{0}{1}".format(disk["name"], pcount))
+                self.early("pvremove -f $(readlink -f /dev/{0}){1}".format(disk["id"], pcount))
                 offset = lambda x: ((x - 10) + abs(x - 10))/2
-                self.early("dd if=/dev/zero of=/dev/{0} bs=1M count=200 skip={1}".format(disk["name"], offset(begin_size)))
-            self.early("hdparm -z /dev/{0}".format(disk["name"]))
+                self.early("dd if=/dev/zero of=$(readlink -f /dev/{0}) bs=1M count=200 skip={1}".format(disk["id"], offset(begin_size)))
+                self.early("dd if=/dev/zero of=$(readlink -f /dev/{0}) bs=1M count=20".format(disk["id"]))
+            self.early("hdparm -z $(readlink -f /dev/{0})".format(disk["id"]))
         for vg, devs in devices_dict.iteritems():
             self.late("vgremove -f {0}".format(vg))
             self.late("vgcreate -s 32m {0} {1}".format(vg, " ".join(devs)))
@@ -604,6 +674,16 @@ class PreseedPManager(object):
         self.os()
         self.lv()
         self.partitions()
+        self.late("apt-get install -y grub-pc", True)
+        self.late("umount /target/proc")
+        self.late("mount -o bind /proc /target/proc")
+        self.late("umount /target/sys")
+        self.late("mount -o bind /sys /target/sys")
+        self.late("grub-mkconfig", True)
+        self.late("grub-mkdevicemap", True)
+        for disk in [d for d in self.data if d["type"] == "disk"]:
+            self.late("grub-install $(readlink -f /dev/{0})".format(disk["id"]), True)
+        self.late("update-grub", True)
 
     def expose_recipe(self):
         return " \\\n".join(self.recipe())
@@ -621,13 +701,18 @@ class PreseedPManager(object):
         return result.rstrip()
 
     def expose_disks(self):
-        return self.disks[0]
+        return "$(readlink -f {0})".format(self.disks[0])
 
-    def expose_bootdevs(self):
-        bootdevs = []
-        for num, disk in enumerate([d for d in self.data if d["type"] == "disk"]):
-            bootdevs.append("(hd{0}, 0)".format(num))
-        return " ".join(bootdevs)
+    """
+    Please do not remove this commented piece of code. It can be useful for future.
+    """
+    # def expose_bootdevs(self):
+    #     line = (
+    #         "(hd$(($(devlen=$(readlink -f {0} | wc -c); "
+    #         "devletter=$(readlink -f {0} | cut -c $(($devlen - 1))); "
+    #         "printf '%d' \"'$devletter\") - 97)), 0)".format(self.disks[0])
+    #     )
+    #     return "\"{0}\"".format(line)
 
 
 def pm(data):
