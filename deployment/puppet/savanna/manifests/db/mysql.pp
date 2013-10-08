@@ -11,7 +11,7 @@ class savanna::db::mysql(
   mysql::db { $dbname :
     user     => $user,
     password => $password,
-    host     => $::savanna::db::mysql::dbhost,
+    host     => $dbhost,
     charset  => $charset,
     grant    => ['all'],
   }

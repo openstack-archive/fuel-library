@@ -312,10 +312,12 @@ class osnailyfacter::cluster_simple {
 
       if $savanna_hash['enabled'] {
         class { 'savanna' :
-          savanna_enabled     => true,
-          savanna_db_password => $savanna_hash['db_password'],
-          use_neutron         => $::use_quantum,
-          use_floating_ips    => $bool_auto_assign_floating_ip,
+          savanna_enabled       => true,
+          savanna_db_password   => $savanna_hash['db_password'],
+          savanna_db_host       => $controller_node_address,
+          savanna_keystone_host => $controller_node_address,
+          use_neutron           => $::use_quantum,
+          use_floating_ips      => $bool_auto_assign_floating_ip,
         }
       }
 
