@@ -39,6 +39,7 @@
 # [cache_server_port]   local memcached instance port
 # [swift]               (bool) is swift installed
 # [quantum]             (bool) is quantum installed
+# [quantum_config]      (hash) is quantum config hash
 #   The next is an array of arrays, that can be used to add call-out links to the dashboard for other apps.
 #   There is no specific requirement for these apps to be for monitoring, that's just the defacto purpose.
 #   Each app is defined in two parts, the display name, and the URI
@@ -157,14 +158,9 @@ class openstack::controller (
   $cinder_volume_group     = 'cinder-volumes',
   #
   $quantum                 = false,
-  $quantum_user_password   = 'quantum_pass',
-  $quantum_db_password     = 'quantum_pass',
-  $quantum_db_user         = 'quantum',
-  $quantum_db_dbname       = 'quantum',
+  $quantum_config          = {},
   $quantum_network_node    = false,
   $quantum_netnode_on_cnt  = false,
-  $quantum_gre_bind_addr   = undef,
-  $quantum_external_ipinfo = {},
   $segment_range           = '1:4094',
   $tenant_network_type     = 'gre',
   $enabled                 = true,
@@ -229,9 +225,9 @@ class openstack::controller (
       cinder_db_password     => $cinder_db_password,
       cinder_db_dbname       => $cinder_db_dbname,
       quantum                => $quantum,
-      quantum_db_user        => $quantum_db_user,
-      quantum_db_password    => $quantum_db_password,
-      quantum_db_dbname      => $quantum_db_dbname,
+      quantum_db_user        => $quantum_config['database']['username'],
+      quantum_db_password    => $quantum_config['database']['passwd'],
+      quantum_db_dbname      => $quantum_config['database']['dbname'],
       allowed_hosts          => $allowed_hosts,
       enabled                => $enabled,
       galera_cluster_name    => $galera_cluster_name,
@@ -266,8 +262,8 @@ class openstack::controller (
     cinder                => $cinder,
     cinder_user_password  => $cinder_user_password,
     quantum               => $quantum,
+    quantum_config        => $quantum_config,
     bind_host             => $api_bind_address,
-    quantum_user_password => $quantum_user_password,
     enabled               => $enabled,
     package_ensure        => $::openstack_keystone_version,
     use_syslog            => $use_syslog,
@@ -335,14 +331,12 @@ class openstack::controller (
     multi_host              => $multi_host,
     network_config          => $network_config,
     keystone_host           => $service_endpoint,
+    service_endpoint        => $service_endpoint,
     # Quantum
     quantum                 => $quantum,
-    quantum_user_password   => $quantum_user_password,
-    quantum_db_password     => $quantum_db_password,
+    quantum_config          => $quantum_config,
     quantum_network_node    => $quantum_network_node,
     quantum_netnode_on_cnt  => $quantum_netnode_on_cnt,
-    quantum_gre_bind_addr   => $quantum_gre_bind_addr,
-    quantum_external_ipinfo => $quantum_external_ipinfo,
     segment_range           => $segment_range,
     tenant_network_type     => $tenant_network_type,
     # Nova
@@ -410,9 +404,9 @@ class openstack::controller (
         cinder_rate_limits   => $cinder_rate_limits,
         rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
         queue_provider       => $queue_provider,
-      qpid_password        => $qpid_password,
-      qpid_user            => $qpid_user,
-      qpid_nodes           => $qpid_nodes,
+        qpid_password        => $qpid_password,
+        qpid_user            => $qpid_user,
+        qpid_nodes           => $qpid_nodes,
       } # end class
     } else { # defined
       if $manage_volumes {

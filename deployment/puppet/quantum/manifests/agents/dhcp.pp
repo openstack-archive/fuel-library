@@ -1,22 +1,14 @@
 #
 class quantum::agents::dhcp (
-  $package_ensure   = 'present',
-  $enabled          = true,
+  $quantum_config     = {},
   $verbose          = 'False',
   $debug            = 'False',
-  $state_path       = '/var/lib/quantum',
-  $resync_interval  = 10,
   $interface_driver = 'quantum.agent.linux.interface.OVSInterfaceDriver',
   $dhcp_driver      = 'quantum.agent.linux.dhcp.Dnsmasq',
   $dhcp_agent_manager='quantum.agent.dhcp_agent.DhcpAgentWithStateReport',
-  $use_namespaces   = $::quantum_use_namespaces,
-  $root_helper      = 'sudo /usr/bin/quantum-rootwrap /etc/quantum/rootwrap.conf',
+  $state_path       = '/var/lib/quantum',
   $service_provider = 'generic',
-  $auth_url         = 'http://localhost:5000/v2.0',
-  $auth_port        = '5000',
-  $auth_tenant      = 'service',
-  $auth_user        = 'quantum',
-  $auth_password    = 'password') {
+) {
   include 'quantum::params'
 
   if $::operatingsystem == 'Ubuntu' {
@@ -37,8 +29,7 @@ class quantum::agents::dhcp (
     $dhcp_agent_package = 'quantum-dhcp-agent'
 
     package { 'quantum-dhcp-agent':
-      name   => $::quantum::params::dhcp_agent_package,
-      ensure => $package_ensure,
+      name   => $::quantum::params::dhcp_agent_package
     }
   } else {
     $dhcp_agent_package = $::quantum::params::package_name
@@ -69,21 +60,19 @@ class quantum::agents::dhcp (
     'DEFAULT/debug':             value => $debug;
     'DEFAULT/verbose':           value => $verbose;
     'DEFAULT/state_path':        value => $state_path;
-    'DEFAULT/resync_interval':   value => $resync_interval;
     'DEFAULT/interface_driver':  value => $interface_driver;
     'DEFAULT/dhcp_driver':       value => $dhcp_driver;
-    'DEFAULT/use_namespaces':    value => $use_namespaces;
-    'DEFAULT/root_helper':       value => $root_helper;
-    #'DEFAULT/signing_dir':      value => '/var/cache/quantum';
-    'DEFAULT/enable_isolated_metadata': value => false;
-    'DEFAULT/enable_metadata_network':  value => false;
-    'DEFAULT/dhcp_agent_manager':       value => $dhcp_agent_manager;
-  }
-
-  if $enabled {
-    $ensure = 'running'
-  } else {
-    $ensure = 'stopped'
+    'DEFAULT/dhcp_agent_manager':value => $dhcp_agent_manager;
+    'DEFAULT/auth_url':          value => $quantum_config['keystone']['auth_url'];
+    'DEFAULT/admin_user':        value => $quantum_config['keystone']['admin_user'];
+    'DEFAULT/admin_password':    value => $quantum_config['keystone']['admin_password'];
+    'DEFAULT/admin_tenant_name': value => $quantum_config['keystone']['admin_tenant_name'];
+    'DEFAULT/resync_interval':   value => $quantum_config['L3']['resync_interval'];
+    'DEFAULT/use_namespaces':    value => $quantum_config['L3']['use_namespaces'];
+    'DEFAULT/root_helper':       value => $quantum_config['root_helper'];
+    'DEFAULT/signing_dir':       value => $quantum_config['keystone']['signing_dir'];
+    'DEFAULT/enable_isolated_metadata': value => $quantum_config['L3']['dhcp_agent']['enable_isolated_metadata'];
+    'DEFAULT/enable_metadata_network':  value => $quantum_config['L3']['dhcp_agent']['enable_metadata_network'];
   }
 
   Service <| title == 'quantum-server' |> -> Service['quantum-dhcp-service']
@@ -113,10 +102,10 @@ class quantum::agents::dhcp (
       primitive_type  => 'quantum-agent-dhcp',
       #require => File['quantum-agent-dhcp'],
       parameters      => {
-        'os_auth_url' => $auth_url,
-        'tenant'      => $auth_tenant,
-        'username'    => $auth_user,
-        'password'    => $auth_password,
+        'os_auth_url' => $quantum_config['keystone']['auth_url'],
+        'tenant'      => $quantum_config['keystone']['admin_tenant_name'],
+        'username'    => $quantum_config['keystone']['admin_user'],
+        'password'    => $quantum_config['keystone']['admin_password'],
       }
       ,
       operations      => {
@@ -200,8 +189,8 @@ class quantum::agents::dhcp (
     Quantum::Network::Provider_router<||> -> Service<| title=='quantum-dhcp-service' |>
     service { 'quantum-dhcp-service':
       name       => "p_${::quantum::params::dhcp_agent_service}",
-      enable     => $enabled,
-      ensure     => $ensure,
+      enable     => true,
+      ensure     => running,
       hasstatus  => true,
       hasrestart => false,
       provider   => $service_provider,
@@ -214,8 +203,8 @@ class quantum::agents::dhcp (
     File<| title=='quantum-logging.conf' |> ->
     service { 'quantum-dhcp-service':
       name       => $::quantum::params::dhcp_agent_service,
-      enable     => $enabled,
-      ensure     => $ensure,
+      enable     => true,
+      ensure     => running,
       hasstatus  => true,
       hasrestart => true,
       provider   => $::quantum::params::service_provider,
@@ -233,3 +222,5 @@ class quantum::agents::dhcp (
   anchor {'quantum-dhcp-agent-done': }
 
 }
+
+# vim: set ts=2 sw=2 et :

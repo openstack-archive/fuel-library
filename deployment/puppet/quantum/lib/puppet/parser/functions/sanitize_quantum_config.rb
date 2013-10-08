@@ -157,6 +157,7 @@ class MrntQuantum
     {
       :net04_ext => {
         :shared => false,
+        :tenant => 'admin',
         :L2 => {
           :router_ext   => true,
           :network_type => 'flat',
@@ -172,6 +173,7 @@ class MrntQuantum
       },
       :net04 => {
         :shared => false,
+        :tenant => 'admin',
         :L2 => {
           :router_ext   => false,
           :network_type => 'gre', # or vlan

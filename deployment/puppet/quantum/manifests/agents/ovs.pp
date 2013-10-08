@@ -1,23 +1,17 @@
 class quantum::agents::ovs (
-  $package_ensure     = 'present',
-  $enabled            = true,
-  $bridge_uplinks     = ['br-ex:eth2'],
-  $bridge_mappings    = ['physnet1:br-ex'],
-  $integration_bridge = 'br-int',
-  $enable_tunneling   = true,
-  $local_ip           = undef,
-  $tunnel_bridge      = 'br-tun',
-  $service_provider   = 'generic') {
+  $quantum_config     = {},
+  $service_provider   = 'generic'
+  #$bridge_uplinks     = ['br-ex:eth2'],
+  #$bridge_mappings    = ['physnet1:br-ex'],
+  #$integration_bridge = 'br-int',
+  #$enable_tunneling   = true,
+) {
+
   include 'quantum::params'
-
-  if $enable_tunneling and !$local_ip {
-    fail('Local ip for ovs agent must be set when tunneling is enabled')
-  }
-
   include 'quantum::waist_setup'
 
   if defined(Anchor['quantum-plugin-ovs-done']) {
-    # install quantum-ovs-agent at the same host where 
+    # install quantum-ovs-agent at the same host where
     # quantum-server + quantum-ovs-plugin
     Anchor['quantum-plugin-ovs-done'] -> Anchor['quantum-ovs-agent']
 
@@ -48,7 +42,6 @@ class quantum::agents::ovs (
 
     package { 'quantum-plugin-ovs-agent':
       name   => $::quantum::params::ovs_agent_package,
-      ensure => $package_ensure,
     }
   } else {
     $ovs_agent_package = $::quantum::params::ovs_server_package
@@ -59,44 +52,34 @@ class quantum::agents::ovs (
     Package[$ovs_agent_package] -> Quantum_plugin_ovs <| |>
   }
 
-  l23network::l2::bridge { $integration_bridge:
-    external_ids  => "bridge-id=${integration_bridge}",
+  l23network::l2::bridge { $quantum_config['L3']['integration_bridge']:
+    external_ids  => "bridge-id=${quantum_config['L3']['integration_bridge']}",
     ensure        => present,
     skip_existing => true,
   }
 
-  if $enable_tunneling {
-    L23network::L2::Bridge<| |> ->
+  if $quantum_config['L2']['enable_tunneling'] {
+      L23network::L2::Bridge<| |> ->
+          Anchor['quantum-ovs-agent-done']
+      l23network::l2::bridge { $quantum_config['L2']['tunnel_bridge']:
+          external_ids  => "bridge-id=${quantum_config['L2']['tunnel_bridge']}",
+          ensure        => present,
+          skip_existing => true,
+      } ->
       Anchor['quantum-ovs-agent-done']
-    l23network::l2::bridge { $tunnel_bridge:
-      external_ids  => "bridge-id=${tunnel_bridge}",
-      ensure        => present,
-      skip_existing => true,
-    } ->
-    Anchor['quantum-ovs-agent-done']
-    quantum_plugin_ovs { 'OVS/local_ip': value => $local_ip; }
-
+      quantum_plugin_ovs { 'OVS/local_ip': value => $quantum_config['L2']['local_ip']; }
   } else {
-    L23network::L2::Bridge[$integration_bridge] ->
-      Anchor['quantum-ovs-agent-done']
-    quantum::plugins::ovs::bridge { $bridge_mappings: # Do not quote!!! may be array!
-    } ->
-    quantum::plugins::ovs::port { $bridge_uplinks: # Do not quote!!! may be array!
-    } -> 
-    Anchor['quantum-ovs-agent-done']
-  }
-
-  if $enabled {
-    $service_ensure = 'running'
-  } else {
-    $service_ensure = 'stopped'
+      L23network::L2::Bridge[$quantum_config['L3']['integration_bridge']] ->
+        Anchor['quantum-ovs-agent-done']
+      quantum::agents::utils::bridges { $quantum_config['L3']['phys_bridges']: } ->
+        Anchor['quantum-ovs-agent-done']
   }
 
   #Quantum_config <| |> ~> Service['quantum-ovs-agent']
   #Quantum_plugin_ovs <| |> ~> Service['quantum-ovs-agent']
   #Service <| title == 'quantum-server' |> -> Service['quantum-ovs-agent']
 
-    if $service_provider == 'pacemaker' {
+  if $service_provider == 'pacemaker' {
     Quantum_config <| |> -> Cs_shadow['ovs']
     Quantum_plugin_ovs <| |> -> Cs_shadow['ovs']
     L23network::L2::Bridge <| |> -> Cs_shadow['ovs']
@@ -125,23 +108,19 @@ class quantum::agents::ovs (
         'interleave' => 'true',
       },
       parameters      => {
-      }
-      ,
+      },
       operations      => {
         'monitor'  => {
           'interval' => '20',
           'timeout'  => '30'
-        }
-        ,
+        },
         'start'    => {
           'timeout' => '480'
-        }
-        ,
+        },
         'stop'     => {
           'timeout' => '480'
         }
-      }
-      ,
+      },
     }
 
     case $::osfamily {
@@ -156,6 +135,7 @@ class quantum::agents::ovs (
     service { 'quantum-ovs-agent_stopped':
       name       => $::quantum::params::ovs_agent_service,
       enable     => false,
+      ensure     => stopped,
       hasstatus  => false,
       hasrestart => false
     }
@@ -169,17 +149,17 @@ class quantum::agents::ovs (
         returns => [0,""]
       }
     }
-    L23network::L2::Bridge<| |> -> 
+    L23network::L2::Bridge<| |> ->
       Package[$ovs_agent_package] ->
         Service['quantum-ovs-agent_stopped'] ->
           Exec<| title=='quantum-ovs-agent_stopped' |> ->
-            Cs_resource["p_${::quantum::params::ovs_agent_service}"] -> 
+            Cs_resource["p_${::quantum::params::ovs_agent_service}"] ->
               Service['quantum-ovs-agent']
 
     service { 'quantum-ovs-agent':
       name       => "p_${::quantum::params::ovs_agent_service}",
-      enable     => $enabled,
-      ensure     => $service_ensure,
+      enable     => true,
+      ensure     => running,
       hasstatus  => true,
       hasrestart => false,
       provider   => $service_provider,
@@ -188,8 +168,8 @@ class quantum::agents::ovs (
   } else {
     service { 'quantum-ovs-agent':
       name       => $::quantum::params::ovs_agent_service,
-      enable     => $enabled,
-      ensure     => $service_ensure,
+      enable     => true,
+      ensure     => running,
       hasstatus  => true,
       hasrestart => true,
       provider   => $::quantum::params::service_provider,
@@ -201,13 +181,13 @@ class quantum::agents::ovs (
   #todo: This service must be disabled if Quantum-ovs-agent managed by pacemaker
   service { 'quantum-ovs-cleanup':
     name       => 'quantum-ovs-cleanup',
-    enable     => $enabled,
-    ensure     => false,  # !!! Warning !!!
-    hasstatus  => false,  # !!! 'false' is not mistake
-    hasrestart => false,  # !!! cleanup is simple script runnung once at OS boot
+    enable     => true,
+    ensure     => stopped,# !!! Warning !!!
+    hasstatus  => false,  # !!! 'stopped' is not mistake
+    hasrestart => false,  # !!! cleanup is simple script running once at OS boot
   }
 
-  Anchor['quantum-ovs-agent'] -> 
+  Anchor['quantum-ovs-agent'] ->
     Service['quantum-ovs-agent'] ->       # it's not mistate!
       Service['quantum-ovs-cleanup'] ->   # cleanup service after agent.
         Anchor['quantum-ovs-agent-done']
@@ -218,5 +198,4 @@ class quantum::agents::ovs (
   Anchor['quantum-ovs-agent-done'] -> Anchor<| title=='quantum-dhcp-agent' |>
 
 }
-#
-###
+# vim: set ts=2 sw=2 et :

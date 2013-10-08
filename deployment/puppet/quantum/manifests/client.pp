@@ -7,3 +7,5 @@ class quantum::client (
     ensure => $package_ensure
   }
 }
+
+# vim: set ts=2 sw=2 et :

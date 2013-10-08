@@ -27,7 +27,7 @@
 # [enabled] If the service is active (true) or passive (false).
 #   Optional. Defaults to  true
 # [use_syslog] Rather or not service should log to syslog. Optional.
-# [syslog_log_facility] Facility for syslog, if used. Optional. Note: duplicating conf option 
+# [syslog_log_facility] Facility for syslog, if used. Optional. Note: duplicating conf option
 #       wouldn't have been used, but more powerfull rsyslog features managed via conf template instead
 # [syslog_log_level] logging level for non verbose and non debug mode. Optional.
 #
@@ -52,7 +52,6 @@ class openstack::keystone (
   $glance_user_password,
   $nova_user_password,
   $cinder_user_password,
-  $quantum_user_password,
   $public_address,
   $db_type                  = 'mysql',
   $db_user                  = 'keystone',
@@ -72,6 +71,7 @@ class openstack::keystone (
   $cinder_public_address    = false,
   $cinder_internal_address  = false,
   $cinder_admin_address     = false,
+  $quantum_config           = {},
   $quantum_public_address   = false,
   $quantum_internal_address = false,
   $quantum_admin_address    = false,
@@ -228,7 +228,7 @@ class openstack::keystone (
     }
     if $quantum {
       class { 'quantum::keystone::auth':
-        password         => $quantum_user_password,
+        quantum_config   => $quantum_config,
         public_address   => $quantum_public_real,
         admin_address    => $quantum_admin_real,
         internal_address => $quantum_internal_real,
