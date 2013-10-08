@@ -1,306 +1,301 @@
 class osnailyfacter::cluster_ha {
 
-##PARAMETERS DERIVED FROM YAML FILE
+  ##PARAMETERS DERIVED FROM YAML FILE
 
-if $::use_quantum {
-  $novanetwork_params  = {}
-  $quantum_config = sanitize_quantum_config($::fuel_settings, 'quantum_settings')
-} else {
-  $quantum_hash = {}
-  $quantum_params = {}
-  $quantum_config = {}
-  $novanetwork_params  = $::fuel_settings['novanetwork_parameters']
-  $network_size         = $novanetwork_params['network_size']
-  $num_networks         = $novanetwork_params['num_networks']
-  ##$tenant_network_type  = $quantum_params['tenant_network_type']
-  ##$segment_range        = $quantum_params['segment_range']
-  $vlan_start           = $novanetwork_params['vlan_start']
-}
-
-if $cinder_nodes {
-   $cinder_nodes_array   = $::fuel_settings['cinder_nodes']
-}
-else {
-  $cinder_nodes_array = []
-}
-
-# All hash assignment from a dimensional hash must be in the local scope or they will
-#  be undefined (don't move to site.pp)
-
-#These aren't always present.
-if !$::fuel_settings['savanna'] {
-  $savanna_hash={}
-} else {
-  $savanna_hash = $::fuel_settings['savanna']
-}
-
-if !$::fuel_settings['murano'] {
-  $murano_hash = {}
-} else {
-  $murano_hash = $::fuel_settings['murano']
-}
-
-if !$::fuel_settings['heat'] {
-  $heat_hash = {}
-} else {
-  $heat_hash = $::fuel_settings['heat']
-}
-
-$storage_hash         = $::fuel_settings['storage']
-$nova_hash            = $::fuel_settings['nova']
-$mysql_hash           = $::fuel_settings['mysql']
-$rabbit_hash          = $::fuel_settings['rabbit']
-$glance_hash          = $::fuel_settings['glance']
-$keystone_hash        = $::fuel_settings['keystone']
-$swift_hash           = $::fuel_settings['swift']
-$cinder_hash          = $::fuel_settings['cinder']
-$access_hash          = $::fuel_settings['access']
-$nodes_hash           = $::fuel_settings['nodes']
-$mp_hash              = $::fuel_settings['mp']
-$network_manager      = "nova.network.manager.${novanetwork_params['network_manager']}"
-
-if !$rabbit_hash['user'] {
-  $rabbit_hash['user'] = 'nova'
-}
-$rabbit_user = $rabbit_hash['user']
-
-if ! $::use_quantum {
-  $floating_ips_range = $::fuel_settings['floating_network_range']
-}
-$floating_hash = {}
-
-##CALCULATED PARAMETERS
-
-
-##NO NEED TO CHANGE
-
-$node = filter_nodes($nodes_hash,'name',$::hostname)
-if empty($node) {
-  fail("Node $::hostname is not defined in the hash structure")
-}
-
-$vips = { # Do not convert to ARRAY, It can't work in 2.7
-  public_old => {
-    nic    => $::public_int,
-    ip     => $::fuel_settings['public_vip'],
-  },
-  management_old => {
-    nic    => $::internal_int,
-    ip     => $::fuel_settings['management_vip'],
-  },
-}
-
-$vip_keys = keys($vips)
-
-if ($::fuel_settings['cinder']) {
-  if (member($cinder_nodes_array,'all')) {
-    $is_cinder_node = true
-  } elsif (member($cinder_nodes_array,$::hostname)) {
-    $is_cinder_node = true
-  } elsif (member($cinder_nodes_array,$internal_address)) {
-    $is_cinder_node = true
-  } elsif ($node[0]['role'] =~ /controller/ ) {
-    $is_cinder_node = member($cinder_nodes_array,'controller')
+  if $::use_quantum {
+    $novanetwork_params  = {}
+    $quantum_config = sanitize_quantum_config($::fuel_settings, 'quantum_settings')
   } else {
-    $is_cinder_node = member($cinder_nodes_array,$node[0]['role'])
+    $quantum_hash = {}
+    $quantum_params = {}
+    $quantum_config = {}
+    $novanetwork_params  = $::fuel_settings['novanetwork_parameters']
+    $network_size         = $novanetwork_params['network_size']
+    $num_networks         = $novanetwork_params['num_networks']
+    ##$tenant_network_type  = $quantum_params['tenant_network_type']
+    ##$segment_range        = $quantum_params['segment_range']
+    $vlan_start           = $novanetwork_params['vlan_start']
   }
-} else {
-  $is_cinder_node = false
-}
 
-#$quantum_host            = $::fuel_settings['management_vip']
-
-##REFACTORING NEEDED
-
-
-##TODO: simply parse nodes array
-$controllers = merge_arrays(filter_nodes($nodes_hash,'role','primary-controller'), filter_nodes($nodes_hash,'role','controller'))
-$controller_internal_addresses = nodes_to_hash($controllers,'name','internal_address')
-$controller_public_addresses = nodes_to_hash($controllers,'name','public_address')
-$controller_storage_addresses = nodes_to_hash($controllers,'name','storage_address')
-$controller_hostnames = keys($controller_internal_addresses)
-$controller_nodes = sort(values($controller_internal_addresses))
-$controller_node_public  = $::fuel_settings['public_vip']
-$controller_node_address = $::fuel_settings['management_vip']
-$mountpoints = filter_hash($mp_hash,'point')
-$quantum_metadata_proxy_shared_secret = $quantum_params['metadata_proxy_shared_secret']
-
-$quantum_gre_bind_addr = $::internal_address
-
-
-$cinder_iscsi_bind_addr = $::storage_address
-
-# Determine who should get the volume service
-if ($::fuel_settings['role'] == 'cinder' or
-    $storage_hash['volumes_lvm']
-) {
-  $manage_volumes = 'iscsi'
-} elsif ($storage_hash['volumes_ceph']) {
-  $manage_volumes = 'ceph'
-} else {
-  $manage_volumes = false
-}
-
-}
-#Determine who should be the default backend
-
-if ($storage_hash['images_ceph']) {
-  $glance_backend = 'ceph'
-} else {
-  $glance_backend = 'swift'
-}
-
-if ($::use_ceph) {
-  $primary_mons   = $controllers
-  $primary_mon    = $controllers[0]['name']
-  class {'ceph':
-    primary_mon          => $primary_mon,
-    cluster_node_address => $controller_node_public,
-    use_rgw              => $storage_hash['objects_ceph'],
-    use_ssl              => false,
-    glance_backend       => $glance_backend,
+  if $cinder_nodes {
+    $cinder_nodes_array   = $::fuel_settings['cinder_nodes']
   }
-}
-
-#Test to determine if swift should be enabled
-if ($storage_hash['objects_swift'] or
-    ! $storage_hash['images_ceph']
-) {
-  $use_swift = true
-} else {
-  $use_swift = false
-}
-
-if ($use_swift){
-  if !$::fuel_settings['swift_partition'] {
-    $swift_partition = '/var/lib/glance/node'
+  else {
+    $cinder_nodes_array = []
   }
-  $swift_proxies            = $controller_storage_addresses
-  $swift_local_net_ip       = $::storage_address
-  $master_swift_proxy_nodes = filter_nodes($nodes_hash,'role','primary-controller')
-  $master_swift_proxy_ip    = $master_swift_proxy_nodes[0]['internal_address']
-  #$master_hostname         = $master_swift_proxy_nodes[0]['name']
-  $swift_loopback = false
+
+  # All hash assignment from a dimensional hash must be in the local scope or they will
+  #  be undefined (don't move to site.pp)
+
+  #These aren't always present.
+  if !$::fuel_settings['savanna'] {
+    $savanna_hash={}
+  } else {
+    $savanna_hash = $::fuel_settings['savanna']
+  }
+
+  if !$::fuel_settings['murano'] {
+    $murano_hash = {}
+  } else {
+    $murano_hash = $::fuel_settings['murano']
+  }
+
+  if !$::fuel_settings['heat'] {
+    $heat_hash = {}
+  } else {
+    $heat_hash = $::fuel_settings['heat']
+  }
+
+  $storage_hash         = $::fuel_settings['storage']
+  $nova_hash            = $::fuel_settings['nova']
+  $mysql_hash           = $::fuel_settings['mysql']
+  $rabbit_hash          = $::fuel_settings['rabbit']
+  $glance_hash          = $::fuel_settings['glance']
+  $keystone_hash        = $::fuel_settings['keystone']
+  $swift_hash           = $::fuel_settings['swift']
+  $cinder_hash          = $::fuel_settings['cinder']
+  $access_hash          = $::fuel_settings['access']
+  $nodes_hash           = $::fuel_settings['nodes']
+  $mp_hash              = $::fuel_settings['mp']
+  $network_manager      = "nova.network.manager.${novanetwork_params['network_manager']}"
+
+  if !$rabbit_hash['user'] {
+    $rabbit_hash['user'] = 'nova'
+  }
+  $rabbit_user = $rabbit_hash['user']
+
+  if ! $::use_quantum {
+    $floating_ips_range = $::fuel_settings['floating_network_range']
+  }
+  $floating_hash = {}
+
+  ##CALCULATED PARAMETERS
+
+
+  ##NO NEED TO CHANGE
+
+  $node = filter_nodes($nodes_hash,'name',$::hostname)
+  if empty($node) {
+    fail("Node $::hostname is not defined in the hash structure")
+  }
+
+  $vips = { # Do not convert to ARRAY, It can't work in 2.7
+    public_old => {
+      nic    => $::public_int,
+      ip     => $::fuel_settings['public_vip'],
+    },
+    management_old => {
+      nic    => $::internal_int,
+      ip     => $::fuel_settings['management_vip'],
+    },
+  }
+
+  $vip_keys = keys($vips)
+
+  if ($::fuel_settings['cinder']) {
+    if (member($cinder_nodes_array,'all')) {
+      $is_cinder_node = true
+    } elsif (member($cinder_nodes_array,$::hostname)) {
+      $is_cinder_node = true
+    } elsif (member($cinder_nodes_array,$internal_address)) {
+      $is_cinder_node = true
+    } elsif ($node[0]['role'] =~ /controller/ ) {
+      $is_cinder_node = member($cinder_nodes_array,'controller')
+    } else {
+      $is_cinder_node = member($cinder_nodes_array,$node[0]['role'])
+    }
+  } else {
+    $is_cinder_node = false
+  }
+
+  #$quantum_host            = $::fuel_settings['management_vip']
+
+  ##REFACTORING NEEDED
+
+
+  ##TODO: simply parse nodes array
+  $controllers = merge_arrays(filter_nodes($nodes_hash,'role','primary-controller'), filter_nodes($nodes_hash,'role','controller'))
+  $controller_internal_addresses = nodes_to_hash($controllers,'name','internal_address')
+  $controller_public_addresses = nodes_to_hash($controllers,'name','public_address')
+  $controller_storage_addresses = nodes_to_hash($controllers,'name','storage_address')
+  $controller_hostnames = keys($controller_internal_addresses)
+  $controller_nodes = sort(values($controller_internal_addresses))
+  $controller_node_public  = $::fuel_settings['public_vip']
+  $controller_node_address = $::fuel_settings['management_vip']
+  $mountpoints = filter_hash($mp_hash,'point')
+  $quantum_metadata_proxy_shared_secret = $quantum_params['metadata_proxy_shared_secret']
+
+  $quantum_gre_bind_addr = $::internal_address
+
+
+  $cinder_iscsi_bind_addr = $::storage_address
+
+  # Determine who should get the volume service
+  if ($::fuel_settings['role'] == 'cinder' or $storage_hash['volumes_lvm']) {
+    $manage_volumes = 'iscsi'
+  } elsif ($storage_hash['volumes_ceph']) {
+    $manage_volumes = 'ceph'
+  } else {
+    $manage_volumes = false
+  }
+
+  #Determine who should be the default backend
+
+  if ($storage_hash['images_ceph']) {
+    $glance_backend = 'ceph'
+  } else {
+    $glance_backend = 'swift'
+  }
+
+  if ($::use_ceph) {
+    $primary_mons   = $controllers
+    $primary_mon    = $controllers[0]['name']
+
+    class {'ceph':
+      primary_mon          => $primary_mon,
+      cluster_node_address => $controller_node_public,
+      use_rgw              => $storage_hash['objects_ceph'],
+      use_ssl              => false,
+      glance_backend       => $glance_backend,
+    }
+  }
+
+  #Test to determine if swift should be enabled
+  if ($storage_hash['objects_swift'] or !$storage_hash['images_ceph']) {
+    $use_swift = true
+  } else {
+    $use_swift = false
+  }
+
+  if ($use_swift) {
+    if !$::fuel_settings['swift_partition'] {
+      $swift_partition = '/var/lib/glance/node'
+    }
+    $swift_proxies            = $controller_storage_addresses
+    $swift_local_net_ip       = $::storage_address
+    $master_swift_proxy_nodes = filter_nodes($nodes_hash,'role','primary-controller')
+    $master_swift_proxy_ip    = $master_swift_proxy_nodes[0]['internal_address']
+    #$master_hostname         = $master_swift_proxy_nodes[0]['name']
+    $swift_loopback = false
+    if $::fuel_settings['role'] == 'primary-controller' {
+      $primary_proxy = true
+    } else {
+      $primary_proxy = false
+    }
+  }
+
+
+  $network_config = {
+    'vlan_start'     => $vlan_start,
+  }
+
+  if !$::fuel_settings['verbose'] {
+    $verbose = false
+  }
+
+  if !$::fuel_settings['debug'] {
+    $debug = false
+  }
+
   if $::fuel_settings['role'] == 'primary-controller' {
-    $primary_proxy = true
+    $primary_controller = true
   } else {
-    $primary_proxy = false
+    $primary_controller = false
   }
-}
 
+  #HARDCODED PARAMETERS
 
-$network_config = {
-  'vlan_start'     => $vlan_start,
-}
-
-if !$::fuel_settings['verbose']
-{
-  $verbose = false
-}
-
-if !$::fuel_settings['debug']
-{
-  $debug = false
-}
-
-if $::fuel_settings['role'] == 'primary-controller' {
-  $primary_controller = true
-} else {
-  $primary_controller = false
-}
-
-#HARDCODED PARAMETERS
-
-$multi_host              = true
-$quantum_netnode_on_cnt  = true
-$mirror_type = 'external'
-Exec { logoutput => true }
+  $multi_host              = true
+  $quantum_netnode_on_cnt  = true
+  $mirror_type = 'external'
+  Exec { logoutput => true }
 
 
 
 
-class compact_controller (
-  $quantum_network_node = $quantum_netnode_on_cnt
-) {
+  class compact_controller (
+    $quantum_network_node = $quantum_netnode_on_cnt
+  ) {
 
-  class {'osnailyfacter::apache_api_proxy':}
+    class {'osnailyfacter::apache_api_proxy':}
 
-  class { 'openstack::controller_ha':
-    controller_public_addresses   => $controller_public_addresses,
-    controller_internal_addresses => $controller_internal_addresses,
-    internal_address              => $internal_address,
-    internal_interface            => $::internal_int,
-    public_interface              => $::public_int,
-    private_interface             => $::use_quantum ? { true=>false, default=>$::fuel_settings['fixed_interface']},
-    internal_virtual_ip           => $::fuel_settings['management_vip'],
-    public_virtual_ip             => $::fuel_settings['public_vip'],
-    primary_controller            => $primary_controller,
-    floating_range                => $::use_quantum ? { true=>$floating_hash, default=>false},
-    fixed_range                   => $::use_quantum ? { true=>false, default=>$::fuel_settings['fixed_network_range']},
-    multi_host                    => $multi_host,
-    network_manager               => $network_manager,
-    num_networks                  => $num_networks,
-    network_size                  => $network_size,
-    network_config                => $network_config,
-    debug                         => $debug ? { 'true'               => true, true              => true, default => false },
-    verbose                       => $verbose ? { 'true'             => true, true              => true, default => false },
-    queue_provider                => $::queue_provider,
-    qpid_password                 => $rabbit_hash[password],
-    qpid_user                     => $rabbit_hash[user],
-    qpid_nodes                    => [$::fuel_settings['management_vip']],
-    auto_assign_floating_ip       => $::fuel_settings['auto_assign_floating_ip'],
-    mysql_root_password           => $mysql_hash[root_password],
-    admin_email                   => $access_hash[email],
-    admin_user                    => $access_hash[user],
-    admin_password                => $access_hash[password],
-    keystone_db_password          => $keystone_hash[db_password],
-    keystone_admin_token          => $keystone_hash[admin_token],
-    keystone_admin_tenant         => $access_hash[tenant],
-    glance_db_password            => $glance_hash[db_password],
-    glance_user_password          => $glance_hash[user_password],
-    glance_image_cache_max_size   => $glance_hash[image_cache_max_size],
-    nova_db_password              => $nova_hash[db_password],
-    nova_user_password            => $nova_hash[user_password],
-    rabbit_password               => $rabbit_hash[password],
-    rabbit_user                   => $rabbit_hash[user],
-    rabbit_nodes                  => $controller_nodes,
-    memcached_servers             => $controller_nodes,
-    export_resources              => false,
-    glance_backend                => $glance_backend,
-    swift_proxies                 => $swift_proxies,
-    quantum                       => $::use_quantum,
-    #quantum_config                => $quantum_config,
-    quantum_network_node          => $quantum_network_node,
-    quantum_netnode_on_cnt        => $quantum_netnode_on_cnt,
-    cinder                        => true,
-    cinder_user_password          => $cinder_hash[user_password],
-    cinder_iscsi_bind_addr        => $cinder_iscsi_bind_addr,
-    cinder_db_password            => $cinder_hash[db_password],
-    cinder_volume_group           => "cinder",
-    manage_volumes                => $manage_volumes,
-    galera_nodes                  => $controller_nodes,
-    custom_mysql_setup_class      => $custom_mysql_setup_class,
-    mysql_skip_name_resolve       => true,
-    use_syslog                    => true,
-    syslog_log_level              => $syslog_log_level,
-    syslog_log_facility_glance   => $syslog_log_facility_glance,
-    syslog_log_facility_cinder => $syslog_log_facility_cinder,
-    syslog_log_facility_quantum => $syslog_log_facility_quantum,
-    syslog_log_facility_nova => $syslog_log_facility_nova,
-    syslog_log_facility_keystone => $syslog_log_facility_keystone,
-    nova_rate_limits        => $nova_rate_limits,
-    cinder_rate_limits      => $cinder_rate_limits,
-    horizon_use_ssl         => $::fuel_settings['horizon_use_ssl'],
-    use_unicast_corosync    => $::fuel_settings['use_unicast_corosync'],
-    nameservers                   => $::dns_nameservers,
+    class { 'openstack::controller_ha':
+      controller_public_addresses   => $controller_public_addresses,
+      controller_internal_addresses => $controller_internal_addresses,
+      internal_address              => $internal_address,
+      internal_interface            => $::internal_int,
+      public_interface              => $::public_int,
+      private_interface             => $::use_quantum ? { true=>false, default=>$::fuel_settings['fixed_interface']},
+      internal_virtual_ip           => $::fuel_settings['management_vip'],
+      public_virtual_ip             => $::fuel_settings['public_vip'],
+      primary_controller            => $primary_controller,
+      floating_range                => $::use_quantum ? { true=>$floating_hash, default=>false},
+      fixed_range                   => $::use_quantum ? { true=>false, default=>$::fuel_settings['fixed_network_range']},
+      multi_host                    => $multi_host,
+      network_manager               => $network_manager,
+      num_networks                  => $num_networks,
+      network_size                  => $network_size,
+      network_config                => $network_config,
+      debug                         => $debug ? { 'true'               => true, true              => true, default => false },
+      verbose                       => $verbose ? { 'true'             => true, true              => true, default => false },
+      queue_provider                => $::queue_provider,
+      qpid_password                 => $rabbit_hash[password],
+      qpid_user                     => $rabbit_hash[user],
+      qpid_nodes                    => [$::fuel_settings['management_vip']],
+      auto_assign_floating_ip       => $::fuel_settings['auto_assign_floating_ip'],
+      mysql_root_password           => $mysql_hash[root_password],
+      admin_email                   => $access_hash[email],
+      admin_user                    => $access_hash[user],
+      admin_password                => $access_hash[password],
+      keystone_db_password          => $keystone_hash[db_password],
+      keystone_admin_token          => $keystone_hash[admin_token],
+      keystone_admin_tenant         => $access_hash[tenant],
+      glance_db_password            => $glance_hash[db_password],
+      glance_user_password          => $glance_hash[user_password],
+      glance_image_cache_max_size   => $glance_hash[image_cache_max_size],
+      nova_db_password              => $nova_hash[db_password],
+      nova_user_password            => $nova_hash[user_password],
+      rabbit_password               => $rabbit_hash[password],
+      rabbit_user                   => $rabbit_hash[user],
+      rabbit_nodes                  => $controller_nodes,
+      memcached_servers             => $controller_nodes,
+      export_resources              => false,
+      glance_backend                => $glance_backend,
+      swift_proxies                 => $swift_proxies,
+      quantum                       => $::use_quantum,
+      #quantum_config                => $quantum_config,
+      quantum_network_node          => $quantum_network_node,
+      quantum_netnode_on_cnt        => $quantum_netnode_on_cnt,
+      cinder                        => true,
+      cinder_user_password          => $cinder_hash[user_password],
+      cinder_iscsi_bind_addr        => $cinder_iscsi_bind_addr,
+      cinder_db_password            => $cinder_hash[db_password],
+      cinder_volume_group           => "cinder",
+      manage_volumes                => $manage_volumes,
+      galera_nodes                  => $controller_nodes,
+      custom_mysql_setup_class      => $custom_mysql_setup_class,
+      mysql_skip_name_resolve       => true,
+      use_syslog                    => true,
+      syslog_log_level              => $syslog_log_level,
+      syslog_log_facility_glance   => $syslog_log_facility_glance,
+      syslog_log_facility_cinder => $syslog_log_facility_cinder,
+      syslog_log_facility_quantum => $syslog_log_facility_quantum,
+      syslog_log_facility_nova => $syslog_log_facility_nova,
+      syslog_log_facility_keystone => $syslog_log_facility_keystone,
+      nova_rate_limits        => $nova_rate_limits,
+      cinder_rate_limits      => $cinder_rate_limits,
+      horizon_use_ssl         => $::fuel_settings['horizon_use_ssl'],
+      use_unicast_corosync    => $::fuel_settings['use_unicast_corosync'],
+      nameservers                   => $::dns_nameservers,
+    }
   }
 
 
-class virtual_ips () {
-  cluster::virtual_ips { $vip_keys:
-    vips => $vips,
+  class virtual_ips () {
+    cluster::virtual_ips { $vip_keys:
+      vips => $vips,
+    }
   }
-}
 
 
 
@@ -364,7 +359,7 @@ class virtual_ips () {
       nova_config { 'DEFAULT/use_cow_images':            value => $::fuel_settings['use_cow_images'] }
       nova_config { 'DEFAULT/compute_scheduler_driver':  value => $::fuel_settings['compute_scheduler_driver'] }
 
-#TODO: fix this so it dosn't break ceph
+      #TODO: fix this so it dosn't break ceph
       if !($::use_ceph) {
         if $::hostname == $::fuel_settings['last_controller'] {
           class { 'openstack::img::cirros':
@@ -428,7 +423,7 @@ class virtual_ips () {
 
       #ADDONS END
 
-     }
+    } #CONTROLLER ENDS
 
     "compute" : {
       include osnailyfacter::test_compute
@@ -487,11 +482,13 @@ class virtual_ips () {
 #        log_auth_local => true,
 #        rservers => $rservers,
 #      }
+
       #TODO: PUT this configuration stanza into nova class
       nova_config { 'DEFAULT/start_guests_on_host_boot': value => $::fuel_settings['start_guests_on_host_boot'] }
       nova_config { 'DEFAULT/use_cow_images': value => $::fuel_settings['use_cow_images'] }
       nova_config { 'DEFAULT/compute_scheduler_driver': value => $::fuel_settings['compute_scheduler_driver'] }
-    }
+
+    } # COMPUTE ENDS
 
     "cinder" : {
       include keystone::python
@@ -531,11 +528,14 @@ class virtual_ips () {
 #        log_auth_local => true,
 #        rservers => $rservers,
 #      }
-    }
+    } # CINDER ENDS
+    
     "ceph-osd" : {
       #Class Ceph is already defined so it will do it's thing.
       notify {"ceph_osd: ${::ceph::osd_devices}": }
       notify {"osd_devices:  ${::osd_devices_list}": }
-    }
-  }
-}
+    } # CEPH-OSD ENDS
+
+  } # ROLE CASE ENDS
+
+} # CLUSTER_HA ENDS
