@@ -17,6 +17,13 @@ define l23network::l3::defaultroute (
               file  => '/etc/sysconfig/network',
               key   => 'GATEWAY',
               value => $gateway,
+          } ->
+          # FIXME: we should not nuke the system with 'service network restart'...
+          # FIXME: but we should ensure default route will be created somehow
+          exec {'Add default route':
+              path    => '/bin:/usr/bin:/sbin:/usr/sbin',
+              command => "route add default gw ${gateway} || true",
+              unless  => "netstat -r | grep -q 'default.*${gateway}'",
           }
         }
     }
