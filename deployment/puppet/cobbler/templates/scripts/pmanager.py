@@ -583,6 +583,10 @@ class PreseedPManager(object):
     def lv(self):
         devices_dict = {}
 
+        self.early("vgscan")
+        self.early("for v in $(vgs -a --noheadings --nosuffix --ignorelockingfailure "
+                   "2>/dev/null | sed 's/^\([ ]*\)\([^ ]\+\)\(.*\)/\\2/g'); do "
+                   "vgreduce --removemissing $v; vgremove -f $v; done")
         for disk in [d for d in self.data if d["type"] == "disk"]:
             for pv in [p for p in disk["volumes"] if p["type"] == "pv" and p["vg"] != "os"]:
                 if pv["size"] <= 0:
@@ -629,12 +633,13 @@ class PreseedPManager(object):
                 self.late("hdparm -z $(readlink -f /dev/{0})".format(disk["id"]))
                 self.late("pvcreate $(readlink -f /dev/{0}){1}".format(disk["id"], pcount))
                 if not devices_dict.get(pv["vg"]):
-                    self.early("vgremove -f {0}".format(pv["vg"]))
+                    # self.early("vgreduce --removemissing {0}".format(pv["vg"]))
+                    # self.early("vgremove -f {0}".format(pv["vg"]))
                     devices_dict[pv["vg"]] = []
                 devices_dict[pv["vg"]].append(
                     "$(readlink -f /dev/{0}){1}".format(disk["id"], pcount))
 
-                self.early("pvremove -f $(readlink -f /dev/{0}){1}".format(disk["id"], pcount))
+                self.early("pvremove -ff $(readlink -f /dev/{0}){1}".format(disk["id"], pcount))
                 offset = lambda x: ((x - 10) + abs(x - 10))/2
                 self.early("dd if=/dev/zero of=$(readlink -f /dev/{0}) bs=1M count=200 skip={1}".format(disk["id"], offset(begin_size)))
                 self.early("dd if=/dev/zero of=$(readlink -f /dev/{0}) bs=1M count=20".format(disk["id"]))
