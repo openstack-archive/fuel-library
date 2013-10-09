@@ -112,6 +112,13 @@ class murano (
     collect_static_script => '/usr/share/openstack-dashboard/manage.py',
   }
 
-  Class['mysql::server'] -> Class['murano::db::mysql'] -> Class['murano::conductor'] -> Class['murano::api'] -> Class['murano::dashboard']
+  class { 'murano::rabbitmq' :
+    rabbit_user        => $murano_rabbit_login,
+    rabbit_password    => $murano_rabbit_password,
+    rabbit_vhost       => $murano_rabbit_virtual_host,
+    rabbitmq_main_port => $murano_rabbit_port,
+  }
+
+  Class['mysql::server'] -> Class['murano::db::mysql'] -> Class['murano::rabbitmq'] -> Class['murano::conductor'] -> Class['murano::api'] -> Class['murano::dashboard']
 
 }
