@@ -150,8 +150,8 @@ class osnailyfacter::cluster_ha {
     }
   }
 
-  #Test to determine if swift should be enabled
-  if ($storage_hash['objects_swift'] or !$storage_hash['images_ceph']) {
+  # Use Swift if it isn't replaced by Ceph for BOTH images and objects
+  if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) {
     $use_swift = true
   } else {
     $use_swift = false
@@ -331,13 +331,11 @@ class osnailyfacter::cluster_ha {
           debug                   => $debug ? { 'true' => true, true => true, default=> false },
           verbose                 => $verbose ? { 'true' => true, true => true, default=> false },
         }
-        if ($storage_hash['objects_swift'] or !$storage_hash['images_ceph']) {
-          class { 'swift::keystone::auth':
-            password         => $swift_hash[user_password],
-            public_address   => $::fuel_settings['public_vip'],
-            internal_address => $::fuel_settings['management_vip'],
-            admin_address    => $::fuel_settings['management_vip'],
-          }
+        class { 'swift::keystone::auth':
+          password         => $swift_hash[user_password],
+          public_address   => $::fuel_settings['public_vip'],
+          internal_address => $::fuel_settings['management_vip'],
+          admin_address    => $::fuel_settings['management_vip'],
         }
       }
       #TODO: PUT this configuration stanza into nova class
