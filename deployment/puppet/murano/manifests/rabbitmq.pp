@@ -8,7 +8,7 @@ class murano::rabbitmq(
   $rabbit_user           = 'murano',
   $rabbit_password       = 'murano',
   $rabbit_vhost          = '/',
-  $rabbitmq_main_port    = '5673',
+  $rabbitmq_main_port    = '55572',
   $rabbitmq_cluster_port = '41056',
   $rabbitmq_node_name    = 'murano@localhost',
 ){

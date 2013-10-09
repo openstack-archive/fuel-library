@@ -9,7 +9,7 @@ class murano (
   $murano_heat_auth_url                 = 'http://127.0.0.1:5000/v2.0',
   # rabbit
   $murano_rabbit_host                   = '127.0.0.1',
-  $murano_rabbit_port                   = '5673',
+  $murano_rabbit_port                   = '55572',
   $murano_rabbit_ssl                    = 'False',
   $murano_rabbit_ca_certs               = '',
   $murano_rabbit_login                  = 'murano',
