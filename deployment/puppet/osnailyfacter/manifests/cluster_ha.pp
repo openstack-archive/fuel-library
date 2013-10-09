@@ -121,7 +121,6 @@ class osnailyfacter::cluster_ha {
   $controller_node_public  = $::fuel_settings['public_vip']
   $controller_node_address = $::fuel_settings['management_vip']
   $mountpoints = filter_hash($mp_hash,'point')
-  $quantum_metadata_proxy_shared_secret = $quantum_config['metadata']['metadata_proxy_shared_secret']
 
   $quantum_gre_bind_addr = $::internal_address
 
