@@ -7,10 +7,10 @@ class osnailyfacter::cluster_simple {
     $quantum_hash = {}
     $quantum_params = {}
     $quantum_config = {}
-    $novanetwork_params  = $::fuel_settings['novanetwork_parameters']
-    $network_size         = $novanetwork_params['network_size']
-    $num_networks         = $novanetwork_params['num_networks']
-    $vlan_start           = $novanetwork_params['vlan_start']
+    $novanetwork_params = $::fuel_settings['novanetwork_parameters']
+    $network_config = {
+      'vlan_start'     => $novanetwork_params['vlan_start'],
+    }
   }
 
   if $fuel_settings['cinder_nodes'] {
@@ -52,10 +52,7 @@ class osnailyfacter::cluster_simple {
   $cinder_hash          = $::fuel_settings['cinder']
   $access_hash          = $::fuel_settings['access']
   $nodes_hash           = $::fuel_settings['nodes']
-  $vlan_start           = $novanetwork_params['vlan_start']
   $network_manager      = "nova.network.manager.${novanetwork_params['network_manager']}"
-  $network_size         = $novanetwork_params['network_size']
-  $num_networks         = $novanetwork_params['num_networks']
 
   if !$rabbit_hash[user] {
     $rabbit_hash[user] = 'nova'
@@ -90,9 +87,6 @@ class osnailyfacter::cluster_simple {
   # do not edit the below line
   validate_re($::queue_provider,  'rabbitmq|qpid')
 
-  $network_config = {
-    'vlan_start'     => $vlan_start,
-  }
   $sql_connection = "mysql://nova:${nova_hash[db_password]}@${controller_node_address}/nova"
   $mirror_type = 'external'
   $multi_host = true
@@ -152,9 +146,9 @@ class osnailyfacter::cluster_simple {
         fixed_range             => $::use_quantum ? { true=>false, default=>$::fuel_settings['fixed_network_range'] },
         multi_host              => $multi_host,
         network_manager         => $network_manager,
-        num_networks            => $num_networks,
-        network_size            => $network_size,
-        network_config          => $network_config,
+        num_networks            => $::use_quantum ? { true=>false, default=>$novanetwork_params['num_networks'] },
+        network_size            => $::use_quantum ? { true=>false, default=>$novanetwork_params['network_size'] },
+        network_config          => $::use_quantum ? { true=>false, default=>$network_config },
         debug                   => $debug ? { 'true'=>true, true=>true, default=>false },
         verbose                 => $verbose ? { 'true'=>true, true=>true, default=>false },
         auto_assign_floating_ip => $::fuel_settings['auto_assign_floating_ip'],
@@ -319,7 +313,7 @@ class osnailyfacter::cluster_simple {
         libvirt_type           => $::fuel_settings['libvirt_type'],
         fixed_range            => $::fuel_settings['fixed_network_range'],
         network_manager        => $network_manager,
-        network_config         => $network_config,
+        network_config         => $::use_quantum ? { true=>false, default=>$network_config },
         multi_host             => $multi_host,
         sql_connection         => $sql_connection,
         nova_user_password     => $nova_hash[user_password],
