@@ -233,8 +233,8 @@ class osnailyfacter::cluster_ha {
       num_networks                  => $num_networks,
       network_size                  => $network_size,
       network_config                => $network_config,
-      debug                         => $debug ? { 'true'               => true, true              => true, default => false },
-      verbose                       => $verbose ? { 'true'             => true, true              => true, default => false },
+      debug                         => $debug ? { 'true'=>true, true=>true, default=>false },
+      verbose                       => $verbose ? { 'true'=>true, true=>true, default=>false },
       queue_provider                => $::queue_provider,
       qpid_password                 => $rabbit_hash[password],
       qpid_user                     => $rabbit_hash[user],
@@ -274,15 +274,15 @@ class osnailyfacter::cluster_ha {
       mysql_skip_name_resolve       => true,
       use_syslog                    => true,
       syslog_log_level              => $syslog_log_level,
-      syslog_log_facility_glance   => $syslog_log_facility_glance,
-      syslog_log_facility_cinder => $syslog_log_facility_cinder,
-      syslog_log_facility_quantum => $syslog_log_facility_quantum,
-      syslog_log_facility_nova => $syslog_log_facility_nova,
-      syslog_log_facility_keystone => $syslog_log_facility_keystone,
-      nova_rate_limits        => $nova_rate_limits,
-      cinder_rate_limits      => $cinder_rate_limits,
-      horizon_use_ssl         => $::fuel_settings['horizon_use_ssl'],
-      use_unicast_corosync    => $::fuel_settings['use_unicast_corosync'],
+      syslog_log_facility_glance    => $syslog_log_facility_glance,
+      syslog_log_facility_cinder    => $syslog_log_facility_cinder,
+      syslog_log_facility_quantum   => $syslog_log_facility_quantum,
+      syslog_log_facility_nova      => $syslog_log_facility_nova,
+      syslog_log_facility_keystone  => $syslog_log_facility_keystone,
+      nova_rate_limits              => $nova_rate_limits,
+      cinder_rate_limits            => $cinder_rate_limits,
+      horizon_use_ssl               => $::fuel_settings['horizon_use_ssl'],
+      use_unicast_corosync          => $::fuel_settings['use_unicast_corosync'],
       nameservers                   => $::dns_nameservers,
     }
   }
@@ -538,3 +538,4 @@ class osnailyfacter::cluster_ha {
   } # ROLE CASE ENDS
 
 } # CLUSTER_HA ENDS
+# vim: set ts=2 sw=2 et :
