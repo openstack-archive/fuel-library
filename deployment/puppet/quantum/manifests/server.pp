@@ -14,10 +14,10 @@ class quantum::server (
 
   if $::operatingsystem == 'Ubuntu' {
     if $service_provider == 'pacemaker' {
-       file { "/etc/init/quantum-metadata-agent.override":
-         replace => "no",
-         ensure  => "present",
-         content => "manual",
+       file { '/etc/init/quantum-metadata-agent.override':
+         replace => 'no',
+         ensure  => 'present',
+         content => 'manual',
          mode    => 644,
          before  => Package['quantum-server'],
        }
@@ -39,7 +39,7 @@ class quantum::server (
   Package[$server_package] -> Quantum_api_config<||>
 
   if defined(Anchor['quantum-plugin-ovs']) {
-    Package["$server_package"] -> Anchor['quantum-plugin-ovs']
+    Package[$server_package] -> Anchor['quantum-plugin-ovs']
   }
 
   Quantum_config<||> ~> Service['quantum-server']
@@ -84,11 +84,15 @@ class quantum::server (
     class { 'quantum::network::predefined_netwoks':
       quantum_config => $quantum_config,
     } -> Anchor['quantum-server-done']
-    Service['quantum-server'] -> Class['quantum::network::predefined_netwoks']
+
+    Service['quantum-server'] ->
+    Class['quantum::network::predefined_netwoks']
   }
 
   anchor {'quantum-server-done':}
-  Anchor['quantum-server'] -> Anchor['quantum-server-done']
+
+  Anchor['quantum-server'] ->
+  Anchor['quantum-server-done']
 }
 
 # vim: set ts=2 sw=2 et :
