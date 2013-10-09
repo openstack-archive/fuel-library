@@ -680,8 +680,10 @@ class PreseedPManager(object):
         self.lv()
         self.partitions()
         self.late("apt-get install -y grub-pc", True)
-        self.late("umount /target/proc && mount -o bind /proc /target/proc")
-        self.late("umount /target/sys && mount -o bind /sys /target/sys")
+        self.late("umount /target/proc")
+        self.late("mount -o bind /proc /target/proc")
+        self.late("umount /target/sys")
+        self.late("mount -o bind /sys /target/sys")
         self.late("grub-mkconfig", True)
         self.late("grub-mkdevicemap", True)
         for disk in [d for d in self.data if d["type"] == "disk"]:
