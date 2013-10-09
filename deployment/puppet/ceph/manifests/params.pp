@@ -44,7 +44,7 @@ class ceph::params {
       $service_radosgw            = 'radosgw'
       $package_radosgw            = 'radosgw'
       $package_fastcgi            = 'libapache2-mod-fastcgi'
-      $package_modssl             = ''
+      $package_modssl             = undef
       $dir_httpd_conf             = '/etc/httpd/conf/'
       $dir_httpd_sites            = '/etc/apache2/sites-available/'
       $dir_httpd_ssl              = '/etc/apache2/ssl/'

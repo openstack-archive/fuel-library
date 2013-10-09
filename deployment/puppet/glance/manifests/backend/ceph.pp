@@ -21,7 +21,7 @@ class glance::backend::ceph(
     'DEFAULT/rbd_store_user':          value => $rbd_store_user;
     'DEFAULT/rbd_store_pool':          value => $rbd_store_pool;
     'DEFAULT/show_image_direct_url':   value => $show_image_direct_url;
-  }~> Service[$::ceph::params::service_glance_api]
+  }~> Service['glance-api']
 
   exec {'Create Glance Ceph client ACL':
     # DO NOT SPLIT ceph auth command lines! See http://tracker.ceph.com/issues/3279
@@ -35,7 +35,7 @@ class glance::backend::ceph(
     before  => File[$glance_keyring],
     creates => $glance_keyring,
     require => Exec['Create Glance Ceph client ACL'],
-    notify  => Service["${::ceph::params::service_glance_api}"],
+    notify  => Service['glance-api'],
     returns => 0,
   }
 
