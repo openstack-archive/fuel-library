@@ -242,7 +242,7 @@ node default {
       class {'os_common':}
       }
     "multinode": {
-      include osnailyfacter::cluster_simple
+      include "osnailyfacter::cluster_simple"
       class {'os_common':}
       }
     /^(ha|ha_compact)$/: {
