@@ -6,8 +6,6 @@ class osnailyfacter::cluster_ha {
     $novanetwork_params  = {}
     $quantum_config = sanitize_quantum_config($::fuel_settings, 'quantum_settings')
   } else {
-    $quantum_hash = {}
-    $quantum_params = {}
     $quantum_config = {}
     $novanetwork_params  = $::fuel_settings['novanetwork_parameters']
     $network_size         = $novanetwork_params['network_size']
@@ -106,8 +104,6 @@ class osnailyfacter::cluster_ha {
     $is_cinder_node = false
   }
 
-  #$quantum_host            = $::fuel_settings['management_vip']
-
   ##REFACTORING NEEDED
 
 
@@ -121,9 +117,6 @@ class osnailyfacter::cluster_ha {
   $controller_node_public  = $::fuel_settings['public_vip']
   $controller_node_address = $::fuel_settings['management_vip']
   $mountpoints = filter_hash($mp_hash,'point')
-
-  $quantum_gre_bind_addr = $::internal_address
-
 
   $cinder_iscsi_bind_addr = $::storage_address
 
@@ -207,9 +200,6 @@ class osnailyfacter::cluster_ha {
   $mirror_type = 'external'
   Exec { logoutput => true }
 
-
-
-
   class compact_controller (
     $quantum_network_node = $quantum_netnode_on_cnt
   ) {
@@ -220,7 +210,6 @@ class osnailyfacter::cluster_ha {
       controller_public_addresses   => $controller_public_addresses,
       controller_internal_addresses => $controller_internal_addresses,
       internal_address              => $internal_address,
-      #internal_interface            => $::internal_int,
       public_interface              => $::public_int,
       private_interface             => $::use_quantum ? { true=>false, default=>$::fuel_settings['fixed_interface']},
       internal_virtual_ip           => $::fuel_settings['management_vip'],
@@ -233,8 +222,8 @@ class osnailyfacter::cluster_ha {
       num_networks                  => $num_networks,
       network_size                  => $network_size,
       network_config                => $network_config,
-      debug                         => $debug ? { 'true'               => true, true              => true, default => false },
-      verbose                       => $verbose ? { 'true'             => true, true              => true, default => false },
+      debug                         => $debug ? { 'true'=>true, true=>true, default=>false },
+      verbose                       => $verbose ? { 'true'=>true, true=>true, default=>false },
       queue_provider                => $::queue_provider,
       qpid_password                 => $rabbit_hash[password],
       qpid_user                     => $rabbit_hash[user],
@@ -261,8 +250,8 @@ class osnailyfacter::cluster_ha {
       swift_proxies                 => $swift_proxies,
       quantum                       => $::use_quantum,
       quantum_config                => $quantum_config,
-      quantum_network_node          => $quantum_network_node,
-      quantum_netnode_on_cnt        => $quantum_netnode_on_cnt,
+      quantum_network_node          => $::use_quantum,
+      quantum_netnode_on_cnt        => $::use_quantum,
       cinder                        => true,
       cinder_user_password          => $cinder_hash[user_password],
       cinder_iscsi_bind_addr        => $cinder_iscsi_bind_addr,
@@ -274,15 +263,15 @@ class osnailyfacter::cluster_ha {
       mysql_skip_name_resolve       => true,
       use_syslog                    => true,
       syslog_log_level              => $syslog_log_level,
-      syslog_log_facility_glance   => $syslog_log_facility_glance,
-      syslog_log_facility_cinder => $syslog_log_facility_cinder,
-      syslog_log_facility_quantum => $syslog_log_facility_quantum,
-      syslog_log_facility_nova => $syslog_log_facility_nova,
-      syslog_log_facility_keystone => $syslog_log_facility_keystone,
-      nova_rate_limits        => $nova_rate_limits,
-      cinder_rate_limits      => $cinder_rate_limits,
-      horizon_use_ssl         => $::fuel_settings['horizon_use_ssl'],
-      use_unicast_corosync    => $::fuel_settings['use_unicast_corosync'],
+      syslog_log_facility_glance    => $syslog_log_facility_glance,
+      syslog_log_facility_cinder    => $syslog_log_facility_cinder,
+      syslog_log_facility_quantum   => $syslog_log_facility_quantum,
+      syslog_log_facility_nova      => $syslog_log_facility_nova,
+      syslog_log_facility_keystone  => $syslog_log_facility_keystone,
+      nova_rate_limits              => $nova_rate_limits,
+      cinder_rate_limits            => $cinder_rate_limits,
+      horizon_use_ssl               => $::fuel_settings['horizon_use_ssl'],
+      use_unicast_corosync          => $::fuel_settings['use_unicast_corosync'],
       nameservers                   => $::dns_nameservers,
     }
   }
@@ -538,3 +527,4 @@ class osnailyfacter::cluster_ha {
   } # ROLE CASE ENDS
 
 } # CLUSTER_HA ENDS
+# vim: set ts=2 sw=2 et :
