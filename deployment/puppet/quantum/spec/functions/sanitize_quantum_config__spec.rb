@@ -36,6 +36,9 @@ class QuantumConfig
     #   },
     # }
     @def_config = {
+      'rabbit' => {
+        'password' => 'nova'
+      },
       'quantum_settings' => {
         'amqp' => {
           'provider' => "rabbitmq",
