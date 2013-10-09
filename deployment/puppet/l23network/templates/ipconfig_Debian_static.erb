@@ -13,6 +13,7 @@ bond-mode <%= @bond_mode %><% if @bond_miimon %>
 bond-miimon <%= @bond_miimon %><% end %><% if @bond_lacp_rate %>
 bond-lacp-rate <%= @bond_lacp_rate %><% end %>
 <% end %>
+pre-up route del default <%= /^(\w+\d+)\.(\d+)/.match(interface)[1] rescue /^(\w+\d+)/.match(interface)[1] rescue "nullface".to_s %> || true
 <%- if @ipaddr_aliases -%><%- @ipaddr_aliases.each do |addr| -%>
 post-up ip addr add <%= addr %> dev <%= interface %>
 pre-down ip addr del <%= addr %> dev <%= interface %>

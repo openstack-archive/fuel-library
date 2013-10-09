@@ -1,3 +1,4 @@
 auto <%= interface %>
 iface <%= interface %> inet manual
 bond-master <%= @bond_master %>
+pre-up route del default <%= /^(\w+\d+)\.(\d+)/.match(interface)[1] rescue /^(\w+\d+)/.match(interface)[1] rescue "nullface".to_s %> || true
