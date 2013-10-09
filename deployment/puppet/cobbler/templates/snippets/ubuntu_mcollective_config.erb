@@ -348,7 +348,7 @@ end
 , "/usr/share/mcollective/plugins/mcollective/agent/puppetd.rb", source_method='content', mode="0600") ;\
 in-target sed -i 's/msg_age = Time.now.utc.to_i - msgtime/msg_age = 0 #Time.now.utc.to_i - msgtime/g' /usr/lib/ruby/1.8/mcollective/message.rb; \
 #end if
-#if $str($getVar('mco_enable', '')) == "1"
+#if $str($getVar('mco_enable', '')) == "0"
 in-target /usr/sbin/invoke-rc.d mcollective stop; \
 in-target /usr/sbin/update-rc.d -f mcollective remove \
 #else
