@@ -11,6 +11,7 @@ class ceph::radosgw (
   $keyring_path     = '/etc/ceph/keyring.radosgw.gateway',
   $httpd_ssl        = $::ceph::params::dir_httpd_ssl,
   $radosgw_auth_key = 'client.radosgw.gateway',
+  $rgw_user         = $::ceph::params::user_httpd,
 
   # RadosGW settings
   $rgw_host                         = $::ceph::rgw_host,
@@ -18,7 +19,6 @@ class ceph::radosgw (
   $rgw_keyring_path                 = $::ceph::rgw_keyring_path,
   $rgw_socket_path                  = $::ceph::rgw_socket_path,
   $rgw_log_file                     = $::ceph::rgw_log_file,
-  $rgw_user                         = $::ceph::rgw_user,
   $rgw_keystone_url                 = $::ceph::rgw_keystone_url,
   $rgw_keystone_admin_token         = $::ceph::rgw_keystone_admin_token,
   $rgw_keystone_token_cache_size    = $::ceph::rgw_keystone_token_cache_size,
@@ -91,6 +91,12 @@ class ceph::radosgw (
 #    notify  => Service['httpd'],
 #    require => Package[$::ceph::params::package_httpd],
 #  }
+
+  file {$rgw_log_file:
+    ensure => present,
+    mode   => '0755'
+  }
+
   file {[$::ceph::params::dir_httpd_ssl,
          "${::ceph::rgw_data}/ceph-radosgw.gateway",
          $::ceph::rgw_data,
@@ -145,7 +151,8 @@ class ceph::radosgw (
        $::ceph::params::dir_httpd_ssl,
        "${::ceph::rgw_data}/ceph-radosgw.gateway",
        $::ceph::rgw_data,
-       $dir_httpd_root,]] ->
+       $dir_httpd_root,
+       $rgw_log_file,]] ->
   Exec["ceph-create-radosgw-keyring-on ${name}"] ->
   File[$keyring_path] ->
   Exec["ceph-generate-key-on ${name}"] ->
