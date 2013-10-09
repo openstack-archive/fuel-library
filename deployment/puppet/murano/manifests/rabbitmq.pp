@@ -11,6 +11,7 @@ class murano::rabbitmq(
   $rabbitmq_main_port    = '55572',
   $rabbitmq_cluster_port = '41056',
   $rabbitmq_node_name    = 'murano@localhost',
+  $rabbitmq_service_name = 'rabbitmq-server-murano',
 ){
 
   if $::osfamily != 'RedHat' {
