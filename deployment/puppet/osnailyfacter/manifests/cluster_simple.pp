@@ -56,21 +56,11 @@ class osnailyfacter::cluster_simple {
   $network_manager      = "nova.network.manager.${novanetwork_params['network_manager']}"
   $network_size         = $novanetwork_params['network_size']
   $num_networks         = $novanetwork_params['num_networks']
-  $tenant_network_type  = $quantum_params['tenant_network_type']
-  $segment_range        = $quantum_params['segment_range']
 
   if !$rabbit_hash[user] {
     $rabbit_hash[user] = 'nova'
   }
   $rabbit_user          = $rabbit_hash['user']
-
-
-  if $::use_quantum {
-     $floating_hash = $::fuel_settings['floating_network_range']
-  } else {
-    $floating_hash = {}
-    $floating_ips_range = $::fuel_settings['floating_network_range']
-  }
 
   $controller = filter_nodes($nodes_hash,'role','controller')
 
@@ -107,11 +97,6 @@ class osnailyfacter::cluster_simple {
   $mirror_type = 'external'
   $multi_host = true
   Exec { logoutput => true }
-
-  $quantum_host            = $controller_node_address
-  $quantum_sql_connection  = "mysql://${quantum_db_user}:${quantum_db_password}@${quantum_host}/${quantum_db_dbname}"
-  $quantum_metadata_proxy_shared_secret = $quantum_params['metadata_proxy_shared_secret']
-  $quantum_gre_bind_addr = $::internal_address
 
   if !$::fuel_settings['verbose'] {
    $verbose = false
@@ -161,17 +146,17 @@ class osnailyfacter::cluster_simple {
         admin_address           => $controller_node_address,
         public_address          => $controller_node_public,
         public_interface        => $::public_int,
-        private_interface       => $::fuel_settings['fixed_interface'],
+        private_interface       => $::use_quantum ? { true=>false, default=>$::fuel_settings['fixed_interface']},
         internal_address        => $controller_node_address,
-        floating_range          => $::use_quantum ? { 'true' =>$floating_hash, default=>false},
-        fixed_range             => $::fuel_settings['fixed_network_range'],
+        floating_range          => false, #todo: remove as not needed ???
+        fixed_range             => $::use_quantum ? { true=>false, default=>$::fuel_settings['fixed_network_range'] },
         multi_host              => $multi_host,
         network_manager         => $network_manager,
         num_networks            => $num_networks,
         network_size            => $network_size,
         network_config          => $network_config,
-        debug                   => $debug ? { 'true' => true, true => true, default=> false },
-        verbose                 => $verbose ? { 'true' => true, true => true, default=> false },
+        debug                   => $debug ? { 'true'=>true, true=>true, default=>false },
+        verbose                 => $verbose ? { 'true'=>true, true=>true, default=>false },
         auto_assign_floating_ip => $::fuel_settings['auto_assign_floating_ip'],
         mysql_root_password     => $mysql_hash[root_password],
         admin_email             => $access_hash[email],
@@ -194,14 +179,9 @@ class osnailyfacter::cluster_simple {
         qpid_user               => $rabbit_hash[user],
         export_resources        => false,
         quantum                 => $::use_quantum,
-        quantum_user_password   => $quantum_hash[user_password],
-        quantum_db_password     => $quantum_hash[db_password],
+        quantum_config          => $quantum_config,
         quantum_network_node    => $::use_quantum,
-        quantum_netnode_on_cnt  => true,
-        quantum_gre_bind_addr   => $quantum_gre_bind_addr,
-        quantum_external_ipinfo => $external_ipinfo,
-        tenant_network_type     => $tenant_network_type,
-        segment_range           => $segment_range,
+        quantum_netnode_on_cnt  => $::use_quantum,
         cinder                  => true,
         cinder_user_password    => $cinder_hash[user_password],
         cinder_db_password      => $cinder_hash[db_password],
@@ -222,38 +202,15 @@ class osnailyfacter::cluster_simple {
       nova_config { 'DEFAULT/start_guests_on_host_boot': value => $::fuel_settings['start_guests_on_host_boot'] }
       nova_config { 'DEFAULT/use_cow_images': value => $::fuel_settings['use_cow_images'] }
       nova_config { 'DEFAULT/compute_scheduler_driver': value => $::fuel_settings['compute_scheduler_driver'] }
-      if $::quantum {
+      if $::use_quantum {
         class { '::openstack::quantum_router':
-          db_host               => $controller_node_address,
-          service_endpoint      => $controller_node_address,
-          auth_host             => $controller_node_address,
-          nova_api_vip          => $controller_node_address,
-          internal_address      => $internal_address,
-          public_interface      => $::public_int,
-          private_interface     => $::fuel_settings['fixed_interface'],
-          floating_range        => $floating_hash,
-          fixed_range           => $::fuel_settings['fixed_network_range'],
-          create_networks       => $create_networks,
           debug                 => $debug ? { 'true' => true, true => true, default=> false },
           verbose               => $verbose ? { 'true' => true, true => true, default=> false },
-          queue_provider        => $queue_provider,
-          rabbit_password       => $rabbit_hash[password],
-          rabbit_user           => $rabbit_hash[user],
-          rabbit_ha_virtual_ip  => $controller_node_address,
-          rabbit_nodes          => [$controller_node_address],
-          qpid_password         => $rabbit_hash[password],
-          qpid_user             => $rabbit_hash[user],
-          qpid_nodes            => [$controller_node_address],
-          quantum               => $::use_quantum,
-          quantum_user_password => $quantum_hash[user_password],
-          quantum_db_password   => $quantum_hash[db_password],
-          quantum_gre_bind_addr => $quantum_gre_bind_addr,
-          quantum_network_node  => true,
-          quantum_netnode_on_cnt=> $::use_quantum,
-          tenant_network_type   => $tenant_network_type,
-          segment_range         => $segment_range,
-          external_ipinfo       => $external_ipinfo,
-          api_bind_address      => $internal_address,
+          # qpid_password         => $rabbit_hash[password],
+          # qpid_user             => $rabbit_hash[user],
+          # qpid_nodes            => [$controller_node_address],
+          quantum_config          => $quantum_config,
+          quantum_network_node    => true,
           use_syslog            => $use_syslog,
           syslog_log_level      => $syslog_log_level,
           syslog_log_facility   => $syslog_log_facility_quantum,
@@ -294,16 +251,19 @@ class osnailyfacter::cluster_simple {
       }
 
       if !$::use_quantum {
-        nova_floating_range{ $floating_ips_range:
-          ensure          => 'present',
-          pool            => 'nova',
-          username        => $access_hash[user],
-          api_key         => $access_hash[password],
-          auth_method     => 'password',
-          auth_url        => "http://${controller_node_address}:5000/v2.0/",
-          authtenant_name => $access_hash[tenant],
+        $floating_ips_range = $::fuel_settings['floating_network_range']
+        if $floating_ips_range {
+          nova_floating_range{ $floating_ips_range:
+            ensure          => 'present',
+            pool            => 'nova',
+            username        => $access_hash[user],
+            api_key         => $access_hash[password],
+            auth_method     => 'password',
+            auth_url        => "http://${controller_node_address}:5000/v2.0/",
+            authtenant_name => $access_hash[tenant],
+          }
         }
-      Class[nova::api] -> Nova_floating_range <| |>
+        Class[nova::api] -> Nova_floating_range <| |>
       }
 
       if ($::use_ceph){
@@ -374,11 +334,10 @@ class osnailyfacter::cluster_simple {
         glance_api_servers     => "${controller_node_address}:9292",
         vncproxy_host          => $controller_node_public,
         vnc_enabled            => true,
-        quantum                => $::use_quantum,
-        quantum_host           => $quantum_host,
-        quantum_sql_connection => $quantum_sql_connection,
-        quantum_user_password  => $quantum_hash[user_password],
-        tenant_network_type    => $tenant_network_type,
+        quantum                 => $::use_quantum,
+        quantum_config          => $quantum_config,
+        # quantum_network_node    => $::use_quantum,
+        # quantum_netnode_on_cnt  => $::use_quantum,
         service_endpoint       => $controller_node_address,
         cinder                 => true,
         cinder_user_password   => $cinder_hash[user_password],
