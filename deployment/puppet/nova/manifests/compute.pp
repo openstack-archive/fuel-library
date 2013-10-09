@@ -30,6 +30,7 @@ class nova::compute(
   nova_config {
     'DEFAULT/vnc_enabled': value => $vnc_enabled;
     'DEFAULT/vncserver_proxyclient_address': value => $vncserver_proxyclient_address;
+    'DEFAULT/disk_cachemodes': value => "file=writethrough";
   }
 
   package { 'bridge-utils':
