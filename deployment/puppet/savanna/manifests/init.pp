@@ -19,7 +19,7 @@ class savanna (
 ) {
 
   $savanna_sql_connection               = "mysql://${savanna_db_user}:${savanna_db_password}@${savanna_db_host}/${savanna_db_name}"
-  $savanna_url_string                   = "SAVANNA_URL = '${savanna_keystone_protocol}://${savanna_keystone_host}:${8386}/v1.0'"
+  $savanna_url_string                   = "SAVANNA_URL = '${savanna_keystone_protocol}://${savanna_keystone_host}:${savanna_api_bind_port}/v1.0'"
 
   class { 'savanna::db::mysql':
     password                            => $savanna_db_password,
