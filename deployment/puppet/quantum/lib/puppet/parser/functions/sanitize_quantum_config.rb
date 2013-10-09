@@ -63,7 +63,7 @@ class MrntQuantum
         raise(Puppet::ParseError, "unsupported hosts field format in AMQP configure \"#{cfg[:hosts]}\".")
     end
     case cfg[:provider]
-      when 'rabbitmq', 'qpid'
+      when 'rabbitmq', 'qpid', 'qpid-rh'
         if cfg[:ha_mode]
           rv[:hosts] = hosts.map{|x| x.map!{|y| y.strip}.join(':')}.join(',')
         else
@@ -127,6 +127,10 @@ class MrntQuantum
 
   def get_quantum_gre_ip() # IP, not VIP !!!
     @fuel_config[:management_vip]
+  end
+
+  def get_amqp_passwd()
+    @fuel_config[:rabbit][:password]
   end
 
   def get_bridge_name(bb)
@@ -197,7 +201,7 @@ class MrntQuantum
       :amqp => {
         :provider => default_amqp_provider(),
         :username => "nova",
-        :passwd => "nova",
+        :passwd => nil,
         :hosts => get_amqp_vip(5672),
         :ha_mode => true,
         :control_exchange => "quantum",
@@ -302,9 +306,6 @@ class MrntQuantum
       else
         raise(Puppet::ParseError, "Unknown database provider '#{rv[:database][:provider]}'")
     end
-    rv[:L2][:bridge_mappings] = MrntQuantum.get_bridge_mappings(rv[:L2])
-    rv[:L2][:phys_bridges] = MrntQuantum.get_phys_bridges(rv[:L2])
-    rv[:L2][:network_vlan_ranges] = MrntQuantum.get_network_vlan_ranges(rv[:L2])
     return rv
   end
 
@@ -319,12 +320,18 @@ class MrntQuantum
     rv[:database][:url] ||= MrntQuantum.get_database_url(rv[:database])
     rv[:keystone][:auth_url] ||= MrntQuantum.get_keystone_auth_url(rv[:keystone])
     rv[:server][:api_url] ||= MrntQuantum.get_quantum_srv_api_url(rv[:server])
+    rv[:L2][:network_vlan_ranges] = MrntQuantum.get_network_vlan_ranges(rv[:L2])
+    rv[:L2][:bridge_mappings] = MrntQuantum.get_bridge_mappings(rv[:L2])
+    rv[:L2][:phys_bridges] = MrntQuantum.get_phys_bridges(rv[:L2])
     rv[:amqp] ||= MrntQuantum.get_amqp_config(rv[:amqp])
     if [:gre, :vxlan, :lisp].include? rv[:L2][:segmentation_type].downcase.to_sym
       rv[:L2][:enable_tunneling] = true
     else
       rv[:L2][:enable_tunneling] = false
       rv[:L2][:tunnel_id_ranges] = nil
+    end
+    if rv[:amqp][:passwd].nil?
+      rv[:amqp][:passwd] = get_amqp_passwd()
     end
     return rv
   end
