@@ -18,6 +18,10 @@ server {
         access_log off;
     }
 
+    gzip on;
+    gzip_min_length 1000;
+    gzip_types text/plain application/json;
+
     location /static {
         autoindex on;
         alias <%= staticdir %>;
