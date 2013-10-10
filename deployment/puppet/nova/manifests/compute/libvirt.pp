@@ -93,5 +93,6 @@ class nova::compute::libvirt (
     'DEFAULT/libvirt_type':     value => $libvirt_type;
     'DEFAULT/connection_type':  value => 'libvirt';
     'DEFAULT/vncserver_listen': value => $vncserver_listen;
+    'DEFAULT/disk_cachemodes': value => '"file=writethrough"';
   }
 }
