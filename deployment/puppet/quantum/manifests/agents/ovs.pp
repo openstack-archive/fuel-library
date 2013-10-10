@@ -52,8 +52,8 @@ class quantum::agents::ovs (
     Package[$ovs_agent_package] -> Quantum_plugin_ovs <| |>
   }
 
-  l23network::l2::bridge { $quantum_config['L3']['integration_bridge']:
-    external_ids  => "bridge-id=${quantum_config['L3']['integration_bridge']}",
+  l23network::l2::bridge { $quantum_config['L2']['integration_bridge']:
+    external_ids  => "bridge-id=${quantum_config['L2']['integration_bridge']}",
     ensure        => present,
     skip_existing => true,
   }
@@ -69,9 +69,9 @@ class quantum::agents::ovs (
       Anchor['quantum-ovs-agent-done']
       quantum_plugin_ovs { 'OVS/local_ip': value => $quantum_config['L2']['local_ip']; }
   } else {
-      L23network::L2::Bridge[$quantum_config['L3']['integration_bridge']] ->
+      L23network::L2::Bridge[$quantum_config['L2']['integration_bridge']] ->
         Anchor['quantum-ovs-agent-done']
-      quantum::agents::utils::bridges { $quantum_config['L3']['phys_bridges']: } ->
+      quantum::agents::utils::bridges { $quantum_config['L2']['phys_bridges']: } ->
         Anchor['quantum-ovs-agent-done']
   }
 
