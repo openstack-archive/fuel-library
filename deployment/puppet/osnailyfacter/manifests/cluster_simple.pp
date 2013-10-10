@@ -366,7 +366,6 @@ class osnailyfacter::cluster_simple {
         volume_group         => 'cinder',
         manage_volumes       => $manage_volumes,
         enabled              => true,
-        bind_host            => $bind_host,
         auth_host            => $controller_node_address,
         iscsi_bind_host      => $cinder_iscsi_bind_addr,
         cinder_user_password => $cinder_hash[user_password],
