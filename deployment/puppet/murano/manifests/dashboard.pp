@@ -33,6 +33,14 @@ class murano::dashboard (
     command => "${collect_static_script} collectstatic --noinput",
   }
 
+  file { 'horizon_log' :
+    path   => '/var/log/horizon/horizon.log',
+    ensure => present,
+    owner  => 'apache',
+    group  => 'apache',
+    mode   => '0644',
+  }
+
   package { 'murano_dashboard':
     ensure => $package_ensure,
     name   => $package_name,
@@ -42,7 +50,7 @@ class murano::dashboard (
     ensure => installed,
   }
 
-  Package[$dashboard_deps] -> Package['murano_dashboard'] -> File[$modify_config] -> Exec['fix_horizon_config'] -> Exec['collect_static'] ~> Service <| title == 'httpd' |>
+  Package[$dashboard_deps] -> Package['murano_dashboard'] -> File[$modify_config] -> Exec['fix_horizon_config'] -> Exec['collect_static'] -> File['horizon_log'] -> Service <| title == 'httpd' |>
   Package['murano_dashboard'] ~> Service <| title == 'httpd' |>
 
 }
