@@ -72,13 +72,13 @@ class murano::rabbitmq(
 
   exec { 'remove_murano_guest' :
     command => "rabbitmqctl -n '${rabbitmq_node_name}' delete_user guest",
-    onlyif  => "rabbitmqctl -n '${rabbitmq_node_name}' list_users | grep -qE '^guest\s*\['",
+    onlyif  => "rabbitmqctl -n '${rabbitmq_node_name}' list_users | grep -qE '^guest\\s*'\\[",
     path    => [ '/bin', '/sbin', '/usr/bin', '/usr/sbin' ],
   }
 
   exec { 'create_murano_user' :
     command => "rabbitmqctl -n '${rabbitmq_node_name}' add_user '${rabbit_user}' '${rabbit_password}'",
-    unless  => "rabbitmqctl -n '${rabbitmq_node_name}' list_users | grep -qE '^${rabbit_user}\\s*\['",
+    unless  => "rabbitmqctl -n '${rabbitmq_node_name}' list_users | grep -qE '^${rabbit_user}\\s*\\['",
     path    => [ '/bin', '/sbin', '/usr/bin', '/usr/sbin' ],
   }
 

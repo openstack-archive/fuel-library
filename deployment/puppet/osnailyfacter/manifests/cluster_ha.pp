@@ -380,11 +380,13 @@ class osnailyfacter::cluster_ha {
       if $murano_hash['enabled'] {
 
         class { 'murano' :
-          murano_enabled         => true,
-          murano_rabbit_host     => $controller_node_address,
-          murano_rabbit_login    => $heat_hash['rabbit_user'], # heat_hash is not mistake here
+          pacemaker              => true,
+          murano_rabbit_host     => $controller_node_public,
+          murano_rabbit_login    => 'murano',
           murano_rabbit_password => $heat_hash['rabbit_password'],
+          murano_db_host         => $controller_node_address,
           murano_db_password     => $murano_hash['db_password'],
+          murano_keystone_host   => $controller_node_address,
         }
 
         class { 'heat' :

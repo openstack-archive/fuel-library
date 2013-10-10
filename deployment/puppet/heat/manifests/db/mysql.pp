@@ -1,9 +1,9 @@
 class heat::db::mysql(
-  $password      = false,
+  $password      = 'heat',
   $dbname        = 'heat',
   $user          = 'heat',
   $dbhost        = 'localhost',
-  $charset       = 'latin1',
+  $charset       = 'utf8',
 ) {
 
   include 'heat::params'

@@ -10,6 +10,8 @@ class heat::db (
   Package<| title == 'heat-common' |> -> Class['heat::db']
   Class['heat::db::mysql']            -> Class['heat::db']
   Class['heat::cli']                  -> Class['heat::db']
+  Exec['db_sync']                     -> Class['heat::db']
+  Exec['legacy_db_sync']              -> Class['heat::db']
 
   validate_re($sql_connection,
     '(mysql):\/\/(\S+:\S+@\S+\/\S+)?')
@@ -35,7 +37,7 @@ class heat::db (
     'DEFAULT/sql_connection': value => $sql_connection;
   }
 
-  exec { 'heat-manage db_sync':
+  exec { 'db_sync' :
     command     => $db_sync_command,
     path        => '/usr/bin',
     user        => 'heat',
@@ -46,7 +48,7 @@ class heat::db (
   }
 
   # Lagacy part - support old rpms before 2013.2.xx without heat-manage tool
-  exec { 'python -m heat.db.sync':
+  exec { 'legacy_db_sync' :
     command     => $legacy_db_sync_command,
     path        => '/usr/bin',
     user        => 'heat',

@@ -261,18 +261,21 @@ class osnailyfacter::cluster_simple {
       if $murano_hash['enabled'] {
 
         class { 'murano' :
-          murano_enabled         => true,
-          murano_rabbit_host     => $controller_node_address,
-          murano_rabbit_login    => $heat_hash['rabbit_user'], # heat_hash is not mistake here
+          murano_rabbit_host     => $controller_node_public,
+          murano_rabbit_login    => 'murano',
           murano_rabbit_password => $heat_hash['rabbit_password'],
+          murano_db_host         => $controller_node_address,
           murano_db_password     => $murano_hash['db_password'],
+          murano_keystone_host   => $controller_node_address,
         }
 
         class { 'heat' :
           heat_enabled         => true,
-          heat_rabbit_host     => $controller_node_address,
-          heat_rabbit_userid   => $heat_hash['rabbit_user'],
+          heat_rabbit_host     => $controller_node_public,
+          heat_keystone_host   => $controller_node_address,
+          heat_rabbit_userid   => 'murano',
           heat_rabbit_password => $heat_hash['rabbit_password'],
+          heat_db_host         => $controller_node_address,
           heat_db_password     => $heat_hash['db_password'],
         }
 

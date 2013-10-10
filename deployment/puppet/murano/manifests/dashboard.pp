@@ -1,5 +1,4 @@
 class murano::dashboard (
-  $enabled               = true,
   $settings_py           = '/usr/share/openstack-dashboard/openstack_dashboard/settings.py',
   $modify_config         = '/usr/bin/modify-horizon-config.sh',
   $collect_static_script = '/usr/share/openstack-dashboard/manage.py'
@@ -9,14 +8,6 @@ class murano::dashboard (
 
   $dashboard_deps = $::murano::params::murano_dashboard_deps
   $package_name   = $::murano::params::murano_dashboard_package_name
-
-  if $enabled {
-    $service_ensure = 'running'
-    $package_ensure = 'installed'
-  } else {
-    $service_ensure = 'stopped'
-    $package_ensure = 'absent'
-  }
 
   file { $modify_config :
     ensure => present,
@@ -42,7 +33,7 @@ class murano::dashboard (
   }
 
   package { 'murano_dashboard':
-    ensure => $package_ensure,
+    ensure => present,
     name   => $package_name,
   }
 
@@ -52,5 +43,6 @@ class murano::dashboard (
 
   Package[$dashboard_deps] -> Package['murano_dashboard'] -> File[$modify_config] -> Exec['fix_horizon_config'] -> Exec['collect_static'] -> File['horizon_log'] -> Service <| title == 'httpd' |>
   Package['murano_dashboard'] ~> Service <| title == 'httpd' |>
+  Exec['fix_horizon_config'] ~> Service <| title == 'httpd' |>
 
 }

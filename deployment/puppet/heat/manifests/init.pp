@@ -29,19 +29,21 @@ class heat(
   $heat_waitcondition_server_url = 'http://127.0.0.1:8000/v1/waitcondition',
   $heat_watch_server_url         = 'http://127.0.0.1:8003',
 
-  $heat_rabbit_hosts             = '127.0.0.1',
   $heat_rabbit_host              = '127.0.0.1',
-  $heat_rabbit_userid            = 'nova',
+  $heat_rabbit_userid            = 'heat',
   $heat_rabbit_ha_queues         = 'False',
-  $heat_rabbit_password          = 'nova',
+  $heat_rabbit_password          = 'heat',
   $heat_rabbit_virtualhost       = '/',
   $heat_rabbit_port              = '5672',
 
-  $heat_rpc_backend =  'heat.openstack.common.rpc.impl_kombu',
+  $heat_rpc_backend              = 'heat.openstack.common.rpc.impl_kombu',
 ) {
 
   class { 'heat::db::mysql' :
     password => $heat_db_password,
+    dbname   => $heat_db_name,
+    user     => $heat_db_user,
+    dbhost   => $heat_db_host,
   }
 
   class { 'heat::install' :
@@ -116,7 +118,7 @@ class heat(
   }
 
   class { 'heat::db' :
-    sql_connection                 => "mysql://${heat_db_user}:${heat_db_password}@${heat_db_host}/${heat_db_name}"
+    sql_connection                 => "mysql://${heat_db_user}:${heat_db_password}@${heat_db_host}/${heat_db_name}",
   }
 
   class { 'heat::api_cfn' :
