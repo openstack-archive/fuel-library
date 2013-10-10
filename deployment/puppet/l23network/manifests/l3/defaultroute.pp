@@ -9,7 +9,11 @@ define l23network::l3::defaultroute (
 ){
   case $::osfamily {
     /(?i)debian/: {
-        fail("Unsupported for ${::osfamily}/${::operatingsystem}!!! Specify gateway directly for network interface.")
+        exec {'Add default route':
+            path    => '/bin:/usr/bin:/sbin:/usr/sbin',
+            command => "route add default gw ${gateway} || true",
+            unless  => "netstat -r | grep -q 'default.*${gateway}'",
+        }
     }
     /(?i)redhat/: {
         if ! defined(Cfg[$gateway]) {
