@@ -126,7 +126,7 @@ class MrntQuantum
   end
 
   def get_quantum_gre_ip() # IP, not VIP !!!
-    @fuel_config[:management_vip]
+    @scope.function_get_network_role_property(['mesh', 'ipaddr']) || @scope.function_get_network_role_property(['management', 'ipaddr'])
   end
 
   def get_amqp_passwd()
