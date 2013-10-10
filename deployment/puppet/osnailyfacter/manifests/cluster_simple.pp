@@ -346,7 +346,7 @@ class osnailyfacter::cluster_simple {
       package { 'python-amqp':
         ensure => present
       }
-      $roles = node_roles($nodes_hash, $::fuel_settings['id'])
+      $roles = node_roles($nodes_hash, $::fuel_settings['uid'])
       if member($roles, 'controller') or member($roles, 'primary-controller') {
         $bind_host = '0.0.0.0'
       } else {
@@ -358,6 +358,7 @@ class osnailyfacter::cluster_simple {
         queue_provider       => $::queue_provider,
         rabbit_password      => $rabbit_hash[password],
         rabbit_host          => false,
+        bind_host            => $bind_host,
         rabbit_nodes         => [$controller_node_address],
         qpid_password        => $rabbit_hash[password],
         qpid_user            => $rabbit_hash[user],
@@ -371,8 +372,8 @@ class osnailyfacter::cluster_simple {
         cinder_user_password => $cinder_hash[user_password],
         syslog_log_facility  => $syslog_log_facility_cinder,
         syslog_log_level     => $syslog_log_level,
-        debug                => $debug ? { 'true' => true, true => true, default=> false },
-        verbose              => $verbose ? { 'true' => true, true => true, default=> false },
+        debug                => $debug ? { 'true' => true, true => true, default => false },
+        verbose              => $verbose ? { 'true' => true, true => true, default => false },
         use_syslog           => true,
       }
     } #CINDER ENDS
