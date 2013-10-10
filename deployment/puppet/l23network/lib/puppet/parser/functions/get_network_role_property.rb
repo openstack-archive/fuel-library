@@ -42,7 +42,7 @@ Puppet::Parser::Functions::newfunction(:get_network_role_property, :type => :rva
   end
 
   cfg = L23network::Scheme.get()
-  File.open("/tmp/L23network_scheme.yaml", 'w'){ |file| file.write cfg.to_yaml() }
+  #File.open("/tmp/L23network_scheme.yaml", 'w'){ |file| file.write cfg.to_yaml() }
   if cfg.nil?
     raise(Puppet::ParseError, "get_network_role_property(...): You must call prepare_network_config(...) first!")
   end
