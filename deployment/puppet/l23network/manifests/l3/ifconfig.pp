@@ -291,6 +291,7 @@ define l23network::l3::ifconfig (
   l3_if_downup {"$interface":
     check_by_ping => $check_by_ping,
     check_by_ping_timeout => $check_by_ping_timeout,
+    require       => File["$interface_file"],
     subscribe     => File["$interface_file"],
     refreshonly   => true,
   }
