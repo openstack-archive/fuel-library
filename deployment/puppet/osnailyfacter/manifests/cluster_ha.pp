@@ -474,7 +474,7 @@ class osnailyfacter::cluster_ha {
       package { 'python-amqp':
         ensure => present
       }
-      $roles = node_roles($nodes_hash, $::fuel_settings['id'])
+      $roles = node_roles($nodes_hash, $::fuel_settings['uid'])
       if member($roles, 'controller') or member($roles, 'primary-controller') {
         $bind_host = $internal_address
       } else {
@@ -483,6 +483,7 @@ class osnailyfacter::cluster_ha {
       class { 'openstack::cinder':
         sql_connection       => "mysql://cinder:${cinder_hash[db_password]}@${::fuel_settings['management_vip']}/cinder?charset=utf8",
         glance_api_servers   => "${::fuel_settings['management_vip']}:9292",
+        bind_host            => $bind_host,
         queue_provider       => $::queue_provider,
         qpid_password        => $rabbit_hash[password],
         qpid_user            => $rabbit_hash[user],
@@ -498,8 +499,8 @@ class osnailyfacter::cluster_ha {
         cinder_user_password => $cinder_hash[user_password],
         syslog_log_facility  => $syslog_log_facility_cinder,
         syslog_log_level     => $syslog_log_level,
-        debug                => $debug ? { 'true' => true, true => true, default=> false },
-        verbose              => $verbose ? { 'true' => true, true => true, default=> false },
+        debug                => $debug ? { 'true' => true, true => true, default => false },
+        verbose              => $verbose ? { 'true' => true, true => true, default => false },
         use_syslog           => true,
       }
 #      class { "::rsyslog::client":
