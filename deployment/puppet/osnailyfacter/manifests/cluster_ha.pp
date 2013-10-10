@@ -42,6 +42,12 @@ class osnailyfacter::cluster_ha {
     $heat_hash = $::fuel_settings['heat']
   }
 
+  if $::fuel_settings['role'] == 'primary-controller' {
+    package { 'cirros-testvm':
+      ensure => "present"
+    }
+  }
+
   $storage_hash         = $::fuel_settings['storage']
   $nova_hash            = $::fuel_settings['nova']
   $mysql_hash           = $::fuel_settings['mysql']
@@ -343,19 +349,6 @@ class osnailyfacter::cluster_ha {
       nova_config { 'DEFAULT/use_cow_images':            value => $::fuel_settings['use_cow_images'] }
       nova_config { 'DEFAULT/compute_scheduler_driver':  value => $::fuel_settings['compute_scheduler_driver'] }
 
-      #TODO: fix this so it dosn't break ceph
-      if !($::use_ceph) {
-        if $::hostname == $::fuel_settings['last_controller'] {
-          class { 'openstack::img::cirros':
-            os_username => shellescape($access_hash[user]),
-            os_password => shellescape($access_hash[password]),
-            os_tenant_name => shellescape($access_hash[tenant]),
-            os_auth_url => "http://${::fuel_settings['management_vip']}:5000/v2.0/",
-            img_name    => "TestVM",
-            stage          => 'glance-image',
-          }
-        }
-      }
       if ! $::use_quantum {
         nova_floating_range{ $floating_ips_range:
           ensure          => 'present',

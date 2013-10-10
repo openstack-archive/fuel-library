@@ -20,6 +20,12 @@ else {
   $cinder_nodes_array = []
 }
 
+if $::fuel_settings['role'] == 'primary-controller' {
+  package { 'cirros-testvm':
+    ensure => "present"
+  }
+}
+
 $nova_hash            = $::fuel_settings['nova']
 $mysql_hash           = $::fuel_settings['mysql']
 $rabbit_hash          = $::fuel_settings['rabbit']
@@ -262,28 +268,18 @@ class ha_controller (
   }
 
       if $primary_controller {
-        class { 'openstack::img::cirros':
-          os_username => shellescape($access_hash[user]),
-          os_password => shellescape($access_hash[password]),
-          os_tenant_name => shellescape($access_hash[tenant]),
-          os_auth_url => "http://${::fuel_settings['management_vip']}:5000/v2.0/",
-          img_name    => "TestVM",
-          stage          => 'glance-image',
+        if ! $::use_quantum {
+          nova_floating_range{ $floating_ips_range:
+            ensure          => 'present',
+            pool            => 'nova',
+            username        => $access_hash[user],
+            api_key         => $access_hash[password],
+            auth_method     => 'password',
+            auth_url        => "http://${::fuel_settings['management_vip']}:5000/v2.0/",
+            authtenant_name => $access_hash[tenant],
+          }
+          Class[nova::api] -> Nova_floating_range <| |>
         }
-
-      if ! $::use_quantum {
-        nova_floating_range{ $floating_ips_range:
-          ensure          => 'present',
-          pool            => 'nova',
-          username        => $access_hash[user],
-          api_key         => $access_hash[password],
-          auth_method     => 'password',
-          auth_url        => "http://${::fuel_settings['management_vip']}:5000/v2.0/",
-          authtenant_name => $access_hash[tenant],
-        }
-        Class[nova::api] -> Nova_floating_range <| |>
-      }
-        Class[glance::api]                    -> Class[openstack::img::cirros]
       }
 
 

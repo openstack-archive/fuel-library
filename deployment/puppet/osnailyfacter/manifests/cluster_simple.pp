@@ -41,6 +41,12 @@ class osnailyfacter::cluster_simple {
     $heat_hash = $::fuel_settings['heat']
   }
 
+  if $::fuel_settings['role'] == 'controller' {
+    package { 'cirros-testvm':
+      ensure => "present"
+    }
+  }
+
 
   $storage_hash         = $::fuel_settings['storage']
   $nova_hash            = $::fuel_settings['nova']
@@ -217,31 +223,6 @@ class osnailyfacter::cluster_simple {
         keystone_admin_token => $keystone_hash[admin_token],
         admin_tenant         => $access_hash[tenant],
         controller_node      => $controller_node_address,
-      }
-
-
-      # glance_image is currently broken in fuel
-
-      # glance_image {'testvm':
-      #   ensure           => present,
-      #   name             => "Cirros testvm",
-      #   is_public        => 'yes',
-      #   container_format => 'ovf',
-      #   disk_format      => 'raw',
-      #   source           => '/opt/vm/cirros-0.3.0-x86_64-disk.img',
-      #   require          => Class[glance::api],
-      # }
-
-      #TODO: fix this so it dosn't break ceph
-      if !($::use_ceph) {
-        class { 'openstack::img::cirros':
-          os_username    => shellescape($access_hash[user]),
-          os_password    => shellescape($access_hash[password]),
-          os_tenant_name => shellescape($access_hash[tenant]),
-          img_name       => "TestVM",
-          stage          => 'glance-image',
-        }
-        Class[glance::api] -> Class[openstack::img::cirros]
       }
 
       if !$::use_quantum {
