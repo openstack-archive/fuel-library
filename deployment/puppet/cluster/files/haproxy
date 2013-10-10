@@ -108,6 +108,9 @@ get_pid_and_conf_file()
 
 	if [ -n "${OCF_RESKEY_pidfile}" ]; then
 		PIDFILE=$(grep -v "#" ${CONF_FILE} | grep "pidfile" | sed 's/^[ \t]*pidfile[ \t]*//')
+		if [ -z "$PIDFILE" ] ; then
+			PIDFILE=${OCF_RESKEY_pidfile_default}
+		fi
 	else
 		PIDFILE=${OCF_RESKEY_pidfile_default}
 	fi
@@ -155,7 +158,7 @@ haproxy_start()
 		COMMAND="/usr/sbin/haproxy"
 	fi
 
-	$COMMAND $OCF_RESKEY_extraconf -f $CONF_FILE -p $PIDFILE;
+	$COMMAND $OCF_RESKEY_extraconf -f $CONF_FILE -p $PIDFILE 
 	if [ $? -ne 0 ]; then
 		ocf_log err "Error. haproxy daemon returned error $?."
 		exit $OCF_ERR_GENERIC
