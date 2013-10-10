@@ -464,7 +464,7 @@ class PreseedPManager(object):
     def boot(self):
         self.recipe("24 24 24 ext3 "
                     "$gptonly{ } "
-                    "$bios_boot{ }"
+                    "$bios_boot{ } "
                     "method{ biosgrub } .")
         self.psize(self.disks[0], 24 * self.factor)
         self.pcount(self.disks[0], 1)
