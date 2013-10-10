@@ -213,7 +213,8 @@ describe 'sanitize_quantum_config' , :type => :puppet_function do
       :management_vip => '192.168.0.254',
       :management_ip => '192.168.0.11'
     })
-    Puppet::Parser::Scope.any_instance.stubs(:function_get_network_role_property).with('management', 'ipaddr').returns(@q_config.get_def(:management_ip))
+    Puppet::Parser::Scope.any_instance.stubs(:function_get_network_role_property).with(['management', 'ipaddr']).returns(@q_config.get_def(:management_ip))
+    Puppet::Parser::Scope.any_instance.stubs(:function_get_network_role_property).with(['mesh', 'ipaddr']).returns(@q_config.get_def(:management_ip))
     @cfg = @q_config.get_def_config()
     cfg_q = @cfg['quantum_settings']
     @res_cfg = Marshal.load(Marshal.dump(cfg_q))

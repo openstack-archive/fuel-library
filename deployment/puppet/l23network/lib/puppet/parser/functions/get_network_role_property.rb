@@ -31,6 +31,8 @@ Puppet::Parser::Functions::newfunction(:get_network_role_property, :type => :rva
       netmask -- string, contains dotted nemmask
       ipaddr_netmask_pair -- list of ipaddr and netmask
 
+    Returns NIL if role not found.
+
     EOS
   ) do |argv|
   if argv.size == 2
@@ -40,7 +42,7 @@ Puppet::Parser::Functions::newfunction(:get_network_role_property, :type => :rva
   end
 
   cfg = L23network::Scheme.get()
-  File.open("/tmp/L23network_scheme.yaml", 'w'){ |file| file.write cfg.to_yaml() }
+  #File.open("/tmp/L23network_scheme.yaml", 'w'){ |file| file.write cfg.to_yaml() }
   if cfg.nil?
     raise(Puppet::ParseError, "get_network_role_property(...): You must call prepare_network_config(...) first!")
   end
@@ -54,7 +56,9 @@ Puppet::Parser::Functions::newfunction(:get_network_role_property, :type => :rva
   # search interface for role
   interface = cfg[:roles][network_role]
   if !interface
-      raise(Puppet::ParseError, "get_network_role_property(...): Undefined network_role '#{network_role}'.")
+      #raise(Puppet::ParseError, "get_network_role_property(...): Undefined network_role '#{network_role}'.")
+      Puppet::debug("get_network_role_property(...): Undefined network_role '#{network_role}'.")
+      return nil
   end
 
   # get endpoint configuration hash for interface
