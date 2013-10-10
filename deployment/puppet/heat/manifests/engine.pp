@@ -1,5 +1,5 @@
 class heat::engine (
-  $enabled           = true,
+  $pacemaker         = false,
   $keystone_host     = '127.0.0.1',
   $keystone_port     = '35357',
   $keystone_protocol = 'http',

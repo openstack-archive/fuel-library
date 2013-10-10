@@ -368,33 +368,52 @@ class osnailyfacter::cluster_ha {
 
       if $savanna_hash['enabled'] {
         class { 'savanna' :
-          savanna_enabled       => true,
-          savanna_db_password   => $savanna_hash['db_password'],
-          savanna_db_host       => $controller_node_address,
-          savanna_keystone_host => $controller_node_address,
-          use_neutron           => $::use_quantum,
-          use_floating_ips      => $::fuel_settings['auto_assign_floating_ip'],
+          savanna_enabled           => true,
+          
+          savanna_db_password       => $savanna_hash['db_password'],
+          savanna_db_host           => $controller_node_address,
+          
+          savanna_keystone_host     => $controller_node_address,
+          savanna_keystone_user     => 'admin',
+          savanna_keystone_password => 'admin',
+          savanna_keystone_tenant   => 'admin',
+          
+          use_neutron               => $::use_quantum,
+          use_floating_ips          => $::fuel_settings['auto_assign_floating_ip'],
         }
       }
 
       if $murano_hash['enabled'] {
 
         class { 'murano' :
-          pacemaker              => true,
-          murano_rabbit_host     => $controller_node_public,
-          murano_rabbit_login    => 'murano',
-          murano_rabbit_password => $heat_hash['rabbit_password'],
-          murano_db_host         => $controller_node_address,
-          murano_db_password     => $murano_hash['db_password'],
-          murano_keystone_host   => $controller_node_address,
+          murano_rabbit_host       => $controller_node_public,
+          murano_rabbit_login      => 'murano',
+          murano_rabbit_password   => $heat_hash['rabbit_password'],
+          
+          murano_db_host           => $controller_node_address,
+          murano_db_password       => $murano_hash['db_password'],
+          
+          murano_keystone_host     => $controller_node_address,
+          murano_keystone_user     => 'admin',
+          murano_keystone_password => 'admin',
+          murano_keystone_tenant   => 'admin',
         }
 
         class { 'heat' :
-          heat_enabled         => true,
-          heat_rabbit_host     => $controller_node_address,
-          heat_rabbit_userid   => $heat_hash['rabbit_user'],
-          heat_rabbit_password => $heat_hash['rabbit_password'],
-          heat_db_password     => $heat_hash['db_password'],
+          pacemaker              => true,
+          external_ip            => $controller_node_public,
+          
+          heat_keystone_host     => $controller_node_address,
+          heat_keystone_user     => 'heat',
+          heat_keystone_password => 'heat',
+          heat_keystone_tenant   => 'services',
+          
+          heat_rabbit_host       => $controller_node_public,
+          heat_rabbit_login      => 'murano',
+          heat_rabbit_password   => $heat_hash['rabbit_password'],
+          
+          heat_db_host           => $controller_node_address,
+          heat_db_password       => $heat_hash['db_password'],
         }
 
         Class['heat'] -> Class['murano']
