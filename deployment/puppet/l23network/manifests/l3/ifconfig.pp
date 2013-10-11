@@ -243,7 +243,7 @@ define l23network::l3::ifconfig (
         $def_gateway = undef
       }
     }
-    if $::osfamily == 'RedHat' and $def_gateway and !defined(L23network::L3::Defaultroute[$def_gateway]) {
+    if ($::osfamily == 'RedHat' or $::osfamily == 'Debian') and $def_gateway and !defined(L23network::L3::Defaultroute[$def_gateway]) {
       l23network::l3::defaultroute { $def_gateway: }
     }
   } else {
