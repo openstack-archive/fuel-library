@@ -3,7 +3,6 @@
 # Do not edit, changes will be overwritten
 #
 
-RedirectMatch permanent ^/$ <%= @root_url %>/
 
 <% if @use_ssl =~ /^(default|exist|custom)$/ -%>
 # SSL support
@@ -25,6 +24,7 @@ ErrorLog syslog:local1
 <% end -%>
 
 <VirtualHost *:<%= @http_port %>>
+  RedirectMatch permanent ^/$ <%= @root_url %>/
 <% if @use_ssl =~ /^(default|exist|custom)$/ -%>
   RewriteEngine On
   RewriteCond %{HTTPS} off
@@ -32,6 +32,7 @@ ErrorLog syslog:local1
 </VirtualHost>
 
 <VirtualHost *:<%= @https_port %>>
+  RedirectMatch permanent ^/$ <%= @root_url %>/
   SSLEngine on
   SSLCertificateFile <%= @ssl_cert_file %>
   SSLCertificateKeyFile <%= @ssl_key_file %>
