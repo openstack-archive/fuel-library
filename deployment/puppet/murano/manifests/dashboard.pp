@@ -34,14 +34,8 @@ class murano::dashboard (
 
   exec { 'collect_static':
     command => "${collect_static_script} collectstatic --noinput",
-  }
-
-  file { 'horizon_log' :
-    path   => '/var/log/horizon/horizon.log',
-    ensure => present,
-    owner  => 'apache',
-    group  => 'apache',
-    mode   => '0644',
+    user    => 'apache',
+    group   => 'apache',
   }
 
   package { 'murano_dashboard':
