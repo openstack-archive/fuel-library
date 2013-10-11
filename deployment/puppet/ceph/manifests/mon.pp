@@ -33,18 +33,8 @@ class ceph::mon {
                ],
   }
 
-  # creates the named OSD pool
-  define osd_pool {
-    exec { "Creating pool ${name}":
-      command   => "ceph osd pool create ${name} ${::ceph::osd_pool_default_pg_num} ${::ceph::osd_pool_default_pgp_num}",
-      logoutput => true,
-    }
-  }
-  osd_pool {[$::ceph::cinder_pool, $::ceph::glance_pool]: }
-
   Firewall['010 ceph-mon allow'] ->
   Exec['ceph-deploy mon create'] ->
   Exec['Wait for Ceph quorum']   ->
-  Exec['ceph-deploy gatherkeys'] ->
-  Osd_pool <||>
+  Exec['ceph-deploy gatherkeys']
 }
