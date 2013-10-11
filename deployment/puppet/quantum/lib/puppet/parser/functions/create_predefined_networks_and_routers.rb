@@ -100,13 +100,14 @@ class MrntQuantumNR
       # create quantum_net resource
       p_res = Puppet::Parser::Resource.new(
         res__quantum_net,
-        network_config[:net][:name],
+        network_config[:net][:name].to_s,
         :scope => @scope,
         :source => res__quantum_net_type
       )
+      p_res.set_parameter(:ensure, :present)
       previous && p_res.set_parameter(:require, [previous])
       network_config[:net].each do |k,v|
-        v && p_res.set_parameter(k,v)
+        v && p_res.set_parameter(k.to_sym, v)
       end
       @scope.compiler.add_resource(@scope, p_res)
       previous = p_res.to_s
@@ -114,13 +115,14 @@ class MrntQuantumNR
       # create quantum_subnet resource
       p_res = Puppet::Parser::Resource.new(
         res__quantum_subnet,
-        network_config[:subnet][:name],
+        network_config[:subnet][:name].to_s,
         :scope => @scope,
         :source => res__quantum_subnet_type
       )
+      p_res.set_parameter(:ensure, :present)
       p_res.set_parameter(:require, [previous])
       network_config[:subnet].each do |k,v|
-        v && p_res.set_parameter(k,v)
+        v && p_res.set_parameter(k.to_sym, v)
       end
       @scope.compiler.add_resource(@scope, p_res)
       previous = p_res.to_s
@@ -139,13 +141,14 @@ class MrntQuantumNR
         # create resource
         p_res = Puppet::Parser::Resource.new(
           res__quantum_router,
-          router_config[:name],
+          router_config[:name].to_s,
           :scope => @scope,
           :source => res__quantum_router_type
         )
+        p_res.set_parameter(:ensure, :present)
         p_res.set_parameter(:require, [previous])
         router_config.each do |k,v|
-          v && p_res.set_parameter(k,v)
+          v && p_res.set_parameter(k.to_sym, v)
         end
         @scope.compiler.add_resource(@scope, p_res)
         previous = p_res.to_s
