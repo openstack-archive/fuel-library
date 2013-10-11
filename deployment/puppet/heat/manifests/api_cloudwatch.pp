@@ -107,5 +107,6 @@ class heat::api_cloudwatch (
   Heat_api_cloudwatch_paste_ini<||> ~> Service['heat-api-cloudwatch']
   Package['heat-api-cloudwatch'] ~> Service['heat-api-cloudwatch']
   Class['heat::db'] -> Service['heat-api-cloudwatch']
+  Exec['heat_db_sync'] -> Service['heat-api-cloudwatch'] 
 
 }

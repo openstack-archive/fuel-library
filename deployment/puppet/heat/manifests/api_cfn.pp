@@ -109,5 +109,6 @@ class heat::api_cfn (
   Heat_api_cfn_paste_ini<||> ~> Service['heat-api-cfn']
   Package['heat-api-cfn'] ~> Service['heat-api-cfn']
   Class['heat::db'] -> Service['heat-api-cfn']
+  Exec['heat_db_sync'] -> Service['heat-api-cfn'] 
 
 }

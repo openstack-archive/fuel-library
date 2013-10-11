@@ -16,6 +16,8 @@ class heat::db::mysql(
     grant        => ['all'],
   }
 
-  Class['mysql::server'] -> Mysql::Db[$dbname] ~> Exec['heat_db_sync']
+  Database[$dbname] ~> Exec['heat_db_sync']
+  Database_user["${user}@${dbhost}"] ~> Exec['heat_db_sync']
+  Database_grant["${user}@${dbhost}/${dbname}"] ~> Exec['heat_db_sync']
 
 }

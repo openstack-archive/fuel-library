@@ -114,5 +114,6 @@ class heat::api (
   Heat_api_paste_ini<||> ~> Service['heat-api']
   Package['heat-api'] ~> Service['heat-api']
   Class['heat::db'] -> Service['heat-api']
+  Exec['heat_db_sync'] -> Service['heat-api'] 
 
 }
