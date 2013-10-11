@@ -5,8 +5,6 @@ class quantum::network::predefined_netwoks (
 
   Keystone_user_role<| title=="$auth_user@$auth_tenant"|> -> Quantum_net<| |>
   Service <| title == 'keystone' |> -> Quantum_net <| |>
-  Quantum_net<| |> -> Quantum_subnet<| |>
-  Quantum_net<| |> -> Quantum_router<| |>
-  Quantum_subnet<| |> -> Quantum_router<| |>
+  Anchor['quantum-plugin-ovs-done'] -> Quantum_net <| |>
 }
 # vim: set ts=2 sw=2 et :
