@@ -9,9 +9,9 @@ define l23network::l3::defaultroute (
 ){
   case $::osfamily {
     /(?i)debian/: {
-        exec {'Add default route':
+        exec {'Default route':
             path    => '/bin:/usr/bin:/sbin:/usr/sbin',
-            command => "route add default gw ${gateway} || true",
+            command => "ip route replace default via ${gateway} || true",
             unless  => "netstat -r | grep -q 'default.*${gateway}'",
         }
     }
