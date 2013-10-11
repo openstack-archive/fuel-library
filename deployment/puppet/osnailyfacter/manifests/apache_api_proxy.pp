@@ -29,6 +29,11 @@ class osnailyfacter::apache_api_proxy {
       target => '/etc/apache2/mods-available/proxy.load',
     }->
 
+    file {'/etc/apache2/mods-enabled/proxy_http.load':
+      ensure => link,
+      target => '/etc/apache2/mods-available/proxy_http.load',
+    }->
+
     file { '/etc/apache2/sites-enabled/api_proxy.conf':
       ensure => 'link',
       target => '/etc/apache2/sites-available/api_proxy.conf',
