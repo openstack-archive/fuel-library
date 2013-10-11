@@ -291,12 +291,13 @@ define l23network::l3::ifconfig (
   l3_if_downup {"$interface":
     check_by_ping => $check_by_ping,
     check_by_ping_timeout => $check_by_ping_timeout,
+    #require       => File["$interface_file"], ## do not enable it!!! It affect requirements interface from interface in some cases.
     subscribe     => File["$interface_file"],
     refreshonly   => true,
   }
 
   # Ensure default route will be put in the right order
-  if defined(L23network::L3::Defaultroute[$def_gateway]) {
-    L3_if_downup <||> -> Defaultroute[$def_gateway]
-  }
+  # if defined(L23network::L3::Defaultroute[$def_gateway]) {
+  #   L3_if_downup <||> -> Defaultroute[$def_gateway]
+  # }
 }
