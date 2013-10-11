@@ -76,15 +76,14 @@ class MrntQuantumNR
     res__quantum_router = 'quantum_router'
     res__quantum_router_type = Puppet::Type.type(res__quantum_router.downcase.to_sym)
     previous = nil
+    segment_id = @quantum_config[:L2][:enable_tunneling]  ?  @quantum_config[:L2][:tunnel_id_ranges].split(':')[0].to_i  :  0
     @quantum_config[:predefined_networks].each do |net, ncfg|
       # config network resources parameters
       network_config = get_default_network_config()
       network_config[:net][:name] = net.to_s
       network_config[:net][:network_type] = ncfg[:L2][:network_type]
-      network_config[:net][:physnet] = ncfg[:L2][:physnet]
       network_config[:net][:router_ext] = ncfg[:L2][:router_ext]
       network_config[:net][:shared] = ncfg[:shared]
-      network_config[:net][:segment_id] = ncfg[:L2][:segment_id]
       network_config[:subnet][:name] = "#{net.to_s}__subnet"
       network_config[:subnet][:network] = network_config[:net][:name]
       network_config[:subnet][:cidr] = ncfg[:L3][:subnet]
@@ -96,6 +95,12 @@ class MrntQuantumNR
           raise(Puppet::ParseError, "You must define floating range for network '#{net}' as pair of IP addresses, not a #{ncfg[:L3][:floating]}")
         end
         network_config[:subnet][:alloc_pool] = "start=#{floating_a[0]},end=#{floating_a[1]}"
+      end
+      if network_config[:net][:network_type].downcase == 'gre'
+        network_config[:net][:segment_id] = ncfg[:L2][:segment_id]  ?  ncfg[:L2][:segment_id]  :  segment_id
+        segment_id += 1
+      else
+        network_config[:net][:physnet] = ncfg[:L2][:physnet]
       end
       # create quantum_net resource
       p_res = Puppet::Parser::Resource.new(
