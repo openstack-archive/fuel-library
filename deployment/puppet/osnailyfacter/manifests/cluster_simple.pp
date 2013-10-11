@@ -289,9 +289,10 @@ class osnailyfacter::cluster_simple {
           heat_keystone_password => 'heat',
           heat_keystone_tenant   => 'services',
           
-          heat_rabbit_host       => $controller_node_public,
-          heat_rabbit_login      => 'murano',
-          heat_rabbit_password   => $heat_hash['rabbit_password'],
+          heat_rabbit_host       => $controller_node_address,
+          heat_rabbit_login      => $rabbit_hash['user'],
+          heat_rabbit_password   => $rabbit_hash['password'],
+          heat_rabbit_port       => '5672',
           
           heat_db_host           => $controller_node_address,
           heat_db_password       => $heat_hash['db_password'],
