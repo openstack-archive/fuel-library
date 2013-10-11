@@ -52,6 +52,14 @@ class ceph::conf {
                  ],
     }
 
+    file {'/etc/ceph/ceph.client.admin.keyring':
+      ensure => file,
+      source => '/root/ceph.client.admin.keyring',
+      mode   => '0600',
+      owner  => 'root',
+      group  => 'root',
+    }
+
     exec {'ceph-deploy init config':
       command => "ceph-deploy --overwrite-conf config push ${::hostname}",
       creates => '/etc/ceph/ceph.conf',
@@ -59,6 +67,7 @@ class ceph::conf {
 
     Exec['ceph-deploy config pull']       ->
     Exec['ceph-deploy gatherkeys remote'] ->
+    File['/etc/ceph/ceph.client.admin.keyring'] ->
     Exec['ceph-deploy init config']
   }
 }
