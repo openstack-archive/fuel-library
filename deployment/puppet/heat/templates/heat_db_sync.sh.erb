@@ -1,0 +1,7 @@
+#!/bin/sh
+
+if [ -f "/usr/bin/heat-manage" ]; then
+  /usr/bin/heat-manage db_sync
+else
+  /usr/bin/python -m heat.db.sync
+fi

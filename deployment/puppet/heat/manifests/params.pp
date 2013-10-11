@@ -19,5 +19,6 @@ class heat::params {
 
   $db_sync_command              = '/usr/bin/heat-manage db_sync'
   $legacy_db_sync_command       = '/usr/bin/python -m heat.db.sync'
+  $heat_db_sync_command         = '/usr/local/bin/heat_db_sync'
 
 }
