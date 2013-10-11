@@ -112,9 +112,9 @@ class heat(
   class { 'heat::keystone::auth' :
     password                       => 'heat',
     auth_name                      => 'heat',
-    public_address                 => '127.0.0.1',
-    admin_address                  => '127.0.0.2',
-    internal_address               => '127.0.0.3',
+    public_address                 => $external_ip,
+    admin_address                  => $heat_keystone_host,
+    internal_address               => $heat_keystone_host,
     heat_port                      => '8004',
     region                         => 'RegionOne',
     tenant                         => 'services',
