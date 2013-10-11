@@ -46,12 +46,6 @@ class heat::engine (
     mode    => '0640',
   }
 
-  if $enabled {
-    $service_ensure = 'running'
-  } else {
-    $service_ensure = 'stopped'
-  }
-
   if $rabbit_hosts {
     if is_array($rabbit_hosts) {
       $rabbit_hosts_v = join($rabbit_hosts, ',')
@@ -76,9 +70,9 @@ class heat::engine (
   }
 
   service { 'heat-engine':
-    ensure     => $service_ensure,
+    ensure     => 'running',
     name       => $::heat::params::engine_service_name,
-    enable     => $enabled,
+    enable     => true,
     hasstatus  => true,
     hasrestart => true,
   }
@@ -116,5 +110,6 @@ class heat::engine (
   File['/etc/heat/heat-engine.conf'] -> Exec['heat-encryption-key-replacement'] -> Service['heat-engine']
   File['/etc/heat/heat-engine.conf'] ~> Service['heat-engine']
   Class['heat::db'] -> Service['heat-engine']
+  Exec['heat_db_sync'] -> Service['heat-engine']
 
 }

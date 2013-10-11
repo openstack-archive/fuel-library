@@ -36,12 +36,6 @@ class heat::api_cfn (
     name   => $::heat::params::api_cfn_package_name,
   }
 
-  if $enabled {
-    $service_ensure = 'running'
-  } else {
-    $service_ensure = 'stopped'
-  }
-
   if $rabbit_hosts {
     heat_api_cfn_config { 'DEFAULT/rabbit_host':  ensure => absent }
     heat_api_cfn_config { 'DEFAULT/rabbit_port':  ensure => absent }
@@ -59,9 +53,9 @@ class heat::api_cfn (
   }
 
   service { 'heat-api-cfn':
-    ensure     => $service_ensure,
+    ensure     => 'running',
     name       => $::heat::params::api_cfn_service_name,
-    enable     => $enabled,
+    enable     => true,
     hasstatus  => true,
     hasrestart => true,
   }

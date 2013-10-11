@@ -41,12 +41,6 @@ class heat::api (
     require => Package['python-routes'],
   }
 
-  if $enabled {
-    $service_ensure = 'running'
-  } else {
-    $service_ensure = 'stopped'
-  }
-
   if $rabbit_hosts {
     heat_api_config { 'DEFAULT/rabbit_host':  ensure => absent }
     heat_api_config { 'DEFAULT/rabbit_port':  ensure => absent }
@@ -64,9 +58,9 @@ class heat::api (
   }
 
   service { 'heat-api':
-    ensure     => $service_ensure,
+    ensure     => 'running',
     name       => $::heat::params::api_service_name,
-    enable     => $enabled,
+    enable     => true,
     hasstatus  => true,
     hasrestart => true,
   }
