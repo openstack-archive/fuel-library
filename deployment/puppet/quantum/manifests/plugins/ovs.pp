@@ -77,7 +77,8 @@ class quantum::plugins::ovs (
         'OVS/tunnel_bridge':     value => $quantum_config['L2']['tunnel_bridge'];
         'OVS/tunnel_id_ranges':  value => $quantum_config['L2']['tunnel_id_ranges'];
         # 'OVS/network_vlan_ranges':  ensure  => absent;
-        # 'OVS/bridge_mappings':      ensure  => absent;
+        'OVS/bridge_mappings':   value => $quantum_config['L2']['bridge_mappings'];
+        #todo: remove ext_net from mappings. Affect NEutron 'OVS/bridge_mappings':      ensure  => absent;
       }
   } else {
       quantum_plugin_ovs {
