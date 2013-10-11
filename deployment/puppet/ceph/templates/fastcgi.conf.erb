@@ -1,0 +1,25 @@
+# This file is managed by Puppet
+
+# WARNING: this is a kludge:
+## The User/Group for httpd need to be set before we can load mod_fastcgi,
+## but /etc/httpd/conf.d/fastcgi.conf on RHEL gets loaded before
+## /etc/httpd/conf/httpd.conf, so we need to set them here :(
+## mod_fcgid does not have this bug,
+## but it does not handle child PHP processes appropriately per
+## http://serverfault.com/questions/303535/a-single-php-fastcgi-process-blocks-all-other-php-requests/305093#305093
+
+User apache
+Group apache
+
+LoadModule fastcgi_module modules/mod_fastcgi.so
+
+# dir for IPC socket files
+FastCgiIpcDir /var/run/mod_fastcgi
+
+# wrap all fastcgi script calls in suexec
+# Must be off in RHEL
+FastCgiWrapper Off
+
+# global FastCgiConfig can be overridden by FastCgiServer options in vhost config
+FastCgiConfig -idle-timeout 20 -maxClassProcesses 1
+

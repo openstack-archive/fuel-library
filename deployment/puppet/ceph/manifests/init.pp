@@ -21,16 +21,18 @@ class ceph (
       $public_network            = $::fuel_settings['management_network_range'],
 
       # RadosGW settings
-      $rgw_host                         = $::fqdn,
+      $rgw_host                         = $::osfamily ? {'Debian'=> $::hostname, default => $::fqdn},
       $rgw_port                         = '6780',
       $rgw_keyring_path                 = '/etc/ceph/keyring.radosgw.gateway',
       $rgw_socket_path                  = '/tmp/radosgw.sock',
       $rgw_log_file                     = '/var/log/ceph/radosgw.log',
+      $rgw_use_keystone                 = true,
+      $rgw_use_pki                      = false,
       $rgw_keystone_url                 = "${cluster_node_address}:5000",
       $rgw_keystone_admin_token         = $::fuel_settings['keystone']['admin_token'],
       $rgw_keystone_token_cache_size    = '10',
       $rgw_keystone_accepted_roles      = '_member_, Member, admin, swiftoperator',
-      $rgw_keystone_revocation_interval = '60',
+      $rgw_keystone_revocation_interval = $::ceph::rgw_use_pki ? { false => 1000000, default => 60},
       $rgw_data                         = '/var/lib/ceph/radosgw',
       $rgw_dns_name                     = "*.${::domain}",
       $rgw_print_continue               = 'false',
@@ -97,11 +99,12 @@ class ceph (
       Service['ceph']
 
       if ($::ceph::use_rgw) {
-        include ceph::libnss, ceph::keystone, ceph::radosgw
+        include ceph::radosgw
         Class['ceph::mon'] ->
-        Class['ceph::libnss'] ->
-        Class[['ceph::keystone', 'ceph::radosgw']] ~>
+        Class['ceph::radosgw'] ~>
         Service['ceph']
+
+        Class['::keystone'] -> Class['ceph::radosgw']
       }
     }
 
