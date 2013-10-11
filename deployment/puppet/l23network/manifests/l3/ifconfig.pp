@@ -295,4 +295,9 @@ define l23network::l3::ifconfig (
     subscribe     => File["$interface_file"],
     refreshonly   => true,
   }
+
+  # Ensure default route will be put in the right order
+  if defined(L23network::L3::Defaultroute[$def_gateway]) {
+    L3_if_downup <||> -> Defaultroute[$def_gateway]
+  }
 }
