@@ -33,7 +33,7 @@ Puppet::Type.type(:quantum_subnet).provide(
   def create
     # tenant_subnet_id=$(get_id quantum subnet-create --tenant_id $tenant_id --ip_version 4 $tenant_net_id $fixed_range --gateway $network_gateway)
     # quantum subnet-create --tenant-id $tenant --name subnet01 net01 192.168.101.0/24
-    # quantum subnet-create --tenant-id $tenant --name pub_subnet01 --gateway 10.0.1.254 public01 10.0.1.0/24 --enable_dhcp False 
+    # quantum subnet-create --tenant-id $tenant --name pub_subnet01 --gateway 10.0.1.254 public01 10.0.1.0/24 --enable_dhcp False
 
 # --allocation-pool start=$pool_floating_start,end=$pool_floating_end
 # --dns_nameservers list=true 8.8.8.8
@@ -53,6 +53,7 @@ Puppet::Type.type(:quantum_subnet).provide(
       :enable_dhcp => '--enable_dhcp',
       :nameservers => ['--dns_nameservers', 'list=true']
     }.each do |param, opt|
+      Puppet::debug("===param'#{param}'='#{@resource[param]}'")
       if @resource[param]
         proto_opts.push(opt).push(@resource[param])
       end
@@ -84,12 +85,12 @@ Puppet::Type.type(:quantum_subnet).provide(
     auth_quantum("subnet-delete", @resource[:name])
   end
 
-  private 
+  private
     def self.get_id(subnet_info)
       # ruby 1.8.x specific
       subnet_info.grep(/ id /).to_s.split[3]
     end
-    
+
     def self.get_tenants_id
       # notice("*** GET_TENANT_ID")
       list_keystone_tenants

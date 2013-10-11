@@ -64,6 +64,7 @@ class MrntQuantumNR
         :gateway => nil,
         :alloc_pool  => nil,  # Allocation pool IP addresses
         :nameservers => nil,  # DNS name servers used by hosts
+        :enable_dhcp => false,
       },
     }))
   end
@@ -88,7 +89,8 @@ class MrntQuantumNR
       network_config[:subnet][:network] = network_config[:net][:name]
       network_config[:subnet][:cidr] = ncfg[:L3][:subnet]
       network_config[:subnet][:gateway] = ncfg[:L3][:gateway]
-      network_config[:subnet][:nameservers] = ncfg[:L3][:nameservers]
+      network_config[:subnet][:nameservers] = ncfg[:L3][:nameservers]  ?  ncfg[:L3][:nameservers].join(' ')  :  nil
+      network_config[:subnet][:enable_dhcp] = ncfg[:L3][:enable_dhcp]  ?  "True"  :  "False"
       if ncfg[:L3][:floating]
         floating_a = ncfg[:L3][:floating].split(/[\:\-]/)
         if floating_a.size != 2
@@ -141,8 +143,9 @@ class MrntQuantumNR
         router_config = get_default_router_config()
         router_config[:name] = rou.to_s
         rcfg[:tenant] && router_config[:tenant] = rcfg[:tenant]
-        router_config[:ext_net] = rcfg[:external_network]
-        router_config[:int_subnets] = rcfg[:internal_networks]
+        router_config[:ext_net] = rcfg[:external_network] #"rcfg[:external_network]__subnet"
+        #todo: realize
+        router_config[:int_subnets] = rcfg[:internal_networks].map{|x| "#{x}__subnet"}
         # create resource
         p_res = Puppet::Parser::Resource.new(
           res__quantum_router,
