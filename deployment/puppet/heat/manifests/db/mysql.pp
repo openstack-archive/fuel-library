@@ -16,6 +16,8 @@ class heat::db::mysql(
     grant        => ['all'],
   }
 
-  Class['mysql::server'] -> Mysql::Db[$dbname] ~> Exec['heat-manage db_sync']
+  Class['mysql::server'] -> Mysql::Db[$dbname]
+  Mysql::Db[$dbname] ~> Exec['db_sync']
+  Mysql::Db[$dbname] ~> Exec['legacy_db_sync']
 
 }

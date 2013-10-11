@@ -10,8 +10,6 @@ class heat::db (
   Package<| title == 'heat-common' |> -> Class['heat::db']
   Class['heat::db::mysql']            -> Class['heat::db']
   Class['heat::cli']                  -> Class['heat::db']
-  Exec['db_sync']                     -> Class['heat::db']
-  Exec['legacy_db_sync']              -> Class['heat::db']
 
   validate_re($sql_connection,
     '(mysql):\/\/(\S+:\S+@\S+\/\S+)?')
