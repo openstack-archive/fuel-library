@@ -9,7 +9,7 @@ class heat::params {
   $heat_cli_package_name        = 'openstack-heat-cli'
   $deps_pbr_package_name        = 'python-pbr'
   $deps_routes_package_name     = 'python-routes'
-  $client_package_name          = 'openstack-murano-virtualenv-python-heatclient'
+  $client_package_name          = 'python-heatclient'
 
   # service names
   $api_service_name             = 'openstack-heat-api'
