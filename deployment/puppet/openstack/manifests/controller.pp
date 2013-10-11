@@ -167,7 +167,7 @@ class openstack::controller (
   $api_bind_address        = '0.0.0.0',
   $service_endpoint        = '127.0.0.1',
   $galera_cluster_name     = 'openstack',
-  $primary_controller      = primary_controller,
+  $primary_controller      = false,
   $galera_node_address     = '127.0.0.1',
   $glance_backend          = 'file',
   $galera_nodes            = ['127.0.0.1'],
@@ -365,6 +365,7 @@ class openstack::controller (
     glance_api_servers      => $glance_api_servers,
     # General
     verbose                 => $verbose,
+    primary_controller      => $primary_controller,
     debug                   => $debug,
     enabled                 => $enabled,
     exported_resources      => $export_resources,

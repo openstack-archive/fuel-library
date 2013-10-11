@@ -1,6 +1,7 @@
 #
 class quantum::server (
   $quantum_config     = {},
+  $primary_controller = false,
 ) {
   include 'quantum::params'
 
@@ -45,6 +46,7 @@ class quantum::server (
   Quantum_api_config<||> ~> Service['quantum-server']
 
   quantum_api_config {
+    'filter:authtoken/auth_url':          value => $quantum_config['keystone']['auth_url'];
     'filter:authtoken/auth_host':         value => $quantum_config['keystone']['auth_host'];
     'filter:authtoken/auth_port':         value => $quantum_config['keystone']['auth_port'];
     'filter:authtoken/admin_tenant_name': value => $quantum_config['keystone']['admin_tenant_name'];
@@ -77,7 +79,7 @@ class quantum::server (
 
   anchor {'quantum-server-config-done':}
 
-  if $::fuel_settings['role'] == 'primary-controller' {
+  if $primary_controller {
     Anchor['quantum-server-config-done'] ->
     class { 'quantum::network::predefined_netwoks':
       quantum_config => $quantum_config,
