@@ -587,7 +587,7 @@ class PreseedPManager(object):
         self.early("vgscan")
         self.early("for v in $(vgs -a --noheadings --nosuffix --ignorelockingfailure "
                    "2>/dev/null | sed 's/^\([ ]*\)\([^ ]\+\)\(.*\)/\\2/g'); do "
-                   "vgreduce --removemissing $v; vgremove -f $v; done")
+                   "vgreduce --force --removemissing $v; vgremove -f $v; done")
         for disk in [d for d in self.data if d["type"] == "disk"]:
             for pv in [p for p in disk["volumes"] if p["type"] == "pv" and p["vg"] != "os"]:
                 if pv["size"] <= 0:
