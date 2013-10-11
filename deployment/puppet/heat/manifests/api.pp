@@ -2,6 +2,7 @@ class heat::api (
   $pacemaker          = false,
   $keystone_host      = '127.0.0.1',
   $keystone_port      = '35357',
+  $keystone_service_port = '5000',
   $keystone_protocol  = 'http',
   $keystone_user      = 'heat',
   $keystone_tenant    = 'services',
@@ -23,7 +24,6 @@ class heat::api (
   $rpc_backend        = 'heat.openstack.common.rpc.impl_kombu',
   $use_stderr         = 'False',
   $use_syslog         = 'False',
-  $keystone_service_port  = '5000',
 ) {
 
   include heat::params
@@ -94,8 +94,24 @@ class heat::api (
     'keystone_authtoken/admin_password'    : value => $keystone_password;
     'keystone_authtoken/auth_uri'          : value => "${keystone_protocol}://${keystone_host}:${keystone_service_port}/v2";
   }
+  
+  heat_api_paste_ini {
+    'filter:authtoken/paste.filter_factory' : value => "heat.common.auth_token:filter_factory";
+    'filter:authtoken/service_protocol'     : value => $keystone_protocol;
+    'filter:authtoken/service_host'         : value => $keystone_host;
+    'filter:authtoken/service_port'         : value => $keystone_service_port;
+    'filter:authtoken/auth_host'            : value => $keystone_host;
+    'filter:authtoken/auth_port'            : value => $keystone_port;
+    'filter:authtoken/auth_protocol'        : value => $keystone_protocol;
+    'filter:authtoken/auth_uri'             : value => "${keystone_protocol}://${keystone_host}:${keystone_port}/v2.0";
+    'filter:authtoken/admin_tenant_name'    : value => $keystone_tenant;
+    'filter:authtoken/admin_user'           : value => $keystone_user;
+    'filter:authtoken/admin_password'       : value => $keystone_password;
+  }
 
-  Package['heat-common'] -> Package['heat-api'] -> Heat_api_config<||> ~> Service['heat-api']
+  Package['heat-common'] -> Package['heat-api'] -> Heat_api_config<||> -> Heat_api_paste_ini<||>
+  Heat_api_config<||> ~> Service['heat-api']
+  Heat_api_paste_ini<||> ~> Service['heat-api']
   Package['heat-api'] ~> Service['heat-api']
   Class['heat::db'] -> Service['heat-api']
 
