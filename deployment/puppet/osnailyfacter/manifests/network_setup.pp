@@ -17,12 +17,12 @@ define check_base_interfaces (
 ) {
   $b_iface = split($interface, '.')
   if size($b_iface) > 1 {
-    if ! defined(L23network::L3::Ifconfig[$b_iface]) {
-      l23network::l3::ifconfig{$b_iface:
+    if ! defined(L23network::L3::Ifconfig[$b_iface[0]]) {
+      l23network::l3::ifconfig{$b_iface[0]:
         ipaddr        => 'none',
       }
     }
-    L23network::L3::Ifconfig<| title == $b_iface |> ->
+    L23network::L3::Ifconfig<| title == $b_iface[0] |> ->
     L23network::L3::Ifconfig<| title == $interface |>
   }
 }
