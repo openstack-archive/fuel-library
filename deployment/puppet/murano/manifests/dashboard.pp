@@ -1,13 +1,25 @@
 class murano::dashboard (
   $settings_py           = '/usr/share/openstack-dashboard/openstack_dashboard/settings.py',
   $modify_config         = '/usr/bin/modify-horizon-config.sh',
-  $collect_static_script = '/usr/share/openstack-dashboard/manage.py'
+  $collect_static_script = '/usr/share/openstack-dashboard/manage.py',
+  $murano_url_string     = $::murano::params::default_url_string,
+  $local_settings        = $::murano::params::local_settings_path,
 ) {
 
   include murano::params
 
   $dashboard_deps = $::murano::params::murano_dashboard_deps
   $package_name   = $::murano::params::murano_dashboard_package_name
+
+  File_line {
+    ensure => 'present',
+  }
+
+  file_line{ 'murano_url' :
+    path    => $local_settings,
+    line    => $murano_url_string,
+    require => File[$local_settings],
+  }
 
   file { $modify_config :
     ensure => present,
