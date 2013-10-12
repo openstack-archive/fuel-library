@@ -369,6 +369,7 @@ class osnailyfacter::cluster_ha {
       if $savanna_hash['enabled'] {
         class { 'savanna' :
           savanna_enabled           => true,
+          savanna_api_host          => $controller_node_address,
           
           savanna_db_password       => $savanna_hash['db_password'],
           savanna_db_host           => $controller_node_address,

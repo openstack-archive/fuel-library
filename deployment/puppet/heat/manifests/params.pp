@@ -34,10 +34,10 @@ class heat::params {
       $client_package_name          = 'python-heatclient'
 
       # service names
-      $api_service_name             = 'openstack-heat-api'
-      $api_cloudwatch_service_name  = 'openstack-heat-api-cloudwatch'
-      $api_cfn_service_name         = 'openstack-heat-api-cfn'
-      $engine_service_name          = 'openstack-heat-engine'
+      $api_service_name             = 'heat-api'
+      $api_cloudwatch_service_name  = 'heat-api-cloudwatch'
+      $api_cfn_service_name         = 'heat-api-cfn'
+      $engine_service_name          = 'heat-engine'
 
       $db_sync_command              = '/usr/bin/heat-manage db_sync'
       $legacy_db_sync_command       = '/usr/bin/python -m heat.db.sync'
