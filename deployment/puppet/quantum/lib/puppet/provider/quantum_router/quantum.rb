@@ -42,13 +42,13 @@ Puppet::Type.type(:quantum_router).provide(
       admin_state,
       @resource[:name]
     )
-    
+
     # notice("ROUTER: #{router_info}")
-    
+
     # add an internal networks interfaces to a router
     @resource[:int_subnets].each do |subnet|
       auth_quantum('router-interface-add',
-        @resource[:name],	
+        @resource[:name],
         subnet
       )
     end
@@ -61,9 +61,9 @@ Puppet::Type.type(:quantum_router).provide(
       )
 
       # update router_id option
-      router_id = self.class.get_id(router_info) 
-      ql3a_conf = Puppet::Type.type(:quantum_l3_agent_config).new(:name => "DEFAULT/router_id", :value => router_id)
-      ql3a_conf.provider.create
+      # router_id = self.class.get_id(router_info)
+      # ql3a_conf = Puppet::Type.type(:quantum_l3_agent_config).new(:name => "DEFAULT/router_id", :value => router_id)
+      # ql3a_conf.provider.create
     end
   end
 
@@ -82,11 +82,11 @@ Puppet::Type.type(:quantum_router).provide(
     auth_quantum("router-delete", @resource[:name])
   end
 
-  private 
+  private
     def self.get_id(router_info)
       router_info.split("\n").grep(/\bid/).to_s.split[3]
     end
-    
+
     def self.get_tenants_id
       # notice("*** GET_TENANT_ID")
       list_keystone_tenants

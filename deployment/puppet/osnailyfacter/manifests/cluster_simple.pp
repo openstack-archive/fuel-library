@@ -198,6 +198,7 @@ class osnailyfacter::cluster_simple {
         cinder_rate_limits      => $cinder_rate_limits,
         horizon_use_ssl         => $horizon_use_ssl,
         nameservers             => $::dns_nameservers,
+        primary_controller      => true,
       }
       nova_config { 'DEFAULT/start_guests_on_host_boot': value => $::fuel_settings['start_guests_on_host_boot'] }
       nova_config { 'DEFAULT/use_cow_images': value => $::fuel_settings['use_cow_images'] }

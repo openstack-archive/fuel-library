@@ -9,7 +9,7 @@ Puppet::Type.newtype(:quantum_subnet) do
   end
 
   newparam(:tenant) do
-    desc "The tenant that the network is associated with" 
+    desc "The tenant that the network is associated with"
     defaultto "admin"
   end
 
@@ -29,7 +29,7 @@ Puppet::Type.newtype(:quantum_subnet) do
   end
 
   newparam(:enable_dhcp) do
-    defaultto "True"
+    defaultto "False"
   end
 
   newparam(:alloc_pool) do
@@ -37,7 +37,21 @@ Puppet::Type.newtype(:quantum_subnet) do
   end
 
   newparam(:nameservers) do
+    defaultto false
     desc 'DNS name servers used by hosts'
+    munge do |val|
+      if val.is_a?(String)
+        if !val.strip.empty?
+          val.strip.split(/[:\s+\,\-]/)
+        else
+          false
+        end
+      elsif val.is_a?(Array)
+        val.empty?  ?  false  : val
+      else
+        false
+      end
+    end
   end
 
   # validate do

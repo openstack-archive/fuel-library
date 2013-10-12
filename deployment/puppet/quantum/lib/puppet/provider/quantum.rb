@@ -1,4 +1,3 @@
-#
 # Quantum common functions
 #
 require 'puppet/util/inifile'

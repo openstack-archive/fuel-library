@@ -84,7 +84,7 @@ class quantum (
             }
         }
     }
-    'qpid': {
+    'qpid', 'qpid-rh': {
         quantum_config {
           'DEFAULT/rpc_backend':   value => 'quantum.openstack.common.rpc.impl_qpid';
           'DEFAULT/qpid_hosts':    value => $quantum_config['amqp']['hosts'];
@@ -113,6 +113,7 @@ class quantum (
     'DEFAULT/agent_down_time':        value => $quantum_config['server']['agent_down_time'];
     'keystone_authtoken/auth_host':         value => $quantum_config['keystone']['auth_host'];
     'keystone_authtoken/auth_port':         value => $quantum_config['keystone']['auth_port'];
+    'keystone_authtoken/auth_url':          value => $quantum_config['keystone']['auth_url'];
     'keystone_authtoken/admin_tenant_name': value => $quantum_config['keystone']['admin_tenant_name'];
     'keystone_authtoken/admin_user':        value => $quantum_config['keystone']['admin_user'];
     'keystone_authtoken/admin_password':    value => $quantum_config['keystone']['admin_password'];
