@@ -95,12 +95,18 @@ class quantum (
     }
   }
 
+  if $server_ha_mode {
+    $server_bind_host = $quantum_config['server']['bind_host']
+  } else {
+    $server_bind_host = '0.0.0.0'
+  }
+
   quantum_config {
     'DEFAULT/verbose':                value => $verbose;
     'DEFAULT/debug':                  value => $debug;
     'DEFAULT/auth_strategy':          value => $auth_strategy;
     'DEFAULT/core_plugin':            value => $core_plugin;
-    'DEFAULT/bind_host':              value => $quantum_config['server']['bind_host'];
+    'DEFAULT/bind_host':              value => $server_bind_host;
     'DEFAULT/bind_port':              value => $quantum_config['server']['bind_port'];
     'DEFAULT/base_mac':               value => $quantum_config['L2']['base_mac'];
     'DEFAULT/mac_generation_retries': value => $quantum_config['L2']['mac_generation_retries'];

@@ -18,7 +18,7 @@ class nova::network::quantum (
     'DEFAULT/quantum_auth_strategy':     value => $quantum_auth_strategy;
     'DEFAULT/quantum_url':               value => $quantum_config['server']['api_url'];
     'DEFAULT/quantum_admin_tenant_name': value => $quantum_config['keystone']['admin_tenant_name'];
-    'DEFAULT/quantum_admin_username':    value => $quantum_config['keystone']['admin_username'];
+    'DEFAULT/quantum_admin_username':    value => $quantum_config['keystone']['admin_user'];
     'DEFAULT/quantum_admin_password':    value => $quantum_config['keystone']['admin_password'];
     'DEFAULT/quantum_admin_auth_url':    value => $quantum_config['keystone']['auth_url'];
   }

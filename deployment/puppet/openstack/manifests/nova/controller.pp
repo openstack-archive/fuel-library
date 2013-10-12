@@ -287,6 +287,7 @@ class openstack::nova::controller (
         use_syslog           => $use_syslog,
         syslog_log_facility  => $syslog_log_facility_quantum,
         syslog_log_level     => $syslog_log_level,
+        server_ha_mode       => $ha_mode,
       }
     }
     class { 'nova::network::quantum':

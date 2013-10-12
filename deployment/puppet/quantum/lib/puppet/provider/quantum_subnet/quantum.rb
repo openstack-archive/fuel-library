@@ -53,7 +53,6 @@ Puppet::Type.type(:quantum_subnet).provide(
       :enable_dhcp => '--enable_dhcp',
       :nameservers => ['--dns_nameservers', 'list=true']
     }.each do |param, opt|
-      Puppet::debug("===param'#{param}'='#{@resource[param]}'")
       if @resource[param]
         proto_opts.push(opt).push(@resource[param])
       end
