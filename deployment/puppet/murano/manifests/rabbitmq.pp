@@ -3,7 +3,7 @@
 
 class murano::rabbitmq(
   $rabbitmq_config_path  = '/etc/rabbitmq/rabbitmq-murano.config',
-  $init_script_path      = '/etc/init.d/rabbitmq-server-murano',
+  $init_script_name      = 'rabbitmq-server-murano',
   $firewall_rule_name    = '003 murano rabbitmq',
   $rabbit_user           = 'murano',
   $rabbit_password       = 'murano',
@@ -16,12 +16,12 @@ class murano::rabbitmq(
 
   case $::osfamily {
     'RedHat': {
-      $init_install_cmd = "chkconfig --add '${init_script_path}'"
-      $init_script_name = 'rabbitmq-init-centos.erb'
+      $init_install_cmd = "chkconfig --add '/etc/init.d/${init_script_name}'"
+      $init_script_file = 'rabbitmq-init-centos.erb'
     }
     'Debian': {
-      $init_install_cmd = "update-rc.d '${init_script_path}' defaults"
-      $init_script_name = 'rabbitmq-init-ubuntu.erb'
+      $init_install_cmd = "update-rc.d '${init_script_name}' defaults"
+      $init_script_file = 'rabbitmq-init-ubuntu.erb'
     }
     default: {
       fail("Unsupported osfamily: ${::osfamily}")
@@ -37,11 +37,11 @@ class murano::rabbitmq(
   }
 
   file { 'init_script' :
-    path    => $init_script_path,
+    path    => "/etc/init.d/${init_script_name}",
     owner   => 'root',
     group   => 'root',
     mode    => '0755',
-    content => template("murano/${init_script_name}"),
+    content => template("murano/${init_script_file}"),
   }
 
   exec { 'install_init_script' :
