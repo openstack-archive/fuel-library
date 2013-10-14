@@ -1,20 +1,33 @@
 class murano::db::mysql(
-  $murano_db_password = 'murano',
-  $murano_db_name     = 'murano',
-  $murano_db_user     = 'murano',
-  $murano_db_host     = 'localhost',
-  $allowed_hosts      = undef,
-  $charset            = 'utf8',
+  $password      = 'murano',
+  $dbname        = 'murano',
+  $user          = 'murano',
+  $dbhost        = 'localhost',
+  $charset       = 'utf8',
+  $allowed_hosts = undef,
 ) {
 
   include 'murano::params'
 
-  mysql::db { $murano_db_name :
-    user         => $murano_db_user,
-    password     => $murano_db_password,
-    host         => $murano_db_host,
-    charset      => $charset,
-    grant        => ['all'],
+  mysql::db { $dbname :
+    user     => $user,
+    password => $password,
+    host     => $dbhost,
+    charset  => $charset,
+    grant    => ['all'],
   }
+  
+  if $allowed_hosts {
+    murano::db::mysql::host_access { $allowed_hosts:
+      user      => $user,
+      password  => $password,
+      database  => $dbname,
+    }
+  }
+  
+  $services = [ 'murano::conductor', 'murano::api' ]
+  Database[$dbname] -> Class[$services]
+  Database_user["${user}@${dbhost}"] -> Class[$services]
+  Database_grant["${user}@${dbhost}/${dbname}"] -> Class[$services]
 
 }

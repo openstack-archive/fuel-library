@@ -41,15 +41,17 @@ class murano (
   $murano_db_name                       = 'murano',
   $murano_db_user                       = 'murano',
   $murano_db_host                       = 'localhost',
+  $murano_db_allowed_hosts              = '%',
 ) {
 
   $murano_keystone_auth_url = "${murano_keystone_protocol}://${murano_keystone_host}:${murano_keystone_port}/v2.0"
 
   class { 'murano::db::mysql':
-    murano_db_password                   => $murano_db_password,
-    murano_db_name                       => $murano_db_name,
-    murano_db_user                       => $murano_db_user,
-    murano_db_host                       => $murano_db_host,
+    password                             => $murano_db_password,
+    dbname                               => $murano_db_name,
+    user                                 => $murano_db_user,
+    dbhost                               => $murano_db_host,
+    allowed_hosts                        => $murano_db_allowed_hosts,
   }
 
   class { 'murano::conductor' :

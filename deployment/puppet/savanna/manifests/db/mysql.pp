@@ -1,9 +1,9 @@
 class savanna::db::mysql(
-  $password = false,
-  $dbname   = 'savanna',
-  $user     = 'savanna',
-  $dbhost   = 'localhost',
-  $charset  = 'utf8',
+  $password      = 'savanna',
+  $dbname        = 'savanna',
+  $user          = 'savanna',
+  $dbhost        = 'localhost',
+  $charset       = 'utf8',
   $allowed_hosts = undef,
 ) {
 
@@ -24,5 +24,9 @@ class savanna::db::mysql(
       database  => $dbname,
     }
   }
+  
+  Database[$dbname] -> Class['savanna::api']
+  Database_user["${user}@${dbhost}"] -> Class['savanna::api']
+  Database_grant["${user}@${dbhost}/${dbname}"] -> Class['savanna::api']
 
 }

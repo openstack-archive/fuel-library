@@ -4,6 +4,7 @@ class heat::db::mysql(
   $user          = 'heat',
   $dbhost        = 'localhost',
   $charset       = 'utf8',
+  $allowed_hosts = undef,
 ) {
 
   include 'heat::params'
@@ -14,6 +15,14 @@ class heat::db::mysql(
     host         => $dbhost,
     charset      => $charset,
     grant        => ['all'],
+  }
+  
+  if $allowed_hosts {
+    heat::db::mysql::host_access { $allowed_hosts:
+      user      => $user,
+      password  => $password,
+      database  => $dbname,
+    }
   }
 
   Database[$dbname] ~> Exec['heat_db_sync']

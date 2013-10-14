@@ -15,6 +15,7 @@ class heat(
   $heat_db_password              = 'heat',
   $heat_db_host                  = '127.0.0.1',
   $heat_db_name                  = 'heat',
+  $heat_db_allowed_hosts         = '%',
 
   $heat_api_cfn_bind_host        = '0.0.0.0',
   $heat_api_cfn_bind_port        = '8000',
@@ -44,10 +45,11 @@ class heat(
   $heat_watch_server_url         = "http://${external_ip}:${heat_api_cloudwatch_bind_port}"
 
   class { 'heat::db::mysql' :
-    password => $heat_db_password,
-    dbname   => $heat_db_name,
-    user     => $heat_db_user,
-    dbhost   => $heat_db_host,
+    password                     => $heat_db_password,
+    dbname                       => $heat_db_name,
+    user                         => $heat_db_user,
+    dbhost                       => $heat_db_host,
+    allowed_hosts                => $heat_db_allowed_hosts,
   }
 
   class { 'heat::install' :
