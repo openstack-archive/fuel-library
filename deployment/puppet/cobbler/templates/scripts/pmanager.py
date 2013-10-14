@@ -461,6 +461,41 @@ class PreseedPManager(object):
         self._pend[disk_id] = self._pend.get(disk_id, 0) + increment
         return self._pend.get(disk_id, 0)
 
+    def erase_partition_table(self):
+        for disk in [d for d in self.data if d["type"] == "disk"]:
+            self.early("test -e $(readlink -f /dev/{0}) && "
+                       "dd if=/dev/zero of=$(readlink -f /dev/{0}) "
+                       "bs=1M count=10".format(disk["id"]))
+            self.early("sleep 3")
+            self.early("hdparm -z $(readlink -f /dev/{0})".format(disk["id"]))
+
+    def log_lvm(self, line, early=True):
+        func = self.early
+        if not early:
+            func = self.late
+        func("echo \"=== {0} ===\" | logger".format(line))
+        func("for v in $(vgs -a --noheadings 2>/dev/null | "
+                  "sed 's/^\([ ]*\)\([^ ]\+\)\(.*\)/\\2/g'); do "
+                  "echo \"vg=$v\" | logger; done")
+        func("for p in $(pvs --noheadings 2>/dev/null | "
+                  "sed 's/^\([ ]*\)\([^ ]\+\)\(.*\)/\\2/g'); do "
+                  "echo \"pv=$p\" | logger; done")
+
+    def erase_lvm_metadata(self, early=True):
+        func = self.early
+        if not early:
+            func = self.late
+
+        self.log_lvm("before cleaning", early)
+        func("for v in $(vgs -a --noheadings 2>/dev/null | "
+                   "sed 's/^\([ ]*\)\([^ ]\+\)\(.*\)/\\2/g'); do "
+                   "vgreduce --force --removemissing $v; "
+                   "vgremove --force $v; done")
+        func("for p in $(pvs --noheadings 2>/dev/null | "
+                   "sed 's/^\([ ]*\)\([^ ]\+\)\(.*\)/\\2/g'); do "
+                   "pvremove -ff -y $p; done")
+        self.log_lvm("after cleaning", early)
+
     def boot(self):
         self.recipe("24 24 24 ext3 "
                     "$gptonly{ } "
@@ -582,12 +617,10 @@ class PreseedPManager(object):
                                    else "sw" )))
 
     def lv(self):
-        devices_dict = {}
+        self.log_lvm("lv start", False)
+        #self.erase_lvm_metadata(False)
 
-        self.early("vgscan")
-        self.early("for v in $(vgs -a --noheadings --nosuffix --ignorelockingfailure "
-                   "2>/dev/null | sed 's/^\([ ]*\)\([^ ]\+\)\(.*\)/\\2/g'); do "
-                   "vgreduce --force --removemissing $v; vgremove -f $v; done")
+        devices_dict = {}
         for disk in [d for d in self.data if d["type"] == "disk"]:
             for pv in [p for p in disk["volumes"] if p["type"] == "pv" and p["vg"] != "os"]:
                 if pv["size"] <= 0:
@@ -612,6 +645,7 @@ class PreseedPManager(object):
                 begin_size = self.psize("/dev/%s" % disk["id"])
                 end_size = self.psize("/dev/%s" % disk["id"], pv["size"] * self.factor)
 
+                self.log_lvm("before parted id={0} n={1}".format(disk["id"], pcount), False)
                 self.late("parted -a none -s $(readlink -f /dev/{0}) "
                           "unit {4} mkpart {1} {2} {3}".format(
                              disk["id"],
@@ -630,24 +664,23 @@ class PreseedPManager(object):
                 #                 self.unit,
                 #                 end_size,
                 #                 disk["size"]))
+
+                self.log_lvm("before hdparm id={0}".format(disk["id"]), False)
                 self.late("sleep 3")
                 self.late("hdparm -z $(readlink -f /dev/{0})".format(disk["id"]))
-                self.late("pvcreate $(readlink -f /dev/{0}){1}".format(disk["id"], pcount))
+                self.late("dd if=/dev/zero of=$(readlink -f /dev/{0}){1} bs=1M count=64".format(disk["id"], pcount))
+                self.late("mkfs.xfs -q $(readlink -f /dev/{0}){1}".format(disk["id"], pcount))
+                self.log_lvm("before pvcreate id={0} n={1}".format(disk["id"], pcount), False)
+                self.late("pvcreate -ff $(readlink -f /dev/{0}){1}".format(disk["id"], pcount))
                 if not devices_dict.get(pv["vg"]):
-                    # self.early("vgreduce --removemissing {0}".format(pv["vg"]))
-                    # self.early("vgremove -f {0}".format(pv["vg"]))
                     devices_dict[pv["vg"]] = []
                 devices_dict[pv["vg"]].append(
                     "$(readlink -f /dev/{0}){1}".format(disk["id"], pcount))
 
-                self.early("pvremove -ff $(readlink -f /dev/{0}){1}".format(disk["id"], pcount))
-                offset = lambda x: ((x - 10) + abs(x - 10))/2
-                self.early("dd if=/dev/zero of=$(readlink -f /dev/{0}) bs=1M count=200 skip={1}".format(disk["id"], offset(begin_size)))
-                self.early("dd if=/dev/zero of=$(readlink -f /dev/{0}) bs=1M count=20".format(disk["id"]))
-            self.early("hdparm -z $(readlink -f /dev/{0})".format(disk["id"]))
         for vg, devs in devices_dict.iteritems():
-            self.late("vgremove -f {0}".format(vg))
+            self.log_lvm("before vgcreate {0}".format(vg), False)
             self.late("vgcreate -s 32m {0} {1}".format(vg, " ".join(devs)))
+            self.log_lvm("after vgcreate {0}".format(vg), False)
 
         for vg in [v for v in self.data if v["type"] == "vg" and v["id"] != "os"]:
             for lv in vg["volumes"]:
@@ -655,6 +688,8 @@ class PreseedPManager(object):
                     continue
                 self.late("lvcreate -L {0}m -n {1} {2}".format(
                     lv["size"], lv["name"], vg["id"]))
+                self.late("sleep 5")
+                self.late("lvscan")
 
                 tabmount = lv["mount"] if lv["mount"] != "swap" else "none"
                 if ((not lv.get("file_system", "xfs") in ("swap", None, "none")) and
@@ -676,6 +711,8 @@ class PreseedPManager(object):
                                    else "sw" )))
 
     def eval(self):
+        self.erase_lvm_metadata()
+        self.erase_partition_table()
         self.boot()
         self.os()
         self.lv()
