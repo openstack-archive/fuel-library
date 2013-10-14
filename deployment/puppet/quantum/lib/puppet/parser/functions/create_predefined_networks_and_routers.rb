@@ -79,6 +79,7 @@ class MrntQuantumNR
     previous = nil
     segment_id = @quantum_config[:L2][:enable_tunneling]  ?  @quantum_config[:L2][:tunnel_id_ranges].split(':')[0].to_i  :  0
     @quantum_config[:predefined_networks].each do |net, ncfg|
+      Puppet::debug("-*- processing net '#{net}': #{ncfg.inspect}")
       # config network resources parameters
       network_config = get_default_network_config()
       network_config[:net][:name] = net.to_s
@@ -97,13 +98,27 @@ class MrntQuantumNR
           raise(Puppet::ParseError, "You must define floating range for network '#{net}' as pair of IP addresses, not a #{ncfg[:L3][:floating]}")
         end
         network_config[:subnet][:alloc_pool] = "start=#{floating_a[0]},end=#{floating_a[1]}"
+        network_config[:subnet][:nameservers] = nil
+        network_config[:subnet][:enable_dhcp] = "False"
       end
+      network_config[:net][:physnet] = ncfg[:L2][:physnet]
       if network_config[:net][:network_type].downcase == 'gre'
+        # Get first free segment_id for GRE
         network_config[:net][:segment_id] = ncfg[:L2][:segment_id]  ?  ncfg[:L2][:segment_id]  :  segment_id
         segment_id += 1
-      else
-        network_config[:net][:physnet] = ncfg[:L2][:physnet]
+        network_config[:net][:physnet] = nil # do not pass this parameter in this segmentation type
+      elsif network_config[:net][:network_type].downcase == 'vlan' && ncfg[:L2][:physnet]
+        # Calculate segment_id for VLAN mode from personal physnet settings
+        _physnet = ncfg[:L2][:physnet].to_sym
+        _segment_id_range = @quantum_config[:L2][:phys_nets][_physnet][:vlan_range] || "4094:xxx"
+        _segment_id = _segment_id_range.split(/[:\-]/)[0].to_i
+        network_config[:net][:segment_id] = _segment_id
+      elsif network_config[:net][:network_type].downcase == 'vlan'
+        # vlan without physnet
+        raise(Puppet::ParseError, "Unrecognized segmentation ID or VLAN range for net '#{net}', binding to '#{ncfg[:L2][:physnet]}'")
+      #else # another network types -- do nothing...
       end
+      Puppet::debug("-*- using segment_id='#{network_config[:net][:segment_id]}' for net '#{net}'")
       # create quantum_net resource
       p_res = Puppet::Parser::Resource.new(
         res__quantum_net,
