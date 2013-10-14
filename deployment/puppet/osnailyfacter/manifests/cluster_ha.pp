@@ -409,7 +409,7 @@ class osnailyfacter::cluster_ha {
 
       class { 'openstack::compute':
         public_interface       => $::public_int,
-        private_interface      => $::fuel_settings['fixed_interface'],
+        private_interface      => $::use_quantum ? { true=>false, default=>$::fuel_settings['fixed_interface'] },
         internal_address       => $internal_address,
         libvirt_type           => $::fuel_settings['libvirt_type'],
         fixed_range            => $::use_quantum ? { true=>false, default=>$::fuel_settings['fixed_network_range']},
