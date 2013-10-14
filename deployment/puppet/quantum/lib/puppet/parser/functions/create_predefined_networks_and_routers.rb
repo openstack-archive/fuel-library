@@ -114,8 +114,9 @@ class MrntQuantumNR
         _segment_id = _segment_id_range.split(/[:\-]/)[0].to_i
         network_config[:net][:segment_id] = _segment_id
       elsif network_config[:net][:network_type].downcase == 'vlan'
-        # vlan vithout physnet
+        # vlan without physnet
         raise(Puppet::ParseError, "Unrecognized segmentation ID or VLAN range for net '#{net}', binding to '#{ncfg[:L2][:physnet]}'")
+      #else # another network types -- do nothing...
       end
       Puppet::debug("-*- using segment_id='#{network_config[:net][:segment_id]}' for net '#{net}'")
       # create quantum_net resource

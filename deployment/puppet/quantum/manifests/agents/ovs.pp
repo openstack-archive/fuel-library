@@ -166,6 +166,7 @@ class quantum::agents::ovs (
     }
 
   } else {
+    # NON-HA mode
     service { 'quantum-ovs-agent':
       name       => $::quantum::params::ovs_agent_service,
       enable     => true,
@@ -174,7 +175,11 @@ class quantum::agents::ovs (
       hasrestart => true,
       provider   => $::quantum::params::service_provider,
     }
+    Quantum_config<||> ~> Service['quantum-ovs-agent']
+    Quantum_plugin_ovs<||> ~> Service['quantum-ovs-agent']
   }
+  Quantum_config<||> -> Service['quantum-ovs-agent']
+  Quantum_plugin_ovs<||> -> Service['quantum-ovs-agent']
 
   Class[quantum::waistline] -> Service['quantum-ovs-agent']
 
