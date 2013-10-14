@@ -6,7 +6,7 @@ class savanna::dashboard (
   $local_settings     = $::savanna::params::local_settings_path,
   $savanna_url_string = $::savanna::params::default_url_string,
   $use_neutron        = false,
-  $use_floating_ips   = false,
+  $use_floating_ips   = true,
 ) inherits savanna::params {
 
   include stdlib
@@ -21,15 +21,15 @@ class savanna::dashboard (
   }
 
   if $use_neutron {
-    $floating_ips_value = 'False'
     $use_neutron_value = 'True'
   } else {
     $use_neutron_value = 'False'
-    if $use_floating_ips {
-      $floating_ips_value = 'True'
-    } else {
-      $floating_ips_value = 'False'
-    }
+  }
+
+  if $use_floating_ips {
+    $floating_ips_value = 'True'
+  } else {
+    $floating_ips_value = 'False'
   }
 
   File_line {

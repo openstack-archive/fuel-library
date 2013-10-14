@@ -10,11 +10,11 @@ class savanna::api (
   $keystone_password    = 'admin',
   $bind_port            = '8386',
   $node_domain          = 'novalocal',
-  $plugins              = 'vanilla',
+  $plugins              = 'vanilla,hdp',
   $vanilla_plugin_class = 'savanna.plugins.vanilla.plugin:VanillaProvider',
   $sql_connection       = 'mysql://savanna:savanna@localhost/savanna',
   $use_neutron          = false,
-  $use_floating_ips     = false,
+  $use_floating_ips     = true,
 ) inherits savanna::params {
 
   validate_string($keystone_password)
