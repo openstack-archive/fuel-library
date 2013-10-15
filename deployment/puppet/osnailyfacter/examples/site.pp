@@ -79,7 +79,7 @@ if $::fuel_settings['nodes'] {
 # Verbose would have set INFO level messages
 # In case of non debug and non verbose - WARNING, default level would have set.
 # Note: if syslog on, this default level may be configured (for syslog) with syslog_log_level option.
-$verbose = $::fuel_settings['verbose']
+$verbose = true
 $debug = $::fuel_settings['debug']
 
 ### Storage Settings ###
