@@ -155,6 +155,7 @@ class QuantumConfig
               'gateway' => "10.100.100.1",
               'nameservers' => [],
               'floating' => "10.100.100.130:10.100.100.254",
+              'enable_dhcp'=>false
             },
           },
           'net04' => {
@@ -171,6 +172,7 @@ class QuantumConfig
               'gateway' => "192.168.111.1",
               'nameservers' => ["8.8.4.4", "8.8.8.8"],
               'floating' => nil,
+              'enable_dhcp'=>true
             },
           },
         },
@@ -235,12 +237,68 @@ describe 'sanitize_quantum_config' , :type => :puppet_function do
     should run.with_params(@cfg,'quantum_settings').and_return(@res_cfg)
   end
 
-  it 'should substitute default values if missing required field in config' do
+  it 'should substitute default values if missing required field in config (amqp)' do
     cfg = Marshal.load(Marshal.dump(@cfg))
     cfg['quantum_settings']['L3'].delete('dhcp_agent')
     res_cfg = Marshal.load(Marshal.dump(@res_cfg))
     res_cfg['database']['url'] = 'mysql://quantum:quantum@192.168.0.254:3306/quantum'
-    should run.with_params(cfg,'quantum_settings').and_return(res_cfg)
+    subject.call([@cfg, 'quantum_settings'])['amqp'].should  == res_cfg['amqp']
+  end
+
+  it 'should substitute default values if missing required field in config (database)' do
+    cfg = Marshal.load(Marshal.dump(@cfg))
+    cfg['quantum_settings']['L3'].delete('dhcp_agent')
+    res_cfg = Marshal.load(Marshal.dump(@res_cfg))
+    res_cfg['database']['url'] = 'mysql://quantum:quantum@192.168.0.254:3306/quantum'
+    subject.call([@cfg, 'quantum_settings'])['database'].should  == res_cfg['database']
+  end
+
+  it 'should substitute default values if missing required field in config (server)' do
+    cfg = Marshal.load(Marshal.dump(@cfg))
+    cfg['quantum_settings']['L3'].delete('dhcp_agent')
+    res_cfg = Marshal.load(Marshal.dump(@res_cfg))
+    res_cfg['database']['url'] = 'mysql://quantum:quantum@192.168.0.254:3306/quantum'
+    subject.call([@cfg, 'quantum_settings'])['server'].should  == res_cfg['server']
+  end
+
+  it 'should substitute default values if missing required field in config (keystone)' do
+    cfg = Marshal.load(Marshal.dump(@cfg))
+    cfg['quantum_settings']['L3'].delete('dhcp_agent')
+    res_cfg = Marshal.load(Marshal.dump(@res_cfg))
+    res_cfg['database']['url'] = 'mysql://quantum:quantum@192.168.0.254:3306/quantum'
+    subject.call([@cfg, 'quantum_settings'])['keystone'].should  == res_cfg['keystone']
+  end
+
+  it 'should substitute default values if missing required field in config (L2)' do
+    cfg = Marshal.load(Marshal.dump(@cfg))
+    cfg['quantum_settings']['L3'].delete('dhcp_agent')
+    res_cfg = Marshal.load(Marshal.dump(@res_cfg))
+    res_cfg['database']['url'] = 'mysql://quantum:quantum@192.168.0.254:3306/quantum'
+    subject.call([@cfg, 'quantum_settings'])['L2'].should  == res_cfg['L2']
+  end
+
+  it 'should substitute default values if missing required field in config (L3)' do
+    cfg = Marshal.load(Marshal.dump(@cfg))
+    cfg['quantum_settings']['L3'].delete('dhcp_agent')
+    res_cfg = Marshal.load(Marshal.dump(@res_cfg))
+    res_cfg['database']['url'] = 'mysql://quantum:quantum@192.168.0.254:3306/quantum'
+    subject.call([@cfg, 'quantum_settings'])['L3'].should  == res_cfg['L3']
+  end
+
+  it 'should substitute default values if missing required field in config (predefined_networks)' do
+    cfg = Marshal.load(Marshal.dump(@cfg))
+    cfg['quantum_settings']['L3'].delete('dhcp_agent')
+    res_cfg = Marshal.load(Marshal.dump(@res_cfg))
+    res_cfg['database']['url'] = 'mysql://quantum:quantum@192.168.0.254:3306/quantum'
+    subject.call([@cfg, 'quantum_settings'])['predefined_networks'].should  == res_cfg['predefined_networks']
+  end
+
+  it 'should substitute default values if missing required field in config (predefined_routers)' do
+    cfg = Marshal.load(Marshal.dump(@cfg))
+    cfg['quantum_settings']['L3'].delete('dhcp_agent')
+    res_cfg = Marshal.load(Marshal.dump(@res_cfg))
+    res_cfg['database']['url'] = 'mysql://quantum:quantum@192.168.0.254:3306/quantum'
+    subject.call([@cfg, 'quantum_settings'])['predefined_routers'].should  == res_cfg['predefined_routers']
   end
 
   it 'should calculate database url if database properties not given' do
@@ -268,7 +326,8 @@ describe 'sanitize_quantum_config' , :type => :puppet_function do
     res_cfg = Marshal.load(Marshal.dump(@cfg['quantum_settings']))
     res_cfg['database']['url'] = 'mysql://quantum:quantum@192.168.0.254:3306/quantum'
     res_cfg['L2']['enable_tunneling'] = true
-    should run.with_params(@cfg,'quantum_settings').and_return(res_cfg)
+    #should run.with_params(@cfg,'quantum_settings').and_return(res_cfg)
+    subject.call([@cfg, 'quantum_settings']).should  == res_cfg
   end
 
   it 'should calculate hostname if amqp host not given' do

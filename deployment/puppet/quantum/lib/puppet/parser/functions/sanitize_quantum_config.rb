@@ -96,9 +96,8 @@ class MrntQuantum
     return rv
   end
 
-  # classmethod
-  def self.get_quantum_srv_api_url(srvsh)
-    "#{srvsh[:api_protocol]}://#{srvsh[:bind_host]}:#{srvsh[:bind_port]}"
+  def get_quantum_srv_api_url(srvsh)
+    "#{srvsh[:api_protocol]}://#{get_quantum_srv_vip()}:#{srvsh[:bind_port]}"
   end
 
   # classmethod
@@ -123,6 +122,10 @@ class MrntQuantum
 
   def get_quantum_srv_vip()
     @fuel_config[:quantum_server_vip]  ||  @fuel_config[:management_vip]
+  end
+
+  def get_quantum_srv_ip()
+    @scope.function_get_network_role_property(['management', 'ipaddr'])
   end
 
   def get_quantum_gre_ip() # IP, not VIP !!!
@@ -239,7 +242,7 @@ class MrntQuantum
       :server => {
         :api_url => nil, # will be calculated later
         :api_protocol => "http",
-        :bind_host => get_quantum_srv_vip(),
+        :bind_host => get_quantum_srv_ip(),
         :bind_port => 9696,
         :agent_down_time => 15,
         :allow_bulk      => true,
@@ -314,28 +317,28 @@ class MrntQuantum
   def initialize(scope, cfg, section_name)
     @scope = scope
     @fuel_config = cfg
-    @quantum_config = cfg[section_name.to_sym()]
+    @quantum_config_from_nailgun = cfg[section_name.to_sym()]
   end
 
   def generate_config()
-    rv = _generate_config(generate_default_quantum_config(), @quantum_config, [])
-    rv[:database][:url] ||= MrntQuantum.get_database_url(rv[:database])
-    rv[:keystone][:auth_url] ||= MrntQuantum.get_keystone_auth_url(rv[:keystone])
-    rv[:server][:api_url] ||= MrntQuantum.get_quantum_srv_api_url(rv[:server])
-    rv[:L2][:network_vlan_ranges] = MrntQuantum.get_network_vlan_ranges(rv[:L2])
-    rv[:L2][:bridge_mappings] = MrntQuantum.get_bridge_mappings(rv[:L2])
-    rv[:L2][:phys_bridges] = MrntQuantum.get_phys_bridges(rv[:L2])
-    rv[:amqp] ||= MrntQuantum.get_amqp_config(rv[:amqp])
-    if [:gre, :vxlan, :lisp].include? rv[:L2][:segmentation_type].downcase.to_sym
-      rv[:L2][:enable_tunneling] = true
+    @quantum_config = _generate_config(generate_default_quantum_config(), @quantum_config_from_nailgun, [])
+    @quantum_config[:database][:url] ||= MrntQuantum.get_database_url(@quantum_config[:database])
+    @quantum_config[:keystone][:auth_url] ||= MrntQuantum.get_keystone_auth_url(@quantum_config[:keystone])
+    @quantum_config[:server][:api_url] ||= get_quantum_srv_api_url(@quantum_config[:server])
+    @quantum_config[:L2][:network_vlan_ranges] = MrntQuantum.get_network_vlan_ranges(@quantum_config[:L2])
+    @quantum_config[:L2][:bridge_mappings] = MrntQuantum.get_bridge_mappings(@quantum_config[:L2])
+    @quantum_config[:L2][:phys_bridges] = MrntQuantum.get_phys_bridges(@quantum_config[:L2])
+    @quantum_config[:amqp] ||= MrntQuantum.get_amqp_config(@quantum_config[:amqp])
+    if [:gre, :vxlan, :lisp].include? @quantum_config[:L2][:segmentation_type].downcase.to_sym
+      @quantum_config[:L2][:enable_tunneling] = true
     else
-      rv[:L2][:enable_tunneling] = false
-      rv[:L2][:tunnel_id_ranges] = nil
+      @quantum_config[:L2][:enable_tunneling] = false
+      @quantum_config[:L2][:tunnel_id_ranges] = nil
     end
-    if rv[:amqp][:passwd].nil?
-      rv[:amqp][:passwd] = get_amqp_passwd()
+    if @quantum_config[:amqp][:passwd].nil?
+      @quantum_config[:amqp][:passwd] = get_amqp_passwd()
     end
-    return rv
+    return @quantum_config
   end
 
   private
