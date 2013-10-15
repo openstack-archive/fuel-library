@@ -10,6 +10,7 @@ Puppet::Type.type(:quantum_net).provide(
 
   optional_commands :quantum  => 'quantum'
   optional_commands :keystone => 'keystone'
+  optional_commands :sleep => 'sleep'
 
   # I need to setup caching and what-not to make this lookup performance not suck
   def self.instances
@@ -48,6 +49,8 @@ Puppet::Type.type(:quantum_net).provide(
         optional_opts.push("--shared")
     end
 
+    sleep(20) #todo: check avalability Quantum API and waiting it.
+
     auth_quantum('net-create',
       '--tenant_id', tenant_id[@resource[:tenant]],
       @resource[:name],
@@ -71,12 +74,12 @@ Puppet::Type.type(:quantum_net).provide(
     auth_quantum("net-delete", @resource[:name])
   end
 
-  private 
+  private
     def self.get_id(net_info)
       # ruby 1.8.x specific
       net_info.grep(/ id /).to_s.split[3]
     end
-    
+
     def self.get_tenants_id
       # notice("*** GET_TENANT_ID")
       list_keystone_tenants

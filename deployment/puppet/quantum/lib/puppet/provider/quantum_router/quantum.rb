@@ -10,6 +10,7 @@ Puppet::Type.type(:quantum_router).provide(
 
   optional_commands :quantum  => 'quantum'
   optional_commands :keystone => 'keystone'
+  optional_commands :sleep => 'sleep'
 
   # I need to setup caching and what-not to make this lookup performance not suck
   def self.instances
@@ -36,6 +37,8 @@ Puppet::Type.type(:quantum_router).provide(
     if @resource[:admin_state] and @resource[:admin_state].downcase == 'down'
       admin_state.push('--admin-state-down')
     end
+
+    sleep(5) #todo: check avalability Quantum API and waiting it.
 
     router_info = auth_quantum('router-create',
       '--tenant_id', tenant_id[@resource[:tenant]],

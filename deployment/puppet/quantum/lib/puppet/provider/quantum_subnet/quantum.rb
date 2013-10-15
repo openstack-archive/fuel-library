@@ -10,6 +10,7 @@ Puppet::Type.type(:quantum_subnet).provide(
 
   optional_commands :quantum  => 'quantum'
   optional_commands :keystone => 'keystone'
+  optional_commands :sleep => 'sleep'
 
   # I need to setup caching and what-not to make this lookup performance not suck
   def self.instances
@@ -57,6 +58,8 @@ Puppet::Type.type(:quantum_subnet).provide(
         proto_opts.push(opt).push(@resource[param])
       end
     end
+
+    sleep(5) #todo: check avalability Quantum API and waiting it.
 
     auth_quantum('subnet-create',
       '--tenant-id', tenant_id[@resource[:tenant]],
