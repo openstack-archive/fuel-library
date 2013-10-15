@@ -52,7 +52,6 @@ class quantum::params {
       $ovs_agent_package  = false
       $ovs_agent_service  = 'quantum-openvswitch-agent'
       $ovs_server_package = 'openstack-quantum-openvswitch'
-      $ovs_cleanup_service= 'quantum-ovs-cleanup'
 
       $dhcp_agent_package = false
       $dhcp_agent_service = 'quantum-dhcp-agent'
