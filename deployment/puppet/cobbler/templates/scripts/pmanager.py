@@ -99,7 +99,7 @@ class PManager(object):
 
     def erase_lvm_metadata(self):
         self.pre("for v in $(vgs | awk '{print $1}'); do "
-                 "vgreduce -ff --removemissing $v; vgremove -ff $v; done")
+                 "vgreduce -f --removemissing $v; vgremove -f $v; done")
         self.pre("for p in $(pvs | grep '\/dev' | awk '{print $1}'); do "
                  "pvremove -ff -y $p ; done")
 
@@ -618,7 +618,7 @@ class PreseedPManager(object):
 
     def lv(self):
         self.log_lvm("lv start", False)
-        #self.erase_lvm_metadata(False)
+        self.erase_lvm_metadata(False)
 
         devices_dict = {}
         for disk in [d for d in self.data if d["type"] == "disk"]:
@@ -672,12 +672,16 @@ class PreseedPManager(object):
                 self.late("mkfs.xfs -q $(readlink -f /dev/{0}){1}".format(disk["id"], pcount))
                 self.log_lvm("before pvcreate id={0} n={1}".format(disk["id"], pcount), False)
                 self.late("pvcreate -ff $(readlink -f /dev/{0}){1}".format(disk["id"], pcount))
+                self.log_lvm("after pvcreate id={0} n={1}".format(disk["id"], pcount), False)
                 if not devices_dict.get(pv["vg"]):
                     devices_dict[pv["vg"]] = []
                 devices_dict[pv["vg"]].append(
                     "$(readlink -f /dev/{0}){1}".format(disk["id"], pcount))
 
         for vg, devs in devices_dict.iteritems():
+            self.log_lvm("before vgremove {0}".format(vg), False)
+            self.late("vgreduce --force --removemissing {0}".format(vg))
+            self.late("vgremove --force {0}".format(vg))
             self.log_lvm("before vgcreate {0}".format(vg), False)
             self.late("vgcreate -s 32m {0} {1}".format(vg, " ".join(devs)))
             self.log_lvm("after vgcreate {0}".format(vg), False)
@@ -711,7 +715,7 @@ class PreseedPManager(object):
                                    else "sw" )))
 
     def eval(self):
-        self.erase_lvm_metadata()
+        # self.erase_lvm_metadata()
         self.erase_partition_table()
         self.boot()
         self.os()
