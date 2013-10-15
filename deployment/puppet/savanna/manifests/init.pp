@@ -13,6 +13,7 @@ class savanna (
   $savanna_node_domain                  = 'novalocal',
   $savanna_plugins                      = 'vanilla,hdp',
   $savanna_vanilla_plugin_class         = 'savanna.plugins.vanilla.plugin:VanillaProvider',
+  $savanna_hdp_plugin_class             = 'savanna.plugins.hdp.ambariplugin:AmbariPlugin',
   $savanna_db_password                  = 'savanna',
   $savanna_db_name                      = 'savanna',
   $savanna_db_user                      = 'savanna',
@@ -45,6 +46,7 @@ class savanna (
     node_domain                         => $savanna_node_domain,
     plugins                             => $savanna_plugins,
     vanilla_plugin_class                => $savanna_vanilla_plugin_class,
+    hdp_plugin_class                    => $savanna_hdp_plugin_class,
     sql_connection                      => $savanna_sql_connection,
     use_neutron                         => $use_neutron,
   }

@@ -12,6 +12,7 @@ class savanna::api (
   $node_domain          = 'novalocal',
   $plugins              = 'vanilla,hdp',
   $vanilla_plugin_class = 'savanna.plugins.vanilla.plugin:VanillaProvider',
+  $hdp_plugin_class     = 'savanna.plugins.hdp.ambariplugin:AmbariPlugin',
   $sql_connection       = 'mysql://savanna:savanna@localhost/savanna',
   $use_neutron          = false,
   $use_floating_ips     = true,
@@ -49,6 +50,7 @@ class savanna::api (
     'DEFAULT/node_domain'                  : value => $node_domain;
     'DEFAULT/plugins'                      : value => $plugins;
     'plugin:vanilla/plugin_class'          : value => $vanilla_plugin_class;
+    'plugin:hdp/plugin_class'              : value => $hdp_plugin_class;
     'database/connection'                  : value => $sql_connection;
   }
 
