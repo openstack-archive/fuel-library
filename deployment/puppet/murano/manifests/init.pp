@@ -1,5 +1,4 @@
 class murano (
-  $pacemaker                            = false,      
   # keystone
   $murano_keystone_host                 = '127.0.0.1',
   $murano_keystone_port                 = '5000',
