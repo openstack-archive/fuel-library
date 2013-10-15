@@ -15,7 +15,7 @@ class heat(
   $heat_db_password              = 'heat',
   $heat_db_host                  = '127.0.0.1',
   $heat_db_name                  = 'heat',
-  $heat_db_allowed_hosts         = '%',
+  $heat_db_allowed_hosts         = ['localhost','%'],
 
   $heat_api_cfn_bind_host        = '0.0.0.0',
   $heat_api_cfn_bind_port        = '8000',

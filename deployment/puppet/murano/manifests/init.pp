@@ -40,7 +40,7 @@ class murano (
   $murano_db_name                       = 'murano',
   $murano_db_user                       = 'murano',
   $murano_db_host                       = 'localhost',
-  $murano_db_allowed_hosts              = '%',
+  $murano_db_allowed_hosts              = ['localhost','%'],
 ) {
 
   $murano_keystone_auth_url = "${murano_keystone_protocol}://${murano_keystone_host}:${murano_keystone_port}/v2.0"
