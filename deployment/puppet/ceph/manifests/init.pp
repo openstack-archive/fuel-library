@@ -2,25 +2,23 @@
 
 class ceph (
       # General settings
-      $cluster_node_address             = $::ipaddress, #This should be the cluster service address
-      $primary_mon                      = $::hostname, #This should be the first controller
-      $cinder_pool                      = 'volumes',
-      $glance_pool                      = 'images',
-      $osd_devices                      = split($::osd_devices_list, ' '),
-      $use_ssl                          = false,
-      $use_rgw                          = false,
+      $cluster_node_address = $::ipaddress, #This should be the cluster service address
+      $primary_mon          = $::hostname, #This should be the first controller
+      $osd_devices          = split($::osd_devices_list, ' '),
+      $use_ssl              = false,
+      $use_rgw              = false,
 
       # ceph.conf Global settings
-      $auth_supported                   = 'cephx',
-      $osd_journal_size                 = '2048',
-      $osd_mkfs_type                    = 'xfs',
-      $osd_pool_default_size            = '2',
-      $osd_pool_default_min_size        = '1',
+      $auth_supported            = 'cephx',
+      $osd_journal_size          = '2048',
+      $osd_mkfs_type             = 'xfs',
+      $osd_pool_default_size     = '2',
+      $osd_pool_default_min_size = '1',
       # TODO: calculate PG numbers
-      $osd_pool_default_pg_num          = '100',
-      $osd_pool_default_pgp_num         = '100',
-      $cluster_network                  = $::fuel_settings['storage_network_range'],
-      $public_network                   = $::fuel_settings['management_network_range'],
+      $osd_pool_default_pg_num   = '100',
+      $osd_pool_default_pgp_num  = '100',
+      $cluster_network           = $::fuel_settings['storage_network_range'],
+      $public_network            = $::fuel_settings['management_network_range'],
 
       # RadosGW settings
       $rgw_host                         = $::fqdn,
@@ -39,23 +37,23 @@ class ceph (
       $rgw_nss_db_path                  = '/etc/ceph/nss',
 
       # Keystone settings
-      $rgw_pub_ip                       = $cluster_node_address,
-      $rgw_adm_ip                       = $cluster_node_address,
-      $rgw_int_ip                       = $cluster_node_address,
+      $rgw_pub_ip = $cluster_node_address,
+      $rgw_adm_ip = $cluster_node_address,
+      $rgw_int_ip = $cluster_node_address,
 
       # Cinder settings
-      $volume_driver                    = 'cinder.volume.drivers.rbd.RBDDriver',
-      $rbd_pool                         = 'volumes',
-      $glance_api_version               = '2',
-      $rbd_user                         = 'volumes',
+      $volume_driver      = 'cinder.volume.drivers.rbd.RBDDriver',
+      $glance_api_version = '2',
+      $cinder_user        = 'volumes',
+      $cinder_pool        = 'volumes',
       # TODO: generate rbd_secret_uuid
-      $rbd_secret_uuid                  = 'a5d0dd94-57c4-ae55-ffe0-7e3732a24455',
+      $rbd_secret_uuid    = 'a5d0dd94-57c4-ae55-ffe0-7e3732a24455',
 
       # Glance settings
-      $glance_backend                   = 'ceph',
-      $rbd_store_user                   = 'images',
-      $rbd_store_pool                   = 'images',
-      $show_image_direct_url            = 'True',
+      $glance_backend        = 'ceph',
+      $glance_user           = 'images',
+      $glance_pool           = 'images',
+      $show_image_direct_url = 'True',
 ) {
 
   Exec { path => [ '/bin/', '/sbin/' , '/usr/bin/', '/usr/sbin/' ],
@@ -80,8 +78,22 @@ class ceph (
   case $::fuel_settings['role'] {
     'primary-controller', 'controller', 'ceph-mon': {
       include ceph::mon
-      Class['ceph::conf'] ->
-      Class['ceph::mon']  ->
+
+      # DO NOT SPLIT ceph auth command lines! See http://tracker.ceph.com/issues/3279
+      ceph::pool {$glance_pool:
+        user          => $glance_user,
+        acl           => "mon 'allow r' osd 'allow class-read object_prefix rbd_children, allow rwx pool=${glance_pool}'",
+        keyring_owner => 'glance',
+      }
+
+      ceph::pool {$cinder_pool:
+        user          => $cinder_user,
+        acl           => "mon 'allow r' osd 'allow class-read object_prefix rbd_children, allow rwx pool=${cinder_pool}, allow rx pool=${glance_pool}'",
+        keyring_owner => 'cinder',
+      }
+
+      Class['ceph::conf'] -> Class['ceph::mon'] ->
+      Ceph::Pool[$glance_pool] -> Ceph::Pool[$cinder_pool] ->
       Service['ceph']
 
       if ($::ceph::use_rgw) {
