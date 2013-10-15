@@ -162,6 +162,6 @@ class heat::engine (
   File['/etc/heat/heat-engine.conf'] -> Exec['heat-encryption-key-replacement'] -> Service['heat-engine']
   File['/etc/heat/heat-engine.conf'] ~> Service['heat-engine']
   Class['heat::db'] -> Service['heat-engine']
-  Exec['heat_db_sync'] -> Service['heat-engine']
+  Heat_engine_config<||> -> Exec['heat_db_sync'] -> Service['heat-engine']
 
 }
