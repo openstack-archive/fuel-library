@@ -486,7 +486,6 @@ class PreseedPManager(object):
         if not early:
             func = self.late
 
-        self.log_lvm("before cleaning", early)
         func("for v in $(vgs -a --noheadings 2>/dev/null | "
                    "sed 's/^\([ ]*\)\([^ ]\+\)\(.*\)/\\2/g'); do "
                    "vgreduce --force --removemissing $v; "
@@ -494,7 +493,6 @@ class PreseedPManager(object):
         func("for p in $(pvs --noheadings 2>/dev/null | "
                    "sed 's/^\([ ]*\)\([^ ]\+\)\(.*\)/\\2/g'); do "
                    "pvremove -ff -y $p; done")
-        self.log_lvm("after cleaning", early)
 
     def boot(self):
         self.recipe("24 24 24 ext3 "
@@ -617,10 +615,11 @@ class PreseedPManager(object):
                                    else "sw" )))
 
     def lv(self):
-        self.log_lvm("lv start", False)
-        self.erase_lvm_metadata(False)
+        self.log_lvm("before creating lvm", False)
 
         devices_dict = {}
+        pvlist = []
+
         for disk in [d for d in self.data if d["type"] == "disk"]:
             for pv in [p for p in disk["volumes"] if p["type"] == "pv" and p["vg"] != "os"]:
                 if pv["size"] <= 0:
@@ -645,7 +644,6 @@ class PreseedPManager(object):
                 begin_size = self.psize("/dev/%s" % disk["id"])
                 end_size = self.psize("/dev/%s" % disk["id"], pv["size"] * self.factor)
 
-                self.log_lvm("before parted id={0} n={1}".format(disk["id"], pcount), False)
                 self.late("parted -a none -s $(readlink -f /dev/{0}) "
                           "unit {4} mkpart {1} {2} {3}".format(
                              disk["id"],
@@ -665,26 +663,26 @@ class PreseedPManager(object):
                 #                 end_size,
                 #                 disk["size"]))
 
-                self.log_lvm("before hdparm id={0}".format(disk["id"]), False)
                 self.late("sleep 3")
                 self.late("hdparm -z $(readlink -f /dev/{0})".format(disk["id"]))
-                self.late("dd if=/dev/zero of=$(readlink -f /dev/{0}){1} bs=1M count=64".format(disk["id"], pcount))
-                self.late("mkfs.xfs -q $(readlink -f /dev/{0}){1}".format(disk["id"], pcount))
-                self.log_lvm("before pvcreate id={0} n={1}".format(disk["id"], pcount), False)
-                self.late("pvcreate -ff $(readlink -f /dev/{0}){1}".format(disk["id"], pcount))
-                self.log_lvm("after pvcreate id={0} n={1}".format(disk["id"], pcount), False)
+                pvlist.append("pvcreate -ff $(readlink -f /dev/{0}){1}".format(disk["id"], pcount))
                 if not devices_dict.get(pv["vg"]):
                     devices_dict[pv["vg"]] = []
                 devices_dict[pv["vg"]].append(
                     "$(readlink -f /dev/{0}){1}".format(disk["id"], pcount))
 
+        self.log_lvm("before additional cleaning", False)
+        self.erase_lvm_metadata(False)
+
+        self.log_lvm("before pvcreate", False)
+        for pvcommand in pvlist:
+            self.late(pvcommand)
+
+        self.log_lvm("before vgcreate", False)
         for vg, devs in devices_dict.iteritems():
-            self.log_lvm("before vgremove {0}".format(vg), False)
-            self.late("vgreduce --force --removemissing {0}".format(vg))
-            self.late("vgremove --force {0}".format(vg))
-            self.log_lvm("before vgcreate {0}".format(vg), False)
             self.late("vgcreate -s 32m {0} {1}".format(vg, " ".join(devs)))
-            self.log_lvm("after vgcreate {0}".format(vg), False)
+
+        self.log_lvm("after vgcreate", False)
 
         for vg in [v for v in self.data if v["type"] == "vg" and v["id"] != "os"]:
             for lv in vg["volumes"]:
@@ -715,7 +713,9 @@ class PreseedPManager(object):
                                    else "sw" )))
 
     def eval(self):
-        # self.erase_lvm_metadata()
+        self.log_lvm("before early lvm cleaning")
+        self.erase_lvm_metadata()
+        self.log_lvm("after early lvm cleaning")
         self.erase_partition_table()
         self.boot()
         self.os()
