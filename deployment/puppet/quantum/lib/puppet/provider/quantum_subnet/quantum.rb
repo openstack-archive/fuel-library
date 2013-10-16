@@ -59,7 +59,7 @@ Puppet::Type.type(:quantum_subnet).provide(
       end
     end
 
-    sleep(5) #todo: check avalability Quantum API and waiting it.
+    check_quantum_api_availability(120)
 
     auth_quantum('subnet-create',
       '--tenant-id', tenant_id[@resource[:tenant]],
