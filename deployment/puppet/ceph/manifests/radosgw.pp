@@ -9,7 +9,6 @@ define apache::loadmodule () {
 # deploys Ceph radosgw as an Apache FastCGI application
 class ceph::radosgw (
   $keyring_path     = '/etc/ceph/keyring.radosgw.gateway',
-  $httpd_ssl        = $::ceph::params::dir_httpd_ssl,
   $radosgw_auth_key = 'client.radosgw.gateway',
   $rgw_user         = $::ceph::params::user_httpd,
 
@@ -19,24 +18,26 @@ class ceph::radosgw (
   $rgw_keyring_path                 = $::ceph::rgw_keyring_path,
   $rgw_socket_path                  = $::ceph::rgw_socket_path,
   $rgw_log_file                     = $::ceph::rgw_log_file,
+  $rgw_data                         = $::ceph::rgw_data,
+  $rgw_dns_name                     = $::ceph::rgw_dns_name,
+  $rgw_print_continue               = $::ceph::rgw_print_continue,
+
+  #rgw Keystone settings
+  $rgw_use_pki                      = $::ceph::rgw_use_pki,
+  $rgw_use_keystone                 = $::ceph::rgw_use_keystone,
   $rgw_keystone_url                 = $::ceph::rgw_keystone_url,
   $rgw_keystone_admin_token         = $::ceph::rgw_keystone_admin_token,
   $rgw_keystone_token_cache_size    = $::ceph::rgw_keystone_token_cache_size,
   $rgw_keystone_accepted_roles      = $::ceph::rgw_keystone_accepted_roles,
   $rgw_keystone_revocation_interval = $::ceph::rgw_keystone_revocation_interval,
-  $rgw_data                         = $::ceph::rgw_data,
-  $rgw_dns_name                     = $::ceph::rgw_dns_name,
-  $rgw_print_continue               = $::ceph::rgw_print_continue,
   $rgw_nss_db_path                  = $::ceph::rgw_nss_db_path,
-
-  $use_ssl   = $::ceph::use_ssl,
 ) {
 
   $dir_httpd_root = '/var/www/radosgw'
 
   package { [$::ceph::params::package_radosgw,
              $::ceph::params::package_fastcgi,
-             $::ceph::params::package_modssl
+             $::ceph::params::package_libnss,
             ]:
     ensure  => 'latest',
   }
@@ -72,25 +73,79 @@ class ceph::radosgw (
     'client.radosgw.gateway/rgw_socket_path':                  value => $rgw_socket_path;
     'client.radosgw.gateway/log_file':                         value => $rgw_log_file;
     'client.radosgw.gateway/user':                             value => $rgw_user;
-    'client.radosgw.gateway/rgw_keystone_url':                 value => $rgw_keystone_url;
-    'client.radosgw.gateway/rgw_keystone_admin_token':         value => $rgw_keystone_admin_token;
-    'client.radosgw.gateway/rgw_keystone_accepted_roles':      value => $rgw_keystone_accepted_roles;
-    'client.radosgw.gateway/rgw_keystone_token_cache_size':    value => $rgw_keystone_token_cache_size;
-    'client.radosgw.gateway/rgw_keystone_revocation_interval': value => $rgw_keystone_revocation_interval;
     'client.radosgw.gateway/rgw_data':                         value => $rgw_data;
     'client.radosgw.gateway/rgw_dns_name':                     value => $rgw_dns_name;
     'client.radosgw.gateway/rgw_print_continue':               value => $rgw_print_continue;
   }
 
-# TODO: CentOS conversion
-#  apache::loadmodule{['rewrite', 'fastcgi', 'ssl']: }
+  if ($use_ssl) {
 
-#  file {"${::ceph::params::dir_httpd_conf}/httpd.conf":
-#    ensure  => 'present',
-#    content => "ServerName ${fqdn}",
-#    notify  => Service['httpd'],
-#    require => Package[$::ceph::params::package_httpd],
-#  }
+    $httpd_ssl = $::ceph::params::dir_httpd_ssl
+    exec {'copy OpenSSL certificates':
+      command => "scp -r ${rgw_nss_db_path}/* ${::ceph::primary_mon}:${rgw_nss_db_path} && \
+                  ssh ${::ceph::primary_mon} '/etc/init.d/radosgw restart'",
+    }
+    exec {"generate SSL certificate on ${name}":
+      command => "openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout ${httpd_ssl}apache.key -out ${httpd_ssl}apache.crt -subj '/C=RU/ST=Russia/L=Saratov/O=Mirantis/OU=CA/CN=localhost'",
+      returns => [0,1],
+    }
+  }
+
+  if ($rgw_use_keystone) {
+
+    ceph_conf {
+      'client.radosgw.gateway/rgw_keystone_url':                 value => $rgw_keystone_url;
+      'client.radosgw.gateway/rgw_keystone_admin_token':         value => $rgw_keystone_admin_token;
+      'client.radosgw.gateway/rgw_keystone_accepted_roles':      value => $rgw_keystone_accepted_roles;
+      'client.radosgw.gateway/rgw_keystone_token_cache_size':    value => $rgw_keystone_token_cache_size;
+      'client.radosgw.gateway/rgw_keystone_revocation_interval': value => $rgw_keystone_revocation_interval;
+    }
+
+    if ($rgw_use_pki) {
+
+      ceph_conf {
+      'client.radosgw.gateway/nss db path':                      value => $rgw_nss_db_path;
+      }
+
+      # This creates the signing certs used by radosgw to check cert revocation
+      #   status from keystone
+      exec {'create nss db signing certs':
+        command => "openssl x509 -in /etc/keystone/ssl/certs/ca.pem -pubkey | \
+          certutil -d ${rgw_nss_db_path} -A -n ca -t 'TCu,Cu,Tuw' && \ 
+          openssl x509 -in /etc/keystone/ssl/certs/signing_cert.pem -pubkey | \
+          certutil -A -d ${rgw_nss_db_path} -n signing_cert -t 'P,P,P'",
+        user    => $rgw_user,
+      }
+
+      Exec["ceph-create-radosgw-keyring-on ${name}"] ->
+      Exec['create nss db signing certs'] ~>
+      Service['radosgw']
+
+    } #END rgw_use_pki
+
+  class {'ceph::keystone': }
+
+  } #END rgw_use_keystone
+
+  if ($::osfamily == 'Debian'){
+    #a2mod is provided by horizon module
+    a2mod { ['rewrite', 'fastcgi']: 
+      ensure => present,
+    }
+
+    file {'/etc/apache2/sites-enabled/rgw.conf':
+      ensure => link,
+      target => "${::ceph::params::dir_httpd_sites}/rgw.conf",
+      notify => Service['httpd'],
+    }
+
+    Package[$::ceph::params::package_fastcgi] ->
+    File["${::ceph::params::dir_httpd_sites}/rgw.conf"] ->
+    File['/etc/apache2/sites-enabled/rgw.conf'] ->
+    A2mod[['rewrite', 'fastcgi']] ~>
+    Service['httpd']
+
+  } #END osfamily Debian
 
   file {$rgw_log_file:
     ensure => present,
@@ -101,19 +156,11 @@ class ceph::radosgw (
          "${::ceph::rgw_data}/ceph-radosgw.gateway",
          $::ceph::rgw_data,
          $dir_httpd_root,
+         $rgw_nss_db_path,
         ]:
-    ensure => 'directory',
-    mode   => '0755',
-  }
-
-  if ($use_ssl) {
-    exec {"generate SSL certificate on ${name}":
-      command => "openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout ${httpd_ssl}apache.key -out ${httpd_ssl}apache.crt -subj '/C=RU/ST=Russia/L=Saratov/O=Mirantis/OU=CA/CN=localhost'",
-      returns => [0,1],
-    }
-    ceph_conf{
-      'client.radosgw.gateway/nss db path': value => $rgw_nss_db_path;
-    }
+    ensure  => 'directory',
+    mode    => '0755',
+    recurse => true,
   }
 
   file { "${::ceph::params::dir_httpd_sites}/rgw.conf":
@@ -124,6 +171,11 @@ class ceph::radosgw (
     content => template('ceph/s3gw.fcgi.erb'),
     mode    => '0755',
   }
+
+  file {"${::ceph::params::dir_httpd_sites}/fastcgi.conf":
+    content => template('ceph/fastcgi.conf.erb'),
+    mode    => '0755',
+    }
 
   exec { "ceph-create-radosgw-keyring-on ${name}":
     command => "ceph-authtool --create-keyring ${keyring_path}",
@@ -145,14 +197,19 @@ class ceph::radosgw (
   }
 
   Ceph_conf <||> ->
-  Package[[$::ceph::params::package_httpd,
-           $::ceph::params::package_radosgw,]] ->
+  Package[$::ceph::params::package_httpd] ->
+  Package[[$::ceph::params::package_radosgw,
+           $::ceph::params::package_fastcgi,
+           $::ceph::params::package_libnss,]] ->
   File[["${::ceph::params::dir_httpd_sites}/rgw.conf",
-       $::ceph::params::dir_httpd_ssl,
-       "${::ceph::rgw_data}/ceph-radosgw.gateway",
-       $::ceph::rgw_data,
-       $dir_httpd_root,
-       $rgw_log_file,]] ->
+        "${::ceph::params::dir_httpd_sites}/fastcgi.conf",
+        "${dir_httpd_root}/s3gw.fcgi",
+        $::ceph::params::dir_httpd_ssl,
+        "${::ceph::rgw_data}/ceph-radosgw.gateway",
+        $::ceph::rgw_data,
+        $dir_httpd_root,
+        $rgw_nss_db_path,
+        $rgw_log_file,]] ->
   Exec["ceph-create-radosgw-keyring-on ${name}"] ->
   File[$keyring_path] ->
   Exec["ceph-generate-key-on ${name}"] ->
