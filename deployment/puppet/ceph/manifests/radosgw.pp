@@ -130,17 +130,22 @@ class ceph::radosgw (
   if ($::osfamily == 'Debian'){
     #a2mod is provided by horizon module
     a2mod { ['rewrite', 'fastcgi']: 
-      require => Package[$::ceph::params::package_fastcgi],
-      notify  => Service['httpd'],
+      ensure => present,
     }
-    
-    File["${::ceph::params::dir_httpd_sites}/rgw.conf"] ->
+
     file {'/etc/apache2/sites-enabled/rgw.conf':
       ensure => link,
       target => "${::ceph::params::dir_httpd_sites}/rgw.conf",
       notify => Service['httpd'],
     }
-  }
+
+    Package[$::ceph::params::package_fastcgi] ->
+    File["${::ceph::params::dir_httpd_sites}/rgw.conf"] ->
+    File['/etc/apache2/sites-enabled/rgw.conf'] ->
+    A2mod[['rewrite', 'fastcgi']] ~>
+    Service['httpd']
+
+  } #END osfamily Debian
 
   file {$rgw_log_file:
     ensure => present,
