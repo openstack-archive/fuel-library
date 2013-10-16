@@ -668,8 +668,11 @@ class PreseedPManager(object):
                 self.log_lvm("before hdparm id={0}".format(disk["id"]), False)
                 self.late("sleep 3")
                 self.late("hdparm -z $(readlink -f /dev/{0})".format(disk["id"]))
+                self.log_lvm("before pvremove id={0} n={1}".format(disk["id"], pcount), False)
+                self.late("pvremove -ff $(readlink -f /dev/{0}){1}".format(disk["id"], pcount))
+                self.log_lvm("after pvremove id={0} n={1}".format(disk["id"], pcount), False)
                 self.late("dd if=/dev/zero of=$(readlink -f /dev/{0}){1} bs=1M count=64".format(disk["id"], pcount))
-                self.late("mkfs.xfs -q $(readlink -f /dev/{0}){1}".format(disk["id"], pcount))
+                # self.late("mkfs.xfs -q $(readlink -f /dev/{0}){1}".format(disk["id"], pcount))
                 self.log_lvm("before pvcreate id={0} n={1}".format(disk["id"], pcount), False)
                 self.late("pvcreate -ff $(readlink -f /dev/{0}){1}".format(disk["id"], pcount))
                 self.log_lvm("after pvcreate id={0} n={1}".format(disk["id"], pcount), False)
@@ -715,7 +718,7 @@ class PreseedPManager(object):
                                    else "sw" )))
 
     def eval(self):
-        # self.erase_lvm_metadata()
+        self.erase_lvm_metadata()
         self.erase_partition_table()
         self.boot()
         self.os()
