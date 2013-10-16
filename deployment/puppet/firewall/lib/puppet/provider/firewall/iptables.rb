@@ -204,7 +204,7 @@ Puppet::Type.type(:firewall).provide :iptables, :parent => Puppet::Provider::Fir
     #####################
 
 
-    cidr_regex = /(!?)\s*((?:(?:[0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}(?:[0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(?:\/(?:\d|[1-2]\d|3[0-2])))/
+    cidr_regex = /(!?)\s*((?:(?:[0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}(?:[0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(?:\/(?:3[0-2]|[1-2]\d|\d)))/
     # Normalise all rules to CIDR notation.
     [:source, :destination].each do |prop|
       next if hash[prop].nil?
