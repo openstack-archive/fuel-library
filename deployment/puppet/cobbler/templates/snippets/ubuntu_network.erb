@@ -24,26 +24,32 @@
 #######################################
 #set $script += "### configuring interfaces ###\n"
 #set $interfaces_file = "/etc/network/interfaces"
-#set $script += "echo > %s\n" % $interfaces_file
-#set $script += "echo auto lo >> %s\n" % $interfaces_file
-#set $script += "echo iface lo inet loopback >> %s\n" % $interfaces_file
-#set $script += "echo >> %s\n" % $interfaces_file
+#set $interfaces_dir = "/etc/network/interfaces.d"
+#set $script += "echo source %s/*  > %s\n" % ($interfaces_dir,$interfaces_file)
+#set $script += "mkdir %s\n" % $interfaces_dir
+#set $script += "echo auto lo >> %s/ifcfg-lo \n" % $interfaces_dir
+#set $script += "echo iface lo inet loopback >> %s/ifcfg-lo\n" % $interfaces_dir
+#set $script += "echo >> %s/ifcfg-lo\n" % $interfaces_dir
 #for $iname in $ikeys
     #set $idata = $interfaces[$iname]
-    #set $script += "echo auto %s >> %s\n" % ($iname, $interfaces_file)
+    #set $interface_file = "%s/ifcfg-%s" % ($interfaces_dir,$iname)
+    #set $onboot = $getVar("interface_extra_%s_onboot" % ($iname),"no")
+    #if  $onboot == "yes"
+        #set $script += "echo auto %s >> %s\n" % ($iname, $interface_file)
+    #end if
     #if $idata.get("static", "0") in ("1", True, "true")
         #set $iip = $idata.get("ip_address", "")
         #if $iip != ""
-            #set $script += "echo iface %s inet static >> %s\n" % ($iname, $interfaces_file)
-            #set $script += "echo address %s >> %s\n" % ($iip, $interfaces_file)
+            #set $script += "echo iface %s inet static >> %s\n" % ($iname, $interface_file)
+            #set $script += "echo address %s >> %s\n" % ($iip, $interface_file)
             #set $inetmask = $idata.get("netmask", "")
             #if $inetmask != ""
-                #set $script += "echo netmask %s >> %s\n" % ($inetmask, $interfaces_file)
+                #set $script += "echo netmask %s >> %s\n" % ($inetmask, $interface_file)
             #end if
         #else
-            #set $script += "echo iface %s inet manual >> %s\n" % ($iname, $interfaces_file)
-            #set $script += "echo up ip l set %s up >> %s\n" % ($iname, $interfaces_file)
-            #set $script += "echo down ip l set %s down >> %s\n" % ($iname, $interfaces_file)
+            #set $script += "echo iface %s inet manual >> %s\n" % ($iname, $interface_file)
+            #set $script += "echo up ip l set %s up >> %s\n" % ($iname, $interface_file)
+            #set $script += "echo down ip l set %s down >> %s\n" % ($iname, $interface_file)
         #end if
         #set $nss = ""
         #for $ns in $getVar("name_servers", [])
@@ -59,14 +65,14 @@
               #end if
               #set $gateway_address = ipaddr.IPv4Address($gateway)
               #if $gateway_address in $network_address
-                #set $script += "echo gateway %s >> %s\n" % ($gateway, $interfaces_file)
+                #set $script += "echo gateway %s >> %s\n" % ($gateway, $interface_file)
               #end if
             #end if
         #end if
     #else
-        #set $script += "echo iface %s inet dhcp >> %s\n" % ($iname, $interfaces_file)
+        #set $script += "echo iface %s inet dhcp >> %s\n" % ($iname, $interface_file)
     #end if
-    #set $script += "echo >> %s\n" % $interfaces_file
+    #set $script += "echo >> %s\n" % $interface_file
 #end for
 #set $script += "\n"
 #######################################
