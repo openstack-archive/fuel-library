@@ -49,7 +49,7 @@ Puppet::Type.type(:quantum_net).provide(
         optional_opts.push("--shared")
     end
 
-    sleep(20) #todo: check avalability Quantum API and waiting it.
+    check_quantum_api_availability(120)
 
     auth_quantum('net-create',
       '--tenant_id', tenant_id[@resource[:tenant]],

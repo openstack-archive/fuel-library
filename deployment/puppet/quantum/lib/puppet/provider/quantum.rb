@@ -94,6 +94,33 @@ class Puppet::Provider::Quantum < Puppet::Provider
     self.class.auth_quantum(args)
   end
 
+  #todo: rewrite through API
+  def check_quantum_api_availability(timeout)
+    if timeout.to_i < 1
+      timeout = 45 # default timeout 45sec.
+    end
+    end_time = Time.now.to_i + timeout
+    rv = false
+    loop do
+      begin
+        auth_quantum('net-list')
+        rv = true
+        break
+      rescue Puppet::ExecutionFailure => e
+        current_time = Time.now.to_i
+        if current_time > end_time
+          break
+        else
+          wa = end_time - current_time
+          notice("Quantum API not avalaible. Wait up to #{wa} sec.")
+        end
+        sleep(0.5) # do not remove!!! It's a positive brake!
+      end
+    end
+    return rv
+  end
+
+
   private
   # def self.list_quantum_objects
   #   ids = []

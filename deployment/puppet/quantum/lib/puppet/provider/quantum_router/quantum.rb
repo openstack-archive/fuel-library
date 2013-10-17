@@ -38,7 +38,7 @@ Puppet::Type.type(:quantum_router).provide(
       admin_state.push('--admin-state-down')
     end
 
-    sleep(5) #todo: check avalability Quantum API and waiting it.
+    check_quantum_api_availability(120)
 
     router_info = auth_quantum('router-create',
       '--tenant_id', tenant_id[@resource[:tenant]],
