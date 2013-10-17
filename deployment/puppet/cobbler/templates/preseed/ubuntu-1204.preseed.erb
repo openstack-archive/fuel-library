@@ -126,6 +126,6 @@ mkdir -p /target/root/.ssh && \
 echo "$authorized_keys" > /target/root/.ssh/authorized_keys && \
 sed -i -e "/^\s*GSSAPICleanupCredentials yes/d" -e "/^\s*GSSAPIAuthentication yes/d" -e "s/.*PasswordAuthentication.*/PasswordAuthentication\ no/g" -e "/UseDNS/d" /target/etc/ssh/sshd_config && \
 echo "UseDNS no" >> /target/etc/ssh/sshd_config && \
-in-target apt-get -y install linux-image-3.5 && \
+in-target apt-get -y install linux-image-3.8 && \
 $SNIPPET('ubuntu_static_net')
 true
