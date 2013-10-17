@@ -1,5 +1,5 @@
 class heat::engine (
-  $enabled           = true,
+  $pacemaker         = false,
   $keystone_host     = '127.0.0.1',
   $keystone_port     = '35357',
   $keystone_protocol = 'http',
@@ -29,27 +29,25 @@ class heat::engine (
   $rpc_backend                   = 'heat.openstack.common.rpc.impl_kombu',
   $use_stderr                    = 'False',
   $use_syslog                    = 'False',
+  $ocf_scripts_dir               = '/usr/lib/ocf/resource.d',
+  $ocf_scripts_provider          = 'mirantis',
 ) {
 
   include heat::params
 
   validate_string($keystone_password)
+  $service_name = $::heat::params::engine_service_name
+  $package_name = $::heat::params::engine_package_name
 
-  package { 'heat-engine':
+  package { 'heat-engine' :
     ensure => installed,
-    name   => $::heat::params::engine_package_name,
+    name   => $package_name,
   }
 
   file { '/etc/heat/heat-engine.conf':
     owner   => 'heat',
     group   => 'heat',
     mode    => '0640',
-  }
-
-  if $enabled {
-    $service_ensure = 'running'
-  } else {
-    $service_ensure = 'stopped'
   }
 
   if $rabbit_hosts {
@@ -75,13 +73,61 @@ class heat::engine (
     heat_engine_config { 'DEFAULT/rabbit_ha_queues': value => false }
   }
 
-  service { 'heat-engine':
-    ensure     => $service_ensure,
-    name       => $::heat::params::engine_service_name,
-    enable     => $enabled,
-    hasstatus  => true,
-    hasrestart => true,
-  }
+  if !$pacemaker {
+
+    # standard service mode
+
+	  service { 'heat-engine':
+	    ensure     => 'running',
+	    name       => $service_name,
+	    enable     => true,
+	    hasstatus  => true,
+	    hasrestart => true,
+	  }
+
+	} else {
+
+    # pacemaker resource mode
+
+    file { 'heat-engine-ocf' :
+      ensure  => present,
+      path    => "${ocf_scripts_dir}/${ocf_scripts_provider}/${service_name}",
+      mode    => '0755',
+      owner   => 'root',
+      group   => 'root',
+      content => template('heat/heat_engine.ocf.erb')
+    }
+
+    service { 'heat-engine':
+      ensure     => 'running',
+      name       => $service_name,
+      enable     => true,
+      hasstatus  => true,
+      hasrestart => true,
+      provider   => 'pacemaker',
+    }
+    
+    cs_shadow { $service_name :
+      cib => $service_name,
+    }
+
+    cs_commit { $service_name :
+      cib => $service_name,
+    }
+    
+    corosync::cleanup { $service_name : }
+    
+    cs_resource { $service_name :
+      ensure          => present,
+      cib             => $service_name,
+      primitive_class => 'ocf',
+      provided_by     => $ocf_scripts_provider,
+      primitive_type  => $service_name,  
+    }
+    
+    File['heat-engine-ocf'] -> Cs_shadow[$service_name] -> Cs_resource[$service_name] -> Cs_commit[$service_name] ~> Corosync::Cleanup[$service_name] -> Service['heat-engine']
+
+	}
 
   exec {'heat-encryption-key-replacement':
     command => 'sed -i "s/%ENCRYPTION_KEY%/`hexdump -n 16 -v -e \'/1 "%02x"\' /dev/random`/" /etc/heat/heat-engine.conf',
@@ -116,5 +162,6 @@ class heat::engine (
   File['/etc/heat/heat-engine.conf'] -> Exec['heat-encryption-key-replacement'] -> Service['heat-engine']
   File['/etc/heat/heat-engine.conf'] ~> Service['heat-engine']
   Class['heat::db'] -> Service['heat-engine']
+  Heat_engine_config<||> -> Exec['heat_db_sync'] -> Service['heat-engine']
 
 }

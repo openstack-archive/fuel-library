@@ -35,25 +35,25 @@ class heat::db (
     'DEFAULT/sql_connection': value => $sql_connection;
   }
 
-  exec { 'heat-manage db_sync':
-    command     => $db_sync_command,
-    path        => '/usr/bin',
-    user        => 'heat',
-    refreshonly => true,
-    logoutput   => on_failure,
-    onlyif      => "test -f $db_sync_command",
-    subscribe   => [Package['heat-engine'], Package['heat-api'],],
+  file { 'db_sync_script' :
+    ensure  => present,
+    path    => $::heat::params::heat_db_sync_command,
+    owner   => 'root',
+    group   => 'root',
+    mode    => '0755',
+    content => template('heat/heat_db_sync.sh.erb'),
   }
 
-  # Lagacy part - support old rpms before 2013.2.xx without heat-manage tool
-  exec { 'python -m heat.db.sync':
-    command     => $legacy_db_sync_command,
-    path        => '/usr/bin',
+  exec { 'heat_db_sync' :
+    command     => $::heat::params::heat_db_sync_command,
+    path        => [ '/bin', '/sbin', '/usr/bin', '/usr/sbin', '/usr/local/bin', '/usr/local/sbin' ],
     user        => 'heat',
     refreshonly => true,
-    logoutput   => on_failure,
-    unless      => "test -f $db_sync_command",
-    subscribe   => [Package['heat-engine'], Package['heat-api'],],
+    logoutput   => 'on_failure',
   }
+  
+  File['db_sync_script'] ~> Exec['heat_db_sync']
+  Package['heat-engine'] ~> Exec['heat_db_sync']
+  Package['heat-api'] ~> Exec['heat_db_sync']
 
 }

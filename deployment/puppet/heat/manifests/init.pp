@@ -1,17 +1,22 @@
 class heat(
-  $heat_enabled                  = true,
+  $pacemaker                     = false,
+  $external_ip                   = '127.0.0.1',      
+
+  # keystone
+  $heat_keystone_host            = '127.0.0.1',
+  $heat_keystone_port            = '5000',
+  $heat_keystone_protocol        = 'http',
+  $heat_keystone_user            = 'heat',
+  $heat_keystone_tenant          = 'services',
+  $heat_keystone_password        = 'heat',  
+
+  # database
   $heat_db_user                  = 'heat',
   $heat_db_password              = 'heat',
   $heat_db_host                  = '127.0.0.1',
   $heat_db_name                  = 'heat',
-  $heat_keystone_host            = '127.0.0.1',
-  $heat_keystone_port            = '35357',
-  $heat_keystone_protocol        = 'http',
-  $heat_keystone_user            = 'heat',
-  $heat_keystone_tenant          = 'services',
-  $heat_keystone_password        = 'heat',
-  $heat_keystone_ec2_uri         = 'http://127.0.0.1:5000/v2.0/ec2tokens',
-  $heat_auth_uri                 = 'http://127.0.0.1:5000/v2.0',
+  $heat_db_allowed_hosts         = ['localhost','%'],
+
   $heat_api_cfn_bind_host        = '0.0.0.0',
   $heat_api_cfn_bind_port        = '8000',
   $heat_engine_bind_host         = '0.0.0.0',
@@ -22,26 +27,29 @@ class heat(
   $heat_api_bind_port            = '8004',
   $heat_debug                    = 'True',
   $heat_verbose                  = 'True',
-
-  # Please use external IPs here
+  $heat_rpc_backend              = 'heat.openstack.common.rpc.impl_kombu',
   $heat_stack_user_role          = 'heat_stack_user',
-  $heat_metadata_server_url      = 'http://127.0.0.1:8000',
-  $heat_waitcondition_server_url = 'http://127.0.0.1:8000/v1/waitcondition',
-  $heat_watch_server_url         = 'http://127.0.0.1:8003',
 
-  $heat_rabbit_hosts             = '127.0.0.1',
   $heat_rabbit_host              = '127.0.0.1',
-  $heat_rabbit_userid            = 'nova',
+  $heat_rabbit_login             = 'heat',
   $heat_rabbit_ha_queues         = 'False',
-  $heat_rabbit_password          = 'nova',
+  $heat_rabbit_password          = 'heat',
   $heat_rabbit_virtualhost       = '/',
   $heat_rabbit_port              = '5672',
-
-  $heat_rpc_backend =  'heat.openstack.common.rpc.impl_kombu',
 ) {
+  
+  $heat_keystone_ec2_uri         = "${heat_keystone_protocol}://${heat_keystone_host}:${heat_keystone_port}/v2.0/ec2tokens"
+  $heat_auth_uri                 = "${heat_keystone_protocol}://${heat_keystone_host}:${heat_keystone_port}/v2.0"
+  $heat_metadata_server_url      = "http://${external_ip}:${heat_api_cfn_bind_port}"
+  $heat_waitcondition_server_url = "http://${external_ip}:${heat_api_cfn_bind_port}/v1/waitcondition"
+  $heat_watch_server_url         = "http://${external_ip}:${heat_api_cloudwatch_bind_port}"
 
   class { 'heat::db::mysql' :
-    password => $heat_db_password,
+    password                     => $heat_db_password,
+    dbname                       => $heat_db_name,
+    user                         => $heat_db_user,
+    dbhost                       => $heat_db_host,
+    allowed_hosts                => $heat_db_allowed_hosts,
   }
 
   class { 'heat::install' :
@@ -54,7 +62,7 @@ class heat(
   }
 
   class { 'heat::engine' :
-    enabled                        => $heat_enabled,
+    pacemaker                      => $pacemaker,
     keystone_host                  => $heat_keystone_host,
     keystone_port                  => $heat_keystone_port,
     keystone_protocol              => $heat_keystone_protocol,
@@ -69,18 +77,18 @@ class heat(
     heat_watch_server_url          => $heat_watch_server_url,
     verbose                        => $heat_verbose,
     debug                          => $heat_debug,
+    rpc_backend                    => $heat_rpc_backend,
 
     rabbit_host                    => $heat_rabbit_host,
-    rabbit_userid                  => $heat_rabbit_userid,
+    rabbit_userid                  => $heat_rabbit_login,
     rabbit_ha_queues               => $heat_rabbit_ha_queues,
     rabbit_password                => $heat_rabbit_password,
     rabbit_virtualhost             => $heat_rabbit_virtualhost,
     rabbit_port                    => $heat_rabbit_port,
-    rpc_backend                    => $heat_rpc_backend,
   }
 
   class { 'heat::api' :
-    enabled                        => $heat_enabled,
+    pacemaker                      => $pacemaker,
     keystone_host                  => $heat_keystone_host,
     keystone_port                  => $heat_keystone_port,
     keystone_protocol              => $heat_keystone_protocol,
@@ -93,22 +101,22 @@ class heat(
     bind_port                      => $heat_api_bind_port,
     verbose                        => $heat_verbose,
     debug                          => $heat_debug,
+    rpc_backend                    => $heat_rpc_backend,
 
     rabbit_host                    => $heat_rabbit_host,
-    rabbit_userid                  => $heat_rabbit_userid,
+    rabbit_userid                  => $heat_rabbit_login,
     rabbit_ha_queues               => $heat_rabbit_ha_queues,
     rabbit_password                => $heat_rabbit_password,
     rabbit_virtualhost             => $heat_rabbit_virtualhost,
     rabbit_port                    => $heat_rabbit_port,
-    rpc_backend                    => $heat_rpc_backend,
   }
 
   class { 'heat::keystone::auth' :
     password                       => 'heat',
     auth_name                      => 'heat',
-    public_address                 => '127.0.0.1',
-    admin_address                  => '127.0.0.2',
-    internal_address               => '127.0.0.3',
+    public_address                 => $external_ip,
+    admin_address                  => $heat_keystone_host,
+    internal_address               => $heat_keystone_host,
     heat_port                      => '8004',
     region                         => 'RegionOne',
     tenant                         => 'services',
@@ -116,11 +124,11 @@ class heat(
   }
 
   class { 'heat::db' :
-    sql_connection                 => "mysql://${heat_db_user}:${heat_db_password}@${heat_db_host}/${heat_db_name}"
+    sql_connection                 => "mysql://${heat_db_user}:${heat_db_password}@${heat_db_host}/${heat_db_name}",
   }
 
   class { 'heat::api_cfn' :
-    enabled                       => $heat_enabled,
+    pacemaker                     => $pacemaker,
     keystone_host                 => $heat_keystone_host,
     keystone_port                 => $heat_keystone_port,
     keystone_protocol             => $heat_keystone_protocol,
@@ -135,7 +143,7 @@ class heat(
     debug                         => $heat_debug,
 
     rabbit_host                   => $heat_rabbit_host,
-    rabbit_userid                 => $heat_rabbit_userid,
+    rabbit_userid                 => $heat_rabbit_login,
     rabbit_ha_queues              => $heat_rabbit_ha_queues,
     rabbit_password               => $heat_rabbit_password,
     rabbit_virtualhost            => $heat_rabbit_virtualhost,
@@ -144,7 +152,7 @@ class heat(
   }
 
   class { 'heat::api_cloudwatch' :
-    enabled                       => $heat_enabled,
+    pacemaker                     => $pacemaker,
     keystone_host                 => $heat_keystone_host,
     keystone_port                 => $heat_keystone_port,
     keystone_protocol             => $heat_keystone_protocol,
@@ -159,7 +167,7 @@ class heat(
     debug                         => $heat_debug,
 
     rabbit_host                   => $heat_rabbit_host,
-    rabbit_userid                 => $heat_rabbit_userid,
+    rabbit_userid                 => $heat_rabbit_login,
     rabbit_ha_queues              => $heat_rabbit_ha_queues,
     rabbit_password               => $heat_rabbit_password,
     rabbit_virtualhost            => $heat_rabbit_virtualhost,

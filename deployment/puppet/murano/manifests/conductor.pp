@@ -1,7 +1,7 @@
 # Installs & configure the murano conductor  service
 
 class murano::conductor (
-  $enabled                             = true,
+  $pacemaker                           = false,
   $log_file                            = '/var/log/murano/conductor.log',
   $debug                               = 'True',
   $verbose                             = 'True',
@@ -25,16 +25,10 @@ class murano::conductor (
     name   => $::murano::params::murano_conductor_package_name,
   }
 
-  if $enabled {
-    $service_ensure = 'running'
-  } else {
-    $service_ensure = 'stopped'
-  }
-
   service { 'murano_conductor':
-    ensure     => $service_ensure,
+    ensure     => 'running',
     name       => $::murano::params::murano_conductor_service_name,
-    enable     => $enabled,
+    enable     => true,
     hasstatus  => true,
     hasrestart => true,
   }

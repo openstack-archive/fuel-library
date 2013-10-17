@@ -1,7 +1,8 @@
 class heat::api_cloudwatch (
-  $enabled            = true,
+  $pacemaker          = false,
   $keystone_host      = '127.0.0.1',
   $keystone_port      = '35357',
+  $keystone_service_port = '5000',
   $keystone_protocol  = 'http',
   $keystone_user      = 'heat',
   $keystone_tenant    = 'services',
@@ -34,12 +35,6 @@ class heat::api_cloudwatch (
     name   => $::heat::params::api_cloudwatch_package_name,
   }
 
-  if $enabled {
-    $service_ensure = 'running'
-  } else {
-    $service_ensure = 'stopped'
-  }
-
   if $rabbit_hosts {
     heat_api_config { 'DEFAULT/rabbit_host': ensure => absent }
     heat_api_config { 'DEFAULT/rabbit_port': ensure => absent }
@@ -57,9 +52,9 @@ class heat::api_cloudwatch (
   }
 
   service { 'heat-api-cloudwatch':
-    ensure     => $service_ensure,
+    ensure     => 'running',
     name       => $::heat::params::api_cloudwatch_service_name,
-    enable     => $enabled,
+    enable     => true,
     hasstatus  => true,
     hasrestart => true,
   }
@@ -86,9 +81,26 @@ class heat::api_cloudwatch (
     'keystone_authtoken/admin_user'        : value => $keystone_user;
     'keystone_authtoken/admin_password'    : value => $keystone_password;
   }
+  
+  heat_api_cloudwatch_paste_ini {
+    'filter:authtoken/paste.filter_factory' : value => "heat.common.auth_token:filter_factory";
+    'filter:authtoken/service_protocol'     : value => $keystone_protocol;
+    'filter:authtoken/service_host'         : value => $keystone_host;
+    'filter:authtoken/service_port'         : value => $keystone_service_port;
+    'filter:authtoken/auth_host'            : value => $keystone_host;
+    'filter:authtoken/auth_port'            : value => $keystone_port;
+    'filter:authtoken/auth_protocol'        : value => $keystone_protocol;
+    'filter:authtoken/auth_uri'             : value => "${keystone_protocol}://${keystone_host}:${keystone_port}/v2.0";
+    'filter:authtoken/admin_tenant_name'    : value => $keystone_tenant;
+    'filter:authtoken/admin_user'           : value => $keystone_user;
+    'filter:authtoken/admin_password'       : value => $keystone_password;
+  }
 
-  Package['heat-common'] -> Package['heat-api-cloudwatch'] -> Heat_api_cloudwatch_config<||> ~> Service['heat-api-cloudwatch']
+  Package['heat-common'] -> Package['heat-api-cloudwatch'] -> Heat_api_cloudwatch_config<||> -> Heat_api_cloudwatch_paste_ini<||>
+  Heat_api_cloudwatch_config<||> ~> Service['heat-api-cloudwatch']
+  Heat_api_cloudwatch_paste_ini<||> ~> Service['heat-api-cloudwatch']
   Package['heat-api-cloudwatch'] ~> Service['heat-api-cloudwatch']
   Class['heat::db'] -> Service['heat-api-cloudwatch']
+  Exec['heat_db_sync'] -> Service['heat-api-cloudwatch'] 
 
 }

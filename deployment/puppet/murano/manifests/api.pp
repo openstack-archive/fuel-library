@@ -1,5 +1,5 @@
 class murano::api (
-    $enabled                        = true,
+    $pacemaker                      = false,
     $verbose                        = 'True',
     $debug                          = 'True',
     $api_paste_inipipeline          = 'authtoken context apiv1app',
@@ -44,19 +44,12 @@ class murano::api (
     name   => $::murano::params::murano_api_package_name,
   }
 
-  if $enabled {
-    $service_ensure = 'running'
-  } else {
-    $service_ensure = 'stopped'
-  }
-
   service { 'murano_api':
-    ensure     => $service_ensure,
+    ensure     => 'running',
     name       => $::murano::params::murano_api_service_name,
-    enable     => $enabled,
+    enable     => true,
     hasstatus  => true,
     hasrestart => true,
-    require    => Package['murano_api'],
   }
 
   murano_api_config {
