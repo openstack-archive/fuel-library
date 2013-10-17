@@ -15,18 +15,11 @@ OpenStack.
 Status
 ------
 
-Originally developped and tested on Ubuntu 12.04 LTS (Precise Pangolin),
-targetting the Ceph 0.61 (Cuttlefish) release:
+Currently working with Ceph 0.61:
 
-* Ubuntu 12.04.2 LTS
-* Puppet 3.2.2
-* Ceph 0.61.7
+Developed and tested with:
 
-**Ubuntu support is currently broken but will be back soon**
-
-Currently working on CentOS 6.4 with Ceph 0.61:
-
-* CentOS 6.4
+* CentOS 6.4, Ubuntu 12.04
 * Puppet 2.7.19
 * Ceph 0.61.8
 
@@ -39,6 +32,12 @@ There are currently issues with glance 2013.1.2 (grizzly) that cause ``glance
 image-create`` with ``--location`` to not function. see
 https://bugs.launchpad.net/glance/+bug/1215682 
 
+**RadosGW, Keystone and Python 2.6**
+
+RadosGW (RGW) will work with Keystone token_formats UUID or PKI. While RGW
+perfers using PKI tokens. Python 2.6 distributions currently may not work
+correctly with the PKI tokens. As such, keystone integration will defalt to
+UUID, but you can adjust as desired see ```rgw_use_pki``` option.
 
 Features
 --------
@@ -46,8 +45,10 @@ Features
 * Ceph package
 * Ceph Monitors
 * Ceph OSDs
-* Ceph MDS (slightly broken)
-* Ceph Object Gateway (radosgw): coming soon
+* Ceph MDS (present, but un-supported)
+* Ceph Object Gateway (radosgw)
+* * Openstack Keystone integration
+
 
 Using
 -----
@@ -61,45 +62,7 @@ This module requires the puppet agents to have ``pluginsync = true``.
 Understanding the example Puppet manifest
 -----------------------------------------
 
-```puppet
-$mon_nodes = [
-  'ceph-mon-1',
-]
-```
-
-This parameter defines the nodes for which the monitor process will be
-installed. This should be one, three or more monitors.
-
-```puppet
-$osd_nodes = [
-  'ceph-osd-1',
-  'ceph-osd-2',
-]
-```
-
-This parameter defines the nodes for which the OSD process` will run. One OSD
-will be created for each ``$osd_volume`` per ``$osd_nodes``. There is a minimum
-requirement of two OSD instances.
-
-```puppet
-$mds_server = 'ceph-mds-01'
-```
-
-Uncomment this line if you want to install metadata server. Metadata is only
-necessary for CephFS and should run on separate hardware from the other
-OpenStack nodes.
-
-```puppet
-$osd_devices = [ 'vdb', 'vdc1' ]
-```
-
-This parameter defines which drive, partition or path will be used in Ceph OSD
-on each OSD node. When referring to whole devices or partitions, the /dev/ prefix
-is not necessary.
-
-```puppet
-$ceph_pools = [ 'volumes', 'images' ]
-```
+This section should be re-written.
 
 This parameter defines the names of the ceph pools we want to pre-create. By
 default, ``volumes`` and ``images`` are necessary to setup the OpenStack hooks.
@@ -215,7 +178,7 @@ the current pools:
 	# ceph osd lspools
 	0 data,1 metadata,2 rbd,3 images,4 volumes,
 
-Testing openstack
+Testing Openstack
 -----------------
 
 
@@ -341,31 +304,142 @@ rbd ls volumes
 volume-78bf2750-e99c-4c52-b5ca-09764af367b5
 ```
 
-Hacking into Fuel
------------------
+### Rados GW
 
-After installing onto a fuel cluster
+First confirm that the cluster is ```HEALTH_OK``` using ```ceph -s``` or
+```ceph health detail```. If the cluster isn't healthy most of these tests
+will not function.
 
-1. Define your partitions. If you will re-define any partitions you must make
-sure they are exposed in the kernel before running the scripts see ``partx -a
-/dev/<device>`` (you may need to run it two or three times.
+#### Checking on the Rados GW service.
 
-2. Copy ``fuel-pm:/etc/puppet/modules/*`` to ``{node}:/etc/puppet/modules``
-3. Copy ``/etc/puppet/modules/ceph/examples/site.pp`` to ``/root/site.pp``.
-4. Edit ceph.pp for desired changes to 
-* ``$mon_nodes``
-* ``$osd_nodes``
-* ``$osd_disks``
-* ``$public_network`` if you use dns names, this needs to be set to PXE network
-* ``$cluster_network`` set this to storage network
-5. Run ``puppet apply site.pp`` must be run on all nodes **before**
-   ``$mon_nodes[-1]``. This will set up the ssh keys that ``ceph-deploy`` needs
-   to run and deploy the actual services. Now you can run
-   ``puppet apply site.pp`` on the ``$mon_nodes[-1]``.
+***Note: RedHat distros: mod_fastcgi's /etc/httpd/conf.d/fastcgi.conf must
+have ```FastCgiWrapper Off``` or rados calls will return 500 errors***
 
-Note: errors related to keystone and libnss3 are OK
+Rados relies on the service ```radosgw``` (Debian) ```ceph-radosgw``` (RHEL)
+running and creating a socket for the webserver's script service to talk to.
+If the radosgw service is not running, or not staying running then we need to
+inspect it closer.
 
-==== Clean re-run site.pp ====
+the service script for radosgw might exit 0 and not start the service, the
+easy way to test this is to simply ```service ceph-radosgw restart``` if the
+service script can not stop the service, it wasn't running in the first place.
+
+We can also check to see if the rados service might be running by 
+```ps axu | grep radosgw```, but this might also show the webserver script
+server processes as well.
+
+most commands from ```radosgw-admin``` will work wether or not the ```radosgw```
+service is running.
+
+#### swift testing
+
+##### Simple authentication for RadosGW
+
+
+create a new user
+
+```shell
+radosgw-admin user create --uid=test --display-name="bob" --email="bob@mail.ru"
+```
+
+```
+{ "user_id": "test",
+  "display_name": "bob",
+  "email": "bob@mail.ru",
+  "suspended": 0,
+  "max_buckets": 1000,
+  "auid": 0,
+  "subusers": [],
+  "keys": [
+        { "user": "test",
+          "access_key": "CVMC8OX9EMBRE2F5GA8C",
+          "secret_key": "P3H4Ilv8Lhx0srz8ALO\/7udwkJd6raIz11s71FIV"}],
+  "swift_keys": [],
+  "caps": []}
+```
+
+swift auth works with subusers, in that from openstack this would be
+tennant:user so we need to mimic the same
+
+```shell
+radosgw-admin subuser create --uid=test --subuser=test:swift --access=full
+```
+
+```
+{ "user_id": "test",
+  "display_name": "bob",
+  "email": "bob@mail.ru",
+  "suspended": 0,
+  "max_buckets": 1000,
+  "auid": 0,
+  "subusers": [
+        { "id": "test:swift",
+          "permissions": "full-control"}],
+  "keys": [
+        { "user": "test",
+          "access_key": "CVMC8OX9EMBRE2F5GA8C",
+          "secret_key": "P3H4Ilv8Lhx0srz8ALO\/7udwkJd6raIz11s71FIV"}],
+  "swift_keys": [],
+  "caps": []}
+```
+
+Generate the secret key. 
+___Note that ```--gen-secred``` is required in (at least) cuttlefish and newer.___
+
+```shell
+radosgw-admin key create --subuser=test:swift --key-type=swift --gen-secret
+```
+
+```
+{ "user_id": "test",
+  "display_name": "bob",
+  "email": "bob@mail.ru",
+  "suspended": 0,
+  "max_buckets": 1000,
+  "auid": 0,
+  "subusers": [
+        { "id": "test:swift",
+          "permissions": "full-control"}],
+  "keys": [
+        { "user": "test",
+          "access_key": "CVMC8OX9EMBRE2F5GA8C",
+          "secret_key": "P3H4Ilv8Lhx0srz8ALO\/7udwkJd6raIz11s71FIV"}],
+  "swift_keys": [
+        { "user": "test:swift",
+          "secret_key": "hLyMvpVNPez7lBqFlLjcefsZnU0qlCezyE2IDRsp"}],
+  "caps": []}
+```
+
+some test commands
+
+```shell
+swift -A http://localhost:6780/auth/1.0 -U test:swift -K "eRYvzUr6vubg93dMRMk60RWYiGdJGvDk3lnwi4cl" post test
+swift -A http://localhost:6780/auth/1.0 -U test:swift -K "eRYvzUr6vubg93dMRMk60RWYiGdJGvDk3lnwi4cl" upload test myfile
+swift -A http://localhost:6780/auth/1.0 -U test:swift -K "eRYvzUr6vubg93dMRMk60RWYiGdJGvDk3lnwi4cl" list test
+```
+
+##### Keystone intergration
+
+We will start with a simple test, we should be able to use the keystone openrc
+credentials and start using the swift client as if we where actually using
+swift.
+
+```shell
+source openrc
+swift post test
+swift list test
+```
+
+```
+test
+```
+
+
+Clean up ceph to re-run
+=======================
+
+some times it is necessary to re-set the ceph-cluster rather than rebuilding
+everything from cratch
 
 set ``all`` to contain all monitors, osds, and computes want to re-initalize.
 
@@ -382,7 +456,7 @@ yum install -y ceph-deploy;
 rm ~/ceph* ;
 ceph-deploy install $all
 ```
-Note: errors related to keystone and libnss3 are OK
+
 
 Copyright and License
 ---------------------
