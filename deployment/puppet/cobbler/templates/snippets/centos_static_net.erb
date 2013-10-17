@@ -1,0 +1,9 @@
+#raw
+#!/bin/bash
+DEFAULT_GW=@@server@@
+ADMIN_IF=$(sed 's/\ /\n/g' /proc/cmdline | grep choose_interface | awk -F\= '{print $2}')
+NETADDR=( $(ifconfig $ADMIN_IF | grep -oP "[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}") )
+echo -e "# FROM COBBLER SNIPPET\nDEVICE=$ADMIN_IF\nIPADDR=${NETADDR[0]}\nNETMASK=${NETADDR[2]}\nBOOTPROTO=none\nONBOOT=yes\nUSERCTL=no\n" > /etc/sysconfig/network-scripts/ifcfg-"$ADMIN_IF"
+
+echo GATEWAY="$DEFAULT_GW" >> /etc/sysconfig/network
+#end raw
