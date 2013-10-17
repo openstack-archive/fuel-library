@@ -20,6 +20,7 @@ timezone --utc <%= ks_system_timezone %>
 reboot
 
 firewall --disable
+zerombr
 
 # SET ROOT PASSWORD DEFAULT IS r00tme
 rootpw --iscrypted <%= ks_encrypted_root_password %>
