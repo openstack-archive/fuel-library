@@ -23,7 +23,6 @@
 ## configuring /etc/network/interfaces
 #######################################
 #set $script += "### configuring interfaces ###\n"
-#set $dhclient_file = "/etc/dhcp/dhclient.conf"
 #set $interfaces_file = "/etc/network/interfaces"
 #set $script += "echo > %s\n" % $interfaces_file
 #set $script += "echo auto lo >> %s\n" % $interfaces_file
@@ -66,17 +65,6 @@
         #end if
     #else
         #set $script += "echo iface %s inet dhcp >> %s\n" % ($iname, $interfaces_file)
-        #if $name_servers
-          #set $script += "echo >> %s\n" % $dhclient_file
-          #set $script += "echo interface \\\"%s\\\" {>> %s\n" % ($iname, $dhclient_file)
-          #set $script += "echo -n 'prepend domain-name-servers ' >> %s\n" % $dhclient_file
-          #for $nameserver in $name_servers
-            #set $script += "echo -n '%s ' >> %s\n" % ($nameserver, $dhclient_file)
-          #end for
-          #set $script += "echo '; ' >> %s\n" % $dhclient_file
-          #set $script += "echo 'request subnet-mask, broadcast-address, time-offset, routers, domain-name, domain-search, host-name, netbios-name-servers, netbios-scope, interface-mtu, rfc3442-classless-static-routes, ntp-servers;' >> %s\n" % $dhclient_file
-          #set $script += "echo '}'>> %s\n" % $dhclient_file
-        #end if
     #end if
     #set $script += "echo >> %s\n" % $interfaces_file
 #end for
