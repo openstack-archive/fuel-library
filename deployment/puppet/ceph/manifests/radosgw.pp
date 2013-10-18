@@ -61,6 +61,13 @@ class ceph::radosgw (
     }
   }
 
+  firewall {'012 RadosGW allow':
+    chain   => 'INPUT',
+    dport   => $rgw_port,
+    proto   => 'tcp',
+    action  => accept,
+  }
+
   # All files need to be owned by the rgw / http user.
   File {
     owner    => $rgw_user,
@@ -214,7 +221,8 @@ class ceph::radosgw (
   File[$keyring_path] ->
   Exec["ceph-generate-key-on ${name}"] ->
   Exec["ceph-add-capabilities-to-the-key-on ${name}"] ->
-  Exec["ceph-add-to-ceph-keyring-entries-on ${name}"] ~>
+  Exec["ceph-add-to-ceph-keyring-entries-on ${name}"] ->
+  Firewall['012 RadosGW allow'] ~>
   Service ['httpd'] ~>
   Service['radosgw']
 }
