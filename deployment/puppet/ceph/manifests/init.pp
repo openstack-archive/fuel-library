@@ -12,7 +12,7 @@ class ceph (
       $auth_supported            = 'cephx',
       $osd_journal_size          = '2048',
       $osd_mkfs_type             = 'xfs',
-      $osd_pool_default_size     = '2',
+      $osd_pool_default_size     = $::fuel_settings['storage']['osd_pool_size'],
       $osd_pool_default_min_size = '1',
       # TODO: calculate PG numbers
       $osd_pool_default_pg_num   = '100',
