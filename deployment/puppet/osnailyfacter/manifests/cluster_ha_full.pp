@@ -59,10 +59,7 @@ if !$rabbit_hash[user]
 $rabbit_user          = $rabbit_hash['user']
 
 
-if !$::fuel_settings['verbose']
-{
- $verbose = false
-}
+$verbose = true
 
 if !$::fuel_settings['debug']
 {
