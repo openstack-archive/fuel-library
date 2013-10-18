@@ -26,6 +26,10 @@ ROTATE_SUFFIX=
 INIT_LOG_DIR=/var/log/rabbitmq
 PID_FILE=/var/run/rabbitmq/pid
 
+<% if node_ip_address != 'UNSET' -%>
+export RABBITMQ_NODE_IP_ADDRESS="<%= node_ip_address %>"
+<% end -%>
+export RABBITMQ_NODE_PORT="<%= port %>"
 
 test -x $DAEMON || exit 0
 test -x $CONTROL || exit 0

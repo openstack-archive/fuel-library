@@ -27,6 +27,11 @@ PID_FILE=/var/run/rabbitmq/pid
 START_PROG="runuser rabbitmq --session-command"
 LOCK_FILE=/var/lock/subsys/$NAME
 
+<% if node_ip_address != 'UNSET' -%>
+export RABBITMQ_NODE_IP_ADDRESS="<%= node_ip_address %>"
+<% end -%>
+export RABBITMQ_NODE_PORT="<%= port %>"
+
 test -x $DAEMON || exit 0
 test -x $CONTROL || exit 0
 
