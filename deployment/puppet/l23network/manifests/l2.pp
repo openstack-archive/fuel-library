@@ -10,7 +10,17 @@ class l23network::l2 (
   include ::l23network::params
 
   if $use_ovs {
-    #include ::l23network::l2::use_ovs    
+    #include ::l23network::l2::use_ovs
+    if $::operatingsystem == 'Ubuntu' {
+     package { 'openvswitch-datapath-lts-raring-dkms':
+       before => Package[$::l23network::params::ovs_packages],
+       require => 'Exec[rmmod-old]',
+     }
+     exec { 'rmmod-old': 
+      path      => '/sbin:/bin:/usr/bin:/usr/sbin',
+      command   => "rmmod openvswitch ; true",
+     }
+    }
     package {$::l23network::params::ovs_packages:
       ensure  => present,
       before  => Service['openvswitch-service'],
