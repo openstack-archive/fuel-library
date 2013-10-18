@@ -3,10 +3,6 @@ class ceph::params {
 
   case $::osfamily {
     'RedHat': {
-      $service_cinder_volume      = 'openstack-cinder-volume'
-      $service_cinder_volume_opts = '/etc/sysconfig/openstack-cinder-volume'
-      $service_glance_api         = 'openstack-glance-api'
-      $service_glance_registry    = 'openstack-glance-registry'
       $service_nova_compute       = 'openstack-nova-compute'
       #RadosGW
       $service_httpd              = 'httpd'
@@ -31,10 +27,6 @@ class ceph::params {
     }
 
     'Debian': {
-      $service_cinder_volume      = 'cinder-volume'
-      $service_cinder_volume_opts = '/etc/init/cinder-volume.conf'
-      $servic_glance_api          = 'glance-api'
-      $service_glance_registry    = 'glance-registry'
       $service_nova_compute       = 'nova-compute'
       #RadosGW
       $service_httpd              = 'apache2'
