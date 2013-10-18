@@ -184,9 +184,7 @@ class osnailyfacter::cluster_ha {
     'vlan_start'     => $vlan_start,
   }
 
-  if !$::fuel_settings['verbose'] {
-    $verbose = false
-  }
+  $verbose = true
 
   if !$::fuel_settings['debug'] {
     $debug = false

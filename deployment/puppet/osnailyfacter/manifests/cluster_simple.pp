@@ -98,9 +98,7 @@ class osnailyfacter::cluster_simple {
   $multi_host = true
   Exec { logoutput => true }
 
-  if !$::fuel_settings['verbose'] {
-   $verbose = false
-  }
+  $verbose = true
 
   if !$::fuel_settings['debug'] {
    $debug = false
