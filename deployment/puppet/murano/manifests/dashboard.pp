@@ -32,10 +32,16 @@ class murano::dashboard (
     command => "${modify_config} install ${settings_py}",
   }
 
+  if $::osfamily == 'RedHat' {
+    $apache_user = 'apache'
+  } else {
+    $apache_user = 'www-data'
+  }
+
   exec { 'collect_static':
     command => "${collect_static_script} collectstatic --noinput",
-    user    => 'apache',
-    group   => 'apache',
+    user    => $apache_user,
+    group   => $apache_user,
   }
 
   package { 'murano_dashboard':
