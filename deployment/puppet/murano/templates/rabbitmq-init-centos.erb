@@ -30,6 +30,7 @@ export RABBITMQ_LOG_BASE="/var/log/rabbitmq-murano"
 export RABBITMQ_ENABLED_PLUGINS_FILE="/etc/rabbitmq/enabled_plugins_murano"
 export RABBITMQ_NODENAME="murano@localhost"
 export RABBITMQ_NODE_PORT="<%= @rabbitmq_main_port %>"
+export RABBITMQ_NODE_IP_ADDRESS="0.0.0.0"
 
 START_PROG="runuser rabbitmq --session-command"
 LOCK_FILE="/var/lock/subsys/${NAME}"

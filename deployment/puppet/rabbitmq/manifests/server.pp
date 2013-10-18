@@ -146,7 +146,7 @@ class rabbitmq::server(
       file { 'rabbitmq-server':
         ensure  => present,
         path    => '/etc/init.d/rabbitmq-server',
-            source => 'puppet:///modules/rabbitmq/rabbitmq-server_redhat',
+        content => template('rabbitmq/rabbitmq-server_redhat.erb'),
         replace => true,
         owner   => '0',
         group   => '0',
@@ -159,7 +159,7 @@ class rabbitmq::server(
       file { 'rabbitmq-server':
         ensure  => present,
         path    => '/etc/init.d/rabbitmq-server',
-        source => 'puppet:///modules/rabbitmq/rabbitmq-server_ubuntu',
+        content => template('rabbitmq/rabbitmq-server_ubuntu.erb'),
         replace => true,
         owner   => '0',
         group   => '0',

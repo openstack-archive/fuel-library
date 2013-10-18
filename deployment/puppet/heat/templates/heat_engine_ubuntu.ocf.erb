@@ -1,0 +1,295 @@
+#!/bin/sh
+#
+# OpenStack Heat Engine OCF script
+#
+# Description:  Manages OpenStack Heat Engine process as a HA resource
+#
+# Authors:      Mirantis inc.
+#
+# Support:      openstack@lists.launchpad.net
+# License:      Apache Software License (ASL) 2.0
+#
+# See usage() function below for more details ...
+#
+# OCF instance parameters:
+#   OCF_RESKEY_binary
+#   OCF_RESKEY_config
+#   OCF_RESKEY_user
+#   OCF_RESKEY_pid
+#   OCF_RESKEY_additional_parameters
+#######################################################################
+# Initialization:
+
+: ${OCF_FUNCTIONS_DIR=${OCF_ROOT}/lib/heartbeat}
+. ${OCF_FUNCTIONS_DIR}/ocf-shellfuncs
+
+#######################################################################
+
+# Fill in some defaults if no values are specified
+
+SERVICE_NAME="OpenStack Heat Engine"
+LOG="/var/log/heat/engine.log"
+
+OCF_RESKEY_binary_default="/usr/bin/heat-engine"
+OCF_RESKEY_config_default="/etc/heat/heat-engine.conf"
+OCF_RESKEY_pid_default="/var/run/heat-engine.pid"
+OCF_RESKEY_user_default="heat"
+
+: ${OCF_RESKEY_binary=${OCF_RESKEY_binary_default}}
+: ${OCF_RESKEY_config=${OCF_RESKEY_config_default}}
+: ${OCF_RESKEY_user=${OCF_RESKEY_user_default}}
+: ${OCF_RESKEY_pid=${OCF_RESKEY_pid_default}}
+
+#######################################################################
+
+usage() {
+    cat <<UEND
+        usage: $0 (start|stop|validate-all|meta-data|status|monitor)
+
+        $0 manages the ${SERVICE_NAME} process as an HA resource 
+
+        The 'start' operation starts the ${SERVICE_NAME}
+        The 'stop' operation stops the ${SERVICE_NAME}
+        The 'validate-all' operation reports whether the parameters are valid
+        The 'meta-data' operation reports this RA's meta-data information
+        The 'status' operation reports whether the ${SERVICE_NAME} is running
+        The 'monitor' operation reports whether the ${SERVICE_NAME} is running
+
+UEND
+}
+
+meta_data() {
+    cat <<END
+<?xml version="1.0"?>
+<!DOCTYPE resource-agent SYSTEM "ra-api-1.dtd">
+<resource-agent name="heat-engine">
+<version>1.0</version>
+
+<longdesc lang="en">
+Manages OpenStack Heat Engine daemon as a Pacemaker Resource.
+Heat is used to deploy instances based on predefined templates.
+There should be only one active instace of Heat Engine in an OpenStack cluster.
+Heat Engine connects to its databse and uses AMQP service to communicate with
+Heat API's processes ans REST interface to communicate with Nova API.
+</longdesc>
+<shortdesc lang="en">Manages OpenStack Heat</shortdesc>
+<parameters>
+
+<parameter name="binary" unique="0" required="0">
+<longdesc lang="en">
+Name of Heat's binary file that will be run.
+</longdesc>
+<shortdesc lang="en">Heat binary file</shortdesc>
+<content type="string" default="${OCF_RESKEY_binary_default}" />
+</parameter>
+
+<parameter name="config" unique="0" required="0">
+<longdesc lang="en">
+Path to configuration file used by Heat Engine daemon
+</longdesc>
+<shortdesc lang="en">Heat configuration file</shortdesc>
+<content type="string" default="${OCF_RESKEY_config_default}" />
+</parameter>
+
+<parameter name="user" unique="0" required="0">
+<longdesc lang="en">
+User running Heat Engine
+</longdesc>
+<shortdesc lang="en">Heat user</shortdesc>
+<content type="string" default="${OCF_RESKEY_user_default}" />
+</parameter>
+
+<parameter name="pid" unique="0" required="0">
+<longdesc lang="en">
+The pid file to use for this process
+</longdesc>
+<shortdesc lang="en">Heat pid file</shortdesc>
+<content type="string" default="${OCF_RESKEY_pid_default}" />
+</parameter>
+
+<parameter name="additional_parameters" unique="0" required="0">
+<longdesc lang="en">
+Additional parameters to pass on to the Heat engine if you do need them
+</longdesc>
+<shortdesc lang="en">Additional parameters for the Heat engine</shortdesc>
+<content type="string" />
+</parameter>
+
+</parameters>
+
+<actions>
+<action name="start" timeout="20" />
+<action name="stop" timeout="20" />
+<action name="status" timeout="20" />
+<action name="monitor" timeout="30" interval="20" />
+<action name="validate-all" timeout="5" />
+<action name="meta-data" timeout="5" />
+</actions>
+</resource-agent>
+END
+}
+
+#######################################################################
+# Functions invoked by resource manager actions
+
+service_validate() {
+    local rc
+
+    check_binary $OCF_RESKEY_binary
+
+    # A config file on shared storage that is not available
+    # during probes is OK.
+    if [ ! -f $OCF_RESKEY_config ]; then
+        if ! ocf_is_probe; then
+            ocf_log err "Config $OCF_RESKEY_config doesn't exist"
+            return $OCF_ERR_INSTALLED
+        fi
+        ocf_log_warn "Config $OCF_RESKEY_config not available during a probe"
+    fi
+
+    getent passwd $OCF_RESKEY_user >/dev/null 2>&1
+    rc=$?
+    if [ $rc -ne 0 ]; then
+        ocf_log err "User $OCF_RESKEY_user doesn't exist"
+        return $OCF_ERR_INSTALLED
+    fi
+
+    true
+}
+
+service_status() {
+    local pid
+    local rc
+
+    if [ ! -f $OCF_RESKEY_pid ]; then
+        ocf_log info "${SERVICE_NAME} is not running"
+        return $OCF_NOT_RUNNING
+    else
+    pid=`cat $OCF_RESKEY_pid`
+    fi
+
+    ocf_run -warn kill -s 0 $pid
+    rc=$?
+    if [ $rc -eq 0 ]; then
+        return $OCF_SUCCESS
+    else
+        ocf_log info "Old PID file found, but ${SERVICE_NAME} is not running"
+        return $OCF_NOT_RUNNING
+    fi
+}
+
+service_monitor() {
+  # There is no way to do extended monitoring of Heat Engine
+  # so we just run simple status check instead
+  service_status
+}
+
+service_start() {
+    local rc
+
+    service_status
+    rc=$?
+    if [ $rc -eq $OCF_SUCCESS ]; then
+        ocf_log info "${SERVICE_NAME} is already running"
+        return $OCF_SUCCESS
+    fi
+
+    # source init and venv
+    . /lib/lsb/init-functions
+    # run the actual daemon.
+    #daemon --user "${OCF_RESKEY_user}" --pidfile "${OCF_RESKEY_pid}" "${OCF_RESKEY_binary} --config-file ${OCF_RESKEY_config} --logfile ${LOG} &>/dev/null & echo \$! > ${OCF_RESKEY_pid}"
+    start-stop-daemon --start --background --quiet --chuid "${OCF_RESKEY_user}:${OCF_RESKEY_user}" --make-pidfile --pidfile "${OCF_RESKEY_pid}" --startas "${OCF_RESKEY_binary}"
+
+    # Spin waiting for the server to come up.
+    # Let the CRM/LRM time us out if required
+    while true; do
+    service_monitor
+    rc=$?
+    [ $rc -eq $OCF_SUCCESS ] && break
+    if [ $rc -ne $OCF_NOT_RUNNING ]; then
+        ocf_log err "${SERVICE_NAME} start failed"
+        exit $OCF_ERR_GENERIC
+    fi
+    sleep 1
+    done
+
+    ocf_log info "${SERVICE_NAME} started"
+    return $OCF_SUCCESS
+}
+
+service_stop() {
+    local rc
+    local pid
+
+    service_status
+    rc=$?
+    if [ $rc -eq $OCF_NOT_RUNNING ]; then
+        ocf_log info "${SERVICE_NAME} is already stopped"
+        return $OCF_SUCCESS
+    fi
+
+    # Try SIGTERM
+    pid=`cat $OCF_RESKEY_pid`
+    ocf_run kill -s TERM $pid
+    rc=$?
+    if [ $rc -ne 0 ]; then
+        ocf_log err "${SERVICE_NAME} couldn't be stopped"
+        exit $OCF_ERR_GENERIC
+    fi
+
+    # stop waiting
+    shutdown_timeout=15
+    if [ -n "$OCF_RESKEY_CRM_meta_timeout" ]; then
+        shutdown_timeout=$((($OCF_RESKEY_CRM_meta_timeout/1000)-5))
+    fi
+    count=0
+    while [ $count -lt $shutdown_timeout ]; do
+        service_status
+        rc=$?
+        if [ $rc -eq $OCF_NOT_RUNNING ]; then
+            break
+        fi
+        count=`expr $count + 1`
+        sleep 1
+        ocf_log debug "${SERVICE_NAME} still hasn't stopped yet. Waiting ..."
+    done
+
+    service_status
+    rc=$?
+    if [ "${rc}" -ne "${OCF_NOT_RUNNING}" ]; then
+        # SIGTERM didn't help either, try SIGKILL
+        ocf_log info "${SERVICE_NAME} failed to stop after ${shutdown_timeout}s using SIGTERM. Trying SIGKILL ..."
+        ocf_run kill -s KILL "${pid}"
+    fi
+
+    ocf_log info "${SERVICE_NAME} stopped"
+
+    rm -f "${OCF_RESKEY_pid}"
+
+    return "${OCF_SUCCESS}"
+}
+
+#######################################################################
+
+case "$1" in
+  meta-data)    meta_data
+                exit $OCF_SUCCESS;;
+  usage|help)   usage
+                exit $OCF_SUCCESS;;
+esac
+
+# Anything except meta-data and help must pass validation
+service_validate || exit $?
+
+# What kind of method was invoked?
+case "$1" in
+  start)        service_start;;
+  stop)         service_stop;;
+  status)       service_status;;
+  monitor)      service_monitor;;
+  validate-all) ;;
+  *)            usage
+                exit $OCF_ERR_UNIMPLEMENTED;;
+esac
+
+
