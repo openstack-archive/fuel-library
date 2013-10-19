@@ -25,6 +25,7 @@ class heat::api (
   $rpc_backend        = 'heat.openstack.common.rpc.impl_kombu',
   $use_stderr         = 'False',
   $use_syslog         = 'False',
+  $firewall_rule_name = '204 heat-api',
 ) {
 
   include heat::params
@@ -103,6 +104,12 @@ class heat::api (
     'filter:authtoken/admin_tenant_name'    : value => $keystone_tenant;
     'filter:authtoken/admin_user'           : value => $keystone_user;
     'filter:authtoken/admin_password'       : value => $keystone_password;
+  }
+
+  firewall { $firewall_rule_name :
+    dport   => [ $bind_port ],
+    proto   => 'tcp',
+    action  => 'accept',
   }
 
   Package['heat-common'] -> Package['heat-api'] -> Heat_api_config<||> -> Heat_api_paste_ini<||>

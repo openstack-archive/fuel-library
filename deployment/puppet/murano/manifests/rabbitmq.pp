@@ -4,7 +4,7 @@
 class murano::rabbitmq(
   $rabbitmq_config_path  = '/etc/rabbitmq/rabbitmq-murano.config',
   $init_script_name      = 'rabbitmq-server-murano',
-  $firewall_rule_name    = '003 murano rabbitmq',
+  $firewall_rule_name    = '203 murano-rabbitmq',
   $rabbit_user           = 'murano',
   $rabbit_password       = 'murano',
   $rabbit_vhost          = '/',

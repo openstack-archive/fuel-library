@@ -25,6 +25,7 @@ class heat::api_cloudwatch (
   $rpc_backend        = 'heat.openstack.common.rpc.impl_kombu',
   $use_stderr         = 'False',
   $use_syslog         = 'False',
+  $firewall_rule_name = '206 heat-api-cloudwatch',
 ) {
 
   include heat::params
@@ -96,6 +97,12 @@ class heat::api_cloudwatch (
     'filter:authtoken/admin_tenant_name'    : value => $keystone_tenant;
     'filter:authtoken/admin_user'           : value => $keystone_user;
     'filter:authtoken/admin_password'       : value => $keystone_password;
+  }
+
+  firewall { $firewall_rule_name :
+    dport   => [ $bind_port ],
+    proto   => 'tcp',
+    action  => 'accept',
   }
 
   Package['heat-common'] -> Package['heat-api-cloudwatch'] -> Heat_api_cloudwatch_config<||> -> Heat_api_cloudwatch_paste_ini<||>
