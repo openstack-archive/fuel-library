@@ -20,6 +20,7 @@ class heat::api_cfn (
   $rabbit_password    = '',
   $rabbit_virtualhost = '/',
   $rabbit_port        = '5672',
+  $rabbit_queue_host  = 'heat',
   $log_file           = '/var/log/heat/api-cloudwatch.log',
   $rpc_backend        = 'heat.openstack.common.rpc.impl_kombu',
   $use_stderr         = 'False',
@@ -64,6 +65,7 @@ class heat::api_cfn (
     'DEFAULT/rabbit_userid'                : value => $rabbit_userid;
     'DEFAULT/rabbit_password'              : value => $rabbit_password;
     'DEFAULT/rabbit_virtualhost'           : value => $rabbit_virtualhost;
+    'DEFAULT/host'                         : value => $rabbit_queue_host;
     'DEFAULT/debug'                        : value => $debug;
     'DEFAULT/verbose'                      : value => $verbose;
     'DEFAULT/log_dir'                      : value => $::heat::params::log_dir;

@@ -36,6 +36,7 @@ class heat(
   $heat_rabbit_password          = 'heat',
   $heat_rabbit_virtualhost       = '/',
   $heat_rabbit_port              = '5672',
+  $heat_rabbit_queue_host        = 'heat',
 ) {
   
   $heat_keystone_ec2_uri         = "${heat_keystone_protocol}://${heat_keystone_host}:${heat_keystone_port}/v2.0/ec2tokens"
@@ -85,6 +86,7 @@ class heat(
     rabbit_password                => $heat_rabbit_password,
     rabbit_virtualhost             => $heat_rabbit_virtualhost,
     rabbit_port                    => $heat_rabbit_port,
+    rabbit_queue_host              => $heat_rabbit_queue_host,                                                 
   }
 
   class { 'heat::api' :
@@ -109,6 +111,7 @@ class heat(
     rabbit_password                => $heat_rabbit_password,
     rabbit_virtualhost             => $heat_rabbit_virtualhost,
     rabbit_port                    => $heat_rabbit_port,
+    rabbit_queue_host              => $heat_rabbit_queue_host,
   }
 
   class { 'heat::keystone::auth' :
@@ -141,6 +144,7 @@ class heat(
     bind_port                     => $heat_api_cfn_bind_port,
     verbose                       => $heat_verbose,
     debug                         => $heat_debug,
+    rpc_backend                   => $heat_rpc_backend,
 
     rabbit_host                   => $heat_rabbit_host,
     rabbit_userid                 => $heat_rabbit_login,
@@ -148,7 +152,7 @@ class heat(
     rabbit_password               => $heat_rabbit_password,
     rabbit_virtualhost            => $heat_rabbit_virtualhost,
     rabbit_port                   => $heat_rabbit_port,
-    rpc_backend                   => $heat_rpc_backend,
+    rabbit_queue_host             => $heat_rabbit_queue_host,
   }
 
   class { 'heat::api_cloudwatch' :
@@ -165,6 +169,7 @@ class heat(
     bind_port                     => $heat_api_cloudwatch_bind_port,
     verbose                       => $heat_verbose,
     debug                         => $heat_debug,
+    rpc_backend                   => $heat_rpc_backend,
 
     rabbit_host                   => $heat_rabbit_host,
     rabbit_userid                 => $heat_rabbit_login,
@@ -172,7 +177,7 @@ class heat(
     rabbit_password               => $heat_rabbit_password,
     rabbit_virtualhost            => $heat_rabbit_virtualhost,
     rabbit_port                   => $heat_rabbit_port,
-    rpc_backend                   => $heat_rpc_backend,
+    rabbit_queue_host             => $heat_rabbit_queue_host,
   }
 
 }
