@@ -1,4 +1,4 @@
-class openstack::clocksync ($ntp_servers = undef)
+class openstack::clocksync ($ntp_servers = undef, $config_template = undef)
 {
 
   if !$ntp_servers {
@@ -6,7 +6,10 @@ class openstack::clocksync ($ntp_servers = undef)
   } else {
     $one_shot_ntp_server = $ntp_servers[0]
   }
-  class { 'ntp': servers => $ntp_servers }
+  class { 'ntp': 
+    servers         => $ntp_servers, 
+    config_template => $config_template
+  }
 
   Exec['clocksync'] -> Service <| title == 'ntp' |>
 
