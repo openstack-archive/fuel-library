@@ -13,6 +13,8 @@ class cinder::params {
       $scheduler_service = 'cinder-scheduler'
       $volume_package    = 'cinder-volume'
       $volume_service    = 'cinder-volume'
+      $volume_opts_file  = '/etc/init/cinder-volume.conf'
+
       $db_sync_command   = 'cinder-manage db sync'
 
       $tgt_package_name  = 'tgt'
@@ -34,6 +36,7 @@ class cinder::params {
       $api_service       = 'openstack-cinder-api'
       $scheduler_service = 'openstack-cinder-scheduler'
       $volume_service    = 'openstack-cinder-volume'
+      $volume_opts_file  = '/etc/sysconfig/openstack-cinder-volume'
 
       $db_sync_command   = 'cinder-manage db sync'
 

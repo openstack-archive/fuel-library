@@ -6,12 +6,6 @@ class glance::backend::ceph(
   $show_image_direct_url = $::ceph::show_image_direct_url,
 ) inherits glance::api {
 
-  require ::ceph
-
-  Exec { path => [ '/bin/', '/sbin/' , '/usr/bin/', '/usr/sbin/' ],
-         cwd  => '/root',
-  }
-
   package {'python-ceph':
     ensure => latest,
   }
