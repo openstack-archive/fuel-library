@@ -185,7 +185,7 @@ class PManager(object):
                 tabmount = part["mount"] if part["mount"] != "swap" else "none"
                 tabfstype = self._gettabfstype(part)
                 if part.get("partition_guid"):
-                    self.post("sgdisk --typecode={0}:{1} /dev/{2}".format(
+                    self.post("chroot /mnt/sysimage sgdisk --typecode={0}:{1} /dev/{2}".format(
                                 pcount, part["partition_guid"],disk["id"]))
                 if size > 0 and size <= 16777216 and part["mount"] != "none":
                     self.kick("partition {0} "
