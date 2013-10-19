@@ -41,6 +41,13 @@ node default {
     },
   }
 
+  $ntp_servers = [$::fuel_settings['NTP1'], $::fuel_settings['NTP2'], $::fuel_settings['NTP3']]
+
+  class { "openstack::clocksync":
+    ntp_servers     => $ntp_servers,
+    config_template => "ntp/ntp.conf.centosserver.erb",
+  }
+
   class { "nailgun":
     package => "Nailgun",
     version => "0.1.0",
