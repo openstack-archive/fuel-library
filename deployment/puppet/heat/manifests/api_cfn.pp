@@ -25,6 +25,7 @@ class heat::api_cfn (
   $rpc_backend        = 'heat.openstack.common.rpc.impl_kombu',
   $use_stderr         = 'False',
   $use_syslog         = 'False',
+  $firewall_rule_name = '205 heat-api-cfn',
 
 ) {
 
@@ -98,6 +99,12 @@ class heat::api_cfn (
     'filter:authtoken/admin_tenant_name'    : value => $keystone_tenant;
     'filter:authtoken/admin_user'           : value => $keystone_user;
     'filter:authtoken/admin_password'       : value => $keystone_password;
+  }
+
+  firewall { $firewall_rule_name :
+    dport   => [ $bind_port ],
+    proto   => 'tcp',
+    action  => 'accept',
   }
 
   Package['heat-common'] -> Package['heat-api-cfn'] -> Heat_api_cfn_config<||> -> Heat_api_cfn_paste_ini<||>

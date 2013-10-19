@@ -28,6 +28,7 @@ class murano::api (
     $api_rabbit_login               = 'murano',
     $api_rabbit_password            = 'murano',
     $api_rabbit_virtual_host        = '/',
+    $firewall_rule_name             = '202 murano-api',
 
     $murano_db_password             = 'murano',
     $murano_db_name                 = 'murano',
@@ -85,6 +86,12 @@ class murano::api (
     'filter:authtoken/admin_user'           : value => $api_paste_admin_user;
     'filter:authtoken/admin_password'       : value => $api_paste_admin_password;
     'filter:authtoken/signing_dir'          : value => $api_paste_signing_dir;
+  }
+  
+  firewall { $firewall_rule_name :
+    dport   => [ $api_bind_port ],
+    proto   => 'tcp',
+    action  => 'accept',
   }
 
   Murano_api_config<||> ~> Service['murano_api']

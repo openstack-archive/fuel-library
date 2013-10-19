@@ -19,7 +19,7 @@ class savanna (
   $savanna_db_user                      = 'savanna',
   $savanna_db_host                      = 'localhost',
   $savanna_db_allowed_hosts             = ['localhost','%'],
-  $savanna_firewall_rule                = '201 savanna api',
+  $savanna_firewall_rule                = '201 savanna-api',
   $use_neutron                          = false,
 ) {
 
