@@ -102,7 +102,6 @@ postgresql
 postgresql-devel
 postgresql-libs
 postgresql-server
-puppet
 python-amqp
 python-anyjson
 python-argparse
