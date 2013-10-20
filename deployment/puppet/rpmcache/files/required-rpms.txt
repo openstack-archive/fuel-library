@@ -79,6 +79,7 @@ openssl-devel
 openssl098e
 openstack-cinder
 openstack-dashboard
+openstack-heat
 openstack-glance
 openstack-keystone
 openstack-nova

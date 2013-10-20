@@ -10,11 +10,14 @@
 + c-ares19*
 + erlang*
 + euca2ools*
+* facter*
 + galera*
++ hiera*
 + http-parser*
 + libicu*
 + libuv*
 + mcollective*
++ *murano*
 + nailgun*
 + nginx*
 + nodejs*
@@ -41,6 +44,7 @@
 + rubygem-rake*
 + rubygem-stomp*
 + rubygems-*
++ *savanna*
 + scapy*
 + socat*
 + supervisor*
