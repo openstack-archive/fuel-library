@@ -80,7 +80,12 @@ Puppet::Type.type(:l3_if_downup).provide(:ruby) do
 
   def restart()
     begin # downing inteface
-      ifdn(@resource[:interface])
+      # add force for debian-based OS ([PRD-2132])
+      if Facter.value(:osfamily) == 'Debian'
+	 ifdn(['--force',@resource[:interface]])
+      else
+         ifdn(@resource[:interface])
+      end
       notice("Interface '#{@resource[:interface]}' down.")
       sleep @resource[:sleep_time]
     rescue Puppet::ExecutionFailure
@@ -114,7 +119,12 @@ Puppet::Type.type(:l3_if_downup).provide(:ruby) do
     end
     return true if @resource[:onlydown]
     begin  # Put interface to UP state
-      ifup(@resource[:interface])
+      if Facter.value(:osfamily) == 'Debian'
+      # add force for debian-based OS ([PRD-2132])
+	 ifup(['--force',@resource[:interface]])
+      else
+         ifup(@resource[:interface])
+      end
       notice("Interface '#{@resource[:interface]}' up.")
       if @resource[:check_by_ping] == 'gateway'
         # find gateway for interface and ping it
