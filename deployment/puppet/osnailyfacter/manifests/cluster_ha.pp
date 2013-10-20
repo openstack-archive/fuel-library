@@ -366,7 +366,6 @@ class osnailyfacter::cluster_ha {
 
       if $savanna_hash['enabled'] {
         class { 'savanna' :
-          savanna_enabled           => true,
           savanna_api_host          => $controller_node_address,
           
           savanna_db_password       => $savanna_hash['db_password'],
@@ -384,6 +383,8 @@ class osnailyfacter::cluster_ha {
       if $murano_hash['enabled'] {
 
         class { 'murano' :
+          murano_api_host          => $controller_node_address,
+
           murano_rabbit_host       => $controller_node_public,
           murano_rabbit_login      => 'murano',
           murano_rabbit_password   => $heat_hash['rabbit_password'],

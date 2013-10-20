@@ -12,6 +12,7 @@ class murano (
   $murano_verbose                       = 'True',
   $murano_data_dir                      = '/etc/murano',
   $murano_max_environments              = '20',
+  $murano_api_host                      = '127.0.0.1',
   # rabbit
   $murano_rabbit_host                   = '127.0.0.1',
   $murano_rabbit_port                   = '55572',
@@ -59,7 +60,7 @@ class murano (
     log_file                             => $murano_log_file,
     data_dir                             => $murano_data_dir,
     max_environments                     => $murano_max_environments,
-    heat_auth_url                        => $murano_keystone_auth_url,
+    auth_url                             => $murano_keystone_auth_url,
 
     rabbit_host                          => $murano_rabbit_host,
     rabbit_port                          => $murano_rabbit_port,
@@ -110,6 +111,7 @@ class murano (
   class { 'murano::dashboard' :
     settings_py           => '/usr/share/openstack-dashboard/openstack_dashboard/settings.py',
     collect_static_script => '/usr/share/openstack-dashboard/manage.py',
+    murano_url_string     => "MURANO_API_URL = 'http://${murano_api_host}:${murano_api_bind_port}'",
   }
 
   class { 'murano::rabbitmq' :
