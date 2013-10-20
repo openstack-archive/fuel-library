@@ -7,7 +7,7 @@ class murano::conductor (
   $verbose                             = 'True',
   $data_dir                            = '/etc/murano',
   $max_environments                    = '20',
-  $heat_auth_url                       = 'http://127.0.0.1:5000/v2.0',
+  $auth_url                            = 'http://127.0.0.1:5000/v2.0',
   $rabbit_host                         = '127.0.0.1',
   $rabbit_port                         = '5672',
   $rabbit_ssl                          = 'False',
@@ -39,7 +39,7 @@ class murano::conductor (
     'DEFAULT/verbose'                  : value => $verbose;
     'DEFAULT/data_dir'                 : value => $data_dir;
     'DEFAULT/max_environments'         : value => $max_environments;
-    'heat/auth_url'                    : value => $heat_auth_url;
+    'keystone/auth_url'                : value => $auth_url;
     'rabbitmq/host'                    : value => $rabbit_host;
     'rabbitmq/port'                    : value => $rabbit_port;
     'rabbitmq/ssl'                     : value => $rabbit_ssl;
