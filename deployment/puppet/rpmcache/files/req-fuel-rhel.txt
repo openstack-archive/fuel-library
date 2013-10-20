@@ -5,12 +5,13 @@
 + GeoIP*
 + MySQL*wsrep*
 + MySQL-python*
++ augeas*
 + cirros-testvm*
 + crmsh*
 + c-ares19*
 + erlang*
 + euca2ools*
-* facter*
++ facter*
 + galera*
 + hiera*
 + http-parser*
@@ -34,6 +35,8 @@
 + python-virtualenv*
 + rabbitmq-server*
 + ruby-ri*
++ ruby-augeas*
++ ruby-shadow*
 + rubygem-daemons*
 + rubygem-fastthread
 + rubygem-gem_plugin
