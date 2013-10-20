@@ -92,7 +92,7 @@ define l23network::l3::ifconfig (
     $dhcp_nowait     = false,
     $ifname_order_prefix = false,
     $check_by_ping   = 'gateway',
-    $check_by_ping_timeout = 120,
+    $check_by_ping_timeout = 30,
     #todo: label => "XXX", # -- "ip addr add..... label XXX"
 ){
   include ::l23network::params
