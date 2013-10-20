@@ -24,6 +24,7 @@
 + nodejs*
 + pssh*
 + puppet-*
++ pushy-*
 + python-amqp*
 + python-amqplib*
 + python-anyjson*
