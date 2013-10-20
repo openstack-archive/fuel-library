@@ -10,7 +10,6 @@ class cinder::volume::ceph (
   include cinder::params
 
   Cinder_config<||> ~> Service['cinder-volume']
-  File_line<||> ~> Service['cinder-volume']
   # TODO: this needs to be re-worked to follow https://wiki.openstack.org/wiki/Cinder-multi-backend
   cinder_config {
     'DEFAULT/volume_driver':      value => $volume_driver;
@@ -20,42 +19,33 @@ class cinder::volume::ceph (
     'DEFAULT/rbd_secret_uuid':    value => $rbd_secret_uuid;
   }
 
-#  # TODO: convert to cinder params
-#  file {$::ceph::params::service_cinder_volume_opts:
-#    ensure => 'present',
-#  } -> file_line {'cinder-volume.conf':
-#    path => $::ceph::params::service_cinder_volume_opts,
-#    line => "export CEPH_ARGS='--id ${rbd_pool}'",
-#  }
+  # TODO: convert to cinder params
+  define cinder::volume::ceph::env (
+    $rbd_pool = $::cinder::volume::ceph::rbd_pool,
+  ) {
 
-  case $::osfamily {
-    'RedHat': {
-      $volume_opts = "export CEPH_ARGS='--id ${rbd_pool}'"
-    }
-    'Debian': {
-      $volume_opts = "env CEPH_ARGS='--id ${rbd_pool}'"
-    }
-    default: {
-      $volume_opts=undef
+    case $::osfamily {
+      'RedHat': {
+        file {$::cinder::params::volume_opts_file:
+          ensure => present,
+        } ->
+        file_line {'cinder-volume env':
+          path => $::cinder::params::volume_opts_file,
+          line => "export CEPH_ARGS='--id ${rbd_pool}'",
+        }
+      }
+
+      'Debian': {
+        Package[$::cinder::params::volume_package] ->
+        file_line {'cinder-volume env':
+          path => $::cinder::params::volume_opts_file,
+          line => "env CEPH_ARGS='--id ${rbd_pool}'",
+        }
+      }
+
+      default: {}
     }
   }
 
-  file {'cinder-volume init file':
-    path    => $::cinder::params::volume_opts_file,
-    ensure  => present,
-  }
-
-  if ($::cinder::params::volume_package) {
-      $volume_package = $::cinder::params::volume_package
-    } else {
-      $volume_package = $::cinder::params::package_name
-  }
-
-  Package[$volume_package] -> File_line['cinder-volume init config']
-
-  file_line {'cinder-volume init config':
-    path    => $::cinder::params::volume_opts_file,
-    line    => "${volume_opts}",
-  } ~> Service['cinder-volume']
-
+  cinder::volume::ceph::env {'CEPH_ARGS': } ~> Service['cinder-volume']
 }
