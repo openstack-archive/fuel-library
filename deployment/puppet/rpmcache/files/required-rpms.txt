@@ -55,6 +55,7 @@ libXrender
 libXxf86vm
 libpng
 librelp
+libqb-0.14.2
 libthai
 libtiff
 lokkit
