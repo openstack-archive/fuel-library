@@ -184,6 +184,9 @@ class PManager(object):
                 size = self._getsize(part)
                 tabmount = part["mount"] if part["mount"] != "swap" else "none"
                 tabfstype = self._gettabfstype(part)
+                if part.get("partition_guid"):
+                    self.post("chroot /mnt/sysimage sgdisk --typecode={0}:{1} /dev/{2}".format(
+                                pcount, part["partition_guid"],disk["id"]))
                 if size > 0 and size <= 16777216 and part["mount"] != "none":
                     self.kick("partition {0} "
                               "--onpart=$(readlink -f /dev/{2})"
@@ -595,6 +598,10 @@ class PreseedPManager(object):
                 #                 disk["size"]))
                 self.late("sleep 3")
                 self.late("hdparm -z $(readlink -f /dev/{0})".format(disk["id"]))
+
+                if part.get("partition_guid"):
+                    self.late("sgdisk --typecode={0}:{1} /dev/{2}".format(
+                                pcount, part["partition_guid"],disk["id"]), True)
 
                 if not part.get("file_system", "xfs") in ("swap", None, "none"):
                     disk_label = self._getlabel(part.get("disk_label"))
