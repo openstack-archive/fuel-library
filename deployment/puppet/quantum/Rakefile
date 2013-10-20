@@ -6,3 +6,8 @@ RSpec::Core::RakeTask.new(:rspec) do |t|
   t.pattern = 'spec/*/*__spec.rb'
   t.rspec_opts = File.read("spec/spec.opts").chomp || ""
 end
+
+RSpec::Core::RakeTask.new(:provider) do |t|
+  t.pattern = 'spec/provider/*/*__spec.rb'
+  t.rspec_opts = File.read("spec/spec.opts").chomp || ""
+end
