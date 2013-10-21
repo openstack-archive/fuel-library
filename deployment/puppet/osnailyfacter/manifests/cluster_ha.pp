@@ -177,6 +177,8 @@ class osnailyfacter::cluster_ha {
     } else {
       $primary_proxy = false
     }
+  } elsif ($storage_hash['objects_ceph']) {
+    $rgw_balancers = $controller_storage_addresses
   }
 
 
@@ -251,6 +253,7 @@ class osnailyfacter::cluster_ha {
       export_resources              => false,
       glance_backend                => $glance_backend,
       swift_proxies                 => $swift_proxies,
+      rgw_balancers                 => $rgw_balancers,
       quantum                       => $::use_quantum,
       quantum_config                => $quantum_config,
       quantum_network_node          => $::use_quantum,
