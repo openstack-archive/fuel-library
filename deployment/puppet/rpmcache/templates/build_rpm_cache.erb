@@ -13,6 +13,8 @@ function revert_back_to_centos() {
     sed -i 's/^enabled.*/enabled=0/' "/etc/yum/pluginconf.d/${plugin}.conf" 2>/dev/null || :
   done
   rm -f /etc/yum/vars/releasever
+  #Remove libqb hack
+  sed -i '/^exclude=libqb-0.16/d' /etc/yum.conf
   yum-config-manager --enable 'nailgun' &> /dev/null
   echo "Unsubscribing from RHSM..."
   subscription-manager unregister || :
@@ -146,6 +148,8 @@ yum-config-manager --disable 'centos' --disable 'extras' --disable 'updates' &> 
 yum-config-manager --disable 'base' &> /dev/null
 echo "Building initial cache. This may take several minutes."
 yum --releasever=<%= releasever %> makecache
+#Hack to exclude libqb-0.16.x because it breaks Pacemaker
+echo 'exclude=libqb-0.16*' >> /etc/yum.conf
 
 for tries in $(seq 1 <%= numtries %>); do
   #Retry if repotrack fails
