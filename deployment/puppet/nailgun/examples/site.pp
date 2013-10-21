@@ -71,7 +71,7 @@ node default {
 
     mco_pskey => $mco_pskey,
     mco_vhost => $mco_vhost,
-    mco_host => $::fuel_settings['ADMIN_NETWORK']['address'],
+    mco_host => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
     mco_user => $mco_user,
     mco_password => $mco_password,
     mco_connector => "rabbitmq",
@@ -79,7 +79,7 @@ node default {
     rabbitmq_naily_user => $rabbitmq_naily_user,
     rabbitmq_naily_password => $rabbitmq_naily_password,
     puppet_master_hostname => $puppet_master_hostname,
-    puppet_master_ip => $::fuel_settings['ADMIN_NETWORK']['address'],
+    puppet_master_ip => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
   }
 
   Class['postgresql::server'] -> Class['nailgun']
