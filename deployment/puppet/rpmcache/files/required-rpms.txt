@@ -57,7 +57,7 @@ libguestfs-tools-c
 libselinux-ruby
 libpng
 librelp
-libqb-0.14.2
+libqb
 libthai
 libtiff
 lokkit
