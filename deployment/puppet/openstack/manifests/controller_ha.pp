@@ -52,6 +52,12 @@ define haproxy_service(
       $balancer_port = 5673
     }
 
+    'radosgw': {
+      $haproxy_config_options = { 'option' => ['httplog'], 'balance' => 'roundrobin' }
+      $balancermember_options = 'check'
+      $balancer_port = '6780'
+    }
+
     default: {
       $haproxy_config_options = { 'option' => ['httplog'], 'balance' => 'roundrobin' }
       $balancermember_options = 'check'
@@ -114,7 +120,7 @@ class openstack::controller_ha (
    $auto_assign_floating_ip = false, $mysql_root_password, $admin_email, $admin_user = 'admin', $admin_password, $keystone_admin_tenant='admin',
    $keystone_db_password, $keystone_admin_token, $glance_db_password, $glance_user_password, $glance_image_cache_max_size,
    $nova_db_password, $nova_user_password, $queue_provider, $rabbit_password, $rabbit_user, $rabbit_nodes,
-   $qpid_password, $qpid_user, $qpid_nodes, $memcached_servers, $export_resources, $glance_backend='file', $swift_proxies=undef,
+   $qpid_password, $qpid_user, $qpid_nodes, $memcached_servers, $export_resources, $glance_backend='file', $swift_proxies=undef, $rgw_balancers=undef,
    $quantum = false,
    $quantum_config={},
    $cinder = false, $cinder_iscsi_bind_addr = false,
@@ -215,8 +221,13 @@ class openstack::controller_ha (
     if $custom_mysql_setup_class == 'galera' {
       haproxy_service { 'mysqld': order => 95, port => 3306, virtual_ips => [$internal_virtual_ip], define_backend => true }
     }
-    if $glance_backend == 'swift' {
-      haproxy_service { 'swift': order => 96, port => 8080, virtual_ips => [$public_virtual_ip,$internal_virtual_ip], balancers => $swift_proxies }
+
+    if $swift_proxies {
+      haproxy_service { 'swift': order => '96', port => '8080', virtual_ips => [$public_virtual_ip,$internal_virtual_ip], balancers => $swift_proxies }
+    }
+
+    if $rgw_balancers {
+      haproxy_service { 'radosgw': order => '97', port => '8080', virtual_ips => [$public_virtual_ip,$internal_virtual_ip], balancers => $rgw_balancers, define_backend => true }
     }
 
     Haproxy_service<| |> ~> Exec['restart_haproxy']
