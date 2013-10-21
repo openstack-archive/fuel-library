@@ -18,8 +18,24 @@ Puppet::Type.type(:quantum_net).provide(
     return [] if network_list.chomp.empty?
 
     network_list.split("\n")[3..-2].collect do |net|
-      new(:name => net.split[3])
+      new(
+        :name   => net.split[3],
+        :ensure => :present
+      )
     end
+  end
+
+  def self.prefetch(resources)
+    instances.each do |i|
+      res = resources[i.name.to_s]
+      if ! res.nil?
+        res.provider = i
+      end
+    end
+  end
+
+  def exists?
+    @property_hash[:ensure] == :present
   end
 
   def self.tenant_id
@@ -56,18 +72,6 @@ Puppet::Type.type(:quantum_net).provide(
       @resource[:name],
       optional_opts
     )
-  end
-
-  def exists?
-    begin
-      network_list = auth_quantum("net-list")
-      return network_list.split("\n")[3..-2].detect do |net|
-        # n =~ /^(\S+)\s+(#{@resource[:network].split('/').first})/
-        net.split[3] == @resource[:name]
-      end
-    rescue
-      return false
-    end
   end
 
   def destroy
