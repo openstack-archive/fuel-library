@@ -55,7 +55,7 @@ class cobbler::profile::centos64_x86_64(
 
   # default password is 'r00tme'
   $ks_encrypted_root_password = "\$6\$tCD3X7ji\$1urw6qEMDkVxOkD33b4TpQAjRiCeDZx0jmgMhDYhfB9KuGfqO9OcMaKyUxnGGWslEDQ4HxTw7vcAMP85NxQe61",
-  $kopts = "",
+  $kopts = "biosdevname=0",
   ) {
 
   Exec {path => '/usr/bin:/bin:/usr/sbin:/sbin'}

@@ -110,7 +110,7 @@ $sat_base_channels, $sat_openstack_channel, $numtries = 10)  {
 
   cobbler_profile { "rhel-x86_64":
     kickstart => "/var/lib/cobbler/kickstarts/centos-x86_64.ks",
-    kopts => "",
+    kopts => "biosdevname=0",
     distro => "rhel-x86_64",
     ksmeta => "redhat_register_user=${rh_username} redhat_register_password=${rh_password} redhat_management_type=$redhat_management_type $redhat_management_server $redhat_management_key",
     menu => true,
