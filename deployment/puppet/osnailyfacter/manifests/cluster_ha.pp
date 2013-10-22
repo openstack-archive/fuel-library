@@ -119,7 +119,7 @@ class osnailyfacter::cluster_ha {
   $controller_public_addresses = nodes_to_hash($controllers,'name','public_address')
   $controller_storage_addresses = nodes_to_hash($controllers,'name','storage_address')
   $controller_hostnames = keys($controller_internal_addresses)
-  $controller_nodes = sort(values($controller_internal_addresses))
+  $controller_nodes = ipsort(values($controller_internal_addresses))
   $controller_node_public  = $::fuel_settings['public_vip']
   $controller_node_address = $::fuel_settings['management_vip']
   $mountpoints = filter_hash($mp_hash,'point')
