@@ -110,13 +110,13 @@ class nova::network(
     }
     # I don't think this is applicable to Folsom...
     # If it is, the details will need changed. -jt
-    'nova.network.quantum.manager.QuantumManager': {
+    'nova.network.neutron.manager.NeutronManager': {
       $parameters = { fixed_range      => $fixed_range,
                       public_interface => $public_interface,
                     }
       $resource_parameters = merge($_config_overrides, $parameters)
-      $quantum_resource = { 'nova::network::quantum' => $resource_parameters }
-      create_resources('class', $quantum_resource)
+      $neutron_resource = { 'nova::network::neutron' => $resource_parameters }
+      create_resources('class', $neutron_resource)
     }
     default: {
       fail("Unsupported network manager: ${nova::network_manager} The supported network managers are nova.network.manager.FlatManager, nova.network.FlatDHCPManager and nova.network.manager.VlanManager")

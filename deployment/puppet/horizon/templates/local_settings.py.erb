@@ -163,7 +163,7 @@ LOGGING = {
                 'level': 'DEBUG',
                 'propagate': False
             },
-            'quantumclient': {
+            'neutronclient': {
                 'handlers':<% if use_syslog -%> ['syslog']<% else -%> ['file']<% end -%>,
                 'level': 'DEBUG',
                 'propagate': False

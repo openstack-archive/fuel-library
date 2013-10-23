@@ -332,7 +332,7 @@ class openstack::controller_ha (
       nameservers                  => $nameservers,
     }
     if $quantum and $quantum_network_node {
-      class { '::openstack::quantum_router':
+      class { '::openstack::neutron_router':
         #service_endpoint      => $internal_virtual_ip,
         #auth_host             => $internal_virtual_ip,
         #nova_api_vip          => $internal_virtual_ip,
@@ -343,10 +343,10 @@ class openstack::controller_ha (
         #create_networks       => $create_networks,
         verbose               => $verbose,
         debug                 => $debug,
-        quantum               => $quantum,
-        quantum_config        => $quantum_config,
-        quantum_network_node  => $quantum_network_node,
-        #quantum_netnode_on_cnt=> $quantum_netnode_on_cnt,
+        neutron               => $quantum,
+        neutron_config        => $quantum_config,
+        neutron_network_node  => $quantum_network_node,
+        #neutron_netnode_on_cnt=> $quantum_netnode_on_cnt,
         service_provider      => $ha_provider,
         use_syslog            => $use_syslog,
         syslog_log_level      => $syslog_log_level,

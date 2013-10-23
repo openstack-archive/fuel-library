@@ -88,8 +88,8 @@ openstack-glance
 openstack-keystone
 openstack-nova
 openstack-nova-novncproxy
-openstack-quantum
-openstack-quantum-openvswitch
+openstack-neutron
+openstack-neutron-openvswitch
 openstack-selinux
 openstack-swift
 openstack-swift-account
@@ -117,7 +117,7 @@ python-heatclient
 python-keystone
 python-novaclient
 python-oslo-config
-python-quantumclient
+python-neutronclient
 python-rhsm
 python-setuptools
 python-six

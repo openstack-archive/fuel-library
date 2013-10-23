@@ -4,8 +4,6 @@ class osnailyfacter::cluster_simple {
     $novanetwork_params  = {}
     $quantum_config = sanitize_quantum_config($::fuel_settings, 'quantum_settings')
   } else {
-    $quantum_hash = {}
-    $quantum_params = {}
     $quantum_config = {}
     $novanetwork_params = $::fuel_settings['novanetwork_parameters']
     $network_config = {

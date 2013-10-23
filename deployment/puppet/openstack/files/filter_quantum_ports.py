@@ -3,7 +3,7 @@ import re
 import time
 import sys
 import optparse
-from quantumclient.quantum import client as q_client
+from neutronclient.neutron import client as q_client
 from keystoneclient.v2_0 import client as ks_client
 
 API_VER = '2.0'
@@ -22,7 +22,7 @@ def get_authconfig(cfg_file):
     return rv
 
 
-class QuantumXxx(object):
+class NeutronXxx(object):
     def __init__(self, openrc, retries=20, sleep=2):
         self.auth_config = openrc
         self.connect_retries = retries
@@ -64,7 +64,7 @@ class QuantumXxx(object):
         ret_count = self.connect_retries
         while True:
             if ret_count <= 0 :
-                print(">>> Quantum error: no more retries for connect to keystone server.")
+                print(">>> Neutron error: no more retries for connect to keystone server.")
                 sys.exit(1)
             try:
                 rv = self.client.list_ports()['ports']
@@ -78,7 +78,7 @@ class QuantumXxx(object):
                       print(">>> Can't connect to {0}, wait for server ready...".format(self.keystone.service_catalog.url_for(service_type='network')))
                       time.sleep(self.sleep)
                 else:
-                    print(">>> Quantum error:\n{0}".format(e.message))
+                    print(">>> Neutron error:\n{0}".format(e.message))
                     raise e
             ret_count -= 1
         return rv
@@ -126,7 +126,7 @@ if __name__ == '__main__':
     if len(args) != 1:
         parser.error("incorrect number of arguments")
     #
-    Qu = QuantumXxx(get_authconfig(options.authconf), retries=options.retries)
+    Qu = NeutronXxx(get_authconfig(options.authconf), retries=options.retries)
     for i in Qu.get_ifnames_for(args[0].strip(" \"\'"), activeonly=options.activeonly):
         print(i)
 ###
