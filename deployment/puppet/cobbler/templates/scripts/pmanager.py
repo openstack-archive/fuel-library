@@ -22,6 +22,12 @@ class PManager(object):
         self._rcount = 0
         self._pvcount = 0
 
+    def _pseparator(self, devname):
+        pseparator = ''
+        if devname.find('cciss') > 0:
+            pseparator = 'p'
+        return pseparator
+
     def pcount(self, disk_id, increment=0):
         self._pcount[disk_id] = self._pcount.get(disk_id, 0) + increment
         return self._pcount.get(disk_id, 0)
@@ -190,8 +196,10 @@ class PManager(object):
                 if size > 0 and size <= 16777216 and part["mount"] != "none":
                     self.kick("partition {0} "
                               "--onpart=$(readlink -f /dev/{2})"
-                              "{3}".format(part["mount"], size,
-                                           disk["id"], pcount))
+                              "{3}{4}".format(part["mount"], size,
+                                           disk["id"],
+                                           self._pseparator(disk["id"]),
+                                           pcount))
                 else:
                     if part["mount"] != "swap" and tabfstype != "none":
                         disk_label = self._getlabel(part.get('disk_label'))
@@ -236,8 +244,8 @@ class PManager(object):
                              disk["id"], self._parttype(pcount),
                              begin_size, end_size, self.unit))
                 self.kick("partition {0} "
-                          "--onpart=$(readlink -f /dev/{2}){3}"
-                          "".format(rname, raid["size"], disk["id"], pcount))
+                          "--onpart=$(readlink -f /dev/{2}){3}{4}"
+                          "".format(rname, raid["size"], disk["id"], self._pseparator(disk["id"]), pcount))
 
                 if not raids.get(raid["mount"]):
                     raids[raid["mount"]] = []
@@ -287,8 +295,8 @@ class PManager(object):
                              disk["id"], self._parttype(pcount),
                              begin_size, end_size, self.unit))
                 self.kick("partition {0} "
-                          "--onpart=$(readlink -f /dev/{2}){3}"
-                          "".format(pvname, pv["size"], disk["id"], pcount))
+                          "--onpart=$(readlink -f /dev/{2}){3}{4}"
+                          "".format(pvname, pv["size"], disk["id"], self._pseparator(disk["id"]), pcount))
 
                 if not pvs.get(pv["vg"]):
                     pvs[pv["vg"]] = []
