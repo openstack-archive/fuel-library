@@ -214,6 +214,8 @@ class nailgun(
   class { "nailgun::gateone":
     pip_opts => "${pip_index} ${pip_find_links}",
   }
+    
+  class { "nailgun::puppetsync": }
 
   nailgun::sshkeygen { "/root/.ssh/id_rsa":
     homedir => "/root",
