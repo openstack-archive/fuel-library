@@ -141,7 +141,7 @@ class nailgun::cobbler(
     require => Cobbler_distro["bootstrap"],
   }
 
-  class { cobbler::checksum_bootpc: }
+  if str2bool($::is_virtual) {  class { cobbler::checksum_bootpc: } }
 
   exec { "cobbler_system_add_default":
     command => "cobbler system add --name=default \
