@@ -1,5 +1,5 @@
 #
-class nova::compute::quantum (
+class nova::compute::neutron (
   $libvirt_vif_driver = 'nova.virt.libvirt.vif.LibvirtOpenVswitchDriver'
 ){
 
