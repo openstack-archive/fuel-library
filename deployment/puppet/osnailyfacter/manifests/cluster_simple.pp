@@ -2,7 +2,8 @@ class osnailyfacter::cluster_simple {
 
   if $::use_quantum {
     $novanetwork_params  = {}
-    $quantum_config = sanitize_quantum_config($::fuel_settings, 'quantum_settings')
+    $quantum_config = sanitize_neutron_config($::fuel_settings, 'quantum_settings')
+    debug__dump_to_file('/tmp/neutron_cfg.yaml', $quantum_config)
   } else {
     $quantum_config = {}
     $novanetwork_params = $::fuel_settings['novanetwork_parameters']
