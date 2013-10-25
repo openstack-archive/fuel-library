@@ -48,13 +48,13 @@ class neutron::agents::dhcp (
       Package[$::neutron::params::dnsmasq_packages] -> Package[$dhcp_agent_package]
       $dhcp_server_packages = $::neutron::params::dnsmasq_packages
     }
-    default     : {
+    default: {
       fail("${dhcp_driver} is not supported as of now")
     }
   }
 
-  Package[$dhcp_agent_package] -> neutron_dhcp_agent_config <| |>
-  Package[$dhcp_agent_package] -> neutron_config <| |>
+  Package[$dhcp_agent_package] -> Neutron_dhcp_agent_config <| |>
+  Package[$dhcp_agent_package] -> Neutron_config <| |>
 
   neutron_dhcp_agent_config {
     'DEFAULT/debug':             value => $debug;
@@ -79,7 +79,7 @@ class neutron::agents::dhcp (
 
   if $service_provider == 'pacemaker' {
     Service <| title == 'neutron-server' |> -> Cs_shadow['dhcp']
-    neutron_dhcp_agent_config <| |> -> Cs_shadow['dhcp']
+    Neutron_dhcp_agent_config <| |> -> Cs_shadow['dhcp']
 
     # OCF script for pacemaker
     # and his dependences
