@@ -18,8 +18,24 @@ Puppet::Type.type(:quantum_router).provide(
     return [] if router_list.chomp.empty?
 
     router_list.split("\n")[3..-2].collect do |net|
-      new(:name => net.split[3])
+      new(
+        :name   => net.split[3],
+        :ensure => :present
+      )
     end
+  end
+
+  def self.prefetch(resources)
+    instances.each do |i|
+      res = resources[i.name.to_s]
+      if ! res.nil?
+        res.provider = i
+      end
+    end
+  end
+
+  def exists?
+    @property_hash[:ensure] == :present
   end
 
   def self.tenant_id
@@ -67,17 +83,6 @@ Puppet::Type.type(:quantum_router).provide(
       # router_id = self.class.get_id(router_info)
       # ql3a_conf = Puppet::Type.type(:quantum_l3_agent_config).new(:name => "DEFAULT/router_id", :value => router_id)
       # ql3a_conf.provider.create
-    end
-  end
-
-  def exists?
-    begin
-      router_list = auth_quantum("router-list")
-      return router_list.split("\n")[3..-2].detect do |router|
-        router.split[3] == @resource[:name]
-      end
-    rescue
-      return false
     end
   end
 
