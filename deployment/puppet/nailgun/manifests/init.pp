@@ -97,7 +97,7 @@ class nailgun(
     proto          => 'udp',
     # use date-rfc3339 timestamps
     show_timezone  => true,
-    virtual        => true,
+    virtual        => str2bool($::is_virtual),
   }
 
   class { "nailgun::user":
