@@ -178,7 +178,7 @@ class os_common {
       # remote servers to send logs to
       rservers       => $rservers,
       # should be true, if client is running at virtual node
-      virtual        => true,
+      virtual        => str2bool($::is_virtual),
       # facilities
       syslog_log_facility_glance   => $syslog_log_facility_glance,
       syslog_log_facility_cinder   => $syslog_log_facility_cinder,
