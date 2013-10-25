@@ -199,14 +199,14 @@ class osnailyfacter::cluster_simple {
       nova_config { 'DEFAULT/use_cow_images': value => $::fuel_settings['use_cow_images'] }
       nova_config { 'DEFAULT/compute_scheduler_driver': value => $::fuel_settings['compute_scheduler_driver'] }
       if $::use_quantum {
-        class { '::openstack::quantum_router':
+        class { '::openstack::neutron_router':
           debug                 => $debug ? { 'true' => true, true => true, default=> false },
           verbose               => $verbose ? { 'true' => true, true => true, default=> false },
           # qpid_password         => $rabbit_hash[password],
           # qpid_user             => $rabbit_hash[user],
           # qpid_nodes            => [$controller_node_address],
-          quantum_config          => $quantum_config,
-          quantum_network_node    => true,
+          neutron_config          => $quantum_config,
+          neutron_network_node    => true,
           use_syslog            => $use_syslog,
           syslog_log_level      => $syslog_log_level,
           syslog_log_facility   => $syslog_log_facility_quantum,
