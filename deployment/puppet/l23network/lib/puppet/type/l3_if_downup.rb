@@ -54,7 +54,7 @@ Puppet::Type.newtype(:l3_if_downup) do
     end
 
     newparam(:check_by_ping_timeout) do
-      defaultto(120)
+      defaultto(30)
     end
 
     def refresh

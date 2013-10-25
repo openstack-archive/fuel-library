@@ -1,0 +1,6 @@
+*.swp
+pkg/
+.DS_Store
+metadata.json
+coverage/
+spec/fixtures

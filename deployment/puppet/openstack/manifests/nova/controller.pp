@@ -274,14 +274,15 @@ class openstack::nova::controller (
     }
   } else {
     # Set up Quantum
-
-    class { 'quantum::server':
-      quantum_config     => $quantum_config,
+    #todo: move to ::openstack:controller and ::openstack:neutron_router
+    #todo: from HERE to <<<
+    class { '::neutron::server':
+      neutron_config     => $quantum_config,
       primary_controller => $primary_controller
     }
     if $quantum and !$quantum_network_node {
-      class { '::quantum':
-        quantum_config       => $quantum_config,
+      class { '::neutron':
+        neutron_config       => $quantum_config,
         verbose              => $verbose,
         debug                => $debug,
         use_syslog           => $use_syslog,
@@ -290,14 +291,15 @@ class openstack::nova::controller (
         server_ha_mode       => $ha_mode,
       }
     }
-    class { 'nova::network::quantum':
-      quantum_config => $quantum_config,
-      quantum_connection_host => $service_endpoint
+    #todo: <<<
+    class { '::nova::network::neutron':
+      neutron_config => $quantum_config,
+      neutron_connection_host => $service_endpoint
     }
   }
 
   # Configure nova-api
-  class { 'nova::api':
+  class { '::nova::api':
     enabled           => $enabled,
     admin_password    => $nova_user_password,
     auth_host         => $keystone_host,
@@ -318,7 +320,7 @@ class openstack::nova::controller (
   #  ensure_package => $ensure_package,
   #}
 
-  class {'nova::conductor':
+  class {'::nova::conductor':
     enabled => $enabled,
     ensure_package => $ensure_package,
   }
@@ -337,7 +339,7 @@ class openstack::nova::controller (
     ensure_package => $ensure_package
   }
 
-  class { 'nova::consoleauth':
+  class { '::nova::consoleauth':
     enabled        => $enabled,
     ensure_package => $ensure_package,
   }

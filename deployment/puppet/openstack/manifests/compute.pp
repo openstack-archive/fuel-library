@@ -313,18 +313,8 @@ class openstack::compute (
     }
   } else {
 
-    # if ! $quantum_sql_connection {
-    #   fail('quantum sql connection must be specified when quantum is installed on compute instances')
-    # }
-    # if ! $quantum_host {
-    #   fail('quantum host must be specified when quantum is installed on compute instances')
-    # }
-    # if ! $quantum_user_password {
-    #   fail('quantum user password must be set when quantum is configured')
-    # }
-
-    class { '::quantum':
-      quantum_config  => $quantum_config,
+    class { '::neutron':
+      neutron_config  => $quantum_config,
       verbose         => $verbose,
       debug           => $debug,
       use_syslog           => $use_syslog,
@@ -333,12 +323,12 @@ class openstack::compute (
     }
 
     #todo: Quantum plugin and database connection not need on compute.
-    class { 'quantum::plugins::ovs':
-      quantum_config  => $quantum_config
+    class { 'neutron::plugins::ovs':
+      neutron_config  => $quantum_config
     }
 
-    class { 'quantum::agents::ovs':
-      quantum_config   => $quantum_config,
+    class { 'neutron::agents::ovs':
+      neutron_config   => $quantum_config,
       # bridge_uplinks   => ["br-prv:${private_interface}"],
       # bridge_mappings  => ['physnet2:br-prv'],
       # enable_tunneling => $enable_tunneling,
@@ -353,13 +343,13 @@ class openstack::compute (
       source => 'puppet:///modules/nova/libvirt_qemu.conf',
     }
 
-    class { 'nova::compute::quantum': }
+    class { 'nova::compute::neutron': }
 
     # does this have to be installed on the compute node?
     # NOTE
-    class { 'nova::network::quantum':
-      quantum_config => $quantum_config,
-      quantum_connection_host => $service_endpoint
+    class { 'nova::network::neutron':
+      neutron_config => $quantum_config,
+      neutron_connection_host => $service_endpoint
     }
 
     nova_config {
@@ -368,5 +358,4 @@ class openstack::compute (
     }
   }
 }
-
 # vim: set ts=2 sw=2 et :

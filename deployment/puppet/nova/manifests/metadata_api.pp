@@ -6,7 +6,7 @@ class nova::metadata_api (
   $admin_auth_url    = 'http://127.0.0.1:35357/v2.0',
   $admin_tenant_name = 'services',
   $admin_user        = 'nova',
-  $auth_password     = 'quantum_pass',
+  $auth_password     = 'neutron_pass',
   $service_endpoint  = '127.0.0.1',
   $listen_ip         = '0.0.0.0',
   $controller_nodes  = ['127.0.0.1'],
@@ -17,8 +17,7 @@ class nova::metadata_api (
   $rabbit_ha_virtual_ip= false,
   $qpid_user         = 'nova',
   $qpid_password     = 'qpid_pw',
-  $qpid_node        = false,
-  $quantum_netnode_on_cnt= false,
+  $qpid_node        = false
 ) {
 
   include nova::params
@@ -63,25 +62,25 @@ class nova::metadata_api (
 
   $memcached_servers = join(regsubst($controller_nodes, '$', ':11211'), ',')
 
-  nova_config {'DEFAULT/quantum_connection_host':   value => $service_endpoint }
+  nova_config {'DEFAULT/neutron_connection_host':   value => $service_endpoint }
 
   if !defined(Nova_config['DEFAULT/sql_connection']) {
     nova_config {'DEFAULT/sql_connection': value => "mysql://nova:nova@${service_endpoint}/nova";}
   }
   #if ! $quantum_netnode_on_cnt {
     nova_config {
-      'DEFAULT/quantum_auth_strategy':     value => $auth_strategy;
-      'DEFAULT/quantum_admin_auth_url':    value => $admin_auth_url;
-      'DEFAULT/quantum_admin_password':    value => $auth_password;
-      'DEFAULT/quantum_admin_username':    value => 'quantum';
-      'DEFAULT/quantum_admin_tenant_name': value => $admin_tenant_name;
-      'DEFAULT/quantum_url':               value => "http://${service_endpoint}:9696" ;
+      'DEFAULT/neutron_auth_strategy':     value => $auth_strategy;
+      'DEFAULT/neutron_admin_auth_url':    value => $admin_auth_url;
+      'DEFAULT/neutron_admin_password':    value => $auth_password;
+      'DEFAULT/neutron_admin_username':    value => 'neutron';
+      'DEFAULT/neutron_admin_tenant_name': value => $admin_tenant_name;
+      'DEFAULT/neutron_url':               value => "http://${service_endpoint}:9696" ;
       'DEFAULT/metadata_listen':           value => $listen_ip;
       'DEFAULT/auth_strategy':             value => $auth_strategy;
       'DEFAULT/memcached_servers':         value => $memcached_servers;
-      'DEFAULT/network_api_class':         value => 'nova.network.quantumv2.api.API';
+      'DEFAULT/network_api_class':         value => 'nova.network.neutronv2.api.API';  # neutronv2 !!! not a neutron.v2
       'DEFAULT/rootwrap_config':           value => '/etc/nova/rootwrap.conf';
-      'DEFAULT/rabbit_ha_queues':          value => 'True';
+      'DEFAULT/rabbit_ha_queues':          value => 'True'; # todo: check HA or not, 'False' for non-HA
     }
   #}
 }

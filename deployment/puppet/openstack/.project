@@ -20,7 +20,7 @@
 		<project>nova</project>
 		<project>ntp</project>
 		<project>operatingsystem</project>
-		<project>quantum</project>
+		<project>neutron</project>
 		<project>rsyslog</project>
 		<project>stdlib</project>
 		<project>swift</project>

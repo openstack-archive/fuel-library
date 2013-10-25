@@ -9,7 +9,7 @@
 		<project>lvm</project>
 		<project>memcached</project>
 		<project>mysql</project>
-		<project>quantum</project>
+		<project>neutron</project>
 		<project>rabbitmq</project>
 		<project>stdlib</project>
 		<project>sysctl</project>

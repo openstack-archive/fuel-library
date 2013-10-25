@@ -2,10 +2,9 @@ class osnailyfacter::cluster_simple {
 
   if $::use_quantum {
     $novanetwork_params  = {}
-    $quantum_config = sanitize_quantum_config($::fuel_settings, 'quantum_settings')
+    $quantum_config = sanitize_neutron_config($::fuel_settings, 'quantum_settings')
+    debug__dump_to_file('/tmp/neutron_cfg.yaml', $quantum_config)
   } else {
-    $quantum_hash = {}
-    $quantum_params = {}
     $quantum_config = {}
     $novanetwork_params = $::fuel_settings['novanetwork_parameters']
     $network_config = {
@@ -201,14 +200,14 @@ class osnailyfacter::cluster_simple {
       nova_config { 'DEFAULT/use_cow_images': value => $::fuel_settings['use_cow_images'] }
       nova_config { 'DEFAULT/compute_scheduler_driver': value => $::fuel_settings['compute_scheduler_driver'] }
       if $::use_quantum {
-        class { '::openstack::quantum_router':
+        class { '::openstack::neutron_router':
           debug                 => $debug ? { 'true' => true, true => true, default=> false },
           verbose               => $verbose ? { 'true' => true, true => true, default=> false },
           # qpid_password         => $rabbit_hash[password],
           # qpid_user             => $rabbit_hash[user],
           # qpid_nodes            => [$controller_node_address],
-          quantum_config          => $quantum_config,
-          quantum_network_node    => true,
+          neutron_config          => $quantum_config,
+          neutron_network_node    => true,
           use_syslog            => $use_syslog,
           syslog_log_level      => $syslog_log_level,
           syslog_log_facility   => $syslog_log_facility_quantum,
@@ -248,15 +247,15 @@ class osnailyfacter::cluster_simple {
       if $savanna_hash['enabled'] {
         class { 'savanna' :
           savanna_api_host          => $controller_node_address,
-          
+
           savanna_db_password       => $savanna_hash['db_password'],
           savanna_db_host           => $controller_node_address,
-          
+
           savanna_keystone_host     => $controller_node_address,
           savanna_keystone_user     => 'admin',
           savanna_keystone_password => 'admin',
           savanna_keystone_tenant   => 'admin',
-          
+
           use_neutron               => $::use_quantum,
         }
       }
@@ -269,10 +268,10 @@ class osnailyfacter::cluster_simple {
           murano_rabbit_host       => $controller_node_public,
           murano_rabbit_login      => 'murano',
           murano_rabbit_password   => $heat_hash['rabbit_password'],
-          
+
           murano_db_host           => $controller_node_address,
           murano_db_password       => $murano_hash['db_password'],
-          
+
           murano_keystone_host     => $controller_node_address,
           murano_keystone_user     => 'admin',
           murano_keystone_password => 'admin',
@@ -282,17 +281,17 @@ class osnailyfacter::cluster_simple {
         class { 'heat' :
           pacemaker              => false,
           external_ip            => $controller_node_public,
-          
+
           heat_keystone_host     => $controller_node_address,
           heat_keystone_user     => 'heat',
           heat_keystone_password => 'heat',
           heat_keystone_tenant   => 'services',
-          
+
           heat_rabbit_host       => $controller_node_address,
           heat_rabbit_login      => $rabbit_hash['user'],
           heat_rabbit_password   => $rabbit_hash['password'],
           heat_rabbit_port       => '5672',
-          
+
           heat_db_host           => $controller_node_address,
           heat_db_password       => $heat_hash['db_password'],
         }

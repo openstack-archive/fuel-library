@@ -27,7 +27,7 @@ class openstack::firewall (
   $memcached_port =  11211,
   $rsync_port = 873,
   $iscsi_port = 3260,
-  $quantum_api_port = 9696,
+  $neutron_api_port = 9696,
   $dns_server_port = 53,
   $dhcp_server_port = 67,
   $ntp_server_port  = 123,
@@ -146,8 +146,8 @@ class openstack::firewall (
     action => 'accept',
   }
 
-  firewall {'110 quantum ':
-    port   => $quantum_api_port,
+  firewall {'110 neutron ':
+    port   => $neutron_api_port,
     proto  => 'tcp',
     action => 'accept',
   }

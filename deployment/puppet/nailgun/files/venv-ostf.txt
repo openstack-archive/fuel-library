@@ -40,7 +40,7 @@ python-mimeparse==0.1.4
 python-muranoclient==0.2
 python-novaclient==2.12.0
 python-savannaclient==0.2.2
-python-quantumclient==2.2.3
+python-neutronlient==2.2.3
 requests==1.2.3
 setuptools-git==1.0
 simplegeneric==0.8.1
