@@ -60,7 +60,6 @@ class nailgun(
   Class["nailgun::pm"] ->
   Class["openstack::logging"] ->
   Class["nailgun::supervisor"] ->
-  Class["nailgun::puppetsync"] ->
   Anchor<| title == "nailgun-end" |>
 
   class { "nailgun::packages":
