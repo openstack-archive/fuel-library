@@ -98,7 +98,7 @@ class cobbler::server {
       Package[$cobbler::packages::cobbler_package],
       Package[$cobbler::packages::dnsmasq_package],],
     subscribe   => Service[$cobbler_service],
-    notify      => Service[$dnsmasq_service],
+    notify      => [Service[$dnsmasq_service], Service["xinetd"]],
     tries       => 20,
     try_sleep   => 3,
   }
