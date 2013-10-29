@@ -144,6 +144,7 @@ class osnailyfacter::cluster_simple {
         public_interface        => $::public_int,
         private_interface       => $::use_quantum ? { true=>false, default=>$::fuel_settings['fixed_interface']},
         internal_address        => $controller_node_address,
+        service_endpoint        => $controller_node_address,
         floating_range          => false, #todo: remove as not needed ???
         fixed_range             => $::use_quantum ? { true=>false, default=>$::fuel_settings['fixed_network_range'] },
         multi_host              => $multi_host,

@@ -74,8 +74,10 @@ class neutron::plugins::ovs (
 
   if $neutron_config['L2']['enable_tunneling'] {
       neutron_plugin_ovs {
+        'OVS/tunnel_type':          value => $neutron_config['L2']['segmentation_type'];
         'OVS/tunnel_bridge':        value => $neutron_config['L2']['tunnel_bridge'];
         'OVS/tunnel_id_ranges':     value => $neutron_config['L2']['tunnel_id_ranges'];
+        'OVS/l2_population':        value => 'False';  #todo: test 'ml2'
         'OVS/network_vlan_ranges':  value => join(keys($neutron_config['L2']['phys_nets']), ','); # do not belive OS documentation!!!
         'OVS/bridge_mappings':      value => $neutron_config['L2']['bridge_mappings'];
         #todo: remove ext_net from mappings. Affect NEutron
