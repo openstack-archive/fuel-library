@@ -65,7 +65,7 @@ class horizon(
     if ! defined(Package[$name]){
       @package { $name : }
     }
-  } 
+  }
 
   File {
     require => Package['dashboard'],
@@ -187,6 +187,18 @@ class horizon(
         ],
         before  => Service['httpd'],
       }
+
+      #todo: may be need fix
+      Package['dashboard'] -> Exec['horizon_compress_styles']
+      Package['dashboard'] ~> Exec['horizon_compress_styles']
+      Package[$::horizon::params::horizon_additional_packages] -> Exec['horizon_compress_styles']
+      exec { 'horizon_compress_styles':
+        path    => '/bin:/usr/bin:/sbin:/usr/sbin',
+        cwd     => '/usr/share/openstack-dashboard',
+        command => 'python manage.py compress',
+        refreshonly => true
+      }
+      Exec['horizon_compress_styles'] ~> Service['httpd']
     }
     'Debian': {
       A2mod {
@@ -216,10 +228,10 @@ class horizon(
   service { 'httpd':
     name      => $::horizon::params::http_service,
     ensure    => 'running',
-    enable    => true,
-    require   => Package["$::horizon::params::http_service", "$::horizon::params::http_modwsgi"],
-    subscribe => File["$::horizon::params::local_settings_path", "$::horizon::params::logdir"]
+    enable    => true
   }
+  File["$::horizon::params::local_settings_path", "$::horizon::params::logdir"] ~> Service['httpd']
+  Package["$::horizon::params::http_service", "$::horizon::params::http_modwsgi"] -> Service['httpd']
 
   if $cache_server_ip =~ /^127\.0\.0\.1/ {
     Class['memcached'] -> Class['horizon']

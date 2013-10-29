@@ -8,7 +8,7 @@ Puppet::Type.newtype(:l2_ovs_patch) do
     # Error 400 on SERVER: Could not render to pson: undefined method `merge' for []:Array
     # http://projects.puppetlabs.com/issues/5220
 
-    newparam(:bridges) do
+    newparam(:bridges, :array_matching => :all) do
       desc "Array of bridges that will be connected"
       #
       validate do |val|
@@ -21,7 +21,7 @@ Puppet::Type.newtype(:l2_ovs_patch) do
       end
     end
 
-    newparam(:peers) do
+    newparam(:peers, :array_matching => :all) do
       defaultto([nil,nil])
       desc "List of names that will be used for naming patches at it's ends."
       #
@@ -61,7 +61,7 @@ Puppet::Type.newtype(:l2_ovs_patch) do
       end
     end
 
-    newparam(:trunks) do
+    newparam(:trunks, :array_matching => :all) do
       defaultto([])
       desc "Array of trunks id, for configure patch's ends as ports in trunk mode"
       #
