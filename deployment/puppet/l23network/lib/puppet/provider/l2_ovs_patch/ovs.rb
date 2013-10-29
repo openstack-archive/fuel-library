@@ -18,7 +18,7 @@ Puppet::Type.type(:l2_ovs_patch).provide(:ovs) do
       end
       i += 1
     end
-    #todo: chect tags, trunks and bridge names
+    #todo: check tags, trunks and bridge names
     return rv
   end
 
