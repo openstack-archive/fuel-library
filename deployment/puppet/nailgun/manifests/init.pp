@@ -57,7 +57,6 @@ class nailgun(
   Class["nailgun::naily"] ->
   Class["nailgun::nginx-nailgun"] ->
   Class["nailgun::cobbler"] ->
-  Class["nailgun::pm"] ->
   Class["openstack::logging"] ->
   Class["nailgun::supervisor"] ->
   Anchor<| title == "nailgun-end" |>
@@ -80,7 +79,6 @@ class nailgun(
     before => [
                Class["nailgun::nginx-repo"],
                Class["nailgun::nginx-nailgun"],
-               Class["nailgun::pm"],
                ],
   }
 
@@ -168,10 +166,6 @@ class nailgun(
     cobbler_password => "cobbler",
     centos_repos => $centos_repos,
     gem_source => $gem_source,
-  }
-
-  class { "nailgun::pm":
-    puppet_master_hostname => $puppet_master_hostname,
   }
 
   class { "nailgun::mcollective":
