@@ -29,6 +29,7 @@ dmidecode
 dnsmasq-utils
 e2fsprogs
 euca2ools
+daemonize
 fence-agents
 fontconfig
 freetype
