@@ -129,13 +129,20 @@ class horizon(
     }
   }
 
-  file { $::horizon::params::logdir:
+  file { $horizon::params::logdir:
     ensure  => directory,
     mode    => '0751',
     owner   => $wsgi_user,
     group   => $wsgi_group,
-    before  => Service['httpd'],
+  } ->
+  file { "${horizon::params::logdir}/horizon.log":
+    ensure  => present,
+    mode    => '0650',
+    owner   => $wsgi_user,
+    group   => $wsgi_group,
   }
+  Package["dashboard"] -> File[$horizon::params::logdir]
+  File["${horizon::params::logdir}/horizon.log"] -> Service['httpd']
 
   file { $::horizon::params::vhosts_file:
     content => template('horizon/vhosts.erb'),
