@@ -54,12 +54,8 @@ Puppet::Type.newtype(:l2_ovs_bond) do
       defaultto(0)
       desc "802.1q tag"
       validate do |val|
-        if not (val.is_a?(Integer) or val.is_a?(String))
-          fail("tag must be an integer (not #{val.class}).")
-        end
-        v = val.to_i
-        if v < 0 or v > 4094
-          fail("tag must be an integer in 2..4094 interval")
+        if !val.is_a?(Integer) or (val < 0 or val > 4094)
+          fail("Wrong 802.1q tag. Tag must be an integer in 2..4094 interval")
         end
       end
       munge do |val|
@@ -67,27 +63,20 @@ Puppet::Type.newtype(:l2_ovs_bond) do
       end
     end
 
-    newparam(:trunks) do
+    newparam(:trunks, :array_matching => :all) do
       defaultto([])
-      desc "Array of trunks id, for configure port in trunk mode"
+      desc "Array of trunks id, for configure patch's ends as ports in trunk mode"
+      #
       validate do |val|
-        if not (val.is_a?(Array) or val.is_a?(String) or val.is_a?(Integer)) # String need for array with one element. it's a puppet's feature
-          fail("trunks must be an array (not #{val.class}).")
+        val = Array(val)  # prevents puppet conversion array of one Int to Int
+        for i in val
+          if !i.is_a?(Integer) or (i < 0 or i > 4094)
+            fail("Wrong 802.1q tag. Tag must be an integer in 2..4094 interval")
+          end
         end
       end
-
       munge do |val|
-        if val.is_a?(String)
-          [val.to_i]
-        elsif val.is_a?(Integer)
-          if val >= 0 and val < 4095
-            [val]
-          else
-            []
-          end
-        else
-          val
-        end
+        Array(val)
       end
     end
 
