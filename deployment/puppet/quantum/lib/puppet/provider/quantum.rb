@@ -4,6 +4,7 @@ require 'puppet/util/inifile'
 require 'tempfile'
 
 class Puppet::Provider::Quantum < Puppet::Provider
+
   def self.quantum_credentials
     @quantum_credentials ||= get_quantum_credentials
   end
@@ -121,7 +122,7 @@ class Puppet::Provider::Quantum < Puppet::Provider
   end
 
 
-  private
+  #private
   # def self.list_quantum_objects
   #   ids = []
   #   (auth_quantum('index').split("\n")[2..-1] || []).collect do |line|
@@ -147,12 +148,17 @@ class Puppet::Provider::Quantum < Puppet::Provider
     '--os-username', q['admin_user'],
     '--os-password', q['admin_password'],
     '--os-auth-url', auth_endpoint,
-    #'tenant-list').grep(/\|\s+#{tenant_name}\s+\|/) { |tenant| tenant.split[1] }.to_s
     'tenant-list').split("\n")[3..-2].collect do |tenant|
-      tenants_id[tenant.split[3]] = tenant.split[1]
+      t_id = tenant.split[1]
+      t_name = tenant.split[3]
+      tenants_id[t_name] = t_id
     end
 
     tenants_id
   end
+  # def list_keystone_tenants
+  #   self.class.list_keystone_tenants
+  # end
 
 end
+# vim: set ts=2 sw=2 et :

@@ -248,15 +248,15 @@ class osnailyfacter::cluster_simple {
       if $savanna_hash['enabled'] {
         class { 'savanna' :
           savanna_api_host          => $controller_node_address,
-          
+
           savanna_db_password       => $savanna_hash['db_password'],
           savanna_db_host           => $controller_node_address,
-          
+
           savanna_keystone_host     => $controller_node_address,
           savanna_keystone_user     => 'admin',
           savanna_keystone_password => 'admin',
           savanna_keystone_tenant   => 'admin',
-          
+
           use_neutron               => $::use_quantum,
         }
       }
@@ -269,10 +269,10 @@ class osnailyfacter::cluster_simple {
           murano_rabbit_host       => $controller_node_public,
           murano_rabbit_login      => 'murano',
           murano_rabbit_password   => $heat_hash['rabbit_password'],
-          
+
           murano_db_host           => $controller_node_address,
           murano_db_password       => $murano_hash['db_password'],
-          
+
           murano_keystone_host     => $controller_node_address,
           murano_keystone_user     => 'admin',
           murano_keystone_password => 'admin',
@@ -282,17 +282,17 @@ class osnailyfacter::cluster_simple {
         class { 'heat' :
           pacemaker              => false,
           external_ip            => $controller_node_public,
-          
+
           heat_keystone_host     => $controller_node_address,
           heat_keystone_user     => 'heat',
           heat_keystone_password => 'heat',
           heat_keystone_tenant   => 'services',
-          
+
           heat_rabbit_host       => $controller_node_address,
           heat_rabbit_login      => $rabbit_hash['user'],
           heat_rabbit_password   => $rabbit_hash['password'],
           heat_rabbit_port       => '5672',
-          
+
           heat_db_host           => $controller_node_address,
           heat_db_password       => $heat_hash['db_password'],
         }
