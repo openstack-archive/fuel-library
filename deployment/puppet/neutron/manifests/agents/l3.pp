@@ -52,6 +52,7 @@ class neutron::agents::l3 (
     'DEFAULT/admin_user':     value => $neutron_config['keystone']['admin_user'];
     'DEFAULT/admin_password': value => $neutron_config['keystone']['admin_password'];
     'DEFAULT/admin_tenant_name': value => $neutron_config['keystone']['admin_tenant_name'];
+    'DEFAULT/interface_driver':  value => $interface_driver;
     'DEFAULT/metadata_ip':   value => $neutron_config['metadata']['metadata_ip'];
     'DEFAULT/metadata_port': value => $neutron_config['metadata']['metadata_port'];
     'DEFAULT/use_namespaces': value => $neutron_config['L3']['use_namespaces'];
