@@ -53,7 +53,7 @@ file {'neutron-ovs-agent':
   mode => 755,
   owner => root,
   group => root,
-  source => "puppet:///modules/openstack/neutron-agent-ovs",
+  source => "puppet:///modules/neutron/ocf/neutron-agent-ovs",
 } -> Corosync::Service['pacemaker']
 
 Anchor['corosync'] ->
