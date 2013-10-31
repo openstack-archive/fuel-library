@@ -117,6 +117,7 @@ class neutron (
     'DEFAULT/network_auto_schedule':  value => $neutron_config['L3']['network_auto_schedule'];
     'DEFAULT/router_auto_schedule':   value => $neutron_config['L3']['router_auto_schedule'];
     'DEFAULT/agent_down_time':        value => $neutron_config['server']['agent_down_time'];
+    'agent/root_helper':              value => $neutron_config['root_helper'];
     'keystone_authtoken/auth_host':         value => $neutron_config['keystone']['auth_host'];
     'keystone_authtoken/auth_port':         value => $neutron_config['keystone']['auth_port'];
     'keystone_authtoken/auth_url':          value => $neutron_config['keystone']['auth_url'];
