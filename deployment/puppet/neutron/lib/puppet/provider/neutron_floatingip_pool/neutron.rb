@@ -10,7 +10,6 @@ Puppet::Type.type(:neutron_floatingip_pool).provide(
 
   commands :neutron  => 'neutron'
   commands :keystone => 'keystone'
-  commands :sleep => 'sleep'
 
   # I need to setup caching and what-not to make this lookup performance not suck
   def self.instances
@@ -43,15 +42,6 @@ Puppet::Type.type(:neutron_floatingip_pool).provide(
       )
     end
     rv
-  end
-
-  def self.prefetch(resources)
-    instances.each do |i|
-      res = resources[i.name.to_s]
-      if ! res.nil?
-        res.provider = i
-      end
-    end
   end
 
   def pool_size
@@ -137,14 +127,22 @@ Puppet::Type.type(:neutron_floatingip_pool).provide(
       self.class.floatingip_list(args)
     end
     def self.floatingip_list(*args)
-      auth_neutron('floatingip-list', args)
+      rv = auth_neutron('floatingip-list', args)
+      if rv.nil?
+        raise(Puppet::ExecutionFailure, "Can't fetch floatingip-list. Neutron or Keystone API not availaible.")
+      end
+      return rv
     end
 
     def floatingip_show(*args)
       self.class.floatingip_show(args)
     end
     def self.floatingip_show(*args)
-      auth_neutron('floatingip-show', args)
+      rv = auth_neutron('floatingip-show', args)
+      if rv.nil?
+        raise(Puppet::ExecutionFailure, "Can't execute floatingip_show. Neutron or Keystone API not availaible.")
+      end
+      return rv
     end
 
 end

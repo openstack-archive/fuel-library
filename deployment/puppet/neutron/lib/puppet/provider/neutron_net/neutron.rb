@@ -10,27 +10,21 @@ Puppet::Type.type(:neutron_net).provide(
 
   optional_commands :neutron  => 'neutron'
   optional_commands :keystone => 'keystone'
-  optional_commands :sleep => 'sleep'
 
   # I need to setup caching and what-not to make this lookup performance not suck
   def self.instances
     network_list = auth_neutron("net-list")
-    return [] if network_list.chomp.empty?
+    if network_list.nil?
+      raise(Puppet::ExecutionFailure, "Can't prefetch net-list. Neutron or Keystone API not availaible.")
+    elsif network_list.chomp.empty?
+      return []
+    end
 
     network_list.split("\n")[3..-2].collect do |net|
       new(
         :name   => net.split[3],
         :ensure => :present
       )
-    end
-  end
-
-  def self.prefetch(resources)
-    instances.each do |i|
-      res = resources[i.name.to_s]
-      if ! res.nil?
-        res.provider = i
-      end
     end
   end
 

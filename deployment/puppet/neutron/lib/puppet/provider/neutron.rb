@@ -5,6 +5,15 @@ require 'tempfile'
 
 class Puppet::Provider::Neutron < Puppet::Provider
 
+  def self.prefetch(resources)
+    instances.each do |i|
+      res = resources[i.name.to_s]
+      if ! res.nil?
+        res.provider = i
+      end
+    end
+  end
+
   def self.neutron_credentials
     @neutron_credentials ||= get_neutron_credentials
   end
@@ -58,11 +67,7 @@ class Puppet::Provider::Neutron < Puppet::Provider
 
   def self.auth_neutron(*args)
     #todo: Rewrite, using ruby-openstack
-    begin
-      q = neutron_credentials
-    rescue Exception => e
-      raise(e)
-    end
+    q = neutron_credentials
     rv = nil
     timeout = 120 # default timeout 2min.
     end_time = Time.now.to_i + timeout
@@ -80,13 +85,14 @@ class Puppet::Provider::Neutron < Puppet::Provider
         end
         current_time = Time.now.to_i
         if current_time > end_time
+          #raise(e)
           break
         else
           wa = end_time - current_time
           Puppet::debug("Non-fatal error: \"#{e.message}\"")
           notice("Neutron API not avalaible. Wait up to #{wa} sec.")
         end
-        sleep(1) # do not remove!!! It's a positive brake!
+        sleep(2) # do not remove!!! It's a positive brake!
       end
     end
     return rv
@@ -125,7 +131,7 @@ class Puppet::Provider::Neutron < Puppet::Provider
           wa = end_time - current_time
           notice("Keystone API not avalaible. Wait up to #{wa} sec.")
         end
-        sleep(1) # do not remove!!! It's a positive brake!
+        sleep(2) # do not remove!!! It's a positive brake!
       end
     end
     return tenants_id
