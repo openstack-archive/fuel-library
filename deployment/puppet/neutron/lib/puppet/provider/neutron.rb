@@ -5,6 +5,15 @@ require 'tempfile'
 
 class Puppet::Provider::Neutron < Puppet::Provider
 
+  def self.prefetch(resources)
+    instances.each do |i|
+      res = resources[i.name.to_s]
+      if ! res.nil?
+        res.provider = i
+      end
+    end
+  end
+
   def self.neutron_credentials
     @neutron_credentials ||= get_neutron_credentials
   end
@@ -58,88 +67,74 @@ class Puppet::Provider::Neutron < Puppet::Provider
 
   def self.auth_neutron(*args)
     #todo: Rewrite, using ruby-openstack
-    begin
-      q = neutron_credentials
-    rescue Exception => e
-      raise(e)
-    end
-
-    # args_str = args.join '` '
-    # notice("ARGS: #{args_str}\n")
+    q = neutron_credentials
     rv = nil
-    retries = 60
+    timeout = 120 # default timeout 2min.
+    end_time = Time.now.to_i + timeout
     loop do
       begin
         rv = neutron('--os-tenant-name', q['admin_tenant_name'], '--os-username', q['admin_user'], '--os-password', q['admin_password'], '--os-auth-url', auth_endpoint, args)
         break
-      rescue Exception => e
-        if e.message =~ /(\(HTTP\s+400\))|(\[Errno 111\]\s+Connection\s+refused)|(503\s+Service\s+Unavailable)|(Max\s+retries\s+exceeded)/
-          notice("Can't connect to neutron backend. Waiting for retry...")
-          retries -= 1
-          sleep 2
-          if retries <= 1
-            notice("Can't connect to neutron backend. No more retries, auth failed")
-            raise(e)
-            #break
-          end
-        else
-          raise(e)
-          #break
-        end
-      end
-    end
-    return rv
-  end
-
-  def auth_neutron(*args)
-    self.class.auth_neutron(args)
-  end
-
-  #todo: rewrite through API
-  def check_neutron_api_availability(timeout)
-    if timeout.to_i < 1
-      timeout = 45 # default timeout 45sec.
-    end
-    end_time = Time.now.to_i + timeout
-    rv = false
-    loop do
-      begin
-        auth_neutron('net-list')
-        rv = true
-        break
       rescue Puppet::ExecutionFailure => e
+        if ! e.message =~ /(\(HTTP\s+400\))|
+              (\[Errno 111\]\s+Connection\s+refused)|
+              (503\s+Service\s+Unavailable)|
+              (\:\s+Maximum\s+attempts\s+reached)|
+              (Max\s+retries\s+exceeded)/
+          raise(e)
+        end
         current_time = Time.now.to_i
         if current_time > end_time
+          #raise(e)
           break
         else
           wa = end_time - current_time
+          Puppet::debug("Non-fatal error: \"#{e.message}\"")
           notice("Neutron API not avalaible. Wait up to #{wa} sec.")
         end
-        sleep(0.5) # do not remove!!! It's a positive brake!
+        sleep(2) # do not remove!!! It's a positive brake!
       end
     end
     return rv
   end
-
+  def auth_neutron(*args)
+    self.class.auth_neutron(args)
+  end
 
   #private
 
   def self.list_keystone_tenants
     q = neutron_credentials
     tenants_id = {}
-
-    keystone(
-    '--os-tenant-name', q['admin_tenant_name'],
-    '--os-username', q['admin_user'],
-    '--os-password', q['admin_password'],
-    '--os-auth-url', auth_endpoint,
-    'tenant-list').split("\n")[3..-2].collect do |tenant|
-      t_id = tenant.split[1]
-      t_name = tenant.split[3]
-      tenants_id[t_name] = t_id
+    timeout = 120 # default timeout 2min.
+    end_time = Time.now.to_i + timeout
+    loop do
+      begin
+        keystone(
+          '--os-tenant-name', q['admin_tenant_name'],
+          '--os-username', q['admin_user'],
+          '--os-password', q['admin_password'],
+          '--os-auth-url', auth_endpoint,
+          'tenant-list'
+        ).split("\n")[3..-2].collect do |tenant|
+            t_id = tenant.split[1]
+            t_name = tenant.split[3]
+            tenants_id[t_name] = t_id
+        end
+        break
+      rescue Puppet::ExecutionFailure => e
+        current_time = Time.now.to_i
+        if current_time > end_time
+          raise(e)
+          #break
+        else
+          wa = end_time - current_time
+          notice("Keystone API not avalaible. Wait up to #{wa} sec.")
+        end
+        sleep(2) # do not remove!!! It's a positive brake!
+      end
     end
-
-    tenants_id
+    return tenants_id
   end
   # def list_keystone_tenants
   #   self.class.list_keystone_tenants

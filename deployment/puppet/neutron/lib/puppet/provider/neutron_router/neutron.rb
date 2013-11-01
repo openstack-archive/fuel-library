@@ -10,27 +10,21 @@ Puppet::Type.type(:neutron_router).provide(
 
   optional_commands :neutron  => 'neutron'
   optional_commands :keystone => 'keystone'
-  optional_commands :sleep => 'sleep'
 
   # I need to setup caching and what-not to make this lookup performance not suck
   def self.instances
     router_list = auth_neutron("router-list")
-    return [] if router_list.chomp.empty?
+    if router_list.nil?
+      raise(Puppet::ExecutionFailure, "Can't prefetch router-list. Neutron or Keystone API not availaible.")
+    elsif router_list.chomp.empty?
+      return []
+    end
 
     router_list.split("\n")[3..-2].collect do |net|
       new(
         :name   => net.split[3],
         :ensure => :present
       )
-    end
-  end
-
-  def self.prefetch(resources)
-    instances.each do |i|
-      res = resources[i.name.to_s]
-      if ! res.nil?
-        res.provider = i
-      end
     end
   end
 
@@ -53,8 +47,6 @@ Puppet::Type.type(:neutron_router).provide(
     if @resource[:admin_state] and @resource[:admin_state].downcase == 'down'
       admin_state.push('--admin-state-down')
     end
-
-    check_neutron_api_availability(120)
 
     router_info = auth_neutron('router-create',
       '--tenant_id', tenant_id[@resource[:tenant]],
