@@ -65,8 +65,6 @@ Puppet::Type.type(:neutron_net).provide(
         optional_opts.push("--shared")
     end
 
-    check_neutron_api_availability(120)
-
     auth_neutron('net-create',
       '--tenant_id', tenant_id[@resource[:tenant]],
       @resource[:name],

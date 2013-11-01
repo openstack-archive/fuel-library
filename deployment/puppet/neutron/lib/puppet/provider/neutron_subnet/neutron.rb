@@ -75,8 +75,6 @@ Puppet::Type.type(:neutron_subnet).provide(
       end
     end
 
-    check_neutron_api_availability(120)
-
     auth_neutron('subnet-create',
       '--tenant-id', tenant_id[@resource[:tenant]],
       '--name', @resource[:name],

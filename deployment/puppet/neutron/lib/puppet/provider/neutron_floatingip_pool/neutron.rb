@@ -80,21 +80,7 @@ Puppet::Type.type(:neutron_floatingip_pool).provide(
 
   def _create_N(n)
       for i in 0...n.to_i do
-        retries = 30
-        loop do
-          begin
-            auth_neutron('floatingip-create', '--tenant-id', tenant_id[@resource[:name]], @resource[:ext_net])
-            break
-          rescue Exception => e
-            notice("Can't connect to neutron backend. Waiting for retry...")
-            retries -= 1
-            if retries <= 1
-              notice("Can't connect to neutron backend. No more retries.")
-              raise(e)
-            end
-            sleep 2
-          end
-        end
+        auth_neutron('floatingip-create', '--tenant-id', tenant_id[@resource[:name]], @resource[:ext_net])
       end
   end
 
@@ -117,21 +103,7 @@ Puppet::Type.type(:neutron_floatingip_pool).provide(
         Puppet::debug("*** Can't find in cache floating IP with ID:'#{fip_id}'")
       end
       if details[:tenant_id] == t_id
-        retries = 30
-        loop do
-          begin
-            auth_neutron('floatingip-delete', fip_id)
-            break
-          rescue Exception => e
-            notice("Can't connect to neutron backend. Waiting for retry...")
-            retries -= 1
-            if retries <= 1
-              notice("Can't connect to neutron backend. No more retries.")
-              raise(e)
-            end
-            sleep 2
-          end
-        end
+        auth_neutron('floatingip-delete', fip_id)
         nn -= 1
         break if nn <= 0
       end
@@ -165,47 +137,14 @@ Puppet::Type.type(:neutron_floatingip_pool).provide(
       self.class.floatingip_list(args)
     end
     def self.floatingip_list(*args)
-      rv = ''
-      retries = 30
-      loop do
-        begin
-          rv = auth_neutron('floatingip-list', args)
-          break
-        rescue Exception => e
-          notice("Can't connect to neutron backend. Waiting for retry...")
-          retries -= 1
-          if retries <= 1
-            notice("Can't connect to neutron backend. No more retries.")
-            raise(e)
-          end
-          sleep 2
-        end
-      end
-      return rv
+      auth_neutron('floatingip-list', args)
     end
-
 
     def floatingip_show(*args)
       self.class.floatingip_show(args)
     end
     def self.floatingip_show(*args)
-      rv = ''
-      retries = 30
-      loop do
-        begin
-          rv = auth_neutron('floatingip-show', args)
-          break
-        rescue Exception => e
-          notice("Can't connect to neutron backend. Waiting for retry...")
-          retries -= 1
-          if retries <= 1
-            notice("Can't connect to neutron backend. No more retries.")
-            raise(e)
-          end
-          sleep 2
-        end
-      end
-      return rv
+      auth_neutron('floatingip-show', args)
     end
 
 end

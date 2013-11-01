@@ -54,8 +54,6 @@ Puppet::Type.type(:neutron_router).provide(
       admin_state.push('--admin-state-down')
     end
 
-    check_neutron_api_availability(120)
-
     router_info = auth_neutron('router-create',
       '--tenant_id', tenant_id[@resource[:tenant]],
       admin_state,
