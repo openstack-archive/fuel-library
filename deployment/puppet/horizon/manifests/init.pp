@@ -51,7 +51,8 @@ class horizon(
   $wsgi_user     = $::horizon::params::apache_user
   $wsgi_group    = $::horizon::params::apache_group
 
-  package { ["$::horizon::params::http_service", "$::horizon::params::http_modwsgi"]:
+  package { [$::horizon::params::http_service,
+             $::horizon::params::http_modwsgi]:
     ensure => present,
   }
 
@@ -100,7 +101,8 @@ class horizon(
   }
 
   if $generate_sslcert_names {
-    $sslcert_pair = regsubst([$::horizon::params::ssl_cert_file, $::horizon::params::ssl_key_file],
+    $sslcert_pair = regsubst([$::horizon::params::ssl_cert_file,
+                              $::horizon::params::ssl_key_file],
                         '(.+\/).+(\..+)', "\1${::domain}\2")
 
     $ssl_cert_file = $sslcert_pair[0]
@@ -169,7 +171,8 @@ class horizon(
         owner  => root,
         group  => root,
         content => "LoadModule wsgi_module modules/mod_wsgi.so\n",
-        require => Package["$::horizon::params::http_service", "$::horizon::params::http_modwsgi"],
+        require => Package[$::horizon::params::http_service,
+                           $::horizon::params::http_modwsgi],
         before  => Package['dashboard'],
       }  # ensure there is a HTTP redirect from / to /dashboard
 
@@ -180,7 +183,7 @@ class horizon(
         }
       }
 
-      augeas { "remove_listen_directive":
+      augeas { 'remove_listen_directive':
         context => "/files/etc/httpd/conf/httpd.conf",
         changes => [
           "rm directive[. = 'Listen']"
@@ -217,8 +220,10 @@ class horizon(
     name      => $::horizon::params::http_service,
     ensure    => 'running',
     enable    => true,
-    require   => Package["$::horizon::params::http_service", "$::horizon::params::http_modwsgi"],
-    subscribe => File["$::horizon::params::local_settings_path", "$::horizon::params::logdir"]
+    require   => Package[$::horizon::params::http_service,
+                         $::horizon::params::http_modwsgi],
+    subscribe => File[$::horizon::params::local_settings_path,
+                      $::horizon::params::logdir],
   }
 
   if $cache_server_ip =~ /^127\.0\.0\.1/ {
