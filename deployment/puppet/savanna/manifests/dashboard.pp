@@ -44,13 +44,13 @@ class savanna::dashboard (
 
   file_line{ 'savanna' :
     path    => $settings_py,
-    line    => "HORIZON_CONFIG['dashboards'].append('savanna')",
+    line    => "HORIZON_CONFIG['dashboards']+=('savanna',)",  # don't use .append(), target may be a tuple
     require => File[$settings_py],
   }
 
   file_line{ 'savanna_dashboard' :
     path    => $settings_py,
-    line    => "INSTALLED_APPS.append('savannadashboard')",
+    line    => "INSTALLED_APPS+=('savannadashboard',)",  # don't use .append(), target may be a tuple
     require => File[$settings_py],
   }
 
