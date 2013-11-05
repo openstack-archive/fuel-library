@@ -16,9 +16,6 @@ class neutron::plugins::ovs (
   anchor {'neutron-plugin-ovs':}
 
   Neutron_plugin_ovs<||> ~> Service<| title == 'neutron-server' |>
-  # not need!!!
-  # agent starts after server
-  # Quantum_plugin_ovs<||> ~> Service<| title == 'neutron-ovs-agent' |>
 
   case $neutron_config['database']['provider'] {
     /(?i)mysql/: {
@@ -45,7 +42,8 @@ class neutron::plugins::ovs (
   }
   package { 'neutron-plugin-ovs':
     name    => $::neutron::params::ovs_server_package,
-  } ->
+  } -> Neutron_plugin_ovs <||>
+
   File['/etc/neutron'] ->
   file {'/etc/neutron/plugins':
     ensure  => directory,
@@ -63,13 +61,12 @@ class neutron::plugins::ovs (
     'DATABASE/sql_connection':      value => $neutron_config['database']['url'];
     'DATABASE/sql_max_retries':     value => $neutron_config['database']['reconnects'];
     'DATABASE/reconnect_interval':  value => $neutron_config['database']['reconnect_interval'];
-  } ->
-  neutron_plugin_ovs {
     'OVS/integration_bridge':       value => $neutron_config['L2']['integration_bridge'];
     'OVS/tenant_network_type':      value => $neutron_config['L2']['segmentation_type'];
     'OVS/enable_tunneling':         value => $neutron_config['L2']['enable_tunneling'];
     'AGENT/polling_interval':       value => $neutron_config['polling_interval'];
     'AGENT/root_helper':            value => $neutron_config['root_helper'];
+    'securitygroup/firewall_driver': value => 'neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver';
   }
 
   if $neutron_config['L2']['enable_tunneling'] {
