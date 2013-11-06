@@ -1,9 +1,10 @@
 class murano::dashboard (
-  $settings_py           = '/usr/share/openstack-dashboard/openstack_dashboard/settings.py',
-  $modify_config         = '/usr/bin/modify-horizon-config.sh',
-  $collect_static_script = '/usr/share/openstack-dashboard/manage.py',
-  $murano_url_string     = $::murano::params::default_url_string,
-  $local_settings        = $::murano::params::local_settings_path,
+  $settings_py                    = '/usr/share/openstack-dashboard/openstack_dashboard/settings.py',
+  $modify_config                  = '/usr/bin/modify-horizon-config.sh',
+#  $collect_static_script         = '/usr/share/openstack-dashboard/manage.py',
+  $murano_url_string              = $::murano::params::default_url_string,
+  $murano_metadata_url_string     = $::murano::params::default_metadata_url_string,
+  $local_settings                 = $::murano::params::local_settings_path,
 ) {
 
   include murano::params
@@ -38,11 +39,11 @@ class murano::dashboard (
     $apache_user = 'www-data'
   }
 
-  exec { 'collect_static':
-    command => "${collect_static_script} collectstatic --noinput",
-    user    => $apache_user,
-    group   => $apache_user,
-  }
+#  exec { 'collect_static':
+#    command => "${collect_static_script} collectstatic --noinput",
+#    user    => $apache_user,
+#    group   => $apache_user,
+#  }
 
   package { 'murano_dashboard':
     ensure => present,
@@ -53,7 +54,8 @@ class murano::dashboard (
     ensure => installed,
   }
 
-  Package[$dashboard_deps] -> Package['murano_dashboard'] -> File[$modify_config] -> Exec['fix_horizon_config'] -> Exec['collect_static'] -> Service <| title == 'httpd' |>
+#  Package[$dashboard_deps] -> Package['murano_dashboard'] -> File[$modify_config] -> Exec['fix_horizon_config'] -> Exec['collect_static'] -> Service <| title == 'httpd' |>
+  Package[$dashboard_deps] -> Package['murano_dashboard'] -> File[$modify_config] -> Exec['fix_horizon_config'] ->  Service <| title == 'httpd' |>
   Package['murano_dashboard'] ~> Service <| title == 'httpd' |>
   Exec['fix_horizon_config'] ~> Service <| title == 'httpd' |>
 
