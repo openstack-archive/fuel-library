@@ -268,6 +268,7 @@ class openstack::nova::controller (
       create_networks   => $really_create_networks,
       num_networks      => $num_networks,
       network_size      => $network_size,
+      nameservers       => $nameservers,
       enabled           => $enable_network_service,
       install_service   => $enable_network_service,
       ensure_package    => $ensure_package
