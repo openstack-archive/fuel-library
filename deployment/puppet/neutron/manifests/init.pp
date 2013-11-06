@@ -189,16 +189,8 @@ class neutron (
     $endpoint_neutron_main_configuration = 'neutron-init-done'
   }
 
-  # FIXME Workaround for FUEL-842: remove explicit --log-config from init scripts cuz it breaks logging!
-  # FIXME this hack should be deleted after FUEL-842 have resolved
-  exec {'init-dirty-hack':
-    command => "sed -i 's/\-\-log\-config=\$loggingconf//g' /etc/init.d/neutron-*",
-    path    => ["/sbin", "/bin", "/usr/sbin", "/usr/bin"],
-  }
-
   Anchor['neutron-init'] ->
     Package['neutron'] ->
-     Exec['init-dirty-hack'] ->
       File['/var/cache/neutron'] ->
         Neutron_config<||> ->
           Neutron_api_config<||> ->
