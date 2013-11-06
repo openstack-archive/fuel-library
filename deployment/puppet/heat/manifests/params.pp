@@ -7,7 +7,6 @@ class heat::params {
       $api_cfn_package_name         = 'openstack-heat-api-cfn'
       $engine_package_name          = 'openstack-heat-engine'
       $common_package_name          = 'openstack-heat-common'
-      $heat_cli_package_name        = 'openstack-heat-cli'
       $deps_pbr_package_name        = 'python-pbr'
       $deps_routes_package_name     = 'python-routes'
       $client_package_name          = 'python-heatclient'
