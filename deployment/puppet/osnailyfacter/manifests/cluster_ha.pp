@@ -379,25 +379,6 @@ class osnailyfacter::cluster_ha {
           use_neutron               => $::use_quantum,
         }
       }
-
-      if $murano_hash['enabled'] {
-
-        class { 'murano' :
-          murano_api_host          => $controller_node_address,
-
-          murano_rabbit_host       => $controller_node_public,
-          murano_rabbit_login      => 'murano',
-          murano_rabbit_password   => $heat_hash['rabbit_password'],
-
-          murano_db_host           => $controller_node_address,
-          murano_db_password       => $murano_hash['db_password'],
-
-          murano_keystone_host     => $controller_node_address,
-          murano_keystone_user     => 'admin',
-          murano_keystone_password => 'admin',
-          murano_keystone_tenant   => 'admin',
-        }
-
         class { 'heat' :
           pacemaker              => true,
           external_ip            => $controller_node_public,
@@ -416,7 +397,26 @@ class osnailyfacter::cluster_ha {
           heat_db_password       => $heat_hash['db_password'],
         }
 
-        Class['heat'] -> Class['murano']
+ 
+      if $murano_hash['enabled'] {
+
+        class { 'murano' :
+          murano_api_host          => $controller_node_address,
+
+          murano_rabbit_host       => $controller_node_public,
+          murano_rabbit_login      => 'murano',
+          murano_rabbit_password   => $heat_hash['rabbit_password'],
+
+          murano_db_host           => $controller_node_address,
+          murano_db_password       => $murano_hash['db_password'],
+
+          murano_keystone_host     => $controller_node_address,
+          murano_keystone_user     => 'admin',
+          murano_keystone_password => 'admin',
+          murano_keystone_tenant   => 'admin',
+        }
+
+       Class['heat'] -> Class['murano']
 
       }
 
