@@ -60,7 +60,7 @@ Puppet::Type.type(:l3_if_downup).provide(:ruby) do
     rv = false
     loop do
       begin
-        ping(['-c1',ipaddr])
+        ping(['-n', '-c1', ipaddr])
         rv = true
         break
       rescue Puppet::ExecutionFailure => e
@@ -173,7 +173,7 @@ Puppet::Type.type(:l3_if_downup).provide(:ruby) do
   #       rg = line.match('^\s*([0-9A-Za-z\.\-\_]+):')
   #       if rg
   #         if_list.push(rg[1].to_sym)
-  #       end  
+  #       end
   #     end
   #   end
   #   return if_list
