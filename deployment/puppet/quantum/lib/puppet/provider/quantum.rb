@@ -4,6 +4,14 @@ require 'puppet/util/inifile'
 require 'tempfile'
 
 class Puppet::Provider::Quantum < Puppet::Provider
+  def self.prefetch(resources)
+    instances.each do |i|
+      res = resources[i.name.to_s]
+      if ! res.nil?
+        res.provider = i
+      end
+    end
+  end
 
   def self.quantum_credentials
     @quantum_credentials ||= get_quantum_credentials
@@ -57,104 +65,74 @@ class Puppet::Provider::Quantum < Puppet::Provider
   # end
 
   def self.auth_quantum(*args)
-    #todo: Rewrite, using ruby-openstack
-    begin
-      q = quantum_credentials
-    rescue Exception => e
-      raise(e)
-    end
-
-    # args_str = args.join '` '
-    # notice("ARGS: #{args_str}\n")
+    q = quantum_credentials
     rv = nil
-    retries = 60
+    timeout = 120 # default timeout 2min.
+    end_time = Time.now.to_i + timeout
     loop do
       begin
         rv = quantum('--os-tenant-name', q['admin_tenant_name'], '--os-username', q['admin_user'], '--os-password', q['admin_password'], '--os-auth-url', auth_endpoint, args)
         break
-      rescue Exception => e
-        if e.message =~ /(\(HTTP\s+400\))|(\[Errno 111\]\s+Connection\s+refused)|(503\s+Service\s+Unavailable)|(Max\s+retries\s+exceeded)/
-          notice("Can't connect to quantum backend. Waiting for retry...")
-          retries -= 1
-          sleep 2
-          if retries <= 1
-            notice("Can't connect to quantum backend. No more retries, auth failed")
-            raise(e)
-            #break
-          end
-        else
+      rescue Puppet::ExecutionFailure => e
+        if ! e.message =~ /(\(HTTP\s+400\))|
+              (\[Errno 111\]\s+Connection\s+refused)|
+              (503\s+Service\s+Unavailable)|
+              (\:\s+Maximum\s+attempts\s+reached)|
+              (Max\s+retries\s+exceeded)/
           raise(e)
-          #break
         end
+        current_time = Time.now.to_i
+        if current_time > end_time
+          #raise(e)
+          break
+        else
+          wa = end_time - current_time
+          Puppet::debug("Non-fatal error: \"#{e.message}\"")
+          notice("Quantum API not avalaible. Wait up to #{wa} sec.")
+        end
+        sleep(2) # do not remove!!! It's a positive brake!
       end
     end
     return rv
   end
-
   def auth_quantum(*args)
     self.class.auth_quantum(args)
   end
 
-  #todo: rewrite through API
-  def check_quantum_api_availability(timeout)
-    if timeout.to_i < 1
-      timeout = 45 # default timeout 45sec.
-    end
-    end_time = Time.now.to_i + timeout
-    rv = false
-    loop do
-      begin
-        auth_quantum('net-list')
-        rv = true
-        break
-      rescue Puppet::ExecutionFailure => e
-        current_time = Time.now.to_i
-        if current_time > end_time
-          break
-        else
-          wa = end_time - current_time
-          notice("Quantum API not avalaible. Wait up to #{wa} sec.")
-        end
-        sleep(0.5) # do not remove!!! It's a positive brake!
-      end
-    end
-    return rv
-  end
-
-
   #private
-  # def self.list_quantum_objects
-  #   ids = []
-  #   (auth_quantum('index').split("\n")[2..-1] || []).collect do |line|
-  #     ids << line.split[0]
-  #   end
-  #   return ids
-  # end
-
-  # def self.get_quantum_attr(id, attr)
-  #   (auth_quantum('show', id).split("\n") || []).collect do |line|
-  #     if line =~ /^#{attr}:/
-  #       return line.split(': ')[1..-1]
-  #     end
-  #   end
-  # end
 
   def self.list_keystone_tenants
     q = quantum_credentials
     tenants_id = {}
-
-    keystone(
-    '--os-tenant-name', q['admin_tenant_name'],
-    '--os-username', q['admin_user'],
-    '--os-password', q['admin_password'],
-    '--os-auth-url', auth_endpoint,
-    'tenant-list').split("\n")[3..-2].collect do |tenant|
-      t_id = tenant.split[1]
-      t_name = tenant.split[3]
-      tenants_id[t_name] = t_id
+    timeout = 120 # default timeout 2min.
+    end_time = Time.now.to_i + timeout
+    loop do
+      begin
+        keystone(
+          '--os-tenant-name', q['admin_tenant_name'],
+          '--os-username', q['admin_user'],
+          '--os-password', q['admin_password'],
+          '--os-auth-url', auth_endpoint,
+          'tenant-list'
+        ).split("\n")[3..-2].collect do |tenant|
+            t_id = tenant.split[1]
+            t_name = tenant.split[3]
+            tenants_id[t_name] = t_id
+        end
+        break
+      rescue Puppet::ExecutionFailure => e
+        current_time = Time.now.to_i
+        if current_time > end_time
+          raise(e)
+          #break
+        else
+          wa = end_time - current_time
+          notice("Keystone API not avalaible. Wait up to #{wa} sec.")
+        end
+        sleep(2) # do not remove!!! It's a positive brake!
+      end
     end
-
-    tenants_id
+    return tenants_id
   end
   # def list_keystone_tenants
   #   self.class.list_keystone_tenants
