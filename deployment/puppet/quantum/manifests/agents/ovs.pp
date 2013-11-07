@@ -184,7 +184,6 @@ class quantum::agents::ovs (
   Class[quantum::waistline] -> Service['quantum-ovs-agent']
 
   #todo: This service must be disabled if Quantum-ovs-agent managed by pacemaker
-  if $::osfamily == 'redhat' {
     service { 'quantum-ovs-cleanup':
       name       => 'quantum-ovs-cleanup',
       enable     => true,
@@ -195,7 +194,6 @@ class quantum::agents::ovs (
     Service['quantum-ovs-agent'] ->       # it's not mistate!
       Service['quantum-ovs-cleanup'] ->   # cleanup service after agent.
         Anchor['quantum-ovs-agent-done']
-  }
 
   Anchor['quantum-ovs-agent'] ->
     Service['quantum-ovs-agent'] ->
