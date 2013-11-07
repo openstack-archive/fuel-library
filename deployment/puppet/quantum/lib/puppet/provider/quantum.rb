@@ -78,6 +78,7 @@ class Puppet::Provider::Quantum < Puppet::Provider
               (\[Errno 111\]\s+Connection\s+refused)|
               (503\s+Service\s+Unavailable)|
               (\:\s+Maximum\s+attempts\s+reached)|
+              (Unauthorized\:\s+bad\s+credentials)|
               (Max\s+retries\s+exceeded)/
           raise(e)
         end
