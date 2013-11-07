@@ -80,7 +80,7 @@ class horizon(
 
   file {'/usr/share/openstack-dashboard/':
     recurse   => true,
-    subscribe => Package['dashboard'],
+    subscribe => Package['dashboard']
   }
 
   case $use_ssl {
@@ -227,9 +227,11 @@ class horizon(
   }
 
   exec {"refresh horizon static":
-    path    => ['/bin','/sbin','/usr/sbin','/usr/bin'],
-    command => "su $wsgi_user -s '/bin/bash' -c 'cd /usr/share/openstack-dashboard && python manage.py compress --force'",
-    require => [Package['dashboard']]
+    path        => ['/bin','/sbin','/usr/sbin','/usr/bin'],
+    command     => "su $wsgi_user -s '/bin/bash' -c 'cd /usr/share/openstack-dashboard && python manage.py compress --force'",
+    refreshonly => true,
+    subscribe   => [File['/usr/share/openstack-dashboard/']],
+    require     => [Package['dashboard']]
   }
 
   if $cache_server_ip =~ /^127\.0\.0\.1/ {
