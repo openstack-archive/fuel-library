@@ -71,6 +71,7 @@ Puppet::Type.type(:nova_floating_range).provide :nova_manage do
                                  :auth_url => @resource[:auth_url],
                                  :authtenant_name => @resource[:authtenant_name],
                                  :service_type => @resource[:service_type],
+                                 :retries => @resource[:api_retries],
                                  :is_debug => Puppet[:debug]
   end
 end
