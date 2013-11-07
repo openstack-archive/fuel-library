@@ -63,6 +63,18 @@ Puppet::Type.newtype(:nova_floating_range) do
     end
   end
 
+  newparam(:api_retries) do
+    desc 'number of API reconnect retries'
+
+    validate do |value|
+      raise Puppet::Error, "#{value} does not look like numeric" unless value.is_a?(Integer) || value =~ /^\d+$/
+    end
+
+    munge do |value|
+      Integer value
+    end
+  end
+
   newparam(:service_type) do
     desc 'Connection type :service_type parameter to "compute", "object-store", "volume" or "network" (defaults to "compute")'
 
