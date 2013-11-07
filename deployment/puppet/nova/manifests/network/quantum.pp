@@ -21,6 +21,8 @@ class nova::network::quantum (
     'DEFAULT/quantum_admin_username':    value => $quantum_config['keystone']['admin_user'];
     'DEFAULT/quantum_admin_password':    value => $quantum_config['keystone']['admin_password'];
     'DEFAULT/quantum_admin_auth_url':    value => $quantum_config['keystone']['auth_url'];
+    'DEFAULT/firewall_driver':           value => 'nova.virt.firewall.NoopFirewallDriver';
+    'DEFAULT/security_group_api':        value => 'quantum';
   }
 }
 

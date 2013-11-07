@@ -102,21 +102,23 @@ class quantum (
   }
 
   quantum_config {
-    'DEFAULT/verbose':                value => $verbose;
-    'DEFAULT/debug':                  value => $debug;
-    'DEFAULT/auth_strategy':          value => $auth_strategy;
-    'DEFAULT/core_plugin':            value => $core_plugin;
-    'DEFAULT/bind_host':              value => $server_bind_host;
-    'DEFAULT/bind_port':              value => $quantum_config['server']['bind_port'];
-    'DEFAULT/base_mac':               value => $quantum_config['L2']['base_mac'];
-    'DEFAULT/mac_generation_retries': value => $quantum_config['L2']['mac_generation_retries'];
-    'DEFAULT/dhcp_lease_duration':    value => $quantum_config['L3']['dhcp_agent']['lease_duration'];
-    'DEFAULT/allow_bulk':             value => $quantum_config['server']['allow_bulk'];
-    'DEFAULT/allow_overlapping_ips':  value => $quantum_config['L3']['allow_overlapping_ips'];
-    'DEFAULT/control_exchange':       value => $quantum_config['server']['control_exchange'];
-    'DEFAULT/network_auto_schedule':  value => $quantum_config['L3']['network_auto_schedule'];
-    'DEFAULT/router_auto_schedule':   value => $quantum_config['L3']['router_auto_schedule'];
-    'DEFAULT/agent_down_time':        value => $quantum_config['server']['agent_down_time'];
+    'DEFAULT/verbose':                value       => $verbose;
+    'DEFAULT/debug':                  value       => $debug;
+    'DEFAULT/auth_strategy':          value       => $auth_strategy;
+    'DEFAULT/core_plugin':            value       => $core_plugin;
+    'DEFAULT/bind_host':              value       => $server_bind_host;
+    'DEFAULT/bind_port':              value       => $quantum_config['server']['bind_port'];
+    'DEFAULT/base_mac':               value       => $quantum_config['L2']['base_mac'];
+    'DEFAULT/mac_generation_retries': value       => $quantum_config['L2']['mac_generation_retries'];
+    'DEFAULT/dhcp_lease_duration':    value       => $quantum_config['L3']['dhcp_agent']['lease_duration'];
+    'DEFAULT/allow_bulk':             value       => $quantum_config['server']['allow_bulk'];
+    'DEFAULT/allow_overlapping_ips':  value       => $quantum_config['L3']['allow_overlapping_ips'];
+    'DEFAULT/control_exchange':       value       => $quantum_config['server']['control_exchange'];
+    'DEFAULT/network_auto_schedule':  value       => $quantum_config['L3']['network_auto_schedule'];
+    'DEFAULT/router_auto_schedule':   value       => $quantum_config['L3']['router_auto_schedule'];
+    'DEFAULT/agent_down_time':        value       => $quantum_config['server']['agent_down_time'];
+    'DEFAULT/firewall_driver':        value       => 'quantum.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver';
+    'quota/quota_driver':             value       => 'quantum.db.quota_db.DbQuotaDriver';
     'keystone_authtoken/auth_host':         value => $quantum_config['keystone']['auth_host'];
     'keystone_authtoken/auth_port':         value => $quantum_config['keystone']['auth_port'];
     'keystone_authtoken/auth_url':          value => $quantum_config['keystone']['auth_url'];
