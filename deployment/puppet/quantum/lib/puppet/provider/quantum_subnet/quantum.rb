@@ -10,27 +10,21 @@ Puppet::Type.type(:quantum_subnet).provide(
 
   optional_commands :quantum  => 'quantum'
   optional_commands :keystone => 'keystone'
-  optional_commands :sleep => 'sleep'
 
   # I need to setup caching and what-not to make this lookup performance not suck
   def self.instances
     network_list = auth_quantum("subnet-list")
-    return [] if network_list.chomp.empty?
+    if network_list.nil?
+      raise(Puppet::ExecutionFailure, "Can't prefetch subnet-list. Quantum or Keystone API not availaible.")
+    elsif network_list.chomp.empty?
+      return []
+    end
 
     network_list.split("\n")[3..-2].collect do |net|
       new(
         :name   => net.split[3],
         :ensure => :present
       )
-    end
-  end
-
-  def self.prefetch(resources)
-    instances.each do |i|
-      res = resources[i.name.to_s]
-      if ! res.nil?
-        res.provider = i
-      end
     end
   end
 
@@ -74,8 +68,6 @@ Puppet::Type.type(:quantum_subnet).provide(
         proto_opts.push(opt).push(@resource[param])
       end
     end
-
-    check_quantum_api_availability(120)
 
     auth_quantum('subnet-create',
       '--tenant-id', tenant_id[@resource[:tenant]],
