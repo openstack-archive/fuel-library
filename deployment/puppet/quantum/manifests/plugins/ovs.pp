@@ -65,11 +65,12 @@ class quantum::plugins::ovs (
     'DATABASE/reconnect_interval':  value => $quantum_config['database']['reconnect_interval'];
   } ->
   quantum_plugin_ovs {
-    'OVS/integration_bridge':       value => $quantum_config['L2']['integration_bridge'];
-    'OVS/tenant_network_type':      value => $quantum_config['L2']['segmentation_type'];
-    'OVS/enable_tunneling':         value => $quantum_config['L2']['enable_tunneling'];
-    'AGENT/polling_interval':       value => $quantum_config['polling_interval'];
-    'AGENT/root_helper':            value => $quantum_config['root_helper'];
+    'OVS/integration_bridge':       value  => $quantum_config['L2']['integration_bridge'];
+    'OVS/tenant_network_type':      value  => $quantum_config['L2']['segmentation_type'];
+    'OVS/enable_tunneling':         value  => $quantum_config['L2']['enable_tunneling'];
+    'AGENT/polling_interval':       value  => $quantum_config['polling_interval'];
+    'AGENT/root_helper':            value  => $quantum_config['root_helper'];
+    'securitygroup/firewall_driver': value => 'quantum.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver';
   }
 
   if $quantum_config['L2']['enable_tunneling'] {
