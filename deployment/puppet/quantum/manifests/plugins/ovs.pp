@@ -70,7 +70,7 @@ class quantum::plugins::ovs (
     'OVS/enable_tunneling':         value  => $quantum_config['L2']['enable_tunneling'];
     'AGENT/polling_interval':       value  => $quantum_config['polling_interval'];
     'AGENT/root_helper':            value  => $quantum_config['root_helper'];
-    'securitygroup/firewall_driver': value => 'quantum.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver';
+    'SECURITYGROUP/firewall_driver': value => 'quantum.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver';
   }
 
   if $quantum_config['L2']['enable_tunneling'] {
