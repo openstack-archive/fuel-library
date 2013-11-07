@@ -193,7 +193,7 @@ class PManager(object):
                               "{3}".format(part["mount"], size,
                                            disk["id"], pcount))
                 else:
-                    if part["mount"] != "swap":
+                    if part["mount"] != "swap" and tabfstype != "none":
                         disk_label = self._getlabel(part.get('disk_label'))
                         self.post("mkfs.{0} -f $(readlink -f /dev/{1})"
                                   "{2} {3}".format(tabfstype, disk["id"],
@@ -202,11 +202,12 @@ class PManager(object):
                             self.post("mkdir -p /mnt/sysimage{0}".format(
                                 part["mount"]))
 
-                    self.post("echo 'UUID=$(blkid -s UUID -o value "
-                              "$(readlink -f /dev/{0}){1}) "
-                              "{2} {3} defaults 0 0'"
-                              " >> /mnt/sysimage/etc/fstab".format(
-                                  disk["id"], pcount, tabmount, tabfstype))
+                    if tabfstype != "none":
+                        self.post("echo 'UUID=$(blkid -s UUID -o value "
+                                  "$(readlink -f /dev/{0}){1}) "
+                                  "{2} {3} defaults 0 0'"
+                                  " >> /mnt/sysimage/etc/fstab".format(
+                                      disk["id"], pcount, tabmount, tabfstype))
 
     def raids(self, volume_filter=None):
         if not volume_filter:
@@ -313,22 +314,24 @@ class PManager(object):
                 else:
                     self.post("lvcreate --size {0} --name {1} {2}".format(
                         size, lv["name"], vg["id"]))
-                    if lv["mount"] != "swap":
+                    if lv["mount"] != "swap" and tabfstype != "none":
                         self.post("mkfs.{0} /dev/mapper/{1}-{2}".format(
                             tabfstype, vg["id"], lv["name"]))
                         self.post("mkdir -p /mnt/sysimage{0}"
                                   "".format(lv["mount"]))
-                    """
-                    The name of the device. An LVM device is
-                    expressed as the volume group name and the logical
-                    volume name separated by a hyphen. A hyphen in
-                    the original name is translated to two hyphens.
-                    """
-                    self.post("echo '/dev/mapper/{0}-{1} {2} {3} defaults 0 0'"
-                              " >> /mnt/sysimage/etc/fstab".format(
-                                  vg["id"].replace("-", "--"),
-                                  lv["name"].replace("-", "--"),
-                                  tabmount, tabfstype))
+
+                    if tabfstype != "none":
+                        """
+                        The name of the device. An LVM device is
+                        expressed as the volume group name and the logical
+                        volume name separated by a hyphen. A hyphen in
+                        the original name is translated to two hyphens.
+                        """
+                        self.post("echo '/dev/mapper/{0}-{1} {2} {3} defaults 0 0'"
+                                  " >> /mnt/sysimage/etc/fstab".format(
+                                      vg["id"].replace("-", "--"),
+                                      lv["name"].replace("-", "--"),
+                                      tabmount, tabfstype))
 
     def bootloader(self):
         devs = []
