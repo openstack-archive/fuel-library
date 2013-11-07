@@ -12,12 +12,21 @@ $openstack_version = {
 tag("${::fuel_settings['deployment_id']}::${::fuel_settings['environment']}")
 
 #Stages configuration
+stage {'zero': } ->
 stage {'first': } ->
 stage {'openstack-custom-repo': } ->
 stage {'netconfig': } ->
 stage {'corosync_setup': } ->
 stage {'cluster_head': } ->
 stage {'openstack-firewall': } -> Stage['main']
+
+class begin_deployment ()
+{
+  $role = $::fuel_settings['role']
+  notify { "***** Beginning deployment of node ${::hostname} with role $role *****": }
+}
+
+class {'begin_deployment': stage => 'zero' }
 
 stage {'glance-image':
   require => Stage['main'],
