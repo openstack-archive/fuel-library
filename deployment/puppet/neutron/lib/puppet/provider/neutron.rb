@@ -77,9 +77,11 @@ class Puppet::Provider::Neutron < Puppet::Provider
         break
       rescue Puppet::ExecutionFailure => e
         if ! e.message =~ /(\(HTTP\s+400\))|
+              (400-\{\'message\'\:\s+\'\'\})|
               (\[Errno 111\]\s+Connection\s+refused)|
               (503\s+Service\s+Unavailable)|
               (\:\s+Maximum\s+attempts\s+reached)|
+              (Unauthorized\:\s+bad\s+credentials)|
               (Max\s+retries\s+exceeded)/
           raise(e)
         end
