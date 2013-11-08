@@ -70,7 +70,7 @@ Puppet::Type.newtype(:l3_if_downup) do
         if val.to_i() >= 0
           true
         else
-          fail("Timeout must be in seconds, not '#{val}'")
+          fail("Timeout must be a positive integer, not '#{val}'.")
         end
       end
       munge do |val|
