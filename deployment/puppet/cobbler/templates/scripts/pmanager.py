@@ -22,6 +22,12 @@ class PManager(object):
         self._rcount = 0
         self._pvcount = 0
 
+    def _pseparator(self, devname):
+        pseparator = ''
+        if devname.find('cciss') > 0:
+            pseparator = 'p'
+        return pseparator
+
     def pcount(self, disk_id, increment=0):
         self._pcount[disk_id] = self._pcount.get(disk_id, 0) + increment
         return self._pcount.get(disk_id, 0)
@@ -190,13 +196,16 @@ class PManager(object):
                 if size > 0 and size <= 16777216 and part["mount"] != "none":
                     self.kick("partition {0} "
                               "--onpart=$(readlink -f /dev/{2})"
-                              "{3}".format(part["mount"], size,
-                                           disk["id"], pcount))
+                              "{3}{4}".format(part["mount"], size,
+                                           disk["id"],
+                                           self._pseparator(disk["id"]),
+                                           pcount))
                 else:
                     if part["mount"] != "swap" and tabfstype != "none":
                         disk_label = self._getlabel(part.get('disk_label'))
                         self.post("mkfs.{0} -f $(readlink -f /dev/{1})"
-                                  "{2} {3}".format(tabfstype, disk["id"],
+                                  "{2}{3} {4}".format(tabfstype, disk["id"],
+                                                   self._pseparator(disk["id"]),
                                                    pcount, disk_label))
                         if part["mount"] != "none":
                             self.post("mkdir -p /mnt/sysimage{0}".format(
@@ -204,10 +213,11 @@ class PManager(object):
 
                     if tabfstype != "none":
                         self.post("echo 'UUID=$(blkid -s UUID -o value "
-                                  "$(readlink -f /dev/{0}){1}) "
-                                  "{2} {3} defaults 0 0'"
+                                  "$(readlink -f /dev/{0}){1}{2}) "
+                                  "{3} {4} defaults 0 0'"
                                   " >> /mnt/sysimage/etc/fstab".format(
-                                      disk["id"], pcount, tabmount, tabfstype))
+                                      disk["id"], self._pseparator(disk["id"]),
+                                      pcount, tabmount, tabfstype))
 
     def raids(self, volume_filter=None):
         if not volume_filter:
@@ -224,8 +234,8 @@ class PManager(object):
                 pcount = self.pcount(disk["id"], 1)
                 if not phys.get(raid["mount"]):
                     phys[raid["mount"]] = []
-                phys[raid["mount"]].append("$(readlink -f /dev/{0}){1}".
-                    format(disk["id"], pcount))
+                phys[raid["mount"]].append("$(readlink -f /dev/{0}){1}{2}".
+                    format(disk["id"], self._pseparator(disk["id"]), pcount))
                 rname = "raid.{0:03d}".format(self.rcount(1))
                 begin_size = self.psize(disk["id"])
                 end_size = self.psize(disk["id"], raid["size"] * self.factor)
@@ -234,8 +244,8 @@ class PManager(object):
                              disk["id"], self._parttype(pcount),
                              begin_size, end_size, self.unit))
                 self.kick("partition {0} "
-                          "--onpart=$(readlink -f /dev/{2}){3}"
-                          "".format(rname, raid["size"], disk["id"], pcount))
+                          "--onpart=$(readlink -f /dev/{2}){3}{4}"
+                          "".format(rname, raid["size"], disk["id"], self._pseparator(disk["id"]), pcount))
 
                 if not raids.get(raid["mount"]):
                     raids[raid["mount"]] = []
@@ -285,8 +295,8 @@ class PManager(object):
                              disk["id"], self._parttype(pcount),
                              begin_size, end_size, self.unit))
                 self.kick("partition {0} "
-                          "--onpart=$(readlink -f /dev/{2}){3}"
-                          "".format(pvname, pv["size"], disk["id"], pcount))
+                          "--onpart=$(readlink -f /dev/{2}){3}{4}"
+                          "".format(pvname, pv["size"], disk["id"], self._pseparator(disk["id"]), pcount))
 
                 if not pvs.get(pv["vg"]):
                     pvs[pv["vg"]] = []
@@ -431,6 +441,12 @@ class PreseedPManager(object):
         if command:
             return self._early.append(command)
         return self._early
+
+    def _pseparator(self, devname):
+        pseparator = ''
+        if devname.find('cciss') > 0:
+            pseparator = 'p'
+        return pseparator
 
     def _getlabel(self, label):
         if not label:
@@ -609,17 +625,19 @@ class PreseedPManager(object):
                 if not part.get("file_system", "xfs") in ("swap", None, "none"):
                     disk_label = self._getlabel(part.get("disk_label"))
                     self.late("mkfs.{0} -f $(readlink -f /dev/{1})"
-                              "{2} {3}".format(part.get("file_system", "xfs"),
-                                           disk["id"], pcount, disk_label))
+                              "{2}{3} {4}".format(part.get("file_system", "xfs"),
+                                           disk["id"], self._pseparator(disk["id"]),
+                                           pcount, disk_label))
                 if not part["mount"] in (None, "none", "swap"):
                     self.late("mkdir -p /target{0}".format(part["mount"]))
                 if not part["mount"] in (None, "none"):
                     self.late("echo 'UUID=$(blkid -s UUID -o value "
-                              "$(readlink -f /dev/{0}){1}) "
-                              "{2} {3} {4} 0 0'"
+                              "$(readlink -f /dev/{0}){1}{2}) "
+                              "{3} {4} {5} 0 0'"
                               " >> /target/etc/fstab"
                               "".format(
-                                  disk["id"], pcount, tabmount,
+                                  disk["id"], self._pseparator(disk["id"]),
+                                  pcount, tabmount,
                                   part.get("file_system", "xfs"),
                                   ("defaults" if part["mount"] != "swap"
                                    else "sw" )))
@@ -675,11 +693,13 @@ class PreseedPManager(object):
 
                 self.late("sleep 3")
                 self.late("hdparm -z $(readlink -f /dev/{0})".format(disk["id"]))
-                pvlist.append("pvcreate -ff $(readlink -f /dev/{0}){1}".format(disk["id"], pcount))
+                pvlist.append("pvcreate -ff $(readlink -f /dev/{0}){1}{2}".format(disk["id"],
+                                                                            self._pseparator(disk["id"]),
+                                                                            pcount))
                 if not devices_dict.get(pv["vg"]):
                     devices_dict[pv["vg"]] = []
                 devices_dict[pv["vg"]].append(
-                    "$(readlink -f /dev/{0}){1}".format(disk["id"], pcount))
+                    "$(readlink -f /dev/{0}){1}{2}".format(disk["id"], self._pseparator(disk["id"]), pcount))
 
         self.log_lvm("before additional cleaning", False)
         self.erase_lvm_metadata(False)
