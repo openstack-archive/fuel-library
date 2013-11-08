@@ -190,6 +190,7 @@ class quantum::agents::ovs (
       ensure     => stopped,# !!! Warning !!!
       hasstatus  => false,  # !!! 'stopped' is not mistake
       hasrestart => false,  # !!! cleanup is simple script running once at OS boot
+      provider   => $::quantum::params::service_provider,
     }
     Service['quantum-ovs-agent'] ->       # it's not mistate!
       Service['quantum-ovs-cleanup'] ->   # cleanup service after agent.
