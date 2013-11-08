@@ -141,7 +141,7 @@ Puppet::Type.type(:l3_if_downup).provide(:ruby) do
               if _rc.to_i() == 1
                 break
               elsif _rc.to_i() == -1
-                notice("Interface '#{@resource[:interface]}' prohibited by administrator!!!")
+                notice("Seems that the interface '#{@resource[:interface]}' was brought down administratively. Further deployment actions may fail!")
                 sleep(10)
               else
                 if _w == 0
