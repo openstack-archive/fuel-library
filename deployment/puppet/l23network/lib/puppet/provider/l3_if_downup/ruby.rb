@@ -1,3 +1,4 @@
+require 'timeout'
 require 'ipaddr'
 
 begin
@@ -82,9 +83,9 @@ Puppet::Type.type(:l3_if_downup).provide(:ruby) do
     begin # downing inteface
       # add force for debian-based OS ([PRD-2132])
       if Facter.value(:osfamily) == 'Debian'
-	 ifdn(['--force',@resource[:interface]])
+        ifdn(['--force',@resource[:interface]])
       else
-         ifdn(@resource[:interface])
+        ifdn(@resource[:interface])
       end
       notice("Interface '#{@resource[:interface]}' down.")
       sleep @resource[:sleep_time]
@@ -121,11 +122,43 @@ Puppet::Type.type(:l3_if_downup).provide(:ruby) do
     begin  # Put interface to UP state
       if Facter.value(:osfamily) == 'Debian'
       # add force for debian-based OS ([PRD-2132])
-	 ifup(['--force',@resource[:interface]])
+        ifup(['--force', @resource[:interface]])
       else
-         ifup(@resource[:interface])
+        ifup(@resource[:interface])
       end
       notice("Interface '#{@resource[:interface]}' up.")
+      # checking and waiting carrier for PHYS. interface
+      if (@resource[:interface] =~ /^eth\d+$/) and @resource[:wait_carrier_after_ifup]
+        begin
+          Timeout::timeout(@resource[:wait_carrier_after_ifup_timeout]) do
+            _w = 10
+            loop do
+              begin
+                _rc = File.open("/sys/class/net/#{@resource[:interface]}/carrier", 'r'){ |file| file.read() }
+              rescue
+                _rc = -1
+              end
+              if _rc.to_i() == 1
+                break
+              elsif _rc.to_i() == -1
+                notice("Interface '#{@resource[:interface]}' prohibited by administrator!!!")
+                sleep(10)
+              else
+                if _w == 0
+                  notice("Interface '#{@resource[:interface]}' waiting for carrier...")
+                  _w = 10
+                end
+                sleep(1)
+                _w -= 1
+              end
+            end
+          end
+        rescue Timeout::Error
+          notice("Interface '#{@resource[:interface]}' has no carrier. :(")
+        else
+          notice("Interface '#{@resource[:interface]}' has good carrier.")
+        end
+      end
       if @resource[:check_by_ping] == 'gateway'
         # find gateway for interface and ping it
         ip_to_ping = find_gateway(@resource[:interface], @resource[:subscribe])
