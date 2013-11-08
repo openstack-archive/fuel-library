@@ -42,7 +42,12 @@ class murano (
   $murano_db_user                       = 'murano',
   $murano_db_host                       = 'localhost',
   $murano_db_allowed_hosts              = ['localhost','%'],
+#
+  $murano_metadata_bind_host            = '127.0.0.1',
+  $murano_metadata_bind_port            = '8084',
 ) {
+
+  Class['mysql::server'] -> Class['murano::db::mysql'] -> Class['murano::rabbitmq'] -> Class['murano::common'] -> Class['murano::conductor'] -> Class['murano::api'] -> Class['murano::metadataclient'] -> Class['murano::repository'] -> Class['murano::python_muranoclient'] -> Class['murano::dashboard']
 
   $murano_keystone_auth_url = "${murano_keystone_protocol}://${murano_keystone_host}:${murano_keystone_port}/v2.0"
 
@@ -54,6 +59,27 @@ class murano (
     allowed_hosts                        => $murano_db_allowed_hosts,
   }
 
+  class { 'murano::common':
+  }
+
+  class { 'murano::metadataclient':
+  }
+
+  class { 'murano::repository':
+    verbose                        => $murano_debug,
+    debug                          => $murano_verbose,
+    repository_auth_host           => $murano_keystone_host,
+    repository_auth_port           => $murano_keystone_port,
+    repository_auth_protocol       => $murano_keystone_protocol,
+    repository_admin_user          => $murano_keystone_user,
+    repository_admin_password      => $murano_keystone_password,
+    repository_admin_tenant_name   => $murano_keystone_tenant,
+  }
+
+  class { 'murano::python_muranoclient':
+  }
+
+
   class { 'murano::conductor' :
     debug                                => $murano_debug,
     verbose                              => $murano_verbose,
@@ -61,7 +87,6 @@ class murano (
     data_dir                             => $murano_data_dir,
     max_environments                     => $murano_max_environments,
     auth_url                             => $murano_keystone_auth_url,
-
     rabbit_host                          => $murano_rabbit_host,
     rabbit_port                          => $murano_rabbit_port,
     rabbit_ssl                           => $murano_rabbit_ssl,
@@ -109,9 +134,10 @@ class murano (
   }
 
   class { 'murano::dashboard' :
-    settings_py           => '/usr/share/openstack-dashboard/openstack_dashboard/settings.py',
-    collect_static_script => '/usr/share/openstack-dashboard/manage.py',
-    murano_url_string     => "MURANO_API_URL = 'http://${murano_api_host}:${murano_api_bind_port}'",
+    settings_py                    => '/usr/share/openstack-dashboard/openstack_dashboard/settings.py',
+    #collect_static_script         => '/usr/share/openstack-dashboard/manage.py',
+    murano_url_string              => "MURANO_API_URL = 'http://${murano_api_host}:${murano_api_bind_port}'",
+    murano_metadata_url_string     => "MURANO_METADATA_URL = 'http://${murano_metadata_host}:${murano_metadata_bind_port}'",
   }
 
   class { 'murano::rabbitmq' :
@@ -121,6 +147,6 @@ class murano (
     rabbitmq_main_port => $murano_rabbit_port,
   }
 
-  Class['mysql::server'] -> Class['murano::db::mysql'] -> Class['murano::rabbitmq'] -> Class['murano::conductor'] -> Class['murano::api'] -> Class['murano::dashboard']
+
 
 }

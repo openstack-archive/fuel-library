@@ -56,9 +56,6 @@ class heat(
   class { 'heat::install' :
   }
 
-  class { 'heat::cli' :
-  }
-
   class { 'heat::client' :
   }
 
