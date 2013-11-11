@@ -117,7 +117,7 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
       raise(Puppet::ParseError, "generate_network_config(): Wrong number of arguments.")
     end
 
-    config_hash = L23network::Scheme.get()
+    config_hash = L23network::Scheme.get_config(lookupvar('l3_fqdn_hostname'))
     if config_hash.nil?
       raise(Puppet::ParseError, "get_network_role_property(...): You must call prepare_network_config(...) first!")
     end
