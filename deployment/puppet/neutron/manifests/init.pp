@@ -27,7 +27,6 @@ class neutron (
       owner   => 'root',
       group   => 'root',
       mode    => 755,
-      #require => Package['neutron']
     }
   }
 
@@ -36,6 +35,7 @@ class neutron (
     ensure => present
   }
 
+  Package['neutron'] ->
   file {'q-agent-cleanup.py':
     path   => '/usr/bin/q-agent-cleanup.py',
     mode   => 755,
@@ -44,15 +44,16 @@ class neutron (
     source => "puppet:///modules/neutron/q-agent-cleanup.py",
   }
 
+  Package['neutron'] ->
   file {'neutron-root':
     path => '/etc/sudoers.d/neutron-root',
     mode => 600,
     owner => root,
     group => root,
     source => "puppet:///modules/neutron/neutron-root",
-    before => Package['neutron'],
   }
 
+  Package['neutron'] ->
   file {'/var/cache/neutron':
     ensure  => directory,
     path   => '/var/cache/neutron',
@@ -177,10 +178,11 @@ class neutron (
     }
   }
   # We must setup logging before start services under pacemaker
-  File['neutron-logging.conf'] -> Service<| title == "$::neutron::params::server_service" |>
-  File['neutron-logging.conf'] -> Anchor<| title == 'neutron-ovs-agent' |>
-  File['neutron-logging.conf'] -> Anchor<| title == 'neutron-l3' |>
-  File['neutron-logging.conf'] -> Anchor<| title == 'neutron-dhcp-agent' |>
+  Package['neutron'] -> File <| title=='neutron-logging.conf' |>
+  File <| title=='neutron-logging.conf' |> -> Service<| title == "$::neutron::params::server_service" |>
+  File <| title=='neutron-logging.conf' |> -> Anchor<| title == 'neutron-ovs-agent' |>
+  File <| title=='neutron-logging.conf' |> -> Anchor<| title == 'neutron-l3' |>
+  File <| title=='neutron-logging.conf' |> -> Anchor<| title == 'neutron-dhcp-agent' |>
   File <| title=='/etc/neutron' |> -> File <| title=='neutron-logging.conf' |>
 
   if defined(Anchor['neutron-server-config-done']) {
