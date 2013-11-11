@@ -11,7 +11,7 @@ class ceph::mon {
   exec {'ceph-deploy mon create':
     command   => "ceph-deploy mon create ${::hostname}:${::internal_address}",
     logoutput => true,
-    unless    => 'ceph mon stat | grep ${::internal_address}',
+    unless    => "ceph mon stat | grep ${::internal_address}",
     # TODO: need method to update mon_nodes in ceph.conf
   }
 
