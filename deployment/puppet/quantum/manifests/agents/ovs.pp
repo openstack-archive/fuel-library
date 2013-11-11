@@ -184,14 +184,30 @@ class quantum::agents::ovs (
   Class[quantum::waistline] -> Service['quantum-ovs-agent']
 
   #todo: This service must be disabled if Quantum-ovs-agent managed by pacemaker
-    service { 'quantum-ovs-cleanup':
-      name       => 'quantum-ovs-cleanup',
-      enable     => true,
-      ensure     => stopped,# !!! Warning !!!
-      hasstatus  => false,  # !!! 'stopped' is not mistake
-      hasrestart => false,  # !!! cleanup is simple script running once at OS boot
-      provider   => $::quantum::params::service_provider,
+  case $operatingsystem {
+   'Ubuntu': {
+      package { 'quantum-ovs-cleanup': }
+      service { 'quantum-ovs-cleanup':
+        name       => 'quantum-ovs-cleanup',
+        enable     => true,
+        ensure     => stopped,# !!! Warning !!!
+        hasstatus  => false,  # !!! 'stopped' is not mistake
+        hasrestart => false,  # !!! cleanup is simple script running once at OS boot
+        provider   => $::quantum::params::service_provider,
+        require    => Package['quantum-ovs-cleanup'],
+      }
     }
+    default: { 
+      service { 'quantum-ovs-cleanup':
+        name       => 'quantum-ovs-cleanup',
+        enable     => true,
+        ensure     => stopped,# !!! Warning !!!
+        hasstatus  => false,  # !!! 'stopped' is not mistake
+        hasrestart => false,  # !!! cleanup is simple script running once at OS boot
+        provider   => $::quantum::params::service_provider,
+      }
+    }
+  }
     Service['quantum-ovs-agent'] ->       # it's not mistate!
       Service['quantum-ovs-cleanup'] ->   # cleanup service after agent.
         Anchor['quantum-ovs-agent-done']
