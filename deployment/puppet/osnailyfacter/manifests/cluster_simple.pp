@@ -260,6 +260,24 @@ class osnailyfacter::cluster_simple {
           use_neutron               => $::use_quantum,
         }
       }
+        class { 'heat' :
+          pacemaker              => false,
+          external_ip            => $controller_node_public,
+
+          heat_keystone_host     => $controller_node_address,
+          heat_keystone_user     => 'heat',
+          heat_keystone_password => 'heat',
+          heat_keystone_tenant   => 'services',
+
+          heat_rabbit_host       => $controller_node_address,
+          heat_rabbit_login      => $rabbit_hash['user'],
+          heat_rabbit_password   => $rabbit_hash['password'],
+          heat_rabbit_port       => '5672',
+
+          heat_db_host           => $controller_node_address,
+          heat_db_password       => $heat_hash['db_password'],
+        }
+
 
       if $murano_hash['enabled'] {
 
@@ -277,24 +295,6 @@ class osnailyfacter::cluster_simple {
           murano_keystone_user     => 'admin',
           murano_keystone_password => 'admin',
           murano_keystone_tenant   => 'admin',
-        }
-
-        class { 'heat' :
-          pacemaker              => false,
-          external_ip            => $controller_node_public,
-
-          heat_keystone_host     => $controller_node_address,
-          heat_keystone_user     => 'heat',
-          heat_keystone_password => 'heat',
-          heat_keystone_tenant   => 'services',
-
-          heat_rabbit_host       => $controller_node_address,
-          heat_rabbit_login      => $rabbit_hash['user'],
-          heat_rabbit_password   => $rabbit_hash['password'],
-          heat_rabbit_port       => '5672',
-
-          heat_db_host           => $controller_node_address,
-          heat_db_password       => $heat_hash['db_password'],
         }
 
         Class['heat'] -> Class['murano']
