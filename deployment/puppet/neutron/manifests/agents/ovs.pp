@@ -75,10 +75,6 @@ class neutron::agents::ovs (
         Anchor['neutron-ovs-agent-done']
   }
 
-  #Quantum_config <| |> ~> Service['quantum-ovs-agent']
-  #Quantum_plugin_ovs <| |> ~> Service['quantum-ovs-agent']
-  #Service <| title == 'quantum-server' |> -> Service['quantum-ovs-agent']
-
   if $service_provider == 'pacemaker' {
     Neutron_config <| |> -> Cs_shadow['ovs']
     Neutron_plugin_ovs <| |> -> Cs_shadow['ovs']
@@ -194,18 +190,33 @@ class neutron::agents::ovs (
   Class[neutron::waistline] -> Service['neutron-ovs-agent']
 
   #todo: This service must be disabled if Quantum-ovs-agent managed by pacemaker
-  if $::osfamily == 'redhat' {
-    service { 'neutron-ovs-cleanup':
-      name       => 'neutron-ovs-cleanup',
-      enable     => true,
-      ensure     => stopped,# !!! Warning !!!
-      hasstatus  => false,  # !!! 'stopped' is not mistake
-      hasrestart => false,  # !!! cleanup is simple script running once at OS boot
+  case $operatingsystem {
+   'Ubuntu': {
+      package { 'neutron-ovs-cleanup': }
+      service { 'neutron-ovs-cleanup':
+        name       => 'neutron-ovs-cleanup',
+        enable     => true,
+        ensure     => stopped,# !!! Warning !!!
+        hasstatus  => false,  # !!! 'stopped' is not mistake
+        hasrestart => false,  # !!! cleanup is simple script running once at OS boot
+        provider   => $::neutron::params::service_provider,
+        require    => Package['neutron-ovs-cleanup'],
+      }
     }
+    default: { 
+      service { 'neutron-ovs-cleanup':
+        name       => 'neutron-ovs-cleanup',
+        enable     => true,
+        ensure     => stopped,# !!! Warning !!!
+        hasstatus  => false,  # !!! 'stopped' is not mistake
+        hasrestart => false,  # !!! cleanup is simple script running once at OS boot
+        provider   => $::neutron::params::service_provider,
+      }
+    }
+  }
     Service['neutron-ovs-agent'] ->       # it's not mistate!
       Service['neutron-ovs-cleanup'] ->   # cleanup service after agent.
         Anchor['neutron-ovs-agent-done']
-  }
 
   Anchor['neutron-ovs-agent'] ->
     Service['neutron-ovs-agent'] ->
