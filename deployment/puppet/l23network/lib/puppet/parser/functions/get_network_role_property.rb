@@ -41,7 +41,7 @@ Puppet::Parser::Functions::newfunction(:get_network_role_property, :type => :rva
       raise(Puppet::ParseError, "get_network_role_property(...): Wrong number of arguments.")
   end
 
-  cfg = L23network::Scheme.get()
+  cfg = L23network::Scheme.get_config(lookupvar('l3_fqdn_hostname'))
   #File.open("/tmp/L23network_scheme.yaml", 'w'){ |file| file.write cfg.to_yaml() }
   if cfg.nil?
     raise(Puppet::ParseError, "get_network_role_property(...): You must call prepare_network_config(...) first!")
