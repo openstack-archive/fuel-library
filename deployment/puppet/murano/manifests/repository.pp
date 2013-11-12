@@ -1,5 +1,4 @@
 class murano::repository (
-    $pacemaker                      = false,
     $verbose                        = 'True',
     $debug                          = 'True',
     $repository_host                = '0.0.0.0',
