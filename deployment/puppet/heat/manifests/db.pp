@@ -30,7 +30,7 @@ class heat::db (
     }
   }
 
-  heat_engine_config {
+  heat_config {
     'DEFAULT/sql_connection': value => $sql_connection;
   }
 
@@ -50,7 +50,7 @@ class heat::db (
     refreshonly => true,
     logoutput   => 'on_failure',
   }
-  
+
   File['db_sync_script'] ~> Exec['heat_db_sync']
   Package['heat-engine'] ~> Exec['heat_db_sync']
   Package['heat-api'] ~> Exec['heat_db_sync']
