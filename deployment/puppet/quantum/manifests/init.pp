@@ -27,7 +27,6 @@ class quantum (
       owner   => 'root',
       group   => 'root',
       mode    => 755,
-      #require => Package['quantum']
     }
   }
 
@@ -36,6 +35,7 @@ class quantum (
     ensure => present
   }
 
+  Package['quantum'] ->
   file {'q-agent-cleanup.py':
     path   => '/usr/bin/q-agent-cleanup.py',
     mode   => 755,
@@ -44,15 +44,16 @@ class quantum (
     source => "puppet:///modules/quantum/q-agent-cleanup.py",
   }
 
+  Package['quantum'] ->
   file {'quantum-root':
     path => '/etc/sudoers.d/quantum-root',
     mode => 600,
     owner => root,
     group => root,
     source => "puppet:///modules/quantum/quantum-root",
-    before => Package['quantum'],
   }
 
+  Package['quantum'] ->
   file {'/var/cache/quantum':
     ensure  => directory,
     path   => '/var/cache/quantum',
@@ -176,10 +177,11 @@ class quantum (
     }
   }
   # We must setup logging before start services under pacemaker
-  File['quantum-logging.conf'] -> Service<| title == "$::quantum::params::server_service" |>
-  File['quantum-logging.conf'] -> Anchor<| title == 'quantum-ovs-agent' |>
-  File['quantum-logging.conf'] -> Anchor<| title == 'quantum-l3' |>
-  File['quantum-logging.conf'] -> Anchor<| title == 'quantum-dhcp-agent' |>
+  Package['quantum'] -> File <| title=='quantum-logging.conf' |>
+  File <| title=='quantum-logging.conf' |> -> Service<| title == "$::quantum::params::server_service" |>
+  File <| title=='quantum-logging.conf' |> -> Anchor<| title == 'quantum-ovs-agent' |>
+  File <| title=='quantum-logging.conf' |> -> Anchor<| title == 'quantum-l3' |>
+  File <| title=='quantum-logging.conf' |> -> Anchor<| title == 'quantum-dhcp-agent' |>
   File <| title=='/etc/quantum' |> -> File <| title=='quantum-logging.conf' |>
 
   if defined(Anchor['quantum-server-config-done']) {
