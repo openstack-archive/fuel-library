@@ -190,16 +190,8 @@ class quantum (
     $endpoint_quantum_main_configuration = 'quantum-init-done'
   }
 
-  # FIXME Workaround for FUEL-842: remove explicit --log-config from init scripts cuz it breaks logging!
-  # FIXME this hack should be deleted after FUEL-842 have resolved
-  exec {'init-dirty-hack':
-    command => "sed -i 's/\-\-log\-config=\$loggingconf//g' /etc/init.d/quantum-*",
-    path    => ["/sbin", "/bin", "/usr/sbin", "/usr/bin"],
-  }
-
   Anchor['quantum-init'] ->
     Package['quantum'] ->
-     Exec['init-dirty-hack'] ->
       File['/var/cache/quantum'] ->
         Quantum_config<||> ->
           Quantum_api_config<||> ->
