@@ -31,7 +31,7 @@ class openstack::nova::controller (
   # Nova Required
   $nova_user_password,
   $nova_db_password,
-  primary_controller         = false,
+  $primary_controller         = false,
   # Network
   $fixed_range               = '10.0.0.0/24',
   $floating_range            = false,
