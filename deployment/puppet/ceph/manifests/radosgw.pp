@@ -11,6 +11,7 @@ class ceph::radosgw (
   $keyring_path     = '/etc/ceph/keyring.radosgw.gateway',
   $radosgw_auth_key = 'client.radosgw.gateway',
   $rgw_user         = $::ceph::params::user_httpd,
+  $use_ssl          = $::ceph::use_ssl,
 
   # RadosGW settings
   $rgw_host                         = $::ceph::rgw_host,
