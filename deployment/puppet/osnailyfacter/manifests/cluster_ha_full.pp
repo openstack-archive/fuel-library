@@ -274,6 +274,7 @@ class ha_controller (
             auth_method     => 'password',
             auth_url        => "http://${::fuel_settings['management_vip']}:5000/v2.0/",
             authtenant_name => $access_hash[tenant],
+            api_retries     => 10,
           }
           Class[nova::api] -> Nova_floating_range <| |>
         }

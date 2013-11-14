@@ -19,4 +19,9 @@ describe 'Puppet::Type.newtype(:nova_floating_range)' do
     expect {     @nova_floating_range[:auth_url] = 'h ttp://192.168.1.1:5000/v2.0/'
     }.to raise_error(Puppet::Error, /does not look/)
   end
+
+  it 'api retries should be numeric' do
+    expect {     @nova_floating_range[:api_retries] = '3b'
+    }.to raise_error(Puppet::Error, /does not look/)
+  end
 end
