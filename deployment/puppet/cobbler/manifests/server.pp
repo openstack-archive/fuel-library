@@ -160,4 +160,19 @@ class cobbler::server {
       Package[$cobbler::packages::cobbler_additional_packages],
       Package[$cobbler::packages::cobbler_package],]
   }
+
+  file { "/etc/dhcp/dhcp-enter-hooks":
+    content => template("cobbler/dhcp-enter-hooks.erb"),
+    owner   => root,
+    group   => root,
+    mode    => 0755,
+  }
+
+  file { "/etc/resolv.conf":
+    content => template("cobbler/resolv.conf.erb"),
+    owner   => root,
+    group   => root,
+    mode    => 0644,
+  }
+
 }
