@@ -37,7 +37,9 @@ class openstack::ceilometer (
 
   # Use VIP in the HA mode
   if $rabbit_ha_virtual_ip {
-    $rabbit_host = $rabbit_ha_virtual_ip
+    $rabbit_host_to_use = $rabbit_ha_virtual_ip
+  } else {
+    $rabbit_host_to_use = $rabbit_host
   }
 
   # Add the base ceilometer class & parameters
@@ -46,7 +48,7 @@ class openstack::ceilometer (
   class { '::ceilometer':
     package_ensure  => $::openstack_version['ceilometer'],
     queue_provider  => $queue_provider,
-    rabbit_host     => $rabbit_host,
+    rabbit_host     => $rabbit_host_to_use,
     rabbit_port     => $rabbit_port,
     rabbit_userid   => $rabbit_userid,
     rabbit_password => $rabbit_password,
