@@ -197,7 +197,7 @@ class openstack::controller (
 
   Class["${queue_provider}::server"] -> Nova_config <||>
   Class["${queue_provider}::server"] -> Cinder_config <||>
-  Class["${queue_provider}::server"] -> Quantum_config <||>
+  Class["${queue_provider}::server"] -> Neutron_config <||>
 
   $rabbit_addresses = inline_template("<%= @rabbit_nodes.map {|x| x + ':5672'}.join ',' %>")
   $memcached_addresses =  inline_template("<%= @cache_server_ip.collect {|ip| ip + ':' + @cache_server_port }.join ',' %>")
