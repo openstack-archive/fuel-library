@@ -11,6 +11,7 @@ class ceph::radosgw (
   $keyring_path     = '/etc/ceph/keyring.radosgw.gateway',
   $radosgw_auth_key = 'client.radosgw.gateway',
   $rgw_user         = $::ceph::params::user_httpd,
+  $use_ssl          = $::ceph::use_ssl,
 
   # RadosGW settings
   $rgw_host                         = $::ceph::rgw_host,
@@ -184,24 +185,16 @@ class ceph::radosgw (
     mode    => '0755',
     }
 
-  exec { "ceph-create-radosgw-keyring-on ${name}":
-    command => "ceph-authtool --create-keyring ${keyring_path}",
-    creates => $keyring_path,
+  exec { "ceph create ${radosgw_auth_key}":
+    command => "ceph auth get-or-create ${radosgw_auth_key} osd 'allow rwx' mon 'allow rw'",
+  }
+
+  exec { "Populate ${radosgw_auth_key} keyring":
+    command => "ceph auth get-or-create ${radosgw_auth_key} > ${keyring_path}",
+    creates => $keyring_path
   }
 
   file { $keyring_path: mode => '0640', }
-
-  exec { "ceph-generate-key-on ${name}":
-    command => "ceph-authtool ${keyring_path} -n ${radosgw_auth_key} --gen-key",
-  }
-
-  exec { "ceph-add-capabilities-to-the-key-on ${name}":
-    command => "ceph-authtool -n ${radosgw_auth_key} --cap osd 'allow rwx' --cap mon 'allow rw' ${keyring_path}",
-  }
-
-  exec { "ceph-add-to-ceph-keyring-entries-on ${name}":
-    command => "ceph -k /etc/ceph/ceph.client.admin.keyring auth add ${radosgw_auth_key} -i ${keyring_path}",
-  }
 
   Ceph_conf <||> ->
   Package[$::ceph::params::package_httpd] ->
@@ -217,11 +210,9 @@ class ceph::radosgw (
         $dir_httpd_root,
         $rgw_nss_db_path,
         $rgw_log_file,]] ->
-  Exec["ceph-create-radosgw-keyring-on ${name}"] ->
+  Exec["ceph create ${radosgw_auth_key}"] ->
+  Exec["Populate ${radosgw_auth_key} keyring"] ->
   File[$keyring_path] ->
-  Exec["ceph-generate-key-on ${name}"] ->
-  Exec["ceph-add-capabilities-to-the-key-on ${name}"] ->
-  Exec["ceph-add-to-ceph-keyring-entries-on ${name}"] ->
   Firewall['012 RadosGW allow'] ~>
   Service ['httpd'] ~>
   Service['radosgw']

@@ -119,7 +119,7 @@ class osnailyfacter::cluster_ha {
   $controller_public_addresses = nodes_to_hash($controllers,'name','public_address')
   $controller_storage_addresses = nodes_to_hash($controllers,'name','storage_address')
   $controller_hostnames = keys($controller_internal_addresses)
-  $controller_nodes = sort(values($controller_internal_addresses))
+  $controller_nodes = ipsort(values($controller_internal_addresses))
   $controller_node_public  = $::fuel_settings['public_vip']
   $controller_node_address = $::fuel_settings['management_vip']
   $mountpoints = filter_hash($mp_hash,'point')
@@ -177,6 +177,8 @@ class osnailyfacter::cluster_ha {
     } else {
       $primary_proxy = false
     }
+  } elsif ($storage_hash['objects_ceph']) {
+    $rgw_balancers = $controller_storage_addresses
   }
 
 
@@ -251,6 +253,7 @@ class osnailyfacter::cluster_ha {
       export_resources              => false,
       glance_backend                => $glance_backend,
       swift_proxies                 => $swift_proxies,
+      rgw_balancers                 => $rgw_balancers,
       quantum                       => $::use_quantum,
       quantum_config                => $quantum_config,
       quantum_network_node          => $::use_quantum,
