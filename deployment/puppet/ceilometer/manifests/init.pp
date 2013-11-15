@@ -95,7 +95,7 @@ class ceilometer(
         'DEFAULT/rabbit_password'    : value => $rabbit_password;
         'DEFAULT/rabbit_virtual_host': value => $rabbit_virtual_host;
         'DEFAULT/rabbit_ha_queues'   : value => true;
-        'DEFAULT/rabbit_hosts'       : value => "${rabbit_host}:${rabbit_port}"
+        'DEFAULT/rabbit_hosts'       : value => "${rabbit_host}:${rabbit_port}";
         'DEFAULT/rpc_backend':
           value => 'ceilometer.openstack.common.rpc.impl_kombu';
       }
