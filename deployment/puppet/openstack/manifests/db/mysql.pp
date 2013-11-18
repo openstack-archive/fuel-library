@@ -39,6 +39,7 @@ class openstack::db::mysql (
     $nova_db_password,
     $cinder_db_password,
     $neutron_db_password,
+    $ceilometer_db_password,
     # MySQL
     $mysql_bind_address      = '0.0.0.0',
     $mysql_account_security  = true,
@@ -52,6 +53,10 @@ class openstack::db::mysql (
     $nova_db_user            = 'nova',
     $nova_db_dbname          = 'nova',
     $allowed_hosts           = false,
+    # Ceilometer
+    $ceilometer              = false,
+    $ceilometer_db_user      = 'ceilometer',
+    $ceilometer_db_dbname    = 'ceilometer',
     # Cinder
     $cinder                  = true,
     $cinder_db_user          = 'cinder',
@@ -125,6 +130,16 @@ class openstack::db::mysql (
       password      => $nova_db_password,
       dbname        => $nova_db_dbname,
       allowed_hosts => $allowed_hosts,
+    }
+
+    # Create the Ceilometer db
+    if ($ceilometer) {
+      class { 'ceilometer::db::mysql':
+        user          => $ceilometer_db_user,
+        password      => $ceilometer_db_password,
+        dbname        => $ceilometer_db_dbname,
+        allowed_hosts => $allowed_hosts,
+      }
     }
 
     # create cinder db
