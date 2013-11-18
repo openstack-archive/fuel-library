@@ -1,16 +1,14 @@
 class heat(
   $pacemaker                     = false,
-  $external_ip                   = '127.0.0.1',      
+  $external_ip                   = '127.0.0.1',
 
-  # keystone
   $heat_keystone_host            = '127.0.0.1',
   $heat_keystone_port            = '5000',
   $heat_keystone_protocol        = 'http',
   $heat_keystone_user            = 'heat',
   $heat_keystone_tenant          = 'services',
-  $heat_keystone_password        = 'heat',  
+  $heat_keystone_password        = 'heat',
 
-  # database
   $heat_db_user                  = 'heat',
   $heat_db_password              = 'heat',
   $heat_db_host                  = '127.0.0.1',
@@ -38,7 +36,7 @@ class heat(
   $heat_rabbit_port              = '5672',
   $heat_rabbit_queue_host        = 'heat',
 ) {
-  
+
   $heat_keystone_ec2_uri         = "${heat_keystone_protocol}://${heat_keystone_host}:${heat_keystone_port}/v2.0/ec2tokens"
   $heat_auth_uri                 = "${heat_keystone_protocol}://${heat_keystone_host}:${heat_keystone_port}/v2.0"
   $heat_metadata_server_url      = "http://${external_ip}:${heat_api_cfn_bind_port}"
@@ -54,21 +52,12 @@ class heat(
   }
 
   class { 'heat::install' :
-  }
-
-  class { 'heat::client' :
-  }
-
-  class { 'heat::engine' :
-    pacemaker                      => $pacemaker,
     keystone_host                  => $heat_keystone_host,
     keystone_port                  => $heat_keystone_port,
     keystone_protocol              => $heat_keystone_protocol,
     keystone_user                  => $heat_keystone_user,
     keystone_tenant                => $heat_keystone_tenant,
     keystone_password              => $heat_keystone_password,
-    bind_host                      => $heat_engine_bind_host,
-    bind_port                      => $heat_engine_bind_port,
     heat_stack_user_role           => $heat_stack_user_role,
     heat_metadata_server_url       => $heat_metadata_server_url,
     heat_waitcondition_server_url  => $heat_waitcondition_server_url,
@@ -76,7 +65,6 @@ class heat(
     verbose                        => $heat_verbose,
     debug                          => $heat_debug,
     rpc_backend                    => $heat_rpc_backend,
-
     rabbit_host                    => $heat_rabbit_host,
     rabbit_userid                  => $heat_rabbit_login,
     rabbit_ha_queues               => $heat_rabbit_ha_queues,
@@ -84,31 +72,24 @@ class heat(
     rabbit_virtualhost             => $heat_rabbit_virtualhost,
     rabbit_port                    => $heat_rabbit_port,
     rabbit_queue_host              => $heat_rabbit_queue_host,                                                 
+    api_bind_host                  => $heat_api_bind_host,
+    api_bind_port                  => $heat_api_bind_port,
+    api_cfn_bind_host              => $heat_api_cfn_bind_host,
+    api_cfn_bind_port              => $heat_api_cfn_bind_port,
+    api_cloudwatch_bind_host       => $heat_api_cloudwatch_bind_host,
+    api_cloudwatch_bind_port       => $heat_api_cloudwatch_bind_port,
+  }
+
+  class { 'heat::client' :
+  }
+
+  class { 'heat::engine' :
+    pacemaker                      => $pacemaker,
   }
 
   class { 'heat::api' :
-    pacemaker                      => $pacemaker,
-    keystone_host                  => $heat_keystone_host,
-    keystone_port                  => $heat_keystone_port,
-    keystone_protocol              => $heat_keystone_protocol,
-    keystone_user                  => $heat_keystone_user,
-    keystone_tenant                => $heat_keystone_tenant,
-    keystone_password              => $heat_keystone_password,
-    keystone_ec2_uri               => $heat_keystone_ec2_uri,
-    auth_uri                       => $heat_auth_uri,
     bind_host                      => $heat_api_bind_host,
     bind_port                      => $heat_api_bind_port,
-    verbose                        => $heat_verbose,
-    debug                          => $heat_debug,
-    rpc_backend                    => $heat_rpc_backend,
-
-    rabbit_host                    => $heat_rabbit_host,
-    rabbit_userid                  => $heat_rabbit_login,
-    rabbit_ha_queues               => $heat_rabbit_ha_queues,
-    rabbit_password                => $heat_rabbit_password,
-    rabbit_virtualhost             => $heat_rabbit_virtualhost,
-    rabbit_port                    => $heat_rabbit_port,
-    rabbit_queue_host              => $heat_rabbit_queue_host,
   }
 
   class { 'heat::keystone::auth' :
@@ -128,53 +109,13 @@ class heat(
   }
 
   class { 'heat::api_cfn' :
-    pacemaker                     => $pacemaker,
-    keystone_host                 => $heat_keystone_host,
-    keystone_port                 => $heat_keystone_port,
-    keystone_protocol             => $heat_keystone_protocol,
-    keystone_user                 => $heat_keystone_user,
-    keystone_tenant               => $heat_keystone_tenant,
-    keystone_password             => $heat_keystone_password,
-    keystone_ec2_uri              => $heat_keystone_ec2_uri,
-    auth_uri                      => $heat_auth_uri,
     bind_host                     => $heat_api_cfn_bind_host,
     bind_port                     => $heat_api_cfn_bind_port,
-    verbose                       => $heat_verbose,
-    debug                         => $heat_debug,
-    rpc_backend                   => $heat_rpc_backend,
-
-    rabbit_host                   => $heat_rabbit_host,
-    rabbit_userid                 => $heat_rabbit_login,
-    rabbit_ha_queues              => $heat_rabbit_ha_queues,
-    rabbit_password               => $heat_rabbit_password,
-    rabbit_virtualhost            => $heat_rabbit_virtualhost,
-    rabbit_port                   => $heat_rabbit_port,
-    rabbit_queue_host             => $heat_rabbit_queue_host,
   }
 
   class { 'heat::api_cloudwatch' :
-    pacemaker                     => $pacemaker,
-    keystone_host                 => $heat_keystone_host,
-    keystone_port                 => $heat_keystone_port,
-    keystone_protocol             => $heat_keystone_protocol,
-    keystone_user                 => $heat_keystone_user,
-    keystone_tenant               => $heat_keystone_tenant,
-    keystone_password             => $heat_keystone_password,
-    keystone_ec2_uri              => $heat_keystone_ec2_uri,
-    auth_uri                      => $heat_auth_uri,
     bind_host                     => $heat_api_cloudwatch_bind_host,
     bind_port                     => $heat_api_cloudwatch_bind_port,
-    verbose                       => $heat_verbose,
-    debug                         => $heat_debug,
-    rpc_backend                   => $heat_rpc_backend,
-
-    rabbit_host                   => $heat_rabbit_host,
-    rabbit_userid                 => $heat_rabbit_login,
-    rabbit_ha_queues              => $heat_rabbit_ha_queues,
-    rabbit_password               => $heat_rabbit_password,
-    rabbit_virtualhost            => $heat_rabbit_virtualhost,
-    rabbit_port                   => $heat_rabbit_port,
-    rabbit_queue_host             => $heat_rabbit_queue_host,
   }
 
 }

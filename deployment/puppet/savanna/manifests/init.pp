@@ -3,7 +3,7 @@ class savanna (
   $savanna_api_port                     = '8386',
   $savanna_api_host                     = '127.0.0.1',
   $savanna_api_protocol                 = 'http',
-  $savanna_api_version                  = 'v1.0',
+  $savanna_api_version                  = 'v1.1',
   $savanna_keystone_host                = '127.0.0.1',
   $savanna_keystone_port                = '35357',
   $savanna_keystone_protocol            = 'http',

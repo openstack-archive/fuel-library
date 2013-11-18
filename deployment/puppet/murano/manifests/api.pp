@@ -1,5 +1,4 @@
 class murano::api (
-    $pacemaker                      = false,
     $verbose                        = 'True',
     $debug                          = 'True',
     $api_paste_inipipeline          = 'authtoken context apiv1app',
