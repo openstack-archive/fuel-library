@@ -74,6 +74,7 @@ class ceph (
     service {'ceph':
       ensure => 'running',
       enable => true,
+      require => Class['ceph::conf']
     }
   }
 
@@ -111,7 +112,7 @@ class ceph (
     'ceph-osd': {
       if ! empty($osd_devices) {
         include ceph::osd
-        Class['ceph::conf'] -> Class['ceph::osd'] -> Service['ceph']
+        Class['ceph::conf'] -> Class['ceph::osd'] ~> Service['ceph']
       }
     }
 
