@@ -45,7 +45,8 @@ class quantum::plugins::ovs (
   }
   package { 'quantum-plugin-ovs':
     name    => $::quantum::params::ovs_server_package,
-  } ->
+  } -> Quantum_plugin_ovs <||>
+
   File['/etc/quantum'] ->
   file {'/etc/quantum/plugins':
     ensure  => directory,
@@ -63,14 +64,17 @@ class quantum::plugins::ovs (
     'DATABASE/sql_connection':      value => $quantum_config['database']['url'];
     'DATABASE/sql_max_retries':     value => $quantum_config['database']['reconnects'];
     'DATABASE/reconnect_interval':  value => $quantum_config['database']['reconnect_interval'];
-  } ->
-  quantum_plugin_ovs {
     'OVS/integration_bridge':       value  => $quantum_config['L2']['integration_bridge'];
     'OVS/tenant_network_type':      value  => $quantum_config['L2']['segmentation_type'];
     'OVS/enable_tunneling':         value  => $quantum_config['L2']['enable_tunneling'];
     'AGENT/polling_interval':       value  => $quantum_config['polling_interval'];
     'AGENT/root_helper':            value  => $quantum_config['root_helper'];
     'SECURITYGROUP/firewall_driver': value => 'quantum.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver';
+    'DEFAULT/log_dir':        ensure => absent;
+    'DEFAULT/log_file':       ensure => absent;
+    'DEFAULT/log_config':     ensure => absent;
+    'DEFAULT/use_syslog':     ensure => absent;
+    'DEFAULT/use_stderr':     ensure => absent;
   }
 
   if $quantum_config['L2']['enable_tunneling'] {

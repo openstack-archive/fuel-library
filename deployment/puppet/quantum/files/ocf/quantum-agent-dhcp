@@ -37,12 +37,14 @@ PATH=/sbin:/usr/sbin:/bin:/usr/bin
 OCF_RESKEY_binary_default="quantum-dhcp-agent"
 OCF_RESKEY_config_default="/etc/quantum/quantum.conf"
 OCF_RESKEY_plugin_config_default="/etc/quantum/dhcp_agent.ini"
+OCF_RESKEY_log_file_default="/var/log/quantum/dhcp-agent.log"
 OCF_RESKEY_user_default="quantum"
 OCF_RESKEY_pid_default="$HA_RSCTMP/$OCF_RESOURCE_INSTANCE.pid"
 OCF_RESKEY_os_auth_url_default="http://localhost:5000/v2.0"
 OCF_RESKEY_username_default="quantum"
 OCF_RESKEY_password_default="quantum_pass"
 OCF_RESKEY_tenant_default="services"
+OCF_RESKEY_debug_default='false'
 
 : ${OCF_RESKEY_os_auth_url=${OCF_RESKEY_os_auth_url_default}}
 : ${OCF_RESKEY_username=${OCF_RESKEY_username_default}}
@@ -53,6 +55,8 @@ OCF_RESKEY_tenant_default="services"
 : ${OCF_RESKEY_plugin_config=${OCF_RESKEY_plugin_config_default}}
 : ${OCF_RESKEY_user=${OCF_RESKEY_user_default}}
 : ${OCF_RESKEY_pid=${OCF_RESKEY_pid_default}}
+: ${OCF_RESKEY_log_file=${OCF_RESKEY_log_file_default}}
+: ${OCF_RESKEY_debug=${OCF_RESKEY_debug_default}}
 
 
 
@@ -127,6 +131,14 @@ The pid file to use for this OpenStack DHCP Service (quantum-dhcp-agent) instanc
 </longdesc>
 <shortdesc lang="en">OpenStack DHCP Service (quantum-dhcp-agent) pid file</shortdesc>
 <content type="string" default="${OCF_RESKEY_pid_default}" />
+</parameter>
+
+<parameter name="log_file" unique="0" required="0">
+<longdesc lang="en">
+The log file to use for this OpenStack DHCP Service (quantum-dhcp-agent) instance
+</longdesc>
+<shortdesc lang="en">OpenStack DHCP Service (quantum-dhcp-agent) log file</shortdesc>
+<content type="string" default="${OCF_RESKEY_log_file_default}" />
 </parameter>
 
 <parameter name="username" unique="0" required="0">
@@ -226,13 +238,13 @@ quantum_dhcp_agent_status() {
         pid=`pgrep -f ${OCF_RESKEY_binary}`
         if [ $? -eq 0 ]
         then
-        	ocf_log warn "OpenStack OVS Server (quantum-dhcp-agent) was run, but no pid file found."
-        	ocf_log warn "Will use $pid as PID of process (quantum-dhcp-agent)"
-        	ocf_log warn "Writing $pid into $OCF_RESKEY_pid"
-        	echo $pid > $OCF_RESKEY_pid
-    	else
-    		return $OCF_NOT_RUNNING
-    	fi
+            ocf_log warn "OpenStack OVS Server (quantum-dhcp-agent) was run, but no pid file found."
+            ocf_log warn "Will use $pid as PID of process (quantum-dhcp-agent)"
+            ocf_log warn "Writing $pid into $OCF_RESKEY_pid"
+            echo $pid > $OCF_RESKEY_pid
+        else
+            return $OCF_NOT_RUNNING
+        fi
     else
         pid=`cat $OCF_RESKEY_pid`
     fi
@@ -284,8 +296,8 @@ quantum_dhcp_agent_start() {
     # run the actual quantum-dhcp-agent daemon. Don't use ocf_run as we're sending the tool's output
     # straight to /dev/null anyway and using ocf_run would break stdout-redirection here.
     su ${OCF_RESKEY_user} -s /bin/sh -c "${OCF_RESKEY_binary} --config-file=$OCF_RESKEY_config \
-       --config-file=$OCF_RESKEY_plugin_config $OCF_RESKEY_additional_parameters"' >> \
-	/dev/null 2>&1 & echo $!' > $OCF_RESKEY_pid
+      --config-file=$OCF_RESKEY_plugin_config $OCF_RESKEY_additional_parameters \
+      >> ${OCF_RESKEY_log_file}"' 2>&1 & echo $!' > $OCF_RESKEY_pid
 
     # Spin waiting for the server to come up.
     # Let the CRM/LRM time us out if required
@@ -313,7 +325,7 @@ quantum_dhcp_agent_stop() {
     quantum_dhcp_agent_status
     rc=$?
     if [ $rc -eq $OCF_NOT_RUNNING ]; then
-    	clean_up
+        clean_up
         ocf_log info "OpenStack DHCP Server (quantum-dhcp-agent) already stopped"
         return $OCF_SUCCESS
     fi
@@ -353,7 +365,7 @@ quantum_dhcp_agent_stop() {
           using SIGTERM. Trying SIGKILL ..."
         ocf_run kill -s KILL $pid
     fi
-	clean_up
+    clean_up
     ocf_log info "OpenStack DHCP Server (quantum-dhcp-agent) stopped"
 
     rm -f $OCF_RESKEY_pid

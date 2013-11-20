@@ -138,51 +138,13 @@ class quantum (
   # 	daemon --user quantum --pidfile $pidfile "$exec --config-file /etc/$proj/$proj.conf --config-file $config &>>/var/log/$proj/$plugin.log & echo \$! > $pidfile"
 
   quantum_config {
-      'DEFAULT/log_file':   ensure=> absent;
-      'DEFAULT/logfile':    ensure=> absent;
+      'DEFAULT/log_dir':       ensure => absent;
+      'DEFAULT/log_file':      ensure => absent;
+      'DEFAULT/log_config':    ensure => absent;
+      'DEFAULT/use_syslog':     value => false;
+      'DEFAULT/use_stderr':     value => true;
+      'DEFAULT/publish_errors': value => false;
   }
-  if $use_syslog and !$debug =~ /(?i)(true|yes)/ {
-    quantum_config {
-        'DEFAULT/log_dir':    ensure=> absent;
-        'DEFAULT/logdir':     ensure=> absent;
-        'DEFAULT/log_config':   value => "/etc/quantum/logging.conf";
-        'DEFAULT/use_stderr': ensure=> absent;
-        'DEFAULT/use_syslog': value=> true;
-        'DEFAULT/syslog_log_facility': value=> $syslog_log_facility;
-    }
-    file { "quantum-logging.conf":
-      content => template('quantum/logging.conf.erb'),
-      path  => "/etc/quantum/logging.conf",
-      owner => "root",
-      group => "quantum",
-      mode  => 640,
-    }
-  } else {
-    quantum_config {
-    # logging for agents grabbing from stderr. It's workarround for bug in quantum-logging
-      'DEFAULT/use_syslog': ensure=> absent;
-      'DEFAULT/syslog_log_facility': ensure=> absent;
-      'DEFAULT/log_config': ensure=> absent;
-      # FIXME stderr should not be used unless quantum+agents init & OCF scripts would be fixed to redirect its output to stderr!
-      #'DEFAULT/use_stderr': value => true;
-      'DEFAULT/use_stderr': ensure=> absent;
-      'DEFAULT/log_dir': value => $log_dir;
-    }
-    file { "quantum-logging.conf":
-      content => template('quantum/logging.conf-nosyslog.erb'),
-      path  => "/etc/quantum/logging.conf",
-      owner => "root",
-      group => "quantum",
-      mode  => 640,
-    }
-  }
-  # We must setup logging before start services under pacemaker
-  Package['quantum'] -> File <| title=='quantum-logging.conf' |>
-  File <| title=='quantum-logging.conf' |> -> Service<| title == "$::quantum::params::server_service" |>
-  File <| title=='quantum-logging.conf' |> -> Anchor<| title == 'quantum-ovs-agent' |>
-  File <| title=='quantum-logging.conf' |> -> Anchor<| title == 'quantum-l3' |>
-  File <| title=='quantum-logging.conf' |> -> Anchor<| title == 'quantum-dhcp-agent' |>
-  File <| title=='/etc/quantum' |> -> File <| title=='quantum-logging.conf' |>
 
   if defined(Anchor['quantum-server-config-done']) {
     $endpoint_quantum_main_configuration = 'quantum-server-config-done'

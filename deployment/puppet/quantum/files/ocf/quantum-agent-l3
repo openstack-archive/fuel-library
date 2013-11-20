@@ -37,6 +37,7 @@ PATH=/sbin:/usr/sbin:/bin:/usr/bin
 OCF_RESKEY_binary_default="quantum-l3-agent"
 OCF_RESKEY_config_default="/etc/quantum/quantum.conf"
 OCF_RESKEY_plugin_config_default="/etc/quantum/l3_agent.ini"
+OCF_RESKEY_log_file_default="/var/log/quantum/l3-agent.log"
 OCF_RESKEY_user_default="quantum"
 OCF_RESKEY_pid_default="$HA_RSCTMP/$OCF_RESOURCE_INSTANCE.pid"
 OCF_RESKEY_os_auth_url_default="http://localhost:5000/v2.0"
@@ -44,8 +45,7 @@ OCF_RESKEY_username_default="quantum"
 OCF_RESKEY_password_default="quantum_pass"
 OCF_RESKEY_tenant_default="services"
 OCF_RESKEY_external_bridge_default="br-ex"
-OCF_RESKEY_debug_default=false
-OCF_RESKEY_debug_syslog=false
+OCF_RESKEY_debug_default='false'
 
 : ${OCF_RESKEY_os_auth_url=${OCF_RESKEY_os_auth_url_default}}
 : ${OCF_RESKEY_username=${OCF_RESKEY_username_default}}
@@ -58,8 +58,7 @@ OCF_RESKEY_debug_syslog=false
 : ${OCF_RESKEY_pid=${OCF_RESKEY_pid_default}}
 : ${OCF_RESKEY_external_bridge=${OCF_RESKEY_external_bridge_default}}
 : ${OCF_RESKEY_debug=${OCF_RESKEY_debug_default}}
-: ${OCF_RESKEY_syslog=${OCF_RESKEY_syslog_default}}
-
+: ${OCF_RESKEY_log_file=${OCF_RESKEY_log_file_default}}
 
 #######################################################################
 
@@ -132,6 +131,14 @@ The pid file to use for this OpenStack L3 Service (quantum-l3-agent) instance
 </longdesc>
 <shortdesc lang="en">OpenStack L3 Service (quantum-l3-agent) pid file</shortdesc>
 <content type="string" default="${OCF_RESKEY_pid_default}" />
+</parameter>
+
+<parameter name="log_file" unique="0" required="0">
+<longdesc lang="en">
+The log file to use for this OpenStack L3 Service (quantum-l3-agent) instance
+</longdesc>
+<shortdesc lang="en">OpenStack L3 Service (quantum-l3-agent) log file</shortdesc>
+<content type="string" default="${OCF_RESKEY_log_file_default}" />
 </parameter>
 
 <parameter name="quantum_server_port" unique="0" required="0">
@@ -289,7 +296,7 @@ quantum_l3_agent_status() {
 
 clean_up()
 {
-    q-agent-cleanup.py --debug --agent=l3 --cleanup-ports 
+    q-agent-cleanup.py --debug --agent=l3 --cleanup-ports
 }
 
 
@@ -316,32 +323,12 @@ quantum_l3_agent_start() {
     fi
     clean_up
 
-# FIXME stderr should not be used unless quantum+agents init & OCF would reditect to stderr
-#    if ocf_is_true ${OCF_RESKEY_syslog} ; then
-# Disable logger because we use imfile for log files grabbing to rsyslog
-#      L3_SYSLOG=" | logger -t quantum-quantum.agent.l3 "
-#        if ocf_is_true ${OCF_RESKEY_debug} ; then
-#            L3_LOG=" | tee -ia /var/log/quantum/l3.log "
-#        else
-#            L3_LOG=" "
-#        fi
-#    else
-#        L3_SYSLOG=""
-#        if ocf_is_true ${OCF_RESKEY_debug} ; then
-#            L3_LOG=" >> /var/log/quantum/l3.log "
-#        else
-#            L3_LOG=" >> /dev/null "
-#        fi
-#    fi
-    L3_SYSLOG=""
-    L3_LOG=" > /dev/null "
     # run the actual quantum-l3-agent daemon. Don't use ocf_run as we're sending the tool's output
     # straight to /dev/null anyway and using ocf_run would break stdout-redirection here.
 
     su ${OCF_RESKEY_user} -s /bin/sh -c "${OCF_RESKEY_binary} --config-file=$OCF_RESKEY_config \
-       --config-file=$OCF_RESKEY_plugin_config $OCF_RESKEY_additional_parameters  "' \
-        2>&1 '" $L3_LOG $L3_SYSLOG &"
-    L3_PID=`pgrep -u ${OCF_RESKEY_user} -f ${OCF_RESKEY_binary}`
+      --config-file=$OCF_RESKEY_plugin_config $OCF_RESKEY_additional_parameters  \
+      >> ${OCF_RESKEY_log_file}"' 2>&1 '    L3_PID=`pgrep -u ${OCF_RESKEY_user} -f ${OCF_RESKEY_binary}`
     echo "$L3_PID" > $OCF_RESKEY_pid
 
     # Spin waiting for the server to come up.

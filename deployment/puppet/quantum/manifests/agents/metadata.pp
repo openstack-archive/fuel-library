@@ -22,6 +22,12 @@ class quantum::agents::metadata (
 
   quantum_metadata_agent_config {
     'DEFAULT/debug':              value => $debug;
+    'DEFAULT/verbose':            value => $verbose;
+    'DEFAULT/log_dir':           ensure => absent;
+    'DEFAULT/log_file':          ensure => absent;
+    'DEFAULT/log_config':        ensure => absent;
+    'DEFAULT/use_syslog':        ensure => absent;
+    'DEFAULT/use_stderr':        ensure => absent;
     'DEFAULT/auth_region':        value => $quantum_config['keystone']['auth_region'];
     'DEFAULT/auth_url':           value => $quantum_config['keystone']['auth_url'];
     'DEFAULT/admin_user':         value => $quantum_config['keystone']['admin_user'];
@@ -67,7 +73,7 @@ class quantum::agents::metadata (
       group => root,
       source => "puppet:///modules/quantum/ocf/quantum-agent-metadata",
     }
-    Package['pacemaker'] -> File['quantum-metadata-agent-ocf']
+    File<| title == 'ocf-mirantis-path' |> -> File['quantum-metadata-agent-ocf']
 
     service { 'quantum-metadata-agent__disabled':
       name    => $::quantum::params::metadata_agent_service,
@@ -81,7 +87,7 @@ class quantum::agents::metadata (
     ::corosync::cleanup { $res_name: }
     ::Corosync::Cleanup["$res_name"] -> Service[$res_name]
 
-    File<| title=='quantum-logging.conf' |> ->
+    File['quantum-metadata-agent-ocf'] ->
     cs_resource { "$res_name":
       ensure          => present,
       cib             => $cib_name,
@@ -112,6 +118,25 @@ class quantum::agents::metadata (
         },
       },
     }
+
+    Anchor <| title == 'quantum-ovs-agent-done' |> -> Anchor['quantum-metadata-agent']
+    cs_colocation { 'metadata-with-ovs':
+      ensure     => present,
+      cib        => $cib_name,
+      primitives => [
+        "clone_p_${::quantum::params::metadata_agent_service}",
+        "clone_p_${::quantum::params::ovs_agent_service}"
+      ],
+      score      => 'INFINITY',
+    } ->
+    cs_order { 'metadata-after-ovs':
+      ensure => present,
+      cib    => $cib_name,
+      first  => "clone_p_${::quantum::params::ovs_agent_service}",
+      second => "clone_p_${::quantum::params::metadata_agent_service}",
+      score  => 'INFINITY',
+    } -> Service["$res_name"]
+
 
     Cs_resource["$res_name"] ->
       Cs_commit["$res_name"] ->
