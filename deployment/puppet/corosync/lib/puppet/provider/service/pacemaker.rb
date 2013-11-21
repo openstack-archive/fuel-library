@@ -18,7 +18,27 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Cor
   has_feature :enableable
   has_feature :ensurable
   def self.get_cib
-    raw, _status = dump_cib
+    tmpfile_name = "/tmp/cib-#{Process.pid}-#{Time.new.strftime("%Y%m%d-%H%M%S")}-#{rand(0x0010000)}.xml"
+    cmd = "#{command(:cibadmin)} -Q"
+    begin
+      #todo: more carefuly calculate or parametrize timeout
+      Timeout::timeout(30) do
+        # execute cibadmin and store xml in tmp file
+        `#{cmd} > #{tmpfile_name}`
+        rc = $?.exitstatus
+        if rc != 0
+          raise Puppet::Error("Command '#{cmd}' returns rc=#{rc}")
+        end
+      end
+    rescue Timeout::Error
+      #todo: Check XML, and no raise if it valid.
+      raise Puppet::Error("Command '#{cmd}' execution expired.")
+    end
+    if ! File.exists?(tmpfile_name)
+      raise Puppet::Error("TEMP file '#{tmpfile_name}' not found.")
+    end
+    raw = File.open(tmpfile_name){ |f| f.read }
+    File.delete(tmpfile_name) if ! Puppet[:debug]
     @@cib=REXML::Document.new(raw)
   end
 
@@ -242,7 +262,7 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Cor
     crm('resource', 'start', get_service_name)
     debug("Starting countdown for resource start")
     debug("Start timeout is #{@service[:start_timeout]}")
-    Timeout::timeout(@service[:start_timeout],Puppet::Error) do
+    Timeout::timeout(2*@service[:start_timeout],Puppet::Error) do
       loop do
         break if status(false) == :running
         sleep 1
@@ -257,7 +277,7 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Cor
     crm('resource', 'stop', get_service_name)
     debug("Starting countdown for resource stop")
     debug("Stop timeout is #{@service[:stop_timeout]}")
-    Timeout::timeout(@service[:stop_timeout],Puppet::Error) do
+    Timeout::timeout(2*@service[:stop_timeout],Puppet::Error) do
       loop do
         break if status(false) == :stopped
         sleep 1
