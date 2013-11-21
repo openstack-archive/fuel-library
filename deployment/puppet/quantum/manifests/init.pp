@@ -47,7 +47,7 @@ class quantum (
   Package['quantum'] ->
   file {'quantum-root':
     path => '/etc/sudoers.d/quantum-root',
-    mode => 600,
+    mode => 440,
     owner => root,
     group => root,
     source => "puppet:///modules/quantum/quantum-root",
