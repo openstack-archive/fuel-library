@@ -47,7 +47,7 @@ class neutron (
   Package['neutron'] ->
   file {'neutron-root':
     path => '/etc/sudoers.d/neutron-root',
-    mode => 600,
+    mode => 0440,
     owner => root,
     group => root,
     source => "puppet:///modules/neutron/neutron-root",
