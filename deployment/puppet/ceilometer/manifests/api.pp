@@ -27,6 +27,12 @@
 #  [*keystone_password*] password to authenticate with
 #    Mandatory.
 #
+#  [*bind_host*] service binds on this ip.
+#    Optional. Default '0.0.0.0'.
+#
+#  [*bind_port*] service binds on this port.
+#    Optional. Default '8777'
+#
 class ceilometer::api (
   $enabled                    = true,
   $keystone_host              = '127.0.0.1',
