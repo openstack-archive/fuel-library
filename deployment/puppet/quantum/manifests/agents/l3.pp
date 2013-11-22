@@ -40,9 +40,7 @@ class quantum::agents::l3 (
 
   Quantum_config <| |> -> Quantum_l3_agent_config <| |>
   Quantum_l3_agent_config <| |> -> Service['quantum-l3']
-  # Quantum_l3_agent_config <| |> -> Quantum_router <| |>
-  # Quantum_l3_agent_config <| |> -> Quantum_net <| |>
-  # Quantum_l3_agent_config <| |> -> Quantum_subnet <| |>
+
 
   quantum_l3_agent_config {
     'DEFAULT/debug':          value => $debug;
@@ -101,8 +99,10 @@ class quantum::agents::l3 (
       source => "puppet:///modules/quantum/ocf/quantum-agent-l3",
     }
     File<| title == 'ocf-mirantis-path' |> -> File['quantum-l3-agent-ocf']
+    File['q-agent-cleanup.py'] -> File['quantum-l3-agent-ocf']
+    Package[$l3_agent_package] -> File['quantum-l3-agent-ocf']
+    Quantum_l3_agent_config <| |> -> File['quantum-l3-agent-ocf']
     File['quantum-l3-agent-ocf'] -> Cs_resource["p_${::quantum::params::l3_agent_service}"]
-    File['q-agent-cleanup.py'] -> Cs_resource["p_${::quantum::params::l3_agent_service}"]
 
     cs_resource { "p_${::quantum::params::l3_agent_service}":
       ensure          => present,
@@ -148,7 +148,6 @@ class quantum::agents::l3 (
 
     ::corosync::cleanup{"p_${::quantum::params::l3_agent_service}": }
 
-    Cs_commit['l3'] -> ::Corosync::Cleanup["p_${::quantum::params::l3_agent_service}"]
     Cs_commit['l3'] ~> ::Corosync::Cleanup["p_${::quantum::params::l3_agent_service}"]
     ::Corosync::Cleanup["p_${::quantum::params::l3_agent_service}"] -> Service['quantum-l3']
 

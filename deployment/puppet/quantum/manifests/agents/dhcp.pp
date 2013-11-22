@@ -95,6 +95,9 @@ class quantum::agents::dhcp (
       source => "puppet:///modules/quantum/ocf/quantum-agent-dhcp",
     }
     File<| title == 'ocf-mirantis-path' |> -> File['quantum-dhcp-agent-ocf']
+    Quantum_config <| |> -> File['quantum-dhcp-agent-ocf']
+    Quantum_dhcp_agent_config <| |> -> File['quantum-dhcp-agent-ocf']
+    Package[$dhcp_agent_package] -> File['quantum-dhcp-agent-ocf']
     File['quantum-dhcp-agent-ocf'] -> Cs_resource["p_${::quantum::params::dhcp_agent_service}"]
     File['q-agent-cleanup.py'] -> Cs_resource["p_${::quantum::params::dhcp_agent_service}"]
     cs_resource { "p_${::quantum::params::dhcp_agent_service}":
@@ -132,7 +135,6 @@ class quantum::agents::dhcp (
     Cs_commit <| title == 'quantum-metadata-agent' |> -> Cs_shadow <| title == 'dhcp' |>
 
     ::corosync::cleanup { "p_${::quantum::params::dhcp_agent_service}": }
-    Cs_commit['dhcp'] -> ::Corosync::Cleanup["p_${::quantum::params::dhcp_agent_service}"]
     Cs_commit['dhcp'] ~> ::Corosync::Cleanup["p_${::quantum::params::dhcp_agent_service}"]
     ::Corosync::Cleanup["p_${::quantum::params::dhcp_agent_service}"] -> Service['quantum-dhcp-service']
     Cs_resource["p_${::quantum::params::dhcp_agent_service}"] -> Cs_colocation['dhcp-with-ovs']
@@ -218,10 +220,9 @@ class quantum::agents::dhcp (
   Class[quantum::waistline] -> Service[quantum-dhcp-service]
 
   Anchor['quantum-dhcp-agent'] ->
-    Quantum_dhcp_agent_config <| |> ->
-      Cs_resource<| title=="p_${::quantum::params::dhcp_agent_service}" |> ->
-        Service['quantum-dhcp-service'] ->
-          Anchor['quantum-dhcp-agent-done']
+    Cs_resource<| title=="p_${::quantum::params::dhcp_agent_service}" |> ->
+      Service['quantum-dhcp-service'] ->
+        Anchor['quantum-dhcp-agent-done']
 
   anchor {'quantum-dhcp-agent-done': }
 
