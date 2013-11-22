@@ -24,14 +24,15 @@ class cluster {
       }
     }
     file {'ocf-mirantis-path':
-      path=>'/usr/lib/ocf/resource.d/mirantis', 
+      path=>'/usr/lib/ocf/resource.d/mirantis',
       #mode => 755,
       ensure => directory,
       recurse => true,
       owner => root,
       group => root,
-    } 
+    }
     Package['corosync'] -> File['ocf-mirantis-path']
+    Package<| title == 'pacemaker' |> -> File['ocf-mirantis-path']
 }
 #
 ###

@@ -186,6 +186,8 @@ class galera (
   Package['MySQL-server'] -> File['mysql-wss-ocf']
   Package['galera'] -> File['mysql-wss-ocf']
   File['mysql-wss-ocf'] -> Cs_resource["$res_name"]
+  #??? #File['mysql-wss-ocf'] -> Anchor <| title == 'haproxy_done' |>
+  #??? #Anchor <| title == 'haproxy_done' |> -> File['mysql-wss-ocf']
 
   service { "mysql":
     name       => "p_mysql",
