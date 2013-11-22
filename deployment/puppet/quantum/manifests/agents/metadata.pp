@@ -82,12 +82,12 @@ class quantum::agents::metadata (
       enable  => false,
       ensure  => stopped,
     }
-    Cs_commit <| title == 'ovs' |> -> Cs_shadow <| title == "$res_name" |>
+    Cs_commit <| title == 'ovs' |> -> Cs_shadow <| title == "$cib_name" |>
 
-    cs_shadow { $res_name: cib => $cib_name }
-    cs_commit { $res_name: cib => $cib_name } ~> ::Corosync::Cleanup["$res_name"]
-    ::corosync::cleanup { $res_name: }
-    ::Corosync::Cleanup["$res_name"] -> Service[$res_name]
+    cs_shadow { $cib_name: cib => $cib_name }
+    cs_commit { $cib_name: cib => $cib_name } ~> ::Corosync::Cleanup["$cib_name"]
+    ::corosync::cleanup { $cib_name: }
+    ::Corosync::Cleanup["$cib_name"] -> Service[$res_name]
 
     cs_resource { "$res_name":
       ensure          => present,
@@ -140,8 +140,8 @@ class quantum::agents::metadata (
 
 
     Cs_resource["$res_name"] ->
-      Cs_commit["$res_name"] ->
-        ::Corosync::Cleanup["$res_name"] ->
+      Cs_commit["$cib_name"] ->
+        ::Corosync::Cleanup["$cib_name"] ->
           Service["$res_name"]
 
     service {"$res_name":
