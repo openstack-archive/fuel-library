@@ -37,7 +37,7 @@
 #
 # [*skip_name_resolve*]
 #  By default, MySQL tries to do reverse name mapping IP->hostname. In this
-#  case MySQL requests can be timed out by clients in case of broken name  
+#  case MySQL requests can be timed out by clients in case of broken name
 #  resolving system. If you are not sure that your DNS/NIS/whatever are configured
 #  correctly, set this value to true.
 #
@@ -70,13 +70,13 @@ class galera (
         ensure  => present,
         mode    => 644,
         require => Package['MySQL-server'],
-        before  => Service["$cib_name"]
+        before  => File['mysql-wss-ocf']
       }
 
       file { '/etc/my.cnf':
         ensure => present,
         content => template("galera/my.cnf.erb"),
-        before => Service["$cib_name"]
+        before => File['mysql-wss-ocf']
       }
 
       package { 'MySQL-client':
@@ -86,10 +86,12 @@ class galera (
 
       package { 'wget':
         ensure => present,
+        before => Package['MySQL-server']
       }
 
       package { 'bc':
         ensure => present,
+        before => Package['MySQL-server']
       }
 
       package { 'perl':
@@ -102,19 +104,20 @@ class galera (
       file { '/etc/init.d/mysql':
         ensure  => present,
         mode    => 644,
-        source => 'puppet:///modules/galera/mysql.init' , 
+        source => 'puppet:///modules/galera/mysql.init' ,
         require => Package['MySQL-server'],
-        before  => Service["$cib_name"]
+        before  => File['mysql-wss-ocf']
       }
 
       file { '/etc/my.cnf':
         ensure => present,
         content => template("galera/my.cnf.erb"),
-        before => Service["$cib_name"]
+        before => File['mysql-wss-ocf']
       }
 
       package { 'wget':
         ensure => present,
+        before => Package['mysql-client']
       }
 
       package { 'perl':
@@ -139,19 +142,18 @@ class galera (
   cs_shadow { $res_name: cib => $cib_name }
   if $primary_controller {
     cs_commit { $res_name: cib => $cib_name } ~> ::Corosync::Cleanup["$res_name"]
-      ::corosync::cleanup { $res_name: }
-    }
-  else {
+    ::corosync::cleanup { $res_name: }
+  } else {
     cs_commit { $res_name: cib => $cib_name } ~> ::Corosync::Clonecleanup["$res_name"]
-     ::corosync::clonecleanup { $res_name: }
+    ::corosync::clonecleanup { $res_name: }
   }
 
- cs_resource { "$res_name":
+  cs_resource { "$res_name":
       ensure => present,
       cib => $cib_name,
       primitive_class => 'ocf',
-      provided_by     => 'mirantis', 
-      primitive_type => 'mysql',
+      provided_by     => 'mirantis',
+      primitive_type => 'mysql-wss',
       multistate_hash => {
         'type' => 'clone',
       },
@@ -169,19 +171,30 @@ class galera (
         'stop' => {
           'timeout' => '150'
         },
-     },
-   }
+      },
+  }
 
-  Package['MySQL-server'] -> Cs_resource['p_mysql']
+  file {'mysql-wss-ocf':
+    path=>'/usr/lib/ocf/resource.d/mirantis/mysql-wss',
+    mode => 755,
+    owner => root,
+    group => root,
+    source => "puppet:///modules/galera/ocf/mysql-wss",
+  }
+  File<| title == 'ocf-mirantis-path' |> -> File['mysql-wss-ocf']
+
+  Package['MySQL-server'] -> File['mysql-wss-ocf']
+  Package['galera'] -> File['mysql-wss-ocf']
+  File['mysql-wss-ocf'] -> Cs_resource["$res_name"]
+
   service { "mysql":
     name       => "p_mysql",
     enable     => true,
     ensure     => "running",
-    require    => [Package["MySQL-server", "galera"]],
     provider   => "pacemaker",
   }
-  Package['pacemaker'] -> File['mysql-wss']
-   Cs_resource["$res_name"] ->
+
+  Cs_resource["$res_name"] ->
       Cs_commit["$res_name"] ->
           Service["$cib_name"]
 
@@ -191,11 +204,9 @@ class galera (
   }
 
   if $::galera::params::mysql_version {
-   $wsrep_version = $::galera::params::mysql_version 
-  }
-  else
-  {
-   $wsrep_version = 'latest'
+    $wsrep_version = $::galera::params::mysql_version
+  } else {
+    $wsrep_version = 'latest'
   }
   package { "MySQL-server":
     ensure   => $wsrep_version,
@@ -203,7 +214,6 @@ class galera (
     provider => $::galera::params::pkg_provider,
     require  => Package['galera']
   }
-
 
   package { "galera":
     ensure   => present,
@@ -271,14 +281,14 @@ class galera (
   Package["MySQL-server"] ~> Exec ["wait-initial-sync"]
 
 # FIXME: This class is deprecated and should be removed in future releases.
- 
+
   class { 'galera::galera_master_final_config':
     require        => Exec["wait-for-haproxy-mysql-backend"],
     primary_controller => $primary_controller,
     node_addresses => $node_addresses,
     node_address   => $node_address,
   }
-  
+
   if $primary_controller {
     exec { "start-new-galera-cluster":
       path   => "/usr/bin:/usr/sbin:/bin:/sbin",

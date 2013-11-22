@@ -38,15 +38,6 @@ file {'filter_quantum_ports.py':
   source => "puppet:///modules/openstack/filter_quantum_ports.py",
 }
 
-file {'mysql-wss':
-  path=>'/usr/lib/ocf/resource.d/mirantis/mysql',
-  mode => 744,
-  require =>Package['corosync'],
-  owner => root,
-  group => root,
-  source => "puppet:///modules/openstack/mysql-wss",
-} -> Corosync::Service['pacemaker']
-
 Anchor['corosync'] ->
 corosync::service { 'pacemaker':
   version => '0',
