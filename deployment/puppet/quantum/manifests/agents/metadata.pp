@@ -74,6 +74,8 @@ class quantum::agents::metadata (
       source => "puppet:///modules/quantum/ocf/quantum-agent-metadata",
     }
     File<| title == 'ocf-mirantis-path' |> -> File['quantum-metadata-agent-ocf']
+    Quantum_metadata_agent_config<||> -> File['quantum-metadata-agent-ocf']
+    File['quantum-metadata-agent-ocf'] -> Cs_resource["$res_name"]
 
     service { 'quantum-metadata-agent__disabled':
       name    => $::quantum::params::metadata_agent_service,
@@ -87,7 +89,6 @@ class quantum::agents::metadata (
     ::corosync::cleanup { $res_name: }
     ::Corosync::Cleanup["$res_name"] -> Service[$res_name]
 
-    File['quantum-metadata-agent-ocf'] ->
     cs_resource { "$res_name":
       ensure          => present,
       cib             => $cib_name,
@@ -153,12 +154,10 @@ class quantum::agents::metadata (
     }
 
     Anchor['quantum-metadata-agent'] ->
-      Quantum_metadata_agent_config<||> ->
-        File['quantum-metadata-agent-ocf'] ->
-          Service['quantum-metadata-agent__disabled'] ->
-            Cs_resource["$res_name"] ->
-              Service["$res_name"] ->
-                Anchor['quantum-metadata-agent-done']
+      Service['quantum-metadata-agent__disabled'] ->
+        Cs_resource["$res_name"] ->
+          Service["$res_name"] ->
+            Anchor['quantum-metadata-agent-done']
   }
   anchor {'quantum-metadata-agent-done': }
 }
