@@ -74,6 +74,7 @@ class quantum::agents::metadata (
       source => "puppet:///modules/quantum/ocf/quantum-agent-metadata",
     }
     File<| title == 'ocf-mirantis-path' |> -> File['quantum-metadata-agent-ocf']
+    Anchor['quantum-metadata-agent'] -> File['quantum-metadata-agent-ocf']
     Quantum_metadata_agent_config<||> -> File['quantum-metadata-agent-ocf']
     File['quantum-metadata-agent-ocf'] -> Cs_resource["$res_name"]
 
@@ -120,29 +121,27 @@ class quantum::agents::metadata (
       },
     }
 
-    Anchor <| title == 'quantum-ovs-agent-done' |> -> Anchor['quantum-metadata-agent']
-    cs_colocation { 'metadata-with-ovs':
-      ensure     => present,
-      cib        => $cib_name,
-      primitives => [
-        "clone_p_${::quantum::params::metadata_agent_service}",
-        "clone_p_${::quantum::params::ovs_agent_service}"
-      ],
-      score      => 'INFINITY',
-    } ->
-    cs_order { 'metadata-after-ovs':
-      ensure => present,
-      cib    => $cib_name,
-      first  => "clone_p_${::quantum::params::ovs_agent_service}",
-      second => "clone_p_${::quantum::params::metadata_agent_service}",
-      score  => 'INFINITY',
-    } -> Service["$res_name"]
+    # Anchor <| title == 'quantum-ovs-agent-done' |> -> Anchor['quantum-metadata-agent']
+    # cs_colocation { 'metadata-with-ovs':
+    #   ensure     => present,
+    #   cib        => $cib_name,
+    #   primitives => [
+    #     "clone_p_${::quantum::params::metadata_agent_service}",
+    #     "clone_p_${::quantum::params::ovs_agent_service}"
+    #   ],
+    #   score      => 'INFINITY',
+    # } ->
+    # cs_order { 'metadata-after-ovs':
+    #   ensure => present,
+    #   cib    => $cib_name,
+    #   first  => "clone_p_${::quantum::params::ovs_agent_service}",
+    #   second => "clone_p_${::quantum::params::metadata_agent_service}",
+    #   score  => 'INFINITY',
+    # } -> Service["$res_name"]
 
 
     Cs_resource["$res_name"] ->
-      Cs_commit["$cib_name"] ->
-        ::Corosync::Cleanup["$cib_name"] ->
-          Service["$res_name"]
+      Cs_commit["$cib_name"]
 
     service {"$res_name":
       name       => $res_name,

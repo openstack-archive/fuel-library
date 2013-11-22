@@ -144,8 +144,8 @@ class galera (
     cs_commit { $res_name: cib => $cib_name } ~> ::Corosync::Cleanup["$res_name"]
     ::corosync::cleanup { $res_name: }
   } else {
-    cs_commit { $res_name: cib => $cib_name } ~> ::Corosync::Clonecleanup["$res_name"]
-    ::corosync::clonecleanup { $res_name: }
+    cs_commit { $res_name: cib => $cib_name } ~> ::Corosync::Cleanup["$res_name"]
+    ::corosync::cleanup { $res_name: }
   }
 
   cs_resource { "$res_name":

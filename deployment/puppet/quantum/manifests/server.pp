@@ -54,6 +54,9 @@ class quantum::server (
     'filter:authtoken/admin_password':    value => $quantum_config['keystone']['admin_password'];
   }
 
+  Service <| title == 'mysql' |> -> Service['quantum-server']
+  Service <| title == 'haproxy' |> -> Service['quantum-server']
+
   service {'quantum-server':
     name       => $::quantum::params::server_service,
     ensure     => running,

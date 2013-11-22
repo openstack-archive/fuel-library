@@ -101,6 +101,7 @@ class quantum::agents::l3 (
     File<| title == 'ocf-mirantis-path' |> -> File['quantum-l3-agent-ocf']
     File['q-agent-cleanup.py'] -> File['quantum-l3-agent-ocf']
     Package[$l3_agent_package] -> File['quantum-l3-agent-ocf']
+    Anchor['quantum-l3'] -> File['quantum-l3-agent-ocf']
     Quantum_l3_agent_config <| |> -> File['quantum-l3-agent-ocf']
     File['quantum-l3-agent-ocf'] -> Cs_resource["p_${::quantum::params::l3_agent_service}"]
 

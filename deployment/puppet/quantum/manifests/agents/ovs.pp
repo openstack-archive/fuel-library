@@ -98,6 +98,7 @@ class quantum::agents::ovs (
       source => "puppet:///modules/quantum/ocf/quantum-agent-ovs",
     }
     File<| title == 'ocf-mirantis-path' |> -> File['quantum-ovs-agent-ocf']
+    Anchor['quantum-ovs-agent'] -> File['quantum-ovs-agent-ocf']
     Package[$ovs_agent_package] -> Quantum_plugin_ovs <| |> -> File['quantum-ovs-agent-ocf']
     File['quantum-ovs-agent-ocf'] -> Cs_resource["p_${::quantum::params::ovs_agent_service}"]
 

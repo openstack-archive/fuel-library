@@ -95,6 +95,7 @@ class quantum::agents::dhcp (
       source => "puppet:///modules/quantum/ocf/quantum-agent-dhcp",
     }
     File<| title == 'ocf-mirantis-path' |> -> File['quantum-dhcp-agent-ocf']
+    Anchor['quantum-dhcp-agent'] -> File['quantum-dhcp-agent-ocf']
     Quantum_config <| |> -> File['quantum-dhcp-agent-ocf']
     Quantum_dhcp_agent_config <| |> -> File['quantum-dhcp-agent-ocf']
     Package[$dhcp_agent_package] -> File['quantum-dhcp-agent-ocf']
