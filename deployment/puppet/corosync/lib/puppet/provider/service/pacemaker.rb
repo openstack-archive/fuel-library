@@ -10,6 +10,7 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Cor
   commands :crm => 'crm'
   commands :cibadmin => 'cibadmin'
   commands :crm_attribute => 'crm_attribute'
+  commands :crm_resource => 'crm_resource'
 
   desc "Pacemaker service management."
 
@@ -243,7 +244,7 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Cor
     debug("Start timeout is #{@service[:start_timeout]}")
     Timeout::timeout(@service[:start_timeout],Puppet::Error) do
       loop do
-        break if status == :running
+        break if status(false) == :running
         sleep 1
       end
     end
@@ -258,7 +259,7 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Cor
     debug("Stop timeout is #{@service[:stop_timeout]}")
     Timeout::timeout(@service[:stop_timeout],Puppet::Error) do
       loop do
-        break if status == :stopped
+        break if status(false) == :stopped
         sleep 1
       end
     end
@@ -269,8 +270,9 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Cor
     start
   end
 
-  def status
+  def status(cleanup=true)
     debug(crm('status'))
+    crm_resource('--resource', get_service_name, '--cleanup', '--node', `uname -n`.chomp) if cleanup
     debug("getting last operations")
     get_last_successful_operations
     if @last_successful_operations.any? {|op| ['start','promote'].include?(op)}
