@@ -78,15 +78,15 @@ class heat::engine (
 
     # standard service mode
 
-	  service { 'heat-engine':
-	    ensure     => 'running',
-	    name       => $service_name,
-	    enable     => true,
-	    hasstatus  => true,
-	    hasrestart => true,
-	  }
+    service { 'heat-engine':
+      ensure     => 'running',
+      name       => $service_name,
+      enable     => true,
+      hasstatus  => true,
+      hasrestart => true,
+    }
 
-	} else {
+  } else {
 
     # pacemaker resource mode
 
@@ -96,6 +96,7 @@ class heat::engine (
       $ocf_script_template = 'heat_engine_ubuntu.ocf.erb'
     }
 
+    Exec[create_ocf_dirs] ->
     file { 'heat-engine-ocf' :
       ensure  => present,
       path    => "${ocf_scripts_dir}/${ocf_scripts_provider}/${service_name}",
@@ -113,7 +114,7 @@ class heat::engine (
       hasrestart => true,
       provider   => 'pacemaker',
     }
-    
+
     cs_shadow { $service_name :
       cib => $service_name,
     }
@@ -121,9 +122,9 @@ class heat::engine (
     cs_commit { $service_name :
       cib => $service_name,
     }
-    
+
     corosync::cleanup { $service_name : }
-    
+
     cs_resource { $service_name :
       ensure          => present,
       cib             => $service_name,
@@ -136,10 +137,10 @@ class heat::engine (
         'stop'     => { 'timeout' => '60' },
       },
     }
-    
-    File['heat-engine-ocf'] -> Cs_shadow[$service_name] -> Cs_resource[$service_name] -> Cs_commit[$service_name] ~> Corosync::Cleanup[$service_name] -> Service['heat-engine']
 
-	}
+    Heat_engine_config<||> -> File['heat-engine-ocf'] -> Cs_shadow[$service_name] -> Cs_resource[$service_name] -> Cs_commit[$service_name] ~> Corosync::Cleanup[$service_name] -> Service['heat-engine']
+
+  }
 
   exec {'heat-encryption-key-replacement':
     command => 'sed -i "s/%ENCRYPTION_KEY%/`hexdump -n 16 -v -e \'/1 "%02x"\' /dev/random`/" /etc/heat/heat-engine.conf',
