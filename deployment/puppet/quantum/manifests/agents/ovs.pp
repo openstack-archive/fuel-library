@@ -14,13 +14,10 @@ class quantum::agents::ovs (
     # install quantum-ovs-agent at the same host where
     # quantum-server + quantum-ovs-plugin
     Anchor['quantum-plugin-ovs-done'] -> Anchor['quantum-ovs-agent']
-
   }
 
-  # if defined(Anchor['quantum-server-done']) {
-  #   Anchor['quantum-server-done'] -> Anchor['quantum-ovs-agent']
-  # }
   Service<| title=='quantum-server' |> -> Anchor['quantum-ovs-agent']
+  Quantum_config <| |> -> Quantum_plugin_ovs <| |>
 
   anchor {'quantum-ovs-agent': }
 
@@ -81,8 +78,6 @@ class quantum::agents::ovs (
   #Service <| title == 'quantum-server' |> -> Service['quantum-ovs-agent']
 
   if $service_provider == 'pacemaker' {
-    Quantum_config <| |> -> Cs_shadow['ovs']
-    Quantum_plugin_ovs <| |> -> Cs_shadow['ovs']
     L23network::L2::Bridge <| |> -> Cs_shadow['ovs']
 
     cs_shadow { 'ovs': cib => 'ovs' }
@@ -90,7 +85,6 @@ class quantum::agents::ovs (
 
     ::corosync::cleanup { "p_${::quantum::params::ovs_agent_service}": }
 
-    Cs_commit['ovs'] -> ::Corosync::Cleanup["p_${::quantum::params::ovs_agent_service}"]
     Cs_commit['ovs'] ~> ::Corosync::Cleanup["p_${::quantum::params::ovs_agent_service}"]
     ::Corosync::Cleanup["p_${::quantum::params::ovs_agent_service}"] -> Service['quantum-ovs-agent']
 
@@ -104,6 +98,7 @@ class quantum::agents::ovs (
       source => "puppet:///modules/quantum/ocf/quantum-agent-ovs",
     }
     File<| title == 'ocf-mirantis-path' |> -> File['quantum-ovs-agent-ocf']
+    Package[$ovs_agent_package] -> Quantum_plugin_ovs <| |> -> File['quantum-ovs-agent-ocf']
     File['quantum-ovs-agent-ocf'] -> Cs_resource["p_${::quantum::params::ovs_agent_service}"]
 
     cs_resource { "p_${::quantum::params::ovs_agent_service}":
