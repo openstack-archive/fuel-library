@@ -18,8 +18,25 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Cor
   has_feature :enableable
   has_feature :ensurable
   def self.get_cib
-    tmpfile_name = "/tmp/cib-#{Process.pid}-#{Time.new.strftime("%Y%m%d-%H%M%S")}-#{rand(0x0010000)}.xml"
+    tstamp = Time.new.strftime("%Y%m%d-%H%M%S")
+    salt = rand(0x0010000)
+    tmpfile_name = "/tmp/cib-#{Process.pid}-#{tstamp}-#{salt}.xml"
     cmd = "#{command(:cibadmin)} -Q"
+    if Puppet[:debug]
+      statusfile_name = "/tmp/crm_status-#{Process.pid}-#{tstamp}-#{salt}.txt"
+      begin
+        #todo: more carefuly calculate or parametrize timeout
+        Timeout::timeout(30) do
+          `crm status > #{statusfile_name}`
+          rc = $?.exitstatus
+          if rc != 0
+            raise Puppet::Error("Command 'crm status' returns rc=#{rc}")
+          end
+        end
+      rescue Timeout::Error
+        raise Puppet::Error("Command 'crm status' execution expired.")
+      end
+    end
     begin
       #todo: more carefuly calculate or parametrize timeout
       Timeout::timeout(30) do
