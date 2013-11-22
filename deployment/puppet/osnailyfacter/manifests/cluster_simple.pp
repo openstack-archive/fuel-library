@@ -145,6 +145,7 @@ class osnailyfacter::cluster_simple {
         public_interface        => $::public_int,
         private_interface       => $::use_quantum ? { true=>false, default=>$::fuel_settings['fixed_interface']},
         internal_address        => $controller_node_address,
+        service_endpoint        => $controller_node_address,
         floating_range          => false, #todo: remove as not needed ???
         fixed_range             => $::use_quantum ? { true=>false, default=>$::fuel_settings['fixed_network_range'] },
         multi_host              => $multi_host,
@@ -185,7 +186,7 @@ class osnailyfacter::cluster_simple {
         cinder_iscsi_bind_addr  => $cinder_iscsi_bind_addr,
         cinder_volume_group     => "cinder",
         manage_volumes          => $manage_volumes,
-        use_syslog              => true,
+        use_syslog              => $::fuel_settings['use_syslog'] ? { 'false'=>false, false=>false, default=>true },
         syslog_log_level        => $syslog_log_level,
         syslog_log_facility_glance  => $syslog_log_facility_glance,
         syslog_log_facility_cinder  => $syslog_log_facility_cinder,
@@ -209,7 +210,7 @@ class osnailyfacter::cluster_simple {
           # qpid_nodes            => [$controller_node_address],
           quantum_config          => $quantum_config,
           quantum_network_node    => true,
-          use_syslog            => $use_syslog,
+          use_syslog            => $::fuel_settings['use_syslog'] ? { 'false'=>false, false=>false, default=>true },
           syslog_log_level      => $syslog_log_level,
           syslog_log_facility   => $syslog_log_facility_quantum,
         }
@@ -345,7 +346,7 @@ class osnailyfacter::cluster_simple {
         db_host                => $controller_node_address,
         debug                  => $debug ? { 'true' => true, true => true, default=> false },
         verbose                => $verbose ? { 'true' => true, true => true, default=> false },
-        use_syslog             => true,
+        use_syslog             => $::fuel_settings['use_syslog'] ? { 'false'=>false, false=>false, default=>true },
         syslog_log_level       => $syslog_log_level,
         syslog_log_facility    => $syslog_log_facility_nova,
         syslog_log_facility_quantum => $syslog_log_facility_quantum,
@@ -395,7 +396,7 @@ class osnailyfacter::cluster_simple {
         syslog_log_level     => $syslog_log_level,
         debug                => $debug ? { 'true' => true, true => true, default => false },
         verbose              => $verbose ? { 'true' => true, true => true, default => false },
-        use_syslog           => true,
+        use_syslog           => $::fuel_settings['use_syslog'] ? { 'false'=>false, false=>false, default=>true },
       }
     } #CINDER ENDS
 

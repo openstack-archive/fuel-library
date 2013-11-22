@@ -17,9 +17,10 @@ class quantum::agents::ovs (
 
   }
 
-  if defined(Anchor['quantum-server-done']) {
-    Anchor['quantum-server-done'] -> Anchor['quantum-ovs-agent']
-  }
+  # if defined(Anchor['quantum-server-done']) {
+  #   Anchor['quantum-server-done'] -> Anchor['quantum-ovs-agent']
+  # }
+  Service<| title=='quantum-server' |> -> Anchor['quantum-ovs-agent']
 
   anchor {'quantum-ovs-agent': }
 
@@ -93,14 +94,24 @@ class quantum::agents::ovs (
     Cs_commit['ovs'] ~> ::Corosync::Cleanup["p_${::quantum::params::ovs_agent_service}"]
     ::Corosync::Cleanup["p_${::quantum::params::ovs_agent_service}"] -> Service['quantum-ovs-agent']
 
-    File<| title=='quantum-logging.conf' |> ->
+    # OCF script for pacemaker
+    # and his dependences
+    file {'quantum-ovs-agent-ocf':
+      path=>'/usr/lib/ocf/resource.d/mirantis/quantum-agent-ovs',
+      mode => 755,
+      owner => root,
+      group => root,
+      source => "puppet:///modules/quantum/ocf/quantum-agent-ovs",
+    }
+    File<| title == 'ocf-mirantis-path' |> -> File['quantum-ovs-agent-ocf']
+    File['quantum-ovs-agent-ocf'] -> Cs_resource["p_${::quantum::params::ovs_agent_service}"]
+
     cs_resource { "p_${::quantum::params::ovs_agent_service}":
       ensure          => present,
       cib             => 'ovs',
       primitive_class => 'ocf',
-      provided_by     => 'pacemaker',
+      provided_by     => 'mirantis',
       primitive_type  => 'quantum-agent-ovs',
-      require         => File['quantum-ovs-agent'] ,
       multistate_hash => {
         'type' => 'clone',
       },
@@ -197,7 +208,7 @@ class quantum::agents::ovs (
         require    => Package['quantum-ovs-cleanup'],
       }
     }
-    default: { 
+    default: {
       service { 'quantum-ovs-cleanup':
         name       => 'quantum-ovs-cleanup',
         enable     => true,
@@ -217,9 +228,6 @@ class quantum::agents::ovs (
       Anchor['quantum-ovs-agent-done']
 
   anchor{'quantum-ovs-agent-done': }
-
-  Anchor['quantum-ovs-agent-done'] -> Anchor<| title=='quantum-l3' |>
-  Anchor['quantum-ovs-agent-done'] -> Anchor<| title=='quantum-dhcp-agent' |>
 
 }
 # vim: set ts=2 sw=2 et :

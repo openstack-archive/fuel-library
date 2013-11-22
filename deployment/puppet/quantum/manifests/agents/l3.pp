@@ -47,6 +47,11 @@ class quantum::agents::l3 (
   quantum_l3_agent_config {
     'DEFAULT/debug':          value => $debug;
     'DEFAULT/verbose':        value => $verbose;
+    'DEFAULT/log_dir':       ensure => absent;
+    'DEFAULT/log_file':      ensure => absent;
+    'DEFAULT/log_config':    ensure => absent;
+    'DEFAULT/use_syslog':    ensure => absent;
+    'DEFAULT/use_stderr':    ensure => absent;
     'DEFAULT/root_helper':    value => $quantum_config['root_helper'];
     'DEFAULT/auth_url':       value => $quantum_config['keystone']['auth_url'];
     'DEFAULT/admin_user':     value => $quantum_config['keystone']['admin_user'];
@@ -95,7 +100,7 @@ class quantum::agents::l3 (
       group => root,
       source => "puppet:///modules/quantum/ocf/quantum-agent-l3",
     }
-    Package['pacemaker'] -> File['quantum-l3-agent-ocf']
+    File<| title == 'ocf-mirantis-path' |> -> File['quantum-l3-agent-ocf']
     File['quantum-l3-agent-ocf'] -> Cs_resource["p_${::quantum::params::l3_agent_service}"]
     File['q-agent-cleanup.py'] -> Cs_resource["p_${::quantum::params::l3_agent_service}"]
 
@@ -129,7 +134,6 @@ class quantum::agents::l3 (
         }
       },
     }
-    File<| title=='quantum-logging.conf' |> -> Cs_resource["p_${::quantum::params::l3_agent_service}"]
     Exec<| title=='setup_router_id' |> -> Cs_resource["p_${::quantum::params::l3_agent_service}"]
 
     cs_shadow { 'l3': cib => 'l3' }
@@ -153,6 +157,7 @@ class quantum::agents::l3 (
     Cs_resource["p_${::quantum::params::l3_agent_service}"] -> Cs_colocation['l3-with-metadata']
     Cs_resource["p_${::quantum::params::l3_agent_service}"] -> Cs_order['l3-after-metadata']
 
+    Anchor<| title == 'quantum-ovs-agent-done' |> -> Anchor<| title=='quantum-l3' |>
     cs_colocation { 'l3-with-ovs':
       ensure     => present,
       cib        => 'l3',
@@ -167,6 +172,7 @@ class quantum::agents::l3 (
       score  => 'INFINITY',
     } -> Service['quantum-l3']
 
+    Anchor<| title == 'quantum-metadata-agent-done' |> -> Anchor<| title=='quantum-l3' |>
     cs_colocation { 'l3-with-metadata':
       ensure     => present,
       cib        => 'l3',
@@ -185,6 +191,7 @@ class quantum::agents::l3 (
     } -> Service['quantum-l3']
 
     # start DHCP and L3 agents on different controllers if it's possible
+    Anchor<| title == 'quantum-dhcp-agent-done' |> -> Anchor<| title=='quantum-l3' |>
     cs_colocation { 'dhcp-without-l3':
       ensure     => present,
       cib        => 'l3',
@@ -223,7 +230,6 @@ class quantum::agents::l3 (
   } else {
     Quantum_config <| |> ~> Service['quantum-l3']
     Quantum_l3_agent_config <| |> ~> Service['quantum-l3']
-    File<| title=='quantum-logging.conf' |> ->
     service { 'quantum-l3':
       name       => $::quantum::params::l3_agent_service,
       enable     => true,

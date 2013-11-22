@@ -54,7 +54,6 @@ class quantum::server (
     'filter:authtoken/admin_password':    value => $quantum_config['keystone']['admin_password'];
   }
 
-  File<| title=='quantum-logging.conf' |> ->
   service {'quantum-server':
     name       => $::quantum::params::server_service,
     ensure     => running,

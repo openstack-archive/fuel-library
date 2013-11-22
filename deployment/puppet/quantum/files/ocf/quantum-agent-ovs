@@ -35,11 +35,13 @@
 OCF_RESKEY_binary_default="quantum-openvswitch-agent"
 OCF_RESKEY_config_default="/etc/quantum/quantum.conf"
 OCF_RESKEY_plugin_config_default="/etc/quantum/plugins/openvswitch/ovs_quantum_plugin.ini"
+OCF_RESKEY_log_file_default="/var/log/quantum/ovs-agent.log"
 OCF_RESKEY_user_default="quantum"
 OCF_RESKEY_pid_default="$HA_RSCTMP/$OCF_RESOURCE_INSTANCE.pid"
 OCF_RESKEY_amqp_server_port_default="5672"
 OCF_RESKEY_integration_bridge_default="br-int"
 OCF_RESKEY_segmentation_bridge_default="br-tun"
+OCF_RESKEY_debug_default='false'
 
 : ${OCF_RESKEY_binary=${OCF_RESKEY_binary_default}}
 : ${OCF_RESKEY_config=${OCF_RESKEY_config_default}}
@@ -49,6 +51,8 @@ OCF_RESKEY_segmentation_bridge_default="br-tun"
 : ${OCF_RESKEY_amqp_server_port=${OCF_RESKEY_amqp_server_port_default}}
 : ${OCF_RESKEY_integration_bridge=${OCF_RESKEY_integration_bridge_default}}
 : ${OCF_RESKEY_segmentation_bridge=${OCF_RESKEY_segmentation_bridge_default}}
+: ${OCF_RESKEY_log_file=${OCF_RESKEY_log_file_default}}
+: ${OCF_RESKEY_debug=${OCF_RESKEY_debug_default}}
 
 #######################################################################
 
@@ -56,7 +60,7 @@ usage() {
     cat <<UEND
         usage: $0 (start|stop|validate-all|meta-data|status|monitor)
 
-        $0 manages an OpenStack OVS Service (quantum-ovs-agent) process as an HA resource 
+        $0 manages an OpenStack OVS Service (quantum-ovs-agent) process as an HA resource
 
         The 'start' operation starts the networking service.
         The 'stop' operation stops the networking service.
@@ -77,7 +81,7 @@ meta_data() {
 
 <longdesc lang="en">
 Resource agent for the OpenStack Quantum OVS Service (quantum-ovs-agent)
-May manage a quantum-ovs-agent instance or a clone set that 
+May manage a quantum-ovs-agent instance or a clone set that
 creates a distributed quantum-ovs-agent cluster.
 </longdesc>
 <shortdesc lang="en">Manages the OpenStack OVS Service (quantum-ovs-agent)</shortdesc>
@@ -121,8 +125,15 @@ The pid file to use for this OpenStack OVS Service (quantum-ovs-agent) instance
 </longdesc>
 <shortdesc lang="en">OpenStack OVS Service (quantum-ovs-agent) pid file</shortdesc>
 <content type="string" default="${OCF_RESKEY_pid_default}" />
-</parameter>  
+</parameter>
 
+<parameter name="log_file" unique="0" required="0">
+<longdesc lang="en">
+The log file to use for this OpenStack OVS Service (quantum-ovs-agent) instance
+</longdesc>
+<shortdesc lang="en">OpenStack OVS Service (quantum-ovs-agent) log file</shortdesc>
+<content type="string" default="${OCF_RESKEY_log_file_default}" />
+</parameter>
 
 <parameter name="additional_parameters" unique="0" required="0">
 <longdesc lang="en">
@@ -148,7 +159,13 @@ OVS integration bridge name OpenStack OVS Service (quantum-ovs-agent)
 <content type="string" default="${OCF_RESKEY_segmentation_bridge_default}"/>
 </parameter>
 
-
+<parameter name="debug" unique="0" required="0">
+<longdesc lang="en">
+The debug flag for  OpenStack OVS Service (quantum-ovs-agent) instance
+</longdesc>
+<shortdesc lang="en">OpenStack Metadata Service (quantum-ovs-agent) debug flag</shortdesc>
+<content type="string" default="${OCF_RESKEY_debug_default}" />
+</parameter>
 
 </parameters>
 
@@ -199,18 +216,18 @@ quantum_ovs_agent_status() {
 
     if [ ! -f $OCF_RESKEY_pid ]; then
         ocf_log info "OpenStack OVS Server (quantum-ovs-agent) seems not to exist"
-        
+
         pid=`pgrep -f ${OCF_RESKEY_binary}`
-        
+
         if [ $? -eq 0 ]
         then
-        	ocf_log warn "OpenStack OVS Server (quantum-ovs-agent) was run, but no pid file found."
-        	ocf_log warn "Will use $pid as PID of process (quantum-ovs-agent)"
-        	ocf_log warn "Writing $pid into $OCF_RESKEY_pid"
-        	echo $pid > $OCF_RESKEY_pid
-    	else
-    		return $OCF_NOT_RUNNING
-    	fi
+            ocf_log warn "OpenStack OVS Server (quantum-ovs-agent) was run, but no pid file found."
+            ocf_log warn "Will use $pid as PID of process (quantum-ovs-agent)"
+            ocf_log warn "Writing $pid into $OCF_RESKEY_pid"
+            echo $pid > $OCF_RESKEY_pid
+        else
+            return $OCF_NOT_RUNNING
+        fi
     else
         pid=`cat $OCF_RESKEY_pid`
     fi
@@ -232,50 +249,47 @@ quantum_ovs_agent_monitor() {
 }
 
 clean_up() {
-	
-	ocf_log info "cleaning up integration bridge"
-	ovs-vsctl -- --if-exists del-br ${OCF_RESKEY_segmentation_bridge}
-	rc=$?
-	if [ $rc -ne 0 ]; then
+
+    ocf_log info "cleaning up integration bridge"
+    ovs-vsctl -- --if-exists del-br ${OCF_RESKEY_segmentation_bridge}
+    rc=$?
+    if [ $rc -ne 0 ]; then
         ocf_log err "Could not clean up segmentation bridge ${OCF_RESKEY_segmentation_bridge}"
         exit $OCF_ERR_GENERIC
     fi
     ocf_log info "cleaning up segmentation bridge"
-	ovs-vsctl -- --if-exists del-br ${OCF_RESKEY_integration_bridge}
-	rc=$?
-	if [ $rc -ne 0 ]; then
+    ovs-vsctl -- --if-exists del-br ${OCF_RESKEY_integration_bridge}
+    rc=$?
+    if [ $rc -ne 0 ]; then
         ocf_log err "Could not clean up integration bridge ${OCF_RESKEY_integration_bridge}"
         exit $OCF_ERR_GENERIC
     fi
     ocf_log info "recreating integration bridge"
-	ovs-vsctl -- --may-exist add-br ${OCF_RESKEY_integration_bridge}
-	rc=$?
-	if [ $rc -ne 0 ]; then
+    ovs-vsctl -- --may-exist add-br ${OCF_RESKEY_integration_bridge}
+    rc=$?
+    if [ $rc -ne 0 ]; then
         ocf_log err "Could not start up integration bridge ${OCF_RESKEY_integration_bridge}"
         exit $OCF_ERR_GENERIC
     fi
-    	            
-
 }
 
 quantum_ovs_agent_start() {
     local rc
-    
+
     quantum_ovs_agent_status
     rc=$?
     if [ $rc -eq $OCF_SUCCESS ]; then
         ocf_log info "OpenStack OVS Server (quantum-ovs-agent) already running"
         return $OCF_SUCCESS
     fi
-    
+
     clean_up
-    
+
     # run the actual quantum-ovs-agent daemon. Don't use ocf_run as we're sending the tool's output
     # straight to /dev/null anyway and using ocf_run would break stdout-redirection here.
     su ${OCF_RESKEY_user} -s /bin/sh -c "${OCF_RESKEY_binary} --config-file=$OCF_RESKEY_config \
-       --config-file=$OCF_RESKEY_plugin_config $OCF_RESKEY_additional_parameters"' >> \
-	/dev/null 2>&1 & echo $!' > $OCF_RESKEY_pid
-
+      --config-file=$OCF_RESKEY_plugin_config $OCF_RESKEY_additional_parameters \
+      >> ${OCF_RESKEY_log_file}"' 2>&1 & echo $!' > $OCF_RESKEY_pid
     # Spin waiting for the server to come up.
     # Let the CRM/LRM time us out if required
     while true; do
@@ -300,7 +314,7 @@ quantum_ovs_agent_stop() {
     quantum_ovs_agent_status
     rc=$?
     if [ $rc -eq $OCF_NOT_RUNNING ]; then
-    	clean_up
+        clean_up
         ocf_log info "OpenStack OVS Server (quantum-ovs-agent) already stopped"
         return $OCF_SUCCESS
     fi
@@ -341,7 +355,7 @@ quantum_ovs_agent_stop() {
         ocf_run kill -s KILL $pid
     fi
 
-    clean_up 
+    clean_up
 
     ocf_log info "OpenStack OVS Server (quantum-ovs-agent) stopped"
 

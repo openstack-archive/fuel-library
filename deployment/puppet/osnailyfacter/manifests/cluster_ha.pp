@@ -267,7 +267,7 @@ class osnailyfacter::cluster_ha {
       galera_nodes                  => $controller_nodes,
       custom_mysql_setup_class      => $custom_mysql_setup_class,
       mysql_skip_name_resolve       => true,
-      use_syslog                    => true,
+      use_syslog                    => $::fuel_settings['use_syslog'] ? { 'false'=>false, false=>false, default=>true },
       syslog_log_level              => $syslog_log_level,
       syslog_log_facility_glance    => $syslog_log_facility_glance,
       syslog_log_facility_cinder    => $syslog_log_facility_cinder,
@@ -371,15 +371,15 @@ class osnailyfacter::cluster_ha {
       if $savanna_hash['enabled'] {
         class { 'savanna' :
           savanna_api_host          => $controller_node_address,
-          
+
           savanna_db_password       => $savanna_hash['db_password'],
           savanna_db_host           => $controller_node_address,
-          
+
           savanna_keystone_host     => $controller_node_address,
           savanna_keystone_user     => 'admin',
           savanna_keystone_password => 'admin',
           savanna_keystone_tenant   => 'admin',
-          
+
           use_neutron               => $::use_quantum,
         }
       }
@@ -392,10 +392,10 @@ class osnailyfacter::cluster_ha {
           murano_rabbit_host       => $controller_node_public,
           murano_rabbit_login      => 'murano',
           murano_rabbit_password   => $heat_hash['rabbit_password'],
-          
+
           murano_db_host           => $controller_node_address,
           murano_db_password       => $murano_hash['db_password'],
-          
+
           murano_keystone_host     => $controller_node_address,
           murano_keystone_user     => 'admin',
           murano_keystone_password => 'admin',
@@ -405,17 +405,17 @@ class osnailyfacter::cluster_ha {
         class { 'heat' :
           pacemaker              => true,
           external_ip            => $controller_node_public,
-          
+
           heat_keystone_host     => $controller_node_address,
           heat_keystone_user     => 'heat',
           heat_keystone_password => 'heat',
           heat_keystone_tenant   => 'services',
-          
+
           heat_rabbit_host       => $controller_node_address,
           heat_rabbit_login      => $rabbit_hash['user'],
           heat_rabbit_password   => $rabbit_hash['password'],
           heat_rabbit_port       => '5672',
-          
+
           heat_db_host           => $controller_node_address,
           heat_db_password       => $heat_hash['db_password'],
         }
@@ -467,7 +467,7 @@ class osnailyfacter::cluster_ha {
         db_host                => $::fuel_settings['management_vip'],
         quantum                => $::use_quantum,
         quantum_config         => $quantum_config,
-        use_syslog             => true,
+        use_syslog             => $::fuel_settings['use_syslog'] ? { 'false'=>false, false=>false, default=>true },
         syslog_log_level       => $syslog_log_level,
         syslog_log_facility    => $syslog_log_facility_nova,
         syslog_log_facility_quantum => $syslog_log_facility_quantum,
@@ -525,7 +525,7 @@ class osnailyfacter::cluster_ha {
         syslog_log_level     => $syslog_log_level,
         debug                => $debug ? { 'true' => true, true => true, default => false },
         verbose              => $verbose ? { 'true' => true, true => true, default => false },
-        use_syslog           => true,
+        use_syslog           => $::fuel_settings['use_syslog'] ? { 'false'=>false, false=>false, default=>true },
       }
 #      class { "::rsyslog::client":
 #        log_local => true,

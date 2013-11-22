@@ -35,14 +35,18 @@ PATH=/sbin:/usr/sbin:/bin:/usr/bin
 OCF_RESKEY_binary_default="quantum-metadata-agent"
 OCF_RESKEY_config_default="/etc/quantum/quantum.conf"
 OCF_RESKEY_agent_config_default="/etc/quantum/metadata_agent.ini"
+OCF_RESKEY_log_file_default="/var/log/quantum/metadata-agent.log"
 OCF_RESKEY_user_default="quantum"
 OCF_RESKEY_pid_default="$HA_RSCTMP/$OCF_RESOURCE_INSTANCE.pid"
+OCF_RESKEY_debug_default='false'
 
 : ${OCF_RESKEY_binary=${OCF_RESKEY_binary_default}}
 : ${OCF_RESKEY_config=${OCF_RESKEY_config_default}}
 : ${OCF_RESKEY_agent_config=${OCF_RESKEY_agent_config_default}}
 : ${OCF_RESKEY_user=${OCF_RESKEY_user_default}}
 : ${OCF_RESKEY_pid=${OCF_RESKEY_pid_default}}
+: ${OCF_RESKEY_log_file=${OCF_RESKEY_log_file_default}}
+: ${OCF_RESKEY_debug=${OCF_RESKEY_debug_default}}
 
 #######################################################################
 
@@ -50,7 +54,7 @@ usage() {
     cat <<UEND
         usage: $0 (start|stop|validate-all|meta-data|status|monitor)
 
-        $0 manages an OpenStack Quantum Metadata Agent (quantum-metadata-agent) process as an HA resource 
+        $0 manages an OpenStack Quantum Metadata Agent (quantum-metadata-agent) process as an HA resource
 
         The 'start' operation starts the networking service.
         The 'stop' operation stops the networking service.
@@ -71,7 +75,7 @@ meta_data() {
 
 <longdesc lang="en">
 Resource agent for the OpenStack Quantum Metadata Agent
-May manage a quantum-metadata-agent instance or a clone set that 
+May manage a quantum-metadata-agent instance or a clone set that
 creates a distributed quantum-metadata-agent cluster.
 </longdesc>
 <shortdesc lang="en">Manages the OpenStack OVS Service (quantum-metadata-agent)</shortdesc>
@@ -115,6 +119,22 @@ The pid file to use for this Quantum Metadata Agent service (quantum-metadata-ag
 </longdesc>
 <shortdesc lang="en">OpenStack Quantum Metadata Agent service (quantum-metadata-agent) pid file</shortdesc>
 <content type="string" default="${OCF_RESKEY_pid_default}" />
+</parameter>
+
+<parameter name="log_file" unique="0" required="0">
+<longdesc lang="en">
+The log file to use for this OpenStack Metadata Service (quantum-metadata-agent) instance
+</longdesc>
+<shortdesc lang="en">OpenStack Metadata Service (quantum-metadata-agent) log file</shortdesc>
+<content type="string" default="${OCF_RESKEY_log_file_default}" />
+</parameter>
+
+<parameter name="debug" unique="0" required="0">
+<longdesc lang="en">
+The debug flag for  OpenStack Metadata Service (quantum-metadata-agent) instance
+</longdesc>
+<shortdesc lang="en">OpenStack Metadata Service (quantum-metadata-agent) debug flag</shortdesc>
+<content type="boolean" default="${OCF_RESKEY_debug_default}" />
 </parameter>
 
 </parameters>
@@ -166,18 +186,18 @@ quantum_metadata_agent_status() {
 
     if [ ! -f $OCF_RESKEY_pid ]; then
         ocf_log info "OpenStack Quantum Metadata Agent (quantum-metadata-agent) seems not to exist"
-        
+
         pid=`pgrep -f ${OCF_RESKEY_binary}`
-        
+
         if [ $? -eq 0 ]
         then
-        	ocf_log warn "OpenStack Quantum Metadata Agent (quantum-metadata-agent) was run, but no pid file found."
-        	ocf_log warn "Will use $pid as PID of process (quantum-metadata-agent)"
-        	ocf_log warn "Writing $pid into $OCF_RESKEY_pid"
-        	echo $pid > $OCF_RESKEY_pid
-    	else
-    		return $OCF_NOT_RUNNING
-    	fi
+            ocf_log warn "OpenStack Quantum Metadata Agent (quantum-metadata-agent) was run, but no pid file found."
+            ocf_log warn "Will use $pid as PID of process (quantum-metadata-agent)"
+            ocf_log warn "Writing $pid into $OCF_RESKEY_pid"
+            echo $pid > $OCF_RESKEY_pid
+        else
+            return $OCF_NOT_RUNNING
+        fi
     else
         pid=`cat $OCF_RESKEY_pid`
     fi
@@ -210,14 +230,14 @@ quantum_metadata_agent_start() {
         ocf_log info "OpenStack Quantum Metadata Agent (quantum-metadata-agent) already running"
         return $OCF_SUCCESS
     fi
-    
+
     clean_up
-    
+
     # run the actual quantum-metadata-agent daemon. Don't use ocf_run as we're sending the tool's output
     # straight to /dev/null anyway and using ocf_run would break stdout-redirection here.
     su ${OCF_RESKEY_user} -s /bin/sh -c "${OCF_RESKEY_binary} --config-file=$OCF_RESKEY_config \
-       --config-file=$OCF_RESKEY_agent_config $OCF_RESKEY_additional_parameters"' >> \
-	/dev/null 2>&1 & echo $!' > $OCF_RESKEY_pid
+      --config-file=$OCF_RESKEY_agent_config $OCF_RESKEY_additional_parameters \
+      >> ${OCF_RESKEY_log_file}"' 2>&1 & echo $!' > $OCF_RESKEY_pid
 
     # Spin waiting for the server to come up.
     # Let the CRM/LRM time us out if required
@@ -243,7 +263,7 @@ quantum_metadata_agent_stop() {
     quantum_metadata_agent_status
     rc=$?
     if [ $rc -eq $OCF_NOT_RUNNING ]; then
-    	clean_up
+        clean_up
         ocf_log info "OpenStack Quantum Metadata Agent (quantum-metadata-agent) already stopped"
         return $OCF_SUCCESS
     fi
@@ -283,7 +303,7 @@ quantum_metadata_agent_stop() {
         ocf_run kill -s KILL $pid
     fi
 
-    clean_up 
+    clean_up
 
     ocf_log info "OpenStack Quantum Metadata Agent (quantum-metadata-agent) stopped"
 
