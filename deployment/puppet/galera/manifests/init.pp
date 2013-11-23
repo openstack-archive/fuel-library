@@ -56,6 +56,10 @@ class galera (
   ) {
   include galera::params
 
+  anchor {'galera': }
+
+  Anchor<| title == 'haproxy_done' |> -> Anchor['galera']
+
   $cib_name = "mysql"
   $res_name = "p_${cib_name}"
 
@@ -138,15 +142,13 @@ class galera (
     }
   }
 
+  Anchor['galera'] -> Cs_shadow["$res_name"]
 
   cs_shadow { $res_name: cib => $cib_name }
-  if $primary_controller {
-    cs_commit { $res_name: cib => $cib_name } ~> ::Corosync::Cleanup["$res_name"]
-    ::corosync::cleanup { $res_name: }
-  } else {
-    cs_commit { $res_name: cib => $cib_name } ~> ::Corosync::Cleanup["$res_name"]
-    ::corosync::cleanup { $res_name: }
-  }
+  cs_commit { $res_name: cib => $cib_name }
+  ::corosync::cleanup { "clone_$res_name": }
+
+  Cs_commit["$res_name"] ~> Corosync::Cleanup["clone_$res_name"] -> Service["mysql"]
 
   cs_resource { "$res_name":
       ensure => present,
@@ -195,10 +197,11 @@ class galera (
     ensure     => "running",
     provider   => "pacemaker",
   }
-
-  Cs_resource["$res_name"] ->
+  Cs_shadow["$res_name"] ->
+    Cs_resource["$res_name"] ->
       Cs_commit["$res_name"] ->
-          Service["$cib_name"]
+        Service["$cib_name"] ->
+          Anchor['galera-done']
 
   package { [$::galera::params::libssl_package, $::galera::params::libaio_package]:
     ensure => present,
@@ -301,4 +304,7 @@ class galera (
       notify     => Exec ["raise-first-setup-flag"],
     }
   }
+
+  anchor {'galera-done': }
+
 }

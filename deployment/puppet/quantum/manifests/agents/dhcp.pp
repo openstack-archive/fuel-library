@@ -37,6 +37,7 @@ class quantum::agents::dhcp (
 
   include 'quantum::waist_setup'
 
+  Anchor<| title=='quantum-server-done' |> ->
   anchor {'quantum-dhcp-agent': }
 
   Service<| title=='quantum-server' |> -> Anchor['quantum-dhcp-agent']
@@ -84,6 +85,8 @@ class quantum::agents::dhcp (
   if $service_provider == 'pacemaker' {
     Service <| title == 'quantum-server' |> -> Cs_shadow['dhcp']
     Quantum_dhcp_agent_config <| |> -> Cs_shadow['dhcp']
+    Anchor['quantum-dhcp-agent'] -> Cs_shadow['dhcp']
+
 
     # OCF script for pacemaker
     # and his dependences

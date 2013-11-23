@@ -19,6 +19,7 @@ class quantum (
 ) {
   include 'quantum::params'
 
+  Anchor<| title == 'galera-done' |> ->
   anchor {'quantum-init':}
 
   if ! defined(File['/etc/quantum']) {

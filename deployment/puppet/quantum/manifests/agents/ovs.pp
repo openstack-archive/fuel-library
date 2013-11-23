@@ -19,6 +19,7 @@ class quantum::agents::ovs (
   Service<| title=='quantum-server' |> -> Anchor['quantum-ovs-agent']
   Quantum_config <| |> -> Quantum_plugin_ovs <| |>
 
+  Anchor<| title=='quantum-server-done' |> ->
   anchor {'quantum-ovs-agent': }
 
   if $::operatingsystem == 'Ubuntu' {
@@ -79,6 +80,8 @@ class quantum::agents::ovs (
 
   if $service_provider == 'pacemaker' {
     L23network::L2::Bridge <| |> -> Cs_shadow['ovs']
+    Anchor['quantum-ovs-agent'] -> Cs_shadow['ovs']
+
 
     cs_shadow { 'ovs': cib => 'ovs' }
     cs_commit { 'ovs': cib => 'ovs' }

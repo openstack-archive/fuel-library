@@ -13,20 +13,17 @@ class cluster::haproxy (
 ) inherits ::haproxy::params {
   include concat::setup
 
+  anchor {'haproxy':}
+
   $cib_name = "p_haproxy"
 
   cs_shadow { $cib_name: cib => $cib_name }
-  cs_commit { $cib_name: cib => $cib_name } ~> ::Corosync::Cleanup["$cib_name"] -> Service['haproxy']
+  cs_commit { $cib_name: cib => $cib_name }
 
-  if $primary_controller {
-    ::corosync::cleanup { $cib_name: }
-    Cs_commit[$cib_name] ~> ::Corosync::Cleanup[$cib_name]
-  } else {
-    ::corosync::clonecleanup { $cib_name: }
-    Cs_commit[$cib_name] ~> ::Corosync::Clonecleanup[$cib_name]
-  }
+  Anchor['haproxy'] -> Cs_shadow["$cib_name"]
 
-
+  corosync::cleanup {"clone_$cib_name": }
+  Cs_commit[$cib_name] ~> Corosync::Cleanup["clone_$cib_name"] -> Service['haproxy']
 
   file {'haproxy-ocf':
     path=>'/usr/lib/ocf/resource.d/mirantis/haproxy',
@@ -73,15 +70,16 @@ class cluster::haproxy (
       file { '/etc/default/haproxy': content => 'ENABLED=0' } ->
         File['haproxy-ocf']
     if $::operatingsystem == 'Ubuntu' {
+      Package['haproxy'] ->
       file { "/etc/init/haproxy.override":
         replace => "no",
         ensure  => "present",
         content => "manual",
-        mode    => 644,
-        before  => Package['haproxy'],
+        mode    => 644
       } -> File['haproxy-ocf']
     }
   } elsif ($::osfamily == 'RedHat') {
+    Package['haproxy'] ->
     service { 'haproxy-init-stopped':
       enable     => false,
       ensure     => stopped,
@@ -109,7 +107,10 @@ class cluster::haproxy (
     hasstatus  => true,
     hasrestart => true,
     provider   => "pacemaker",
-  }
+  } -> Anchor['haproxy-done']
+
+  anchor {'haproxy-done':}
+
 }
 
 #Class['corosync'] -> Class['cluster::haproxy']

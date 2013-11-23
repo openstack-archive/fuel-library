@@ -9,6 +9,7 @@ class quantum::agents::l3 (
 ) {
   include 'quantum::params'
 
+  Anchor<| title=='quantum-server-done' |> ->
   anchor {'quantum-l3': }
   Service<| title=='quantum-server' |> -> Anchor['quantum-l3']
   if $::operatingsystem == 'Ubuntu' {
@@ -146,6 +147,7 @@ class quantum::agents::l3 (
     Cs_commit <| title == 'dhcp' |> -> Cs_shadow <| title == 'l3' |>
     Cs_commit <| title == 'ovs' |> -> Cs_shadow <| title == 'l3' |>
     Cs_commit <| title == 'quantum-metadata-agent' |> -> Cs_shadow <| title == 'l3' |>
+    Anchor['quantum-l3'] -> Cs_shadow['l3']
 
     ::corosync::cleanup{"p_${::quantum::params::l3_agent_service}": }
 
