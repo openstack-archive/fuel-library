@@ -96,7 +96,6 @@ class heat::engine (
       $ocf_script_template = 'heat_engine_ubuntu.ocf.erb'
     }
 
-    Exec[create_ocf_dirs] ->
     file { 'heat-engine-ocf' :
       ensure  => present,
       path    => "${ocf_scripts_dir}/${ocf_scripts_provider}/${service_name}",
