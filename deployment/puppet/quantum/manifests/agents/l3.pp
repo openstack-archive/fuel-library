@@ -112,7 +112,6 @@ class quantum::agents::l3 (
       primitive_class => 'ocf',
       provided_by     => 'mirantis',
       primitive_type  => 'quantum-agent-l3',
-      #require         => File['quantum-l3-agent'],
       parameters      => {
         'debug'       => $debug,
         'syslog'      => $::use_syslog,
@@ -123,16 +122,16 @@ class quantum::agents::l3 (
       },
       operations      => {
         'monitor'  => {
-          'interval' => '20',
-          'timeout'  => '30'
+          'interval' => '30',
+          'timeout'  => '10'
         }
         ,
         'start'    => {
-          'timeout' => '360'
+          'timeout' => '120'
         }
         ,
         'stop'     => {
-          'timeout' => '360'
+          'timeout' => '120'
         }
       },
     }

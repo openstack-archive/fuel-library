@@ -54,7 +54,7 @@ class cluster::haproxy (
     operations => {
       'monitor' => {
         'interval' => '20',
-        'timeout'  => '30'
+        'timeout'  => '10'
       },
       'start' => {
         'timeout' => '30'

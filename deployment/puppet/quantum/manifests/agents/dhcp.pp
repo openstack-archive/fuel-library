@@ -110,7 +110,6 @@ class quantum::agents::dhcp (
       primitive_class => 'ocf',
       provided_by     => 'mirantis',
       primitive_type  => 'quantum-agent-dhcp',
-      #require => File['quantum-agent-dhcp'],
       parameters      => {
         'os_auth_url' => $quantum_config['keystone']['auth_url'],
         'tenant'      => $quantum_config['keystone']['admin_tenant_name'],
@@ -120,16 +119,16 @@ class quantum::agents::dhcp (
       ,
       operations      => {
         'monitor'  => {
-          'interval' => '20',
-          'timeout'  => '30'
+          'interval' => '30',
+          'timeout'  => '10'
         }
         ,
         'start'    => {
-          'timeout' => '360'
+          'timeout' => '120'
         }
         ,
         'stop'     => {
-          'timeout' => '360'
+          'timeout' => '120'
         }
       }
       ,

@@ -112,7 +112,7 @@ class quantum::agents::metadata (
       operations => {
         'monitor' => {
           'interval' => '60',
-          'timeout'  => '30'
+          'timeout'  => '10'
         },
         'start' => {
           'timeout' => '30'

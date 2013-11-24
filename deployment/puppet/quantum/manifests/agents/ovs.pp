@@ -121,14 +121,14 @@ class quantum::agents::ovs (
       },
       operations      => {
         'monitor'  => {
-          'interval' => '20',
-          'timeout'  => '30'
+          'interval' => '30',
+          'timeout'  => '10'
         },
         'start'    => {
-          'timeout' => '480'
+          'timeout' => '120'
         },
         'stop'     => {
-          'timeout' => '480'
+          'timeout' => '120'
         }
       },
     }
