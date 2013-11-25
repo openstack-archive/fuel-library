@@ -6,4 +6,6 @@ NETADDR=( $(ifconfig $ADMIN_IF | grep -oP "[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[
 echo -e "# FROM COBBLER SNIPPET\nDEVICE=$ADMIN_IF\nIPADDR=${NETADDR[0]}\nNETMASK=${NETADDR[2]}\nBOOTPROTO=none\nONBOOT=yes\nUSERCTL=no\n" > /etc/sysconfig/network-scripts/ifcfg-"$ADMIN_IF"
 
 echo GATEWAY="$DEFAULT_GW" >> /etc/sysconfig/network
+
+cat /proc/cmdline | tr ' ' '\n' | grep udevrules | sed -e 's/udevrules=//g' -e 's/,/\n/g' | sed -e "s/^/SUBSYSTEM==\"net\",\ ACTION==\"add\",\ DRIVERS==\"?*\",\ ATTR{address}==\"/g" -e "s/_/\",\ ATTR{type}==\"1\",\ KERNEL==\"eth*\",\ NAME=\"/g" -e "s/$/\"/g" | tee /etc/udev/rules.d/70-persistent-net.rules
 #end raw
