@@ -26,6 +26,6 @@ class nailgun::packages(
   #  nailgun_safe_package { "cman": }
   nailgun_safe_package { "fence-agents": }
   nailgun_safe_package { "nailgun-redhat-license": }
-  nailgun_safe_package { "fuel-cli": }
+  nailgun_safe_package { "python-fuelclient": }
 
 }
