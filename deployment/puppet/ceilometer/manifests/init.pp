@@ -15,15 +15,22 @@
 #    ip or hostname of the rabbit server. Optional. Defaults to '127.0.0.1'
 #  [*rabbit_port*]
 #    port of the rabbit server. Optional. Defaults to 5672.
-#  [*rabbit_hosts*]
-#    array of host:port (used with HA queues). Optional. Defaults to undef.
-#    If defined, will remove rabbit_host & rabbit_port parameters from config
 #  [*rabbit_userid*]
 #    user to connect to the rabbit server. Optional. Defaults to 'guest'
 #  [*rabbit_password*]
 #    password to connect to the rabbit_server. Optional. Defaults to empty.
 #  [*rabbit_virtual_host*]
 #    virtualhost to use. Optional. Defaults to '/'
+#  [*qpid_host*]
+#    ip or hostname of the qpid server. Optional. Defaults to '127.0.0.1'
+#  [*qpid_nodes*]
+#    list of ips or hostnames of the qpid servers. Optional. Defaults to false.
+#  [*qpid_port*]
+#    port of the qpid server. Optional. Defaults to 5672.
+#  [*qpid_userid*]
+#    user to connect to the qpid server. Optional. Defaults to 'nova'
+#  [*qpid_password*]
+#    password to connect to the qpid_server. Optional. Defaults to 'qpid_pw'.
 #
 class ceilometer(
   $metering_secret     = false,

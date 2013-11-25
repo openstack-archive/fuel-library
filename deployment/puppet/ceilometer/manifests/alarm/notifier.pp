@@ -1,3 +1,9 @@
+# Installs/configures the ceilometer alarm notifier service
+#
+# == Parameters
+#  [*enabled*]
+#    Should the service be enabled. Optional. Defauls to true
+#
 class ceilometer::alarm::notifier (
   $enabled = true,
 )

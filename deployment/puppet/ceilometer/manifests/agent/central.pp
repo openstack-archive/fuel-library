@@ -22,6 +22,10 @@
 #  [*enabled*]
 #    Should the service be enabled. Optional. Defauls to true
 #
+#  [*ha_mode*]
+#    Should we deploy service in HA mode. Active/Passive mode under pacemaker.
+#    Optional. Defauls to false
+#
 class ceilometer::agent::central (
   $auth_host         = 'http://localhost:5000/v2.0',
   $auth_region      = 'RegionOne',
