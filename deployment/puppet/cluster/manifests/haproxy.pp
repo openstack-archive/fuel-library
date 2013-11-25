@@ -34,7 +34,7 @@ class cluster::haproxy (
 
 
   file {'haproxy-ocf':
-    path=>'/usr/lib/ocf/resource.d/pacemaker/haproxy', 
+    path=>'/usr/lib/ocf/resource.d/pacemaker/haproxy',
     mode => 755,
     owner => root,
     group => root,
@@ -76,33 +76,34 @@ class cluster::haproxy (
           Service['haproxy']
   }
   if ($::osfamily == 'RedHat') {
-  Package['pacemaker'] -> 
+  Package['pacemaker'] ->
   package { 'haproxy':
     ensure  => true,
     name    => 'haproxy',
   } ->
-  file { $global_options['chroot']: 
-    ensure => directory 
-  } 
+  file { $global_options['chroot']:
+    ensure => directory
+  }
   if $::operatingsystem == 'Ubuntu' {
     if $service_provider == 'pacemaker' {
+      Package['haproxy'] ->
       file { "/etc/init/haproxy.override":
       replace => "no",
       ensure  => "present",
       content => "manual",
-      mode    => 644,
-      before  => Package['haproxy'],
+      mode    => 644
       }
     }
   }
+  Package['haproxy'] ->
   service { 'haproxy-init-stopped':
     enable     => false,
     ensure     => stopped,
     hasrestart => true,
     hasstatus  => true,
   } ->
-  sysctl::value { 'net.ipv4.ip_nonlocal_bind': 
-    value => '1' 
+  sysctl::value { 'net.ipv4.ip_nonlocal_bind':
+    value => '1'
   } ->
   service { 'haproxy':
     name       => "p_haproxy",
