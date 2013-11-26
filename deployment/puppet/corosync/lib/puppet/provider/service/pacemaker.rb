@@ -101,7 +101,7 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Cor
       end
     end
     if @service[:class] == 'ocf'
-      stdout =  Open3.popen3("/bin/bash -c 'OCF_ROOT=/usr/lib/ocf /usr/lib/ocf/resource.d/#{@service[:provider]}/#{@service[:type]} meta-data'")[1].read
+      stdout = Open3.popen3("/bin/bash -c 'OCF_ROOT=/usr/lib/ocf /usr/lib/ocf/resource.d/#{@service[:provider]}/#{@service[:type]} meta-data'")[1].read
       metadata = REXML::Document.new(stdout)
       default_start_timeout = XPath.match(metadata, "//actions/action[@name=\'start\']").first.attributes['timeout'].to_i
       default_stop_timeout = XPath.match(metadata, "//actions/action[@name=\'stop\']").first.attributes['timeout'].to_i
