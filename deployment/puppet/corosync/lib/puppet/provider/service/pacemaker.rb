@@ -10,7 +10,6 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Cor
   commands :crm => 'crm'
   commands :cibadmin => 'cibadmin'
   commands :crm_attribute => 'crm_attribute'
-  commands :crm_resource => 'crm_resource'
 
   desc "Pacemaker service management."
 
