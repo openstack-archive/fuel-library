@@ -88,9 +88,10 @@ class quantum::agents::metadata (
     Anchor['quantum-metadata-agent'] -> Cs_shadow["$cib_name"]
 
     cs_shadow { $cib_name: cib => $cib_name }
-    cs_commit { $cib_name: cib => $cib_name } ~> ::Corosync::Cleanup["$cib_name"]
-    ::corosync::cleanup { $cib_name: }
-    ::Corosync::Cleanup["$cib_name"] -> Service[$res_name]
+    cs_commit { $cib_name: cib => $cib_name }
+
+    Cs_commit["$cib_name"] ~> Corosync::Cleanup["clone_$res_name"] -> Service[$res_name]
+    corosync::cleanup {"clone_$res_name": }
 
     cs_resource { "$res_name":
       ensure          => present,

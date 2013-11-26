@@ -86,10 +86,9 @@ class quantum::agents::ovs (
     cs_shadow { 'ovs': cib => 'ovs' }
     cs_commit { 'ovs': cib => 'ovs' }
 
-    ::corosync::cleanup { "p_${::quantum::params::ovs_agent_service}": }
+    corosync::cleanup { "clone_p_${::quantum::params::ovs_agent_service}": }
 
-    Cs_commit['ovs'] ~> ::Corosync::Cleanup["p_${::quantum::params::ovs_agent_service}"]
-    ::Corosync::Cleanup["p_${::quantum::params::ovs_agent_service}"] -> Service['quantum-ovs-agent']
+    Cs_commit['ovs'] ~> Corosync::Cleanup["clone_p_${::quantum::params::ovs_agent_service}"] -> Service['quantum-ovs-agent']
 
     # OCF script for pacemaker
     # and his dependences
