@@ -56,6 +56,11 @@ class ceph (
       $glance_user           = 'images',
       $glance_pool           = 'images',
       $show_image_direct_url = 'True',
+
+      # Compute settings
+      $compute_user          = 'compute',
+      $compute_pool          = 'compute',
+      $libvirt_images_type   = 'rbd',
 ) {
 
   Exec { path => [ '/bin/', '/sbin/' , '/usr/bin/', '/usr/sbin/' ],
@@ -117,8 +122,22 @@ class ceph (
     }
 
     'compute': {
+      ceph::pool {$compute_pool:
+        user          => $compute_user,
+        acl           => "mon 'allow r' osd 'allow class-read object_prefix rbd_children, allow rwx pool=${cinder_pool}, allow rx pool=${glance_pool}, allow rwx pool=${compute_pool}'",
+        keyring_owner => 'nova',
+      }
+
       include ceph::nova_compute
+
+      if ($::fuel_settings['storage']['ephemeral_ceph']) {
+        include ceph::ephemeral
+        Class['ceph::conf'] -> Class['ceph::ephemeral'] ~>
+        Service[$::ceph::params::service_nova_compute]
+      }
+
       Class['ceph::conf'] ->
+      Ceph::Pool[$compute_pool] ->
       Class['ceph::nova_compute'] ~>
       Service[$::ceph::params::service_nova_compute]
     }

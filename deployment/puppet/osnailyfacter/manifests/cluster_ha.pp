@@ -469,6 +469,7 @@ class osnailyfacter::cluster_ha {
         auto_assign_floating_ip => $::fuel_settings['auto_assign_floating_ip'],
         glance_api_servers     => "${::fuel_settings['management_vip']}:9292",
         vncproxy_host          => $::fuel_settings['public_vip'],
+        vncserver_listen       => $storage_hash['ephemeral_ceph'] ? { true => "0.0.0.0", default => $internal_address },
         debug                  => $debug ? { 'true' => true, true => true, default=> false },
         verbose                => $verbose ? { 'true' => true, true => true, default=> false },
         cinder_volume_group    => "cinder",
