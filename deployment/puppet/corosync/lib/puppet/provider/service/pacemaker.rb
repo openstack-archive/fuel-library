@@ -10,7 +10,6 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Cor
   commands :crm => 'crm'
   commands :cibadmin => 'cibadmin'
   commands :crm_attribute => 'crm_attribute'
-  commands :crm_resource => 'crm_resource'
 
   desc "Pacemaker service management."
 
@@ -18,7 +17,44 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Cor
   has_feature :enableable
   has_feature :ensurable
   def self.get_cib
-    raw, _status = dump_cib
+    tstamp = Time.new.strftime("%Y%m%d-%H%M%S")
+    salt = rand(0x0010000)
+    tmpfile_name = "/tmp/cib-#{Process.pid}-#{tstamp}-#{salt}.xml"
+    cmd = "#{command(:cibadmin)} -Q"
+    if Puppet[:debug]
+      statusfile_name = "/tmp/crm_status-#{Process.pid}-#{tstamp}-#{salt}.txt"
+      begin
+        #todo: more carefuly calculate or parametrize timeout
+        Timeout::timeout(30) do
+          `crm status > #{statusfile_name}`
+          rc = $?.exitstatus
+          if rc != 0
+            raise Puppet::Error("Command 'crm status' returns rc=#{rc}")
+          end
+        end
+      rescue Timeout::Error
+        raise Puppet::Error("Command 'crm status' execution expired.")
+      end
+    end
+    begin
+      #todo: more carefuly calculate or parametrize timeout
+      Timeout::timeout(30) do
+        # execute cibadmin and store xml in tmp file
+        `#{cmd} > #{tmpfile_name}`
+        rc = $?.exitstatus
+        if rc != 0
+          raise Puppet::Error("Command '#{cmd}' returns rc=#{rc}")
+        end
+      end
+    rescue Timeout::Error
+      #todo: Check XML, and no raise if it valid.
+      raise Puppet::Error("Command '#{cmd}' execution expired.")
+    end
+    if ! File.exists?(tmpfile_name)
+      raise Puppet::Error("TEMP file '#{tmpfile_name}' not found.")
+    end
+    raw = File.open(tmpfile_name){ |f| f.read }
+    File.delete(tmpfile_name) if ! Puppet[:debug]
     @@cib=REXML::Document.new(raw)
   end
 
@@ -64,7 +100,7 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Cor
       end
     end
     if @service[:class] == 'ocf'
-      stdout =  Open3.popen3("/bin/bash -c 'OCF_ROOT=/usr/lib/ocf /usr/lib/ocf/resource.d/#{@service[:provider]}/#{@service[:type]} meta-data'")[1].read
+      stdout = Open3.popen3("/bin/bash -c 'OCF_ROOT=/usr/lib/ocf /usr/lib/ocf/resource.d/#{@service[:provider]}/#{@service[:type]} meta-data'")[1].read
       metadata = REXML::Document.new(stdout)
       default_start_timeout = XPath.match(metadata, "//actions/action[@name=\'start\']").first.attributes['timeout'].to_i
       default_stop_timeout = XPath.match(metadata, "//actions/action[@name=\'stop\']").first.attributes['timeout'].to_i
@@ -242,10 +278,10 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Cor
     crm('resource', 'start', get_service_name)
     debug("Starting countdown for resource start")
     debug("Start timeout is #{@service[:start_timeout]}")
-    Timeout::timeout(@service[:start_timeout],Puppet::Error) do
+    Timeout::timeout(5*@service[:start_timeout],Puppet::Error) do
       loop do
-        break if status(false) == :running
-        sleep 1
+        break if status == :running
+        sleep 5
       end
     end
     sleep 3
@@ -257,10 +293,10 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Cor
     crm('resource', 'stop', get_service_name)
     debug("Starting countdown for resource stop")
     debug("Stop timeout is #{@service[:stop_timeout]}")
-    Timeout::timeout(@service[:stop_timeout],Puppet::Error) do
+    Timeout::timeout(5*@service[:stop_timeout],Puppet::Error) do
       loop do
-        break if status(false) == :stopped
-        sleep 1
+        break if status == :stopped
+        sleep 5
       end
     end
   end
@@ -270,9 +306,8 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Cor
     start
   end
 
-  def status(cleanup=true)
-    debug(crm('status'))
-    crm_resource('--resource', get_service_name, '--cleanup', '--node', `uname -n`.chomp) if cleanup
+  def status
+    #debug(crm('status'))
     debug("getting last operations")
     get_last_successful_operations
     if @last_successful_operations.any? {|op| ['start','promote'].include?(op)}

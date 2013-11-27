@@ -10,6 +10,7 @@ class quantum::agents::metadata (
 
   include 'quantum::params'
 
+  Anchor<| title=='quantum-server-done' |> ->
   anchor {'quantum-metadata-agent': }
 
   Service<| title=='quantum-server' |> -> Anchor['quantum-metadata-agent']
@@ -74,20 +75,24 @@ class quantum::agents::metadata (
       source => "puppet:///modules/quantum/ocf/quantum-agent-metadata",
     }
     File<| title == 'ocf-mirantis-path' |> -> File['quantum-metadata-agent-ocf']
+    Anchor['quantum-metadata-agent'] -> File['quantum-metadata-agent-ocf']
+    Quantum_metadata_agent_config<||> -> File['quantum-metadata-agent-ocf']
+    File['quantum-metadata-agent-ocf'] -> Cs_resource["$res_name"]
 
     service { 'quantum-metadata-agent__disabled':
       name    => $::quantum::params::metadata_agent_service,
       enable  => false,
       ensure  => stopped,
     }
-    Cs_commit <| title == 'ovs' |> -> Cs_shadow <| title == "$res_name" |>
+    Cs_commit <| title == 'ovs' |> -> Cs_shadow <| title == "$cib_name" |>
+    Anchor['quantum-metadata-agent'] -> Cs_shadow["$cib_name"]
 
-    cs_shadow { $res_name: cib => $cib_name }
-    cs_commit { $res_name: cib => $cib_name } ~> ::Corosync::Cleanup["$res_name"]
-    ::corosync::cleanup { $res_name: }
-    ::Corosync::Cleanup["$res_name"] -> Service[$res_name]
+    cs_shadow { $cib_name: cib => $cib_name }
+    cs_commit { $cib_name: cib => $cib_name }
 
-    File['quantum-metadata-agent-ocf'] ->
+    Cs_commit["$cib_name"] ~> Corosync::Cleanup["clone_$res_name"] -> Service[$res_name]
+    corosync::cleanup {"clone_$res_name": }
+
     cs_resource { "$res_name":
       ensure          => present,
       cib             => $cib_name,
@@ -108,7 +113,7 @@ class quantum::agents::metadata (
       operations => {
         'monitor' => {
           'interval' => '60',
-          'timeout'  => '30'
+          'timeout'  => '10'
         },
         'start' => {
           'timeout' => '30'
@@ -120,28 +125,9 @@ class quantum::agents::metadata (
     }
 
     Anchor <| title == 'quantum-ovs-agent-done' |> -> Anchor['quantum-metadata-agent']
-    cs_colocation { 'metadata-with-ovs':
-      ensure     => present,
-      cib        => $cib_name,
-      primitives => [
-        "clone_p_${::quantum::params::metadata_agent_service}",
-        "clone_p_${::quantum::params::ovs_agent_service}"
-      ],
-      score      => 'INFINITY',
-    } ->
-    cs_order { 'metadata-after-ovs':
-      ensure => present,
-      cib    => $cib_name,
-      first  => "clone_p_${::quantum::params::ovs_agent_service}",
-      second => "clone_p_${::quantum::params::metadata_agent_service}",
-      score  => 'INFINITY',
-    } -> Service["$res_name"]
-
 
     Cs_resource["$res_name"] ->
-      Cs_commit["$res_name"] ->
-        ::Corosync::Cleanup["$res_name"] ->
-          Service["$res_name"]
+      Cs_commit["$cib_name"]
 
     service {"$res_name":
       name       => $res_name,
@@ -153,12 +139,10 @@ class quantum::agents::metadata (
     }
 
     Anchor['quantum-metadata-agent'] ->
-      Quantum_metadata_agent_config<||> ->
-        File['quantum-metadata-agent-ocf'] ->
-          Service['quantum-metadata-agent__disabled'] ->
-            Cs_resource["$res_name"] ->
-              Service["$res_name"] ->
-                Anchor['quantum-metadata-agent-done']
+      Service['quantum-metadata-agent__disabled'] ->
+        Cs_resource["$res_name"] ->
+          Service["$res_name"] ->
+            Anchor['quantum-metadata-agent-done']
   }
   anchor {'quantum-metadata-agent-done': }
 }

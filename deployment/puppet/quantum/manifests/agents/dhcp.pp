@@ -37,6 +37,7 @@ class quantum::agents::dhcp (
 
   include 'quantum::waist_setup'
 
+  Anchor<| title=='quantum-server-done' |> ->
   anchor {'quantum-dhcp-agent': }
 
   Service<| title=='quantum-server' |> -> Anchor['quantum-dhcp-agent']
@@ -84,6 +85,8 @@ class quantum::agents::dhcp (
   if $service_provider == 'pacemaker' {
     Service <| title == 'quantum-server' |> -> Cs_shadow['dhcp']
     Quantum_dhcp_agent_config <| |> -> Cs_shadow['dhcp']
+    Anchor['quantum-dhcp-agent'] -> Cs_shadow['dhcp']
+
 
     # OCF script for pacemaker
     # and his dependences
@@ -95,6 +98,10 @@ class quantum::agents::dhcp (
       source => "puppet:///modules/quantum/ocf/quantum-agent-dhcp",
     }
     File<| title == 'ocf-mirantis-path' |> -> File['quantum-dhcp-agent-ocf']
+    Anchor['quantum-dhcp-agent'] -> File['quantum-dhcp-agent-ocf']
+    Quantum_config <| |> -> File['quantum-dhcp-agent-ocf']
+    Quantum_dhcp_agent_config <| |> -> File['quantum-dhcp-agent-ocf']
+    Package[$dhcp_agent_package] -> File['quantum-dhcp-agent-ocf']
     File['quantum-dhcp-agent-ocf'] -> Cs_resource["p_${::quantum::params::dhcp_agent_service}"]
     File['q-agent-cleanup.py'] -> Cs_resource["p_${::quantum::params::dhcp_agent_service}"]
     cs_resource { "p_${::quantum::params::dhcp_agent_service}":
@@ -103,7 +110,6 @@ class quantum::agents::dhcp (
       primitive_class => 'ocf',
       provided_by     => 'mirantis',
       primitive_type  => 'quantum-agent-dhcp',
-      #require => File['quantum-agent-dhcp'],
       parameters      => {
         'os_auth_url' => $quantum_config['keystone']['auth_url'],
         'tenant'      => $quantum_config['keystone']['admin_tenant_name'],
@@ -113,16 +119,16 @@ class quantum::agents::dhcp (
       ,
       operations      => {
         'monitor'  => {
-          'interval' => '20',
-          'timeout'  => '30'
+          'interval' => '30',
+          'timeout'  => '10'
         }
         ,
         'start'    => {
-          'timeout' => '360'
+          'timeout' => '120'
         }
         ,
         'stop'     => {
-          'timeout' => '360'
+          'timeout' => '120'
         }
       }
       ,
@@ -132,7 +138,6 @@ class quantum::agents::dhcp (
     Cs_commit <| title == 'quantum-metadata-agent' |> -> Cs_shadow <| title == 'dhcp' |>
 
     ::corosync::cleanup { "p_${::quantum::params::dhcp_agent_service}": }
-    Cs_commit['dhcp'] -> ::Corosync::Cleanup["p_${::quantum::params::dhcp_agent_service}"]
     Cs_commit['dhcp'] ~> ::Corosync::Cleanup["p_${::quantum::params::dhcp_agent_service}"]
     ::Corosync::Cleanup["p_${::quantum::params::dhcp_agent_service}"] -> Service['quantum-dhcp-service']
     Cs_resource["p_${::quantum::params::dhcp_agent_service}"] -> Cs_colocation['dhcp-with-ovs']
@@ -218,10 +223,9 @@ class quantum::agents::dhcp (
   Class[quantum::waistline] -> Service[quantum-dhcp-service]
 
   Anchor['quantum-dhcp-agent'] ->
-    Quantum_dhcp_agent_config <| |> ->
-      Cs_resource<| title=="p_${::quantum::params::dhcp_agent_service}" |> ->
-        Service['quantum-dhcp-service'] ->
-          Anchor['quantum-dhcp-agent-done']
+    Cs_resource<| title=="p_${::quantum::params::dhcp_agent_service}" |> ->
+      Service['quantum-dhcp-service'] ->
+        Anchor['quantum-dhcp-agent-done']
 
   anchor {'quantum-dhcp-agent-done': }
 

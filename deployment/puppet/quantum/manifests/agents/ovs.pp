@@ -14,14 +14,12 @@ class quantum::agents::ovs (
     # install quantum-ovs-agent at the same host where
     # quantum-server + quantum-ovs-plugin
     Anchor['quantum-plugin-ovs-done'] -> Anchor['quantum-ovs-agent']
-
   }
 
-  # if defined(Anchor['quantum-server-done']) {
-  #   Anchor['quantum-server-done'] -> Anchor['quantum-ovs-agent']
-  # }
   Service<| title=='quantum-server' |> -> Anchor['quantum-ovs-agent']
+  Quantum_config <| |> -> Quantum_plugin_ovs <| |>
 
+  Anchor<| title=='quantum-server-done' |> ->
   anchor {'quantum-ovs-agent': }
 
   if $::operatingsystem == 'Ubuntu' {
@@ -81,18 +79,16 @@ class quantum::agents::ovs (
   #Service <| title == 'quantum-server' |> -> Service['quantum-ovs-agent']
 
   if $service_provider == 'pacemaker' {
-    Quantum_config <| |> -> Cs_shadow['ovs']
-    Quantum_plugin_ovs <| |> -> Cs_shadow['ovs']
     L23network::L2::Bridge <| |> -> Cs_shadow['ovs']
+    Anchor['quantum-ovs-agent'] -> Cs_shadow['ovs']
+
 
     cs_shadow { 'ovs': cib => 'ovs' }
     cs_commit { 'ovs': cib => 'ovs' }
 
-    ::corosync::cleanup { "p_${::quantum::params::ovs_agent_service}": }
+    corosync::cleanup { "clone_p_${::quantum::params::ovs_agent_service}": }
 
-    Cs_commit['ovs'] -> ::Corosync::Cleanup["p_${::quantum::params::ovs_agent_service}"]
-    Cs_commit['ovs'] ~> ::Corosync::Cleanup["p_${::quantum::params::ovs_agent_service}"]
-    ::Corosync::Cleanup["p_${::quantum::params::ovs_agent_service}"] -> Service['quantum-ovs-agent']
+    Cs_commit['ovs'] ~> Corosync::Cleanup["clone_p_${::quantum::params::ovs_agent_service}"] -> Service['quantum-ovs-agent']
 
     # OCF script for pacemaker
     # and his dependences
@@ -104,6 +100,8 @@ class quantum::agents::ovs (
       source => "puppet:///modules/quantum/ocf/quantum-agent-ovs",
     }
     File<| title == 'ocf-mirantis-path' |> -> File['quantum-ovs-agent-ocf']
+    Anchor['quantum-ovs-agent'] -> File['quantum-ovs-agent-ocf']
+    Package[$ovs_agent_package] -> Quantum_plugin_ovs <| |> -> File['quantum-ovs-agent-ocf']
     File['quantum-ovs-agent-ocf'] -> Cs_resource["p_${::quantum::params::ovs_agent_service}"]
 
     cs_resource { "p_${::quantum::params::ovs_agent_service}":
@@ -122,14 +120,14 @@ class quantum::agents::ovs (
       },
       operations      => {
         'monitor'  => {
-          'interval' => '20',
-          'timeout'  => '30'
+          'interval' => '30',
+          'timeout'  => '10'
         },
         'start'    => {
-          'timeout' => '480'
+          'timeout' => '120'
         },
         'stop'     => {
-          'timeout' => '480'
+          'timeout' => '120'
         }
       },
     }
