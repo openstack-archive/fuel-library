@@ -20,6 +20,7 @@ class openstack::firewall (
   $nova_api_metadata_port =  8775,
   $nova_api_volume_port =  8776,
   $nova_vncproxy_port =  6080,
+  $nova_vnc_ip_range = '0.0.0.0/0',
   $erlang_epmd_port  =   4369,
   $erlang_rabbitmq_port =  5672,
   $erlang_rabbitmq_backend_port = 5673,
@@ -204,6 +205,7 @@ class openstack::firewall (
   firewall {'118 vnc ports':
     port => "5900-6100",
     proto => 'tcp',
+    source => $nova_vnc_ip_range,
     action => 'accept',
   }
 
