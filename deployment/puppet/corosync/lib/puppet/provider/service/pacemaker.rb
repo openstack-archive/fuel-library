@@ -10,6 +10,7 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Cor
   commands :crm => 'crm'
   commands :cibadmin => 'cibadmin'
   commands :crm_attribute => 'crm_attribute'
+  commands :crm_resource => 'crm_resource'
 
   desc "Pacemaker service management."
 
@@ -207,12 +208,13 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Cor
   end
 
   def get_last_successful_operations
+    tstamp = Time.new.strftime("%H:%M:%S")
     self.class.get_cib
     self.class.get_nodes
     @last_successful_operations = []
     @@nodes.each do |node|
-      next unless node[:state] == :online
-      debug("getting last ops on #{node[:uname]} for #{@resource[:name]}")
+      next if node[:state] != :online
+      debug("getting last ops (CIB at #{tstamp}) on '#{node[:uname]} for #{@resource[:name]}'")
       all_operations =  XPath.match(@@cib,"cib/status/node_state[@uname='#{node[:uname]}']/lrm/lrm_resources/lrm_resource/lrm_rsc_op[starts-with(@id,'#{@resource[:name]}')]")
       debug("ALL OPERATIONS:\n\n #{all_operations.inspect}")
       next if all_operations.nil?
@@ -245,6 +247,12 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Cor
           last_successful_op = 'start'
         else
           last_successful_op = 'stop'
+          if last_op.attributes['rc-code'].to_i == 5 and node[:uname] == Facter.value(:pacemaker_hostname)
+            crm_resource('--cleanup','--resource',get_service_name,'--node',Facter.value(:pacemaker_hostname))
+            sleep 15
+            self.class.get_cib
+            retry
+          end
         end
       end
       debug("LAST SUCCESSFUL OP :\n\n #{last_successful_op.inspect}")

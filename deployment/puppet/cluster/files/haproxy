@@ -124,10 +124,10 @@ haproxy_status()
 		PID=`cat $PIDFILE`
 		if [ -n "$PID" ]; then
 			if ps -p $PID | grep haproxy >/dev/null ; then
-				ocf_log info "haproxy daemon running"
+				ocf_log debug "haproxy daemon running"
 				return $OCF_SUCCESS
 			else
-				ocf_log info "haproxy daemon is not running but pid file exists"
+				ocf_log warn "haproxy daemon is not running but pid file exists"
 				return $OCF_NOT_RUNNING
 			fi
 		else
@@ -136,7 +136,7 @@ haproxy_status()
 		fi
 	fi
 	# haproxy is not running
-	ocf_log info "haproxy daemon is not running"
+	ocf_log warn "haproxy daemon is not running"
 	return $OCF_NOT_RUNNING
 }
 
@@ -158,7 +158,7 @@ haproxy_start()
 		COMMAND="/usr/sbin/haproxy"
 	fi
 
-	$COMMAND $OCF_RESKEY_extraconf -f $CONF_FILE -p $PIDFILE 
+	$COMMAND $OCF_RESKEY_extraconf -f $CONF_FILE -p $PIDFILE
 	if [ $? -ne 0 ]; then
 		ocf_log err "Error. haproxy daemon returned error $?."
 		exit $OCF_ERR_GENERIC
