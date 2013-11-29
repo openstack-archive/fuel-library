@@ -10,6 +10,7 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Cor
   commands :crm => 'crm'
   commands :cibadmin => 'cibadmin'
   commands :crm_attribute => 'crm_attribute'
+  commands :crm_resource => 'crm_resource'
 
   desc "Pacemaker service management."
 
@@ -208,6 +209,12 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Cor
           last_successful_op = 'start'
         else
           last_successful_op = 'stop'
+          if last_op.attributes['rc-code'].to_i == 5 and node[:uname] == Facter.value(:pacemaker_hostname)
+            crm_resource('--cleanup','--resource',get_service_name,'--node',Facter.value(:pacemaker_hostname))
+            sleep 15
+            self.class.get_cib
+            retry
+          end
         end
       end
       debug("LAST SUCCESSFUL OP :\n\n #{last_successful_op.inspect}")
