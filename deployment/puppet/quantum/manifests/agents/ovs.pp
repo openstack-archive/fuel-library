@@ -31,7 +31,20 @@ class quantum::agents::ovs (
          mode    => 644,
          before  => Package['quantum-plugin-ovs-agent'],
       }
-    }
+    } else {
+       file { '/etc/init/quantum-plugin-openvswitch-agent.override':
+         replace => 'no',
+         ensure  => 'present',
+         content => 'manual',
+         mode    => 644,
+         before  => Package['quantum-plugin-ovs-agent'],
+       }
+       exec { 'rm-quantum-quantum-plugin-override':
+         path      => '/sbin:/bin:/usr/bin:/usr/sbin',
+         command   => "rm -f /etc/init/quantum-plugin-openvswitch-agent.override",
+         require    => Package['quantum-plugin-ovs-agent'],
+       }
+     }
   }
 
   if $::quantum::params::ovs_agent_package {
