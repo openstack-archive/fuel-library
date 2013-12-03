@@ -49,6 +49,7 @@ class cobbler::snippets {
   cobbler_snippet {"puppet_conf":}
   cobbler_snippet {"puppet_register_if_enabled":}
   cobbler_snippet {"red_hat_register_rhsm":}
+  cobbler_snippet {"red_hat_register_satellite":}
   cobbler_snippet {'ntp_register_if_enabled':}
   cobbler_snippet {"mcollective_install_if_enabled":}
   cobbler_snippet {"mcollective_conf":}
