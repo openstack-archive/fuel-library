@@ -7,15 +7,17 @@
 class ceilometer::alarm::notifier (
   $enabled = true,
 )
- {
+{
   include ceilometer::params
 
-  Ceilometer_config<||> ~> Service['service-alarm-notifier']
-  Package[$::ceilometer::params::alarm_notifier_package] -> Service['service-alarm-notifier']
+  Ceilometer_config<||> ~> Service['ceilometer-alarm-notifier']
+  Package['ceilometer-common'] -> Service['ceilometer-alarm-notifier']
+  Package['ceilometer-alarm'] -> Service['ceilometer-alarm-notifier']
 
-  if ! defined(Package[$::ceilometer::params::alarm_notifier_package]) {
-    package { $::ceilometer::params::alarm_notifier_package :
-    ensure => installed,
+  if ! defined(Package['ceilometer-alarm']) {
+    package { 'ceilometer-alarm' :
+      ensure => installed,
+      name   => $::ceilometer::params::alarm_package,
     }
   }
 
@@ -26,7 +28,7 @@ class ceilometer::alarm::notifier (
     $service_ensure = 'stopped'
   }
 
-  service { 'service-alarm-notifier':
+  service { 'ceilometer-alarm-notifier':
     ensure     => $service_ensure,
     name       => $::ceilometer::params::alarm_notifier_service,
     enable     => $enabled,
