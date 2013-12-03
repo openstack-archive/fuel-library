@@ -4,19 +4,31 @@
 #  [*enabled*]
 #    Should the service be enabled. Optional. Defauls to true
 #
+#  [*eval_interval*]
+#    Period of evaluation cycle. This should be >= than configured pipeline
+#    interval of metrics.
+#
+#  [*ha_mode*]
+#    Should we deploy service in HA mode. Active/Passive mode under pacemaker.
+#    Optional. Defauls to false
+#
 class ceilometer::alarm::evaluator (
-  $enabled = true,
+  $enabled       = true,
+  $eval_interval = 600,
+  $ha_mode       = false,
 )
- {
+{
   include ceilometer::params
 
-  Ceilometer_config<||> ~> Service['service-alarm-evaluator']
-  Package[$::ceilometer::params::alarm_evaluator_package] -> Service['service-alarm-evaluator']
+  Ceilometer_config<||> ~> Service['ceilometer-alarm-evaluator']
+  Package['ceilometer-common'] -> Service['ceilometer-alarm-evaluator']
+  Package['ceilometer-alarm'] -> Service['ceilometer-alarm-evaluator']
 
-  if ! defined(Package[$::ceilometer::params::alarm_evaluator_package]) {
-     package { $::ceilometer::params::alarm_evaluator_package:
-     ensure => installed,
-     }
+  if ! defined(Package['ceilometer-alarm']) {
+    package { 'ceilometer-alarm':
+      ensure => installed,
+      name   => $::ceilometer::params::alarm_package,
+    }
   }
 
   if $enabled {
@@ -26,11 +38,78 @@ class ceilometer::alarm::evaluator (
     $service_ensure = 'stopped'
   }
 
-  service { 'service-alarm-evaluator':
-    ensure     => $service_ensure,
-    name       => $::ceilometer::params::alarm_evaluator_service,
-    enable     => $enabled,
-    hasstatus  => true,
-    hasrestart => true,
+  ceilometer_config {
+    'alarm/evaluation_interval': value => $eval_interval;
+  }
+
+  if $ha_mode {
+
+    $res_name = "p_${::ceilometer::params::alarm_evaluator_service}"
+    $cib_name = "${::ceilometer::params::alarm_evaluator_service}"
+
+    Package['pacemaker'] -> File['ceilometer-alarm-evaluator-ocf']
+    file {'ceilometer-alarm-evaluator-ocf':
+      path=>'/usr/lib/ocf/resource.d/mirantis/ceilometer-alarm-evaluator',
+      mode => 755,
+      owner => root,
+      group => root,
+      source => 'puppet:///modules/ceilometer/ocf/ceilometer-alarm-evaluator',
+    }
+
+    File['ceilometer-alarm-evaluator-ocf'] -> Cs_resource[$res_name]
+    cs_resource { $res_name:
+      ensure          => present,
+      cib             => $cib_name,
+      primitive_class => 'ocf',
+      provided_by     => 'mirantis',
+      primitive_type  => 'ceilometer-alarm-evaluator',
+      metadata        => { 'target-role' => 'stopped' },
+      parameters      => { 'user' => 'ceilometer' },
+      operations      => {
+        'monitor'  => {
+          'interval' => '20',
+          'timeout'  => '30'
+        }
+        ,
+        'start'    => {
+          'timeout' => '360'
+        }
+        ,
+        'stop'     => {
+          'timeout' => '360'
+        }
+      },
+    }
+
+    cs_shadow { $res_name: cib => $cib_name }
+    cs_commit { $res_name: cib => $cib_name }
+
+    ::corosync::cleanup{ $res_name: }
+
+    service { 'ceilometer-alarm-evaluator':
+      ensure     => $service_ensure,
+      name       => $res_name,
+      enable     => $enabled,
+      hasstatus  => true,
+      hasrestart => true,
+      provider   => "pacemaker",
+    }
+
+    Cs_shadow[$res_name] ->
+      Cs_resource[$res_name] ->
+        Cs_commit[$res_name] ->
+          Corosync::Cleanup[$res_name] ~>
+            Service['ceilometer-alarm-evaluator']
+
+  } else {
+
+    service { 'ceilometer-alarm-evaluator':
+      ensure     => $service_ensure,
+      name       => $::ceilometer::params::alarm_evaluator_service,
+      enable     => $enabled,
+      hasstatus  => true,
+      hasrestart => true,
+    }
+
   }
 }

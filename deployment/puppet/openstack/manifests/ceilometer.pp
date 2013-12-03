@@ -89,9 +89,12 @@ class openstack::ceilometer (
       ha_mode       => $ha_mode,
     }
 
-    #class { '::ceilometer::alarm::evaluator': }
+    class { '::ceilometer::alarm::evaluator':
+      eval_interval => 600,
+      ha_mode       => $ha_mode,
+    }
 
-    #class { '::ceilometer::alarm::notifier': }
+    class { '::ceilometer::alarm::notifier': }
   }
 
   if ($on_compute) {

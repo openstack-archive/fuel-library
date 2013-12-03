@@ -122,7 +122,8 @@ class ceilometer::agent::central (
     Cs_shadow[$res_name] ->
       Cs_resource[$res_name] ->
         Cs_commit[$res_name] ->
-          Service['ceilometer-agent-central']
+          Corosync::Cleanup[$res_name] ~>
+            Service['ceilometer-agent-central']
 
   } else {
 
