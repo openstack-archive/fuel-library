@@ -107,9 +107,6 @@ class mcollective::rabbitmq (
     logoutput => true,
     require   => [Service['rabbitmq-server'], Rabbitmq_user_permissions["${user}@${actual_vhost}"]],
     path      => '/bin:/usr/bin:/sbin:/usr/sbin',
-    tries     => 10,
-    try_sleep => 3,
-    unless    => "curl -I -u ${user}:${password} http://localhost:${management_port}/api/exchanges/${actual_vhost}/mcollective_directed",
   }
 
   exec { 'create-mcollective-broadcast-exchange':
@@ -118,9 +115,6 @@ class mcollective::rabbitmq (
     logoutput => true,
     require   => [Service['rabbitmq-server'], Rabbitmq_user_permissions["${user}@${actual_vhost}"]],
     path      => '/bin:/usr/bin:/sbin:/usr/sbin',
-    tries     => 10,
-    try_sleep => 3,
-    unless    => "curl -I -u ${user}:${password} http://localhost:${management_port}/api/exchanges/${actual_vhost}/mcollective_broadcast",
   }
 
 }
