@@ -57,7 +57,6 @@ class nailgun(
   Class["nailgun::naily"] ->
   Class["nailgun::nginx-nailgun"] ->
   Class["nailgun::cobbler"] ->
-  Class["nailgun::pm"] ->
   Class["openstack::logging"] ->
   Class["nailgun::supervisor"] ->
   Anchor<| title == "nailgun-end" |>
@@ -80,7 +79,6 @@ class nailgun(
     before => [
                Class["nailgun::nginx-repo"],
                Class["nailgun::nginx-nailgun"],
-               Class["nailgun::pm"],
                ],
   }
 
@@ -170,10 +168,6 @@ class nailgun(
     gem_source => $gem_source,
   }
 
-  class { "nailgun::pm":
-    puppet_master_hostname => $puppet_master_hostname,
-  }
-
   class { "nailgun::mcollective":
     mco_pskey => $mco_pskey,
     mco_user => $mco_user,
@@ -213,6 +207,8 @@ class nailgun(
   class { "nailgun::gateone":
     pip_opts => "${pip_index} ${pip_find_links}",
   }
+    
+  class { "nailgun::puppetsync": }
 
   nailgun::sshkeygen { "/root/.ssh/id_rsa":
     homedir => "/root",
