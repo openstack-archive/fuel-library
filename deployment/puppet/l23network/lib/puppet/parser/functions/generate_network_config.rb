@@ -241,6 +241,8 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
               else
                 trans[:vlan_splinters] = false
               end
+            else
+              trans[:vlan_splinters] = false
             end
             # add trunks list to the interface if it given
             if _do_trunks
