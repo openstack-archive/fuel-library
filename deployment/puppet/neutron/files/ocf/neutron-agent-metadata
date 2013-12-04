@@ -1,9 +1,9 @@
 #!/bin/bash
 #
 #
-# OpenStack OVS Service (neutron-metadata-agent)
+# OpenStack Neutron Metadata Agent service
 #
-# Description:  Manages an OpenStack OVS Service (neutron-metadata-agent) process as an HA resource
+# Description:  Manages an OpenStack Neutron Metadata Agent process as an HA resource
 #
 # Authors: Emilien Macchi
 # Mainly inspired by the Nova Network resource agent written by Emilien Macchi & Sebastien Han
@@ -14,12 +14,6 @@
 #
 # See usage() function below for more details ...
 #
-# OCF instance parameters:
-#   OCF_RESKEY_binary
-#   OCF_RESKEY_config
-#   OCF_RESKEY_agent_config
-#   OCF_RESKEY_user
-#   OCF_RESKEY_pid
 #######################################################################
 # Initialization:
 
@@ -35,14 +29,18 @@ PATH=/sbin:/usr/sbin:/bin:/usr/bin
 OCF_RESKEY_binary_default="neutron-metadata-agent"
 OCF_RESKEY_config_default="/etc/neutron/neutron.conf"
 OCF_RESKEY_agent_config_default="/etc/neutron/metadata_agent.ini"
+OCF_RESKEY_log_file_default="/var/log/neutron/metadata-agent.log"
 OCF_RESKEY_user_default="neutron"
 OCF_RESKEY_pid_default="$HA_RSCTMP/$OCF_RESOURCE_INSTANCE.pid"
+OCF_RESKEY_debug_default="false"
 
 : ${OCF_RESKEY_binary=${OCF_RESKEY_binary_default}}
 : ${OCF_RESKEY_config=${OCF_RESKEY_config_default}}
 : ${OCF_RESKEY_agent_config=${OCF_RESKEY_agent_config_default}}
 : ${OCF_RESKEY_user=${OCF_RESKEY_user_default}}
 : ${OCF_RESKEY_pid=${OCF_RESKEY_pid_default}}
+: ${OCF_RESKEY_log_file=${OCF_RESKEY_log_file_default}}
+: ${OCF_RESKEY_debug=${OCF_RESKEY_debug_default}}
 
 #######################################################################
 
@@ -50,7 +48,7 @@ usage() {
     cat <<UEND
         usage: $0 (start|stop|validate-all|meta-data|status|monitor)
 
-        $0 manages an OpenStack Quantum Metadata Agent (neutron-metadata-agent) process as an HA resource
+        $0 manages an OpenStack Neutron Metadata Agent (${OCF_RESKEY_binary}) process as an HA resource
 
         The 'start' operation starts the networking service.
         The 'stop' operation stops the networking service.
@@ -70,24 +68,24 @@ meta_data() {
 <version>1.0</version>
 
 <longdesc lang="en">
-Resource agent for the OpenStack Quantum Metadata Agent
+Resource agent for the OpenStack Neutron Metadata Agent
 May manage a neutron-metadata-agent instance or a clone set that
 creates a distributed neutron-metadata-agent cluster.
 </longdesc>
-<shortdesc lang="en">Manages the OpenStack OVS Service (neutron-metadata-agent)</shortdesc>
+<shortdesc lang="en">Manages the OpenStack OVS Service (${OCF_RESKEY_binary})</shortdesc>
 <parameters>
 
 <parameter name="binary" unique="0" required="0">
 <longdesc lang="en">
-Location of the Quantum Metadata Agent binary
+Location of the Neutron Metadata Agent binary
 </longdesc>
-<shortdesc lang="en">Quantum Metadata Agent binary</shortdesc>
+<shortdesc lang="en">Neutron Metadata Agent binary</shortdesc>
 <content type="string" default="${OCF_RESKEY_binary_default}" />
 </parameter>
 
 <parameter name="config" unique="0" required="0">
 <longdesc lang="en">
-Location of the OpenStack Quantum Service (neutron-server) configuration file
+Location of the OpenStack Neutron Service (neutron-server) configuration file
 </longdesc>
 <shortdesc lang="en">OpenStack OVS Server (neutron-server) config file</shortdesc>
 <content type="string" default="${OCF_RESKEY_config_default}" />
@@ -95,26 +93,42 @@ Location of the OpenStack Quantum Service (neutron-server) configuration file
 
 <parameter name="agent_config" unique="0" required="0">
 <longdesc lang="en">
-Location of the OpenStack Quantum Metadata Agent configuration file
+Location of the OpenStack Neutron Metadata Agent configuration file
 </longdesc>
-<shortdesc lang="en">OpenStack Quantum Metadata Agent config file</shortdesc>
+<shortdesc lang="en">OpenStack Neutron Metadata Agent config file</shortdesc>
 <content type="string" default="${OCF_RESKEY_agent_config_default}" />
 </parameter>
 
 <parameter name="user" unique="0" required="0">
 <longdesc lang="en">
-User running Quantum Metadata Agent service (neutron-metadata-agent)
+User running Neutron Metadata Agent service (${OCF_RESKEY_binary})
 </longdesc>
-<shortdesc lang="en">OpenStack Quantum Metadata Agent service (neutron-metadata-agent) user</shortdesc>
+<shortdesc lang="en">OpenStack Neutron Metadata Agent service (${OCF_RESKEY_binary}) user</shortdesc>
 <content type="string" default="${OCF_RESKEY_user_default}" />
 </parameter>
 
 <parameter name="pid" unique="0" required="0">
 <longdesc lang="en">
-The pid file to use for this Quantum Metadata Agent service (neutron-metadata-agent) instance
+The pid file to use for this Neutron Metadata Agent service (${OCF_RESKEY_binary}) instance
 </longdesc>
-<shortdesc lang="en">OpenStack Quantum Metadata Agent service (neutron-metadata-agent) pid file</shortdesc>
+<shortdesc lang="en">OpenStack Neutron Metadata Agent service (${OCF_RESKEY_binary}) pid file</shortdesc>
 <content type="string" default="${OCF_RESKEY_pid_default}" />
+</parameter>
+
+<parameter name="log_file" unique="0" required="0">
+<longdesc lang="en">
+The log file to use for this OpenStack Metadata Service (${OCF_RESKEY_binary}) instance
+</longdesc>
+<shortdesc lang="en">OpenStack Metadata Service (${OCF_RESKEY_binary}) log file</shortdesc>
+<content type="string" default="${OCF_RESKEY_log_file_default}" />
+</parameter>
+
+<parameter name="debug" unique="0" required="0">
+<longdesc lang="en">
+The debug flag for  OpenStack Metadata Service (${OCF_RESKEY_binary}) instance
+</longdesc>
+<shortdesc lang="en">OpenStack Metadata Service (${OCF_RESKEY_binary}) debug flag</shortdesc>
+<content type="boolean" default="${OCF_RESKEY_debug_default}" />
 </parameter>
 
 </parameters>
@@ -129,6 +143,11 @@ The pid file to use for this Quantum Metadata Agent service (neutron-metadata-ag
 </actions>
 </resource-agent>
 END
+}
+
+get_worker_pid() {
+    pid=`pgrep -u ${OCF_RESKEY_user} -fnl ${OCF_RESKEY_binary} | grep -E  "python\s+\/usr\/bin" | awk '{print $1}'`
+    echo $pid
 }
 
 #######################################################################
@@ -160,37 +179,47 @@ neutron_metadata_agent_validate() {
     true
 }
 
+
 neutron_metadata_agent_status() {
     local pid
+    local f_pid
     local rc
 
-    if [ ! -f $OCF_RESKEY_pid ]; then
-        ocf_log info "OpenStack Quantum Metadata Agent (neutron-metadata-agent) seems not to exist"
-
-        pid=`pgrep -f ${OCF_RESKEY_binary}`
-
-        if [ $? -eq 0 ]
-        then
-        	ocf_log warn "OpenStack Quantum Metadata Agent (neutron-metadata-agent) was run, but no pid file found."
-        	ocf_log warn "Will use $pid as PID of process (neutron-metadata-agent)"
-        	ocf_log warn "Writing $pid into $OCF_RESKEY_pid"
-        	echo $pid > $OCF_RESKEY_pid
-    	else
-    		return $OCF_NOT_RUNNING
-    	fi
-    else
-        pid=`cat $OCF_RESKEY_pid`
-    fi
-
-    ocf_run -warn kill -s 0 $pid
-    rc=$?
-    if [ $rc -eq 0 ]; then
-        return $OCF_SUCCESS
-    else
-        ocf_log info "Old PID file $OCF_RESKEY_pid found (with pid $pid), but OpenStack Quantum Metadata Agent (neutron-metadata-agent) is not running"
+    pid=`get_worker_pid`
+    if [ "xxx$pid" == "xxx" ] ; then
+        ocf_log warn "OpenStack Neutron agent '$OCF_RESKEY_binary' not running."
         return $OCF_NOT_RUNNING
     fi
+
+    # Check PID file and create if need
+    if [ ! -f $OCF_RESKEY_pid ] ; then
+        ocf_log warn "OpenStack Neutron agent (${OCF_RESKEY_binary}) was run, but no PID file found."
+        ocf_log warn "Writing PID='$pid' to '$OCF_RESKEY_pid' for '${OCF_RESKEY_binary}' worker..."
+        echo $pid > $OCF_RESKEY_pid
+        return $OCF_SUCCESS
+    fi
+
+    # compare PID from file with PID from `pgrep...`
+    f_pid=`cat $OCF_RESKEY_pid | tr '\n' ' ' | awk '{print $1}'`
+    if [ "xxx$pid" == "xxx$f_pid" ]; then
+        return $OCF_SUCCESS
+    fi
+
+    # at this point we have PID file and PID from it
+    # defferents with PID from `pgrep...`
+    if [ ! -d "/proc/$f_pid" ] || [ "xxx$f_pid" == "xxx" ] ; then
+        # process with PID from PID-file not found
+        ocf_log warn "Old PID file $OCF_RESKEY_pid found, but no running processes with PID=$f_pid found."
+        ocf_log warn "PID-file will be re-created (with PID=$pid)."
+        echo $pid > $OCF_RESKEY_pid
+        return $OCF_SUCCESS
+    fi
+
+    # at this point we have alien PID-file and running prosess with this PID.
+    ocf_log warn "Another daemon (with PID=$f_pid) running with PID file '$OCF_RESKEY_pid'. My PID=$pid"
+    return $OCF_ERR_GENERIC
 }
+
 
 neutron_metadata_agent_monitor() {
     neutron_metadata_agent_status
@@ -198,43 +227,39 @@ neutron_metadata_agent_monitor() {
     return $rc
 }
 
-clean_up() {
-	ocf_log info "cleaning up neutron-metadata-agent. nothing to do."
-}
 
 neutron_metadata_agent_start() {
     local rc
     neutron_metadata_agent_status
     rc=$?
     if [ $rc -eq $OCF_SUCCESS ]; then
-        ocf_log info "OpenStack Quantum Metadata Agent (neutron-metadata-agent) already running"
+        ocf_log info "OpenStack Neutron Metadata Agent (${OCF_RESKEY_binary}) already running"
         return $OCF_SUCCESS
     fi
 
-    clean_up
-
-    # run the actual neutron-metadata-agent daemon. Don't use ocf_run as we're sending the tool's output
-    # straight to /dev/null anyway and using ocf_run would break stdout-redirection here.
+    # run and detach to background Neutron-metadata-agent as daemon.
+    # Don't use ocf_run as we're sending the tool's output
     su ${OCF_RESKEY_user} -s /bin/sh -c "${OCF_RESKEY_binary} --config-file=$OCF_RESKEY_config \
-       --config-file=$OCF_RESKEY_agent_config $OCF_RESKEY_additional_parameters"' >> \
-	/dev/null 2>&1 & echo $!' > $OCF_RESKEY_pid
+        --config-file=$OCF_RESKEY_agent_config $OCF_RESKEY_additional_parameters \
+        >> ${OCF_RESKEY_log_file}"' 2>&1 &'
 
     # Spin waiting for the server to come up.
     # Let the CRM/LRM time us out if required
     while true; do
-    neutron_metadata_agent_monitor
-    rc=$?
-    [ $rc -eq $OCF_SUCCESS ] && break
-    if [ $rc -ne $OCF_NOT_RUNNING ]; then
-        ocf_log err "OpenStack neutron Metadata Agent (neutron-metadata-agent) start failed"
-        exit $OCF_ERR_GENERIC
-    fi
-    sleep 1
+        neutron_metadata_agent_monitor
+        rc=$?
+        [ $rc -eq $OCF_SUCCESS ] && break
+        if [ $rc -ne $OCF_NOT_RUNNING ] ; then
+            ocf_log err "OpenStack (${OCF_RESKEY_binary}) start failed"
+            exit $OCF_ERR_GENERIC
+        fi
+        sleep 3
     done
 
-    ocf_log info "OpenStack Quantum Metadata Agent (neutron-metadata-agent) started"
+    ocf_log info "OpenStack Neutron Metadata Agent (${OCF_RESKEY_binary}) started"
     return $OCF_SUCCESS
 }
+
 
 neutron_metadata_agent_stop() {
     local rc
@@ -243,8 +268,7 @@ neutron_metadata_agent_stop() {
     neutron_metadata_agent_status
     rc=$?
     if [ $rc -eq $OCF_NOT_RUNNING ]; then
-    	clean_up
-        ocf_log info "OpenStack Quantum Metadata Agent (neutron-metadata-agent) already stopped"
+        ocf_log info "OpenStack Neutron Metadata Agent (${OCF_RESKEY_binary}) already stopped"
         return $OCF_SUCCESS
     fi
 
@@ -253,7 +277,7 @@ neutron_metadata_agent_stop() {
     ocf_run kill -s TERM $pid
     rc=$?
     if [ $rc -ne 0 ]; then
-        ocf_log err "OpenStack Quantum Metadata Agent (neutron-metadata-agent) couldn't be stopped"
+        ocf_log err "OpenStack Neutron Metadata Agent (${OCF_RESKEY_binary}) couldn't be stopped"
         exit $OCF_ERR_GENERIC
     fi
 
@@ -271,21 +295,19 @@ neutron_metadata_agent_stop() {
         fi
         count=`expr $count + 1`
         sleep 1
-        ocf_log debug "OpenStack Quantum Metadata Agent (neutron-metadata-agent) still hasn't stopped yet. Waiting ..."
+        ocf_log debug "OpenStack Neutron Metadata Agent (${OCF_RESKEY_binary}) still hasn't stopped yet. Waiting ..."
     done
 
     neutron_metadata_agent_status
     rc=$?
     if [ $rc -ne $OCF_NOT_RUNNING ]; then
         # SIGTERM didn't help either, try SIGKILL
-        ocf_log info "OpenStack Quantum Metadata Agent (neutron-metadata-agent) failed to stop after ${shutdown_timeout}s \
+        ocf_log info "OpenStack Neutron Metadata Agent (${OCF_RESKEY_binary}) failed to stop after ${shutdown_timeout}s \
           using SIGTERM. Trying SIGKILL ..."
         ocf_run kill -s KILL $pid
     fi
 
-    clean_up
-
-    ocf_log info "OpenStack Quantum Metadata Agent (neutron-metadata-agent) stopped"
+    ocf_log info "OpenStack Neutron Metadata Agent (${OCF_RESKEY_binary}) stopped"
 
     rm -f $OCF_RESKEY_pid
 
