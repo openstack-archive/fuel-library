@@ -44,10 +44,14 @@ class heat::install (
 
  Package['heat-common'] -> Group['heat'] -> User['heat'] -> File['/etc/heat']
 
+  file { '/etc/heat/heat-engine.conf' :
+    ensure => symlink,
+    target => '/etc/heat/heat.conf'
+  } ->
   file { '/etc/heat/heat.conf':
-      owner   => 'heat',
-      group   => 'heat',
-      mode    => '0640',
+    owner   => 'heat',
+    group   => 'heat',
+    mode    => '0640',
   }
 
   group { 'heat' :
