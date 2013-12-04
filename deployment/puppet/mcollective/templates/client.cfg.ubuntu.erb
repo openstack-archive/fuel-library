@@ -25,6 +25,7 @@ plugin.rabbitmq.pool.1.host = <%= scope.lookupvar('mcollective::client::host') %
 plugin.rabbitmq.pool.1.port = <%= scope.lookupvar('mcollective::client::stompport') %>
 plugin.rabbitmq.pool.1.user = <%= scope.lookupvar('mcollective::client::user') %>
 plugin.rabbitmq.pool.1.password = <%= scope.lookupvar('mcollective::client::password') %>
+plugin.rabbitmq.heartbeat_interval = 30
 <% end -%>
 
 # Facts
