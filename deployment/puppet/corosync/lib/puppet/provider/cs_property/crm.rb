@@ -102,7 +102,7 @@ Puppet::Type.type(:cs_property).provide(:crm, :parent => Puppet::Provider::Coros
         rescue
                 #pass
         end
-        if !result_xml.nil?
+        if !result_xml.nil? and !result_xml.root.nil?
                 debug("result_xml is #{result_xml.root.to_s}")
                 success = result_xml.root.attributes['value'] == @resource[:value]
         end
