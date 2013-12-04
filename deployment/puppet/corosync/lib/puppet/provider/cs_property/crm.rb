@@ -95,14 +95,14 @@ Puppet::Type.type(:cs_property).provide(:crm, :parent => Puppet::Provider::Coros
         result_command << "CIB_shadow = #{@resource[:cib]} " if !@resource[:cib].nil?
         result_command << "#{command(:cibadmin)} --scope crm_config -Q --xpath \"//nvpair[@name='#{resource[:name]}']\""
         debug("Executing #{result_command}")
-        stdin, stdout, stderr = Open3.popen3(result_command)
+        stdout = Open3.popen3(result_command)[1].read
         debug("Got #{stdout}")
         begin
                 result_xml = REXML::Document.new(stdout)
         rescue
                 #pass
         end
-        if !result_xml.nil? 
+        if !result_xml.nil? and !result_xml.root.nil?
                 debug("result_xml is #{result_xml.root.to_s}")
                 success = result_xml.root.attributes['value'] == @resource[:value]
         end

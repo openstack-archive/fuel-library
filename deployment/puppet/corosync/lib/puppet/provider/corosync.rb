@@ -3,10 +3,10 @@ class Puppet::Provider::Corosync < Puppet::Provider
   # Yep, that's right we are parsing XML...FUN! (It really wasn't that bad)
   require 'rexml/document'
   #require 'system'
-  
-  
+
+
   def self.dump_cib
-    stdin, stdout, stderr = Open3.popen3("#{command(:crm)} configure show xml")
+    stdout = Open3.popen3("#{command(:crm)} configure show xml")[1].read
     return stdout, nil
   end
 
@@ -28,7 +28,7 @@ class Puppet::Provider::Corosync < Puppet::Provider
   def exec_withenv(cmd,env=nil)
     self.class.exec_withenv(cmd,env)
   end
-  
+
   def self.exec_withenv(cmd,env=nil)
     Process.fork  do
       ENV.update(env) if !env.nil?
