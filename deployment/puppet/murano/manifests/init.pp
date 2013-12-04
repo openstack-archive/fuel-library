@@ -42,12 +42,13 @@ class murano (
   $murano_db_user                       = 'murano',
   $murano_db_host                       = 'localhost',
   $murano_db_allowed_hosts              = ['localhost','%'],
-#
+
   $murano_metadata_bind_host            = '127.0.0.1',
   $murano_metadata_bind_port            = '8084',
+  $use_neutron                          = true,
 ) {
 
-  Class['mysql::server'] -> Class['murano::db::mysql'] -> Class['murano::rabbitmq'] -> Class['murano::common'] -> Class['murano::conductor'] -> Class['murano::api'] -> Class['murano::metadataclient'] -> Class['murano::repository'] -> Class['murano::python_muranoclient'] -> Class['murano::dashboard']
+  Class['mysql::server'] -> Class['murano::db::mysql'] -> Class['murano::rabbitmq'] -> Class['murano::common'] -> Class['murano::conductor'] -> Class['murano::api'] -> Class['murano::metadataclient'] -> Class['murano::repository'] -> Class['murano::python_muranoclient'] -> Class['murano::dashboard'] ->  Class['murano::cirros']
 
   $murano_keystone_auth_url = "${murano_keystone_protocol}://${murano_keystone_host}:${murano_keystone_port}/v2.0"
 
@@ -94,6 +95,7 @@ class murano (
     rabbit_login                         => $murano_rabbit_login,
     rabbit_password                      => $murano_rabbit_password,
     rabbit_virtual_host                  => $murano_rabbit_virtual_host,
+    use_neutron                          => $use_neutron,
   }
 
   class { 'murano::api' :
@@ -147,6 +149,7 @@ class murano (
     rabbitmq_main_port => $murano_rabbit_port,
   }
 
-
+  class { 'murano::cirros':
+  }
 
 }

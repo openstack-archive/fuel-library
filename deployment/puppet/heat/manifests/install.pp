@@ -114,6 +114,8 @@ class heat::install (
     'DEFAULT/rabbit_userid'                                   : value => $rabbit_userid;
     'DEFAULT/rabbit_password'                                 : value => $rabbit_password;
     'DEFAULT/rabbit_virtualhost'                              : value => $rabbit_virtualhost;
+    'DEFAULT/debug'                                           : value => $debug;
+    'DEFAULT/verbose'                                         : value => $verbose;
     'ec2authtoken/keystone_ec2_uri'                           : value => $keystone_ec2_uri;
     'ec2authtoken/auth_uri'                                   : value => $auth_uri;
     'heat_api_cloudwatch/bind_host'                           : value => $api_clowdwatch_bind_host;

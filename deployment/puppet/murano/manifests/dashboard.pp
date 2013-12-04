@@ -1,7 +1,8 @@
 class murano::dashboard (
   $settings_py                    = '/usr/share/openstack-dashboard/openstack_dashboard/settings.py',
   $modify_config                  = '/usr/bin/modify-horizon-config.sh',
-#  $collect_static_script         = '/usr/share/openstack-dashboard/manage.py',
+  $collect_static_script          = '/usr/share/openstack-dashboard/manage.py',
+  $murano_log_file                = '/var/log/murano/murano-dashboard.log',
   $murano_url_string              = $::murano::params::default_url_string,
   $murano_metadata_url_string     = $::murano::params::default_metadata_url_string,
   $local_settings                 = $::murano::params::local_settings_path,
@@ -39,11 +40,18 @@ class murano::dashboard (
     $apache_user = 'www-data'
   }
 
-#  exec { 'collect_static':
-#    command => "${collect_static_script} collectstatic --noinput",
-#    user    => $apache_user,
-#    group   => $apache_user,
-#  }
+  file { $murano_log_file :
+    ensure => present,
+    mode   => '0755',
+    owner  => $apache_user,
+    group  => 'root',
+  }
+
+  exec { 'collect_static':
+    command => "${collect_static_script} collectstatic --noinput",
+    user    => $apache_user,
+    group   => $apache_user,
+  }
 
   package { 'murano_dashboard':
     ensure => present,
@@ -54,8 +62,7 @@ class murano::dashboard (
     ensure => installed,
   }
 
-#  Package[$dashboard_deps] -> Package['murano_dashboard'] -> File[$modify_config] -> Exec['fix_horizon_config'] -> Exec['collect_static'] -> Service <| title == 'httpd' |>
-  Package[$dashboard_deps] -> Package['murano_dashboard'] -> File[$modify_config] -> Exec['fix_horizon_config'] ->  Service <| title == 'httpd' |>
+  Package[$dashboard_deps] -> Package['murano_dashboard'] -> File[$modify_config] -> Exec['fix_horizon_config'] -> File[$murano_log_file] -> Exec['collect_static'] -> Service <| title == 'httpd' |>
   Package['murano_dashboard'] ~> Service <| title == 'httpd' |>
   Exec['fix_horizon_config'] ~> Service <| title == 'httpd' |>
 

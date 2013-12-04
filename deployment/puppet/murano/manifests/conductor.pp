@@ -15,6 +15,9 @@ class murano::conductor (
   $rabbit_login                        = 'murano',
   $rabbit_password                     = 'murano',
   $rabbit_virtual_host                 = '/',
+  $init_scripts_dir                    = '/etc/murano/init-scripts',
+  $agent_config_dir                    = '/etc/murano/agent-config',
+  $use_neutron                         = 'true'
 ) {
 
   include murano::params
@@ -32,12 +35,21 @@ class murano::conductor (
     hasrestart => true,
   }
 
+  if $use_neutron {
+    $network_topology = 'routed'
+  } else {
+    $network_topology = 'nova'
+  }
+
   murano_conductor_config {
     'DEFAULT/log_file'                 : value => $log_file;
     'DEFAULT/debug'                    : value => $debug;
     'DEFAULT/verbose'                  : value => $verbose;
     'DEFAULT/data_dir'                 : value => $data_dir;
     'DEFAULT/max_environments'         : value => $max_environments;
+    'DEFAULT/init_scripts_dir'         : value => $init_scripts_dir;
+    'DEFAULT/agent_config_dir'         : value => $agent_config_dir;
+    'DEFAULT/anetwork_topology'        : value => $network_topology;
     'keystone/auth_url'                : value => $auth_url;
     'rabbitmq/host'                    : value => $rabbit_host;
     'rabbitmq/port'                    : value => $rabbit_port;
