@@ -433,6 +433,8 @@ class osnailyfacter::cluster_ha {
           murano_keystone_user     => 'admin',
           murano_keystone_password => 'admin',
           murano_keystone_tenant   => 'admin',
+
+          use_neutron              => $::use_quantum,
         }
 
        Class['heat'] -> Class['murano']
