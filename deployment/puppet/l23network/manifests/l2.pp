@@ -14,13 +14,12 @@ class l23network::l2 (
     if $::operatingsystem == 'Ubuntu' {
      package { 'openvswitch-datapath-lts-raring-dkms':
        before => Package[$::l23network::params::ovs_packages],
-#       require => 'Exec[rmmod-old]',
      }
-#     # Commented out until staged configuration
-#     exec { 'rmmod-old': 
-#      path      => '/sbin:/bin:/usr/bin:/usr/sbin',
-#      command   => "rmmod openvswitch ; true",
-#     }
+    }
+    if $::operatingsystem == 'Centos' {
+     package { 'kmod-openvswitch':
+       before => Package[$::l23network::params::ovs_packages],
+     }
     }
     package {$::l23network::params::ovs_packages:
       ensure  => present,
