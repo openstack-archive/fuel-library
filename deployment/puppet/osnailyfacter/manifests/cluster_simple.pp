@@ -200,7 +200,7 @@ class osnailyfacter::cluster_simple {
         cinder_iscsi_bind_addr  => $cinder_iscsi_bind_addr,
         cinder_volume_group     => "cinder",
         manage_volumes          => $manage_volumes,
-        use_syslog              => true,
+        use_syslog              => $::fuel_settings['use_syslog'] ? { 'false'=>false, false=>false, default=>true },
         syslog_log_level        => $syslog_log_level,
         syslog_log_facility_glance  => $syslog_log_facility_glance,
         syslog_log_facility_cinder  => $syslog_log_facility_cinder,
@@ -364,7 +364,7 @@ class osnailyfacter::cluster_simple {
         db_host                => $controller_node_address,
         debug                  => $debug ? { 'true' => true, true => true, default=> false },
         verbose                => $verbose ? { 'true' => true, true => true, default=> false },
-        use_syslog             => true,
+        use_syslog             => $::fuel_settings['use_syslog'] ? { 'false'=>false, false=>false, default=>true },
         syslog_log_level       => $syslog_log_level,
         syslog_log_facility    => $syslog_log_facility_nova,
         syslog_log_facility_quantum => $syslog_log_facility_quantum,
@@ -414,7 +414,7 @@ class osnailyfacter::cluster_simple {
         syslog_log_level     => $syslog_log_level,
         debug                => $debug ? { 'true' => true, true => true, default => false },
         verbose              => $verbose ? { 'true' => true, true => true, default => false },
-        use_syslog           => true,
+        use_syslog           => $::fuel_settings['use_syslog'] ? { 'false'=>false, false=>false, default=>true },
       }
     } #CINDER ENDS
 

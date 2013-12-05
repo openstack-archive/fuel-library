@@ -32,6 +32,7 @@ class cluster {
       group => root,
     }
     Package['corosync'] -> File['ocf-mirantis-path']
+    Package<| title == 'pacemaker' |> -> File['ocf-mirantis-path']
 }
 #
 ###

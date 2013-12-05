@@ -248,10 +248,10 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Cor
     crm('resource', 'start', get_service_name)
     debug("Starting countdown for resource start")
     debug("Start timeout is #{@service[:start_timeout]}")
-    Timeout::timeout(@service[:start_timeout],Puppet::Error) do
+    Timeout::timeout(5*@service[:start_timeout],Puppet::Error) do
       loop do
         break if status == :running
-        sleep 1
+        sleep 5
       end
     end
     sleep 3
@@ -263,10 +263,10 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Cor
     crm('resource', 'stop', get_service_name)
     debug("Starting countdown for resource stop")
     debug("Stop timeout is #{@service[:stop_timeout]}")
-    Timeout::timeout(@service[:stop_timeout],Puppet::Error) do
+    Timeout::timeout(5*@service[:stop_timeout],Puppet::Error) do
       loop do
         break if status == :stopped
-        sleep 1
+        sleep 5
       end
     end
   end
@@ -277,7 +277,7 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Cor
   end
 
   def status
-    debug(crm('status'))
+    #debug(crm('status'))
     debug("getting last operations")
     get_last_successful_operations
     if @last_successful_operations.any? {|op| ['start','promote'].include?(op)}

@@ -122,6 +122,8 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
       raise(Puppet::ParseError, "get_network_role_property(...): You must call prepare_network_config(...) first!")
     end
 
+    Puppet.debug "stage1@generate_network_config:config_hash: #{config_hash.inspect}"
+
     # define internal puppet parameters for creating resources
     res_factory = {
       :br      => { :name_of_resource => 'l23network::l2::bridge' },
@@ -142,6 +144,8 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
       end
     end
 
+    Puppet.debug "stage2@generate_network_config:res_factory: #{res_factory.inspect}"
+
     # collect interfaces and endpoints
     endpoints = {}
     born_ports = []
@@ -150,6 +154,9 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
       endpoints[int_name] = create_endpoint()
       born_ports.insert(-1, int_name)
     end
+
+    Puppet.debug "stage3@generate_network_config:endpoints: #{endpoints.inspect}"
+
     config_hash[:endpoints].each do |e_name, e_properties|
       e_name = e_name.to_sym()
       if not endpoints[e_name]
@@ -177,6 +184,8 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
       end
     end
 
+    Puppet.debug "stage4@generate_network_config:endpoints: #{endpoints.inspect}"
+
     # execute transformations
     # todo: if provider="lnx" execute transformations for LNX bridges
     transformation_success = []
@@ -189,6 +198,8 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
         action = t[:action].to_sym()
       end
 
+      Puppet.debug "stage5@generate_network_config:action: #{action.inspect}"
+
       trans = L23network.sanitize_transformation(t)
       resource = res_factory[action][:resource]
       p_resource = Puppet::Parser::Resource.new(
@@ -197,9 +208,15 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
           :scope => self,
           :source => resource
       )
+
+      Puppet.debug "stage6@generate_network_config:p_resource: #{p_resource.inspect}"
+
       trans.select{|k,v| k != :action}.each do |k,v|
         p_resource.set_parameter(k,v)
       end
+
+      Puppet.debug "stage7@generate_network_config:p_resource: #{p_resource.inspect}"
+
       p_resource.set_parameter(:require, [previous]) if previous
       resource.instantiate_resource(self, p_resource)
       compiler.add_resource(self, p_resource)
@@ -225,12 +242,20 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
           :scope => self,
           :source => resource
       )
+
+      Puppet.debug "stage8@generate_network_config:p_resource: #{p_resource.inspect}"
+
       p_resource.set_parameter(:interface, endpoint_name)
+
+      Puppet.debug "stage9@generate_network_config:p_resource: #{p_resource.inspect}"
+
       # set ipaddresses
       if endpoint_body[:IP].empty?
         p_resource.set_parameter(:ipaddr, 'none')
+        Puppet.debug "stage10@generate_network_config:p_resource: #{p_resource.inspect}"
       elsif ['none','dhcp'].index(endpoint_body[:IP][0])
         p_resource.set_parameter(:ipaddr, endpoint_body[:IP][0])
+        Puppet.debug "stage11@generate_network_config:p_resource: #{p_resource.inspect}"
       else
         ipaddrs = []
         endpoint_body[:IP].each do |i|
@@ -241,17 +266,26 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
           end
         end
         p_resource.set_parameter(:ipaddr, ipaddrs)
+        Puppet.debug "stage12@generate_network_config:p_resource: #{p_resource.inspect}"
       end
       #set another (see L23network::l3::ifconfig DOC) parametres
       endpoint_body[:properties].each do |k,v|
         p_resource.set_parameter(k,v)
       end
+
+      Puppet.debug "stage13@generate_network_config:p_resource: #{p_resource.inspect}"
+
       p_resource.set_parameter(:require, [previous]) if previous
       resource.instantiate_resource(self, p_resource)
       compiler.add_resource(self, p_resource)
       transformation_success.insert(-1, "endpoint(#{endpoint_name})")
+
+      Puppet.debug "stage14@generate_network_config:transformation_success: #{transformation_success.inspect}"
+
       previous = p_resource.to_s
     end
+
+    Puppet.debug "stage15@generate_network_config:transformation_success: #{transformation_success.inspect}"
 
     return transformation_success.join(" -> ")
 end
