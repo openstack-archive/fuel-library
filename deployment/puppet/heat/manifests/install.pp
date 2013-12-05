@@ -44,10 +44,14 @@ class heat::install (
 
  Package['heat-common'] -> Group['heat'] -> User['heat'] -> File['/etc/heat']
 
+  file { '/etc/heat/heat-engine.conf' :
+    ensure => symlink,
+    target => '/etc/heat/heat.conf'
+  } ->
   file { '/etc/heat/heat.conf':
-      owner   => 'heat',
-      group   => 'heat',
-      mode    => '0640',
+    owner   => 'heat',
+    group   => 'heat',
+    mode    => '0640',
   }
 
   group { 'heat' :
@@ -114,6 +118,8 @@ class heat::install (
     'DEFAULT/rabbit_userid'                                   : value => $rabbit_userid;
     'DEFAULT/rabbit_password'                                 : value => $rabbit_password;
     'DEFAULT/rabbit_virtualhost'                              : value => $rabbit_virtualhost;
+    'DEFAULT/debug'                                           : value => $debug;
+    'DEFAULT/verbose'                                         : value => $verbose;
     'ec2authtoken/keystone_ec2_uri'                           : value => $keystone_ec2_uri;
     'ec2authtoken/auth_uri'                                   : value => $auth_uri;
     'heat_api_cloudwatch/bind_host'                           : value => $api_clowdwatch_bind_host;
