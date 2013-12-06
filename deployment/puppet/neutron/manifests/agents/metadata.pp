@@ -10,9 +10,9 @@ class neutron::agents::metadata (
 
   include 'neutron::params'
 
+  Anchor<| title=='neutron-server-done' |> ->
   anchor {'neutron-metadata-agent': }
-
-  Service<| title=='neutron-server' |> -> Anchor['neutron-metadata-agent']
+  Anchor <| title == 'neutron-ovs-agent-done' |> -> Anchor['neutron-metadata-agent']
 
   # add instructions to nova.conf
   nova_config {
@@ -22,6 +22,12 @@ class neutron::agents::metadata (
 
   neutron_metadata_agent_config {
     'DEFAULT/debug':              value => $debug;
+    'DEFAULT/verbose':            value => $verbose;
+    'DEFAULT/log_dir':           ensure => absent;
+    'DEFAULT/log_file':          ensure => absent;
+    'DEFAULT/log_config':        ensure => absent;
+    'DEFAULT/use_syslog':        ensure => absent;
+    'DEFAULT/use_stderr':        ensure => absent;
     'DEFAULT/auth_region':        value => $neutron_config['keystone']['auth_region'];
     'DEFAULT/auth_url':           value => $neutron_config['keystone']['auth_url'];
     'DEFAULT/admin_user':         value => $neutron_config['keystone']['admin_user'];
@@ -68,6 +74,10 @@ class neutron::agents::metadata (
       source => "puppet:///modules/neutron/ocf/neutron-agent-metadata",
     }
     Package['pacemaker'] -> File['neutron-metadata-agent-ocf']
+    File<| title == 'ocf-mirantis-path' |> -> File['neutron-metadata-agent-ocf']
+    Anchor['neutron-metadata-agent'] -> File['neutron-metadata-agent-ocf']
+    Neutron_metadata_agent_config<||> -> File['neutron-metadata-agent-ocf']
+    File['neutron-metadata-agent-ocf'] -> Cs_resource["$res_name"]
 
     service { 'neutron-metadata-agent__disabled':
       name    => $::neutron::params::metadata_agent_service,
@@ -76,10 +86,9 @@ class neutron::agents::metadata (
     }
     Cs_commit <| title == 'ovs' |> -> Cs_shadow <| title == "$res_name" |>
 
-    cs_shadow { $res_name: cib => $cib_name }
-    cs_commit { $res_name: cib => $cib_name } ~> ::Corosync::Cleanup["$res_name"]
-    ::corosync::cleanup { $res_name: }
-    ::Corosync::Cleanup["$res_name"] -> Service[$res_name]
+    Anchor['neutron-metadata-agent'] -> Cs_shadow["$cib_name"]
+    cs_shadow { $cib_name: cib => $cib_name }
+    cs_commit { $cib_name: cib => $cib_name }
 
     File<| title=='neutron-logging.conf' |> ->
     cs_resource { "$res_name":
@@ -102,7 +111,7 @@ class neutron::agents::metadata (
       operations => {
         'monitor' => {
           'interval' => '60',
-          'timeout'  => '30'
+          'timeout'  => '10'
         },
         'start' => {
           'timeout' => '30'
@@ -114,9 +123,7 @@ class neutron::agents::metadata (
     }
 
     Cs_resource["$res_name"] ->
-      Cs_commit["$res_name"] ->
-        ::Corosync::Cleanup["$res_name"] ->
-          Service["$res_name"]
+      Cs_commit["$cib_name"]
 
     service {"$res_name":
       name       => $res_name,
@@ -128,12 +135,10 @@ class neutron::agents::metadata (
     }
 
     Anchor['neutron-metadata-agent'] ->
-      Neutron_metadata_agent_config<||> ->
-        File['neutron-metadata-agent-ocf'] ->
-          Service['neutron-metadata-agent__disabled'] ->
-            Cs_resource["$res_name"] ->
-              Service["$res_name"] ->
-                Anchor['neutron-metadata-agent-done']
+      Service['neutron-metadata-agent__disabled'] ->
+        Cs_resource["$res_name"] ->
+          Service["$res_name"] ->
+            Anchor['neutron-metadata-agent-done']
   }
   anchor {'neutron-metadata-agent-done': }
 }
