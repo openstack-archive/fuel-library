@@ -32,6 +32,17 @@ class neutron::agents::ovs (
          mode    => 644,
          before  => Package['neutron-plugin-ovs-agent'],
       }
+    } else {
+       file { '/etc/init/neutron-plugin-openvswitch-agent.override':
+         replace => 'no',
+         ensure => 'present',
+         content => 'manual',
+         mode => 644,
+       } -> Package['neutron-ovs-agent'] ->
+       exec { 'rm-neutron-neutron-ovs-agent-override':
+         path => '/sbin:/bin:/usr/bin:/usr/sbin',
+         command => "rm -f /etc/init/neutron-plugin-openvswitch-agent.override",
+       }
     }
   }
 
