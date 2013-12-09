@@ -37,6 +37,7 @@ PATH=/sbin:/usr/sbin:/bin:/usr/bin
 OCF_RESKEY_binary_default="neutron-l3-agent"
 OCF_RESKEY_config_default="/etc/neutron/neutron.conf"
 OCF_RESKEY_plugin_config_default="/etc/neutron/l3_agent.ini"
+OCF_RESKEY_log_file_default="/var/log/neutron/l3-agent.log"
 OCF_RESKEY_user_default="neutron"
 OCF_RESKEY_pid_default="$HA_RSCTMP/$OCF_RESOURCE_INSTANCE.pid"
 OCF_RESKEY_os_auth_url_default="http://localhost:5000/v2.0"
@@ -45,7 +46,6 @@ OCF_RESKEY_password_default="neutron_pass"
 OCF_RESKEY_tenant_default="services"
 OCF_RESKEY_external_bridge_default="br-ex"
 OCF_RESKEY_debug_default=false
-OCF_RESKEY_debug_syslog=false
 
 : ${OCF_RESKEY_os_auth_url=${OCF_RESKEY_os_auth_url_default}}
 : ${OCF_RESKEY_username=${OCF_RESKEY_username_default}}
@@ -58,7 +58,8 @@ OCF_RESKEY_debug_syslog=false
 : ${OCF_RESKEY_pid=${OCF_RESKEY_pid_default}}
 : ${OCF_RESKEY_external_bridge=${OCF_RESKEY_external_bridge_default}}
 : ${OCF_RESKEY_debug=${OCF_RESKEY_debug_default}}
-: ${OCF_RESKEY_syslog=${OCF_RESKEY_syslog_default}}
+: ${OCF_RESKEY_log_file=${OCF_RESKEY_log_file_default}}
+
 
 
 #######################################################################
@@ -87,7 +88,7 @@ meta_data() {
 <version>1.0</version>
 
 <longdesc lang="en">
-Resource agent for the OpenStack Quantum L3 Service (neutron-l3-agent)
+Resource agent for the OpenStack Router (neutron-l3-agent)
 May manage a neutron-l3-agent instance or a clone set that
 creates a distributed neutron-l3-agent cluster.
 </longdesc>
@@ -96,17 +97,17 @@ creates a distributed neutron-l3-agent cluster.
 
 <parameter name="binary" unique="0" required="0">
 <longdesc lang="en">
-Location of the OpenStack L3 Server server binary (neutron-l3-agent)
+Location of the OpenStack Router server binary (neutron-l3-agent)
 </longdesc>
-<shortdesc lang="en">OpenStack L3 Server server binary (neutron-l3-agent)</shortdesc>
+<shortdesc lang="en">OpenStack Router server binary (neutron-l3-agent)</shortdesc>
 <content type="string" default="${OCF_RESKEY_binary_default}" />
 </parameter>
 
 <parameter name="config" unique="0" required="0">
 <longdesc lang="en">
-Location of the OpenStack Quantum Service (neutron-server) configuration file
+Location of the OpenStack Router (neutron-server) configuration file
 </longdesc>
-<shortdesc lang="en">OpenStack L3 Server (neutron-server) config file</shortdesc>
+<shortdesc lang="en">OpenStack Router (neutron-server) config file</shortdesc>
 <content type="string" default="${OCF_RESKEY_config_default}" />
 </parameter>
 
@@ -114,7 +115,7 @@ Location of the OpenStack Quantum Service (neutron-server) configuration file
 <longdesc lang="en">
 Location of the OpenStack L3 Service (neutron-l3-agent) configuration file
 </longdesc>
-<shortdesc lang="en">OpenStack L3 Server (neutron-l3-agent) config file</shortdesc>
+<shortdesc lang="en">OpenStack Router (neutron-l3-agent) config file</shortdesc>
 <content type="string" default="${OCF_RESKEY_plugin_config_default}" />
 </parameter>
 
@@ -134,6 +135,14 @@ The pid file to use for this OpenStack L3 Service (neutron-l3-agent) instance
 <content type="string" default="${OCF_RESKEY_pid_default}" />
 </parameter>
 
+<parameter name="log_file" unique="0" required="0">
+<longdesc lang="en">
+The log file to use for this OpenStack L3 Service (neutron-l3-agent) instance
+</longdesc>
+<shortdesc lang="en">OpenStack L3 Service (neutron-l3-agent) log file</shortdesc>
+<content type="string" default="${OCF_RESKEY_log_file_default}" />
+</parameter>
+
 <parameter name="neutron_server_port" unique="0" required="0">
 <longdesc lang="en">
 The listening port number of the AMQP server. Mandatory to perform a monitor check
@@ -145,18 +154,18 @@ The listening port number of the AMQP server. Mandatory to perform a monitor che
 
 <parameter name="username" unique="0" required="0">
 <longdesc lang="en">
-Quantum username for port list fetching
+Neutron username for port list fetching
 </longdesc>
-<shortdesc lang="en">Quantum username</shortdesc>
+<shortdesc lang="en">Neutron username</shortdesc>
 <content type="string" default="${OCF_RESKEY_username_default}" />
 </parameter>
 
 
 <parameter name="password" unique="0" required="0">
 <longdesc lang="en">
-Quantum password for port list fetching
+Neutron password for port list fetching
 </longdesc>
-<shortdesc lang="en">Quantum password</shortdesc>
+<shortdesc lang="en">Neutron password</shortdesc>
 <content type="string" default="${OCF_RESKEY_password_default}" />
 </parameter>
 
@@ -224,6 +233,11 @@ Additional parameters to pass on to the OpenStack L3 Service (neutron-l3-agent)
 END
 }
 
+get_worker_pid() {
+    pid=`pgrep -u ${OCF_RESKEY_user} -fnl ${OCF_RESKEY_binary} | grep -E  "python\s+\/usr\/bin" | awk '{print $1}'`
+    echo $pid
+}
+
 #######################################################################
 # Functions invoked by resource manager actions
 
@@ -253,42 +267,51 @@ neutron_l3_agent_validate() {
     true
 }
 
+
 neutron_l3_agent_status() {
     local pid
+    local f_pid
     local rc
 
-    if [ ! -f $OCF_RESKEY_pid ]; then
-        ocf_log info "OpenStack OVS Server (neutron-l3-agent) seems not to exist"
-
-        pid=`pgrep -f ${OCF_RESKEY_binary}`
-
-        if [ $? -eq 0 ]
-        then
-            ocf_log warn "OpenStack neutron-l3-agent was run, but no pid file found."
-            ocf_log warn "Will use $pid as PID of process (neutron-l3-agent)"
-            ocf_log warn "Writing $pid into $OCF_RESKEY_pid"
-            echo $pid > $OCF_RESKEY_pid
-        else
-            return $OCF_NOT_RUNNING
-        fi
-    else
-        pid=`cat $OCF_RESKEY_pid`
-    fi
-
-    ocf_run -warn kill -s 0 $pid
-    rc=$?
-    if [ $rc -eq 0 ]; then
-        return $OCF_SUCCESS
-    else
-        ocf_log info "Old PID file found, but OpenStack neutron-l3-agent is not running"
+    pid=`get_worker_pid`
+    if [ "xxx$pid" == "xxx" ] ; then
+        ocf_log warn "OpenStack Neutron agent '$OCF_RESKEY_binary' not running."
         return $OCF_NOT_RUNNING
     fi
+    #ocf_log debug "PID='$pid'"
+
+    # Check PID file and create if need
+    if [ ! -f $OCF_RESKEY_pid ] ; then
+        ocf_log warn "OpenStack Neutron agent (${OCF_RESKEY_binary}) was run, but no PID file found."
+        ocf_log warn "Writing PID='$pid' to '$OCF_RESKEY_pid' for '${OCF_RESKEY_binary}' worker..."
+        echo $pid > $OCF_RESKEY_pid
+        return $OCF_SUCCESS
+    fi
+
+    # compare PID from file with PID from `pgrep...`
+    f_pid=`cat $OCF_RESKEY_pid | tr '\n' ' ' | awk '{print $1}'`
+    if [ "xxx$pid" == "xxx$f_pid" ]; then
+        return $OCF_SUCCESS
+    fi
+
+    # at this point we have PID file and PID from it
+    # differents with PID from `pgrep...`
+    if [ ! -d "/proc/$f_pid" ] || [ "xxx$f_pid" == "xxx" ] ; then
+        # process with PID from PID-file not found
+        ocf_log warn "Old PID file $OCF_RESKEY_pid found, but no running processes with PID=$f_pid found."
+        ocf_log warn "PID-file will be re-created (with PID=$pid)."
+        echo $pid > $OCF_RESKEY_pid
+        return $OCF_SUCCESS
+    fi
+
+    # at this point we have alien PID-file and running prosess with this PID.
+    ocf_log warn "Another daemon (with PID=$f_pid) running with PID file '$OCF_RESKEY_pid'. My PID=$pid"
+    return $OCF_ERR_GENERIC
 }
 
 
 
-clean_up()
-{
+clean_up() {
     q-agent-cleanup.py --debug --agent=l3 --cleanup-ports
 }
 
@@ -300,6 +323,7 @@ neutron_l3_agent_monitor() {
 
 }
 
+
 neutron_l3_agent_start() {
     local rc
     neutron_l3_agent_status
@@ -309,40 +333,14 @@ neutron_l3_agent_start() {
         return $OCF_SUCCESS
     fi
 
-    L3_PID=`pgrep -u ${OCF_RESKEY_user} -f ${OCF_RESKEY_binary}`
-    if [ "xx$L3_PID" != "xx" ]; then
-        ocf_log info "OpenStack neutron-l3-agent already running with PID=$L3_PID"
-        return $OCF_SUCCESS
-    fi
     clean_up
 
-# FIXME stderr should not be used unless neutron+agents init & OCF would reditect to stderr
-#    if ocf_is_true ${OCF_RESKEY_syslog} ; then
-# Disable logger because we use imfile for log files grabbing to rsyslog
-#      L3_SYSLOG=" | logger -t neutron-neutron.agent.l3 "
-#        if ocf_is_true ${OCF_RESKEY_debug} ; then
-#            L3_LOG=" | tee -ia /var/log/neutron/l3.log "
-#        else
-#            L3_LOG=" "
-#        fi
-#    else
-#        L3_SYSLOG=""
-#        if ocf_is_true ${OCF_RESKEY_debug} ; then
-#            L3_LOG=" >> /var/log/neutron/l3.log "
-#        else
-#            L3_LOG=" >> /dev/null "
-#        fi
-#    fi
-    L3_SYSLOG=""
-    L3_LOG=" > /dev/null "
-    # run the actual neutron-l3-agent daemon. Don't use ocf_run as we're sending the tool's output
-    # straight to /dev/null anyway and using ocf_run would break stdout-redirection here.
-
+    # run and detach to background agent as daemon.
+    # Don't use ocf_run as we're sending the tool's output
     su ${OCF_RESKEY_user} -s /bin/sh -c "${OCF_RESKEY_binary} --config-file=$OCF_RESKEY_config \
-       --config-file=$OCF_RESKEY_plugin_config $OCF_RESKEY_additional_parameters  "' \
-        2>&1 '" $L3_LOG $L3_SYSLOG &"
-    L3_PID=`pgrep -u ${OCF_RESKEY_user} -f ${OCF_RESKEY_binary}`
-    echo "$L3_PID" > $OCF_RESKEY_pid
+        --config-file=$OCF_RESKEY_plugin_config $OCF_RESKEY_additional_parameters  \
+        >> ${OCF_RESKEY_log_file}"' 2>&1 &'
+
 
     # Spin waiting for the server to come up.
     # Let the CRM/LRM time us out if required
@@ -350,16 +348,17 @@ neutron_l3_agent_start() {
         neutron_l3_agent_monitor
         rc=$?
         [ $rc -eq $OCF_SUCCESS ] && break
-        if [ $rc -ne $OCF_NOT_RUNNING ]; then
+        if [ $rc -ne $OCF_NOT_RUNNING ] ; then
             ocf_log err "OpenStack neutron-l3-agent start failed"
             exit $OCF_ERR_GENERIC
         fi
-        sleep 1
+        sleep 3
     done
 
-    sleep 13 ; q-agent-cleanup.py --agent=l3 --reschedule --remove-dead 2>&1 >> /var/log/neutron/rescheduling.log
+    # detach deferred rescheduling procedure
+    bash -c "sleep 13 ; q-agent-cleanup.py --agent=l3 --reschedule --remove-dead 2>&1 >> /var/log/neutron/rescheduling.log" &
 
-    ocf_log info "OpenStack L3 Server (neutron-l3-agent) started"
+    ocf_log info "OpenStack Router (neutron-l3-agent) started"
     return $OCF_SUCCESS
 }
 
@@ -371,7 +370,7 @@ neutron_l3_agent_stop() {
     rc=$?
     if [ $rc -eq $OCF_NOT_RUNNING ]; then
         clean_up
-        ocf_log info "OpenStack L3 Server (neutron-l3-agent) already stopped"
+        ocf_log info "OpenStack Router (neutron-l3-agent) already stopped"
         return $OCF_SUCCESS
     fi
 
@@ -380,7 +379,7 @@ neutron_l3_agent_stop() {
     ocf_run kill -s TERM $pid
     rc=$?
     if [ $rc -ne 0 ]; then
-        ocf_log err "OpenStack L3 Server (neutron-l3-agent) couldn't be stopped"
+        ocf_log err "OpenStack Router (neutron-l3-agent) couldn't be stopped"
         exit $OCF_ERR_GENERIC
     fi
 
@@ -398,14 +397,14 @@ neutron_l3_agent_stop() {
         fi
         count=`expr $count + 1`
         sleep 1
-        ocf_log debug "OpenStack L3 Server (neutron-l3-agent) still hasn't stopped yet. Waiting ..."
+        ocf_log debug "OpenStack Router (neutron-l3-agent) still hasn't stopped yet. Waiting ..."
     done
 
     neutron_l3_agent_status
     rc=$?
     if [ $rc -ne $OCF_NOT_RUNNING ]; then
         # SIGTERM didn't help either, try SIGKILL
-        ocf_log info "OpenStack L3 Server (neutron-l3-agent) failed to stop after ${shutdown_timeout}s \
+        ocf_log info "OpenStack Router (neutron-l3-agent) failed to stop after ${shutdown_timeout}s \
           using SIGTERM. Trying SIGKILL ..."
         ocf_run kill -s KILL $pid
     fi

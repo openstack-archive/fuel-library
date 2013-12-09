@@ -1,9 +1,9 @@
 #!/bin/bash
 #
 #
-# OpenStack OVS Service (neutron-ovs-agent)
+# OpenStack OVS Service
 #
-# Description:  Manages an OpenStack OVS Service (neutron-ovs-agent) process as an HA resource
+# Description:  Manages an OpenStack OVS Service process as an HA resource
 #
 # Authors: Emilien Macchi
 # Mainly inspired by the Nova Network resource agent written by Emilien Macchi & Sebastien Han
@@ -40,6 +40,8 @@ OCF_RESKEY_pid_default="$HA_RSCTMP/$OCF_RESOURCE_INSTANCE.pid"
 OCF_RESKEY_amqp_server_port_default="5672"
 OCF_RESKEY_integration_bridge_default="br-int"
 OCF_RESKEY_segmentation_bridge_default="br-tun"
+OCF_RESKEY_log_file_default="/var/log/neutron/ovs-agent.log"
+OCF_RESKEY_debug_default='false'
 
 : ${OCF_RESKEY_binary=${OCF_RESKEY_binary_default}}
 : ${OCF_RESKEY_config=${OCF_RESKEY_config_default}}
@@ -49,6 +51,8 @@ OCF_RESKEY_segmentation_bridge_default="br-tun"
 : ${OCF_RESKEY_amqp_server_port=${OCF_RESKEY_amqp_server_port_default}}
 : ${OCF_RESKEY_integration_bridge=${OCF_RESKEY_integration_bridge_default}}
 : ${OCF_RESKEY_segmentation_bridge=${OCF_RESKEY_segmentation_bridge_default}}
+: ${OCF_RESKEY_log_file=${OCF_RESKEY_log_file_default}}
+: ${OCF_RESKEY_debug=${OCF_RESKEY_debug_default}}
 
 #######################################################################
 
@@ -56,7 +60,7 @@ usage() {
     cat <<UEND
         usage: $0 (start|stop|validate-all|meta-data|status|monitor)
 
-        $0 manages an OpenStack OVS Service (neutron-ovs-agent) process as an HA resource
+        $0 manages an OpenStack OVS Service (${OCF_RESKEY_binary}) process as an HA resource
 
         The 'start' operation starts the networking service.
         The 'stop' operation stops the networking service.
@@ -76,24 +80,24 @@ meta_data() {
 <version>1.0</version>
 
 <longdesc lang="en">
-Resource agent for the OpenStack Quantum OVS Service (neutron-ovs-agent)
+Resource agent for the OpenStack Neutron OVS Service (${OCF_RESKEY_binary})
 May manage a neutron-ovs-agent instance or a clone set that
 creates a distributed neutron-ovs-agent cluster.
 </longdesc>
-<shortdesc lang="en">Manages the OpenStack OVS Service (neutron-ovs-agent)</shortdesc>
+<shortdesc lang="en">Manages the OpenStack OVS Service (${OCF_RESKEY_binary})</shortdesc>
 <parameters>
 
 <parameter name="binary" unique="0" required="0">
 <longdesc lang="en">
-Location of the OpenStack OVS Server server binary (neutron-ovs-agent)
+Location of the OpenStack OVS Server server binary (${OCF_RESKEY_binary})
 </longdesc>
-<shortdesc lang="en">OpenStack OVS Server server binary (neutron-ovs-agent)</shortdesc>
+<shortdesc lang="en">OpenStack OVS Server server binary (${OCF_RESKEY_binary})</shortdesc>
 <content type="string" default="${OCF_RESKEY_binary_default}" />
 </parameter>
 
 <parameter name="config" unique="0" required="0">
 <longdesc lang="en">
-Location of the OpenStack Quantum Service (neutron-server) configuration file
+Location of the OpenStack Neutron Service (neutron-server) configuration file
 </longdesc>
 <shortdesc lang="en">OpenStack OVS Server (neutron-server) config file</shortdesc>
 <content type="string" default="${OCF_RESKEY_config_default}" />
@@ -101,32 +105,32 @@ Location of the OpenStack Quantum Service (neutron-server) configuration file
 
 <parameter name="plugin_config" unique="0" required="0">
 <longdesc lang="en">
-Location of the OpenStack OVS Service (neutron-ovs-agent) configuration file
+Location of the OpenStack OVS Service (${OCF_RESKEY_binary}) configuration file
 </longdesc>
-<shortdesc lang="en">OpenStack OVS Server (neutron-ovs-agent) config file</shortdesc>
+<shortdesc lang="en">OpenStack OVS Server (${OCF_RESKEY_binary}) config file</shortdesc>
 <content type="string" default="${OCF_RESKEY_plugin_config_default}" />
 </parameter>
 
 <parameter name="user" unique="0" required="0">
 <longdesc lang="en">
-User running OpenStack OVS Service (neutron-ovs-agent)
+User running OpenStack OVS Service (${OCF_RESKEY_binary})
 </longdesc>
-<shortdesc lang="en">OpenStack OVS Service (neutron-ovs-agent) user</shortdesc>
+<shortdesc lang="en">OpenStack OVS Service (${OCF_RESKEY_binary}) user</shortdesc>
 <content type="string" default="${OCF_RESKEY_user_default}" />
 </parameter>
 
 <parameter name="pid" unique="0" required="0">
 <longdesc lang="en">
-The pid file to use for this OpenStack OVS Service (neutron-ovs-agent) instance
+The pid file to use for this OpenStack OVS Service (${OCF_RESKEY_binary}) instance
 </longdesc>
-<shortdesc lang="en">OpenStack OVS Service (neutron-ovs-agent) pid file</shortdesc>
+<shortdesc lang="en">OpenStack OVS Service (${OCF_RESKEY_binary}) pid file</shortdesc>
 <content type="string" default="${OCF_RESKEY_pid_default}" />
 </parameter>
 
 
 <parameter name="additional_parameters" unique="0" required="0">
 <longdesc lang="en">
-Additional parameters to pass on to the OpenStack OVS Service (neutron-ovs-agent)
+Additional parameters to pass on to the OpenStack OVS Service (${OCF_RESKEY_binary})
 </longdesc>
 <shortdesc lang="en">Additional parameters for neutron-ovs-agent</shortdesc>
 <content type="string" />
@@ -134,7 +138,7 @@ Additional parameters to pass on to the OpenStack OVS Service (neutron-ovs-agent
 
 <parameter name="integration_bridge" unique="0" required="0">
 <longdesc lang="en">
-OVS integration bridge name OpenStack OVS Service (neutron-ovs-agent)
+OVS integration bridge name OpenStack OVS Service (${OCF_RESKEY_binary})
 </longdesc>
 <shortdesc lang="en">Integration bridge name for neutron-ovs-agent</shortdesc>
 <content type="string" default="${OCF_RESKEY_integration_bridge_default}"/>
@@ -142,13 +146,27 @@ OVS integration bridge name OpenStack OVS Service (neutron-ovs-agent)
 
 <parameter name="segmentation_bridge" unique="0" required="0">
 <longdesc lang="en">
-OVS integration bridge name OpenStack OVS Service (neutron-ovs-agent)
+OVS integration bridge name OpenStack OVS Service (${OCF_RESKEY_binary})
 </longdesc>
 <shortdesc lang="en">Segmentation bridge name for neutron-ovs-agent</shortdesc>
 <content type="string" default="${OCF_RESKEY_segmentation_bridge_default}"/>
 </parameter>
 
+<parameter name="log_file" unique="0" required="0">
+<longdesc lang="en">
+The log file to use for this OpenStack OVS Service (${OCF_RESKEY_binary}) instance
+</longdesc>
+<shortdesc lang="en">OpenStack OVS Service (${OCF_RESKEY_binary}) log file</shortdesc>
+<content type="string" default="${OCF_RESKEY_log_file_default}" />
+</parameter>
 
+<parameter name="debug" unique="0" required="0">
+<longdesc lang="en">
+The debug flag for  OpenStack OVS Service (${OCF_RESKEY_binary}) instance
+</longdesc>
+<shortdesc lang="en">OpenStack Metadata Service (${OCF_RESKEY_binary}) debug flag</shortdesc>
+<content type="string" default="${OCF_RESKEY_debug_default}" />
+</parameter>
 
 </parameters>
 
@@ -162,6 +180,11 @@ OVS integration bridge name OpenStack OVS Service (neutron-ovs-agent)
 </actions>
 </resource-agent>
 END
+}
+
+get_worker_pid() {
+    pid=`pgrep -u ${OCF_RESKEY_user} -fnl ${OCF_RESKEY_binary} | grep -E  "python\s+\/usr\/bin" | awk '{print $1}'`
+    echo $pid
 }
 
 #######################################################################
@@ -193,37 +216,48 @@ neutron_ovs_agent_validate() {
     true
 }
 
+
 neutron_ovs_agent_status() {
     local pid
+    local f_pid
     local rc
 
-    if [ ! -f $OCF_RESKEY_pid ]; then
-        ocf_log info "OpenStack OVS Server (neutron-ovs-agent) seems not to exist"
-
-        pid=`pgrep -f ${OCF_RESKEY_binary}`
-
-        if [ $? -eq 0 ]
-        then
-        	ocf_log warn "OpenStack OVS Server (neutron-ovs-agent) was run, but no pid file found."
-        	ocf_log warn "Will use $pid as PID of process (neutron-ovs-agent)"
-        	ocf_log warn "Writing $pid into $OCF_RESKEY_pid"
-        	echo $pid > $OCF_RESKEY_pid
-    	else
-    		return $OCF_NOT_RUNNING
-    	fi
-    else
-        pid=`cat $OCF_RESKEY_pid`
-    fi
-
-    ocf_run -warn kill -s 0 $pid
-    rc=$?
-    if [ $rc -eq 0 ]; then
-        return $OCF_SUCCESS
-    else
-        ocf_log info "Old PID file $OCF_RESKEY_pid found (with pid $pid), but OpenStack OVS Server (neutron-ovs-agent) is not running"
+    pid=`get_worker_pid`
+    if [ "xxx$pid" == "xxx" ] ; then
+        ocf_log warn "OpenStack Neutron agent '$OCF_RESKEY_binary' not running."
         return $OCF_NOT_RUNNING
     fi
+    #ocf_log debug "PID='$pid'"
+
+    # Check PID file and create if need
+    if [ ! -f $OCF_RESKEY_pid ] ; then
+        ocf_log warn "OpenStack Neutron agent (${OCF_RESKEY_binary}) was run, but no PID file found."
+        ocf_log warn "Writing PID='$pid' to '$OCF_RESKEY_pid' for '${OCF_RESKEY_binary}' worker..."
+        echo $pid > $OCF_RESKEY_pid
+        return $OCF_SUCCESS
+    fi
+
+    # compare PID from file with PID from `pgrep...`
+    f_pid=`cat $OCF_RESKEY_pid | tr '\n' ' ' | awk '{print $1}'`
+    if [ "xxx$pid" == "xxx$f_pid" ]; then
+        return $OCF_NOT_RUNNING
+    fi
+
+    # at this point we have PID file and PID from it
+    # defferents with PID from `pgrep...`
+    if [ ! -d "/proc/$f_pid" ] || [ "xxx$f_pid" == "xxx" ] ; then
+        # process with PID from PID-file not found
+        ocf_log warn "Old PID file $OCF_RESKEY_pid found, but no running processes with PID=$f_pid found."
+        ocf_log warn "PID-file will be re-created (with PID=$pid)."
+        echo $pid > $OCF_RESKEY_pid
+        return $OCF_SUCCESS
+    fi
+
+    # at this point we have alien PID-file and running prosess with this PID.
+    ocf_log warn "Another daemon (with PID=$f_pid) running with PID file '$OCF_RESKEY_pid'. My PID=$pid"
+    return $OCF_ERR_GENERIC
 }
+
 
 neutron_ovs_agent_monitor() {
     neutron_ovs_agent_status
@@ -231,32 +265,31 @@ neutron_ovs_agent_monitor() {
     return $rc
 }
 
-clean_up() {
 
-	ocf_log info "cleaning up integration bridge"
-	ovs-vsctl -- --if-exists del-br ${OCF_RESKEY_segmentation_bridge}
-	rc=$?
-	if [ $rc -ne 0 ]; then
+clean_and_recreate_ovs_bridges() {
+    ocf_log info "cleaning up integration bridge"
+    ovs-vsctl -- --if-exists del-br ${OCF_RESKEY_segmentation_bridge}
+    rc=$?
+    if [ $rc -ne 0 ]; then
         ocf_log err "Could not clean up segmentation bridge ${OCF_RESKEY_segmentation_bridge}"
         exit $OCF_ERR_GENERIC
     fi
     ocf_log info "cleaning up segmentation bridge"
-	ovs-vsctl -- --if-exists del-br ${OCF_RESKEY_integration_bridge}
-	rc=$?
-	if [ $rc -ne 0 ]; then
+    ovs-vsctl -- --if-exists del-br ${OCF_RESKEY_integration_bridge}
+    rc=$?
+    if [ $rc -ne 0 ]; then
         ocf_log err "Could not clean up integration bridge ${OCF_RESKEY_integration_bridge}"
         exit $OCF_ERR_GENERIC
     fi
     ocf_log info "recreating integration bridge"
-	ovs-vsctl -- --may-exist add-br ${OCF_RESKEY_integration_bridge}
-	rc=$?
-	if [ $rc -ne 0 ]; then
+    ovs-vsctl -- --may-exist add-br ${OCF_RESKEY_integration_bridge}
+    rc=$?
+    if [ $rc -ne 0 ]; then
         ocf_log err "Could not start up integration bridge ${OCF_RESKEY_integration_bridge}"
         exit $OCF_ERR_GENERIC
     fi
-
-
 }
+
 
 neutron_ovs_agent_start() {
     local rc
@@ -264,32 +297,32 @@ neutron_ovs_agent_start() {
     neutron_ovs_agent_status
     rc=$?
     if [ $rc -eq $OCF_SUCCESS ]; then
-        ocf_log info "OpenStack OVS Server (neutron-ovs-agent) already running"
+        ocf_log info "OpenStack OVS Server (${OCF_RESKEY_binary}) already running"
         return $OCF_SUCCESS
     fi
 
-    clean_up
+    clean_and_recreate_ovs_bridges
 
-    # run the actual neutron-ovs-agent daemon. Don't use ocf_run as we're sending the tool's output
-    # straight to /dev/null anyway and using ocf_run would break stdout-redirection here.
-    su ${OCF_RESKEY_user} -s /bin/sh -c "${OCF_RESKEY_binary} --config-file=$OCF_RESKEY_config \
-       --config-file=$OCF_RESKEY_plugin_config $OCF_RESKEY_additional_parameters"' >> \
-	/dev/null 2>&1 & echo $!' > $OCF_RESKEY_pid
+    # run and detach to background Neutron-ovs-agent as daemon.
+    # Don't use ocf_run as we're sending the tool's output
+     su ${OCF_RESKEY_user} -s /bin/sh -c "${OCF_RESKEY_binary} --config-file=$OCF_RESKEY_config \
+        --config-file=$OCF_RESKEY_plugin_config $OCF_RESKEY_additional_parameters \
+        >> ${OCF_RESKEY_log_file}"' 2>&1 &'
 
     # Spin waiting for the server to come up.
     # Let the CRM/LRM time us out if required
     while true; do
-    neutron_ovs_agent_monitor
-    rc=$?
-    [ $rc -eq $OCF_SUCCESS ] && break
-    if [ $rc -ne $OCF_NOT_RUNNING ]; then
-        ocf_log err "OpenStack OVS Server (neutron-ovs-agent) start failed"
-        exit $OCF_ERR_GENERIC
-    fi
-    sleep 1
+        neutron_ovs_agent_monitor
+        rc=$?
+        [ $rc -eq $OCF_SUCCESS ] && break
+        if [ $rc -ne $OCF_NOT_RUNNING ]; then
+            ocf_log err "OpenStack (${OCF_RESKEY_binary}) start failed"
+            exit $OCF_ERR_GENERIC
+        fi
+        sleep 3
     done
 
-    ocf_log info "OpenStack OVS Server (neutron-ovs-agent) started"
+    ocf_log info "OpenStack OVS Server (${OCF_RESKEY_binary}) started"
     return $OCF_SUCCESS
 }
 
@@ -300,8 +333,8 @@ neutron_ovs_agent_stop() {
     neutron_ovs_agent_status
     rc=$?
     if [ $rc -eq $OCF_NOT_RUNNING ]; then
-    	clean_up
-        ocf_log info "OpenStack OVS Server (neutron-ovs-agent) already stopped"
+        clean_and_recreate_ovs_bridges
+        ocf_log info "OpenStack OVS Server (${OCF_RESKEY_binary}) already stopped"
         return $OCF_SUCCESS
     fi
 
@@ -311,7 +344,7 @@ neutron_ovs_agent_stop() {
     ocf_run kill -s TERM $pid
     rc=$?
     if [ $rc -ne 0 ]; then
-        ocf_log err "OpenStack OVS Server (neutron-ovs-agent) couldn't be stopped"
+        ocf_log err "OpenStack OVS Server (${OCF_RESKEY_binary}) couldn't be stopped"
         exit $OCF_ERR_GENERIC
     fi
 
@@ -329,21 +362,21 @@ neutron_ovs_agent_stop() {
         fi
         count=`expr $count + 1`
         sleep 1
-        ocf_log debug "OpenStack OVS Server (neutron-ovs-agent) still hasn't stopped yet. Waiting ..."
+        ocf_log debug "OpenStack OVS Server (${OCF_RESKEY_binary}) still hasn't stopped yet. Waiting ..."
     done
 
     neutron_ovs_agent_status
     rc=$?
     if [ $rc -ne $OCF_NOT_RUNNING ]; then
         # SIGTERM didn't help either, try SIGKILL
-        ocf_log info "OpenStack OVS Server (neutron-ovs-agent) failed to stop after ${shutdown_timeout}s \
+        ocf_log info "OpenStack OVS Server (${OCF_RESKEY_binary}) failed to stop after ${shutdown_timeout}s \
           using SIGTERM. Trying SIGKILL ..."
         ocf_run kill -s KILL $pid
     fi
 
-    clean_up
+    clean_and_recreate_ovs_bridges
 
-    ocf_log info "OpenStack OVS Server (neutron-ovs-agent) stopped"
+    ocf_log info "OpenStack OVS Server (${OCF_RESKEY_binary}) stopped"
 
     rm -f $OCF_RESKEY_pid
 

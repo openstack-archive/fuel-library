@@ -54,6 +54,16 @@ Puppet::Type.type(:l2_ovs_port).provide(:ovs) do
         end
       end
     end
+    # enable vlan_splinters if need
+    if @resource[:vlan_splinters].to_s() == 'true'  # fucking puppet send non-boolean value instead true/false
+      Puppet.debug("Interface '#{@resource[:interface]}' vlan_splinters is '#{@resource[:vlan_splinters]}' [#{@resource[:vlan_splinters].class}]")
+      begin
+        vsctl('--', "set", "Port", @resource[:interface], "vlan_mode=trunk")
+        vsctl('--', "set", "Interface", @resource[:interface], "other-config:enable-vlan-splinters=true")
+      rescue Puppet::ExecutionFailure => error
+        raise Puppet::ExecutionFailure, "Interface '#{@resource[:interface]}' can't setup vlan_splinters:\n#{error}"
+      end
+    end
   end
 
   def destroy
