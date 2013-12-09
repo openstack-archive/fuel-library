@@ -20,7 +20,18 @@ class neutron::agents::l3 (
          mode    => 644,
          before  => Package['neutron-l3'],
        }
-     }
+     } else {
+       file { '/etc/init/neutron-l3-agent.override':
+         replace => 'no',
+         ensure => 'present',
+         content => 'manual',
+         mode => 644,
+       } -> Package['neutron-l3'] ->
+       exec { 'rm-neutron-l3-override':
+         path => '/sbin:/bin:/usr/bin:/usr/sbin',
+         command => "rm -f /etc/init/neutron-l3-agent.override",
+       }
+    }
   }
 
   if $::neutron::params::l3_agent_package {

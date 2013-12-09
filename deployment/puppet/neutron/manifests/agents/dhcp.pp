@@ -20,6 +20,17 @@ class neutron::agents::dhcp (
          mode    => 644,
          before  => Package['neutron-dhcp-agent'],
        }
+    } else {
+       file { '/etc/init/neutron-dhcp-agent.override':
+         replace => 'no',
+         ensure => 'present',
+         content => 'manual',
+         mode => 644,
+       } -> Package['neutron-dhcp-agent'] ->
+       exec { 'rm-neutron-dhcp-override':
+         path => '/sbin:/bin:/usr/bin:/usr/sbin',
+         command => "rm -f /etc/init/neutron-dhcp-agent.override",
+       }
     }
   }
 

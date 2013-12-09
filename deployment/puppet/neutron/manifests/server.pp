@@ -21,6 +21,17 @@ class neutron::server (
          mode    => 644,
          before  => Package['neutron-server'],
        }
+    } else {
+       file { '/etc/init/neutron-metadata-agent.override':
+         replace => 'no',
+         ensure => 'present',
+         content => 'manual',
+         mode => 644,
+       } -> Package['neutron-metadata-agent'] ->
+       exec { 'rm-neutron-metadata-agent-override':
+         path => '/sbin:/bin:/usr/bin:/usr/sbin',
+         command => "rm -f /etc/init/neutron-metadata-agent.override",
+       }
     }
   }
 
