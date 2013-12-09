@@ -37,24 +37,6 @@ file {'filter_quantum_ports.py':
   group => root,
   source => "puppet:///modules/openstack/filter_quantum_ports.py",
 }
-File['filter_quantum_ports.py'] -> File<| title == 'neutron-ovs-agent' |>
-
-file {'mysql-wss':
-  path=>'/usr/lib/ocf/resource.d/mirantis/mysql',
-  mode => 744,
-  require =>Package['corosync'],
-  owner => root,
-  group => root,
-  source => "puppet:///modules/openstack/mysql-wss",
-} -> Corosync::Service['pacemaker']
-
-file {'neutron-ovs-agent':
-  path=>'/usr/lib/ocf/resource.d/pacemaker/neutron-agent-ovs',
-  mode => 755,
-  owner => root,
-  group => root,
-  source => "puppet:///modules/neutron/ocf/neutron-agent-ovs",
-} -> Corosync::Service['pacemaker']
 
 Anchor['corosync'] ->
 corosync::service { 'pacemaker':

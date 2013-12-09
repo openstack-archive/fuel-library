@@ -166,7 +166,7 @@ class openstack::controller_ha (
 
     # Dirty hack, due Puppet can't send notify between stages
     exec { 'restart_haproxy':
-      command     => 'crm resource restart clone_p_haproxy',
+      command     => "bash -c \"(crm_resource --resource clone_p_haproxy  --cleanup --node `uname -n` && crm resource restart clone_p_haproxy) || :\"",
       path        => '/usr/bin:/usr/sbin:/bin:/sbin',
       logoutput   => true,
       refreshonly => true,

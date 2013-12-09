@@ -80,7 +80,7 @@ class horizon(
 
   file {'/usr/share/openstack-dashboard/':
     recurse   => true,
-    subscribe => Package['dashboard'],
+    subscribe => Package['dashboard']
   }
 
   case $use_ssl {
