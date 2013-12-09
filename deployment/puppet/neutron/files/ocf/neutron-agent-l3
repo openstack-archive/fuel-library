@@ -88,7 +88,7 @@ meta_data() {
 <version>1.0</version>
 
 <longdesc lang="en">
-Resource agent for the OpenStack OpenStack Router (neutron-l3-agent)
+Resource agent for the OpenStack Router (neutron-l3-agent)
 May manage a neutron-l3-agent instance or a clone set that
 creates a distributed neutron-l3-agent cluster.
 </longdesc>
@@ -105,7 +105,7 @@ Location of the OpenStack Router server binary (neutron-l3-agent)
 
 <parameter name="config" unique="0" required="0">
 <longdesc lang="en">
-Location of the OpenStack OpenStack Router (neutron-server) configuration file
+Location of the OpenStack Router (neutron-server) configuration file
 </longdesc>
 <shortdesc lang="en">OpenStack Router (neutron-server) config file</shortdesc>
 <content type="string" default="${OCF_RESKEY_config_default}" />
@@ -295,7 +295,7 @@ neutron_l3_agent_status() {
     fi
 
     # at this point we have PID file and PID from it
-    # defferents with PID from `pgrep...`
+    # differents with PID from `pgrep...`
     if [ ! -d "/proc/$f_pid" ] || [ "xxx$f_pid" == "xxx" ] ; then
         # process with PID from PID-file not found
         ocf_log warn "Old PID file $OCF_RESKEY_pid found, but no running processes with PID=$f_pid found."
@@ -355,7 +355,7 @@ neutron_l3_agent_start() {
         sleep 3
     done
 
-    # detach deffered rescheduling procedure
+    # detach deferred rescheduling procedure
     bash -c "sleep 13 ; q-agent-cleanup.py --agent=l3 --reschedule --remove-dead 2>&1 >> /var/log/neutron/rescheduling.log" &
 
     ocf_log info "OpenStack Router (neutron-l3-agent) started"
