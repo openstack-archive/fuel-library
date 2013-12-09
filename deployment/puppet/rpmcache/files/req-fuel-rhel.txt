@@ -9,6 +9,7 @@
 + cirros-testvm*
 + crmsh*
 + c-ares19*
++ daemonize*
 + erlang*
 + euca2ools*
 + facter*
