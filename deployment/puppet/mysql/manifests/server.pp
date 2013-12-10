@@ -82,10 +82,6 @@ class mysql::server (
     $allowed_hosts = '%'
     #$allowed_hosts = 'localhost'
 
-    ::corosync::cleanup{"p_${service_name}": } 
-    Cs_commit['mysql']->::Corosync::Cleanup["p_${service_name}"]
-    Cs_commit['mysql']~>::Corosync::Cleanup["p_${service_name}"]
-    ::Corosync::Cleanup["p_${service_name}"] -> Service['mysql']
 
     create_resources( 'class', { 'mysql::config' => $config_hash })
     Class['mysql::config'] -> Cs_resource["p_${service_name}"]

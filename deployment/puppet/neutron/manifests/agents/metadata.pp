@@ -137,6 +137,7 @@ class neutron::agents::metadata (
     Anchor['neutron-metadata-agent'] ->
       Service['neutron-metadata-agent__disabled'] ->
         Cs_resource["$res_name"] ->
+         Cs_commit["$cib_name"] ->
           Service["$res_name"] ->
             Anchor['neutron-metadata-agent-done']
   }
