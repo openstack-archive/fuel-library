@@ -22,14 +22,14 @@ class savanna::dashboard (
 
   if $use_neutron {
     $use_neutron_value = 'True'
-  } else {
-    $use_neutron_value = 'False'
-  }
-
-  if $use_floating_ips {
-    $floating_ips_value = 'True'
-  } else {
     $floating_ips_value = 'False'
+  } else {
+    if $use_floating_ips {
+        $floating_ips_value = 'True'
+    } else {
+        $floating_ips_value = 'False'
+    }
+    $use_neutron_value = 'False'
   }
 
   File_line {

@@ -146,9 +146,8 @@ class galera (
 
   cs_shadow { $res_name: cib => $cib_name }
   cs_commit { $res_name: cib => $cib_name }
-  ::corosync::cleanup { "clone_$res_name": }
 
-  Cs_commit["$res_name"] ~> Corosync::Cleanup["clone_$res_name"] -> Service["mysql"]
+  Cs_commit["$res_name"] -> Service["mysql"]
 
   cs_resource { "$res_name":
       ensure => present,

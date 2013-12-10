@@ -13,22 +13,6 @@ class neutron::agents::l3 (
   anchor {'neutron-l3': }
   Service<| title=='neutron-server' |> -> Anchor['neutron-l3']
 
-  if $::operatingsystem == 'Ubuntu' {
-    file { '/etc/init/neutron-l3-agent.override':
-      replace => 'no',
-      ensure => 'present',
-      content => 'manual',
-      mode => 644,
-    } -> Package['neutron-l3']
-    if $service_provider != 'pacemaker' {
-       Package['neutron-l3'] ->
-       exec { 'rm-neutron-l3-override':
-         path => '/sbin:/bin:/usr/bin:/usr/sbin',
-         command => "rm -f /etc/init/neutron-l3-agent.override",
-       }
-    }
-  }
-
   if $::neutron::params::l3_agent_package {
     $l3_agent_package = 'neutron-l3'
 
@@ -41,6 +25,22 @@ class neutron::agents::l3 (
   } else {
     $l3_agent_package = $::neutron::params::package_name
   }
+  if $::operatingsystem == 'Ubuntu' {
+    file { '/etc/init/neutron-l3-agent.override':
+      replace => 'no',
+      ensure => 'present',
+      content => 'manual',
+      mode => 644,
+    } -> Package<| title == "$l3_agent_package" |>
+    if $service_provider != 'pacemaker' {
+       Package<| title == "$l3_agent_package" |> ->
+       exec { 'rm-neutron-l3-override':
+         path => '/sbin:/bin:/usr/bin:/usr/sbin',
+         command => "rm -f /etc/init/neutron-l3-agent.override",
+       }
+    }
+  }
+
 
   include 'neutron::waist_setup'
 
@@ -205,7 +205,8 @@ class neutron::agents::l3 (
     Anchor['neutron-l3'] ->
       Service['neutron-l3-init_stopped'] ->
         Cs_resource["p_${::neutron::params::l3_agent_service}"] ->
-          Service['neutron-l3'] ->
+          Cs_commit['l3']->
+           Service['neutron-l3'] ->
             Anchor['neutron-l3-done']
 
     service { 'neutron-l3-init_stopped':
