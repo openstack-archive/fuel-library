@@ -23,10 +23,7 @@ define cluster::virtual_ip (
 
   cs_shadow { $cib_name: cib => $cib_name }
   cs_commit { $cib_name: cib => $cib_name }
-  ::corosync::cleanup { $vip_name: }
 
-  Cs_commit[$cib_name] -> ::Corosync::Cleanup[$vip_name]
-  Cs_commit[$cib_name] ~> ::Corosync::Cleanup[$vip_name]
 
   cs_resource { $vip_name:
     ensure          => present,

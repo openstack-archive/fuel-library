@@ -110,8 +110,6 @@ class ceilometer::agent::central (
     cs_shadow { $res_name: cib => $cib_name }
     cs_commit { $res_name: cib => $cib_name }
 
-    ::corosync::cleanup{ $res_name: }
-
     service { 'ceilometer-agent-central':
       ensure     => $service_ensure,
       name       => $res_name,
@@ -120,9 +118,6 @@ class ceilometer::agent::central (
       hasrestart => true,
       provider   => "pacemaker",
     }
-
-    Cs_commit[$res_name] -> ::Corosync::Cleanup[$res_name]
-    Cs_commit[$res_name] ~> ::Corosync::Cleanup[$res_name]
 
     Cs_shadow[$res_name] ->
       Cs_resource[$res_name] ->

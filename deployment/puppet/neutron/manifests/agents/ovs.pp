@@ -157,6 +157,7 @@ class neutron::agents::ovs (
         Service['neutron-ovs-agent_stopped'] ->
           Exec<| title=='neutron-ovs-agent_stopped' |> ->
             Cs_resource["p_${::neutron::params::ovs_agent_service}"] ->
+             Cs_commit['ovs'] ->
               Service['neutron-ovs-agent']
 
     service { 'neutron-ovs-agent':
@@ -201,6 +202,7 @@ class neutron::agents::ovs (
       }
     }
     default: {
+      Package["$ovs_agent_package"] ->
       service { 'neutron-ovs-cleanup':
         name       => 'neutron-ovs-cleanup',
         enable     => true,
