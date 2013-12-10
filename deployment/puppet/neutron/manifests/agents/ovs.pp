@@ -29,20 +29,13 @@ class neutron::agents::ovs (
   }
 
   if $::operatingsystem == 'Ubuntu' {
-    if $service_provider == 'pacemaker' {
-      file { "/etc/init/neutron-plugin-openvswitch-agent.override":
-        replace => "no",
-        ensure  => "present",
-        content => "manual",
-        mode    => 644,
-      } -> Package<| title=="$ovs_agent_package" |>
-    } else {
-      file { '/etc/init/neutron-plugin-openvswitch-agent.override':
-        replace => 'no',
-        ensure  => 'present',
-        content => 'manual',
-        mode    => 644,
-      } ->
+    file { "/etc/init/neutron-plugin-openvswitch-agent.override":
+      replace => "no",
+      ensure  => "present",
+      content => "manual",
+      mode    => 644,
+    } -> Package<| title=="$ovs_agent_package" |>
+    if $service_provider != 'pacemaker' {
       Package<| title=="$ovs_agent_package" |> ->
       exec { 'rm-neutron-plugin-override':
         path      => '/sbin:/bin:/usr/bin:/usr/sbin',

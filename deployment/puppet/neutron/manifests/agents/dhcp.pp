@@ -12,21 +12,14 @@ class neutron::agents::dhcp (
   include 'neutron::params'
 
   if $::operatingsystem == 'Ubuntu' {
-    if $service_provider == 'pacemaker' {
-       file { "/etc/init/neutron-dhcp-agent.override":
-         replace => "no",
-         ensure  => "present",
-         content => "manual",
-         mode    => 644,
-         before  => Package['neutron-dhcp-agent'],
-       }
-    } else {
-       file { '/etc/init/neutron-dhcp-agent.override':
-         replace => 'no',
-         ensure => 'present',
-         content => 'manual',
-         mode => 644,
-       } -> Package['neutron-dhcp-agent'] ->
+    file { '/etc/init/neutron-dhcp-agent.override':
+     replace => 'no',
+     ensure => 'present',
+     content => 'manual',
+     mode => 644,
+    } -> Package['neutron-dhcp-agent']
+    if $service_provider != 'pacemaker' {
+       Package['neutron-dhcp-agent'] ->
        exec { 'rm-neutron-dhcp-override':
          path => '/sbin:/bin:/usr/bin:/usr/sbin',
          command => "rm -f /etc/init/neutron-dhcp-agent.override",
