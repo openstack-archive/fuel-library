@@ -9,24 +9,19 @@ class neutron::agents::l3 (
 ) {
   include 'neutron::params'
 
+  Anchor<| title=='neutron-server-done' |> ->
   anchor {'neutron-l3': }
   Service<| title=='neutron-server' |> -> Anchor['neutron-l3']
+
   if $::operatingsystem == 'Ubuntu' {
-    if $service_provider == 'pacemaker' {
-       file { "/etc/init/neutron-l3-agent.override":
-         replace => "no",
-         ensure  => "present",
-         content => "manual",
-         mode    => 644,
-         before  => Package['neutron-l3'],
-       }
-     } else {
-       file { '/etc/init/neutron-l3-agent.override':
-         replace => 'no',
-         ensure => 'present',
-         content => 'manual',
-         mode => 644,
-       } -> Package['neutron-l3'] ->
+    file { '/etc/init/neutron-l3-agent.override':
+      replace => 'no',
+      ensure => 'present',
+      content => 'manual',
+      mode => 644,
+    } -> Package['neutron-l3']
+    if $service_provider != 'pacemaker' {
+       Package['neutron-l3'] ->
        exec { 'rm-neutron-l3-override':
          path => '/sbin:/bin:/usr/bin:/usr/sbin',
          command => "rm -f /etc/init/neutron-l3-agent.override",
@@ -51,13 +46,16 @@ class neutron::agents::l3 (
 
   Neutron_config <| |> -> Neutron_l3_agent_config <| |>
   Neutron_l3_agent_config <| |> -> Service['neutron-l3']
-  # Quantum_l3_agent_config <| |> -> Quantum_router <| |>
-  # Quantum_l3_agent_config <| |> -> Quantum_net <| |>
-  # Quantum_l3_agent_config <| |> -> Quantum_subnet <| |>
 
   neutron_l3_agent_config {
     'DEFAULT/debug':          value => $debug;
     'DEFAULT/verbose':        value => $verbose;
+    'DEFAULT/log_dir':       ensure => absent;
+    'DEFAULT/log_file':      ensure => absent;
+    'DEFAULT/log_config':    ensure => absent;
+    'DEFAULT/use_syslog':    ensure => absent;
+    'DEFAULT/use_stderr':    ensure => absent;
+    'DEFAULT/router_id':     ensure => absent;
     'DEFAULT/root_helper':    value => $neutron_config['root_helper'];
     'DEFAULT/auth_url':       value => $neutron_config['keystone']['auth_url'];
     'DEFAULT/admin_user':     value => $neutron_config['keystone']['admin_user'];
@@ -72,14 +70,10 @@ class neutron::agents::l3 (
     'DEFAULT/periodic_fuzzy_delay': value => $neutron_config['L3']['resync_fuzzy_delay'];
     'DEFAULT/external_network_bridge': value => $neutron_config['L3']['public_bridge'];
   }
-  neutron_l3_agent_config{'DEFAULT/router_id': ensure => absent }
 
   Anchor['neutron-l3'] ->
     Neutron_l3_agent_config <| |> ->
-      Exec<| title=='setup_router_id' |> ->
-        #Exec<| title=='update_default_route_metric' |> ->
           Service<| title=='neutron-l3' |>  ->
-            #Exec<| title=='settle-down-default-route' |> ->
               Anchor['neutron-l3-done']
 
   # rootwrap error with L3 agent
@@ -107,9 +101,14 @@ class neutron::agents::l3 (
       group => root,
       source => "puppet:///modules/neutron/ocf/neutron-agent-l3",
     }
+
+    Anchor['neutron-l3'] -> File['neutron-l3-agent-ocf']
+    Neutron_l3_agent_config <| |> -> File['neutron-l3-agent-ocf']
     Package['pacemaker'] -> File['neutron-l3-agent-ocf']
+    File<| title == 'ocf-mirantis-path' |> -> File['neutron-l3-agent-ocf']
+    File<| title == 'q-agent-cleanup.py'|> -> File['neutron-l3-agent-ocf']
+    Package[$l3_agent_package] -> File['neutron-l3-agent-ocf']
     File['neutron-l3-agent-ocf'] -> Cs_resource["p_${::neutron::params::l3_agent_service}"]
-    File['q-agent-cleanup.py'] -> Cs_resource["p_${::neutron::params::l3_agent_service}"]
 
     cs_resource { "p_${::neutron::params::l3_agent_service}":
       ensure          => present,
@@ -128,20 +127,18 @@ class neutron::agents::l3 (
       operations      => {
         'monitor'  => {
           'interval' => '20',
-          'timeout'  => '30'
+          'timeout'  => '10'
         }
         ,
         'start'    => {
-          'timeout' => '360'
+          'timeout' => '60'
         }
         ,
         'stop'     => {
-          'timeout' => '360'
+          'timeout' => '60'
         }
       },
     }
-    File<| title=='neutron-logging.conf' |> -> Cs_resource["p_${::neutron::params::l3_agent_service}"]
-    Exec<| title=='setup_router_id' |> -> Cs_resource["p_${::neutron::params::l3_agent_service}"]
 
     cs_shadow { 'l3': cib => 'l3' }
     cs_commit { 'l3': cib => 'l3' }
@@ -152,18 +149,14 @@ class neutron::agents::l3 (
     Cs_commit <| title == 'dhcp' |> -> Cs_shadow <| title == 'l3' |>
     Cs_commit <| title == 'ovs' |> -> Cs_shadow <| title == 'l3' |>
     Cs_commit <| title == 'neutron-metadata-agent' |> -> Cs_shadow <| title == 'l3' |>
-
-    ::corosync::cleanup{"p_${::neutron::params::l3_agent_service}": }
-
-    Cs_commit['l3'] -> ::Corosync::Cleanup["p_${::neutron::params::l3_agent_service}"]
-    Cs_commit['l3'] ~> ::Corosync::Cleanup["p_${::neutron::params::l3_agent_service}"]
-    ::Corosync::Cleanup["p_${::neutron::params::l3_agent_service}"] -> Service['neutron-l3']
+    Anchor['neutron-l3'] -> Cs_shadow['l3']
 
     Cs_resource["p_${::neutron::params::l3_agent_service}"] -> Cs_colocation['l3-with-ovs']
     Cs_resource["p_${::neutron::params::l3_agent_service}"] -> Cs_order['l3-after-ovs']
     Cs_resource["p_${::neutron::params::l3_agent_service}"] -> Cs_colocation['l3-with-metadata']
     Cs_resource["p_${::neutron::params::l3_agent_service}"] -> Cs_order['l3-after-metadata']
 
+    Anchor<| title == 'neutron-ovs-agent-done' |> -> Anchor<| title=='neutron-l3' |>
     cs_colocation { 'l3-with-ovs':
       ensure     => present,
       cib        => 'l3',
@@ -178,6 +171,7 @@ class neutron::agents::l3 (
       score  => 'INFINITY',
     } -> Service['neutron-l3']
 
+    Anchor<| title == 'neutron-metadata-agent-done' |> -> Anchor<| title=='neutron-l3' |>
     cs_colocation { 'l3-with-metadata':
       ensure     => present,
       cib        => 'l3',
@@ -196,6 +190,7 @@ class neutron::agents::l3 (
     } -> Service['neutron-l3']
 
     # start DHCP and L3 agents on different controllers if it's possible
+    Anchor<| title == 'neutron-dhcp-agent-done' |> -> Anchor<| title=='neutron-l3' |>
     cs_colocation { 'dhcp-without-l3':
       ensure     => present,
       cib        => 'l3',
@@ -232,9 +227,9 @@ class neutron::agents::l3 (
     }
 
   } else {
+    # No pacemaker use
     Neutron_config <| |> ~> Service['neutron-l3']
     Neutron_l3_agent_config <| |> ~> Service['neutron-l3']
-    File<| title=='neutron-logging.conf' |> ->
     service { 'neutron-l3':
       name       => $::neutron::params::l3_agent_service,
       enable     => true,

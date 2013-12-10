@@ -19,6 +19,7 @@ class neutron (
 ) {
   include 'neutron::params'
 
+  Anchor<| title == 'galera-done' |> ->
   anchor {'neutron-init':}
 
   if ! defined(File['/etc/neutron']) {
@@ -103,8 +104,14 @@ class neutron (
   }
 
   neutron_config {
-    'DEFAULT/verbose':                value => $verbose;
     'DEFAULT/debug':                  value => $debug;
+    'DEFAULT/verbose':                value => $verbose;
+    'DEFAULT/log_dir':               ensure => absent;
+    'DEFAULT/log_file':              ensure => absent;
+    'DEFAULT/log_config':            ensure => absent;
+    'DEFAULT/use_syslog':             value => false;
+    'DEFAULT/use_stderr':             value => true;
+    'DEFAULT/publish_errors':         value => false;
     'DEFAULT/auth_strategy':          value => $auth_strategy;
     'DEFAULT/core_plugin':            value => $core_plugin;
     'DEFAULT/bind_host':              value => $server_bind_host;
@@ -138,52 +145,6 @@ class neutron (
   # quantum-ovs/metadata/l3/dhcp/-agents:
   # 	daemon --user quantum --pidfile $pidfile "$exec --config-file /etc/$proj/$proj.conf --config-file $config &>>/var/log/$proj/$plugin.log & echo \$! > $pidfile"
 
-  neutron_config {
-      'DEFAULT/log_file':   ensure=> absent;
-      'DEFAULT/logfile':    ensure=> absent;
-  }
-  if $use_syslog and !$debug =~ /(?i)(true|yes)/ {
-    neutron_config {
-        'DEFAULT/log_dir':    ensure=> absent;
-        'DEFAULT/logdir':     ensure=> absent;
-        'DEFAULT/log_config':   value => "/etc/neutron/logging.conf";
-        'DEFAULT/use_stderr': ensure=> absent;
-        'DEFAULT/use_syslog': value=> true;
-        'DEFAULT/syslog_log_facility': value=> $syslog_log_facility;
-    }
-    file { "neutron-logging.conf":
-      content => template('neutron/logging.conf.erb'),
-      path  => "/etc/neutron/logging.conf",
-      owner => "root",
-      group => "neutron",
-      mode  => 640,
-    }
-  } else {
-    neutron_config {
-    # logging for agents grabbing from stderr. It's workarround for bug in neutron-logging
-      'DEFAULT/use_syslog': ensure=> absent;
-      'DEFAULT/syslog_log_facility': ensure=> absent;
-      'DEFAULT/log_config': ensure=> absent;
-      # FIXME stderr should not be used unless neutron+agents init & OCF scripts would be fixed to redirect its output to stderr!
-      #'DEFAULT/use_stderr': value => true;
-      'DEFAULT/use_stderr': ensure=> absent;
-      'DEFAULT/log_dir': value => $log_dir;
-    }
-    file { "neutron-logging.conf":
-      content => template('neutron/logging.conf-nosyslog.erb'),
-      path  => "/etc/neutron/logging.conf",
-      owner => "root",
-      group => "neutron",
-      mode  => 640,
-    }
-  }
-  # We must setup logging before start services under pacemaker
-  Package['neutron'] -> File <| title=='neutron-logging.conf' |>
-  File <| title=='neutron-logging.conf' |> -> Service<| title == "$::neutron::params::server_service" |>
-  File <| title=='neutron-logging.conf' |> -> Anchor<| title == 'neutron-ovs-agent' |>
-  File <| title=='neutron-logging.conf' |> -> Anchor<| title == 'neutron-l3' |>
-  File <| title=='neutron-logging.conf' |> -> Anchor<| title == 'neutron-dhcp-agent' |>
-  File <| title=='/etc/neutron' |> -> File <| title=='neutron-logging.conf' |>
 
   if defined(Anchor['neutron-server-config-done']) {
     $endpoint_neutron_main_configuration = 'neutron-server-config-done'

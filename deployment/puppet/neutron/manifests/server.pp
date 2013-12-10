@@ -12,40 +12,35 @@ class neutron::server (
 
   anchor {'neutron-server':}
 
-  if $::operatingsystem == 'Ubuntu' {
-    if $service_provider == 'pacemaker' {
-       file { "/etc/init/neutron-metadata-agent.override":
-         replace => "no",
-         ensure  => "present",
-         content => "manual",
-         mode    => 644,
-         before  => Package['neutron-server'],
-       }
-    } else {
-       file { '/etc/init/neutron-metadata-agent.override':
-         replace => 'no',
-         ensure => 'present',
-         content => 'manual',
-         mode => 644,
-       } -> Package['neutron-metadata-agent'] ->
-       exec { 'rm-neutron-metadata-agent-override':
-         path => '/sbin:/bin:/usr/bin:/usr/sbin',
-         command => "rm -f /etc/init/neutron-metadata-agent.override",
-       }
-    }
-  }
-
   if $::neutron::params::server_package {
     $server_package = 'neutron-server'
-
-    package {$server_package:
+    package {"$server_package":
       name   => $::neutron::params::server_package,
       ensure => $package_ensure
     }
   } else {
     $server_package = 'neutron'
   }
-
+  if $::operatingsystem == 'Ubuntu' {
+    # Package['neutron-server'] provides two services:
+    # * neutron-server
+    # * neutron-metadata-agent
+    # because we need STOP neutron-metadata-agent here
+    #
+    file { '/etc/init/neutron-metadata-agent.override':
+      replace => 'no',
+      ensure  => 'present',
+      content => 'manual',
+      mode    => 644,
+    } -> Package["$server_package"]
+    if $service_provider != 'pacemaker' {
+      Package["$server_package"] ->
+      exec { 'rm-neutron-metadata-override':
+        path      => '/sbin:/bin:/usr/bin:/usr/sbin',
+        command   => "rm -f /etc/init/neutron-metadata-agent.override",
+      }
+    }
+  }
   Package[$server_package] -> Neutron_config<||>
   Package[$server_package] -> Neutron_api_config<||>
 
@@ -55,6 +50,8 @@ class neutron::server (
 
   Neutron_config<||> ~> Service['neutron-server']
   Neutron_api_config<||> ~> Service['neutron-server']
+  Service <| title == 'mysql' |> -> Service['neutron-server']
+  Service <| title == 'haproxy' |> -> Service['neutron-server']
 
   neutron_api_config {
     'filter:authtoken/auth_url':          value => $neutron_config['keystone']['auth_url'];
@@ -76,10 +73,10 @@ class neutron::server (
   }
 
   Anchor['neutron-server'] ->
-      Neutron_config<||> ->
-        Neutron_api_config<||> ->
+    Neutron_config<||> ->
+      Neutron_api_config<||> ->
   Anchor['neutron-server-config-done'] ->
-     Service['neutron-server'] ->
+    Service['neutron-server'] ->
   Anchor['neutron-server-done']
 
   # if defined(Anchor['neutron-plugin-ovs-done']) {

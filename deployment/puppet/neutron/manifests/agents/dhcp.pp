@@ -12,21 +12,14 @@ class neutron::agents::dhcp (
   include 'neutron::params'
 
   if $::operatingsystem == 'Ubuntu' {
-    if $service_provider == 'pacemaker' {
-       file { "/etc/init/neutron-dhcp-agent.override":
-         replace => "no",
-         ensure  => "present",
-         content => "manual",
-         mode    => 644,
-         before  => Package['neutron-dhcp-agent'],
-       }
-    } else {
-       file { '/etc/init/neutron-dhcp-agent.override':
-         replace => 'no',
-         ensure => 'present',
-         content => 'manual',
-         mode => 644,
-       } -> Package['neutron-dhcp-agent'] ->
+    file { '/etc/init/neutron-dhcp-agent.override':
+     replace => 'no',
+     ensure => 'present',
+     content => 'manual',
+     mode => 644,
+    } -> Package['neutron-dhcp-agent']
+    if $service_provider != 'pacemaker' {
+       Package['neutron-dhcp-agent'] ->
        exec { 'rm-neutron-dhcp-override':
          path => '/sbin:/bin:/usr/bin:/usr/sbin',
          command => "rm -f /etc/init/neutron-dhcp-agent.override",
@@ -48,6 +41,7 @@ class neutron::agents::dhcp (
 
   include 'neutron::waist_setup'
 
+  Anchor<| title=='neutron-server-done' |> ->
   anchor {'neutron-dhcp-agent': }
 
   #Anchor['neutron-metadata-agent-done'] -> Anchor['neutron-dhcp-agent']
@@ -70,6 +64,11 @@ class neutron::agents::dhcp (
   neutron_dhcp_agent_config {
     'DEFAULT/debug':             value => $debug;
     'DEFAULT/verbose':           value => $verbose;
+    'DEFAULT/log_dir':          ensure => absent;
+    'DEFAULT/log_file':         ensure => absent;
+    'DEFAULT/log_config':       ensure => absent;
+    'DEFAULT/use_syslog':       ensure => absent;
+    'DEFAULT/use_stderr':       ensure => absent;
     'DEFAULT/state_path':        value => $state_path;
     'DEFAULT/interface_driver':  value => $interface_driver;
     'DEFAULT/dhcp_driver':       value => $dhcp_driver;
@@ -91,6 +90,7 @@ class neutron::agents::dhcp (
   if $service_provider == 'pacemaker' {
     Service <| title == 'neutron-server' |> -> Cs_shadow['dhcp']
     Neutron_dhcp_agent_config <| |> -> Cs_shadow['dhcp']
+    Anchor['neutron-dhcp-agent'] -> Cs_shadow['dhcp']
 
     # OCF script for pacemaker
     # and his dependences
@@ -101,17 +101,23 @@ class neutron::agents::dhcp (
       group => root,
       source => "puppet:///modules/neutron/ocf/neutron-agent-dhcp",
     }
+
     Package['pacemaker'] -> File['neutron-dhcp-agent-ocf']
     File['neutron-dhcp-agent-ocf'] -> Cs_resource["p_${::neutron::params::dhcp_agent_service}"]
     File['q-agent-cleanup.py'] -> Cs_resource["p_${::neutron::params::dhcp_agent_service}"]
-    File<| title=='neutron-logging.conf' |> ->
+    File<| title == 'neutron-logging.conf' |> -> Cs_resource["p_${::neutron::params::dhcp_agent_service}"]
+    File<| title == 'ocf-mirantis-path' |> -> File['neutron-dhcp-agent-ocf']
+    Anchor['neutron-dhcp-agent'] -> File['neutron-dhcp-agent-ocf']
+    Neutron_config <| |> -> File['neutron-dhcp-agent-ocf']
+    Neutron_dhcp_agent_config <| |> -> File['neutron-dhcp-agent-ocf']
+    Package[$dhcp_agent_package] -> File['neutron-dhcp-agent-ocf']
+
     cs_resource { "p_${::neutron::params::dhcp_agent_service}":
       ensure          => present,
       cib             => 'dhcp',
       primitive_class => 'ocf',
       provided_by     => 'mirantis',
       primitive_type  => 'neutron-agent-dhcp',
-      #require => File['neutron-agent-dhcp'],
       parameters      => {
         'os_auth_url' => $neutron_config['keystone']['auth_url'],
         'tenant'      => $neutron_config['keystone']['admin_tenant_name'],
@@ -121,16 +127,16 @@ class neutron::agents::dhcp (
       ,
       operations      => {
         'monitor'  => {
-          'interval' => '20',
-          'timeout'  => '30'
+          'interval' => '30',
+          'timeout'  => '10'
         }
         ,
         'start'    => {
-          'timeout' => '360'
+          'timeout' => '60'
         }
         ,
         'stop'     => {
-          'timeout' => '360'
+          'timeout' => '60'
         }
       }
       ,
@@ -139,10 +145,6 @@ class neutron::agents::dhcp (
     Cs_commit <| title == 'ovs' |> -> Cs_shadow <| title == 'dhcp' |>
     Cs_commit <| title == 'neutron-metadata-agent' |> -> Cs_shadow <| title == 'dhcp' |>
 
-    ::corosync::cleanup { "p_${::neutron::params::dhcp_agent_service}": }
-    Cs_commit['dhcp'] -> ::Corosync::Cleanup["p_${::neutron::params::dhcp_agent_service}"]
-    Cs_commit['dhcp'] ~> ::Corosync::Cleanup["p_${::neutron::params::dhcp_agent_service}"]
-    ::Corosync::Cleanup["p_${::neutron::params::dhcp_agent_service}"] -> Service['neutron-dhcp-service']
     Cs_resource["p_${::neutron::params::dhcp_agent_service}"] -> Cs_colocation['dhcp-with-ovs']
     Cs_resource["p_${::neutron::params::dhcp_agent_service}"] -> Cs_order['dhcp-after-ovs']
     Cs_resource["p_${::neutron::params::dhcp_agent_service}"] -> Cs_colocation['dhcp-with-metadata']
@@ -151,6 +153,7 @@ class neutron::agents::dhcp (
     cs_shadow { 'dhcp': cib => 'dhcp' }
     cs_commit { 'dhcp': cib => 'dhcp' }
 
+    Anchor <| title == 'neutron-ovs-agent-done' |> -> Anchor['neutron-dhcp-agent']
     cs_colocation { 'dhcp-with-ovs':
       ensure     => present,
       cib        => 'dhcp',
@@ -168,6 +171,7 @@ class neutron::agents::dhcp (
       score  => 'INFINITY',
     } -> Service['neutron-dhcp-service']
 
+    Anchor <| title == 'neutron-metadata-agent-done' |> -> Anchor['neutron-dhcp-agent']
     cs_colocation { 'dhcp-with-metadata':
       ensure     => present,
       cib        => 'dhcp',
@@ -225,10 +229,9 @@ class neutron::agents::dhcp (
   Class[neutron::waistline] -> Service[neutron-dhcp-service]
 
   Anchor['neutron-dhcp-agent'] ->
-    Neutron_dhcp_agent_config <| |> ->
-      Cs_resource<| title=="p_${::neutron::params::dhcp_agent_service}" |> ->
-        Service['neutron-dhcp-service'] ->
-          Anchor['neutron-dhcp-agent-done']
+    Cs_resource<| title=="p_${::neutron::params::dhcp_agent_service}" |> ->
+      Service['neutron-dhcp-service'] ->
+        Anchor['neutron-dhcp-agent-done']
 
   anchor {'neutron-dhcp-agent-done': }
 

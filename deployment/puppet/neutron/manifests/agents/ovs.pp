@@ -10,58 +10,46 @@ class neutron::agents::ovs (
   include 'neutron::params'
   include 'neutron::waist_setup'
 
-  if defined(Anchor['neutron-plugin-ovs-done']) {
-    # install neutron-ovs-agent at the same host where
-    # neutron-server + neutron-ovs-plugin
-    Anchor['neutron-plugin-ovs-done'] -> Anchor['neutron-ovs-agent']
-
-  }
-
-  if defined(Anchor['neutron-server-done']) {
-    Anchor['neutron-server-done'] -> Anchor['neutron-ovs-agent']
-  }
-
+  Anchor<| title=='neutron-plugin-ovs-done' |> -> Anchor['neutron-ovs-agent']
+  Anchor<| title=='neutron-server-done' |> -> Anchor['neutron-ovs-agent']
+  Service<| title=='neutron-server' |> -> Anchor['neutron-ovs-agent']
   anchor {'neutron-ovs-agent': }
 
-  if $::operatingsystem == 'Ubuntu' {
-    if $service_provider == 'pacemaker' {
-       file { "/etc/init/neutron-plugin-openvswitch-agent.override":
-         replace => "no",
-         ensure  => "present",
-         content => "manual",
-         mode    => 644,
-         before  => Package['neutron-plugin-ovs-agent'],
-      }
-    } else {
-       file { '/etc/init/neutron-plugin-openvswitch-agent.override':
-         replace => 'no',
-         ensure => 'present',
-         content => 'manual',
-         mode => 644,
-       } -> Package['neutron-ovs-agent'] ->
-       exec { 'rm-neutron-neutron-ovs-agent-override':
-         path => '/sbin:/bin:/usr/bin:/usr/sbin',
-         command => "rm -f /etc/init/neutron-plugin-openvswitch-agent.override",
-       }
-    }
-  }
+  Neutron_config <| |> -> Neutron_plugin_ovs <| |>
 
+  # Package install
   if $::neutron::params::ovs_agent_package {
-    Package['neutron'] -> Package['neutron-plugin-ovs-agent']
-
     $ovs_agent_package = 'neutron-plugin-ovs-agent'
-
-    package { 'neutron-plugin-ovs-agent':
+    Package['neutron'] -> Package["$ovs_agent_package"]
+    package {"$ovs_agent_package":
       name   => $::neutron::params::ovs_agent_package,
     }
   } else {
     $ovs_agent_package = $::neutron::params::ovs_server_package
   }
 
+  if $::operatingsystem == 'Ubuntu' {
+    file { "/etc/init/neutron-plugin-openvswitch-agent.override":
+      replace => "no",
+      ensure  => "present",
+      content => "manual",
+      mode    => 644,
+    } -> Package<| title=="$ovs_agent_package" |>
+    if $service_provider != 'pacemaker' {
+      Package<| title=="$ovs_agent_package" |> ->
+      exec { 'rm-neutron-plugin-override':
+        path      => '/sbin:/bin:/usr/bin:/usr/sbin',
+        command   => "rm -f /etc/init/neutron-plugin-openvswitch-agent.override",
+      }
+    }
+  }
+
   if !defined(Anchor['neutron-server-done']) {
     # if defined -- this depends already defined
     Package[$ovs_agent_package] -> Neutron_plugin_ovs <| |>
   }
+
+  ###
 
   l23network::l2::bridge { $neutron_config['L2']['integration_bridge']:
     external_ids  => "bridge-id=${neutron_config['L2']['integration_bridge']}",
@@ -93,12 +81,7 @@ class neutron::agents::ovs (
 
     cs_shadow { 'ovs': cib => 'ovs' }
     cs_commit { 'ovs': cib => 'ovs' }
-
-    ::corosync::cleanup { "p_${::neutron::params::ovs_agent_service}": }
-
-    Cs_commit['ovs'] -> ::Corosync::Cleanup["p_${::neutron::params::ovs_agent_service}"]
-    Cs_commit['ovs'] ~> ::Corosync::Cleanup["p_${::neutron::params::ovs_agent_service}"]
-    ::Corosync::Cleanup["p_${::neutron::params::ovs_agent_service}"] -> Service['neutron-ovs-agent']
+    Anchor['neutron-ovs-agent'] -> Cs_shadow['ovs']
 
     # OCF script for pacemaker
     # and his dependences
@@ -110,8 +93,11 @@ class neutron::agents::ovs (
       source => "puppet:///modules/neutron/ocf/neutron-agent-ovs",
     }
     File['neutron-ovs-agent-ocf'] -> Cs_resource["p_${::neutron::params::ovs_agent_service}"]
+    File<| title == 'ocf-mirantis-path' |> -> File['neutron-ovs-agent-ocf']
+    Anchor['neutron-ovs-agent'] -> File['neutron-ovs-agent-ocf']
+    Package["$ovs_agent_package"] -> Neutron_plugin_ovs <| |>
+    Neutron_plugin_ovs <| |> -> File['neutron-ovs-agent-ocf']
 
-    File<| title=='neutron-logging.conf' |> ->
     cs_resource { "p_${::neutron::params::ovs_agent_service}":
       ensure          => present,
       cib             => 'ovs',
@@ -129,13 +115,13 @@ class neutron::agents::ovs (
       operations      => {
         'monitor'  => {
           'interval' => '20',
-          'timeout'  => '30'
+          'timeout'  => '10'
         },
         'start'    => {
-          'timeout' => '480'
+          'timeout' => '80'
         },
         'stop'     => {
-          'timeout' => '480'
+          'timeout' => '80'
         }
       },
     }
@@ -204,6 +190,7 @@ class neutron::agents::ovs (
   case $operatingsystem {
    'Ubuntu': {
       package { 'neutron-ovs-cleanup': }
+      Package['neutron-ovs-cleanup'] ->
       service { 'neutron-ovs-cleanup':
         name       => 'neutron-ovs-cleanup',
         enable     => true,
@@ -211,10 +198,9 @@ class neutron::agents::ovs (
         hasstatus  => false,  # !!! 'stopped' is not mistake
         hasrestart => false,  # !!! cleanup is simple script running once at OS boot
         provider   => $::neutron::params::service_provider,
-        require    => Package['neutron-ovs-cleanup'],
       }
     }
-    default: { 
+    default: {
       service { 'neutron-ovs-cleanup':
         name       => 'neutron-ovs-cleanup',
         enable     => true,
@@ -225,9 +211,9 @@ class neutron::agents::ovs (
       }
     }
   }
-    Service['neutron-ovs-agent'] ->       # it's not mistate!
-      Service['neutron-ovs-cleanup'] ->   # cleanup service after agent.
-        Anchor['neutron-ovs-agent-done']
+    # Service['neutron-ovs-agent'] ->       # it's not mistate!
+    #   Service['neutron-ovs-cleanup'] ->   # cleanup service after agent.
+    #     Anchor['neutron-ovs-agent-done']
 
   Anchor['neutron-ovs-agent'] ->
     Service['neutron-ovs-agent'] ->
@@ -237,6 +223,7 @@ class neutron::agents::ovs (
 
   Anchor['neutron-ovs-agent-done'] -> Anchor<| title=='neutron-l3' |>
   Anchor['neutron-ovs-agent-done'] -> Anchor<| title=='neutron-dhcp-agent' |>
+  Anchor['neutron-ovs-agent-done'] -> Anchor<| title=='neutron-metadata-agent' |>
 
 }
 # vim: set ts=2 sw=2 et :

@@ -58,6 +58,11 @@ class neutron::plugins::ovs (
     target  => '/etc/neutron/plugins/openvswitch/ovs_neutron_plugin.ini',
   }
   neutron_plugin_ovs {
+    'DEFAULT/log_dir':             ensure => absent;
+    'DEFAULT/log_file':            ensure => absent;
+    'DEFAULT/log_config':          ensure => absent;
+    'DEFAULT/use_syslog':          ensure => absent;
+    'DEFAULT/use_stderr':          ensure => absent;
     'DATABASE/sql_connection':      value => $neutron_config['database']['url'];
     'DATABASE/sql_max_retries':     value => $neutron_config['database']['reconnects'];
     'DATABASE/reconnect_interval':  value => $neutron_config['database']['reconnect_interval'];
