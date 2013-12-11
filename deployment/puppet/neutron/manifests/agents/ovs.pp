@@ -1,14 +1,12 @@
 class neutron::agents::ovs (
   $neutron_config     = {},
   $service_provider   = 'generic'
-  #$bridge_uplinks     = ['br-ex:eth2'],
-  #$bridge_mappings    = ['physnet1:br-ex'],
-  #$integration_bridge = 'br-int',
-  #$enable_tunneling   = true,
 ) {
 
   include 'neutron::params'
   include 'neutron::waist_setup'
+
+  $res_name = "p_${::neutron::params::ovs_agent_service}"
 
   Anchor<| title=='neutron-plugin-ovs-done' |> -> Anchor['neutron-ovs-agent']
   Anchor<| title=='neutron-server-done' |> -> Anchor['neutron-ovs-agent']
@@ -51,33 +49,18 @@ class neutron::agents::ovs (
 
   ###
 
-  l23network::l2::bridge { $neutron_config['L2']['integration_bridge']:
-    external_ids  => "bridge-id=${neutron_config['L2']['integration_bridge']}",
-    ensure        => present,
-    skip_existing => true,
-  }
-
+  neutron::agents::utils::bridges { $neutron_config['L2']['integration_bridge']: }
   if $neutron_config['L2']['enable_tunneling'] {
-      L23network::L2::Bridge<| |> ->
-          Anchor['neutron-ovs-agent-done']
-      l23network::l2::bridge { $neutron_config['L2']['tunnel_bridge']:
-          external_ids  => "bridge-id=${neutron_config['L2']['tunnel_bridge']}",
-          ensure        => present,
-          skip_existing => true,
-      } ->
-      Anchor['neutron-ovs-agent-done']
-      neutron_plugin_ovs { 'OVS/local_ip': value => $neutron_config['L2']['local_ip']; }
+    neutron::agents::utils::bridges { $neutron_config['L2']['tunnel_bridge']: }
+    neutron_plugin_ovs { 'OVS/local_ip':  value => $neutron_config['L2']['local_ip'] }
   } else {
-      L23network::L2::Bridge[$neutron_config['L2']['integration_bridge']] ->
-        Anchor['neutron-ovs-agent-done']
-      neutron::agents::utils::bridges { $neutron_config['L2']['phys_bridges']: } ->
-        Anchor['neutron-ovs-agent-done']
+    neutron::agents::utils::bridges { $neutron_config['L2']['phys_bridges']: }
   }
 
   if $service_provider == 'pacemaker' {
     Neutron_config <| |> -> Cs_shadow['ovs']
-    Neutron_plugin_ovs <| |> -> Cs_shadow['ovs']
-    L23network::L2::Bridge <| |> -> Cs_shadow['ovs']
+    Neutron_plugin_ovs <| |> -> Cs_shadow['ovs']  # OVS plugin and agent should be configured before resource created
+    Neutron::Agents::Utils::Bridges <| |> -> Cs_shadow['ovs']  # All bridges should be created before ovs-agent resource create
 
     cs_shadow { 'ovs': cib => 'ovs' }
     cs_commit { 'ovs': cib => 'ovs' }
@@ -92,13 +75,13 @@ class neutron::agents::ovs (
       group => root,
       source => "puppet:///modules/neutron/ocf/neutron-agent-ovs",
     }
-    File['neutron-ovs-agent-ocf'] -> Cs_resource["p_${::neutron::params::ovs_agent_service}"]
+    File['neutron-ovs-agent-ocf'] -> Cs_resource[$res_name]
     File<| title == 'ocf-mirantis-path' |> -> File['neutron-ovs-agent-ocf']
     Anchor['neutron-ovs-agent'] -> File['neutron-ovs-agent-ocf']
     Package["$ovs_agent_package"] -> Neutron_plugin_ovs <| |>
     Neutron_plugin_ovs <| |> -> File['neutron-ovs-agent-ocf']
 
-    cs_resource { "p_${::neutron::params::ovs_agent_service}":
+    cs_resource { $res_name:
       ensure          => present,
       cib             => 'ovs',
       primitive_class => 'ocf',
@@ -156,12 +139,12 @@ class neutron::agents::ovs (
       Package[$ovs_agent_package] ->
         Service['neutron-ovs-agent_stopped'] ->
           Exec<| title=='neutron-ovs-agent_stopped' |> ->
-            Cs_resource["p_${::neutron::params::ovs_agent_service}"] ->
+            Cs_resource[$res_name] ->
              Cs_commit['ovs'] ->
               Service['neutron-ovs-agent']
 
     service { 'neutron-ovs-agent':
-      name       => "p_${::neutron::params::ovs_agent_service}",
+      name       => $res_name,
       enable     => true,
       ensure     => running,
       hasstatus  => true,
@@ -181,6 +164,7 @@ class neutron::agents::ovs (
     }
     Neutron_config<||> ~> Service['neutron-ovs-agent']
     Neutron_plugin_ovs<||> ~> Service['neutron-ovs-agent']
+    Neutron::Agents::Utils::Bridges<||> -> Service['neutron-ovs-agent']  # All bridges should be created before ovs-agent service
   }
   Neutron_config<||> -> Service['neutron-ovs-agent']
   Neutron_plugin_ovs<||> -> Service['neutron-ovs-agent']
