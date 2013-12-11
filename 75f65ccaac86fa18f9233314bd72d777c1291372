@@ -1,0 +1,8 @@
+Verified+2: Jenkins
+Approved+1: Vladimir Kuklin <vkuklin@mirantis.com>
+Code-Review+2: Vladimir Kuklin <vkuklin@mirantis.com>
+Submitted-by: Jenkins
+Submitted-at: Wed, 11 Dec 2013 10:40:01 +0000
+Reviewed-on: https://review.openstack.org/61355
+Project: stackforge/fuel-library
+Branch: refs/heads/master
