@@ -257,6 +257,7 @@ node default {
     /^(ha|ha_compact)$/: {
       include "osnailyfacter::cluster_ha"
       class {'os_common':}
+      class {'corosync::commitorder': stage=>'main'}
       }
     "ha_full": {
       include "osnailyfacter::cluster_ha_full"

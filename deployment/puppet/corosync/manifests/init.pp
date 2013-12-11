@@ -75,6 +75,7 @@ class corosync (
   $check_standby     = false,
   $debug             = false,
 ) {
+
   # Making it possible to provide data with parameterized class declarations or
   # Console.
 
