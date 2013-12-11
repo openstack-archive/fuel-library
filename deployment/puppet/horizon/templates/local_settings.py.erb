@@ -109,7 +109,7 @@ SECRET_KEY = '<%= secret_key %>'
 CACHES = {
     'default': {
         'BACKEND' : 'django.core.cache.backends.memcached.MemcachedCache',
-        'LOCATION' : "<%= cache_server_ip.collect {|ip| ip + ':' + cache_server_port }.join %>"
+        'LOCATION' : "<%= cache_server_ip.collect {|ip| ip + ':' + cache_server_port }.join ';' %>"
     },
     #'local': {
     #    'BACKEND' : 'django.core.cache.backends.locmem.LocMemCache'
