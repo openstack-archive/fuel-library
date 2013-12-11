@@ -28,9 +28,11 @@
 
 OCF_RESKEY_conffile_default="/etc/haproxy/haproxy.cfg"
 OCF_RESKEY_pidfile_default="/var/run/haproxy.pid"
+OCF_RESKEY_binpath_default="/usr/sbin/haproxy"
 
 : ${OCF_RESKEY_conffile=${OCF_RESKEY_conffile_default}}
 : ${OCF_RESKEY_pidfile=${OCF_RESKEY_pidfile_default}}
+: ${OCF_RESKEY_binpath=${OCF_RESKEY_binpath_default}}
 : ${OCF_FUNCTIONS_DIR=${OCF_ROOT}/resource.d/heartbeat}
 . ${OCF_FUNCTIONS_DIR}/.ocf-shellfuncs
 
@@ -89,6 +91,7 @@ For example, "-f /etc/haproxy/shared.cfg"
 <actions>
 <action name="start" timeout="20s"/>
 <action name="stop" timeout="20s"/>
+<action name="reload" timeout="20s"/>
 <action name="monitor" depth="0" timeout="20s" interval="60s" />
 <action name="validate-all" timeout="20s"/>
 <action name="meta-data"  timeout="5s"/>
@@ -98,32 +101,26 @@ END
 exit $OCF_SUCCESS
 }
 
-get_pid_and_conf_file()
+get_variables()
 {
-	if [ -n "$OCF_RESKEY_conffile" ]; then
-		CONF_FILE=$OCF_RESKEY_conffile
-	else
-		CONF_FILE=${OCF_RESKEY_conffile_default}
-	fi
+	CONF_FILE="${OCF_RESKEY_conffile}"
+	COMMAND="${OCF_RESKEY_binpath}"
 
 	if [ -n "${OCF_RESKEY_pidfile}" ]; then
 		PIDFILE=$(grep -v "#" ${CONF_FILE} | grep "pidfile" | sed 's/^[ \t]*pidfile[ \t]*//')
-		if [ -z "$PIDFILE" ] ; then
-			PIDFILE=${OCF_RESKEY_pidfile_default}
-		fi
 	else
-		PIDFILE=${OCF_RESKEY_pidfile_default}
+		PIDFILE="${OCF_RESKEY_pidfile}"
 	fi
 }
 
 haproxy_status()
 {
-	get_pid_and_conf_file
-	if [ -n "$PIDFILE" -a -f "$PIDFILE" ]; then
+	get_variables
+	if [ -n "${PIDFILE}" -a -f "${PIDFILE}" ]; then
 		# haproxy is probably running
-		PID=`cat $PIDFILE`
-		if [ -n "$PID" ]; then
-			if ps -p $PID | grep haproxy >/dev/null ; then
+		PID="`cat ${PIDFILE}`"
+		if [ -n "${PID}" ]; then
+			if ps -p "${PID}" | grep haproxy >/dev/null ; then
 				ocf_log info "haproxy daemon running"
 				return $OCF_SUCCESS
 			else
@@ -142,6 +139,7 @@ haproxy_status()
 
 haproxy_start()
 {
+	get_variables
 	# if haproxy is running return success
 	haproxy_status
 	retVal=$?
@@ -152,13 +150,8 @@ haproxy_start()
 		exit $OCF_ERR_GENERIC
 	fi
 
-	if [ -n "$OCF_RESKEY_binpath" ]; then
-		COMMAND="$OCF_RESKEY_binpath"
-	else
-		COMMAND="/usr/sbin/haproxy"
-	fi
-
-	$COMMAND $OCF_RESKEY_extraconf -f $CONF_FILE -p $PIDFILE 
+        # run the haproxy binary
+	"${COMMAND}" ${OCF_RESKEY_extraconf} -f "${CONF_FILE}" -p "${PIDFILE}" 
 	if [ $? -ne 0 ]; then
 		ocf_log err "Error. haproxy daemon returned error $?."
 		exit $OCF_ERR_GENERIC
@@ -168,21 +161,37 @@ haproxy_start()
 	exit $OCF_SUCCESS
 }
 
+haproxy_reload()
+{
+	get_variables
+	if haproxy_status; then
+		# reload haproxy binary replacing the old process
+		"${COMMAND}" ${OCF_RESKEY_extraconf} -f "${CONF_FILE}" -p "${PIDFILE}" -sf "${PID}"
+		if [ $? -ne 0 ]; then
+			ocf_log err "Error. haproxy daemon returned error $?."
+			exit $OCF_ERR_GENERIC
+		fi
+	else
+		ocf_log info "haproxy daemon is not running"
+		return $OCF_NOT_RUNNING
+	fi
+}
 
 haproxy_stop()
 {
+	get_variables
 	if haproxy_status ; then
-		PID=`cat $PIDFILE`
-		if [ -n "$PID" ] ; then
-			kill $PID
+		PID="`cat ${PIDFILE}`"
+		if [ -n "${PID}" ] ; then
+			kill "${PID}"
 			if [ $? -ne 0 ]; then
-				kill -SIGKILL $PID
+				kill -SIGKILL "${PID}"
 				if [ $? -ne 0 ]; then
 					ocf_log err "Error. Could not stop haproxy daemon."
 					return $OCF_ERR_GENERIC
 				fi
 			fi
-			rm $PIDFILE 2>/dev/null
+			rm -f "${PIDFILE}"
 		fi
 	fi
 	ocf_log info "Stopped haproxy daemon."
@@ -196,6 +205,7 @@ haproxy_monitor()
 
 haproxy_validate_all()
 {
+	get_variables
 	if [ -n "$OCF_RESKEY_binpath" -a ! -x "$OCF_RESKEY_binpath" ]; then
 		ocf_log err "Binary path $OCF_RESKEY_binpath does not exist."
 		exit $OCF_ERR_ARGS
@@ -226,34 +236,30 @@ if [ $# -ne 1 ]; then
 fi
 
 case $1 in
-	start)	get_pid_and_conf_file
-		haproxy_start
-		;;
+	start) haproxy_start
+	;;
 
-	stop)	get_pid_and_conf_file
-		haproxy_stop
-		;;
+	stop) haproxy_stop
+	;;
 
-	status)	get_pid_and_conf_file
-		haproxy_status
-		;;
+	reload) haproxy_reload
+	;;
 
-	monitor)get_pid_and_conf_file
-		haproxy_monitor
-		;;
+	status)	haproxy_status
+	;;
 
-	validate-all)	get_pid_and_conf_file
-			haproxy_validate_all
-			;;
+	monitor) haproxy_monitor
+	;;
 
-	meta-data)	meta_data
-			;;
+	validate-all) haproxy_validate_all
+	;;
 
-	usage)	usage
-		exit $OCF_SUCCESS
-		;;
+	meta-data) meta_data
+	;;
 
-	*)	usage
-		exit $OCF_ERR_UNIMPLEMENTED
-		;;
+	usage) usage; exit $OCF_SUCCESS
+	;;
+
+	*) usage; exit $OCF_ERR_UNIMPLEMENTED
+	;;
 esac
