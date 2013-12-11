@@ -88,7 +88,7 @@ define add_haproxy_service (
     $haproxy_config_options,
     $balancer_port,
     $balancermember_options,
-    $mode = 'tcp',
+    $mode = 'http',
     $define_cookies = false,
     $define_backend = false,
     $collect_exported = false
@@ -166,10 +166,11 @@ class openstack::controller_ha (
 
     # Dirty hack, due Puppet can't send notify between stages
     exec { 'restart_haproxy':
-      command     => "bash -c \"(crm_resource --resource clone_p_haproxy  --cleanup --node `uname -n` && crm resource restart clone_p_haproxy) || :\"",
+      command     => 'export OCF_ROOT="/usr/lib/ocf"; /usr/lib/ocf/resource.d/mirantis/haproxy reload',
       path        => '/usr/bin:/usr/sbin:/bin:/sbin',
       logoutput   => true,
       refreshonly => true,
+      provider    => 'shell',
       tries       => 3,
       try_sleep   => 1,
       #returns    => [0, 1, ''],
