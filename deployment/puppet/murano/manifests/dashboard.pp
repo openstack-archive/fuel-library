@@ -62,7 +62,7 @@ class murano::dashboard (
     ensure => installed,
   }
 
-  Package[$dashboard_deps] -> Package['murano_dashboard'] -> File[$modify_config] -> Exec['fix_horizon_config'] -> File[$murano_log_file] -> Exec['collect_static'] -> Service <| title == 'httpd' |>
+  Package[$dashboard_deps] -> Package['murano_dashboard'] -> File[$modify_config] -> Exec['fix_horizon_config'] -> File[$murano_log_file] -> File <| title == "${::horizon::params::logdir}/horizon.log" |> -> Exec['collect_static'] -> Service <| title == 'httpd' |>
   Package['murano_dashboard'] ~> Service <| title == 'httpd' |>
   Exec['fix_horizon_config'] ~> Service <| title == 'httpd' |>
 
