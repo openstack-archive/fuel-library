@@ -88,7 +88,7 @@ define add_haproxy_service (
     $haproxy_config_options,
     $balancer_port,
     $balancermember_options,
-    $mode = 'tcp',
+    $mode = 'http',
     $define_cookies = false,
     $define_backend = false,
     $collect_exported = false
@@ -170,6 +170,7 @@ class openstack::controller_ha (
       path        => '/usr/bin:/usr/sbin:/bin:/sbin',
       logoutput   => true,
       refreshonly => true,
+      provider    => 'shell',
       tries       => 3,
       try_sleep   => 1,
       #returns    => [0, 1, ''],
