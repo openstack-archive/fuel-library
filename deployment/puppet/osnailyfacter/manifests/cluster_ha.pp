@@ -1,6 +1,6 @@
 class osnailyfacter::cluster_ha {
 
-  ##PARAMETERS DERIVED FROM YAML FILE
+  ##PARAMETERS VERY DERIVED FROM YAML FILE
 
   if $::use_quantum {
     $novanetwork_params  = {}
