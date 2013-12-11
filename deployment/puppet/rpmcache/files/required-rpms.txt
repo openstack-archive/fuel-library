@@ -85,6 +85,11 @@ openssl098e
 openstack-cinder
 openstack-dashboard
 openstack-heat
+openstack-heat-common
+openstack-heat-engine
+openstack-heat-api
+openstack-heat-api-cfn
+openstack-heat-api-cloudwatch
 openstack-glance
 openstack-keystone
 openstack-nova

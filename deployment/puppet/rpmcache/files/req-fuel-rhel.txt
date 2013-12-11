@@ -31,9 +31,12 @@
 + python-anyjson*
 + python-importlib*
 + python-kombu*
++ python-lesscpy*
 + python-meld3*
 + python-ordereddict*
++ python-routes*
 + python-pip*
++ python-ply*
 + python-virtualenv*
 + rabbitmq-server*
 + ruby-ri*
