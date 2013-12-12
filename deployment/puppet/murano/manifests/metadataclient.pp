@@ -4,7 +4,7 @@ class murano::metadataclient {
 
   package { 'murano_metadataclient':
     ensure => installed,
-    name   => $::murano::params::murano_metadataclient_package_name,
+    name   => $murano::params::metadataclient_package_name,
   }
 
 }

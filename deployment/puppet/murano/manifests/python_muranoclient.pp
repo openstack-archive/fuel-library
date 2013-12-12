@@ -4,7 +4,7 @@ class murano::python_muranoclient {
 
   package { 'murano_python_muranoclient':
     ensure => installed,
-    name   => $::murano::params::python_muranoclient_package_name,
+    name   => $murano::params::muranoclient_package_name,
   }
 
 }

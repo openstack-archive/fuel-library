@@ -17,19 +17,19 @@ class murano::conductor (
   $rabbit_virtual_host                 = '/',
   $init_scripts_dir                    = '/etc/murano/init-scripts',
   $agent_config_dir                    = '/etc/murano/agent-config',
-  $use_neutron                         = 'true'
+  $use_neutron                         = true,
 ) {
 
   include murano::params
 
   package { 'murano_conductor':
     ensure => installed,
-    name   => $::murano::params::murano_conductor_package_name,
+    name   => $murano::params::conductor_package_name,
   }
 
   service { 'murano_conductor':
     ensure     => 'running',
-    name       => $::murano::params::murano_conductor_service_name,
+    name       => $murano::params::conductor_service_name,
     enable     => true,
     hasstatus  => true,
     hasrestart => true,

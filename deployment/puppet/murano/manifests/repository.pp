@@ -26,12 +26,12 @@ class murano::repository (
 
   package { 'murano_repository':
     ensure => installed,
-    name   => $::murano::params::murano_repository_package_name,
+    name   => $murano::params::repository_package_name,
   }
 
   service { 'murano_repository':
     ensure     => 'running',
-    name       => $::murano::params::murano_repository_service_name,
+    name       => $murano::params::repository_service_name,
     enable     => true,
     hasstatus  => true,
     hasrestart => true,
@@ -42,12 +42,12 @@ class murano::repository (
     'DEFAULT/port'                : value => $repository_port;
     'DEFAULT/manifests'           : value => $repository_manifests;
     'DEFAULT/ui'                  : value => $repository_ui;
-    'DEFAULT/workflows'           : value => $repository_workflow;
+    'DEFAULT/workflows'           : value => $repository_workflows;
     'DEFAULT/heat'                : value => $repository_heat;
     'DEFAULT/agent'               : value => $repository_agent;
     'DEFAULT/scripts'             : value => $repository_scripts;
     'output/ui'                   : value => $repository_ui;
-    'output/workflows'            : value => $repository_output_workflow;
+    'output/workflows'            : value => $repository_output_workflows;
     'output/heat'                 : value => $repository_output_heat;
     'output/agent'                : value => $repository_output_agent;
     'output/scripts'              : value => $repository_output_scripts;
@@ -59,8 +59,6 @@ class murano::repository (
     'keystone/admin_tenant_name'  : value => $repository_admin_tenant_name
   }
 
-  Murano_repository_config<||> ~> Service['murano_repository']
-  Package['murano_repository'] -> Murano_repository_config<||>
-  Package['murano_repository'] -> Service['murano_repository']
+  Package['murano_repository'] -> Murano_repository_config<||> ~> Service['murano_repository']
 
 }

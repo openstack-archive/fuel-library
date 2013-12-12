@@ -48,7 +48,7 @@ class murano (
   $use_neutron                          = true,
 ) {
 
-  Class['mysql::server'] -> Class['murano::db::mysql'] -> Class['murano::rabbitmq'] -> Class['murano::common'] -> Class['murano::conductor'] -> Class['murano::api'] -> Class['murano::metadataclient'] -> Class['murano::repository'] -> Class['murano::python_muranoclient'] -> Class['murano::dashboard'] ->  Class['murano::cirros']
+  Class['mysql::server'] -> Class['murano::db::mysql'] -> Class['murano::rabbitmq'] -> Class['murano::common'] -> Class['murano::conductor'] -> Class['murano::api'] -> Class['murano::metadataclient'] -> Class['murano::repository'] -> Class['murano::python_muranoclient'] -> Class['murano::dashboard']
 
   $murano_keystone_auth_url = "${murano_keystone_protocol}://${murano_keystone_host}:${murano_keystone_port}/v2.0"
 
@@ -136,10 +136,7 @@ class murano (
   }
 
   class { 'murano::dashboard' :
-    settings_py                    => '/usr/share/openstack-dashboard/openstack_dashboard/settings.py',
-    #collect_static_script         => '/usr/share/openstack-dashboard/manage.py',
-    murano_url_string              => "MURANO_API_URL = 'http://${murano_api_host}:${murano_api_bind_port}'",
-    murano_metadata_url_string     => "MURANO_METADATA_URL = 'http://${murano_metadata_host}:${murano_metadata_bind_port}'",
+    murano_url_string => "MURANO_API_URL = 'http://${murano_api_host}:${murano_api_bind_port}'",
   }
 
   class { 'murano::rabbitmq' :
@@ -147,9 +144,6 @@ class murano (
     rabbit_password    => $murano_rabbit_password,
     rabbit_vhost       => $murano_rabbit_virtual_host,
     rabbitmq_main_port => $murano_rabbit_port,
-  }
-
-  class { 'murano::cirros':
   }
 
 }
