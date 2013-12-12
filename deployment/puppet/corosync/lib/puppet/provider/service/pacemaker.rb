@@ -52,6 +52,7 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Cor
     default_start_timeout = 30
     default_stop_timeout = 30
     cib_resource =  XPath.match(@@resources, "//primitive[@id=\'#{@resource[:name]}\']").first
+    raise(Puppet::Error,"resource #{@resource[:name]} not found") unless cib_resource
     @service[:msname] = ['master','clone'].include?(cib_resource.parent.name) ? cib_resource.parent.attributes['id'] : nil
     @service[:name] = @resource[:name]
     @service[:class] = cib_resource.attributes['class']
