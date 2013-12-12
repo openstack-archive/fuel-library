@@ -6,7 +6,7 @@ class savanna::dashboard (
   $local_settings     = $::savanna::params::local_settings_path,
   $savanna_url_string = $::savanna::params::default_url_string,
   $use_neutron        = false,
-  $use_floating_ips   = true,
+  $use_floating_ips   = $::fuel_settings['auto_assign_floating_ip'],
 ) inherits savanna::params {
 
   include stdlib

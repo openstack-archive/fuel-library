@@ -15,7 +15,7 @@ class savanna::api (
   $hdp_plugin_class     = 'savanna.plugins.hdp.ambariplugin:AmbariPlugin',
   $sql_connection       = 'mysql://savanna:savanna@localhost/savanna',
   $use_neutron          = false,
-  $use_floating_ips     = true,
+  $use_floating_ips     = $::fuel_settings['auto_assign_floating_ip'],
 ) inherits savanna::params {
 
   validate_string($keystone_password)
