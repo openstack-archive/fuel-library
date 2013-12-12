@@ -14,10 +14,6 @@ class nova::compute::libvirt (
 
     stdlib::safe_package {'dnsmasq-utils':}
 
-    package { 'cpufreq-init': 
-      ensure => present;
-    }
-
     package { 'avahi':
       ensure => present;
     } ->
@@ -58,6 +54,12 @@ class nova::compute::libvirt (
       name       => 'cpufrequtils',
       enable     => true,
       ensure     => true,
+    }
+  }
+
+  if $::operatingsystem == 'Centos' {
+    package { 'cpufreq-init':
+      ensure => present;
     }
   }
 
