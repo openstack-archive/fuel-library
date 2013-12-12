@@ -2,9 +2,9 @@
 
 class savanna::dashboard (
   $enabled            = true,
-  $settings_py        = $::savanna::params::settings_path,
-  $local_settings     = $::savanna::params::local_settings_path,
-  $savanna_url_string = $::savanna::params::default_url_string,
+  $settings_py        = $savanna::params::settings_path,
+  $local_settings     = $savanna::params::local_settings_path,
+  $savanna_url_string = $savanna::params::default_url_string,
   $use_neutron        = false,
   $use_floating_ips   = true,
 ) inherits savanna::params {
@@ -20,14 +20,15 @@ class savanna::dashboard (
     $package_ensure = 'absent'
   }
 
+  # floating_ips can be enabled only if there is no neutron
   if $use_neutron {
     $use_neutron_value = 'True'
     $floating_ips_value = 'False'
   } else {
     if $use_floating_ips {
-        $floating_ips_value = 'True'
+      $floating_ips_value = 'True'
     } else {
-        $floating_ips_value = 'False'
+      $floating_ips_value = 'False'
     }
     $use_neutron_value = 'False'
   }
@@ -72,7 +73,7 @@ class savanna::dashboard (
 
   package { 'savanna_dashboard':
     ensure => $package_ensure,
-    name   => $::savanna::params::savanna_dashboard_package_name,
+    name   => $savanna::params::savanna_dashboard_package_name,
   }
 
   File_line <| title == 'savanna' or title == 'savanna_dashboard' or title == 'savanna_url' |> ~> Service <| title == 'httpd' |>
