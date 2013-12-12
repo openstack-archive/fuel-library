@@ -22,7 +22,7 @@ class savanna::api (
 
   package { 'savanna':
     ensure => installed,
-    name   => $::savanna::params::savanna_package_name,
+    name   => $savanna::params::savanna_package_name,
   }
 
   if $enabled {
@@ -33,7 +33,7 @@ class savanna::api (
 
   service { 'savanna-api':
     ensure     => $service_ensure,
-    name       => $::savanna::params::savanna_service_name,
+    name       => $savanna::params::savanna_service_name,
     enable     => $enabled,
     hasstatus  => true,
     hasrestart => true,

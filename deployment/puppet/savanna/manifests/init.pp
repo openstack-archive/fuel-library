@@ -21,6 +21,7 @@ class savanna (
   $savanna_db_allowed_hosts             = ['localhost','%'],
   $savanna_firewall_rule                = '201 savanna-api',
   $use_neutron                          = false,
+  $use_floating_ips                     = true,
 ) {
 
   $savanna_sql_connection               = "mysql://${savanna_db_user}:${savanna_db_password}@${savanna_db_host}/${savanna_db_name}"
@@ -62,6 +63,7 @@ class savanna (
     enabled            => $savanna_enabled,
     savanna_url_string => $savanna_url_string,
     use_neutron        => $use_neutron,
+    use_floating_ips   => $use_floating_ips,
   }
 
   Class['mysql::server'] -> Class['savanna::db::mysql'] -> Firewall[$savanna_firewall_rule] -> Class['savanna::api'] -> Class['savanna::dashboard']

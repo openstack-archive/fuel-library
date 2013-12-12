@@ -41,12 +41,12 @@ class murano::api (
 
   package { 'murano_api':
     ensure => installed,
-    name   => $::murano::params::murano_api_package_name,
+    name   => $murano::params::api_package_name,
   }
 
   service { 'murano_api':
     ensure     => 'running',
-    name       => $::murano::params::murano_api_service_name,
+    name       => $murano::params::api_service_name,
     enable     => true,
     hasstatus  => true,
     hasrestart => true,
@@ -93,10 +93,7 @@ class murano::api (
     action  => 'accept',
   }
 
-  Murano_api_config<||> ~> Service['murano_api']
-  Murano_api_paste_ini_config<||> ~> Service['murano_api']
-  Package['murano_api'] -> Murano_api_config<||>
-  Package['murano_api'] -> Murano_api_paste_ini_config<||>
-  Package['murano_api'] -> Service['murano_api']
+  Package['murano_api'] -> Murano_api_config<||> ~> Service['murano_api']
+  Package['murano_api'] -> Murano_api_paste_ini_config<||> ~> Service['murano_api']
 
 }
