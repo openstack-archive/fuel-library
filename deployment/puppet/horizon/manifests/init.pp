@@ -131,19 +131,17 @@ class horizon(
     }
   }
 
-  $log_user  = $::osfamily ? { 'Debian'=>'horizon', default=>$wsgi_user}
-  $log_group = $::osfamily ? { 'Debian'=>'horizon', default=>$wsgi_group}
   file { $horizon::params::logdir:
     ensure  => directory,
-    mode    => '0751',
-    owner   => $log_user,
-    group   => $log_group,
+    mode    => '0750',
+    owner   => $wsgi_user,
+    group   => $wsgi_group,
   } ->
   file { "${horizon::params::logdir}/horizon.log":
     ensure  => present,
-    mode    => '0650',
-    owner   => $log_user,
-    group   => $log_group,
+    mode    => '0640',
+    owner   => $wsgi_user,
+    group   => $wsgi_group,
   }
   Package["dashboard"] -> File[$horizon::params::logdir]
   File["${horizon::params::logdir}/horizon.log"] -> Service['httpd']
