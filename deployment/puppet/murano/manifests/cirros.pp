@@ -6,13 +6,9 @@ class murano::cirros (
   $disk_format      = 'raw',
   $container_format = 'bare',
   $public           = 'true',
-  $img_name         = 'MuranoVm',
+  $img_name         = 'TestVm',
   $os_name          = 'cirros',
 ) {
-
-  package { 'murano-cirros-testvm' :
-    ensure => "present"
-  }
 
   #case $::osfamily {
   #  'RedHat': {
