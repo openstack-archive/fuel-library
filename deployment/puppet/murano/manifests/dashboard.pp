@@ -34,10 +34,10 @@ class murano::dashboard (
     command => "${modify_config} install ${settings_py}",
   }
 
-  if $::osfamily == 'RedHat' {
-    $apache_user = 'apache'
-  } else {
-    $apache_user = 'www-data'
+  $apache_user = $::osfamily ? {
+    'RedHat'   => 'apache',
+    'Debian'  => 'horizon',
+    default => 'www-data',
   }
 
   file { $murano_log_file :
