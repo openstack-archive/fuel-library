@@ -238,8 +238,8 @@ echo "IPV6_DEFAULTGW=$ipv6_default_gateway" >> $devfile
                 #end if
             #end if
         #else
-            ## this is a DHCP interface, much less work to do
-echo "BOOTPROTO=dhcp" >> $devfile
+            ## this is a un-assigned interface, much less work to do
+echo "BOOTPROTO=none" >> $devfile
 	#end if
         ## ===================================================================
         ## VLAN configuration
