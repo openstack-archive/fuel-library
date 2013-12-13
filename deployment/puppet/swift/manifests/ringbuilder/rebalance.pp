@@ -20,14 +20,16 @@ define swift::ringbuilder::rebalance() {
 
   Anchor['rebalance_begin'] ->
   exec { "hours_passed_${name}":
-    command     => "swift-ring-builder /etc/swift/${name}.builder pretend_min_part_hours_passed",
-    path        => ['/usr/bin'],
-    returns     => [0,1],
+    command  => "swift-ring-builder /etc/swift/${name}.builder pretend_min_part_hours_passed",
+    path     => ['/usr/bin'],
+    provider => 'shell',
+    returns  => [0,1],
   }->
 
   exec { "rebalance_${name}":
     command     => "swift-ring-builder /etc/swift/${name}.builder rebalance",
     path        => ['/usr/bin'],
+    provider    => 'shell',
     returns     => [0,1],
   } ->
   Anchor['rebalance_end']
