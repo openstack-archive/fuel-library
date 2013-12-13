@@ -20,8 +20,7 @@ class ceilometer::params {
       $collector_package_name     = 'openstack-ceilometer-collector'
       $common_package_name        = 'openstack-ceilometer-common'
       $client_package_name        = 'python-ceilometerclient'
-      $alarm_evaluator_package    = 'openstack-ceilometer-alarm'
-      $alarm_notifier_package     = 'openstack-ceilometer-alarm'
+      $alarm_package              = 'openstack-ceilometer-alarm'
       # service names
       $agent_central_service_name = 'openstack-ceilometer-central'
       $agent_compute_service_name = 'openstack-ceilometer-compute'
@@ -38,8 +37,7 @@ class ceilometer::params {
       $collector_package_name     = 'ceilometer-collector'
       $common_package_name        = 'ceilometer-common'
       $client_package_name        = 'python-ceilometerclient'
-      $alarm_evaluator_package    = 'ceilometer-alarm-evaluator'
-      $alarm_notifier_package     = 'ceilometer-alarm-notifier'
+      $alarm_package              = ['ceilometer-alarm-notifier', 'ceilometer-alarm-evaluator']
       # service names
       $agent_central_service_name = 'ceilometer-agent-central'
       $agent_compute_service_name = 'ceilometer-agent-compute'
