@@ -34,6 +34,7 @@ class neutron::params {
       $python_path        = 'python2.7/dist-packages'
       $cidr_package       = 'ipcalc'
       $vlan_package       = 'vlan'
+      $fuel_utils_package = 'fuel-utils'
 
       case $::operatingsystem {
         'Debian': {
@@ -69,6 +70,7 @@ class neutron::params {
       $python_path        = 'python2.6/site-packages'
       $cidr_package       = "whatmask"
       $vlan_package       = 'vconfig'
+      $fuel_utils_package = 'fuel-utils'
 
       $service_provider   = undef
 
