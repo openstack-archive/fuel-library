@@ -274,6 +274,7 @@ class osnailyfacter::cluster_simple {
           savanna_keystone_tenant   => 'admin',
 
           use_neutron               => $::use_quantum,
+          use_floating_ips          => $::fuel_settings['auto_assign_floating_ip'],
         }
       }
         class { 'heat' :
