@@ -1,7 +1,7 @@
 # Installs & configure the murano conductor  service
 
 class murano::conductor (
-  $log_file                            = '/var/log/murano/conductor.log',
+  $log_file                            = '/var/log/murano/murano-conductor.log',
   $debug                               = 'True',
   $verbose                             = 'True',
   $data_dir                            = '/etc/murano',
