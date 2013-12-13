@@ -17,6 +17,10 @@
 #   the port with default behavior.
 #   (see http://openvswitch.org/cgi-bin/ovsman.cgi?page=utilities%2Fovs-vsctl.8)
 #
+# [*skip_existing*]
+#   If this port already exists it will be ignored without any errors.
+#   Must be true or false.
+#
 # [*tag*]
 #   Specify 802.1q tag for result bond. If need.
 #
@@ -24,9 +28,18 @@
 #   Specify array of 802.1q tags if need configure bond in trunk mode.
 #   Define trunks => [0] if you need pass only untagged traffic.
 #
-# [*skip_existing*]
-#   If this port already exists it will be ignored without any errors.
+# [*vlan_splinters*]
+#   If enabled, this will configure the vlan splinters workaround in OVS.
+#   This workaround is needed for some network drivers on kernels <3.3.
+#   This is a lighter, and possibly less effective than
+#   *vlan_splinters_trunks*
 #   Must be true or false.
+#
+# [*vlan_splinters_trunks*]
+#   If enabled, this will configure OVS vlan splinters and force all trunked
+#   vlans to explictly defined. This is more intensive than *vlan_splinters*
+#   and will create more load.
+#   Must be true or false; Implies *vlan_splinters*
 #
 define l23network::l2::port (
   $bridge,
@@ -38,7 +51,8 @@ define l23network::l2::port (
   $skip_existing = false,
   $tag           = 0,
   $trunks        = [],
-  $vlan_splinters= false
+  $vlan_splinters= false,
+  $vlan_splinters_trunks = false
 ) {
   if ! $::l23network::l2::use_ovs {
     fail('You must enable Open vSwitch by setting the l23network::l2::use_ovs to true.')
@@ -52,8 +66,9 @@ define l23network::l2::port (
       tag           => $tag,
       trunks        => $trunks,
       vlan_splinters=> $vlan_splinters,
-      port_properties      => $port_properties,
-      interface_properties => $interface_properties,
+      vlan_splinters_trunks => $vlan_splinters_trunks,
+      port_properties       => $port_properties,
+      interface_properties  => $interface_properties,
       skip_existing => $skip_existing
     }
     Service<| title == 'openvswitch-service' |> -> L2_ovs_port[$port]
