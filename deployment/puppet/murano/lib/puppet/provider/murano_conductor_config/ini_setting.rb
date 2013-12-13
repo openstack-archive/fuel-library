@@ -16,7 +16,7 @@ Puppet::Type.type(:murano_conductor_config).provide(
   end
 
   def file_path
-    '/etc/murano/conductor.conf'
+    '/etc/murano/murano-conductor.conf'
   end
 
 end
