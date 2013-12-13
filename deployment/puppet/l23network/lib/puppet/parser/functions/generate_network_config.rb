@@ -199,45 +199,23 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
       )
 
       # setup trunks and vlan_splinters for phys.NIC
-      if (action == :port) and config_hash[:interfaces][trans[:name].to_sym] and  # does adding phys.interface?
-         config_hash[:interfaces][trans[:name].to_sym][:L2] and                   # does this interface have L2 section
-         config_hash[:interfaces][trans[:name].to_sym][:L2][:trunks] and          # does this interface have TRUNKS section
-         config_hash[:interfaces][trans[:name].to_sym][:L2][:trunks].is_a?(Array) and
-         config_hash[:interfaces][trans[:name].to_sym][:L2][:trunks].size() > 0   # does trunks section non empty?
-            Puppet.debug("Configure trunks and vlan_splinters for #{trans[:name]} (value is '#{config_hash[:interfaces][trans[:name].to_sym][:L2][:vlan_splinters]}')")
-            _do_trunks = true
-            if config_hash[:interfaces][trans[:name].to_sym][:L2][:vlan_splinters]
-              if config_hash[:interfaces][trans[:name].to_sym][:L2][:vlan_splinters] == 'on'
-                trans[:vlan_splinters] = true
-              elsif config_hash[:interfaces][trans[:name].to_sym][:L2][:vlan_splinters] == 'auto'
-                sp_nics = lookupvar('l2_ovs_vlan_splinters_need_for')
-                Puppet.debug("l2_ovs_vlan_splinters_need_for: #{sp_nics}")
-                if sp_nics and sp_nics != :undefined and sp_nics.split(',').index(trans[:name].to_s)
-                  Puppet.debug("enable vlan_splinters for: #{trans[:name].to_s}")
-                  trans[:vlan_splinters] = true
-                else
-                  trans[:vlan_splinters] = false
-                  if trans[:trunks] and trans[:trunks].size() >0
-                    Puppet.debug("disable vlan_splinters for: #{trans[:name].to_s}. Trunks will be set to '#{trans[:trunks].join(',')}'")
-                    config_hash[:interfaces][trans[:name].to_sym][:L2][:trunks] = []
-                  else
-                    Puppet.debug("disable vlan_splinters for: #{trans[:name].to_s}. Trunks for this interface also disabled.")
-                    _do_trunks = false
-                  end
-                end
-              else
-                trans[:vlan_splinters] = false
-              end
-            else
-              trans[:vlan_splinters] = false
-            end
-            # add trunks list to the interface if it given
-            if _do_trunks
-              _trunks = [0] + trans[:trunks] + config_hash[:interfaces][trans[:name].to_sym][:L2][:trunks]  # zero for pass untagged traffic
-              _trunks.sort!().uniq!()
-              trans[:trunks] = _trunks
-            end
-            Puppet.debug("Configure trunks and vlan_splinters for #{trans[:name]} done.")
+      interface = config_hash[:interfaces][trans[:name].to_sym]
+      if (action == :port) and interface and   # does adding phys.interface?
+          interface[:L2] and                   # does this interface have L2 section
+        splinters = interface[:L2][:vlan_splinters]
+        Puppet.debug("Configure trunks and vlan_splinters for #{trans[:name]} (value is '#{splinters}')")
+        sp_nics = lookupvar('l2_ovs_vlan_splinters_need_for')
+        Puppet.debug("l2_ovs_vlan_splinters_need_for: #{sp_nics}")
+        if splinters and (
+            splinters == 'on' or (
+              splinters == 'auto' and (
+               sp_nics and sp_nics != :undefined and
+                sp_nics.split(',').index(trans[:name].to_s) )) )
+          trans[:vlan_splinters] = true
+        else
+          trans[:vlan_splinters] = false
+        end
+        Puppet.debug("Configure trunks and vlan_splinters for #{trans[:name]} done.")
       end
 
       trans.select{|k,v| k != :action}.each do |k,v|
