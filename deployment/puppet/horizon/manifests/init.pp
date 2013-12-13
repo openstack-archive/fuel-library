@@ -78,8 +78,9 @@ class horizon(
     mode    => '0644',
   }
 
-  file {'/usr/share/openstack-dashboard/':
-    recurse   => true,
+  exec { 'chown-dashboard':
+    command => "chown -R ${wsgi_user}:${wsgi_group} /usr/share/openstack-dashboard",
+    path    => '/usr/bin:/usr/sbin:/bin:/sbin',
     subscribe => Package['dashboard']
   }
 
