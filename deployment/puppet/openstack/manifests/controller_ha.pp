@@ -127,7 +127,7 @@ class openstack::controller_ha (
    $nv_physical_volume = undef, $manage_volumes = false,  $custom_mysql_setup_class = 'galera', $galera_nodes, $use_syslog = false, $syslog_log_level = 'WARNING',
    $syslog_log_facility_glance   = 'LOCAL2',
    $syslog_log_facility_cinder   = 'LOCAL3',
-   $syslog_log_facility_quantum  = 'LOCAL4',
+   $syslog_log_facility_neutron  = 'LOCAL4',
    $syslog_log_facility_nova     = 'LOCAL6',
    $syslog_log_facility_keystone = 'LOCAL7',
    $cinder_rate_limits = undef, $nova_rate_limits = undef,
@@ -374,7 +374,7 @@ class openstack::controller_ha (
         service_provider      => $ha_provider,
         use_syslog            => $use_syslog,
         syslog_log_level      => $syslog_log_level,
-        syslog_log_facility   => $syslog_log_facility_quantum,
+        syslog_log_facility   => $syslog_log_facility_neutron,
         ha_mode               => $ha_mode,
       }
     }

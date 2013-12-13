@@ -6,7 +6,7 @@ if $::use_quantum {
   $quantum_hash   = $::fuel_settings['quantum_access']
   $quantum_params = $::fuel_settings['quantum_parameters']
   $novanetwork_params  = {}
-} 
+}
 else {
   $quantum_hash = {}
   $quantum_params = {}
@@ -254,7 +254,7 @@ class ha_controller (
     syslog_log_level        => $syslog_log_level,
     syslog_log_facility_glance   => $syslog_log_facility_glance,
     syslog_log_facility_cinder => $syslog_log_facility_cinder,
-    syslog_log_facility_quantum => $syslog_log_facility_quantum,
+    syslog_log_facility_neutron => $syslog_log_facility_neutron,
     syslog_log_facility_nova => $syslog_log_facility_nova,
     syslog_log_facility_keystone => $syslog_log_facility_keystone,
     nova_rate_limits        => $nova_rate_limits,
@@ -362,7 +362,7 @@ case $::fuel_settings['role'] {
     use_syslog             => $use_syslog,
     syslog_log_level       => $syslog_log_level,
     syslog_log_facility    => $syslog_log_facility_nova,
-    syslog_log_facility_quantum => $syslog_log_facility_quantum,
+    syslog_log_facility_neutron => $syslog_log_facility_neutron,
     syslog_log_facility_cinder => $syslog_log_facility_cinder,
     nova_rate_limits       => $::nova_rate_limits,
     state_path             => $nova_hash[state_path],

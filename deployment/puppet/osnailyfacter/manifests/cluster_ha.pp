@@ -286,7 +286,7 @@ class osnailyfacter::cluster_ha {
       syslog_log_level              => $syslog_log_level,
       syslog_log_facility_glance    => $syslog_log_facility_glance,
       syslog_log_facility_cinder    => $syslog_log_facility_cinder,
-      syslog_log_facility_quantum   => $syslog_log_facility_quantum,
+      syslog_log_facility_neutron   => $syslog_log_facility_neutron,
       syslog_log_facility_nova      => $syslog_log_facility_nova,
       syslog_log_facility_keystone  => $syslog_log_facility_keystone,
       nova_rate_limits              => $nova_rate_limits,
@@ -416,7 +416,7 @@ class osnailyfacter::cluster_ha {
           heat_db_password       => $heat_hash['db_password'],
         }
 
- 
+
       if $murano_hash['enabled'] {
 
         class { 'murano' :
@@ -490,7 +490,7 @@ class osnailyfacter::cluster_ha {
         use_syslog             => $::fuel_settings['use_syslog'] ? { 'false'=>false, false=>false, default=>true },
         syslog_log_level       => $syslog_log_level,
         syslog_log_facility    => $syslog_log_facility_nova,
-        syslog_log_facility_quantum => $syslog_log_facility_quantum,
+        syslog_log_facility_neutron => $syslog_log_facility_neutron,
         syslog_log_facility_cinder => $syslog_log_facility_cinder,
         nova_rate_limits       => $nova_rate_limits,
         state_path             => $nova_hash[state_path],

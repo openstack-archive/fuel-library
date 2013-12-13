@@ -204,7 +204,7 @@ class osnailyfacter::cluster_simple {
         syslog_log_level        => $syslog_log_level,
         syslog_log_facility_glance  => $syslog_log_facility_glance,
         syslog_log_facility_cinder  => $syslog_log_facility_cinder,
-        syslog_log_facility_quantum => $syslog_log_facility_quantum,
+        syslog_log_facility_neutron => $syslog_log_facility_neutron,
         syslog_log_facility_nova    => $syslog_log_facility_nova,
         syslog_log_facility_keystone=> $syslog_log_facility_keystone,
         cinder_rate_limits      => $cinder_rate_limits,
@@ -226,7 +226,7 @@ class osnailyfacter::cluster_simple {
           neutron_network_node    => true,
           use_syslog            => $use_syslog,
           syslog_log_level      => $syslog_log_level,
-          syslog_log_facility   => $syslog_log_facility_quantum,
+          syslog_log_facility   => $syslog_log_facility_neutron,
         }
       }
 
@@ -367,7 +367,7 @@ class osnailyfacter::cluster_simple {
         use_syslog             => $::fuel_settings['use_syslog'] ? { 'false'=>false, false=>false, default=>true },
         syslog_log_level       => $syslog_log_level,
         syslog_log_facility    => $syslog_log_facility_nova,
-        syslog_log_facility_quantum => $syslog_log_facility_quantum,
+        syslog_log_facility_neutron => $syslog_log_facility_neutron,
         syslog_log_facility_cinder  => $syslog_log_facility_cinder,
         state_path             => $nova_hash[state_path],
         nova_rate_limits       => $nova_rate_limits,

@@ -88,7 +88,7 @@ class openstack::nova::controller (
   $api_bind_address          = '0.0.0.0',
   $use_syslog                = false,
   $syslog_log_facility       = 'LOCAL6',
-  $syslog_log_facility_quantum = 'LOCAL4',
+  $syslog_log_facility_neutron = 'LOCAL4',
   $syslog_log_level = 'WARNING',
   $nova_rate_limits          = undef,
   $cinder                    = true
@@ -287,7 +287,7 @@ class openstack::nova::controller (
         verbose              => $verbose,
         debug                => $debug,
         use_syslog           => $use_syslog,
-        syslog_log_facility  => $syslog_log_facility_quantum,
+        syslog_log_facility  => $syslog_log_facility_neutron,
         syslog_log_level     => $syslog_log_level,
         server_ha_mode       => $ha_mode,
       }

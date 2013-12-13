@@ -149,7 +149,7 @@ class openstack::all (
   $syslog_log_level = 'WARNING',
   $syslog_log_facility_glance   = 'LOCAL2',
   $syslog_log_facility_cinder   = 'LOCAL3',
-  $syslog_log_facility_quantum  = 'LOCAL4',
+  $syslog_log_facility_neutron  = 'LOCAL4',
   $syslog_log_facility_nova     = 'LOCAL6',
   $syslog_log_facility_keystone = 'LOCAL7',
   $nova_rate_limits        = undef,
@@ -381,7 +381,7 @@ class openstack::all (
       rabbit_user     => $rabbit_user,
       rabbit_password => $rabbit_password,
       use_syslog      => $use_syslog,
-      syslog_log_facility => $syslog_log_facility_quantum,
+      syslog_log_facility => $syslog_log_facility_neutron,
       syslog_log_level    => $syslog_log_level,
     }
 

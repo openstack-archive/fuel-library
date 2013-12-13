@@ -107,7 +107,7 @@ $syslog_log_level             = 'ERROR'
 # local1 is reserved for openstack-dashboard
 $syslog_log_facility_glance   = 'LOCAL2'
 $syslog_log_facility_cinder   = 'LOCAL3'
-$syslog_log_facility_quantum  = 'LOCAL4'
+$syslog_log_facility_neutron  = 'LOCAL4'
 $syslog_log_facility_nova     = 'LOCAL6'
 $syslog_log_facility_keystone = 'LOCAL7'
 
@@ -191,7 +191,7 @@ class os_common {
       # facilities
       syslog_log_facility_glance   => $syslog_log_facility_glance,
       syslog_log_facility_cinder   => $syslog_log_facility_cinder,
-      syslog_log_facility_quantum  => $syslog_log_facility_quantum,
+      syslog_log_facility_neutron  => $syslog_log_facility_neutron,
       syslog_log_facility_nova     => $syslog_log_facility_nova,
       syslog_log_facility_keystone => $syslog_log_facility_keystone,
       # Rabbit doesn't support syslog directly, should be >= syslog_log_level,
