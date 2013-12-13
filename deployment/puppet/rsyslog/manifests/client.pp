@@ -16,7 +16,7 @@ class rsyslog::client (
   $virtual        = false,
   $syslog_log_facility_glance   = 'LOCAL2',
   $syslog_log_facility_cinder   = 'LOCAL3',
-  $syslog_log_facility_quantum  = 'LOCAL4',
+  $syslog_log_facility_neutron  = 'LOCAL4',
   $syslog_log_facility_nova     = 'LOCAL6',
   $syslog_log_facility_keystone = 'LOCAL7',
   $log_level      = 'NOTICE',
@@ -79,6 +79,57 @@ if $virtual { include rsyslog::checksum_udp514 }
     file_severity => "ERROR",
     notify  => Class["rsyslog::service"],
   }
+
+  ::rsyslog::imfile { "50-neutron-server_debug" :
+      file_name     => "/var/log/neutron/server.log",
+      file_tag      => "neutron-server",
+      file_facility => $syslog_log_facility_neutron,
+      file_severity => "DEBUG",
+      notify  => Class["rsyslog::service"],
+  }
+  ::rsyslog::imfile { "50-neutron-ovs-cleanup_debug" :
+      file_name     => "/var/log/neutron/ovs-cleanup.log",
+      file_tag      => "neutron-ovs-cleanup",
+      file_facility => $syslog_log_facility_neutron,
+      file_severity => "DEBUG",
+      notify  => Class["rsyslog::service"],
+  }
+  ::rsyslog::imfile { "50-neutron-rescheduling_debug" :
+     file_name     => "/var/log/neutron/rescheduling.log",
+     file_tag      => "neutron-rescheduling",
+     file_facility => $syslog_log_facility_neutron,
+     file_severity => "DEBUG",
+     notify  => Class["rsyslog::service"],
+  }
+  ::rsyslog::imfile { "50-neutron-ovs-agent_debug" :
+      file_name     => "/var/log/neutron/ovs-agent.log",
+      file_tag      => "neutron-agent-ovs",
+      file_facility => $syslog_log_facility_neutron,
+      file_severity => "DEBUG",
+      notify  => Class["rsyslog::service"],
+  }
+  ::rsyslog::imfile { "50-neutron-l3-agent_debug" :
+      file_name     => "/var/log/neutron/l3-agent.log",
+      file_tag      => "neutron-agent-l3",
+      file_facility => $syslog_log_facility_neutron,
+      file_severity => "DEBUG",
+      notify  => Class["rsyslog::service"],
+  }
+  ::rsyslog::imfile { "50-neutron-dhcp-agent_debug" :
+      file_name     => "/var/log/neutron/dhcp-agent.log",
+      file_tag      => "neutron-agent-dhcp",
+      file_facility => $syslog_log_facility_neutron,
+      file_severity => "DEBUG",
+      notify  => Class["rsyslog::service"],
+  }
+  ::rsyslog::imfile { "50-neutron-metadata-agent_debug" :
+      file_name     => "/var/log/neutron/metadata-agent.log",
+      file_tag      => "neutron-agent-metadata",
+      file_facility => $syslog_log_facility_neutron,
+      file_severity => "DEBUG",
+      notify  => Class["rsyslog::service"],
+  }
+
 
 # openstack syslog compatible mode, would work only for debug case.
 # because of its poor syslog debug messages quality, use local logs convertion
@@ -181,86 +232,6 @@ if $debug =~ /(?i)(true|yes)/ {
     file_severity => "DEBUG",
     notify  => Class["rsyslog::service"],
 }
-::rsyslog::imfile { "50-quantum-server_debug" :
-    file_name     => "/var/log/quantum/server.log",
-    file_tag      => "quantum-server",
-    file_facility => $syslog_log_facility_quantum,
-    file_severity => "DEBUG",
-    notify  => Class["rsyslog::service"],
-}
-::rsyslog::imfile { "50-quantum-ovs-cleanup_debug" :
-    file_name     => "/var/log/quantum/ovs-cleanup.log",
-    file_tag      => "quantum-ovs-cleanup",
-    file_facility => $syslog_log_facility_quantum,
-    file_severity => "DEBUG",
-    notify  => Class["rsyslog::service"],
-}
-::rsyslog::imfile { "50-quantum-rescheduling_debug" :
-   file_name     => "/var/log/quantum/rescheduling.log",
-   file_tag      => "quantum-rescheduling",
-   file_facility => $syslog_log_facility_quantum,
-   file_severity => "DEBUG",
-   notify  => Class["rsyslog::service"],
-}
-::rsyslog::imfile { "50-quantum-ovs-agent_debug" :
-    file_name     => "/var/log/quantum/openvswitch-agent.log",
-    file_tag      => "quantum-agent-ovs",
-    file_facility => $syslog_log_facility_quantum,
-    file_severity => "DEBUG",
-    notify  => Class["rsyslog::service"],
-}
-::rsyslog::imfile { "50-quantum-l3-agent_debug" :
-    file_name     => "/var/log/quantum/l3-agent.log",
-    file_tag      => "quantum-agent-l3",
-    file_facility => $syslog_log_facility_quantum,
-    file_severity => "DEBUG",
-    notify  => Class["rsyslog::service"],
-}
-::rsyslog::imfile { "50-quantum-dhcp-agent_debug" :
-    file_name     => "/var/log/quantum/dhcp-agent.log",
-    file_tag      => "quantum-agent-dhcp",
-    file_facility => $syslog_log_facility_quantum,
-    file_severity => "DEBUG",
-    notify  => Class["rsyslog::service"],
-}
-::rsyslog::imfile { "50-quantum-metadata-agent_debug" :
-    file_name     => "/var/log/quantum/metadata-agent.log",
-    file_tag      => "quantum-agent-metadata",
-    file_facility => $syslog_log_facility_quantum,
-    file_severity => "DEBUG",
-    notify  => Class["rsyslog::service"],
-}
-# FIXME Workaround for FUEL-843 (HA any)
-# FIXME remove after FUEL-843 have reolved
-::rsyslog::imfile { "50-ha-quantum-ovs-agent_debug" :
-    file_name     => "/var/log/quantum/quantum-openvswitch-agent.log",
-    file_tag      => "quantum-agent-ovs",
-    file_facility => $syslog_log_facility_quantum,
-    file_severity => "DEBUG",
-    notify  => Class["rsyslog::service"],
-}
-::rsyslog::imfile { "50-ha-quantum-l3-agent_debug" :
-    file_name     => "/var/log/quantum/quantum-l3-agent.log",
-    file_tag      => "quantum-agent-l3",
-    file_facility => $syslog_log_facility_quantum,
-    file_severity => "DEBUG",
-    notify  => Class["rsyslog::service"],
-}
-::rsyslog::imfile { "50-ha-quantum-dhcp-agent_debug" :
-    file_name     => "/var/log/quantum/quantum-dhcp-agent.log",
-    file_tag      => "quantum-agent-dhcp",
-    file_facility => $syslog_log_facility_quantum,
-    file_severity => "DEBUG",
-    notify  => Class["rsyslog::service"],
-}
-::rsyslog::imfile { "50-ha-quantum-metadata-agent_debug" :
-    file_name     => "/var/log/quantum/quantum-metadata-agent.log",
-    file_tag      => "quantum-agent-metadata",
-    file_facility => $syslog_log_facility_quantum,
-    file_severity => "DEBUG",
-    notify  => Class["rsyslog::service"],
-}
-# END fixme
 } else { #non debug case
 # standard logging configs for syslog client
   file { "${rsyslog::params::rsyslog_d}10-nova.conf":
@@ -283,9 +254,9 @@ if $debug =~ /(?i)(true|yes)/ {
     content => template("${module_name}/40-glance.conf.erb"),
   }
 
-  file { "${rsyslog::params::rsyslog_d}50-quantum.conf":
+  file { "${rsyslog::params::rsyslog_d}50-neutron.conf":
     ensure => present,
-    content => template("${module_name}/50-quantum.conf.erb"),
+    content => template("${module_name}/50-neutron.conf.erb"),
   }
 
   file { "${rsyslog::params::rsyslog_d}51-ceilometer.conf":
