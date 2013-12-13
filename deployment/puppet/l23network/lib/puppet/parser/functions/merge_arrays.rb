@@ -14,20 +14,10 @@ This function get arrays, merge it and return.
 Would result in: ['a','b','c','d']
     EOS
   ) do |arguments|
-    raise(Puppet::ParseError, "merge_arrays(): Wrong number of arguments " +
-      "given (#{arguments.size} for 1)") if arguments.size < 1
+    raise(Puppet::ParseError, "merge_arrays(): Wrong number of arguments
+      given (#{arguments.size} for 2)") unless arguments.size == 2
 
-    rv = []
-
-    for arg in arguments
-      if arg.is_a?(Array)
-        rv += arg
-      else
-        raise(Puppet::ParseError, 'merge_arrays(): Requires only array as argument')
-      end
-    end
-
-    return rv
+    (Array(arguments[0]) + Array(arguments[1])).sort
   end
 end
 
