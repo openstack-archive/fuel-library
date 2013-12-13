@@ -3,7 +3,6 @@ class neutron::agents::l3 (
   $neutron_config     = {},
   $verbose          = 'False',
   $debug            = 'False',
-  $create_networks  = true,               # ?????????????????
   $interface_driver = 'neutron.agent.linux.interface.OVSInterfaceDriver',
   $service_provider = 'generic'
 ) {
