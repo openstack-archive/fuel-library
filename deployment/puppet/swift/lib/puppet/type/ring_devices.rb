@@ -7,9 +7,17 @@ Puppet::Type.newtype(:ring_devices) do
     desc 'list of all swift storages'
 
     validate do |value|
-      value.each do |element|
-        fail(Puppet::Error, "#{value} should be a Hash and include ip address") unless element.is_a?(Hash) && element['storage_address']
+      if value.is_a? Hash
+        fail(Puppet::Error, "#{value} should be a Hash and include ip address") unless value['storage_address']
+      else
+        value.each do |element|
+          fail(Puppet::Error, "#{element} should be a Hash and include ip address") unless element.is_a?(Hash) && element['storage_address']
+        end
       end
+    end
+
+    munge do |value|
+      value.is_a?(Hash) ? [value] : value
     end
   end
 
@@ -27,9 +35,7 @@ Puppet::Type.newtype(:ring_devices) do
       'types'=>['container', 'object', 'account'],
     }
 
-    storages = self[:storages].is_a?(Hash) ? [self[:storages]] : self[:storages]
-
-    storages.each do |storage|
+    self[:storages].each do |storage|
       merged_storage = default_storage.merge(storage)
       merged_storage['types'].collect do |type|
         port = merged_storage["#{type}_port"]
