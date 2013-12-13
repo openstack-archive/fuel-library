@@ -356,7 +356,8 @@ neutron_l3_agent_start() {
     done
 
     # detach deferred rescheduling procedure
-    bash -c "sleep 13 ; q-agent-cleanup.py --agent=l3 --reschedule --remove-dead 2>&1 >> /var/log/neutron/rescheduling.log" &
+    bash -c "sleep 33 ; q-agent-cleanup.py --agent=l3 --reschedule --remove-dead 2>&1 >> /var/log/neutron/rescheduling.log " &
+    fuel-fdb-cleaner --ssh-keyfile /root/.ssh/id_rsa_neutron -l /var/log/neutron/fdb-cleaner.log
 
     ocf_log info "OpenStack Router (neutron-l3-agent) started"
     return $OCF_SUCCESS
