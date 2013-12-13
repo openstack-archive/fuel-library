@@ -78,9 +78,9 @@ class horizon(
     mode    => '0644',
   }
 
-  file {'/usr/share/openstack-dashboard/':
-    recurse   => true,
-    subscribe => Package['dashboard']
+  exec { 'chown-dashboard':
+    command => "chown -R ${wsgi_user}:${wsgi_group} /usr/share/openstack-dashboard",
+    path    => [ '/bin', '/usr/bin', '/usr/local/bin' ],
   }
 
   case $use_ssl {
@@ -198,12 +198,10 @@ class horizon(
         before  => Service['httpd'],
       }
 
-      #todo: may be need fix
-      Package['dashboard'] -> Exec['horizon_compress_styles']
-      Package['dashboard'] ~> Exec['horizon_compress_styles']
-      Package[$::horizon::params::horizon_additional_packages] -> Exec['horizon_compress_styles']
+      Package['dashboard'] -> Exec['chown-dashboard'] -> Exec['horizon_compress_styles']
+      Package[$::horizon::params::horizon_additional_packages] -> Exec['chown-dashboard'] -> Exec['horizon_compress_styles']
       exec { 'horizon_compress_styles':
-        path    => '/bin:/usr/bin:/sbin:/usr/sbin',
+        path    => [ '/bin', '/usr/bin', '/usr/local/bin' ],
         cwd     => '/usr/share/openstack-dashboard',
         command => 'python manage.py compress',
         refreshonly => true
