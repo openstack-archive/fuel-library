@@ -85,6 +85,7 @@ class openstack::compute (
   # VNC
   $vnc_enabled                   = true,
   $vncproxy_host                 = undef,
+  $vncserver_listen              = $internal_address,
   # General
   $enabled                       = true,
   $multi_host                    = false,
@@ -219,7 +220,7 @@ class openstack::compute (
   # Configure libvirt for nova-compute
   class { 'nova::compute::libvirt':
     libvirt_type     => $libvirt_type,
-    vncserver_listen => $internal_address,
+    vncserver_listen => $vncserver_listen,
   }
 
   # Ensure ssh clients are installed

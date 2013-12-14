@@ -350,6 +350,7 @@ class osnailyfacter::cluster_simple {
         qpid_user              => $rabbit_user,
         glance_api_servers     => "${controller_node_address}:9292",
         vncproxy_host          => $controller_node_public,
+        vncserver_listen       => '0.0.0.0',
         vnc_enabled            => true,
         quantum                 => $::use_quantum,
         quantum_config          => $quantum_config,

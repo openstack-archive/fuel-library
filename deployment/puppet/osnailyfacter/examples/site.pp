@@ -151,7 +151,10 @@ class os_common {
       class {'osnailyfacter::network_setup': stage => 'netconfig'}
   }
 
-  class {'openstack::firewall': stage => 'openstack-firewall'}
+  class { 'openstack::firewall':
+    stage => 'openstack-firewall',
+    nova_vnc_ip_range => $::fuel_settings['management_network_range'],
+  }
 
   $base_syslog_rserver  = {
     'remote_type' => 'udp',
