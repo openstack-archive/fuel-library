@@ -1,0 +1,2 @@
+echo "blacklist i2c_piix4" >> /target/etc/modprobe.d/blacklist.conf && \
+in-target update-initramfs -u -k all && \
