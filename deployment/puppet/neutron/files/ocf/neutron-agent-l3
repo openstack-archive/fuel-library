@@ -370,16 +370,21 @@ neutron_l3_agent_stop() {
     rc=$?
     if [ $rc -eq $OCF_NOT_RUNNING ]; then
         clean_up
-        ocf_log info "OpenStack Router (neutron-l3-agent) already stopped"
+        ocf_log info "OpenStack Router ($OCF_RESKEY_binary) already stopped"
         return $OCF_SUCCESS
     fi
 
     # Try SIGTERM
-    pid=`cat $OCF_RESKEY_pid`
+    pid=`get_worker_pid`
+    if [ "xxx$pid" == "xxx" ] ; then
+        ocf_log warn "OpenStack Router ($OCF_RESKEY_binary) not running."
+        #return $OCF_NOT_RUNNING
+        return $OCF_SUCCESS
+    fi
     ocf_run kill -s TERM $pid
     rc=$?
     if [ $rc -ne 0 ]; then
-        ocf_log err "OpenStack Router (neutron-l3-agent) couldn't be stopped"
+        ocf_log err "OpenStack Router ($OCF_RESKEY_binary) couldn't be stopped"
         exit $OCF_ERR_GENERIC
     fi
 
@@ -397,19 +402,19 @@ neutron_l3_agent_stop() {
         fi
         count=`expr $count + 1`
         sleep 1
-        ocf_log debug "OpenStack Router (neutron-l3-agent) still hasn't stopped yet. Waiting ..."
+        ocf_log debug "OpenStack Router ($OCF_RESKEY_binary) still hasn't stopped yet. Waiting ..."
     done
 
     neutron_l3_agent_status
     rc=$?
     if [ $rc -ne $OCF_NOT_RUNNING ]; then
         # SIGTERM didn't help either, try SIGKILL
-        ocf_log info "OpenStack Router (neutron-l3-agent) failed to stop after ${shutdown_timeout}s \
+        ocf_log info "OpenStack Router ($OCF_RESKEY_binary) failed to stop after ${shutdown_timeout}s \
           using SIGTERM. Trying SIGKILL ..."
         ocf_run kill -s KILL $pid
     fi
 
-    ocf_log info "OpenStack neutron-l3-agent stopped"
+    ocf_log info "OpenStack Router ($OCF_RESKEY_binary) stopped"
 
     rm -f $OCF_RESKEY_pid
     clean_up
