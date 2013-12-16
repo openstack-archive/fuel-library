@@ -1,0 +1,2 @@
+([[ $(virt-what) = "virtualbox" ]] && echo "blacklist i2c_piix4" >> /target/etc/modprobe.d/blacklist-i2c_piix4.conf || :) && \
+in-target update-initramfs -u -k all && \
