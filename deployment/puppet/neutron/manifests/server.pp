@@ -57,6 +57,7 @@ class neutron::server (
     'filter:authtoken/auth_url':          value => $neutron_config['keystone']['auth_url'];
     'filter:authtoken/auth_host':         value => $neutron_config['keystone']['auth_host'];
     'filter:authtoken/auth_port':         value => $neutron_config['keystone']['auth_port'];
+    'filter:authtoken/auth_protocol':     value => $neutron_config['keystone']['auth_protocol'];
     'filter:authtoken/admin_tenant_name': value => $neutron_config['keystone']['admin_tenant_name'];
     'filter:authtoken/admin_user':        value => $neutron_config['keystone']['admin_user'];
     'filter:authtoken/admin_password':    value => $neutron_config['keystone']['admin_password'];

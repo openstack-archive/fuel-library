@@ -130,6 +130,7 @@ class neutron (
     'quota/quota_driver':             value => 'neutron.db.quota_db.DbQuotaDriver';
     'keystone_authtoken/auth_host':         value => $neutron_config['keystone']['auth_host'];
     'keystone_authtoken/auth_port':         value => $neutron_config['keystone']['auth_port'];
+    'keystone_authtoken/auth_protocol':     value => $neutron_config['keystone']['auth_protocol'];
     'keystone_authtoken/auth_url':          value => $neutron_config['keystone']['auth_url'];
     'keystone_authtoken/admin_tenant_name': value => $neutron_config['keystone']['admin_tenant_name'];
     'keystone_authtoken/admin_user':        value => $neutron_config['keystone']['admin_user'];
