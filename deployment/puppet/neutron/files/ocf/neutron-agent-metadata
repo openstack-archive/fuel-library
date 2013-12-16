@@ -273,7 +273,12 @@ neutron_metadata_agent_stop() {
     fi
 
     # Try SIGTERM
-    pid=`cat $OCF_RESKEY_pid`
+    pid=`get_worker_pid`
+    if [ "xxx$pid" == "xxx" ] ; then
+        ocf_log warn "OpenStack Neutron Metadata Agent (${OCF_RESKEY_binary}) not running."
+        #return $OCF_NOT_RUNNING
+        return $OCF_SUCCESS
+    fi
     ocf_run kill -s TERM $pid
     rc=$?
     if [ $rc -ne 0 ]; then
