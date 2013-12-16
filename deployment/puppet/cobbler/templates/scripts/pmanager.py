@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import json
+import math
 import re
 
 class PManager(object):
@@ -63,6 +64,19 @@ class PManager(object):
         for item in self.data:
             if item["type"] == "disk" and item["size"] > 0:
                 yield item
+
+    def get_partition_count(self, name):
+        count = 0
+        for disk in self.iterdisks():
+            count += len([v for v in disk["volumes"]
+                          if v.get('name') == name and v['size'] > 0])
+        return count
+
+    def num_ceph_journals(self):
+        return self.get_partition_count('cephjournal')
+
+    def num_ceph_osds(self):
+        return self.get_partition_count('ceph')
 
     def _gettabfstype(self, vol):
         if vol.get("file_system"):
@@ -178,11 +192,43 @@ class PManager(object):
     def plains(self, volume_filter=None):
         if not volume_filter:
             volume_filter = lambda x: True
+
+        ceph_osds = self.num_ceph_osds()
+        journals_left = ceph_osds
+        ceph_journals = self.num_ceph_journals()
+
         for disk in self.iterdisks():
             for part in filter(lambda p: p["type"] == "partition" and
                                volume_filter(p), disk["volumes"]):
                 if part["size"] <= 0:
                     continue
+
+                if part.get('name') == 'cephjournal':
+                    # We need to allocate a partition for each ceph OSD
+                    # If there is more than one journal device the journals
+                    # will be divided evenly amongst them. No more than 10GB
+                    # will be allocated to a single journal partition.
+                    ratio = math.ceil(float(ceph_osds) / ceph_journals)
+                    size = part["size"] / ratio
+                    size = size if size <= 10240 else 10240
+                    end = ratio if ratio < journals_left else journals_left
+                    for i in range(0, end):
+                        journals_left -= 1
+                        pcount = self.pcount(disk["id"], 1)
+
+                        self.pre("parted -a none -s /dev/{0} "
+                                 "unit {4} mkpart {1} {2} {3}".format(
+                                     disk["id"],
+                                     self._parttype(pcount),
+                                     self.psize(disk["id"]),
+                                     self.psize(disk["id"], size * self.factor),
+                                     self.unit))
+
+                        self.post("chroot /mnt/sysimage sgdisk "
+                                  "--typecode={0}:{1} /dev/{2}".format(
+                                    pcount, part["partition_guid"],disk["id"]))
+                    continue
+
                 pcount = self.pcount(disk["id"], 1)
                 self.pre("parted -a none -s /dev/{0} "
                          "unit {4} mkpart {1} {2} {3}".format(
@@ -200,6 +246,8 @@ class PManager(object):
                     self.post("chroot /mnt/sysimage sgdisk "
                               "--typecode={0}:{1} /dev/{2}".format(
                                 pcount, part["partition_guid"],disk["id"]))
+
+
                 if size > 0 and size <= 16777216 and part["mount"] != "none":
                     self.kick("partition {0} "
                               "--onpart=$(readlink -f /dev/{2})"
@@ -480,6 +528,19 @@ class PreseedPManager(object):
         self._pend[disk_id] = self._pend.get(disk_id, 0) + increment
         return self._pend.get(disk_id, 0)
 
+    def get_partition_count(self, name):
+        count = 0
+        for disk in self.iterdisks():
+            count += len([v for v in disk["volumes"]
+                          if v.get('name') == name and v['size'] > 0])
+        return count
+
+    def num_ceph_journals(self):
+        return self.get_partition_count('cephjournal')
+
+    def num_ceph_osds(self):
+        return self.get_partition_count('ceph')
+
     def erase_partition_table(self):
         for disk in self.iterdisks():
             self.early("test -e $(readlink -f /dev/{0}) && "
@@ -567,6 +628,10 @@ class PreseedPManager(object):
         self.late("hdparm -z $(readlink -f {0})".format(self.disks[0]))
 
     def partitions(self):
+        ceph_osds = self.num_ceph_osds()
+        journals_left = ceph_osds
+        ceph_journals = self.num_ceph_journals()
+
         for disk in self.iterdisks():
             for part in filter(lambda p: p["type"] == "partition" and
                                p["mount"] != "/boot", disk["volumes"]):
@@ -591,6 +656,32 @@ class PreseedPManager(object):
                                   self.pcount("/dev/%s" % disk["id"], 1)
                         )
                     )
+
+                if part.get('name') == 'cephjournal':
+                    # We need to allocate a partition for each ceph OSD
+                    # If there is more than one journal device the journals
+                    # will be divided evenly amongst them. No more than 10GB
+                    # will be allocated to a single journal partition.
+                    ratio = math.ceil(float(ceph_osds) / ceph_journals)
+                    size = part["size"] / ratio
+                    size = size if size <= 10240 else 10240
+                    end = ratio if ratio < journals_left else journals_left
+                    for i in range(0, end):
+                        journals_left -= 1
+                        pcount = self.pcount('/dev/%s' % disk["id"], 1)
+
+                        self.late("parted -a none -s /dev/{0} "
+                                 "unit {4} mkpart {1} {2} {3}".format(
+                                     disk["id"],
+                                     self._parttype(pcount),
+                                     self.psize('/dev/%s' % disk["id"]),
+                                     self.psize('/dev/%s' % disk["id"], size * self.factor),
+                                     self.unit))
+
+                        self.late("sgdisk --typecode={0}:{1} /dev/{2}"
+                                  "".format(pcount, part["partition_guid"],
+                                            disk["id"]), True)
+                    continue
 
                 pcount = self.pcount("/dev/%s" % disk["id"], 1)
                 tabmount = part["mount"] if part["mount"] != "swap" else "none"
