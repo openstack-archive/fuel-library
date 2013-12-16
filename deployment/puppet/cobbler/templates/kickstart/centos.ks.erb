@@ -233,6 +233,9 @@ $SNIPPET('target_logs_to_master')
 # Configure static IP address for admin interface
 $SNIPPET('centos_static_net')
 
+# Blacklist i2c_piix4 module so it does not create kernel errors
+$SNIPPET('centos_blacklist_i2c_piix4')
+
 # COBBLER EMBEDDED SNIPPET: 'kickstart_done'
 # DISABLES PXE BOOTING
 $SNIPPET('kickstart_done')
