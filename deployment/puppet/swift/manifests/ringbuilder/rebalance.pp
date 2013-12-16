@@ -29,6 +29,7 @@ define swift::ringbuilder::rebalance() {
   exec { "rebalance_${name}":
     command     => "swift-ring-builder /etc/swift/${name}.builder rebalance",
     path        => ['/usr/bin','/bin'],
+    timeout     => 900,
     provider    => 'shell',
     returns     => [0,1],
   } ->
