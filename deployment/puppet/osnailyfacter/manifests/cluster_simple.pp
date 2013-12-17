@@ -269,9 +269,9 @@ class osnailyfacter::cluster_simple {
           savanna_db_host           => $controller_node_address,
 
           savanna_keystone_host     => $controller_node_address,
-          savanna_keystone_user     => 'admin',
-          savanna_keystone_password => 'admin',
-          savanna_keystone_tenant   => 'admin',
+          savanna_keystone_user     => 'savanna',
+          savanna_keystone_password => $savanna_hash['user_password'],
+          savanna_keystone_tenant   => 'services',
 
           use_neutron               => $::use_quantum,
           use_floating_ips          => $::fuel_settings['auto_assign_floating_ip'],
