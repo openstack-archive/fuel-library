@@ -6,6 +6,8 @@
 #    access to Swift.
 #    Optional. Dfeaults to ['admin', 'SwiftOperator']
 #    Must be an array of strings
+#    Swift operator roles must be defined in swift::keystone::auth because
+#    keystone API access is usually not available on Swift proxy nodes.
 #  [is_admin] Set to true to allow users to set ACLs on their account.
 #    Optional. Defaults to true.
 #  [cache] the cache backend to use
