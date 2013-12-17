@@ -426,15 +426,28 @@ class PreseedPManager(object):
         else:
             self.data = data
 
+        self.validate()
         self.factor = 1
         self.unit = "MiB"
         self.disks = sorted(["/dev/" + d["id"] for d in self.iterdisks()])
+        self.os_disk = "/dev/" + self.os_disks()[0]["id"]
 
         self._pcount = {}
         self._pend = {}
         self._recipe = []
         self._late = []
         self._early = []
+
+    def os_disks(self):
+        return [d for d in self.iterdisks() if
+                filter(lambda x: x.get("vg") == "os" and
+                       x.get("size") > 0, d["volumes"])]
+
+    def validate(self):
+        # os volume group can not be distributed over more than one disk.
+        # it is because we use plain partition for / and swap on ubuntu.
+        if len(self.os_disks()) > 1:
+            raise Exception("OS volume group must be located on one disk")
 
     def iterdisks(self):
         for item in self.data:
@@ -518,12 +531,12 @@ class PreseedPManager(object):
                     "$gptonly{ } "
                     "$bios_boot{ } "
                     "method{ biosgrub } .")
-        self.psize(self.disks[0], 24 * self.factor)
-        self.pcount(self.disks[0], 1)
+        self.psize(self.os_disk, 24 * self.factor)
+        self.pcount(self.os_disk, 1)
 
         self.late("parted -s $(readlink -f {0}) set {1} bios_grub on".format(
-                    self.disks[0],
-                    self.pcount(self.disks[0])
+                    self.os_disk,
+                    self.pcount(self.os_disk)
             )
         )
 
@@ -531,8 +544,8 @@ class PreseedPManager(object):
                     "$gptonly{ } "
                     "$bootable{ } method{ format } format{ } use_filesystem{ } "
                     "filesystem{ ext3 } mountpoint{ /boot } .")
-        self.pcount(self.disks[0], 1)
-        self.psize(self.disks[0], 200 * self.factor)
+        self.pcount(self.os_disk, 1)
+        self.psize(self.os_disk, 200 * self.factor)
 
     def os(self):
         for vg in [v for v in self.data
@@ -548,13 +561,13 @@ class PreseedPManager(object):
                     "method{{ format }} format{{ }} use_filesystem{{ }} "
                     "filesystem{{ ext4 }} mountpoint{{ / }} ."
                     "".format(root_size))
-        self.pcount(self.disks[0], 1)
-        self.psize(self.disks[0], root_size * self.factor)
+        self.pcount(self.os_disk, 1)
+        self.psize(self.os_disk, root_size * self.factor)
         self.recipe("{0} {0} {0} linux-swap "
                     "$gptonly{{ }} "
                     "method{{ swap }} format{{ }} .".format(swap_size))
-        self.pcount(self.disks[0], 1)
-        self.psize(self.disks[0], swap_size * self.factor)
+        self.pcount(self.os_disk, 1)
+        self.psize(self.os_disk, swap_size * self.factor)
         """
         We need this line because debian-installer takes total disk space
         for the last partition. So to be able to allocate custom partitions
@@ -562,9 +575,9 @@ class PreseedPManager(object):
         we then destroy.
         """
         self.recipe("1 1 -1 ext3 $gptonly{ } method{ keep } .")
-        self.late("parted $(readlink -f {0}) rm 5".format(self.disks[0]))
+        self.late("parted $(readlink -f {0}) rm 5".format(self.os_disk))
         self.late("sleep 3")
-        self.late("hdparm -z $(readlink -f {0})".format(self.disks[0]))
+        self.late("hdparm -z $(readlink -f {0})".format(self.os_disk))
 
     def partitions(self):
         for disk in self.iterdisks():
@@ -768,7 +781,7 @@ class PreseedPManager(object):
         return result.rstrip()
 
     def expose_disks(self):
-        return "$(readlink -f {0})".format(self.disks[0])
+        return "$(readlink -f {0})".format(self.os_disk)
 
 
 def pm(data):
