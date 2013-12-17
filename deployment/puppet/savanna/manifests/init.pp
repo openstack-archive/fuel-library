@@ -4,21 +4,25 @@ class savanna (
   $savanna_api_host                     = '127.0.0.1',
   $savanna_api_protocol                 = 'http',
   $savanna_api_version                  = 'v1.1',
+
   $savanna_keystone_host                = '127.0.0.1',
   $savanna_keystone_port                = '35357',
   $savanna_keystone_protocol            = 'http',
-  $savanna_keystone_user                = 'admin',
-  $savanna_keystone_tenant              = 'admin',
-  $savanna_keystone_password            = 'admin',
+  $savanna_keystone_user                = 'savanna',
+  $savanna_keystone_tenant              = 'services',
+  $savanna_keystone_password            = 'savanna',
+
   $savanna_node_domain                  = 'novalocal',
   $savanna_plugins                      = 'vanilla,hdp',
   $savanna_vanilla_plugin_class         = 'savanna.plugins.vanilla.plugin:VanillaProvider',
   $savanna_hdp_plugin_class             = 'savanna.plugins.hdp.ambariplugin:AmbariPlugin',
+
   $savanna_db_password                  = 'savanna',
   $savanna_db_name                      = 'savanna',
   $savanna_db_user                      = 'savanna',
   $savanna_db_host                      = 'localhost',
   $savanna_db_allowed_hosts             = ['localhost','%'],
+
   $savanna_firewall_rule                = '201 savanna-api',
   $use_neutron                          = false,
   $use_floating_ips                     = false,
@@ -51,6 +55,18 @@ class savanna (
     sql_connection                      => $savanna_sql_connection,
     use_neutron                         => $use_neutron,
     use_floating_ips                    => $use_floating_ips,
+  }
+
+  class { 'savanna::keystone::auth' :
+    password                       => $savanna_keystone_password,
+    auth_name                      => $savanna_keystone_user,
+    public_address                 => $savanna_api_host,
+    admin_address                  => $savanna_keystone_host,
+    internal_address               => $savanna_keystone_host,
+    savanna_port                   => $savanna_api_port,
+    region                         => 'RegionOne',
+    tenant                         => $savanna_keystone_tenant,
+    email                          => 'savanna-team@mirantis.com',
   }
 
   firewall { $savanna_firewall_rule :
