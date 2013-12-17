@@ -3,9 +3,9 @@ class murano (
   $murano_keystone_host                 = '127.0.0.1',
   $murano_keystone_port                 = '5000',
   $murano_keystone_protocol             = 'http',
-  $murano_keystone_tenant               = 'admin',
-  $murano_keystone_user                 = 'admin',
-  $murano_keystone_password             = 'admin',
+  $murano_keystone_tenant               = 'services',
+  $murano_keystone_user                 = 'murano',
+  $murano_keystone_password             = 'swordfish',
   # murano
   $murano_log_file                      = '/var/log/murano/conductor.log',
   $murano_debug                         = 'True',
@@ -48,7 +48,7 @@ class murano (
   $use_neutron                          = true,
 ) {
 
-  Class['mysql::server'] -> Class['murano::db::mysql'] -> Class['murano::rabbitmq'] -> Class['murano::common'] -> Class['murano::conductor'] -> Class['murano::api'] -> Class['murano::metadataclient'] -> Class['murano::repository'] -> Class['murano::python_muranoclient'] -> Class['murano::dashboard'] ->  Class['murano::cirros']
+  Class['mysql::server'] -> Class['murano::db::mysql'] -> Class['murano::rabbitmq'] -> Class['murano::keystone'] -> Class['murano::common'] -> Class['murano::conductor'] -> Class['murano::api'] -> Class['murano::metadataclient'] -> Class['murano::repository'] -> Class['murano::python_muranoclient'] -> Class['murano::dashboard'] ->  Class['murano::cirros']
 
   $murano_keystone_auth_url = "${murano_keystone_protocol}://${murano_keystone_host}:${murano_keystone_port}/v2.0"
 
@@ -150,6 +150,12 @@ class murano (
   }
 
   class { 'murano::cirros':
+  }
+
+  class { 'murano::keystone':
+    tenant   => $murano_keystone_tenant,
+    user     => $murano_keystone_user,
+    password => $murano_keystone_password,
   }
 
 }
