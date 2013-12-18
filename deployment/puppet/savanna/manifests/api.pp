@@ -54,7 +54,7 @@ class savanna::api (
 
   savanna_config {
     'DEFAULT/os_admin_tenant_name'         : value => $keystone_tenant;
-    'DEFAULT/os_admin_user'                : value => $keystone_user;
+    'DEFAULT/os_admin_username'            : value => $keystone_user;
     'DEFAULT/os_admin_password'            : value => $keystone_password;
     'DEFAULT/os_auth_host'                 : value => $keystone_host;
     'DEFAULT/os_auth_port'                 : value => $keystone_port;
