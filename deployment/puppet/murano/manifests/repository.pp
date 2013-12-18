@@ -1,4 +1,7 @@
 class murano::repository (
+    $use_syslog                     = 'True',
+    $syslog_log_facility            = 'local6',
+    $log_file                       = '/var/log/murano/murano-repository.log',
     $verbose                        = 'True',
     $debug                          = 'True',
     $repository_host                = '0.0.0.0',
@@ -37,7 +40,23 @@ class murano::repository (
     hasrestart => true,
   }
 
+  if $use_syslog {
+    murano_repository_config {
+      'DEFAULT/use_syslog'          : value  => $use_syslog;
+      'DEFAULT/syslog_log_facility' : value  => $syslog_log_facility;
+      'DEFAULT/log_format'          : value  => 'murano-repository [%(levelname)s] %(name)s: %(message)s';
+    }
+  }
+  else {
+    murano_repository_config {
+      'DEFAULT/use_syslog'          : ensure => absent;
+      'DEFAULT/syslog_log_facility' : ensure => absent;
+      'DEFAULT/log_format'          : ensure => absent;
+    }
+  }
+
   murano_repository_config {
+    'DEFAULT/log_file'            : value  => $log_file;
     'DEFAULT/host'                : value => $repository_host;
     'DEFAULT/port'                : value => $repository_port;
     'DEFAULT/manifests'           : value => $repository_manifests;
