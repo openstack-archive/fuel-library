@@ -1,11 +1,31 @@
+# == Class: swift::keystone::auth
+#
+# This class creates keystone users, services, endpoints, and roles
+# for Swift services.
+#
+# The user is given the admin role in the services tenant.
+#
+# === Parameters
+# [*auth_user*]
+#  String. The name of the user.
+#  Optional. Defaults to 'swift'.
+#
+# [*password*]
+#  String. The user's password.
+#  Optional. Defaults to 'swift_password'.
+#
+# [*operator_roles*]
+#  Array of strings. List of roles Swift considers as admin.
+#
 class swift::keystone::auth(
-  $auth_name = 'swift',
-  $password  = 'swift_password',
-  $address = '127.0.0.1',
-  $internal_address   = undef,
-  $admin_address = undef,
-  $public_address = undef,
-  $port      = '8080'
+  $auth_name        = 'swift',
+  $password         = 'swift_password',
+  $address          = '127.0.0.1',
+  $operator_roles   = ['admin', 'SwiftOperator'],
+  $internal_address = undef,
+  $admin_address    = undef,
+  $public_address   = undef,
+  $port             = '8080'
 ) {
   if ($internal_address == undef) {
     $internal_address_real = $address
@@ -60,6 +80,11 @@ class swift::keystone::auth(
     public_url   => "http://${public_address_real}:${port}",
     admin_url    => "http://${admin_address_real}:${port}",
     internal_url => "http://${internal_address_real}:${port}",
+  }
+
+  if $operator_roles {
+    #Roles like "admin" may be defined elsewhere, so use ensure_resource
+    ensure_resource('keystone_role', $operator_roles, { 'ensure' => 'present'})
   }
 
 }
