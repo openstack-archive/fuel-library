@@ -15,7 +15,7 @@ class savanna::api (
   $hdp_plugin_class     = 'savanna.plugins.hdp.ambariplugin:AmbariPlugin',
   $sql_connection       = 'mysql://savanna:savanna@localhost/savanna',
   $use_neutron          = false,
-  $use_floating_ips     = false,
+  $use_floating_ips     = true,
 ) inherits savanna::params {
 
   validate_string($keystone_password)
@@ -31,17 +31,16 @@ class savanna::api (
     $service_ensure = 'stopped'
   }
 
-  # floating_ips can be enabled only if there is no neutron
   if $use_neutron {
     $use_neutron_value = true
-    $use_floating_ips_value = false
   } else {
-    if $use_floating_ips {
-      $use_floating_ips_value = true
-    } else {
-      $use_floating_ips_value = false
-    }
     $use_neutron_value = false
+  }
+
+  if $use_floating_ips {
+    $use_floating_ips_value = true
+  } else {
+    $use_floating_ips_value = false
   }
 
   service { 'savanna-api':
