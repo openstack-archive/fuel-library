@@ -1,4 +1,6 @@
 class murano::api (
+    $use_syslog                     = 'True',
+    $syslog_log_facility            = 'local6',
     $verbose                        = 'True',
     $debug                          = 'True',
     $api_paste_inipipeline          = 'authtoken context apiv1app',
@@ -52,12 +54,28 @@ class murano::api (
     hasrestart => true,
   }
 
+  if $use_syslog {
+    murano_api_config {
+      'DEFAULT/use_syslog'           : value  => $use_syslog;
+      'DEFAULT/log_file'             : ensure => absent;
+      'DEFAULT/syslog_log_facility'  : value  => $syslog_log_facility;
+      'DEFAULT/log_format'           : value  => 'murano-api [%(levelname)s] %(name)s: %(message)s';
+    }
+  }
+  else {
+    murano_api_config {
+      'DEFAULT/use_syslog'          : ensure => absent;
+      'DEFAULT/log_file'            : value  => $api_log_file;
+      'DEFAULT/syslog_log_facility' : ensure => absent;
+      'DEFAULT/log_format'          : ensure => absent;
+    }
+  }
+
   murano_api_config {
     'DEFAULT/verbose'                       : value => $verbose;
     'DEFAULT/debug'                         : value => $debug;
     'DEFAULT/bind_host'                     : value => $api_bind_host;
     'DEFAULT/bind_port'                     : value => $api_bind_port;
-    'DEFAULT/log_file'                      : value => $api_log_file;
     'database/connection'                   : value => $api_database_connection;
     'database/auto_create'                  : value => $api_database_auto_create;
     'reports/results_exchange'              : value => $api_reports_results_exchange;
