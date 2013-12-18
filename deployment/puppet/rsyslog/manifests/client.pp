@@ -19,6 +19,7 @@ class rsyslog::client (
   $syslog_log_facility_neutron  = 'LOG_LOCAL4',
   $syslog_log_facility_nova     = 'LOG_LOCAL6',
   $syslog_log_facility_keystone = 'LOG_LOCAL7',
+  $syslog_log_facility_savanna  = 'LOG_LOCAL0',
   $log_level      = 'NOTICE',
   $debug          = false,
   ) inherits rsyslog {
@@ -139,6 +140,7 @@ if $virtual { include rsyslog::checksum_udp514 }
   }
 
 
+<<<<<<< HEAD
   # openstack syslog compatible mode, would work only for debug case.
   # because of its poor syslog debug messages quality, use local logs convertion
   if $debug {
@@ -246,6 +248,128 @@ if $virtual { include rsyslog::checksum_udp514 }
       ensure => present,
       content => template("${module_name}/10-nova.conf.erb"),
     }
+=======
+# openstack syslog compatible mode, would work only for debug case.
+# because of its poor syslog debug messages quality, use local logs convertion
+if $debug =~ /(?i)(true|yes)/ {
+::rsyslog::imfile { "52-savanna-api_debug" :
+    file_name     => "/var/log/savanna/api.log",
+    file_tag      => "savanna-api",
+    file_facility => $syslog_log_facility_savanna,
+    file_severity => "DEBUG",
+    notify  => Class["rsyslog::service"],
+}
+::rsyslog::imfile { "10-nova-api_debug" :
+    file_name     => "/var/log/nova/*api.log",
+    file_tag      => "nova-api",
+    file_facility => $syslog_log_facility_nova_matched,
+    file_severity => "DEBUG",
+    notify  => Class["rsyslog::service"],
+}
+::rsyslog::imfile { "10-nova-cert_debug" :
+    file_name     => "/var/log/nova/*cert.log",
+    file_tag      => "nova-cert",
+    file_facility => $syslog_log_facility_nova_matched,
+    file_severity => "DEBUG",
+    notify  => Class["rsyslog::service"],
+}
+::rsyslog::imfile { "10-nova-consoleauth_debug" :
+    file_name     => "/var/log/nova/*consoleauth.log",
+    file_tag      => "nova-consoleauth",
+    file_facility => $syslog_log_facility_nova_matched,
+    file_severity => "DEBUG",
+    notify  => Class["rsyslog::service"],
+}
+::rsyslog::imfile { "10-nova-scheduler_debug" :
+    file_name     => "/var/log/nova/*scheduler.log",
+    file_tag      => "nova-scheduler",
+    file_facility => $syslog_log_facility_nova_matched,
+    file_severity => "DEBUG",
+    notify  => Class["rsyslog::service"],
+}
+::rsyslog::imfile { "10-nova-network_debug" :
+    file_name     => "/var/log/nova/*network.log",
+    file_tag      => "nova-network",
+    file_facility => $syslog_log_facility_nova_matched,
+    file_severity => "DEBUG",
+    notify  => Class["rsyslog::service"],
+}
+::rsyslog::imfile { "10-nova-compute_debug" :
+    file_name     => "/var/log/nova/*compute.log",
+    file_tag      => "nova-compute",
+    file_facility => $syslog_log_facility_nova_matched,
+    file_severity => "DEBUG",
+    notify  => Class["rsyslog::service"],
+}
+::rsyslog::imfile { "10-nova-conductor_debug" :
+    file_name     => "/var/log/nova/*conductor.log",
+    file_tag      => "nova-conductor",
+    file_facility => $syslog_log_facility_nova_matched,
+    file_severity => "DEBUG",
+    notify  => Class["rsyslog::service"],
+}
+::rsyslog::imfile { "10-nova-objectstore_debug" :
+    file_name     => "/var/log/nova/*objectstore.log",
+    file_tag      => "nova-objectstore",
+    file_facility => $syslog_log_facility_nova_matched,
+    file_severity => "DEBUG",
+    notify  => Class["rsyslog::service"],
+}
+::rsyslog::imfile { "20-keystone_debug" :
+    file_name     => "/var/log/keystone/*keystone.log",
+    file_tag      => "keystone",
+    file_facility => $syslog_log_facility_keystone_matched,
+    file_severity => "DEBUG",
+    notify  => Class["rsyslog::service"],
+}
+::rsyslog::imfile { "30-cinder-api_debug" :
+    file_name     => "/var/log/cinder/*api.log",
+    file_tag      => "cinder-api",
+    file_facility => $syslog_log_facility_cinder_matched,
+    file_severity => "DEBUG",
+    notify  => Class["rsyslog::service"],
+}
+::rsyslog::imfile { "30-cinder-volume_debug" :
+    file_name     => "/var/log/cinder/*volume.log",
+    file_tag      => "cinder-volume",
+    file_facility => $syslog_log_facility_cinder_matched,
+    file_severity => "DEBUG",
+    notify  => Class["rsyslog::service"],
+}
+::rsyslog::imfile { "30-cinder-scheduler_debug" :
+    file_name     => "/var/log/cinder/*scheduler.log",
+    file_tag      => "cinder-scheduler",
+    file_facility => $syslog_log_facility_cinder_matched,
+    file_severity => "DEBUG",
+    notify  => Class["rsyslog::service"],
+}
+::rsyslog::imfile { "40-glance-api_debug" :
+    file_name     => "/var/log/glance/*api.log",
+    file_tag      => "glance-api",
+    file_facility => $syslog_log_facility_glance_matched,
+    file_severity => "DEBUG",
+    notify  => Class["rsyslog::service"],
+}
+::rsyslog::imfile { "40-glance-registry_debug" :
+    file_name     => "/var/log/glance/*registry.log",
+    file_tag      => "glance-registry",
+    file_facility => $syslog_log_facility_glance_matched,
+    file_severity => "DEBUG",
+    notify  => Class["rsyslog::service"],
+}
+} else { #non debug case
+# standard logging configs for syslog client
+
+  file { "${rsyslog::params::rsyslog_d}52-savanna.conf":
+    ensure => present,
+    content => template("${module_name}/52-savanna.conf.erb"),
+  }
+
+  file { "${rsyslog::params::rsyslog_d}10-nova.conf":
+    ensure => present,
+    content => template("${module_name}/10-nova.conf.erb"),
+  }
+>>>>>>> Fix Savanna manifests to configure syslogging
 
     file { "${rsyslog::params::rsyslog_d}20-keystone.conf":
       ensure => present,
