@@ -39,6 +39,7 @@ class openstack::logging (
     $syslog_log_facility_neutron  = 'LOG_LOCAL4',
     $syslog_log_facility_nova     = 'LOG_LOCAL6',
     $syslog_log_facility_keystone = 'LOG_LOCAL7',
+    $syslog_log_facility_savanna  = 'LOG_LOCAL0',
     $rabbit_log_level = 'NOTICE',
     $debug          = false,
 ) {
