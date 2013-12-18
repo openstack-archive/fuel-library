@@ -14,6 +14,7 @@ class rsyslog::client (
   $escapenewline  = false,
   $rservers       = undef,
   $virtual        = false,
+  $syslog_log_facility_savanna  = 'local0',
   $syslog_log_facility_glance   = 'LOCAL2',
   $syslog_log_facility_cinder   = 'LOCAL3',
   $syslog_log_facility_neutron  = 'LOCAL4',
@@ -134,6 +135,13 @@ if $virtual { include rsyslog::checksum_udp514 }
 # openstack syslog compatible mode, would work only for debug case.
 # because of its poor syslog debug messages quality, use local logs convertion
 if $debug =~ /(?i)(true|yes)/ {
+::rsyslog::imfile { "52-savanna-api_debug" :
+    file_name     => "/var/log/savanna/api.log",
+    file_tag      => "savanna-api",
+    file_facility => $syslog_log_facility_savanna,
+    file_severity => "DEBUG",
+    notify  => Class["rsyslog::service"],
+}
 ::rsyslog::imfile { "10-nova-api_debug" :
     file_name     => "/var/log/nova/api.log",
     file_tag      => "nova-api",
@@ -234,6 +242,12 @@ if $debug =~ /(?i)(true|yes)/ {
 }
 } else { #non debug case
 # standard logging configs for syslog client
+
+  file { "${rsyslog::params::rsyslog_d}52-savanna.conf":
+    ensure => present,
+    content => template("${module_name}/52-savanna.conf.erb"),
+  }
+
   file { "${rsyslog::params::rsyslog_d}10-nova.conf":
     ensure => present,
     content => template("${module_name}/10-nova.conf.erb"),
