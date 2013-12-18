@@ -61,13 +61,13 @@ describe 'apt::key', :type => :define do
           should_not contain_exec("apt::key #{param_hash[:key]} absent")
           should contain_anchor("apt::key #{param_hash[:key]} present")
           should contain_exec(digest).with({
-            "path"    => "/bin:/usr/bin",
+            "path"    => [ '/bin', '/usr/bin', '/usr/local/bin' ],
             "unless"  => "/usr/bin/apt-key list | /bin/grep '#{param_hash[:key]}'"
           })
         elsif [:absent, 'absent'].include? param_hash[:ensure]
           should_not contain_anchor("apt::key #{param_hash[:key]} present")
           should contain_exec("apt::key #{param_hash[:key]} absent").with({
-            "path"    => "/bin:/usr/bin",
+            "path"    => [ '/bin', '/usr/bin', '/usr/local/bin' ],
             "onlyif"  => "apt-key list | grep '#{param_hash[:key]}'",
             "command" => "apt-key del '#{param_hash[:key]}'"
           })

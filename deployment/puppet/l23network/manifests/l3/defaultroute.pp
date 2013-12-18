@@ -10,7 +10,7 @@ define l23network::l3::defaultroute (
   case $::osfamily {
     /(?i)debian/: {
         exec {'Default route':
-            path    => '/bin:/usr/bin:/sbin:/usr/sbin',
+            path    => [ '/bin', '/usr/bin', '/usr/local/bin', '/sbin', '/usr/sbin', '/usr/local/sbin' ],
             command => "ip route replace default via ${gateway} || true",
             unless  => "netstat -r | grep -q 'default.*${gateway}'",
         }
@@ -25,7 +25,7 @@ define l23network::l3::defaultroute (
           # FIXME: we should not nuke the system with 'service network restart'...
           # FIXME: but we should ensure default route will be created somehow
           exec {'Default route':
-              path    => '/bin:/usr/bin:/sbin:/usr/sbin',
+              path    => [ '/bin', '/usr/bin', '/usr/local/bin', '/sbin', '/usr/sbin', '/usr/local/sbin' ],
               command => "ip route replace default via ${gateway} || true",
               unless  => "netstat -r | grep -q 'default.*${gateway}'",
           }

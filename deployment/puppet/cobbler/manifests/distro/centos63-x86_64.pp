@@ -33,7 +33,7 @@ class cobbler::distro::centos63-x86_64(
   $ks_url   = "http://mirror.stanford.edu/yum/pub/centos/6.3/os/x86_64"
   ) {
 
-  Exec {path => '/usr/bin:/bin:/usr/sbin:/sbin'}
+  Exec {path => [ '/bin', '/usr/bin', '/usr/local/bin', '/sbin', '/usr/sbin', '/usr/local/sbin' ]}
 
   $ks_mirror = '/var/www/cobbler/ks_mirror'
 

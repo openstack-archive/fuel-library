@@ -176,10 +176,10 @@ class galera (
   }
 
   file {'mysql-wss-ocf':
-    path=>'/usr/lib/ocf/resource.d/mirantis/mysql-wss',
-    mode => 755,
-    owner => root,
-    group => root,
+    path   => '/usr/lib/ocf/resource.d/mirantis/mysql-wss',
+    mode   => 755,
+    owner  => root,
+    group  => root,
     source => "puppet:///modules/galera/ocf/mysql-wss",
   }
   File<| title == 'ocf-mirantis-path' |> -> File['mysql-wss-ocf']
@@ -274,8 +274,8 @@ class galera (
   }
 
   exec { "raise-first-setup-flag" :
-   path    => "/usr/bin:/usr/sbin:/bin:/sbin",
-   command => "crm_attribute -t crm_config --name mysqlprimaryinit --update done",
+   path        => [ '/bin', '/usr/bin', '/usr/local/bin', '/sbin', '/usr/sbin', '/usr/local/sbin' ],
+   command     => "crm_attribute -t crm_config --name mysqlprimaryinit --update done",
    refreshonly => true,
   }
 
@@ -295,9 +295,9 @@ class galera (
 
   if $primary_controller {
     exec { "start-new-galera-cluster":
-      path   => "/usr/bin:/usr/sbin:/bin:/sbin",
-      logoutput => true,
-      command   => 'echo Primary-controller completed',
+      path       => [ '/bin', '/usr/bin', '/usr/local/bin', '/sbin', '/usr/sbin', '/usr/local/sbin' ],
+      logoutput  => true,
+      command    => 'echo Primary-controller completed',
       require    => Service["$cib_name"],
       before     => Exec ["wait-for-synced-state"],
       notify     => Exec ["raise-first-setup-flag"],

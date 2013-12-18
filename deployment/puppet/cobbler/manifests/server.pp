@@ -16,9 +16,7 @@
 class cobbler::server {
   include cobbler::packages
   
-  Exec {
-    path => '/usr/bin:/bin:/usr/sbin:/sbin'
-  }
+  Exec {path => [ '/bin', '/usr/bin', '/usr/local/bin', '/sbin', '/usr/sbin', '/usr/local/sbin' ]}
 
   case $operatingsystem {
     /(?i)(centos|redhat)/ : {

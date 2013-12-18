@@ -4,7 +4,7 @@ node default {
 
 node /^(fuel-pm|fuel-cobbler).mirantis.com/ {
 
-  Exec  {path => '/usr/bin:/bin:/usr/sbin:/sbin'}
+  Exec  {path => [ '/bin', '/usr/bin', '/usr/local/bin', '/sbin', '/usr/sbin', '/usr/local/sbin' ]}
   
   exec { "enable_forwarding":
     command => "echo 1 > /proc/sys/net/ipv4/ip_forward",

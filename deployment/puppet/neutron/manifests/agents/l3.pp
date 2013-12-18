@@ -34,7 +34,7 @@ class neutron::agents::l3 (
     if $service_provider != 'pacemaker' {
        Package<| title == "$l3_agent_package" |> ->
        exec { 'rm-neutron-l3-override':
-         path => '/sbin:/bin:/usr/bin:/usr/sbin',
+         path    => [ '/bin', '/usr/bin', '/usr/local/bin', '/sbin', '/usr/sbin', '/usr/local/sbin' ],
          command => "rm -f /etc/init/neutron-l3-agent.override",
        }
     }

@@ -32,7 +32,7 @@ class neutron::agents::dhcp (
     if $service_provider != 'pacemaker' {
        Package<| title=="$dhcp_agent_package" |> ->
        exec { 'rm-neutron-dhcp-override':
-         path => '/sbin:/bin:/usr/bin:/usr/sbin',
+         path    => [ '/bin', '/usr/bin', '/usr/local/bin', '/sbin', '/usr/sbin', '/usr/local/sbin' ],
          command => "rm -f /etc/init/neutron-dhcp-agent.override",
        }
     }
@@ -95,10 +95,10 @@ class neutron::agents::dhcp (
     # OCF script for pacemaker
     # and his dependences
     file {'neutron-dhcp-agent-ocf':
-      path=>'/usr/lib/ocf/resource.d/mirantis/neutron-agent-dhcp',
-      mode => 755,
-      owner => root,
-      group => root,
+      path   => '/usr/lib/ocf/resource.d/mirantis/neutron-agent-dhcp',
+      mode   => 755,
+      owner  => root,
+      group  => root,
       source => "puppet:///modules/neutron/ocf/neutron-agent-dhcp",
     }
 
