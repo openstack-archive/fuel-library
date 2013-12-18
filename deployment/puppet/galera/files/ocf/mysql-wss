@@ -761,9 +761,22 @@ rebuild_cluster() {
                 #  - first of all, more complex logic does not bring more precise knowledge of which node
                 #    should be a master, because it related to such property as an epoch and user may simply
                 #    decide to not start node which was online during entire disaster holding "bad" data.
-                #  - five minutes are enough for man who turns servers in the rack and for crm to push significant
-                #    percentage of the epoch values to the shared resource and not too large for such type of disaster at all.
-                sleep 300
+		#  - sleeping until majority of quorum is up to continue or just try to rebuild cluster after five
+		#    minutes a bit less conditionally
+		ocf_log info "Waiting up to 300 seconds before trying to assemble the cluster..."
+		for i in $(seq 1 60); do
+			crm status | grep -q 'partition with quorum'
+			if [ $? -eq 0 ]; then
+				break
+			else
+				if [ $((i % 30)) -eq 0 ]; then
+					ocf_log info "Galera still waiting for Corosync quorum..."
+				fi
+				sleep 5
+			fi
+		done
+		# Allow recently joined nodes to fire up mysql process, 5 seconds from inside start() and 5 seconds for process itself
+		sleep 10
                 # Check if someone already decided to declare himself master...
                 RAISED_MASTER=$(crm_attribute -t crm_config --name mysqlmaster --query 2> /dev/null | awk -F\= '{print $4}')
                 # ... and if nobody did:
@@ -1092,7 +1105,7 @@ mysql_start() {
     fi
 
     ocf_log info "MySQL started"
-    sleep 10
+    sleep 5
     rebuild_cluster
     return $OCF_SUCCESS
 }
