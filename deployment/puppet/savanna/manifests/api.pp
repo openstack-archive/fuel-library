@@ -16,6 +16,10 @@ class savanna::api (
   $sql_connection       = 'mysql://savanna:savanna@localhost/savanna',
   $use_neutron          = false,
   $use_floating_ips     = true,
+  $debug                = false,
+  $use_syslog           = false,
+  $syslog_log_facility  = "LOCAL0",
+  $logdir               = '/var/log/savanna',
 ) inherits savanna::params {
 
   validate_string($keystone_password)
@@ -66,9 +70,58 @@ class savanna::api (
     'database/connection'                  : value => $sql_connection;
   }
 
+  if $use_syslog and !$debug =~ /(?i)(true|yes)/
+  {
+    savanna_config {
+      'DEFAULT/log_config_append'            : value => "/etc/savanna/logging.conf";
+      'DEFAULT/log_file'                     : ensure => absent;
+      'DEFAULT/use_syslog'                   : value => true;
+      'DEFAULT/use_stderr'                   : ensure => absent;
+      'DEFAULT/syslog_log_facility'          : value => $syslog_log_facility;
+    }
+
+    file {"savanna-logging.conf":
+      content => template('savanna/logging.conf.erb'),
+      path => "/etc/savanna/logging.conf",
+      require => File[$logdir],
+    }
+  }
+
+  else
+  {
+    savanna_config {
+      'DEFAULT/log_config'                   : ensure => absent;
+      'DEFAULT/use_syslog'                   : ensure => absent;
+      'DEFAULT/use_stderr'                   : ensure => absent;
+      'DEFAULT/syslog_log_facility'          : ensure => absent;
+      'DEFAULT/log_dir'                      : value => $log_dir;
+      'DEFAULT/logging_context_format_string':
+      value => '%(asctime)s.%(msecs)03d %(process)d %(levelname)s %(name)s [%(request_id)s %(user)s %(tenant)s] %(instance)s%(message)s';
+      'DEFAULT/logging_default_format_string':
+      value => '%(asctime)s %(levelname)s %(name)s [-] %(instance)s %(message)s';
+    }
+
+    file {"savanna-logging.conf":
+      content => template('savanna/logging.conf-nosyslog.erb'),
+      path => "/etc/savanna/logging.conf",
+      require => File[$logdir],
+    }
+  }
+
   nova_config {
     'DEFAULT/scheduler_driver'             : value => 'nova.scheduler.filter_scheduler.FilterScheduler';
     'DEFAULT/scheduler_default_filters'    : value => 'DifferentHostFilter,SameHostFilter';
+  }
+
+  file { $logdir:
+    ensure  => directory,
+    mode    => '0751',
+  }
+
+  file { "${logdir}/savanna-api.log":
+      ensure => present,
+      mode  => '0640',
+      require => [Package['savanna'], File[$logdir]],
   }
 
   Package['savanna'] -> Savanna_config<||> -> Service['savanna-api']

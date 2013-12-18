@@ -26,6 +26,9 @@ class savanna (
   $savanna_firewall_rule                = '201 savanna-api',
   $use_neutron                          = false,
   $use_floating_ips                     = false,
+
+  $use_syslog                           = false,
+  $debug                                = false,
 ) {
 
   $savanna_sql_connection               = "mysql://${savanna_db_user}:${savanna_db_password}@${savanna_db_host}/${savanna_db_name}"
@@ -54,6 +57,8 @@ class savanna (
     hdp_plugin_class                    => $savanna_hdp_plugin_class,
     sql_connection                      => $savanna_sql_connection,
     use_neutron                         => $use_neutron,
+    debug                               => $debug,
+    use_syslog                          => $use_syslog,
   }
 
   class { 'savanna::keystone::auth' :
