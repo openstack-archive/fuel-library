@@ -31,7 +31,7 @@ class neutron::agents::ovs (
       replace => "no",
       ensure  => "present",
       content => "manual",
-      mode    => 644,
+      mode    => '0644',
     } -> Package<| title=="$ovs_agent_package" |>
     if $service_provider != 'pacemaker' {
       Package<| title=="$ovs_agent_package" |> ->
@@ -69,10 +69,10 @@ class neutron::agents::ovs (
     # OCF script for pacemaker
     # and his dependences
     file {'neutron-ovs-agent-ocf':
-      path=>'/usr/lib/ocf/resource.d/mirantis/neutron-agent-ovs',
-      mode => 755,
-      owner => root,
-      group => root,
+      path   =>'/usr/lib/ocf/resource.d/mirantis/neutron-agent-ovs',
+      mode   => '0755',
+      owner  => root,
+      group  => root,
       source => "puppet:///modules/neutron/ocf/neutron-agent-ovs",
     }
     File['neutron-ovs-agent-ocf'] -> Cs_resource[$res_name]

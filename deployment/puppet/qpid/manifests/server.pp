@@ -40,16 +40,16 @@ class qpid::server(
     qpid_safe_package { $qpid::params::additional_packages : }
     #Disable routing because it creates duplicates. Need upstream fixes
 #    file { '/usr/local/bin/qpid-setup-routes.sh':
-#      ensure => present,
-#      owner => 'root',
-#      group => 'root',
-#      mode => 755,
+#      ensure  => present,
+#      owner   => 'root',
+#      group   => 'root',
+#      mode    => '0755',
 #      content => template('qpid/qpid-setup-routes.sh.erb'),
 #    }
 #
 #    exec { "propagate_qpid_routes":
-#      path    => "/usr/bin/:/bin:/usr/sbin",
-#      command => "bash /usr/local/bin/qpid-setup-routes.sh",
+#      path      => "/usr/bin/:/bin:/usr/sbin",
+#      command   => "bash /usr/local/bin/qpid-setup-routes.sh",
 #      subscribe => File['/usr/local/bin/qpid-setup-routes.sh'],
 #      logoutput => true,
 #    }
@@ -66,29 +66,29 @@ class qpid::server(
 
     file {'/var/lib/qpidd/qpidd.sasldb':
       ensure => present,
-      owner => 'qpidd',
-      group => 'qpidd',
-      mode => 600,
+      owner  => 'qpidd',
+      group  => 'qpidd',
+      mode   => '0600',
       before => File[$::qpid::params::config_file]
     }
   }
   file { $::qpid::params::config_file:
-    ensure => present,
-    owner => 'root',
-    group => 'root',
-    mode => 644,
+    ensure  => present,
+    owner   => 'root',
+    group   => 'root',
+    mode    => '0644',
     content => template('qpid/qpidd.conf.erb'),
     require => Package[$::qpid::params::package_name],
   }
 
   if $log_to_file != 'UNSET' {
     file { $log_to_file:
-      ensure => present,
-      owner => 'qpidd',
-      group => 'qpidd',
-      mode => 644,
+      ensure  => present,
+      owner   => 'qpidd',
+      group   => 'qpidd',
+      mode    => '0644',
       require => Package[$::qpid::params::package_name],
-      before => File[$::qpid::params::config_file],
+      before  => File[$::qpid::params::config_file],
     }
   }
     service { $::qpid::params::service_name:

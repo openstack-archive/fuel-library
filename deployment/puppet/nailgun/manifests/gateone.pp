@@ -44,9 +44,9 @@ class nailgun::gateone (
   
   file { "${venv}/gateone/settings/10server.conf":
     content => template("nailgun/gateone/10server.conf.erb"),
-    owner => 'root',
-    group => 'root',
-    mode => 0644,
+    owner   => 'root',
+    group   => 'root',
+    mode    => '0644',
     require => [
         Nailgun::Venv::Pip['gateone'],
     ],
@@ -54,16 +54,16 @@ class nailgun::gateone (
 
   file { "${venv}/gateone/settings/50terminal.conf":
     content => template("nailgun/gateone/50terminal.conf.erb"),
-    owner => 'root',
-    group => 'root',
-    mode => 0644,
+    owner   => 'root',
+    group   => 'root',
+    mode    => '0644',
     require => [
         Nailgun::Venv::Pip['gateone'],
     ],
   }
 
   file { "${venv}/gateone/applications/terminal/plugins/ssh/scripts/ssh_connect.py":
-    mode => 755,
+    mode => '0755',
     require => [
         Nailgun::Venv::Pip['gateone'],
     ],
@@ -82,7 +82,7 @@ class nailgun::gateone (
     require => [
         Nailgun::Venv::Pip['gateone'],
     ],
-    mode => 0755,
+    mode => '0755',
   }
 
   file { [ "${venv}/users/", "${venv}/users/ANONYMOUS/",
@@ -96,16 +96,16 @@ class nailgun::gateone (
 
   file { "${venv}/users/ANONYMOUS/.ssh/config":
     content => template("nailgun/gateone/config.erb"),
-    owner => 'root',
-    group => 'root',
-    mode => 0644,
+    owner   => 'root',
+    group   => 'root',
+    mode    => '0644',
   } 
 
   file { "${venv}/users/ANONYMOUS/.ssh/.default_ids":
     content => template("nailgun/gateone/default_ids.erb"),
-    owner => 'root',
-    group => 'root',
-    mode => 0644,
+    owner   => 'root',
+    group   => 'root',
+    mode    => '0644',
   } -> 
 
   exec { "create_gateone_key":

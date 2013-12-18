@@ -145,7 +145,7 @@ class keystone(
     ensure  => directory,
     owner   => 'keystone',
     group   => 'keystone',
-    mode    => 0755,
+    mode    => '0755',
     notify  => Service['keystone'],
   }
   if $::operatingsystem == 'Ubuntu' {
@@ -153,7 +153,7 @@ class keystone(
       file { '/etc/init/keystone.override':
         ensure  => present,
         content => "manual",
-        mode    => 644,
+        mode    => '0644',
         replace => "no",
         owner   => 'root',
         group   => 'root',

@@ -29,12 +29,12 @@ Cs_property<||>->Cs_shadow<||>
 Cs_property['no-quorum-policy']->Cs_property['stonith-enabled']->Cs_property['start-failure-is-fatal']
 
 file {'filter_quantum_ports.py':
-  path=>'/usr/bin/filter_quantum_ports.py',
-  mode => 744,
+  path   =>'/usr/bin/filter_quantum_ports.py',
+  mode   => '0744',
   #require =>[Package['corosync'],File['/root/openrc']],
   #require =>Package['corosync'],
-  owner => root,
-  group => root,
+  owner  => root,
+  group  => root,
   source => "puppet:///modules/openstack/filter_quantum_ports.py",
 }
 

@@ -46,7 +46,7 @@ class squid {
 
     file { "cache_dir":
         path   => "${squid::params::cache_dir}",
-        mode   => "755",
+        mode   => '0755',
         owner  => "${squid::params::processuser}",
         group  => "${squid::params::configfile_group}",
         ensure => directory,
@@ -54,7 +54,7 @@ class squid {
 
     file { "cache_log_dir":
         path   => "${squid::params::cache_log_dir}",
-        mode   => "640",
+        mode   => '0640',
         owner  => "${squid::params::processuser}",
         group  => "${squid::params::processuser}",
         ensure => directory,

@@ -57,7 +57,7 @@ define swift::storage::server(
     owner   => $owner,
     group   => $group,
     notify  => Service["swift-${type}", "swift-${type}-replicator"],
-    mode    => 640,
+    mode    => '0640',
   }
 
   $required_middlewares = split(

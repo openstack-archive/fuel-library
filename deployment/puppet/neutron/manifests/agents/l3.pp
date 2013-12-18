@@ -27,9 +27,9 @@ class neutron::agents::l3 (
   if $::operatingsystem == 'Ubuntu' {
     file { '/etc/init/neutron-l3-agent.override':
       replace => 'no',
-      ensure => 'present',
+      ensure  => 'present',
       content => 'manual',
-      mode => 644,
+      mode    => '0644',
     } -> Package<| title == "$l3_agent_package" |>
     if $service_provider != 'pacemaker' {
        Package<| title == "$l3_agent_package" |> ->
@@ -94,10 +94,10 @@ class neutron::agents::l3 (
     # OCF script for pacemaker
     # and his dependences
     file {'neutron-l3-agent-ocf':
-      path=>'/usr/lib/ocf/resource.d/mirantis/neutron-agent-l3',
-      mode => 755,
-      owner => root,
-      group => root,
+      path   =>'/usr/lib/ocf/resource.d/mirantis/neutron-agent-l3',
+      mode   => '0755',
+      owner  => root,
+      group  => root,
       source => "puppet:///modules/neutron/ocf/neutron-agent-l3",
     }
 

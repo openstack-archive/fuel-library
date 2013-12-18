@@ -31,7 +31,7 @@ class neutron::server (
       replace => 'no',
       ensure  => 'present',
       content => 'manual',
-      mode    => 644,
+      mode    => '0644',
     } -> Package["$server_package"]
     if $service_provider != 'pacemaker' {
       Package["$server_package"] ->
