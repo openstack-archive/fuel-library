@@ -109,6 +109,7 @@ $syslog_log_facility_cinder   = 'LOG_LOCAL3'
 $syslog_log_facility_neutron  = 'LOG_LOCAL4'
 $syslog_log_facility_nova     = 'LOG_LOCAL6'
 $syslog_log_facility_keystone = 'LOG_LOCAL7'
+$syslog_log_facility_savanna  = 'LOG_LOCAL0'
 
 
 $nova_rate_limits = {
@@ -191,6 +192,7 @@ class os_common {
       # should be true, if client is running at virtual node
       virtual        => str2bool($::is_virtual),
       # facilities
+      syslog_log_facility_savanna  => $syslog_log_facility_savanna,
       syslog_log_facility_glance   => $syslog_log_facility_glance,
       syslog_log_facility_cinder   => $syslog_log_facility_cinder,
       syslog_log_facility_neutron  => $syslog_log_facility_neutron,
