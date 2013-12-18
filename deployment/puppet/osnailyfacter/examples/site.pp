@@ -1,5 +1,7 @@
 $fuel_settings = parseyaml($astute_settings_yaml)
 
+notify { 'Test Comment' :}
+
 $openstack_version = {
   'keystone'   => 'latest',
   'glance'     => 'latest',
