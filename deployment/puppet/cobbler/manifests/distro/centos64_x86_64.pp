@@ -33,7 +33,7 @@ class cobbler::distro::centos64_x86_64(
   $ks_url   = 'http://download.mirantis.com/epel-fuel-grizzly-3.1'
   ) {
 
-  Exec {path => '/usr/bin:/bin:/usr/sbin:/sbin'}
+  Exec {path => [ '/bin', '/usr/bin', '/usr/local/bin', '/sbin', '/usr/sbin', '/usr/local/sbin' ]}
 
   case $::operatingsystem {
     /(?i)(centos|redhat)/:  {

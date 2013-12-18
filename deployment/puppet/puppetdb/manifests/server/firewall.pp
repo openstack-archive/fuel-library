@@ -1,7 +1,7 @@
 class puppetdb::server::firewall()
 inherits puppetdb::params {
   
-  Exec {path => '/usr/bin:/bin:/usr/sbin:/sbin'}
+  Exec {path => [ '/bin', '/usr/bin', '/usr/local/bin', '/sbin', '/usr/sbin', '/usr/local/sbin' ]}
   
   define access_to_puppet_port($port, $protocol='tcp') {
     $rule = "-p $protocol -m state --state NEW -m $protocol --dport $port -j ACCEPT"

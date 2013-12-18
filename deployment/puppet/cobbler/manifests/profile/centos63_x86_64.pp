@@ -58,7 +58,7 @@ class cobbler::profile::centos63_x86_64(
   $kopts = "",
   ) {
 
-  Exec {path => '/usr/bin:/bin:/usr/sbin:/sbin'}
+  Exec {path => [ '/bin', '/usr/bin', '/usr/local/bin', '/sbin', '/usr/sbin', '/usr/local/sbin' ]}
 
   case $operatingsystem {
     /(?i)(ubuntu|debian|centos|redhat)$/:  {

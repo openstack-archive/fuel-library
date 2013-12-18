@@ -29,9 +29,7 @@ define selinux::boolean (
   $ensure = 'undef'
 ) {
 
-  Exec {
-    path => '/bin:/sbin:/usr/bin:/usr/sbin',
-  }
+  Exec {path => [ '/bin', '/usr/bin', '/usr/local/bin', '/sbin', '/usr/sbin', '/usr/local/sbin' ]}
 
   case $ensure {
     on, true: {

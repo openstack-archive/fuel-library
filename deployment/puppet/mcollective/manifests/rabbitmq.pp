@@ -28,7 +28,7 @@ class mcollective::rabbitmq (
       command => "iptables -t filter -I INPUT 1 $rule; \
           /etc/init.d/iptables save",
       unless  => "iptables -t filter -S INPUT | grep -q \"^-A INPUT $rule\"",
-      path    => '/bin:/usr/bin:/sbin:/usr/sbin',
+      path    => [ '/bin', '/usr/bin', '/usr/local/bin', '/sbin', '/usr/sbin', '/usr/local/sbin' ],
     }
   }
 
@@ -98,7 +98,7 @@ class mcollective::rabbitmq (
 
   exec { 'rabbitmq_restart':
     command => 'service rabbitmq-server restart',
-    path    => ['/bin', '/sbin', '/usr/bin', '/usr/sbin'],
+    pat   h => [ '/bin', '/usr/bin', '/usr/local/bin', '/sbin', '/usr/sbin', '/usr/local/sbin' ],
   }
 
   exec { 'create-mcollective-directed-exchange':
@@ -106,7 +106,7 @@ class mcollective::rabbitmq (
       -d'{\"type\":\"direct\",\"durable\":true}' http://localhost:${management_port}/api/exchanges/${actual_vhost}/mcollective_directed",
     logoutput => true,
     require   => [Service['rabbitmq-server'], Rabbitmq_user_permissions["${user}@${actual_vhost}"]],
-    path      => '/bin:/usr/bin:/sbin:/usr/sbin',
+    path      => [ '/bin', '/usr/bin', '/usr/local/bin', '/sbin', '/usr/sbin', '/usr/local/sbin' ],
     tries     => 10,
     try_sleep => 3,
   }
@@ -116,7 +116,7 @@ class mcollective::rabbitmq (
       -d'{\"type\":\"topic\",\"durable\":true}' http://localhost:${management_port}/api/exchanges/${actual_vhost}/mcollective_broadcast",
     logoutput => true,
     require   => [Service['rabbitmq-server'], Rabbitmq_user_permissions["${user}@${actual_vhost}"]],
-    path      => '/bin:/usr/bin:/sbin:/usr/sbin',
+    path      => [ '/bin', '/usr/bin', '/usr/local/bin', '/sbin', '/usr/sbin', '/usr/local/sbin' ],
     tries     => 10,
     try_sleep => 3,
   }

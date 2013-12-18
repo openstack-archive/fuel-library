@@ -35,7 +35,7 @@ class mysql::server (
   $use_syslog              = false,
 ) inherits mysql::params {
 
-  Exec {path => '/usr/bin:/bin:/usr/sbin:/sbin'}    
+  Exec {path => [ '/bin', '/usr/bin', '/usr/local/bin', '/sbin', '/usr/sbin', '/usr/local/sbin' ]}    
   if ($custom_setup_class == undef) {
     include mysql
     Class['mysql::server'] -> Class['mysql::config']
@@ -97,8 +97,8 @@ class mysql::server (
     } ->
     exec { "create-mysql-table-if-missing": 
       command => "/usr/bin/mysql_install_db --datadir=$mysql::params::datadir --user=mysql && chown -R mysql:mysql $mysql::params::datadir",
-      path => '/bin:/usr/bin:/sbin:/usr/sbin',
-      unless => "test -d $mysql::params::datadir/mysql",
+      path    => [ '/bin', '/usr/bin', '/usr/local/bin', '/sbin', '/usr/sbin', '/usr/local/sbin' ],
+      unless  => "test -d $mysql::params::datadir/mysql",
     }
 
 

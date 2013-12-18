@@ -18,7 +18,7 @@ class cobbler::distro::ubuntu_1204_x86_64(
   $ks_url   = 'http://us.archive.ubuntu.com/ubuntu',
   ){
 
-  Exec {path => '/usr/bin:/bin:/usr/sbin:/sbin'}
+  Exec {path => [ '/bin', '/usr/bin', '/usr/local/bin', '/sbin', '/usr/sbin', '/usr/local/sbin' ]}
 
   case $::operatingsystem {
     /(?i)(centos|redhat)/:  {

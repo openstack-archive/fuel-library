@@ -36,7 +36,7 @@ class neutron::agents::ovs (
     if $service_provider != 'pacemaker' {
       Package<| title=="$ovs_agent_package" |> ->
       exec { 'rm-neutron-plugin-override':
-        path      => '/sbin:/bin:/usr/bin:/usr/sbin',
+        path      => [ '/bin', '/usr/bin', '/usr/local/bin', '/sbin', '/usr/sbin', '/usr/local/sbin' ],
         command   => "rm -f /etc/init/neutron-plugin-openvswitch-agent.override",
       }
     }
@@ -69,10 +69,10 @@ class neutron::agents::ovs (
     # OCF script for pacemaker
     # and his dependences
     file {'neutron-ovs-agent-ocf':
-      path=>'/usr/lib/ocf/resource.d/mirantis/neutron-agent-ovs',
-      mode => 755,
-      owner => root,
-      group => root,
+      path   => '/usr/lib/ocf/resource.d/mirantis/neutron-agent-ovs',
+      mode   => 755,
+      owner  => root,
+      group  => root,
       source => "puppet:///modules/neutron/ocf/neutron-agent-ovs",
     }
     File['neutron-ovs-agent-ocf'] -> Cs_resource[$res_name]

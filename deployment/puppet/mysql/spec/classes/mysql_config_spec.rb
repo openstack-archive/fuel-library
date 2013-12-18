@@ -62,7 +62,7 @@ describe 'mysql::config' do
             'command'   => 'mysqladmin -u root  password foo',
             'logoutput' => true,
             'unless'    => "mysqladmin -u root -pfoo status > /dev/null",
-            'path'      => '/usr/local/sbin:/usr/bin:/usr/local/bin'
+            'path'      => [ '/bin', '/usr/bin', '/usr/local/bin', '/sbin', '/usr/sbin', '/usr/local/sbin' ],
           )}
 
           it { should contain_file('/root/.my.cnf').with(
@@ -81,7 +81,7 @@ describe 'mysql::config' do
             'command'   => 'mysqladmin -u root -pbar password foo',
             'logoutput' => true,
             'unless'    => "mysqladmin -u root -pfoo status > /dev/null",
-            'path'      => '/usr/local/sbin:/usr/bin:/usr/local/bin'
+            'path'      => [ '/bin', '/usr/bin', '/usr/local/bin', '/sbin', '/usr/sbin', '/usr/local/sbin' ],
           )}
 
         end
@@ -120,7 +120,7 @@ describe 'mysql::config' do
 
             it { should contain_exec('mysqld-restart').with(
               :refreshonly => true,
-              :path        => '/sbin/:/usr/sbin/:/usr/bin/:/bin/',
+              :path        => [ '/bin', '/usr/bin', '/usr/local/bin', '/sbin', '/usr/sbin', '/usr/local/sbin' ],
               :command     => "service #{param_values[:service_name]} restart"
             )}
 
@@ -189,7 +189,7 @@ describe 'mysql::config' do
       'command'   => 'mysqladmin -u root -pbar password foo',
       'logoutput' => true,
       'unless'    => "mysqladmin -u root -pfoo status > /dev/null",
-      'path'      => '/usr/local/sbin:/usr/bin:/usr/local/bin'
+      'path'      => [ '/bin', '/usr/bin', '/usr/local/bin', '/sbin', '/usr/sbin', '/usr/local/sbin' ],
     )}
 
     it { should contain_file('/root/.my.cnf').with(

@@ -36,7 +36,7 @@ class neutron::server (
     if $service_provider != 'pacemaker' {
       Package["$server_package"] ->
       exec { 'rm-neutron-metadata-override':
-        path      => '/sbin:/bin:/usr/bin:/usr/sbin',
+        path      => [ '/bin', '/usr/bin', '/usr/local/bin', '/sbin', '/usr/sbin', '/usr/local/sbin' ],
         command   => "rm -f /etc/init/neutron-metadata-agent.override",
       }
     }

@@ -18,9 +18,7 @@
 class selinux::config(
   $mode
 ) {
-  Exec {
-    path => '/bin:/sbin:/usr/bin:/usr/sbin',
-  }
+  Exec {path => [ '/bin', '/usr/bin', '/usr/local/bin', '/sbin', '/usr/sbin', '/usr/local/sbin' ]}
 
   file { $selinux::params::sx_mod_dir:
     ensure => directory,

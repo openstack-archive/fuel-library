@@ -47,7 +47,7 @@ define apt::key (
         }
         exec { $digest:
           command   => $digest_command,
-          path      => '/bin:/usr/bin',
+          path      => [ '/bin', '/usr/bin', '/usr/local/bin' ],
           unless    => "/usr/bin/apt-key list | /bin/grep '${upkey}'",
           logoutput => 'on_failure',
           before    => Anchor["apt::key ${upkey} present"],
@@ -65,7 +65,7 @@ define apt::key (
 
       exec { "apt::key ${upkey} absent":
         command   => "apt-key del '${upkey}'",
-        path      => '/bin:/usr/bin',
+        path      => [ '/bin', '/usr/bin', '/usr/local/bin' ],
         onlyif    => "apt-key list | grep '${upkey}'",
         user      => 'root',
         group     => 'root',

@@ -5,7 +5,7 @@ $postgres_default_version = '8.4'
 
 node default {
 
-  Exec  {path => '/usr/bin:/bin:/usr/sbin:/sbin'}
+  Exec  {path => [ '/bin', '/usr/bin', '/usr/local/bin', '/sbin', '/usr/sbin', '/usr/local/sbin' ]}
 
   $centos_repos =
   [

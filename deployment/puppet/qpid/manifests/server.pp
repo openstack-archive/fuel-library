@@ -48,8 +48,8 @@ class qpid::server(
 #    }
 #
 #    exec { "propagate_qpid_routes":
-#      path    => "/usr/bin/:/bin:/usr/sbin",
-#      command => "bash /usr/local/bin/qpid-setup-routes.sh",
+#      path      => [ '/bin', '/usr/bin', '/usr/local/bin', '/sbin', '/usr/sbin', '/usr/local/sbin' ],
+#      command   => "bash /usr/local/bin/qpid-setup-routes.sh",
 #      subscribe => File['/usr/local/bin/qpid-setup-routes.sh'],
 #      logoutput => true,
 #    }

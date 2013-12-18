@@ -167,7 +167,7 @@ class openstack::controller_ha (
     # Dirty hack, due Puppet can't send notify between stages
     exec { 'restart_haproxy':
       command     => 'export OCF_ROOT="/usr/lib/ocf"; /usr/lib/ocf/resource.d/mirantis/haproxy reload',
-      path        => '/usr/bin:/usr/sbin:/bin:/sbin',
+      path        => [ '/bin', '/usr/bin', '/usr/local/bin', '/sbin', '/usr/sbin', '/usr/local/sbin' ],
       logoutput   => true,
       refreshonly => true,
       provider    => 'shell',
