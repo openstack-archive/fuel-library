@@ -1,0 +1,6 @@
+# managed by puppet
+
+<%= @syslog_log_facility_savanna %>.* -/var/log/savanna-all.log
+<%= @syslog_log_facility_savanna %>.* ~
+:syslogtag, contains, "savanna" -/var/log/savanna-all.log
+:syslogtag, contains, "savanna" ~
