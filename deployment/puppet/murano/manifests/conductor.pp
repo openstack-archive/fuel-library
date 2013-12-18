@@ -1,7 +1,9 @@
 # Installs & configure the murano conductor  service
 
 class murano::conductor (
-  $log_file                            = '/var/log/murano/conductor.log',
+  $log_file                            = '/var/log/murano/murano-conductor.log',
+  $use_syslog                          = 'True',
+  $syslog_log_facility                 = 'local6',
   $debug                               = 'True',
   $verbose                             = 'True',
   $data_dir                            = '/etc/murano',
@@ -41,8 +43,24 @@ class murano::conductor (
     $network_topology = 'nova'
   }
 
+  if $use_syslog {
+    murano_conductor_config {
+      'DEFAULT/use_syslog'          : value  => $use_syslog;
+      'DEFAULT/log_file'            : ensure => absent;
+      'DEFAULT/syslog_log_facility' : value  => $syslog_log_facility;
+      'DEFAULT/log_format'          : value  => 'murano-conductor [%(levelname)s] %(name)s: %(message)s';
+    }
+  }
+  else {
+    murano_conductor_config {
+      'DEFAULT/use_syslog'          : ensure => absent;
+      'DEFAULT/log_file'            : value  => $log_file;
+      'DEFAULT/syslog_log_facility' : ensure => absent;
+      'DEFAULT/log_format'          : ensure => absent;
+    }
+  }
+
   murano_conductor_config {
-    'DEFAULT/log_file'                 : value => $log_file;
     'DEFAULT/debug'                    : value => $debug;
     'DEFAULT/verbose'                  : value => $verbose;
     'DEFAULT/data_dir'                 : value => $data_dir;
