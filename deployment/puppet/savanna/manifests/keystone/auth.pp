@@ -19,16 +19,16 @@ class savanna::keystone::auth (
 
   keystone_service { $auth_name:
     ensure      => present,
-    type        => 'orchestration',
+    type        => 'mapreduce',
     description => 'Openstack_Savanna_Service',
   }
 
   keystone_endpoint { $auth_name:
     ensure       => present,
     region       => $region,
-    public_url   => "http://${public_address}:${savanna_port}/v1/%(tenant_id)s",
-    internal_url => "http://${internal_address}:${savanna_port}/v1/%(tenant_id)s",
-    admin_url    => "http://${admin_address}:${savanna_port}/v1/%(tenant_id)s",
+    public_url   => "http://${public_address}:${savanna_port}/v1.1/%(tenant_id)s",
+    internal_url => "http://${internal_address}:${savanna_port}/v1.1/%(tenant_id)s",
+    admin_url    => "http://${admin_address}:${savanna_port}/v1.1/%(tenant_id)s",
   }
 
   keystone_user_role { "${auth_name}@${tenant}":
