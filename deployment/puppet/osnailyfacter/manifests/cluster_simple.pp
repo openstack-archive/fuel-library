@@ -263,18 +263,24 @@ class osnailyfacter::cluster_simple {
 
       if $savanna_hash['enabled'] {
         class { 'savanna' :
-          savanna_api_host          => $controller_node_address,
+          savanna_api_host            => $controller_node_address,
 
-          savanna_db_password       => $savanna_hash['db_password'],
-          savanna_db_host           => $controller_node_address,
+          savanna_db_password         => $savanna_hash['db_password'],
+          savanna_db_host             => $controller_node_address,
 
-          savanna_keystone_host     => $controller_node_address,
-          savanna_keystone_user     => 'savanna',
-          savanna_keystone_password => $savanna_hash['user_password'],
-          savanna_keystone_tenant   => 'services',
+          savanna_keystone_host       => $controller_node_address,
+          savanna_keystone_user       => 'savanna',
+          savanna_keystone_password   => $savanna_hash['user_password'],
+          savanna_keystone_tenant     => 'services',
 
-          use_neutron               => $::use_quantum,
-          use_floating_ips          => $::fuel_settings['auto_assign_floating_ip'],
+          use_neutron                 => $::use_quantum,
+          use_floating_ips            => $::fuel_settings['auto_assign_floating_ip'],
+
+          syslog_log_facility_savanna => $syslog_log_facility_savanna,
+          syslog_log_level            => $syslog_log_level,
+          debug                       => $debug ? { 'true' => true, true => true, default => false },
+          verbose                     => $verbose ? { 'true' => true, true => true, default => false },
+          use_syslog                  => $::fuel_settings['use_syslog'] ? { 'false'=>false, false=>false, default=>true },
         }
       }
       #FIXME: Disable heat for Red Hat OpenStack 3.0
