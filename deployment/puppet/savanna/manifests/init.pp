@@ -54,7 +54,6 @@ class savanna (
     hdp_plugin_class                    => $savanna_hdp_plugin_class,
     sql_connection                      => $savanna_sql_connection,
     use_neutron                         => $use_neutron,
-    use_floating_ips                    => $use_floating_ips,
   }
 
   class { 'savanna::keystone::auth' :
