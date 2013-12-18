@@ -3,7 +3,7 @@ $rh_username, $rh_password, $rh_base_channels, $rh_openstack_channel,
 $use_satellite = false, $sat_hostname = "", $activation_key = "",
 $sat_base_channels, $sat_openstack_channel, $numtries = 10)  {
 
-  Exec  {path => '/usr/bin:/bin:/usr/sbin:/sbin'}
+  Exec  {path => [ '/bin', '/usr/bin', '/usr/local/bin', '/sbin', '/usr/sbin', '/usr/local/sbin' ]}
   $redhat_management_type = $use_satellite ? {
     "true"              => "site",
     "false"             => "cert",

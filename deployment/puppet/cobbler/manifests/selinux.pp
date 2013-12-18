@@ -16,7 +16,7 @@
 class cobbler::selinux {
   if ($::selinux != 'false') {
 
-  	  Exec {path => '/usr/bin:/bin:/usr/sbin:/sbin'}
+  	  Exec {path => [ '/bin', '/usr/bin', '/usr/local/bin', '/sbin', '/usr/sbin', '/usr/local/sbin' ]}
 
   	  exec { "cobbler_disable_selinux":
   	    command => "setenforce 0",

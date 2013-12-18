@@ -87,7 +87,7 @@ class mysql::config(
     command     => "service ${service_name} restart",
     logoutput   => on_failure,
     refreshonly => true,
-    path        => '/sbin/:/usr/sbin/:/usr/bin/:/bin/',
+    path        => [ '/bin', '/usr/bin', '/usr/local/bin', '/sbin', '/usr/sbin', '/usr/local/sbin' ],
   }
 
   # manage root password if it is set
@@ -101,7 +101,7 @@ class mysql::config(
       command   => "mysqladmin -u root ${old_pw} password ${root_password}",
       logoutput => true,
       unless    => "mysqladmin -u root -p${root_password} status > /dev/null",
-      path      => '/usr/local/sbin:/usr/bin:/usr/local/bin',
+      path      => [ '/bin', '/usr/bin', '/usr/local/bin', '/sbin', '/usr/sbin', '/usr/local/sbin' ],
       notify    => Exec['mysqld-restart'],
       require   => File['/etc/mysql/conf.d'],
     }

@@ -38,7 +38,7 @@ class galera::galera_master_final_config ($primary_controller, $node_addresses, 
     $mysql_password = $::galera::params::mysql_password
 
     exec { "first-galera-node-final-config":
-      path      => "/usr/bin:/usr/sbin:/bin:/sbin",
+      path      => [ '/bin', '/usr/bin', '/usr/local/bin', '/sbin', '/usr/sbin', '/usr/local/sbin' ],
       command   => "sed -i 's/wsrep_cluster_address=\"gcomm:\\/\\/\"\$/wsrep_cluster_address=\"gcomm:\\/\\/${galera_gcomm_string}\"/' /etc/mysql/conf.d/wsrep.cnf; sleep 15",
       onlyif    => "sleep 15; mysql -u${mysql_user} -p${mysql_password} -e \"${check_galera}\" && (mysql -u${mysql_user} -p${mysql_password} -e \"${check_galera}\" | awk '\$1 == \"wsrep_cluster_size\" {print \$2}' | awk '{if (\$0 > 1) exit 0; else exit 1}')",
       logoutput => true,

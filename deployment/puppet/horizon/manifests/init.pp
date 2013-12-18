@@ -203,7 +203,7 @@ class horizon(
       Package['dashboard'] ~> Exec['horizon_compress_styles']
       Package[$::horizon::params::horizon_additional_packages] -> Exec['horizon_compress_styles']
       exec { 'horizon_compress_styles':
-        path    => '/bin:/usr/bin:/sbin:/usr/sbin',
+        path    => [ '/bin', '/usr/bin', '/usr/local/bin' ]
         cwd     => '/usr/share/openstack-dashboard',
         command => 'python manage.py compress',
         refreshonly => true

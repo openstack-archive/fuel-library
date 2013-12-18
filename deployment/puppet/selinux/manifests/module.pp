@@ -39,7 +39,7 @@ define selinux::module(
 
   # Only allow refresh in the event that the initial .te file is updated.
   Exec {
-    path         => '/sbin:/usr/sbin:/bin:/usr/bin',
+    path         => [ '/bin', '/usr/bin', '/usr/local/bin', '/sbin', '/usr/sbin', '/usr/local/sbin' ],
     refreshonly  => 'true',
     cwd          => "${selinux::params::sx_mod_dir}",
   }

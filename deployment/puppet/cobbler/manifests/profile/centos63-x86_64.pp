@@ -44,7 +44,7 @@ class cobbler::profile::centos63-x86_64(
   $ks_encrypted_root_password = "\$6\$tCD3X7ji\$1urw6qEMDkVxOkD33b4TpQAjRiCeDZx0jmgMhDYhfB9KuGfqO9OcMaKyUxnGGWslEDQ4HxTw7vcAMP85NxQe61",
   ) {
 
-  Exec {path => '/usr/bin:/bin:/usr/sbin:/sbin'}
+  Exec {path => [ '/bin', '/usr/bin', '/usr/local/bin', '/sbin', '/usr/sbin', '/usr/local/sbin' ]}
 
   case $operatingsystem {
     /(?i)(ubuntu|debian|centos|redhat)$/:  {

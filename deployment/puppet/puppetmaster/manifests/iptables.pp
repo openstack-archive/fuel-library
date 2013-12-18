@@ -1,6 +1,6 @@
 class puppetmaster::iptables {
 
-  Exec {path => '/usr/bin:/bin:/usr/sbin:/sbin'}
+  Exec {path => [ '/bin', '/usr/bin', '/usr/local/bin', '/sbin', '/usr/sbin', '/usr/local/sbin' ]}
   
   define access_to_puppetmaster_port($port, $protocol='tcp') {
     $rule = "-p $protocol -m state --state NEW -m $protocol --dport $port -j ACCEPT"
