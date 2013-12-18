@@ -33,6 +33,7 @@ class openstack::logging (
     $proto          = 'udp',
     $show_timezone  = false,
     $virtual        = false,
+    $syslog_log_facility_savanna  = 'LOG_LOCAL0',
     $syslog_log_facility_glance   = 'LOCAL2',
     $syslog_log_facility_cinder   = 'LOCAL3',
     $syslog_log_facility_neutron  = 'LOCAL4',
