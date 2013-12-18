@@ -1,4 +1,6 @@
 class murano::api (
+    $use_syslog                     = 'True',
+    $syslog_log_facility            = 'local0',
     $verbose                        = 'True',
     $debug                          = 'True',
     $api_paste_inipipeline          = 'authtoken context apiv1app',
@@ -50,6 +52,23 @@ class murano::api (
     enable     => true,
     hasstatus  => true,
     hasrestart => true,
+  }
+
+  if $use_syslog {
+    murano_api_config {
+      'DEFAULT/use_syslog'           : value => $use_syslog;
+      'DEFAULT/syslog_log_facility'  : value => $syslog_log_facility;
+      'DEFAULT/log_format'           : value => '%(asctime)s.%(msecs)06d+00:00 murano-api %(levelname)s: %(name)s: %(message)s';
+      'DEFAULT/log_date_format'      : value => '%Y-%m-%dT%H:%M:%S';
+    }
+  }
+  else {
+    murano_api_config {
+      'DEFAULT/use_syslog'          : ensure => absent;
+      'DEFAULT/syslog_log_facility' : ensure => absent;
+      'DEFAULT/log_format'          : ensure => absent;
+      'DEFAULT/log_date_format'     : ensure => absent;
+    }
   }
 
   murano_api_config {
