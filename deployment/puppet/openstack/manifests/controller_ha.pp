@@ -236,7 +236,7 @@ class openstack::controller_ha (
     }
 
     if $ceilometer {
-      haproxy_service { 'ceilometer': order => 97, port => 8777, virtual_ips => [$public_virtual_ip, $internal_virtual_ip]  }
+      haproxy_service { 'ceilometer': order => 98, port => 8777, virtual_ips => [$public_virtual_ip, $internal_virtual_ip]  }
     }
 
     Haproxy_service<| |> ~> Exec['restart_haproxy']
