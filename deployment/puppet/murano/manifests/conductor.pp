@@ -4,7 +4,7 @@ class murano::conductor (
   $log_file                            = '/var/log/murano/conductor.log',
   $debug                               = 'True',
   $verbose                             = 'True',
-  $data_dir                            = '/etc/murano',
+  $data_dir                            = '/var/cache/murano',
   $max_environments                    = '20',
   $auth_url                            = 'http://127.0.0.1:5000/v2.0',
   $rabbit_host                         = '127.0.0.1',
@@ -45,11 +45,11 @@ class murano::conductor (
     'DEFAULT/log_file'                 : value => $log_file;
     'DEFAULT/debug'                    : value => $debug;
     'DEFAULT/verbose'                  : value => $verbose;
-    'DEFAULT/data_dir'                 : value => $data_dir;
+    'DEFAULT/data_dir'                 : value => "${data_dir}/muranoconductor-cache";
     'DEFAULT/max_environments'         : value => $max_environments;
     'DEFAULT/init_scripts_dir'         : value => $init_scripts_dir;
     'DEFAULT/agent_config_dir'         : value => $agent_config_dir;
-    'DEFAULT/anetwork_topology'        : value => $network_topology;
+    'DEFAULT/anetwork_topology'         : value => $network_topology;
     'keystone/auth_url'                : value => $auth_url;
     'rabbitmq/host'                    : value => $rabbit_host;
     'rabbitmq/port'                    : value => $rabbit_port;
@@ -63,3 +63,4 @@ class murano::conductor (
   Package['murano_conductor'] -> Murano_conductor_config<||> ~> Service['murano_conductor']
 
 }
+

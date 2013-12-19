@@ -20,6 +20,7 @@ class murano::repository (
     $repository_admin_user          = 'admin',
     $repository_admin_password      = 'swordfish',
     $repository_admin_tenant_name   = 'admin',
+    $repository_cache_dir           = '/var/cache/murano',
 ) {
 
   include murano::params
@@ -46,6 +47,7 @@ class murano::repository (
     'DEFAULT/heat'                : value => $repository_heat;
     'DEFAULT/agent'               : value => $repository_agent;
     'DEFAULT/scripts'             : value => $repository_scripts;
+    'DEFAULT/cache_dir'           : value => "${repository_cache_dir}/muranorepository-cache";
     'output/ui'                   : value => $repository_ui;
     'output/workflows'            : value => $repository_output_workflow;
     'output/heat'                 : value => $repository_output_heat;
@@ -64,3 +66,4 @@ class murano::repository (
   Package['murano_repository'] -> Service['murano_repository']
 
 }
+
