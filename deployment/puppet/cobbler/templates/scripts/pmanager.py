@@ -866,14 +866,20 @@ class PreseedPManager(object):
     def expose_late(self, gzip=False):
         result = ""
         for line, in_target in self.late():
-            result += "{0}{1};\\\n".format(
+            line_to_append = "{0}{1}".format(
                 ("in-target " if in_target else ""), line)
+            result += line_to_append + ";\\\n"
+            result += ("echo '{0}' | logger;\\\n"
+                       "".format(re.sub("'", "'\"'\"'", line_to_append)))
         return result.rstrip()
 
     def expose_early(self):
         result = ""
         for line in self.early():
-            result += "{0};\\\n".format(line)
+            line_to_append = "{0}".format(line)
+            result += line_to_append + ";\\\n"
+            result += ("echo '{0}' | logger;\\\n"
+                       "".format(re.sub("'", "'\"'\"'", line_to_append)))
         return result.rstrip()
 
     def expose_disks(self):
