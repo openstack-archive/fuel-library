@@ -110,7 +110,7 @@ $syslog_log_facility_cinder   = 'LOCAL3'
 $syslog_log_facility_neutron  = 'LOCAL4'
 $syslog_log_facility_nova     = 'LOCAL6'
 $syslog_log_facility_keystone = 'LOCAL7'
-
+$syslog_log_facility_heat     = 'local0'
 
 $nova_rate_limits = {
   'POST' => 1000,
@@ -197,6 +197,7 @@ class os_common {
       syslog_log_facility_neutron  => $syslog_log_facility_neutron,
       syslog_log_facility_nova     => $syslog_log_facility_nova,
       syslog_log_facility_keystone => $syslog_log_facility_keystone,
+      syslog_log_facility_heat     => $syslog_log_facility_heat,
       # Rabbit doesn't support syslog directly, should be >= syslog_log_level,
       # otherwise none rabbit's messages would have gone to syslog
       rabbit_log_level => $syslog_log_level,
