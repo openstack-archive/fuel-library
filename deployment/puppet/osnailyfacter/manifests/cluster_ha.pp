@@ -341,9 +341,11 @@ class osnailyfacter::cluster_ha {
         if $primary_proxy {
           ring_devices {'all': storages => $controllers }
         }
+        $ring_part_power=calc_ring_part_power($controllers)
         class { 'openstack::swift::proxy':
           swift_user_password     => $swift_hash[user_password],
           swift_proxies           => $controller_internal_addresses,
+          ring_part_power         => $ring_part_power,
           primary_proxy           => $primary_proxy,
           controller_node_address => $::fuel_settings['management_vip'],
           swift_local_net_ip      => $swift_local_net_ip,
