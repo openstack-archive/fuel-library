@@ -293,6 +293,8 @@ class osnailyfacter::cluster_simple {
 
           heat_db_host           => $controller_node_address,
           heat_db_password       => $heat_hash['db_password'],
+
+          use_syslog             => $::fuel_settings['use_syslog'],
         }
 
       if $murano_hash['enabled'] {

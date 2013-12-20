@@ -415,6 +415,8 @@ class osnailyfacter::cluster_ha {
 
           heat_db_host           => $controller_node_address,
           heat_db_password       => $heat_hash['db_password'],
+
+          use_syslog             => $::fuel_settings['use_syslog'],
         }
 
 
