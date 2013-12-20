@@ -35,6 +35,9 @@ class heat(
   $heat_rabbit_virtualhost       = '/',
   $heat_rabbit_port              = '5672',
   $heat_rabbit_queue_host        = 'heat',
+
+  $use_syslog                    = true,
+  $syslog_log_facility           = 'LOG_LOCAL0',
 ) {
 
   $heat_keystone_ec2_uri         = "${heat_keystone_protocol}://${heat_keystone_host}:${heat_keystone_port}/v2.0/ec2tokens"
@@ -78,6 +81,8 @@ class heat(
     api_cfn_bind_port              => $heat_api_cfn_bind_port,
     api_cloudwatch_bind_host       => $heat_api_cloudwatch_bind_host,
     api_cloudwatch_bind_port       => $heat_api_cloudwatch_bind_port,
+    use_syslog                     => $use_syslog,
+    syslog_log_facility            => $syslog_log_facility,
   }
 
   class { 'heat::client' :
