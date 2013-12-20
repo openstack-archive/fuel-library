@@ -8,8 +8,8 @@ class heat::install (
   $keystone_password             = false,
   $keystone_ec2_uri              = 'http://127.0.0.1:5000/v2.0/ec2tokens',
   $auth_uri                      = 'http://127.0.0.1:5000/v2.0',
-  $verbose                       = 'False',
-  $debug                         = 'False',
+  $verbose                       = false,
+  $debug                         = false,
   $rabbit_hosts                  = '',
   $rabbit_host                   = '127.0.0.1',
   $rabbit_userid                 = '',
@@ -19,14 +19,16 @@ class heat::install (
   $rabbit_port                   = '5672',
   $rabbit_queue_host             = 'heat',
   $log_file                      = '/var/log/heat/heat.log',
+  $log_dir                       = '/var/log/heat',
   $rpc_backend                   = 'heat.openstack.common.rpc.impl_kombu',
-  $use_stderr                    = 'False',
-  $use_syslog                    = 'False',
+  $use_stderr                    = false,
+  $use_syslog                    = false,
+  $syslog_log_facility           = 'local0',
+  $syslog_log_level              = 'WARNING',
   $heat_stack_user_role          = 'heat_stack_user',
   $heat_metadata_server_url      = 'http://127.0.0.1:8000',
   $heat_waitcondition_server_url = 'http://127.0.0.1:8000/v1/waitcondition',
   $heat_watch_server_url         = 'http://127.0.0.1:8003',
-  $rabbit_queue_host             = 'heat',
   $auth_encryption_key           = '%ENCRYPTION_KEY%',
   $db_backend                    = 'heat.db.sqlalchemy.api',
   $instance_connection_https_validate_certificates = '1',
@@ -37,12 +39,11 @@ class heat::install (
   $api_cfn_bind_port             = '8000',
   $api_cloudwatch_bind_host      = '0.0.0.0',
   $api_cloudwatch_bind_port      = '8003',
-
 ){
 
   include heat::params
 
- Package['heat-common'] -> Group['heat'] -> User['heat'] -> File['/etc/heat']
+  Package['heat-common'] -> Group['heat'] -> User['heat'] -> File['/etc/heat'] -> File[$log_file] -> File['heat-logging.conf']
 
   file { '/etc/heat/heat-engine.conf' :
     ensure => symlink,
@@ -102,6 +103,21 @@ class heat::install (
     heat_config { 'DEFAULT/rabbit_ha_queues': value => false }
   }
 
+  file { 'heat-logging.conf' :
+    content => template('heat/logging.conf.erb'),
+    path    => "/etc/heat/logging.conf",
+  }
+ 
+  file { $log_dir :
+    ensure  => directory,
+    mode    => '0751',
+  }
+ 
+  file { $log_file :
+    ensure => present,
+    mode  => '0640',
+  }
+
   heat_config {
     'DEFAULT/heat_stack_user_role'                            : value => $heat_stack_user_role;
     'DEFAULT/heat_metadata_server_url'                        : value => $heat_metadata_server_url;
@@ -115,6 +131,7 @@ class heat::install (
     'DEFAULT/rpc_backend'                                     : value => $rpc_backend;
     'DEFAULT/use_stderr'                                      : value => $use_stderr;
     'DEFAULT/use_syslog'                                      : value => $use_syslog;
+    'DEFAULT/syslog_log_facility'                             : value => $syslog_log_facility;
     'DEFAULT/rabbit_userid'                                   : value => $rabbit_userid;
     'DEFAULT/rabbit_password'                                 : value => $rabbit_password;
     'DEFAULT/rabbit_virtualhost'                              : value => $rabbit_virtualhost;
@@ -122,8 +139,8 @@ class heat::install (
     'DEFAULT/verbose'                                         : value => $verbose;
     'ec2authtoken/keystone_ec2_uri'                           : value => $keystone_ec2_uri;
     'ec2authtoken/auth_uri'                                   : value => $auth_uri;
-    'heat_api_cloudwatch/bind_host'                           : value => $api_clowdwatch_bind_host;
-    'heat_api_cloudwatch/bind_port'                           : value => $api_clowdwatch_bind_port;
+    'heat_api_cloudwatch/bind_host'                           : value => $api_cloudwatch_bind_host;
+    'heat_api_cloudwatch/bind_port'                           : value => $api_cloudwatch_bind_port;
     'heat_api/bind_host'                                      : value => $api_bind_host;
     'heat_api/bind_port'                                      : value => $api_bind_port;
     'heat_api_cfn/bind_host'                                  : value => $api_cfn_bind_host;

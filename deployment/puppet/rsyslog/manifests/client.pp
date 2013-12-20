@@ -19,6 +19,7 @@ class rsyslog::client (
   $syslog_log_facility_neutron  = 'LOCAL4',
   $syslog_log_facility_nova     = 'LOCAL6',
   $syslog_log_facility_keystone = 'LOCAL7',
+  $syslog_log_facility_heat     = 'LOG_USER',
   $log_level      = 'NOTICE',
   $debug          = false,
   ) inherits rsyslog {
@@ -134,6 +135,20 @@ if $virtual { include rsyslog::checksum_udp514 }
 # openstack syslog compatible mode, would work only for debug case.
 # because of its poor syslog debug messages quality, use local logs convertion
 if $debug =~ /(?i)(true|yes)/ {
+::rsyslog::imfile { "53-heat-engine_debug" :
+    file_name     => "/var/log/heat/engine.log",
+    file_tag      => "heat-engine",
+    file_facility => $syslog_log_facility_heat,
+    file_severity => "DEBUG",
+    notify  => Class["rsyslog::service"],
+}
+::rsyslog::imfile { "53-heat-api_debug" :
+    file_name     => "/var/log/heat/heat.log",
+    file_tag      => "heat-api",
+    file_facility => $syslog_log_facility_heat,
+    file_severity => "DEBUG",
+    notify  => Class["rsyslog::service"],
+}
 ::rsyslog::imfile { "10-nova-api_debug" :
     file_name     => "/var/log/nova/api.log",
     file_tag      => "nova-api",
@@ -263,6 +278,12 @@ if $debug =~ /(?i)(true|yes)/ {
     ensure => present,
     content => template("${module_name}/51-ceilometer.conf.erb"),
   }
+  
+  file { "${rsyslog::params::rsyslog_d}/53-heat.conf":
+    ensure => present,
+    content => template("${module_name}/53-heat.conf.erb"),
+  }
+  
 } #end if
 
   file { "${rsyslog::params::rsyslog_d}02-ha.conf":
