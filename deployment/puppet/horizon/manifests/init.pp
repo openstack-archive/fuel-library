@@ -29,7 +29,7 @@ class horizon(
   $cache_server_port     = '11211',
   $swift                 = false,
   $quantum               = false,
-  $package_ensure        = present,
+  $package_ensure	       = present,
   $horizon_app_links     = false,
   $keystone_host         = '127.0.0.1',
   $keystone_port         = 5000,
@@ -78,9 +78,9 @@ class horizon(
     mode    => '0644',
   }
 
-  exec { 'chown-dashboard':
-    command => "chown -R ${wsgi_user}:${wsgi_group} /usr/share/openstack-dashboard",
-    path    => [ '/bin', '/usr/bin', '/usr/local/bin' ],
+  file {'/usr/share/openstack-dashboard/':
+    recurse   => true,
+    subscribe => Package['dashboard']
   }
 
   case $use_ssl {
@@ -143,7 +143,7 @@ class horizon(
     owner   => $wsgi_user,
     group   => $wsgi_group,
   }
-  Package['dashboard'] -> File[$horizon::params::logdir]
+  Package["dashboard"] -> File[$horizon::params::logdir]
   File["${horizon::params::logdir}/horizon.log"] -> Service['httpd']
 
   file { $::horizon::params::vhosts_file:
@@ -174,9 +174,9 @@ class horizon(
     'RedHat': {
       package { $::horizon::params::horizon_additional_packages : ensure => present }
       file { '/etc/httpd/conf.d/wsgi.conf':
-        mode    => '0644',
-        owner   => root,
-        group   => root,
+        mode   => 644,
+        owner  => root,
+        group  => root,
         content => "LoadModule wsgi_module modules/mod_wsgi.so\n",
         require => Package[$::horizon::params::http_service,
                            $::horizon::params::http_modwsgi],
@@ -191,18 +191,21 @@ class horizon(
       }
 
       augeas { 'remove_listen_directive':
-        context => '/files/etc/httpd/conf/httpd.conf',
+        context => "/files/etc/httpd/conf/httpd.conf",
         changes => [
           "rm directive[. = 'Listen']"
         ],
         before  => Service['httpd'],
       }
 
-      Package['dashboard'] -> Exec['chown-dashboard'] -> Exec['horizon_compress_styles']
-      Package[$::horizon::params::horizon_additional_packages] -> Exec['chown-dashboard'] -> Exec['horizon_compress_styles']
+      #todo: may be need fix
+      Package['dashboard'] -> Exec['horizon_compress_styles']
+      Package['dashboard'] ~> Exec['horizon_compress_styles']
+      Package[$::horizon::params::horizon_additional_packages] -> Exec['horizon_compress_styles']
       exec { 'horizon_compress_styles':
-        path        => [ '/bin', '/usr/bin', '/usr/local/bin' ],
-        command     => "su - ${wsgi_user} -c 'cd /usr/share/openstack-dashboard && python manage.py compress'",
+        path    => '/bin:/usr/bin:/sbin:/usr/sbin',
+        cwd     => '/usr/share/openstack-dashboard',
+        command => 'python manage.py compress',
         refreshonly => true
       }
       Exec['horizon_compress_styles'] ~> Service['httpd']
