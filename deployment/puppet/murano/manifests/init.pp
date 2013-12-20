@@ -48,9 +48,25 @@ class murano (
   $use_neutron                          = true,
 ) {
 
-  Class['mysql::server'] -> Class['murano::db::mysql'] -> Class['murano::rabbitmq'] -> Class['murano::keystone'] -> Class['murano::common'] -> File[$murano_data_dir] -> Class['murano::conductor'] -> Class['murano::api'] -> Class['murano::metadataclient'] -> Class['murano::repository'] -> Class['murano::python_muranoclient'] -> Class['murano::dashboard'] -> Class['murano::cirros']
+  Class['mysql::server'] -> Class['murano::db::mysql'] -> Class['murano::rabbitmq'] -> Class['murano::keystone'] -> Class['murano::common'] -> Class['murano::conductor'] -> Class['murano::api'] -> Class['murano::metadataclient'] -> Class['murano::repository'] -> Class['murano::python_muranoclient'] -> Class['murano::dashboard'] -> Class['murano::cirros']
+
+  User['murano'] -> File[$murano_data_dir] -> Class['murano::conductor']
 
   $murano_keystone_auth_url = "${murano_keystone_protocol}://${murano_keystone_host}:${murano_keystone_port}/v2.0"
+
+  group { 'murano':
+    ensure => present,
+    system => true,
+  }
+
+  user { 'murano':
+    ensure  => present,
+    comment => 'Murano User',
+    gid     => 'murano',
+    system  => true,
+    shell   => $::osfamily ? {'RedHat' => '/sbin/nologin', 'Debian' => '/usr/sbin/nologin'},
+    require => Group['murano'],
+  }
 
   file { $murano_data_dir:
     ensure => 'directory',
