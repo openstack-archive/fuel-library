@@ -14,17 +14,33 @@ class Puppet::Provider::SwiftRingBuilder < Puppet::Provider
     if File.exists?(builder_file_path)
       if rows = swift_ring_builder(builder_file_path).split("\n")[4..-1]
         rows.each do |row|
-          if row =~ /^\s+(\d+)\s+(\d+)\s+(\d+)\s+(\S+)\s+(\d+)\s+(\S+)\s+(\d+)\s+(\S+)\s+(\d+\.\d+)\s+(\d+)?\s+\d?(-?\d+\.\d+)\s*(\S*)$/
-            object_hash["#{$4}:#{$5}"] = {
-              :id          => $1,
-              :region      => $2,
-              :zone        => $3,
-              :partitions  => $10,
-              :balance     => $11,
-              :meta        => $12,
-            }
+          #Workaround for Red Hat still running Grizzly
+          if Facter.value(:operatingsystem) == 'RedHat'
+            if row =~ /^\s+(\d+)\s+(\d+)\s+(\d+)\s+(\S+)\s+(\d+)\s+(\S+)\s+(\d+\.\d+)\s+(\d+)?\s+\d?(-?\d+\.\d+)\s+(\S*)$/
+              object_hash["#{$4}:#{$5}"] = {
+                :id          => $1,
+                :region      => $2,
+                :zone        => $3,
+                :partitions  => $8,
+                :balance     => $9,
+                :meta        => $10,
+              }
+            else
+              Puppet.warning("Unexpected line: #{row}")
+            end
           else
-            Puppet.warning("Unexpected line: #{row}")
+            if row =~ /^\s+(\d+)\s+(\d+)\s+(\d+)\s+(\S+)\s+(\d+)\s+(\S+)\s+(\d+)\s+(\S+)\s+(\d+\.\d+)\s+(\d+)?\s+\d?(-?\d+\.\d+)\s*(\S*)$/
+              object_hash["#{$4}:#{$5}"] = {
+                :id          => $1,
+                :region      => $2,
+                :zone        => $3,
+                :partitions  => $10,
+                :balance     => $11,
+                :meta        => $12,
+              }
+            else
+              Puppet.warning("Unexpected line: #{row}")
+            end
           end
         end
       end
@@ -90,7 +106,12 @@ class Puppet::Provider::SwiftRingBuilder < Puppet::Provider
   def used_devs
     if devs = swift_ring_builder(builder_file_path).split("\n")[4..-1]
       @used_devices = devs.collect do |line|
-        line.strip.split(/\s+/)[7] if line.match(/#{resource[:name].split(':')[0]}/)
+        #Workaround for Red Hat still running Grizzly
+        if Facter.value(:operatingsystem) == 'RedHat'
+          line.strip.split(/\s+/)[5] if line.match(/#{resource[:name].split(':')[0]}/)
+        else
+          line.strip.split(/\s+/)[7] if line.match(/#{resource[:name].split(':')[0]}/)
+        end
       end.compact.sort
     else
       []
