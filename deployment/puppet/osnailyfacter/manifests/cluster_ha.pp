@@ -341,7 +341,7 @@ class osnailyfacter::cluster_ha {
         if $primary_proxy {
           ring_devices {'all': storages => $controllers }
         }
- 
+
         if !$swift_hash['resize_value']
         {
           $swift_hash['resize_value'] = 2
@@ -408,24 +408,26 @@ class osnailyfacter::cluster_ha {
           use_floating_ips          => $::fuel_settings['auto_assign_floating_ip'],
         }
       }
-        class { 'heat' :
-          pacemaker              => true,
-          external_ip            => $controller_node_public,
+        #FIXME: Disable heat for Red Hat OpenStack 3.0
+        if ($::operatingsystem != 'RedHat') {
+          class { 'heat' :
+            pacemaker              => true,
+            external_ip            => $controller_node_public,
 
-          heat_keystone_host     => $controller_node_address,
-          heat_keystone_user     => 'heat',
-          heat_keystone_password => 'heat',
-          heat_keystone_tenant   => 'services',
+            heat_keystone_host     => $controller_node_address,
+            heat_keystone_user     => 'heat',
+            heat_keystone_password => 'heat',
+            heat_keystone_tenant   => 'services',
 
-          heat_rabbit_host       => $controller_node_address,
-          heat_rabbit_login      => $rabbit_hash['user'],
-          heat_rabbit_password   => $rabbit_hash['password'],
-          heat_rabbit_port       => '5672',
+            heat_rabbit_host       => $controller_node_address,
+            heat_rabbit_login      => $rabbit_hash['user'],
+            heat_rabbit_password   => $rabbit_hash['password'],
+            heat_rabbit_port       => '5672',
 
-          heat_db_host           => $controller_node_address,
-          heat_db_password       => $heat_hash['db_password'],
-        }
-
+            heat_db_host           => $controller_node_address,
+            heat_db_password       => $heat_hash['db_password'],
+          }
+      }
 
       if $murano_hash['enabled'] {
 
