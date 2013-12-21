@@ -277,6 +277,7 @@ class osnailyfacter::cluster_simple {
           use_floating_ips          => $::fuel_settings['auto_assign_floating_ip'],
         }
       }
+      if ($::operatingsystem != 'RedHat') {
         class { 'heat' :
           pacemaker              => false,
           external_ip            => $controller_node_public,
@@ -294,7 +295,7 @@ class osnailyfacter::cluster_simple {
           heat_db_host           => $controller_node_address,
           heat_db_password       => $heat_hash['db_password'],
         }
-
+      }
       if $murano_hash['enabled'] {
 
         class { 'murano' :

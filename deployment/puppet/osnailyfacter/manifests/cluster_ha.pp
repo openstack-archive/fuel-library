@@ -341,18 +341,9 @@ class osnailyfacter::cluster_ha {
         if $primary_proxy {
           ring_devices {'all': storages => $controllers }
         }
- 
-        if !$swift_hash['resize_value']
-        {
-          $swift_hash['resize_value'] = 2
-        }
-
-        $ring_part_power=calc_ring_part_power($controllers,$swift_hash['resize_value'])
-
         class { 'openstack::swift::proxy':
           swift_user_password     => $swift_hash[user_password],
           swift_proxies           => $controller_internal_addresses,
-          ring_part_power         => $ring_part_power,
           primary_proxy           => $primary_proxy,
           controller_node_address => $::fuel_settings['management_vip'],
           swift_local_net_ip      => $swift_local_net_ip,
@@ -408,24 +399,25 @@ class osnailyfacter::cluster_ha {
           use_floating_ips          => $::fuel_settings['auto_assign_floating_ip'],
         }
       }
-        class { 'heat' :
-          pacemaker              => true,
-          external_ip            => $controller_node_public,
-
-          heat_keystone_host     => $controller_node_address,
-          heat_keystone_user     => 'heat',
-          heat_keystone_password => 'heat',
-          heat_keystone_tenant   => 'services',
-
-          heat_rabbit_host       => $controller_node_address,
-          heat_rabbit_login      => $rabbit_hash['user'],
-          heat_rabbit_password   => $rabbit_hash['password'],
-          heat_rabbit_port       => '5672',
-
-          heat_db_host           => $controller_node_address,
-          heat_db_password       => $heat_hash['db_password'],
-        }
-
+        if ($::operatingsystem != 'RedHat') {
+          class { 'heat' :
+            pacemaker              => true,
+            external_ip            => $controller_node_public,
+  
+            heat_keystone_host     => $controller_node_address,
+            heat_keystone_user     => 'heat',
+            heat_keystone_password => 'heat',
+            heat_keystone_tenant   => 'services',
+  
+            heat_rabbit_host       => $controller_node_address,
+            heat_rabbit_login      => $rabbit_hash['user'],
+            heat_rabbit_password   => $rabbit_hash['password'],
+            heat_rabbit_port       => '5672',
+  
+            heat_db_host           => $controller_node_address,
+            heat_db_password       => $heat_hash['db_password'],
+          }
+      }
 
       if $murano_hash['enabled'] {
 
