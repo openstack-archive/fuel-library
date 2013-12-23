@@ -59,7 +59,7 @@ class keystone(
   $verbose             = 'False',
   $debug               = 'False',
   $use_syslog          = false,
-  $syslog_log_facility = 'LOCAL7',
+  $syslog_log_facility = 'LOG_LOCAL7',
   $syslog_log_level = 'WARNING',
   $log_dir             = '/var/log/keystone',
   $log_file            = 'keystone.log',

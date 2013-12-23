@@ -1,5 +1,5 @@
 # [use_syslog] Rather or not service should log to syslog. Optional.
-# [syslog_log_facility] Facility for syslog, if used. Optional. Note: duplicating conf option 
+# [syslog_log_facility] Facility for syslog, if used. Optional. Note: duplicating conf option
 #       wouldn't have been used, but more powerfull rsyslog features managed via conf template instead
 # [syslog_log_level] logging level for non verbose and non debug mode. Optional.
 
@@ -20,7 +20,7 @@ class openstack::cinder(
   $bind_host              = '0.0.0.0',
   $iscsi_bind_host        = '0.0.0.0',
   $use_syslog             = false,
-  $syslog_log_facility    = 'LOCAL3',
+  $syslog_log_facility    = 'LOG_LOCAL3',
   $syslog_log_level = 'WARNING',
   $cinder_rate_limits     = undef,
   $verbose          = 'False',
@@ -37,14 +37,14 @@ class openstack::cinder(
   # }
   #}
   #  There are two assumptions - everyone should use keystone auth
-  #  and we had glance_api_servers set globally in every mode except 
-  #  single when service should authenticate itself against 
+  #  and we had glance_api_servers set globally in every mode except
+  #  single when service should authenticate itself against
   #  localhost anyway.
 
 
   cinder_config { 'DEFAULT/auth_strategy': value => 'keystone' }
   cinder_config { 'DEFAULT/glance_api_servers': value => $glance_api_servers }
- 
+
   case $queue_provider {
     "rabbitmq": {
       if $rabbit_nodes and !$rabbit_ha_virtual_ip {
