@@ -192,6 +192,7 @@ class os_common {
       # should be true, if client is running at virtual node
       virtual        => str2bool($::is_virtual),
       # facilities
+      syslog_log_facility_murano   => $syslog_log_facility_murano,
       syslog_log_facility_glance   => $syslog_log_facility_glance,
       syslog_log_facility_cinder   => $syslog_log_facility_cinder,
       syslog_log_facility_neutron  => $syslog_log_facility_neutron,
