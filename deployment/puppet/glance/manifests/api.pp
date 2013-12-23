@@ -120,7 +120,7 @@ class glance::api(
 
   if $use_syslog and !$debug =~ /(?i)(true|yes)/ {
     glance_api_config {
-      'DEFAULT/log_config': value => "/etc/glance/logging.conf";
+      'DEFAULT/log_config_append': value => "/etc/glance/logging.conf";
       'DEFAULT/log_file': ensure=> absent;
       'DEFAULT/log_dir': ensure=> absent;
       'DEFAULT/logfile':   ensure=> absent;
@@ -137,7 +137,7 @@ class glance::api(
     }
   } else {
     glance_api_config {
-      'DEFAULT/log_config': ensure=> absent;
+      'DEFAULT/log_config_append': ensure=> absent;
       'DEFAULT/use_syslog': ensure=> absent;
       'DEFAULT/syslog_log_facility': ensure=> absent;
       'DEFAULT/use_stderr': ensure=> absent;

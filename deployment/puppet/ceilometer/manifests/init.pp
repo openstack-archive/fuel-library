@@ -139,9 +139,9 @@ class ceilometer(
 
   # Configure logging
   if $use_syslog and !$debug =~ /(?i)(true|yes)/ {
-    File['ceilometer-logging.conf'] -> Ceilometer_config['DEFAULT/log_config']
+    File['ceilometer-logging.conf'] -> Ceilometer_config['DEFAULT/log_config_append']
     ceilometer_config {
-      'DEFAULT/log_config'         : value => '/etc/ceilometer/logging.conf';
+      'DEFAULT/log_config_append'         : value => '/etc/ceilometer/logging.conf';
       'DEFAULT/log_file'           : ensure => absent;
       'DEFAULT/log_dir'            : ensure => absent;
       'DEFAULT/use_stderr'         : ensure => absent;
@@ -155,7 +155,7 @@ class ceilometer(
   }
   else {
     ceilometer_config {
-      'DEFAULT/log_config': ensure=> absent;
+      'DEFAULT/log_config_append': ensure=> absent;
       'DEFAULT/use_syslog': ensure=> absent;
       'DEFAULT/syslog_log_facility': ensure=> absent;
       'DEFAULT/use_stderr': ensure=> absent;

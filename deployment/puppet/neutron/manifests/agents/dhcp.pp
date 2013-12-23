@@ -66,7 +66,7 @@ class neutron::agents::dhcp (
     'DEFAULT/verbose':           value => $verbose;
     'DEFAULT/log_dir':          ensure => absent;
     'DEFAULT/log_file':         ensure => absent;
-    'DEFAULT/log_config':       ensure => absent;
+    'DEFAULT/log_config_append':       ensure => absent;
     'DEFAULT/use_syslog':       ensure => absent;
     'DEFAULT/use_stderr':       ensure => absent;
     'DEFAULT/state_path':        value => $state_path;
