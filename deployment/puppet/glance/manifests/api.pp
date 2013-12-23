@@ -63,7 +63,7 @@ class glance::api(
   $sql_idle_timeout  = '3600',
   $sql_connection    = 'sqlite:///var/lib/glance/glance.sqlite',
   $use_syslog        = false,
-  $syslog_log_facility = 'LOCAL2',
+  $syslog_log_facility = 'local2',
   $syslog_log_level  = 'WARNING',
   $prune_hour        = 0,
   $prune_minute      = 0,

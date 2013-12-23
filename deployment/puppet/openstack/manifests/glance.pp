@@ -53,7 +53,7 @@ class openstack::glance (
   $enabled              = true,
   $use_syslog           = false,
   # Facility is common for all glance services
-  $syslog_log_facility  = 'LOCAL2',
+  $syslog_log_facility  = 'local2',
   $syslog_log_level = 'WARNING',
   $glance_image_cache_max_size = '10737418240',
 ) {
