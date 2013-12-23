@@ -1,6 +1,9 @@
 class murano::repository (
+    $use_syslog                     = true,
+    $syslog_log_facility            = 'local0',
+    $log_file                       = '/var/log/murano/murano-repository.log',
     $verbose                        = 'True',
-    $debug                          = 'True',
+    $debug                          = true,
     $repository_host                = '0.0.0.0',
     $repository_port                = '8084',
     $repository_manifests           = 'Services',
@@ -38,6 +41,37 @@ class murano::repository (
     hasrestart => true,
   }
 
+  if $use_syslog and !$debug {
+    murano_repository_config {
+      'DEFAULT/use_syslog'          : value  => true;
+      'DEFAULT/use_stderr'          : ensure => absent;
+      'DEFAULT/syslog_log_facility' : value  => $syslog_log_facility;
+      'DEFAULT/log_file'            : ensure => absent;
+    }
+
+    file { 'murano-repository-logging.conf':
+      content => template('murano/logging.conf.erb'),
+      path    => '/etc/murano/murano-repository-logging.conf',
+    }
+  }
+  else {
+    murano_repository_config {
+      'DEFAULT/use_syslog'          : ensure => absent;
+      'DEFAULT/use_stderr'          : ensure => absent;
+      'DEFAULT/syslog_log_facility' : ensure => absent;
+      'DEFAULT/log_file'            : value  => $log_file;
+      'DEFAULT/logging_context_format_string':
+      value => '%(asctime)s.%(msecs)03d %(process)d %(levelname)s %(name)s [%(request_id)s %(user)s %(tenant)s] %(instance)s%(message)s';
+      'DEFAULT/logging_default_format_string':
+      value => '%(asctime)s %(levelname)s %(name)s [-] %(instance)s %(message)s';
+    }
+
+    file { 'murano-repository-logging.conf':
+      content => template('murano/logging.conf-nosyslog.erb'),
+      path    => '/etc/murano/murano-repository-logging.conf',
+    }
+  }
+
   murano_repository_config {
     'DEFAULT/host'                : value => $repository_host;
     'DEFAULT/port'                : value => $repository_port;
@@ -64,6 +98,7 @@ class murano::repository (
   Murano_repository_config<||> ~> Service['murano_repository']
   Package['murano_repository'] -> Murano_repository_config<||>
   Package['murano_repository'] -> Service['murano_repository']
+  File['murano-repository-logging.conf'] ~> Service['murano_repository']
 
 }
 
