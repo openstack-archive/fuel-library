@@ -166,7 +166,7 @@ if $use_syslog and !$debug =~ /(?i)(true|yes)/
 
 nova_config
  {
- 'DEFAULT/log_config': value => "/etc/nova/logging.conf";
+ 'DEFAULT/log_config_append': value => "/etc/nova/logging.conf";
  'DEFAULT/log_file': ensure=> absent;
  'DEFAULT/logfile':   ensure=> absent;
  'DEFAULT/use_syslog': value =>  true;
@@ -182,7 +182,7 @@ file {"nova-logging.conf":
 }
 else {
   nova_config {
-   'DEFAULT/log_config': ensure=> absent;
+   'DEFAULT/log_config_append': ensure=> absent;
    'DEFAULT/use_syslog': ensure=> absent;
    'DEFAULT/syslog_log_facility': ensure=> absent;
    'DEFAULT/use_stderr': ensure=> absent;

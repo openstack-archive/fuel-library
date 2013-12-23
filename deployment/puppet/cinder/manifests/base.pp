@@ -60,7 +60,7 @@ class cinder::base (
 
 if $use_syslog and !$debug =~ /(?i)(true|yes)/ {
   cinder_config {
-    'DEFAULT/log_config': value => "/etc/cinder/logging.conf";
+    'DEFAULT/log_config_append': value => "/etc/cinder/logging.conf";
     'DEFAULT/log_file':   ensure=> absent;
     'DEFAULT/log_dir':    ensure=> absent;
     'DEFAULT/logfile':   ensure=> absent;
@@ -77,7 +77,7 @@ if $use_syslog and !$debug =~ /(?i)(true|yes)/ {
 }
 else {
   cinder_config {
-    'DEFAULT/log_config': ensure=> absent;
+    'DEFAULT/log_config_append': ensure=> absent;
     'DEFAULT/use_syslog': ensure=> absent;
     'DEFAULT/syslog_log_facility': ensure=> absent;
     'DEFAULT/use_stderr': ensure=> absent;

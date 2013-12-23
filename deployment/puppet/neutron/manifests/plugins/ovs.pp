@@ -60,7 +60,7 @@ class neutron::plugins::ovs (
   neutron_plugin_ovs {
     'DEFAULT/log_dir':             ensure => absent;
     'DEFAULT/log_file':            ensure => absent;
-    'DEFAULT/log_config':          ensure => absent;
+    'DEFAULT/log_config_append':          ensure => absent;
     'DEFAULT/use_syslog':          ensure => absent;
     'DEFAULT/use_stderr':          ensure => absent;
     'DATABASE/sql_connection':      value => $neutron_config['database']['url'];

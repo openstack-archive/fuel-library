@@ -110,7 +110,7 @@ class neutron (
     'DEFAULT/verbose':                value => $verbose;
     'DEFAULT/log_dir':               ensure => absent;
     'DEFAULT/log_file':              ensure => absent;
-    'DEFAULT/log_config':            ensure => absent;
+    'DEFAULT/log_config_append':            ensure => absent;
     'DEFAULT/use_syslog':             value => false;
     'DEFAULT/use_stderr':             value => true;
     'DEFAULT/publish_errors':         value => false;
