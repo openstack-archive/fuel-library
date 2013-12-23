@@ -798,7 +798,7 @@ class PreseedPManager(object):
                 self.late("sleep 3")
                 self.late("hdparm -z $(readlink -f /dev/{0})"
                           "".format(disk["id"]))
-                pvlist.append("pvcreate -ff $(readlink -f /dev/{0}){1}{2}"
+                pvlist.append("pvcreate -ff -y $(readlink -f /dev/{0}){1}{2}"
                               "".format(disk["id"],
                                         self._pseparator(disk["id"]),
                                         pcount))

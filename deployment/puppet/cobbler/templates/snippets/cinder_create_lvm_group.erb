@@ -4,7 +4,7 @@
     #set $devs = ""
     #for $bd in $bds.split(",")
         dd  if=/dev/zero bs=8192 count=1 of=$bd
-        echo ";" | sfdisk -f -q -L $bd && sfdisk -R $bd  && sleep 1 && pvcreate ${bd}1
+        echo ";" | sfdisk -f -q -L $bd && sfdisk -R $bd  && sleep 1 && pvcreate -ff -y ${bd}1
         #set $devs += "%s1 " % $bd
     #end for
     vgcreate $vgname $devs
