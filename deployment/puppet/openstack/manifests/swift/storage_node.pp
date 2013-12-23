@@ -32,7 +32,7 @@ class openstack::swift::storage_node (
   $db_host                = '127.0.0.1',
   $service_endpoint       = '127.0.0.1',
   $use_syslog             = false,
-  $syslog_log_facility_cinder = 'LOCAL3',
+  $syslog_log_facility_cinder = 'LOG_LOCAL3',
   $syslog_log_level       = 'WARNING',
   $debug                  = false,
   $verbose                = true,

@@ -14,11 +14,11 @@ class rsyslog::client (
   $escapenewline  = false,
   $rservers       = undef,
   $virtual        = false,
-  $syslog_log_facility_glance   = 'LOCAL2',
-  $syslog_log_facility_cinder   = 'LOCAL3',
-  $syslog_log_facility_neutron  = 'LOCAL4',
-  $syslog_log_facility_nova     = 'LOCAL6',
-  $syslog_log_facility_keystone = 'LOCAL7',
+  $syslog_log_facility_glance   = 'LOG_LOCAL2',
+  $syslog_log_facility_cinder   = 'LOG_LOCAL3',
+  $syslog_log_facility_neutron  = 'LOG_LOCAL4',
+  $syslog_log_facility_nova     = 'LOG_LOCAL6',
+  $syslog_log_facility_keystone = 'LOG_LOCAL7',
   $log_level      = 'NOTICE',
   $debug          = false,
   ) inherits rsyslog {
@@ -44,6 +44,14 @@ if $virtual { include rsyslog::checksum_udp514 }
     mode => 0640,
     notify  => Class["rsyslog::service"],
   }
+
+  # cut off 'LOG_' from facility names, if any
+  $re = '^LOG_(\w+\d?)$'
+  $syslog_log_facility_glance_matched = regsubst($syslog_log_facility_glance, $re, '\1')
+  $syslog_log_facility_cinder_matched = regsubst($syslog_log_facility_cinder, $re, '\1')
+  $syslog_log_facility_neutron_matched = regsubst($syslog_log_facility_neutron, $re, '\1')
+  $syslog_log_facility_nova_matched = regsubst($syslog_log_facility_nova, $re, '\1')
+  $syslog_log_facility_keystone_matched = regsubst($syslog_log_facility_keystone, $re, '\1')
 
 # Rabbitmq does not support syslogging, use imfile
 # log_level should be >= global syslog_log_level option,
@@ -99,49 +107,49 @@ if $virtual { include rsyslog::checksum_udp514 }
   ::rsyslog::imfile { "50-neutron-server_debug" :
       file_name     => "/var/log/neutron/server.log",
       file_tag      => "neutron-server",
-      file_facility => $syslog_log_facility_neutron,
+      file_facility => $syslog_log_facility_neutron_matched,
       file_severity => "DEBUG",
       notify  => Class["rsyslog::service"],
   }
   ::rsyslog::imfile { "50-neutron-ovs-cleanup_debug" :
       file_name     => "/var/log/neutron/ovs-cleanup.log",
       file_tag      => "neutron-ovs-cleanup",
-      file_facility => $syslog_log_facility_neutron,
+      file_facility => $syslog_log_facility_neutron_matched,
       file_severity => "DEBUG",
       notify  => Class["rsyslog::service"],
   }
   ::rsyslog::imfile { "50-neutron-rescheduling_debug" :
      file_name     => "/var/log/neutron/rescheduling.log",
      file_tag      => "neutron-rescheduling",
-     file_facility => $syslog_log_facility_neutron,
+     file_facility => $syslog_log_facility_neutron_matched,
      file_severity => "DEBUG",
      notify  => Class["rsyslog::service"],
   }
   ::rsyslog::imfile { "50-neutron-ovs-agent_debug" :
       file_name     => "/var/log/neutron/ovs-agent.log",
       file_tag      => "neutron-agent-ovs",
-      file_facility => $syslog_log_facility_neutron,
+      file_facility => $syslog_log_facility_neutron_matched,
       file_severity => "DEBUG",
       notify  => Class["rsyslog::service"],
   }
   ::rsyslog::imfile { "50-neutron-l3-agent_debug" :
       file_name     => "/var/log/neutron/l3-agent.log",
       file_tag      => "neutron-agent-l3",
-      file_facility => $syslog_log_facility_neutron,
+      file_facility => $syslog_log_facility_neutron_matched,
       file_severity => "DEBUG",
       notify  => Class["rsyslog::service"],
   }
   ::rsyslog::imfile { "50-neutron-dhcp-agent_debug" :
       file_name     => "/var/log/neutron/dhcp-agent.log",
       file_tag      => "neutron-agent-dhcp",
-      file_facility => $syslog_log_facility_neutron,
+      file_facility => $syslog_log_facility_neutron_matched,
       file_severity => "DEBUG",
       notify  => Class["rsyslog::service"],
   }
   ::rsyslog::imfile { "50-neutron-metadata-agent_debug" :
       file_name     => "/var/log/neutron/metadata-agent.log",
       file_tag      => "neutron-agent-metadata",
-      file_facility => $syslog_log_facility_neutron,
+      file_facility => $syslog_log_facility_neutron_matched,
       file_severity => "DEBUG",
       notify  => Class["rsyslog::service"],
   }
@@ -153,98 +161,98 @@ if $debug =~ /(?i)(true|yes)/ {
 ::rsyslog::imfile { "10-nova-api_debug" :
     file_name     => "/var/log/nova/api.log",
     file_tag      => "nova-api",
-    file_facility => $syslog_log_facility_nova,
+    file_facility => $syslog_log_facility_nova_matched,
     file_severity => "DEBUG",
     notify  => Class["rsyslog::service"],
 }
 ::rsyslog::imfile { "10-nova-cert_debug" :
     file_name     => "/var/log/nova/cert.log",
     file_tag      => "nova-cert",
-    file_facility => $syslog_log_facility_nova,
+    file_facility => $syslog_log_facility_nova_matched,
     file_severity => "DEBUG",
     notify  => Class["rsyslog::service"],
 }
 ::rsyslog::imfile { "10-nova-consoleauth_debug" :
     file_name     => "/var/log/nova/consoleauth.log",
     file_tag      => "nova-consoleauth",
-    file_facility => $syslog_log_facility_nova,
+    file_facility => $syslog_log_facility_nova_matched,
     file_severity => "DEBUG",
     notify  => Class["rsyslog::service"],
 }
 ::rsyslog::imfile { "10-nova-scheduler_debug" :
     file_name     => "/var/log/nova/scheduler.log",
     file_tag      => "nova-scheduler",
-    file_facility => $syslog_log_facility_nova,
+    file_facility => $syslog_log_facility_nova_matched,
     file_severity => "DEBUG",
     notify  => Class["rsyslog::service"],
 }
 ::rsyslog::imfile { "10-nova-network_debug" :
     file_name     => "/var/log/nova/network.log",
     file_tag      => "nova-network",
-    file_facility => $syslog_log_facility_nova,
+    file_facility => $syslog_log_facility_nova_matched,
     file_severity => "DEBUG",
     notify  => Class["rsyslog::service"],
 }
 ::rsyslog::imfile { "10-nova-compute_debug" :
     file_name     => "/var/log/nova/compute.log",
     file_tag      => "nova-compute",
-    file_facility => $syslog_log_facility_nova,
+    file_facility => $syslog_log_facility_nova_matched,
     file_severity => "DEBUG",
     notify  => Class["rsyslog::service"],
 }
 ::rsyslog::imfile { "10-nova-conductor_debug" :
     file_name     => "/var/log/nova/conductor.log",
     file_tag      => "nova-conductor",
-    file_facility => $syslog_log_facility_nova,
+    file_facility => $syslog_log_facility_nova_matched,
     file_severity => "DEBUG",
     notify  => Class["rsyslog::service"],
 }
 ::rsyslog::imfile { "10-nova-objectstore_debug" :
     file_name     => "/var/log/nova/objectstore.log",
     file_tag      => "nova-objectstore",
-    file_facility => $syslog_log_facility_nova,
+    file_facility => $syslog_log_facility_nova_matched,
     file_severity => "DEBUG",
     notify  => Class["rsyslog::service"],
 }
 ::rsyslog::imfile { "20-keystone_debug" :
     file_name     => "/var/log/keystone/keystone.log",
     file_tag      => "keystone",
-    file_facility => $syslog_log_facility_keystone,
+    file_facility => $syslog_log_facility_keystone_matched,
     file_severity => "DEBUG",
     notify  => Class["rsyslog::service"],
 }
 ::rsyslog::imfile { "30-cinder-api_debug" :
     file_name     => "/var/log/cinder/api.log",
     file_tag      => "cinder-api",
-    file_facility => $syslog_log_facility_cinder,
+    file_facility => $syslog_log_facility_cinder_matched,
     file_severity => "DEBUG",
     notify  => Class["rsyslog::service"],
 }
 ::rsyslog::imfile { "30-cinder-volume_debug" :
     file_name     => "/var/log/cinder/volume.log",
     file_tag      => "cinder-volume",
-    file_facility => $syslog_log_facility_cinder,
+    file_facility => $syslog_log_facility_cinder_matched,
     file_severity => "DEBUG",
     notify  => Class["rsyslog::service"],
 }
 ::rsyslog::imfile { "30-cinder-scheduler_debug" :
     file_name     => "/var/log/cinder/scheduler.log",
     file_tag      => "cinder-scheduler",
-    file_facility => $syslog_log_facility_cinder,
+    file_facility => $syslog_log_facility_cinder_matched,
     file_severity => "DEBUG",
     notify  => Class["rsyslog::service"],
 }
 ::rsyslog::imfile { "40-glance-api_debug" :
     file_name     => "/var/log/glance/api.log",
     file_tag      => "glance-api",
-    file_facility => $syslog_log_facility_glance,
+    file_facility => $syslog_log_facility_glance_matched,
     file_severity => "DEBUG",
     notify  => Class["rsyslog::service"],
 }
 ::rsyslog::imfile { "40-glance-registry_debug" :
     file_name     => "/var/log/glance/registry.log",
     file_tag      => "glance-registry",
-    file_facility => $syslog_log_facility_glance,
+    file_facility => $syslog_log_facility_glance_matched,
     file_severity => "DEBUG",
     notify  => Class["rsyslog::service"],
 }
