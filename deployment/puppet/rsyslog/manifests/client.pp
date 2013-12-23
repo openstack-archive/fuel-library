@@ -14,6 +14,7 @@ class rsyslog::client (
   $escapenewline  = false,
   $rservers       = undef,
   $virtual        = false,
+  $syslog_log_facility_murano   = 'LOG_LOCAL0',
   $syslog_log_facility_glance   = 'LOG_LOCAL2',
   $syslog_log_facility_cinder   = 'LOG_LOCAL3',
   $syslog_log_facility_neutron  = 'LOG_LOCAL4',
@@ -240,6 +241,27 @@ if $virtual { include rsyslog::checksum_udp514 }
         file_severity => "DEBUG",
         notify  => Class["rsyslog::service"],
     }
+    ::rsyslog::imfile { "53-murano-api_debug" :
+        file_name     => "/var/log/murano/murano-api.log",
+        file_tag      => "murano-api",
+        file_facility => $syslog_log_facility_murano,
+        file_severity => "DEBUG",
+        notify  => Class["rsyslog::service"],
+    }
+    ::rsyslog::imfile { "53-murano-conductor_debug" :
+        file_name     => "/var/log/murano/murano-conductor.log",
+        file_tag      => "murano-conductor",
+        file_facility => $syslog_log_facility_murano,
+        file_severity => "DEBUG",
+        notify  => Class["rsyslog::service"],
+    }
+    ::rsyslog::imfile { "53-murano-repository_debug" :
+        file_name     => "/var/log/murano/murano-repository.log",
+        file_tag      => "murano-repository",
+        file_facility => $syslog_log_facility_murano,
+        file_severity => "DEBUG",
+        notify  => Class["rsyslog::service"],
+    }
   } else { #non debug case
     # standard logging configs for syslog client
     file { "${rsyslog::params::rsyslog_d}10-nova.conf":
@@ -267,11 +289,17 @@ if $virtual { include rsyslog::checksum_udp514 }
       content => template("${module_name}/50-neutron.conf.erb"),
     }
 
-    file { "${rsyslog::params::rsyslog_d}51-ceilometer.conf":
-      ensure => present,
-      content => template("${module_name}/51-ceilometer.conf.erb"),
-    }
-  } #end if
+  file { "${rsyslog::params::rsyslog_d}51-ceilometer.conf":
+    ensure => present,
+    content => template("${module_name}/51-ceilometer.conf.erb"),
+  }
+
+  file { "${rsyslog::params::rsyslog_d}53-murano.conf":
+    ensure => present,
+    content => template("${module_name}/53-murano.conf.erb"),
+  }
+
+} #end if
 
   file { "${rsyslog::params::rsyslog_d}02-ha.conf":
     ensure => present,
