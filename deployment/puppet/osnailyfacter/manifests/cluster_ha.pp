@@ -442,6 +442,11 @@ class osnailyfacter::cluster_ha {
           murano_keystone_tenant   => 'services',
 
           use_neutron              => $::use_quantum,
+
+          use_syslog               => $::fuel_settings['use_syslog'],
+          debug                    => $debug,
+          verbose                  => $verbose,
+          syslog_log_facility      => $syslog_log_facility_murano,
         }
 
        Class['heat'] -> Class['murano']
