@@ -4,7 +4,7 @@
 bind_ip = <%= proxy_local_net_ip %>
 bind_port = <%= port %>
 workers = <%= workers %>
-log_facility = LOG_SYSLOG
+log_facility = syslog
 <% if @debug then -%>
 log_level = DEBUG
 <% elsif @verbose then -%>

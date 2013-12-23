@@ -147,11 +147,11 @@ class openstack::all (
   $glance_backend          = 'file',
   $use_syslog              = false,
   $syslog_log_level = 'WARNING',
-  $syslog_log_facility_glance   = 'LOCAL2',
-  $syslog_log_facility_cinder   = 'LOCAL3',
-  $syslog_log_facility_neutron  = 'LOCAL4',
-  $syslog_log_facility_nova     = 'LOCAL6',
-  $syslog_log_facility_keystone = 'LOCAL7',
+  $syslog_log_facility_glance   = 'local2',
+  $syslog_log_facility_cinder   = 'local3',
+  $syslog_log_facility_neutron  = 'local4',
+  $syslog_log_facility_nova     = 'local6',
+  $syslog_log_facility_keystone = 'local7',
   $nova_rate_limits        = undef,
 ) {
 

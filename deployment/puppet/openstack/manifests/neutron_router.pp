@@ -13,7 +13,7 @@ class openstack::neutron_router (
   $neutron_network_node     = false,
   $neutron_server           = true,
   $use_syslog               = false,
-  $syslog_log_facility      = 'LOCAL4',
+  $syslog_log_facility      = 'local4',
   $syslog_log_level         = 'WARNING',
   $ha_mode                  = false,
   $service_provider         = 'generic',

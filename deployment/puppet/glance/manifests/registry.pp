@@ -18,7 +18,7 @@ class glance::registry(
   $keystone_user     = 'admin',
   $enabled           = true,
   $use_syslog        = false,
-  $syslog_log_facility = 'LOCAL2',
+  $syslog_log_facility = 'local2',
   $syslog_log_level  = 'WARNING',
 ) inherits glance {
 

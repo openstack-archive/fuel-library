@@ -4,7 +4,7 @@ bind_ip = <%= storage_local_net_ip %>
 bind_port = <%= bind_port %>
 mount_check = <%= mount_check %>
 user = <%= user %>
-log_facility = LOG_SYSLOG
+log_facility = syslog
 <% if @debug then -%>
 log_level = DEBUG
 <% elsif @verbose then -%>

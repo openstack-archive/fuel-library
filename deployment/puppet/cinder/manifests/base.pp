@@ -27,7 +27,7 @@ class cinder::base (
   $verbose                = 'False',
   $debug                  = 'False',
   $use_syslog             = false,
-  $syslog_log_facility    = "LOCAL3",
+  $syslog_log_facility    = "local3",
   $syslog_log_level = 'WARNING',
   $log_dir                = '/var/log/cinder',
 ) {
