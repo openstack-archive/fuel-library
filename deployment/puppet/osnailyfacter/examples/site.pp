@@ -104,6 +104,7 @@ $syslog_log_level             = 'ERROR'
 # Syslog facilities for main openstack services, choose any, may overlap if needed
 # local0 is reserved for HA provisioning and orchestration services,
 # local1 is reserved for openstack-dashboard
+$syslog_log_facility_murano   = 'LOG_LOCAL0'
 $syslog_log_facility_glance   = 'LOG_LOCAL2'
 $syslog_log_facility_cinder   = 'LOG_LOCAL3'
 $syslog_log_facility_neutron  = 'LOG_LOCAL4'
@@ -191,6 +192,7 @@ class os_common {
       # should be true, if client is running at virtual node
       virtual        => str2bool($::is_virtual),
       # facilities
+      syslog_log_facility_murano   => $syslog_log_facility_murano,
       syslog_log_facility_glance   => $syslog_log_facility_glance,
       syslog_log_facility_cinder   => $syslog_log_facility_cinder,
       syslog_log_facility_neutron  => $syslog_log_facility_neutron,
