@@ -43,7 +43,7 @@ class nova(
   $nova_cluster_id='localcluster',
   $sql_connection = false,
   $use_syslog = false,
-  $syslog_log_facility = "LOCAL6",
+  $syslog_log_facility = "local6",
   $syslog_log_level = 'WARNING',
   $image_service = 'nova.image.glance.GlanceImageService',
   # these glance params should be optional
