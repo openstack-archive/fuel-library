@@ -27,6 +27,7 @@ class cobbler::snippets {
   }
   cobbler_snippet {"send2syslog": }
   cobbler_snippet {"target_logs_to_master": }
+  cobbler_snippet {"target_logs_to_master_ubuntu": }
   cobbler_snippet {"kickstart_ntp": }
   cobbler_snippet {"ntp_to_masternode": }
   cobbler_snippet {"ntp_to_masternode_ubuntu": }
