@@ -18,7 +18,7 @@ format = nova-%(name)s %(levelname)s: %(module)s %(funcName)s %(message)s
 [formatter_normal]
 format = nova-%(name)s %(levelname)s: %(message)s
 
-# logging info to LOG_<%= @syslog_log_facility %> with debug:<%= @debug %> and verbose:<%= @verbose %>
+# logging info to <%= @syslog_log_facility %> with debug:<%= @debug %> and verbose:<%= @verbose %>
 [handler_production]
 class = handlers.SysLogHandler
 <% if @debug then -%>
@@ -31,7 +31,7 @@ formatter = normal
 level = <%= @syslog_log_level %>
 formatter = normal
 <% end -%>
-args = ('/dev/log', handlers.SysLogHandler.LOG_<%= @syslog_log_facility %>)
+args = ('/dev/log', handlers.SysLogHandler.<%= @syslog_log_facility %>)
 
 # TODO find out how it could be usefull and how it should be used
 [handler_stderr]
