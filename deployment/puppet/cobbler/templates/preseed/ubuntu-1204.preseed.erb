@@ -130,4 +130,6 @@ echo "UseDNS no" >> /target/etc/ssh/sshd_config && \
 in-target apt-get -y install linux-image-3.8 linux-headers-3.8 && \
 $SNIPPET('ubuntu_blacklist_i2c_piix4')
 $SNIPPET('ubuntu_static_net')
+# Rsyslogd should send all messages to master node
+$SNIPPET('target_logs_to_master_ubuntu')
 true
