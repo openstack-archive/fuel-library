@@ -13,7 +13,7 @@ class neutron (
   $log_file             = '/var/log/neutron/server.log',
   $log_dir              = '/var/log/neutron',
   $use_syslog           = false,
-  $syslog_log_facility  = 'LOCAL4',
+  $syslog_log_facility  = 'LOG_LOCAL4',
   $syslog_log_level     = 'WARNING',
   $ssh_private_key      = '/var/lib/astute/neutron/neutron',
   $ssh_public_key       = '/var/lib/astute/neutron/neutron.pub',
