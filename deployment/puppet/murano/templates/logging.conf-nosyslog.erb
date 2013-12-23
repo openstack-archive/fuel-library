@@ -1,0 +1,24 @@
+[loggers]
+keys = root
+
+[handlers]
+keys = root
+
+[formatters]
+keys = default
+
+[formatter_default]
+format=%(asctime)s %(levelname)s %(name)s:%(lineno)d %(message)s
+
+
+[logger_root]
+level=NOTSET
+handlers = root
+propagate = 1
+
+
+[handler_root]
+class = StreamHandler
+level=NOTSET
+formatter = default
+args = (sys.stdout,)
