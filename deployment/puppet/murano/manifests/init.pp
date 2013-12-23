@@ -7,9 +7,12 @@ class murano (
   $murano_keystone_user                 = 'murano',
   $murano_keystone_password             = 'swordfish',
   # murano
+  $use_syslog                           = 'True',
+  $debug                                = 'True',
+  $verbose                              = 'True',
+  $syslog_log_facility                  = 'local0',
+  $murano_log_dir                       = '/var/log/murano',
   $murano_log_file                      = '/var/log/murano/conductor.log',
-  $murano_debug                         = 'True',
-  $murano_verbose                       = 'True',
   $murano_data_dir                      = '/var/cache/murano',
   $murano_max_environments              = '20',
   $murano_api_host                      = '127.0.0.1',
@@ -45,11 +48,13 @@ class murano (
 
   $murano_metadata_bind_host            = '127.0.0.1',
   $murano_metadata_bind_port            = '8084',
-  $use_neutron                          = true,
+  $use_neutron                          = 'True',
 ) {
 
   Class['mysql::server'] -> Class['murano::db::mysql'] -> Class['murano::rabbitmq'] -> Class['murano::keystone'] -> Class['murano::common'] -> Class['murano::conductor'] -> Class['murano::api'] -> Class['murano::metadataclient'] -> Class['murano::repository'] -> Class['murano::python_muranoclient'] -> Class['murano::dashboard'] -> Class['murano::cirros']
 
+  File[$murano_data_dir] -> Class['murano::conductor']
+  File[$murano_log_dir] -> Class['murano::conductor']
   User['murano'] -> File[$murano_data_dir] -> Class['murano::conductor']
 
   $murano_keystone_auth_url = "${murano_keystone_protocol}://${murano_keystone_host}:${murano_keystone_port}/v2.0"
@@ -69,7 +74,14 @@ class murano (
   }
 
   file { $murano_data_dir:
-    ensure => 'directory',
+    ensure => directory,
+    owner  => 'murano',
+    group  => 'murano',
+    mode   => 755,
+  }
+
+  file { $murano_log_dir:
+    ensure => directory,
     owner  => 'murano',
     group  => 'murano',
     mode   => 755,
@@ -90,8 +102,12 @@ class murano (
   }
 
   class { 'murano::repository':
-    verbose                        => $murano_debug,
-    debug                          => $murano_verbose,
+    use_syslog                     => $use_syslog,
+    verbose                        => $debug,
+    debug                          => $verbose,
+    log_file                       => "${murano_log_dir}/murano-repository.log",
+    syslog_log_facility            => $syslog_log_facility,
+
     repository_auth_host           => $murano_keystone_host,
     repository_auth_port           => $murano_keystone_port,
     repository_auth_protocol       => $murano_keystone_protocol,
@@ -104,11 +120,13 @@ class murano (
   class { 'murano::python_muranoclient':
   }
 
-
   class { 'murano::conductor' :
-    debug                                => $murano_debug,
-    verbose                              => $murano_verbose,
-    log_file                             => $murano_log_file,
+    use_syslog                           => $use_syslog,
+    debug                                => $debug,
+    verbose                              => $verbose,
+    log_file                             => "${murano_log_dir}/murano-conductor.log",
+    syslog_log_facility                  => $syslog_log_facility,
+
     data_dir                             => $murano_data_dir,
     max_environments                     => $murano_max_environments,
     auth_url                             => $murano_keystone_auth_url,
@@ -123,8 +141,12 @@ class murano (
   }
 
   class { 'murano::api' :
-    debug                                => $murano_debug,
-    verbose                              => $murano_verbose,
+    use_syslog                           => $use_syslog,
+    debug                                => $debug,
+    verbose                              => $verbose,
+    api_log_file                         => "${murano_log_dir}/murano-api.log",
+    syslog_log_facility                  => $syslog_log_facility,
+
     api_paste_inipipeline                => $murano_api_paste_inipipeline,
     api_paste_app_factory                => $murano_api_paste_app_factory,
     api_paste_filter_factory             => $murano_api_paste_filter_factory,
@@ -138,7 +160,6 @@ class murano (
     api_paste_signing_dir                => $murano_api_paste_signing_dir,
     api_bind_host                        => $murano_api_bind_host,
     api_bind_port                        => $murano_api_bind_port,
-    api_log_file                         => $murano_api_log_file,
     api_database_auto_create             => $murano_api_database_auto_create,
     api_reports_results_exchange         => $murano_api_reports_results_exchange,
     api_reports_results_queue            => $murano_api_reports_results_queue,
