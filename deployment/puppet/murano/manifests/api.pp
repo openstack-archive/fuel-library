@@ -1,6 +1,8 @@
 class murano::api (
+    $use_syslog                     = true,
+    $syslog_log_facility            = 'local0',
     $verbose                        = 'True',
-    $debug                          = 'True',
+    $debug                          = true,
     $api_paste_inipipeline          = 'authtoken context apiv1app',
     $api_paste_app_factory          = 'muranoapi.api.v1.router:API.factory',
     $api_paste_filter_factory       = 'muranoapi.api.middleware.context:ContextMiddleware.factory',
@@ -52,12 +54,44 @@ class murano::api (
     hasrestart => true,
   }
 
+  if $use_syslog and !$debug {
+    murano_api_config {
+      'DEFAULT/log_config_append'    : value => '/etc/murano/murano-api-logging.conf';
+      'DEFAULT/use_syslog'           : value  => true;
+      'DEFAULT/use_stderr'           : ensure => absent;
+      'DEFAULT/syslog_log_facility'  : value  => $syslog_log_facility;
+      'DEFAULT/log_file'             : ensure => absent;
+    }
+
+    file { "murano-api-logging.conf":
+      content => template('murano/logging.conf.erb'),
+      path    => '/etc/murano/murano-api-logging.conf',
+    }
+  }
+  else {
+    murano_api_config {
+      'DEFAULT/log_config_append'   : ensure => absent;
+      'DEFAULT/use_syslog'          : ensure => absent;
+      'DEFAULT/use_stderr'          : ensure => absent;
+      'DEFAULT/syslog_log_facility' : ensure => absent;
+      'DEFAULT/log_file'            : value  => $api_log_file;
+      'DEFAULT/logging_context_format_string':
+      value => 'murano-api %(asctime)s.%(msecs)03d %(process)d %(levelname)s %(name)s [%(request_id)s %(user)s %(tenant)s] %(instance)s%(message)s';
+      'DEFAULT/logging_default_format_string':
+      value => 'murano-api %(asctime)s %(levelname)s %(name)s [-] %(instance)s %(message)s';
+    }
+
+    file { "murano-api-logging.conf":
+      content => template('murano/logging.conf-nosyslog.erb'),
+      path    => '/etc/murano/murano-api-logging.conf',
+    }
+  }
+
   murano_api_config {
     'DEFAULT/verbose'                       : value => $verbose;
     'DEFAULT/debug'                         : value => $debug;
     'DEFAULT/bind_host'                     : value => $api_bind_host;
     'DEFAULT/bind_port'                     : value => $api_bind_port;
-    'DEFAULT/log_file'                      : value => $api_log_file;
     'database/connection'                   : value => $api_database_connection;
     'database/auto_create'                  : value => $api_database_auto_create;
     'reports/results_exchange'              : value => $api_reports_results_exchange;
@@ -93,6 +127,7 @@ class murano::api (
     action  => 'accept',
   }
 
+  File['murano-api-logging.conf'] ~> Service['murano_api']
   Murano_api_config<||> ~> Service['murano_api']
   Murano_api_paste_ini_config<||> ~> Service['murano_api']
   Package['murano_api'] -> Murano_api_config<||>

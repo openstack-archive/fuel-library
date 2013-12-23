@@ -14,6 +14,7 @@ class rsyslog::client (
   $escapenewline  = false,
   $rservers       = undef,
   $virtual        = false,
+  $syslog_log_facility_murano   = 'local0',
   $syslog_log_facility_glance   = 'LOCAL2',
   $syslog_log_facility_cinder   = 'LOCAL3',
   $syslog_log_facility_neutron  = 'LOCAL4',
@@ -130,7 +131,6 @@ if $virtual { include rsyslog::checksum_udp514 }
       notify  => Class["rsyslog::service"],
   }
 
-
 # openstack syslog compatible mode, would work only for debug case.
 # because of its poor syslog debug messages quality, use local logs convertion
 if $debug =~ /(?i)(true|yes)/ {
@@ -232,6 +232,27 @@ if $debug =~ /(?i)(true|yes)/ {
     file_severity => "DEBUG",
     notify  => Class["rsyslog::service"],
 }
+::rsyslog::imfile { "53-murano-api_debug" :
+    file_name     => "/var/log/murano/murano-api.log",
+    file_tag      => "murano-api",
+    file_facility => $syslog_log_facility_murano,
+    file_severity => "DEBUG",
+    notify  => Class["rsyslog::service"],
+}
+::rsyslog::imfile { "53-murano-conductor_debug" :
+    file_name     => "/var/log/murano/murano-conductor.log",
+    file_tag      => "murano-conductor",
+    file_facility => $syslog_log_facility_murano,
+    file_severity => "DEBUG",
+    notify  => Class["rsyslog::service"],
+}
+::rsyslog::imfile { "53-murano-repository_debug" :
+    file_name     => "/var/log/murano/murano-repository.log",
+    file_tag      => "murano-repository",
+    file_facility => $syslog_log_facility_murano,
+    file_severity => "DEBUG",
+    notify  => Class["rsyslog::service"],
+}
 } else { #non debug case
 # standard logging configs for syslog client
   file { "${rsyslog::params::rsyslog_d}10-nova.conf":
@@ -263,6 +284,12 @@ if $debug =~ /(?i)(true|yes)/ {
     ensure => present,
     content => template("${module_name}/51-ceilometer.conf.erb"),
   }
+
+  file { "${rsyslog::params::rsyslog_d}53-murano.conf":
+    ensure => present,
+    content => template("${module_name}/53-murano.conf.erb"),
+  }
+
 } #end if
 
   file { "${rsyslog::params::rsyslog_d}02-ha.conf":
