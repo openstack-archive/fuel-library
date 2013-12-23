@@ -45,7 +45,7 @@ class nailgun::cobbler(
     owner    => 'root',
     group    => 'root',
     source   => "puppet:///modules/nailgun/puppet-stdout.conf",
-    #require => Class['rsyslog::install'],
+    require  => Class['::cobbler::server'],
     notify   => Class['rsyslog::service'],
   }
 
@@ -54,7 +54,7 @@ class nailgun::cobbler(
     owner    => 'root',
     group    => 'root',
     source   => "puppet:///modules/nailgun/puppet-error.conf",
-    #require => Class['rsyslog::install'],
+    require  => Class['::cobbler::server'],
     notify   => Class['rsyslog::service'],
   }
 
