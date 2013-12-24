@@ -80,6 +80,22 @@ if $virtual { include rsyslog::checksum_udp514 }
     notify  => Class["rsyslog::service"],
   }
 
+  ::rsyslog::imfile { "20-puppet_err" :
+    file_name     => "/var/log/puppet/puppet.err",
+    file_tag      => "puppet_err",
+    file_facility => "daemon",
+    file_severity => "ERROR",
+    notify  => Class["rsyslog::service"],
+  }
+
+  ::rsyslog::imfile { "20-puppet_log" :
+    file_name     => "/var/log/puppet/puppet.log",
+    file_tag      => "puppet_log",
+    file_facility => "daemon",
+    file_severity => "NOTICE",
+    notify  => Class["rsyslog::service"],
+  }
+
   ::rsyslog::imfile { "50-neutron-server_debug" :
       file_name     => "/var/log/neutron/server.log",
       file_tag      => "neutron-server",

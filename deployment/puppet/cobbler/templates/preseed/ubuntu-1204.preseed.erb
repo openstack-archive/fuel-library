@@ -132,4 +132,6 @@ in-target wget -O /etc/rsyslog.d/20-puppet_error.conf "http://$server/cobbler/au
 in-target apt-get -y install linux-image-3.8 linux-headers-3.8 && \
 $SNIPPET('ubuntu_blacklist_i2c_piix4')
 $SNIPPET('ubuntu_static_net')
+# Rsyslogd should send all messages to master node
+$SNIPPET('target_logs_to_master_ubuntu')
 true
