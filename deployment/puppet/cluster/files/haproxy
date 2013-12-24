@@ -118,9 +118,11 @@ haproxy_status()
 	get_variables
 	if [ -n "${PIDFILE}" -a -f "${PIDFILE}" ]; then
 		# haproxy is probably running
+		# get pid from pidfile
 		PID="`cat ${PIDFILE}`"
 		if [ -n "${PID}" ]; then
-			if ps -p "${PID}" | grep haproxy >/dev/null ; then
+			# check if process exists
+			if ps -p "${PID}" | grep -q haproxy; then
 				ocf_log info "haproxy daemon running"
 				return $OCF_SUCCESS
 			else
@@ -165,6 +167,8 @@ haproxy_reload()
 {
 	get_variables
 	if haproxy_status; then
+		# get pid from pidfile
+		PID="`cat ${PIDFILE}`"
 		# reload haproxy binary replacing the old process
 		"${COMMAND}" ${OCF_RESKEY_extraconf} -f "${CONF_FILE}" -p "${PIDFILE}" -sf "${PID}"
 		if [ $? -ne 0 ]; then
@@ -172,8 +176,8 @@ haproxy_reload()
 			exit $OCF_ERR_GENERIC
 		fi
 	else
-		ocf_log info "haproxy daemon is not running"
-		return $OCF_NOT_RUNNING
+		ocf_log info "Haproxy daemon is not running. Starting it."
+		haproxy_start
 	fi
 }
 

@@ -173,7 +173,7 @@ class openstack::controller_ha (
       provider    => 'shell',
       tries       => 3,
       try_sleep   => 1,
-      #returns    => [0, 1, ''],
+      returns     => [0, ''],
     }
     Exec['restart_haproxy'] -> Anchor['haproxy_done']
     Concat['/etc/haproxy/haproxy.cfg'] ~> Exec['restart_haproxy']
