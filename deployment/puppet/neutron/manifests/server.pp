@@ -31,13 +31,24 @@ class neutron::server (
       replace => 'no',
       ensure  => 'present',
       content => 'manual',
-      mode    => 644,
+      mode    => '0644',
     } -> Package["$server_package"]
+    file { '/etc/init/neutron-server.override':
+      replace => 'no',
+      ensure  => 'present',
+      content => 'manual',
+      mode    => '0644',
+    } -> Package["$server_package"]
+    Package["$server_package"] ->
+    exec { 'rm-neutron-server-override':
+      path      => '/sbin:/bin:/usr/bin:/usr/sbin',
+      command   => "rm -f /etc/init/neutron-server.override",
+    }
     if $service_provider != 'pacemaker' {
       Package["$server_package"] ->
       exec { 'rm-neutron-metadata-override':
         path      => '/sbin:/bin:/usr/bin:/usr/sbin',
-        command   => "rm -f /etc/init/neutron-metadata-agent.override",
+        command   => "rm -f /etc/init/neutron-metadata-agent.override /etc/init/neutron-server.override",
       }
     }
   }
