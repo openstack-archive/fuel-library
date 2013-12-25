@@ -15,6 +15,8 @@ class neutron (
   $use_syslog           = false,
   $syslog_log_facility  = 'LOCAL4',
   $syslog_log_level     = 'WARNING',
+  $ssh_private_key      = '/var/lib/astute/neutron/neutron',
+  $ssh_public_key       = '/var/lib/astute/neutron/neutron.pub',
   $server_ha_mode       = false,
 ) {
   include 'neutron::params'
@@ -136,15 +138,6 @@ class neutron (
     'keystone_authtoken/admin_user':        value => $neutron_config['keystone']['admin_user'];
     'keystone_authtoken/admin_password':    value => $neutron_config['keystone']['admin_password'];
   }
-  # logging for agents grabbing from stderr. It's workarround for bug in quantum-logging
-  # server givs this parameters from command line
-  # FIXME change init.d scripts for q&agents, fix daemon launch commands (CENTOS/RHEL):
-  # quantum-server:
-  #	daemon --user quantum --pidfile $pidfile "$exec --config-file $config --config-file /etc/$prog/plugin.ini &>>/var/log/quantum/server.log & echo \$!
-  # quantum-ovs-cleanup:
-  # 	daemon --user quantum $exec --config-file /etc/$proj/$proj.conf --config-file $config &>>/var/log/$proj/$plugin.log
-  # quantum-ovs/metadata/l3/dhcp/-agents:
-  # 	daemon --user quantum --pidfile $pidfile "$exec --config-file /etc/$proj/$proj.conf --config-file $config &>>/var/log/$proj/$plugin.log & echo \$! > $pidfile"
 
 
   if defined(Anchor['neutron-server-config-done']) {
@@ -152,6 +145,25 @@ class neutron (
   } else {
     $endpoint_neutron_main_configuration = 'neutron-init-done'
   }
+
+
+  $fuel_utils_package = $neutron::params::fuel_utils_package
+  package { $fuel_utils_package :
+    ensure => installed,
+  }
+
+  install_ssh_keys {'neutron_ssh_key':
+    ensure           => present,
+    user             => 'root',
+    private_key_path => $ssh_private_key,
+    public_key_path  => $ssh_public_key,
+    private_key_name => 'id_rsa_neutron',
+    public_key_name  => 'id_rsa_neutron.pub',
+    authorized_keys  => 'authorized_keys',
+  }
+
+  Anchor['neutron-init'] -> Package[$fuel_utils_package] -> Install_ssh_keys['neutron_ssh_key'] -> Anchor[$endpoint_neutron_main_configuration]
+
 
   Anchor['neutron-init'] ->
     Package['neutron'] ->
