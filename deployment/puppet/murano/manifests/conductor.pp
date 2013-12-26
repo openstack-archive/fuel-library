@@ -49,7 +49,7 @@ class murano::conductor (
     'DEFAULT/max_environments'         : value => $max_environments;
     'DEFAULT/init_scripts_dir'         : value => $init_scripts_dir;
     'DEFAULT/agent_config_dir'         : value => $agent_config_dir;
-    'DEFAULT/anetwork_topology'        : value => $network_topology;
+    'DEFAULT/network_topology'         : value => $network_topology;
     'keystone/auth_url'                : value => $auth_url;
     'rabbitmq/host'                    : value => $rabbit_host;
     'rabbitmq/port'                    : value => $rabbit_port;
