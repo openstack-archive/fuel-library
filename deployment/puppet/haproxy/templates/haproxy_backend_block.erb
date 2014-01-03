@@ -1,0 +1,7 @@
+
+backend <%= @name %>
+<% @options.sort.each do |key, val| -%>
+<% Array(val).each do |item| -%>
+  <%= key %>  <%= item %>
+<% end -%>
+<% end -%>
