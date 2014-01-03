@@ -8,10 +8,10 @@
 #all_files=`find -name "*.pp" -o -name "*.erb" -o -name "*.sh" -o -name "*.rb"`
 
 if [ -z "$*" ]; then
-	ruby_files=`find -type f -print0 | xargs -0 file -i | grep -i ruby | awk -F: '{ print $1 }'`
-	all_files="${ruby_files} `find -name "*.pp" -o -name "*.erb" -o -name "*.sh"`"
+  ruby_files=`find -type f -print0 | xargs -0 file -i | grep -i ruby | awk -F: '{ print $1 }'`
+  all_files="${ruby_files} `find -name "*.pp" -o -name "*.erb" -o -name "*.sh"`"
 else
-	all_files="$*"
+  all_files="$*"
 fi
 
 num_files=`echo $all_files | wc -w`
@@ -35,6 +35,7 @@ for x in $all_files; do
         --no-2sp_soft_tabs-check \
         --no-trailing_whitespace-check \
         --no-hard_tabs-check \
+        --no-class_inherits_from_params_class-check \
         --with-filename $x
 
     puppet parser validate --render-as s --color=false $x
