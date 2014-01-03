@@ -13,22 +13,14 @@ class neutron::waist_setup {
     }
   }
 
-  Package[python-amqp] -> Class[neutron::waistline]
-  Package[python-keystoneclient] -> Class[neutron::waistline]
-  Nova_config<||> -> Class[neutron::waistline]
+  Package['python-amqp'] -> Class['neutron::waistline']
+  Package['python-keystoneclient'] -> Class['neutron::waistline']
+  Nova_config<||> -> Class['neutron::waistline']
 
-  if defined(Service[keystone]) {
-    Service[keystone] -> Class[neutron::waistline]
+  if defined(Service['keystone']) {
+    Service['keystone'] -> Class['neutron::waistline']
   }
-  if defined(Service[haproxy]) {
-    Service[haproxy]    -> Class[neutron::waistline]
-    Haproxy_service<||> -> Class[neutron::waistline]
+  if defined(Class['neutron']) {
+    Class['neutron'] -> Class['neutron::waistline']
   }
-  if defined(Class[neutron]) {
-    Class[neutron] -> Class[neutron::waistline]
-  }
-  if defined(Service[mysql-galera]) {
-    Service[mysql-galera] -> Class[neutron::waistline]
-  }
-
 }

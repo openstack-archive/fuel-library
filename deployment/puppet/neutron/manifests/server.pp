@@ -74,6 +74,8 @@ class neutron::server (
     'filter:authtoken/admin_password':    value => $neutron_config['keystone']['admin_password'];
   }
 
+  anchor {'neutron-server-config-done':}
+
   File<| title=='neutron-logging.conf' |> ->
   service {'neutron-server':
     name       => $::neutron::params::server_service,
@@ -84,33 +86,26 @@ class neutron::server (
     provider   => $::neutron::params::service_provider,
   }
 
+  anchor {'neutron-api-up':}
+
   Anchor['neutron-server'] ->
     Neutron_config<||> ->
       Neutron_api_config<||> ->
   Anchor['neutron-server-config-done'] ->
     Service['neutron-server'] ->
+  Anchor['neutron-api-up'] ->
   Anchor['neutron-server-done']
-
-  # if defined(Anchor['neutron-plugin-ovs-done']) {
-  #   Anchor['neutron-server-config-done'] ->
-  #     Anchor['neutron-plugin-ovs-done'] ->
-  #       Anchor['neutron-server-done']
-  # }
 
   Package[$server_package] -> class { 'neutron::quota': } -> Anchor['neutron-server-config-done']
 
-  anchor {'neutron-server-config-done':}
-
   if $primary_controller {
-    Anchor['neutron-server-config-done'] ->
-    class { 'neutron::network::predefined_netwoks':
+    Anchor['neutron-api-up'] ->
+    class { 'neutron::network::predefined_networks':
       neutron_config => $neutron_config,
     } -> Anchor['neutron-server-done']
-    Service['neutron-server'] -> Class['neutron::network::predefined_netwoks']
   }
 
   anchor {'neutron-server-done':}
-  Anchor['neutron-server'] -> Anchor['neutron-server-done']
 }
 
 # vim: set ts=2 sw=2 et :

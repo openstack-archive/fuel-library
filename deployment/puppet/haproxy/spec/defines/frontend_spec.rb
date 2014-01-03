@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe 'haproxy::listen' do
+describe 'haproxy::frontend' do
   let(:title) { 'tyler' }
   let(:facts) {{ :ipaddress => '1.1.1.1' }}
 
@@ -12,8 +12,8 @@ describe 'haproxy::listen' do
       }
     end
 
-    it { should contain_haproxy__service('croy_listen').with_content(
-      "\nlisten croy\n  bind 1.1.1.1:18140\n  balance  roundrobin\n  option  tcplog\n  option  ssl-hello-chk\n"
+    it { should contain_haproxy__service('croy_frontend').with_content(
+      "\nfrontend croy\n  bind 1.1.1.1:18140\n  option  tcplog\n"
     ) }
   end
 
@@ -24,13 +24,13 @@ describe 'haproxy::listen' do
         :ipaddress => '23.23.23.23',
         :ports     => [
           '80',
-          '443',
+          '443'
         ]
       }
     end
 
-    it { should contain_haproxy__service('apache_listen').with_content(
-      "\nlisten apache\n  bind 23.23.23.23:80\n  bind 23.23.23.23:443\n  balance  roundrobin\n  option  tcplog\n  option  ssl-hello-chk\n"
+    it { should contain_haproxy__service('apache_frontend').with_content(
+      "\nfrontend apache\n  bind 23.23.23.23:80\n  bind 23.23.23.23:443\n  option  tcplog\n"
     ) }
   end
 
@@ -43,8 +43,8 @@ describe 'haproxy::listen' do
       }
     end
 
-    it { should contain_haproxy__service('apache_listen').with_content(
-      "\nlisten apache\n  bind 23.23.23.23:80\n  bind 23.23.23.23:443\n  balance  roundrobin\n  option  tcplog\n  option  ssl-hello-chk\n"
+    it { should contain_haproxy_service('apache_frontend').with_content(
+      "\nfrontend apache\n  bind 23.23.23.23:80\n  bind 23.23.23.23:443\n  option  tcplog\n"
     ) }
   end
 end

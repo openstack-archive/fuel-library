@@ -32,6 +32,8 @@ class haproxy::params {
         ],
         'maxconn' => '8000'
       }
+      $package_name     = 'haproxy'
+      $use_include      = false
     }
     Debian: {
       $global_options   = {
@@ -59,6 +61,8 @@ class haproxy::params {
         ],
         'maxconn' => '8000'
       }
+      $package_name     = 'haproxy'
+      $use_include      = false
     }
     default: { fail("The $::osfamily operating system is not supported with the haproxy module") }
   }
