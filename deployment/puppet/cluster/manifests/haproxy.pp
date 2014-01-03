@@ -92,24 +92,25 @@ class cluster::haproxy (
     ensure  => true,
     name    => 'haproxy',
   } ->
-  file { $global_options['chroot']:
-    ensure => directory
+  class{ 'haproxy::base':
+    use_include => true,
   } ->
   sysctl::value { 'net.ipv4.ip_nonlocal_bind':
     value => '1'
   } ->
   File['haproxy-ocf'] ->
   service { 'haproxy':
-    name       => "p_haproxy",
-    enable     => $enabled,
-    ensure     => $ensure,
+    name       => $cib_name,
+    enable     => true,
+    ensure     => 'running',
     hasstatus  => true,
     hasrestart => true,
     provider   => "pacemaker",
   } -> Anchor['haproxy-done']
 
-  anchor {'haproxy-done':}
+  Class['haproxy::base'] -> Haproxy::Service <||>
 
+  anchor {'haproxy-done':}
 }
 
 #Class['corosync'] -> Class['cluster::haproxy']
