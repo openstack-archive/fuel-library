@@ -177,7 +177,7 @@ class osnailyfacter::cluster_ha {
     if !$::fuel_settings['swift_partition'] {
       $swift_partition = '/var/lib/glance/node'
     }
-    $swift_proxies            = $controller_storage_addresses
+    $swift_proxies            = $controllers
     $swift_local_net_ip       = $::storage_address
     $master_swift_proxy_nodes = filter_nodes($nodes_hash,'role','primary-controller')
     $master_swift_proxy_ip    = $master_swift_proxy_nodes[0]['internal_address']
@@ -189,7 +189,7 @@ class osnailyfacter::cluster_ha {
       $primary_proxy = false
     }
   } elsif ($storage_hash['objects_ceph']) {
-    $rgw_balancers = $controller_storage_addresses
+    $rgw_servers = $controllers
   }
 
 
@@ -223,6 +223,7 @@ class osnailyfacter::cluster_ha {
     class {'osnailyfacter::apache_api_proxy':}
 
     class { 'openstack::controller_ha':
+      controllers                   => $controllers,
       controller_public_addresses   => $controller_public_addresses,
       controller_internal_addresses => $controller_internal_addresses,
       internal_address              => $internal_address,
@@ -264,7 +265,7 @@ class osnailyfacter::cluster_ha {
       export_resources              => false,
       glance_backend                => $glance_backend,
       swift_proxies                 => $swift_proxies,
-      rgw_balancers                 => $rgw_balancers,
+      rgw_servers                   => $rgw_servers,
       quantum                       => $::use_quantum,
       quantum_config                => $quantum_config,
       quantum_network_node          => $::use_quantum,
