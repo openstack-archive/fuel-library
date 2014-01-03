@@ -38,7 +38,7 @@ class ceilometer(
   $verbose             = 'False',
   $debug               = 'False',
   $use_syslog          = false,
-  $syslog_log_facility = 'SYSLOG',
+  $syslog_log_facility = 'LOG_SYSLOG',
   $syslog_log_level    = 'WARNING',
   $queue_provider      = 'rabbitmq',
   $rabbit_host         = '127.0.0.1',

@@ -48,12 +48,22 @@ behaviour of the haproxy server daemon:
 Configuring haproxy daemon listener
 -----------------------------------
 
-One `haproxy::listen` defined resource should be defined for each HAProxy loadbalanced set of backend servers. The title of the `haproxy::listen` resource is the key to which balancer members will be proxied to. The `ipaddress` field should be the public ip address which the loadbalancer will be contacted on. The `ports` attribute can accept an array or comma-separated list of ports which should be proxied to the `haproxy::balancermemeber` nodes.
+One `haproxy::listen` defined resource should be defined for each HAProxy loadbalanced set of backend servers. The title of the `haproxy::listen` resource is the key to which balancer members will be proxied to. The `ipaddress` field should be the public ip address which the loadbalancer will be contacted on. The `ports` attribute can accept an array or comma-separated list of ports which should be proxied to the `haproxy::balancermember` nodes.
+
+Configuring haproxy daemon frontend
+-----------------------------------
+
+One `haproxy::frontend` defined resource should be defined for each HAProxy front end you wish to set up. The `ipaddress` field should be the public ip address which the loadbalancer will be contacted on. The `ports` attribute can accept an array or comma-separated list of ports which should be proxied to the `haproxy::backend` resources.
+
+Configuring haproxy daemon backend
+----------------------------------
+
+One `haproxy::backend` defined resource should be defined for each HAProxy loadbalanced set of backend servers. The title of the `haproxy::backend` resource is the key to which balancer members will be proxied to. Note that an `haproxy::listen` resource and `haproxy::backend` resource *can* have the same name, and any balancermembers exported to that name will show up in both places. This is likely to have unsatisfactory results, but there's nothing preventing this from happening.
 
 Configuring haproxy loadbalanced member nodes
 ---------------------------------------------
 
-The `haproxy::balacemember` defined resource should be exported from each node
+The `haproxy::balancermember` defined resource should be exported from each node
 which is serving loadbalanced traffic. the `listening_service` attribute will
 associate it with `haproxy::listen` directives on the haproxy node.
 `ipaddresses` and `ports` will be assigned to the member to be contacted on. If an array of `ipaddresses` and `server_names` are provided then they will be added to the config in lock-step.
