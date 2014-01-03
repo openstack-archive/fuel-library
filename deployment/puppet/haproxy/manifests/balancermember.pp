@@ -18,35 +18,46 @@
 #
 # [*name*]
 #   The title of the resource is arbitrary and only utilized in the concat
-#    fragment name.
+#   fragment name.
 #
 # [*listening_service*]
-#    The haproxy service's instance name (or, the title of the
-#     haproxy::listen resource). This must match up with a declared
-#     haproxy::listen resource.
+#   The haproxy service's instance name (or, the title of the
+#   haproxy::listen resource). This must match up with a declared
+#   haproxy::listen resource.
 #
 # [*ports*]
-#     An array or commas-separated list of ports for which the balancer member
-#     will accept connections from the load balancer. Note that cookie values
-#     aren't yet supported, but shouldn't be difficult to add to the
-#     configuration. If you use an array in server_names and ipaddresses, the
-#     same port is used for all balancermembers.
+#   An array or commas-separated list of ports for which the balancer
+#   member will accept connections from the load balancer. Note that
+#   cookie values aren't yet supported, but shouldn't be difficult to
+#   add to the configuration. If you use an array in server_names and
+#   ipaddresses, the same port is used for all balancermembers.
 #
 # [*server_names*]
-#     The name of the balancer member server as known to haproxy in the
-#      listening service's configuration block. This defaults to the
-#      hostname. Can be an array of the same length as ipaddresses,
-#      in which case a balancermember is created for each pair of
-#      server_names and ipaddresses (in lockstep).
+#   The name of the balancer member server as known to haproxy in the
+#   listening service's configuration block. This defaults to the
+#   hostname. Can be an array of the same length as ipaddresses, in
+#   which case a balancermember is created for each pair of server_names
+#   and ipaddresses (in lockstep).
 #
 # [*ipaddresses*]
-#      The ip address used to contact the balancer member server.
-#      Can be an array, see documentation to server_names.
+#   The ip address used to contact the balancer member server. Can be an
+#   array, see documentation to server_names.
+#
+# [*ensure*]
+#   If the balancermember should be present or absent. Defaults to
+#   present.
 #
 # [*options*]
-#      An array of options to be specified after the server declaration
-#       in the listening service's configuration block.
+#   An array of options to be specified after the server declaration in
+#   the listening service's configuration block.
 #
+# [*define_cookies*]
+#   If true, then add "cookie SERVERID" stickiness options. Default
+#   false.
+#
+# [*define_backups*]
+#   If true, declare all non-primary servers as backups. Use this option
+#   when you need to enforce active-passive failover.
 #
 # === Examples
 #
@@ -63,7 +74,7 @@
 #
 #  Collecting the resource on a load balancer
 #
-#  Haproxy::Balancermember <<| tag == "${::deployment_id}::${::environment}" and listening_service == 'puppet00' |>>
+#  Haproxy::Balancermember <<| listening_service == 'puppet00' |>>
 #
 #  Creating the resource for multiple balancer members at once
 #  (for single-pass installation of haproxy without requiring a first
@@ -81,18 +92,28 @@
 #
 define haproxy::balancermember (
   $listening_service,
-  $balancer_port,
-  $order                  = '20',
-  $balancers            =  { "$::hostname" => $::ipaddress },
-  $balancermember_options = '',
-  $define_cookies         = false,
-  $define_backend         = false,
+  $ports,
+  $server_names   = $::hostname,
+  $ipaddresses    = $::ipaddress,
+  $ensure         = 'present',
+  $order          = '20',
+  $options        = '',
+  $define_cookies = false,
+  $define_backups = false,
+  $use_include    = $haproxy::params::use_include,
 ) {
-  # Template uses $ipaddresses, $server_name, $ports, $option
-  concat::fragment { "${listening_service}_balancermember_${name}":
-    order   => "${order}-${listening_service}_${name}",
-    target  => '/etc/haproxy/haproxy.cfg',
+  # Template uses $ipaddresses, $server_names, $ports, $options,
+  # $define_cookies, $define_backups
+  concat::fragment { "haproxy_${listening_service}_balancermember_${name}":
+    ensure  => $ensure,
+    order   => $use_include ? {
+      true  => "01-${name}",
+      false => "${order}-${listening_service}-01-${name}",
+    },
+    target  => $use_include ? {
+      true  => "/etc/haproxy/conf.d/${order}-${name}.cfg",
+      false => '/etc/haproxy/haproxy.cfg',
+    },
     content => template('haproxy/haproxy_balancermember.erb'),
   }
 }
-

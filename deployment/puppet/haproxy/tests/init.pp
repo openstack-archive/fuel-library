@@ -33,7 +33,8 @@ class { 'haproxy':
 @@haproxy::balancermember { $fqdn:
   order                  => '21',
   listening_service      => 'puppet00',
-  balancers            => { "$::hostname" => $::ipaddress },
+  server_name            => $::hostname,
+  balancer_ip            => $::ipaddress,
   balancer_port          => '8140',
   balancermember_options => 'check'
 }
@@ -41,7 +42,7 @@ class { 'haproxy':
 # Declare a couple of Listening Services for haproxy.cfg
 #  Note that the balancermember server resources are being collected in
 #  the haproxy::config defined resource type with the following line:
-#  Haproxy::Balancermember <<| tag == "${::deployment_id}::${::environment}" and listening_service == $name |>>
+#  Haproxy::Balancermember <<| listening_service == $name |>>
 haproxy::listen { 'puppet00':
   order     => '20',
   ipaddress => $::ipaddress,
