@@ -186,7 +186,6 @@ class ha_controller (
   class { 'cluster::haproxy':
     global_options   => merge($::haproxy::params::global_options, {'log' => "/dev/log local0"}),
     defaults_options => merge($::haproxy::params::defaults_options, {'mode' => 'http'}),
-    stage => 'cluster_head',
   }
   #
   ###
