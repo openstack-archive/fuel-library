@@ -27,6 +27,8 @@
 #    options as an array and you will get a line for each of them in the
 #    resultant haproxy.cfg file.
 #
+# [*package_name*]
+#   The package name to install containing haproxy.  Defaults to <code>'haproxy'</code>
 #
 # === Examples
 #
@@ -63,59 +65,38 @@ class haproxy (
   $manage_service   = true,
   $enable           = true,
   $global_options   = $haproxy::params::global_options,
-  $defaults_options = $haproxy::params::defaults_options
+  $defaults_options = $haproxy::params::defaults_options,
+  $package_name     = $haproxy::params::package_name,
 ) inherits haproxy::params {
-  include concat::setup
 
-  package { 'haproxy':
+  package { $package_name:
     ensure  => $enable ? {
       true  => present,
       false => absent,
     },
-    name    => 'haproxy',
+    alias   => 'haproxy',
   }
 
   if $enable {
-    concat { '/etc/haproxy/haproxy.cfg':
-      owner   => '0',
-      group   => '0',
-      mode    => '0644',
-      require => Package['haproxy'],
-      notify  => $manage_service ? {
-        true  => Service['haproxy'],
-        false => undef,
-      },
-    }
+    class { 'haproxy::base': }
 
-    # Simple Header
-    concat::fragment { '00-header':
-      target  => '/etc/haproxy/haproxy.cfg',
-      order   => '01',
-      content => "# This file managed by Puppet\n",
-    }
+    Package['haproxy'] ->
+    Class['haproxy::base'] ->
+    Haproxy::Service <||>
 
-    # Template uses $global_options, $defaults_options
-    concat::fragment { 'haproxy-base':
-      target  => '/etc/haproxy/haproxy.cfg',
-      order   => '10',
-      content => template('haproxy/haproxy-base.cfg.erb'),
-    }
+    if $manage_service {
+      Class['haproxy::base'] -> Service['haproxy']
+      Haproxy::Service <||> ~> Service['haproxy']
+      Haproxy::Balancermember <||> ~> Service['haproxy']
 
-    if ($::osfamily == 'Debian') {
-      file { '/etc/default/haproxy':
-        content => 'ENABLED=1',
-        require => Package['haproxy'],
-        before  => $manage_service ? {
-          true  => Service['haproxy'],
-          false => undef,
-        },
+      if ($::osfamily == 'Debian') {
+        file { '/etc/default/haproxy':
+          content => 'ENABLED=1',
+          require => Package['haproxy'],
+          before  => Service['haproxy'],
+        }
       }
     }
-
-    file { $global_options['chroot']:
-      ensure => directory,
-    }
-
   }
 
   if $manage_service {
@@ -124,17 +105,10 @@ class haproxy (
         true  => running,
         false => stopped,
       },
-      enable     => $enable ? {
-        true  => true,
-        false => false,
-      },
+      enable     => $enable,
       name       => 'haproxy',
       hasrestart => true,
       hasstatus  => true,
-      require    => [
-        Concat['/etc/haproxy/haproxy.cfg'],
-        File[$global_options['chroot']],
-      ],
     }
   }
 }

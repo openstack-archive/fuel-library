@@ -58,7 +58,7 @@ class galera (
 
   anchor {'galera': }
 
-  Anchor<| title == 'haproxy_done' |> -> Anchor['galera']
+  Openstack::Ha::Haproxy_service['mysqld'] -> Anchor['galera']
 
   $cib_name = "mysql"
   $res_name = "p_${cib_name}"
@@ -143,8 +143,6 @@ class galera (
     }
   }
 
-  Anchor['galera'] -> Cs_shadow["$res_name"]
-
   cs_shadow { $res_name: cib => $cib_name }
   cs_commit { $res_name: cib => $cib_name }
 
@@ -187,21 +185,21 @@ class galera (
 
   Package['MySQL-server'] -> File['mysql-wss-ocf']
   Package['galera'] -> File['mysql-wss-ocf']
-  File['mysql-wss-ocf'] -> Cs_resource["$res_name"]
-  #??? #File['mysql-wss-ocf'] -> Anchor <| title == 'haproxy_done' |>
-  #??? #Anchor <| title == 'haproxy_done' |> -> File['mysql-wss-ocf']
+  File['mysql-wss-ocf'] -> Cs_resource[$res_name]
 
-  service { "mysql":
-    name       => "p_mysql",
+  service { $cib_name:
+    name       => $res_name,
     enable     => true,
-    ensure     => "running",
-    provider   => "pacemaker",
+    ensure     => 'running',
+    provider   => 'pacemaker',
   }
-  Cs_shadow["$res_name"] ->
-    Cs_resource["$res_name"] ->
-      Cs_commit["$res_name"] ->
-        Service["$cib_name"] ->
-          Anchor['galera-done']
+
+  Anchor['galera']       ->
+  Cs_shadow[$res_name]   ->
+  Cs_resource[$res_name] ->
+  Cs_commit[$res_name]   ->
+  Service[$cib_name]     ->
+  Anchor['galera-done']
 
   package { [$::galera::params::libssl_package, $::galera::params::libaio_package]:
     ensure => present,
@@ -281,9 +279,8 @@ class galera (
   }
 
 
-
-  File["/tmp/wsrep-init-file"] -> Service["$cib_name"] -> Exec["wait-initial-sync"] -> Exec ["wait-for-synced-state"] -> Exec ["rm-init-file"]
-  Package["MySQL-server"] ~> Exec ["wait-initial-sync"]
+  File['/tmp/wsrep-init-file'] -> Service[$cib_name] -> Exec['wait-initial-sync'] -> Exec['wait-for-synced-state'] -> Exec ['rm-init-file']
+  Package['MySQL-server'] ~> Exec['wait-initial-sync']
 
 # FIXME: This class is deprecated and should be removed in future releases.
 
@@ -299,12 +296,11 @@ class galera (
       path   => "/usr/bin:/usr/sbin:/bin:/sbin",
       logoutput => true,
       command   => 'echo Primary-controller completed',
-      require    => Service["$cib_name"],
+      require    => Service[$cib_name],
       before     => Exec ["wait-for-synced-state"],
       notify     => Exec ["raise-first-setup-flag"],
     }
   }
 
   anchor {'galera-done': }
-
 }
