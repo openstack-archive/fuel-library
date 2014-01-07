@@ -103,7 +103,7 @@ class horizon(
   if $generate_sslcert_names {
     $sslcert_pair = regsubst([$::horizon::params::ssl_cert_file,
                               $::horizon::params::ssl_key_file],
-                        '(.+\/).+(\..+)', "\1${::domain}\2")
+                        '(.+\/).+(\..+)', "\\1${::domain}\\2")
 
     $ssl_cert_file = $sslcert_pair[0]
     $ssl_key_file  = $sslcert_pair[1]
