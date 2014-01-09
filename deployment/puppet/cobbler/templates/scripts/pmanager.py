@@ -416,7 +416,8 @@ class PManager(object):
                         "".format(disk["id"]))
         if devs:
             self.kick("bootloader --location=mbr --driveorder={0} "
-                      "--append=' biosdevname=0 "
+                      "--append=' console=ttyS0,9600 console=tty0 "
+                      "biosdevname=0 "
                       "crashkernel=none'".format(",".join(devs)))
             for dev in devs:
                 self.post("echo -n > /tmp/grub.script")
@@ -436,6 +437,9 @@ class PManager(object):
                 self.post("echo quit >> /tmp/grub.script")
                 self.post("cat /tmp/grub.script | chroot /mnt/sysimage "
                           "/sbin/grub --no-floppy --batch")
+            self.post("sed -i 's/hiddenmenu/hiddenmenu\\nserial\\ "
+                      "--unit=1\\ --speed=19200\\nterminal\\ "
+                      "--timeout=8\\ console\\ serial/g' /etc/grub.cfg")
 
     def expose(self,
                kickfile="/tmp/partition.ks",
@@ -862,6 +866,12 @@ class PreseedPManager(object):
         self.lv()
         self.partitions()
         self.late("apt-get install -y grub-pc", True)
+        self.late("sed -i "
+                  "-e 's/.*GRUB_TERMINAL.*/GRUB_TERMINAL=console/g' "
+                  "-e 's/.*GRUB_GFXMODE.*/#GRUB_GFXMODE=640x480/g' "
+                  "-e 's/.*GRUB_CMDLINE_LINUX.*/"
+                  "GRUB_CMDLINE_LINUX=\"console=tty0 "
+                  "console=ttyS0,9600\"/g' /etc/default/grub", True)
         self.late("umount /target/proc")
         self.late("mount -o bind /proc /target/proc")
         self.late("umount /target/sys")
