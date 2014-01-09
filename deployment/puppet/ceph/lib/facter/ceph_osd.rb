@@ -7,6 +7,7 @@ Facter.add("osd_devices_list") do
 
         # Finds OSD and journal devices based on Partition GUID
         devs.each { |d|
+            d = d.gsub(/!/, '/')
             parts = %x{ls /dev/#{d}?}.gsub("/dev/#{d}","").split("\n")
             parts.each { |p|
                 code = %x{sgdisk -i #{p} /dev/#{d} | grep "Partition GUID code" | awk '{print $4}'}.strip()
