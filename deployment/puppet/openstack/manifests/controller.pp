@@ -290,6 +290,7 @@ class openstack::controller (
     use_syslog            => $use_syslog,
     syslog_log_facility   => $syslog_log_facility_keystone,
     syslog_log_level      => $syslog_log_level,
+    memcached_servers     => $cache_server_ip,
   }
 
 
