@@ -146,7 +146,7 @@ END
 }
 
 get_worker_pid() {
-    pid=`pgrep -u ${OCF_RESKEY_user} -fnl ${OCF_RESKEY_binary} | grep -E  "python\s+\/usr\/bin" | awk '{print $1}'`
+    pid=`pgrep -u ${OCF_RESKEY_user} -fol ${OCF_RESKEY_binary} | grep -E  "python\s+\/usr\/bin" | awk '{print $1}'`
     echo $pid
 }
 
