@@ -1,0 +1,13 @@
+Verified+2: Jenkins
+Code-Review+1: Matthew Mosesohn <mmosesohn@mirantis.com>
+Approved+1: Vladimir Kuklin <vkuklin@mirantis.com>
+Code-Review+2: Vladimir Kuklin <vkuklin@mirantis.com>
+Code-Review+1: Nastya Urlapova <aurlapova@mirantis.com>
+Code-Review+1: Andrey Danin <gcon.monolake@gmail.com>
+Code-Review+1: Igor Shishkin <ishishkin@mirantis.com>
+Verified+1: Fuel CI <fuel-ci-bot@mirantis.com>
+Submitted-by: Jenkins
+Submitted-at: Mon, 20 Jan 2014 14:13:37 +0000
+Reviewed-on: https://review.openstack.org/66616
+Project: stackforge/fuel-library
+Branch: refs/heads/master
