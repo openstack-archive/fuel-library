@@ -17,8 +17,9 @@
 # should be considered to be constant
 class galera::params {
 
-  $mysql_user     = "wsrep_sst"
-  $mysql_password = "password"
+  $mysql_user             = "wsrep_sst"
+  $mysql_password         = "password"
+  $mysql_buffer_pool_size = inline_template("<%= ($::memorysize_mb * 0.3).floor %>M")
 
   case $::osfamily {
     'RedHat': {
