@@ -45,7 +45,7 @@ wsrep_provider=<%= libgalera_prefix %>/galera/libgalera_smm.so
 # Provider specific configuration options
 # See http://www.codership.com/wiki/doku.php?id=faq
 
-wsrep_provider_options="pc.ignore_sb = no;ist.recv_addr=<%= node_address %>;gmcast.listen_addr=tcp://<%= node_address %>:4567"
+wsrep_provider_options="pc.ignore_sb = no;ist.recv_addr=<%= node_address %>;gmcast.listen_addr=tcp://<%= node_address %>:4567;gcache.size=1G"
 
 # Logical cluster name. Should be the same for all nodes.
 wsrep_cluster_name="<%= cluster_name -%>"
@@ -68,7 +68,7 @@ wsrep_node_address=<%= node_address %>
 #wsrep_node_incoming_address=
 
 # How many threads will process writesets from other nodes
-wsrep_slave_threads=32
+wsrep_slave_threads=4
 
 # DBUG options for wsrep provider
 #wsrep_dbug_option
@@ -133,3 +133,11 @@ wsrep_sst_auth=<%= mysql_user %>:<%= mysql_password %>
 <% if skip_name_resolve -%>
 skip-name-resolve
 <% end -%>
+<% if mysql_buffer_pool_size %>
+innodb_buffer_pool_size=<%= mysql_buffer_pool_size %>
+<% end %>
+innodb_thread_concurrency=0
+innodb_write_io_threads=8
+innodb_read_io_threads=8
+innodb_io_capacity=500
+table_cache=10000

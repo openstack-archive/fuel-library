@@ -66,6 +66,7 @@ class galera (
   $mysql_user = $::galera::params::mysql_user
   $mysql_password = $::galera::params::mysql_password
   $libgalera_prefix = $::galera::params::libgalera_prefix
+  $mysql_buffer_pool_size = $::galera::params::mysql_buffer_pool_size
 
   case $::osfamily {
     'RedHat' : {
