@@ -16,7 +16,7 @@ class heat::db (
   case $sql_connection {
     /^mysql:\/\//: {
       $backend_package = false
-      include mysql::python
+      include mysql::bindings::python
     }
     default: {
       fail('Unsupported backend configured')

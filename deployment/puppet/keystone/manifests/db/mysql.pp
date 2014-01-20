@@ -45,7 +45,7 @@ class keystone::db::mysql(
   Mysql::Db[$dbname] ~> Exec<| title == 'keystone-manage db_sync' |>
   Class['keystone::db::mysql'] -> Package<| title == 'keystone' |>
 
-  require 'mysql::python'
+  require 'mysql::bindings::python'
 
   mysql::db { $dbname:
     user     => $user,
@@ -62,9 +62,9 @@ class keystone::db::mysql(
       password => $password,
       database => $dbname,
     }
-    
+
     Keystone::Db::Mysql::Host_access[$allowed_hosts] -> Exec<| title == 'keystone-manage db_sync' |>
-    
+
   }
 
 }

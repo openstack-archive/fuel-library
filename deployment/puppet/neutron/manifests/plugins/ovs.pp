@@ -19,7 +19,7 @@ class neutron::plugins::ovs (
 
   case $neutron_config['database']['provider'] {
     /(?i)mysql/: {
-      require 'mysql::python'
+      require 'mysql::bindings::python'
     }
     /(?i)postgresql/: {
       $backend_package = 'python-psycopg2'

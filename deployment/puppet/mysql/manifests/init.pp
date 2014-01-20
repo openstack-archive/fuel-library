@@ -21,4 +21,5 @@ class mysql (
    #ensure  => $package_ensure,
   }
 
+  include '::mysql::bindings'
 }

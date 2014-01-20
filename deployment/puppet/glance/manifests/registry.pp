@@ -78,7 +78,7 @@ if $use_syslog and !$debug =~ /(?i)(true|yes)/ {
   Glance_registry_config<||> ~> Service['glance-registry']
 
   if($sql_connection =~ /mysql:\/\/\S+:\S+@\S+\/\S+/) {
-    require 'mysql::python'
+    require 'mysql::bindings::python'
   } elsif($sql_connection =~ /postgresql:\/\/\S+:\S+@\S+\/\S+/) {
 
   } elsif($sql_connection =~ /sqlite:\/\//) {

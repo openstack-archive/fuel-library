@@ -20,7 +20,7 @@ class ceilometer::db (
   case $database_connection {
     /^mysql:\/\//: {
       $backend_package = false
-      include mysql::python
+      include mysql::bindings::python
     }
     /^postgres:\/\//: {
       $backend_package = 'python-psycopg2'

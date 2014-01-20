@@ -18,7 +18,7 @@ describe 'glance::db::mysql' do
       }
     end
 
-  	it { should include_class('mysql::python') }
+  	it { should include_class('mysql::bindings::python') }
 
     it { should contain_mysql__db('glance').with(
       :password => 'glancepass1',

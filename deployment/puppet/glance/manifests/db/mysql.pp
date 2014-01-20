@@ -22,7 +22,7 @@ class glance::db::mysql(
   Class['glance::db::mysql'] -> Exec<| title == 'glance-manage db_sync' |>
   Database[$dbname]          ~> Exec<| title == 'glance-manage db_sync' |>
 
-  require 'mysql::python'
+  require 'mysql::bindings::python'
 
   mysql::db { $dbname:
     user         => $user,

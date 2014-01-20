@@ -15,7 +15,7 @@ class neutron::db::mysql (
     Class['neutron::db::mysql']->Package['neutron-server']
   }
 
-  require 'mysql::python'
+  require 'mysql::bindings::python'
 
   mysql::db { $dbname:
     user         => $user,

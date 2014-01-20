@@ -39,7 +39,7 @@ describe 'keystone::db::mysql' do
       param_defaults.merge(p)
     end
 
-    it { should contain_class('mysql::python') }
+    it { should contain_class('mysql::bindings::python') }
 
     it { should contain_mysql__db(param_values['dbname']).with(
       'user'     => param_values['user'],

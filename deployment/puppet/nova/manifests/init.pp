@@ -242,7 +242,7 @@ File['nova-logging.conf'] ~> Service <| title == "$nova::params::meta_api_servic
   # that may need to be collected from a remote host
   if $sql_connection {
     if($sql_connection =~ /mysql:\/\/\S+:\S+@\S+\/\S+/) {
-      require 'mysql::python'
+      require 'mysql::bindings::python'
     } elsif($sql_connection =~ /postgresql:\/\/\S+:\S+@\S+\/\S+/) {
 
     } elsif($sql_connection =~ /sqlite:\/\//) {
