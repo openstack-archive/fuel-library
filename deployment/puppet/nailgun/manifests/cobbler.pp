@@ -19,6 +19,7 @@ class nailgun::cobbler(
   Anchor<| title == "nailgun-cobbler-begin" |> ->
   Class["::cobbler"] ->
   Anchor<| title == "nailgun-cobbler-end" |>
+  include cobbler::server
 
   class { "::cobbler":
     server              => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
@@ -181,6 +182,19 @@ class nailgun::cobbler(
 
   Exec["cobbler_system_add_default"] ~> Exec["nailgun_cobbler_sync"]
   Exec["cobbler_system_edit_default"] ~> Exec["nailgun_cobbler_sync"]
+
+
+  file { "/etc/httpd/conf.d/nailgun.conf":
+    content => template("nailgun/httpd_nailgun.conf.erb"),
+    owner => 'root',
+    group => 'root',
+    mode => 0644,
+  }
+
+  $web_service = $::osfamily ? { 'RedHat' => 'httpd', 'Debian' => 'apache2' }
+  Package['cobbler-web'] ->
+    File["/etc/httpd/conf.d/nailgun.conf"]
+      ~> Service[$web_service]
 
 }
 
