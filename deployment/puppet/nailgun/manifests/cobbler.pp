@@ -182,5 +182,12 @@ class nailgun::cobbler(
   Exec["cobbler_system_add_default"] ~> Exec["nailgun_cobbler_sync"]
   Exec["cobbler_system_edit_default"] ~> Exec["nailgun_cobbler_sync"]
 
+  file { "/etc/httpd/conf.d/nailgun.conf":
+    content => template("nailgun/httpd_nailgun.conf.erb"),
+    owner => 'root',
+    group => 'root',
+    mode => 0644,
+    require => Class["::cobbler::server"],
+    notify => Service[$cobbler::server::cobbler_web_service],
 }
 
