@@ -62,15 +62,19 @@ Puppet::Type.type(:cs_resource).provide(:crm, :parent => Puppet::Provider::Coros
       if ! e.elements['operations'].nil?
         e.elements['operations'].each_element do |o|
           valids = o.attributes.reject do |k,v| k == 'id' end
-          primitive[items['id'].to_sym][:operations][valids['name']] = {}
+          if valids['role']
+            op_name = "#{valids['name']}:#{valids['role']}" #.to_sym()
+          else
+            op_name = valids['name'] #.to_sym()
+          end
+          primitive[items['id'].to_sym][:operations][op_name] = {}
           valids.each do |k,v|
-            primitive[items['id'].to_sym][:operations][valids['name']][k] = v if k != 'name'
+            primitive[items['id'].to_sym][:operations][op_name][k] = v if k != 'name'
           end
         end
       end
       if e.parent.name == 'master' or e.parent.name == 'clone'
         primitive[items['id'].to_sym][:multistate_hash][:name] = e.parent.attributes['id']
-        #unless e.parent.attributes['id'] ==  "#{e.parent.name}_#{items['id'].to_sym}"
         primitive[items['id'].to_sym][:multistate_hash][:type] = e.parent.name
         if ! e.parent.elements['meta_attributes'].nil?
           e.parent.elements['meta_attributes'].each_element do |m|
@@ -208,7 +212,11 @@ Puppet::Type.type(:cs_resource).provide(:crm, :parent => Puppet::Provider::Coros
       unless @property_hash[:operations].empty?
         operations = ''
         @property_hash[:operations].each do |o|
-          operations << "op #{o[0]} "
+          op_namerole = o[0].to_s.split(':')
+          if op_namerole[1]
+            o[1]['role'] = o[1]['role'] || op_namerole[1]  # Hash['role'] has more priority, than Name
+          end
+          operations << "op #{op_namerole[0]} "
           o[1].each_pair do |k,v|
             operations << "#{k}=#{v} "
           end
