@@ -45,8 +45,8 @@ class swift(
 
   file { '/tmp/keystone-signing-swift':
     ensure  => directory,
-    owner  => 'swift',
-    group  => 'swift',
+    owner   => 'swift',
+    group   => 'swift',
     mode    => '0700',
   }
   file { '/var/lib/glance':

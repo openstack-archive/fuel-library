@@ -49,10 +49,10 @@ class ceilometer::alarm::evaluator (
 
     Package['pacemaker'] -> File['ceilometer-alarm-evaluator-ocf']
     file {'ceilometer-alarm-evaluator-ocf':
-      path=>'/usr/lib/ocf/resource.d/mirantis/ceilometer-alarm-evaluator',
-      mode => 755,
-      owner => root,
-      group => root,
+      path   =>'/usr/lib/ocf/resource.d/mirantis/ceilometer-alarm-evaluator',
+      mode   => '0755',
+      owner  => root,
+      group  => root,
       source => 'puppet:///modules/ceilometer/ocf/ceilometer-alarm-evaluator',
     }
 

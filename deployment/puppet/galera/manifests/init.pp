@@ -72,7 +72,7 @@ class galera (
 
       file { '/etc/init.d/mysql':
         ensure  => present,
-        mode    => 644,
+        mode    => '0644',
         require => Package['MySQL-server'],
         before  => File['mysql-wss-ocf']
       }
@@ -107,7 +107,7 @@ class galera (
 
       file { '/etc/init.d/mysql':
         ensure  => present,
-        mode    => 644,
+        mode    => '0644',
         source => 'puppet:///modules/galera/mysql.init' ,
         require => Package['MySQL-server'],
         before  => File['mysql-wss-ocf']
@@ -176,10 +176,10 @@ class galera (
   }
 
   file {'mysql-wss-ocf':
-    path=>'/usr/lib/ocf/resource.d/mirantis/mysql-wss',
-    mode => 755,
-    owner => root,
-    group => root,
+    path   => '/usr/lib/ocf/resource.d/mirantis/mysql-wss',
+    mode   => '0755',
+    owner  => root,
+    group  => root,
     source => "puppet:///modules/galera/ocf/mysql-wss",
   }
   File<| title == 'ocf-mirantis-path' |> -> File['mysql-wss-ocf']

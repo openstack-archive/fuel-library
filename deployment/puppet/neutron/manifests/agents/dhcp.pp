@@ -25,9 +25,9 @@ class neutron::agents::dhcp (
   if $::operatingsystem == 'Ubuntu' {
     file { '/etc/init/neutron-dhcp-agent.override':
      replace => 'no',
-     ensure => 'present',
+     ensure  => 'present',
      content => 'manual',
-     mode => 644,
+     mode    => '0644',
     } -> Package<| title=="$dhcp_agent_package" |>
     if $service_provider != 'pacemaker' {
        Package<| title=="$dhcp_agent_package" |> ->
@@ -95,10 +95,10 @@ class neutron::agents::dhcp (
     # OCF script for pacemaker
     # and his dependences
     file {'neutron-dhcp-agent-ocf':
-      path=>'/usr/lib/ocf/resource.d/mirantis/neutron-agent-dhcp',
-      mode => 755,
-      owner => root,
-      group => root,
+      path   =>'/usr/lib/ocf/resource.d/mirantis/neutron-agent-dhcp',
+      mode   => '0755',
+      owner  => root,
+      group  => root,
       source => "puppet:///modules/neutron/ocf/neutron-agent-dhcp",
     }
 

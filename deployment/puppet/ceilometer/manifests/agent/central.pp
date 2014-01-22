@@ -75,10 +75,10 @@ class ceilometer::agent::central (
 
     Package['pacemaker'] -> File['ceilometer-agent-central-ocf']
     file {'ceilometer-agent-central-ocf':
-      path=>'/usr/lib/ocf/resource.d/mirantis/ceilometer-agent-central',
-      mode => 755,
-      owner => root,
-      group => root,
+      path   =>'/usr/lib/ocf/resource.d/mirantis/ceilometer-agent-central',
+      mode   => '0755',
+      owner  => root,
+      group  => root,
       source => 'puppet:///modules/ceilometer/ocf/ceilometer-agent-central',
     }
 

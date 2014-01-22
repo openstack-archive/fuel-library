@@ -29,7 +29,7 @@ class neutron (
       ensure  => directory,
       owner   => 'root',
       group   => 'root',
-      mode    => 755,
+      mode    => '0755',
     }
   }
 
@@ -41,7 +41,7 @@ class neutron (
   Package['neutron'] ->
   file {'q-agent-cleanup.py':
     path   => '/usr/bin/q-agent-cleanup.py',
-    mode   => 755,
+    mode   => '0755',
     owner  => root,
     group  => root,
     source => "puppet:///modules/neutron/q-agent-cleanup.py",
@@ -50,7 +50,7 @@ class neutron (
   Package['neutron'] ->
   file {'neutron-root':
     path => '/etc/sudoers.d/neutron-root',
-    mode => 0440,
+    mode => '0440',
     owner => root,
     group => root,
     source => "puppet:///modules/neutron/neutron-root",
@@ -60,7 +60,7 @@ class neutron (
   file {'/var/cache/neutron':
     ensure  => directory,
     path   => '/var/cache/neutron',
-    mode   => 755,
+    mode   => '0755',
     owner  => neutron,
     group  => neutron,
   }

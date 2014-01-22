@@ -25,10 +25,10 @@ class cluster::haproxy (
   Cs_commit[$cib_name] -> Service['haproxy']
 
   file {'haproxy-ocf':
-    path=>'/usr/lib/ocf/resource.d/mirantis/haproxy',
-    mode => 755,
-    owner => root,
-    group => root,
+    path   =>'/usr/lib/ocf/resource.d/mirantis/haproxy',
+    mode   => '0755',
+    owner  => root,
+    group  => root,
     source => "puppet:///modules/cluster/haproxy",
   }
   File<| title == 'ocf-mirantis-path' |> -> File['haproxy-ocf']
@@ -74,7 +74,7 @@ class cluster::haproxy (
         replace => "no",
         ensure  => "present",
         content => "manual",
-        mode    => 644
+        mode    => '0644'
       } -> File['haproxy-ocf']
     }
   } elsif ($::osfamily == 'RedHat') {

@@ -67,10 +67,10 @@ class neutron::agents::metadata (
     # OCF script for pacemaker
     # and his dependences
     file {'neutron-metadata-agent-ocf':
-      path=>'/usr/lib/ocf/resource.d/mirantis/neutron-agent-metadata',
-      mode => 755,
-      owner => root,
-      group => root,
+      path   =>'/usr/lib/ocf/resource.d/mirantis/neutron-agent-metadata',
+      mode   => '0755',
+      owner  => root,
+      group  => root,
       source => "puppet:///modules/neutron/ocf/neutron-agent-metadata",
     }
     Package['pacemaker'] -> File['neutron-metadata-agent-ocf']

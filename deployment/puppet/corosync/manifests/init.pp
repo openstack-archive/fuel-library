@@ -119,7 +119,7 @@ class corosync (
          replace => "no",
          ensure  => "present",
          content => "manual",
-         mode    => 644,
+         mode    => '0644',
          before  => Package[corosync],
       }
   }
