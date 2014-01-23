@@ -51,7 +51,7 @@ module Puppet
       end
     end
 
-    newproperty(:node) do
+    newproperty(:node_name) do
       desc "The node for which to apply node_score"
     end
 

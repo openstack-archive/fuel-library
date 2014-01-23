@@ -31,7 +31,7 @@ Puppet::Type.type(:cs_location).provide(:crm, :parent => Puppet::Provider::Coros
       #      end
       rules = []
       if ! items['node'].nil?
-        node = items['node'].to_s
+        node_name = items['node'].to_s
         node_score = items['score'].to_s
       elsif ! e.elements['rule'].nil?
         e.each_element('rule') do |r|
@@ -66,7 +66,7 @@ Puppet::Type.type(:cs_location).provide(:crm, :parent => Puppet::Provider::Coros
         :ensure     => :present,
         :primitive => items['rsc'],
         :node_score => node_score,
-        :node => node,
+        :node_name => node_name,
         :rules => rules,
         :provider   => self.name
       }
@@ -81,10 +81,10 @@ Puppet::Type.type(:cs_location).provide(:crm, :parent => Puppet::Provider::Coros
     @property_hash = {
       :name       => @resource[:name],
       :ensure     => :present,
-      :primitive => @resource[:primitive],
-      :node => @resource[:node],
-      :rules => @resource[:rules],
-      :node_score      => @resource[:node_score],
+      :primitive  => @resource[:primitive],
+      :node_name  => @resource[:node_name],
+      :node_score => @resource[:node_score],
+      :rules      => @resource[:rules],
       :cib        => @resource[:cib],
     }
   end
@@ -113,8 +113,8 @@ Puppet::Type.type(:cs_location).provide(:crm, :parent => Puppet::Provider::Coros
     @property_hash[:rules]
   end
 
-  def node
-    @property_hash[:node]
+  def node_name
+    @property_hash[:node_name]
   end
 
   # Our setters for the primitives array and score.  Setters are used when the
@@ -132,8 +132,8 @@ Puppet::Type.type(:cs_location).provide(:crm, :parent => Puppet::Provider::Coros
     @property_hash[:node_score] = should
   end
 
-  def node=(should)
-    @property_hash[:node] = should
+  def node_name=(should)
+    @property_hash[:node_name] = should
   end
 
   # Flush is triggered on anything that has been detected as being
@@ -145,9 +145,9 @@ Puppet::Type.type(:cs_location).provide(:crm, :parent => Puppet::Provider::Coros
       self.class.block_until_ready
       updated = "location "
       updated << "#{@property_hash[:name]} #{@property_hash[:primitive]} "
-      if !@property_hash[:node].nil?
-        updated << "#{@property_hash[:node_score]}:"
-        updated << "#{@property_hash[:node]}"
+      if !@property_hash[:node_name].nil?
+        updated << "#{@property_hash[:node_score]}: "
+        updated << "#{@property_hash[:node_name]}"
       elsif !@property_hash[:rules].nil?
         debug("Evaluating #{@property_hash.inspect}")
         @property_hash[:rules].each do |rule_hash|
