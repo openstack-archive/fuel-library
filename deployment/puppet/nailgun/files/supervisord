@@ -28,7 +28,7 @@ start() {
 
 stop() {
 	echo -n $"Stopping supervisord: "
-	killproc -d 70 supervisord
+	killproc -d 5 supervisord
 	echo
 	[ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/supervisord
 }
