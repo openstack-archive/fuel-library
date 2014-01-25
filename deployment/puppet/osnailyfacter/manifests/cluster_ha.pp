@@ -383,6 +383,17 @@ class osnailyfacter::cluster_ha {
     cluster::virtual_ips { $::osnailyfacter::cluster_ha::vip_keys:
       vips => $::osnailyfacter::cluster_ha::vips,
     }
+
+    # Some topologies might need to keep the vips on the same node during
+    # deploymenet. This wouldls only need to be changed by hand.
+    $keep_vips_together = false
+    if ($keep_vips_together) {
+      cs_colocation { 'ha_vips':
+        ensure      => present,
+        primitives  => [prefix(keys($::osnailyfacter::cluster_ha::vips),"vip__")],
+        after       => Cluster::Virtual_ips[$::osnailyfacter::cluster_ha::vip_keys]
+      }
+    } # End If keep_vips_together
   }
 
   if ($::mellanox_mode != 'disabled') {
