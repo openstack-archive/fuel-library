@@ -292,6 +292,13 @@ find_interface_in_ns() {
     return $rc
 }
 
+setup_routes() {
+<%- @other_mgmt.each do |n| -%>
+ocf_log debug "Adding route on the host system to <%= n %>: ${OCF_RESKEY_namespace_ip}"
+ocf_run $RUN_IN_NS ip route add <%= n %> via ${OCF_RESKEY_ip} dev ${OCF_RESKEY_ns_veth}
+<%- end -%>
+}
+
 setup_forwarding() {
   local forwarding
   local rc=$OCF_SUCCESS
@@ -440,6 +447,7 @@ iptables_start() {
       ocf_run $rule -m comment --comment "$OCF_RESKEY_iptables_comment"
     done
   fi
+  setup_routes
   return $rc
 }
 

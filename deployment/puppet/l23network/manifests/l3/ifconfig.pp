@@ -273,7 +273,8 @@ define l23network::l3::ifconfig (
   }
 
   if $method == 'static' {
-    if $gateway and $gateway != 'save' {
+    if $gateway and $gateway != 'save' and $interface =~ /br-ex/ {
+      #TODO: Remove hack for public default route owner (xarses|Andrew Woodward)
       $def_gateway = $gateway
     } else {
       # recognizing default gateway
@@ -283,12 +284,41 @@ define l23network::l3::ifconfig (
         $def_gateway = undef
       }
     }
-    if ($::osfamily == 'RedHat' or $::osfamily == 'Debian') and $def_gateway and !defined(L23network::L3::Defaultroute[$def_gateway]) {
+    if (($::osfamily == 'RedHat' or $::osfamily == 'Debian') and
+        $def_gateway and
+        !defined(L23network::L3::Defaultroute[$def_gateway])
+        ) {
       l23network::l3::defaultroute { $def_gateway: }
     }
   } else {
     $def_gateway = undef
   }
+
+  if ($gateway) {
+    $route_rules = true
+    #Mult-L3 Hack to get ip route rule routes for each IF
+    l23network::l3::ip_rule_route { $gateway:
+        interface => $interface,
+        ipaddr    => $effective_ipaddr,
+        netmask   => $effective_netmask,
+        gateway   => $gateway,
+        table     => $interface,
+        #Must run after the interface is nuked
+      }
+
+    $other_nets = $::fuel_settings['network_scheme']['other_nets']["${interface}"]
+    if $::osfamily =~ /(?i)redhat/ and $other_nets {
+      file {"${if_files_dir}/route-${interface}":
+        ensure  => present,
+        owner   => 'root',
+        mode    => '0755',
+        recurse => true,
+        content => template("l23network/route_${::osfamily}.erb"),
+      } ->
+      File <| title == $interface_file |>
+    }
+
+  } else { $route_rules = undef }
 
   if $interfaces {
     if ! defined(File["${interfaces}"]) {
@@ -359,4 +389,7 @@ define l23network::l3::ifconfig (
     refreshonly           => true,
   }
 
+  if defined(L23network::L3::Ip_rule_route[$gateway]) {
+    L3_if_downup[$interface] -> Ip_rule_route[$gateway]
+  }
 }

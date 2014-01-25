@@ -9,4 +9,8 @@ ip addr add <%= addr %> dev <%= @interface %>
 ethtool  <%= key %>  <%= @interface %>  <%= line %>
 <%- end -%>
 <%- end -%>
+<%- if @route_rules -%>
+ip route replace default via <%= @gateway %> dev <%= @interface %> table <%= @interface %>
+ip rule add from <%= @effective_ipaddr %>/<%= @effective_netmask %> table <%= @interface %>
+<%- end -%>
 true

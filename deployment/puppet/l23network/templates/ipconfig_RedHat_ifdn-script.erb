@@ -5,3 +5,7 @@ ip addr del <%= addr %> dev <%= @interface %>
 <%- end -%>
 <%- end -%>
 true
+<%- if @route_rules -%>
+ip route del default via <%= @gateway %> table <%= @interface %>
+ip rule del from <%= @effective_ipaddr %>/<%= @effective_netmask %> table <%= @interface %>
+<%- end -%>

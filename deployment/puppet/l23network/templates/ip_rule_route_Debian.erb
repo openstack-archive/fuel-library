@@ -1,0 +1,4 @@
+<%- @other_nets.each do |n| -%>
+post-up ip r add <%= n %> via <%= @gateway %>
+post-down ip r del <%= n %> via <%= @gateway %>
+<%- end -%>
