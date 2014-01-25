@@ -52,6 +52,10 @@ define cluster::virtual_ip (
         undef   => '0',
         default => $vip[gateway_metric]
       },
+      'other_networks'       => $vip[other_networks] ? {
+        undef => 'false', '' => 'false',
+        default => $vip[other_networks]
+      },
       'iptables_start_rules' => $vip[iptables_start_rules] ? {
         undef   => '',
         default => "'${vip[iptables_start_rules]}'"

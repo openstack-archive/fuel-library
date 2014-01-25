@@ -47,6 +47,16 @@
 #   You can specify IP address, or 'save' for save default route
 #   if it lies through this interface now.
 #
+# [*default_gateway*]
+#   Specify if this nic and gateway should become the default route.
+#   requires that gateway is also set.
+#
+# [*other_nets*]
+#   Optional. Defines additional networks that this inteface can reach in CIDR
+#   format.
+#   It will be used to add additional routes to this interface.
+#   other_nets => ['10.10.2.0/24', '10.10.4.0/24']
+#
 # [*dns_nameservers*]
 #   Specify a pair of nameservers if need. Must be an array, for example:
 #   nameservers => ['8.8.8.8', '8.8.4.4']
@@ -88,6 +98,8 @@ define l23network::l3::ifconfig (
     $interface       = $name,
     $netmask         = '255.255.255.0',
     $gateway         = undef,
+    $default_gateway = false,
+    $other_nets      = undef,
     $vlandev         = undef,
     $bond_master     = undef,
     $bond_properties = {},
@@ -273,7 +285,7 @@ define l23network::l3::ifconfig (
   }
 
   if $method == 'static' {
-    if $gateway and $gateway != 'save' {
+    if $gateway and $gateway != 'save' and $default_gateway {
       $def_gateway = $gateway
     } else {
       # recognizing default gateway
@@ -283,11 +295,27 @@ define l23network::l3::ifconfig (
         $def_gateway = undef
       }
     }
-    if ($::osfamily == 'RedHat' or $::osfamily == 'Debian') and $def_gateway and !defined(L23network::L3::Defaultroute[$def_gateway]) {
+    if (($::osfamily == 'RedHat' or $::osfamily == 'Debian') and
+        $def_gateway and
+        !defined(L23network::L3::Defaultroute[$def_gateway])
+        ) {
       l23network::l3::defaultroute { $def_gateway: }
     }
   } else {
     $def_gateway = undef
+  }
+
+  if $other_nets {
+    if $::osfamily =~ /(?i)redhat/ and $other_nets {
+      file {"${if_files_dir}/route-${interface}":
+        ensure  => present,
+        owner   => 'root',
+        mode    => '0755',
+        recurse => true,
+        content => template("l23network/route_${::osfamily}.erb"),
+      } ->
+      File <| title == $interface_file |>
+    }
   }
 
   if $interfaces {
@@ -358,5 +386,4 @@ define l23network::l3::ifconfig (
     subscribe             => $l3_if_downup__subscribe,
     refreshonly           => true,
   }
-
 }
