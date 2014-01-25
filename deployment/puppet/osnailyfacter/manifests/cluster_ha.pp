@@ -118,6 +118,10 @@ class osnailyfacter::cluster_ha {
   $vip_management_cidr_netmask = netmask_to_cidr($primary_controller_nodes[0]['internal_netmask'])
   $vip_public_cidr_netmask = netmask_to_cidr($primary_controller_nodes[0]['public_netmask'])
 
+  if $::use_quantum {
+    $vip_mgmt_other_nets = join($::fuel_settings['network_scheme']['endpoints']["$::internal_int"]['other_nets'], ' ')
+  }
+
   $vips = { # Do not convert to ARRAY, It can't work in 2.7
     management_old   => {
       namespace            => 'haproxy',
@@ -125,9 +129,10 @@ class osnailyfacter::cluster_ha {
       base_veth            => "${::internal_int}-hapr",
       ns_veth              => "hapr-m",
       ip                   => $::fuel_settings['management_vip'],
-      cidr_netmask         => $vip_management_cidr_netmask ,
+      cidr_netmask         => $vip_management_cidr_netmask,
       gateway              => 'link',
       gateway_metric       => '20',
+      other_networks       => $vip_mgmt_other_nets,
       iptables_start_rules => "iptables -t mangle -I PREROUTING -i ${::internal_int}-hapr -j MARK --set-mark 0x2b ; iptables -t nat -I POSTROUTING -m mark --mark 0x2b ! -o ${::internal_int} -j MASQUERADE",
       iptables_stop_rules  => "iptables -t mangle -D PREROUTING -i ${::internal_int}-hapr -j MARK --set-mark 0x2b ; iptables -t nat -D POSTROUTING -m mark --mark 0x2b ! -o ${::internal_int} -j MASQUERADE",
       iptables_comment     => "masquerade-for-management-net",
@@ -137,6 +142,11 @@ class osnailyfacter::cluster_ha {
   }
 
   if $::public_int {
+
+    if $::use_quantum {
+      $vip_publ_other_nets = join($::fuel_settings['network_scheme']['endpoints']["$::public_int"]['other_nets'], ' ')
+    }
+
     $vips[public_old] = {
       namespace            => 'haproxy',
       nic                  => $::public_int,
@@ -146,6 +156,7 @@ class osnailyfacter::cluster_ha {
       cidr_netmask         => $vip_public_cidr_netmask,
       gateway              => 'link',
       gateway_metric       => '10',
+      other_networks       => $vip_publ_other_nets,
       iptables_start_rules => "iptables -t mangle -I PREROUTING -i ${::public_int}-hapr -j MARK --set-mark 0x2a ; iptables -t nat -I POSTROUTING -m mark --mark 0x2a ! -o ${::public_int} -j MASQUERADE",
       iptables_stop_rules  => "iptables -t mangle -D PREROUTING -i ${::public_int}-hapr -j MARK --set-mark 0x2a ; iptables -t nat -D POSTROUTING -m mark --mark 0x2a ! -o ${::public_int} -j MASQUERADE",
       iptables_comment     => "masquerade-for-public-net",
@@ -383,6 +394,17 @@ class osnailyfacter::cluster_ha {
     cluster::virtual_ips { $::osnailyfacter::cluster_ha::vip_keys:
       vips => $::osnailyfacter::cluster_ha::vips,
     }
+
+    # Some topologies might need to keep the vips on the same node during
+    # deploymenet. This wouldls only need to be changed by hand.
+    $keep_vips_together = false
+    if ($keep_vips_together) {
+      cs_colocation { 'ha_vips':
+        ensure      => present,
+        primitives  => [prefix(keys($::osnailyfacter::cluster_ha::vips),"vip__")],
+        after       => Cluster::Virtual_ips[$::osnailyfacter::cluster_ha::vip_keys]
+      }
+    } # End If keep_vips_together
   }
 
   if ($::mellanox_mode != 'disabled') {

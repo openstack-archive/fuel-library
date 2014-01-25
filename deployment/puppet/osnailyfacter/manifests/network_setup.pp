@@ -7,14 +7,16 @@ define setup_main_interfaces (
     if ! defined(L23network::L3::Ifconfig[$interface]) {
       $ipaddr = $network_settings[$interface]['ipaddr']
       $gateway = $network_settings[$interface]['gateway']
+      $default_gateway = $network_settings[$interface]['default_gateway']
       # TODO implement bond slaves options support
       #$bond_master = $network_settings[$interface]['bond_master']
       notify{"${interface} => ${ipaddr}, ${gateway}":} ->
       l23network::l3::ifconfig{$interface:
-        ipaddr        => $ipaddr,
-        gateway       => $gateway,
+        ipaddr          => $ipaddr,
+        gateway         => $gateway,
+        default_gateway => $default_gateway,
         #bond_master   => $bond_master,
-        check_by_ping => 'none'
+        check_by_ping    => 'none'
       }
     }
   }
@@ -53,14 +55,16 @@ define setup_sub_interfaces (
     if ! defined(L23network::L3::Ifconfig[$interface]) {
       $ipaddr = $network_settings[$interface]['ipaddr']
       $gateway = $network_settings[$interface]['gateway']
+      $default_gateway = $network_settings[$interface]['default_gateway']
       # TODO implement bond slaves options support
       #$bond_master = $network_settings[$interface]['bond_master']
       notify{"${interface} => ${ipaddr}, ${gateway}":} ->
       l23network::l3::ifconfig{$interface:
-        ipaddr        => $ipaddr,
-        gateway       => $gateway,
+        ipaddr          => $ipaddr,
+        gateway         => $gateway,
+        default_gateway => $default_gateway,
         #bond_master   => $bond_master,
-        check_by_ping => 'none'
+        check_by_ping   => 'none'
       }
     }
   }
