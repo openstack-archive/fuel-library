@@ -16,6 +16,7 @@ OCF_RESKEY_gateway_default=""         # can be "", "link", IPaddr
 OCF_RESKEY_gateway_metric_default=0   # can be "", or metric value
 OCF_RESKEY_also_check_interfaces_default="" # can be "", or list of interfaces
 OCF_RESKEY_enable_forwarding_default=true
+OCF_RESKEY_other_networks_default=""
 
 : ${OCF_RESKEY_cidr_netmask=${OCF_RESKEY_cidr_netmask_default}}
 : ${OCF_RESKEY_ns=${OCF_RESKEY_ns_default}}
@@ -25,6 +26,7 @@ OCF_RESKEY_enable_forwarding_default=true
 : ${OCF_RESKEY_gateway_metric=${OCF_RESKEY_gateway_metric_default}}
 : ${OCF_RESKEY_also_check_interfaces=${OCF_RESKEY_also_check_interfaces_default}}
 : ${OCF_RESKEY_enable_forwarding=${OCF_RESKEY_enable_forwarding_default}}
+: ${OCF_RESKEY_other_networks=${OCF_RESKEY_other_networks_default}}
 
 FAMILY='inet'
 RUN_IN_NS="ip netns exec $OCF_RESKEY_ns "
@@ -192,6 +194,14 @@ Network interfaces list (ex. NIC), that should be in UP state for monitor action
 <content type="string" default="$OCF_RESKEY_also_check_interfaces_default"/>
 </parameter>
 
+<parameter name="other_networks">
+<longdesc lang="en">
+Additional routes that should be added to this resource. Routes will be added via value ns_veth.
+</longdesc>
+<shortdesc lang="en">List of addtional routes to add routes for.</shortdesc>
+<content type="string" default="$OCF_RESKEY_other_networks_default"/>
+</parameter>
+
 </parameters>
 <actions>
 <action name="start"   timeout="20s" />
@@ -290,6 +300,14 @@ find_interface_in_ns() {
     local rc=$?
     echo "$iface"
     return $rc
+}
+
+setup_routes() {
+  for network in ${OCF_RESKEY_other_networks}
+  do
+    ocf_log debug "Adding route on the host system to $network: ${OCF_RESKEY_namespace_ip}"
+    ocf_run $RUN_IN_NS ip route add ${network} dev ${OCF_RESKEY_ns_veth}
+  done
 }
 
 setup_forwarding() {
@@ -440,6 +458,7 @@ iptables_start() {
       ocf_run $rule -m comment --comment "$OCF_RESKEY_iptables_comment"
     done
   fi
+  setup_routes
   return $rc
 }
 
