@@ -37,6 +37,7 @@ define cluster::virtual_ip (
       'ns'                   => $vip[namespace] ? { undef => 'haproxy', default => $vip[namespace] },
       'gateway'              => $vip[gateway] ? { undef => '', default => $vip[gateway] },
       'gateway_metric'       => $vip[gateway_metric] ? { undef => '0', default => $vip[gateway_metric] },
+      'other_networks'       => $vip[other_networks] ? { undef => '', default => $vip[other_networks]},
       'iptables_start_rules' => $vip[iptables_start_rules] ? { undef => '', default => "'${vip[iptables_start_rules]}'" },
       'iptables_stop_rules'  => $vip[iptables_stop_rules] ? { undef => '', default => "'${vip[iptables_stop_rules]}'" },
       'iptables_comment'     => $vip[iptables_comment] ? { undef => 'default-comment', default => "'${vip[iptables_comment]}'" },
