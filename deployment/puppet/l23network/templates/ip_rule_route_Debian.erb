@@ -1,0 +1,4 @@
+post-up ip route replace default via <%= @gateway %> dev <%= @interface %> table <%= @interface %>
+post-up ip rule add from <%= @effective_ipaddr %>/<%= @effective_netmask %> table <%= @interface %>
+pre-down ip route del default via <%= @gateway %> table <%= @interface %>
+pre-down ip rule del from <%= @effective_ipaddr %>/<%= @effective_netmask %> table <%= @interface %>
