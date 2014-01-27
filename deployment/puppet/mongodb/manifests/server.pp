@@ -50,27 +50,21 @@ class mongodb::server (
   $rest            = undef,
   $slowms          = undef,
   $keyfile         = undef,
-  $set_parameter   = undef,
-
-  # Deprecated parameters
-  $master          = undef,
-  $slave           = undef,
-  $only            = undef,
-  $source          = undef,
 ) inherits mongodb::params {
-
 
   if ($ensure == 'present' or $ensure == true) {
     anchor { 'mongodb::server::start': }->
     class { 'mongodb::server::install': }->
     class { 'mongodb::server::config': }->
     class { 'mongodb::server::service': }->
+    class { 'mongodb::firewall': }->
     anchor { 'mongodb::server::end': }
   } else {
     anchor { 'mongodb::server::start': }->
     class { 'mongodb::server::service': }->
     class { 'mongodb::server::config': }->
     class { 'mongodb::server::install': }->
+    class { 'mongodb::firewall': }->
     anchor { 'mongodb::server::end': }
   }
 }
