@@ -1,8 +1,13 @@
 # PRIVATE CLASS: do not use directly
 class mongodb::params inherits mongodb::globals {
   $ensure           = true
+# for mongo client
+  $client_ensure    = true
+
+  $default_shared_key = '123457890'
+  $replset_setup = false
+
   $service_status   = $service_status
-  $ensure_client    = true
 
   # Amazon Linux's OS Family is 'Linux', operating system 'Amazon'.
   case $::osfamily {
@@ -11,14 +16,12 @@ class mongodb::params inherits mongodb::globals {
       if $mongodb::globals::manage_package_repo {
         $user        = pick($user, 'mongod')
         $group       = pick($group, 'mongod')
-        if $::mongodb::globals::version {
-          $server_package_name = "mongo-10gen-server-${::mongodb::globals::version}"
-          $client_package_name = "mongo-10gen-${::mongodb::globals::version}"
+        if $version {
+          $server_package_name = "mongo-10gen-server-${version}"
         } else {
           $server_package_name = 'mongo-10gen-server'
-          $client_package_name = 'mongo-10gen'
         }
-        $service_name = pick($service_name, 'mongod')
+        $service_name = pick($service_name, "mongod")
         $config      = '/etc/mongod.conf'
         $dbpath      = '/var/lib/mongo'
         $logpath     = '/var/log/mongo/mongod.log'
@@ -30,8 +33,9 @@ class mongodb::params inherits mongodb::globals {
         # so we assume that you are using EPEL repository.
         $user                = pick($user, 'mongodb')
         $group               = pick($group, 'mongodb')
-        $server_package_name = pick($server_package_name, 'mongodb-server')
-        $client_package_name = pick($client_package_name, 'mongodb')
+        $server_package_name = pick($server_package_name, "mongodb-server")
+    
+        $client_package_name = pick($client_package_name, "mongodb")
 
         $service_name        = pick($service_name, 'mongod')
         $config              = '/etc/mongodb.conf'
@@ -47,8 +51,8 @@ class mongodb::params inherits mongodb::globals {
       if $mongodb::globals::manage_package_repo {
         $user  = pick($user, 'mongodb')
         $group = pick($group, 'mongodb')
-        if $::mongodb::globals::version {
-          $server_package_name = "mongodb-10gen-${::mongodb::globals::version}"
+        if $version {
+          $server_package_name = "mongodb-10gen-${version}"
         } else {
           $server_package_name = 'mongodb-10gen'
         }
@@ -65,7 +69,7 @@ class mongodb::params inherits mongodb::globals {
         $user                = pick($user, 'mongodb')
         $group               = pick($group, 'mongodb')
         $server_package_name = pick($server_package_name, 'mongodb-server')
-        $client_package_name = pick($client_package_name, 'mongodb')
+        $client_package_name = pick($client_package_name, 'mongodb-clients')
         $service_name        = pick($service_name, 'mongodb')
         $config              = '/etc/mongodb.conf'
         $dbpath              = '/var/lib/mongodb'
@@ -84,7 +88,7 @@ class mongodb::params inherits mongodb::globals {
   case $::operatingsystem {
     'Ubuntu': {
       $service_provider = pick($service_provider, 'upstart')
-    }
+     }
     default: {
       $service_provider = undef
     }

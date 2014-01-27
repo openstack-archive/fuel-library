@@ -89,12 +89,12 @@ class mongodb (
   }
 
   if $oplog {
-    fail('Parameter is no longer supported. On replica set Oplog is enabled by default.')
+    fail("Parameter is no longer supported. On replica set Oplog is enabled by default.")
   }
 
-  notify { 'An attempt has been made below to automatically apply your custom
+  notify { "An attempt has been made below to automatically apply your custom
     settings to mongodb::server. Please verify this works in a safe test
-    environment.': }
+    environment.": }
 
   class { 'mongodb::server':
     package_name    => $packagename,
