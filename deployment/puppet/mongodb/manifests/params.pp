@@ -3,6 +3,7 @@ class mongodb::params inherits mongodb::globals {
   $ensure           = true
   $service_status   = $service_status
   $ensure_client    = true
+  $default_shared_key = '123457890'
 
   # Amazon Linux's OS Family is 'Linux', operating system 'Amazon'.
   case $::osfamily {
