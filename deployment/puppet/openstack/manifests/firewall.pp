@@ -38,6 +38,7 @@ class openstack::firewall (
   $libvirt_port = 16509,
   $nrpe_server_port = 5666,
   $ceilometer_port = 8777,
+  $mongodb_port = 27017,
 ) {
 
 #  file {"iptables":
@@ -211,6 +212,12 @@ class openstack::firewall (
 
   firewall {'119 ceilometer':
     port => $ceilometer_port,
+    proto => 'tcp',
+    action => 'accept',
+  }
+
+  firewall {'120 mongodb':
+    port => $mongodb_port,
     proto => 'tcp',
     action => 'accept',
   }
