@@ -90,10 +90,14 @@ class openstack::controller (
   $nova_db_password        = 'nova_pass',
   $nova_user_password      = 'nova_pass',
   # Required Ceilometer
-  $ceilometer              = false,
-  $ceilometer_db_password  = 'ceilometer_pass',
-  $ceilometer_user_password = 'ceilometer_pass',
+  $ceilometer                 = false,
+  $ceilometer_db_password     = 'ceilometer_pass',
+  $ceilometer_user_password   = 'ceilometer_pass',
+  $ceilometer_db_user         = 'ceilometer',
+  $ceilometer_db_dbname       = 'ceilometer',
   $ceilometer_metering_secret = 'ceilometer',
+  $ceilometer_db_type         = 'mongodb',
+  $ceilometer_db_host         = '127.0.0.1',
   # Required Horizon
   $secret_key              = 'dummy_secret_key',
   # not sure if this works correctly
@@ -146,9 +150,7 @@ class openstack::controller (
   $nova_db_user            = 'nova',
   $nova_db_dbname          = 'nova',
   $purge_nova_config       = false,
-  # Ceilometer
-  $ceilometer_db_user      = 'ceilometer',
-  $ceilometer_db_dbname    = 'ceilometer',
+
   # Horizon
   $cache_server_ip         = ['127.0.0.1'],
   $cache_server_port       = '11211',
@@ -466,8 +468,8 @@ class openstack::controller (
       verbose              => $verbose,
       debug                => $debug,
       use_syslog           => $use_syslog,
-      db_type              => $db_type,
-      db_host              => $db_host,
+      db_type              => $ceilometer_db_type,
+      db_host              => $ceilometer_db_host,
       db_user              => $ceilometer_db_user,
       db_password          => $ceilometer_db_password,
       db_dbname            => $ceilometer_db_dbname,

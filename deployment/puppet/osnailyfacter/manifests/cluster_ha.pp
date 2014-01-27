@@ -139,6 +139,28 @@ class osnailyfacter::cluster_ha {
 
   $cinder_iscsi_bind_addr = $::storage_address
 
+  if $::fuel_settings['ceilometer'] {
+    $mongo_node = filter_nodes($nodes_hash,'role','mongo')
+    $mongo_primary_node = filter_nodes($nodes_hash,'role','primary-mongo')
+
+    if is_hash($mongo_node[0]) {
+      $mongo_node_address = $mongo_node[0]['internal_address']
+      notify {"MongoDB: $mongo_node_address": }
+
+    }
+
+    if is_hash($mongo_primary_node[0]) {
+      $mongo_primary_node_address = $mongo_primary_node[0]['internal_address']
+      notify {"MongoDB_Priary: $mongo_primary_node_address": }
+
+    }
+    # MBF
+    $current_ceilometer_db_type = "mongodb"
+    $current_ceilometer_db_address =  $mongo_primary_node_address
+
+
+  }
+
   # Determine who should get the volume service
   if ($::fuel_settings['role'] == 'cinder' or $storage_hash['volumes_lvm']) {
     $manage_volumes = 'iscsi'
@@ -277,10 +299,17 @@ class osnailyfacter::cluster_ha {
       cinder_db_password            => $cinder_hash[db_password],
       cinder_volume_group           => "cinder",
       manage_volumes                => $manage_volumes,
+#      ceilometer                    => $ceilometer_hash[enabled],
+#      ceilometer_db_password        => $ceilometer_hash[db_password],
+#      ceilometer_user_password      => $ceilometer_hash[user_password],
+#      ceilometer_metering_secret    => $ceilometer_hash[metering_secret],
       ceilometer                    => $ceilometer_hash[enabled],
       ceilometer_db_password        => $ceilometer_hash[db_password],
       ceilometer_user_password      => $ceilometer_hash[user_password],
       ceilometer_metering_secret    => $ceilometer_hash[metering_secret],
+      ceilometer_db_type            => $current_ceilometer_db_type,
+#     ceilometer_db_host            => $mongo_node_address,
+      ceilometer_db_host            => $current_ceilometer_db_address,
       galera_nodes                  => $controller_nodes,
       custom_mysql_setup_class      => $custom_mysql_setup_class,
       mysql_skip_name_resolve       => true,
@@ -538,6 +567,30 @@ class osnailyfacter::cluster_ha {
       nova_config { 'DEFAULT/compute_scheduler_driver': value => $::fuel_settings['compute_scheduler_driver'] }
 
     } # COMPUTE ENDS
+
+
+    "mongo" : {
+      #include osnailyfacter::test_compute
+
+      class { 'openstack::mongo_secondary':
+      }
+    } # MONGO ENDS
+
+    "primary-mongo" : {
+      #include osnailyfacter::test_compute
+
+      class { 'openstack::mongo_primary':
+        #public_interface           => $::public_int,
+        #private_interface          => $::use_quantum ? { true=>false, default=>$::fuel_settings['fixed_interface'] },
+        #internal_address           => $internal_address,
+        #network_manager            => $network_manager,
+        ceilometer_database         => "ceilometer",
+        ceilometer_metering_secret  => $ceilometer_hash[metering_secret],
+        ceilometer_db_password      => $ceilometer_hash[db_password],
+        ceilometer_replset_members  => [ $mongo_node[0]['internal_address'], $mongo_node[1]['internal_address'] ],
+      }
+    } # MONGO PRIMARYENDS
+
 
     "cinder" : {
       include keystone::python

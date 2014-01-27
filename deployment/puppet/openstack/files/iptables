@@ -41,5 +41,7 @@ COMMIT
 -A INPUT -p tcp -m multiport --dports 9191 -m comment --comment "100 snat for port 9191" -j ACCEPT 
 -A INPUT -p tcp -m multiport --dports 9292 -m comment --comment "100 snat for port 9292" -j ACCEPT 
 -A INPUT -p tcp -m multiport --dports 9696 -m comment --comment "100 snat for port 9696" -j ACCEPT 
+-A INPUT -p tcp -m multiport --dports 27017 -m comment --comment "100 snat for port 27017" -j ACCEPT
+
 COMMIT
 # Completed on Mon Oct 29 18:19:01 2012
