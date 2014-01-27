@@ -97,6 +97,8 @@ class neutron::server (
   #       Anchor['neutron-server-done']
   # }
 
+  Package[$server_package] -> class { 'neutron::quota': } -> Anchor['neutron-server-config-done']
+
   anchor {'neutron-server-config-done':}
 
   if $primary_controller {
