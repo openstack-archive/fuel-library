@@ -44,7 +44,6 @@ class mongodb::server::config {
   $bind_ip         = $mongodb::server::bind_ip
   $directoryperdb  = $mongodb::server::directoryperdb
   $profile         = $mongodb::server::profile
-  $set_parameter   = $mongodb::server::set_parameter
 
   File {
     owner => $user,
@@ -68,13 +67,22 @@ class mongodb::server::config {
       mode    => '0644',
       notify  => Class['mongodb::server::service']
     }
+    if $keyfile {
+      file { $keyfile:
+        content => template('mongodb/mongodb.key.erb'),
+        owner   => 'mongodb',
+        group   => 'root',
+        mode    => '0600',
+        notify  => Class['mongodb::server::service']
+      }
+    }
 
     file { $dbpath:
       ensure  => directory,
       mode    => '0755',
       owner   => $user,
       group   => $group,
-      require => File[$config]
+      require => File["${config}"]
     }
   } else {
     file { $dbpath:

@@ -170,6 +170,42 @@ class osnailyfacter::cluster_ha {
 
   $cinder_iscsi_bind_addr = $::storage_address
 
+  if $::fuel_settings['ceilometer'] {
+    $mongo_node = filter_nodes($nodes_hash,'role','mongo')
+    $mongo_primary_node = filter_nodes($nodes_hash,'role','primary-mongo')
+
+    if is_hash($mongo_node[0]) {
+      $mongo_node_address = $mongo_node[0]['internal_address']
+      notify {"MongoDB: $mongo_node_address": }
+
+    }
+
+    if is_hash($mongo_primary_node[0]) {
+      $mongo_primary_node_address = $mongo_primary_node[0]['internal_address']
+      notify {"MongoDB_Primary: $mongo_primary_node_address": }
+
+    }
+    # MBF
+    $current_ceilometer_db_type = "mongodb"
+    # Connect to prymary node
+    # $current_ceilometer_db_address =  $mongo_primary_node_address
+    # Connect to ReplicaSet Example
+    # connection = mongodb://mongos1:27017,mongos2:27017,mongos3:27017/ceilometer?readPreference=secondary&w=2&wtimeoutMS=2000
+    if is_hash($mongo_node[0]) {
+      $mongo_slave_node_address_0 = $mongo_node[0]['internal_address']
+    }
+    if is_hash($mongo_node[1]) {
+      $mongo_slave_node_address_1 = $mongo_node[1]['internal_address']
+    }
+    if is_hash($mongo_primary_node[0]) {
+      $current_ceilometer_db_address =  "$mongo_primary_node_address,$mongo_slave_node_address_0,$mongo_slave_node_address_1"
+    } else {
+      $current_ceilometer_db_address = '127.0.0.1'
+    }
+    notify {"Ceilometer_connection_string: $current_ceilometer_db_address": }
+  }
+  $mongodb_bind_address_list = ['127.0.0.1']
+
   # Determine who should get the volume service
   if ($::fuel_settings['role'] == 'cinder' or $storage_hash['volumes_lvm']) {
     $manage_volumes = 'iscsi'
@@ -316,6 +352,8 @@ class osnailyfacter::cluster_ha {
       ceilometer_db_password        => $::osnailyfacter::cluster_ha::ceilometer_hash[db_password],
       ceilometer_user_password      => $::osnailyfacter::cluster_ha::ceilometer_hash[user_password],
       ceilometer_metering_secret    => $::osnailyfacter::cluster_ha::ceilometer_hash[metering_secret],
+      ceilometer_db_type            => $::osnailyfacter::cluster_ha::current_ceilometer_db_type,
+      ceilometer_db_host            => $::osnailyfacter::cluster_ha::current_ceilometer_db_address,
       galera_nodes                  => $::osnailyfacter::cluster_ha::controller_nodes,
       sahara                        => $::osnailyfacter::cluster_ha::sahara_hash[enabled],
       custom_mysql_setup_class      => $::custom_mysql_setup_class,
@@ -582,6 +620,38 @@ class osnailyfacter::cluster_ha {
       nova_config { 'DEFAULT/compute_scheduler_driver': value => $::fuel_settings['compute_scheduler_driver'] }
 
     } # COMPUTE ENDS
+
+
+    "mongo" : {
+      #notify {"MongoDB bind address 4: $::osnailyfacter::cluster_ha::mongodb_bind_address_list": }
+      #$::osnailyfacter::cluster_ha::mongodb_bind_address_list += ["$::internal_address"]
+      # Append does not works as expeced, use workaround!
+      notify {"MongoDB bind address 5: $::osnailyfacter::cluster_ha::mongodb_bind_address_list": }
+      $::osnailyfacter::cluster_ha::mongodb_bind_address_list[1] = $::internal_address
+      notify {"MongoDB bind address 6: $::osnailyfacter::cluster_ha::mongodb_bind_address_list": }
+
+      class { 'openstack::mongo_secondary':
+        mongodb_bind_address        => $::osnailyfacter::cluster_ha::mongodb_bind_address_list,
+      }
+    } # MONGO ENDS
+
+    "primary-mongo" : {
+      #notify {"MongoDB bind address 1: $::osnailyfacter::cluster_ha::mongodb_bind_address_list": }
+      #$::osnailyfacter::cluster_ha::mongodb_bind_address_list += ["$::internal_address"]
+      # Append does not works as expeced, use workaround!
+      notify {"MongoDB bind address 2: $::osnailyfacter::cluster_ha::mongodb_bind_address_list": }
+      $::osnailyfacter::cluster_ha::mongodb_bind_address_list[1] = $::internal_address
+      notify {"MongoDB bind address 3: $::osnailyfacter::cluster_ha::mongodb_bind_address_list": }
+
+      class { 'openstack::mongo_primary':
+        mongodb_bind_address        => $::osnailyfacter::cluster_ha::mongodb_bind_address_list,
+        ceilometer_database         => "ceilometer",
+        ceilometer_metering_secret  => $::osnailyfacter::cluster_ha::ceilometer_hash[metering_secret],
+        ceilometer_db_password      => $::osnailyfacter::cluster_ha::ceilometer_hash[db_password],
+        ceilometer_replset_members  => [ $mongo_node[0]['internal_address'], $mongo_node[1]['internal_address'] ],
+      }
+    } # MONGO PRIMARYENDS
+
 
     "cinder" : {
       include keystone::python
