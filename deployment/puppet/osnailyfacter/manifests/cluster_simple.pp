@@ -386,6 +386,69 @@ class osnailyfacter::cluster_simple {
       }
     } # COMPUTE ENDS
 
+
+    "mongo" : {
+      #include osnailyfacter::test_compute
+
+      class { 'openstack::mongo':
+        public_interface       => $::public_int,
+        private_interface      => $::use_quantum ? { true=>false, default=>$::fuel_settings['fixed_interface'] },
+        internal_address       => $internal_address,
+        libvirt_type           => $::fuel_settings['libvirt_type'],
+        fixed_range            => $::fuel_settings['fixed_network_range'],
+        network_manager        => $network_manager,
+        network_config         => $::use_quantum ? { true=>false, default=>$network_config },
+        multi_host             => $multi_host,
+        sql_connection         => $sql_connection,
+        nova_user_password     => $nova_hash[user_password],
+        ceilometer              => $ceilometer_hash[enabled],
+        ceilometer_metering_secret => $ceilometer_hash[metering_secret],
+        ceilometer_user_password => $ceilometer_hash[user_password],
+        queue_provider         => $::queue_provider,
+        rabbit_nodes           => [$controller_node_address],
+        rabbit_password        => $rabbit_hash[password],
+        rabbit_user            => $rabbit_user,
+        auto_assign_floating_ip => $::fuel_settings['auto_assign_floating_ip'],
+        qpid_nodes             => [$controller_node_address],
+        qpid_password          => $rabbit_hash[password],
+        qpid_user              => $rabbit_user,
+        glance_api_servers     => "${controller_node_address}:9292",
+        vncproxy_host          => $controller_node_public,
+        vncserver_listen       => '0.0.0.0',
+        vnc_enabled            => true,
+        quantum                 => $::use_quantum,
+        quantum_config          => $quantum_config,
+        # quantum_network_node    => $::use_quantum,
+        # quantum_netnode_on_cnt  => $::use_quantum,
+        service_endpoint       => $controller_node_address,
+        cinder                 => true,
+        cinder_user_password   => $cinder_hash[user_password],
+        cinder_db_password     => $cinder_hash[db_password],
+        cinder_iscsi_bind_addr => $cinder_iscsi_bind_addr,
+        cinder_volume_group    => "cinder",
+        manage_volumes         => $manage_volumes,
+        db_host                => $controller_node_address,
+        debug                  => $debug ? { 'true' => true, true => true, default=> false },
+        verbose                => $verbose ? { 'true' => true, true => true, default=> false },
+        use_syslog             => $::fuel_settings['use_syslog'] ? { 'false'=>false, false=>false, default=>true },
+        syslog_log_level       => $syslog_log_level,
+        syslog_log_facility    => $syslog_log_facility_nova,
+        syslog_log_facility_neutron => $syslog_log_facility_neutron,
+        syslog_log_facility_cinder  => $syslog_log_facility_cinder,
+        state_path             => $nova_hash[state_path],
+        nova_rate_limits       => $nova_rate_limits,
+        cinder_rate_limits     => $cinder_rate_limits
+      }
+      nova_config { 'DEFAULT/start_guests_on_host_boot': value => $::fuel_settings['start_guests_on_host_boot'] }
+      nova_config { 'DEFAULT/use_cow_images': value => $::fuel_settings['use_cow_images'] }
+      nova_config { 'DEFAULT/compute_scheduler_driver': value => $::fuel_settings['compute_scheduler_driver'] }
+
+      if ($::use_ceph){
+        Class['openstack::compute'] -> Class['ceph']
+      }
+    } # MONGO ENDS
+
+
     "cinder" : {
       include keystone::python
       package { 'python-amqp':
