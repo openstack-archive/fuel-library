@@ -76,10 +76,23 @@ class osnailyfacter::cluster_simple {
   $rabbit_user          = $rabbit_hash['user']
 
   $controller = filter_nodes($nodes_hash,'role','controller')
-
+ 
   $controller_node_address = $controller[0]['internal_address']
   $controller_node_public = $controller[0]['public_address']
 
+  if $::fuel_settings['ceilometer'] {
+    $mongo_node = filter_nodes($nodes_hash,'role','mongo')
+
+    if is_hash($mongo_node[0]) {
+      $mongo_node_address = $mongo_node[0]['internal_address']
+    }
+
+  # MBF
+    $current_ceilometer_db_type = "mongodb"
+    $current_ceilometer_db_address = $mongo_node_address
+
+    notify {"MongoDB: $mongo_node_address": }
+  }
 
   if ($::fuel_settings['cinder']) {
     if (member($cinder_nodes_array,'all')) {
@@ -183,6 +196,9 @@ class osnailyfacter::cluster_simple {
         ceilometer_db_password  => $ceilometer_hash[db_password],
         ceilometer_user_password => $ceilometer_hash[user_password],
         ceilometer_metering_secret => $ceilometer_hash[metering_secret],
+        ceilometer_db_type      => $current_ceilometer_db_type,
+#        ceilometer_db_host      => $mongo_node_address,
+        ceilometer_db_host      => $current_ceilometer_db_address,
         queue_provider          => $::queue_provider,
         rabbit_password         => $rabbit_hash[password],
         rabbit_user             => $rabbit_hash[user],
@@ -390,6 +406,22 @@ class osnailyfacter::cluster_simple {
         Class['openstack::compute'] -> Class['ceph']
       }
     } # COMPUTE ENDS
+
+
+    "mongo" : {
+      #include osnailyfacter::test_compute
+
+      class { 'openstack::mongo':
+        #public_interface           => $::public_int,
+        #private_interface          => $::use_quantum ? { true=>false, default=>$::fuel_settings['fixed_interface'] },
+        #internal_address           => $internal_address,
+        #network_manager            => $network_manager,
+        ceilometer_database         => "ceilometer",
+        ceilometer_metering_secret  => $ceilometer_hash[metering_secret],
+        ceilometer_db_password      => $ceilometer_hash[db_password],
+      }
+    } # MONGO ENDS
+
 
     "cinder" : {
       include keystone::python
