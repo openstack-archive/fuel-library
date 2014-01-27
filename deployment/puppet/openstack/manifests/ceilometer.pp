@@ -15,6 +15,7 @@ class openstack::ceilometer (
   $db_user             = 'ceilometer',
   $db_password         = 'ceilometer_pass',
   $db_dbname           = 'ceilometer',
+  $mongo_replicaset    = false,
   $queue_provider      = 'rabbitmq',
   $amqp_hosts          = '127.0.0.1',
   $amqp_user           = 'guest',
@@ -49,8 +50,20 @@ class openstack::ceilometer (
   if ($on_controller) {
     # Configure the ceilometer database
     # Only needed if ceilometer::agent::central or ceilometer::api are declared
+
+	if ( $db_type == 'mysql' ) {
+          $current_database_connection = "${db_type}://${db_user}:${db_password}@${db_host}/${db_dbname}?read_timeout=60"
+	} else {
+          if ( !$mongo_replicaset ) {
+            $current_database_connection = "${db_type}://${db_user}:${db_password}@${db_host}/${db_dbname}"
+          } else {
+	# added for future use with replicaset params
+            $current_database_connection = "${db_type}://${db_user}:${db_password}@${db_host}/${db_dbname}"
+          }
+        }
+
     class { '::ceilometer::db':
-      database_connection => "${db_type}://${db_user}:${db_password}@${db_host}/${db_dbname}?read_timeout=60",
+      database_connection => $current_database_connection,
     }
 
     # Install the ceilometer-api service
