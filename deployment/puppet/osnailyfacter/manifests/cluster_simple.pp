@@ -81,7 +81,7 @@ class osnailyfacter::cluster_simple {
   $controller_node_public = $controller[0]['public_address']
 
   $mongo_node = filter_nodes($nodes_hash,'role','mongo')
-  $mongo_node_address = $mongo[0]['internal_address']
+  $mongo_node_address = $mongo_node[0]['internal_address']
 
 
   if ($::fuel_settings['cinder']) {
