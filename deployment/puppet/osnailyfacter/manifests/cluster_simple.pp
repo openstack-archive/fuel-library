@@ -187,6 +187,8 @@ class osnailyfacter::cluster_simple {
         ceilometer_db_password  => $ceilometer_hash[db_password],
         ceilometer_user_password => $ceilometer_hash[user_password],
         ceilometer_metering_secret => $ceilometer_hash[metering_secret],
+        ceilometer_db_type      => mongodb,
+        ceilometer_db_host      => $mongo_node_address,
         queue_provider          => $::queue_provider,
         rabbit_password         => $rabbit_hash[password],
         rabbit_user             => $rabbit_hash[user],
