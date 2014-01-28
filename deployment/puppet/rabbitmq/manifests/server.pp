@@ -169,7 +169,13 @@ class rabbitmq::server(
       }
     }
   }
-  
+
+  exec { 'add_sync_attribute':
+    command  => "rabbitmqctl set_policy ha-all \".\" '{\"ha-mode\":\"all\", \"ha-sync-mode\":\"automatic\"}'",
+    path     => ['/bin', '/usr/bin', '/sbin', '/usr/sbin'],
+    require  => Service[$service_name],
+  }
+
   class { 'rabbitmq::service':
     service_name => $service_name,
     ensure       => $service_ensure,

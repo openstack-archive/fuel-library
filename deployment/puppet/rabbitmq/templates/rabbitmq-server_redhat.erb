@@ -173,6 +173,7 @@ RabbitMQ Server before consider start failed."
             esac
             MAX_START_ATTEMPTS=$((MAX_START_ATTEMPTS - 1))
         done
+	rabbitmqctl set_policy ha-all "." '{"ha-mode":"all", "ha-sync-mode":"automatic"}'
     fi
 }
 

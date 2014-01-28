@@ -17,7 +17,7 @@ class mcollective::rabbitmq (
   $user            = "mcollective",
   $password        = "mcollective",
   $stompport       = "61613",
-  $management_port = "55672",
+  $management_port = "15672",
   $stomp           = false,
   $vhost           = "mcollective",) {
   
