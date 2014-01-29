@@ -1,0 +1,8 @@
+name    'ironic'
+version '0.0.1'
+source  'https://github.com/stackforge/fuel-library'
+author  'Mirantis Inc.'
+license 'Apache License 2.0'
+summary 'Mirantis Ironic Module'
+description 'Module to install Ironic provisioning system'
+project_page 'https://github.com/stackforge/fuel-library'
