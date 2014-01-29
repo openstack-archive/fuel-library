@@ -396,10 +396,10 @@ class osnailyfacter::cluster_simple {
       #include osnailyfacter::test_compute
 
       class { 'openstack::mongo':
-        public_interface           => $::public_int,
-        private_interface          => $::use_quantum ? { true=>false, default=>$::fuel_settings['fixed_interface'] },
-        internal_address           => $internal_address,
-        network_manager            => $network_manager,
+        #public_interface           => $::public_int,
+        #private_interface          => $::use_quantum ? { true=>false, default=>$::fuel_settings['fixed_interface'] },
+        #internal_address           => $internal_address,
+        #network_manager            => $network_manager,
         ceilometer_database        => "ceilometer",
         ceilometer_metering_secret => $ceilometer_hash[metering_secret],
         ceilometer_user_password   => $ceilometer_hash[user_password],
