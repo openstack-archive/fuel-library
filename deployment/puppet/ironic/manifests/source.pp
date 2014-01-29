@@ -19,6 +19,7 @@ class ironic::source inherits ironic::params {
   # create virtualenv
   exec {"ironic_virtualenv":
     command => "virtualenv ${venvdir}",
+    unless => "test -e ${venvdir}",
   }
 
   # install ironic and ironic client
@@ -26,6 +27,14 @@ class ironic::source inherits ironic::params {
     command => "${venvdir}/bin/python setup.py install",
     cwd => "${sourcedir}/ironic",
     require => [Exec["ironic_source"], Exec["ironic_virtualenv"],]
+  } ->
+
+  exec { 'ironic_psycopg2':
+    command => "${venvdir}/bin/pip install psycopg2"
+  }
+
+  exec { 'ironic_pbr':
+    command => "${venvdir}/bin/pip install pbr"
   }
 
   exec {"ironic_client_install":
@@ -64,10 +73,20 @@ class ironic::source inherits ironic::params {
     require => Group["ironic"],
   }
 
+  file {"/var/run/ironic":
+    ensure => directory,
+    owner => "ironic"
+  } ->
+
+  file {"/var/log/ironic":
+    ensure => directory,
+    owner => "ironic"
+  } ->
+
   file {"/etc/init.d/ironic-api":
     content => template('ironic/ironic-api.erb'),
     mode => 0755,
-  }
+  } ->
 
   file {"/etc/init.d/ironic-conductor":
     content => template('ironic/ironic-conductor.erb'),

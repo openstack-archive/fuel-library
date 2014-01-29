@@ -11,6 +11,8 @@ class nailgun::packages(
   nailgun_safe_package { "supervisor": }
   nailgun_safe_package { "nginx": }
   nailgun_safe_package { "python-virtualenv": }
+  nailgun_safe_package { "python-psycopg2": }
+  nailgun_safe_package { "openstack-keystone": }
 
   #FIXME: provide only binary packages, do not build gems and eggs
 
