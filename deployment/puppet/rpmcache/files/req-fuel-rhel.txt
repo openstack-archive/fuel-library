@@ -14,6 +14,7 @@
 + euca2ools*
 + facter*
 + galera*
++ gdisk*
 + hiera*
 + http-parser*
 + libicu*
