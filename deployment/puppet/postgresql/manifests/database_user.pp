@@ -44,7 +44,9 @@ define postgresql::database_user(
     $createdb=false,
     $superuser=false,
     $createrole=false
-) {
+  ) {
+
+  anchor {"before postgresql::role ${user}":} ->
   postgresql::role {$user:
     db              => $db,
     password_hash   => $password_hash,
@@ -52,5 +54,6 @@ define postgresql::database_user(
     createdb        => $createdb,
     superuser       => $superuser,
     createrole      => $createrole,
-  }
+  } ->
+  anchor {"after postgresql::role ${user}":}
 }

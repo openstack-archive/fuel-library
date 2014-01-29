@@ -36,6 +36,7 @@ define postgresql::database(
     user    => 'postgres',
   }
 
+  anchor{"before postgresql::psql ${dbname}":} ->
   # This will prevent users from connecting to the database unless they've been
   #  granted privileges.
   postgresql::psql {"REVOKE CONNECT ON DATABASE $dbname FROM public":
@@ -44,6 +45,9 @@ define postgresql::database(
     unless      => 'SELECT 1 where 1 = 0',
     refreshonly => true,
     subscribe   => Exec[$createdb_command],
-  }
+  } ->
+
+  anchor{"after postgresql::psql ${dbname}":}
+
 
 }

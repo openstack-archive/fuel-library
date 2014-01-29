@@ -291,6 +291,10 @@ class keystone(
     }
   }
 
+  anchor{"befor keystone":} ->
+  Exec["keystone-manage db_sync"] ->
+  anchor{"after keystone":}
+
   if $enabled {
     # this probably needs to happen more often than just when the db is
     # created

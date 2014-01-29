@@ -36,7 +36,9 @@ define postgresql::db (
   $password,
   $charset     = 'utf8',
   $grant       = 'ALL'
-) {
+  ) {
+
+  anchor {"begin postgresql::db ${name}": } ->
 
   postgresql::database { $name:
     # TODO: ensure is not yet supported
@@ -44,22 +46,22 @@ define postgresql::db (
     charset     => $charset,
     #provider   => 'postgresql',
     require     => Class['postgresql::server'],
-  }
+  } ->
 
   postgresql::database_user { "${user}":
     # TODO: ensure is not yet supported
     #ensure         => present,
     password_hash   => $password,
     #provider       => 'postgresql',
-    require         => Postgresql::Database[$name],
-  }
+  } ->
 
   postgresql::database_grant { "GRANT ${user} - ${grant} - ${name}":
     privilege       => $grant,
     db              => $name,
     role            => $user,
     #provider       => 'postgresql',
-    require         => Postgresql::Database_user["${user}"],
-  }
+  } ->
+
+  anchor {"end postgresql::db ${name}": }
 
 }

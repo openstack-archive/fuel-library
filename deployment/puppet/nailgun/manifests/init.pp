@@ -51,15 +51,19 @@ class nailgun(
   Class["nailgun::iptables"] ->
   Class["nailgun::nginx-repo"] ->
   Exec["start_nginx_repo"] ->
+  Class["::nailgun::keystone"] ->
   Class["nailgun::user"] ->
   Class["nailgun::logrotate"] ->
   Class["nailgun::venv"] ->
   Class["nailgun::naily"] ->
   Class["nailgun::nginx-nailgun"] ->
   Class["nailgun::cobbler"] ->
+  Class["nailgun::ironic"] ->
   Class["openstack::logging"] ->
   Class["nailgun::supervisor"] ->
   Anchor<| title == "nailgun-end" |>
+
+  class { "::nailgun::keystone": }
 
   class { "nailgun::packages":
     gem_source => $gem_source,
@@ -97,6 +101,8 @@ class nailgun(
     show_timezone  => true,
     virtual        => str2bool($::is_virtual),
   }
+
+  class { "nailgun::ironic": }
 
   class { "nailgun::user":
     nailgun_group => $nailgun_group,
@@ -207,7 +213,7 @@ class nailgun(
   class { "nailgun::gateone":
     pip_opts => "${pip_index} ${pip_find_links}",
   }
-    
+
   class { "nailgun::puppetsync": }
 
   nailgun::sshkeygen { "/root/.ssh/id_rsa":
