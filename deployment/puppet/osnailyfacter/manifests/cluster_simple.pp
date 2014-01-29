@@ -400,9 +400,9 @@ class osnailyfacter::cluster_simple {
         #private_interface          => $::use_quantum ? { true=>false, default=>$::fuel_settings['fixed_interface'] },
         #internal_address           => $internal_address,
         #network_manager            => $network_manager,
-        ceilometer_database        => "ceilometer",
-        ceilometer_metering_secret => $ceilometer_hash[metering_secret],
-        ceilometer_user_password   => $ceilometer_hash[user_password],
+        ceilometer_database         => "ceilometer",
+        ceilometer_metering_secret  => $ceilometer_hash[metering_secret],
+        ceilometer_db_password      => $ceilometer_hash[db_password],
       }
     } # MONGO ENDS
 
