@@ -27,7 +27,7 @@ Puppet::Type.type(:l2_ovs_bond).provide(:ovs) do
       end
     end
 
-    bond_properties = @resource[:properties]
+    bond_properties = Array(@resource[:properties])
     if @resource[:tag] > 0
       bond_properties.insert(-1, "tag=#{@resource[:tag]}")
     end
@@ -42,7 +42,6 @@ Puppet::Type.type(:l2_ovs_bond).provide(:ovs) do
     begin
       vsctl(bond_create_cmd)
     rescue Puppet::ExecutionFailure => error
-      notice(">>>#{bond_create_cmd.join(',')}<<<")
       fail("Can't create bond '#{@resource[:bond]}' (interfaces: #{@resource[:interfaces].join(',')}) for bridge '#{@resource[:bridge]}'.\n#{error}")
     end
   end
@@ -50,8 +49,8 @@ Puppet::Type.type(:l2_ovs_bond).provide(:ovs) do
   def destroy
     begin
       vsctl("del-port", @resource[:bridge], @resource[:bond])
-    rescue Puppet::ExecutionFailure
-      fail("Can't remove bond '#{@resource[:bond]}' from bridge '#{@resource[:bridge]}'.")
+    rescue Puppet::ExecutionFailure => error
+      fail("Can't remove bond '#{@resource[:bond]}' from bridge '#{@resource[:bridge]}'.\n#{error}")
     end
   end
 

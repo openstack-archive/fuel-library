@@ -84,6 +84,7 @@ define l23network::l3::ifconfig (
     $bond_mode       = undef,
     $bond_miimon     = 100,
     $bond_lacp_rate  = 1,
+    $macaddr         = undef,
     $mtu             = undef,
     $dns_nameservers = undef,
     $dns_search      = undef,
@@ -106,6 +107,14 @@ define l23network::l3::ifconfig (
     'balance-tlb',
     'balance-alb'
   ]
+
+  if $macaddr and $macaddr !~ /^([0-9a-fA-F]{2}\:){5}[0-9a-fA-F]{2}$/ {
+    fail("Invalid MAC address '${macaddr}' for interface '${interface}'")
+  }
+
+  if $mtu and !is_integer("${mtu}") {  # is_integer() fails if integer given :)
+    fail("Invalid MTU '${mtu}' for interface '${interface}'")
+  }
 
   # setup configure method for inteface
   if $bond_master {
