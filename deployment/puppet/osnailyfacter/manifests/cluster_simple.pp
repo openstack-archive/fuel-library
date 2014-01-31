@@ -83,6 +83,9 @@ class osnailyfacter::cluster_simple {
   $mongo_node = filter_nodes($nodes_hash,'role','mongo')
   $mongo_node_address = $mongo_node[0]['internal_address']
 
+# MBF
+  $current_ceilometer_db_type = "mongodb"
+  $current_ceilometer_db_address = $mongo_node_address
 
   if ($::fuel_settings['cinder']) {
     if (member($cinder_nodes_array,'all')) {
@@ -187,8 +190,9 @@ class osnailyfacter::cluster_simple {
         ceilometer_db_password  => $ceilometer_hash[db_password],
         ceilometer_user_password => $ceilometer_hash[user_password],
         ceilometer_metering_secret => $ceilometer_hash[metering_secret],
-        ceilometer_db_type      => mongodb,
-        ceilometer_db_host      => $mongo_node_address,
+        ceilometer_db_type      => $current_ceilometer_db_type,
+#        ceilometer_db_host      => $mongo_node_address,
+        ceilometer_db_host      => $current_ceilometer_db_address,
         queue_provider          => $::queue_provider,
         rabbit_password         => $rabbit_hash[password],
         rabbit_user             => $rabbit_hash[user],
