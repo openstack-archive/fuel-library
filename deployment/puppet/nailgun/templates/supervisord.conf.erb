@@ -14,9 +14,16 @@ childlogdir=/var/log/supervisor
 [supervisorctl]
 serverurl=unix:///var/run/supervisor.sock
 
-[program:nailgun]
+<%# Generates a comma-separated list of nailgun processes, nailgun8001,nailgun8002 %>
+<% ports = nailgund_ports.split(' ') %>
+[group:nailgun]
+programs=<%= ports.collect {|i| "nailgun" + i}.join(',') -%>
+
+<% nailgund_ports.split(' ').each do |port| %>
+[program:nailgun<%= port %>]
 command=<%= venv %>/bin/nailgund
 process_name=%(program_name)s
+environment=PORT=<%= port %>
 numprocs=1
 numprocs_start=0
 autostart=true
@@ -31,6 +38,7 @@ stdout_logfile=/var/log/nailgun/app.log
 stdout_capture_maxbytes=0
 stdout_events_enabled=false
 serverurl=AUTO
+<% end %>
 
 [program:naily]
 command=/usr/bin/nailyd -c /etc/naily/nailyd.conf -l /var/log/naily/naily.log -w 3

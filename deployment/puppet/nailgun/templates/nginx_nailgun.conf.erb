@@ -1,5 +1,7 @@
 upstream nailgun-application {
-    server 127.0.0.1:8001;
+<% nailgund_ports.split(' ').each do |port| -%>
+    server 127.0.0.1:<%= port %>;
+<% end -%>
 }
 
 server {
