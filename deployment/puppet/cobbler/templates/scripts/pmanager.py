@@ -258,7 +258,7 @@ class PManager(object):
                                 pcount, part["partition_guid"],disk["id"]))
                 if size > 0 and size <= 16777216 and part["mount"] != "none":
                     self.kick("partition {0} "
-                              "--onpart=$(readlink -f /dev/{2})"
+                              "--onpart=$(readlink -f $(ls -1 /dev/{2}* | head -1))"
                               "{3}{4}".format(part["mount"], size,
                                            disk["id"],
                                            self._pseparator(disk["id"]),
@@ -266,7 +266,7 @@ class PManager(object):
                 else:
                     if part["mount"] != "swap" and tabfstype != "none":
                         disk_label = self._getlabel(part.get('disk_label'))
-                        self.post("mkfs.{0} -f $(readlink -f /dev/{1})"
+                        self.post("mkfs.{0} -f $(readlink -f $(ls -1 /dev/{1}* | head -1))"
                                   "{2}{3} {4}".format(tabfstype, disk["id"],
                                                    self._pseparator(disk["id"]),
                                                    pcount, disk_label))
@@ -276,7 +276,7 @@ class PManager(object):
 
                     if tabfstype != "none":
                         self.post("echo 'UUID=$(blkid -s UUID -o value "
-                                  "$(readlink -f /dev/{0}){1}{2}) "
+                                  "$(readlink -f $(ls -1 /dev/{0}* | head -1)){1}{2}) "
                                   "{3} {4} defaults 0 0'"
                                   " >> /mnt/sysimage/etc/fstab".format(
                                       disk["id"], self._pseparator(disk["id"]),
@@ -297,7 +297,7 @@ class PManager(object):
                 pcount = self.pcount(disk["id"], 1)
                 if not phys.get(raid["mount"]):
                     phys[raid["mount"]] = []
-                phys[raid["mount"]].append("$(readlink -f /dev/{0}){1}{2}".
+                phys[raid["mount"]].append("$(readlink -f $(ls -1 /dev/{0}* | head -1)){1}{2}".
                     format(disk["id"], self._pseparator(disk["id"]), pcount))
                 rname = "raid.{0:03d}".format(self.rcount(1))
                 begin_size = self.psize(disk["id"])
@@ -307,7 +307,7 @@ class PManager(object):
                              disk["id"], self._parttype(pcount),
                              begin_size, end_size, self.unit))
                 self.kick("partition {0} "
-                          "--onpart=$(readlink -f /dev/{2}){3}{4}"
+                          "--onpart=$(readlink -f $(ls -1 /dev/{2}* | head -1)){3}{4}"
                           "".format(rname, raid["size"], disk["id"],
                                     self._pseparator(disk["id"]), pcount))
 
@@ -359,7 +359,7 @@ class PManager(object):
                              disk["id"], self._parttype(pcount),
                              begin_size, end_size, self.unit))
                 self.kick("partition {0} "
-                          "--onpart=$(readlink -f /dev/{2}){3}{4}"
+                          "--onpart=$(readlink -f $(ls -1 /dev/{2}* | head -1)){3}{4}"
                           "".format(pvname, pv["size"], disk["id"],
                                     self._pseparator(disk["id"]), pcount))
 
@@ -412,7 +412,7 @@ class PManager(object):
     def bootloader(self):
         devs = []
         for disk in self.iterdisks():
-            devs.append("$(basename `readlink -f /dev/{0}`)"
+            devs.append("$(basename `readlink -f $(ls -1 /dev/{0}* | head -1)`)"
                         "".format(disk["id"]))
         if devs:
             self.kick("bootloader --location=mbr --driveorder={0} "
