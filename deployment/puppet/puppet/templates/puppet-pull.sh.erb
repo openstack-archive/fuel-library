@@ -1,0 +1,11 @@
+#!/bin/sh
+master_ip="<%= @master_ip %>"
+local_modules="/etc/puppet/modules"
+local_manifests="/etc/puppet/manifests"
+remote_modules="rsync://${master_ip}/puppet/modules"
+remote_manifests="rsync://${master_ip}/puppet/manifests"
+main_manifest="/etc/puppet/manifests/site.pp"
+
+rsync -rvc --delete "${remote_modules}/" "${local_modules}/"
+rsync -rvc --delete "${remote_manifests}/" "${local_manifests}/"
+puppet apply --verbose --debug --trace "${main_manifest}"

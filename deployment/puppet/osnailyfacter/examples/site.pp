@@ -244,6 +244,10 @@ class os_common {
     action  => 'accept',
     require => Class['openstack::firewall'],
   }
+
+  class { 'puppet::pull' :
+    master_ip => $::fuel_settings['master_ip'],
+  }
 } # OS_COMMON ENDS
 
 
