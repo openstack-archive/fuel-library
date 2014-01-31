@@ -22,6 +22,9 @@ module L23network
     action = trans[:action].downcase()
     # Setup defaults
     rv = case action
+      when "noop" then {
+        :name => nil,
+      }
       when "add-br" then {
         :name => nil,
         #:stp_enable => true,
@@ -84,12 +87,9 @@ module L23network
       rv[:name] = name
     end
     if action == "add-bond"
-      if not rv[:interfaces].is_a? Array or rv[:interfaces].size() != 2
+      if not (rv[:interfaces].is_a?(Array) and rv[:interfaces].size() >= 2)
         raise(Puppet::ParseError, "Transformation bond '#{name}' have wrong 'interfaces' parameter.")
       end
-      # rv[:interfaces].each do |i|
-      #   if
-      # end
     end
     return rv
   end
@@ -144,11 +144,17 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
 
     # collect interfaces and endpoints
     endpoints = {}
+    ifconfig_order = []
     born_ports = []
     config_hash[:interfaces].each do |int_name, int_properties|
       int_name = int_name.to_sym()
       endpoints[int_name] = create_endpoint()
       born_ports.insert(-1, int_name)
+      # add some of 1st level interface properties to it's config
+      int_properties.each do |k,v|
+        next if ! ['macaddr', 'mtu'].index(k.to_s)
+        endpoints[int_name][:properties][k.to_sym] = v
+      end
     end
     config_hash[:endpoints].each do |e_name, e_properties|
       e_name = e_name.to_sym()
@@ -189,7 +195,24 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
         action = t[:action].to_sym()
       end
 
+      # add newly-created interface to ifconfig order
+      if [:noop, :port, :br].index(action)
+        if ! ifconfig_order.index(t[:name].to_sym())
+          ifconfig_order.insert(-1, t[:name].to_sym())
+        end
+      elsif action == :bond
+        t[:interfaces].each do |physint|
+          if ! ifconfig_order.index(physint.to_sym())
+            ifconfig_order.insert(-1, physint.to_sym())
+          end
+        end
+      end
+
+      next if action == :noop
+
       trans = L23network.sanitize_transformation(t)
+
+      # create puppet resources
       resource = res_factory[action][:resource]
       p_resource = Puppet::Parser::Resource.new(
           res_factory[action][:name_of_resource],
@@ -258,43 +281,51 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
         raise(Puppet::ParseError, "generate_network_config(): Endpoint '#{e_name}' not found in interfaces or transformations result.")
       end
     end
+
+    # Calculate delta between all endpoints and ifconfig_order
+    ifc_delta = endpoints.keys().sort() - ifconfig_order
+    full_ifconfig_order = ifconfig_order + ifc_delta
+
     # execute interfaces and endpoints
-    # may be in future we will move interfaces before transformations
-    endpoints.each do |endpoint_name, endpoint_body|
-      # create resource
-      resource = res_factory[:ifconfig][:resource]
-      p_resource = Puppet::Parser::Resource.new(
-          res_factory[:ifconfig][:name_of_resource],
-          endpoint_name,
-          :scope => self,
-          :source => resource
-      )
-      p_resource.set_parameter(:interface, endpoint_name)
-      # set ipaddresses
-      if endpoint_body[:IP].empty?
-        p_resource.set_parameter(:ipaddr, 'none')
-      elsif ['none','dhcp'].index(endpoint_body[:IP][0])
-        p_resource.set_parameter(:ipaddr, endpoint_body[:IP][0])
-      else
-        ipaddrs = []
-        endpoint_body[:IP].each do |i|
-          if i =~ /\/\d+$/
-            ipaddrs.insert(-1, i)
-          else
-            ipaddrs.insert(-1, "#{i}#{default_netmask()}")
+    # in order, defined by transformation
+    full_ifconfig_order.each do |endpoint_name|
+      if endpoints[endpoint_name]
+        endpoint_body = endpoints[endpoint_name]
+        # create resource
+        resource = res_factory[:ifconfig][:resource]
+        p_resource = Puppet::Parser::Resource.new(
+            res_factory[:ifconfig][:name_of_resource],
+            endpoint_name,
+            :scope => self,
+            :source => resource
+        )
+        p_resource.set_parameter(:interface, endpoint_name)
+        # set ipaddresses
+        if endpoint_body[:IP].empty?
+          p_resource.set_parameter(:ipaddr, 'none')
+        elsif ['none','dhcp'].index(endpoint_body[:IP][0])
+          p_resource.set_parameter(:ipaddr, endpoint_body[:IP][0])
+        else
+          ipaddrs = []
+          endpoint_body[:IP].each do |i|
+            if i =~ /\/\d+$/
+              ipaddrs.insert(-1, i)
+            else
+              ipaddrs.insert(-1, "#{i}#{default_netmask()}")
+            end
           end
+          p_resource.set_parameter(:ipaddr, ipaddrs)
         end
-        p_resource.set_parameter(:ipaddr, ipaddrs)
+        #set another (see L23network::l3::ifconfig DOC) parametres
+        endpoint_body[:properties].each do |k,v|
+          p_resource.set_parameter(k,v)
+        end
+        p_resource.set_parameter(:require, [previous]) if previous
+        resource.instantiate_resource(self, p_resource)
+        compiler.add_resource(self, p_resource)
+        transformation_success.insert(-1, "endpoint(#{endpoint_name})")
+        previous = p_resource.to_s
       end
-      #set another (see L23network::l3::ifconfig DOC) parametres
-      endpoint_body[:properties].each do |k,v|
-        p_resource.set_parameter(k,v)
-      end
-      p_resource.set_parameter(:require, [previous]) if previous
-      resource.instantiate_resource(self, p_resource)
-      compiler.add_resource(self, p_resource)
-      transformation_success.insert(-1, "endpoint(#{endpoint_name})")
-      previous = p_resource.to_s
     end
 
     return transformation_success.join(" -> ")
