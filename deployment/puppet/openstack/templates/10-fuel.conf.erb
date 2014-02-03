@@ -1,7 +1,24 @@
-"/var/log/*-all.log" "/var/log/corosync.log" "/var/log/remote/*/*log"
-"/var/log/kern.log" "/var/log/debug" "/var/log/syslog" "/var/log/daemon.log"
-"/var/log/auth.log" "/var/log/user.log" "var/log/mail.log"
-"/var/log/cron.log" "/var/log/dashboard.log" "/var/log/ha.log"
+# managed by puppet
+
+"/var/log/*-all.log"
+"/var/log/corosync.log"
+"/var/log/remote/*/*log"
+"/var/log/kern.log"
+"/var/log/debug"
+"/var/log/syslog"
+"/var/log/daemon.log"
+"/var/log/auth.log"
+"/var/log/user.log"
+"/var/log/mail.log"
+"/var/log/cron.log"
+"/var/log/dashboard.log"
+"/var/log/pacemaker.log"
+"/var/log/neutron/*.log"
+"/var/log/nova/*.log"
+"/var/log/keystone/*.log"
+"/var/log/glance/*.log"
+"/var/log/cinder/*.log"
+"/var/log/mysql.log"
 {
 # This file is used for daily log rotations, do not use size options here
   sharedscripts
@@ -12,9 +29,9 @@
   copytruncate
   # keep logs for <%= @keep %> rotations
   rotate <%= @keep %>
-  # compression is postponed to next rotation
+  # compression will be postponed to the next rotation, if uncommented
+  # delaycompress
   compress
-  delaycompress
   # ignore missing files
   missingok
   # do not rotate empty files
