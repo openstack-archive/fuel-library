@@ -1,0 +1,13 @@
+# managed by puppet
+
+### collect mysql* logs of all levels in /var/log/mysql.log
+if ($programname == 'mysql' \
+  or $programname == 'mysqld' \
+  or $programname == 'mysqld_safe' \
+  or $programname == 'mysql-wss') \
+### use 6 for INFO+ msg levels, 5 for WARN+ etc.
+###  and $syslogseverity <= '6' \
+then -/var/log/mysql.log
+### stop further processing for the matched entries
+& ~
+
