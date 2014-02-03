@@ -1,4 +1,17 @@
 # managed by puppet
 
-LOCAL0.* -/var/log/ha.log
-LOCAL0.* ~
+### collect HA logs of all levels in /var/log/pacemaker.log
+if ($programname == 'lrmd' \
+  or $programname == 'pengine' \
+  or $programname == 'stonith-ng' \
+  or $programname == 'attrd' \
+  or $programname == 'cib' \
+  or $programname == 'cibadmin' \
+  or $programname == 'crmd' \
+  or $programname == 'crm_verify' \
+  or $programname == 'corosync') \
+### use 6 for INFO+ msg levels, 5 for WARN+ etc.
+###  and $syslogseverity <= '6' \
+then -/var/log/pacemaker.log
+### stop further processing for the matched entries
+& ~
