@@ -87,14 +87,9 @@ class keystone(
     require => Package['keystone'],
   }
 
-  if $use_syslog and !$debug =~ /(?i)(true|yes)/ {
+  if $use_syslog and !$debug { #syslog and nondebug case
     keystone_config {
       'DEFAULT/log_config': value => "/etc/keystone/logging.conf";
-      'DEFAULT/log_file': ensure=> absent;
-      'DEFAULT/log_dir': ensure=> absent;
-      'DEFAULT/logfile':   ensure=> absent;
-      'DEFAULT/logdir':    ensure=> absent;
-      'DEFAULT/use_stderr': ensure=> absent;
       'DEFAULT/use_syslog': value => true;
       'DEFAULT/syslog_log_facility': value =>  $syslog_log_facility;
     }
@@ -105,21 +100,11 @@ class keystone(
       # We must notify service for new logging rules
       notify => Service['keystone'],
     }
-  } else  {
+  } else { #other syslog debug or nonsyslog debug/nondebug cases
     keystone_config {
-      'DEFAULT/log_config': ensure=> absent;
-      'DEFAULT/use_syslog': ensure=> absent;
-      'DEFAULT/syslog_log_facility': ensure=> absent;
-      'DEFAULT/use_stderr': ensure=> absent;
       'DEFAULT/log_dir':value=> $log_dir;
-    }
-    # might be used for stdout logging instead, if configured
-    file {"keystone-logging.conf":
-      content => template('keystone/logging.conf-nosyslog.erb'),
-      path => "/etc/keystone/logging.conf",
-      require => File['/etc/keystone'],
-      # We must notify service for new logging rules
-      notify => Service['keystone'],
+      'DEFAULT/log_file': value => $log_file;
+      'DEFAULT/use_syslog': value =>  false;
     }
   }
 
