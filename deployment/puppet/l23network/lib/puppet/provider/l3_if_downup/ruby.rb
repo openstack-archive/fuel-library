@@ -79,7 +79,21 @@ Puppet::Type.type(:l3_if_downup).provide(:ruby) do
     return rv
   end
 
+  def get_interface_carrier()
+    begin
+      return File.open("/sys/class/net/#{@resource[:interface]}/carrier", 'r'){ |file| file.read().to_i }
+    rescue
+      return -1
+    end
+  end
+
   def restart()
+    #Check the current state of the interface first
+    if get_interface_carrier != 1
+      notice("Carrier is DOWN, '#{@resource[:interface]}' skipping carrier test")
+      @resource[:wait_carrier_after_ifup] = false
+    end
+
     begin # downing inteface
       # add force for debian-based OS ([PRD-2132])
       if Facter.value(:osfamily) == 'Debian'
@@ -133,14 +147,10 @@ Puppet::Type.type(:l3_if_downup).provide(:ruby) do
           Timeout::timeout(@resource[:wait_carrier_after_ifup_timeout]) do
             _w = 10
             loop do
-              begin
-                _rc = File.open("/sys/class/net/#{@resource[:interface]}/carrier", 'r'){ |file| file.read() }
-              rescue
-                _rc = -1
-              end
-              if _rc.to_i() == 1
+              carrier = get_interface_carrier
+              if carrier == 1
                 break
-              elsif _rc.to_i() == -1
+              elsif carrier == -1
                 notice("Seems that the interface '#{@resource[:interface]}' was brought down administratively. Further deployment actions may fail!")
                 sleep(10)
               else
