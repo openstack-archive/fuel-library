@@ -1,4 +1,20 @@
 # managed by puppet
 
-LOCAL0.* -/var/log/ha.log
-LOCAL0.* ~
+# Uncomment it only if you don't want standard corosync logs
+# for some reasons
+#### collect HA logs of all levels in /var/log/ha.log
+#if ($programname == 'lrmd' \
+#  or $programname == 'pengine' \
+#  or $programname == 'stonith_ng' \
+#  or $programname == 'attrd' \
+#  or $programname == 'cib' \
+#  or $programname == 'cibadmin' \
+#  or $programname == 'crmd' \
+#  or $programname == 'crm_verify' \
+#  or $programname == 'corosync' \
+#  or $programname == 'haproxy') \
+#### use 6 for INFO+ msg levels, 5 for WARN+ etc.
+####  and $syslogseverity <= '6' \
+#then -/var/log/ha.log
+#### stop further processing for the matched entries
+#& ~
