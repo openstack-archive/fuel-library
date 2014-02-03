@@ -9,7 +9,7 @@ Puppet::Type.newtype(:l2_ovs_bond) do
       desc "The bond name"
       #
       validate do |val|
-        if not val =~ /^[a-z][0-9a-z\.\-\_]*[0-9a-z]$/
+        if not (val =~ /^[a-zA-Z][0-9a-zA-Z\.\-\_]*[0-9a-zA-Z]$/)
           fail("Invalid bond name: '#{val}'")
         end
       end
@@ -19,11 +19,11 @@ Puppet::Type.newtype(:l2_ovs_bond) do
       desc "List of interfaces that will be added to the bond"
       #
       validate do |val|
-        if not val.is_a?(Array)
+        if not (val.is_a?(Array) and rv[:interfaces].size() >= 2)
           fail("Interfaces parameter must be an array (not #{val.class}).")
         end
         for ii in val
-          if not ii =~ /^[a-z][0-9a-z\.\-\_]*[0-9a-z]$/
+          if not (ii =~ /^[a-zA-Z][0-9a-zA-Z\.\-\_]*[0-9a-zA-Z]$/)
             fail("Invalid port name: '#{ii}'")
           end
         end
@@ -44,7 +44,7 @@ Puppet::Type.newtype(:l2_ovs_bond) do
       desc "What bridge to use"
       #
       validate do |val|
-        if not val =~ /^[a-z][0-9a-z\.\-\_]*[0-9a-z]$/
+        if not (val =~ /^[a-zA-Z][0-9a-zA-Z\.\-\_]*[0-9a-zA-Z]$/)
           fail("Invalid bridge name: '#{val}'")
         end
       end

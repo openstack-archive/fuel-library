@@ -84,12 +84,9 @@ module L23network
       rv[:name] = name
     end
     if action == "add-bond"
-      if not rv[:interfaces].is_a? Array or rv[:interfaces].size() != 2
+      if not (rv[:interfaces].is_a?(Array) and rv[:interfaces].size() >=) 2
         raise(Puppet::ParseError, "Transformation bond '#{name}' have wrong 'interfaces' parameter.")
       end
-      # rv[:interfaces].each do |i|
-      #   if
-      # end
     end
     return rv
   end
