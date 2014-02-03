@@ -202,7 +202,7 @@ class os_common {
       # otherwise none rabbit's messages would have gone to syslog
       rabbit_log_level => $syslog_log_level,
       # debug mode
-      debug          => $debug ? { 'true' => true, true => true, default=> false },
+      debug          => $debug,
     }
   }
 
