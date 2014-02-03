@@ -99,7 +99,7 @@ $debug = $::fuel_settings['debug']
 
 ### Syslog ###
 # Enable error messages reporting to rsyslog. Rsyslog must be installed in this case.
-$use_syslog = true
+$use_syslog = $::fuel_settings['use_syslog'] ? { default=>true }
 # Default log level would have been used, if non verbose and non debug
 $syslog_log_level             = 'ERROR'
 # Syslog facilities for main openstack services, choose any, may overlap if needed
@@ -201,7 +201,7 @@ class os_common {
       # otherwise none rabbit's messages would have gone to syslog
       rabbit_log_level => $syslog_log_level,
       # debug mode
-      debug          => $debug ? { 'true' => true, true => true, default=> false },
+      debug          => $debug,
     }
   }
 
