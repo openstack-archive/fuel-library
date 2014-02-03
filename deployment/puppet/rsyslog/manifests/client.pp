@@ -291,6 +291,10 @@ if $debug =~ /(?i)(true|yes)/ {
     content => template("${module_name}/03-dashboard.conf.erb"),
   }
 
+  file { "${rsyslog::params::rsyslog_d}04-mysql.conf":
+    ensure => present,
+    content => template("${module_name}/04-mysql.conf.erb"),
+  }
 
   file { "${rsyslog::params::rsyslog_d}60-puppet-agent.conf":
     content => template("${module_name}/60-puppet-agent.conf.erb"),
