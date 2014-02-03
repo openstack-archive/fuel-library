@@ -58,13 +58,10 @@ if !$rabbit_hash[user]
 }
 $rabbit_user          = $rabbit_hash['user']
 
-
-$verbose = true
-
-if !$::fuel_settings['debug']
-{
- $debug = false
-}
+# from site.pp top scope
+$use_syslog = $::use_syslog
+$verbose = $::verbose
+$debug = $::debug
 
 if !$::fuel_settings['swift_partition']
 {
@@ -209,8 +206,8 @@ class ha_controller (
     num_networks            => $num_networks,
     network_size            => $network_size,
     network_config          => $network_config,
-    debug                   => $debug ? { 'true' => true, true => true, default=> false },
-    verbose                 => $verbose ? { 'true' => true, true => true, default=> false },
+    debug                   => $debug,
+    verbose                 => $verbose,
     auto_assign_floating_ip => $::fuel_settings['auto_assign_floating_ip'],
     mysql_root_password     => $mysql_hash[root_password],
     admin_email             => $access_hash[email],
@@ -341,8 +338,8 @@ case $::fuel_settings['role'] {
     glance_api_servers     => "${::fuel_settings['management_vip']}:9292",
     vncproxy_host          => $::fuel_settings['public_vip'],
     vncserver_listen       => $storage_hash['ephemeral_ceph'] ? { true => "0.0.0.0", default => $internal_address },
-    debug                  => $debug ? { 'true' => true, true => true, default=> false },
-    verbose                => $verbose ? { 'true' => true, true => true, default=> false },
+    debug                  => $debug,
+    verbose                => $verbose,
     vnc_enabled            => true,
     nova_user_password     => $nova_hash[user_password],
     cache_server_ip        => $controller_nodes,
@@ -407,8 +404,8 @@ case $::fuel_settings['role'] {
     qpid_nodes             => [$::fuel_settings['management_vip']],
     sync_rings             => ! $primary_proxy,
     syslog_log_level       => $syslog_log_level,
-    debug                  => $debug ? { 'true' => true, true => true, default=> false },
-    verbose                => $verbose ? { 'true' => true, true => true, default=> false },
+    debug                  => $debug,
+    verbose                => $verbose,
     syslog_log_facility_cinder => $syslog_log_facility_cinder,
   }
 
@@ -434,8 +431,8 @@ case $::fuel_settings['role'] {
     swift_local_net_ip      => $swift_local_net_ip,
     master_swift_proxy_ip   => $master_swift_proxy_ip,
     syslog_log_level        => $syslog_log_level,
-    debug                   => $debug ? { 'true' => true, true => true, default=> false },
-    verbose                 => $verbose ? { 'true' => true, true => true, default=> false },
+    debug                   => $debug,
+    verbose                 => $verbose,
   }
   }
 
@@ -457,11 +454,11 @@ case $::fuel_settings['role'] {
         auth_host            => $::fuel_settings['management_vip'],
         iscsi_bind_host      => $storage_address,
         cinder_user_password => $cinder_hash[user_password],
-        debug                => $debug ? { 'true' => true, true => true, default=> false },
-        verbose              => $verbose ? { 'true' => true, true => true, default=> false },
+        debug                => $debug,
+        verbose              => $verbose,
         syslog_log_facility  => $syslog_log_facility_cinder,
         syslog_log_level     => $syslog_log_level,
-        use_syslog           => true,
+        use_syslog           => $use_syslog,
       }
     }
 }

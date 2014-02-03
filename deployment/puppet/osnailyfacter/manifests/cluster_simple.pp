@@ -108,11 +108,10 @@ class osnailyfacter::cluster_simple {
   $multi_host = true
   Exec { logoutput => true }
 
-  $verbose = true
-
-  if !$::fuel_settings['debug'] {
-   $debug = false
-  }
+  # from site.pp top scope
+  $use_syslog = $::use_syslog
+  $verbose = $::verbose
+  $debug = $::debug
 
   # Determine who should get the volume service
   if ($::fuel_settings['role'] == 'cinder' or
@@ -163,8 +162,8 @@ class osnailyfacter::cluster_simple {
         num_networks            => $::use_quantum ? { true=>false, default=>$novanetwork_params['num_networks'] },
         network_size            => $::use_quantum ? { true=>false, default=>$novanetwork_params['network_size'] },
         network_config          => $::use_quantum ? { true=>false, default=>$network_config },
-        debug                   => $debug ? { 'true'=>true, true=>true, default=>false },
-        verbose                 => $verbose ? { 'true'=>true, true=>true, default=>false },
+        debug                   => $debug,
+        verbose                 => $verbose,
         auto_assign_floating_ip => $::fuel_settings['auto_assign_floating_ip'],
         mysql_root_password     => $mysql_hash[root_password],
         admin_email             => $access_hash[email],
@@ -200,7 +199,7 @@ class osnailyfacter::cluster_simple {
         cinder_iscsi_bind_addr  => $cinder_iscsi_bind_addr,
         cinder_volume_group     => "cinder",
         manage_volumes          => $manage_volumes,
-        use_syslog              => $::fuel_settings['use_syslog'] ? { 'false'=>false, false=>false, default=>true },
+        use_syslog              => $use_syslog,
         syslog_log_level        => $syslog_log_level,
         syslog_log_facility_glance  => $syslog_log_facility_glance,
         syslog_log_facility_cinder  => $syslog_log_facility_cinder,
@@ -217,8 +216,8 @@ class osnailyfacter::cluster_simple {
       nova_config { 'DEFAULT/compute_scheduler_driver': value => $::fuel_settings['compute_scheduler_driver'] }
       if $::use_quantum {
         class { '::openstack::neutron_router':
-          debug                 => $debug ? { 'true' => true, true => true, default=> false },
-          verbose               => $verbose ? { 'true' => true, true => true, default=> false },
+          debug                 => $debug,
+          verbose               => $verbose,
           # qpid_password         => $rabbit_hash[password],
           # qpid_user             => $rabbit_hash[user],
           # qpid_nodes            => [$controller_node_address],
@@ -366,9 +365,9 @@ class osnailyfacter::cluster_simple {
         cinder_volume_group    => "cinder",
         manage_volumes         => $manage_volumes,
         db_host                => $controller_node_address,
-        debug                  => $debug ? { 'true' => true, true => true, default=> false },
-        verbose                => $verbose ? { 'true' => true, true => true, default=> false },
-        use_syslog             => $::fuel_settings['use_syslog'] ? { 'false'=>false, false=>false, default=>true },
+        debug                  => $debug,
+        verbose                => $verbose,
+        use_syslog             => $use_syslog,
         syslog_log_level       => $syslog_log_level,
         syslog_log_facility    => $syslog_log_facility_nova,
         syslog_log_facility_neutron => $syslog_log_facility_neutron,
@@ -416,9 +415,9 @@ class osnailyfacter::cluster_simple {
         cinder_user_password => $cinder_hash[user_password],
         syslog_log_facility  => $syslog_log_facility_cinder,
         syslog_log_level     => $syslog_log_level,
-        debug                => $debug ? { 'true' => true, true => true, default => false },
-        verbose              => $verbose ? { 'true' => true, true => true, default => false },
-        use_syslog           => $::fuel_settings['use_syslog'] ? { 'false'=>false, false=>false, default=>true },
+        debug                => $debug,
+        verbose              => $verbose,
+        use_syslog           => $use_syslog,
       }
     } #CINDER ENDS
 
