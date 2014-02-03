@@ -31,43 +31,25 @@ File {
   require => Class['glance']
 }
 
-if $use_syslog and !$debug =~ /(?i)(true|yes)/ {
- glance_registry_config {
-   'DEFAULT/log_config': value => "/etc/glance/logging.conf";
-   'DEFAULT/log_file': ensure=> absent;
-   'DEFAULT/log_dir': ensure=> absent;
-   'DEFAULT/logfile':   ensure=> absent;
-   'DEFAULT/logdir':    ensure=> absent;
-   'DEFAULT/use_stderr': ensure=> absent;
-   'DEFAULT/use_syslog': value => true;
-   'DEFAULT/syslog_log_facility': value =>  $syslog_log_facility;
- }
- if !defined(File["glance-logging.conf"]) {
-   file {"glance-logging.conf":
-     content => template('glance/logging.conf.erb'),
-     path => "/etc/glance/logging.conf",
-   }
- }
-} else {
- glance_registry_config {
-   'DEFAULT/log_config':    ensure=> absent;
-   'DEFAULT/use_syslog': ensure=> absent;
-   'DEFAULT/syslog_log_facility': ensure=> absent;
-   'DEFAULT/use_stderr': ensure=> absent;
-   'DEFAULT/log_file':value=>$log_file;
-   'DEFAULT/logging_context_format_string':
-    value => '%(asctime)s %(levelname)s %(name)s [%(request_id)s %(user_id)s %(project_id)s] %(instance)s %(message)s';
-   'DEFAULT/logging_default_format_string':
-    value => '%(asctime)s %(levelname)s %(name)s [-] %(instance)s %(message)s';
- }
- # might be used for stdout logging instead, if configured
- if !defined(File["glance-logging.conf"]) {
-   file {"glance-logging.conf":
-     content => template('glance/logging.conf-nosyslog.erb'),
-     path => "/etc/glance/logging.conf",
-   }
- }
-}
+if $use_syslog and !$debug { #syslog and nondebug case
+  glance_registry_config {
+    'DEFAULT/log_config': value => "/etc/glance/logging.conf";
+    'DEFAULT/use_syslog': value => true;
+    'DEFAULT/syslog_log_facility': value =>  $syslog_log_facility;
+  }
+  if !defined(File["glance-logging.conf"]) {
+    file {"glance-logging.conf":
+      content => template('glance/logging.conf.erb'),
+      path => "/etc/glance/logging.conf",
+      notify => Service['glance-registry'],
+    }
+  }
+} else {  #other syslog debug or nonsyslog debug/nondebug cases
+  glance_registry_config {
+    'DEFAULT/log_file':value=>$log_file;
+    'DEFAULT/use_syslog': value =>  false;
+  }
+} #end if
 
   require 'keystone::python'
 
