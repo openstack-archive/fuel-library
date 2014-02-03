@@ -89,7 +89,8 @@ class openstack::db::mysql (
       # the priv grant fails on precise if I set a root password
       # TODO I should make sure that this works
       # 'root_password' => $mysql_root_password,
-      'bind_address'  => '0.0.0.0'
+      'bind_address'  => '0.0.0.0',
+      'use_syslog' => $use_syslog,
     },
     galera_cluster_name	    => $galera_cluster_name,
     primary_controller      => $primary_controller,
