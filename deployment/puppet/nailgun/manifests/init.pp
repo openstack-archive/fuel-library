@@ -91,7 +91,7 @@ class nailgun(
     keep           => '4',
     # should be > 30M
     limitsize      => '100M',
-    port           => '514',
+    port           => ['514'],
     proto          => 'tcp',
     # use date-rfc3339 timestamps
     show_timezone  => true,

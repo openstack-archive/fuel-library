@@ -3,13 +3,17 @@
 <% if scope.lookupvar('rsyslog::server::enable_udp') -%>
 # Load UDP module
 $ModLoad imudp
-$UDPServerRun <%= scope.lookupvar('rsyslog::server::port') %>
+<% scope.lookupvar('rsyslog::server::port').each do |listen_port| -%>
+$UDPServerRun <%= listen_port %>
+<% end -%>
 <% end -%>
 
 <% if scope.lookupvar('rsyslog::server::enable_tcp') -%>
 # Load TCP module
 $ModLoad imtcp
-$InputTCPServerRun <%= scope.lookupvar('rsyslog::server::port') %>
+<% scope.lookupvar('rsyslog::server::port').each do |listen_port| -%>
+$InputTCPServerRun <%= listen_port %>
+<% end -%>
 <% end -%>
 
 <% unless scope.lookupvar('rsyslog::server::escapenewline') -%>
@@ -67,7 +71,7 @@ $Template dynDebug,"<%= scope.lookupvar('rsyslog::server::server_dir') -%>debug"
 $Template dynMessages,"<%= scope.lookupvar('rsyslog::server::server_dir') -%>messages"
 
 # Rules
-# Skip duplicates - all common debug, info, notice, warn go to 
+# Skip duplicates - all common debug, info, notice, warn go to
 # debug & messages files respectively; others should go to syslog
 auth,authpriv.*         ?dynAuthLog
 *.error;auth,authpriv.none,mail.none,cron.none      -?dynSyslog

@@ -9,8 +9,11 @@ $Template RemoteLog, "<%%pri%>%timestamp% %hostname% %syslogtag%%msg:::sp-if-no-
 # Note: don't use %app-name% cuz it would be empty for some cases
 $ActionFileDefaultTemplate RemoteLog
 
+<% servers = [] -%>
 <% scope.lookupvar('rsyslog::client::rservers_real').each do |rserver| -%>
-<% if ! ['localhost','127.0.0.1','::1'].include?(rserver['server']) -%>
+# Only for unique servers, to avoid messages being duplicated by tcp and by udp
+<% if ! ['localhost','127.0.0.1','::1',servers].include?(rserver['server']) -%>
+<% servers.push(rserver['server']) -%>
 <% if rserver['remote_type'] == 'tcp' -%>
 # Send messages we receive to master node via tcp
 *.* @@<%= rserver['server']-%>:<%= rserver['port'] -%>;RemoteLog
