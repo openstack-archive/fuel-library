@@ -5,7 +5,7 @@
 class rsyslog::server (
   $enable_tcp                = true,
   $enable_udp                = true,
-  $port                      = '514',
+  $port                      = ['514'],
   $server_dir                = '/srv/log/',
   $custom_config             = undef,
   $high_precision_timestamps = false,
