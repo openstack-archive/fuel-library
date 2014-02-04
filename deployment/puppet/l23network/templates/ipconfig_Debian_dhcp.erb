@@ -1,5 +1,8 @@
 auto <%= interface %>
 iface <%= interface %> inet dhcp
+<% if @macaddr -%>
+hwaddress ether <%= @macaddr.downcase %>
+<% end -%>
 <% if @dhcp_hostname %>hostname <%= @dhcp_hostname %><% end %>
 <% if @vlan_mode %>vlan_raw_device <%= @vlan_dev %><% end %>
 <% if @mtu %>mtu <%= @mtu %><% end %>
