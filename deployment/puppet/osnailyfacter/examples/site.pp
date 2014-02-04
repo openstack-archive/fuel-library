@@ -157,7 +157,7 @@ class os_common {
   }
 
   $base_syslog_rserver  = {
-    'remote_type' => 'udp',
+    'remote_type' => 'tcp',
     'server' => $base_syslog_hash['syslog_server'],
     'port' => $base_syslog_hash['syslog_port']
   }
@@ -177,7 +177,6 @@ class os_common {
     class { "::openstack::logging":
       stage          => 'first',
       role           => 'client',
-      proto          => 'tcp',
       show_timezone => true,
       # log both locally include auth, and remote
       log_remote     => true,
