@@ -177,7 +177,6 @@ class os_common {
     class { "::openstack::logging":
       stage          => 'first',
       role           => 'client',
-      proto          => 'tcp',
       show_timezone => true,
       # log both locally include auth, and remote
       log_remote     => true,

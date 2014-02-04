@@ -92,7 +92,8 @@ class nailgun(
     # should be > 30M
     limitsize      => '100M',
     port           => '514',
-    proto          => 'tcp',
+    # listen both TCP and UDP
+    proto          => 'both',
     # use date-rfc3339 timestamps
     show_timezone  => true,
     virtual        => str2bool($::is_virtual),
