@@ -65,13 +65,11 @@ class keystone(
   $log_file            = 'keystone.log',
   $catalog_type        = 'sql',
   $token_format        = 'UUID',
-# $token_format        = 'PKI',
+#  $token_format        = 'PKI',
   $cache_dir           = '/var/cache/keystone',
   $enabled             = true,
   $sql_connection      = 'sqlite:////var/lib/keystone/keystone.db',
-  $idle_timeout        = '200',
-  $memcached_servers   = undef,
-  $memcached_port      = '11211'
+  $idle_timeout        = '200'
 ) {
 
   validate_re($catalog_type,   'template|sql')
@@ -186,6 +184,7 @@ class keystone(
     'DEFAULT/debug':        value => $debug;
     'DEFAULT/verbose':      value => $verbose;
     'identity/driver': value =>"keystone.identity.backends.sql.Identity";
+    'token/driver': value =>"keystone.token.backends.sql.Token";
     'policy/driver': value =>"keystone.policy.backends.rules.Policy";
     'ec2/driver': value =>"keystone.contrib.ec2.backends.sql.Ec2";
     'filter:debug/paste.filter_factory': value =>"keystone.common.wsgi:Debug.factory";
@@ -214,19 +213,6 @@ class keystone(
     'composite:admin/use': value =>"egg:Paste#urlmap";
     'composite:admin//v2.0': value =>"admin_api";
     'composite:admin//': value =>"admin_version_api";
-  }
-
-  if $memcached_servers {
-    Service<| title == 'memcached' |> -> Service['keystone']
-    $memcached_servers_string = inline_template("<%= @memcached_servers.collect{|ip| ip + ':' + @memcached_port }.join ',' %>")
-    keystone_config {
-      'token/driver':    value => 'keystone.token.backends.memcache.Token';
-      'memcache/server': value => $memcached_servers_string;
-    }
-  } else {
-    keystone_config {
-      'token/driver': value => 'keystone.token.backends.sql.Token';
-    }
   }
 
   if($sql_connection =~ /mysql:\/\/\S+:\S+@\S+\/\S+/) {

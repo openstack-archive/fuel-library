@@ -63,7 +63,6 @@ class openstack::keystone (
   $bind_host                = '0.0.0.0',
   $internal_address         = false,
   $admin_address            = false,
-  $memcached_servers        = undef,
   $glance_public_address    = false,
   $glance_internal_address  = false,
   $glance_admin_address     = false,
@@ -199,7 +198,6 @@ class openstack::keystone (
     use_syslog => $use_syslog,
     syslog_log_facility => $syslog_log_facility,
     syslog_log_level    => $syslog_log_level,
-    memcached_servers   => $memcached_servers,
   }
 
   if ($enabled) {
