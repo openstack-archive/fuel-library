@@ -4,6 +4,8 @@ class osnailyfacter::cluster_simple {
     $novanetwork_params  = {}
     $quantum_config = sanitize_neutron_config($::fuel_settings, 'quantum_settings')
     debug__dump_to_file('/tmp/neutron_cfg.yaml', $quantum_config)
+    # FIXME do not use stderr for multinode(simple) unless init scripts for neutron will provide 2>&1 redirection
+    $quantum_config['use_stderr'] = $fuel_settings['deployment_mode'] ? { 'multinode'=>false, default=> true }
   } else {
     $quantum_config = {}
     $novanetwork_params = $::fuel_settings['novanetwork_parameters']

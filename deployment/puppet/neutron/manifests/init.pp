@@ -112,7 +112,7 @@ class neutron (
     'DEFAULT/log_file':              ensure => absent;
     'DEFAULT/log_config':            ensure => absent;
     'DEFAULT/use_syslog':             value => false;
-    'DEFAULT/use_stderr':             value => true;
+    'DEFAULT/use_stderr':             value => $neutron_config['use_stderr'];
     'DEFAULT/publish_errors':         value => false;
     'DEFAULT/auth_strategy':          value => $auth_strategy;
     'DEFAULT/core_plugin':            value => $core_plugin;
