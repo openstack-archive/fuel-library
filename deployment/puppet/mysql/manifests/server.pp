@@ -33,6 +33,7 @@ class mysql::server (
   $rep_pass = 'replicant666',
   $replication_roles = "SELECT, PROCESS, FILE, SUPER, REPLICATION CLIENT, REPLICATION SLAVE, RELOAD",
   $use_syslog              = false,
+  $initscript_file         = 'puppet:///modules/mysql/mysql-single.init'
 ) inherits mysql::params {
 
   Exec {path => '/usr/bin:/bin:/usr/sbin:/sbin'}    
@@ -58,8 +59,17 @@ class mysql::server (
      #ensure => $mysql::params::server_version,
      #require=> Package['mysql-shared'],
     }
+    if $::operatingsystem == 'RedHat' {
+      file { "/etc/init.d/mysqld":
+        ensure  => present,
+        source  => $initscript_file,
+        mode    => '0755',
+        owner   => 'root',
+      }
+      File['/etc/init.d/mysqld'] -> Service['mysql']
+    }
     Package[mysql-client] -> Package[mysql-server]
- 
+
     service { 'mysql':
       name     => $service_name,
       ensure   => $enabled ? { true => 'running', default => 'stopped' },
@@ -116,7 +126,7 @@ class mysql::server (
       content => template('mysql/repl_create.sql.erb'),
       owner => 'root',
       group => 'root',
-      mode => 0644,
+      mode  => '0644',
     }
   
     ### Start hacks
