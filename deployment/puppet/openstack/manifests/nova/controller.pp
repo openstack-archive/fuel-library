@@ -45,6 +45,7 @@ class openstack::nova::controller (
   $multi_host                = false,
   $network_config            = {},
   $network_manager           = 'nova.network.manager.FlatDHCPManager',
+  $nova_quota_driver         = 'nova.quota.NoopQuotaDriver',
   # Quantum
   $quantum                   = false,
   $quantum_config            = {},
@@ -307,6 +308,7 @@ class openstack::nova::controller (
     enabled_apis      => $_enabled_apis,
     ensure_package    => $ensure_package,
     nova_rate_limits  => $nova_rate_limits,
+    nova_quota_driver => $nova_quota_driver,
     cinder            => $cinder
   }
 
