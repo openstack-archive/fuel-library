@@ -53,6 +53,12 @@ class neutron::agents::ovs (
   if $neutron_config['L2']['enable_tunneling'] {
     neutron::agents::utils::bridges { $neutron_config['L2']['tunnel_bridge']: }
     neutron_plugin_ovs { 'OVS/local_ip':  value => $neutron_config['L2']['local_ip'] }
+    if $neutron_config['L2']['segmentation_type'] == 'vxlan' {
+      neutron_plugin_ovs {
+        'AGENT/tunnel_types':    value => 'vxlan' ;
+        'AGENT/vxlan_udp_port':  value => '8472' ;
+      }
+    }
   } else {
     neutron::agents::utils::bridges { $neutron_config['L2']['phys_bridges']: }
   }

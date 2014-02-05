@@ -102,8 +102,8 @@ class MrntNeutronNR
         network_config[:subnet][:enable_dhcp] = "False"
       end
       network_config[:net][:physnet] = ncfg[:L2][:physnet]
-      if network_config[:net][:network_type].downcase == 'gre'
-        # Get first free segment_id for GRE
+      if ['gre','vxlan'].index(network_config[:net][:network_type].downcase)
+        # Get first free segment_id for GRE or VXLAN
         network_config[:net][:segment_id] = ncfg[:L2][:segment_id]  ?  ncfg[:L2][:segment_id]  :  segment_id
         segment_id += 1
         network_config[:net][:physnet] = nil # do not pass this parameter in this segmentation type

@@ -184,7 +184,7 @@ class MrntNeutron
         :tenant => 'admin',
         :L2 => {
           :router_ext   => false,
-          :network_type => 'gre', # or vlan
+          :network_type => 'gre', # gre/vxlan or vlan
           :physnet      => 'physnet2',
           :segment_id   => nil,
         },
