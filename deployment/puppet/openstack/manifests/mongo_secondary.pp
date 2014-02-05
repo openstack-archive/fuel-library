@@ -14,6 +14,7 @@ class openstack::mongo_secondary (
     port    => 27017,
     verbose => true,
     bind_ip => ['0.0.0.0'],
+    replset => 'ceilometer',
     auth => true,
   }
 }

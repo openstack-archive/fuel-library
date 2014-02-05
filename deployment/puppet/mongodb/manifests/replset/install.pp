@@ -29,7 +29,7 @@ class mongodb::replset::install (
   } ->
 
   exec {"do_pause_1":
-    command => "sleep 5",
+    command => "/bin/sleep 5",
     logoutput => true,
   } ->
 
@@ -39,7 +39,7 @@ class mongodb::replset::install (
   } ->
 
   exec {"do_pause_2":
-    command => "sleep 5",
+    command => "/bin/sleep 5",
     logoutput => true,
   } ->
   add_replset_members{ $replset_members:; }

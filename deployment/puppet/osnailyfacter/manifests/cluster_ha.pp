@@ -561,7 +561,7 @@ class osnailyfacter::cluster_ha {
         ceilometer_database         => "ceilometer",
         ceilometer_metering_secret  => $ceilometer_hash[metering_secret],
         ceilometer_db_password      => $ceilometer_hash[db_password],
-        ceilometer_replset_members   = [ $mongo_node[1]['internal_address'],$mongo_node[2]['internal_address'] ],
+        ceilometer_replset_members  => [ $mongo_node[0]['internal_address'], $mongo_node[1]['internal_address'] ],
       }
     } # MONGO PRIMARYENDS
 
