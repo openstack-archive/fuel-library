@@ -4,3 +4,6 @@ ONBOOT=yes
 USERCTL=no
 MASTER=<%= @bond_master %>
 SLAVE=yes
+<% if @macaddr -%>
+MACADDR=<%= @macaddr.upcase %>
+<% end -%>

@@ -16,6 +16,9 @@
 # [*netmask*]
 #   Specify network mask. Default is '255.255.255.0'.
 #
+# [*macaddr*]
+#   Specify macaddr if need change.
+#
 # [*vlandev*]
 #   If you configure 802.1q vlan interface with name like 'vlanXXX'
 #   you must specify a parent interface in this option
@@ -85,6 +88,7 @@ define l23network::l3::ifconfig (
     $bond_miimon     = 100,
     $bond_lacp_rate  = 1,
     $mtu             = undef,
+    $macaddr         = undef,
     $dns_nameservers = undef,
     $dns_search      = undef,
     $dns_domain      = undef,
@@ -106,6 +110,10 @@ define l23network::l3::ifconfig (
     'balance-tlb',
     'balance-alb'
   ]
+
+  if $macaddr and $macaddr !~ /^([0-9a-fA-F]{2}\:){5}[0-9a-fA-F]{2}$/ {
+    fail("Invalid MAC address: '#{macaddr}'")
+  }
 
   # setup configure method for inteface
   if $bond_master {
@@ -296,8 +304,4 @@ define l23network::l3::ifconfig (
     refreshonly   => true,
   }
 
-  # Ensure default route will be put in the right order
-  # if defined(L23network::L3::Defaultroute[$def_gateway]) {
-  #   L3_if_downup <||> -> Defaultroute[$def_gateway]
-  # }
 }
