@@ -332,6 +332,12 @@ class openstack::controller (
     $enabled_apis = 'ec2,osapi_compute,osapi_volume'
   }
 
+  if $::fuel_settings['nova_quota'] {
+    $nova_quota_driver = "nova.quota.DbQuotaDriver"
+  } else {
+    $nova_quota_driver = "nova.quota.NoopQuotaDriver"
+  }
+
   class { 'openstack::nova::controller':
     # Database
     db_host                 => $db_host,
@@ -365,6 +371,7 @@ class openstack::controller (
     nova_db_password        => $nova_db_password,
     nova_db_user            => $nova_db_user,
     nova_db_dbname          => $nova_db_dbname,
+    nova_quota_driver       => $nova_quota_driver,
     # AMQP
     queue_provider          => $queue_provider,
     # Rabbit
