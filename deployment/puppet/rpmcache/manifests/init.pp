@@ -105,7 +105,7 @@ $sat_base_channels, $sat_openstack_channel, $numtries = 10)  {
     arch => "x86_64",
     breed => "redhat",
     osversion => "rhel6",
-    ksmeta => "tree=http://@@server@@:8080/rhel/6.4/nailgun/x86_64/",
+    ksmeta => "tree=http://@@server@@:8080/rhel/6.5/nailgun/x86_64/",
   } ->
 
   cobbler_profile { "rhel-x86_64":
