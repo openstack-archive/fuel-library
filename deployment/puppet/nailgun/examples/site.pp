@@ -92,4 +92,3 @@ node default {
   Class['postgresql::server'] -> Class['nailgun']
 
 }
-

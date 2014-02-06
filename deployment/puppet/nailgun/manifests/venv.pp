@@ -53,11 +53,18 @@ class nailgun::venv(
     venv => $venv,
   }
 
-  nailgun::venv::pip { "$venv_$package":
+  nailgun::venv::pip { "${venv}_${package}":
     package => "$package==$version",
   }
 
-  nailgun::venv::pip { "psycopg2":
+  nailgun::venv::pip { "${venv}_pbr":
+    package => "pbr==0.5.21",
+    require => [
+      Nailgun::Venv::Venv[$venv],
+    ],
+  }
+
+  nailgun::venv::pip { "${venv}_psycopg2":
     package => "psycopg2==2.4.6",
     require => [
       Package["postgresql-devel"],
@@ -89,15 +96,15 @@ class nailgun::venv(
   file { "/usr/local/bin/fuel":
     ensure  => link,
     target  => "/opt/nailgun/bin/fuel",
-    require => Nailgun::Venv::Pip["$venv_$package"],
+    require => Nailgun::Venv::Pip["${venv}_${package}"],
   }
 
   exec {"nailgun_syncdb":
     command => "${venv}/bin/nailgun_syncdb",
     require => [
                 File["/etc/nailgun/settings.yaml"],
-                Nailgun::Venv::Pip["$venv_$package"],
-                Nailgun::Venv::Pip["psycopg2"],
+                Nailgun::Venv::Pip["${venv}_${package}"],
+                Nailgun::Venv::Pip["${venv}_psycopg2"],
                 Class["nailgun::database"],
                 ],
   }
@@ -114,4 +121,4 @@ class nailgun::venv(
     mode => 0644
   }
 
-  }
+}
