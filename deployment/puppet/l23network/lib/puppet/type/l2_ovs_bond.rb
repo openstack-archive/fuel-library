@@ -38,6 +38,9 @@ Puppet::Type.newtype(:l2_ovs_bond) do
     newparam(:properties) do
       defaultto([])
       desc "Array of bond properties"
+      munge do |val|
+        Array(val)
+      end
     end
 
     newparam(:bridge) do
