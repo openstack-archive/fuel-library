@@ -91,7 +91,9 @@ Puppet::Type.type(:l3_if_downup).provide(:ruby) do
     #Check the current state of the interface first
     if get_interface_carrier != 1
       notice("Carrier is DOWN, '#{@resource[:interface]}' skipping carrier test")
-      @resource[:wait_carrier_after_ifup] = false
+      poll_for_carrier = false
+    else
+      poll_for_carrier = true
     end
 
     begin # downing inteface
@@ -142,7 +144,7 @@ Puppet::Type.type(:l3_if_downup).provide(:ruby) do
       end
       notice("Interface '#{@resource[:interface]}' up.")
       # checking and waiting carrier for PHYS. interface
-      if (@resource[:interface] =~ /^eth\d+$/) and @resource[:wait_carrier_after_ifup]
+      if (@resource[:interface] =~ /^eth\d+$/) and @resource[:wait_carrier_after_ifup] and poll_for_carrier
         begin
           Timeout::timeout(@resource[:wait_carrier_after_ifup_timeout]) do
             _w = 10
