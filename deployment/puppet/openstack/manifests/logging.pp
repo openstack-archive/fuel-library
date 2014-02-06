@@ -10,7 +10,7 @@
 # [limitsize] logrotate option for log files would be rotated, if exceeded.
 # [rservers] array of hashes which represents remote logging servers for client role.
 # [port] port to use by server role for remote logging.
-# [proto] tcp/udp proto for remote log server role.
+# [proto] tcp/udp/both proto(s) for remote log server role.
 # [show_timezone] if enabled, high_precision_timestamps (date-rfc3339) with GMT would be used
 #   for logging. Default is false (date-rfc3164), examples:
 #     date-rfc3339: 2010-12-05T02:21:41.889482+01:00,
@@ -42,7 +42,7 @@ class openstack::logging (
     $debug          = false,
 ) {
 
-validate_re($proto, 'tcp|udp')
+validate_re($proto, 'tcp|udp|both')
 validate_re($role, 'client|server')
 validate_re($rotation, 'daily|weekly|monthly|yearly')
 
@@ -64,19 +64,28 @@ if $role == 'client' {
   }
 
 } else { # server
+
+if $proto == 'both' {
+  firewall { "$port udp rsyslog":
+    port    => $port,
+    proto   => 'udp',
+    action  => 'accept',
+  }
+  firewall { "$port tcp rsyslog":
+    port    => $port,
+    proto   => 'tcp',
+    action  => 'accept',
+  }
+} else {
   firewall { "$port $proto rsyslog":
     port    => $port,
     proto   => $proto,
     action  => 'accept',
-  } # ->
-# FIXME unless firewall module rule parser's idempotency would have been fixed,
-# do not add firewall to dependency chains cuz it would broke it on reapply.
-# If we want to change logging settings at server node, we would have to reappy
-# this class with new settings provided, ignoring firewall module's broken
-# idempotency as well...
+  }
+}
   class {"::rsyslog::server":
-    enable_tcp => $proto ? { 'tcp' => true, default => false },
-    enable_udp => $proto ? { 'udp' => true, default => true },
+    enable_tcp => $proto ? { 'tcp' => true, 'both' => true, default => false },
+    enable_udp => $proto ? { 'udp' => true, 'both' => true, default => true },
     server_dir => '/var/log/',
     port       => $port,
     high_precision_timestamps => $show_timezone,
