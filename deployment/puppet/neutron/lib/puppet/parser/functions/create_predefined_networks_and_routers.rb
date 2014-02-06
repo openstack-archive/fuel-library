@@ -83,6 +83,7 @@ class MrntNeutronNR
       # config network resources parameters
       network_config = get_default_network_config()
       network_config[:net][:name] = net.to_s
+      network_config[:net][:tenant] = ncfg[:tenant]
       network_config[:net][:network_type] = ncfg[:L2][:network_type]
       network_config[:net][:router_ext] = ncfg[:L2][:router_ext]
       network_config[:net][:shared] = ncfg[:shared]
