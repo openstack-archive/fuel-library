@@ -13,8 +13,6 @@ function revert_back_to_centos() {
     sed -i 's/^enabled.*/enabled=0/' "/etc/yum/pluginconf.d/${plugin}.conf" 2>/dev/null || :
   done
   rm -f /etc/yum/vars/releasever
-  #Remove libqb hack
-  sed -i '/^exclude=libqb-0.16/d' /etc/yum.conf
   yum-config-manager --enable 'nailgun' &> /dev/null
   echo "Unsubscribing from RHSM..."
   subscription-manager unregister || :
@@ -148,8 +146,6 @@ yum-config-manager --disable 'centos' --disable 'extras' --disable 'updates' &> 
 yum-config-manager --disable 'base' &> /dev/null
 echo "Building initial cache. This may take several minutes."
 yum --releasever=<%= releasever %> makecache
-#Hack to exclude libqb-0.16.x because it breaks Pacemaker
-echo 'exclude=libqb-0.16*' >> /etc/yum.conf
 
 for tries in $(seq 1 <%= numtries %>); do
   #Retry if repotrack fails
@@ -188,12 +184,15 @@ yum-config-manager --disable '*rhel*' &> /dev/null || :
 #Purge Django 1.3 RPM
 rm -f <%= pkgdir %>/Packages/Django-1.3*
 
-rpm -i <%= pkgdir %>/Packages/rhel-boot-image-6.4-20130130.0.el6ost.noarch.rpm
+if rpm -q rhel-boot-image; then
+  rpm -e rhel-boot-image
+fi
+rpm -i <%= pkgdir %>/Packages/rhel-boot-image-6.5-20131111.0.el6ost.noarch.rpm
 mkdir -p /mnt/rhel_iso
-mount -o loop /usr/share/rhel-boot-image/rhel-boot-image-6.4-20130130.0.el6ost.iso /mnt/rhel_iso
+mount -o loop /usr/share/rhel-boot-image/rhel-boot-image-6.5-20131111.0.el6ost.iso /mnt/rhel_iso
 cp -R /mnt/rhel_iso/. <%= pkgdir %>
 umount /mnt/rhel_iso
-rpm -e rhel-boot-image-6.4-20130130.0.el6ost.noarch
+rpm -e rhel-boot-image
 
 exit 0
 
