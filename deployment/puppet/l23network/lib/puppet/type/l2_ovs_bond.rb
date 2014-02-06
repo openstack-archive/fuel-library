@@ -19,7 +19,7 @@ Puppet::Type.newtype(:l2_ovs_bond) do
       desc "List of interfaces that will be added to the bond"
       #
       validate do |val|
-        if not (val.is_a?(Array) and rv[:interfaces].size() >= 2)
+        if not (val.is_a?(Array) and val.size() >= 2)
           fail("Interfaces parameter must be an array of two or more interface names.")
         end
         for ii in val
