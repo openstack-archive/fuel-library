@@ -115,6 +115,10 @@ define l23network::l3::ifconfig (
     fail("Invalid MAC address: '#{macaddr}'")
   }
 
+  if $mtu and is_integer($mtu) {
+    fail("Invalid MTU: '#{mtu}'")
+  }
+
   # setup configure method for inteface
   if $bond_master {
     $method = 'bondslave'
