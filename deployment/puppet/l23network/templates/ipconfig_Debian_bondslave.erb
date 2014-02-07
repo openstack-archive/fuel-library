@@ -4,3 +4,6 @@ bond-master <%= @bond_master %>
 <% if @macaddr -%>
 hwaddress ether <%= @macaddr.downcase %>
 <% end -%>
+<% if @mtu -%>
+mtu <%= @mtu %>
+<% end -%>
