@@ -2,14 +2,23 @@ class nailgun::supervisor(
   $venv,
   ) {
 
-  file { "/etc/rc.d/init.d/supervisord":
-    source => 'puppet:///modules/nailgun/supervisord',
+  file { "/etc/sysconfig/supervisord":
+    source => 'puppet:///modules/nailgun/supervisor-sysconfig',
     owner => 'root',
     group => 'root',
-    mode => 0755,
-    require => Package["supervisor"],
+    mode => '0644',
+  }
+
+  file { "/etc/rc.d/init.d/supervisord":
+    source => 'puppet:///modules/nailgun/supervisor-init',
+    owner => 'root',
+    group => 'root',
+    mode => '0755',
+    require => [Package["supervisor"],
+                File["/etc/sysconfig/supervisord"]],
     notify => Service["supervisord"],
   }
+
 
   file { "/etc/supervisord.conf":
     content => template("nailgun/supervisord.conf.erb"),
