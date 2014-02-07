@@ -146,6 +146,11 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
       int_name = int_name.to_sym()
       endpoints[int_name] = create_endpoint()
       born_ports.insert(-1, int_name)
+      # add some of 1st level interface properties to it's config
+      int_properties.each do |k,v|
+        next if ! ['macaddr', 'mtu'].index(k.to_s)
+        endpoints[int_name][:properties][k.to_sym] = v
+      end
     end
     config_hash[:endpoints].each do |e_name, e_properties|
       e_name = e_name.to_sym()
