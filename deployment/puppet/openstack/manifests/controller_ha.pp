@@ -308,7 +308,7 @@ class openstack::controller_ha (
       rabbit_password         => $rabbit_password,
       rabbit_user             => $rabbit_user,
       rabbit_cluster          => true,
-      rabbit_nodes            => $controller_hostnames,
+      rabbit_nodes            => $rabbit_nodes,
       rabbit_port             => '5673',
       rabbit_node_ip_address  => $rabbit_node_ip_address,
       rabbit_ha_virtual_ip    => $internal_virtual_ip,
