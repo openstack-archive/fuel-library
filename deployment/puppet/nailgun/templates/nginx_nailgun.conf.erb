@@ -24,11 +24,11 @@ server {
 
     location /static {
         autoindex on;
-        alias <%= staticdir %>;
+        alias <%= @staticdir %>;
     }
 
     location /dump {
-        alias <%= logdumpdir %>;
+        alias <%= @logdumpdir %>;
     }
 
     location ~ ^/ostf/(.*) {

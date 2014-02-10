@@ -98,7 +98,7 @@ class swift::proxy(
   $required_classes = split(
     inline_template(
       "<%=
-          (pipeline - ['proxy-server']).collect do |x|
+          (@pipeline - ['proxy-server']).collect do |x|
             'swift::proxy::' + x
           end.join(',')
       %>"), ',')

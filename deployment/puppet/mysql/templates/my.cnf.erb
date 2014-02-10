@@ -1,24 +1,24 @@
 [client]
-port    = <%= port %>
-socket    = <%= socket %>
+port    = <%= @port %>
+socket    = <%= @socket %>
 [mysqld_safe]
-socket    = <%= socket %>
+socket    = <%= @socket %>
 nice    = 0
-<% if use_syslog -%>
+<% if @use_syslog -%>
 syslog
 <% end -%>
 [mysqld]
 innodb_file_per_table=1
 innodb_file_format=Barracuda
 user    = mysql
-#pid-file  = <%= pidfile %>
-socket    = <%= socket %>
-port      = <%= port %>
-basedir   = <%= basedir %>
-datadir   = <%= datadir %>
+#pid-file  = <%= @pidfile %>
+socket    = <%= @socket %>
+port      = <%= @port %>
+basedir   = <%= @basedir %>
+datadir   = <%= @datadir %>
 tmpdir    = /tmp
 skip-external-locking
-bind-address    = <%= bind_address %>
+bind-address    = <%= @bind_address %>
 key_buffer         = 16M
 max_allowed_packet = 16M
 thread_stack       = 192K
@@ -26,23 +26,23 @@ thread_cache_size  = 8
 myisam-recover     = BACKUP
 query_cache_limit  = 1M
 query_cache_size   = 16M
-<% if use_syslog -%>
+<% if @use_syslog -%>
 #log_error          = syslog:local1
 <% else -%>
-log_error          = <%= log_error %>
+log_error          = <%= @log_error %>
 <% end -%>
 expire_logs_days   = 10
 max_binlog_size    = 100M
 max_connections    = 512
-<% if default_engine != 'UNSET' %>
-default-storage-engine = <%= default_engine %>
+<% if @default_engine != 'UNSET' %>
+default-storage-engine = <%= @default_engine %>
 <% end %>
 <% if ssl == true %>
-ssl-ca    = <%= ssl_ca %>
+ssl-ca    = <%= @ssl_ca %>
 ssl-cert  = <%= ssl_cert %>
 ssl-key   = <%= ssl_key %>
 <% end %>
-<% if custom_setup_class == 'pacemaker_mysql' %>
+<% if @custom_setup_class == 'pacemaker_mysql' %>
 server-id=<%= server_id %>
 log-bin=mysql-bin
 relay-log=mysqld-relay-bin

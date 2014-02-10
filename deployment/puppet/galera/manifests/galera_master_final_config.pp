@@ -31,7 +31,7 @@
 class galera::galera_master_final_config ($primary_controller, $node_addresses, $node_address) {
 
   if $primary_controller {
-    $galera_gcomm_string = inline_template("<%= @node_addresses.reject{|ip| ip == hostname || ip == @node_address || ip == l3_fqdn_hostname }.collect {|ip| ip + ':' + 4567.to_s }.join ',' %>"
+    $galera_gcomm_string = inline_template("<%= @node_addresses.reject{|ip| ip == @hostname || ip == @node_address || ip == @l3_fqdn_hostname }.collect {|ip| ip + ':' + 4567.to_s }.join ',' %>"
     )
     $check_galera = "show status like 'wsrep_cluster_size';"
     $mysql_user = $::galera::params::mysql_user
