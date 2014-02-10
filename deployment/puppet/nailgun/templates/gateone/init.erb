@@ -18,10 +18,10 @@
 
 RETVAL=0
 
-GATEONE_DIR=<%= venv %>/gateone
+GATEONE_DIR=<%= @venv %>/gateone
 GATEONE_PID=/var/run/gateone.pid
 GATEONE_OPTS="--pid_file=${GATEONE_PID}"
-PYTHON=<%= venv %>/bin/python
+PYTHON=<%= @venv %>/bin/python
 
 # Check that networking is up.
 [ "$NETWORKING" = "no" ] && exit 0
