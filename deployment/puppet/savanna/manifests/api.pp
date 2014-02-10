@@ -16,6 +16,7 @@ class savanna::api (
   $sql_connection       = 'mysql://savanna:savanna@localhost/savanna',
   $use_neutron          = false,
   $use_floating_ips     = true,
+  $use_heat             = false,
 ) inherits savanna::params {
 
   validate_string($keystone_password)
@@ -35,6 +36,12 @@ class savanna::api (
     $use_neutron_value = true
   } else {
     $use_neutron_value = false
+  }
+
+  if $use_heat {
+    $use_heat_value = true
+  } else {
+    $use_heat_value = false
   }
 
   if $use_floating_ips {
@@ -59,6 +66,7 @@ class savanna::api (
     'DEFAULT/os_auth_port'                 : value => $keystone_port;
     'DEFAULT/use_floating_ips'             : value => $use_floating_ips_value;
     'DEFAULT/use_neutron'                  : value => $use_neutron_value;
+    'DEFAULT/use_heat'                     : value => $use_heat_value;
     'DEFAULT/node_domain'                  : value => $node_domain;
     'DEFAULT/plugins'                      : value => $plugins;
     'plugin:vanilla/plugin_class'          : value => $vanilla_plugin_class;
