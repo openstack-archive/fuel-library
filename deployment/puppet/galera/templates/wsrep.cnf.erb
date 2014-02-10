@@ -31,7 +31,7 @@ query_cache_type=0
 # Override bind-address
 # In some systems bind-address defaults to 127.0.0.1, and with mysqldump SST
 # it will have (most likely) disastrous consequences on donor node
-bind-address=<%= node_address %>
+bind-address=<%= @node_address %>
 port=3307
 
 max_connections=2048
@@ -40,18 +40,18 @@ max_connections=2048
 ## WSREP options
 ##
 # Full path to wsrep provider library or 'none'
-wsrep_provider=<%= libgalera_prefix %>/galera/libgalera_smm.so
+wsrep_provider=<%= @libgalera_prefix %>/galera/libgalera_smm.so
 
 # Provider specific configuration options
 # See http://www.codership.com/wiki/doku.php?id=faq
 
-wsrep_provider_options="pc.ignore_sb = no;ist.recv_addr=<%= node_address %>;gmcast.listen_addr=tcp://<%= node_address %>:4567;gcache.size=1G"
+wsrep_provider_options="pc.ignore_sb = no;ist.recv_addr=<%= @node_address %>;gmcast.listen_addr=tcp://<%= @node_address %>:4567;gcache.size=1G"
 
 # Logical cluster name. Should be the same for all nodes.
-wsrep_cluster_name="<%= cluster_name -%>"
+wsrep_cluster_name="<%= @cluster_name -%>"
 
-<% if setup_multiple_gcomm -%>
-wsrep_cluster_address="gcomm://<%= @node_addresses.reject{|ip| ip == hostname || ip == node_address || ip == l3_fqdn_hostname }.collect {|ip| ip + ':' + 4567.to_s }.join ',' %>?pc.wait_prim=no"
+<% if @setup_multiple_gcomm -%>
+wsrep_cluster_address="gcomm://<%= @node_addresses.reject{|ip| ip == @hostname || ip == @node_address || ip == @l3_fqdn_hostname }.collect {|ip| ip + ':' + 4567.to_s }.join ',' %>?pc.wait_prim=no"
 <% else -%>
 wsrep_cluster_address="gcomm://<%= @node_addresses.first %>:4567?pc.wait_prim=no"
 <% end -%>
@@ -62,7 +62,7 @@ wsrep_cluster_address="gcomm://<%= @node_addresses.first %>:4567?pc.wait_prim=no
 # Base replication <address|hostname>[:port] of the node.
 # The values supplied will be used as defaults for state transfer receiving,
 # listening ports and so on. Default: address of the first network interface.
-wsrep_node_address=<%= node_address %>
+wsrep_node_address=<%= @node_address %>
 
 # Address for incoming client connections. Autodetect by default.
 #wsrep_node_incoming_address=
@@ -119,22 +119,22 @@ wsrep_sst_method=mysqldump
 
 # Address on THIS node to receive SST at. DON'T SET IT TO DONOR ADDRESS!!!
 # (SST method dependent. Defaults to the first IP of the first interface)
-wsrep_sst_receive_address=<%= node_address %>:3307
+wsrep_sst_receive_address=<%= @node_address %>:3307
 
 # SST authentication string. This will be used to send SST to joining nodes.
 # Depends on SST method. For mysqldump method it is root:<root password>
-wsrep_sst_auth=<%= mysql_user %>:<%= mysql_password %> 
+wsrep_sst_auth=<%= @mysql_user %>:<%= @mysql_password %> 
 
 # Desired SST donor name.
 #wsrep_sst_donor=
 
 # Protocol version to use
 # wsrep_protocol_version=
-<% if skip_name_resolve -%>
+<% if @skip_name_resolve -%>
 skip-name-resolve
 <% end -%>
-<% if mysql_buffer_pool_size %>
-innodb_buffer_pool_size=<%= mysql_buffer_pool_size %>
+<% if @mysql_buffer_pool_size %>
+innodb_buffer_pool_size=<%= @mysql_buffer_pool_size %>
 <% end %>
 innodb_thread_concurrency=0
 innodb_write_io_threads=8

@@ -22,7 +22,7 @@
             "locale": "en_US",
             "log_file_max_size": 100000000,
             "log_file_num_backups": 10,
-            "log_file_prefix": "<%= venv %>/logs/webserver.log",
+            "log_file_prefix": "<%= @venv %>/logs/webserver.log",
             "log_to_stderr": null,
             "logging": "info",
             "origins": ["*"],
@@ -35,7 +35,7 @@
             "uid": "nobody",
             "unix_socket_path": "/tmp/gateone.sock",
             "url_prefix": "/",
-            "user_dir": "<%= venv %>/users",
+            "user_dir": "<%= @venv %>/users",
             "user_logs_max_age": "30d"
         }
     }
