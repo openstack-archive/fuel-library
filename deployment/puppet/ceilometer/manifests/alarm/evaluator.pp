@@ -22,13 +22,13 @@ class ceilometer::alarm::evaluator (
 
   Ceilometer_config<||> ~> Service['ceilometer-alarm-evaluator']
   Package['ceilometer-common'] -> Service['ceilometer-alarm-evaluator']
-  Package['ceilometer-alarm'] -> Service['ceilometer-alarm-evaluator']
+  Package[$::ceilometer::params::alarm_package] -> Service['ceilometer-alarm-evaluator']
 
-  if ! defined(Package['ceilometer-alarm']) {
-    package { 'ceilometer-alarm':
-      ensure => installed,
-      name   => $::ceilometer::params::alarm_package,
+  if ! defined(Notify['ceilometer-alarm']) {
+    package { $::ceilometer::params::alarm_package:
+      ensure => installed
     }
+    notify { 'ceilometer-alarm': }
   }
 
   tweaks::ubuntu_service_override { 'ceilometer-alarm-evaluator' :

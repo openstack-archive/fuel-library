@@ -3,7 +3,7 @@ import os
 from django.utils.translation import ugettext_lazy as _
 from openstack_dashboard import exceptions
 
-DEBUG =<% if django_debug %>True<% else %>False<% end %>
+DEBUG =<% if @django_debug %>True<% else %>False<% end %>
 TEMPLATE_DEBUG = DEBUG
 PROD = True
 #USE_SSL = False
@@ -104,12 +104,12 @@ LOCAL_PATH = '/tmp'
 # for all of them.
 #from horizon.utils import secret_key
 #SECRET_KEY = secret_key.generate_or_read_from_file(os.path.join(LOCAL_PATH, '.secret_key_store'))
-SECRET_KEY = '<%= secret_key %>'
+SECRET_KEY = '<%= @secret_key %>'
 
 CACHES = {
     'default': {
         'BACKEND' : 'django.core.cache.backends.memcached.MemcachedCache',
-        'LOCATION' : "<%= cache_server_ip.collect {|ip| ip + ':' + cache_server_port }.join ';' %>"
+        'LOCATION' : "<%= @cache_server_ip.collect {|ip| ip + ':' + @cache_server_port }.join ';' %>"
     },
     #'local': {
     #    'BACKEND' : 'django.core.cache.backends.locmem.LocMemCache'
@@ -137,9 +137,9 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 #OPENSTACK_KEYSTONE_URL = "http://%s:5000/v2.0" % OPENSTACK_HOST
 #OPENSTACK_KEYSTONE_DEFAULT_ROLE = "Member"
 
-OPENSTACK_HOST = "<%= keystone_host %>"
-OPENSTACK_KEYSTONE_URL = "<%= keystone_scheme %>://%s:<%= keystone_port %>/v2.0" % OPENSTACK_HOST
-OPENSTACK_KEYSTONE_DEFAULT_ROLE = "<%= keystone_default_role %>"
+OPENSTACK_HOST = "<%= @keystone_host %>"
+OPENSTACK_KEYSTONE_URL = "<%= @keystone_scheme %>://%s:<%= @keystone_port %>/v2.0" % OPENSTACK_HOST
+OPENSTACK_KEYSTONE_DEFAULT_ROLE = "<%= @keystone_default_role %>"
 
 # Disable SSL certificate checks (useful for self-signed certificates):
 # OPENSTACK_SSL_NO_VERIFY = True
@@ -211,7 +211,7 @@ OPENSTACK_NEUTRON_NETWORK = {
 # value should differ from OPENSTACK_ENDPOINT_TYPE if used.
 #SECONDARY_ENDPOINT_TYPE = "publicURL"
 
-<% if swift -%>
+<% if @swift -%>
 # Include the SWIFT interface extension in Horizon
 SWIFT_ENABLED = True
 SWIFT_PAGINATE_LIMIT = 100
@@ -219,7 +219,7 @@ SWIFT_PAGINATE_LIMIT = 100
 
 # The number of Swift containers and objects to display on a single page before
 # providing a paging element (a "more" link) to paginate results.
-API_RESULT_LIMIT = <%= api_result_limit %>
+API_RESULT_LIMIT = <%= @api_result_limit %>
 API_RESULT_PAGE_SIZE = 20
 
 # The timezone of the server. This should correspond with the timezone
@@ -258,7 +258,7 @@ TIME_ZONE = "UTC"
 
 
 # If you have external monitoring links, eg:
-EXTERNAL_MONITORING = <% if horizon_app_links %><%= horizon_app_links %><% else %>[ ]<% end %>
+EXTERNAL_MONITORING = <% if @horizon_app_links %><%= @horizon_app_links %><% else %>[ ]<% end %>
 
 LOGGING = {
         'version': 1,
@@ -283,18 +283,18 @@ LOGGING = {
                 },
             'console': {
                 # Set the level to "DEBUG" for verbose output logging.
-                'level': '<%= log_level %>',
+                'level': '<%= @log_level %>',
                 'class': 'logging.StreamHandler',
                 'formatter': 'debug'
                 },
             'file': {
-                'level': '<%= log_level %>',
+                'level': '<%= @log_level %>',
                 'class': 'logging.FileHandler',
                 'filename': '<%= scope.lookupvar("horizon::params::logdir") %>/horizon.log',
                 'formatter': 'normal'
                 },
             'syslog': {
-                'level': '<%= log_level %>',
+                'level': '<%= @log_level %>',
                 'facility': 'local1',
                 'class': 'logging.handlers.SysLogHandler',
                 'address': '/dev/log',
@@ -305,49 +305,49 @@ LOGGING = {
             # The logger name '' indicates the root of all loggers in Django, so
             # logs from any application in this project will go here.
             '': {
-                'handlers':<% if use_syslog -%> ['syslog']<% else -%> ['file']<% end -%>,
+                'handlers':<% if @use_syslog -%> ['syslog']<% else -%> ['file']<% end -%>,
                 'level': 'NOTSET',
                 'propagate': True
                 },
             # Logging from django.db.backends is VERY verbose, send to null
             # by default.
             'django.db.backends': {
-                'handlers':<% if django_debug and use_syslog -%> ['syslog']<% else -%> ['null']<% end -%>,
+                'handlers':<% if @django_debug and @use_syslog -%> ['syslog']<% else -%> ['null']<% end -%>,
                 'level': 'DEBUG',
                 'propagate': False
                 },
             'horizon': {
-                'handlers':<% if use_syslog -%> ['syslog']<% else -%> ['file']<% end -%>,
+                'handlers':<% if @use_syslog -%> ['syslog']<% else -%> ['file']<% end -%>,
                 'level': 'DEBUG',
                 'propagate': False
             },
             'openstack_dashboard': {
-                'handlers':<% if use_syslog -%> ['syslog']<% else -%> ['file']<% end -%>,
+                'handlers':<% if @use_syslog -%> ['syslog']<% else -%> ['file']<% end -%>,
                 'level': 'DEBUG',
                 'propagate': False
             },
             'novaclient': {
-                'handlers':<% if use_syslog -%> ['syslog']<% else -%> ['file']<% end -%>,
+                'handlers':<% if @use_syslog -%> ['syslog']<% else -%> ['file']<% end -%>,
                 'level': 'DEBUG',
                 'propagate': False
             },
            'glanceclient': {
-                'handlers':<% if use_syslog -%> ['syslog']<% else -%> ['file']<% end -%>,
+                'handlers':<% if @use_syslog -%> ['syslog']<% else -%> ['file']<% end -%>,
                 'level': 'DEBUG',
                 'propagate': False
             },
             'keystoneclient': {
-                'handlers':<% if use_syslog -%> ['syslog']<% else -%> ['file']<% end -%>,
+                'handlers':<% if @use_syslog -%> ['syslog']<% else -%> ['file']<% end -%>,
                 'level': 'DEBUG',
                 'propagate': False
             },
             'neutronclient': {
-                'handlers':<% if use_syslog -%> ['syslog']<% else -%> ['file']<% end -%>,
+                'handlers':<% if @use_syslog -%> ['syslog']<% else -%> ['file']<% end -%>,
                 'level': 'DEBUG',
                 'propagate': False
             },
             'nose.plugins.manager': {
-                'handlers':<% if use_syslog -%> ['syslog']<% else -%> ['file']<% end -%>,
+                'handlers':<% if @use_syslog -%> ['syslog']<% else -%> ['file']<% end -%>,
                 'level': 'DEBUG',
                 'propagate': False
             }

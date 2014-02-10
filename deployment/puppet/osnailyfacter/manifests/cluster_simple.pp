@@ -96,12 +96,12 @@ class osnailyfacter::cluster_simple {
       $is_cinder_node = true
     } elsif (member($cinder_nodes_array,$::hostname)) {
       $is_cinder_node = true
-    } elsif (member($cinder_nodes_array,$internal_address)) {
+    } elsif (member($cinder_nodes_array,$::internal_address)) {
       $is_cinder_node = true
-    } elsif ($node[0]['role'] =~ /controller/ ) {
+    } elsif ($::node[0]['role'] =~ /controller/ ) {
       $is_cinder_node = member($cinder_nodes_array,'controller')
     } else {
-      $is_cinder_node = member($cinder_nodes_array,$node[0]['role'])
+      $is_cinder_node = member($cinder_nodes_array,$::node[0]['role'])
     }
   } else {
     $is_cinder_node = false
@@ -188,7 +188,7 @@ class osnailyfacter::cluster_simple {
         glance_image_cache_max_size => $glance_hash[image_cache_max_size],
         nova_db_password        => $nova_hash[db_password],
         nova_user_password      => $nova_hash[user_password],
-        nova_rate_limits        => $nova_rate_limits,
+        nova_rate_limits        => $::nova_rate_limits,
         ceilometer              => $ceilometer_hash[enabled],
         ceilometer_db_password  => $ceilometer_hash[db_password],
         ceilometer_user_password => $ceilometer_hash[user_password],
@@ -212,14 +212,14 @@ class osnailyfacter::cluster_simple {
         cinder_volume_group     => "cinder",
         manage_volumes          => $manage_volumes,
         use_syslog              => $use_syslog,
-        syslog_log_level        => $syslog_log_level,
-        syslog_log_facility_glance  => $syslog_log_facility_glance,
-        syslog_log_facility_cinder  => $syslog_log_facility_cinder,
-        syslog_log_facility_neutron => $syslog_log_facility_neutron,
-        syslog_log_facility_nova    => $syslog_log_facility_nova,
-        syslog_log_facility_keystone=> $syslog_log_facility_keystone,
-        cinder_rate_limits      => $cinder_rate_limits,
-        horizon_use_ssl         => $horizon_use_ssl,
+        syslog_log_level        => $::syslog_log_level,
+        syslog_log_facility_glance  => $::syslog_log_facility_glance,
+        syslog_log_facility_cinder  => $::syslog_log_facility_cinder,
+        syslog_log_facility_neutron => $::syslog_log_facility_neutron,
+        syslog_log_facility_nova    => $::syslog_log_facility_nova,
+        syslog_log_facility_keystone=> $::syslog_log_facility_keystone,
+        cinder_rate_limits      => $::cinder_rate_limits,
+        horizon_use_ssl         => $::horizon_use_ssl,
         nameservers             => $::dns_nameservers,
         primary_controller      => true,
       }
@@ -236,8 +236,8 @@ class osnailyfacter::cluster_simple {
           neutron_config          => $quantum_config,
           neutron_network_node    => true,
           use_syslog            => $use_syslog,
-          syslog_log_level      => $syslog_log_level,
-          syslog_log_facility   => $syslog_log_facility_neutron,
+          syslog_log_level      => $::syslog_log_level,
+          syslog_log_facility   => $::syslog_log_facility_neutron,
         }
       }
 
@@ -359,7 +359,7 @@ class osnailyfacter::cluster_simple {
       class { 'openstack::compute':
         public_interface       => $::public_int,
         private_interface      => $::use_quantum ? { true=>false, default=>$::fuel_settings['fixed_interface'] },
-        internal_address       => $internal_address,
+        internal_address       => $::internal_address,
         libvirt_type           => $::fuel_settings['libvirt_type'],
         fixed_range            => $::fuel_settings['fixed_network_range'],
         network_manager        => $network_manager,
@@ -394,13 +394,13 @@ class osnailyfacter::cluster_simple {
         debug                  => $debug,
         verbose                => $verbose,
         use_syslog             => $use_syslog,
-        syslog_log_level       => $syslog_log_level,
-        syslog_log_facility    => $syslog_log_facility_nova,
-        syslog_log_facility_neutron => $syslog_log_facility_neutron,
-        syslog_log_facility_cinder  => $syslog_log_facility_cinder,
+        syslog_log_level       => $::syslog_log_level,
+        syslog_log_facility    => $::syslog_log_facility_nova,
+        syslog_log_facility_neutron => $::syslog_log_facility_neutron,
+        syslog_log_facility_cinder  => $::syslog_log_facility_cinder,
         state_path             => $nova_hash[state_path],
-        nova_rate_limits       => $nova_rate_limits,
-        cinder_rate_limits     => $cinder_rate_limits
+        nova_rate_limits       => $::nova_rate_limits,
+        cinder_rate_limits     => $::cinder_rate_limits
       }
       nova_config { 'DEFAULT/start_guests_on_host_boot': value => $::fuel_settings['start_guests_on_host_boot'] }
       nova_config { 'DEFAULT/use_cow_images': value => $::fuel_settings['use_cow_images'] }
@@ -436,8 +436,8 @@ class osnailyfacter::cluster_simple {
         auth_host            => $controller_node_address,
         iscsi_bind_host      => $cinder_iscsi_bind_addr,
         cinder_user_password => $cinder_hash[user_password],
-        syslog_log_facility  => $syslog_log_facility_cinder,
-        syslog_log_level     => $syslog_log_level,
+        syslog_log_facility  => $::syslog_log_facility_cinder,
+        syslog_log_level     => $::syslog_log_level,
         debug                => $debug,
         verbose              => $verbose,
         use_syslog           => $use_syslog,

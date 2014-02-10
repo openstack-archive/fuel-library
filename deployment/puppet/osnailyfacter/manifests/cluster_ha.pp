@@ -111,7 +111,7 @@ class osnailyfacter::cluster_ha {
       $is_cinder_node = true
     } elsif (member($cinder_nodes_array,$::hostname)) {
       $is_cinder_node = true
-    } elsif (member($cinder_nodes_array,$internal_address)) {
+    } elsif (member($cinder_nodes_array,$::internal_address)) {
       $is_cinder_node = true
     } elsif ($node[0]['role'] =~ /controller/ ) {
       $is_cinder_node = member($cinder_nodes_array,'controller')
@@ -239,76 +239,76 @@ class osnailyfacter::cluster_ha {
     class {'osnailyfacter::apache_api_proxy':}
 
     class { 'openstack::controller_ha':
-      controllers                   => $controllers,
-      controller_public_addresses   => $controller_public_addresses,
-      controller_internal_addresses => $controller_internal_addresses,
-      internal_address              => $internal_address,
+      controllers                   => $::osnailyfacter::cluster_ha::controllers,
+      controller_public_addresses   => $::osnailyfacter::cluster_ha::controller_public_addresses,
+      controller_internal_addresses => $::osnailyfacter::cluster_ha::controller_internal_addresses,
+      internal_address              => $::internal_address,
       public_interface              => $::public_int,
       private_interface             => $::use_quantum ? { true=>false, default=>$::fuel_settings['fixed_interface']},
       internal_virtual_ip           => $::fuel_settings['management_vip'],
       public_virtual_ip             => $::fuel_settings['public_vip'],
-      primary_controller            => $primary_controller,
+      primary_controller            => $::osnailyfacter::cluster_ha::primary_controller,
       floating_range                => $::use_quantum ? { true=>$floating_hash, default=>false},
       fixed_range                   => $::use_quantum ? { true=>false, default=>$::fuel_settings['fixed_network_range']},
-      multi_host                    => $multi_host,
-      network_manager               => $network_manager,
-      num_networks                  => $num_networks,
-      network_size                  => $network_size,
-      network_config                => $network_config,
-      debug                         => $debug,
-      verbose                       => $verbose,
+      multi_host                    => $::osnailyfacter::cluster_ha::multi_host,
+      network_manager               => $::osnailyfacter::cluster_ha::network_manager,
+      num_networks                  => $::osnailyfacter::cluster_ha::num_networks,
+      network_size                  => $::osnailyfacter::cluster_ha::network_size,
+      network_config                => $::osnailyfacter::cluster_ha::network_config,
+      debug                         => $::osnailyfacter::cluster_ha::debug,
+      verbose                       => $::osnailyfacter::cluster_ha::verbose,
       auto_assign_floating_ip       => $::fuel_settings['auto_assign_floating_ip'],
-      mysql_root_password           => $mysql_hash[root_password],
-      admin_email                   => $access_hash[email],
-      admin_user                    => $access_hash[user],
-      admin_password                => $access_hash[password],
-      keystone_db_password          => $keystone_hash[db_password],
-      keystone_admin_token          => $keystone_hash[admin_token],
-      keystone_admin_tenant         => $access_hash[tenant],
-      glance_db_password            => $glance_hash[db_password],
-      glance_user_password          => $glance_hash[user_password],
-      glance_image_cache_max_size   => $glance_hash[image_cache_max_size],
-      nova_db_password              => $nova_hash[db_password],
-      nova_user_password            => $nova_hash[user_password],
+      mysql_root_password           => $::osnailyfacter::cluster_ha::mysql_hash[root_password],
+      admin_email                   => $::osnailyfacter::cluster_ha::access_hash[email],
+      admin_user                    => $::osnailyfacter::cluster_ha::access_hash[user],
+      admin_password                => $::osnailyfacter::cluster_ha::access_hash[password],
+      keystone_db_password          => $::osnailyfacter::cluster_ha::keystone_hash[db_password],
+      keystone_admin_token          => $::osnailyfacter::cluster_ha::keystone_hash[admin_token],
+      keystone_admin_tenant         => $::osnailyfacter::cluster_ha::access_hash[tenant],
+      glance_db_password            => $::osnailyfacter::cluster_ha::glance_hash[db_password],
+      glance_user_password          => $::osnailyfacter::cluster_ha::glance_hash[user_password],
+      glance_image_cache_max_size   => $::osnailyfacter::cluster_ha::glance_hash[image_cache_max_size],
+      nova_db_password              => $::osnailyfacter::cluster_ha::nova_hash[db_password],
+      nova_user_password            => $::osnailyfacter::cluster_ha::nova_hash[user_password],
       queue_provider                => $::queue_provider,
-      amqp_hosts                    => $amqp_hosts,
-      amqp_user                     => $rabbit_hash['user'],
-      amqp_password                 => $rabbit_hash['password'],
-      rabbit_ha_queues              => $rabbit_ha_queues,
-      rabbitmq_bind_ip_address      => $rabbitmq_bind_ip_address,
-      rabbitmq_bind_port            => $rabbitmq_bind_port,
-      rabbitmq_cluster_nodes        => $rabbitmq_cluster_nodes,
-      memcached_servers             => $controller_nodes,
+      amqp_hosts                    => $::osnailyfacter::cluster_ha::amqp_hosts,
+      amqp_user                     => $::osnailyfacter::cluster_ha::rabbit_hash['user'],
+      amqp_password                 => $::osnailyfacter::cluster_ha::rabbit_hash['password'],
+      rabbit_ha_queues              => $::osnailyfacter::cluster_ha::rabbit_ha_queues,
+      rabbitmq_bind_ip_address      => $::osnailyfacter::cluster_ha::rabbitmq_bind_ip_address,
+      rabbitmq_bind_port            => $::osnailyfacter::cluster_ha::rabbitmq_bind_port,
+      rabbitmq_cluster_nodes        => $::osnailyfacter::cluster_ha::rabbitmq_cluster_nodes,
+      memcached_servers             => $::osnailyfacter::cluster_ha::controller_nodes,
       export_resources              => false,
-      glance_backend                => $glance_backend,
-      swift_proxies                 => $swift_proxies,
-      rgw_servers                   => $rgw_servers,
+      glance_backend                => $::osnailyfacter::cluster_ha::glance_backend,
+      swift_proxies                 => $::osnailyfacter::cluster_ha::swift_proxies,
+      rgw_servers                   => $::osnailyfacter::cluster_ha::rgw_servers,
       quantum                       => $::use_quantum,
-      quantum_config                => $quantum_config,
+      quantum_config                => $::osnailyfacter::cluster_ha::quantum_config,
       quantum_network_node          => $::use_quantum,
       quantum_netnode_on_cnt        => $::use_quantum,
       cinder                        => true,
-      cinder_user_password          => $cinder_hash[user_password],
-      cinder_iscsi_bind_addr        => $cinder_iscsi_bind_addr,
-      cinder_db_password            => $cinder_hash[db_password],
+      cinder_user_password          => $::osnailyfacter::cluster_ha::cinder_hash[user_password],
+      cinder_iscsi_bind_addr        => $::osnailyfacter::cluster_ha::cinder_iscsi_bind_addr,
+      cinder_db_password            => $::osnailyfacter::cluster_ha::cinder_hash[db_password],
       cinder_volume_group           => "cinder",
-      manage_volumes                => $manage_volumes,
-      ceilometer                    => $ceilometer_hash[enabled],
-      ceilometer_db_password        => $ceilometer_hash[db_password],
-      ceilometer_user_password      => $ceilometer_hash[user_password],
-      ceilometer_metering_secret    => $ceilometer_hash[metering_secret],
-      galera_nodes                  => $controller_nodes,
-      custom_mysql_setup_class      => $custom_mysql_setup_class,
+      manage_volumes                => $::osnailyfacter::cluster_ha::manage_volumes,
+      ceilometer                    => $::osnailyfacter::cluster_ha::ceilometer_hash[enabled],
+      ceilometer_db_password        => $::osnailyfacter::cluster_ha::ceilometer_hash[db_password],
+      ceilometer_user_password      => $::osnailyfacter::cluster_ha::ceilometer_hash[user_password],
+      ceilometer_metering_secret    => $::osnailyfacter::cluster_ha::ceilometer_hash[metering_secret],
+      galera_nodes                  => $::osnailyfacter::cluster_ha::controller_nodes,
+      custom_mysql_setup_class      => $::custom_mysql_setup_class,
       mysql_skip_name_resolve       => true,
-      use_syslog                    => $use_syslog,
-      syslog_log_level              => $syslog_log_level,
-      syslog_log_facility_glance    => $syslog_log_facility_glance,
-      syslog_log_facility_cinder    => $syslog_log_facility_cinder,
-      syslog_log_facility_neutron   => $syslog_log_facility_neutron,
-      syslog_log_facility_nova      => $syslog_log_facility_nova,
-      syslog_log_facility_keystone  => $syslog_log_facility_keystone,
-      nova_rate_limits              => $nova_rate_limits,
-      cinder_rate_limits            => $cinder_rate_limits,
+      use_syslog                    => $::osnailyfacter::cluster_ha::use_syslog,
+      syslog_log_level              => $::syslog_log_level,
+      syslog_log_facility_glance    => $::syslog_log_facility_glance,
+      syslog_log_facility_cinder    => $::syslog_log_facility_cinder,
+      syslog_log_facility_neutron   => $::syslog_log_facility_neutron,
+      syslog_log_facility_nova      => $::syslog_log_facility_nova,
+      syslog_log_facility_keystone  => $::syslog_log_facility_keystone,
+      nova_rate_limits              => $::nova_rate_limits,
+      cinder_rate_limits            => $::cinder_rate_limits,
       horizon_use_ssl               => $::fuel_settings['horizon_use_ssl'],
       use_unicast_corosync          => $::fuel_settings['use_unicast_corosync'],
       nameservers                   => $::dns_nameservers,
@@ -317,8 +317,8 @@ class osnailyfacter::cluster_ha {
 
 
   class virtual_ips () {
-    cluster::virtual_ips { $vip_keys:
-      vips => $vips,
+    cluster::virtual_ips { $::osnailyfacter::cluster_ha::vip_keys:
+      vips => $::osnailyfacter::cluster_ha::vips,
     }
   }
 
@@ -328,12 +328,16 @@ class osnailyfacter::cluster_ha {
     /controller/ : {
       include osnailyfacter::test_controller
 
-      class { '::cluster': stage => 'corosync_setup' } ->
+      class { '::cluster':
+        stage             => 'corosync_setup',
+        internal_address  => $::internal_address,
+        unicast_addresses => $::osnailyfacter::cluster_ha::controller_internal_addresses,
+      } ->
       class { 'virtual_ips': stage => 'corosync_setup' }
 
       class { 'cluster::haproxy': haproxy_maxconn => '16000' }
 
-      class { compact_controller: }
+      class { 'compact_controller': }
       if ($use_swift) {
         $swift_zone = $node[0]['swift_zone']
 
@@ -343,12 +347,12 @@ class osnailyfacter::cluster_ha {
           storage_mnt_base_dir  => $swift_partition,
           storage_devices       => $mountpoints,
           swift_zone            => $swift_zone,
-          swift_local_net_ip    => $storage_address,
+          swift_local_net_ip    => $::storage_address,
           master_swift_proxy_ip => $master_swift_proxy_ip,
           sync_rings            => ! $primary_proxy,
-          syslog_log_level      => $syslog_log_level,
-          debug                 => $debug,
-          verbose               => $verbose,
+          syslog_log_level      => $::syslog_log_level,
+          debug                 => $::debug,
+          verbose               => $::verbose,
         }
         if $primary_proxy {
           ring_devices {'all': storages => $controllers }
@@ -369,9 +373,9 @@ class osnailyfacter::cluster_ha {
           controller_node_address => $::fuel_settings['management_vip'],
           swift_local_net_ip      => $swift_local_net_ip,
           master_swift_proxy_ip   => $master_swift_proxy_ip,
-          syslog_log_level        => $syslog_log_level,
-          debug                   => $debug,
-          verbose                 => $verbose,
+          syslog_log_level        => $::syslog_log_level,
+          debug                   => $::debug,
+          verbose                 => $::verbose,
         }
         class { 'swift::keystone::auth':
           password         => $swift_hash[user_password],
@@ -421,9 +425,9 @@ class osnailyfacter::cluster_ha {
 
           syslog_log_facility_savanna => $syslog_log_facility_savanna,
           syslog_log_level            => $syslog_log_level,
-          debug                       => $debug,
-          verbose                     => $verbose,
-          use_syslog                  => $use_syslog,
+          debug                       => $::debug,
+          verbose                     => $::verbose,
+          use_syslog                  => $::use_syslog,
         }
       }
         #FIXME: Disable heat for Red Hat OpenStack 3.0
@@ -445,10 +449,10 @@ class osnailyfacter::cluster_ha {
             db_host           => $controller_node_address,
             db_password       => $heat_hash['db_password'],
 
-            debug               => $debug,
-            verbose             => $verbose,
-            use_syslog          => $use_syslog,
-            syslog_log_facility => $syslog_log_facility_heat,
+            debug               => $::debug,
+            verbose             => $::verbose,
+            use_syslog          => $::use_syslog,
+            syslog_log_facility => $::syslog_log_facility_heat,
           }
       }
 
@@ -472,10 +476,10 @@ class osnailyfacter::cluster_ha {
 
           use_neutron              => $::use_quantum,
 
-          use_syslog               => $use_syslog,
-          debug                    => $debug,
-          verbose                  => $verbose,
-          syslog_log_facility      => $syslog_log_facility_murano,
+          use_syslog               => $::use_syslog,
+          debug                    => $::debug,
+          verbose                  => $::verbose,
+          syslog_log_facility      => $::syslog_log_facility_murano,
         }
 
        Class['heat'] -> Class['murano']
@@ -492,7 +496,7 @@ class osnailyfacter::cluster_ha {
       class { 'openstack::compute':
         public_interface       => $::public_int,
         private_interface      => $::use_quantum ? { true=>false, default=>$::fuel_settings['fixed_interface'] },
-        internal_address       => $internal_address,
+        internal_address       => $::internal_address,
         libvirt_type           => $::fuel_settings['libvirt_type'],
         fixed_range            => $::use_quantum ? { true=>false, default=>$::fuel_settings['fixed_network_range']},
         network_manager        => $network_manager,
@@ -508,8 +512,8 @@ class osnailyfacter::cluster_ha {
         glance_api_servers     => "${::fuel_settings['management_vip']}:9292",
         vncproxy_host          => $::fuel_settings['public_vip'],
         vncserver_listen       => '0.0.0.0',
-        debug                  => $debug,
-        verbose                => $verbose,
+        debug                  => $::debug,
+        verbose                => $::verbose,
         cinder_volume_group    => "cinder",
         vnc_enabled            => true,
         manage_volumes         => $manage_volumes,
@@ -527,11 +531,11 @@ class osnailyfacter::cluster_ha {
         quantum                => $::use_quantum,
         quantum_config         => $quantum_config,
         use_syslog             => $use_syslog,
-        syslog_log_level       => $syslog_log_level,
-        syslog_log_facility    => $syslog_log_facility_nova,
-        syslog_log_facility_neutron => $syslog_log_facility_neutron,
-        syslog_log_facility_cinder => $syslog_log_facility_cinder,
-        nova_rate_limits       => $nova_rate_limits,
+        syslog_log_level       => $::syslog_log_level,
+        syslog_log_facility    => $::syslog_log_facility_nova,
+        syslog_log_facility_neutron => $::syslog_log_facility_neutron,
+        syslog_log_facility_cinder => $::syslog_log_facility_cinder,
+        nova_rate_limits       => $::nova_rate_limits,
         state_path             => $nova_hash[state_path],
       }
 
@@ -559,7 +563,7 @@ class osnailyfacter::cluster_ha {
       }
       $roles = node_roles($nodes_hash, $::fuel_settings['uid'])
       if member($roles, 'controller') or member($roles, 'primary-controller') {
-        $bind_host = $internal_address
+        $bind_host = $::internal_address
       } else {
         $bind_host = false
       }
@@ -576,13 +580,13 @@ class osnailyfacter::cluster_ha {
         manage_volumes       => $manage_volumes,
         enabled              => true,
         auth_host            => $::fuel_settings['management_vip'],
-        iscsi_bind_host      => $storage_address,
+        iscsi_bind_host      => $::storage_address,
         cinder_user_password => $cinder_hash[user_password],
-        syslog_log_facility  => $syslog_log_facility_cinder,
-        syslog_log_level     => $syslog_log_level,
-        debug                => $debug,
-        verbose              => $verbose,
-        use_syslog           => $use_syslog,
+        syslog_log_facility  => $::syslog_log_facility_cinder,
+        syslog_log_level     => $::syslog_log_level,
+        debug                => $::debug,
+        verbose              => $::verbose,
+        use_syslog           => $::use_syslog,
       }
 #      class { "::rsyslog::client":
 #        log_local => true,

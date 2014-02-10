@@ -2,14 +2,11 @@
 #
 # Module for configuring cluster resources.
 #
-class cluster {
-    if $use_unicast_corosync != 'false' {
-      #todo: make as parameter
-      $unicast_addresses = $controller_internal_addresses
-    } else {
-      $unicast_addresses = undef
-    }
-
+class cluster (
+    $internal_address = "127.0.0.1",
+    $unicast_addresses = undef,
+)
+{
     #todo: move half of openstack::corosync to this module, another half -- to Neutron
     if defined(Stage['corosync_setup']) {
       class {'openstack::corosync':
