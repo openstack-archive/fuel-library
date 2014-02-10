@@ -15,7 +15,7 @@ ttl = 2000000000
 
 # Plugins
 securityprovider = psk
-plugin.psk = <%= pskey %>
+plugin.psk = <%= @pskey %>
 
 <% if scope.lookupvar('mcollective::client::stomp') -%>
 connector = stomp
