@@ -13,9 +13,10 @@ class savanna (
   $savanna_keystone_password            = 'savanna',
 
   $savanna_node_domain                  = 'novalocal',
-  $savanna_plugins                      = 'vanilla,hdp',
+  $savanna_plugins                      = 'vanilla,hdp,idh',
   $savanna_vanilla_plugin_class         = 'savanna.plugins.vanilla.plugin:VanillaProvider',
   $savanna_hdp_plugin_class             = 'savanna.plugins.hdp.ambariplugin:AmbariPlugin',
+  $savanna_idh_plugin_class             = 'savanna.plugins.intel.plugin:IDHProvider'
 
   $savanna_db_password                  = 'savanna',
   $savanna_db_name                      = 'savanna',
@@ -26,6 +27,7 @@ class savanna (
   $savanna_firewall_rule                = '201 savanna-api',
   $use_neutron                          = false,
   $use_floating_ips                     = false,
+  $use_heat                             = false,
 ) {
 
   $savanna_sql_connection               = "mysql://${savanna_db_user}:${savanna_db_password}@${savanna_db_host}/${savanna_db_name}"
@@ -52,8 +54,10 @@ class savanna (
     plugins                             => $savanna_plugins,
     vanilla_plugin_class                => $savanna_vanilla_plugin_class,
     hdp_plugin_class                    => $savanna_hdp_plugin_class,
+    idh_plugin_class                    => $savanna_idh_plugin_class,
     sql_connection                      => $savanna_sql_connection,
     use_neutron                         => $use_neutron,
+    use_heat                            => $use_heat,
   }
 
   class { 'savanna::keystone::auth' :
