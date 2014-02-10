@@ -11,7 +11,7 @@ server {
 
     location / {
         autoindex on;
-        root <%= repo_root %>;
+        root <%= @repo_root %>;
     }
 
     location ~ /\.ht {

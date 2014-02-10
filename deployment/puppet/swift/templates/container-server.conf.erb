@@ -1,9 +1,9 @@
 [DEFAULT]
-devices = <%= devices %>
-bind_ip = <%= storage_local_net_ip %>
-bind_port = <%= bind_port %>
-mount_check = <%= mount_check %>
-user = <%= user %>
+devices = <%= @devices %>
+bind_ip = <%= @storage_local_net_ip %>
+bind_port = <%= @bind_port %>
+mount_check = <%= @mount_check %>
+user = <%= @user %>
 log_facility = LOG_SYSLOG
 <% if @debug then -%>
 log_level = DEBUG
@@ -13,19 +13,19 @@ log_level = INFO
 log_level = <%= @syslog_log_level %>
 <% end -%>
 log_name = swift-container-server
-workers = <%= workers %>
+workers = <%= @workers %>
 
 [pipeline:main]
-pipeline = <%= pipeline_real.join(' ') %>
+pipeline = <%= @pipeline_real.join(' ') %>
 
 [app:container-server]
 use = egg:swift#container
 
 [container-replicator]
-concurrency = <%= replicator_concurrency %>
+concurrency = <%= @replicator_concurrency %>
 
 [container-updater]
-concurrency = <%= updater_concurrency %>
+concurrency = <%= @updater_concurrency %>
 
 [container-auditor]
 
