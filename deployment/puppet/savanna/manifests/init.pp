@@ -27,6 +27,7 @@ class savanna (
   $savanna_firewall_rule                = '201 savanna-api',
   $use_neutron                          = false,
   $use_floating_ips                     = false,
+  $use_heat                             = false,
 
   $use_syslog                           = false,
   $debug                                = false,
@@ -67,6 +68,7 @@ class savanna (
     verbose                             => $verbose,
     syslog_log_level                    => $syslog_log_level,
     syslog_log_facility_savanna         => $syslog_log_facility_savanna,
+    use_heat                            => $use_heat,
   }
 
   class { 'savanna::keystone::auth' :

@@ -23,6 +23,7 @@ class savanna::api (
   $syslog_log_level            = 'WARNING',
   $syslog_log_facility_savanna = "LOG_LOCAL0",
   $logdir                      = '/var/log/savanna',
+  $use_heat                    = false,
 ) inherits savanna::params {
 
   validate_string($keystone_password)
@@ -42,6 +43,12 @@ class savanna::api (
     $use_neutron_value = true
   } else {
     $use_neutron_value = false
+  }
+
+  if $use_heat {
+    $infrastructure_engine="heat"
+  } else {
+    $infrastructure_engine="savanna"
   }
 
   if $use_floating_ips {
@@ -66,6 +73,7 @@ class savanna::api (
     'DEFAULT/os_auth_port'                 : value => $keystone_port;
     'DEFAULT/use_floating_ips'             : value => $use_floating_ips_value;
     'DEFAULT/use_neutron'                  : value => $use_neutron_value;
+    'DEFAULT/infrastructure_engine'        : value => $infrastructure_engine;
     'DEFAULT/node_domain'                  : value => $node_domain;
     'DEFAULT/plugins'                      : value => $plugins;
     'plugin:vanilla/plugin_class'          : value => $vanilla_plugin_class;
