@@ -2,7 +2,12 @@
 #
 # Module for configuring cluster resources.
 #
-class cluster {
+class cluster (
+    $internal_address = "127.0.0.1",
+    $use_unicast_corosync = 'false',
+    $controller_internal_addresses = "127.0.0.1",
+)
+{
     if $use_unicast_corosync != 'false' {
       #todo: make as parameter
       $unicast_addresses = $controller_internal_addresses

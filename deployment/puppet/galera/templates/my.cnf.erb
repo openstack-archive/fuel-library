@@ -6,7 +6,7 @@
 # #symbolic-links=0
 
 [mysqld_safe]
-<% if use_syslog -%>
+<% if @use_syslog -%>
 syslog
 <% else -%>
 log-error=/var/log/mysqld.log
