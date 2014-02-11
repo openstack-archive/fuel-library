@@ -12,7 +12,7 @@ totem {
   threads:                             <%= threads %>
   transport:                           udpu
   interface {
-<% unicast_addresses.each do |hostname,addr| -%>
+<% unicast_addresses.sort.each do |hostname,addr| -%>
     member {
       memberaddr: <%= addr %>
     }
