@@ -153,6 +153,26 @@ class horizon(
     notify  => Service['httpd']
   }
 
+  file { $::horizon::params::dashboard_http_conf_file:
+    content => template('horizon/openstack-dashboard.conf.erb'),
+    mode    => '0644',
+    notify  => Service['httpd'],
+    require => [
+        Package['dashboard'],
+        File[$::horizon::params::apache_confdir]
+    ]
+  }
+
+  file { $::horizon::params::apache_tuning_file:
+    content => template('horizon/zzz_performance_tuning.conf.erb'),
+    mode    => '0644',
+    notify  => Service['httpd'],
+    require => [
+        Package['dashboard'],
+        File[$::horizon::params::apache_confdir]
+    ]
+  }
+
   file { 'httpd_listen_config_file':
     path    => $::horizon::params::httpd_listen_config_file,
     content => template('horizon/ports.conf.erb'),
@@ -188,6 +208,15 @@ class horizon(
           ensure => present,
           before => Service['httpd'],
         }
+      }
+
+      file { '/etc/sysconfig/httpd':
+        mode    => 0644,
+        owner   => root,
+        group   => root,
+        content => template('horizon/redhat_sysconfig_httpd.erb'),
+        require => Package[$::horizon::params::http_service],
+        notify  => Service['httpd'],
       }
 
       augeas { 'remove_listen_directive':
