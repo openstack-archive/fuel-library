@@ -64,6 +64,12 @@ class neutron::server (
   Service <| title == 'mysql' |> -> Service['neutron-server']
   Service <| title == 'haproxy' |> -> Service['neutron-server']
 
+  neutron_config {
+    'database/sql_connection':      value => $neutron_config['database']['url'];
+    'database/sql_max_retries':     value => $neutron_config['database']['reconnects'];
+    'database/reconnect_interval':  value => $neutron_config['database']['reconnect_interval'];
+  }
+
   neutron_api_config {
     'filter:authtoken/auth_url':          value => $neutron_config['keystone']['auth_url'];
     'filter:authtoken/auth_host':         value => $neutron_config['keystone']['auth_host'];
