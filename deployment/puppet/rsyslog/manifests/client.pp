@@ -300,10 +300,6 @@ if $debug =~ /(?i)(true|yes)/ {
   }
 
 
-  file { "${rsyslog::params::rsyslog_d}60-puppet-agent.conf":
-    content => template("${module_name}/60-puppet-agent.conf.erb"),
-  }
-
   file { "${rsyslog::params::rsyslog_d}90-local.conf":
     content => template("${module_name}/90-local.conf.erb"),
   }
