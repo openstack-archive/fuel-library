@@ -4,6 +4,12 @@ class ceph (
       # General settings
       $cluster_node_address = $::ipaddress, #This should be the cluster service address
       $primary_mon          = $::hostname, #This should be the first controller
+      $mon_hosts            = nodes_with_roles($::fuel_settings['nodes'],
+                                               ['primary-controller', 'controller', 'ceph-mon'],
+                                               'name'),
+      $mon_ip_addresses     = nodes_with_roles($::fuel_settings['nodes'],
+                                               ['primary-controller', 'controller', 'ceph-mon'],
+                                               'internal_address'),
       $osd_devices          = split($::osd_devices_list, ' '),
       $use_ssl              = false,
       $use_rgw              = false,
