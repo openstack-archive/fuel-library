@@ -73,6 +73,7 @@ class ceph (
   include ceph::ssh
   include ceph::params
   include ceph::conf
+  include ceph::ha
   Class[['ceph::ssh', 'ceph::params']] -> Class['ceph::conf']
 
   if $::fuel_settings['role'] =~ /controller|ceph/ {
@@ -100,7 +101,7 @@ class ceph (
         keyring_owner => 'cinder',
       }
 
-      Class['ceph::conf'] -> Class['ceph::mon'] ->
+      Class['ceph::conf'] -> Class['ceph::mon'] -> Class['ceph::ha'] ->
       Ceph::Pool[$glance_pool] -> Ceph::Pool[$cinder_pool] ->
       Service['ceph']
 
