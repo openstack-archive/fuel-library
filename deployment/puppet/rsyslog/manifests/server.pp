@@ -36,15 +36,6 @@ if $virtual { include rsyslog::checksum_udp514 }
 
     }
 
-    file { "${rsyslog::params::rsyslog_d}40-puppet-master.conf":
-        content => template("${module_name}/40-server-puppet-master.conf.erb"),
-
-    }
-
-    file { "${rsyslog::params::rsyslog_d}60-puppet-agent.conf":
-        content => template("${module_name}/60-puppet-agent.conf.erb"),
-    }
-
     file { $rsyslog::params::server_conf:
         ensure  => present,
         content => $custom_config ? {
