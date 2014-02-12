@@ -1,0 +1,4 @@
+#
+# Smoke test.
+#
+include zabbix

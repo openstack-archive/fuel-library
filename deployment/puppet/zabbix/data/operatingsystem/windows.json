@@ -1,0 +1,8 @@
+{
+  "frontend_version"    : "skip",
+  "agent_server_ensure" : "absent",
+  "agent_hostname"      : "::cn",
+  "agent_template"      : "zabbix_agentd.win.conf.erb",
+  "agent_conf_file"     : "C:\zabbix_agentd.conf",
+  "agent_service_name"  : "Zabbix Agent"
+}

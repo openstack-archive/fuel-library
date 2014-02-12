@@ -1,0 +1,15 @@
+{
+  "export : "preset",
+  "db_server : "localhost",
+  "db_database : "zabbix",
+  "db_user : "root",
+  "db_password : "",
+
+  "server_enable" : "present",
+  "server_node_id : 0,
+  "server_host" : "zabbix",
+  "server_name" : "Zabbix Server",
+
+  "frontend_enable" : "present",
+  "frontend_base" : "/zabbix"
+}

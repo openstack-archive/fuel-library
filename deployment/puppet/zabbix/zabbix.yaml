@@ -1,0 +1,4 @@
+---
+zabbix_host: 'localhost'
+zabbix_port: '10051'
+zabbix_sender: '/usr/bin/zabbix_sender'

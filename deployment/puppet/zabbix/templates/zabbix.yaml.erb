@@ -1,0 +1,4 @@
+---
+zabbix_host: <%= scope.lookupvar('zabbix::params::reports_host') %>'
+zabbix_port: '<%= scope.lookupvar('zabbix::params::reports_port') %>'
+zabbix_sender: '<%= scope.lookupvar('zabbix::params::reports_sender') %>'

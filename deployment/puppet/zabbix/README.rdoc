@@ -1,0 +1,117 @@
+== Module: Zabbix
+
+{<img src="https://secure.travis-ci.org/purplehazech/puppet-zabbix.png?branch=master" alt="Build Status" />}[https://travis-ci.org/purplehazech/puppet-zabbix] *Master* 
+
+{<img src="https://secure.travis-ci.org/purplehazech/puppet-zabbix.png?branch=zabbix-server" alt="Build Status" />}[https://travis-ci.org/purplehazech/puppet-zabbix] zabbix-server
+
+{<img src="https://secure.travis-ci.org/purplehazech/puppet-zabbix.png?branch=zabbix-api" alt="Build Status" />}[https://travis-ci.org/purplehazech/puppet-zabbix] zabbix-api
+
+{<img src="https://secure.travis-ci.org/purplehazech/puppet-zabbix.png?branch=travis-stress" alt="Build Status" />}[https://travis-ci.org/purplehazech/puppet-zabbix] travis-stress
+
+Install and configure Zabbix.
+
+This module aims to be a feature complete module for Zabbix. Right 
+now it is being developed and tested on Gentoo and I plan on porting 
+it over to multiple architectures later on.
+
+In my opinion a feature complete Zabbix module must support the 
+following things.
+
+[Zabbix reports from puppet]
+ initial support by doing a subtree merge from 
+ https://github.com/thomasvandoren/puppet-zabbix
+[ability to separately manage Zabbix server, frontend and agent]
+ more or less ready to integrate
+[additional apps like proxy, alternative agents (snmp + more)]
+ not hard to do, but bumped to later since i don't need them
+[complete api integration for provisioning]
+ plans are to host every single line of Zabbix config
+ in puppet data somewhere. You never need to touch the 
+ config part of the frontend. The second version of the
+ API seems to work, Zabbix's api some quirks and i needed
+ to find those first.
+ This is under development in the zabbix-api branch and will
+ not hit master before it's complete. The one in master is 
+ considered unsuitable for any use other that finding out how 
+ not to code ruby.
+[documentation]
+ containing all the (double) spaceship examples to explain 
+ why it makes sense to use the Zabbix api this way.
+   
+Most of the legwork is falling together and i expect this module
+to look like it should soonish. I will update the major version
+as soon as its at the stage where i consider it ready for Gentoo
+production and once more per additional operating system. I plan
+on going 1.0.0 as soon as Gentoo, Redhat and Debian work properly.
+The WindowsXP support in the agent is there mainly for historical
+reasons and i would rather commit more time with it (but it still
+needs to keep running on xp in 2.7 for the moment).
+
+=== Example Usage
+
+setup an agent on a node
+
+  $zabbix::params::server = 'zabbix'
+  class{ 'zabbix': }
+  
+agent management with user parameter
+
+  class{ 'zabbix::agent':
+    server  => 'zabbix'
+  }
+  zabbix::agent::params { 'zabbix.param.test':
+    command => 'echo "Hello World!"'
+  }
+  zabbix::agent::params { 'Check for trueness':
+    key     => 'zabbix.param.trueistrue
+    command => 'test true'
+  }
+  
+=== Development
+
+You might want to look here for a howtos:
+
+* https://github.com/purplehazech/puppet-module_template
+* https://github.com/puppetlabs/puppetlabs-stdlib/blob/master/RELEASE_PROCESS.markdown
+
+I release my own part of this module because I hate hearing about production 
+patches to my code that I can't apply to the master version after properly
+writing tests for those cases. It is assumed that pull requests contain code
+that i may relicense into AGPL, if this is not the case ie. when I initiate
+the pull myself and its license is not convertible to AGPL (most licenses
+, like GPLv2+ are) this gets disclosed below with a license.
+
+=== Open Issues
+
+[Trigger Api exists?]
+ The Zabbix trigger api does not support a simple way to retreive a trigger by
+ using the expanded trigger syntax, looking at Zabbix' code it does not look easy
+ to implement this in Zabbix without knowing the trigger id beforehand.
+ *Status*: no resolution, not reported to Zabbix
+
+=== License
+
+2012, Lucas S. Bickel, Alle Rechte vorbehalten
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+==== Zabbix Report Processor
+
+Zabbix Report Processor is in this program as a subtree merge.
+
+Author: Thomas Van Doren
+
+License: GPLv2
+
+Github: https://github.com/thomasvandoren/puppet-zabbix

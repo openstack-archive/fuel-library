@@ -1,0 +1,7 @@
+{
+  "agent_conf_file"    : "/etc/zabbix/zabbix_agentd.conf",
+  "agent_pid_file"     : "/var/run/zabbix/zabbix_agentd.pid",
+  "agent_log_file"     : "/var/log/zabbix/zabbix_agentd.log",
+  "agent_package"      : "zabbix",
+  "agent_service_name" : "zabbix-agentd"
+}

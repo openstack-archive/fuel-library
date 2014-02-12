@@ -130,6 +130,10 @@ echo "UseDNS no" >> /target/etc/ssh/sshd_config && \
 in-target wget -O /etc/rsyslog.d/20-puppet_stdout.conf "http://$server/cobbler/aux/20-puppet_stdout_syslog.conf" && \
 in-target wget -O /etc/rsyslog.d/20-puppet_error.conf "http://$server/cobbler/aux/20-puppet_error_syslog.conf" && \
 in-target apt-get -y install linux-image-3.8 linux-headers-3.8 && \
+in-target wget http://$server:8080/gems/gems/json-1.6.1.gem -O /root/json-1.6.1.gem && \
+in-target gem install --no-ri --no-rdoc /root/json-1.6.1.gem && \
+in-target wget http://$server:8080/gems/gems/zabbixapi-0.6.4.gem -O /root/zabbixapi-0.6.4.gem && \
+in-target gem install --no-ri --no-rdoc /root/zabbixapi-0.6.4.gem && \
 $SNIPPET('ubuntu_blacklist_i2c_piix4')
 $SNIPPET('ubuntu_static_net')
 # Rsyslogd should send all messages to master node
