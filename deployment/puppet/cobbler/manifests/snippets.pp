@@ -65,9 +65,11 @@ class cobbler::snippets {
   cobbler_snippet {"ubuntu_puppet_config":}
   cobbler_snippet {"ubuntu_mcollective_config":}
   cobbler_snippet {"ubuntu_network":}
+  cobbler_snippet {"ubuntu_network_console_and_syslog":}
   cobbler_snippet {"ubuntu_partition":}
   cobbler_snippet {"ubuntu_partition_late":}
   cobbler_snippet {"ubuntu_static_net":}
+  cobbler_snippet {"anaconda_ssh_console":}
 
   case $operatingsystem {
     /(?i)(debian|ubuntu)/:  {
