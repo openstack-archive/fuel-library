@@ -37,6 +37,10 @@ text
 # SKIP CONFIGURING X
 skipx
 
+# SSH user and some unknown random password,
+# we're going to use SSH keys anyway
+sshpw --username root --iscrypted $6$tCD3X7ji$1urw6qEMDkVxOkD33k2jjklHSDG2hg2234kJHESJ3hwhsjHshSJshHSJSh333je34DHJHDr4je4AMP85NxQe61
+
 %include /tmp/partition.ks
 
 # COBBLER EMBEDDED SNIPPET: 'network_config'
@@ -73,6 +77,10 @@ $SNIPPET('kickstart_start')
 # INTO /tmp/pre_install_network_config WHICH IS INCLUDED
 # INTO KICKSTART BY 'network_config' SNIPPET
 $SNIPPET('pre_install_network_config')
+
+# CONFIGURES SSH KEY ACCESS FOR SSHD CONSOLE ACCESS
+# DURING OPERATING SYSTEM INSTALLATION
+$SNIPPET('anaconda_ssh_console')
 
 # COBBLER EMBEDDED SNIPPET: 'pre_install_partition'
 # DETECTS HARD DRIVES AND SETS FIRST OF THEM
