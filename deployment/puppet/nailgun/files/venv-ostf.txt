@@ -34,7 +34,7 @@ pycrypto==2.6
 pyparsing==1.5.7
 python-cinderclient==1.0.6
 python-ceilometerclient==1.0.8
-python-heatclient==0.2.5
+http://github.com/e0ne/python-heatclient/releases/download/proxy-support-0.2.5/python-heatclient-0.2.5.1.g7685f8a.tar.gz
 python-keystoneclient==0.4.1
 python-mimeparse==0.1.4
 python-muranoclient==0.2.11
