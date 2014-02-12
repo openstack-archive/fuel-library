@@ -79,7 +79,12 @@ class ceph (
     service {'ceph':
       ensure  => 'running',
       enable  => true,
-      require => Class['ceph::conf']
+      require => Class['ceph::conf'],
+    }
+
+    if $::fuel_settings['deployment_mode'] =~ /^ha/ {
+      include ceph::ha
+      Service['ceph'] -> Class['ceph::ha'] ~> Service['ceph']
     }
   }
 
