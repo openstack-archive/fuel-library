@@ -12,7 +12,6 @@ class ceph::mon {
     command   => "ceph-deploy mon create ${::hostname}:${::internal_address}",
     logoutput => true,
     unless    => "ceph mon stat | grep ${::internal_address}",
-    # TODO: need method to update mon_nodes in ceph.conf
   }
 
   exec {'Wait for Ceph quorum':
