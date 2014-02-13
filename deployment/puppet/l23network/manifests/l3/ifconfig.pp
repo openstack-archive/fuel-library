@@ -112,7 +112,11 @@ define l23network::l3::ifconfig (
   ]
 
   if $macaddr and $macaddr !~ /^([0-9a-fA-F]{2}\:){5}[0-9a-fA-F]{2}$/ {
-    fail("Invalid MAC address: '#{macaddr}'")
+    fail("Invalid MAC address '${macaddr}' for interface '${interface}'")
+  }
+
+  if $mtu and !is_integer("${mtu}") {  # is_integer() fails if integer given :)
+    fail("Invalid MTU '${mtu}' for interface '${interface}'")
   }
 
   # setup configure method for inteface
