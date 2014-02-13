@@ -177,7 +177,7 @@ class osnailyfacter::cluster_ha {
     if !$::fuel_settings['swift_partition'] {
       $swift_partition = '/var/lib/glance/node'
     }
-    $swift_proxies            = $controller_storage_addresses
+    $swift_proxies            = $controllers
     $swift_local_net_ip       = $::storage_address
     $master_swift_proxy_nodes = filter_nodes($nodes_hash,'role','primary-controller')
     $master_swift_proxy_ip    = $master_swift_proxy_nodes[0]['internal_address']
@@ -189,7 +189,7 @@ class osnailyfacter::cluster_ha {
       $primary_proxy = false
     }
   } elsif ($storage_hash['objects_ceph']) {
-    $rgw_balancers = $controller_storage_addresses
+    $rgw_servers = $controllers
   }
 
 
@@ -223,6 +223,7 @@ class osnailyfacter::cluster_ha {
     class {'osnailyfacter::apache_api_proxy':}
 
     class { 'openstack::controller_ha':
+      controllers                   => $controllers,
       controller_public_addresses   => $controller_public_addresses,
       controller_internal_addresses => $controller_internal_addresses,
       internal_address              => $internal_address,
@@ -264,7 +265,7 @@ class osnailyfacter::cluster_ha {
       export_resources              => false,
       glance_backend                => $glance_backend,
       swift_proxies                 => $swift_proxies,
-      rgw_balancers                 => $rgw_balancers,
+      rgw_servers                   => $rgw_servers,
       quantum                       => $::use_quantum,
       quantum_config                => $quantum_config,
       quantum_network_node          => $::use_quantum,
@@ -311,15 +312,8 @@ class osnailyfacter::cluster_ha {
       include osnailyfacter::test_controller
 
       class { '::cluster': stage => 'corosync_setup' } ->
-      class { 'virtual_ips':
-        stage => 'corosync_setup'
-      }
-      include ::haproxy::params
-      class { 'cluster::haproxy':
-        global_options   => merge($::haproxy::params::global_options, {'log' => "/dev/log local0"}),
-        defaults_options => merge($::haproxy::params::defaults_options, {'mode' => 'http'}),
-        stage            => 'cluster_head',
-      }
+      class { 'virtual_ips': stage => 'corosync_setup' }
+      class { 'cluster::haproxy': }
 
       class { compact_controller: }
       if ($use_swift) {
@@ -374,7 +368,7 @@ class osnailyfacter::cluster_ha {
       nova_config { 'DEFAULT/compute_scheduler_driver':  value => $::fuel_settings['compute_scheduler_driver'] }
 
       if ! $::use_quantum {
-        nova_floating_range{ $floating_ips_range:
+        nova_floating_range { $floating_ips_range:
           ensure          => 'present',
           pool            => 'nova',
           username        => $access_hash[user],
@@ -384,7 +378,7 @@ class osnailyfacter::cluster_ha {
           authtenant_name => $access_hash[tenant],
           api_retries     => 10,
         }
-        Class[nova::api] -> Nova_floating_range <| |>
+        Class['nova::api', 'openstack::ha::nova'] -> Nova_floating_range <| |>
       }
       if ($::use_ceph){
         Class['openstack::controller'] -> Class['ceph']

@@ -1,4 +1,4 @@
-class neutron::network::predefined_netwoks (
+class neutron::network::predefined_networks (
   $neutron_config     = {},
 ) {
   create_predefined_networks_and_routers($neutron_config)

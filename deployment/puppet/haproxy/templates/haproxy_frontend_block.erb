@@ -1,5 +1,5 @@
 
-listen <%= @name %>
+frontend <%= @name %>
 <% Array(@ipaddress).uniq.each do |virtual_ip| (@ports.is_a?(Array) ? @ports : Array(@ports.split(","))).each do |port| -%>
   bind <%= virtual_ip %>:<%= port %>
 <% end end -%>
