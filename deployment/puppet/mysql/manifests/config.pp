@@ -52,6 +52,15 @@ class mysql::config(
   $server_id         = $mysql::params::server_id,
 ) inherits mysql::params {
 
+  $mysql_buffer_pool_size = $::mysql::params::mysql_buffer_pool_size
+  $max_connections = $::mysql::params::max_connections
+  $table_open_cache = $::mysql::params::table_open_cache
+  $key_buffer_size = $::mysql::params::key_buffer_size
+  $myisam_sort_buffer_size = $::mysql::params::myisam_sort_buffer_size
+  $wait_timeout = $::mysql::params::wait_timeout
+  $open_files_limit= $::mysql::params::open_files_limit
+  $low_priority_updates=$::mysql::params::low_priority_updates
+
   if $custom_setup_class != "pacemaker_mysql" {
     File {
       owner  => 'root',
@@ -66,7 +75,7 @@ class mysql::config(
       mode   => '0400',
       notify => Service['mysql'],
     }
-  } 
+  }
 
   if $ssl and $ssl_ca == undef {
     fail('The ssl_ca parameter is required when ssl is true')
