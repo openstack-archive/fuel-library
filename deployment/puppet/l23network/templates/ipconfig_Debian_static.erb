@@ -1,5 +1,5 @@
-auto <%= interface %>
-iface <%= interface %> inet static
+auto <%= @interface %>
+iface <%= @interface %> inet static
 <% if @macaddr -%>
 hwaddress ether <%= @macaddr.downcase %>
 <% end -%>
@@ -7,8 +7,8 @@ hwaddress ether <%= @macaddr.downcase %>
 mtu <%= @mtu %>
 <% end -%>
 <% if @vlan_mode %>vlan_raw_device <%= @vlan_dev %><% end %>
-address <%= effective_ipaddr %>
-netmask <%= effective_netmask %>
+address <%= @effective_ipaddr %>
+netmask <%= @effective_netmask %>
 <% if @def_gateway %>gateway <%= @def_gateway %><% end %>
 <% if @dns_nameservers_1 or @dns_nameservers_2 %>dns-nameservers <% if @dns_nameservers_1 %><%= @dns_nameservers_1 %><% end %> <% if @dns_nameservers_2 %><%= @dns_nameservers_2 %><% end %><% end %>
 <% if @dns_search_string %>dns-search <%= @dns_search_string %><% end %>
@@ -19,6 +19,11 @@ bond-miimon <%= @bond_miimon %><% end %><% if @bond_lacp_rate %>
 bond-lacp-rate <%= @bond_lacp_rate %><% end %>
 <% end %>
 <%- if @ipaddr_aliases -%><%- @ipaddr_aliases.each do |addr| -%>
-post-up ip addr add <%= addr %> dev <%= interface %>
-pre-down ip addr del <%= addr %> dev <%= interface %>
+post-up ip addr add <%= addr %> dev <%= @interface %>
+pre-down ip addr del <%= addr %> dev <%= @interface %>
 <%- end -%><%- end -%>
+<%- if @ethtool_lines -%>
+<%- @ethtool_lines.each do |key,line| -%>
+post-up  ethtool  <%= key %>  <%= interface %>  <%= line %> || true
+<%- end -%>
+<%- end -%>
