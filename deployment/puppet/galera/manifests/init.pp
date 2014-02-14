@@ -67,6 +67,13 @@ class galera (
   $mysql_password = $::galera::params::mysql_password
   $libgalera_prefix = $::galera::params::libgalera_prefix
   $mysql_buffer_pool_size = $::galera::params::mysql_buffer_pool_size
+  $max_connections = $::galera::params::max_connections
+  $table_open_cache = $::galera::params::table_open_cache
+  $key_buffer_size = $::galera::params::key_buffer_size
+  $myisam_sort_buffer_size = $::galera::params::myisam_sort_buffer_size
+  $wait_timeout = $::galera::params::wait_timeout
+  $open_files_limit= $::galera::params::open_files_limit
+  $sql_low_priority_updates=$::galera::params::sql_low_priority_updates
 
   case $::osfamily {
     'RedHat' : {

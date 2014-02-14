@@ -19,6 +19,16 @@ class mysql::params {
   $server_id           = delete(delete(delete("$::hostname",'controller-'),'fuel-'),"node-")
   $service_provider = undef
 
+  #limit buffer size to 10G
+  $mysql_buffer_pool_size  =  inline_template("<%= [($::memorysize_mb * 0.3 + 0).floor, 10000].min %>M")
+  $wait_timeout            = 30
+  $myisam_sort_buffer_size = '64M'
+  $key_buffer_size         = '64M'
+  $table_open_cache        = 10000
+  $open_files_limit        = 102400
+  $max_connections         = 3000
+  $sql_low_priority_updates= 'ON'
+
   case $::osfamily {
     'RedHat': {
       $basedir               = '/usr'
