@@ -79,7 +79,8 @@ class nova(
   #$root_helper = $::nova::params::root_helper,
   $monitoring_notifications = false,
   $api_bind_address = '0.0.0.0',
-  $remote_syslog_server = '127.0.0.1'
+  $remote_syslog_server = '127.0.0.1',
+  $idle_timeout = '3600',
 ) inherits nova::params {
 
   # all nova_config resources should be applied
@@ -326,6 +327,15 @@ File['nova-logging.conf'] ~> Service <| title == "$nova::params::meta_api_servic
     'DEFAULT/osapi_compute_listen': value => $api_bind_address;
     'DEFAULT/metadata_listen':      value => $api_bind_address;
     'DEFAULT/osapi_volume_listen':  value => $api_bind_address;
+  }
+
+  $mps=min($::processorcount * 5 + 0, 30 + 0)
+  $mpo=min($::processorcount * 5 + 0, 60 + 0)
+  nova_config {
+    'DATABASE/max_pool_size': value => $mps;
+    'DATABASE/max_retries':   value => '-1';
+    'DATABASE/max_overflow':  value => $mpo;
+    'DATABASE/idle_timeout':  value => $idle_timeout;
   }
 
   if $monitoring_notifications {

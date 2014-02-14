@@ -30,6 +30,7 @@ class cinder::base (
   $syslog_log_facility    = 'LOG_LOCAL3',
   $syslog_log_level = 'WARNING',
   $log_dir                = '/var/log/cinder',
+  $idle_timeout       = '3600',
 ) {
 
   include cinder::params
@@ -158,6 +159,25 @@ else {
     'DEFAULT/verbose':             value => $verbose;
     'DEFAULT/api_paste_config':    value => '/etc/cinder/api-paste.ini';
   }
+
+  #TODO(bogdando) fix deprecated names in I
+  # Deprecated group/name - [DEFAULT]/sql_max_pool_size > [DATABASE]/max_pool_size
+  # Deprecated group/name - [DATABASE]/sql_max_pool_size
+  # Deprecated group/name - [DEFAULT]/sql_max_retries > [DATABASE]/max_retries
+  # Deprecated group/name - [DATABASE]/sql_max_retries
+  # Deprecated group/name - [DEFAULT]/sql_max_overflow > [DATABASE]/max_overflow
+  # Deprecated group/name - [DATABASE]/sql_max_overflow
+  # Deprecated group/name - [DEFAULT]/sql_idle_timeout > [DATABASE]/idle_timeout
+  # Deprecated group/name - [DATABASE]/sql_idle_timeout
+  $mps=min($::processorcount * 5 + 0, 30 + 0)
+  $mpo=min($::processorcount * 5 + 0, 60 + 0)
+  cinder_config {
+    'DEFAULT/max_pool_size': value => $mps;
+    'DEFAULT/max_retries':   value => '-1';
+    'DEFAULT/max_overflow':  value => $mpo;
+    'DEFAULT/idle_timeout':  value => $idle_timeout;
+  }
+
   exec { 'cinder-manage db_sync':
     command     => $::cinder::params::db_sync_command,
     path        => '/usr/bin',
