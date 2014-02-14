@@ -1,6 +1,7 @@
 require 'ipaddr'
 require 'yaml'
 require 'json'
+require 'facter'
 
 class MrntNeutron
   def self.sanitize_value(value)
@@ -253,6 +254,7 @@ class MrntNeutron
 
   def generate_default_neutron_config()
     # fields defined as NIL are required
+    cores_count = Facter.processorcount.to_i * 5 rescue 0 # the safety is safe
     rv = {
       :amqp => {
         :provider => default_amqp_provider(),
@@ -278,6 +280,9 @@ class MrntNeutron
         :reconnect_interval => 2,
         :read_timeout => 60,
         :charset  => nil,
+        :max_pool_size => [10, [cores_count > 0 ? cores_count : 1 , 30].min].max, # 10<=max_pool_size<=30
+        :max_overflow => [20, [cores_count > 0 ? cores_count : 1, 60].min].max, # 20<=max_pool_size<=60
+        :idle_timeout => 3600,
       },
       :keystone => {
         :auth_region => 'RegionOne',
