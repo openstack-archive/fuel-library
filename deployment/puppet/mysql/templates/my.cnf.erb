@@ -8,6 +8,7 @@ nice    = 0
 syslog
 <% end -%>
 [mysqld]
+innodb_file_per_table
 user    = mysql
 #pid-file  = <%= pidfile %>
 socket    = <%= socket %>
