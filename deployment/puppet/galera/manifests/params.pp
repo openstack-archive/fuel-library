@@ -17,9 +17,21 @@
 # should be considered to be constant
 class galera::params {
 
-  $mysql_user             = "wsrep_sst"
-  $mysql_password         = "password"
-  $mysql_buffer_pool_size = inline_template("<%= ($::memorysize_mb * 0.3).floor %>M")
+  $mysql_user             = 'wsrep_sst'
+  $mysql_password         = 'password'
+  #limit buffer size to 10G
+  $buffer_size             =
+    inline_template("<%= [(${::memorysize_mb} * 0.3 + 0).floor, 10000].min %>")
+  $mysql_buffer_pool_size  =  "${buffer_size}M"
+  $mysql_log_file_size     =
+    inline_template("<%= [(${buffer_size} * 0.25 + 0).floor, 2047].min %>M")
+  $wait_timeout            = '30'
+  $myisam_sort_buffer_size = '64M'
+  $key_buffer_size         = '64M'
+  $table_open_cache        = '10000'
+  $open_files_limit        = '102400'
+  $max_connections         = '4096'
+  $innodb_flush_log_at_trx_commit = '2'
 
   case $::osfamily {
     'RedHat': {
