@@ -69,7 +69,10 @@ class keystone(
   $cache_dir           = '/var/cache/keystone',
   $enabled             = true,
   $sql_connection      = 'sqlite:////var/lib/keystone/keystone.db',
-  $idle_timeout        = '200'
+  $idle_timeout        = '200',
+  $max_pool_size       = '10',
+  $max_overflow        = '30',
+  $max_retries         = '-1',
 ) {
 
   validate_re($catalog_type,   'template|sql')
@@ -213,8 +216,11 @@ class keystone(
 
   # db connection config
   keystone_config {
-    'sql/connection':   value => $sql_connection;
-    'sql/idle_timeout': value => $idle_timeout;
+    'DATABASE/connection':    value => $sql_connection;
+    'DATABASE/idle_timeout':  value => $idle_timeout;
+    'DATABASE/max_pool_size': value => $max_pool_size;
+    'DATABASE/max_retries':   value => $max_retries;
+    'DATABASE/max_overflow':  value => $max_overflow;
   }
 
   # configure based on the catalog backend
@@ -229,11 +235,8 @@ class keystone(
     keystone_config { 'catalog/driver':
       value => ' keystone.catalog.backends.sql.Catalog'
     }
-
-    keystone_config {
-      'DATABASE/max_retries':   value => '-1';
-    }
   }
+
   if $enabled {
     $service_ensure = 'running'
   } else {
