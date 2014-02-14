@@ -8,6 +8,8 @@ nice    = 0
 syslog
 <% end -%>
 [mysqld]
+innodb_file_per_table=1
+innodb_file_format=Barracuda
 user    = mysql
 #pid-file  = <%= pidfile %>
 socket    = <%= socket %>
