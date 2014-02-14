@@ -15,7 +15,7 @@ childlogdir=/var/log/supervisor
 serverurl=unix:///var/run/supervisor.sock
 
 [program:nailgun]
-command=<%= venv %>/bin/nailgund
+command=<%= @venv %>/bin/nailgund
 process_name=%(program_name)s
 numprocs=1
 numprocs_start=0
@@ -33,7 +33,7 @@ stdout_events_enabled=false
 serverurl=AUTO
 
 [program:assassind]
-command=<%= venv %>/bin/assassind
+command=<%= @venv %>/bin/assassind
 process_name=%(program_name)s
 numprocs=1
 numprocs_start=0
@@ -51,7 +51,7 @@ stdout_events_enabled=false
 serverurl=AUTO
 
 [program:receiverd]
-command=<%= venv %>/bin/receiverd
+command=<%= @venv %>/bin/receiverd
 process_name=%(program_name)s
 numprocs=1
 numprocs_start=0
