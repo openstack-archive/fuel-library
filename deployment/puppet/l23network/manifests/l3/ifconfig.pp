@@ -72,6 +72,10 @@
 # [*check_by_ping_timeout*]
 #   Timeout for check_by_ping
 #
+# [*ethtool*]
+#   You can specify k/w hash with ethtool key/value pairs.
+#   If this hash not empty, this ethtool with this parameters will be executed
+#   at each boot
 #
 # If you configure 802.1q vlan interfaces then you must declare relationships
 # between them in site.pp.
@@ -89,6 +93,7 @@ define l23network::l3::ifconfig (
     $bond_lacp_rate  = 1,
     $mtu             = undef,
     $macaddr         = undef,
+    $ethtool         = undef,
     $dns_nameservers = undef,
     $dns_search      = undef,
     $dns_domain      = undef,
@@ -282,21 +287,33 @@ define l23network::l3::ifconfig (
   }
   File<| title == "$if_files_dir" |> -> File<| title == "$interface_file" |>
 
-  file {"$interface_file":
-    ensure  => present,
-    owner   => 'root',
-    mode    => '0644',
-    content => template("l23network/ipconfig_${::osfamily}_${method}.erb"),
+  if $ethtool {
+    $ethtool_lines=ethtool_convert_hash($ethtool)
   }
-  if $::osfamily =~ /(?i)redhat/ and $ipaddr_aliases {
+
+  if $::osfamily =~ /(?i)redhat/ and ($ipaddr_aliases or $ethtool_lines) {
     file {"${if_files_dir}/interface-up-script-${interface}":
       ensure  => present,
       owner   => 'root',
       mode    => '0755',
       recurse => true,
-      content => template("l23network/ipconfig_${::osfamily}_${method}_up-script.erb"),
+      content => template("l23network/ipconfig_${::osfamily}_ifup-script.erb"),
+    } ->
+    file {"${if_files_dir}/interface-dn-script-${interface}":
+      ensure  => present,
+      owner   => 'root',
+      mode    => '0755',
+      recurse => true,
+      content => template("l23network/ipconfig_${::osfamily}_ifdn-script.erb"),
     } ->
     File <| title == $interface_file |>
+  }
+
+  file {"$interface_file":
+    ensure  => present,
+    owner   => 'root',
+    mode    => '0644',
+    content => template("l23network/ipconfig_${::osfamily}_${method}.erb"),
   }
 
   notify {"ifconfig_${interface}": message=>"Interface:${interface} IP:${effective_ipaddr}/${effective_netmask}", withpath=>false} ->
