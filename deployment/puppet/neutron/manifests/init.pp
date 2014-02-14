@@ -18,6 +18,7 @@ class neutron (
   $ssh_private_key      = '/var/lib/astute/neutron/neutron',
   $ssh_public_key       = '/var/lib/astute/neutron/neutron.pub',
   $server_ha_mode       = false,
+  $idle_timeout         = '3600',
 ) {
   include 'neutron::params'
 
@@ -138,6 +139,15 @@ class neutron (
     'keystone_authtoken/admin_tenant_name': value => $neutron_config['keystone']['admin_tenant_name'];
     'keystone_authtoken/admin_user':        value => $neutron_config['keystone']['admin_user'];
     'keystone_authtoken/admin_password':    value => $neutron_config['keystone']['admin_password'];
+  }
+
+  $mps=min($::processorcount * 5 + 0, 30 + 0)
+  $mpo=min($::processorcount * 5 + 0, 60 + 0)
+  neutron_config {
+    'DATABASE/max_pool_size': value => $mps;
+    'DATABASE/max_retries':   value => '-1';
+    'DATABASE/max_overflow':  value => $mpo;
+    'DATABASE/idle_timeout':  value => $idle_timeout;
   }
 
   if defined(Anchor['neutron-server-config-done']) {
