@@ -243,6 +243,25 @@ class keystone(
     keystone_config { 'catalog/driver':
       value => ' keystone.catalog.backends.sql.Catalog'
     }
+
+    #TODO(bogdando) fix deprecated names in I
+    # Deprecated group/name - [DEFAULT]/sql_max_pool_size > [DATABASE]/max_pool_size
+    # Deprecated group/name - [DATABASE]/sql_max_pool_size
+    # Deprecated group/name - [DEFAULT]/sql_max_retries > [DATABASE]/max_retries
+    # Deprecated group/name - [DATABASE]/sql_max_retries
+    # Deprecated group/name - [DEFAULT]/sql_max_overflow > [DATABASE]/max_overflow
+    # Deprecated group/name - [DATABASE]/sql_max_overflow
+    keystone_config {
+      'DEFAULT/sql_max_pool_size': value => min($::processorcount * 5, 30);
+      'DEFAULT/sql_max_retries':   value => '-1';
+      'DEFAULT/sql_max_overflow':  value => min($::processorcount * 10, 60);
+    }
+    keystone_config {
+      'DEFAULT/sql_max_pool_size': value => min($::processorcount * 5, 30);
+      'DEFAULT/sql_max_retries':   value => '-1';
+    'DEFAULT/sql_max_overflow':  value => min($::processorcount * 10, 60);
+    }
+
   }
 
   if $enabled {

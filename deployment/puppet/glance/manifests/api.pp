@@ -202,6 +202,24 @@ class glance::api(
     'DEFAULT/sql_idle_timeout': value => $sql_idle_timeout;
   }
 
+  #TODO(bogdando) fix deprecated names in I
+  # Deprecated group/name - [DEFAULT]/sql_max_pool_size > [DATABASE]/max_pool_size
+  # Deprecated group/name - [DATABASE]/sql_max_pool_size
+  # Deprecated group/name - [DEFAULT]/sql_max_retries > [DATABASE]/max_retries
+  # Deprecated group/name - [DATABASE]/sql_max_retries
+  # Deprecated group/name - [DEFAULT]/sql_max_overflow > [DATABASE]/max_overflow
+  # Deprecated group/name - [DATABASE]/sql_max_overflow
+  glance_api_config {
+    'DEFAULT/sql_max_pool_size': value => min($::processorcount * 5, 30);
+    'DEFAULT/sql_max_retries':   value => '-1';
+    'DEFAULT/sql_max_overflow':  value => min($::processorcount * 10, 60);
+  }
+  glance_cache_config {
+    'DEFAULT/sql_max_pool_size': value => min($::processorcount * 5, 30);
+    'DEFAULT/sql_max_retries':   value => '-1';
+    'DEFAULT/sql_max_overflow':  value => min($::processorcount * 10, 60);
+  }
+
   # auth config
   glance_api_config {
     'keystone_authtoken/auth_host':         value => $auth_host;
