@@ -213,6 +213,7 @@ class keystone(
   # db connection config
   keystone_config {
     'sql/connection':   value => $sql_connection;
+    #TODO(bogdando) DEPRECATED in I: use idle_timeout in the [database] section instead.
     'sql/idle_timeout': value => $idle_timeout;
   }
 
@@ -227,6 +228,14 @@ class keystone(
   } elsif($catalog_type == 'sql' ) {
     keystone_config { 'catalog/driver':
       value => ' keystone.catalog.backends.sql.Catalog'
+    }
+
+    $mps=min($::processorcount * 5 + 0, 30 + 0)
+    $mpo=min($::processorcount * 5 + 0, 60 + 0)
+    keystone_config {
+      'DATABASE/max_pool_size': value => $mps;
+      'DATABASE/max_retries':   value => '-1';
+      'DATABASE/max_overflow':  value => $mpo;
     }
   }
 
