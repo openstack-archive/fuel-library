@@ -52,6 +52,10 @@
 # [syslog_log_facility] Facility for syslog, if used. Optional. Note: duplicating conf option
 #       wouldn't have been used, but more powerfull rsyslog features managed via conf template instead
 # [syslog_log_level] logging level for non verbose and non debug mode. Optional.
+# [max_retries] number of reconnects to Sqlalchemy db backend. Defaults -1.
+# [max_pool_size] QueuePool setting for Sqlalchemy db backend. Defaults 10.
+# [max_overflow] QueuePool setting for Sqlalchemy db backend. Defaults 30.
+# [idle_timeout] QueuePool setting for Sqlalchemy db backend. Defaults 3600.
 #
 # === Examples
 #
@@ -189,6 +193,11 @@ class openstack::controller (
   $cinder_rate_limits      = undef,
   $ha_mode                 = false,
   $nameservers             = undef,
+  #
+  $max_retries             = '-1',
+  $max_pool_size           = '10',
+  $max_overflow            = '30',
+  $idle_timeout            = '3600',
 ) {
 
 
@@ -284,6 +293,10 @@ class openstack::controller (
     use_syslog            => $use_syslog,
     syslog_log_facility   => $syslog_log_facility_keystone,
     syslog_log_level      => $syslog_log_level,
+    max_retries           => $max_retries,
+    max_pool_size         => $max_pool_size,
+    max_overflow          => $max_overflow,
+    idle_timeout          => $idle_timeout,
   }
 
 
@@ -307,6 +320,10 @@ class openstack::controller (
     syslog_log_facility       => $syslog_log_facility_glance,
     syslog_log_level          => $syslog_log_level,
     glance_image_cache_max_size => $glance_image_cache_max_size,
+    max_retries               => $max_retries,
+    max_pool_size             => $max_pool_size,
+    max_overflow              => $max_overflow,
+    idle_timeout              => $idle_timeout,
   }
 
   ######## BEGIN NOVA ###########
@@ -392,7 +409,12 @@ class openstack::controller (
     syslog_log_facility_neutron => $syslog_log_facility_neutron,
     syslog_log_level        => $syslog_log_level,
     nova_rate_limits        => $nova_rate_limits,
-    cinder                  => $cinder
+    cinder                  => $cinder,
+    # SQLAlchemy backend
+    max_retries             => $max_retries,
+    max_pool_size           => $max_pool_size,
+    max_overflow            => $max_overflow,
+    idle_timeout            => $idle_timeout,
   }
 
   ######### Cinder Controller Services ########
@@ -420,6 +442,10 @@ class openstack::controller (
         syslog_log_facility  => $syslog_log_facility_cinder,
         syslog_log_level     => $syslog_log_level,
         cinder_rate_limits   => $cinder_rate_limits,
+        max_retries          => $max_retries,
+        max_pool_size        => $max_pool_size,
+        max_overflow         => $max_overflow,
+        idle_timeout         => $idle_timeout,
       } # end class
     } else { # defined
       if $manage_volumes {
