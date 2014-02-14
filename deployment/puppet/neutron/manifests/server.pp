@@ -65,9 +65,12 @@ class neutron::server (
   Service <| title == 'haproxy' |> -> Service['neutron-server']
 
   neutron_config {
-    'database/connection':      value => $neutron_config['database']['url'];
-    'database/max_retries':     value => $neutron_config['database']['reconnects'];
+    'database/connection':          value => $neutron_config['database']['url'];
+    'database/max_retries':         value => $neutron_config['database']['reconnects'];
     'database/reconnect_interval':  value => $neutron_config['database']['reconnect_interval'];
+    'database/max_pool_size':       value => $neutron_config['database']['max_pool_size'];
+    'database/max_overflow':        value => $neutron_config['database']['max_overflow'];
+    'database/idle_timeout':        value => $neutron_config['database']['idle_timeout'];
   }
 
   neutron_api_config {

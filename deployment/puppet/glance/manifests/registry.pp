@@ -3,23 +3,27 @@
 #
 class glance::registry(
   $keystone_password,
-  $verbose           = false,
-  $debug             = false,
-  $bind_host         = '0.0.0.0',
-  $bind_port         = '9191',
-  $log_file          = '/var/log/glance/registry.log',
-  $sql_connection    = 'sqlite:///var/lib/glance/glance.sqlite',
-  $sql_idle_timeout  = '3600',
-  $auth_type         = 'keystone',
-  $auth_host         = '127.0.0.1',
-  $auth_port         = '35357',
-  $auth_protocol     = 'http',
-  $keystone_tenant   = 'admin',
-  $keystone_user     = 'admin',
-  $enabled           = true,
-  $use_syslog        = false,
+  $verbose             = false,
+  $debug               = false,
+  $bind_host           = '0.0.0.0',
+  $bind_port           = '9191',
+  $log_file            = '/var/log/glance/registry.log',
+  $sql_connection      = 'sqlite:///var/lib/glance/glance.sqlite',
+  $sql_idle_timeout    = '3600',
+  $auth_type           = 'keystone',
+  $auth_host           = '127.0.0.1',
+  $auth_port           = '35357',
+  $auth_protocol       = 'http',
+  $keystone_tenant     = 'admin',
+  $keystone_user       = 'admin',
+  $enabled             = true,
+  $use_syslog          = false,
   $syslog_log_facility = 'LOG_LOCAL2',
-  $syslog_log_level  = 'WARNING',
+  $idle_timeout        = '3600',
+  $syslog_log_level    = 'WARNING',
+  $max_pool_size       = '10',
+  $max_overflow        = '30',
+  $max_retries         = '-1',
 ) inherits glance {
 
 File {
@@ -85,6 +89,22 @@ if $use_syslog and !$debug { #syslog and nondebug case
   glance_registry_config {
     'DEFAULT/sql_connection':   value => $sql_connection;
     'DEFAULT/sql_idle_timeout': value => $sql_idle_timeout;
+  }
+
+  #TODO(bogdando) check for deprecation names in J
+  # Deprecated group/name - [DEFAULT]/sql_max_pool_size > [DATABASE]/max_pool_size
+  # Deprecated group/name - [DATABASE]/sql_max_pool_size
+  # Deprecated group/name - [DEFAULT]/sql_max_retries > [DATABASE]/max_retries
+  # Deprecated group/name - [DATABASE]/sql_max_retries
+  # Deprecated group/name - [DEFAULT]/sql_max_overflow > [DATABASE]/max_overflow
+  # Deprecated group/name - [DATABASE]/sql_max_overflow
+  # Deprecated group/name - [DEFAULT]/sql_idle_timeout > [DATABASE]/idle_timeout
+  # Deprecated group/name - [DATABASE]/sql_idle_timeout
+  glance_registry_config {
+    'DEFAULT/sql_max_pool_size': value => $max_pool_size;
+    'DEFAULT/sql_max_retries':   value => $max_retries;
+    'DEFAULT/sql_max_overflow':  value => $max_overflow;
+    'DEFAULT/sql_idle_timeout':  value => $idle_timeout;
   }
 
   # auth config

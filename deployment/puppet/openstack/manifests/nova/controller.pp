@@ -87,7 +87,12 @@ class openstack::nova::controller (
   $syslog_log_facility_neutron = 'LOG_LOCAL4',
   $syslog_log_level = 'WARNING',
   $nova_rate_limits          = undef,
-  $cinder                    = true
+  $cinder                    = true,
+  # SQLAlchemy backend
+  $idle_timeout              = '3600',
+  $max_pool_size             = '10',
+  $max_overflow              = '30',
+  $max_retries               = '-1',
 ) {
 
   # Configure the db string
@@ -146,6 +151,10 @@ class openstack::nova::controller (
     syslog_log_facility => $syslog_log_facility,
     syslog_log_level    => $syslog_log_level,
     use_syslog          => $use_syslog,
+    max_retries         => $max_retries,
+    max_pool_size       => $max_pool_size,
+    max_overflow        => $max_overflow,
+    idle_timeout        => $idle_timeout,
   }
 
   class {'nova::quota':
@@ -280,5 +289,3 @@ class openstack::nova::controller (
   }
 
 }
-
-# vim: set ts=2 sw=2 et :

@@ -66,7 +66,7 @@ class mysql::config(
       mode   => '0400',
       notify => Service['mysql'],
     }
-  } 
+  }
 
   if $ssl and $ssl_ca == undef {
     fail('The ssl_ca parameter is required when ssl is true')
