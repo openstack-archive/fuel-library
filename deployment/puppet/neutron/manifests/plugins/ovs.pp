@@ -63,9 +63,6 @@ class neutron::plugins::ovs (
     'DEFAULT/log_config':          ensure => absent;
     'DEFAULT/use_syslog':          ensure => absent;
     'DEFAULT/use_stderr':          ensure => absent;
-    'DATABASE/sql_connection':      value => $neutron_config['database']['url'];
-    'DATABASE/sql_max_retries':     value => $neutron_config['database']['reconnects'];
-    'DATABASE/reconnect_interval':  value => $neutron_config['database']['reconnect_interval'];
     'OVS/integration_bridge':       value => $neutron_config['L2']['integration_bridge'];
     'OVS/tenant_network_type':      value => $neutron_config['L2']['segmentation_type'];
     'OVS/enable_tunneling':         value => $neutron_config['L2']['enable_tunneling'];
