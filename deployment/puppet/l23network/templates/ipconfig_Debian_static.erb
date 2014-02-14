@@ -22,3 +22,8 @@ bond-lacp-rate <%= @bond_lacp_rate %><% end %>
 post-up ip addr add <%= addr %> dev <%= interface %>
 pre-down ip addr del <%= addr %> dev <%= interface %>
 <%- end -%><%- end -%>
+<%- if @ethtool_lines -%>
+<%- @ethtool_lines.each do |key,line| -%>
+post-up  ethtool  <%= key %>  <%= interface %>  <%= line %> || true
+<%- end -%>
+<%- end -%>
