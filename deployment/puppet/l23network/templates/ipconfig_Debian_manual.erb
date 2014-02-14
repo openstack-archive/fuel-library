@@ -14,3 +14,8 @@ bond-mode <%= @bond_mode %><% if @bond_miimon %>
 bond-miimon <%= @bond_miimon %><% end %><% if @bond_lacp_rate %>
 bond-lacp-rate <%= @bond_lacp_rate %><% end %>
 <% end %>
+<%- if @ethtool_lines -%>
+<%- @ethtool_lines.each do |key,line| -%>
+post-up  ethtool  <%= key %>  <%= interface %>  <%= line %> || true
+<%- end -%>
+<%- end -%>
