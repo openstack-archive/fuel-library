@@ -1,0 +1,7 @@
+#!/bin/sh
+<%- if @ethtool_lines -%>
+<%- @ethtool_lines.each do |key,line| -%>
+ethtool  <%= key %>  <%= interface %>  <%= line %>
+<%- end -%>
+<%- end -%>
+true
