@@ -206,6 +206,11 @@ class ceph::radosgw (
 
   file { $keyring_path: mode => '0640', }
 
+  exec { 'radosgw-admin region-map update':
+    command => 'radosgw-admin region-map update > /dev/null',
+    unless  => 'radosgw-admin region-map get > /dev/null',
+  }
+
   Ceph_conf <||> ->
   Package[$::ceph::params::package_httpd] ->
   Package[[$::ceph::params::package_radosgw,
@@ -225,5 +230,6 @@ class ceph::radosgw (
   File[$keyring_path] ->
   Firewall['012 RadosGW allow'] ~>
   Service ['httpd'] ~>
-  Service['radosgw']
+  Service['radosgw'] ->
+  Exec['radosgw-admin region-map update']
 }
