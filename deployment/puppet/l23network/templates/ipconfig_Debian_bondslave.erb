@@ -7,3 +7,4 @@ hwaddress ether <%= @macaddr.downcase %>
 <% if @mtu -%>
 mtu <%= @mtu %>
 <% end -%>
+<%= scope.function_template(['l23network/ethtool_Debian.erb']) %>
