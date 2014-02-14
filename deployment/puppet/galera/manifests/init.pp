@@ -67,6 +67,14 @@ class galera (
   $mysql_password = $::galera::params::mysql_password
   $libgalera_prefix = $::galera::params::libgalera_prefix
   $mysql_buffer_pool_size = $::galera::params::mysql_buffer_pool_size
+  $mysql_log_file_size = $::galera::params::mysql_log_file_size
+  $max_connections = $::galera::params::max_connections
+  $table_open_cache = $::galera::params::table_open_cache
+  $key_buffer_size = $::galera::params::key_buffer_size
+  $myisam_sort_buffer_size = $::galera::params::myisam_sort_buffer_size
+  $wait_timeout = $::galera::params::wait_timeout
+  $open_files_limit= $::galera::params::open_files_limit
+  $low_priority_updates=$::galera::params::low_priority_updates
 
   case $::osfamily {
     'RedHat' : {
@@ -229,6 +237,15 @@ class galera (
   #    before => Package["MySQL-server"],
   #    logoutput => true,
   #  }
+
+  #FIXME(bogdando): dirtyhack to pervert puppet nature and check if 'old' wsrep config file exists:
+  # update innodb_log_file_size only if there is no 'old' wsrep configuration exists
+  # note: custom fact returns bool as a string!
+  if $::galera_conf_exists == 'false' {
+    $update_innodb_log_file_size = true
+  } else {
+    $update_innodb_log_file_size = false
+  }
 
   file { ["/etc/mysql", "/etc/mysql/conf.d"]: ensure => directory, }
 
