@@ -13,3 +13,4 @@ bond-lacp-rate <%= @bond_lacp_rate %><% end %>
 <% if @mtu -%>
 mtu <%= @mtu %>
 <% end -%>
+<%= scope.function_template(['l23network/ethtool_Debian.erb']) %>
