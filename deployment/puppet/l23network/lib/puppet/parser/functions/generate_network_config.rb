@@ -152,7 +152,7 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
       born_ports.insert(-1, int_name)
       # add some of 1st level interface properties to it's config
       int_properties.each do |k,v|
-        next if ! ['macaddr', 'mtu'].index(k.to_s)
+        next if ! ['macaddr', 'mtu', 'ethtool'].index(k.to_s)
         endpoints[int_name][:properties][k.to_sym] = v
       end
     end

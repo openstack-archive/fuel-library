@@ -24,3 +24,8 @@ BONDING_OPTS="mode=<%= @bond_mode %><% if @bond_miimon %> miimon=<%= @bond_miimo
 <% if @mtu -%>
 MTU=<%= @mtu %>
 <% end -%>
+<%- if @ethtool_lines -%>
+<%- @ethtool_lines.each do |key,line| -%>
+post-up  ethtool  <%= key %>  <%= interface %>  <%= line %> || true
+<%- end -%>
+<%- end -%>
