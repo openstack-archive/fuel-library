@@ -38,9 +38,10 @@ define cluster::virtual_ip (
     #   'interleave' => 'true',
     # },
     parameters => {
-      'nic'     => $vip[nic],
-      'ip'      => $vip[ip],
-      'iflabel' => $vip[iflabel] ? { undef => 'ka', default => $vip[iflabel] },
+      'nic'          => $vip[nic],
+      'ip'           => $vip[ip],
+      'iflabel'      => $vip[iflabel] ? { undef => 'ka', default => $vip[iflabel] },
+      'cidr_netmask' => $vip[cidr_netmask],
       #'lvs_support' => $vip[lvs_support] ? { undef => 'false', default => $vip[lvs_support] },
       #'unique_clone_address' => $vip[unique_clone_address] ? { undef => 'true', default => $vip[unique_clone_address] },
     },
