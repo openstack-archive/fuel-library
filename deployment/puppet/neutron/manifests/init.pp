@@ -140,6 +140,17 @@ class neutron (
     'keystone_authtoken/admin_password':    value => $neutron_config['keystone']['admin_password'];
   }
 
+  $mps="${neutron_config['database']['max_pool_size']}" ? { default => min($::processorcount * 5 + 0, 30 + 0) }
+  $mpo="${neutron_config['database']['max_overflow']}"  ? { default => min($::processorcount * 5 + 0, 60 + 0) }
+  $mrt="${neutron_config['database']['max_retries']}"   ? { default => '-1' }
+  $idt="${neutron_config['database']['idle_timeout']}"  ? { default => '3600' }
+  neutron_config {
+    'DATABASE/max_pool_size': value => $mps;
+    'DATABASE/max_retries':   value => $mrt;
+    'DATABASE/max_overflow':  value => $mpo;
+    'DATABASE/idle_timeout':  value => $idt;
+  }
+
   if defined(Anchor['neutron-server-config-done']) {
     $endpoint_neutron_main_configuration = 'neutron-server-config-done'
   } else {

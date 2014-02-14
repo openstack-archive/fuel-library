@@ -1,6 +1,7 @@
 require 'ipaddr'
 require 'yaml'
 require 'json'
+require 'facter'
 
 class MrntNeutron
   def self.sanitize_value(value)
@@ -278,6 +279,11 @@ class MrntNeutron
         :reconnect_interval => 2,
         :read_timeout => 60,
         :charset  => nil,
+        # SQLAlchemy QueuePool
+        :max_pool_size => [(Facter.processorcount * 5).to_i, 30].min,
+        :max_overflow => [(Facter.processorcount * 5).to_i, 60].min,
+        :max_retries => -1,
+        :idle_timeout => 3600,
       },
       :keystone => {
         :auth_region => 'RegionOne',

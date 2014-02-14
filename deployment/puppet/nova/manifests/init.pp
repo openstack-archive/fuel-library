@@ -68,7 +68,8 @@ class nova(
   #$root_helper = $::nova::params::root_helper,
   $monitoring_notifications = false,
   $api_bind_address = '0.0.0.0',
-  $remote_syslog_server = '127.0.0.1'
+  $remote_syslog_server = '127.0.0.1',
+  $idle_timeout = '3600',
 ) inherits nova::params {
 
   # all nova_config resources should be applied
@@ -101,9 +102,9 @@ class nova(
 
   # turn on rabbitmq ha/cluster mode
   if $queue_provider == 'rabbitmq' and $rabbit_ha_queues {
-    Nova_config['DEFAULT/rabbit_ha_queues'] -> Nova::Generic_service<| title != 'api' |>
-    nova_config { 'DEFAULT/rabbit_ha_queues': value => 'True' }
-  }
+        Nova_config['DEFAULT/rabbit_ha_queues'] -> Nova::Generic_service<| title != 'api' |>
+        nova_config { 'DEFAULT/rabbit_ha_queues': value => 'True' }
+      }
 
   if (defined(Exec['update-kombu']))
   {
@@ -229,7 +230,7 @@ if $use_syslog and !$debug { #syslog and nondebug case
         'DEFAULT/qpid_hosts':    value => $amqp_hosts;
         'DEFAULT/qpid_username': value => $amqp_user;
         'DEFAULT/qpid_password': value => $rabbit_virtual_host;
-        'DEFAULT/rpc_backend':   value => 'nova.rpc.impl_qpid';
+        'DEFAULT/rpc_backend':       value => 'nova.rpc.impl_qpid';
       }
     }
   }
@@ -251,8 +252,13 @@ if $use_syslog and !$debug { #syslog and nondebug case
     'DEFAULT/osapi_volume_listen':  value => $api_bind_address;
   }
 
+  $mps=min($::processorcount * 5 + 0, 30 + 0)
+  $mpo=min($::processorcount * 5 + 0, 60 + 0)
   nova_config {
+    'DATABASE/max_pool_size': value => $mps;
     'DATABASE/max_retries':   value => '-1';
+    'DATABASE/max_overflow':  value => $mpo;
+    'DATABASE/idle_timeout':  value => $idle_timeout;
   }
 
   if $monitoring_notifications {
