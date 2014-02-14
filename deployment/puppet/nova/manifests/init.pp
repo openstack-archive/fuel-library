@@ -68,7 +68,11 @@ class nova(
   #$root_helper = $::nova::params::root_helper,
   $monitoring_notifications = false,
   $api_bind_address = '0.0.0.0',
-  $remote_syslog_server = '127.0.0.1'
+  $remote_syslog_server = '127.0.0.1',
+  $idle_timeout = '3600',
+  $max_pool_size = '10',
+  $max_overflow = '30',
+  $max_retries = '-1',
 ) inherits nova::params {
 
   # all nova_config resources should be applied
@@ -193,8 +197,8 @@ if $use_syslog and !$debug { #syslog and nondebug case
     } else {
       fail("Invalid db connection ${sql_connection}")
     }
-    if !defined(Nova_config['DEFAULT/sql_connection']) {
-      nova_config { 'DEFAULT/sql_connection': value => $sql_connection }
+    if !defined(Nova_config['DATABASE/connection']) {
+      nova_config { 'DATABASE/connection': value => $sql_connection }
     }
   } else {
     Nova_config <<| tag == "${::deployment_id}::${::environment}" and title == 'sql_connection' |>>
@@ -252,7 +256,10 @@ if $use_syslog and !$debug { #syslog and nondebug case
   }
 
   nova_config {
-    'DATABASE/max_retries':   value => '-1';
+    'DATABASE/max_pool_size': value => $max_pool_size;
+    'DATABASE/max_retries':   value => $max_retries;
+    'DATABASE/max_overflow':  value => $max_overflow;
+    'DATABASE/idle_timeout':  value => $idle_timeout;
   }
 
   if $monitoring_notifications {

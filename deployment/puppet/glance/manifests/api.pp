@@ -61,7 +61,10 @@ class glance::api(
   $keystone_tenant   = 'admin',
   $keystone_user     = 'admin',
   $enabled           = true,
-  $sql_idle_timeout  = '3600',
+  $idle_timeout      = '3600',
+  $max_pool_size     = '10',
+  $max_overflow      = '30',
+  $max_retries       = '-1',
   $sql_connection    = 'sqlite:///var/lib/glance/glance.sqlite',
   $use_syslog        = false,
   $syslog_log_facility = 'LOG_LOCAL2',
@@ -183,7 +186,27 @@ class glance::api(
   # TODO figure out if I need this...
   glance_api_config {
     'DEFAULT/sql_connection':   value => $sql_connection;
-    'DEFAULT/sql_idle_timeout': value => $sql_idle_timeout;
+  }
+
+  #TODO(bogdando) check for deprecation in J
+  # Deprecated group/name - [DEFAULT]/sql_max_pool_size > [DATABASE]/max_pool_size
+  # Deprecated group/name - [DATABASE]/sql_max_pool_size
+  # Deprecated group/name - [DEFAULT]/sql_max_retries > [DATABASE]/max_retries
+  # Deprecated group/name - [DATABASE]/sql_max_retries
+  # Deprecated group/name - [DEFAULT]/sql_max_overflow > [DATABASE]/max_overflow
+  # Deprecated group/name - [DATABASE]/sql_max_overflow
+  # Deprecated group/name - [DEFAULT]/sql_idle_timeout > [DATABASE]/idle_timeout
+  # Deprecated group/name - [DATABASE]/sql_idle_timeout
+  glance_api_config {
+    'DEFAULT/sql_max_pool_size': value => $max_pool_size;
+    'DEFAULT/sql_max_retries':   value => $max_retries;
+    'DEFAULT/sql_max_overflow':  value => $max_overflow;
+    'DEFAULT/sql_idle_timeout':  value => $idle_timeout;
+  }
+  glance_cache_config {
+    'DEFAULT/sql_max_pool_size': value => $max_pool_size;
+    'DEFAULT/sql_max_retries':   value => $max_retries;
+    'DEFAULT/sql_max_overflow':  value => $max_overflow;
   }
 
   # auth config

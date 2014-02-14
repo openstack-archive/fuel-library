@@ -26,6 +26,10 @@ class openstack::cinder(
   $cinder_rate_limits     = undef,
   $verbose                = false,
   $debug                  = false,
+  $idle_timeout           = '3600',
+  $max_pool_size          = '10',
+  $max_overflow           = '30',
+  $max_retries            = '-1',
 ) {
   include cinder::params
   #  if ($purge_cinder_config) {
@@ -50,17 +54,21 @@ class openstack::cinder(
   }
 
   class { 'cinder::base':
-    package_ensure  => $::openstack_version['cinder'],
-    queue_provider  => $queue_provider,
-    amqp_hosts      => $amqp_hosts,
-    amqp_user       => $amqp_user,
-    amqp_password   => $amqp_password,
-    sql_connection  => $sql_connection,
-    verbose         => $verbose,
-    use_syslog      => $use_syslog,
+    package_ensure      => $::openstack_version['cinder'],
+    queue_provider      => $queue_provider,
+    amqp_hosts          => $amqp_hosts,
+    amqp_user           => $amqp_user,
+    amqp_password       => $amqp_password,
+    sql_connection      => $sql_connection,
+    verbose             => $verbose,
+    use_syslog          => $use_syslog,
     syslog_log_facility => $syslog_log_facility,
     syslog_log_level    => $syslog_log_level,
-    debug           => $debug,
+    debug               => $debug,
+    max_retries         => $max_retries,
+    max_pool_size       => $max_pool_size,
+    max_overflow        => $max_overflow,
+    idle_timeout        => $idle_timeout,
   }
   if ($bind_host) {
     class { 'cinder::api':
