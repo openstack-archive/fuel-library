@@ -52,6 +52,15 @@ class mysql::config(
   $server_id         = $mysql::params::server_id,
 ) inherits mysql::params {
 
+  $mysql_buffer_pool_size = $::mysql::params::mysql_buffer_pool_size
+  $mysql_log_file_size    = $::mysql::params::mysql_log_file_size
+  $max_connections = $::mysql::params::max_connections
+  $table_open_cache = $::mysql::params::table_open_cache
+  $key_buffer_size = $::mysql::params::key_buffer_size
+  $myisam_sort_buffer_size = $::mysql::params::myisam_sort_buffer_size
+  $wait_timeout = $::mysql::params::wait_timeout
+  $open_files_limit= $::mysql::params::open_files_limit
+
   if $custom_setup_class != "pacemaker_mysql" {
     File {
       owner  => 'root',
@@ -66,7 +75,7 @@ class mysql::config(
       mode   => '0400',
       notify => Service['mysql'],
     }
-  } 
+  }
 
   if $ssl and $ssl_ca == undef {
     fail('The ssl_ca parameter is required when ssl is true')
@@ -126,6 +135,22 @@ class mysql::config(
   file { '/etc/mysql/conf.d':
     ensure => directory,
     mode   => '0755',
+  }
+
+  #FIXME(bogdando): dirtyhack to pervert imperative puppet nature.
+  if $::mysql_log_file_size_real != $mysql_log_file_size {
+    # delete MySQL ib_logfiles, if log file size does not match the one
+    # from params
+    exec { 'delete_logfiles':
+      command     => "rm -f ${datadir}/ib_logfile* || true",
+      path        => [ '/sbin/', '/usr/sbin/', '/usr/bin/' ,'/bin/' ],
+      before      => File[$config_file],
+    }
+    # use predefined value for log file size
+    $innodb_log_file_size_real = $mysql_log_file_size
+  } else {
+    # evaluate existing log file size and use it as a value
+    $innodb_log_file_size_real = $::mysql_log_file_size_real
   }
 
   file { $config_file:
