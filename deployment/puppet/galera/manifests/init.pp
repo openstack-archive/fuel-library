@@ -67,6 +67,15 @@ class galera (
   $mysql_password = $::galera::params::mysql_password
   $libgalera_prefix = $::galera::params::libgalera_prefix
   $mysql_buffer_pool_size = $::galera::params::mysql_buffer_pool_size
+  $mysql_log_file_size = $::galera::params::mysql_log_file_size
+  $max_connections = $::galera::params::max_connections
+  $table_open_cache = $::galera::params::table_open_cache
+  $key_buffer_size = $::galera::params::key_buffer_size
+  $myisam_sort_buffer_size = $::galera::params::myisam_sort_buffer_size
+  $wait_timeout = $::galera::params::wait_timeout
+  $open_files_limit= $::galera::params::open_files_limit
+  $innodb_flush_log_at_trx_commit=$::galera::params::innodb_flush_log_at_trx_commit
+  $datadir=$::mysql::params::datadir
 
   case $::osfamily {
     'RedHat' : {
@@ -237,6 +246,23 @@ class galera (
       ensure  => present,
       content => template("galera/wsrep.cnf.erb"),
       require => [File["/etc/mysql/conf.d"], File["/etc/mysql"]],
+    }
+
+    #FIXME(bogdando): dirtyhack to pervert puppet nature and check if 'old' wsrep config file exists:
+    # update innodb_log_file_size only if there is no 'old' wsrep configuration exists
+    # note: custom fact returns bool as a string!
+    if $::galera_conf_exists == 'false' {
+      # delete MySQL ib_logfiles, if there is no config file was created yet
+      exec { 'delete_logfiles':
+        command     => "rm -f ${datadir}/ib_logfile* || true",
+        path        => [ '/sbin/', '/usr/sbin/', '/usr/bin/' ,'/bin/' ],
+      }
+      # use predefined value for log file size
+      $innodb_log_file_size_real = $mysql_log_file_size
+      Package['MySQL-server'] -> Exec['delete_logfiles'] -> File['mysql-wss-ocf']
+    } else {
+      # use existing log file size fact as a value
+      $innodb_log_file_size_real = $::mysql_log_file_size_real
     }
     File["/etc/mysql/conf.d/wsrep.cnf"] -> Package['MySQL-server']
   }
