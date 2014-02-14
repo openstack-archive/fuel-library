@@ -37,6 +37,10 @@ class openstack::controller_ha (
    $use_unicast_corosync    = false,
    $ha_mode                 = true,
    $nameservers             = undef,
+   $idle_timeout            = '3600',
+   $max_pool_size           = '10',
+   $max_overflow            = '30',
+   $max_retries             = '-1',
  ) {
 
     class { '::openstack::ha::haproxy':
@@ -133,6 +137,11 @@ class openstack::controller_ha (
       horizon_use_ssl              => $horizon_use_ssl,
       ha_mode                      => $ha_mode,
       nameservers                  => $nameservers,
+      # SQLALchemy backend
+      max_retries                  => $max_retries,
+      max_pool_size                => $max_pool_size,
+      max_overflow                 => $max_overflow,
+      idle_timeout                 => $idle_timeout,
     }
 
     if $quantum and $quantum_network_node {
