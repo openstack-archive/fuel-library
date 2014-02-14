@@ -328,6 +328,24 @@ File['nova-logging.conf'] ~> Service <| title == "$nova::params::meta_api_servic
     'DEFAULT/osapi_volume_listen':  value => $api_bind_address;
   }
 
+  #TODO(bogdando) fix deprecated names in I
+  # Deprecated group/name - [DEFAULT]/sql_max_pool_size > [DATABASE]/max_pool_size
+  # Deprecated group/name - [DATABASE]/sql_max_pool_size
+  # Deprecated group/name - [DEFAULT]/sql_max_retries > [DATABASE]/max_retries
+  # Deprecated group/name - [DATABASE]/sql_max_retries
+  # Deprecated group/name - [DEFAULT]/sql_max_overflow > [DATABASE]/max_overflow
+  # Deprecated group/name - [DATABASE]/sql_max_overflow
+  # Deprecated group/name - [DEFAULT]/sql_idle_timeout > [DATABASE]/idle_timeout
+  # Deprecated group/name - [DATABASE]/sql_idle_timeout
+  $mps=min(inline_template("<%= ($::processorcount * 5).floor %>"), '30')
+  $mpo=min(inline_template("<%= ($::processorcount * 5).floor %>"), '60')
+  nova_config {
+    'DEFAULT/sql_max_pool_size': value => $mps;
+    'DEFAULT/sql_max_retries':   value => '-1';
+    'DEFAULT/sql_max_overflow':  value => $mpo;
+    'DEFAULT/sql_idle_timeout': value => '3600';
+  }
+
   if $monitoring_notifications {
     nova_config {
       'DEFAULT/notification_driver': value => 'nova.notifier.rabbit_notifier'
