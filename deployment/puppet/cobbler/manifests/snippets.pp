@@ -59,6 +59,7 @@ class cobbler::snippets {
   cobbler_snippet {"cinder_create_lvm_group__ubuntu":}
   cobbler_snippet {"centos_blacklist_i2c_piix4":}
   cobbler_snippet {"centos_static_net":}
+  cobbler_snippet {"ubuntu_authorized_keys":}  
   cobbler_snippet {"ubuntu_blacklist_i2c_piix4":}
   cobbler_snippet {"ubuntu_disable_pxe":}
   cobbler_snippet {"ubuntu_packages":}
