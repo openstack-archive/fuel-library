@@ -123,7 +123,7 @@ echo target > /target/etc/nailgun_systemtype && \
 echo 'APT::Get::AllowUnauthenticated 1;' > /target/etc/apt/apt.conf.d/02mirantis-allow-unsigned && \
 echo 'deb http://@@server@@:8080/ubuntu/fuelweb/x86_64 precise main' > /target/etc/apt/sources.list && \
 $SNIPPET('ubuntu_authorized_keys')
-sed -i -e "/^\s*GSSAPICleanupCredentials yes/d" -e "/^\s*GSSAPIAuthentication yes/d" -e "s/.*PasswordAuthentication.*/PasswordAuthentication\ no/g" -e "/UseDNS/d" /target/etc/ssh/sshd_config && \
+sed -i -e "/^\s*GSSAPICleanupCredentials yes/d" -e "/^\s*GSSAPIAuthentication yes/d" -e "s/.*PasswordAuthentication\ .*/PasswordAuthentication\ no/g" -e "/UseDNS/d" /target/etc/ssh/sshd_config && \
 echo "UseDNS no" >> /target/etc/ssh/sshd_config && \
 in-target wget -O /etc/rsyslog.d/20-puppet_stdout.conf "http://$server/cobbler/aux/20-puppet_stdout_syslog.conf" && \
 in-target wget -O /etc/rsyslog.d/20-puppet_error.conf "http://$server/cobbler/aux/20-puppet_error_syslog.conf" && \
