@@ -18,6 +18,8 @@ class mysql::params {
   $ssl                 = false
   $server_id           = delete(delete(delete("$::hostname",'controller-'),'fuel-'),"node-")
   $service_provider = undef
+  $mysql_buffer_pool_size = inline_template("<%= ($::memorysize_mb * 0.3).floor
+%>M")
 
   case $::osfamily {
     'RedHat': {
