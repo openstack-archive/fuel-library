@@ -32,7 +32,9 @@ class mysql::server (
   $rep_pass = 'replicant666',
   $replication_roles = "SELECT, PROCESS, FILE, SUPER, REPLICATION CLIENT, REPLICATION SLAVE, RELOAD",
   $use_syslog              = false,
-  $initscript_file         = 'puppet:///modules/mysql/mysql-single.init'
+  $initscript_file         = 'puppet:///modules/mysql/mysql-single.init',
+  $mysql_buffer_pool_size  = $::galera::params::mysql_buffer_pool_size
+
 ) inherits mysql::params {
 
   Exec {path => '/usr/bin:/bin:/usr/sbin:/sbin'}
