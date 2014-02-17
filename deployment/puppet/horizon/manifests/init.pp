@@ -78,10 +78,20 @@ class horizon(
     mode    => '0644',
   }
 
-  file {'/usr/share/openstack-dashboard/':
-    recurse   => true,
-    subscribe => Package['dashboard']
+  $dashboard_directory = '/usr/share/openstack-dashboard/'
+
+  file { $dashboard_directory :
+    ensure => directory,
   }
+
+  exec { 'chown_dashboard' :
+    command     => "chown -R ${wsgi_user}:${wsgi_group} ${dashboard_directory}",
+    path        => [ '/usr/sbin', '/usr/bin', '/sbin', '/bin' ],
+    refreshonly => true,
+    provider    => 'shell',
+  }
+
+  Package['dashboard'] -> File[$dashboard_directory] ~> Exec['chown_dashboard']
 
   case $use_ssl {
     'exist': { # SSL certificate already exists
