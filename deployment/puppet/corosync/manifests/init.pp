@@ -193,7 +193,7 @@ class corosync (
       path    => ['/bin', '/usr/bin', '/sbin', '/usr/sbin'],
       onlyif  => "crm node status|grep ${::hostname}-standby|
       grep 'value=\"on\"'",
-      require => Service['corosync'],
+      require => Service['corosync', 'pacemaker'],
     }
   }
 
@@ -203,14 +203,25 @@ class corosync (
       path    => ['/bin', '/usr/bin', '/sbin', '/usr/sbin'],
       onlyif  => "crm node status|grep ${::hostname}-standby|
       grep 'value=\"on\"'",
-      require => Service['corosync'],
+      require => Service['corosync', 'pacemaker'],
     }
   }
 
   service { 'corosync':
     ensure    => running,
     enable    => true,
-    subscribe => File[['/etc/corosync/corosync.conf', '/etc/corosync/service.d']],
+    hasstatus  => true,
+    hasrestart => true,
+    subscribe => File['/etc/corosync/corosync.conf', '/etc/corosync/service.d'],
   }
+
+  service { 'pacemaker' :
+    ensure     => 'running',
+    enable     => true,
+    hasstatus  => true,
+    hasrestart => true,
+  }
+
+  Service['corosync'] ~> Service['pacemaker']
  
 }

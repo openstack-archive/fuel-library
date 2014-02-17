@@ -40,7 +40,7 @@ file {'filter_quantum_ports.py':
 
 Anchor['corosync'] ->
 corosync::service { 'pacemaker':
-  version => '0',
+  version => '1',
 }
 Corosync::Service['pacemaker'] ~> Service['corosync']
 Corosync::Service['pacemaker'] -> Anchor['corosync-done']
