@@ -78,10 +78,13 @@ class horizon(
     mode    => '0644',
   }
 
-  $dashboard_directory = '/usr/share/openstack-dashboard/'
+  $dashboard_directory = '/usr/share/openstack-dashboard'
 
   file { $dashboard_directory :
     ensure => directory,
+    owner  => $wsgi_user,
+    group  => $wsgi_group,
+    mode   => '0755',
   }
 
   exec { 'chown_dashboard' :
