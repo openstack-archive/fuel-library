@@ -1,7 +1,9 @@
 # file is managed by puppet
 
 ### collect puppet logs of all levels in /var/log/puppet/puppet.log
-if ($programname contains 'puppet-apply') \
+if ($programname == 'puppet-apply' \
+ or $programname == 'puppet-error' \
+ or $programname == 'puppet_err') \
 ### use 6 for INFO+ msg levels, 5 for WARN+ etc.
 ###  and $syslogseverity <= '6' \
 then -/var/log/puppet/puppet.log
