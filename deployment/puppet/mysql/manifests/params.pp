@@ -18,6 +18,8 @@ class mysql::params {
   $ssl                 = false
   $server_id           = delete(delete(delete("$::hostname",'controller-'),'fuel-'),"node-")
   $service_provider = undef
+  #Set buffer pool size to 30% of memory, but not greater than 10G
+  $mysql_buffer_pool_size = inline_template("<%= [($::memorysize_mb * 0.3 + 0).floor, 10000].min %>M")
 
   case $::osfamily {
     'RedHat': {
