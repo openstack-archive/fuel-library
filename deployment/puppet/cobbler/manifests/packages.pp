@@ -18,9 +18,7 @@ class cobbler::packages {
   case $operatingsystem {
     /(?i)(centos|redhat)/:  {
       $cobbler_package = "cobbler"
-      $cobbler_version = "2.2.3-2.el6"
       $cobbler_web_package = "cobbler-web"
-      $cobbler_web_package_version = "2.2.3-2.el6"
       $dnsmasq_package = "dnsmasq"
       $cobbler_additional_packages = ["xinetd", "tftp-server", "syslinux", "wget", "python-ipaddr"]
       $django_package = "Django"
@@ -28,9 +26,7 @@ class cobbler::packages {
     }
     /(?i)(debian|ubuntu)/:  {
       $cobbler_package = "cobbler"
-      $cobbler_version = "2.2.2-0ubuntu33.2"
       $cobbler_web_package = "cobbler-web"
-      $cobbler_web_package_version = "2.2.2-0ubuntu33.2"
       $dnsmasq_package = "dnsmasq"
       $cobbler_additional_packages = ["tftpd-hpa", "syslinux", "wget", "python-ipaddr"]
       $django_package = "python-django"
@@ -51,7 +47,6 @@ class cobbler::packages {
   }
 
   package { $cobbler_package :
-    ensure => $cobbler_version,
     require => [
                 Package[$dnsmasq_package],
                 Package[$cobbler_additional_packages],
@@ -60,7 +55,6 @@ class cobbler::packages {
   }
 
   package { $cobbler_web_package :
-    ensure => $cobbler_web_package_version,
     require => Package[$cobbler_package]
   }
 
