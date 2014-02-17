@@ -1,6 +1,6 @@
 # managed by puppet
 
-<%= @syslog_log_facility_cinder %>.* -/var/log/cinder-all.log
-<%= @syslog_log_facility_cinder %>.* ~
+<%= @syslog_log_facility_cinder_matched %>.* -/var/log/cinder-all.log
+& ~
 :syslogtag, contains, "cinder" -/var/log/cinder-all.log
-:syslogtag, contains, "cinder" ~
+& ~

@@ -1,6 +1,6 @@
 # managed by puppet
 
-<%= @syslog_log_facility_neutron %>.* -/var/log/neutron-all.log
-<%= @syslog_log_facility_neutron %>.* ~
+<%= @syslog_log_facility_neutron_matched %>.* -/var/log/neutron-all.log
+& ~
 :syslogtag, contains, "neutron" -/var/log/neutron-all.log
-:syslogtag, contains, "neutron" ~
+& ~

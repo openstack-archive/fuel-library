@@ -1,6 +1,6 @@
 # managed by puppet
 
-<%= @syslog_log_facility_nova %>.* -/var/log/nova-all.log
-<%= @syslog_log_facility_nova %>.* ~
+<%= @syslog_log_facility_nova_matched %>.* -/var/log/nova-all.log
+& ~
 :syslogtag, contains, "nova" -/var/log/nova-all.log
-:syslogtag, contains, "nova" ~
+& ~
