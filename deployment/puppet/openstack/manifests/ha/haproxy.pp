@@ -26,6 +26,7 @@ class openstack::ha::haproxy (
   class { 'openstack::ha::keystone': }
   class { 'openstack::ha::nova': }
   class { 'openstack::ha::glance': }
+  class { 'openstack::ha::cinder': }
 
   if $neutron { class { 'openstack::ha::neutron': } }
   if $queue_provider == 'rabbitmq' { class { 'openstack::ha::rabbitmq': } }
