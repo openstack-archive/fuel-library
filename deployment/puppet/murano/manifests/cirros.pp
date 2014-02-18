@@ -10,6 +10,10 @@ class murano::cirros (
   $os_name          = 'cirros',
 ) {
 
+  # this code is not used because we are using Astute to upload image to Glance
+  # But it's left here because it could be useful for someone who is trying
+  # to use this module outside Fuel
+
   #case $::osfamily {
   #  'RedHat': {
   #    exec { 'upload-img':
