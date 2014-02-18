@@ -51,9 +51,30 @@ class ceilometer::alarm::evaluator (
     file {'ceilometer-alarm-evaluator-ocf':
       path   =>'/usr/lib/ocf/resource.d/mirantis/ceilometer-alarm-evaluator',
       mode   => '0755',
-      owner  => root,
-      group  => root,
+      owner  => 'root',
+      group  => 'root',
       source => 'puppet:///modules/ceilometer/ocf/ceilometer-alarm-evaluator',
+    }
+
+    if $::operatingsystem == 'Ubuntu' {
+      $ceilometer_alarm_evaluator_override_path = '/etc/init/ceilometer-alarm-evaluator.override'
+
+      file { 'ceilometer-alarm-evaluator-override' :
+        ensure  => present,
+        path    => $ceilometer_alarm_evaluator_override_path,
+        replace => 'no',
+        content => 'manual',
+        mode    => '0644',
+      }
+
+      exec { 'remove-ceilometer-alarm-evaluator-override' :
+        path    => [ '/bin', '/sbin', '/usr/bin', '/usr/sbin' ],
+        command => "rm -f ${ceilometer_alarm_evaluator_override_path}",
+        onlyif  => "test -f ${ceilometer_alarm_evaluator_override_path}",
+      }
+
+      File['ceilometer-alarm-evaluator-override'] -> Package['ceilometer-alarm'] -> Exec['remove-ceilometer-alarm-evaluator-override']
+
     }
 
     File['ceilometer-alarm-evaluator-ocf'] -> Cs_resource[$res_name]

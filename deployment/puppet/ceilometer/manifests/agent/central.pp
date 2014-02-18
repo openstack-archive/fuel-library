@@ -77,9 +77,30 @@ class ceilometer::agent::central (
     file {'ceilometer-agent-central-ocf':
       path   =>'/usr/lib/ocf/resource.d/mirantis/ceilometer-agent-central',
       mode   => '0755',
-      owner  => root,
-      group  => root,
+      owner  => 'root',
+      group  => 'root',
       source => 'puppet:///modules/ceilometer/ocf/ceilometer-agent-central',
+    }
+
+    if $::operatingsystem == 'Ubuntu' {
+      $ceilometer_agent_central_override_path = '/etc/init/ceilometer-agent-central.override'
+
+      file { 'ceilometer-agent-central-override' :
+        ensure  => present,
+        path    => $ceilometer_agent_central_override_path,
+        replace => 'no',
+        content => 'manual',
+        mode    => '0644',
+      }
+
+      exec { 'remove-ceilometer-agent-central-override' :
+        path    => [ '/bin', '/sbin', '/usr/bin', '/usr/sbin' ],
+        command => "rm -f ${ceilometer_agent_central_override_path}",
+        onlyif  => "test -f ${ceilometer_agent_central_override_path}", 
+      }
+
+      File['ceilometer-agent-central-override'] -> Package['ceilometer-agent-central'] -> Exec['remove-ceilometer-agent-central-override']
+
     }
 
     File['ceilometer-agent-central-ocf'] -> Cs_resource[$res_name]
