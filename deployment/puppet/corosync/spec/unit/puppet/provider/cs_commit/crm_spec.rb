@@ -7,6 +7,7 @@ describe Puppet::Type.type(:cs_commit).provider(:crm) do
 
   describe "#commit" do
     it "should commit corresponding cib" do
+      provider.class.stubs(:block_until_ready).returns(true)
       provider.expects(:crm).with('cib','commit','mycib')
       provider.sync('mycib')
     end

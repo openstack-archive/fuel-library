@@ -11,6 +11,7 @@ Puppet::Type.type(:cs_commit).provide(:crm, :parent => Puppet::Provider::Corosyn
   end
 
   def sync(cib)
+    self.class.block_until_ready
     crm_shadow '--force', '--commit', cib
   end
 end

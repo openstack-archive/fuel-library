@@ -10,6 +10,7 @@ Puppet::Type.type(:cs_shadow).provide(:crm, :parent => Puppet::Provider::Corosyn
   end
 
   def sync(cib)
+    self.class.block_until_ready
     begin
       crm('cib', 'delete', cib)
     rescue => e
