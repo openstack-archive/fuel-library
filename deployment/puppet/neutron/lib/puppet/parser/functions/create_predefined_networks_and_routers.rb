@@ -3,9 +3,11 @@
 # require 'json'
 
 class MrntNeutronNR
-  def initialize(scope, cfg)
+  def initialize(scope, cfg, tenant_name)
     @scope = scope
     @neutron_config = cfg
+    #FIXME(mmosesohn): Add correct user-defined tenant to neutron_config
+    @tenant_name = tenant_name
   end
 
   #class method
@@ -36,10 +38,16 @@ class MrntNeutronNR
     "/24"
   end
 
+  def get_tenant()
+    #FIXME(mmosesohn): Add correct user-defined tenant to neutron_config
+    #@neutron_config[:predefined_routers][:tenant]
+    @tenant_name
+  end
+
   def get_default_router_config()
     Marshal.load(Marshal.dump({
       :name    => nil,
-      :tenant  => 'admin',
+      :tenant  => get_tenant(),
       :int_subnets => nil,
       :ext_net     => nil,
     }))
@@ -49,7 +57,7 @@ class MrntNeutronNR
     Marshal.load(Marshal.dump({
       :net => {
         :name         => nil,
-        :tenant       => 'admin',
+        :tenant       => get_tenant(),
         :network_type => nil,
         :physnet      => nil,
         :router_ext   => nil,
@@ -58,7 +66,7 @@ class MrntNeutronNR
       },
       :subnet => {
         :name    => nil,
-        :tenant  => 'admin',
+        :tenant  => get_tenant(),
         :network => nil,  # Network id or name this subnet belongs to
         :cidr    => nil,  # CIDR of subnet to create
         :gateway => nil,
@@ -83,6 +91,7 @@ class MrntNeutronNR
       # config network resources parameters
       network_config = get_default_network_config()
       network_config[:net][:name] = net.to_s
+      network_config[:net][:tenant] =  get_tenant()
       network_config[:net][:network_type] = ncfg[:L2][:network_type]
       network_config[:net][:router_ext] = ncfg[:L2][:router_ext]
       network_config[:net][:shared] = ncfg[:shared]
@@ -157,7 +166,9 @@ class MrntNeutronNR
         # config router
         router_config = get_default_router_config()
         router_config[:name] = rou.to_s
-        rcfg[:tenant] && router_config[:tenant] = rcfg[:tenant]
+        #FIXME(mmosesohn): Add correct user-defined tenant to rcfg in astute.yaml
+        #rcfg[:tenant] && router_config[:tenant] = rcfg[:tenant]
+        router_config[:tenant] = get_tenant()
         router_config[:ext_net] = rcfg[:external_network] #"rcfg[:external_network]__subnet"
         #todo: realize
         router_config[:int_subnets] = rcfg[:internal_networks].map{|x| "#{x}__subnet"}
@@ -192,7 +203,8 @@ module Puppet::Parser::Functions
     EOS
   ) do |argv|
     #Puppet::Parser::Functions.autoloader.loadall
-    nr_conf = MrntNeutronNR.new(self, MrntNeutronNR.sanitize_hash(argv[0]))
+    #FIXME(mmosesohn): Add correct user-defined tenant to rcfg in astute.yaml and remove argv[1]
+    nr_conf = MrntNeutronNR.new(self, MrntNeutronNR.sanitize_hash(argv[0]), argv[1])
     nr_conf.create_resources()
   end
 end

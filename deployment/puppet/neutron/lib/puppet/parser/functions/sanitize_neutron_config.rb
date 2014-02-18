@@ -51,6 +51,10 @@ class MrntNeutron
     @fuel_config[:database_vip]  ||  @fuel_config[:management_vip]
   end
 
+  def get_tenant()
+    @fuel_config[:access][:tenant]
+  end
+
   # classmethod
   def self.get_amqp_config(cfg)
     rv = cfg.clone()
@@ -150,7 +154,7 @@ class MrntNeutron
   def get_default_routers()
     {
       :router04 => {
-        :tenant => 'admin',
+        :tenant => get_tenant(),
         :virtual => false,  # Virtual router should not be create
         :external_network => "net04_ext",
         :internal_networks => ["net04"],
@@ -183,7 +187,7 @@ class MrntNeutron
     return {
       :net04_ext => {
         :shared => false,
-        :tenant => 'admin',
+        :tenant => get_tenant(),
         :L2 => {
           :router_ext   => true,
           :network_type => 'flat',
@@ -200,7 +204,7 @@ class MrntNeutron
       },
       :net04 => {
         :shared => false,
-        :tenant => 'admin',
+        :tenant => get_tenant(),
         :L2 => {
           :router_ext   => false,
           :network_type => 'gre', # or vlan
