@@ -362,12 +362,12 @@ whether a node is usable for clients to read from.</shortdesc>
 </parameters>
 
 <actions>
-<action name="start" timeout="120" />
-<action name="stop" timeout="120" />
-<action name="status" timeout="60" />
-<action name="monitor" depth="0" timeout="30" interval="20" />
-<action name="monitor" role="Master" depth="0" timeout="30" interval="10" />
-<action name="monitor" role="Slave" depth="0" timeout="30" interval="30" />
+<action name="start" timeout="145" />
+<action name="stop" timeout="145" />
+<action name="status" timeout="85" />
+<action name="monitor" depth="0" timeout="55" interval="20" />
+<action name="monitor" role="Master" depth="0" timeout="55" interval="10" />
+<action name="monitor" role="Slave" depth="0" timeout="55" interval="30" />
 <action name="promote" timeout="120" />
 <action name="demote" timeout="120" />
 <action name="notify" timeout="90" />
@@ -882,9 +882,23 @@ mysql_validate() {
 }
 
 mysql_status() {
-    if [ ! -e $OCF_RESKEY_pid ]; then
-        ocf_log $1 "MySQL is not running"
-        return $OCF_NOT_RUNNING;
+    i=5
+    sleeptime=5
+    while [ $i -gt 0 ]
+    do
+      if [ ! -e $OCF_RESKEY_pid ]; then
+	ocf_log info "PIDFile ${OCF_RESKEY_pid} of MySQL server not found. Sleeping for $sleeptime seconds. $(( i-1 )) retries left"
+	sleep $sleeptime
+      else
+	break
+      fi
+      let i=$i-1
+    done
+
+    if [ $i -eq 0 ]
+    then
+      ocf_log $1 "MySQL is not running"
+      return $OCF_NOT_RUNNING;
     fi
 
     pid=`cat $OCF_RESKEY_pid`;
