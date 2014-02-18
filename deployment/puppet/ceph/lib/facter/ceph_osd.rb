@@ -28,11 +28,13 @@ Facter.add("osd_devices_list") do
         }
 
         if journals.length > 0
-          ratio = (osds.length * 1.0 / journals.length).ceil
-          ratio = ratio > 1 ? ratio : 1
-          osds.each_slice(ratio) { |s|
-            j = journals.shift
-            output << s.map{|d| "#{d}:#{j}"}
+          osds.each { |osd|
+            journal = journals.shift
+            if journal
+              output << "#{osd}:#{journal}"
+            else
+              output << osd
+            end
           }
         else
             output = osds
