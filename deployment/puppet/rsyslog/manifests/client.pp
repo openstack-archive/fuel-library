@@ -19,6 +19,7 @@ class rsyslog::client (
   $syslog_log_facility_neutron  = 'LOG_LOCAL4',
   $syslog_log_facility_nova     = 'LOG_LOCAL6',
   $syslog_log_facility_keystone = 'LOG_LOCAL7',
+  $syslog_log_facility_heat     = 'LOG_LOCAL0',
   $log_level      = 'NOTICE',
   $debug          = false,
   ) inherits rsyslog {
@@ -52,6 +53,7 @@ if $virtual { include rsyslog::checksum_udp514 }
   $syslog_log_facility_neutron_matched = regsubst($syslog_log_facility_neutron, $re, '\1')
   $syslog_log_facility_nova_matched = regsubst($syslog_log_facility_nova, $re, '\1')
   $syslog_log_facility_keystone_matched = regsubst($syslog_log_facility_keystone, $re, '\1')
+  $syslog_log_facility_heat_matched = regsubst($syslog_log_facility_heat, $re, '\1')
 
 # Rabbitmq does not support syslogging, use imfile
 # log_level should be >= global syslog_log_level option,
@@ -240,6 +242,41 @@ if $virtual { include rsyslog::checksum_udp514 }
         file_severity => "DEBUG",
         notify  => Class["rsyslog::service"],
     }
+    ::rsyslog::imfile { "54-heat_engine_debug" :
+        file_name     => "/var/log/heat/*engine.log",
+        file_tag      => "heat-engine",
+        file_facility => $syslog_log_facility_heat_matched,
+        file_severity => "DEBUG",
+        notify  => Class["rsyslog::service"],
+    }
+    ::rsyslog::imfile { "54-heat_api_debug" :
+        file_name     => "/var/log/heat/*api.log",
+        file_tag      => "heat-api",
+        file_facility => $syslog_log_facility_heat_matched,
+        file_severity => "DEBUG",
+        notify  => Class["rsyslog::service"],
+    }
+    ::rsyslog::imfile { "54-heat_api_cfn_debug" :
+        file_name     => "/var/log/heat/*api-cfn.log",
+        file_tag      => "heat-api-cfn",
+        file_facility => $syslog_log_facility_heat_matched,
+        file_severity => "DEBUG",
+        notify  => Class["rsyslog::service"],
+    }
+    ::rsyslog::imfile { "54-heat_api_cloudwatch_debug" :
+        file_name     => "/var/log/heat/*api-cloudwatch.log",
+        file_tag      => "heat-api-cloudwatch",
+        file_facility => $syslog_log_facility_heat_matched,
+        file_severity => "DEBUG",
+        notify  => Class["rsyslog::service"],
+    }
+    ::rsyslog::imfile { "54-heat_manage_debug" :
+        file_name     => "/var/log/heat/*manage.log",
+        file_tag      => "heat-manage",
+        file_facility => $syslog_log_facility_heat_matched,
+        file_severity => "DEBUG",
+        notify  => Class["rsyslog::service"],
+    }
   } else { #non debug case
     # standard logging configs for syslog client
     file { "${rsyslog::params::rsyslog_d}10-nova.conf":
@@ -271,6 +308,12 @@ if $virtual { include rsyslog::checksum_udp514 }
       ensure => present,
       content => template("${module_name}/51-ceilometer.conf.erb"),
     }
+    
+    file { "${rsyslog::params::rsyslog_d}54-heat.conf":
+      ensure => present,
+      content => template("${module_name}/54-heat.conf.erb"),
+    }
+
   } #end if
 
   file { "${rsyslog::params::rsyslog_d}02-ha.conf":

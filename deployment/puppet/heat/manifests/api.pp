@@ -6,8 +6,6 @@ class heat::api (
 
   include heat::params
 
-  validate_string($keystone_password)
-
   package { 'python-routes':
     ensure => installed,
     name   => $::heat::params::deps_routes_package_name,
