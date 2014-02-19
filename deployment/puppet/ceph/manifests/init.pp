@@ -41,7 +41,7 @@ class ceph (
       $rgw_keystone_revocation_interval = $::ceph::rgw_use_pki ? { false => 1000000, default => 60},
       $rgw_data                         = '/var/lib/ceph/radosgw',
       $rgw_dns_name                     = "*.${::domain}",
-      $rgw_print_continue               = 'false',
+      $rgw_print_continue               = true,
       $rgw_nss_db_path                  = '/etc/ceph/nss',
 
       # Keystone settings
