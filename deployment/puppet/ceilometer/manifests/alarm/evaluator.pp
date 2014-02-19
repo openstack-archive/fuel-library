@@ -30,6 +30,10 @@ class ceilometer::alarm::evaluator (
       name   => $::ceilometer::params::alarm_package,
     }
   }
+  
+  tweaks::ubuntu_service_override { 'ceilometer-alarm-evaluator' :
+    package_name => 'ceilometer-alarm',
+  }
 
   if $enabled {
     $service_ensure = 'running'
