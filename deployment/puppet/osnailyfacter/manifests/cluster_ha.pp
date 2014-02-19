@@ -314,7 +314,8 @@ class osnailyfacter::cluster_ha {
 
       class { '::cluster': stage => 'corosync_setup' } ->
       class { 'virtual_ips': stage => 'corosync_setup' }
-      class { 'cluster::haproxy': }
+
+      class { 'cluster::haproxy': haproxy_maxconn => '16000' }
 
       class { compact_controller: }
       if ($use_swift) {
