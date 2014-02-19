@@ -4,7 +4,7 @@ class openstack::controller_ha (
    $primary_controller,
    $controller_public_addresses, $public_interface, $private_interface = 'eth2', $controller_internal_addresses,
    $internal_virtual_ip, $public_virtual_ip, $internal_address,
-   $floating_range, $fixed_range, $multi_host, $network_manager, $verbose, $debug, $network_config = {}, $num_networks = 1, $network_size = 255,
+   $floating_range, $fixed_range, $multi_host, $network_manager, $verbose, $debug = false, $network_config = {}, $num_networks = 1, $network_size = 255,
    $auto_assign_floating_ip = false, $mysql_root_password, $admin_email, $admin_user = 'admin', $admin_password, $keystone_admin_tenant='admin',
    $keystone_db_password, $keystone_admin_token, $glance_db_password, $glance_user_password, $glance_image_cache_max_size,
    $nova_db_password, $nova_user_password, $queue_provider, $rabbit_password, $rabbit_user, $rabbit_nodes,
