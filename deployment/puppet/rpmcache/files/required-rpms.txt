@@ -108,6 +108,14 @@ openvswitch-controller
 pacemaker
 pango
 patch
+perl-Pod-Escapes
+perl-Pod-Simple
+perl-libs
+perl-version
+perl-DBD-MySQL
+perl-DBI
+perl-TermReadKey
+perl-Time-HiRes
 pciutils
 policycoreutils
 postgresql

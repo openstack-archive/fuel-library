@@ -24,6 +24,7 @@
 + nailgun*
 + nginx*
 + nodejs*
++ percona-toolkit*
 + pssh*
 + puppet-*
 + pushy-*
