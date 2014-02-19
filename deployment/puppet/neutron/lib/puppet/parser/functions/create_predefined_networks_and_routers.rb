@@ -79,7 +79,7 @@ class MrntNeutronNR
     previous = nil
     segment_id = @neutron_config[:L2][:enable_tunneling]  ?  @neutron_config[:L2][:tunnel_id_ranges].split(':')[0].to_i  :  0
     @neutron_config[:predefined_networks].each do |net, ncfg|
-      Puppet::debug("-*- processing net '#{net}': #{ncfg.inspect}")
+      Puppet::debug("-*- processing net '#{net}': #{ncfg.to_yaml()}")
       # config network resources parameters
       network_config = get_default_network_config()
       network_config[:net][:name] = net.to_s
