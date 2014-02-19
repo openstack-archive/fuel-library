@@ -6,7 +6,6 @@ class heat::engine (
 
   include heat::params
 
-  validate_string($keystone_password)
   $service_name = $::heat::params::engine_service_name
   $package_name = $::heat::params::engine_package_name
 
@@ -81,9 +80,9 @@ class heat::engine (
   }
 
   exec {'heat-encryption-key-replacement':
-    command => 'sed -i "s/%ENCRYPTION_KEY%/`hexdump -n 16 -v -e \'/1 "%02x"\' /dev/random`/" /etc/heat/heat-engine.conf',
+    command => 'sed -i "s/%ENCRYPTION_KEY%/`hexdump -n 16 -v -e \'/1 "%02x"\' /dev/random`/" /etc/heat/heat.conf',
     path    => [ '/usr/bin', '/bin' ],
-    onlyif  => 'grep -c ENCRYPTION_KEY /etc/heat/heat-engine.conf',
+    onlyif  => 'grep -c ENCRYPTION_KEY /etc/heat/heat.conf',
   }
 
   Package['heat-common'] -> Package['heat-engine'] -> File['/etc/heat/heat.conf'] -> Heat_config<||> ~> Service['heat-engine']

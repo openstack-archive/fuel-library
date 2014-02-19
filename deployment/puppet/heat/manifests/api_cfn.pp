@@ -6,8 +6,6 @@ class heat::api_cfn (
 
   include heat::params
 
-  validate_string($keystone_password)
-
   package { 'heat-api-cfn':
     ensure => installed,
     name   => $::heat::params::api_cfn_package_name,
