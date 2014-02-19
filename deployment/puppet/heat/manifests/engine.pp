@@ -6,7 +6,6 @@ class heat::engine (
 
   include heat::params
 
-  validate_string($keystone_password)
   $service_name = $::heat::params::engine_service_name
   $package_name = $::heat::params::engine_package_name
 

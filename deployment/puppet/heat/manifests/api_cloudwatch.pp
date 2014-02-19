@@ -6,8 +6,6 @@ class heat::api_cloudwatch (
 
   include heat::params
 
-  validate_string($keystone_password)
-
   package { 'heat-api-cloudwatch':
     ensure => installed,
     name   => $::heat::params::api_cloudwatch_package_name,

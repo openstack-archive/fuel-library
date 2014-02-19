@@ -1,0 +1,6 @@
+# managed by puppet
+
+<%= @syslog_log_facility_heat_matched %>.* -/var/log/heat-all.log
+& ~
+:syslogtag, contains, "heat" -/var/log/heat-all.log
+& ~
