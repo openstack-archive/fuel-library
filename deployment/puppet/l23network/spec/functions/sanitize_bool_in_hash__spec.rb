@@ -1,4 +1,8 @@
+# require 'puppet'
+# require 'rspec'
+# require 'rspec-puppet'
 require 'spec_helper'
+require 'puppetlabs_spec_helper/puppetlabs_spec/puppet_internals'
 
 describe 'sanitize_bool_in_hash' do
   let(:scope) { PuppetlabsSpec::PuppetInternals.scope }
@@ -8,14 +12,14 @@ describe 'sanitize_bool_in_hash' do
   end
 
   it 'should convert string-boolean values to boolean' do
-    should run.with_params({
+    expect(scope.function_sanitize_bool_in_hash([{
       :s_true  => 'true',
       :s_false => 'false',
       :s_none => 'none',
       :s_null => 'null',
       :s_nil  => 'nil',
       :s_nill => 'nill',
-    }).and_return({
+    }])).to eq({
       :s_true  => true,
       :s_false => false,
       :s_none => nil,
@@ -26,14 +30,14 @@ describe 'sanitize_bool_in_hash' do
   end
 
   it 'should convert UP-sace string-boolean values to boolean' do
-    should run.with_params({
+    expect(scope.function_sanitize_bool_in_hash([{
       :s_true  => 'TRUE',
       :s_false => 'FALSE',
       :s_none => 'NONE',
       :s_null => 'NULL',
       :s_nil  => 'NIL',
       :s_nill => 'NILL',
-    }).and_return({
+    }])).to eq({
       :s_true  => true,
       :s_false => false,
       :s_none => nil,
@@ -44,7 +48,7 @@ describe 'sanitize_bool_in_hash' do
   end
 
   it 'should convert reccursive hashes' do
-    should run.with_params({
+    expect(scope.function_sanitize_bool_in_hash([{
       :bool_hash => {
         :str => 'aaa',
         :int => 123,
@@ -71,7 +75,7 @@ describe 'sanitize_bool_in_hash' do
         :f => false,
         :n => nil
       },
-    }).and_return({
+    }])).to eq({
       :bool_hash => {
         :str => 'aaa',
         :int => 123,
@@ -102,7 +106,7 @@ describe 'sanitize_bool_in_hash' do
   end
 
   it 'should convert array of hashes' do
-    should run.with_params({ :array => [
+    expect(scope.function_sanitize_bool_in_hash([{ :array => [
       {:aaa=>1,"aaa"=>11, :bbb=>2,'bbb'=>12, :ccc=>3,'ccc'=>3},
       {:t=>'true','tt'=>'true', :f=>'false','ff'=>'false', :n=>'nil','nn'=>'nil'},
       {
@@ -121,7 +125,7 @@ describe 'sanitize_bool_in_hash' do
         :s_nil  => 'NIL',
         :s_nill => 'NILL',
       },
-    ]}).and_return({ :array => [
+    ]}])).to eq({ :array => [
       {:aaa=>1,"aaa"=>11, :bbb=>2,'bbb'=>12, :ccc=>3,'ccc'=>3},
       {:t=>true,'tt'=>true, :f=>false,'ff'=>false, :n=>nil,'nn'=>nil},
       {

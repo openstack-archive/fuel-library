@@ -1,4 +1,8 @@
+# require 'puppet'
+# require 'rspec'
+# require 'rspec-puppet'
 require 'spec_helper'
+require 'puppetlabs_spec_helper/puppetlabs_spec/puppet_internals'
 require 'json'
 require 'yaml'
 
@@ -55,7 +59,7 @@ class NeutronNRConfig
 
 end
 
-describe 'create_floating_ips_for_admin' , :type => :puppet_function do
+describe 'get_floatingip_pool_size_for_admin' , :type => :puppet_function do
   let(:scope) { PuppetlabsSpec::PuppetInternals.scope }
 
   before :each do
@@ -71,8 +75,8 @@ describe 'create_floating_ips_for_admin' , :type => :puppet_function do
     Puppet::Parser::Functions.function('get_floatingip_pool_size_for_admin').should == 'function_get_floatingip_pool_size_for_admin'
   end
 
-  it 'Must return 10' do
-    subject.call([@cfg, 'neutron_settings']).should  == 10
+  it 'Should return 10' do
+    expect(scope.function_get_floatingip_pool_size_for_admin([@cfg, 'neutron_settings'])).to eq(10)
     # [
     #   '10.100.100.244',
     #   '10.100.100.245',
@@ -88,14 +92,19 @@ describe 'create_floating_ips_for_admin' , :type => :puppet_function do
     # ]
   end
 
-  it 'Must return zero' do
+  it 'Should return zero' do
     @cfg['predefined_networks']['net04_ext']['L3']['floating'] = "10.100.100.250:10.100.100.254"
-    subject.call([@cfg, 'neutron_settings']).should  == 0 #[]
+    expect(scope.function_get_floatingip_pool_size_for_admin([@cfg, 'neutron_settings'])).to eq(0)
   end
 
-  it 'Must return array of 3 ip address' do
+  it 'Should return 2' do
     @cfg['predefined_networks']['net04_ext']['L3']['floating'] = "10.100.100.247:10.100.100.254"
-    subject.call([@cfg, 'neutron_settings']).should  == 3 #["10.100.100.252", "10.100.100.253", "10.100.100.254"]
+    expect(scope.function_get_floatingip_pool_size_for_admin([@cfg, 'neutron_settings'])).to eq(2)
+  end
+
+  it 'Should return 10' do
+    @cfg['predefined_networks']['net04_ext']['L3']['floating'] = "10.100.100.237:10.100.100.254"
+    expect(scope.function_get_floatingip_pool_size_for_admin([@cfg, 'neutron_settings'])).to eq(10)
   end
 
 end
