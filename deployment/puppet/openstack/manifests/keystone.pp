@@ -216,6 +216,13 @@ class openstack::keystone (
       internal_address => $internal_real,
     }
 
+    # Setup the Keystone cleanup cron task
+    class { 'keystone::db:cleanup_tokens':
+       db_type     => $db_type,
+       db_user     => $db_user,
+       db_password => $db_password,
+       db_name     => $db_name,
+    }
     # Configure Glance endpoint in Keystone
     if $glance {
       class { 'glance::keystone::auth':
