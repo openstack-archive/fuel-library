@@ -14,11 +14,11 @@
 #   [admin_token] Admin token that can be used to authenticate as a keystone
 #     admin. Required.
 #   [verbose] Rather keystone should log at verbose level. Optional.
-#     Defaults to False.
+#     Defaults to false.
 #   [debug] Rather keystone should log at debug level. Optional.
-#     Defaults to False.
+#     Defaults to false.
 #   [use_syslog] Rather or not keystone should log to syslog. Optional.
-#     Defaults to False.
+#     Defaults to false.
 #   [syslog_log_facility] Facility for syslog, if used. Optional.
 #   [syslog_log_level] logging level for non verbose and non debug mode. Optional.
 #   [catalog_type] Type of catalog that keystone uses to store endpoints,services. Optional.
@@ -37,7 +37,7 @@
 # == Examples
 #
 #   class { 'keystone':
-#     log_verbose => 'True',
+#     verbose => true,
 #     admin_token => 'my_special_token',
 #   }
 #
@@ -56,8 +56,8 @@ class keystone(
   $public_port         = '5000',
   $admin_port          = '35357',
   $compute_port        = '3000',
-  $verbose             = 'False',
-  $debug               = 'False',
+  $verbose             = false,
+  $debug               = false,
   $use_syslog          = false,
   $syslog_log_facility = 'LOG_LOCAL7',
   $syslog_log_level = 'WARNING',

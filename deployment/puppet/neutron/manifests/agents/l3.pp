@@ -1,8 +1,8 @@
 #
 class neutron::agents::l3 (
   $neutron_config     = {},
-  $verbose          = 'False',
-  $debug            = 'False',
+  $verbose          = false,
+  $debug            = false,
   $interface_driver = 'neutron.agent.linux.interface.OVSInterfaceDriver',
   $service_provider = 'generic'
 ) {
@@ -52,6 +52,7 @@ class neutron::agents::l3 (
     'DEFAULT/log_dir':       ensure => absent;
     'DEFAULT/log_file':      ensure => absent;
     'DEFAULT/log_config':    ensure => absent;
+    #TODO(bogdando) fix syslog usage after Oslo logging patch synced in I
     'DEFAULT/use_syslog':    ensure => absent;
     'DEFAULT/use_stderr':    ensure => absent;
     'DEFAULT/router_id':     ensure => absent;
@@ -247,4 +248,3 @@ class neutron::agents::l3 (
 
 }
 
-# vim: set ts=2 sw=2 et :

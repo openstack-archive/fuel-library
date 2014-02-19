@@ -36,7 +36,7 @@ It must be used together with a class that expresses the db backend to use:
 for example:
 
     class { 'keystone':
-      log_verbose => 'True',
+      verbose => true,
       admin_token => 'my_secret_token'
     }
 

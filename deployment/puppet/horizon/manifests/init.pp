@@ -20,7 +20,7 @@
 # $django_verbose       True/False. enable/disables verbose logging (info level). defaults to false
 # $log_level            Syslog level would be used for logging. If Verbose -> INFO, Debug -> DEBUG, otherwise -> the value given
 # $api_result_limit     max number of Swift containers/objects to display on a single page
-# $use_syslog           Redirect all apache logging to syslog. Required for FUEL-WEB.
+# $use_syslog           Redirect all apache logging to syslog. Required for FUEL-UI. Defaults to false.
 #
 class horizon(
   $secret_key,
@@ -35,8 +35,8 @@ class horizon(
   $keystone_port         = 5000,
   $keystone_scheme       = 'http',
   $keystone_default_role = 'Member',
-  $django_debug          = 'False',
-  $django_verbose        = 'False',
+  $django_debug          = false,
+  $django_verbose        = false,
   $api_result_limit      = 1000,
   $http_port             = 80,
   $https_port            = 443,

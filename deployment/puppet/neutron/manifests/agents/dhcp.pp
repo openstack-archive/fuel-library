@@ -1,8 +1,8 @@
 #
 class neutron::agents::dhcp (
   $neutron_config     = {},
-  $verbose          = 'False',
-  $debug            = 'False',
+  $verbose          = false,
+  $debug            = false,
   $interface_driver = 'neutron.agent.linux.interface.OVSInterfaceDriver',
   $dhcp_driver      = 'neutron.agent.linux.dhcp.Dnsmasq',
   $dhcp_agent_manager='neutron.agent.dhcp_agent.DhcpAgentWithStateReport',
@@ -67,6 +67,7 @@ class neutron::agents::dhcp (
     'DEFAULT/log_dir':          ensure => absent;
     'DEFAULT/log_file':         ensure => absent;
     'DEFAULT/log_config':       ensure => absent;
+    #TODO(bogdando) fix syslog usage after Oslo logging patch synced in I
     'DEFAULT/use_syslog':       ensure => absent;
     'DEFAULT/use_stderr':       ensure => absent;
     'DEFAULT/state_path':        value => $state_path;
@@ -238,4 +239,3 @@ class neutron::agents::dhcp (
 
 }
 
-# vim: set ts=2 sw=2 et :

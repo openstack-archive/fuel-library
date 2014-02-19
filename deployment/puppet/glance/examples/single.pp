@@ -43,8 +43,8 @@ node default {
 class role_glance_sqlite {
 
   class { 'glance::api':
-    verbose       => 'True',
-    debug         => 'True',
+    verbose       => true,
+    debug         => true,
     auth_type         => 'keystone',
     keystone_tenant   => 'services',
     keystone_user     => 'glance',
@@ -53,8 +53,8 @@ class role_glance_sqlite {
   class { 'glance::backend::file': }
 
   class { 'glance::registry':
-    verbose       => 'True',
-    debug         => 'True',
+    verbose       => true,
+    debug         => true,
     auth_type         => 'keystone',
     keystone_tenant   => 'services',
     keystone_user     => 'glance',
@@ -66,8 +66,8 @@ class role_glance_sqlite {
 class role_glance_mysql {
 
   class { 'glance::api':
-    verbose       => 'True',
-    debug         => 'True',
+    verbose       => true,
+    debug         => true,
     auth_type         => 'keystone',
     keystone_tenant   => 'services',
     keystone_user     => 'glance',
@@ -85,8 +85,8 @@ class role_glance_mysql {
   }
 
   class { 'glance::registry':
-    verbose       => 'True',
-    debug         => 'True',
+    verbose       => true,
+    debug         => true,
     auth_type         => 'keystone',
     keystone_tenant   => 'services',
     keystone_user     => 'glance',

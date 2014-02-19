@@ -6,8 +6,8 @@ describe 'ceilometer' do
     {
       :metering_secret    => 'metering-s3cr3t',
       :package_ensure     => 'present',
-      :verbose            => 'False',
-      :debug              => 'False',
+      :verbose            => false,
+      :debug              => false,
       :rabbit_host        => '127.0.0.1',
       :rabbit_port        => 5672,
       :rabbit_userid      => 'guest',

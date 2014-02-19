@@ -5,8 +5,8 @@
 # [syslog_log_level] logging level for non verbose and non debug mode. Optional.
 
 class openstack::neutron_router (
-  $verbose                  = 'False',
-  $debug                    = 'False',
+  $verbose                  = false,
+  $debug                    = false,
   $enabled                  = true,
   $neutron                  = true,
   $neutron_config           = {},
@@ -69,4 +69,3 @@ class openstack::neutron_router (
     }
 
 }
-# vim: set ts=2 sw=2 et :

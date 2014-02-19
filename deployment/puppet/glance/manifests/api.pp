@@ -39,12 +39,13 @@
 #  $clean_minute - cron minute to launch glance-cache-cleaner.
 #  Optional. Default: 0
 #
-# $use_syslog - Rather or not service should log to syslog. Optional.
+#  $use_syslog - Rather or not service should log to syslog. Optional.
+#  Default: false
 #
 class glance::api(
   $keystone_password,
-  $verbose           = 'False',
-  $debug             = 'False',
+  $verbose           = false,
+  $debug             = false,
   $bind_host         = '0.0.0.0',
   $bind_port         = '9292',
   $backlog           = '4096',

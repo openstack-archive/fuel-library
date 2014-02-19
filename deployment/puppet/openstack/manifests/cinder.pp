@@ -1,4 +1,4 @@
-# [use_syslog] Rather or not service should log to syslog. Optional.
+# [use_syslog] Rather or not service should log to syslog. Optional. Defaults to false.
 # [syslog_log_facility] Facility for syslog, if used. Optional. Note: duplicating conf option
 #       wouldn't have been used, but more powerfull rsyslog features managed via conf template instead
 # [syslog_log_level] logging level for non verbose and non debug mode. Optional.
@@ -21,14 +21,14 @@ class openstack::cinder(
   $iscsi_bind_host        = '0.0.0.0',
   $use_syslog             = false,
   $syslog_log_facility    = 'LOG_LOCAL3',
-  $syslog_log_level = 'WARNING',
+  $syslog_log_level       = 'WARNING',
   $cinder_rate_limits     = undef,
-  $verbose          = 'False',
-  $debug             = 'False',
-  $queue_provider  = 'rabbitmq',
-  $qpid_password   = 'qpid_pw',
-  $qpid_user       = 'nova',
-  $qpid_nodes      = ['127.0.0.1'],
+  $verbose                = false,
+  $debug                  = false,
+  $queue_provider         = 'rabbitmq',
+  $qpid_password          = 'qpid_pw',
+  $qpid_user              = 'nova',
+  $qpid_nodes             = ['127.0.0.1'],
 ) {
   include cinder::params
   #  if ($purge_cinder_config) {

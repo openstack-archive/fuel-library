@@ -1,7 +1,7 @@
   class { 'neutron':
     rabbit_password        => '1',
-    verbose                => 'True',
-    debug                  => 'True',
+    verbose                => true,
+    debug                  => true,
     rabbit_host            => '172.18.66.112',
   }
 
@@ -18,12 +18,12 @@
   }
 
   class { 'neutron::agents::dhcp':
-    debug            => 'True',
+    debug            => true,
     use_namespaces   => 'False',
   }
 
   class { 'neutron::agents::l3':
-    debug                        => 'True',
+    debug                        => true,
     auth_url                     => 'http://172.18.66.112:5000/v2.0',
     auth_password                => '1',
     use_namespaces               => 'False',
