@@ -1,0 +1,21 @@
+#!/bin/sh
+set -eu
+
+KEYSTONE_DB_NAME="<%= db_name %>"
+KEYSTONE_DB_HOST="<%= db_host %>"
+KEYSTONE_DB_TYPE="<%= db_type %>"
+if [ "$KEYSTONE_DB_TYPE" != "mysql" ] ; then
+    # We can just call this directly if bug #1188378 is ever fixed
+    exec keystone-manage token_flush
+fi
+KEYSTONE_DB_USER="<%= db_user %>"
+KEYSTONE_DB_PASS="<%= db_password %>"
+
+pt-archiver --source "h=$KEYSTONE_DB_HOST,u=$KEYSTONE_DB_USER,p=$KEYSTONE_DB_PASS,D=$KEYSTONE_DB_NAME,t=token" \
+    --charset utf8 \
+    --where "expires < UTC_TIMESTAMP()" \
+    --purge \
+    --txn-size 500 \
+    --run-time 59m \
+    --statistics \
+    --primary-key-only 2>&1 | logger -t cleanup-keystone-tokens
