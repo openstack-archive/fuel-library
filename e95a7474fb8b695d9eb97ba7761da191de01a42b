@@ -1,0 +1,10 @@
+Change-Id: Ia8d5f7942f65c178470f3d6e1c2ca74f3b9aa21d
+Verified+2: Jenkins
+Code-Review+1: Sergey Vasilenko <svasilenko@mirantis.com>
+Approved+1: Vladimir Kuklin <vkuklin@mirantis.com>
+Code-Review+2: Vladimir Kuklin <vkuklin@mirantis.com>
+Submitted-by: Jenkins
+Submitted-at: Wed, 19 Feb 2014 20:43:24 +0000
+Reviewed-on: https://review.openstack.org/74823
+Project: stackforge/fuel-library
+Branch: refs/heads/master
