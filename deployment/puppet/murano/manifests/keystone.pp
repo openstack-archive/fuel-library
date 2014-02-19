@@ -7,7 +7,7 @@ class murano::keystone (
 
   keystone_user { $user:
     ensure      => present,
-    enabled     => 'True',
+    enabled     => true,
     tenant      => $tenant,
     email       => $email,
     password    => $password,
