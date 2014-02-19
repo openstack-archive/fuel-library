@@ -47,6 +47,8 @@ class ceilometer::agent::central (
     ensure => installed,
     name   => $::ceilometer::params::agent_central_package_name,
   }
+  
+  tweaks::ubuntu_service_override { 'ceilometer-agent-central' :}
 
   if $enabled {
     $service_ensure = 'running'

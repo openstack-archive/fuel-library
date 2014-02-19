@@ -58,6 +58,8 @@ class ceilometer::api (
     ensure => installed,
     name   => $::ceilometer::params::api_package_name,
   }
+  
+  tweaks::ubuntu_service_override { 'ceilometer-api' :}
 
   if $enabled {
     $service_ensure = 'running'
