@@ -8,8 +8,13 @@ class cluster::haproxy {
 
   package { 'haproxy': } ->
   class { 'haproxy::base':
-    global_options   => merge($::haproxy::params::global_options, {'log' => "/dev/log local0"}),
-    defaults_options => merge($::haproxy::params::defaults_options, {'mode' => 'http'}),
+    global_options   => merge($::haproxy::params::global_options,
+                              {
+                                'log'     => '/dev/log local0',
+                                'maxconn' => '16000'
+                              }),
+    defaults_options => merge($::haproxy::params::defaults_options,
+                              {'mode' => 'http'}),
     use_include      => true,
   } ->
   class { 'cluster::haproxy_ocf': }
