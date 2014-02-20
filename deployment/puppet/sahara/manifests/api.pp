@@ -50,6 +50,10 @@ class sahara::api (
     $use_floating_ips_value = false
   }
 
+  exec { 'sahara-db-manage':
+    command    => "/usr/lib/sahara-db-manage --config-file /etc/sahara.conf upgrade head"
+  }
+
   service { 'sahara-api':
     ensure     => $service_ensure,
     name       => $sahara::params::sahara_service_name,
@@ -125,6 +129,6 @@ class sahara::api (
     mode    => '0751',
   }
 
-  Package['sahara'] -> Sahara_config<||> -> Service['sahara-api']
+  Package['sahara'] -> Sahara_config<||> -> Exec['sahara-db-manage'] -> Service['sahara-api']
 
 }
