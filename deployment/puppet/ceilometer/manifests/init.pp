@@ -150,10 +150,10 @@ class ceilometer(
       path    => '/etc/ceilometer/logging.conf',
     }
     # We must notify services to apply new logging rules
-    File['ceilometer-logging.conf'] ~> Service <| name == 'ceilometer-api' |>
-    File['ceilometer-logging.conf'] ~> Service <| name == 'ceilometer-collector' |>
-    File['ceilometer-logging.conf'] ~> Service <| name == 'ceilometer-agent-central' |>
-    File['ceilometer-logging.conf'] ~> Service <| name == 'ceilometer-agent-compute' |>
+    File['ceilometer-logging.conf'] ~> Service <| title == 'ceilometer-api' |>
+    File['ceilometer-logging.conf'] ~> Service <| title == 'ceilometer-collector' |>
+    File['ceilometer-logging.conf'] ~> Service <| title == 'ceilometer-agent-central' |>
+    File['ceilometer-logging.conf'] ~> Service <| title == 'ceilometer-agent-compute' |>
   } else { #other syslog debug or nonsyslog debug/nondebug cases
     ceilometer_config {
       'DEFAULT/log_dir': value => $::ceilometer::params::log_dir;

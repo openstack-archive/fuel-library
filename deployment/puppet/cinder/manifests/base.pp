@@ -70,9 +70,9 @@ class cinder::base (
       require => File[$::cinder::params::cinder_conf],
     }
     # We must notify services to apply new logging rules
-    File['cinder-logging.conf'] ~> Service <| name == 'cinder-api' |>
-    File['cinder-logging.conf'] ~> Service <| name == 'cinder-volume' |>
-    File['cinder-logging.conf'] ~> Service <| name == 'cinder-scheduler' |>
+    File['cinder-logging.conf'] ~> Service <| title == 'cinder-api' |>
+    File['cinder-logging.conf'] ~> Service <| title == 'cinder-volume' |>
+    File['cinder-logging.conf'] ~> Service <| title == 'cinder-scheduler' |>
   } else { #other syslog debug or nonsyslog debug/nondebug cases
     cinder_config {
       'DEFAULT/logdir':value=> $log_dir;

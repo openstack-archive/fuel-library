@@ -174,10 +174,8 @@ if $use_syslog and !$debug { #syslog and nondebug case
   }
   # We must notify services to apply new logging rules
   File['nova-logging.conf'] ~> Nova::Generic_service <| |>
-  File['nova-logging.conf'] ~> Service <| name == 'nova-api'|>
-  File['nova-logging.conf'] ~> Service <| name == 'nova-compute'|>
-  File['nova-logging.conf'] ~> Service <| name == 'libvirt' |>
-  File['nova-logging.conf'] ~> Service <| name == 'tgtd' |>
+  File['nova-logging.conf'] ~> Service <| title == 'nova-api'|>
+  File['nova-logging.conf'] ~> Service <| title == 'nova-compute'|>
 } else { #other syslog debug or nonsyslog debug/nondebug cases
   nova_config {
    'DEFAULT/logdir': value=> $logdir;
