@@ -3,7 +3,8 @@ module Puppet::Parser::Functions
 Return a list of nodes that have one of the given roles. If attr is defined,
 return just that attribute for each node instead of the whole node hash.
 EOS
-  ) do |nodes, roles, attr|
+  ) do |args|
+    nodes, roles, attr = args
     nodes.select {|node|
       roles.include? node['role']
     }.uniq {|node|
