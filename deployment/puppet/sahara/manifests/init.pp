@@ -2,7 +2,6 @@ class sahara (
   $sahara_enabled                      = true,
   $sahara_api_port                     = '8386',
   $sahara_api_host                     = '127.0.0.1',
-  $sahara_api_protocol                 = 'http',
   $sahara_api_version                  = 'v1.1',
 
   $sahara_keystone_host                = '127.0.0.1',
@@ -14,9 +13,6 @@ class sahara (
 
   $sahara_node_domain                  = 'novalocal',
   $sahara_plugins                      = 'vanilla,hdp,idh',
-  $sahara_vanilla_plugin_class         = 'sahara.plugins.vanilla.plugin:VanillaProvider',
-  $sahara_hdp_plugin_class             = 'sahara.plugins.hdp.ambariplugin:AmbariPlugin',
-  $sahara_idh_plugin_class             = 'sahara.plugins.intel.plugin:IDHProvider',
 
   $sahara_db_password                  = 'sahara',
   $sahara_db_name                      = 'sahara',
@@ -36,7 +32,6 @@ class sahara (
 ) {
 
   $sahara_sql_connection               = "mysql://${sahara_db_user}:${sahara_db_password}@${sahara_db_host}/${sahara_db_name}?read_timeout=60"
-  $sahara_url_string                   = "SAHARA_URL = '${sahara_api_protocol}://${sahara_api_host}:${sahara_api_port}/${sahara_api_version}'"
 
   class { 'sahara::db::mysql':
     password                            => $sahara_db_password,
@@ -57,9 +52,6 @@ class sahara (
     bind_port                           => $sahara_api_port,
     node_domain                         => $sahara_node_domain,
     plugins                             => $sahara_plugins,
-    vanilla_plugin_class                => $sahara_vanilla_plugin_class,
-    hdp_plugin_class                    => $sahara_hdp_plugin_class,
-    idh_plugin_class                    => $sahara_idh_plugin_class,
     sql_connection                      => $sahara_sql_connection,
     use_neutron                         => $use_neutron,
     debug                               => $debug,
@@ -90,7 +82,6 @@ class sahara (
 
   class { 'sahara::dashboard' :
     enabled            => $sahara_enabled,
-    sahara_url_string => $sahara_url_string,
     use_neutron        => $use_neutron,
     use_floating_ips   => $use_floating_ips,
   }
