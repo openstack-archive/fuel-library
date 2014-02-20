@@ -2,7 +2,6 @@ class savanna (
   $savanna_enabled                      = true,
   $savanna_api_port                     = '8386',
   $savanna_api_host                     = '127.0.0.1',
-  $savanna_api_protocol                 = 'http',
   $savanna_api_version                  = 'v1.1',
 
   $savanna_keystone_host                = '127.0.0.1',
@@ -14,9 +13,6 @@ class savanna (
 
   $savanna_node_domain                  = 'novalocal',
   $savanna_plugins                      = 'vanilla,hdp,idh',
-  $savanna_vanilla_plugin_class         = 'savanna.plugins.vanilla.plugin:VanillaProvider',
-  $savanna_hdp_plugin_class             = 'savanna.plugins.hdp.ambariplugin:AmbariPlugin',
-  $savanna_idh_plugin_class             = 'savanna.plugins.intel.plugin:IDHProvider',
 
   $savanna_db_password                  = 'savanna',
   $savanna_db_name                      = 'savanna',
@@ -36,7 +32,6 @@ class savanna (
 ) {
 
   $savanna_sql_connection               = "mysql://${savanna_db_user}:${savanna_db_password}@${savanna_db_host}/${savanna_db_name}"
-  $savanna_url_string                   = "SAVANNA_URL = '${savanna_api_protocol}://${savanna_api_host}:${savanna_api_port}/${savanna_api_version}'"
 
   class { 'savanna::db::mysql':
     password                            => $savanna_db_password,
@@ -57,9 +52,6 @@ class savanna (
     bind_port                           => $savanna_api_port,
     node_domain                         => $savanna_node_domain,
     plugins                             => $savanna_plugins,
-    vanilla_plugin_class                => $savanna_vanilla_plugin_class,
-    hdp_plugin_class                    => $savanna_hdp_plugin_class,
-    idh_plugin_class                    => $savanna_idh_plugin_class,
     sql_connection                      => $savanna_sql_connection,
     use_neutron                         => $use_neutron,
     debug                               => $debug,
@@ -90,7 +82,6 @@ class savanna (
 
   class { 'savanna::dashboard' :
     enabled            => $savanna_enabled,
-    savanna_url_string => $savanna_url_string,
     use_neutron        => $use_neutron,
     use_floating_ips   => $use_floating_ips,
   }

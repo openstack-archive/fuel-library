@@ -4,7 +4,6 @@ class savanna::dashboard (
   $enabled            = true,
   $settings_py        = $savanna::params::settings_path,
   $local_settings     = $savanna::params::local_settings_path,
-  $savanna_url_string = $savanna::params::default_url_string,
   $use_neutron        = false,
   $use_floating_ips   = false,
 ) inherits savanna::params {
@@ -65,18 +64,12 @@ class savanna::dashboard (
     line    => "AUTO_ASSIGNMENT_ENABLED=${use_floating_ips_value}",
   }
 
-  file_line{ 'savanna_url' :
-    path    => $local_settings,
-    line    => $savanna_url_string,
-    require => File[$local_settings],
-  }
-
   package { 'savanna_dashboard':
     ensure => $package_ensure,
     name   => $savanna::params::savanna_dashboard_package_name,
   }
 
-  File_line <| title == 'savanna' or title == 'savanna_dashboard' or title == 'savanna_url' |> ~> Service <| title == 'httpd' |>
+  File_line <| title == 'savanna' or title == 'savanna_dashboard' |> ~> Service <| title == 'httpd' |>
   File <| title == $settings_py or title == $local_settings |> ~> Service <| title == 'httpd' |>
   Package['savanna_dashboard'] -> File <| title == $settings_py or title == $local_settings |>
 
