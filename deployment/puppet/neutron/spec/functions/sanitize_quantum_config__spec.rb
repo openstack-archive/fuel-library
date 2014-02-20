@@ -1,4 +1,8 @@
+# require 'puppet'
+# require 'rspec'
+# require 'rspec-puppet'
 require 'spec_helper'
+require 'puppetlabs_spec_helper/puppetlabs_spec/puppet_internals'
 require 'json'
 require 'yaml'
 #require 'puppet/parser/functions/lib/sanitize_bool_in_hash.rb'
@@ -205,12 +209,6 @@ describe 'sanitize_neutron_config' , :type => :puppet_function do
   let(:scope) { PuppetlabsSpec::PuppetInternals.scope }
 
   before :each do
-    # node      = Puppet::Node.new("floppy", :environment => 'production')
-    # @compiler = Puppet::Parser::Compiler.new(node)
-    # @scope    = Puppet::Parser::Scope.new(@compiler)
-    # @topscope = @scope.compiler.topscope
-    # @scope.parent = @topscope
-    # Puppet::Parser::Functions.function(:create_resources)
     @q_config = NeutronConfig.new({
       :management_vip => '192.168.0.254',
       :management_ip => '192.168.0.11'
@@ -232,9 +230,49 @@ describe 'sanitize_neutron_config' , :type => :puppet_function do
   #   should run.with_params({},'neutron_settings').and_return(@res_cfg)
   # end
 
-  it 'should return default config if default config given as incoming' do
-    @res_cfg['database']['url'] = 'mysql://neutron:neutron@192.168.0.254:3306/neutron'
-    should run.with_params(@cfg,'neutron_settings').and_return(@res_cfg)
+  it 'should return default config for GRE if default config given as incoming' do
+    cfg = Marshal.load(Marshal.dump(@cfg))
+    cfg['neutron_settings']['L2']['segmentation_type'] = 'gre'
+    res_cfg = Marshal.load(Marshal.dump(@res_cfg))
+    res_cfg['L2']['segmentation_type'] = 'gre'
+    #res_cfg['L2']['enable_tunneling'] = true
+    res_cfg['L2']['phys_bridges'] = ["br-ex"]
+    res_cfg['L2']['network_vlan_ranges'] = "physnet1"
+    res_cfg['L2']['bridge_mappings'] = "physnet1:br-ex"
+    res_cfg['L2']['phys_nets'] = {
+      "physnet1" => {
+        "bridge" => "br-ex",
+        "vlan_range" => nil
+      }
+    }
+    res_cfg['predefined_networks']['net04']['L2']['physnet'] = nil
+    res_cfg['database']['url'] = 'mysql://neutron:neutron@192.168.0.254:3306/neutron'
+    rv = scope.function_sanitize_neutron_config([cfg, 'neutron_settings'])
+    expect(rv).to eq(res_cfg)
+  end
+
+  it 'should return default config for VLAN if default config given as incoming' do
+    cfg = Marshal.load(Marshal.dump(@cfg))
+    cfg['neutron_settings']['L2']['segmentation_type'] = 'vlan'
+    res_cfg = Marshal.load(Marshal.dump(@res_cfg))
+    res_cfg['L2']['segmentation_type'] = 'vlan'
+    res_cfg['L2']['enable_tunneling'] = false
+    res_cfg['L2']['tunnel_id_ranges'] = nil
+    res_cfg['L2']['phys_bridges'] = ["br-ex", "br-prv"]
+    res_cfg['L2']['bridge_mappings'] = "physnet1:br-ex,physnet2:br-prv"
+    res_cfg['L2']['phys_nets'] = {
+      "physnet1" => {
+        "bridge" => "br-ex",
+        "vlan_range" => nil
+      },
+      "physnet2" => {
+        "bridge" => "br-prv",
+        "vlan_range" => "3000:4094"
+      }
+    }
+    res_cfg['database']['url'] = 'mysql://neutron:neutron@192.168.0.254:3306/neutron'
+    rv = scope.function_sanitize_neutron_config([cfg, 'neutron_settings'])
+    expect(rv).to eq(res_cfg)
   end
 
   it 'should substitute default values if missing required field in config (amqp)' do
@@ -242,7 +280,8 @@ describe 'sanitize_neutron_config' , :type => :puppet_function do
     cfg['neutron_settings']['L3'].delete('dhcp_agent')
     res_cfg = Marshal.load(Marshal.dump(@res_cfg))
     res_cfg['database']['url'] = 'mysql://neutron:neutron@192.168.0.254:3306/neutron'
-    subject.call([@cfg, 'neutron_settings'])['amqp'].should  == res_cfg['amqp']
+    rv = scope.function_sanitize_neutron_config([@cfg, 'neutron_settings'])
+    expect(rv['amqp']).to eq(res_cfg['amqp'])
   end
 
   it 'should substitute default values if missing required field in config (database)' do
@@ -250,7 +289,8 @@ describe 'sanitize_neutron_config' , :type => :puppet_function do
     cfg['neutron_settings']['L3'].delete('dhcp_agent')
     res_cfg = Marshal.load(Marshal.dump(@res_cfg))
     res_cfg['database']['url'] = 'mysql://neutron:neutron@192.168.0.254:3306/neutron'
-    subject.call([@cfg, 'neutron_settings'])['database'].should  == res_cfg['database']
+    rv = scope.function_sanitize_neutron_config([cfg, 'neutron_settings'])
+    expect(rv['database']).to eq res_cfg['database']
   end
 
   it 'should substitute default values if missing required field in config (server)' do
@@ -258,7 +298,8 @@ describe 'sanitize_neutron_config' , :type => :puppet_function do
     cfg['neutron_settings']['L3'].delete('dhcp_agent')
     res_cfg = Marshal.load(Marshal.dump(@res_cfg))
     res_cfg['database']['url'] = 'mysql://neutron:neutron@192.168.0.254:3306/neutron'
-    subject.call([@cfg, 'neutron_settings'])['server'].should  == res_cfg['server']
+    rv = scope.function_sanitize_neutron_config([@cfg, 'neutron_settings'])
+    expect(rv['server']).to eq res_cfg['server']
   end
 
   it 'should substitute default values if missing required field in config (keystone)' do
@@ -266,15 +307,27 @@ describe 'sanitize_neutron_config' , :type => :puppet_function do
     cfg['neutron_settings']['L3'].delete('dhcp_agent')
     res_cfg = Marshal.load(Marshal.dump(@res_cfg))
     res_cfg['database']['url'] = 'mysql://neutron:neutron@192.168.0.254:3306/neutron'
-    subject.call([@cfg, 'neutron_settings'])['keystone'].should  == res_cfg['keystone']
+    rv = scope.function_sanitize_neutron_config([@cfg, 'neutron_settings'])
+    expect(rv['keystone']).to eq res_cfg['keystone']
   end
 
   it 'should substitute default values if missing required field in config (L2)' do
     cfg = Marshal.load(Marshal.dump(@cfg))
     cfg['neutron_settings']['L3'].delete('dhcp_agent')
     res_cfg = Marshal.load(Marshal.dump(@res_cfg))
+    res_cfg['L2']['enable_tunneling'] = true
+    res_cfg['L2']['phys_bridges'] = ["br-ex"]
+    res_cfg['L2']['network_vlan_ranges'] = "physnet1"
+    res_cfg['L2']['bridge_mappings'] = "physnet1:br-ex"
+    res_cfg['L2']['phys_nets'] = {
+      "physnet1" => {
+        "bridge" => "br-ex",
+        "vlan_range" => nil
+      }
+    }
     res_cfg['database']['url'] = 'mysql://neutron:neutron@192.168.0.254:3306/neutron'
-    subject.call([@cfg, 'neutron_settings'])['L2'].should  == res_cfg['L2']
+    rv = scope.function_sanitize_neutron_config([@cfg, 'neutron_settings'])
+    expect(rv['L2']).to eq res_cfg['L2']
   end
 
   it 'should substitute default values if missing required field in config (L3)' do
@@ -282,15 +335,18 @@ describe 'sanitize_neutron_config' , :type => :puppet_function do
     cfg['neutron_settings']['L3'].delete('dhcp_agent')
     res_cfg = Marshal.load(Marshal.dump(@res_cfg))
     res_cfg['database']['url'] = 'mysql://neutron:neutron@192.168.0.254:3306/neutron'
-    subject.call([@cfg, 'neutron_settings'])['L3'].should  == res_cfg['L3']
+    rv = scope.function_sanitize_neutron_config([@cfg, 'neutron_settings'])
+    expect(rv['L3']).to eq res_cfg['L3']
   end
 
   it 'should substitute default values if missing required field in config (predefined_networks)' do
     cfg = Marshal.load(Marshal.dump(@cfg))
     cfg['neutron_settings']['L3'].delete('dhcp_agent')
     res_cfg = Marshal.load(Marshal.dump(@res_cfg))
+    res_cfg['predefined_networks']['net04']['L2']['physnet'] = nil
     res_cfg['database']['url'] = 'mysql://neutron:neutron@192.168.0.254:3306/neutron'
-    subject.call([@cfg, 'neutron_settings'])['predefined_networks'].should  == res_cfg['predefined_networks']
+    rv = scope.function_sanitize_neutron_config([@cfg, 'neutron_settings'])
+    expect(rv['predefined_networks']).to eq res_cfg['predefined_networks']
   end
 
   it 'should substitute default values if missing required field in config (predefined_routers)' do
@@ -298,12 +354,14 @@ describe 'sanitize_neutron_config' , :type => :puppet_function do
     cfg['neutron_settings']['L3'].delete('dhcp_agent')
     res_cfg = Marshal.load(Marshal.dump(@res_cfg))
     res_cfg['database']['url'] = 'mysql://neutron:neutron@192.168.0.254:3306/neutron'
-    subject.call([@cfg, 'neutron_settings'])['predefined_routers'].should  == res_cfg['predefined_routers']
+    rv = scope.function_sanitize_neutron_config([@cfg, 'neutron_settings'])
+    expect(rv['predefined_routers']).to eq res_cfg['predefined_routers']
   end
 
   it 'should calculate database url if database properties not given' do
     @cfg['neutron_settings']['database'] = {}
-    subject.call([@cfg, 'neutron_settings'])['database']['url'].should  == "mysql://neutron:neutron@192.168.0.254:3306/neutron"
+    rv = scope.function_sanitize_neutron_config([@cfg, 'neutron_settings'])
+    expect(rv['database']['url']).to eq "mysql://neutron:neutron@192.168.0.254:3306/neutron"
   end
   it 'should calculate database url if some database properties given' do
     @cfg['neutron_settings']['database'] = {
@@ -314,33 +372,54 @@ describe 'sanitize_neutron_config' , :type => :puppet_function do
       'host' => '5.4.3.2',
       'port' => 666,
     }
-    subject.call([@cfg, 'neutron_settings'])['database']['url'].should  == "mysql://qq_username:qq_password@5.4.3.2:666/qq_database"
+    rv = scope.function_sanitize_neutron_config([@cfg, 'neutron_settings'])
+    expect(rv['database']['url']).to eq "mysql://qq_username:qq_password@5.4.3.2:666/qq_database"
   end
 
   it 'should can substitute values in deep level' do
-    @cfg['neutron_settings']['amqp']['provider'] = "XXXXXXXXXXxxxx"
-    @cfg['neutron_settings']['L2']['base_mac'] = "aa:aa:aa:00:00:00"
-    @cfg['neutron_settings']['L2']['integration_bridge'] = "xx-xxx"
-    @cfg['neutron_settings']['L2']['local_ip'] = "9.9.9.9"
-    @cfg['neutron_settings']['predefined_networks']['net04_ext']['L3']['nameservers'] = ["127.0.0.1"]
-    res_cfg = Marshal.load(Marshal.dump(@cfg['neutron_settings']))
+    cfg = Marshal.load(Marshal.dump(@cfg))
+    cfg['neutron_settings']['L2']['segmentation_type'] = 'gre'
+    cfg['neutron_settings']['amqp']['provider'] = "XXXXXXXXXXxxxx"
+    cfg['neutron_settings']['L2']['base_mac'] = "aa:aa:aa:00:00:00"
+    cfg['neutron_settings']['L2']['integration_bridge'] = "xx-xxx"
+    cfg['neutron_settings']['L2']['local_ip'] = "9.9.9.9"
+    res_cfg = Marshal.load(Marshal.dump(cfg['neutron_settings']))
+    res_cfg['L2']['segmentation_type'] = 'gre'
+    #res_cfg['L2']['enable_tunneling'] = true
+    res_cfg['L2']['phys_bridges'] = ["br-ex"]
+    res_cfg['L2']['network_vlan_ranges'] = "physnet1"
+    res_cfg['L2']['bridge_mappings'] = "physnet1:br-ex"
+    res_cfg['L2']['phys_nets'] = {
+      "physnet1" => {
+        "bridge" => "br-ex",
+        "vlan_range" => nil
+      }
+    }
+    res_cfg['predefined_networks']['net04']['L2']['physnet'] = nil
     res_cfg['database']['url'] = 'mysql://neutron:neutron@192.168.0.254:3306/neutron'
     res_cfg['L2']['enable_tunneling'] = true
     #should run.with_params(@cfg,'neutron_settings').and_return(res_cfg)
-    subject.call([@cfg, 'neutron_settings']).should  == res_cfg
+    rv = scope.function_sanitize_neutron_config([cfg, 'neutron_settings'])
+    #expect(rv['L2']).to eq res_cfg['L2']
+    #expect(rv['L3']).to eq res_cfg['L3']
+    #expect(rv['predefined_networks']).to eq res_cfg['predefined_networks']
+    expect(rv).to eq res_cfg
   end
 
   it 'should calculate hostname if amqp host not given' do
     @cfg['neutron_settings']['amqp'] = {
           'provider' => "rabbitmq",
     }
-    subject.call([@cfg, 'neutron_settings'])['amqp'].should  == @res_cfg['amqp']
+    rv = scope.function_sanitize_neutron_config([@cfg, 'neutron_settings'])
+    expect(rv['amqp']).to eq @res_cfg['amqp']
   end
 
   it 'should calculate auth url if auth properties not given' do
     @cfg['neutron_settings']['keystone'] = {}
-    subject.call([@cfg, 'neutron_settings'])['keystone']['auth_url'].should  == "http://192.168.0.254:35357/v2.0"
+    rv = scope.function_sanitize_neutron_config([@cfg, 'neutron_settings'])
+    expect(rv['keystone']['auth_url']).to eq "http://192.168.0.254:35357/v2.0"
   end
+
   it 'should calculate auth url if some auth properties given' do
     @cfg['neutron_settings']['keystone'] = {
           'auth_host' => "1.2.3.4",
@@ -353,16 +432,19 @@ describe 'sanitize_neutron_config' , :type => :puppet_function do
           'admin_password' => "pass_q",
           'admin_email' => "test.neutron@localhost",
     }
-    subject.call([@cfg, 'neutron_settings'])['keystone']['auth_url'].should  == "https://1.2.3.4:666/v10.0"
+    rv = scope.function_sanitize_neutron_config([@cfg, 'neutron_settings'])
+    expect(rv['keystone']['auth_url']).to eq "https://1.2.3.4:666/v10.0"
   end
 
   it 'enable_tunneling must be True if segmentation_type is GRE' do
     @cfg['neutron_settings']['L2']['segmentation_type'] = 'gre'
-    subject.call([@cfg, 'neutron_settings'])['L2']['enable_tunneling'].should  == true
+    rv = scope.function_sanitize_neutron_config([@cfg, 'neutron_settings'])
+    expect(rv['L2']['enable_tunneling']).to eq true
   end
   it 'enable_tunneling must be False if segmentation_type is VLAN' do
     @cfg['neutron_settings']['L2']['segmentation_type'] = 'vlan'
-    subject.call([@cfg, 'neutron_settings'])['L2']['enable_tunneling'].should  == false
+    rv = scope.function_sanitize_neutron_config([@cfg, 'neutron_settings'])
+    expect(rv['L2']['enable_tunneling']).to eq false
   end
 end
 

@@ -1,4 +1,8 @@
+# require 'puppet'
+# require 'rspec'
+# require 'rspec-puppet'
 require 'spec_helper'
+require 'puppetlabs_spec_helper/puppetlabs_spec/puppet_internals'
 begin
   require 'puppet/parser/functions/lib/l23network_scheme.rb'
 rescue LoadError => e

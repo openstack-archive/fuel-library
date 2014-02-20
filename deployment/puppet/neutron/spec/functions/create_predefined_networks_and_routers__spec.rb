@@ -1,4 +1,8 @@
+# require 'puppet'
+# require 'rspec'
+# require 'rspec-puppet'
 require 'spec_helper'
+require 'puppetlabs_spec_helper/puppetlabs_spec/puppet_internals'
 require 'json'
 require 'yaml'
 
