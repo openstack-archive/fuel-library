@@ -1,0 +1,16 @@
+#import random
+#import string
+#set $authorized_keys = str(open("/etc/cobbler/authorized_keys", "r").read()).rstrip()
+#set $random_pass = ''.join(random.choice(string.lowercase) for i in range(16))
+
+d-i anna/choose_modules string network-console
+d-i network-console/password password $random_pass
+d-i network-console/password-again password $random_pass
+d-i network-console/start select continue
+
+d-i preseed/early_command string /bin/mkdir /.ssh ; \
+/bin/echo "$authorized_keys" > /.ssh/authorized_keys ; \
+/bin/sed -e "s#PasswordAuthentication yes#PasswordAuthentication no#" -i /etc/ssh/sshd_config ; \
+/usr/bin/killall -s HUP sshd ; \
+/usr/bin/killall -s KILL syslogd ; \
+/sbin/syslogd -m 0 -O /var/log/syslog -S -R @@server@@

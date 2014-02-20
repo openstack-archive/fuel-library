@@ -122,7 +122,7 @@ class nailgun::cobbler(
 
   cobbler_profile { "centos-x86_64":
     kickstart => "/var/lib/cobbler/kickstarts/centos-x86_64.ks",
-    kopts => "biosdevname=0",
+    kopts => "biosdevname=0 sshd=1",
     distro => "centos-x86_64",
     ksmeta => "",
     menu => true,

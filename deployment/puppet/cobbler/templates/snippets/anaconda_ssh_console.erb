@@ -1,0 +1,6 @@
+#set $authorized_keys = str(open("/etc/cobbler/authorized_keys", "r").read())
+mkdir -p --mode=700 /root/.ssh
+cat > /root/.ssh/authorized_keys2 <<EOF
+$authorized_keys
+EOF
+chmod 600 /root/.ssh/authorized_keys2
