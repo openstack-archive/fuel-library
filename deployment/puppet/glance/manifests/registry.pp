@@ -46,7 +46,8 @@ if $use_syslog and !$debug { #syslog and nondebug case
   }
 } else {  #other syslog debug or nonsyslog debug/nondebug cases
   glance_registry_config {
-    'DEFAULT/log_file':value=>$log_file;
+    'DEFAULT/log_config' : ensure => absent;
+    'DEFAULT/log_file': value=>$log_file;
     'DEFAULT/use_syslog': value =>  false;
   }
 } #end if

@@ -133,6 +133,7 @@ class glance::api(
     }
   } else {  #other syslog debug or nonsyslog debug/nondebug cases
     glance_api_config {
+      'DEFAULT/log_config': ensure=> absent;
       'DEFAULT/log_file':value=> $log_file;
       'DEFAULT/use_syslog': value =>  false;
     }
