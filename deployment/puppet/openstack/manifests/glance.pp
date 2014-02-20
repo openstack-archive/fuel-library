@@ -18,11 +18,13 @@
 # [db_type] Type of sql databse to use. Optional. Defaults to 'mysql'
 # [glance_db_user] Name of glance DB user. Optional. Defaults to 'glance'
 # [glance_db_dbname] Name of glance DB. Optional. Defaults to 'glance'
-# [verbose] Rather to print more verbose (INFO+) output. If non verbose and non debug, would give syslog_log_level (default is WARNING) output. Optional. Defaults to false.
-# [debug] Rather to print even more verbose (DEBUG+) output. If true, would ignore verbose option. Optional. Defaults to false.
+# [verbose] Rather to print more verbose (INFO+) output. If non verbose and non debug, would give
+#   syslog_log_level (default is WARNING) output. Optional. Defaults to false.
+# [debug] Rather to print even more verbose (DEBUG+) output. If true, would ignore verbose option.
+#   Optional. Defaults to false.
 # [enabled] Used to indicate if the service should be active (true) or passive (false).
 #   Optional. Defaults to true
-# [use_syslog] Rather or not service should log to syslog. Optional.
+# [use_syslog] Rather or not service should log to syslog. Optional. Default to false.
 # [syslog_log_facility] Facility for syslog, if used. Optional. Note: duplicating conf option
 #       wouldn't have been used, but more powerfull rsyslog features managed via conf template instead
 # [syslog_log_level] logging level for non verbose and non debug mode. Optional.
@@ -48,8 +50,8 @@ class openstack::glance (
   $glance_db_user       = 'glance',
   $glance_db_dbname     = 'glance',
   $glance_backend       = 'file',
-  $verbose              = 'False',
-  $debug                = 'False',
+  $verbose              = false,
+  $debug                = false,
   $enabled              = true,
   $use_syslog           = false,
   # Facility is common for all glance services

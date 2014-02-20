@@ -6,8 +6,8 @@
 class neutron (
   $neutron_config = {},
   $enabled              = true,
-  $verbose              = 'False',
-  $debug                = 'False',
+  $verbose              = false,
+  $debug                = false,
   $core_plugin          = 'neutron.plugins.openvswitch.ovs_neutron_plugin.OVSNeutronPluginV2',
   $auth_strategy        = 'keystone',
   $log_file             = '/var/log/neutron/server.log',
@@ -111,6 +111,7 @@ class neutron (
     'DEFAULT/log_dir':               ensure => absent;
     'DEFAULT/log_file':              ensure => absent;
     'DEFAULT/log_config':            ensure => absent;
+    #TODO(bogdando) fix syslog usage after Oslo logging patch synced in I.
     'DEFAULT/use_syslog':             value => false;
     'DEFAULT/use_stderr':             value => true;
     'DEFAULT/publish_errors':         value => false;
@@ -175,4 +176,3 @@ class neutron (
   anchor {'neutron-init-done':}
 }
 
-# vim: set ts=2 sw=2 et :

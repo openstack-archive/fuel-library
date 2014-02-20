@@ -8,9 +8,9 @@
 #  [*package_ensure*]
 #    ensure state for package. Optional. Defaults to 'present'
 #  [*verbose*]
-#    should the daemons log verbose messages. Optional. Defaults to 'False'
+#    should the daemons log verbose messages. Optional. Defaults to false
 #  [*debug*]
-#    should the daemons log debug messages. Optional. Defaults to 'False'
+#    should the daemons log debug messages. Optional. Defaults to false
 #  [*rabbit_host*]
 #    ip or hostname of the rabbit server. Optional. Defaults to '127.0.0.1'
 #  [*rabbit_port*]
@@ -35,8 +35,8 @@
 class ceilometer(
   $metering_secret     = false,
   $package_ensure      = 'present',
-  $verbose             = 'False',
-  $debug               = 'False',
+  $verbose             = false,
+  $debug               = false,
   $use_syslog          = false,
   $syslog_log_facility = 'LOG_SYSLOG',
   $syslog_log_level    = 'WARNING',

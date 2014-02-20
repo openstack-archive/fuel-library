@@ -3,8 +3,8 @@
 #
 class glance::registry(
   $keystone_password,
-  $verbose           = 'False',
-  $debug             = 'False',
+  $verbose           = false,
+  $debug             = false,
   $bind_host         = '0.0.0.0',
   $bind_port         = '9191',
   $log_file          = '/var/log/glance/registry.log',

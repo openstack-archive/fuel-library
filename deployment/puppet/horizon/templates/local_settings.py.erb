@@ -312,7 +312,7 @@ LOGGING = {
             # Logging from django.db.backends is VERY verbose, send to null
             # by default.
             'django.db.backends': {
-                'handlers':<% if django_debug=='True' and use_syslog -%> ['syslog']<% else -%> ['null']<% end -%>,
+                'handlers':<% if django_debug and use_syslog -%> ['syslog']<% else -%> ['null']<% end -%>,
                 'level': 'DEBUG',
                 'propagate': False
                 },

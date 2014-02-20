@@ -30,8 +30,8 @@ class openstack::horizon (
   $keystone_host         = '127.0.0.1',
   $keystone_scheme       = 'http',
   $keystone_default_role = 'Member',
-  $verbose               = 'false',
-  $debug                 = 'false',
+  $verbose               = false,
+  $debug                 = false,
   $api_result_limit      = 1000,
   $package_ensure        = present,
   $use_ssl               = false,
@@ -46,16 +46,16 @@ class openstack::horizon (
   # }
  if $debug { #syslog and nondebug case
    #We don't realy want django debug, it is too verbose.
-   $django_debug   = 'False'
-   $django_verbose = 'False'
+   $django_debug   = false
+   $django_verbose = false
    $log_level_real = 'DEBUG'
- } elsif $verbose =~ /(?i)(true|yes)/ {
-   $django_verbose = 'True'
-   $django_debug   = 'False'
+ } elsif $verbose {
+   $django_verbose = true
+   $django_debug   = false
    $log_level_real = 'INFO'
  } else {
-   $django_verbose = 'False'
-   $django_debug   = 'False'
+   $django_verbose = false
+   $django_debug   = false
    $log_level_real = $log_level
  }
 

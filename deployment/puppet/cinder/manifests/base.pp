@@ -24,8 +24,8 @@ class cinder::base (
   $qpid_port              = 5672,
   $qpid_userid            = 'nova',
   $package_ensure         = 'present',
-  $verbose                = 'False',
-  $debug                  = 'False',
+  $verbose                = false,
+  $debug                  = false,
   $use_syslog             = false,
   $syslog_log_facility    = 'LOG_LOCAL3',
   $syslog_log_level = 'WARNING',
@@ -75,7 +75,7 @@ class cinder::base (
     File['cinder-logging.conf'] ~> Service <| title == 'cinder-scheduler' |>
   } else { #other syslog debug or nonsyslog debug/nondebug cases
     cinder_config {
-      'DEFAULT/logdir':value=> $log_dir;
+      'DEFAULT/logdir': value=> $log_dir;
       'DEFAULT/use_syslog': value =>  false;
     }
   }

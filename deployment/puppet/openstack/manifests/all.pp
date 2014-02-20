@@ -30,13 +30,15 @@
 #  [glance_db_password] The password for the db user for glance. Optional. Defaults to 'glance_pass'.
 #  [glance_user_password] The password of the glance service user. Optional. Defaults to 'glance_pass'.
 #  [secret_key] The secret key for horizon. Optional. Defaults to 'dummy_secret_key'.
-# [verbose] Rather to print more verbose (INFO+) output. If non verbose and non debug, would give syslog_log_level (default is WARNING) output. Optional. Defaults to false.
-# [debug] Rather to print even more verbose (DEBUG+) output. If true, would ignore verbose option. Optional. Defaults to false.
+# [verbose] Rather to print more verbose (INFO+) output. If non verbose and non debug, would give syslog_log_level
+#   (default is WARNING) output. Optional. Defaults to false.
+# [debug] Rather to print even more verbose (DEBUG+) output. If true, would ignore verbose option.
+#   Optional. Defaults to false.
 #  [purge_nova_config] Whether unmanaged nova.conf entries should be purged. Optional. Defaults to true.
 #  [libvirt_type] The virualization type being controlled by libvirt.  Optional. Defaults to 'kvm'.
 #  [nova_volume] The name of the volume group to use for nova volume allocation. Optional. Defaults to 'nova-volumes'.
 #  [horizon] (bool) is horizon installed. Defaults to: true
-#  [use_syslog] Rather or not service should log to syslog. Optional.
+#  [use_syslog] Rather or not service should log to syslog. Optional. Defaults to false.
 #  [syslog_log_facility] Facility for syslog, if used. Optional. Note: duplicating conf option
 #       wouldn't have been used, but more powerfull rsyslog features managed via conf template instead
 #  [syslog_log_level] logging level for non verbose and non debug mode. Optional.
@@ -141,12 +143,12 @@ class openstack::all (
   $vnc_enabled             = true,
   # General
   $enabled                 = true,
-  $verbose                 = 'False',
-  $debug                   = 'False',
+  $verbose                 = false,
+  $debug                   = false,
   $service_endpoint        = '127.0.0.1',
   $glance_backend          = 'file',
   $use_syslog              = false,
-  $syslog_log_level = 'WARNING',
+  $syslog_log_level        = 'WARNING',
   $syslog_log_facility_glance   = 'LOG_LOCAL2',
   $syslog_log_facility_cinder   = 'LOG_LOCAL3',
   $syslog_log_facility_neutron  = 'LOG_LOCAL4',

@@ -75,8 +75,8 @@ class openstack::nova::controller (
   $vnc_enabled               = true,
   # General
   $keystone_host             = '127.0.0.1',
-  $verbose                   = 'False',
-  $debug                     = 'False',
+  $verbose                   = false,
+  $debug                     = false,
   $enabled                   = true,
   $exported_resources        = true,
   $rabbit_nodes              = [$internal_address],
