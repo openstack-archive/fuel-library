@@ -18,7 +18,7 @@ class neutron::keystone::auth (
     roles   => 'admin',
   }
 
-  Keystone_user_role["${neutron_config['keystone']['admin_user']}@services"] ~> Service <| name == 'neutron-server' |>
+  Keystone_user_role["${neutron_config['keystone']['admin_user']}@services"] ~> Service <| title == 'neutron-server' |>
 
   keystone_service { $neutron_config['keystone']['admin_user']:
     ensure      => present,

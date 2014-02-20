@@ -13,7 +13,7 @@ class cinder::keystone::auth (
   $region             = 'RegionOne'
 ) {
 
-  Keystone_user_role["${auth_name}@${tenant}"] ~> Service <| name == 'cinder-api' |>
+  Keystone_user_role["${auth_name}@${tenant}"] ~> Service <| title == 'cinder-api' |>
 
   keystone_user { $auth_name:
     ensure   => present,

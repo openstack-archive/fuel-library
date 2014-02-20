@@ -28,8 +28,8 @@ class glance::keystone::auth(
   $tenant             = 'services'
 ) {
 
-  Keystone_user_role["${auth_name}@${tenant}"] ~> Service <| name == 'glance-registry' |>
-  Keystone_user_role["${auth_name}@${tenant}"] ~> Service <| name == 'glance-api' |>
+  Keystone_user_role["${auth_name}@${tenant}"] ~> Service <| title == 'glance-registry' |>
+  Keystone_user_role["${auth_name}@${tenant}"] ~> Service <| title == 'glance-api' |>
 
   keystone_user { $auth_name:
     ensure   => present,

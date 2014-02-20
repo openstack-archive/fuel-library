@@ -61,7 +61,7 @@ class ceilometer::keystone::auth (
   validate_string($password)
 
   Keystone_user_role["${auth_name}@${tenant}"] ~>
-    Service <| name == 'ceilometer-api' |>
+    Service <| title == 'ceilometer-api' |>
 
   keystone_user { $auth_name:
     ensure   => present,
