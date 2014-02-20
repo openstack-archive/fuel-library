@@ -19,8 +19,8 @@ class sahara::keystone::auth (
 
   keystone_service { $auth_name:
     ensure      => present,
-    type        => 'mapreduce',
-    description => 'Openstack_Sahara_Service',
+    type        => 'data_processing',
+    description => 'Sahara Data Processing',
   }
 
   keystone_endpoint { $auth_name:
