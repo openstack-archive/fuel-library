@@ -50,6 +50,10 @@ class savanna::api (
     $use_floating_ips_value = false
   }
 
+  exec { 'savanna-db-manage':
+    command    => "/usr/lib/savanna-db-manage --config-file savanna-venv/etc/savanna.conf upgrade head"
+  }
+
   service { 'savanna-api':
     ensure     => $service_ensure,
     name       => $savanna::params::savanna_service_name,
@@ -124,6 +128,6 @@ class savanna::api (
     mode    => '0751',
   }
 
-  Package['savanna'] -> Savanna_config<||> -> Service['savanna-api']
+  Package['savanna'] -> Savanna_config<||> -> Exec['savanna-db-manage'] -> Service['savanna-api']
 
 }
