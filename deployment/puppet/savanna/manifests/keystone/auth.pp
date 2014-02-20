@@ -19,8 +19,8 @@ class savanna::keystone::auth (
 
   keystone_service { $auth_name:
     ensure      => present,
-    type        => 'mapreduce',
-    description => 'Openstack_Savanna_Service',
+    type        => 'data_processing',
+    description => 'Savanna Data Processing',
   }
 
   keystone_endpoint { $auth_name:
