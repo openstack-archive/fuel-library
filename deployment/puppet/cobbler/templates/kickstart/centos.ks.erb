@@ -130,6 +130,10 @@ perl
 daemonize
 rsync
 
+# COBBLER EMBEDDED SNIPPET: 'kernel_ml_if_enabled'
+# LISTS kernel-ml PACKAGE IF kernel_ml VARIABLE IS SET TO 1
+$SNIPPET('kernel_ml_if_enabled')
+
 # COBBLER EMBEDDED SNIPPET: 'puppet_install_if_enabled'
 # LISTS puppet PACKAGE IF puppet_auto_setup VARIABLE IS SET TO 1
 $SNIPPET('puppet_install_if_enabled')

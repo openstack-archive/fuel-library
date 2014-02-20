@@ -71,6 +71,7 @@ class cobbler::snippets {
   cobbler_snippet {"ubuntu_partition_late":}
   cobbler_snippet {"ubuntu_static_net":}
   cobbler_snippet {"anaconda_ssh_console":}
+  cobbler_snippet {'kernel_ml_if_enabled':}
 
   case $operatingsystem {
     /(?i)(debian|ubuntu)/:  {
