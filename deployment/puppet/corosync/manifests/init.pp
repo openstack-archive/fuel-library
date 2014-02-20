@@ -99,8 +99,8 @@ class corosync (
     mode    => '0644',
     before => Service["corosync"],
   }
-  
-  
+
+
   # Using the Puppet infrastructure's ca as the authkey, this means any node in
   # Puppet can join the cluster.  Totally not ideal, going to come up with
   # something better.
@@ -115,20 +115,21 @@ class corosync (
     }
   }
   if $::operatingsystem == 'Ubuntu' {
-       file { "/etc/init/corosync.override":
-         replace => "no",
-         ensure  => "present",
-         content => "manual",
-         mode    => '0644',
-         before  => Package[corosync],
-      }
+    file { "/etc/init/corosync.override":
+      replace => "no",
+      ensure  => "present",
+      content => "manual",
+      mode    => '0644',
+      before  => Package[corosync],
+    }
+    package {'python-pcs': ensure => present} ->
+      Package['pacemaker']
+  } else {
+    package {'pcs': ensure => present} ->
+      package {'crmsh': ensure => present} ->
+        Package['pacemaker']
   }
   package { ['corosync', 'pacemaker']: ensure => present }
-
-  if $::osfamily == "RedHat"
-  {
-  	package {'crmsh': ensure => present}
-  }
 
   # Template uses:
   # - $unicast_addresses
@@ -182,7 +183,7 @@ class corosync (
         command => '/bin/rm -f /etc/init/corosync.override',
         path    => ['/bin', '/usr/bin'],
       }
-    } 
+    }
   }
 
 
@@ -212,5 +213,5 @@ class corosync (
     enable    => true,
     subscribe => File[['/etc/corosync/corosync.conf', '/etc/corosync/service.d']],
   }
- 
+
 }
