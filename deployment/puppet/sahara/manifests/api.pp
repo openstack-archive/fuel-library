@@ -11,9 +11,6 @@ class sahara::api (
   $bind_port                   = '8386',
   $node_domain                 = 'novalocal',
   $plugins                     = 'vanilla,hdp,idh',
-  $vanilla_plugin_class        = 'sahara.plugins.vanilla.plugin:VanillaProvider',
-  $hdp_plugin_class            = 'sahara.plugins.hdp.ambariplugin:AmbariPlugin',
-  $idh_plugin_class            = 'sahara.plugins.intel.plugin:IDHProvider',
   $sql_connection              = 'mysql://sahara:sahara@localhost/sahara',
   $use_neutron                 = false,
   $use_floating_ips            = true,
@@ -72,9 +69,6 @@ class sahara::api (
     'DEFAULT/use_neutron'                  : value => $use_neutron_value;
     'DEFAULT/node_domain'                  : value => $node_domain;
     'DEFAULT/plugins'                      : value => $plugins;
-    'plugin:vanilla/plugin_class'          : value => $vanilla_plugin_class;
-    'plugin:hdp/plugin_class'              : value => $hdp_plugin_class;
-    'plugin:idh/plugin_class'              : value => $idh_plugin_class;
     'database/connection'                  : value => $sql_connection;
     'database/max_retries'                 : value => '-1';
     'DEFAULT/verbose'                      : value => $verbose;
