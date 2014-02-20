@@ -102,6 +102,7 @@ class keystone(
     }
   } else { #other syslog debug or nonsyslog debug/nondebug cases
     keystone_config {
+      'DEFAULT/log_config': ensure=> absent;
       'DEFAULT/log_dir':value=> $log_dir;
       'DEFAULT/log_file': value => $log_file;
       'DEFAULT/use_syslog': value =>  false;
