@@ -28,5 +28,4 @@ class glance(
     name   => $::glance::params::package_name,
     ensure => $package_ensure,
   }
-
 }
