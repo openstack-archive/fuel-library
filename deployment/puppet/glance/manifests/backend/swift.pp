@@ -32,5 +32,10 @@ class glance::backend::swift(
     'DEFAULT/swift_store_create_container_on_put':
       value => $swift_store_create_container_on_put;
   }
-
+  # Sheepdog's binary 'collie' hardcoded somewhere inside glance.
+  package { 'sheepdog':
+    name   => $::glance::params::sheepdog_package_name,
+    ensure => $package_ensure,
+  }
+  Package['sheepdog'] -> Package['glance']
 }
