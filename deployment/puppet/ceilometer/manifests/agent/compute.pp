@@ -50,6 +50,8 @@ class ceilometer::agent::compute (
     name   => $::ceilometer::params::agent_compute_package_name,
   }
 
+  tweaks::ubuntu_service_override { 'ceilometer-agent-compute' :}
+
   if $::ceilometer::params::libvirt_group {
     User['ceilometer'] {
       groups +> [$::ceilometer::params::libvirt_group]

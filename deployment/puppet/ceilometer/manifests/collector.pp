@@ -18,6 +18,8 @@ class ceilometer::collector (
     name   => $::ceilometer::params::collector_package_name,
   }
 
+  tweaks::ubuntu_service_override { 'ceilometer-collector' :}
+
   if $enabled {
     $service_ensure = 'running'
   } else {
