@@ -1,0 +1,11 @@
+Verified+2: Jenkins
+Approved+1: Mike Scherbakov <mscherbakov@mirantis.com>
+Code-Review+2: Mike Scherbakov <mscherbakov@mirantis.com>
+Code-Review+1: Andrew Woodward <xarses@gmail.com>
+Verified+1: Fuel CI <fuel-ci-bot@mirantis.com>
+Code-Review+1: Bartosz Kupidura <zynzel@spof.pl>
+Submitted-by: Jenkins
+Submitted-at: Fri, 21 Feb 2014 16:14:49 +0000
+Reviewed-on: https://review.openstack.org/74808
+Project: stackforge/fuel-library
+Branch: refs/heads/master
