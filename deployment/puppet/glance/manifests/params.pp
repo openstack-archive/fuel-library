@@ -14,7 +14,7 @@ class glance::params {
       $db_sync_command       = 'glance-manage db_sync'
     }
     'Debian': {
-     $package_name          = 'glance-common'
+      $package_name          = 'glance-common'
       $api_package_name          = 'glance-api'
       $registry_package_name     = 'glance-registry'
       $api_service_name      = 'glance-api'
@@ -25,5 +25,6 @@ class glance::params {
       fail("Unsupported osfamily: ${::osfamily} operatingsystem: ${::operatingsystem}, module ${module_name} only support osfamily RedHat and Debian")
     }
   }
+  $sheepdog_package_name = 'sheepdog'
 
 }
