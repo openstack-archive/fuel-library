@@ -343,11 +343,11 @@ class MrntNeutron
     end
     @neutron_config[:predefined_networks] = get_predefined_networks(
       @neutron_config[:L2][:enable_tunneling],
-      @neutron_config[:predefined_networks]
+      @neutron_config_from_nailgun[:predefined_networks]
     )
     @neutron_config[:L2][:phys_nets] = get_phys_nets(
       @neutron_config[:L2][:enable_tunneling],
-      @neutron_config[:L2][:phys_nets]
+      @neutron_config_from_nailgun[:L2][:phys_nets]
     )
     @neutron_config[:L2][:network_vlan_ranges] = MrntNeutron.get_network_vlan_ranges(@neutron_config[:L2])
     @neutron_config[:L2][:bridge_mappings] = MrntNeutron.get_bridge_mappings(@neutron_config[:L2])
