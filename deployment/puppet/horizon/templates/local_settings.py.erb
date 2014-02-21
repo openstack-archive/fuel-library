@@ -3,7 +3,7 @@ import os
 from django.utils.translation import ugettext_lazy as _
 from openstack_dashboard import exceptions
 
-DEBUG = <%= django_debug %>
+DEBUG =<% if django_debug %>True<% else %>False<% end %>
 TEMPLATE_DEBUG = DEBUG
 PROD = True
 #USE_SSL = False
