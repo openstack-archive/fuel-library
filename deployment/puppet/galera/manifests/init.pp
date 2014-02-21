@@ -163,13 +163,13 @@ class galera (
       operations => {
         'monitor' => {
           'interval' => '60',
-          'timeout' => '30'
+          'timeout' => '55'
         },
         'start' => {
-          'timeout' => '450'
+          'timeout' => '475'
         },
         'stop' => {
-          'timeout' => '150'
+          'timeout' => '175'
         },
       },
   }
