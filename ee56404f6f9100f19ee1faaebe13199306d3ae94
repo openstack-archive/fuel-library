@@ -1,0 +1,12 @@
+Verified+2: Jenkins
+Code-Review+1: Mike Scherbakov <mscherbakov@mirantis.com>
+Approved+1: Dmitry Borodaenko <dborodaenko@mirantis.com>
+Code-Review+2: Dmitry Borodaenko <dborodaenko@mirantis.com>
+Code-Review+1: Andrey Danin <gcon.monolake@gmail.com>
+Verified+1: Fuel CI <fuel-ci-bot@mirantis.com>
+Code-Review+1: Dmitry Ilyin <dilyin@mirantis.com>
+Submitted-by: Jenkins
+Submitted-at: Fri, 21 Feb 2014 20:46:48 +0000
+Reviewed-on: https://review.openstack.org/75461
+Project: stackforge/fuel-library
+Branch: refs/heads/master
