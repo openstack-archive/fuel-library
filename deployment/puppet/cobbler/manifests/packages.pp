@@ -21,8 +21,7 @@ class cobbler::packages {
       $cobbler_web_package = "cobbler-web"
       $dnsmasq_package = "dnsmasq"
       $cobbler_additional_packages = ["xinetd", "tftp-server", "syslinux", "wget", "python-ipaddr"]
-      $django_package = "Django"
-      $django_version = "1.3.4-1.el6"
+      $django_package = "python-django"
     }
     /(?i)(debian|ubuntu)/:  {
       $cobbler_package = "cobbler"
@@ -43,7 +42,7 @@ class cobbler::packages {
   cobbler_safe_package { $cobbler_additional_packages : }
 
   package { $django_package :
-        ensure => $django_version
+        ensure => present
   }
 
   package { $cobbler_package :
