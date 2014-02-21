@@ -111,6 +111,7 @@ $syslog_log_facility_neutron  = 'LOG_LOCAL4'
 $syslog_log_facility_nova     = 'LOG_LOCAL6'
 $syslog_log_facility_keystone = 'LOG_LOCAL7'
 $syslog_log_facility_heat     = 'LOG_LOCAL0'
+$syslog_log_facility_savanna  = 'LOG_LOCAL0'
 
 $nova_rate_limits = {
   'POST' => 1000,
@@ -193,6 +194,7 @@ class os_common {
       virtual        => str2bool($::is_virtual),
       # facilities
       syslog_log_facility_murano   => $syslog_log_facility_murano,
+      syslog_log_facility_savanna  => $syslog_log_facility_savanna,
       syslog_log_facility_glance   => $syslog_log_facility_glance,
       syslog_log_facility_cinder   => $syslog_log_facility_cinder,
       syslog_log_facility_neutron  => $syslog_log_facility_neutron,

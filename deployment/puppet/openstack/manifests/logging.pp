@@ -40,6 +40,7 @@ class openstack::logging (
     $syslog_log_facility_nova     = 'LOG_LOCAL6',
     $syslog_log_facility_keystone = 'LOG_LOCAL7',
     $syslog_log_facility_heat     = 'LOG_LOCAL0',
+    $syslog_log_facility_savanna  = 'LOG_LOCAL0',
     $rabbit_log_level = 'NOTICE',
     $debug          = false,
 ) {
@@ -62,6 +63,7 @@ if $role == 'client' {
     syslog_log_facility_nova     => $syslog_log_facility_nova,
     syslog_log_facility_keystone => $syslog_log_facility_keystone,
     syslog_log_facility_heat     => $syslog_log_facility_heat,
+    syslog_log_facility_savanna  => $syslog_log_facility_savanna,
     log_level      => $rabbit_log_level,
     debug          => $debug,
   }
