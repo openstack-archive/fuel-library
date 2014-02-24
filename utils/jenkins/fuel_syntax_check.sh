@@ -27,17 +27,25 @@ echo "Puppet version is: `puppet --version`"
 for x in $all_files; do
   case $x in
   *.pp )
-    puppet-lint \
-        --no-80chars-check \
-        --no-autoloader_layout-check \
-        --no-nested_classes_or_defines-check \
-        --no-only_variable_string-check \
-        --no-2sp_soft_tabs-check \
-        --no-trailing_whitespace-check \
-        --no-hard_tabs-check \
-        --no-class_inherits_from_params_class-check \
-        --with-filename $x
+    # I'm commenting this check out because there is
+    # no real use of it. Lint checks for ugly coding style
+    # but none of it's warnings are real errors.
+    # Lint should be used by developers as an advisory
+    # to check if they can make their code better look better
+    # but not as pre-merge syntax check.
 
+    #puppet-lint \
+    #    --no-80chars-check \
+    #    --no-autoloader_layout-check \
+    #    --no-nested_classes_or_defines-check \
+    #    --no-only_variable_string-check \
+    #    --no-2sp_soft_tabs-check \
+    #    --no-trailing_whitespace-check \
+    #    --no-hard_tabs-check \
+    #    --no-class_inherits_from_params_class-check \
+    #    --with-filename $x
+
+    # Check for syntax errors if Puppet files
     puppet parser validate --render-as s --color=false $x
     ;;
   *.erb | *.rb )
