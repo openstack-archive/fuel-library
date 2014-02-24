@@ -133,6 +133,9 @@ class MrntNeutron
   end
 
   def get_amqp_passwd()
+    if @fuel_config[:rabbit].nil? || @fuel_config[:rabbit].empty?
+      raise(Puppet::ParseError, "AMQP password not given!!!")
+    end
     @fuel_config[:rabbit][:password]
   end
 
@@ -328,16 +331,22 @@ class MrntNeutron
 
   def generate_config()
     @neutron_config = _generate_config(generate_default_neutron_config(), @neutron_config_from_nailgun, [])
+    # prevent getters, like @neutron_config_from_nailgun[:L2][:XXX] from errors
+    @neutron_config_from_nailgun[:L2] ||= {}
+    @neutron_config_from_nailgun[:L3] ||= {}
+    # calculate some sections if not given
     @neutron_config[:database][:url] ||= MrntNeutron.get_database_url(@neutron_config[:database])
     @neutron_config[:keystone][:auth_url] ||= MrntNeutron.get_keystone_auth_url(@neutron_config[:keystone])
     @neutron_config[:server][:api_url] ||= get_neutron_srv_api_url(@neutron_config[:server])
     @neutron_config[:amqp] ||= MrntNeutron.get_amqp_config(@neutron_config[:amqp])
+    # calculate tunneling value grom segm.type
     if [:gre, :vxlan, :lisp].include? @neutron_config[:L2][:segmentation_type].downcase.to_sym
       @neutron_config[:L2][:enable_tunneling] = true
     else
       @neutron_config[:L2][:enable_tunneling] = false
       @neutron_config[:L2][:tunnel_id_ranges] = nil
     end
+    # get amqp password from main config if for Neutron not given.
     if @neutron_config[:amqp][:passwd].nil?
       @neutron_config[:amqp][:passwd] = get_amqp_passwd()
     end
@@ -358,6 +367,9 @@ class MrntNeutron
   private
 
   def _generate_config(cfg_dflt, cfg_user, path)
+    if cfg_user.nil? or cfg_user.empty?
+      return Marshal.load(Marshal.dump(cfg_dflt))
+    end
     rv = {}
     cfg_dflt.each() do |k, v|
       # if v == nil && cfg_user[k] == nil
