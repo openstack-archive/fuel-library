@@ -104,6 +104,13 @@ class murano::api (
     'rabbitmq/login'                        : value => $api_rabbit_login;
     'rabbitmq/password'                     : value => $api_rabbit_password;
     'rabbitmq/virtual_host'                 : value => $api_rabbit_virtual_host;
+    'keystone_authtoken/auth_host'          : value => $api_paste_auth_host;
+    'keystone_authtoken/auth_port'          : value => $api_paste_auth_port;
+    'keystone_authtoken/auth_protocol'      : value => $api_paste_auth_protocol;
+    'keystone_authtoken/admin_tenant_name'  : value => $api_paste_admin_tenant_name;
+    'keystone_authtoken/admin_user'         : value => $api_paste_admin_user;
+    'keystone_authtoken/admin_password'     : value => $api_paste_admin_password;
+    'keystone_authtoken/signing_dir'        : value => $api_paste_signing_dir;
   }
 
   murano_api_paste_ini_config {
@@ -111,15 +118,8 @@ class murano::api (
     'app:apiv1app/paste.app_factory'        : value => $api_paste_app_factory;
     'filter:context/paste.filter_factory'   : value => $api_paste_filter_factory;
     'filter:authtoken/paste.filter_factory' : value => $api_paste_paste_filter_factory;
-    'filter:authtoken/auth_host'            : value => $api_paste_auth_host;
-    'filter:authtoken/auth_port'            : value => $api_paste_auth_port;
-    'filter:authtoken/auth_protocol'        : value => $api_paste_auth_protocol;
-    'filter:authtoken/admin_tenant_name'    : value => $api_paste_admin_tenant_name;
-    'filter:authtoken/admin_user'           : value => $api_paste_admin_user;
-    'filter:authtoken/admin_password'       : value => $api_paste_admin_password;
-    'filter:authtoken/signing_dir'          : value => $api_paste_signing_dir;
   }
-  
+
   firewall { $firewall_rule_name :
     dport   => [ $api_bind_port ],
     proto   => 'tcp',
