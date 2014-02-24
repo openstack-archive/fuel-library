@@ -91,6 +91,7 @@ $SNIPPET('pre_install_partition_lvm')
 # HERE ARE LIST OF PACKAGES THAT WILL BE INSTALLED
 # FIXME --ignoremissing
 %packages --nobase --ignoremissing
+$SNIPPET('centos_pkg_kernel_lt_if_enabled')
 @Core
 authconfig
 bfa-firmware
@@ -130,10 +131,6 @@ perl
 daemonize
 rsync
 
-# COBBLER EMBEDDED SNIPPET: 'kernel_ml_if_enabled'
-# LISTS kernel-ml PACKAGE IF kernel_ml VARIABLE IS SET TO 1
-$SNIPPET('kernel_ml_if_enabled')
-
 # COBBLER EMBEDDED SNIPPET: 'puppet_install_if_enabled'
 # LISTS puppet PACKAGE IF puppet_auto_setup VARIABLE IS SET TO 1
 $SNIPPET('puppet_install_if_enabled')
@@ -151,6 +148,7 @@ $SNIPPET('mcollective_install_if_enabled')
 # HERE ARE COMMANDS THAT WILL BE LAUNCHED JUST AFTER
 # INSTALLATION ITSELF COMPLETED
 %post
+
 yum versionlock puppet
 yum versionlock kernel
 yum versionlock iproute2
@@ -223,6 +221,10 @@ $SNIPPET('centos_authorized_keys')
 # PUTS IN IT ALL THE REPOSITORIES DEFINED IN ks_repo VARIABLE
 $SNIPPET('nailgun_repo')
 
+# COBBLER EMBEDDED SNIPPET: 'kernel_lt_if_enabled'
+# INSTALLS kernel-lt PACKAGE IF kernel_lt VARIABLE IS SET TO 1
+$SNIPPET('centos_post_kernel_lt_if_enabled')
+
 # COBBLER EMBEDDED SNIPPET: 'ssh_disable_gssapi'
 # REMOVES "GSSAPICleanupCredentials yes" AND "GSSAPIAuthentication yes" LINES
 # FROM /etc/ssh/sshd_config
@@ -233,7 +235,6 @@ $SNIPPET('ssh_disable_gssapi')
 $SNIPPET('red_hat_register_satellite')
 # REGISTER TO RED HAT SUBSCRIPTION MANAGER WITH LOGIN/PASSWORD
 $SNIPPET('red_hat_register_rhsm')
-
 
 # Let's not wait forewer when ssh'ing:
 sed -i --follow-symlinks -e '/UseDNS/d' /etc/ssh/sshd_config
