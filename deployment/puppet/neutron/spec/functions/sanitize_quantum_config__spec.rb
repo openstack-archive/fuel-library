@@ -43,6 +43,12 @@ class NeutronConfig
       'rabbit' => {
         'password' => 'nova'
       },
+     'access' => {
+        'password' => 'admin',
+        'user'     => 'admin',
+        'tenant'   => 'admin',
+        'email'    => 'admin@example.org',
+      },
       'neutron_settings' => {
         'amqp' => {
           'provider' => "rabbitmq",
