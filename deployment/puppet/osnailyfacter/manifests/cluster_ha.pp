@@ -456,7 +456,7 @@ class osnailyfacter::cluster_ha {
 
           use_neutron              => $::use_quantum,
 
-          use_syslog               => $::fuel_settings['use_syslog'],
+          use_syslog               => $use_syslog,
           debug                    => $debug,
           verbose                  => $verbose,
           syslog_log_facility      => $syslog_log_facility_murano,
