@@ -105,10 +105,6 @@ class NeutronConfig
               'bridge' => "br-ex",
               'vlan_range' => nil,
             },
-            'physnet2' => {
-              'bridge' => "br-prv",
-              'vlan_range' => "3000:4094",
-            },
           },
           'phys_bridges' => ['br-ex', 'br-prv'],
           'bridge_mappings' => "physnet1:br-ex,physnet2:br-prv",
@@ -168,7 +164,7 @@ class NeutronConfig
             'L2' => {
               'router_ext'   => false,
               'network_type' => 'gre', # or vlan
-              'physnet'      => 'physnet2',
+              'physnet'      => nil,
               'segment_id'   => nil,
             },
             'L3' => {
@@ -246,30 +242,6 @@ describe 'sanitize_neutron_config' , :type => :puppet_function do
       }
     }
     res_cfg['predefined_networks']['net04']['L2']['physnet'] = nil
-    res_cfg['database']['url'] = 'mysql://neutron:neutron@192.168.0.254:3306/neutron'
-    rv = scope.function_sanitize_neutron_config([cfg, 'neutron_settings'])
-    expect(rv).to eq(res_cfg)
-  end
-
-  it 'should return default config for VLAN if default config given as incoming' do
-    cfg = Marshal.load(Marshal.dump(@cfg))
-    cfg['neutron_settings']['L2']['segmentation_type'] = 'vlan'
-    res_cfg = Marshal.load(Marshal.dump(@res_cfg))
-    res_cfg['L2']['segmentation_type'] = 'vlan'
-    res_cfg['L2']['enable_tunneling'] = false
-    res_cfg['L2']['tunnel_id_ranges'] = nil
-    res_cfg['L2']['phys_bridges'] = ["br-ex", "br-prv"]
-    res_cfg['L2']['bridge_mappings'] = "physnet1:br-ex,physnet2:br-prv"
-    res_cfg['L2']['phys_nets'] = {
-      "physnet1" => {
-        "bridge" => "br-ex",
-        "vlan_range" => nil
-      },
-      "physnet2" => {
-        "bridge" => "br-prv",
-        "vlan_range" => "3000:4094"
-      }
-    }
     res_cfg['database']['url'] = 'mysql://neutron:neutron@192.168.0.254:3306/neutron'
     rv = scope.function_sanitize_neutron_config([cfg, 'neutron_settings'])
     expect(rv).to eq(res_cfg)
