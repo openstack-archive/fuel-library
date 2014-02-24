@@ -148,6 +148,7 @@ if $virtual { include rsyslog::checksum_udp514 }
   # OS specific log file names
   case $::osfamily {
     'Debian': {
+       $sapi                = '/var/log/savanna/savanna-api.log'
        $napi                = '/var/log/nova/nova-api.log'
        $ncert               = '/var/log/nova/nova-cert.log'
        $nauth               = '/var/log/nova/nova-consoleauth.log'
@@ -161,6 +162,7 @@ if $virtual { include rsyslog::checksum_udp514 }
        $csch                = '/var/log/cinder/cinder-scheduler.log'
      }
     'RedHat': {
+       $sapi                = '/var/log/savanna/api.log'
        $napi                = '/var/log/nova/api.log'
        $ncert               = '/var/log/nova/cert.log'
        $nauth               = '/var/log/nova/consoleauth.log'
@@ -339,7 +341,7 @@ if $virtual { include rsyslog::checksum_udp514 }
     }
     # savanna
     ::rsyslog::imfile { "52-savanna-api_debug" :
-        file_name     => "/var/log/savanna/savanna-api.log",
+        file_name     => $sapi,
         file_tag      => "savanna-api",
         file_facility => $syslog_log_facility_savanna_matched,
         file_severity => "DEBUG",
