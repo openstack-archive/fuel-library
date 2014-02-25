@@ -1,3 +1,4 @@
+require 'zlib'
 Puppet::Type.type(:l2_ovs_patch).provide(:ovs) do
   optional_commands(
     :vsctl  => "/usr/bin/ovs-vsctl",
@@ -12,9 +13,9 @@ Puppet::Type.type(:l2_ovs_patch).provide(:ovs) do
     i = 0
     for peer in @resource[:peers]
       if peer == nil
-        rv.insert(-1, "#{@resource[:bridges][i]}--#{@resource[:bridges][i-1]}")
+        rv.insert(-1, "p"+Zlib::crc32("#{@resource[:bridges][i]}--#{@resource[:bridges][i-1]}").to_s)
       else
-        rv.insert(-1, peer)
+        rv.insert(-1, "p"+Zlib::crc32(peer).to_s)
       end
       i += 1
     end
