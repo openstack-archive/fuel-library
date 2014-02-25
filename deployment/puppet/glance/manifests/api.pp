@@ -153,6 +153,7 @@ class glance::api(
     'DEFAULT/scrub_time': value => "43200";
     'DEFAULT/scrubber_datadir': value => "/var/lib/glance/scrubber";
     'DEFAULT/image_cache_dir': value => "/var/lib/glance/image-cache/";
+    'DEFAULT/filesystem_store_datadir': value => "/var/lib/glance/images/";
   }
 
   glance_cache_config {
