@@ -130,6 +130,11 @@ class galera (
         before => Package['mysql-client']
       }
 
+      package { 'bc':
+        ensure => present,
+        before => Package['MySQL-server']
+      }
+
       package { 'mysql-client':
         ensure => present,
         before => Package['MySQL-server']
