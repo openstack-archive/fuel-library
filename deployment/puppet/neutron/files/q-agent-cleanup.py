@@ -7,6 +7,7 @@ import json
 import argparse
 import logging
 import logging.handlers
+import shlex
 import subprocess
 import StringIO
 from neutronclient.neutron import client as q_client
@@ -27,7 +28,9 @@ def get_authconfig(cfg_file):
             rg = re.match(r'\s*export\s+(\w+)\s*=\s*(.*)',line)
             if rg :
                 #print("[{}]-[{}]".format(rg.group(1),rg.group(2).strip()))
-                rv[rg.group(1).strip(stripchars)]=rg.group(2).strip(stripchars)
+                value = "".join(x for x in
+                                shlex.split(rg.group(2).strip(stripchars)))
+                rv[rg.group(1).strip(stripchars)] = value
     return rv
 
 
