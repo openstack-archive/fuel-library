@@ -27,7 +27,8 @@ def get_authconfig(cfg_file):
             rg = re.match(r'\s*export\s+(\w+)\s*=\s*(.*)',line)
             if rg :
                 #print("[{}]-[{}]".format(rg.group(1),rg.group(2).strip()))
-                rv[rg.group(1).strip(stripchars)]=rg.group(2).strip(stripchars)
+                rv[rg.group(1).strip(stripchars)] = rg.group(2).strip(
+                    stripchars).replace('\\', '')
     return rv
 
 
