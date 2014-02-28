@@ -10,7 +10,7 @@
 # [*vip*]
 #   Specify dictionary of VIP parameters, ex:
 #   {
-#       nic    => 'eth0', 
+#       nic    => 'eth0',
 #       ip     => '10.1.1.253'
 #   }
 #
@@ -37,6 +37,9 @@ define cluster::virtual_ip (
     # ms_metadata => {
     #   'interleave' => 'true',
     # },
+    metadata => {
+      'resource-stickiness' => '1',
+    },
     parameters => {
       'nic'          => $vip[nic],
       'ip'           => $vip[ip],
