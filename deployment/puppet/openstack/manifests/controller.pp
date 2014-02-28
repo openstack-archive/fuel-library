@@ -407,7 +407,8 @@ class openstack::controller (
     syslog_log_facility_neutron => $syslog_log_facility_neutron,
     syslog_log_level        => $syslog_log_level,
     nova_rate_limits        => $nova_rate_limits,
-    cinder                  => $cinder
+    cinder                  => $cinder,
+    ha_mode                 => $ha_mode,
   }
 
   ######### Cinder Controller Services ########
