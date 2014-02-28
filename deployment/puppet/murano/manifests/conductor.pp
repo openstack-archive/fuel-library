@@ -43,31 +43,24 @@ class murano::conductor (
     $network_topology = 'nova'
   }
 
-  if $use_syslog and !$debug {
+  $logging_file = '/etc/murano/murano-conductor-logging.conf'
+  if $use_syslog and !$debug { #syslog and nondebug case
     murano_conductor_config {
-      'DEFAULT/log_config_append'   : ensure => absent;
-      'DEFAULT/use_syslog'          : value  => true;
-      'DEFAULT/use_stderr'          : ensure => absent;
-      'DEFAULT/syslog_log_facility' : value  => $syslog_log_facility;
-      'DEFAULT/log_file'            : ensure => absent;
+      'DEFAULT/log_config'         : value => $logging_file;
+      'DEFAULT/use_syslog'         : value => true;
+      'DEFAULT/syslog_log_facility': value => $syslog_log_facility;
     }
-
-    file { 'murano-conductor-logging.conf':
+    file {"murano-conductor-logging.conf":
       content => template('murano/logging.conf.erb'),
-      path    => '/etc/murano/murano-conductor-logging.conf',
+      path    => $logging_file,
+      require => Package['murano_conductor'],
+      notify  => Service['murano_conductor'],
     }
-  } else {
+  } else { #other syslog debug or nonsyslog debug/nondebug cases
     murano_conductor_config {
-      'DEFAULT/log_config_append'   : value  => '/etc/murano/murano-conductor-logging.conf';
-      'DEFAULT/use_syslog'          : ensure => absent;
-      'DEFAULT/use_stderr'          : ensure => absent;
-      'DEFAULT/syslog_log_facility' : ensure => absent;
-      'DEFAULT/log_file'            : value  => $log_file;
-    }
-
-    file { 'murano-conductor-logging.conf':
-      content => template('murano/logging.conf-nosyslog.erb'),
-      path    => '/etc/murano/murano-conductor-logging.conf',
+      'DEFAULT/log_config': ensure => absent;
+      'DEFAULT/log_file'  : value  => $log_file;
+      'DEFAULT/use_syslog': value  => false;
     }
   }
 
@@ -79,10 +72,6 @@ class murano::conductor (
     'DEFAULT/init_scripts_dir'         : value => $init_scripts_dir;
     'DEFAULT/agent_config_dir'         : value => $agent_config_dir;
     'DEFAULT/network_topology'        : value => $network_topology;
-    'DEFAULT/logging_context_format_string':
-    value => 'murano-conductor %(asctime)s.%(msecs)03d %(process)d %(levelname)s %(name)s [%(request_id)s %(user)s %(tenant)s] %(instance)s%(message)s';
-    'DEFAULT/logging_default_format_string':
-    value => 'murano-conductor %(asctime)s %(levelname)s %(name)s [-] %(instance)s %(message)s';
     'keystone/auth_url'                : value => $auth_url;
     'rabbitmq/host'                    : value => $rabbit_host;
     'rabbitmq/port'                    : value => $rabbit_port;
@@ -94,6 +83,4 @@ class murano::conductor (
   }
 
   Package['murano_conductor'] -> Murano_conductor_config<||> ~> Service['murano_conductor']
-  File['murano-conductor-logging.conf'] ~> Service['murano_conductor']
-
 }
