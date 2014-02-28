@@ -106,35 +106,30 @@ class heat::install (
   }
 
   $logging_file = '/etc/heat/logging.conf'
-  #$logging_context_format_string = 'heat %(asctime)s.%(msecs)03d %(process)d %(levelname)s %(name)s [%(request_id)s %(user)s %(tenant)s] %(instance)s%(message)s'
-  #$logging_default_format_string = 'heat %(asctime)s %(levelname)s %(name)s [-] %(instance)s %(message)s'
-
-  if $use_syslog and !$debug {
+  if $use_syslog and !$debug { #syslog and nondebug case
     heat_config {
-      'DEFAULT/log_config' : value => $logging_file;
-      'DEFAULT/use_syslog' : value => true;
+      'DEFAULT/log_config'         : value => $logging_file;
+      'DEFAULT/use_syslog'         : value => true;
+      'DEFAULT/syslog_log_facility': value => $syslog_log_facility;
     }
-    file { 'heat-logging.conf' :
-      ensure  => present,
+    file {"heat-logging.conf":
       content => template('heat/logging.conf.erb'),
       path    => $logging_file,
+      require => File['/etc/heat'],
     }
-  } else {
-    heat_config {
-      'DEFAULT/log_config' : ensure => absent;
-      'DEFAULT/use_syslog' : value => false;
-    }
-    file { 'heat-logging.conf' :
-      ensure  => absent,
-      path    => $logging_file,
-    }
-  }
-
+  # We must notify service for new logging rules
   File['heat-logging.conf'] -> Heat_config['DEFAULT/log_config']
   File['heat-logging.conf'] ~> Service <| title == 'heat-api-cfn' |>
   File['heat-logging.conf'] ~> Service <| title == 'heat-api-cloudwatch' |>
   File['heat-logging.conf'] ~> Service <| title == 'heat-api' |>
   File['heat-logging.conf'] ~> Service <| title == 'heat-engine' |>
+  } else { #other syslog debug or nonsyslog debug/nondebug cases
+    heat_config {
+      'DEFAULT/log_config': ensure => absent;
+      'DEFAULT/log_dir'   : value  => $log_dir;
+      'DEFAULT/use_syslog': value  =>  false;
+    }
+  }
 
   heat_config {
     'DEFAULT/heat_stack_user_role'                            : value => $heat_stack_user_role;
@@ -145,13 +140,10 @@ class heat::install (
     'DEFAULT/db_backend'                                      : value => $db_backend;
     'DEFAULT/instance_connection_https_validate_certificates' : value => $ic_https_validate_certs;
     'DEFAULT/instance_connection_is_secure'                   : value => $ic_is_secure;
-    'DEFAULT/log_dir'                                         : value => $log_dir;
-    'DEFAULT/log_file'                                        : ensure => absent;
     'DEFAULT/rpc_backend'                                     : value => $rpc_backend;
     'DEFAULT/use_stderr'                                      : value => $use_stderr;
     #'DEFAULT/logging_context_format_string'                   : value => $logging_context_format_string;
     #'DEFAULT/logging_default_format_string'                   : value => $logging_default_format_string;
-    'DEFAULT/syslog_log_facility'                             : value => $syslog_log_facility;
     'DEFAULT/rabbit_userid'                                   : value => $rabbit_userid;
     'DEFAULT/rabbit_password'                                 : value => $rabbit_password;
     'DEFAULT/rabbit_virtualhost'                              : value => $rabbit_virtualhost;
