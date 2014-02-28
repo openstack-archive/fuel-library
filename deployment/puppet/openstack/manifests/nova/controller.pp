@@ -93,7 +93,8 @@ class openstack::nova::controller (
   $max_pool_size             = '10',
   $max_overflow              = '30',
   $max_retries               = '-1',
-  $novnc_address             = '127.0.0.1'
+  $novnc_address             = '127.0.0.1',
+  $ha_mode                   = false,
 ) {
 
   # Configure the db string
@@ -122,6 +123,8 @@ class openstack::nova::controller (
         port                   => $rabbitmq_bind_port,
         cluster_nodes          => $rabbitmq_cluster_nodes,
         cluster                => $rabbit_cluster,
+        primary_controller     => $primary_controller,
+        ha_mode                => $ha_mode,
       }
     }
     'qpid': {
