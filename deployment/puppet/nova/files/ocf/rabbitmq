@@ -1,0 +1,376 @@
+#!/bin/bash
+#
+# See usage() function below for more details ...
+#
+#######################################################################
+# Initialization:
+
+: ${OCF_FUNCTIONS_DIR=${OCF_ROOT}/lib/heartbeat}
+. ${OCF_FUNCTIONS_DIR}/ocf-shellfuncs
+
+#######################################################################
+
+# Fill in some defaults if no values are specified
+
+PATH=/sbin:/usr/sbin:/bin:/usr/bin
+
+OCF_RESKEY_binary_default="/bin/true"
+OCF_RESKEY_service_name_default="rabbitmq-server"
+OCF_RESKEY_app_prefix_default="amqp_agent"
+OCF_RESKEY_debug_default=false
+
+: ${OCF_RESKEY_binary=${OCF_RESKEY_binary_default}}
+: ${OCF_RESKEY_service_name=${OCF_RESKEY_service_name_default}}
+: ${OCF_RESKEY_app_prefix=${OCF_RESKEY_app_prefix_default}}
+: ${OCF_RESKEY_debug=${OCF_RESKEY_debug_default}}
+
+#######################################################################
+
+usage() {
+    cat <<UEND
+        usage: $0 (start|stop|validate-all|meta-data|status|monitor)
+
+        $0 manages an AMQP Agent (${OCF_RESKEY_binary}) process as an HA resource
+
+        The 'start' operation starts the networking service.
+        The 'stop' operation stops the networking service.
+        The 'validate-all' operation reports whether the parameters are valid
+        The 'meta-data' operation reports this RA's meta-data information
+        The 'status' operation reports whether the networking service is running
+        The 'monitor' operation reports whether the networking service seems to be working
+
+UEND
+}
+
+meta_data() {
+    cat <<END
+<?xml version="1.0"?>
+<!DOCTYPE resource-agent SYSTEM "ra-api-1.dtd">
+<resource-agent name="neutron-metadata-agent">
+<version>1.0</version>
+
+<longdesc lang="en">
+Test for MS resource agent
+</longdesc>
+<shortdesc lang="en">Test for MS resource agent</shortdesc>
+<parameters>
+
+<parameter name="binary" unique="0" required="0">
+<longdesc lang="en">
+Agent binary
+</longdesc>
+<shortdesc lang="en">Agent binary</shortdesc>
+<content type="string" default="${OCF_RESKEY_binary_default}" />
+</parameter>
+
+<parameter name="service_name" unique="0" required="0">
+<longdesc lang="en">
+Agent binary
+</longdesc>
+<shortdesc lang="en">Agent system service name</shortdesc>
+<content type="string" default="${OCF_RESKEY_service_name_default}" />
+</parameter>
+
+<parameter name="app_prefix" unique="0" required="0">
+<longdesc lang="en">
+App name prefix
+</longdesc>
+<shortdesc lang="en">App name prefix</shortdesc>
+<content type="string" default="${OCF_RESKEY_app_prefix_default}" />
+</parameter>
+
+<parameter name="debug" unique="0" required="0">
+<longdesc lang="en">
+The debug flag for  AMQP Agent (${OCF_RESKEY_binary}) instance
+</longdesc>
+<shortdesc lang="en">AMQP Agent (${OCF_RESKEY_binary}) debug flag</shortdesc>
+<content type="boolean" default="${OCF_RESKEY_debug_default}" />
+</parameter>
+
+</parameters>
+
+<actions>
+<action name="start" timeout="20" />
+<action name="stop" timeout="20" />
+<action name="status" timeout="20" />
+<action name="monitor" depth="0" timeout="30" interval="5" />
+<action name="monitor" depth="0" timeout="30" interval="3" role="Master"/>
+<action name="promote" timeout="30" />
+<action name="demote"  timeout="30" />
+<action name="notify"   timeout="20" />
+<action name="validate-all" timeout="5" />
+<action name="meta-data" timeout="5" />
+</actions>
+</resource-agent>
+END
+#<action name="methods" timeout="5" />
+}
+
+# get_worker_pid() {
+#     pid=`pgrep -u ${OCF_RESKEY_user} -fol ${OCF_RESKEY_binary} | grep -E  "python\s+\/usr\/bin" | awk '{print $1}'`
+#     echo $pid
+# }
+
+#######################################################################
+# Functions invoked by resource manager actions
+
+agent_validate() {
+    #local d
+    #d=`date '+%Y%m%d %H:%M:%S'`
+    #echo "$d  [validate]  nothing to do" >> /tmp/${OCF_RESKEY_app_prefix}.log
+    return $OCF_SUCCESS
+}
+
+get_status() {
+    local rc
+    #local pid
+    #pid=`get_worker_pid`
+
+    service ${OCF_RESKEY_service_name} status 2>&1 >> /dev/null
+    rc=$?
+
+    if [ "$rc" == "0" ] ; then
+        return $OCF_SUCCESS
+    fi
+    return $OCF_NOT_RUNNING
+}
+agent_status() {
+    local rc
+    local d
+
+    #d=`date '+%Y%m%d %H:%M:%S'`
+    get_status
+    rc=$?
+    #echo "$d  [status]  RC=$rc" >> /tmp/${OCF_RESKEY_app_prefix}.log
+    return $rc
+}
+
+
+get_monitor() {
+    local rc
+    local sk
+    local racc
+    local crv
+
+    get_status
+    rc=$?
+
+    if [ "$rc" == "$OCF_SUCCESS" -a -e /tmp/${OCF_RESKEY_app_prefix}_master ] ; then
+        rc=$OCF_RUNNING_MASTER
+    fi
+
+    racc=`rabbitmqctl list_queues pid  2>>/dev/null | grep -v "Listing queues" | grep -v "...done" | cut -d'@' -f2 | cut -d"'" -f1 | awk 'BEGIN {max=0} { count[$1]++; if ( count[$1] > max ) { max=count[$1];popular=$1 }} END { print popular }'`
+    hostname | grep -e "^$racc[\..*|$]" 2>&1 >> /dev/null
+    crv=$?
+    sk=0
+    if [ "$crv" == "0" ] ; then
+        sk=1
+    fi
+
+    crm_master -l reboot -v $sk
+
+    return $rc
+}
+agent_monitor() {
+    local rc
+    local d
+    local sk
+
+    # d=`date '+%Y%m%d %H:%M:%S'`
+    get_monitor
+    rc=$?
+
+    # sk=`cat /tmp/${OCF_RESKEY_app_prefix}_score`
+    # echo "$d  [monitor]  rc=$rc  MasterScore:$sk" >> /tmp/${OCF_RESKEY_app_prefix}.log
+
+    return $rc
+}
+
+
+agent_notify() {
+    local d
+    #env | grep notify_ | sort >> /tmp/env-`echo $d | sed s/[\ \:]//g`
+
+    #d=`date '+%Y%m%d %H:%M:%S'`
+    get_monitor
+    rc=$?
+
+    #echo "$d  [$OCF_RESKEY_CRM_meta_notify_type $OCF_RESKEY_CRM_meta_notify_operation]  start=$OCF_RESKEY_CRM_meta_notify_start_uname stop=$OCF_RESKEY_CRM_meta_notify_stop_uname curr_master=$OCF_RESKEY_CRM_meta_notify_master_uname promote=$OCF_RESKEY_CRM_meta_notify_promote_uname demote=$OCF_RESKEY_CRM_meta_notify_demote_uname" >> /tmp/${OCF_RESKEY_app_prefix}.log
+    # OCF_RESKEY_CRM_meta_notify
+
+    #return $rc
+    return $OCF_SUCCESS
+}
+
+
+agent_start() {
+    local rc
+    local alr
+
+    get_status
+    rc=$?
+    if [ "$rc" == "$OCF_SUCCESS" ] ; then
+        ocf_log warn "Agent (${OCF_RESKEY_service_name}) already started."
+        return $OCF_SUCCESS
+    fi
+
+    #d=`date '+%Y%m%d %H:%M:%S'`
+    ocf_log warn "Agent (${OCF_RESKEY_service_name}) going to start."
+    service ${OCF_RESKEY_service_name} start 2>&1 >> /dev/null
+
+    get_status
+    rc=$?
+
+    #echo "$d  [start]  rc=$rc " >> /tmp/${OCF_RESKEY_app_prefix}.log
+    return $rc
+}
+
+
+agent_stop() {
+    local rc
+    local pid
+    local alr
+
+    get_status
+    rc=$?
+    if [ $rc -eq $OCF_NOT_RUNNING ]; then
+        ocf_log warn "Agent (${OCF_RESKEY_service_name}) not running."
+        return $OCF_SUCCESS
+    fi
+
+    ocf_log warn "Agent (${OCF_RESKEY_service_name}) going to down."
+    service ${OCF_RESKEY_service_name} stop 2>&1 >> /dev/null
+
+    # remove master score
+    crm_master -l reboot -D
+
+    # stop waiting
+    shutdown_timeout=15
+    count=0
+    while [ $count -lt $shutdown_timeout ]; do
+        get_status
+        rc=$?
+        if [ $rc -eq $OCF_NOT_RUNNING ]; then
+            break
+        fi
+        count=`expr $count + 1`
+        sleep 1
+        ocf_log debug "Agent (${OCF_RESKEY_service_name}) still hasn't stopped yet. Waiting ..."
+    done
+
+    get_status
+    rc=$?
+    if [ $rc -ne $OCF_NOT_RUNNING ]; then
+        ocf_log info "Agent (${OCF_RESKEY_service_name}) failed to stop after ${shutdown_timeout}s"
+        # todo: kill -TERM
+    fi
+
+    return $OCF_SUCCESS
+}
+
+#######################################################################
+agent_promote() {
+    local rc
+    local pid
+
+    get_monitor
+    rc=$?
+
+    #d=`date '+%Y%m%d %H:%M:%S'`
+    #env >> /tmp/env-`echo $d | sed s/[\ \:]//g`
+    case "$rc" in
+        "$OCF_SUCCESS")
+            # Running as slave. Normal, expected behavior.
+            ocf_log debug "Resource is currently running as Slave"
+            ;;
+        "$OCF_RUNNING_MASTER")
+            # Already a master. Unexpected, but not a problem.
+            ocf_log info "Resource is already running as Master"
+            #echo "$d  [promote]  rc=$rc  Already_master" >> /tmp/${OCF_RESKEY_app_prefix}.log
+            return $OCF_SUCCESS
+            ;;
+        "$OCF_NOT_RUNNING")
+            # Currently not running. Need to start before promoting.
+            ocf_log info "Resource is currently not running"
+            agent_start
+            ;;
+        *)
+            # Failed resource. Let the cluster manager recover.
+            ocf_log err "Unexpected error, cannot promote"
+            exit $rc
+            ;;
+    esac
+
+    # transform slave agent to master
+    echo > /tmp/${OCF_RESKEY_app_prefix}_master
+
+    return $OCF_SUCCESS
+}
+
+
+agent_demote() {
+    local rc
+    local pid
+
+    get_monitor
+    rc=$?
+    #d=`date '+%Y%m%d %H:%M:%S'`
+    #env >> /tmp/env-`echo $d | sed s/[\ \:]//g`
+    case "$rc" in
+        "$OCF_RUNNING_MASTER")
+            # Running as master. Normal, expected behavior.
+            ocf_log debug "Resource is currently running as Master"
+            ;;
+        "$OCF_SUCCESS")
+            # Alread running as slave. Nothing to do.
+            ocf_log debug "Resource is currently running as Slave"
+            #echo "$d  [demote]  rc=$rc  Already_slave" >> /tmp/${OCF_RESKEY_app_prefix}.log
+            return $OCF_SUCCESS
+            ;;
+        "$OCF_NOT_RUNNING")
+            # Currently not running. Getting a demote action
+            # in this state is unexpected. Exit with an error
+            # and let the cluster manager recover.
+            ocf_log err "Resource is currently not running"
+            #echo "$d  [demote]  rc=$rc  Resource_not_running  Emergency_exit" >> /tmp/${OCF_RESKEY_app_prefix}.log
+            exit $OCF_ERR_GENERIC
+            ;;
+        *)
+            # Failed resource. Let the cluster manager recover.
+            ocf_log err "Unexpected error, cannot demote"
+            exit $rc
+            ;;
+    esac
+
+    # transform slave agent to master
+    rm -f /tmp/${OCF_RESKEY_app_prefix}_master
+
+    #echo "$d  [demote]  rc=$rc" >> /tmp/${OCF_RESKEY_app_prefix}.log
+    return $OCF_SUCCESS
+}
+#######################################################################
+
+case "$1" in
+  meta-data)    meta_data
+                exit $OCF_SUCCESS;;
+  usage|help)   usage
+                exit $OCF_SUCCESS;;
+esac
+
+# Anything except meta-data and help must pass validation
+agent_validate || exit $?
+
+# What kind of method was invoked?
+case "$1" in
+  start)        agent_start;;
+  stop)         agent_stop;;
+  status)       agent_status;;
+  monitor)      agent_monitor;;
+  validate)     agent_validate;;
+  promote)      agent_promote;;
+  demote)       agent_demote;;
+  notify)       agent_notify;;
+  validate-all) agent_validate;;
+  *)            usage
+                exit $OCF_ERR_UNIMPLEMENTED;;
+esac

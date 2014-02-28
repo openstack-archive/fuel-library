@@ -64,22 +64,22 @@ set_nova_rabbit_credentials () {
         NEW_RABBIT_USER=$(grep -v '^#' $NOVA_CONFIG_FILE \
                         | grep rabbit_userid \
                         | awk -F "=" '{print $2}')
-                              
+
         NEW_RABBIT_PASSWORD=$(grep -v '^#' $NOVA_CONFIG_FILE \
                             | grep rabbit_password \
                             | awk -F "=" '{print $2}')
-                                  
+
         RABBIT_VIRTUAL_HOST=$(grep -v '^#' $NOVA_CONFIG_FILE \
                             | grep rabbit_virtual_host \
                             | awk -F "=" '{print $2}')
     fi
-    
+
     if [ "x" != "x${NEW_RABBIT_USER}" ] && [ "x" != "x${NEW_RABBIT_PASSWORD}" ]; then
         printf '%s\n' "Restoring Nova user credentials..."
         set +e
         $CONTROL add_user $NEW_RABBIT_USER $NEW_RABBIT_PASSWORD
         $CONTROL set_user_tags $NEW_RABBIT_USER administrator
-        
+
         if [ "x" != "x${RABBIT_VIRTUAL_HOST}" ] ; then
             RABBIT_VIRTUAL_HOST=/
         fi
@@ -99,10 +99,10 @@ move_out_rabbit_database_to_backup () {
     local RABBIT_CONFIG_FILE=/etc/rabbitmq/rabbitmq-env.conf
     local DATE=$(date +"%Y-%m-%d_%H-%M-%S")
     local C_DIR=$(pwd)
-    
+
     [ -f ${RABBIT_DEFAULTS_FILE} ] && . ${RABBIT_DEFAULTS_FILE}
     [ -f ${RABBIT_CONFIG_FILE} ] && . ${RABBIT_CONFIG_FILE}
-    
+
     if [ -d ${MNESIA_BASE} ] ; then
         cd ${MNESIA_BASE}/..
         local BACKUPS_DIR=`dirname ${MNESIA_BASE}`/backups
@@ -141,7 +141,7 @@ attempts to find master node and start."
             printf '%s\n' "${MAX_START_ATTEMPTS} attempts left to start \
 RabbitMQ Server before consider start failed."
             if [ $MAX_START_ATTEMPTS = 1 ] ; then
-               move_out_rabbit_database_to_backup                
+               move_out_rabbit_database_to_backup
             fi
             set +e
             RABBITMQ_PID_FILE=$PID_FILE $START_PROG $DAEMON \
