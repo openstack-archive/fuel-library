@@ -15,6 +15,8 @@ class corosync::commitorder {
   
 #  anchor  {"cib-haproxy-start":} ->
 #  anchor  {"cib-haproxy-end":} ->
+  anchor  {"cib-rabbit-attr-start":} ->
+  anchor  {"cib-rabbit-attr-end":} ->
   anchor  {"cib-mysql-start":} ->
   anchor  {"cib-mysql-end":} ->
   anchor  {"cib-galera-start":} ->
@@ -35,6 +37,8 @@ class corosync::commitorder {
   anchor  {"cib-ceilometer-alarm-end":} 
 
 #  Anchor["cib-haproxy-start"] -> Cs_shadow <| title == $haproxy |> ->  Cs_commit <| title == $haproxy |> -> Anchor["cib-haproxy-end"]
+
+  Anchor["cib-rabbit-attr-start"] -> Cs_shadow <| title == 'rabbit-attr' |> ->  Cs_commit <| title == 'rabbit-attr' |> -> Anchor["cib-rabbit-attr-end"]
 
   Anchor["cib-mysql-start"] -> Cs_shadow <| title == $mysql |> ->  Cs_commit <| title == $mysql |> -> Anchor["cib-mysql-end"]
 

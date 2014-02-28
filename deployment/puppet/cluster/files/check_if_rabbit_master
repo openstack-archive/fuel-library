@@ -1,0 +1,9 @@
+#!/bin/bash
+
+MASTER=`rabbitmqctl list_queues pid | grep -v "Listing queues" | cut -d'@' -f2 | cut -d"'" -f1 | awk 'BEGIN {max=0} { count[$1]++; if ( count[$1] > max ) { max=count[$1];popular=$1 }} END { print popular }'`
+if [ "${MASTER}" = "`hostname -s`" ]
+then
+  exit 0
+else
+  exit 1
+fi
