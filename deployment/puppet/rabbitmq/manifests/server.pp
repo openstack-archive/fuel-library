@@ -17,7 +17,7 @@
 #  [*cluster_disk_nodes*] - which nodes to cluster with (including the current one)
 #  [*erlang_cookie*] - erlang cookie, must be the same for all nodes in a cluster
 #  [*wipe_db_on_cookie_change*] - whether to wipe the RabbitMQ data if the specified
-#    erlang_cookie differs from the current one. This is a sad parameter: actually, 
+#    erlang_cookie differs from the current one. This is a sad parameter: actually,
 #    if the cookie indeed differs, then wiping the database is the *only* thing you
 #    can do. You're only required to set this parameter to true as a sign that you
 #    realise this.
@@ -26,7 +26,7 @@
 #  stdlib
 # Sample Usage:
 #
-#  
+#
 #
 #
 # [Remember: No empty lines between comments and class definition]
@@ -37,6 +37,7 @@ class rabbitmq::server(
   $version = 'UNSET',
   $service_name = 'rabbitmq-server',
   $service_ensure = 'running',
+  $service_enabled = true,
   $config_stomp = false,
   $stomp_port = '6163',
   $config_cluster = false,
@@ -47,7 +48,9 @@ class rabbitmq::server(
   $erlang_cookie='EOKOWXQREETZSHFNTPEY',
   $wipe_db_on_cookie_change=true,
   $inet_dist_listen_min = '41055',
-  $inet_dist_listen_max = '41055'
+  $inet_dist_listen_max = '41055',
+  $max_retry = '60',
+  $service_provider = undef
 ) {
 
   validate_bool($delete_guest_user, $config_stomp)
@@ -102,7 +105,7 @@ class rabbitmq::server(
     require => Package[$package_name],
     notify  => Class['rabbitmq::service'],
   }
-    
+
   if $config_cluster {
      file { 'erlang_cookie':
        path =>"/var/lib/rabbitmq/.erlang.cookie",
@@ -111,7 +114,7 @@ class rabbitmq::server(
        mode    => '0400',
        content => $erlang_cookie,
        replace => true,
-       before  => File['rabbitmq.config'], 
+       before  => File['rabbitmq.config'],
        require => Exec['wipe_db'], # require => Exec['rabbitmq_stop']
      }
      # require authorize_cookie_change
@@ -140,7 +143,7 @@ class rabbitmq::server(
     mode    => '0644',
     notify  => Class['rabbitmq::service'],
   }
-  
+
   case $::osfamily {
     'RedHat' : {
       file { 'rabbitmq-server':
@@ -169,10 +172,12 @@ class rabbitmq::server(
       }
     }
   }
-  
+
   class { 'rabbitmq::service':
-    service_name => $service_name,
-    ensure       => $service_ensure,
+    service_name     => $service_name,
+    ensure           => $service_ensure,
+    enabled          => $service_enabled,
+    service_provider => $service_provider
   }
 
   if $delete_guest_user {
