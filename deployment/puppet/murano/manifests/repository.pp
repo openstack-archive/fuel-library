@@ -77,7 +77,7 @@ class murano::repository (
     'DEFAULT/heat'                : value => $repository_heat;
     'DEFAULT/agent'               : value => $repository_agent;
     'DEFAULT/scripts'             : value => $repository_scripts;
-    'DEFAULT/cache_dir'           : value => "${repository_cache_dir}/muranorepository-cache";
+    'DEFAULT/data_dir'            : value => "${repository_cache_dir}/muranorepository-cache";
     'DEFAULT/logging_context_format_string':
     value => 'murano-repository %(asctime)s.%(msecs)03d %(process)d %(levelname)s %(name)s [%(request_id)s %(user)s %(tenant)s] %(instance)s%(message)s';
     'DEFAULT/logging_default_format_string':
