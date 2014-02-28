@@ -422,6 +422,7 @@ class openstack::controller (
     max_overflow                => $max_overflow,
     idle_timeout                => $idle_timeout,
     novnc_address               => $novnc_address,
+    ha_mode                     => $ha_mode,
   }
 
   ######### Cinder Controller Services ########
