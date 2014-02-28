@@ -15,7 +15,9 @@
 #
 class rabbitmq::service(
   $service_name = 'rabbitmq-server',
-  $ensure='running'
+  $service_provider = undef,
+  $ensure='running',
+  $enabled=true
 ) {
 
   validate_re($ensure, '^(running|stopped)$')
@@ -24,7 +26,7 @@ class rabbitmq::service(
     Class['rabbitmq::service'] -> Rabbitmq_vhost<| |>
     Class['rabbitmq::service'] -> Rabbitmq_user_permissions<| |>
     $ensure_real = 'running'
-    $enable_real = true
+    $enable_real = $enabled
   } else {
     $ensure_real = 'stopped'
     $enable_real = false
@@ -37,11 +39,21 @@ class rabbitmq::service(
  on package rabbitmq-server update": }
   }
 
-  service { $service_name:
-    ensure     => $ensure_real,
-    enable     => $enable_real,
-    hasstatus  => true,
-    hasrestart => true,
+  if ($service_provider) {
+    service { $service_name:
+      ensure     => $ensure_real,
+      enable     => $enable_real,
+      hasstatus  => true,
+      hasrestart => true,
+      provider   => $service_provider,
+    }
+  } else {
+    service { $service_name:
+      ensure     => $ensure_real,
+      enable     => $enable_real,
+      hasstatus  => true,
+      hasrestart => true,
+    }
   }
 
 }
