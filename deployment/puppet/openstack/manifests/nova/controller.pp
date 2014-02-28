@@ -92,7 +92,8 @@ class openstack::nova::controller (
   $syslog_log_facility_neutron = 'LOG_LOCAL4',
   $syslog_log_level = 'WARNING',
   $nova_rate_limits          = undef,
-  $cinder                    = true
+  $cinder                    = true,
+  $ha_mode                   = false
 ) {
 
   # Configure the db string
@@ -151,6 +152,7 @@ class openstack::nova::controller (
         cluster_nodes          => $rabbit_nodes, #Real node names to install RabbitMQ server onto
         rabbit_node_ip_address => $rabbit_node_ip_address,
         port                   => $rabbit_port,
+        ha_mode                => $ha_mode,
       }
     }
     'qpid': {
