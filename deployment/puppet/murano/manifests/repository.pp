@@ -41,30 +41,24 @@ class murano::repository (
     hasrestart => true,
   }
 
-  if $use_syslog and !$debug {
+  $logging_file = '/etc/murano/murano-repository-logging.conf'
+  if $use_syslog and !$debug { #syslog and nondebug case
     murano_repository_config {
-      'DEFAULT/use_syslog'          : value  => true;
-      'DEFAULT/use_stderr'          : ensure => absent;
-      'DEFAULT/syslog_log_facility' : value  => $syslog_log_facility;
-      'DEFAULT/log_file'            : ensure => absent;
+      'DEFAULT/log_config'         : value => $logging_file;
+      'DEFAULT/use_syslog'         : value => true;
+      'DEFAULT/syslog_log_facility': value => $syslog_log_facility;
     }
-
-    file { 'murano-repository-logging.conf':
+    file {"murano-repository-logging.conf":
       content => template('murano/logging.conf.erb'),
-      path    => '/etc/murano/murano-repository-logging.conf',
+      path    => $logging_file,
+      require => Package['murano_repository'],
+      notify  => Service['murano_repository'],
     }
-  }
-  else {
+  } else { #other syslog debug or nonsyslog debug/nondebug cases
     murano_repository_config {
-      'DEFAULT/use_syslog'          : ensure => absent;
-      'DEFAULT/use_stderr'          : ensure => absent;
-      'DEFAULT/syslog_log_facility' : ensure => absent;
-      'DEFAULT/log_file'            : value  => $log_file;
-    }
-
-    file { 'murano-repository-logging.conf':
-      content => template('murano/logging.conf-nosyslog.erb'),
-      path    => '/etc/murano/murano-repository-logging.conf',
+      'DEFAULT/log_config': ensure => absent;
+      'DEFAULT/log_file'  : value  => $log_file;
+      'DEFAULT/use_syslog': value  => false;
     }
   }
 
@@ -78,10 +72,6 @@ class murano::repository (
     'DEFAULT/agent'               : value => $repository_agent;
     'DEFAULT/scripts'             : value => $repository_scripts;
     'DEFAULT/cache_dir'           : value => "${repository_cache_dir}/muranorepository-cache";
-    'DEFAULT/logging_context_format_string':
-    value => 'murano-repository %(asctime)s.%(msecs)03d %(process)d %(levelname)s %(name)s [%(request_id)s %(user)s %(tenant)s] %(instance)s%(message)s';
-    'DEFAULT/logging_default_format_string':
-    value => 'murano-repository %(asctime)s %(levelname)s %(name)s [-] %(instance)s %(message)s';
     'output/ui'                   : value => $repository_ui;
     'output/workflows'            : value => $repository_output_workflows;
     'output/heat'                 : value => $repository_output_heat;
@@ -98,7 +88,5 @@ class murano::repository (
   Murano_repository_config<||> ~> Service['murano_repository']
   Package['murano_repository'] -> Murano_repository_config<||>
   Package['murano_repository'] -> Service['murano_repository']
-  File['murano-repository-logging.conf'] ~> Service['murano_repository']
-
 }
 
