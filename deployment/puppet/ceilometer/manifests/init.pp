@@ -11,26 +11,16 @@
 #    should the daemons log verbose messages. Optional. Defaults to false
 #  [*debug*]
 #    should the daemons log debug messages. Optional. Defaults to false
-#  [*rabbit_host*]
-#    ip or hostname of the rabbit server. Optional. Defaults to '127.0.0.1'
-#  [*rabbit_port*]
-#    port of the rabbit server. Optional. Defaults to 5672.
-#  [*rabbit_userid*]
-#    user to connect to the rabbit server. Optional. Defaults to 'guest'
-#  [*rabbit_password*]
-#    password to connect to the rabbit_server. Optional. Defaults to empty.
+#  [*amqp_hosts*]
+#    AMQP servers connection string. Optional. Defaults to '127.0.0.1'
+#  [*amqp_user*]
+#    user to connect to the AMQP server. Optional. Defaults to 'guest'
+#  [*amqp_password*]
+#    password to connect to the amqp_hosts. Optional. Defaults to 'rabbit_pw'.
+#  [*rabbit_ha_queues*]
+#    create mirrored queues. Optional. Defaults to false
 #  [*rabbit_virtual_host*]
 #    virtualhost to use. Optional. Defaults to '/'
-#  [*qpid_host*]
-#    ip or hostname of the qpid server. Optional. Defaults to '127.0.0.1'
-#  [*qpid_nodes*]
-#    list of ips or hostnames of the qpid servers. Optional. Defaults to false.
-#  [*qpid_port*]
-#    port of the qpid server. Optional. Defaults to 5672.
-#  [*qpid_userid*]
-#    user to connect to the qpid server. Optional. Defaults to 'nova'
-#  [*qpid_password*]
-#    password to connect to the qpid_server. Optional. Defaults to 'qpid_pw'.
 #
 class ceilometer(
   $metering_secret     = false,
@@ -41,16 +31,11 @@ class ceilometer(
   $syslog_log_facility = 'LOG_SYSLOG',
   $syslog_log_level    = 'WARNING',
   $queue_provider      = 'rabbitmq',
-  $rabbit_host         = '127.0.0.1',
-  $rabbit_port         = 5672,
-  $rabbit_userid       = 'guest',
-  $rabbit_password     = '',
+  $amqp_hosts          = '127.0.0.1',
+  $amqp_user           =  'guest',
+  $amqp_password       = 'rabbit_pw',
+  $rabbit_ha_queues    = false,
   $rabbit_virtual_host = '/',
-  $qpid_host           = '127.0.0.1',
-  $qpid_nodes          = false,
-  $qpid_port           = 5672,
-  $qpid_userid         = 'nova',
-  $qpid_password       = 'qpid_pw',
 ) {
 
   validate_string($metering_secret)
@@ -98,11 +83,11 @@ class ceilometer(
   case $queue_provider {
     'rabbitmq': {
       ceilometer_config {
-        'DEFAULT/rabbit_userid'      : value => $rabbit_userid;
-        'DEFAULT/rabbit_password'    : value => $rabbit_password;
+        'DEFAULT/rabbit_hosts':        value => $amqp_hosts;
+        'DEFAULT/rabbit_userid':       value => $amqp_user;
+        'DEFAULT/rabbit_password':     value => $amqp_password;
         'DEFAULT/rabbit_virtual_host': value => $rabbit_virtual_host;
-        'DEFAULT/rabbit_ha_queues'   : value => true;
-        'DEFAULT/rabbit_hosts'       : value => "${rabbit_host}:${rabbit_port}";
+        'DEFAULT/rabbit_ha_queues':    value => $rabbit_ha_queues;
         'DEFAULT/rpc_backend':
           value => 'ceilometer.openstack.common.rpc.impl_kombu';
       }
@@ -110,23 +95,11 @@ class ceilometer(
 
     'qpid': {
       ceilometer_config {
-        'DEFAULT/qpid_username': value => $qpid_userid;
-        'DEFAULT/qpid_password': value => $qpid_password;
+        'DEFAULT/qpid_hosts':    value => $amqp_hosts;
+        'DEFAULT/qpid_username': value => $amqp_user;
+        'DEFAULT/qpid_password': value => $amqp_password;
         'DEFAULT/rpc_backend':
           value => 'ceilometer.openstack.common.rpc.impl_qpid';
-      }
-      if $qpid_nodes {
-        ceilometer_config { 'DEFAULT/qpid_hosts':
-          value => is_ip_address($qpid_nodes) ? {
-                     true  => "${qpid_nodes}:${qpid_port}",
-                     false => join($qpid_nodes, ','),
-                   }
-        }
-      } else {
-        ceilometer_config {
-          'DEFAULT/qpid_hostname': value => $qpid_host;
-          'DEFAULT/qpid_port'    : value => $qpid_port;
-        }
       }
     }
   }

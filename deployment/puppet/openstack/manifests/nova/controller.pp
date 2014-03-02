@@ -13,7 +13,7 @@
 # class { 'openstack::nova::controller':
 #   public_address     => '192.168.1.1',
 #   db_host            => '127.0.0.1',
-#   rabbit_password    => 'changeme',
+#   amqp_password    => 'changeme',
 #   nova_user_password => 'changeme',
 #   nova_db_password   => 'changeme',
 # }
@@ -27,7 +27,7 @@ class openstack::nova::controller (
   # Database Required
   $db_host,
   # Rabbit Required
-  $rabbit_password,
+  $amqp_password,
   # Nova Required
   $nova_user_password,
   $nova_db_password,
@@ -56,18 +56,16 @@ class openstack::nova::controller (
   # Nova
   $nova_db_user              = 'nova',
   $nova_db_dbname            = 'nova',
-  # AMQP
-  $queue_provider             = 'rabbitmq',
-  # Rabbit
-  $rabbit_user               = 'nova',
-  $rabbit_node_ip_address    = undef,
-  $rabbit_port               = '5672',
-  # Qpid
-  $qpid_password             = 'qpid_pw',
-  $qpid_user                 = 'nova',
-  $qpid_nodes                = [$internal_address],
-  $qpid_port                 = '5672',
-  $qpid_node_ip_address      = undef,
+  # RPC
+  $queue_provider            = 'rabbitmq',
+  $amqp_hosts                = ['127.0.0.1'],
+  $amqp_user                 = 'nova',
+  $amqp_password             = 'rabbit_pw',
+  $rabbit_ha_queues          = false,
+  $rabbitmq_bind_ip_address  = 'UNSET',
+  $rabbitmq_bind_port        = '5672',
+  $rabbitmq_cluster_nodes    = [],
+  $rabbit_cluster            = false,
   # Database
   $db_type                   = 'mysql',
   # Glance
@@ -80,9 +78,6 @@ class openstack::nova::controller (
   $debug                     = false,
   $enabled                   = true,
   $exported_resources        = true,
-  $rabbit_nodes              = [$internal_address],
-  $rabbit_cluster            = false,
-  $rabbit_ha_virtual_ip      = false,
   $nameservers               = undef,
   $ensure_package            = present,
   $enabled_apis              = 'ec2,osapi_compute',
@@ -107,121 +102,50 @@ class openstack::nova::controller (
   } else {
     $real_glance_api_servers = $glance_api_servers
   }
-  # Change the pool of rabbit server nodes for clients to single virtual IP for HA mode
-    if $rabbit_ha_virtual_ip {
-      if $quantum and $quantum_netnode_on_cnt {
-        $rabbit_hosts = "${rabbit_ha_virtual_ip}"
-      } else {
-        $rabbit_hosts = "${rabbit_ha_virtual_ip}:5672"
-      }
-    } else {
-      $rabbit_hosts = inline_template("<%= @rabbit_nodes.map {|x| x + ':5672'}.join ',' %>")
-    }
-  if ($exported_resources) {
-    # export all of the things that will be needed by the clients
-#    @@nova_config { 'DEFAULT/rabbit_host': value => $internal_address }
-#    Nova_config <| title == 'rabbit_host' |>
-
-    @@nova_config { 'DEFAULT/rabbit_hosts': value => $rabbit_hosts }
-    Nova_config <| title == 'rabbit_hosts' |>
-
-    @@nova_config { 'DEFAULT/sql_connection': value => $nova_db }
-    Nova_config <| title == 'sql_connection' |>
-
-    @@nova_config { 'DEFAULT/glance_api_servers': value => $real_glance_api_servers }
-    Nova_config <| title == 'glance_api_servers' |>
-
-    $sql_connection    = false
-    $glance_connection = false
-    $rabbit_connection = false
-  } else {
-    $sql_connection    = $nova_db
-    $glance_connection = $real_glance_api_servers
-    $rabbit_connection = $internal_address
-  }
+  $sql_connection    = $nova_db
+  $glance_connection = $real_glance_api_servers
 
   # Install / configure queue provider
   case $queue_provider {
     'rabbitmq': {
       class { 'nova::rabbitmq':
-        userid                 => $rabbit_user,
-        password               => $rabbit_password,
         enabled                => $enabled,
+        userid                 => $amqp_user,
+        password               => $amqp_password,
+        rabbit_node_ip_address => $rabbitmq_bind_ip_address,
+        port                   => $rabbitmq_bind_port,
+        cluster_nodes          => $rabbitmq_cluster_nodes,
         cluster                => $rabbit_cluster,
-        cluster_nodes          => $rabbit_nodes, #Real node names to install RabbitMQ server onto
-        rabbit_node_ip_address => $rabbit_node_ip_address,
-        port                   => $rabbit_port,
       }
     }
     'qpid': {
       class { 'qpid::server':
-        auth                   => 'yes',
-        auth_realm             => 'QPID',
-        log_to_file            => '/var/log/qpidd.log',
-        cluster_mechanism      => 'DIGEST-MD5',
-        qpid_username          => $qpid_user,
-        qpid_password          => $qpid_password,
-        qpid_nodes             => $qpid_nodes,
+        auth              => 'yes',
+        auth_realm        => 'QPID',
+        log_to_file       => '/var/log/qpidd.log',
+        cluster_mechanism => 'DIGEST-MD5',
+        qpid_username     => $amqp_user,
+        qpid_password     => $amqp_password,
+        qpid_nodes        => [$internal_address],
       }
     }
   }
 
-  case $queue_provider {
-    'rabbitmq': {
-      if ($rabbit_nodes) {
-        # Configure Nova
-        class { 'nova':
-          sql_connection       => $sql_connection,
-          rabbit_userid        => $rabbit_user,
-          rabbit_password      => $rabbit_password,
-          image_service        => 'nova.image.glance.GlanceImageService',
-          glance_api_servers   => $glance_connection,
-          verbose              => $verbose,
-          debug                => $debug,
-          rabbit_nodes         => $rabbit_nodes,
-          ensure_package       => $ensure_package,
-          api_bind_address     => $api_bind_address,
-          use_syslog           => $use_syslog,
-          syslog_log_facility  => $syslog_log_facility,
-          syslog_log_level     => $syslog_log_level,
-          rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
-        }
-      } else {
-        class { 'nova':
-          sql_connection     => $sql_connection,
-          rabbit_userid      => $rabbit_user,
-          rabbit_password    => $rabbit_password,
-          image_service      => 'nova.image.glance.GlanceImageService',
-          glance_api_servers => $glance_connection,
-          verbose            => $verbose,
-          debug              => $debug,
-          rabbit_host        => $rabbit_connection,
-          ensure_package     => $ensure_package,
-          api_bind_address   => $api_bind_address,
-          syslog_log_facility => $syslog_log_facility,
-          syslog_log_level   => $syslog_log_level,
-          use_syslog         => $use_syslog,
-        }
-      }
-    }
-    'qpid': {
-      class { 'nova':
-        sql_connection     => $sql_connection,
-        queue_provider     => $queue_provider,
-        qpid_userid        => $qpid_user,
-        qpid_password      => $qpid_password,
-        qpid_nodes         => $qpid_nodes,
-        image_service      => 'nova.image.glance.GlanceImageService',
-        glance_api_servers => $glance_connection,
-        verbose            => $verbose,
-        debug              => $debug,
-        ensure_package     => $ensure_package,
-        api_bind_address   => $api_bind_address,
-        syslog_log_facility => $syslog_log_facility,
-        syslog_log_level   => $syslog_log_level,
-        use_syslog         => $use_syslog,
-      }
-    }
+  class { 'nova':
+    sql_connection      => $sql_connection,
+    amqp_hosts          => $amqp_hosts,
+    amqp_user           => $amqp_user,
+    amqp_password       => $amqp_password,
+    rabbit_ha_queues    => $rabbit_ha_queues,
+    image_service       => 'nova.image.glance.GlanceImageService',
+    glance_api_servers  => $glance_connection,
+    verbose             => $verbose,
+    debug               => $debug,
+    ensure_package      => $ensure_package,
+    api_bind_address    => $api_bind_address,
+    syslog_log_facility => $syslog_log_facility,
+    syslog_log_level    => $syslog_log_level,
+    use_syslog          => $use_syslog,
   }
 
   class {'nova::quota':
