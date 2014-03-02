@@ -5,7 +5,6 @@
 #
 
 class openstack::ceilometer (
-  $rabbit_password,
   $keystone_password   = 'ceilometer_pass',
   $metering_secret     = 'ceilometer',
   $verbose             =  false,
@@ -17,16 +16,10 @@ class openstack::ceilometer (
   $db_password         = 'ceilometer_pass',
   $db_dbname           = 'ceilometer',
   $queue_provider      = 'rabbitmq',
-  $rabbit_host         = '127.0.0.1',
-  $rabbit_nodes        = false,
-  $rabbit_port         = 5672,
-  $rabbit_userid       = 'guest',
-  $rabbit_ha_virtual_ip   = false,
-  $qpid_host           = '127.0.0.1',
-  $qpid_nodes          = false,
-  $qpid_port           = 5672,
-  $qpid_userid         = 'guest',
-  $qpid_password       = 'qpid_pw',
+  $amqp_hosts          = '127.0.0.1',
+  $amqp_user           = 'guest',
+  $amqp_password       = 'rabbit_pw',
+  $rabbit_ha_queues    = false,
   $keystone_host       = '127.0.0.1',
   $bind_host           = '0.0.0.0',
   $bind_port           = '8777',
@@ -35,32 +28,20 @@ class openstack::ceilometer (
   $ha_mode             = false,
 ) {
 
-  # Use VIP in the HA mode
-  if $rabbit_ha_virtual_ip {
-    $rabbit_host_to_use = $rabbit_ha_virtual_ip
-  } else {
-    $rabbit_host_to_use = $rabbit_host
-  }
-
   # Add the base ceilometer class & parameters
   # This class is required by ceilometer agents & api classes
   # The metering_secret parameter is mandatory
   class { '::ceilometer':
-    package_ensure  => $::openstack_version['ceilometer'],
-    queue_provider  => $queue_provider,
-    rabbit_host     => $rabbit_host_to_use,
-    rabbit_port     => $rabbit_port,
-    rabbit_userid   => $rabbit_userid,
-    rabbit_password => $rabbit_password,
-    qpid_host       => $qpid_host,
-    qpid_nodes      => $qpid_nodes,
-    qpid_port       => $qpid_port,
-    qpid_userid     => $qpid_userid,
-    qpid_password   => $qpid_password,
-    metering_secret => $metering_secret,
-    verbose         => $verbose,
-    debug           => $debug,
-    use_syslog      => $use_syslog,
+    package_ensure   => $::openstack_version['ceilometer'],
+    queue_provider   => $queue_provider,
+    amqp_hosts       => $amqp_hosts,
+    amqp_user        => $amqp_user,
+    amqp_password    => $amqp_password,
+    rabbit_ha_queues => $rabbit_ha_queues,
+    metering_secret  => $metering_secret,
+    verbose          => $verbose,
+    debug            => $debug,
+    use_syslog       => $use_syslog,
   }
 
   class { '::ceilometer::client': }
