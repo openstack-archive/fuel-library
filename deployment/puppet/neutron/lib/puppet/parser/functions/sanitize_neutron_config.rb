@@ -39,11 +39,25 @@ class MrntNeutron
     @fuel_config[:management_vip]
   end
 
+  def default_amqp_port(prov)
+    case prov.to_sym
+      when :rabbitmq  then '5673'
+      when :qpid      then '5672'
+    end
+  end
+
+  def default_amqp_hosts()
+    port = default_amqp_port(default_amqp_provider())
+    rv = Array(@fuel_config[:nodes]).select{|a|
+      a[:role] =~ /controller\s*$/
+    }.collect{|a|
+      "#{a[:internal_address]}:#{port}"
+    }
+    rv.empty?  ?  "127.0.0.1:#{port}"  :  rv.join(',')
+  end
+
   def get_amqp_vip(port)
-    #todo myst give string like  "hostname1:5672, hostname2:5672" # rabbit_nodes.map {|x| x + ':5672'}.join ','
-    #calculated from $controller_nodes
     vip = @fuel_config[:amqp_vip]  ||  @fuel_config[:management_vip]
-    port  ?  "#{vip}:#{port}"  :  vip
   end
 
   def get_database_vip()
@@ -71,9 +85,9 @@ class MrntNeutron
         if cfg[:ha_mode]
           rv[:hosts] = hosts.map{|x| x.map!{|y| y.strip}.join(':')}.join(',')
         else
-          rv[:hosts] = hosts[0][0].strip()
-          if hosts[0][1].strip() != cfg[:port].to_s()
-            rv[:port] = hosts[0][1].to_i()
+          rv[:hosts] = hosts[0][0].strip
+          if hosts[0][1].strip() != cfg[:port].to_s
+            rv[:port] = hosts[0][1].to_i
           end
         end
       else
@@ -233,7 +247,8 @@ class MrntNeutron
         :provider => default_amqp_provider(),
         :username => "nova",
         :passwd => nil,
-        :hosts => get_amqp_vip(5672),
+        :hosts => default_amqp_hosts(),
+        :port => default_amqp_port(default_amqp_provider()),
         :ha_mode => true,
         :control_exchange => "neutron",
         :heartbeat => 60,

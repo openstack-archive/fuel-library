@@ -55,6 +55,7 @@ class NeutronConfig
           'username' => "nova",
           'passwd' => "nova",
           'hosts' => "#{@def_v[:management_vip]}:5672",
+          'port' => "5672",
           'control_exchange' => "neutron",
           'heartbeat' => 60,
           'protocol' => "tcp",
@@ -415,7 +416,13 @@ describe 'sanitize_neutron_config' , :type => :puppet_function do
   before :each do
     @q_config = NeutronConfig.new({
       :management_vip => '192.168.0.254',
-      :management_ip => '192.168.0.11'
+      :management_ip => '192.168.0.11',
+      :nodes => [
+        {:name=>'node-1', :internal_address=>'192.168.0.3', :role=>'primary-controller'},
+        {:name=>'node-2', :internal_address=>'192.168.0.4', :role=>'controller'},
+        {:name=>'node-3', :internal_address=>'192.168.0.5', :role=>'controller'},
+
+      ]
     })
     Puppet::Parser::Scope.any_instance.stubs(:function_get_network_role_property).with(['management', 'ipaddr']).returns(@q_config.get_def(:management_ip))
     Puppet::Parser::Scope.any_instance.stubs(:function_get_network_role_property).with(['mesh', 'ipaddr']).returns(@q_config.get_def(:management_ip))
@@ -591,7 +598,10 @@ describe 'sanitize_neutron_config' , :type => :puppet_function do
           'provider' => "rabbitmq",
     }
     rv = scope.function_sanitize_neutron_config([@cfg, 'neutron_settings'])
-    expect(rv['amqp']).to eq @res_cfg['amqp']
+    erv = @res_cfg['amqp']
+    erv["port"] = "5673"
+    erv["hosts"] = "192.168.0.3:5673,192.168.0.4:5673,192.168.0.5:5673"
+    expect(rv['amqp']).to eq erv
   end
 
   it 'should calculate auth url if auth properties not given' do
