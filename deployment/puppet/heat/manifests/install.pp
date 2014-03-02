@@ -17,14 +17,11 @@ class heat::install (
   $syslog_log_facility           = 'LOG_LOCAL0',
   $log_dir                       = '/var/log/heat',
 
-  $rabbit_hosts                  = '',
-  $rabbit_host                   = '127.0.0.1',
-  $rabbit_userid                 = '',
-  $rabbit_ha_queues              = '',
-  $rabbit_password               = '',
+  $amqp_hosts                    = '127.0.0.1',
+  $amqp_user                     = 'heat',
+  $amqp_password                 = 'heat',
+  $rabbit_ha_queues              = false,
   $rabbit_virtualhost            = '/',
-  $rabbit_port                   = '5672',
-  $rabbit_queue_host             = 'heat',
 
   $heat_stack_user_role          = 'heat_stack_user',
   $heat_metadata_server_url      = 'http://127.0.0.1:8000',
@@ -82,29 +79,6 @@ class heat::install (
     name   => $::heat::params::common_package_name,
   }
 
-  if $rabbit_hosts {
-    if is_array($rabbit_hosts) {
-      $rabbit_hosts_v = join($rabbit_hosts, ',')
-    } else {
-      $rabbit_hosts_v = $rabbit_hosts
-    }
-    heat_config { 'DEFAULT/rabbit_host':  ensure => absent }
-    heat_config { 'DEFAULT/rabbit_port':  ensure => absent }
-    heat_config { 'DEFAULT/rabbit_hosts': value => $rabbit_hosts_v }
-  } else {
-    heat_config { 'DEFAULT/rabbit_host': value => $rabbit_host }
-    heat_config { 'DEFAULT/rabbit_port': value => $rabbit_port }
-    heat_config { 'DEFAULT/rabbit_hosts':
-      value => "${rabbit_host}:${rabbit_port}"
-    }
-  }
-
-  if size($rabbit_hosts) > 1 {
-    heat_config { 'DEFAULT/rabbit_ha_queues': value => true }
-  } else {
-    heat_config { 'DEFAULT/rabbit_ha_queues': value => false }
-  }
-
   $logging_file = '/etc/heat/logging.conf'
   #$logging_context_format_string = 'heat %(asctime)s.%(msecs)03d %(process)d %(levelname)s %(name)s [%(request_id)s %(user)s %(tenant)s] %(instance)s%(message)s'
   #$logging_default_format_string = 'heat %(asctime)s %(levelname)s %(name)s [-] %(instance)s %(message)s'
@@ -152,8 +126,10 @@ class heat::install (
     #'DEFAULT/logging_context_format_string'                   : value => $logging_context_format_string;
     #'DEFAULT/logging_default_format_string'                   : value => $logging_default_format_string;
     'DEFAULT/syslog_log_facility'                             : value => $syslog_log_facility;
-    'DEFAULT/rabbit_userid'                                   : value => $rabbit_userid;
-    'DEFAULT/rabbit_password'                                 : value => $rabbit_password;
+    'DEFAULT/rabbit_hosts'                                    : value => $amqp_hosts;
+    'DEFAULT/rabbit_userid'                                   : value => $amqp_user;
+    'DEFAULT/rabbit_password'                                 : value => $amqp_password;
+    'DEFAULT/rabbit_ha_queues'                                : value => $rabbit_ha_queues;
     'DEFAULT/rabbit_virtualhost'                              : value => $rabbit_virtualhost;
     'DEFAULT/debug'                                           : value => $debug;
     'DEFAULT/verbose'                                         : value => $verbose;
