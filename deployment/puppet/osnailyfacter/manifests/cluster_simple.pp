@@ -73,12 +73,22 @@ class osnailyfacter::cluster_simple {
   if !$rabbit_hash[user] {
     $rabbit_hash[user] = 'nova'
   }
-  $rabbit_user          = $rabbit_hash['user']
 
   $controller = filter_nodes($nodes_hash,'role','controller')
 
   $controller_node_address = $controller[0]['internal_address']
   $controller_node_public = $controller[0]['public_address']
+
+
+  # AMQP client configuration
+  $amqp_port = '5672'
+  $amqp_hosts = "${controller_node_address}:${amqp_port}"
+  $rabbit_ha_queues = false
+
+  # RabbitMQ server configuration
+  $rabbitmq_bind_ip_address = 'UNSET'                 # bind RabbitMQ to 0.0.0.0
+  $rabbitmq_bind_port = $amqp_port
+  $rabbitmq_cluster_nodes = [$controller[0]['name']]  # has to be hostnames
 
 
   if ($::fuel_settings['cinder']) {
@@ -184,10 +194,12 @@ class osnailyfacter::cluster_simple {
         ceilometer_user_password => $ceilometer_hash[user_password],
         ceilometer_metering_secret => $ceilometer_hash[metering_secret],
         queue_provider          => $::queue_provider,
-        rabbit_password         => $rabbit_hash[password],
-        rabbit_user             => $rabbit_hash[user],
-        qpid_password           => $rabbit_hash[password],
-        qpid_user               => $rabbit_hash[user],
+        amqp_hosts              => $amqp_hosts,
+        amqp_user               => $rabbit_hash['user'],
+        amqp_password           => $rabbit_hash['password'],
+        rabbitmq_bind_ip_address => $rabbitmq_bind_ip_address,
+        rabbitmq_bind_port      => $rabbitmq_bind_port,
+        rabbitmq_cluster_nodes  => $rabbitmq_cluster_nodes,
         export_resources        => false,
         quantum                 => $::use_quantum,
         quantum_config          => $quantum_config,
@@ -293,10 +305,9 @@ class osnailyfacter::cluster_simple {
           keystone_password => 'heat',
           keystone_tenant   => 'services',
 
-          rabbit_host       => $controller_node_address,
-          rabbit_login      => $rabbit_hash['user'],
-          rabbit_password   => $rabbit_hash['password'],
-          rabbit_port       => '5672',
+          amqp_hosts    => $amqp_hosts,
+          amqp_user     => $rabbit_hash['user'],
+          amqp_password => $rabbit_hash['password'],
 
           db_host           => $controller_node_address,
           db_password       => $heat_hash['db_password'],
@@ -360,13 +371,10 @@ class osnailyfacter::cluster_simple {
         ceilometer_metering_secret => $ceilometer_hash[metering_secret],
         ceilometer_user_password => $ceilometer_hash[user_password],
         queue_provider         => $::queue_provider,
-        rabbit_nodes           => [$controller_node_address],
-        rabbit_password        => $rabbit_hash[password],
-        rabbit_user            => $rabbit_user,
+        amqp_hosts             => $amqp_hosts,
+        amqp_user              => $rabbit_hash['user'],
+        amqp_password          => $rabbit_hash['password'],
         auto_assign_floating_ip => $::fuel_settings['auto_assign_floating_ip'],
-        qpid_nodes             => [$controller_node_address],
-        qpid_password          => $rabbit_hash[password],
-        qpid_user              => $rabbit_user,
         glance_api_servers     => "${controller_node_address}:9292",
         vncproxy_host          => $controller_node_public,
         vncserver_listen       => '0.0.0.0',
@@ -418,13 +426,10 @@ class osnailyfacter::cluster_simple {
         sql_connection       => "mysql://cinder:${cinder_hash[db_password]}@${controller_node_address}/cinder?charset=utf8",
         glance_api_servers   => "${controller_node_address}:9292",
         queue_provider       => $::queue_provider,
-        rabbit_password      => $rabbit_hash[password],
-        rabbit_host          => false,
+        amqp_hosts           => $amqp_hosts,
+        amqp_user            => $rabbit_hash['user'],
+        amqp_password        => $rabbit_hash['password'],
         bind_host            => $bind_host,
-        rabbit_nodes         => [$controller_node_address],
-        qpid_password        => $rabbit_hash[password],
-        qpid_user            => $rabbit_hash[user],
-        qpid_nodes           => [$controller_node_address],
         volume_group         => 'cinder',
         manage_volumes       => $manage_volumes,
         enabled              => true,

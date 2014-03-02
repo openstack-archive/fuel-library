@@ -16,8 +16,8 @@
 # [glance_user_password] Glance service user password.
 # [nova_db_password] Nova DB password.
 # [nova_user_password] Nova service password.
-# [rabbit_password] Rabbit password.
-# [rabbit_user] Rabbit User.
+# [amqp_password] AMQP password.
+# [amqp_user] AMQP User.
 # [network_manager] Nova network manager to use.
 # [fixed_range] Range of ipv4 network for vms.
 # [floating_range] Floating ip range to create.
@@ -99,23 +99,16 @@ class openstack::controller (
   # not sure if this works correctly
   $internal_address,
   $admin_address,
-  # AMQP
+  # RPC
   $queue_provider          = 'rabbitmq',
-  # Rabbit
-  $rabbit_password         = 'rabbit_pw',
-  $rabbit_user             = 'nova',
+  $amqp_hosts              = '127.0.0.1',
+  $amqp_user               = 'nova',
+  $amqp_password           = 'rabbit_pw',
+  $rabbit_ha_queues        = false,
+  $rabbitmq_bind_ip_address = 'UNSET',
+  $rabbitmq_bind_port      = '5672',
+  $rabbitmq_cluster_nodes  = [],
   $rabbit_cluster          = false,
-  $rabbit_nodes            = [$internal_address],
-  $rabbit_node_ip_address  = undef,
-  $rabbit_ha_virtual_ip    = false, #Internal virtual IP for HA configuration
-  $rabbit_port             = '5672',
-  # Qpid
-  $qpid_password           = 'qpid_pw',
-  $qpid_user               = 'nova',
-  $qpid_cluster            = false,
-  $qpid_nodes              = [$internal_address],
-  $qpid_port               = '5672',
-  $qpid_node_ip_address    = undef,
   # network configuration
   # this assumes that it is a flat network manager
   $network_manager         = 'nova.network.manager.FlatDHCPManager',
@@ -212,7 +205,6 @@ class openstack::controller (
   Class["${queue_provider}::server"] -> Cinder_config <||>
   Class["${queue_provider}::server"] -> Neutron_config <||>
 
-  $rabbit_addresses = inline_template("<%= @rabbit_nodes.map {|x| x + ':5672'}.join ',' %>")
   $memcached_addresses =  inline_template("<%= @cache_server_ip.collect {|ip| ip + ':' + @cache_server_port }.join ',' %>")
 
   nova_config {'DEFAULT/memcached_servers':    value => $memcached_addresses;
@@ -374,23 +366,16 @@ class openstack::controller (
     nova_db_user            => $nova_db_user,
     nova_db_dbname          => $nova_db_dbname,
     nova_quota_driver       => $nova_quota_driver,
-    # AMQP
+    # RPC
     queue_provider          => $queue_provider,
-    # Rabbit
-    rabbit_user             => $rabbit_user,
-    rabbit_password         => $rabbit_password,
-    rabbit_nodes            => $rabbit_nodes,
+    amqp_hosts              => $amqp_hosts,
+    amqp_user               => $amqp_user,
+    amqp_password           => $amqp_password,
+    rabbit_ha_queues        => $rabbit_ha_queues,
+    rabbitmq_bind_ip_address => $rabbitmq_bind_ip_address,
+    rabbitmq_bind_port      => $rabbitmq_bind_port,
+    rabbitmq_cluster_nodes  => $rabbitmq_cluster_nodes,
     rabbit_cluster          => $rabbit_cluster,
-    rabbit_node_ip_address  => $rabbit_node_ip_address,
-    rabbit_port             => $rabbit_port,
-    rabbit_ha_virtual_ip    => $rabbit_ha_virtual_ip,
-    # Qpid
-    qpid_password           => $qpid_password,
-    qpid_user               => $qpid_user,
-    #qpid_cluster            => $qpid_cluster,
-    qpid_nodes              => $qpid_nodes,
-    qpid_port               => $qpid_port,
-    qpid_node_ip_address    => $qpid_node_ip_address,
     # Glance
     glance_api_servers      => $glance_api_servers,
     # General
@@ -415,9 +400,11 @@ class openstack::controller (
     if !defined(Class['openstack::cinder']) {
       class {'openstack::cinder':
         sql_connection       => "mysql://${cinder_db_user}:${cinder_db_password}@${db_host}/${cinder_db_dbname}?charset=utf8",
-        rabbit_password      => $rabbit_password,
-        rabbit_host          => false,
-        rabbit_nodes         => $rabbit_nodes,
+        queue_provider       => $queue_provider,
+        amqp_hosts           => $amqp_hosts,
+        amqp_user            => $amqp_user,
+        amqp_password        => $amqp_password,
+        rabbit_ha_queues     => $rabbit_ha_queues,
         volume_group         => $cinder_volume_group,
         physical_volume      => $nv_physical_volume,
         manage_volumes       => $manage_volumes,
@@ -433,11 +420,6 @@ class openstack::controller (
         syslog_log_facility  => $syslog_log_facility_cinder,
         syslog_log_level     => $syslog_log_level,
         cinder_rate_limits   => $cinder_rate_limits,
-        rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
-        queue_provider       => $queue_provider,
-        qpid_password        => $qpid_password,
-        qpid_user            => $qpid_user,
-        qpid_nodes           => $qpid_nodes,
       } # end class
     } else { # defined
       if $manage_volumes {
@@ -472,14 +454,11 @@ class openstack::controller (
       db_password          => $ceilometer_db_password,
       db_dbname            => $ceilometer_db_dbname,
       metering_secret      => $ceilometer_metering_secret,
-      rabbit_password      => $rabbit_password,
-      rabbit_userid        => $rabbit_user,
-      rabbit_host          => $rabbit_nodes[0],
-      rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
       queue_provider       => $queue_provider,
-      qpid_password        => $qpid_password,
-      qpid_userid          => $qpid_user,
-      qpid_nodes           => $qpid_nodes,
+      amqp_hosts           => $amqp_hosts,
+      amqp_user            => $amqp_user,
+      amqp_password        => $amqp_password,
+      rabbit_ha_queues     => $rabbit_ha_queues,
       keystone_host        => $internal_address,
       keystone_password    => $ceilometer_user_password,
       bind_host            => $api_bind_address,
