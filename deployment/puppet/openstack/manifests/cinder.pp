@@ -6,11 +6,12 @@
 class openstack::cinder(
   $sql_connection,
   $cinder_user_password,
-  $rabbit_password,
-  $rabbit_host            = false,
-  $rabbit_nodes           = ['127.0.0.1'],
-  $rabbit_ha_virtual_ip   = false,
   $glance_api_servers,
+  $queue_provider         = 'rabbitmq',
+  $amqp_hosts             = '127.0.0.1',
+  $amqp_user              = 'nova',
+  $amqp_password          = 'rabbit_pw',
+  $rabbit_ha_queues       = false,
   $volume_group           = 'cinder-volumes',
   $physical_volume        = undef,
   $manage_volumes         = false,
@@ -25,10 +26,6 @@ class openstack::cinder(
   $cinder_rate_limits     = undef,
   $verbose                = false,
   $debug                  = false,
-  $queue_provider         = 'rabbitmq',
-  $qpid_password          = 'qpid_pw',
-  $qpid_user              = 'nova',
-  $qpid_nodes             = ['127.0.0.1'],
 ) {
   include cinder::params
   #  if ($purge_cinder_config) {
@@ -45,36 +42,19 @@ class openstack::cinder(
   cinder_config { 'DEFAULT/auth_strategy': value => 'keystone' }
   cinder_config { 'DEFAULT/glance_api_servers': value => $glance_api_servers }
 
-  case $queue_provider {
-    "rabbitmq": {
-      if $rabbit_nodes and !$rabbit_ha_virtual_ip {
-        $rabbit_hosts = inline_template("<%= @rabbit_nodes.map {|x| x + ':5672'}.join ',' %>")
-        Cinder_config['DEFAULT/rabbit_ha_queues']->Service<| title == 'cinder-api'|>
-        Cinder_config['DEFAULT/rabbit_ha_queues']->Service<| title == 'cinder-volume' |>
-        Cinder_config['DEFAULT/rabbit_ha_queues']->Service<| title == 'cinder-scheduler' |>
-        cinder_config { 'DEFAULT/rabbit_ha_queues': value => 'True' }
-      }
-      elsif $rabbit_ha_virtual_ip {
-        $rabbit_hosts = "${rabbit_ha_virtual_ip}:5672"
-        Cinder_config['DEFAULT/rabbit_ha_queues']->Service<| title == 'cinder-api'|>
-        Cinder_config['DEFAULT/rabbit_ha_queues']->Service<| title == 'cinder-volume' |>
-        Cinder_config['DEFAULT/rabbit_ha_queues']->Service<| title == 'cinder-scheduler' |>
-        cinder_config { 'DEFAULT/rabbit_ha_queues': value => 'True' }
-      }
-    }
-    'qpid': {
-      $qpid_hosts = inline_template("<%= @qpid_nodes.map {|x| x + ':5672'}.join ',' %>")
-    }
+  if $queue_provider == 'rabbitmq' and $rabbit_ha_queues {
+    Cinder_config['DEFAULT/rabbit_ha_queues']->Service<| title == 'cinder-api'|>
+    Cinder_config['DEFAULT/rabbit_ha_queues']->Service<| title == 'cinder-volume' |>
+    Cinder_config['DEFAULT/rabbit_ha_queues']->Service<| title == 'cinder-scheduler' |>
+    cinder_config { 'DEFAULT/rabbit_ha_queues': value => 'True' }
   }
 
   class { 'cinder::base':
     package_ensure  => $::openstack_version['cinder'],
     queue_provider  => $queue_provider,
-    rabbit_password => $rabbit_password,
-    rabbit_hosts    => $rabbit_hosts,
-    qpid_password   => $qpid_password,
-    qpid_userid     => $qpid_user,
-    qpid_hosts      => $qpid_hosts,
+    amqp_hosts      => $amqp_hosts,
+    amqp_user       => $amqp_user,
+    amqp_password   => $amqp_password,
     sql_connection  => $sql_connection,
     verbose         => $verbose,
     use_syslog      => $use_syslog,

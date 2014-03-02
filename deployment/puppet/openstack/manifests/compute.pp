@@ -24,9 +24,9 @@
 #   which indicates that exported resources will be used to determine connection
 #   information.
 # [nova_user_password] Nova service password.
-#  [rabbit_nodes] RabbitMQ nodes or false. Optional. Defaults to false.
-#  [rabbit_password] RabbitMQ password. Optional. Defaults to  'rabbit_pw',
-#  [rabbit_user] RabbitMQ user. Optional. Defaults to 'nova',
+#  [amqp_hosts] RabbitMQ hosts or false. Optional. Defaults to false.
+#  [amqp_user] RabbitMQ user. Optional. Defaults to 'nova',
+#  [amqp_password] RabbitMQ password. Optional. Defaults to  'rabbit_pw',
 #  [glance_api_servers] List of glance api servers of the form HOST:PORT
 #    delimited by ':'. False indicates that the resource should be collected.
 #    Optional. Defaults to false,
@@ -65,19 +65,12 @@ class openstack::compute (
   $sql_connection                = false,
   # Nova
   $purge_nova_config             = false,
-  # AMQP
+  # RPC
   $queue_provider                = 'rabbitmq',
-  # Rabbit
-  $rabbit_nodes                  = false,
-  $rabbit_password               = 'rabbit_pw',
-  $rabbit_host                   = false,
-  $rabbit_user                   = 'nova',
-  $rabbit_ha_virtual_ip          = false,
-  # Qpid
-  $qpid_nodes                    = false,
-  $qpid_password                 = 'qpid_pw',
-  $qpid_host                     = false,
-  $qpid_user                     = 'nova',
+  $amqp_hosts                    = false,
+  $amqp_user                     = 'nova',
+  $amqp_password                 = 'rabbit_pw',
+  $rabbit_ha_queues              = false,
   # Glance
   $glance_api_servers            = undef,
   # Virtualization
@@ -146,7 +139,6 @@ class openstack::compute (
 
   $final_sql_connection = $sql_connection
   $glance_connection = $glance_api_servers
-  $rabbit_connection = $rabbit_host
 
   case $::osfamily {
     'RedHat': {
@@ -184,23 +176,18 @@ class openstack::compute (
       ensure_package       => $::openstack_version['nova'],
       sql_connection       => $sql_connection,
       queue_provider       => $queue_provider,
-      rabbit_nodes         => $rabbit_nodes,
-      rabbit_userid        => $rabbit_user,
-      rabbit_password      => $rabbit_password,
-      qpid_userid          => $qpid_user,
-      qpid_password        => $qpid_password,
-      qpid_nodes           => $qpid_nodes,
-      qpid_host            => $qpid_host,
+      amqp_hosts           => $amqp_hosts,
+      amqp_user            => $amqp_user,
+      amqp_password        => $amqp_password,
+      rabbit_ha_queues     => $rabbit_ha_queues,
       image_service        => 'nova.image.glance.GlanceImageService',
       glance_api_servers   => $glance_api_servers,
       verbose              => $verbose,
       debug                => $debug,
-      rabbit_host          => $rabbit_host,
       use_syslog           => $use_syslog,
       syslog_log_facility  => $syslog_log_facility,
       syslog_log_level     => $syslog_log_level,
       api_bind_address     => $internal_address,
-      rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
       state_path           => $state_path,
   }
 
@@ -256,22 +243,17 @@ class openstack::compute (
   # configure ceilometer compute agent
   if ($ceilometer) {
     class { 'openstack::ceilometer':
-      verbose              => $verbose,
-      debug                => $debug,
-      use_syslog           => $use_syslog,
-      rabbit_password      => $rabbit_password,
-      rabbit_userid        => $rabbit_user,
-      rabbit_port          => $rabbit_port,
-      rabbit_host          => $rabbit_nodes[0],
-      rabbit_ha_virtual_ip => $rabbit_ha_virtual_ip,
-      queue_provider       => $queue_provider,
-      qpid_password        => $qpid_password,
-      qpid_userid          => $qpid_user,
-      qpid_nodes           => $qpid_nodes,
-      keystone_host        => $service_endpoint,
-      keystone_password    => $ceilometer_user_password,
-      on_compute           => true,
-      metering_secret      => $ceilometer_metering_secret,
+      verbose           => $verbose,
+      debug             => $debug,
+      use_syslog        => $use_syslog,
+      queue_provider    => $queue_provider,
+      amqp_hosts        => $amqp_hosts,
+      amqp_user         => $amqp_user,
+      amqp_password     => $amqp_password,
+      keystone_host     => $service_endpoint,
+      keystone_password => $ceilometer_user_password,
+      on_compute        => true,
+      metering_secret   => $ceilometer_metering_secret,
     }
   }
 

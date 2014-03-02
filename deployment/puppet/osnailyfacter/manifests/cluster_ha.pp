@@ -75,7 +75,6 @@ class osnailyfacter::cluster_ha {
   if !$rabbit_hash['user'] {
     $rabbit_hash['user'] = 'nova'
   }
-  $rabbit_user = $rabbit_hash['user']
 
   if ! $::use_quantum {
     $floating_ips_range = $::fuel_settings['floating_network_range']
@@ -136,6 +135,22 @@ class osnailyfacter::cluster_ha {
   $controller_node_public  = $::fuel_settings['public_vip']
   $controller_node_address = $::fuel_settings['management_vip']
   $mountpoints = filter_hash($mp_hash,'point')
+
+  # AMQP client configuration
+  if $::internal_address in $controller_internal_addresses {
+    # prefer local MQ broker if it exists on this node
+    $amqp_nodes = concat(['127.0.0.1'], $controller_nodes)
+  } else {
+    $amqp_nodes = $controller_nodes
+  }
+  $amqp_port = '5673'
+  $amqp_hosts = inline_template("<%= @amqp_nodes.map {|x| x + ':' + @amqp_port}.join ',' %>")
+  $rabbit_ha_queues = true
+
+  # RabbitMQ server configuration
+  $rabbitmq_bind_ip_address = false                # bind RabbitMQ to 0.0.0.0
+  $rabbitmq_bind_port = $amqp_port
+  $rabbitmq_cluster_nodes = $controller_hostnames  # has to be hostnames
 
   $cinder_iscsi_bind_addr = $::storage_address
 
@@ -242,10 +257,6 @@ class osnailyfacter::cluster_ha {
       network_config                => $network_config,
       debug                         => $debug,
       verbose                       => $verbose,
-      queue_provider                => $::queue_provider,
-      qpid_password                 => $rabbit_hash[password],
-      qpid_user                     => $rabbit_hash[user],
-      qpid_nodes                    => [$::fuel_settings['management_vip']],
       auto_assign_floating_ip       => $::fuel_settings['auto_assign_floating_ip'],
       mysql_root_password           => $mysql_hash[root_password],
       admin_email                   => $access_hash[email],
@@ -259,9 +270,14 @@ class osnailyfacter::cluster_ha {
       glance_image_cache_max_size   => $glance_hash[image_cache_max_size],
       nova_db_password              => $nova_hash[db_password],
       nova_user_password            => $nova_hash[user_password],
-      rabbit_password               => $rabbit_hash[password],
-      rabbit_user                   => $rabbit_hash[user],
-      rabbit_nodes                  => $controller_nodes,
+      queue_provider                => $::queue_provider,
+      amqp_hosts                    => $amqp_hosts,
+      amqp_user                     => $rabbit_hash['user'],
+      amqp_password                 => $rabbit_hash['password'],
+      rabbit_ha_queues              => $rabbit_ha_queues,
+      rabbitmq_bind_ip_address      => $rabbitmq_bind_ip_address,
+      rabbitmq_bind_port            => $rabbitmq_bind_port,
+      rabbitmq_cluster_nodes        => $rabbitmq_cluster_nodes,
       memcached_servers             => $controller_nodes,
       export_resources              => false,
       glance_backend                => $glance_backend,
@@ -421,10 +437,10 @@ class osnailyfacter::cluster_ha {
             keystone_password => 'heat',
             keystone_tenant   => 'services',
 
-            rabbit_host       => $controller_node_address,
-            rabbit_login      => $rabbit_hash['user'],
-            rabbit_password   => $rabbit_hash['password'],
-            rabbit_port       => '5672',
+            amqp_hosts       => $amqp_hosts,
+            amqp_user        => $rabbit_hash['user'],
+            amqp_password    => $rabbit_hash['password'],
+            rabbit_ha_queues => $rabbit_ha_queues,
 
             db_host           => $controller_node_address,
             db_password       => $heat_hash['db_password'],
@@ -484,13 +500,10 @@ class osnailyfacter::cluster_ha {
         multi_host             => $multi_host,
         sql_connection         => "mysql://nova:${nova_hash[db_password]}@${::fuel_settings['management_vip']}/nova",
         queue_provider         => $::queue_provider,
-        qpid_password          => $rabbit_hash[password],
-        qpid_user              => $rabbit_hash[user],
-        qpid_nodes             => [$::fuel_settings['management_vip']],
-        rabbit_nodes           => $controller_nodes,
-        rabbit_password        => $rabbit_hash[password],
-        rabbit_user            => $rabbit_hash[user],
-        rabbit_ha_virtual_ip   => $::fuel_settings['management_vip'],
+        amqp_hosts             => $amqp_hosts,
+        amqp_user              => $rabbit_hash['user'],
+        amqp_password          => $rabbit_hash['password'],
+        rabbit_ha_queues       => $rabbit_ha_queues,
         auto_assign_floating_ip => $::fuel_settings['auto_assign_floating_ip'],
         glance_api_servers     => "${::fuel_settings['management_vip']}:9292",
         vncproxy_host          => $::fuel_settings['public_vip'],
@@ -555,12 +568,10 @@ class osnailyfacter::cluster_ha {
         glance_api_servers   => "${::fuel_settings['management_vip']}:9292",
         bind_host            => $bind_host,
         queue_provider       => $::queue_provider,
-        qpid_password        => $rabbit_hash[password],
-        qpid_user            => $rabbit_hash[user],
-        qpid_nodes           => [$::fuel_settings['management_vip']],
-        rabbit_password      => $rabbit_hash[password],
-        rabbit_host          => false,
-        rabbit_nodes         => $::fuel_settings['management_vip'],
+        amqp_hosts           => $amqp_hosts,
+        amqp_user            => $rabbit_hash['user'],
+        amqp_password        => $rabbit_hash['password'],
+        rabbit_ha_queues     => $rabbit_ha_queues,
         volume_group         => 'cinder',
         manage_volumes       => $manage_volumes,
         enabled              => true,
@@ -569,9 +580,9 @@ class osnailyfacter::cluster_ha {
         cinder_user_password => $cinder_hash[user_password],
         syslog_log_facility  => $syslog_log_facility_cinder,
         syslog_log_level     => $syslog_log_level,
-        debug                 => $debug,
-        verbose               => $verbose,
-        use_syslog            => $use_syslog,
+        debug                => $debug,
+        verbose              => $verbose,
+        use_syslog           => $use_syslog,
       }
 #      class { "::rsyslog::client":
 #        log_local => true,
