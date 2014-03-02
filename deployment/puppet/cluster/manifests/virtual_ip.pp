@@ -10,7 +10,7 @@
 # [*vip*]
 #   Specify dictionary of VIP parameters, ex:
 #   {
-#       nic    => 'eth0', 
+#       nic    => 'eth0',
 #       ip     => '10.1.1.253'
 #   }
 #
@@ -42,8 +42,12 @@ define cluster::virtual_ip (
       'ip'           => $vip[ip],
       'iflabel'      => $vip[iflabel] ? { undef => 'ka', default => $vip[iflabel] },
       'cidr_netmask' => $vip[cidr_netmask],
+      'flush_routes' => 'true',
       #'lvs_support' => $vip[lvs_support] ? { undef => 'false', default => $vip[lvs_support] },
       #'unique_clone_address' => $vip[unique_clone_address] ? { undef => 'true', default => $vip[unique_clone_address] },
+    },
+    metadata => {
+      'resource-stickiness' => '1',
     },
     operations => {
       'monitor' => {

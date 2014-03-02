@@ -32,13 +32,11 @@ class heat(
   $syslog_log_facility      = 'LOG_LOCAL0',
   $log_dir                  = '/var/log/heat',
 
-  $rabbit_host              = '127.0.0.1',
-  $rabbit_login             = 'heat',
+  $amqp_hosts               = '127.0.0.1',
+  $amqp_user                = 'heat',
+  $amqp_password            = 'heat',
   $rabbit_ha_queues         = false,
-  $rabbit_password          = 'heat',
   $rabbit_virtualhost       = '/',
-  $rabbit_port              = '5672',
-  $rabbit_queue_host        = 'heat',
 ) {
 
   validate_string($keystone_password)
@@ -76,13 +74,11 @@ class heat(
     syslog_log_facility            => $syslog_log_facility,
     log_dir                        => $log_dir,
     rpc_backend                    => $rpc_backend,
-    rabbit_host                    => $rabbit_host,
-    rabbit_userid                  => $rabbit_login,
+    amqp_hosts                     => $amqp_hosts,
+    amqp_user                      => $amqp_user,
+    amqp_password                  => $amqp_password,
     rabbit_ha_queues               => $rabbit_ha_queues,
-    rabbit_password                => $rabbit_password,
     rabbit_virtualhost             => $rabbit_virtualhost,
-    rabbit_port                    => $rabbit_port,
-    rabbit_queue_host              => $rabbit_queue_host,
     api_bind_host                  => $api_bind_host,
     api_bind_port                  => $api_bind_port,
     api_cfn_bind_host              => $api_cfn_bind_host,

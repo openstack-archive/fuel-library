@@ -6,9 +6,9 @@ class MrntNeutron
   #class method
   def self.sanitize_array(aa)
     aa.reduce([]) do |rv, v|
-      rv << case v.class
-          when Hash  then sanitize_hash(v)
-          when Array  then sanitize_array(v)
+      rv << case v.class.to_s
+          when "Hash"  then sanitize_hash(v)
+          when "Array"  then sanitize_array(v)
           else v
       end
     end
@@ -39,11 +39,28 @@ class MrntNeutron
     @fuel_config[:management_vip]
   end
 
+  def default_amqp_port(prov)
+    case prov.to_sym
+      when :rabbitmq  then '5673'
+      when :qpid      then '5672'
+    end
+  end
+
+  def default_amqp_hosts()
+    port = default_amqp_port(default_amqp_provider())
+    amqp_hosts = @fuel_config[:role] =~ /controller/ ? ['127.0.0.1'] : []
+    @fuel_config[:nodes].each do |node|
+      amqp_hosts << node[:internal_address] if node[:role] =~ /controller/
+    end
+    if amqp_hosts.empty?
+      raise Puppet::ParseError,
+        "failed to derive AMQP hosts from configuration"
+    end
+    amqp_hosts.map {|ip| ip + ':' + port }.join(',')
+  end
+
   def get_amqp_vip(port)
-    #todo myst give string like  "hostname1:5672, hostname2:5672" # rabbit_nodes.map {|x| x + ':5672'}.join ','
-    #calculated from $controller_nodes
     vip = @fuel_config[:amqp_vip]  ||  @fuel_config[:management_vip]
-    port  ?  "#{vip}:#{port}"  :  vip
   end
 
   def get_database_vip()
@@ -71,9 +88,9 @@ class MrntNeutron
         if cfg[:ha_mode]
           rv[:hosts] = hosts.map{|x| x.map!{|y| y.strip}.join(':')}.join(',')
         else
-          rv[:hosts] = hosts[0][0].strip()
-          if hosts[0][1].strip() != cfg[:port].to_s()
-            rv[:port] = hosts[0][1].to_i()
+          rv[:hosts] = hosts[0][0].strip
+          if hosts[0][1].strip() != cfg[:port].to_s
+            rv[:port] = hosts[0][1].to_i
           end
         end
       else
@@ -233,7 +250,8 @@ class MrntNeutron
         :provider => default_amqp_provider(),
         :username => "nova",
         :passwd => nil,
-        :hosts => get_amqp_vip(5672),
+        :hosts => default_amqp_hosts(),
+        :port => default_amqp_port(default_amqp_provider()),
         :ha_mode => true,
         :control_exchange => "neutron",
         :heartbeat => 60,
@@ -331,6 +349,7 @@ class MrntNeutron
     @scope = scope
     @fuel_config = cfg
     @neutron_config_from_nailgun = cfg[section_name.to_sym()]
+    #Puppet::debug(@fuel_config.to_yaml)
   end
 
   def generate_config()
