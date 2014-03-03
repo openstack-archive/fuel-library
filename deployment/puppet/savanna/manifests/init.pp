@@ -35,7 +35,7 @@ class savanna (
   $syslog_log_facility_savanna          = 'LOG_LOCAL0',
 ) {
 
-  $savanna_sql_connection               = "mysql://${savanna_db_user}:${savanna_db_password}@${savanna_db_host}/${savanna_db_name}"
+  $savanna_sql_connection               = "mysql://${savanna_db_user}:${savanna_db_password}@${savanna_db_host}/${savanna_db_name}?read_timeout=60"
   $savanna_url_string                   = "SAVANNA_URL = '${savanna_api_protocol}://${savanna_api_host}:${savanna_api_port}/${savanna_api_version}'"
 
   class { 'savanna::db::mysql':
