@@ -140,7 +140,6 @@ class neutron (
     'keystone_authtoken/admin_password':    value => $neutron_config['keystone']['admin_password'];
   }
 
-
   if defined(Anchor['neutron-server-config-done']) {
     $endpoint_neutron_main_configuration = 'neutron-server-config-done'
   } else {

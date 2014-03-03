@@ -72,6 +72,7 @@ class savanna::api (
     'plugin:hdp/plugin_class'              : value => $hdp_plugin_class;
     'plugin:idh/plugin_class'              : value => $idh_plugin_class;
     'database/connection'                  : value => $sql_connection;
+    'database/max_retries'                 : value => -1;
   }
 
   $logging_file = '/etc/savanna/logging.conf'

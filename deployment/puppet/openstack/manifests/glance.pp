@@ -63,7 +63,7 @@ class openstack::glance (
   # Configure the db string
   case $db_type {
     'mysql': {
-      $sql_connection = "mysql://${glance_db_user}:${glance_db_password}@${db_host}/${glance_db_dbname}"
+      $sql_connection = "mysql://${glance_db_user}:${glance_db_password}@${db_host}/${glance_db_dbname}?read_timeout=60"
     }
   }
 
