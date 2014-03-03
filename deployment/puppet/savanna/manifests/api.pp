@@ -72,22 +72,18 @@ class savanna::api (
     'plugin:hdp/plugin_class'              : value => $hdp_plugin_class;
     'plugin:idh/plugin_class'              : value => $idh_plugin_class;
     'database/connection'                  : value => $sql_connection;
+    'DEFAULT/verbose'                      : value => $verbose;
+    'DEFAULT/debug'                        : value => $debug;
     'database/max_retries'                 : value => -1;
   }
 
   $logging_file = '/etc/savanna/logging.conf'
-  #$logging_context_format_string = 'savanna-%(name)s %(asctime)s.%(msecs)03d %(process)d %(levelname)s %(name)s [%(request_id)s %(user)s %(tenant)s] %(instance)s%(message)s'
-  #$logging_default_format_string = 'savanna-%(name)s %(asctime)s %(levelname)s %(name)s [-] %(instance)s %(message)s'
 
   if $use_syslog and !$debug {
     savanna_config {
       'DEFAULT/log_config'                    : value  => $logging_file;
-      'DEFAULT/log_file'                      : ensure => absent;
       'DEFAULT/use_syslog'                    : value  => true;
-      'DEFAULT/use_stderr'                    : value  => false;
       'DEFAULT/syslog_log_facility'           : value  => $syslog_log_facility_savanna;
-     # 'DEFAULT/logging_context_format_string' : value  => $logging_context_format_string;
-     # 'DEFAULT/logging_default_format_string' : value  => $logging_default_format_string;
     }
     file { 'savanna-logging.conf' :
       ensure  => present,
@@ -96,14 +92,14 @@ class savanna::api (
       owner   => 'root',
       group   => 'root',
       mode    => '0644',
+      require => Package['savanna'],
+      notify  => Service['savanna-api'],
     }
   } else {
     savanna_config {
       'DEFAULT/log_config'                   : ensure => absent;
-      'DEFAULT/use_syslog'                   : ensure => absent;
-      'DEFAULT/use_stderr'                   : ensure => absent;
-      'DEFAULT/syslog_log_facility'          : ensure => absent;
-      'DEFAULT/log_dir'                      : value  => $logdir;
+      'DEFAULT/log_file'  : value  => $log_file;
+      'DEFAULT/use_syslog': value  => false;
     }
     file { 'savanna-logging.conf' :
       ensure  => absent,
@@ -112,7 +108,6 @@ class savanna::api (
   }
 
   File[$logdir] -> File['savanna-logging.conf']
-  File['savanna-logging.conf'] ~> Service <| title == 'savanna-api' |>
   File['savanna-logging.conf'] -> Savanna_config['DEFAULT/log_config']
 
   nova_config {
