@@ -37,7 +37,7 @@ class murano::api (
     $murano_db_host                 = 'localhost',
 ) {
 
-  $api_database_connection = "mysql://${murano_db_name}:${murano_db_password}@${murano_db_host}:3306/${murano_db_name}"
+  $api_database_connection = "mysql://${murano_db_name}:${murano_db_password}@${murano_db_host}:3306/${murano_db_name}?read_timeout=60"
 
   include murano::params
 

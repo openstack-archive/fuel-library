@@ -229,8 +229,11 @@ class keystone(
     keystone_config { 'catalog/driver':
       value => ' keystone.catalog.backends.sql.Catalog'
     }
-  }
 
+    keystone_config {
+      'DATABASE/max_retries':   value => '-1';
+    }
+  }
   if $enabled {
     $service_ensure = 'running'
   } else {
