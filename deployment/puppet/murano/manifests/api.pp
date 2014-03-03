@@ -37,7 +37,7 @@ class murano::api (
     $murano_db_host                 = 'localhost',
 ) {
 
-  $api_database_connection = "mysql://${murano_db_name}:${murano_db_password}@${murano_db_host}:3306/${murano_db_name}"
+  $api_database_connection = "mysql://${murano_db_name}:${murano_db_password}@${murano_db_host}:3306/${murano_db_name}?read_timeout=60"
 
   include murano::params
 
@@ -92,6 +92,7 @@ class murano::api (
     'DEFAULT/logging_default_format_string':
     value => 'murano-api %(asctime)s %(levelname)s %(name)s [-] %(instance)s %(message)s';
     'database/connection'                   : value => $api_database_connection;
+    'database/max_retries'                  : value => '-1';
     'database/auto_create'                  : value => $api_database_auto_create;
     'reports/results_exchange'              : value => $api_reports_results_exchange;
     'reports/results_queue'                 : value => $api_reports_results_queue;
