@@ -103,7 +103,7 @@ class osnailyfacter::cluster_simple {
   # do not edit the below line
   validate_re($::queue_provider,  'rabbitmq|qpid')
 
-  $sql_connection = "mysql://nova:${nova_hash[db_password]}@${controller_node_address}/nova"
+  $sql_connection = "mysql://nova:${nova_hash[db_password]}@${controller_node_address}/nova?read_timeout=60"
   $mirror_type = 'external'
   $multi_host = true
   Exec { logoutput => true }
@@ -415,7 +415,7 @@ class osnailyfacter::cluster_simple {
         $bind_host = false
       }
       class { 'openstack::cinder':
-        sql_connection       => "mysql://cinder:${cinder_hash[db_password]}@${controller_node_address}/cinder?charset=utf8",
+        sql_connection       => "mysql://cinder:${cinder_hash[db_password]}@${controller_node_address}/cinder?charset=utf8&read_timeout=60",
         glance_api_servers   => "${controller_node_address}:9292",
         queue_provider       => $::queue_provider,
         rabbit_password      => $rabbit_hash[password],
