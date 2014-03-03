@@ -294,6 +294,10 @@ if $use_syslog and !$debug { #syslog and nondebug case
     'DEFAULT/osapi_volume_listen':  value => $api_bind_address;
   }
 
+  nova_config {
+    'DATABASE/max_retries':   value => '-1';
+  }
+
   if $monitoring_notifications {
     nova_config {
       'DEFAULT/notification_driver': value => 'nova.notifier.rabbit_notifier'

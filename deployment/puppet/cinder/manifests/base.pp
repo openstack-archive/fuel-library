@@ -139,6 +139,10 @@ class cinder::base (
     'DEFAULT/verbose':             value => $verbose;
     'DEFAULT/api_paste_config':    value => '/etc/cinder/api-paste.ini';
   }
+
+  cinder_config {
+    'DEFAULT/max_retries':   value => '-1';
+  }
   exec { 'cinder-manage db_sync':
     command     => $::cinder::params::db_sync_command,
     path        => '/usr/bin',

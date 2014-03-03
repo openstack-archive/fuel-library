@@ -98,7 +98,7 @@ class openstack::nova::controller (
   # Configure the db string
   case $db_type {
     'mysql': {
-      $nova_db = "mysql://${nova_db_user}:${nova_db_password}@${db_host}/${nova_db_dbname}"
+      $nova_db = "mysql://${nova_db_user}:${nova_db_password}@${db_host}/${nova_db_dbname}?read_timeout=60"
     }
   }
 

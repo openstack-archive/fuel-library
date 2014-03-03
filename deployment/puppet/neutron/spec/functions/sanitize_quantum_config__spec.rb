@@ -72,6 +72,7 @@ class NeutronConfig
           'reconnect_interval' => 2,
           'url'  => nil,
           'charset' => nil,
+          'read_timeout' => 60,
         },
         'keystone' => {
           'auth_host' => "#{@def_v[:management_vip]}",
@@ -276,7 +277,7 @@ describe 'sanitize_neutron_config with minimal incoming data' , :type => :puppet
   it 'should return default config (DATABASE) if given only minimal parameter set' do
     rv = scope.function_sanitize_neutron_config([cfg, 'neutron_settings'])
     expect(rv['database']).to eq({
-      "url"=>"mysql://neutron:neutron@192.168.0.254:3306/neutron",
+      "url"=>"mysql://neutron:neutron@192.168.0.254:3306/neutron?read_timeout=60",
       "provider"=>"mysql",
       "host"=>"192.168.0.254",
       "port"=>3306,
@@ -450,7 +451,7 @@ describe 'sanitize_neutron_config' , :type => :puppet_function do
       }
     }
     res_cfg['predefined_networks']['net04']['L2']['physnet'] = nil
-    res_cfg['database']['url'] = 'mysql://neutron:neutron@192.168.0.254:3306/neutron'
+    res_cfg['database']['url'] = 'mysql://neutron:neutron@192.168.0.254:3306/neutron?read_timeout=60'
     rv = scope.function_sanitize_neutron_config([cfg, 'neutron_settings'])
     expect(rv).to eq(res_cfg)
   end
@@ -459,7 +460,7 @@ describe 'sanitize_neutron_config' , :type => :puppet_function do
     cfg = Marshal.load(Marshal.dump(@cfg))
     cfg['neutron_settings']['L3'].delete('dhcp_agent')
     res_cfg = Marshal.load(Marshal.dump(@res_cfg))
-    res_cfg['database']['url'] = 'mysql://neutron:neutron@192.168.0.254:3306/neutron'
+    res_cfg['database']['url'] = 'mysql://neutron:neutron@192.168.0.254:3306/neutron?read_timeout=60'
     rv = scope.function_sanitize_neutron_config([@cfg, 'neutron_settings'])
     expect(rv['amqp']).to eq(res_cfg['amqp'])
   end
@@ -468,7 +469,7 @@ describe 'sanitize_neutron_config' , :type => :puppet_function do
     cfg = Marshal.load(Marshal.dump(@cfg))
     cfg['neutron_settings']['L3'].delete('dhcp_agent')
     res_cfg = Marshal.load(Marshal.dump(@res_cfg))
-    res_cfg['database']['url'] = 'mysql://neutron:neutron@192.168.0.254:3306/neutron'
+    res_cfg['database']['url'] = 'mysql://neutron:neutron@192.168.0.254:3306/neutron?read_timeout=60'
     rv = scope.function_sanitize_neutron_config([cfg, 'neutron_settings'])
     expect(rv['database']).to eq res_cfg['database']
   end
@@ -477,7 +478,7 @@ describe 'sanitize_neutron_config' , :type => :puppet_function do
     cfg = Marshal.load(Marshal.dump(@cfg))
     cfg['neutron_settings']['L3'].delete('dhcp_agent')
     res_cfg = Marshal.load(Marshal.dump(@res_cfg))
-    res_cfg['database']['url'] = 'mysql://neutron:neutron@192.168.0.254:3306/neutron'
+    res_cfg['database']['url'] = 'mysql://neutron:neutron@192.168.0.254:3306/neutron?read_timeout=60'
     rv = scope.function_sanitize_neutron_config([@cfg, 'neutron_settings'])
     expect(rv['server']).to eq res_cfg['server']
   end
@@ -486,7 +487,7 @@ describe 'sanitize_neutron_config' , :type => :puppet_function do
     cfg = Marshal.load(Marshal.dump(@cfg))
     cfg['neutron_settings']['L3'].delete('dhcp_agent')
     res_cfg = Marshal.load(Marshal.dump(@res_cfg))
-    res_cfg['database']['url'] = 'mysql://neutron:neutron@192.168.0.254:3306/neutron'
+    res_cfg['database']['url'] = 'mysql://neutron:neutron@192.168.0.254:3306/neutron?read_timeout=60'
     rv = scope.function_sanitize_neutron_config([@cfg, 'neutron_settings'])
     expect(rv['keystone']).to eq res_cfg['keystone']
   end
@@ -505,7 +506,7 @@ describe 'sanitize_neutron_config' , :type => :puppet_function do
         "vlan_range" => nil
       }
     }
-    res_cfg['database']['url'] = 'mysql://neutron:neutron@192.168.0.254:3306/neutron'
+    res_cfg['database']['url'] = 'mysql://neutron:neutron@192.168.0.254:3306/neutron?read_timeout=60'
     rv = scope.function_sanitize_neutron_config([@cfg, 'neutron_settings'])
     expect(rv['L2']).to eq res_cfg['L2']
   end
@@ -514,7 +515,7 @@ describe 'sanitize_neutron_config' , :type => :puppet_function do
     cfg = Marshal.load(Marshal.dump(@cfg))
     cfg['neutron_settings']['L3'].delete('dhcp_agent')
     res_cfg = Marshal.load(Marshal.dump(@res_cfg))
-    res_cfg['database']['url'] = 'mysql://neutron:neutron@192.168.0.254:3306/neutron'
+    res_cfg['database']['url'] = 'mysql://neutron:neutron@192.168.0.254:3306/neutron?read_timeout=60'
     rv = scope.function_sanitize_neutron_config([@cfg, 'neutron_settings'])
     expect(rv['L3']).to eq res_cfg['L3']
   end
@@ -524,7 +525,7 @@ describe 'sanitize_neutron_config' , :type => :puppet_function do
     cfg['neutron_settings']['L3'].delete('dhcp_agent')
     res_cfg = Marshal.load(Marshal.dump(@res_cfg))
     res_cfg['predefined_networks']['net04']['L2']['physnet'] = nil
-    res_cfg['database']['url'] = 'mysql://neutron:neutron@192.168.0.254:3306/neutron'
+    res_cfg['database']['url'] = 'mysql://neutron:neutron@192.168.0.254:3306/neutron?read_timeout=60'
     rv = scope.function_sanitize_neutron_config([@cfg, 'neutron_settings'])
     expect(rv['predefined_networks']).to eq res_cfg['predefined_networks']
   end
@@ -533,7 +534,7 @@ describe 'sanitize_neutron_config' , :type => :puppet_function do
     cfg = Marshal.load(Marshal.dump(@cfg))
     cfg['neutron_settings']['L3'].delete('dhcp_agent')
     res_cfg = Marshal.load(Marshal.dump(@res_cfg))
-    res_cfg['database']['url'] = 'mysql://neutron:neutron@192.168.0.254:3306/neutron'
+    res_cfg['database']['url'] = 'mysql://neutron:neutron@192.168.0.254:3306/neutron?read_timeout=60'
     rv = scope.function_sanitize_neutron_config([@cfg, 'neutron_settings'])
     expect(rv['predefined_routers']).to eq res_cfg['predefined_routers']
   end
@@ -541,7 +542,7 @@ describe 'sanitize_neutron_config' , :type => :puppet_function do
   it 'should calculate database url if database properties not given' do
     @cfg['neutron_settings']['database'] = {}
     rv = scope.function_sanitize_neutron_config([@cfg, 'neutron_settings'])
-    expect(rv['database']['url']).to eq "mysql://neutron:neutron@192.168.0.254:3306/neutron"
+    expect(rv['database']['url']).to eq "mysql://neutron:neutron@192.168.0.254:3306/neutron?read_timeout=60"
   end
   it 'should calculate database url if some database properties given' do
     @cfg['neutron_settings']['database'] = {
@@ -553,7 +554,7 @@ describe 'sanitize_neutron_config' , :type => :puppet_function do
       'port' => 666,
     }
     rv = scope.function_sanitize_neutron_config([@cfg, 'neutron_settings'])
-    expect(rv['database']['url']).to eq "mysql://qq_username:qq_password@5.4.3.2:666/qq_database"
+    expect(rv['database']['url']).to eq "mysql://qq_username:qq_password@5.4.3.2:666/qq_database?read_timeout=60"
   end
 
   it 'should can substitute values in deep level' do
@@ -576,7 +577,7 @@ describe 'sanitize_neutron_config' , :type => :puppet_function do
       }
     }
     res_cfg['predefined_networks']['net04']['L2']['physnet'] = nil
-    res_cfg['database']['url'] = 'mysql://neutron:neutron@192.168.0.254:3306/neutron'
+    res_cfg['database']['url'] = 'mysql://neutron:neutron@192.168.0.254:3306/neutron?read_timeout=60'
     res_cfg['L2']['enable_tunneling'] = true
     #should run.with_params(@cfg,'neutron_settings').and_return(res_cfg)
     rv = scope.function_sanitize_neutron_config([cfg, 'neutron_settings'])
@@ -733,7 +734,38 @@ describe MrntNeutron do
     end
   end
   describe '.get_database_url' do
-    it 'should return database url without charset' do
+    it 'should return database url with read_timeout' do
+      MrntNeutron.get_database_url({
+        :provider => "mysql",
+        :host => "1.2.3.4",
+        :port => 3306,
+        :database => "q_database",
+        :username => "q_username",
+        :passwd   => "q_passwd",
+        :read_timeout => 45,
+      }).should == "mysql://q_username:q_passwd@1.2.3.4:3306/q_database?read_timeout=45"
+    end
+  end
+  describe '.get_database_url' do
+    it 'should return database url with charset and read_timeout' do
+      gdu = MrntNeutron.get_database_url({
+        :provider => "mysql",
+        :host => "1.2.3.4",
+        :port => 3306,
+        :database => "q_database",
+        :username => "q_username",
+        :passwd   => "q_passwd",
+        :charset => "xxx32",
+        :read_timeout => 45,
+      })
+      gdu.should =~ /charset=xxx32/
+      gdu.should =~ /read_timeout=45/
+      gdu.should =~ /\?/
+      gdu.should =~ /\&/
+    end
+  end
+  describe '.get_database_url' do
+    it 'should return database url without charset and read_timeout' do
       MrntNeutron.get_database_url({
         :provider => "mysql",
         :host => "1.2.3.4",

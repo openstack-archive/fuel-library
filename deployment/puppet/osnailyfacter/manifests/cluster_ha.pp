@@ -482,7 +482,7 @@ class osnailyfacter::cluster_ha {
         network_manager        => $network_manager,
         network_config         => $network_config,
         multi_host             => $multi_host,
-        sql_connection         => "mysql://nova:${nova_hash[db_password]}@${::fuel_settings['management_vip']}/nova",
+        sql_connection         => "mysql://nova:${nova_hash[db_password]}@${::fuel_settings['management_vip']}/nova?read_timeout=60",
         queue_provider         => $::queue_provider,
         qpid_password          => $rabbit_hash[password],
         qpid_user              => $rabbit_hash[user],
@@ -551,7 +551,7 @@ class osnailyfacter::cluster_ha {
         $bind_host = false
       }
       class { 'openstack::cinder':
-        sql_connection       => "mysql://cinder:${cinder_hash[db_password]}@${::fuel_settings['management_vip']}/cinder?charset=utf8",
+        sql_connection       => "mysql://cinder:${cinder_hash[db_password]}@${::fuel_settings['management_vip']}/cinder?charset=utf8&read_timeout=60",
         glance_api_servers   => "${::fuel_settings['management_vip']}:9292",
         bind_host            => $bind_host,
         queue_provider       => $::queue_provider,
