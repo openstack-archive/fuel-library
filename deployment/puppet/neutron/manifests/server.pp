@@ -65,7 +65,7 @@ class neutron::server (
   Service <| title == 'haproxy' |> -> Service['neutron-server']
 
   neutron_config {
-    'database/connection':      value => $neutron_config['database']['url'];
+    'database/connection':      value => "${neutron_config['database']['url']}?read_timeout=60";
     'database/max_retries':     value => $neutron_config['database']['reconnects'];
     'database/reconnect_interval':  value => $neutron_config['database']['reconnect_interval'];
   }
