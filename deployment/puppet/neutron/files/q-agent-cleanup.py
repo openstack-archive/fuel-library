@@ -96,6 +96,7 @@ class NeutronCleaner(object):
                 errmsg = e.message.strip()
                 if re.search(r"Connection\s+refused$", errmsg, re.I) or \
                    re.search(r"Connection\s+timed\s+out$", errmsg, re.I) or\
+                   re.search(r"Lost\s+connection\s+to\s+MySQL\s+server", errmsg, re.I) or\
                    re.search(r"Service\s+Unavailable$", errmsg, re.I) or\
                    re.search(r"'*NoneType'*\s+object\s+has\s+no\s+attribute\s+'*__getitem__'*$", errmsg, re.I) or \
                    re.search(r"No\s+route\s+to\s+host$", errmsg, re.I):
@@ -125,6 +126,7 @@ class NeutronCleaner(object):
                 errmsg = e.message.strip()
                 if re.search(r"Connection\s+refused", errmsg, re.I) or\
                    re.search(r"Connection\s+timed\s+out", errmsg, re.I) or\
+                   re.search(r"Lost\s+connection\s+to\s+MySQL\s+server", errmsg, re.I) or\
                    re.search(r"503\s+Service\s+Unavailable", errmsg, re.I) or\
                    re.search(r"No\s+route\s+to\s+host", errmsg, re.I):
                       self.log.info("Can't connect to {0}, wait for server ready...".format(self.keystone.service_catalog.url_for(service_type='network')))
