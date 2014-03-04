@@ -27,6 +27,7 @@ class savanna (
   $savanna_firewall_rule                = '201 savanna-api',
   $use_neutron                          = false,
   $use_floating_ips                     = false,
+  $provisioning_engine                  = 'ssh',
 
   $use_syslog                           = false,
   $debug                                = false,
@@ -62,6 +63,7 @@ class savanna (
     idh_plugin_class                    => $savanna_idh_plugin_class,
     sql_connection                      => $savanna_sql_connection,
     use_neutron                         => $use_neutron,
+    provisioning_engine                 => $provisioning_engine,
     debug                               => $debug,
     use_syslog                          => $use_syslog,
     verbose                             => $verbose,

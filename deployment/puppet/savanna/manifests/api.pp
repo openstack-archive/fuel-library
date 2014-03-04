@@ -17,6 +17,7 @@ class savanna::api (
   $sql_connection              = 'mysql://savanna:savanna@localhost/savanna',
   $use_neutron                 = false,
   $use_floating_ips            = true,
+  $provisioning_engine         = 'ssh',
   $debug                       = false,
   $verbose                     = false,
   $use_syslog                  = false,
@@ -66,6 +67,7 @@ class savanna::api (
     'DEFAULT/os_auth_port'                 : value => $keystone_port;
     'DEFAULT/use_floating_ips'             : value => $use_floating_ips_value;
     'DEFAULT/use_neutron'                  : value => $use_neutron_value;
+    'DEFAULT/remote'                       : value => $provisioning_engine;
     'DEFAULT/node_domain'                  : value => $node_domain;
     'DEFAULT/plugins'                      : value => $plugins;
     'plugin:vanilla/plugin_class'          : value => $vanilla_plugin_class;
