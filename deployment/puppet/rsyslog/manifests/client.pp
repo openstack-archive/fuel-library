@@ -95,6 +95,14 @@ if $virtual { include rsyslog::checksum_udp514 }
     notify  => Class["rsyslog::service"],
   }
 
+  ::rsyslog::imfile { "61-mco_debug" :
+    file_name     => "/var/log/mcollective.log",
+    file_tag      => "mcollective",
+    file_facility => "daemon",
+    file_severity => "DEBUG",
+    notify  => Class["rsyslog::service"],
+  }
+
   ::rsyslog::imfile { "50-neutron-server_debug" :
       file_name     => "/var/log/neutron/server.log",
       file_tag      => "neutron-server",
@@ -413,6 +421,10 @@ if $virtual { include rsyslog::checksum_udp514 }
 
   file { "${rsyslog::params::rsyslog_d}60-puppet-apply.conf":
     content => template("${module_name}/60-puppet-apply.conf.erb"),
+  }
+
+  file { "${rsyslog::params::rsyslog_d}61-mco.conf":
+    content => template("${module_name}/61-mco.conf.erb"),
   }
 
   file { "${rsyslog::params::rsyslog_d}90-local.conf":
