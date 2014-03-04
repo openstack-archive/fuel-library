@@ -299,7 +299,7 @@ class MrntNeutron
         :router_id => nil,
         :gateway_external_network_id => nil,
         :use_namespaces => true,
-        :allow_overlapping_ips => false,
+        :allow_overlapping_ips => true,
         :network_auto_schedule => true,
         :router_auto_schedule  => true,
         :public_bridge => get_bridge_name('public'),
