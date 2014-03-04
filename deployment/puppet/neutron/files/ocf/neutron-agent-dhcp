@@ -277,10 +277,10 @@ neutron_dhcp_agent_status() {
 }
 
 
-clean_up()
-{
-    q-agent-cleanup.py --agent=dhcp --cleanup-ports
-}
+# clean_up()
+# {
+#     q-agent-cleanup.py  --sleep=4 --agent=dhcp --cleanup-ports
+# }
 
 
 neutron_dhcp_agent_monitor() {
@@ -299,7 +299,7 @@ neutron_dhcp_agent_start() {
         return $OCF_SUCCESS
     fi
 
-    clean_up
+    # clean_up
 
     # run and detach to background agent as daemon.
     # Don't use ocf_run as we're sending the tool's output
@@ -321,7 +321,7 @@ neutron_dhcp_agent_start() {
     done
 
     # detach deffered rescheduling procedure
-    bash -c "sleep 33 ; q-agent-cleanup.py --agent=dhcp --reschedule --remove-dead 2>&1 >> /var/log/neutron/rescheduling.log" &
+    bash -c "sleep 33 ; q-agent-cleanup.py  --sleep=4 --agent=dhcp --reschedule --remove-dead 2>&1 >> /var/log/neutron/rescheduling.log" &
 
     ocf_log info "OpenStack DHCP Server (${OCF_RESKEY_binary}) started"
     return $OCF_SUCCESS
@@ -335,7 +335,7 @@ neutron_dhcp_agent_stop() {
     neutron_dhcp_agent_status
     rc=$?
     if [ $rc -eq $OCF_NOT_RUNNING ]; then
-        clean_up
+        # clean_up
         ocf_log info "OpenStack DHCP Server (${OCF_RESKEY_binary}) already stopped"
         return $OCF_SUCCESS
     fi
@@ -383,7 +383,7 @@ neutron_dhcp_agent_stop() {
     ocf_log info "OpenStack DHCP Server (${OCF_RESKEY_binary}) stopped"
 
     rm -f $OCF_RESKEY_pid
-    clean_up
+    # clean_up
 
     return $OCF_SUCCESS
 }
