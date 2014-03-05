@@ -66,6 +66,10 @@ class NeutronCleaner(object):
     CMD__list_ovs_port = ['ovs-vsctl', 'list-ports']
     CMD__remove_ovs_port = ['ovs-vsctl', '--', '--if-exists', 'del-port']
     CMD__remove_ip_addr = ['ip', 'address', 'delete']
+    CMD__ip_netns_list = ['ip', 'netns', 'list']
+    CMD__ip_netns_exec = ['ip', 'netns', 'exec']
+
+    RE__port_in_portlist = re.compile(r"^\s*\d+\:\s+([\w-]+)\:")  # 14: tap-xxxyyyzzz:
 
     def __init__(self, openrc, options, log=None):
         self.log = log
@@ -78,40 +82,57 @@ class NeutronCleaner(object):
             'l3':   self._reschedule_agent_l3,
         }
 
-        ret_count = self.options.get('retries',1)
+        self._token = None
+        self._keystone = None
+        self._client = None
 
-        while True:
-            if ret_count <= 0 :
-                print(">>> Keystone error: no more retries for connect to keystone server.")
-                sys.exit(1)
-            try:
-                self.keystone = ks_client.Client(
-                    username=openrc['OS_USERNAME'],
-                    password=openrc['OS_PASSWORD'],
-                    tenant_name=openrc['OS_TENANT_NAME'],
-                    auth_url=openrc['OS_AUTH_URL'],
-                )
-                break
-            except Exception as e:
-                errmsg = e.message.strip()
-                if re.search(r"Connection\s+refused$", errmsg, re.I) or \
-                   re.search(r"Connection\s+timed\s+out$", errmsg, re.I) or\
-                   re.search(r"Lost\s+connection\s+to\s+MySQL\s+server", errmsg, re.I) or\
-                   re.search(r"Service\s+Unavailable$", errmsg, re.I) or\
-                   re.search(r"'*NoneType'*\s+object\s+has\s+no\s+attribute\s+'*__getitem__'*$", errmsg, re.I) or \
-                   re.search(r"No\s+route\s+to\s+host$", errmsg, re.I):
-                      print(">>> Can't connect to {0}, wait for server ready...".format(self.auth_config['OS_AUTH_URL']))
-                      time.sleep(self.options.sleep)
-                else:
-                    print(">>> Keystone error:\n{0}".format(e.message))
-                    raise e
-            ret_count -= 1
-        self.token = self.keystone.auth_token
-        self.client = q_client.Client(
-            API_VER,
-            endpoint_url=self.keystone.service_catalog.url_for(service_type='network'),
-            token=self.token,
-        )
+    @property
+    def keystone(self):
+        if self._keystone is None:
+            ret_count = self.options.get('retries',1)
+            while True:
+                if ret_count <= 0 :
+                    self.log.error(">>> Keystone error: no more retries for connect to keystone server.")
+                    sys.exit(1)
+                try:
+                    self._keystone = ks_client.Client(
+                        username=self.auth_config['OS_USERNAME'],
+                        password=self.auth_config['OS_PASSWORD'],
+                        tenant_name=self.auth_config['OS_TENANT_NAME'],
+                        auth_url=self.auth_config['OS_AUTH_URL'],
+                    )
+                    break
+                except Exception as e:
+                    errmsg = e.message.strip()
+                    if re.search(r"Connection\s+refused$", errmsg, re.I) or \
+                       re.search(r"Connection\s+timed\s+out$", errmsg, re.I) or\
+                       re.search(r"Lost\s+connection\s+to\s+MySQL\s+server", errmsg, re.I) or\
+                       re.search(r"Service\s+Unavailable$", errmsg, re.I) or\
+                       re.search(r"'*NoneType'*\s+object\s+has\s+no\s+attribute\s+'*__getitem__'*$", errmsg, re.I) or \
+                       re.search(r"No\s+route\s+to\s+host$", errmsg, re.I):
+                          self.log.info(">>> Can't connect to {0}, wait for server ready...".format(self.auth_config['OS_AUTH_URL']))
+                          time.sleep(self.options.sleep)
+                    else:
+                        self.log.error(">>> Keystone error:\n{0}".format(e.message))
+                        raise e
+                ret_count -= 1
+        return self._keystone
+    @property
+    def token(self):
+        if self._token is None:
+            self._token = self._keystone.auth_token
+        #todo: Validate existing token
+        return self._token
+
+    @property
+    def client(self):
+        if self._client is None:
+            self._client = q_client.Client(
+                API_VER,
+                endpoint_url=self.keystone.service_catalog.url_for(service_type='network'),
+                token=self.token,
+            )
+        return self._client
 
     def _neutron_API_call(self, method, *args):
         ret_count = self.options.get('retries')
@@ -137,9 +158,6 @@ class NeutronCleaner(object):
             ret_count -= 1
         return rv
 
-    def _get_ports(self):
-        return self._neutron_API_call(self.client.list_ports)['ports']
-
     def _get_agents(self, use_cache=True):
         return self._neutron_API_call(self.client.list_agents)['agents']
 
@@ -158,145 +176,6 @@ class NeutronCleaner(object):
     def _remove_router_from_l3_agent(self, agent_id, router_id):
         return self._neutron_API_call(self.client.remove_router_from_l3_agent, agent_id, router_id)
 
-    def _get_ports_by_agent(self, agent, activeonly=False, localnode=False, port_id_part_len=PORT_ID_PART_LEN):
-        self.log.debug("__get_ports_by_agent: start, agent='{0}', activeonly='{1}'".format(agent, activeonly))
-        ports = self._get_ports()
-        #self.log.debug(json.dumps(ports, indent=4))
-        if activeonly:
-            tmp = []
-            for i in ports:
-                if i['status'] == 'ACTIVE':
-                    tmp.append(i)
-            ports = tmp
-        agent_ports = []
-        for i in ports:
-            if i['device_owner'] in self.PORT_OWNER_PREFIXES.get(agent):
-                agent_ports.append(i)
-        if localnode:
-            # get ports for this agent, existing on this node
-            port_id_starts = set()
-            for i in self.BRIDGES_FOR_PORTS_BY_AGENT.get(agent,[]):
-                cmd = []
-                cmd.extend(self.CMD__list_ovs_port)
-                cmd.append(i)
-                process = subprocess.Popen(
-                    cmd,
-                    shell=False,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE
-                )
-                rc = process.wait()
-                if rc != 0:
-                    self.log.error("ERROR (rc={0}) while execution '{1}'".format(rc,' '.join(cmd)))
-                else:
-                    stdout = process.communicate()[0]
-                    for port in StringIO.StringIO(stdout):
-                        port = port.strip()
-                        for j in self.PORT_NAME_PREFIXES.get(agent,[]):
-                            if port.startswith(j):
-                                port_id_starts.add(port[len(j):])
-                                break
-            rv = []
-            for i in agent_ports:
-                id_part = i['id'][:port_id_part_len]
-                if id_part in port_id_starts:
-                    rv.append(i)
-        else:
-            rv = agent_ports
-        self.log.debug("__get_ports_by_agent: end, rv='{0}'".format(json.dumps(rv, indent=4)))
-        return rv
-
-    def _get_portnames_and_IPs_for_agent(self, agent, port_id_part_len=PORT_ID_PART_LEN, localnode=False):
-        self.log.debug("_get_portnames_and_IPs_for_agent: start, agent='{0}'".format(agent))
-        port_name_prefix = self.PORT_NAME_PREFIXES.get(agent)
-        if port_name_prefix is None:
-            self.log.debug("port_name_prefix is None")
-            return []
-        rv = []
-        for i in self._get_ports_by_agent(agent, activeonly=self.options.get('activeonly'), localnode=localnode):
-            # _rr = "{0}{1} {2}".format(self.PORT_NAME_PREFIXES_BY_DEV_OWNER[i['device_owner']], i['id'][:port_id_part_len], i['fixed_ips'][0]['ip_address'])
-            _rr = ("{0}{1}".format(self.PORT_NAME_PREFIXES_BY_DEV_OWNER[i['device_owner']], i['id'][:port_id_part_len]), i['fixed_ips'][0]['ip_address'])
-            #todo: returns array of IPs. IPs may be more than one
-            rv.append(_rr)
-        self.log.debug("_get_portnames_and_IPs_for_agent: end, rv='{0}'".format(json.dumps(rv, indent=4)))
-        return rv
-
-    def _cleanup_ovs_ports(self, portlist):
-        self.log.info("Ports {0} will be cleaned.".format(json.dumps(portlist)))
-        for port in portlist:
-            cmd = []
-            cmd.extend(self.CMD__remove_ovs_port)
-            cmd.append(port)
-            if self.options.get('noop'):
-                self.log.info("NOOP-execution: '{0}'".format(' '.join(cmd)))
-            else:
-                process = subprocess.Popen(
-                    cmd,
-                    shell=False,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE
-                )
-                rc = process.wait()
-                if rc != 0:
-                    self.log.error("ERROR (rc={0}) while execution {1}".format(rc,cmd))
-        #
-
-    def _cleanup_ip_addresses(self, addrlist):
-        self.log.info("IP addresses {0} will be cleaned.".format(json.dumps(addrlist)))
-        addrs=set([str(x) for x in addrlist])
-        re_inet = re.compile(r'\s*inet\s')
-        re_addrline = re.compile(r'inet\s+(\d+\.\d+\.\d+\.\d+\/\d+)\s+.*\s([\w\-\.\_]+)$')
-        ip2ifaces = {}
-        ifaces2ip = {}
-        # get IP list for this system
-        process = subprocess.Popen(
-            ['ip','addr','show'],
-            shell=False,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
-        )
-        stdout = process.communicate()[0]
-        rc = process.wait()
-        if rc != 0:
-            self.log.error("ERROR (rc={0}) while execution {1}".format(rc,' '.join(cmd)))
-            return False
-        for i in StringIO.StringIO(stdout):
-            if re_inet.match(i):
-                rgx = re_addrline.search(i)
-                if rgx:
-                    ip, iface = re_addrline.search(i).groups()
-                    # tmp = ip2ifaces.get(ip)
-                    # if not tmp:
-                    #     ip2ifaces[ip] = set([])
-                    #     tmp = ip2ifaces.get(ip)
-                    # tmp.add(iface)
-                    # tmp = ifaces2ip.get(iface)
-                    # if not tmp:
-                    #     ifaces2ip[iface] = set([])
-                    #     tmp = ifaces2ip.get(iface)
-                    # tmp.add(ip)
-                    addr = ip.split('/')[0]
-                    if addr in addrs:
-                        cmd = []
-                        cmd.extend(self.CMD__remove_ip_addr)
-                        cmd.extend([ip,'dev',iface])
-                        if self.options.get('noop'):
-                            self.log.info("NOOP-execution:{0}".format(' '.join(cmd)))
-                        else:
-                            process = subprocess.Popen(
-                                cmd,
-                                shell=False,
-                                stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE
-                            )
-                            rc = process.wait()
-                            if rc != 0:
-                                self.log.error("ERROR (rc={0}) while execution {1}".format(rc,' '.join(cmd)))
-                        addrs.remove(addr)
-                        if len(addrs) == 0:
-                            break
-        #
-
     def _get_agents_by_type(self, agent, use_cache=True):
         self.log.debug("_get_agents_by_type: start.")
         rv = self.agents.get(agent, []) if use_cache else []
@@ -311,18 +190,88 @@ class NeutronCleaner(object):
         self.log.debug("_get_agents_by_type: end, {0} rv: {1}".format(from_cache, json.dumps(rv, indent=4)))
         return rv
 
-    def _cleanup_ports(self, agent, activeonly=False):
+    def __collect_namespaces_for_agent(self, agent):
+        cmd = self.CMD__ip_netns_list[:]
+        self.log.debug("Execute command '{0}'".format(' '.join(cmd)))
+        process = subprocess.Popen(
+            cmd,
+            shell=False,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+        rc = process.wait()
+        if rc != 0:
+            self.log.error("ERROR (rc={0}) while execution {1}".format(rc,' '.join(cmd)))
+            return []
+        # filter namespaces by given agent type
+        netns = []
+        stdout = process.communicate()[0]
+        for ns in StringIO.StringIO(stdout):
+            ns = ns.strip()
+            self.log.debug("Found network namespace '{0}'".format(ns))
+            if ns.startswith("{0}-".format(self.NS_NAME_PREFIXES[agent])):
+                netns.append(ns)
+        return netns
+
+    def __collect_ports_for_namespace(self, ns):
+        cmd = self.CMD__ip_netns_exec[:]
+        cmd.extend([ns,'ip','l','show'])
+        self.log.debug("Execute command '{0}'".format(' '.join(cmd)))
+        process = subprocess.Popen(
+            cmd,
+            shell=False,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+        rc = process.wait()
+        if rc != 0:
+            self.log.error("ERROR (rc={0}) while execution {1}".format(rc,' '.join(cmd)))
+            return []
+        ports = []
+        stdout = process.communicate()[0]
+        for line in StringIO.StringIO(stdout):
+            pp = self.RE__port_in_portlist.match(line)
+            if not pp:
+                continue
+            port = pp.group(1)
+            if port != 'lo':
+                self.log.debug("Found port '{0}'".format(port))
+                ports.append(port)
+        return ports
+
+    def _cleanup_ports(self, agent):
         self.log.debug("_cleanup_ports: start.")
-        rv = False
-        port_ip_list = self._get_portnames_and_IPs_for_agent(agent, localnode=True)
-        # Cleanup ports
-        port_list = [x[0] for x in port_ip_list]
-        self._cleanup_ovs_ports(port_list)
-        # Cleanup IP addresses
-        ip_list = [x[1] for x in port_ip_list]
-        self._cleanup_ip_addresses(ip_list)
+
+        # get namespaces list
+        netns = self.__collect_namespaces_for_agent(agent)
+
+        # collect ports from namespace
+        ports = []
+        for ns in netns:
+            ports.extend(self.__collect_ports_for_namespace(ns))
+
+        # iterate by port_list and remove port from OVS
+        for port in ports:
+            cmd = self.CMD__remove_ovs_port[:]
+            cmd.append(port)
+            if self.options.get('noop'):
+                self.log.info("NOOP-execution: '{0}'".format(' '.join(cmd)))
+            else:
+                self.log.debug("Execute command '{0}'".format(' '.join(cmd)))
+                process = subprocess.Popen(
+                    cmd,
+                    shell=False,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE
+                )
+                rc = process.wait()
+                if rc != 0:
+                    self.log.error("ERROR (rc={0}) while execution {1}".format(rc,' '.join(cmd)))
         self.log.debug("_cleanup_ports: end.")
-        #return rv
+
+        #todo: kill processes in given namespaces
+
+        return True
 
     def _reschedule_agent_dhcp(self, agent_type):
         self.log.debug("_reschedule_agent_dhcp: start.")
