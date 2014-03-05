@@ -66,6 +66,10 @@ class NeutronCleaner(object):
     CMD__list_ovs_port = ['ovs-vsctl', 'list-ports']
     CMD__remove_ovs_port = ['ovs-vsctl', '--', '--if-exists', 'del-port']
     CMD__remove_ip_addr = ['ip', 'address', 'delete']
+    CMD__ip_netns_list = ['ip', 'netns', 'list']
+    CMD__ip_netns_exec = ['ip', 'netns', 'exec']
+
+    RE__port_in_portlist = re.compile(r"^\s*\d+\:\s+([\w-]+)\:")  # 14: tap-xxxyyyzzz:
 
     def __init__(self, openrc, options, log=None):
         self.log = log
@@ -78,40 +82,57 @@ class NeutronCleaner(object):
             'l3':   self._reschedule_agent_l3,
         }
 
-        ret_count = self.options.get('retries',1)
+        self._token = None
+        self._keystone = None
+        self._client = None
 
-        while True:
-            if ret_count <= 0 :
-                print(">>> Keystone error: no more retries for connect to keystone server.")
-                sys.exit(1)
-            try:
-                self.keystone = ks_client.Client(
-                    username=openrc['OS_USERNAME'],
-                    password=openrc['OS_PASSWORD'],
-                    tenant_name=openrc['OS_TENANT_NAME'],
-                    auth_url=openrc['OS_AUTH_URL'],
-                )
-                break
-            except Exception as e:
-                errmsg = e.message.strip()
-                if re.search(r"Connection\s+refused$", errmsg, re.I) or \
-                   re.search(r"Connection\s+timed\s+out$", errmsg, re.I) or\
-                   re.search(r"Lost\s+connection\s+to\s+MySQL\s+server", errmsg, re.I) or\
-                   re.search(r"Service\s+Unavailable$", errmsg, re.I) or\
-                   re.search(r"'*NoneType'*\s+object\s+has\s+no\s+attribute\s+'*__getitem__'*$", errmsg, re.I) or \
-                   re.search(r"No\s+route\s+to\s+host$", errmsg, re.I):
-                      print(">>> Can't connect to {0}, wait for server ready...".format(self.auth_config['OS_AUTH_URL']))
-                      time.sleep(self.options.sleep)
-                else:
-                    print(">>> Keystone error:\n{0}".format(e.message))
-                    raise e
-            ret_count -= 1
-        self.token = self.keystone.auth_token
-        self.client = q_client.Client(
-            API_VER,
-            endpoint_url=self.keystone.service_catalog.url_for(service_type='network'),
-            token=self.token,
-        )
+    @property
+    def keystone(self):
+        if self._keystone is None:
+            ret_count = self.options.get('retries',1)
+            while True:
+                if ret_count <= 0 :
+                    self.log.error(">>> Keystone error: no more retries for connect to keystone server.")
+                    sys.exit(1)
+                try:
+                    self._keystone = ks_client.Client(
+                        username=self.auth_config['OS_USERNAME'],
+                        password=self.auth_config['OS_PASSWORD'],
+                        tenant_name=self.auth_config['OS_TENANT_NAME'],
+                        auth_url=self.auth_config['OS_AUTH_URL'],
+                    )
+                    break
+                except Exception as e:
+                    errmsg = e.message.strip()
+                    if re.search(r"Connection\s+refused$", errmsg, re.I) or \
+                       re.search(r"Connection\s+timed\s+out$", errmsg, re.I) or\
+                       re.search(r"Lost\s+connection\s+to\s+MySQL\s+server", errmsg, re.I) or\
+                       re.search(r"Service\s+Unavailable$", errmsg, re.I) or\
+                       re.search(r"'*NoneType'*\s+object\s+has\s+no\s+attribute\s+'*__getitem__'*$", errmsg, re.I) or \
+                       re.search(r"No\s+route\s+to\s+host$", errmsg, re.I):
+                          self.log.info(">>> Can't connect to {0}, wait for server ready...".format(self.auth_config['OS_AUTH_URL']))
+                          time.sleep(self.options.sleep)
+                    else:
+                        self.log.error(">>> Keystone error:\n{0}".format(e.message))
+                        raise e
+                ret_count -= 1
+        return self._keystone
+    @property
+    def token(self):
+        if self._token is None:
+            self._token = self._keystone.auth_token
+        #todo: Validate existing token
+        return self._token
+
+    @property
+    def client(self):
+        if self._client is None:
+            self._client = q_client.Client(
+                API_VER,
+                endpoint_url=self.keystone.service_catalog.url_for(service_type='network'),
+                token=self.token,
+            )
+        return self._client
 
     def _neutron_API_call(self, method, *args):
         ret_count = self.options.get('retries')
@@ -311,18 +332,73 @@ class NeutronCleaner(object):
         self.log.debug("_get_agents_by_type: end, {0} rv: {1}".format(from_cache, json.dumps(rv, indent=4)))
         return rv
 
-    def _cleanup_ports(self, agent, activeonly=False):
+    def _cleanup_ports(self, agent):
         self.log.debug("_cleanup_ports: start.")
-        rv = False
-        port_ip_list = self._get_portnames_and_IPs_for_agent(agent, localnode=True)
-        # Cleanup ports
-        port_list = [x[0] for x in port_ip_list]
-        self._cleanup_ovs_ports(port_list)
-        # Cleanup IP addresses
-        ip_list = [x[1] for x in port_ip_list]
-        self._cleanup_ip_addresses(ip_list)
+        # get namespaces list
+        cmd = self.CMD__ip_netns_list[:]
+        self.log.debug("Execute command '{0}'".format(' '.join(cmd)))
+        process = subprocess.Popen(
+            cmd,
+            shell=False,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+        rc = process.wait()
+        if rc != 0:
+            self.log.error("ERROR (rc={0}) while execution {1}".format(rc,' '.join(cmd)))
+            return False
+        # filter namespaces by given agent type
+        netns = []
+        stdout = process.communicate()[0]
+        for ns in StringIO.StringIO(stdout):
+            ns = ns.strip()
+            self.log.debug("Found network namespace '{0}'".format(ns))
+            if ns.startswith("{0}-".format(self.NS_NAME_PREFIXES[agent])):
+                netns.append(ns)
+        # collect ports from namespace
+        ports = []
+        for ns in netns:
+            cmd = self.CMD__ip_netns_exec[:]
+            cmd.extend([ns,'ip','l','show'])
+            self.log.debug("Execute command '{0}'".format(' '.join(cmd)))
+            process = subprocess.Popen(
+                cmd,
+                shell=False,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE
+            )
+            rc = process.wait()
+            if rc != 0:
+                self.log.error("ERROR (rc={0}) while execution {1}".format(rc,' '.join(cmd)))
+                continue
+            stdout = process.communicate()[0]
+            for line in StringIO.StringIO(stdout):
+                pp = self.RE__port_in_portlist.match(line)
+                if not pp:
+                    continue
+                port = pp.group(1)
+                if port != 'lo':
+                    self.log.debug("Found port '{0}'".format(port))
+                    ports.append(port)
+        # iterate by port_list and remove port from OVS
+        for port in ports:
+            cmd = self.CMD__remove_ovs_port[:]
+            cmd.append(port)
+            if self.options.get('noop'):
+                self.log.info("NOOP-execution: '{0}'".format(' '.join(cmd)))
+            else:
+                self.log.debug("Execute command '{0}'".format(' '.join(cmd)))
+                process = subprocess.Popen(
+                    cmd,
+                    shell=False,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE
+                )
+                rc = process.wait()
+                if rc != 0:
+                    self.log.error("ERROR (rc={0}) while execution {1}".format(rc,' '.join(cmd)))
         self.log.debug("_cleanup_ports: end.")
-        #return rv
+        return True
 
     def _reschedule_agent_dhcp(self, agent_type):
         self.log.debug("_reschedule_agent_dhcp: start.")
