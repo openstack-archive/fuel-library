@@ -155,6 +155,7 @@ if $use_syslog and !$debug { #syslog and nondebug case
   File['nova-logging.conf'] ~> Service <| title == 'nova-compute'|>
 } else { #other syslog debug or nonsyslog debug/nondebug cases
   nova_config {
+   'DEFAULT/log_config': ensure=> absent;
    'DEFAULT/logdir': value=> $logdir;
    'DEFAULT/use_syslog': value =>  false;
   }
