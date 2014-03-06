@@ -13,7 +13,9 @@
 #    under the License.
 
 
-class cobbler::server {
+class cobbler::server (
+  $domain_name = "local",
+) {
   include cobbler::packages
   
   Exec {
