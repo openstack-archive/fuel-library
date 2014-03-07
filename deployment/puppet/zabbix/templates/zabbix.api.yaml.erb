@@ -1,0 +1,11 @@
+---
+zabbix_url: '<%= scope.lookupvar('zabbix::params::api_url') %>'
+zabbix_user: '<%= scope.lookupvar('zabbix::params::api_username') %>'
+zabbix_password: '<%= scope.lookupvar('zabbix::params::api_password') %>'
+<% if  scope.lookupvar('zabbix::params::api_http_username') %>
+zabbix_http_user: '<%= scope.lookupvar('zabbix::params::api_http_username') %>'
+zabbix_http_password: '<%= scope.lookupvar('zabbix::params::api_http_password') %>' 
+<% end %>
+<% if scope.lookupvar('zabbix::params::api_debug') %>
+zabbix_debug: true
+<% end %>

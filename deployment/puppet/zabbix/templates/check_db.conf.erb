@@ -1,0 +1,37 @@
+[query_db]
+log_level=CRITICAL
+#Count tokens in keystone db
+token_count_connection=mysql://keystone:<%= scope.lookupvar('zabbix::params::openstack::keystone_db_password') %>@<%= scope.lookupvar('zabbix::params::openstack::db_vip') %>/keystone
+token_count_query=select count(*) from token
+
+#Count instances in error state
+instance_error_connection=mysql://nova:<%= scope.lookupvar('zabbix::params::openstack::nova_db_password') %>@<%= scope.lookupvar('zabbix::params::openstack::db_vip') %>/nova
+instance_error_query=select count(*) from instances where vm_state='error' and deleted=0
+
+#Count offline services - nova
+services_offline_nova_connection=mysql://nova:<%= scope.lookupvar('zabbix::params::openstack::nova_db_password') %>@<%= scope.lookupvar('zabbix::params::openstack::db_vip') %>/nova
+services_offline_nova_query=select count(*) from services where disabled=0 and deleted=0 and timestampdiff(SECOND,updated_at,utc_timestamp())>60
+
+#Count running instances
+instance_count_connection=mysql://nova:<%= scope.lookupvar('zabbix::params::openstack::nova_db_password') %>@<%= scope.lookupvar('zabbix::params::openstack::db_vip') %>/nova
+instance_count_query=select count(*) from instances where deleted=0 and vm_state='active'
+
+#Sum all vcpus in cluster
+cpu_total_connection=mysql://nova:<%= scope.lookupvar('zabbix::params::openstack::nova_db_password') %>@<%= scope.lookupvar('zabbix::params::openstack::db_vip') %>/nova
+cpu_total_query=select ifnull(sum(vcpus), 0) from compute_nodes where deleted=0
+
+#Sum used vcpus in cluster
+cpu_used_connection=mysql://nova:<%= scope.lookupvar('zabbix::params::openstack::nova_db_password') %>@<%= scope.lookupvar('zabbix::params::openstack::db_vip') %>/nova
+cpu_used_query=select ifnull(sum(vcpus), 0) from instances where deleted=0 and vm_state='active'
+
+#Sum all memory in cluster
+ram_total_connection=mysql://nova:<%= scope.lookupvar('zabbix::params::openstack::nova_db_password') %>@<%= scope.lookupvar('zabbix::params::openstack::db_vip') %>/nova
+ram_total_query=select ifnull(sum(memory_mb), 0) from compute_nodes where deleted=0
+
+#Sum used memory in cluster
+ram_used_connection=mysql://nova:<%= scope.lookupvar('zabbix::params::openstack::nova_db_password') %>@<%= scope.lookupvar('zabbix::params::openstack::db_vip') %>/nova
+ram_used_query=select ifnull(sum(memory_mb), 0) from instances where deleted=0 and vm_state='active'
+
+#Count offline services - cinder
+services_offline_cinder_connection=mysql://cinder:<%= scope.lookupvar('zabbix::params::openstack::cinder_db_password') %>@<%= scope.lookupvar('zabbix::params::openstack::db_vip') %>/cinder
+services_offline_cinder_query=select count(*) from services where disabled=0 and deleted=0 and timestampdiff(SECOND,updated_at,utc_timestamp())>60
