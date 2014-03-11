@@ -1,0 +1,5 @@
+Defaults:zabbix !requiretty
+zabbix ALL = NOPASSWD: /usr/bin/mysql
+zabbix ALL = NOPASSWD: /usr/bin/mysqladmin
+zabbix ALL = NOPASSWD: /usr/bin/socat
+zabbix ALL = NOPASSWD: /usr/sbin/iptstate
