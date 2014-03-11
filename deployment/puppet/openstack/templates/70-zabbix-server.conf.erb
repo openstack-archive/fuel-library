@@ -1,0 +1,9 @@
+# file is managed by puppet
+
+### collect zabbix server logs of all levels in /var/log/zabbix_server.log
+if ($programname == 'zabbix_server') \
+### use 6 for INFO+ msg levels, 5 for WARN+ etc.
+###  and $syslogseverity <= '6' \
+then -/var/log/zabbix_server.log
+### stop further processing for the matched entries
+& ~
