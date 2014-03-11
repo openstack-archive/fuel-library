@@ -25,7 +25,7 @@ class PManager(object):
 
     def _pseparator(self, devname):
         pseparator = ''
-        if devname.find('cciss') > 0:
+        if devname.find('cciss') >= 0:
             pseparator = 'p'
         return pseparator
 
@@ -557,7 +557,7 @@ class PreseedPManager(object):
 
     def _pseparator(self, devname):
         pseparator = ''
-        if devname.find('cciss') > 0:
+        if devname.find('cciss') >= 0:
             pseparator = 'p'
         return pseparator
 
