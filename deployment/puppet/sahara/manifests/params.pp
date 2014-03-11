@@ -1,13 +1,13 @@
-class savanna::params {
+class sahara::params {
   # package names
-  $savanna_package_name = 'savanna'
+  $sahara_package_name = 'sahara'
   # dashboard package
-  $savanna_dashboard_package_name = 'savanna-dashboard'
+  $sahara_dashboard_package_name = 'sahara-dashboard'
   # service names
-  $savanna_service_name = 'savanna-api'
+  $sahara_service_name = 'sahara-api'
 
   $settings_path       = '/usr/share/openstack-dashboard/openstack_dashboard/settings.py'
-  $default_url_string  = "SAVANNA_URL = 'http://localhost:8386/v1.0'"
+  $default_url_string  = "SAHARA_URL = 'http://localhost:8386/v1.0'"
 
   case $::osfamily {
     'RedHat': {

@@ -1,4 +1,4 @@
-# Allow a user to access the savanna database
+# Allow a user to access the sahara database
 #
 # == Namevar
 #  The host to allow
@@ -13,7 +13,7 @@
 #  [*database*]
 #    the database name
 #
-define savanna::db::mysql::host_access ($user, $password, $database)  {
+define sahara::db::mysql::host_access ($user, $password, $database)  {
 
   database_user { "${user}@${name}":
     password_hash => mysql_password($password),

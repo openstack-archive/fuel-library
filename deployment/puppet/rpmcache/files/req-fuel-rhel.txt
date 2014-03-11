@@ -53,7 +53,7 @@
 + rubygem-rake*
 + rubygem-stomp*
 + rubygems-*
-+ *savanna*
++ *sahara*
 + scapy*
 + socat*
 + supervisor*

@@ -1,35 +1,35 @@
-# Installs & configure the savanna API service
+# Installs & configure the sahara API service
 
-class savanna::api (
+class sahara::api (
   $enabled                     = true,
   $keystone_host               = '127.0.0.1',
   $keystone_port               = '35357',
   $keystone_protocol           = 'http',
-  $keystone_user               = 'savanna',
+  $keystone_user               = 'sahara',
   $keystone_tenant             = 'services',
-  $keystone_password           = 'savanna',
+  $keystone_password           = 'sahara',
   $bind_port                   = '8386',
   $node_domain                 = 'novalocal',
   $plugins                     = 'vanilla,hdp,idh',
-  $vanilla_plugin_class        = 'savanna.plugins.vanilla.plugin:VanillaProvider',
-  $hdp_plugin_class            = 'savanna.plugins.hdp.ambariplugin:AmbariPlugin',
-  $idh_plugin_class            = 'savanna.plugins.intel.plugin:IDHProvider',
-  $sql_connection              = 'mysql://savanna:savanna@localhost/savanna',
+  $vanilla_plugin_class        = 'sahara.plugins.vanilla.plugin:VanillaProvider',
+  $hdp_plugin_class            = 'sahara.plugins.hdp.ambariplugin:AmbariPlugin',
+  $idh_plugin_class            = 'sahara.plugins.intel.plugin:IDHProvider',
+  $sql_connection              = 'mysql://sahara:sahara@localhost/sahara',
   $use_neutron                 = false,
   $use_floating_ips            = true,
   $debug                       = false,
   $verbose                     = false,
   $use_syslog                  = false,
   $syslog_log_level            = 'WARNING',
-  $syslog_log_facility_savanna = "LOG_LOCAL0",
-  $logdir                      = '/var/log/savanna',
-) inherits savanna::params {
+  $syslog_log_facility_sahara = "LOG_LOCAL0",
+  $logdir                      = '/var/log/sahara',
+) inherits sahara::params {
 
   validate_string($keystone_password)
 
-  package { 'savanna':
+  package { 'sahara':
     ensure => installed,
-    name   => $savanna::params::savanna_package_name,
+    name   => $sahara::params::sahara_package_name,
   }
 
   if $enabled {
@@ -50,15 +50,15 @@ class savanna::api (
     $use_floating_ips_value = false
   }
 
-  service { 'savanna-api':
+  service { 'sahara-api':
     ensure     => $service_ensure,
-    name       => $savanna::params::savanna_service_name,
+    name       => $sahara::params::sahara_service_name,
     enable     => $enabled,
     hasstatus  => true,
     hasrestart => true,
   }
 
-  savanna_config {
+  sahara_config {
     'DEFAULT/os_admin_tenant_name'         : value => $keystone_tenant;
     'DEFAULT/os_admin_username'            : value => $keystone_user;
     'DEFAULT/os_admin_password'            : value => $keystone_password;
@@ -75,45 +75,45 @@ class savanna::api (
     'database/max_retries'                 : value => '-1';
   }
 
-  $logging_file = '/etc/savanna/logging.conf'
-  #$logging_context_format_string = 'savanna-%(name)s %(asctime)s.%(msecs)03d %(process)d %(levelname)s %(name)s [%(request_id)s %(user)s %(tenant)s] %(instance)s%(message)s'
-  #$logging_default_format_string = 'savanna-%(name)s %(asctime)s %(levelname)s %(name)s [-] %(instance)s %(message)s'
+  $logging_file = '/etc/sahara/logging.conf'
+  #$logging_context_format_string = 'sahara-%(name)s %(asctime)s.%(msecs)03d %(process)d %(levelname)s %(name)s [%(request_id)s %(user)s %(tenant)s] %(instance)s%(message)s'
+  #$logging_default_format_string = 'sahara-%(name)s %(asctime)s %(levelname)s %(name)s [-] %(instance)s %(message)s'
 
   if $use_syslog and !$debug {
-    savanna_config {
+    sahara_config {
       'DEFAULT/log_config'                    : value  => $logging_file;
       'DEFAULT/log_file'                      : ensure => absent;
       'DEFAULT/use_syslog'                    : value  => true;
       'DEFAULT/use_stderr'                    : value  => false;
-      'DEFAULT/syslog_log_facility'           : value  => $syslog_log_facility_savanna;
+      'DEFAULT/syslog_log_facility'           : value  => $syslog_log_facility_sahara;
      # 'DEFAULT/logging_context_format_string' : value  => $logging_context_format_string;
      # 'DEFAULT/logging_default_format_string' : value  => $logging_default_format_string;
     }
-    file { 'savanna-logging.conf' :
+    file { 'sahara-logging.conf' :
       ensure  => present,
-      content => template('savanna/logging.conf.erb'),
+      content => template('sahara/logging.conf.erb'),
       path    => $logging_file,
       owner   => 'root',
       group   => 'root',
       mode    => '0644',
     }
   } else {
-    savanna_config {
+    sahara_config {
       'DEFAULT/log_config'                   : ensure => absent;
       'DEFAULT/use_syslog'                   : ensure => absent;
       'DEFAULT/use_stderr'                   : ensure => absent;
       'DEFAULT/syslog_log_facility'          : ensure => absent;
       'DEFAULT/log_dir'                      : value  => $logdir;
     }
-    file { 'savanna-logging.conf' :
+    file { 'sahara-logging.conf' :
       ensure  => absent,
       path    => $logging_file,
     }
   }
 
-  File[$logdir] -> File['savanna-logging.conf']
-  File['savanna-logging.conf'] ~> Service <| title == 'savanna-api' |>
-  File['savanna-logging.conf'] -> Savanna_config['DEFAULT/log_config']
+  File[$logdir] -> File['sahara-logging.conf']
+  File['sahara-logging.conf'] ~> Service <| title == 'sahara-api' |>
+  File['sahara-logging.conf'] -> Sahara_config['DEFAULT/log_config']
 
   nova_config {
     'DEFAULT/scheduler_driver'             : value => 'nova.scheduler.filter_scheduler.FilterScheduler';
@@ -125,6 +125,6 @@ class savanna::api (
     mode    => '0751',
   }
 
-  Package['savanna'] -> Savanna_config<||> -> Service['savanna-api']
+  Package['sahara'] -> Sahara_config<||> -> Service['sahara-api']
 
 }

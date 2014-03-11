@@ -21,7 +21,7 @@ class rsyslog::client (
   $syslog_log_facility_nova     = 'LOG_LOCAL6',
   $syslog_log_facility_keystone = 'LOG_LOCAL7',
   $syslog_log_facility_heat     = 'LOG_LOCAL0',
-  $syslog_log_facility_savanna  = 'LOG_LOCAL0',
+  $syslog_log_facility_sahara  = 'LOG_LOCAL0',
   $log_level      = 'NOTICE',
   $debug          = false,
   ) inherits rsyslog {
@@ -58,7 +58,7 @@ if $virtual { include rsyslog::checksum_udp514 }
   $syslog_log_facility_keystone_matched = regsubst($syslog_log_facility_keystone, $re, '\1')
   $syslog_log_facility_murano_matched = regsubst($syslog_log_facility_murano, $re, '\1')
   $syslog_log_facility_heat_matched = regsubst($syslog_log_facility_heat, $re, '\1')
-  $syslog_log_facility_savanna_matched = regsubst($syslog_log_facility_savanna, $re, '\1')
+  $syslog_log_facility_sahara_matched = regsubst($syslog_log_facility_sahara, $re, '\1')
 
 # Rabbitmq does not support syslogging, use imfile
 # log_level should be >= global syslog_log_level option,
@@ -148,7 +148,7 @@ if $virtual { include rsyslog::checksum_udp514 }
   # OS specific log file names
   case $::osfamily {
     'Debian': {
-       $sapi                = '/var/log/savanna/savanna-api.log'
+       $sapi                = '/var/log/sahara/sahara-api.log'
        $napi                = '/var/log/nova/nova-api.log'
        $ncert               = '/var/log/nova/nova-cert.log'
        $nauth               = '/var/log/nova/nova-consoleauth.log'
@@ -162,7 +162,7 @@ if $virtual { include rsyslog::checksum_udp514 }
        $csch                = '/var/log/cinder/cinder-scheduler.log'
      }
     'RedHat': {
-       $sapi                = '/var/log/savanna/api.log'
+       $sapi                = '/var/log/sahara/api.log'
        $napi                = '/var/log/nova/api.log'
        $ncert               = '/var/log/nova/cert.log'
        $nauth               = '/var/log/nova/consoleauth.log'
@@ -339,11 +339,11 @@ if $virtual { include rsyslog::checksum_udp514 }
         file_severity => "DEBUG",
         notify  => Class["rsyslog::service"],
     }
-    # savanna
-    ::rsyslog::imfile { "52-savanna-api_debug" :
+    # sahara
+    ::rsyslog::imfile { "52-sahara-api_debug" :
         file_name     => $sapi,
-        file_tag      => "savanna-api",
-        file_facility => $syslog_log_facility_savanna_matched,
+        file_tag      => "sahara-api",
+        file_facility => $syslog_log_facility_sahara_matched,
         file_severity => "DEBUG",
         notify  => Class["rsyslog::service"],
     }
@@ -389,9 +389,9 @@ if $virtual { include rsyslog::checksum_udp514 }
       content => template("${module_name}/54-heat.conf.erb"),
     }
 
-    file { "${rsyslog::params::rsyslog_d}52-savanna.conf":
+    file { "${rsyslog::params::rsyslog_d}52-sahara.conf":
       ensure => present,
-      content => template("${module_name}/52-savanna.conf.erb"),
+      content => template("${module_name}/52-sahara.conf.erb"),
     }
 
   } #end if

@@ -1,9 +1,9 @@
-Puppet::Type.newtype(:savanna_config) do
+Puppet::Type.newtype(:sahara_config) do
 
   ensurable
 
   newparam(:name, :namevar => true) do
-    desc 'Section/setting name to manage from savanna.conf'
+    desc 'Section/setting name to manage from sahara.conf'
     newvalues(/\S+\/\S+/)
   end
 
