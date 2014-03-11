@@ -1,13 +1,13 @@
-# Installs & configure the savanna API service
+# Installs & configure the sahara API service
 
-class savanna::dashboard (
+class sahara::dashboard (
   $enabled            = true,
-  $settings_py        = $savanna::params::settings_path,
-  $local_settings     = $savanna::params::local_settings_path,
-  $savanna_url_string = $savanna::params::default_url_string,
+  $settings_py        = $sahara::params::settings_path,
+  $local_settings     = $sahara::params::local_settings_path,
+  $sahara_url_string  = $sahara::params::default_url_string,
   $use_neutron        = false,
   $use_floating_ips   = false,
-) inherits savanna::params {
+) inherits sahara::params {
 
   include stdlib
 
@@ -43,41 +43,41 @@ class savanna::dashboard (
     }
   }
 
-  file_line{ 'savanna' :
+  file_line{ 'sahara' :
     path    => $settings_py,
-    line    => "HORIZON_CONFIG['dashboards']+=('savanna',)",  # don't use .append(), target may be a tuple
+    line    => "HORIZON_CONFIG['dashboards']+=('sahara',)",  # don't use .append(), target may be a tuple
     require => File[$settings_py],
   }
 
-  file_line{ 'savanna_dashboard' :
+  file_line{ 'sahara_dashboard' :
     path    => $settings_py,
-    line    => "INSTALLED_APPS+=('savannadashboard',)",  # don't use .append(), target may be a tuple
+    line    => "INSTALLED_APPS+=('saharadashboard',)",  # don't use .append(), target may be a tuple
     require => File[$settings_py],
   }
 
-  file_line{ 'savanna_use_neutron' :
+  file_line{ 'sahara_use_neutron' :
     path    => $local_settings,
-    line    => "SAVANNA_USE_NEUTRON=${use_neutron_value}",
+    line    => "SAHARA_USE_NEUTRON=${use_neutron_value}",
   }
 
-  file_line{ 'savanna_floating_ips' :
+  file_line{ 'sahara_floating_ips' :
     path    => $local_settings,
     line    => "AUTO_ASSIGNMENT_ENABLED=${use_floating_ips_value}",
   }
 
-  file_line{ 'savanna_url' :
+  file_line{ 'sahara_url' :
     path    => $local_settings,
-    line    => $savanna_url_string,
+    line    => $sahara_url_string,
     require => File[$local_settings],
   }
 
-  package { 'savanna_dashboard':
+  package { 'sahara_dashboard':
     ensure => $package_ensure,
-    name   => $savanna::params::savanna_dashboard_package_name,
+    name   => $sahara::params::sahara_dashboard_package_name,
   }
 
-  File_line <| title == 'savanna' or title == 'savanna_dashboard' or title == 'savanna_url' |> ~> Service <| title == 'httpd' |>
+  File_line <| title == 'sahara' or title == 'sahara_dashboard' or title == 'sahara_url' |> ~> Service <| title == 'httpd' |>
   File <| title == $settings_py or title == $local_settings |> ~> Service <| title == 'httpd' |>
-  Package['savanna_dashboard'] -> File <| title == $settings_py or title == $local_settings |>
+  Package['sahara_dashboard'] -> File <| title == $settings_py or title == $local_settings |>
 
 }
