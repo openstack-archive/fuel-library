@@ -1,13 +1,13 @@
-class savanna::keystone::auth (
-  $password         = 'savanna',
-  $auth_name        = 'savanna',
+class sahara::keystone::auth (
+  $password         = 'sahara',
+  $auth_name        = 'sahara',
   $public_address   = '127.0.0.1',
   $admin_address    = '127.0.0.1',
   $internal_address = '127.0.0.1',
-  $savanna_port     = '8386',
+  $sahara_port     = '8386',
   $region           = 'RegionOne',
   $tenant           = 'services',
-  $email            = 'savanna@localhost'
+  $email            = 'sahara@localhost'
 ) {
 
   keystone_user { $auth_name:
@@ -20,15 +20,15 @@ class savanna::keystone::auth (
   keystone_service { $auth_name:
     ensure      => present,
     type        => 'mapreduce',
-    description => 'Openstack_Savanna_Service',
+    description => 'Openstack_Sahara_Service',
   }
 
   keystone_endpoint { $auth_name:
     ensure       => present,
     region       => $region,
-    public_url   => "http://${public_address}:${savanna_port}/v1.1/%(tenant_id)s",
-    internal_url => "http://${internal_address}:${savanna_port}/v1.1/%(tenant_id)s",
-    admin_url    => "http://${admin_address}:${savanna_port}/v1.1/%(tenant_id)s",
+    public_url   => "http://${public_address}:${sahara_port}/v1.1/%(tenant_id)s",
+    internal_url => "http://${internal_address}:${sahara_port}/v1.1/%(tenant_id)s",
+    admin_url    => "http://${admin_address}:${sahara_port}/v1.1/%(tenant_id)s",
   }
 
   keystone_user_role { "${auth_name}@${tenant}":

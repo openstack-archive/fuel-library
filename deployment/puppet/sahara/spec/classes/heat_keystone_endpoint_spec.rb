@@ -1,12 +1,12 @@
 require 'spec_helper'
 
-describe 'savanna::keystone::auth' do
+describe 'sahara::keystone::auth' do
 
   let :params do
     {
-      :password           => 'savanna-passw0rd',
-      :email              => 'savanna@localhost',
-      :auth_name          => 'savanna',
+      :password           => 'sahara-passw0rd',
+      :email              => 'sahara@localhost',
+      :auth_name          => 'sahara',
       :configure_endpoint => true,
       :public_address     => '127.0.0.1',
       :admin_address      => '127.0.0.1',
@@ -19,14 +19,14 @@ describe 'savanna::keystone::auth' do
     }
   end
 
-  shared_examples_for 'savanna keystone auth' do
+  shared_examples_for 'sahara keystone auth' do
 
     context 'without the required password parameter' do
       before { params.delete(:password) }
       it { expect { should raise_error(Puppet::Error) } }
     end
 
-    it 'configures savanna user' do
+    it 'configures sahara user' do
       should contain_keystone_user( params[:auth_name] ).with(
         :ensure   => 'present',
         :password => params[:password],
@@ -35,22 +35,22 @@ describe 'savanna::keystone::auth' do
       )
     end
 
-    it 'configures savanna user roles' do
+    it 'configures sahara user roles' do
       should contain_keystone_user_role("#{params[:auth_name]}@#{params[:tenant]}").with(
         :ensure  => 'present',
         :roles   => ['admin']
       )
     end
 
-    it 'configures savanna service' do
+    it 'configures sahara service' do
       should contain_keystone_service( params[:auth_name] ).with(
         :ensure      => 'present',
         :type        => params[:service_type],
-        :description => 'savanna Service'
+        :description => 'sahara Service'
       )
     end
 
-    it 'configure savanna endpoints' do
+    it 'configure sahara endpoints' do
       should contain_keystone_endpoint("#{params[:region]}/#{params[:auth_name]}").with(
         :ensure       => 'present',
         :public_url   => "#{params[:public_protocol]}://#{params[:public_address]}:#{params[:port]}",
@@ -66,7 +66,7 @@ describe 'savanna::keystone::auth' do
       { :osfamily => 'Debian' }
     end
 
-    it 'configures savanna keystone auth'
+    it 'configures sahara keystone auth'
   end
 
   context 'on RedHat platforms' do
@@ -74,6 +74,6 @@ describe 'savanna::keystone::auth' do
       { :osfamily => 'RedHat' }
     end
 
-    it 'configures savanna keystone auth'
+    it 'configures sahara keystone auth'
   end
 end

@@ -39,7 +39,7 @@ python-keystoneclient==0.4.1
 python-mimeparse==0.1.4
 python-muranoclient==0.2.11
 python-novaclient==2.15.0
-python-savannaclient==0.3
+python-saharaclient==0.5.0
 requests==1.1
 setuptools-git==1.0
 simplegeneric==0.8.1
