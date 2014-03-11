@@ -1,4 +1,4 @@
-Puppet::Type.type(:savanna_config).provide(
+Puppet::Type.type(:sahara_config).provide(
   :ini_setting,
   :parent => Puppet::Type.type(:ini_setting).provider(:ruby)
 ) do
@@ -16,7 +16,7 @@ Puppet::Type.type(:savanna_config).provide(
   end
 
   def file_path
-    '/etc/savanna/savanna.conf'
+    '/etc/sahara/sahara.conf'
   end
 
 end
