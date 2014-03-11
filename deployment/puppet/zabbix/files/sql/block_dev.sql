@@ -1,0 +1,2 @@
+INSERT INTO `regexps` (`regexpid`,`name`,`test_string`) values ('4','Block devices for discovery','vda');
+INSERT INTO `expressions` (`expressionid`,`regexpid`,`expression`,`expression_type`,`exp_delimiter`,`case_sensitive`) values ('5','4','^(vd.|sd.)$','3',',','0');
