@@ -1,0 +1,18 @@
+[api]
+log_level=CRITICAL
+user=<%= scope.lookupvar('zabbix::params::openstack::access_user') %>
+password=<%= scope.lookupvar('zabbix::params::openstack::access_password') %>
+tenant=<%= scope.lookupvar('zabbix::params::openstack::access_tenant') %>
+keystone_endpoints=http://<%= scope.lookupvar('zabbix::params::openstack::keystone_vip') %>:5000/v2.0
+nova_os_map=v2/%(tenant_id)s/flavors
+glance_map=v1/images
+keystone_service_map=v2.0/tenants
+keystone_map=v2.0/tenants
+cinder_map=v1/%(tenant_id)s/volumes
+neutron_map=
+nova_os_timeout=5
+glance_timeout=5
+keystone_service_timeout=5
+keystone_timeout=5
+cinder_timeout=5
+neutron_timeout=5
