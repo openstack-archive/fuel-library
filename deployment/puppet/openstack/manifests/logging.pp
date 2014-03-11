@@ -176,6 +176,10 @@ class openstack::logging (
       content => template("${module_name}/61-mco-nailgun-agent.conf.erb"),
     }
 
+    file { "${rsyslog::params::rsyslog_d}70-zabbix-server.conf":
+      content => template("openstack/70-zabbix-server.conf.erb"),
+    }
+
     # Custom settings for rsyslog client to define remote logging and local options
     file { "${::rsyslog::params::rsyslog_d}90-local.conf":
       content => template("${module_name}/90-local.conf.erb"),
