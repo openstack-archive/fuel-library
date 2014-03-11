@@ -1,0 +1,6 @@
+Damian Szeluga <dszeluga@mirantis.com>
+Kamil Swiatkowski <kswiatkowski@mirantis.com>
+Szymon Banka <sbanka@mirantis.com>
+Tomasz 'Zen' Napierala <tomasz@napierala.org>
+
+Dmitry Nikishov <dnikishov@mirantis.com>
