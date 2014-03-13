@@ -17,8 +17,8 @@ class nailgun(
   $database_user = "nailgun",
   $database_passwd = "nailgun",
 
-  $staticdir = "/opt/nailgun/share/nailgun/static",
-  $templatedir = "/opt/nailgun/share/nailgun/static",
+  $staticdir = "/usr/share/nailgun/static",
+  $templatedir = "/usr/share/nailgun/static",
   $logdumpdir = "/var/www/nailgun/dump",
 
   $cobbler_url = "http://localhost/cobbler_api",
@@ -105,11 +105,8 @@ class nailgun(
   }
 
   class { "nailgun::venv":
-    venv => $venv,
-    venv_opts => "--system-site-packages",
     package => $package,
     version => $version,
-    pip_opts => "${pip_index} ${pip_find_links}",
     nailgun_user => $nailgun_user,
     nailgun_group => $nailgun_group,
 
@@ -131,8 +128,7 @@ class nailgun(
     admin_network_first   => $::fuel_settings['ADMIN_NETWORK']['static_pool_start'],
     admin_network_last    => $::fuel_settings['ADMIN_NETWORK']['static_pool_end'],
     admin_network_netmask => $::fuel_settings['ADMIN_NETWORK']['netmask'],
-    admin_network_ip      => $::fuel_settings['ADMIN_NETWORK']['ipaddress']
-
+    admin_network_ip      => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
   }
 
   class {"nailgun::naily":
