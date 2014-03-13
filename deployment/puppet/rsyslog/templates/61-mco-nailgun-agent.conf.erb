@@ -1,0 +1,6 @@
+# managed by puppet
+
+### drop duplicating mcollective/nailgun-agent messages
+if ($programname == 'mcollective' or \
+  $programname == 'nailgun-agent' ) \
+then ~
