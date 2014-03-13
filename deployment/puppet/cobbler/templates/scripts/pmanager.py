@@ -66,7 +66,7 @@ class PManager(object):
                                 for d in disk.get("extra", [])])
         if disk["extra"]:
             command += " || "
-        command += "ls /dev/{0}".format(disk["id"])
+        command += "ls /dev/{0}".format(disk["id"].replace('!','/'))
         command += ") 2>/dev/null) )"
         return command
 
@@ -531,7 +531,7 @@ class PreseedPManager(object):
                                 for d in disk.get("extra", [])])
         if disk["extra"]:
             command += " || "
-        command += "ls /dev/{0}".format(disk["id"])
+        command += "ls /dev/{0}".format(disk["id"].replace('!','/'))
         command += ") 2>/dev/null) )"
         return command
 
