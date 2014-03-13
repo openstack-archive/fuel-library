@@ -99,6 +99,11 @@ class PManager(object):
             return "swap"
         return "xfs"
 
+    def _gettabfsoptions(self, vol):
+        if self._gettabfstype(vol) == "xfs":
+            return "-f"
+        return ""
+
     def _getfstype(self, vol):
         fstype = self._gettabfstype(vol)
         if fstype == "swap":
@@ -263,6 +268,7 @@ class PManager(object):
                 size = self._getsize(part)
                 tabmount = part["mount"] if part["mount"] != "swap" else "none"
                 tabfstype = self._gettabfstype(part)
+                tabfsoptions = self._gettabfsoptions(part)
                 if part.get("partition_guid"):
                     self.post("chroot /mnt/sysimage sgdisk "
                               "--typecode={0}:{1} {2}".format(
@@ -278,9 +284,10 @@ class PManager(object):
                 else:
                     if part["mount"] != "swap" and tabfstype != "none":
                         disk_label = self._getlabel(part.get('disk_label'))
-                        self.post("mkfs.{0} -f {1}"
-                                  "{2}{3} {4}".format(
+                        self.post("mkfs.{0} {1} {2}"
+                                  "{3}{4} {5}".format(
                                       tabfstype,
+                                      tabfsoptions,
                                       self._disk_dev(disk),
                                       self._pseparator(disk["id"]),
                                       pcount, disk_label))
@@ -334,6 +341,7 @@ class PManager(object):
         for (num, (mount, rnames)) in enumerate(raids.iteritems()):
             raid = raid_info[mount]
             fstype = self._gettabfstype(raid)
+            fsoptions = self._gettabfsoptions(raid)
             label = raid.get('disk_label')
             # Anaconda won't label a RAID array. It also can't create
             # a single-drive RAID1 array, but mdadm can.
@@ -343,8 +351,9 @@ class PManager(object):
                 self.post("mdadm --create /dev/md{0} --run --level=1 "
                             "--raid-devices={1} {2}".format(self.raid_count,
                             len(phys[mount]), ' '.join(phys[mount])))
-                self.post("mkfs.{0} -f {1} /dev/md{2}".format(
-                          fstype, self._getlabel(label), self.raid_count))
+                self.post("mkfs.{0} {1} {2} /dev/md{3}".format(
+                          fstype, fsoptions,
+                          self._getlabel(label), self.raid_count))
                 self.post("mdadm --detail --scan | grep '\/dev\/md{0}'"
                           ">> /mnt/sysimage/etc/mdadm.conf".format(
                           self.raid_count))
@@ -396,6 +405,7 @@ class PManager(object):
                 size = self._getsize(lv)
                 tabmount = lv["mount"] if lv["mount"] != "swap" else "none"
                 tabfstype = self._gettabfstype(lv)
+                tabfsoptions = self._gettabfsoptions(lv)
 
                 if size > 0 and size <= 16777216:
                     self.kick("logvol {0} --vgname={1} --size={2} "
@@ -406,8 +416,8 @@ class PManager(object):
                     self.post("lvcreate --size {0} --name {1} {2}".format(
                         size, lv["name"], vg["id"]))
                     if lv["mount"] != "swap" and tabfstype != "none":
-                        self.post("mkfs.{0} /dev/mapper/{1}-{2}".format(
-                            tabfstype, vg["id"], lv["name"]))
+                        self.post("mkfs.{0} {1} /dev/mapper/{2}-{3}".format(
+                            tabfstype, tabfsoptions, vg["id"], lv["name"]))
                         self.post("mkdir -p /mnt/sysimage{0}"
                                   "".format(lv["mount"]))
 
@@ -434,7 +444,8 @@ class PManager(object):
             self.kick("bootloader --location=mbr --driveorder={0} "
                       "--append=' console=ttyS0,9600 console=tty0 "
                       "biosdevname=0 "
-                      "crashkernel=none'".format(",".join(devs)))
+                      "crashkernel=none rootdelay=90 "
+                      "nomodeset '".format(",".join(devs)))
             for dev in devs:
                 self.post("echo -n > /tmp/grub.script")
                 self.post("echo \\\"device (hd0) /dev/{0}\\\" >> "
@@ -570,6 +581,11 @@ class PreseedPManager(object):
 
     def _parttype(self, n):
         return "primary"
+
+    def _fsoptions(self, fstype):
+        if fstype == "xfs":
+            return "-f"
+        return ""
 
     def _umount_target(self):
         self.late("umount /target/dev")
@@ -789,8 +805,9 @@ class PreseedPManager(object):
 
                 if part.get("file_system", "xfs") not in ("swap", None, "none"):
                     disk_label = self._getlabel(part.get("disk_label"))
-                    self.late("mkfs.{0} -f {1}{2}{3} {4}"
+                    self.late("mkfs.{0} {1} {2}{3}{4} {5}"
                               "".format(part.get("file_system", "xfs"),
+                                        self._fsoptions(part.get("file_system", "xfs")),
                                         self._disk_dev(disk),
                                         self._pseparator(disk["id"]),
                                         pcount, disk_label))
@@ -900,8 +917,9 @@ class PreseedPManager(object):
                 tabmount = lv["mount"] if lv["mount"] != "swap" else "none"
                 if ((not lv.get("file_system", "xfs") in ("swap", None, "none"))
                     and (not lv["mount"] in ("swap", "/"))):
-                    self.late("mkfs.{0} /dev/mapper/{1}-{2}".format(
+                    self.late("mkfs.{0} {1} /dev/mapper/{2}-{3}".format(
                         lv.get("file_system", "xfs"),
+                        self._fsoptions(lv.get("file_system", "xfs")),
                         vg["id"].replace("-", "--"),
                         lv["name"].replace("-", "--")))
                 if not lv["mount"] in (None, "none", "swap", "/"):
@@ -932,6 +950,7 @@ class PreseedPManager(object):
                   "-e 's/.*GRUB_GFXMODE.*/#GRUB_GFXMODE=640x480/g' "
                   "-e 's/.*GRUB_CMDLINE_LINUX.*/"
                   "GRUB_CMDLINE_LINUX=\"console=tty0 "
+                  "rootdelay=90 nomodeset "
                   "console=ttyS0,9600\"/g' /etc/default/grub", True)
         self._umount_target()
         self._mount_target()
