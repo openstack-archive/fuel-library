@@ -69,8 +69,8 @@ node default {
     database_user => "nailgun",
     database_passwd => "nailgun",
 
-    staticdir => "/opt/nailgun/share/nailgun/static",
-    templatedir => "/opt/nailgun/share/nailgun/static",
+    staticdir => "/usr/share/nailgun/static",
+    templatedir => "/usr/share/nailgun/static",
 
     cobbler_url => "http://localhost/cobbler_api",
     cobbler_user => $cobbler_user,
