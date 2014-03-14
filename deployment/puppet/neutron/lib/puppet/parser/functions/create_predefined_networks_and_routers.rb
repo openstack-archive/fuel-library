@@ -3,11 +3,10 @@
 # require 'json'
 
 class MrntNeutronNR
-  def initialize(scope, cfg, tenant_name)
+  def initialize(scope, cfg)
     @scope = scope
     @neutron_config = cfg
-    #FIXME(mmosesohn): Add correct user-defined tenant to neutron_config
-    @tenant_name = tenant_name
+    @tenant_name = nil
   end
 
   #class method
@@ -39,9 +38,9 @@ class MrntNeutronNR
   end
 
   def get_tenant()
-    #FIXME(mmosesohn): Add correct user-defined tenant to neutron_config
-    #@neutron_config[:predefined_routers][:tenant]
-    @tenant_name
+    return @tenant_name if @tenant_name
+    as = @neutron_config[:predefined_routers] || {:tenant=>"admin"}
+    @tenant_name = as[:tenant]
   end
 
   def get_default_router_config()
@@ -166,9 +165,7 @@ class MrntNeutronNR
         # config router
         router_config = get_default_router_config()
         router_config[:name] = rou.to_s
-        #FIXME(mmosesohn): Add correct user-defined tenant to rcfg in astute.yaml
-        #rcfg[:tenant] && router_config[:tenant] = rcfg[:tenant]
-        router_config[:tenant] = get_tenant()
+        router_config[:tenant] = rcfg[:tenant]
         router_config[:ext_net] = rcfg[:external_network] #"rcfg[:external_network]__subnet"
         #todo: realize
         router_config[:int_subnets] = rcfg[:internal_networks].map{|x| "#{x}__subnet"}
@@ -203,8 +200,7 @@ module Puppet::Parser::Functions
     EOS
   ) do |argv|
     #Puppet::Parser::Functions.autoloader.loadall
-    #FIXME(mmosesohn): Add correct user-defined tenant to rcfg in astute.yaml and remove argv[1]
-    nr_conf = MrntNeutronNR.new(self, MrntNeutronNR.sanitize_hash(argv[0]), argv[1])
+    nr_conf = MrntNeutronNR.new(self, MrntNeutronNR.sanitize_hash(argv[0]))
     nr_conf.create_resources()
   end
 end

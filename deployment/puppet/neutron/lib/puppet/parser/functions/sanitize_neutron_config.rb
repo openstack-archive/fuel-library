@@ -73,7 +73,9 @@ class MrntNeutron
   end
 
   def get_tenant()
-    @fuel_config[:access][:tenant] || "admin"
+    return @admin_tenant_name if @admin_tenant_name
+    as = @fuel_config[:access] || {:tenant=>"admin"}
+    @admin_tenant_name = as[:tenant]
   end
 
   # classmethod
@@ -358,6 +360,7 @@ class MrntNeutron
     @scope = scope
     @fuel_config = cfg
     @neutron_config_from_nailgun = cfg[section_name.to_sym()]
+    @admin_tenant_name = nil
     #Puppet::debug(@fuel_config.to_yaml)
   end
 
