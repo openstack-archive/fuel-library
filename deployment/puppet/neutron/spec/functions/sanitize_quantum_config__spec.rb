@@ -43,12 +43,6 @@ class NeutronConfig
       'rabbit' => {
         'password' => 'nova'
       },
-     'access' => {
-        'password' => 'admin',
-        'user'     => 'admin',
-        'tenant'   => 'admin',
-        'email'    => 'admin@example.org',
-      },
       'neutron_settings' => {
         'amqp' => {
           'provider' => "rabbitmq",
@@ -208,6 +202,265 @@ class NeutronConfig
   # end
 
 end
+
+describe 'sanitize_neutron_config with minimal incoming data' , :type => :puppet_function do
+  let(:scope) { PuppetlabsSpec::PuppetInternals.scope }
+  let(:cfg) { {
+      'deployment_mode' => 'ha_compact',
+      'access' => {
+        'password' => 'passwd__admin',
+        'user'     => 'user__admin',
+        'tenant'   => 'tenant__admin',
+        'email'    => 'admin@example.org',
+      },
+      'neutron_settings' => {
+        'amqp' => {
+          'hosts' => '192.168.0.254:5672',
+          'passwd' => "nova",
+        },
+        'database' => {
+          'host' => '192.168.0.254',
+        },
+        'keystone' => {
+          'auth_host' => '192.168.0.254',
+        },
+        'metadata' => {
+          'nova_metadata_ip' => '192.168.0.254',
+        },
+      },
+      'nodes' => [{
+        'storage_netmask' => '255.255.255.0',
+        'uid' => '1',
+        'public_netmask' => '255.255.255.0',
+        'swift_zone' => '1',
+        'internal_address' => '192.168.0.2',
+        'fqdn' => 'node-1.domain.tld',
+        'name' => 'node-1',
+        'internal_netmask' => '255.255.255.0',
+        'storage_address' => '192.168.1.2',
+        'role' => 'primary-controller',
+        'public_address' => '10.22.3.2',
+      },{
+        'storage_netmask' => '255.255.255.0',
+        'uid' => '2',
+        'public_netmask' => '255.255.255.0',
+        'swift_zone' => '2',
+        'internal_address' => '192.168.0.3',
+        'fqdn' => 'node-2.domain.tld',
+        'name' => 'node-2',
+        'internal_netmask' => '255.255.255.0',
+        'storage_address' => '192.168.1.3',
+        'role' => 'controller',
+        'public_address' => '10.22.3.3',
+      },{
+        'storage_netmask' => '255.255.255.0',
+        'uid' => '3',
+        'public_netmask' => '255.255.255.0',
+        'swift_zone' => '3',
+        'internal_address' => '192.168.0.4',
+        'fqdn' => 'node-3.domain.tld',
+        'name' => 'node-3',
+        'internal_netmask' => '255.255.255.0',
+        'storage_address' => '192.168.1.4',
+        'role' => 'controller',
+        'public_address' => '10.22.3.4',
+      },{
+        'storage_netmask' => '255.255.255.0',
+        'uid' => '4',
+        'public_netmask' => '255.255.255.0',
+        'swift_zone' => '4',
+        'internal_address' => '192.168.0.5',
+        'fqdn' => 'node-4.domain.tld',
+        'name' => 'node-4',
+        'internal_netmask' => '255.255.255.0',
+        'storage_address' => '192.168.1.5',
+        'role' => 'compute',
+        'public_address' => '10.22.3.5',
+      }],
+  } }
+
+  before :each do
+    @q_config = NeutronConfig.new({
+      :management_vip => '192.168.0.254',
+      :management_ip => '192.168.0.11'
+    })
+    Puppet::Parser::Scope.any_instance.stubs(:function_get_network_role_property).with(['management', 'ipaddr']).returns(@q_config.get_def(:management_ip))
+    Puppet::Parser::Scope.any_instance.stubs(:function_get_network_role_property).with(['mesh', 'ipaddr']).returns(@q_config.get_def(:management_ip))
+  end
+
+  it 'should exist' do
+    Puppet::Parser::Functions.function('sanitize_neutron_config').should == 'function_sanitize_neutron_config'
+  end
+
+
+  it 'should return default config (MAIN SECTION) if given only minimal parameter set' do
+    rv = scope.function_sanitize_neutron_config([cfg, 'neutron_settings'])
+    rv.delete('L3')
+    rv.delete('L2')
+    rv.delete('amqp')
+    rv.delete('database')
+    rv.delete('keystone')
+    rv.delete('metadata')
+    rv.delete('predefined_networks')
+    rv.delete('predefined_routers')
+    rv.delete('server')
+    expect(rv).to eq({
+      "root_helper"=>"sudo neutron-rootwrap /etc/neutron/rootwrap.conf",
+      "polling_interval"=>2
+    })
+  end
+
+  it 'should return default config (AMQP) if given only minimal parameter set' do
+    rv = scope.function_sanitize_neutron_config([cfg, 'neutron_settings'])
+    expect(rv['amqp']).to eq({
+      "provider"=>"rabbitmq",
+      "username"=>"nova",
+      "passwd"=>"nova",
+      "hosts"=>"192.168.0.254:5672",
+      "port" => "5673",
+      "ha_mode"=>true,
+      "control_exchange"=>"neutron",
+      "heartbeat"=>60,
+      "protocol"=>"tcp",
+      "rabbit_virtual_host"=>"/"
+    })
+  end
+
+  it 'should return default config (DATABASE) if given only minimal parameter set' do
+    rv = scope.function_sanitize_neutron_config([cfg, 'neutron_settings'])
+    expect(rv['database']).to eq({
+      "url"=>"mysql://neutron:neutron@192.168.0.254:3306/neutron?read_timeout=60",
+      "provider"=>"mysql",
+      "host"=>"192.168.0.254",
+      "port"=>3306,
+      "database"=>"neutron",
+      "username"=>"neutron",
+      "passwd"=>"neutron",
+      "reconnects"=>-1,
+      "reconnect_interval"=>2,
+      "read_timeout" => 60,
+      "charset"=>nil
+    })
+  end
+
+  it 'should return default config (L2) if given only minimal parameter set' do
+    rv = scope.function_sanitize_neutron_config([cfg, 'neutron_settings'])
+    expect(rv['L2']).to eq({
+      "base_mac"=>"fa:16:3e:00:00:00",
+      "mac_generation_retries"=>32,
+      "segmentation_type"=>"gre",
+      "tunnel_id_ranges"=>"3000:65535",
+      "phys_bridges"=>["br-ex"],
+      "bridge_mappings"=>"physnet1:br-ex",
+      "network_vlan_ranges"=>"physnet1",
+      "integration_bridge"=>"br-int",
+      "tunnel_bridge"=>"br-tun",
+      "int_peer_patch_port"=>"patch-tun",
+      "tun_peer_patch_port"=>"patch-int",
+      "local_ip"=>"192.168.0.11",
+      "enable_tunneling"=>true,
+      "phys_nets"=>{
+        "physnet1"=>{
+          "bridge"=>"br-ex",
+          "vlan_range"=>nil
+        }
+      }
+    })
+  end
+
+  it 'should return default config (KEYSTONE) if given only minimal parameter set' do
+    rv = scope.function_sanitize_neutron_config([cfg, 'neutron_settings'])
+    expect(rv['keystone']).to eq({
+      "auth_region"=>"RegionOne",
+      "auth_url"=>"http://192.168.0.254:35357/v2.0",
+      "auth_host"=>"192.168.0.254", "auth_port"=>35357,
+      "auth_protocol"=>"http",
+      "auth_api_version"=>"v2.0",
+      "admin_tenant_name"=>"services",
+      "admin_user"=>"neutron",
+      "admin_password"=>"neutron_pass",
+      "admin_email"=>"neutron@localhost",
+      "signing_dir"=>"/var/lib/neutron/keystone-signing"
+    })
+  end
+
+  it 'should return default config (METADATA) if given only minimal parameter set' do
+    rv = scope.function_sanitize_neutron_config([cfg, 'neutron_settings'])
+    expect(rv['metadata']).to eq({
+      "nova_metadata_ip"=>"192.168.0.254",
+      "nova_metadata_port"=>8775,
+      "metadata_ip"=>"169.254.169.254",
+      "metadata_port"=>8775,
+      "metadata_proxy_shared_secret"=>"secret-word"
+    })
+  end
+
+  it 'should return default config (PREDEFINED NETWORKS) if given only minimal parameter set' do
+    rv = scope.function_sanitize_neutron_config([cfg, 'neutron_settings'])
+    expect(rv['predefined_networks']).to eq({
+      "net04_ext"=>{
+        "shared"=>false,
+        "tenant"=>"tenant__admin",
+        "L2"=>{
+          "router_ext"=>true,
+          "network_type"=>"flat",
+          "physnet"=>"physnet1",
+          "segment_id"=>nil
+        },
+        "L3"=>{
+          "subnet"=>"10.100.100.0/24",
+          "gateway"=>"10.100.100.1",
+          "nameservers"=>[],
+          "enable_dhcp"=>false,
+          "floating"=>"10.100.100.130:10.100.100.254"
+        }
+      },
+      "net04"=>{
+        "shared"=>false,
+        "tenant"=>"tenant__admin",
+        "L2"=>{
+          "router_ext"=>false,
+          "network_type"=>"gre",
+          "physnet"=>nil,
+          "segment_id"=>nil
+        },
+        "L3"=>{
+          "subnet"=>"192.168.111.0/24",
+          "gateway"=>"192.168.111.1",
+          "nameservers"=>["8.8.4.4", "8.8.8.8"],
+          "enable_dhcp"=>true,
+          "floating"=>nil
+        }
+      }
+    })
+  end
+
+  it 'should return default config (PREDEFINED ROUTERS) if given only minimal parameter set' do
+    rv = scope.function_sanitize_neutron_config([cfg, 'neutron_settings'])
+    expect(rv['predefined_routers']).to eq({
+      "router04"=>{
+        "tenant"=>"tenant__admin",
+        "virtual"=>false,
+        "external_network"=>"net04_ext",
+        "internal_networks"=>["net04"]
+      }
+    })
+  end
+
+  it 'should return default config (SERVER) if given only minimal parameter set' do
+    rv = scope.function_sanitize_neutron_config([cfg, 'neutron_settings'])
+    expect(rv['server']).to eq({
+      "api_url"=>"http://:9696",    # !!!!!!!!!!!!!!!!!!!!!!!!
+      "api_protocol"=>"http",
+      "bind_host"=>"192.168.0.11",
+      "bind_port"=>9696,
+      "agent_down_time"=>15,
+      "allow_bulk"=>true,
+      "control_exchange"=>"neutron"
+    })
+  end
+end
+
 
 describe 'sanitize_neutron_config' , :type => :puppet_function do
   let(:scope) { PuppetlabsSpec::PuppetInternals.scope }
