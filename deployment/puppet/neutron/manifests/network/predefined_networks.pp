@@ -1,7 +1,7 @@
 class neutron::network::predefined_networks (
   $neutron_config     = {},
 ) {
-  create_predefined_networks_and_routers($neutron_config, $::fuel_settings['access']['tenant'])
+  create_predefined_networks_and_routers($neutron_config)
 
   Keystone_user_role<| title=="$auth_user@$auth_tenant"|> -> Neutron_net<| |>
   Service <| title == 'keystone' |> -> Neutron_net <| |>
