@@ -1,7 +1,7 @@
 class nailgun::venv(
   $package,
   $version,
-
+  $production,
   $nailgun_user,
   $nailgun_group,
 

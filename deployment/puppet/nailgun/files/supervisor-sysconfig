@@ -1,9 +1,9 @@
 # this is sourced by the supervisord init script
 # written by jkoppe
 
-set -a 
+set -a
 
-# should probably put both of these options as runtime arguments 
+# should probably put both of these options as runtime arguments
 OPTIONS="-c /etc/supervisord.conf"
 PIDFILE=/var/run/supervisord.pid
 
