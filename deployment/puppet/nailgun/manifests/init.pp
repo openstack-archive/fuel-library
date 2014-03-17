@@ -1,9 +1,10 @@
 class nailgun(
   $package,
   $version,
+  $production,
+  $venv,
   $nailgun_group = "nailgun",
   $nailgun_user = "nailgun",
-  $venv = "/opt/nailgun",
 
   $repo_root = "/var/www/nailgun",
   $pip_index = "",
@@ -17,8 +18,8 @@ class nailgun(
   $database_user = "nailgun",
   $database_passwd = "nailgun",
 
-  $staticdir = "/opt/nailgun/share/nailgun/static",
-  $templatedir = "/opt/nailgun/share/nailgun/static",
+  $staticdir,
+  $templatedir,
   $logdumpdir = "/var/www/nailgun/dump",
 
   $cobbler_url = "http://localhost/cobbler_api",
@@ -110,6 +111,7 @@ class nailgun(
     package => $package,
     version => $version,
     pip_opts => "${pip_index} ${pip_find_links}",
+    production => $production,
     nailgun_user => $nailgun_user,
     nailgun_group => $nailgun_group,
 
@@ -142,8 +144,17 @@ class nailgun(
     gem_source => $gem_source,
   }
 
+  if $production == 'prod' {
+    $nailgun_env = $env_path
+    $ostf_env = $env_path
+  } else {
+    $nailgun_env = '/opt/nailgun'
+    $ostf_env = '/opt/fuel_plugins/ostf'
+  }
+
   class { "nailgun::supervisor":
-    venv => $venv,
+    nailgun_env => $env_path,
+    ostf_env => $env_path,
   }
 
   class { "nailgun::nginx-repo":
@@ -202,6 +213,7 @@ class nailgun(
   class { "nailgun::logrotate": }
 
   class { "nailgun::ostf":
+    production => $production,
     pip_opts => "${pip_index} ${pip_find_links}",
   }
 

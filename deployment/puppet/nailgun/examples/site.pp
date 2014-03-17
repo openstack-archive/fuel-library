@@ -1,4 +1,14 @@
 $fuel_settings = parseyaml($astute_settings_yaml)
+$fuel_version = parseyaml($fuel_version_yaml)
+
+$production = $::fuel_version['VERSION']['production']
+if $production {
+  $env_path = "/usr"
+  $staticdir = "/usr/share/nailgun/static"
+} else {
+  $env_path = "/opt/nailgun"
+  $staticdir = "/opt/nailgun/share/nailgun/static"
+}
 
 # this replaces removed postgresql version fact
 $postgres_default_version = '8.4'
@@ -49,12 +59,13 @@ node default {
   }
 
   class { "nailgun":
+    venv => $env_path,
     package => "Nailgun",
     version => "0.1.0",
+    production => $::fuel_version['VERSION']['production'],
     naily_version => "0.1.0",
     nailgun_group => "nailgun",
     nailgun_user => "nailgun",
-    venv => "/opt/nailgun",
 
     pip_index => "--no-index",
     pip_find_links => "-f file://${pip_repo}",
@@ -69,8 +80,8 @@ node default {
     database_user => "nailgun",
     database_passwd => "nailgun",
 
-    staticdir => "/opt/nailgun/share/nailgun/static",
-    templatedir => "/opt/nailgun/share/nailgun/static",
+    staticdir => $staticdir,
+    templatedir => $staticdir,
 
     cobbler_url => "http://localhost/cobbler_api",
     cobbler_user => $cobbler_user,
