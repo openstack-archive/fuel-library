@@ -1,5 +1,6 @@
 class nailgun::supervisor(
   $venv,
+  $ostf_env,
   ) {
 
   file { "/etc/sysconfig/supervisord":

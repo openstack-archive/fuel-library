@@ -94,7 +94,7 @@ stderr_events_enabled=false
 serverurl=AUTO
 
 [program:ostf]
-command=/opt/fuel_plugins/ostf/bin/ostf-server --host=127.0.0.1 --port=8777 --log_file=/var/log/ostf.log --dbpath postgresql+psycopg2://ostf:ostf@127.0.0.1:5432/ostf
+command=<%= @ostf_env %>/bin/ostf-server --host=127.0.0.1 --port=8777 --log_file=/var/log/ostf.log --dbpath postgresql+psycopg2://ostf:ostf@127.0.0.1:5432/ostf
 process_name=%(program_name)s
 numprocs=1
 numprocs_start=0

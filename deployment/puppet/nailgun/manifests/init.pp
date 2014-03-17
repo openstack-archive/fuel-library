@@ -1,6 +1,7 @@
 class nailgun(
   $package,
   $version,
+  $production,
   $nailgun_group = "nailgun",
   $nailgun_user = "nailgun",
   $venv = "/opt/nailgun",
@@ -107,6 +108,7 @@ class nailgun(
   class { "nailgun::venv":
     package => $package,
     version => $version,
+    production => $production,
     nailgun_user => $nailgun_user,
     nailgun_group => $nailgun_group,
 
@@ -138,8 +140,15 @@ class nailgun(
     gem_source => $gem_source,
   }
 
+  if $production {
+    $ostf_env = '/usr'
+  } else {
+    $ostf_env = '/opt/fuel_plugins/ostf'
+  }
+
   class { "nailgun::supervisor":
     venv => $venv,
+    ostf_env => $ostf_env,
   }
 
   class { "nailgun::nginx-repo":
@@ -198,6 +207,7 @@ class nailgun(
   class { "nailgun::logrotate": }
 
   class { "nailgun::ostf":
+    production => $production,
     pip_opts => "${pip_index} ${pip_find_links}",
   }
 

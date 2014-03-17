@@ -1,4 +1,5 @@
 $fuel_settings = parseyaml($astute_settings_yaml)
+$fuel_version = parseyaml($fuel_version_yaml)
 
 # this replaces removed postgresql version fact
 $postgres_default_version = '8.4'
@@ -51,6 +52,7 @@ node default {
   class { "nailgun":
     package => "Nailgun",
     version => "0.1.0",
+    production => $::fuel_version['VERSION']['production'],
     naily_version => "0.1.0",
     nailgun_group => "nailgun",
     nailgun_user => "nailgun",
