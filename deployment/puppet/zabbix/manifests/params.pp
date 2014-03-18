@@ -87,7 +87,7 @@ class zabbix::params {
   $api_username         = 'Admin'
   $api_password         = 'zabbix'
   $api_hash             = { endpoint => $api_url,
-                            user     => $api_username,
+                            username => $api_username,
                             password => $api_password }
 
   #common parameters
