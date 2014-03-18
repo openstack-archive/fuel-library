@@ -4,6 +4,9 @@ class zabbix {
     if $::zabbix::params::enabled {
       if $::zabbix::params::server {
         class {'zabbix::server': }
+        class {'zabbix::server::config':
+          require => Class['zabbix::server'],
+        }
       }
     }
   }
