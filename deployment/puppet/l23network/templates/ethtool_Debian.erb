@@ -1,0 +1,5 @@
+<%- if @ethtool_lines -%>
+<%- @ethtool_lines.each do |key,line| -%>
+post-up  ethtool  <%= key %>  <%= interface %>  <%= line %> || true
+<%- end -%>
+<%- end -%>

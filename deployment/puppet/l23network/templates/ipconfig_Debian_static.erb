@@ -22,3 +22,4 @@ bond-lacp-rate <%= @bond_lacp_rate %><% end %>
 post-up ip addr add <%= addr %> dev <%= @interface %>
 pre-down ip addr del <%= addr %> dev <%= @interface %>
 <%- end -%><%- end -%>
+<%= scope.function_template(['l23network/ethtool_Debian.erb']) %>
