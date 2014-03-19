@@ -43,12 +43,6 @@ class NeutronConfig
       'rabbit' => {
         'password' => 'nova'
       },
-     'access' => {
-        'password' => 'admin',
-        'user'     => 'admin',
-        'tenant'   => 'admin',
-        'email'    => 'admin@example.org',
-      },
       'neutron_settings' => {
         'amqp' => {
           'provider' => "rabbitmq",
@@ -127,7 +121,7 @@ class NeutronConfig
           'router_id' => nil,
           'gateway_external_network_id' => nil,
           'use_namespaces' => true,
-          'allow_overlapping_ips' => false,
+          'allow_overlapping_ips' => true,
           'network_auto_schedule' => true,
           'router_auto_schedule'  => true,
           'public_bridge' => "br-ex",
@@ -212,6 +206,13 @@ end
 describe 'sanitize_neutron_config with minimal incoming data' , :type => :puppet_function do
   let(:scope) { PuppetlabsSpec::PuppetInternals.scope }
   let(:cfg) { {
+      'deployment_mode' => 'ha_compact',
+      'access' => {
+        'password' => 'passwd__admin',
+        'user'     => 'user__admin',
+        'tenant'   => 'tenant__admin',
+        'email'    => 'admin@example.org',
+      },
       'neutron_settings' => {
         'amqp' => {
           'hosts' => '192.168.0.254:5672',
@@ -226,7 +227,56 @@ describe 'sanitize_neutron_config with minimal incoming data' , :type => :puppet
         'metadata' => {
           'nova_metadata_ip' => '192.168.0.254',
         },
-    }
+      },
+      'nodes' => [{
+        'storage_netmask' => '255.255.255.0',
+        'uid' => '1',
+        'public_netmask' => '255.255.255.0',
+        'swift_zone' => '1',
+        'internal_address' => '192.168.0.2',
+        'fqdn' => 'node-1.domain.tld',
+        'name' => 'node-1',
+        'internal_netmask' => '255.255.255.0',
+        'storage_address' => '192.168.1.2',
+        'role' => 'primary-controller',
+        'public_address' => '10.22.3.2',
+      },{
+        'storage_netmask' => '255.255.255.0',
+        'uid' => '2',
+        'public_netmask' => '255.255.255.0',
+        'swift_zone' => '2',
+        'internal_address' => '192.168.0.3',
+        'fqdn' => 'node-2.domain.tld',
+        'name' => 'node-2',
+        'internal_netmask' => '255.255.255.0',
+        'storage_address' => '192.168.1.3',
+        'role' => 'controller',
+        'public_address' => '10.22.3.3',
+      },{
+        'storage_netmask' => '255.255.255.0',
+        'uid' => '3',
+        'public_netmask' => '255.255.255.0',
+        'swift_zone' => '3',
+        'internal_address' => '192.168.0.4',
+        'fqdn' => 'node-3.domain.tld',
+        'name' => 'node-3',
+        'internal_netmask' => '255.255.255.0',
+        'storage_address' => '192.168.1.4',
+        'role' => 'controller',
+        'public_address' => '10.22.3.4',
+      },{
+        'storage_netmask' => '255.255.255.0',
+        'uid' => '4',
+        'public_netmask' => '255.255.255.0',
+        'swift_zone' => '4',
+        'internal_address' => '192.168.0.5',
+        'fqdn' => 'node-4.domain.tld',
+        'name' => 'node-4',
+        'internal_netmask' => '255.255.255.0',
+        'storage_address' => '192.168.1.5',
+        'role' => 'compute',
+        'public_address' => '10.22.3.5',
+      }],
   } }
 
   before :each do
@@ -267,6 +317,7 @@ describe 'sanitize_neutron_config with minimal incoming data' , :type => :puppet
       "username"=>"nova",
       "passwd"=>"nova",
       "hosts"=>"192.168.0.254:5672",
+      "port" => "5673",
       "ha_mode"=>true,
       "control_exchange"=>"neutron",
       "heartbeat"=>60,
@@ -287,6 +338,7 @@ describe 'sanitize_neutron_config with minimal incoming data' , :type => :puppet
       "passwd"=>"neutron",
       "reconnects"=>-1,
       "reconnect_interval"=>2,
+      "read_timeout" => 60,
       "charset"=>nil
     })
   end
@@ -348,7 +400,7 @@ describe 'sanitize_neutron_config with minimal incoming data' , :type => :puppet
     expect(rv['predefined_networks']).to eq({
       "net04_ext"=>{
         "shared"=>false,
-        "tenant"=>"admin",
+        "tenant"=>"tenant__admin",
         "L2"=>{
           "router_ext"=>true,
           "network_type"=>"flat",
@@ -365,7 +417,7 @@ describe 'sanitize_neutron_config with minimal incoming data' , :type => :puppet
       },
       "net04"=>{
         "shared"=>false,
-        "tenant"=>"admin",
+        "tenant"=>"tenant__admin",
         "L2"=>{
           "router_ext"=>false,
           "network_type"=>"gre",
@@ -387,7 +439,7 @@ describe 'sanitize_neutron_config with minimal incoming data' , :type => :puppet
     rv = scope.function_sanitize_neutron_config([cfg, 'neutron_settings'])
     expect(rv['predefined_routers']).to eq({
       "router04"=>{
-        "tenant"=>"admin",
+        "tenant"=>"tenant__admin",
         "virtual"=>false,
         "external_network"=>"net04_ext",
         "internal_networks"=>["net04"]
@@ -600,8 +652,8 @@ describe 'sanitize_neutron_config' , :type => :puppet_function do
     }
     rv = scope.function_sanitize_neutron_config([@cfg, 'neutron_settings'])
     erv = @res_cfg['amqp']
-    erv["port"] = "5673"
-    erv["hosts"] = "192.168.0.3:5673,192.168.0.4:5673,192.168.0.5:5673"
+    erv["port"] = "5672"
+    erv["hosts"] = "192.168.0.3:5672,192.168.0.4:5672,192.168.0.5:5672"
     expect(rv['amqp']).to eq erv
   end
 
