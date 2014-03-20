@@ -10,6 +10,7 @@ class openstack::ha::haproxy (
   $swift_proxies            = undef,
   $rgw_servers              = undef,
   $ceilometer               = undef,
+  $is_primary_controller    = false,
 ) {
 
   Haproxy::Service        { use_include => true }
@@ -30,7 +31,7 @@ class openstack::ha::haproxy (
 
   if $neutron { class { 'openstack::ha::neutron': } }
   if $queue_provider == 'rabbitmq' { class { 'openstack::ha::rabbitmq': } }
-  if $custom_mysql_setup_class == 'galera' { class { 'openstack::ha::mysqld': } }
+  if $custom_mysql_setup_class == 'galera' { class { 'openstack::ha::mysqld': is_primary_controller => $is_primary_controller} }
 
   if $swift_proxies { class { 'openstack::ha::swift':   servers => $swift_proxies } }
   if $rgw_servers   { class { 'openstack::ha::radosgw': servers => $rgw_servers } }
