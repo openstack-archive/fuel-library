@@ -1,0 +1,40 @@
+### Managed by Puppet ###
+
+# Fake server declaration to enforce running agent without
+# separate server declaration in /etc/zabbix/zabbix_agent.d/server.conf
+Server=<%= scope.lookupvar('zabbix::params::server_ip') %>
+ServerActive=<%= scope.lookupvar('zabbix::params::server_ip') %>
+
+# Server port for sending active checks
+#ServerPort=<%= scope.lookupvar('zabbix::params::server_listen_port') %>
+
+Hostname=<%= @fqdn %>
+
+ListenPort=<%= scope.lookupvar('zabbix::params::agent_listen_port') %>
+
+#ListenIP=<%= scope.lookupvar('zabbix::params::agent_listen_ip') %>
+
+#SourceIP=<%= scope.lookupvar('zabbix::params::agent_source_ip') %>
+
+StartAgents=5
+
+#RefreshActiveChecks=120
+
+#DisableActive=1
+
+#EnableRemoteCommands=1
+
+DebugLevel=3
+
+PidFile=<%= scope.lookupvar('zabbix::params::agent_pid_file') %>
+
+LogFile=<%= scope.lookupvar('zabbix::params::agent_log_file') %>
+
+#LogFileSize=1
+
+Timeout=10
+
+<% if scope.lookupvar('zabbix::params::has_userparameters') %>
+Include=<%= scope.lookupvar('zabbix::params::agent_include') %>
+<% end %>
+
