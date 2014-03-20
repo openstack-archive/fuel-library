@@ -85,4 +85,33 @@ class zabbix::server::config {
     xml_file => '/etc/zabbix/import/Template_App_OpenStack_Nova_Network.xml',
     api => $zabbix::params::api_hash,
   }
+
+  # Keystone templates
+  zabbix_configuration_import { 'Template_App_OpenStack_Keystone.xml Import':
+    ensure   => present,
+    xml_file => '/etc/zabbix/import/Template_App_OpenStack_Keystone.xml',
+    api => $zabbix::params::api_hash,
+  }
+  zabbix_configuration_import { 'Template_App_OpenStack_Keystone_API_check.xml Import':
+    ensure   => present,
+    xml_file => '/etc/zabbix/import/Template_App_OpenStack_Keystone_API_check.xml',
+    api => $zabbix::params::api_hash,
+  }
+
+  # Glance templates
+  zabbix_configuration_import { 'Template_App_OpenStack_Glance_API.xml Import':
+    ensure   => present,
+    xml_file => '/etc/zabbix/import/Template_App_OpenStack_Glance_API.xml',
+    api => $zabbix::params::api_hash,
+  }
+  zabbix_configuration_import { 'Template_App_OpenStack_Glance_API_check.xml Import':
+    ensure   => present,
+    xml_file => '/etc/zabbix/import/Template_App_OpenStack_Glance_API_check.xml',
+    api => $zabbix::params::api_hash,
+  }
+  zabbix_configuration_import { 'Template_App_OpenStack_Glance_Registry.xml Import':
+    ensure   => present,
+    xml_file => '/etc/zabbix/import/Template_App_OpenStack_Glance_Registry.xml',
+    api => $zabbix::params::api_hash,
+  }
 }
