@@ -147,6 +147,8 @@ $SNIPPET('mcollective_install_if_enabled')
 # HERE ARE COMMANDS THAT WILL BE LAUNCHED JUST AFTER
 # INSTALLATION ITSELF COMPLETED
 %post
+rpm -e --nodeps ruby
+yum install --exclude=ruby-2.1.1* ruby ruby-devel rubygems
 
 yum versionlock puppet
 yum versionlock kernel

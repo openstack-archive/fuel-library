@@ -17,7 +17,6 @@ class nailgun::packages(
   nailgun_safe_package { "python-devel": }
   nailgun_safe_package { "postgresql-libs": }
   nailgun_safe_package { "postgresql-devel": }
-  nailgun_safe_package { "ruby-devel": }
   nailgun_safe_package { "gcc": }
   nailgun_safe_package { "gcc-c++": }
   nailgun_safe_package { "make": }
