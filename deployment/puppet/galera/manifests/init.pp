@@ -67,6 +67,15 @@ class galera (
   $mysql_password = $::galera::params::mysql_password
   $libgalera_prefix = $::galera::params::libgalera_prefix
   $mysql_buffer_pool_size = $::galera::params::mysql_buffer_pool_size
+  $mysql_log_file_size = $::galera::params::mysql_log_file_size
+  $max_connections = $::galera::params::max_connections
+  $table_open_cache = $::galera::params::table_open_cache
+  $key_buffer_size = $::galera::params::key_buffer_size
+  $myisam_sort_buffer_size = $::galera::params::myisam_sort_buffer_size
+  $wait_timeout = $::galera::params::wait_timeout
+  $open_files_limit= $::galera::params::open_files_limit
+  $innodb_flush_log_at_trx_commit=$::galera::params::innodb_flush_log_at_trx_commit
+  $datadir=$::mysql::params::datadir
 
   case $::osfamily {
     'RedHat' : {
@@ -238,6 +247,22 @@ class galera (
   file { ["/etc/mysql", "/etc/mysql/conf.d"]: ensure => directory, }
 
   if $::galera_gcomm_empty == "true" {
+    #FIXME(bogdando): dirtyhack to pervert imperative puppet nature.
+    if $::mysql_log_file_size_real != $mysql_log_file_size {
+      # delete MySQL ib_logfiles, if log file size does not match the one
+      # from params
+      exec { 'delete_logfiles':
+        command     => "rm -f ${datadir}/ib_logfile* || true",
+        path        => [ '/sbin/', '/usr/sbin/', '/usr/bin/' ,'/bin/' ],
+        before      => File['/etc/mysql/conf.d/wsrep.cnf'],
+      }
+      # use predefined value for log file size
+      $innodb_log_file_size_real = $mysql_log_file_size
+    } else {
+      # evaluate existing log file size and use it as a value
+      $innodb_log_file_size_real = $::mysql_log_file_size_real
+    }
+
     file { "/etc/mysql/conf.d/wsrep.cnf":
       ensure  => present,
       content => template("galera/wsrep.cnf.erb"),

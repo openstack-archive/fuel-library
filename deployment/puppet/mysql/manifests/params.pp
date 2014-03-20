@@ -16,10 +16,21 @@ class mysql::params {
   $port                = 3306
   $etc_root_password   = false
   $ssl                 = false
-  $server_id           = delete(delete(delete("$::hostname",'controller-'),'fuel-'),"node-")
+  $server_id           = delete(delete(delete("${::hostname}",'controller-'),'fuel-'),"node-")
   $service_provider = undef
+  #TODO(bogdando) remove code duplication for galera and mysql manifests to openstack::db in 'I' release
   #Set buffer pool size to 30% of memory, but not greater than 10G
-  $mysql_buffer_pool_size = inline_template("<%= [($::memorysize_mb * 0.3 + 0).floor, 10000].min %>M")
+  $buffer_size             =
+    inline_template("<%= [(${::memorysize_mb} * 0.3 + 0).floor, 10000].min %>")
+  $mysql_buffer_pool_size  =  "${buffer_size}M"
+  $mysql_log_file_size     =
+    inline_template("<%= [(${buffer_size} * 0.25 + 0).floor, 2047].min %>M")
+  $wait_timeout            = '3600'
+  $myisam_sort_buffer_size = '64M'
+  $key_buffer_size         = '64M'
+  $table_open_cache        = '10000'
+  $open_files_limit        = '102400'
+  $max_connections         = '3000'
 
   case $::osfamily {
     'RedHat': {
