@@ -220,6 +220,9 @@ $SNIPPET('centos_authorized_keys')
 # PUTS IN IT ALL THE REPOSITORIES DEFINED IN ks_repo VARIABLE
 $SNIPPET('nailgun_repo')
 
+rpm -e --nodeps ruby
+yum install --exclude=ruby-2.1.1* ruby ruby-devel rubygems
+
 # COBBLER EMBEDDED SNIPPET: 'kernel_lt_if_enabled'
 # INSTALLS kernel-lt PACKAGE IF kernel_lt VARIABLE IS SET TO 1
 $SNIPPET('centos_post_kernel_lt_if_enabled')
