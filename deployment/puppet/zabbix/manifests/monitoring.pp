@@ -60,4 +60,7 @@ class zabbix::monitoring {
 
   Zabbix_usermacro { require => Class['zabbix::agent'] }
   Zabbix_template_link { require => Class['zabbix::agent'] }
+
+  # Auto-registration
+  include zabbix::monitoring::nova_mon
 }
