@@ -2,24 +2,15 @@ class nailgun::naily(
   $rabbitmq_naily_user = 'naily',
   $rabbitmq_naily_password = 'naily',
   $version,
-  $gem_source = "http://rubygems.org/",
+  $gem_source = "https://rubygems.org/",
   ){
 
   exec { 'install-naily-gem':
-    command => "/opt/rbenv/bin/rbenv exec gem install naily --source $gem_source --version $version --no-ri --no-rdoc",
-    environment => ['RBENV_ROOT=/opt/rbenv', 'RBENV_VERSION=1.9.3-p392'],
-    require => Exec['configure-rubygems'],
+    command => "gem install naily --source $gem_source --version $version --no-ri --no-rdoc",
     logoutput => true,
   }
 
-  exec { 'configure-rubygems':
-    command => '/opt/rbenv/bin/rbenv exec gem sources -r http://rubygems.org/',
-    environment => ['RBENV_ROOT=/opt/rbenv', 'RBENV_VERSION=1.9.3-p392'],
-    require => Package['rbenv-ruby-1.9.3-p392-0.0.1-1'],
-    logoutput => true,
-  }
-
-  package { 'rbenv-ruby-1.9.3-p392-0.0.1-1': }
+  package { 'ruby-2.1.1-1.1.mira1.x86_64': }
 
   file { '/usr/bin/nailyd':
     content => template('nailgun/nailyd.erb'),
@@ -28,12 +19,12 @@ class nailgun::naily(
     mode => 0755,
   }
 
-  file { '/usr/bin/astute':
-    content => template('nailgun/astute.erb'),
-    owner => 'root',
-    group => 'root',
-    mode => 0755,
-  }
+  #file { '/usr/bin/astute':
+  #  content => template('nailgun/astute.erb'),
+  #  owner => 'root',
+  #  group => 'root',
+  #  mode => 0755,
+  #}
 
   file {"/etc/naily":
     ensure => directory,
