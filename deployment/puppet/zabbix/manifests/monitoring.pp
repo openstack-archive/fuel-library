@@ -63,4 +63,6 @@ class zabbix::monitoring {
 
   # Auto-registration
   include zabbix::monitoring::nova_mon
+  include zabbix::monitoring::keystone_mon
+  include zabbix::monitoring::glance_mon
 }
