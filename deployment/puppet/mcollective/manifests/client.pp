@@ -25,12 +25,10 @@ class mcollective::client(
 
   case $::osfamily {
     'Debian': {
-      $mcollective_client_package = "mcollective-client"
       $mcollective_client_config_template="mcollective/client.cfg.ubuntu.erb"
       $mcollective_agent_path = "/usr/share/mcollective/plugins/mcollective/agent"
     }
     'RedHat': {
-      $mcollective_client_package = "mcollective-client"
       $mcollective_client_config_template="mcollective/client.cfg.erb"
       $mcollective_agent_path = "/usr/libexec/mcollective/mcollective/agent"
     }
@@ -39,13 +37,32 @@ class mcollective::client(
     }
   }
 
+  case $::rubyversion {
+    '2.1.1': {
+      $mcollective_client_package = "ruby21-rubygem-mcollective-client"
+    }
+    '1.8.7': {
+      $mcollective_client_package = "mcollective-client"
+    }
+  }
+
   package { $mcollective_client_package :
     ensure => 'present',
   }
 
-  package { 'nailgun-mcagents': }
+  case $::rubyversion {
+    '2.1.1': {
+      package { 'ruby21-nailgun-mcagents': }
+    }
+    '1.8.7': {
+      package { 'nailgun-mcagents': }
+    }
+  }
 
-  file {"/etc/mcollective/client.cfg" :
+  file { "/etc/mcollective": ensure => directory }
+
+  file { "/etc/mcollective/client.cfg":
+    ensure => present,
     content => template($mcollective_client_config_template),
     owner => root,
     group => root,

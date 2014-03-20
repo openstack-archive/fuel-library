@@ -5,21 +5,19 @@ class nailgun::astute(
   $gem_source = "http://rubygems.org/",
   ){
 
-  exec { 'install-astute-gem':
-    command => "/opt/rbenv/bin/rbenv exec gem install astute --source $gem_source --version $version --no-ri --no-rdoc",
-    environment => ['RBENV_ROOT=/opt/rbenv', 'RBENV_VERSION=1.9.3-p484'],
-    require => Exec['configure-rubygems'],
-    logoutput => true,
-  }
+  # exec { 'install-astute-gem':
+  #   command => "gem install astute --source $gem_source --version $version --no-ri --no-rdoc",
+  #   require => Exec['configure-rubygems'],
+  #   logoutput => true,
+  # }
 
-  exec { 'configure-rubygems':
-    command => '/opt/rbenv/bin/rbenv exec gem sources -r http://rubygems.org/',
-    environment => ['RBENV_ROOT=/opt/rbenv', 'RBENV_VERSION=1.9.3-p484'],
-    require => Package['rbenv-ruby-1.9.3-p484-0.0.1-1'],
-    logoutput => true,
-  }
+  # exec { 'configure-rubygems':
+  #   command => 'gem sources -r http://rubygems.org/',
+  #   require => Package['ruby'],
+  #   logoutput => true,
+  # }
 
-  package { 'rbenv-ruby-1.9.3-p484-0.0.1-1': }
+  package { 'ruby21-rubygem-astute': }
 
   file { '/usr/bin/astuted':
     content => template('nailgun/astuted.erb'),
