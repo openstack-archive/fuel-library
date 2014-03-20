@@ -6,7 +6,7 @@ class openstack::ha::mysqld {
     listen_port         => 3306,
     balancermember_port => 3307,
     define_backups      => true,
-    before_start        => true,
+    #before_start        => true,
 
     haproxy_config_options => {
       'option'         => ['mysql-check user cluster_watcher', 'tcplog','clitcpka','srvtcpka'],
