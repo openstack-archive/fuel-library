@@ -93,14 +93,16 @@ class osnailyfacter::cluster_ha {
 
   $vips = { # Do not convert to ARRAY, It can't work in 2.7
     public_old => {
+      namespace    => 'haproxy',
       nic          => $::public_int,
       ip           => $::fuel_settings['public_vip'],
-      cidr_netmask => '32',
+      cidr_netmask => netmask_to_cidr($::fuel_settings['nodes'][0]['public_netmask']),
     },
     management_old => {
+      namespace    => 'haproxy',
       nic          => $::internal_int,
       ip           => $::fuel_settings['management_vip'],
-      cidr_netmask => '32',
+      cidr_netmask => netmask_to_cidr($::fuel_settings['nodes'][0]['internal_netmask']),
     },
   }
 

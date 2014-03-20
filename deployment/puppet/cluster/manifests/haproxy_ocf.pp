@@ -15,11 +15,11 @@ class cluster::haproxy_ocf {
   Cs_commit[$cib_name] -> Service['haproxy']
 
   file {'haproxy-ocf':
-    path   =>'/usr/lib/ocf/resource.d/mirantis/haproxy',
+    path   =>'/usr/lib/ocf/resource.d/mirantis/ns_haproxy',
     mode   => '0755',
     owner  => root,
     group  => root,
-    source => 'puppet:///modules/cluster/haproxy',
+    source => 'puppet:///modules/cluster/ns_haproxy',
   }
   File<| title == 'ocf-mirantis-path' |> -> File['haproxy-ocf']
   File['haproxy-ocf'] -> Cs_resource[$cib_name]
@@ -29,7 +29,7 @@ class cluster::haproxy_ocf {
     cib             => $cib_name,
     primitive_class => 'ocf',
     provided_by     => 'mirantis',
-    primitive_type  => 'haproxy',
+    primitive_type  => 'ns_haproxy',
     multistate_hash => {
       'type' => 'clone',
     },
@@ -37,6 +37,7 @@ class cluster::haproxy_ocf {
       'interleave' => 'true',
     },
     parameters => {
+      'ns' => 'haproxy',
       # 'nic'     => $vip[nic],
       # 'ip'      => $vip[ip],
     },
