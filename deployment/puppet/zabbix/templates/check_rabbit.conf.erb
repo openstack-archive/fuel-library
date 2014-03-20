@@ -1,0 +1,7 @@
+[rabbitmq]
+log_level=DEBUG
+user=<%= scope.lookupvar('zabbix::params::openstack::rabbit_user') %>
+password=<%= scope.lookupvar('zabbix::params::openstack::rabbit_password') %>
+host=http://<%= scope.lookupvar('zabbix::params::openstack::rabbit_vip') %>:55672
+#OpenStack queues, Y - number of service types, N - count of *this* service, max_queues=Y*(2*N+1)
+max_queues=128
