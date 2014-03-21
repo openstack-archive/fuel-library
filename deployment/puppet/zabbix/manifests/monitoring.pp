@@ -65,4 +65,6 @@ class zabbix::monitoring {
   include zabbix::monitoring::nova_mon
   include zabbix::monitoring::keystone_mon
   include zabbix::monitoring::glance_mon
+  include zabbix::monitoring::cinder_mon
+  include zabbix::monitoring::swift_mon
 }

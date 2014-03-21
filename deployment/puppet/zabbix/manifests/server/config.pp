@@ -114,4 +114,48 @@ class zabbix::server::config {
     xml_file => '/etc/zabbix/import/Template_App_OpenStack_Glance_Registry.xml',
     api => $zabbix::params::api_hash,
   }
+
+  # Cinder templates
+  zabbix_configuration_import { 'Template_App_OpenStack_Cinder_API.xml Import':
+    ensure   => present,
+    xml_file => '/etc/zabbix/import/Template_App_OpenStack_Cinder_API.xml',
+    api => $zabbix::params::api_hash,
+  }
+  zabbix_configuration_import { 'Template_App_OpenStack_Cinder_API_check.xml Import':
+    ensure   => present,
+    xml_file => '/etc/zabbix/import/Template_App_OpenStack_Cinder_API_check.xml',
+    api => $zabbix::params::api_hash,
+  }
+  zabbix_configuration_import { 'Template_App_OpenStack_Cinder_Scheduler.xml Import':
+    ensure   => present,
+    xml_file => '/etc/zabbix/import/Template_App_OpenStack_Cinder_Scheduler.xml',
+    api => $zabbix::params::api_hash,
+  }
+  zabbix_configuration_import { 'Template_App_OpenStack_Cinder_Volume.xml Import':
+    ensure   => present,
+    xml_file => '/etc/zabbix/import/Template_App_OpenStack_Cinder_Volume.xml',
+    api => $zabbix::params::api_hash,
+  }
+
+  # Swift templates
+  zabbix_configuration_import { 'Template_App_OpenStack_Swift_Account.xml Import':
+    ensure   => present,
+    xml_file => '/etc/zabbix/import/Template_App_OpenStack_Swift_Account.xml',
+    api => $zabbix::params::api_hash,
+  }
+  zabbix_configuration_import { 'Template_App_OpenStack_Swift_Container.xml Import':
+    ensure   => present,
+    xml_file => '/etc/zabbix/import/Template_App_OpenStack_Swift_Container.xml',
+    api => $zabbix::params::api_hash,
+  }
+  zabbix_configuration_import { 'Template_App_OpenStack_Swift_Object.xml Import':
+    ensure   => present,
+    xml_file => '/etc/zabbix/import/Template_App_OpenStack_Swift_Object.xml',
+    api => $zabbix::params::api_hash,
+  }
+  zabbix_configuration_import { 'Template_App_OpenStack_Swift_Proxy.xml Import':
+    ensure   => present,
+    xml_file => '/etc/zabbix/import/Template_App_OpenStack_Swift_Proxy.xml',
+    api => $zabbix::params::api_hash,
+  }
 }
