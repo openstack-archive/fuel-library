@@ -191,4 +191,32 @@ class zabbix::server::config {
     xml_file => '/etc/zabbix/import/Template_App_Memcache.xml',
     api => $zabbix::params::api_hash,
   }
+
+  # HAProxy
+  zabbix_configuration_import { 'Template_App_HAProxy.xml Import':
+    ensure   => present,
+    xml_file => '/etc/zabbix/import/Template_App_HAProxy.xml',
+    api => $zabbix::params::api_hash,
+  }
+
+  # Firewall
+  zabbix_configuration_import { 'Template_App_Iptables_Stats.xml Import':
+    ensure   => present,
+    xml_file => '/etc/zabbix/import/Template_App_Iptables_Stats.xml',
+    api => $zabbix::params::api_hash,
+  }
+
+  # Zabbix server
+  zabbix_configuration_import { 'Template_App_Zabbix_Server.xml Import':
+    ensure   => present,
+    xml_file => '/etc/zabbix/import/Template_App_Zabbix_Server.xml',
+    api => $zabbix::params::api_hash,
+  }
+
+  # Virtual OpenStack Cluster
+  zabbix_configuration_import { 'Template_OpenStack_Cluster.xml Import':
+    ensure   => present,
+    xml_file => '/etc/zabbix/import/Template_OpenStack_Cluster.xml',
+    api => $zabbix::params::api_hash,
+  }
 }
