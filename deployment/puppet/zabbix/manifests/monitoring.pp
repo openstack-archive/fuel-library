@@ -67,4 +67,8 @@ class zabbix::monitoring {
   include zabbix::monitoring::glance_mon
   include zabbix::monitoring::cinder_mon
   include zabbix::monitoring::swift_mon
+  include zabbix::monitoring::rabbitmq_mon
+  include zabbix::monitoring::horizon_mon
+  include zabbix::monitoring::mysql_mon
+  include zabbix::monitoring::memcached_mon
 }
