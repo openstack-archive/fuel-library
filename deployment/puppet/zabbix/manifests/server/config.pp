@@ -158,4 +158,37 @@ class zabbix::server::config {
     xml_file => '/etc/zabbix/import/Template_App_OpenStack_Swift_Proxy.xml',
     api => $zabbix::params::api_hash,
   }
+
+  # RabbitMQ templates
+  zabbix_configuration_import { 'Template_App_OpenStack_RabbitMQ.xml Import':
+    ensure   => present,
+    xml_file => '/etc/zabbix/import/Template_App_OpenStack_RabbitMQ.xml',
+    api => $zabbix::params::api_hash,
+  }
+  zabbix_configuration_import { 'Template_App_OpenStack_RabbitMQ_ha.xml Import':
+    ensure   => present,
+    xml_file => '/etc/zabbix/import/Template_App_OpenStack_RabbitMQ_ha.xml',
+    api => $zabbix::params::api_hash,
+  }
+
+  # Horizon
+  zabbix_configuration_import { 'Template_App_OpenStack_Horizon.xml Import':
+    ensure   => present,
+    xml_file => '/etc/zabbix/import/Template_App_OpenStack_Horizon.xml',
+    api => $zabbix::params::api_hash,
+  }
+
+  # MySQL
+  zabbix_configuration_import { 'Template_App_MySQL.xml Import':
+    ensure   => present,
+    xml_file => '/etc/zabbix/import/Template_App_MySQL.xml',
+    api => $zabbix::params::api_hash,
+  }
+
+  # memcached
+  zabbix_configuration_import { 'Template_App_Memcache.xml Import':
+    ensure   => present,
+    xml_file => '/etc/zabbix/import/Template_App_Memcache.xml',
+    api => $zabbix::params::api_hash,
+  }
 }
