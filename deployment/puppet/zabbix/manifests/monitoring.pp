@@ -71,4 +71,8 @@ class zabbix::monitoring {
   include zabbix::monitoring::horizon_mon
   include zabbix::monitoring::mysql_mon
   include zabbix::monitoring::memcached_mon
+  include zabbix::monitoring::haproxy_mon
+  include zabbix::monitoring::zabbixserver_mon
+  include zabbix::monitoring::openstack_virtual_mon
+  include zabbix::monitoring::firewall_mon
 }
