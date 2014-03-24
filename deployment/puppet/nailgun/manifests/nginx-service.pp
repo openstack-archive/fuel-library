@@ -1,7 +1,15 @@
-class nailgun::nginx-service {
-  service { "nginx":
-    enable => true,
-    ensure => "running",
+class nailgun::nginx-service (
+  $service_enabled = true,
+) {
+
+  if ( $service_enabled == false ){
+    $ensure = false
+  } else {
+    $ensure = 'running'
+  }
+  service { 'nginx':
+    enable => $service_enabled,
+    ensure => $ensure,
     require => Package["nginx"],
   }
   Package<| title == 'nginx'|> ~> Service<| title == 'nginx'|>

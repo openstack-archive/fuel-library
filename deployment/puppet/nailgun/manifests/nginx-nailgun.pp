@@ -1,6 +1,8 @@
 class nailgun::nginx-nailgun(
   $staticdir,
   $logdumpdir,
+  $nailgun_host = '127.0.0.1',
+  $ostf_host = '127.0.0.1',
   ) {
 
   file { "/etc/nginx/conf.d/nailgun.conf":
