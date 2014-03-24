@@ -130,7 +130,7 @@ class neutron (
     'DEFAULT/agent_down_time':        value => $neutron_config['server']['agent_down_time'];
     'DEFAULT/firewall_driver':        value => 'neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver';
     'agent/root_helper':              value => $neutron_config['root_helper'];
-    'quota/quota_driver':             value => 'neutron.db.quota_db.DbQuotaDriver';
+    'quotas/quota_driver':             value => 'neutron.db.quota_db.DbQuotaDriver';
     'keystone_authtoken/auth_host':         value => $neutron_config['keystone']['auth_host'];
     'keystone_authtoken/auth_port':         value => $neutron_config['keystone']['auth_port'];
     'keystone_authtoken/auth_protocol':     value => $neutron_config['keystone']['auth_protocol'];
