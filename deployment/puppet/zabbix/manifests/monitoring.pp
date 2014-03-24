@@ -75,4 +75,5 @@ class zabbix::monitoring {
   include zabbix::monitoring::zabbixserver_mon
   include zabbix::monitoring::openstack_virtual_mon
   include zabbix::monitoring::firewall_mon
+  include zabbix::monitoring::neutron_mon
 }
