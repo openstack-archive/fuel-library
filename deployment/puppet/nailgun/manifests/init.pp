@@ -35,6 +35,7 @@ class nailgun(
 
   $naily_version,
   $nailgun_api_url = "http://${::fuel_settings['ADMIN_NETWORK']['ipaddress']}:8000/api",
+  $rabbitmq_host = '127.0.0.1',
   $rabbitmq_naily_user = "naily",
   $rabbitmq_naily_password = "naily",
   $puppet_master_hostname = "${hostname}.${domain}",
@@ -53,6 +54,7 @@ class nailgun(
   Class["nailgun::nginx-repo"] ->
   Exec["start_nginx_repo"] ->
   Class["nailgun::user"] ->
+  Class["nailgun::rabbitmq"] ->
   Class["nailgun::logrotate"] ->
   Class["nailgun::venv"] ->
   Class["nailgun::naily"] ->
@@ -124,7 +126,8 @@ class nailgun(
 
     staticdir => $staticdir,
     templatedir => $templatedir,
-    rabbitmq_naily_user => $rabbitmq_naily_user,
+    rabbitmq_host           => $rabbitmq_host,
+    rabbitmq_naily_user     => $rabbitmq_naily_user,
     rabbitmq_naily_password => $rabbitmq_naily_password,
 
     admin_network         => ipcalc_network_by_address_netmask($::fuel_settings['ADMIN_NETWORK']['ipaddress'], $::fuel_settings['ADMIN_NETWORK']['netmask']),
@@ -138,10 +141,11 @@ class nailgun(
   }
 
   class {"nailgun::naily":
-    rabbitmq_naily_user => $naily_user,
+    rabbitmq_host           => $rabbitmq_host,
+    rabbitmq_naily_user     => $naily_user,
     rabbitmq_naily_password => $naily_password,
-    version => $naily_version,
-    gem_source => $gem_source,
+    version                 => $naily_version,
+    gem_source              => $gem_source,
   }
 
   if $production == 'prod' {
@@ -185,6 +189,7 @@ class nailgun(
     mco_user => $mco_user,
     mco_password => $mco_password,
     mco_vhost => $mco_vhost,
+    rabbitmq_host => $rabbitmq_host,
   }
 
   class { "nailgun::database":
@@ -193,19 +198,11 @@ class nailgun(
     dbname    => $database_name,
   }
 
-  rabbitmq_user { $rabbitmq_naily_user:
-    admin     => true,
-    password  => $rabbitmq_naily_password,
-    provider  => 'rabbitmqctl',
-    require   => Class['rabbitmq::server'],
-  }
-
-  rabbitmq_user_permissions { "${rabbitmq_naily_user}@/":
-    configure_permission => '.*',
-    write_permission     => '.*',
-    read_permission      => '.*',
-    provider             => 'rabbitmqctl',
-    require              => Class['rabbitmq::server'],
+  if $production !~ /docker/ {
+    class { "nailgun::rabbitmq":
+      naily_password => $rabbitmq_naily_user,
+      naily_user     => $rabbitmq_naily_user,
+    }
   }
 
   class { "nailgun::nginx-service": }

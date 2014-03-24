@@ -37,6 +37,7 @@ node default {
   $mco_password = "marionette"
   $mco_connector = "rabbitmq"
 
+  $rabbitmq_host = $::fuel_settings['ADMIN_NETWORK']['ipaddress']
   $rabbitmq_naily_user = "naily"
   $rabbitmq_naily_password = "naily"
 
@@ -94,6 +95,7 @@ node default {
     mco_password => $mco_password,
     mco_connector => "rabbitmq",
 
+    rabbitmq_host => $rabbitmq_host,
     rabbitmq_naily_user => $rabbitmq_naily_user,
     rabbitmq_naily_password => $rabbitmq_naily_password,
     puppet_master_hostname => $puppet_master_hostname,
