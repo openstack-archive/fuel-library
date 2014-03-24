@@ -1,6 +1,7 @@
 class nailgun::supervisor(
   $nailgun_env,
   $ostf_env,
+  $conf_file => "nailgun/supervisord.conf.erb",
   ) {
 
   file { "/etc/sysconfig/supervisord":
@@ -22,7 +23,7 @@ class nailgun::supervisor(
 
 
   file { "/etc/supervisord.conf":
-    content => template("nailgun/supervisord.conf.erb"),
+    content => template($conf_file),
     owner => 'root',
     group => 'root',
     mode => 0644,

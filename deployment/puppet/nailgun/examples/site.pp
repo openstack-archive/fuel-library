@@ -67,11 +67,10 @@ node default {
   class { "nailgun":
     package => "Nailgun",
     version => "0.1.0",
-    production => $production,
     astute_version => "0.0.2",
     nailgun_group => "nailgun",
     nailgun_user => "nailgun",
-    venv => $env_path,
+    venv => "/opt/nailgun",
 
     pip_index => "--no-index",
     pip_find_links => "-f file://${pip_repo}",
