@@ -94,7 +94,7 @@ stderr_events_enabled=false
 serverurl=AUTO
 
 [program:ostf]
-command=<%= @ostf_env %>/bin/ostf-server --host=127.0.0.1 --port=8777 --log_file=/var/log/ostf.log --dbpath postgresql+psycopg2://ostf:ostf@127.0.0.1:5432/ostf
+command=<%= ostf_env %>/bin/ostf-server --host=<%= scope.lookupvar('nailgun::ostf::host') %> --port=8777 --log_file=<%= scope.lookupvar('nailgun::ostf::logfile' %> --dbpath <%= scope.lookupvar('nailgun::ostf::dbengine')://<%= scope.lookupvar('nailgun::ostf::dbuser') %>:<%= scope.lookupvar('nailgun::ostf::dbpass') %>@<%= scope.lookupvar('nailgun::ostf::dbhost') %>:<%= scope.lookupvar('nailgun::ostf::dbport') %>/<%= scope.lookupvar('nailgun::ostf::dbport') %>
 process_name=%(program_name)s
 numprocs=1
 numprocs_start=0

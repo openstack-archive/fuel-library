@@ -101,18 +101,18 @@ class nailgun::venv(
     ensure  => link,
     target  => "/opt/nailgun/bin/fuel",
   }
+  if $production != "docker-build" {
+    exec {"nailgun_syncdb":
+      command => "${venv}/bin/nailgun_syncdb",
+      require => [
+                  File["/etc/nailgun/settings.yaml"],
+                  ],
+    }
 
-  exec {"nailgun_syncdb":
-    command => "${venv}/bin/nailgun_syncdb",
-    require => [
-                File["/etc/nailgun/settings.yaml"],
-                Class["nailgun::database"],
-                ],
-  }
-
-  exec {"nailgun_upload_fixtures":
-    command => "${venv}/bin/nailgun_fixtures",
-    require => Exec["nailgun_syncdb"],
+    exec {"nailgun_upload_fixtures":
+      command => "${venv}/bin/nailgun_fixtures",
+      require => Exec["nailgun_syncdb"],
+    }
   }
 
   file {"/etc/cron.daily/capacity":
