@@ -146,10 +146,13 @@ class osnailyfacter::cluster_simple {
     $primary_mons   = $controller
     $primary_mon    = $controller[0]['name']
     class {'ceph':
-      primary_mon                      => $primary_mon,
-      cluster_node_address             => $controller_node_public,
-      use_rgw                          => $storage_hash['objects_ceph'],
-      glance_backend                   => $glance_backend,
+      primary_mon          => $primary_mon,
+      cluster_node_address => $controller_node_public,
+      use_rgw              => $storage_hash['objects_ceph'],
+      glance_backend       => $glance_backend,
+      rgw_pub_ip           => $controller_node_public,
+      rgw_adm_ip           => $controller_node_address,
+      rgw_int_ip           => $controller_node_address,
     }
   }
 
