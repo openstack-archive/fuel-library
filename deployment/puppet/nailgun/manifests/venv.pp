@@ -102,29 +102,37 @@ class nailgun::venv(
     target  => "/opt/nailgun/bin/fuel",
   }
 
-  if $production == 'prod' {
-    exec {"nailgun_syncdb":
-      command => "${venv}/bin/nailgun_syncdb",
-      require => [
-                  File["/etc/nailgun/settings.yaml"],
-                  Class["nailgun::database"],
-                  ],
-    }
-  } else {
-    exec {"nailgun_syncdb":
-      command => "${venv}/bin/nailgun_syncdb",
-      require => [
-                  File["/etc/nailgun/settings.yaml"],
-                  Nailgun::Venv::Pip["${venv}_${package}"],
-                  Nailgun::Venv::Pip["${venv}_psycopg2"],
-                  Class["nailgun::database"],
-                  ],
-    }
-  }
+  case $production {
+    'prod': {
+      exec {"nailgun_syncdb":
+        command => "${venv}/bin/nailgun_syncdb",
+        require => [
+                    File["/etc/nailgun/settings.yaml"],
+                    Class["nailgun::database"],
+                    ],
+      }
+      exec {"nailgun_upload_fixtures":
+        command => "${venv}/bin/nailgun_fixtures",
+        require => Exec["nailgun_syncdb"],
+      }
 
-  exec {"nailgun_upload_fixtures":
-    command => "${venv}/bin/nailgun_fixtures",
-    require => Exec["nailgun_syncdb"],
+    }
+    'dev': {
+      exec {"nailgun_syncdb":
+        command => "${venv}/bin/nailgun_syncdb",
+        require => [
+                    File["/etc/nailgun/settings.yaml"],
+                    Nailgun::Venv::Pip["${venv}_${package}"],
+                    Nailgun::Venv::Pip["${venv}_psycopg2"],
+                    Class["nailgun::database"],
+                    ],
+      }
+      exec {"nailgun_upload_fixtures":
+        command => "${venv}/bin/nailgun_fixtures",
+        require => Exec["nailgun_syncdb"],
+      }
+
+    }
   }
 
   file {"/etc/cron.daily/capacity":

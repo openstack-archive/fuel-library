@@ -115,12 +115,12 @@ class nailgun(
     nailgun_user => $nailgun_user,
     nailgun_group => $nailgun_group,
 
-    database_name => "nailgun",
-    database_engine => "postgresql",
-    database_host => "localhost",
-    database_port => "5432",
-    database_user => "nailgun",
-    database_passwd => "nailgun",
+    database_name   => $database_name,
+    database_engine => $database_engine,
+    database_host   => $database_host,
+    database_port   => $database_port,
+    database_user   => $database_user,
+    database_passwd => $database_passwd,
 
     staticdir => $staticdir,
     templatedir => $templatedir,
@@ -187,10 +187,15 @@ class nailgun(
     mco_vhost => $mco_vhost,
   }
 
-  class { "nailgun::database":
-    user      => $database_user,
-    password  => $database_passwd,
-    dbname    => $database_name,
+  if $production !~ /docker/ {
+    class { "nailgun::database":
+      user      => $database_user,
+      password  => $database_passwd,
+      dbname    => $database_name,
+    }
+
+    Class["nailgun::database"] ->
+    Class["nailgun::venv"]
   }
 
   rabbitmq_user { $rabbitmq_astute_user:
