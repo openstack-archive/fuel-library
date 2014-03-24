@@ -35,7 +35,6 @@ class nailgun::supervisor(
     enable => true,
     require => [
                 Package["supervisor"],
-                Service["rabbitmq-server"],
                 File["/var/log/nailgun"],
                 File["/var/log/astute"],
                 ],
