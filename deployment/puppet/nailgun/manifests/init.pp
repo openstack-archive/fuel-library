@@ -54,6 +54,7 @@ class nailgun(
   Exec["start_nginx_repo"] ->
   Class["nailgun::user"] ->
   Class["nailgun::logrotate"] ->
+  Class["nailgun::rabbitmq"] ->
   Class["nailgun::venv"] ->
   Class["nailgun::astute"] ->
   Class["nailgun::nginx-nailgun"] ->
@@ -198,19 +199,13 @@ class nailgun(
     Class["nailgun::venv"]
   }
 
-  rabbitmq_user { $rabbitmq_astute_user:
-    admin     => true,
-    password  => $rabbitmq_astute_password,
-    provider  => 'rabbitmqctl',
-    require   => Class['rabbitmq::server'],
-  }
-
-  rabbitmq_user_permissions { "${rabbitmq_astute_user}@/":
-    configure_permission => '.*',
-    write_permission     => '.*',
-    read_permission      => '.*',
-    provider             => 'rabbitmqctl',
-    require              => Class['rabbitmq::server'],
+  class { "nailgun::rabbitmq":
+    production      => $production,
+    astute_user     => $rabbitmq_astute_user,
+    astute_password => $rabbitmq_astute_password,
+    mco_user        => $mco_user,
+    mco_password    => $mco_password,
+    mco_vhost       => $mco_vhost,
   }
 
   class { "nailgun::nginx-service": }
