@@ -50,13 +50,11 @@ class nailgun(
   Anchor<| title == "nailgun-begin" |> ->
   Class["nailgun::packages"] ->
   Class["nailgun::iptables"] ->
-  Class["nailgun::nginx-repo"] ->
-  Exec["start_nginx_repo"] ->
   Class["nailgun::user"] ->
   Class["nailgun::logrotate"] ->
   Class["nailgun::venv"] ->
   Class["nailgun::naily"] ->
-  Class["nailgun::nginx-nailgun"] ->
+  Class["nailgun::nginx"] ->
   Class["nailgun::cobbler"] ->
   Class["openstack::logging"] ->
   Class["nailgun::supervisor"] ->
@@ -71,17 +69,6 @@ class nailgun(
     state   => ['RELATED', 'ESTABLISHED'],
     action  => 'accept',
   } -> class { "nailgun::iptables": }
-
-  file { ["/etc/nginx/conf.d/default.conf",
-          "/etc/nginx/conf.d/virtual.conf",
-          "/etc/nginx/conf.d/ssl.conf"]:
-    ensure => "absent",
-    notify => Service["nginx"],
-    before => [
-               Class["nailgun::nginx-repo"],
-               Class["nailgun::nginx-nailgun"],
-               ],
-  }
 
   class {openstack::logging:
     role           => 'server',
@@ -157,20 +144,11 @@ class nailgun(
     ostf_env => $env_path,
   }
 
-  class { "nailgun::nginx-repo":
-    repo_root => $repo_root,
-    notify => Service["nginx"],
-  }
-
-  exec { "start_nginx_repo":
-    command => "/etc/init.d/nginx start",
-    unless => "/etc/init.d/nginx status | grep -q running",
-  }
-
-  class { "nailgun::nginx-nailgun":
-    staticdir => $staticdir,
+  class { "nailgun::nginx":
+    repo_root  => $repo_root,
+    staticdir  => $staticdir,
     logdumpdir => $logdumpdir,
-    notify => Service["nginx"],
+    production => $production,
   }
 
   class { "nailgun::cobbler":
@@ -207,8 +185,6 @@ class nailgun(
     provider             => 'rabbitmqctl',
     require              => Class['rabbitmq::server'],
   }
-
-  class { "nailgun::nginx-service": }
 
   class { "nailgun::logrotate": }
 

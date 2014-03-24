@@ -1,5 +1,5 @@
 upstream nailgun-application {
-    server 127.0.0.1:8001;
+    server <%= nailgun_host %>:8001;
 }
 
 server {
@@ -24,15 +24,15 @@ server {
 
     location /static {
         autoindex on;
-        alias <%= @staticdir %>;
+        alias <%= staticdir %>;
     }
 
     location /dump {
-        alias <%= @logdumpdir %>;
+        alias <%= logdumpdir %>;
     }
 
     location ~ ^/ostf/(.*) {
-        proxy_pass http://127.0.0.1:8777/v1/$1;
+        proxy_pass http://<%= ostf_host %>:8777/v1/$1;
         proxy_buffering off;
     }
 
