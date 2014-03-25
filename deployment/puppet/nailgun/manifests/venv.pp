@@ -18,8 +18,8 @@ class nailgun::venv(
   $staticdir,
   $templatedir,
 
-  $rabbitmq_naily_user,
-  $rabbitmq_naily_password,
+  $rabbitmq_astute_user,
+  $rabbitmq_astute_password,
 
   $admin_network,
   $admin_network_cidr,

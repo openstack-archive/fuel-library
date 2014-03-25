@@ -36,7 +36,7 @@ class nailgun::supervisor(
                 Package["supervisor"],
                 Service["rabbitmq-server"],
                 File["/var/log/nailgun"],
-                File["/var/log/naily"],
+                File["/var/log/astute"],
                 ],
   }
 
