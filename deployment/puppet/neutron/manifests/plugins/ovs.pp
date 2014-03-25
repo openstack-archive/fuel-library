@@ -57,6 +57,10 @@ class neutron::plugins::ovs (
     ensure  => link,
     target  => '/etc/neutron/plugins/openvswitch/ovs_neutron_plugin.ini',
   }
+  if $neutron_config['L2']['segmentation_type'] == 'vxlan' {
+    neutron_plugin_ovs { 'AGENT/tunnel_types':
+      value => 'vxlan',
+    }
   neutron_plugin_ovs {
     'DEFAULT/log_dir':             ensure => absent;
     'DEFAULT/log_file':            ensure => absent;
