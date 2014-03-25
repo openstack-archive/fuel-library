@@ -123,7 +123,10 @@ class MrntNeutronNR
         network_config[:net][:segment_id] = _segment_id
       elsif network_config[:net][:network_type].downcase == 'vlan'
         # vlan without physnet
-        raise(Puppet::ParseError, "Unrecognized segmentation ID or VLAN range for net '#{net}', binding to '#{ncfg[:L2][:physnet]}'")
+        raise(Puppet::ParseError, "Unrecognized segmentation ID or VLAN range for net '#{net}', binding to '#{ncfg[:L2][:physnet]}'")a
+      elsif network_config[:net][:network_type].downcase == 'vxlan'
+        network_config[:net][:physnet] = nil
+        network_config[:net][:segment_id] = @neutron_config[:L2][:tunnel_id_ranges].split(':')[0].to_i
       #else # another network types -- do nothing...
       end
       Puppet::debug("-*- using segment_id='#{network_config[:net][:segment_id]}' for net '#{net}'")
