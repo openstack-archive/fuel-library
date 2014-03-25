@@ -3,10 +3,11 @@
 # require 'json'
 
 class MrntNeutronNR
-  def initialize(scope, cfg)
+  def initialize(scope, cfg, tenant_name)
     @scope = scope
     @neutron_config = cfg
-    @tenant_name = nil
+    #FIXME(mmosesohn): Add correct user-defined tenant to neutron_config
+    @tenant_name = tenant_name
   end
 
   #class method
@@ -38,9 +39,9 @@ class MrntNeutronNR
   end
 
   def get_tenant()
-    return @tenant_name if @tenant_name
-    as = @neutron_config[:predefined_routers] || {:tenant=>"admin"}
-    @tenant_name = as[:tenant]
+    #FIXME(mmosesohn): Add correct user-defined tenant to neutron_config
+    #@neutron_config[:predefined_routers][:tenant]
+    @tenant_name
   end
 
   def get_default_router_config()
@@ -115,6 +116,9 @@ class MrntNeutronNR
         network_config[:net][:segment_id] = ncfg[:L2][:segment_id]  ?  ncfg[:L2][:segment_id]  :  segment_id
         segment_id += 1
         network_config[:net][:physnet] = nil # do not pass this parameter in this segmentation type
+      elsif network_config[:net][:network_type].downcase == 'vxlan'
+        network_config[:net][:physnet] = nil
+        network_config[:net][:segment_id] = @neutron_config[:L2][:tunnel_id_ranges].split(':')[0].to_i
       elsif network_config[:net][:network_type].downcase == 'vlan' && ncfg[:L2][:physnet]
         # Calculate segment_id for VLAN mode from personal physnet settings
         _physnet = ncfg[:L2][:physnet].to_sym
@@ -165,7 +169,9 @@ class MrntNeutronNR
         # config router
         router_config = get_default_router_config()
         router_config[:name] = rou.to_s
-        router_config[:tenant] = rcfg[:tenant]
+        #FIXME(mmosesohn): Add correct user-defined tenant to rcfg in astute.yaml
+        #rcfg[:tenant] && router_config[:tenant] = rcfg[:tenant]
+        router_config[:tenant] = get_tenant()
         router_config[:ext_net] = rcfg[:external_network] #"rcfg[:external_network]__subnet"
         #todo: realize
         router_config[:int_subnets] = rcfg[:internal_networks].map{|x| "#{x}__subnet"}
@@ -200,7 +206,8 @@ module Puppet::Parser::Functions
     EOS
   ) do |argv|
     #Puppet::Parser::Functions.autoloader.loadall
-    nr_conf = MrntNeutronNR.new(self, MrntNeutronNR.sanitize_hash(argv[0]))
+    #FIXME(mmosesohn): Add correct user-defined tenant to rcfg in astute.yaml and remove argv[1]
+    nr_conf = MrntNeutronNR.new(self, MrntNeutronNR.sanitize_hash(argv[0]), argv[1])
     nr_conf.create_resources()
   end
 end
