@@ -15,7 +15,8 @@ childlogdir=/var/log/supervisor
 serverurl=unix:///var/run/supervisor.sock
 
 [program:nailgun]
-command=/usr/bin/nailgund
+#command=/usr/bin/nailgund
+command=uwsgi -y /etc/nailgun/uwsgi_nailgun.yaml
 process_name=%(program_name)s
 numprocs=1
 numprocs_start=0
@@ -27,7 +28,7 @@ exitcodes=0,2
 stopsignal=INT
 stopwaitsecs=60
 redirect_stderr=true
-stdout_logfile=/var/log/nailgun/app.log
+stdout_logfile=/var/log/nailgun/uwsgi.log
 stdout_capture_maxbytes=0
 stdout_events_enabled=false
 serverurl=AUTO
