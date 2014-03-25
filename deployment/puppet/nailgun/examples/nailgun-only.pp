@@ -114,6 +114,8 @@ class { "nailgun::venv":
 
   puppet_master_hostname => $puppet_master_hostname,
 }
+class { 'nailgun::uwsgi':
+}
 class { "nailgun::supervisor":
   nailgun_env   => $env_path,
   ostf_env      => $env_path,
