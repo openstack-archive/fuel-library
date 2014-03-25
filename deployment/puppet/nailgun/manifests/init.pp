@@ -162,6 +162,10 @@ class nailgun(
     notify => Service["nginx"],
   }
 
+  class { "nailgun::uwsgi":
+    venv => $venv,
+  }
+
   class { "nailgun::cobbler":
     cobbler_user => "cobbler",
     cobbler_password => "cobbler",
