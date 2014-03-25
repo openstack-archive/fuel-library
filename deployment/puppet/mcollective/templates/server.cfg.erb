@@ -17,20 +17,20 @@ ttl = 2000000000
 securityprovider = psk
 plugin.psk = <%= @pskey %>
 
-<% if scope.lookupvar('mcollective::client::stomp') -%>
+<% if scope.lookupvar('mcollective::server::stomp') -%>
 connector = stomp
-plugin.stomp.host = <%= scope.lookupvar('mcollective::client::host') %>
-plugin.stomp.port = <%= scope.lookupvar('mcollective::client::stompport') %>
-plugin.stomp.user = <%= scope.lookupvar('mcollective::client::user') %>
-plugin.stomp.password = <%= scope.lookupvar('mcollective::client::password') %>
+plugin.stomp.host = <%= scope.lookupvar('mcollective::server::host') %>
+plugin.stomp.port = <%= scope.lookupvar('mcollective::server::stompport') %>
+plugin.stomp.user = <%= scope.lookupvar('mcollective::server::user') %>
+plugin.stomp.password = <%= scope.lookupvar('mcollective::server::password') %>
 <% else -%>
 connector = rabbitmq
-plugin.rabbitmq.vhost = <%= scope.lookupvar('mcollective::client::vhost') %>
+plugin.rabbitmq.vhost = <%= scope.lookupvar('mcollective::server::vhost') %>
 plugin.rabbitmq.pool.size = 1
-plugin.rabbitmq.pool.1.host = <%= scope.lookupvar('mcollective::client::host') %>
-plugin.rabbitmq.pool.1.port = <%= scope.lookupvar('mcollective::client::stompport') %>
-plugin.rabbitmq.pool.1.user = <%= scope.lookupvar('mcollective::client::user') %>
-plugin.rabbitmq.pool.1.password = <%= scope.lookupvar('mcollective::client::password') %>
+plugin.rabbitmq.pool.1.host = <%= scope.lookupvar('mcollective::server::host') %>
+plugin.rabbitmq.pool.1.port = <%= scope.lookupvar('mcollective::server::stompport') %>
+plugin.rabbitmq.pool.1.user = <%= scope.lookupvar('mcollective::server::user') %>
+plugin.rabbitmq.pool.1.password = <%= scope.lookupvar('mcollective::server::password') %>
 <% end -%>
 
 # Facts
