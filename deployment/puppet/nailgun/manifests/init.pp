@@ -32,10 +32,10 @@ class nailgun(
   $mco_password = "marionette",
   $mco_connector = "rabbitmq",
 
-  $naily_version,
+  $astute_version,
   $nailgun_api_url = "http://${::fuel_settings['ADMIN_NETWORK']['ipaddress']}:8000/api",
-  $rabbitmq_naily_user = "naily",
-  $rabbitmq_naily_password = "naily",
+  $rabbitmq_astute_user = "naily",
+  $rabbitmq_astute_password = "naily",
   $puppet_master_hostname = "${hostname}.${domain}",
   $puppet_master_ip = $ipaddress,
 
@@ -54,7 +54,7 @@ class nailgun(
   Class["nailgun::user"] ->
   Class["nailgun::logrotate"] ->
   Class["nailgun::venv"] ->
-  Class["nailgun::naily"] ->
+  Class["nailgun::astute"] ->
   Class["nailgun::nginx-nailgun"] ->
   Class["nailgun::cobbler"] ->
   Class["openstack::logging"] ->
@@ -122,8 +122,8 @@ class nailgun(
 
     staticdir => $staticdir,
     templatedir => $templatedir,
-    rabbitmq_naily_user => $rabbitmq_naily_user,
-    rabbitmq_naily_password => $rabbitmq_naily_password,
+    rabbitmq_astute_user => $rabbitmq_astute_user,
+    rabbitmq_astute_password => $rabbitmq_astute_password,
 
     admin_network         => ipcalc_network_by_address_netmask($::fuel_settings['ADMIN_NETWORK']['ipaddress'], $::fuel_settings['ADMIN_NETWORK']['netmask']),
     admin_network_cidr    => ipcalc_network_cidr_by_netmask($::fuel_settings['ADMIN_NETWORK']['netmask']),
@@ -135,10 +135,10 @@ class nailgun(
 
   }
 
-  class {"nailgun::naily":
-    rabbitmq_naily_user => $naily_user,
-    rabbitmq_naily_password => $naily_password,
-    version => $naily_version,
+  class {"nailgun::astute":
+    rabbitmq_astute_user => $astute_user,
+    rabbitmq_astute_password => $astute_password,
+    version => $astute_version,
     gem_source => $gem_source,
   }
 
@@ -182,14 +182,14 @@ class nailgun(
     dbname    => $database_name,
   }
 
-  rabbitmq_user { $rabbitmq_naily_user:
+  rabbitmq_user { $rabbitmq_astute_user:
     admin     => true,
-    password  => $rabbitmq_naily_password,
+    password  => $rabbitmq_astute_password,
     provider  => 'rabbitmqctl',
     require   => Class['rabbitmq::server'],
   }
 
-  rabbitmq_user_permissions { "${rabbitmq_naily_user}@/":
+  rabbitmq_user_permissions { "${rabbitmq_astute_user}@/":
     configure_permission => '.*',
     write_permission     => '.*',
     read_permission      => '.*',

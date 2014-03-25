@@ -27,8 +27,8 @@ node default {
   $mco_password = "marionette"
   $mco_connector = "rabbitmq"
 
-  $rabbitmq_naily_user = "naily"
-  $rabbitmq_naily_password = "naily"
+  $rabbitmq_astute_user = "naily"
+  $rabbitmq_astute_password = "naily"
 
   $repo_root = "/var/www/nailgun"
   $pip_repo = "/var/www/nailgun/eggs"
@@ -51,7 +51,7 @@ node default {
   class { "nailgun":
     package => "Nailgun",
     version => "0.1.0",
-    naily_version => "0.1.0",
+    astute_version => "0.0.2",
     nailgun_group => "nailgun",
     nailgun_user => "nailgun",
     venv => "/opt/nailgun",
@@ -83,8 +83,8 @@ node default {
     mco_password => $mco_password,
     mco_connector => "rabbitmq",
 
-    rabbitmq_naily_user => $rabbitmq_naily_user,
-    rabbitmq_naily_password => $rabbitmq_naily_password,
+    rabbitmq_astute_user => $rabbitmq_astute_user,
+    rabbitmq_astute_password => $rabbitmq_astute_password,
     puppet_master_hostname => $puppet_master_hostname,
     puppet_master_ip => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
   }
