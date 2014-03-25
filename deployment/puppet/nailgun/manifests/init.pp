@@ -203,6 +203,10 @@ class nailgun(
     notify => Service["nginx"],
   }
 
+  class { "nailgun::uwsgi":
+    venv => $venv,
+  }
+
   class { "nailgun::cobbler":
     production         => $production,
     centos_repos       => $centos_repos,
