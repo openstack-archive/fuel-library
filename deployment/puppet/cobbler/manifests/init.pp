@@ -55,8 +55,7 @@ class cobbler(
   $cobbler_user       = 'cobbler',
   $cobbler_password   = 'cobbler',
 
-  $pxetimeout         = '0'
-
+  $pxetimeout         = '0',
   ){
 
   anchor { "cobbler-begin": }
