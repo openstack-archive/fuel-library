@@ -129,6 +129,7 @@ class ceilometer(
     File['ceilometer-logging.conf'] ~> Service <| title == 'ceilometer-agent-compute' |>
   } else { #other syslog debug or nonsyslog debug/nondebug cases
     ceilometer_config {
+      'DEFAULT/log_config': ensure => absent;
       'DEFAULT/log_dir': value => $::ceilometer::params::log_dir;
       'DEFAULT/use_syslog': value =>  false;
     }

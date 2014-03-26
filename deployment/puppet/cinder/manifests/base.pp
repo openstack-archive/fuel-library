@@ -66,6 +66,7 @@ class cinder::base (
     File['cinder-logging.conf'] ~> Service <| title == 'cinder-scheduler' |>
   } else { #other syslog debug or nonsyslog debug/nondebug cases
     cinder_config {
+      'DEFAULT/log_config': ensure=> absent;
       'DEFAULT/logdir': value=> $log_dir;
       'DEFAULT/use_syslog': value =>  false;
     }
