@@ -41,6 +41,7 @@
 class cobbler(
 
   $server             = $ipaddress,
+  $production         = "prod",
 
   $domain_name        = 'local',
   $name_server        = $ipaddress,
@@ -55,8 +56,7 @@ class cobbler(
   $cobbler_user       = 'cobbler',
   $cobbler_password   = 'cobbler',
 
-  $pxetimeout         = '0'
-
+  $pxetimeout         = '0',
   ){
 
   anchor { "cobbler-begin": }
@@ -72,10 +72,16 @@ class cobbler(
 
   class { ::cobbler::packages : }
   class { ::cobbler::selinux : }
-  class { ::cobbler::iptables : }
+
+  if $production !~ /docker/ {
+    class { ::cobbler::iptables : }
+    Class["::cobbler::iptables"] ->
+    Class["::cobbler::server"]
+  }
+
   class { ::cobbler::snippets : }
   class { ::cobbler::server : }
-
+  
   cobbler_digest_user {$cobbler_user:
     password => $cobbler_password,
     require => Package[$cobbler::packages::cobbler_package],

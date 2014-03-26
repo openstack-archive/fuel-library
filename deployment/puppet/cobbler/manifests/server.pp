@@ -54,21 +54,41 @@ class cobbler::server {
 
   Service[$cobbler_service] -> Exec["cobbler_sync"] -> Service[$dnsmasq_service]
 
-  service { $cobbler_service:
-    enable     => true,
-    ensure     => running,
-    hasrestart => true,
-    require    => Package[$cobbler::packages::cobbler_package],
-  }
+  if $production !~ /docker/ {
+    service { $cobbler_service:
+      enable     => true,
+      ensure     => running,
+      hasrestart => true,
+      require    => Package[$cobbler::packages::cobbler_package],
+    }
 
-  service { $dnsmasq_service:
-    enable     => true,
-    ensure     => running,
-    hasrestart => true,
-    require    => Package[$cobbler::packages::dnsmasq_package],
-    subscribe  => Exec["cobbler_sync"],
-  }
+    service { $dnsmasq_service:
+      enable     => true,
+      ensure     => running,
+      hasrestart => true,
+      require    => Package[$cobbler::packages::dnsmasq_package],
+      subscribe  => Exec["cobbler_sync"],
+    }
+  } else {
+    service { $cobbler_service:
+      enable     => false,
+      ensure     => false,
+      hasrestart => true,
+      require    => Package[$cobbler::packages::cobbler_package],
+    }
 
+    service { $dnsmasq_service:
+      enable     => false,
+      ensure     => false,
+      hasrestart => true,
+      require    => Package[$cobbler::packages::dnsmasq_package],
+      subscribe  => Exec["cobbler_sync"],
+    }
+    exec { 'start cobblerd':
+      command => '/usr/sbin/cobblerd',
+      require => Package[$cobbler::packages::cobbler_package],
+    }
+  }
   if $apache_ssl_module {
     file { '/etc/apache2/mods-enabled/ssl.load':
       ensure => link,
@@ -167,12 +187,13 @@ class cobbler::server {
     group   => root,
     mode    => 0755,
   }
-
-  file { "/etc/resolv.conf":
-    content => template("cobbler/resolv.conf.erb"),
-    owner   => root,
-    group   => root,
-    mode    => 0644,
+  if $production !~ /docker/ {
+    file { "/etc/resolv.conf":
+      content => template("cobbler/resolv.conf.erb"),
+      owner   => root,
+      group   => root,
+      mode    => 0644,
+    }
   }
 
 }
