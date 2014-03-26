@@ -1,13 +1,20 @@
 class nailgun::cobbler(
   $cobbler_user = "cobbler",
   $cobbler_password = "cobbler",
-
-#  $ubuntu_repos,
   $centos_repos,
+  $production,
   $gem_source,
 
   $ks_system_timezone         = "Etc/UTC",
-
+  $server = $::ipaddress,
+  $name_server = $::ipaddress,
+  $next_server = $::ipaddress,
+  $dhcp_start_address,
+  $dhcp_end_address,
+  $dhcp_netmask,
+  $dhcp_gateway = $ipaddress,
+  $dhcp_interface,
+  $nailgun_api_url = $::ipaddress,
   # default password is 'r00tme'
   $ks_encrypted_root_password = "\$6\$tCD3X7ji\$1urw6qEMDkVxOkD33b4TpQAjRiCeDZx0jmgMhDYhfB9KuGfqO9OcMaKyUxnGGWslEDQ4HxTw7vcAMP85NxQe61",
 
@@ -21,17 +28,18 @@ class nailgun::cobbler(
   Anchor<| title == "nailgun-cobbler-end" |>
 
   class { "::cobbler":
-    server              => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
+    server              => $server,
+    production          => $production,
 
     domain_name         => $domain,
-    name_server         => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
-    next_server         => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
+    name_server         => $name_server,
+    next_server         => $next_server,
 
-    dhcp_start_address  => $::fuel_settings['ADMIN_NETWORK']['dhcp_pool_start'],
-    dhcp_end_address    => $::fuel_settings['ADMIN_NETWORK']['dhcp_pool_end'],
-    dhcp_netmask        => $::fuel_settings['ADMIN_NETWORK']['netmask'],
-    dhcp_gateway        => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
-    dhcp_interface      => $::fuel_settings['ADMIN_NETWORK']['interface'],
+    dhcp_start_address  => $dhcp_start_address,
+    dhcp_end_address    => $dhcp_end_address,
+    dhcp_netmask        => $dhcp_netmask,
+    dhcp_gateway        => $dhcp_gateway,
+    dhcp_interface      => $dhcp_interface,
 
     cobbler_user        => $cobbler_user,
     cobbler_password    => $cobbler_password,
@@ -46,7 +54,6 @@ class nailgun::cobbler(
     group    => 'root',
     source   => "puppet:///modules/nailgun/puppet-stdout.conf",
     require  => Class['::cobbler::server'],
-    notify   => Class['rsyslog::service'],
   }
 
   file { "/var/www/cobbler/aux/20-puppet_error_syslog.conf":
@@ -55,12 +62,18 @@ class nailgun::cobbler(
     group    => 'root',
     source   => "puppet:///modules/nailgun/puppet-error.conf",
     require  => Class['::cobbler::server'],
-    notify   => Class['rsyslog::service'],
+  }
+
+  package { "send2syslog":
+    ensure => installed,
   }
 
   file { "/var/www/cobbler/aux/send2syslog.py":
     ensure => '/bin/send2syslog.py',
-    require => Class["::cobbler::server"],
+    require => [
+               Class["::cobbler::server"],
+               Package['send2syslog'],
+               ]
   }
 
   file { "/etc/cobbler/power/fence_ssh.template":
@@ -194,5 +207,11 @@ class nailgun::cobbler(
     mode    => '0644',
   }
 
-}
+  #FIXME(mattymo): move pubkey to astute fact or download it
+  exec { "cp /root/.ssh/id_rsa.pub /etc/cobbler/authorized_keys":
+    command => "cp /root/.ssh/id_rsa.pub /etc/cobbler/authorized_keys",
+    creates => "/etc/cobbler/authorized_keys",
+    require => Class["::cobbler::server"],
+  }
 
+}

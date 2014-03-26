@@ -41,6 +41,7 @@
 class cobbler(
 
   $server             = $ipaddress,
+  $production         = 'prod',
 
   $domain_name        = 'local',
   $name_server        = $ipaddress,
@@ -76,6 +77,7 @@ class cobbler(
   class { ::cobbler::snippets : }
   class { ::cobbler::server :
     domain_name => $domain_name,
+    production  => $production,
   }
 
   cobbler_digest_user {$cobbler_user:
