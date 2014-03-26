@@ -587,6 +587,26 @@ class PreseedPManager(object):
             return "-f"
         return ""
 
+    def _umount_target(self):
+        self.late("umount /target/dev")
+        self.late("umount /target/sys")
+        self.late("umount /target/proc"
+        self.late("umount /target/boot")
+        self.late("umount /target")
+        self.late("swapoff {0}{1}4".format(self.os_disk,
+            self._pseparator(self.os_disk)))
+
+    def _mount_target(self):
+        self.late("mount {0}{1}3 /target".format(self.os_disk,
+            self._pseparator(self.os_disk)))
+        self.late("mount {0}{1}2 /target/boot".format(self.os_disk,
+            self._pseparator(self.os_disk)))
+        self.late("mount -t proc none /target/proc")
+        self.late("mount -o bind /dev /target/dev")
+        self.late("mount -o bind /sys /target/sys")
+        self.late("swapon {0}{1}4".format(self.os_disk,
+            self._pseparator(self.os_disk)))
+
     def pcount(self, disk_id, increment=0):
         self._pcount[disk_id] = self._pcount.get(disk_id, 0) + increment
         return self._pcount.get(disk_id, 0)
@@ -690,15 +710,18 @@ class PreseedPManager(object):
         we then destroy.
         """
         self.recipe("1 1 -1 ext3 $gptonly{ } method{ keep } .")
+        self._umount_target()
         self.late("parted {0} rm 5".format(self.os_disk))
         self.late("sleep 3")
         self.late("hdparm -z {0}".format(self.os_disk))
+        self._mount_target()
 
     def partitions(self):
         ceph_osds = self.num_ceph_osds()
         journals_left = ceph_osds
         ceph_journals = self.num_ceph_journals()
 
+        self._umount_target()
         for disk in self.iterdisks():
             for part in filter(lambda p: p["type"] == "partition" and
                                p["mount"] != "/boot", disk["volumes"]):
@@ -802,6 +825,7 @@ class PreseedPManager(object):
                                   part.get("file_system", "xfs"),
                                   ("defaults" if part["mount"] != "swap"
                                    else "sw" )))
+        self._mount_target()
 
     def lv(self):
         self.log_lvm("before creating lvm", False)
@@ -809,6 +833,7 @@ class PreseedPManager(object):
         devices_dict = {}
         pvlist = []
 
+        self._umount_target()
         for disk in self.iterdisks():
             for pv in [p for p in disk["volumes"]
                        if p["type"] == "pv" and p["vg"] != "os"]:
@@ -871,6 +896,7 @@ class PreseedPManager(object):
             self.late("vgcreate -s 32m {0} {1}".format(vg, " ".join(devs)))
 
         self.log_lvm("after vgcreate", False)
+        self._mount_target()
 
         for vg in [v for v in self.data
                    if v["type"] == "vg" and v["id"] != "os"]:
@@ -920,10 +946,8 @@ class PreseedPManager(object):
                   "GRUB_CMDLINE_LINUX=\"console=tty0 "
                   "rootdelay=90 nomodeset "
                   "console=ttyS0,9600\"/g' /etc/default/grub", True)
-        self.late("umount /target/proc")
-        self.late("mount -o bind /proc /target/proc")
-        self.late("umount /target/sys")
-        self.late("mount -o bind /sys /target/sys")
+        self._umount_target()
+        self._mount_target()
         self.late("grub-mkconfig", True)
         self.late("grub-mkdevicemap", True)
         for disk in self.iterdisks():
