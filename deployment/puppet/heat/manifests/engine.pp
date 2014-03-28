@@ -90,5 +90,8 @@ class heat::engine (
   File['/etc/heat/heat.conf'] ~> Service['heat-engine']
   Class['heat::db'] -> Service['heat-engine']
   Heat_config<||> -> Exec['heat_db_sync'] -> Service['heat-engine']
-
+  Package<| title == 'heat-engine'|> ~> Service<| title == 'heat-engine'|>
+  if !defined(Service['heat-engine']) {
+    notify{ "Module ${module_name} cannot notify service heat-engine on package update": }
+  }
 }

@@ -36,6 +36,11 @@ class murano::conductor (
     hasstatus  => true,
     hasrestart => true,
   }
+  Package<| title == 'murano_conductor'|> ~> Service<| title == 'murano_conductor'|>
+  if !defined(Service['murano_conductor']) {
+    notify{ "Module ${module_name} cannot notify service murano conductor\
+ on package update": }
+  }
 
   if $use_neutron {
     $network_topology = 'routed'

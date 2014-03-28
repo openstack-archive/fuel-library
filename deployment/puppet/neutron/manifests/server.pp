@@ -112,6 +112,8 @@ class neutron::server (
   }
 
   anchor {'neutron-server-done':}
+  Package<| title == $server_package|> ~> Service<| title == 'neutron-server'|>
+  if !defined(Service['neutron-server']) {
+    notify{ "Module ${module_name} cannot notify service neutron-server on package update": }
+  }
 }
-
-# vim: set ts=2 sw=2 et :

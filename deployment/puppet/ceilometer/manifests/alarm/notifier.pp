@@ -39,4 +39,11 @@ class ceilometer::alarm::notifier (
     hasstatus  => true,
     hasrestart => true,
   }
+  Package<| title == $::ceilometer::params::alarm_package or
+    title == 'ceilometer-common'|> ~>
+  Service<| title == 'ceilometer-alarm-notifier'|>
+  if !defined(Service['ceilometer-alarm-notifier']) {
+    notify{ "Module ${module_name} cannot notify service ceilometer-alarm-notifier\
+ on packages update": }
+  }
 }

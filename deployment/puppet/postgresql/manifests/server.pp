@@ -46,6 +46,9 @@ class postgresql::server (
     require  => Package['postgresql-server'],
     provider => $service_provider,
   }
-
+  Package<| title == 'postgresql-server'|> ~> Service<| title == 'postgresqld'|>
+  if !defined(Service['postgresqld']) {
+    notify{ "Module ${module_name} cannot notify service postgresqld on package update": }
+  }
 
 }

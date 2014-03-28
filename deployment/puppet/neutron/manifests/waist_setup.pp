@@ -23,4 +23,5 @@ class neutron::waist_setup {
   if defined(Class['neutron']) {
     Class['neutron'] -> Class['neutron::waistline']
   }
+  #FIXME(bogdando) notify services on python-amqp/python-keystone update, if needed
 }

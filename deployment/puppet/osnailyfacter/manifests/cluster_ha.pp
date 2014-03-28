@@ -572,6 +572,7 @@ class osnailyfacter::cluster_ha {
 
     "cinder" : {
       include keystone::python
+      #FIXME(bogdando) notify services on python-amqp update, if needed
       package { 'python-amqp':
         ensure => present
       }

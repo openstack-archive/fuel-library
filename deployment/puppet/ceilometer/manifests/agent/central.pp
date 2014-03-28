@@ -137,4 +137,10 @@ class ceilometer::agent::central (
     }
 
   }
+  Package<| title == 'ceilometer-agent-central' or title == 'ceilometer-common'|> ~>
+  Service<| title == 'ceilometer-agent-central'|>
+  if !defined(Service['ceilometer-agent-central']) {
+    notify{ "Module ${module_name} cannot notify service ceilometer-agent-central\
+ on packages update": }
+  }
 }

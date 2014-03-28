@@ -53,7 +53,11 @@ class murano::api (
     hasstatus  => true,
     hasrestart => true,
   }
-
+  Package<| title == 'murano_api'|> ~> Service<| title == 'murano_api'|>
+  if !defined(Service['murano_api']) {
+    notify{ "Module ${module_name} cannot notify service murano api\
+ on package update": }
+  }
 
   $logging_file = '/etc/murano/murano-api-logging.conf'
   if $use_syslog and !$debug { #syslog and nondebug case

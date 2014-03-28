@@ -15,7 +15,7 @@ class cinder::api (
 
   include cinder::params
 
-  if ($::cinder::params::api_package) { 
+  if ($::cinder::params::api_package) {
     $api_package = $::cinder::params::api_package
     package { 'cinder-api':
       name   => $api_package,
@@ -49,7 +49,7 @@ if $cinder_rate_limits {
   Package[$api_package] -> Cinder_config<||>
     }
   }
- 
+
  #  package { 'python-keystone':
  #   ensure => $package_ensure,
  # }
@@ -60,6 +60,11 @@ if $cinder_rate_limits {
     ensure    => $ensure,
     require   => Package[$api_package, 'python-keystone'],
   }
+  Package<| title == $api_package|> ~> Service<| title == 'cinder-api'|>
+  if !defined(Service['cinder-api']) {
+    notify{ "Module ${module_name} cannot notify service cinder-api on package update": }
+  }
+
   cinder_config {
     'DEFAULT/bind_host': value => $bind_host;
     'DEFAULT/osapi_volume_listen': value => $bind_host;

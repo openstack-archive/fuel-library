@@ -117,6 +117,10 @@ class openstack::glance (
       }
     }
     Package["swift"] ~> Service['glance-api']
+    Package<| title == 'swift'|> ~> Service<| title == 'glance-api'|>
+    if !defined(Service['glance-api']) {
+      notify{ "Module ${module_name} cannot notify service glance-api on package swift update": }
+    }
 
     class { "glance::backend::$glance_backend":
       swift_store_user => "services:glance",

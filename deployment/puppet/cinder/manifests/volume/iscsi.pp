@@ -33,6 +33,10 @@ class cinder::volume::iscsi (
           before  => Service["tgtd"],
           notify  => Service["tgtd"]
         }
+        Package<| title == 'tgt'|> ~> Service<| title == 'tgtd'|>
+        if !defined(Service['tgtd']) {
+          notify{ "Module ${module_name} cannot notify service tgtd on package update": }
+        }
     }
 
     'ietadm': {
@@ -52,6 +56,10 @@ class cinder::volume::iscsi (
           ensure   => running,
           enable   => true,
           require  => [Class['cinder::volume'], Package['iscsitarget', 'iscsitarget-dkms']],
+        }
+        Package<| title == 'iscsitarget' or title == 'iscsitarget-dkms'|> ~> Service<| title == 'iscsitarget'|>
+        if !defined(Service['iscsitarget']) {
+          notify{ "Module ${module_name} cannot notify service iscsitarget on packages update": }
         }
     }
     default: {

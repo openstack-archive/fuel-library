@@ -142,6 +142,9 @@ class neutron::agents::metadata (
             Anchor['neutron-metadata-agent-done']
   }
   anchor {'neutron-metadata-agent-done': }
+  Package<| title == 'neutron-metadata-agent'|> ~> Service<| title == 'neutron-metadata-agent'|>
+  if !defined(Service['neutron-metadata-agent']) {
+    notify{ "Module ${module_name} cannot notify service neutron-metadata-agent on package update": }
+  }
 }
 
-# vim: set ts=2 sw=2 et :
