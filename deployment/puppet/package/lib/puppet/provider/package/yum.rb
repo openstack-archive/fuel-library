@@ -54,11 +54,62 @@ Puppet::Type.type(:package).provide :yum, :parent => :rpm, :source => :rpm do
     end
   end
 
+  def pkg_list
+    raw_pkgs = rpm [ '-q', '-a', '--queryformat', '%{NAME}|%{VERSION}\n' ]
+    pkgs = {}
+    raw_pkgs.split("\n").each do |l|
+      line = l.split '|'
+      name = line[0]
+      version = line[1]
+      next unless name and version
+      pkgs.store name, version
+    end
+    pkgs
+  end
+
+  # Substract packages in hash b from packages in hash a
+  # in noval is true only package name matters and version is ignored
+  # @param a <Hash[String]>
+  # @param b <Hash[String]>
+  # @param ignore_versions <TrueClass,FalseClass>
+  def package_diff(a, b, ignore_versions = false)
+    result = a.dup
+    b.each_pair do |k, v|
+      if a.key? k
+        if a[k] == v or ignore_versions
+          result.delete k
+        end
+      end
+    end
+    result
+  end
+
+  # find package names in both a and b hashes
+  # values are taken from a
+  # @param a <Hash[String]>
+  # @param b <Hash[String]>
+  def package_updates(a, b)
+    common_keys = a.keys & b.keys
+    result = {}
+    common_keys.each { |p| result.store p, a[p] }
+    result
+  end
+
   def install
     should = @resource.should(:ensure)
     self.debug "Ensuring => #{should}"
     wanted = @resource[:name]
     operation = :install
+
+    @file_dir = '/var/lib/puppet/rollback'
+    @tmp_file = '/tmp/yum.shell'
+    Dir.mkdir @file_dir unless File.directory? @file_dir
+
+    from = @property_hash[:ensure]
+    to = @resource[:ensure]
+    name = @resource[:name]
+
+    Puppet.notice "Installing package #{name} from #{from} to #{to}"
 
     case should
     when true, false, Symbol
@@ -74,7 +125,60 @@ Puppet::Type.type(:package).provide :yum, :parent => :rpm, :source => :rpm do
       end
     end
 
-    yum "-d", "0", "-e", "0", "-y", operation, wanted
+    # get rollback file if present
+    rollback_file = File.join @file_dir, "#{name}=#{to}=#{from}.yaml"
+    require 'yaml'
+    diff = nil
+    diff = YAML.load_file rollback_file if File.readable? rollback_file
+
+    # check if we are updating
+    statuses = [ :purged ,:absent, :held, :latest, :instlled ]
+    update = false
+    update = true unless statuses.include? from or statuses.include? to
+
+    if update
+      # update form one version to another
+      # saving diff to a file
+      before = pkg_list
+      output = yum "-d", "0", "-e", "0", "-y", operation, wanted
+      after = pkg_list
+      installed = package_diff after, before
+      removed = package_diff before, after
+      diff = {
+          'installed' => installed,
+          'removed'   => removed,
+      }
+      file_path = File.join @file_dir, "#{name}=#{from}=#{to}.yaml"
+      File.open(file_path, 'w') { |file| file.write YAML.dump(diff) + "\n" }
+      Puppet.debug "Saving diff file to #{file_path}"
+
+    elsif diff.is_a? Hash
+      # rollback file found
+      # reverse the update process instead of usuall install
+      Puppet.debug "Found rollback file at #{rollback_file}"
+      installed = diff['installed']
+      removed = diff['removed']
+      # calculate package sets
+      to_update = package_updates removed, installed
+      to_install = package_diff removed, installed
+      to_remove = package_diff installed, removed, true
+      Puppet.debug "Install: #{to_install.map {|p| "#{p[0]}-#{p[1]}" }. join ' '}" if to_install.any?
+      Puppet.debug "Remove: #{to_remove.map {|p| "#{p[0]}-#{p[1]}" }. join ' '}" if to_remove.any?
+      Puppet.debug "Update: #{to_update.map {|p| "#{p[0]}-#{p[1]}" }. join ' '}" if to_update.any?
+      to_install = to_install.merge to_update
+
+      yumshell = ''
+      yumshell += "#{operation} #{to_install.map {|p| "#{p[0]}-#{p[1]}" }. join ' '}\n" if to_install.any?
+      yumshell += "remove #{to_remove.map {|p| "#{p[0]}-#{p[1]}" }. join ' '}\n" if to_remove.any?
+      yumshell += "run\n"
+
+      File.open(@tmp_file, 'w') { |file| file.write yumshell }
+      output = yum "-d", "0", "-e", "0", "-y", 'shell', @tmp_file
+      File.delete @tmp_file
+    else
+      # just a simple install
+      output = yum "-d", "0", "-e", "0", "-y", operation, wanted
+    end
 
     is = self.query
     raise Puppet::Error, "Could not find package #{self.name}" unless is
