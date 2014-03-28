@@ -9,7 +9,9 @@ direct_addressing = 1
 securityprovider = psk
 plugin.psk = <%= @pskey %>
 
-ttl = 2000000000
+# 6000
+# It means that ttl equals 1 hours and a half.
+ttl = 6000
 
 <% if @stomp -%>
 connector = stomp
