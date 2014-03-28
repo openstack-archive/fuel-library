@@ -39,5 +39,10 @@ class nailgun::supervisor(
                 File["/var/log/astute"],
                 ],
   }
+  Package<| title == 'supervisor' or title == 'nginx' or
+    title == 'python-fuelclient'|> ~> Service<| title == 'supervisord'|>
+  if !defined(Service['supervisord']) {
+    notify{ "Module ${module_name} cannot notify service supervisord on packages update": }
+  }
 
 }

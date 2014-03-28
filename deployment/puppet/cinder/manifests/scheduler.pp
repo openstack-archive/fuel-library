@@ -6,7 +6,7 @@ class cinder::scheduler (
 
   include cinder::params
 
-  if ($::cinder::params::scheduler_package) { 
+  if ($::cinder::params::scheduler_package) {
     $scheduler_package = $::cinder::params::scheduler_package
     package { 'cinder-scheduler':
       name   => $scheduler_package,
@@ -46,5 +46,9 @@ class cinder::scheduler (
     ensure    => $ensure,
     require   => Package[$scheduler_package],
     subscribe => File[$::cinder::params::cinder_conf],
+  }
+  Package<| title == $scheduler_package|> ~> Service<| title == 'cinder-scheduler'|>
+  if !defined(Service['cinder-scheduler']) {
+    notify{ "Module ${module_name} cannot notify service cinder-scheduler on package update": }
   }
 }

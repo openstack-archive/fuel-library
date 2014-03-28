@@ -33,7 +33,13 @@ define swift::storage::generic(
     # sorry its so ugly :(
     name   => inline_template("<%= scope.lookupvar('::swift::params::${name}_package_name') %>"),
     ensure => $package_ensure,
-    before => Service["swift-${name}", "swift-${name}-replicator"],
+  } ~>
+  Service <| title == "swift-${name}" or title == "swift-${name}-replicator" |>
+  if !defined(Service["swift-${name}"]) {
+    notify{ "Module ${module_name} cannot notify service swift-${name} on package update": }
+  }
+  if !defined(Service["swift-${name}-replicator"]) {
+    notify{ "Module ${module_name} cannot notify service swift-${name}-replicator on package update": }
   }
 
   file { "/etc/swift/${name}-server/":
@@ -58,7 +64,7 @@ define swift::storage::generic(
       hasstatus => true,
       provider  => base,
       subscribe => Package["swift-${name}"],
-    }   
+    }
   }
 
 else

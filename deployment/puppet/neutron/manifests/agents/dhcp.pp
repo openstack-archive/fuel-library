@@ -236,6 +236,9 @@ class neutron::agents::dhcp (
           Anchor['neutron-dhcp-agent-done']
 
   anchor {'neutron-dhcp-agent-done': }
-
+  Package<| title == 'neutron-dhcp-agent'|> ~> Service<| title == 'neutron-dhcp-service'|>
+  if !defined(Service['neutron-dhcp-service']) {
+    notify{ "Module ${module_name} cannot notify service neutron-dhcp-service on package update": }
+  }
 }
 

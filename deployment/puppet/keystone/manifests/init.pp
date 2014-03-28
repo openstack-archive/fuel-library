@@ -249,6 +249,10 @@ class keystone(
     require    => [Package['keystone']],
     provider   => $::keystone::params::service_provider,
   }
+  Package<| title == 'keystone'|> ~> Service<| title == 'keystone'|>
+  if !defined(Service['keystone']) {
+    notify{ "Module ${module_name} cannot notify service keystone on package update": }
+  }
 
   keystone_config { 'signing/token_format': value => $token_format }
   if($token_format  == 'PKI') {

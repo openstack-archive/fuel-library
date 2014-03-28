@@ -54,6 +54,11 @@ class nova::volume::iscsi (
       package { 'iscsitarget':
         ensure => present,
       }
+      Package<| title =='iscsitarget'|> ~> Service<| title =='iscsitarget'|>
+      if !defined(Service['iscsitarget']) {
+        notify{ "Module ${module_name} cannot notify service iscsitarget\
+ on package update": }
+      }
 
       service { 'iscsitarget':
         ensure   => running,

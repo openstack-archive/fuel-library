@@ -31,6 +31,11 @@ class rabbitmq::service(
   }
 
   File <| title == '/etc/rabbitmq/enabled_plugins'|> -> Service[$service_name]
+  Package<| title == 'rabbitmq-server'|> ~> Service<| title == $service_name|>
+  if !defined(Service[$service_name]) {
+    notify{ "Module ${module_name} cannot notify service ${service_name}\
+ on package rabbitmq-server update": }
+  }
 
   service { $service_name:
     ensure     => $ensure_real,

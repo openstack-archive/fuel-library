@@ -83,6 +83,10 @@ class haproxy (
     Package['haproxy'] ->
     Class['haproxy::base'] ->
     Haproxy::Service <||>
+    Package<| title == 'haproxy'|> ~> Haproxy::Service <||>
+    if !defined(Service['mysql']) {
+      notify{ "Module ${module_name} cannot notify its services on package update": }
+    }
 
     if $manage_service {
       Class['haproxy::base'] -> Service['haproxy']

@@ -19,7 +19,7 @@ class neutron::agents::ovs (
   if $::neutron::params::ovs_agent_package {
     $ovs_agent_package = 'neutron-plugin-ovs-agent'
     Package['neutron'] -> Package["$ovs_agent_package"]
-    package {"$ovs_agent_package":
+    package {"${ovs_agent_package}":
       name   => $::neutron::params::ovs_agent_package,
     }
   } else {
@@ -211,5 +211,10 @@ class neutron::agents::ovs (
   Anchor['neutron-ovs-agent-done'] -> Anchor<| title=='neutron-dhcp-agent' |>
   Anchor['neutron-ovs-agent-done'] -> Anchor<| title=='neutron-metadata-agent' |>
 
+  Package<| title == 'neutron-ovs-cleanup' or title == $ovs_agent_package|> ~>
+  Service<| title == 'neutron-ovs-agent'|>
+  if !defined(Service['neutron-ovs-agent']) {
+    notify{ "Module ${module_name} cannot notify service neutron-ovs-agent on package update": }
+  }
+
 }
-# vim: set ts=2 sw=2 et :

@@ -73,6 +73,12 @@ class ceilometer::agent::compute (
     hasstatus  => true,
     hasrestart => true,
   }
+  Package<| title == 'ceilometer-agent-compute' or title == 'ceilometer-common'|> ~>
+  Service<| title == 'ceilometer-agent-compute'|>
+  if !defined(Service['ceilometer-agent-compute']) {
+    notify{ "Module ${module_name} cannot notify service ceilometer-agent-compute\
+ on packages update": }
+  }
 
   ceilometer_config {
     'DEFAULT/os_auth_url'         : value => "http://${auth_host}:5000/v2.0";

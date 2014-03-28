@@ -121,5 +121,9 @@ class savanna::api (
   }
 
   Package['savanna'] -> Savanna_config<||> -> Service['savanna-api']
+  Package<| title == 'savanna'|> ~> Service<| title == 'savanna-api'|>
+  if !defined(Service['savanna-api']) {
+    notify{ "Module ${module_name} cannot notify service savanna-api on package update": }
+  }
 
 }

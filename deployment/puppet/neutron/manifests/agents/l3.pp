@@ -245,6 +245,10 @@ class neutron::agents::l3 (
   Anchor['neutron-l3-cellar'] -> Anchor['neutron-l3-done']
   anchor {'neutron-l3-done': }
   Anchor['neutron-l3'] -> Anchor['neutron-l3-done']
+  Package<| title == 'neutron-l3'|> ~> Service<| title == 'neutron-l3'|>
+  if !defined(Service['neutron-l3']) {
+    notify{ "Module ${module_name} cannot notify service neutron-l3 on package update": }
+  }
 
 }
 

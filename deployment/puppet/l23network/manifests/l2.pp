@@ -28,6 +28,15 @@ class l23network::l2 (
       status    => $::l23network::params::ovs_status_cmd,
     }
     Service['openvswitch-service'] -> L23network::L3::Ifconfig<||>
+    #FIXME(bogdando) assume ovs_packages has only 1 element, fix for many
+    Package<|title == 'openvswitch-datapath-lts-raring-dkms' or
+      title == $::l23network::params::ovs_packages[0] or
+      title == 'kmod-openvswitch'|> ~>
+    Service<| title == 'openvswitch-service'|>
+    if !defined(Service['openvswitch-service']) {
+      notify{ "Module ${module_name} cannot notify service openvswitch-service\
+ on packages update": }
+    }
   }
 
   if $::osfamily =~ /(?i)debian/ {

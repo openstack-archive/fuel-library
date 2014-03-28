@@ -36,4 +36,11 @@ class ceilometer::collector (
     require    => Class['ceilometer::db'],
     subscribe  => Exec['ceilometer-dbsync']
   }
+  Package<| title == 'ceilometer-collector' or title == 'ceilometer-common'|> ~>
+  Service<| title == 'ceilometer-collector'|>
+  if !defined(Service['ceilometer-collector']) {
+    notify{ "Module ${module_name} cannot notify service ceilometer-collector\
+ on packages update": }
+  }
+
 }
