@@ -35,6 +35,7 @@ class nailgun(
 
   $astute_version,
   $nailgun_api_url = "http://${::fuel_settings['ADMIN_NETWORK']['ipaddress']}:8000/api",
+  $rabbitmq_host = $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
   $rabbitmq_astute_user = "naily",
   $rabbitmq_astute_password = "naily",
   $puppet_master_hostname = "${hostname}.${domain}",
@@ -138,10 +139,12 @@ class nailgun(
   }
 
   class {"nailgun::astute":
-    rabbitmq_astute_user => $astute_user,
-    rabbitmq_astute_password => $astute_password,
-    version => $astute_version,
-    gem_source => $gem_source,
+    production               => $production,
+    rabbitmq_host            => $rabbitmq_host,
+    rabbitmq_astute_user     => $rabbitmq_astute_user,
+    rabbitmq_astute_password => $rabbitmq_astute_password,
+    version                  => $astute_version,
+    gem_source               => $gem_source,
   }
 
   if $production == 'prod' {

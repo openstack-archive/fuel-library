@@ -1,3 +1,7 @@
 #!/bin/bash
-RBENV_ROOT=/opt/rbenv RBENV_VERSION=1.9.3-p484 exec /opt/rbenv/bin/rbenv exec \
+<% if @rbenv_version -%>
+RBENV_ROOT=/opt/rbenv RBENV_VERSION=<%= @rbenv_version %> exec /opt/rbenv/bin/rbenv exec \
   ruby -r 'rubygems' -e "gem 'astute', '>= 0'; load Gem.bin_path('astute', 'astuted', '>= 0')" -- $@
+<% else -%>
+ruby -r 'rubygems' -e "gem 'astute', '>= 0'; load Gem.bin_path('astute', 'astuted', '>= 0')" -- $@
+<% end -%>

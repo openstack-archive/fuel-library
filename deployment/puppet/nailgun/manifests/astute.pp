@@ -1,26 +1,39 @@
 class nailgun::astute(
+  $production = 'prod',
+  $rabbitmq_host = 'localhost',
   $rabbitmq_astute_user = 'naily',
   $rabbitmq_astute_password = 'naily',
   $version,
+  $rbenv_version = '1.9.3-p484',
   $gem_source = "http://rubygems.org/",
   ){
 
-  exec { 'install-astute-gem':
-    command => "/opt/rbenv/bin/rbenv exec gem install astute --source $gem_source --version $version --no-ri --no-rdoc",
-    environment => ['RBENV_ROOT=/opt/rbenv', 'RBENV_VERSION=1.9.3-p484'],
-    require => Exec['configure-rubygems'],
-    logoutput => true,
+  if $production != "dev" {
+    package { 'rubygems-astute':
+      ensure => latest,
+    }
+    #TODO(mattymo): Remove naily package when astute is fully merged with naily
+    package { 'rubygems-naily':
+      ensure => latest,
+    }
+  } else {
+    exec { 'install-astute-gem':
+      command => "/opt/rbenv/bin/rbenv exec gem install astute --source $gem_source --version $version --no-ri --no-rdoc",
+      environment => ['RBENV_ROOT=/opt/rbenv', "RBENV_VERSION=${rbenv_version}"],
+      require => Exec['configure-rubygems'],
+      logoutput => true,
+    }
+
+    exec { 'configure-rubygems':
+      command => '/opt/rbenv/bin/rbenv exec gem sources -r http://rubygems.org/',
+      environment => ['RBENV_ROOT=/opt/rbenv', "RBENV_VERSION=${rbenv_version}"],
+      require => Package['rbenv-ruby-1.9.3-p484-0.0.1-1'],
+      logoutput => true,
+    }
+
+    package { 'rbenv-ruby-1.9.3-p484-0.0.1-1': }
   }
-
-  exec { 'configure-rubygems':
-    command => '/opt/rbenv/bin/rbenv exec gem sources -r http://rubygems.org/',
-    environment => ['RBENV_ROOT=/opt/rbenv', 'RBENV_VERSION=1.9.3-p484'],
-    require => Package['rbenv-ruby-1.9.3-p484-0.0.1-1'],
-    logoutput => true,
-  }
-
-  package { 'rbenv-ruby-1.9.3-p484-0.0.1-1': }
-
+  #TODO(mattymo): put these files in astute package
   file { '/usr/bin/astuted':
     content => template('nailgun/astuted.erb'),
     owner => 'root',
