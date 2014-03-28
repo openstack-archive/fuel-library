@@ -17,10 +17,10 @@ class mcollective::rabbitmq (
   $user            = "mcollective",
   $password        = "mcollective",
   $stompport       = "61613",
-  $management_port = "55672",
+  $management_port = "15672",
   $stomp           = false,
   $vhost           = "mcollective",) {
-  
+
   define access_to_rabbitmq_port ($port, $protocol = 'tcp') {
     $rule = "-p $protocol -m state --state NEW -m $protocol --dport $port -j ACCEPT"
 
