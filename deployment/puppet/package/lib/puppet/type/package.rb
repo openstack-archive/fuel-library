@@ -116,6 +116,38 @@ module Puppet
 
       defaultto :installed
 
+      munge do |value|
+        # don't lookup version if we are going to explicitly remove a package
+        break value if [:absent, :purged, :held].include? value
+        # don't lookup version if we have explicitly provided a version
+        break value if value.is_a? String
+
+        package_name = @resource.name
+        versions_file = '/etc/versions.yaml'
+
+        Puppet.debug "Looking up version for '#{package_name}' package"
+        break value unless File.readable? versions_file
+        require 'yaml'
+        versions = YAML.load_file versions_file
+        stringify_hash versions
+        break value unless versions.is_a? Hash
+        package_name = package_name.to_s unless package_name.is_a? String
+        break value unless versions.key? package_name
+        ver = versions[package_name].to_s
+        Puppet.debug "Got version #{ver}"
+        ver
+      end
+
+      # convert hash's keys to strings
+      # @param hash [Hash]
+      def stringify_hash(hash)
+        hash.dup.each do |k, v|
+          next if k.is_a? String
+          hash.delete k
+          hash.store k.to_s, v
+        end
+      end
+
       # Override the parent method, because we've got all kinds of
       # funky definitions of 'in sync'.
       def insync?(is)
