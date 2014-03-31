@@ -30,6 +30,18 @@ class cluster (
     }
     Package['corosync'] -> File['ocf-mirantis-path']
     Package<| title == 'pacemaker' |> -> File['ocf-mirantis-path']
+
+    file {'ns-ipaddr2-ocf':
+      path   =>'/usr/lib/ocf/resource.d/mirantis/ns_IPaddr2',
+      mode   => '0755',
+      owner  => root,
+      group  => root,
+      source => "puppet:///modules/cluster/ns_IPaddr2",
+    }
+
+    Package['pacemaker'] -> File['ns-ipaddr2-ocf']
+    File<| title == 'ocf-mirantis-path' |> -> File['ns-ipaddr2-ocf']
+
 }
 #
 ###
