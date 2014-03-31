@@ -106,6 +106,8 @@ LOCAL_PATH = '/tmp'
 #SECRET_KEY = secret_key.generate_or_read_from_file(os.path.join(LOCAL_PATH, '.secret_key_store'))
 SECRET_KEY = '<%= secret_key %>'
 
+SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+
 CACHES = {
     'default': {
         'BACKEND' : 'django.core.cache.backends.memcached.MemcachedCache',
