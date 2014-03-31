@@ -24,10 +24,10 @@ class osnailyfacter::cluster_ha {
   #  be undefined (don't move to site.pp)
 
   #These aren't always present.
-  if !$::fuel_settings['savanna'] {
-    $savanna_hash={}
+  if !$::fuel_settings['sahara'] {
+    $sahara_hash={}
   } else {
-    $savanna_hash = $::fuel_settings['savanna']
+    $sahara_hash = $::fuel_settings['sahara']
   }
 
   if !$::fuel_settings['murano'] {
@@ -422,26 +422,26 @@ class osnailyfacter::cluster_ha {
 
       #ADDONS START
 
-      if $savanna_hash['enabled'] {
-        class { 'savanna' :
-          savanna_api_host            => $controller_node_address,
+      if $sahara_hash['enabled'] {
+        class { 'sahara' :
+          sahara_api_host            => $controller_node_address,
 
-          savanna_db_password         => $savanna_hash['db_password'],
-          savanna_db_host             => $controller_node_address,
+          sahara_db_password         => $sahara_hash['db_password'],
+          sahara_db_host             => $controller_node_address,
 
-          savanna_keystone_host       => $controller_node_address,
-          savanna_keystone_user       => 'savanna',
-          savanna_keystone_password   => $savanna_hash['user_password'],
-          savanna_keystone_tenant     => 'services',
+          sahara_keystone_host       => $controller_node_address,
+          sahara_keystone_user       => 'sahara',
+          sahara_keystone_password   => $sahara_hash['user_password'],
+          sahara_keystone_tenant     => 'services',
 
-          use_neutron                 => $::use_quantum,
-          use_floating_ips            => $::fuel_settings['auto_assign_floating_ip'],
+          use_neutron                => $::use_quantum,
+          use_floating_ips           => $::fuel_settings['auto_assign_floating_ip'],
 
-          syslog_log_facility_savanna => $syslog_log_facility_savanna,
-          syslog_log_level            => $syslog_log_level,
-          debug                       => $::debug,
-          verbose                     => $::verbose,
-          use_syslog                  => $::use_syslog,
+          syslog_log_facility_sahara => $syslog_log_facility_sahara,
+          syslog_log_level           => $syslog_log_level,
+          debug                      => $::debug,
+          verbose                    => $::verbose,
+          use_syslog                 => $::use_syslog,
         }
       }
         #FIXME: Disable heat for Red Hat OpenStack 3.0
