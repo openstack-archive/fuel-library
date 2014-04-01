@@ -5,7 +5,7 @@ if is_hash($::fuel_version) and $::fuel_version['VERSION'] and $::fuel_version['
     $production = $::fuel_version['VERSION']['production']
 }
 else {
-    $production = 'prod'
+    $production = 'dev'
 }
 
 if $production == 'prod'{
