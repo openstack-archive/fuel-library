@@ -116,6 +116,43 @@ module Puppet
 
       defaultto :installed
 
+      # lookup package version in versions file
+      # returns nil if version is not found
+      # @return <String,NilClass>
+      def lookup_version
+        return @version_from_file if @version_from_file
+        package_name = @resource.name.to_s
+        versions_file = '/etc/versions.yaml'
+        Puppet.debug "Looking up version for '#{package_name}' package"
+        return nil unless File.readable? versions_file
+        require 'yaml'
+        versions = YAML.load_file versions_file
+        versions.dup.each do |k, v|
+          next if k.is_a? String
+          versions.delete k
+          versions.store k.to_s, v
+        end
+        return nil unless versions.is_a? Hash and versions.key? package_name
+        @version_from_file = versions[package_name].to_s
+        Puppet.debug "Got version #{@version_from_file} for package '#{package_name}'"
+        @version_from_file
+      end
+
+      # modify @should Array if we want to lookup package version
+      # returns @should element without Array
+      # @return <String,Symbol>
+      def should
+        value = @should.first
+        return value unless [:installed,:present].include? @should.first
+        return value unless [:apt, :yum].include? @resource.provider.class.name
+        version = lookup_version
+        if version
+          @should[0] = version
+          return version
+        end
+        value
+      end
+
       # Override the parent method, because we've got all kinds of
       # funky definitions of 'in sync'.
       def insync?(is)
