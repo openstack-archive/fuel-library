@@ -1,0 +1,6 @@
+<%- if @actual_bond_properties['mode'].to_s != 'undef' -%>
+slaves none
+<%- @actual_bond_properties.each do |key, val| -%>
+bond-<%= key.tr('_','-') %> <%= val %>
+<%- end -%>
+<%- end -%>

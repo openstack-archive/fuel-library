@@ -27,15 +27,17 @@
 #   This parameter sets the bond_master interface and says that this interface
 #   is a slave for bondX interface.
 #
-# [*bond_mode*]
-#   This parameter specifies a bond mode for interfaces like bondNN.
-#   All bond_* properties are ignored for non-bond-master interfaces.
+# [*bond_properties*]
+#   This parameter specifies a bond properties for interfaces like bondNN.
+#   It's a property hash, that should contains native linux bonding options, ex:
+#   bond_properties => {
+#     mode   => 1, # mode is a obligatory option
+#     miimon => 100,
+#     ....
+#   }
 #
-# [*bond_miimon*]
-#   lacp MII monitor period.
-#
-# [*bond_lacp_rate*]
-#   lacp MII rate
+#   bond_properties will be ignored for bond-slave interfaces
+#   Full set of properties we can see here: https://www.kernel.org/doc/Documentation/networking/bonding.txt
 #
 # [*ifname_order_prefix*]
 #    Sets the interface startup order
@@ -88,9 +90,10 @@ define l23network::l3::ifconfig (
     $gateway         = undef,
     $vlandev         = undef,
     $bond_master     = undef,
-    $bond_mode       = undef,
-    $bond_miimon     = 100,
-    $bond_lacp_rate  = 1,
+    $bond_properties = {},
+    $bond_mode       = undef,  # deprecated, should be used $bond_properties hash
+    $bond_miimon     = undef,  # deprecated, should be used $bond_properties hash
+    $bond_lacp_rate  = undef,  # deprecated, should be used $bond_properties hash
     $mtu             = undef,
     $macaddr         = undef,
     $ethtool         = undef,
@@ -106,6 +109,12 @@ define l23network::l3::ifconfig (
 ){
   include ::l23network::params
 
+  $bond_properties_defaults = {
+      mode       => 1,
+      miimon     => 100,
+      lacp_rate  => 1,
+  }
+
   $bond_modes = [
     'balance-rr',
     'active-backup',
@@ -115,6 +124,20 @@ define l23network::l3::ifconfig (
     'balance-tlb',
     'balance-alb'
   ]
+
+  if $bond_properties[mode] or $bond_mode {
+    $actual_bond_properties = get_hash_with_defaults_and_deprecations(
+      $bond_properties,
+      $bond_properties_defaults,
+      {
+        mode       => $bond_mode,
+        miimon     => $bond_miimon,
+        lacp_rate  => $bond_lacp_rate,
+      }
+    )
+  } else {
+    $actual_bond_properties = { mode => undef, }
+  }
 
   if $macaddr and $macaddr !~ /^([0-9a-fA-F]{2}\:){5}[0-9a-fA-F]{2}$/ {
     fail("Invalid MAC address '${macaddr}' for interface '${interface}'")
@@ -229,11 +252,11 @@ define l23network::l3::ifconfig (
       $vlan_dev  = $1
     }
     /^(bond\d+)/: {
-      if ! $bond_mode {
-        fail("To configure the interface bonding you must the bond_mode parameter is required and must be between 0..6.")
+      if ! $actual_bond_properties[mode] {
+        fail("To configure the interface bonding you should the mode properties for bond is required and must be between 0..6.")
       }
-      if $bond_mode <0 or $bond_mode>6 {
-        fail("For interface bonding the bond_mode must be between 0..6, not '${bond_mode}'.")
+      if $actual_bond_properties[mode] <0 or $actual_bond_properties[mode] >6 {
+        fail("For interface bonding the bond mode should be between 0..6, not '${actual_bond_properties[mode]}'.")
       }
       $vlan_mode = undef
     }
