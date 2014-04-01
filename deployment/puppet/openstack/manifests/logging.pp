@@ -43,6 +43,7 @@ class openstack::logging (
     $syslog_log_facility_sahara   = 'LOG_LOCAL0',
     $rabbit_log_level = 'NOTICE',
     $debug          = false,
+    $production     = 'prod',
 ) {
 
 validate_re($proto, 'tcp|udp|both')
@@ -70,27 +71,36 @@ if $role == 'client' {
 
 } else { # server
 
-if $proto == 'both' {
-  firewall { "$port udp rsyslog":
-    port    => $port,
-    proto   => 'udp',
-    action  => 'accept',
+  if $proto == 'both' {
+    firewall { "$port udp rsyslog":
+      port    => $port,
+      proto   => 'udp',
+      action  => 'accept',
+    }
+    firewall { "$port tcp rsyslog":
+      port    => $port,
+      proto   => 'tcp',
+      action  => 'accept',
+    }
+  } else {
+    firewall { "$port $proto rsyslog":
+      port    => $port,
+      proto   => $proto,
+      action  => 'accept',
+    }
   }
-  firewall { "$port tcp rsyslog":
-    port    => $port,
-    proto   => 'tcp',
-    action  => 'accept',
+
+  if $production =~ /docker/ {
+    $enable_tcp = false
+    $enable_udp = false
+  } else {
+    $enable_tcp = $proto ? { 'tcp' => true, 'both' => true, default => false }
+    $enable_udp = $proto ? { 'udp' => true, 'both' => true, default => true }
   }
-} else {
-  firewall { "$port $proto rsyslog":
-    port    => $port,
-    proto   => $proto,
-    action  => 'accept',
-  }
-}
+
   class {"::rsyslog::server":
-    enable_tcp => $proto ? { 'tcp' => true, 'both' => true, default => false },
-    enable_udp => $proto ? { 'udp' => true, 'both' => true, default => true },
+    enable_tcp => $enable_tcp,
+    enable_udp => $enable_udp,
     server_dir => '/var/log/',
     port       => $port,
     high_precision_timestamps => $show_timezone,
