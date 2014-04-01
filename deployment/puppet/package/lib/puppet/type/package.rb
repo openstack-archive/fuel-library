@@ -116,6 +116,67 @@ module Puppet
 
       defaultto :installed
 
+      munge do |value|
+        package_name = @resource.name
+        versions_file = '/etc/versions.yaml'
+        Puppet.debug "Munge of package '#{package_name}' got ensure value: #{value} class: #{value.class}"
+
+        if %w(installed latest present absent purged held).include?(value)
+          value = value.to_sym
+        end
+
+        value = :present if value == :installed
+
+        catch :bypass do
+          # don't lookup version if we are going to explicitly remove a package
+          throw :bypass if [ :absent, :purged, :held ].include? value
+          # don't lookup version if we have explicitly provided a version number
+          throw :bypass if value.is_a? String
+          # bypass if there is no versions file
+          throw :bypass unless File.readable? versions_file
+
+          Puppet.debug "Looking up version for '#{package_name}' package"
+          if Type::Package.respond_to? :versions and Type::Package.versions.is_a? Hash
+            puts "MEMO"
+            Puppet.debug "Found saved versions structure"
+            versions = Type::Package.versions
+          else
+            puts "READ"
+            Puppet.debug "Reading versions structure"
+            require 'yaml'
+            versions = YAML.load_file versions_file
+            versions.dup.each do |k, v|
+              next if k.is_a? String
+              versions.delete k
+              versions.store k.to_s, v
+            end
+
+            Puppet.debug "Saving versions structure"
+            class Type::Package
+              def self.versions
+                @versions
+              end
+              def self.versions=(versions)
+                @versions = versions
+              end
+            end
+            Type::Package.versions = versions
+          end
+
+          package_name = package_name.to_s unless package_name.is_a? String
+
+          # bypass if there is no record about this package
+          throw :bypass unless versions.is_a? Hash and versions.key? package_name
+
+          # successfully got a version
+          version = versions[package_name].to_s
+          Puppet.debug "Got version #{version} for package '#{package_name}'"
+          value = version
+        end
+
+        value
+      end
+
       # Override the parent method, because we've got all kinds of
       # funky definitions of 'in sync'.
       def insync?(is)
