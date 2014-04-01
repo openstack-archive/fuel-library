@@ -5,18 +5,16 @@ require 'spec_helper'
 require 'puppetlabs_spec_helper/puppetlabs_spec/puppet_internals'
 
 # Ubintu, static
-describe 'l23network::examples::bond_lnx', :type => :class do
+describe 'l23network::examples::bond_lnx_old_style', :type => :class do
   let(:module_path) { '../' }
   #let(:title) { 'bond0' }
   let(:params) { {
     :bond       => 'bond0',
     :ipaddr     => '1.1.1.1/27',
     :interfaces => ['eth4','eth5'],
-    :bond_properties => {
-      'mode'       => 2,
-      'miimon'     => 150,
-      'lacp_rate'  => 0,
-    },
+    :bond_mode       => 2,
+    :bond_miimon     => 200,
+    :bond_lacp_rate  => 2,
   } }
   let(:facts) { {
     :osfamily => 'Debian',
@@ -40,9 +38,9 @@ describe 'l23network::examples::bond_lnx', :type => :class do
   it 'Should contains bond-specific parameters' do
     rv = contain_file("#{interface_file_start}#{params[:bond]}")
     should rv.with_content(/slaves\s+none/)
-    should rv.with_content(/bond-mode\s+#{params[:bond_properties]['mode']}/)
-    should rv.with_content(/bond-miimon\s+#{params[:bond_properties]['miimon']}/)
-    should rv.with_content(/bond-lacp-rate\s+#{params[:bond_properties]['lacp_rate']}/)
+    should rv.with_content(/bond-mode\s+#{params[:bond_mode]}/)
+    should rv.with_content(/bond-miimon\s+#{params[:bond_miimon]}/)
+    should rv.with_content(/bond-lacp-rate\s+#{params[:bond_lacp_rate]}/)
   end
 
   it 'Should contains interface files for bond-slave interfaces' do
@@ -57,18 +55,16 @@ describe 'l23network::examples::bond_lnx', :type => :class do
 end
 
 # Centos, static
-describe 'l23network::examples::bond_lnx', :type => :class do
+describe 'l23network::examples::bond_lnx_old_style', :type => :class do
   let(:module_path) { '../' }
   #let(:title) { 'bond0' }
   let(:params) { {
     :bond       => 'bond0',
     :ipaddr     => '1.1.1.1/27',
     :interfaces => ['eth4','eth5'],
-    :bond_properties => {
-      'mode'       => 2,
-      'miimon'     => 150,
-      'lacp_rate'  => 0,
-    },
+    :bond_mode       => 2,
+    :bond_miimon     => 200,
+    :bond_lacp_rate  => 0,
   } }
   let(:facts) { {
     :osfamily => 'RedHat',
@@ -115,16 +111,16 @@ describe 'l23network::examples::bond_lnx', :type => :class do
 
   it 'Should contains Bond mode' do
     rv = contain_file("#{interface_file_start}#{params[:bond]}")
-    should rv.with_content(/BONDING_OPTS.*mode=#{bond_modes[params[:bond_properties]['mode']]}/)
+    should rv.with_content(/BONDING_OPTS.*mode=#{bond_modes[params[:bond_mode]]}/)
   end
 
   it 'Should contains miimon' do
     rv = contain_file("#{interface_file_start}#{params[:bond]}")
-    should rv.with_content(/BONDING_OPTS.*miimon=#{params[:bond_properties]['miimon']}/)
+    should rv.with_content(/BONDING_OPTS.*miimon=#{params[:miimon]}/)
   end
 
   it 'Should contains lacp_rate' do
     rv = contain_file("#{interface_file_start}#{params[:bond]}")
-    should rv.with_content(/BONDING_OPTS.*lacp_rate=#{params[:bond_properties]['lacp_rate']}/)
+    should rv.with_content(/BONDING_OPTS.*lacp_rate=#{params[:lacp_rate]}/)
   end
 end
