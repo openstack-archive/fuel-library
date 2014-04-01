@@ -15,6 +15,4 @@ MTU=<%= @mtu %>
 <% if @macaddr -%>
 MACADDR=<%= @macaddr.upcase %>
 <% end -%>
-<% if @bond_mode -%>
-BONDING_OPTS="mode=<%= @bond_mode %><% if @bond_miimon %> miimon=<%= @bond_miimon %><% end %><% if @bond_lacp_rate %> bond-lacp-rate=<%= @bond_lacp_rate %><% end %>"
-<% end -%>
+<%= scope.function_template(['l23network/bonding_RedHat.erb']) %>
