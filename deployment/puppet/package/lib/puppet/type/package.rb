@@ -116,6 +116,44 @@ module Puppet
 
       defaultto :installed
 
+      munge do |value|
+        package_name = @resource.name
+        versions_file = '/etc/versions.yaml'
+        Puppet.debug "Munge of package '#{package_name}' got ensure value: #{value} class: #{value.class}"
+
+        if %w(installed latest present absent purged held).include?(value)
+          value = value.to_sym
+        end
+
+        value = :present if value == :installed
+
+        catch :bypass do
+          # don't lookup version if we are going to explicitly remove a package
+          throw :bypass if [ :absent, :purged, :held ].include? value
+          # don't lookup version if we have explicitly provided a version number
+          throw :bypass if value.is_a? String
+
+          throw :bypass unless File.readable? versions_file
+          Puppet.debug "Looking up version for '#{package_name}' package"
+          require 'yaml'
+          versions = YAML.load_file versions_file
+          versions.dup.each do |k, v|
+            next if k.is_a? String
+            versions.delete k
+            versions.store k.to_s, v
+          end
+          throw :bypass unless versions.is_a? Hash
+          package_name = package_name.to_s unless package_name.is_a? String
+          throw :bypass unless versions.key? package_name
+          version = versions[package_name].to_s
+          # successfully got a version
+          Puppet.debug "Got version #{version} for package '#{package_name}'"
+          value = version
+        end
+
+        value
+      end
+
       # Override the parent method, because we've got all kinds of
       # funky definitions of 'in sync'.
       def insync?(is)
