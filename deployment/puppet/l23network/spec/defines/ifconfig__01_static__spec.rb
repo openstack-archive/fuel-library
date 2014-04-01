@@ -19,20 +19,26 @@ describe 'l23network::l3::ifconfig', :type => :define do
   } }
   let(:interface_file_start) { '/etc/network/interfaces.d/ifcfg-' }
 
-  it "Should contain interface_file" do
+  it "Ubintu/static: Should contain interface_file" do
     should contain_file('/etc/network/interfaces').with_content(/\*/)
   end
 
-  it '(static) interface file should contain ipaddr and netmask' do
+  it 'Ubintu/static: interface file should contain ipaddr and netmask' do
     rv = contain_file("#{interface_file_start}#{params[:interface]}")
     should rv.with_content(/auto\s+#{params[:interface]}/)
     should rv.with_content(/iface\s+#{params[:interface]}\s+inet\s+static/)
   end
 
-  it 'interface file should contain ipaddr and netmask' do
+  it 'Ubintu/static: interface file should contain ipaddr and netmask' do
     rv = contain_file("#{interface_file_start}#{params[:interface]}")
     should rv.with_content(/address\s+1.2.3.4/)
     should rv.with_content(/netmask\s+255.255.0.0/)
+  end
+
+  it "Ubintu/static: interface file shouldn't contain bond-master options" do
+    rv = contain_file("#{interface_file_start}#{params[:interface]}")
+    should rv.without_content(/bond-mode/)
+    should rv.without_content(/slaves/)
   end
 end
 
@@ -52,20 +58,26 @@ describe 'l23network::l3::ifconfig', :type => :define do
   } }
   let(:interface_file_start) { '/etc/network/interfaces.d/ifcfg-' }
 
-  it "Should contains interface_file" do
+  it "Ubintu/static: old.netmask: Should contains interface_file" do
     should contain_file('/etc/network/interfaces').with_content(/\*/)
   end
 
-  it 'interface file should contains true header' do
+  it 'Ubintu/static: old.netmask: interface file should contains true header' do
     rv = contain_file("#{interface_file_start}#{params[:interface]}")
     should rv.with_content(/auto\s+#{params[:interface]}/)
     should rv.with_content(/iface\s+#{params[:interface]}\s+inet\s+static/)
   end
 
-  it 'interface file should contains ipaddr and netmask' do
+  it 'Ubintu/static: old.netmask: interface file should contains ipaddr and netmask' do
     rv = contain_file("#{interface_file_start}#{params[:interface]}")
     should rv.with_content(/address\s+#{params[:ipaddr]}/)
     should rv.with_content(/netmask\s+#{params[:netmask]}/)
+  end
+
+  it "Ubintu/static: old.netmask: interface file shouldn't contains bond-master options" do
+    rv = contain_file("#{interface_file_start}#{params[:interface]}")
+    should rv.without_content(/bond-mode/)
+    should rv.without_content(/slaves/)
   end
 end
 
@@ -85,17 +97,17 @@ describe 'l23network::l3::ifconfig', :type => :define do
   } }
   let(:interface_file_start) { '/etc/network/interfaces.d/ifcfg-' }
 
-  it "Should contain interface_file" do
+  it "Ubintu/static: ordered.ifaces: Should contain interface_file" do
     should contain_file('/etc/network/interfaces').with_content(/\*/)
   end
 
-  it '(static) interface file should contain ipaddr and netmask' do
+  it 'Ubintu/static: ordered.ifaces: interface file should contain ipaddr and netmask' do
     rv = contain_file("#{interface_file_start}#{params[:ifname_order_prefix]}-#{params[:interface]}")
     should rv.with_content(/auto\s+#{params[:interface]}/)
     should rv.with_content(/iface\s+#{params[:interface]}\s+inet\s+static/)
   end
 
-  it 'interface file should contain ipaddr and netmask' do
+  it 'Ubintu/static: ordered.ifaces: interface file should contain ipaddr and netmask' do
     rv = contain_file("#{interface_file_start}#{params[:ifname_order_prefix]}-#{params[:interface]}")
     should rv.with_content(/address\s+1.2.3.4/)
     should rv.with_content(/netmask\s+255.255.0.0/)
@@ -120,14 +132,14 @@ describe 'l23network::l3::ifconfig', :type => :define do
   let(:interface_file_start) { '/etc/sysconfig/network-scripts/ifcfg-' }
   let(:interface_up_file_start) { '/etc/sysconfig/network-scripts/interface-up-script-' }
 
-  it 'interface file should contains true header' do
+  it 'Centos/static: interface file should contains true header' do
     rv = contain_file("#{interface_file_start}#{params[:interface]}")
     should rv.with_content(/DEVICE=#{params[:interface]}/)
     should rv.with_content(/BOOTPROTO=none/)
     should rv.with_content(/ONBOOT=yes/)
   end
 
-  it 'Should contains interface_file with IP-addr' do
+  it 'Centos/static: Should contains interface_file with IP-addr' do
     rv = contain_file("#{interface_file_start}#{params[:interface]}")
     should rv.with_content(/IPADDR=1.2.3.4/)
     should rv.with_content(/NETMASK=255.255.0.0/)
@@ -152,14 +164,14 @@ describe 'l23network::l3::ifconfig', :type => :define do
   let(:interface_file_start) { '/etc/sysconfig/network-scripts/ifcfg-' }
   let(:interface_up_file_start) { '/etc/sysconfig/network-scripts/interface-up-script-' }
 
-  it 'interface file should contains true header' do
+  it 'Centos/static: old.netmask: interface file should contains true header' do
     rv = contain_file("#{interface_file_start}#{params[:interface]}")
     should rv.with_content(/DEVICE=#{params[:interface]}/)
     should rv.with_content(/BOOTPROTO=none/)
     should rv.with_content(/ONBOOT=yes/)
   end
 
-  it 'Should contains interface_file with IP-addr' do
+  it 'Centos/static: old.netmask: Should contains interface_file with IP-addr' do
     rv = contain_file("#{interface_file_start}#{params[:interface]}")
     should rv.with_content(/IPADDR=#{params[:ipaddr]}/)
     should rv.with_content(/NETMASK=#{params[:netmask]}/)
@@ -183,14 +195,14 @@ describe 'l23network::l3::ifconfig', :type => :define do
   let(:interface_file_start) { '/etc/sysconfig/network-scripts/ifcfg-' }
   let(:interface_up_file_start) { '/etc/sysconfig/network-scripts/interface-up-script-' }
 
-  it 'interface file should contains true header' do
+  it 'Centos/static: ordered.ifaces: interface file should contains true header' do
     rv = contain_file("#{interface_file_start}#{params[:ifname_order_prefix]}-#{params[:interface]}")
     should rv.with_content(/DEVICE=#{params[:interface]}/)
     should rv.with_content(/BOOTPROTO=none/)
     should rv.with_content(/ONBOOT=yes/)
   end
 
-  it 'Should contains interface_file with IP-addr' do
+  it 'Centos/static: ordered.ifaces: Should contains interface_file with IP-addr' do
     rv = contain_file("#{interface_file_start}#{params[:ifname_order_prefix]}-#{params[:interface]}")
     should rv.with_content(/IPADDR=1.2.3.4/)
     should rv.with_content(/NETMASK=255.255.0.0/)

@@ -1,0 +1,4 @@
+<%- if @actual_bond_properties['mode'].to_s != 'undef' -%>
+BONDING_OPTS="mode=<%= @bond_modes[@actual_bond_properties['mode'].to_i] -%>
+<%- @actual_bond_properties.select{|k,v| k!='mode'}.each do |key, val| -%> <%= key %>=<%= val %><%- end -%>"
+<% end %>

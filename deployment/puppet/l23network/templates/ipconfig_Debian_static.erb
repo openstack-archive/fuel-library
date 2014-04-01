@@ -13,13 +13,9 @@ netmask <%= @effective_netmask %>
 <% if @dns_nameservers_1 or @dns_nameservers_2 %>dns-nameservers <% if @dns_nameservers_1 %><%= @dns_nameservers_1 %><% end %> <% if @dns_nameservers_2 %><%= @dns_nameservers_2 %><% end %><% end %>
 <% if @dns_search_string %>dns-search <%= @dns_search_string %><% end %>
 <% if @dns_domain_string %>dns-domain <%= @dns_domain_string %><% end %>
-<% if @bond_mode %>slaves none
-bond-mode <%= @bond_mode %><% if @bond_miimon %>
-bond-miimon <%= @bond_miimon %><% end %><% if @bond_lacp_rate %>
-bond-lacp-rate <%= @bond_lacp_rate %><% end %>
-<% end %>
 <%- if @ipaddr_aliases -%><%- @ipaddr_aliases.each do |addr| -%>
 post-up ip addr add <%= addr %> dev <%= @interface %>
 pre-down ip addr del <%= addr %> dev <%= @interface %>
 <%- end -%><%- end -%>
+<%= scope.function_template(['l23network/bonding_Debian.erb']) %>
 <%= scope.function_template(['l23network/ethtool_Debian.erb']) %>
