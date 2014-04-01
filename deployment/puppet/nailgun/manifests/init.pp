@@ -98,6 +98,7 @@ class nailgun(
     # use date-rfc3339 timestamps
     show_timezone  => true,
     virtual        => str2bool($::is_virtual),
+    production     => $production,
   }
 
   class { "nailgun::user":
