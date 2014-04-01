@@ -74,7 +74,9 @@ class cobbler(
   class { ::cobbler::selinux : }
   class { ::cobbler::iptables : }
   class { ::cobbler::snippets : }
-  class { ::cobbler::server : }
+  class { ::cobbler::server :
+    domain_name => $domain_name,
+  }
 
   cobbler_digest_user {$cobbler_user:
     password => $cobbler_password,
