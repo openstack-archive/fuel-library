@@ -269,7 +269,7 @@ LOGGING = {
         'disable_existing_loggers': False,
         'formatters': {
             'debug': {
-                'format': 'dashboard-%(name)s: %(levelname)s %(module)s %(funcName)s %(message)s'
+                'format': 'dashboard-%(name)s: %(levelname)s [pid=%(process)d] %(module)s %(funcName)s %(message)s'
             },
             'normal': {
                 'format': 'dashboard-%(name)s: %(levelname)s %(message)s'
