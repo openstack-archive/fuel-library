@@ -116,6 +116,64 @@ module Puppet
 
       defaultto :installed
 
+      # lookup package version in versions file
+      # returns nil if version is not found
+      # @return <String,NilClass>
+      def lookup_version
+        package_name = @resource.name.to_s
+        versions_file = '/etc/versions.yaml'
+        versions = load_versions
+        unless versions
+          Puppet.debug 'Reading versions file'
+          return nil unless File.readable? versions_file
+          require 'yaml'
+          versions = YAML.load_file versions_file
+          return nil unless versions.is_a? Hash
+          versions.dup.each do |k, v|
+            next if k.is_a? String
+            versions.delete k
+            versions.store k.to_s, v
+          end
+          save_versions versions
+        end
+        return nil unless versions.key? package_name
+        version = versions[package_name].to_s
+        Puppet.debug "Got version '#{version}' for package '#{package_name}' from the versions file"
+        version
+      end
+
+      # modify @should Array if we want to lookup package version
+      # returns @should element without Array
+      # @return <String,Symbol>
+      def should
+        value = super
+        return value unless [:installed,:present].include? @should.first
+        return value unless [:apt, :yum].include? @resource.provider.class.name
+        version = lookup_version
+        if version
+          @should[0] = version
+          return version
+        end
+        value
+      end
+
+      def save_versions(versions)
+        unless Type::Package.respond_to? :versions
+          class << Type::Package
+            attr_accessor :versions
+          end
+        end
+        Type::Package.versions = versions
+      end
+
+      def load_versions
+        if Type::Package.respond_to? :versions and Type::Package.versions.is_a? Hash
+          Type::Package.versions
+        else
+          nil
+        end
+      end
+
       # Override the parent method, because we've got all kinds of
       # funky definitions of 'in sync'.
       def insync?(is)
