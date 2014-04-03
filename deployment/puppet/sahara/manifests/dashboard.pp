@@ -4,7 +4,6 @@ class sahara::dashboard (
   $enabled            = true,
   $settings_py        = $sahara::params::settings_path,
   $local_settings     = $sahara::params::local_settings_path,
-  $sahara_url_string  = $sahara::params::default_url_string,
   $use_neutron        = false,
   $use_floating_ips   = false,
 ) inherits sahara::params {
@@ -65,19 +64,12 @@ class sahara::dashboard (
     line    => "AUTO_ASSIGNMENT_ENABLED=${use_floating_ips_value}",
   }
 
-  file_line{ 'sahara_url' :
-    path    => $local_settings,
-    line    => $sahara_url_string,
-    require => File[$local_settings],
-  }
-
   package { 'sahara_dashboard':
     ensure => $package_ensure,
     name   => $sahara::params::sahara_dashboard_package_name,
   }
 
-  File_line <| title == 'sahara' or title == 'sahara_dashboard' or title == 'sahara_url' |> ~> Service <| title == 'httpd' |>
+  File_line <| title == 'sahara' or title == 'sahara_dashboard' |> ~> Service <| title == 'httpd' |>
   File <| title == $settings_py or title == $local_settings |> ~> Service <| title == 'httpd' |>
   Package['sahara_dashboard'] -> File <| title == $settings_py or title == $local_settings |>
-
 }
