@@ -124,5 +124,9 @@ class sahara::api (
   }
 
   Package['sahara'] -> Sahara_config<||> -> Exec['sahara-db-manage'] -> Service['sahara-api']
+  Package<| title == 'sahara'|> ~> Service<| title == 'sahara-api'|>
+  if !defined(Service['sahara-api']) {
+    notify{ "Module ${module_name} cannot notify service sahara-api on package update": }
+  }
 
 }

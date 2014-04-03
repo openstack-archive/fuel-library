@@ -6,7 +6,7 @@ class cinder::volume (
 
   include cinder::params
 
-  if ($::cinder::params::volume_package) { 
+  if ($::cinder::params::volume_package) {
     $volume_package = $::cinder::params::volume_package
     Package['cinder'] -> Package[$volume_package]
 
@@ -17,7 +17,7 @@ class cinder::volume (
   } else {
     $volume_package = $::cinder::params::package_name
   }
-  
+
   case $::osfamily {
     "Debian":  {
       File[$::cinder::params::cinder_conf] -> Cinder_config<||>
@@ -47,6 +47,10 @@ class cinder::volume (
     ensure    => $ensure,
     require   => Package[$volume_package],
     subscribe => File[$::cinder::params::cinder_conf],
+  }
+  Package<| title == $volume_package|> ~> Service<| title == 'cinder-volume'|>
+  if !defined(Service['cinder-volume']) {
+    notify{ "Module ${module_name} cannot notify service cinder-volume on package update": }
   }
 
 }

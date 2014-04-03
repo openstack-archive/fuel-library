@@ -29,6 +29,10 @@ class heat::api_cfn (
   Heat_config<||> ~> Service['heat-api-cfn']
   Package['heat-api-cfn'] ~> Service['heat-api-cfn']
   Class['heat::db'] -> Service['heat-api-cfn']
-  Exec['heat_db_sync'] -> Service['heat-api-cfn'] 
+  Exec['heat_db_sync'] -> Service['heat-api-cfn']
+  Package<| title == 'heat-api-cfn'|> ~> Service<| title == 'heat-api-cfn'|>
+  if !defined(Service['heat-api-cfn']) {
+    notify{ "Module ${module_name} cannot notify service heat-api-cfn on package update": }
+  }
 
 }

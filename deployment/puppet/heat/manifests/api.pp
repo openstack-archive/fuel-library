@@ -35,6 +35,10 @@ class heat::api (
   Heat_config<||> ~> Service['heat-api']
   Package['heat-api'] ~> Service['heat-api']
   Class['heat::db'] -> Service['heat-api']
-  Exec['heat_db_sync'] -> Service['heat-api'] 
+  Exec['heat_db_sync'] -> Service['heat-api']
+  Package<| title == 'heat-api'|> ~> Service<| title == 'heat-api'|>
+  if !defined(Service['heat-api']) {
+    notify{ "Module ${module_name} cannot notify service heat-api on package update": }
+  }
 
 }

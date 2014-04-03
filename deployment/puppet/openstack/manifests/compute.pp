@@ -193,6 +193,7 @@ class openstack::compute (
 
   #Cinder setup
   $enabled_apis = 'metadata'
+  #FIXME(bogdando) notify services on python-cinderclient update, if needed
   package {'python-cinderclient': ensure => present}
 
   # Install / configure nova-compute

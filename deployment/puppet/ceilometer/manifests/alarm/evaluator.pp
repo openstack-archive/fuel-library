@@ -113,4 +113,11 @@ class ceilometer::alarm::evaluator (
     }
 
   }
+  Package<| title == $::ceilometer::params::alarm_package or
+    title == 'ceilometer-common'|> ~>
+  Service<| title == 'ceilometer-alarm-evaluator'|>
+  if !defined(Service['ceilometer-alarm-evaluator']) {
+    notify{ "Module ${module_name} cannot notify service ceilometer-alarm-evaluator\
+ on packages update": }
+  }
 }

@@ -39,7 +39,7 @@ class nova::compute::libvirt (
     }
 
   }
- 
+
   if $::operatingsystem == 'Ubuntu' {
 
     package { 'cpufrequtils':
@@ -55,6 +55,11 @@ class nova::compute::libvirt (
       enable     => true,
       ensure     => true,
     }
+    Package<| title == 'cpufrequtils'|> ~> Service<| title == 'cpufrequtils'|>
+    if !defined(Service['cpufrequtils']) {
+      notify{ "Module ${module_name} cannot notify service cpufrequtils\
+ on package update": }
+    }
   }
 
   if $::operatingsystem == 'Centos' {
@@ -64,11 +69,18 @@ class nova::compute::libvirt (
   }
 
   Service['libvirt'] -> Service['nova-compute']
+  Service<| title == 'libvirt'|> ~> Service<| title == 'nova-compute'|>
 
   if($::nova::params::compute_package_name and $::operatingsystem=='Ubuntu') {
     package { "nova-compute-${libvirt_type}":
       ensure => present,
       before => Package[$::nova::params::compute_package_name],
+    }
+    Package<| title == "nova-compute-${libvirt_type}"|> ~>
+    Service<| title == 'nova-compute'|>
+    if !defined(Service['nova-compute']) {
+      notify{ "Module ${module_name} cannot notify service nova-compute\
+ on packages update": }
     }
   }
 
@@ -89,6 +101,10 @@ class nova::compute::libvirt (
     ensure   => running,
     provider => $::nova::params::special_service_provider,
     require  => Package['libvirt'],
+  }
+  Package<| title == 'libvirt'|> ~> Service<| title == 'libvirt'|>
+  if !defined(Service['libvirt']) {
+    notify{ "Module ${module_name} cannot notify service libvirt on package update": }
   }
 
   case $libvirt_type {

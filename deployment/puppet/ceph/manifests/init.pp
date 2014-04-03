@@ -87,6 +87,13 @@ class ceph (
       enable  => true,
       require => Class['ceph::conf']
     }
+    #FIXME(bogdando) using collection for clumsy params-ensured packages
+    Package<| title == 'ceph' or title == 'ceph-deploy' or title == 'python-pushy'
+      or title == 'redhat-lsb-core' or title == 'pushy'|> ~>
+    Service<| title == 'ceph'|>
+    if !defined(Service['ceph']) {
+      notify{ "Module ${module_name} cannot notify service ceph on packages update": }
+    }
   }
 
   case $::fuel_settings['role'] {

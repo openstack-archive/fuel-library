@@ -77,6 +77,12 @@ class ceilometer::api (
     require    => Class['ceilometer::db'],
     subscribe  => Exec['ceilometer-dbsync']
   }
+  Package<| title == 'ceilometer-api' or title == 'ceilometer-common'|> ~>
+  Service<| title == 'ceilometer-api'|>
+  if !defined(Service['ceilometer-api']) {
+    notify{ "Module ${module_name} cannot notify service ceilometer-api\
+ on packages update": }
+  }
 
   ceilometer_config {
     'keystone_authtoken/auth_host'         : value => $keystone_host;

@@ -50,6 +50,12 @@ class ceph::radosgw (
     enable  => true,
     require => Package[$::ceph::params::package_radosgw],
   }
+  Package<| title == $::ceph::params::package_radosgw|> ~>
+  Service<| title == 'radosgw'|>
+  if !defined(Service['radosgw']) {
+    notify{ "Module ${module_name} cannot notify service radosgw\
+ on package ${::ceph::params::package_radosgw} update": }
+  }
 
   # The Ubuntu upstart script is incompatible with the upstart provider
   #  This will force the service to fall back to the debian init script

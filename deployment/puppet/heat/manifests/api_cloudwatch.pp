@@ -29,6 +29,9 @@ class heat::api_cloudwatch (
   Heat_config<||> ~> Service['heat-api-cloudwatch']
   Package['heat-api-cloudwatch'] ~> Service['heat-api-cloudwatch']
   Class['heat::db'] -> Service['heat-api-cloudwatch']
-  Exec['heat_db_sync'] -> Service['heat-api-cloudwatch'] 
-
+  Exec['heat_db_sync'] -> Service['heat-api-cloudwatch']
+  Package<| title == 'heat-api-cloudwatch'|> ~> Service<| title == 'heat-api-cloudwatch'|>
+  if !defined(Service['heat-api-cloudwatch']) {
+    notify{ "Module ${module_name} cannot notify service heat-api-cloudwatch on package update": }
+  }
 }

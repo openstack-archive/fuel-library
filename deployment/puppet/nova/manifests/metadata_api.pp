@@ -29,6 +29,12 @@ class nova::metadata_api (
   }
   Package[$::nova::params::meta_api_package_name] -> Nova_config<||>
   Nova_config<||> ~> Service[$::nova::params::meta_api_service_name]
+  Package<| title == $::nova::params::meta_api_package_name|> ~>
+  Service<| title == $::nova::params::meta_api_service_name|>
+  if !defined(Service[$::nova::params::meta_api_service_name]) {
+    notify{ "Module ${module_name} cannot notify service ${::nova::params::meta_api_service_name}\
+ on package ${::nova::params::meta_api_package_name} update": }
+  }
 
   case $queue_provider {
     'rabbitmq': {

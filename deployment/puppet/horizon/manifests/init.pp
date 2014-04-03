@@ -281,6 +281,11 @@ class horizon(
   }
   File[$::horizon::params::local_settings_path, $::horizon::params::logdir] ~> Service['httpd']
   Package[$::horizon::params::http_service, $::horizon::params::http_modwsgi] -> Service['httpd']
+  Package<| title == $::horizon::params::http_service or title == $::horizon::params::http_modwsgi|> ~>
+  Service<| title == 'httpd'|>
+  if !defined(Service['httpd']) {
+    notify{ "Module ${module_name} cannot notify service httpd on packages update": }
+  }
 
   if $cache_server_ip =~ /^127\.0\.0\.1/ {
     Class['memcached'] -> Class['horizon']

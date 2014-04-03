@@ -40,6 +40,11 @@ class murano::repository (
     hasstatus  => true,
     hasrestart => true,
   }
+  Package<| title == 'murano_repository'|> ~> Service<| title == 'murano_repository'|>
+  if !defined(Service['murano_repository']) {
+    notify{ "Module ${module_name} cannot notify service murano repository\
+ on package update": }
+  }
 
   $logging_file = '/etc/murano/murano-repository-logging.conf'
   if $use_syslog and !$debug { #syslog and nondebug case
