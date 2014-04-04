@@ -1,6 +1,6 @@
 #
 class cinder::scheduler (
-  $package_ensure = 'latest',
+  $package_ensure = 'present',
   $enabled        = true
 ) {
 

@@ -7,7 +7,7 @@ class cinder::api (
   $keystone_auth_host     = 'localhost',
   $keystone_auth_port     = '35357',
   $keystone_auth_protocol = 'http',
-  $package_ensure         = 'latest',
+  $package_ensure         = 'present',
   $bind_host              = '0.0.0.0',
   $enabled                = true,
   $cinder_rate_limits = undef

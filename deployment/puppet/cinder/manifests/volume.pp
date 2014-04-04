@@ -1,6 +1,6 @@
 # $volume_name_template = volume-%s
 class cinder::volume (
-  $package_ensure = 'latest',
+  $package_ensure = 'present',
   $enabled        = true
 ) {
 

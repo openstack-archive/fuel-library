@@ -41,7 +41,7 @@ class ceph::radosgw (
              $::ceph::params::package_fastcgi,
              $::ceph::params::package_libnss,
             ]:
-    ensure  => 'latest',
+    ensure  => 'present',
   }
 
   service { 'radosgw':
@@ -69,7 +69,7 @@ class ceph::radosgw (
        defined($::ceph::params::package_httpd) or
        defined($::ceph::params::service_httpd) ) {
     package {$::ceph::params::package_httpd:
-      ensure => 'latest',
+      ensure => 'present',
     }
     service { 'httpd':
       ensure => 'running',
