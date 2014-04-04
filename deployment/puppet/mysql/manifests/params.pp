@@ -37,6 +37,7 @@ class mysql::params {
       $basedir               = '/usr'
       $datadir               = '/var/lib/mysql'
       case $::operatingsystem {
+      #FIXME(bogdando) ensure no fixed versions, if updating/downgrading mysql as well
         'RedHat': {
            $service_name          = 'mysqld'
            $client_package_name   = 'mysql'

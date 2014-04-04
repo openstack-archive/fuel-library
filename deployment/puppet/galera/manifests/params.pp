@@ -35,6 +35,7 @@ class galera::params {
   $innodb_flush_log_at_trx_commit = '2'
 
   case $::osfamily {
+  #FIXME(bogdando) ensure no fixed versions, if updating/downgrading galera as well
     'RedHat': {
       $libssl_package       = 'openssl098e'
       $libaio_package       = 'libaio'

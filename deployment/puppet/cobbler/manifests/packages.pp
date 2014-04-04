@@ -24,6 +24,7 @@ class cobbler::packages {
       $django_package = "python-django"
     }
     /(?i)(debian|ubuntu)/:  {
+    #FIXME(bogdando) ensure no fixed versions, if updating/downgrading cobbler/django as well
       $cobbler_package = "cobbler"
       $cobbler_web_package = "cobbler-web"
       $dnsmasq_package = "dnsmasq"
