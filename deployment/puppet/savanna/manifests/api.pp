@@ -78,6 +78,18 @@ class savanna::api (
   }
 
   $logging_file = '/etc/savanna/logging.conf'
+  case $::osfamily {
+    'Debian': {
+       $log_file = 'savanna-api.log'
+     }
+    'RedHat': {
+       $log_file = 'api.log'
+     }
+    default: {
+      fail("Unsupported osfamily: ${::osfamily} operatingsystem: ${::operatingsystem}, \
+module ${module_name} only support osfamily RedHat and Debian")
+    }
+  }
 
   if $use_syslog and !$debug {
     savanna_config {
@@ -98,8 +110,11 @@ class savanna::api (
   } else {
     savanna_config {
       'DEFAULT/log_config'                   : ensure => absent;
-      'DEFAULT/log_file'  : value  => $log_file;
-      'DEFAULT/use_syslog': value  => false;
+      'DEFAULT/use_syslog'                   : ensure => absent;
+      'DEFAULT/use_stderr'                   : ensure => absent;
+      'DEFAULT/syslog_log_facility'          : ensure => absent;
+      'DEFAULT/log_dir'                      : value  => $logdir;
+      'DEFAULT/log_file'                     : value  => $log_file;
     }
     file { 'savanna-logging.conf' :
       ensure  => absent,
