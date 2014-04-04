@@ -1,14 +1,13 @@
 require 'facter'
 
 # This file is created and managed by Astute
+astute_settings_path = ['/etc/fuel/astute.yaml', '/etc/astute.yaml']
 
-Facter.add('astute_settings_yaml') do
-  setcode do
-    astute_settings_path = '/etc/astute.yaml'
-    if File.readable? astute_settings_path
-      File.read astute_settings_path
-    else
-      nil
+astute_settings_path.each do |astute_file|
+  if File.exist?(astute_file)
+    Facter.add('astute_settings_yaml') do
+      setcode { File.read(astute_file) }
     end
+    break
   end
 end
