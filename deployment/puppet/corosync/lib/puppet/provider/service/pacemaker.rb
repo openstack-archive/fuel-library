@@ -175,51 +175,56 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Cor
     self.class.get_cib
     self.class.get_nodes
     @last_successful_operations = []
-    @@nodes.each do |node|
-      next unless node[:state] == :online
-      debug("getting last ops on #{node[:uname]} for #{@resource[:name]}")
-      all_operations =  XPath.match(@@cib,"cib/status/node_state[@uname='#{node[:uname]}']/lrm/lrm_resources/lrm_resource/lrm_rsc_op[starts-with(@id,'#{@resource[:name]}')]")
-      debug("ALL OPERATIONS:\n\n #{all_operations.inspect}")
-      next if all_operations.nil?
-      completed_ops = all_operations.select{|op| op.attributes['op-status'].to_i != -1 }
-      debug("COMPLETED OPERATIONS:\n\n #{completed_ops.inspect}")
-      next if completed_ops.nil?
-      start_stop_ops = completed_ops.select{|op| ["start","stop","monitor","promote"].include? op.attributes['operation']}
-      debug("START/STOP OPERATIONS:\n\n #{start_stop_ops.inspect}")
-      next if start_stop_ops.nil?
-      sorted_operations = start_stop_ops.sort do
-        |a,b| a.attributes['call-id'].to_i <=> b.attributes['call-id'].to_i
-      end
-      good_operations = sorted_operations.select do |op|
-        op.attributes['rc-code'] == '0' or
-        op.attributes['operation'] == 'monitor'
-      end
-      debug("GOOD OPERATIONS :\n\n #{good_operations.inspect}")
-      next if good_operations.nil?
-      last_op = good_operations.last
-      debug("LAST GOOD OPERATION :\n\n '#{last_op.inspect}' '#{last_op.nil?}' '#{last_op}'")
-      next if last_op.nil?
-      last_successful_op = nil
-      if ['promote','start','stop'].include?(last_op.attributes['operation'])
-        debug("last operations: #{last_op.attributes['operation']}")
-        last_successful_op = last_op.attributes['operation']
-      else
-        if last_op.attributes['rc-code'].to_i == 0
-          last_successful_op = 'start'
-        elsif  last_op.attributes['rc-code'].to_i == 8
-          last_successful_op = 'start'
+    begin
+      @@nodes.each do |node|
+        next unless node[:state] == :online
+        debug("getting last ops on #{node[:uname]} for #{@resource[:name]}")
+        all_operations =  XPath.match(@@cib,"cib/status/node_state[@uname='#{node[:uname]}']/lrm/lrm_resources/lrm_resource/lrm_rsc_op[starts-with(@id,'#{@resource[:name]}')]")
+        debug("ALL OPERATIONS:\n\n #{all_operations.inspect}")
+        next if all_operations.nil?
+        completed_ops = all_operations.select{|op| op.attributes['op-status'].to_i != -1 }
+        debug("COMPLETED OPERATIONS:\n\n #{completed_ops.inspect}")
+        next if completed_ops.nil?
+        start_stop_ops = completed_ops.select{|op| ["start","stop","monitor","promote"].include? op.attributes['operation']}
+        debug("START/STOP OPERATIONS:\n\n #{start_stop_ops.inspect}")
+        next if start_stop_ops.nil?
+        sorted_operations = start_stop_ops.sort do
+          |a,b| a.attributes['call-id'].to_i <=> b.attributes['call-id'].to_i
+        end
+        good_operations = sorted_operations.select do |op|
+          op.attributes['rc-code'] == '0' or
+          op.attributes['operation'] == 'monitor'
+        end
+        debug("GOOD OPERATIONS :\n\n #{good_operations.inspect}")
+        next if good_operations.nil?
+        last_op = good_operations.last
+        debug("LAST GOOD OPERATION :\n\n '#{last_op.inspect}' '#{last_op.nil?}' '#{last_op}'")
+        next if last_op.nil?
+        last_successful_op = nil
+        if ['promote','start','stop'].include?(last_op.attributes['operation'])
+          debug("last operations: #{last_op.attributes['operation']}")
+          last_successful_op = last_op.attributes['operation']
         else
-          last_successful_op = 'stop'
-          if last_op.attributes['rc-code'].to_i == 5 and node[:uname] == Facter.value(:pacemaker_hostname)
-            crm_resource('--cleanup','--resource',get_service_name,'--node',Facter.value(:pacemaker_hostname))
-            sleep 15
-            self.class.get_cib
-            retry
+          if last_op.attributes['rc-code'].to_i == 0
+            last_successful_op = 'start'
+          elsif  last_op.attributes['rc-code'].to_i == 8
+            last_successful_op = 'start'
+          else
+            last_successful_op = 'stop'
+            if last_op.attributes['rc-code'].to_i == 5 and node[:uname] == Facter.value(:pacemaker_hostname)
+              crm_resource('--cleanup','--resource',get_service_name,'--node',Facter.value(:pacemaker_hostname))
+              sleep 15
+              self.class.get_cib
+              raise "repeat"
+            end
           end
         end
+        debug("LAST SUCCESSFUL OP :\n\n #{last_successful_op.inspect}")
+        @last_successful_operations << last_successful_op if !last_successful_op.nil?
       end
-      debug("LAST SUCCESSFUL OP :\n\n #{last_successful_op.inspect}")
-      @last_successful_operations << last_successful_op if !last_successful_op.nil?
+    rescue  => e
+      retry if e.message == 'repeat'
+      raise
     end
     @last_successful_operations
   end
