@@ -42,6 +42,7 @@ module L23network
       }
       when "add-bond" then {
         :name => nil,
+        :provider => 'ovs',
         :bridge => nil,
         :interfaces => [],
         :tag => 0,
@@ -124,11 +125,12 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
 
     # define internal puppet parameters for creating resources
     res_factory = {
-      :br      => { :name_of_resource => 'l23network::l2::bridge' },
-      :port    => { :name_of_resource => 'l23network::l2::port' },
-      :bond    => { :name_of_resource => 'l23network::l2::bond' },
-      :patch   => { :name_of_resource => 'l23network::l2::patch' },
-      :ifconfig=> { :name_of_resource => 'l23network::l3::ifconfig' }
+      :br       => { :name_of_resource => 'l23network::l2::bridge' },
+      :port     => { :name_of_resource => 'l23network::l2::port' },
+      :bond     => { :name_of_resource => 'l23network::l2::bond' },
+      :bond_lnx => { :name_of_resource => 'l23network::l3::ifconfig' },
+      :patch    => { :name_of_resource => 'l23network::l2::patch' },
+      :ifconfig => { :name_of_resource => 'l23network::l3::ifconfig' }
     }
     res_factory.each do |k, v|
       if v[:name_of_resource].index('::')
@@ -201,6 +203,11 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
           ifconfig_order.insert(-1, t[:name].to_sym())
         end
       elsif action == :bond
+        if t[:provider] == 'lnx'
+          if ! ifconfig_order.index(t[:name].to_sym())
+            ifconfig_order.insert(-1, t[:name].to_sym())
+          end
+        end
         t[:interfaces].each do |physint|
           if ! ifconfig_order.index(physint.to_sym())
             ifconfig_order.insert(-1, physint.to_sym())
@@ -213,66 +220,86 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
       trans = L23network.sanitize_transformation(t)
 
       # create puppet resources
-      resource = res_factory[action][:resource]
-      p_resource = Puppet::Parser::Resource.new(
-          res_factory[action][:name_of_resource],
-          trans[:name],
-          :scope => self,
-          :source => resource
-      )
+      if action == :bond and t[:provider] == 'lnx'
+        # Add Linux_bond-specific parameters to the ifconfig
+        res_name = :bond_lnx
+        e_name = t[:name].to_sym
+        if ! endpoints[e_name]
+          endpoints[e_name] = create_endpoint()
+        end
+        endpoints[e_name][:properties] ||= {}
+        endpoints[e_name][:properties][:bond_properties] = Hash[t[:properties].map{|k,v| [k.to_s,v]}]
+        born_ports.insert(-1, e_name)
+        t[:interfaces].each{ |iface|
+          if ! endpoints[iface.to_sym]
+            endpoints[iface.to_sym] = create_endpoint()
+          end
+          endpoints[iface.to_sym][:properties] ||= {}
+          endpoints[iface.to_sym][:properties][:bond_master] = t[:name].to_s
+        }
+      else
+        # normal OVS transformation
+        resource = res_factory[action][:resource]
+        p_resource = Puppet::Parser::Resource.new(
+            res_factory[action][:name_of_resource],
+            trans[:name],
+            :scope => self,
+            :source => resource
+        )
 
-      # setup trunks and vlan_splinters for phys.NIC
-      if (action == :port) and config_hash[:interfaces][trans[:name].to_sym] and  # does adding phys.interface?
-         config_hash[:interfaces][trans[:name].to_sym][:L2] and                   # does this interface have L2 section
-         config_hash[:interfaces][trans[:name].to_sym][:L2][:trunks] and          # does this interface have TRUNKS section
-         config_hash[:interfaces][trans[:name].to_sym][:L2][:trunks].is_a?(Array) and
-         config_hash[:interfaces][trans[:name].to_sym][:L2][:trunks].size() > 0   # does trunks section non empty?
-            Puppet.debug("Configure trunks and vlan_splinters for #{trans[:name]} (value is '#{config_hash[:interfaces][trans[:name].to_sym][:L2][:vlan_splinters]}')")
-            _do_trunks = true
-            if config_hash[:interfaces][trans[:name].to_sym][:L2][:vlan_splinters]
-              if config_hash[:interfaces][trans[:name].to_sym][:L2][:vlan_splinters] == 'on'
-                trans[:vlan_splinters] = true
-              elsif config_hash[:interfaces][trans[:name].to_sym][:L2][:vlan_splinters] == 'auto'
-                sp_nics = lookupvar('l2_ovs_vlan_splinters_need_for')
-                Puppet.debug("l2_ovs_vlan_splinters_need_for: #{sp_nics}")
-                if sp_nics and sp_nics != :undefined and sp_nics.split(',').index(trans[:name].to_s)
-                  Puppet.debug("enable vlan_splinters for: #{trans[:name].to_s}")
+        # setup trunks and vlan_splinters for phys.NIC
+        if (action == :port) and config_hash[:interfaces][trans[:name].to_sym] and  # does adding phys.interface?
+           config_hash[:interfaces][trans[:name].to_sym][:L2] and                   # does this interface have L2 section
+           config_hash[:interfaces][trans[:name].to_sym][:L2][:trunks] and          # does this interface have TRUNKS section
+           config_hash[:interfaces][trans[:name].to_sym][:L2][:trunks].is_a?(Array) and
+           config_hash[:interfaces][trans[:name].to_sym][:L2][:trunks].size() > 0   # does trunks section non empty?
+              Puppet.debug("Configure trunks and vlan_splinters for #{trans[:name]} (value is '#{config_hash[:interfaces][trans[:name].to_sym][:L2][:vlan_splinters]}')")
+              _do_trunks = true
+              if config_hash[:interfaces][trans[:name].to_sym][:L2][:vlan_splinters]
+                if config_hash[:interfaces][trans[:name].to_sym][:L2][:vlan_splinters] == 'on'
                   trans[:vlan_splinters] = true
+                elsif config_hash[:interfaces][trans[:name].to_sym][:L2][:vlan_splinters] == 'auto'
+                  sp_nics = lookupvar('l2_ovs_vlan_splinters_need_for')
+                  Puppet.debug("l2_ovs_vlan_splinters_need_for: #{sp_nics}")
+                  if sp_nics and sp_nics != :undefined and sp_nics.split(',').index(trans[:name].to_s)
+                    Puppet.debug("enable vlan_splinters for: #{trans[:name].to_s}")
+                    trans[:vlan_splinters] = true
+                  else
+                    trans[:vlan_splinters] = false
+                    if trans[:trunks] and trans[:trunks].size() >0
+                      Puppet.debug("disable vlan_splinters for: #{trans[:name].to_s}. Trunks will be set to '#{trans[:trunks].join(',')}'")
+                      config_hash[:interfaces][trans[:name].to_sym][:L2][:trunks] = []
+                    else
+                      Puppet.debug("disable vlan_splinters for: #{trans[:name].to_s}. Trunks for this interface also disabled.")
+                      _do_trunks = false
+                    end
+                  end
                 else
                   trans[:vlan_splinters] = false
-                  if trans[:trunks] and trans[:trunks].size() >0
-                    Puppet.debug("disable vlan_splinters for: #{trans[:name].to_s}. Trunks will be set to '#{trans[:trunks].join(',')}'")
-                    config_hash[:interfaces][trans[:name].to_sym][:L2][:trunks] = []
-                  else
-                    Puppet.debug("disable vlan_splinters for: #{trans[:name].to_s}. Trunks for this interface also disabled.")
-                    _do_trunks = false
-                  end
                 end
               else
                 trans[:vlan_splinters] = false
               end
-            else
-              trans[:vlan_splinters] = false
-            end
-            # add trunks list to the interface if it given
-            if _do_trunks
-              _trunks = [0] + trans[:trunks] + config_hash[:interfaces][trans[:name].to_sym][:L2][:trunks]  # zero for pass untagged traffic
-              _trunks.sort!().uniq!()
-              trans[:trunks] = _trunks
-            end
-            Puppet.debug("Configure trunks and vlan_splinters for #{trans[:name]} done.")
-      end
+              # add trunks list to the interface if it given
+              if _do_trunks
+                _trunks = [0] + trans[:trunks] + config_hash[:interfaces][trans[:name].to_sym][:L2][:trunks]  # zero for pass untagged traffic
+                _trunks.sort!().uniq!()
+                trans[:trunks] = _trunks
+              end
+              Puppet.debug("Configure trunks and vlan_splinters for #{trans[:name]} done.")
+        end
 
-      trans.select{|k,v| k != :action}.each do |k,v|
-        p_resource.set_parameter(k,v)
-      end
+        trans.select{|k,v| k != :action}.each do |k,v|
+          p_resource.set_parameter(k,v)
+        end
 
-      p_resource.set_parameter(:require, [previous]) if previous
-      resource.instantiate_resource(self, p_resource)
-      compiler.add_resource(self, p_resource)
-      transformation_success.insert(-1, "#{t[:action].strip()}(#{trans[:name]})")
-      born_ports.insert(-1, trans[:name].to_sym()) if action != :patch
-      previous = p_resource.to_s
+        p_resource.set_parameter(:require, [previous]) if previous
+        resource.instantiate_resource(self, p_resource)
+        compiler.add_resource(self, p_resource)
+        transformation_success.insert(-1, "#{t[:action].strip()}(#{trans[:name]})")
+        born_ports.insert(-1, trans[:name].to_sym()) if action != :patch
+        previous = p_resource.to_s
+      end
     end
 
     # check for all in endpoints are in interfaces or born by transformation
