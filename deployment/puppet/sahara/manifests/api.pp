@@ -76,6 +76,18 @@ class sahara::api (
   }
 
   $logging_file = '/etc/sahara/logging.conf'
+  case $::osfamily {
+    'Debian': {
+       $log_file = 'sahara-api.log'
+     }
+    'RedHat': {
+       $log_file = 'api.log'
+     }
+    default: {
+      fail("Unsupported osfamily: ${::osfamily} operatingsystem: ${::operatingsystem}, \
+module ${module_name} only support osfamily RedHat and Debian")
+    }
+  }
 
   if $use_syslog and !$debug {
     sahara_config {
@@ -102,6 +114,7 @@ class sahara::api (
       'DEFAULT/use_stderr'                   : ensure => absent;
       'DEFAULT/syslog_log_facility'          : ensure => absent;
       'DEFAULT/log_dir'                      : value  => $logdir;
+      'DEFAULT/log_file'                     : value  => $log_file;
     }
     file { 'sahara-logging.conf' :
       ensure  => absent,
