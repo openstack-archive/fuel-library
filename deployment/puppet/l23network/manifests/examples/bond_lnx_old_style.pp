@@ -1,7 +1,7 @@
 class l23network::examples::bond_lnx_old_style (
     $bond            = $name,
     $interfaces      = ['eth4','eth5'],
-    $ipaddr          = '1.2.3.4/27',
+    $ipaddr          = '10.20.30.40/27',
     #$bond_master     = undef,
     $bond_mode       = 1,
     $bond_miimon     = 100,
