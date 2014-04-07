@@ -22,5 +22,6 @@ class zabbix::frontend {
   service { $zabbix::params::frontend_service:
     ensure   => running,
     require  => Package[$zabbix::params::frontend_pkg],
+    enable   => true,
   }
 }
