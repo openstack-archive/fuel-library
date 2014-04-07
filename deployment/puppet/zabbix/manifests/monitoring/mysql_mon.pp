@@ -23,9 +23,9 @@ class zabbix::monitoring::mysql_mon {
         command => 'mysql -V';
     }
 
-    #file { "${::zabbix::params::agent_include_path}/userparameter_mysql.conf":
-    #  ensure => absent,
-    #}
+    file { "${::zabbix::params::agent_include}/userparameter_mysql.conf":
+      ensure => absent,
+    }
 
     if defined(Class['zabbix::db::mysql']) {
       file { "/var/lib/zabbix":
