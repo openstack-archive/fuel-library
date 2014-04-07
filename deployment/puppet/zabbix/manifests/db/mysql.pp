@@ -4,7 +4,8 @@ class zabbix::db::mysql {
 
   class { 'mysql::server':
     config_hash => {
-      'root_password' => $zabbix::params::db_root_password,
+      # Setting root pw breaks everything on puppet 3
+      #'root_password' => $zabbix::params::db_root_password,
       'bind_address'  => '0.0.0.0',
     },
     enabled    => true,
