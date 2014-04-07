@@ -23,6 +23,8 @@ class mcollective::client(
   $stomp = false,
   ){
 
+  include mcollective::clientpackages
+
   case $::osfamily {
     'Debian': {
       $mcollective_client_config_template="mcollective/client.cfg.ubuntu.erb"
@@ -34,28 +36,6 @@ class mcollective::client(
     }
     default: {
       fail("Unsupported osfamily: ${osfamily} for os ${operatingsystem}")
-    }
-  }
-
-  case $::rubyversion {
-    '2.1.1': {
-      $mcollective_client_package = "ruby21-rubygem-mcollective-client"
-    }
-    '1.8.7': {
-      $mcollective_client_package = "mcollective-client"
-    }
-  }
-
-  package { $mcollective_client_package :
-    ensure => 'present',
-  }
-
-  case $::rubyversion {
-    '2.1.1': {
-      package { 'ruby21-nailgun-mcagents': }
-    }
-    '1.8.7': {
-      package { 'nailgun-mcagents': }
     }
   }
 
