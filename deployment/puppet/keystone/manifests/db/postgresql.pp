@@ -42,6 +42,6 @@ class keystone::db::postgresql(
     password  => $password,
   }
 
-  Postgresql::Db[$dbname] ~> Exec<| title == 'keystone-manage db_sync' |>
+  Postgresql::Server::Db[$dbname] ~> Exec<| title == 'keystone-manage db_sync' |>
 
 }

@@ -21,7 +21,8 @@ class nailgun::auth(
   $internal_address = undef,
   $admin_address    = undef,
   $public_address   = undef,
-  $port             = '8000'
+  $port             = '8000',
+  $region           = 'RegionOne',
 ) {
   if ($internal_address == undef) {
     $internal_address_real = $address
@@ -59,7 +60,7 @@ class nailgun::auth(
     description => 'Nailgun API',
   }
 
-  keystone_endpoint { 'nailgun':
+  keystone_endpoint { "$region/nailgun":
     ensure       => present,
     public_url   => "http://${public_address_real}:${port}/api",
     admin_url    => "http://${admin_address_real}:${port}/api",
