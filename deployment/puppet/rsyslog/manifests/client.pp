@@ -468,6 +468,10 @@ if $virtual { include rsyslog::checksum_udp514 }
     content => template("${module_name}/60-puppet-apply.conf.erb"),
   }
 
+  file { "${rsyslog::params::rsyslog_d}70-zabbix-server.conf":
+    content => template("${module_name}/70-zabbix-server.conf.erb"),
+  }
+
   file { "${rsyslog::params::rsyslog_d}/61-mco-nailgun-agent.conf":
     content => template("${module_name}/61-mco-nailgun-agent.conf.erb"),
   }

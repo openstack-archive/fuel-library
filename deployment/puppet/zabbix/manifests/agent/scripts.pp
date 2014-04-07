@@ -26,12 +26,22 @@ class zabbix::agent::scripts {
     content     => template('zabbix/check_db.conf.erb'),
   }
 
+  file { '/etc/sudoers.d':
+    ensure => directory
+  }
+
   file { 'zabbix_no_requiretty':
     path => '/etc/sudoers.d/zabbix',
     mode => 0440,
     owner => root,
     group => root,
     source => 'puppet:///modules/zabbix/zabbix-sudo',
+  }
+
+  if ! defined(Package['sudo']) {
+    package { 'sudo':
+      ensure => installed
+    }
   }
 
   #Zabbix::agent::userparameter { require => $zabbix::params::agent_scripts }
