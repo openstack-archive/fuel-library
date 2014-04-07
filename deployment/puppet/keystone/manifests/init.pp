@@ -4,7 +4,7 @@
 # == Parameters
 #
 #   [package_ensure] Desired ensure state of packages. Optional. Defaults to present.
-#     accepts latest or specific versions.
+#     accepts installed or specific versions.
 #   [bind_host] Host that keystone binds to.
 #   [bind_port] Port that keystone binds to.
 #   [public_port]
@@ -33,7 +33,6 @@
 #     Optional.  Defaults to 'keystone.token.backends.sql.Token'
 #   [token_expiration] Amount of time a token should remain valid (seconds).
 #     Optional.  Defaults to 3600 (1 hour).
-#   [token_format] Deprecated: Use token_provider instead.
 #   [cache_dir] Directory created when token_provider is pki. Optional.
 #     Defaults to /var/cache/keystone.
 #   [memcache_servers] List of memcache servers/ports. Optional. Used with
