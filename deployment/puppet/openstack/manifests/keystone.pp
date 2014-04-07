@@ -30,6 +30,9 @@
 # [use_syslog] Rather or not service should log to syslog. Optional. Default to false.
 # [syslog_log_facility] Facility for syslog, if used. Optional. Note: duplicating conf option
 #       wouldn't have been used, but more powerfull rsyslog features managed via conf template instead
+# [max_pool_size] SQLAlchemy backend related. Default 10.
+# [max_overflow] SQLAlchemy backend related.  Default 30.
+# [max_retries] SQLAlchemy backend related. Default -1.
 #
 # === Example
 #
@@ -191,6 +194,14 @@ class openstack::keystone (
     $ceilometer_admin_real = $admin_real
   }
 
+  if $memcache_servers {
+    $memcache_servers_real = suffix($memcache_servers, inline_template(":@memcache_server_port"))
+    $token_driver = 'keystone.token.backends.memcache.Token'
+  } else {
+    $memcache_servers_real = false
+    $token_driver = 'keystone.token.backends.sql.Token'
+  }
+
   class { '::keystone':
     verbose             => $verbose,
     debug               => $debug,
@@ -201,13 +212,86 @@ class openstack::keystone (
     bind_host           => $bind_host,
     package_ensure      => $package_ensure,
     use_syslog          => $use_syslog,
-    syslog_log_facility => $syslog_log_facility,
-    max_retries         => $max_retries,
-    max_pool_size       => $max_pool_size,
-    max_overflow        => $max_overflow,
     idle_timeout        => $idle_timeout,
-    memcache_servers    => $memcache_servers,
-    memcache_server_port => $memcache_server_port,
+    memcache_servers    => $memcache_servers_real,
+    token_driver        => $token_driver,
+  }
+
+  if $::operatingsystem == 'Ubuntu' {
+   if $service_provider == 'pacemaker' {
+      file { '/etc/init/keystone.override':
+        ensure  => present,
+        content => "manual",
+        mode    => '0644',
+        replace => "no",
+        owner   => 'root',
+        group   => 'root',
+      }
+
+      File['/etc/init/keystone.override'] -> Package['keystone']
+
+      exec { 'remove-keystone-bootblockr':
+        command => 'rm -rf /etc/init/keystone.override',
+        path    => ['/bin', '/usr/bin'],
+        require => Package['keystone']
+      }
+    }
+  }
+
+  if $memcache_servers {
+    Service<| title == 'memcached' |> -> Service<| title == 'keystone'|>
+    keystone_config {
+      'token/caching': value => 'true';
+      'cache/enabled': value => 'true';
+      'cache/backend': value => 'dogpile.cache.memcached';
+      'cache/backend_argument': value => inline_template("url:<%= @memcache_servers.collect{|ip| ip }.join ',' %>");
+     }
+  }
+
+  Package<| title == 'keystone'|> ~> Service<| title == 'keystone'|>
+  if !defined(Service['keystone']) {
+    notify{ "Module ${module_name} cannot notify service keystone on package update": }
+  }
+
+  if $use_syslog {
+    keystone_config {
+      'DEFAULT/use_syslog_rfc_format':  value  => true;
+    }
+  }
+
+  keystone_config {
+    'DATABASE/max_pool_size':                          value => $max_pool_size;
+    'DATABASE/max_retries':                            value => $max_retries;
+    'DATABASE/max_overflow':                           value => $max_overflow;
+    'identity/driver':                                 value =>"keystone.identity.backends.sql.Identity";
+    'policy/driver':                                   value =>"keystone.policy.backends.rules.Policy";
+    'ec2/driver':                                      value =>"keystone.contrib.ec2.backends.sql.Ec2";
+    'filter:debug/paste.filter_factory':               value =>"keystone.common.wsgi:Debug.factory";
+    'filter:token_auth/paste.filter_factory':          value =>"keystone.middleware:TokenAuthMiddleware.factory";
+    'filter:admin_token_auth/paste.filter_factory':    value =>"keystone.middleware:AdminTokenAuthMiddleware.factory";
+    'filter:xml_body/paste.filter_factory':            value =>"keystone.middleware:XmlBodyMiddleware.factory";
+    'filter:json_body/paste.filter_factory':           value =>"keystone.middleware:JsonBodyMiddleware.factory";
+    'filter:user_crud_extension/paste.filter_factory': value =>"keystone.contrib.user_crud:CrudExtension.factory";
+    'filter:crud_extension/paste.filter_factory':      value =>"keystone.contrib.admin_crud:CrudExtension.factory";
+    'filter:ec2_extension/paste.filter_factory':       value =>"keystone.contrib.ec2:Ec2Extension.factory";
+    'filter:s3_extension/paste.filter_factory':        value =>"keystone.contrib.s3:S3Extension.factory";
+    'filter:url_normalize/paste.filter_factory':       value =>"keystone.middleware:NormalizingFilter.factory";
+    'filter:stats_monitoring/paste.filter_factory':    value =>"keystone.contrib.stats:StatsMiddleware.factory";
+    'filter:stats_reporting/paste.filter_factory':     value =>"keystone.contrib.stats:StatsExtension.factory";
+    'app:public_service/paste.app_factory':            value =>"keystone.service:public_app_factory";
+    'app:admin_service/paste.app_factory':             value =>"keystone.service:admin_app_factory";
+    'pipeline:public_api/pipeline':                    value =>"stats_monitoring url_normalize token_auth admin_token_auth xml_body json_body debug ec2_extension user_crud_extension public_service";
+    'pipeline:admin_api/pipeline':                     value =>"stats_monitoring url_normalize token_auth admin_token_auth xml_body json_body debug stats_reporting ec2_extension s3_extension crud_extension admin_service";
+    'app:public_version_service/paste.app_factory':    value =>"keystone.service:public_version_app_factory";
+    'app:admin_version_service/paste.app_factory':     value =>"keystone.service:admin_version_app_factory";
+    'pipeline:public_version_api/pipeline':            value =>"stats_monitoring url_normalize xml_body public_version_service";
+    'pipeline:admin_version_api/pipeline':             value =>"stats_monitoring url_normalize xml_body admin_version_service";
+    'composite:main/use':                              value =>"egg:Paste#urlmap";
+    'composite:main//v2.0':                            value =>"public_api";
+    'composite:main//':                                value =>"public_version_api";
+    'composite:admin/use':                             value =>"egg:Paste#urlmap";
+    'composite:admin//v2.0':                           value =>"admin_api";
+    'composite:admin//':                               value =>"admin_version_api";
   }
 
   if ($enabled) {
