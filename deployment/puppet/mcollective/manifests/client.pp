@@ -23,6 +23,8 @@ class mcollective::client(
   $stomp = false,
   ){
 
+  include mcollective::clientpackages
+
   case $::osfamily {
     'Debian': {
       $mcollective_client_config_template="mcollective/client.cfg.ubuntu.erb"
@@ -37,37 +39,15 @@ class mcollective::client(
     }
   }
 
-  case $::rubyversion {
-    '2.1.1': {
-      $mcollective_client_package = "ruby21-rubygem-mcollective-client"
-    }
-    '1.8.7': {
-      $mcollective_client_package = "mcollective-client"
-    }
-  }
-
-  package { $mcollective_client_package :
-    ensure => 'present',
-  }
-
-  case $::rubyversion {
-    '2.1.1': {
-      package { 'ruby21-nailgun-mcagents': }
-    }
-    '1.8.7': {
-      package { 'nailgun-mcagents': }
-    }
-  }
-
   file { "/etc/mcollective": ensure => directory }
 
   file { "/etc/mcollective/client.cfg":
-    ensure => present,
+    ensure  => present,
     content => template($mcollective_client_config_template),
-    owner => root,
-    group => root,
-    mode => 0600,
-    require => Package[$mcollective_client_package],
+    owner   => 'root',
+    group   => 'root',
+    mode    => '0600',
+    require => Class['::mcollective::clientpackages'],
   }
   ###DEPRECATED - RETAINED FROM OLD FUEL VERSIONS####
   #  file {"${mcollective_agent_path}/puppetd.ddl" :

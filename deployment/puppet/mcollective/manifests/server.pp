@@ -23,6 +23,8 @@ class mcollective::server(
   $stomp = false,
   ){
 
+  include mcollective::clientpackages
+
   case $operatingsystem {
     /(?i)(centos|redhat)/:  {
       # THIS PACKAGE ALSO INSTALLS REQUIREMENTS
