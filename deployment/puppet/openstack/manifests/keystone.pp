@@ -30,6 +30,9 @@
 # [use_syslog] Rather or not service should log to syslog. Optional. Default to false.
 # [syslog_log_facility] Facility for syslog, if used. Optional. Note: duplicating conf option
 #       wouldn't have been used, but more powerfull rsyslog features managed via conf template instead
+# [max_pool_size] SQLAlchemy backend related. Default 10.
+# [max_overflow] SQLAlchemy backend related.  Default 30.
+# [max_retries] SQLAlchemy backend related. Default -1.
 #
 # === Example
 #
@@ -191,6 +194,14 @@ class openstack::keystone (
     $ceilometer_admin_real = $admin_real
   }
 
+  if $memcache_servers {
+    $memcache_servers_real = suffix($memcache_servers, $memcache_server_port)
+    $token_driver = 'keystone.token.backends.memcache.Token'
+  } else {
+    $memcache_servers_real = false
+    $token_driver = 'keystone.token.backends.sql.Token'
+  }
+
   class { '::keystone':
     verbose             => $verbose,
     debug               => $debug,
@@ -201,13 +212,57 @@ class openstack::keystone (
     bind_host           => $bind_host,
     package_ensure      => $package_ensure,
     use_syslog          => $use_syslog,
-    syslog_log_facility => $syslog_log_facility,
-    max_retries         => $max_retries,
-    max_pool_size       => $max_pool_size,
-    max_overflow        => $max_overflow,
     idle_timeout        => $idle_timeout,
-    memcache_servers    => $memcache_servers,
-    memcache_server_port => $memcache_server_port,
+    memcache_servers    => $memcache_servers_real,
+    token_driver        => $token_driver,
+  }
+
+  if $::operatingsystem == 'Ubuntu' {
+   if $service_provider == 'pacemaker' {
+      file { '/etc/init/keystone.override':
+        ensure  => present,
+        content => "manual",
+        mode    => '0644',
+        replace => "no",
+        owner   => 'root',
+        group   => 'root',
+      }
+
+      File['/etc/init/keystone.override'] -> Package['keystone']
+
+      exec { 'remove-keystone-bootblockr':
+        command => 'rm -rf /etc/init/keystone.override',
+        path    => ['/bin', '/usr/bin'],
+        require => Package['keystone']
+      }
+    }
+  }
+
+  if $memcache_servers {
+    Service<| title == 'memcached' |> -> Service<| title == 'keystone'|>
+    keystone_config {
+      'token/caching': value => 'true';
+      'cache/enabled': value => 'true';
+      'cache/backend': value => 'dogpile.cache.memcached';
+      'cache/backend_argument': value => inline_template("url:<%= @memcache_servers.collect{|ip| ip }.join ',' %>");
+     }
+  }
+
+  Package<| title == 'keystone'|> ~> Service<| title == 'keystone'|>
+  if !defined(Service['keystone']) {
+    notify{ "Module ${module_name} cannot notify service keystone on package update": }
+  }
+
+  if $use_syslog {
+    keystone_config {
+      'DEFAULT/use_syslog_rfc_format':  value  => true;
+    }
+  }
+
+  keystone_config {
+    'DATABASE/max_pool_size': value => $max_pool_size;
+    'DATABASE/max_retries': value => $max_retries;
+    'DATABASE/max_overflow': value => $max_overflow;
   }
 
   if ($enabled) {
