@@ -223,7 +223,7 @@ class galera (
   if $::galera::params::mysql_version {
     $wsrep_version = $::galera::params::mysql_version
   } else {
-    $wsrep_version = 'latest'
+    $wsrep_version = 'installed'
   }
   package { "MySQL-server":
     ensure   => $wsrep_version,

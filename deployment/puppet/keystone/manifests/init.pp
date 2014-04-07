@@ -4,7 +4,7 @@
 # == Parameters
 #
 #   [package_ensure] Desired ensure state of packages. Optional. Defaults to present.
-#     accepts latest or specific versions.
+#     accepts installed or specific versions.
 #   [bind_host] Host that keystone binds to.
 #   [bind_port] Port that keystone binds to.
 #   [public_port]
