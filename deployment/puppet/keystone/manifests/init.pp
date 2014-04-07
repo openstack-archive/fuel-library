@@ -4,7 +4,7 @@
 # == Parameters
 #
 #   [package_ensure] Desired ensure state of packages. Optional. Defaults to present.
-#     accepts installed or specific versions.
+#     accepts latest or specific versions.
 #   [bind_host] Host that keystone binds to.
 #   [bind_port] Port that keystone binds to.
 #   [public_port]
@@ -14,33 +14,85 @@
 #   [admin_token] Admin token that can be used to authenticate as a keystone
 #     admin. Required.
 #   [verbose] Rather keystone should log at verbose level. Optional.
-#     Defaults to false.
+#     Defaults to False.
 #   [debug] Rather keystone should log at debug level. Optional.
-#     Defaults to false.
-#   [use_syslog] Rather or not keystone should log to syslog. Optional.
-#     Defaults to false.
-#   [syslog_log_facility] Facility for syslog, if used. Optional.
-#   [*log_dir*]
-#     (optional) Directory where logs should be stored
-#     If set to boolean false, it will not log to any directory
-#     Defaults to '/var/log/keystone'
+#     Defaults to False.
+#   [use_syslog] Use syslog for logging. Optional.
+#     Defaults to False.
+#   [log_facility] Syslog facility to receive log lines. Optional.
 #   [catalog_type] Type of catalog that keystone uses to store endpoints,services. Optional.
 #     Defaults to sql. (Also accepts template)
-#   [token_format] Format keystone uses for tokens. Optional. Defaults to UUID (PKI is grizzly native mode though).
+#   [token_provider] Format keystone uses for tokens. Optional.
+#     Defaults to 'keystone.token.providers.pki.Provider'
 #     Supports PKI and UUID.
-#   [cache_dir] Directory created when token_format is PKI. Optional.
+#   [token_driver] Driver to use for managing tokens.
+#     Optional.  Defaults to 'keystone.token.backends.sql.Token'
+#   [token_expiration] Amount of time a token should remain valid (seconds).
+#     Optional.  Defaults to 86400 (24 hours).
+#   [token_format] Deprecated: Use token_provider instead.
+#   [cache_dir] Directory created when token_provider is pki. Optional.
 #     Defaults to /var/cache/keystone.
-#   [enalbles] If the keystone services should be enabled. Optioal. Default to true.
+#   [memcache_servers] List of memcache servers/ports. Optional. Used with
+#     token_driver keystone.token.backends.memcache.Token.  Defaults to false.
+#   [enabled] If the keystone services should be enabled. Optional. Default to true.
 #   [sql_conneciton] Url used to connect to database.
 #   [idle_timeout] Timeout when db connections should be reaped.
+#   [enable_pki_setup] Enable call to pki_setup.
 #
+#   [*log_dir*]
+#   (optional) Directory where logs should be stored
+#   If set to boolean false, it will not log to any directory
+#   Defaults to '/var/log/keystone'
+#
+#   [*public_endpoint*]
+#   (optional) The base public endpoint URL for keystone that are
+#   advertised to clients (NOTE: this does NOT affect how
+#   keystone listens for connections) (string value)
+#   If set to false, no public_endpoint will be defined in keystone.conf.
+#   Sample value: 'http://localhost:5000/v2.0/'
+#   Defaults to false
+#
+#   [*admin_endpoint*]
+#   (optional) The base admin endpoint URL for keystone that are
+#   advertised to clients (NOTE: this does NOT affect how keystone listens
+#   for connections) (string value)
+#   If set to false, no admin_endpoint will be defined in keystone.conf.
+#   Sample value: 'http://localhost:35357/v2.0/'
+#   Defaults to false
+#
+#   [*enable_ssl*]
+#   (optional) Toggle for SSL support on the keystone eventlet servers.
+#   (boolean value)
+#   Defaults to false
+#
+#   [*ssl_certfile*]
+#   (optional) Path of the certfile for SSL. (string value)
+#   Defaults to '/etc/keystone/ssl/certs/keystone.pem'
+#
+#   [*ssl_keyfile*]
+#   (optional) Path of the keyfile for SSL. (string value)
+#   Defaults to '/etc/keystone/ssl/private/keystonekey.pem'
+#
+#   [*ssl_ca_certs*]
+#   (optional) Path of the ca cert file for SSL. (string value)
+#   Defaults to '/etc/keystone/ssl/certs/ca.pem'
+#
+#   [*ssl_ca_key*]
+#   (optional) Path of the CA key file for SSL (string value)
+#   Defaults to '/etc/keystone/ssl/private/cakey.pem'
+#
+#   [*ssl_cert_subject*]
+#   (optional) SSL Certificate Subject (auto generated certificate)
+#   (string value)
+#   Defaults to '/C=US/ST=Unset/L=Unset/O=Unset/CN=localhost'
+
 # == Dependencies
 #  None
 #
 # == Examples
 #
 #   class { 'keystone':
-#     verbose => true,
+#     log_verbose => 'True',
 #     admin_token => 'my_special_token',
 #   }
 #
@@ -54,42 +106,109 @@
 #
 class keystone(
   $admin_token,
-  $package_ensure       = 'present',
-  $bind_host            = '0.0.0.0',
-  $public_port          = '5000',
-  $admin_port           = '35357',
-  $compute_port         = '3000',
-  $verbose              = false,
-  $debug                = false,
-  $use_syslog           = false,
-  $syslog_log_facility  = 'LOG_LOCAL7',
-  $log_dir              = '/var/log/keystone',
-  $catalog_type         = 'sql',
-  $token_format         = 'UUID',
-  $cache_dir            = '/var/cache/keystone',
-  $memcache_servers     = false,
-  $memcache_server_port = false,
-  $enabled              = true,
-  $sql_connection       = 'sqlite:////var/lib/keystone/keystone.db',
-  $idle_timeout         = '200',
-  $max_pool_size        = '10',
-  $max_overflow         = '30',
-  $max_retries          = '-1',
+  $package_ensure   = 'present',
+  $bind_host        = '0.0.0.0',
+  $public_port      = '5000',
+  $admin_port       = '35357',
+  $compute_port     = '8774',
+  $verbose          = false,
+  $debug            = false,
+  $log_dir          = '/var/log/keystone',
+  $use_syslog       = false,
+  $log_facility     = 'LOG_USER',
+  $catalog_type     = 'sql',
+  $token_format     = false,
+  $token_provider   = 'keystone.token.providers.pki.Provider',
+  $token_driver     = 'keystone.token.backends.sql.Token',
+  $token_expiration = 86400,
+  $public_endpoint  = false,
+  $admin_endpoint   = false,
+  $enable_ssl       = false,
+  $ssl_certfile     = '/etc/keystone/ssl/certs/keystone.pem',
+  $ssl_keyfile      = '/etc/keystone/ssl/private/keystonekey.pem',
+  $ssl_ca_certs     = '/etc/keystone/ssl/certs/ca.pem',
+  $ssl_ca_key       = '/etc/keystone/ssl/private/cakey.pem',
+  $ssl_cert_subject = '/C=US/ST=Unset/L=Unset/O=Unset/CN=localhost',
+  $cache_dir        = '/var/cache/keystone',
+  $memcache_servers = false,
+  $enabled          = true,
+  $sql_connection   = 'sqlite:////var/lib/keystone/keystone.db',
+  $idle_timeout     = '200',
+  $enable_pki_setup = true
 ) {
 
   validate_re($catalog_type,   'template|sql')
-  validate_re($token_format,  'UUID|PKI')
 
-  Keystone_config<||> ~> Service['keystone']
+  File['/etc/keystone/keystone.conf'] -> Keystone_config<||> ~> Service['keystone']
   Keystone_config<||> ~> Exec<| title == 'keystone-manage db_sync'|>
-  Package['keystone'] ~> Exec<| title == 'keystone-manage pki_setup'|> ~> Service['keystone']
+  Keystone_config<||> ~> Exec<| title == 'keystone-manage pki_setup'|>
+
+  include keystone::params
 
   File {
     ensure  => present,
     owner   => 'keystone',
     group   => 'keystone',
-    mode    => '0640',
     require => Package['keystone'],
+    notify  => Service['keystone'],
+  }
+
+  package { 'keystone':
+    ensure => $package_ensure,
+    name   => $::keystone::params::package_name,
+  }
+
+  group { 'keystone':
+    ensure  => present,
+    system  => true,
+    require => Package['keystone'],
+  }
+
+  user { 'keystone':
+    ensure  => 'present',
+    gid     => 'keystone',
+    system  => true,
+    require => Package['keystone'],
+  }
+
+  file { ['/etc/keystone', '/var/log/keystone', '/var/lib/keystone']:
+    ensure  => directory,
+    mode    => '0750',
+  }
+
+  file { '/etc/keystone/keystone.conf':
+    mode    => '0600',
+  }
+
+  # default config
+  keystone_config {
+    'DEFAULT/admin_token':  value => $admin_token;
+    'DEFAULT/bind_host':    value => $bind_host;
+    'DEFAULT/public_port':  value => $public_port;
+    'DEFAULT/admin_port':   value => $admin_port;
+    'DEFAULT/compute_port': value => $compute_port;
+    'DEFAULT/verbose':      value => $verbose;
+    'DEFAULT/debug':        value => $debug;
+  }
+
+  # Endpoint configuration
+  if $public_endpoint {
+    keystone_config {
+      'DEFAULT/public_endpoint': value => $public_endpoint;
+    }
+  } else {
+    keystone_config {
+      'DEFAULT/public_endpoint': ensure => absent;
+    }
+  }
+  if $admin_endpoint {
+    keystone_config {
+      'DEFAULT/admin_endpoint': value => $admin_endpoint;
+    }
+  } else {
+    keystone_config {
+      'DEFAULT/admin_endpoint': ensure => absent;
+    }
   }
 
   # logging config
@@ -103,95 +222,26 @@ class keystone(
     }
   }
 
-  include 'keystone::params'
-
-  package { 'keystone':
-    name   => $::keystone::params::package_name,
-    ensure => $package_ensure,
-  }
-
-  group { 'keystone':
-    ensure  => present,
-    system  => true,
-  }
-
-  user { 'keystone':
-    ensure  => 'present',
-    gid     => 'keystone',
-    system  => true,
-  }
-
-  file { ['/etc/keystone', '/var/log/keystone', '/var/lib/keystone']:
-    ensure  => directory,
-    owner   => 'keystone',
-    group   => 'keystone',
-    mode    => '0755',
-    notify  => Service['keystone'],
-  }
-  if $::operatingsystem == 'Ubuntu' {
-   if $service_provider == 'pacemaker' {
-      file { '/etc/init/keystone.override':
-        ensure  => present,
-        content => "manual",
-        mode    => '0644',
-        replace => "no",
-        owner   => 'root',
-        group   => 'root',
-      }
-
-      File['/etc/init/keystone.override'] -> Package['keystone']
-
-      exec { 'remove-keystone-bootblockr':
-        command => 'rm -rf /etc/init/keystone.override',
-        path    => ['/bin', '/usr/bin'],
-        require => Package['keystone']
-      }
-    }
-  }
-
-      Package['keystone'] -> User['keystone']
-      Package['keystone'] -> Group['keystone']
-      Package['keystone'] -> File['/etc/keystone']
-      Package['keystone'] -> Keystone_config <| |>
-
-  # default config
+  # token driver config
   keystone_config {
-    'DEFAULT/admin_token':  value => $admin_token;
-    'DEFAULT/bind_host':    value => $bind_host;
-    'DEFAULT/public_port':  value => $public_port;
-    'DEFAULT/admin_port':   value => $admin_port;
-    'DEFAULT/compute_port': value => $compute_port;
-    'DEFAULT/debug':        value => $debug;
-    'DEFAULT/verbose':      value => $verbose;
-    'identity/driver': value =>"keystone.identity.backends.sql.Identity";
-    'policy/driver': value =>"keystone.policy.backends.rules.Policy";
-    'ec2/driver': value =>"keystone.contrib.ec2.backends.sql.Ec2";
-    'filter:debug/paste.filter_factory': value =>"keystone.common.wsgi:Debug.factory";
-    'filter:token_auth/paste.filter_factory': value =>"keystone.middleware:TokenAuthMiddleware.factory";
-    'filter:admin_token_auth/paste.filter_factory': value =>"keystone.middleware:AdminTokenAuthMiddleware.factory";
-    'filter:xml_body/paste.filter_factory': value =>"keystone.middleware:XmlBodyMiddleware.factory";
-    'filter:json_body/paste.filter_factory': value =>"keystone.middleware:JsonBodyMiddleware.factory";
-    'filter:user_crud_extension/paste.filter_factory': value =>"keystone.contrib.user_crud:CrudExtension.factory";
-    'filter:crud_extension/paste.filter_factory': value =>"keystone.contrib.admin_crud:CrudExtension.factory";
-    'filter:ec2_extension/paste.filter_factory': value =>"keystone.contrib.ec2:Ec2Extension.factory";
-    'filter:s3_extension/paste.filter_factory': value =>"keystone.contrib.s3:S3Extension.factory";
-    'filter:url_normalize/paste.filter_factory': value =>"keystone.middleware:NormalizingFilter.factory";
-    'filter:stats_monitoring/paste.filter_factory': value =>"keystone.contrib.stats:StatsMiddleware.factory";
-    'filter:stats_reporting/paste.filter_factory': value =>"keystone.contrib.stats:StatsExtension.factory";
-    'app:public_service/paste.app_factory': value =>"keystone.service:public_app_factory";
-    'app:admin_service/paste.app_factory': value =>"keystone.service:admin_app_factory";
-    'pipeline:public_api/pipeline': value =>"stats_monitoring url_normalize token_auth admin_token_auth xml_body json_body debug ec2_extension user_crud_extension public_service";
-    'pipeline:admin_api/pipeline': value =>"stats_monitoring url_normalize token_auth admin_token_auth xml_body json_body debug stats_reporting ec2_extension s3_extension crud_extension admin_service";
-    'app:public_version_service/paste.app_factory': value =>"keystone.service:public_version_app_factory";
-    'app:admin_version_service/paste.app_factory': value =>"keystone.service:admin_version_app_factory";
-    'pipeline:public_version_api/pipeline': value =>"stats_monitoring url_normalize xml_body public_version_service";
-    'pipeline:admin_version_api/pipeline': value =>"stats_monitoring url_normalize xml_body admin_version_service";
-    'composite:main/use': value =>"egg:Paste#urlmap";
-    'composite:main//v2.0': value =>"public_api";
-    'composite:main//': value =>"public_version_api";
-    'composite:admin/use': value =>"egg:Paste#urlmap";
-    'composite:admin//v2.0': value =>"admin_api";
-    'composite:admin//': value =>"admin_version_api";
+    'token/driver':     value => $token_driver;
+    'token/expiration': value => $token_expiration;
+  }
+
+  # ssl config
+  if ($enable_ssl) {
+    keystone_config {
+      'ssl/enable':              value  => true;
+      'ssl/certfile':            value  => $ssl_certfile;
+      'ssl/keyfile':             value  => $ssl_keyfile;
+      'ssl/ca_certs':            value  => $ssl_ca_certs;
+      'ssl/ca_key':              value  => $ssl_ca_key;
+      'ssl/cert_subject':        value  => $ssl_cert_subject;
+    }
+  } else {
+    keystone_config {
+      'ssl/enable':              value  => false;
+    }
   }
 
   if($sql_connection =~ /mysql:\/\/\S+:\S+@\S+\/\S+/) {
@@ -207,29 +257,48 @@ class keystone(
   # memcache connection config
   if $memcache_servers {
     validate_array($memcache_servers)
-    Service<| title == 'memcached' |> -> Service['keystone']
     keystone_config {
-      'token/driver': value => 'keystone.token.backends.memcache.Token';
-      'token/caching': value => 'true';
-      'cache/enabled': value => 'true';
-      'cache/backend': value => 'dogpile.cache.memcached';
-      'cache/backend_argument': value => inline_template("url:<%= @memcache_servers.collect{|ip| ip }.join ',' %>");
-      'memcache/servers': value => inline_template("<%= @memcache_servers.collect{|ip| ip + ':' + @memcache_server_port }.join ',' %>")
-     }
+      'memcache/servers': value => join($memcache_servers, ',');
+    }
   } else {
     keystone_config {
-      'token/driver': value => 'keystone.token.backends.sql.Token';
       'memcache/servers': ensure => absent;
     }
   }
 
   # db connection config
+#TODO(bogdando) fix deprecated [sql] usage to database for IceHouse MOS packages
+#  Deprecated group/name - [DEFAULT]/sql_connection
+#  Deprecated group/name - [DATABASE]/sql_connection
+#  Deprecated group/name - [sql]/connection
+#
+#  Deprecated group/name - [DEFAULT]/sql_max_pool_size
+#  Deprecated group/name - [DATABASE]/sql_max_pool_size
+#
+#  Deprecated group/name - [DEFAULT]/sql_max_retries
+#  Deprecated group/name - [DATABASE]/sql_max_retries
+#
+#  Deprecated group/name - [DEFAULT]/sql_max_overflow
+#  Deprecated group/name - [DATABASE]/sqlalchemy_max_overflow
+#
+#  Deprecated group/name - [DEFAULT]/sql_idle_timeout
+#  Deprecated group/name - [DATABASE]/sql_idle_timeout
+#  Deprecated group/name - [sql]/idle_timeout
+#  Should be in IceHouse:
+#  keystone_config {
+#    'DATABASE/connection':    value => $sql_connection;
+#    'DATABASE/idle_timeout':  value => $idle_timeout;
+#    'DATABASE/max_pool_size': value => $max_pool_size;
+#    'DATABASE/max_retries':   value => $max_retries;
+#    'DATABASE/max_overflow':  value => $max_overflow;
+#
+#  }
   keystone_config {
-    'database/connection':    value => $sql_connection;
-    'database/idle_timeout':  value => $idle_timeout;
-    'database/max_pool_size': value => $max_pool_size;
-    'database/max_retries':   value => $max_retries;
-    'database/max_overflow':  value => $max_overflow;
+    'sql/connection':            value => $sql_connection;
+    'sql/idle_timeout':          value => $idle_timeout;
+    'DEFAULT/sql_max_pool_size': value => $max_pool_size;
+    'DEFAULT/sql_max_retries':   value => $max_retries;
+    'DEFAULT/sql_max_overflow':  value => $max_overflow;
   }
 
   # configure based on the catalog backend
@@ -246,62 +315,61 @@ class keystone(
     }
   }
 
+  if $token_format {
+    warning('token_format parameter is deprecated. Use token_provider instead.')
+  }
+
+  # remove the old format in case of an upgrade
+  keystone_config { 'signing/token_format': ensure => absent }
+
+  if ($token_format == false and $token_provider == 'keystone.token.providers.pki.Provider') or $token_format == 'PKI' {
+    keystone_config { 'token/provider': value => 'keystone.token.providers.pki.Provider' }
+    file { $cache_dir:
+      ensure => directory,
+    }
+
+    if $enable_pki_setup {
+      exec { 'keystone-manage pki_setup':
+        path        => '/usr/bin',
+        user        => 'keystone',
+        refreshonly => true,
+        creates     => '/etc/keystone/ssl/private/signing_key.pem',
+        notify      => Service['keystone'],
+        subscribe   => Package['keystone'],
+        require     => User['keystone'],
+      }
+    }
+  } elsif $token_format == 'UUID' {
+    keystone_config { 'token/provider': value => 'keystone.token.providers.uuid.Provider' }
+  } else {
+    keystone_config { 'token/provider': value => $token_provider }
+  }
+
   if $enabled {
     $service_ensure = 'running'
   } else {
     $service_ensure = 'stopped'
   }
-  Keystone_config <| |> -> Service['keystone']
+
   service { 'keystone':
-    name       => $::keystone::params::service_name,
     ensure     => $service_ensure,
+    name       => $::keystone::params::service_name,
     enable     => $enabled,
     hasstatus  => true,
     hasrestart => true,
-    require    => [Package['keystone']],
     provider   => $::keystone::params::service_provider,
-  }
-  Package<| title == 'keystone'|> ~> Service<| title == 'keystone'|>
-  if !defined(Service['keystone']) {
-    notify{ "Module ${module_name} cannot notify service keystone on package update": }
-  }
-
-  keystone_config { 'signing/token_format': value => $token_format }
-  if($token_format  == 'PKI') {
-    file { $cache_dir:
-      ensure => directory,
-      notify  => Service['keystone'],
-    }
-
-    # keystone-manage pki_setup Should be run as the same system user that will be running the Keystone service to ensure
-    # proper ownership for the private key file and the associated certificates
-    exec { 'keystone-manage pki_setup':
-      path        => '/usr/bin',
-      user        => 'keystone',
-      refreshonly => true,
-    }
   }
 
   if $enabled {
-    # this probably needs to happen more often than just when the db is
-    # created
-    exec { 'keystone-manage db_sync':
-      user        => 'keystone',
-      path        => '/usr/bin',
-      refreshonly => true,
-      tries       => 10,  # waiting if haproxy was restarted
-      try_sleep   => 6,   # near at this exec
-      notify      => Service['keystone'],
-      subscribe   => Package['keystone'],
-    }
+    include keystone::db::sync
+    Class['keystone::db::sync'] ~> Service['keystone']
   }
 
   # Syslog configuration
   if $use_syslog {
     keystone_config {
-      'DEFAULT/use_syslog':            value => true;
-      'DEFAULT/use_syslog_rfc_format': value => true;
-      'DEFAULT/syslog_log_facility':   value => $syslog_log_facility;
+      'DEFAULT/use_syslog':           value => true;
+      'DEFAULT/syslog_log_facility':  value => $log_facility;
     }
   } else {
     keystone_config {

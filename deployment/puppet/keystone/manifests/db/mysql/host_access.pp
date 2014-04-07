@@ -1,3 +1,4 @@
+#
 define keystone::db::mysql::host_access(
   $user,
   $password,

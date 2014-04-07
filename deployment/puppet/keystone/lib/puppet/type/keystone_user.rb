@@ -24,8 +24,23 @@ Puppet::Type.newtype(:keystone_user) do
     end
   end
 
-  newparam(:password) do
+  newproperty(:password) do
     newvalues(/\S+/)
+    def change_to_s(currentvalue, newvalue)
+      if currentvalue == :absent
+        return "created password"
+      else
+        return "changed password"
+      end
+    end
+
+    def is_to_s( currentvalue )
+      return '[old password redacted]'
+    end
+
+    def should_to_s( newvalue )
+      return '[new password redacted]'
+    end
   end
 
   newproperty(:tenant) do
