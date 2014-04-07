@@ -9,10 +9,11 @@ Puppet::Type.newtype(:keystone_config) do
 
   newproperty(:value) do
     desc 'The value of the setting to be defined.'
-    munge do |v|
-      v.to_s.strip
+    munge do |value|
+      value = value.to_s.strip
+      value.capitalize! if value =~ /^(true|false)$/i
+      value
     end
   end
-
 
 end
