@@ -27,10 +27,8 @@ class neutron::keystone::auth (
   }
 
   if $configure_endpoint {
-    # keystone_endpoint { "${region}/$neutron_config['keystone']['admin_user']":
-    keystone_endpoint { $neutron_config['keystone']['admin_user']:
+    keystone_endpoint { "${neutron_config['keystone']['auth_region']}/${neutron_config['keystone']['admin_user']}":
       ensure       => present,
-      region       => $neutron_config['keystone']['auth_region'],
       public_url   => "http://${public_address}:${neutron_config['server']['bind_port']}",
       admin_url    => "http://${admin_address}:${$neutron_config['server']['bind_port']}",
       internal_url => "http://${internal_address}:${$neutron_config['server']['bind_port']}",
