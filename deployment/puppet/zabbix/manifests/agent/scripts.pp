@@ -26,6 +26,10 @@ class zabbix::agent::scripts {
     content     => template('zabbix/check_db.conf.erb'),
   }
 
+  file { '/etc/sudoers.d':
+    ensure => directory
+  }
+
   file { 'zabbix_no_requiretty':
     path => '/etc/sudoers.d/zabbix',
     mode => 0440,
