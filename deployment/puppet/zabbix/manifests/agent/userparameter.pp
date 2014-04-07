@@ -20,7 +20,7 @@ define zabbix::agent::userparameter (
   }
 
   $file_real = $file ? {
-    undef   => "${::zabbix::params::agent_include_path}/${index_real}${name}.conf",
+    undef   => "${::zabbix::params::agent_include}/${index_real}${name}.conf",
     default => $file,
   }
 

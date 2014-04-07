@@ -22,6 +22,7 @@ class zabbix::monitoring::rabbitmq_mon {
       path    => ['/usr/sbin', '/usr/bin', '/sbin', '/bin' ],
       unless  => 'rabbitmq-plugins list -m -E rabbitmq_management | grep -q rabbitmq_management',
       notify  => Exec['restart rabbitmq'],
+      environment => "HOME=/root"
     }
     exec { 'restart rabbitmq':
       command     => 'service rabbitmq-server restart',

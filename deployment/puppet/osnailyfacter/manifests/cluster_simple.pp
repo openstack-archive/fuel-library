@@ -522,5 +522,7 @@ class osnailyfacter::cluster_simple {
 
   } # ROLE CASE ENDS
 
+  class { 'zabbix': }
+
 } # CLUSTER_SIMPLE ENDS
 # vim: set ts=2 sw=2 et :
