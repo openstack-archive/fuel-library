@@ -33,9 +33,16 @@ Puppet::Type.type(:keystone_tenant).provide(
     self.class.tenant_hash
   end
 
+  def instance
+    tenant_hash[resource[:name]]
+  end
+
   def self.instances
     tenant_hash.collect do |k, v|
-      new(:name => k)
+      new(
+          :name => k,
+          :id   => v[:id]
+          )
     end
   end
 
@@ -44,49 +51,58 @@ Puppet::Type.type(:keystone_tenant).provide(
     if resource[:description]
       optional_opts.push('--description').push(resource[:description])
     end
-    auth_keystone(
+    results = auth_keystone(
       'tenant-create',
       '--name', resource[:name],
       '--enabled', resource[:enabled],
       optional_opts
     )
+
+    if results =~ /Property\s|\sValue/
+      attrs = self.class.parse_keystone_object(results)
+      tenant_hash[resource[:name]] = {
+        :ensure      => :present,
+        :name        => resource[:name],
+        :id          => attrs['id'],
+        :enabled     => attrs['enabled'],
+        :description => attrs['description'],
+      }
+    else
+      fail("did not get expected message on tenant creation, got #{results}")
+    end
   end
 
   def exists?
-    tenant_hash[resource[:name]]
+    instance
   end
 
   def destroy
-    auth_keystone('tenant-delete', tenant_hash[resource[:name]][:id])
-  end
-
-  def enabled
-    tenant_hash[resource[:name]][:enabled]
+    auth_keystone('tenant-delete', instance[:id])
+    instance[:ensure] = :absent
   end
 
   def enabled=(value)
     Puppet.warning("I am not sure if this is supported yet")
-    auth_keystone(
-      "tenant-update",
-      '--enabled', value,
-      tenant_hash[resource[:name]][:id]
-    )
+    auth_keystone("tenant-update", '--enabled', value, instance[:id])
+    instance[:enabled] = value
   end
 
   def description
-    tenant_hash[resource[:name]][:description]
+    self.class.get_keystone_object('tenant', instance[:id], 'description')
   end
 
   def description=(value)
-    auth_keystone(
-      "tenant-update",
-      '--description', value,
-      tenant_hash[resource[:name]][:id]
-    )
+    auth_keystone("tenant-update", '--description', value, instance[:id])
+    instance[:description] = value
   end
 
-  def id
-    tenant_hash[resource[:name]][:id]
+  [
+   :id,
+   :enabled,
+  ].each do |attr|
+    define_method(attr.to_s) do
+      instance[attr] || :absent
+    end
   end
 
   private
@@ -94,11 +110,8 @@ Puppet::Type.type(:keystone_tenant).provide(
     def self.build_tenant_hash
       hash = {}
       list_keystone_objects('tenant', 3).each do |tenant|
-        # I may need to make a call to get to get the description
-        description = get_keystone_object('tenant', tenant[0], 'description')
         hash[tenant[1]] = {
           :id          => tenant[0],
-          :description => description,
           :enabled     => tenant[2],
         }
       end
