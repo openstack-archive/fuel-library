@@ -19,16 +19,21 @@ class Puppet::Provider::Keystone < Puppet::Provider
   end
 
   def self.get_admin_endpoint
+    admin_endpoint = keystone_file['DEFAULT']['admin_endpoint'] ? keystone_file['DEFAULT']['admin_endpoint'].strip : nil
+    return admin_endpoint if admin_endpoint
+
     admin_port = keystone_file['DEFAULT']['admin_port'] ? keystone_file['DEFAULT']['admin_port'].strip : '35357'
-    if keystone_file and keystone_file['DEFAULT'] and keystone_file['DEFAULT']['bind_host']
-      host = keystone_file['DEFAULT']['bind_host'].strip
+    ssl = keystone_file['ssl'] && keystone_file['ssl']['enable'] ? keystone_file['ssl']['enable'].strip.downcase == 'true' : false
+    protocol = ssl ? 'https' : 'http'
+    if keystone_file and keystone_file['DEFAULT'] and keystone_file['DEFAULT']['admin_bind_host']
+      host = keystone_file['DEFAULT']['admin_bind_host'].strip
       if host == "0.0.0.0"
         host = "127.0.0.1"
       end
     else
       host = "127.0.0.1"
     end
-    "http://#{host}:#{admin_port}/v2.0/"
+    "#{protocol}://#{host}:#{admin_port}/v2.0/"
   end
 
   def self.keystone_file
@@ -46,34 +51,83 @@ class Puppet::Provider::Keystone < Puppet::Provider
     self.class.tenant_hash
   end
 
+  def self.reset
+    @admin_endpoint = nil
+    @tenant_hash    = nil
+    @admin_token    = nil
+    @keystone_file  = nil
+  end
+
+  # the path to withenv changes between versions of puppet, so redefining this function here,
+  # Run some code with a specific environment.  Resets the environment at the end of the code.
+  def self.withenv(hash, &block)
+    saved = ENV.to_hash
+    hash.each do |name, val|
+      ENV[name.to_s] = val
+    end
+    block.call
+  ensure
+    ENV.clear
+    saved.each do |name, val|
+      ENV[name] = val
+    end
+  end
+
   def self.auth_keystone(*args)
-    rv = nil
-    retries = 60
-    loop do
-      begin
-        rv = keystone('--os-token', admin_token, '--os-endpoint', admin_endpoint, args)
-        break
-      rescue Exception => e
-        if e.message =~ /(\(HTTP\s+400\))|(\[Errno 111\]\s+Connection\s+refused)|(503\s+Service\s+Unavailable)|(Max\s+retries\s+exceeded)|(Unable\sto\sestablish\sconnection\sto)/
-          notice("Can't connect to keystone backend. Waiting for retry...")
-          retries -= 1
-          sleep 2
-          if retries <= 1
-            notice("Can't connect to keystone backend. No more retries, auth failed")
-            raise(e)
-            #break
-          end
-        else
-          raise(e)
-          #break
+    authenv = {:OS_SERVICE_TOKEN => admin_token}
+    begin
+      withenv authenv do
+        remove_warnings(keystone('--os-endpoint', admin_endpoint, args))
+      end
+    rescue Exception => e
+      if e.message =~ /(\(HTTP\s+400\))|(\[Errno 111\]\s+Connection\s+refused)|(503\s+Service\s+Unavailable)|(Max\s+retries\s+exceeded)|(Unable\s+to\s+establish\s+connection)/
+        sleep 10
+        withenv authenv do
+          remove_warnings(keystone('--os-endpoint', admin_endpoint, args))
         end
+      else
+        raise(e)
       end
     end
-    return rv
   end
 
   def auth_keystone(*args)
     self.class.auth_keystone(args)
+  end
+
+  def self.creds_keystone(name, tenant, password, *args)
+    authenv = {:OS_USERNAME => name, :OS_TENANT_NAME => tenant, :OS_PASSWORD => password}
+    begin
+      withenv authenv do
+        remove_warnings(keystone('--os-auth-url', admin_endpoint, args))
+      end
+    rescue Exception => e
+      if e.message =~ /(\(HTTP\s+400\))|(\[Errno 111\]\s+Connection\s+refused)|(503\s+Service\s+Unavailable)|(Max\s+retries\s+exceeded)|(Unable\s+to\s+establish\s+connection)/
+        sleep 10
+        withenv authenv do
+          remove_warnings(keystone('--os-auth-url', admin_endpoint, args))
+        end
+      else
+        raise(e)
+      end
+    end
+   end
+
+   def creds_keystone(name, tenant, password, *args)
+     self.class.creds_keystone(name, tenant, password, args)
+   end
+
+  def self.parse_keystone_object(data)
+    # Parse the output of [type]-{create,get} into a hash
+    attrs = {}
+    header_lines = 3
+    footer_lines = 1
+    data.split("\n")[header_lines...-footer_lines].each do |line|
+      if match_data = /\|\s([^|]+)\s\|\s([^|]+)\s\|/.match(line)
+        attrs[match_data[1].strip] = match_data[2].strip
+      end
+    end
+    attrs
   end
 
   private
@@ -82,8 +136,7 @@ class Puppet::Provider::Keystone < Puppet::Provider
       # this assumes that all returned objects are of the form
       # id, name, enabled_state, OTHER
       # number_columns can be a Fixnum or an Array of possible values that can be returned
-      list = (auth_keystone("#{type}-list", args).split("\n")[3..-2] || []).select{ |line| line =~ /^\|.*\|$/ }.reject{ |line| line =~ /^\|\s+id\s+.*\|$/}.collect do |line|
-
+      list = (auth_keystone("#{type}-list", args).split("\n")[3..-2] || []).collect do |line|
         row = line.split(/\|/)[1..-1]
         row = row.map {|x| x.strip }
         # if both checks fail then we have a mismatch between what was expected and what was received
@@ -92,9 +145,9 @@ class Puppet::Provider::Keystone < Puppet::Provider
         end
         row
       end
-	debug(list.inspect)
       list
     end
+
     def self.get_keystone_object(type, id, attr)
       id = id.chomp
       auth_keystone("#{type}-get", id).split(/\|\n/m).each do |line|
@@ -109,5 +162,29 @@ class Puppet::Provider::Keystone < Puppet::Provider
         end
       end
       raise(Puppet::Error, "Could not find colummn #{attr} when getting #{type} #{id}")
+    end
+
+    # remove warning from the output. this is a temporary hack until
+    # I refactor things to use the the rest API
+    def self.remove_warnings(results)
+      found_header = false
+      in_warning = false
+      results.split("\n").collect do |line|
+        unless found_header
+          if line =~ /^\+[-\+]+\+$/
+            in_warning = false
+            found_header = true
+            line
+          elsif line =~ /^WARNING/ or line =~ /UserWarning/ or in_warning
+            # warnings can be multi line, we have to skip all of them
+            in_warning = true
+            nil
+          else
+            line
+          end
+        else
+          line
+        end
+      end.compact.join("\n")
     end
 end
