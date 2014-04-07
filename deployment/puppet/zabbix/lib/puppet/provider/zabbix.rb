@@ -30,11 +30,29 @@ class Puppet::Provider::Zabbix < Puppet::Provider
   end
 
   def self.api_request(api, body)
-    result = make_request(api, body)
-    if result.has_key? "error"
-      raise(Puppet::Error, "Zabbix API returned error code #{result["error"]["code"]}: #{result["error"]["message"]}, #{result["error"]["data"]}")
+    retries = 10
+    cooldown = 20
+    Puppet.info("Trying to make a request to zabbix server, will try #{retries} times with #{cooldown} seconds between tries")
+    retries.times do |r|
+      begin
+        Puppet.info("Retry ##{r}/#{retries}:")
+        result = make_request(api, body)
+
+        if result.has_key? "error"
+          raise(Puppet::Error, "Zabbix API returned error code #{result["error"]["code"]}: #{result["error"]["message"]}, #{result["error"]["data"]}")
+        end
+
+        return result["result"]
+
+      rescue => e
+          if r == retries
+            Puppet.error("Out of retries to make a request to zabbix server (#{retries})")
+            raise e
+          else
+            Puppet.warning("Could not make request to zabbix: #{e}, sleeping #{cooldown} (retry (##{r}/#{retries}))")
+          end
+      end
     end
-    result["result"]
   end
 
   def self.auth(api)
