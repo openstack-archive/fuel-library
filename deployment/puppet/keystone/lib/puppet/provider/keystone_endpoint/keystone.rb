@@ -17,29 +17,40 @@ Puppet::Type.type(:keystone_endpoint).provide(
 
   optional_commands :keystone => "keystone"
 
-  def self.prefetch(resource)
-    # rebuild the cahce for every puppet run
-    @endpoint_hash = nil
+  def initialize(resource = nil)
+    super(resource)
+    @property_flush = {}
   end
 
-  def self.endpoint_hash
-    @endpoint_hash ||= build_endpoint_hash
-  end
-
-  def endpoint_hash
-    self.class.endpoint_hash
+  def self.prefetch(resources)
+    endpoints = instances
+    resources.keys.each do |name|
+      if provider = endpoints.find{ |endpoint| endpoint.name == name }
+        resources[name].provider = provider
+      end
+    end
   end
 
   def self.instances
-    endpoint_hash.collect do |k, v|
-      new(:name => k)
+    list_keystone_objects('endpoint', [5,6]).collect do |endpoint|
+      service_name = get_keystone_object('service', endpoint[5], 'name')
+      new(
+        :name         => "#{endpoint[1]}/#{service_name}",
+        :ensure       => :present,
+        :id           => endpoint[0],
+        :region       => endpoint[1],
+        :public_url   => endpoint[2],
+        :internal_url => endpoint[3],
+        :admin_url    => endpoint[4],
+        :service_id   => endpoint[5],
+        :service_name => service_name
+      )
     end
   end
 
   def create
     optional_opts = []
     {
-      :region       => '--region',
       :public_url   => '--publicurl',
       :internal_url => '--internalurl',
       :admin_url    => '--adminurl'
@@ -48,86 +59,67 @@ Puppet::Type.type(:keystone_endpoint).provide(
         optional_opts.push(opt).push(resource[param])
       end
     end
-    service_id = self.class.list_keystone_objects('service', 4).detect do |user|
-      user[1] == resource[:name]
+
+    (region, service_name) = resource[:name].split('/')
+    resource[:region] = region
+    optional_opts.push('--region').push(resource[:region])
+
+    service_id = self.class.list_keystone_objects('service', 4).detect do |s|
+      s[1] == service_name
     end.first
 
-    auth_keystone(
-      'endpoint-create',
-      '--service-id', service_id,
-      optional_opts
-    )
+    auth_keystone('endpoint-create', '--service-id', service_id, optional_opts)
   end
 
   def exists?
-    endpoint_hash[resource[:name]]
+    @property_hash[:ensure] == :present
   end
 
   def destroy
-    auth_keystone('endpoint-delete', endpoint_hash[resource[:name]][:id])
+    auth_keystone('endpoint-delete', @property_hash[:id])
+  end
+
+  def flush
+    if ! @property_flush.empty?
+      destroy
+      create
+      @property_flush.clear
+    end
+    @property_hash = resource.to_hash
   end
 
   def id
-    endpoint_hash[resource[:name]][:id]
+    @property_hash[:id]
   end
 
   def region
-    endpoint_hash[resource[:name]][:region]
+    @property_hash[:region]
   end
 
   def public_url
-    endpoint_hash[resource[:name]][:public_url]
+    @property_hash[:public_url]
   end
 
   def internal_url
-    endpoint_hash[resource[:name]][:internal_url]
+    @property_hash[:internal_url]
   end
 
   def admin_url
-    endpoint_hash[resource[:name]][:admin_url]
+    @property_hash[:admin_url]
   end
 
   def public_url=(value)
-    destroy
-    endpoint_hash[resource[:name]][:public_url] = value
-    create
+    @property_hash[:public_url] = value
+    @property_flush[:public_url] = value
   end
 
   def internal_url=(value)
-    destroy
-    endpoint_hash[resource[:name]][:internal_url] = value
-    create
+    @property_hash[:internal_url] = value
+    @property_flush[:internal_url] = value
   end
 
   def admin_url=(value)
-    destroy
-    endpoint_hash[resource[:name]][:admin_url]
-    create
+    @property_hash[:admin_url] = value
+    @property_flush[:admin_url] = value
   end
-
-  private
-
-    def self.build_endpoint_hash
-      hash = {}
-      list_keystone_objects('endpoint', [5,6]).each do |endpoint|
-        service_id   = get_service_id(endpoint[0])
-        service_name = get_keystone_object('service', service_id, 'name')
-        hash[service_name] = {
-          :id           => endpoint[0],
-          :region       => endpoint[1],
-          :public_url   => endpoint[2],
-          :internal_url => endpoint[3],
-          :admin_url    => endpoint[4],
-          :service_id   => service_id
-        }
-      end
-      hash
-    end
-
-    # TODO - this needs to be replaced with a call to endpoint-get
-    # but endpoint-get is not currently supported from the admin url
-    def self.get_service_id(endpoint_id)
-      `python -c "from keystoneclient.v2_0 import client ; import os ; print [e.service_id for e in client.Client(endpoint='#{admin_endpoint}', token='#{admin_token}').endpoints.list() if e.id == u'#{endpoint_id}'][0]"`.strip()
-    end
-
 end

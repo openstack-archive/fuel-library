@@ -4,14 +4,14 @@
 # This class can be used to create tables, users and grant
 # privelege for a mysql keystone database.
 #
-# [*Parameters*]
+# == parameters
 #
 # [password] Password that will be used for the keystone db user.
 #   Optional. Defaults to: 'keystone_default_password'
 #
 # [dbname] Name of keystone database. Optional. Defaults to keystone.
 #
-# [user] Name of keystone user. Optional. Defaults to keystone_admin.
+# [user] Name of keystone user. Optional. Defaults to keystone.
 #
 # [host] Host where user should be allowed all priveleges for database.
 # Optional. Defaults to 127.0.0.1.
@@ -33,7 +33,7 @@
 class keystone::db::mysql(
   $password,
   $dbname        = 'keystone',
-  $user          = 'keystone_admin',
+  $user          = 'keystone',
   $host          = '127.0.0.1',
   $charset       = 'utf8',
   $collate       = 'utf8_unicode_ci',
@@ -41,11 +41,9 @@ class keystone::db::mysql(
   $allowed_hosts = undef
 ) {
 
-  Class['mysql::server']       -> Class['keystone::db::mysql']
-  Class['keystone::db::mysql'] -> Exec<|    title == 'keystone-manage db_sync' |>
+  Class['keystone::db::mysql'] -> Exec<| title == 'keystone-manage db_sync' |>
   Class['keystone::db::mysql'] -> Service<| title == 'keystone' |>
   Mysql::Db[$dbname] ~> Exec<| title == 'keystone-manage db_sync' |>
-  Class['keystone::db::mysql'] -> Package<| title == 'keystone' |>
 
   if ($mysql_module >= 2.2) {
     mysql::db { $dbname:

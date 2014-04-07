@@ -1,5 +1,3 @@
-*.swp
-pkg/
-.DS_Store
-metadata.json
-coverage/
+spec/fixtures/modules/*
+spec/fixtures/manifests/*
+pkg
