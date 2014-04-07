@@ -22,8 +22,7 @@ Puppet::Type.newtype(:keystone_tenant) do
     end
   end
 
-  newproperty(:description) do
-  end
+  newproperty(:description)
 
   newproperty(:id) do
     validate do |v|

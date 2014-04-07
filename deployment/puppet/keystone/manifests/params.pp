@@ -6,21 +6,26 @@ class keystone::params {
 
   case $::osfamily {
     'Debian': {
-      $package_name     = 'keystone'
-      $service_name     = 'keystone'
+      $package_name              = 'keystone'
+      $service_name              = 'keystone'
+      $keystone_wsgi_script_path = '/usr/lib/cgi-bin/keystone'
       case $::operatingsystem {
         'Debian': {
-          $service_provider = undef
+          $service_provider            = undef
+          $keystone_wsgi_script_source = '/usr/share/keystone/wsgi.py'
         }
         default: {
-          $service_provider = 'upstart'
+          $service_provider            = 'upstart'
+          $keystone_wsgi_script_source = 'puppet:///modules/keystone/httpd/keystone.py'
         }
       }
     }
     'RedHat': {
-      $package_name     = 'openstack-keystone'
-      $service_name     = 'openstack-keystone'
-      $service_provider = undef
+      $package_name                = 'openstack-keystone'
+      $service_name                = 'openstack-keystone'
+      $keystone_wsgi_script_path   = '/var/www/cgi-bin/keystone'
+      $service_provider            = undef
+      $keystone_wsgi_script_source = 'puppet:///modules/keystone/httpd/keystone.py'
     }
   }
 }
