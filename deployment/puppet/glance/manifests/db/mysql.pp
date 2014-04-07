@@ -8,7 +8,9 @@ class glance::db::mysql(
   $user          = 'glance',
   $host          = '127.0.0.1',
   $allowed_hosts = undef,
-  $charset       = 'latin1',
+  $charset       = 'utf8',
+  $collate       = 'utf8_unicode_ci',
+  $mysql_module  = '0.9',
   $cluster_id    = 'localzone'
 ) {
 
@@ -20,17 +22,31 @@ class glance::db::mysql(
       }
   }
   Class['glance::db::mysql'] -> Exec<| title == 'glance-manage db_sync' |>
-  Database[$dbname]          ~> Exec<| title == 'glance-manage db_sync' |>
 
-  require 'mysql::python'
+  if ($mysql_module >= '2.2') {
+    require 'mysql::bindings'
+    require 'mysql::bindings::python'
+    Mysql_database[$dbname] ~> Exec<| title == 'glance-manage db_sync' |>
 
-  mysql::db { $dbname:
-    user         => $user,
-    password     => $password,
-    host         => $host,
-    charset      => $charset,
-    # I may want to inject some sql
-    require      => Class['mysql::server'],
+    mysql::db { $dbname:
+      user         => $user,
+      password     => $password,
+      host         => $host,
+      charset      => $charset,
+      collate      => $collate,
+      require      => Class['mysql::server'],
+    }
+  } else {
+    require 'mysql::python'
+    Database[$dbname] ~> Exec<| title == 'glance-manage db_sync' |>
+
+    mysql::db { $dbname:
+      user         => $user,
+      password     => $password,
+      host         => $host,
+      charset      => $charset,
+      require      => Class['mysql::config'],
+    }
   }
 
   if $allowed_hosts {

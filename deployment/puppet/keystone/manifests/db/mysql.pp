@@ -35,7 +35,9 @@ class keystone::db::mysql(
   $dbname        = 'keystone',
   $user          = 'keystone_admin',
   $host          = '127.0.0.1',
-  $charset       = 'latin1',
+  $charset       = 'utf8',
+  $collate       = 'utf8_unicode_ci',
+  $mysql_module  = '0.9',
   $allowed_hosts = undef
 ) {
 
@@ -45,15 +47,25 @@ class keystone::db::mysql(
   Mysql::Db[$dbname] ~> Exec<| title == 'keystone-manage db_sync' |>
   Class['keystone::db::mysql'] -> Package<| title == 'keystone' |>
 
-  require 'mysql::python'
+  if ($mysql_module >= 2.2) {
+    mysql::db { $dbname:
+      user     => $user,
+      password => $password,
+      host     => $host,
+      charset  => $charset,
+      collate  => $collate,
+      require  => Service['mysql'],
+    }
+  } else {
+    require 'mysql::python'
 
-  mysql::db { $dbname:
-    user     => $user,
-    password => $password,
-    host     => $host,
-    # TODO does it make sense to support other charsets?
-    charset  => $charset,
-    require  => Class['mysql::server'],
+    mysql::db { $dbname:
+      user     => $user,
+      password => $password,
+      host     => $host,
+      charset  => $charset,
+      require  => Class['mysql::config'],
+    }
   }
 
   if $allowed_hosts {
@@ -62,9 +74,9 @@ class keystone::db::mysql(
       password => $password,
       database => $dbname,
     }
-    
+
     Keystone::Db::Mysql::Host_access[$allowed_hosts] -> Exec<| title == 'keystone-manage db_sync' |>
-    
+
   }
 
 }

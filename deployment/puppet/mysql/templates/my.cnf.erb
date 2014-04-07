@@ -67,6 +67,9 @@ log-bin=mysql-bin
 relay-log=mysqld-relay-bin
 replicate-ignore-db=mysql
 <% end %>
+collation-server = utf8_general_ci
+init-connect='SET NAMES utf8'
+character-set-server = utf8
 [mysqldump]
 quick
 quote-names

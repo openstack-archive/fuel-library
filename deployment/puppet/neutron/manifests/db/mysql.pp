@@ -5,7 +5,9 @@ class neutron::db::mysql (
   $user          = 'neutron',
   $host          = '127.0.0.1',
   $allowed_hosts = undef,
-  $charset       = 'latin1',
+  $charset       = 'utf8',
+  $collate       = 'utf8_unicode_ci',
+  $mysql_module  = '0.9',
   $cluster_id    = 'localzone'
 ) {
 
@@ -15,15 +17,27 @@ class neutron::db::mysql (
     Class['neutron::db::mysql']->Package['neutron-server']
   }
 
-  require 'mysql::python'
+  if ($mysql_module >= '2.2') {
+    mysql::db { $dbname:
+      user         => $user,
+      password     => $password,
+      host         => $host,
+      charset      => $charset,
+      collate      => $collate,
+      require      => Class['mysql::server'],
+    }
+  } else {
+    require 'mysql::python'
 
-  mysql::db { $dbname:
-    user         => $user,
-    password     => $password,
-    host         => $host,
-    charset      => $charset,
-    require      => Class['mysql::server'],
+    mysql::db { $dbname:
+      user         => $user,
+      password     => $password,
+      host         => $host,
+      charset      => $charset,
+      require      => Class['mysql::config'],
+    }
   }
+
 
   if $allowed_hosts {
      neutron::db::mysql::host_access { $allowed_hosts:
