@@ -1,10 +1,15 @@
 fixtures:
   repositories:
-    "apt": "git://github.com/puppetlabs/puppetlabs-apt.git"
-    "mysql": 
-      repo: "git://github.com/puppetlabs/puppetlabs-mysql.git"
+    'apache': 'git://github.com/puppetlabs/puppetlabs-apache.git'
+    'concat': 'git://github.com/puppetlabs/puppetlabs-concat.git'
+    'apt': 'git://github.com/puppetlabs/puppetlabs-apt.git'
+    'mysql':
+      repo: 'git://github.com/puppetlabs/puppetlabs-mysql.git'
       ref:  'origin/0.x'
-    "stdlib": "git://github.com/puppetlabs/puppetlabs-stdlib.git"
-    "inifile": 'git://github.com/cprice-puppet/puppetlabs-inifile'
+    'stdlib': 'git://github.com/puppetlabs/puppetlabs-stdlib.git'
+    'inifile': 'git://github.com/puppetlabs/puppetlabs-inifile'
+    'postgresql':
+      repo: 'git://github.com/puppetlabs/puppetlabs-postgresql.git'
+      ref:  '2.5.0'
   symlinks:
-    "keystone": "#{source_dir}"
+    'keystone': "#{source_dir}"
