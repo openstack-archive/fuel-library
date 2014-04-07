@@ -154,3 +154,6 @@ myisam_sort_buffer_size=<%= @myisam_sort_buffer_size %>
 wait_timeout=<%= @wait_timeout %>
 open_files_limit=<%= @open_files_limit %>
 innodb_flush_log_at_trx_commit=<%= @innodb_flush_log_at_trx_commit %>
+collation-server = utf8_general_ci
+init-connect='SET NAMES utf8'
+character-set-server = utf8
