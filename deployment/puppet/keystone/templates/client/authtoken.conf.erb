@@ -3,7 +3,7 @@
 # used to specify connection information to keystone
 #
 [filter:authtoken]
-paste.filter_factory = keystoneclient.middleware.auth_token:filter_factory
+paste.filter_factory = keystone.middleware.auth_token:filter_factory
 auth_host = <%= @auth_host %>
 auth_port = <%= @auth_port %>
 auth_protocol = <%= @auth_protocol %>
