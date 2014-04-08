@@ -255,9 +255,6 @@ $SNIPPET('centos_static_net')
 # Blacklist i2c_piix4 module so it does not create kernel errors
 $SNIPPET('centos_blacklist_i2c_piix4')
 
-wget -O /etc/rsyslog.d/20-puppet_stdout.conf "http://$server/cobbler/aux/20-puppet_stdout_syslog.conf"
-wget -O /etc/rsyslog.d/20-puppet_error.conf "http://$server/cobbler/aux/20-puppet_error_syslog.conf"
-
 # COBBLER EMBEDDED SNIPPET: 'kickstart_done'
 # DISABLES PXE BOOTING
 $SNIPPET('kickstart_done')
