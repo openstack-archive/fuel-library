@@ -56,7 +56,6 @@ class nailgun(
 
   Anchor<| title == "nailgun-begin" |> ->
   Class["nailgun::packages"] ->
-  Class["nailgun::iptables"] ->
   Class["nailgun::nginx-repo"] ->
   Exec["start_nginx_repo"] ->
   Class["nailgun::user"] ->
@@ -64,20 +63,22 @@ class nailgun(
   Class["nailgun::venv"] ->
   Class["nailgun::astute"] ->
   Class["nailgun::nginx-nailgun"] ->
+  Class["nailgun::host"] ->
   Class["nailgun::cobbler"] ->
+  Class["nailgun::gateone"] ->
   Class["openstack::logging"] ->
   Class["nailgun::supervisor"] ->
   Anchor<| title == "nailgun-end" |>
 
+  class { 'nailgun::host':
+    production => $production,
+    nailgun_group => $nailgun_group,
+    nailgun_user => $nailgun_user,
+  }
+
   class { "nailgun::packages":
     gem_source => $gem_source,
   }
-
-  firewall { '002 accept related established rules':
-    proto   => 'all',
-    state   => ['RELATED', 'ESTABLISHED'],
-    action  => 'accept',
-  } -> class { "nailgun::iptables": }
 
   file { ["/etc/nginx/conf.d/default.conf",
           "/etc/nginx/conf.d/virtual.conf",
@@ -89,7 +90,6 @@ class nailgun(
                Class["nailgun::nginx-nailgun"],
                ],
   }
-
   class {openstack::logging:
     role           => 'server',
     log_remote     => false,
@@ -247,26 +247,4 @@ class nailgun(
   }
 
   class { "nailgun::puppetsync": }
-
-  nailgun::sshkeygen { "/root/.ssh/id_rsa":
-    homedir => "/root",
-    username => "root",
-    groupname => "root",
-    keytype => "rsa",
-  } ->
-
-  file { "/etc/ssh/sshd_config":
-    content => template("nailgun/sshd_config.erb"),
-    owner => root,
-    group => root,
-    mode => 0600,
-  }
-
-  file { "/root/.ssh/config":
-    content => template("nailgun/root_ssh_config.erb"),
-    owner => root,
-    group => root,
-    mode => 0600,
-  }
-
 }
