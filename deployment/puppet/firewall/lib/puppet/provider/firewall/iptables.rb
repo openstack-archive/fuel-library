@@ -45,6 +45,7 @@ Puppet::Type.type(:firewall).provide :iptables, :parent => Puppet::Provider::Fir
     :destination => "-d",
     #--sport 68 
     :dport => ["-m multiport --dports", '-m (udp|tcp)\s+(?:--sport\s+\d+\s+)?--dport'],
+    :addrtype => "-m addrtype --(dst|src)-type",
     :gid => "-m owner --gid-owner",
     :icmp => "-m icmp --icmp-type",
     :iniface => "-i",
@@ -88,7 +89,7 @@ Puppet::Type.type(:firewall).provide :iptables, :parent => Puppet::Provider::Fir
   # we need it to properly parse and apply rules, if the order of resource
   # changes between puppet runs, the changed rules will be re-applied again.
   # This order can be determined by going through iptables source code or just tweaking and trying manually
-  @resource_list = [:table, :source, :destination, :iniface, :outiface,
+  @resource_list = [:table, :source, :destination, :iniface, :outiface, :addrtype,
     :proto, :isfragment, :tcp_flags, :gid, :uid, :sport, :dport, :port, :socket, :pkttype, :name, :state, :ctstate, :icmp, :limit, :burst,
     :jump, :todest, :tosource, :toports, :log_level, :log_prefix, :reject, :set_mark ]
 
@@ -161,8 +162,12 @@ Puppet::Type.type(:firewall).provide :iptables, :parent => Puppet::Provider::Fir
     # so it behaves like --comment
     values = values.sub(/--tcp-flags (\S*) (\S*)/, '--tcp-flags "\1 \2"')
     values = values.sub(/(!)\s+--ctstate\s?(\S*)/, '--ctstate "\1 \2"')
+    values = values.sub(/(!)\s+-i\s?(\S*)/, '-i \1 \2')
+    values = values.sub(/(!)\s+-o\s?(\S*)/, '-o \1 \2')
     values = values.sub(/(!)\s+-s\s?(\S*)/, '-s \1 \2')
     values = values.sub(/(!)\s+-d\s?(\S*)/, '-d \1 \2')
+    values = values.sub(/-i (!)\s?(\S*)/, '-i "\1 \2"')
+    values = values.sub(/-o (!)\s?(\S*)/, '-o "\1 \2"')
     values = values.sub(/-s (!)\s?(\S*)/, '-s "\1 \2"')
     values = values.sub(/-d (!)\s?(\S*)/, '-d "\1 \2"')
     # Trick the system for booleans
