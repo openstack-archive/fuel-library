@@ -24,7 +24,7 @@ define nailgun::venv::pip(
       unless => "$venv/bin/pip freeze | grep -e $grep_regex"
     }
   }
-  elsif $ensure == 'latest' {
+  elsif $ensure == 'installed' {
     exec { "pip install $name":
       command => "$venv/bin/pip install $opts -U $package",
     }

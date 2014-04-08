@@ -9,7 +9,7 @@ class puppet::thin (
   $rack_config = "/usr/share/puppet/ext/rack/files/config.ru"
 
   package { $puppet::params::thin_packages:
-          ensure => latest;
+          ensure => installed;
   }
 
   exec { "thin_install":
