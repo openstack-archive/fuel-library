@@ -4,7 +4,7 @@
 # == Parameters
 #
 #   [package_ensure] Desired ensure state of packages. Optional. Defaults to present.
-#     accepts latest or specific versions.
+#     accepts installed or specific versions.
 #   [bind_host] Host that keystone binds to.
 #   [bind_port] Port that keystone binds to.
 #   [public_port]
@@ -19,7 +19,7 @@
 #     Defaults to False.
 #   [use_syslog] Use syslog for logging. Optional.
 #     Defaults to False.
-#   [log_facility] Syslog facility to receive log lines. Optional.
+#   [syslog_log_facility] Facility for syslog, if used. Optional.
 #   [catalog_type] Type of catalog that keystone uses to store endpoints,services. Optional.
 #     Defaults to sql. (Also accepts template)
 #   [token_provider] Format keystone uses for tokens. Optional.
@@ -29,7 +29,7 @@
 #     Optional.  Defaults to 'keystone.token.backends.sql.Token'
 #   [token_expiration] Amount of time a token should remain valid (seconds).
 #     Optional.  Defaults to 86400 (24 hours).
-#   [token_format] Deprecated: Use token_provider instead.
+#   [token_format] Deprecated: Use token_provider instead. Default UUID.
 #   [cache_dir] Directory created when token_provider is pki. Optional.
 #     Defaults to /var/cache/keystone.
 #   [memcache_servers] List of memcache servers/ports. Optional. Used with
@@ -37,12 +37,20 @@
 #   [enabled] If the keystone services should be enabled. Optional. Default to true.
 #   [sql_conneciton] Url used to connect to database.
 #   [idle_timeout] Timeout when db connections should be reaped.
+#   [max_pool_size] SQLAlchemy backend related. Default 10.
+#   [max_overflow] SQLAlchemy backend related.  Default 30.
+#   [max_retries] SQLAlchemy backend related. Default -1.
 #   [enable_pki_setup] Enable call to pki_setup.
 #
 #   [*log_dir*]
 #   (optional) Directory where logs should be stored
 #   If set to boolean false, it will not log to any directory
 #   Defaults to '/var/log/keystone'
+#
+#   [*log_file*]
+#   (optional) File where logs should be stored
+#   If set to boolean false, default name would be used.
+#   Defaults to 'keystone.log'
 #
 #   [*public_endpoint*]
 #   (optional) The base public endpoint URL for keystone that are
@@ -106,35 +114,40 @@
 #
 class keystone(
   $admin_token,
-  $package_ensure   = 'present',
-  $bind_host        = '0.0.0.0',
-  $public_port      = '5000',
-  $admin_port       = '35357',
-  $compute_port     = '8774',
-  $verbose          = false,
-  $debug            = false,
-  $log_dir          = '/var/log/keystone',
-  $use_syslog       = false,
-  $log_facility     = 'LOG_USER',
-  $catalog_type     = 'sql',
-  $token_format     = false,
-  $token_provider   = 'keystone.token.providers.pki.Provider',
-  $token_driver     = 'keystone.token.backends.sql.Token',
-  $token_expiration = 86400,
-  $public_endpoint  = false,
-  $admin_endpoint   = false,
-  $enable_ssl       = false,
-  $ssl_certfile     = '/etc/keystone/ssl/certs/keystone.pem',
-  $ssl_keyfile      = '/etc/keystone/ssl/private/keystonekey.pem',
-  $ssl_ca_certs     = '/etc/keystone/ssl/certs/ca.pem',
-  $ssl_ca_key       = '/etc/keystone/ssl/private/cakey.pem',
-  $ssl_cert_subject = '/C=US/ST=Unset/L=Unset/O=Unset/CN=localhost',
-  $cache_dir        = '/var/cache/keystone',
-  $memcache_servers = false,
-  $enabled          = true,
-  $sql_connection   = 'sqlite:////var/lib/keystone/keystone.db',
-  $idle_timeout     = '200',
-  $enable_pki_setup = true
+  $package_ensure      = 'present',
+  $bind_host           = '0.0.0.0',
+  $public_port         = '5000',
+  $admin_port          = '35357',
+  $compute_port        = '8774',
+  $verbose             = false,
+  $debug               = false,
+  $log_dir             = '/var/log/keystone',
+  $log_file            = 'keystone.log',
+  $use_syslog          = false,
+  $syslog_log_facility = 'LOG_LOCAL7',
+  $syslog_log_level    = 'WARNING',
+  $catalog_type        = 'sql',
+  $token_format        = 'UUID',
+  $token_provider      = 'keystone.token.providers.pki.Provider',
+  $token_driver        = 'keystone.token.backends.sql.Token',
+  $token_expiration    = 86400,
+  $public_endpoint     = false,
+  $admin_endpoint      = false,
+  $enable_ssl          = false,
+  $ssl_certfile        = '/etc/keystone/ssl/certs/keystone.pem',
+  $ssl_keyfile         = '/etc/keystone/ssl/private/keystonekey.pem',
+  $ssl_ca_certs        = '/etc/keystone/ssl/certs/ca.pem',
+  $ssl_ca_key          = '/etc/keystone/ssl/private/cakey.pem',
+  $ssl_cert_subject    = '/C=US/ST=Unset/L=Unset/O=Unset/CN=localhost',
+  $cache_dir           = '/var/cache/keystone',
+  $memcache_servers    = false,
+  $enabled             = true,
+  $sql_connection      = 'sqlite:////var/lib/keystone/keystone.db',
+  $idle_timeout        = '200',
+  $max_pool_size       = 100,
+  $max_overflow        = "false",
+  $max_retries	       = -1,
+  $enable_pki_setup    = true
 ) {
 
   validate_re($catalog_type,   'template|sql')
@@ -175,6 +188,26 @@ class keystone(
     ensure  => directory,
     mode    => '0750',
   }
+  if $::operatingsystem == 'Ubuntu' {
+   if $service_provider == 'pacemaker' {
+      file { '/etc/init/keystone.override':
+        ensure  => present,
+        content => "manual",
+        mode    => '0644',
+        replace => "no",
+        owner   => 'root',
+        group   => 'root',
+      }
+
+      File['/etc/init/keystone.override'] -> Package['keystone']
+
+      exec { 'remove-keystone-bootblockr':
+        command => 'rm -rf /etc/init/keystone.override',
+        path    => ['/bin', '/usr/bin'],
+        require => Package['keystone']
+      }
+    }
+  }
 
   file { '/etc/keystone/keystone.conf':
     mode    => '0600',
@@ -208,17 +241,6 @@ class keystone(
   } else {
     keystone_config {
       'DEFAULT/admin_endpoint': ensure => absent;
-    }
-  }
-
-  # logging config
-  if $log_dir {
-    keystone_config {
-      'DEFAULT/log_dir': value => $log_dir;
-    }
-  } else {
-    keystone_config {
-      'DEFAULT/log_dir': ensure => absent;
     }
   }
 
@@ -257,48 +279,29 @@ class keystone(
   # memcache connection config
   if $memcache_servers {
     validate_array($memcache_servers)
+    Service<| title == 'memcached' |> -> Service['keystone']
     keystone_config {
-      'memcache/servers': value => join($memcache_servers, ',');
-    }
+      'token/driver': value => 'keystone.token.backends.memcache.Token';
+      'token/caching': value => 'true';
+      'cache/enabled': value => 'true';
+      'cache/backend': value => 'dogpile.cache.memcached';
+      'cache/backend_argument': value => inline_template("url:<%= @memcache_servers.collect{|ip| ip }.join ',' %>");
+      'memcache/servers': value => inline_template("<%= @memcache_servers.collect{|ip| ip + ':' + @memcache_server_port }.join ',' %>")
+     }
   } else {
     keystone_config {
+      'token/driver': value => 'keystone.token.backends.sql.Token';
       'memcache/servers': ensure => absent;
     }
   }
 
   # db connection config
-#TODO(bogdando) fix deprecated [sql] usage to database for IceHouse MOS packages
-#  Deprecated group/name - [DEFAULT]/sql_connection
-#  Deprecated group/name - [DATABASE]/sql_connection
-#  Deprecated group/name - [sql]/connection
-#
-#  Deprecated group/name - [DEFAULT]/sql_max_pool_size
-#  Deprecated group/name - [DATABASE]/sql_max_pool_size
-#
-#  Deprecated group/name - [DEFAULT]/sql_max_retries
-#  Deprecated group/name - [DATABASE]/sql_max_retries
-#
-#  Deprecated group/name - [DEFAULT]/sql_max_overflow
-#  Deprecated group/name - [DATABASE]/sqlalchemy_max_overflow
-#
-#  Deprecated group/name - [DEFAULT]/sql_idle_timeout
-#  Deprecated group/name - [DATABASE]/sql_idle_timeout
-#  Deprecated group/name - [sql]/idle_timeout
-#  Should be in IceHouse:
-#  keystone_config {
-#    'DATABASE/connection':    value => $sql_connection;
-#    'DATABASE/idle_timeout':  value => $idle_timeout;
-#    'DATABASE/max_pool_size': value => $max_pool_size;
-#    'DATABASE/max_retries':   value => $max_retries;
-#    'DATABASE/max_overflow':  value => $max_overflow;
-#
-#  }
   keystone_config {
-    'sql/connection':            value => $sql_connection;
-    'sql/idle_timeout':          value => $idle_timeout;
-    'DEFAULT/sql_max_pool_size': value => $max_pool_size;
-    'DEFAULT/sql_max_retries':   value => $max_retries;
-    'DEFAULT/sql_max_overflow':  value => $max_overflow;
+    'database/connection':    value => $sql_connection;
+    'database/idle_timeout':  value => $idle_timeout;
+    'database/max_pool_size': value => $max_pool_size;
+    'database/max_retries':   value => $max_retries;
+    'database/max_overflow':  value => $max_overflow;
   }
 
   # configure based on the catalog backend
@@ -359,21 +362,42 @@ class keystone(
     hasrestart => true,
     provider   => $::keystone::params::service_provider,
   }
+  Package<| title == 'keystone'|> ~> Service<| title == 'keystone'|>
+  if !defined(Service['keystone']) {
+    notify{ "Module ${module_name} cannot notify service keystone on package update": }
+  }
 
-  if $enabled {
-    include keystone::db::sync
-    Class['keystone::db::sync'] ~> Service['keystone']
+  keystone_config { 'signing/token_format': value => $token_format }
+  if($token_format  == 'PKI') {
+    file { $cache_dir:
+      ensure => directory,
+      notify  => Service['keystone'],
+    }
+
+    # keystone-manage pki_setup Should be run as the same system user that will be running the Keystone service to ensure
+    # proper ownership for the private key file and the associated certificates
+    exec { 'keystone-manage pki_setup':
+      path        => '/usr/bin',
+      user        => 'keystone',
+      refreshonly => true,
+    }
   }
 
   # Syslog configuration
   if $use_syslog {
     keystone_config {
-      'DEFAULT/use_syslog':           value => true;
-      'DEFAULT/syslog_log_facility':  value => $log_facility;
+      'DEFAULT/use_syslog':            value => true;
+      'DEFAULT/use_syslog_rfc_format': value => true;
+      'DEFAULT/syslog_log_facility':   value => $syslog_log_facility;
     }
   } else {
     keystone_config {
       'DEFAULT/use_syslog':           value => false;
     }
+  }
+
+  if $enabled {
+    include keystone::db::sync
+    Class['keystone::db::sync'] ~> Service['keystone']
   }
 }
