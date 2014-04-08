@@ -19,7 +19,8 @@
 #     Defaults to False.
 #   [use_syslog] Use syslog for logging. Optional.
 #     Defaults to False.
-#   [log_facility] Syslog facility to receive log lines. Optional.
+#   [syslog_log_facility] Facility for syslog, if used. Optional.
+#   [syslog_log_level] logging level for non verbose and non debug mode. Optional.
 #   [catalog_type] Type of catalog that keystone uses to store endpoints,services. Optional.
 #     Defaults to sql. (Also accepts template)
 #   [token_provider] Format keystone uses for tokens. Optional.
@@ -29,7 +30,7 @@
 #     Optional.  Defaults to 'keystone.token.backends.sql.Token'
 #   [token_expiration] Amount of time a token should remain valid (seconds).
 #     Optional.  Defaults to 86400 (24 hours).
-#   [token_format] Deprecated: Use token_provider instead.
+#   [token_format] Deprecated: Use token_provider instead. Default UUID.
 #   [cache_dir] Directory created when token_provider is pki. Optional.
 #     Defaults to /var/cache/keystone.
 #   [memcache_servers] List of memcache servers/ports. Optional. Used with
@@ -43,6 +44,11 @@
 #   (optional) Directory where logs should be stored
 #   If set to boolean false, it will not log to any directory
 #   Defaults to '/var/log/keystone'
+#
+#   [*log_file*]
+#   (optional) File where logs should be stored
+#   If set to boolean false, default name would be used.
+#   Defaults to 'keystone.log'
 #
 #   [*public_endpoint*]
 #   (optional) The base public endpoint URL for keystone that are
@@ -106,35 +112,40 @@
 #
 class keystone(
   $admin_token,
-  $package_ensure   = 'present',
-  $bind_host        = '0.0.0.0',
-  $public_port      = '5000',
-  $admin_port       = '35357',
-  $compute_port     = '8774',
-  $verbose          = false,
-  $debug            = false,
-  $log_dir          = '/var/log/keystone',
-  $use_syslog       = false,
-  $log_facility     = 'LOG_USER',
-  $catalog_type     = 'sql',
-  $token_format     = false,
-  $token_provider   = 'keystone.token.providers.pki.Provider',
-  $token_driver     = 'keystone.token.backends.sql.Token',
-  $token_expiration = 86400,
-  $public_endpoint  = false,
-  $admin_endpoint   = false,
-  $enable_ssl       = false,
-  $ssl_certfile     = '/etc/keystone/ssl/certs/keystone.pem',
-  $ssl_keyfile      = '/etc/keystone/ssl/private/keystonekey.pem',
-  $ssl_ca_certs     = '/etc/keystone/ssl/certs/ca.pem',
-  $ssl_ca_key       = '/etc/keystone/ssl/private/cakey.pem',
-  $ssl_cert_subject = '/C=US/ST=Unset/L=Unset/O=Unset/CN=localhost',
-  $cache_dir        = '/var/cache/keystone',
-  $memcache_servers = false,
-  $enabled          = true,
-  $sql_connection   = 'sqlite:////var/lib/keystone/keystone.db',
-  $idle_timeout     = '200',
-  $enable_pki_setup = true
+  $package_ensure      = 'present',
+  $bind_host           = '0.0.0.0',
+  $public_port         = '5000',
+  $admin_port          = '35357',
+  $compute_port        = '8774',
+  $verbose             = false,
+  $debug               = false,
+  $log_dir             = '/var/log/keystone',
+  $log_file            = 'keystone.log',
+  $use_syslog          = false,
+  $syslog_log_facility = 'LOG_LOCAL7',
+  $syslog_log_level    = 'WARNING',
+  $catalog_type        = 'sql',
+  $token_format        = 'UUID',
+  $token_provider      = 'keystone.token.providers.pki.Provider',
+  $token_driver        = 'keystone.token.backends.sql.Token',
+  $token_expiration    = 86400,
+  $public_endpoint     = false,
+  $admin_endpoint      = false,
+  $enable_ssl          = false,
+  $ssl_certfile        = '/etc/keystone/ssl/certs/keystone.pem',
+  $ssl_keyfile         = '/etc/keystone/ssl/private/keystonekey.pem',
+  $ssl_ca_certs        = '/etc/keystone/ssl/certs/ca.pem',
+  $ssl_ca_key          = '/etc/keystone/ssl/private/cakey.pem',
+  $ssl_cert_subject    = '/C=US/ST=Unset/L=Unset/O=Unset/CN=localhost',
+  $cache_dir           = '/var/cache/keystone',
+  $memcache_servers    = false,
+  $enabled             = true,
+  $sql_connection      = 'sqlite:////var/lib/keystone/keystone.db',
+  $idle_timeout        = '200',
+  $max_pool_size       = 100,
+  $max_overflow        = "false",
+  $max_retries	       = -1,
+  $enable_pki_setup    = true
 ) {
 
   validate_re($catalog_type,   'template|sql')
@@ -175,6 +186,26 @@ class keystone(
     ensure  => directory,
     mode    => '0750',
   }
+  if $::operatingsystem == 'Ubuntu' {
+   if $service_provider == 'pacemaker' {
+      file { '/etc/init/keystone.override':
+        ensure  => present,
+        content => "manual",
+        mode    => '0644',
+        replace => "no",
+        owner   => 'root',
+        group   => 'root',
+      }
+
+      File['/etc/init/keystone.override'] -> Package['keystone']
+
+      exec { 'remove-keystone-bootblockr':
+        command => 'rm -rf /etc/init/keystone.override',
+        path    => ['/bin', '/usr/bin'],
+        require => Package['keystone']
+      }
+    }
+  }
 
   file { '/etc/keystone/keystone.conf':
     mode    => '0600',
@@ -212,13 +243,33 @@ class keystone(
   }
 
   # logging config
-  if $log_dir {
+  if $use_syslog and !$debug { #syslog and nondebug case
     keystone_config {
-      'DEFAULT/log_dir': value => $log_dir;
+      'DEFAULT/log_config': value => "/etc/keystone/logging.conf";
+      'DEFAULT/use_syslog': value => true;
+      'DEFAULT/syslog_log_facility': value =>  $syslog_log_facility;
     }
-  } else {
+    file {"keystone-logging.conf":
+      content => template('keystone/logging.conf.erb'),
+      path => "/etc/keystone/logging.conf",
+      require => File['/etc/keystone'],
+      # We must notify service for new logging rules
+      notify => Service['keystone'],
+    }
+  } else { #other syslog debug or nonsyslog debug/nondebug cases
     keystone_config {
-      'DEFAULT/log_dir': ensure => absent;
+      'DEFAULT/log_config': ensure=> absent;
+      'DEFAULT/use_syslog': value =>  false;
+    }
+    if $log_dir and $log_file {
+      keystone_config {
+        'DEFAULT/log_dir':  value => $log_dir;
+        'DEFAULT/log_file': value => $log_file;
+      }
+    } else {
+      keystone_config {
+        'DEFAULT/log_dir': ensure => absent;
+      }
     }
   }
 
@@ -296,9 +347,9 @@ class keystone(
   keystone_config {
     'sql/connection':            value => $sql_connection;
     'sql/idle_timeout':          value => $idle_timeout;
-    'DEFAULT/sql_max_pool_size': value => $max_pool_size;
-    'DEFAULT/sql_max_retries':   value => $max_retries;
-    'DEFAULT/sql_max_overflow':  value => $max_overflow;
+    'DATABASE/max_pool_size': value => $max_pool_size;
+    'DATABASE/max_retries':   value => $max_retries;
+    'DATABASE/max_overflow':  value => $max_overflow;
   }
 
   # configure based on the catalog backend
@@ -359,21 +410,13 @@ class keystone(
     hasrestart => true,
     provider   => $::keystone::params::service_provider,
   }
+  Package<| title == 'keystone'|> ~> Service<| title == 'keystone'|>
+  if !defined(Service['keystone']) {
+    notify{ "Module ${module_name} cannot notify service keystone on package update": }
+  }
 
   if $enabled {
     include keystone::db::sync
     Class['keystone::db::sync'] ~> Service['keystone']
-  }
-
-  # Syslog configuration
-  if $use_syslog {
-    keystone_config {
-      'DEFAULT/use_syslog':           value => true;
-      'DEFAULT/syslog_log_facility':  value => $log_facility;
-    }
-  } else {
-    keystone_config {
-      'DEFAULT/use_syslog':           value => false;
-    }
   }
 }
