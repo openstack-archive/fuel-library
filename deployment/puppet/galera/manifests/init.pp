@@ -231,10 +231,6 @@ class galera (
     provider => $::galera::params::pkg_provider,
     require  => Package['galera']
   }
-  Package<| title == 'MySQL-server'|> ~> Service<| title == 'mysql'|>
-  if !defined(Service['mysql']) {
-    notify{ "Module ${module_name} cannot notify service mysql on package MySQL-server update": }
-  }
 
   package { "galera":
     ensure   => present,
