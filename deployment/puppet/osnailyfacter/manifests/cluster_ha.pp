@@ -162,6 +162,12 @@ class osnailyfacter::cluster_ha {
   $rabbitmq_bind_port = $amqp_port
   $rabbitmq_cluster_nodes = $controller_hostnames  # has to be hostnames
 
+  # SQLAlchemy backend configuration
+  $max_pool_size = min($::processorcount * 5 + 0, 30 + 0)
+  $max_overflow = min($::processorcount * 5 + 0, 60 + 0)
+  $max_retries = '-1'
+  $idle_timeout = '3600'
+
   $cinder_iscsi_bind_addr = $::storage_address
 
   # Determine who should get the volume service
@@ -325,6 +331,10 @@ class osnailyfacter::cluster_ha {
       horizon_use_ssl               => $::fuel_settings['horizon_use_ssl'],
       use_unicast_corosync          => $::fuel_settings['use_unicast_corosync'],
       nameservers                   => $::dns_nameservers,
+      max_retries                   => $max_retries,
+      max_pool_size                 => $max_pool_size,
+      max_overflow                  => $max_overflow,
+      idle_timeout                  => $idle_timeout,
     }
   }
 
@@ -605,6 +615,11 @@ class osnailyfacter::cluster_ha {
         debug                => $::debug,
         verbose              => $::verbose,
         use_syslog           => $::use_syslog,
+        max_retries          => $max_retries,
+        max_pool_size        => $max_pool_size,
+        max_overflow         => $max_overflow,
+        idle_timeout         => $idle_timeout,
+
       }
 #      class { "::rsyslog::client":
 #        log_local => true,

@@ -21,6 +21,10 @@ class cinder::base (
   $syslog_log_facility    = 'LOG_LOCAL3',
   $syslog_log_level = 'WARNING',
   $log_dir                = '/var/log/cinder',
+  $idle_timeout           = '3600',
+  $max_pool_size          = '10',
+  $max_overflow           = '30',
+  $max_retries            = '-1',
 ) {
 
   include cinder::params
@@ -103,14 +107,17 @@ class cinder::base (
   }
 
   cinder_config {
-    'DEFAULT/sql_connection':      value => $sql_connection;
+    'DATABASE/connection':         value => $sql_connection;
     'DEFAULT/debug':               value => $debug;
     'DEFAULT/verbose':             value => $verbose;
     'DEFAULT/api_paste_config':    value => '/etc/cinder/api-paste.ini';
   }
 
   cinder_config {
-    'DEFAULT/max_retries':   value => '-1';
+    'DATABASE/max_pool_size': value => $max_pool_size;
+    'DATABASE/max_retries':   value => $max_retries;
+    'DATABASE/max_overflow':  value => $max_overflow;
+    'DATABASE/idle_timeout':  value => $idle_timeout;
   }
   exec { 'cinder-manage db_sync':
     command     => $::cinder::params::db_sync_command,

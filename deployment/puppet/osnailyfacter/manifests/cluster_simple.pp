@@ -90,6 +90,11 @@ class osnailyfacter::cluster_simple {
   $rabbitmq_bind_port = $amqp_port
   $rabbitmq_cluster_nodes = [$controller[0]['name']]  # has to be hostnames
 
+  # SQLAlchemy backend configuration
+  $max_pool_size = min($::processorcount * 5 + 0, 30 + 0)
+  $max_overflow = min($::processorcount * 5 + 0, 60 + 0)
+  $max_retries = '-1'
+  $idle_timeout = '3600'
 
   if ($::fuel_settings['cinder']) {
     if (member($cinder_nodes_array,'all')) {
@@ -225,6 +230,10 @@ class osnailyfacter::cluster_simple {
         horizon_use_ssl         => $::horizon_use_ssl,
         nameservers             => $::dns_nameservers,
         primary_controller      => true,
+        max_retries             => $max_retries,
+        max_pool_size           => $max_pool_size,
+        max_overflow            => $max_overflow,
+        idle_timeout            => $idle_timeout,
       }
       nova_config { 'DEFAULT/start_guests_on_host_boot': value => $::fuel_settings['start_guests_on_host_boot'] }
       nova_config { 'DEFAULT/use_cow_images': value => $::fuel_settings['use_cow_images'] }
@@ -445,6 +454,10 @@ class osnailyfacter::cluster_simple {
         debug                => $debug,
         verbose              => $verbose,
         use_syslog           => $use_syslog,
+        max_retries          => $max_retries,
+        max_pool_size        => $max_pool_size,
+        max_overflow         => $max_overflow,
+        idle_timeout         => $idle_timeout,
       }
     } #CINDER ENDS
 
