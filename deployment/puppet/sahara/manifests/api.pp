@@ -48,7 +48,7 @@ class sahara::api (
   }
 
   exec { 'sahara-db-manage':
-    command    => "/usr/bin/sahara-db-manage --config-file /etc/sahara.conf upgrade head"
+    command    => "/usr/bin/sahara-db-manage --config-file /etc/sahara/sahara.conf upgrade head"
   }
 
   service { 'sahara-api':
