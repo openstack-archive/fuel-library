@@ -40,24 +40,6 @@ class nailgun::cobbler(
   }
 
   # ADDING send2syslog.py SCRIPT AND CORRESPONDING SNIPPET
-  file { "/var/www/cobbler/aux/20-puppet_stdout_syslog.conf":
-    ensure   => file,
-    owner    => 'root',
-    group    => 'root',
-    source   => "puppet:///modules/nailgun/puppet-stdout.conf",
-    require  => Class['::cobbler::server'],
-    notify   => Class['rsyslog::service'],
-  }
-
-  file { "/var/www/cobbler/aux/20-puppet_error_syslog.conf":
-    ensure   => file,
-    owner    => 'root',
-    group    => 'root',
-    source   => "puppet:///modules/nailgun/puppet-error.conf",
-    require  => Class['::cobbler::server'],
-    notify   => Class['rsyslog::service'],
-  }
-
   file { "/var/www/cobbler/aux/send2syslog.py":
     ensure => '/bin/send2syslog.py',
     require => Class["::cobbler::server"],
