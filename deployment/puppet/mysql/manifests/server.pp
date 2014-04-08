@@ -201,10 +201,7 @@ class mysql::server (
       require  => [Package['mysql-server'], Cs_commit['mysql']],
       provider => 'pacemaker',
     }
-    Package<| title == 'mysql-server'|> ~> Service<| title == 'mysql'|>
-    if !defined(Service['mysql']) {
-      notify{ "Module ${module_name} cannot notify service mysql on package update": }
-    }
+
 
     #Tie vip__management_old to p_mysqld
     cs_colocation { 'mysql_to_internal-vip':
