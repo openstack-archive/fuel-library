@@ -39,8 +39,6 @@ class openstack::controller_ha (
    $nameservers             = undef,
  ) {
 
-    $is_primary_controller = $::fuel_settings['role'] ? { 'primary-controller'=>true, default=>false }
-
     class { '::openstack::ha::haproxy':
       controllers              => $controllers,
       public_virtual_ip        => $public_virtual_ip,
@@ -52,7 +50,6 @@ class openstack::controller_ha (
       swift_proxies            => $swift_proxies,
       rgw_servers              => $rgw_servers,
       ceilometer               => $ceilometer,
-      is_primary_controller    => $is_primary_controller,
     }
 
     class { '::openstack::controller':

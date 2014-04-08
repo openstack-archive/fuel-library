@@ -93,24 +93,14 @@ class osnailyfacter::cluster_ha {
 
   $vips = { # Do not convert to ARRAY, It can't work in 2.7
     public_old => {
-      namespace      => 'haproxy',
-      nic            => $::public_int,
-      base_veth      => "${::public_int}-hapr",
-      ns_veth        => "hapr-p",
-      ip             => $::fuel_settings['public_vip'],
-      cidr_netmask   => netmask_to_cidr($::fuel_settings['nodes'][0]['public_netmask']),
-      gateway        => 'link',
-      gateway_metric => '10',
+      nic          => $::public_int,
+      ip           => $::fuel_settings['public_vip'],
+      cidr_netmask => '32',
     },
-    management_old   => {
-      namespace      => 'haproxy',
-      nic            => $::internal_int,
-      base_veth      => "${::internal_int}-hapr",
-      ns_veth        => "hapr-m",
-      ip             => $::fuel_settings['management_vip'],
-      cidr_netmask   => netmask_to_cidr($::fuel_settings['nodes'][0]['internal_netmask']),
-      gateway        => 'link',
-      gateway_metric => '20',
+    management_old => {
+      nic          => $::internal_int,
+      ip           => $::fuel_settings['management_vip'],
+      cidr_netmask => '32',
     },
   }
 
@@ -345,12 +335,8 @@ class osnailyfacter::cluster_ha {
         stage             => 'corosync_setup',
         internal_address  => $::internal_address,
         unicast_addresses => $::osnailyfacter::cluster_ha::controller_internal_addresses,
-      }
-
-      if $::fuel_settings['role'] == 'primary-controller' {
-        Class['::cluster']->
-        class { 'virtual_ips': stage => 'corosync_setup' }
-      }
+      } ->
+      class { 'virtual_ips': stage => 'corosync_setup' }
 
       class { 'cluster::haproxy': haproxy_maxconn => '16000' }
 

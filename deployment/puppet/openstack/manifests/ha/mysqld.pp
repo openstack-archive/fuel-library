@@ -1,14 +1,12 @@
 # HA configuration for MySQL/Galera for OpenStack
-class openstack::ha::mysqld (
-  $is_primary_controller = false,
-){
+class openstack::ha::mysqld {
 
   openstack::ha::haproxy_service { 'mysqld':
     order               => '110',
     listen_port         => 3306,
     balancermember_port => 3307,
     define_backups      => true,
-    #before_start        => true,
+    before_start        => true,
 
     haproxy_config_options => {
       'option'         => ['mysql-check user cluster_watcher', 'tcplog','clitcpka','srvtcpka'],
@@ -22,23 +20,13 @@ class openstack::ha::mysqld (
   }
 
   package { 'socat': ensure => present }
-  Package['socat'] -> Exec['wait-for-haproxy-mysql-backend']
-
-  if $is_primary_controller {
-    exec { 'wait-for-haproxy-mysql-backend':
-      command   => "echo show stat | socat unix-connect:///var/lib/haproxy/stats stdio | grep -q '^mysqld,BACKEND,.*,UP,'",
-      path      => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
-      try_sleep => 5,
-      tries     => 60,
-    }
-  } else {
-    exec { 'wait-for-haproxy-mysql-backend':
-      command   => "true",
-      path      => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
-      try_sleep => 5,
-      tries     => 60,
-    }
+  exec { 'wait-for-haproxy-mysql-backend':
+    command   => "echo show stat | socat unix-connect:///var/lib/haproxy/stats stdio | grep -q '^mysqld,BACKEND,.*,UP,'",
+    path      => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
+    try_sleep => 5,
+    tries     => 60,
   }
+  Package['socat'] -> Exec['wait-for-haproxy-mysql-backend']
 
   Class['cluster::haproxy_ocf'] -> Exec['wait-for-haproxy-mysql-backend']
   Exec<| title == 'wait-for-synced-state' |> -> Exec['wait-for-haproxy-mysql-backend']
