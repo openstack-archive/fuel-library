@@ -48,6 +48,7 @@ class nailgun(
   anchor { "nailgun-end": }
 
   Anchor<| title == "nailgun-begin" |> ->
+  Class["nailgun::host"] ->
   Class["nailgun::packages"] ->
   Class["nailgun::iptables"] ->
   Class["nailgun::nginx-repo"] ->
@@ -62,15 +63,15 @@ class nailgun(
   Class["nailgun::supervisor"] ->
   Anchor<| title == "nailgun-end" |>
 
+  class { 'nailgun::host':
+    production => $production,
+    nailgun_group => $nailgun_group,
+    nailgun_user => $nailgun_user,
+  }
+
   class { "nailgun::packages":
     gem_source => $gem_source,
   }
-
-  firewall { '002 accept related established rules':
-    proto   => 'all',
-    state   => ['RELATED', 'ESTABLISHED'],
-    action  => 'accept',
-  } -> class { "nailgun::iptables": }
 
   file { ["/etc/nginx/conf.d/default.conf",
           "/etc/nginx/conf.d/virtual.conf",
@@ -82,7 +83,6 @@ class nailgun(
                Class["nailgun::nginx-nailgun"],
                ],
   }
-
   class {openstack::logging:
     role           => 'server',
     log_remote     => false,
@@ -227,32 +227,4 @@ class nailgun(
   }
 
   class { "nailgun::puppetsync": }
-
-  nailgun::sshkeygen { "/root/.ssh/id_rsa":
-    homedir => "/root",
-    username => "root",
-    groupname => "root",
-    keytype => "rsa",
-  } ->
-
-  exec { "cp /root/.ssh/id_rsa.pub /etc/cobbler/authorized_keys":
-    command => "cp /root/.ssh/id_rsa.pub /etc/cobbler/authorized_keys",
-    creates => "/etc/cobbler/authorized_keys",
-    require => Class["nailgun::cobbler"],
-  }
-
-  file { "/etc/ssh/sshd_config":
-    content => template("nailgun/sshd_config.erb"),
-    owner => root,
-    group => root,
-    mode => 0600,
-  }
-
-  file { "/root/.ssh/config":
-    content => template("nailgun/root_ssh_config.erb"),
-    owner => root,
-    group => root,
-    mode => 0600,
-  }
-
 }
