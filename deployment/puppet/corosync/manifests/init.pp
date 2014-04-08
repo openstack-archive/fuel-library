@@ -124,27 +124,30 @@ class corosync (
     }
     package {'python-pcs': ensure => present} ->
       Package['pacemaker']
-    Package<|title == 'python-pcs'|> ~> Service<|title == 'corosync'|>
-    if !defined(Service['corosync']) {
-      notify{ "Module ${module_name} cannot notify service corosync\
- on package python-pcs update": }
-    }
+#FIXME(bogdando) notify corosync on packages updates, then(if) it have to be updated
+#    Package<|title == 'python-pcs'|> ~> Service<|title == 'corosync'|>
+#    if !defined(Service['corosync']) {
+#      notify{ "Module ${module_name} cannot notify service corosync\
+# on package python-pcs update": }
+#   }
   } else {
     package {'pcs': ensure => present} ->
       package {'crmsh': ensure => present} ->
         Package['pacemaker']
-    Package<|title == 'pcs'|> ~> Service<|title == 'corosync'|>
-    if !defined(Service['corosync']) {
-      notify{ "Module ${module_name} cannot notify service corosync\
- on package pcs update": }
-    }
+#FIXME(bogdando) notify corosync on packages updates, then(if) it have to be updated
+#    Package<|title == 'pcs'|> ~> Service<|title == 'corosync'|>
+#    if !defined(Service['corosync']) {
+#      notify{ "Module ${module_name} cannot notify service corosync\
+# on package pcs update": }
+#    }
   }
   package { ['corosync', 'pacemaker']: ensure => present }
-  Package<|title == 'corosync' or title == 'pacemaker'|> ~> Service<|title == 'corosync'|>
-  if !defined(Service['corosync']) {
-    notify{ "Module ${module_name} cannot notify service corosync\
- on packages update": }
-  }
+#FIXME(bogdando) notify corosync on packages updates, then(if) it have to be updated
+#  Package<|title == 'corosync' or title == 'pacemaker'|> ~> Service<|title == 'corosync'|>
+#  if !defined(Service['corosync']) {
+#    notify{ "Module ${module_name} cannot notify service corosync\
+# on packages update": }
+#  }
 
   # Template uses:
   # - $unicast_addresses
