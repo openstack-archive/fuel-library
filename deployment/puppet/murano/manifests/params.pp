@@ -4,7 +4,6 @@ class murano::params {
   $murano_conductor_package_name      = 'murano-conductor'
   $murano_api_package_name            = 'murano-api'
   $murano_dashboard_package_name      = 'murano-dashboard'
-  $murano_common_package_name         = 'murano-common'
   $murano_metadataclient_package_name = 'murano-metadataclient'
   $murano_repository_package_name     = 'murano-repository'
   $python_muranoclient_package_name   = 'python-muranoclient'
