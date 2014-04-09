@@ -511,5 +511,7 @@ class osnailyfacter::cluster_simple {
 
   } # ROLE CASE ENDS
 
+  class {'plugin_neutronnsx':}
+
 } # CLUSTER_SIMPLE ENDS
 # vim: set ts=2 sw=2 et :
