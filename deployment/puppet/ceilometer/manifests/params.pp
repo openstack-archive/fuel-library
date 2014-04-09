@@ -21,6 +21,7 @@ class ceilometer::params {
       $common_package_name        = 'openstack-ceilometer-common'
       $client_package_name        = 'python-ceilometerclient'
       $alarm_package              = 'openstack-ceilometer-alarm'
+      $agent_notification_package = 'openstack-ceilometer-agent-notification'
       # service names
       $agent_central_service_name = 'openstack-ceilometer-central'
       $agent_compute_service_name = 'openstack-ceilometer-compute'
@@ -28,6 +29,7 @@ class ceilometer::params {
       $collector_service_name     = 'openstack-ceilometer-collector'
       $alarm_evaluator_service    = 'openstack-ceilometer-alarm-evaluator'
       $alarm_notifier_service     = 'openstack-ceilometer-alarm-notifier'
+      $agent_notification_service = 'openstack-ceilometer-agent-notification'
     }
     'Debian': {
       # package names
@@ -38,6 +40,7 @@ class ceilometer::params {
       $common_package_name        = 'ceilometer-common'
       $client_package_name        = 'python-ceilometerclient'
       $alarm_package              = ['ceilometer-alarm-notifier', 'ceilometer-alarm-evaluator']
+      $agent_notification_package      = 'ceilometer-agent-notification'
       # service names
       $agent_central_service_name = 'ceilometer-agent-central'
       $agent_compute_service_name = 'ceilometer-agent-compute'
@@ -45,6 +48,7 @@ class ceilometer::params {
       $collector_service_name     = 'ceilometer-collector'
       $alarm_evaluator_service    = 'ceilometer-alarm-evaluator'
       $alarm_notifier_service     = 'ceilometer-alarm-notifier'
+      $agent_notification_service = 'ceilometer-agent-notification'
       # Operating system specific
       case $::operatingsystem {
         'Ubuntu': {
