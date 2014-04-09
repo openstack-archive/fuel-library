@@ -43,9 +43,6 @@ class openstack::cinder(
   #  localhost anyway.
 
 
-  cinder_config { 'DEFAULT/auth_strategy': value => 'keystone' }
-  cinder_config { 'DEFAULT/glance_api_servers': value => $glance_api_servers }
-
   if $queue_provider == 'rabbitmq' and $rabbit_ha_queues {
     Cinder_config['DEFAULT/rabbit_ha_queues']->Service<| title == 'cinder-api'|>
     Cinder_config['DEFAULT/rabbit_ha_queues']->Service<| title == 'cinder-volume' |>
@@ -53,7 +50,7 @@ class openstack::cinder(
     cinder_config { 'DEFAULT/rabbit_ha_queues': value => 'True' }
   }
 
-  class { 'cinder::base':
+  class { 'cinder':
     package_ensure      => $::openstack_version['cinder'],
     queue_provider      => $queue_provider,
     amqp_hosts          => $amqp_hosts,
@@ -83,6 +80,12 @@ class openstack::cinder(
       package_ensure => $::openstack_version['cinder'],
       enabled        => true,
     }
+    class { 'cinder::glance':
+      glance_api_servers     => $glance_api_servers,
+      glance_request_timeout => '600'
+    }
+
+
   }
   if $manage_volumes {
     class { 'cinder::volume':
@@ -97,8 +100,11 @@ class openstack::cinder(
           volume_group     => $volume_group,
         }
       }
-      'ceph': {
-        class {'cinder::volume::ceph': }
+      '(ceph|rbd)': {
+        class {'cinder::volume::rbd':
+          $rbd_pool => 'volumes',
+          $rbd_user => 'volumes'
+        }
       }
     }
   }

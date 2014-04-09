@@ -173,6 +173,8 @@ class cinder (
     require mysql::python
   }
 
+  ####FIXME:: fix logging level
+
   if $log_dir {
     cinder_config {
       'DEFAULT/log_dir': value => $log_dir;
@@ -185,8 +187,9 @@ class cinder (
 
   if $use_syslog {
     cinder_config {
-      'DEFAULT/use_syslog':           value => true;
-      'DEFAULT/syslog_log_facility':  value => $log_facility;
+      'DEFAULT/use_syslog':           value  => true;
+      'DEFAULT/syslog_log_facility':  value  => $log_facility;
+      'DEFAULT/use-syslog-rfc-format': value => true;
     }
   } else {
     cinder_config {
