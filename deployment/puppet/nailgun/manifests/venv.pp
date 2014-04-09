@@ -69,7 +69,7 @@ class nailgun::venv(
     }
 
     nailgun::venv::pip { "${venv}_psycopg2":
-      package => "psycopg2==2.4.6",
+      package => "psycopg2",
       require => [
         Package["postgresql-devel"],
         Nailgun::Venv::Venv[$venv],
