@@ -2,7 +2,7 @@ require 'puppet'
 require 'puppet/type/nova_config'
 describe 'Puppet::Type.type(:nova_config)' do
   before :each do
-    @nova_config = Puppet::Type.type(:nova_config).new(:name => 'foo', :value => 'bar')
+    @nova_config = Puppet::Type.type(:nova_config).new(:name => 'DEFAULT/foo', :value => 'bar')
   end
   it 'should require a name' do
     expect {
@@ -12,14 +12,19 @@ describe 'Puppet::Type.type(:nova_config)' do
   it 'should not expect a name with whitespace' do
     expect {
       Puppet::Type.type(:nova_config).new(:name => 'f oo')
-    }.to raise_error(Puppet::Error, /Invalid value/)
+    }.to raise_error(Puppet::Error, /Invalid nova_config/)
+  end
+  it 'should fail when there is no section' do
+    expect {
+      Puppet::Type.type(:nova_config).new(:name => 'foo')
+    }.to raise_error(Puppet::Error, /entries without sections are no longer supported/)
   end
   it 'should not require a value when ensure is absent' do
-    Puppet::Type.type(:nova_config).new(:name => 'foo', :ensure => :absent)
+    Puppet::Type.type(:nova_config).new(:name => 'DEFAULT/foo', :ensure => :absent)
   end
   it 'should require a value when ensure is present' do
     expect {
-      Puppet::Type.type(:nova_config).new(:name => 'foo', :ensure => :present)
+      Puppet::Type.type(:nova_config).new(:name => 'DEFAULT/foo', :ensure => :present)
     }.to raise_error(Puppet::Error, /Property value must be set/)
   end
   it 'should accept a valid value' do

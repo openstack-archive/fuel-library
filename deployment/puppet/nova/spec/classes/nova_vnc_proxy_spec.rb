@@ -20,17 +20,27 @@ describe 'nova::vncproxy' do
       :name   => 'python-numpy'
     )}
 
-    it { should contain_nova_config('novncproxy_host').with(:value => '0.0.0.0') }
-    it { should contain_nova_config('novncproxy_port').with(:value => '6080') }
+    it { should contain_nova_config('DEFAULT/novncproxy_host').with(:value => '0.0.0.0') }
+    it { should contain_nova_config('DEFAULT/novncproxy_port').with(:value => '6080') }
 
     it { should contain_package('nova-vncproxy').with(
-      :name   => ["novnc", "nova-novncproxy"],
+      :name   => 'nova-novncproxy',
       :ensure => 'present'
     ) }
     it { should contain_service('nova-vncproxy').with(
-      :name   => 'nova-novncproxy',
-      :ensure => 'running'
+      :name      => 'nova-novncproxy',
+      :hasstatus => true,
+      :ensure    => 'running'
     )}
+
+    describe 'with manage_service as false' do
+      let :params do
+        { :enabled        => true,
+          :manage_service => false
+        }
+      end
+      it { should contain_service('nova-vncproxy').without_ensure }
+    end
 
     describe 'with package version' do
       let :params do
@@ -41,6 +51,21 @@ describe 'nova::vncproxy' do
       )}
     end
 
+  end
+
+  describe 'on debian OS' do
+      let :facts do
+        { :osfamily => 'Debian', :operatingsystem => 'Debian' }
+      end
+      it { should contain_package('nova-vncproxy').with(
+        :name   => "nova-consoleproxy",
+        :ensure => 'present'
+      )}
+      it { should contain_service('nova-vncproxy').with(
+        :name      => 'nova-novncproxy',
+        :hasstatus => true,
+        :ensure    => 'running'
+      )}
   end
 
 

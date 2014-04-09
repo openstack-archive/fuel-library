@@ -1,5 +1,3 @@
-require 'ipaddr'
-
 Puppet::Type.type(:nova_network).provide(:nova_manage) do
 
   desc "Manage nova network"
@@ -29,11 +27,10 @@ Puppet::Type.type(:nova_network).provide(:nova_manage) do
     {
       # this needs to be converted from a project name to an id
       :project          => '--project_id',
-      :dns1             => '--dns1',
       :dns2             => '--dns2',
       :gateway          => '--gateway',
       :bridge           => '--bridge',
-      :vlan_start       => '--vlan',
+      :vlan_start       => '--vlan'
     }.each do |param, opt|
       if resource[param]
         optional_opts.push(opt).push(resource[param])
@@ -50,15 +47,11 @@ Puppet::Type.type(:nova_network).provide(:nova_manage) do
   end
 
   def exists?
-    # notice("exists()")
-    net = IPAddr.new(resource[:network])
-
     begin
       network_list = nova_manage("network", "list")
       return network_list.split("\n")[1..-1].detect do |n|
-        if (ipaddr = n.split[1]) =~ /^(\d+.){3}\d+\/\d+$/
-          net.include?(IPAddr.new(ipaddr))
-        end
+        # TODO - this does not take the CIDR into accont. Does it matter?
+        n =~ /^(\S+)\s+(#{resource[:network].split('/').first})/
       end
     rescue
       return false
