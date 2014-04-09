@@ -11,9 +11,10 @@ describe 'nova::scheduler' do
       { :osfamily => 'Debian' }
     end
     it { should contain_service('nova-scheduler').with(
-      'name'    => 'nova-scheduler',
-      'ensure'  => 'stopped',
-      'enable'  => false
+      'name'      => 'nova-scheduler',
+      'ensure'    => 'stopped',
+      'hasstatus' => true,
+      'enable'    => false
     )}
     it { should contain_package('nova-scheduler').with(
       'name'   => 'nova-scheduler',
@@ -25,9 +26,10 @@ describe 'nova::scheduler' do
         {:enabled => true}
       end
     it { should contain_service('nova-scheduler').with(
-      'name'    => 'nova-scheduler',
-      'ensure'  => 'running',
-      'enable'  => true
+      'name'      => 'nova-scheduler',
+      'ensure'    => 'running',
+      'hasstatus' => true,
+      'enable'    => true
     )}
     end
     describe 'with package version' do
@@ -44,10 +46,11 @@ describe 'nova::scheduler' do
       { :osfamily => 'RedHat' }
     end
     it { should contain_service('nova-scheduler').with(
-      'name'    => 'openstack-nova-scheduler',
-      'ensure'  => 'stopped',
-      'enable'  => false
+      'name'      => 'openstack-nova-scheduler',
+      'ensure'    => 'stopped',
+      'hasstatus' => true,
+      'enable'    => false
     )}
-    it { should_not contain_package('nova-scheduler') }
+    it { should contain_package('nova-scheduler').with_name('openstack-nova-scheduler') }
   end
 end
