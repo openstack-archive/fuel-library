@@ -26,6 +26,8 @@ class openstack::ceilometer (
   $on_controller       = false,
   $on_compute          = false,
   $ha_mode             = false,
+  $use_neutron         = false,
+  $swift               = false,
 ) {
 
   # Add the base ceilometer class & parameters
@@ -76,7 +78,12 @@ class openstack::ceilometer (
     }
 
     class { '::ceilometer::alarm::notifier': }
-  }
+
+    class { '::ceilometer::anotification':
+      use_neutron => $use_neutron,
+      swift       => $swift,
+    }
+ }
 
   if ($on_compute) {
     # Install compute agent
