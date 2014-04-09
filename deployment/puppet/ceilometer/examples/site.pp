@@ -32,4 +32,8 @@ node default {
   class { 'ceilometer::agent::compute':
   }
 
+  # Enable ceilometer anotification service
+  class { 'ceilometer::anotification':
+  }
+
 }

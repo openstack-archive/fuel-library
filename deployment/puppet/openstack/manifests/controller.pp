@@ -490,6 +490,8 @@ class openstack::controller (
       bind_host            => $api_bind_address,
       ha_mode              => $ha_mode,
       on_controller        => true,
+      use_neutron          => $quantum,
+      swift                => $swift,
     }
   }
 
