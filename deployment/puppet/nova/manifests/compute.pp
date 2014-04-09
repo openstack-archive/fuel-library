@@ -11,13 +11,16 @@ class nova::compute (
   $vncproxy_path                 = '/vnc_auto.html',
   $force_config_drive            = false,
   $virtio_nic                    = false,
-  $neutron_enabled               = true
+  $neutron_enabled               = false,
 ) {
 
   include nova::params
 
   if ($vnc_enabled) {
-    if ($vncproxy_host) {
+    if !($vncproxy_host) {
+      warning("VNC is enabled and \$vncproxy_host must be specified nova::compute assumes that it can collect the exported resource: Nova_config[novncproxy_base_url]")
+      Nova_config <<| tag == "${::deployment_id}::${::environment}" and title == 'novncproxy_base_url' |>>
+    } else {
       $vncproxy_base_url = "${vncproxy_protocol}://${vncproxy_host}:${vncproxy_port}${vncproxy_path}"
       # config for vnc proxy
       nova_config {

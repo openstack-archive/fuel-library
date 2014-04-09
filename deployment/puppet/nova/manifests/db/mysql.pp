@@ -6,7 +6,7 @@ class nova::db::mysql(
   $dbname        = 'nova',
   $user          = 'nova',
   $host          = '127.0.0.1',
-  $charset       = 'latin1',
+  $charset       = 'utf8',
   $allowed_hosts = undef,
   $cluster_id    = 'localzone'
 ) {
@@ -21,7 +21,7 @@ class nova::db::mysql(
     password     => $password,
     host         => $host,
     charset      => $charset,
-    require      => Class['mysql::config'],
+    require      => Class['mysql::server'],
   }
 
   # Check allowed_hosts to avoid duplicate resource declarations
@@ -37,5 +37,7 @@ class nova::db::mysql(
       password  => $password,
       database  => $dbname,
     }
+  } else {
+    Nova::Db::Mysql::Host_access<<| tag == "${::deployment_id}::${::environment}" and tag == $cluster_id |>>
   }
 }

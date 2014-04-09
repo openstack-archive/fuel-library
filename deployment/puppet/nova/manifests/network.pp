@@ -23,7 +23,8 @@ class nova::network(
   $config_overrides  = {},
   $create_networks   = true,
   $ensure_package    = 'present',
-  $install_service   = true
+  $install_service   = true,
+  $nameservers       = ['8.8.8.8','8.8.4.4']
 ) {
 
   include nova::params
@@ -35,8 +36,8 @@ class nova::network(
     path => $::path
   }
 
-  sysctl::value { 'net.ipv4.ip_forward':
-    value => '1'
+  if !defined(Sysctl::Value['net.ipv4.ip_forward']) {
+    sysctl::value { 'net.ipv4.ip_forward': value => '1', }
   }
 
   if $floating_range {
@@ -45,6 +46,9 @@ class nova::network(
 
   if has_key($config_overrides, 'vlan_start') {
     $vlan_start = $config_overrides['vlan_start']
+    if $network_manager !~ /VlanManager$/ {
+      $_config_overrides = delete($config_overrides, 'vlan_start')
+    }
   } else {
     $vlan_start = undef
   }
@@ -64,6 +68,7 @@ class nova::network(
       network       => $fixed_range,
       num_networks  => $num_networks,
       network_size  => $network_size,
+      nameservers   => $nameservers,
       vlan_start    => $vlan_start,
     }
     if $floating_range {
@@ -102,6 +107,16 @@ class nova::network(
       $resource_parameters = merge($config_overrides, $parameters)
       $vlan_resource = { 'nova::network::vlan' => $resource_parameters }
       create_resources('class', $vlan_resource)
+    }
+    # I don't think this is applicable to Folsom...
+    # If it is, the details will need changed. -jt
+    'nova.network.neutron.manager.NeutronManager': {
+      $parameters = { fixed_range      => $fixed_range,
+                      public_interface => $public_interface,
+                    }
+      $resource_parameters = merge($_config_overrides, $parameters)
+      $neutron_resource = { 'nova::network::neutron' => $resource_parameters }
+      create_resources('class', $neutron_resource)
     }
     default: {
       fail("Unsupported network manager: ${nova::network_manager} The supported network managers are nova.network.manager.FlatManager, nova.network.FlatDHCPManager and nova.network.manager.VlanManager")

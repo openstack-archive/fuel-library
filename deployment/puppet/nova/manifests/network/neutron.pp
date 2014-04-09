@@ -3,6 +3,9 @@
 # Configures Nova network to use Neutron.
 #
 # === Parameters
+
+# [*neutron_config*]
+#   (required) Quantum config hash. Should includes all of the following options.
 #
 # [*neutron_admin_password*]
 #   (required) Password for connecting to Neutron network services in
@@ -66,15 +69,16 @@
 #   to re-enable the Nova firewall.
 #
 class nova::network::neutron (
+  $neutron_config                  = {},
+  $neutron_connection_host,
   $neutron_admin_password,
   $neutron_auth_strategy           = 'keystone',
-  $neutron_url                     = 'http://127.0.0.1:9696',
+  #TODO(bogdando) move options under the config hash and use it
   $neutron_url_timeout             = '30',
   $neutron_admin_tenant_name       = 'services',
   $neutron_default_tenant_id       = 'default',
   $neutron_region_name             = 'RegionOne',
   $neutron_admin_username          = 'neutron',
-  $neutron_admin_auth_url          = 'http://127.0.0.1:35357/v2.0',
   $neutron_ovs_bridge              = 'br-int',
   $neutron_extension_sync_interval = '600',
   $neutron_ca_certificates_file    = undef,
@@ -82,21 +86,21 @@ class nova::network::neutron (
   $firewall_driver                 = 'nova.virt.firewall.NoopFirewallDriver'
 ) {
 
+  if $neutron_connection_host != 'localhost' {
+    nova_config { 'DEFAULT/neutron_connection_host': value => $neutron_connection_host }
+  }
+
   nova_config {
-    'DEFAULT/neutron_auth_strategy':           value => $neutron_auth_strategy;
-    'DEFAULT/network_api_class':               value => 'nova.network.neutronv2.api.API';
-    'DEFAULT/neutron_url':                     value => $neutron_url;
-    'DEFAULT/neutron_url_timeout':             value => $neutron_url_timeout;
-    'DEFAULT/neutron_admin_tenant_name':       value => $neutron_admin_tenant_name;
-    'DEFAULT/neutron_default_tenant_id':       value => $neutron_default_tenant_id;
-    'DEFAULT/neutron_region_name':             value => $neutron_region_name;
-    'DEFAULT/neutron_admin_username':          value => $neutron_admin_username;
-    'DEFAULT/neutron_admin_password':          value => $neutron_admin_password, secret => true;
-    'DEFAULT/neutron_admin_auth_url':          value => $neutron_admin_auth_url;
-    'DEFAULT/neutron_ovs_bridge':              value => $neutron_ovs_bridge;
-    'DEFAULT/neutron_extension_sync_interval': value => $neutron_extension_sync_interval;
-    'DEFAULT/security_group_api':              value => $security_group_api;
-    'DEFAULT/firewall_driver':                 value => $firewall_driver;
+    'DEFAULT/network_api_class':         value => 'nova.network.neutronv2.api.API';  # neutronv2 !!! not a neutron.v2
+    'DEFAULT/neutron_auth_strategy':     value => $neutron_auth_strategy;
+    'DEFAULT/neutron_url':               value => $neutron_config['server']['api_url'];
+    'DEFAULT/neutron_url_timeout':       value => $neutron_url_timeout;
+    'DEFAULT/neutron_admin_tenant_name': value => $neutron_config['keystone']['admin_tenant_name'];
+    'DEFAULT/neutron_admin_username':    value => $neutron_config['keystone']['admin_user'];
+    'DEFAULT/neutron_admin_password':    value => $neutron_config['keystone']['admin_password'];
+    'DEFAULT/neutron_admin_auth_url':    value => $neutron_config['keystone']['auth_url'];
+    'DEFAULT/firewall_driver':           value => $firewall_driver;
+    'DEFAULT/security_group_api':        value => 'neutron';
   }
 
   if ! $neutron_ca_certificates_file {
