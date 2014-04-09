@@ -40,7 +40,10 @@ class nova::api(
   $enabled_apis      = 'ec2,osapi_compute,metadata',
   $volume_api_class  = 'nova.volume.cinder.API',
   $use_forwarded_for = false,
+  $volume_api_class  = 'nova.volume.cinder.API',
+  $use_forwarded_for = false,
   $workers           = $::processorcount,
+  $nova_user_password= undef, #Empty password generates error and saves from non-working installation
   $sync_db           = true,
   $neutron_metadata_proxy_shared_secret = undef,
   $ratelimits        = undef,
@@ -53,8 +56,14 @@ class nova::api(
   include cinder::client
 
   Package<| title == 'nova-api' |> -> Nova_paste_api_ini<| |>
-
   Package<| title == 'nova-common' |> -> Class['nova::api']
+
+  if !defined(Package[$::nova::params::pymemcache_package_name]) {
+    package { $::nova::params::pymemcache_package_name:
+      ensure => present,
+      before => Nova::Generic_service['api'],
+    }
+  }
 
   Nova_paste_api_ini<| |> ~> Exec['post-nova_config']
   Nova_paste_api_ini<| |> ~> Service['nova-api']
@@ -72,8 +81,10 @@ class nova::api(
   }
 
   nova_config {
+    'DEFAULT/api_paste_config':      value => '/etc/nova/api-paste.ini';
     'DEFAULT/enabled_apis':          value => $enabled_apis;
     'DEFAULT/volume_api_class':      value => $volume_api_class;
+    'DEFAULT/keystone_ec2_url':      value => "http://${auth_host}:5000/v2.0/ec2tokens";
     'DEFAULT/ec2_listen':            value => $api_bind_address;
     'DEFAULT/osapi_compute_listen':  value => $api_bind_address;
     'DEFAULT/metadata_listen':       value => $metadata_listen;
@@ -108,6 +119,8 @@ class nova::api(
     'keystone_authtoken/admin_tenant_name': value => $admin_tenant_name;
     'keystone_authtoken/admin_user':        value => $admin_user;
     'keystone_authtoken/admin_password':    value => $admin_password, secret => true;
+    'keystone_authtoken/signing_dir':       value => '/tmp/keystone-signing-nova';
+    'keystone_authtoken/signing_dirname':   value => '/tmp/keystone-signing-nova';
   }
 
   if $auth_admin_prefix {
@@ -169,6 +182,8 @@ class nova::api(
     'filter:authtoken/admin_user':        ensure => absent;
     'filter:authtoken/admin_password':    ensure => absent;
     'filter:authtoken/auth_admin_prefix': ensure => absent;
+    'filter:authtoken/signing_dir':       ensure => absent;
+    'filter:authtoken/signing_dirname':   ensure => absent;
   }
 
 }

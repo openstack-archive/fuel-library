@@ -216,8 +216,6 @@ class openstack::controller (
 
   $memcached_addresses =  inline_template("<%= @cache_server_ip.collect {|ip| ip + ':' + @cache_server_port }.join ',' %>")
 
-  nova_config {'DEFAULT/memcached_servers':    value => $memcached_addresses;
-  }
 
   ####### DATABASE SETUP ######
   # set up mysql server
@@ -367,6 +365,7 @@ class openstack::controller (
     num_networks            => $num_networks,
     network_size            => $network_size,
     multi_host              => $multi_host,
+    memcached_servers       => $memcached_addresses,
     network_config          => $network_config,
     keystone_host           => $service_endpoint,
     service_endpoint        => $service_endpoint,
