@@ -418,7 +418,6 @@ class openstack::controller (
   }
 
   ######### Cinder Controller Services ########
-  if $cinder {
     if !defined(Class['openstack::cinder']) {
       class {'openstack::cinder':
         sql_connection       => "mysql://${cinder_db_user}:${cinder_db_password}@${db_host}/${cinder_db_dbname}?charset=utf8&read_timeout=60",
@@ -447,20 +446,7 @@ class openstack::controller (
         max_overflow         => $max_overflow,
         idle_timeout         => $idle_timeout,
       } # end class
-    } else { # defined
-      if $manage_volumes {
-      # Set up nova-volume
-        class { 'nova::volume':
-          ensure_package => $::openstack_version['nova'],
-          enabled        => true,
-        }
-        class { 'nova::volume::iscsi':
-          iscsi_ip_address => $api_bind_address,
-          physical_volume  => $nv_physical_volume,
-        }
-      } #end manage_volumes
-    } #end else
-  } #end cinder
+    }
   if !defined(Class['memcached']){
     class { 'memcached':
       #listen_ip => $api_bind_address,

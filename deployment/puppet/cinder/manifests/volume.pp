@@ -37,4 +37,8 @@ class cinder::volume (
     hasstatus => true,
     require   => Package['cinder'],
   }
+  Package<| title == $volume_package|> ~> Service<| title == 'cinder-volume'|>
+  if !defined(Service['cinder-volume']) {
+    notify{ "Module ${module_name} cannot notify service cinder-volume on package update": }
+  }
 }
