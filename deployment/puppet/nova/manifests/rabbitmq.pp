@@ -9,12 +9,15 @@
 #   Defaults to false.
 #
 class nova::rabbitmq(
-  $userid             ='guest',
-  $password           ='guest',
-  $port               ='5672',
-  $virtual_host       ='/',
-  $cluster_disk_nodes = false,
-  $enabled            = true
+  $userid                 ='guest',
+  $password               ='guest',
+  $port                   ='5672',
+  $virtual_host           ='/',
+  $cluster                = false,
+  $cluster_nodes          = [], #Real node names to install RabbitMQ server onto.
+  $cluster_disk_nodes     = false,
+  $enabled                = true,
+  $rabbit_node_ip_address = 'UNSET'
 ) {
 
   # only configure nova after the queue is up
@@ -44,20 +47,25 @@ class nova::rabbitmq(
     $service_ensure = 'stopped'
   }
 
-  if $cluster_disk_nodes {
+  if $cluster_disk_nodes or $cluster {
     class { 'rabbitmq::server':
       service_ensure           => $service_ensure,
       port                     => $port,
       delete_guest_user        => $delete_guest_user,
       config_cluster           => true,
-      cluster_disk_nodes       => $cluster_disk_nodes,
+      cluster_disk_nodes       => $cluster_nodes,
       wipe_db_on_cookie_change => true,
+      version                  => $::openstack_version['rabbitmq_version'],
+      node_ip_address          => $rabbit_node_ip_address,
     }
   } else {
     class { 'rabbitmq::server':
       service_ensure    => $service_ensure,
       port              => $port,
       delete_guest_user => $delete_guest_user,
+      config_cluster    => false,
+      version           => $::openstack_version['rabbitmq_version'],
+      node_ip_address   => $rabbit_node_ip_address,
     }
   }
 

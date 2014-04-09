@@ -16,7 +16,7 @@ class nova::compute::file_hack() {
   File {
     owner   => 'root',
     group   => 'root',
-    mode    => '755',
+    mode    => '0755',
     require => Package['nova-compute'],
     notify  => Service['nova-compute'],
   }

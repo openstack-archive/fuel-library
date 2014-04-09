@@ -66,6 +66,7 @@ class openstack::nova::controller (
   $rabbitmq_bind_port        = '5672',
   $rabbitmq_cluster_nodes    = [],
   $rabbit_cluster            = false,
+  $nova_rate_limits	     = undef,
   # Database
   $db_type                   = 'mysql',
   # Glance
@@ -86,8 +87,8 @@ class openstack::nova::controller (
   $syslog_log_facility       = 'LOG_LOCAL6',
   $syslog_log_facility_neutron = 'LOG_LOCAL4',
   $syslog_log_level = 'WARNING',
-  $nova_rate_limits          = undef,
   $cinder                    = true,
+  $memcached_servers = false,
   # SQLAlchemy backend
   $idle_timeout              = '3600',
   $max_pool_size             = '10',
@@ -166,7 +167,8 @@ class openstack::nova::controller (
     quota_metadata_items                  => 1024,
     quota_max_injected_files              => 50,
     quota_max_injected_file_content_bytes => 102400,
-    quota_max_injected_file_path_bytes    => 4096
+    quota_max_injected_file_path_bytes    => 4096,
+    quota_driver => $nova_quota_driver
   }
 
   if $enabled {
@@ -233,6 +235,22 @@ class openstack::nova::controller (
     }
   }
 
+ $default_limits = {                                                                 
+    'POST' => 10,                                                                     
+    'POST_SERVERS' => 50,                                                             
+    'PUT' => 10,                                                                      
+    'GET' => 3,                                                                       
+    'DELETE' => 100,                                                                  
+  }
+
+  $merged_limits = merge($default_limits, $nova_rate_limits)                                    
+  $post_limit=$merged_limits[POST]                                                    
+  $put_limit=$merged_limits[PUT]                                                      
+  $get_limit=$merged_limits[GET]                                                      
+  $delete_limit=$merged_limits[DELETE]                                                
+  $post_servers_limit=$merged_limits[POST_SERVERS] 
+  $nova_rate_limits_string = inline_template('<%="(POST, *, .*,  #{@post_limit} , MINUTE);(POST, %(*/servers), ^/servers,  #{@post_servers_limit} , DAY);(PUT, %(*) , .*,  #{@put_limit} , MINUTE);(GET, %(*changes-since*), .*changes-since.*, #{@get_limit}, MINUTE);(DELETE, %(*), .*, #{@delete_limit} , MINUTE)" %>')
+  notice("will apply following limits: ${nova_rate_limits_string}")
   # Configure nova-api
   class { '::nova::api':
     enabled           => $enabled,
@@ -240,9 +258,7 @@ class openstack::nova::controller (
     auth_host         => $keystone_host,
     enabled_apis      => $_enabled_apis,
     ensure_package    => $ensure_package,
-    nova_rate_limits  => $nova_rate_limits,
-    nova_quota_driver => $nova_quota_driver,
-    cinder            => $cinder
+    ratelimits        => $nova_rate_limits_string,
   }
 
   # Do not enable it!!!!!
