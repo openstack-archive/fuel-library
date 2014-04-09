@@ -1,7 +1,6 @@
 # these parameters need to be accessed from several locations and
 # should be considered to be constant
 class glance::params {
-
   $client_package_name = 'python-glanceclient'
   $pyceph_package_name = 'python-ceph'
 
@@ -16,7 +15,7 @@ class glance::params {
       $db_sync_command       = 'glance-manage db_sync'
     }
     'Debian': {
-      $package_name          = 'glance'
+      $package_name          = ['glance-common', 'python-glance']
       $api_service_name      = 'glance-api'
       $registry_service_name = 'glance-registry'
       $db_sync_command       = 'glance-manage db_sync'
