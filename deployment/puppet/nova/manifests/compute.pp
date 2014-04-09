@@ -150,7 +150,4 @@ class nova::compute (
     }
   }
 
-  package { 'pm-utils':
-    ensure => present,
-  }
 }

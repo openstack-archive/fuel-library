@@ -5,7 +5,7 @@
 # === Parameters
 #
 # [*ensure*]
-#   Ensure state for package. Defaults to 'present'.
+# Ensure state for package. Defaults to 'present'.
 #
 class cinder::client(
   $package_ensure = 'present'
@@ -15,6 +15,7 @@ class cinder::client(
 
   package { 'python-cinderclient':
     ensure => $package_ensure,
-    name   => $::cinder::params::client_package,
+    name => $::cinder::params::client_package,
   }
 }
+

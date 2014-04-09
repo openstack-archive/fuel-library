@@ -484,8 +484,12 @@ class osnailyfacter::cluster_ha {
         disk_allocation_ratio      => '1.0',
         ram_allocation_ratio       => '1.0',
         scheduler_host_subset_size => '30',
-        ram_weight_multiplier      => '1.0',
         scheduler_default_filters  => concat($scheduler_default_filters, [ 'RetryFilter', 'AvailabilityZoneFilter', 'RamFilter', 'CoreFilter', 'DiskFilter', 'ComputeFilter', 'ComputeCapabilitiesFilter', 'ImagePropertiesFilter' ])
+      }
+
+      # From logasy filter.pp
+      nova_config {
+        'DEFAULT/ram_weight_multiplier':        value => '1.0'
       }
 
       #FIXME: Disable heat for Red Hat OpenStack 3.0
@@ -600,7 +604,7 @@ class osnailyfacter::cluster_ha {
         vnc_enabled                 => true,
         manage_volumes              => $manage_volumes,
         nova_user_password          => $nova_hash[user_password],
-        memcached_servers           => $controller_nodes,
+        cache_server_ip             => $controller_nodes,
         service_endpoint            => $::fuel_settings['management_vip'],
         cinder                      => true,
         cinder_iscsi_bind_addr      => $cinder_iscsi_bind_addr,
