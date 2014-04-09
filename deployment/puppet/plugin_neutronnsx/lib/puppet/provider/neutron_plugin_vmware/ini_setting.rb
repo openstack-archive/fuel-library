@@ -1,6 +1,6 @@
 Puppet::Type.type(:ini_setting)#.providers
 
-Puppet::Type.type(:neutron_api_config).provide(
+Puppet::Type.type(:neutron_plugin_vmware).provide(
   :ini_setting,
   :parent => Puppet::Type.type(:ini_setting).provider(:ruby)
 ) do
@@ -18,7 +18,8 @@ Puppet::Type.type(:neutron_api_config).provide(
   end
 
   def file_path
-    '/etc/neutron/api-paste.ini'
+    '/etc/neutron/plugins/vmware/nsx.ini'
   end
 
 end
+
