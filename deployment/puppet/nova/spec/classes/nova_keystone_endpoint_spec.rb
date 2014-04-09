@@ -2,11 +2,11 @@ require 'spec_helper'
 
 describe 'nova::keystone::auth' do
 
-  describe 'with defaults' do
+  let :params do
+    {:password => 'nova_password'}
+  end
 
-    let :params do
-      {:password => 'nova_password'}
-    end
+  context 'with default parameters' do
 
     it { should contain_keystone_user('nova').with(
       :ensure   => 'present',
@@ -24,37 +24,21 @@ describe 'nova::keystone::auth' do
       :description => 'Openstack Compute Service'
     )}
 
-    it { should contain_keystone_service('nova_volume').with(
-      :ensure => 'present',
-      :type        => 'volume',
-      :description => 'Volume Service'
-    )}
-
     it { should contain_keystone_service('nova_ec2').with(
       :ensure => 'present',
       :type        => 'ec2',
       :description => 'EC2 Service'
     )}
 
-    it { should contain_keystone_endpoint('nova').with(
+    it { should contain_keystone_endpoint('RegionOne/nova').with(
       :ensure       => 'present',
-      :region       => 'RegionOne',
       :public_url   => 'http://127.0.0.1:8774/v2/%(tenant_id)s',
       :admin_url    => 'http://127.0.0.1:8774/v2/%(tenant_id)s',
       :internal_url => 'http://127.0.0.1:8774/v2/%(tenant_id)s'
     )}
 
-    it { should contain_keystone_endpoint('nova_volume').with(
+    it { should contain_keystone_endpoint('RegionOne/nova_ec2').with(
       :ensure       => 'present',
-      :region       => 'RegionOne',
-      :public_url   => 'http://127.0.0.1:8776/v1/%(tenant_id)s',
-      :admin_url    => 'http://127.0.0.1:8776/v1/%(tenant_id)s',
-      :internal_url => 'http://127.0.0.1:8776/v1/%(tenant_id)s'
-    )}
-
-    it { should contain_keystone_endpoint('nova_ec2').with(
-      :ensure       => 'present',
-      :region       => 'RegionOne',
       :public_url   => 'http://127.0.0.1:8773/services/Cloud',
       :admin_url    => 'http://127.0.0.1:8773/services/Admin',
       :internal_url => 'http://127.0.0.1:8773/services/Cloud'
@@ -62,10 +46,9 @@ describe 'nova::keystone::auth' do
 
   end
 
-  describe 'when setting auth name' do
-
-    let :params do
-      {:password => 'nova_password', :auth_name => 'foo' }
+  context 'when setting auth name' do
+    before do
+      params.merge!( :auth_name => 'foo' )
     end
 
     it { should contain_keystone_user('foo').with(
@@ -84,12 +67,6 @@ describe 'nova::keystone::auth' do
       :description => 'Openstack Compute Service'
     )}
 
-    it { should contain_keystone_service('foo_volume').with(
-      :ensure      => 'present',
-      :type        => 'volume',
-      :description => 'Volume Service'
-    )}
-
     it { should contain_keystone_service('foo_ec2').with(
       :ensure     => 'present',
       :type        => 'ec2',
@@ -98,61 +75,72 @@ describe 'nova::keystone::auth' do
 
   end
 
-  describe 'when setting password' do
-
-    let :params do
-      { :password => 'pass'}
+  context 'when overriding endpoint params' do
+    before do
+      params.merge!(
+        :public_address    => '10.0.0.1',
+        :admin_address     => '10.0.0.2',
+        :internal_address  => '10.0.0.3',
+        :compute_port      => '9774',
+        :ec2_port          => '9773',
+        :compute_version   => 'v2.2',
+        :region            => 'RegionTwo',
+        :admin_protocol    => 'https',
+        :internal_protocol => 'https',
+        :public_protocol   => 'https'
+      )
     end
 
-    it { should contain_keystone_user('nova').with(
-      :ensure   => 'present',
-      :password => 'pass'
-    ) }
+    it { should contain_keystone_endpoint('RegionTwo/nova').with(
+      :ensure       => 'present',
+      :public_url   => 'https://10.0.0.1:9774/v2.2/%(tenant_id)s',
+      :admin_url    => 'https://10.0.0.2:9774/v2.2/%(tenant_id)s',
+      :internal_url => 'https://10.0.0.3:9774/v2.2/%(tenant_id)s'
+    )}
+
+    it { should contain_keystone_endpoint('RegionTwo/nova_ec2').with(
+      :ensure       => 'present',
+      :public_url   => 'https://10.0.0.1:9773/services/Cloud',
+      :admin_url    => 'https://10.0.0.2:9773/services/Admin',
+      :internal_url => 'https://10.0.0.3:9773/services/Cloud'
+    )}
 
   end
 
+  describe 'when disabling endpoint configuration' do
+    before do
+      params.merge!( :configure_endpoint => false )
+    end
 
-  describe 'when overriding endpoint params' do
+    it { should_not contain_keystone_endpoint('RegionOne/nova') }
+  end
+
+  describe 'when disabling EC2 endpoint' do
+    before do
+      params.merge!( :configure_ec2_endpoint => false )
+    end
+
+    it { should_not contain_keystone_service('nova_ec2') }
+    it { should_not contain_keystone_endpoint('RegionOne/nova_ec2') }
+  end
+
+  describe 'when configuring nova-api and the keystone endpoint' do
+    let :pre_condition do
+      "class { 'nova::api': admin_password => 'test' }
+      include nova"
+    end
+
+    let :facts do
+      { :osfamily => "Debian"}
+    end
 
     let :params do
       {
-        :password         => 'nova_password',
-        :public_address   => '10.0.0.1',
-        :admin_address    => '10.0.0.2',
-        :internal_address => '10.0.0.3',
-        :compute_port     => '9774',
-        :volume_port      => '9776',
-        :ec2_port         => '9773',
-        :volume_version   => 'v2.1',
-        :compute_version  => 'v2.2',
-        :region           => 'RegionTwo'
+        :password => 'test'
       }
     end
 
-    it { should contain_keystone_endpoint('nova').with(
-      :ensure       => 'present',
-      :region       => 'RegionTwo',
-      :public_url   => 'http://10.0.0.1:9774/v2.2/%(tenant_id)s',
-      :admin_url    => 'http://10.0.0.2:9774/v2.2/%(tenant_id)s',
-      :internal_url => 'http://10.0.0.3:9774/v2.2/%(tenant_id)s'
-    )}
-
-    it { should contain_keystone_endpoint('nova_volume').with(
-      :ensure       => 'present',
-      :region       => 'RegionTwo',
-      :public_url   => 'http://10.0.0.1:9776/v2.1/%(tenant_id)s',
-      :admin_url    => 'http://10.0.0.2:9776/v2.1/%(tenant_id)s',
-      :internal_url => 'http://10.0.0.3:9776/v2.1/%(tenant_id)s'
-    )}
-
-    it { should contain_keystone_endpoint('nova_ec2').with(
-      :ensure       => 'present',
-      :region       => 'RegionTwo',
-      :public_url   => 'http://10.0.0.1:9773/services/Cloud',
-      :admin_url    => 'http://10.0.0.2:9773/services/Admin',
-      :internal_url => 'http://10.0.0.3:9773/services/Cloud'
-    )}
-
+    it { should contain_keystone_endpoint('RegionOne/nova').with_notify('Service[nova-api]') }
   end
 
 end
