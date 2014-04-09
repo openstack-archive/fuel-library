@@ -519,5 +519,9 @@ class osnailyfacter::cluster_simple {
 
   } # ROLE CASE ENDS
 
+  if $::fuel_settings['nsx_plugin']['metadata']['enabled'] {
+    class {'plugin_neutronnsx':}
+  }
+
 } # CLUSTER_SIMPLE ENDS
 # vim: set ts=2 sw=2 et :
