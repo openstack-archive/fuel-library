@@ -319,6 +319,7 @@ class MrntNeutron
         :report_interval => 5,
         :allow_bulk      => true,
         :control_exchange=> 'neutron',
+        :core_plugin => "openvswitch",
         :notify_nova_send_events_interval => 2,
         :notify_nova_on_port_status_changes => true,
         :notify_nova_on_port_data_changes => true,
