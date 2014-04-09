@@ -92,7 +92,7 @@ class openstack::glance (
     max_retries          => $max_retries,
     max_pool_size        => $max_pool_size,
     max_overflow         => $max_overflow,
-    idle_timeout         => $idle_timeout,
+    sql_idle_timeout         => $idle_timeout,
   }
 
   # Install and configure glance-registry
@@ -114,7 +114,7 @@ class openstack::glance (
     max_retries         => $max_retries,
     max_pool_size       => $max_pool_size,
     max_overflow        => $max_overflow,
-    idle_timeout        => $idle_timeout,
+    sql_idle_timeout        => $idle_timeout,
   }
 
   # Configure file storage backend
