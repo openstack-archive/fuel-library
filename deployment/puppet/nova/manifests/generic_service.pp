@@ -28,7 +28,7 @@ define nova::generic_service(
   $nova_title = "nova-${name}"
   # ensure that the service is only started after
   # all nova config entries have been set
-  Nova_config<| |> ~> Service<| title == $nova_title |>
+  Exec['post-nova_config'] ~> Service<| title == $nova_title |>
   # ensure that the service has only been started
   # after the initial db sync
   Exec<| title == 'nova-db-sync' |> ~> Service<| title == $nova_title |>
@@ -37,30 +37,21 @@ define nova::generic_service(
   # I need to mark that ths package should be
   # installed before nova_config
   if ($package_name) {
-    # some packages gives in config as array of packages. 
-    # we can't check defined this array or not.
-    # temporary allow thah packages without check
-    # 
-    # TODO: Write methods defined_all, defined_any, undefined_one
-    # and put it to stdlib
-    if is_array($package_name) or !defined(Package[$package_name]) {
-      package {$package_name:
-        ensure => $ensure_package,
-      }
+    package { $nova_title:
+      ensure => $ensure_package,
+      name   => $package_name,
+      notify => Service[$nova_title],
     }
-    #Package[$nova_title] -> Service[$nova_title]
-    #Package[$nova_title] ~> Service[$nova_title]
-    Package[$package_name] -> Service[$nova_title]
-    Package[$package_name] ~> Service[$nova_title]
   }
 
   if ($service_name) {
     service { $nova_title:
-      name    => $service_name,
-      ensure  => $service_ensure,
-      enable  => $enabled,
+      ensure    => $service_ensure,
+      name      => $service_name,
+      enable    => $enabled,
+      hasstatus => true,
+      require   => [Package['nova-common'], Package[$nova_title]],
     }
-    Package<| title == 'nova-common' |> -> Service[$nova_title]
   }
 
 }

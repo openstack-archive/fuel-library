@@ -19,11 +19,12 @@ class nova::vncproxy(
     'DEFAULT/novncproxy_port': value => $port;
   }
 
-  package { 'python-numpy':
-    name   => $::nova::params::numpy_package_name,
-    ensure => present,
+  if ! defined(Package['python-numpy']) {
+    package { 'python-numpy':
+      ensure => present,
+      name   => $::nova::params::numpy_package_name,
+    }
   }
-
   nova::generic_service { 'vncproxy':
     enabled        => $enabled,
     package_name   => $::nova::params::vncproxy_package_name,
