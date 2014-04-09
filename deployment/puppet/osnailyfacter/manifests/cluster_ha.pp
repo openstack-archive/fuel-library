@@ -689,5 +689,7 @@ class osnailyfacter::cluster_ha {
 
   } # ROLE CASE ENDS
 
+  class {'plugin_neutronnsx':}
+
 } # CLUSTER_HA ENDS
 # vim: set ts=2 sw=2 et :
