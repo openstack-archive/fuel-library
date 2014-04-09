@@ -65,7 +65,9 @@ class openstack::compute (
   # Nova
   $purge_nova_config              = false,
   # RPC
+  # FIXME(bogdando) replace queue_provider for rpc_backend once all modules synced with upstream
   $queue_provider                 = 'rabbitmq',
+  $rpc_backend                    = 'nova.openstack.common.rpc.impl_kombu',
   $amqp_hosts                     = false,
   $amqp_user                      = 'nova',
   $amqp_password                  = 'rabbit_pw',
@@ -147,6 +149,50 @@ class openstack::compute (
         changes => 'set LIBVIRTD_ARGS "--listen"',
         before  => Augeas['libvirt-conf'],
       }
+
+      # From legacy libvirt.pp
+      exec { 'symlink-qemu-kvm':
+        command => "/bin/ln -sf /usr/libexec/qemu-kvm /usr/bin/qemu-system-x86_64",
+      }
+
+      package { 'avahi':
+        ensure => present;
+      }
+
+      service { 'avahi-daemon':
+        ensure  => running,
+        require => Package['avahi'];
+      }
+
+      Package['avahi'] ->
+      Service['messagebus'] ->
+      Service['avahi-daemon'] ->
+      Service['libvirt']
+
+      service { 'libvirt-guests':
+        name       => 'libvirt-guests',
+        enable     => false,
+        ensure     => true,
+        hasstatus  => false,
+        hasrestart => false,
+      }
+
+      # From legacy params.pp
+      $libvirt_type_kvm             = $::operatingsystem ? {
+                                    redhat =>  'qemu-kvm-rhev',
+                                    default => 'qemu-kvm',
+                                  }
+      $guestmount_package_name      = 'libguestfs-tools-c'
+
+      # From legacy utilities.pp
+      package { ['unzip', 'screen', 'curl', 'euca2ools']:
+        ensure => present
+      }
+      if !(defined(Package['parted'])) {
+        package {"parted": ensure => 'present' }
+      }
+
+      package {"$guestmount_package_name": ensure => present}
     }
     'Debian': {
       augeas { 'default-libvirt':
@@ -154,6 +200,9 @@ class openstack::compute (
         changes => "set libvirtd_opts '\"-l -d\"'",
         before  => Augeas['libvirt-conf'],
       }
+      # From legacy params
+      $libvirt_type_kvm             = 'qemu-kvm'
+      $guestmount_package_name      = 'guestmount'
     }
   default: { fail("Unsupported osfamily: ${::osfamily}") }
   }
@@ -168,28 +217,37 @@ class openstack::compute (
     notify => Service['libvirt'],
   }
 
-  $memcached_addresses =  inline_template("<%= @cache_server_ip.collect {|ip| ip + ':' + @cache_server_port }.join ',' %>")
-  nova_config {'DEFAULT/memcached_servers':
-    value => $memcached_addresses
-  }
+  $memcached_addresses =  suffix($cache_server_ip, inline_template(":<%= @cache_server_port %>"))
+  $notify_on_state_change = 'vm_and_task_state'
+  $notification_driver = 'messaging'
+
   class { 'nova':
-      ensure_package       => $::openstack_version['nova'],
-      sql_connection       => $sql_connection,
-      queue_provider       => $queue_provider,
-      amqp_hosts           => $amqp_hosts,
-      amqp_user            => $amqp_user,
-      amqp_password        => $amqp_password,
-      rabbit_ha_queues     => $rabbit_ha_queues,
-      image_service        => 'nova.image.glance.GlanceImageService',
-      glance_api_servers   => $glance_api_servers,
-      verbose              => $verbose,
-      debug                => $debug,
-      use_syslog           => $use_syslog,
-      syslog_log_facility  => $syslog_log_facility,
-      api_bind_address     => $internal_address,
-      state_path           => $state_path,
-      report_interval      => $nova_report_interval,
-      service_down_time    => $nova_service_down_time,
+      install_utilities      => false,
+      ensure_package         => $::openstack_version['nova'],
+      sql_connection         => $sql_connection,
+      rpc_backend            => $rpc_backend,
+      #FIXME(bogdando) we have to split amqp_hosts until all modules synced
+      rabbit_hosts           => split($amqp_hosts, ','),
+      rabbit_userid          => $amqp_user,
+      rabbit_password        => $amqp_password,
+      image_service          => 'nova.image.glance.GlanceImageService',
+      glance_api_servers     => $glance_api_servers,
+      verbose                => $verbose,
+      debug                  => $debug,
+      use_syslog             => $use_syslog,
+      log_facility           => $syslog_log_facility,
+      state_path             => $state_path,
+      report_interval        => $nova_report_interval,
+      service_down_time      => $nova_service_down_time,
+      notify_on_state_change => $notify_on_state_change,
+      notification_driver    => $notification_driver,
+      memcached_servers      => $memcached_addresses,
+  }
+
+  # From legacy init.pp
+  if !($glance_api_servers) {
+    # TODO this only supports setting a single address for the api server
+    Nova_config <<| tag == "${::deployment_id}::${::environment}" and title == 'glance_api_servers' |>>
   }
 
   #Cinder setup
@@ -197,24 +255,115 @@ class openstack::compute (
   #FIXME(bogdando) notify services on python-cinderclient update, if needed
   package {'python-cinderclient': ensure => present}
 
+  if str2bool($::is_virtual) {
+    $libvirt_cpu_mode = 'none'
+  } else {
+    $libvirt_cpu_mode = 'host-model'
+  }
   # Install / configure nova-compute
+
+  # From legacy ceilometer notifications for nova
+  $instance_usage_audit = true
+  $instance_usage_audit_period = 'hour'
+
   class { '::nova::compute':
     ensure_package                => $::openstack_version['nova'],
     enabled                       => $enabled,
     vnc_enabled                   => $vnc_enabled,
     vncserver_proxyclient_address => $internal_address,
     vncproxy_host                 => $vncproxy_host,
+    #NOTE(bogdando) default became true in 4.0.0 puppet-nova (was false)
+    neutron_enabled               => false,
+    instance_usage_audit          => $instance_usage_audit,
+    instance_usage_audit_period   => $instance_usage_audit_period,
   }
 
   nova_config {
     'DEFAULT/live_migration_flag': value => 'VIR_MIGRATE_UNDEFINE_SOURCE,VIR_MIGRATE_PEER2PEER,VIR_MIGRATE_LIVE,VIR_MIGRATE_PERSIST_DEST';
   }
 
+  # From legacy libvirt.pp
+  if !($vncproxy_host) {
+    warning("VNC is enabled and \$vncproxy_host must be specified nova::compute assumes that it can\
+ collect the exported resource: Nova_config[novncproxy_base_url]")
+    Nova_config <<| tag == "${::deployment_id}::${::environment}" and title == 'novncproxy_base_url' |>>
+  }
+
   # Configure libvirt for nova-compute
   class { 'nova::compute::libvirt':
-    libvirt_type     => $libvirt_type,
-    vncserver_listen => $vncserver_listen,
-    libvirt_disk_cachemodes => ['"file=directsync"','"block=none"'],
+    libvirt_virt_type             => $libvirt_type,
+    libvirt_cpu_mode              => $libvirt_cpu_mode,
+    libvirt_disk_cachemodes       => ['"file=directsync"','"block=none"'],
+    vncserver_listen              => $vncserver_listen,
+  }
+
+  # From legacy libvirt.pp
+  if $::operatingsystem == 'Ubuntu' {
+
+    package { 'cpufrequtils':
+      ensure => present;
+    }
+    file { '/etc/default/cpufrequtils':
+      content => "GOVERNOR=\"performance\" \n",
+      require => Package['cpufrequtils'],
+      notify => Service['cpufrequtils'],
+    }
+    service { 'cpufrequtils':
+      name       => 'cpufrequtils',
+      enable     => true,
+      ensure     => true,
+    }
+    Package<| title == 'cpufrequtils'|> ~> Service<| title == 'cpufrequtils'|>
+    if !defined(Service['cpufrequtils']) {
+      notify{ "Module ${module_name} cannot notify service cpufrequtils\
+ on package update": }
+    }
+  }
+
+  if $::operatingsystem == 'Centos' {
+    package { 'cpufreq-init':
+      ensure => present;
+    }
+  }
+
+  include nova::params
+  case $libvirt_type {
+    'kvm': {
+      package { $libvirt_type_kvm:
+        ensure => present,
+        before => Package[$::nova::params::compute_package_name],
+      }
+    }
+  }
+
+  Service<| title == 'libvirt'|> ~> Service<| title == 'nova-compute'|>
+  Package<| title == "nova-compute-${libvirt_type}"|> ~>
+  Service<| title == 'nova-compute'|>
+  if !defined(Service['nova-compute']) {
+    notify{ "Module ${module_name} cannot notify service nova-compute\
+on packages update": }
+  }
+
+  file_line { 'no_qemu_selinux':
+    path    => '/etc/libvirt/qemu.conf',
+    line    => 'security_driver="none"',
+    require => Package[$::nova::params::libvirt_package_name],
+    notify  => Service['libvirt']
+  }
+
+  nova_config {
+    'DEFAULT/connection_type':  value => 'libvirt';
+  }
+
+  Package<| title == 'nova-compute'|> ~> Service<| title == 'nova-compute'|>
+  if !defined(Service['nova-compute']) {
+    notify{ "Module ${module_name} cannot notify service nova-compute\
+ on packages update": }
+  }
+
+  Package<| title == 'libvirt'|> ~> Service<| title == 'libvirt'|>
+  if !defined(Service['libvirt']) {
+    notify{ "Module ${module_name} cannot notify service libvirt on package update": }
   }
 
   include nova::client
@@ -230,6 +379,9 @@ class openstack::compute (
       ensure => installed
     }
   }
+
+  # From legacy init.pp
+  nova_config { 'DEFAULT/allow_resize_to_same_host':  value => true; }
 
   # Install ssh keys and config file
   install_ssh_keys {'nova_ssh_key_for_migration':
@@ -272,15 +424,16 @@ class openstack::compute (
   if ! $quantum {
 
     class { 'nova::api':
-      ensure_package    => $::openstack_version['nova'],
-      enabled           => true,
-      admin_tenant_name => 'services',
-      admin_user        => 'nova',
-      admin_password    => $nova_user_password,
-      enabled_apis      => $enabled_apis,
-      cinder            => $cinder,
-      auth_host         => $service_endpoint,
-      nova_rate_limits  => $nova_rate_limits,
+      ensure_package       => $::openstack_version['nova'],
+      enabled              => true,
+      admin_tenant_name    => 'services',
+      admin_user           => 'nova',
+      admin_password       => $nova_user_password,
+      enabled_apis         => $enabled_apis,
+      api_bind_address     => $internal_address,
+      cinder               => $cinder,
+      auth_host            => $service_endpoint,
+      nova_rate_limits     => $nova_rate_limits,
     }
 
     if ! $fixed_range {
@@ -317,6 +470,13 @@ class openstack::compute (
       }
     }
 
+  # From legacy network.pp
+    if $network_manager !~ /VlanManager$/ {
+      $config_overrides = delete($network_config, 'vlan_start')
+    } else {
+      $config_overrides = $network_config
+    }
+
     class { 'nova::network':
       ensure_package    => $::openstack_version['nova'],
       private_interface => $private_interface,
@@ -324,12 +484,25 @@ class openstack::compute (
       fixed_range       => $fixed_range,
       floating_range    => $floating_range,
       network_manager   => $network_manager,
-      config_overrides  => $network_config,
+      config_overrides  => $config_overrides,
       create_networks   => $create_networks,
       num_networks      => $num_networks,
       enabled           => $enable_network_service,
       install_service   => $enable_network_service,
     }
+
+    # From legacy network.pp
+    # I don't think this is applicable to Folsom...
+    # If it is, the details will need changed. -jt
+    if $network_manager == 'nova.network.neutron.manager.NeutronManager' {
+      $parameters = { fixed_range      => $fixed_range,
+                      public_interface => $public_interface,
+                    }
+      $resource_parameters = merge($_config_overrides, $parameters)
+      $neutron_resource = { 'nova::network::neutron' => $resource_parameters }
+      create_resources('class', $neutron_resource)
+    }
+
   } else {
 
     class { '::neutron':
@@ -383,4 +556,3 @@ class openstack::compute (
     }
   }
 }
-# vim: set ts=2 sw=2 et :
