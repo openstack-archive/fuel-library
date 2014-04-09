@@ -1,16 +1,13 @@
-# This class nova::manage::floating has been deprecated in favor of nova::manage::floating_range
-define nova::manage::floating (
-  $network = $name
-) {
+# Creates floating networks
+define nova::manage::floating ( $network ) {
 
-  File['/etc/nova/nova.conf'] ->
-    Exec<| title == 'nova-db-sync' |> ->
-      Nova_floating[$name]
+  File['/etc/nova/nova.conf'] -> Nova_floating[$name]
+  Exec<| title == 'nova-db-sync' |> -> Nova_floating[$name]
 
   nova_floating { $name:
-    ensure        => present,
-    network       => $network,
-    provider      => 'nova_manage',
+    ensure   => present,
+    network  => $network,
+    provider => 'nova_manage',
   }
 
 }
