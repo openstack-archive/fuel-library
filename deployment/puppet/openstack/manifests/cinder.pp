@@ -26,10 +26,11 @@ class openstack::cinder(
   $cinder_rate_limits     = undef,
   $verbose                = false,
   $debug                  = false,
-  $idle_timeout           = '3600',
-  $max_pool_size          = '10',
-  $max_overflow           = '30',
-  $max_retries            = '-1',
+###FIXME: implement db tuning options
+#  $idle_timeout           = '3600',
+#  $max_pool_size          = '10',
+#  $max_overflow           = '30',
+#  $max_retries            = '-1',
 ) {
   include cinder::params
   #  if ($purge_cinder_config) {
@@ -43,9 +44,6 @@ class openstack::cinder(
   #  localhost anyway.
 
 
-  cinder_config { 'DEFAULT/auth_strategy': value => 'keystone' }
-  cinder_config { 'DEFAULT/glance_api_servers': value => $glance_api_servers }
-
   if $queue_provider == 'rabbitmq' and $rabbit_ha_queues {
     Cinder_config['DEFAULT/rabbit_ha_queues']->Service<| title == 'cinder-api'|>
     Cinder_config['DEFAULT/rabbit_ha_queues']->Service<| title == 'cinder-volume' |>
@@ -53,22 +51,24 @@ class openstack::cinder(
     cinder_config { 'DEFAULT/rabbit_ha_queues': value => 'True' }
   }
 
-  class { 'cinder::base':
+  class { '::cinder':
     package_ensure      => $::openstack_version['cinder'],
-    queue_provider      => $queue_provider,
-    amqp_hosts          => $amqp_hosts,
-    amqp_user           => $amqp_user,
-    amqp_password       => $amqp_password,
+ #   queue_provider      => $queue_provider,
+    rabbit_hosts          => $amqp_hosts,
+    rabbit_userid           => $amqp_user,
+    rabbit_password       => $amqp_password,
     sql_connection      => $sql_connection,
     verbose             => $verbose,
     use_syslog          => $use_syslog,
-    syslog_log_facility => $syslog_log_facility,
-    syslog_log_level    => $syslog_log_level,
+    log_facility => $syslog_log_facility,
+##FIXME syslog log level
+#    syslog_log_level    => $syslog_log_level,
     debug               => $debug,
-    max_retries         => $max_retries,
-    max_pool_size       => $max_pool_size,
-    max_overflow        => $max_overflow,
-    idle_timeout        => $idle_timeout,
+###FIXME:: implement db tuning options
+#    max_retries         => $max_retries,
+#    max_pool_size       => $max_pool_size,
+#    max_overflow        => $max_overflow,
+#    idle_timeout        => $idle_timeout,
   }
   if ($bind_host) {
     class { 'cinder::api':
@@ -76,13 +76,20 @@ class openstack::cinder(
       keystone_auth_host => $auth_host,
       keystone_password  => $cinder_user_password,
       bind_host          => $bind_host,
-      cinder_rate_limits => $cinder_rate_limits
+###FIXME:: implement cinder_rate_limits
+#      cinder_rate_limits => $cinder_rate_limits
     }
 
     class { 'cinder::scheduler':
       package_ensure => $::openstack_version['cinder'],
       enabled        => true,
     }
+    class { 'cinder::glance':
+      glance_api_servers     => $glance_api_servers,
+      glance_request_timeout => '600'
+    }
+
+
   }
   if $manage_volumes {
     class { 'cinder::volume':
@@ -93,14 +100,16 @@ class openstack::cinder(
       true, 'iscsi': {
         class { 'cinder::volume::iscsi':
           iscsi_ip_address => $iscsi_bind_host,
-          physical_volume  => $physical_volume,
           volume_group     => $volume_group,
         }
       }
-      'ceph': {
-        class {'cinder::volume::ceph': }
+      /(ceph|rbd)/: {
+        class {'cinder::volume::rbd':
+          rbd_pool => 'volumes',
+          rbd_user => 'volumes'
+        }
       }
     }
-  }
+ }
 }
 

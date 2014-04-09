@@ -109,7 +109,13 @@ class cinder (
     }
 
     if $rabbit_hosts {
-      cinder_config { 'DEFAULT/rabbit_hosts':     value => join($rabbit_hosts, ',') }
+      if is_array($rabbit_hosts)
+      {
+          cinder_config { 'DEFAULT/rabbit_hosts':     value => join($rabbit_hosts, ',') }
+      }
+      else {
+          cinder_config { 'DEFAULT/rabbit_hosts':     value => $rabbit_hosts }
+      }
       cinder_config { 'DEFAULT/rabbit_ha_queues': value => true }
     } else {
       cinder_config { 'DEFAULT/rabbit_host':      value => $rabbit_host }
@@ -173,6 +179,8 @@ class cinder (
     require mysql::python
   }
 
+  ####FIXME:: fix logging level
+
   if $log_dir {
     cinder_config {
       'DEFAULT/log_dir': value => $log_dir;
@@ -185,8 +193,9 @@ class cinder (
 
   if $use_syslog {
     cinder_config {
-      'DEFAULT/use_syslog':           value => true;
-      'DEFAULT/syslog_log_facility':  value => $log_facility;
+      'DEFAULT/use_syslog':           value  => true;
+      'DEFAULT/syslog_log_facility':  value  => $log_facility;
+      'DEFAULT/use-syslog-rfc-format': value => true;
     }
   } else {
     cinder_config {
