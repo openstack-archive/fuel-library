@@ -482,7 +482,8 @@ class MrntNeutron
       # if v == nil && cfg_user[k] == nil
       #   raise(Puppet::ParseError, "Missing required field '#{path}.#{k}'.")
       # end
-      if v != nil && cfg_user[k] != nil && v.class() != cfg_user[k].class()
+      if (v != nil && cfg_user[k] != nil && v.class() != cfg_user[k].class() \
+          && ! (!!v == v && !!cfg_user[k] == cfg_user[k]))
         raise(Puppet::ParseError, "Invalid format of config hash (field=\"#{k}\").")
       end
       rv[k] = case v.class.to_s
