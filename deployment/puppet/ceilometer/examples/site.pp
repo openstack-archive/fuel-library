@@ -32,4 +32,8 @@ node default {
   class { 'ceilometer::agent::compute':
   }
 
+  # Enable ceilometer agent notification service
+  class { 'ceilometer::agent_notification':
+  }
+
 }
