@@ -16,12 +16,12 @@ class nova::compute::file_hack() {
   File {
     owner   => 'root',
     group   => 'root',
-    mode    => '0755',
+    mode    => '755',
     require => Package['nova-compute'],
     notify  => Service['nova-compute'],
   }
 
-  file { '/usr/lib/python2.7/dist-packages/nova/virt/libvirt/connection.py': 
+  file { '/usr/lib/python2.7/dist-packages/nova/virt/libvirt/connection.py':
     source => 'puppet:///modules/nova/connection.py',
   }
 
