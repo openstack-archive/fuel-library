@@ -1,4 +1,4 @@
 class { 'glance::api':
-  debug => true,
+  debug   => true,
   verbose => true,
 }

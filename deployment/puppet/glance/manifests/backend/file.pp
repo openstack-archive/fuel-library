@@ -9,8 +9,11 @@ class glance::backend::file(
 ) inherits glance::api {
 
   glance_api_config {
-    'DEFAULT/default_store':  value => 'file';
+    'DEFAULT/default_store':            value => 'file';
     'DEFAULT/filesystem_store_datadir': value => $filesystem_store_datadir;
   }
 
+  glance_cache_config {
+    'DEFAULT/filesystem_store_datadir': value => $filesystem_store_datadir;
+  }
 }
