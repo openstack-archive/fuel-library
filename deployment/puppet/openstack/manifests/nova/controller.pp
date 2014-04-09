@@ -58,8 +58,10 @@ class openstack::nova::controller (
   $nova_db_user                = 'nova',
   $nova_db_dbname              = 'nova',
   # RPC
+  # FIXME(bogdando) replace queue_provider for rpc_backend once all modules synced with upstream
+  $rpc_backend                 = 'heat.openstack.common.rpc.impl_kombu',
   $queue_provider              = 'rabbitmq',
-  $amqp_hosts                  = ['127.0.0.1'],
+  $amqp_hosts                  = ['127.0.0.1:5672'],
   $amqp_user                   = 'nova',
   $amqp_password               = 'rabbit_pw',
   $rabbit_ha_queues            = false,
@@ -75,6 +77,8 @@ class openstack::nova::controller (
   $vnc_enabled                 = true,
   # General
   $keystone_host               = '127.0.0.1',
+  $cache_server_ip             = ['127.0.0.1'],
+  $cache_server_port           = '11211',
   $verbose                     = false,
   $debug                       = false,
   $enabled                     = true,
@@ -101,7 +105,8 @@ class openstack::nova::controller (
   # Configure the db string
   case $db_type {
     'mysql': {
-      $nova_db = "mysql://${nova_db_user}:${nova_db_password}@${db_host}/${nova_db_dbname}?read_timeout=60"
+      $nova_db = "mysql://${nova_db_user}:${nova_db_password}@${db_host}/${nova_db_dbname}\
+?read_timeout=60"
     }
   }
 
@@ -110,6 +115,13 @@ class openstack::nova::controller (
   } else {
     $real_glance_api_servers = $glance_api_servers
   }
+
+  # From legacy init.pp
+  if !($glance_api_servers) {
+    # TODO this only supports setting a single address for the api server
+    Nova_config <<| tag == "${::deployment_id}::${::environment}" and title == 'glance_api_servers' |>>
+  }
+
   $sql_connection    = $nova_db
   $glance_connection = $real_glance_api_servers
 
@@ -122,7 +134,7 @@ class openstack::nova::controller (
         password               => $amqp_password,
         rabbit_node_ip_address => $rabbitmq_bind_ip_address,
         port                   => $rabbitmq_bind_port,
-        cluster_nodes          => $rabbitmq_cluster_nodes,
+        cluster_disk_nodes     => $rabbitmq_cluster_nodes,
         cluster                => $rabbit_cluster,
         primary_controller     => $primary_controller,
         ha_mode                => $ha_mode,
@@ -141,26 +153,50 @@ class openstack::nova::controller (
     }
   }
 
+  $memcached_addresses =  suffix($cache_server_ip, inline_template(":@cache_server_port"))
+
+  # From legacy ceilometer notifications for nova
+  $notify_on_state_change = 'vm_and_task_state'
+  $notification_driver = 'messaging'
+
   class { 'nova':
-    sql_connection      => $sql_connection,
-    amqp_hosts          => $amqp_hosts,
-    amqp_user           => $amqp_user,
-    amqp_password       => $amqp_password,
-    rabbit_ha_queues    => $rabbit_ha_queues,
-    image_service       => 'nova.image.glance.GlanceImageService',
-    glance_api_servers  => $glance_connection,
-    verbose             => $verbose,
-    debug               => $debug,
-    ensure_package      => $ensure_package,
-    api_bind_address    => $api_bind_address,
-    syslog_log_facility => $syslog_log_facility,
-    use_syslog          => $use_syslog,
-    max_retries         => $max_retries,
-    max_pool_size       => $max_pool_size,
-    max_overflow        => $max_overflow,
-    idle_timeout        => $idle_timeout,
-    report_interval     => $nova_report_interval,
-    service_down_time   => $nova_service_down_time,
+    sql_connection         => $sql_connection,
+    rpc_backend            => $rpc_backend,
+    #FIXME(bogdando) we have to split amqp_hosts until all modules synced
+    rabbit_hosts           => split($amqp_hosts, ','),
+    rabbit_userid          => $amqp_user,
+    rabbit_password        => $amqp_password,
+    image_service          => 'nova.image.glance.GlanceImageService',
+    glance_api_servers     => $glance_connection,
+    verbose                => $verbose,
+    debug                  => $debug,
+    ensure_package         => $ensure_package,
+    log_facility           => $syslog_log_facility,
+    use_syslog             => $use_syslog,
+    database_idle_timeout  => $idle_timeout,
+    report_interval        => $nova_report_interval,
+    service_down_time      => $nova_service_down_time,
+    notify_on_state_change => $notify_on_state_change,
+    notification_driver    => $notification_driver,
+    memcached_servers      => $memcached_addresses,
+  }
+
+  #NOTE(bogdando) exec update-kombu is always undef, so delete?
+  if (defined(Exec['update-kombu']))
+  {
+    Exec['update-kombu'] -> Nova::Generic_service<||>
+  }
+
+  if $use_syslog {
+    nova_config {
+      'DEFAULT/use_syslog_rfc_format':  value => true;
+    }
+  }
+
+  nova_config {
+    'DATABASE/max_pool_size': value => $max_pool_size;
+    'DATABASE/max_retries':   value => $max_retries;
+    'DATABASE/max_overflow':  value => $max_overflow;
   }
 
   class {'nova::quota':
@@ -172,7 +208,8 @@ class openstack::nova::controller (
     quota_metadata_items                  => 1024,
     quota_max_injected_files              => 50,
     quota_max_injected_file_content_bytes => 102400,
-    quota_max_injected_file_path_bytes    => 4096
+    quota_max_injected_file_path_bytes    => 4096,
+    quota_driver                          => $nova_quota_driver
   }
 
   if $enabled {
@@ -198,13 +235,20 @@ class openstack::nova::controller (
       $_enabled_apis = "${enabled_apis},metadata"
     }
 
+    # From legacy network.pp
+    if $network_manager !~ /VlanManager$/ {
+      $config_overrides = delete($network_config, 'vlan_start')
+    } else {
+      $config_overrides = $network_config
+    }
+
     class { 'nova::network':
       private_interface => $private_interface,
       public_interface  => $public_interface,
       fixed_range       => $fixed_range,
       floating_range    => $floating_range,
       network_manager   => $network_manager,
-      config_overrides  => $network_config,
+      config_overrides  => $config_overrides,
       create_networks   => $really_create_networks,
       num_networks      => $num_networks,
       network_size      => $network_size,
@@ -244,28 +288,75 @@ class openstack::nova::controller (
     }
   }
 
-  # Configure nova-api
-  class { '::nova::api':
-    enabled           => $enabled,
-    admin_password    => $nova_user_password,
-    auth_host         => $keystone_host,
-    enabled_apis      => $_enabled_apis,
-    ensure_package    => $ensure_package,
-    nova_rate_limits  => $nova_rate_limits,
-    nova_quota_driver => $nova_quota_driver,
-    cinder            => $cinder
+ $default_limits = {
+    'POST' => 10,
+    'POST_SERVERS' => 50,
+    'PUT' => 10,
+    'GET' => 3,
+    'DELETE' => 100,
   }
 
-  # Do not enable it!!!!!
-  # metadata service provides by nova api
-  # while enabled_apis=ec2,osapi_compute,metadata
-  # and by quantum-metadata-agent on network node as proxy
-  #
-  # enable nova-metadata-api service
-  #class { 'nova::metadata_api':
-  #  enabled => $enabled,
-  #  ensure_package => $ensure_package,
-  #}
+  $merged_limits = merge($default_limits, $nova_rate_limits)
+  $post_limit=$merged_limits[POST]
+  $put_limit=$merged_limits[PUT]
+  $get_limit=$merged_limits[GET]
+  $delete_limit=$merged_limits[DELETE]
+  $post_servers_limit=$merged_limits[POST_SERVERS]
+  $nova_rate_limits_string = inline_template('<%="(POST, *, .*,  #{@post_limit} , MINUTE);\
+(POST, %(*/servers), ^/servers,  #{@post_servers_limit} , DAY);(PUT, %(*) , .*,  #{@put_limit}\
+ , MINUTE);(GET, %(*changes-since*), .*changes-since.*, #{@get_limit}, MINUTE);(DELETE, %(*),\
+ .*, #{@delete_limit} , MINUTE)" %>')
+  notice("will apply following limits: ${nova_rate_limits_string}")
+  # Configure nova-api
+  class { '::nova::api':
+    enabled             => $enabled,
+    api_bind_address    => $api_bind_address,
+    admin_password      => $nova_user_password,
+    auth_host           => $keystone_host,
+    enabled_apis        => $_enabled_apis,
+    ensure_package      => $ensure_package,
+    ratelimits          => $nova_rate_limits_string,
+    require             => Package['nova-common'],
+  }
+
+  # From legacy params.pp
+  case $::osfamily {
+    'RedHat': {
+      $pymemcache_package_name      = 'python-memcached'
+    }
+    'Debian': {
+      $pymemcache_package_name      = 'python-memcache'
+    }
+    default: {
+      fail("Unsupported osfamily: ${::osfamily} operatingsystem: ${::operatingsystem},\
+ module ${module_name} only support osfamily RedHat and Debian")
+    }
+  }
+
+  # From legacy init.pp
+  if !defined(Package[$pymemcache_package_name]) {
+    package { $pymemcache_package_name:
+      ensure => present,
+    } ->
+    Nova::Generic_service <| title == 'api' |>
+  }
+
+  if !($sql_connection) {
+     Nova_config <<| tag == "${::deployment_id}::${::environment}" and title == 'connection' |>>
+  }
+
+  nova_config {
+    'DEFAULT/allow_resize_to_same_host':  value => true;
+    'DEFAULT/api_paste_config':           value => '/etc/nova/api-paste.ini';
+    'DEFAULT/keystone_ec2_url':           value => "http://${keystone_host}:5000/v2.0/ec2tokens";
+    'keystone_authtoken/signing_dir':     value => '/tmp/keystone-signing-nova';
+    'keystone_authtoken/signing_dirname': value => '/tmp/keystone-signing-nova';
+  }
+
+  nova_paste_api_ini {
+    'filter:authtoken/signing_dir':       ensure => absent;
+    'filter:authtoken/signing_dirname':   ensure => absent;
+  }
 
   class {'::nova::conductor':
     enabled => $enabled,
