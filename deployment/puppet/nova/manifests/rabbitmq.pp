@@ -42,7 +42,8 @@ class nova::rabbitmq(
   $virtual_host       ='/',
   $cluster_disk_nodes = false,
   $enabled            = true,
-  $rabbitmq_class     = 'rabbitmq::server'
+  $rabbitmq_class     = 'rabbitmq::server',
+  $rabbit_node_ip_address = 'UNSET'
 ) {
 
   # only configure nova after the queue is up
@@ -80,12 +81,17 @@ class nova::rabbitmq(
       config_cluster           => true,
       cluster_disk_nodes       => $cluster_disk_nodes,
       wipe_db_on_cookie_change => true,
+      version                  => $::openstack_version['rabbitmq_version'],
+      node_ip_address          => $rabbit_node_ip_address,
     }
   } else {
     class { $rabbitmq_class:
       service_ensure    => $service_ensure,
       port              => $port,
       delete_guest_user => $delete_guest_user,
+      config_cluster    => false,
+      version           => $::openstack_version['rabbitmq_version'],
+      node_ip_address   => $rabbit_node_ip_address,
     }
   }
 
