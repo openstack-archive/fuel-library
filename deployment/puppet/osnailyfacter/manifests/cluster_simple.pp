@@ -4,6 +4,10 @@ class osnailyfacter::cluster_simple {
     $novanetwork_params  = {}
     $quantum_config = sanitize_neutron_config($::fuel_settings, 'quantum_settings')
     debug__dump_to_file('/tmp/neutron_cfg.yaml', $quantum_config)
+    if $::fuel_settings['nsx_plugin']['metadata']['enabled'] {
+      $use_vmware_nsx = true
+      $neutron_nsx_config = $::fuel_settings['nsx_plugin']
+    }
   } else {
     $quantum_config = {}
     $novanetwork_params = $::fuel_settings['novanetwork_parameters']
@@ -247,6 +251,13 @@ class osnailyfacter::cluster_simple {
         }
       }
 
+      if $use_vmware_nsx {
+        class {'plugin_neutronnsx':
+          neutron_config     => $quantum_config,
+          neutron_nsx_config => $neutron_nsx_config,
+        }
+      }
+
       if !$::use_quantum {
         $floating_ips_range = $::fuel_settings['floating_network_range']
         if $floating_ips_range {
@@ -445,6 +456,14 @@ class osnailyfacter::cluster_simple {
       if ($::use_ceph){
         Class['openstack::compute'] -> Class['ceph']
       }
+
+      if $use_vmware_nsx {
+        class {'plugin_neutronnsx':
+          neutron_config     => $quantum_config,
+          neutron_nsx_config => $neutron_nsx_config,
+        }
+      }
+
     } # COMPUTE ENDS
 
     "mongo" : {
