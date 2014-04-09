@@ -13,23 +13,33 @@ Puppet::Type.type(:glance_image).provide(
 
   commands :glance => 'glance'
 
-  def self.prefetch(resource)
-    # rebuild the cache for every puppet run
-    @image_hash = nil
-  end
-
-  def self.image_hash
-    @image_hash ||= build_image_hash
-  end
-
-  def image_hash
-    self.class.image_hash
-  end
+  mk_resource_methods
 
   def self.instances
-    image_hash.collect do |k, v|
-      new(:name => k)
+    list_glance_images.collect do |image|
+      attrs = get_glance_image_attrs(image)
+      new(
+        :ensure           => :present,
+        :name             => attrs['name'],
+        :is_public        => attrs['public'],
+        :container_format => attrs['container format'],
+        :id               => attrs['id'],
+        :disk_format      => attrs['disk format']
+      )
     end
+  end
+
+  def self.prefetch(resources)
+    images = instances
+    resources.keys.each do |name|
+      if provider = images.find{ |pkg| pkg.name == name }
+        resources[name].provider = provider
+      end
+    end
+  end
+
+  def exists?
+    @property_hash[:ensure] == :present
   end
 
   def create
@@ -50,64 +60,47 @@ Puppet::Type.type(:glance_image).provide(
       raise(Puppet::Error, "Must specify either source or location")
     end
     if stdin
-      auth_glance_stdin('add', "name='#{resource[:name]}'", "is_public=#{resource[:is_public]}", "container_format=#{resource[:container_format]}", "disk_format=#{resource[:disk_format]}", location)
+      result = auth_glance_stdin('add', "name=#{resource[:name]}", "is_public=#{resource[:is_public]}", "container_format=#{resource[:container_format]}", "disk_format=#{resource[:disk_format]}", location)
     else
-      auth_glance('add', "name='#{resource[:name]}'", "is_public=#{resource[:is_public]}", "container_format=#{resource[:container_format]}", "disk_format=#{resource[:disk_format]}", location)
+      results = auth_glance('add', "name=#{resource[:name]}", "is_public=#{resource[:is_public]}", "container_format=#{resource[:container_format]}", "disk_format=#{resource[:disk_format]}", location)
     end
-  end
-
-  def exists?
-    image_hash[resource[:name]]
+    if results =~ /Added new image with ID: (\S+)/
+      @property_hash = {
+        :ensure           => :present,
+        :name             => resource[:name],
+        :is_public        => resource[:is_public],
+        :container_format => resource[:container_format],
+        :disk_format      => resource[:disk_format],
+        :id               => $1
+      }
+    else
+      fail("did not get expected message from image creation, got #{results}")
+    end
   end
 
   def destroy
-    auth_glance('delete', '-f', image_hash[resource[:name]]['id'])
-  end
-
-  def location
-    image_hash[resource[:name]]['location']
+    auth_glance('delete', id)
+    @property_hash[:ensure] = :absent
   end
 
   def location=(value)
-    auth_glance('update', image_hash[resource[:name]]['id'], "location=#{value}")
-  end
-
-  def is_public
-    image_hash[resource[:name]]['public']
+    auth_glance('update', id, "location=#{value}")
   end
 
   def is_public=(value)
-    auth_glance('update', image_hash[resource[:name]]['id'], "is_public=#{value}")
-  end
-
-  def disk_format
-    image_hash[resource[:name]]['disk format']
+    auth_glance('update', id, "is_public=#{value}")
   end
 
   def disk_format=(value)
-    auth_glance('update', image_hash[resource[:name]]['id'], "disk_format=#{value}")
-  end
-
-  def container_format
-    image_hash[resource[:name]]['container format']
+    auth_glance('update', id, "disk_format=#{value}")
   end
 
   def container_format=(value)
-    auth_glance('update', image_hash[resource[:name]]['id'], "container_format=#{value}")
+    auth_glance('update', id, "container_format=#{value}")
   end
 
-  def id
-    image_hash[resource[:name]]['id']
+  def id=(id)
+    fail('id is read only')
   end
 
-  private 
-    def self.build_image_hash
-      hash = {}
-      list_glance_images.each do |image|
-        attrs = get_glance_image_attrs(image)
-        hash[attrs['name'].to_s] = attrs
-      end
-      hash
-    end
 end
-

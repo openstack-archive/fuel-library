@@ -27,9 +27,9 @@ describe 'glance' do
 
       it { should contain_package('glance').with_ensure(param_hash[:package_ensure]) }
       it { should contain_file('/etc/glance/').with(
-        'ensure' => 'directory',
-        'owner' => 'glance',
-        'mode' => '0770',
+        'ensure'  => 'directory',
+        'owner'   => 'glance',
+        'mode'    => '0770',
         'require' => 'Package[glance]'
       )}
     end
