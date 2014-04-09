@@ -3,20 +3,20 @@ Puppet::Type.newtype(:glance_image) do
     This allows manifests to declare an image to be
     stored in glance.
 
-    glance_image {
+    glance_image { "Ubuntu 12.04 cloudimg amd64":
       ensure           => present,
       name             => "Ubuntu 12.04 cloudimg amd64"
-      is_public        => true,
+      is_public        => yes,
       container_format => ovf,
-      disk_format      => qcow',
+      disk_format      => 'qcow2',
       source           => 'http://uec-images.ubuntu.com/releases/precise/release/ubuntu-12.04-server-cloudimg-amd64-disk1.img'
     }
 
     Known problems / limitations:
-      * All images are managed by the glance service. 
+      * All images are managed by the glance service.
         This means that since users are unable to manage their own images via this type,
         is_public is really of no use. You can probably hide images this way but that's all.
-      * As glance image names do not have to be unique, you must ensure that your glance 
+      * As glance image names do not have to be unique, you must ensure that your glance
         repository does not have any duplicate names prior to using this.
       * Ensure this is run on the same server as the glance-api service.
 
@@ -57,7 +57,7 @@ Puppet::Type.newtype(:glance_image) do
 
   newproperty(:disk_format) do
     desc "The format of the disk"
-    newvalues(:ami, :ari, :aki, :vhd, :vmd, :raw, :qcow2, :vdi)
+    newvalues(:ami, :ari, :aki, :vhd, :vmd, :raw, :qcow2, :vdi, :iso)
   end
 
   newparam(:source) do

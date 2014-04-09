@@ -14,11 +14,11 @@ describe 'glance::db::mysql' do
   describe "with default params" do
     let :params do
       {
-      	:password => 'glancepass1'
+        :password => 'glancepass1'
       }
     end
 
-  	it { should include_class('mysql::python') }
+  it { should include_class('mysql::python') }
 
     it { should contain_mysql__db('glance').with(
       :password => 'glancepass1',
@@ -31,9 +31,9 @@ describe 'glance::db::mysql' do
   describe "overriding default params" do
     let :params do
       {
-      	:password => 'glancepass2',
-      	:dbname   => 'glancedb2',
-      	:charset  => 'utf8'
+        :password       => 'glancepass2',
+        :dbname         => 'glancedb2',
+        :charset        => 'utf8',
       }
     end
 
@@ -42,6 +42,60 @@ describe 'glance::db::mysql' do
       :charset  => 'utf8'
     )}
 
+  end
+
+  describe "overriding allowed_hosts param to array" do
+    let :params do
+      {
+        :password       => 'glancepass2',
+        :dbname         => 'glancedb2',
+        :allowed_hosts  => ['127.0.0.1','%']
+      }
+    end
+
+    it {should_not contain_glance__db__mysql__host_access("127.0.0.1").with(
+      :user     => 'glance',
+      :password => 'glancepass2',
+      :database => 'glancedb2'
+    )}
+    it {should contain_glance__db__mysql__host_access("%").with(
+      :user     => 'glance',
+      :password => 'glancepass2',
+      :database => 'glancedb2'
+    )}
+
+  end
+
+  describe "overriding allowed_hosts param to string" do
+    let :params do
+      {
+        :password       => 'glancepass2',
+        :dbname         => 'glancedb2',
+        :allowed_hosts  => '192.168.1.1'
+      }
+    end
+
+    it {should contain_glance__db__mysql__host_access("192.168.1.1").with(
+      :user     => 'glance',
+      :password => 'glancepass2',
+      :database => 'glancedb2'
+    )}
+  end
+
+  describe "overriding allowed_hosts param equals to host param " do
+    let :params do
+      {
+        :password       => 'glancepass2',
+        :dbname         => 'glancedb2',
+        :allowed_hosts  => '127.0.0.1'
+      }
+    end
+
+    it {should_not contain_glance__db__mysql__host_access("127.0.0.1").with(
+      :user     => 'glance',
+      :password => 'glancepass2',
+      :database => 'glancedb2'
+    )}
   end
 
 end

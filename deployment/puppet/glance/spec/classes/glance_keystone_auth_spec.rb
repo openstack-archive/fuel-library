@@ -24,12 +24,11 @@ describe 'glance::keystone::auth' do
       :description => 'Openstack Image Service'
     ) }
 
-    it { should contain_keystone_endpoint('glance').with(
+    it { should contain_keystone_endpoint('RegionOne/glance').with(
       :ensure       => 'present',
-      :region       => 'RegionOne',
-      :public_url   => 'http://127.0.0.1:9292/v1',
-      :admin_url    => 'http://127.0.0.1:9292/v1',
-      :internal_url => 'http://127.0.0.1:9292/v1'
+      :public_url   => 'http://127.0.0.1:9292',
+      :admin_url    => 'http://127.0.0.1:9292',
+      :internal_url => 'http://127.0.0.1:9292'
     )}
 
   end
@@ -62,25 +61,27 @@ describe 'glance::keystone::auth' do
 
   end
 
-  describe 'when address, region and port are overridden' do
+  describe 'when address, region, port and protocoll are overridden' do
 
     let :params do
       {
-        :password         => 'pass',
-        :public_address   => '10.0.0.1',
-        :admin_address    => '10.0.0.2',
-        :internal_address => '10.0.0.3',
-        :port             => '9393',
-        :region           => 'RegionTwo'
+        :password          => 'pass',
+        :public_address    => '10.0.0.1',
+        :admin_address     => '10.0.0.2',
+        :internal_address  => '10.0.0.3',
+        :port              => '9393',
+        :region            => 'RegionTwo',
+        :public_protocol   => 'https',
+        :admin_protocol    => 'https',
+        :internal_protocol => 'https'
       }
     end
 
-    it { should contain_keystone_endpoint('glance').with(
+    it { should contain_keystone_endpoint('RegionTwo/glance').with(
       :ensure       => 'present',
-      :region       => 'RegionTwo',
-      :public_url   => 'http://10.0.0.1:9393/v1',
-      :admin_url    => 'http://10.0.0.2:9393/v1',
-      :internal_url => 'http://10.0.0.3:9393/v1'
+      :public_url   => 'https://10.0.0.1:9393',
+      :admin_url    => 'https://10.0.0.2:9393',
+      :internal_url => 'https://10.0.0.3:9393'
     )}
 
   end
@@ -97,4 +98,22 @@ describe 'glance::keystone::auth' do
     it { should_not contain_keystone_endpoint('glance') }
   end
 
+  describe 'when configuring glance-api and the keystone endpoint' do
+    let :pre_condition do
+      "class { 'glance::api': keystone_password => 'test' }"
+    end
+
+    let :facts do
+      { :osfamily => 'Debian' }
+    end
+
+    let :params do
+      {
+        :password => 'test',
+        :configure_endpoint => true
+      }
+    end
+
+    it { should contain_keystone_endpoint('RegionOne/glance').with_notify('Service[glance-api]') }
+    end
 end
