@@ -319,6 +319,7 @@ class MrntNeutron
         :report_interval => 5,
         :allow_bulk      => true,
         :control_exchange=> 'neutron',
+        :core_plugin => "openvswitch",
         :notify_nova_send_events_interval => 2,
         :notify_nova_on_port_status_changes => true,
         :notify_nova_on_port_data_changes => true,
@@ -438,7 +439,8 @@ class MrntNeutron
       # if v == nil && cfg_user[k] == nil
       #   raise(Puppet::ParseError, "Missing required field '#{path}.#{k}'.")
       # end
-      if v != nil && cfg_user[k] != nil && v.class() != cfg_user[k].class()
+      if (v != nil && cfg_user[k] != nil && v.class() != cfg_user[k].class() \
+          && ! (!!v == v && !!cfg_user[k] == cfg_user[k]))
         raise(Puppet::ParseError, "Invalid format of config hash (field=\"#{k}\").")
       end
       rv[k] = case v.class.to_s

@@ -1,0 +1,1106 @@
+commit 6b43fd457de08a88f2d9d2f330743a678bf923ff
+Author: Ukov Dmitry <dukov@mirantis.com>
+Date:   Wed Apr 9 17:35:17 2014 +0400
+
+    Implemantation of VMware NSX integration
+    
+    Added new puppet module for Neutron NSX plugin integration.
+    * Separate classes for compute/controller
+    * Some additional paramenters required from Nailgun
+    * Hide some strange hacks with Anchors
+    * Add rdpkg and rrpm package managers in order to download
+      packages from remote web-server using mask for a package name.
+    * Fix sanitaze_neutron_config to merge boolean values.
+    
+    Change-Id: I94e7bf2fccc289d0d52fc3d3018db268ec4f7fff
+    Implements: blueprint neutron-nsx-plugin-integration
+
+diff --git a/deployment/puppet/l23network/manifests/l2.pp b/deployment/puppet/l23network/manifests/l2.pp
+index e281b01..ea401ad 100644
+--- a/deployment/puppet/l23network/manifests/l2.pp
++++ b/deployment/puppet/l23network/manifests/l2.pp
+@@ -11,28 +11,33 @@ class l23network::l2 (
+ 
+   if $use_ovs {
+     #include ::l23network::l2::use_ovs
+-    if $::operatingsystem == 'Ubuntu' {
+-      package { 'openvswitch-datapath-lts-saucy-dkms': } ->
+-      Package[$::l23network::params::ovs_packages]
++    #FIXME(adanin) Move this 'if' to the better place.
++    if has_key($::fuel_settings,'nsx_plugin') and $::fuel_settings['nsx_plugin']['metadata']['enabled'] {
++      class { 'plugin_neutronnsx::install_ovs': }
++    } else {
++      if $::operatingsystem == 'Ubuntu' {
++        package { 'openvswitch-datapath-lts-saucy-dkms': } ->
++        Package[$::l23network::params::ovs_packages]
++      }
++      if $::operatingsystem == 'Centos' {
++        package { 'kmod-openvswitch': } ->
++        Package[$::l23network::params::ovs_packages]
++      }
++      package {$::l23network::params::ovs_packages: } ->
++      service {'openvswitch-service':
++        ensure    => running,
++        name      => $::l23network::params::ovs_service_name,
++        enable    => true,
++        hasstatus => true,
++        status    => $::l23network::params::ovs_status_cmd,
++      }
++      Service['openvswitch-service'] -> L23network::L3::Ifconfig<||>
++      #FIXME(bogdando) assume ovs_packages has only 1 element, fix for many
++      Package<|title == 'openvswitch-datapath-lts-raring-dkms' or
++        title == $::l23network::params::ovs_packages[0] or
++        title == 'kmod-openvswitch'|> ~>
++      Service<| title == 'openvswitch-service'|>
+     }
+-    if $::operatingsystem == 'Centos' {
+-      package { 'kmod-openvswitch': } ->
+-      Package[$::l23network::params::ovs_packages]
+-    }
+-    package {$::l23network::params::ovs_packages: } ->
+-    service {'openvswitch-service':
+-      ensure    => running,
+-      name      => $::l23network::params::ovs_service_name,
+-      enable    => true,
+-      hasstatus => true,
+-      status    => $::l23network::params::ovs_status_cmd,
+-    }
+-    Service['openvswitch-service'] -> L23network::L3::Ifconfig<||>
+-    #FIXME(bogdando) assume ovs_packages has only 1 element, fix for many
+-    Package<|title == 'openvswitch-datapath-lts-raring-dkms' or
+-      title == $::l23network::params::ovs_packages[0] or
+-      title == 'kmod-openvswitch'|> ~>
+-    Service<| title == 'openvswitch-service'|>
+     if !defined(Service['openvswitch-service']) {
+       notify{ "Module ${module_name} cannot notify service openvswitch-service\
+  on packages update": }
+diff --git a/deployment/puppet/neutron/lib/puppet/parser/functions/sanitize_neutron_config.rb b/deployment/puppet/neutron/lib/puppet/parser/functions/sanitize_neutron_config.rb
+index 357f722..4550a85 100644
+--- a/deployment/puppet/neutron/lib/puppet/parser/functions/sanitize_neutron_config.rb
++++ b/deployment/puppet/neutron/lib/puppet/parser/functions/sanitize_neutron_config.rb
+@@ -319,6 +319,7 @@ class MrntNeutron
+         :report_interval => 5,
+         :allow_bulk      => true,
+         :control_exchange=> 'neutron',
++        :core_plugin => "openvswitch",
+         :notify_nova_send_events_interval => 2,
+         :notify_nova_on_port_status_changes => true,
+         :notify_nova_on_port_data_changes => true,
+@@ -438,7 +439,8 @@ class MrntNeutron
+       # if v == nil && cfg_user[k] == nil
+       #   raise(Puppet::ParseError, "Missing required field '#{path}.#{k}'.")
+       # end
+-      if v != nil && cfg_user[k] != nil && v.class() != cfg_user[k].class()
++      if (v != nil && cfg_user[k] != nil && v.class() != cfg_user[k].class() \
++          && ! (!!v == v && !!cfg_user[k] == cfg_user[k]))
+         raise(Puppet::ParseError, "Invalid format of config hash (field=\"#{k}\").")
+       end
+       rv[k] = case v.class.to_s
+diff --git a/deployment/puppet/neutron/manifests/init.pp b/deployment/puppet/neutron/manifests/init.pp
+index 2dfc9d9..b92e75c 100644
+--- a/deployment/puppet/neutron/manifests/init.pp
++++ b/deployment/puppet/neutron/manifests/init.pp
+@@ -22,7 +22,6 @@ class neutron (
+   $enabled              = true,
+   $verbose              = false,
+   $debug                = false,
+-  $core_plugin          = 'openvswitch',
+   $auth_strategy        = 'keystone',
+   $log_file             = '/var/log/neutron/server.log',
+   $log_dir              = '/var/log/neutron',
+@@ -155,7 +154,7 @@ class neutron (
+     'DEFAULT/verbose':                      value => $verbose;
+     'DEFAULT/publish_errors':               value => false;
+     'DEFAULT/auth_strategy':                value => $auth_strategy;
+-    'DEFAULT/core_plugin':                  value => $core_plugin;
++    'DEFAULT/core_plugin':                  value => $neutron_config['server']['core_plugin'];
+     'DEFAULT/bind_host':                    value => $server_bind_host;
+     'DEFAULT/bind_port':                    value => $neutron_config['server']['bind_port'];
+     'DEFAULT/base_mac':                     value => $neutron_config['L2']['base_mac'];
+diff --git a/deployment/puppet/neutron/spec/functions/sanitize_quantum_config__spec.rb b/deployment/puppet/neutron/spec/functions/sanitize_quantum_config__spec.rb
+index ebe9625..7c52305 100644
+--- a/deployment/puppet/neutron/spec/functions/sanitize_quantum_config__spec.rb
++++ b/deployment/puppet/neutron/spec/functions/sanitize_quantum_config__spec.rb
+@@ -93,6 +93,7 @@ class NeutronConfig
+           'report_interval' => 5,
+           'allow_bulk'      => true,
+           'control_exchange'=> 'neutron',
++          'core_plugin' => 'openvswitch',
+         },
+         'metadata' => {
+           'nova_metadata_ip' => "#{@def_v[:management_vip]}",
+@@ -465,6 +466,7 @@ describe 'sanitize_neutron_config with minimal incoming data' , :type => :puppet
+       "report_interval"=>5,
+       "allow_bulk"=>true,
+       "control_exchange"=>"neutron",
++      "core_plugin" => 'openvswitch',
+       "notify_nova_admin_auth_url" => "http://192.168.0.254:35357/v2.0",
+       "notify_nova_admin_password" => "nova_user_passwd",
+       "notify_nova_admin_tenant_id" => "service_tenant_id",
+diff --git a/deployment/puppet/osnailyfacter/manifests/cluster_ha.pp b/deployment/puppet/osnailyfacter/manifests/cluster_ha.pp
+index 48ef856..71610d8 100644
+--- a/deployment/puppet/osnailyfacter/manifests/cluster_ha.pp
++++ b/deployment/puppet/osnailyfacter/manifests/cluster_ha.pp
+@@ -8,6 +8,10 @@ class osnailyfacter::cluster_ha {
+   if $::use_quantum {
+     $novanetwork_params  = {}
+     $quantum_config = sanitize_neutron_config($::fuel_settings, 'quantum_settings')
++    if $::fuel_settings['nsx_plugin']['metadata']['enabled'] {
++      $use_vmware_nsx = true
++      $neutron_nsx_config = $::fuel_settings['nsx_plugin']
++    }
+   } else {
+     $quantum_config = {}
+     $novanetwork_params  = $::fuel_settings['novanetwork_parameters']
+@@ -424,6 +428,13 @@ class osnailyfacter::cluster_ha {
+       nova_config { 'DEFAULT/use_cow_images':            value => $::fuel_settings['use_cow_images'] }
+       nova_config { 'DEFAULT/compute_scheduler_driver':  value => $::fuel_settings['compute_scheduler_driver'] }
+ 
++      if $use_vmware_nsx {
++        class {'plugin_neutronnsx':
++          neutron_config     => $quantum_config,
++          neutron_nsx_config => $neutron_nsx_config,
++        }
++      }
++
+       if ! $::use_quantum {
+         if $primary_controller {
+           exec { 'wait-for-haproxy-nova-backend':
+@@ -637,6 +648,13 @@ class osnailyfacter::cluster_ha {
+       nova_config { 'DEFAULT/use_cow_images': value => $::fuel_settings['use_cow_images'] }
+       nova_config { 'DEFAULT/compute_scheduler_driver': value => $::fuel_settings['compute_scheduler_driver'] }
+ 
++      if $use_vmware_nsx {
++        class {'plugin_neutronnsx':
++          neutron_config     => $quantum_config,
++          neutron_nsx_config => $neutron_nsx_config,
++        }
++      }
++
+     } # COMPUTE ENDS
+ 
+     "mongo" : {
+diff --git a/deployment/puppet/osnailyfacter/manifests/cluster_simple.pp b/deployment/puppet/osnailyfacter/manifests/cluster_simple.pp
+index 9ec1b7f..1d800df 100644
+--- a/deployment/puppet/osnailyfacter/manifests/cluster_simple.pp
++++ b/deployment/puppet/osnailyfacter/manifests/cluster_simple.pp
+@@ -4,6 +4,10 @@ class osnailyfacter::cluster_simple {
+     $novanetwork_params  = {}
+     $quantum_config = sanitize_neutron_config($::fuel_settings, 'quantum_settings')
+     debug__dump_to_file('/tmp/neutron_cfg.yaml', $quantum_config)
++    if $::fuel_settings['nsx_plugin']['metadata']['enabled'] {
++      $use_vmware_nsx = true
++      $neutron_nsx_config = $::fuel_settings['nsx_plugin']
++    }
+   } else {
+     $quantum_config = {}
+     $novanetwork_params = $::fuel_settings['novanetwork_parameters']
+@@ -247,6 +251,13 @@ class osnailyfacter::cluster_simple {
+         }
+       }
+ 
++      if $use_vmware_nsx {
++        class {'plugin_neutronnsx':
++          neutron_config     => $quantum_config,
++          neutron_nsx_config => $neutron_nsx_config,
++        }
++      }
++
+       if !$::use_quantum {
+         $floating_ips_range = $::fuel_settings['floating_network_range']
+         if $floating_ips_range {
+@@ -445,6 +456,14 @@ class osnailyfacter::cluster_simple {
+       if ($::use_ceph){
+         Class['openstack::compute'] -> Class['ceph']
+       }
++
++      if $use_vmware_nsx {
++        class {'plugin_neutronnsx':
++          neutron_config     => $quantum_config,
++          neutron_nsx_config => $neutron_nsx_config,
++        }
++      }
++
+     } # COMPUTE ENDS
+ 
+     "mongo" : {
+diff --git a/deployment/puppet/plugin_neutronnsx/Gemfile b/deployment/puppet/plugin_neutronnsx/Gemfile
+new file mode 100644
+index 0000000..70e6ab1
+--- /dev/null
++++ b/deployment/puppet/plugin_neutronnsx/Gemfile
+@@ -0,0 +1,2 @@
++source 'https://rubygems.org'
++gem 'json'
+diff --git a/deployment/puppet/plugin_neutronnsx/Rakefile b/deployment/puppet/plugin_neutronnsx/Rakefile
+new file mode 100644
+index 0000000..14f1c24
+--- /dev/null
++++ b/deployment/puppet/plugin_neutronnsx/Rakefile
+@@ -0,0 +1,2 @@
++require 'rubygems'
++require 'puppetlabs_spec_helper/rake_tasks'
+diff --git a/deployment/puppet/plugin_neutronnsx/lib/puppet/parser/functions/get_connector_address.rb b/deployment/puppet/plugin_neutronnsx/lib/puppet/parser/functions/get_connector_address.rb
+new file mode 100644
+index 0000000..82c5380
+--- /dev/null
++++ b/deployment/puppet/plugin_neutronnsx/lib/puppet/parser/functions/get_connector_address.rb
+@@ -0,0 +1,34 @@
++require 'ipaddr'
++
++module Puppet::Parser::Functions
++  newfunction(:get_connector_address, :type => :rvalue, :doc => <<-EOS
++    This function returns STT connector address based on
++    NSX controllers addresses
++    EOS
++  ) do |argv|
++    if argv.size != 1
++      raise(Puppet::ParseError, "get_connector_address(hash): Wrong number of arguments.")
++    end
++    node_data = {}
++    argv[0]['nodes'].each do |node|
++      if node['fqdn'] == argv[0]['fqdn']
++        node_data = node
++        break
++      end
++    end
++    if node_data == {}
++       raise(Puppet::ParseError, "Node not found in nodes Hash")
++    end
++    storage_net = IPAddr.new("#{node_data['storage_address']}/#{node_data['storage_netmask']}")
++    internal_net = IPAddr.new("#{node_data['internal_address']}/#{node_data['internal_netmask']}")
++    public_net = IPAddr.new("#{node_data['public_address']}/#{node_data['public_netmask']}")
++    nsx_controller = IPAddr.new(argv[0]['nsx_plugin']['nsx_controllers'].split(',')[0])
++    if storage_net.include?(nsx_controller)
++      return node_data['storage_address']
++    end
++    if internal_net.include?(nsx_controller)
++      return node_data['internal_address']
++    end
++    return node_data['public_address']
++  end
++end
+diff --git a/deployment/puppet/plugin_neutronnsx/lib/puppet/provider/l2_nsx_bridge/ovs.rb b/deployment/puppet/plugin_neutronnsx/lib/puppet/provider/l2_nsx_bridge/ovs.rb
+new file mode 100644
+index 0000000..14e0ed2
+--- /dev/null
++++ b/deployment/puppet/plugin_neutronnsx/lib/puppet/provider/l2_nsx_bridge/ovs.rb
+@@ -0,0 +1,32 @@
++Puppet::Type.type(:l2_nsx_bridge).provide(
++  :ovs,
++  :parent => Puppet::Type.type(:l2_ovs_bridge).provider(:ovs)
++) do
++  optional_commands :vsctl => "/usr/bin/ovs-vsctl"
++
++  def create
++    super()
++    in_band = @resource[:in_band] if @resource[:in_band]
++    fail_mode = @resource[:fail_mode] if @resource[:fail_mode]
++  end
++
++  def in_band
++    other_config = vsctl("get", "Bridge", @resource[:bridge], "other_config")
++    if other_config.include? "disable-in-band"
++      return vsctl("get", "Bridge", @resource[:bridge], "other_config:disable-in-band").tr('"','').strip
++    end
++    ''
++  end
++
++  def in_band=(value)
++    vsctl("set", "Bridge", @resource[:bridge], "other_config:disable-in-band=#{value}")
++  end
++
++  def fail_mode
++    vsctl("get", "Bridge", @resource[:bridge], "fail-mode").strip
++  end
++
++  def fail_mode=(value)
++    vsctl("set", "Bridge", @resource[:bridge], "fail-mode=#{value}")
++  end
++end
+diff --git a/deployment/puppet/plugin_neutronnsx/lib/puppet/provider/l2_ovs_nsx/ovs.rb b/deployment/puppet/plugin_neutronnsx/lib/puppet/provider/l2_ovs_nsx/ovs.rb
+new file mode 100644
+index 0000000..2985ac6
+--- /dev/null
++++ b/deployment/puppet/plugin_neutronnsx/lib/puppet/provider/l2_ovs_nsx/ovs.rb
+@@ -0,0 +1,104 @@
++require 'net/https'
++require 'rubygems'
++require 'json'
++
++Puppet::Type.type(:l2_ovs_nsx).provide(:ovs) do
++
++  commands :vsctl => '/usr/bin/ovs-vsctl'
++  commands :vspki => '/usr/bin/ovs-pki'
++
++  def generate_cert
++    @cert_dir = "/etc/openvswitch"
++    @cert_path = "#{@cert_dir}/ovsclient-cert.pem"
++    @privkey_path = "#{@cert_dir}/ovsclient-privkey.pem"
++    @cacert_path = "#{@cert_dir}/vswitchd.cacert"
++    vsctl("set-manager", "ssl:#{@resource[:nsx_endpoint].split(',')[0].strip}")
++    if not File.exists? @cert_path
++      old_dir = Dir.pwd
++      Dir.chdir @cert_dir
++      vspki("init", "--force")
++      vspki("req+sign", "ovsclient", "controller")
++      vsctl("--", "--bootstrap", "set-ssl", "#{@privkey_path}", "#{@cert_path}", "#{@cacert_path}")
++      Dir.chdir old_dir
++    end
++  end
++
++  def get_cert
++    if File.exists? @cert_path
++      cert_file = File.open(@cert_path, "r")
++      cert_contents = cert_file.read
++      cert = cert_contents.gsub(/.*?(?=-*BEGIN CERTIFICATE-*)/m, "")
++      return cert
++    end
++    return nil
++  end
++
++  def login
++    conn = Net::HTTP.new(@resource[:nsx_endpoint].split(',')[0],443)
++    conn.use_ssl = true
++    conn.verify_mode = OpenSSL::SSL::VERIFY_NONE
++    resp, data = conn.post('/ws.v1/login', "username=#{@resource[:nsx_username]}&password=#{@resource[:nsx_password]}", {'Content-Type' => 'application/x-www-form-urlencoded'})
++    cookie = resp.response['set-cookie'].split('; ')[0]
++    return conn, cookie
++  end
++
++  def get_uuid
++    resp, data = @conn.get('/ws.v1/transport-node', { 'Cookie' => @cookie })
++    nodes = JSON.load(data)['results']
++    nodes.each { |node|
++      resp, data = @conn.get(node['_href'], { 'Cookie' => @cookie })
++      if JSON.load(data)['display_name'] == @resource[:display_name]
++        return JSON.load(data)['uuid']
++      end
++    }
++    return nil
++  end
++
++  def exists?
++    @conn, @cookie = login
++    query_result = get_uuid
++    unless query_result.nil?
++      return true
++    end
++    return false
++  end
++
++  def create
++    generate_cert
++    cert = get_cert
++    bridge_ip = @resource[:ip_address].split("/")[0]
++    # VxLAN is not supported now (07/2014)
++    connector_mapping = {
++                       'gre' => 'GREConnector',
++                       'stt' => 'STTConnector',
++                       'bridge' => 'BridgeConnector',
++                       'ipsec_gre' => 'IPsecGREConnector',
++                       'ipsec_stt' => 'IPsecSTTConnector'
++    }
++    query = {
++      'display_name' => @resource[:display_name],
++      'credential' => {
++        'client_certificate' => {
++          'pem_encoded' => cert
++        },
++        'type' => 'SecurityCertificateCredential'
++      },
++      'transport_connectors' => [
++        {
++          'transport_zone_uuid' => @resource[:transport_zone_uuid],
++          'ip_address' => bridge_ip,
++          'type' => connector_mapping[@resource[:connector_type]]
++        }
++      ],
++      'integration_bridge_id' => @resource[:integration_bridge]
++    }
++    resp, data = @conn.post('/ws.v1/transport-node', query.to_json, { 'Cookie' => @cookie , 'Content-Type' => 'application/json'})
++  end
++
++  def destroy
++    uuid = get_uuid
++    unless uuid.nil?
++      @conn.delete("/ws.v1/transport-node/#{uuid}", { 'Cookie' => @cookie})
++    end
++  end
++end
+diff --git a/deployment/puppet/plugin_neutronnsx/lib/puppet/provider/neutron_plugin_vmware/ini_setting.rb b/deployment/puppet/plugin_neutronnsx/lib/puppet/provider/neutron_plugin_vmware/ini_setting.rb
+new file mode 100644
+index 0000000..70fa922
+--- /dev/null
++++ b/deployment/puppet/plugin_neutronnsx/lib/puppet/provider/neutron_plugin_vmware/ini_setting.rb
+@@ -0,0 +1,25 @@
++Puppet::Type.type(:ini_setting)#.providers
++
++Puppet::Type.type(:neutron_plugin_vmware).provide(
++  :ini_setting,
++  :parent => Puppet::Type.type(:ini_setting).provider(:ruby)
++) do
++
++  def section
++    resource[:name].split('/', 2).first
++  end
++
++  def setting
++    resource[:name].split('/', 2).last
++  end
++
++  def separator
++    ' = '
++  end
++
++  def file_path
++    '/etc/neutron/plugins/vmware/nsx.ini'
++  end
++
++end
++
+diff --git a/deployment/puppet/plugin_neutronnsx/lib/puppet/provider/package/rdpkg.rb b/deployment/puppet/plugin_neutronnsx/lib/puppet/provider/package/rdpkg.rb
+new file mode 100644
+index 0000000..b1f38b2
+--- /dev/null
++++ b/deployment/puppet/plugin_neutronnsx/lib/puppet/provider/package/rdpkg.rb
+@@ -0,0 +1,37 @@
++require 'net/https'
++require 'open-uri'
++
++Puppet::Type.type(:package).provide :rdpkg, :parent => :dpkg, :source => :dpkg do
++  desc "Remote .deb packages management"
++
++  def get_packages(url)
++    list = Net::HTTP.get(URI(url)).scan(/\S*\.deb\"\>/)
++    return list.map { |x| x.gsub(/.*\"(.*)../, '\1') }
++  end
++
++  def get_package_file(name,url)
++    Puppet.debug "RDPKG: URL '#{url}' contains packages:"
++    get_packages(url).each do |package|
++      Puppet.debug "RDPKG:    #{package}"
++      if package.start_with?(name)
++        return package
++      end
++    end
++    Puppet.warning "RDPKG: package '#{name}' not found by URL '#{url}'"
++    nil
++  end
++
++  def download
++    package = get_package_file(@resource[:name],@resource[:source])
++    path = "#{@resource[:source]}/#{package}"
++    File.open("/tmp/#{package}", 'wb') do |fo|
++      fo.write open(path).read
++    end
++    @resource[:source] = "/tmp/#{package}"
++  end
++
++  def install
++    download
++    super
++  end
++end
+diff --git a/deployment/puppet/plugin_neutronnsx/lib/puppet/provider/package/rrpm.rb b/deployment/puppet/plugin_neutronnsx/lib/puppet/provider/package/rrpm.rb
+new file mode 100644
+index 0000000..374f0b3
+--- /dev/null
++++ b/deployment/puppet/plugin_neutronnsx/lib/puppet/provider/package/rrpm.rb
+@@ -0,0 +1,37 @@
++require 'net/https'
++require 'open-uri'
++
++Puppet::Type.type(:package).provide :rrpm, :parent => :rpm, :source => :rpm do
++  desc "Remote .rpm packages management"
++
++  def get_packages(url)
++    list = Net::HTTP.get(URI(url)).scan(/\S*\.rpm\"\>/)
++    return list.map { |x| x.gsub(/.*\"(.*)../, '\1') }
++  end
++
++  def get_package_file(name,url)
++    Puppet.debug "RRPM: URL '#{url}' contains packages:"
++    get_packages(url).each do |package|
++      Puppet.debug "RRPM:    #{package}"
++      if package.start_with?(name)
++        return package
++      end
++    end
++    Puppet.warning "RRPM: package '#{name}' not found by URL '#{url}'"
++    nil
++  end
++
++  def download
++    package = get_package_file(@resource[:name],@resource[:source])
++    path = "#{@resource[:source]}/#{package}"
++    File.open("/tmp/#{package}", 'wb') do |fo|
++      fo.write open(path).read
++    end
++    @resource[:source] = "/tmp/#{package}"
++  end
++
++  def install
++    download
++    super
++  end
++end
+diff --git a/deployment/puppet/plugin_neutronnsx/lib/puppet/type/l2_nsx_bridge.rb b/deployment/puppet/plugin_neutronnsx/lib/puppet/type/l2_nsx_bridge.rb
+new file mode 100644
+index 0000000..41f94d3
+--- /dev/null
++++ b/deployment/puppet/plugin_neutronnsx/lib/puppet/type/l2_nsx_bridge.rb
+@@ -0,0 +1,34 @@
++Puppet::Type.newtype(:l2_nsx_bridge) do
++    @doc = "Manage a Open vSwitch bridge (virtual switch)"
++    desc @doc
++
++    ensurable
++
++    newparam(:bridge) do
++      isnamevar
++      desc "The bridge to configure"
++      #
++      validate do |val|
++        if not val =~ /^[a-z][0-9a-z\.\-\_]*[0-9a-z]$/
++          fail("Invalid bridge name: '#{val}'")
++        end
++      end
++    end
++
++    newparam(:skip_existing) do
++      defaultto(false)
++      desc "Allow to skip existing bridge"
++    end
++
++    newproperty(:external_ids) do
++      desc "External IDs for the bridge"
++    end
++
++    newproperty(:in_band) do
++      desc "Enable/Disable in-band mode"
++    end
++
++    newproperty(:fail_mode) do
++      desc "Fail mode configuration for bridge"
++    end
++end
+diff --git a/deployment/puppet/plugin_neutronnsx/lib/puppet/type/l2_ovs_nsx.rb b/deployment/puppet/plugin_neutronnsx/lib/puppet/type/l2_ovs_nsx.rb
+new file mode 100644
+index 0000000..3955d5f
+--- /dev/null
++++ b/deployment/puppet/plugin_neutronnsx/lib/puppet/type/l2_ovs_nsx.rb
+@@ -0,0 +1,30 @@
++Puppet::Type.newtype(:l2_ovs_nsx) do
++    @doc = "Manage a Open vSwitch connection NSX control plane"
++    desc @doc
++
++    ensurable
++
++    newparam(:nsx_username) do
++    end
++
++    newparam(:nsx_password) do
++    end
++
++    newparam(:nsx_endpoint) do
++    end
++
++    newparam(:display_name, :namevar => true) do
++    end
++
++    newparam(:transport_zone_uuid) do
++    end
++
++    newparam(:ip_address) do
++    end
++
++    newparam(:connector_type) do
++    end
++
++    newparam(:integration_bridge) do
++    end
++end
+diff --git a/deployment/puppet/plugin_neutronnsx/lib/puppet/type/neutron_plugin_vmware.rb b/deployment/puppet/plugin_neutronnsx/lib/puppet/type/neutron_plugin_vmware.rb
+new file mode 100644
+index 0000000..35da915
+--- /dev/null
++++ b/deployment/puppet/plugin_neutronnsx/lib/puppet/type/neutron_plugin_vmware.rb
+@@ -0,0 +1,16 @@
++Puppet::Type.newtype(:neutron_plugin_vmware) do
++
++  ensurable
++
++  newparam(:name, :namevar => true) do
++    desc 'Section/setting name to manage from /etc/neutron/plugins/vmware/nsx.ini'
++    newvalues(/\S+\/\S+/)
++  end
++
++  newproperty(:value) do
++    desc 'The value of the setting to be defined.'
++    munge do |v|
++      v.to_s.strip
++    end
++  end
++end
+diff --git a/deployment/puppet/plugin_neutronnsx/manifests/alter_neutron_server.pp b/deployment/puppet/plugin_neutronnsx/manifests/alter_neutron_server.pp
+new file mode 100644
+index 0000000..430bc2b
+--- /dev/null
++++ b/deployment/puppet/plugin_neutronnsx/manifests/alter_neutron_server.pp
+@@ -0,0 +1,86 @@
++class plugin_neutronnsx::alter_neutron_server (
++  $neutron_config,
++  $neutron_nsx_config,
++) {
++  include plugin_neutronnsx::params
++
++  anchor {'alter-neutron-server-vmware-start':}
++  anchor {'alter-neutron-server-vmware-end':}
++
++  Anchor<| title=='neutron-server-config-done' |> ->
++  Anchor['alter-neutron-server-vmware-start']
++
++  Anchor['alter-neutron-server-vmware-end'] ->
++  Anchor<| title=='neutron-server-done' |>
++
++  Neutron_net <| title == 'net04' |> {
++    router_ext   => false,
++    network_type => false,
++    physnet      => false,
++    segment_id   => false,
++  }
++
++  Neutron_net <| title == 'net04_ext' |> {
++    router_ext   => true,
++    network_type => 'l3_ext',
++    physnet      => $neutron_nsx_config['l3_gw_service_uuid'],
++    segment_id   => false,
++  }
++
++  Neutron_subnet <| title == 'net04__subnet' |> {
++    gateway => false,
++  }
++
++  if $::osfamily =~ /(?i)debian/ {
++    exec { 'enable_plugin':
++      command => "/bin/sed -i 's/^NEUTRON_PLUGIN_CONFIG.*/NEUTRON_PLUGIN_CONFIG=\/etc\/neutron\/plugin.ini/g' /etc/default/neutron-server",
++    }
++    Package<| title == $::neutron::params::server_package |> -> Exec['enable_plugin'] ~> Service<| title == 'neutron-server' |>
++  }
++
++##########
++
++  package { 'openstack-neutron-vmware':
++    name => $::plugin_neutronnsx::params::neutron_plugin_package,
++    ensure => present,
++  }
++
++  file { '/etc/neutron/plugins/vmware':
++    ensure  => directory,
++    mode    => '0755',
++  }
++
++  File <| title == '/etc/neutron/plugin.ini' |> {
++    ensure  => link,
++    target  => '/etc/neutron/plugins/vmware/nsx.ini',
++  }
++
++  neutron_plugin_vmware {
++    'DATABASE/sql_connection':            value => $neutron_config['database']['url'];
++    'DATABASE/sql_max_retries':           value => $neutron_config['database']['reconnects'];
++    'DATABASE/reconnect_interval':        value => $neutron_config['database']['reconnect_interval'];
++    'DEFAULT/default_tz_uuid':            value => $neutron_nsx_config['transport_zone_uuid'];
++    'DEFAULT/nsx_user':                   value => $neutron_nsx_config['nsx_username'];
++    'DEFAULT/nsx_password':               value => $neutron_nsx_config['nsx_password'];
++    'DEFAULT/req_timeout':                value => 30;
++    'DEFAULT/http_timeout':               value => 10;
++    'DEFAULT/retries':                    value => 2;
++    'DEFAULT/redirects':                  value => 2;
++    'DEFAULT/nsx_controllers':            value => $neutron_nsx_config['nsx_controllers'];
++    'DEFAULT/default_l3_gw_service_uuid': value => $neutron_nsx_config['l3_gw_service_uuid'];
++    'quotas/quota_network_gateway':       value => -1;
++    'nsx/max_lp_per_bridged_ls':          value => 5000;
++    'nsx/max_lp_per_overlay_ls':          value => 256;
++    'nsx/metadata_mode':                  value => 'dhcp_host_route';
++    'nsx/default_transport_type':         value => $neutron_nsx_config['connector_type'];
++  }
++
++  Anchor['alter-neutron-server-vmware-start'] ->
++  Package['openstack-neutron-vmware'] ->
++  File['/etc/neutron'] ->
++  File['/etc/neutron/plugin.ini'] ->
++  Neutron_plugin_vmware<||> ~>
++  Service<| title == 'neutron-server' |> ->
++  Anchor['alter-neutron-server-vmware-end']
++
++}
+\ No newline at end of file
+diff --git a/deployment/puppet/plugin_neutronnsx/manifests/bridges.pp b/deployment/puppet/plugin_neutronnsx/manifests/bridges.pp
+new file mode 100644
+index 0000000..651ee20
+--- /dev/null
++++ b/deployment/puppet/plugin_neutronnsx/manifests/bridges.pp
+@@ -0,0 +1,40 @@
++class plugin_neutronnsx::bridges (
++  $neutron_nsx_config,
++  $ip_address = $::ipaddress,
++  $integration_bridge = 'br-int'
++)
++{
++  include neutron::params
++
++  anchor {'neutron-agent-vmware-bridges-start':}
++  anchor {'neutron-agent-vmware-bridges-end':}
++
++  Anchor<| title=='neutron-server-config-done' |> ->
++  Anchor['neutron-agent-vmware-bridges-start']
++
++  Anchor['neutron-agent-vmware-bridges-end'] ->
++  Anchor<| title=='neutron-server-done' |>
++
++  l2_nsx_bridge { $integration_bridge:
++    external_ids => "bridge-id=${integration_bridge}",
++    in_band      => 'true',
++    fail_mode    => 'secure',
++  }
++
++  l2_ovs_nsx { $::hostname:
++    ensure              => present,
++    nsx_username        => $neutron_nsx_config['nsx_username'],
++    nsx_password        => $neutron_nsx_config['nsx_password'],
++    nsx_endpoint        => $neutron_nsx_config['nsx_controllers'],
++    transport_zone_uuid => $neutron_nsx_config['transport_zone_uuid'],
++    ip_address          => $ip_address,
++    connector_type      => $neutron_nsx_config['connector_type'],
++    integration_bridge  => $integration_bridge,
++  }
++
++  Anchor['neutron-agent-vmware-bridges-start'] ->
++  L2_nsx_bridge[$integration_bridge] ->
++  L2_ovs_nsx[$::hostname] ->
++  Anchor['neutron-agent-vmware-bridges-end']
++
++}
+\ No newline at end of file
+diff --git a/deployment/puppet/plugin_neutronnsx/manifests/init.pp b/deployment/puppet/plugin_neutronnsx/manifests/init.pp
+new file mode 100644
+index 0000000..41ad496
+--- /dev/null
++++ b/deployment/puppet/plugin_neutronnsx/manifests/init.pp
+@@ -0,0 +1,28 @@
++class plugin_neutronnsx (
++  $neutron_config,
++  $neutron_nsx_config,
++) {
++
++  $roles = node_roles($nodes_hash, $::fuel_settings['uid'])
++
++  if member($roles, 'controller') {
++    class { 'plugin_neutronnsx::bridges':
++      neutron_nsx_config     => $neutron_nsx_config,
++      ip_address             => get_connector_address($::fuel_settings),
++    }
++    class { 'plugin_neutronnsx::alter_neutron_server':
++      neutron_config         => $neutron_config,
++      neutron_nsx_config     => $neutron_nsx_config,
++    }
++    class { 'plugin_neutronnsx::stop_neutron_agents' :}
++  }
++
++  if member($roles, 'compute') {
++    class { 'plugin_neutronnsx::bridges':
++      neutron_nsx_config     => $neutron_nsx_config,
++      ip_address             => get_connector_address($::fuel_settings),
++    }
++    class { 'plugin_neutronnsx::stop_neutron_agents' :}
++  }
++
++}
+diff --git a/deployment/puppet/plugin_neutronnsx/manifests/install_ovs.pp b/deployment/puppet/plugin_neutronnsx/manifests/install_ovs.pp
+new file mode 100644
+index 0000000..0fa694f
+--- /dev/null
++++ b/deployment/puppet/plugin_neutronnsx/manifests/install_ovs.pp
+@@ -0,0 +1,71 @@
++class plugin_neutronnsx::install_ovs
++{
++  $packages_url = $::fuel_settings['nsx_plugin']['packages_url']
++  include $::neutron::params
++  case $::osfamily {
++    /(?i)debian/: {
++      package { 'neutron-plugin-openvswitch-agent':
++        ensure => absent,
++        name => $::neutron::params::ovs_agent_package,
++      } ->
++      package { 'dkms':
++        ensure => present,
++      } ->
++      package { 'openvswitch-common':
++        provider => 'rdpkg',
++        source  => $packages_url,
++      } ->
++      package { 'openvswitch-datapath-dkms':
++        provider => 'rdpkg',
++        source  => $packages_url,
++        notify  => Service['openvswitch-service'],
++      } ->
++      package { 'openvswitch-switch':
++        provider => 'rdpkg',
++        source  => $packages_url,
++        notify  => Service['openvswitch-service'],
++      } ->
++      package { 'nicira-ovs-hypervisor-node':
++        provider => 'rdpkg',
++        source  => $packages_url,
++      } -> Service['nicira-ovs-hypervisor-node']
++    }
++    /(?i)redhat/: {
++      package { 'neutron-plugin-openvswitch-agent':
++        ensure => absent,
++        name => $::neutron::params::ovs_server_package,
++      } ->
++      package { 'kmod-openvswitch':
++        provider => 'rrpm',
++        source => $packages_url,
++      } ->
++      package { 'openvswitch':
++        provider => 'rrpm',
++        source => $packages_url,
++        notify => Service['openvswitch-service'],
++      } ->
++      package { 'nicira-ovs-hypervisor-node':
++        provider => 'rrpm',
++        source => $packages_url,
++      } -> Service['nicira-ovs-hypervisor-node']
++    }
++    default: {
++      fail("Unsupported OS: ${::osfamily}/${::operatingsystem}")
++    }
++  }
++
++  service { 'nicira-ovs-hypervisor-node':
++    ensure => running,
++    enable => true,
++    hasstatus => true,
++  }
++
++  service { 'openvswitch-service':
++    ensure    => running,
++    name      => $::l23network::params::ovs_service_name,
++    enable    => true,
++    hasstatus => true,
++    status    => $::l23network::params::ovs_status_cmd,
++    require   => Package['nicira-ovs-hypervisor-node'],
++  }
++}
+diff --git a/deployment/puppet/plugin_neutronnsx/manifests/params.pp b/deployment/puppet/plugin_neutronnsx/manifests/params.pp
+new file mode 100644
+index 0000000..4f6e07a
+--- /dev/null
++++ b/deployment/puppet/plugin_neutronnsx/manifests/params.pp
+@@ -0,0 +1,15 @@
++class plugin_neutronnsx::params {
++  $neutron_plugin_ovs_agent = 'neutron-plugin-openvswitch-agent'
++
++  case $::osfamily {
++    /(?i)debian/: {
++      $neutron_plugin_package = 'neutron-plugin-vmware'
++    }
++    /(?i)redhat/: {
++      $neutron_plugin_package = 'openstack-neutron-vmware'
++    }
++    default: {
++      fail("Unsupported OS: ${::osfamily}/${::operatingsystem}")
++    }
++  }
++}
+diff --git a/deployment/puppet/plugin_neutronnsx/manifests/stop_neutron_agents.pp b/deployment/puppet/plugin_neutronnsx/manifests/stop_neutron_agents.pp
+new file mode 100644
+index 0000000..81c0a5e
+--- /dev/null
++++ b/deployment/puppet/plugin_neutronnsx/manifests/stop_neutron_agents.pp
+@@ -0,0 +1,11 @@
++class plugin_neutronnsx::stop_neutron_agents {
++
++  Service <| title == 'neutron-ovs-agent' |> {
++    ensure => stopped,
++  }
++
++  Service <| title == 'neutron-l3' |> {
++    ensure => stopped,
++  }
++
++}
+\ No newline at end of file
+diff --git a/deployment/puppet/plugin_neutronnsx/spec/spec_helper.rb b/deployment/puppet/plugin_neutronnsx/spec/spec_helper.rb
+new file mode 100644
+index 0000000..dc7e9f4
+--- /dev/null
++++ b/deployment/puppet/plugin_neutronnsx/spec/spec_helper.rb
+@@ -0,0 +1,2 @@
++require 'rubygems'
++require 'puppetlabs_spec_helper/module_spec_helper'
+diff --git a/deployment/puppet/plugin_neutronnsx/spec/unit/puppet/functions/get_connector_address_spec.rb b/deployment/puppet/plugin_neutronnsx/spec/unit/puppet/functions/get_connector_address_spec.rb
+new file mode 100644
+index 0000000..091fd19
+--- /dev/null
++++ b/deployment/puppet/plugin_neutronnsx/spec/unit/puppet/functions/get_connector_address_spec.rb
+@@ -0,0 +1,60 @@
++require 'spec_helper'
++
++describe Puppet::Parser::Functions.function(:get_connector_address) do
++  let(:scope) { PuppetlabsSpec::PuppetInternals.scope }
++  describe "when calling from puppet" do
++    it "should not compile without parameters" do
++      Puppet[:code] = 'get_connector_address()'
++      expect {
++        scope.compiler.compile
++      }.to raise_error(Puppet::ParseError,/Wrong number of arguments/)
++    end
++  end
++  describe "when calling on the scope instance" do
++    let :fuel_settings do
++      {
++      'fqdn' => 'node-42.domain.tld',
++      'nodes' => [ {
++          'storage_netmask' => '255.255.255.0',
++          'uid' => '41',
++          'public_address' => '172.18.198.140',
++          'internal_netmask' => '255.255.255.0',
++          'fqdn' => 'node-41.domain.tld',
++          'role' => 'controller',
++          'public_netmask' => '255.255.255.224',
++          'internal_address' => '192.168.0.2',
++          'storage_address' => '192.168.1.2',
++          'name' => 'node-41',
++          },{
++          'storage_netmask' => '255.255.255.0',
++          'uid' => '42',
++          'public_address' => '172.18.198.141',
++          'internal_netmask' => '255.255.255.0',
++          'fqdn' => 'node-42.domain.tld',
++          'role' => 'compute',
++          'public_netmask' => '255.255.255.224',
++          'internal_address' => '192.168.0.3',
++          'storage_address' => '192.168.1.3',
++          'name' => 'node-42',
++          }
++        ]
++      }
++    end
++    it "should return connector addres" do
++      fuel_settings['nsx_plugin'] = {'nsx_controllers' => '192.168.0.100,192.168.0.101'}
++      connector_addr = scope.function_get_connector_address([fuel_settings])
++      connector_addr.should == '192.168.0.3'
++    end
++    it "should return pubblc for non-Fuel networks" do
++      fuel_settings['nsx_plugin'] = {'nsx_controllers' => '10.20.0.1,10.20.0.2'}
++      scope.function_get_connector_address([fuel_settings]).should == '172.18.198.141'
++    end
++    it "should raise if fqdn not found" do
++      fuel_settings['nsx_plugin'] = {'nsx_controllers' => '192.168.0.100,192.168.0.101'}
++      fuel_settings['fqdn'] = 'node-1.domain.tld'
++      expect {
++        scope.function_get_connector_address([fuel_settings])
++      }.to raise_error(Puppet::ParseError, /not found/)
++    end
++  end
++end
+diff --git a/deployment/puppet/plugin_neutronnsx/spec/unit/puppet/provider/l2_ovs_nsx/ovs_spec.rb b/deployment/puppet/plugin_neutronnsx/spec/unit/puppet/provider/l2_ovs_nsx/ovs_spec.rb
+new file mode 100644
+index 0000000..c6fc51d
+--- /dev/null
++++ b/deployment/puppet/plugin_neutronnsx/spec/unit/puppet/provider/l2_ovs_nsx/ovs_spec.rb
+@@ -0,0 +1,56 @@
++require 'puppet'
++require 'mocha'
++require 'spec_helper'
++RSpec.configure do |config|
++  config.mock_with :mocha
++end
++class Connection
++  def initialize(node)
++    @node = node
++    @registered = false
++  end
++  def get(url,headers)
++    if url == '/ws.v1/transport-node'
++      return '','{"results": [{"_href": "/ws.v1/transport-node/550e8400-e29b-41d4-a716-446655440001"}]}'
++    else
++      return '',"{\"display_name\": \"#{@node}\", \"uuid\":\"550e8400-e29b-41d4-a716-446655440001\"}"
++    end
++  end
++  def registered
++    @registered
++  end
++  def post(*args)
++    @registered = true
++  end
++end
++provider_class = Puppet::Type.type(:l2_ovs_nsx).provider(:ovs)
++describe provider_class do
++  before :each do
++    @res = Puppet::Type::L2_ovs_nsx.new(
++      {:nsx_username => 'admin',
++      :nsx_password => 'admin',
++      :nsx_endpoint => '10.30.0.100,10.30.0.101,10.30.0.102',
++      :display_name => 'node-10',
++      :transport_zone_uuid => '550e8400-e29b-41d4-a716-446655440000',
++      :ip_address => '10.30.0.10',
++      :connector_type => 'stt',
++      :integration_bridge => 'br-int',}
++    )
++    @provider = provider_class.new(@res)
++    @conn = Connection.new('node-10')
++    @provider.stubs(:login).returns(@conn)
++    @provider.exists?
++    File.stubs(:exists?).returns(true)
++    provider_class.stubs(:vspki).returns("")
++    provider_class.stubs(:vsctl).returns("")
++  end
++  it "should return uuid" do
++    @provider.get_uuid.should == "550e8400-e29b-41d4-a716-446655440001"
++  end
++  it "shold register node" do
++    @provider.stubs(:get_cert).returns("")
++    @provider.create
++    @conn.registered.should == true
++  end
++end
++
+diff --git a/deployment/puppet/plugin_neutronnsx/spec/unit/puppet/provider/package/rdpkg_spec.rb b/deployment/puppet/plugin_neutronnsx/spec/unit/puppet/provider/package/rdpkg_spec.rb
+new file mode 100644
+index 0000000..6824436
+--- /dev/null
++++ b/deployment/puppet/plugin_neutronnsx/spec/unit/puppet/provider/package/rdpkg_spec.rb
+@@ -0,0 +1,29 @@
++require 'puppet'
++require 'mocha'
++require 'spec_helper'
++
++RSpec.configure do |config|
++  config.mock_with :mocha
++end
++
++provider_class = Puppet::Type.type(:package).provider(:rdpkg)
++describe provider_class do
++  before :each do
++    @res = Puppet::Type::Package.new(
++      {
++        :name => 'openvswitch-common',
++        :source => 'http://10.20.0.2:8080/nsx',
++      }
++    )
++    @provider = provider_class.new(@res)
++  end
++  it 'should change source parmeter if package exists' do
++    @provider.stubs(:get_packages).returns(
++    [ 'nicira-ovs-hypervisor-node_2.0.0.30176_all.deb',
++      'openvswitch-common_2.0.0.30176_amd64.deb'
++    ]
++    )
++
++    @provider.get_package_file('openvswitch-common','http://10.20.0.2:8080/nsx').should == 'openvswitch-common_2.0.0.30176_amd64.deb'
++  end
++end
