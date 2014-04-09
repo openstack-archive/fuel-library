@@ -6,20 +6,25 @@ describe 'nova::consoleauth' do
     'include nova'
   end
 
-  describe 'on debian platforms' do
+  context 'on Debian platforms' do
     let :facts do
       { :osfamily => 'Debian' }
     end
 
-    describe 'with package version' do
-      let :params do
-        {:ensure_package => '2012.1-2'}
-      end
-      it { should contain_package('nova-consoleauth').with(
-        'ensure' => '2012.1-2'
-      )}
-    end        
+    it_behaves_like 'generic nova service', {
+      :name         => 'nova-consoleauth',
+      :package_name => 'nova-consoleauth',
+      :service_name => 'nova-consoleauth' }
+  end
 
-  end  
+  context 'on RedHat platforms' do
+    let :facts do
+      { :osfamily => 'RedHat' }
+    end
 
+    it_behaves_like 'generic nova service', {
+      :name         => 'nova-consoleauth',
+      :package_name => 'openstack-nova-console',
+      :service_name => 'openstack-nova-consoleauth' }
+  end
 end

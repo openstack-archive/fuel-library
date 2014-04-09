@@ -12,7 +12,6 @@ Puppet::Type.newtype(:nova_network) do
     desc "IPv4 Network (ie, 192.168.1.0/24)"
     newvalues(/^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(\d|[1-2]\d|3[0-2]))$/)
   end
-#^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(\d|[1-2]\d|3[0-2]))$
 
   newparam(:label) do
     desc "The Nova network label"
@@ -35,19 +34,14 @@ Puppet::Type.newtype(:nova_network) do
   newparam(:gateway) do
   end
 
-  newparam(:dns1) do
-      desc 'first dns server'
-  end
-
   newparam(:dns2) do
-      desc 'second dns server'
   end
 
   newparam(:vlan_start) do
   end
 
   newparam(:network_size) do
-#    defaultto('256')
+    defaultto('256')
   end
 
   validate do
