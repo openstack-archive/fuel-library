@@ -1,10 +1,13 @@
 # bridge.pp
-define nova::network::bridge ( $ip, $netmask = "255.255.255.0" )
-{
-  case $::operatingsystem {
+define nova::network::bridge (
+  $ip,
+  $netmask = '255.255.255.0'
+) {
 
-    'debian', 'ubuntu': {
-      $context = "/files/etc/network/interfaces"
+  case $::osfamily {
+
+    'Debian': {
+      $context = '/files/etc/network/interfaces'
       augeas { "bridge_${name}":
         context => $context,
         changes => [
@@ -14,16 +17,16 @@ define nova::network::bridge ( $ip, $netmask = "255.255.255.0" )
           "set iface[. = '${name}']/method static",
           "set iface[. = '${name}']/address ${ip}",
           "set iface[. = '${name}']/netmask ${netmask}",
-          "set iface[. = '${name}']/bridge_ports none", 
+          "set iface[. = '${name}']/bridge_ports none",
         ],
-        notify => Exec["networking-refresh"],
+        notify  => Exec['networking-refresh'],
       }
     }
 
-    'fedora', 'CentOS', 'RedHat': {
+    'RedHat' : {
     }
 
-    default: { fail('nova::network_bridge currently only supports Debian and Ubuntu') }
+    default: { fail('nova::network_bridge currently only supports osfamily Debian and RedHat') }
 
   }
 }

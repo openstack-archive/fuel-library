@@ -13,10 +13,8 @@ class nova::db::mysql(
   $mysql_module   = '0.9',
 ) {
 
-  include 'nova::params'
-
   # Create the db instance before openstack-nova if its installed
-  Mysql::Db[$dbname] -> Anchor<| title == "nova-start" |>
+  Mysql::Db[$dbname] -> Anchor<| title == 'nova-start' |>
   Mysql::Db[$dbname] ~> Exec<| title == 'nova-db-sync' |>
 
   if ($mysql_module >= '2.2') {

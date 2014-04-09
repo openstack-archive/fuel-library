@@ -14,4 +14,5 @@ class nova::conductor(
     service_name   => $::nova::params::conductor_service_name,
     ensure_package => $ensure_package,
   }
+
 }
