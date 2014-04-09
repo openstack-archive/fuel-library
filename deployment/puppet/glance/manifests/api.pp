@@ -101,6 +101,15 @@
 #   to the database.
 #   Defaults to '3600'.
 #
+# [*max_pool_size*]
+#   (optional) SQLAlchemy backend related. Defaults to 10.
+#
+# [*max_overflow*]
+#   (optional) SQLAlchemy backend related. Defaults to 30.
+#
+# [*max_retries*]
+#   (optional) SQLAlchemy backend related. Defaults to -1.
+#
 # [*sql_connection*]
 #   (optional) Database connection.
 #   Defaults to 'sqlite:///var/lib/glance/glance.sqlite'.
@@ -109,9 +118,13 @@
 #   (optional) Use syslog for logging.
 #   Defaults to false.
 #
-# [*log_facility*]
+# [*sys_log_facility*]
 #   (optional) Syslog facility to receive log lines.
-#   Defaults to 'LOG_USER'.
+#   Defaults to 'LOG_LOCAL2'.
+#
+# [*syslog_log_level*]
+#   (optional) Syslog level to receive log lines.
+#   Defaults to 'WARNING''.
 #
 # [*show_image_direct_url*]
 #   (optional) Expose image location to trusted clients.
@@ -153,9 +166,13 @@ class glance::api(
   $keystone_user         = 'glance',
   $enabled               = true,
   $sql_idle_timeout      = '3600',
+  $max_pool_size         = '10',
+  $max_overflow          = '30',
+  $max_retries           = '-1',
   $sql_connection        = 'sqlite:///var/lib/glance/glance.sqlite',
   $use_syslog            = false,
-  $log_facility          = 'LOG_USER',
+  $syslog_log_facility   = 'LOG_LOCAL2',
+  $syslog_log_level      = 'WARNING',
   $show_image_direct_url = false,
   $cert_file             = false,
   $key_file              = false,
@@ -202,18 +219,26 @@ class glance::api(
 
   # basic service config
   glance_api_config {
-    'DEFAULT/verbose':               value => $verbose;
-    'DEFAULT/debug':                 value => $debug;
-    'DEFAULT/bind_host':             value => $bind_host;
-    'DEFAULT/bind_port':             value => $bind_port;
-    'DEFAULT/backlog':               value => $backlog;
-    'DEFAULT/workers':               value => $workers;
-    'DEFAULT/show_image_direct_url': value => $show_image_direct_url;
+    'DEFAULT/verbose':                   value => $verbose;
+    'DEFAULT/debug':                     value => $debug;
+    'DEFAULT/bind_host':                 value => $bind_host;
+    'DEFAULT/bind_port':                 value => $bind_port;
+    'DEFAULT/backlog':                   value => $backlog;
+    'DEFAULT/workers':                   value => $workers;
+    'DEFAULT/show_image_direct_url':     value => $show_image_direct_url;
+    'DEFAULT/registry_client_protocol':  value => "http";
   }
 
   glance_cache_config {
-    'DEFAULT/verbose':   value => $verbose;
-    'DEFAULT/debug':     value => $debug;
+    'DEFAULT/verbose':                                 value => $verbose;
+    'DEFAULT/debug':                                   value => $debug;
+    'DEFAULT/use_syslog':                              value => $use_syslog;
+    'DEFAULT/image_cache_dir':                         value => "/var/lib/glance/image-cache/";
+    'DEFAULT/log_file':                                value => "/var/log/glance/image-cache.log";
+    'DEFAULT/image_cache_stall_time':                  value => "86400";
+    'DEFAULT/image_cache_invalid_entry_grace_period':  value => "3600";
+    'DEFAULT/image_cache_max_size':                    value => $image_cache_max_size;
+    'DEFAULT/filesystem_store_datadir':                value => "/var/lib/glance/images/";
   }
 
   # configure api service to connect registry service
@@ -231,9 +256,26 @@ class glance::api(
   # I do not believe this was required in Essex.
   # Does the API server now need to connect to the DB?
   # TODO figure out if I need this...
+  #TODO(bogdando) check for deprecation in J
+  # Deprecated group/name - [DEFAULT]/sql_max_pool_size > [DATABASE]/max_pool_size
+  # Deprecated group/name - [DATABASE]/sql_max_pool_size
+  # Deprecated group/name - [DEFAULT]/sql_max_retries > [DATABASE]/max_retries
+  # Deprecated group/name - [DATABASE]/sql_max_retries
+  # Deprecated group/name - [DEFAULT]/sql_max_overflow > [DATABASE]/max_overflow
+  # Deprecated group/name - [DATABASE]/sql_max_overflow
+  # Deprecated group/name - [DEFAULT]/sql_idle_timeout > [DATABASE]/idle_timeout
+  # Deprecated group/name - [DATABASE]/sql_idle_timeout
   glance_api_config {
-    'DEFAULT/sql_connection':   value => $sql_connection;
-    'DEFAULT/sql_idle_timeout': value => $sql_idle_timeout;
+    'DEFAULT/sql_connection':    value => $sql_connection;
+    'DEFAULT/sql_idle_timeout':  value => $sql_idle_timeout;
+    'DEFAULT/sql_max_pool_size': value => $max_pool_size;
+    'DEFAULT/sql_max_retries':   value => $max_retries;
+    'DEFAULT/sql_max_overflow':  value => $max_overflow;
+  }
+  glance_cache_config {
+    'DEFAULT/sql_max_pool_size': value => $max_pool_size;
+    'DEFAULT/sql_max_retries':   value => $max_retries;
+    'DEFAULT/sql_max_overflow':  value => $max_overflow;
   }
 
   if $auth_uri {
@@ -278,6 +320,8 @@ class glance::api(
       'keystone_authtoken/admin_tenant_name': value => $keystone_tenant;
       'keystone_authtoken/admin_user'       : value => $keystone_user;
       'keystone_authtoken/admin_password'   : value => $keystone_password;
+      'keystone_authtoken/signing_dir':       value => '/tmp/keystone-signing-glance';
+      'keystone_authtoken/signing_dirname':   value => '/tmp/keystone-signing-glance';
     }
     glance_cache_config {
       'DEFAULT/auth_url'         : value => $auth_url;
@@ -317,37 +361,44 @@ class glance::api(
   }
 
   # Logging
-  if $log_file {
+  if $use_syslog and !$debug { #syslog and nondebug case
     glance_api_config {
-      'DEFAULT/log_file': value  => $log_file;
+      'DEFAULT/log_config':          value => "/etc/glance/logging.conf";
+      'DEFAULT/use_syslog':          value => true;
+      'DEFAULT/syslog_log_facility': value =>  $syslog_log_facility;
     }
-  } else {
+    if !defined(File["glance-logging.conf"]) {
+      file {"glance-logging.conf":
+        content => template('glance/logging.conf.erb'),
+        path    => "/etc/glance/logging.conf",
+        notify  => Service['glance-api'],
+      }
+    }
+  } else {  #other syslog debug or nonsyslog debug/nondebug cases
     glance_api_config {
-      'DEFAULT/log_file': ensure => absent;
+      'DEFAULT/log_config': ensure=> absent;
+      'DEFAULT/use_syslog': value =>  false;
     }
-  }
+    if $log_file {
+      glance_api_config {
+        'DEFAULT/log_file': value  => $log_file;
+      }
+    } else {
+      glance_api_config {
+        'DEFAULT/log_file': ensure => absent;
+      }
+    }
 
-  if $log_dir {
-    glance_api_config {
-      'DEFAULT/log_dir': value  => $log_dir;
+    if $log_dir {
+      glance_api_config {
+        'DEFAULT/log_dir': value  => $log_dir;
+      }
+    } else {
+      glance_api_config {
+        'DEFAULT/log_dir': ensure => absent;
+      }
     }
-  } else {
-    glance_api_config {
-      'DEFAULT/log_dir': ensure => absent;
-    }
-  }
-
-  # Syslog
-  if $use_syslog {
-    glance_api_config {
-      'DEFAULT/use_syslog'          : value => true;
-      'DEFAULT/syslog_log_facility' : value => $log_facility;
-    }
-  } else {
-    glance_api_config {
-      'DEFAULT/use_syslog': value => false;
-    }
-  }
+  } #end if
 
   file { ['/etc/glance/glance-api.conf',
           '/etc/glance/glance-api-paste.ini',
@@ -366,5 +417,10 @@ class glance::api(
     enable     => $enabled,
     hasstatus  => true,
     hasrestart => true,
+  }
+  Package<| title == 'glance-api'|> -> Service<| title == 'glance-api'|>
+  if !defined(Service['glance-api']) {
+    notify{ "Module ${module_name} cannot notify service glance-api\
+ on package update": }
   }
 }
