@@ -136,9 +136,14 @@ class cinder::api (
     hasstatus => true,
     require   => Package['cinder'],
   }
+  Package<| title == $api_package|> ~> Service<| title == 'cinder-api'|>
+  if !defined(Service['cinder-api']) {
+    notify{ "Module ${module_name} cannot notify service cinder-api on package update": }
+  }
 
   cinder_config {
-    'DEFAULT/osapi_volume_listen': value => $bind_host
+    'DEFAULT/bind_host': value => $bind_host;
+    'DEFAULT/osapi_volume_listen': value => $bind_host;
   }
 
   if $os_region_name {

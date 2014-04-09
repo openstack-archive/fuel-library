@@ -5,23 +5,28 @@ class cinder::params {
   $cinder_paste_api_ini = '/etc/cinder/api-paste.ini'
 
   if $::osfamily == 'Debian' {
-    $package_name       = 'cinder-common'
-    $client_package     = 'python-cinderclient'
-    $api_package        = 'cinder-api'
-    $api_service        = 'cinder-api'
-    $backup_package     = 'cinder-backup'
-    $backup_service     = 'cinder-backup'
-    $scheduler_package  = 'cinder-scheduler'
-    $scheduler_service  = 'cinder-scheduler'
-    $volume_package     = 'cinder-volume'
-    $volume_service     = 'cinder-volume'
-    $db_sync_command    = 'cinder-manage db sync'
-    $tgt_package_name   = 'tgt'
-    $tgt_service_name   = 'tgt'
-    $ceph_init_override = '/etc/init/cinder-volume.override'
+    $package_name         = 'cinder-common'
+    $client_package       = 'python-cinderclient'
+    $api_package          = 'cinder-api'
+    $api_service          = 'cinder-api'
+    $backup_package       = 'cinder-backup'
+    $backup_service       = 'cinder-backup'
+    $scheduler_package    = 'cinder-scheduler'
+    $scheduler_service    = 'cinder-scheduler'
+    $volume_package       = 'cinder-volume'
+    $volume_service       = 'cinder-volume'
+    $db_sync_command      = 'cinder-manage db sync'
+    $tgt_package_name     = 'tgt'
+    $tgt_service_name     = 'tgt'
+    $ceph_init_override   = '/etc/init/cinder-volume.override'
+    $python_path          = 'python2.7/dist-packages'
+    $qemuimg_package_name = 'qemu-utils'
 
   } elsif($::osfamily == 'RedHat') {
-
+    $qemuimg_package_name = $::operatingsystem ? {
+                              redhat => 'qemu-img-rhev',
+                              default => 'qemu-img',
+                            }
     $package_name       = 'openstack-cinder'
     $client_package     = 'python-cinderclient'
     $api_package        = false
@@ -36,7 +41,7 @@ class cinder::params {
     $tgt_package_name   = 'scsi-target-utils'
     $tgt_service_name   = 'tgtd'
     $ceph_init_override = '/etc/sysconfig/openstack-cinder-volume'
-
+    $python_path        = 'python2.6/site-packages'
   } else {
     fail("unsuported osfamily ${::osfamily}, currently Debian and Redhat are the only supported platforms")
   }

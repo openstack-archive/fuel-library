@@ -43,4 +43,8 @@ class cinder::scheduler (
     hasstatus => true,
     require   => Package['cinder'],
   }
+  Package<| title == $scheduler_package|> ~> Service<| title == 'cinder-scheduler'|>
+  if !defined(Service['cinder-scheduler']) {
+    notify{ "Module ${module_name} cannot notify service cinder-scheduler on package update": }
+  }
 }
