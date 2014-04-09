@@ -93,6 +93,7 @@ class NeutronConfig
           'report_interval' => 5,
           'allow_bulk'      => true,
           'control_exchange'=> 'neutron',
+          'core_plugin' => 'openvswitch',
         },
         'metadata' => {
           'nova_metadata_ip' => "#{@def_v[:management_vip]}",
@@ -465,6 +466,7 @@ describe 'sanitize_neutron_config with minimal incoming data' , :type => :puppet
       "report_interval"=>5,
       "allow_bulk"=>true,
       "control_exchange"=>"neutron",
+      "core_plugin" => 'openvswitch',
       "notify_nova_admin_auth_url" => "http://192.168.0.254:35357/v2.0",
       "notify_nova_admin_password" => "nova_user_passwd",
       "notify_nova_admin_tenant_id" => "service_tenant_id",
