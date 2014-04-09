@@ -36,15 +36,11 @@ class ceilometer::agent_notification (
     }
   }
 
-
-  include nova::notify::ceilometer
-
   if $swift {
       class { 'swift::notify::ceilometer':
         enable_ceilometer => true,
       }
     }
-
 
   if $use_neutron {
     include neutron::notify::ceilometer

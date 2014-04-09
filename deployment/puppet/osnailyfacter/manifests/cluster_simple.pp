@@ -300,8 +300,12 @@ class osnailyfacter::cluster_simple {
         disk_allocation_ratio      => '1.0',
         ram_allocation_ratio       => '1.0',
         scheduler_host_subset_size => '30',
-        ram_weight_multiplier      => '1.0',
         scheduler_default_filters  => concat($scheduler_default_filters, [ 'RetryFilter', 'AvailabilityZoneFilter', 'RamFilter', 'CoreFilter', 'DiskFilter', 'ComputeFilter', 'ComputeCapabilitiesFilter', 'ImagePropertiesFilter' ])
+      }
+
+      # From logasy filter.pp
+      nova_config {
+        'DEFAULT/ram_weight_multiplier':        value => '1.0'
       }
 
       if ($::operatingsystem != 'RedHat') {
