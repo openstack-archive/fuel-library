@@ -12,7 +12,6 @@ describe 'nova::scheduler::filter' do
   it { should contain_nova_config('DEFAULT/ram_allocation_ratio').with_value('1.5') }
   it { should contain_nova_config('DEFAULT/scheduler_available_filters').with_value('nova.scheduler.filters.all_filters') }
   it { should contain_nova_config('DEFAULT/scheduler_weight_classes').with_value('nova.scheduler.weights.all_weighers') }
-  it { should contain_nova_config('DEFAULT/ram_weight_multiplier').with_value('1.0') }
 
   describe 'when overriding params' do
 

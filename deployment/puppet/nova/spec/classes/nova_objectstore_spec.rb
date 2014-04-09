@@ -6,48 +6,43 @@ describe 'nova::objectstore' do
     'include nova'
   end
 
-  describe 'on debian platforms' do
+  context 'on Debian platforms' do
     let :facts do
       { :osfamily => 'Debian' }
     end
-    it { should contain_service('nova-objectstore').with(
-      'name'    => 'nova-objectstore',
-      'ensure'  => 'stopped',
-      'enable'  => false
-    )}
-    it { should contain_package('nova-objectstore').with(
-      'name'   => 'nova-objectstore',
-      'ensure' => 'present',
-      'notify' => 'Service[nova-objectstore]'
-    ) }
-    describe 'with enabled as true' do
+
+    it_behaves_like 'generic nova service', {
+      :name         => 'nova-objectstore',
+      :package_name => 'nova-objectstore',
+      :service_name => 'nova-objectstore' }
+    it { should contain_nova_config('DEFAULT/s3_listen').with_value('0.0.0.0') }
+
+    context 'with custom bind parameter' do
       let :params do
-        {:enabled => true}
+        { :bind_address => '192.168.0.1'}
       end
-    it { should contain_service('nova-objectstore').with(
-      'name'    => 'nova-objectstore',
-      'ensure'  => 'running',
-      'enable'  => true
-    )}
+      it { should contain_nova_config('DEFAULT/s3_listen').with_value('192.168.0.1') }
     end
-    describe 'with package version' do
-      let :params do
-        {:ensure_package => '2012.1-2'}
-      end
-      it { should contain_package('nova-objectstore').with(
-        'ensure' => '2012.1-2'
-      )}
-    end    
+
   end
-  describe 'on rhel' do
+
+  context 'on RedHat platforms' do
     let :facts do
       { :osfamily => 'RedHat' }
     end
-    it { should contain_service('nova-objectstore').with(
-      'name'    => 'openstack-nova-objectstore',
-      'ensure'  => 'stopped',
-      'enable'  => false
-    )}
-    it { should_not contain_package('nova-objectstore') }
+
+    it_behaves_like 'generic nova service', {
+      :name         => 'nova-objectstore',
+      :package_name => 'openstack-nova-objectstore',
+      :service_name => 'openstack-nova-objectstore' }
+    it { should contain_nova_config('DEFAULT/s3_listen').with_value('0.0.0.0')}
+
+    context 'with custom bind parameter' do
+      let :params do
+        { :bind_address => '192.168.0.1'}
+      end
+      it { should contain_nova_config('DEFAULT/s3_listen').with_value('192.168.0.1') }
+    end
+
   end
 end

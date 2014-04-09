@@ -15,8 +15,13 @@ Puppet::Type.type(:nova_paste_api_ini).provide(
     '='
   end
 
-  def file_path
+  def self.file_path
     '/etc/nova/api-paste.ini'
+  end
+
+  # this needs to be removed. This has been replaced with the class method
+  def file_path
+    self.class.file_path
   end
 
 end
