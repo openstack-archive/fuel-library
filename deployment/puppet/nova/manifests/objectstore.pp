@@ -1,3 +1,4 @@
+#
 class nova::objectstore(
   $enabled        = false,
   $ensure_package = 'present'

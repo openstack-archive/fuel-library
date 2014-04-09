@@ -11,9 +11,10 @@ describe 'nova::objectstore' do
       { :osfamily => 'Debian' }
     end
     it { should contain_service('nova-objectstore').with(
-      'name'    => 'nova-objectstore',
-      'ensure'  => 'stopped',
-      'enable'  => false
+      'name'      => 'nova-objectstore',
+      'ensure'    => 'stopped',
+      'hasstatus' => true,
+      'enable'    => false
     )}
     it { should contain_package('nova-objectstore').with(
       'name'   => 'nova-objectstore',
@@ -25,9 +26,10 @@ describe 'nova::objectstore' do
         {:enabled => true}
       end
     it { should contain_service('nova-objectstore').with(
-      'name'    => 'nova-objectstore',
-      'ensure'  => 'running',
-      'enable'  => true
+      'name'      => 'nova-objectstore',
+      'ensure'    => 'running',
+      'hasstatus' => true,
+      'enable'    => true
     )}
     end
     describe 'with package version' do
@@ -37,17 +39,18 @@ describe 'nova::objectstore' do
       it { should contain_package('nova-objectstore').with(
         'ensure' => '2012.1-2'
       )}
-    end    
+    end
   end
   describe 'on rhel' do
     let :facts do
       { :osfamily => 'RedHat' }
     end
     it { should contain_service('nova-objectstore').with(
-      'name'    => 'openstack-nova-objectstore',
-      'ensure'  => 'stopped',
-      'enable'  => false
+      'name'      => 'openstack-nova-objectstore',
+      'ensure'    => 'stopped',
+      'hasstatus' => true,
+      'enable'    => false
     )}
-    it { should_not contain_package('nova-objectstore') }
+    it { should contain_package('nova-objectstore').with_name('openstack-nova-objectstore') }
   end
 end

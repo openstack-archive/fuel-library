@@ -10,6 +10,10 @@ class nova::network::vlan (
   $dhcpbridge_flagfile = '/etc/nova/nova.conf'
 ) {
 
+  if $::osfamily == 'RedHat' and $::operatingsystem != 'Fedora' {
+    package { 'dnsmasq-utils': ensure => present }
+  }
+
   if $public_interface {
     nova_config { 'DEFAULT/public_interface': value => $public_interface }
   }

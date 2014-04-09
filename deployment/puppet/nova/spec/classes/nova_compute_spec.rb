@@ -10,7 +10,8 @@ describe 'nova::compute' do
 
     let :params do
       {
-        :vncproxy_host => '127.0.0.1'
+        :vncproxy_host   => '127.0.0.1',
+        :neutron_enabled => true
       }
     end
 
@@ -19,38 +20,43 @@ describe 'nova::compute' do
         { :osfamily => 'Debian' }
       end
 
-      it { should contain_nova_config('vnc_enabled').with_value('true') }
-      it { should contain_nova_config('vncserver_proxyclient_address').with_value('127.0.0.1') }
-      it { should contain_nova_config('novncproxy_base_url').with_value(
+      it { should contain_nova_config('DEFAULT/vnc_enabled').with_value(true) }
+      it { should contain_nova_config('DEFAULT/vncserver_proxyclient_address').with_value('127.0.0.1') }
+      it { should contain_nova_config('DEFAULT/novncproxy_base_url').with_value(
         'http://127.0.0.1:6080/vnc_auto.html'
       ) }
 
       it { should contain_service('nova-compute').with(
-        'name'    => 'nova-compute',
-        'ensure'  => 'stopped',
-        'enable'  => false
+        'name'      => 'nova-compute',
+        'ensure'    => 'stopped',
+        'hasstatus' => true,
+        'enable'    => false
       )}
       it { should contain_package('nova-compute').with(
         'name'   => 'nova-compute',
         'ensure' => 'present',
         'notify' => 'Service[nova-compute]'
       ) }
-      it { should contain_package('bridge-utils').with(
+      it { should_not contain_package('bridge-utils').with(
         :ensure => 'present',
-        :before => 'Nova::Generic_service[compute]' 
+        :before => 'Nova::Generic_service[compute]'
+      ) }
+      it { should contain_package('pm-utils').with(
+        :ensure => 'present'
       ) }
 
-      describe 'with enabled as true' do
+      describe 'with vnc_enabled set to true' do
         let :params do
           {
-            :enabled         => true,
+            :enabled       => true,
             :vncproxy_host => '127.0.0.1'
           }
         end
       it { should contain_service('nova-compute').with(
-        'name'    => 'nova-compute',
-        'ensure'  => 'running',
-        'enable'  => true
+        'name'      => 'nova-compute',
+        'ensure'    => 'running',
+        'hasstatus' => true,
+        'enable'    => true
       )}
       end
       describe 'with vnc_enabled set to false' do
@@ -59,9 +65,18 @@ describe 'nova::compute' do
           {:vnc_enabled => false}
         end
 
-        it { should contain_nova_config('vnc_enabled').with_value('false') }
-        it { should contain_nova_config('vncserver_proxyclient_address').with('127.0.0.1')}
-        it { should_not contain_nova_config('novncproxy_base_url') }
+        it { should contain_nova_config('DEFAULT/vnc_enabled').with_value(false) }
+        it { should contain_nova_config('DEFAULT/vncserver_proxyclient_address').with_value('127.0.0.1')}
+        it { should_not contain_nova_config('DEFAULT/novncproxy_base_url') }
+
+      end
+      describe 'with force_config_drive set to true' do
+
+        let :params do
+          {:force_config_drive => true}
+        end
+
+        it { should contain_nova_config('DEFAULT/force_config_drive').with_value('true') }
 
       end
       describe 'with package version' do
@@ -71,18 +86,19 @@ describe 'nova::compute' do
         it { should contain_package('nova-compute').with(
           'ensure' => '2012.1-2'
         )}
-      end        
+      end
     end
     describe 'on rhel' do
       let :facts do
         { :osfamily => 'RedHat' }
       end
       it { should contain_service('nova-compute').with(
-        'name'    => 'openstack-nova-compute',
-        'ensure'  => 'stopped',
-        'enable'  => false
+        'name'      => 'openstack-nova-compute',
+        'ensure'    => 'stopped',
+        'hasstatus' => true,
+        'enable'    => false
       )}
-      it { should_not contain_package('nova-compute') }
+      it { should contain_package('nova-compute').with_name('openstack-nova-compute') }
     end
   end
 end

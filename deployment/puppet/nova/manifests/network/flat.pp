@@ -3,8 +3,8 @@
 # [flat_interface] Interface that flat network will use for bridging.
 # [flat_network_bridge] Name of bridge.
 class nova::network::flat (
-  $flat_interface,
   $fixed_range,
+  $flat_interface=undef,
   $public_interface   = undef,
   $flat_network_bridge = 'br100'
 ) {
