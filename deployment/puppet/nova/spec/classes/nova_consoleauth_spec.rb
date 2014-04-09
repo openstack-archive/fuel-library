@@ -18,8 +18,8 @@ describe 'nova::consoleauth' do
       it { should contain_package('nova-consoleauth').with(
         'ensure' => '2012.1-2'
       )}
-    end        
+    end
 
-  end  
+  end
 
 end

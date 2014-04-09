@@ -11,9 +11,10 @@ describe 'nova::cert' do
       { :osfamily => 'Debian' }
     end
     it { should contain_service('nova-cert').with(
-      'name'    => 'nova-cert',
-      'ensure'  => 'stopped',
-      'enable'  => false
+      'name'       => 'nova-cert',
+      'ensure'     => 'stopped',
+      'hasstatus'  => true,
+      'enable'     => false
     )}
     it { should contain_package('nova-cert').with(
       'name'   => 'nova-cert',
@@ -25,9 +26,10 @@ describe 'nova::cert' do
         {:enabled => true}
       end
       it { should contain_service('nova-cert').with(
-        'name'    => 'nova-cert',
-        'ensure'  => 'running',
-        'enable'  => true
+        'name'      => 'nova-cert',
+        'ensure'    => 'running',
+        'hasstatus' => true,
+        'enable'    => true
       )}
     end
     describe 'with package version' do
@@ -37,17 +39,18 @@ describe 'nova::cert' do
       it { should contain_package('nova-cert').with(
         'ensure' => '2012.1-2'
       )}
-    end        
+    end
   end
   describe 'on rhel' do
     let :facts do
       { :osfamily => 'RedHat' }
     end
     it { should contain_service('nova-cert').with(
-      'name'    => 'openstack-nova-cert',
-      'ensure'  => 'stopped',
-      'enable'  => false
+      'name'      => 'openstack-nova-cert',
+      'ensure'    => 'stopped',
+      'hasstatus' => true,
+      'enable'    => false
     )}
-    it { should_not contain_package('nova-cert') }
+    it { should contain_package('nova-cert').with_name('openstack-nova-cert') }
   end
 end
