@@ -1,31 +1,24 @@
 #
+# base glacne config.
 #
+# == parameters
+#   * package_ensure - ensure state for package.
 #
-
 class glance(
-  $package_ensure = 'present',
+  $package_ensure = 'present'
 ) {
 
   include glance::params
 
-  File {
-    ensure  => present,
-    owner   => 'glance',
-    group   => 'glance',
-    mode    => '0640',
-    require => Package['glance'],
-  }
-
   file { '/etc/glance/':
     ensure  => directory,
+    owner   => 'glance',
+    group   => 'root',
     mode    => '0770',
+    require => Package['glance']
   }
-
-  group {'glance': gid=> 161, ensure=>present, system=>true}
-  user  {'glance': uid=> 161, ensure=>present, system=>true, gid=>"glance", require=>Group['glance']}
-  User['glance'] -> Package['glance']
   package { 'glance':
-    name   => $::glance::params::package_name,
     ensure => $package_ensure,
+    name   => $::glance::params::package_name,
   }
 }
