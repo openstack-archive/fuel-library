@@ -8,6 +8,10 @@ class osnailyfacter::cluster_ha {
   if $::use_quantum {
     $novanetwork_params  = {}
     $quantum_config = sanitize_neutron_config($::fuel_settings, 'quantum_settings')
+    if $::fuel_settings['nsx_plugin']['metadata']['enabled'] {
+      $use_vmware_nsx = true
+      $neutron_nsx_config = $::fuel_settings['nsx_plugin']
+    }
   } else {
     $quantum_config = {}
     $novanetwork_params  = $::fuel_settings['novanetwork_parameters']
@@ -424,6 +428,13 @@ class osnailyfacter::cluster_ha {
       nova_config { 'DEFAULT/use_cow_images':            value => $::fuel_settings['use_cow_images'] }
       nova_config { 'DEFAULT/compute_scheduler_driver':  value => $::fuel_settings['compute_scheduler_driver'] }
 
+      if $use_vmware_nsx {
+        class {'plugin_neutronnsx':
+          $neutron_config     => $quantum_config,
+          $neutron_nsx_config => $neutron_nsx_config,
+        }
+      }
+
       if ! $::use_quantum {
         if $primary_controller {
           exec { 'wait-for-haproxy-nova-backend':
@@ -640,6 +651,13 @@ class osnailyfacter::cluster_ha {
       nova_config { 'DEFAULT/start_guests_on_host_boot': value => $::fuel_settings['start_guests_on_host_boot'] }
       nova_config { 'DEFAULT/use_cow_images': value => $::fuel_settings['use_cow_images'] }
       nova_config { 'DEFAULT/compute_scheduler_driver': value => $::fuel_settings['compute_scheduler_driver'] }
+
+      if $use_vmware_nsx {
+        class {'plugin_neutronnsx':
+          $neutron_config     => $quantum_config,
+          $neutron_nsx_config => $neutron_nsx_config,
+        }
+      }
 
     } # COMPUTE ENDS
 
