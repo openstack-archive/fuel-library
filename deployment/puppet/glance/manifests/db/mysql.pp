@@ -22,7 +22,7 @@ class glance::db::mysql(
     password     => $password,
     host         => $host,
     charset      => $charset,
-    require      => Class['mysql::config'],
+    require      => Class['mysql::server'],
   }
 
   # Check allowed_hosts to avoid duplicate resource declarations
