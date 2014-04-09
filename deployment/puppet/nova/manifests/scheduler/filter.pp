@@ -70,7 +70,6 @@ class nova::scheduler::filter (
   $scheduler_available_filters  = 'nova.scheduler.filters.all_filters',
   $scheduler_default_filters    = false,
   $scheduler_weight_classes     = 'nova.scheduler.weights.all_weighers',
-  $ram_weight_multiplier        = '1.0',
 ) {
 
   nova_config {
@@ -83,8 +82,7 @@ class nova::scheduler::filter (
     'DEFAULT/max_instances_per_host':       value => $max_instances_per_host;
     'DEFAULT/ram_allocation_ratio':         value => $ram_allocation_ratio;
     'DEFAULT/scheduler_available_filters':  value => $scheduler_available_filters;
-    'DEFAULT/scheduler_weight_classes':     value => $scheduler_weight_classes;
-    'DEFAULT/ram_weight_multiplier':        value => $ram_weight_multiplier
+    'DEFAULT/scheduler_weight_classes':     value => $scheduler_weight_classes
   }
   if ($scheduler_default_filters)  {
     nova_config { 'DEFAULT/scheduler_default_filters':  value => join($scheduler_default_filters,',')

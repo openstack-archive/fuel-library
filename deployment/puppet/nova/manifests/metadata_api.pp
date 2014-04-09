@@ -66,6 +66,8 @@ class nova::metadata_api (
     }
   }
 
+  $memcached_servers = join(regsubst($controller_nodes, '$', ':11211'), ',')
+
   nova_config {'DEFAULT/neutron_connection_host':   value => $service_endpoint }
 
   if !defined(Nova_config['DEFAULT/sql_connection']) {
@@ -81,6 +83,7 @@ class nova::metadata_api (
       'DEFAULT/neutron_url':               value => "http://${service_endpoint}:9696" ;
       'DEFAULT/metadata_listen':           value => $listen_ip;
       'DEFAULT/auth_strategy':             value => $auth_strategy;
+      'DEFAULT/memcached_servers':         value => $memcached_servers;
       'DEFAULT/network_api_class':         value => 'nova.network.neutronv2.api.API';  # neutronv2 !!! not a neutron.v2
       'DEFAULT/rootwrap_config':           value => '/etc/nova/rootwrap.conf';
       'DEFAULT/rabbit_ha_queues':          value => 'True'; # todo: check HA or not, 'False' for non-HA
