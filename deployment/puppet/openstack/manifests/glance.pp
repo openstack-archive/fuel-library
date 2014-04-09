@@ -62,6 +62,8 @@ class openstack::glance (
   $max_pool_size               = '10',
   $max_overflow                = '30',
   $max_retries                 = '-1',
+  $rbd_store_user = 'images',
+  $rbd_store_pool = 'images'
 ) {
 
   # Configure the db string
@@ -140,7 +142,16 @@ class openstack::glance (
       swift_store_create_container_on_put => "True",
       swift_store_auth_address => "http://${keystone_host}:5000/v2.0/"
     }
+  }
+  elsif($backend == 'file') {
+# Configure file storage backend
+   class { 'glance::backend::file': }
+  } elsif($backend == 'rbd|ceph') {
+    class { 'glance::backend::rbd':
+      rbd_store_user => $rbd_store_user,
+      rbd_store_pool => $rbd_store_pool,
+    }
   } else {
-    class { "glance::backend::$glance_backend": }
+    fail("Unsupported backend ${backend}")
   }
 }
