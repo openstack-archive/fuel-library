@@ -1,44 +1,45 @@
+# Installs & configure the heat API service
+
 class heat::api (
-  $firewall_rule_name = '204 heat-api',
-  $bind_host          = '0.0.0.0',
-  $bind_port          = '8004',
+  $enabled           = true,
+  $bind_host         = '0.0.0.0',
+  $bind_port         = '8004',
+  $workers           = '0'
 ) {
 
+  include heat
   include heat::params
 
-  package { 'python-routes':
-    ensure => installed,
-    name   => $::heat::params::deps_routes_package_name,
-  }
+  Heat_config<||> ~> Service['heat-api']
+
+  Package['heat-api'] -> Heat_config<||>
+  Package['heat-api'] -> Service['heat-api']
 
   package { 'heat-api':
-    ensure  => installed,
-    name    => $::heat::params::api_package_name,
-    require => Package['python-routes'],
+    ensure => installed,
+    name   => $::heat::params::api_package_name,
+  }
+
+  if $enabled {
+    $service_ensure = 'running'
+  } else {
+    $service_ensure = 'stopped'
   }
 
   service { 'heat-api':
-    ensure     => 'running',
+    ensure     => $service_ensure,
     name       => $::heat::params::api_service_name,
-    enable     => true,
+    enable     => $enabled,
     hasstatus  => true,
     hasrestart => true,
+    require    => [Package['heat-common'],
+                  Package['heat-api']],
+    subscribe  => Exec['heat-dbsync'],
   }
 
-  firewall { $firewall_rule_name :
-    dport   => [ $bind_port ],
-    proto   => 'tcp',
-    action  => 'accept',
+  heat_config {
+    'heat_api/bind_host'  : value => $bind_host;
+    'heat_api/bind_port'  : value => $bind_port;
+    'heat_api/workers'    : value => $workers;
   }
-
-  Package['heat-common'] -> Package['heat-api'] -> Heat_config<||>
-  Heat_config<||> ~> Service['heat-api']
-  Package['heat-api'] ~> Service['heat-api']
-  Class['heat::db'] -> Service['heat-api']
-  Exec['heat_db_sync'] -> Service['heat-api']
-  Package<| title == 'heat-api'|> ~> Service<| title == 'heat-api'|>
-  if !defined(Service['heat-api']) {
-    notify{ "Module ${module_name} cannot notify service heat-api on package update": }
-  }
-
 }
