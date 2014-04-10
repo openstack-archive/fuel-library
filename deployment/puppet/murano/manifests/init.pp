@@ -52,7 +52,7 @@ class murano (
   $use_neutron                          = false,
 ) {
 
-  Class['mysql::server'] -> Class['murano::db::mysql'] -> Class['murano::rabbitmq'] -> Class['murano::keystone'] -> Class['murano::common'] -> Class['murano::conductor'] -> Class['murano::api'] -> Class['murano::metadataclient'] -> Class['murano::repository'] -> Class['murano::python_muranoclient'] -> Class['murano::dashboard'] -> Class['murano::cirros']
+  Class['mysql::server'] -> Class['murano::db::mysql'] -> Class['murano::rabbitmq'] -> Class['murano::keystone'] -> Class['murano::conductor'] -> Class['murano::api'] -> Class['murano::metadataclient'] -> Class['murano::repository'] -> Class['murano::python_muranoclient'] -> Class['murano::dashboard'] -> Class['murano::cirros']
 
   File[$murano_data_dir] -> Class['murano::conductor']
   File[$murano_log_dir] -> Class['murano::conductor']
@@ -100,9 +100,6 @@ class murano (
     user                                 => $murano_db_user,
     dbhost                               => $murano_db_host,
     allowed_hosts                        => $murano_db_allowed_hosts,
-  }
-
-  class { 'murano::common':
   }
 
   class { 'murano::metadataclient':
