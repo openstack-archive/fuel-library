@@ -37,11 +37,7 @@ class ceilometer::agent_notification (
   }
 
 
-  ###FIXME(aglarendil): remove this stupid cross-class dependency 
-  ###move notification driver configuration into particular
-  ###classes
   include nova::notify::ceilometer
-  include heat::notify::ceilometer
 
   if $swift {
       class { 'swift::notify::ceilometer':
