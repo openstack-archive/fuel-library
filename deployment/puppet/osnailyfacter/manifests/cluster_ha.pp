@@ -458,20 +458,22 @@ class osnailyfacter::cluster_ha {
         }
       }
         #FIXME: Disable heat for Red Hat OpenStack 3.0
+        # FIXME(bogdando) fix init for synced upstream heat
         if ($::operatingsystem != 'RedHat') {
-          class { 'heat' :
-            pacemaker              => true,
-            external_ip            => $controller_node_public,
+          class { '::heat' :
+            #pacemaker              => true,
+            #external_ip            => $controller_node_public,
 
             keystone_host     => $controller_node_address,
             keystone_user     => 'heat',
             keystone_password => 'heat',
             keystone_tenant   => 'services',
 
-            amqp_hosts       => $amqp_hosts,
-            amqp_user        => $rabbit_hash['user'],
-            amqp_password    => $rabbit_hash['password'],
-            rabbit_ha_queues => $rabbit_ha_queues,
+            rabbit_hosts      => $amqp_hosts,
+            rabbit_userid     => $rabbit_hash['user'],
+            rabbit_password   => $rabbit_hash['password'],
+
+            rabbit_ha_queues  => $rabbit_ha_queues,
 
             db_host           => $controller_node_address,
             db_password       => $heat_hash['db_password'],
@@ -479,7 +481,7 @@ class osnailyfacter::cluster_ha {
             debug               => $::debug,
             verbose             => $::verbose,
             use_syslog          => $::use_syslog,
-            syslog_log_facility => $::syslog_log_facility_heat,
+            #syslog_log_facility => $::syslog_log_facility_heat,
           }
       }
 

@@ -1,9 +1,10 @@
 # Installs & configure the heat CloudFormation API service
 
 class heat::api_cfn (
-  $enabled           = true,
-  $bind_host         = '0.0.0.0',
-  $bind_port         = '8000',
+  $firewall_rule_name = '205 heat-api-cfn',
+  $enabled            = true,
+  $bind_host          = '0.0.0.0',
+  $bind_port          = '8000',
 ) {
 
   include heat
@@ -39,4 +40,16 @@ class heat::api_cfn (
     'heat_api_cfn/bind_host'              : value => $bind_host;
     'heat_api_cfn/bind_port'              : value => $bind_port;
   }
+
+  firewall { $firewall_rule_name :
+    dport   => [ $bind_port ],
+    proto   => 'tcp',
+    action  => 'accept',
+  }
+
+  Package<| title == 'heat-api-cfn'|> ~> Service<| title == 'heat-api-cfn'|>
+  if !defined(Service['heat-api-cfn']) {
+    notify{ "Module ${module_name} cannot notify service heat-api-cfn on package update": }
+  }
+
 }

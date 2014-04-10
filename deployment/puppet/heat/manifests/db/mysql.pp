@@ -29,7 +29,7 @@ class heat::db::mysql(
   $user          = 'heat',
   $host          = 'localhost',
   $allowed_hosts = undef,
-  $charset       = 'latin1',
+  $charset       = 'utf8',
 ) {
 
   validate_string($password)
@@ -42,7 +42,7 @@ class heat::db::mysql(
     password     => $password,
     host         => $host,
     charset      => $charset,
-    require      => Class['mysql::config'],
+    require      => Class['mysql::server'],
   }
 
   # Check allowed_hosts to avoid duplicate resource declarations
