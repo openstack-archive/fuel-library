@@ -31,7 +31,7 @@ SERVICE_NAME="OpenStack Heat Engine"
 LOG="/var/log/heat/engine.log"
 
 OCF_RESKEY_binary_default="/usr/bin/heat-engine"
-OCF_RESKEY_config_default="/etc/heat/heat-engine.conf"
+OCF_RESKEY_config_default="/etc/heat/heat.conf"
 OCF_RESKEY_pid_default="/var/run/heat/heat-engine.pid"
 OCF_RESKEY_user_default="heat"
 
@@ -46,7 +46,7 @@ usage() {
     cat <<UEND
         usage: $0 (start|stop|validate-all|meta-data|status|monitor)
 
-        $0 manages the ${SERVICE_NAME} process as an HA resource 
+        $0 manages the ${SERVICE_NAME} process as an HA resource
 
         The 'start' operation starts the ${SERVICE_NAME}
         The 'stop' operation stops the ${SERVICE_NAME}
