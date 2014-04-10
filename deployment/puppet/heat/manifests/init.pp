@@ -255,11 +255,11 @@ class heat(
     }
 
     heat_config {
-      'DEFAULT/sql_connection': value => $sql_connection;
-      'database/idle_timeout':  value => $database_idle_timeout;
+      'DATABASE/connection':    value => $sql_connection;
+      'DATABASE/idle_timeout':  value => $database_idle_timeout;
     }
 
-    Heat_config['DEFAULT/sql_connection'] ~> Exec['heat-dbsync']
+    Heat_config['DATABASE/connection'] ~> Exec['heat-dbsync']
 
     exec { 'heat-dbsync':
       command     => $::heat::params::dbsync_command,
@@ -273,8 +273,9 @@ class heat(
   # Syslog configuration
   if $use_syslog {
     heat_config {
-      'DEFAULT/use_syslog':           value => true;
-      'DEFAULT/syslog_log_facility':  value => $log_facility;
+      'DEFAULT/use_syslog':            value => true;
+      'DEFAULT/use_syslog_rfc_format': value => true;
+      'DEFAULT/syslog_log_facility':   value => $log_facility;
     }
   } else {
     heat_config {

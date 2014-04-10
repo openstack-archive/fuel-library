@@ -4,6 +4,8 @@ class heat::params {
 
   $dbsync_command =
     'heat-manage --config-file /etc/heat/heat.conf db_sync'
+  $deps_pbr_package_name        = 'python-pbr'
+  $deps_routes_package_name     = 'python-routes'
 
   case $::osfamily {
     'RedHat': {

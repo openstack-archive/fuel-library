@@ -12,8 +12,9 @@ class heat::client (
   include heat::params
 
   package { 'python-heatclient':
-    ensure => $ensure,
-    name   => $::heat::params::client_package_name,
+    ensure  => $ensure,
+    name    => $::heat::params::client_package_name,
+    require => $::heat::params::deps_routes_package_name,
   }
 
 }
