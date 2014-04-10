@@ -66,14 +66,14 @@ define openstack::ha::haproxy_service (
 
     # Dirty hack, due Puppet can't send notify between stages
     exec { "haproxy reload for ${name}":
-      command     => 'export OCF_ROOT="/usr/lib/ocf"; ip netns exec haproxy /usr/lib/ocf/resource.d/mirantis/ns_haproxy reload',
+      command     => 'export OCF_ROOT="/usr/lib/ocf"; (ip netns list | grep haproxy) && ip netns exec haproxy /usr/lib/ocf/resource.d/mirantis/ns_haproxy reload',
       path        => '/usr/bin:/usr/sbin:/bin:/sbin',
       logoutput   => true,
       provider    => 'shell',
-      tries       => 3,
-      try_sleep   => 1,
+      tries       => 10,
+      try_sleep   => 10,
       returns     => [0, ''],
-      require     => [Haproxy::Listen[$name], Haproxy::Balancermember[$name]],
+      require     => [Service['haproxy'],Haproxy::Listen[$name], Haproxy::Balancermember[$name]],
     }
   }
 
