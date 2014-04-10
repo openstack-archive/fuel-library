@@ -1,9 +1,10 @@
 # Installs & configure the heat API service
 
 class heat::api (
-  $enabled           = true,
-  $bind_host         = '0.0.0.0',
-  $bind_port         = '8004',
+  $firewall_rule_name = '204 heat-api',
+  $enabled            = true,
+  $bind_host          = '0.0.0.0',
+  $bind_port          = '8004',
 ) {
 
   include heat
@@ -36,8 +37,20 @@ class heat::api (
     subscribe  => Exec['heat-dbsync'],
   }
 
+  firewall { $firewall_rule_name :
+    dport   => [ $bind_port ],
+    proto   => 'tcp',
+    action  => 'accept',
+  }
+
   heat_config {
     'heat_api/bind_host'  : value => $bind_host;
     'heat_api/bind_port'  : value => $bind_port;
   }
+
+  Package<| title == 'heat-api'|> ~> Service<| title == 'heat-api'|>
+  if !defined(Service['heat-api']) {
+    notify{ "Module ${module_name} cannot notify service heat-api on package update": }
+  }
+
 }

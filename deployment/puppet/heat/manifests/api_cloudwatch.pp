@@ -1,9 +1,10 @@
 # Installs & configure the heat CloudWatch API service
 
 class heat::api_cloudwatch (
-  $enabled           = true,
-  $bind_host         = '0.0.0.0',
-  $bind_port         = '8003',
+  $firewall_rule_name = '206 heat-api-cloudwatch',
+  $enabled            = true,
+  $bind_host          = '0.0.0.0',
+  $bind_port          = '8003',
 ) {
 
   include heat
@@ -35,8 +36,18 @@ class heat::api_cloudwatch (
     subscribe  => Exec['heat-dbsync'],
   }
 
+  firewall { $firewall_rule_name :
+    dport   => [ $bind_port ],
+    proto   => 'tcp',
+    action  => 'accept',
+  }
+
   heat_config {
     'heat_api_cloudwatch/bind_host'  : value => $bind_host;
     'heat_api_cloudwatch/bind_port'  : value => $bind_port;
+  }
+  Package<| title == 'heat-api-cloudwatch'|> ~> Service<| title == 'heat-api-cloudwatch'|>
+  if !defined(Service['heat-api-cloudwatch']) {
+    notify{ "Module ${module_name} cannot notify service heat-api-cloudwatch on package update": }
   }
 }
