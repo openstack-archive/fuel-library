@@ -459,22 +459,28 @@ class osnailyfacter::cluster_ha {
       }
         #FIXME: Disable heat for Red Hat OpenStack 3.0
         if ($::operatingsystem != 'RedHat') {
-          class { 'heat' :
-            pacemaker              => true,
-            external_ip            => $controller_node_public,
+          class { 'openstack::heat' :
+            pacemaker           => true,
+            external_ip         => $controller_node_public,
 
-            keystone_host     => $controller_node_address,
-            keystone_user     => 'heat',
-            keystone_password => 'heat',
-            keystone_tenant   => 'services',
+            keystone_host       => $controller_node_address,
+            keystone_user       => 'heat',
+            keystone_password   => 'heat',
+            keystone_tenant     => 'services',
 
-            amqp_hosts       => $amqp_hosts,
-            amqp_user        => $rabbit_hash['user'],
-            amqp_password    => $rabbit_hash['password'],
-            rabbit_ha_queues => $rabbit_ha_queues,
+            rpc_backend         => 'heat.openstack.common.rpc.impl_kombu',
+            amqp_hosts          => $amqp_hosts,
+            amqp_user           => $rabbit_hash['user'],
+            amqp_password       => $rabbit_hash['password'],
 
-            db_host           => $controller_node_address,
-            db_password       => $heat_hash['db_password'],
+            sql_connection      =>
+              "mysql://heat:${heat_hash['db_password']}@${$controller_node_address}/heat?read_timeout=60",
+            db_host             => $controller_node_address,
+            db_password         => $heat_hash['db_password'],
+            max_retries         => $max_retries,
+            max_pool_size       => $max_pool_size,
+            max_overflow        => $max_overflow,
+            idle_timeout        => $idle_timeout,
 
             debug               => $::debug,
             verbose             => $::verbose,
@@ -509,7 +515,7 @@ class osnailyfacter::cluster_ha {
           syslog_log_facility      => $::syslog_log_facility_murano,
         }
 
-       Class['heat'] -> Class['murano']
+       Class['openstack::heat'] -> Class['murano']
 
       }
 
