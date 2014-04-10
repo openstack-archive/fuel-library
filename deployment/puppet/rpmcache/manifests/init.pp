@@ -31,21 +31,6 @@ $sat_base_channels, $sat_openstack_channel, $numtries = 10)  {
   file { '/etc/pki/product':
     ensure => directory,
   } ->
-  file { '/etc/pki/product/69.pem':
-    ensure => present,
-    source => 'puppet:///modules/rpmcache/69.pem',
-    owner => 'root',
-    group => 'root',
-    mode => 0644,
-  } ->
-
-  file { '/etc/pki/product/191.pem':
-    ensure => present,
-    source => 'puppet:///modules/rpmcache/191.pem',
-    owner => 'root',
-    group => 'root',
-    mode => 0644,
-  } ->
 
   file { '/etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release':
     ensure => present,
