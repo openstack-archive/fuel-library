@@ -51,7 +51,7 @@ class Puppet::Provider::Keystone < Puppet::Provider
     retries = 60
     loop do
       begin
-        rv = keystone('--token', admin_token, '--endpoint', admin_endpoint, args)
+        rv = keystone('--os-token', admin_token, '--os-endpoint', admin_endpoint, args)
         break
       rescue Exception => e
         if e.message =~ /(\(HTTP\s+400\))|(\[Errno 111\]\s+Connection\s+refused)|(503\s+Service\s+Unavailable)|(Max\s+retries\s+exceeded)|(Unable\sto\sestablish\sconnection\sto)/
