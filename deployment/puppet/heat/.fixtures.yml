@@ -1,0 +1,15 @@
+fixtures:
+  repositories:
+    "inifile": "git://github.com/puppetlabs/puppetlabs-inifile"
+    'keystone':
+      repo: 'git://github.com/stackforge/puppet-keystone.git'
+      ref: 'origin/stable/havana'
+    "mysql":
+      repo: 'git://github.com/puppetlabs/puppetlabs-mysql.git'
+      ref: 'origin/0.x'
+    'nova':
+      repo: 'git://github.com/stackforge/puppet-nova.git'
+      ref: 'origin/stable/havana'
+    "stdlib": "git://github.com/puppetlabs/puppetlabs-stdlib.git"
+  symlinks:
+    "heat": "#{source_dir}"
