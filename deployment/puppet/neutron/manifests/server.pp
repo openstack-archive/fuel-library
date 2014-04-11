@@ -2,6 +2,8 @@
 class neutron::server (
   $neutron_config     = {},
   $primary_controller = false,
+  $nova_admin_tenant_id_mask = 'XXX_service_tenant_id_XXX',
+  $nova_admin_tenant_name    = 'services',
 ) {
   include 'neutron::params'
 
@@ -65,6 +67,15 @@ class neutron::server (
   Service <| title == 'haproxy' |> -> Service['neutron-server']
 
   neutron_config {
+    'DEFAULT/notify_nova_on_port_status_changes': value => $neutron_config['server']['notify_nova_on_port_status_changes'];
+    'DEFAULT/notify_nova_on_port_data_changes': value => $neutron_config['server']['notify_nova_on_port_data_changes'];
+    'DEFAULT/nova_url':             value => $neutron_config['server']['notify_nova_api_url'];
+    'DEFAULT/nova_region_name':     value => $neutron_config['keystone']['auth_region'];
+    'DEFAULT/nova_admin_username':  value => $neutron_config['server']['notify_nova_admin_username'];
+    'DEFAULT/nova_admin_tenant_id': value => $nova_admin_tenant_id_mask;
+    'DEFAULT/nova_admin_password':  value => $neutron_config['server']['notify_nova_admin_password'];
+    'DEFAULT/nova_admin_auth_url':  value => $neutron_config['server']['notify_nova_admin_auth_url'];
+    'DEFAULT/send_events_interval': value => $neutron_config['server']['notify_nova_send_events_interval'];
     'database/connection':          value => $neutron_config['database']['url'];
     'database/max_retries':         value => $neutron_config['database']['reconnects'];
     'database/reconnect_interval':  value => $neutron_config['database']['reconnect_interval'];
@@ -82,6 +93,15 @@ class neutron::server (
     'filter:authtoken/admin_user':        value => $neutron_config['keystone']['admin_user'];
     'filter:authtoken/admin_password':    value => $neutron_config['keystone']['admin_password'];
   }
+
+  Neutron_config<||> ->
+  exec {'insert service tenant ID':
+    onlyif  => "bash -c \"source /root/openrc ; keystone tenant-list\" | grep \"${nova_admin_tenant_name}\" | awk -F'|'  '{print \$2}' > /tmp/serviceid",
+    command => "sed -e \"s/${nova_admin_tenant_id_mask}/`cat /tmp/serviceid`/g\" -i /etc/neutron/neutron.conf",
+    path => '/usr/sbin:/usr/bin:/sbin:/bin'
+  } ->
+  Service<| title == 'neutron-server' |>
+  Keystone_tenant["${nova_admin_tenant_name}"] -> Exec['insert service tenant ID']
 
   anchor {'neutron-server-config-done':}
 

@@ -83,9 +83,7 @@ class nova::network::neutron (
   $neutron_extension_sync_interval = '600',
   $neutron_ca_certificates_file    = undef,
   $security_group_api              = 'neutron',
-  $firewall_driver                 = 'nova.virt.firewall.NoopFirewallDriver',
-  $vif_plugging_is_fatal           = true,
-  $vif_plugging_timeout            = '300'
+  $firewall_driver                 = 'nova.virt.firewall.NoopFirewallDriver'
 ) {
 
   nova_config {
@@ -103,8 +101,6 @@ class nova::network::neutron (
     'DEFAULT/neutron_extension_sync_interval': value => $neutron_extension_sync_interval;
     'DEFAULT/security_group_api':              value => $security_group_api;
     'DEFAULT/firewall_driver':                 value => $firewall_driver;
-    'DEFAULT/vif_plugging_is_fatal':           value => $vif_plugging_is_fatal;
-    'DEFAULT/vif_plugging_timeout':            value => $vif_plugging_timeout;
   }
 }
 
