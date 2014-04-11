@@ -355,17 +355,10 @@ class openstack::compute (
 
     class { 'nova::compute::neutron': }
 
-    # does this have to be installed on the compute node?
-    # NOTE
-    class { 'nova::network::neutron':
-      neutron_config => $quantum_config,
-      neutron_connection_host => $service_endpoint
-    }
-
     #todo: LibvirtHybridOVSBridgeDriver Will be deprecated in Havana, and removed in Ixxxx.
     #  https://github.com/openstack/nova/blob/stable/grizzly/nova/virt/libvirt/vif.py
     nova_config {
-      'DEFAULT/libvirt_vif_driver':              value => 'nova.virt.libvirt.vif.LibvirtHybridOVSBridgeDriver';
+      #'DEFAULT/libvirt_vif_driver':              value => 'nova.virt.libvirt.vif.LibvirtHybridOVSBridgeDriver';
       'DEFAULT/linuxnet_interface_driver':       value => 'nova.network.linux_net.LinuxOVSInterfaceDriver';
       'DEFAULT/linuxnet_ovs_integration_bridge': value => $quantum_config['L2']['integration_bridge'];
     }
