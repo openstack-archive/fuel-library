@@ -1,4 +1,9 @@
 #
+#   [*mysql_module*]
+#   (optional) The mysql puppet module version to use. Tested versions
+#   include 0.9 and 2.2
+#   Default to '0.9'
+#
 class neutron::db::mysql (
   $password,
   $dbname        = 'neutron',
@@ -12,12 +17,11 @@ class neutron::db::mysql (
 ) {
 
   Class['mysql::server'] -> Class['neutron::db::mysql']
-
-  if $::osfamily=="Debian"{
-    Class['neutron::db::mysql']->Package['neutron-server']
+  if $::osfamily == "Debian" {
+    Class['neutron::db::mysql'] -> Package['neutron-server']
   }
 
-  if ($mysql_module >= '2.2') {
+  if ($mysql_module >= 2.2) {
     mysql::db { $dbname:
       user         => $user,
       password     => $password,
@@ -27,7 +31,7 @@ class neutron::db::mysql (
       require      => Class['mysql::server'],
     }
   } else {
-    require 'mysql::python'
+    require mysql::python
 
     mysql::db { $dbname:
       user         => $user,
@@ -38,13 +42,19 @@ class neutron::db::mysql (
     }
   }
 
-
-  if $allowed_hosts {
-     neutron::db::mysql::host_access { $allowed_hosts:
-      user      => $user,
-      password  => $password,
-      database  => $dbname,
-    }
+  # Check allowed_hosts to avoid duplicate resource declarations
+  if is_array($allowed_hosts) and delete($allowed_hosts,$host) != [] {
+    $real_allowed_hosts = delete($allowed_hosts,$host)
+  } elsif is_string($allowed_hosts) and ($allowed_hosts != $host) {
+    $real_allowed_hosts = $allowed_hosts
   }
 
+  if $real_allowed_hosts {
+    neutron::db::mysql::host_access { $real_allowed_hosts:
+      user          => $user,
+      password      => $password,
+      database      => $dbname,
+      mysql_module  => $mysql_module,
+    }
+  }
 }

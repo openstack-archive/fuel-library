@@ -54,6 +54,38 @@
 #   (optional) Number of firewalls rules allowed per tenant, -1 for unlimited.
 #   Defaults to '-1'.
 #
+# [*quota_health_monitor*]
+#   (optional) Number of health monitors allowed per tenant.
+#   A negative value means unlimited.
+#   Defaults to '-1'.
+#
+# [*quota_items*]
+#   (optional) Resource name(s) that are supported in quota features.
+#   Defaults to 'network,subnet,port'.
+#
+# [*quota_member*]
+#   (optional) Number of pool members allowed per tenant.
+#   A negative value means unlimited
+#   Defaults to '-1'.
+#
+# [*quota_network_gateway*]
+#   (optional) Number of network gateways allowed per tenant, -1 for unlimited.
+#   Defaults to '5'.
+#
+# [*quota_packet_filter*]
+#   (optional) Number of packet_filters allowed per tenant, -1 for unlimited.
+#   Defaults to '100'.
+#
+# [*quota_pool*]
+#   (optional) Number of pools allowed per tenant.
+#   A negative value means unlimited.
+#   Defaults to '10'.
+#
+# [*quota_vip*]
+#   (optional) Number of vips allowed per tenant.
+#   A negative value means unlimited.
+#   Defaults to '10'.
+#
 class neutron::quota (
   $default_quota             = -1,
   $quota_network             = 50,
@@ -68,7 +100,14 @@ class neutron::quota (
   $quota_driver              = 'neutron.db.quota_db.DbQuotaDriver',
   $quota_firewall            = -1,
   $quota_firewall_policy     = -1,
-  $quota_firewall_rule       = -1
+  $quota_firewall_rule       = -1,
+  $quota_health_monitor      = -1,
+  $quota_items               = 'network,subnet,port',
+  $quota_member              = -1,
+  $quota_network_gateway     = -1,
+  $quota_packet_filter       = 100,
+  $quota_pool                = 10,
+  $quota_vip                 = -1
 ) {
 
   neutron_config {
@@ -84,5 +123,12 @@ class neutron::quota (
     'QUOTAS/quota_firewall':            value => $quota_firewall;
     'QUOTAS/quota_firewall_policy':     value => $quota_firewall_policy;
     'QUOTAS/quota_firewall_rule':       value => $quota_firewall_rule;
+    'QUOTAS/quota_health_monitor':      value => $quota_health_monitor;
+    'QUOTAS/quota_items':               value => $quota_items;
+    'QUOTAS/quota_member':              value => $quota_member;
+    'QUOTAS/quota_network_gateway':     value => $quota_network_gateway;
+    'QUOTAS/quota_packet_filter':       value => $quota_packet_filter;
+    'QUOTAS/quota_pool':                value => $quota_pool;
+    'QUOTAS/quota_vip':                 value => $quota_vip;
   }
 }
