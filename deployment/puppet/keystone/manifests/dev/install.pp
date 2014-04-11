@@ -30,7 +30,7 @@ class keystone::dev::install(
       'libldap2-dev',
       'sqlite3'
     ]:
-      ensure => latest,
+      ensure => installed,
   }
 
   vcsrepo { $source_dir:
