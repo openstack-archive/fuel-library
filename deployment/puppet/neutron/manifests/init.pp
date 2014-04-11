@@ -8,7 +8,7 @@ class neutron (
   $enabled              = true,
   $verbose              = false,
   $debug                = false,
-  $core_plugin          = 'neutron.plugins.openvswitch.ovs_neutron_plugin.OVSNeutronPluginV2',
+  $core_plugin          = 'openvswitch',
   $auth_strategy        = 'keystone',
   $log_file             = '/var/log/neutron/server.log',
   $log_dir              = '/var/log/neutron',

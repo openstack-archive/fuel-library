@@ -228,11 +228,33 @@ class openstack::nova::controller (
     }
     #todo: <<<
     class { '::nova::network::neutron':
-      neutron_config => $quantum_config,
-      neutron_connection_host => $service_endpoint
+      #neutron_config => $quantum_config,
+      #neutron_connection_host => $service_endpoint
+      neutron_admin_password    => $quantum_config['keystone']['admin_password'],
+      neutron_admin_tenant_name => $quantum_config['keystone']['admin_tenant_name'],
+      neutron_region_name       => $quantum_config['keystone']['auth_region'],
+      neutron_admin_username    => $quantum_config['keystone']['admin_user'],
+      neutron_admin_auth_url    => $quantum_config['keystone']['auth_url'],
+      neutron_url               => $quantum_config['server']['api_url'],
     }
   }
 
+ $default_limits = {
+    'POST' => 10,
+    'POST_SERVERS' => 50,
+    'PUT' => 10,
+    'GET' => 3,
+    'DELETE' => 100,
+  }
+
+  $merged_limits = merge($default_limits, $nova_rate_limits)
+  $post_limit=$merged_limits[POST]
+  $put_limit=$merged_limits[PUT]
+  $get_limit=$merged_limits[GET]
+  $delete_limit=$merged_limits[DELETE]
+  $post_servers_limit=$merged_limits[POST_SERVERS]
+  $nova_rate_limits_string = inline_template('<%="(POST, *, .*,  #{@post_limit} , MINUTE);(POST, %(*/servers), ^/servers,  #{@post_servers_limit} , DAY);(PUT, %(*) , .*,  #{@put_limit} , MINUTE);(GET, %(*changes-since*), .*changes-since.*, #{@get_limit}, MINUTE);(DELETE, %(*), .*, #{@delete_limit} , MINUTE)" %>')
+  notice("will apply following limits: ${nova_rate_limits_string}")
   # Configure nova-api
   class { '::nova::api':
     enabled           => $enabled,
