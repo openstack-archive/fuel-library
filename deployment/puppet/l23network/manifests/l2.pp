@@ -12,7 +12,7 @@ class l23network::l2 (
   if $use_ovs {
     #include ::l23network::l2::use_ovs
     if $::operatingsystem == 'Ubuntu' {
-     package { 'openvswitch-datapath-lts-raring-dkms': } ->
+     package { 'openvswitch-datapath-lts-saucy-dkms': } ->
      Package[$::l23network::params::ovs_packages]
     }
     if $::operatingsystem == 'Centos' {
