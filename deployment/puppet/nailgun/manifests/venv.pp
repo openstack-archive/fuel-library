@@ -131,7 +131,20 @@ class nailgun::venv(
         command => "${venv}/bin/nailgun_fixtures",
         require => Exec["nailgun_syncdb"],
       }
-
+    }
+    /^docker/: {
+      exec {"nailgun_syncdb":
+        command => "${venv}/bin/nailgun_syncdb",
+        require => [
+                    File["/etc/nailgun/settings.yaml"],
+                    Nailgun::Venv::Pip["${venv}_${package}"],
+                    Nailgun::Venv::Pip["${venv}_psycopg2"],
+                    ],
+      }
+      exec {"nailgun_upload_fixtures":
+        command => "${venv}/bin/nailgun_fixtures",
+        require => Exec["nailgun_syncdb"],
+      }
     }
   }
 
