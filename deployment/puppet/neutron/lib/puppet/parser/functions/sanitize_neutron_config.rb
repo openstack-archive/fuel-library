@@ -137,6 +137,10 @@ class MrntNeutron
     "#{kshash[:auth_protocol]}://#{kshash[:auth_host]}:#{kshash[:auth_port]}/#{kshash[:auth_api_version]}"
   end
 
+  def self.get_nova_api_url(fc)
+    "http://#{fc[:management_vip]}:8774/v2"
+  end
+
   # classmethod
   def self.get_phys_bridges(l2)
     l2[:phys_nets].sort().select{|x| x[1][:bridge]&&!x[1][:bridge].empty?}.map{|x| x[1][:bridge]}
@@ -169,6 +173,13 @@ class MrntNeutron
       raise(Puppet::ParseError, "AMQP password not given!!!")
     end
     @fuel_config[:rabbit][:password]
+  end
+
+  def get_nova_admin_passwd()
+    if @fuel_config[:nova].nil? || @fuel_config[:nova].empty? || @fuel_config[:nova][:user_password].nil?
+      raise(Puppet::ParseError, "Nova password not given!!!")
+    end
+    @fuel_config[:nova][:user_password]
   end
 
   def get_bridge_name(bb)
@@ -307,6 +318,13 @@ class MrntNeutron
         :agent_down_time => 15,
         :allow_bulk      => true,
         :control_exchange=> 'neutron',
+        :notify_nova_send_events_interval => 2,
+        :notify_nova_on_port_status_changes => true,
+        :notify_nova_on_port_data_changes => true,
+        :notify_nova_api_url => nil, # will be calculated later
+        :notify_nova_admin_username => 'nova',
+        :notify_nova_admin_password => get_nova_admin_passwd(),
+        :notify_nova_admin_auth_url => nil, # will be calculated later
       },
       :metadata => {
         :nova_metadata_ip => get_management_vip(),
@@ -377,7 +395,11 @@ class MrntNeutron
     # calculate some sections if not given
     @neutron_config[:database][:url] ||= MrntNeutron.get_database_url(@neutron_config[:database])
     @neutron_config[:keystone][:auth_url] ||= MrntNeutron.get_keystone_auth_url(@neutron_config[:keystone])
+    @neutron_config[:server][:notify_nova_admin_auth_url] = @neutron_config[:keystone][:auth_url]
+
     @neutron_config[:server][:api_url] ||= get_neutron_srv_api_url(@neutron_config[:server])
+    @neutron_config[:server][:notify_nova_api_url] ||= MrntNeutron.get_nova_api_url(@fuel_config)
+
     @neutron_config[:amqp] ||= MrntNeutron.get_amqp_config(@neutron_config[:amqp])
     # calculate tunneling value from segm.type
     if [:gre, :vxlan, :lisp].include? @neutron_config[:L2][:segmentation_type].downcase.to_sym

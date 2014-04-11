@@ -364,10 +364,6 @@ class openstack::compute (
       neutron_admin_password           => $quantum_config['keystone']['admin_password'],
       neutron_admin_auth_url           => $quantum_config['keystone']['auth_url'],
       neutron_ovs_bridge               => $quantum_config['L2']['integration_bridge'],
-      ##FIXME(aglarendil): REMOVE VIF PLUGGING WORKAROUND AFTER
-      ##https://bugs.launchpad.net/fuel/+bug/1308956 is resolved
-      vif_plugging_is_fatal      => false,
-      vif_plugging_timeout => '3'
     }
 
     #todo: LibvirtHybridOVSBridgeDriver Will be deprecated in Havana, and removed in Ixxxx.

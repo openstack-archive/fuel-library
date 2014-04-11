@@ -43,6 +43,9 @@ class NeutronConfig
       'rabbit' => {
         'password' => 'nova'
       },
+      'nova' => {
+        'user_password' => 'nova_user_passwd'
+      },
       'neutron_settings' => {
         'amqp' => {
           'provider' => "rabbitmq",
@@ -212,6 +215,9 @@ describe 'sanitize_neutron_config with minimal incoming data' , :type => :puppet
         'user'     => 'user__admin',
         'tenant'   => 'tenant__admin',
         'email'    => 'admin@example.org',
+      },
+      'nova' => {
+        'user_password' => 'nova_user_passwd'
       },
       'neutron_settings' => {
         'amqp' => {
@@ -456,7 +462,15 @@ describe 'sanitize_neutron_config with minimal incoming data' , :type => :puppet
       "bind_port"=>9696,
       "agent_down_time"=>15,
       "allow_bulk"=>true,
-      "control_exchange"=>"neutron"
+      "control_exchange"=>"neutron",
+      "notify_nova_admin_auth_url" => "http://192.168.0.254:35357/v2.0",
+      "notify_nova_admin_password" => "nova_user_passwd",
+      "notify_nova_admin_tenant_id" => "service_tenant_id",
+      "notify_nova_admin_username" => "nova",
+      "notify_nova_api_url" => "http://:8474/v2",
+      "notify_nova_on_port_data_changes" => true,
+      "notify_nova_on_port_status_changes" => true,
+      "notify_nova_send_events_interval" => 2
     })
   end
 end
