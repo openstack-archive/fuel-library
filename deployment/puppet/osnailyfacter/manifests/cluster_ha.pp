@@ -496,7 +496,6 @@ class osnailyfacter::cluster_ha {
           murano_db_password       => $murano_hash['db_password'],
 
           murano_keystone_host     => $controller_node_address,
-          murano_metadata_host     => $controller_node_address,
           murano_keystone_user     => 'murano',
           murano_keystone_password => $murano_hash['user_password'],
           murano_keystone_tenant   => 'services',
