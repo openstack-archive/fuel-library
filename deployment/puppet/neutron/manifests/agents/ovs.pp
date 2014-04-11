@@ -52,7 +52,7 @@ class neutron::agents::ovs (
   neutron::agents::utils::bridges { $neutron_config['L2']['integration_bridge']: }
   if $neutron_config['L2']['enable_tunneling'] {
     neutron::agents::utils::bridges { $neutron_config['L2']['tunnel_bridge']: }
-    neutron_plugin_ovs { 'OVS/local_ip':  value => $neutron_config['L2']['local_ip'] }
+    neutron_plugin_ovs { 'ovs/local_ip':  value => $neutron_config['L2']['local_ip'] }
   } else {
     neutron::agents::utils::bridges { $neutron_config['L2']['phys_bridges']: }
   }
@@ -171,36 +171,6 @@ class neutron::agents::ovs (
 
   Class[neutron::waistline] -> Service['neutron-ovs-agent']
 
-  #todo: This service must be disabled if Quantum-ovs-agent managed by pacemaker
-  case $operatingsystem {
-   'Ubuntu': {
-      package { 'neutron-ovs-cleanup': }
-      Package['neutron-ovs-cleanup'] ->
-      service { 'neutron-ovs-cleanup':
-        name       => 'neutron-ovs-cleanup',
-        enable     => true,
-        ensure     => stopped,# !!! Warning !!!
-        hasstatus  => false,  # !!! 'stopped' is not mistake
-        hasrestart => false,  # !!! cleanup is simple script running once at OS boot
-        provider   => $::neutron::params::service_provider,
-      }
-    }
-    default: {
-      Package["$ovs_agent_package"] ->
-      service { 'neutron-ovs-cleanup':
-        name       => 'neutron-ovs-cleanup',
-        enable     => true,
-        ensure     => stopped,# !!! Warning !!!
-        hasstatus  => false,  # !!! 'stopped' is not mistake
-        hasrestart => false,  # !!! cleanup is simple script running once at OS boot
-        provider   => $::neutron::params::service_provider,
-      }
-    }
-  }
-    # Service['neutron-ovs-agent'] ->       # it's not mistate!
-    #   Service['neutron-ovs-cleanup'] ->   # cleanup service after agent.
-    #     Anchor['neutron-ovs-agent-done']
-
   Anchor['neutron-ovs-agent'] ->
     Service['neutron-ovs-agent'] ->
       Anchor['neutron-ovs-agent-done']
@@ -211,8 +181,7 @@ class neutron::agents::ovs (
   Anchor['neutron-ovs-agent-done'] -> Anchor<| title=='neutron-dhcp-agent' |>
   Anchor['neutron-ovs-agent-done'] -> Anchor<| title=='neutron-metadata-agent' |>
 
-  Package<| title == 'neutron-ovs-cleanup' or title == $ovs_agent_package|> ~>
-  Service<| title == 'neutron-ovs-agent'|>
+  Package<| title == $ovs_agent_package |> ~> Service<| title == 'neutron-ovs-agent'|>
   if !defined(Service['neutron-ovs-agent']) {
     notify{ "Module ${module_name} cannot notify service neutron-ovs-agent on package update": }
   }

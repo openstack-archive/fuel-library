@@ -228,8 +228,14 @@ class openstack::nova::controller (
     }
     #todo: <<<
     class { '::nova::network::neutron':
-      neutron_config => $quantum_config,
-      neutron_connection_host => $service_endpoint
+      #neutron_config => $quantum_config,
+      #neutron_connection_host => $service_endpoint
+      neutron_admin_password    => $quantum_config['keystone']['admin_password'],
+      neutron_admin_tenant_name => $quantum_config['keystone']['admin_tenant_name'],
+      neutron_region_name       => $quantum_config['keystone']['auth_region'],
+      neutron_admin_username    => $quantum_config['keystone']['admin_user'],
+      neutron_admin_auth_url    => $quantum_config['keystone']['auth_url'],
+      neutron_url               => $quantum_config['server']['api_url'],
     }
   }
 
