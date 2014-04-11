@@ -317,6 +317,7 @@ class osnailyfacter::cluster_ha {
       ceilometer_user_password      => $::osnailyfacter::cluster_ha::ceilometer_hash[user_password],
       ceilometer_metering_secret    => $::osnailyfacter::cluster_ha::ceilometer_hash[metering_secret],
       galera_nodes                  => $::osnailyfacter::cluster_ha::controller_nodes,
+      sahara                        => $::osnailyfacter::cluster_ha::sahara_hash[enabled],
       custom_mysql_setup_class      => $::custom_mysql_setup_class,
       mysql_skip_name_resolve       => true,
       use_syslog                    => $::osnailyfacter::cluster_ha::use_syslog,
@@ -437,12 +438,12 @@ class osnailyfacter::cluster_ha {
 
       if $sahara_hash['enabled'] {
         class { 'sahara' :
-          sahara_api_host            => $controller_node_address,
+          sahara_api_host            => $::fuel_settings['public_vip'],
 
           sahara_db_password         => $sahara_hash['db_password'],
-          sahara_db_host             => $controller_node_address,
+          sahara_db_host             => $::fuel_settings['management_vip'],
 
-          sahara_keystone_host       => $controller_node_address,
+          sahara_keystone_host       => $::fuel_settings['management_vip'],
           sahara_keystone_user       => 'sahara',
           sahara_keystone_password   => $sahara_hash['user_password'],
           sahara_keystone_tenant     => 'services',
