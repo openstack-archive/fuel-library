@@ -56,6 +56,7 @@ class neutron::agents::l3 (
     'DEFAULT/use_syslog':    ensure => absent;
     'DEFAULT/use_stderr':    ensure => absent;
     'DEFAULT/router_id':     ensure => absent;
+    'DEFAULT/handle_internal_only_routers': value => false;
     'DEFAULT/root_helper':    value => $neutron_config['root_helper'];
     'DEFAULT/auth_url':       value => $neutron_config['keystone']['auth_url'];
     'DEFAULT/admin_user':     value => $neutron_config['keystone']['admin_user'];
