@@ -54,6 +54,38 @@
 #   (optional) Number of firewalls rules allowed per tenant, -1 for unlimited.
 #   Defaults to '-1'.
 #
+# [*quota_health_monitor*]
+#   (optional) Number of health monitors allowed per tenant.
+#   A negative value means unlimited.
+#   Defaults to '-1'.
+#
+# [*quota_items*]
+#   (optional) Resource name(s) that are supported in quota features.
+#   Defaults to 'network,subnet,port'.
+#
+# [*quota_member*]
+#   (optional) Number of pool members allowed per tenant.
+#   A negative value means unlimited
+#   Defaults to '-1'.
+#
+# [*quota_network_gateway*]
+#   (optional) Number of network gateways allowed per tenant, -1 for unlimited.
+#   Defaults to '5'.
+#
+# [*quota_packet_filter*]
+#   (optional) Number of packet_filters allowed per tenant, -1 for unlimited.
+#   Defaults to '100'.
+#
+# [*quota_pool*]
+#   (optional) Number of pools allowed per tenant.
+#   A negative value means unlimited.
+#   Defaults to '10'.
+#
+# [*quota_vip*]
+#   (optional) Number of vips allowed per tenant.
+#   A negative value means unlimited.
+#   Defaults to '10'.
+#
 class neutron::quota (
   $default_quota             = -1,
   $quota_network             = 50,
@@ -68,21 +100,35 @@ class neutron::quota (
   $quota_driver              = 'neutron.db.quota_db.DbQuotaDriver',
   $quota_firewall            = -1,
   $quota_firewall_policy     = -1,
-  $quota_firewall_rule       = -1
+  $quota_firewall_rule       = -1,
+  $quota_health_monitor      = -1,
+  $quota_items               = 'network,subnet,port',
+  $quota_member              = -1,
+  $quota_network_gateway     = -1,
+  $quota_packet_filter       = 100,
+  $quota_pool                = 10,
+  $quota_vip                 = -1
 ) {
 
   neutron_config {
-    'QUOTAS/default_quota':             value => $default_quota;
-    'QUOTAS/quota_network':             value => $quota_network;
-    'QUOTAS/quota_subnet':              value => $quota_subnet;
-    'QUOTAS/quota_port':                value => $quota_port;
-    'QUOTAS/quota_router':              value => $quota_router;
-    'QUOTAS/quota_floatingip':          value => $quota_floatingip;
-    'QUOTAS/quota_security_group':      value => $quota_security_group;
-    'QUOTAS/quota_security_group_rule': value => $quota_security_group_rule;
-    'QUOTAS/quota_driver':              value => $quota_driver;
-    'QUOTAS/quota_firewall':            value => $quota_firewall;
-    'QUOTAS/quota_firewall_policy':     value => $quota_firewall_policy;
-    'QUOTAS/quota_firewall_rule':       value => $quota_firewall_rule;
+    'quotas/default_quota':             value => $default_quota;
+    'quotas/quota_network':             value => $quota_network;
+    'quotas/quota_subnet':              value => $quota_subnet;
+    'quotas/quota_port':                value => $quota_port;
+    'quotas/quota_router':              value => $quota_router;
+    'quotas/quota_floatingip':          value => $quota_floatingip;
+    'quotas/quota_security_group':      value => $quota_security_group;
+    'quotas/quota_security_group_rule': value => $quota_security_group_rule;
+    'quotas/quota_driver':              value => $quota_driver;
+    'quotas/quota_firewall':            value => $quota_firewall;
+    'quotas/quota_firewall_policy':     value => $quota_firewall_policy;
+    'quotas/quota_firewall_rule':       value => $quota_firewall_rule;
+    'quotas/quota_health_monitor':      value => $quota_health_monitor;
+    'quotas/quota_items':               value => $quota_items;
+    'quotas/quota_member':              value => $quota_member;
+    'quotas/quota_network_gateway':     value => $quota_network_gateway;
+    'quotas/quota_packet_filter':       value => $quota_packet_filter;
+    'quotas/quota_pool':                value => $quota_pool;
+    'quotas/quota_vip':                 value => $quota_vip;
   }
 }
