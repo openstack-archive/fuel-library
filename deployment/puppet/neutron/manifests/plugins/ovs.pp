@@ -53,10 +53,18 @@ class neutron::plugins::ovs (
     ensure  => directory,
     mode    => '0755',
   } ->
+  file { '/etc/neutron/plugins/openvswitch/ovs_neutron_plugin.ini':
+    ensure  => present,
+    mode    => '0640',
+    owner   => 'root',
+    group   => 'neutron',
+  } ->
   file { '/etc/neutron/plugin.ini':
     ensure  => link,
     target  => '/etc/neutron/plugins/openvswitch/ovs_neutron_plugin.ini',
   }
+  Package['neutron-plugin-ovs'] -> File['/etc/neutron/plugins/openvswitch/ovs_neutron_plugin.ini']
+
   neutron_plugin_ovs {
     'DEFAULT/log_dir':             ensure => absent;
     'DEFAULT/log_file':            ensure => absent;
