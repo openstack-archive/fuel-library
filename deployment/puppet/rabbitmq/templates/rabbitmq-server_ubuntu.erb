@@ -161,7 +161,8 @@ start_rabbitmq () {
             fi
             MAX_START_ATTEMPTS=$((MAX_START_ATTEMPTS - 1))
         done
-        rabbitmqctl set_policy ha-all "." '{"ha-mode":"all", "ha-sync-mode":"automatic"}'
+####FIXME(aglarendil): remove the subshell call after 3.x rabbit migration is complete
+        (rabbitmqctl status | grep 'running_applications' | grep -q '3.2') && rabbitmqctl set_policy ha-all "." '{"ha-mode":"all", "ha-sync-mode":"automatic"}'
     else
         RETVAL=3
     fi
