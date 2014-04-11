@@ -22,7 +22,7 @@
 #                  environments.  For more info, see the puppetdb docs.)
 #   ['puppetdb_version']   - The version of the `puppetdb` package that should
 #                  be installed.  You may specify an explicit version
-#                  number, 'present', or 'latest'.  Defaults to
+#                  number, 'present', or 'installed'.  Defaults to
 #                  'present'.
 #
 # Actions:

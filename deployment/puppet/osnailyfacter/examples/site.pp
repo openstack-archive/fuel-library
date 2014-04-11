@@ -1,12 +1,12 @@
 $fuel_settings = parseyaml($astute_settings_yaml)
 
 $openstack_version = {
-  'keystone'   => 'latest',
-  'glance'     => 'latest',
-  'horizon'    => 'latest',
-  'nova'       => 'latest',
-  'novncproxy' => 'latest',
-  'cinder'     => 'latest',
+  'keystone'   => 'installed',
+  'glance'     => 'installed',
+  'horizon'    => 'installed',
+  'nova'       => 'installed',
+  'novncproxy' => 'installed',
+  'cinder'     => 'installed',
 }
 
 tag("${::fuel_settings['deployment_id']}::${::fuel_settings['environment']}")

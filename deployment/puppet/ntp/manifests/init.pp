@@ -58,7 +58,7 @@ class ntp($servers=undef,
   }
 
   if $autoupdate == true {
-    $package_ensure = latest
+    $package_ensure = installed
   } elsif $autoupdate == false {
     $package_ensure = present
   } else {

@@ -1,12 +1,14 @@
 require 'facter'
 
 # This file is created and managed by Astute
-astute_settings_path = '/etc/astute.yaml'
-
-# FIXME: this code do not work with Ruby 2.1
-#return unless File.exist?(astute_settings_path)
 
 Facter.add('astute_settings_yaml') do
-  setcode { File.read(astute_settings_path) }
+  setcode do
+    astute_settings_path = '/etc/astute.yaml'
+    if File.readable? astute_settings_path
+      File.read astute_settings_path
+    else
+      nil
+    end
+  end
 end
-

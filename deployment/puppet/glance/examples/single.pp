@@ -1,6 +1,6 @@
 
 # uses the keystone packages
-# to ensure that we use the latest precise packages
+# to ensure that we use the installed precise packages
 Exec { logoutput => 'on_failure' }
 
 node glance {
