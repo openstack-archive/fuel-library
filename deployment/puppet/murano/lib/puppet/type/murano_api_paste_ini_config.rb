@@ -3,7 +3,7 @@ Puppet::Type.newtype(:murano_api_paste_ini_config) do
   ensurable
 
   newparam(:name, :namevar => true) do
-    desc 'Section/setting name to manage from conductor.conf'
+    desc 'Section/setting name to manage from murano-api-paste.ini'
     newvalues(/\S+\/\S+/)
   end
 

@@ -12,7 +12,7 @@ class murano (
   $verbose                              = false,
   $syslog_log_facility                  = 'LOG_LOCAL0',
   $murano_log_dir                       = '/var/log/murano',
-  $murano_log_file                      = '/var/log/murano/conductor.log',
+  $murano_log_file                      = '/var/log/murano/murano.log',
   $murano_data_dir                      = '/var/cache/murano',
   $murano_max_environments              = '20',
   $murano_api_host                      = '127.0.0.1',
@@ -46,17 +46,12 @@ class murano (
   $murano_db_host                       = 'localhost',
   $murano_db_allowed_hosts              = ['localhost','%'],
 
-  $murano_metadata_bind_host            = '0.0.0.0',
-  $murano_metadata_bind_port            = '8084',
-  $murano_metadata_host                 = '127.0.0.1',
   $use_neutron                          = false,
 ) {
 
-  Class['mysql::server'] -> Class['murano::db::mysql'] -> Class['murano::rabbitmq'] -> Class['murano::keystone'] -> Class['murano::conductor'] -> Class['murano::api'] -> Class['murano::metadataclient'] -> Class['murano::repository'] -> Class['murano::python_muranoclient'] -> Class['murano::dashboard'] -> Class['murano::cirros']
+  Class['mysql::server'] -> Class['murano::db::mysql'] -> Class['murano::rabbitmq'] -> Class['murano::keystone'] -> Class['murano::api'] -> Class['murano::python_muranoclient'] -> Class['murano::dashboard'] -> Class['murano::cirros']
 
-  File[$murano_data_dir] -> Class['murano::conductor']
-  File[$murano_log_dir] -> Class['murano::conductor']
-  User['murano'] -> File[$murano_data_dir] -> Class['murano::conductor']
+  User['murano'] -> Class['murano::api']
 
   $murano_keystone_auth_url = "${murano_keystone_protocol}://${murano_keystone_host}:${murano_keystone_port}/v2.0"
 
@@ -102,46 +97,7 @@ class murano (
     allowed_hosts                        => $murano_db_allowed_hosts,
   }
 
-  class { 'murano::metadataclient':
-  }
-
-  class { 'murano::repository':
-    use_syslog                     => $use_syslog,
-    debug                          => $debug,
-    verbose                        => $verbose,
-    log_file                       => "${murano_log_dir}/murano-repository.log",
-    syslog_log_facility            => $syslog_log_facility,
-
-    repository_auth_host           => $murano_keystone_host,
-    repository_auth_port           => $murano_keystone_port,
-    repository_auth_protocol       => $murano_keystone_protocol,
-    repository_admin_user          => $murano_keystone_user,
-    repository_admin_password      => $murano_keystone_password,
-    repository_admin_tenant_name   => $murano_keystone_tenant,
-    repository_cache_dir           => $murano_data_dir,
-  }
-
   class { 'murano::python_muranoclient':
-  }
-
-  class { 'murano::conductor' :
-    use_syslog                           => $use_syslog,
-    debug                                => $debug,
-    verbose                              => $verbose,
-    log_file                             => "${murano_log_dir}/murano-conductor.log",
-    syslog_log_facility                  => $syslog_log_facility,
-
-    data_dir                             => $murano_data_dir,
-    max_environments                     => $murano_max_environments,
-    auth_url                             => $murano_keystone_auth_url,
-    rabbit_host                          => $murano_rabbit_host,
-    rabbit_port                          => $murano_rabbit_port,
-    rabbit_ssl                           => $murano_rabbit_ssl,
-    rabbit_ca_certs                      => $murano_rabbit_ca_certs,
-    rabbit_login                         => $murano_rabbit_login,
-    rabbit_password                      => $murano_rabbit_password,
-    rabbit_virtual_host                  => $murano_rabbit_virtual_host,
-    use_neutron                          => $use_neutron,
   }
 
   class { 'murano::api' :
@@ -188,7 +144,6 @@ class murano (
     settings_py                    => '/usr/share/openstack-dashboard/openstack_dashboard/settings.py',
     #collect_static_script         => '/usr/share/openstack-dashboard/manage.py',
     murano_url_string              => "MURANO_API_URL = 'http://${murano_api_host}:${murano_api_bind_port}'",
-    murano_metadata_url_string     => "MURANO_METADATA_URL = 'http://${murano_metadata_host}:${murano_metadata_bind_port}'",
   }
 
   class { 'murano::rabbitmq' :
