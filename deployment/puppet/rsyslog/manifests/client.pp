@@ -297,20 +297,6 @@ if $virtual { include rsyslog::checksum_udp514 }
         file_severity => "DEBUG",
         notify  => Class["rsyslog::service"],
     }
-    ::rsyslog::imfile { "53-murano-conductor_debug" :
-        file_name     => "/var/log/murano/murano-conductor.log",
-        file_tag      => "murano-conductor",
-        file_facility => $syslog_log_facility_murano_matched,
-        file_severity => "DEBUG",
-        notify  => Class["rsyslog::service"],
-    }
-    ::rsyslog::imfile { "53-murano-repository_debug" :
-        file_name     => "/var/log/murano/murano-repository.log",
-        file_tag      => "murano-repository",
-        file_facility => $syslog_log_facility_murano_matched,
-        file_severity => "DEBUG",
-        notify  => Class["rsyslog::service"],
-    }
     # heat
     ::rsyslog::imfile { "54-heat_engine_debug" :
         file_name     => "/var/log/heat/heat-engine.log",

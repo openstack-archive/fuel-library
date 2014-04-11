@@ -25,7 +25,10 @@ class murano::db::mysql(
     }
   }
   
-  $services = [ 'murano::conductor', 'murano::api' ]
+  $services = [ 'murano::api' ]
+  # TODO(dteselkin): Update the line above similar
+  # to the line below when murano::engine is added.
+  #$services = [ 'murano::conductor', 'murano::api' ]
   Database[$dbname] -> Class[$services]
   Database_user["${user}@${dbhost}"] -> Class[$services]
   Database_grant["${user}@${dbhost}/${dbname}"] -> Class[$services]

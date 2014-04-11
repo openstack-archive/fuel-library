@@ -4,7 +4,6 @@ class murano::dashboard (
   $collect_static_script          = '/usr/share/openstack-dashboard/manage.py',
   $murano_log_file                = '/var/log/murano/murano-dashboard.log',
   $murano_url_string              = $::murano::params::default_url_string,
-  $murano_metadata_url_string     = $::murano::params::default_metadata_url_string,
   $local_settings                 = $::murano::params::local_settings_path,
 ) {
 
