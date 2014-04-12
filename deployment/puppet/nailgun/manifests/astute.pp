@@ -1,4 +1,6 @@
 class nailgun::astute(
+  $production = 'prod',
+  $rabbitmq_host = 'localhost',
   $rabbitmq_astute_user = 'naily',
   $rabbitmq_astute_password = 'naily',
   $version,
