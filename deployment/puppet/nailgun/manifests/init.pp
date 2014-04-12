@@ -25,6 +25,12 @@ class nailgun(
   $cobbler_url = "http://localhost/cobbler_api",
   $cobbler_user = "cobbler",
   $cobbler_password = "cobbler",
+  $cobbler_host       = $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
+  $cobbler_url        = "http://${::fuel_settings['ADMIN_NETWORK']['ipaddress']}/cobbler_api",
+  $dhcp_start_address = $::fuel_settings['ADMIN_NETWORK']['dhcp_pool_start'],
+  $dhcp_end_address   = $::fuel_settings['ADMIN_NETWORK']['dhcp_pool_end'],
+  $dhcp_netmask       = $::fuel_settings['ADMIN_NETWORK']['netmask'],
+  $dhcp_interface     = $::fuel_settings['ADMIN_NETWORK']['interface'],
 
   $mco_pskey = "unset",
   $mco_vhost = "mcollective",
@@ -177,10 +183,21 @@ class nailgun(
   }
 
   class { "nailgun::cobbler":
-    cobbler_user => "cobbler",
-    cobbler_password => "cobbler",
-    centos_repos => $centos_repos,
-    gem_source => $gem_source,
+    production         => $production,
+    centos_repos       => $centos_repos,
+    gem_source         => $gem_source,
+
+    cobbler_user       => $cobbler_user,
+    cobbler_password   => $cobbler_password,
+    server             => $cobbler_host,
+    name_server        => $cobbler_host,
+    next_server        => $cobbler_host,
+    dhcp_start_address => $dhcp_start_address,
+    dhcp_end_address   => $dhcp_end_address,
+    dhcp_netmask       => $dhcp_netmask,
+    dhcp_gateway       => $cobbler_host,
+    dhcp_interface     => $dhcp_interface,
+    nailgun_api_url    => $nailgun_api_url,
   }
 
   class { "nailgun::mcollective":
@@ -237,12 +254,6 @@ class nailgun(
     groupname => "root",
     keytype => "rsa",
   } ->
-
-  exec { "cp /root/.ssh/id_rsa.pub /etc/cobbler/authorized_keys":
-    command => "cp /root/.ssh/id_rsa.pub /etc/cobbler/authorized_keys",
-    creates => "/etc/cobbler/authorized_keys",
-    require => Class["nailgun::cobbler"],
-  }
 
   file { "/etc/ssh/sshd_config":
     content => template("nailgun/sshd_config.erb"),

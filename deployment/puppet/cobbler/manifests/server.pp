@@ -15,9 +15,10 @@
 
 class cobbler::server (
   $domain_name = "local",
+  $production = 'prod',
 ) {
   include cobbler::packages
-  
+
   Exec {
     path => '/usr/bin:/bin:/usr/sbin:/sbin'
   }
@@ -56,21 +57,37 @@ class cobbler::server (
 
   Service[$cobbler_service] -> Exec["cobbler_sync"] -> Service[$dnsmasq_service]
 
-  service { $cobbler_service:
-    enable     => true,
-    ensure     => running,
-    hasrestart => true,
-    require    => Package[$cobbler::packages::cobbler_package],
-  }
+  if $production !~ /docker/ {
+    service { $cobbler_service:
+      enable     => true,
+      ensure     => running,
+      hasrestart => true,
+      require    => Package[$cobbler::packages::cobbler_package],
+    }
 
-  service { $dnsmasq_service:
-    enable     => true,
-    ensure     => running,
-    hasrestart => true,
-    require    => Package[$cobbler::packages::dnsmasq_package],
-    subscribe  => Exec["cobbler_sync"],
-  }
+    service { $dnsmasq_service:
+      enable     => true,
+      ensure     => running,
+      hasrestart => true,
+      require    => Package[$cobbler::packages::dnsmasq_package],
+      subscribe  => Exec["cobbler_sync"],
+    }
+  } else {
+    service { $cobbler_service:
+      enable     => true,
+      ensure     => running,
+      hasrestart => true,
+      require    => Package[$cobbler::packages::cobbler_package],
+    }
 
+    service { $dnsmasq_service:
+      enable     => false,
+      ensure     => false,
+      hasrestart => true,
+      require    => Package[$cobbler::packages::dnsmasq_package],
+      subscribe  => Exec["cobbler_sync"],
+    }
+  }
   if $apache_ssl_module {
     file { '/etc/apache2/mods-enabled/ssl.load':
       ensure => link,
@@ -163,18 +180,20 @@ class cobbler::server (
       Package[$cobbler::packages::cobbler_package],]
   }
 
-  file { "/etc/dhcp/dhcp-enter-hooks":
-    content => template("cobbler/dhcp-enter-hooks.erb"),
-    owner   => root,
-    group   => root,
-    mode    => 0755,
-  }
+  if $production !~ /docker/ {
+    file { "/etc/dhcp/dhcp-enter-hooks":
+      content => template("cobbler/dhcp-enter-hooks.erb"),
+      owner   => root,
+      group   => root,
+      mode    => 0755,
+    }
 
-  file { "/etc/resolv.conf":
-    content => template("cobbler/resolv.conf.erb"),
-    owner   => root,
-    group   => root,
-    mode    => 0644,
+    file { "/etc/resolv.conf":
+      content => template("cobbler/resolv.conf.erb"),
+      owner   => root,
+      group   => root,
+      mode    => 0644,
+    }
   }
 
 }
