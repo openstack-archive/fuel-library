@@ -34,6 +34,11 @@ Puppet::Type.newtype(:cobbler_profile) do
     newvalues(:true, :false)
   end
 
+  newparam(:server) do
+    desc "Override server address"
+    newvalues(/^\S+$/)
+  end
+
   newparam(:kickstart) do
     desc "Path to kickstart file"
     newvalues(/^(\/[^\/]+)*$/)
