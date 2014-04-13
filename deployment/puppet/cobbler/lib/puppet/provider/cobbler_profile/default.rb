@@ -33,6 +33,14 @@ Puppet::Type.type(:cobbler_profile).provide(:default) do
     end
   end
 
+  def server
+    if @resource[:server].size > 0
+      "--server=#{@resource[:server]}"
+    else
+      ""
+    end
+  end
+
   def kickstart
     if @resource[:kickstart].size > 0
       "--kickstart=#{@resource[:kickstart]}"
@@ -50,7 +58,7 @@ Puppet::Type.type(:cobbler_profile).provide(:default) do
   end
 
   def find_profile_full
-    profile, stderr = Open3.popen3("cobbler profile find --name=#{@resource[:name]} --distro=#{@resource[:distro]} --enable-menu=#{enable_menu} --kopts=\"#{@resource[:kopts]}\" #{kickstart} #{ksmeta}")[1,2]
+    profile, stderr = Open3.popen3("cobbler profile find --name=#{@resource[:name]} --distro=#{@resource[:distro]} --enable-menu=#{enable_menu} --kopts=\"#{@resource[:kopts]}\" #{server} #{kickstart} #{ksmeta}")[1,2]
     if err = stderr.gets
       raise Pupppet::Error, err
     else
@@ -69,7 +77,7 @@ Puppet::Type.type(:cobbler_profile).provide(:default) do
 
   def update_profile
     subcommand = find_profile_name ? 'edit' : 'add'
-    stderr = Open3.popen3("cobbler profile #{subcommand} --name=#{@resource[:name]} --distro=#{@resource[:distro]} --enable-menu=#{enable_menu} --kopts=\"#{@resource[:kopts]}\" #{kickstart} #{ksmeta}")[2]
+    stderr = Open3.popen3("cobbler profile #{subcommand} --name=#{@resource[:name]} --distro=#{@resource[:distro]} --enable-menu=#{enable_menu} --kopts=\"#{@resource[:kopts]}\" #{server} #{kickstart} #{ksmeta}")[2]
     if err = stderr.gets
       raise Pupppet::Error, err
     end
