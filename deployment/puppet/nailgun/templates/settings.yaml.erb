@@ -1,4 +1,4 @@
-LISTEN_ADDRESS: "127.0.0.1"
+LISTEN_ADDRESS: "0.0.0.0"
 LISTEN_PORT: "8001"
 DEVELOPMENT: false
 
@@ -37,7 +37,7 @@ VLANS_RANGE_END: "1000"
 
 RABBITMQ:
   fake: "0"
-  hostname: "127.0.0.1"
+  hostname: "<%= @rabbitmq_host %>"
   port: 5672
   userid: "<%= @rabbitmq_astute_user %>"
   password: "<%= @rabbitmq_astute_password %>"
