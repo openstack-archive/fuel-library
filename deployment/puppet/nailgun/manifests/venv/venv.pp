@@ -9,7 +9,7 @@ define nailgun::venv::venv(
 
 
   if $ensure == 'present' {
-    $root_parent = inline_template("<%= venv.match(%r!(.+)/.+!)[1] %>")
+    $root_parent = inline_template("<%= @venv.match(%r!(.+)/.+!)[1] %>")
 
     if !defined(File[$root_parent]) {
       file { $root_parent:
