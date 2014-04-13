@@ -19,6 +19,7 @@ class nailgun::venv(
   $staticdir,
   $templatedir,
 
+  $rabbitmq_host,
   $rabbitmq_astute_user,
   $rabbitmq_astute_password,
 
@@ -35,7 +36,7 @@ class nailgun::venv(
 
   ) {
 
-  if $production == 'prod' {
+  if $production != 'dev' {
     package{'nailgun':}
   } else {
     nailgun::venv::venv { $venv:
