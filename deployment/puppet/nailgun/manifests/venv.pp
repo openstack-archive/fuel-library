@@ -19,6 +19,7 @@ class nailgun::venv(
   $staticdir,
   $templatedir,
 
+  $rabbitmq_host,
   $rabbitmq_astute_user,
   $rabbitmq_astute_password,
 
@@ -30,12 +31,25 @@ class nailgun::venv(
   $admin_network_netmask,
   $admin_network_ip,
 
+  $cobbler_url,
+  $cobbler_user = "cobbler",
+  $cobbler_password = "cobbler",
+
+  $mco_pskey,
+  $mco_vhost,
+  $mco_host,
+  $mco_user,
+  $mco_password,
+  $mco_connector,
+
+  $puppet_master_hostname,
+
   $exclude_network = $admin_network,
   $exclude_cidr = $admin_network_cidr,
 
   ) {
 
-  if $production == 'prod' {
+  if $production != 'dev' {
     package{'nailgun':}
   } else {
     nailgun::venv::venv { $venv:
@@ -134,12 +148,13 @@ class nailgun::venv(
 
     }
   }
-
+  package {'cronie-anacron': }
   file {"/etc/cron.daily/capacity":
     content => template("nailgun/cron_daily_capacity.erb"),
     owner => 'root',
     group => 'root',
-    mode => 0644
+    mode  => '0644',
+    require => Package['cronie-anacron']
   }
 
 }
