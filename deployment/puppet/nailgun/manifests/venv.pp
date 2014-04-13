@@ -19,6 +19,7 @@ class nailgun::venv(
   $staticdir,
   $templatedir,
 
+  $rabbitmq_host,
   $rabbitmq_astute_user,
   $rabbitmq_astute_password,
 

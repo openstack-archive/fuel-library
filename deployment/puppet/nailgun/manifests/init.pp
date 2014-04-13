@@ -131,6 +131,7 @@ class nailgun(
 
     staticdir => $staticdir,
     templatedir => $templatedir,
+    rabbitmq_host => $rabbitmq_host,
     rabbitmq_astute_user => $rabbitmq_astute_user,
     rabbitmq_astute_password => $rabbitmq_astute_password,
 
