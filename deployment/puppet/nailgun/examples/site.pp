@@ -43,6 +43,7 @@ node default {
   $mco_password = "marionette"
   $mco_connector = "rabbitmq"
 
+  $rabbitmq_host = $::fuel_settings['ADMIN_NETWORK']['ipaddress']
   $rabbitmq_astute_user = "naily"
   $rabbitmq_astute_password = "naily"
 
