@@ -29,6 +29,7 @@ node default {
   $cobbler_url        = "http://${::fuel_settings['ADMIN_NETWORK']['ipaddress']}/cobbler_api"
   $cobbler_user       = "cobbler"
   $cobbler_password   = "cobbler"
+  $nailgun_api_url    = "http://${::fuel_settings['ADMIN_NETWORK']['ipaddress']}:8000/api"
   if $production == "docker-build" {
     $cobbler_host     = $::ipaddress
   } else {

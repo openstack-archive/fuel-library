@@ -220,7 +220,7 @@ gem install rethtool   --version 0.0.3  --source <%= @gem_source %> --no-ri --no
 mkdir -p /etc/nailgun-agent/
 cat > /etc/nailgun-agent/config.yaml << EOA
 ---
-url: '<%= scope.lookupvar('nailgun::nailgun_api_url') %>'
+url: '<%= scope.lookupvar('nailgun::cobbler::nailgun_api_url') %>'
 EOA
 
 # COBBLER EMBEDDED SNIPPET: 'kernel_lt_if_enabled'
