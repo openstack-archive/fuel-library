@@ -22,7 +22,6 @@ class nailgun(
   $templatedir,
   $logdumpdir = "/var/www/nailgun/dump",
 
-  $cobbler_url = "http://localhost/cobbler_api",
   $cobbler_user = "cobbler",
   $cobbler_password = "cobbler",
   $cobbler_host       = $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
@@ -131,6 +130,7 @@ class nailgun(
 
     staticdir => $staticdir,
     templatedir => $templatedir,
+    rabbitmq_host => $rabbitmq_host,
     rabbitmq_astute_user => $rabbitmq_astute_user,
     rabbitmq_astute_password => $rabbitmq_astute_password,
 
@@ -140,8 +140,20 @@ class nailgun(
     admin_network_first   => $::fuel_settings['ADMIN_NETWORK']['static_pool_start'],
     admin_network_last    => $::fuel_settings['ADMIN_NETWORK']['static_pool_end'],
     admin_network_netmask => $::fuel_settings['ADMIN_NETWORK']['netmask'],
-    admin_network_ip      => $::fuel_settings['ADMIN_NETWORK']['ipaddress']
+    admin_network_ip      => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
 
+    cobbler_url      => $cobbler_url,
+    cobbler_user     => $cobbler_user,
+    cobbler_password => $cobbler_password,
+
+    mco_pskey     => $mco_pskey,
+    mco_vhost     => $mco_vhost,
+    mco_host      => $mco_host,
+    mco_user      => $mco_user,
+    mco_password  => $mco_password,
+    mco_connector => $mco_connector,
+
+    puppet_master_hostname => $puppet_master_hostname,
   }
 
   class {"nailgun::astute":

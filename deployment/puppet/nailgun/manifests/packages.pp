@@ -10,6 +10,8 @@ class nailgun::packages(
 
   nailgun_safe_package { "supervisor": }
   nailgun_safe_package { "nginx": }
+  nailgun_safe_package { "crontabs": }
+  nailgun_safe_package { "cronie-anacron": }
 
   if ( $production == 'dev' ) {
     nailgun_safe_package { "python-virtualenv": }
