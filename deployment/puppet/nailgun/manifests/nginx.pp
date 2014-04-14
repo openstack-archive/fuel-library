@@ -1,4 +1,5 @@
 class nailgun::nginx(
+  $production = "production",
   $repo_root = "/var/www/nailgun",
   $staticdir = "/opt/nailgun/share/nailgun/static",
   $templatedir = "/opt/nailgun/share/nailgun/static",
@@ -6,7 +7,6 @@ class nailgun::nginx(
   $service_enabled = true,
   $ostf_host = '127.0.0.1',
   $nailgun_host = '127.0.0.1',
-  $production = "production",
   ) {
 
   Exec  {path => '/usr/bin:/bin:/usr/sbin:/sbin'}
