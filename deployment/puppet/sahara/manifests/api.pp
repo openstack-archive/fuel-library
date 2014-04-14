@@ -10,7 +10,7 @@ class sahara::api (
   $keystone_password           = 'sahara',
   $bind_port                   = '8386',
   $node_domain                 = 'novalocal',
-  $plugins                     = 'vanilla,hdp,idh',
+  $plugins                     = 'vanilla,hdp',
   $sql_connection              = 'mysql://sahara:sahara@localhost/sahara',
   $use_neutron                 = false,
   $use_floating_ips            = true,
