@@ -21,7 +21,7 @@
 #   ['puppet_conf']     - Puppet's config file; defaults to /etc/puppet/puppet.conf
 #   ['puppetdb_version']   - The version of the `puppetdb` package that should
 #                         be installed.  You may specify an explicit version
-#                         number, 'present', or 'latest'.  Defaults to
+#                         number, 'present', or 'installed'.  Defaults to
 #                         'present'.
 #   ['restart_puppet']  - If true, the module will restart the puppet master when
 #                         necessary.  The default is 'true'.  If set to 'false',
