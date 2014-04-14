@@ -19,7 +19,7 @@ class ceph::params {
       $dir_httpd_ssl              = '/etc/httpd/ssl/'
 
       package { ['ceph', 'redhat-lsb-core','ceph-deploy', 'pushy',]:
-        ensure => latest,
+        ensure => installed,
       }
 
       file {'/etc/sudoers.d/ceph':
@@ -44,7 +44,7 @@ class ceph::params {
       $dir_httpd_ssl              = '/etc/apache2/ssl/'
 
       package { ['ceph','ceph-deploy', 'python-pushy', ]:
-        ensure => latest,
+        ensure => installed,
       }
     }
 

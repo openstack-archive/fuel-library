@@ -43,7 +43,7 @@
 #                            (defaults to `puppetdb`; ignored for `embedded` db)
 #   ['puppetdb_version']   - The version of the `puppetdb` package that should
 #                            be installed.  You may specify an explicit version
-#                            number, 'present', or 'latest'.  Defaults to
+#                            number, 'present', or 'installed'.  Defaults to
 #                            'present'.
 #   ['manage_redhat_firewall'] - boolean indicating whether or not the module
 #                            should open a port in the firewall on redhat-based

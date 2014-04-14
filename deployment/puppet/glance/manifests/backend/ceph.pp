@@ -7,7 +7,7 @@ class glance::backend::ceph(
 ) inherits glance::api {
 
   package {'python-ceph':
-    ensure => latest,
+    ensure => installed,
   }
 
   glance_api_config {

@@ -3,7 +3,7 @@ class rsyslog::params {
     /(?i)(ubuntu|debian|redhat|centos)/: {
       $rsyslog_package_name   = 'rsyslog'
       $relp_package_name      = 'rsyslog-relp'
-      $package_status         = 'latest'
+      $package_status         = 'installed'
       $rsyslog_d              = '/etc/rsyslog.d/'
       $rsyslog_conf           = '/etc/rsyslog.conf'
       $rsyslog_queues_dir     = '/var/lib/rsyslog'
