@@ -1,0 +1,9 @@
+Gemfile.lock
+metadata.json
+*.idea
+*.swp
+*.tmp
+tmp/
+pkg/
+spec/fixtures/manifests
+.rspec_system/
