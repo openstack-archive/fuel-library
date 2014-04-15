@@ -26,6 +26,7 @@ class openstack::ha::haproxy (
   class { 'openstack::ha::horizon': use_ssl => $horizon_use_ssl }
   class { 'openstack::ha::keystone': }
   class { 'openstack::ha::nova': }
+  class { 'openstack::ha::heat': }
   class { 'openstack::ha::glance': }
   class { 'openstack::ha::cinder': }
 
