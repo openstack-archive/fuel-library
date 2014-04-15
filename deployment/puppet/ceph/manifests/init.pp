@@ -29,6 +29,7 @@ class ceph (
       # RadosGW settings
       $rgw_host                         = $::osfamily ? {'Debian'=> $::hostname, default => $::fqdn},
       $rgw_port                         = '6780',
+      $swift_endpoint_port              = '8080',
       $rgw_keyring_path                 = '/etc/ceph/keyring.radosgw.gateway',
       $rgw_socket_path                  = '/tmp/radosgw.sock',
       $rgw_log_file                     = '/var/log/ceph/radosgw.log',

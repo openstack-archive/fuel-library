@@ -150,6 +150,7 @@ class osnailyfacter::cluster_simple {
       cluster_node_address             => $controller_node_public,
       use_rgw                          => $storage_hash['objects_ceph'],
       glance_backend                   => $glance_backend,
+      swift_endpoint_port    => '6780'
     }
   }
 
