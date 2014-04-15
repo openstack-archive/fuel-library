@@ -9,14 +9,19 @@ class murano::dashboard (
 
   include murano::params
 
-  $dashboard_deps = $::murano::params::murano_dashboard_deps
-  $package_name   = $::murano::params::murano_dashboard_package_name
+  $package_name = $::murano::params::murano_dashboard_package_name
+
+  $apache_user = $::osfamily ? {
+    'RedHat' => 'apache',
+    'Debian' => 'horizon',
+    default  => 'www-data',
+  }
 
   File_line {
     ensure => 'present',
   }
 
-  file_line{ 'murano_url' :
+  file_line { 'murano_url' :
     path    => $local_settings,
     line    => $murano_url_string,
     require => File[$local_settings],
@@ -34,13 +39,15 @@ class murano::dashboard (
   }
 
   exec { 'fix_horizon_config':
-    command => "${modify_config} install",
-  }
-
-  $apache_user = $::osfamily ? {
-    'RedHat'   => 'apache',
-    'Debian'  => 'horizon',
-    default => 'www-data',
+    command     => "${modify_config} install",
+    environment => [
+      "HORIZON_CONFIG=${settings_py}",
+      "MURANO_SSL_ENABLED=False",
+      "USE_KEYSTONE_ENDPOINT=True",
+      "USE_SQLITE_BACKEND=False",
+      "APACHE_USER=${apache_user}",
+      "APACHE_GROUP=${apache_user}",
+    ],
   }
 
   file { $murano_log_file :
@@ -50,22 +57,12 @@ class murano::dashboard (
     group  => 'root',
   }
 
-  exec { 'collect_static':
-    command => "${collect_static_script} collectstatic --noinput",
-    user    => $apache_user,
-    group   => $apache_user,
-  }
-
   package { 'murano_dashboard':
     ensure => present,
     name   => $package_name,
   }
 
-  package { $dashboard_deps :
-    ensure => installed,
-  }
-
-  Package[$dashboard_deps] -> Package['murano_dashboard'] -> File[$modify_config] -> Exec['clean_horizon_config'] -> Exec['fix_horizon_config'] -> File[$murano_log_file] -> File <| title == "${::horizon::params::logdir}/horizon.log" |> -> Exec['collect_static'] -> Service <| title == 'httpd' |>
+  Package['murano_dashboard'] -> File[$modify_config] -> Exec['clean_horizon_config'] -> Exec['fix_horizon_config'] -> File[$murano_log_file] -> File <| title == "${::horizon::params::logdir}/horizon.log" |> -> Service <| title == 'httpd' |>
   Package['murano_dashboard'] ~> Service <| title == 'httpd' |>
   Exec['fix_horizon_config'] ~> Service <| title == 'httpd' |>
 
