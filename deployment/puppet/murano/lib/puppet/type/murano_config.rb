@@ -1,9 +1,9 @@
-Puppet::Type.newtype(:murano_api_config) do
+Puppet::Type.newtype(:murano_config) do
 
   ensurable
 
   newparam(:name, :namevar => true) do
-    desc 'Section/setting name to manage from murano-api.conf'
+    desc 'Section/setting name to manage from murano.conf'
     newvalues(/\S+\/\S+/)
   end
 
