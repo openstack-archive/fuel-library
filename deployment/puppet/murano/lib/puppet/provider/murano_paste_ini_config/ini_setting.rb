@@ -1,4 +1,4 @@
-Puppet::Type.type(:murano_api_config).provide(
+Puppet::Type.type(:murano_paste_ini_config).provide(
   :ini_setting,
   :parent => Puppet::Type.type(:ini_setting).provider(:ruby)
 ) do
@@ -16,7 +16,7 @@ Puppet::Type.type(:murano_api_config).provide(
   end
 
   def file_path
-    '/etc/murano/murano-api.conf'
+    '/etc/murano/murano-paste.ini'
   end
 
 end

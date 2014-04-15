@@ -1,52 +1,54 @@
 class murano (
   # keystone
-  $murano_keystone_host                 = '127.0.0.1',
-  $murano_keystone_port                 = '5000',
-  $murano_keystone_protocol             = 'http',
-  $murano_keystone_tenant               = 'services',
-  $murano_keystone_user                 = 'murano',
-  $murano_keystone_password             = 'swordfish',
+  $murano_keystone_host                  = '127.0.0.1',
+  $murano_keystone_port                  = '5000',
+  $murano_keystone_protocol              = 'http',
+  $murano_keystone_tenant                = 'services',
+  $murano_keystone_user                  = 'murano',
+  $murano_keystone_password              = 'swordfish',
   # murano
-  $use_syslog                           = false,
-  $debug                                = false,
-  $verbose                              = false,
-  $syslog_log_facility                  = 'LOG_LOCAL0',
-  $murano_log_dir                       = '/var/log/murano',
-  $murano_log_file                      = '/var/log/murano/murano.log',
-  $murano_data_dir                      = '/var/cache/murano',
-  $murano_max_environments              = '20',
-  $murano_api_host                      = '127.0.0.1',
-  # rabbit
-  $murano_rabbit_host                   = '127.0.0.1',
-  $murano_rabbit_port                   = '55572',
-  $murano_rabbit_ssl                    = false,
-  $murano_rabbit_ca_certs               = '',
-  $murano_rabbit_login                  = 'murano',
-  $murano_rabbit_password               = 'murano',
-  $murano_rabbit_virtual_host           = '/',
+  $use_syslog                            = false,
+  $debug                                 = false,
+  $verbose                               = false,
+  $syslog_log_facility                   = 'LOG_LOCAL0',
+  $murano_log_dir                        = '/var/log/murano',
+  $murano_log_file                       = '/var/log/murano/murano.log',
+  $murano_data_dir                       = '/var/cache/murano',
+  $murano_api_host                       = '127.0.0.1',
+  # rabbit configuration
+  # NOTE:
+  #  Murano uses separate rabbitmq server for communication. This
+  #   server is launched on the same server where 'system' rabbitmq runs.
+  #  Due to this reason, non-standard port is used in 'murano_rabbit_port'.
+  #  Separate rabbitmq is used to address security concern that instances
+  #   managed by Murano have access to the 'system' RabbitMQ and thus could
+  #   have access to OpenStack internal data.
+  $murano_rabbit_host                    = '127.0.0.1',
+  $murano_rabbit_port                    = '55572',
+  $murano_rabbit_ssl                     = false,
+  $murano_rabbit_ca_certs                = '',
+  $murano_rabbit_login                   = 'murano',
+  $murano_rabbit_password                = 'murano',
+  $murano_rabbit_virtual_host            = '/',
   # murano-api-paste.ini
-  $murano_api_paste_inipipeline          = 'authtoken context apiv1app',
-  $murano_api_paste_app_factory          = 'muranoapi.api.v1.router:API.factory',
-  $murano_api_paste_filter_factory       = 'muranoapi.api.middleware.context:ContextMiddleware.factory',
-  $murano_api_paste_paste_filter_factory = 'keystoneclient.middleware.auth_token:filter_factory',
-  $murano_api_paste_signing_dir          = '/tmp/keystone-signing-muranoapi',
+  $murano_paste_inipipeline              = 'authtoken context apiv1app',
+  $murano_paste_app_factory              = 'muranoapi.api.v1.router:API.factory',
+  $murano_paste_filter_factory           = 'muranoapi.api.middleware.context:ContextMiddleware.factory',
+  $murano_paste_paste_filter_factory     = 'keystoneclient.middleware.auth_token:filter_factory',
+  $murano_paste_signing_dir              = '/tmp/keystone-signing-muranoapi',
   # murano-api.conf
-  $murano_api_bind_host                 = '0.0.0.0',
-  $murano_api_bind_port                 = '8082',
-  $murano_api_log_file                  = '/var/log/murano/murano-api.log',
-  $murano_api_database_auto_create      = true,
-  $murano_api_reports_results_exchange  = 'task-results',
-  $murano_api_reports_results_queue     = 'task-results',
-  $murano_api_reports_reports_exchange  = 'task-reports',
-  $murano_api_reports_reports_queue     = 'task-reports',
+  $murano_bind_host                      = '0.0.0.0',
+  $murano_bind_port                      = '8082',
+  $murano_log_file                       = '/var/log/murano/murano-api.log',
+  #$murano_database_auto_create           = true,
   # mysql
-  $murano_db_password                   = 'murano',
-  $murano_db_name                       = 'murano',
-  $murano_db_user                       = 'murano',
-  $murano_db_host                       = 'localhost',
-  $murano_db_allowed_hosts              = ['localhost','%'],
-
-  $use_neutron                          = false,
+  $murano_db_password                    = 'murano',
+  $murano_db_name                        = 'murano',
+  $murano_db_user                        = 'murano',
+  $murano_db_host                        = 'localhost',
+  $murano_db_allowed_hosts               = ['localhost','%'],
+  # neutron
+  $use_neutron                           = false,
 ) {
 
   Class['mysql::server'] -> Class['murano::db::mysql'] -> Class['murano::rabbitmq'] -> Class['murano::keystone'] -> Class['murano::api'] -> Class['murano::python_muranoclient'] -> Class['murano::dashboard'] -> Class['murano::cirros']
@@ -104,35 +106,32 @@ class murano (
     use_syslog                           => $use_syslog,
     debug                                => $debug,
     verbose                              => $verbose,
-    api_log_file                         => "${murano_log_dir}/murano-api.log",
+    log_file                             => "${murano_log_dir}/murano.log",
     syslog_log_facility                  => $syslog_log_facility,
 
-    api_paste_inipipeline                => $murano_api_paste_inipipeline,
-    api_paste_app_factory                => $murano_api_paste_app_factory,
-    api_paste_filter_factory             => $murano_api_paste_filter_factory,
-    api_paste_paste_filter_factory       => $murano_api_paste_paste_filter_factory,
-    api_paste_auth_host                  => $murano_keystone_host,
-    api_paste_auth_port                  => $murano_keystone_port,
-    api_paste_auth_protocol              => $murano_keystone_protocol,
-    api_paste_admin_tenant_name          => $murano_keystone_tenant,
-    api_paste_admin_user                 => $murano_keystone_user,
-    api_paste_admin_password             => $murano_keystone_password,
-    api_paste_signing_dir                => $murano_api_paste_signing_dir,
-    api_bind_host                        => $murano_api_bind_host,
-    api_bind_port                        => $murano_api_bind_port,
-    api_database_auto_create             => $murano_api_database_auto_create,
-    api_reports_results_exchange         => $murano_api_reports_results_exchange,
-    api_reports_results_queue            => $murano_api_reports_results_queue,
-    api_reports_reports_exchange         => $murano_api_reports_reports_exchange,
-    api_reports_reports_queue            => $murano_api_reports_reports_queue,
+    paste_inipipeline                    => $murano_paste_inipipeline,
+    paste_app_factory                    => $murano_paste_app_factory,
+    paste_filter_factory                 => $murano_paste_filter_factory,
+    paste_paste_filter_factory           => $murano_paste_paste_filter_factory,
 
-    api_rabbit_host                      => $murano_rabbit_host,
-    api_rabbit_port                      => $murano_rabbit_port,
-    api_rabbit_ssl                       => $murano_rabbit_ssl,
-    api_rabbit_ca_certs                  => $murano_rabbit_ca_certs,
-    api_rabbit_login                     => $murano_rabbit_login,
-    api_rabbit_password                  => $murano_rabbit_password,
-    api_rabbit_virtual_host              => $murano_rabbit_virtual_host,
+    auth_host                            => $murano_keystone_host,
+    auth_port                            => $murano_keystone_port,
+    auth_protocol                        => $murano_keystone_protocol,
+    admin_tenant_name                    => $murano_keystone_tenant,
+    admin_user                           => $murano_keystone_user,
+    admin_password                       => $murano_keystone_password,
+    signing_dir                          => $murano_paste_signing_dir,
+
+    bind_host                            => $murano_bind_host,
+    bind_port                            => $murano_bind_port,
+
+    rabbit_host                          => $murano_rabbit_host,
+    rabbit_port                          => $murano_rabbit_port,
+    rabbit_use_ssl                       => $murano_rabbit_ssl,
+    rabbit_ca_certs                      => $murano_rabbit_ca_certs,
+    rabbit_login                         => $murano_rabbit_login,
+    rabbit_password                      => $murano_rabbit_password,
+    rabbit_virtual_host                  => $murano_rabbit_virtual_host,
 
     murano_db_password                   => $murano_db_password,
     murano_db_name                       => $murano_db_name,
@@ -141,7 +140,7 @@ class murano (
   }
 
   class { 'murano::dashboard' :
-    settings_py                    => '/usr/share/openstack-dashboard/openstack_dashboard/settings.py',
+    settings_py       => '/usr/share/openstack-dashboard/openstack_dashboard/settings.py',
   }
 
   class { 'murano::rabbitmq' :
@@ -161,4 +160,3 @@ class murano (
   }
 
 }
-
