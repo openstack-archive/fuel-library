@@ -171,6 +171,7 @@ class osnailyfacter::cluster_simple {
       rgw_pub_ip           => $controller_node_public,
       rgw_adm_ip           => $controller_node_address,
       rgw_int_ip           => $controller_node_address,
+      swift_endpoint_port    => '6780'
     }
   }
 
