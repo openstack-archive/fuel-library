@@ -127,7 +127,7 @@ sed -i -e "/^\s*GSSAPICleanupCredentials yes/d" -e "/^\s*GSSAPIAuthentication ye
 echo "UseDNS no" >> /target/etc/ssh/sshd_config && \
 in-target wget -O /etc/rsyslog.d/20-puppet_stdout.conf "http://$server/cobbler/aux/20-puppet_stdout_syslog.conf" && \
 in-target wget -O /etc/rsyslog.d/20-puppet_error.conf "http://$server/cobbler/aux/20-puppet_error_syslog.conf" && \
-in-target apt-get -y install linux-image-3.8 linux-headers-3.8 && \
+in-target apt-get -y install linux-image-3.11 linux-headers-3.11 && \
 $SNIPPET('ubuntu_blacklist_i2c_piix4')
 $SNIPPET('ubuntu_static_net')
 # Rsyslogd should send all messages to master node
