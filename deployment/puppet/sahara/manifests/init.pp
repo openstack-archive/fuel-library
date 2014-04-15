@@ -12,7 +12,7 @@ class sahara (
   $sahara_keystone_password            = 'sahara',
 
   $sahara_node_domain                  = 'novalocal',
-  $sahara_plugins                      = 'vanilla,hdp,idh',
+  $sahara_plugins                      = 'vanilla,hdp',
 
   $sahara_db_password                  = 'sahara',
   $sahara_db_name                      = 'sahara',
