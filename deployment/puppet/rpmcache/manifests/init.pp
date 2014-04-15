@@ -22,10 +22,10 @@ $sat_base_channels, $sat_openstack_channel, $numtries = 10)  {
 
 
   package { "yum-utils":
-    ensure => "latest"
+    ensure => "installed"
   } ->
   package { "subscription-manager":
-    ensure => "latest"
+    ensure => "installed"
   } ->
 
   file { '/etc/pki/product':

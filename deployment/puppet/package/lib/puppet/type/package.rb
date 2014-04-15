@@ -4,6 +4,7 @@
 # systems.
 
 require 'puppet/parameter/package_options'
+require 'yaml'
 
 module Puppet
   newtype(:package) do
@@ -115,6 +116,61 @@ module Puppet
       end
 
       defaultto :installed
+
+      munge do |value|
+        #puts "VALUE #{value} CLASS #{value.class}"
+        value = value.to_sym if %w(present installed latest absent purged held).include? value
+
+        if value.is_a? FalseClass
+          :absent
+        elsif value.is_a? TrueClass
+          :installed
+        elsif value == :installed
+          :present
+        else
+          value
+        end
+      end
+
+      # lookup package version in versions file
+      # returns nil if version is not found
+      # @return <String,NilClass>
+      def lookup_version
+        package_name = @resource.name.to_s
+
+        versions_file = case  @resource.provider.class.name
+          when :apt then '/etc/puppet/manifests/ubuntu-versions.yaml'
+          when :yum then '/etc/puppet/manifests/centos-versions.yaml'
+          else return
+        end
+
+        return unless File.readable? versions_file
+        versions = YAML.load_file versions_file
+        return unless versions.is_a? Hash
+        versions.dup.each do |k, v|
+          next if k.is_a? String
+          versions.delete k
+          versions.store k.to_s, v
+        end
+        return unless versions.key? package_name
+        version = versions[package_name].to_s
+        Puppet.debug "Got version '#{version}' for package '#{package_name}' from the versions file"
+        version
+      end
+
+      # modify @should Array if we want to lookup package version
+      # returns @should element without Array
+      # @return <String,Symbol>
+      def should
+        value = super
+        return value unless [:installed,:present].include? @should.first
+        version = lookup_version
+        if version
+          @should[0] = version
+          return version
+        end
+        value
+      end
 
       # Override the parent method, because we've got all kinds of
       # funky definitions of 'in sync'.
