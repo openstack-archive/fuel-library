@@ -334,7 +334,7 @@ class osnailyfacter::cluster_simple {
       if $murano_hash['enabled'] {
 
         class { 'murano' :
-          murano_api_host          => $controller_node_address,
+          murano_host              => $controller_node_address,
 
           murano_rabbit_host       => $controller_node_public,
           murano_rabbit_login      => 'murano',
