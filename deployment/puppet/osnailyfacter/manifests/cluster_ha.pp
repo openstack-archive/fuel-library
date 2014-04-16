@@ -173,6 +173,7 @@ class osnailyfacter::cluster_ha {
   if $::fuel_settings['ceilometer'] {
     $mongo_node = filter_nodes($nodes_hash,'role','mongo')
     $mongo_primary_node = filter_nodes($nodes_hash,'role','primary-mongo')
+    $mongo_secondary_hosts = values(nodes_to_hash($mongo_node,'name','internal_address'))
 
     if is_hash($mongo_node[0]) {
       $mongo_node_address = $mongo_node[0]['internal_address']
@@ -648,8 +649,10 @@ class osnailyfacter::cluster_ha {
         ceilometer_database         => "ceilometer",
         ceilometer_metering_secret  => $::osnailyfacter::cluster_ha::ceilometer_hash[metering_secret],
         ceilometer_db_password      => $::osnailyfacter::cluster_ha::ceilometer_hash[db_password],
-        ceilometer_replset_members  => [ $mongo_node[0]['internal_address'], $mongo_node[1]['internal_address'] ],
+#        ceilometer_replset_members  => [ $mongo_node[0]['internal_address'], $mongo_node[1]['internal_address'] ],
+        ceilometer_replset_members  => $mongo_secondary_hosts,
       }
+
     } # MONGO PRIMARYENDS
 
 
