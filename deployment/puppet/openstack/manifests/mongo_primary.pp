@@ -11,6 +11,7 @@ class openstack::mongo_primary (
   $mongodb_port                 = 27017,
 ) {
 
+  $replset_setup = size($ceilometer_replset_members) > 0
   notify {"MongoDB params: $mongodb_bind_address": } ->
 
   class {'::mongodb::client':
@@ -26,7 +27,7 @@ class openstack::mongo_primary (
   } ->
 
   class {'::mongodb::replset':
-    replset_setup   => true,
+    replset_setup   => $replset_setup,
     replset_members => $ceilometer_replset_members,
   } ->
 
