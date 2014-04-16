@@ -20,16 +20,20 @@ class cobbler::packages {
       $cobbler_package = "cobbler"
       $cobbler_web_package = "cobbler-web"
       $dnsmasq_package = "dnsmasq"
-      $cobbler_additional_packages = ["xinetd", "tftp-server", "syslinux", "wget", "python-ipaddr"]
+      $cobbler_additional_packages = ["xinetd", "tftp-server", "syslinux", "wget", "python-ipaddr","fence-agents", "bind-utils"]
       $django_package = "python-django"
+      $openssh_package = "openssh-clients"
+      $pexpect_package = "pexpect"
     }
     /(?i)(debian|ubuntu)/:  {
       $cobbler_package = "cobbler"
       $cobbler_web_package = "cobbler-web"
       $dnsmasq_package = "dnsmasq"
-      $cobbler_additional_packages = ["tftpd-hpa", "syslinux", "wget", "python-ipaddr"]
+      $cobbler_additional_packages = ["tftpd-hpa", "syslinux", "wget","python-ipaddr", "fence-agents",  "dnsutils", "bind9-host"]
       $django_package = "python-django"
       $django_version = "1.3.1-4ubuntu1"
+      $openssh_package = "openssh-client"
+      $pexpect_package = "python-pexpect"
     }
   }
 
@@ -58,6 +62,14 @@ class cobbler::packages {
   }
 
   package { $dnsmasq_package:
+    ensure => installed
+  }
+
+  package { $openssh_package:
+    ensure => installed
+  }
+
+  package { $pexpect_package:
     ensure => installed
   }
 
