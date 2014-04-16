@@ -32,6 +32,7 @@ psycopg2==2.5.1
 pyOpenSSL==0.13
 pycrypto==2.6.1
 pyparsing==1.5.7
+python-ceilometerclient==1.0.5
 python-cinderclient==1.0.6
 python-heatclient==0.2.6
 python-keystoneclient==0.4.1
