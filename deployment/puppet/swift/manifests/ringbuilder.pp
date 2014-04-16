@@ -48,12 +48,10 @@ class swift::ringbuilder(
 
   Swift::Ringbuilder::Create<||> -> Ring_devices<||>
 
-  Ring_devices<||> -> Ring_object_device <| |> -> Anchor['rebalance_begin']
+  Ring_devices<||> -> Anchor['rebalance_begin']
 
-  Ring_devices<||> -> Ring_account_device <| |> -> Anchor['rebalance_begin']
+  Ring_devices<||> -> Anchor['rebalance_begin']
 
-  Ring_devices<||> -> Ring_container_device <| |> -> Anchor['rebalance_begin']
-
-
+  Ring_devices<||> -> Anchor['rebalance_begin']
 
 }
