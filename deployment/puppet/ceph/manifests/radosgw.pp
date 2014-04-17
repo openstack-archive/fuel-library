@@ -15,6 +15,7 @@ class ceph::radosgw (
   # RadosGW settings
   $rgw_host                         = $::ceph::rgw_host,
   $rgw_port                         = $::ceph::rgw_port,
+  $swift_endpoint_port              = $::ceph::swift_endpoint_port,
   $rgw_keyring_path                 = $::ceph::rgw_keyring_path,
   $rgw_socket_path                  = $::ceph::rgw_socket_path,
   $rgw_log_file                     = $::ceph::rgw_log_file,
@@ -80,7 +81,7 @@ class ceph::radosgw (
 
   firewall {'012 RadosGW allow':
     chain   => 'INPUT',
-    dport   => $rgw_port,
+    dport   => [ $rgw_port, $swift_endpoint_port ],
     proto   => 'tcp',
     action  => accept,
   }
