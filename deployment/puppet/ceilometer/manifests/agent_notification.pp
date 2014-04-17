@@ -37,7 +37,9 @@ class ceilometer::agent_notification (
   }
 
   include nova::notify::ceilometer
-  include glance::notify::ceilometer
+  if !defined(Glance_api_config['notification_driver']) {
+    include glance::notify::ceilometer
+  }
   include cinder::notify::ceilometer
   include heat::notify::ceilometer
 
