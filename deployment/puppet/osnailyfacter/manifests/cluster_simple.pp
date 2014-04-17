@@ -142,12 +142,13 @@ class osnailyfacter::cluster_simple {
   $debug = $::debug
 
   # Determine who should get the volume service
-  if ($::fuel_settings['role'] == 'cinder' or
-      $storage_hash['volumes_lvm']
-  ) {
-    $manage_volumes = 'iscsi'
-  } elsif ($storage_hash['volumes_ceph']) {
-    $manage_volumes = 'ceph'
+  if ($::fuel_settings['role'] == 'cinder') {
+    if ($storage_hash['volumes_lvm']) {
+      $manage_volumes = 'iscsi'
+    }   
+    elsif ($storage_hash['volumes_ceph']) {
+      $manage_volumes = 'ceph'
+    }   
   } else {
     $manage_volumes = false
   }
