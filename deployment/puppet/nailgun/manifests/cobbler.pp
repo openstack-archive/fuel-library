@@ -69,7 +69,7 @@ class nailgun::cobbler(
   }
 
   file { "/var/www/cobbler/aux/send2syslog.py":
-    ensure => '/bin/send2syslog.py',
+    ensure => '/usr/bin/send2syslog.py',
     require => [
                Class["::cobbler::server"],
                Package['send2syslog'],
