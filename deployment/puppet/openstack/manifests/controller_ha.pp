@@ -33,6 +33,7 @@ class openstack::controller_ha (
    $ceilometer_db_type         = 'mongodb',
    $ceilometer_db_host         = '127.0.0.1',
    $sahara                  = false,
+   $murano                  = false,
    $rabbit_node_ip_address  = $internal_address,
    $horizon_use_ssl         = false,
    $quantum_network_node    = false,
@@ -63,6 +64,7 @@ class openstack::controller_ha (
       rgw_servers              => $rgw_servers,
       ceilometer               => $ceilometer,
       sahara                   => $sahara,
+      murano                   => $murano,
       is_primary_controller    => $is_primary_controller,
     }
 
