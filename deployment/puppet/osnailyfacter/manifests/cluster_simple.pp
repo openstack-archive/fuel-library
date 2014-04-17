@@ -78,6 +78,7 @@ class osnailyfacter::cluster_simple {
 
   $controller_node_address = $controller[0]['internal_address']
   $controller_node_public = $controller[0]['public_address']
+  $roles = node_roles($nodes_hash, $::fuel_settings['uid'])
 
 
   # AMQP client configuration
@@ -89,23 +90,6 @@ class osnailyfacter::cluster_simple {
   $rabbitmq_bind_ip_address = 'UNSET'                 # bind RabbitMQ to 0.0.0.0
   $rabbitmq_bind_port = $amqp_port
   $rabbitmq_cluster_nodes = [$controller[0]['name']]  # has to be hostnames
-
-
-  if ($::fuel_settings['cinder']) {
-    if (member($cinder_nodes_array,'all')) {
-      $is_cinder_node = true
-    } elsif (member($cinder_nodes_array,$::hostname)) {
-      $is_cinder_node = true
-    } elsif (member($cinder_nodes_array,$internal_address)) {
-      $is_cinder_node = true
-    } elsif ($node[0]['role'] =~ /controller/ ) {
-      $is_cinder_node = member($cinder_nodes_array,'controller')
-    } else {
-      $is_cinder_node = member($cinder_nodes_array,$node[0]['role'])
-    }
-  } else {
-    $is_cinder_node = false
-  }
 
 
   $cinder_iscsi_bind_addr = $::storage_address
@@ -124,9 +108,7 @@ class osnailyfacter::cluster_simple {
   $debug = $::debug
 
   # Determine who should get the volume service
-  if ($::fuel_settings['role'] == 'cinder' or
-      $storage_hash['volumes_lvm']
-  ) {
+  if (member($roles, 'cinder') and $storage_hash['volumes_lvm']) {
     $manage_volumes = 'iscsi'
   } elsif ($storage_hash['volumes_ceph']) {
     $manage_volumes = 'ceph'
@@ -425,7 +407,6 @@ class osnailyfacter::cluster_simple {
       package { 'python-amqp':
         ensure => present
       }
-      $roles = node_roles($nodes_hash, $::fuel_settings['uid'])
       if member($roles, 'controller') or member($roles, 'primary-controller') {
         $bind_host = '0.0.0.0'
       } else {
