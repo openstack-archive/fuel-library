@@ -14,7 +14,7 @@ class nailgun::cobbler(
   $dhcp_netmask,
   $dhcp_gateway = $ipaddress,
   $dhcp_interface,
-  $nailgun_api_url = $::ipaddress,
+  $nailgun_api_url = "http://${::ipaddress}:8000/api",
   # default password is 'r00tme'
   $ks_encrypted_root_password = "\$6\$tCD3X7ji\$1urw6qEMDkVxOkD33b4TpQAjRiCeDZx0jmgMhDYhfB9KuGfqO9OcMaKyUxnGGWslEDQ4HxTw7vcAMP85NxQe61",
 
@@ -26,6 +26,9 @@ class nailgun::cobbler(
   Anchor<| title == "nailgun-cobbler-begin" |> ->
   Class["::cobbler"] ->
   Anchor<| title == "nailgun-cobbler-end" |>
+
+  #Set real_server so Cobbler identifies its own IP correctly in Docker
+  $real_server = $next_server
 
   class { "::cobbler":
     server              => $server,
@@ -139,6 +142,7 @@ class nailgun::cobbler(
     distro => "centos-x86_64",
     ksmeta => "",
     menu => true,
+    server => $real_server,
     require => Cobbler_distro["centos-x86_64"],
   }
 
@@ -148,6 +152,7 @@ class nailgun::cobbler(
     distro => "ubuntu_1204_x86_64",
     ksmeta => "",
     menu => true,
+    server => $real_server,
     require => Cobbler_distro["ubuntu_1204_x86_64"],
   }
 
@@ -168,6 +173,7 @@ class nailgun::cobbler(
     kickstart => "",
     kopts => "biosdevname=0 url=http://${::fuel_settings['ADMIN_NETWORK']['ipaddress']}:8000/api",
     ksmeta => "",
+    server => $real_server,
     require => Cobbler_distro["bootstrap"],
   }
 
