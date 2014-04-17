@@ -130,6 +130,7 @@ get_ns() {
 
   ocf_run ip netns add $OCF_RESKEY_ns
   rc=$?
+  ocf_run $RUN_IN_NS ip link set up dev lo
 
   return $rc
 }
