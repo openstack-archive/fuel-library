@@ -211,12 +211,8 @@ $SNIPPET('centos_authorized_keys')
 $SNIPPET('nailgun_repo')
 
 rpm -e --nodeps ruby
-yum install --exclude=ruby-2.1.1* -y ruby ruby-devel rubygems
+yum install --exclude=ruby-2.1.1* -y ruby
 
-gem install httpclient --version 2.2.5  --source <%= @gem_source %> --no-ri --no-rdoc
-gem install json       --version 1.6.1  --source <%= @gem_source %> --no-ri --no-rdoc
-gem install ohai       --version 6.14.0 --source <%= @gem_source %> --no-ri --no-rdoc
-gem install rethtool   --version 0.0.3  --source <%= @gem_source %> --no-ri --no-rdoc
 mkdir -p /etc/nailgun-agent/
 cat > /etc/nailgun-agent/config.yaml << EOA
 ---
