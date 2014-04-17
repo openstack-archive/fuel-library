@@ -39,30 +39,45 @@
 # }
 
 class openstack::glance (
-  $db_host,
-  $glance_user_password,
-  $glance_db_password,
-  $bind_host                   = '127.0.0.1',
-  $keystone_host               = '127.0.0.1',
-  $registry_host               = '127.0.0.1',
-  $auth_uri                    = "http://127.0.0.1:5000/",
-  $db_type                     = 'mysql',
-  $glance_db_user              = 'glance',
-  $glance_db_dbname            = 'glance',
-  $glance_backend              = 'file',
-  $verbose                     = false,
-  $debug                       = false,
-  $enabled                     = true,
-  $use_syslog                  = false,
+  $db_host                      = 'localhost',
+  $glance_user_password         = false,
+  $glance_db_password           = false,
+  $bind_host                    = '127.0.0.1',
+  $keystone_host                = '127.0.0.1',
+  $registry_host                = '127.0.0.1',
+  $auth_uri                     = "http://127.0.0.1:5000/",
+  $db_type                      = 'mysql',
+  $glance_db_user               = 'glance',
+  $glance_db_dbname             = 'glance',
+  $glance_backend               = 'file',
+  $verbose                      = false,
+  $debug                        = false,
+  $enabled                      = true,
+  $use_syslog                   = false,
   # Facility is common for all glance services
-  $syslog_log_facility         = 'LOG_LOCAL2',
-  $syslog_log_level            = 'WARNING',
-  $glance_image_cache_max_size = '10737418240',
-  $idle_timeout                = '3600',
-  $max_pool_size               = '10',
-  $max_overflow                = '30',
-  $max_retries                 = '-1',
+  $syslog_log_facility          = 'LOG_LOCAL2',
+  $syslog_log_level             = 'WARNING',
+  $glance_image_cache_max_size  = '10737418240',
+  $idle_timeout                 = '3600',
+  $max_pool_size                = '10',
+  $max_overflow                 = '30',
+  $max_retries                  = '-1',
+  $rabbit_password              = false,
+  $rabbit_userid                = 'guest',
+  $rabbit_host                  = 'localhost',
+  $rabbit_port                  = '5672',
+  $rabbit_hosts                 = false,
+  $rabbit_virtual_host          = '/',
+  $rabbit_use_ssl               = false,
+  $rabbit_notification_exchange = 'glance',
+  $rabbit_notification_topic    = 'notifications',
+  $rabbit_durable_queues        = false,
+  $rabbit_ha_queues             = false,
 ) {
+
+  validate_string($glance_user_password)
+  validate_string($glance_db_password)
+  validate_string($rabbit_password)
 
   # Configure the db string
   case $db_type {
@@ -115,6 +130,22 @@ class openstack::glance (
     max_pool_size       => $max_pool_size,
     max_overflow        => $max_overflow,
     idle_timeout        => $idle_timeout,
+  }
+
+  # Configure rabbitmq notifications
+  # TODO(bogdando) sync qpid support from upstream
+  class { 'glance::notify::rabbitmq':
+    rabbit_password              => $rabbit_password,
+    rabbit_userid                => $rabbit_userid,
+    rabbit_hosts                 => $rabbit_hosts,
+    rabbit_host                  => $rabbit_host,
+    rabbit_port                  => $rabbit_port,
+    rabbit_virtual_host          => $rabbit_virtual_host,
+    rabbit_use_ssl               => $rabbit_use_ssl,
+    rabbit_notification_exchange => $rabbit_notification_exchange,
+    rabbit_notification_topic    => $rabbit_notification_topic,
+    rabbit_durable_queues        => $rabbit_durable_queues,
+    rabbit_ha_queues             => $rabbit_ha_queues,
   }
 
   # Configure file storage backend
