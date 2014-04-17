@@ -109,22 +109,6 @@ class osnailyfacter::cluster_simple {
   $max_retries = '-1'
   $idle_timeout = '3600'
 
-  if ($::fuel_settings['cinder']) {
-    if (member($cinder_nodes_array,'all')) {
-      $is_cinder_node = true
-    } elsif (member($cinder_nodes_array,$::hostname)) {
-      $is_cinder_node = true
-    } elsif (member($cinder_nodes_array,$::internal_address)) {
-      $is_cinder_node = true
-    } elsif ($::node[0]['role'] =~ /controller/ ) {
-      $is_cinder_node = member($cinder_nodes_array,'controller')
-    } else {
-      $is_cinder_node = member($cinder_nodes_array,$::node[0]['role'])
-    }
-  } else {
-    $is_cinder_node = false
-  }
-
 
   $cinder_iscsi_bind_addr = $::storage_address
 
@@ -142,9 +126,7 @@ class osnailyfacter::cluster_simple {
   $debug = $::debug
 
   # Determine who should get the volume service
-  if ($::fuel_settings['role'] == 'cinder' or
-      $storage_hash['volumes_lvm']
-  ) {
+  if (member($roles, 'cinder') and $storage_hash['volumes_lvm']) {
     $manage_volumes = 'iscsi'
   } elsif ($storage_hash['volumes_ceph']) {
     $manage_volumes = 'ceph'
