@@ -1,3 +1,9 @@
+#if $getVar('fuel_version', None) == None
+#set snippet_version = ''
+#else
+#set snippet_version = $fuel_version + '/'
+#end if
+
 d-i debian-installer/locale string en_US.UTF-8
 
 d-i debian-installer/splash boolean false
@@ -26,9 +32,9 @@ d-i clock-setup/utc boolean true
 d-i clock-setup/ntp boolean false
 d-i time/zone string <%= @ks_system_timezone %>
 
-$SNIPPET('ubuntu_network_console_and_syslog')
+$SNIPPET($snippet_version + 'ubuntu_network_console_and_syslog')
 
-$SNIPPET('ubuntu_partition')
+$SNIPPET($snippet_version + 'ubuntu_partition')
 
 d-i base-installer/kernel/image string linux-server
 
@@ -81,7 +87,7 @@ tasksel tasksel/first multiselect standard
 debconf debconf/frontend select Noninteractive
 
 # d-i pkgsel/include string openssh-server debconf-utils
-$SNIPPET('ubuntu_packages')
+$SNIPPET($snippet_version + 'ubuntu_packages')
 d-i pkgsel/language-packs multiselect en
 d-i pkgsel/update-policy select none
 d-i pkgsel/upgrade select none
@@ -107,29 +113,38 @@ d-i debian-installer/exit/poweroff boolean false
 # add puppet and mcollective configuration
 # add network configuration
 d-i preseed/late_command string true && \
-$SNIPPET('ubuntu_partition_late')
-$SNIPPET('ubuntu_disable_pxe') && \
-$SNIPPET('ubuntu_network') && \
+$SNIPPET($snippet_version + 'ubuntu_partition_late')
+$SNIPPET($snippet_version + 'ubuntu_disable_pxe') && \
+$SNIPPET($snippet_version + 'ubuntu_network') && \
 echo 'supersede routers 0;' > /target/etc/dhcp/dhclient.conf && \
-$SNIPPET('cinder_create_lvm_group__ubuntu') && \
-$SNIPPET('ubuntu_puppet_config') && \
-$SNIPPET('ubuntu_mcollective_config') && \
-$SNIPPET('ntp_to_masternode_ubuntu')
+$SNIPPET($snippet_version + 'cinder_create_lvm_group__ubuntu') && \
+$SNIPPET($snippet_version + 'ubuntu_puppet_config') && \
+$SNIPPET($snippet_version + 'ubuntu_mcollective_config') && \
+$SNIPPET($snippet_version + 'ntp_to_masternode_ubuntu')
 echo -e "nf_conntrack_ipv4\nnf_conntrack_ipv6" >> /target/etc/modules && \
 echo -e "net.nf_conntrack_max=1048576" >> /target/etc/sysctl.conf && \
 mkdir -p /target/etc/nailgun-agent && \
 echo -e "---\nurl: '<%= scope.lookupvar('nailgun::cobbler::nailgun_api_url') %>'" > /target/etc/nailgun-agent/config.yaml && \
 echo target > /target/etc/nailgun_systemtype && \
 echo 'APT::Get::AllowUnauthenticated 1;' > /target/etc/apt/apt.conf.d/02mirantis-allow-unsigned && \
+# REPOSITORIES FROM Nailgun
+#if $varExists('repo_metadata')
+> /target/etc/apt/sources.list && \
+#set repo_list = dict(item.split("=") for item in $repo_metadata.split(","))
+#for $repo_name, $repo_url in $repo_list.items()
+echo 'deb $repo_url' >> /target/etc/apt/sources.list && \
+#end for
+#else
 echo 'deb http://@@server@@:8080/ubuntu/fuelweb/x86_64 precise main' > /target/etc/apt/sources.list && \
-$SNIPPET('ubuntu_authorized_keys')
+#end if
+$SNIPPET($snippet_version + 'ubuntu_authorized_keys')
 sed -i -e "/^\s*GSSAPICleanupCredentials yes/d" -e "/^\s*GSSAPIAuthentication yes/d" -e "s/.*PasswordAuthentication\ .*/PasswordAuthentication\ no/g" -e "/UseDNS/d" /target/etc/ssh/sshd_config && \
 echo "UseDNS no" >> /target/etc/ssh/sshd_config && \
 in-target wget -O /etc/rsyslog.d/20-puppet_stdout.conf "http://$server/cobbler/aux/20-puppet_stdout_syslog.conf" && \
 in-target wget -O /etc/rsyslog.d/20-puppet_error.conf "http://$server/cobbler/aux/20-puppet_error_syslog.conf" && \
 in-target apt-get -y install linux-image-3.11 linux-headers-3.11 && \
-$SNIPPET('ubuntu_blacklist_i2c_piix4')
-$SNIPPET('ubuntu_static_net')
+$SNIPPET($snippet_version + 'ubuntu_blacklist_i2c_piix4')
+$SNIPPET($snippet_version + 'ubuntu_static_net')
 # Rsyslogd should send all messages to master node
-$SNIPPET('target_logs_to_master_ubuntu')
+$SNIPPET($snippet_version + 'target_logs_to_master_ubuntu')
 true
