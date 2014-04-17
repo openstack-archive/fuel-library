@@ -43,10 +43,16 @@ sshpw --username root --iscrypted $6$tCD3X7ji$1urw6qEMDkVxOkD33k2jjklHSDG2hg2234
 
 %include /tmp/partition.ks
 
+#if $getVar('fuel_version', None) == None
+#set snippet_version = ''
+#else
+#set snippet_version = $fuel_version + '/'
+#end if
+
 # COBBLER EMBEDDED SNIPPET: 'network_config'
 # CONFIGURES NETWORK INTERFACES DEPENDING ON
 # COBBLER SYSTEM PARAMETERS
-$SNIPPET('network_config')
+$SNIPPET($snippet_version + 'network_config')
 
 # PREINSTALL SECTION
 # HERE ARE COMMANDS THAT WILL BE LAUNCHED BEFORE
@@ -55,20 +61,20 @@ $SNIPPET('network_config')
 
 # COBBLER EMBEDDED SNIPPET: 'log_ks_pre'
 # CONFIGURES %pre LOGGING
-$SNIPPET('log_ks_pre')
+$SNIPPET($snippet_version + 'log_ks_pre')
 
 # DOWNLOADS send2syslog.py AND LAUNCHES IT
 # IN ORDER TO MONITOR LOG FILES AND SEND
 # LINES FROM THOSE FILES TO SYSLOG
-$SNIPPET('send2syslog')
+$SNIPPET($snippet_version + 'send2syslog')
 
 # SNIPPET: 'kickstart_ntp'
 # SYNC LOCAL TIME VIA NTP
-$SNIPPET('kickstart_ntp')
+$SNIPPET($snippet_version + 'kickstart_ntp')
 
 # COBBLER EMBEDDED SNIPPET: 'kickstart_start'
 # LAUNCHES %pre TRIGGERS IF THOSE INSTALLED
-$SNIPPET('kickstart_start')
+$SNIPPET($snippet_version + 'kickstart_start')
 
 # COBBLER EMBEDDED SNIPPET: 'pre_install_network_config'
 # PRECONFIGURES NETWORK INTERFACES DEPENDING ON
@@ -76,22 +82,22 @@ $SNIPPET('kickstart_start')
 # IN PARTICULAR IT WRITES KICKSTART NETWORK CONFIGURATION
 # INTO /tmp/pre_install_network_config WHICH IS INCLUDED
 # INTO KICKSTART BY 'network_config' SNIPPET
-$SNIPPET('pre_install_network_config')
+$SNIPPET($snippet_version + 'pre_install_network_config')
 
 # CONFIGURES SSH KEY ACCESS FOR SSHD CONSOLE
 # DURING OPERATING SYSTEM INSTALLATION
-$SNIPPET('anaconda_ssh_console')
+$SNIPPET($snippet_version + 'anaconda_ssh_console')
 
 # COBBLER EMBEDDED SNIPPET: 'pre_install_partition'
 # DETECTS HARD DRIVES AND SETS FIRST OF THEM
 # AS INSTALLATION TARGET AND BOOTLOADER INSTALLATION TARGET
-$SNIPPET('pre_install_partition_lvm')
+$SNIPPET($snippet_version + 'pre_install_partition_lvm')
 
 # PACKAGES SECTION
 # HERE ARE LIST OF PACKAGES THAT WILL BE INSTALLED
 # FIXME --ignoremissing
 %packages --nobase --ignoremissing
-$SNIPPET('centos_pkg_kernel_lt_if_enabled')
+$SNIPPET($snippet_version + 'centos_pkg_kernel_lt_if_enabled')
 @Core
 authconfig
 bfa-firmware
@@ -132,11 +138,11 @@ rsync
 
 # COBBLER EMBEDDED SNIPPET: 'puppet_install_if_enabled'
 # LISTS puppet PACKAGE IF puppet_auto_setup VARIABLE IS SET TO 1
-$SNIPPET('puppet_install_if_enabled')
+$SNIPPET($snippet_version + 'puppet_install_if_enabled')
 
 # COBBLER EMBEDDED SNIPPET: 'mcollective_install_if_enabled'
 # LISTS mcollective PACKAGE IF mco_auto_setup VARIABLE IS SET TO 1
-$SNIPPET('mcollective_install_if_enabled')
+$SNIPPET($snippet_version + 'mcollective_install_if_enabled')
 
 # POST INSTALLATION PARTITIONING
 # THERE ARE SOME COMMANDS TO CREATE LARGE (>1TB) VOLUMES
@@ -163,20 +169,20 @@ echo -e "* soft core unlimited\n* hard core unlimited" >> /etc/security/limits.c
 
 # COBBLER EMBEDDED SNIPPET: 'log_ks_post'
 # CONFIGURES %post LOGGING
-$SNIPPET('log_ks_post')
+$SNIPPET($snippet_version + 'log_ks_post')
 
 # COBBLER EMBEDDED SNIPPET: 'post_install_kernel_options'
 # CONFIGURES KERNEL PARAMETERS ON INSTALLED SYSTEM
-$SNIPPET('post_install_kernel_options')
+$SNIPPET($snippet_version + 'post_install_kernel_options')
 
 # COBBLER EMBEDDED SNIPPET: 'post_install_network_config'
 # CONFIGURES NETWORK INTERFACES DEPENDING ON
 # COBBLER SYSTEM PARAMETERS
-$SNIPPET('post_install_network_config_fuel')
+$SNIPPET($snippet_version + 'post_install_network_config_fuel')
 
 # COBBLER EMBEDDED SNIPPET: 'puppet_conf'
 # CONFIGURES PUPPET AGENT
-$SNIPPET('puppet_conf')
+$SNIPPET($snippet_version + 'puppet_conf')
 
 # COBBLER EMBEDDED SNIPPET: 'puppet_register_if_enabled'
 # CREATES CERTIFICATE REQUEST AND SENDS IT TO PUPPET MASTER
@@ -184,15 +190,15 @@ $SNIPPET('puppet_register_if_enabled_fuel')
 
 # COBBLER EMBEDDED SNIPPET: 'mcollective_conf'
 # CONFIGURES MCOLLECTIVE AGENT
-$SNIPPET('mcollective_conf')
+$SNIPPET($snippet_version + 'mcollective_conf')
 
 # SNIPPET: 'kickstart_ntp'
 # SYNC LOCAL TIME VIA NTP
-$SNIPPET('kickstart_ntp')
+$SNIPPET($snippet_version + 'kickstart_ntp')
 
 # SNIPPET: 'ntp_to_masternode'
 # CONFIGURES NTPD POOL TO MASTER NODE
-$SNIPPET('ntp_to_masternode')
+$SNIPPET($snippet_version + 'ntp_to_masternode')
 
 # Let's not to use separate snippet for just one line of code. Complexity eats my time.
 echo 'flock -w 0 -o /var/lock/agent.lock -c "/opt/nailgun/bin/agent >> /var/log/nailgun-agent.log 2>&1"' >> /etc/rc.local
@@ -202,13 +208,13 @@ echo target > /etc/nailgun_systemtype
 
 # COBBLER EMBEDDED SNIPPET: 'authorized_keys'
 # PUTS authorized_keys file into /root/.ssh/authorized_keys
-$SNIPPET('centos_authorized_keys')
+$SNIPPET($snippet_version + 'centos_authorized_keys')
 
 # COBBLER EMBEDDED SNIPPET: 'nailgun_repo'
 # REMOVES ALL *.repo FILES FROM /etc/yum.repos.d AND
 # CREATES /etc/yum.repos.d/nailgun.repo FILE AND
 # PUTS IN IT ALL THE REPOSITORIES DEFINED IN ks_repo VARIABLE
-$SNIPPET('nailgun_repo')
+$SNIPPET($snippet_version + 'nailgun_repo')
 
 rpm -e --nodeps ruby
 yum install --exclude=ruby-2.1.1* -y ruby ruby-devel rubygems
@@ -225,18 +231,18 @@ EOA
 
 # COBBLER EMBEDDED SNIPPET: 'kernel_lt_if_enabled'
 # INSTALLS kernel-lt PACKAGE IF kernel_lt VARIABLE IS SET TO 1
-$SNIPPET('centos_post_kernel_lt_if_enabled')
+$SNIPPET($snippet_version + 'centos_post_kernel_lt_if_enabled')
 
 # COBBLER EMBEDDED SNIPPET: 'ssh_disable_gssapi'
 # REMOVES "GSSAPICleanupCredentials yes" AND "GSSAPIAuthentication yes" LINES
 # FROM /etc/ssh/sshd_config
-$SNIPPET('ssh_disable_gssapi')
+$SNIPPET($snippet_version + 'ssh_disable_gssapi')
 
 # COBBLER EMBEDDED SNIPPET: 'redhat_register'
 # REGISTER AT REDHAT WITH ACTIVATION KEY
-$SNIPPET('red_hat_register_satellite')
+$SNIPPET("${fuel_version}/red_hat_register_satellite")
 # REGISTER TO RED HAT SUBSCRIPTION MANAGER WITH LOGIN/PASSWORD
-$SNIPPET('red_hat_register_rhsm')
+$SNIPPET($snippet_version + 'red_hat_register_rhsm')
 
 # Let's not wait forewer when ssh'ing:
 sed -i --follow-symlinks -e '/UseDNS/d' /etc/ssh/sshd_config
@@ -244,25 +250,25 @@ echo 'UseDNS no' >> /etc/ssh/sshd_config
 
 # COBBLER EMBEDDED SNIPPET: 'sshd_auth_pubkey_only'
 # DISABLE PASSWORD AUTH. ALLOW PUBKEY AUTH ONLY IN /etc/ssh/sshd_config
-$SNIPPET('sshd_auth_pubkey_only')
+$SNIPPET($snippet_version + 'sshd_auth_pubkey_only')
 
 # Copying default bash settings to the root directory
 cp -f /etc/skel/.bash* /root/
 
 # Rsyslogd should send all messages to master node
-$SNIPPET('target_logs_to_master')
+$SNIPPET($snippet_version + 'target_logs_to_master')
 
 # Configure static IP address for admin interface
-$SNIPPET('centos_static_net')
+$SNIPPET($snippet_version + 'centos_static_net')
 
 # Blacklist i2c_piix4 module so it does not create kernel errors
-$SNIPPET('centos_blacklist_i2c_piix4')
+$SNIPPET($snippet_version + 'centos_blacklist_i2c_piix4')
 
 wget -O /etc/rsyslog.d/20-puppet_stdout.conf "http://$server/cobbler/aux/20-puppet_stdout_syslog.conf"
 wget -O /etc/rsyslog.d/20-puppet_error.conf "http://$server/cobbler/aux/20-puppet_error_syslog.conf"
 
 # COBBLER EMBEDDED SNIPPET: 'kickstart_done'
 # DISABLES PXE BOOTING
-$SNIPPET('kickstart_done')
+$SNIPPET($snippet_version + 'kickstart_done')
 
 %end
