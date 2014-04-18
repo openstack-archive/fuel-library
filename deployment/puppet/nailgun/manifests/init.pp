@@ -65,7 +65,6 @@ class nailgun(
   Class["nailgun::nginx-nailgun"] ->
   Class["nailgun::host"] ->
   Class["nailgun::cobbler"] ->
-  Class["nailgun::gateone"] ->
   Class["openstack::logging"] ->
   Class["nailgun::supervisor"] ->
   Anchor<| title == "nailgun-end" |>
@@ -247,10 +246,6 @@ class nailgun(
 
   class { "nailgun::ostf":
     production => $production,
-    pip_opts => "${pip_index} ${pip_find_links}",
-  }
-
-  class { "nailgun::gateone":
     pip_opts => "${pip_index} ${pip_find_links}",
   }
 
