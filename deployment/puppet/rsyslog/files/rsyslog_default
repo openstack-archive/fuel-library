@@ -5,4 +5,4 @@
 # If you want to use them, switch to compatibility mode 2 by "-c 2"
 # See rsyslogd(8) for more details
 # RSYSLOGD_OPTIONS="-c4"
-SYSLOGD_OPTIONS="-c 5 -x"
+RSYSLOGD_OPTIONS="-c 5 -x"
