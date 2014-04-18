@@ -9,7 +9,7 @@ else {
     $production = 'prod'
 }
 
-if $production == 'prod'{
+if $production != 'dev' {
   $env_path = "/usr"
   $staticdir = "/usr/share/nailgun/static"
 } else {
