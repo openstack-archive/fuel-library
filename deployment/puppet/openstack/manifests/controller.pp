@@ -176,6 +176,7 @@ class openstack::controller (
   $galera_node_address     = '127.0.0.1',
   $glance_backend          = 'file',
   $galera_nodes            = ['127.0.0.1'],
+  $novnc_address           = '127.0.0.1',
   $mysql_skip_name_resolve = false,
   $manage_volumes          = false,
   $nv_physical_volume      = undef,
@@ -396,7 +397,13 @@ class openstack::controller (
     nova_rate_limits        => $nova_rate_limits,
     nova_report_interval    => $nova_report_interval,
     nova_service_down_time  => $nova_service_down_time,
-    cinder                  => $cinder
+    cinder                  => $cinder,
+    # SQLAlchemy backend
+    max_retries             => $max_retries,
+    max_pool_size           => $max_pool_size,
+    max_overflow            => $max_overflow,
+    idle_timeout            => $idle_timeout,
+    novnc_address           => $novnc_address,
   }
 
   ######### Cinder Controller Services ########

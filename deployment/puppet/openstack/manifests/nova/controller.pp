@@ -89,7 +89,13 @@ class openstack::nova::controller (
   $nova_rate_limits          = undef,
   $nova_report_interval      = '10',
   $nova_service_down_time    = '60',
-  $cinder                    = true
+  $cinder                    = true,
+  # SQLAlchemy backend
+  $idle_timeout              = '3600',
+  $max_pool_size             = '10',
+  $max_overflow              = '30',
+  $max_retries               = '-1',
+  $novnc_address             = '127.0.0.1'
 ) {
 
   # Configure the db string
@@ -277,7 +283,7 @@ class openstack::nova::controller (
 
   if $vnc_enabled {
     class { 'nova::vncproxy':
-      host           => $public_address,
+      host           => $novnc_address,
       enabled        => $enabled,
       ensure_package => $ensure_package
     }
