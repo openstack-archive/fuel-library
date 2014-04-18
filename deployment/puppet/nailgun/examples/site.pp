@@ -8,7 +8,7 @@ else {
     $production = 'dev'
 }
 
-if $production == 'prod'{
+if $production != 'dev' {
   $env_path = "/usr"
   $staticdir = "/usr/share/nailgun/static"
 } else {
