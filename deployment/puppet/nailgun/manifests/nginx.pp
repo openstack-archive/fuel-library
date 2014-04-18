@@ -1,8 +1,8 @@
 class nailgun::nginx(
   $production = "production",
   $repo_root = "/var/www/nailgun",
-  $staticdir = "/opt/nailgun/share/nailgun/static",
-  $templatedir = "/opt/nailgun/share/nailgun/static",
+  $staticdir = "/usr/share/nailgun/static",
+  $templatedir = "/usr/share/nailgun/static",
   $logdumpdir = "/var/www/nailgun/dump",
   $service_enabled = true,
   $ostf_host = '127.0.0.1',

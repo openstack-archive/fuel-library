@@ -9,7 +9,7 @@ else {
     $production = 'prod'
 }
 
-if $production != 'dev'{
+if $production != 'dev' {
   $env_path = "/usr"
   $staticdir = "/usr/share/nailgun/static"
 } else {
@@ -20,15 +20,6 @@ if $production != 'dev'{
 # this replaces removed postgresql version fact
 $postgres_default_version = '8.4'
 
-$centos_repos =
-[
-  {
-     "id" => "nailgun",
-     "name" => "Nailgun",
-     "url"  => "\$tree"
-  },
-]
-
 $ostf_host = $::fuel_settings['ADMIN_NETWORK']['ipaddress']
 $nailgun_host = $::fuel_settings['ADMIN_NETWORK']['ipaddress']
 
@@ -38,12 +29,18 @@ node default {
 
   Exec  {path => '/usr/bin:/bin:/usr/sbin:/sbin'}
 
+  $centos_repos =
+  [
+   {
+   "id" => "nailgun",
+   "name" => "Nailgun",
+   "url"  => "\$tree"
+   },
+   ]
+
 
   class { 'nailgun::nginx':
     production      => $production,
-    staticdir       => $staticdir,
-    templatedir     => $staticdir,
-    logdumpdir      => $logdumpdir,
     ostf_host       => $ostf_host,
     nailgun_host    => $nailgun_host,
     repo_root       => $repo_root,
