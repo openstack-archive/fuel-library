@@ -1,4 +1,4 @@
-LISTEN_ADDRESS: "127.0.0.1"
+LISTEN_ADDRESS: "0.0.0.0"
 LISTEN_PORT: "8001"
 DEVELOPMENT: false
 
@@ -51,14 +51,14 @@ PATH_TO_BOOTSTRAP_SSH_KEY: "/root/.ssh/bootstrap.rsa"
 
 MASTER_IP: "<%= @admin_network_ip %>"
 
-COBBLER_URL: "<%= scope.lookupvar('nailgun::cobbler_url') %>"
+COBBLER_URL: "<%= @cobbler_url %>"
 COBBLER_USER: "<%= @cobbler_user %>"
 COBBLER_PASSWORD: "<%= @cobbler_password %>"
 COBBLER_PROFILE: "centos-x86_64"
 
 MCO_PSKEY: "<%= @mco_pskey %>"
 MCO_VHOST: "<%= @mco_vhost %>"
-MCO_HOST: <%= scope.lookupvar('nailgun::mco_host') %>
+MCO_HOST: <%= @mco_host %>
 MCO_USER: "<%= @mco_user %>"
 MCO_PASSWORD: "<%= @mco_password %>"
 MCO_CONNECTOR: "<%= @mco_connector %>"
@@ -67,5 +67,5 @@ PUPPET_MASTER_HOST: "<%= @puppet_master_hostname %>"
 PUPPET_VERSION: "2.7.19"
 
 DNS_DOMAIN: "<%= @domain %>"
-DNS_SERVERS: "<%= scope.lookupvar('nailgun::puppet_master_ip') %>"
+DNS_SERVERS: "<%= @cobbler_url %>"
 DNS_SEARCH: "<%= @domain %>"
