@@ -1,0 +1,11 @@
+Verified+2: Jenkins
+Code-Review+1: Mike Scherbakov <mscherbakov@mirantis.com>
+Approved+1: Dmitry Pyzhov <dpyzhov+gerrit@mirantis.com>
+Code-Review+2: Dmitry Pyzhov <dpyzhov+gerrit@mirantis.com>
+Code-Review+1: Andrew Woodward <xarses@gmail.com>
+Code-Review+1: Ryan Moe <rmoe@mirantis.com>
+Submitted-by: Jenkins
+Submitted-at: Fri, 18 Apr 2014 13:46:46 +0000
+Reviewed-on: https://review.openstack.org/88094
+Project: stackforge/fuel-library
+Branch: refs/heads/master
