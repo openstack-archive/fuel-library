@@ -21,6 +21,32 @@ Puppet::Type.newtype(:ring_devices) do
     end
   end
 
+  autorequire(:ring_account_device) do
+    autos = []
+    catalog.resources.find_all { |r| r.is_a?(Puppet::Type.type("ring_account_device".to_sym)) }.each do |r|
+      autos << r
+    end
+    autos
+  end
+
+  autorequire(:ring_object_device) do
+    autos = []
+    catalog.resources.find_all { |r| r.is_a?(Puppet::Type.type("ring_object_device".to_sym)) }.each do |r|
+      autos << r
+    end
+    autos
+  end
+
+  autorequire(:ring_container_device) do
+    autos = []
+    catalog.resources.find_all { |r| r.is_a?(Puppet::Type.type("ring_container_device".to_sym)) }.each do |r|
+      autos << r
+    end
+    autos
+  end
+
+
+
   # Default resources for swift ring builder
   def resources
     resources = []
