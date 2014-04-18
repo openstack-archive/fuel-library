@@ -317,6 +317,7 @@ class osnailyfacter::cluster_ha {
       ceilometer_user_password      => $ceilometer_hash[user_password],
       ceilometer_metering_secret    => $ceilometer_hash[metering_secret],
       galera_nodes                  => $controller_nodes,
+      novnc_address                 => $::internal_address,
       custom_mysql_setup_class      => $custom_mysql_setup_class,
       mysql_skip_name_resolve       => true,
       use_syslog                    => $use_syslog,

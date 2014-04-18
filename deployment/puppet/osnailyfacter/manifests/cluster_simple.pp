@@ -216,6 +216,7 @@ class osnailyfacter::cluster_simple {
         cinder_volume_group     => "cinder",
         manage_volumes          => $manage_volumes,
         use_syslog              => $use_syslog,
+        novnc_address           => $controller_node_public,
         syslog_log_level        => $syslog_log_level,
         syslog_log_facility_glance  => $syslog_log_facility_glance,
         syslog_log_facility_cinder  => $syslog_log_facility_cinder,
