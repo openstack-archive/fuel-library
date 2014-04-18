@@ -20,6 +20,15 @@ class openstack::ha::nova {
     listen_port     => 8775,
     require_service => 'nova-api',
   }
+  
+  openstack::ha::haproxy_service { 'nova-novncproxy':
+    order           => '170',
+    listen_port     => 6080,
+    public          => true,
+    internal        => false,
+    require_service => 'nova-novncproxy',
+  }
+
 
   Openstack::Ha::Haproxy_service<|title == 'keystone-1' or title == 'keystone-2'|> -> Service['nova-api']
 }
