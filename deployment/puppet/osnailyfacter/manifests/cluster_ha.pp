@@ -53,6 +53,12 @@ class osnailyfacter::cluster_ha {
     $ceilometer_hash = $::fuel_settings['ceilometer']
   }
 
+  # vCenter integration
+
+  if $::fuel_settings['libvirt_type'] == 'vcenter' {
+    $vcenter_hash = $::fuel_settings['vcenter']
+  }
+
   if $::fuel_settings['role'] == 'primary-controller' {
     package { 'cirros-testvm':
       ensure => "present"
@@ -536,6 +542,20 @@ class osnailyfacter::cluster_ha {
 
        Class['heat'] -> Class['murano']
 
+      }
+
+      # vCenter integration
+
+      if $::fuel_settings['role'] == 'primary-controller' {
+        if $::fuel_settings['libvirt_type'] == 'vcenter' {
+          class { 'vmware' :
+            vcenter_user      => $vcenter_hash['vc_user'],
+            vcenter_password  => $vcenter_hash['vc_password'],
+            vcenter_host_ip   => $vcenter_hash['host_ip'],
+            vcenter_cluster   => $vcenter_hash['cluster'],
+            use_quantum       => $::use_quantum,
+          }
+        }
       }
 
       #ADDONS END
