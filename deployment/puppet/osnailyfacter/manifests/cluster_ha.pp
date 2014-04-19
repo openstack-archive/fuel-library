@@ -341,6 +341,7 @@ class osnailyfacter::cluster_ha {
       ceilometer_db_type            => $::osnailyfacter::cluster_ha::current_ceilometer_db_type,
       ceilometer_db_host            => $::osnailyfacter::cluster_ha::current_ceilometer_db_address,
       galera_nodes                  => $::osnailyfacter::cluster_ha::controller_nodes,
+      novnc_address                 => $::internal_address,
       sahara                        => $::osnailyfacter::cluster_ha::sahara_hash[enabled],
       custom_mysql_setup_class      => $::custom_mysql_setup_class,
       mysql_skip_name_resolve       => true,
