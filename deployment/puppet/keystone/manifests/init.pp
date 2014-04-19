@@ -215,38 +215,12 @@ class keystone(
   }
 
   # db connection config
-#TODO(bogdando) fix deprecated [sql] usage to database for IceHouse MOS packages
-#  Deprecated group/name - [DEFAULT]/sql_connection
-#  Deprecated group/name - [DATABASE]/sql_connection
-#  Deprecated group/name - [sql]/connection
-#
-#  Deprecated group/name - [DEFAULT]/sql_max_pool_size
-#  Deprecated group/name - [DATABASE]/sql_max_pool_size
-#
-#  Deprecated group/name - [DEFAULT]/sql_max_retries
-#  Deprecated group/name - [DATABASE]/sql_max_retries
-#
-#  Deprecated group/name - [DEFAULT]/sql_max_overflow
-#  Deprecated group/name - [DATABASE]/sqlalchemy_max_overflow
-#
-#  Deprecated group/name - [DEFAULT]/sql_idle_timeout
-#  Deprecated group/name - [DATABASE]/sql_idle_timeout
-#  Deprecated group/name - [sql]/idle_timeout
-#  Should be in IceHouse:
-#  keystone_config {
-#    'DATABASE/connection':    value => $sql_connection;
-#    'DATABASE/idle_timeout':  value => $idle_timeout;
-#    'DATABASE/max_pool_size': value => $max_pool_size;
-#    'DATABASE/max_retries':   value => $max_retries;
-#    'DATABASE/max_overflow':  value => $max_overflow;
-#
-#  }
   keystone_config {
-    'sql/connection':            value => $sql_connection;
-    'sql/idle_timeout':          value => $idle_timeout;
-    'DEFAULT/sql_max_pool_size': value => $max_pool_size;
-    'DEFAULT/sql_max_retries':   value => $max_retries;
-    'DEFAULT/sql_max_overflow':  value => $max_overflow;
+    'DATABASE/connection':    value => $sql_connection;
+    'DATABASE/idle_timeout':  value => $idle_timeout;
+    'DATABASE/max_pool_size': value => $max_pool_size;
+    'DATABASE/max_retries':   value => $max_retries;
+    'DATABASE/max_overflow':  value => $max_overflow;
   }
 
   # configure based on the catalog backend
