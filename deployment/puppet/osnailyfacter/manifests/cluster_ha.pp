@@ -183,14 +183,12 @@ class osnailyfacter::cluster_ha {
     # $current_ceilometer_db_address =  $mongo_primary_node_address
     # Connect to ReplicaSet Example
     # connection = mongodb://mongos1:27017,mongos2:27017,mongos3:27017/ceilometer?readPreference=secondary&w=2&wtimeoutMS=2000
-    if is_hash($mongo_node[0]) {
-      $mongo_slave_node_address_0 = $mongo_node[0]['internal_address']
-    }
-    if is_hash($mongo_node[1]) {
-      $mongo_slave_node_address_1 = $mongo_node[1]['internal_address']
-    }
     if is_hash($mongo_primary_node[0]) {
-      $current_ceilometer_db_address =  "$mongo_primary_node_address,$mongo_slave_node_address_0,$mongo_slave_node_address_1"
+      if size($mongo_secondary_hosts) > 0 {
+        $current_ceilometer_db_address = "$mongo_primary_node_address,$mongo_secondary_hosts"
+      } else {
+        $current_ceilometer_db_address = "$mongo_primary_node_address"
+      }
     } else {
       $current_ceilometer_db_address = '127.0.0.1'
     }
@@ -656,7 +654,7 @@ class osnailyfacter::cluster_ha {
         ceilometer_metering_secret  => $::osnailyfacter::cluster_ha::ceilometer_hash[metering_secret],
         ceilometer_db_password      => $::osnailyfacter::cluster_ha::ceilometer_hash[db_password],
         ceilometer_replset_members  => $mongo_secondary_hosts,
-        ceilometer_db_user          => 'ceilometer',
+        ceilometer_user             => 'ceilometer',
       }
 
     } # MONGO PRIMARYENDS

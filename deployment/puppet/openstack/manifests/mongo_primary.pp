@@ -12,24 +12,38 @@ class openstack::mongo_primary (
 ) {
 
   $replset_setup = size($ceilometer_replset_members) > 0
-  notify {"MongoDB params: $mongodb_bind_address": } ->
+  notify {"MongoDB params: $mongodb_bind_address": }
 
-  class {'::mongodb::client':
-  } ->
 
-  class {'::mongodb::server':
-    port    => $mongodb_port,
-    verbose => true,
-    bind_ip => $mongodb_bind_address,
-    replset => 'ceilometer',
-    auth => true,
-    keyfile => '/etc/mongodb.key'
-  } ->
+  if $replset_setup {
+    class {'::mongodb::client':
+    } ->
 
-  class {'::mongodb::replset':
-    replset_setup   => $replset_setup,
-    replset_members => $ceilometer_replset_members,
-  } ->
+    class {'::mongodb::server':
+      port    => $mongodb_port,
+      verbose => true,
+      bind_ip => $mongodb_bind_address,
+      replset => 'ceilometer',
+      auth => true,
+      keyfile => '/etc/mongodb.key'
+    } ->
+
+    class {'::mongodb::replset':
+      replset_setup   => $replset_setup,
+      replset_members => $ceilometer_replset_members,
+    }
+  } else {
+    class {'::mongodb::client':
+    } ->
+    class {'::mongodb::server':
+      port    => $mongodb_port,
+      verbose => true,
+      bind_ip => $mongodb_bind_address,
+      auth => true,
+    }
+  }
+
+  notify {"mongodb configuring databases": } ->
 
   mongodb::db { $ceilometer_database:
     user          => $ceilometer_user,
