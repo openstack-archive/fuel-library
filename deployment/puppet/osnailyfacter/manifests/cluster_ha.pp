@@ -53,12 +53,6 @@ class osnailyfacter::cluster_ha {
     $ceilometer_hash = $::fuel_settings['ceilometer']
   }
 
-  # vCenter integration
-
-  if $::fuel_settings['libvirt_type'] == 'vcenter' {
-    $vcenter_hash = $::fuel_settings['vcenter']
-  }
-
   if $::fuel_settings['role'] == 'primary-controller' {
     package { 'cirros-testvm':
       ensure => "present"
@@ -122,6 +116,22 @@ class osnailyfacter::cluster_ha {
 
   $vip_keys = keys($vips)
 
+  if ($::fuel_settings['cinder']) {
+    if (member($cinder_nodes_array,'all')) {
+      $is_cinder_node = true
+    } elsif (member($cinder_nodes_array,$::hostname)) {
+      $is_cinder_node = true
+    } elsif (member($cinder_nodes_array,$::internal_address)) {
+      $is_cinder_node = true
+    } elsif ($node[0]['role'] =~ /controller/ ) {
+      $is_cinder_node = member($cinder_nodes_array,'controller')
+    } else {
+      $is_cinder_node = member($cinder_nodes_array,$node[0]['role'])
+    }
+  } else {
+    $is_cinder_node = false
+  }
+
   ##REFACTORING NEEDED
 
 
@@ -134,7 +144,6 @@ class osnailyfacter::cluster_ha {
   $controller_nodes = ipsort(values($controller_internal_addresses))
   $controller_node_public  = $::fuel_settings['public_vip']
   $controller_node_address = $::fuel_settings['management_vip']
-  $roles = node_roles($nodes_hash, $::fuel_settings['uid'])
   $mountpoints = filter_hash($mp_hash,'point')
 
   # AMQP client configuration
@@ -199,7 +208,7 @@ class osnailyfacter::cluster_ha {
   $mongodb_bind_address_list = ['127.0.0.1']
 
   # Determine who should get the volume service
-  if (member($roles, 'cinder') and $storage_hash['volumes_lvm']) {
+  if ($::fuel_settings['role'] == 'cinder' or $storage_hash['volumes_lvm']) {
     $manage_volumes = 'iscsi'
   } elsif ($storage_hash['volumes_ceph']) {
     $manage_volumes = 'ceph'
@@ -347,7 +356,6 @@ class osnailyfacter::cluster_ha {
       ceilometer_db_type            => $::osnailyfacter::cluster_ha::current_ceilometer_db_type,
       ceilometer_db_host            => $::osnailyfacter::cluster_ha::current_ceilometer_db_address,
       galera_nodes                  => $::osnailyfacter::cluster_ha::controller_nodes,
-      novnc_address                 => $::internal_address,
       sahara                        => $::osnailyfacter::cluster_ha::sahara_hash[enabled],
       custom_mysql_setup_class      => $::custom_mysql_setup_class,
       mysql_skip_name_resolve       => true,
@@ -544,20 +552,6 @@ class osnailyfacter::cluster_ha {
 
       }
 
-      # vCenter integration
-
-      if $::fuel_settings['role'] == 'primary-controller' {
-        if $::fuel_settings['libvirt_type'] == 'vcenter' {
-          class { 'vmware' :
-            vcenter_user      => $vcenter_hash['vc_user'],
-            vcenter_password  => $vcenter_hash['vc_password'],
-            vcenter_host_ip   => $vcenter_hash['host_ip'],
-            vcenter_cluster   => $vcenter_hash['cluster'],
-            use_quantum       => $::use_quantum,
-          }
-        }
-      }
-
       #ADDONS END
 
     } #CONTROLLER ENDS
@@ -656,7 +650,7 @@ class osnailyfacter::cluster_ha {
         ceilometer_metering_secret  => $::osnailyfacter::cluster_ha::ceilometer_hash[metering_secret],
         ceilometer_db_password      => $::osnailyfacter::cluster_ha::ceilometer_hash[db_password],
         ceilometer_replset_members  => $mongo_secondary_hosts,
-        ceilometer_db_user          => 'ceilometer',
+        ceilometer_user             => 'ceilometer',
       }
 
     } # MONGO PRIMARYENDS
@@ -668,6 +662,7 @@ class osnailyfacter::cluster_ha {
       package { 'python-amqp':
         ensure => present
       }
+      $roles = node_roles($nodes_hash, $::fuel_settings['uid'])
       if member($roles, 'controller') or member($roles, 'primary-controller') {
         $bind_host = $::internal_address
       } else {
