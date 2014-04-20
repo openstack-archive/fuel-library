@@ -1,0 +1,12 @@
+[adapter]
+server_host = <%= @host %>
+server_port = <%= @port %>
+dbpath = postgresql+psycopg2://ostf:ostf@localhost/ostf
+dbpath = <%= @dbengine%>://<%= @dbuser %>:<%= @dbpass %>@<%= @dbhost %>/<%= @dbname %>
+debug = <%= @debug %>
+debug_tests = <%= debug %>
+lock_dir = /var/lock
+nailgun_host = <%= @nailgun_host %>
+nailgun_port = <%= @nailgun_port %>
+log_file = <%= @log_file %>
+after_init_hook = False

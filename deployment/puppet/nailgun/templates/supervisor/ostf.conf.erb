@@ -1,5 +1,5 @@
 [program:ostf]
-command=<%= @ostf_env %>/bin/ostf-server --host=<%= @host %> --port=8777 --log_file=<%= @logfile %> --dbpath <%= @dbengine %>://<%= @dbuser %>:<%= @dbpass %>@<%= @dbhost %>:<%= @dbport %>/<%= @dbname %>
+command=/usr/bin/ostf-server
 process_name=%(program_name)s
 numprocs=1
 numprocs_start=0
