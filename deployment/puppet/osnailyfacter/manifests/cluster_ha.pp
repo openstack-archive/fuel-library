@@ -656,7 +656,7 @@ class osnailyfacter::cluster_ha {
         ceilometer_metering_secret  => $::osnailyfacter::cluster_ha::ceilometer_hash[metering_secret],
         ceilometer_db_password      => $::osnailyfacter::cluster_ha::ceilometer_hash[db_password],
         ceilometer_replset_members  => $mongo_secondary_hosts,
-        ceilometer_db_user          => 'ceilometer',
+        ceilometer_user             => 'ceilometer',
       }
 
     } # MONGO PRIMARYENDS
