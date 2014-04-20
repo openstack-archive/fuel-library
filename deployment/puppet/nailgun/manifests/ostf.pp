@@ -1,16 +1,19 @@
 class nailgun::ostf(
   $pip_opts,
   $production,
-  $venv     = '/opt/fuel_plugins/ostf',
-  $dbuser   = 'ostf',
-  $dbpass   = 'ostf',
-  $dbname   = 'ostf',
-  $dbhost   = '127.0.0.1',
-  $dbport   = '5432',
-  $dbengine = 'postgresql+psycopg2',
-  $host     = '127.0.0.1',
-  $port     = '8777',
-  $logfile  = '/var/log/ostf.log',
+  $venv           = '/opt/fuel_plugins/ostf',
+  $dbuser         = 'ostf',
+  $dbpass         = 'ostf',
+  $dbname         = 'ostf',
+  $dbhost         = '127.0.0.1',
+  $dbport         = '5432',
+  $nailgun_host   = '127.0.0.1',
+  $nailgun_port   = '8000',
+  $dbengine       = 'postgresql+psycopg2',
+  $host           = '127.0.0.1',
+  $port           = '8777',
+  $logfile        = '/var/log/ostf.log',
+  $debug          = false,
 ){
   package{'libevent-devel':}
   package{'openssl-devel':}
@@ -95,6 +98,18 @@ class nailgun::ostf(
     owner   => 'root',
     group   => 'root',
     content => template('nailgun/supervisor/ostf.conf.erb'),
+    require => Package['supervisor'],
+  }
+  file { '/etc/ostf/':
+    ensure => directory,
+    owner  => 'root',
+    group  => 'root',
+    mode   => '0750',
+  }
+  file { '/etc/ostf/ostf.conf':
+    owner   => 'root',
+    group   => 'root',
+    content => template('nailgun/supervisor/ostf-service.conf.erb'),
     require => Package['supervisor'],
   }
 }
