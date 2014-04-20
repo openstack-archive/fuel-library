@@ -1,0 +1,9 @@
+[adapter]
+server_host = <%= @host %>
+server_port = <%= @port %>
+dbpath = <%= @dbengine %>://<%= @dbuser %>:<%= @dbpass %>@<%= @dbhost %>/<%= @dbname %>
+lock_dir = /var/lock
+nailgun_host = <%= @nailgun_host %>
+nailgun_port = <%= @nailgun_port %>
+log_file = <%= @logfile %>
+after_init_hook = False
