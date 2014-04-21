@@ -26,6 +26,9 @@ OCF_RESKEY_gateway_metric_default=0   # can be "", or metric value
 FAMILY='inet'
 RUN_IN_NS="ip netns exec $OCF_RESKEY_ns "
 SH="/bin/bash"
+SENDARP=$HA_BIN/send_arp
+SENDARPPIDDIR=$HA_RSCTMP
+SENDARPPIDFILE="$SENDARPPIDDIR/send_arp-$OCF_RESKEY_ip"
 #######################################################################
 
 #######################################################################
@@ -348,6 +351,8 @@ ip_prepare() {
       ocf_run $RUN_IN_NS ip route replace default via $OCF_RESKEY_gateway metric $OCF_RESKEY_gateway_metric
     fi
   fi
+  ARGS="-i 200 -r 5 -p $SENDARPPIDFILE $OCF_RESKEY_nic $OCF_RESKEY_ip auto not_used not_used"
+  ($SENDARP $ARGS || ocf_log err "Could not send gratuitous arps")& >&2
   return $OCF_SUCCESS
 }
 
@@ -376,6 +381,17 @@ ip_stop() {
   else
     rc=0
   fi
+
+  if [ -f "$SENDARPPIDFILE" ] ; then
+    kill `cat "$SENDARPPIDFILE"`
+    if [ $? -ne 0 ]; then
+      ocf_log warn "Could not kill previously running send_arp for $OCF_RESKEY_ip"
+      else
+      ocf_log info "killed previously running send_arp for $OCF_RESKEY_ip"
+      rm -f "$SENDARPPIDFILE"
+      fi
+  fi
+
 
   if [[ $rc == 0 ]] ; then
     rc=$OCF_SUCCESS  # it means stop was success
