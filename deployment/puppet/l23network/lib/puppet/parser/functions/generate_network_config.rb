@@ -203,6 +203,12 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
           ifconfig_order.insert(-1, t[:name].to_sym())
         end
       elsif action == :bond
+        if ! t[:interfaces].is_a? Array
+          raise(Puppet::ParseError, "generate_network_config(): 'add-bond' resource should has non-empty 'interfaces' list.")
+        end
+        if ! t[:properties].is_a? Hash
+          raise(Puppet::ParseError, "generate_network_config(): 'add-bond' resource should has non-empty 'properties' field.")
+        end
         if t[:provider] == 'lnx'
           if ! ifconfig_order.index(t[:name].to_sym())
             ifconfig_order.insert(-1, t[:name].to_sym())

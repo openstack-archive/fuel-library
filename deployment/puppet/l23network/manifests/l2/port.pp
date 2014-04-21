@@ -34,11 +34,12 @@ define l23network::l2::port (
   $type          = '',
   $port_properties  = [],
   $interface_properties  = [],
-  $ensure        = present,
-  $skip_existing = false,
   $tag           = 0,
   $trunks        = [],
-  $vlan_splinters= false
+  $vlan_splinters= false,
+  $provider      = 'ovs',
+  $ensure        = present,
+  $skip_existing = false
 ) {
   if ! $::l23network::l2::use_ovs {
     fail('You must enable Open vSwitch by setting the l23network::l2::use_ovs to true.')

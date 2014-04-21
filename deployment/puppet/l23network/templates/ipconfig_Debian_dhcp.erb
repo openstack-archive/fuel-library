@@ -1,5 +1,5 @@
-auto <%= interface %>
-iface <%= interface %> inet dhcp
+auto <%= @interface %>
+iface <%= @interface %> inet dhcp
 <% if @macaddr -%>
 hwaddress ether <%= @macaddr.downcase %>
 <% end -%>
