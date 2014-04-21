@@ -106,6 +106,12 @@ define l23network::l3::ifconfig (
 ){
   include ::l23network::params
 
+  $bond_properties_defaults = {
+      mode       => 0,
+      miimon     => 100,
+      lacp_rate  => 1,
+  }
+
   $bond_modes = [
     'balance-rr',
     'active-backup',
@@ -316,12 +322,20 @@ define l23network::l3::ifconfig (
     content => template("l23network/ipconfig_${::osfamily}_${method}.erb"),
   }
 
+  # bond master interface should be upped only after including at least one slave interface to one
+  if $interface =~ /^(bond\d+)/ {
+    $l3_if_downup__subscribe = undef
+    File["$interface_file"] -> L3_if_downup["$interface"]
+    L3_if_downup<| $bond_master == $interface |> ~> L3_if_downup["$interface"]
+  } else {
+    $l3_if_downup__subscribe = File["$interface_file"]
+  }
   notify {"ifconfig_${interface}": message=>"Interface:${interface} IP:${effective_ipaddr}/${effective_netmask}", withpath=>false} ->
   l3_if_downup {"$interface":
     check_by_ping => $check_by_ping,
     check_by_ping_timeout => $check_by_ping_timeout,
     #require       => File["$interface_file"], ## do not enable it!!! It affect requirements interface from interface in some cases.
-    subscribe     => File["$interface_file"],
+    subscribe     => $l3_if_downup__subscribe,
     refreshonly   => true,
   }
 
