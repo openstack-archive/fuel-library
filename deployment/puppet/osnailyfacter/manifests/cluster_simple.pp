@@ -88,17 +88,39 @@ class osnailyfacter::cluster_simple {
 
   if $::fuel_settings['ceilometer'] {
     $mongo_node = filter_nodes($nodes_hash,'role','mongo')
+    $mongo_primary_node = filter_nodes($nodes_hash,'role','primary-mongo')
+    $mongo_secondary_hosts = values(nodes_to_hash($mongo_node,'name','internal_address'))
 
     if is_hash($mongo_node[0]) {
       $mongo_node_address = $mongo_node[0]['internal_address']
+      notify {"MongoDB: $mongo_node_address": }
+
     }
 
-  # MBF
-    $current_ceilometer_db_type = "mongodb"
-    $current_ceilometer_db_address = $mongo_node_address
+    if is_hash($mongo_primary_node[0]) {
+      $mongo_primary_node_address = $mongo_primary_node[0]['internal_address']
+      notify {"MongoDB_Primary: $mongo_primary_node_address": }
 
-    notify {"MongoDB: $mongo_node_address": }
+    }
+    
+    # MBF
+    # Connect to prymary node
+    # $current_ceilometer_db_address =  $mongo_primary_node_address
+    # Connect to ReplicaSet Example
+    # connection = mongodb://mongos1:27017,mongos2:27017,mongos3:27017/ceilometer?readPreference=secondary&w=2&wtimeoutMS=2000
+    $current_ceilometer_db_type = "mongodb"
+    if is_hash($mongo_primary_node[0]) {
+      if size($mongo_secondary_hosts) > 0 {
+        $current_ceilometer_db_address = "$mongo_primary_node_address,$mongo_secondary_hosts"
+      } else {
+        $current_ceilometer_db_address = "$mongo_primary_node_address"
+      }
+    } else {
+      $current_ceilometer_db_address = '127.0.0.1'
+    }
+    notify {"Ceilometer_connection_string: $current_ceilometer_db_address": }
   }
+  $mongodb_bind_address_list = ['127.0.0.1']
 
   # AMQP client configuration
   $amqp_port = '5672'
@@ -443,15 +465,36 @@ class osnailyfacter::cluster_simple {
 
 
     "mongo" : {
+      #notify {"MongoDB bind address 4: $::osnailyfacter::cluster_ha::mongodb_bind_address_list": }
+      #$::osnailyfacter::cluster_ha::mongodb_bind_address_list += ["$::internal_address"]
+      # Append does not works as expeced, use workaround!
+      notify {"MongoDB bind address 5: $::osnailyfacter::cluster_ha::mongodb_bind_address_list": }
+      $::osnailyfacter::cluster_ha::mongodb_bind_address_list[1] = $::internal_address
+      notify {"MongoDB bind address 6: $::osnailyfacter::cluster_ha::mongodb_bind_address_list": }
 
-      class { 'openstack::mongo':
-        mongodb_bind_address        => [ $mongo_node[0]['internal_address'], '127.0.0.1' ],
-        ceilometer_database         => "ceilometer",
-        ceilometer_user             => "ceilometer",
-        ceilometer_metering_secret  => $ceilometer_hash[metering_secret],
-        ceilometer_db_password      => $ceilometer_hash[db_password],
+      class { 'openstack::mongo_secondary':
+        mongodb_bind_address        => $::osnailyfacter::cluster_ha::mongodb_bind_address_list,
       }
     } # MONGO ENDS
+
+    "primary-mongo" : {
+      #notify {"MongoDB bind address 1: $::osnailyfacter::cluster_ha::mongodb_bind_address_list": }
+      #$::osnailyfacter::cluster_ha::mongodb_bind_address_list += ["$::internal_address"]
+      # Append does not works as expeced, use workaround!
+      notify {"MongoDB bind address 2: $::osnailyfacter::cluster_ha::mongodb_bind_address_list": }
+      $::osnailyfacter::cluster_ha::mongodb_bind_address_list[1] = $::internal_address
+      notify {"MongoDB bind address 3: $::osnailyfacter::cluster_ha::mongodb_bind_address_list": }
+
+      class { 'openstack::mongo_primary':
+        mongodb_bind_address        => $::osnailyfacter::cluster_ha::mongodb_bind_address_list,
+        ceilometer_database         => "ceilometer",
+        ceilometer_metering_secret  => $::osnailyfacter::cluster_ha::ceilometer_hash[metering_secret],
+        ceilometer_db_password      => $::osnailyfacter::cluster_ha::ceilometer_hash[db_password],
+        ceilometer_replset_members  => $mongo_secondary_hosts,
+        ceilometer_db_user          => "ceilometer",
+      }
+
+    } # MONGO PRIMARYENDS
 
 
     "cinder" : {
