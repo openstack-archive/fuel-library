@@ -17,8 +17,9 @@
 #
 define l23network::l2::bridge (
   $external_ids  = '',
+  $provider      = 'ovs',
   $ensure        = present,
-  $skip_existing = false,
+  $skip_existing = false
 ) {
   if ! $::l23network::l2::use_ovs {
     fail('You must enable Open vSwitch by setting the l23network::l2::use_ovs to true.')

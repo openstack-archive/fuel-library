@@ -1,5 +1,5 @@
-auto <%= interface %>
-iface <%= interface %> inet manual
+auto <%= @interface %>
+iface <%= @interface %> inet manual
 bond-master <%= @bond_master %>
 <% if @macaddr -%>
 hwaddress ether <%= @macaddr.downcase %>

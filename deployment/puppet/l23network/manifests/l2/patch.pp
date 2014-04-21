@@ -27,7 +27,9 @@ define l23network::l2::patch (
   $peers         = [undef,undef],
   $tags          = [0, 0],
   $trunks        = [],
+  $provider      = 'ovs',
   $ensure        = present,
+  $skip_existing = false
 ) {
   if ! $::l23network::l2::use_ovs {
     fail('You must enable Open vSwitch by setting the l23network::l2::use_ovs to true.')

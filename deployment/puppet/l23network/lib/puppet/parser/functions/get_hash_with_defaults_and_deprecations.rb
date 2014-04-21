@@ -28,13 +28,15 @@ EOS
 
     # Add deprecated properties
     depre.each { |k,v|
-      if rv[k].nil?
+      if rv[k].nil? and ![nil, 'undef', :undef].index(v)
+        warn("You using deprecated parameter '#{k}':#{v}")
         rv[k] = v
       end
     }
 
     defa.each { |k,v|
-      if rv[k].nil?
+      if rv[k].nil? and ![nil, 'undef', :undef].index(v)
+        info("Setup default parameter '#{k}':#{v}")
         rv[k] = v
       end
     }
