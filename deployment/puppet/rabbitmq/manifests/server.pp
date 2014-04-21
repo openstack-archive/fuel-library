@@ -47,7 +47,8 @@ class rabbitmq::server(
   $erlang_cookie='EOKOWXQREETZSHFNTPEY',
   $wipe_db_on_cookie_change=true,
   $inet_dist_listen_min = '41055',
-  $inet_dist_listen_max = '41055'
+  $inet_dist_listen_max = '41055',
+  $max_retry = '60',
 ) {
 
   validate_bool($delete_guest_user, $config_stomp)
