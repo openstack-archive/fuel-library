@@ -190,7 +190,13 @@ class osnailyfacter::cluster_ha {
       $mongo_slave_node_address_1 = $mongo_node[1]['internal_address']
     }
     if is_hash($mongo_primary_node[0]) {
-      $current_ceilometer_db_address =  "$mongo_primary_node_address,$mongo_slave_node_address_0,$mongo_slave_node_address_1"
+      if size($mongo_secondary_hosts) > 0 {
+        $current_ceilometer_db_address = inline_template("<%=[@mongo_primary_node_address]\
+                                                         .concat(@mongo_secondary_hosts)\
+                                                         .select{|x| not (x.nil? or x.empty?)}.join(',') %>")
+      } else {
+        $current_ceilometer_db_address = "$mongo_primary_node_address"
+      }
     } else {
       $current_ceilometer_db_address = '127.0.0.1'
     }
