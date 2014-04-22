@@ -192,6 +192,10 @@ class neutron::agents::dhcp (
 
     Service['neutron-dhcp-service_stopped'] -> Cs_resource["p_${::neutron::params::dhcp_agent_service}"]
 
+    if !defined(Package['lsof']) {
+      package { 'lsof': } -> Cs_resource["p_${::neutron::params::dhcp_agent_service}"]
+    }
+
     service { 'neutron-dhcp-service_stopped':
       name       => "${::neutron::params::dhcp_agent_service}",
       enable     => false,
