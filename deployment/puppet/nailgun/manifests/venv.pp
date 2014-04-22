@@ -31,6 +31,7 @@ class nailgun::venv(
   $admin_network_netmask,
   $admin_network_ip,
 
+  $cobbler_host,
   $cobbler_url,
   $cobbler_user = "cobbler",
   $cobbler_password = "cobbler",
