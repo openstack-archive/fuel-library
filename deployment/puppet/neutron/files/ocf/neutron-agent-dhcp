@@ -379,11 +379,31 @@ neutron_dhcp_agent_stop() {
           using SIGTERM. Trying SIGKILL ..."
         ocf_run kill -s KILL $pid
     fi
-
     ocf_log info "OpenStack DHCP Server (${OCF_RESKEY_binary}) stopped"
 
     rm -f $OCF_RESKEY_pid
     clean_up
+
+    # kill processes inside network namespaces
+    ns_list=`ip netns list | grep -Ee "^tap.*"`
+
+    # kill all proceses from all dhcp-agent's net.namespaces, that using ip
+    count=3  # we will try kill process 3 times
+    while [ $count -gt 0 ]; do
+        inside_ns_pids=`for netns in $ns_list ; do ip netns exec $netns lsof -n -i -t ; done`
+        if [ -z "$inside_ns_pids" ] ; then
+            break
+        fi
+        for ns_pid in $inside_ns_pids ; do kill $ns_pid ; done
+        sleep 1
+        count=$(($count - 1))
+    done
+
+    # kill all remaining proceses, that not died by simple kill
+    inside_ns_pids=`for netns in $ns_list ; do ip netns exec $netns lsof -n -i -t ; done`
+    if [ ! -z "$inside_ns_pids" ] ; then
+        for ns_pid in $inside_ns_pids ; do kill -9 $ns_pid ; done
+    fi
 
     return $OCF_SUCCESS
 }
