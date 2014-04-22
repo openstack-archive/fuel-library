@@ -53,6 +53,7 @@ $rabbitmq_host = $::fuel_settings['ADMIN_NETWORK']['ipaddress']
 $rabbitmq_astute_user = "naily"
 $rabbitmq_astute_password = "naily"
 
+$cobbler_host = $::fuel_settings['ADMIN_NETWORK']['ipaddress']
 $cobbler_url = "http://${::fuel_settings['ADMIN_NETWORK']['ipaddress']}:80/cobbler_api"
 $cobbler_user = "cobbler"
 $cobbler_password = "cobbler"
@@ -103,6 +104,7 @@ class { "nailgun::venv":
   admin_network_netmask => $::fuel_settings['ADMIN_NETWORK']['netmask'],
   admin_network_ip      => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
 
+  cobbler_host     => $cobbler_host,
   cobbler_url      => $cobbler_url,
   cobbler_user     => $cobbler_user,
   cobbler_password => $cobbler_password,

@@ -143,6 +143,7 @@ class nailgun(
     admin_network_netmask => $::fuel_settings['ADMIN_NETWORK']['netmask'],
     admin_network_ip      => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
 
+    cobbler_host     => $cobbler_host,
     cobbler_url      => $cobbler_url,
     cobbler_user     => $cobbler_user,
     cobbler_password => $cobbler_password,
