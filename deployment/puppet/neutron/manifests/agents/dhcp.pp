@@ -80,6 +80,7 @@ class neutron::agents::dhcp (
     'DEFAULT/admin_tenant_name': value => $neutron_config['keystone']['admin_tenant_name'];
     'DEFAULT/resync_interval':   value => $neutron_config['L3']['resync_interval'];
     'DEFAULT/use_namespaces':    value => $neutron_config['L3']['use_namespaces'];
+    'DEFAULT/dhcp_delete_namespaces':   value => 'False';  # Neutron can't properly clean network namespace before delete.
     'DEFAULT/root_helper':       value => $neutron_config['root_helper'];
     'DEFAULT/signing_dir':       value => $neutron_config['keystone']['signing_dir'];
     'DEFAULT/enable_isolated_metadata': value => $neutron_config['L3']['dhcp_agent']['enable_isolated_metadata'];
@@ -191,6 +192,10 @@ class neutron::agents::dhcp (
     } -> Service['neutron-dhcp-service']
 
     Service['neutron-dhcp-service_stopped'] -> Cs_resource["p_${::neutron::params::dhcp_agent_service}"]
+
+    if !defined(Package['lsof']) {
+      package { 'lsof': } -> Cs_resource["p_${::neutron::params::dhcp_agent_service}"]
+    }
 
     service { 'neutron-dhcp-service_stopped':
       name       => "${::neutron::params::dhcp_agent_service}",
