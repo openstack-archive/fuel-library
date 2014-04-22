@@ -114,16 +114,16 @@ $syslog_log_facility_heat     = 'LOG_LOCAL0'
 $syslog_log_facility_sahara   = 'LOG_LOCAL0'
 
 $nova_rate_limits = {
-  'POST' => 1000,
-  'POST_SERVERS' => 1000,
-  'PUT' => 1000, 'GET' => 1000,
-  'DELETE' => 1000
+  'POST' => 100000,
+  'POST_SERVERS' => 100000,
+  'PUT' => 1000, 'GET' => 100000,
+  'DELETE' => 100000
 }
 $cinder_rate_limits = {
-  'POST' => 1000,
-  'POST_SERVERS' => 1000,
-  'PUT' => 1000, 'GET' => 1000,
-  'DELETE' => 1000
+  'POST' => 100000,
+  'POST_SERVERS' => 100000,
+  'PUT' => 100000, 'GET' => 100000,
+  'DELETE' => 100000
 }
 
 ###
