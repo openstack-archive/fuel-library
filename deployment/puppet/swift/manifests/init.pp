@@ -73,6 +73,13 @@ class swift(
     ensure => directory
   }
 
+  file { '/etc/swift/backups':
+    ensure => directory,
+    owner  => 'swift',
+    group  => 'swift'
+  }
+
+
   file { '/var/run/swift':
     ensure => directory,
   }
