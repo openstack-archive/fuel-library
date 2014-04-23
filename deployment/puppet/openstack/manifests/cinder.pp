@@ -1,7 +1,6 @@
 # [use_syslog] Rather or not service should log to syslog. Optional. Defaults to false.
 # [syslog_log_facility] Facility for syslog, if used. Optional. Note: duplicating conf option
 #       wouldn't have been used, but more powerfull rsyslog features managed via conf template instead
-# [syslog_log_level] logging level for non verbose and non debug mode. Optional.
 
 class openstack::cinder(
   $sql_connection,
@@ -22,7 +21,6 @@ class openstack::cinder(
   $iscsi_bind_host        = '0.0.0.0',
   $use_syslog             = false,
   $syslog_log_facility    = 'LOG_LOCAL3',
-  $syslog_log_level       = 'WARNING',
   $cinder_rate_limits     = undef,
   $verbose                = false,
   $debug                  = false,
@@ -63,7 +61,6 @@ class openstack::cinder(
     verbose             => $verbose,
     use_syslog          => $use_syslog,
     syslog_log_facility => $syslog_log_facility,
-    syslog_log_level    => $syslog_log_level,
     debug               => $debug,
     max_retries         => $max_retries,
     max_pool_size       => $max_pool_size,
