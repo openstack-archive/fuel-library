@@ -55,6 +55,7 @@ class mcollective::server(
     group => root,
     mode => 0600,
     require => Package[$mcollective_package],
+    notify => Service['mcollective'],
   }
 
   service { "mcollective":

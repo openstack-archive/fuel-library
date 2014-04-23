@@ -7,6 +7,7 @@ class nailgun::mcollective(
   $rabbitmq_host = "localhost",
   ){
 
+  anchor { 'nailgun::mcollective start' :} ->
   class { "mcollective::client":
     pskey => $mco_pskey,
     vhost => $mco_vhost,
@@ -14,7 +15,7 @@ class nailgun::mcollective(
     password => $mco_password,
     host => $rabbitmq_host,
     stomp => false,
-  }
+  } ->
    class { "mcollective::server":
     pskey => $mco_pskey,
     vhost => $mco_vhost,
@@ -22,6 +23,7 @@ class nailgun::mcollective(
     password => $mco_password,
     host => $rabbitmq_host,
     stomp => false,
-  }
- 
+  } ->
+  anchor { 'nailgun::mcollective end' :}
+
 }

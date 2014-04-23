@@ -60,6 +60,7 @@ class nailgun(
   Class["nailgun::user"] ->
   Class["nailgun::logrotate"] ->
   Class["nailgun::rabbitmq"] ->
+  Class["nailgun::mcollective"] ->
   Class["nailgun::venv"] ->
   Class["nailgun::astute"] ->
   Class["nailgun::nginx-nailgun"] ->
