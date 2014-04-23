@@ -23,8 +23,23 @@
 #  $registry_port - The port of the Glance registry service.
 #  Optional. Default: 9191
 #
-#  $log_file - The path of file used for logging
-#  Optional. Default: /var/log/glance/api.log
+#  [*use_syslog*]
+#    (optional) Use syslog for logging.
+#    Defaults to false.
+#
+#  [*syslog_log_facility*]
+#    (optional) Syslog facility to receive log lines.
+#    Defaults to LOG_LOCAL2.
+#
+#  [*log_file*]
+#    (optional) The path of file used for logging
+#    If set to boolean false, it will not log to any file.
+#    Default: /var/log/glance/api.log
+#
+#  [*log_dir*]
+#    (optional) directory to which glance logs are sent.
+#    If set to boolean false, it will not log to any directory.
+#    Defaults to '/var/log/glance'
 #
 #  $prune_hour - cron hour to launch glance-cache-pruner.
 #  Optional. Default: 0
@@ -39,44 +54,42 @@
 #  $clean_minute - cron minute to launch glance-cache-cleaner.
 #  Optional. Default: 0
 #
-#  $use_syslog - Rather or not service should log to syslog. Optional.
-#  Default: false
 #
 class glance::api(
   $keystone_password,
-  $verbose           = false,
-  $debug             = false,
-  $bind_host         = '0.0.0.0',
-  $bind_port         = '9292',
-  $backlog           = '4096',
-  $workers           = $::processorcount,
-  $log_file          = '/var/log/glance/api.log',
-  $registry_host     = '0.0.0.0',
-  $registry_port     = '9191',
-  $auth_type         = 'keystone',
-  $auth_host         = '127.0.0.1',
-  $auth_port         = '35357',
-  $auth_protocol     = 'http',
-  $auth_url          = "http://127.0.0.1:5000/",
-  $keystone_tenant   = 'admin',
-  $keystone_user     = 'admin',
-  $enabled           = true,
-  $idle_timeout      = '3600',
-  $max_pool_size     = '10',
-  $max_overflow      = '30',
-  $max_retries       = '-1',
-  $sql_connection    = 'sqlite:///var/lib/glance/glance.sqlite',
-  $use_syslog        = false,
-  $syslog_log_facility = 'LOG_LOCAL2',
-  $syslog_log_level  = 'WARNING',
-  $prune_hour        = 0,
-  $prune_minute      = 0,
-  $prune_ensure      = 'present',
-  $clean_hour        = 1,
-  $clean_minute      = 0,
-  $clean_ensure      = 'present',
+  $verbose              = false,
+  $debug                = false,
+  $bind_host            = '0.0.0.0',
+  $bind_port            = '9292',
+  $backlog              = '4096',
+  $workers              = $::processorcount,
+  $log_file             = '/var/log/glance/api.log',
+  $log_dir              = '/var/log/glance',
+  $registry_host        = '0.0.0.0',
+  $registry_port        = '9191',
+  $auth_type            = 'keystone',
+  $auth_host            = '127.0.0.1',
+  $auth_port            = '35357',
+  $auth_protocol        = 'http',
+  $auth_url             = "http://127.0.0.1:5000/",
+  $keystone_tenant      = 'admin',
+  $keystone_user        = 'admin',
+  $enabled              = true,
+  $idle_timeout         = '3600',
+  $max_pool_size        = '10',
+  $max_overflow         = '30',
+  $max_retries          = '-1',
+  $sql_connection       = 'sqlite:///var/lib/glance/glance.sqlite',
+  $use_syslog           = false,
+  $syslog_log_facility  = 'LOG_LOCAL2',
+  $prune_hour           = 0,
+  $prune_minute         = 0,
+  $prune_ensure         = 'present',
+  $clean_hour           = 1,
+  $clean_minute         = 0,
+  $clean_ensure         = 'present',
   $image_cache_max_size = '10737418240',
-  $notify_mech        = 'noop',
+  $notify_mech          = 'noop',
   ) inherits glance {
 
   # used to configure concat
@@ -122,51 +135,83 @@ class glance::api(
     include "glance::notify::${notify_mech}"
   }
 
-  if $use_syslog and !$debug { #syslog and nondebug case
+  # Logging
+  if $log_file {
     glance_api_config {
-      'DEFAULT/log_config': value => "/etc/glance/logging.conf";
-      'DEFAULT/use_syslog':  value => true;
-      'DEFAULT/syslog_log_facility': value =>  $syslog_log_facility;
+      'DEFAULT/log_file': value  => $log_file;
     }
-    if !defined(File["glance-logging.conf"]) {
-      file {"glance-logging.conf":
-        content => template('glance/logging.conf.erb'),
-        path => "/etc/glance/logging.conf",
-        notify => Service['glance-api'],
-      }
+    glance_cache_config {
+      'DEFAULT/log_file': value  => $log_file;
     }
-  } else {  #other syslog debug or nonsyslog debug/nondebug cases
+  } else {
     glance_api_config {
-      'DEFAULT/log_config': ensure=> absent;
-      'DEFAULT/log_file':value=> $log_file;
-      'DEFAULT/use_syslog': value =>  false;
+      'DEFAULT/log_file': ensure => absent;
     }
-  } #end if
+    glance_cache_config {
+      'DEFAULT/log_file': ensure => absent;
+    }
+  }
+
+  if $log_dir {
+    glance_api_config {
+      'DEFAULT/log_dir': value  => $log_dir;
+    }
+    glance_cache_config {
+      'DEFAULT/log_dir': value  => $log_dir;
+    }
+  } else {
+    glance_api_config {
+      'DEFAULT/log_dir': ensure => absent;
+    }
+    glance_cache_config {
+      'DEFAULT/log_dir': ensure => absent;
+    }
+  }
+
+  # Syslog
+  if $use_syslog {
+    glance_api_config {
+      'DEFAULT/use_syslog'          :  value => true;
+      'DEFAULT/use_syslog_rfc_format': value => true;
+      'DEFAULT/syslog_log_facility' :  value => $syslog_log_facility;
+    }
+    glance_cache_config {
+      'DEFAULT/use_syslog'          :  value => true;
+      'DEFAULT/use_syslog_rfc_format': value => true;
+      'DEFAULT/syslog_log_facility' :  value => $syslog_log_facility;
+    }
+  } else {
+    glance_api_config {
+      'DEFAULT/use_syslog': value => false;
+    }
+    glance_cache_config {
+      'DEFAULT/use_syslog': value => false;
+    }
+  }
 
   # basic service config
   glance_api_config {
-    'DEFAULT/debug':     value => $debug;
-    'DEFAULT/verbose':   value => $verbose;
-    'DEFAULT/bind_host': value => $bind_host;
-    'DEFAULT/bind_port': value => $bind_port;
-    'DEFAULT/backlog':   value => $backlog;
-    'DEFAULT/workers':   value => $workers;
+    'DEFAULT/debug':                     value => $debug;
+    'DEFAULT/verbose':                   value => $verbose;
+    'DEFAULT/bind_host':                 value => $bind_host;
+    'DEFAULT/bind_port':                 value => $bind_port;
+    'DEFAULT/backlog':                   value => $backlog;
+    'DEFAULT/workers':                   value => $workers;
     'DEFAULT/registry_client_protocol':  value => "http";
-    'DEFAULT/delayed_delete': value => "False";
-    'DEFAULT/scrub_time': value => "43200";
-    'DEFAULT/scrubber_datadir': value => "/var/lib/glance/scrubber";
-    'DEFAULT/image_cache_dir': value => "/var/lib/glance/image-cache/";
+    'DEFAULT/delayed_delete':            value => "False";
+    'DEFAULT/scrub_time':                value => "43200";
+    'DEFAULT/scrubber_datadir':          value => "/var/lib/glance/scrubber";
+    'DEFAULT/image_cache_dir':           value => "/var/lib/glance/image-cache/";
   }
 
   glance_cache_config {
-    'DEFAULT/debug':     value => $debug;
-    'DEFAULT/verbose':   value => $verbose;
-    'DEFAULT/use_syslog':  value => $use_syslog;
-    'DEFAULT/image_cache_dir': value => "/var/lib/glance/image-cache/";
-    'DEFAULT/log_file':  value => "/var/log/glance/image-cache.log";
-    'DEFAULT/image_cache_stall_time':  value => "86400";
-    'DEFAULT/image_cache_invalid_entry_grace_period':  value => "3600";
-    'DEFAULT/image_cache_max_size':  value => $image_cache_max_size;
+    'DEFAULT/debug':                     value => $debug;
+    'DEFAULT/verbose':                   value => $verbose;
+    'DEFAULT/image_cache_dir':           value => "/var/lib/glance/image-cache/";
+    'DEFAULT/image_cache_stall_time':    value => "86400";
+    'DEFAULT/image_cache_invalid_entry_grace_period':
+                                         value => "3600";
+    'DEFAULT/image_cache_max_size':      value => $image_cache_max_size;
     'DEFAULT/filesystem_store_datadir':  value => "/var/lib/glance/images/";
   }
 

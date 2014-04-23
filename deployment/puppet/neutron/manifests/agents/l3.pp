@@ -49,12 +49,6 @@ class neutron::agents::l3 (
   neutron_l3_agent_config {
     'DEFAULT/debug':          value => $debug;
     'DEFAULT/verbose':        value => $verbose;
-    'DEFAULT/log_dir':       ensure => absent;
-    'DEFAULT/log_file':      ensure => absent;
-    'DEFAULT/log_config':    ensure => absent;
-    #TODO(bogdando) fix syslog usage after Oslo logging patch synced in I
-    'DEFAULT/use_syslog':    ensure => absent;
-    'DEFAULT/use_stderr':    ensure => absent;
     'DEFAULT/router_id':     ensure => absent;
     'DEFAULT/handle_internal_only_routers': value => false;
     'DEFAULT/root_helper':    value => $neutron_config['root_helper'];

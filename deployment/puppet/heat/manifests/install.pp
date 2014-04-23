@@ -79,29 +79,27 @@ class heat::install (
     name   => $::heat::params::common_package_name,
   }
 
-  $logging_file = '/etc/heat/logging.conf'
-  if $use_syslog and !$debug { #syslog and nondebug case
+  # Log configuration
+  if $log_dir {
     heat_config {
-      'DEFAULT/log_config' : value => $logging_file;
-      'DEFAULT/use_syslog' : value => true;
-      'DEFAULT/syslog_log_facility': value => $syslog_log_facility;
+      'DEFAULT/log_dir' : value  => $log_dir;
     }
-    file {"heat-logging.conf":
-      content => template('heat/logging.conf.erb'),
-      path    => $logging_file,
-      require => File['/etc/heat'],
-    }
-  # We must notify service for new logging rules
-  File['heat-logging.conf'] -> Heat_config['DEFAULT/log_config']
-  File['heat-logging.conf'] ~> Service <| title == 'heat-api-cfn' |>
-  File['heat-logging.conf'] ~> Service <| title == 'heat-api-cloudwatch' |>
-  File['heat-logging.conf'] ~> Service <| title == 'heat-api' |>
-  File['heat-logging.conf'] ~> Service <| title == 'heat-engine' |>
-  } else { #other syslog debug or nonsyslog debug/nondebug cases
+  } else {
     heat_config {
-      'DEFAULT/log_config' : ensure => absent;
-      'DEFAULT/log_dir'   : value  => $log_dir;
-      'DEFAULT/use_syslog' : value => false;
+      'DEFAULT/log_dir' : ensure => absent;
+    }
+  }
+
+  # Syslog configuration
+  if $use_syslog {
+    heat_config {
+      'DEFAULT/use_syslog':            value => true;
+      'DEFAULT/use_syslog_rfc_format': value => true;
+      'DEFAULT/syslog_log_facility':   value => $syslog_log_facility;
+    }
+  } else {
+    heat_config {
+      'DEFAULT/use_syslog':           value => false;
     }
   }
 
@@ -116,8 +114,6 @@ class heat::install (
     'DEFAULT/instance_connection_is_secure'                   : value => $ic_is_secure;
     'DEFAULT/rpc_backend'                                     : value => $rpc_backend;
     'DEFAULT/use_stderr'                                      : value => $use_stderr;
-    #'DEFAULT/logging_context_format_string'                   : value => $logging_context_format_string;
-    #'DEFAULT/logging_default_format_string'                   : value => $logging_default_format_string;
     'DEFAULT/rabbit_hosts'                                    : value => $amqp_hosts;
     'DEFAULT/rabbit_userid'                                   : value => $amqp_user;
     'DEFAULT/rabbit_password'                                 : value => $amqp_password;

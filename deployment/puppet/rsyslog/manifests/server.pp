@@ -5,16 +5,12 @@
 class rsyslog::server (
   $enable_tcp                = true,
   $enable_udp                = true,
-  $port                      = '514',
   $server_dir                = '/srv/log/',
   $custom_config             = undef,
   $high_precision_timestamps = false,
   $escapenewline             = false,
-  $virtual                   = true,
+  $port                      = '514',
 ) inherits rsyslog {
-
-# Fix for udp checksums should be applied if running on virtual node
-if $virtual { include rsyslog::checksum_udp514 }
 
   File {
     owner => root,
@@ -29,11 +25,6 @@ if $virtual { include rsyslog::checksum_udp514 }
         recurse => true,
         force   => true,
         ensure  => directory,
-    }
-
-    file { "${rsyslog::params::rsyslog_d}30-remote-log.conf":
-        content => template("${module_name}/30-server-remote-log.conf.erb"),
-
     }
 
     file { $rsyslog::params::server_conf:
