@@ -11,6 +11,10 @@ class nailgun::rabbitmq (
   $rabbitmq_host   = "localhost",
 ) {
 
+  include stdlib
+  anchor { 'nailgun::rabbitmq start' :}
+  anchor { 'nailgun::rabbitmq end' :}
+
   define access_to_rabbitmq_port ($port, $protocol = 'tcp') {
     $rule = "-p $protocol -m state --state NEW -m $protocol --dport $port -j ACCEPT"
 
@@ -125,4 +129,9 @@ class nailgun::rabbitmq (
     stomp_port         => $stompport,
     node_ip_address    => 'UNSET',
   }
+
+  Anchor['nailgun::rabbitmq start'] ->
+  Class['rabbitmq::server'] ->
+  Anchor['nailgun::rabbitmq end']
+
 }
