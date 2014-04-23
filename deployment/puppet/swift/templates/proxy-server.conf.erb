@@ -10,7 +10,7 @@ log_level = DEBUG
 <% elsif @verbose then -%>
 log_level = INFO
 <% else -%>
-log_level = <%= @syslog_log_level %>
+log_level = WARNING
 <% end -%>
 log_name = swift-proxy-server
 user = swift

@@ -20,7 +20,7 @@
 # [logdir] Directory where logs should be stored. Optional. Defaults to '/var/log/nova'.
 # [state_path] Directory for storing state. Optional. Defaults to '/var/lib/nova'.
 # [lock_path] Directory for lock files. Optional. Distro specific default.
-# [verbose] Rather to print more verbose (INFO+) output. If non verbose and non debug, would give syslog_log_level (default is WARNING) output. Optional. Defaults to false.
+# [verbose] Rather to print more verbose (INFO+) output. Optional. Defaults to false.
 # [debug] Rather to print even more verbose (DEBUG+) output. If true, would ignore verbose option. Optional. Defaults to false.
 # [periodic_interval] Seconds between running periodic tasks. Optional.
 #   Defaults to '60'.
@@ -33,46 +33,44 @@
 # add rabbit nodes hostname
 # [use_syslog] Rather or not service should log to syslog. Optional.
 # [syslog_log_facility] Facility for syslog, if used. Optional.
-# [syslog_log_level] logging level for non verbose and non debug mode. Optional.
 #
 class nova(
-  $ensure_package = 'present',
+  $ensure_package               = 'present',
   # this is how to query all resources from our clutser
-  $nova_cluster_id='localcluster',
-  $sql_connection = false,
-  $use_syslog = false,
-  $syslog_log_facility = 'LOG_LOCAL6',
-  $syslog_log_level = 'WARNING',
-  $image_service = 'nova.image.glance.GlanceImageService',
+  $nova_cluster_id              ='localcluster',
+  $sql_connection               = false,
+  $use_syslog                   = false,
+  $syslog_log_facility          = 'LOG_LOCAL6',
+  $image_service                = 'nova.image.glance.GlanceImageService',
   # these glance params should be optional
   # this should probably just be configured as a glance client
-  $glance_api_servers = 'localhost:9292',
+  $glance_api_servers           = 'localhost:9292',
   # RPC
-  $queue_provider = 'rabbitmq',
-  $amqp_hosts = 'localhost',
-  $amqp_user = 'guest',
-  $amqp_password = 'guest',
-  $rabbit_ha_queues = false,
-  $rabbit_virtual_host='/',
-  $auth_strategy = 'keystone',
-  $service_down_time = 60,
-  $logdir = '/var/log/nova',
-  $state_path = '/var/lib/nova',
-  $lock_path = $::nova::params::lock_path,
-  $verbose = false,
-  $debug   = false,
-  $periodic_interval = '60',
-  $report_interval = '10',
-  $root_wrap_config = '/etc/nova/rootwrap.conf',
+  $queue_provider               = 'rabbitmq',
+  $amqp_hosts                   = 'localhost',
+  $amqp_user                    = 'guest',
+  $amqp_password                = 'guest',
+  $rabbit_ha_queues             = false,
+  $rabbit_virtual_host          = '/',
+  $auth_strategy                = 'keystone',
+  $service_down_time            = 60,
+  $logdir                       = '/var/log/nova',
+  $state_path                   = '/var/lib/nova',
+  $lock_path                    = $::nova::params::lock_path,
+  $verbose                      = false,
+  $debug                        = false,
+  $periodic_interval            = '60',
+  $report_interval              = '10',
+  $root_wrap_config             = '/etc/nova/rootwrap.conf',
   # deprecated in folsom
   #$root_helper = $::nova::params::root_helper,
-  $monitoring_notifications = false,
-  $api_bind_address = '0.0.0.0',
-  $remote_syslog_server = '127.0.0.1',
-  $idle_timeout = '3600',
-  $max_pool_size = '10',
-  $max_overflow = '30',
-  $max_retries = '-1',
+  $monitoring_notifications     = false,
+  $api_bind_address             = '0.0.0.0',
+  $remote_syslog_server         = '127.0.0.1',
+  $idle_timeout                 = '3600',
+  $max_pool_size                = '10',
+  $max_overflow                 = '30',
+  $max_retries                  = '-1',
 ) inherits nova::params {
 
   # all nova_config resources should be applied
@@ -141,38 +139,22 @@ class nova(
     require => Package['nova-common'],
   }
 
-#Configure logging in nova.conf
-if $use_syslog and !$debug { #syslog and nondebug case
-  nova_config {
-     'DEFAULT/log_config': value => "/etc/nova/logging.conf";
-     'DEFAULT/use_syslog': value =>  true;
-     'DEFAULT/syslog_log_facility': value =>  $syslog_log_facility;
+  # Syslog configuration
+  if $use_syslog {
+    nova_config {
+      'DEFAULT/use_syslog':            value => true;
+      'DEFAULT/use_syslog_rfc_format': value => true;
+      'DEFAULT/syslog_log_facility':   value => $syslog_log_facility;
+    }
+  } else {
+    nova_config {
+      'DEFAULT/use_syslog':           value => false;
+    }
   }
-  file {"nova-logging.conf":
-    content => template('nova/logging.conf.erb'),
-    path => "/etc/nova/logging.conf",
-    require => File[$logdir],
-  }
-  # We must notify services to apply new logging rules
-  File['nova-logging.conf'] ~> Nova::Generic_service <| |>
-  File['nova-logging.conf'] ~> Service <| title == 'nova-api'|>
-  File['nova-logging.conf'] ~> Service <| title == 'nova-compute'|>
-} else { #other syslog debug or nonsyslog debug/nondebug cases
-  nova_config {
-   'DEFAULT/log_config': ensure=> absent;
-   'DEFAULT/logdir': value=> $logdir;
-   'DEFAULT/use_syslog': value =>  false;
-  }
-}
 
   file { $logdir:
     ensure  => directory,
     mode    => '0751',
-  }
-  file { "${logdir}/nova.log":
-      ensure => present,
-      mode  => '0640',
-      require => [Package['nova-common'], File[$logdir]],
   }
   file { '/etc/nova/nova.conf':
     mode  => '0640',
@@ -242,6 +224,7 @@ if $use_syslog and !$debug { #syslog and nondebug case
   nova_config {
     'DEFAULT/debug':             value => $debug;
     'DEFAULT/verbose':           value => $verbose;
+    'DEFAULT/logdir':            value => $logdir;
     # Following may need to be broken out to different nova services
     'DEFAULT/state_path':        value => $state_path;
     'DEFAULT/lock_path':         value => $lock_path;

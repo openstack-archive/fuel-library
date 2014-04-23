@@ -1,7 +1,21 @@
 #
-# [use_syslog] Rather or not service should log to syslog. Optional.
-# [syslog_log_facility] Facility for syslog, if used. Optional.
-# [syslog_log_level] logging level for non verbose and non debug mode. Optional.
+# TODO(bogdando) move logging options to the neutron_config hash as well
+# [*use_syslog*]
+#   (optional) Use syslog for logging
+#   Defaults to false
+#
+# [*syslog_log_facility*]
+#   (optional) Syslog facility to receive log lines
+#   Defaults to LOG_LOCAL4
+#
+# [*log_file*]
+#   (optional) Where to log
+#   Defaults to false
+#
+# [*log_dir*]
+#   (optional) Directory where logs should be stored
+#   If set to boolean false, it will not log to any directory
+#   Defaults to /var/log/neutron
 #
 class neutron (
   $neutron_config = {},
@@ -14,7 +28,6 @@ class neutron (
   $log_dir              = '/var/log/neutron',
   $use_syslog           = false,
   $syslog_log_facility  = 'LOG_LOCAL4',
-  $syslog_log_level     = 'WARNING',
   $ssh_private_key      = '/var/lib/astute/neutron/neutron',
   $ssh_public_key       = '/var/lib/astute/neutron/neutron.pub',
   $server_ha_mode       = false,
@@ -64,6 +77,38 @@ class neutron (
     owner  => neutron,
     group  => neutron,
   }
+
+  if $log_file {
+    neutron_config {
+      'DEFAULT/log_file': value => $log_file;
+      'DEFAULT/log_dir': value => $log_dir;
+    }
+  } else {
+    if $log_dir {
+      neutron_config {
+        'DEFAULT/log_dir': value => $log_dir;
+        'DEFAULT/log_file': ensure => absent;
+      }
+    } else {
+      neutron_config {
+        'DEFAULT/log_dir': ensure => absent;
+        'DEFAULT/log_file': ensure => absent;
+      }
+    }
+  }
+
+  if $use_syslog {
+    neutron_config {
+      'DEFAULT/use_syslog':            value => true;
+      'DEFAULT/use_syslog_rfc_format': value => true;
+      'DEFAULT/syslog_log_facility':   value => $syslog_log_facility;
+    }
+  } else {
+    neutron_config {
+      'DEFAULT/use_syslog': value => false;
+    }
+  }
+
   case $neutron_config['amqp']['provider'] {
     'rabbitmq': {
         neutron_config {
@@ -106,33 +151,27 @@ class neutron (
   }
 
   neutron_config {
-    'DEFAULT/debug':                  value => $debug;
-    'DEFAULT/verbose':                value => $verbose;
-    'DEFAULT/log_dir':               ensure => absent;
-    'DEFAULT/log_file':              ensure => absent;
-    'DEFAULT/log_config':            ensure => absent;
-    #TODO(bogdando) fix syslog usage after Oslo logging patch synced in I.
-    'DEFAULT/use_syslog':             value       => false;
-    'DEFAULT/use_stderr':             value       => true;
-    'DEFAULT/publish_errors':         value       => false;
-    'DEFAULT/auth_strategy':          value       => $auth_strategy;
-    'DEFAULT/core_plugin':            value       => $core_plugin;
-    'DEFAULT/bind_host':              value       => $server_bind_host;
-    'DEFAULT/bind_port':              value       => $neutron_config['server']['bind_port'];
-    'DEFAULT/base_mac':               value       => $neutron_config['L2']['base_mac'];
-    'DEFAULT/mac_generation_retries': value       => $neutron_config['L2']['mac_generation_retries'];
-    'DEFAULT/dhcp_lease_duration':    value       => $neutron_config['L3']['dhcp_agent']['lease_duration'];
-    'DEFAULT/allow_bulk':             value       => $neutron_config['server']['allow_bulk'];
-    'DEFAULT/allow_overlapping_ips':  value       => $neutron_config['L3']['allow_overlapping_ips'];
-    'DEFAULT/control_exchange':       value       => $neutron_config['server']['control_exchange'];
-    'DEFAULT/network_auto_schedule':  value       => $neutron_config['L3']['network_auto_schedule'];
-    'DEFAULT/router_auto_schedule':   value       => $neutron_config['L3']['router_auto_schedule'];
-    'DEFAULT/agent_down_time':        value       => $neutron_config['server']['agent_down_time'];
-    'DEFAULT/firewall_driver':        value       => 'neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver';
-    'DEFAULT/state_path':             value       => '/var/lib/neutron';
-    'DEFAULT/lock_path':              value       => '/var/lib/neutron/lock';
-    'agent/report_interval':          value       => $neutron_config['server']['report_interval'];
-    'agent/root_helper':              value       => $neutron_config['root_helper'];
+    'DEFAULT/debug':                        value => $debug;
+    'DEFAULT/verbose':                      value => $verbose;
+    'DEFAULT/publish_errors':               value => false;
+    'DEFAULT/auth_strategy':                value => $auth_strategy;
+    'DEFAULT/core_plugin':                  value => $core_plugin;
+    'DEFAULT/bind_host':                    value => $server_bind_host;
+    'DEFAULT/bind_port':                    value => $neutron_config['server']['bind_port'];
+    'DEFAULT/base_mac':                     value => $neutron_config['L2']['base_mac'];
+    'DEFAULT/mac_generation_retries':       value => $neutron_config['L2']['mac_generation_retries'];
+    'DEFAULT/dhcp_lease_duration':          value => $neutron_config['L3']['dhcp_agent']['lease_duration'];
+    'DEFAULT/allow_bulk':                   value => $neutron_config['server']['allow_bulk'];
+    'DEFAULT/allow_overlapping_ips':        value => $neutron_config['L3']['allow_overlapping_ips'];
+    'DEFAULT/control_exchange':             value => $neutron_config['server']['control_exchange'];
+    'DEFAULT/network_auto_schedule':        value => $neutron_config['L3']['network_auto_schedule'];
+    'DEFAULT/router_auto_schedule':         value => $neutron_config['L3']['router_auto_schedule'];
+    'DEFAULT/agent_down_time':              value => $neutron_config['server']['agent_down_time'];
+    'DEFAULT/firewall_driver':              value => 'neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver';
+    'DEFAULT/state_path':                   value => '/var/lib/neutron';
+    'DEFAULT/lock_path':                    value => '/var/lib/neutron/lock';
+    'agent/report_interval':                value => $neutron_config['server']['report_interval'];
+    'agent/root_helper':                    value => $neutron_config['root_helper'];
     'keystone_authtoken/auth_host':         value => $neutron_config['keystone']['auth_host'];
     'keystone_authtoken/auth_port':         value => $neutron_config['keystone']['auth_port'];
     'keystone_authtoken/auth_protocol':     value => $neutron_config['keystone']['auth_protocol'];

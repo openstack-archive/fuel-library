@@ -40,15 +40,14 @@
 #
 class swift::proxy(
   $proxy_local_net_ip,
-  $port = '8080',
-  $pipeline = ['healthcheck', 'cache', 'tempauth', 'proxy-server'],
-  $workers = $::processorcount,
+  $port                     = '8080',
+  $pipeline                 = ['healthcheck', 'cache', 'tempauth', 'proxy-server'],
+  $workers                  = $::processorcount,
   $allow_account_management = true,
-  $account_autocreate = true,
-  $package_ensure = 'present',
-  $debug = false,
-  $verbose = true,
-  $syslog_log_level = 'WARNING',
+  $account_autocreate       = true,
+  $package_ensure           = 'present',
+  $debug                    = false,
+  $verbose                  = true,
 ) {
 
   include 'swift::params'
