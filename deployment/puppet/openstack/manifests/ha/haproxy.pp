@@ -11,6 +11,7 @@ class openstack::ha::haproxy (
   $rgw_servers              = undef,
   $ceilometer               = undef,
   $sahara                   = undef,
+  $murano                   = undef,
   $is_primary_controller    = false,
 ) {
 
@@ -39,4 +40,8 @@ class openstack::ha::haproxy (
   if $rgw_servers   { class { 'openstack::ha::radosgw': servers => $rgw_servers } }
   if $ceilometer    { class { 'openstack::ha::ceilometer': } }
   if $sahara        { class { 'openstack::ha::sahara': } }
+  if $murano        {
+    class { 'openstack::ha::murano': }
+    class { 'openstack::ha::murano_rabbitmq': }
+  }
 }
