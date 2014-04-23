@@ -127,6 +127,7 @@ class ceilometer(
     File['ceilometer-logging.conf'] ~> Service <| title == 'ceilometer-collector' |>
     File['ceilometer-logging.conf'] ~> Service <| title == 'ceilometer-agent-central' |>
     File['ceilometer-logging.conf'] ~> Service <| title == 'ceilometer-agent-compute' |>
+    File['ceilometer-logging.conf'] ~> Service <| title == 'ceilometer-agent-notification' |>
   } else { #other syslog debug or nonsyslog debug/nondebug cases
     ceilometer_config {
       'DEFAULT/log_config': ensure => absent;
