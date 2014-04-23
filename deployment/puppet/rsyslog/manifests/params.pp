@@ -2,7 +2,10 @@ class rsyslog::params {
   case $::operatingsystem {
     /(?i)(ubuntu|debian|redhat|centos)/: {
       $rsyslog_package_name   = 'rsyslog'
-      $relp_package_name      = 'rsyslog-relp'
+      #FIXME(bogdando) enable relp package back once we include it into
+      # the ISO, and if Fuel would start to use any of RELP features
+      #$relp_package_name      = 'rsyslog-relp'
+      $relp_package_name       = false
       $package_status         = 'installed'
       $rsyslog_d              = '/etc/rsyslog.d/'
       $rsyslog_conf           = '/etc/rsyslog.conf'

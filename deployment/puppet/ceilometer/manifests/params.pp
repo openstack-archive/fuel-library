@@ -4,7 +4,6 @@ class ceilometer::params {
 
   $dbsync_command =
     'ceilometer-dbsync --config-file=/etc/ceilometer/ceilometer.conf'
-  $log_dir        = '/var/log/ceilometer'
 
   # ssl keys/certs
   $ssl_cert_file       = '/etc/keystone/ssl/certs/signing_cert.pem'

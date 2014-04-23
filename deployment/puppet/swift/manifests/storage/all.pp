@@ -19,7 +19,7 @@ class swift::storage::all(
   $swift_zone,
   $storage_local_net_ip,
   $devices            = '/srv/node',
-  $devices_dirs       = undef, 
+  $devices_dirs       = undef,
   $object_port        = '6000',
   $container_port     = '6001',
   $account_port       = '6002',
@@ -29,7 +29,6 @@ class swift::storage::all(
   $export_devices     = false,
   $debug              = false,
   $verbose            = true,
-  $syslog_log_level   = 'WARNING',
 ) {
 
   class { 'swift::storage':
@@ -74,7 +73,6 @@ class swift::storage::all(
     storage_local_net_ip => $storage_local_net_ip,
     debug                => $debug,
     verbose              => $verbose,
-    syslog_log_level     => $syslog_log_level,
   }
 
   swift::storage::server { $account_port:
