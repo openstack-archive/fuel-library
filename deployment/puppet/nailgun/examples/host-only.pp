@@ -9,6 +9,7 @@ else {
     $production = 'dev'
 }
 
+class { 'nailgun::packages': }
 
 class { 'nailgun::host':
   production => $production,
