@@ -342,7 +342,14 @@ class osnailyfacter::cluster_simple {
         class { 'murano' :
           murano_api_host          => $controller_node_address,
 
-          murano_rabbit_host       => $controller_node_public,
+          # Murano uses two RabbitMQ - one from OpenStack and another one installed on each controller.
+          #   The second instance is used for communication with agents.
+          #   * murano_rabbit_host provides address for murano-engine which communicates with this
+          #    'separate' rabbitmq directly (without oslo.messaging).
+          #   * murano_rabbit_ha_hosts / murano_rabbit_ha_queues are required for murano-api which
+          #     communicates with 'system' RabbitMQ and uses oslo.messaging.
+          murano_rabbit_host       => $controller_node_address,
+          murano_rabbit_ha_hosts   => $amqp_hosts,
           murano_rabbit_login      => 'murano',
           murano_rabbit_password   => $heat_hash['rabbit_password'],
 
