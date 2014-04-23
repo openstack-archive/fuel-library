@@ -355,6 +355,7 @@ class osnailyfacter::cluster_ha {
       galera_nodes                  => $::osnailyfacter::cluster_ha::controller_nodes,
       novnc_address                 => $::internal_address,
       sahara                        => $::osnailyfacter::cluster_ha::sahara_hash[enabled],
+      murano                        => $::osnailyfacter::cluster_ha::murano_hash['enabled'],
       custom_mysql_setup_class      => $::custom_mysql_setup_class,
       mysql_skip_name_resolve       => true,
       use_syslog                    => $::osnailyfacter::cluster_ha::use_syslog,
@@ -524,16 +525,24 @@ class osnailyfacter::cluster_ha {
       if $murano_hash['enabled'] {
 
         class { 'murano' :
-          murano_api_host          => $controller_node_address,
+          murano_api_host          => $::fuel_settings['public_vip'],
 
-          murano_rabbit_host       => $controller_node_public,
+          # Murano uses two RabbitMQ - one from OpenStack and another one installed on each controller.
+          #   The second instance is used for communication with agents.
+          #   * murano_rabbit_host provides address for murano-engine which communicates with this
+          #    'separate' rabbitmq directly (without oslo.messaging).
+          #   * murano_rabbit_ha_hosts / murano_rabbit_ha_queues are required for murano-api which
+          #     communicates with 'system' RabbitMQ and uses oslo.messaging.
+          murano_rabbit_host       => $controller_node_address,
+          murano_rabbit_ha_hosts   => $amqp_hosts,
+          murano_rabbit_ha_queues  => $rabbit_ha_queues,
           murano_rabbit_login      => 'murano',
           murano_rabbit_password   => $heat_hash['rabbit_password'],
 
-          murano_db_host           => $controller_node_address,
+          murano_db_host           => $::fuel_settings['management_vip'],
           murano_db_password       => $murano_hash['db_password'],
 
-          murano_keystone_host     => $controller_node_address,
+          murano_keystone_host     => $::fuel_settings['management_vip'],
           murano_keystone_user     => 'murano',
           murano_keystone_password => $murano_hash['user_password'],
           murano_keystone_tenant   => 'services',
