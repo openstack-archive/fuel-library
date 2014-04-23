@@ -1,8 +1,8 @@
 # == Class: openstack::mongo_secondary
 
 class openstack::mongo_secondary (
-  $ceilometer_database          = "ceilometer_database",
-  $ceilometer_user              = "ceilometer_user",
+  $ceilometer_database          = "ceilometer",
+  $ceilometer_user              = "ceilometer",
   $ceilometer_metering_secret   = undef,
   $ceilometer_db_password       = "ceilometer",
   $ceilometer_metering_secret   = "ceilometer",

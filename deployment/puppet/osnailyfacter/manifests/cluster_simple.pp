@@ -86,20 +86,6 @@ class osnailyfacter::cluster_simple {
   $controller_node_public = $controller[0]['public_address']
   $roles = node_roles($nodes_hash, $::fuel_settings['uid'])
 
-  if $::fuel_settings['ceilometer'] {
-    $mongo_node = filter_nodes($nodes_hash,'role','mongo')
-
-    if is_hash($mongo_node[0]) {
-      $mongo_node_address = $mongo_node[0]['internal_address']
-    }
-
-  # MBF
-    $current_ceilometer_db_type = "mongodb"
-    $current_ceilometer_db_address = $mongo_node_address
-
-    notify {"MongoDB: $mongo_node_address": }
-  }
-
   # AMQP client configuration
   $amqp_port = '5672'
   $amqp_hosts = "${controller_node_address}:${amqp_port}"
@@ -204,8 +190,8 @@ class osnailyfacter::cluster_simple {
         ceilometer_db_password  => $ceilometer_hash[db_password],
         ceilometer_user_password => $ceilometer_hash[user_password],
         ceilometer_metering_secret => $ceilometer_hash[metering_secret],
-        ceilometer_db_type      => $current_ceilometer_db_type,
-        ceilometer_db_host      => $current_ceilometer_db_address,
+        ceilometer_db_type      => 'mongodb',
+        ceilometer_db_host      => mongo_hosts($nodes_hash),
         queue_provider          => $::queue_provider,
         amqp_hosts              => $amqp_hosts,
         amqp_user               => $rabbit_hash['user'],
@@ -441,18 +427,28 @@ class osnailyfacter::cluster_simple {
       }
     } # COMPUTE ENDS
 
-
     "mongo" : {
-
-      class { 'openstack::mongo':
-        mongodb_bind_address        => [ $mongo_node[0]['internal_address'], '127.0.0.1' ],
-        ceilometer_database         => "ceilometer",
-        ceilometer_user             => "ceilometer",
-        ceilometer_metering_secret  => $ceilometer_hash[metering_secret],
-        ceilometer_db_password      => $ceilometer_hash[db_password],
+      class { 'openstack::mongo_secondary':
+        mongodb_bind_address        => [ '127.0.0.1', $::internal_address ],
       }
     } # MONGO ENDS
 
+    "primary-mongo" : {
+      class { 'openstack::mongo_primary':
+        mongodb_bind_address        => [ '127.0.0.1', $::internal_address ],
+        ceilometer_metering_secret  => $ceilometer_hash['metering_secret'],
+        ceilometer_db_password      => $ceilometer_hash['db_password'],
+        ceilometer_replset_members  => mongo_hosts($nodes_hash, 'array', 'mongo')
+      }
+    } # PRIMARY-MONGO ENDS
+
+#    "mongo" : {
+#      class { 'openstack::mongo':
+#        mongodb_bind_address        => [ '127.0.0.1', $::internal_address ],
+#        ceilometer_metering_secret  => $ceilometer_hash['metering_secret'],
+#        ceilometer_db_password      => $ceilometer_hash['db_password'],
+#      }
+#    } # MONGO ENDS
 
     "cinder" : {
       include keystone::python
