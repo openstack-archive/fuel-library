@@ -86,7 +86,6 @@ if $::fuel_settings['nodes'] {
 # Debug would have set DEBUG level and ignore verbose settings, if any.
 # Verbose would have set INFO level messages
 # In case of non debug and non verbose - WARNING, default level would have set.
-# Note: if syslog on, this default level may be configured (for syslog) with syslog_log_level option.
 $verbose = true
 $debug = $::fuel_settings['debug']
 
@@ -97,21 +96,23 @@ $debug = $::fuel_settings['debug']
 
 
 ### Syslog ###
+#TODO(bogdando) move logging options to astute.yaml
 # Enable error messages reporting to rsyslog. Rsyslog must be installed in this case.
 $use_syslog = $::fuel_settings['use_syslog'] ? { default=>true }
-# Default log level would have been used, if non verbose and non debug
-$syslog_log_level             = 'ERROR'
-# Syslog facilities for main openstack services, choose any, may overlap if needed
-# local0 is reserved for HA provisioning and orchestration services,
+# Syslog facilities for main openstack services
+# should vary (reserved usage)
 # local1 is reserved for openstack-dashboard
-$syslog_log_facility_murano   = 'LOG_LOCAL0'
-$syslog_log_facility_glance   = 'LOG_LOCAL2'
-$syslog_log_facility_cinder   = 'LOG_LOCAL3'
-$syslog_log_facility_neutron  = 'LOG_LOCAL4'
-$syslog_log_facility_nova     = 'LOG_LOCAL6'
-$syslog_log_facility_keystone = 'LOG_LOCAL7'
-$syslog_log_facility_heat     = 'LOG_LOCAL0'
-$syslog_log_facility_sahara   = 'LOG_LOCAL0'
+$syslog_log_facility_glance     = 'LOG_LOCAL2'
+$syslog_log_facility_cinder     = 'LOG_LOCAL3'
+$syslog_log_facility_neutron    = 'LOG_LOCAL4'
+$syslog_log_facility_nova       = 'LOG_LOCAL6'
+$syslog_log_facility_keystone   = 'LOG_LOCAL7'
+# could be the same
+# local0 is free for use
+$syslog_log_facility_murano     = 'LOG_LOCAL0'
+$syslog_log_facility_heat       = 'LOG_LOCAL0'
+$syslog_log_facility_sahara     = 'LOG_LOCAL0'
+$syslog_log_facility_ceilometer = 'LOG_LOCAL0'
 
 $nova_rate_limits = {
   'POST' => 1000,
@@ -200,7 +201,7 @@ class os_common {
     class { "::openstack::logging":
       stage          => 'first',
       role           => 'client',
-      show_timezone => true,
+      show_timezone  => true,
       # log both locally include auth, and remote
       log_remote     => true,
       log_local      => true,
@@ -214,20 +215,8 @@ class os_common {
       rservers       => $rservers,
       # should be true, if client is running at virtual node
       virtual        => str2bool($::is_virtual),
-      # facilities
-      syslog_log_facility_murano   => $syslog_log_facility_murano,
-      syslog_log_facility_sahara   => $syslog_log_facility_sahara,
-      syslog_log_facility_glance   => $syslog_log_facility_glance,
-      syslog_log_facility_cinder   => $syslog_log_facility_cinder,
-      syslog_log_facility_neutron  => $syslog_log_facility_neutron,
-      syslog_log_facility_nova     => $syslog_log_facility_nova,
-      syslog_log_facility_keystone => $syslog_log_facility_keystone,
-      syslog_log_facility_heat     => $syslog_log_facility_heat,
-      # Rabbit doesn't support syslog directly, should be >= syslog_log_level,
-      # otherwise none rabbit's messages would have gone to syslog
-      rabbit_log_level => $syslog_log_level,
-      # debug mode
-      debug          => $debug,
+      # Rabbit doesn't support syslog directly
+      rabbit_log_level => 'NOTICE',
     }
   }
 

@@ -36,7 +36,7 @@
 #    Defaults to false. False indicates that a vnc proxy should not be configured.
 #  [vnc_enabled] Rather vnc console should be enabled.
 #    Optional. Defaults to 'true',
-# [verbose] Rather to print more verbose (INFO+) output. If non verbose and non debug, would give syslog_log_level (default is WARNING) output. Optional. Defaults to false.
+# [verbose] Rather to print more verbose (INFO+) output. If non verbose and non debug. Optional. Defaults to false.
 # [debug] Rather to print even more verbose (DEBUG+) output. If true, would ignore verbose option. Optional. Defaults to false.
 #  [manage_volumes] Rather nova-volume should be enabled on this compute node.
 #    Optional. Defaults to false.
@@ -45,7 +45,6 @@
 # [use_syslog] Rather or not service should log to syslog. Optional.
 # [syslog_log_facility] Facility for syslog, if used. Optional. Note: duplicating conf option
 #       wouldn't have been used, but more powerfull rsyslog features managed via conf template instead
-# [syslog_log_level] logging level for non verbose and non debug mode. Optional.
 # [ssh_private_key] path to private ssh key temporary location on this server where it was uploaded or generated
 # [ssh_public_key] path to public ssh key temporary location on this server where it was uploaded or generated
 #
@@ -62,69 +61,68 @@ class openstack::compute (
   $nova_user_password,
   # Network
   # DB
-  $sql_connection                = false,
+  $sql_connection                 = false,
   # Nova
-  $purge_nova_config             = false,
+  $purge_nova_config              = false,
   # RPC
-  $queue_provider                = 'rabbitmq',
-  $amqp_hosts                    = false,
-  $amqp_user                     = 'nova',
-  $amqp_password                 = 'rabbit_pw',
-  $rabbit_ha_queues              = false,
+  $queue_provider                 = 'rabbitmq',
+  $amqp_hosts                     = false,
+  $amqp_user                      = 'nova',
+  $amqp_password                  = 'rabbit_pw',
+  $rabbit_ha_queues               = false,
   # Glance
-  $glance_api_servers            = undef,
+  $glance_api_servers             = undef,
   # Virtualization
-  $libvirt_type                  = 'kvm',
+  $libvirt_type                   = 'kvm',
   # VNC
-  $vnc_enabled                   = true,
-  $vncproxy_host                 = undef,
-  $vncserver_listen              = $internal_address,
+  $vnc_enabled                    = true,
+  $vncproxy_host                  = undef,
+  $vncserver_listen               = $internal_address,
   # General
-  $enabled                       = true,
-  $multi_host                    = false,
-  $auto_assign_floating_ip       = false,
-  $network_config                = {},
+  $enabled                        = true,
+  $multi_host                     = false,
+  $auto_assign_floating_ip        = false,
+  $network_config                 = {},
   $public_interface,
   $private_interface,
   $network_manager,
-  $fixed_range                   = undef,
+  $fixed_range                    = undef,
   # Quantum
-  $quantum                       = false,
-  $quantum_config                = {},
+  $quantum                        = false,
+  $quantum_config                 = {},
   # Ceilometer
-  $ceilometer_user_password      = 'ceilometer_pass',
+  $ceilometer_user_password       = 'ceilometer_pass',
   # nova compute configuration parameters
-  $verbose                       = false,
-  $debug               = false,
-  $service_endpoint              = '127.0.0.1',
-  $ssh_private_key               = '/var/lib/astute/nova/nova',
-  $ssh_public_key                = '/var/lib/astute/nova/nova.pub',
-  $cache_server_ip               = ['127.0.0.1'],
-  $cache_server_port             = '11211',
+  $verbose                        = false,
+  $debug                          = false,
+  $service_endpoint               = '127.0.0.1',
+  $ssh_private_key                = '/var/lib/astute/nova/nova',
+  $ssh_public_key                 = '/var/lib/astute/nova/nova.pub',
+  $cache_server_ip                = ['127.0.0.1'],
+  $cache_server_port              = '11211',
   # if the cinder management components should be installed
-  $manage_volumes                = false,
-  $nv_physical_volume            = undef,
-  $cinder_volume_group           = 'cinder-volumes',
-  $cinder                        = true,
-  $cinder_user_password          = 'cinder_user_pass',
-  $cinder_db_password            = 'cinder_db_pass',
-  $cinder_db_user                = 'cinder',
-  $cinder_db_dbname              = 'cinder',
-  $cinder_iscsi_bind_addr        = false,
-  $db_host                       = '127.0.0.1',
-  $use_syslog                    = false,
-  $syslog_log_facility           = 'LOG_LOCAL6',
-  $syslog_log_facility_cinder    = 'LOG_LOCAL3',
-  $syslog_log_facility_neutron   = 'LOG_LOCAL4',
-  $syslog_log_level = 'WARNING',
-  $nova_rate_limits              = undef,
-  $nova_report_interval          = '10',
-  $nova_service_down_time        = '60',
-  $cinder_rate_limits            = undef,
-  $create_networks               = false,
-  $state_path                    = '/var/lib/nova',
-  $ceilometer                    = false,
-  $ceilometer_metering_secret    = "ceilometer",
+  $manage_volumes                 = false,
+  $nv_physical_volume             = undef,
+  $cinder_volume_group            = 'cinder-volumes',
+  $cinder                         = true,
+  $cinder_user_password           = 'cinder_user_pass',
+  $cinder_db_password             = 'cinder_db_pass',
+  $cinder_db_user                 = 'cinder',
+  $cinder_db_dbname               = 'cinder',
+  $cinder_iscsi_bind_addr         = false,
+  $db_host                        = '127.0.0.1',
+  $use_syslog                     = false,
+  $syslog_log_facility            = 'LOG_LOCAL6',
+  $syslog_log_facility_neutron    = 'LOG_LOCAL4',
+  $syslog_log_facility_ceilometer = 'LOG_LOCAL0',
+  $nova_rate_limits               = undef,
+  $nova_report_interval           = '10',
+  $nova_service_down_time         = '60',
+  $cinder_rate_limits             = undef,
+  $create_networks                = false,
+  $state_path                     = '/var/lib/nova',
+  $ceilometer                     = false,
+  $ceilometer_metering_secret     = "ceilometer",
 ) {
 
   #
@@ -188,7 +186,6 @@ class openstack::compute (
       debug                => $debug,
       use_syslog           => $use_syslog,
       syslog_log_facility  => $syslog_log_facility,
-      syslog_log_level     => $syslog_log_level,
       api_bind_address     => $internal_address,
       state_path           => $state_path,
       report_interval      => $nova_report_interval,
@@ -248,17 +245,18 @@ class openstack::compute (
   # configure ceilometer compute agent
   if ($ceilometer) {
     class { 'openstack::ceilometer':
-      verbose           => $verbose,
-      debug             => $debug,
-      use_syslog        => $use_syslog,
-      queue_provider    => $queue_provider,
-      amqp_hosts        => $amqp_hosts,
-      amqp_user         => $amqp_user,
-      amqp_password     => $amqp_password,
-      keystone_host     => $service_endpoint,
-      keystone_password => $ceilometer_user_password,
-      on_compute        => true,
-      metering_secret   => $ceilometer_metering_secret,
+      verbose                        => $verbose,
+      debug                          => $debug,
+      use_syslog                     => $use_syslog,
+      syslog_log_facility            => $syslog_log_facility_ceilometer,
+      queue_provider                 => $queue_provider,
+      amqp_hosts                     => $amqp_hosts,
+      amqp_user                      => $amqp_user,
+      amqp_password                  => $amqp_password,
+      keystone_host                  => $service_endpoint,
+      keystone_password              => $ceilometer_user_password,
+      on_compute                     => true,
+      metering_secret                => $ceilometer_metering_secret,
     }
   }
 
@@ -332,7 +330,6 @@ class openstack::compute (
       verbose         => $verbose,
       debug           => $debug,
       use_syslog           => $use_syslog,
-      syslog_log_level     => $syslog_log_level,
       syslog_log_facility  => $syslog_log_facility_neutron,
     }
 
