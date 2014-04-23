@@ -19,6 +19,8 @@ class murano::api (
     $log_file                   = '/var/log/murano/murano.log',
     $rabbit_host                = '127.0.0.1',
     $rabbit_port                = '5672',
+    $rabbit_hosts               = '127.0.0.1:5672',
+    $rabbit_ha_queues           = false,
     $rabbit_use_ssl             = false,
     $rabbit_ca_certs            = '',
     $rabbit_login               = 'murano',
@@ -85,13 +87,8 @@ class murano::api (
     'DEFAULT/bind_port'                     : value => $bind_port;
     'DEFAULT/log_file'                      : value => $log_file;
     # oslo.messaging configuration (for murano-api).
-    # TODO(dteselkin): add rabbit_hosts and rabbit_ha_queues params
-    #    to enable HA provided by oslo.messaging
-    # We use non-HA parameters rabbit_host, rabbit_port here because
-    #    this commit adds oslo.messaging configuration reflecting
-    #    recent changes in Murano code.
-    'DEFAULT/rabbit_host'                   : value => $rabbit_host;
-    'DEFAULT/rabbit_port'                   : value => $rabbit_port;
+    'DEFAULT/rabbit_hosts'                  : value => $rabbit_host;
+    'DEFAULT/rabbit_ha_queues'              : value => $rabbit_ha_queues;
     'DEFAULT/rabbit_use_ssl'                : value => $rabbit_use_ssl;
     'DEFAULT/rabbit_userid'                 : value => $rabbit_login;
     'DEFAULT/rabbit_password'               : value => $rabbit_password;

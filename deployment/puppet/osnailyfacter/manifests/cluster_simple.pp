@@ -342,7 +342,11 @@ class osnailyfacter::cluster_simple {
         class { 'murano' :
           murano_api_host          => $controller_node_address,
 
-          murano_rabbit_host       => $controller_node_public,
+          # Murano uses two RabbitMQ - one from OpenStack and another one installed on each controller
+          #   The second instance is used different port, that's why we can't use 'amqp_hosts', which
+          #   contains RabbitMQ port numbers, and shoud use 'amqp_nodes' list instead.
+          # 'murano_rabbit_nodes' will be converted to 'murano_rabbit_hosts' internally.
+          murano_rabbit_nodes      => [ $controller_node_public, ],
           murano_rabbit_login      => 'murano',
           murano_rabbit_password   => $heat_hash['rabbit_password'],
 
