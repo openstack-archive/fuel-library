@@ -355,6 +355,7 @@ LOGGING = {
 }
 LOGIN_URL='<%=  scope.lookupvar("horizon::params::root_url") %>/auth/login/'
 LOGIN_REDIRECT_URL='<%=  scope.lookupvar("horizon::params::root_url") %>'
+LOGOUT_URL='<%= scope.lookupvar("horizon::params::root_url") %>/auth/logout/'
 
 # The Ubuntu package includes pre-compressed JS and compiled CSS to allow
 # offline compression by default.
