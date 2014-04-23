@@ -66,6 +66,7 @@ class neutron::agents::l3 (
     'DEFAULT/metadata_ip':   value => $neutron_config['metadata']['metadata_ip'];
     'DEFAULT/metadata_port': value => $neutron_config['metadata']['metadata_port'];
     'DEFAULT/use_namespaces': value => $neutron_config['L3']['use_namespaces'];
+    'DEFAULT/router_delete_namespaces': value => 'False';  # Neutron can't properly clean network namespace before delete.
     'DEFAULT/send_arp_for_ha': value => $neutron_config['L3']['send_arp_for_ha'];
     'DEFAULT/periodic_interval': value => $neutron_config['L3']['resync_interval'];
     'DEFAULT/periodic_fuzzy_delay': value => $neutron_config['L3']['resync_fuzzy_delay'];
@@ -200,6 +201,10 @@ class neutron::agents::l3 (
         "p_${::neutron::params::dhcp_agent_service}",
         "p_${::neutron::params::l3_agent_service}"
       ],
+    }
+
+    if !defined(Package['lsof']) {
+      package { 'lsof': } -> Cs_resource["p_${::neutron::params::l3_agent_service}"]
     }
 
     # Ensure service is stopped  and disabled by upstart/init/etc.
