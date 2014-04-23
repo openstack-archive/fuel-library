@@ -17,9 +17,9 @@ class sahara::api (
   $debug                       = false,
   $verbose                     = false,
   $use_syslog                  = false,
-  $syslog_log_level            = 'WARNING',
   $syslog_log_facility_sahara  = "LOG_LOCAL0",
-  $logdir                      = '/var/log/sahara',
+  $log_dir                     = '/var/log/sahara',
+  $log_file                    = '/var/log/sahara/api.log',
 ) inherits sahara::params {
 
   validate_string($keystone_password)
@@ -75,58 +75,41 @@ class sahara::api (
     'DEFAULT/debug'                        : value => $debug;
   }
 
-  $logging_file = '/etc/sahara/logging.conf'
-  case $::osfamily {
-    'Debian': {
-       $log_file = 'sahara-api.log'
-     }
-    'RedHat': {
-       $log_file = 'api.log'
-     }
-    default: {
-      fail("Unsupported osfamily: ${::osfamily} operatingsystem: ${::operatingsystem}, \
-module ${module_name} only support osfamily RedHat and Debian")
-    }
-  }
-
-  if $use_syslog and !$debug {
+  # Log configuration
+  if $log_dir {
     sahara_config {
-      'DEFAULT/log_config'                    : value  => $logging_file;
-      'DEFAULT/log_file'                      : ensure => absent;
-      'DEFAULT/use_syslog'                    : value  => true;
-      'DEFAULT/use_stderr'                    : value  => false;
-      'DEFAULT/syslog_log_facility'           : value  => $syslog_log_facility_sahara;
-    }
-    file { 'sahara-logging.conf' :
-      ensure  => present,
-      content => template('sahara/logging.conf.erb'),
-      path    => $logging_file,
-      owner   => 'root',
-      group   => 'root',
-      mode    => '0644',
-      require => Package['sahara'],
-      notify  => Service['sahara-api'],
+      'DEFAULT/log_dir' :  value  => $log_dir;
     }
   } else {
     sahara_config {
-      'DEFAULT/log_config'                   : ensure => absent;
-      'DEFAULT/use_syslog'                   : ensure => absent;
-      'DEFAULT/use_stderr'                   : ensure => absent;
-      'DEFAULT/syslog_log_facility'          : ensure => absent;
-      'DEFAULT/log_dir'                      : value  => $logdir;
-      'DEFAULT/log_file'                     : value  => $log_file;
-    }
-    file { 'sahara-logging.conf' :
-      ensure  => absent,
-      path    => $logging_file,
+      'DEFAULT/log_dir' :  ensure => absent;
     }
   }
 
-  File[$logdir] -> File['sahara-logging.conf']
-  File['sahara-logging.conf'] ~> Service <| title == 'sahara-api' |>
-  File['sahara-logging.conf'] -> Sahara_config['DEFAULT/log_config']
+  if $log_file {
+    sahara_config {
+      'DEFAULT/log_file' :  value  => $log_file;
+    }
+  } else {
+    sahara_config {
+      'DEFAULT/log_file' :  ensure => absent;
+    }
+  }
 
-  file { $logdir:
+  # Syslog configuration
+  if $use_syslog {
+    sahara_config {
+      'DEFAULT/use_syslog':            value => true;
+      'DEFAULT/use_syslog_rfc_format': value => true;
+      'DEFAULT/syslog_log_facility':   value => $syslog_log_facility;
+    }
+  } else {
+    sahara_config {
+      'DEFAULT/use_syslog':           value => false;
+    }
+  }
+
+  file { $log_dir:
     ensure  => directory,
     mode    => '0751',
   }

@@ -1,6 +1,4 @@
 # managed by puppet
 
-<%= @syslog_log_facility_glance_matched %>.* -/var/log/glance-all.log
-& ~
 :syslogtag, contains, "glance" -/var/log/glance-all.log
 & ~

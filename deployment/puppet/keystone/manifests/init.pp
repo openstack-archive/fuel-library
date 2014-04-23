@@ -20,7 +20,10 @@
 #   [use_syslog] Rather or not keystone should log to syslog. Optional.
 #     Defaults to false.
 #   [syslog_log_facility] Facility for syslog, if used. Optional.
-#   [syslog_log_level] logging level for non verbose and non debug mode. Optional.
+#   [*log_dir*]
+#     (optional) Directory where logs should be stored
+#     If set to boolean false, it will not log to any directory
+#     Defaults to '/var/log/keystone'
 #   [catalog_type] Type of catalog that keystone uses to store endpoints,services. Optional.
 #     Defaults to sql. (Also accepts template)
 #   [token_format] Format keystone uses for tokens. Optional. Defaults to UUID (PKI is grizzly native mode though).
@@ -60,9 +63,7 @@ class keystone(
   $debug               = false,
   $use_syslog          = false,
   $syslog_log_facility = 'LOG_LOCAL7',
-  $syslog_log_level = 'WARNING',
   $log_dir             = '/var/log/keystone',
-  $log_file            = 'keystone.log',
   $catalog_type        = 'sql',
   $token_format        = 'UUID',
 #  $token_format        = 'PKI',
@@ -90,25 +91,14 @@ class keystone(
     require => Package['keystone'],
   }
 
-  if $use_syslog and !$debug { #syslog and nondebug case
+  # logging config
+  if $log_dir {
     keystone_config {
-      'DEFAULT/log_config': value => "/etc/keystone/logging.conf";
-      'DEFAULT/use_syslog': value => true;
-      'DEFAULT/syslog_log_facility': value =>  $syslog_log_facility;
+      'DEFAULT/log_dir': value => $log_dir;
     }
-    file {"keystone-logging.conf":
-      content => template('keystone/logging.conf.erb'),
-      path => "/etc/keystone/logging.conf",
-      require => File['/etc/keystone'],
-      # We must notify service for new logging rules
-      notify => Service['keystone'],
-    }
-  } else { #other syslog debug or nonsyslog debug/nondebug cases
+  } else {
     keystone_config {
-      'DEFAULT/log_config': ensure=> absent;
-      'DEFAULT/log_dir':value=> $log_dir;
-      'DEFAULT/log_file': value => $log_file;
-      'DEFAULT/use_syslog': value =>  false;
+      'DEFAULT/log_dir': ensure => absent;
     }
   }
 
@@ -282,6 +272,19 @@ class keystone(
       refreshonly => true,
       notify      => Service['keystone'],
       subscribe   => Package['keystone'],
+    }
+  }
+
+  # Syslog configuration
+  if $use_syslog {
+    keystone_config {
+      'DEFAULT/use_syslog':            value => true;
+      'DEFAULT/use_syslog_rfc_format': value => true;
+      'DEFAULT/syslog_log_facility':   value => $syslog_log_facility;
+    }
+  } else {
+    keystone_config {
+      'DEFAULT/use_syslog':           value => false;
     }
   }
 }

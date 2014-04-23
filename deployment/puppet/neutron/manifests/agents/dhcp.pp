@@ -64,12 +64,6 @@ class neutron::agents::dhcp (
   neutron_dhcp_agent_config {
     'DEFAULT/debug':             value => $debug;
     'DEFAULT/verbose':           value => $verbose;
-    'DEFAULT/log_dir':          ensure => absent;
-    'DEFAULT/log_file':         ensure => absent;
-    'DEFAULT/log_config':       ensure => absent;
-    #TODO(bogdando) fix syslog usage after Oslo logging patch synced in I
-    'DEFAULT/use_syslog':       ensure => absent;
-    'DEFAULT/use_stderr':       ensure => absent;
     'DEFAULT/state_path':        value => $state_path;
     'DEFAULT/interface_driver':  value => $interface_driver;
     'DEFAULT/dhcp_driver':       value => $dhcp_driver;
@@ -107,7 +101,6 @@ class neutron::agents::dhcp (
     Package['pacemaker'] -> File['neutron-dhcp-agent-ocf']
     File['neutron-dhcp-agent-ocf'] -> Cs_resource["p_${::neutron::params::dhcp_agent_service}"]
     File['q-agent-cleanup.py'] -> Cs_resource["p_${::neutron::params::dhcp_agent_service}"]
-    File<| title == 'neutron-logging.conf' |> -> Cs_resource["p_${::neutron::params::dhcp_agent_service}"]
     File<| title == 'ocf-mirantis-path' |> -> File['neutron-dhcp-agent-ocf']
     Anchor['neutron-dhcp-agent'] -> File['neutron-dhcp-agent-ocf']
     Neutron_config <| |> -> File['neutron-dhcp-agent-ocf']
@@ -221,7 +214,6 @@ class neutron::agents::dhcp (
   } else {
     Neutron_config <| |> ~> Service['neutron-dhcp-service']
     Neutron_dhcp_agent_config <| |> ~> Service['neutron-dhcp-service']
-    File<| title=='neutron-logging.conf' |> ->
     service { 'neutron-dhcp-service':
       name       => $::neutron::params::dhcp_agent_service,
       enable     => true,
