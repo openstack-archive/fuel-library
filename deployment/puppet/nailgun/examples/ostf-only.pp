@@ -32,13 +32,15 @@ node default {
   class { "nailgun::packages": }
 
   class { "nailgun::ostf":
-    production => $production,
-    pip_opts   => "${pip_index} ${pip_find_links}",
-    dbuser     => 'ostf',
-    dbpass     => 'ostf',
-    dbhost     => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
-    dbport     => '5432',
-    host       => "0.0.0.0",
+    production   => $production,
+    pip_opts     => "${pip_index} ${pip_find_links}",
+    dbuser       => 'ostf',
+    dbpass       => 'ostf',
+    dbhost       => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
+    dbport       => '5432',
+    nailgun_host => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
+    nailgun_port => '8000',
+    host         => "0.0.0.0",
   }
   class { "nailgun::supervisor":
     nailgun_env   => $env_path,
