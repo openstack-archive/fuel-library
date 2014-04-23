@@ -24,6 +24,9 @@ class murano::repository (
     $repository_admin_password      = 'swordfish',
     $repository_admin_tenant_name   = 'admin',
     $repository_cache_dir           = '/var/cache/murano',
+    $repository_replication_port    = '8084',
+    $repository_replication_nodes   = [],
+    $firewall_rule_name             = '202 murano-repository',
 ) {
 
   include murano::params
@@ -62,6 +65,16 @@ class murano::repository (
     }
     }
 
+  $ha_nodes = nodes_to_node_port_list($repository_replication_nodes, $repository_replication_port)
+
+  if ($ha_nodes != '') {
+    firewall { $firewall_rule_name :
+      dport   => [ $repository_replication_port ],
+      proto   => 'tcp',
+      action  => 'accept',
+    }
+  }
+
   murano_repository_config {
     'DEFAULT/verbose'             : value => $verbose;
     'DEFAULT/debug'               : value => $debug;
@@ -74,6 +87,7 @@ class murano::repository (
     'DEFAULT/agent'               : value => $repository_agent;
     'DEFAULT/scripts'             : value => $repository_scripts;
     'DEFAULT/cache_dir'           : value => "${repository_cache_dir}/muranorepository-cache";
+    'DEFAULT/ha_nodes'            : value => $ha_nodes;
     'output/ui'                   : value => $repository_ui;
     'output/workflows'            : value => $repository_output_workflows;
     'output/heat'                 : value => $repository_output_heat;

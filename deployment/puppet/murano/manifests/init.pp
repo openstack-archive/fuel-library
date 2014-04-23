@@ -50,6 +50,7 @@ class murano (
   $murano_metadata_bind_port            = '8084',
   $murano_metadata_host                 = '127.0.0.1',
   $use_neutron                          = false,
+  $repository_replication_nodes         = [],
 ) {
 
   Class['mysql::server'] -> Class['murano::db::mysql'] -> Class['murano::rabbitmq'] -> Class['murano::keystone'] -> Class['murano::common'] -> Class['murano::conductor'] -> Class['murano::api'] -> Class['murano::metadataclient'] -> Class['murano::repository'] -> Class['murano::python_muranoclient'] -> Class['murano::dashboard'] -> Class['murano::cirros']
@@ -122,6 +123,8 @@ class murano (
     repository_admin_password      => $murano_keystone_password,
     repository_admin_tenant_name   => $murano_keystone_tenant,
     repository_cache_dir           => $murano_data_dir,
+
+    repository_replication_nodes   => $repository_replication_nodes,
   }
 
   class { 'murano::python_muranoclient':
