@@ -21,14 +21,13 @@ class sahara (
   $sahara_db_allowed_hosts             = ['localhost','%'],
 
   $sahara_firewall_rule                = '201 sahara-api',
-  $use_neutron                          = false,
-  $use_floating_ips                     = false,
+  $use_neutron                         = false,
+  $use_floating_ips                    = false,
 
-  $use_syslog                           = false,
-  $debug                                = false,
-  $verbose                              = false,
-  $syslog_log_level                     = 'WARNING',
-  $syslog_log_facility_sahara           = 'LOG_LOCAL0',
+  $use_syslog                          = false,
+  $debug                               = false,
+  $verbose                             = false,
+  $syslog_log_facility_sahara          = 'LOG_LOCAL0',
 ) {
 
   $sahara_sql_connection               = "mysql://${sahara_db_user}:${sahara_db_password}@${sahara_db_host}/${sahara_db_name}?read_timeout=60"
@@ -57,7 +56,6 @@ class sahara (
     debug                               => $debug,
     use_syslog                          => $use_syslog,
     verbose                             => $verbose,
-    syslog_log_level                    => $syslog_log_level,
     syslog_log_facility_sahara          => $syslog_log_facility_sahara,
   }
 

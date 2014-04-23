@@ -1,5 +1,21 @@
 #
-# [use_syslog] Rather or not service should log to syslog. Optional.
+#  [*use_syslog*]
+#    (optional) Use syslog for logging.
+#    Defaults to false.
+#
+#  [*syslog_log_facility*]
+#    (optional) Syslog facility to receive log lines.
+#    Defaults to LOG_LOCAL2.
+#
+#  [*log_file*]
+#    (optional) Log file for glance-registry.
+#    If set to boolean false, it will not log to any file.
+#    Defaults to '/var/log/glance/registry.log'.
+#
+#  [*log_dir*]
+#    (optional) directory to which glance logs are sent.
+#    If set to boolean false, it will not log to any directory.
+#    Defaults to '/var/log/glance'
 #
 class glance::registry(
   $keystone_password,
@@ -8,6 +24,7 @@ class glance::registry(
   $bind_host           = '0.0.0.0',
   $bind_port           = '9191',
   $log_file            = '/var/log/glance/registry.log',
+  $log_dir             = '/var/log/glance',
   $sql_connection      = 'sqlite:///var/lib/glance/glance.sqlite',
   $sql_idle_timeout    = '3600',
   $auth_type           = 'keystone',
@@ -20,7 +37,6 @@ class glance::registry(
   $use_syslog          = false,
   $syslog_log_facility = 'LOG_LOCAL2',
   $idle_timeout        = '3600',
-  $syslog_log_level    = 'WARNING',
   $max_pool_size       = '10',
   $max_overflow        = '30',
   $max_retries         = '-1',
@@ -35,26 +51,39 @@ File {
   require => Class['glance']
 }
 
-if $use_syslog and !$debug { #syslog and nondebug case
-  glance_registry_config {
-    'DEFAULT/log_config': value => "/etc/glance/logging.conf";
-    'DEFAULT/use_syslog': value => true;
-    'DEFAULT/syslog_log_facility': value =>  $syslog_log_facility;
-  }
-  if !defined(File["glance-logging.conf"]) {
-    file {"glance-logging.conf":
-      content => template('glance/logging.conf.erb'),
-      path => "/etc/glance/logging.conf",
-      notify => Service['glance-registry'],
+  # Logging
+  if $log_file {
+    glance_registry_config {
+      'DEFAULT/log_file': value  => $log_file;
+    }
+  } else {
+    glance_registry_config {
+      'DEFAULT/log_file': ensure => absent;
     }
   }
-} else {  #other syslog debug or nonsyslog debug/nondebug cases
-  glance_registry_config {
-    'DEFAULT/log_config' : ensure => absent;
-    'DEFAULT/log_file': value=>$log_file;
-    'DEFAULT/use_syslog': value =>  false;
+
+  if $log_dir {
+    glance_registry_config {
+      'DEFAULT/log_dir': value  => $log_dir;
+    }
+  } else {
+    glance_registry_config {
+      'DEFAULT/log_dir': ensure => absent;
+    }
   }
-} #end if
+
+  # Syslog
+  if $use_syslog {
+    glance_registry_config {
+      'DEFAULT/use_syslog':            value => true;
+      'DEFAULT/use_syslog_rfc_format': value => true;
+      'DEFAULT/syslog_log_facility':   value => $syslog_log_facility;
+    }
+  } else {
+    glance_registry_config {
+      'DEFAULT/use_syslog': value => false;
+    }
+  }
 
   require 'keystone::python'
 

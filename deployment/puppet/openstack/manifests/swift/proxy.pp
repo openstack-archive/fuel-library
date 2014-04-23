@@ -1,12 +1,12 @@
 #
 class openstack::swift::proxy (
-  $swift_user_password      = 'swift_pass',
-  $swift_hash_suffix        = 'swift_secret',
-  $swift_local_net_ip       = $::ipaddress_eth0,
-  $ring_part_power          = 18,
-  $ring_replicas            = 3,
-  $ring_min_part_hours      = 1,
-  $proxy_pipeline           = [
+  $swift_user_password                = 'swift_pass',
+  $swift_hash_suffix                  = 'swift_secret',
+  $swift_local_net_ip                 = $::ipaddress_eth0,
+  $ring_part_power                    = 18,
+  $ring_replicas                      = 3,
+  $ring_min_part_hours                = 1,
+  $proxy_pipeline                     = [
     'catch_errors',
     'healthcheck',
     'cache',
@@ -16,30 +16,29 @@ class openstack::swift::proxy (
     'authtoken',
     'keystone',
     'proxy-server'],
-  $proxy_workers            = $::processorcount,
-  $proxy_port               = '8080',
-  $proxy_allow_account_management   = true,
-  $proxy_account_autocreate = true,
-  $ratelimit_clock_accuracy = 1000,
-  $ratelimit_max_sleep_time_seconds = 60,
-  $ratelimit_log_sleep_time_seconds = 0,
-  $ratelimit_rate_buffer_seconds    = 5,
-  $ratelimit_account_ratelimit      = 0,
-  $package_ensure           = 'present',
-  $controller_node_address  = '10.0.0.1',
-  $memcached                = true,
-  $swift_proxies            = {
+  $proxy_workers                      = $::processorcount,
+  $proxy_port                         = '8080',
+  $proxy_allow_account_management     = true,
+  $proxy_account_autocreate           = true,
+  $ratelimit_clock_accuracy           = 1000,
+  $ratelimit_max_sleep_time_seconds   = 60,
+  $ratelimit_log_sleep_time_seconds   = 0,
+  $ratelimit_rate_buffer_seconds      = 5,
+  $ratelimit_account_ratelimit        = 0,
+  $package_ensure                     = 'present',
+  $controller_node_address            = '10.0.0.1',
+  $memcached                          = true,
+  $swift_proxies                      = {
     '127.0.0.1' => '127.0.0.1'
   }
   ,
-  $primary_proxy            = false,
-  $swift_devices            = undef,
-  $master_swift_proxy_ip    = undef,
-  $collect_exported         = false,
-  $rings                    = ['account', 'object', 'container'],
-  $debug                    = false,
-  $verbose                  = true,
-  $syslog_log_level         = 'WARNING',
+  $primary_proxy                      = false,
+  $swift_devices                      = undef,
+  $master_swift_proxy_ip              = undef,
+  $collect_exported                   = false,
+  $rings                              = ['account', 'object', 'container'],
+  $debug                              = false,
+  $verbose                            = true,
 ) {
   if !defined(Class['swift']) {
     class { 'swift':
@@ -62,7 +61,6 @@ class openstack::swift::proxy (
     package_ensure           => $package_ensure,
     debug                    => $debug,
     verbose                  => $verbose,
-    syslog_log_level         => $syslog_log_level,
   }
 
   # configure all of the middlewares

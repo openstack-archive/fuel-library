@@ -9,6 +9,7 @@ class openstack::ceilometer (
   $metering_secret     = 'ceilometer',
   $verbose             =  false,
   $use_syslog          =  false,
+  $syslog_log_facility = 'LOG_LOCAL0',
   $debug               =  false,
   $db_type             = 'mysql',
   $db_host             = 'localhost',
@@ -35,16 +36,17 @@ class openstack::ceilometer (
   # This class is required by ceilometer agents & api classes
   # The metering_secret parameter is mandatory
   class { '::ceilometer':
-    package_ensure   => $::openstack_version['ceilometer'],
-    queue_provider   => $queue_provider,
-    amqp_hosts       => $amqp_hosts,
-    amqp_user        => $amqp_user,
-    amqp_password    => $amqp_password,
-    rabbit_ha_queues => $rabbit_ha_queues,
-    metering_secret  => $metering_secret,
-    verbose          => $verbose,
-    debug            => $debug,
-    use_syslog       => $use_syslog,
+    package_ensure      => $::openstack_version['ceilometer'],
+    queue_provider      => $queue_provider,
+    amqp_hosts          => $amqp_hosts,
+    amqp_user           => $amqp_user,
+    amqp_password       => $amqp_password,
+    rabbit_ha_queues    => $rabbit_ha_queues,
+    metering_secret     => $metering_secret,
+    verbose             => $verbose,
+    debug               => $debug,
+    use_syslog          => $use_syslog,
+    syslog_log_facility => $syslog_log_facility,
   }
 
   class { '::ceilometer::client': }

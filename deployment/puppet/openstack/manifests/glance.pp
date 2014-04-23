@@ -18,8 +18,7 @@
 # [db_type] Type of sql databse to use. Optional. Defaults to 'mysql'
 # [glance_db_user] Name of glance DB user. Optional. Defaults to 'glance'
 # [glance_db_dbname] Name of glance DB. Optional. Defaults to 'glance'
-# [verbose] Rather to print more verbose (INFO+) output. If non verbose and non debug, would give
-#   syslog_log_level (default is WARNING) output. Optional. Defaults to false.
+# [verbose] Rather to print more verbose (INFO+) output. Optional. Defaults to false.
 # [debug] Rather to print even more verbose (DEBUG+) output. If true, would ignore verbose option.
 #   Optional. Defaults to false.
 # [enabled] Used to indicate if the service should be active (true) or passive (false).
@@ -27,7 +26,6 @@
 # [use_syslog] Rather or not service should log to syslog. Optional. Default to false.
 # [syslog_log_facility] Facility for syslog, if used. Optional. Note: duplicating conf option
 #       wouldn't have been used, but more powerfull rsyslog features managed via conf template instead
-# [syslog_log_level] logging level for non verbose and non debug mode. Optional.
 # [glance_image_cache_max_size] the maximum size of glance image cache. Optional. Default is 10G.
 #
 # === Example
@@ -56,7 +54,6 @@ class openstack::glance (
   $use_syslog                   = false,
   # Facility is common for all glance services
   $syslog_log_facility          = 'LOG_LOCAL2',
-  $syslog_log_level             = 'WARNING',
   $glance_image_cache_max_size  = '10737418240',
   $idle_timeout                 = '3600',
   $max_pool_size                = '10',
@@ -101,7 +98,6 @@ class openstack::glance (
     registry_host        => $registry_host,
     use_syslog           => $use_syslog,
     syslog_log_facility  => $syslog_log_facility,
-    syslog_log_level     => $syslog_log_level,
     image_cache_max_size => $glance_image_cache_max_size,
     max_retries          => $max_retries,
     max_pool_size        => $max_pool_size,
@@ -124,7 +120,6 @@ class openstack::glance (
     enabled             => $enabled,
     use_syslog          => $use_syslog,
     syslog_log_facility => $syslog_log_facility,
-    syslog_log_level    => $syslog_log_level,
     max_retries         => $max_retries,
     max_pool_size       => $max_pool_size,
     max_overflow        => $max_overflow,

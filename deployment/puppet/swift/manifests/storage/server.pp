@@ -6,7 +6,7 @@
 define swift::storage::server(
   $type,
   $swift_zone,
-  $port = $name,
+  $port                   = $name,
   $storage_local_net_ip,
   $devices                = '/srv/node',
   $owner                  = 'swift',
@@ -23,7 +23,6 @@ define swift::storage::server(
   $config_file_path       = "${type}-server/${name}.conf",
   $debug                  = false,
   $verbose                = true,
-  $syslog_log_level       = 'WARNING',
 ) {
   if (is_array($pipeline)) {
     $pipeline_real = $pipeline
