@@ -1,15 +1,15 @@
 # file is managed by puppet
 #
 
-<% if scope.lookupvar('rsyslog::client::log_auth_local') or scope.lookupvar('rsyslog::client::log_local') -%>
+<% if @log_auth_local or @log_local -%>
 # Log auth messages locally
 auth,authpriv.*                 /var/log/auth.log
 <% end -%>
 
-<% if scope.lookupvar('rsyslog::client::log_local') -%>
+<% if @log_local -%>
 # First some standard log files.  Log by facility.
 #
-# Skip duplicates - all common debug, info, notice, warn go to 
+# Skip duplicates - all common debug, info, notice, warn go to
 # debug & messages files respectively; others should go to syslog
 #
 *.error;auth,authpriv.none     -/var/log/syslog
