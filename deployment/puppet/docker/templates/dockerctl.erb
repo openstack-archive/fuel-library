@@ -1,0 +1,89 @@
+#!/bin/bash
+
+confdir="<%= @config_dir %>"
+. "$confdir/config"
+. "<%= @share_dir %>/functions"
+DEBUG=true
+
+if [ -z "$1" ] || [ "$1" = "help" ]; then
+  echo "Please specify a command."
+  show_usage
+  exit 1
+fi
+
+if [ -z "$2" ] || [ "$2" = "all" ]; then
+  container="all"
+else
+  container=$2
+fi
+
+if [ "$1" == "build" ]; then
+  if [ "$container" = "storage" ]; then
+    build_storage_containers
+    run_storage_containers
+  elif [ "$container" = "all" ];then
+    #Step 1: prepare storage containers
+    build_storage_containers
+    run_storage_containers
+
+    #Step 2: import app images
+    import_images ${SOURCE_IMAGES[@]}
+
+    #Step 3: Launch all in order
+    apps="postgres rabbitmq rsync astute rsyslog nailgun mcollective ostf nginx cobbler"
+    for service in $apps; do
+      start_container $service
+      sleep 4
+    done
+
+    #Deploy supervisord scripts
+    #TODO(mattymo): puppetize this in host-only role
+    #yum install -y supervisor
+    #mkdir -p /etc/supervisord.d
+    #cp -R $confdir/supervisor/* /etc/supervisord.d/$VERSION/
+    #cp /etc/puppet/modules/nailgun/templates/supervisord.conf.base.erb /etc/supervisord.conf
+    #service supervisord start
+
+    #Step 4: Test deployment TODO(mattymo)
+    #run_tests $apps
+  else
+    import_images ${SOURCE_IMAGES[$container]}
+    start_container $container
+  fi
+elif [ "$1" == "start" ]; then
+  if [ "$container" = "all" ];then
+    apps="postgres rabbitmq rsync astute rsyslog nailgun mcollective ostf nginx cobbler"
+
+    for service in $apps; do
+      start_container $service
+      #supervisorctl start $service
+      sleep 4
+    done
+  else
+    shift 2
+    start_container $container $@
+  fi
+elif [ "$1" == "restart" ]; then
+  shift 2
+  restart_container $container $@
+elif [ "$1" == "stop" ]; then
+  shift 2
+  stop_container $container $@
+elif [ "$1" == "shell" ]; then
+  shift 2
+  shell_container $container $@
+elif [ "$1" == "upgrade" ]; then
+  shift 2
+  upgrade_container $container $@
+elif [ "$1" == "backup" ]; then
+  shift 2
+  backup_container $container $@
+elif [ "$1" == "destroy" ]; then
+  shift 2
+  destroy_container $container $@
+elif [ "$1" == "logs" ]; then
+  logs $container
+else
+  echo "Invalid selection."
+  show_usage
+fi
