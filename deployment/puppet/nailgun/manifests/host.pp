@@ -42,4 +42,11 @@ $gem_source = "http://localhost/gems/",
     group => 'root',
     mode  => '0750',
   }
+  file { "/var/www/nailgun/dump":
+    ensure => directory,
+    owner => 'root', 
+    group => 'root',
+    mode  => '0755',
+  }
+
 }
