@@ -1,8 +1,8 @@
 # == Class: openstack::mongo_primary
 
 class openstack::mongo_primary (
-  $ceilometer_database          = "ceilometer_database",
-  $ceilometer_user              = "ceilometer_user",
+  $ceilometer_database          = "ceilometer",
+  $ceilometer_user              = "ceilometer",
   $ceilometer_metering_secret   = undef,
   $ceilometer_db_password       = "ceilometer",
   $ceilometer_metering_secret   = "ceilometer",
@@ -11,8 +11,17 @@ class openstack::mongo_primary (
   $mongodb_port                 = 27017,
 ) {
 
-  $replset_setup = size($ceilometer_replset_members) > 0
-  notify {"MongoDB params: $mongodb_bind_address": } ->
+  if size($ceilometer_replset_members) > 0 {
+    $replset_setup = true
+    $keyfile = '/etc/mongodb.key'
+    $replset = 'ceilometer'
+  } else {
+    $replset_setup = false
+    $keyfile = undef
+    $replset = undef
+  }
+
+  notify {"MongoDB params: $mongodb_bind_address" :} ->
 
   class {'::mongodb::client':
   } ->
@@ -21,9 +30,9 @@ class openstack::mongo_primary (
     port    => $mongodb_port,
     verbose => true,
     bind_ip => $mongodb_bind_address,
-    replset => 'ceilometer',
-    auth => true,
-    keyfile => '/etc/mongodb.key'
+    auth    => true,
+    replset => $replset,
+    keyfile => $keyfile,
   } ->
 
   class {'::mongodb::replset':
@@ -31,20 +40,38 @@ class openstack::mongo_primary (
     replset_members => $ceilometer_replset_members,
   } ->
 
+  notify {"mongodb configuring databases" :} ->
+
   mongodb::db { $ceilometer_database:
     user          => $ceilometer_user,
     password      => $ceilometer_db_password,
-    roles         => ['readWrite', 'dbAdmin', 'dbOwner'],
+    roles         => [
+      'readWrite',
+      'dbAdmin',
+      'dbOwner'
+    ],
   } ->
 
   mongodb::db { 'admin':
     user         => 'admin',
     password     => $ceilometer_db_password,
-    roles        => ['userAdmin','readWrite', 'dbAdmin', 'dbAdminAnyDatabase', 'readAnyDatabase', 'readWriteAnyDatabase', 'userAdminAnyDatabase', 'clusterAdmin', 'clusterManager', 'clusterMonitor', 'hostManager', 'root' ],
+    roles        => [
+      'userAdmin',
+      'readWrite',
+      'dbAdmin',
+      'dbAdminAnyDatabase',
+      'readAnyDatabase',
+      'readWriteAnyDatabase',
+      'userAdminAnyDatabase',
+      'clusterAdmin',
+      'clusterManager',
+      'clusterMonitor',
+      'hostManager',
+      'root'
+    ],
   } ->
 
   notify {"mongodb primary finished": }
-#  notify {"mongo: $ceilometer_db_password": }
 
 }
 # vim: set ts=2 sw=2 et :

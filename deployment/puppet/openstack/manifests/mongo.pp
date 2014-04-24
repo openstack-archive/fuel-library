@@ -1,10 +1,10 @@
 # == Class: openstack::mongo
 
 class openstack::mongo (
-  $ceilometer_database          = "ceilometer_database",
-  $ceilometer_user              = "ceilometer_user",
+  $ceilometer_database          = "ceilometer",
+  $ceilometer_user              = "ceilometer",
   $ceilometer_metering_secret   = undef,
-  $ceilometer_db_password       = $ceilometer_hash[db_password],
+  $ceilometer_db_password       = "ceilometer",
   $ceilometer_metering_secret   = "ceilometer",
   $mongodb_port                 = 27017,
   $mongodb_bind_address         = ['0.0.0.0'],
