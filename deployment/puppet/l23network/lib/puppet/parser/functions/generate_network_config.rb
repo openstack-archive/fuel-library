@@ -243,6 +243,28 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
           endpoints[iface.to_sym][:properties] ||= { :ipaddr => 'none' }
           endpoints[iface.to_sym][:properties][:bond_master] = t[:name].to_s
         }
+        # add port to the ovs bridge as ordinary port
+        tt = Marshal.load(Marshal.dump(t))
+        tt[:action] = 'add-port'  # because lnx-bind is a ordinary port in OVS
+        port_trans = L23network.sanitize_transformation(tt)
+        resource = res_factory[:port][:resource]
+        p_resource = Puppet::Parser::Resource.new(
+            res_factory[:port][:name_of_resource],
+            port_trans[:name],
+            :scope => self,
+            :source => resource
+        )
+        trans.select{|k,v| ! [:action, :interfaces, :properties].index(k) }.each do |k,v|
+          p_resource.set_parameter(k,v)
+        end
+        req_list = []
+        req_list.insert(-1, previous) if previous
+        req_list.insert(-1, "L3_if_downup[#{tt[:name]}]")
+        p_resource.set_parameter(:require, req_list)
+        resource.instantiate_resource(self, p_resource)
+        compiler.add_resource(self, p_resource)
+        transformation_success.insert(-1, "bond-lnx_as_port(#{port_trans[:name]})")
+        born_ports.insert(-1, port_trans[:name].to_sym())
       else
         # normal OVS transformation
         resource = res_factory[action][:resource]
