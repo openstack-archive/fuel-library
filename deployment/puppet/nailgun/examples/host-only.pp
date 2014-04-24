@@ -9,6 +9,7 @@ else {
     $production = 'dev'
 }
 
+class { 'nailgun::packages': }
 
 class { 'nailgun::host':
   production => $production,
@@ -21,4 +22,37 @@ class { "openstack::clocksync":
   config_template => "ntp/ntp.conf.centosserver.erb",
 }
 
-class { "docker": }
+
+
+class { "docker::dockerctl":
+  release    => $::fuel_version['VERSION']['release'],
+  production => $production,
+} ->
+class { "docker": } ->
+
+class { "nailgun::supervisor":
+  nailgun_env => false,
+  ostf_env    => false,
+  require     => File["/etc/supervisord.d/current", "/etc/supervisord.d/${::fuel_version['VERSION']['release']}"],
+  conf_file   => "nailgun/supervisord.conf.base.erb",
+}
+
+file { "/etc/supervisord.d":
+  ensure  => directory,
+}
+
+file { "/etc/supervisord.d/${::fuel_version['VERSION']['release']}":
+  require => File["/etc/supervisord.d"],
+  owner   => root,
+  group   => root,
+  recurse => true,
+  ensure  => directory,
+  source  => "puppet:///modules/docker/supervisor",
+}
+
+file { "/etc/supervisord.d/current":
+  require => File["/etc/supervisord.d/${::fuel_version['VERSION']['release']}"],
+  replace => true,
+  ensure  => "/etc/supervisord.d/${::fuel_version['VERSION']['release']}",
+}
+
