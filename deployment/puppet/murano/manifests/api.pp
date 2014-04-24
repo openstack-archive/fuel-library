@@ -3,10 +3,6 @@ class murano::api (
     $syslog_log_facility        = 'LOG_LOCAL0',
     $verbose                    = false,
     $debug                      = false,
-    $paste_inipipeline          = 'authtoken context apiv1app',
-    $paste_app_factory          = 'muranoapi.api.v1.router:API.factory',
-    $paste_filter_factory       = 'muranoapi.api.middleware.context:ContextMiddleware.factory',
-    $paste_paste_filter_factory = 'keystoneclient.middleware.auth_token:filter_factory',
     $auth_host                  = '127.0.0.1',
     $auth_port                  = '35357',
     $auth_protocol              = 'http',
@@ -117,13 +113,6 @@ class murano::api (
     'keystone_authtoken/admin_user'         : value => $admin_user;
     'keystone_authtoken/admin_password'     : value => $admin_password;
     'keystone_authtoken/signing_dir'        : value => $signing_dir;
-  }
-
-  murano_paste_ini_config {
-    'pipeline:muranoapi/pipeline'           : value => $paste_inipipeline;
-    'app:apiv1app/paste.app_factory'        : value => $paste_app_factory;
-    'filter:context/paste.filter_factory'   : value => $paste_filter_factory;
-    'filter:authtoken/paste.filter_factory' : value => $paste_paste_filter_factory;
   }
 
   firewall { $firewall_rule_name :

@@ -6,6 +6,7 @@ class murano (
   $murano_keystone_tenant                = 'services',
   $murano_keystone_user                  = 'murano',
   $murano_keystone_password              = 'swordfish',
+  $murano_keystone_signing_dir           = '/tmp/keystone-signing-muranoapi',
   # murano
   $use_syslog                            = false,
   $debug                                 = false,
@@ -30,12 +31,6 @@ class murano (
   $murano_rabbit_login                   = 'murano',
   $murano_rabbit_password                = 'murano',
   $murano_rabbit_virtual_host            = '/',
-  # murano-api-paste.ini
-  $murano_paste_inipipeline              = 'authtoken context apiv1app',
-  $murano_paste_app_factory              = 'muranoapi.api.v1.router:API.factory',
-  $murano_paste_filter_factory           = 'muranoapi.api.middleware.context:ContextMiddleware.factory',
-  $murano_paste_paste_filter_factory     = 'keystoneclient.middleware.auth_token:filter_factory',
-  $murano_paste_signing_dir              = '/tmp/keystone-signing-muranoapi',
   # murano-api.conf
   $murano_bind_host                      = '0.0.0.0',
   $murano_bind_port                      = '8082',
@@ -109,18 +104,13 @@ class murano (
     log_file                             => "${murano_log_dir}/murano.log",
     syslog_log_facility                  => $syslog_log_facility,
 
-    paste_inipipeline                    => $murano_paste_inipipeline,
-    paste_app_factory                    => $murano_paste_app_factory,
-    paste_filter_factory                 => $murano_paste_filter_factory,
-    paste_paste_filter_factory           => $murano_paste_paste_filter_factory,
-
     auth_host                            => $murano_keystone_host,
     auth_port                            => $murano_keystone_port,
     auth_protocol                        => $murano_keystone_protocol,
     admin_tenant_name                    => $murano_keystone_tenant,
     admin_user                           => $murano_keystone_user,
     admin_password                       => $murano_keystone_password,
-    signing_dir                          => $murano_paste_signing_dir,
+    signing_dir                          => $murano_keystone_signing_dir,
 
     bind_host                            => $murano_bind_host,
     bind_port                            => $murano_bind_port,
