@@ -252,4 +252,5 @@ class nailgun(
   }
 
   class { "nailgun::puppetsync": }
+  class { "nailgun::repodata" :}
 }
