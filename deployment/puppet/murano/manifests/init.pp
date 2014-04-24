@@ -50,7 +50,7 @@ class murano (
   $use_neutron                           = false,
 ) {
 
-  Class['mysql::server'] -> Class['murano::db::mysql'] -> Class['murano::rabbitmq'] -> Class['murano::keystone'] -> Class['murano::api'] -> Class['murano::python_muranoclient'] -> Class['murano::dashboard'] -> Class['murano::cirros']
+  Class['mysql::server'] -> Class['murano::db::mysql'] -> Class['murano::rabbitmq'] -> Class['murano::murano_rabbitmq'] -> Class['murano::keystone'] -> Class['murano::api'] -> Class['murano::python_muranoclient'] -> Class['murano::dashboard'] -> Class['murano::cirros']
 
   User['murano'] -> Class['murano::api']
 
@@ -139,7 +139,13 @@ class murano (
     settings_py       => '/usr/share/openstack-dashboard/openstack_dashboard/settings.py',
   }
 
-  class { 'murano::rabbitmq' :
+  class { 'murano::rabbitmq':
+    rabbit_user         => $murano_rabbit_login,
+    rabbit_password     => $murano_rabbit_password,
+    rabbit_virtual_host => $murano_rabbit_virtual_host,
+  }
+
+  class { 'murano::murano_rabbitmq' :
     rabbit_user        => $murano_rabbit_login,
     rabbit_password    => $murano_rabbit_password,
     rabbit_vhost       => $murano_rabbit_virtual_host,
