@@ -778,10 +778,6 @@ class PreseedPManager(object):
                                      self.psize(self._disk_dev(disk),
                                                 size * self.factor),
                                      self.unit))
-
-                        self.late("sgdisk --typecode={0}:{1} {2}"
-                                  "".format(pcount, part["partition_guid"],
-                                            self._disk_dev(disk)), True)
                     continue
 
                 pcount = self.pcount(self._disk_dev(disk), 1)
@@ -798,11 +794,6 @@ class PreseedPManager(object):
                 self.late("hdparm -z {0}"
                           "".format(self._disk_dev(disk)))
 
-                if part.get("partition_guid"):
-                    self.late("sgdisk --typecode={0}:{1} {2}"
-                              "".format(pcount, part["partition_guid"],
-                                        self._disk_dev(disk)), True)
-
                 if part.get("file_system", "xfs") not in ("swap", None, "none"):
                     disk_label = self._getlabel(part.get("disk_label"))
                     self.late("mkfs.{0} {1} {2}{3}{4} {5}"
@@ -812,6 +803,19 @@ class PreseedPManager(object):
                                         self._pseparator(disk["id"]),
                                         pcount, disk_label))
         self._mount_target()
+
+        # partition guids must be set in-target, which requires target to be mounted
+        for disk in self.iterdisks():
+            for part in filter(lambda p: p["type"] == "partition" and
+                               p["mount"] != "/boot", disk["volumes"]):
+                if part["size"] <= 0:
+                    continue
+
+                if part.get("partition_guid"):
+                    self.late("sgdisk --typecode={0}:{1} {2}"
+                              "".format(pcount, part["partition_guid"],
+                                        self._disk_dev(disk)), True)
+
         for disk in self.iterdisks():
             for part in filter(lambda p: p["type"] == "partition" and
                                p["mount"] != "/boot" and p["size"] > 0 and
