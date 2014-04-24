@@ -27,7 +27,7 @@ class nailgun::ostf(
     Exec['ostf-init']
   }
   case $production {
-    /(prod|docker)/: {
+    'prod', 'docker': {
       package{'fuel-ostf':}
 
       exec {'ostf-init':
@@ -39,6 +39,9 @@ class nailgun::ostf(
         ],
         before => Class['nailgun::supervisor'],
       }
+    }
+    'docker-build': {
+      package{'fuel-ostf':}
     }
     /dev/: {
       nailgun::venv::venv{'ostf-venv':
