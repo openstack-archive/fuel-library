@@ -18,12 +18,16 @@ class murano (
   $murano_api_host                       = '127.0.0.1',
   # rabbit configuration
   # NOTE:
-  #  Murano uses separate rabbitmq server for communication. This
-  #   server is launched on the same server where 'system' rabbitmq runs.
-  #  Due to this reason, non-standard port is used in 'murano_rabbit_port'.
+  #  Murano uses separate rabbitmq server for communication with agents.
+  #   This server is launched on each controller node and uses port 55572.
   #  Separate rabbitmq is used to address security concern that instances
   #   managed by Murano have access to the 'system' RabbitMQ and thus could
   #   have access to OpenStack internal data.
+  # murano_rabbit_ha_hosts is used by murano-api and works with oslo.messaging
+  $murano_rabbit_ha_hosts                = '127.0.0.1:5672',
+  $murano_rabbit_ha_queues               = false,
+  # murano_rabbit_host and murano_rabbit_port are used by murano-engine,
+  #   which communicates with rabbitmq directly.
   $murano_rabbit_host                    = '127.0.0.1',
   $murano_rabbit_port                    = '55572',
   $murano_rabbit_ssl                     = false,
@@ -117,6 +121,8 @@ class murano (
 
     rabbit_host                          => $murano_rabbit_host,
     rabbit_port                          => $murano_rabbit_port,
+    rabbit_ha_hosts                      => $murano_rabbit_ha_hosts,
+    rabbit_ha_queues                     => $murano_rabbit_ha_queues,
     rabbit_use_ssl                       => $murano_rabbit_ssl,
     rabbit_ca_certs                      => $murano_rabbit_ca_certs,
     rabbit_login                         => $murano_rabbit_login,
