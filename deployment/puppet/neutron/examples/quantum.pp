@@ -12,7 +12,7 @@
   }
 
   class { 'neutron::plugins::ovs':
-    sql_connection       => "mysql://root:1@172.18.66.112/ovs_neutron" ,
+    connection           => "mysql://root:1@172.18.66.112/ovs_neutron" ,
     tenant_network_type  => 'gre',
     enable_tunneling     => true,
   }

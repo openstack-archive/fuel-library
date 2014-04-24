@@ -20,7 +20,7 @@
 #   Optional. Defaults to false.
 # [network_config] Hash that can be used to pass implementation specifc
 #   network settings. Optioal. Defaults to {}
-# [sql_connection] SQL connection information. Optional. Defaults to false
+# [connection] SQL connection information. Optional. Defaults to false
 #   which indicates that exported resources will be used to determine connection
 #   information.
 # [nova_user_password] Nova service password.
@@ -62,7 +62,7 @@ class openstack::compute (
   $nova_user_password,
   # Network
   # DB
-  $sql_connection                = false,
+  $connection                    = false,
   # Nova
   $purge_nova_config             = false,
   # RPC
@@ -137,7 +137,7 @@ class openstack::compute (
     }
   }
 
-  $final_sql_connection = $sql_connection
+  $final_connection = $connection
   $glance_connection = $glance_api_servers
 
   case $::osfamily {
@@ -174,7 +174,7 @@ class openstack::compute (
   }
   class { 'nova':
       ensure_package       => $::openstack_version['nova'],
-      sql_connection       => $sql_connection,
+      connection           => $connection,
       queue_provider       => $queue_provider,
       amqp_hosts           => $amqp_hosts,
       amqp_user            => $amqp_user,

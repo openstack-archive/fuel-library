@@ -1,5 +1,5 @@
 class heat::db (
-  $sql_connection = 'mysql://heat:heat@localhost/heat'
+  $connection = 'mysql://heat:heat@localhost/heat'
 ) {
 
   include heat::params
@@ -10,10 +10,10 @@ class heat::db (
   Package<| title == 'heat-common' |> -> Class['heat::db']
   Class['heat::db::mysql']            -> Class['heat::db']
 
-  validate_re($sql_connection,
+  validate_re($connection,
     '(mysql):\/\/(\S+:\S+@\S+\/\S+)?')
 
-  case $sql_connection {
+  case $connection {
     /^mysql:\/\//: {
       $backend_package = false
       include mysql::python
@@ -31,7 +31,7 @@ class heat::db (
   }
 
   heat_config {
-    'DEFAULT/sql_connection': value => $sql_connection;
+    'DEFAULT/sql_connection': value => $connection;
     'DEFAULT/max_retries': value => '-1';
   }
 

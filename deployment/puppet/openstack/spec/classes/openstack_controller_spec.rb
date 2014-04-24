@@ -119,7 +119,7 @@ describe 'openstack::controller' do
         :keystone_tenant   => 'services',
         :keystone_user     => 'glance',
         :keystone_password => 'glance_pass',
-        :sql_connection    => "mysql://glance:glance_pass@127.0.0.1/glance",
+        :connection        => "mysql://glance:glance_pass@127.0.0.1/glance",
         :enabled           => true
       )
       should contain_class('nova::rabbitmq').with(
@@ -128,7 +128,7 @@ describe 'openstack::controller' do
         :enabled  => true
       )
       should contain_class('nova').with(
-        :sql_connection     => 'mysql://nova:nova_pass@127.0.0.1/nova',
+        :connection         => 'mysql://nova:nova_pass@127.0.0.1/nova',
         :rabbit_host        => '127.0.0.1',
         :rabbit_userid      => 'nova',
         :rabbit_password    => 'rabbit_pw',
@@ -234,7 +234,7 @@ describe 'openstack::controller' do
           :verbose           => true,
           :debug             => true,
           :keystone_password => 'pass6',
-          :sql_connection    => "mysql://glance:pass2@127.0.0.1/glance",
+          :connection        => "mysql://glance:pass2@127.0.0.1/glance",
           :enabled           => true
         )
       end
@@ -245,7 +245,7 @@ describe 'openstack::controller' do
           :enabled  => true
         )
         should contain_class('nova').with(
-          :sql_connection     => 'mysql://nova:pass3@127.0.0.1/nova',
+          :connection         => 'mysql://nova:pass3@127.0.0.1/nova',
           :rabbit_host        => '127.0.0.1',
           :rabbit_userid      => 'rabby',
           :rabbit_password    => 'rabby_pw',

@@ -22,7 +22,7 @@ describe 'openstack::compute' do
     end
     it {
       should contain_class('nova').with(
-        :sql_connection     => false,
+        :connection         => false,
         :rabbit_host        => false,
         :rabbit_userid      => 'nova',
         :rabbit_password    => 'rabbit_pw',
@@ -67,7 +67,7 @@ describe 'openstack::compute' do
         :private_interface   => 'eth1',
         :internal_address    => '127.0.0.1',
         :public_interface    => 'eth2',
-        :sql_connection      => 'mysql://user:passwd@host/name',
+        :connection          => 'mysql://user:passwd@host/name',
         :nova_user_password  => 'nova_pass',
         :rabbit_host         => 'my_host',
         :rabbit_password     => 'my_rabbit_pw',
@@ -84,7 +84,7 @@ describe 'openstack::compute' do
     end
     it {
       should contain_class('nova').with(
-        :sql_connection     => 'mysql://user:passwd@host/name',
+        :connection         => 'mysql://user:passwd@host/name',
         :rabbit_host        => 'my_host',
         :rabbit_userid      => 'my_rabbit_user',
         :rabbit_password    => 'my_rabbit_pw',

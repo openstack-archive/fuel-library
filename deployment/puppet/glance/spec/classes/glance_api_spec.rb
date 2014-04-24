@@ -30,7 +30,7 @@ describe 'glance::api' do
       :keystone_user     => 'admin',
       :keystone_password => 'ChangeMe',
       :sql_idle_timeout  => '3600',
-      :sql_connection    => 'sqlite:///var/lib/glance/glance.sqlite'
+      :connection        => 'sqlite:///var/lib/glance/glance.sqlite'
     }
   end
 
@@ -55,7 +55,7 @@ describe 'glance::api' do
       :keystone_user     => 'admin2',
       :keystone_password => 'ChangeMe2',
       :sql_idle_timeout  => '36002',
-      :sql_connection    => 'mysql:///var:lib@glance/glance'
+      :connection        => 'mysql:///var:lib@glance/glance'
     }
   ].each do |param_set|
 
@@ -104,8 +104,8 @@ describe 'glance::api' do
       end
 
       it 'should config db' do
-        should contain_glance_api_config('DEFAULT/sql_connection').with_value(param_hash[:sql_connection])
-        should contain_glance_api_config('DEFAULT/sql_idle_timeout').with_value(param_hash[:sql_idle_timeout])
+        should contain_glance_api_config('DEFAULT/sql_connection').with_value(param_hash[:connection])
+        should contain_glance_api_config('DEFAULT/sql_idle_timeout').with_value(param_hash[:idle_timeout])
       end
 
       it 'should lay down default auth config' do

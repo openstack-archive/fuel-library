@@ -248,12 +248,12 @@ If you are installing Quantum in non-HA mode, you will need to specify which sin
   # Set up OpenStack network manager. It is used ONLY in nova-network.
   # Consult Openstack nova-network docs for possible values.
   $network_manager = 'nova.network.manager.FlatDHCPManager'
-  
+
   # Assign floating IPs to VMs on startup automatically?
   $auto_assign_floating_ip = false
 
   # Database connection for Quantum configuration (quantum.conf)
-  $quantum_sql_connection  = "mysql://${quantum_db_user}:${quantum_db_password}@${$internal_virtual_ip}/{quantum_db_dbname}"
+  $quantum_connection  = "mysql://${quantum_db_user}:${quantum_db_password}@${$internal_virtual_ip}/{quantum_db_dbname}"
 
   if $quantum {
     $public_int   = $public_br

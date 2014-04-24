@@ -4,7 +4,7 @@
 # [syslog_log_level] logging level for non verbose and non debug mode. Optional.
 
 class openstack::cinder(
-  $sql_connection,
+  $connection,
   $cinder_user_password,
   $glance_api_servers,
   $queue_provider         = 'rabbitmq',
@@ -59,7 +59,7 @@ class openstack::cinder(
     amqp_hosts          => $amqp_hosts,
     amqp_user           => $amqp_user,
     amqp_password       => $amqp_password,
-    sql_connection      => $sql_connection,
+    connection          => $connection,
     verbose             => $verbose,
     use_syslog          => $use_syslog,
     syslog_log_facility => $syslog_log_facility,

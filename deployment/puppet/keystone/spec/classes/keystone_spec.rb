@@ -19,7 +19,7 @@ describe 'keystone' do
       'use_syslog'      => false,
       'catalog_type'    => 'sql',
       'enabled'         => true,
-      'sql_connection'  => 'sqlite:////var/lib/keystone/keystone.db',
+      'connection'      => 'sqlite:////var/lib/keystone/keystone.db',
       'idle_timeout'    => '200'
     }
   end
@@ -36,7 +36,7 @@ describe 'keystone' do
       'debug'           =>  true,
       'catalog_type'    => 'template',
       'enabled'         => false,
-      'sql_connection'  => 'mysql://a:b@c/d',
+      'connection'      => 'mysql://a:b@c/d',
       'idle_timeout'    => '300'
     }
   ].each do |param_set|
@@ -111,7 +111,7 @@ describe 'keystone' do
 
       it 'should contain correct mysql config' do
         should contain_keystone_config('sql/idle_timeout').with_value(param_hash['idle_timeout'])
-        should contain_keystone_config('sql/connection').with_value(param_hash['sql_connection'])
+        should contain_keystone_config('sql/connection').with_value(param_hash['connection'])
       end
     end
   end

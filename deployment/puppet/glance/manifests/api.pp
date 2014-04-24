@@ -65,7 +65,7 @@ class glance::api(
   $max_pool_size     = '10',
   $max_overflow      = '30',
   $max_retries       = '-1',
-  $sql_connection    = 'sqlite:///var/lib/glance/glance.sqlite',
+  $connection        = 'sqlite:///var/lib/glance/glance.sqlite',
   $use_syslog        = false,
   $syslog_log_facility = 'LOG_LOCAL2',
   $syslog_log_level  = 'WARNING',
@@ -82,7 +82,7 @@ class glance::api(
   # used to configure concat
   require 'keystone::python'
 
-  validate_re($sql_connection, '(sqlite|mysql|posgres):\/\/(\S+:\S+@\S+\/\S+)?')
+  validate_re($connection, '(sqlite|mysql|posgres):\/\/(\S+:\S+@\S+\/\S+)?')
   $auth_uri = "http://$auth_host:$auth_port"
   Package['glance'] -> Glance_api_config<||>
   Package['glance'] -> Glance_cache_config<||>
@@ -103,14 +103,14 @@ class glance::api(
     require => Class['glance'],
   }
 
-  if($sql_connection =~ /mysql:\/\/\S+:\S+@\S+\/\S+/) {
+  if($sonnection =~ /mysql:\/\/\S+:\S+@\S+\/\S+/) {
     require 'mysql::python'
-  } elsif($sql_connection =~ /postgresql:\/\/\S+:\S+@\S+\/\S+/) {
+  } elsif($connection =~ /postgresql:\/\/\S+:\S+@\S+\/\S+/) {
 
-  } elsif($sql_connection =~ /sqlite:\/\//) {
+  } elsif($sconnection =~ /sqlite:\/\//) {
 
   } else {
-    fail("Invalid db connection ${sql_connection}")
+    fail("Invalid db connection ${connection}")
   }
 
   if $notify_mech == 'noop'
@@ -185,7 +185,7 @@ class glance::api(
   # I do not believe this was required in Essex. Does the API server now need to connect to the DB?
   # TODO figure out if I need this...
   glance_api_config {
-    'DEFAULT/sql_connection':   value => $sql_connection;
+    'DEFAULT/sql_connection':   value => $connection;
   }
 
   #TODO(bogdando) check for deprecation in J

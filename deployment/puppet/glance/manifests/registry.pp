@@ -8,7 +8,7 @@ class glance::registry(
   $bind_host           = '0.0.0.0',
   $bind_port           = '9191',
   $log_file            = '/var/log/glance/registry.log',
-  $sql_connection      = 'sqlite:///var/lib/glance/glance.sqlite',
+  $connection          = 'sqlite:///var/lib/glance/glance.sqlite',
   $sql_idle_timeout    = '3600',
   $auth_type           = 'keystone',
   $auth_host           = '127.0.0.1',
@@ -58,20 +58,20 @@ if $use_syslog and !$debug { #syslog and nondebug case
 
   require 'keystone::python'
 
-  validate_re($sql_connection, '(sqlite|mysql|posgres):\/\/(\S+:\S+@\S+\/\S+)?')
+  validate_re($connection, '(sqlite|mysql|posgres):\/\/(\S+:\S+@\S+\/\S+)?')
 
   Package['glance'] -> Glance_registry_config<||>
   Glance_registry_config<||> ~> Exec<| title == 'glance-manage db_sync' |>
   Glance_registry_config<||> ~> Service['glance-registry']
 
-  if($sql_connection =~ /mysql:\/\/\S+:\S+@\S+\/\S+/) {
+  if($connection =~ /mysql:\/\/\S+:\S+@\S+\/\S+/) {
     require 'mysql::python'
-  } elsif($sql_connection =~ /postgresql:\/\/\S+:\S+@\S+\/\S+/) {
+  } elsif($connection =~ /postgresql:\/\/\S+:\S+@\S+\/\S+/) {
 
-  } elsif($sql_connection =~ /sqlite:\/\//) {
+  } elsif($connection =~ /sqlite:\/\//) {
 
   } else {
-    fail("Invalid db connection ${sql_connection}")
+    fail("Invalid db connection ${connection}")
   }
 
   # basic service config
@@ -87,7 +87,7 @@ if $use_syslog and !$debug { #syslog and nondebug case
 
   # db connection config
   glance_registry_config {
-    'DEFAULT/sql_connection':   value => $sql_connection;
+    'DEFAULT/sql_connection':   value => $connection;
   }
 
   #TODO(bogdando) check for deprecation names in J

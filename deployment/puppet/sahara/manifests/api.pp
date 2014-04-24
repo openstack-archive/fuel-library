@@ -11,7 +11,7 @@ class sahara::api (
   $bind_port                   = '8386',
   $node_domain                 = 'novalocal',
   $plugins                     = 'vanilla,hdp',
-  $sql_connection              = 'mysql://sahara:sahara@localhost/sahara',
+  $connection                  = 'mysql://sahara:sahara@localhost/sahara',
   $use_neutron                 = false,
   $use_floating_ips            = true,
   $debug                       = false,
@@ -69,7 +69,7 @@ class sahara::api (
     'DEFAULT/use_neutron'                  : value => $use_neutron_value;
     'DEFAULT/node_domain'                  : value => $node_domain;
     'DEFAULT/plugins'                      : value => $plugins;
-    'database/connection'                  : value => $sql_connection;
+    'database/connection'                  : value => $connection;
     'database/max_retries'                 : value => '-1';
     'DEFAULT/verbose'                      : value => $verbose;
     'DEFAULT/debug'                        : value => $debug;

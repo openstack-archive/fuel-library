@@ -278,7 +278,7 @@ class openstack::all (
   ######### Cinder Controller Services ########
   if !defined(Class['openstack::cinder']) {
     class {'openstack::cinder':
-      sql_connection       => "mysql://${cinder_db_user}:${cinder_db_password}@127.0.0.1/${cinder_db_dbname}?charset=utf8",
+      connection           => "mysql://${cinder_db_user}:${cinder_db_password}@127.0.0.1/${cinder_db_dbname}?charset=utf8",
       rabbit_password      => $rabbit_password,
       cinder_user_password => $cinder_user_password,
       volume_group         => $cinder_volume_group,
@@ -320,7 +320,7 @@ class openstack::all (
 
   # Configure Nova
   class { 'nova':
-    sql_connection     => $nova_db,
+    connection         => $nova_db,
     rabbit_userid      => $rabbit_user,
     rabbit_password    => $rabbit_password,
     image_service      => 'nova.image.glance.GlanceImageService',
@@ -374,7 +374,7 @@ class openstack::all (
     }
   } else {
     # Set up Quantum
-    $quantum_sql_connection = "mysql://${quantum_db_user}:${quantum_db_password}@127.0.0.1/${quantum_db_dbname}?charset=utf8"
+    $quantum_connection = "mysql://${quantum_db_user}:${quantum_db_password}@127.0.0.1/${quantum_db_dbname}?charset=utf8"
 
     class { 'quantum':
       verbose         => $verbose,
@@ -401,7 +401,7 @@ class openstack::all (
     }
 
     class { 'quantum::plugins::ovs':
-      sql_connection      => $quantum_sql_connection,
+      connection          => $quantum_connection,
       tenant_network_type => 'gre',
       enable_tunneling    => true,
     }

@@ -31,7 +31,7 @@ class sahara (
   $syslog_log_facility_sahara           = 'LOG_LOCAL0',
 ) {
 
-  $sahara_sql_connection               = "mysql://${sahara_db_user}:${sahara_db_password}@${sahara_db_host}/${sahara_db_name}?read_timeout=60"
+  $sahara_connection                   = "mysql://${sahara_db_user}:${sahara_db_password}@${sahara_db_host}/${sahara_db_name}?read_timeout=60"
 
   class { 'sahara::db::mysql':
     password                            => $sahara_db_password,
@@ -52,7 +52,7 @@ class sahara (
     bind_port                           => $sahara_api_port,
     node_domain                         => $sahara_node_domain,
     plugins                             => $sahara_plugins,
-    sql_connection                      => $sahara_sql_connection,
+    connection                          => $sahara_connection,
     use_neutron                         => $use_neutron,
     debug                               => $debug,
     use_syslog                          => $use_syslog,

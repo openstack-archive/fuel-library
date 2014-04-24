@@ -107,7 +107,7 @@ if ($cinder) {
   $is_cinder_node = false
 }
 
-$quantum_sql_connection  = "mysql://${quantum_db_user}:${quantum_db_password}@${quantum_host}/${quantum_db_dbname}"
+$quantum_connection  = "mysql://${quantum_db_user}:${quantum_db_password}@${quantum_host}/${quantum_db_dbname}"
 $quantum_host            = $::fuel_settings['management_vip']
 
 ##REFACTORING NEEDED
@@ -326,7 +326,7 @@ case $::fuel_settings['role'] {
     network_config         => $network_config,
     multi_host             => $multi_host,
     auto_assign_floating_ip => $::fuel_settings['auto_assign_floating_ip'],
-    sql_connection         => "mysql://nova:${nova_hash[db_password]}@${::fuel_settings['management_vip']}/nova",
+    connection             => "mysql://nova:${nova_hash[db_password]}@${::fuel_settings['management_vip']}/nova",
     queue_provider         => $::queue_provider,
     rabbit_nodes           => $controller_nodes,
     rabbit_password        => $rabbit_hash[password],
@@ -345,7 +345,7 @@ case $::fuel_settings['role'] {
     cache_server_ip        => $controller_nodes,
     service_endpoint       => $::fuel_settings['management_vip'],
     quantum                => $::use_quantum,
-    quantum_sql_connection => $quantum_sql_connection,
+    quantum_connection     => $quantum_connection,
     quantum_user_password  => $quantum_hash[user_password],
     quantum_host           => $::fuel_settings['management_vip'],
     tenant_network_type    => $tenant_network_type,
@@ -443,7 +443,7 @@ case $::fuel_settings['role'] {
         ensure => present
       }
       class { 'openstack::cinder':
-        sql_connection       => "mysql://cinder:${cinder_hash[db_password]}@${::fuel_settings['management_vip']}/cinder?charset=utf8",
+        connection           => "mysql://cinder:${cinder_hash[db_password]}@${::fuel_settings['management_vip']}/cinder?charset=utf8",
         glance_api_servers   => "${::fuel_settings['management_vip']}:9292",
         rabbit_password      => $rabbit_hash[password],
         rabbit_host          => false,

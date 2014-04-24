@@ -54,7 +54,7 @@ describe 'nova' do
       'refreshonly' => true
     )}
 
-    it { should_not contain_nova_config('sql_connection') }
+    it { should_not contain_nova_config('connection') }
 
     it { should contain_nova_config('image_service').with_value('nova.image.glance.GlanceImageService') }
     it { should contain_nova_config('glance_api_servers').with_value('localhost:9292') }
@@ -81,7 +81,7 @@ describe 'nova' do
 
       let :params do
         {
-          'sql_connection'      => 'mysql://user:pass@db/db',
+          'connection'          => 'mysql://user:pass@db/db',
           'verbose'             => true,
           'logdir'              => '/var/log/nova2',
           'image_service'       => 'nova.image.local.LocalImageService',
@@ -96,7 +96,7 @@ describe 'nova' do
         }
       end
 
-      it { should contain_nova_config('sql_connection').with_value('mysql://user:pass@db/db') }
+      it { should contain_nova_config('connection').with_value('mysql://user:pass@db/db') }
 
       it { should contain_nova_config('image_service').with_value('nova.image.local.LocalImageService') }
       it { should_not contain_nova_config('glance_api_servers') }

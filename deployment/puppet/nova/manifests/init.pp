@@ -3,9 +3,8 @@
 #
 # ==Parameters
 #
-# [sql_connection] Connection url to use to connect to nova sql database.
 #  If specified as false, then it tries to collect the exported resource
-#   Nova_config <<| tag == "${::deployment_id}::${::environment}" and title == 'sql_connection' |>>. Optional. Defaults to false.
+#   Nova_config <<| tag == "${::deployment_id}::${::environment}" and title == 'connection' |>>. Optional. Defaults to false.
 # [image_service] Service used to search for and retrieve images. Optional.
 #   Defaults to 'nova.image.local.LocalImageService'
 # [glance_api_servers] List of addresses for api servers. Optional.
@@ -39,7 +38,7 @@ class nova(
   $ensure_package = 'present',
   # this is how to query all resources from our clutser
   $nova_cluster_id='localcluster',
-  $sql_connection = false,
+  $connection = false,
   $use_syslog = false,
   $syslog_log_facility = 'LOG_LOCAL6',
   $syslog_log_level = 'WARNING',
@@ -186,23 +185,23 @@ if $use_syslog and !$debug { #syslog and nondebug case
   }
 
 
-  # both the sql_connection and rabbit_host are things
+  # both the connection and rabbit_host are things
   # that may need to be collected from a remote host
-  if $sql_connection {
-    if($sql_connection =~ /mysql:\/\/\S+:\S+@\S+\/\S+/) {
+  if $connection {
+    if($connection =~ /mysql:\/\/\S+:\S+@\S+\/\S+/) {
       require 'mysql::python'
-    } elsif($sql_connection =~ /postgresql:\/\/\S+:\S+@\S+\/\S+/) {
+    } elsif($connection =~ /postgresql:\/\/\S+:\S+@\S+\/\S+/) {
 
-    } elsif($sql_connection =~ /sqlite:\/\//) {
+    } elsif($connection =~ /sqlite:\/\//) {
 
     } else {
-      fail("Invalid db connection ${sql_connection}")
+      fail("Invalid db connection ${connection}")
     }
     if !defined(Nova_config['DATABASE/connection']) {
-      nova_config { 'DATABASE/connection': value => $sql_connection }
+      nova_config { 'DATABASE/connection': value => $connection }
     }
   } else {
-    Nova_config <<| tag == "${::deployment_id}::${::environment}" and title == 'sql_connection' |>>
+    Nova_config <<| tag == "${::deployment_id}::${::environment}" and title == 'connection' |>>
   }
   nova_config { 'DEFAULT/allow_resize_to_same_host': value => 'True' }
   nova_config { 'DEFAULT/image_service': value => $image_service }

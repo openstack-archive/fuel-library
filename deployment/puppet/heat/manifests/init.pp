@@ -112,7 +112,7 @@ class heat(
   }
 
   class { 'heat::db' :
-    sql_connection                 => "mysql://${db_user}:${db_password}@${db_host}/${db_name}?read_timeout=60",
+    connection                     => "mysql://${db_user}:${db_password}@${db_host}/${db_name}?read_timeout=60",
   }
 
   class { 'heat::api_cfn' :

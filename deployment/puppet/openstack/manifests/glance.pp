@@ -67,7 +67,7 @@ class openstack::glance (
   # Configure the db string
   case $db_type {
     'mysql': {
-      $sql_connection = "mysql://${glance_db_user}:${glance_db_password}@${db_host}/${glance_db_dbname}?read_timeout=60"
+      $connection = "mysql://${glance_db_user}:${glance_db_password}@${db_host}/${glance_db_dbname}?read_timeout=60"
     }
   }
 
@@ -82,7 +82,7 @@ class openstack::glance (
     keystone_tenant      => 'services',
     keystone_user        => 'glance',
     keystone_password    => $glance_user_password,
-    sql_connection       => $sql_connection,
+    connection           => $connection,
     enabled              => $enabled,
     registry_host        => $registry_host,
     use_syslog           => $use_syslog,
@@ -106,7 +106,7 @@ class openstack::glance (
     keystone_tenant     => 'services',
     keystone_user       => 'glance',
     keystone_password   => $glance_user_password,
-    sql_connection      => $sql_connection,
+    connection          => $connection,
     enabled             => $enabled,
     use_syslog          => $use_syslog,
     syslog_log_facility => $syslog_log_facility,

@@ -108,7 +108,7 @@ class openstack::nova::controller (
   } else {
     $real_glance_api_servers = $glance_api_servers
   }
-  $sql_connection    = $nova_db
+  $connection    = $nova_db
   $glance_connection = $real_glance_api_servers
 
   # Install / configure queue provider
@@ -138,7 +138,7 @@ class openstack::nova::controller (
   }
 
   class { 'nova':
-    sql_connection      => $sql_connection,
+    connection          => $connection,
     amqp_hosts          => $amqp_hosts,
     amqp_user           => $amqp_user,
     amqp_password       => $amqp_password,

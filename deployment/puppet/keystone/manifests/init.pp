@@ -68,7 +68,7 @@ class keystone(
 #  $token_format        = 'PKI',
   $cache_dir           = '/var/cache/keystone',
   $enabled             = true,
-  $sql_connection      = 'sqlite:////var/lib/keystone/keystone.db',
+  $connection          = 'sqlite:////var/lib/keystone/keystone.db',
   $idle_timeout        = '200',
   $max_pool_size       = '10',
   $max_overflow        = '30',
@@ -204,19 +204,19 @@ class keystone(
     'composite:admin//': value =>"admin_version_api";
   }
 
-  if($sql_connection =~ /mysql:\/\/\S+:\S+@\S+\/\S+/) {
+  if($connection =~ /mysql:\/\/\S+:\S+@\S+\/\S+/) {
     require 'mysql::python'
-  } elsif($sql_connection =~ /postgresql:\/\/\S+:\S+@\S+\/\S+/) {
+  } elsif($connection =~ /postgresql:\/\/\S+:\S+@\S+\/\S+/) {
 
-  } elsif($sql_connection =~ /sqlite:\/\//) {
+  } elsif($connection =~ /sqlite:\/\//) {
 
   } else {
-    fail("Invalid db connection ${sql_connection}")
+    fail("Invalid db connection ${connection}")
   }
 
   # db connection config
   keystone_config {
-    'database/connection':    value => $sql_connection;
+    'database/connection':    value => $connection;
     'database/idle_timeout':  value => $idle_timeout;
     'database/max_pool_size': value => $max_pool_size;
     'database/max_retries':   value => $max_retries;

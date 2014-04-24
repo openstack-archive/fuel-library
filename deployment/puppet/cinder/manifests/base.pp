@@ -8,7 +8,7 @@
 # $syslog_log_level = logging level for non verbose and non debug mode. Optional.
 
 class cinder::base (
-  $sql_connection,
+  $connection,
   $queue_provider         = 'rabbitmq',
   $amqp_hosts             = '127.0.0.1',
   $amqp_user              = 'nova',
@@ -107,7 +107,7 @@ class cinder::base (
   }
 
   cinder_config {
-    'DATABASE/connection':         value => $sql_connection;
+    'DATABASE/connection':         value => $connection;
     'DEFAULT/debug':               value => $debug;
     'DEFAULT/verbose':             value => $verbose;
     'DEFAULT/api_paste_config':    value => '/etc/cinder/api-paste.ini';
