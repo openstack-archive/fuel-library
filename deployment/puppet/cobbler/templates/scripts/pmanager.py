@@ -607,6 +607,12 @@ class PreseedPManager(object):
         self.late("swapon {0}{1}4".format(self.os_disk,
             self._pseparator(self.os_disk)))
 
+    def non_boot_partitions(self, volumes):
+        for part in filter(lambda p: p["type"] == "partition" and
+                           p["mount"] != "/boot", volumes):
+            if part["size"] > 0:
+                yield part
+
     def pcount(self, disk_id, increment=0):
         self._pcount[disk_id] = self._pcount.get(disk_id, 0) + increment
         return self._pcount.get(disk_id, 0)
@@ -723,10 +729,7 @@ class PreseedPManager(object):
 
         self._umount_target()
         for disk in self.iterdisks():
-            for part in filter(lambda p: p["type"] == "partition" and
-                               p["mount"] != "/boot", disk["volumes"]):
-                if part["size"] <= 0:
-                    continue
+            for part in self.non_boot_partitions(disk["volumes"]):
 
                 if self.pcount("/dev/%s" % disk["id"]) == 0:
                     self.late("parted -s {0} mklabel gpt"
@@ -769,6 +772,7 @@ class PreseedPManager(object):
                     for i in range(0, end):
                         journals_left -= 1
                         pcount = self.pcount(self._disk_dev(disk), 1)
+                        part["pcount"] = pcount
 
                         self.late("parted -a none -s {0} "
                                  "unit {4} mkpart {1} {2} {3}".format(
@@ -778,13 +782,10 @@ class PreseedPManager(object):
                                      self.psize(self._disk_dev(disk),
                                                 size * self.factor),
                                      self.unit))
-
-                        self.late("sgdisk --typecode={0}:{1} {2}"
-                                  "".format(pcount, part["partition_guid"],
-                                            self._disk_dev(disk)), True)
                     continue
 
                 pcount = self.pcount(self._disk_dev(disk), 1)
+                part["pcount"] = pcount
                 tabmount = part["mount"] if part["mount"] != "swap" else "none"
                 self.late("parted -a none -s {0} "
                           "unit {4} mkpart {1} {2} {3}".format(
@@ -798,11 +799,6 @@ class PreseedPManager(object):
                 self.late("hdparm -z {0}"
                           "".format(self._disk_dev(disk)))
 
-                if part.get("partition_guid"):
-                    self.late("sgdisk --typecode={0}:{1} {2}"
-                              "".format(pcount, part["partition_guid"],
-                                        self._disk_dev(disk)), True)
-
                 if part.get("file_system", "xfs") not in ("swap", None, "none"):
                     disk_label = self._getlabel(part.get("disk_label"))
                     self.late("mkfs.{0} {1} {2}{3}{4} {5}"
@@ -812,6 +808,15 @@ class PreseedPManager(object):
                                         self._pseparator(disk["id"]),
                                         pcount, disk_label))
         self._mount_target()
+
+        # partition guids must be set in-target, which requires target to be mounted
+        for disk in self.iterdisks():
+            for part in self.non_boot_partitions(disk["volumes"]):
+                if part.get("partition_guid"):
+                    self.late("sgdisk --typecode={0}:{1} {2}"
+                              "".format(part["pcount"], part["partition_guid"],
+                                        self._disk_dev(disk)), True)
+
         for disk in self.iterdisks():
             for part in filter(lambda p: p["type"] == "partition" and
                                p["mount"] != "/boot" and p["size"] > 0 and
@@ -828,7 +833,7 @@ class PreseedPManager(object):
                               "".format(
                                   self._disk_dev(disk),
                                   self._pseparator(disk["id"]),
-                                  pcount, tabmount,
+                                  part["pcount"], tabmount,
                                   part.get("file_system", "xfs"),
                                   ("defaults" if part["mount"] != "swap"
                                    else "sw" )))
