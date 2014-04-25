@@ -131,7 +131,7 @@ class murano::api (
     onlyif  => "test -f $murano_manage",
   }
 
-  Package['murano'] -> Murano_paste_ini_config<||> -> Murano_config<||> -> Exec['murano_manage_db_sync']
+  Package['murano'] -> Murano_config<||> -> Exec['murano_manage_db_sync']
 
   #Package['murano'] -> Service['murano_api']
   Murano_config<||> ~> Service['murano_api']
