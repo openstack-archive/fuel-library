@@ -1,5 +1,5 @@
 #import pmanager
-#set $pm = $pmanager.PreseedPManager($getVar("ks_spaces","[]"))
+#set $pm = $pmanager.PreseedPManager($getVar("pm_data",{}))
 #silent $pm.eval()
 
 d-i partman/early_command string \
