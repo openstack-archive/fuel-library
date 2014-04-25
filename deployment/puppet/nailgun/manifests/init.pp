@@ -45,8 +45,8 @@ class nailgun(
   $rabbitmq_astute_password = "naily",
   $puppet_master_hostname = "${hostname}.${domain}",
   $puppet_master_ip = $ipaddress,
-
-  ) {
+  $fuel_release = undef,
+) {
 
   Exec  {path => '/usr/bin:/bin:/usr/sbin:/sbin'}
 
@@ -252,4 +252,10 @@ class nailgun(
   }
 
   class { "nailgun::puppetsync": }
+
+  class { "nailgun::repodata" :
+    master_node_ip => $puppet_master_ip,
+    fuel_release   => $fuel_release,
+  }
+
 }
