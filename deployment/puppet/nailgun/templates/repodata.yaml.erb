@@ -1,0 +1,16 @@
+- pk: 1
+  model: "nailgun.release_orchestrator_data"
+  fields:
+    release_id: 1
+    repo_metadata:
+      nailgun: "<%= @centos_repo_source %>"
+    puppet_modules_source: "<%= @puppet_modules_source %>"
+    puppet_manifests_source: "<%= @puppet_manifests_source %>"
+- pk: 2
+  model: "nailgun.release_orchestrator_data"
+  fields:
+    release_id: 2
+    repo_metadata:
+      nailgun: "<%= @ubuntu_repo_source %>"
+    puppet_modules_source: "<%= @puppet_modules_source %>"
+    puppet_manifests_source: "<%= @puppet_manifests_source %>"
