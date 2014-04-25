@@ -283,7 +283,7 @@ class openstack::nova::controller (
   }
 
   class { '::nova::scheduler::filter':
-    cpu_allocation_ratio       => '1.0',
+    cpu_allocation_ratio       => '8.0',
     disk_allocation_ratio      => '1.0',
     ram_allocation_ratio       => '1.0',
     scheduler_host_subset_size => '30',
