@@ -148,7 +148,7 @@ class murano::api (
 
   murano_manage_import_package{'io.murano':}
 
-  Package['murano'] -> Murano_paste_ini_config<||> -> Murano_config<||> -> Exec['murano_manage_db_sync']
+  Package['murano'] -> Murano_config<||> -> Exec['murano_manage_db_sync']
   Exec['murano_manage_db_sync'] -> Murano_manage_import_package['io.murano']
 
   #Package['murano'] -> Service['murano_api']
