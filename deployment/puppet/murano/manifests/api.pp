@@ -131,7 +131,24 @@ class murano::api (
     onlyif  => "test -f $murano_manage",
   }
 
-  Package['murano'] -> Murano_paste_ini_config<||> -> Murano_config<||> -> Exec['murano_manage_db_sync']
+  define murano_manage_import_package (
+    $package_name = '',
+  ) {
+    if $package_name != '' {
+      $package_path="/var/cache/murano/meta/$package_name"
+      exec { 'murano_import_package_io_murano':
+        path    => [ '/usr/bin' ],
+        command => "$murano_manage --config-file=/etc/murano/murano.conf import-package '$package_path'",
+        user    => $murano_user,
+        group   => $murano_user,
+        onlyif  => "test -d '$package_path'",
+      }
+    }
+  }
+
+  murano_manage_import_package{'io.murano':}
+
+  Package['murano'] -> Murano_paste_ini_config<||> -> Murano_config<||> -> Exec['murano_manage_db_sync'] -> Murano_manage_import_package['io.murano']
 
   #Package['murano'] -> Service['murano_api']
   Murano_config<||> ~> Service['murano_api']
