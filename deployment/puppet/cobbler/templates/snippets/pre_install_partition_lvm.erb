@@ -1,4 +1,4 @@
 #import pmanager
-#set $pm = $pmanager.PManager($getVar("ks_spaces","[]"))
+#set $pm = $pmanager.PManager($getVar("pm_data",{}))
 #silent $pm.eval()
 $pm.expose()

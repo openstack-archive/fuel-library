@@ -1,4 +1,4 @@
 #import pmanager
-#set $pm = $pmanager.PreseedPManager($getVar("ks_spaces","[]"))
+#set $pm = $pmanager.PreseedPManager($getVar("pm_data",{}))
 #silent $pm.eval()
 $pm.expose_late()
