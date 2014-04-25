@@ -17,6 +17,7 @@ class PManager(object):
         self._kick = []
         self._post = []
         self.raid_count = 0
+        self.bootloader_params = ""
 
         self._pcount = {}
         self._pend = {}
@@ -442,10 +443,10 @@ class PManager(object):
                         "".format(self._disk_dev(disk)))
         if devs:
             self.kick("bootloader --location=mbr --driveorder={0} "
-                      "--append=' console=ttyS0,9600 console=tty0 "
-                      "biosdevname=0 "
-                      "crashkernel=none rootdelay=90 "
-                      "nomodeset '".format(",".join(devs)))
+                      "--append='{1}'".format(
+                        ",".join(devs),
+                        self.bootloader_params)
+                      )
             for dev in devs:
                 self.post("echo -n > /tmp/grub.script")
                 self.post("echo \\\"device (hd0) /dev/{0}\\\" >> "
@@ -464,9 +465,9 @@ class PManager(object):
                 self.post("echo quit >> /tmp/grub.script")
                 self.post("cat /tmp/grub.script | chroot /mnt/sysimage "
                           "/sbin/grub --no-floppy --batch")
-            self.post("sed -i 's/hiddenmenu/hiddenmenu\\nserial\\ "
-                      "--unit=1\\ --speed=19200\\nterminal\\ "
-                      "--timeout=8\\ console\\ serial/g' /etc/grub.cfg")
+            # self.post("sed -i 's/hiddenmenu/hiddenmenu\\nserial\\ "
+            #           "--unit=1\\ --speed=19200\\nterminal\\ "
+            #           "--timeout=8\\ console\\ serial/g' /etc/grub.cfg")
 
     def expose(self,
                kickfile="/tmp/partition.ks",
@@ -507,7 +508,7 @@ class PManager(object):
 
 
 class PreseedPManager(object):
-    def __init__(self, data):
+    def __init__(self, data, bootloader_params):
         if isinstance(data, (str, unicode)):
             self.data = json.loads(data)
         else:
@@ -516,8 +517,10 @@ class PreseedPManager(object):
         self.validate()
         self.factor = 1
         self.unit = "MiB"
+        self.bootloader_params = ""
         self.disks = sorted([self._disk_dev(d) for d in self.iterdisks()])
         self.os_disk = self.os_disks()[0]
+        self.bootloader_params = bootloader_params
 
         self._pcount = {}
         self._pend = {}
@@ -949,9 +952,9 @@ class PreseedPManager(object):
                   "-e 's/.*GRUB_TERMINAL.*/GRUB_TERMINAL=console/g' "
                   "-e 's/.*GRUB_GFXMODE.*/#GRUB_GFXMODE=640x480/g' "
                   "-e 's/.*GRUB_CMDLINE_LINUX.*/"
-                  "GRUB_CMDLINE_LINUX=\"console=tty0 "
-                  "rootdelay=90 nomodeset "
-                  "console=ttyS0,9600\"/g' /etc/default/grub", True)
+                  "GRUB_CMDLINE_LINUX=\"{0}\"/g' /etc/default/grub".format(
+                    self.bootloader_params),
+                  True)
         self._umount_target()
         self._mount_target()
         self.late("grub-mkconfig", True)

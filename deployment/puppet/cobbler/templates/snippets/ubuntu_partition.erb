@@ -1,5 +1,5 @@
 #import pmanager
-#set $pm = $pmanager.PreseedPManager($getVar("ks_spaces","[]"))
+#set $pm = $pmanager.PreseedPManager($getVar("ks_spaces","[]"), $getVar("bootloader_params",""))
 #silent $pm.eval()
 
 d-i partman/early_command string \
