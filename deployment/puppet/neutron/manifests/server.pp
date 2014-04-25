@@ -80,6 +80,25 @@ class neutron::server (
     'filter:authtoken/admin_password':    value => $neutron_config['keystone']['admin_password'];
   }
 
+  Neutron_config<||> -> Exec['get_service_tenant_ID']
+  File['/root/openrc'] -> Exec['get_service_tenant_ID']
+  Keystone_tenant["${nova_admin_tenant_name}"] -> Exec['get_service_tenant_ID']
+  Openstack::Ha::Haproxy_service<| title == 'keystone-1' |> -> Exec['get_service_tenant_ID']
+  Openstack::Ha::Haproxy_service<| title == 'keystone-2' |> -> Exec['get_service_tenant_ID']
+  exec {'get_service_tenant_ID':  # Imitate tries & try_sleep for 'onlyif'
+    tries => 10,                  # by using couple of execs
+    try_sleep => 3,               # WITHOUT refreshonly option
+    command => "bash -c \"source /root/openrc ; keystone tenant-list\" | grep \"${nova_admin_tenant_name}\" > /tmp/services",
+    path => '/usr/sbin:/usr/bin:/sbin:/bin'
+  }
+  # do not use refreshonly and notify here -- it leads to double execution 'onlyif' command
+  exec {'insert_service_tenant_ID':
+    onlyif  => "head -n1 /tmp/services | awk -F'|' '{print \$2}' | grep -xEe '\\s*[[:xdigit:]]+\\s*' > /tmp/serviceid",
+    command => "sed -e \"s/${nova_admin_tenant_id_mask}/`head -n1 /tmp/serviceid`/g\" -i /etc/neutron/neutron.conf",
+    path => '/usr/sbin:/usr/bin:/sbin:/bin'
+  }
+  Exec['get_service_tenant_ID'] -> Exec['insert_service_tenant_ID'] -> Service<| title == 'neutron-server' |>
+
   anchor {'neutron-server-config-done':}
 
   File<| title=='neutron-logging.conf' |> ->
