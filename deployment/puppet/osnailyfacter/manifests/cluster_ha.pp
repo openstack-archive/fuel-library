@@ -439,7 +439,20 @@ class osnailyfacter::cluster_ha {
           verbose                     => $verbose,
           use_syslog                  => $use_syslog,
         }
-      }
+          $scheduler_default_filters = [ 'DifferentHostFilter' ]
+        } else {
+          $scheduler_default_filters = []
+        }
+ 
+        class { '::nova::scheduler::filter':
+          cpu_allocation_ratio       => '8.0',
+          disk_allocation_ratio      => '1.0',
+          ram_allocation_ratio       => '1.0',
+          scheduler_host_subset_size => '30',
+          ram_weight_multiplier      => '1.0',
+          scheduler_default_filters  => concat($scheduler_default_filters, [ 'RetryFilter', 'AvailabilityZoneFilter', 'RamFilter', 'CoreFilter', 'DiskFilter', 'ComputeFilter', 'ComputeCapabilitiesFilter', 'ImagePropertiesFilter' ])
+        }
+
         #FIXME: Disable heat for Red Hat OpenStack 3.0
         if ($::operatingsystem != 'RedHat') {
           class { 'heat' :

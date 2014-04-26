@@ -125,11 +125,6 @@ module ${module_name} only support osfamily RedHat and Debian")
   File[$logdir] -> File['savanna-logging.conf']
   File['savanna-logging.conf'] -> Savanna_config['DEFAULT/log_config']
 
-  nova_config {
-    'DEFAULT/scheduler_driver'             : value => 'nova.scheduler.filter_scheduler.FilterScheduler';
-    'DEFAULT/scheduler_default_filters'    : value => 'DifferentHostFilter,SameHostFilter';
-  }
-
   file { $logdir:
     ensure  => directory,
     mode    => '0751',
