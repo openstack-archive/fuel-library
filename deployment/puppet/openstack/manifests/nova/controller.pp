@@ -282,13 +282,21 @@ class openstack::nova::controller (
     ensure_package => $ensure_package
   }
 
+  if ($::fuel_settings['sahara']['enabled']) {
+    $scheduler_default_filters_sahara = [ 'DifferentHostFilter', 'SameHostFilter' ]
+  } else {
+    $scheduler_default_filters_sahara = []
+  }
+
+  $scheduler_default_filters_nova = [ 'RetryFilter', 'AvailabilityZoneFilter', 'RamFilter', 'CoreFilter', 'DiskFilter', 'ComputeFilter', 'ComputeCapabilitiesFilter', 'ImagePropertiesFilter' ]
+
   class { '::nova::scheduler::filter':
     cpu_allocation_ratio       => '8.0',
     disk_allocation_ratio      => '1.0',
     ram_allocation_ratio       => '1.0',
     scheduler_host_subset_size => '30',
     ram_weight_multiplier      => '1.0',
-    scheduler_default_filters  => [ RetryFilter, AvailabilityZoneFilter, RamFilter, CoreFilter, DiskFilter, ComputeFilter, ComputeCapabilitiesFilter, ImagePropertiesFilter ]
+    scheduler_default_filters  => concat($scheduler_default_filters_sahara, $scheduler_default_filters_nova)
   }
 
   class { '::nova::consoleauth':
