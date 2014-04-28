@@ -342,8 +342,11 @@ define l23network::l3::ifconfig (
   # bond master interface should be upped only after including at least one slave interface to one
   if $interface =~ /^(bond\d+)/ {
     $l3_if_downup__subscribe = undef
-    File["$interface_file"] -> L3_if_downup["$interface"]
-    L3_if_downup<| $bond_master == $interface |> ~> L3_if_downup["$interface"]
+    File["$interface_file"] -> L3_if_downup["$interface"] # do not remove!!! we using L3_if_downup["bondXX"] in advanced_netconfig
+    # todo(sv): filter and notify  L3_if_downup["$interface"] if need.
+    # in Centos it works properly without it.
+    # May be because slaves of bond automaticaly ups master-bond
+    # L3_if_downup<| $bond_master == $interface |> ~> L3_if_downup["$interface"]
   } else {
     $l3_if_downup__subscribe = File["$interface_file"]
   }
