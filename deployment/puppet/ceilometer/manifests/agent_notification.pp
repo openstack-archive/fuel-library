@@ -36,10 +36,11 @@ class ceilometer::agent_notification (
     }
   }
 
+
+  ###FIXME(aglarendil): remove this stupid cross-class dependency 
+  ###move notification driver configuration into particular
+  ###classes
   include nova::notify::ceilometer
-  if !defined(Glance_api_config['notification_driver']) {
-    include glance::notify::ceilometer
-  }
   include cinder::notify::ceilometer
   include heat::notify::ceilometer
 
