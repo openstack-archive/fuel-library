@@ -29,6 +29,7 @@ class nailgun(
   $dhcp_start_address = $::fuel_settings['ADMIN_NETWORK']['dhcp_pool_start'],
   $dhcp_end_address   = $::fuel_settings['ADMIN_NETWORK']['dhcp_pool_end'],
   $dhcp_netmask       = $::fuel_settings['ADMIN_NETWORK']['netmask'],
+  $dhcp_mac           = $::fuel_settings['ADMIN_NETWORK']['mac'],
   $dhcp_interface     = $::fuel_settings['ADMIN_NETWORK']['interface'],
 
   $mco_pskey = "unset",
@@ -210,6 +211,7 @@ class nailgun(
     dhcp_start_address => $dhcp_start_address,
     dhcp_end_address   => $dhcp_end_address,
     dhcp_netmask       => $dhcp_netmask,
+    dhcp_mac           => $dhcp_mac,
     dhcp_gateway       => $cobbler_host,
     dhcp_interface     => $dhcp_interface,
     nailgun_api_url    => $nailgun_api_url,
