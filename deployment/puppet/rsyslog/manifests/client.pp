@@ -125,7 +125,7 @@ if $virtual { include rsyslog::checksum_udp514 }
      notify  => Class["rsyslog::service"],
   }
   ::rsyslog::imfile { "50-neutron-ovs-agent_debug" :
-      file_name     => "/var/log/neutron/ovs-agent.log",
+      file_name     => "/var/log/neutron/openvswitch-agent.log",
       file_tag      => "neutron-agent-ovs",
       file_facility => $syslog_log_facility_neutron_matched,
       file_severity => "DEBUG",
