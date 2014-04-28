@@ -42,7 +42,6 @@ class openstack::controller_ha (
    $mysql_skip_name_resolve = false,
    $ha_provider             = "pacemaker",
    $create_networks         = true,
-   $use_unicast_corosync    = false,
    $ha_mode                 = true,
    $nameservers             = undef,
    $idle_timeout            = '3600',

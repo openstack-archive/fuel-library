@@ -325,7 +325,6 @@ class osnailyfacter::cluster_ha {
       nova_rate_limits              => $::nova_rate_limits,
       cinder_rate_limits            => $::cinder_rate_limits,
       horizon_use_ssl               => $::fuel_settings['horizon_use_ssl'],
-      use_unicast_corosync          => $::fuel_settings['use_unicast_corosync'],
       nameservers                   => $::dns_nameservers,
       max_retries                   => $max_retries,
       max_pool_size                 => $max_pool_size,
