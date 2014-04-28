@@ -143,6 +143,7 @@ class nailgun(
     admin_network_first   => $::fuel_settings['ADMIN_NETWORK']['static_pool_start'],
     admin_network_last    => $::fuel_settings['ADMIN_NETWORK']['static_pool_end'],
     admin_network_netmask => $::fuel_settings['ADMIN_NETWORK']['netmask'],
+    admin_network_mac     => $::fuel_settings['ADMIN_NETWORK']['mac'],
     admin_network_ip      => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
 
     cobbler_host     => $cobbler_host,
@@ -211,7 +212,6 @@ class nailgun(
     dhcp_start_address => $dhcp_start_address,
     dhcp_end_address   => $dhcp_end_address,
     dhcp_netmask       => $dhcp_netmask,
-    dhcp_mac           => $dhcp_mac,
     dhcp_gateway       => $cobbler_host,
     dhcp_interface     => $dhcp_interface,
     nailgun_api_url    => $nailgun_api_url,
