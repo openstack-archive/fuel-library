@@ -121,9 +121,17 @@ class mysql::config(
     }
 
     if $etc_root_password {
-      file{ '/etc/my.cnf':
-        content => template('mysql/my.cnf.pass.erb'),
+      file { $config_file:
+        content => template('mysql/my.cnf.erb', 'mysql/my.cnf.pass.erb'),
+        mode    => '0640',
         require => Exec['set_mysql_rootpw'],
+        owner   => 'mysql',
+        group   => 'mysql',
+      }
+    } else {
+      file { $config_file:
+        content => template('mysql/my.cnf.erb'),
+        mode    => '0644',
       }
     }
   }
@@ -153,9 +161,8 @@ class mysql::config(
     $innodb_log_file_size_real = $::mysql_log_file_size_real
   }
 
-  file { $config_file:
-    content => template('mysql/my.cnf.erb'),
-    mode    => '0644',
-  }
+  File[$config_file] -> Database <||>
+  File[$config_file] -> Database_grant <||>
+  File[$config_file] -> Database_user <||>
 
 }
