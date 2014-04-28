@@ -69,12 +69,14 @@ class nova::scheduler::filter (
   $isolated_hosts               = false,
   $scheduler_available_filters  = 'nova.scheduler.filters.all_filters',
   $scheduler_default_filters    = false,
+  $scheduler_driver             = 'nova.scheduler.filter_scheduler.FilterScheduler',
   $scheduler_weight_classes     = 'nova.scheduler.weights.all_weighers',
   $ram_weight_multiplier        = '1.0',
 ) {
 
   nova_config {
     'DEFAULT/scheduler_host_manager':       value => $scheduler_host_manager;
+    'DEFAULT/scheduler_driver':             value => $scheduler_driver;
     'DEFAULT/scheduler_max_attempts':       value => $scheduler_max_attempts;
     'DEFAULT/scheduler_host_subset_size':   value => $scheduler_host_subset_size;
     'DEFAULT/cpu_allocation_ratio':         value => $cpu_allocation_ratio;
