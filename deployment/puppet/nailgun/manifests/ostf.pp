@@ -23,8 +23,6 @@ class nailgun::ostf(
       grant    => 'all',
       require => Class['::postgresql::server'],
     }
-    Postgresql::Db[$dbname] ->
-    Exec['ostf-init']
   }
   case $production {
     'prod', 'docker': {
@@ -33,12 +31,12 @@ class nailgun::ostf(
       exec {'ostf-init':
         command => "/usr/bin/ostf-server \
           --after-initialization-environment-hook || /bin/true",
-        require => [
-          Package["fuel-ostf"],
-          File["/etc/ostf/ostf.conf"],
-        ],
-        before => Class['nailgun::supervisor'],
       }
+      Postgresql::Db<| title == $dbname|> ->
+      Exec['ostf-init']
+      Class['nailgun::supervisor'] -> Exec['ostf-init']
+      Package["fuel-ostf"] -> Exec['ostf-init']
+      File["/etc/ostf/ostf.conf"] -> Exec['ostf-init']
     }
     'docker-build': {
       package{'fuel-ostf':}
