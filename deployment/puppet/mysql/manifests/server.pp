@@ -15,27 +15,36 @@
 # Sample Usage:
 #
 class mysql::server (
-  $custom_setup_class = undef,
-  $package_name     = $mysql::params::server_package_name,
-  $package_ensure   = 'present',
-  $service_name     = $mysql::params::service_name,
-  $service_provider = $mysql::params::service_provider,
-  $config_hash      = {},
-  $enabled          = true,
-  $galera_cluster_name = undef,
-  $primary_controller = primary_controller,
-  $galera_node_address = undef,
-  $galera_nodes = undef,
+  $custom_setup_class      = undef,
+  $package_name            = $mysql::params::server_package_name,
+  $package_ensure          = 'present',
+  $service_name            = $mysql::params::service_name,
+  $service_provider        = $mysql::params::service_provider,
+  $config_hash             = {},
+  $enabled                 = true,
+  $galera_cluster_name     = undef,
+  $primary_controller      = 'primary_controller',
+  $galera_node_address     = undef,
+  $galera_nodes            = undef,
   $mysql_skip_name_resolve = false,
-  $server_id         = $mysql::params::server_id,
-  $rep_user = 'replicator',
-  $rep_pass = 'replicant666',
-  $replication_roles = "SELECT, PROCESS, FILE, SUPER, REPLICATION CLIENT, REPLICATION SLAVE, RELOAD",
+  $server_id               = $mysql::params::server_id,
+  $rep_user                = 'replicator',
+  $rep_pass                = 'replicant666',
+  $replication_roles       = "SELECT, PROCESS, FILE, SUPER, REPLICATION CLIENT, REPLICATION SLAVE, RELOAD",
   $use_syslog              = false,
   $initscript_file         = 'puppet:///modules/mysql/mysql-single.init',
-  $mysql_buffer_pool_size  = $::mysql::params::mysql_buffer_pool_size
-
+  $root_password           = 'UNSET',
+  $old_root_password       = '',
+  $etc_root_password       = true,
+  $bind_address            = '0.0.0.0',
+  $use_syslog              = true,
 ) inherits mysql::params {
+
+  class { 'mysql::password' :
+    root_password     => $root_password,
+    old_root_password => $old_root_password,
+    etc_root_password => $etc_root_password,
+  }
 
   Exec {path => '/usr/bin:/bin:/usr/sbin:/sbin'}
   if ($custom_setup_class == undef) {
@@ -43,22 +52,18 @@ class mysql::server (
     Class['mysql::server'] -> Class['mysql::config']
     Class['mysql']         -> Class['mysql::server']
 
-    create_resources( 'class', { 'mysql::config' => $config_hash })
-#    exec { "debug-mysql-server-installation" :
-#      command     => "/usr/bin/yum -d 10 -e 10 -y install MySQL-server-5.5.28-6 2>&1 | tee mysql_install.log",
-#      before => Package["mysql-server"],
-#      logoutput => true,
-#    }
+    class { 'mysql::config' :
+      bind_address => $bind_address,
+      use_syslog   => $use_syslog,
+    }
+
     if !defined(Package[mysql-client]) {
       package { 'mysql-client':
         name   => $package_name,
-       #ensure => $mysql::params::client_version,
       }
     }
     package { 'mysql-server':
       name   => $package_name,
-     #ensure => $mysql::params::server_version,
-     #require=> Package['mysql-shared'],
     }
     if $::operatingsystem == 'RedHat' {
       file { "/etc/init.d/mysqld":
@@ -87,12 +92,9 @@ class mysql::server (
     Cs_commit['mysql']    -> Service['mysql']
     Cs_property <||> -> Cs_shadow <||>
     Cs_shadow['mysql']    -> Service['mysql']
-    #Cs_commit <| title == 'internal-vip' |> -> Cs_shadow['mysql']
 
     $config_hash['custom_setup_class'] = $custom_setup_class
     $allowed_hosts = '%'
-    #$allowed_hosts = 'localhost'
-
 
     create_resources( 'class', { 'mysql::config' => $config_hash })
     Class['mysql::config'] -> Cs_resource["p_${service_name}"]
@@ -112,15 +114,7 @@ class mysql::server (
       unless => "test -d $mysql::params::datadir/mysql",
     }
 
-
-
     Class['openstack::corosync'] -> Cs_resource["p_${service_name}"]
-
-#    #cs_rsc_defaults { "resource-stickiness":
-#    #  ensure => present,
-#    #  value  => '110',
-#    #}->
-#    cs_commit { 'mysqlvip' : cib => "mysqlvip" } ->
 
     file { '/tmp/repl_create.sql' :
       ensure  => present,
@@ -162,7 +156,7 @@ class mysql::server (
       exec { 'start_mysql_slave_on_second_controller':
          command => "ssh -i /root/.ssh/id_rsa_mysql -o StrictHostKeyChecking=no root@${existing_slave} 'mysql -NBe \"start slave;\"'",
          unless  => "mysql -NBe 'show slave status;' | grep -q ${rep_user}",
-         #before  => Cs_shadow['mysql'],
+
       }
     }
     ### end hacks
@@ -193,7 +187,6 @@ class mysql::server (
       }
     }->
 
-
     cs_commit { 'mysql': cib => 'mysql' } ->
 
     service { 'mysql':
@@ -222,7 +215,7 @@ class mysql::server (
       skip_name_resolve  => $mysql_skip_name_resolve,
       use_syslog         => $use_syslog,
     }
-#    require($galera_class)
+
   }
 
    else {
