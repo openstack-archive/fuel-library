@@ -105,7 +105,7 @@ NAILGUN_VOL="--volumes-from ${CONTAINER_NAMES['nailgun']}"
 #App container volume mounts
 ###requirements cheat sheet
 ###ALL: astuteyaml $REPO_CNT $LOG_VOL
-###sshkey: nailgun cobbler astute mcollective
+###sshkey: nailgun cobbler astute mcollective ostf
 ###dump: nginx mcollective
 ###remotelogs: rsyslog nailgun nginx
 ###nailgun: nginx mcollective
@@ -117,7 +117,7 @@ REQS["$REPO_VOL"]="cobbler postgres rabbitmq rsync astute nailgun ostf nginx rsy
 REQS["$PUPPET_VOL"]="rsync"
 #REQS["$PUPPET_VOL"]="cobbler postgres rabbitmq rsync astute nailgun ostf nginx rsyslog mcollective"
 REQS["$LOG_VOL"]="cobbler postgres rabbitmq rsync astute nailgun ostf nginx rsyslog mcollective"
-REQS["${HOST_VOL['sshkey']}"]="nailgun cobbler astute mcollective"
+REQS["${HOST_VOL['sshkey']}"]="nailgun cobbler astute mcollective ostf"
 REQS["${HOST_VOL['dump']}"]="nginx mcollective"
 #REQS["${HOST_VOL['remotelogs']}"]="rsyslog nailgun nginx"
 REQS["$NAILGUN_VOL"]="nginx mcollective"
