@@ -14,8 +14,10 @@
 
 
 class cobbler::server (
-  $domain_name = "local",
   $production = 'prod',
+  $domain_name = 'local',
+  $dns_search = 'local',
+  $dns_upstream = '8.8.8.8',
 ) {
   include cobbler::packages
 
@@ -115,7 +117,8 @@ class cobbler::server (
     refreshonly => true,
     require     => [
       Package[$cobbler::packages::cobbler_package],
-      Package[$cobbler::packages::dnsmasq_package],],
+      Package[$cobbler::packages::dnsmasq_package],
+      File['/etc/dnsmasq.upstream']],
     subscribe   => Service[$cobbler_service],
     notify      => [Service[$dnsmasq_service], Service["xinetd"]],
     tries       => 20,
@@ -180,20 +183,10 @@ class cobbler::server (
       Package[$cobbler::packages::cobbler_package],]
   }
 
-  if $production !~ /docker/ {
-    file { "/etc/dhcp/dhcp-enter-hooks":
-      content => template("cobbler/dhcp-enter-hooks.erb"),
-      owner   => root,
-      group   => root,
-      mode    => 0755,
-    }
-
-    file { "/etc/resolv.conf":
-      content => template("cobbler/resolv.conf.erb"),
-      owner   => root,
-      group   => root,
-      mode    => 0644,
-    }
+  file { '/etc/dnsmasq.upstream':
+    content => template("cobbler/dnsmasq.upstream.erb"),
+    owner   => 'root',
+    group   => 'root',
+    mode    => '0644',
   }
-
 }

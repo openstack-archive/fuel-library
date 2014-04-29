@@ -1,5 +1,7 @@
 class nailgun::host(
 $production,
+$cobbler_host = '127.0.0.1',
+$dns_search = "domain.tld",
 $nailgun_group = "nailgun",
 $nailgun_user = "nailgun",
 $gem_source = "http://localhost/gems/",
@@ -48,5 +50,19 @@ $gem_source = "http://localhost/gems/",
     group => 'root',
     mode  => '0755',
   }
+
+  file { "/etc/dhcp/dhcp-enter-hooks": 
+    content => template("nailgun/dhcp-enter-hooks.erb"), 
+    owner   => 'root', 
+    group   => 'root', 
+    mode    => '0755', 
+  } 
+ 
+  file { "/etc/resolv.conf": 
+    content => template("nailgun/resolv.conf.erb"), 
+    owner   => 'root', 
+    group   => 'root', 
+    mode    => '0644', 
+  } 
 
 }

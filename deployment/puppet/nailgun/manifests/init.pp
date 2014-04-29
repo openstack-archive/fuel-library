@@ -26,6 +26,9 @@ class nailgun(
   $cobbler_password = "cobbler",
   $cobbler_host       = $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
   $cobbler_url        = "http://${::fuel_settings['ADMIN_NETWORK']['ipaddress']}/cobbler_api",
+  $dns_upstream       = $::fuel_settings['DNS_UPSTREAM'],
+  $dns_domain         = $::fuel_settings['DNS_DOMAIN'],
+  $dns_search         = $::fuel_settings['DNS_SEARCH'],
   $dhcp_start_address = $::fuel_settings['ADMIN_NETWORK']['dhcp_pool_start'],
   $dhcp_end_address   = $::fuel_settings['ADMIN_NETWORK']['dhcp_pool_end'],
   $dhcp_netmask       = $::fuel_settings['ADMIN_NETWORK']['netmask'],
@@ -73,6 +76,7 @@ class nailgun(
 
   class { 'nailgun::host':
     production => $production,
+    cobbler_host => $cobbler_host,
     nailgun_group => $nailgun_group,
     nailgun_user => $nailgun_user,
   }
@@ -209,6 +213,9 @@ class nailgun(
     server             => $cobbler_host,
     name_server        => $cobbler_host,
     next_server        => $cobbler_host,
+    dns_upstream       => $dns_upstream,
+    domain_name        => $dns_domain,
+    dns_search         => $dns_search,
     dhcp_start_address => $dhcp_start_address,
     dhcp_end_address   => $dhcp_end_address,
     dhcp_netmask       => $dhcp_netmask,

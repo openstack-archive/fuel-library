@@ -46,6 +46,8 @@ class cobbler(
   $domain_name        = 'local',
   $name_server        = $ipaddress,
   $next_server        = $ipaddress,
+  $dns_upstream       = '8.8.8.8',
+  $dns_search         = 'domain.tld',
 
   $dhcp_start_address = '10.0.0.201',
   $dhcp_end_address   = '10.0.0.254',
@@ -75,8 +77,10 @@ class cobbler(
   include ::cobbler::iptables
   class { ::cobbler::snippets : }
   class { ::cobbler::server :
-    domain_name => $domain_name,
-    production  => $production,
+    domain_name  => $domain_name,
+    production   => $production,
+    dns_upstream => $dns_upstream,
+    dns_search   => $dns_search,
   }
 
   cobbler_digest_user {$cobbler_user:
