@@ -267,17 +267,36 @@ function setup_dhcrelay_for_cobbler {
   fi
   cobbler_ip=$(docker inspect --format='{{.NetworkSettings.IPAddress}}' ${CONTAINER_NAMES["cobbler"]})
   admin_interface=$(grep interface: $ASTUTE_YAML | cut -d':' -f2 | tr -d ' ')
-  cat > /etc/sysconfig/dhcrelay << EOF
-# Command line options here
-DHCRELAYARGS=""
-# DHCPv4 only
-INTERFACES="$admin_interface docker0"
-# DHCPv4 only
-DHCPSERVERS="$cobbler_ip"
+  cat > /etc/supervisord.d/current/dhcrelay.conf << EOF
+[program:dhcrelay]
+command=/usr/sbin/dhcrelay -d -i $admin_interface -i docker0 $cobbler_ip
+numprocs=1
+numprocs_start=0
+priority=30
+autostart=true
+autorestart=true
+startsecs=10
+startretries=1000000
+exitcodes=0,2
+stopsignal=INT
+stopwaitsecs=60
+redirect_stderr=true
+stdout_logfile=/var/log/%(program_name)s.log
+stdout_logfile_maxbytes=50MB
+stdout_logfile_backups=10
+stdout_capture_maxbytes=0
+stdout_events_enabled=false
+stderr_logfile=/var/log/%(program_name)serr.log
+stderr_logfile_maxbytes=50MB
+stderr_logfile_backups=10
+stderr_capture_maxbytes=0
+stderr_events_enabled=false
+serverurl=AUTO
 EOF
   rpm -q dhcp 2>&1 > /dev/null || yum --quiet -y install dhcp
-  chkconfig dhcrelay on
-  service dhcrelay restart
+  chkconfig dhcrelay off
+  service dhcrelay stop
+  supervisorctl update
 }
 
 function allow_all_docker_traffic {
