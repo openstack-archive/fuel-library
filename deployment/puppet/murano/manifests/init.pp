@@ -48,6 +48,8 @@ class murano (
   $murano_db_allowed_hosts               = ['localhost','%'],
   # neutron
   $use_neutron                           = false,
+  # Other parameters
+  $primary_controller                    = true,
 ) {
 
   Class['mysql::server'] -> Class['murano::db::mysql'] -> Class['murano::rabbitmq'] -> Class['murano::murano_rabbitmq'] -> Class['murano::keystone'] -> Class['murano::api'] -> Class['murano::python_muranoclient'] -> Class['murano::dashboard'] -> Class['murano::cirros']
@@ -133,6 +135,8 @@ class murano (
     murano_db_name                       => $murano_db_name,
     murano_db_user                       => $murano_db_user,
     murano_db_host                       => $murano_db_host,
+
+    primary_controller                   => $primary_controller,
   }
 
   class { 'murano::dashboard' :

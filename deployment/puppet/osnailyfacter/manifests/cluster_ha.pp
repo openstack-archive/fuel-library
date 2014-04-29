@@ -525,6 +525,8 @@ class osnailyfacter::cluster_ha {
           debug                    => $::debug,
           verbose                  => $::verbose,
           syslog_log_facility      => $::syslog_log_facility_murano,
+
+          primary_controller       => $primary_controller,
         }
 
        Class['heat'] -> Class['murano']
