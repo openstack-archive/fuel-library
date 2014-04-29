@@ -34,6 +34,8 @@ class murano::api (
 
     $murano_user                = 'murano',
     $stats_period               = '5',
+
+    $primary_controller         = true,
 ) {
 
   $database_connection = "mysql://${murano_db_name}:${murano_db_password}@${murano_db_host}:3306/${murano_db_name}?read_timeout=60"
@@ -122,28 +124,32 @@ class murano::api (
     action  => 'accept',
   }
 
-  $murano_manage = '/usr/bin/murano-manage'
-  exec { 'murano_manage_db_sync':
-    path    => [ '/usr/bin' ],
-    command => "$murano_manage --config-file=/etc/murano/murano.conf db-sync",
-    user    => $murano_user,
-    group   => $murano_user,
-    onlyif  => "test -f $murano_manage",
+  Package['murano'] -> Murano_config<||>
+
+  if $primary_controller {
+    $murano_manage = '/usr/bin/murano-manage'
+    exec { 'murano_manage_db_sync':
+      path    => [ '/usr/bin' ],
+      command => "$murano_manage --config-file=/etc/murano/murano.conf db-sync",
+      user    => $murano_user,
+      group   => $murano_user,
+      onlyif  => "test -f $murano_manage",
+    }
+
+    Murano_config<||> -> Exec['murano_manage_db_sync']
+
+    murano::application_package{'io.murano':}
+    Exec['murano_manage_db_sync'] -> Murano::Application_package['io.murano']
   }
-
-  murano::application_package{'io.murano':}
-
-  Package['murano'] -> Murano_config<||> -> Exec['murano_manage_db_sync']
-  Exec['murano_manage_db_sync'] -> Murano::Application_package['io.murano']
 
   #Package['murano'] -> Service['murano_api']
   Murano_config<||> ~> Service['murano_api']
   Murano_paste_ini_config<||> ~> Service['murano_api']
-  Exec['murano_manage_db_sync'] ~> Service['murano_api']
+  Exec<| title == 'murano_manage_db_sync' |> ~> Service['murano_api']
 
   #Package['murano'] -> Service['murano_engine']
   Murano_config<||> ~> Service['murano_engine']
   Murano_paste_ini_config<||> ~> Service['murano_engine']
-  Exec['murano_manage_db_sync'] ~> Service['murano_engine']
+  Exec<| title == 'murano_manage_db_sync' |> ~> Service['murano_engine']
 
 }
