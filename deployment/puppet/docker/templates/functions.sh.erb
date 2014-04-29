@@ -97,6 +97,7 @@ function start_container {
   image_name="$IMAGE_PREFIX/$1"
   container_name=${CONTAINER_NAMES[$1]}
   if container_created "$container_name"; then
+    pre_start_hooks $1
     if is_running "$container_name"; then
       if is_ghost "$container_name"; then
         restart_container $1
@@ -106,6 +107,7 @@ function start_container {
     else
       docker start $container_name
     fi
+    post_start_hooks $1
     if [ "$2" = "--attach" ]; then
       attach_container $container_name
     fi
@@ -209,9 +211,9 @@ function first_run_container {
   container_name="${CONTAINER_NAMES[$1]}"
   image="$IMAGE_PREFIX/$1_$VERSION"
   if ! is_running $container_name; then
-      pre_hooks $1
+      pre_setup_hooks $1
       docker run $opts $BACKGROUND --name=$container_name $image
-      post_hooks $1
+      post_setup_hooks $1
   else
       echo "$container_name is already running."
   fi
@@ -221,17 +223,28 @@ function first_run_container {
   return 0
 }
 
-function pre_hooks {
+function pre_setup_hooks {
   return 0
 }
 
-function post_hooks {
+function pre_start_hooks {
+  return 0
+}
+
+function post_setup_hooks {
   case $1 in
     cobbler)   setup_dhcrelay_for_cobbler
                ;;
     rsyslog)   remangle_syslog
                ;;
     nginx)     remangle_nginx
+               ;;
+    *)         ;;
+  esac
+}
+function post_start_hooks {
+  case $1 in
+    cobbler)   setup_dhcrelay_for_cobbler
                ;;
     *)         ;;
   esac
@@ -246,6 +259,7 @@ function remangle_port {
   eval $(ipcalc -np "$admin_net_ip" "$admin_net_netmask")
   iptables -t nat -I POSTROUTING 1 -s "$NETWORK/$PREFIX" -p $proto -m $proto --dport $port -j ACCEPT
   iptables -I FORWARD -i $admin_interface -o docker0  -m state --state NEW -p $proto  -m $proto --dport $port -j ACCEPT
+  service iptables save
 }
 
 function remangle_nginx {
