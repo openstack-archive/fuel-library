@@ -9,6 +9,10 @@ class nailgun::cobbler(
   $server = $::ipaddress,
   $name_server = $::ipaddress,
   $next_server = $::ipaddress,
+  $dns_upstream = '8.8.8.8',
+  $domain_name = 'domain.tld',
+  $dns_search = 'domain.tld',
+
   $dhcp_start_address,
   $dhcp_end_address,
   $dhcp_netmask,
@@ -34,7 +38,9 @@ class nailgun::cobbler(
     server              => $server,
     production          => $production,
 
-    domain_name         => $domain,
+    domain_name         => $domain_name,
+    dns_upstream        => $dns_upstream,
+    dns_search          => $dns_search,
     name_server         => $name_server,
     next_server         => $next_server,
 
