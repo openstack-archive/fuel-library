@@ -208,11 +208,6 @@ class openstack::controller (
   Class["${queue_provider}::server"] -> Cinder_config <||>
   Class["${queue_provider}::server"] -> Neutron_config <||>
 
-  $memcached_addresses =  inline_template("<%= @cache_server_ip.collect {|ip| ip + ':' + @cache_server_port }.join ',' %>")
-
-  nova_config {'DEFAULT/memcached_servers':    value => $memcached_addresses;
-  }
-
   ####### DATABASE SETUP ######
   # set up mysql server
   if ($db_type == 'mysql') {
@@ -287,6 +282,12 @@ class openstack::controller (
     use_syslog            => $use_syslog,
     syslog_log_facility   => $syslog_log_facility_keystone,
     syslog_log_level      => $syslog_log_level,
+    memcache_servers      => $cache_server_ip,
+    memcache_server_port  => $cache_server_port,
+    max_retries           => $max_retries,
+    max_pool_size         => $max_pool_size,
+    max_overflow          => $max_overflow,
+    idle_timeout          => $idle_timeout,
   }
 
 
