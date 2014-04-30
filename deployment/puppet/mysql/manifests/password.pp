@@ -41,9 +41,9 @@ class mysql::password (
     File['mysql_password'] -> Database_grant <||>
     File['mysql_password'] -> Database_user <||>
 
-    if defined(Class['galera']) {
-      Class['galera'] -> Class['mysql::password']
-    }
+    Anchor <| title == 'galera' |> -> Class['mysql::password'] -> Anchor <| title == 'galera-done' |>
+    Exec <| title == 'wait-for-synced-state' |> -> Exec['set_mysql_rootpw']
+    Exec <| title == 'wait-initial-sync' |> -> Exec['set_mysql_rootpw']
 
   }
 
