@@ -1,0 +1,8 @@
+#!/bin/bash
+
+. <%= @config_dir %>/config
+
+for container in ${!CONTAINER_NAMES[@]} ; do
+  dockerctl shell $container logrotate /etc/logrotate.conf
+done
+
