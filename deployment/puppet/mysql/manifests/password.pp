@@ -42,7 +42,8 @@ class mysql::password (
     File['mysql_password'] -> Database_user <||>
 
     if defined(Class['galera']) {
-      Class['galera'] -> Class['mysql::password']
+      Anchor['galera'] -> Class['mysql::password'] -> Anchor['galera-done']
+      Exec['wait-for-synced-state'] -> Class['mysql::password']
     }
 
   }
