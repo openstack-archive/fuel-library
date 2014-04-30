@@ -36,4 +36,15 @@ class docker::dockerctl (
     mode    => 0644,
     content => template("docker/dockerctl_config.erb")
   }
+  file { "$bin_dir/logrotate_containers.sh":
+    mode    => 0755,
+    content => template("docker/logrotate_containers.sh.erb"),
+  }
+  cron { "dockerctl_logrotate_containers":
+    command => "$bin_dir/logrotate_containers.sh",
+    hour    => 2,
+    minute  => 30,
+    user    => root,
+    ensure  => present,
+  }
 }

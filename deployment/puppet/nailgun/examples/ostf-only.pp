@@ -25,7 +25,7 @@ node default {
 
   Exec  {path => '/usr/bin:/bin:/usr/sbin:/sbin'}
 
-  Class['nailgun::packages'] ->
+  Class['nailgun::common'] ->
   Class['nailgun::ostf'] ->
   Class['nailgun::supervisor']
 

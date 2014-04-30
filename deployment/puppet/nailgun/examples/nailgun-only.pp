@@ -17,7 +17,7 @@ if $production != 'dev' {
 }
 
 Class["nailgun::user"] ->
-Class["nailgun::packages"] ->
+Class["nailgun::common"] ->
 Class["nailgun::venv"] ->
 Class["nailgun::supervisor"]
 
