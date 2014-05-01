@@ -30,7 +30,9 @@ class nailgun::ostf(
 
       exec {'ostf-init':
         command => "/usr/bin/ostf-server \
-          --after-initialization-environment-hook || /bin/true",
+          --after-initialization-environment-hook",
+        tries     => 50,
+        try_sleep => 5,
       }
       Postgresql::Db<| title == $dbname|> ->
       Exec['ostf-init'] -> Class['nailgun::supervisor']
