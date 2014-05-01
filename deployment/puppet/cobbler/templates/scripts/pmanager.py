@@ -153,7 +153,7 @@ class PManager(object):
         self.pre("test -e {0} && dd if=/dev/zero "
                  "of={0} bs=1M count=10".format(
                      self._disk_dev(disk)))
-        self.pre("sleep 5")
+        self.pre("sleep 10")
         self.pre("hdparm -z {0}".format(self._disk_dev(disk)))
 
     def gpt(self, disk):
@@ -607,6 +607,32 @@ class PreseedPManager(object):
         self.late("swapon {0}{1}4".format(self.os_disk,
             self._pseparator(self.os_disk)))
 
+    def _long_logger(self):
+        """This method puts script which splits
+        long line and sends them to logger
+        #!/bin/sh
+        chunk=80
+        while read string; do
+            iterations=`expr ${#string} / $chunk + 1`; i=0;
+            while [ $i -le $(( iterations - 1)) ]; do
+                start_sym=$(( $i * ${chunk} + 1 ))
+                end_sym=$(( $(( $i + 1 )) * ${chunk}))
+                echo $string | cut -c ${start_sym}-${end_sym} | logger
+                i=$(( i + 1 )); done; done;
+        """
+        return (
+            """echo '#!/bin/sh' > /tmp/long_logger.sh;""",
+            """echo 'chunk=80;' >> /tmp/long_logger.sh;""",
+            """echo 'while read string; do' >> /tmp/long_logger.sh;""",
+            """echo 'iterations=`expr ${#string} / $chunk + 1`; i=0;' >> /tmp/long_logger.sh;""",
+            """echo 'while [ $i -le $(( iterations - 1)) ]; do' >> /tmp/long_logger.sh;""",
+            """echo 'start_sym=$(( $i * ${chunk} + 1 ))' >> /tmp/long_logger.sh;""",
+            """echo 'end_sym=$(( $(( $i + 1 )) * ${chunk}))' >> /tmp/long_logger.sh;""",
+            """echo 'echo $string | cut -c ${start_sym}-${end_sym} | logger' >> /tmp/long_logger.sh;""",
+            """echo 'i=$(( i + 1 )); done; done;' >> /tmp/long_logger.sh;""",
+            """chmod +x /tmp/long_logger.sh;"""
+        )
+
     def non_boot_partitions(self, volumes):
         for part in filter(lambda p: p["type"] == "partition" and
                            p["mount"] != "/boot", volumes):
@@ -639,20 +665,21 @@ class PreseedPManager(object):
             self.early("test -e {0} && "
                        "dd if=/dev/zero of={0} "
                        "bs=1M count=10".format(self._disk_dev(disk)))
-            self.early("sleep 3")
+            self.early("sleep 10")
             self.early("hdparm -z {0}".format(self._disk_dev(disk)))
+            self.early("parted -s {0} print free".format(self._disk_dev(disk)))
 
     def log_lvm(self, line, early=True):
         func = self.early
         if not early:
             func = self.late
-        func("echo \"=== {0} ===\" | logger".format(line))
+        func("echo \"=== {0} ===\"".format(line))
         func("for v in $(vgs -a --noheadings 2>/dev/null | "
                   "sed 's/^\([ ]*\)\([^ ]\+\)\(.*\)/\\2/g'); do "
-                  "echo \"vg=$v\" | logger; done")
+                  "echo \"vg=$v\"; done")
         func("for p in $(pvs --noheadings 2>/dev/null | "
                   "sed 's/^\([ ]*\)\([^ ]\+\)\(.*\)/\\2/g'); do "
-                  "echo \"pv=$p\" | logger; done")
+                  "echo \"pv=$p\"; done")
 
     def erase_lvm_metadata(self, early=True):
         func = self.early
@@ -716,10 +743,13 @@ class PreseedPManager(object):
         we then destroy.
         """
         self.recipe("1 1 -1 ext3 $gptonly{ } method{ keep } .")
+        self.late("parted -s {0} print free".format(self.os_disk))
         self._umount_target()
         self.late("parted {0} rm 5".format(self.os_disk))
-        self.late("sleep 3")
+        self.late("sleep 10")
         self.late("hdparm -z {0}".format(self.os_disk))
+        self.late("parted -s {0} print free".format(self.os_disk))
+        self.late("find /dev \( -type l -o -type b \) -exec ls -l {} \;")
         self._mount_target()
 
     def partitions(self):
@@ -749,7 +779,7 @@ class PreseedPManager(object):
                                   self.pcount(self._disk_dev(disk), 1)
                         )
                     )
-
+                    self.late("parted -s {0} print free".format(self._disk_dev(disk)))
                 if part.get('name') == 'cephjournal':
                     # We need to allocate a journal partition for each ceph OSD
                     # Determine the number of journal partitions we need on each device
@@ -782,6 +812,7 @@ class PreseedPManager(object):
                                      self.psize(self._disk_dev(disk),
                                                 size * self.factor),
                                      self.unit))
+                        self.late("parted -s {0} print free".format(self._disk_dev(disk)))
                     continue
 
                 pcount = self.pcount(self._disk_dev(disk), 1)
@@ -795,9 +826,11 @@ class PreseedPManager(object):
                              self.psize(self._disk_dev(disk),
                                         part["size"] * self.factor),
                              self.unit))
-                self.late("sleep 3")
+                self.late("sleep 10")
                 self.late("hdparm -z {0}"
                           "".format(self._disk_dev(disk)))
+                self.late("parted -s {0} print free".format(self._disk_dev(disk)))
+                self.late("find /dev \( -type l -o -type b \) -exec ls -l {} \;")
 
                 if part.get("file_system", "xfs") not in ("swap", None, "none"):
                     disk_label = self._getlabel(part.get("disk_label"))
@@ -846,6 +879,7 @@ class PreseedPManager(object):
 
         self._umount_target()
         for disk in self.iterdisks():
+            self.late("parted -s {0} print free".format(self._disk_dev(disk)))
             for pv in [p for p in disk["volumes"]
                        if p["type"] == "pv" and p["vg"] != "os"]:
                 if pv["size"] <= 0:
@@ -866,6 +900,7 @@ class PreseedPManager(object):
                               "bios_grub on".format(
                                   self._disk_dev(disk),
                                   self.pcount(self._disk_dev(disk), 1)))
+                    self.late("parted -s {0} print free".format(self._disk_dev(disk)))
 
                 pcount = self.pcount(self._disk_dev(disk), 1)
                 begin_size = self.psize(self._disk_dev(disk))
@@ -880,9 +915,11 @@ class PreseedPManager(object):
                              end_size,
                              self.unit))
 
-                self.late("sleep 3")
+                self.late("sleep 10")
                 self.late("hdparm -z {0}"
                           "".format(self._disk_dev(disk)))
+                self.late("parted -s {0} print free".format(self._disk_dev(disk)))
+                self.late("find /dev \( -type l -o -type b \) -exec ls -l {} \;")
                 pvlist.append("pvcreate -ff {0}{1}{2}"
                               "".format(self._disk_dev(disk),
                                         self._pseparator(disk["id"]),
@@ -916,7 +953,7 @@ class PreseedPManager(object):
                     continue
                 self.late("lvcreate -L {0}m -n {1} {2}".format(
                     lv["size"], lv["name"], vg["id"]))
-                self.late("sleep 5")
+                self.late("sleep 10")
                 self.late("lvscan")
 
                 tabmount = lv["mount"] if lv["mount"] != "swap" else "none"
@@ -965,6 +1002,7 @@ class PreseedPManager(object):
             self.late("grub-install {0}"
                       "".format(self._disk_dev(disk)), True)
         self.late("update-grub", True)
+        self.late("find /dev \( -type l -o -type b \) -exec ls -l {} \;")
 
     def expose_recipe(self):
         return " \\\n".join(self.recipe())
@@ -974,18 +1012,20 @@ class PreseedPManager(object):
         for line, in_target in self.late():
             line_to_append = "{0}{1}".format(
                 ("in-target " if in_target else ""), line)
-            result += line_to_append + ";\\\n"
-            result += ("echo '{0}' | logger;\\\n"
+            result += ("echo '{0}' | /tmp/long_logger.sh;\\\n"
                        "".format(re.sub("'", "'\"'\"'", line_to_append)))
+            result += line_to_append + " 2>&1 | /tmp/long_logger.sh;\\\n"
         return result.rstrip()
 
     def expose_early(self):
         result = ""
+        for line in self._long_logger():
+            result += "{0}\\\n".format(line)
         for line in self.early():
             line_to_append = "{0}".format(line)
-            result += line_to_append + ";\\\n"
-            result += ("echo '{0}' | logger;\\\n"
+            result += ("echo '{0}' | /tmp/long_logger.sh;\\\n"
                        "".format(re.sub("'", "'\"'\"'", line_to_append)))
+            result += line_to_append + " 2>&1 | /tmp/long_logger.sh;\\\n"
         return result.rstrip()
 
     def expose_disks(self):
