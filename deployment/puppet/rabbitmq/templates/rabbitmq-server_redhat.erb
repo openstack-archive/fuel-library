@@ -96,6 +96,7 @@ start_rabbitmq () {
             RETVAL="1"
             ;;
     esac
+    rabbitmqctl set_policy ha-all "." '{"ha-mode":"all", "ha-sync-mode":"automatic"}'
 }
 
 stop_rabbitmq () {

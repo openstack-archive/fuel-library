@@ -63,7 +63,7 @@ start_rabbitmq () {
     while [ "${retry}" -le "${max_retry}" ]; do
       status_rabbitmq quiet
       if [ "${RETVAL}" = "0" ] ; then
-        RETVAL="3" 
+        RETVAL="3"
         break
       fi
       RETVAL="0"
@@ -82,6 +82,7 @@ start_rabbitmq () {
       remove_pid
       retry="$(( ${retry} + 1 ))"
     done
+    rabbitmqctl set_policy ha-all "." '{"ha-mode":"all", "ha-sync-mode":"automatic"}'
 }
 
 stop_rabbitmq () {
