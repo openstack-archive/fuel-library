@@ -128,6 +128,7 @@ class neutron (
     'DEFAULT/network_auto_schedule':  value       => $neutron_config['L3']['network_auto_schedule'];
     'DEFAULT/router_auto_schedule':   value       => $neutron_config['L3']['router_auto_schedule'];
     'DEFAULT/agent_down_time':        value       => $neutron_config['server']['agent_down_time'];
+    'DEFAULT/report_interval':        value       => $neutron_config['server']['report_interval'];
     'DEFAULT/firewall_driver':        value       => 'neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver';
     'DEFAULT/state_path':             value       => '/var/lib/neutron';
     'DEFAULT/lock_path':              value       => '/var/lib/neutron/lock';
