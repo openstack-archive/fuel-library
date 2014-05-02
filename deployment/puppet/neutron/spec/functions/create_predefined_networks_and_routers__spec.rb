@@ -52,6 +52,7 @@ class NeutronNRConfig
           'bind_host' => "#{@def_v[:management_vip]}",
           'bind_port' => 9696,
           'agent_down_time' => 15,
+          'report_interval' => 5,
           'allow_bulk'      => true,
           'control_exchange'=> 'neutron',
         },

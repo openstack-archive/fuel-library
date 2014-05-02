@@ -87,6 +87,7 @@ class NeutronConfig
           'bind_host' => "#{@def_v[:management_vip]}",
           'bind_port' => 9696,
           'agent_down_time' => 15,
+          'report_interval' => 5,
           'allow_bulk'      => true,
           'control_exchange'=> 'neutron',
         },
@@ -455,6 +456,7 @@ describe 'sanitize_neutron_config with minimal incoming data' , :type => :puppet
       "bind_host"=>"192.168.0.11",
       "bind_port"=>9696,
       "agent_down_time"=>15,
+      "report_interval"=>5,
       "allow_bulk"=>true,
       "control_exchange"=>"neutron"
     })
