@@ -258,9 +258,11 @@ class galera (
 
 # This exec waits for initial sync of galera cluster after mysql replication user creation.
 
+
+  $user_password_string="-u${mysql_user} -p${mysql_password}"
   exec { "wait-initial-sync":
     logoutput   => true,
-    command     => "/usr/bin/mysql -Nbe \"show status like 'wsrep_local_state_comment'\" | /bin/grep -q -e Synced -e Initialized && sleep 10",
+    command     => "/usr/bin/mysql ${user_password_string} -Nbe \"show status like 'wsrep_local_state_comment'\" | /bin/grep -q -e Synced -e Initialized && sleep 10",
     try_sleep   => 5,
     tries       => 60,
     refreshonly => true,
@@ -272,7 +274,7 @@ class galera (
 
   exec { "wait-for-synced-state":
     logoutput => true,
-    command   => "/usr/bin/mysql -Nbe \"show status like 'wsrep_local_state_comment'\" | /bin/grep -q Synced && sleep 10",
+    command   => "/usr/bin/mysql ${user_password_string} -Nbe \"show status like 'wsrep_local_state_comment'\" | /bin/grep -q Synced && sleep 10",
     try_sleep => 5,
     tries     => 60,
   }
