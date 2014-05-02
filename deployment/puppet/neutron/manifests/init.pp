@@ -131,6 +131,7 @@ class neutron (
     'DEFAULT/firewall_driver':        value       => 'neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver';
     'DEFAULT/state_path':             value       => '/var/lib/neutron';
     'DEFAULT/lock_path':              value       => '/var/lib/neutron/lock';
+    'agent/report_interval':          value       => $neutron_config['server']['report_interval'];
     'agent/root_helper':              value       => $neutron_config['root_helper'];
     'keystone_authtoken/auth_host':         value => $neutron_config['keystone']['auth_host'];
     'keystone_authtoken/auth_port':         value => $neutron_config['keystone']['auth_port'];
