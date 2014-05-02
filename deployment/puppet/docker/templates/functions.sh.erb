@@ -13,12 +13,11 @@ function show_usage {
   echo "Available commands: (Note: work in progress)"
   echo "  help: show this message"
   echo "  build: create all Docker containers"
-  echo "  start: start all Docker containers"
-  echo "  restart: restart one or more Docker containers"
-  echo "  stop: stop one or more Docker containers"
-  echo "  shell: start a shell or run a command in a Docker container"
-  echo "  upgrade: upgrade deployment"
-  echo "  destroy: destroy one or more containers"
+  echo "  start: start a Docker container"
+  echo "  restart: restart a Docker container"
+  echo "  stop: stop a Docker container"
+  echo "  shell: start a shell or run command in a container"
+  echo "  destroy: destroy a Docker container"
   echo "  check: check of container is ready"
 }
 function debug {
@@ -116,7 +115,6 @@ function import_images {
     if egrep -q "gz\$" <<< "$image_archive"; then
       zcat "$image_archive" | ${DOCKER} load
     elif egrep -q "xz\$" <<< "$image_archive"; then
-      #xz -dkc "$image_archive" | ${DOCKER} load - "${IMAGE_PREFIX}/${image}"
       xz -dkc "$image_archive" | ${DOCKER} load
     else
       #try to just import
@@ -142,7 +140,7 @@ function export_containers {
 
 function commit_container {
   container_name="${CONTAINER_NAMES[$1]}"
-  image="$IMAGE_PREFIX/$1"
+  image="$IMAGE_PREFIX/$1_${VERSION}"
   ${DOCKER} commit $container_name $image
 }
 function start_container {
