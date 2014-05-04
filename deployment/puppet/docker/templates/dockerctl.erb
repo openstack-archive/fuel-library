@@ -33,7 +33,7 @@ if [ "$1" == "build" ]; then
     allow_all_docker_traffic
 
     #Step 3: Launch all in order
-    apps="postgres rabbitmq rsync astute rsyslog nailgun mcollective ostf nginx cobbler"
+    apps="postgres rabbitmq rsync astute rsyslog mcollective ostf nginx cobbler nailgun"
     for service in $apps; do
       start_container $service
       sleep 4
