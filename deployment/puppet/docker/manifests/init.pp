@@ -35,12 +35,20 @@ $dependent_dirs = ["/var/log/docker-logs", "/var/log/docker-logs/remote",
     group => 'root',
     mode => '0755',
   }
+  exec {'wait for docker-to-become-ready':
+    tries     => 10,
+    try_sleep => 3,
+    command   => 'docker ps 1>/dev/null',
+    path      => "/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin",
+    require   => [Service[$docker_service]]
+  }
   exec {'build docker containers':
     command => 'dockerctl build all',
     path    => "/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin",
     require => [
                File[$dependent_dirs],
                Service[$docker_service],
+               Exec['wait for docker-to-become-ready'],
                ],
     before  => Service['supervisord'],
   }
