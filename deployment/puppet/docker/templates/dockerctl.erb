@@ -39,15 +39,13 @@ if [ "$1" == "build" ]; then
       sleep 4
     done
 
-    #Deploy supervisord scripts
-    #TODO(mattymo): puppetize this in host-only role
-    #yum install -y supervisor
-    #mkdir -p /etc/supervisord.d
-    #cp -R $confdir/supervisor/* /etc/supervisord.d/$VERSION/
-    #cp /etc/puppet/modules/nailgun/templates/supervisord.conf.base.erb /etc/supervisord.conf
-    #service supervisord start
+    #Step 4: Wait for key apps to be ready
+    echo "Waiting for applications to be ready"
+    for service in nailgun ostf cobbler; do
+      check_ready $service
+    done
 
-    #Step 4: Test deployment TODO(mattymo)
+    #Step 5: Test deployment TODO(mattymo)
     #run_tests $apps
   else
     import_images ${SOURCE_IMAGES[$container]}
