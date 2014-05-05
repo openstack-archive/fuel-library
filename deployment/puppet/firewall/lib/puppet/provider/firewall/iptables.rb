@@ -131,14 +131,14 @@ Puppet::Type.type(:firewall).provide :iptables, :parent => Puppet::Provider::Fir
 
     # String#lines would be nice, but we need to support Ruby 1.8.5
     iptables_save.split("\n").each do |line|
-      unless line =~ /^\#\s+|^\:\S+|^COMMIT|^FATAL/
-        if line =~ /^\*/
-          table = line.sub(/\*/, "")
-        else
-          if hash = rule_to_hash(line, table, counter)
-            rules << new(hash)
-            counter += 1
-          end
+      next if line =~ /^\#\s+|^\:\S+|^COMMIT|^FATAL/
+      next unless line.include? '--comment'
+      if line =~ /^\*/
+        table = line.sub(/\*/, "")
+      else
+        if hash = rule_to_hash(line, table, counter)
+          rules << new(hash)
+          counter += 1
         end
       end
     end
