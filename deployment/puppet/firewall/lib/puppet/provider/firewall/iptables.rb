@@ -148,6 +148,9 @@ Puppet::Type.type(:firewall).provide :iptables, :parent => Puppet::Provider::Fir
   def self.rule_to_hash(line, table, counter)
     hash = {}
     keys = []
+
+    return unless line.include? '--comment'
+
     values = line.dup
 
     # These are known booleans that do not take a value, but we want to munge
