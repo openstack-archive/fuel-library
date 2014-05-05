@@ -19,4 +19,14 @@ class mongodb::server::service {
     hasstatus => true,
     status    => $service_status,
   }
+
+  exec { 'wait_until_mongo_is_up' :
+    command     => "/usr/bin/mongo --quiet --eval 'db.getName()'",
+    tries       => '100',
+    try_sleep   => '3',
+    refreshonly => true,
+  }
+
+  Service['mongodb'] ~> Exec['wait_until_mongo_is_up']
+
 }
