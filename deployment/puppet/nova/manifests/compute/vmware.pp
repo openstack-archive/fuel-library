@@ -49,20 +49,26 @@
 class nova::compute::vmware(
   $host_ip,
   $host_username,
-  $host_password,
+  $host_password          = false,
   $cluster_name,
-  $api_retry_count=5,
-  $maximum_objects=100,
-  $task_poll_interval=5.0,
-  $use_linked_clone=true,
-  $wsdl_location=undef
+  $api_retry_count        = 5,
+  $maximum_objects        = 100,
+  $task_poll_interval     = 5.0,
+  $use_linked_clone       = true,
+  $wsdl_location          = undef
 ) {
+
+  validate_string($host_password)
+  #FIXME(bogdando) remove dollar escaping once Oslo.config got fixed
+  $host_pass_quoted = regsubst($host_password, '(^.*\$.*$)' , '"\1"' ,'G')
+  $host_pass_escaped = regsubst($host_pass_quoted, '\$', '$$')
+
 
   nova_config {
     'DEFAULT/compute_driver':      value => 'vmwareapi.VMwareVCDriver';
     'vmware/host_ip':              value => $host_ip;
     'vmware/host_username':        value => $host_username;
-    'vmware/host_password':        value => $host_password;
+    'vmware/host_password':        value => $host_pass_escaped;
     'vmware/cluster_name':         value => $cluster_name;
     'vmware/api_retry_count' :     value => $api_retry_count;
     'vmware/maximum_objects' :     value => $maximum_objects;
