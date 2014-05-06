@@ -1,12 +1,32 @@
-class firewall::linux::archlinux {
+# = Class: firewall::linux::archlinux
+#
+# Manages `iptables` and `ip6tables` services, and creates files used for
+# persistence, on Arch Linux systems.
+#
+# == Parameters:
+#
+# [*ensure*]
+#   Ensure parameter passed onto Service[] resources.
+#   Default: running
+#
+# [*enable*]
+#   Enable parameter passed onto Service[] resources.
+#   Default: true
+#
+class firewall::linux::archlinux (
+  $ensure = 'running',
+  $enable = true
+) {
   service { 'iptables':
-    ensure => running,
-    enable => true,
+    ensure    => $ensure,
+    enable    => $enable,
+    hasstatus => true,
   }
 
   service { 'ip6tables':
-    ensure => running,
-    enable => true,
+    ensure    => $ensure,
+    enable    => $enable,
+    hasstatus => true,
   }
 
   file { '/etc/iptables/iptables.rules':

@@ -92,7 +92,7 @@ The `pre` class should be located in `my_fw/manifests/pre.pp` and should contain
       }->
       firewall { '002 accept related established rules':
         proto   => 'all',
-        state   => ['RELATED', 'ESTABLISHED'],
+        ctstate => ['RELATED', 'ESTABLISHED'],
         action  => 'accept',
       }
     }
@@ -109,7 +109,7 @@ The `post` class should be located in `my_fw/manifests/post.pp` and include any 
       }
     }
 
-To put it all together: the `before` parameter in `Firewall {}` ensures `my_fw::post` is run before any other rules and the the `require` parameter ensures `my_fw::pre` is run after any other rules. So the run order is:
+To put it all together: the `require` parameter in `Firewall {}` ensures `my_fw::pre` is run before any other rules and the `before` parameter ensures `my_fw::post` is run after any other rules. So the run order is:
 
 * run the rules in `my_fw::pre`
 * run your rules (defined in code)
@@ -197,24 +197,56 @@ Drop all:
 
 ###Application-specific rules
 
-Application-specific rules can live anywhere you declare the firewall resource. It is best to put your firewall rules close to the service that needs it, such as in the module that configures it.
+Puppet doesn't care where you define rules, and this means that you can place
+your firewall resources as close to the applications and services that you
+manage as you wish.  If you use the [roles and profiles
+pattern](https://puppetlabs.com/learn/roles-profiles-introduction) then it
+would make sense to create your firewall rules in the profiles, so that they
+remain close to the services managed by the profile.
 
-You should be able to add firewall rules to your application-specific classes so firewalling is performed at the same time when the class is invoked.
+An example of this might be:
 
-For example, if you have an Apache module, you could declare the class as below
+```puppet
+class profile::apache {
+  include apache
+  apache::vhost { 'mysite': ensure => present }
 
-    class apache {
-      firewall { '100 allow http and https access':
-        port   => [80, 443],
-        proto  => tcp,
-        action => accept,
-      }
-      # ... the rest of your code ...
-    }
+  firewall { '100 allow http and https access':
+    port   => [80, 443],
+    proto  => tcp,
+    action => accept,
+  }
+}
+```
 
-When someone uses the class, firewalling is provided automatically.
 
-    class { 'apache': }
+However, if you're not using that pattern then you can place them directly into
+the individual module that manages a service, such as:
+
+```puppet
+class apache {
+  firewall { '100 allow http and https access':
+    port   => [80, 443],
+    proto  => tcp,
+    action => accept,
+  }
+  # ... the rest of your code ...
+}
+```
+
+This means if someone includes either the profile:
+
+```puppet
+include profile::apache
+```
+
+Or the module, if you're not using roles and profiles:
+
+```puppet
+  include ::apache
+```
+
+Then they would automatically get appropriate firewall rules.
 
 ###Other rules
 
@@ -282,7 +314,7 @@ Facts:
 * [iptables_version](#fact-iptablesversion)
 * [iptables_persistent_version](#fact-iptablespersistentversion)
 
-####Class: firewall
+###Class: firewall
 
 This class is provided to do the basic setup tasks required for using the firewall resources.
 
@@ -294,7 +326,13 @@ You should include the class for nodes that need to use the resources in this mo
 
     class { 'firewall': }
 
-####Type: firewall
+####`ensure`
+
+Indicates the state of `iptables` on your system, allowing you to disable `iptables` if desired.
+
+Can either be `running` or `stopped`. Default to `running`.
+
+###Type: firewall
 
 This type provides the capability to manage firewall rules within puppet.
 
@@ -302,7 +340,7 @@ For more documentation on the type, access the 'Types' tab on the Puppet Labs Fo
 
 <http://forge.puppetlabs.com/puppetlabs/firewall#types>
 
-####Type:: firewallchain
+###Type:: firewallchain
 
 This type provides the capability to manage rule chains for firewalls.
 
@@ -310,33 +348,34 @@ For more documentation on the type, access the 'Types' tab on the Puppet Labs Fo
 
 <http://forge.puppetlabs.com/puppetlabs/firewall#types>
 
-####Fact: ip6tables_version
+###Fact: ip6tables_version
 
 The module provides a Facter fact that can be used to determine what the default version of ip6tables is for your operating system/distribution.
 
-####Fact: iptables_version
+###Fact: iptables_version
 
 The module provides a Facter fact that can be used to determine what the default version of iptables is for your operating system/distribution.
 
-####Fact: iptables_persistent_version
+###Fact: iptables_persistent_version
 
 Retrieves the version of iptables-persistent from your OS. This is a Debian/Ubuntu specific fact.
 
 ##Limitations
 
-Please note, we only aim support for the following distributions and versions
+###SLES
 
-* Redhat 5.8 or greater
-* Debian 6.0 or greater
-* Ubuntu 11.04 or greater
+The `socket` parameter is not supported on SLES.  In this release it will cause
+the catalog to fail with iptables failures, rather than correctly warn you that
+the features are unusable.
 
-If you want a new distribution supported feel free to raise a ticket and we'll
-consider it. If you want an older revision supported we'll also consider it,
-but don't get insulted if we reject it. Specifically, we will not consider
-Redhat 4.x support - its just too old.
+###Oracle Enterprise Linux
 
-Also, as this is a 0.x release the API is still in flux and may change. Make sure
-you read the release notes before upgrading.
+The `socket` and `owner` parameters are unsupported on Oracle Enterprise Linux
+when the "Unbreakable" kernel is used. These may function correctly when using
+the stock RedHat kernel instead. Declaring either of these parameters on an
+unsupported system will result in iptable rules failing to apply.
+
+###Other
 
 Bugs can be reported using Github Issues:
 
