@@ -220,7 +220,7 @@ class openstack::firewall (
     chain   => 'PREROUTING',
     table   => 'raw',
     proto   => 'gre',
-    action  => 'notrack',
+    jump  => 'NOTRACK',
  }
 
   firewall { '999 drop all other requests':
