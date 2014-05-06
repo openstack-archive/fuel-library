@@ -505,7 +505,7 @@ class osnailyfacter::cluster_ha {
           #    'separate' rabbitmq directly (without oslo.messaging).
           #   * murano_rabbit_ha_hosts / murano_rabbit_ha_queues are required for murano-api which
           #     communicates with 'system' RabbitMQ and uses oslo.messaging.
-          murano_rabbit_host       => $::fuel_settings['management_vip'],
+          murano_rabbit_host       => $::fuel_settings['public_vip'],
           murano_rabbit_ha_hosts   => $amqp_hosts,
           murano_rabbit_ha_queues  => $rabbit_ha_queues,
           murano_rabbit_login      => 'murano',
