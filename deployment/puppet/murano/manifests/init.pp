@@ -52,7 +52,7 @@ class murano (
   $primary_controller                    = true,
 ) {
 
-  Class['mysql::server'] -> Class['murano::db::mysql'] -> Class['murano::rabbitmq'] -> Class['murano::murano_rabbitmq'] -> Class['murano::keystone'] -> Class['murano::api'] -> Class['murano::python_muranoclient'] -> Class['murano::dashboard'] -> Class['murano::cirros']
+  Class['mysql::server'] -> Class['murano::db::mysql'] -> Class['murano::rabbitmq'] -> Class['murano::murano_rabbitmq'] -> Class['murano::keystone'] -> Class['murano::python_muranoclient'] -> Class['murano::api'] -> Class['murano::apps'] -> Class['murano::dashboard'] -> Class['murano::cirros']
 
   User['murano'] -> Class['murano::api']
 
@@ -137,6 +137,10 @@ class murano (
     murano_db_host                       => $murano_db_host,
 
     primary_controller                   => $primary_controller,
+  }
+
+  class { 'murano::apps':
+    primary_controller => $primary_controller,
   }
 
   class { 'murano::dashboard' :
