@@ -5,7 +5,6 @@ class cinder::notify::ceilometer (
   if $::cinder::api::enabled {
     cinder_config {
       'DEFAULT/notification_driver': value => $driver;
-      'DEFAULT/control_exchange':    value => 'cinder';
     }
   }
 }

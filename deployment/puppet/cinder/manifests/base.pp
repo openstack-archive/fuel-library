@@ -111,6 +111,7 @@ class cinder::base (
     'DEFAULT/debug':               value => $debug;
     'DEFAULT/verbose':             value => $verbose;
     'DEFAULT/api_paste_config':    value => '/etc/cinder/api-paste.ini';
+    'DEFAULT/control_exchange':    value => 'cinder';
   }
 
   cinder_config {
