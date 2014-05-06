@@ -524,5 +524,12 @@ class openstack::controller (
     log_level         => $syslog_log_level,
   }
 
+  class { 'openstack::auth_file':
+    admin_user           => $admin_user,
+    admin_password       => $admin_password,
+    admin_tenant         => $keystone_admin_tenant,
+    controller_node      => $internal_address,
+  }
+
 }
 

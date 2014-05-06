@@ -227,6 +227,7 @@ class osnailyfacter::cluster_simple {
         max_overflow            => $max_overflow,
         idle_timeout            => $idle_timeout,
       }
+
       nova_config { 'DEFAULT/start_guests_on_host_boot': value => $::fuel_settings['start_guests_on_host_boot'] }
       nova_config { 'DEFAULT/use_cow_images': value => $::fuel_settings['use_cow_images'] }
       nova_config { 'DEFAULT/compute_scheduler_driver': value => $::fuel_settings['compute_scheduler_driver'] }
@@ -243,14 +244,6 @@ class osnailyfacter::cluster_simple {
           syslog_log_level      => $::syslog_log_level,
           syslog_log_facility   => $::syslog_log_facility_neutron,
         }
-      }
-
-      class { 'openstack::auth_file':
-        admin_user           => $access_hash[user],
-        admin_password       => $access_hash[password],
-        keystone_admin_token => $keystone_hash[admin_token],
-        admin_tenant         => $access_hash[tenant],
-        controller_node      => $controller_node_address,
       }
 
       if !$::use_quantum {

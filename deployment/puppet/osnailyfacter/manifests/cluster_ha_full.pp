@@ -260,22 +260,21 @@ class ha_controller (
     nameservers                   => $::dns_nameservers,
   }
 
-      if $primary_controller {
-        if ! $::use_quantum {
-          nova_floating_range{ $floating_ips_range:
-            ensure          => 'present',
-            pool            => 'nova',
-            username        => $access_hash[user],
-            api_key         => $access_hash[password],
-            auth_method     => 'password',
-            auth_url        => "http://${::fuel_settings['management_vip']}:5000/v2.0/",
-            authtenant_name => $access_hash[tenant],
-            api_retries     => 10,
-          }
-          Class[nova::api] -> Nova_floating_range <| |>
-        }
+  if $primary_controller {
+    if ! $::use_quantum {
+      nova_floating_range{ $floating_ips_range:
+        ensure          => 'present',
+        pool            => 'nova',
+        username        => $access_hash[user],
+        api_key         => $access_hash[password],
+        auth_method     => 'password',
+        auth_url        => "http://${::fuel_settings['management_vip']}:5000/v2.0/",
+        authtenant_name => $access_hash[tenant],
+        api_retries     => 10,
       }
-
+      Class[nova::api] -> Nova_floating_range <| |>
+    }
+  }
 
   class { 'swift::keystone::auth':
     password         => $swift_hash[user_password],
