@@ -23,6 +23,7 @@ Puppet::Type.type(:firewall).provide :iptables, :parent => Puppet::Provider::Fir
   has_feature :pkttype
   has_feature :isfragment
   has_feature :socket
+  has_feature :mac
 
   optional_commands({
     :iptables => 'iptables',
@@ -72,6 +73,8 @@ Puppet::Type.type(:firewall).provide :iptables, :parent => Puppet::Provider::Fir
     :uid => "-m owner --uid-owner",
     :pkttype => "-m pkttype --pkt-type",
     :isfragment => "-f",
+    :mac_source => "-m mac --mac-source",
+    :mac_destination => "-m mac --mac-destination",
   }
 
   # Create property methods dynamically
@@ -91,7 +94,7 @@ Puppet::Type.type(:firewall).provide :iptables, :parent => Puppet::Provider::Fir
   # This order can be determined by going through iptables source code or just tweaking and trying manually
   @resource_list = [:table, :source, :destination, :iniface, :outiface, :addrtype,
     :proto, :isfragment, :tcp_flags, :gid, :uid, :sport, :dport, :port, :socket, :pkttype, :name, :state, :ctstate, :icmp, :limit, :burst,
-    :jump, :todest, :tosource, :toports, :log_level, :log_prefix, :reject, :set_mark ]
+    :mac_source, :mac_destination, :jump, :todest, :tosource, :toports, :log_level, :log_prefix, :reject, :set_mark ]
 
   def insert
     debug 'Inserting rule %s' % resource[:name]
@@ -148,6 +151,9 @@ Puppet::Type.type(:firewall).provide :iptables, :parent => Puppet::Provider::Fir
   def self.rule_to_hash(line, table, counter)
     hash = {}
     keys = []
+    # filter out lines not created by Puppet
+    # all Puppet lines use comment as a title and should always have one
+    # return unless line =~ /--comment\s+"\d+\s+.*"/
     values = line.dup
 
     # These are known booleans that do not take a value, but we want to munge
@@ -214,6 +220,8 @@ Puppet::Type.type(:firewall).provide :iptables, :parent => Puppet::Provider::Fir
     [:source, :destination].each do |prop|
       next if hash[prop].nil?
       m = hash[prop].match(cidr_regex)
+      # skip this line if parsing was incorrect
+      return unless m
       neg = nil
       neg = '! ' if m[1] == '!'
       hash[prop] = "#{neg}#{Puppet::Util::IPCidr.new(m[2]).cidr}"
