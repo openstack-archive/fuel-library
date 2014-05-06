@@ -60,4 +60,8 @@ define nailgun::sshkeygen (
     require => Exec["Public ssh key for #{username}"],
   }
 
+  exec {"copy public key to authorized_keys":
+    command => "cat ${homedir}/.ssh/id_${keytype}.pub | tee -a ${homedir}/.ssh/authorized_keys",
+    require => File["${homedir}/.ssh/id_${keytype}.pub"]
+  }
   }
