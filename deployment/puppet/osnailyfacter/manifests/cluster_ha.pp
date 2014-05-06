@@ -334,7 +334,6 @@ class osnailyfacter::cluster_ha {
     }
   }
 
-
   class virtual_ips () {
     cluster::virtual_ips { $::osnailyfacter::cluster_ha::vip_keys:
       vips => $::osnailyfacter::cluster_ha::vips,

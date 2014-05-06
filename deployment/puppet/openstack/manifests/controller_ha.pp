@@ -187,11 +187,4 @@ class openstack::controller_ha (
       }
     }
 
-    class { 'openstack::auth_file':
-      admin_user              => $admin_user,
-      admin_password          => $admin_password,
-      admin_tenant            => $keystone_admin_tenant,
-      keystone_admin_token    => $keystone_admin_token,
-      controller_node         => $internal_virtual_ip,
-    }
 }
