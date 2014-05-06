@@ -9,8 +9,15 @@ SOURCE_DIR="${DOCKER_ROOT}/sources"
 #SUPERVISOR_CONF_DIR="${docker_root}/supervisor"
 #SUPERVISOR_CONF_DIR="<%= @config_dir %>/supervisor/"
 ASTUTE_YAML=/etc/astute.yaml
-#Version of Fuel to deploy
+
+# Get current fuel version
+CURRENT_VERSION=$(basename $(readlink -e /etc/supervisord.d/current))
+# Default version
 VERSION="<%= @release %>"
+if [ -n "${CURRENT_VERSION}" ]; then VERSION=$CURRENT_VERSION; fi
+# User can specify version of fuel which he want to work on
+if [ -n "${FUEL_VERSION}" ]; then VERSION=$FUEL_VERSION; fi
+
 IMAGE_PREFIX="fuel"
 # busybox image for storage containers
 BUSYBOX_IMAGE="busybox.tar.gz"
