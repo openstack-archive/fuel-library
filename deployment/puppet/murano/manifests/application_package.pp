@@ -8,7 +8,7 @@ define murano::application_package (
 
   $murano_manage_cmd = $package_category ? {
     ''       => "${murano_manage} --config-file=/etc/murano/murano.conf import-package '${package_path}'",
-    default  => "${murano_manage} --config-file=/etc/murano/murano.conf import-package -c '${package_category}' '${package_path}'",
+    default  => "${murano_manage} --config-file=/etc/murano/murano.conf import-package '${package_path}' -c '${package_category}'",
   }
 
   exec { "murano_import_package_${package_name}":
