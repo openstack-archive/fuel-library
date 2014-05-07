@@ -13,6 +13,7 @@ function show_usage {
   echo "  shell: start a shell or run a command in a Docker container"
   echo "  upgrade: upgrade deployment"
   echo "  destroy: destroy one or more containers"
+  echo "  check: check of container is ready"
 }
 function debug {
   if $DEBUG; then
@@ -29,39 +30,39 @@ function build_storage_containers {
   build_image $SOURCE_DIR/storage-puppet storage/puppet
   build_image $SOURCE_DIR/storage-log storage/log
 }
-function check_ready {
-  #Uses a custom command to ensure a container is ready
+
+function retry_checker {
   tries=0
   failure=0
+  echo "checking with command \"$*\""
+  while ! eval $*; do
+     ((tries++))
+     echo "try number $tries"
+     echo "return code is $rc"
+     if [ $tries -gt 240 ];then
+        failure=1
+     break
+  fi
+     sleep 1
+  done
+}
+
+function check_ready {
+  #Uses a custom command to ensure a container is ready
+  echo "checking container $1"
   case $1 in
-      nailgun) until [ $(curl --connect-timeout 1 -s -w %{http_code} http://127.0.0.1:8000/api/version -o /dev/null) = "200" ]; do
-          ((tries++))
-          if [ $tries -gt 240 ];then
-              failure=1
-              break
-          fi
-          sleep 1
-          done
-                ;;
-      ostf) until [ $(curl --connect-timeout 1 -s -w '%{http_code}' http://127.0.0.1:8000/ostf/not_found -o /dev/null) = "404" ]; do
-          ((tries++))
-          if [ $tries -gt 240 ];then
-            failure=1
-            break
-          fi
-          sleep 1
-        done
-                ;;
-      cobbler) while ! docker top ${CONTAINER_NAMES['cobbler']} | grep -q 'cobblerd -F'; do
-          echo $CONTAINER_NAMES
-          ((tries++))
-          if [ $tries -gt 240 ];then
-            failure=1
-            break
-          fi
-          sleep 1
-        done
-                ;;
+      nailgun) retry_checker '[ $(curl --connect-timeout 1 -s -w %{http_code} http://127.0.0.1:8000/api/version -o /dev/null) = "200" ]'  ;;
+      ostf) retry_checker '[ $(curl --connect-timeout 1 -s -w '%{http_code}' http://127.0.0.1:8000/ostf/not_found -o /dev/null) = "404" ]' ;;
+      cobbler) retry_checker "dockerctl shell cobbler ps aux | grep -q 'cobblerd -F'" ;;
+      #TODO(aglarendil): unhardcode passwords
+      rabbitmq) retry_checker 'curl -f -L -i  -u naily:naily http://127.0.0.1:15672/api/nodes  1>/dev/null 2>&1' ;;
+      #TODO(aglarendil): unhardcode passwords
+      postgres) retry_checker "PGPASSWORD=nailgun dockerctl shell postgres psql -h 127.0.0.1 -U nailgun nailgun -c '\copyright' 2>&1 1>/dev/null" ;;
+      astute) retry_checker "dockerctl shell astute ps aux | grep -q 'astuted'" ;;
+      rsync) retry_checker "dockerctl shell rsync netstat -ntl | grep -q 873" ;;
+      rsyslog) retry_checker "dockerctl shell rsyslog netstat -nl | grep -q 514" ;;
+      mcollective) retry_checker "dockerctl shell mcollective ps aux | grep -q mcollectived" ;;
+      nginx) retry_checker "dockerctl shell nginx ps aux | grep -q nginx"  ;;
       *) echo "No defined test for determining if $1 is ready."
                 ;;
   esac
