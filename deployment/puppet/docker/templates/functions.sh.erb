@@ -52,8 +52,72 @@ function check_ready {
           sleep 1
         done
                 ;;
-      cobbler) while ! docker top ${CONTAINER_NAMES['cobbler']} | grep -q 'cobblerd -F'; do
-          echo $CONTAINER_NAMES
+      cobbler) while ! dockerctl shell cobbler ps aux | grep -q 'cobblerd -F'; do
+          ((tries++))
+          if [ $tries -gt 240 ];then
+            failure=1
+            break
+          fi
+          sleep 1
+        done
+                ;;
+      #TODO(aglarendil): unhardcode passwords
+      rabbitmq) while ! curl -f -L -i  -u naily:naily http://127.0.0.1:15672/api/nodes  1>/dev/null 2>&1 ; do
+          ((tries++))
+          if [ $tries -gt 240 ];then
+            failure=1
+            break
+          fi
+          sleep 1
+        done
+                ;;
+      #TODO(aglarendil): unhardcode passwords
+      postgres) while ! PGPASSWORD=nailgun psql -h 127.0.0.1 -U nailgun nailgun -c 'select 1' 1>/dev/null 2>&1 ; do
+          ((tries++))
+          if [ $tries -gt 240 ];then
+            failure=1
+            break
+          fi
+          sleep 1
+        done
+                ;;
+      astute) while ! dockerctl shell astute ps aux | grep -q 'astuted' ; do
+          ((tries++))
+          if [ $tries -gt 240 ];then
+            failure=1
+            break
+          fi
+          sleep 1
+        done
+                ;;
+      rsync) while ! dockerctl shell rsync netstat -ntl | grep -q 873 ; do
+          ((tries++))
+          if [ $tries -gt 240 ];then
+            failure=1
+            break
+          fi
+          sleep 1
+        done
+                ;;
+      rsyslog) while ! dockerctl shell rsyslog netstat -nl | grep -q 514 ; do
+          ((tries++))
+          if [ $tries -gt 240 ];then
+            failure=1
+            break
+          fi
+          sleep 1
+        done
+                ;;
+      mcollective) while ! dockerctl shell mcollective ps aux | grep -q mcollectived ; do
+          ((tries++))
+          if [ $tries -gt 240 ];then
+            failure=1
+            break
+          fi
+          sleep 1
+        done
+                ;;
+      nginx) while ! dockerctl shell nginx ps aux | grep -q nginx ; do
           ((tries++))
           if [ $tries -gt 240 ];then
             failure=1
