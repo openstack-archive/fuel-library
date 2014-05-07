@@ -109,6 +109,7 @@ if $role == 'client' {
 }
 
   class {"::openstack::logrotate":
+    role           => $role,
     rotation       => $rotation,
     keep           => $keep,
     limitsize      => $limitsize,
