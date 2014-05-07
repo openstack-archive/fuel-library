@@ -28,6 +28,7 @@ class mongodb::server (
   $auth            = false,
   $noauth          = undef,
   $verbose         = undef,
+  $use_syslog      = true,
   $verbositylevel  = undef,
   $objcheck        = undef,
   $quota           = undef,

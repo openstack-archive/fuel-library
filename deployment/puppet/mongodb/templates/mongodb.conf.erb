@@ -1,7 +1,11 @@
 # mongo.conf - generated from Puppet
 
 #where to log
+<% if @use_syslog -%>
+syslog = true
+<% else -%>
 logpath=<%= @logpath %>
+<% end -%>
 logappend=<%= @logappend %>
 <% if @bind_ip -%>
 # Set this option to configure the mongod or mongos process to bind to and
