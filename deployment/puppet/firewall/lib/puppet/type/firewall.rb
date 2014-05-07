@@ -45,6 +45,7 @@ Puppet::Type.newtype(:firewall) do
   feature :socket, "Match open sockets"
   feature :isfragment, "Match fragments"
   feature :addrtype, "The ability match on source or destination address type"
+  feature :mac, "The ability match on source or destination MAC address"
 
   # provider specific features
   feature :iptables, "The provider provides iptables features."
@@ -631,6 +632,18 @@ Puppet::Type.newtype(:firewall) do
     EOS
 
     newvalues(:true, :false)
+  end
+
+  newproperty(:mac_source, :required_features => :mac) do
+    desc <<-EOS
+      Match the source MAC address of the packet.
+    EOS
+  end
+
+  newproperty(:mac_destination, :required_features => :mac) do
+    desc <<-EOS
+      Match the destination MAC address of the packet.
+    EOS
   end
 
   newparam(:line) do
