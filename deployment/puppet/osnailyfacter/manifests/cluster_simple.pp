@@ -348,7 +348,7 @@ class osnailyfacter::cluster_simple {
           #    'separate' rabbitmq directly (without oslo.messaging).
           #   * murano_rabbit_ha_hosts / murano_rabbit_ha_queues are required for murano-api which
           #     communicates with 'system' RabbitMQ and uses oslo.messaging.
-          murano_rabbit_host       => $controller_node_address,
+          murano_rabbit_host       => $controller_node_public,
           murano_rabbit_ha_hosts   => $amqp_hosts,
           murano_rabbit_login      => 'murano',
           murano_rabbit_password   => $heat_hash['rabbit_password'],
