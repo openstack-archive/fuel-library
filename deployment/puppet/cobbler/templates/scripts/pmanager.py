@@ -596,6 +596,8 @@ class PreseedPManager(object):
         self.late("umount /target/proc")
         self.late("umount /target/boot")
         self.late("umount /target")
+        self.late("umount {0}{1}3".format(self.os_disk,
+            self._pseparator(self.os_disk)))
         self.late("swapoff {0}{1}4".format(self.os_disk,
             self._pseparator(self.os_disk)))
 
@@ -681,12 +683,8 @@ class PreseedPManager(object):
         if not early:
             func = self.late
         func("echo \"=== {0} ===\"".format(line))
-        func("for v in $(vgs -a --noheadings 2>/dev/null | "
-                  "sed 's/^\([ ]*\)\([^ ]\+\)\(.*\)/\\2/g'); do "
-                  "echo \"vg=$v\"; done")
-        func("for p in $(pvs --noheadings 2>/dev/null | "
-                  "sed 's/^\([ ]*\)\([^ ]\+\)\(.*\)/\\2/g'); do "
-                  "echo \"pv=$p\"; done")
+        func("vgs -a --noheadings")
+        func("pvs --noheadings")
 
     def erase_lvm_metadata(self, early=True):
         func = self.early
@@ -838,6 +836,10 @@ class PreseedPManager(object):
                           "".format(self._disk_dev(disk)))
                 self.late("parted -s {0} print free".format(self._disk_dev(disk)))
                 self.late("find /dev \( -type l -o -type b \) -exec ls -l {} \;")
+                self.late("mount")
+                self.late("cat /proc/swaps")
+                self.late("cat /proc/mdstat")
+                self.late("cat /proc/partitions")
 
                 if part.get("file_system", "xfs") not in ("swap", None, "none"):
                     disk_label = self._getlabel(part.get("disk_label"))
@@ -923,10 +925,16 @@ class PreseedPManager(object):
                              self.unit))
 
                 self.late("sleep 10")
+                self.log_lvm("after creating partition", False)
+                self.erase_lvm_metadata(False)
                 self.late("hdparm -z {0}"
                           "".format(self._disk_dev(disk)))
                 self.late("parted -s {0} print free".format(self._disk_dev(disk)))
                 self.late("find /dev \( -type l -o -type b \) -exec ls -l {} \;")
+                self.late("mount")
+                self.late("cat /proc/swaps")
+                self.late("cat /proc/mdstat")
+                self.late("cat /proc/partitions")
                 pvlist.append("pvcreate -ff {0}{1}{2}"
                               "".format(self._disk_dev(disk),
                                         self._pseparator(disk["id"]),
