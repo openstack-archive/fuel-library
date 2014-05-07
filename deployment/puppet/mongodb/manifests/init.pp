@@ -55,6 +55,7 @@ class mongodb (
   $noauth          = undef,
   $auth            = undef,
   $verbose         = undef,
+  $use_syslog      = true,
   $objcheck        = undef,
   $quota           = undef,
   $oplog           = undef, #deprecated it's on if replica set
@@ -109,6 +110,7 @@ class mongodb (
     cpu             => $cpu,
     noauth          => $noauth,
     verbose         => $verbose,
+    use_syslog      => $use_syslog,
     objcheck        => $objcheck,
     quota           => $quota,
     oplog_size      => $oplog_size,

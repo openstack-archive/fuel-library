@@ -9,6 +9,8 @@ class openstack::mongo_primary (
   $ceilometer_replset_members   = ['mongo2', 'mongo3'],
   $mongodb_bind_address         = ['0.0.0.0'],
   $mongodb_port                 = 27017,
+  $use_syslog                   = true,
+  $verbose                      = false,
 ) {
 
   if size($ceilometer_replset_members) > 0 {
@@ -27,12 +29,13 @@ class openstack::mongo_primary (
   } ->
 
   class {'::mongodb::server':
-    port    => $mongodb_port,
-    verbose => true,
-    bind_ip => $mongodb_bind_address,
-    auth    => true,
-    replset => $replset,
-    keyfile => $keyfile,
+    port       => $mongodb_port,
+    verbose    => $verbose,
+    use_syslog => $use_syslog,
+    bind_ip    => $mongodb_bind_address,
+    auth       => true,
+    replset    => $replset,
+    keyfile    => $keyfile,
   } ->
 
   class {'::mongodb::replset':
@@ -74,4 +77,3 @@ class openstack::mongo_primary (
   notify {"mongodb primary finished": }
 
 }
-# vim: set ts=2 sw=2 et :

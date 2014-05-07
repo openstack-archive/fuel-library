@@ -451,6 +451,8 @@ class osnailyfacter::cluster_simple {
     "mongo" : {
       class { 'openstack::mongo_secondary':
         mongodb_bind_address        => [ '127.0.0.1', $::internal_address ],
+        use_syslog                  => $use_syslog,
+        verbose                     => $verbose,
       }
     } # MONGO ENDS
 
@@ -459,7 +461,9 @@ class osnailyfacter::cluster_simple {
         mongodb_bind_address        => [ '127.0.0.1', $::internal_address ],
         ceilometer_metering_secret  => $ceilometer_hash['metering_secret'],
         ceilometer_db_password      => $ceilometer_hash['db_password'],
-        ceilometer_replset_members  => mongo_hosts($nodes_hash, 'array', 'mongo')
+        ceilometer_replset_members  => mongo_hosts($nodes_hash, 'array', 'mongo'),
+        use_syslog                  => $use_syslog,
+        verbose                     => $verbose,
       }
     } # PRIMARY-MONGO ENDS
 
