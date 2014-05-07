@@ -341,6 +341,65 @@ if $virtual { include rsyslog::checksum_udp514 }
         file_severity => "DEBUG",
         notify  => Class["rsyslog::service"],
     }
+    # ceilometer
+    # FIXME(bogdando) in 5.1 all imfile templates for OS will be removed
+    #   and ceilometer facility hardcode will be fixed as well
+    ::rsyslog::imfile { "55-ceilometer-agent-central_debug" :
+        file_name     => "/var/log/ceilometer/ceilometer-agent-central.log",
+        file_tag      => "ceilometer-agent-central",
+        file_facility => "LOCAL0",
+        file_severity => "DEBUG",
+        notify  => Class["rsyslog::service"],
+    }
+    ::rsyslog::imfile { "55-ceilometer-alarm-evaluator_debug" :
+        file_name     => "/var/log/ceilometer/ceilometer-alarm-evaluator.log",
+        file_tag      => "ceilometer-alarm-evaluator",
+        file_facility => "LOCAL0",
+        file_severity => "DEBUG",
+        notify  => Class["rsyslog::service"],
+    }
+    ::rsyslog::imfile { "55-ceilometer-api_debug" :
+        file_name     => "/var/log/ceilometer/ceilometer-api.log",
+        file_tag      => "ceilometer-api",
+        file_facility => "LOCAL0",
+        file_severity => "DEBUG",
+        notify  => Class["rsyslog::service"],
+    }
+    ::rsyslog::imfile { "55-ceilometer-dbsync_debug" :
+        file_name     => "/var/log/ceilometer/ceilometer-dbsync.log",
+        file_tag      => "ceilometer-dbsync",
+        file_facility => "LOCAL0",
+        file_severity => "DEBUG",
+        notify  => Class["rsyslog::service"],
+    }
+    ::rsyslog::imfile { "55-ceilometer-agent-notification_debug" :
+        file_name     => "/var/log/ceilometer/ceilometer-agent-notification.log",
+        file_tag      => "ceilometer-agent-notification",
+        file_facility => "LOCAL0",
+        file_severity => "DEBUG",
+        notify  => Class["rsyslog::service"],
+    }
+    ::rsyslog::imfile { "55-ceilometer-alarm-notifier_debug" :
+        file_name     => "/var/log/ceilometer/ceilometer-alarm-notifier.log",
+        file_tag      => "ceilometer-alarm-notifier",
+        file_facility => "LOCAL0",
+        file_severity => "DEBUG",
+        notify  => Class["rsyslog::service"],
+    }
+    ::rsyslog::imfile { "55-ceilometer-collector_debug" :
+        file_name     => "/var/log/ceilometer/ceilometer-collector.log",
+        file_tag      => "ceilometer-collector",
+        file_facility => "LOCAL0",
+        file_severity => "DEBUG",
+        notify  => Class["rsyslog::service"],
+    }
+    ::rsyslog::imfile { "55-ceilometer-agent-compute_debug" :
+        file_name     => "/var/log/ceilometer/ceilometer-agent-compute.log",
+        file_tag      => "ceilometer-agent-compute",
+        file_facility => "LOCAL0",
+        file_severity => "DEBUG",
+        notify  => Class["rsyslog::service"],
+    }
   } else { #non debug case
     # standard logging configs for syslog client
     file { "${rsyslog::params::rsyslog_d}10-nova.conf":
