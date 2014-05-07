@@ -1,9 +1,6 @@
 # managed by puppet
 
-"/var/log/nailgun-agent.log"
-"/var/log/*-all.log"
-"/var/log/corosync.log"
-"/var/log/remote/*/*log"
+# common configuration
 "/var/log/kern.log"
 "/var/log/debug"
 "/var/log/syslog"
@@ -13,17 +10,21 @@
 "/var/log/user.log"
 "/var/log/mail.log"
 "/var/log/cron.log"
-"/var/log/dashboard.log"
-"/var/log/pacemaker.log"
-"/var/log/neutron/*.log"
-"/var/log/nova/*.log"
-"/var/log/keystone/*.log"
-"/var/log/glance/*.log"
-"/var/log/cinder/*.log"
-"/var/log/mysqld.log"
-"/var/log/murano/*.log"
-"/var/log/heat/*.log"
-"/var/log/sahara/*.log"
+"/var/log/docker"
+"/var/log/docker-*.log"
+"/var/log/lxc/*.log"
+"/var/log/fuelmenu.log"
+# docker container specific configuration
+"/var/log/nailgun-agent.log"
+"/var/log/nailgun/*.log"
+"/var/log/astute/*.log"
+"/var/log/ostf*.log"
+"/var/log/httpd/*"
+"/var/log/nginx/*.log"
+"/var/log/rabbitmq/*"
+"/var/log/cobbler/*.log"
+"/var/log/supervisor/*.log"
+"/var/log/dump.log"
 # This file is used for hourly log rotations, use (min)size options here
 {
   sharedscripts
@@ -44,7 +45,8 @@
   # do not rotate empty files
   notifempty
   postrotate
-      /bin/kill -HUP `cat /var/run/syslogd.pid 2> /dev/null` 2> /dev/null || true
+      # issue HUPing for all rsyslog pids including ones in the docker containers, if any.
+      /usr/bin/pkill -HUP rsyslogd 2> /dev/null 2> /dev/null || true
       reload rsyslog >/dev/null 2>&1 || true
   endscript
 }
