@@ -64,6 +64,16 @@ elif [ "$1" == "start" ]; then
     shift 2
     start_container $container $@
   fi
+elif [ "$1" == "check" ]; then
+  if [ "$container" = "all" ];then
+    apps="postgres rabbitmq rsync astute rsyslog nailgun mcollective ostf nginx cobbler"
+
+    for service in $apps; do
+      check_ready $service
+    done
+  else
+    check_ready $container
+  fi
 elif [ "$1" == "restart" ]; then
   shift 2
   restart_container $container $@
