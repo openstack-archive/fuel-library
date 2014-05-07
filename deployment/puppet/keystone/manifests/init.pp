@@ -60,13 +60,15 @@ class keystone(
   $debug               = false,
   $use_syslog          = false,
   $syslog_log_facility = 'LOG_LOCAL7',
-  $syslog_log_level = 'WARNING',
+  $syslog_log_level    = 'WARNING',
   $log_dir             = '/var/log/keystone',
   $log_file            = 'keystone.log',
   $catalog_type        = 'sql',
   $token_format        = 'UUID',
-#  $token_format        = 'PKI',
+# $token_format        = 'PKI',
   $cache_dir           = '/var/cache/keystone',
+  $memcache_servers    = false,
+  $memcache_server_port = false,
   $enabled             = true,
   $sql_connection      = 'sqlite:////var/lib/keystone/keystone.db',
   $idle_timeout        = '200',
@@ -173,7 +175,6 @@ class keystone(
     'DEFAULT/debug':        value => $debug;
     'DEFAULT/verbose':      value => $verbose;
     'identity/driver': value =>"keystone.identity.backends.sql.Identity";
-    'token/driver': value =>"keystone.token.backends.sql.Token";
     'policy/driver': value =>"keystone.policy.backends.rules.Policy";
     'ec2/driver': value =>"keystone.contrib.ec2.backends.sql.Ec2";
     'filter:debug/paste.filter_factory': value =>"keystone.common.wsgi:Debug.factory";
@@ -212,6 +213,25 @@ class keystone(
 
   } else {
     fail("Invalid db connection ${sql_connection}")
+  }
+
+  # memcache connection config
+  if $memcache_servers {
+    validate_array($memcache_servers)
+    Service<| title == 'memcached' |> -> Service['keystone']
+    keystone_config {
+      'token/driver': value => 'keystone.token.backends.memcache.Token';
+      'token/caching': value => 'true';
+      'cache/enabled': value => 'true';
+      'cache/backend': value => 'dogpile.cache.memcached';
+      'cache/backend_argument': value => inline_template("url:<%= @memcache_servers.collect{|ip| ip }.join ',' %>");
+      'memcache/servers': value => inline_template("<%= @memcache_servers.collect{|ip| ip + ':' + @memcache_server_port }.join ',' %>")
+     }
+  } else {
+    keystone_config {
+      'token/driver': value => 'keystone.token.backends.sql.Token';
+      'memcache/servers': ensure => absent;
+    }
   }
 
   # db connection config
