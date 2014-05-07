@@ -2,6 +2,7 @@ class murano::params {
 
   # package names
   $murano_package_name              = 'murano-api'
+  $murano_apps_package_name         = 'murano-apps'
   $murano_dashboard_package_name    = 'murano-dashboard'
   $python_muranoclient_package_name = 'python-muranoclient'
 
