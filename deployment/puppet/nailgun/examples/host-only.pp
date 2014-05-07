@@ -12,6 +12,7 @@ Class['nailgun::packages'] ->
 Class['nailgun::host'] ->
 Class['docker::dockerctl'] ->
 Class['docker'] ->
+Class['openstack::logrotate'] ->
 Class['nailgun::supervisor']
 
 class { 'nailgun::packages': }
@@ -33,6 +34,13 @@ class { "docker::dockerctl":
   production => $production,
 }
 class { "docker": }
+
+class {'openstack::logrotate':
+  role           => 'server',
+  rotation       => 'weekly',
+  keep           => '4',
+  limitsize      => '100M',
+}
 
 class { "nailgun::supervisor":
   nailgun_env => false,
