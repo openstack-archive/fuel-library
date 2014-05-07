@@ -76,10 +76,13 @@ class ceph (
   # Re-enable ceph::yum if not using a Fuel iso with Ceph packages
   #include ceph::yum
 
-  include ceph::ssh
-  include ceph::params
-  include ceph::conf
-  Class[['ceph::ssh', 'ceph::params']] -> Class['ceph::conf']
+  if $::fuel_settings['role'] =~ /controller|ceph|compute/ {
+    # the regex above includes all cases of the case statement below
+    include ceph::ssh
+    include ceph::params
+    include ceph::conf
+    Class[['ceph::ssh', 'ceph::params']] -> Class['ceph::conf']
+  }
 
   if $::fuel_settings['role'] =~ /controller|ceph/ {
     service {'ceph':
@@ -88,9 +91,7 @@ class ceph (
       require => Class['ceph::conf']
     }
     #FIXME(bogdando) using collection for clumsy params-ensured packages
-    Package<| title == 'ceph' or title == 'ceph-deploy' or title == 'python-pushy'
-      or title == 'redhat-lsb-core' or title == 'pushy'|> ~>
-    Service<| title == 'ceph'|>
+    Package<| title == 'ceph' |> ~> Service<| title == 'ceph' |>
     if !defined(Service['ceph']) {
       notify{ "Module ${module_name} cannot notify service ceph on packages update": }
     }
