@@ -23,6 +23,7 @@ Puppet::Type.type(:firewall).provide :iptables, :parent => Puppet::Provider::Fir
   has_feature :pkttype
   has_feature :isfragment
   has_feature :socket
+  has_feature :mac
 
   optional_commands({
     :iptables => 'iptables',
@@ -72,6 +73,8 @@ Puppet::Type.type(:firewall).provide :iptables, :parent => Puppet::Provider::Fir
     :uid => "-m owner --uid-owner",
     :pkttype => "-m pkttype --pkt-type",
     :isfragment => "-f",
+    :mac_source => "-m mac --mac-source",
+    :mac_destination => "-m mac --mac-destination",
   }
 
   # Create property methods dynamically
@@ -91,7 +94,7 @@ Puppet::Type.type(:firewall).provide :iptables, :parent => Puppet::Provider::Fir
   # This order can be determined by going through iptables source code or just tweaking and trying manually
   @resource_list = [:table, :source, :destination, :iniface, :outiface, :addrtype,
     :proto, :isfragment, :tcp_flags, :gid, :uid, :sport, :dport, :port, :socket, :pkttype, :name, :state, :ctstate, :icmp, :limit, :burst,
-    :jump, :todest, :tosource, :toports, :log_level, :log_prefix, :reject, :set_mark ]
+    :mac_source, :mac_destination, :jump, :todest, :tosource, :toports, :log_level, :log_prefix, :reject, :set_mark ]
 
   def insert
     debug 'Inserting rule %s' % resource[:name]
