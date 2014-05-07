@@ -41,7 +41,8 @@
   # do not rotate empty files
   notifempty
   postrotate
-      /bin/kill -HUP `cat /var/run/syslogd.pid 2> /dev/null` 2> /dev/null || true
+      # issue HUPing for all rsyslog pids including ones in the docker containers, if any.
+      for pids in $(pidof rsyslogd); do /bin/kill -HUP $pids 2> /dev/null 2> /dev/null; done || true
       reload rsyslog >/dev/null 2>&1 || true
   endscript
 }
