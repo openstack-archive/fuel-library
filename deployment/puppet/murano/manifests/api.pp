@@ -138,11 +138,14 @@ class murano::api (
 
     Murano_config<||> -> Exec['murano_manage_db_sync']
 
-    murano::application_package{'io.murano':}
-    murano::application_package{'io.murano.lib.networks.Neutron':}
+    murano::application_package{'io.murano':
+      mandatory => true
+    }
+    murano::application_package{'io.murano.lib.networks.Neutron':
+      mandatory => true
+    }
 
-    Exec['murano_manage_db_sync'] -> Murano::Application_package['io.murano']
-    Exec['murano_manage_db_sync'] -> Murano::Application_package['io.murano.lib.networks.Neutron']
+    Exec['murano_manage_db_sync'] -> Murano::Application_package<| mandatory == true |>
   }
 
   #Package['murano'] -> Service['murano_api']
