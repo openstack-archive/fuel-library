@@ -8,6 +8,8 @@ class openstack::mongo (
   $ceilometer_metering_secret   = "ceilometer",
   $mongodb_port                 = 27017,
   $mongodb_bind_address         = ['0.0.0.0'],
+  $verbose                      = false,
+  $use_syslog                   = true,
 ) {
 
 #  notify {"MongoDB params: $ceilometer_user $ceilometer_database $ceilometer_db_password": }
@@ -17,10 +19,11 @@ class openstack::mongo (
   } ->
 
   class {'::mongodb::server':
-    port    => $mongodb_port,
-    verbose => true,
-    bind_ip => $mongodb_bind_address,
-    auth => true,
+    port        => $mongodb_port,
+    verbose     => $verbose,
+    use_syslog  => $use_syslog,
+    bind_ip     => $mongodb_bind_address,
+    auth        => true,
   } ->
 
   mongodb::db { $ceilometer_database:
@@ -33,9 +36,8 @@ class openstack::mongo (
     user         => 'admin',
     password     => $ceilometer_db_password,
     roles        => ['userAdmin','readWrite', 'dbAdmin', 'dbAdminAnyDatabase', 'readAnyDatabase', 'readWriteAnyDatabase', 'userAdminAnyDatabase', 'clusterAdmin', 'clusterManager', 'clusterMonitor', 'hostManager', 'root' ],
-  } 
+  }
 
  #notify {"mongo: $ceilometer_db_password": }
 
 }
-# vim: set ts=2 sw=2 et :
