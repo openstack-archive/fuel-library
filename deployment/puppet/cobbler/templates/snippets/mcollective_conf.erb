@@ -10,10 +10,8 @@ daemonize = 1
 direct_addressing = 1
 
 # Set huge value of ttl to avoid cases with unsyncronized time between nodes
-# bash$ date -d '2033-5-18 3:33:20 UTC' +%s
-# 5400
-# It means that ttl equals 1 hours and a half.
-ttl = 5400
+# It means that ttl approximately equal to 50 days
+ttl = 4294957
 
 # Plugins
 securityprovider = psk

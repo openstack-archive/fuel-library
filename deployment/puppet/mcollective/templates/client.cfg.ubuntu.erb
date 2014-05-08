@@ -9,9 +9,9 @@ direct_addressing = 1
 securityprovider = psk
 plugin.psk = <%= pskey %>
 
-# 5400
-# It means that ttl equals 1 hours and a half.
-ttl = 5400
+# Set huge value of ttl to avoid cases with unsyncronized time between nodes
+# It means that ttl approximately equal to 50 days
+ttl = 4294957
 
 <% if scope.lookupvar('mcollective::client::stomp') -%>
 connector = stomp
