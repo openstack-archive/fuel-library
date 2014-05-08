@@ -43,9 +43,11 @@ $dependent_dirs = ["/var/log/docker-logs", "/var/log/docker-logs/remote",
     require   => [Service[$docker_service]]
   }
   exec {'build docker containers':
-    command => 'dockerctl build all',
-    path    => "/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin",
-    require => [
+    command   => 'dockerctl build all',
+    path      => "/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin",
+    timeout   => 3000,
+    logoutput => true,
+    require   => [
                File[$dependent_dirs],
                Service[$docker_service],
                Exec['wait for docker-to-become-ready'],

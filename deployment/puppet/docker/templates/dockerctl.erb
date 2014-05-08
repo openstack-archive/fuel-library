@@ -41,7 +41,7 @@ if [ "$1" == "build" ]; then
 
     #Step 4: Wait for key apps to be ready
     echo "Waiting for applications to be ready"
-    for service in nailgun ostf cobbler; do
+    for service in $apps; do
       check_ready $service
     done
 
