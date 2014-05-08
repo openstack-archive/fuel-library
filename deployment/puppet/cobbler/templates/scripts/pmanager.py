@@ -104,7 +104,7 @@ class PManager(object):
 
     def _gettabfsoptions(self, vol):
         if self._gettabfstype(vol) == "xfs":
-            return "-f"
+            return "-f -s 512"
         return ""
 
     def _getfstype(self, vol):
@@ -277,13 +277,14 @@ class PManager(object):
                               "--typecode={0}:{1} {2}".format(
                                   pcount, part["partition_guid"],
                                   self._disk_dev(disk)))
-                if size > 0 and size <= 16777216 and part["mount"] != "none":
+                if size > 0 and size <= 16777216 and tabfstype != "xfs":
                     self.kick("partition {0} "
                               "--onpart={2}"
                               "{3}{4}".format(part["mount"], size,
                                            self._disk_dev(disk),
                                            self._pseparator(disk["id"]),
                                            pcount))
+
                 else:
                     if part["mount"] != "swap" and tabfstype != "none":
                         disk_label = self._getlabel(part.get('disk_label'))
@@ -410,7 +411,7 @@ class PManager(object):
                 tabfstype = self._gettabfstype(lv)
                 tabfsoptions = self._gettabfsoptions(lv)
 
-                if size > 0 and size <= 16777216:
+                if size > 0 and size <= 16777216 and tabfstype != "xfs":
                     self.kick("logvol {0} --vgname={1} --size={2} "
                               "--name={3} {4}".format(
                                   lv["mount"], vg["id"], size,
@@ -587,7 +588,7 @@ class PreseedPManager(object):
 
     def _fsoptions(self, fstype):
         if fstype == "xfs":
-            return "-f"
+            return "-f -s 512"
         return ""
 
     def _umount_target(self):
