@@ -17,6 +17,8 @@ else
   container=$2
 fi
 
+container_seq="postgres rabbitmq rsync astute rsyslog nailgun ostf nginx cobbler mcollective"
+
 if [ "$1" == "build" ]; then
   if [ "$container" = "storage" ]; then
     build_storage_containers
@@ -33,15 +35,14 @@ if [ "$1" == "build" ]; then
     allow_all_docker_traffic
 
     #Step 3: Launch all in order
-    apps="postgres rabbitmq rsync astute rsyslog nailgun mcollective ostf nginx cobbler"
-    for service in $apps; do
+    for service in $container_seq; do
       start_container $service
       sleep 4
     done
 
     #Step 4: Wait for key apps to be ready
     echo "Waiting for applications to be ready"
-    for service in $apps; do
+    for service in $container_seq; do
       check_ready $service
     done
 
@@ -53,9 +54,8 @@ if [ "$1" == "build" ]; then
   fi
 elif [ "$1" == "start" ]; then
   if [ "$container" = "all" ];then
-    apps="postgres rabbitmq rsync astute rsyslog nailgun mcollective ostf nginx cobbler"
 
-    for service in $apps; do
+    for service in $container_seq; do
       start_container $service
       #supervisorctl start $service
       check_ready $service
@@ -68,9 +68,7 @@ elif [ "$1" == "start" ]; then
   fi
 elif [ "$1" == "check" ]; then
   if [ "$container" = "all" ];then
-    apps="postgres rabbitmq rsync astute rsyslog nailgun mcollective ostf nginx cobbler"
-
-    for service in $apps; do
+    for service in $container_seq; do
       check_ready $service
     done
   else
