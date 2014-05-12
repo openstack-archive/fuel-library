@@ -125,8 +125,8 @@ class neutron::agents::dhcp (
         'tenant'      => $neutron_config['keystone']['admin_tenant_name'],
         'username'    => $neutron_config['keystone']['admin_user'],
         'password'    => $neutron_config['keystone']['admin_password'],
-      }
-      ,
+      },
+      metadata        => { 'resource-stickiness' => '1' },
       operations      => {
         'monitor'  => {
           'interval' => '30',
