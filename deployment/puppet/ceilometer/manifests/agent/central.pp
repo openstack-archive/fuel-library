@@ -91,7 +91,7 @@ class ceilometer::agent::central (
       primitive_class => 'ocf',
       provided_by     => 'mirantis',
       primitive_type  => 'ceilometer-agent-central',
-      metadata        => { 'target-role' => 'stopped' },
+      metadata        => { 'target-role' => 'stopped', 'resource-stickiness' => '1' },
       parameters      => { 'user' => 'ceilometer' },
       operations      => {
         'monitor'  => {
