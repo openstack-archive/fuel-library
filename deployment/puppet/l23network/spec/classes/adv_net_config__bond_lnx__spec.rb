@@ -101,6 +101,26 @@ describe 'l23network::examples::adv_net_config__bond_lnx', :type => :class do
     end
   end
 
+  it 'ALL: Should contains l23network::l2::bridge resource' do
+      rv = contain_l23network__l2__bridge("br-#{c_bondname}")
+      should rv.with(
+        'ensure'     => 'present'
+      )
+  end
+
+  it 'ALL: Should contains l23network::l2::port resource' do
+      rv = contain_l23network__l2__port("#{c_bondname}")
+      should rv.with(
+        'bridge'     => "br-#{c_bondname}",
+        'ensure'     => 'present'
+      )
+  end
+
+  it 'ALL: Should contains relationship beetwen l23network::l2::bridge and l23network::l2::port' do
+      bridge = contain_l23network__l2__bridge("br-#{c_bondname}")
+      should bridge.that_comes_before("L23network::L2::Port[#{c_bondname}]")
+  end
+
 end
 
 # Centos, static
