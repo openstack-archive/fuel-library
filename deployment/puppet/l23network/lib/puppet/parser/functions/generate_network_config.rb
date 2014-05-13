@@ -203,11 +203,28 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
           ifconfig_order.insert(-1, t[:name].to_sym())
         end
       elsif action == :bond
+        t[:provider] = 'ovs' if ! t[:provider]
         if ! t[:interfaces].is_a? Array
           raise(Puppet::ParseError, "generate_network_config(): 'add-bond' resource should has non-empty 'interfaces' list.")
         end
-        if ! t[:properties].is_a? Hash
-          raise(Puppet::ParseError, "generate_network_config(): 'add-bond' resource should has non-empty 'properties' field.")
+        if t[:provider] == 'lnx'
+          if ! t[:properties].is_a? Hash
+            raise(Puppet::ParseError, "generate_network_config(): 'add-bond' resource should has 'properties' hash for '#{t[:provider]}' provider.")
+          else
+            if t[:properties].size < 1
+              raise(Puppet::ParseError, "generate_network_config(): 'add-bond' resource should has non-empty 'properties' hash for '#{t[:provider]}' provider.")
+            end
+          end
+        elsif t[:provider] == 'ovs'
+          if ! t[:properties].is_a? Array  and t[:properties].size < 1
+            raise(Puppet::ParseError, "generate_network_config(): 'add-bond' resource should has 'properties' array for '#{t[:provider]}' provider.")
+          else
+            if t[:properties].size < 1
+              raise(Puppet::ParseError, "generate_network_config(): 'add-bond' resource should has non-empty 'properties' array for '#{t[:provider]}' provider.")
+            end
+          end
+        else
+          raise(Puppet::ParseError, "generate_network_config(): 'add-bond' resource has wrong provider '#{t[:provider]}'.")
         end
         if t[:provider] == 'lnx'
           if ! ifconfig_order.index(t[:name].to_sym())
