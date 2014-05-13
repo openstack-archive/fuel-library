@@ -26,6 +26,8 @@
 #   Defaults to '60'.
 # [report_interval] Interval at which nodes report to data store. Optional.
 #    Defaults to '10'.
+# [running_deleted_instance_action] Action to take if a running deleted instance is detected (deleted in nova DB). Optional.
+#    Defaults to 'reap'.
 # [root_helper] Command used for roothelper. Optional. Distro specific.
 # [monitoring_notifications] A boolean specifying whether or not to send system usage data notifications out on the message queue. Optional, false by default. Only valid for stable/essex.
 #
@@ -73,6 +75,7 @@ class nova(
   $max_pool_size = '10',
   $max_overflow = '30',
   $max_retries = '-1',
+  $running_deleted_instance_action = 'reap',
 ) inherits nova::params {
 
   # all nova_config resources should be applied
@@ -206,6 +209,8 @@ if $use_syslog and !$debug { #syslog and nondebug case
   }
   nova_config { 'DEFAULT/allow_resize_to_same_host': value => 'True' }
   nova_config { 'DEFAULT/image_service': value => $image_service }
+  nova_config { 'DEFAULT/running_deleted_instance_action':
+    value => $running_deleted_instance_action; }
 
   if $image_service == 'nova.image.glance.GlanceImageService' {
     if $glance_api_servers {
