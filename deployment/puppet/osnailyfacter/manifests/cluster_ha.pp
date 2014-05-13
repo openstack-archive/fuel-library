@@ -407,10 +407,19 @@ class osnailyfacter::cluster_ha {
           admin_address    => $::fuel_settings['management_vip'],
         }
       }
-      #TODO: PUT this configuration stanza into nova class
-      nova_config { 'DEFAULT/start_guests_on_host_boot': value => $::fuel_settings['start_guests_on_host_boot'] }
-      nova_config { 'DEFAULT/use_cow_images':            value => $::fuel_settings['use_cow_images'] }
-      nova_config { 'DEFAULT/compute_scheduler_driver':  value => $::fuel_settings['compute_scheduler_driver'] }
+
+      #TODO(bogdando): PUT this configuration stanza into nova class
+      #  once it got synced the from upstream
+      nova_config { 'DEFAULT/start_guests_on_host_boot':
+        value => $::fuel_settings['start_guests_on_host_boot'] }
+      # use reap as default, see http://lists.openstack.org/pipermail/
+      # openstack-dev/2013-October/016153.html
+      nova_config { 'DEFAULT/running_deleted_instance_action':
+        value => 'reap' }
+      nova_config { 'DEFAULT/use_cow_images':
+        value => $::fuel_settings['use_cow_images'] }
+      nova_config { 'DEFAULT/compute_scheduler_driver':
+        value => $::fuel_settings['compute_scheduler_driver'] }
 
       if ! $::use_quantum {
         nova_floating_range { $floating_ips_range:
