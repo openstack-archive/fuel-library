@@ -104,7 +104,7 @@ class PManager(object):
 
     def _gettabfsoptions(self, vol):
         if self._gettabfstype(vol) == "xfs":
-            return "-f -s 512"
+            return "-f -s size=512"
         return ""
 
     def _getfstype(self, vol):
