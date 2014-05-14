@@ -39,7 +39,11 @@ node default {
   $dhcp_start_address = $::fuel_settings['ADMIN_NETWORK']['dhcp_pool_start']
   $dhcp_end_address   = $::fuel_settings['ADMIN_NETWORK']['dhcp_pool_end']
   $dhcp_netmask       = $::fuel_settings['ADMIN_NETWORK']['netmask']
-  $dhcp_interface     = $::fuel_settings['ADMIN_NETWORK']['interface']
+  if $production =~ /docker/ {
+    $dhcp_interface     = "eth0"
+  } else {
+    $dhcp_interface     = $::fuel_settigs['ADMIN_NETWORK']['interface']
+  }
 
   $puppet_master_hostname = "${hostname}.${domain}"
 
