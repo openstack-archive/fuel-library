@@ -76,8 +76,8 @@ class ceph (
   # Re-enable ceph::yum if not using a Fuel iso with Ceph packages
   #include ceph::yum
 
-  if $::fuel_settings['role'] =~ /controller|ceph|compute/ {
-    # the regex above includes all cases of the case statement below
+  if $::fuel_settings['role'] =~ /controller|ceph|compute|cinder/ {
+    # the regex above includes all roles that require ceph.conf
     include ceph::ssh
     include ceph::params
     include ceph::conf
