@@ -58,7 +58,8 @@ function check_ready {
       rabbitmq) retry_checker 'curl -f -L -i  -u naily:naily http://127.0.0.1:15672/api/nodes  1>/dev/null 2>&1' ;;
       #TODO(aglarendil): unhardcode passwords
       postgres) retry_checker "PGPASSWORD=nailgun dockerctl shell postgres psql -h 127.0.0.1 -U nailgun nailgun -c '\copyright' 2>&1 1>/dev/null" ;;
-      astute) retry_checker "dockerctl shell astute ps aux | grep -q 'astuted'" ;;
+      astute) retry_checker "dockerctl shell astute ps aux | grep -q 'astuted'"
+              retry_checker '[ $(curl -f -L  -u naily:naily   -s -w %{http_code} http://127.0.0.1:15672/api/queues/%2F/naily_service -o /dev/null) = "200" ]' ;;
       rsync) retry_checker "dockerctl shell rsync netstat -ntl | grep -q 873" ;;
       rsyslog) retry_checker "dockerctl shell rsyslog netstat -nl | grep -q 514" ;;
       mcollective) retry_checker "dockerctl shell mcollective ps aux | grep -q mcollectived" ;;
