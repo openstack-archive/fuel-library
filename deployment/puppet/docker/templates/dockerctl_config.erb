@@ -10,7 +10,7 @@ SOURCE_DIR="${DOCKER_ROOT}/sources"
 #SUPERVISOR_CONF_DIR="<%= @config_dir %>/supervisor/"
 ASTUTE_YAML=/etc/astute.yaml
 #Version of Fuel to deploy
-VERSION="<%= @release %>"
+VERSION=$(awk '/release/{gsub(/"/, "");print $2}' /etc/fuel/version.yaml || echo <%= @release %>)
 IMAGE_PREFIX="fuel"
 # busybox image for storage containers
 BUSYBOX_IMAGE="busybox.tar.gz"
