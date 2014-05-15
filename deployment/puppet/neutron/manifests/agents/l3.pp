@@ -126,6 +126,7 @@ class neutron::agents::l3 (
         'username'    => $neutron_config['keystone']['admin_user'],
         'password'    => $neutron_config['keystone']['admin_password'],
       },
+      metadata        => { 'resource-stickiness' => '1' },
       operations      => {
         'monitor'  => {
           'interval' => '20',

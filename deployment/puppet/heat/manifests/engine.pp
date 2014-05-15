@@ -68,6 +68,7 @@ class heat::engine (
       primitive_class => 'ocf',
       provided_by     => $ocf_scripts_provider,
       primitive_type  => $service_name,
+      metadata        => { 'resource-stickiness' => '1' },
       operations   => {
         'monitor'  => { 'interval' => '20', 'timeout'  => '30' },
         'start'    => { 'timeout' => '60' },
