@@ -116,6 +116,7 @@ class cobbler::server (
     command     => "cobbler sync",
     refreshonly => true,
     require     => [
+      Service[$cobbler_web_service],
       Package[$cobbler::packages::cobbler_package],
       Package[$cobbler::packages::dnsmasq_package],
       File['/etc/dnsmasq.upstream']],
