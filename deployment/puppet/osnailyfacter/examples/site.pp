@@ -163,6 +163,27 @@ class os_common {
     'port' => $base_syslog_hash['syslog_port']
   }
 
+### TCP connections keepalives and failover related parameters ###
+  # configure TCP keepalive for host OS.
+  # Send 3 probes each 8 seconds, if the connection was idle
+  # for a 30 seconds. Consider it dead, if there was no responces
+  # during the check time frame, i.e. 30+3*8=54 seconds overall.
+  # (note: overall check time frame should be lower then
+  # nova_report_interval).
+  class { 'openstack::keepalive' :
+    stage        => 'netconfig',
+    tcpka_time   => '30',
+    tcpka_probes => '8',
+    tcpka_intvl  => '3',
+  }
+
+  # setting service down time and report interval
+  # to 60 and 180 for Nova respectively to allow kernel
+  # to kill dead connections
+  # (see zendesk #1158 as well)
+  $nova_report_interval = '60'
+  $nova_service_down_time  = '180'
+
   $syslog_rserver = {
     'remote_type' => $syslog_hash['syslog_transport'],
     'server' => $syslog_hash['syslog_server'],
