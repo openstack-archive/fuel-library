@@ -1,5 +1,11 @@
 #!/bin/bash
 
+if ${DEBUG}; then
+  DOCKER="docker -D"
+else
+  DOCKER="docker"
+fi
+
 function show_usage {
   echo "Usage:"
   echo "  $0 command"
@@ -21,7 +27,7 @@ function debug {
   fi
 }
 function build_image {
-  docker build -t $2 $1
+  ${DOCKER} build -t $2 $1
 }
 
 function build_storage_containers {
@@ -53,16 +59,16 @@ function check_ready {
   case $1 in
       nailgun) retry_checker '[ $(curl --connect-timeout 1 -s -w %{http_code} http://127.0.0.1:8000/api/version -o /dev/null) = "200" ]'  ;;
       ostf) retry_checker '[ $(curl --connect-timeout 1 -s -w '%{http_code}' http://127.0.0.1:8000/ostf/not_found -o /dev/null) = "404" ]' ;;
-      cobbler) retry_checker "dockerctl shell cobbler ps aux | grep -q 'cobblerd -F'" ;;
+      cobbler) retry_checker "shell_container cobbler ps aux | grep -q 'cobblerd -F'" ;;
       #TODO(aglarendil): unhardcode passwords
       rabbitmq) retry_checker 'curl -f -L -i  -u naily:naily http://127.0.0.1:15672/api/nodes  1>/dev/null 2>&1' ;;
       #TODO(aglarendil): unhardcode passwords
-      postgres) retry_checker "PGPASSWORD=nailgun dockerctl shell postgres psql -h 127.0.0.1 -U nailgun nailgun -c '\copyright' 2>&1 1>/dev/null" ;;
-      astute) retry_checker "dockerctl shell astute ps aux | grep -q 'astuted'" ;;
-      rsync) retry_checker "dockerctl shell rsync netstat -ntl | grep -q 873" ;;
-      rsyslog) retry_checker "dockerctl shell rsyslog netstat -nl | grep -q 514" ;;
-      mcollective) retry_checker "dockerctl shell mcollective ps aux | grep -q mcollectived" ;;
-      nginx) retry_checker "dockerctl shell nginx ps aux | grep -q nginx"  ;;
+      postgres) retry_checker "PGPASSWORD=nailgun shell_container postgres psql -h 127.0.0.1 -U nailgun nailgun -c '\copyright' 2>&1 1>/dev/null" ;;
+      astute) retry_checker "shell_container astute ps aux | grep -q 'astuted'" ;;
+      rsync) retry_checker "shell_container rsync netstat -ntl | grep -q 873" ;;
+      rsyslog) retry_checker "shell_container rsyslog netstat -nl | grep -q 514" ;;
+      mcollective) retry_checker "shell_container mcollective ps aux | grep -q mcollectived" ;;
+      nginx) retry_checker "shell_container nginx ps aux | grep -q nginx"  ;;
       *) echo "No defined test for determining if $1 is ready."
                 ;;
   esac
@@ -81,16 +87,16 @@ function run_storage_containers {
 
   #Remove existing ones if they exist
   #kill_storage_containers
-  docker run -d ${CONTAINER_VOLUMES[$DUMP_CNT]} --name "$DUMP_CNT" storage/dump || true
-  docker run -d ${CONTAINER_VOLUMES[$REPO_CNT]} --name "$REPO_CNT" storage/repo || true
-  docker run -d ${CONTAINER_VOLUMES[$PUPPET_CNT]} --name "$PUPPET_CNT" storage/puppet || true
-  #docker run -d ${CONTAINER_VOLUMES[$LOG_CNT]} --name "$LOG_CNT" storage/log || true
+  ${DOCKER} run -d ${CONTAINER_VOLUMES[$DUMP_CNT]} --name "$DUMP_CNT" storage/dump || true
+  ${DOCKER} run -d ${CONTAINER_VOLUMES[$REPO_CNT]} --name "$REPO_CNT" storage/repo || true
+  ${DOCKER} run -d ${CONTAINER_VOLUMES[$PUPPET_CNT]} --name "$PUPPET_CNT" storage/puppet || true
+  #${DOCKER} run -d ${CONTAINER_VOLUMES[$LOG_CNT]} --name "$LOG_CNT" storage/log || true
 }
 
 function kill_storage_containers {
-  containers=$(docker ps -a | egrep "($DUMP_CNT|$REPO_CNT|$PUPPET_CNT)" | cut -d' ' -f1)
+  containers=$(${DOCKER} ps -a | egrep "($DUMP_CNT|$REPO_CNT|$PUPPET_CNT)" | cut -d' ' -f1)
   if [ -n "$containers" ]; then
-    docker rm $containers || true
+    ${DOCKER} rm $containers || true
   fi
 }
 function import_images {
@@ -103,13 +109,13 @@ function import_images {
     debug "Importing $image_archive"
     image="$(echo $image_archive | cut -d. -f1)"
     if egrep -q "gz\$" <<< "$image_archive"; then
-      zcat "$image_archive" | docker load
+      zcat "$image_archive" | ${DOCKER} load
     elif egrep -q "xz\$" <<< "$image_archive"; then
-      #xz -dkc "$image_archive" | docker load - "${IMAGE_PREFIX}/${image}"
-      xz -dkc "$image_archive" | docker load
+      #xz -dkc "$image_archive" | ${DOCKER} load - "${IMAGE_PREFIX}/${image}"
+      xz -dkc "$image_archive" | ${DOCKER} load
     else
       #try to just import
-      cat "$image_archive" | docker load
+      cat "$image_archive" | ${DOCKER} load
     fi
   done
 }
@@ -125,14 +131,14 @@ function export_containers {
 
   for image in $@; do
     [ $trim ] && image=$(sed "s/${CNT_PREFIX}//" <<< "$image")
-    docker export $1 | gzip -c > "${image}.tar.gz"
+    ${DOCKER} export $1 | gzip -c > "${image}.tar.gz"
   done
 }
 
 function commit_container {
   container_name="${CONTAINER_NAMES[$1]}"
   image="$IMAGE_PREFIX/$1"
-  docker commit $container_name $image
+  ${DOCKER} commit $container_name $image
 }
 function start_container {
   if [ -z "$1" ]; then
@@ -150,7 +156,7 @@ function start_container {
         echo "$container_name is already running."
       fi
     else
-      docker start $container_name
+      ${DOCKER} start $container_name
     fi
     post_start_hooks $1
     if [ "$2" = "--attach" ]; then
@@ -164,7 +170,7 @@ function start_container {
 
 function attach_container {
   echo "Attaching to container $container_name..."
-  docker attach $1
+  ${DOCKER} attach $1
 }
 
 function shell_container {
@@ -172,7 +178,7 @@ function shell_container {
   if ! is_running $container_name; then
     echo "Container $1 is not running. Cannot attach." 1>&2
   fi
-  id=$(docker inspect -f='{{.ID}}' ${CONTAINER_NAMES[$1]})
+  id=$(${DOCKER} inspect -f='{{.ID}}' ${CONTAINER_NAMES[$1]})
   if [ -z "$id" ]; then
      echo "Could not get docker ID for $container. Is it running?" 1>&2
      return 1
@@ -187,11 +193,11 @@ function shell_container {
 }
 function stop_container {
   if [[ "$1" == 'all' ]]; then
-    docker stop ${CONTAINER_NAMES[$1]}
+    ${DOCKER} stop ${CONTAINER_NAMES[$1]}
   else
     for container in $@; do
       echo "Stopping $container..."
-      docker stop ${CONTAINER_NAMES[$container]}
+      ${DOCKER} stop ${CONTAINER_NAMES[$container]}
     done
   fi
 }
@@ -199,23 +205,23 @@ function stop_container {
 function destroy_container {
   if [[ "$1" == 'all' ]]; then
     stop_container all
-    docker rm ${CONTAINER_NAMES[@]}
+    ${DOCKER} rm ${CONTAINER_NAMES[@]}
   else
     for container in $@; do
       stop_container $container
-      docker rm ${CONTAINER_NAMES[$container]}
+      ${DOCKER} rm ${CONTAINER_NAMES[$container]}
       if [ $? -ne 0 ]; then
         #This happens because devicemapper glitched
         #Try to unmount all devicemapper mounts manually and try again
         echo "Destruction of container $container failed. Trying workaround..."
-        id=$(docker inspect -f='{{.ID}}' ${CONTAINER_NAMES[$container]})
+        id=$(${DOCKER} inspect -f='{{.ID}}' ${CONTAINER_NAMES[$container]})
         if [ -z $id ]; then
           echo "Could not get docker ID for $container" 1>&2
           return 1
         fi
         umount -l $(grep "$id" /proc/mounts | awk '{print $2}' | sort -r)
         #Try to delete again
-        docker rm ${CONTAINER_NAMES[$container]}
+        ${DOCKER} rm ${CONTAINER_NAMES[$container]}
         if [ $? -ne 0 ];then
           echo "Workaround failed. Unable to destroy container $container."
         fi
@@ -225,13 +231,13 @@ function destroy_container {
 }
 
 function logs {
-  docker logs ${CONTAINER_NAMES[$1]}
+  ${DOCKER} logs ${CONTAINER_NAMES[$1]}
 }
 
 
 
 function restart_container {
-  docker restart ${CONTAINER_NAMES[$1]}
+  ${DOCKER} restart ${CONTAINER_NAMES[$1]}
 }
 
 function container_lookup {
@@ -239,15 +245,15 @@ function container_lookup {
 }
 
 function container_created {
-  docker ps -a | grep -q $1
+  ${DOCKER} ps -a | grep -q $1
   return $?
 }
 function is_ghost {
-  LANG=C docker ps | grep $1 | grep -q Ghost
+  LANG=C ${DOCKER} ps | grep $1 | grep -q Ghost
   return $?
 }
 function is_running {
-  docker ps | grep -q $1
+  ${DOCKER} ps | grep -q $1
   return $?
 }
 function first_run_container {
@@ -257,7 +263,7 @@ function first_run_container {
   image="$IMAGE_PREFIX/$1_$VERSION"
   if ! is_running $container_name; then
       pre_setup_hooks $1
-      docker run $opts $BACKGROUND --name=$container_name $image
+      ${DOCKER} run $opts $BACKGROUND --name=$container_name $image
       post_setup_hooks $1
   else
       echo "$container_name is already running."
@@ -324,7 +330,7 @@ function setup_dhcrelay_for_cobbler {
     echo "ERROR: Cobbler container isn't running." 1>&2
     exit 1
   fi
-  cobbler_ip=$(docker inspect --format='{{.NetworkSettings.IPAddress}}' ${CONTAINER_NAMES["cobbler"]})
+  cobbler_ip=$(${DOCKER} inspect --format='{{.NetworkSettings.IPAddress}}' ${CONTAINER_NAMES["cobbler"]})
   admin_interface=$(grep interface: $ASTUTE_YAML | cut -d':' -f2 | tr -d ' ')
   cat > /etc/sysconfig/dhcrelay << EOF
 # Command line options here
