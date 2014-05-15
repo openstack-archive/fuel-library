@@ -331,6 +331,8 @@ class osnailyfacter::cluster_ha {
       max_pool_size                 => $max_pool_size,
       max_overflow                  => $max_overflow,
       idle_timeout                  => $idle_timeout,
+      nova_report_interval          => $::nova_report_interval,
+      nova_service_down_time        => $::nova_service_down_time,
     }
   }
 
@@ -597,6 +599,8 @@ class osnailyfacter::cluster_ha {
         syslog_log_facility_neutron => $::syslog_log_facility_neutron,
         syslog_log_facility_cinder => $::syslog_log_facility_cinder,
         nova_rate_limits       => $::nova_rate_limits,
+        nova_report_interval   => $::nova_report_interval,
+        nova_service_down_time => $::nova_service_down_time,
         state_path             => $nova_hash[state_path],
       }
 

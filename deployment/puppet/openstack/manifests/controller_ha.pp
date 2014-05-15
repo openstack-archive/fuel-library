@@ -49,6 +49,8 @@ class openstack::controller_ha (
    $max_pool_size           = '10',
    $max_overflow            = '30',
    $max_retries             = '-1',
+   $nova_report_interval    = '10',
+   $nova_service_down_time  = '60',
  ) {
 
     $is_primary_controller = $::fuel_settings['role'] ? { 'primary-controller'=>true, default=>false }
@@ -153,6 +155,8 @@ class openstack::controller_ha (
       syslog_log_facility_keystone => $syslog_log_facility_keystone,
       cinder_rate_limits           => $cinder_rate_limits,
       nova_rate_limits             => $nova_rate_limits,
+      nova_report_interval         => $nova_report_interval,
+      nova_service_down_time       => $nova_service_down_time,
       horizon_use_ssl              => $horizon_use_ssl,
       ha_mode                      => $ha_mode,
       nameservers                  => $nameservers,

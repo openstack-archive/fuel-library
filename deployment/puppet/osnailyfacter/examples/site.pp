@@ -163,6 +163,25 @@ class os_common {
     'port' => $base_syslog_hash['syslog_port']
   }
 
+### TCP connections keepalives and failover related parameters ###
+  # configure TCP keepalive for host OS and ensure the changes are permanent
+  # (see https://bugs.launchpad.net/oslo.messaging/+bug/856764/comments/19)
+  # This means that the keepalive routines wait for 5 secs before sending
+  # the first keepalive probe, and then resend it every 5 seconds.
+  # If no ACK response is received for 1 try, the connection is marked as broken.
+  # (The defaults are 7200, 75, 9 respectively and provide a *very* poor logic
+  # for dead connections tracking and failover as well)
+  sysctl::value { 'net.ipv4.tcp_keepalive_time': value => '5'}
+  sysctl::value { 'net.ipv4.tcp_keepalive_probes': value => '5'}
+  sysctl::value { 'net.ipv4.tcp_keepalive_intvl': value => '1'}
+
+  # setting service down time and report interval
+  # to 60 and 180 for Nova respectively to allow kernel
+  # to kill dead connections
+  # (see zendesk #1158 as well)
+  $nova_report_interval = '60'
+  $nova_service_down_time  = '180'
+
   $syslog_rserver = {
     'remote_type' => $syslog_hash['syslog_transport'],
     'server' => $syslog_hash['syslog_server'],
