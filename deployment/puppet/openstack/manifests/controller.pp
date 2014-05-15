@@ -139,6 +139,8 @@ class openstack::controller (
   $nova_db_user            = 'nova',
   $nova_db_dbname          = 'nova',
   $purge_nova_config       = false,
+  $nova_report_interval    = '10',
+  $nova_service_down_time  = '60',
   # Ceilometer
   $ceilometer_db_user      = 'ceilometer',
   $ceilometer_db_dbname    = 'ceilometer',
@@ -392,6 +394,8 @@ class openstack::controller (
     syslog_log_facility_neutron => $syslog_log_facility_neutron,
     syslog_log_level        => $syslog_log_level,
     nova_rate_limits        => $nova_rate_limits,
+    nova_report_interval    => $nova_report_interval,
+    nova_service_down_time  => $nova_service_down_time,
     cinder                  => $cinder
   }
 
