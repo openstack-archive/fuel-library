@@ -118,6 +118,8 @@ class openstack::compute (
   $syslog_log_facility_neutron   = 'LOG_LOCAL4',
   $syslog_log_level = 'WARNING',
   $nova_rate_limits              = undef,
+  $nova_report_interval          = '10',
+  $nova_service_down_time        = '60',
   $cinder_rate_limits            = undef,
   $create_networks               = false,
   $state_path                    = '/var/lib/nova',
@@ -189,6 +191,8 @@ class openstack::compute (
       syslog_log_level     => $syslog_log_level,
       api_bind_address     => $internal_address,
       state_path           => $state_path,
+      report_interval      => $nova_report_interval,
+      service_down_time    => $nova_service_down_time,
   }
 
   #Cinder setup

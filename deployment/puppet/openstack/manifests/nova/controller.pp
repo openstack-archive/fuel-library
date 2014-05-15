@@ -87,6 +87,8 @@ class openstack::nova::controller (
   $syslog_log_facility_neutron = 'LOG_LOCAL4',
   $syslog_log_level = 'WARNING',
   $nova_rate_limits          = undef,
+  $nova_report_interval      = '10',
+  $nova_service_down_time    = '60',
   $cinder                    = true,
   # SQLAlchemy backend
   $idle_timeout              = '3600',
@@ -156,6 +158,8 @@ class openstack::nova::controller (
     max_pool_size       => $max_pool_size,
     max_overflow        => $max_overflow,
     idle_timeout        => $idle_timeout,
+    report_interval     => $nova_report_interval,
+    service_down_time   => $nova_service_down_time,
   }
 
   class {'nova::quota':
