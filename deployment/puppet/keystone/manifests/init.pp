@@ -300,6 +300,8 @@ class keystone(
       user        => 'keystone',
       path        => '/usr/bin',
       refreshonly => true,
+      tries       => 10,  # waiting if haproxy was restarted
+      try_sleep   => 6,   # near at this exec
       notify      => Service['keystone'],
       subscribe   => Package['keystone'],
     }
