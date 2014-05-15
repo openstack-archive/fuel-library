@@ -585,7 +585,7 @@ class PreseedPManager(object):
 
     def _fsoptions(self, fstype):
         if fstype == "xfs":
-            return "-f -s 512"
+            return "-f -s size=512"
         return ""
 
     def _umount_target(self):
