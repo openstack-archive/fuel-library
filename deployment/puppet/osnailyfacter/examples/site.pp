@@ -163,6 +163,12 @@ class os_common {
     'port' => $base_syslog_hash['syslog_port']
   }
 
+  # configure TCP keepalive for host OS
+  # see https://bugs.launchpad.net/oslo.messaging/+bug/856764/comments/19
+  sysctl::value { 'net.ipv4.tcp_keepalive_time': value => '5'}
+  sysctl::value { 'net.ipv4.tcp_keepalive_probes': value => '5'}
+  sysctl::value { 'net.ipv4.tcp_keepalive_intvl': value => '1'}
+
   $syslog_rserver = {
     'remote_type' => $syslog_hash['syslog_transport'],
     'server' => $syslog_hash['syslog_server'],

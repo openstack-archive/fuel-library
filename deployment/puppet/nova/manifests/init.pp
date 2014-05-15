@@ -206,7 +206,11 @@ if $use_syslog and !$debug { #syslog and nondebug case
   }
   nova_config { 'DEFAULT/allow_resize_to_same_host': value => 'True' }
   nova_config { 'DEFAULT/image_service': value => $image_service }
-
+  #setting service down time and report interval
+  #to 60 and 180 respectively to allow kernel
+  #to kill dead connections
+  nova_config { 'DEFAULT/report_interval': value => '60' }
+  nova_config { 'DEFAULT/service_down_time': value => '180' }
   if $image_service == 'nova.image.glance.GlanceImageService' {
     if $glance_api_servers {
       nova_config { 'DEFAULT/glance_api_servers': value => $glance_api_servers }
