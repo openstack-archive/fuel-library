@@ -140,9 +140,9 @@ class osnailyfacter::cluster_ha {
   # AMQP client configuration
   if $::internal_address in $controller_nodes {
     # prefer local MQ broker if it exists on this node
-    $amqp_nodes = concat(['127.0.0.1'], $controller_nodes)
+    $amqp_nodes = concat(['127.0.0.1'], delete($controller_nodes, $::internal_address))
   } else {
-    $amqp_nodes = $controller_nodes
+    $amqp_nodes = fqdn_rotate($controller_nodes, size($controller_nodes))
   }
   $amqp_port = '5673'
   $amqp_hosts = inline_template("<%= @amqp_nodes.map {|x| x + ':' + @amqp_port}.join ',' %>")
