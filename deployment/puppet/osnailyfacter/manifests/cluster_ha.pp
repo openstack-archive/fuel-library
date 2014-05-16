@@ -126,7 +126,7 @@ class osnailyfacter::cluster_ha {
 
 
   ##TODO: simply parse nodes array
-  $controllers = merge_arrays(filter_nodes($nodes_hash,'role','primary-controller'), filter_nodes($nodes_hash,'role','controller'))
+  $controllers = concat(filter_nodes($nodes_hash,'role','primary-controller'), filter_nodes($nodes_hash,'role','controller'))
   $controller_internal_addresses = nodes_to_hash($controllers,'name','internal_address')
   $controller_public_addresses = nodes_to_hash($controllers,'name','public_address')
   $controller_storage_addresses = nodes_to_hash($controllers,'name','storage_address')
@@ -138,12 +138,16 @@ class osnailyfacter::cluster_ha {
   $mountpoints = filter_hash($mp_hash,'point')
 
   # AMQP client configuration
-  if $::internal_address in $controller_nodes {
+  $amqp_nodes = inline_template("<%= @controller_nodes.clone %>")
+  if $::internal_address in $amqp_nodes {
     # prefer local MQ broker if it exists on this node
-    $amqp_nodes = concat(['127.0.0.1'], $controller_nodes)
+    delete($amqp_nodes, $::internal_address)
+    fqdn_rotate($amqp_nodes, size($amqp_nodes))
+    concat(['127.0.0.1'], fqdn_rotate($amqp_nodes, size($amqp_nodes)))
   } else {
-    $amqp_nodes = $controller_nodes
-  }
+    fqdn_rotate($amqp_nodes, size($amqp_nodes))
+  } 
+
   $amqp_port = '5673'
   $amqp_hosts = inline_template("<%= @amqp_nodes.map {|x| x + ':' + @amqp_port}.join ',' %>")
   $rabbit_ha_queues = true
