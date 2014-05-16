@@ -39,9 +39,9 @@ function build_storage_containers {
 
 function retry_checker {
   tries=0
-  failure=0
   echo "checking with command \"$*\""
-  while ! eval $*; do
+  until eval $*; do
+     rc=$?
      ((tries++))
      echo "try number $tries"
      echo "return code is $rc"
@@ -55,6 +55,7 @@ function retry_checker {
 
 function check_ready {
   #Uses a custom command to ensure a container is ready
+  failure=0
   echo "checking container $1"
   case $1 in
       nailgun) retry_checker '[ $(curl --connect-timeout 1 -s -w %{http_code} http://127.0.0.1:8000/api/version -o /dev/null) = "200" ]'  ;;
