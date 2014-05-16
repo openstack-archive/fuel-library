@@ -41,7 +41,8 @@ function retry_checker {
   tries=0
   failure=0
   echo "checking with command \"$*\""
-  while ! eval $*; do
+  until eval $*; do
+     rc=$?
      ((tries++))
      echo "try number $tries"
      echo "return code is $rc"
