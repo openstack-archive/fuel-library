@@ -246,7 +246,8 @@ if $use_syslog and !$debug { #syslog and nondebug case
     'DEFAULT/state_path':        value => $state_path;
     'DEFAULT/lock_path':         value => $lock_path;
     'DEFAULT/service_down_time': value => $service_down_time;
-    'DEFAULT/rootwrap_config':  value => $root_wrap_config;
+    'DEFAULT/report_interval':   value => $report_interval;
+    'DEFAULT/rootwrap_config':   value => $root_wrap_config;
   }
 
   nova_config {
