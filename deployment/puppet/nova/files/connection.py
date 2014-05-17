@@ -289,7 +289,7 @@ class LibvirtConnection(driver.ComputeDriver):
 
     def _get_connection(self):
         if not self._wrapped_conn or not self._test_connection():
-            LOG.debug(_('Connecting to libvirt: %s'), self.uri)
+            LOG.debug('Connecting to libvirt: %s', self.uri)
             if not FLAGS.libvirt_nonblocking:
                 self._wrapped_conn = self._connect(self.uri,
                                                self.read_only)
@@ -310,7 +310,7 @@ class LibvirtConnection(driver.ComputeDriver):
             if (e.get_error_code() == libvirt.VIR_ERR_SYSTEM_ERROR and
                 e.get_error_domain() in (libvirt.VIR_FROM_REMOTE,
                                          libvirt.VIR_FROM_RPC)):
-                LOG.debug(_('Connection to libvirt broke'))
+                LOG.debug('Connection to libvirt broke')
                 return False
             raise
 
@@ -923,7 +923,7 @@ class LibvirtConnection(driver.ComputeDriver):
                            block_device_info=block_device_info)
 
         self._create_new_domain(xml)
-        LOG.debug(_("Instance is running"), instance=instance)
+        LOG.debug("Instance is running", instance=instance)
         self._enable_hairpin(instance)
         self.firewall_driver.apply_instance_filter(instance, network_info)
 
@@ -1041,12 +1041,12 @@ class LibvirtConnection(driver.ComputeDriver):
         try:
             f = os.open(testfile, os.O_CREAT | os.O_WRONLY | os.O_DIRECT)
             os.close(f)
-            LOG.debug(_("Path '%(path)s' supports direct I/O") %
+            LOG.debug("Path '%(path)s' supports direct I/O" %
                       {'path': dirpath})
         except OSError, e:
             if e.errno == errno.EINVAL:
-                LOG.debug(_("Path '%(path)s' does not support direct I/O: "
-                            "'%(ex)s'") % {'path': dirpath, 'ex': str(e)})
+                LOG.debug("Path '%(path)s' does not support direct I/O: "
+                          "'%(ex)s'" % {'path': dirpath, 'ex': str(e)})
                 hasDirectIO = False
             else:
                 LOG.error(_("Error on '%(path)s' while checking direct I/O: "
@@ -1398,7 +1398,7 @@ class LibvirtConnection(driver.ComputeDriver):
                               driver.block_device_info_get_ephemerals(
                                   block_device_info)]
 
-        LOG.debug(_("block_device_list %s"), block_device_list)
+        LOG.debug("block_device_list %s", block_device_list)
         return block_device.strip_dev(mount_device) in block_device_list
 
     def _prepare_xml_info(self, instance, network_info, image_meta, rescue,
@@ -1523,11 +1523,11 @@ class LibvirtConnection(driver.ComputeDriver):
     def to_xml(self, instance, network_info, image_meta=None, rescue=False,
                block_device_info=None):
         # TODO(termie): cache?
-        LOG.debug(_('Starting toXML method'), instance=instance)
+        LOG.debug('Starting toXML method', instance=instance)
         xml_info = self._prepare_xml_info(instance, network_info, image_meta,
                                           rescue, block_device_info)
         xml = str(Template(self.libvirt_xml, searchList=[xml_info]))
-        LOG.debug(_('Finished toXML method'), instance=instance)
+        LOG.debug('Finished toXML method', instance=instance)
         return xml
 
     def _lookup_by_name(self, instance_name):
@@ -2210,7 +2210,7 @@ class LibvirtConnection(driver.ComputeDriver):
             path = path_node.get('file')
 
             if disk_type != 'file':
-                LOG.debug(_('skipping %(path)s since it looks like volume') %
+                LOG.debug('skipping %(path)s since it looks like volume' %
                           locals())
                 continue
 
@@ -2316,7 +2316,7 @@ class LibvirtConnection(driver.ComputeDriver):
     @exception.wrap_exception()
     def migrate_disk_and_power_off(self, context, instance, dest,
                                    instance_type, network_info):
-        LOG.debug(_("Instance %s: Starting migrate_disk_and_power_off"),
+        LOG.debug("Instance %s: Starting migrate_disk_and_power_off",
                    instance['name'])
         disk_info_text = self.get_instance_disk_info(instance['name'])
         disk_info = utils.loads(disk_info_text)
@@ -2383,7 +2383,7 @@ class LibvirtConnection(driver.ComputeDriver):
     @exception.wrap_exception()
     def finish_migration(self, context, migration, instance, disk_info,
                          network_info, image_meta, resize_instance):
-        LOG.debug(_("Instance %s: Starting finish_migration"),
+        LOG.debug("Instance %s: Starting finish_migration",
                    instance['name'])
 
         # resize disks. only "disk" and "disk.local" are necessary.
@@ -2423,7 +2423,7 @@ class LibvirtConnection(driver.ComputeDriver):
 
     @exception.wrap_exception()
     def finish_revert_migration(self, instance, network_info):
-        LOG.debug(_("Instance %s: Starting finish_revert_migration"),
+        LOG.debug("Instance %s: Starting finish_revert_migration",
                    instance['name'])
 
         inst_base = "%s/%s" % (FLAGS.instances_path, instance['name'])
@@ -2467,7 +2467,7 @@ class HostState(object):
 
     def update_status(self):
         """Retrieve status info from libvirt."""
-        LOG.debug(_("Updating host stats"))
+        LOG.debug("Updating host stats")
         if self.connection is None:
             self.connection = get_connection(self.read_only)
         data = {}
