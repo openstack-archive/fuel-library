@@ -277,7 +277,8 @@ class PManager(object):
                               "--typecode={0}:{1} {2}".format(
                                   pcount, part["partition_guid"],
                                   self._disk_dev(disk)))
-                if size > 0 and size <= 16777216 and tabfstype != "xfs":
+                if size > 0 and size <= 16777216 and part["mount"] != "none" \
+                        and tabfstype != "xfs":
                     self.kick("partition {0} "
                               "--onpart={2}"
                               "{3}{4}".format(part["mount"], size,
