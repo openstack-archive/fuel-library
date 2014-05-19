@@ -19,7 +19,8 @@ class mongodb::replset::install (
 
 # Workaround: wait for server
   exec {"wait_for_server":
-    command => "/bin/echo \" for TRY_NUMBER in \`seq 1 10\`; do /bin/echo \\\"Connecting to mongo...\\\"$TRY_NUMBER; (/bin/echo \\\"show dbs;\\\" | /usr/bin/mongo )&& break; sleep 10; done\" | /bin/bash",
+    path => "/bin:/usr/bin",
+    command => 'echo \'TRY_NUMBER=1; while :; do echo "Connecting to mongo... ${TRY_NUMBER}"; (mongostat | grep ok) && break; sleep 1; ((TRY_NUMBER++)); done\' | bash',
     logoutput => true,
   } ->
 
