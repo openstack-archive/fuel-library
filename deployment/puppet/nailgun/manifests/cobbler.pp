@@ -21,7 +21,7 @@ class nailgun::cobbler(
   $nailgun_api_url = "http://${::ipaddress}:8000/api",
   # default password is 'r00tme'
   $ks_encrypted_root_password = "\$6\$tCD3X7ji\$1urw6qEMDkVxOkD33b4TpQAjRiCeDZx0jmgMhDYhfB9KuGfqO9OcMaKyUxnGGWslEDQ4HxTw7vcAMP85NxQe61",
-
+  $cobbler_web_service = "httpd",
   ){
 
   anchor { "nailgun-cobbler-begin": }
@@ -202,7 +202,8 @@ class nailgun::cobbler(
     owner   => 'root',
     group   => 'root',
     mode    => '0644',
-  }
+  }~>
+  Service[$cobbler_web_service]
 
   #FIXME(mattymo): move pubkey to astute fact or download it
   exec { "cp /root/.ssh/id_rsa.pub /etc/cobbler/authorized_keys":
