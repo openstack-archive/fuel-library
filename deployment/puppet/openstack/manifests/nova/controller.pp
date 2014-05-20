@@ -87,6 +87,8 @@ class openstack::nova::controller (
   $syslog_log_facility_neutron = 'LOG_LOCAL4',
   $syslog_log_level = 'WARNING',
   $nova_rate_limits          = undef,
+  $nova_report_interval      = '10',
+  $nova_service_down_time    = '60',
   $cinder                    = true
 ) {
 
@@ -146,6 +148,8 @@ class openstack::nova::controller (
     syslog_log_facility => $syslog_log_facility,
     syslog_log_level    => $syslog_log_level,
     use_syslog          => $use_syslog,
+    report_interval     => $nova_report_interval,
+    service_down_time   => $nova_service_down_time,
   }
 
   class {'nova::quota':

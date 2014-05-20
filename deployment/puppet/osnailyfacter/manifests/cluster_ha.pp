@@ -325,6 +325,8 @@ class osnailyfacter::cluster_ha {
       horizon_use_ssl               => $::fuel_settings['horizon_use_ssl'],
       use_unicast_corosync          => $::fuel_settings['use_unicast_corosync'],
       nameservers                   => $::dns_nameservers,
+      nova_report_interval          => $::nova_report_interval,
+      nova_service_down_time        => $::nova_service_down_time,
     }
   }
 
@@ -551,6 +553,8 @@ class osnailyfacter::cluster_ha {
         syslog_log_facility_neutron => $syslog_log_facility_neutron,
         syslog_log_facility_cinder => $syslog_log_facility_cinder,
         nova_rate_limits       => $nova_rate_limits,
+        nova_report_interval   => $::nova_report_interval,
+        nova_service_down_time => $::nova_service_down_time,
         state_path             => $nova_hash[state_path],
       }
 

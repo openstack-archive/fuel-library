@@ -226,6 +226,8 @@ class osnailyfacter::cluster_simple {
         horizon_use_ssl         => $horizon_use_ssl,
         nameservers             => $::dns_nameservers,
         primary_controller      => true,
+        nova_report_interval    => $::nova_report_interval,
+        nova_service_down_time  => $::nova_service_down_time,
       }
       nova_config { 'DEFAULT/start_guests_on_host_boot': value => $::fuel_settings['start_guests_on_host_boot'] }
       nova_config { 'DEFAULT/use_cow_images': value => $::fuel_settings['use_cow_images'] }
@@ -404,6 +406,8 @@ class osnailyfacter::cluster_simple {
         syslog_log_facility_cinder  => $syslog_log_facility_cinder,
         state_path             => $nova_hash[state_path],
         nova_rate_limits       => $nova_rate_limits,
+        nova_report_interval   => $::nova_report_interval,
+        nova_service_down_time => $::nova_service_down_time,
         cinder_rate_limits     => $cinder_rate_limits
       }
       nova_config { 'DEFAULT/start_guests_on_host_boot': value => $::fuel_settings['start_guests_on_host_boot'] }
