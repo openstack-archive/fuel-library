@@ -23,6 +23,27 @@ class cluster::haproxy_ocf {
   }
   File<| title == 'ocf-mirantis-path' |> -> File['haproxy-ocf']
   File['haproxy-ocf'] -> Cs_resource[$cib_name]
+  Cs_resource[$cib_name] -> Cs_colocation['vip_public-with-haproxy']
+  Cs_resource[$cib_name] -> Cs_colocation['vip_management-with-haproxy']
+
+  cs_colocation { 'vip_public-with-haproxy':
+    ensure     => present,
+    cib        => $cib_name,
+    score      => 'INFINITY',
+    primitives => [
+        "vip__public_old",
+        "clone_${cib_name}"
+    ],
+  }
+  cs_colocation { 'vip_management-with-haproxy':
+    ensure     => present,
+    cib        => $cib_name,
+    score      => 'INFINITY',
+    primitives => [
+        "vip__management_old",
+        "clone_${cib_name}"
+    ],
+  }
 
   cs_resource { $cib_name:
     ensure          => present,
@@ -35,6 +56,10 @@ class cluster::haproxy_ocf {
     },
     ms_metadata => {
       'interleave' => 'true',
+    },
+    metadata => {
+      'migration-threshold' => '3',
+      'failure-timeout'     => '120',
     },
     parameters => {
       'ns' => 'haproxy',
