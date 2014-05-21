@@ -295,6 +295,8 @@ function post_setup_hooks {
                ;;
     nginx)     remangle_nginx
                ;;
+    rabbitmq)  remangle_rabbitmq
+               ;;
     *)         ;;
   esac
 }
@@ -319,9 +321,16 @@ function remangle_port {
 }
 
 function remangle_nginx {
-  #Necessary to forward packets to rsyslog with correct src ip
+  #Necessary to forward packets to nginx with correct src ip
   remangle_port tcp 8000
   remangle_port tcp 8080
+}
+
+function remangle_rabbitmq {
+  remangle_port tcp 4369
+  remangle_port tcp 5672
+  remangle_port tcp 15672
+  remangle_port tcp 61613
 }
 
 function remangle_syslog {
