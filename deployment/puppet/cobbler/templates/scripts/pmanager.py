@@ -764,7 +764,7 @@ class PreseedPManager(object):
         for disk in self.iterdisks():
             for part in self.non_boot_partitions(disk["volumes"]):
 
-                if self.pcount("/dev/%s" % disk["id"]) == 0:
+                if self.pcount(self._disk_dev(disk)) == 0:
                     self.late("parted -s {0} mklabel gpt"
                               "".format(self._disk_dev(disk)))
                     self.late("parted -a none -s {0} "
