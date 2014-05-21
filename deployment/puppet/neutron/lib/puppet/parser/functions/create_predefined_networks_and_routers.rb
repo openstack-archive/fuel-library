@@ -39,8 +39,8 @@ class MrntNeutronNR
 
   def get_tenant()
     return @tenant_name if @tenant_name
-    as = @neutron_config[:predefined_routers] || {:tenant=>"admin"}
-    @tenant_name = as[:tenant]
+    as = @neutron_config[:predefined_routers][:router04] || {:tenant=>"admin"}
+    @tenant_name = as[:tenant] 
   end
 
   def get_default_router_config()
