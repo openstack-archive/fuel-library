@@ -148,6 +148,30 @@ Can be "", "link" or IP address.
 <content type="string" default="$OCF_RESKEY_gateway_metric_default"/>
 </parameter>
 
+<parameter name="iptables_start_rules">
+<longdesc lang="en">
+Iptables rules that should be started along with IP.\n
+</longdesc>
+<shortdesc lang="en">Iptables rules associated with IP start.</shortdesc>
+<content type="string" default=""/>
+</parameter>
+
+<parameter name="iptables_stop_rules">
+<longdesc lang="en">
+Iptables rules that should be stopped along with IP.\n
+</longdesc>
+<shortdesc lang="en">Iptables rules associated with IP stop.</shortdesc>
+<content type="string" default=""/>
+</parameter>
+
+<parameter name="iptables_comment">
+<longdesc lang="en">
+Iptables comment to associate with rules.\n
+</longdesc>
+<shortdesc lang="en">Iptables comment to associate with rules.</shortdesc>
+<content type="string" default="default-comment"/>
+</parameter>
+
 </parameters>
 <actions>
 <action name="start"   timeout="20s" />
@@ -355,6 +379,38 @@ ip_prepare() {
   return $OCF_SUCCESS
 }
 
+iptables_start() {
+  local rc
+  local iptables_rules
+  local rule
+  rc=$OCF_SUCCESS
+  # setup iptables rules if given
+  if [[ ! -z $OCF_RESKEY_iptables_start_rules ]] ; then
+    IFS=';' read -a iptables_rules <<< "$OCF_RESKEY_iptables_start_rules"
+    for rule in "${iptables_rules[@]}"
+    do
+      ocf_run $rule -m comment --comment "$OCF_RESKEY_iptables_comment"
+    done
+  fi
+  return $rc
+}
+
+iptables_stop() {
+  local rc
+  local iptables_rules
+  local rule
+  rc=$OCF_SUCCESS
+  # remove iptables rules if given
+  if [[ ! -z $OCF_RESKEY_iptables_stop_rules ]] ; then
+    IFS=';' read -a iptables_rules <<< "$OCF_RESKEY_iptables_stop_rules"
+    for rule in "${iptables_rules[@]}"
+    do
+      ocf_run $rule -m comment --comment "$OCF_RESKEY_iptables_comment"
+    done
+  fi
+  return $rc
+}
+
 ip_start() {
   ip_prepare
   rc=$?
@@ -362,6 +418,8 @@ ip_start() {
     # cleanun ns
     ip_stop
     rc=$OCF_ERR_GENERIC
+  else
+    iptables_start
   fi
   return $rc
 }
@@ -394,6 +452,7 @@ ip_stop() {
 
   if [[ $rc == 0 ]] ; then
     rc=$OCF_SUCCESS  # it means stop was success
+    iptables_stop
   else
     rc=$OCF_ERR_GENERIC
   fi
