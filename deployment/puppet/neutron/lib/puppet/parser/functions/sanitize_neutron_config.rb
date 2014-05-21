@@ -75,8 +75,7 @@ class MrntNeutron
 
   def get_tenant()
     return @admin_tenant_name if @admin_tenant_name
-    as = @fuel_config[:access] || {:tenant=>"admin"}
-    @admin_tenant_name = as[:tenant]
+    @admin_tenant_name = @fuel_config[:access][:tenant] || {:tenant=>"admin"}
   end
 
   # classmethod
