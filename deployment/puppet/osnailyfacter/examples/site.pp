@@ -171,10 +171,11 @@ class os_common {
   # (note: overall check time frame should be lower then
   # nova_report_interval).
   class { 'openstack::keepalive' :
-    stage        => 'netconfig',
-    tcpka_time   => '30',
-    tcpka_probes => '8',
-    tcpka_intvl  => '3',
+    stage           => 'netconfig',
+    tcpka_time      => '30',
+    tcpka_probes    => '8',
+    tcpka_intvl     => '3',
+    tcp_retries2    => '5',
   }
 
   # setting service down time and report interval
