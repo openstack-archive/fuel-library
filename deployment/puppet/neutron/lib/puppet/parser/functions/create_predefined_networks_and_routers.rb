@@ -38,9 +38,10 @@ class MrntNeutronNR
   end
 
   def get_tenant()
-    return @tenant_name if @tenant_name
-    as = @neutron_config[:predefined_routers] || {:tenant=>"admin"}
-    @tenant_name = as[:tenant]
+    # Returns @tenant_name, if defined
+    # otherwise it checks @neutron_config structure, and return tenant name from there, if not nil
+    # if tenant name is nil, or @neutron_config hash doesn't have one of the keys defined, then "admin" is returned
+    @tenant_name = @tenant_name || @neutron_config[:predefined_routers][:router04][:tenant] || "admin" rescue "admin"
   end
 
   def get_default_router_config()
