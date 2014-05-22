@@ -112,6 +112,7 @@ class cinder::base (
     'DEFAULT/verbose':             value => $verbose;
     'DEFAULT/api_paste_config':    value => '/etc/cinder/api-paste.ini';
     'DEFAULT/control_exchange':    value => 'cinder';
+    'DEFAULT/notification_driver': value => 'cinder.openstack.common.notifier.rpc_notifier';
   }
 
   cinder_config {

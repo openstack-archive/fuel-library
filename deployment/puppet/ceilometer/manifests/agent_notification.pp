@@ -41,7 +41,6 @@ class ceilometer::agent_notification (
   ###move notification driver configuration into particular
   ###classes
   include nova::notify::ceilometer
-  include cinder::notify::ceilometer
   include heat::notify::ceilometer
 
   if $swift {
@@ -65,7 +64,6 @@ class ceilometer::agent_notification (
         Class['ceilometer::api'],
         Class['neutron'],
         Class['nova'],
-        Class['cinder::notify::ceilometer'],
         Class['glance'],
         Class['heat'],
         Exec['ceilometer-dbsync'],
@@ -82,7 +80,6 @@ class ceilometer::agent_notification (
         Class['ceilometer::db'],
         Class['ceilometer::api'],
         Class['nova'],
-        Class['cinder::notify::ceilometer'],
         Class['glance'],
         Class['heat'],
         Exec['ceilometer-dbsync'],
