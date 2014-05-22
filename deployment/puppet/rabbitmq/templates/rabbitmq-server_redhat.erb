@@ -14,9 +14,6 @@
 # Short-Description: Enable AMQP service provided by RabbitMQ broker
 ### END INIT INFO
 
-# Source function library.
-. /etc/init.d/functions
-
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
 NAME=rabbitmq-server
 DAEMON=/usr/sbin/${NAME}
@@ -27,7 +24,7 @@ ROTATE_SUFFIX=
 INIT_LOG_DIR=/var/log/rabbitmq
 PID_FILE=/var/run/rabbitmq/pid
 
-START_PROG="daemon"
+START_PROG="runuser rabbitmq --session-command"
 LOCK_FILE=/var/lock/subsys/$NAME
 
 <% if @node_ip_address != 'UNSET' -%>
@@ -57,46 +54,127 @@ remove_pid () {
     rmdir `dirname ${PID_FILE}` || :
 }
 
-start_rabbitmq () {
-    retry="1"
-    max_retry="<%= @max_retry %>"
+set_nova_rabbit_credentials () {
+    local NOVA_CONFIG_FILE=/etc/nova/nova.conf
+    #These variables must be empty in the beginning
+    local NEW_RABBIT_USER=
+    local NEW_RABBIT_PASSWORD=
+    local RABBIT_VIRTUAL_HOST=
+    if [ -f ${NOVA_CONFIG_FILE} ] ; then
+        NEW_RABBIT_USER=$(grep -v '^#' $NOVA_CONFIG_FILE \
+                        | grep rabbit_userid \
+                        | awk -F "=" '{print $2}')
+                              
+        NEW_RABBIT_PASSWORD=$(grep -v '^#' $NOVA_CONFIG_FILE \
+                            | grep rabbit_password \
+                            | awk -F "=" '{print $2}')
+                                  
+        RABBIT_VIRTUAL_HOST=$(grep -v '^#' $NOVA_CONFIG_FILE \
+                            | grep rabbit_virtual_host \
+                            | awk -F "=" '{print $2}')
+    fi
+    
+    if [ "x" != "x${NEW_RABBIT_USER}" ] && [ "x" != "x${NEW_RABBIT_PASSWORD}" ]; then
+        printf '%s\n' "Restoring Nova user credentials..."
+        set +e
+        $CONTROL add_user $NEW_RABBIT_USER $NEW_RABBIT_PASSWORD
+        $CONTROL set_user_tags $NEW_RABBIT_USER administrator
+        
+        if [ "x" != "x${RABBIT_VIRTUAL_HOST}" ] ; then
+            RABBIT_VIRTUAL_HOST=/
+        fi
+        if [ ${RABBIT_VIRTUAL_HOST} != '/' ] ; then
+            $CONTROL add_vhost $RABBIT_VIRTUAL_HOST
+        fi
+        $CONTROL set_permissions -p $RABBIT_VIRTUAL_HOST \
+                                    $NEW_RABBIT_USER '.*' '.*' '.*'
+        $CONTROL delete_user guest
+        set -e
+        printf '%s\n' "Done restoring user credentials."
+    fi
+}
 
-    while [ "${retry}" -le "${max_retry}" ]; do
-      status_rabbitmq quiet
-      if [ "${RETVAL}" == "0" ] ; then
-        echo "RabbitMQ is currently running"
-        return 0
-      fi
-      RETVAL="0"
-      ensure_pid_dir
-      set +e
-      RABBITMQ_PID_FILE="${PID_FILE}" "${START_PROG}" "${DAEMON}" \
-          > "${INIT_LOG_DIR}/startup_log" \
-          2> "${INIT_LOG_DIR}/startup_err" \
-          0<&- &
-      $CONTROL wait $PID_FILE >/dev/null 2>&1
-      RETVAL=$?
-      set -e
-      if [ "${RETVAL}" = "0" ] ; then
-        break
-      fi
-      echo "RabbitMQ server startup failed on retry ${retry} of ${max_retry}!"
-      remove_pid
-      retry="$(( ${retry} + 1 ))"
-    done
-    case "${RETVAL}" in
-        0)
-            echo SUCCESS
-            if [ -n "${LOCK_FILE}" ] ; then
-                touch "${LOCK_FILE}"
+move_out_rabbit_database_to_backup () {
+    local RABBIT_DEFAULTS_FILE=/usr/lib/rabbitmq/bin/rabbitmq-defaults
+    local RABBIT_CONFIG_FILE=/etc/rabbitmq/rabbitmq-env.conf
+    local DATE=$(date +"%Y-%m-%d_%H-%M-%S")
+    local C_DIR=$(pwd)
+    
+    [ -f ${RABBIT_DEFAULTS_FILE} ] && . ${RABBIT_DEFAULTS_FILE}
+    [ -f ${RABBIT_CONFIG_FILE} ] && . ${RABBIT_CONFIG_FILE}
+    
+    if [ -d ${MNESIA_BASE} ] ; then
+        cd ${MNESIA_BASE}/..
+        local BACKUPS_DIR=`dirname ${MNESIA_BASE}`/backups
+
+        if [ ! -d ${BACKUPS_DIR} ] ; then
+            mkdir -p ${BACKUPS_DIR}
+            chown -R ${USER}:${USER} ${BACKUPS_DIR}
+            chmod 755 ${BACKUPS_DIR}
+        fi
+
+        printf '%s\n' " "
+        printf '%s\n' "Backing up mnesia base in: ${MNESIA_BASE}"
+        mv `basename ${MNESIA_BASE}` \
+            ${BACKUPS_DIR}/`basename ${MNESIA_BASE}`_${DATE}
+        printf '%s\n' "Old Mnesia base has moved to " \
+            ${BACKUPS_DIR}/`basename ${MNESIA_BASE}`_${DATE}
+        cd ${C_DIR}
+    fi
+}
+
+start_rabbitmq () {
+    status_rabbitmq quiet
+    if [ $RETVAL = 0 ] ; then
+        echo RabbitMQ is currently running
+    else
+    #Slave nodes fail to start until master is not up and running
+    #So, give slaves several attempts to start
+    #Rabbit database will be moved out before last attempt.
+        local MAX_START_ATTEMPTS=3
+        printf '%s\n' "RabbitMQ is going to make ${MAX_START_ATTEMPTS} \
+attempts to find master node and start."
+        while test $MAX_START_ATTEMPTS -ne 0
+        do
+            RETVAL=0
+            ensure_pid_dir
+            printf '%s\n' "${MAX_START_ATTEMPTS} attempts left to start \
+RabbitMQ Server before consider start failed."
+            if [ $MAX_START_ATTEMPTS = 1 ] ; then
+               move_out_rabbit_database_to_backup                
             fi
-            ;;
-        *)
-            echo "FAILED - check ${INIT_LOG_DIR}/startup_\{log, _err\}"
-            RETVAL="1"
-            ;;
-    esac
-    rabbitmqctl set_policy ha-all "." '{"ha-mode":"all", "ha-sync-mode":"automatic"}'
+            set +e
+            RABBITMQ_PID_FILE=$PID_FILE $START_PROG $DAEMON \
+                > "${INIT_LOG_DIR}/startup_log" \
+                2> "${INIT_LOG_DIR}/startup_err" \
+                0<&- &
+            $CONTROL wait $PID_FILE >/dev/null 2>&1
+            RETVAL=$?
+            set -e
+            case "$RETVAL" in
+                0)
+                    echo SUCCESS
+                    if [ -n "$LOCK_FILE" ] ; then
+                        touch $LOCK_FILE
+                    fi
+                    if [ $MAX_START_ATTEMPTS = 1 ] ; then
+                        set_nova_rabbit_credentials
+                        RETVAL=0
+                    fi
+                    break
+                    ;;
+                *)
+                    remove_pid
+                    if [ $MAX_START_ATTEMPTS = 1 ] ; then
+                        echo FAILED - check ${INIT_LOG_DIR}/startup_\{log, _err\}
+                    fi
+                    RETVAL=1
+                    ;;
+            esac
+            MAX_START_ATTEMPTS=$((MAX_START_ATTEMPTS - 1))
+        done
+        rabbitmqctl set_policy ha-all "." '{"ha-mode":"all", "ha-sync-mode":"automatic"}'
+    fi
 }
 
 stop_rabbitmq () {
