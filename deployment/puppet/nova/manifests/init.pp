@@ -223,11 +223,12 @@ if $use_syslog and !$debug { #syslog and nondebug case
   case $queue_provider {
     "rabbitmq": {
       nova_config {
-        'DEFAULT/rabbit_hosts':        value => $amqp_hosts;
-        'DEFAULT/rabbit_userid':       value => $amqp_user;
-        'DEFAULT/rabbit_password':     value => $amqp_password;
-        'DEFAULT/rabbit_virtual_host': value => $rabbit_virtual_host;
-        'DEFAULT/rpc_backend':         value => 'nova.rpc.impl_kombu';
+        'DEFAULT/rabbit_hosts':          value => $amqp_hosts;
+        'DEFAULT/rabbit_userid':         value => $amqp_user;
+        'DEFAULT/rabbit_password':       value => $amqp_password;
+        'DEFAULT/rabbit_virtual_host':   value => $rabbit_virtual_host;
+        'DEFAULT/rpc_backend':           value => 'nova.rpc.impl_kombu';
+        'DEFAULT/kombu_reconnect_delay': value => '5.0';
       }
     }
     "qpid": {
