@@ -227,6 +227,7 @@ if $use_syslog and !$debug { #syslog and nondebug case
         'DEFAULT/rabbit_password':     value => $amqp_password;
         'DEFAULT/rabbit_virtual_host': value => $rabbit_virtual_host;
         'DEFAULT/rpc_backend':         value => 'nova.rpc.impl_kombu';
+        'DEFAULT/kombu_reconnect_delay': value => '5.0';
       }
     }
     "qpid": {

@@ -89,11 +89,12 @@ class cinder::base (
   case $queue_provider {
     'rabbitmq': {
       cinder_config {
-        'DEFAULT/rpc_backend':         value => 'cinder.openstack.common.rpc.impl_kombu';
-        'DEFAULT/rabbit_hosts':        value => $amqp_hosts;
-        'DEFAULT/rabbit_userid':       value => $amqp_user;
-        'DEFAULT/rabbit_password':     value => $amqp_password;
-        'DEFAULT/rabbit_virtual_host': value => $rabbit_virtual_host;
+        'DEFAULT/rpc_backend':         value   => 'cinder.openstack.common.rpc.impl_kombu';
+        'DEFAULT/rabbit_hosts':        value   => $amqp_hosts;
+        'DEFAULT/rabbit_userid':       value   => $amqp_user;
+        'DEFAULT/rabbit_password':     value   => $amqp_password;
+        'DEFAULT/rabbit_virtual_host': value   => $rabbit_virtual_host;
+        'DEFAULT/kombu_reconnect_delay': value => '5.0';
       }
     }
     'qpid': {
