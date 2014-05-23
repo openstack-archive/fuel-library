@@ -17,6 +17,8 @@ class mysql::password (
       logoutput => true,
       unless    => "mysqladmin -u root -p${root_password} status > /dev/null",
       path      => '/usr/local/sbin:/usr/bin:/usr/local/bin',
+      tries     => 10,
+      try_sleep => 3,
     }
 
     if $etc_root_password {
