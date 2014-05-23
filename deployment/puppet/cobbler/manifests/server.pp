@@ -56,7 +56,7 @@ class cobbler::server (
 
     }
   }
-
+  File['/etc/cobbler/modules.conf'] -> File['/etc/cobbler/settings'] ->
   Service[$cobbler_service] -> Exec["cobbler_sync"] -> Service[$dnsmasq_service]
 
   if $production !~ /docker/ {
