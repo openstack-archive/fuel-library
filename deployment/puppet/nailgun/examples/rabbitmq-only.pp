@@ -6,7 +6,7 @@ $::fuel_version['VERSION']['production'] {
     $production = $::fuel_version['VERSION']['production']
 }
 else {
-    $production = 'dev'
+    $production = 'prod'
 }
 
 

@@ -51,50 +51,7 @@ class nailgun::venv(
 
   ) {
 
-  if $production != 'dev' {
-    package{'nailgun':}
-  } else {
-    nailgun::venv::venv { $venv:
-      ensure => "present",
-      venv => $venv,
-      opts => $venv_opts,
-      require => Package["python-virtualenv"],
-      pip_opts => $pip_opts,
-    }
-
-    Nailgun::Venv::Pip {
-      require => [
-        Nailgun::Venv::Venv[$venv],
-        Package["python-devel"],
-        Package["gcc"],
-        Package["make"],
-      ],
-      opts => $pip_opts,
-      venv => $venv,
-    }
-
-    nailgun::venv::pip { "${venv}_${package}":
-      package => "$package==$version",
-    }
-
-    nailgun::venv::pip { "${venv}_pbr":
-      package => "pbr==0.5.21",
-      require => [
-        Nailgun::Venv::Venv[$venv],
-      ],
-    }
-
-    nailgun::venv::pip { "${venv}_psycopg2":
-      package => "psycopg2",
-      require => [
-        Package["postgresql-devel"],
-        Nailgun::Venv::Venv[$venv],
-        Package["python-devel"],
-        Package["gcc"],
-        Package["make"],
-      ],
-    }
-  }
+  package{'nailgun':}
   file { "/etc/nailgun":
     ensure => directory,
     owner => 'root',
@@ -140,22 +97,6 @@ class nailgun::venv(
         command => "${venv}/bin/nailgun_syncdb",
         require => [
                     File["/etc/nailgun/settings.yaml"],
-                    Class["nailgun::database"],
-                    ],
-      }
-      exec {"nailgun_upload_fixtures":
-        command => "${venv}/bin/nailgun_fixtures",
-        require => Exec["nailgun_syncdb"],
-      }
-
-    }
-    'dev': {
-      exec {"nailgun_syncdb":
-        command => "${venv}/bin/nailgun_syncdb",
-        require => [
-                    File["/etc/nailgun/settings.yaml"],
-                    Nailgun::Venv::Pip["${venv}_${package}"],
-                    Nailgun::Venv::Pip["${venv}_psycopg2"],
                     Class["nailgun::database"],
                     ],
       }

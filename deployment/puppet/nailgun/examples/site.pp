@@ -5,16 +5,11 @@ if is_hash($::fuel_version) and $::fuel_version['VERSION'] and $::fuel_version['
     $production = $::fuel_version['VERSION']['production']
 }
 else {
-    $production = 'dev'
+    $production = 'prod'
 }
 
-if $production == 'prod'{
-  $env_path = "/usr"
-  $staticdir = "/usr/share/nailgun/static"
-} else {
-  $env_path = "/opt/nailgun"
-  $staticdir = "/opt/nailgun/share/nailgun/static"
-}
+$env_path = "/usr"
+$staticdir = "/usr/share/nailgun/static"
 
 # this replaces removed postgresql version fact
 $postgres_default_version = '8.4'
