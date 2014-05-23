@@ -28,8 +28,9 @@ class glance::notify::rabbitmq(
 
   if $rabbit_hosts {
     glance_api_config {
-      'DEFAULT/rabbit_hosts':     value => join($rabbit_hosts, ',');
-      'DEFAULT/rabbit_ha_queues': value => true
+      'DEFAULT/rabbit_hosts':     value      => join($rabbit_hosts, ',');
+      'DEFAULT/rabbit_ha_queues': value      => true;
+      'DEFAULT/kombu_reconnect_delay': value => 5.0;
     }
   } else {
     glance_api_config {
