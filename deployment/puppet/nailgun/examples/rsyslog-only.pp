@@ -7,7 +7,6 @@ class {"::rsyslog::server":
   server_dir                => '/var/log/',
   port                      => 514,
   high_precision_timestamps => true,
-  virtual                   => str2bool($::is_virtual),
 }
 
 class {"::openstack::logrotate":
