@@ -50,8 +50,8 @@ define l23network::l2::bond (
 
   if ! defined (L2_ovs_bond["$bond"]) {
     l2_ovs_bond { "$bond" :
-      interfaces    => $r_interfaces,
       ensure        => $ensure,
+      interfaces    => $r_interfaces,
       bridge        => $bridge,
       tag           => $tag,
       trunks        => $trunks,
