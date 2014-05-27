@@ -87,7 +87,6 @@ class ceilometer::agent::central (
     File['ceilometer-agent-central-ocf'] -> Cs_resource[$res_name]
     cs_resource { $res_name:
       ensure          => present,
-      cib             => $cib_name,
       primitive_class => 'ocf',
       provided_by     => 'mirantis',
       primitive_type  => 'ceilometer-agent-central',
@@ -109,8 +108,6 @@ class ceilometer::agent::central (
       },
     }
 
-    cs_shadow { $res_name: cib => $cib_name }
-    cs_commit { $res_name: cib => $cib_name }
 
     service { 'ceilometer-agent-central':
       ensure     => $service_ensure,
@@ -121,9 +118,7 @@ class ceilometer::agent::central (
       provider   => "pacemaker",
     }
 
-    Cs_shadow[$res_name] ->
       Cs_resource[$res_name] ->
-        Cs_commit[$res_name] ->
           Service['ceilometer-agent-central']
 
   } else {
