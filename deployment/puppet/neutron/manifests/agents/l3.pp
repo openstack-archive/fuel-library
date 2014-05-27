@@ -85,9 +85,6 @@ class neutron::agents::l3 (
 
   if $service_provider == 'pacemaker' {
 
-    Service<| title == 'neutron-server' |> -> Cs_shadow['l3']
-    Neutron_l3_agent_config <||> -> Cs_shadow['l3']
-
     # OCF script for pacemaker
     # and his dependences
     file {'neutron-l3-agent-ocf':
@@ -108,7 +105,6 @@ class neutron::agents::l3 (
 
     cs_resource { "p_${::neutron::params::l3_agent_service}":
       ensure          => present,
-      cib             => 'l3',
       primitive_class => 'ocf',
       provided_by     => 'mirantis',
       primitive_type  => 'neutron-agent-l3',
@@ -137,17 +133,6 @@ class neutron::agents::l3 (
       },
     }
 
-    cs_shadow { 'l3': cib => 'l3' }
-    cs_commit { 'l3': cib => 'l3' }
-
-    ###
-    # Do not remember to be carefylly with Cs_shadow and Cs_commit orders.
-    # at one time onli one Shadow can be without commit
-    Cs_commit <| title == 'dhcp' |> -> Cs_shadow <| title == 'l3' |>
-    Cs_commit <| title == 'ovs' |> -> Cs_shadow <| title == 'l3' |>
-    Cs_commit <| title == 'neutron-metadata-agent' |> -> Cs_shadow <| title == 'l3' |>
-    Anchor['neutron-l3'] -> Cs_shadow['l3']
-
     Cs_resource["p_${::neutron::params::l3_agent_service}"] -> Cs_colocation['l3-with-ovs']
     Cs_resource["p_${::neutron::params::l3_agent_service}"] -> Cs_order['l3-after-ovs']
     Cs_resource["p_${::neutron::params::l3_agent_service}"] -> Cs_colocation['l3-with-metadata']
@@ -156,13 +141,11 @@ class neutron::agents::l3 (
     Anchor<| title == 'neutron-ovs-agent-done' |> -> Anchor<| title=='neutron-l3' |>
     cs_colocation { 'l3-with-ovs':
       ensure     => present,
-      cib        => 'l3',
       primitives => ["p_${::neutron::params::l3_agent_service}", "clone_p_${::neutron::params::ovs_agent_service}"],
       score      => 'INFINITY',
     } ->
     cs_order { 'l3-after-ovs':
       ensure => present,
-      cib    => 'l3',
       first  => "clone_p_${::neutron::params::ovs_agent_service}",
       second => "p_${::neutron::params::l3_agent_service}",
       score  => 'INFINITY',
@@ -171,7 +154,6 @@ class neutron::agents::l3 (
     Anchor<| title == 'neutron-metadata-agent-done' |> -> Anchor<| title=='neutron-l3' |>
     cs_colocation { 'l3-with-metadata':
       ensure     => present,
-      cib        => 'l3',
       primitives => [
           "p_${::neutron::params::l3_agent_service}",
           "clone_p_neutron-metadata-agent"
@@ -180,7 +162,6 @@ class neutron::agents::l3 (
     } ->
     cs_order { 'l3-after-metadata':
       ensure => present,
-      cib    => "l3",
       first  => "clone_p_neutron-metadata-agent",
       second => "p_${::neutron::params::l3_agent_service}",
       score  => 'INFINITY',
@@ -190,7 +171,6 @@ class neutron::agents::l3 (
     Anchor<| title == 'neutron-dhcp-agent-done' |> -> Anchor<| title=='neutron-l3' |>
     cs_colocation { 'dhcp-without-l3':
       ensure     => present,
-      cib        => 'l3',
       score      => '-100',
       primitives => [
         "p_${::neutron::params::dhcp_agent_service}",
@@ -206,7 +186,6 @@ class neutron::agents::l3 (
     Anchor['neutron-l3'] ->
       Service['neutron-l3-init_stopped'] ->
         Cs_resource["p_${::neutron::params::l3_agent_service}"] ->
-          Cs_commit['l3']->
            Service['neutron-l3'] ->
             Anchor['neutron-l3-done']
 
