@@ -7,13 +7,6 @@ class cluster::haproxy_ocf {
 
   $cib_name = 'p_haproxy'
 
-  cs_shadow { $cib_name: cib => $cib_name }
-  cs_commit { $cib_name: cib => $cib_name }
-
-  Anchor['haproxy'] -> Cs_shadow[$cib_name]
-
-  Cs_commit[$cib_name] -> Service['haproxy']
-
   file {'haproxy-ocf':
     path   =>'/usr/lib/ocf/resource.d/mirantis/ns_haproxy',
     mode   => '0755',
@@ -28,7 +21,6 @@ class cluster::haproxy_ocf {
 
   cs_colocation { 'vip_public-with-haproxy':
     ensure     => present,
-    cib        => $cib_name,
     score      => 'INFINITY',
     primitives => [
         "vip__public_old",
@@ -37,7 +29,6 @@ class cluster::haproxy_ocf {
   }
   cs_colocation { 'vip_management-with-haproxy':
     ensure     => present,
-    cib        => $cib_name,
     score      => 'INFINITY',
     primitives => [
         "vip__management_old",
@@ -47,7 +38,6 @@ class cluster::haproxy_ocf {
 
   cs_resource { $cib_name:
     ensure          => present,
-    cib             => $cib_name,
     primitive_class => 'ocf',
     provided_by     => 'mirantis',
     primitive_type  => 'ns_haproxy',

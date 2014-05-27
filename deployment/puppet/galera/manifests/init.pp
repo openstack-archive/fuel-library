@@ -157,35 +157,34 @@ class galera (
     }
   }
 
-  cs_shadow { $res_name: cib => $cib_name }
-  cs_commit { $res_name: cib => $cib_name }
-
-  Cs_commit["$res_name"] -> Service["mysql"]
 
   cs_resource { "$res_name":
-      ensure => present,
-      cib => $cib_name,
-      primitive_class => 'ocf',
-      provided_by     => 'mirantis',
-      primitive_type => 'mysql-wss',
-      multistate_hash => {
-        'type' => 'clone',
+    ensure => present,
+    primitive_class => 'ocf',
+    provided_by     => 'mirantis',
+    primitive_type => 'mysql-wss',
+    multistate_hash => {
+      'type' => 'clone',
+    },
+    ms_metadata => {
+      'interleave' => 'true',
+    },
+    parameters => {
+      'test_user'   => "${mysql_user}",
+      'test_passwd' => "${mysql_password}",
+    },
+    operations => {
+      'monitor' => {
+        'interval' => '60',
+        'timeout' => '55'
       },
-      ms_metadata => {
-        'interleave' => 'true',
+      'start' => {
+        'timeout' => '475'
       },
-      operations => {
-        'monitor' => {
-          'interval' => '60',
-          'timeout' => '55'
-        },
-        'start' => {
-          'timeout' => '475'
-        },
-        'stop' => {
-          'timeout' => '175'
-        },
+      'stop' => {
+        'timeout' => '175'
       },
+    },
   }
 
   file {'mysql-wss-ocf':
@@ -209,9 +208,7 @@ class galera (
   }
 
   Anchor['galera']       ->
-  Cs_shadow[$res_name]   ->
   Cs_resource[$res_name] ->
-  Cs_commit[$res_name]   ->
   Service[$cib_name]     ->
   Anchor['galera-done']
 
