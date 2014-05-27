@@ -149,7 +149,7 @@ describe 'sanitize_bool_in_hash' do
 
   it 'should throw an error' do
     lambda {
-     scope.function_merge_arrays(['xxx'])
+     scope.function_concat(['xxx'])
     }.should(raise_error(Puppet::ParseError))
   end
 

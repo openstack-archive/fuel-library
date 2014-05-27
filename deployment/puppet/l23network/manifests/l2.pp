@@ -12,12 +12,12 @@ class l23network::l2 (
   if $use_ovs {
     #include ::l23network::l2::use_ovs
     if $::operatingsystem == 'Ubuntu' {
-     package { 'openvswitch-datapath-lts-saucy-dkms': } ->
-     Package[$::l23network::params::ovs_packages]
+      package { 'openvswitch-datapath-lts-saucy-dkms': } ->
+      Package[$::l23network::params::ovs_packages]
     }
     if $::operatingsystem == 'Centos' {
-     package { 'kmod-openvswitch': } ->
-     Package[$::l23network::params::ovs_packages]
+      package { 'kmod-openvswitch': } ->
+      Package[$::l23network::params::ovs_packages]
     }
     package {$::l23network::params::ovs_packages: } ->
     service {'openvswitch-service':

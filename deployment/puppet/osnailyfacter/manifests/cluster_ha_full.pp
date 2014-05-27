@@ -114,13 +114,13 @@ $quantum_host            = $::fuel_settings['management_vip']
 
 
 ##TODO: simply parse nodes array
-$controllers = merge_arrays(filter_nodes($nodes_hash,'role','primary-controller'), filter_nodes($nodes_hash,'role','controller'))
+$controllers = concat(filter_nodes($nodes_hash,'role','primary-controller'), filter_nodes($nodes_hash,'role','controller'))
 $controller_internal_addresses = nodes_to_hash($controllers,'name','internal_address')
 $controller_public_addresses = nodes_to_hash($controllers,'name','public_address')
 $controller_storage_addresses = nodes_to_hash($controllers,'name','storage_address')
 $controller_hostnames = keys($controller_internal_addresses)
 $controller_nodes = sort(values($controller_internal_addresses))
-$swift_proxy_nodes = merge_arrays(filter_nodes($nodes_hash,'role','primary-swift-proxy'),filter_nodes($nodes,'role','swift-proxy'))
+$swift_proxy_nodes = concat(filter_nodes($nodes_hash,'role','primary-swift-proxy'),filter_nodes($nodes,'role','swift-proxy'))
 $swift_proxies = nodes_to_hash($swift_proxy_nodes,'name','storage_address')
 $swift_storages = filter_nodes($nodes_hash, 'role', 'storage')
 $mountpoints = filter_hash($mp_hash,'point')
