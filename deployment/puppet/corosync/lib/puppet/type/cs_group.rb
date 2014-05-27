@@ -44,7 +44,7 @@ module Puppet
     end
 
     autorequire(:cs_shadow) do
-      [ @parameters[:cib].value ]
+      [ @parameters[:cib] ]
     end
 
     autorequire(:service) do
