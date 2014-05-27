@@ -997,8 +997,9 @@ class PreseedPManager(object):
         self.erase_partition_table()
         self.boot()
         self.os()
-        self.lv()
         self.partitions()
+        self.erase_lvm_metadata()
+        self.lv()
         self.late("apt-get install -y grub-pc", True)
         self.late("sed -i "
                   "-e 's/.*GRUB_TERMINAL.*/GRUB_TERMINAL=console/g' "
