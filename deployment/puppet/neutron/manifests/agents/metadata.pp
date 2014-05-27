@@ -79,15 +79,9 @@ class neutron::agents::metadata (
       enable  => false,
       ensure  => stopped,
     }
-    Cs_commit <| title == 'ovs' |> -> Cs_shadow <| title == "$res_name" |>
-
-    Anchor['neutron-metadata-agent'] -> Cs_shadow["$cib_name"]
-    cs_shadow { $cib_name: cib => $cib_name }
-    cs_commit { $cib_name: cib => $cib_name }
 
     cs_resource { "$res_name":
       ensure          => present,
-      cib             => $cib_name,
       primitive_class => 'ocf',
       provided_by     => 'mirantis',
       primitive_type  => 'neutron-agent-metadata',
@@ -116,9 +110,6 @@ class neutron::agents::metadata (
       },
     }
 
-    Cs_resource["$res_name"] ->
-      Cs_commit["$cib_name"]
-
     service {"$res_name":
       name       => $res_name,
       enable     => true,
@@ -131,7 +122,6 @@ class neutron::agents::metadata (
     Anchor['neutron-metadata-agent'] ->
       Service['neutron-metadata-agent__disabled'] ->
         Cs_resource["$res_name"] ->
-         Cs_commit["$cib_name"] ->
           Service["$res_name"] ->
             Anchor['neutron-metadata-agent-done']
   }
