@@ -63,7 +63,6 @@ class ceilometer::alarm::evaluator (
     File['ceilometer-alarm-evaluator-ocf'] -> Cs_resource[$res_name]
     cs_resource { $res_name:
       ensure          => present,
-      cib             => $cib_name,
       primitive_class => 'ocf',
       provided_by     => 'mirantis',
       primitive_type  => 'ceilometer-alarm-evaluator',
@@ -85,9 +84,6 @@ class ceilometer::alarm::evaluator (
       },
     }
 
-    cs_shadow { $res_name: cib => $cib_name }
-    cs_commit { $res_name: cib => $cib_name }
-
     service { 'ceilometer-alarm-evaluator':
       ensure     => $service_ensure,
       name       => $res_name,
@@ -97,10 +93,7 @@ class ceilometer::alarm::evaluator (
       provider   => "pacemaker",
     }
 
-    Cs_shadow[$res_name] ->
-      Cs_resource[$res_name] ->
-        Cs_commit[$res_name] ->
-          Service['ceilometer-alarm-evaluator']
+    Cs_resource[$res_name] -> Service['ceilometer-alarm-evaluator']
 
   } else {
 
