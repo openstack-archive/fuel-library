@@ -58,14 +58,6 @@ class neutron::agents::ovs (
   }
 
   if $service_provider == 'pacemaker' {
-    Neutron_config <| |> -> Cs_shadow['ovs']
-    Neutron_plugin_ovs <| |> -> Cs_shadow['ovs']  # OVS plugin and agent should be configured before resource created
-    Neutron::Agents::Utils::Bridges <| |> -> Cs_shadow['ovs']  # All bridges should be created before ovs-agent resource create
-
-    cs_shadow { 'ovs': cib => 'ovs' }
-    cs_commit { 'ovs': cib => 'ovs' }
-    Anchor['neutron-ovs-agent'] -> Cs_shadow['ovs']
-
     # OCF script for pacemaker
     # and his dependences
     file {'neutron-ovs-agent-ocf':
@@ -83,7 +75,6 @@ class neutron::agents::ovs (
 
     cs_resource { $res_name:
       ensure          => present,
-      cib             => 'ovs',
       primitive_class => 'ocf',
       provided_by     => 'mirantis',
       primitive_type  => 'neutron-agent-ovs',
@@ -140,7 +131,6 @@ class neutron::agents::ovs (
         Service['neutron-ovs-agent_stopped'] ->
           Exec<| title=='neutron-ovs-agent_stopped' |> ->
             Cs_resource[$res_name] ->
-             Cs_commit['ovs'] ->
               Service['neutron-ovs-agent']
 
     service { 'neutron-ovs-agent':
