@@ -311,6 +311,7 @@ class osnailyfacter::cluster_ha {
       ceilometer_user_password      => $ceilometer_hash[user_password],
       ceilometer_metering_secret    => $ceilometer_hash[metering_secret],
       galera_nodes                  => $controller_nodes,
+      savanna                       => $savanna_hash[enabled],
       custom_mysql_setup_class      => $custom_mysql_setup_class,
       mysql_skip_name_resolve       => true,
       use_syslog                    => $use_syslog,
@@ -425,12 +426,12 @@ class osnailyfacter::cluster_ha {
 
       if $savanna_hash['enabled'] {
         class { 'savanna' :
-          savanna_api_host            => $controller_node_address,
+          savanna_api_host            => $::fuel_settings['public_vip'],
 
           savanna_db_password         => $savanna_hash['db_password'],
-          savanna_db_host             => $controller_node_address,
+          savanna_db_host             => $::fuel_settings['management_vip'],
 
-          savanna_keystone_host       => $controller_node_address,
+          savanna_keystone_host       => $::fuel_settings['management_vip'],
           savanna_keystone_user       => 'savanna',
           savanna_keystone_password   => $savanna_hash['user_password'],
           savanna_keystone_tenant     => 'services',
