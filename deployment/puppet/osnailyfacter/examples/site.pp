@@ -47,7 +47,7 @@ if $::fuel_settings['nodes'] {
 
   $use_quantum = $::fuel_settings['quantum']
   if (!empty(filter_nodes($::fuel_settings['nodes'], 'role', 'ceph-osd')) or
-    $::fuel_settings['storage']['volumes_ceph'] or
+    $::fuel_settings['storage']['volumes'] == 'ceph' or
     $::fuel_settings['storage']['images_ceph'] or
     $::fuel_settings['storage']['objects_ceph']
   ) {

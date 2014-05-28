@@ -169,9 +169,9 @@ class osnailyfacter::cluster_ha {
   $cinder_iscsi_bind_addr = $::storage_address
 
   # Determine who should get the volume service
-  if (member($roles, 'cinder') and $storage_hash['volumes_lvm']) {
+  if (member($roles, 'cinder') and $storage_hash['volumes'] == 'lvm') {
     $manage_volumes = 'iscsi'
-  } elsif ($storage_hash['volumes_ceph']) {
+  } elsif ($storage_hash['volumes'] == 'ceph') {
     $manage_volumes = 'ceph'
   } else {
     $manage_volumes = false
