@@ -82,7 +82,7 @@ elif [ "$1" == "stop" ]; then
   stop_container $container $@
 elif [ "$1" == "shell" ]; then
   shift 2
-  shell_container $container $*
+  shell_container $container "$@"
 elif [ "$1" == "upgrade" ]; then
   shift 2
   upgrade_container $container $@
