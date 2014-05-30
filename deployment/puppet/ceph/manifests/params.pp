@@ -13,7 +13,6 @@ class ceph::params {
       $package_radosgw            = 'ceph-radosgw'
       $package_modssl             = 'mod_ssl'
       $package_fastcgi            = 'mod_fastcgi'
-      $compute_opts_file          = '/etc/sysconfig/openstack-nova-compute'
       $dir_httpd_conf             = '/etc/httpd/conf/'
       $dir_httpd_sites            = '/etc/httpd/conf.d/'
       $dir_httpd_ssl              = '/etc/httpd/ssl/'
@@ -38,7 +37,6 @@ class ceph::params {
       $package_radosgw            = 'radosgw'
       $package_fastcgi            = 'libapache2-mod-fastcgi'
       $package_modssl             = undef
-      $compute_opts_file          = '/etc/init/nova-compute.override'
       $dir_httpd_conf             = '/etc/httpd/conf/'
       $dir_httpd_sites            = '/etc/apache2/sites-available/'
       $dir_httpd_ssl              = '/etc/apache2/ssl/'
