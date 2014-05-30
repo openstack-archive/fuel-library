@@ -13,6 +13,7 @@ function show_usage {
   echo "Available commands: (Note: work in progress)"
   echo "  help: show this message"
   echo "  build: create all Docker containers"
+  echo "  list: list container short names (-l for more output)"
   echo "  start: start all Docker containers"
   echo "  restart: restart one or more Docker containers"
   echo "  stop: stop one or more Docker containers"
@@ -118,7 +119,6 @@ function import_images {
     if egrep -q "gz\$" <<< "$image_archive"; then
       zcat "$image_archive" | ${DOCKER} load
     elif egrep -q "xz\$" <<< "$image_archive"; then
-      #xz -dkc "$image_archive" | ${DOCKER} load - "${IMAGE_PREFIX}/${image}"
       xz -dkc "$image_archive" | ${DOCKER} load
     else
       #try to just import
@@ -141,10 +141,36 @@ function export_containers {
     ${DOCKER} export $1 | gzip -c > "${image}.tar.gz"
   done
 }
+function list_containers {
+  #Usage:
+  # (no option) short names
+  # -l (short and long names and status)
+  if [[ "$1" = "-l" ]]; then
+    printf "%-13s%-25s%-13s%-25s\n" "Name" "Image" "Status" "Full container name"
+    for container in "${!CONTAINER_NAMES[@]}"; do
+      if container_created $container; then
+        if is_running $container; then
+          running="Running"
+        else
+          running="Stopped"
+        fi
+      else
+        running="Not created"
+      fi
+      longname="${CONTAINER_NAMES["$container"]}"
+      imagename="${IMAGE_PREFIX}/${container}_${VERSION}"
+      printf "%-13s%-25s%-13s%-25s\n" "$container" "$imagename" "$running" "$longname"
+    done
+  else
+    for container in "${!CONTAINER_NAMES[@]}"; do
+      echo $container
+    done
+  fi
+}
 
 function commit_container {
   container_name="${CONTAINER_NAMES[$1]}"
-  image="$IMAGE_PREFIX/$1"
+  image="$IMAGE_PREFIX/$1_$VERSION"
   ${DOCKER} commit $container_name $image
 }
 function start_container {
