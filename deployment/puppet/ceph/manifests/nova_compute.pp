@@ -23,30 +23,6 @@ class ceph::nova_compute (
     'DEFAULT/rbd_user':                 value => $user;
   }
 
-  case $::osfamily {
-    'RedHat': {
-      file {$::ceph::params::compute_opts_file:
-        ensure => present,
-      } ->
-      file_line {'nova-compute env':
-        path => $::ceph::params::compute_opts_file,
-        line => "export CEPH_ARGS='--id ${compute_pool}'",
-      }
-    }
-
-    'Debian': {
-      file {$::ceph::params::compute_opts_file:
-        ensure => present,
-      } ->
-      file_line {'nova-compute env':
-        path => $::ceph::params::compute_opts_file,
-        line => "env CEPH_ARGS='--id ${compute_pool}'",
-      }
-    }
-
-    default: {}
-  }
-
   File['/root/secret.xml'] ->
   Exec['Set Ceph RBD secret for Nova']
 }
