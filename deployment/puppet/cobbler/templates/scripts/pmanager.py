@@ -839,6 +839,12 @@ class PreseedPManager(object):
                 self.late("cat /proc/mdstat")
                 self.late("cat /proc/partitions")
 
+                # clear any fs info that may remain on newly created partition
+                self.late("dd if=/dev/zero of={0}{1}{2} bs=1M count=10"
+                          "".format(self._disk_dev(disk),
+                                    self._pseparator(disk["id"]),
+                                    pcount))
+
                 if part.get("file_system", "xfs") not in ("swap", None, "none"):
                     disk_label = self._getlabel(part.get("disk_label"))
                     self.late("mkfs.{0} {1} {2}{3}{4} {5}"
@@ -997,8 +1003,9 @@ class PreseedPManager(object):
         self.erase_partition_table()
         self.boot()
         self.os()
-        self.lv()
         self.partitions()
+        self.erase_lvm_metadata()
+        self.lv()
         self.late("apt-get install -y grub-pc", True)
         self.late("sed -i "
                   "-e 's/.*GRUB_TERMINAL.*/GRUB_TERMINAL=console/g' "
