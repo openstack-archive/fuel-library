@@ -179,14 +179,10 @@ function attach_container {
 }
 
 function shell_container {
-  container_name=${CONTAINER_NAMES[$1]}
-  if ! is_running $container_name; then
-    echo "Container $1 is not running. Cannot attach." 1>&2
-  fi
-  id=$(${DOCKER} inspect -f='{{.ID}}' ${CONTAINER_NAMES[$1]})
-  if [ -z "$id" ]; then
-     echo "Could not get docker ID for $container. Is it running?" 1>&2
-     return 1
+  id=$(get_container_id "$1")
+  if [ $? -ne 0 ]; then
+    echo "Could not get docker ID for $container. Is it running?" 1>&2
+    return 1
   fi
   if [ -z "$2" ]; then
     command="/bin/bash"
@@ -196,6 +192,7 @@ function shell_container {
   fi
   lxc-attach --name "$id" -- "${command[@]}"
 }
+
 function stop_container {
   if [[ "$1" == 'all' ]]; then
     ${DOCKER} stop ${CONTAINER_NAMES[$1]}
@@ -249,6 +246,19 @@ function container_lookup {
   echo ${CONTAINER_NAMES[$1]}
 }
 
+function get_container_id {
+  #Try to get ID from container short name first
+  id=$(${DOCKER} inspect -f='{{.ID}}' ${CONTAINER_NAMES[$1]} 2>/dev/null)
+  if [ -z "$id" ]; then
+     #Try to get ID short ID, long ID, or container name
+     id=$(${DOCKER} inspect -f='{{.ID}}' "$1")
+     if [ -z "$id" ]; then
+       echo "Could not get docker ID for container $1. Is it running?" 1>&2
+       return 1
+     fi
+  fi
+  echo "$id"
+}
 function container_created {
   ${DOCKER} ps -a | grep -q $1
   return $?
