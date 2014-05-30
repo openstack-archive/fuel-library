@@ -192,9 +192,9 @@ function shell_container {
     command="/bin/bash"
   else
     shift
-    command="$@"
+    command=("$@")
   fi
-  lxc-attach --name "$id" -- $command
+  lxc-attach --name "$id" -- "${command[@]}"
 }
 function stop_container {
   if [[ "$1" == 'all' ]]; then
