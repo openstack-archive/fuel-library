@@ -37,9 +37,9 @@ class mysql::password (
     Exec['set_mysql_rootpw'] -> File['mysql_password']
     File <| title == $config_file |> -> File['mysql_password']
     File <| title == '/etc/my.cnf' |> -> File['mysql_password']
-    File['mysql_password'] -> Database <||>
-    File['mysql_password'] -> Database_grant <||>
-    File['mysql_password'] -> Database_user <||>
+    File['mysql_password'] -> Database <| provider=='mysql' |>
+    File['mysql_password'] -> Database_grant <| provider=='mysql' |>
+    File['mysql_password'] -> Database_user <| provider=='mysql' |>
 
     Anchor <| title == 'galera' |> -> Class['mysql::password'] -> Anchor <| title == 'galera-done' |>
     Exec <| title == 'wait-for-synced-state' |> -> Exec['set_mysql_rootpw']
