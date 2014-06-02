@@ -26,7 +26,7 @@ class openstack::ha::nova {
     listen_port     => 6080,
     public          => true,
     internal        => false,
-    require_service => 'nova-novncproxy',
+    require_service => 'nova-vncproxy',
   }
 
 
