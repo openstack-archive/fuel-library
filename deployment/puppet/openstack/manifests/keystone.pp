@@ -195,7 +195,7 @@ class openstack::keystone (
     admin_token    => $admin_token,
     enabled        => $enabled,
     sql_connection => $sql_conn,
-    bind_host	=> $bind_host,
+    bind_host	     => $bind_host,
     package_ensure => $package_ensure,
     use_syslog => $use_syslog,
     syslog_log_facility => $syslog_log_facility,
@@ -210,6 +210,7 @@ class openstack::keystone (
       password     => $admin_password,
       admin_tenant => $admin_tenant,
     }
+    Exec <| title == 'keystone-manage db_sync' |> -> Class['keystone::roles::admin']
 
     # Setup the Keystone Identity Endpoint
     class { 'keystone::endpoint':
@@ -217,6 +218,7 @@ class openstack::keystone (
       admin_address    => $admin_real,
       internal_address => $internal_real,
     }
+    Exec <| title == 'keystone-manage db_sync' |> -> Class['keystone::endpoint']
 
     # Configure Glance endpoint in Keystone
     if $glance {
@@ -226,6 +228,7 @@ class openstack::keystone (
         admin_address    => $glance_admin_real,
         internal_address => $glance_internal_real,
       }
+      Exec <| title == 'keystone-manage db_sync' |> -> Class['glance::keystone::auth']
     }
 
     # Configure Nova endpoint in Keystone
@@ -237,6 +240,7 @@ class openstack::keystone (
         internal_address => $nova_internal_real,
         cinder            => $cinder,
       }
+      Exec <| title == 'keystone-manage db_sync' |> -> Class['nova::keystone::auth']
     }
 
     # Configure Nova endpoint in Keystone
@@ -247,6 +251,7 @@ class openstack::keystone (
         admin_address    => $cinder_admin_real,
         internal_address => $cinder_internal_real,
       }
+     Exec <| title == 'keystone-manage db_sync' |> -> Class['cinder::keystone::auth']
     }
     if $quantum {
       class { 'neutron::keystone::auth':
@@ -255,6 +260,7 @@ class openstack::keystone (
         admin_address    => $quantum_admin_real,
         internal_address => $quantum_internal_real,
       }
+      Exec <| title == 'keystone-manage db_sync' |> -> Class['neutron::keystone::auth']
     }
     if $ceilometer {
       class { 'ceilometer::keystone::auth':
@@ -263,6 +269,7 @@ class openstack::keystone (
         admin_address    => $ceilometer_admin_real,
         internal_address => $ceilometer_internal_real,
       }
+      Exec <| title == 'keystone-manage db_sync' |> -> Class['ceilometer::keystone::auth']
     }
   }
 
