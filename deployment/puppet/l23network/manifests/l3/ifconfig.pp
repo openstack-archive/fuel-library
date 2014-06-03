@@ -205,7 +205,7 @@ define l23network::l3::ifconfig (
         }
       }
       Anchor <| title == 'l23network::l2::centos_upndown_scripts' |>
-        -> L23network::L3::Ifconfig <| interface == "$interface" |>
+        -> L23network::L3::Ifconfig <| interface == "${interface}" |>
     }
     default: {
       fail("Unsupported OS: ${::osfamily}/${::operatingsystem}")
@@ -214,7 +214,7 @@ define l23network::l3::ifconfig (
 
   # DNS nameservers, search and domain options
   if $dns_nameservers {
-    $dns_nameservers_list = merge_arrays( array_or_string_to_array($dns_nameservers), [false, false])
+    $dns_nameservers_list = concat(array_or_string_to_array($dns_nameservers), [false, false])
     $dns_nameservers_1 = $dns_nameservers_list[0]
     $dns_nameservers_2 = $dns_nameservers_list[1]
   }
@@ -253,7 +253,7 @@ define l23network::l3::ifconfig (
     }
     /^(bond\d+)/: {
       if ! $actual_bond_properties[mode] {
-        fail("To configure the interface bonding you should the mode properties for bond is required and must be between 0..6.")
+        fail('To configure the interface bonding you should the mode properties for bond is required and must be between 0..6.')
       }
       if $actual_bond_properties[mode] <0 or $actual_bond_properties[mode] >6 {
         fail("For interface bonding the bond mode should be between 0..6, not '${actual_bond_properties[mode]}'.")
@@ -291,24 +291,24 @@ define l23network::l3::ifconfig (
   }
 
   if $interfaces {
-    if ! defined(File["$interfaces"]) {
-      file {"$interfaces":
+    if ! defined(File["${interfaces}"]) {
+      file {"${interfaces}":
         ensure  => present,
         content => template('l23network/interfaces.erb'),
       }
     }
-    File<| title == "$interfaces" |> -> File<| title == "$if_files_dir" |>
+    File<| title == "${interfaces}" |> -> File<| title == "${if_files_dir}" |>
   }
 
-  if ! defined(File["$if_files_dir"]) {
-    file {"$if_files_dir":
+  if ! defined(File["${if_files_dir}"]) {
+    file {"${if_files_dir}":
       ensure  => directory,
       owner   => 'root',
       mode    => '0755',
       recurse => true,
     }
   }
-  File<| title == "$if_files_dir" |> -> File<| title == "$interface_file" |>
+  File<| title == "${if_files_dir}" |> -> File<| title == "${interface_file}" |>
 
   if $ethtool {
     $ethtool_lines=ethtool_convert_hash($ethtool)
@@ -332,7 +332,7 @@ define l23network::l3::ifconfig (
     File <| title == $interface_file |>
   }
 
-  file {"$interface_file":
+  file {"${interface_file}":
     ensure  => present,
     owner   => 'root',
     mode    => '0644',
@@ -342,21 +342,21 @@ define l23network::l3::ifconfig (
   # bond master interface should be upped only after including at least one slave interface to one
   if $interface =~ /^(bond\d+)/ {
     $l3_if_downup__subscribe = undef
-    File["$interface_file"] -> L3_if_downup["$interface"] # do not remove!!! we using L3_if_downup["bondXX"] in advanced_netconfig
+    File["${interface_file}"] -> L3_if_downup["${interface}"] # do not remove!!! we using L3_if_downup["bondXX"] in advanced_netconfig
     # todo(sv): filter and notify  L3_if_downup["$interface"] if need.
     # in Centos it works properly without it.
     # May be because slaves of bond automaticaly ups master-bond
     # L3_if_downup<| $bond_master == $interface |> ~> L3_if_downup["$interface"]
   } else {
-    $l3_if_downup__subscribe = File["$interface_file"]
+    $l3_if_downup__subscribe = File["${interface_file}"]
   }
   notify {"ifconfig_${interface}": message=>"Interface:${interface} IP:${effective_ipaddr}/${effective_netmask}", withpath=>false} ->
-  l3_if_downup {"$interface":
-    check_by_ping => $check_by_ping,
+  l3_if_downup {"${interface}":
+    check_by_ping         => $check_by_ping,
     check_by_ping_timeout => $check_by_ping_timeout,
-    #require       => File["$interface_file"], ## do not enable it!!! It affect requirements interface from interface in some cases.
-    subscribe     => $l3_if_downup__subscribe,
-    refreshonly   => true,
+    #require              => File["$interface_file"], ## do not enable it!!! It affect requirements interface from interface in some cases.
+    subscribe             => $l3_if_downup__subscribe,
+    refreshonly           => true,
   }
 
 }

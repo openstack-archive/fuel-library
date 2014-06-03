@@ -14,5 +14,5 @@ class l23network::l2::centos_upndown_scripts {
     recurse => true,
     content => template("l23network/centos_ifdown-local.erb"),
   } ->
-  anchor { 'l23network::l2::centos_upndown_scripts': } 
+  anchor { 'l23network::l2::centos_upndown_scripts': }
 }
