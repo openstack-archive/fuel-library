@@ -129,6 +129,13 @@ class neutron::server (
 
   anchor {'neutron-api-up':}
 
+  exec {'upgrade neutron head':
+         path    => ['/bin','/sbin','/usr/bin','/usr/sbin'],
+         command => 'neutron-db-manage --config-file /etc/neutron/neutron.conf --config-file /etc/neutron/plugin.ini upgrade head',
+  }
+
+  Exec<| title=='upgrade neutron head' |> -> Service['neutron-server']
+
   Anchor['neutron-server'] ->
     Neutron_config<||> ->
       Neutron_api_config<||> ->
