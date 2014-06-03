@@ -94,6 +94,8 @@ class neutron::server (
 
   anchor {'neutron-api-up':}
 
+  Exec<| title=='upgrade neutron head' |> -> Service['neutron-server']
+
   Anchor['neutron-server'] ->
     Neutron_config<||> ->
       Neutron_api_config<||> ->

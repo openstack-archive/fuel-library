@@ -25,12 +25,18 @@ class neutron::db::mysql (
     require      => Class['mysql::server'],
   }
 
+  exec {'upgrade neutron head':
+         command => 'neutron-db-manage --config-file /etc/neutron/neutron.conf --config-file /etc/neutron/plugin.ini upgrade head',
+  }
+
+  Mysql::Db[$dbname] -> Exec['upgrade neutron head']
   if $allowed_hosts {
      neutron::db::mysql::host_access { $allowed_hosts:
       user      => $user,
       password  => $password,
       database  => $dbname,
     }
+    Neutron::Db::Mysql::Host_access[$allowed_hosts] -> Exec['upgrade neutron head']
   }
 
 }
