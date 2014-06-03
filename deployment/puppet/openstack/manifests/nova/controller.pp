@@ -262,9 +262,13 @@ class openstack::nova::controller (
     # Set up Quantum
     #todo: move to ::openstack:controller and ::openstack:neutron_router
     #todo: from HERE to <<<
+    if $primary_controller {
+      $sync_neutron_db = true
+    }
     class { '::neutron::server':
       neutron_config     => $quantum_config,
-      primary_controller => $primary_controller
+      primary_controller => $primary_controller,
+      sync_db            => $sync_neutron_db
     }
     if $quantum and !$quantum_network_node {
       class { '::neutron':
