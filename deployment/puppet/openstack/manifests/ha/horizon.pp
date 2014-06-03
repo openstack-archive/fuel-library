@@ -11,12 +11,13 @@ class openstack::ha::horizon (
     define_cookies => true,
 
     haproxy_config_options => {
-      'option'  => ['forwardfor', 'httpchk', 'httpclose', 'httplog'],
-      'rspidel' => '^Set-cookie:\ IP=',
-      'balance' => 'source',
-      'mode'    => 'http',
-      'cookie'  => 'SERVERID insert indirect nocache',
-      'capture' => 'cookie vgnvisitor= len 32',
+      'option'         => ['forwardfor', 'httpchk', 'httpclose', 'httplog'],
+      'rspidel'        => '^Set-cookie:\ IP=',
+      'balance'        => 'source',
+      'mode'           => 'http',
+      'cookie'         => 'SERVERID insert indirect nocache',
+      'capture'        => 'cookie vgnvisitor= len 32',
+      'timeout server' => '48h',
     },
 
     balancermember_options => 'check inter 2000 fall 3',
@@ -30,12 +31,13 @@ class openstack::ha::horizon (
       internal    => false,
 
       haproxy_config_options => {
-        'option'      => ['ssl-hello-chk', 'tcpka'],
-        'stick-table' => 'type ip size 200k expire 30m',
-        'stick'       => 'on src',
-        'balance'     => 'source',
-        'timeout'     => ['client 3h', 'server 3h'],
-        'mode'        => 'tcp',
+        'option'         => ['ssl-hello-chk', 'tcpka'],
+        'stick-table'    => 'type ip size 200k expire 30m',
+        'stick'          => 'on src',
+        'balance'        => 'source',
+        'timeout'        => ['client 3h', 'server 3h'],
+        'mode'           => 'tcp',
+        'timeout server' => '48h',
       },
 
       balancermember_options => 'weight 1 check',
