@@ -13,7 +13,8 @@ class neutron::db::mysql (
   $charset       = 'utf8',
   $collate       = 'utf8_unicode_ci',
   $mysql_module  = '0.9',
-  $cluster_id    = 'localzone'
+  $cluster_id    = 'localzone',
+  $sync_db       = 'false',
 ) {
 
   Class['mysql::server'] -> Class['neutron::db::mysql']
@@ -49,12 +50,19 @@ class neutron::db::mysql (
     $real_allowed_hosts = $allowed_hosts
   }
 
+  if $sync_db {
+    Mysql::Db[$dbname] -> Exec['neutron-db-sync']
+  }
+
   if $real_allowed_hosts {
     neutron::db::mysql::host_access { $real_allowed_hosts:
       user          => $user,
       password      => $password,
       database      => $dbname,
       mysql_module  => $mysql_module,
+    }
+    if $sync_db {
+      Neutron::Db::Mysql::Host_access[$real_allowed_hosts] -> Exec['neutron-db-sync']
     }
   }
 }
