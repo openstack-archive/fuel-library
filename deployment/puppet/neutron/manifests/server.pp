@@ -1,7 +1,17 @@
+# == Class: neutron::server
+#
+# Setup and configure the neutron API endpoint
+#
+# === Parameters
+#
+# [*sync_db*]
+# (optional) Run neutron-db-manage on api nodes after installing the package.
+# Defaults to false
 #
 class neutron::server (
   $neutron_config     = {},
   $primary_controller = false,
+  $sync_db            = true,
   $nova_admin_tenant_id_mask = 'XXX_service_tenant_id_XXX',
   $nova_admin_tenant_name    = 'services',
 ) {
@@ -66,6 +76,26 @@ class neutron::server (
   Service <| title == 'mysql' |> -> Service['neutron-server']
   Service <| title == 'haproxy' |> -> Service['neutron-server']
 
+  if $sync_db {
+    if ($::neutron::params::server_package) {
+      # Debian platforms
+      Package<| title == 'neutron-server' |> ~> Exec['neutron-db-sync']
+    } else {
+      # RH platforms
+      Package<| title == 'neutron' |> ~> Exec['neutron-db-sync']
+    }
+    exec { 'neutron-db-sync':
+      command     => 'neutron-db-manage --config-file /etc/neutron/neutron.conf --config-file /etc/neutron/plugin.ini upgrade head',
+      path        => '/usr/bin',
+      before      => Service['neutron-server'],
+      require     => Neutron_config['database/connection'],
+      refreshonly => true
+    }
+    Neutron_config<||>      -> Exec['neutron-db-sync']
+    Neutron_plugin_ml2<||>  -> Exec['neutron-db-sync']
+    Neutron_plugin_ovs<||>  -> Exec['neutron-db-sync']
+  }
+
   neutron_config {
     'DEFAULT/notify_nova_on_port_status_changes': value => $neutron_config['server']['notify_nova_on_port_status_changes'];
     'DEFAULT/notify_nova_on_port_data_changes': value => $neutron_config['server']['notify_nova_on_port_data_changes'];
@@ -106,10 +136,10 @@ class neutron::server (
   Openstack::Ha::Haproxy_service<| title == 'keystone-1' |> -> Exec['get_service_tenant_ID']
   Openstack::Ha::Haproxy_service<| title == 'keystone-2' |> -> Exec['get_service_tenant_ID']
   exec {'get_service_tenant_ID':  # Imitate tries & try_sleep for 'onlyif'
-    tries => 10,                  # by using couple of execs
+    tries     => 10,                  # by using couple of execs
     try_sleep => 3,               # WITHOUT refreshonly option
-    command => "bash -c \"source /root/openrc ; keystone tenant-list\" | grep \"${nova_admin_tenant_name}\" > /tmp/services",
-    path => '/usr/sbin:/usr/bin:/sbin:/bin'
+    command   => "bash -c \"source /root/openrc ; keystone tenant-list\" | grep \"${nova_admin_tenant_name}\" > /tmp/services",
+    path      => '/usr/sbin:/usr/bin:/sbin:/bin'
   }
   # do not use refreshonly and notify here -- it leads to double execution 'onlyif' command
   exec {'insert_service_tenant_ID':
