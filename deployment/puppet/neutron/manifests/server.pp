@@ -52,8 +52,6 @@ class neutron::server (
       }
     }
   }
-  Package[$server_package] -> Neutron_config<||>
-  Package[$server_package] -> Neutron_api_config<||>
 
   if defined(Anchor['neutron-plugin-ovs']) {
     Package["$server_package"] -> Anchor['neutron-plugin-ovs']
@@ -94,6 +92,8 @@ class neutron::server (
 
   anchor {'neutron-api-up':}
 
+  Exec<| title=='upgrade neutron head' |> -> Service['neutron-server']
+
   Anchor['neutron-server'] ->
     Neutron_config<||> ->
       Neutron_api_config<||> ->
@@ -102,7 +102,7 @@ class neutron::server (
   Anchor['neutron-api-up'] ->
   Anchor['neutron-server-done']
 
-  Package[$server_package] -> class { 'neutron::quota': } -> Anchor['neutron-server-config-done']
+  Package[$::neutron::params::package_name] -> class { 'neutron::quota': } -> Anchor['neutron-server-config-done']
 
   if $primary_controller {
     Anchor['neutron-api-up'] ->
