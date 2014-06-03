@@ -123,6 +123,7 @@ class heat::install (
     'DEFAULT/rabbit_password'                                 : value => $amqp_password;
     'DEFAULT/rabbit_ha_queues'                                : value => $rabbit_ha_queues;
     'DEFAULT/rabbit_virtualhost'                              : value => $rabbit_virtualhost;
+    'DEFAULT/kombu_reconnect_delay'                           : value       => '5.0';
     'DEFAULT/debug'                                           : value => $debug;
     'DEFAULT/verbose'                                         : value => $verbose;
     'ec2authtoken/keystone_ec2_uri'                           : value => $keystone_ec2_uri;
