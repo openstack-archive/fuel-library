@@ -2,6 +2,7 @@
 class neutron::server (
   $neutron_config     = {},
   $primary_controller = false,
+  $sync_db            = true,
   $nova_admin_tenant_id_mask = 'XXX_service_tenant_id_XXX',
   $nova_admin_tenant_name    = 'services',
 ) {
@@ -65,6 +66,24 @@ class neutron::server (
   Neutron_api_config<||> ~> Service['neutron-server']
   Service <| title == 'mysql' |> -> Service['neutron-server']
   Service <| title == 'haproxy' |> -> Service['neutron-server']
+
+  if $sync_db {
+    if ($::neutron::params::server_package) {
+      # Debian platforms
+      Package<| title == 'neutron-server' |> ~> Exec['neutron-db-sync']
+    } else {
+      # RH platforms
+      Package<| title == 'neutron' |> ~> Exec['neutron-db-sync']
+    }
+    exec { 'neutron-db-sync':
+      command     => 'neutron-db-manage --config-file /etc/neutron/neutron.conf --config-file /etc/neutron/plugin.ini upgrade head',
+      path        => '/usr/bin',
+    }
+    neutron-db-sync        -> Service['neutron-server']
+    Neutron_config<||>     -> Exec['neutron-db-sync']
+    Neutron_plugin_ml2<||> -> Exec['neutron-db-sync']
+    Neutron_plugin_ovs<||> -> Exec['neutron-db-sync']
+  }
 
   neutron_config {
     'DEFAULT/notify_nova_on_port_status_changes': value => $neutron_config['server']['notify_nova_on_port_status_changes'];
