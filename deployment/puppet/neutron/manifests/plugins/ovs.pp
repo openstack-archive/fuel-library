@@ -109,9 +109,12 @@ class neutron::plugins::ovs (
       }
   }
 
+
   File['/etc/neutron/plugin.ini'] ->
     Neutron_plugin_ovs<||> ->
       Anchor<| title=='neutron-server-config-done' |>
+
+  Neutron_plugin_ovs<||> -> Exec<| title == 'upgrade neutron head' |>
 
   File['/etc/neutron/plugin.ini'] ->
     Anchor['neutron-plugin-ovs-done']
