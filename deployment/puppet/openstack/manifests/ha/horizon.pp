@@ -17,6 +17,7 @@ class openstack::ha::horizon (
       'mode'    => 'http',
       'cookie'  => 'SERVERID insert indirect nocache',
       'capture' => 'cookie vgnvisitor= len 32',
+      'timeout' => ['client 3h', 'server 3h'],
     },
 
     balancermember_options => 'check inter 2000 fall 3',
