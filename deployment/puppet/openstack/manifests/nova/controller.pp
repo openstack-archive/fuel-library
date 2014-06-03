@@ -264,7 +264,8 @@ class openstack::nova::controller (
     #todo: from HERE to <<<
     class { '::neutron::server':
       neutron_config     => $quantum_config,
-      primary_controller => $primary_controller
+      primary_controller => $primary_controller,
+      sync_db            => $primary_controller
     }
     if $quantum and !$quantum_network_node {
       class { '::neutron':
