@@ -49,6 +49,11 @@ class neutron::db::mysql (
     $real_allowed_hosts = $allowed_hosts
   }
 
+  exec {'upgrade neutron head':
+         command => 'neutron-db-manage --config-file /etc/neutron/neutron.conf --config-file /etc/neutron/plugin.ini upgrade head',
+  }
+
+  Mysql::Db[$dbname] -> Exec['upgrade neutron head']
   if $real_allowed_hosts {
     neutron::db::mysql::host_access { $real_allowed_hosts:
       user          => $user,
@@ -56,5 +61,6 @@ class neutron::db::mysql (
       database      => $dbname,
       mysql_module  => $mysql_module,
     }
+    Neutron::Db::Mysql::Host_access[$real_allowed_hosts] -> Exec['upgrade neutron head']
   }
 }
