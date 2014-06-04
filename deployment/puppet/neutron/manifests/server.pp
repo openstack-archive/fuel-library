@@ -88,6 +88,7 @@ class neutron::server (
     hasstatus  => true,
     hasrestart => true,
     provider   => $::neutron::params::service_provider,
+    require    => Package[$server_package],
   }
 
   anchor {'neutron-api-up':}
