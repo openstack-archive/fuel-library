@@ -319,6 +319,7 @@ class osnailyfacter::cluster_ha {
       ceilometer_metering_secret    => $ceilometer_hash[metering_secret],
       galera_nodes                  => $controller_nodes,
       savanna                       => $savanna_hash[enabled],
+      murano                        => $murano_hash['enabled'],
       novnc_address                 => $::internal_address,
       custom_mysql_setup_class      => $custom_mysql_setup_class,
       mysql_skip_name_resolve       => true,
