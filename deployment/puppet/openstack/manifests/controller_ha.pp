@@ -30,6 +30,7 @@ class openstack::controller_ha (
    $ceilometer_user_password   = 'ceilometer_pass',
    $ceilometer_metering_secret = 'ceilometer',
    $savanna                 = false,
+   $murano                  = false,
    $horizon_use_ssl         = false,
    $quantum_network_node    = false,
    $quantum_netnode_on_cnt  = false,
@@ -57,6 +58,7 @@ class openstack::controller_ha (
       rgw_servers              => $rgw_servers,
       ceilometer               => $ceilometer,
       savanna                  => $savanna,
+      murano                   => $murano,
       is_primary_controller    => $is_primary_controller,
     }
 
