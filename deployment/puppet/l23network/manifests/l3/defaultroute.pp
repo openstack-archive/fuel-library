@@ -15,7 +15,7 @@ define l23network::l3::defaultroute (
         exec { $exec_name :
             path    => '/bin:/usr/bin:/sbin:/usr/sbin',
             command => "ip route replace default via ${gateway} || true",
-            unless  => "netstat -r | grep -q 'default.*${gateway}'",
+            unless  => "netstat -rn | grep -q '^0.0.0.0.*${gateway}'",
         }
     }
     /(?i)redhat/: {
