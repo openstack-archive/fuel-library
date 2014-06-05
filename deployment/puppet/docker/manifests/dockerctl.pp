@@ -24,9 +24,17 @@ class docker::dockerctl (
     group   => 'root',
     mode    => '0755',
   }
-  file { "$bin_dir/disable-services.sh":
+  file { "/usr/local/bin/dhcrelay_monitor":
     mode    => 0755,
-    content => template("docker/disable-services.sh.erb")
+    owner   => 'root',
+    group   => 'root',
+    content => template("docker/dhcrelay_monitor.erb")
+  }
+  file { "/etc/supervisord.d/dhcrelay.conf":
+    mode    => 0755,
+    owner   => 'root',
+    group   => 'root',
+    content => template("docker/dhcrelay.conf.erb")
   }
   file { "$share_dir/functions":
     mode    => 0644,
