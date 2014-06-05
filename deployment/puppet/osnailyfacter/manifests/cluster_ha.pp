@@ -421,6 +421,12 @@ class osnailyfacter::cluster_ha {
       nova_config { 'DEFAULT/compute_scheduler_driver':  value => $::fuel_settings['compute_scheduler_driver'] }
 
       if ! $::use_quantum {
+        exec { 'wait-for-haproxy-nova-backend':
+          command   => "echo show stat | socat unix-connect:///var/lib/haproxy/stats stdio | grep -q '^nova-api-2,BACKEND,.*,UP,'",
+          path      => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
+          try_sleep => 5,
+          tries     => 60,
+        }->
         nova_floating_range { $floating_ips_range:
           ensure          => 'present',
           pool            => 'nova',
