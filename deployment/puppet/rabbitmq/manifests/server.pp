@@ -23,7 +23,6 @@
 #    realise this.
 
 # Requires:
-#  stdlib
 # Sample Usage:
 #
 #  
@@ -75,7 +74,7 @@ class rabbitmq::server(
   $plugin_dir = "/usr/lib/rabbitmq/lib/rabbitmq_server-${version_real}/plugins"
 
   if $::osfamily == 'RedHat' {
-    stdlib::safe_package {'qpid-cpp-server': ensure => 'purged' }
+    package {'qpid-cpp-server': ensure => 'purged' }
     Package['qpid-cpp-server'] -> Package[$package_name]
   }
 

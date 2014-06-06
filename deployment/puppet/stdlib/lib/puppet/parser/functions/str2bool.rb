@@ -15,6 +15,11 @@ like: 0, f, n, false, no to 'false'.
 
     string = arguments[0]
 
+    # If string is already Boolean, return it
+    if !!string == string
+      return string
+    end
+
     unless string.is_a?(String)
       raise(Puppet::ParseError, 'str2bool(): Requires either ' +
         'string to work with')
