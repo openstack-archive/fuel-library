@@ -23,7 +23,7 @@ class murano::repository (
     $repository_admin_user          = 'admin',
     $repository_admin_password      = 'swordfish',
     $repository_admin_tenant_name   = 'admin',
-    $repository_cache_dir           = '/var/cache/murano',
+    $repository_data_dir            = '/var/cache/murano',
     $repository_replication_port    = '8084',
     $repository_replication_nodes   = [],
     $firewall_rule_name             = '202 murano-repository',
@@ -86,8 +86,8 @@ class murano::repository (
     'DEFAULT/heat'                : value => $repository_heat;
     'DEFAULT/agent'               : value => $repository_agent;
     'DEFAULT/scripts'             : value => $repository_scripts;
-    'DEFAULT/cache_dir'           : value => "${repository_cache_dir}/muranorepository-cache";
-    'DEFAULT/ha_nodes'            : value => $ha_nodes;
+    'DEFAULT/data_dir'            : value => "${repository_data_dir}/muranorepository-cache";
+    'DEFAULT/ha_nodes'            : value => $ha_nodes, ensure => $ha_nodes ? { '' => 'absent', default => 'present' },
     'output/ui'                   : value => $repository_ui;
     'output/workflows'            : value => $repository_output_workflows;
     'output/heat'                 : value => $repository_output_heat;
