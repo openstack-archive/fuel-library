@@ -1,6 +1,4 @@
 # managed by puppet
 
-<%= @syslog_log_facility_keystone_matched %>.* -/var/log/keystone-all.log
-& ~
 :syslogtag, contains, "keystone" -/var/log/keystone-all.log
 & ~

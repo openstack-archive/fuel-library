@@ -90,7 +90,6 @@ class ceph (
       enable  => true,
       require => Class['ceph::conf']
     }
-    #FIXME(bogdando) using collection for clumsy params-ensured packages
     Package<| title == 'ceph' |> ~> Service<| title == 'ceph' |>
     if !defined(Service['ceph']) {
       notify{ "Module ${module_name} cannot notify service ceph on packages update": }

@@ -3,9 +3,19 @@
 # $state_path = /opt/stack/data/cinder
 # $osapi_volume_extension = cinder.api.openstack.volume.contrib.standard_extensions
 # $root_helper = sudo /usr/local/bin/cinder-rootwrap /etc/cinder/rootwrap.conf
-# $use_syslog = Rather or not service should log to syslog. Optional.
-# $syslog_log_facility = Facility for syslog, if used. Optional.
-# $syslog_log_level = logging level for non verbose and non debug mode. Optional.
+# [*use_syslog*]
+#   Use syslog for logging.
+#   (Optional) Defaults to false.
+#
+# [*syslog_log_facility*]
+#   Syslog facility to receive log lines.
+#   (Optional) Defaults to LOG_LOCAL3.
+#
+# [*log_dir*]
+#   (optional) Directory where logs should be stored.
+#   If set to boolean false, it will not log to any directory.
+#   Defaults to '/var/log/cinder'
+#
 
 class cinder::base (
   $sql_connection,
@@ -19,7 +29,6 @@ class cinder::base (
   $debug                  = false,
   $use_syslog             = false,
   $syslog_log_facility    = 'LOG_LOCAL3',
-  $syslog_log_level = 'WARNING',
   $log_dir                = '/var/log/cinder',
   $idle_timeout           = '3600',
   $max_pool_size          = '10',
@@ -51,29 +60,6 @@ class cinder::base (
     group   => 'cinder',
     mode    => '0640',
     require => Package['cinder'],
-  }
-
-  if $use_syslog and !$debug { #syslog and nondebug case
-    cinder_config {
-      'DEFAULT/log_config': value => "/etc/cinder/logging.conf";
-      'DEFAULT/use_syslog': value => true;
-      'DEFAULT/syslog_log_facility': value =>  $syslog_log_facility;
-    }
-    file { "cinder-logging.conf":
-      content => template('cinder/logging.conf.erb'),
-      path => "/etc/cinder/logging.conf",
-      require => File[$::cinder::params::cinder_conf],
-    }
-    # We must notify services to apply new logging rules
-    File['cinder-logging.conf'] ~> Service <| title == 'cinder-api' |>
-    File['cinder-logging.conf'] ~> Service <| title == 'cinder-volume' |>
-    File['cinder-logging.conf'] ~> Service <| title == 'cinder-scheduler' |>
-  } else { #other syslog debug or nonsyslog debug/nondebug cases
-    cinder_config {
-      'DEFAULT/log_config': ensure=> absent;
-      'DEFAULT/logdir': value=> $log_dir;
-      'DEFAULT/use_syslog': value =>  false;
-    }
   }
 
   file { $::cinder::params::cinder_conf: }
@@ -131,10 +117,33 @@ class cinder::base (
     tries       => 10,
     try_sleep   => 3,
   }
+
+  if $log_dir {
+    cinder_config {
+      'DEFAULT/log_dir': value => $log_dir;
+    }
+  } else {
+    cinder_config {
+      'DEFAULT/log_dir': ensure => absent;
+    }
+  }
+
+  if $use_syslog {
+    cinder_config {
+      'DEFAULT/use_syslog':            value => true;
+      'DEFAULT/use_syslog_rfc_format': value => true;
+      'DEFAULT/syslog_log_facility':   value => $syslog_log_facility;
+    }
+  } else {
+    cinder_config {
+      'DEFAULT/use_syslog':           value => false;
+    }
+  }
+
   Cinder_config<||> -> Exec['cinder-manage db_sync']
   Nova_config<||> -> Exec['cinder-manage db_sync']
   Cinder_api_paste_ini<||> -> Exec['cinder-manage db_sync']
- Exec['cinder-manage db_sync'] -> Service<| title == $::cinder::params::api_service |>
- Exec['cinder-manage db_sync'] -> Service<| title == $::cinder::params::volume_service |>
- Exec['cinder-manage db_sync'] -> Service<| title == $::cinder::params::scheduler_service |>
+  Exec['cinder-manage db_sync'] -> Service<| title == $::cinder::params::api_service |>
+  Exec['cinder-manage db_sync'] -> Service<| title == $::cinder::params::volume_service |>
+  Exec['cinder-manage db_sync'] -> Service<| title == $::cinder::params::scheduler_service |>
 }

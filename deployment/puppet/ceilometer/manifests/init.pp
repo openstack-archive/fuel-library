@@ -11,6 +11,16 @@
 #    should the daemons log verbose messages. Optional. Defaults to false
 #  [*debug*]
 #    should the daemons log debug messages. Optional. Defaults to false
+#  [*log_dir*]
+#   (optional) directory to which ceilometer logs are sent.
+#   If set to boolean false, it will not log to any directory.
+#   Defaults to '/var/log/ceilometer'
+#  [*use_syslog*]
+#   (optional) Use syslog for logging
+#   Defaults to false
+#  [*syslog_log_facility*]
+#   (optional) Syslog facility to receive log lines.
+#   Defaults to 'LOG_LOCAL0'
 #  [*amqp_hosts*]
 #    AMQP servers connection string. Optional. Defaults to '127.0.0.1'
 #  [*amqp_user*]
@@ -27,9 +37,9 @@ class ceilometer(
   $package_ensure      = 'present',
   $verbose             = false,
   $debug               = false,
+  $log_dir             = '/var/log/ceilometer',
   $use_syslog          = false,
-  $syslog_log_facility = 'LOG_SYSLOG',
-  $syslog_log_level    = 'WARNING',
+  $syslog_log_facility = 'LOG_LOCAL0',
   $queue_provider      = 'rabbitmq',
   $amqp_hosts          = '127.0.0.1',
   $amqp_user           =  'guest',
@@ -111,29 +121,27 @@ class ceilometer(
     'DEFAULT/verbose'                : value => $verbose;
   }
 
-  # Configure logging
-  if $use_syslog and !$debug { #syslog and nondebug case
-    File['ceilometer-logging.conf'] -> Ceilometer_config['DEFAULT/log_config']
+ # Log configuration
+  if $log_dir {
     ceilometer_config {
-      'DEFAULT/log_config'         : value => '/etc/ceilometer/logging.conf';
-      'DEFAULT/use_syslog'         : value => true;
-      'DEFAULT/syslog_log_facility': value => $syslog_log_facility;
+      'DEFAULT/log_dir' : value => $log_dir;
     }
-    file { 'ceilometer-logging.conf':
-      content => template('ceilometer/logging.conf.erb'),
-      path    => '/etc/ceilometer/logging.conf',
-    }
-    # We must notify services to apply new logging rules
-    File['ceilometer-logging.conf'] ~> Service <| title == 'ceilometer-api' |>
-    File['ceilometer-logging.conf'] ~> Service <| title == 'ceilometer-collector' |>
-    File['ceilometer-logging.conf'] ~> Service <| title == 'ceilometer-agent-central' |>
-    File['ceilometer-logging.conf'] ~> Service <| title == 'ceilometer-agent-compute' |>
-    File['ceilometer-logging.conf'] ~> Service <| title == 'ceilometer-agent-notification' |>
-  } else { #other syslog debug or nonsyslog debug/nondebug cases
+  } else {
     ceilometer_config {
-      'DEFAULT/log_config': ensure => absent;
-      'DEFAULT/log_dir': value => $::ceilometer::params::log_dir;
-      'DEFAULT/use_syslog': value =>  false;
+      'DEFAULT/log_dir' : ensure => absent;
+    }
+  }
+
+  # Syslog configuration
+  if $use_syslog {
+    ceilometer_config {
+      'DEFAULT/use_syslog':            value => true;
+      'DEFAULT/use_syslog_rfc_format': value => true;
+      'DEFAULT/syslog_log_facility':   value => $syslog_log_facility;
+    }
+  } else {
+    ceilometer_config {
+      'DEFAULT/use_syslog': value => false;
     }
   }
 }

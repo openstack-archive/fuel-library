@@ -1,10 +1,8 @@
 # Class for rsyslog server/client logging
-# (assumes package rsyslog were installed at BM)
 #
 # [role] log server or client
 # [log_remote] send logs to remote server(s). Can be used with local logging.
 # [log_local], [log_auth_local] local & auth logging. Can be used with remote logging.
-# [syslog_log_facility_XXX] syslog (client role only) facility for service XXX.
 # [rotation] logrotate option for rotation period - daily, weekly, monthly, yearly.
 # [keep] logrotate option for number or rotated log files to keep.
 # [limitsize] logrotate option for log files would be rotated, if exceeded.
@@ -16,102 +14,259 @@
 #     date-rfc3339: 2010-12-05T02:21:41.889482+01:00,
 #     date-rfc3164: Dec 5 02:21:13,
 # [virtual] if node is virtual, fix for udp checksums should be applied
-# [rabbit_log_level] should be >= global syslog_log_level option,
-#   otherwise none messages would have gone to syslog (client role only)
-# [debug] switch between debug and standard cases, client role only. imfile monitors for local logs would be used if debug.
-
+# [rabbit_log_level] assign syslog log level for all rabbit messages which are not an ERROR
+#   (rabbit does not support syslog, imfile is used for log capturing)
+#
 class openstack::logging (
-    $role           = 'client',
-    $log_remote     = true,
-    $log_local      = false,
-    $log_auth_local = false,
-    $rotation       = 'daily',
-    $keep           = '7',
-    $limitsize      = '300M',
-    $rservers       = [{'remote_type'=>'udp', 'server'=>'master', 'port'=>'514'},],
-    $port           = '514',
-    $proto          = 'udp',
-    $show_timezone  = false,
-    $virtual        = false,
-    $syslog_log_facility_murano   = 'LOG_LOCAL0',
-    $syslog_log_facility_glance   = 'LOG_LOCAL2',
-    $syslog_log_facility_cinder   = 'LOG_LOCAL3',
-    $syslog_log_facility_neutron  = 'LOG_LOCAL4',
-    $syslog_log_facility_nova     = 'LOG_LOCAL6',
-    $syslog_log_facility_keystone = 'LOG_LOCAL7',
-    $syslog_log_facility_heat     = 'LOG_LOCAL0',
-    $syslog_log_facility_sahara   = 'LOG_LOCAL0',
-    $rabbit_log_level = 'NOTICE',
-    $debug          = false,
-    $production     = 'prod',
+    $role                           = 'client',
+    $log_remote                     = true,
+    $log_local                      = false,
+    $log_auth_local                 = false,
+    $rotation                       = 'daily',
+    $keep                           = '7',
+    $limitsize                      = '300M',
+    $rservers                       = [{'remote_type'=>'udp', 'server'=>'master', 'port'=>'514'},],
+    $port                           = '514',
+    $proto                          = 'udp',
+    $show_timezone                  = false,
+    $virtual                        = false,
+    $rabbit_log_level               = 'NOTICE',
+    $production                     = 'prod',
+    $escapenewline                  = false,
 ) {
 
-validate_re($proto, 'tcp|udp|both')
-validate_re($role, 'client|server')
-validate_re($rotation, 'daily|weekly|monthly|yearly')
+  validate_re($proto, 'tcp|udp|both')
+  validate_re($role, 'client|server')
+  validate_re($rotation, 'daily|weekly|monthly|yearly')
 
-if $role == 'client' {
-  class { "::rsyslog::client":
-    high_precision_timestamps => $show_timezone,
-    log_remote     => $log_remote,
-    log_local      => $log_local,
-    log_auth_local => $log_auth_local,
-    rservers       => $rservers,
-    virtual        => $virtual,
-    syslog_log_facility_glance   => $syslog_log_facility_glance,
-    syslog_log_facility_cinder   => $syslog_log_facility_cinder,
-    syslog_log_facility_neutron  => $syslog_log_facility_neutron,
-    syslog_log_facility_nova     => $syslog_log_facility_nova,
-    syslog_log_facility_keystone => $syslog_log_facility_keystone,
-    syslog_log_facility_heat     => $syslog_log_facility_heat,
-    syslog_log_facility_sahara   => $syslog_log_facility_sahara,
-    log_level      => $rabbit_log_level,
-    debug          => $debug,
+  # Fix for udp checksums should be applied if running on virtual node
+  if $virtual {
+    class { "openstack::checksum_udp" : port => $port }
   }
 
-} else { # server
+  include ::rsyslog::params
 
-  if $proto == 'both' {
-    firewall { "$port udp rsyslog":
-      port    => $port,
-      proto   => 'udp',
-      action  => 'accept',
+  # Configure syslog roles
+  if $role == 'client' {
+
+    if $rservers == undef {
+      $rservers_real = [{'remote_type'=>$remote_type, 'server'=>$server, 'port'=>$port}]
     }
-    firewall { "$port tcp rsyslog":
-      port    => $port,
-      proto   => 'tcp',
-      action  => 'accept',
+    else {
+      $rservers_real = $rservers
     }
-  } else {
-    firewall { "$port $proto rsyslog":
-      port    => $port,
-      proto   => $proto,
-      action  => 'accept',
+
+    # Configure logging templates for rsyslog client side
+    # Rabbitmq does not support syslogging, use imfile
+    ::rsyslog::imfile { "04-rabbitmq" :
+      file_name     => "/var/log/rabbitmq/rabbit@${hostname}.log",
+      file_tag      => "rabbitmq",
+      file_facility => "syslog",
+      file_severity => $rabbit_log_level,
+      notify  => Class["::rsyslog::service"],
+    }
+
+    ::rsyslog::imfile { "04-rabbitmq-sasl" :
+      file_name     => "/var/log/rabbitmq/rabbit@${hostname}-sasl.log",
+      file_tag      => "rabbitmq-sasl",
+      file_facility => "syslog",
+      file_severity => $rabbit_log_level,
+      notify  => Class["::rsyslog::service"],
+    }
+
+    ::rsyslog::imfile { "04-rabbitmq-startup_err" :
+      file_name     => "/var/log/rabbitmq/startup_err",
+      file_tag      => "rabbitmq-startup_err",
+      file_facility => "syslog",
+      file_severity => "ERROR",
+      notify  => Class["::rsyslog::service"],
+    }
+
+    ::rsyslog::imfile { "04-rabbitmq-shutdown_err" :
+      file_name     => "/var/log/rabbitmq/shutdown_err",
+      file_tag      => "rabbitmq-shutdown_err",
+      file_facility => "syslog",
+      file_severity => "ERROR",
+      notify  => Class["::rsyslog::service"],
+    }
+
+    # mco does not support syslog also, hence use imfile
+    ::rsyslog::imfile { "61-mco_agent_debug" :
+      file_name     => "/var/log/mcollective.log",
+      file_tag      => "mcollective",
+      file_facility => "daemon",
+      file_severity => "DEBUG",
+      notify  => Class["::rsyslog::service"],
+    }
+
+    # Set access and notifications for rsyslog client
+    File {
+      owner => root,
+      group => $::rsyslog::params::run_group,
+      mode => 0640,
+      notify  => Class["::rsyslog::service"],
+    }
+
+    # OS syslog configs for rsyslog client
+    file { "${::rsyslog::params::rsyslog_d}10-nova.conf":
+      ensure => present,
+      content => template("${module_name}/10-nova.conf.erb"),
+    }
+
+    file { "${::rsyslog::params::rsyslog_d}20-keystone.conf":
+      ensure => present,
+      content => template("${module_name}/20-keystone.conf.erb"),
+    }
+
+    file { "${::rsyslog::params::rsyslog_d}/30-cinder.conf":
+      ensure => present,
+      content => template("${module_name}/30-cinder.conf.erb"),
+    }
+
+    file { "${::rsyslog::params::rsyslog_d}40-glance.conf":
+      ensure => present,
+      content => template("${module_name}/40-glance.conf.erb"),
+    }
+
+    file { "${::rsyslog::params::rsyslog_d}50-neutron.conf":
+      ensure => present,
+      content => template("${module_name}/50-neutron.conf.erb"),
+    }
+
+    file { "${::rsyslog::params::rsyslog_d}51-ceilometer.conf":
+      ensure => present,
+      content => template("${module_name}/51-ceilometer.conf.erb"),
+    }
+
+    file { "${::rsyslog::params::rsyslog_d}53-murano.conf":
+      ensure => present,
+      content => template("${module_name}/53-murano.conf.erb"),
+    }
+
+    file { "${::rsyslog::params::rsyslog_d}54-heat.conf":
+      ensure => present,
+      content => template("${module_name}/54-heat.conf.erb"),
+    }
+
+    file { "${::rsyslog::params::rsyslog_d}52-sahara.conf":
+      ensure => present,
+      content => template("${module_name}/52-sahara.conf.erb"),
+    }
+
+    file { "${::rsyslog::params::rsyslog_d}02-ha.conf":
+      ensure => present,
+    content => template("${module_name}/02-ha.conf.erb"),
+    }
+
+    file { "${::rsyslog::params::rsyslog_d}03-dashboard.conf":
+      ensure => present,
+      content => template("${module_name}/03-dashboard.conf.erb"),
+    }
+
+    file { "${::rsyslog::params::rsyslog_d}04-mysql.conf":
+      ensure => present,
+      content => template("${module_name}/04-mysql.conf.erb"),
+    }
+
+    file { "${::rsyslog::params::rsyslog_d}60-puppet-apply.conf":
+      content => template("${module_name}/60-puppet-apply.conf.erb"),
+    }
+
+    file { "${::rsyslog::params::rsyslog_d}/61-mco-nailgun-agent.conf":
+      content => template("${module_name}/61-mco-nailgun-agent.conf.erb"),
+    }
+
+    # Custom settings for rsyslog client to define remote logging and local options
+    file { "${::rsyslog::params::rsyslog_d}90-local.conf":
+      content => template("${module_name}/90-local.conf.erb"),
+    }
+
+    file { "${::rsyslog::params::rsyslog_d}00-remote.conf":
+    content => template("${module_name}/00-remote.conf.erb"),
+    }
+
+    class { "::rsyslog::client":
+      log_remote                => $log_remote,
+      log_local                 => $log_local,
+      log_auth_local            => $log_auth_local,
+      escapenewline             => $escapenewline,
+    }
+
+  } else { # server
+
+    if $proto == 'both' {
+      firewall { "$port udp rsyslog":
+        port    => $port,
+        proto   => 'udp',
+        action  => 'accept',
+      }
+      firewall { "$port tcp rsyslog":
+        port    => $port,
+        proto   => 'tcp',
+        action  => 'accept',
+      }
+    } else {
+      firewall { "$port $proto rsyslog":
+        port    => $port,
+        proto   => $proto,
+        action  => 'accept',
+      }
+    }
+
+    if $production =~ /docker/ {
+      $enable_tcp = false
+      $enable_udp = false
+    } else {
+      $enable_tcp = $proto ? { 'tcp' => true, 'both' => true, default => false }
+      $enable_udp = $proto ? { 'udp' => true, 'both' => true, default => true }
+    }
+
+    # Fuel specific config for logging parse formats used for /var/log/remote
+    $logconf = "${::rsyslog::params::rsyslog_d}30-remote-log.conf"
+    file { $logconf :
+        content => template("${module_name}/30-server-remote-log.conf.erb"),
+    }
+
+    class {"::rsyslog::server":
+      enable_tcp                 => $enable_tcp,
+      enable_udp                 => $enable_udp,
+      server_dir                 => '/var/log/',
+      high_precision_timestamps  => $show_timezone,
+      port                       => $port,
     }
   }
 
-  if $production =~ /docker/ {
-    $enable_tcp = false
-    $enable_udp = false
-  } else {
-    $enable_tcp = $proto ? { 'tcp' => true, 'both' => true, default => false }
-    $enable_udp = $proto ? { 'udp' => true, 'both' => true, default => true }
-  }
-
-  class {"::rsyslog::server":
-    enable_tcp => $enable_tcp,
-    enable_udp => $enable_udp,
-    server_dir => '/var/log/',
-    port       => $port,
-    high_precision_timestamps => $show_timezone,
-    virtual    => $virtual,
-  }
-}
-
+  # Configure log rotation
   class {"::openstack::logrotate":
     role           => $role,
     rotation       => $rotation,
     keep           => $keep,
     limitsize      => $limitsize,
   }
+
+  # Deprecated stuff handling section
+  # Use this section to ensure the absence of the deprecated config
+  # options for an Openstack services, or any other custom for Fuel
+  # changes what should be removed forcibly.
+  # (only if it couldn't be done in the synced upstream modules as well)
+
+  # Ensure all OS services logging reconfiguration for deleted log_configs
+  # (log_config was deprecated and should be removed from existing configs)
+  Ceilometer_config <| title == 'DEFAULT/log_config' |> { ensure => absent }
+  Cinder_config <| title == 'DEFAULT/log_config' |> { ensure => absent }
+  Glance_api_config <| title == 'DEFAULT/log_config' |> { ensure => absent }
+  Glance_registry_config <| title == 'DEFAULT/log_config' |> { ensure => absent }
+  Heat_config <| title == 'DEFAULT/log_config' |> { ensure => absent }
+  Keystone_config <| title == 'DEFAULT/log_config' |> { ensure => absent }
+  Neutron_dhcp_agent_config <| title == 'DEFAULT/log_config' |> { ensure => absent }
+  Neutron_l3_agent_config <| title == 'DEFAULT/log_config' |> { ensure => absent }
+  Neutron_metadata_agent_config <| title == 'DEFAULT/log_config' |> { ensure => absent }
+  Neutron_config <| title == 'DEFAULT/log_config' |> { ensure => absent }
+  Nova_config <| title == 'DEFAULT/log_config' |> { ensure => absent }
+  Sahara_config <| title == 'DEFAULT/log_config' |> { ensure => absent }
+  Murano_config <| title == 'DEFAULT/log_config' |> { ensure => absent }
+
+  #TODO(bogdando) if 4.1.1 -> 5.0 upgrade will be supported later
+  #  remove all existing rsyslog::imfile templates for Openstack
+  #  and notify rsyslog service
 }

@@ -115,7 +115,6 @@ class neutron::server (
 
   anchor {'neutron-server-config-done':}
 
-  File<| title=='neutron-logging.conf' |> ->
   service {'neutron-server':
     name       => $::neutron::params::server_service,
     ensure     => running,
