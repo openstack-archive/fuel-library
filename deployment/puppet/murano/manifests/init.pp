@@ -122,7 +122,7 @@ class murano (
     repository_admin_user          => $murano_keystone_user,
     repository_admin_password      => $murano_keystone_password,
     repository_admin_tenant_name   => $murano_keystone_tenant,
-    repository_cache_dir           => $murano_data_dir,
+    repository_data_dir            => $murano_data_dir,
 
     repository_replication_nodes   => $repository_replication_nodes,
   }
