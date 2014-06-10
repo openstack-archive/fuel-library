@@ -40,8 +40,5 @@ class openstack::ha::haproxy (
   if $rgw_servers   { class { 'openstack::ha::radosgw': servers => $rgw_servers } }
   if $ceilometer    { class { 'openstack::ha::ceilometer': } }
   if $sahara        { class { 'openstack::ha::sahara': } }
-  if $murano        {
-    class { 'openstack::ha::murano': }
-    class { 'openstack::ha::murano_rabbitmq': }
-  }
+  if $murano        { class { 'openstack::ha::murano': } }
 }
