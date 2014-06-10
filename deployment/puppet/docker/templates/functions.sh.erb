@@ -19,7 +19,9 @@ function show_usage {
   echo "  stop: stop one or more Docker containers"
   echo "  shell: start a shell or run a command in a Docker container"
   echo "  upgrade: upgrade deployment"
+  echo "  revert: reset container to original state"
   echo "  destroy: destroy one or more containers"
+  echo "  copy: copy files in or out of container"
   echo "  check: check of container is ready"
 }
 function debug {
@@ -29,6 +31,12 @@ function debug {
 }
 function build_image {
   ${DOCKER} build -t $2 $1
+}
+
+function revert_container {
+  stop_container $1
+  destroy_container $1
+  start_container $1
 }
 
 function build_storage_containers {
@@ -379,3 +387,58 @@ EOF
 function allow_all_docker_traffic {
   iptables -A POSTROUTING -t nat  -o docker0  -j MASQUERADE
 }
+
+function container_root {
+  id=$(${DOCKER} inspect -f='{{.ID}}' ${CONTAINER_NAMES[$1]})
+  if [ n "$id" ]; then
+    echo "/var/lib/docker/devicemapper/mnt/${id}/rootfs"
+  else
+    echo "Unable to get root for container ${1}."
+  fi
+}
+
+function copy_files {
+  #Overview:
+  # Works similar to rsync:
+  # Container to host:
+  #   sync_files cobbler:/var/lib/tftpboot/ /localpath/
+  # Host to container:
+  #   sync_files /etc/puppet cobbler:/etc/puppet
+  #TODO(mattymo): add options and more parameters
+
+  if [ -z "$2" ]; then
+    echo "This command requires two parameters. See usage:"
+    echo "  $0 copy src dest"
+    echo
+    echo "Examples:"
+    echo "  $0 copy nailgun:/etc/nailguns/settings.yaml /root/settings.yaml"
+    echo "  $0 copy /root/newpkg.rpm mcollective:/root/"
+    exit 1
+  fi
+  #Test which parameter is local
+  if test -n "$(shopt -s nullglob; echo $1*)"; then
+    method="push"
+    local=$1
+    remote=$2
+  else
+    method="pull"
+    remote=$1
+    local=$2
+  fi
+  container=$(echo $remote | cut -d':' -f1)
+  remotepath=$(echo $remote | cut -d':' -f2-)
+  if [[ ${CONTAINER_NAMES[@]} =~ .*${container}.* ]]; then
+    cont_root=$(container_root $container)
+    if [ $? -ne 0 ];then return 1; fi
+  else
+    echo "Unable to locate container to copy to/from."
+    return 2
+  fi
+  remote="${cont_root}/${remotepath}"
+  if [ "$method" = "push" ]; then
+    cp -R $local $remote
+  else
+    cp -R $remote $local
+  fi
+}
+
