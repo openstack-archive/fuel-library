@@ -77,12 +77,18 @@ elif [ "$1" == "check" ]; then
 elif [ "$1" == "list" ]; then
   shift 1
   list_containers "$@"
+elif [ "$1" == "copy" ]; then
+  shift 1
+  copy_files "$@"
 elif [ "$1" == "restart" ]; then
   shift 2
   restart_container $container $@
 elif [ "$1" == "stop" ]; then
   shift 2
   stop_container $container $@
+elif [ "$1" == "revert" ]; then
+  shift 2
+  revert_container $container $@
 elif [ "$1" == "shell" ]; then
   shift 2
   shell_container $container "$@"
