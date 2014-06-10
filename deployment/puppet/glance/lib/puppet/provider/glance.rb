@@ -9,24 +9,28 @@ class Puppet::Provider::Glance < Puppet::Provider
   end
 
   def self.get_glance_credentials
-    if glance_file and glance_file['filter:authtoken'] and 
-      glance_file['filter:authtoken']['auth_host'] and
-      glance_file['filter:authtoken']['auth_port'] and
-      glance_file['filter:authtoken']['auth_protocol'] and
-      glance_file['filter:authtoken']['admin_tenant_name'] and
-      glance_file['filter:authtoken']['admin_user'] and
-      glance_file['filter:authtoken']['admin_password']
+    if glance_file and glance_file['keystone_authtoken'] and
+      glance_file['keystone_authtoken']['auth_host'] and
+      glance_file['keystone_authtoken']['auth_port'] and
+      glance_file['keystone_authtoken']['auth_protocol'] and
+      glance_file['keystone_authtoken']['admin_tenant_name'] and
+      glance_file['keystone_authtoken']['admin_user'] and
+      glance_file['keystone_authtoken']['admin_password']
 
         g = {}
-        g['auth_host'] = glance_file['filter:authtoken']['auth_host'].strip
-        g['auth_port'] = glance_file['filter:authtoken']['auth_port'].strip
-        g['auth_protocol'] = glance_file['filter:authtoken']['auth_protocol'].strip
-        g['admin_tenant_name'] = glance_file['filter:authtoken']['admin_tenant_name'].strip
-        g['admin_user'] = glance_file['filter:authtoken']['admin_user'].strip
-        g['admin_password'] = glance_file['filter:authtoken']['admin_password'].strip
+        g['auth_host'] = glance_file['keystone_authtoken']['auth_host'].strip
+        g['auth_port'] = glance_file['keystone_authtoken']['auth_port'].strip
+        g['auth_protocol'] = glance_file['keystone_authtoken']['auth_protocol'].strip
+        g['admin_tenant_name'] = glance_file['keystone_authtoken']['admin_tenant_name'].strip
+        g['admin_user'] = glance_file['keystone_authtoken']['admin_user'].strip
+        g['admin_password'] = glance_file['keystone_authtoken']['admin_password'].strip
+
+        # auth_admin_prefix not required to be set.
+        g['auth_admin_prefix'] = (glance_file['keystone_authtoken']['auth_admin_prefix'] || '').strip
+
         return g
     else
-      raise(Puppet::Error, 'File: /etc/glance/glance-api-paste.ini does not contain all required sections.')
+      raise(Puppet::Error, 'File: /etc/glance/glance-api.conf does not contain all required sections.')
     end
   end
 
@@ -40,18 +44,25 @@ class Puppet::Provider::Glance < Puppet::Provider
 
   def self.get_auth_endpoint
     g = glance_credentials
-    "#{g['auth_protocol']}://#{g['auth_host']}:#{g['auth_port']}/v2.0/"
+    "#{g['auth_protocol']}://#{g['auth_host']}:#{g['auth_port']}#{g['auth_admin_prefix']}/v2.0/"
   end
 
   def self.glance_file
     return @glance_file if @glance_file
     @glance_file = Puppet::Util::IniConfig::File.new
-    @glance_file.read('/etc/glance/glance-api-paste.ini')
+    @glance_file.read('/etc/glance/glance-api.conf')
     @glance_file
   end
 
   def self.glance_hash
     @glance_hash ||= build_glance_hash
+  end
+
+  def self.reset
+    @glance_hash        = nil
+    @glance_file        = nil
+    @glance_credentials = nil
+    @auth_endpoint      = nil
   end
 
   def glance_hash
@@ -61,10 +72,14 @@ class Puppet::Provider::Glance < Puppet::Provider
   def self.auth_glance(*args)
     begin
       g = glance_credentials
-      glance('-T', g['admin_tenant_name'], '-I', g['admin_user'], '-K', g['admin_password'], '-N', auth_endpoint, args)
+      remove_warnings(glance('-T', g['admin_tenant_name'], '-I', g['admin_user'], '-K', g['admin_password'], '-N', auth_endpoint, args))
     rescue Exception => e
-      # Will probably add conditions later
-      raise(e)
+      if (e.message =~ /\[Errno 111\] Connection refused/) or (e.message =~ /\(HTTP 400\)/) or (e.message =~ /HTTP Unable to establish connection/)
+        sleep 10
+        remove_warnings(glance('-T', g['admin_tenant_name'], '-I', g['admin_user'], '-K', g['admin_password'], '-N', auth_endpoint, args))
+      else
+        raise(e)
+      end
     end
   end
 
@@ -75,7 +90,7 @@ class Puppet::Provider::Glance < Puppet::Provider
   def self.auth_glance_stdin(*args)
     begin
       g = glance_credentials
-      command = "glance --silent-upload -T #{g['admin_tenant_name']} -I #{g['admin_user']} -K #{g['admin_password']} -N #{auth_endpoint} #{args.join(' ')}"
+      command = "glance -T #{g['admin_tenant_name']} -I #{g['admin_user']} -K #{g['admin_password']} -N #{auth_endpoint} #{args.join(' ')}"
 
       # This is a horrible, horrible hack
       # Redirect stderr to stdout in order to report errors
@@ -90,7 +105,6 @@ class Puppet::Provider::Glance < Puppet::Provider
   def auth_glance_stdin(*args)
     self.class.auth_glance_stdin(args)
   end
-
 
   private
     def self.list_glance_images
@@ -112,9 +126,61 @@ class Puppet::Provider::Glance < Puppet::Provider
     def self.get_glance_image_attrs(id)
       attrs = {}
       (auth_glance('show', id).split("\n") || []).collect do |line|
-        attrs[line.split(': ').first.downcase] = line.split(': ')[1..-1].to_s
+        attrs[line.split(': ').first.downcase] = line.split(': ')[1..-1].pop
       end
       return attrs
     end
 
+    def parse_table(table)
+      # parse the table into an array of maps with a simplistic state machine
+      found_header = false
+      parsed_header = false
+      keys = nil
+      results = []
+      table.split("\n").collect do |line|
+        # look for the header
+        if not found_header
+          if line =~ /^\+[-|+]+\+$/
+            found_header = true
+            nil
+          end
+        # look for the key names in the table header
+        elsif not parsed_header
+          if line =~ /^(\|\s*[:alpha:]\s*)|$/
+            keys = line.split('|').map(&:strip)
+            parsed_header = true
+          end
+        # parse the values in the rest of the table
+        elsif line =~ /^|.*|$/
+          values = line.split('|').map(&:strip)
+          result = Hash[keys.zip values]
+          results << result
+        end
+      end
+      results
+    end
+
+    # Remove warning from the output. This is a temporary hack until
+    # things will be refactored to use the REST API
+    def self.remove_warnings(results)
+      found_header = false
+      in_warning = false
+      results.split("\n").collect do |line|
+        unless found_header
+          if line =~ /^\+[-\+]+\+$/ # Matches upper and lower box borders
+            in_warning = false
+            found_header = true
+            line
+          elsif line =~ /^WARNING/ or line =~ /UserWarning/ or in_warning
+            # warnings can be multi line, we have to skip all of them
+            in_warning = true
+            nil
+          else
+            line
+          end
+        else
+          line
+        end
+      end.compact.join("\n")
+    end
 end

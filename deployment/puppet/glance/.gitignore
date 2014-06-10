@@ -1,5 +1,5 @@
-*.swp
-pkg/
-.DS_Store
-
-coverage/
+spec/fixtures/modules/*
+spec/fixtures/manifests/*
+*swp
+pkg
+Gemfile.lock
