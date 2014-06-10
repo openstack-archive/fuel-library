@@ -13,15 +13,6 @@ class nailgun::packages(
   nailgun_safe_package { "crontabs": }
   nailgun_safe_package { "cronie-anacron": }
 
-  if ( $production == 'dev' ) {
-    nailgun_safe_package { "python-virtualenv": }
-    nailgun_safe_package { "python-devel": }
-    nailgun_safe_package { "postgresql-devel": }
-    nailgun_safe_package { "gcc": }
-    nailgun_safe_package { "gcc-c++": }
-    nailgun_safe_package { "make": }
-  }
-
   nailgun_safe_package { "postgresql-libs": }
   nailgun_safe_package { "rsyslog": }
 
