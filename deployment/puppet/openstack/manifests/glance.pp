@@ -18,7 +18,8 @@
 # [db_type] Type of sql databse to use. Optional. Defaults to 'mysql'
 # [glance_db_user] Name of glance DB user. Optional. Defaults to 'glance'
 # [glance_db_dbname] Name of glance DB. Optional. Defaults to 'glance'
-# [verbose] Rather to print more verbose (INFO+) output. Optional. Defaults to false.
+# [verbose] Rather to print more verbose (INFO+) output. If non verbose and non debug, would give
+#   syslog_log_level (default is WARNING) output. Optional. Defaults to false.
 # [debug] Rather to print even more verbose (DEBUG+) output. If true, would ignore verbose option.
 #   Optional. Defaults to false.
 # [enabled] Used to indicate if the service should be active (true) or passive (false).
@@ -26,6 +27,7 @@
 # [use_syslog] Rather or not service should log to syslog. Optional. Default to false.
 # [syslog_log_facility] Facility for syslog, if used. Optional. Note: duplicating conf option
 #       wouldn't have been used, but more powerfull rsyslog features managed via conf template instead
+# [syslog_log_level] logging level for non verbose and non debug mode. Optional.
 # [glance_image_cache_max_size] the maximum size of glance image cache. Optional. Default is 10G.
 #
 # === Example
@@ -54,6 +56,7 @@ class openstack::glance (
   $use_syslog                   = false,
   # Facility is common for all glance services
   $syslog_log_facility          = 'LOG_LOCAL2',
+  $syslog_log_level             = 'WARNING',
   $glance_image_cache_max_size  = '10737418240',
   $idle_timeout                 = '3600',
   $max_pool_size                = '10',
@@ -97,12 +100,26 @@ class openstack::glance (
     enabled              => $enabled,
     registry_host        => $registry_host,
     use_syslog           => $use_syslog,
-    syslog_log_facility  => $syslog_log_facility,
-    image_cache_max_size => $glance_image_cache_max_size,
-    max_retries          => $max_retries,
-    max_pool_size        => $max_pool_size,
-    max_overflow         => $max_overflow,
-    idle_timeout         => $idle_timeout,
+    log_facility         => $syslog_log_facility,
+    sql_idle_timeout     => $idle_timeout,
+    show_image_direct_url => true,
+  }
+  glance_api_config {
+    'DEFAULT/sql_max_pool_size': value => $max_pool_size;
+    'DEFAULT/sql_max_retries':   value => $max_retries;
+    'DEFAULT/sql_max_overflow':  value => $max_overflow;
+  }
+  glance_cache_config {
+    'DEFAULT/sql_max_pool_size': value => $max_pool_size;
+    'DEFAULT/sql_max_retries':   value => $max_retries;
+    'DEFAULT/sql_max_overflow':  value => $max_overflow;
+    'DEFAULT/use_syslog':  value => $use_syslog;
+    'DEFAULT/image_cache_dir': value => "/var/lib/glance/image-cache/";
+    'DEFAULT/log_file':  value => "/var/log/glance/image-cache.log";
+    'DEFAULT/image_cache_stall_time':  value => "86400";
+    'DEFAULT/image_cache_invalid_entry_grace_period':  value => "3600";
+    'DEFAULT/image_cache_max_size':  value => $glance_image_cache_max_size;
+    'DEFAULT/filesystem_store_datadir':  value => "/var/lib/glance/images/";
   }
 
   # Install and configure glance-registry
@@ -119,11 +136,13 @@ class openstack::glance (
     sql_connection      => $sql_connection,
     enabled             => $enabled,
     use_syslog          => $use_syslog,
-    syslog_log_facility => $syslog_log_facility,
-    max_retries         => $max_retries,
-    max_pool_size       => $max_pool_size,
-    max_overflow        => $max_overflow,
-    idle_timeout        => $idle_timeout,
+    log_facility        => $syslog_log_facility,
+    sql_idle_timeout    => $idle_timeout,
+  }
+  glance_registry_config {
+    'DEFAULT/sql_max_pool_size': value => $max_pool_size;
+    'DEFAULT/sql_max_retries':   value => $max_retries;
+    'DEFAULT/sql_max_overflow':  value => $max_overflow;
   }
 
   # puppet-glance assumes rabbit_hosts is an array of [node:port, node:port]
@@ -152,27 +171,35 @@ class openstack::glance (
   # Configure file storage backend
 
 
- if $glance_backend == "swift" {
-    if !defined(Package['swift']) {
-      include ::swift::params
-      package { "swift":
-        name   => $::swift::params::package_name,
-        ensure =>present
+  case $glance_backend {
+    'swift': {
+      if !defined(Package['swift']) {
+        include ::swift::params
+        package { "swift":
+          name   => $::swift::params::package_name,
+          ensure =>present
+        }
+      }
+      Package["swift"] ~> Service['glance-api']
+      Package<| title == 'swift'|> ~> Service<| title == 'glance-api'|>
+      if !defined(Service['glance-api']) {
+        notify{ "Module ${module_name} cannot notify service glance-api on package swift update": }
+      }
+      class { "glance::backend::$glance_backend":
+        swift_store_user => "services:glance",
+        swift_store_key=> $glance_user_password,
+        swift_store_create_container_on_put => "True",
+        swift_store_auth_address => "http://${keystone_host}:5000/v2.0/"
       }
     }
-    Package["swift"] ~> Service['glance-api']
-    Package<| title == 'swift'|> ~> Service<| title == 'glance-api'|>
-    if !defined(Service['glance-api']) {
-      notify{ "Module ${module_name} cannot notify service glance-api on package swift update": }
+    'rbd', 'ceph': {
+      class { "glance::backend::rbd":
+        rbd_store_user => $::ceph::glance_user,
+        rbd_store_pool => $::ceph::glance_pool,
+      }
     }
-
-    class { "glance::backend::$glance_backend":
-      swift_store_user => "services:glance",
-      swift_store_key=> $glance_user_password,
-      swift_store_create_container_on_put => "True",
-      swift_store_auth_address => "http://${keystone_host}:5000/v2.0/"
+    default: {
+      class { "glance::backend::$glance_backend": }
     }
-  } else {
-    class { "glance::backend::$glance_backend": }
   }
 }
