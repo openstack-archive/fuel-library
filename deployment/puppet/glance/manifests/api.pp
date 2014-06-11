@@ -189,6 +189,7 @@ class glance::api(
     ensure_packages([$glance::params::api_package_name])
   }
 
+  Package[$glance::params::api_package_name] -> File['/etc/glance/']
   Package[$glance::params::api_package_name] -> Glance_api_config<||>
   Package[$glance::params::api_package_name] -> Glance_cache_config<||>
 
