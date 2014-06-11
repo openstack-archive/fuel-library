@@ -70,7 +70,6 @@ class openstack::glance (
   $rabbit_notification_topic    = 'notifications',
   $amqp_durable_queues          = false,
 ) {
-
   validate_string($glance_user_password)
   validate_string($glance_db_password)
   validate_string($rabbit_password)
@@ -84,25 +83,49 @@ class openstack::glance (
 
   # Install and configure glance-api
   class { 'glance::api':
-    verbose              => $verbose,
-    debug                => $debug,
-    bind_host            => $bind_host,
-    auth_type            => 'keystone',
-    auth_port            => '35357',
-    auth_host            => $keystone_host,
-    keystone_tenant      => 'services',
-    keystone_user        => 'glance',
-    keystone_password    => $glance_user_password,
-    sql_connection       => $sql_connection,
-    enabled              => $enabled,
-    registry_host        => $registry_host,
-    use_syslog           => $use_syslog,
-    syslog_log_facility  => $syslog_log_facility,
-    image_cache_max_size => $glance_image_cache_max_size,
-    max_retries          => $max_retries,
-    max_pool_size        => $max_pool_size,
-    max_overflow         => $max_overflow,
-    idle_timeout         => $idle_timeout,
+    verbose               => $verbose,
+    debug                 => $debug,
+    bind_host             => $bind_host,
+    auth_type             => 'keystone',
+    auth_port             => '35357',
+    auth_host             => $keystone_host,
+    keystone_tenant       => 'services',
+    keystone_user         => 'glance',
+    keystone_password     => $glance_user_password,
+    sql_connection        => $sql_connection,
+    enabled               => $enabled,
+    registry_host         => $registry_host,
+    use_syslog            => $use_syslog,
+    log_facility          => $syslog_log_facility,
+    sql_idle_timeout      => $idle_timeout,
+    show_image_direct_url => true,
+    pipeline              => 'keystone+cachemanagement',
+  }
+
+  glance_api_config {
+    'DEFAULT/notifier_strategy':          value => 'noop';
+    'DEFAULT/sql_max_pool_size':          value => $max_pool_size;
+    'DEFAULT/sql_max_retries':            value => $max_retries;
+    'DEFAULT/sql_max_overflow':           value => $max_overflow;
+    'DEFAULT/registry_client_protocol':   value => "http";
+    'DEFAULT/delayed_delete':             value => "False";
+    'DEFAULT/scrub_time':                 value => "43200";
+    'DEFAULT/scrubber_datadir':           value => "/var/lib/glance/scrubber";
+    'DEFAULT/image_cache_dir':            value => "/var/lib/glance/image-cache/";
+    'keystone_authtoken/signing_dir':     value => '/tmp/keystone-signing-glance';
+    'keystone_authtoken/signing_dirname': value => '/tmp/keystone-signing-glance';
+  }
+  glance_cache_config {
+    'DEFAULT/sql_max_pool_size':                      value => $max_pool_size;
+    'DEFAULT/sql_max_retries':                        value => $max_retries;
+    'DEFAULT/sql_max_overflow':                       value => $max_overflow;
+    'DEFAULT/use_syslog':                             value => $use_syslog;
+    'DEFAULT/image_cache_dir':                        value => "/var/lib/glance/image-cache/";
+    'DEFAULT/log_file':                               value => "/var/log/glance/image-cache.log";
+    'DEFAULT/image_cache_stall_time':                 value => "86400";
+    'DEFAULT/image_cache_invalid_entry_grace_period': value => "3600";
+    'DEFAULT/image_cache_max_size':                   value => $glance_image_cache_max_size;
+    'DEFAULT/filesystem_store_datadir':               value => "/var/lib/glance/images/";
   }
 
   # Install and configure glance-registry
@@ -119,17 +142,25 @@ class openstack::glance (
     sql_connection      => $sql_connection,
     enabled             => $enabled,
     use_syslog          => $use_syslog,
-    syslog_log_facility => $syslog_log_facility,
-    max_retries         => $max_retries,
-    max_pool_size       => $max_pool_size,
-    max_overflow        => $max_overflow,
-    idle_timeout        => $idle_timeout,
+    log_facility        => $syslog_log_facility,
+    sql_idle_timeout    => $idle_timeout,
+  }
+
+  glance_registry_config {
+    'DEFAULT/sql_max_pool_size':          value => $max_pool_size;
+    'DEFAULT/sql_max_retries':            value => $max_retries;
+    'DEFAULT/sql_max_overflow':           value => $max_overflow;
+    'keystone_authtoken/signing_dir':     value => '/tmp/keystone-signing-glance';
+    'keystone_authtoken/signing_dirname': value => '/tmp/keystone-signing-glance';
   }
 
   # puppet-glance assumes rabbit_hosts is an array of [node:port, node:port]
   # but we pass it as a amqp_hosts string of 'node:port, node:port' in Fuel
   if !is_array($rabbit_hosts) {
     $rabbit_hosts_real = split($rabbit_hosts, ',')
+    glance_api_config {
+      'DEFAULT/kombu_reconnect_delay': value => 5.0;
+    }
   } else {
     $rabbit_hosts_real = $rabbit_hosts
   }
@@ -149,30 +180,50 @@ class openstack::glance (
     amqp_durable_queues          => $amqp_durable_queues,
   }
 
+  # syslog additional settings default/use_syslog_rfc_format = true
+  if $use_syslog {
+    glance_api_config {
+      'default/use_syslog_rfc_format': value => true;
+    }
+    glance_cache_config {
+      'default/use_syslog_rfc_format': value => true;
+    }
+    glance_registry_config {
+      'default/use_syslog_rfc_format': value => true;
+    }
+  }
+
   # Configure file storage backend
 
-
- if $glance_backend == "swift" {
-    if !defined(Package['swift']) {
-      include ::swift::params
-      package { "swift":
-        name   => $::swift::params::package_name,
-        ensure =>present
+  case $glance_backend {
+    'swift': {
+      if !defined(Package['swift']) {
+        include ::swift::params
+        package { "swift":
+          name   => $::swift::params::package_name,
+          ensure =>present
+        }
+      }
+      Package["swift"] ~> Service['glance-api']
+      Package<| title == 'swift'|> ~> Service<| title == 'glance-api'|>
+      if !defined(Service['glance-api']) {
+        notify{ "Module ${module_name} cannot notify service glance-api on package swift update": }
+      }
+      class { "glance::backend::$glance_backend":
+        swift_store_user => "services:glance",
+        swift_store_key=> $glance_user_password,
+        swift_store_create_container_on_put => "True",
+        swift_store_auth_address => "http://${keystone_host}:5000/v2.0/"
       }
     }
-    Package["swift"] ~> Service['glance-api']
-    Package<| title == 'swift'|> ~> Service<| title == 'glance-api'|>
-    if !defined(Service['glance-api']) {
-      notify{ "Module ${module_name} cannot notify service glance-api on package swift update": }
+    'rbd', 'ceph': {
+      class { "glance::backend::rbd":
+        rbd_store_user => $::ceph::glance_user,
+        rbd_store_pool => $::ceph::glance_pool,
+      }
     }
-
-    class { "glance::backend::$glance_backend":
-      swift_store_user => "services:glance",
-      swift_store_key=> $glance_user_password,
-      swift_store_create_container_on_put => "True",
-      swift_store_auth_address => "http://${keystone_host}:5000/v2.0/"
+    default: {
+      class { "glance::backend::$glance_backend": }
     }
-  } else {
-    class { "glance::backend::$glance_backend": }
   }
 }
