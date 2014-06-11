@@ -76,6 +76,10 @@ class openstack::db::mysql (
     $use_syslog              = false,
 ) {
 
+  class {"mysql::config":
+    dryrun => true,
+  }
+
   class { "mysql::server" :
     bind_address            => '0.0.0.0',
     etc_root_password       => true,
