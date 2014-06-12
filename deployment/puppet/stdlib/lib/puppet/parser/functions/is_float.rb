@@ -15,10 +15,7 @@ Returns true if the variable passed to this function is a float.
 
     value = arguments[0]
 
-    # Only allow Numeric or String types
-    return false unless value.is_a?(Numeric) or value.is_a?(String)
-
-    if value != value.to_f.to_s and !value.is_a? Float then
+    if value != value.to_f.to_s then
       return false
     else
       return true

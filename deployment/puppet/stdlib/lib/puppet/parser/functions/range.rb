@@ -27,13 +27,6 @@ Will return: ["a","b","c"]
     range("host01", "host10")
 
 Will return: ["host01", "host02", ..., "host09", "host10"]
-
-Passing a third argument will cause the generated range to step by that
-interval, e.g.
-
-    range("0", "9", "2")
-
-Will return: [0,2,4,6,8]
     EOS
   ) do |arguments|
 
@@ -44,7 +37,6 @@ Will return: [0,2,4,6,8]
     if arguments.size > 1
       start = arguments[0]
       stop  = arguments[1]
-      step  = arguments[2].nil? ? 1 : arguments[2].to_i.abs
 
       type = '..' # We select simplest type for Range available in Ruby ...
 
@@ -79,7 +71,7 @@ Will return: [0,2,4,6,8]
         when /^(\.\.\.)$/  then (start ... stop) # Exclusive of last element ...
       end
 
-      result = range.step(step).collect { |i| i } # Get them all ... Pokemon ...
+      result = range.collect { |i| i } # Get them all ... Pokemon ...
 
     return result
   end

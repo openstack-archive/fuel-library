@@ -15,6 +15,7 @@ module Puppet::Parser::Functions
 
     value = arguments[0]
     klass = value.class
+    unsafe = ":/?#[]@!$&'()*+,;= "
 
     unless [Array, String].include?(klass)
       raise(Puppet::ParseError, 'uriescape(): Requires either ' +
@@ -25,7 +26,7 @@ module Puppet::Parser::Functions
       # Numbers in Puppet are often string-encoded which is troublesome ...
       result = value.collect { |i| i.is_a?(String) ? URI.escape(i,unsafe) : i }
     else
-      result = URI.escape(value)
+      result = URI.escape(value,unsafe)
     end
 
     return result
