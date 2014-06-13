@@ -1,5 +1,6 @@
 require 'spec_helper'
 describe 'apt::release', :type => :class do
+  let(:facts) { { :lsbdistid => 'Debian' } }
   let (:title) { 'my_package' }
 
   let :param_set do
@@ -8,7 +9,7 @@ describe 'apt::release', :type => :class do
 
   let (:params) { param_set }
 
-  it { should include_class("apt::params") }
+  it { should contain_class("apt::params") }
 
   it {
     should contain_file("/etc/apt/apt.conf.d/01release").with({

@@ -1,5 +1,6 @@
 require 'spec_helper'
 describe 'apt::key', :type => :define do
+  let(:facts) { { :lsbdistid => 'Debian' } }
   let :title do
     '8347A27F'
   end
