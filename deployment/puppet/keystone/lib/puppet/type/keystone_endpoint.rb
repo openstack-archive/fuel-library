@@ -37,7 +37,12 @@ Puppet::Type.newtype(:keystone_endpoint) do
   end
 
   autorequire(:keystone_service) do
-    [self[:name]]
+    if self[:name].match('/')
+      (region, service_name) = self[:name].split('/')
+      [service_name]
+    else
+      [self[:name]]
+    end
   end
 
 end

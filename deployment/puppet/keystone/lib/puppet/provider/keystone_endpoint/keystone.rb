@@ -48,8 +48,17 @@ Puppet::Type.type(:keystone_endpoint).provide(
         optional_opts.push(opt).push(resource[param])
       end
     end
+
+    if resource[:name].match('/')
+      (region, service_name) = resource[:name].split('/')
+      resource[:region] = region
+      optional_opts.push('--region').push(resource[:region])
+    else
+      service_name = resource[:name]
+    end
+
     service_id = self.class.list_keystone_objects('service', 4).detect do |user|
-      user[1] == resource[:name]
+      user[1] == service_name
     end.first
 
     auth_keystone(
