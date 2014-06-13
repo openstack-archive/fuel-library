@@ -1,5 +1,6 @@
 require 'spec_helper'
 describe 'apt', :type => :class do
+  let(:facts) { { :lsbdistid => 'Debian' } }
   let :default_params do
     {
       :disable_keys => :undef,
@@ -13,6 +14,8 @@ describe 'apt', :type => :class do
     {
       :disable_keys => true,
       :always_apt_update => true,
+      :proxy_host => true,
+      :proxy_port => '3128',
       :purge_sources_list => true,
       :purge_sources_list_d => true,
     },
@@ -37,7 +40,7 @@ describe 'apt', :type => :class do
         end
       end
 
-      it { should include_class("apt::params") }
+      it { should contain_class("apt::params") }
 
       it {
         if param_hash[:purge_sources_list]
@@ -109,19 +112,23 @@ describe 'apt', :type => :class do
           })
         end
       }
-#      describe 'when setting a proxy' do
-#        it {
-#          if param_hash[:proxy_host]
-#            should contain_file('configure-apt-proxy').with(
-#              'path'    => '/etc/apt/apt.conf.d/proxy',
-#              'content' => "Acquire::http::Proxy \"http://#{param_hash[:proxy_host]}:#{param_hash[:proxy_port]}\";",
-#              'notify'  => "Exec[apt_update]"
-#            )
-#          else
-#            should_not contain_file('configure_apt_proxy')
-#          end
-#        }
-#      end
+      describe 'when setting a proxy' do
+        it {
+          if param_hash[:proxy_host]
+            should contain_file('configure-apt-proxy').with(
+              'path'    => '/etc/apt/apt.conf.d/proxy',
+              'content' => "Acquire::http::Proxy \"http://#{param_hash[:proxy_host]}:#{param_hash[:proxy_port]}\";",
+              'notify'  => "Exec[apt_update]"
+            )
+          else
+            should contain_file('configure-apt-proxy').with(
+              'path'    => '/etc/apt/apt.conf.d/proxy',
+              'notify'  => 'Exec[apt_update]',
+              'ensure'  => 'absent'
+            )
+          end
+        }
+      end
     end
   end
 end
