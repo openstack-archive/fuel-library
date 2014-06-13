@@ -1,5 +1,6 @@
 require 'spec_helper'
 describe 'apt::params', :type => :class do
+  let(:facts) { { :lsbdistid => 'Debian' } }
   let (:title) { 'my_package' }
 
   it { should contain_apt__params }

@@ -7,17 +7,36 @@ class apt::params {
 
   case $::lsbdistid {
     'debian': {
-      $backports_location = 'http://backports.debian.org/debian-backports'
+      case $::lsbdistcodename {
+        'squeeze': {
+          $backports_location = 'http://backports.debian.org/debian-backports'
+        }
+        'wheezy': {
+          $backports_location = 'http://ftp.debian.org/debian/'
+        }
+        default: {
+          $backports_location = 'http://http.debian.net/debian/'
+        }
+      }
     }
     'ubuntu': {
       case $::lsbdistcodename {
-        'hardy','lucid','maverick','natty','oneiric','precise': {
+        'hardy','maverick','natty','oneiric','precise': {
           $backports_location = 'http://us.archive.ubuntu.com/ubuntu'
+          $ppa_options = '-y'
+        }
+        'lucid': {
+          $backports_location = 'http://us.archive.ubuntu.com/ubuntu'
+          $ppa_options = undef
         }
         default: {
           $backports_location = 'http://old-releases.ubuntu.com/ubuntu'
+          $ppa_options = '-y'
         }
       }
+    }
+    default: {
+      fail("Unsupported osfamily (${::osfamily}) or lsbdistid (${::lsbdistid})")
     }
   }
 }

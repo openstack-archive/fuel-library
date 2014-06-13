@@ -34,7 +34,7 @@ describe 'apt::backports', :type => :class do
         'location'   => 'http://backports.debian.org/debian-backports',
         'release'    => 'squeeze-backports',
         'repos'      => 'main contrib non-free',
-        'key'        => '55BE302B',
+        'key'        => '46925553',
         'key_server' => 'pgp.mit.edu',
         'pin'        => '200',
       })
@@ -62,7 +62,7 @@ describe 'apt::backports', :type => :class do
         'location'   => location,
         'release'    => 'squeeze-backports',
         'repos'      => 'main contrib non-free',
-        'key'        => '55BE302B',
+        'key'        => '46925553',
         'key_server' => 'pgp.mit.edu',
         'pin'        => '200',
       })
