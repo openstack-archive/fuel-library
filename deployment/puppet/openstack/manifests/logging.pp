@@ -221,12 +221,6 @@ class openstack::logging (
       $enable_udp = $proto ? { 'udp' => true, 'both' => true, default => true }
     }
 
-    # Fuel specific config for logging parse formats used for /var/log/remote
-    $logconf = "${::rsyslog::params::rsyslog_d}30-remote-log.conf"
-    file { $logconf :
-        content => template("${module_name}/30-server-remote-log.conf.erb"),
-    }
-
     class {"::rsyslog::server":
       enable_tcp                 => $enable_tcp,
       enable_udp                 => $enable_udp,
@@ -234,6 +228,14 @@ class openstack::logging (
       high_precision_timestamps  => $show_timezone,
       port                       => $port,
     }
+
+    # Fuel specific config for logging parse formats used for /var/log/remote
+    $logconf = "${::rsyslog::params::rsyslog_d}30-remote-log.conf"
+    file { $logconf :
+        content => template("${module_name}/30-server-remote-log.conf.erb"),
+        require => Class['::rsyslog::server'],
+    }
+
   }
 
   # Configure log rotation

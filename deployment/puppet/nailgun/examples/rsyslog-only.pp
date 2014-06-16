@@ -9,6 +9,13 @@ class {"::rsyslog::server":
   high_precision_timestamps => true,
 }
 
+# Fuel specific config for logging parse formats used for /var/log/remote
+$logconf = "${::rsyslog::params::rsyslog_d}30-remote-log.conf"
+file { $logconf :
+    content => template("${module_name}/30-server-remote-log.conf.erb"),
+    require => Class['::rsyslog::server'],
+}
+
 class {"::openstack::logrotate":
   role           => 'server',
   rotation       => 'weekly',
