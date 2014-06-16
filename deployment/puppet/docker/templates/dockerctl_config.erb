@@ -76,7 +76,7 @@ CONTAINER_OPTIONS["mcollective"]="--privileged $base_opts"
 declare -A HOST_VOL
 HOST_VOL['dump']="-v /var/www/nailgun/dump:/dump"
 #HOST_VOL['dump']="-v /var/www/nailgun/dump:/var/www/nailgun/dump"
-HOST_VOL['repo']="-v /var/www/nailgun:/repo:ro"
+HOST_VOL['repo']="-v /var/www/nailgun:/var/www/nailgun:ro"
 HOST_VOL['puppet']="-v /etc/puppet:/puppet:ro"
 HOST_VOL['sshkey']="-v /root/.ssh:/root/.ssh:ro"
 HOST_VOL['astuteyaml']="-v /etc/fuel:/etc/fuel:ro"
