@@ -46,6 +46,14 @@ class openstack::logging (
 
   include ::rsyslog::params
 
+  # Set access and notifications for rsyslog client
+  File {
+    owner => root,
+    group => $::rsyslog::params::run_group,
+    mode => 0640,
+    notify  => Class["::rsyslog::service"],
+  }
+
   # Configure syslog roles
   if $role == 'client' {
 
@@ -96,14 +104,6 @@ class openstack::logging (
       file_tag      => "mcollective",
       file_facility => "daemon",
       file_severity => "DEBUG",
-      notify  => Class["::rsyslog::service"],
-    }
-
-    # Set access and notifications for rsyslog client
-    File {
-      owner => root,
-      group => $::rsyslog::params::run_group,
-      mode => 0640,
       notify  => Class["::rsyslog::service"],
     }
 
@@ -221,12 +221,6 @@ class openstack::logging (
       $enable_udp = $proto ? { 'udp' => true, 'both' => true, default => true }
     }
 
-    # Fuel specific config for logging parse formats used for /var/log/remote
-    $logconf = "${::rsyslog::params::rsyslog_d}30-remote-log.conf"
-    file { $logconf :
-        content => template("${module_name}/30-server-remote-log.conf.erb"),
-    }
-
     class {"::rsyslog::server":
       enable_tcp                 => $enable_tcp,
       enable_udp                 => $enable_udp,
@@ -234,6 +228,14 @@ class openstack::logging (
       high_precision_timestamps  => $show_timezone,
       port                       => $port,
     }
+
+    # Fuel specific config for logging parse formats used for /var/log/remote
+    $logconf = "${::rsyslog::params::rsyslog_d}30-remote-log.conf"
+    file { $logconf :
+        content => template("${module_name}/30-server-remote-log.conf.erb"),
+        require => Class['::rsyslog::server'],
+    }
+
   }
 
   # Configure log rotation
