@@ -4,11 +4,11 @@
 #  This class manages SELinux on RHEL based systems.
 #
 # Parameters:
-#  - $mode (enforced|permissive|disabled) - sets the operating state for SELinux.
+#  - $mode (enforcing|permissive|disabled) - sets the operating state for SELinux.
 #
 # Actions:
 #  This module will configure SELinux and/or deploy SELinux based modules to running
-#  system. 
+#  system.
 #
 # Requires:
 #  - Class[stdlib]. This is Puppet Labs standard library to include additional methods for use within Puppet. [https://github.com/puppetlabs/puppetlabs-stdlib]
@@ -16,15 +16,12 @@
 # Sample Usage:
 #  include selinux
 #
-class selinux(
-  $mode = 'permissive'
-) {
-  include stdlib
-  include selinux::params
+class selinux (
+  $mode = $::selinux::params::mode,
+) inherits selinux::params {
 
-  anchor { 'selinux::begin': }
-  -> class { 'selinux::config':
-       mode => $mode,
-  }
-  -> anchor { 'selinux::end': }
+  include stdlib
+
+  class { 'selinux::package': } ->
+  class { 'selinux::config': }
 }

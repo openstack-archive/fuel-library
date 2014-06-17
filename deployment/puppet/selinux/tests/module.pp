@@ -1,9 +1,9 @@
-# Class: 
+# Class:
 #
 # Description
 #
 # Parameters:
-#   
+#
 # Actions:
 #
 # Requires:

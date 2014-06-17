@@ -1,11 +1,11 @@
 # Definition: selinux::module
 #
 # Description
-#  This class will either install or uninstall a SELinux module from a running system. 
-#  This module allows an admin to keep .te files in text form in a repository, while 
-#  allowing the system to compile and manage SELinux modules.   
+#  This class will either install or uninstall a SELinux module from a running system.
+#  This module allows an admin to keep .te files in text form in a repository, while
+#  allowing the system to compile and manage SELinux modules.
 #
-#  Concepts incorporated from: 
+#  Concepts incorporated from:
 #  http://stuckinadoloop.wordpress.com/2011/06/15/puppet-managed-deployment-of-selinux-modules/
 #
 # Parameters:
@@ -23,12 +23,14 @@
 # Sample Usage:
 #  selinux::module{ 'apache':
 #    ensure => 'present',
-#    source => 'puppet:///modules/selinux/apache.te', 
+#    source => 'puppet:///modules/selinux/apache.te',
 #  }
 #
 define selinux::module(
-  $ensure  = 'present',
-  $source
+  $source,
+  $ensure         = 'present',
+  $use_makefile   = false,
+  $makefile       = '/usr/share/selinux/devel/Makefile',
 ) {
   # Set Resource Defaults
   File {
@@ -40,38 +42,56 @@ define selinux::module(
   # Only allow refresh in the event that the initial .te file is updated.
   Exec {
     path         => '/sbin:/usr/sbin:/bin:/usr/bin',
-    refreshonly  => 'true',
-    cwd          => "${selinux::params::sx_mod_dir}",
+    refreshonly  => true,
+    cwd          => $selinux::params::sx_mod_dir,
+  }
+
+  exec { "${name}-checkloaded":
+    refreshonly   => false,
+    creates       => "/etc/selinux/${::selinux_config_policy}/modules/active/modules/${name}.pp",
+    command       => 'true',
+    notify        => Exec["${name}-buildmod"],
   }
 
   ## Begin Configuration
-  file { "${selinux::params::sx_mod_dir}/${name}.te":
-    ensure => $ensure,
-    source => $source,
-    tag    => 'selinux-module',
+  file { "${::selinux::params::sx_mod_dir}/${name}.te":
+    ensure  => $ensure,
+    source  => $source,
+    tag     => 'selinux-module',
   }
-  file { "${selinux::params::sx_mod_dir}/${name}.mod":
-    tag => ['selinux-module-build', 'selinux-module'],
+  if !$use_makefile {
+    file { "${::selinux::params::sx_mod_dir}/${name}.mod":
+      tag   => ['selinux-module-build', 'selinux-module'],
+    }
   }
-  file { "${selinux::params::sx_mod_dir}/${name}.pp":
-    tag => ['selinux-module-build', 'selinux-module'],
+  file { "${::selinux::params::sx_mod_dir}/${name}.pp":
+    tag   => ['selinux-module-build', 'selinux-module'],
   }
 
   # Specific executables based on present or absent.
   case $ensure {
     present: {
-      exec { "${name}-buildmod":
-        command => "checkmodule -M -m -o ${name}.mod ${name}.te",
-      }
-      exec { "${name}-buildpp":
-        command => "semodule_package -m ${name}.mod -o ${name}.pp",
+      if $use_makefile {
+        exec { "${name}-buildmod":
+          command => 'true',
+        }
+        exec { "${name}-buildpp":
+          command => "make -f ${makefile} ${name}.pp",
+        }
+      } else {
+        exec { "${name}-buildmod":
+          command => "checkmodule -M -m -o ${name}.mod ${name}.te",
+        }
+        exec { "${name}-buildpp":
+          command => "semodule_package -m ${name}.mod -o ${name}.pp",
+        }
       }
       exec { "${name}-install":
         command => "semodule -i ${name}.pp",
       }
 
       # Set dependency ordering
-      File["${selinux::params::sx_mod_dir}/${name}.te"]
+      File["${::selinux::params::sx_mod_dir}/${name}.te"]
       ~> Exec["${name}-buildmod"]
       ~> Exec["${name}-buildpp"]
       ~> Exec["${name}-install"]
