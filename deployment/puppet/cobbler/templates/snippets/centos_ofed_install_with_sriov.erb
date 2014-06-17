@@ -1,0 +1,21 @@
+#set mlnx_mode=$getVar('mlnx_plugin_mode','disabled')
+
+#if $mlnx_mode != "disabled"
+#set iser_enabled=$getVar('mlnx_iser_enabled','false')
+
+tar xf /tmp/MLNX_OFED_light.tgz -C /tmp && \
+/tmp/MLNX_OFED_light/mlnxofedinstall -q --enable-sriov
+
+MLX4_CORE_OPT="options mlx4_core port_type_array=2,2"
+
+#if $mlnx_mode in ("ethernet") or $iser_enabled == 'true'
+#set VF_NUM=$getVar('mlnx_vf_num','1')
+MLX4_CORE_OPT="$MLX4_CORE_OPT num_vfs=$VF_NUM enable_64b_cqe_eqe=0 log_num_mgm_entry_size=-1"
+#end if
+
+#if $iser_enabled == 'true'
+MLX4_CORE_OPT="$MLX4_CORE_OPT probe_vf=1"
+#end if
+
+echo "$MLX4_CORE_OPT" > /etc/modprobe.d/mlx4_core.conf
+#end if

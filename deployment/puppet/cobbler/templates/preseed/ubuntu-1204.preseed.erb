@@ -128,6 +128,7 @@ echo "UseDNS no" >> /target/etc/ssh/sshd_config && \
 in-target apt-get -y install linux-image-3.11 linux-headers-3.11 && \
 $SNIPPET('ubuntu_blacklist_i2c_piix4')
 $SNIPPET('ubuntu_static_net')
+$SNIPPET('ubuntu_ofed_install_with_sriov')
 # Rsyslogd should send all messages to master node
 $SNIPPET('target_logs_to_master_ubuntu')
 true

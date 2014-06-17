@@ -5,4 +5,12 @@
     #silent $pkgsel_packages.append("mcollective")
 #end if
 
+#set mlnx_mode=$getVar('mlnx_plugin_mode','disabled')
+#if $mlnx_mode != "disabled"
+    #silent $pkgsel_packages.append("mlnx-ofed-light")
+    #silent $pkgsel_packages.append("libnl1")
+    #silent $pkgsel_packages.append("linux-headers-$(uname -r)")
+    #silent $pkgsel_packages.append("dkms")
+#end if
+
 d-i pkgsel/include string #echo " ".join($pkgsel_packages)
