@@ -425,6 +425,7 @@ class osnailyfacter::cluster_ha {
             path      => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
             try_sleep => 5,
             tries     => 60,
+            require   => Package['socat'],
           }
         }
         nova_floating_range { $floating_ips_range:
