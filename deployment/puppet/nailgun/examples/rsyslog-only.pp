@@ -10,6 +10,7 @@ class {"::rsyslog::server":
 }
 
 # Fuel specific config for logging parse formats used for /var/log/remote
+$show_timezone = true
 $logconf = "${::rsyslog::params::rsyslog_d}30-remote-log.conf"
 file { $logconf :
     content => template('openstack/30-server-remote-log.conf.erb'),
