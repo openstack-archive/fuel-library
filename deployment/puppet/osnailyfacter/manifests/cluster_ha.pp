@@ -419,12 +419,14 @@ class osnailyfacter::cluster_ha {
       nova_config { 'DEFAULT/compute_scheduler_driver':  value => $::fuel_settings['compute_scheduler_driver'] }
 
       if ! $::use_quantum {
-        exec { 'wait-for-haproxy-nova-backend':
-          command   => "echo show stat | socat unix-connect:///var/lib/haproxy/stats stdio | grep -q '^nova-api-2,BACKEND,.*,UP,'",
-          path      => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
-          try_sleep => 5,
-          tries     => 60,
-        }->
+        if $::fuel_settings['role'] == 'primary-controller' {
+          exec { 'wait-for-haproxy-nova-backend':
+            command   => "echo show stat | socat unix-connect:///var/lib/haproxy/stats stdio | grep -q '^nova-api-2,BACKEND,.*,UP,'",
+            path      => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
+            try_sleep => 5,
+            tries     => 60,
+          }
+        }
         nova_floating_range { $floating_ips_range:
           ensure          => 'present',
           pool            => 'nova',
@@ -435,7 +437,9 @@ class osnailyfacter::cluster_ha {
           authtenant_name => $access_hash[tenant],
           api_retries     => 10,
         }
-        Class['nova::api', 'openstack::ha::nova'] -> Nova_floating_range <| |>
+        Class['nova::api', 'openstack::ha::nova'] ->
+        Exec<| title=='wait-for-haproxy-nova-backend' |> ->
+        Nova_floating_range <| |>
       }
       if ($::use_ceph){
         Class['openstack::controller'] -> Class['ceph']
@@ -467,7 +471,7 @@ class osnailyfacter::cluster_ha {
         } else {
           $scheduler_default_filters = []
         }
- 
+
         class { '::nova::scheduler::filter':
           cpu_allocation_ratio       => '8.0',
           disk_allocation_ratio      => '1.0',
@@ -538,7 +542,7 @@ class osnailyfacter::cluster_ha {
           primary_controller       => $primary_controller,
         }
 
-       Class['heat'] -> Class['murano']
+        Class['heat'] -> Class['murano']
 
       }
 
