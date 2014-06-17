@@ -59,6 +59,7 @@ class cobbler::snippets {
   cobbler_snippet {"centos_authorized_keys": }
   cobbler_snippet {"centos_blacklist_i2c_piix4":}
   cobbler_snippet {"centos_static_net":}
+  cobbler_snippet {"ofed_install_with_sriov":}
   cobbler_snippet {"ubuntu_authorized_keys":}
   cobbler_snippet {"ubuntu_blacklist_i2c_piix4":}
   cobbler_snippet {"ubuntu_disable_pxe":}
@@ -73,6 +74,7 @@ class cobbler::snippets {
   cobbler_snippet {"anaconda_ssh_console":}
   cobbler_snippet {'centos_post_kernel_lt_if_enabled':}
   cobbler_snippet {'centos_pkg_kernel_lt_if_enabled':}
+  cobbler_snippet {'centos_ofed_prereq_pkgs_if_enabled':}
 
   case $operatingsystem {
     /(?i)(debian|ubuntu)/:  {
