@@ -4,8 +4,8 @@
 #  This class is designed to configure the system to use SELinux on the system
 #
 # Parameters:
-#  - $mode (enforced|permissive|disabled) - sets the operating state for SELinux.
-# 
+#  - $mode (enforcing|permissive|disabled) - sets the operating state for SELinux.
+#
 # Actions:
 #  Configures SELinux to a specific state (enforced|permissive|disabled)
 #
@@ -15,8 +15,8 @@
 # Sample Usage:
 #  This module should not be called directly.
 #
-class selinux::config(
-  $mode
+class selinux::config (
+  $mode = $::selinux::mode,
 ) {
   Exec {
     path => '/bin:/sbin:/usr/bin:/usr/sbin',
@@ -28,33 +28,26 @@ class selinux::config(
 
   # Check to see if the mode set is valid.
   if $mode == 'enforcing' or $mode == 'permissive' or $mode == 'disabled' {
-    exec { "set-selinux-config-to-${mode}":
-      command => "sed -i \"s@^\\(SELINUX=\\).*@\\1${mode}@\" /etc/selinux/config",
-      unless  => "grep -q \"SELINUX=${mode}\" /etc/selinux/config",
+    case $::operatingsystemrelease {
+      # Change command based on OS release.
+      # RHEL <= 5 do not support --follow-symlinks with sed
+      # ref: @lboynton: http://git.io/QvJ9ww
+      /^5/: {
+        $selinux_set_command = "sed -i \"s@^\\(SELINUX=\\).*@\\1${mode}@\" /etc/sysconfig/selinux"
+      }
+      default: {
+        $selinux_set_command = "sed -i --follow-symlinks \"s@^\\(SELINUX=\\).*@\\1${mode}@\" /etc/sysconfig/selinux"
+      }
     }
-    exec { "disable-selinux-relabeling":
-      command => "rm -f /.autorelabel",
+
+    exec { "set-selinux-config-to-${mode}":
+      command => $selinux_set_command,
+      unless  => "grep -q \"SELINUX=${mode}\" /etc/sysconfig/selinux",
     }
 
     case $mode {
-      permissive,disabled: { 
+      permissive,disabled: {
         $sestatus = '0'
-
-        # workaround bugfix (http://projects.puppetlabs.com/issues/4466)
-        case $::osfamily {
-          'RedHat': {
-        $facter_selinux_path = '/usr/lib/ruby/site_ruby/1.8/facter/selinux.rb'
-            }
-	         'Debian': {
-	            $facter_selinux_path = '/usr/lib/ruby/vendor_ruby/facter/selinux.rb'
-	          }
-	      }
-
-        exec { "patch-facter-selinux":
-          command => "sed -i 's|proc/self/attr/current\") !|proc/self/attr/current\") rescue \"kernel\\\\0\" !|' ${facter_selinux_path}",
-          unless  => "grep -q 'rescue \"kernel' ${facter_selinux_path}",
-        }
-
         if $mode == 'disabled' and $::selinux_current_mode == 'permissive' {
           notice('A reboot is required to fully disable SELinux. SELinux will operate in Permissive mode until a reboot')
         }
@@ -62,13 +55,15 @@ class selinux::config(
       enforcing: {
         $sestatus = '1'
       }
+      default : {
+        fail('You must specify a mode (enforced, permissive, or disabled) for selinux operation')
+      }
     }
 
     exec { "change-selinux-status-to-${mode}":
       command => "echo ${sestatus} > /selinux/enforce",
       unless  => "grep -q '${sestatus}' /selinux/enforce",
     }
-
   } else {
     fail("Invalid mode specified for SELinux: ${mode}")
   }

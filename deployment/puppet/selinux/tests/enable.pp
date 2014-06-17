@@ -1,9 +1,9 @@
-# Class: 
+# Class:
 #
 # Description
 #
 # Parameters:
-#   
+#
 # Actions:
 #
 # Requires:
@@ -11,6 +11,6 @@
 # Sample Usage:
 #
 
-class { 'selinux': 
+class { 'selinux':
   mode => 'enforcing',
 }
