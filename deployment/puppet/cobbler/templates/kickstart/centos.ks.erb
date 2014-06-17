@@ -131,6 +131,10 @@ perl
 daemonize
 rsync
 
+# COBBLER EMBEDDED SNIPPET: 'centos_ofed_prereq_pkgs_if_enabled'
+# LISTS ofed prereq PACKAGES IF mlnx_plugin_mode VARIABLE IS SET TO enabled
+$SNIPPET('centos_ofed_prereq_pkgs_if_enabled')
+
 # COBBLER EMBEDDED SNIPPET: 'puppet_install_if_enabled'
 # LISTS puppet PACKAGE IF puppet_auto_setup VARIABLE IS SET TO 1
 $SNIPPET('puppet_install_if_enabled')
@@ -251,6 +255,9 @@ $SNIPPET('centos_static_net')
 
 # Blacklist i2c_piix4 module so it does not create kernel errors
 $SNIPPET('centos_blacklist_i2c_piix4')
+
+# Install OFED components for RDMA if needed
+$SNIPPET('ofed_install_with_sriov')
 
 # COBBLER EMBEDDED SNIPPET: 'kickstart_done'
 # DISABLES PXE BOOTING

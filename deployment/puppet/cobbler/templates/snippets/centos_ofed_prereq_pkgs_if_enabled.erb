@@ -1,0 +1,5 @@
+#set mlnx_mode=$getVar('mlnx_plugin_mode','disabled')
+
+#if $mlnx_mode != "disabled"
+mlnx-ofed-light
+#end if
