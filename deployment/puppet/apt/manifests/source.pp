@@ -4,7 +4,7 @@
 define apt::source(
   $ensure            = present,
   $location          = '',
-  $release           = $::lsbdistcodename,
+  $release           = 'UNDEF',
   $repos             = 'main',
   $include_src       = true,
   $required_packages = false,
@@ -12,7 +12,8 @@ define apt::source(
   $key_server        = 'keyserver.ubuntu.com',
   $key_content       = false,
   $key_source        = false,
-  $pin               = false
+  $pin               = false,
+  $architecture      = undef
 ) {
 
   include apt::params
@@ -21,8 +22,14 @@ define apt::source(
   $sources_list_d = $apt::params::sources_list_d
   $provider       = $apt::params::provider
 
-  if $release == undef {
-    fail('lsbdistcodename fact not available: release parameter required')
+  if $release == 'UNDEF' {
+    if $::lsbdistcodename == undef {
+      fail('lsbdistcodename fact not available: release parameter required')
+    } else {
+      $release_real = $::lsbdistcodename
+    }
+  } else {
+    $release_real = $release
   }
 
   file { "${name}.list":
@@ -54,7 +61,10 @@ define apt::source(
       command     => "${provider} -y install ${required_packages}",
       logoutput   => 'on_failure',
       refreshonly => true,
+      tries       => 3,
+      try_sleep   => 1,
       subscribe   => File["${name}.list"],
+      before      => Exec['apt_update'],
     }
   }
 
