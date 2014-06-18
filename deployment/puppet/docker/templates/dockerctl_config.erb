@@ -8,7 +8,7 @@ SOURCE_DIR="${DOCKER_ROOT}/sources"
 #SUPERVISOR_CONF_DIR="${docker_root}/supervisor.d"
 #SUPERVISOR_CONF_DIR="${docker_root}/supervisor"
 #SUPERVISOR_CONF_DIR="<%= @config_dir %>/supervisor/"
-ASTUTE_YAML=/etc/astute.yaml
+ASTUTE_YAML="<%= @astute_settings_file %>"
 #Version of Fuel to deploy
 VERSION=$(awk '/release/{gsub(/"/, "");print $2}' /etc/fuel/version.yaml || echo <%= @release %>)
 IMAGE_PREFIX="fuel"
