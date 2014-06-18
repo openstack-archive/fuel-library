@@ -1,0 +1,11 @@
+if ! grep -q docker0 /proc/net/dev; then
+  sleep 10
+fi
+( ps -p "`cat /var/run/dhcrelay.pid 2>/dev/null`" &>/dev/null || /etc/init.d/dhcrelay start )
+if [ $? -eq 0 ]; then
+  pid=$(cat /var/run/dhcrelay.pid)
+  while test -e "/proc/$pid"; do 
+    sleep 30
+  done
+fi
+
