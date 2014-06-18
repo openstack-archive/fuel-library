@@ -1,5 +1,3 @@
-*.swp
 pkg/
+*.swp
 .DS_Store
-metadata.json
-coverage/
