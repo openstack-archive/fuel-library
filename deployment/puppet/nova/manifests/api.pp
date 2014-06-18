@@ -27,7 +27,7 @@ class nova::api(
   $nova_quota_driver = 'nova.quota.NoopQuotaDriver',
   $nova_rate_limits  = undef,
   $nova_user_password= undef, #Empty password generates error and saves from non-working installation
-  $api_workers       = $::processorcount,
+  $api_workers       = min($::processorcount * 5 + 0, 100 + 0),
 ) {
 
   include nova::params
