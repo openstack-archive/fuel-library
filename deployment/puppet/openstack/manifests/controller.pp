@@ -198,7 +198,7 @@ class openstack::controller (
   $nameservers                    = undef,
   #
   $max_retries                    = '-1',
-  $max_pool_size                  = '10',
+  $max_pool_size                  = '50',
   $max_overflow                   = '30',
   $idle_timeout                   = '3600',
 ) {
