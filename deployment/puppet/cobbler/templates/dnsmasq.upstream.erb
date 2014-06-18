@@ -1,3 +1,5 @@
 domain <%= @domain %>
 search <%= @dns_search %>
-nameserver <%= @dns_upstream %>
+<%- @dns_upstream.split(',').each do |dns| -%>
+nameserver <%= dns %>
+<%- end -%>
