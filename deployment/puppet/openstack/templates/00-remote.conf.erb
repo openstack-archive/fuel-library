@@ -9,6 +9,21 @@ $Template RemoteLog, "<%%pri%>%timestamp% %hostname% %syslogtag%%msg:::sp-if-no-
 # Note: don't use %app-name% cuz it would be empty for some cases
 $ActionFileDefaultTemplate RemoteLog
 
+# Do not send remote logs from isolated HAproxy - we deliver it with the help of rsyslog imfile instead
+# Use standard local destination and format for HAproxy logs
+$template HaproxyLogFile, "/var/log/haproxy.log"
+# Define the standard local syslog log format we're using for HAproxy as well
+<% if @show_timezone -%>
+# Use high precision timestamps (date-rfc3339, 2010-12-05T02:21:41.889482+01:00)
+$Template LocalLogFormat, "%timegenerated:1:32:date-rfc3339% %syslogseverity-text%: %msg%\n"
+<% else -%>
+# Use traditional timestamps (date-rfc3164, Dec 5 02:21:13)
+$Template LocalLogFormat, "%timegenerated:1:15:date-rfc3164% %syslogseverity-text%: %msg%\n"
+<% end -%>
+# Match for HAproxy logs, put them to its standard destination and skip further processing by syslog
+:syslogtag, regex, "haproxy" ?HaproxyLogFile;LocalLogFormat
+&~
+
 <% @rservers_real.each do |rserver| -%>
 <% if ! ['localhost','127.0.0.1','::1'].include?(rserver['server']) -%>
 <% if rserver['remote_type'] == 'tcp' -%>

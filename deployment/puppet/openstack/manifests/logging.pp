@@ -41,7 +41,7 @@ class openstack::logging (
 
   # Fix for udp checksums should be applied if running on virtual node
   if $virtual {
-    class { "openstack::checksum_udp" : port => $port }
+    class { 'openstack::checksum_udp' : port => $port }
   }
 
   include ::rsyslog::params
@@ -51,7 +51,7 @@ class openstack::logging (
     owner => root,
     group => $::rsyslog::params::run_group,
     mode => 0640,
-    notify  => Class["::rsyslog::service"],
+    notify  => Class['::rsyslog::service'],
   }
 
   # Configure syslog roles
@@ -66,45 +66,55 @@ class openstack::logging (
 
     # Configure logging templates for rsyslog client side
     # Rabbitmq does not support syslogging, use imfile
-    ::rsyslog::imfile { "04-rabbitmq" :
+    ::rsyslog::imfile { '04-rabbitmq' :
       file_name     => "/var/log/rabbitmq/rabbit@${hostname}.log",
-      file_tag      => "rabbitmq",
-      file_facility => "syslog",
+      file_tag      => 'rabbitmq',
+      file_facility => 'syslog',
       file_severity => $rabbit_log_level,
-      notify  => Class["::rsyslog::service"],
+      notify  => Class['::rsyslog::service'],
     }
 
-    ::rsyslog::imfile { "04-rabbitmq-sasl" :
+    # HAproxy is isolated in its own namespace, so we will deliver
+    # its local logs via imfile as well (as local0:NOTICE messages)
+    ::rsyslog::imfile { '04-haproxy' :
+      file_name     => '/var/log/haproxy.log',
+      file_tag      => 'haproxy',
+      file_facility => 'local0',
+      file_severity => 'NOTICE',
+      notify  => Class['::rsyslog::service'],
+    }
+
+    ::rsyslog::imfile { '04-rabbitmq-sasl' :
       file_name     => "/var/log/rabbitmq/rabbit@${hostname}-sasl.log",
-      file_tag      => "rabbitmq-sasl",
-      file_facility => "syslog",
+      file_tag      => 'rabbitmq-sasl',
+      file_facility => 'syslog',
       file_severity => $rabbit_log_level,
-      notify  => Class["::rsyslog::service"],
+      notify  => Class['::rsyslog::service'],
     }
 
-    ::rsyslog::imfile { "04-rabbitmq-startup_err" :
-      file_name     => "/var/log/rabbitmq/startup_err",
-      file_tag      => "rabbitmq-startup_err",
-      file_facility => "syslog",
-      file_severity => "ERROR",
-      notify  => Class["::rsyslog::service"],
+    ::rsyslog::imfile { '04-rabbitmq-startup_err' :
+      file_name     => '/var/log/rabbitmq/startup_err',
+      file_tag      => 'rabbitmq-startup_err',
+      file_facility => 'syslog',
+      file_severity => 'ERROR',
+      notify  => Class['::rsyslog::service'],
     }
 
-    ::rsyslog::imfile { "04-rabbitmq-shutdown_err" :
-      file_name     => "/var/log/rabbitmq/shutdown_err",
-      file_tag      => "rabbitmq-shutdown_err",
-      file_facility => "syslog",
-      file_severity => "ERROR",
-      notify  => Class["::rsyslog::service"],
+    ::rsyslog::imfile { '04-rabbitmq-shutdown_err' :
+      file_name     => '/var/log/rabbitmq/shutdown_err',
+      file_tag      => 'rabbitmq-shutdown_err',
+      file_facility => 'syslog',
+      file_severity => 'ERROR',
+      notify  => Class['::rsyslog::service'],
     }
 
     # mco does not support syslog also, hence use imfile
-    ::rsyslog::imfile { "61-mco_agent_debug" :
-      file_name     => "/var/log/mcollective.log",
-      file_tag      => "mcollective",
-      file_facility => "daemon",
-      file_severity => "DEBUG",
-      notify  => Class["::rsyslog::service"],
+    ::rsyslog::imfile { '61-mco_agent_debug' :
+      file_name     => '/var/log/mcollective.log',
+      file_tag      => 'mcollective',
+      file_facility => 'daemon',
+      file_severity => 'DEBUG',
+      notify  => Class['::rsyslog::service'],
     }
 
     # OS syslog configs for rsyslog client
@@ -185,7 +195,7 @@ class openstack::logging (
     content => template("${module_name}/00-remote.conf.erb"),
     }
 
-    class { "::rsyslog::client":
+    class { '::rsyslog::client':
       log_remote                => $log_remote,
       log_local                 => $log_local,
       log_auth_local            => $log_auth_local,
@@ -221,7 +231,7 @@ class openstack::logging (
       $enable_udp = $proto ? { 'udp' => true, 'both' => true, default => true }
     }
 
-    class {"::rsyslog::server":
+    class {'::rsyslog::server':
       enable_tcp                 => $enable_tcp,
       enable_udp                 => $enable_udp,
       server_dir                 => '/var/log/',
@@ -239,7 +249,7 @@ class openstack::logging (
   }
 
   # Configure log rotation
-  class {"::openstack::logrotate":
+  class {'::openstack::logrotate':
     role           => $role,
     rotation       => $rotation,
     keep           => $keep,
