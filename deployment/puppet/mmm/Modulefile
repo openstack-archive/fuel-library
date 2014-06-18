@@ -1,9 +1,0 @@
-name 'tribily-mmm'
-version '1.3'
-
-author 'Walter Heck'
-license 'Apache License, Version 2.0'
-project_page 'https://github.com/Tribily/puppet-mmm'
-source 'https://github.com/Tribily/puppet-mmm'
-summary 'A puppet module to manage MMM for MySQL'
-description 'For more information about MMM for MySQL/MariaDB, see http://mysql-mmm.org'
