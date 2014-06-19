@@ -74,6 +74,9 @@ elif [ "$1" == "check" ]; then
   else
     check_ready $container
   fi
+elif [ "$1" == "list" ]; then
+  shift 1
+  list_containers "$@"
 elif [ "$1" == "restart" ]; then
   shift 2
   restart_container $container $@
