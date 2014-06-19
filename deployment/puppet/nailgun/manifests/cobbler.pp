@@ -13,6 +13,9 @@ class nailgun::cobbler(
   $domain_name = 'domain.tld',
   $dns_search = 'domain.tld',
 
+  $mco_user = 'mcollective',
+  $mco_pass = 'marionette',
+
   $dhcp_start_address,
   $dhcp_end_address,
   $dhcp_netmask,
@@ -162,7 +165,8 @@ class nailgun::cobbler(
     distro => "bootstrap",
     menu => true,
     kickstart => "",
-    kopts => "biosdevname=0 url=http://${::fuel_settings['ADMIN_NETWORK']['ipaddress']}:8000/api",
+    kopts => "biosdevname=0
+url=http://${::fuel_settings['ADMIN_NETWORK']['ipaddress']}:8000/api mco_user=${mco_user} mco_pass=${mco_pass}",
     ksmeta => "",
     server => $real_server,
     require => Cobbler_distro["bootstrap"],
