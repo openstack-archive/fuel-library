@@ -1,3 +1,7 @@
+# [*mysql_module*]
+#   (optional) The puppet-mysql module version to use.
+#   Tested versions include 0.9 and 2.2
+#   Defaults to '0.9'
 #
 class cinder::db::mysql (
   $password,
@@ -7,24 +11,15 @@ class cinder::db::mysql (
   $allowed_hosts = undef,
   $charset       = 'utf8',
   $collate       = 'utf8_unicode_ci',
-  $mysql_module  = '0.9',
-  $cluster_id    = 'localzone'
+  $cluster_id    = 'localzone',
+  $mysql_module  = '0.9'
 ) {
 
-  include cinder::params
-
-  Class['mysql::server'] -> Class['cinder::db::mysql']
-  if $::osfamily == "Debian" {
-    Class['cinder::db::mysql'] -> Package['cinder-api']
-  }
   Class['cinder::db::mysql'] -> Exec<| title == 'cinder-manage db_sync' |>
 
-  Class['cinder::db::mysql'] -> Service<| title == 'cinder-scheduler' |>
-  Class['cinder::db::mysql'] -> Service<| title == 'cinder-volume' |>
-  Class['cinder::db::mysql'] -> Service<| title == 'cinder-api' |>
-
-  if ($mysql_module >= '2.2') {
+  if ($mysql_module >= 2.2) {
     Mysql_database[$dbname] ~> Exec<| title == 'cinder-manage db_sync' |>
+
     mysql::db { $dbname:
       user         => $user,
       password     => $password,
@@ -33,23 +28,34 @@ class cinder::db::mysql (
       collate      => $collate,
       require      => Class['mysql::server'],
     }
+
   } else {
     Database[$dbname] ~> Exec<| title == 'cinder-manage db_sync' |>
+
     mysql::db { $dbname:
       user         => $user,
       password     => $password,
       host         => $host,
       charset      => $charset,
-      require      => Class['mysql::server'],
+      require      => Class['mysql::config'],
     }
   }
 
-  if $allowed_hosts {
-     # TODO this class should be in the mysql namespace
-     cinder::db::mysql::host_access { $allowed_hosts:
-      user      => $user,
-      password  => $password,
-      database  => $dbname,
+
+  # Check allowed_hosts to avoid duplicate resource declarations
+  if is_array($allowed_hosts) and delete($allowed_hosts,$host) != [] {
+    $real_allowed_hosts = delete($allowed_hosts,$host)
+  } elsif is_string($allowed_hosts) and ($allowed_hosts != $host) {
+    $real_allowed_hosts = $allowed_hosts
+  }
+
+  if $real_allowed_hosts {
+    # TODO this class should be in the mysql namespace
+    cinder::db::mysql::host_access { $real_allowed_hosts:
+      user          => $user,
+      password      => $password,
+      database      => $dbname,
+      mysql_module  => $mysql_module,
     }
   }
 
