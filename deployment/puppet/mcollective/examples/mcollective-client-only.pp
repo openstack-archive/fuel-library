@@ -5,8 +5,8 @@ $mco_host = $::fuel_settings['ADMIN_NETWORK']['ipaddress']
 
 $mco_pskey = "unset"
 $mco_vhost = "mcollective"
-$mco_user = "mcollective"
-$mco_password = "marionette"
+$mco_user = $::fuel_settings['mcollective']['user']
+$mco_password = $mco_user = $::fuel_settings['mcollective']['password']
 $mco_connector = "rabbitmq"
 
 class { "mcollective::client":
