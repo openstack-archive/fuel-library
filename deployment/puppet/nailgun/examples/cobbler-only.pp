@@ -27,8 +27,8 @@ node default {
    ]
 
   $cobbler_url        = "http://${::fuel_settings['ADMIN_NETWORK']['ipaddress']}/cobbler_api"
-  $cobbler_user       = "cobbler"
-  $cobbler_password   = "cobbler"
+  $cobbler_user       = $::fuel_settings['cobbler']['user']
+  $cobbler_password   = $::fuel_settings['cobbler']['password']
   $nailgun_api_url    = "http://${::fuel_settings['ADMIN_NETWORK']['ipaddress']}:8000/api"
   if $production == "docker-build" {
     $cobbler_host     = $::ipaddress
@@ -49,12 +49,12 @@ node default {
 
   $mco_pskey = "unset"
   $mco_vhost = "mcollective"
-  $mco_user = "mcollective"
-  $mco_password = "marionette"
+  $mco_user = $::fuel_settings['mcollective']['user']
+  $mco_password = $::fuel_settings['mcollective']['password']
   $mco_connector = "rabbitmq"
 
-  $rabbitmq_naily_user = "naily"
-  $rabbitmq_naily_password = "naily"
+  $rabbitmq_naily_user = $::fuel_settings['astute']['user']
+  $rabbitmq_naily_password = $::fuel_settings['astute']['password']
 
   $repo_root = "/var/www/nailgun"
   $pip_repo = "/var/www/nailgun/eggs"
