@@ -11,11 +11,11 @@ class { 'postgresql::server':
 }
 
 # nailgun db and grants
-$database_name = "nailgun"
+$database_name = $::fuel_settings['postgres']['nailgun_dbname']
 $database_engine = "postgresql"
 $database_port = "5432"
-$database_user = "nailgun"
-$database_passwd = "nailgun"
+$database_user = $::fuel_settings['postgres']['nailgun_user']
+$database_passwd = $::fuel_settings['postgres']['nailgun_password']
 
 class { "nailgun::database":
   user      => $database_user,
@@ -24,9 +24,9 @@ class { "nailgun::database":
 }
 
 # ostf db and grants
-$dbuser   = 'ostf'
-$dbpass   = 'ostf'
-$dbname   = 'ostf'
+$dbuser   = $::fuel_settings['postgres']['ostf_dbname']
+$dbpass   = $::fuel_settings['postgres']['ostf_user']
+$dbname   = $::fuel_settings['postgres']['ostf_password']
 
 postgresql::db{ $dbname:
   user     => $dbuser,

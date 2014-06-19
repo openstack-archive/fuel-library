@@ -34,8 +34,9 @@ node default {
   class { "nailgun::ostf":
     production   => $production,
     pip_opts     => "${pip_index} ${pip_find_links}",
-    dbuser       => 'ostf',
-    dbpass       => 'ostf',
+    dbname       => $::fuel_settings['postgres']['ostf_dbname'],
+    dbuser       => $::fuel_settings['postgres']['ostf_user'],
+    dbpass       => $::fuel_settings['postgres']['ostf_password'],
     dbhost       => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
     dbport       => '5432',
     nailgun_host => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],

@@ -11,12 +11,12 @@ else {
 
 
 #astute user
-$rabbitmq_astute_user = "naily"
-$rabbitmq_astute_password = "naily"
+$rabbitmq_astute_user = $::fuel_settings['astute']['user']
+$rabbitmq_astute_password = $::fuel_settings['astute']['password']
 
 #mcollective user
-$mco_user = "mcollective"
-$mco_password = "marionette"
+$mco_user = $::fuel_settings['mcollective']['user']
+$mco_password = $::fuel_settings['mcollective']['password']
 $mco_vhost = "mcollective"
 $stomp = false
 
