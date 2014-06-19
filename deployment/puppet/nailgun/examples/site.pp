@@ -27,20 +27,20 @@ node default {
    },
    ]
 
-  $cobbler_user = "cobbler"
-  $cobbler_password = "cobbler"
+  $cobbler_user = $::fuel_settings['cobbler']['user']
+  $cobbler_password = $::fuel_settings['cobbler']['password'
 
   $puppet_master_hostname = "${hostname}.${domain}"
 
   $mco_pskey = "unset"
   $mco_vhost = "mcollective"
-  $mco_user = "mcollective"
-  $mco_password = "marionette"
+  $mco_user = $::fuel_settings['mcollective']['user']
+  $mco_password = $::fuel_settings['mcollective']['password']
   $mco_connector = "rabbitmq"
 
   $rabbitmq_host = $::fuel_settings['ADMIN_NETWORK']['ipaddress']
-  $rabbitmq_astute_user = "naily"
-  $rabbitmq_astute_password = "naily"
+  $rabbitmq_astute_user = $::fuel_settings['astute']['user']
+  $rabbitmq_astute_password = $::fuel_settings['astute']['password']
 
   $repo_root = "/var/www/nailgun"
   $pip_repo = "/var/www/nailgun/eggs"
@@ -75,12 +75,12 @@ node default {
 
     # it will be path to database file while using sqlite
     # (this is not implemented now)
-    database_name => "nailgun",
+    database_name => $::fuel_settings['postgres']['nailgun_dbname'],
     database_engine => "postgresql",
     database_host => "localhost",
     database_port => "5432",
-    database_user => "nailgun",
-    database_passwd => "nailgun",
+    database_user => $::fuel_settings['postgres']['nailgun_user'],
+    database_passwd => $::fuel_settings['postgres']['nailgun_password'],
 
     staticdir => $staticdir,
     templatedir => $staticdir,
