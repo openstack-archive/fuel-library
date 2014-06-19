@@ -496,6 +496,7 @@ class openstack::controller (
       keystone_password    => $ceilometer_user_password,
       bind_host            => $api_bind_address,
       ha_mode              => $ha_mode,
+      primary_controller   => $primary_controller,
       on_controller        => true,
       use_neutron          => $quantum,
       swift                => $swift,
