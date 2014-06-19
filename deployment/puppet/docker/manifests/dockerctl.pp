@@ -36,6 +36,10 @@ class docker::dockerctl (
     group   => 'root',
     content => template("docker/dhcrelay.conf.erb")
   }
+  file { "$bin_dir/get_service_credentials.py":
+    mode    => 0755,
+    content => template("docker/get_service_credentials.py.erb")
+  }
   file { "$share_dir/functions":
     mode    => 0644,
     content => template("docker/functions.sh.erb")
