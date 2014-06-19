@@ -1,5 +1,7 @@
-*.swp
-pkg/
-.DS_Store
-
-coverage/
+.pkg
+Gemfile.lock
+vendor
+spec/fixtures
+.rspec_system
+.bundle
+*.sw*

@@ -1,44 +1,58 @@
-# Sets up the concat system.
+# === Class: concat::setup
 #
-# $concatdir is where the fragments live and is set on the fact concat_basedir.
-# Since puppet should always manage files in $concatdir and they should
-# not be deleted ever, /tmp is not an option.
+# Sets up the concat system. This is a private class.
 #
-# $puppetversion should be either 24 or 25 to enable a 24 compatible
-# mode, in 24 mode you might see phantom notifies this is a side effect
-# of the method we use to clear the fragments directory.
-#
-# The regular expression below will try to figure out your puppet version
-# but this code will only work in 0.24.8 and newer.
+# [$concatdir]
+#   is where the fragments live and is set on the fact concat_basedir.
+#   Since puppet should always manage files in $concatdir and they should
+#   not be deleted ever, /tmp is not an option.
 #
 # It also copies out the concatfragments.sh file to ${concatdir}/bin
+#
 class concat::setup {
-  $id = $::id
-  $root_group = $id ? {
-    root    => 0,
-    default => $id
+  if $caller_module_name != $module_name {
+    warning("${name} is deprecated as a public API of the ${module_name} module and should no longer be directly included in the manifest.")
   }
 
   if $::concat_basedir {
     $concatdir = $::concat_basedir
   } else {
-    fail ("\$concat_basedir not defined. Try running again with pluginsync enabled")
+    fail ('$concat_basedir not defined. Try running again with pluginsync=true on the [master] and/or [main] section of your node\'s \'/etc/puppet/puppet.conf\'.')
+  }
+  
+  # owner and mode of fragment files (on windows owner and access rights should be inherited from concatdir and not explicitly set to avoid problems)
+  $fragment_owner = $osfamily ? { 'windows' => undef, default => $::id }
+  $fragment_mode  = $osfamily ? { 'windows' => undef, default => '0640' }
+
+  $script_name = $::kernel ? {
+    'windows' => 'concatfragments.rb',
+    default   => 'concatfragments.sh'
   }
 
-  file{"${concatdir}/bin/concatfragments.sh":
-    owner  => $id,
-    group  => $root_group,
-    mode   => '0755',
-    source => 'puppet:///modules/concat/concatfragments.sh';
+  $script_path = "${concatdir}/bin/${script_name}"
 
-  [ $concatdir, "${concatdir}/bin" ]:
+  $script_owner = $osfamily ? { 'windows' => undef, default => $::id }
+
+  $script_mode = $osfamily ? { 'windows' => undef, default => '0755' }
+
+  $script_command   = $::kernel ? {
+    'windows' => "ruby.exe ${script_path}",
+    default   => $script_path
+  }
+
+  File {
+    backup => false,
+  }
+
+  file { $script_path:
+    ensure => file,
+    owner  => $script_owner,
+    mode   => $script_mode,
+    source => "puppet:///modules/concat/${script_name}",
+  }
+
+  file { [ $concatdir, "${concatdir}/bin" ]:
     ensure => directory,
-    owner  => $id,
-    group  => $root_group,
-    mode   => '0750';
-
-  ## Old versions of this module used a different path.
-  '/usr/local/bin/concatfragments.sh':
-    ensure => absent;
+    mode   => '0755',
   }
 }
