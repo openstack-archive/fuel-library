@@ -49,7 +49,9 @@ module Puppet
     end
 
     autorequire(:cs_shadow) do
-      [ @parameters[:cib].value ]
+      rv = []
+      rv << @parameters[:cib].value if !@parameters[:cib].nil?
+      rv
     end
 
     autorequire(:service) do
