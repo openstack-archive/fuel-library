@@ -203,7 +203,6 @@ class openstack::controller (
   $idle_timeout                   = '3600',
 ) {
 
-
   # Ensure things are run in order
   Class['openstack::db::mysql'] -> Class['openstack::keystone']
   if ($ceilometer) {
@@ -496,6 +495,7 @@ class openstack::controller (
       keystone_password    => $ceilometer_user_password,
       bind_host            => $api_bind_address,
       ha_mode              => $ha_mode,
+      primary_controller   => $primary_controller,
       on_controller        => true,
       use_neutron          => $quantum,
       swift                => $swift,

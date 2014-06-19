@@ -1,6 +1,7 @@
 class neutron::agents::ovs (
   $neutron_config     = {},
-  $service_provider   = 'generic'
+  $service_provider   = 'generic',
+  $primary_controller = false
 ) {
 
   include 'neutron::params'
@@ -56,16 +57,9 @@ class neutron::agents::ovs (
   } else {
     neutron::agents::utils::bridges { $neutron_config['L2']['phys_bridges']: }
   }
+  L23network::L2::Bridge<| |> -> Package[$ovs_agent_package]
 
   if $service_provider == 'pacemaker' {
-    Neutron_config <| |> -> Cs_shadow['ovs']
-    Neutron_plugin_ovs <| |> -> Cs_shadow['ovs']  # OVS plugin and agent should be configured before resource created
-    Neutron::Agents::Utils::Bridges <| |> -> Cs_shadow['ovs']  # All bridges should be created before ovs-agent resource create
-
-    cs_shadow { 'ovs': cib => 'ovs' }
-    cs_commit { 'ovs': cib => 'ovs' }
-    Anchor['neutron-ovs-agent'] -> Cs_shadow['ovs']
-
     # OCF script for pacemaker
     # and his dependences
     file {'neutron-ovs-agent-ocf':
@@ -75,38 +69,55 @@ class neutron::agents::ovs (
       group  => root,
       source => "puppet:///modules/neutron/ocf/neutron-agent-ovs",
     }
-    File['neutron-ovs-agent-ocf'] -> Cs_resource[$res_name]
     File<| title == 'ocf-mirantis-path' |> -> File['neutron-ovs-agent-ocf']
     Anchor['neutron-ovs-agent'] -> File['neutron-ovs-agent-ocf']
     Package["$ovs_agent_package"] -> Neutron_plugin_ovs <| |>
     Neutron_plugin_ovs <| |> -> File['neutron-ovs-agent-ocf']
 
-    cs_resource { $res_name:
-      ensure          => present,
-      cib             => 'ovs',
-      primitive_class => 'ocf',
-      provided_by     => 'mirantis',
-      primitive_type  => 'neutron-agent-ovs',
-      multistate_hash => {
-        'type' => 'clone',
-      },
-      ms_metadata     => {
-        'interleave' => 'true',
-      },
-      parameters      => {
-      },
-      operations      => {
-        'monitor'  => {
-          'interval' => '20',
-          'timeout'  => '10'
+    if $primary_controller {
+      cs_resource { $res_name:
+        ensure          => present,
+        primitive_class => 'ocf',
+        provided_by     => 'mirantis',
+        primitive_type  => 'neutron-agent-ovs',
+        multistate_hash => {
+          'type' => 'clone',
         },
-        'start'    => {
-          'timeout' => '80'
+        ms_metadata     => {
+          'interleave' => 'false',
         },
-        'stop'     => {
-          'timeout' => '80'
-        }
-      },
+        parameters      => {
+        },
+        operations      => {
+          'monitor'  => {
+            'interval' => '20',
+            'timeout'  => '10'
+          },
+          'start'    => {
+            'timeout' => '80'
+          },
+          'stop'     => {
+            'timeout' => '80'
+          }
+        },
+      }
+
+      File['neutron-ovs-agent-ocf'] ->
+        Service['neutron-ovs-agent_stopped'] ->
+          Cs_resource[$res_name] ->
+            Service['neutron-ovs-agent']
+      # this need because chain interrupted if selector not found
+      Service['neutron-ovs-agent_stopped'] ->
+        Exec<| title=='neutron-ovs-agent_stopped' |> ->
+          Cs_resource[$res_name]
+    } else {
+      File['neutron-ovs-agent-ocf'] ->
+        Service['neutron-ovs-agent_stopped'] ->
+          Service['neutron-ovs-agent']
+      # this need because chain interrupted if selector not found
+      Service['neutron-ovs-agent_stopped'] ->
+        Exec<| title=='neutron-ovs-agent_stopped' |> ->
+          Service['neutron-ovs-agent']
     }
 
     case $::osfamily {
@@ -127,21 +138,16 @@ class neutron::agents::ovs (
     }
 
     if $::osfamily =~ /(?i)debian/ {
+      # this exec needed because ovs-agent has no his own package
+      # and located inside ovs-plugin package
       exec { 'neutron-ovs-agent_stopped':
         #todo: rewrite as script, that returns zero or wait, when it can return zero
-        name   => "bash -c \"service ${::neutron::params::ovs_agent_service} stop || ( kill `pgrep -f neutron-openvswitch-agent` || : )\"",
+        name   => "bash -c \"service ${::neutron::params::ovs_agent_service} stop || ( kill -9 `pgrep -f neutron-openvswitch-agent` || : )\"",
         onlyif => "service ${::neutron::params::ovs_agent_service} status | grep \'${started_status}\'",
         path   => ['/usr/bin', '/usr/sbin', '/bin', '/sbin'],
         returns => [0,""]
       }
     }
-    L23network::L2::Bridge<| |> ->
-      Package[$ovs_agent_package] ->
-        Service['neutron-ovs-agent_stopped'] ->
-          Exec<| title=='neutron-ovs-agent_stopped' |> ->
-            Cs_resource[$res_name] ->
-             Cs_commit['ovs'] ->
-              Service['neutron-ovs-agent']
 
     service { 'neutron-ovs-agent':
       name       => $res_name,
