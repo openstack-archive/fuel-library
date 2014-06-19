@@ -500,6 +500,7 @@ class osnailyfacter::cluster_simple {
         max_pool_size        => $max_pool_size,
         max_overflow         => $max_overflow,
         idle_timeout         => $idle_timeout,
+        ceilometer           => $ceilometer_hash[enabled]
       }
     } #CINDER ENDS
 
