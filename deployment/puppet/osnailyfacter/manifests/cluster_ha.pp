@@ -53,13 +53,19 @@ class osnailyfacter::cluster_ha {
     $ceilometer_hash = $::fuel_settings['ceilometer']
   }
 
+  if $::fuel_settings['role'] == 'primary-controller' {
+    $primary_controller = true
+  } else {
+    $primary_controller = false
+  }
+
   # vCenter integration
 
   if $::fuel_settings['libvirt_type'] == 'vcenter' {
     $vcenter_hash = $::fuel_settings['vcenter']
   }
 
-  if $::fuel_settings['role'] == 'primary-controller' {
+  if $primary_controller {
     package { 'cirros-testvm':
       ensure => "present"
     }
@@ -217,7 +223,7 @@ class osnailyfacter::cluster_ha {
     $master_swift_proxy_ip    = $master_swift_proxy_nodes[0]['internal_address']
     #$master_hostname         = $master_swift_proxy_nodes[0]['name']
     $swift_loopback = false
-    if $::fuel_settings['role'] == 'primary-controller' {
+    if $primary_controller {
       $primary_proxy = true
     } else {
       $primary_proxy = false
@@ -235,12 +241,6 @@ class osnailyfacter::cluster_ha {
   $use_syslog = $::use_syslog
   $verbose = $::verbose
   $debug = $::debug
-
-  if $::fuel_settings['role'] == 'primary-controller' {
-    $primary_controller = true
-  } else {
-    $primary_controller = false
-  }
 
   #HARDCODED PARAMETERS
 
@@ -264,7 +264,7 @@ class osnailyfacter::cluster_ha {
       private_interface              => $::use_quantum ? { true=>false, default=>$::fuel_settings['fixed_interface']},
       internal_virtual_ip            => $::fuel_settings['management_vip'],
       public_virtual_ip              => $::fuel_settings['public_vip'],
-      primary_controller             => $::osnailyfacter::cluster_ha::primary_controller,
+      primary_controller             => $primary_controller,
       floating_range                 => $::use_quantum ? { true=>$floating_hash, default=>false},
       fixed_range                    => $::use_quantum ? { true=>false, default=>$::fuel_settings['fixed_network_range']},
       multi_host                     => $::osnailyfacter::cluster_ha::multi_host,
@@ -361,12 +361,15 @@ class osnailyfacter::cluster_ha {
         unicast_addresses => $::osnailyfacter::cluster_ha::controller_internal_addresses,
       }
 
-      if $::fuel_settings['role'] == 'primary-controller' {
+      if $primary_controller {
         Class['::cluster']->
         class { 'virtual_ips': stage => 'corosync_setup' }
       }
 
-      class { 'cluster::haproxy': haproxy_maxconn => '16000' }
+      class { 'cluster::haproxy':
+        haproxy_maxconn    => '16000',
+        primary_controller => $primary_controller
+      }
 
       class { 'compact_controller': }
       if ($use_swift) {
@@ -419,7 +422,7 @@ class osnailyfacter::cluster_ha {
       nova_config { 'DEFAULT/compute_scheduler_driver':  value => $::fuel_settings['compute_scheduler_driver'] }
 
       if ! $::use_quantum {
-        if $::fuel_settings['role'] == 'primary-controller' {
+        if $primary_controller {
           exec { 'wait-for-haproxy-nova-backend':
             command   => "echo show stat | socat unix-connect:///var/lib/haproxy/stats stdio | grep -q '^nova-api-2,BACKEND,.*,UP,'",
             path      => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
@@ -469,43 +472,43 @@ class osnailyfacter::cluster_ha {
           use_syslog                 => $::use_syslog,
         }
           $scheduler_default_filters = [ 'DifferentHostFilter' ]
-        } else {
-          $scheduler_default_filters = []
+      } else {
+        $scheduler_default_filters = []
+      }
+
+      class { '::nova::scheduler::filter':
+        cpu_allocation_ratio       => '8.0',
+        disk_allocation_ratio      => '1.0',
+        ram_allocation_ratio       => '1.0',
+        scheduler_host_subset_size => '30',
+        ram_weight_multiplier      => '1.0',
+        scheduler_default_filters  => concat($scheduler_default_filters, [ 'RetryFilter', 'AvailabilityZoneFilter', 'RamFilter', 'CoreFilter', 'DiskFilter', 'ComputeFilter', 'ComputeCapabilitiesFilter', 'ImagePropertiesFilter' ])
+      }
+
+      #FIXME: Disable heat for Red Hat OpenStack 3.0
+      if ($::operatingsystem != 'RedHat') {
+        class { 'heat' :
+          pacemaker              => true,
+          external_ip            => $controller_node_public,
+
+          keystone_host     => $controller_node_address,
+          keystone_user     => 'heat',
+          keystone_password => 'heat',
+          keystone_tenant   => 'services',
+
+          amqp_hosts       => $amqp_hosts,
+          amqp_user        => $rabbit_hash['user'],
+          amqp_password    => $rabbit_hash['password'],
+          rabbit_ha_queues => $rabbit_ha_queues,
+
+          db_host           => $controller_node_address,
+          db_password       => $heat_hash['db_password'],
+
+          debug               => $::debug,
+          verbose             => $::verbose,
+          use_syslog          => $::use_syslog,
+          syslog_log_facility => $::syslog_log_facility_heat,
         }
-
-        class { '::nova::scheduler::filter':
-          cpu_allocation_ratio       => '8.0',
-          disk_allocation_ratio      => '1.0',
-          ram_allocation_ratio       => '1.0',
-          scheduler_host_subset_size => '30',
-          ram_weight_multiplier      => '1.0',
-          scheduler_default_filters  => concat($scheduler_default_filters, [ 'RetryFilter', 'AvailabilityZoneFilter', 'RamFilter', 'CoreFilter', 'DiskFilter', 'ComputeFilter', 'ComputeCapabilitiesFilter', 'ImagePropertiesFilter' ])
-        }
-
-        #FIXME: Disable heat for Red Hat OpenStack 3.0
-        if ($::operatingsystem != 'RedHat') {
-          class { 'heat' :
-            pacemaker              => true,
-            external_ip            => $controller_node_public,
-
-            keystone_host     => $controller_node_address,
-            keystone_user     => 'heat',
-            keystone_password => 'heat',
-            keystone_tenant   => 'services',
-
-            amqp_hosts       => $amqp_hosts,
-            amqp_user        => $rabbit_hash['user'],
-            amqp_password    => $rabbit_hash['password'],
-            rabbit_ha_queues => $rabbit_ha_queues,
-
-            db_host           => $controller_node_address,
-            db_password       => $heat_hash['db_password'],
-
-            debug               => $::debug,
-            verbose             => $::verbose,
-            use_syslog          => $::use_syslog,
-            syslog_log_facility => $::syslog_log_facility_heat,
-          }
       }
 
       if $murano_hash['enabled'] {
@@ -549,7 +552,7 @@ class osnailyfacter::cluster_ha {
 
       # vCenter integration
 
-      if $::fuel_settings['role'] == 'primary-controller' {
+      if $primary_controller {
         if $::fuel_settings['libvirt_type'] == 'vcenter' {
           class { 'vmware' :
             vcenter_user      => $vcenter_hash['vc_user'],
@@ -614,9 +617,9 @@ class osnailyfacter::cluster_ha {
         state_path                  => $nova_hash[state_path],
       }
 
-        if ($::use_ceph){
-          Class['openstack::compute'] -> Class['ceph']
-        }
+      if ($::use_ceph){
+        Class['openstack::compute'] -> Class['ceph']
+      }
 
       #TODO: PUT this configuration stanza into nova class
       nova_config { 'DEFAULT/start_guests_on_host_boot': value => $::fuel_settings['start_guests_on_host_boot'] }
