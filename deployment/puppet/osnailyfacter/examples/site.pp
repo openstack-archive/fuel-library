@@ -281,10 +281,6 @@ node default {
       class {'os_common':}
       class {'corosync::commitorder': stage=>'main'}
       }
-    "ha_full": {
-      include "osnailyfacter::cluster_ha_full"
-      class {'os_common':}
-      }
     "rpmcache": { include osnailyfacter::rpmcache }
   }
 }
