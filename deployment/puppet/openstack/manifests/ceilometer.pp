@@ -28,6 +28,7 @@ class openstack::ceilometer (
   $on_controller       = false,
   $on_compute          = false,
   $ha_mode             = false,
+  $primary_controller  = false,
   $use_neutron         = false,
   $swift               = false,
 ) {
@@ -82,14 +83,16 @@ class openstack::ceilometer (
     class { '::ceilometer::collector': }
 
     class { '::ceilometer::agent::central':
-      auth_host     => $keystone_host,
-      auth_password => $keystone_password,
-      ha_mode       => $ha_mode,
+      auth_host          => $keystone_host,
+      auth_password      => $keystone_password,
+      ha_mode            => $ha_mode,
+      primary_controller => $primary_controller
     }
 
     class { '::ceilometer::alarm::evaluator':
-      eval_interval => 600,
-      ha_mode       => $ha_mode,
+      eval_interval      => 600,
+      ha_mode            => $ha_mode,
+      primary_controller => $primary_controller
     }
 
     class { '::ceilometer::alarm::notifier': }

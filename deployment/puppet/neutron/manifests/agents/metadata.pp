@@ -2,11 +2,11 @@ class neutron::agents::metadata (
   $neutron_config     = {},
   $debug            = false,
   $verbose          = false,
-  $service_provider = 'generic'
+  $service_provider = 'generic',
+  $primary_controller = false
 ) {
 
-  $cib_name = "neutron-metadata-agent"
-  $res_name = "p_$cib_name"
+  $res_name = "p_neutron-metadata-agent"
 
   include 'neutron::params'
 
@@ -58,6 +58,8 @@ class neutron::agents::metadata (
       Neutron_metadata_agent_config<||> ->
         Service['neutron-metadata-agent'] ->
           Anchor['neutron-metadata-agent-done']
+    Package<| title == 'neutron-metadata-agent'|> ~> Service['neutron-metadata-agent']
+
   } else {
     # OCF script for pacemaker
     # and his dependences
@@ -72,52 +74,54 @@ class neutron::agents::metadata (
     File<| title == 'ocf-mirantis-path' |> -> File['neutron-metadata-agent-ocf']
     Anchor['neutron-metadata-agent'] -> File['neutron-metadata-agent-ocf']
     Neutron_metadata_agent_config<||> -> File['neutron-metadata-agent-ocf']
-    File['neutron-metadata-agent-ocf'] -> Cs_resource["$res_name"]
 
     service { 'neutron-metadata-agent__disabled':
       name    => $::neutron::params::metadata_agent_service,
       enable  => false,
       ensure  => stopped,
     }
-    Cs_commit <| title == 'ovs' |> -> Cs_shadow <| title == "$res_name" |>
 
-    Anchor['neutron-metadata-agent'] -> Cs_shadow["$cib_name"]
-    cs_shadow { $cib_name: cib => $cib_name }
-    cs_commit { $cib_name: cib => $cib_name }
+    if $primary_controller {
+      cs_resource { "$res_name":
+        ensure          => present,
+        primitive_class => 'ocf',
+        provided_by     => 'mirantis',
+        primitive_type  => 'neutron-agent-metadata',
+        multistate_hash => {
+          'type' => 'clone',
+        },
+        ms_metadata     => {
+          'interleave' => 'false',
+        },
+        operations => {
+          'monitor' => {
+            'interval' => '60',
+            'timeout'  => '10'
+          },
+          'start' => {
+            'timeout' => '30'
+          },
+          'stop' => {
+            'timeout' => '30'
+          },
+        },
+      }
 
-    cs_resource { "$res_name":
-      ensure          => present,
-      cib             => $cib_name,
-      primitive_class => 'ocf',
-      provided_by     => 'mirantis',
-      primitive_type  => 'neutron-agent-metadata',
-      parameters => {
-        #'nic'     => $vip[nic],
-        #'ip'      => $vip[ip],
-        #'iflabel' => $vip[iflabel] ? { undef => 'ka', default => $vip[iflabel] },
-      },
-      multistate_hash => {
-        'type' => 'clone',
-      },
-      ms_metadata     => {
-        'interleave' => 'true',
-      },
-      operations => {
-        'monitor' => {
-          'interval' => '60',
-          'timeout'  => '10'
-        },
-        'start' => {
-          'timeout' => '30'
-        },
-        'stop' => {
-          'timeout' => '30'
-        },
-      },
+      Service['neutron-metadata-agent__disabled'] ->
+        Cs_resource["$res_name"] ->
+          Service["$res_name"]
+
+      File['neutron-metadata-agent-ocf'] -> Cs_resource["$res_name"]
+    } else {
+
+      File['neutron-metadata-agent-ocf'] -> Service["$res_name"]
     }
 
-    Cs_resource["$res_name"] ->
-      Cs_commit["$cib_name"]
+    if !defined(Package['lsof']) {
+      package { 'lsof': }
+    }
+    Package['lsof'] -> File['neutron-metadata-agent-ocf']
+
 
     service {"$res_name":
       name       => $res_name,
@@ -130,13 +134,12 @@ class neutron::agents::metadata (
 
     Anchor['neutron-metadata-agent'] ->
       Service['neutron-metadata-agent__disabled'] ->
-        Cs_resource["$res_name"] ->
-         Cs_commit["$cib_name"] ->
-          Service["$res_name"] ->
-            Anchor['neutron-metadata-agent-done']
+        Service["$res_name"] ->
+          Anchor['neutron-metadata-agent-done']
+    Package<| title == 'neutron-metadata-agent'|> ~> Service["$res_name"]
   }
+
   anchor {'neutron-metadata-agent-done': }
-  Package<| title == 'neutron-metadata-agent'|> ~> Service<| title == 'neutron-metadata-agent'|>
   if !defined(Service['neutron-metadata-agent']) {
     notify{ "Module ${module_name} cannot notify service neutron-metadata-agent on package update": }
   }
