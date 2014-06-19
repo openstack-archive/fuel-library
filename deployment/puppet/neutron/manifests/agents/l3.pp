@@ -4,7 +4,8 @@ class neutron::agents::l3 (
   $verbose          = false,
   $debug            = false,
   $interface_driver = 'neutron.agent.linux.interface.OVSInterfaceDriver',
-  $service_provider = 'generic'
+  $service_provider = 'generic',
+  $primary_controller = false
 ) {
   include 'neutron::params'
 
@@ -85,9 +86,6 @@ class neutron::agents::l3 (
 
   if $service_provider == 'pacemaker' {
 
-    Service<| title == 'neutron-server' |> -> Cs_shadow['l3']
-    Neutron_l3_agent_config <||> -> Cs_shadow['l3']
-
     # OCF script for pacemaker
     # and his dependences
     file {'neutron-l3-agent-ocf':
@@ -104,111 +102,102 @@ class neutron::agents::l3 (
     File<| title == 'ocf-mirantis-path' |> -> File['neutron-l3-agent-ocf']
     File<| title == 'q-agent-cleanup.py'|> -> File['neutron-l3-agent-ocf']
     Package[$l3_agent_package] -> File['neutron-l3-agent-ocf']
-    File['neutron-l3-agent-ocf'] -> Cs_resource["p_${::neutron::params::l3_agent_service}"]
 
-    cs_resource { "p_${::neutron::params::l3_agent_service}":
-      ensure          => present,
-      cib             => 'l3',
-      primitive_class => 'ocf',
-      provided_by     => 'mirantis',
-      primitive_type  => 'neutron-agent-l3',
-      parameters      => {
-        'debug'       => $debug,
-        'syslog'      => $::use_syslog,
-        'os_auth_url' => $neutron_config['keystone']['auth_url'],
-        'tenant'      => $neutron_config['keystone']['admin_tenant_name'],
-        'username'    => $neutron_config['keystone']['admin_user'],
-        'password'    => $neutron_config['keystone']['admin_password'],
-      },
-      metadata        => { 'resource-stickiness' => '1' },
-      operations      => {
-        'monitor'  => {
-          'interval' => '20',
-          'timeout'  => '10'
-        }
-        ,
-        'start'    => {
-          'timeout' => '60'
-        }
-        ,
-        'stop'     => {
-          'timeout' => '60'
-        }
-      },
+    if $primary_controller {
+      cs_resource { "p_${::neutron::params::l3_agent_service}":
+        ensure          => present,
+        primitive_class => 'ocf',
+        provided_by     => 'mirantis',
+        primitive_type  => 'neutron-agent-l3',
+        parameters      => {
+          'debug'       => $debug,
+          'syslog'      => $::use_syslog,
+          'os_auth_url' => $neutron_config['keystone']['auth_url'],
+          'tenant'      => $neutron_config['keystone']['admin_tenant_name'],
+          'username'    => $neutron_config['keystone']['admin_user'],
+          'password'    => $neutron_config['keystone']['admin_password'],
+        },
+        metadata        => { 'resource-stickiness' => '1' },
+        operations      => {
+          'monitor'  => {
+            'interval' => '20',
+            'timeout'  => '10'
+          }
+          ,
+          'start'    => {
+            'timeout' => '60'
+          }
+          ,
+          'stop'     => {
+            'timeout' => '60'
+          }
+        },
+      }
+
+      Cs_resource["p_${::neutron::params::l3_agent_service}"] ->
+      cs_colocation { 'l3-with-ovs':
+        ensure     => present,
+        primitives => ["p_${::neutron::params::l3_agent_service}", "clone_p_${::neutron::params::ovs_agent_service}"],
+        score      => 'INFINITY',
+      } ->
+      cs_order { 'l3-after-ovs':
+        ensure => present,
+        first  => "clone_p_${::neutron::params::ovs_agent_service}",
+        second => "p_${::neutron::params::l3_agent_service}",
+        score  => 'INFINITY',
+      } -> Service['neutron-l3']
+
+      Cs_resource["p_${::neutron::params::l3_agent_service}"] ->
+      cs_colocation { 'l3-with-metadata':
+        ensure     => present,
+        primitives => [
+            "p_${::neutron::params::l3_agent_service}",
+            "clone_p_neutron-metadata-agent"
+        ],
+        score      => 'INFINITY',
+      } ->
+      cs_order { 'l3-after-metadata':
+        ensure => present,
+        first  => "clone_p_neutron-metadata-agent",
+        second => "p_${::neutron::params::l3_agent_service}",
+        score  => 'INFINITY',
+      } -> Service['neutron-l3']
+
+      # start DHCP and L3 agents on different controllers if it's possible
+      Cs_resource["p_${::neutron::params::l3_agent_service}"] ->
+      cs_colocation { 'dhcp-without-l3':
+        ensure     => present,
+        score      => '-100',
+        primitives => [
+          "p_${::neutron::params::dhcp_agent_service}",
+          "p_${::neutron::params::l3_agent_service}"
+        ],
+      }
+
+      Service['neutron-l3-init_stopped'] ->
+        Cs_resource["p_${::neutron::params::l3_agent_service}"] ->
+           Service['neutron-l3']
+
+      File['neutron-l3-agent-ocf'] -> Cs_resource["p_${::neutron::params::l3_agent_service}"]
+    } else {
+
+      File['neutron-l3-agent-ocf'] -> Service['neutron-l3']
     }
-
-    cs_shadow { 'l3': cib => 'l3' }
-    cs_commit { 'l3': cib => 'l3' }
-
-    ###
-    # Do not remember to be carefylly with Cs_shadow and Cs_commit orders.
-    # at one time onli one Shadow can be without commit
-    Cs_commit <| title == 'dhcp' |> -> Cs_shadow <| title == 'l3' |>
-    Cs_commit <| title == 'ovs' |> -> Cs_shadow <| title == 'l3' |>
-    Cs_commit <| title == 'neutron-metadata-agent' |> -> Cs_shadow <| title == 'l3' |>
-    Anchor['neutron-l3'] -> Cs_shadow['l3']
-
-    Cs_resource["p_${::neutron::params::l3_agent_service}"] -> Cs_colocation['l3-with-ovs']
-    Cs_resource["p_${::neutron::params::l3_agent_service}"] -> Cs_order['l3-after-ovs']
-    Cs_resource["p_${::neutron::params::l3_agent_service}"] -> Cs_colocation['l3-with-metadata']
-    Cs_resource["p_${::neutron::params::l3_agent_service}"] -> Cs_order['l3-after-metadata']
 
     Anchor<| title == 'neutron-ovs-agent-done' |> -> Anchor<| title=='neutron-l3' |>
-    cs_colocation { 'l3-with-ovs':
-      ensure     => present,
-      cib        => 'l3',
-      primitives => ["p_${::neutron::params::l3_agent_service}", "clone_p_${::neutron::params::ovs_agent_service}"],
-      score      => 'INFINITY',
-    } ->
-    cs_order { 'l3-after-ovs':
-      ensure => present,
-      cib    => 'l3',
-      first  => "clone_p_${::neutron::params::ovs_agent_service}",
-      second => "p_${::neutron::params::l3_agent_service}",
-      score  => 'INFINITY',
-    } -> Service['neutron-l3']
-
     Anchor<| title == 'neutron-metadata-agent-done' |> -> Anchor<| title=='neutron-l3' |>
-    cs_colocation { 'l3-with-metadata':
-      ensure     => present,
-      cib        => 'l3',
-      primitives => [
-          "p_${::neutron::params::l3_agent_service}",
-          "clone_p_neutron-metadata-agent"
-      ],
-      score      => 'INFINITY',
-    } ->
-    cs_order { 'l3-after-metadata':
-      ensure => present,
-      cib    => "l3",
-      first  => "clone_p_neutron-metadata-agent",
-      second => "p_${::neutron::params::l3_agent_service}",
-      score  => 'INFINITY',
-    } -> Service['neutron-l3']
-
-    # start DHCP and L3 agents on different controllers if it's possible
     Anchor<| title == 'neutron-dhcp-agent-done' |> -> Anchor<| title=='neutron-l3' |>
-    cs_colocation { 'dhcp-without-l3':
-      ensure     => present,
-      cib        => 'l3',
-      score      => '-100',
-      primitives => [
-        "p_${::neutron::params::dhcp_agent_service}",
-        "p_${::neutron::params::l3_agent_service}"
-      ],
-    }
+
 
     if !defined(Package['lsof']) {
-      package { 'lsof': } -> Cs_resource["p_${::neutron::params::l3_agent_service}"]
+      package { 'lsof': } -> File['neutron-l3-agent-ocf']
     }
 
     # Ensure service is stopped  and disabled by upstart/init/etc.
     Anchor['neutron-l3'] ->
       Service['neutron-l3-init_stopped'] ->
-        Cs_resource["p_${::neutron::params::l3_agent_service}"] ->
-          Cs_commit['l3']->
-           Service['neutron-l3'] ->
-            Anchor['neutron-l3-done']
+        Service['neutron-l3'] ->
+          Anchor['neutron-l3-done']
 
     service { 'neutron-l3-init_stopped':
       name       => "${::neutron::params::l3_agent_service}",

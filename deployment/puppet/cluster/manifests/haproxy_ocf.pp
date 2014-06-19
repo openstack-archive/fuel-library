@@ -2,17 +2,12 @@
 #
 # Configure OCF service for HAProxy managed by corosync/pacemaker
 #
-class cluster::haproxy_ocf {
+class cluster::haproxy_ocf (
+  $primary_controller
+){
   anchor {'haproxy': }
 
-  $cib_name = 'p_haproxy'
-
-  cs_shadow { $cib_name: cib => $cib_name }
-  cs_commit { $cib_name: cib => $cib_name }
-
-  Anchor['haproxy'] -> Cs_shadow[$cib_name]
-
-  Cs_commit[$cib_name] -> Service['haproxy']
+  $service_name = 'p_haproxy'
 
   file {'haproxy-ocf':
     path   =>'/usr/lib/ocf/resource.d/mirantis/ns_haproxy',
@@ -21,61 +16,64 @@ class cluster::haproxy_ocf {
     group  => root,
     source => 'puppet:///modules/cluster/ns_haproxy',
   }
+  Anchor['haproxy'] -> File['haproxy-ocf']
   File<| title == 'ocf-mirantis-path' |> -> File['haproxy-ocf']
-  File['haproxy-ocf'] -> Cs_resource[$cib_name]
-  Cs_resource[$cib_name] -> Cs_colocation['vip_public-with-haproxy']
-  Cs_resource[$cib_name] -> Cs_colocation['vip_management-with-haproxy']
 
-  cs_colocation { 'vip_public-with-haproxy':
-    ensure     => present,
-    cib        => $cib_name,
-    score      => 'INFINITY',
-    primitives => [
-        "vip__public_old",
-        "clone_${cib_name}"
-    ],
-  }
-  cs_colocation { 'vip_management-with-haproxy':
-    ensure     => present,
-    cib        => $cib_name,
-    score      => 'INFINITY',
-    primitives => [
-        "vip__management_old",
-        "clone_${cib_name}"
-    ],
-  }
+  if $primary_controller {
+    cs_resource { $service_name:
+      ensure          => present,
+      primitive_class => 'ocf',
+      provided_by     => 'mirantis',
+      primitive_type  => 'ns_haproxy',
+      multistate_hash => {
+        'type' => 'clone',
+      },
+      ms_metadata => {
+        'interleave' => 'true',
+      },
+      metadata => {
+        'migration-threshold' => '3',
+        'failure-timeout'     => '120',
+      },
+      parameters => {
+        'ns' => 'haproxy',
+      },
+      operations => {
+        'monitor' => {
+          'interval' => '20',
+          'timeout'  => '10'
+        },
+        'start' => {
+          'timeout' => '30'
+        },
+        'stop' => {
+          'timeout' => '30'
+        },
+      },
+    }
 
-  cs_resource { $cib_name:
-    ensure          => present,
-    cib             => $cib_name,
-    primitive_class => 'ocf',
-    provided_by     => 'mirantis',
-    primitive_type  => 'ns_haproxy',
-    multistate_hash => {
-      'type' => 'clone',
-    },
-    ms_metadata => {
-      'interleave' => 'true',
-    },
-    metadata => {
-      'migration-threshold' => '3',
-      'failure-timeout'     => '120',
-    },
-    parameters => {
-      'ns' => 'haproxy',
-    },
-    operations => {
-      'monitor' => {
-        'interval' => '20',
-        'timeout'  => '10'
-      },
-      'start' => {
-        'timeout' => '30'
-      },
-      'stop' => {
-        'timeout' => '30'
-      },
-    },
+    cs_colocation { 'vip_public-with-haproxy':
+      ensure     => present,
+      score      => 'INFINITY',
+      primitives => [
+          "vip__public_old",
+          "clone_${service_name}"
+      ],
+    }
+    cs_colocation { 'vip_management-with-haproxy':
+      ensure     => present,
+      score      => 'INFINITY',
+      primitives => [
+          "vip__management_old",
+          "clone_${service_name}"
+      ],
+    }
+
+    File['haproxy-ocf'] -> Cs_resource[$service_name]
+    Cs_resource[$service_name] -> Cs_colocation['vip_public-with-haproxy'] -> Service[$service_name]
+    Cs_resource[$service_name] -> Cs_colocation['vip_management-with-haproxy'] -> Service[$service_name]
+  } else {
+    File['haproxy-ocf'] -> Service[$service_name]
   }
 
   if ($::osfamily == 'Debian') {
@@ -90,21 +88,19 @@ class cluster::haproxy_ocf {
         mode    => '0644'
       } -> File['haproxy-ocf']
     }
-  } elsif ($::osfamily == 'RedHat') {
-    service { 'haproxy-init-stopped':
-      enable     => false,
-      ensure     => 'stopped',
-      hasrestart => true,
-      hasstatus  => true,
-    } -> File['haproxy-ocf']
   }
+
+  service { 'haproxy-init-stopped':
+    name       => 'haproxy',
+    enable     => false,
+    ensure     => 'stopped',
+  } -> File['haproxy-ocf']
 
   sysctl::value { 'net.ipv4.ip_nonlocal_bind':
     value => '1'
   } ->
-  File['haproxy-ocf'] ->
-  service { 'haproxy':
-    name       => $cib_name,
+  service { "$service_name":
+    name       => $service_name,
     enable     => true,
     ensure     => 'running',
     hasstatus  => true,

@@ -21,14 +21,10 @@ define cluster::virtual_ip (
   $cib_name = "vip__${key}"
   $vip_name = "vip__${key}"
 
-  cs_shadow { $cib_name: cib => $cib_name }
-  cs_commit { $cib_name: cib => $cib_name }
-
   File['ns-ipaddr2-ocf'] -> Cs_resource["${vip_name}"]
 
   cs_resource { $vip_name:
     ensure          => present,
-    cib             => $cib_name,
     primitive_class => 'ocf',
     provided_by     => 'mirantis',
     primitive_type  => 'ns_IPaddr2',

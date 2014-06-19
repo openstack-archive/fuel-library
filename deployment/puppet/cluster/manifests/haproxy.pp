@@ -4,11 +4,13 @@
 #
 class cluster::haproxy (
   $haproxy_maxconn = '4000',
+  $primary_controller = false
 ) {
   include ::concat::setup
   include ::haproxy::params
 
-  package { 'haproxy': } ->
+  package { 'haproxy': }
+
   class { 'haproxy::base':
     global_options   => merge($::haproxy::params::global_options,
                               {
@@ -18,9 +20,14 @@ class cluster::haproxy (
     defaults_options => merge($::haproxy::params::defaults_options,
                               {'mode' => 'http'}),
     use_include      => true,
-  } ->
-  class { 'cluster::haproxy_ocf': }
+  }
 
+  class { 'cluster::haproxy_ocf':
+    primary_controller => $primary_controller
+  }
+
+  Package['haproxy'] -> Class['haproxy::base']
+  Class['haproxy::base'] -> Class['cluster::haproxy_ocf']
   Class['haproxy::base'] -> Haproxy::Service <||>
 
   if defined(Corosync::Service['pacemaker']) {
