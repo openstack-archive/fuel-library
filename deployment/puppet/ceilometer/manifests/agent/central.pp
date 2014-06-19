@@ -27,21 +27,20 @@
 #    Optional. Defauls to false
 #
 class ceilometer::agent::central (
-  $auth_host         = 'http://localhost:5000/v2.0',
-  $auth_region      = 'RegionOne',
-  $auth_user        = 'ceilometer',
-  $auth_password    = 'password',
-  $auth_tenant_name = 'services',
-  $auth_tenant_id   = '',
-  $enabled          = true,
-  $ha_mode          = false,
+  $auth_host          = 'http://localhost:5000/v2.0',
+  $auth_region        = 'RegionOne',
+  $auth_user          = 'ceilometer',
+  $auth_password      = 'password',
+  $auth_tenant_name   = 'services',
+  $auth_tenant_id     = '',
+  $enabled            = true,
+  $ha_mode            = false,
+  $primary_controller = false
 ) {
 
   include ceilometer::params
 
   Ceilometer_config<||> ~> Service['ceilometer-agent-central']
-  Package['ceilometer-common'] -> Service['ceilometer-agent-central']
-  Package['ceilometer-agent-central'] -> Service['ceilometer-agent-central']
 
   package { 'ceilometer-agent-central':
     ensure => installed,
@@ -73,9 +72,11 @@ class ceilometer::agent::central (
   if $ha_mode {
 
     $res_name = "p_${::ceilometer::params::agent_central_service_name}"
-    $cib_name = "${::ceilometer::params::agent_central_service_name}"
 
     Package['pacemaker'] -> File['ceilometer-agent-central-ocf']
+    Package['ceilometer-common'] -> File['ceilometer-agent-central-ocf']
+    Package['ceilometer-agent-central'] -> File['ceilometer-agent-central-ocf']
+
     file {'ceilometer-agent-central-ocf':
       path   =>'/usr/lib/ocf/resource.d/mirantis/ceilometer-agent-central',
       mode   => '0755',
@@ -84,33 +85,31 @@ class ceilometer::agent::central (
       source => 'puppet:///modules/ceilometer/ocf/ceilometer-agent-central',
     }
 
-    File['ceilometer-agent-central-ocf'] -> Cs_resource[$res_name]
-    cs_resource { $res_name:
-      ensure          => present,
-      cib             => $cib_name,
-      primitive_class => 'ocf',
-      provided_by     => 'mirantis',
-      primitive_type  => 'ceilometer-agent-central',
-      metadata        => { 'target-role' => 'stopped', 'resource-stickiness' => '1' },
-      parameters      => { 'user' => 'ceilometer' },
-      operations      => {
-        'monitor'  => {
-          'interval' => '20',
-          'timeout'  => '30'
-        }
-        ,
-        'start'    => {
-          'timeout' => '360'
-        }
-        ,
-        'stop'     => {
-          'timeout' => '360'
-        }
-      },
+    if $primary_controller {
+      cs_resource { $res_name:
+        ensure          => present,
+        primitive_class => 'ocf',
+        provided_by     => 'mirantis',
+        primitive_type  => 'ceilometer-agent-central',
+        metadata        => { 'target-role' => 'stopped', 'resource-stickiness' => '1' },
+        parameters      => { 'user' => 'ceilometer' },
+        operations      => {
+          'monitor'  => {
+            'interval' => '20',
+            'timeout'  => '30'
+          },
+          'start'    => {
+            'timeout' => '360'
+          },
+          'stop'     => {
+            'timeout' => '360'
+          }
+        },
+      }
+      File['ceilometer-agent-central-ocf'] -> Cs_resource[$res_name] -> Service['ceilometer-agent-central']
+    } else {
+      File['ceilometer-agent-central-ocf'] -> Service['ceilometer-agent-central']
     }
-
-    cs_shadow { $res_name: cib => $cib_name }
-    cs_commit { $res_name: cib => $cib_name }
 
     service { 'ceilometer-agent-central':
       ensure     => $service_ensure,
@@ -121,13 +120,10 @@ class ceilometer::agent::central (
       provider   => "pacemaker",
     }
 
-    Cs_shadow[$res_name] ->
-      Cs_resource[$res_name] ->
-        Cs_commit[$res_name] ->
-          Service['ceilometer-agent-central']
-
   } else {
 
+    Package['ceilometer-common'] -> Service['ceilometer-agent-central']
+    Package['ceilometer-agent-central'] -> Service['ceilometer-agent-central']
     service { 'ceilometer-agent-central':
       ensure     => $service_ensure,
       name       => $::ceilometer::params::agent_central_service_name,

@@ -220,11 +220,11 @@ class openstack::controller_ha (
         neutron               => $quantum,
         neutron_config        => $quantum_config,
         neutron_network_node  => $quantum_network_node,
-        #neutron_netnode_on_cnt=> $quantum_netnode_on_cnt,
         service_provider      => $ha_provider,
         use_syslog            => $use_syslog,
         syslog_log_facility   => $syslog_log_facility_neutron,
         ha_mode               => $ha_mode,
+        primary_controller    => $primary_controller
       }
     }
 

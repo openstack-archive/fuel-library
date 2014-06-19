@@ -30,7 +30,7 @@ class neutron (
   $syslog_log_facility  = 'LOG_LOCAL4',
   $ssh_private_key      = '/var/lib/astute/neutron/neutron',
   $ssh_public_key       = '/var/lib/astute/neutron/neutron.pub',
-  $server_ha_mode       = false,
+  $server_ha_mode       = false
 ) {
   include 'neutron::params'
 

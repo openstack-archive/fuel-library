@@ -45,6 +45,11 @@
 #  Array with IPs/hostnames of cluster members.
 #
 
+
+
+
+
+
 class galera (
   $cluster_name,
   $primary_controller   = false,
@@ -60,8 +65,8 @@ class galera (
 
   Openstack::Ha::Haproxy_service['mysqld'] -> Anchor['galera']
 
-  $cib_name = "mysql"
-  $res_name = "p_${cib_name}"
+  $service_name = "mysql"
+  $res_name = "p_${service_name}"
 
   $mysql_user = $::galera::params::mysql_user
   $mysql_password = $::galera::params::mysql_password
@@ -157,14 +162,9 @@ class galera (
     }
   }
 
-  cs_shadow { $res_name: cib => $cib_name }
-  cs_commit { $res_name: cib => $cib_name }
-
-  Cs_commit["$res_name"] -> Service["mysql"]
-
-  cs_resource { "$res_name":
+  if $primary_controller {
+    cs_resource { "$res_name":
       ensure => present,
-      cib => $cib_name,
       primitive_class => 'ocf',
       provided_by     => 'mirantis',
       primitive_type => 'mysql-wss',
@@ -186,6 +186,21 @@ class galera (
           'timeout' => '175'
         },
       },
+    }
+    Anchor['galera'] -> File['mysql-wss-ocf'] -> Cs_resource[$res_name] -> Service[$service_name]
+
+    exec { 'start-new-galera-cluster':
+      path   => "/usr/bin:/usr/sbin:/bin:/sbin",
+      logoutput => true,
+      command   => 'echo Primary-controller completed',
+    }
+    Service["$service_name"] -> Exec['start-new-galera-cluster']
+    Exec['start-new-galera-cluster'] -> Exec['wait-for-synced-state']
+    Exec['start-new-galera-cluster'] ~> Exec['raise-first-setup-flag']
+    notify{'xxx-primary-controller'}
+  } else {
+    Anchor['galera'] -> File['mysql-wss-ocf'] -> Service[$service_name]
+    notify{'xxx-primary-controller'}
   }
 
   file {'mysql-wss-ocf':
@@ -199,21 +214,15 @@ class galera (
 
   Package['MySQL-server'] -> File['mysql-wss-ocf']
   Package['galera'] -> File['mysql-wss-ocf']
-  File['mysql-wss-ocf'] -> Cs_resource[$res_name]
 
-  service { $cib_name:
+  service { $service_name:
     name       => $res_name,
     enable     => true,
     ensure     => 'running',
     provider   => 'pacemaker',
   }
 
-  Anchor['galera']       ->
-  Cs_shadow[$res_name]   ->
-  Cs_resource[$res_name] ->
-  Cs_commit[$res_name]   ->
-  Service[$cib_name]     ->
-  Anchor['galera-done']
+  Service[$service_name] -> Anchor['galera-done']
 
   package { [$::galera::params::libssl_package, $::galera::params::libaio_package]:
     ensure => present,
@@ -311,7 +320,7 @@ class galera (
   }
 
 
-  File['/tmp/wsrep-init-file'] -> Service[$cib_name] -> Exec['wait-initial-sync'] -> Exec['wait-for-synced-state'] -> Exec ['rm-init-file']
+  File['/tmp/wsrep-init-file'] -> Service[$service_name] -> Exec['wait-initial-sync'] -> Exec['wait-for-synced-state'] -> Exec ['rm-init-file']
   Package['MySQL-server'] ~> Exec['wait-initial-sync']
 
 # FIXME: This class is deprecated and should be removed in future releases.
@@ -321,17 +330,6 @@ class galera (
     primary_controller => $primary_controller,
     node_addresses => $node_addresses,
     node_address   => $node_address,
-  }
-
-  if $primary_controller {
-    exec { "start-new-galera-cluster":
-      path   => "/usr/bin:/usr/sbin:/bin:/sbin",
-      logoutput => true,
-      command   => 'echo Primary-controller completed',
-      require    => Service[$cib_name],
-      before     => Exec ["wait-for-synced-state"],
-      notify     => Exec ["raise-first-setup-flag"],
-    }
   }
 
   anchor {'galera-done': }
