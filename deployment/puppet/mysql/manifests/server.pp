@@ -91,8 +91,8 @@ class mysql::server (
     Package[mysql-server] -> Cs_shadow['mysql']
     Package[mysql-client] -> Package[mysql-server]
     Cs_commit['mysql']    -> Service['mysql']
-    Cs_property <||> -> Cs_shadow <||>
-    Cs_shadow['mysql']    -> Service['mysql']
+    #Cs_property <||> -> Cs_shadow <||>
+    #Cs_shadow['mysql']    -> Service['mysql']
 
     $config_hash['custom_setup_class'] = $custom_setup_class
     $allowed_hosts = '%'
