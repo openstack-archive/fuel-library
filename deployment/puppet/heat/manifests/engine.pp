@@ -1,5 +1,6 @@
 class heat::engine (
   $pacemaker             = false,
+  $primary_controller    = false,
   $ocf_scripts_dir       = '/usr/lib/ocf/resource.d',
   $ocf_scripts_provider  = 'mirantis',
 ) {
@@ -45,6 +46,27 @@ class heat::engine (
       content => template("heat/${ocf_script_template}"),
     }
 
+    if $primary_controller {
+      cs_resource { $service_name :
+        ensure          => present,
+        primitive_class => 'ocf',
+        provided_by     => $ocf_scripts_provider,
+        primitive_type  => $service_name,
+        metadata        => { 'resource-stickiness' => '1' },
+        operations   => {
+          'monitor'  => { 'interval' => '20', 'timeout'  => '30' },
+          'start'    => { 'timeout' => '60' },
+          'stop'     => { 'timeout' => '60' },
+        },
+      }
+
+      Heat_config<||> -> File['heat-engine-ocf'] -> Cs_resource[$service_name] -> Service['heat-engine']
+    } else {
+
+      Heat_config<||> -> File['heat-engine-ocf'] -> Service['heat-engine']
+
+    }
+
     service { 'heat-engine':
       ensure     => 'running',
       name       => $service_name,
@@ -54,29 +76,6 @@ class heat::engine (
       provider   => 'pacemaker',
     }
 
-    cs_shadow { $service_name :
-      cib => $service_name,
-    }
-
-    cs_commit { $service_name :
-      cib => $service_name,
-    }
-
-    cs_resource { $service_name :
-      ensure          => present,
-      cib             => $service_name,
-      primitive_class => 'ocf',
-      provided_by     => $ocf_scripts_provider,
-      primitive_type  => $service_name,
-      metadata        => { 'resource-stickiness' => '1' },
-      operations   => {
-        'monitor'  => { 'interval' => '20', 'timeout'  => '30' },
-        'start'    => { 'timeout' => '60' },
-        'stop'     => { 'timeout' => '60' },
-      },
-    }
-
-    Heat_config<||> -> File['heat-engine-ocf'] -> Cs_shadow[$service_name] -> Cs_resource[$service_name] -> Cs_commit[$service_name] -> Service['heat-engine']
 
   }
 
