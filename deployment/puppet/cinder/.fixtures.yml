@@ -1,0 +1,19 @@
+fixtures:
+  repositories:
+    'apt': 'git://github.com/puppetlabs/puppetlabs-apt.git'
+    'inifile':  'git://github.com/puppetlabs/puppetlabs-inifile'
+    'keystone': 'git://github.com/stackforge/puppet-keystone.git'
+    'mysql':
+      repo: 'git://github.com/puppetlabs/puppetlabs-mysql.git'
+      ref:  'origin/0.x'
+    'postgresql':
+      repo: 'git://github.com/puppetlabs/puppet-postgresql.git'
+      ref: '2.5.0'
+    'qpid': 'git://github.com/dprince/puppet-qpid.git'
+    'rabbitmq':
+      repo: 'git://github.com/puppetlabs/puppetlabs-rabbitmq'
+      ref: 'origin/2.x'
+    'stdlib': 'git://github.com/puppetlabs/puppetlabs-stdlib.git'
+    'sysctl': 'git://github.com/duritong/puppet-sysctl.git'
+  symlinks:
+    'cinder': "#{source_dir}"
