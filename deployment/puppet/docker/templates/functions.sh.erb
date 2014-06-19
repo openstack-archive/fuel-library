@@ -93,8 +93,16 @@ function retry_checker {
   done
 }
 
+function get_service_credentials {
+  credentialfile=$(mktemp /tmp/servicepws.XXXXX)
+  get_service_credentials.py $ASTUTE_YAML > $credentialfile
+  . $credentialfile
+  rm -f $credentialfile
+}
+
 function check_ready {
   #Uses a custom command to ensure a container is ready
+  get_service_credentials
   failure=0
   echo "checking container $1"
   case $1 in
@@ -105,15 +113,13 @@ function check_ready {
                retry_checker "shell_container cobbler cobbler profile find --name=centos* | grep -q centos"
                retry_checker "shell_container cobbler cobbler profile find --name=ubuntu* | grep -q ubuntu"
                retry_checker "shell_container cobbler cobbler profile find --name=bootstrap* | grep -q bootstrap" ;;
-      #TODO(aglarendil): unhardcode passwords
-      rabbitmq) retry_checker 'curl -f -L -i  -u naily:naily http://127.0.0.1:15672/api/nodes  1>/dev/null 2>&1'
-                retry_checker "curl -f -L -u mcollective:marionette -s http://127.0.0.1:15672/api/exchanges | grep -qw 'mcollective_broadcast'"
-                retry_checker "curl -f -L -u mcollective:marionette -s http://127.0.0.1:15672/api/exchanges | grep -qw 'mcollective_directed'" ;;
-      #TODO(aglarendil): unhardcode passwords
-      postgres) retry_checker "PGPASSWORD=nailgun shell_container postgres psql -h 127.0.0.1 -U nailgun nailgun -c '\copyright' 2>&1 1>/dev/null" ;;
+      rabbitmq) retry_checker "curl -f -L -i  -u \"$astute_user:$astute_password\" http://127.0.0.1:15672/api/nodes  1>/dev/null 2>&1"
+                retry_checker "curl -f -L -u \"$mcollective_user:$mcollective_password\" -s http://127.0.0.1:15672/api/exchanges | grep -qw 'mcollective_broadcast'"
+                retry_checker "curl -f -L -u \"$mcollective_user:$mcollective_password\" -s http://127.0.0.1:15672/api/exchanges | grep -qw 'mcollective_directed'" ;;
+      postgres) retry_checker "PGPASSWORD=$postgres_nailgun_password shell_container postgres psql -h 127.0.0.1 -U \"$postgres_nailgun_user\" \"$postgres_nailgun_dbname\" -c '\copyright' 2>&1 1>/dev/null" ;;
       astute) retry_checker "shell_container astute ps aux | grep -q 'astuted'"
-              retry_checker "curl -f -L -u naily:naily -s http://127.0.0.1:15672/api/exchanges | grep -qw 'nailgun'"
-              retry_checker "curl -f -L -u naily:naily -s http://127.0.0.1:15672/api/exchanges | grep -qw 'naily_service'" ;;
+              retry_checker "curl -f -L -u \"$astute_user:$astute_password\" -s http://127.0.0.1:15672/api/exchanges | grep -qw 'nailgun'"
+              retry_checker "curl -f -L -u \"$astute_user:$astute_password\" -s http://127.0.0.1:15672/api/exchanges | grep -qw 'naily_service'" ;;
       rsync) retry_checker "shell_container rsync netstat -ntl | grep -q 873" ;;
       rsyslog) retry_checker "shell_container rsyslog netstat -nl | grep -q 514" ;;
       mcollective) retry_checker "shell_container mcollective ps aux | grep -q mcollectived" ;;
