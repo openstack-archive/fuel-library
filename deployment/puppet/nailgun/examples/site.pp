@@ -29,6 +29,7 @@ node default {
 
   $cobbler_user = $::fuel_settings['cobbler']['user']
   $cobbler_password = $::fuel_settings['cobbler']['password']
+  $rescue = $::fuel_settings['rescue']
   $puppet_master_hostname = "${hostname}.${domain}"
 
   $mco_pskey = "unset"
@@ -87,6 +88,7 @@ node default {
     cobbler_url => "http://localhost/cobbler_api",
     cobbler_user => $cobbler_user,
     cobbler_password => $cobbler_password,
+    rescue => $rescue,
 
     mco_pskey => $mco_pskey,
     mco_vhost => $mco_vhost,

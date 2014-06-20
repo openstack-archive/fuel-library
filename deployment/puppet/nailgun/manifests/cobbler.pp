@@ -24,7 +24,7 @@ class nailgun::cobbler(
   $nailgun_api_url = "http://${::ipaddress}:8000/api",
   # default password is 'r00tme'
   $ks_encrypted_root_password = "\$6\$tCD3X7ji\$1urw6qEMDkVxOkD33b4TpQAjRiCeDZx0jmgMhDYhfB9KuGfqO9OcMaKyUxnGGWslEDQ4HxTw7vcAMP85NxQe61",
-
+  $rescue = false,
   ){
 
   anchor { "nailgun-cobbler-begin": }
@@ -170,6 +170,28 @@ url=http://${::fuel_settings['ADMIN_NETWORK']['ipaddress']}:8000/api mco_user=${
     ksmeta => "",
     server => $real_server,
     require => Cobbler_distro["bootstrap"],
+  }
+
+  if $rescue {
+    cobbler_distro { "rescue":
+      kernel => "${repo_root}/rescue/linux",
+      initrd => "${repo_root}/rescue/initrd",
+      arch => "x86_64",
+      breed => "generic",
+      osversion => "generic26",
+      ksmeta => "",
+      require => Class["::cobbler::server"],
+    }
+
+    cobbler_profile { "rescue":
+      distro => "rescue",
+      menu => true,
+      kickstart => "",
+      kopts => "nokeymap",
+      ksmeta => "",
+      server => $real_server,
+      require => Cobbler_distro["rescue"],
+    }
   }
 
   if str2bool($::is_virtual) {  class { cobbler::checksum_bootpc: } }

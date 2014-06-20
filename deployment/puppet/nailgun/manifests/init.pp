@@ -24,6 +24,7 @@ class nailgun(
 
   $cobbler_user = "cobbler",
   $cobbler_password = "cobbler",
+  $rescue = false,
   $cobbler_host       = $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
   $cobbler_url        = "http://${::fuel_settings['ADMIN_NETWORK']['ipaddress']}/cobbler_api",
   $dns_upstream       = $::fuel_settings['DNS_UPSTREAM'],
@@ -214,6 +215,7 @@ class nailgun(
 
     cobbler_user       => $cobbler_user,
     cobbler_password   => $cobbler_password,
+    rescue             => $rescue,
     server             => $cobbler_host,
     name_server        => $cobbler_host,
     next_server        => $cobbler_host,
