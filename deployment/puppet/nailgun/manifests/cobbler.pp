@@ -172,6 +172,26 @@ url=http://${::fuel_settings['ADMIN_NETWORK']['ipaddress']}:8000/api mco_user=${
     require => Cobbler_distro["bootstrap"],
   }
 
+  cobbler_distro { "rescue":
+    kernel => "${repo_root}/rescue/linux",
+    initrd => "${repo_root}/rescue/initrd",
+    arch => "x86_64",
+    breed => "generic",
+    osversion => "generic26",
+    ksmeta => "",
+    require => Class["::cobbler::server"],
+  }
+
+  cobbler_profile { "rescue":
+    distro => "rescue",
+    menu => true,
+    kickstart => "",
+    kopts => "nokeymap",
+    ksmeta => "",
+    server => $real_server,
+    require => Cobbler_distro["rescue"],
+  }
+
   if str2bool($::is_virtual) {  class { cobbler::checksum_bootpc: } }
 
   exec { "cobbler_system_add_default":
