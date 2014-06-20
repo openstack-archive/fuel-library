@@ -1,8 +1,0 @@
-# THIS FILE IS MANAGED BY PUPPET
-<% if hostgroups.kind_of? Array %>
-<% hostgroups.each do |host| %>
-define hostgroup{
-  hostgroup_name <%= host %> 
-}
-<% end %>
-<% end %>
