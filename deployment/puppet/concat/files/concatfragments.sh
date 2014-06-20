@@ -44,6 +44,7 @@ TEST=""
 FORCE=""
 WARN=""
 SORTARG=""
+ENSURE_NEWLINE=""
 
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
 
@@ -51,7 +52,7 @@ PATH=/sbin:/usr/sbin:/bin:/usr/bin
 ## http://nexenta.org/projects/site/wiki/Personalities
 unset SUN_PERSONALITY
 
-while getopts "o:s:d:tnw:f" options; do
+while getopts "o:s:d:tnw:fl" options; do
 	case $options in
 		o ) OUTFILE=$OPTARG;;
 		d ) WORKDIR=$OPTARG;;
@@ -59,32 +60,33 @@ while getopts "o:s:d:tnw:f" options; do
 		w ) WARNMSG="$OPTARG";;
 		f ) FORCE="true";;
 		t ) TEST="true";;
+		l ) ENSURE_NEWLINE="true";;
 		* ) echo "Specify output file with -o and fragments directory with -d"
 		    exit 1;;
 	esac
 done
 
 # do we have -o?
-if [ x${OUTFILE} = "x" ]; then
+if [ "x${OUTFILE}" = "x" ]; then
 	echo "Please specify an output file with -o"
 	exit 1
 fi
 
 # do we have -d?
-if [ x${WORKDIR} = "x" ]; then
+if [ "x${WORKDIR}" = "x" ]; then
 	echo "Please fragments directory with -d"
 	exit 1
 fi
 
 # can we write to -o?
-if [ -f ${OUTFILE} ]; then
-	if [ ! -w ${OUTFILE} ]; then
+if [ -f "${OUTFILE}" ]; then
+	if [ ! -w "${OUTFILE}" ]; then
 		echo "Cannot write to ${OUTFILE}"
 		exit 1
 	fi
 else
-	if [ ! -w `dirname ${OUTFILE}` ]; then
-		echo "Cannot write to `dirname ${OUTFILE}` to create ${OUTFILE}"
+	if [ ! -w `dirname "${OUTFILE}"` ]; then
+		echo "Cannot write to `dirname \"${OUTFILE}\"` to create ${OUTFILE}"
 		exit 1
 	fi
 fi
@@ -96,33 +98,42 @@ if [ ! -d "${WORKDIR}/fragments" ]  && [ ! -x "${WORKDIR}/fragments" ]; then
 fi
 
 # are there actually any fragments?
-if [ ! "$(ls -A ${WORKDIR}/fragments)" ]; then
-	if [ x${FORCE} = "x" ]; then
+if [ ! "$(ls -A """${WORKDIR}/fragments""")" ]; then
+	if [ "x${FORCE}" = "x" ]; then
 		echo "The fragments directory is empty, cowardly refusing to make empty config files"
 		exit 1
 	fi
 fi
 
-cd ${WORKDIR}
+cd "${WORKDIR}"
 
-if [ x${WARNMSG} = "x" ]; then
+if [ "x${WARNMSG}" = "x" ]; then
 	: > "fragments.concat"
 else
 	printf '%s\n' "$WARNMSG" > "fragments.concat"
 fi
 
 # find all the files in the fragments directory, sort them numerically and concat to fragments.concat in the working dir
-find fragments/ -type f -follow | sort ${SORTARG} | while read fragfile; do
-	cat "$fragfile" >> "fragments.concat"
+IFS_BACKUP=$IFS
+IFS='
+'
+for fragfile in `find fragments/ -type f -follow -print0 | xargs -0 -n1 basename | LC_ALL=C sort ${SORTARG}`
+do
+    cat "fragments/$fragfile" >> "fragments.concat"
+    # Handle newlines.
+    if [ "x${ENSURE_NEWLINE}" != "x" ]; then
+      echo >> "fragments.concat"
+    fi
 done
+IFS=$IFS_BACKUP
 
-if [ x${TEST} = "x" ]; then
+if [ "x${TEST}" = "x" ]; then
 	# This is a real run, copy the file to outfile
-	cp fragments.concat ${OUTFILE}
+	cp fragments.concat "${OUTFILE}"
 	RETVAL=$?
 else
 	# Just compare the result to outfile to help the exec decide
-	cmp ${OUTFILE} fragments.concat
+	cmp "${OUTFILE}" fragments.concat
 	RETVAL=$?
 fi
 
