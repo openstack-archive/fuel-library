@@ -168,6 +168,26 @@ class nailgun::cobbler(
     require => Cobbler_distro["bootstrap"],
   }
 
+  cobbler_distro { "RIP":
+    kernel => "${repo_root}/rip/kernel64",
+    initrd => "${repo_root}/rip/rootfs.cgz",
+    arch => "x86_64",
+    breed => "generic",
+    osversion => "generic26",
+    ksmeta => "",
+    require => Class["::cobbler::server"],
+  }
+
+  cobbler_profile { "RIP":
+    distro => "RIP",
+    menu => true,
+    kickstart => "",
+    kopts => "nokeymap",
+    ksmeta => "",
+    server => $real_server,
+    require => Cobbler_distro["RIP"],
+  }
+
   if str2bool($::is_virtual) {  class { cobbler::checksum_bootpc: } }
 
   exec { "cobbler_system_add_default":
