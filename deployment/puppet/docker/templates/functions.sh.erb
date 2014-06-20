@@ -23,6 +23,38 @@ function show_usage {
   echo "  destroy: destroy one or more containers"
   echo "  copy: copy files in or out of container"
   echo "  check: check of container is ready"
+  echo "  backup: back up entire deployment"
+  echo "  restore: restore backed up deployment"
+}
+
+function parse_options {
+  opts="$@"
+  for opt in $@; do
+    case $opt in
+      -V|--version) VERSION=$2
+                    shift 2
+                    ;;
+      -d|--debug)   DEBUG=true
+                    shift
+                    ;;
+      --nodebug)    DEBUG=false
+                    shift
+                    ;;
+      --)           shift
+                    nonopts+=("$@")
+                    return
+                    ;;
+      help|build|start|stop|shell|upgrade|destroy|check|backup|restore)
+                    nonopts+=("$@")
+                    return
+                    ;;
+      -*)           echo "Unrecognized option: $opt" 1>&2
+                    exit 1
+                    ;;
+      *)            nonopts+=("$opt")
+                    ;;
+    esac
+  done
 }
 function debug {
   if $DEBUG; then
@@ -184,6 +216,12 @@ function start_container {
     echo "Must specify a container name" 1>&2
     exit 1
   fi
+  if [ "$1" = "all" ]; then
+    for container in $CONTAINER_SEQUENCE; do
+      start_container $container
+    done
+    return
+  fi
   image_name="$IMAGE_PREFIX/$1"
   container_name=${CONTAINER_NAMES[$1]}
   if container_created "$container_name"; then
@@ -229,7 +267,7 @@ function shell_container {
 
 function stop_container {
   if [[ "$1" == 'all' ]]; then
-    ${DOCKER} stop ${CONTAINER_NAMES[$1]}
+    ${DOCKER} stop ${CONTAINER_NAMES[@]}
   else
     for container in $@; do
       echo "Stopping $container..."
@@ -241,11 +279,11 @@ function stop_container {
 function destroy_container {
   if [[ "$1" == 'all' ]]; then
     stop_container all
-    ${DOCKER} rm ${CONTAINER_NAMES[@]}
+    ${DOCKER} rm -f ${CONTAINER_NAMES[@]}
   else
     for container in $@; do
       stop_container $container
-      ${DOCKER} rm ${CONTAINER_NAMES[$container]}
+      ${DOCKER} rm -f ${CONTAINER_NAMES[$container]}
       if [ $? -ne 0 ]; then
         #This happens because devicemapper glitched
         #Try to unmount all devicemapper mounts manually and try again
@@ -257,7 +295,7 @@ function destroy_container {
         fi
         umount -l $(grep "$id" /proc/mounts | awk '{print $2}' | sort -r)
         #Try to delete again
-        ${DOCKER} rm ${CONTAINER_NAMES[$container]}
+        ${DOCKER} rm -f ${CONTAINER_NAMES[$container]}
         if [ $? -ne 0 ];then
           echo "Workaround failed. Unable to destroy container $container."
         fi
@@ -454,3 +492,91 @@ function copy_files {
   fi
 }
 
+function backup {
+  backup_id=$(date +%F_%H%S)
+  backup_dir="${BACKUP_ROOT}/backup_${backup_id}"
+  backup_containers "$backup_id"
+  backup_system_dirs
+  backup_compress
+  backup_cleanup $backup_dir
+  echo "Backup complete. File is available at $backup_dir/fuel_backup${image_suffix}.tar.lrz"
+  #TODO(mattymo): backup_upload backupfile
+}
+function backup_containers {
+#Backs up all containers, regardless of being related to Fuel
+
+  image_suffix="_$1"
+  purge_images=0
+
+  #rm -rf "$backup_dir"
+  mkdir -p $system_dirs $backup_dir
+  echo "Reading container data..."
+  while read containerid; do
+    container_name="$(${DOCKER} inspect -f='{{.Name}}' $containerid | tr -d '/')"
+    container_image="$(${DOCKER} inspect -f='{{.Config.Image}}' $containerid)"
+    container_image+=$image_suffix
+    container_archive="$(echo "$container_image" | sed 's/\//__/').tar"
+    #Commit container as new image
+    echo "Committing $container_name..."
+    ${DOCKER} commit "$containerid" "${container_image}"
+    echo "Saving $container_name..."
+    ${DOCKER} save "${container_image}" > "${backup_dir}/${container_archive}"
+  done < <(${DOCKER} ps -aq)
+}
+
+function backup_system_dirs {
+  echo "Archiving system folders"
+  tar cf $backup_dir/system-dirs.tar -C / $system_dirs
+}
+
+function backup_compress {
+  echo "Compressing archives..."
+  tar cf $backup_dir/fuel_backup${image_suffix}.tar -C $backup_dir $backup_dir/*.tar
+
+  #Improve compression on bare metal
+  if [ -z "$(virt-what)" ] ; then
+    lrzopts="-L2 -U"
+  else
+    lrzopts="-L2"
+  fi
+  lrzip $lrzopts "$backup_dir/fuel_backup${image_suffix}.tar" -o "$backup_dir/fuel_backup${image_suffix}.tar.lrz"
+  
+}
+function backup_cleanup {
+  echo "Cleaning up..."
+  [ -d "$1" ] && rm -f $1/*.tar
+}
+
+function restore {
+  restore_images $1
+  echo "Stopping and destroying existing containers..."
+  destroy_container all
+  echo "Preparing storage containers..."
+  run_storage_containers
+  echo "Starting application containers..."
+  start_container all
+}
+function restore_images {
+#TODO(mattymo): specify filename or parse BACKUP_DIR for lrz files
+#TODO(mattymo): support remote file such as ssh://user@myhost/backup.tar.lrz
+#               or http://myhost/backup.tar.lrz
+#feedback as everything restores
+  if [ -z "$1" ]; then
+    echo "Specify a backup file to restore" 1>&2
+    exit 1
+  elif ! [ -f "$1" ]; then
+    echo "Archive does not exist: $1" 1>&2
+    exit 1
+  fi
+  backupfile=$1
+  timestamp=$(echo $backupfile | sed -e 's/.*\(\d{4}-\d{2}-\d{2}_\d{4}\).*/\1/')
+  restoredir=$BACKUP_ROOT/restore-$timestamp/
+  mkdir -p "$restoredir"
+  lrzip -d -o "$restoredir/fuel-backup.tar" $backupfile
+  tar -xf fuel-backup.tar -C "$restoredir" && rm -f "$restoredir/fuel-images.tar"
+  for imgfile in $restoredir/*.tar; do
+    echo "Loading $imgfile..."
+    ${DOCKER} load -i $imgfile
+    rm -f $imgfile
+  done
+}
