@@ -46,16 +46,17 @@ class mysql::server (
     etc_root_password => $etc_root_password,
   }
 
+  class { 'mysql::config' :
+    bind_address       => $bind_address,
+    use_syslog         => $use_syslog,
+    custom_setup_class => $custom_setup_class,
+  }
+
   Exec {path => '/usr/bin:/bin:/usr/sbin:/sbin'}
   if ($custom_setup_class == undef) {
     include mysql
     Class['mysql::server'] -> Class['mysql::config']
     Class['mysql']         -> Class['mysql::server']
-
-    class { 'mysql::config' :
-      bind_address => $bind_address,
-      use_syslog   => $use_syslog,
-    }
 
     if !defined(Package[mysql-client]) {
       package { 'mysql-client':
