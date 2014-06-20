@@ -10,7 +10,7 @@ class nailgun::iptables {
   }
 
   define ip_forward($network) {
-    $rule = "-s $network -j MASQUERADE"
+    $rule = "-s $network ! -o docker0 -j MASQUERADE"
     exec { "ip_forward: $network":
       command => "iptables -t nat -I POSTROUTING 1 $rule; \
       /etc/init.d/iptables save",
