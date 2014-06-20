@@ -16,6 +16,8 @@ IMAGE_PREFIX="fuel"
 BUSYBOX_IMAGE="busybox.tar.gz"
 # base centos image for all containers
 BASE_IMAGE="centos.tar.gz"
+# Order in which to start all containers
+CONTAINER_SEQUENCE="postgres rabbitmq keystone rsync astute rsyslog nailgun ostf nginx cobbler mcollective"
 
 ZIP_EXT=${ZIP_EXT:-".tar.xz"}
 # source images for apps
@@ -127,7 +129,7 @@ REQS["$NAILGUN_VOL"]="nginx mcollective"
 REQS["$COBBLER_VOL"]="mcollective"
 REQS["$ASTUTE_VOL"]="mcollective"
 
-#assemble requirements 
+#assemble requirements
 for requirement in "${!REQS[@]}"; do
   for container in ${REQS["$requirement"]}; do
     CONTAINER_VOLUMES["$container"]+="${requirement} "
@@ -135,4 +137,6 @@ for requirement in "${!REQS[@]}"; do
 done
 
 
-
+#backup settings
+SYSTEM_DIRS="/etc/puppet /etc/fuel /var/log /var/www/nailgun"
+BACKUP_ROOT="/var/backup/fuel"

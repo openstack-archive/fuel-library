@@ -5,6 +5,11 @@ confdir="<%= @config_dir %>"
 . "<%= @share_dir %>/functions"
 DEBUG=true
 
+#Sets var nonopts
+declare -a nonopts
+parse_options "$@"
+set -- "${nonopts[@]}"
+
 if [ -z "$1" ] || [ "$1" = "help" ]; then
   echo "Please specify a command."
   show_usage
@@ -17,7 +22,7 @@ else
   container=$2
 fi
 
-container_seq="postgres rabbitmq rsync astute rsyslog keystone nailgun ostf nginx cobbler mcollective"
+container_seq=$CONTAINER_SEQUENCE
 
 if [ "$1" == "build" ]; then
   if [ "$container" = "storage" ]; then
@@ -95,9 +100,12 @@ elif [ "$1" == "shell" ]; then
 elif [ "$1" == "upgrade" ]; then
   shift 2
   upgrade_container $container $@
+elif [ "$1" == "restore" ]; then
+  shift 
+  restore $@
 elif [ "$1" == "backup" ]; then
   shift 2
-  backup_container $container $@
+  backup $container $@
 elif [ "$1" == "destroy" ]; then
   shift 2
   destroy_container $container $@
