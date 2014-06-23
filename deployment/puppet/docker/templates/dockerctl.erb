@@ -17,7 +17,7 @@ else
   container=$2
 fi
 
-container_seq="postgres rabbitmq rsync astute rsyslog nailgun ostf nginx cobbler mcollective"
+container_seq="postgres rabbitmq rsync astute rsyslog keystone nailgun ostf nginx cobbler mcollective"
 
 if [ "$1" == "build" ]; then
   if [ "$container" = "storage" ]; then
