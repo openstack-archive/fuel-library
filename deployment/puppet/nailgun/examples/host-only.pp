@@ -34,8 +34,9 @@ class { "openstack::clocksync":
 }
 
 class { "docker::dockerctl":
-  release    => $::fuel_version['VERSION']['release'],
-  production => $production,
+  release         => $::fuel_version['VERSION']['release'],
+  production      => $production,
+  admin_ipaddress => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
 }
 class { "docker": }
 
