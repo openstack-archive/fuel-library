@@ -30,6 +30,7 @@ SOURCE_IMAGES['ostf']="${IMAGE_DIR}/ostf${ZIP_EXT}"
 SOURCE_IMAGES['nginx']="${IMAGE_DIR}/nginx${ZIP_EXT}"
 SOURCE_IMAGES['rsyslog']="${IMAGE_DIR}/rsyslog${ZIP_EXT}"
 SOURCE_IMAGES['mcollective']="${IMAGE_DIR}/mcollective${ZIP_EXT}"
+SOURCE_IMAGES['keystone']="${IMAGE_DIR}/keystone${ZIP_EXT}"
 
 # storage container names
 PREFIX_STORAGE="fuel-storage-${VERSION}-"
@@ -51,6 +52,7 @@ CONTAINER_NAMES['ostf']="${prefix}ostf"
 CONTAINER_NAMES['nginx']="${prefix}nginx"
 CONTAINER_NAMES['rsyslog']="${prefix}rsyslog"
 CONTAINER_NAMES['mcollective']="${prefix}mcollective"
+CONTAINER_NAMES['keystone']="${prefix}keystone"
 
 # app container options
 declare -A CONTAINER_OPTIONS
@@ -67,6 +69,7 @@ CONTAINER_OPTIONS["ostf"]="-p 8777:8777 $base_opts"
 CONTAINER_OPTIONS["nginx"]="-p 8000:8000 -p 8080:8080 $base_opts"
 CONTAINER_OPTIONS["rsyslog"]="--privileged -p 514:514 -p 514:514/udp -p 25150 $base_opts"
 CONTAINER_OPTIONS["mcollective"]="--privileged $base_opts"
+CONTAINER_OPTIONS["keystone"]="$base_opts"
 
 ######
 #DRAFT: Dependency of volumes for deployment
@@ -115,12 +118,12 @@ ASTUTE_VOL="--volumes-from ${CONTAINER_NAMES['astute']}"
 ###astute: mcollective
 #
 declare -A REQS
-REQS["${HOST_VOL['astuteyaml']}"]="cobbler postgres rabbitmq rsync astute nailgun ostf nginx rsyslog mcollective"
-REQS["$REPO_VOL"]="cobbler postgres rabbitmq rsync astute nailgun ostf nginx rsyslog mcollective"
+REQS["${HOST_VOL['astuteyaml']}"]="cobbler postgres rabbitmq rsync astute nailgun ostf nginx rsyslog mcollective keystone"
+REQS["$REPO_VOL"]="cobbler postgres rabbitmq rsync astute nailgun ostf nginx rsyslog mcollective keystone"
 #Most containers work from local integrated puppet
 REQS["$PUPPET_VOL"]="rsync"
 #REQS["$PUPPET_VOL"]="cobbler postgres rabbitmq rsync astute nailgun ostf nginx rsyslog mcollective"
-REQS["$LOG_VOL"]="cobbler postgres rabbitmq rsync astute nailgun ostf nginx rsyslog mcollective"
+REQS["$LOG_VOL"]="cobbler postgres rabbitmq rsync astute nailgun ostf nginx rsyslog mcollective keystone"
 REQS["${HOST_VOL['sshkey']}"]="nailgun cobbler astute mcollective ostf"
 REQS["${HOST_VOL['dump']}"]="nginx mcollective"
 #REQS["${HOST_VOL['remotelogs']}"]="rsyslog nailgun nginx"
