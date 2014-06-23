@@ -688,6 +688,71 @@ class osnailyfacter::cluster_ha {
       notify {"osd_devices:  ${::osd_devices_list}": }
     } # CEPH-OSD ENDS
 
+    # Definition of the first OpenStack Swift node.
+    /storage/ : {
+      class { 'operatingsystem::checksupported':
+          stage => 'setup'
+      }
+
+      $swift_zone = $node[0]['swift_zone']
+
+      class { 'openstack::swift::storage_node':
+        storage_type          => $swift_loopback,
+        loopback_size         => '5243780',
+        storage_mnt_base_dir  => $swift_partition,
+        storage_devices       =>  $mountpoints,
+        swift_zone             => $swift_zone,
+        swift_local_net_ip     => $swift_local_net_ip,
+        master_swift_proxy_ip  => $master_swift_proxy_ip,
+        cinder                 => $cinder,
+        cinder_iscsi_bind_addr => $cinder_iscsi_bind_addr,
+        cinder_volume_group     => "cinder",
+        manage_volumes          => $cinder ? { false => $manage_volumes, default =>$is_cinder_node },
+        db_host                => $::fuel_settings['management_vip'],
+        service_endpoint       => $::fuel_settings['management_vip'],
+        cinder_rate_limits     => $cinder_rate_limits,
+        queue_provider         => $::queue_provider,
+        rabbit_nodes           => $controller_nodes,
+        rabbit_password        => $rabbit_hash[password],
+        rabbit_user            => $rabbit_hash[user],
+        rabbit_ha_virtual_ip   => $::fuel_settings['management_vip'],
+        qpid_password          => $rabbit_hash[password],
+        qpid_user              => $rabbit_hash[user],
+        qpid_nodes             => [$::fuel_settings['management_vip']],
+        sync_rings             => ! $primary_proxy,
+        syslog_log_level       => $syslog_log_level,
+        debug                  => $debug,
+        verbose                => $verbose,
+        syslog_log_facility_cinder => $syslog_log_facility_cinder,
+      }
+
+    }
+
+    # Definition of OpenStack Swift proxy nodes.
+    /swift-proxy/ : {
+      class { 'operatingsystem::checksupported':
+          stage => 'first'
+      }
+
+      if $primary_proxy {
+        ring_devices {'all':
+          storages => $swift_storages
+        }
+      }
+
+      class { 'openstack::swift::proxy':
+        swift_user_password     => $swift_hash[user_password],
+        swift_proxies           => $swift_proxies,
+        primary_proxy           => $primary_proxy,
+        controller_node_address => $::fuel_settings['management_vip'],
+        swift_local_net_ip      => $swift_local_net_ip,
+        master_swift_proxy_ip   => $master_swift_proxy_ip,
+        syslog_log_level        => $syslog_log_level,
+        debug                   => $debug,
+        verbose                 => $verbose,
+      }
+    }
+
   } # ROLE CASE ENDS
 
 } # CLUSTER_HA ENDS
