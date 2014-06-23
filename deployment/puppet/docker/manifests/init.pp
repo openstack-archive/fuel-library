@@ -1,4 +1,5 @@
 class docker (
+$admin_ipaddress = $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
 $limit = "102400",
 $docker_package = "docker-io",
 $docker_service = "docker",
