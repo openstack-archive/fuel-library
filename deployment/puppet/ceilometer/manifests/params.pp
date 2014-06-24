@@ -20,10 +20,7 @@ class ceilometer::params {
       $common_package_name        = 'openstack-ceilometer-common'
       $client_package_name        = 'python-ceilometerclient'
       $alarm_package              = 'openstack-ceilometer-alarm'
-      $agent_notification_package = 'openstack-ceilometer-common'
-      # This name should be changed when
-      # openstack-ceilometer-agent-notification will be own package
-      #$agent_notification_package = 'openstack-ceilometer-agent-notification'
+      $agent_notification_package = 'openstack-ceilometer-notification'
       # service names
       $agent_central_service_name = 'openstack-ceilometer-central'
       $agent_compute_service_name = 'openstack-ceilometer-compute'
