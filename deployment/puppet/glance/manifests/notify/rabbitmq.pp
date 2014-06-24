@@ -43,6 +43,7 @@ class glance::notify::rabbitmq(
 
   glance_api_config {
     'DEFAULT/notification_driver':          value => 'messaging';
+    'DEFAULT/notification_strategy':        value => 'rabbit';
     'DEFAULT/rabbit_virtual_host':          value => $rabbit_virtual_host;
     'DEFAULT/rabbit_password':              value => $rabbit_password;
     'DEFAULT/rabbit_userid':                value => $rabbit_userid;
