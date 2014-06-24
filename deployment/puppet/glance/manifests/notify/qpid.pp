@@ -9,11 +9,12 @@ class glance::notify::qpid(
 ) inherits glance::api {
 
   glance_api_config {
-    'DEFAULT/notifier_strategy': value => 'qpid';
-    'DEFAULT/qpid_host':         value => $qpid_host;
-    'DEFAULT/qpid_port':         value => $qpid_port;
-    'DEFAULT/qpid_username':     value => $qpid_username;
-    'DEFAULT/qpid_password':     value => $qpid_password;
+    'DEFAULT/notifier_strategy':   value => 'qpid';
+    'DEFAULT/notification_driver': value => 'messaging';
+    'DEFAULT/qpid_host':           value => $qpid_host;
+    'DEFAULT/qpid_port':           value => $qpid_port;
+    'DEFAULT/qpid_username':       value => $qpid_username;
+    'DEFAULT/qpid_password':       value => $qpid_password;
   }
 
 }
