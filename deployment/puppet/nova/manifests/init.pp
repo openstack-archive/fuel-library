@@ -73,6 +73,8 @@ class nova(
   $max_pool_size = '10',
   $max_overflow = '30',
   $max_retries = '-1',
+  $memcached_servers            = false,
+  $memcached_server_port        = '11211',
 ) inherits nova::params {
 
   # all nova_config resources should be applied
@@ -217,6 +219,17 @@ if $use_syslog and !$debug { #syslog and nondebug case
   }
 
   nova_config { 'DEFAULT/auth_strategy': value => $auth_strategy }
+
+  if $memcached_servers {
+    nova_config {'DEFAULT/memcached_servers':
+      ensure => present,
+      value  => inline_template("<%= @memcached_servers.collect {|ip| ip + ':' + @memcached_server_port }.join ',' %>"),
+    }
+  } else {
+    nova_config {'DEFAULT/memcached_servers':
+      ensure => absent,
+    }
+  }
 
   # I may want to support exporting and collecting these
   case $queue_provider {

@@ -427,6 +427,8 @@ class openstack::controller (
     max_overflow            => $max_overflow,
     idle_timeout            => $idle_timeout,
     novnc_address           => $novnc_address,
+    memcached_servers       => $cache_server_ip,
+    memcached_server_port   => $cache_server_port,
   }
 
   ######### Cinder Controller Services ########

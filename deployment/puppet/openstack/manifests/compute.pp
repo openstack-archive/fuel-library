@@ -125,6 +125,8 @@ class openstack::compute (
   $state_path                    = '/var/lib/nova',
   $ceilometer                    = false,
   $ceilometer_metering_secret    = "ceilometer",
+  $memcached_servers             = false,
+  $memcached_server_port         = '11211',
 ) {
 
   #
@@ -170,10 +172,6 @@ class openstack::compute (
     notify => Service['libvirt'],
   }
 
-  $memcached_addresses =  inline_template("<%= @cache_server_ip.collect {|ip| ip + ':' + @cache_server_port }.join ',' %>")
-  nova_config {'DEFAULT/memcached_servers':
-    value => $memcached_addresses
-  }
   class { 'nova':
       ensure_package       => $::openstack_version['nova'],
       sql_connection       => $sql_connection,
@@ -193,6 +191,8 @@ class openstack::compute (
       state_path           => $state_path,
       report_interval      => $nova_report_interval,
       service_down_time    => $nova_service_down_time,
+      memcached_servers     => $memcached_servers,
+      memcached_server_port => $memcached_server_port,
   }
 
   #Cinder setup
