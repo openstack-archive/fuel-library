@@ -109,6 +109,13 @@ class openstack::controller_ha (
       is_primary_controller    => $is_primary_controller,
     }
 
+    # This should be further in nova but since we are moving code around alot
+    # It is here untill we can ensure it wont be lost.
+    if $memcached_servers {
+      _memcached_servers = join(regsubst($_memcached_servers, '$', ':11211'), ',')
+      nova_config {'DEFAULT/memcached_servers'  value => $_memcached_servers}
+    }
+
     class { '::openstack::controller':
       private_interface              => $private_interface,
       public_interface               => $public_interface,
