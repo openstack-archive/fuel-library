@@ -593,7 +593,7 @@ class osnailyfacter::cluster_ha {
         vnc_enabled                 => true,
         manage_volumes              => $manage_volumes,
         nova_user_password          => $nova_hash[user_password],
-        cache_server_ip             => $controller_nodes,
+        memcached_servers           => join(regsubst($memcached_servers, '$', ':11211'), ',')
         service_endpoint            => $::fuel_settings['management_vip'],
         cinder                      => true,
         cinder_iscsi_bind_addr      => $cinder_iscsi_bind_addr,

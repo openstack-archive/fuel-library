@@ -147,7 +147,7 @@ class openstack::controller (
   $purge_nova_config              = false,
   $nova_report_interval           = '10',
   $nova_service_down_time         = '60',
-
+  $memcached_servers              = false,
   # Horizon
   $cache_server_ip                = ['127.0.0.1'],
   $cache_server_port              = '11211',
@@ -388,6 +388,8 @@ class openstack::controller (
     nova_db_user                => $nova_db_user,
     nova_db_dbname              => $nova_db_dbname,
     nova_quota_driver           => $nova_quota_driver,
+    memcached_servers           => $memcached_servers
+
     # RPC
     queue_provider              => $queue_provider,
     amqp_hosts                  => $amqp_hosts,

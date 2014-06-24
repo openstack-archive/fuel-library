@@ -62,6 +62,7 @@ class nova(
   $periodic_interval            = '60',
   $report_interval              = '10',
   $root_wrap_config             = '/etc/nova/rootwrap.conf',
+  $memcached_servers            = false,
   # deprecated in folsom
   #$root_helper = $::nova::params::root_helper,
   $monitoring_notifications     = false,
@@ -254,6 +255,11 @@ class nova(
     }
   }
 
+  if $memcached_servers {
+    nova_config { 'DEFAULT/memcached_servers': value  => join($memcached_servers, ',') }
+  } else {
+    nova_config { 'DEFAULT/memcached_servers': ensure => absent }
+  }
 
   exec { 'post-nova_config':
     command => '/bin/echo "Nova config has changed"',
