@@ -98,8 +98,7 @@ class openstack::compute (
   $service_endpoint               = '127.0.0.1',
   $ssh_private_key                = '/var/lib/astute/nova/nova',
   $ssh_public_key                 = '/var/lib/astute/nova/nova.pub',
-  $cache_server_ip                = ['127.0.0.1'],
-  $cache_server_port              = '11211',
+  $memcached_serers               = false,
   # if the cinder management components should be installed
   $manage_volumes                 = false,
   $nv_physical_volume             = undef,
@@ -168,10 +167,6 @@ class openstack::compute (
     notify => Service['libvirt'],
   }
 
-  $memcached_addresses =  inline_template("<%= @cache_server_ip.collect {|ip| ip + ':' + @cache_server_port }.join ',' %>")
-  nova_config {'DEFAULT/memcached_servers':
-    value => $memcached_addresses
-  }
   class { 'nova':
       ensure_package       => $::openstack_version['nova'],
       sql_connection       => $sql_connection,
@@ -190,6 +185,8 @@ class openstack::compute (
       state_path           => $state_path,
       report_interval      => $nova_report_interval,
       service_down_time    => $nova_service_down_time,
+      memcached_serers     => $memcached_serers,
+
   }
 
   #Cinder setup

@@ -109,6 +109,12 @@ class openstack::controller_ha (
       is_primary_controller    => $is_primary_controller,
     }
 
+    if $memcached_servers {
+      $_memcached_servers = join(regsubst($memcached_servers, '$', ':11211'), ',')
+    } else {
+      $_memcached_servers = false
+    }
+
     class { '::openstack::controller':
       private_interface              => $private_interface,
       public_interface               => $public_interface,
@@ -155,6 +161,7 @@ class openstack::controller_ha (
       rabbitmq_cluster_nodes         => $rabbitmq_cluster_nodes,
       rabbit_cluster                 => true,
       cache_server_ip                => $memcached_servers,
+      memcached_serers               => $_memcached_serers,
       export_resources               => false,
       api_bind_address               => $internal_address,
       db_host                        => $internal_virtual_ip,

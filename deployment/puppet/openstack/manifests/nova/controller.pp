@@ -73,6 +73,7 @@ class openstack::nova::controller (
   # VNC
   $vnc_enabled                 = true,
   # General
+  $memcached_serers            = false,
   $keystone_host               = '127.0.0.1',
   $verbose                     = false,
   $debug                       = false,
@@ -148,6 +149,7 @@ class openstack::nova::controller (
     glance_api_servers  => $glance_connection,
     verbose             => $verbose,
     debug               => $debug,
+    memcached_serers    => $memcached_serers,
     ensure_package      => $ensure_package,
     api_bind_address    => $api_bind_address,
     syslog_log_facility => $syslog_log_facility,
