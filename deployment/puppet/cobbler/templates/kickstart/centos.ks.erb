@@ -126,7 +126,6 @@ virt-what
 vim
 wget
 yum
-yum-plugin-versionlock
 yum-utils
 perl
 daemonize
@@ -150,9 +149,6 @@ $SNIPPET('mcollective_install_if_enabled')
 # INSTALLATION ITSELF COMPLETED
 %post
 
-yum versionlock puppet
-yum versionlock kernel
-yum versionlock iproute2
 yum-config-manager --disableplugin=fastestmirror --save &>/dev/null
 
 echo -e "modprobe nf_conntrack_ipv4\nmodprobe nf_conntrack_ipv6" >> /etc/rc.modules
