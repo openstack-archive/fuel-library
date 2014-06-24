@@ -1,14 +1,17 @@
 Puppet::Type.type(:logical_volume).provide :lvm do
     desc "Manages LVM logical volumes"
 
-    commands :lvcreate  => 'lvcreate',
-             :lvremove  => 'lvremove',
-             :lvextend  => 'lvextend',
-             :lvs       => 'lvs',
-             :resize2fs => 'resize2fs',
-             :umount    => 'umount',
-             :mount     => 'mount',
-             :dmsetup   => 'dmsetup'
+    commands :lvcreate   => 'lvcreate',
+             :lvremove   => 'lvremove',
+             :lvextend   => 'lvextend',
+             :lvs        => 'lvs',
+             :resize2fs  => 'resize2fs',
+             :umount     => 'umount',
+             :blkid      => 'blkid',
+             :dmsetup    => 'dmsetup'
+
+    optional_commands :xfs_growfs => 'xfs_growfs',
+                      :resize4fs  => 'resize4fs'
 
     def create
         args = ['-n', @resource[:name]]
@@ -17,6 +20,22 @@ Puppet::Type.type(:logical_volume).provide :lvm do
         elsif @resource[:initial_size]
             args.push('--size', @resource[:initial_size])
         end
+        if @resource[:extents]
+            args.push('--extents', @resource[:extents])
+        end
+
+        if !@resource[:extents] and !@resource[:size]
+            args.push('--extents', '100%FREE')
+        end
+
+        if @resource[:stripes]
+            args.push('--stripes', @resource[:stripes])
+        end
+
+        if @resource[:stripesize]
+            args.push('--stripesize', @resource[:stripesize])
+        end
+
         args << @resource[:volume_group]
         lvcreate(*args)
     end
@@ -72,7 +91,7 @@ Puppet::Type.type(:logical_volume).provide :lvm do
         if lvm_size_units[current_size_unit] < lvm_size_units[new_size_unit]
             resizeable = true
         elsif lvm_size_units[current_size_unit] > lvm_size_units[new_size_unit]
-            if (current_size_bytes / lvm_size_units[current_size_unit]) < (new_size_bytes / lvm_size_units[new_size_unit])
+            if (current_size_bytes * lvm_size_units[current_size_unit]) < (new_size_bytes * lvm_size_units[new_size_unit])
                 resizeable = true
             end
         elsif lvm_size_units[current_size_unit] == lvm_size_units[new_size_unit]
@@ -82,17 +101,22 @@ Puppet::Type.type(:logical_volume).provide :lvm do
         end
 
         if not resizeable
-            fail( "Decreasing the size requires manual intervention (#{size} < #{current_size})" )
+            fail( "Decreasing the size requires manual intervention (#{new_size} < #{current_size})" )
         else
             ## Check if new size fits the extend blocks
             if new_size_bytes * lvm_size_units[new_size_unit] % vg_extent_size != 0
-                fail( "Cannot extend to size #{size} because VG extent size is #{vg_extent_size} KB" )
+                fail( "Cannot extend to size #{new_size} because VG extent size is #{vg_extent_size} KB" )
             end
 
-            lvextend( '-L', new_size, path) || fail( "Cannot extend to size #{size} because lvextend failed." )
+            lvextend( '-L', new_size, path) || fail( "Cannot extend to size #{new_size} because lvextend failed." )
 
-            if mount( '-f', '--guess-fstype', path) =~ /ext[34]/
-              resize2fs( path) || fail( "Cannot resize file system to size #{size} because resize2fs failed." )
+            blkid_type = blkid(path)
+            if command(:resize4fs) and blkid_type =~ /\bTYPE=\"(ext4)\"/
+              resize4fs( path) || fail( "Cannot resize file system to size #{new_size} because resize2fs failed." )
+            elsif blkid_type =~ /\bTYPE=\"(ext[34])\"/
+              resize2fs( path) || fail( "Cannot resize file system to size #{new_size} because resize2fs failed." )
+            elsif blkid_type =~ /\bTYPE=\"(xfs)\"/
+              xfs_growfs( path) || fail( "Cannot resize filesystem to size #{new_size} because xfs_growfs failed." )
             end
 
         end
