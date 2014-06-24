@@ -40,7 +40,6 @@ function revert_container {
 }
 
 function build_storage_containers {
-  build_image $SOURCE_DIR/storage-dump storage/dump
   build_image $SOURCE_DIR/storage-repo storage/repo
   build_image $SOURCE_DIR/storage-puppet storage/puppet
   build_image $SOURCE_DIR/storage-log storage/log
@@ -105,7 +104,6 @@ function run_storage_containers {
 
   #Remove existing ones if they exist
   #kill_storage_containers
-  ${DOCKER} run -d ${CONTAINER_VOLUMES[$DUMP_CNT]} --name "$DUMP_CNT" storage/dump || true
   ${DOCKER} run -d ${CONTAINER_VOLUMES[$REPO_CNT]} --name "$REPO_CNT" storage/repo || true
   ${DOCKER} run -d ${CONTAINER_VOLUMES[$PUPPET_CNT]} --name "$PUPPET_CNT" storage/puppet || true
   #${DOCKER} run -d ${CONTAINER_VOLUMES[$LOG_CNT]} --name "$LOG_CNT" storage/log || true
