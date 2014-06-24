@@ -99,7 +99,9 @@ class openstack::nova::controller (
   $max_pool_size               = '10',
   $max_overflow                = '30',
   $max_retries                 = '-1',
-  $novnc_address               = '127.0.0.1'
+  $novnc_address               = '127.0.0.1',
+  $memcached_servers           = false,
+  $memcached_server_port       = '11211',
 ) {
 
   # Configure the db string

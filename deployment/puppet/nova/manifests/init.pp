@@ -293,6 +293,8 @@ class nova(
   $sql_connection           = false,
   $sql_idle_timeout         = false,
   $logdir                   = false,
+  $memcached_servers            = false,
+  $memcached_server_port        = '11211',
 ) inherits nova::params {
 
   if $nova_cluster_id {
