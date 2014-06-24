@@ -126,15 +126,6 @@ class glance::api(
     fail("Invalid db connection ${sql_connection}")
   }
 
-  if $notify_mech == 'noop'
-  {
-    glance_api_config { 'DEFAULT/notifier_strategy': value => 'noop'; }
-  }
-  else
-  {
-    include "glance::notify::${notify_mech}"
-  }
-
   # Logging
   if $log_file {
     glance_api_config {
