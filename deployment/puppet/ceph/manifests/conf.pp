@@ -15,6 +15,13 @@ class ceph::conf {
       target => '/etc/ceph/ceph.conf',
     }
 
+    # New in ceph-deploy >1.3 it uses ~/.cephdeploy.conf instead of
+    # $(pwd)/ceph.conf
+    file {'/root/.cephdeploy.conf':
+      ensure  => link,
+      target  => '/etc/ceph/ceph.conf'
+    }
+
     file {'/root/ceph.mon.keyring':
       ensure => link,
       target => '/etc/ceph/ceph.mon.keyring',
@@ -33,7 +40,7 @@ class ceph::conf {
     }
 
     Exec['ceph-deploy new'] ->
-    File['/root/ceph.conf'] -> File['/root/ceph.mon.keyring'] ->
+    File['/root/ceph.conf', '/root/.cephdeploy.conf'] -> File['/root/ceph.mon.keyring'] ->
     Ceph_conf <||>
 
   } else {
