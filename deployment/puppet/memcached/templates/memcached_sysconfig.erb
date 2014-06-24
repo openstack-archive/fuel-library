@@ -1,5 +1,27 @@
-PORT="<%= @udp_port %>"
+PORT="<%= @tcp_port %>"
 USER="<%= @user %>"
 MAXCONN="<%= @max_connections %>"
-CACHESIZE="<%= @max_memory %>"
-OPTIONS="-l <%= @listen_ip %>"
+<% Puppet::Parser::Functions.function('memcached_max_memory') -%>
+CACHESIZE="<%= scope.function_memcached_max_memory([@max_memory]) %>"
+OPTIONS="<%
+result = []
+if @verbosity
+  result << '-' + @verbosity.to_s
+end
+if @lock_memory
+  result << '-k'
+end
+if @listen_ip
+  result << '-l ' + @listen_ip
+end
+if @udp_port
+  result << '-U ' + @udp_port.to_s
+end
+if @item_size
+  result << '-I ' + @item_size.to_s
+end
+result << '-t ' + @processorcount
+if @logfile
+  result << '>> ' + @logfile + ' 2>&1'
+end
+-%><%= result.join(' ') -%>"

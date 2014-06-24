@@ -1,5 +1,4 @@
-*.swp
 pkg/
-.DS_Store
-metadata.json
-coverage/
+*.swp
+/metadata.json
+.forge-releng/
