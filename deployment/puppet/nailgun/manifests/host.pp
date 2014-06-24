@@ -56,13 +56,15 @@ $gem_source = "http://localhost/gems/",
     owner   => 'root', 
     group   => 'root', 
     mode    => '0755', 
-  } 
- 
+  }
+
   file { "/etc/resolv.conf": 
     content => template("nailgun/resolv.conf.erb"), 
     owner   => 'root', 
     group   => 'root', 
     mode    => '0644', 
-  } 
+  }
+  #Suppress kernel messages to console
+  sysctl::value{'kernel.printk': value=>'4 1 1 7'}
 
 }
