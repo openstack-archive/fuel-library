@@ -1,5 +1,7 @@
 $fuel_settings = parseyaml($astute_settings_yaml)
 
+Exec { path => ["/bin", "/sbin", "/usr/bin", "/usr/sbin"] }
+
 $openstack_version = {
   'keystone'   => 'installed',
   'glance'     => 'installed',
