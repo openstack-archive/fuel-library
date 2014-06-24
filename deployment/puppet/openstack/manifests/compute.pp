@@ -100,8 +100,6 @@ class openstack::compute (
   $service_endpoint               = '127.0.0.1',
   $ssh_private_key                = '/var/lib/astute/nova/nova',
   $ssh_public_key                 = '/var/lib/astute/nova/nova.pub',
-  $cache_server_ip                = ['127.0.0.1'],
-  $cache_server_port              = '11211',
   # if the cinder management components should be installed
   $manage_volumes                 = false,
   $nv_physical_volume             = undef,
@@ -126,6 +124,8 @@ class openstack::compute (
   $ceilometer                     = false,
   $ceilometer_metering_secret     = 'ceilometer',
   $libvirt_vif_driver             = 'nova.virt.libvirt.vif.LibvirtGenericVIFDriver',
+  $memcached_servers              = false,
+  $memcached_server_port          = '11211',
 ) {
 
   #
