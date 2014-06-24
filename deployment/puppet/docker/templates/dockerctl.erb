@@ -103,6 +103,9 @@ elif [ "$1" == "destroy" ]; then
   destroy_container $container $@
 elif [ "$1" == "logs" ]; then
   logs $container
+elif [ "$1" == "post_start_hooks" ]; then
+  shift 2
+  post_setup_hooks "$container" "$@"
 else
   echo "Invalid selection."
   show_usage
