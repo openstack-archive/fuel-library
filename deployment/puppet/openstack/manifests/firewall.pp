@@ -203,8 +203,14 @@ class openstack::firewall (
     action => 'accept',
   }
 
+  firewall {'118 libvirt migration':
+    port   => '49152-49215',
+    proto  => 'tcp',
+    action => 'accept',
+  }
+
   firewall {'118 vnc ports':
-    port => "5900-6100",
+    port => '5900-6100',
     proto => 'tcp',
     source => $nova_vnc_ip_range,
     action => 'accept',
