@@ -205,12 +205,19 @@ class openstack::compute (
     vncserver_proxyclient_address => $internal_address,
     vncproxy_host                 => $vncproxy_host,
   }
+  
+  nova_config {
+    'DEFAULT/live_migration_flag': value => 'VIR_MIGRATE_UNDEFINE_SOURCE,VIR_MIGRATE_PEER2PEER,VIR_MIGRATE_LIVE,VIR_MIGRATE_PERSIST_DEST';
+  }
 
   # Configure libvirt for nova-compute
   class { 'nova::compute::libvirt':
     libvirt_type     => $libvirt_type,
     vncserver_listen => $vncserver_listen,
+    libvirt_disk_cachemodes => ['"file=directsync"','"block=none"'],
   }
+
+  include nova::client
 
   # Ensure ssh clients are installed
   case $::osfamily {
