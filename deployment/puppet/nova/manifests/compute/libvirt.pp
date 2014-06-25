@@ -1,9 +1,9 @@
 #
 class nova::compute::libvirt (
   $libvirt_type = 'kvm',
-  $vncserver_listen = '127.0.0.1'
+  $vncserver_listen = '127.0.0.1',
+  $libvirt_disk_cachemodes = [],
 ) {
-
   include nova::params
 
   if $::osfamily == 'RedHat' {
@@ -115,14 +115,23 @@ class nova::compute::libvirt (
   }
 
   nova_config {
-    'DEFAULT/compute_driver':   value => 'libvirt.LibvirtDriver';
-    'DEFAULT/libvirt_type':     value => $libvirt_type;
-    'DEFAULT/connection_type':  value => 'libvirt';
-    'DEFAULT/vncserver_listen': value => $vncserver_listen;
-    'DEFAULT/disk_cachemodes': value => '"file=writethrough"';
+    'DEFAULT/compute_driver':      value => 'libvirt.LibvirtDriver';
+    'DEFAULT/libvirt_type':        value => $libvirt_type;
+    'DEFAULT/connection_type':     value => 'libvirt';
+    'DEFAULT/vncserver_listen':    value => $vncserver_listen;
   }
 
-if str2bool($::is_virtual) {
+  if size($libvirt_disk_cachemodes) > 0 {
+    nova_config {
+      'DEFAULT/disk_cachemodes': value => join($libvirt_disk_cachemodes, ',');
+    }
+  } else {
+    nova_config {
+      'DEFAULT/disk_cachemodes': ensure => absent;
+    }
+  }
+
+  if str2bool($::is_virtual) {
     nova_config {
       'DEFAULT/libvirt_cpu_mode': value => 'none';
     }
