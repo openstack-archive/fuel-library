@@ -1,182 +1,60 @@
-# Class: ntp
-#
-#   This module manages the ntp service.
-#
-#   Jeff McCune <jeff@puppetlabs.com>
-#   2011-02-23
-#
-#   Tested platforms:
-#    - Debian 6.0 Squeeze
-#    - CentOS 5.4
-#    - Amazon Linux 2011.09
-#    - FreeBSD 9.0
-#    - Archlinux
-#
-# Parameters:
-#
-#   $servers = [ '0.debian.pool.ntp.org iburst',
-#                '1.debian.pool.ntp.org iburst',
-#                '2.debian.pool.ntp.org iburst',
-#                '3.debian.pool.ntp.org iburst', ]
-#
-#   $restrict = true
-#     Whether to restrict ntp daemons from allowing others to use as a server.
-#
-#   $autoupdate = false
-#     Whether to update the ntp package automatically or not.
-#
-#   $enable = true
-#     Automatically start ntp deamon on boot.
-#
-#   $template = '${module_name}/${config_tpl}'
-#     Override with your own explicit template.
-#
-# Actions:
-#
-#  Installs, configures, and manages the ntp service.
-#
-# Requires:
-#
-# Sample Usage:
-#
-#   class { "ntp":
-#     servers    => [ 'time.apple.com' ],
-#     autoupdate => false,
-#   }
-#
-# [Remember: No empty lines between comments and class definition]
-class ntp($servers=undef,
-          $ensure='running',
-          $enable=true,
-          $restrict=true,
-          $config_template=undef,
-          $autoupdate=false
-) {
+class ntp (
+  $autoupdate        = $ntp::params::autoupdate,
+  $config            = $ntp::params::config,
+  $config_template   = $ntp::params::config_template,
+  $disable_monitor   = $ntp::params::disable_monitor,
+  $driftfile         = $ntp::params::driftfile,
+  $logfile           = $ntp::params::logfile,
+  $keys_enable       = $ntp::params::keys_enable,
+  $keys_file         = $ntp::params::keys_file,
+  $keys_controlkey   = $ntp::params::keys_controlkey,
+  $keys_requestkey   = $ntp::params::keys_requestkey,
+  $keys_trusted      = $ntp::params::keys_trusted,
+  $package_ensure    = $ntp::params::package_ensure,
+  $package_name      = $ntp::params::package_name,
+  $panic             = $ntp::params::panic,
+  $preferred_servers = $ntp::params::preferred_servers,
+  $restrict          = $ntp::params::restrict,
+  $servers           = $ntp::params::servers,
+  $service_enable    = $ntp::params::service_enable,
+  $service_ensure    = $ntp::params::service_ensure,
+  $service_manage    = $ntp::params::service_manage,
+  $service_name      = $ntp::params::service_name,
+  $udlc              = $ntp::params::udlc
+) inherits ntp::params {
 
-  if ! ($ensure in [ 'running', 'stopped' ]) {
-    fail('ensure parameter must be running or stopped')
+  validate_absolute_path($config)
+  validate_string($config_template)
+  validate_bool($disable_monitor)
+  validate_absolute_path($driftfile)
+  if $logfile { validate_absolute_path($logfile) }
+  validate_bool($keys_enable)
+  validate_re($keys_controlkey, ['^\d+$', ''])
+  validate_re($keys_requestkey, ['^\d+$', ''])
+  validate_array($keys_trusted)
+  validate_string($package_ensure)
+  validate_array($package_name)
+  validate_bool($panic)
+  validate_array($preferred_servers)
+  validate_array($restrict)
+  validate_array($servers)
+  validate_bool($service_enable)
+  validate_string($service_ensure)
+  validate_bool($service_manage)
+  validate_string($service_name)
+  validate_bool($udlc)
+
+  if $autoupdate {
+    notice('autoupdate parameter has been deprecated and replaced with package_ensure.  Set this to latest for the same behavior as autoupdate => true.')
   }
 
-  if $autoupdate == true {
-    $package_ensure = installed
-  } elsif $autoupdate == false {
-    $package_ensure = present
-  } else {
-    fail('autoupdate parameter must be true or false')
-  }
+  # Anchor this as per #8040 - this ensures that classes won't float off and
+  # mess everything up.  You can read about this at:
+  # http://docs.puppetlabs.com/puppet/2.7/reference/lang_containment.html#known-issues
+  anchor { 'ntp::begin': } ->
+  class { '::ntp::install': } ->
+  class { '::ntp::config': } ~>
+  class { '::ntp::service': } ->
+  anchor { 'ntp::end': }
 
-  case $::osfamily {
-    Debian: {
-      $supported  = true
-      $pkg_name   = [ 'ntp' ]
-      $svc_name   = 'ntp'
-      $config     = '/etc/ntp.conf'
-      $config_tpl = 'ntp.conf.debian.erb'
-      if (!$servers) {
-        $servers_real = [ '0.debian.pool.ntp.org iburst',
-                          '1.debian.pool.ntp.org iburst',
-                          '2.debian.pool.ntp.org iburst',
-                          '3.debian.pool.ntp.org iburst', ]
-      } else {
-        $servers_real = $servers
-      }
-    }
-    RedHat: {
-      $supported  = true
-      $pkg_name   = [ 'ntp' ]
-      $svc_name   = 'ntpd'
-      $config     = '/etc/ntp.conf'
-      $config_tpl = 'ntp.conf.el.erb'
-      if (!$servers) {
-        $servers_real = [ '0.centos.pool.ntp.org',
-                          '1.centos.pool.ntp.org',
-                          '2.centos.pool.ntp.org', ]
-      } else {
-        $servers_real = $servers
-      }
-    }
-    SuSE: {
-      $supported  = true
-      $pkg_name   = [ 'ntp' ]
-      $svc_name   = 'ntp'
-      $config     = '/etc/ntp.conf'
-      $config_tpl = 'ntp.conf.suse.erb'
-      if (!$servers) {
-        $servers_real = [ '0.opensuse.pool.ntp.org',
-                          '1.opensuse.pool.ntp.org',
-                          '2.opensuse.pool.ntp.org',
-                          '3.opensuse.pool.ntp.org', ]
-      } else {
-        $servers_real = $servers
-      }
-    }
-    FreeBSD: {
-      $supported  = true
-      $pkg_name   = ['net/ntp']
-      $svc_name   = 'ntpd'
-      $config     = '/etc/ntp.conf'
-      $config_tpl = 'ntp.conf.freebsd.erb'
-      if (!$servers) {
-        $servers_real = [ '0.freebsd.pool.ntp.org iburst maxpoll 9',
-                          '1.freebsd.pool.ntp.org iburst maxpoll 9',
-                          '2.freebsd.pool.ntp.org iburst maxpoll 9',
-                          '3.freebsd.pool.ntp.org iburst maxpoll 9', ]
-      } else {
-        $servers_real = $servers
-      }
-    }
-
-    Linux: {
-      if ($::operatingsystem == 'Archlinux') {
-        $supported = true
-        $pkg_name = ['ntp']
-        $svc_name = 'ntpd'
-        $config = '/etc/ntp.conf'
-        $config_tpl = 'ntp.conf.archlinux.erb'
-
-        if (!$servers) {
-          $servers_real = [ '0.pool.ntp.org',
-                            '1.pool.ntp.org',
-                            '2.pool.ntp.org' ]
-        } else {
-          $servers_real = $servers
-        }
-      } else {
-        fail("The ${module_name} module is not supported on an ${::operatingsystem} system")
-      }
-    }
-
-    default: {
-      fail("The ${module_name} module is not supported on ${::osfamily} based systems")
-    }
-  }
-
-  if ($config_template == undef) {
-    $template_real = "${module_name}/${config_tpl}"
-  } else {
-    $template_real = $config_template
-  }
-
-  package { 'ntp':
-    ensure => $package_ensure,
-    name   => $pkg_name,
-  }
-
-  file { $config:
-    ensure  => file,
-    owner   => 0,
-    group   => 0,
-    mode    => '0644',
-    content => template($template_real),
-    require => Package[$pkg_name],
-  }
-
-  service { 'ntp':
-    ensure     => $ensure,
-    enable     => $enable,
-    name       => $svc_name,
-    hasstatus  => true,
-    hasrestart => true,
-    subscribe  => [ Package[$pkg_name], File[$config] ],
-  }
 }
