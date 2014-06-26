@@ -105,7 +105,7 @@ class neutron::agents::ovs (
       File['neutron-ovs-agent-ocf'] ->
         Service['neutron-ovs-agent_stopped'] ->
           Cs_resource[$res_name] ->
-            Service['neutron-ovs-agent']
+            Service['neutron-ovs-agent-service']
       # this need because chain interrupted if selector not found
       Service['neutron-ovs-agent_stopped'] ->
         Exec<| title=='neutron-ovs-agent_stopped' |> ->
@@ -113,11 +113,11 @@ class neutron::agents::ovs (
     } else {
       File['neutron-ovs-agent-ocf'] ->
         Service['neutron-ovs-agent_stopped'] ->
-          Service['neutron-ovs-agent']
+          Service['neutron-ovs-agent-service']
       # this need because chain interrupted if selector not found
       Service['neutron-ovs-agent_stopped'] ->
         Exec<| title=='neutron-ovs-agent_stopped' |> ->
-          Service['neutron-ovs-agent']
+          Service['neutron-ovs-agent-service']
     }
 
     case $::osfamily {
@@ -149,7 +149,7 @@ class neutron::agents::ovs (
       }
     }
 
-    service { 'neutron-ovs-agent':
+    service { 'neutron-ovs-agent-service':
       name       => $res_name,
       enable     => true,
       ensure     => running,
@@ -160,7 +160,7 @@ class neutron::agents::ovs (
 
   } else {
     # NON-HA mode
-    service { 'neutron-ovs-agent':
+    service { 'neutron-ovs-agent-service':
       name       => $::neutron::params::ovs_agent_service,
       enable     => true,
       ensure     => running,
@@ -168,17 +168,17 @@ class neutron::agents::ovs (
       hasrestart => true,
       provider   => $::neutron::params::service_provider,
     }
-    Neutron_config<||> ~> Service['neutron-ovs-agent']
-    Neutron_plugin_ovs<||> ~> Service['neutron-ovs-agent']
-    Neutron::Agents::Utils::Bridges<||> -> Service['neutron-ovs-agent']  # All bridges should be created before ovs-agent service
+    Neutron_config<||> ~> Service['neutron-ovs-agent-service']
+    Neutron_plugin_ovs<||> ~> Service['neutron-ovs-agent-service']
+    Neutron::Agents::Utils::Bridges<||> -> Service['neutron-ovs-agent-service']  # All bridges should be created before ovs-agent service
   }
-  Neutron_config<||> -> Service['neutron-ovs-agent']
-  Neutron_plugin_ovs<||> -> Service['neutron-ovs-agent']
+  Neutron_config<||> -> Service['neutron-ovs-agent-service']
+  Neutron_plugin_ovs<||> -> Service['neutron-ovs-agent-service']
 
-  Class[neutron::waistline] -> Service['neutron-ovs-agent']
+  Class[neutron::waistline] -> Service['neutron-ovs-agent-service']
 
   Anchor['neutron-ovs-agent'] ->
-    Service['neutron-ovs-agent'] ->
+    Service['neutron-ovs-agent-service'] ->
       Anchor['neutron-ovs-agent-done']
 
   anchor{'neutron-ovs-agent-done': }
@@ -187,8 +187,8 @@ class neutron::agents::ovs (
   Anchor['neutron-ovs-agent-done'] -> Anchor<| title=='neutron-dhcp-agent' |>
   Anchor['neutron-ovs-agent-done'] -> Anchor<| title=='neutron-metadata-agent' |>
 
-  Package<| title == $ovs_agent_package |> ~> Service<| title == 'neutron-ovs-agent'|>
-  if !defined(Service['neutron-ovs-agent']) {
+  Package<| title == $ovs_agent_package |> ~> Service<| title == 'neutron-ovs-agent-service'|>
+  if !defined(Service['neutron-ovs-agent-service']) {
     notify{ "Module ${module_name} cannot notify service neutron-ovs-agent on package update": }
   }
 

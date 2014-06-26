@@ -202,7 +202,7 @@ class neutron::agents::dhcp (
       hasstatus  => true,
       hasrestart => false,
       provider   => $service_provider,
-      require    => [Package[$dhcp_agent_package], Class['neutron'], Service['neutron-ovs-agent']],
+      require    => [Package[$dhcp_agent_package], Class['neutron'], Service['neutron-ovs-agent-service']],
     }
 
   } else {
@@ -215,7 +215,7 @@ class neutron::agents::dhcp (
       hasstatus  => true,
       hasrestart => true,
       provider   => $::neutron::params::service_provider,
-      require    => [Package[$dhcp_agent_package], Class['neutron'], Service['neutron-ovs-agent']],
+      require    => [Package[$dhcp_agent_package], Class['neutron'], Service['neutron-ovs-agent-service']],
     }
   }
   Class[neutron::waistline] -> Service[neutron-dhcp-service]
