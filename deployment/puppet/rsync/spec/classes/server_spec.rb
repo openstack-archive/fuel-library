@@ -58,4 +58,24 @@ describe 'rsync::server', :type => :class do
     }
   end
 
+  describe 'when overriding uid' do
+    let :params do
+      { :uid => 'testuser' }
+    end
+
+    it {
+      should contain_file(fragment_file).with_content(/^uid\s*=\s*testuser$/)
+    }
+  end
+
+  describe 'when overriding gid' do
+    let :params do
+      { :gid => 'testgroup' }
+    end
+
+    it {
+      should contain_file(fragment_file).with_content(/^gid\s*=\s*testgroup$/)
+    }
+  end
+
 end

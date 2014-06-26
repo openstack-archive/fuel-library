@@ -6,5 +6,5 @@ class rsync {
 
   package { 'rsync':
     ensure => installed,
-  }
+  } -> Rsync::Get<| |>
 }

@@ -1,2 +1,22 @@
+* 2014-06-18 0.3.0
+Features:
+- Added rsync::put defined type.
+- Added 'recursive', 'links', 'hardlinks', 'copylinks', 'times' and 'include'
+parameters to rsync::get.
+- Added 'uid' and 'gid' parameters to rsync::server
+- Improved support for Debian
+- Added 'exclude' parameter to rsync::server::module
+
+Fixes:
+- Added /usr/local/bin to path for the rsync command exec.
+
+
+* 2013-01-31 0.2.0
+- Added use_chroot parameter.
+- Ensure rsync package is installed.
+- Compatability changes for Ruby 2.0.
+- Added execuser parameter to run command as specified user.
+- Various typo and bug fixes.
+
 * 2012-06-07 0.1.0
 - Initial release
