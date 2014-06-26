@@ -54,8 +54,12 @@ class MrntNeutron
   def default_amqp_hosts()
     port = default_amqp_port(default_amqp_provider())
     amqp_hosts = @fuel_config[:role] =~ /controller/ ? ['127.0.0.1'] : []
-    @fuel_config[:nodes].each do |node|
-      amqp_hosts << node[:internal_address] if node[:role] =~ /controller/
+    begin
+      @fuel_config[:nodes].each do |node|
+        amqp_hosts << node[:internal_address] if node[:role] =~ /controller/
+      end
+    rescue
+      amqp_hosts = []
     end
     if amqp_hosts.empty?
       raise Puppet::ParseError,
@@ -153,7 +157,7 @@ class MrntNeutron
 
   # classmethod
   def self.get_network_vlan_ranges(l2)
-    l2[:phys_nets].sort().map{|n| [n[0],n[1][:vlan_range]]}.map{|n| n.delete_if{|x| x==nil||x==''}}.map{|n| n.join(':')}.join(',')
+    l2[:phys_nets].sort().map{|n| [n[0],n[1][:vlan_range]]}.map{|n| n.delete_if{|x| x==nil||x=='nil'||x==''}}.map{|n| n.join(':')}.join(',')
   end
 
   def get_neutron_srv_vip()
@@ -319,6 +323,8 @@ class MrntNeutron
         :report_interval => 5,
         :allow_bulk      => true,
         :control_exchange=> 'neutron',
+        :core_plugin  => 'openvswitch',
+        :service_plugins  => 'router,firewall,metering',
         :notify_nova_send_events_interval => 2,
         :notify_nova_on_port_status_changes => true,
         :notify_nova_on_port_data_changes => true,
@@ -335,6 +341,7 @@ class MrntNeutron
         :metadata_proxy_shared_secret => "secret-word",
       },
       :L2 => {
+        :provider => "ovs",
         :base_mac => "fa:16:3e:00:00:00",
         :mac_generation_retries => 32,
         :segmentation_type => "gre",
@@ -376,6 +383,28 @@ class MrntNeutron
       when :SQLITE then nil
       else
         raise(Puppet::ParseError, "Unknown database provider '#{rv[:database][:provider]}'")
+    end
+    return rv
+  end
+
+  def self.get_ml2_plugin_config(l2)
+    rv = Marshal.load(Marshal.dump(l2))
+    rv[:mechanism_drivers] ||= 'openvswitch'
+    rv[:type_drivers] ||= "local,flat,#{l2[:segmentation_type]}"
+    rv[:tenant_network_types] ||= "local,flat,#{l2[:segmentation_type]}"
+    rv[:flat_networks] ||= '*'
+    if l2[:enable_tunneling]
+      rv[:tunnel_types] ||= l2[:segmentation_type]
+      rv[:tunnel_id_ranges] = l2[:tunnel_id_ranges]
+      rv[:vxlan_group] ||= 'None'   # because OVS don't support MCAST VxLAN implementation,
+      rv[:vni_ranges] ||= l2[:tunnel_id_ranges]
+      #puts("#{rv[:tunnel_types]}  #{rv[:tunnel_id_ranges]}  #{rv[:vxlan_group]}  #{rv[:vni_ranges]} #{rv[:local_ip]}")
+    else
+      rv[:tunnel_types] = ''
+      rv[:tunnel_id_ranges] = ''
+      rv[:vxlan_group] = 'None'   # because OVS don't support MCAST VxLAN implementation,
+      rv[:vni_ranges] = ''
+      #puts("#{rv[:tunnel_types]}  #{rv[:tunnel_id_ranges]}  #{rv[:vxlan_group]}  #{rv[:vni_ranges]} #{rv[:local_ip]}")
     end
     return rv
   end
@@ -424,6 +453,10 @@ class MrntNeutron
     @neutron_config[:L2][:network_vlan_ranges] = MrntNeutron.get_network_vlan_ranges(@neutron_config[:L2])
     @neutron_config[:L2][:bridge_mappings] = MrntNeutron.get_bridge_mappings(@neutron_config[:L2])
     @neutron_config[:L2][:phys_bridges] = MrntNeutron.get_phys_bridges(@neutron_config[:L2])
+    if @neutron_config[:L2][:provider].downcase.to_sym == :ml2
+      @neutron_config[:server][:core_plugin] = 'ml2'
+      @neutron_config[:L2] = MrntNeutron.get_ml2_plugin_config(@neutron_config[:L2])
+    end
     return @neutron_config
   end
 
