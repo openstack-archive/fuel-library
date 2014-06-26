@@ -25,16 +25,31 @@ class openstack::neutron_router (
       syslog_log_facility  => $syslog_log_facility,
       server_ha_mode       => $ha_mode
     }
-    #todo: add neutron::server here (into IF)
-    class { '::neutron::plugins::ovs':
-      neutron_config      => $neutron_config,
+
+    if $neutron_config[L2][provider] == 'ml2' {
+      class { '::neutron::plugins::ml2_plugin':
+        neutron_config      => $neutron_config,
+      }
+    } else {
+      class { '::neutron::plugins::ovs':
+        neutron_config      => $neutron_config,
+      }
     }
 
     if $neutron_network_node {
-      class { '::neutron::agents::ovs':
-        service_provider   => $service_provider,
-        neutron_config     => $neutron_config,
-        primary_controller => $primary_controller
+      if $neutron_config[L2][provider] == 'ml2' {
+        class { '::neutron::agents::ml2_agent':
+          neutron_config     => $neutron_config,
+          primary_controller => $primary_controller,
+          controller         => true,
+          ha_mode            => $ha_mode
+        }
+      } else {
+        class { '::neutron::agents::ovs':
+          service_provider   => $service_provider,
+          neutron_config     => $neutron_config,
+          primary_controller => $primary_controller
+        }
       }
       # neutron metadata agent starts only under pacemaker
       # and co-located with l3-agent
