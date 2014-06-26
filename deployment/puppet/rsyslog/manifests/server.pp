@@ -17,7 +17,7 @@ class rsyslog::server (
 if $virtual { include rsyslog::checksum_udp514 }
 
   File {
-    owner => root,
+    owner => $rsyslog::params::run_user,
     group => $rsyslog::params::run_group,
     mode => 0640,
     require => Class["rsyslog::config"],
