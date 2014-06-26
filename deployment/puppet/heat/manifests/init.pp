@@ -1,5 +1,6 @@
 class heat(
   $pacemaker                = false,
+  $primary_controller       = false,
   $external_ip              = '127.0.0.1',
 
   $keystone_host            = '127.0.0.1',
@@ -92,6 +93,7 @@ class heat(
 
   class { 'heat::engine' :
     pacemaker                      => $pacemaker,
+    primary_controller             => $primary_controller
   }
 
   class { 'heat::api' :
