@@ -205,7 +205,7 @@ class openstack::compute (
     vncserver_proxyclient_address => $internal_address,
     vncproxy_host                 => $vncproxy_host,
   }
-  
+
   nova_config {
     'DEFAULT/live_migration_flag': value => 'VIR_MIGRATE_UNDEFINE_SOURCE,VIR_MIGRATE_PEER2PEER,VIR_MIGRATE_LIVE,VIR_MIGRATE_PERSIST_DEST';
   }
@@ -340,17 +340,21 @@ class openstack::compute (
       syslog_log_facility  => $syslog_log_facility_neutron,
     }
 
-    #todo: Quantum plugin and database connection not need on compute.
-    class { 'neutron::plugins::ovs':
-      neutron_config  => $quantum_config
-    }
-
-    class { 'neutron::agents::ovs':
-      neutron_config   => $quantum_config,
-      # bridge_uplinks   => ["br-prv:${private_interface}"],
-      # bridge_mappings  => ['physnet2:br-prv'],
-      # enable_tunneling => $enable_tunneling,
-      # local_ip         => $internal_address,
+    if $quantum_config[L2][provider] == 'ml2' {
+      class { 'neutron::plugins::ml2_plugin':
+        neutron_config  => $quantum_config
+      } ->
+      class { '::neutron::agents::ml2_agent':
+        neutron_config  => $quantum_config
+      }
+    } else {
+      #todo: Quantum plugin and database connection not need on compute.
+      class { 'neutron::plugins::ovs':
+        neutron_config  => $quantum_config
+      } ->
+      class { 'neutron::agents::ovs':
+        neutron_config  => $quantum_config
+      }
     }
 
 

@@ -1,0 +1,4 @@
+configs=(
+    "/etc/$proj/$proj.conf" \
+    "/etc/$proj/plugin.ini" \
+)
