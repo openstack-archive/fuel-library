@@ -102,6 +102,7 @@ class NeutronConfig
           'metadata_proxy_shared_secret' => "secret-word",
         },
         'L2' => {
+          'provider' => "ovs",
           'base_mac' => "fa:16:3e:00:00:00",
           'mac_generation_retries' => 32,
           'segmentation_type' => "gre",
@@ -353,6 +354,7 @@ describe 'sanitize_neutron_config with minimal incoming data' , :type => :puppet
   it 'should return default config (L2) if given only minimal parameter set' do
     rv = scope.function_sanitize_neutron_config([cfg, 'neutron_settings'])
     expect(rv['L2']).to eq({
+      "provider"=>"ovs",
       "base_mac"=>"fa:16:3e:00:00:00",
       "mac_generation_retries"=>32,
       "segmentation_type"=>"gre",
