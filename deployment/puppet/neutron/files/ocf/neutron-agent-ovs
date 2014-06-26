@@ -34,7 +34,7 @@
 
 OCF_RESKEY_binary_default="neutron-openvswitch-agent"
 OCF_RESKEY_config_default="/etc/neutron/neutron.conf"
-OCF_RESKEY_plugin_config_default="/etc/neutron/plugins/openvswitch/ovs_neutron_plugin.ini"
+OCF_RESKEY_plugin_config_default="/etc/neutron/plugin.ini"
 OCF_RESKEY_user_default="neutron"
 OCF_RESKEY_pid_default="$HA_RSCTMP/$OCF_RESOURCE_INSTANCE.pid"
 OCF_RESKEY_amqp_server_port_default="5672"
