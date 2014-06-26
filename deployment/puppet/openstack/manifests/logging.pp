@@ -48,7 +48,7 @@ class openstack::logging (
 
   # Set access and notifications for rsyslog client
   File {
-    owner => root,
+    owner => $::rsyslog::params::run_user,
     group => $::rsyslog::params::run_group,
     mode => 0640,
     notify  => Class["::rsyslog::service"],
