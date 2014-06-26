@@ -5,7 +5,8 @@ class neutron::network::predefined_networks (
 
   Keystone_user_role<| title=="$auth_user@$auth_tenant"|> -> Neutron_net<| |>
   Service <| title == 'keystone' |> -> Neutron_net <| |>
-  Anchor['neutron-plugin-ovs-done'] -> Neutron_net <| |>
+  Anchor<| title == 'neutron-plugin-ovs-done' |> -> Neutron_net <| |>
+  Anchor<| title == 'neutron-plugin-ml2-done' |> -> Neutron_net <| |>
 
   neutron_floatingip_pool{'admin':
     pool_size => get_floatingip_pool_size_for_admin($neutron_config)
