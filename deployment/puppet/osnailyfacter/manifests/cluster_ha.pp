@@ -492,6 +492,7 @@ class osnailyfacter::cluster_ha {
       if ($::operatingsystem != 'RedHat') {
         class { 'heat' :
           pacemaker              => true,
+          primary_controller     => $primary_controller,
           external_ip            => $controller_node_public,
 
           keystone_host     => $controller_node_address,
