@@ -1,15 +1,21 @@
 class osnailyfacter::cluster_simple {
 
-  if $::use_quantum {
+  if $::use_neutron {
     $novanetwork_params  = {}
-    $quantum_config = sanitize_neutron_config($::fuel_settings, 'quantum_settings')
-    debug__dump_to_file('/tmp/neutron_cfg.yaml', $quantum_config)
+    $neutron_config = $::fuel_settings['quantum_settings']
+    debug__dump_to_file('/tmp/neutron_cfg.yaml', $neutron_config)
+    $network_provider = 'neutron'
+    $neutron_db_password       = $neutron_config['database']['password']
+    $neutron_user_password     = $neutron_config['keystone']['admin_password']
+    $neutron_meta_proxy_secret = $neutron_config['metadata']['metadata_proxy_shared_secret']
+    $base_mac = $neutron_config['L2']['base_mac']
   } else {
-    $quantum_config = {}
+    $neutron_config = {}
     $novanetwork_params = $::fuel_settings['novanetwork_parameters']
     $network_config = {
       'vlan_start'     => $novanetwork_params['vlan_start'],
     }
+    $network_provider = 'nova'
   }
 
   if $fuel_settings['cinder_nodes'] {
@@ -163,16 +169,16 @@ class osnailyfacter::cluster_simple {
         admin_address                  => $controller_node_address,
         public_address                 => $controller_node_public,
         public_interface               => $::public_int,
-        private_interface              => $::use_quantum ? { true=>false, default=>$::fuel_settings['fixed_interface']},
+        private_interface              => $::use_neutron ? { true=>false, default=>$::fuel_settings['fixed_interface']},
         internal_address               => $controller_node_address,
         service_endpoint               => $controller_node_address,
         floating_range                 => false, #todo: remove as not needed ???
-        fixed_range                    => $::use_quantum ? { true=>false, default=>$::fuel_settings['fixed_network_range'] },
+        fixed_range                    => $::use_neutron ? { true=>false, default=>$::fuel_settings['fixed_network_range'] },
         multi_host                     => $multi_host,
         network_manager                => $network_manager,
-        num_networks                   => $::use_quantum ? { true=>false, default=>$novanetwork_params['num_networks'] },
-        network_size                   => $::use_quantum ? { true=>false, default=>$novanetwork_params['network_size'] },
-        network_config                 => $::use_quantum ? { true=>false, default=>$network_config },
+        num_networks                   => $::use_neutron ? { true=>false, default=>$novanetwork_params['num_networks'] },
+        network_size                   => $::use_neutron ? { true=>false, default=>$novanetwork_params['network_size'] },
+        network_config                 => $::use_neutron ? { true=>false, default=>$network_config },
         debug                          => $debug,
         verbose                        => $verbose,
         auto_assign_floating_ip        => $::fuel_settings['auto_assign_floating_ip'],
@@ -204,10 +210,13 @@ class osnailyfacter::cluster_simple {
         rabbitmq_bind_port             => $rabbitmq_bind_port,
         rabbitmq_cluster_nodes         => $rabbitmq_cluster_nodes,
         export_resources               => false,
-        quantum                        => $::use_quantum,
-        quantum_config                 => $quantum_config,
-        quantum_network_node           => $::use_quantum,
-        quantum_netnode_on_cnt         => $::use_quantum,
+
+        network_provider               => $network_provider,
+        neutron_db_password            => $neutron_db_password,
+        neutron_user_password          => $neutron_user_password,
+        neutron_meta_proxy_secret      => $neutron_meta_proxy_secret,
+        base_mac                       => $base_mac,
+
         cinder                         => true,
         cinder_user_password           => $cinder_hash[user_password],
         cinder_db_password             => $cinder_hash[db_password],
@@ -237,21 +246,8 @@ class osnailyfacter::cluster_simple {
       nova_config { 'DEFAULT/start_guests_on_host_boot': value => $::fuel_settings['start_guests_on_host_boot'] }
       nova_config { 'DEFAULT/use_cow_images': value => $::fuel_settings['use_cow_images'] }
       nova_config { 'DEFAULT/compute_scheduler_driver': value => $::fuel_settings['compute_scheduler_driver'] }
-      if $::use_quantum {
-        class { '::openstack::neutron_router':
-          debug                 => $debug,
-          verbose               => $verbose,
-          # qpid_password         => $rabbit_hash[password],
-          # qpid_user             => $rabbit_hash[user],
-          # qpid_nodes            => [$controller_node_address],
-          neutron_config        => $quantum_config,
-          neutron_network_node  => true,
-          use_syslog            => $use_syslog,
-          syslog_log_facility   => $::syslog_log_facility_neutron,
-        }
-      }
 
-      if !$::use_quantum {
+      if !$::use_neutron {
         $floating_ips_range = $::fuel_settings['floating_network_range']
         if $floating_ips_range {
           nova_floating_range{ $floating_ips_range:
@@ -286,7 +282,7 @@ class osnailyfacter::cluster_simple {
           sahara_keystone_password   => $sahara_hash['user_password'],
           sahara_keystone_tenant     => 'services',
 
-          use_neutron                => $::use_quantum,
+          use_quantum                => $::use_neutron,
           use_floating_ips           => $::fuel_settings['auto_assign_floating_ip'],
 
           syslog_log_facility_sahara => $syslog_log_facility_sahara,
@@ -367,7 +363,7 @@ class osnailyfacter::cluster_simple {
           murano_keystone_password => $murano_hash['user_password'],
           murano_keystone_tenant   => 'services',
 
-          use_neutron              => $::use_quantum,
+          use_quantum              => $::use_neutron,
 
           use_syslog               => $use_syslog,
           debug                    => $debug,
@@ -386,7 +382,7 @@ class osnailyfacter::cluster_simple {
           vcenter_password  => $vcenter_hash['vc_password'],
           vcenter_host_ip   => $vcenter_hash['host_ip'],
           vcenter_cluster   => $vcenter_hash['cluster'],
-          use_quantum       => $::use_quantum,
+          use_quantum       => $::use_neutron,
         }
       }
       #ADDONS END
@@ -398,12 +394,12 @@ class osnailyfacter::cluster_simple {
 
       class { 'openstack::compute':
         public_interface               => $::public_int,
-        private_interface              => $::use_quantum ? { true=>false, default=>$::fuel_settings['fixed_interface'] },
+        private_interface              => $::use_neutron ? { true=>false, default=>$::fuel_settings['fixed_interface'] },
         internal_address               => $::internal_address,
         libvirt_type                   => $::fuel_settings['libvirt_type'],
         fixed_range                    => $::fuel_settings['fixed_network_range'],
         network_manager                => $network_manager,
-        network_config                 => $::use_quantum ? { true=>false, default=>$network_config },
+        network_config                 => $::use_neutron ? { true=>false, default=>$network_config },
         multi_host                     => $multi_host,
         sql_connection                 => $sql_connection,
         nova_user_password             => $nova_hash[user_password],
@@ -419,11 +415,12 @@ class osnailyfacter::cluster_simple {
         vncproxy_host                  => $controller_node_public,
         vncserver_listen               => '0.0.0.0',
         vnc_enabled                    => true,
-        quantum                        => $::use_quantum,
-        quantum_config                 => $quantum_config,
-        # quantum_network_node           => $::use_quantum,
-        # quantum_netnode_on_cnt         => $::use_quantum,
+
+        network_provider               => $network_provider,
+        neutron_user_password          => $neutron_user_password,
+        base_mac                       => $base_mac,
         service_endpoint               => $controller_node_address,
+
         cinder                         => true,
         cinder_user_password           => $cinder_hash[user_password],
         cinder_db_password             => $cinder_hash[db_password],
