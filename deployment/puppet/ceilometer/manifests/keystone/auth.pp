@@ -29,7 +29,7 @@
 #    Internal address for endpoint. Optional. Defaults to '127.0.0.1'.
 #
 # [*port*]
-#    Port for endpoint. Optional. Defaults to '8777'.
+#    Default port for enpoints. Optional. Defaults to '8777'.
 #
 # [*region*]
 #    Region for endpoint. Optional. Defaults to 'RegionOne'.
@@ -37,8 +37,35 @@
 # [*tenant*]
 #    Tenant for Ceilometer user. Optional. Defaults to 'services'.
 #
-# [*protocol*]
+# [*public_protocol*]
 #    Protocol for public endpoint. Optional. Defaults to 'http'.
+#
+# [*admin_protocol*]
+#    Protocol for admin endpoint. Optional. Defaults to 'http'.
+#
+# [*internal_protocol*]
+#    Protocol for public endpoint. Optional. Defaults to 'http'.
+#
+# [*public_url*]
+#    The endpoint's public url.
+#    Optional. Defaults to $public_protocol://$public_address:$port
+#    This url should *not* contain any API version and should have
+#    no trailing '/'
+#    Setting this variable overrides other $public_* parameters.
+#
+# [*admin_url*]
+#    The endpoint's admin url.
+#    Optional. Defaults to $admin_protocol://$admin_address:$port
+#    This url should *not* contain any API version and should have
+#    no trailing '/'
+#    Setting this variable overrides other $admin_* parameters.
+#
+# [*internal_url*]
+#    The endpoint's internal url.
+#    Optional. Defaults to $internal_protocol://$internal_address:$port
+#    This url should *not* contain any API version and should have
+#    no trailing '/'
+#    Setting this variable overrides other $internal_* parameters.
 #
 class ceilometer::keystone::auth (
   $password           = false,
@@ -51,17 +78,37 @@ class ceilometer::keystone::auth (
   $port               = '8777',
   $region             = 'RegionOne',
   $tenant             = 'services',
-  $api_protocol       = 'http',
-  # $public_protocol    = $api_protocol,
-  # $admin_protocol     = $api_protocol,
-  # $internal_protocol  = $api_protocol,
-  $configure_endpoint = true
+  $public_protocol    = 'http',
+  $admin_protocol     = 'http',
+  $internal_protocol  = 'http',
+  $configure_endpoint = true,
+  $public_url         = undef,
+  $admin_url          = undef,
+  $internal_url       = undef,
 ) {
 
   validate_string($password)
 
+  if $public_url {
+    $public_url_real = $public_url
+  } else {
+    $public_url_real = "${public_protocol}://${public_address}:${port}"
+  }
+
+  if $admin_url {
+    $admin_url_real = $admin_url
+  } else {
+    $admin_url_real = "${admin_protocol}://${admin_address}:${port}"
+  }
+
+  if $internal_url {
+    $internal_url_real = $internal_url
+  } else {
+    $internal_url_real = "${internal_protocol}://${internal_address}:${port}"
+  }
+
   Keystone_user_role["${auth_name}@${tenant}"] ~>
-    Service <| title == 'ceilometer-api' |>
+    Service <| name == 'ceilometer-api' |>
 
   keystone_user { $auth_name:
     ensure   => present,
@@ -85,16 +132,11 @@ class ceilometer::keystone::auth (
     description => 'Openstack Metering Service',
   }
   if $configure_endpoint {
-    $public_protocol    = $api_protocol
-    $admin_protocol     = $api_protocol
-    $internal_protocol  = $api_protocol
-
-    keystone_endpoint { "${auth_name}":
-      region       => $region,
+    keystone_endpoint { "${region}/${auth_name}":
       ensure       => present,
-      public_url   => "${public_protocol}://${public_address}:${port}",
-      admin_url    => "${admin_protocol}://${admin_address}:${port}",
-      internal_url => "${internal_protocol}://${internal_address}:${port}",
+      public_url   => $public_url_real,
+      admin_url    => $admin_url_real,
+      internal_url => $internal_url_real,
     }
   }
 }

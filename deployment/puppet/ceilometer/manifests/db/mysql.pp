@@ -23,6 +23,14 @@
 #  [*charset*]
 #    the database charset. Optional. Defaults to 'latin1'
 #
+#  [*collate*]
+#    the database collation. Optional. Defaults to 'latin1_swedish_ci'
+#
+#  [*mysql_module*]
+#    (optional) Mysql module version to use. Tested versions
+#    are 0.9 and 2.2
+#    Defaults to '0.9'
+#
 class ceilometer::db::mysql(
   $password      = false,
   $dbname        = 'ceilometer',
@@ -30,6 +38,8 @@ class ceilometer::db::mysql(
   $host          = 'localhost',
   $allowed_hosts = undef,
   $charset       = 'latin1',
+  $collate       = 'latin1_swedish_ci',
+  $mysql_module  = '0.9',
 ) {
 
   validate_string($password)
@@ -38,20 +48,38 @@ class ceilometer::db::mysql(
   Class['ceilometer::db::mysql'] -> Exec<| title == 'ceilometer-dbsync' |>
   Mysql::Db[$dbname] ~> Exec<| title == 'ceilometer-dbsync' |>
 
-  mysql::db { $dbname:
-    user         => $user,
-    password     => $password,
-    host         => $host,
-    charset      => $charset,
-    #require      => Class['mysql::config'],
-    require      => Class['mysql::server'],
+  if $mysql_module >= 2.2 {
+    mysql::db { $dbname:
+      user         => $user,
+      password     => $password,
+      host         => $host,
+      charset      => $charset,
+      collate      => $collate,
+      require      => Class['mysql::server'],
+    }
+  } else {
+    mysql::db { $dbname:
+      user         => $user,
+      password     => $password,
+      host         => $host,
+      charset      => $charset,
+      require      => Class['mysql::config'],
+    }
   }
 
-  if $allowed_hosts {
-    ceilometer::db::mysql::host_access { $allowed_hosts:
-      user      => $user,
-      password  => $password,
-      database  => $dbname,
+  # Check allowed_hosts to avoid duplicate resource declarations
+  if is_array($allowed_hosts) and delete($allowed_hosts,$host) != [] {
+    $real_allowed_hosts = delete($allowed_hosts,$host)
+  } elsif is_string($allowed_hosts) and ($allowed_hosts != $host) {
+    $real_allowed_hosts = $allowed_hosts
+  }
+
+  if $real_allowed_hosts {
+    ceilometer::db::mysql::host_access { $real_allowed_hosts:
+      user         => $user,
+      password     => $password,
+      database     => $dbname,
+      mysql_module => $mysql_module,
     }
   }
 }
