@@ -19,7 +19,7 @@ Puppet::Type.type(:glance_api_config).provide(
     '/etc/glance/glance-api.conf'
   end
 
-  # added for backwards compatibility with older versions of inifile
+  # this needs to be removed. This has been replaced with the class method
   def file_path
     self.class.file_path
   end
