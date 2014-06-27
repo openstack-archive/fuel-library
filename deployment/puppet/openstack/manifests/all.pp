@@ -455,8 +455,9 @@ class openstack::all (
 
   # Configure libvirt for nova-compute
   class { 'nova::compute::libvirt':
-    libvirt_type     => $libvirt_type,
-    vncserver_listen => $internal_address,
+    libvirt_type            => $libvirt_type,
+    vncserver_listen        => $internal_address,
+    libvirt_disk_cachemodes => ['"file=directsync"','"block="none"'],
   }
 
   ######## Horizon ########
