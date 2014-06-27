@@ -22,18 +22,49 @@ node default {
   class { 'ceilometer::db':
   }
 
+  # Configure ceilometer database with mongodb
+
+  # class { 'ceilometer::db':
+  #   database_connection => 'mongodb://localhost:27017/ceilometer',
+  #   require             => Class['mongodb'],
+  # }
+
   # Install the ceilometer-api service
   # The keystone_password parameter is mandatory
   class { 'ceilometer::api':
     keystone_password => 'tralalayouyou'
   }
 
+  # Set common auth parameters used by all agents (compute/central)
+  class { 'ceilometer::agent::auth':
+    auth_url      => 'http://localhost:35357/v2.0',
+    auth_password => 'tralalerotralala'
+  }
+
   # Install compute agent
+  # default: enable
   class { 'ceilometer::agent::compute':
   }
 
-  # Enable ceilometer agent notification service
-  class { 'ceilometer::agent_notification':
+  # Install central agent
+  class { 'ceilometer::agent::central':
+  }
+
+  # Install alarm notifier
+  class { 'ceilometer::alarm::notifier':
+  }
+
+  # Install alarm evaluator
+  class { 'ceilometer::alarm::evaluator':
+  }
+
+  # Purge 1 month old meters
+  class { 'ceilometer::expirer':
+    time_to_live => '2592000'
+  }
+
+  # Install notification agent
+  class { 'ceilometer::agent::notification':
   }
 
 }
