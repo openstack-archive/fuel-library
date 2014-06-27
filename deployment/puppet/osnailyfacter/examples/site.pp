@@ -45,7 +45,8 @@ if $::fuel_settings['nodes'] {
   $syslog_hash          = $::fuel_settings['syslog']
 
 
-  $use_quantum = $::fuel_settings['quantum']
+  $use_neutron = $::fuel_settings['quantum']
+
   if (!empty(filter_nodes($::fuel_settings['nodes'], 'role', 'ceph-osd')) or
     $::fuel_settings['storage']['volumes_ceph'] or
     $::fuel_settings['storage']['images_ceph'] or
@@ -57,7 +58,7 @@ if $::fuel_settings['nodes'] {
   }
 
 
-  if $use_quantum {
+  if $use_neutron {
     prepare_network_config($::fuel_settings['network_scheme'])
     $public_int   = get_network_role_property('ex', 'interface')
     $internal_int = get_network_role_property('management', 'interface')
@@ -146,8 +147,8 @@ case $::operatingsystem {
 
 class os_common {
   class {"l23network::hosts_file": stage => 'netconfig', nodes => $nodes_hash }
-  class {'l23network': use_ovs=>$use_quantum, stage=> 'netconfig'}
-  if $use_quantum {
+  class {'l23network': use_ovs=>$use_neutron, stage=> 'netconfig'}
+  if $use_neutron {
       class {'advanced_node_netconfig': stage => 'netconfig' }
   } else {
       class {'osnailyfacter::network_setup': stage => 'netconfig'}
