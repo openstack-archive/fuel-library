@@ -101,7 +101,9 @@ class neutron::agents::ml2::ovs (
 ) {
 
   include neutron::params
-  require vswitch::ovs
+  #require vswitch::ovs
+
+
 
   if $enable_tunneling and ! $local_ip {
     fail('Local ip for ovs agent must be set when tunneling is enabled')
@@ -151,13 +153,13 @@ class neutron::agents::ml2::ovs (
     neutron_plugin_ml2 { 'securitygroup/firewall_driver': ensure => absent }
   }
 
-  vs_bridge { $integration_bridge:
+  l23network::l2::bridge { $integration_bridge:
     ensure => present,
     before => Service['neutron-ovs-agent-service'],
   }
 
   if $enable_tunneling {
-    vs_bridge { $tunnel_bridge:
+    l23network::l2::bridge { $tunnel_bridge:
       ensure => present,
       before => Service['neutron-ovs-agent-service'],
     }
