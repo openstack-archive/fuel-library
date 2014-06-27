@@ -1,9 +1,11 @@
 fixtures:
   repositories:
-    "inifile": "git://github.com/cprice-puppet/puppetlabs-inifile"
-    "keystone": "git://github.com/stackforge/puppet-keystone.git"
-    "mysql": "git://github.com/puppetlabs/puppetlabs-mysql.git"
-    "nova": "git://github.com/stackforge/puppet-nova.git"
-    "stdlib": "git://github.com/puppetlabs/puppetlabs-stdlib.git"
+    'inifile': 'git://github.com/puppetlabs/puppetlabs-inifile'
+    'keystone': 'git://github.com/stackforge/puppet-keystone.git'
+    'mysql':
+      repo: 'git://github.com/puppetlabs/puppetlabs-mysql.git'
+      ref:  'origin/0.x'
+    'nova': 'git://github.com/stackforge/puppet-nova.git'
+    'stdlib': 'git://github.com/puppetlabs/puppetlabs-stdlib.git'
   symlinks:
-    "ceilometer": "#{source_dir}"
+    'ceilometer': "#{source_dir}"

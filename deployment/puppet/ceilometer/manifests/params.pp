@@ -2,55 +2,64 @@
 #
 class ceilometer::params {
 
-  $dbsync_command =
-    'ceilometer-dbsync --config-file=/etc/ceilometer/ceilometer.conf'
-
-  # ssl keys/certs
-  $ssl_cert_file       = '/etc/keystone/ssl/certs/signing_cert.pem'
-  $ssl_key_file        = '/etc/keystone/ssl/private/signing_key.pem'
-  $ssl_ca_file         = '/etc/keystone/ssl/certs/ca.pem'
+  $dbsync_command  = 'ceilometer-dbsync --config-file=/etc/ceilometer/ceilometer.conf'
+  $expirer_command = 'ceilometer-expirer'
+  $user            = 'ceilometer'
 
   case $::osfamily {
     'RedHat': {
       # package names
-      $agent_central_package_name = 'openstack-ceilometer-central'
-      $agent_compute_package_name = 'openstack-ceilometer-compute'
-      $api_package_name           = 'openstack-ceilometer-api'
-      $collector_package_name     = 'openstack-ceilometer-collector'
-      $common_package_name        = 'openstack-ceilometer-common'
-      $client_package_name        = 'python-ceilometerclient'
-      $alarm_package              = 'openstack-ceilometer-alarm'
-      $agent_notification_package = 'openstack-ceilometer-common'
-      # This name should be changed when
-      # openstack-ceilometer-agent-notification will be own package
-      #$agent_notification_package = 'openstack-ceilometer-agent-notification'
+      $agent_central_package_name      = 'openstack-ceilometer-central'
+      $agent_compute_package_name      = 'openstack-ceilometer-compute'
+      $api_package_name                = 'openstack-ceilometer-api'
+      $collector_package_name          = 'openstack-ceilometer-collector'
+      $agent_notification_package_name = 'openstack-ceilometer-collector'
+      # notification agent is included in collector package:
+      $alarm_package_name              = ['openstack-ceilometer-alarm']
+      $common_package_name             = 'openstack-ceilometer-common'
+      $client_package_name             = 'python-ceilometerclient'
       # service names
-      $agent_central_service_name = 'openstack-ceilometer-central'
-      $agent_compute_service_name = 'openstack-ceilometer-compute'
-      $api_service_name           = 'openstack-ceilometer-api'
-      $collector_service_name     = 'openstack-ceilometer-collector'
-      $alarm_evaluator_service    = 'openstack-ceilometer-alarm-evaluator'
-      $alarm_notifier_service     = 'openstack-ceilometer-alarm-notifier'
-      $agent_notification_service = 'openstack-ceilometer-notification'
+      $agent_central_service_name      = 'openstack-ceilometer-central'
+      $agent_compute_service_name      = 'openstack-ceilometer-compute'
+      $api_service_name                = 'openstack-ceilometer-api'
+      $collector_service_name          = 'openstack-ceilometer-collector'
+      $agent_notification_service_name = 'openstack-ceilometer-agent-notification'
+      $alarm_notifier_service_name     = 'openstack-ceilometer-alarm-notifier'
+      $alarm_evaluator_service_name    = 'openstack-ceilometer-alarm-evaluator'
+      $pymongo_package_name            = 'python-pymongo'
+      $psycopg_package_name            = 'python-psycopg2'
+      # db packages
+      if $::operatingsystem == 'Fedora' and $::operatingsystemrelease >= 18 {
+        # fallback to stdlib version, not provided on fedora
+        $sqlite_package_name      = undef
+      } else {
+        $sqlite_package_name      = 'python-sqlite2'
+      }
+
     }
     'Debian': {
       # package names
-      $agent_central_package_name = 'ceilometer-agent-central'
-      $agent_compute_package_name = 'ceilometer-agent-compute'
-      $api_package_name           = 'ceilometer-api'
-      $collector_package_name     = 'ceilometer-collector'
-      $common_package_name        = 'ceilometer-common'
-      $client_package_name        = 'python-ceilometerclient'
-      $alarm_package              = ['ceilometer-alarm-notifier', 'ceilometer-alarm-evaluator']
-      $agent_notification_package = 'ceilometer-agent-notification'
+      $agent_central_package_name      = 'ceilometer-agent-central'
+      $agent_compute_package_name      = 'ceilometer-agent-compute'
+      $api_package_name                = 'ceilometer-api'
+      $collector_package_name          = 'ceilometer-collector'
+      $agent_notification_package_name = 'ceilometer-agent-notification'
+      $common_package_name             = 'ceilometer-common'
+      $client_package_name             = 'python-ceilometerclient'
+      $alarm_package_name              = ['ceilometer-alarm-notifier','ceilometer-alarm-evaluator']
       # service names
-      $agent_central_service_name = 'ceilometer-agent-central'
-      $agent_compute_service_name = 'ceilometer-agent-compute'
-      $api_service_name           = 'ceilometer-api'
-      $collector_service_name     = 'ceilometer-collector'
-      $alarm_evaluator_service    = 'ceilometer-alarm-evaluator'
-      $alarm_notifier_service     = 'ceilometer-alarm-notifier'
-      $agent_notification_service = 'ceilometer-agent-notification'
+      $agent_central_service_name      = 'ceilometer-agent-central'
+      $agent_compute_service_name      = 'ceilometer-agent-compute'
+      $collector_service_name          = 'ceilometer-collector'
+      $api_service_name                = 'ceilometer-api'
+      $agent_notification_service_name = 'ceilometer-agent-notification'
+      $alarm_notifier_service_name     = 'ceilometer-alarm-notifier'
+      $alarm_evaluator_service_name    = 'ceilometer-alarm-evaluator'
+      # db packages
+      $pymongo_package_name            = 'python-pymongo'
+      $psycopg_package_name            = 'python-psycopg2'
+      $sqlite_package_name             = 'python-pysqlite2'
+
       # Operating system specific
       case $::operatingsystem {
         'Ubuntu': {

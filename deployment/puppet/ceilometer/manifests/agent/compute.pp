@@ -2,41 +2,11 @@
 # Include this class on all nova compute nodes
 #
 # == Parameters
-#  [*auth_url*]
-#    the keystone public endpoint
-#    Optional. Defaults to 'http://localhost:5000/v2.0'
-#
-#  [*auth_region*]
-#    the keystone region of this compute node
-#    Optional. Defaults to 'RegionOne'
-#
-#  [*auth_user*]
-#    the keystone user for ceilometer services
-#    Optional. Defaults to 'ceilometer'
-#
-#  [*auth_password*]
-#    the keystone password for ceilometer services
-#    Optional. Defaults to 'password'
-#
-#  [*auth_tenant_name*]
-#    the keystone tenant name for ceilometer services
-#    Optional. Defaults to 'services'
-#
-#  [*auth_tenant_id*]
-#    the keystone tenant id for ceilometer services.
-#    Optional. Defaults to empty.
-#
 #  [*enabled*]
 #    should the service be started or not
 #    Optional. Defaults to true
 #
 class ceilometer::agent::compute (
-  $auth_host        = '127.0.0.1',
-  $auth_region      = 'RegionOne',
-  $auth_user        = 'ceilometer',
-  $auth_password    = 'password',
-  $auth_tenant_name = 'services',
-  $auth_tenant_id   = '',
   $enabled          = true,
 ) inherits ceilometer {
 
@@ -50,14 +20,15 @@ class ceilometer::agent::compute (
     name   => $::ceilometer::params::agent_compute_package_name,
   }
 
-  tweaks::ubuntu_service_override { 'ceilometer-agent-compute' :}
-
   if $::ceilometer::params::libvirt_group {
     User['ceilometer'] {
-      groups +> [$::ceilometer::params::libvirt_group]
+      groups => ['nova', $::ceilometer::params::libvirt_group]
+    }
+  } else {
+    User['ceilometer'] {
+      groups => ['nova']
     }
   }
-
 
   if $enabled {
     $service_ensure = 'running'
@@ -73,32 +44,29 @@ class ceilometer::agent::compute (
     hasstatus  => true,
     hasrestart => true,
   }
-  Package<| title == 'ceilometer-agent-compute' or title == 'ceilometer-common'|> ~>
-  Service<| title == 'ceilometer-agent-compute'|>
-  if !defined(Service['ceilometer-agent-compute']) {
-    notify{ "Module ${module_name} cannot notify service ceilometer-agent-compute\
- on packages update": }
+
+  #NOTE(dprince): This is using a custom (inline) file_line provider
+  # until this lands upstream:
+  # https://github.com/puppetlabs/puppetlabs-stdlib/pull/174
+  Nova_config<| |> {
+    before +> File_line_after[
+      'nova-notification-driver-common',
+      'nova-notification-driver-ceilometer'
+    ],
   }
 
-  ceilometer_config {
-    'DEFAULT/os_auth_url'         : value => "http://${auth_host}:5000/v2.0";
-    'DEFAULT/os_auth_region'      : value => $auth_region;
-    'DEFAULT/os_username'         : value => $auth_user;
-    'DEFAULT/os_password'         : value => $auth_password;
-    'DEFAULT/os_tenant_name'      : value => $auth_tenant_name;
-  }
-
-  if ($auth_tenant_id != '') {
-    ceilometer_config {
-      'DEFAULT/os_tenant_id'        : value => $auth_tenant_id;
-    }
-  }
-
-  nova_config {
-    'DEFAULT/instance_usage_audit'        : value => 'True';
-    'DEFAULT/instance_usage_audit_period' : value => 'hour';
-    'DEFAULT/notification_driver':
-      value => 'nova.openstack.common.notifier.rpc_notifier,ceilometer.compute.nova_notifier';
+  file_line_after {
+    'nova-notification-driver-common':
+      line   =>
+        'notification_driver=nova.openstack.common.notifier.rpc_notifier',
+      path   => '/etc/nova/nova.conf',
+      after  => '^\s*\[DEFAULT\]',
+      notify => Service['nova-compute'];
+    'nova-notification-driver-ceilometer':
+      line   => 'notification_driver=ceilometer.compute.nova_notifier',
+      path   => '/etc/nova/nova.conf',
+      after  => '^\s*\[DEFAULT\]',
+      notify => Service['nova-compute'];
   }
 
 }
