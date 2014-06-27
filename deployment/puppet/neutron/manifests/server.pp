@@ -1,157 +1,370 @@
+# == Class: neutron::server
+#
+# Setup and configure the neutron API endpoint
+#
+# === Parameters
+#
+# [*package_ensure*]
+#   (optional) The state of the package
+#   Defaults to present
+#
+# [*enabled*]
+#   (optional) The state of the service
+#   Defaults to true
+#
+# [*manage_service*]
+#   (optional) Whether to start/stop the service
+#   Defaults to true
+#
+# [*log_file*]
+#   REMOVED: Use log_file of neutron class instead.
+#
+# [*log_dir*]
+#   REMOVED: Use log_dir of neutron class instead.
+#
+# [*auth_password*]
+#   (optional) The password to use for authentication (keystone)
+#   Defaults to false. Set a value unless you are using noauth
+#
+# [*auth_type*]
+#   (optional) What auth system to use
+#   Defaults to 'keystone'. Can other be 'noauth'
+#
+# [*auth_host*]
+#   (optional) The keystone host
+#   Defaults to localhost
+#
+# [*auth_protocol*]
+#   (optional) The protocol used to access the auth host
+#   Defaults to http.
+#
+# [*auth_port*]
+#   (optional) The keystone auth port
+#   Defaults to 35357
+#
+# [*auth_admin_prefix*]
+#   (optional) The admin_prefix used to admin endpoint of the auth host
+#   This allow admin auth URIs like http://auth_host:35357/keystone.
+#   (where '/keystone' is the admin prefix)
+#   Defaults to false for empty. If defined, should be a string with a leading '/' and no trailing '/'.
+#
+# [*auth_tenant*]
+#   (optional) The tenant of the auth user
+#   Defaults to services
+#
+# [*auth_user*]
+#   (optional) The name of the auth user
+#   Defaults to neutron
+#
+# [*auth_protocol*]
+#   (optional) The protocol to connect to keystone
+#   Defaults to http
+#
+# [*auth_uri*]
+#   (optional) Complete public Identity API endpoint.
+#   Defaults to: $auth_protocol://$auth_host:5000/
+#
+# [*database_connection*]
+#   (optional) Connection url for the neutron database.
+#   (Defaults to 'sqlite:////var/lib/neutron/ovs.sqlite')
+#
+# [*sql_connection*]
+#   DEPRECATED: Use database_connection instead.
+#
+# [*connection*]
+#   DEPRECATED: Use database_connection instead.
+#
+# [*database_max_retries*]
+#   (optional) Maximum database connection retries during startup.
+#   (Defaults to 10)
+#
+# [*sql_max_retries*]
+#   DEPRECATED: Use database_max_retries instead.
+#
+# [*max_retries*]
+#   DEPRECATED: Use database_max_retries instead.
+#
+# [*database_idle_timeout*]
+#   (optional) Timeout before idle database connections are reaped.
+#   Deprecates sql_idle_timeout
+#   (Defaults to 3600)
+#
+# [*sql_idle_timeout*]
+#   DEPRECATED: Use database_idle_timeout instead.
+#
+# [*idle_timeout*]
+#   DEPRECATED: Use database_idle_timeout instead.
+#
+# [*database_retry_interval*]
+#   (optional) Interval between retries of opening a database connection.
+#   (Defaults to 10)
+#
+# [*sql_reconnect_interval*]
+#   DEPRECATED: Use database_retry_interval instead.
+#
+# [*retry_interval*]
+#   DEPRECATED: Use database_retry_interval instead.
+#
+# [*sync_db*]
+#   (optional) Run neutron-db-manage on api nodes after installing the package.
+#   Defaults to false
+#
+# [*api_workers*]
+#   (optional) Number of separate worker processes to spawn.
+#   The default, 0, runs the worker thread in the current process.
+#   Greater than 0 launches that number of child processes as workers.
+#   The parent process manages them.
+#   Defaults to: 0
+#
+# [*agent_down_time*]
+#   (optional) Seconds to regard the agent as down; should be at least twice
+#   report_interval, to be sure the agent is down for good.
+#   agent_down_time is a config for neutron-server, set by class neutron::server
+#   report_interval is a config for neutron agents, set by class neutron
+#   Defaults to: 75
+#
+# [*router_scheduler_driver*]
+#   (optional) Driver to use for scheduling router to a default L3 agent. Could be:
+#   neutron.scheduler.l3_agent_scheduler.ChanceScheduler to schedule a router in a random way
+#   neutron.scheduler.l3_agent_scheduler.LeastRoutersScheduler to allocate on an L3 agent with the least number of routers bound.
+#   Defaults to: neutron.scheduler.l3_agent_scheduler.ChanceScheduler
+#
+# [*mysql_module*]
+#   (optional) Mysql puppet module version to use. Tested versions
+#   include 0.9 and 2.2
+#   Defaults to: '0.9'
 #
 class neutron::server (
-  $neutron_config     = {},
-  $primary_controller = false,
-  $nova_admin_tenant_id_mask = 'XXX_service_tenant_id_XXX',
-  $nova_admin_tenant_name    = 'services',
+  $package_ensure          = 'present',
+  $enabled                 = true,
+  $manage_service          = true,
+  $auth_password           = false,
+  $auth_type               = 'keystone',
+  $auth_host               = 'localhost',
+  $auth_port               = '35357',
+  $auth_admin_prefix       = false,
+  $auth_tenant             = 'services',
+  $auth_user               = 'neutron',
+  $auth_protocol           = 'http',
+  $auth_uri                = false,
+  $database_connection     = 'sqlite:////var/lib/neutron/ovs.sqlite',
+  $database_max_retries    = 10,
+  $database_idle_timeout   = 3600,
+  $database_retry_interval = 10,
+  $sync_db                 = false,
+  $api_workers             = '0',
+  $agent_down_time         = '75',
+  $router_scheduler_driver = 'neutron.scheduler.l3_agent_scheduler.ChanceScheduler',
+  $mysql_module            = '0.9',
+  # DEPRECATED PARAMETERS
+  $sql_connection          = undef,
+  $connection              = undef,
+  $sql_max_retries         = undef,
+  $max_retries             = undef,
+  $sql_idle_timeout        = undef,
+  $idle_timeout            = undef,
+  $sql_reconnect_interval  = undef,
+  $retry_interval          = undef,
+  $log_dir                 = undef,
+  $log_file                = undef,
+  $report_interval         = undef,
 ) {
-  include 'neutron::params'
 
-  require 'keystone::python'
+  include neutron::params
+  require keystone::python
 
-  Anchor['neutron-init-done'] ->
-      Anchor['neutron-server']
+  Neutron_config<||>     ~> Service['neutron-server']
+  Neutron_api_config<||> ~> Service['neutron-server']
 
-  anchor {'neutron-server':}
-
-  if $::neutron::params::server_package {
-    $server_package = 'neutron-server'
-    package {"$server_package":
-      name   => $::neutron::params::server_package,
-      ensure => $package_ensure
-    }
+  if $sql_connection {
+    warning('The sql_connection parameter is deprecated, use database_connection instead.')
+    $database_connection_real = $sql_connection
+  } elsif $connection {
+    warning('The connection parameter is deprecated, use database_connection instead.')
+    $database_connection_real = $connection
   } else {
-    $server_package = 'neutron'
+    $database_connection_real = $database_connection
   }
-  if $::operatingsystem == 'Ubuntu' {
-    # Package['neutron-server'] provides two services:
-    # * neutron-server
-    # * neutron-metadata-agent
-    # because we need STOP neutron-metadata-agent here
-    #
-    file { '/etc/init/neutron-metadata-agent.override':
-      replace => 'no',
-      ensure  => 'present',
-      content => 'manual',
-      mode    => '0644',
-    } -> Package["$server_package"]
-    file { '/etc/init/neutron-server.override':
-      replace => 'no',
-      ensure  => 'present',
-      content => 'manual',
-      mode    => '0644',
-    } -> Package["$server_package"]
-    Package["$server_package"] ->
-    exec { 'rm-neutron-server-override':
-      path      => '/sbin:/bin:/usr/bin:/usr/sbin',
-      command   => "rm -f /etc/init/neutron-server.override",
-    }
-    if $service_provider != 'pacemaker' {
-      Package["$server_package"] ->
-      exec { 'rm-neutron-metadata-override':
-        path      => '/sbin:/bin:/usr/bin:/usr/sbin',
-        command   => "rm -f /etc/init/neutron-metadata-agent.override",
+
+  if $sql_max_retries {
+    warning('The sql_max_retries parameter is deprecated, use database_max_retries instead.')
+    $database_max_retries_real = $sql_max_retries
+  } elsif $max_retries {
+    warning('The max_retries parameter is deprecated, use database_max_retries instead.')
+    $database_max_retries_real = $max_retries
+  } else {
+    $database_max_retries_real = $database_max_retries
+  }
+
+  if $sql_idle_timeout {
+    warning('The sql_idle_timeout parameter is deprecated, use database_idle_timeout instead.')
+    $database_idle_timeout_real = $sql_idle_timeout
+  } elsif $idle_timeout {
+    warning('The dle_timeout parameter is deprecated, use database_idle_timeout instead.')
+    $database_idle_timeout_real = $idle_timeout
+  } else {
+    $database_idle_timeout_real = $database_idle_timeout
+  }
+
+  if $sql_reconnect_interval {
+    warning('The sql_reconnect_interval parameter is deprecated, use database_retry_interval instead.')
+    $database_retry_interval_real = $sql_reconnect_interval
+  } elsif $retry_interval {
+    warning('The retry_interval parameter is deprecated, use database_retry_interval instead.')
+    $database_retry_interval_real = $retry_interval
+  } else {
+    $database_retry_interval_real = $database_retry_interval
+  }
+
+  if $log_dir {
+    fail('The log_dir parameter is removed, use log_dir of neutron class instead.')
+  }
+
+  if $log_file {
+    fail('The log_file parameter is removed, use log_file of neutron class instead.')
+  }
+
+  if $report_interval {
+    fail('The report_interval is removed, use report_interval of neutron class instead.')
+  }
+
+  validate_re($database_connection_real, '(sqlite|mysql|postgresql):\/\/(\S+:\S+@\S+\/\S+)?')
+
+  case $database_connection_real {
+    /mysql:\/\/\S+:\S+@\S+\/\S+/: {
+      if ($mysql_module >= 2.2) {
+        require 'mysql::bindings'
+        require 'mysql::bindings::python'
+      } else {
+        require 'mysql::python'
       }
     }
+    /postgresql:\/\/\S+:\S+@\S+\/\S+/: {
+      $backend_package = 'python-psycopg2'
+    }
+    /sqlite:\/\//: {
+      $backend_package = 'python-pysqlite2'
+    }
+    default: {
+      fail("Invalid database_connection parameter: ${database_connection_real}")
+    }
   }
-  Package[$server_package] -> Neutron_config<||>
-  Package[$server_package] -> Neutron_api_config<||>
 
-  if defined(Anchor['neutron-plugin-ovs']) {
-    Package["$server_package"] -> Anchor['neutron-plugin-ovs']
+  if $sync_db {
+    if ($::neutron::params::server_package) {
+      # Debian platforms
+      Package<| title == 'neutron-server' |> ~> Exec['neutron-db-sync']
+    } else {
+      # RH platforms
+      Package<| title == 'neutron' |> ~> Exec['neutron-db-sync']
+    }
+    exec { 'neutron-db-sync':
+      command     => 'neutron-db-manage --config-file /etc/neutron/neutron.conf --config-file /etc/neutron/plugin.ini upgrade head',
+      path        => '/usr/bin',
+      before      => Service['neutron-server'],
+      require     => Neutron_config['database/connection'],
+      refreshonly => true
+    }
   }
-
-  Neutron_config<||> ~> Service['neutron-server']
-  Neutron_api_config<||> ~> Service['neutron-server']
-  Service <| title == 'mysql' |> -> Service['neutron-server']
-  Service <| title == 'haproxy' |> -> Service['neutron-server']
 
   neutron_config {
-    'DEFAULT/notify_nova_on_port_status_changes': value => $neutron_config['server']['notify_nova_on_port_status_changes'];
-    'DEFAULT/notify_nova_on_port_data_changes': value => $neutron_config['server']['notify_nova_on_port_data_changes'];
-    'DEFAULT/nova_url':             value => $neutron_config['server']['notify_nova_api_url'];
-    'DEFAULT/nova_region_name':     value => $neutron_config['keystone']['auth_region'];
-    'DEFAULT/nova_admin_username':  value => $neutron_config['server']['notify_nova_admin_username'];
-    'DEFAULT/nova_admin_tenant_id': value => $nova_admin_tenant_id_mask;
-    'DEFAULT/nova_admin_password':  value => $neutron_config['server']['notify_nova_admin_password'];
-    'DEFAULT/nova_admin_auth_url':  value => $neutron_config['server']['notify_nova_admin_auth_url'];
-    'DEFAULT/send_events_interval': value => $neutron_config['server']['notify_nova_send_events_interval'];
-    'DEFAULT/api_workers':          value => min($::processorcount + 0, 50 + 0);
-    'DEFAULT/rpc_workers':          value => min($::processorcount + 0, 50 + 0);
-    'database/connection':          value => $neutron_config['database']['url'];
-    'database/max_retries':         value => $neutron_config['database']['reconnects'];
-    'database/reconnect_interval':  value => $neutron_config['database']['reconnect_interval'];
-    'database/max_pool_size':       value => $neutron_config['database']['max_pool_size'];
-    'database/max_overflow':        value => $neutron_config['database']['max_overflow'];
-    'database/idle_timeout':        value => $neutron_config['database']['idle_timeout'];
+    'DEFAULT/api_workers':             value => $api_workers;
+    'DEFAULT/agent_down_time':         value => $agent_down_time;
+    'DEFAULT/router_scheduler_driver': value => $router_scheduler_driver;
+    'database/connection':             value => $database_connection_real;
+    'database/idle_timeout':           value => $database_idle_timeout_real;
+    'database/retry_interval':         value => $database_retry_interval_real;
+    'database/max_retries':            value => $database_max_retries_real;
   }
 
-  neutron_api_config {
-    'filter:authtoken/auth_url':          value => $neutron_config['keystone']['auth_url'];
-    'filter:authtoken/auth_host':         value => $neutron_config['keystone']['auth_host'];
-    'filter:authtoken/auth_port':         value => $neutron_config['keystone']['auth_port'];
-    'filter:authtoken/auth_protocol':     value => $neutron_config['keystone']['auth_protocol'];
-    'filter:authtoken/admin_tenant_name': value => $neutron_config['keystone']['admin_tenant_name'];
-    'filter:authtoken/admin_user':        value => $neutron_config['keystone']['admin_user'];
-    'filter:authtoken/admin_password':    value => $neutron_config['keystone']['admin_password'];
+  if ($::neutron::params::server_package) {
+    Package['neutron-server'] -> Neutron_api_config<||>
+    Package['neutron-server'] -> Neutron_config<||>
+    Package['neutron-server'] -> Service['neutron-server']
+    package { 'neutron-server':
+      ensure => $package_ensure,
+      name   => $::neutron::params::server_package,
+    }
+  } else {
+    # Some platforms (RedHat) does not provide a neutron-server package.
+    # The neutron api config file is provided by the neutron package.
+    Package['neutron'] -> Neutron_api_config<||>
   }
 
-  Neutron_config<||> -> Exec['get_service_tenant_ID']
-  File['/root/openrc'] -> Exec['get_service_tenant_ID']
+  if ($auth_type == 'keystone') {
 
-  Keystone_tenant["${nova_admin_tenant_name}"] -> Exec['get_service_tenant_ID']
-  Keystone_user_role["${neutron_config['keystone']['admin_user']}@${nova_admin_tenant_name}"] -> Exec['get_service_tenant_ID']
-  Keystone_endpoint<| title == "${neutron_config['keystone']['admin_user']}" |> -> Exec['get_service_tenant_ID']
+    if ($auth_password == false) {
+      fail('$auth_password must be set when using keystone authentication.')
+    } else {
+      neutron_config {
+        'keystone_authtoken/auth_host':         value => $auth_host;
+        'keystone_authtoken/auth_port':         value => $auth_port;
+        'keystone_authtoken/auth_protocol':     value => $auth_protocol;
+        'keystone_authtoken/admin_tenant_name': value => $auth_tenant;
+        'keystone_authtoken/admin_user':        value => $auth_user;
+        'keystone_authtoken/admin_password':    value => $auth_password;
+      }
 
-  Openstack::Ha::Haproxy_service<| title == 'keystone-1' |> -> Exec['get_service_tenant_ID']
-  Openstack::Ha::Haproxy_service<| title == 'keystone-2' |> -> Exec['get_service_tenant_ID']
-  exec {'get_service_tenant_ID':  # Imitate tries & try_sleep for 'onlyif'
-    tries => 10,                  # by using couple of execs
-    try_sleep => 3,               # WITHOUT refreshonly option
-    command => "bash -c \"source /root/openrc ; keystone tenant-list\" | grep \"${nova_admin_tenant_name}\" > /tmp/services",
-    path => '/usr/sbin:/usr/bin:/sbin:/bin'
+      neutron_api_config {
+        'filter:authtoken/auth_host':         value => $auth_host;
+        'filter:authtoken/auth_port':         value => $auth_port;
+        'filter:authtoken/auth_protocol':     value => $auth_protocol;
+        'filter:authtoken/admin_tenant_name': value => $auth_tenant;
+        'filter:authtoken/admin_user':        value => $auth_user;
+        'filter:authtoken/admin_password':    value => $auth_password;
+      }
+
+      if $auth_admin_prefix {
+        validate_re($auth_admin_prefix, '^(/.+[^/])?$')
+        neutron_config {
+          'keystone_authtoken/auth_admin_prefix': value => $auth_admin_prefix;
+        }
+        neutron_api_config {
+          'filter:authtoken/auth_admin_prefix': value => $auth_admin_prefix;
+        }
+      } else {
+        neutron_config {
+          'keystone_authtoken/auth_admin_prefix': ensure => absent;
+        }
+        neutron_api_config {
+          'filter:authtoken/auth_admin_prefix': ensure => absent;
+        }
+      }
+
+      if $auth_uri {
+        neutron_config {
+          'keystone_authtoken/auth_uri': value => $auth_uri;
+        }
+        neutron_api_config {
+          'filter:authtoken/auth_uri': value => $auth_uri;
+        }
+      } else {
+        neutron_config {
+          'keystone_authtoken/auth_uri': value => "${auth_protocol}://${auth_host}:5000/";
+        }
+        neutron_api_config {
+          'filter:authtoken/auth_uri': value => "${auth_protocol}://${auth_host}:5000/";
+        }
+      }
+
+    }
+
   }
-  # do not use refreshonly and notify here -- it leads to double execution 'onlyif' command
-  exec {'insert_service_tenant_ID':
-    onlyif  => "head -n1 /tmp/services | awk -F'|' '{print \$2}' | grep -xEe '\\s*[[:xdigit:]]+\\s*' > /tmp/serviceid",
-    command => "sed -e \"s/${nova_admin_tenant_id_mask}/`head -n1 /tmp/serviceid`/g\" -i /etc/neutron/neutron.conf",
-    path => '/usr/sbin:/usr/bin:/sbin:/bin'
+
+  if $manage_service {
+    if $enabled {
+      $service_ensure = 'running'
+    } else {
+      $service_ensure = 'stopped'
+    }
   }
-  Exec['get_service_tenant_ID'] -> Exec['insert_service_tenant_ID'] -> Service<| title == 'neutron-server' |>
 
-  anchor {'neutron-server-config-done':}
-
-  service {'neutron-server':
+  service { 'neutron-server':
+    ensure     => $service_ensure,
     name       => $::neutron::params::server_service,
-    ensure     => running,
-    enable     => true,
+    enable     => $enabled,
     hasstatus  => true,
     hasrestart => true,
-    provider   => $::neutron::params::service_provider,
-  }
-
-  anchor {'neutron-api-up':}
-
-  Anchor['neutron-server'] ->
-    Neutron_config<||> ->
-      Neutron_api_config<||> ->
-  Anchor['neutron-server-config-done'] ->
-    Service['neutron-server'] ->
-  Anchor['neutron-api-up'] ->
-  Anchor['neutron-server-done']
-
-  Package[$server_package] -> class { 'neutron::quota': } -> Anchor['neutron-server-config-done']
-
-  if $primary_controller {
-    Anchor['neutron-api-up'] ->
-    class { 'neutron::network::predefined_networks':
-      neutron_config => $neutron_config,
-    } -> Anchor['neutron-server-done']
-  }
-
-  anchor {'neutron-server-done':}
-  Package<| title == $server_package|> ~> Service<| title == 'neutron-server'|>
-  if !defined(Service['neutron-server']) {
-    notify{ "Module ${module_name} cannot notify service neutron-server on package update": }
+    require    => Class['neutron'],
   }
 }
