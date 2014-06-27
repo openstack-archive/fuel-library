@@ -26,7 +26,7 @@ Puppet::Type.type(:keystone_tenant).provide(
   end
 
   def self.tenant_hash
-    @tenant_hash ||= build_tenant_hash
+    @tenant_hash = build_tenant_hash
   end
 
   def tenant_hash
@@ -86,7 +86,10 @@ Puppet::Type.type(:keystone_tenant).provide(
   end
 
   def id
-    tenant_hash[resource[:name]][:id]
+    #tenant_hash[resource[:name]][:id]
+    my_name = resource[:name]
+    my_tenant = tenant_hash[my_name]
+    return my_tenant[:id]
   end
 
   private
