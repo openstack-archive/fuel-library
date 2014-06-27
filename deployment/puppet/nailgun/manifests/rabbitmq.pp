@@ -9,6 +9,7 @@ class nailgun::rabbitmq (
   $management_port = "15672",
   $stompport       = "61613",
   $rabbitmq_host   = "localhost",
+  $env_config      = 'UNSET',
 ) {
 
   include stdlib
@@ -128,6 +129,7 @@ class nailgun::rabbitmq (
     config_stomp       => true,
     stomp_port         => $stompport,
     node_ip_address    => 'UNSET',
+    env_config         => $env_config,
   }
 
   Anchor['nailgun::rabbitmq start'] ->

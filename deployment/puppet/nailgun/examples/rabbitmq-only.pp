@@ -47,5 +47,6 @@ class { 'nailgun::rabbitmq':
   mco_password    => $mco_password,
   mco_vhost       => $mco_vhost,
   stomp           => $stomp,
+  env_config      => "RABBITMQ_SERVER_ERL_ARGS='+K true +A30 +P 1048576'\nNODENAME='rabbit@$::hostname'\n",
 }
 
