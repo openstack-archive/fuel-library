@@ -36,4 +36,8 @@ class heat::keystone::auth (
     roles   => 'admin',
   }
 
+  keystone_role { 'heat_stack_user' :
+    ensure => 'present',
+  }
+
 }
