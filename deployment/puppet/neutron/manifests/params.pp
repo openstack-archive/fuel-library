@@ -44,6 +44,7 @@ class neutron::params {
     $l3_agent_package   = false
     $l3_agent_service   = 'neutron-l3-agent'
 
+    $metadata_agent_package = false
     $metadata_agent_service = 'neutron-metadata-agent'
 
     $cliff_package      = 'python-cliff'
