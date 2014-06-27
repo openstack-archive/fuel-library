@@ -4,27 +4,40 @@
 # all parameters match up with xinetd.conf(5) man page
 #
 # Parameters:
-#   $port           - required - determines the service port
-#   $server         - required - determines the executable for this service
 #   $ensure         - optional - defaults to 'present'
-#   $cps            - optional
-#   $flags          - optional
-#   $per_source     - optional
-#   $server_args    - optional
+#   $log_on_success - optional - may contain any combination of
+#                       'PID', 'HOST', 'USERID', 'EXIT', 'DURATION', 'TRAFFIC'
+#   $log_on_success_operator - optional - defaults to '+='.  This is whether or
+#                              not values specified will be add, set or remove
+#                              from the default.
 #   $log_on_failure - optional - may contain any combination of
 #                       'HOST', 'USERID', 'ATTEMPT'
-#   $disable        - optional - defaults to 'no'
-#   $socket_type    - optional - defaults to 'stream'
-#   $protocol       - optional - defaults to 'tcp'
-#   $user           - optional - defaults to 'root'
-#   $group          - optional - defaults to 'root'
-#   $instances      - optional - defaults to 'UNLIMITED'
-#   $wait           - optional - based on $protocol
-#                       will default to 'yes' for udp and 'no' for tcp
-#   $bind           - optional - defaults to '0.0.0.0'
+#   $log_on_failure_operator - optional - defaults to '+='.  This is whether or
+#                              not values specified will be add, set or remove
+#                              from the default.
 #   $service_type   - optional - type setting in xinetd
 #                       may contain any combinarion of 'RPC', 'INTERNAL',
 #                       'TCPMUX/TCPMUXPLUS', 'UNLISTED'
+#   $cps            - optional
+#   $flags          - optional
+#   $per_source     - optional
+#   $port           - required - determines the service port
+#   $server         - required - determines the program to execute for this service
+#   $server_args    - optional
+#   $disable        - optional - defaults to "no"
+#   $socket_type    - optional - defaults to "stream"
+#   $protocol       - optional - defaults to "tcp"
+#   $user           - optional - defaults to "root"
+#   $group          - optional - defaults to "root"
+#   $groups         - optional - defaults to "yes"
+#   $instances      - optional - defaults to "UNLIMITED"
+#   $only_from      - optional
+#   $wait           - optional - based on $protocol will default to "yes" for udp and "no" for tcp
+#   $xtype          - optional - determines the "type" of service, see xinetd.conf(5)
+#   $no_access      - optional
+#   $access_times   - optional
+#   $log_type       - optional
+#   $bind           - optional
 #
 # Actions:
 #   setups up a xinetd service by creating a file in /etc/xinetd.d/
@@ -49,35 +62,77 @@
 define xinetd::service (
   $port,
   $server,
-  $ensure         = present,
-  $cps            = undef,
-  $flags          = undef,
-  $log_on_failure = undef,
-  $per_source     = undef,
-  $server_args    = undef,
-  $disable        = 'no',
-  $socket_type    = 'stream',
-  $protocol       = 'tcp',
-  $user           = 'root',
-  $group          = 'root',
-  $instances      = 'UNLIMITED',
-  $wait           = undef,
-  $bind           = '0.0.0.0',
-  $service_type   = undef
+  $ensure                  = present,
+  $log_on_success          = undef,
+  $log_on_success_operator = '+=',
+  $log_on_failure          = undef,
+  $log_on_failure_operator = '+=',
+  $service_type            = undef,
+  $service_name            = $title,
+  $cps                     = undef,
+  $disable                 = 'no',
+  $flags                   = undef,
+  $group                   = 'root',
+  $groups                  = 'yes',
+  $instances               = 'UNLIMITED',
+  $per_source              = undef,
+  $protocol                = 'tcp',
+  $server_args             = undef,
+  $socket_type             = 'stream',
+  $user                    = 'root',
+  $only_from               = undef,
+  $wait                    = undef,
+  $xtype                   = undef,
+  $no_access               = undef,
+  $access_times            = undef,
+  $log_type                = undef,
+  $bind                    = undef
 ) {
 
+  include xinetd
+
   if $wait {
-    $mywait = $wait
+    $_wait = $wait
   } else {
-    $mywait = $protocol ? {
+    validate_re($protocol, '(tcp|udp)')
+    $_wait = $protocol ? {
       tcp => 'no',
       udp => 'yes'
     }
   }
 
-  file { "/etc/xinetd.d/${name}":
+  # Template uses:
+  # - $port
+  # - $disable
+  # - $socket_type
+  # - $protocol
+  # - $_wait
+  # - $user
+  # - $group
+  # - $groups
+  # - $server
+  # - $bind
+  # - $service_type
+  # - $server_args
+  # - $only_from
+  # - $per_source
+  # - $log_on_success
+  # - $log_on_success_operator
+  # - $log_on_failure
+  # - $log_on_failure_operator
+  # - $cps
+  # - $flags
+  # - $xtype
+  # - $no_access
+  # - $access_types
+  # - $log_type
+  file { "${xinetd::confdir}/${title}":
     ensure  => $ensure,
+    owner   => 'root',
+    mode    => '0644',
     content => template('xinetd/service.erb'),
-    notify  => Service['xinetd'],
+    notify  => Service[$xinetd::service_name],
+    require => File[$xinetd::confdir],
   }
+
 }
