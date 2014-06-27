@@ -9,18 +9,12 @@ describe 'ceilometer::agent::compute' do
   end
 
   let :params do
-    { :auth_url         => 'http://localhost:5000/v2.0',
-      :auth_region      => 'RegionOne',
-      :auth_user        => 'ceilometer',
-      :auth_password    => 'password',
-      :auth_tenant_name => 'services',
-      :enabled          => true,
-    }
+    { :enabled          => true }
   end
 
   shared_examples_for 'ceilometer-agent-compute' do
 
-    it { should include_class('ceilometer::params') }
+    it { should contain_class('ceilometer::params') }
 
     it 'installs ceilometer-agent-compute package' do
       should contain_package('ceilometer-agent-compute').with(
@@ -30,9 +24,11 @@ describe 'ceilometer::agent::compute' do
       )
     end
 
-    it 'adds ceilometer user to libvirt group if required' do
+    it 'adds ceilometer user to nova group and, if required, to libvirt group' do
       if platform_params[:libvirt_group]
-        should contain_user('ceilometer').with_groups(/#{platform_params[:libvirt_group]}/)
+        should contain_user('ceilometer').with_groups(['nova', "#{platform_params[:libvirt_group]}"])
+      else
+        should contain_user('ceilometer').with_groups('nova')
       end
     end
 
@@ -52,33 +48,20 @@ describe 'ceilometer::agent::compute' do
       )
     end
 
-    it 'configures authentication' do
-      should contain_ceilometer_config('DEFAULT/os_auth_url').with_value('http://localhost:5000/v2.0')
-      should contain_ceilometer_config('DEFAULT/os_auth_region').with_value('RegionOne')
-      should contain_ceilometer_config('DEFAULT/os_username').with_value('ceilometer')
-      should contain_ceilometer_config('DEFAULT/os_password').with_value('password')
-      should contain_ceilometer_config('DEFAULT/os_tenant_name').with_value('services')
-    end
-
-    it 'configures instance usage audit in nova' do
-      should contain_nova_config('DEFAULT/instance_usage_audit').with_value('True')
-      should contain_nova_config('DEFAULT/instance_usage_audit_period').with_value('hour')
-    end
-
     it 'configures nova notification driver' do
-      should contain_file_line('nova-notification-driver-common').with(
+      should contain_file_line_after('nova-notification-driver-common').with(
         :line   => 'notification_driver=nova.openstack.common.notifier.rpc_notifier',
         :path   => '/etc/nova/nova.conf',
         :notify => 'Service[nova-compute]'
       )
-      should contain_file_line('nova-notification-driver-ceilometer').with(
+      should contain_file_line_after('nova-notification-driver-ceilometer').with(
         :line   => 'notification_driver=ceilometer.compute.nova_notifier',
         :path   => '/etc/nova/nova.conf',
         :notify => 'Service[nova-compute]'
       )
     end
-  end
 
+  end
 
   context 'on Debian platforms' do
     let :facts do
