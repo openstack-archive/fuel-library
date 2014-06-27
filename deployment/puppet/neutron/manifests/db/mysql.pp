@@ -12,14 +12,9 @@ class neutron::db::mysql (
   $allowed_hosts = undef,
   $charset       = 'utf8',
   $collate       = 'utf8_unicode_ci',
-  $mysql_module  = '0.9',
-  $cluster_id    = 'localzone'
+  $cluster_id    = 'localzone',
+  $mysql_module  = '0.9'
 ) {
-
-  Class['mysql::server'] -> Class['neutron::db::mysql']
-  if $::osfamily == "Debian" {
-    Class['neutron::db::mysql'] -> Package['neutron-server']
-  }
 
   if ($mysql_module >= 2.2) {
     mysql::db { $dbname:
@@ -29,7 +24,7 @@ class neutron::db::mysql (
       charset      => $charset,
       collate      => $collate,
       require      => Class['mysql::server'],
-    }
+    } -> Service <| title == 'neutron-server' |>
   } else {
     require mysql::python
 
@@ -38,7 +33,7 @@ class neutron::db::mysql (
       password     => $password,
       host         => $host,
       charset      => $charset,
-      require      => Class['mysql::server'],
+      require      => Class['mysql::config'],
     }
   }
 

@@ -1,85 +1,111 @@
+#
 class neutron::params {
-  case $::osfamily {
-    'Debian', 'Ubuntu': {
-      $package_name       = 'neutron-common'
-      $server_package     = 'neutron-server'
-      $server_service     = 'neutron-server'
 
-      $ovs_agent_package  = 'neutron-plugin-openvswitch-agent'
-      $ovs_agent_service  = 'neutron-plugin-openvswitch-agent'
-      $ovs_server_package = 'neutron-plugin-openvswitch'
-      $ovs_cleanup_service = false
+  if($::osfamily == 'Redhat') {
+    $package_name       = 'openstack-neutron'
+    $server_package     = false
+    $server_service     = 'neutron-server'
+    $client_package     = 'python-neutronclient'
 
-      $dhcp_agent_package = 'neutron-dhcp-agent'
-      $dhcp_agent_service = 'neutron-dhcp-agent'
+    $ml2_server_package = 'openstack-neutron-ml2'
 
-      $dnsmasq_packages   = ['dnsmasq-base', 'dnsmasq-utils']
+    $ovs_agent_package   = false
+    $ovs_agent_service   = 'neutron-openvswitch-agent'
+    $ovs_server_package  = 'openstack-neutron-openvswitch'
+    $ovs_cleanup_service = 'neutron-ovs-cleanup'
 
-      $isc_dhcp_packages  = ['isc-dhcp-server']
+    $linuxbridge_agent_package  = false
+    $linuxbridge_agent_service  = 'neutron-linuxbridge-agent'
+    $linuxbridge_server_package = 'openstack-neutron-linuxbridge'
+    $linuxbridge_config_file    = '/etc/neutron/plugins/linuxbridge/linuxbridge_conf.ini'
 
-      $l3_agent_package   = 'neutron-l3-agent'
-      $l3_agent_service   = 'neutron-l3-agent'
+    $cisco_server_package = 'openstack-neutron-cisco'
+    $cisco_config_file    = '/etc/neutron/plugins/cisco/cisco_plugins.ini'
 
-      $linuxbridge_agent_package  = 'neutron-plugin-linuxbridge-agent'
-      $linuxbridge_agent_service  = 'neutron-plugin-linuxbridge-agent'
-      $linuxbridge_server_package = 'neutron-plugin-linuxbridge'
-      $linuxbridge_config_file    = '/etc/neutron/plugins/linuxbridge/linuxbridge_conf.ini'
+    $nvp_server_package = 'openstack-neutron-nicira'
 
-      $metadata_agent_package = 'neutron-metadata-agent'
-      $metadata_agent_service = 'neutron-metadata-agent'
+    $dhcp_agent_package = false
+    $dhcp_agent_service = 'neutron-dhcp-agent'
 
-      $cliff_package      = 'python-cliff'
-      $kernel_headers     = "linux-headers-${::kernelrelease}"
+    $dnsmasq_packages   = ['dnsmasq', 'dnsmasq-utils']
 
-      $python_path        = 'python2.7/dist-packages'
-      $cidr_package       = 'ipcalc'
-      $vlan_package       = 'vlan'
-      $fuel_utils_package = 'fuel-utils'
+    $lbaas_agent_package = false
+    $lbaas_agent_service = 'neutron-lbaas-agent'
 
-      case $::operatingsystem {
-        'Debian': {
-          $service_provider = undef
-        }
-        default: {
-          $service_provider = 'upstart'
-        }
-      }
-    }
-    'RedHat': {
-      $package_name       = 'openstack-neutron'
-      $server_package     = false
-      $server_service     = 'neutron-server'
+    $haproxy_package   = 'haproxy'
 
-      $ovs_agent_package  = false
-      $ovs_agent_service  = 'neutron-openvswitch-agent'
-      $ovs_server_package = 'openstack-neutron-openvswitch'
+    $metering_agent_package = 'openstack-neutron-metering-agent'
+    $metering_agent_service = 'neutron-metering-agent'
 
-      $dhcp_agent_package = false
-      $dhcp_agent_service = 'neutron-dhcp-agent'
+    $vpnaas_agent_package = 'openstack-neutron-vpn-agent'
+    $vpnaas_agent_service = 'neutron-vpn-agent'
+    $openswan_package     = 'openswan'
 
-      $dnsmasq_packages   = ['dnsmasq', 'dnsmasq-utils']
+    $l3_agent_package   = false
+    $l3_agent_service   = 'neutron-l3-agent'
 
-      $isc_dhcp_packages  = ['dhcp']
+    $metadata_agent_service = 'neutron-metadata-agent'
 
-      $l3_agent_package   = false
-      $l3_agent_service   = 'neutron-l3-agent'
+    $cliff_package      = 'python-cliff'
 
-      $cliff_package      = 'python-cliff'
-      $kernel_headers     = "linux-headers-${::kernelrelease}"
+    $kernel_headers     = "linux-headers-${::kernelrelease}"
 
-      $python_path        = 'python2.6/site-packages'
-      $cidr_package       = "whatmask"
-      $vlan_package       = 'vconfig'
-      $fuel_utils_package = 'fuel-utils'
+  } elsif($::osfamily == 'Debian') {
 
-      $service_provider   = undef
+    $package_name       = 'neutron-common'
+    $server_package     = 'neutron-server'
+    $server_service     = 'neutron-server'
+    $client_package     = 'python-neutronclient'
 
-      $linuxbridge_agent_package  = 'openstack-neutron-linuxbridge'
-      $linuxbridge_agent_service  = 'neutron-linuxbridge-agent'
-      $linuxbridge_server_package = 'openstack-neutron-linuxbridge'
-      $linuxbridge_config_file    = '/etc/neutron/plugins/linuxbridge/linuxbridge_conf.ini'
+    $ml2_server_package = false
 
-      $metadata_agent_service = 'neutron-metadata-agent'
-    }
+    $ovs_agent_package   = 'neutron-plugin-openvswitch-agent'
+    $ovs_agent_service   = 'neutron-plugin-openvswitch-agent'
+    $ovs_server_package  = 'neutron-plugin-openvswitch'
+    $ovs_cleanup_service = false
+
+    $linuxbridge_agent_package  = 'neutron-plugin-linuxbridge-agent'
+    $linuxbridge_agent_service  = 'neutron-plugin-linuxbridge-agent'
+    $linuxbridge_server_package = 'neutron-plugin-linuxbridge'
+    $linuxbridge_config_file    = '/etc/neutron/plugins/linuxbridge/linuxbridge_conf.ini'
+
+    $cisco_server_package = 'neutron-plugin-cisco'
+    $cisco_config_file    = '/etc/neutron/plugins/cisco/cisco_plugins.ini'
+
+    $nvp_server_package = 'neutron-plugin-nicira'
+
+    $dhcp_agent_package = 'neutron-dhcp-agent'
+    $dhcp_agent_service = 'neutron-dhcp-agent'
+
+    $lbaas_agent_package = 'neutron-lbaas-agent'
+    $lbaas_agent_service = 'neutron-lbaas-agent'
+
+    $haproxy_package   = 'haproxy'
+
+    $metering_agent_package = 'neutron-metering-agent'
+    $metering_agent_service = 'neutron-metering-agent'
+
+    $vpnaas_agent_package = 'neutron-vpn-agent'
+    $vpnaas_agent_service = 'neutron-vpn-agent'
+
+    $openswan_package     = 'openswan'
+
+    $metadata_agent_package = 'neutron-metadata-agent'
+    $metadata_agent_service = 'neutron-metadata-agent'
+
+    $dnsmasq_packages   = ['dnsmasq-base', 'dnsmasq-utils']
+
+    $isc_dhcp_packages  = ['isc-dhcp-server']
+
+    $l3_agent_package   = 'neutron-l3-agent'
+    $l3_agent_service   = 'neutron-l3-agent'
+
+    $cliff_package      = 'python-cliff'
+    $kernel_headers     = "linux-headers-${::kernelrelease}"
+
+  } else {
+
+    fail("Unsupported osfamily ${::osfamily}")
+
   }
 }
