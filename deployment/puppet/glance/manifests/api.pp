@@ -89,7 +89,6 @@ class glance::api(
   $clean_minute         = 0,
   $clean_ensure         = 'present',
   $image_cache_max_size = '10737418240',
-  $notify_mech          = 'noop',
   ) inherits glance {
 
   # used to configure concat
@@ -124,15 +123,6 @@ class glance::api(
 
   } else {
     fail("Invalid db connection ${sql_connection}")
-  }
-
-  if $notify_mech == 'noop'
-  {
-    glance_api_config { 'DEFAULT/notifier_strategy': value => 'noop'; }
-  }
-  else
-  {
-    include "glance::notify::${notify_mech}"
   }
 
   # Logging
