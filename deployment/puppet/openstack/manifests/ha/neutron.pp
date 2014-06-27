@@ -6,10 +6,13 @@ class openstack::ha::neutron {
     listen_port     => 9696,
     public          => true,
     define_backups  => true,
-    require_service => 'neutron-server',
   }
 
-  Openstack::Ha::Haproxy_service<|title == 'keystone-1' or title == 'keystone-2'|> -> Service['neutron-server']
-  Openstack::Ha::Haproxy_service['neutron'] -> Class['neutron::waistline']
-  Openstack::Ha::Haproxy_service['neutron'] -> Anchor['neutron-api-up']
+  Openstack::Ha::Haproxy_service<| title == 'mysqld' |> -> Exec <| title == 'neutron-db-sync' |>
+  Openstack::Ha::Haproxy_service<| title == 'mysqld' |> -> Service<| title == 'neutron-server'|>
+
+  Openstack::Ha::Haproxy_service<| title == 'keystone-1' or title == 'keystone-2'|> -> Service<| title == 'neutron-server'|>
+  #Openstack::Ha::Haproxy_service['neutron'] -> Service<| title == 'neutron-server'|>
+  Exec['haproxy reload for neutron'] -> Service<| title == 'neutron-server'|>
+
 }
