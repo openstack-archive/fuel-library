@@ -87,9 +87,12 @@ class openstack::compute (
   $private_interface,
   $network_manager,
   $fixed_range                    = undef,
-  # Quantum
-  $quantum                        = false,
-  $quantum_config                 = {},
+  # Neutron
+  $network_provider               = 'nova',
+  $neutron_integration_bridge     = 'br-int',
+  $neutron_user_password          = 'asdf1234',
+  $base_mac                       = 'fa:16:3e:00:00:00',
+
   # Ceilometer
   $ceilometer_user_password       = 'ceilometer_pass',
   # nova compute configuration parameters
@@ -205,7 +208,7 @@ class openstack::compute (
     vncserver_proxyclient_address => $internal_address,
     vncproxy_host                 => $vncproxy_host,
   }
-  
+
   nova_config {
     'DEFAULT/live_migration_flag': value => 'VIR_MIGRATE_UNDEFINE_SOURCE,VIR_MIGRATE_PEER2PEER,VIR_MIGRATE_LIVE,VIR_MIGRATE_PERSIST_DEST';
   }
@@ -269,7 +272,7 @@ class openstack::compute (
 
   # if the compute node should be configured as a multi-host
   # compute installation
-  if ! $quantum {
+  if $network_provider == 'nova' {
 
     class { 'nova::api':
       ensure_package    => $::openstack_version['nova'],
@@ -293,7 +296,6 @@ class openstack::compute (
       nova_config {
         'DEFAULT/multi_host':      value => 'True';
         'DEFAULT/send_arp_for_ha': value => 'True';
-        # 'DEFAULT/metadata_listen': value => $internal_address;
         'DEFAULT/metadata_host':   value => $internal_address;
       }
 
@@ -317,42 +319,7 @@ class openstack::compute (
       }
     }
 
-    class { 'nova::network':
-      ensure_package    => $::openstack_version['nova'],
-      private_interface => $private_interface,
-      public_interface  => $public_interface,
-      fixed_range       => $fixed_range,
-      floating_range    => $floating_range,
-      network_manager   => $network_manager,
-      config_overrides  => $network_config,
-      create_networks   => $create_networks,
-      num_networks      => $num_networks,
-      enabled           => $enable_network_service,
-      install_service   => $enable_network_service,
-    }
   } else {
-
-    class { '::neutron':
-      neutron_config  => $quantum_config,
-      verbose         => $verbose,
-      debug           => $debug,
-      use_syslog           => $use_syslog,
-      syslog_log_facility  => $syslog_log_facility_neutron,
-    }
-
-    #todo: Quantum plugin and database connection not need on compute.
-    class { 'neutron::plugins::ovs':
-      neutron_config  => $quantum_config
-    }
-
-    class { 'neutron::agents::ovs':
-      neutron_config   => $quantum_config,
-      # bridge_uplinks   => ["br-prv:${private_interface}"],
-      # bridge_mappings  => ['physnet2:br-prv'],
-      # enable_tunneling => $enable_tunneling,
-      # local_ip         => $internal_address,
-    }
-
 
     # script called by qemu needs to manipulate the tap device
     file { '/etc/libvirt/qemu.conf':
@@ -363,24 +330,60 @@ class openstack::compute (
 
     class { 'nova::compute::neutron': }
 
-    class { 'nova::network::neutron':
-      neutron_auth_strategy            => 'keystone',
-      neutron_url                      => $quantum_config['server']['api_url'],
-      neutron_admin_tenant_name        => $quantum_config['keystone']['admin_tenant_name'],
-      neutron_region_name              => $quantum_config['keystone']['auth_region'],
-      neutron_admin_username           => $quantum_config['keystone']['admin_user'],
-      neutron_admin_password           => $quantum_config['keystone']['admin_password'],
-      neutron_admin_auth_url           => $quantum_config['keystone']['auth_url'],
-      neutron_ovs_bridge               => $quantum_config['L2']['integration_bridge'],
-    }
-
-    #todo: LibvirtHybridOVSBridgeDriver Will be deprecated in Havana, and removed in Ixxxx.
-    #  https://github.com/openstack/nova/blob/stable/grizzly/nova/virt/libvirt/vif.py
     nova_config {
-      #'DEFAULT/libvirt_vif_driver':              value => 'nova.virt.libvirt.vif.LibvirtHybridOVSBridgeDriver';
       'DEFAULT/linuxnet_interface_driver':       value => 'nova.network.linux_net.LinuxOVSInterfaceDriver';
-      'DEFAULT/linuxnet_ovs_integration_bridge': value => $quantum_config['L2']['integration_bridge'];
+      'DEFAULT/linuxnet_ovs_integration_bridge': value => $neutron_integration_bridge;
     }
+  }
+  ######## [Nova|Neutron] Network ########
+
+  class { 'openstack::network':
+    network_provider  => $network_provider,
+    agents            => ['ml2-ovs'],
+    mechanism_drivers => ['openvswitch'],
+    public_address    => $public_address,
+    internal_address  => $internal_address,
+    admin_address     => $admin_address,
+    nova_neutron      => true,
+
+    base_mac          => $base_mac,
+    #ovs
+    local_ip          => $internal_address,
+
+    verbose             => $verbose,
+    debug               => $debug,
+    use_syslog          => $use_syslog,
+    syslog_log_facility => $syslog_log_facility_neutron,
+
+    #Queue settings
+    queue_provider  => $queue_provider,
+    amqp_hosts      => [$amqp_hosts],
+    amqp_user       => $amqp_user,
+    amqp_password   => $amqp_password,
+
+    # keystone
+
+    admin_password  => $neutron_user_password,
+    auth_url        => "http://${service_endpoint}:35357/v2.0",
+    api_url         => "http://${service_endpoint}:9696",
+
+    #metadata
+    shared_secret   => undef,
+
+    integration_bridge => $neutron_integration_bridge,
+    #nova settings
+
+    private_interface => $private_interface,
+    public_interface  => $public_interface,
+    fixed_range       => $fixed_range,
+    floating_range    => $floating_range,
+    network_manager   => $network_manager,
+    network_config    => $network_config,
+    create_networks   => $create_networks,
+    num_networks      => $num_networks,
+    network_size      => $network_size,
+    nameservers       => $nameservers,
+    enable_nova_net   => $enable_network_service,
   }
 }
 # vim: set ts=2 sw=2 et :
