@@ -27,12 +27,15 @@
 #  [*keystone_password*] password to authenticate with
 #    Mandatory.
 #
-#  [*bind_host*] service binds on this ip.
-#    Optional. Default '0.0.0.0'.
+# [*host*]
+#   (optional) The ceilometer api bind address
+#   Defaults to 0.0.0.0
 #
-#  [*bind_port*] service binds on this port.
-#    Optional. Default '8777'
+# [*port*]
+#   (optional) The ceilometer api port
+#   Defaults to 8777
 #
+
 class ceilometer::api (
   $enabled                    = true,
   $keystone_host              = '127.0.0.1',
@@ -42,8 +45,9 @@ class ceilometer::api (
   $keystone_user              = 'ceilometer',
   $keystone_tenant            = 'services',
   $keystone_password          = false,
-  $bind_host                  = '0.0.0.0',
-  $bind_port                  = '8777',
+  $keystone_auth_uri          = false,
+  $host                       = '0.0.0.0',
+  $port                       = '8777'
 ) {
 
   include ceilometer::params
@@ -58,8 +62,6 @@ class ceilometer::api (
     ensure => installed,
     name   => $::ceilometer::params::api_package_name,
   }
-
-  tweaks::ubuntu_service_override { 'ceilometer-api' :}
 
   if $enabled {
     $service_ensure = 'running'
@@ -77,12 +79,6 @@ class ceilometer::api (
     require    => Class['ceilometer::db'],
     subscribe  => Exec['ceilometer-dbsync']
   }
-  Package<| title == 'ceilometer-api' or title == 'ceilometer-common'|> ~>
-  Service<| title == 'ceilometer-api'|>
-  if !defined(Service['ceilometer-api']) {
-    notify{ "Module ${module_name} cannot notify service ceilometer-api\
- on packages update": }
-  }
 
   ceilometer_config {
     'keystone_authtoken/auth_host'         : value => $keystone_host;
@@ -91,24 +87,8 @@ class ceilometer::api (
     'keystone_authtoken/admin_tenant_name' : value => $keystone_tenant;
     'keystone_authtoken/admin_user'        : value => $keystone_user;
     'keystone_authtoken/admin_password'    : value => $keystone_password;
-  }
-
-  ceilometer_config {
-    'api/host':   value => $bind_host;
-    'api/port':   value => $bind_port;
-  }
-
-  # endpoint encryption
-  if $keystone_protocol == '___https___' {
-    ceilometer_config {
-      'ssl/cert_file':     value => $::ceilometer::params::ssl_cert_file;
-      'ssl/key_file':      value => $::ceilometer::params::ssl_key_file;
-      # 'ssl/ca_file':       value => $::ceilometer::params::ssl_ca_file;
-    }
-
-    User['ceilometer'] {
-      groups +> ['ssl-cert']
-    }
+    'api/host'                             : value => $host;
+    'api/port'                             : value => $port;
   }
 
   if $keystone_auth_admin_prefix {
@@ -119,6 +99,16 @@ class ceilometer::api (
   } else {
     ceilometer_config {
       'keystone_authtoken/auth_admin_prefix': ensure => absent;
+    }
+  }
+
+  if $keystone_auth_uri {
+    ceilometer_config {
+      'keystone_authtoken/auth_uri': value => $keystone_auth_uri;
+    }
+  } else {
+    ceilometer_config {
+      'keystone_authtoken/auth_uri': value => "${keystone_protocol}://${keystone_host}:5000/";
     }
   }
 

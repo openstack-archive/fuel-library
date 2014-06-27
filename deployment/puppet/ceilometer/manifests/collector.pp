@@ -12,13 +12,8 @@ class ceilometer::collector (
 
   Ceilometer_config<||> ~> Service['ceilometer-collector']
 
-  Package['ceilometer-collector'] -> Service['ceilometer-collector']
-  package { 'ceilometer-collector':
-    ensure => installed,
-    name   => $::ceilometer::params::collector_package_name,
-  }
-
-  tweaks::ubuntu_service_override { 'ceilometer-collector' :}
+  Package[$::ceilometer::params::collector_package_name] -> Service['ceilometer-collector']
+  ensure_packages([$::ceilometer::params::collector_package_name])
 
   if $enabled {
     $service_ensure = 'running'
@@ -36,11 +31,4 @@ class ceilometer::collector (
     require    => Class['ceilometer::db'],
     subscribe  => Exec['ceilometer-dbsync']
   }
-  Package<| title == 'ceilometer-collector' or title == 'ceilometer-common'|> ~>
-  Service<| title == 'ceilometer-collector'|>
-  if !defined(Service['ceilometer-collector']) {
-    notify{ "Module ${module_name} cannot notify service ceilometer-collector\
- on packages update": }
-  }
-
 }
