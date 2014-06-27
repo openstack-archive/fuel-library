@@ -91,6 +91,7 @@ class openstack::cinder(
         log_facility          => $syslog_log_facility,
         debug                 => $debug,
         database_idle_timeout => $idle_timeout,
+        control_exchange      => 'cinder',
       }
       cinder_config {
         'DEFAULT/kombu_reconnect_delay': value => '5.0';
