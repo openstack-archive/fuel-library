@@ -1,0 +1,321 @@
+#!/bin/sh
+#
+#
+# OpenStack Ceilometer Alarm Evaluator Service (ceilometer-alarm-evaluator)
+#
+# Description: Manages an OpenStack Ceilometer Alarm Evaluator Service (ceilometer-alarm-evaluator) process as an HA resource
+#
+# Authors: Emilien Macchi
+# Mainly inspired by the Nova Scheduler resource agent written by Sebastien Han
+#
+# Support: openstack@lists.launchpad.net
+# License: Apache Software License (ASL) 2.0
+#
+#
+# See usage() function below for more details ...
+#
+# OCF instance parameters:
+# OCF_RESKEY_binary
+# OCF_RESKEY_config
+# OCF_RESKEY_user
+# OCF_RESKEY_pid
+# OCF_RESKEY_monitor_binary
+# OCF_RESKEY_additional_parameters
+#######################################################################
+# Initialization:
+
+: ${OCF_FUNCTIONS_DIR=${OCF_ROOT}/lib/heartbeat}
+. ${OCF_FUNCTIONS_DIR}/ocf-shellfuncs
+
+#######################################################################
+
+# Fill in some defaults if no values are specified
+
+OCF_RESKEY_binary_default="ceilometer-alarm-evaluator"
+OCF_RESKEY_config_default="/etc/ceilometer/ceilometer.conf"
+OCF_RESKEY_user_default="ceilometer"
+OCF_RESKEY_pid_default="$HA_RSCTMP/$OCF_RESOURCE_INSTANCE.pid"
+
+: ${OCF_RESKEY_binary=${OCF_RESKEY_binary_default}}
+: ${OCF_RESKEY_config=${OCF_RESKEY_config_default}}
+: ${OCF_RESKEY_user=${OCF_RESKEY_user_default}}
+: ${OCF_RESKEY_pid=${OCF_RESKEY_pid_default}}
+
+#######################################################################
+
+usage() {
+    cat <<UEND
+        usage: $0 (start|stop|validate-all|meta-data|status|monitor)
+
+        $0 manages an OpenStack Ceilometer Alarm Evaluator Service (ceilometer-alarm-evaluator) process as an HA resource
+
+        The 'start' operation starts the service.
+        The 'stop' operation stops the service.
+        The 'validate-all' operation reports whether the parameters are valid
+        The 'meta-data' operation reports this RA's meta-data information
+        The 'status' operation reports whether the service is running
+        The 'monitor' operation reports whether the service seems to be working
+
+UEND
+}
+
+meta_data() {
+    cat <<END
+<?xml version="1.0"?>
+<!DOCTYPE resource-agent SYSTEM "ra-api-1.dtd">
+<resource-agent name="ceilometer-alarm-evaluator">
+<version>1.0</version>
+
+<longdesc lang="en">
+Resource agent for the OpenStack Ceilometer Alarm Evaluator Service (ceilometer-alarm-evaluator)
+May manage a ceilometer-alarm-evaluatorinstance or a clone set that
+creates a distributed ceilometer-alarm-evaluator cluster.
+</longdesc>
+<shortdesc lang="en">Manages the OpenStack Ceilometer Alarm Evaluator Service (ceilometer-alarm-evaluator)</shortdesc>
+<parameters>
+
+<parameter name="binary" unique="0" required="0">
+<longdesc lang="en">
+Location of the OpenStack Ceilometer Alarm Evaluator server binary (ceilometer-alarm-evaluator)
+</longdesc>
+<shortdesc lang="en">OpenStack Ceilometer Alarm Evaluator server binary (ceilometer-alarm-evaluator)</shortdesc>
+<content type="string" default="${OCF_RESKEY_binary_default}" />
+</parameter>
+
+<parameter name="config" unique="0" required="0">
+<longdesc lang="en">
+Location of the OpenStack Ceilometer Alarm Evaluator Service (ceilometer-alarm-evaluator) configuration file
+</longdesc>
+<shortdesc lang="en">OpenStack Ceilometer Alarm Evaluator (ceilometer-alarm-evaluator) config file</shortdesc>
+<content type="string" default="${OCF_RESKEY_config_default}" />
+</parameter>
+
+<parameter name="user" unique="0" required="0">
+<longdesc lang="en">
+User running OpenStack Ceilometer Alarm Evaluator Service (ceilometer-alarm-evaluator)
+</longdesc>
+<shortdesc lang="en">OpenStack Ceilometer Alarm Evaluator Service (ceilometer-alarm-evaluator) user</shortdesc>
+<content type="string" default="${OCF_RESKEY_user_default}" />
+</parameter>
+
+<parameter name="pid" unique="0" required="0">
+<longdesc lang="en">
+The pid file to use for this OpenStack Ceilometer Alarm Evaluator Service (ceilometer-alarm-evaluator) instance
+</longdesc>
+<shortdesc lang="en">OpenStack Ceilometer Alarm Evaluator Service (ceilometer-alarm-evaluator) pid file</shortdesc>
+<content type="string" default="${OCF_RESKEY_pid_default}" />
+</parameter>
+
+<parameter name="additional_parameters" unique="0" required="0">
+<longdesc lang="en">
+Additional parameters to pass on to the OpenStack Ceilometer Alarm Evaluator Service (ceilometer-alarm-evaluator)
+</longdesc>
+<shortdesc lang="en">Additional parameters for ceilometer-alarm-evaluator</shortdesc>
+<content type="string" />
+</parameter>
+
+</parameters>
+
+<actions>
+<action name="start" timeout="20" />
+<action name="stop" timeout="20" />
+<action name="status" timeout="20" />
+<action name="monitor" timeout="30" interval="20" />
+<action name="validate-all" timeout="5" />
+<action name="meta-data" timeout="5" />
+</actions>
+</resource-agent>
+END
+}
+
+#######################################################################
+# Functions invoked by resource manager actions
+
+ceilometer_alarm_evaluator_check_port() {
+# This function has been taken from the squid RA and improved a bit
+# The length of the integer must be 4
+# Examples of valid port: "1080", "0080"
+# Examples of invalid port: "1080bad", "0", "0000", ""
+
+    local int
+    local cnt
+
+    int="$1"
+    cnt=${#int}
+    echo $int |egrep -qx '[0-9]+(:[0-9]+)?(,[0-9]+(:[0-9]+)?)*'
+
+    if [ $? -ne 0 ] || [ $cnt -ne 4 ]; then
+        ocf_log err "Invalid port number: $1"
+        exit $OCF_ERR_CONFIGURED
+    fi
+}
+
+ceilometer_alarm_evaluator_validate() {
+    local rc
+
+    check_binary $OCF_RESKEY_binary
+    check_binary netstat
+
+    # A config file on shared storage that is not available
+    # during probes is OK.
+    if [ ! -f $OCF_RESKEY_config ]; then
+        if ! ocf_is_probe; then
+            ocf_log err "Config $OCF_RESKEY_config doesn't exist"
+            return $OCF_ERR_INSTALLED
+        fi
+        ocf_log_warn "Config $OCF_RESKEY_config not available during a probe"
+    fi
+
+    getent passwd $OCF_RESKEY_user >/dev/null 2>&1
+    rc=$?
+    if [ $rc -ne 0 ]; then
+        ocf_log err "User $OCF_RESKEY_user doesn't exist"
+        return $OCF_ERR_INSTALLED
+    fi
+
+    true
+}
+
+ceilometer_alarm_evaluator_status() {
+    local pid
+    local rc
+
+    if [ ! -f $OCF_RESKEY_pid ]; then
+        ocf_log info "OpenStack Ceilometer Alarm Evaluator (ceilometer-alarm-evaluator) is not running"
+        return $OCF_NOT_RUNNING
+    else
+        pid=`cat $OCF_RESKEY_pid`
+    fi
+
+    ocf_run -warn kill -s 0 $pid
+    rc=$?
+    if [ $rc -eq 0 ]; then
+        return $OCF_SUCCESS
+    else
+        ocf_log info "Old PID file found, but OpenStack Ceilometer Alarm Evaluator (ceilometer-alarm-evaluator) is not running"
+        return $OCF_NOT_RUNNING
+    fi
+}
+
+ceilometer_alarm_evaluator_monitor() {
+    local rc
+    local pid
+
+    ceilometer_alarm_evaluator_status
+    rc=$?
+
+    # If status returned anything but success, return that immediately
+    if [ $rc -ne $OCF_SUCCESS ]; then
+        return $rc
+    fi
+
+    ocf_log debug "OpenStack Ceilometer Alarm Evaluator (ceilometer-alarm-evaluator) monitor succeeded"
+    return $OCF_SUCCESS
+}
+
+ceilometer_alarm_evaluator_start() {
+    local rc
+
+    ceilometer_alarm_evaluator_status
+    rc=$?
+    if [ $rc -eq $OCF_SUCCESS ]; then
+        ocf_log info "OpenStack Ceilometer Alarm Evaluator (ceilometer-alarm-evaluator) already running"
+        return $OCF_SUCCESS
+    fi
+
+    # run the actual ceilometer-alarm-evaluator daemon. Don't use ocf_run as we're sending the tool's output
+    # straight to /dev/null anyway and using ocf_run would break stdout-redirection here.
+    su ${OCF_RESKEY_user} -s /bin/sh -c "${OCF_RESKEY_binary} --config-file=$OCF_RESKEY_config \
+       $OCF_RESKEY_additional_parameters"' >> /dev/null 2>&1 & echo $!' > $OCF_RESKEY_pid
+
+    # Spin waiting for the server to come up.
+    while true; do
+    ceilometer_alarm_evaluator_monitor
+    rc=$?
+    [ $rc -eq $OCF_SUCCESS ] && break
+    if [ $rc -ne $OCF_NOT_RUNNING ]; then
+        ocf_log err "OpenStack Ceilometer Alarm Evaluator (ceilometer-alarm-evaluator) start failed"
+        exit $OCF_ERR_GENERIC
+    fi
+    sleep 1
+    done
+
+    ocf_log info "OpenStack Ceilometer Alarm Evaluator (ceilometer-alarm-evaluator) started"
+    return $OCF_SUCCESS
+}
+
+ceilometer_alarm_evaluator_stop() {
+    local rc
+    local pid
+
+    ceilometer_alarm_evaluator_status
+    rc=$?
+    if [ $rc -eq $OCF_NOT_RUNNING ]; then
+        ocf_log info "OpenStack Ceilometer Alarm Evaluator (ceilometer-alarm-evaluator) already stopped"
+        return $OCF_SUCCESS
+    fi
+
+    # Try SIGTERM
+    pid=`cat $OCF_RESKEY_pid`
+    ocf_run kill -s TERM $pid
+    rc=$?
+    if [ $rc -ne 0 ]; then
+        ocf_log err "OpenStack Ceilometer Alarm Evaluator (ceilometer-alarm-evaluator) couldn't be stopped"
+        exit $OCF_ERR_GENERIC
+    fi
+
+    # stop waiting
+    shutdown_timeout=15
+    if [ -n "$OCF_RESKEY_CRM_meta_timeout" ]; then
+        shutdown_timeout=$((($OCF_RESKEY_CRM_meta_timeout/1000)-5))
+    fi
+    count=0
+    while [ $count -lt $shutdown_timeout ]; do
+        ceilometer_alarm_evaluator_status
+        rc=$?
+        if [ $rc -eq $OCF_NOT_RUNNING ]; then
+            break
+        fi
+        count=`expr $count + 1`
+        sleep 1
+        ocf_log debug "OpenStack Ceilometer Alarm Evaluator (ceilometer-alarm-evaluator) still hasn't stopped yet. Waiting ..."
+    done
+
+    ceilometer_alarm_evaluator_status
+    rc=$?
+    if [ $rc -ne $OCF_NOT_RUNNING ]; then
+        # SIGTERM didn't help either, try SIGKILL
+        ocf_log info "OpenStack Ceilometer Alarm Evaluator (ceilometer-alarm-evaluator) failed to stop after ${shutdown_timeout}s \
+          using SIGTERM. Trying SIGKILL ..."
+        ocf_run kill -s KILL $pid
+    fi
+
+    ocf_log info "OpenStack Ceilometer Alarm Evaluator (ceilometer-alarm-evaluator) stopped"
+
+    rm -f $OCF_RESKEY_pid
+
+    return $OCF_SUCCESS
+}
+
+#######################################################################
+
+case "$1" in
+  meta-data) meta_data
+                exit $OCF_SUCCESS;;
+  usage|help) usage
+                exit $OCF_SUCCESS;;
+esac
+
+# Anything except meta-data and help must pass validation
+ceilometer_alarm_evaluator_validate || exit $?
+
+# What kind of method was invoked?
+case "$1" in
+  start) ceilometer_alarm_evaluator_start;;
+  stop) ceilometer_alarm_evaluator_stop;;
+  status) ceilometer_alarm_evaluator_status;;
+  monitor) ceilometer_alarm_evaluator_monitor;;
+  validate-all) ;;
+  *) usage
+                exit $OCF_ERR_UNIMPLEMENTED;;
+esac
