@@ -87,9 +87,8 @@ class openstack::compute (
   $private_interface,
   $network_manager,
   $fixed_range                    = undef,
-  # Quantum
-  $quantum                        = false,
-  $quantum_config                 = {},
+  # Neutron
+  $neutron                        = false,
   # Ceilometer
   $ceilometer_user_password       = 'ceilometer_pass',
   # nova compute configuration parameters
@@ -269,7 +268,7 @@ class openstack::compute (
 
   # if the compute node should be configured as a multi-host
   # compute installation
-  if ! $quantum {
+  if ! $neutron {
 
     class { 'nova::api':
       ensure_package    => $::openstack_version['nova'],
@@ -333,20 +332,20 @@ class openstack::compute (
   } else {
 
     class { '::neutron':
-      neutron_config  => $quantum_config,
+      neutron_config  => $neutron_config,
       verbose         => $verbose,
       debug           => $debug,
       use_syslog           => $use_syslog,
       syslog_log_facility  => $syslog_log_facility_neutron,
     }
 
-    #todo: Quantum plugin and database connection not need on compute.
+    #todo: neutron plugin and database connection not need on compute.
     class { 'neutron::plugins::ovs':
-      neutron_config  => $quantum_config
+      neutron_config  => $neutron_config
     }
 
     class { 'neutron::agents::ovs':
-      neutron_config   => $quantum_config,
+      neutron_config   => $neutron_config,
       # bridge_uplinks   => ["br-prv:${private_interface}"],
       # bridge_mappings  => ['physnet2:br-prv'],
       # enable_tunneling => $enable_tunneling,
@@ -365,13 +364,13 @@ class openstack::compute (
 
     class { 'nova::network::neutron':
       neutron_auth_strategy            => 'keystone',
-      neutron_url                      => $quantum_config['server']['api_url'],
-      neutron_admin_tenant_name        => $quantum_config['keystone']['admin_tenant_name'],
-      neutron_region_name              => $quantum_config['keystone']['auth_region'],
-      neutron_admin_username           => $quantum_config['keystone']['admin_user'],
-      neutron_admin_password           => $quantum_config['keystone']['admin_password'],
-      neutron_admin_auth_url           => $quantum_config['keystone']['auth_url'],
-      neutron_ovs_bridge               => $quantum_config['L2']['integration_bridge'],
+      neutron_url                      => $neutron_config['server']['api_url'],
+      neutron_admin_tenant_name        => $neutron_config['keystone']['admin_tenant_name'],
+      neutron_region_name              => $neutron_config['keystone']['auth_region'],
+      neutron_admin_username           => $neutron_config['keystone']['admin_user'],
+      neutron_admin_password           => $neutron_config['keystone']['admin_password'],
+      neutron_admin_auth_url           => $neutron_config['keystone']['auth_url'],
+      neutron_ovs_bridge               => $neutron_config['L2']['integration_bridge'],
     }
 
     #todo: LibvirtHybridOVSBridgeDriver Will be deprecated in Havana, and removed in Ixxxx.
