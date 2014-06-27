@@ -80,6 +80,7 @@ class Puppet::Provider::Neutron < Puppet::Provider
               (400-\{\'message\'\:\s+\'\'\})|
               (\[Errno 111\]\s+Connection\s+refused)|
               (503\s+Service\s+Unavailable)|
+              (504\s+Gateway\s+Time-out)|
               (\:\s+Maximum\s+attempts\s+reached)|
               (Unauthorized\:\s+bad\s+credentials)|
               (Max\s+retries\s+exceeded)/
