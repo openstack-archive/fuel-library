@@ -186,10 +186,10 @@ class osnailyfacter::cluster_simple {
         nova_db_password               => $nova_hash[db_password],
         nova_user_password             => $nova_hash[user_password],
         nova_rate_limits               => $::nova_rate_limits,
-        ceilometer                     => $ceilometer_hash[enabled],
-        ceilometer_db_password         => $ceilometer_hash[db_password],
-        ceilometer_user_password       => $ceilometer_hash[user_password],
-        ceilometer_metering_secret     => $ceilometer_hash[metering_secret],
+        ceilometer                     => $ceilometer_hash['enabled'],
+        ceilometer_db_password         => $ceilometer_hash['db_password'],
+        ceilometer_user_password       => $ceilometer_hash['user_password'],
+        ceilometer_metering_secret     => $ceilometer_hash['metering_secret'],
         ceilometer_db_type             => 'mongodb',
         ceilometer_db_host             => mongo_hosts($nodes_hash),
         queue_provider                 => $::queue_provider,
@@ -395,9 +395,9 @@ class osnailyfacter::cluster_simple {
         multi_host                     => $multi_host,
         sql_connection                 => $sql_connection,
         nova_user_password             => $nova_hash[user_password],
-        ceilometer                     => $ceilometer_hash[enabled],
-        ceilometer_metering_secret     => $ceilometer_hash[metering_secret],
-        ceilometer_user_password       => $ceilometer_hash[user_password],
+        ceilometer                     => $ceilometer_hash['enabled'],
+        ceilometer_metering_secret     => $ceilometer_hash['metering_secret'],
+        ceilometer_user_password       => $ceilometer_hash['user_password'],
         queue_provider                 => $::queue_provider,
         amqp_hosts                     => $amqp_hosts,
         amqp_user                      => $rabbit_hash['user'],
@@ -500,7 +500,7 @@ class osnailyfacter::cluster_simple {
         max_pool_size        => $max_pool_size,
         max_overflow         => $max_overflow,
         idle_timeout         => $idle_timeout,
-        ceilometer           => $ceilometer_hash[enabled]
+        ceilometer           => $ceilometer_hash['enabled']
       }
     } #CINDER ENDS
 
