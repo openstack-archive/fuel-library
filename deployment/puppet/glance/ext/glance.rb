@@ -9,7 +9,7 @@ keystone_public = '127.0.0.1'
 image_dir='/tmp/images'
 
 ENV['OS_USERNAME']='admin'
-ENV['OS_TENANT_NAME']='openstack'
+ENV['OS_TENANT_NAME']='admin'
 ENV['OS_PASSWORD']='ChangeMe'
 ENV['OS_AUTH_URL']='http://127.0.0.1:5000/v2.0/'
 ENV['OS_REGION_NAME']='RegionOne'
