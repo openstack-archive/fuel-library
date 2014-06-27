@@ -143,6 +143,10 @@ class neutron::plugins::ml2 (
     'securitygroup/enable_security_group':  value => $enable_security_group;
   }
 
+  # Ensure that all config is written before db-sync
+  Neutron_plugin_ml2<||> -> Exec<| title == 'neutron-db-sync' |>
+
+
   if ('linuxbridge' in $mechanism_drivers) {
     if ($::osfamily == 'RedHat') {
       package { 'neutron-plugin-linuxbridge':
