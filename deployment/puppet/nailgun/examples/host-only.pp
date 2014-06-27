@@ -8,6 +8,10 @@ $::fuel_version['VERSION']['production'] {
 else {
     $production = 'prod'
 }
+
+$ntp_servers = [$::fuel_settings['NTP1'], $::fuel_settings['NTP2'],
+                $::fuel_settings['NTP3']]
+
 Class['nailgun::packages'] ->
 Class['nailgun::host'] ->
 Class['docker::dockerctl'] ->
