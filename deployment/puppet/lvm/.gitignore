@@ -1,5 +1,3 @@
 *.swp
-pkg/
-.DS_Store
-metadata.json
-coverage/
+.*.swp
+Gemfile.lock

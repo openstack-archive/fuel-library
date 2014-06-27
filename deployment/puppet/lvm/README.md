@@ -5,6 +5,10 @@ Provides Logical Resource Management (LVM) features for Puppet.
 
 History
 -------
+2012-08-14 : rcoleman
+
+  * Version 0.1.1 : More style-guide compliant, fixed a closing } bug and updated README
+
 2011-08-30 : matthaus
 
   * Version 0.1.0 : Refactor tests, update readme, repackage for module forge
@@ -37,35 +41,96 @@ looks something like:
 
 Here's a simple working example:
 
-    physical_volume { "/dev/hdc":
-        ensure => present
-    }
-    volume_group { "myvg":
-        ensure => present,
-        physical_volumes => "/dev/hdc"
-    }
-    logical_volume { "mylv":
-        ensure => present,
-        volume_group => "myvg",
-        size => "20G"
-    }
-    filesystem { "/dev/myvg/mylv":
-        ensure => present,
-        fs_type => "ext3",
-        options => '-b 4096 -E stride=32,stripe-width=64'
-    }
+```puppet
+physical_volume { '/dev/hdc':
+  ensure => present,
+}
+
+volume_group { 'myvg':
+  ensure           => present,
+  physical_volumes => '/dev/hdc',
+}
+
+logical_volume { 'mylv':
+  ensure       => present,
+  volume_group => 'myvg',
+  size         => '20G',
+}
+
+filesystem { '/dev/myvg/mylv':
+  ensure  => present,
+  fs_type => 'ext3',
+  options => '-b 4096 -E stride=32,stripe-width=64',
+}
+```
 
 This simple 1 physical volume, 1 volume group, 1 logical volume case
 is provided as a simple `volume` definition, as well.  The above could
 be shortened to be:
 
-    lvm::volume { 'mylv':
-        ensure => present,
-        vg => 'myvg',
-        pv => '/dev/hdc',
-        fstype => 'ext3',
-        size => '20G',
-    }
+```puppet
+lvm::volume { 'mylv':
+  ensure => present,
+  vg     => 'myvg',
+  pv     => '/dev/hdc',
+  fstype => 'ext3',
+  size   => '20G',
+}
+```
+
+You can also describe your Volume Group like this:
+
+```puppet
+class { 'lvm':
+  volume_groups    => {
+    'myvg' => {
+      physical_volumes => [ '/dev/sda2', '/dev/sda3', ],
+      logical_volumes  => {
+        'opt'    => {'size' => '20G'},
+        'tmp'    => {'size' => '1G' },
+        'usr'    => {'size' => '3G' },
+        'var'    => {'size' => '15G'},
+        'home'   => {'size' => '5G' },
+        'backup' => {
+          'size'              => '5G',
+          'mountpath'         => '/var/backups',
+          'mountpath_require' => true,
+        },
+      },
+    },
+  },
+}
+```
+
+This could be really convenient when used with hiera:
+
+```puppet
+include ::lvm
+```
+and
+```
+---
+lvm::volume_groups:
+  myvg:
+    physical_volumes:
+      - /dev/sda2
+      - /dev/sda3
+    logical_volumes:
+      opt:
+        size: 20G
+      tmp:
+        size: 1G
+      usr:
+        size: 3G
+      var:
+        size: 15G
+      home:
+        size: 5G
+      backup:
+        size: 5G
+        mountpath: /var/backups
+        mountpath_require: true
+```
 
 Except that in the latter case you cannot specify create options.
 =======
@@ -76,6 +141,26 @@ need to use a hash to pass the parameters to the definition.
 
 If you need a more complex configuration, you'll need to build the
 resources out yourself.
+
+Optional Values
+---------------
+  The `unless_vg` (physical_volume) and `createonly` (volume_group) will check 
+  to see if "myvg" exists.  If "myvg" does exist then they will not modify
+  the physical volume or volume_group.  This is usefull if you environment
+  is build with certain disks but they change while the server grows, shrinks
+  or moves.
+ 
+  Example:
+
+    physical_volume { "/dev/hdc":
+        ensure => present,
+        unless_vg => "myvg"
+    }
+    volume_group { "myvg":
+        ensure => present,
+        physical_volumes => "/dev/hdc",
+        createonly => true
+    }
 
 Limitations
 -----------
@@ -120,8 +205,20 @@ Tim Hawes <github@reductivelabs.com>
 
 Yury V. Zaytsev <yury@shurup.com>
 
-csschwe <github@reductivelabs.com>
-
-root <root@localhost.localdomain>
+csschwe <csschwe@gmail.com>
 
 windowsrefund <windowsrefund@gmail.com>
+
+Adam Gibbins <github@adamgibbins.com>
+
+Steffen Zieger <github@saz.sh>
+
+Jason A. Smith <smithj4@bnl.gov>
+
+Mathieu Bornoz <mathieu.bornoz@camptocamp.com>
+
+Cédric Jeanneret <cedric.jeanneret@camptocamp.com>
+
+Raphaël Pinson <raphael.pinson@camptocamp.com>
+
+Garrett Honeycutt <code@garretthoneycutt.com>
