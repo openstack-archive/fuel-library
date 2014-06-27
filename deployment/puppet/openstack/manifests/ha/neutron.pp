@@ -10,6 +10,6 @@ class openstack::ha::neutron {
   }
 
   Openstack::Ha::Haproxy_service<|title == 'keystone-1' or title == 'keystone-2'|> -> Service['neutron-server']
-  Openstack::Ha::Haproxy_service['neutron'] -> Class['neutron::waistline']
-  Openstack::Ha::Haproxy_service['neutron'] -> Anchor['neutron-api-up']
+  #Openstack::Ha::Haproxy_service['neutron'] -> Class['neutron']
+  #Openstack::Ha::Haproxy_service['neutron'] -> Anchor['neutron-api-up']
 }

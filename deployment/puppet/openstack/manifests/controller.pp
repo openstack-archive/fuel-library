@@ -39,11 +39,7 @@
 # [cache_server_ip]     local memcached instance ip
 # [cache_server_port]   local memcached instance port
 # [swift]               (bool) is swift installed
-# [quantum]             (bool) is quantum installed
-# [quantum_config]      (hash) is quantum config hash
-#   The next is an array of arrays, that can be used to add call-out links to the dashboard for other apps.
-#   There is no specific requirement for these apps to be for monitoring, that's just the defacto purpose.
-#   Each app is defined in two parts, the display name, and the URI
+# [neutron]             (bool) is neutron installed
 # [horizon_app_links]     array as in '[ ["Nagios","http://nagios_addr:port/path"],["Ganglia","http://ganglia_addr"] ]'
 # [enabled] Whether services should be enabled. This parameter can be used to
 #   implement services in active-passive modes for HA. Optional. Defaults to true.
@@ -165,11 +161,17 @@ class openstack::controller (
   $cinder_db_dbname               = 'cinder',
   $cinder_iscsi_bind_addr         = false,
   $cinder_volume_group            = 'cinder-volumes',
-  #
-  $quantum                        = false,
-  $quantum_config                 = {},
-  $quantum_network_node           = false,
-  $quantum_netnode_on_cnt         = false,
+
+  #[Nova|Neutron] Network
+  $network_provider               = 'nova',
+  $neutron_db_user                = 'neutron',
+  $neutron_db_password            = 'neutron_db_pass',
+  $neutron_db_dbname              = 'neutron',
+  $neutron_user_password          = 'asdf123',
+  $neutron_meta_proxy_secret      = '12345',
+  $neutron_ha_agents              = false,
+  $base_mac                       = 'fa:16:3e:00:00:00',
+
   $segment_range                  = '1:4094',
   $tenant_network_type            = 'gre',
   $enabled                        = true,
@@ -243,10 +245,10 @@ class openstack::controller (
       cinder_db_user          => $cinder_db_user,
       cinder_db_password      => $cinder_db_password,
       cinder_db_dbname        => $cinder_db_dbname,
-      neutron                 => $quantum,
-      neutron_db_user         => $quantum ? { true => $quantum_config['database']['username'], default=>undef},
-      neutron_db_password     => $quantum ? { true => $quantum_config['database']['passwd'], default=>""},
-      neutron_db_dbname       => $quantum ? { true => $quantum_config['database']['dbname'], default=>undef},
+      neutron                 => $network_provider ? {'nova' => false, 'neutron' => true},
+      neutron_db_user         => $neutron_db_user,
+      neutron_db_password     => $neutron_db_password,
+      neutron_db_dbname       => $neutron_db_dbname,
       allowed_hosts           => $allowed_hosts,
       enabled                 => $enabled,
       galera_cluster_name     => $galera_cluster_name,
@@ -259,6 +261,7 @@ class openstack::controller (
       use_syslog              => $use_syslog,
     }
   }
+
   ####### KEYSTONE ###########
   class { 'openstack::keystone':
     verbose                   => $verbose,
@@ -280,8 +283,8 @@ class openstack::controller (
     nova_user_password        => $nova_user_password,
     cinder                    => $cinder,
     cinder_user_password      => $cinder_user_password,
-    quantum                   => $quantum,
-    quantum_config            => $quantum_config,
+    neutron                   => $network_provider ? {'nova' => false, 'neutron' => true},
+    neutron_user_password     => $neutron_user_password,
     ceilometer                => $ceilometer,
     ceilometer_user_password  => $ceilometer_user_password,
     bind_host                 => $api_bind_address,
@@ -296,7 +299,6 @@ class openstack::controller (
     max_overflow              => $max_overflow,
     idle_timeout              => $idle_timeout,
   }
-
 
   ######## BEGIN GLANCE ##########
   class { 'openstack::glance':
@@ -374,11 +376,8 @@ class openstack::controller (
     network_config              => $network_config,
     keystone_host               => $service_endpoint,
     service_endpoint            => $service_endpoint,
-    # Quantum
-    quantum                     => $quantum,
-    quantum_config              => $quantum_config,
-    quantum_network_node        => $quantum_network_node,
-    quantum_netnode_on_cnt      => $quantum_netnode_on_cnt,
+    # neutron
+    neutron                     => $network_provider ? {'nova' => false, 'neutron' => true},
     segment_range               => $segment_range,
     tenant_network_type         => $tenant_network_type,
     # Nova
@@ -498,7 +497,7 @@ class openstack::controller (
       ha_mode              => $ha_mode,
       primary_controller   => $primary_controller,
       on_controller        => true,
-      use_neutron          => $quantum,
+      use_neutron          => $neutron,
       swift                => $swift,
     }
   }
@@ -511,7 +510,7 @@ class openstack::controller (
     bind_address      => $api_bind_address,
     cache_server_port => $cache_server_port,
     swift             => $swift,
-    quantum           => $quantum,
+    neutron           => $neutron,
     horizon_app_links => $horizon_app_links,
     keystone_host     => $service_endpoint,
     use_ssl           => $horizon_use_ssl,
@@ -526,5 +525,140 @@ class openstack::controller (
     controller_node      => $internal_address,
   }
 
+  ######## [Nova|Neutron] Network ########
+  if $enabled and $multi_host {
+    $enable_nova_net = true
+  } else {
+    $enable_nova_net = false
+  }
+  if $enabled and $create_networks {
+    $really_create_networks = true
+  } else {
+    $really_create_networks = false
+  }
+  if $network_manager !~ /VlanManager$/ and $network_config {
+    $config_overrides = delete($network_config, 'vlan_start')
+  } else {
+    $config_overrides = $network_config
+  }
+
+  if $network_provider == 'neutron' {
+    $neutron_db_uri = "mysql://${neutron_db_user}:${neutron_db_password}@${db_host}/${neutron_db_dbname}?&read_timeout=60"
+    $neutron_server = true
+
+    # Todo(xarses) fix this up as params or do in osnaily
+    $neutron_settings = $::fuel_settings['quantum_settings']
+    $nets = $neutron_settings['predefined_networks']
+    Service <| title == 'keystone' |> ->
+    Class['neutron::server'] ->
+    #Service <| title == 'neutron-server' |> ->
+    openstack::network::create_network{'net04':
+      netdata => $nets['net04']
+    } ->
+    openstack::network::create_network{'net04_ext':
+      netdata => $nets['net04_ext']
+    } ->
+    openstack::network::create_router{'router04':
+      internal_network => 'net04',
+      external_network => 'net04_ext',
+      tenant_name      => 'admin'
+    }
+
+    $pnets = $neutron_settings['L2']['phys_nets']
+    if $pnets['physnet1'] {
+      $physnet1 = "physnet1:${pnets['physnet1']['bridge']}"
+      notify{ $physnet1:}
+    }
+    if $pnets['physnet2'] {
+      $physnet2 = "physnet2:${pnets['physnet2']['bridge']}"
+      notify{ $physnet2:}
+      if $pnets['physnet2']['vlan_range'] {
+        $vlan_range = ["physnet2:${pnets['physnet2']['vlan_range']}"]
+        $fallback = split($pnets['physnet2']['vlan_range'], ':')
+        Openstack::Network::Create_network {
+          fallback_segment_id => $fallback[1]
+        }
+        notify{ $vlan_range:}
+      }
+    } else {
+      $vlan_range = []
+    }
+
+    if $neutron_settings['L2']['tunnel_id_ranges'] {
+      $enable_tunneling = true
+      $tunnel_id_ranges = [$neutron_settings['L2']['tunnel_id_ranges']]
+      $alt_fallback = split($neutron_settings['L2']['tunnel_id_ranges'], ':')
+      Openstack::Network::Create_network {
+        fallback_segment_id => $alt_fallback[0]
+      }
+
+    } else {
+      $enable_tunneling = false
+      $tunnel_id_ranges = []
+    }
+    notify{ $tunnel_id_ranges:}
+
+  } else {
+    $neutron_server = false
+    $neutron_db_uri = undef
+  }
+
+
+  class { 'openstack::network':
+    network_provider    => $network_provider,
+    agents              => ['ml2-ovs', 'metadata', 'dhcp', 'l3'],
+    ha_agents           => $neutron_ha_agents,
+    neutron_server      => $neutron_server,
+    neutron_db_uri      => $neutron_db_uri,
+    public_address      => $public_address,
+    internal_address    => $internal_address,
+    admin_address       => $admin_address,
+    nova_neutron        => true,
+
+    base_mac            => $base_mac,
+    #ovs
+    mechanism_drivers   => ['openvswitch'],
+    local_ip            => $internal_address,
+    bridge_mappings     => [$physnet1, $physnet2],
+    network_vlan_ranges => $vlan_range,
+    enable_tunneling    => $enable_tunneling,
+    tunnel_id_ranges    => $tunnel_id_ranges,
+
+    verbose             => $verbose,
+    debug               => $debug,
+    use_syslog          => $use_syslog,
+    syslog_log_facility => $syslog_log_facility_neutron,
+
+    #Queue settings
+    queue_provider  => $queue_provider,
+    amqp_hosts      => [$amqp_hosts],
+    amqp_user       => $amqp_user,
+    amqp_password   => $amqp_password,
+
+    # keystone
+    admin_password  => $neutron_user_password,
+    auth_host       => $internal_address,
+    auth_url        => "http://${service_endpoint}:35357/v2.0",
+    api_url         => "http://${service_endpoint}:9696",
+
+    #metadata
+    shared_secret   => $neutron_meta_proxy_secret,
+    metadata_ip     => $service_endpoint, #TODO (xarses): confirm
+
+    #nova settings
+    private_interface => $private_interface,
+    public_interface  => $public_interface,
+    fixed_range       => $fixed_range,
+    floating_range    => $floating_range,
+    network_manager   => $network_manager,
+    network_config    => $config_overrides,
+    create_networks   => $really_create_networks,
+    num_networks      => $num_networks,
+    network_size      => $network_size,
+    nameservers       => $nameservers,
+    enable_nova_net   => $enable_nova_net,
+    nova_admin_password => $nova_user_password,
+    nova_url          => "http://${service_endpoint}:8774/v2",
+  }
 }
 
