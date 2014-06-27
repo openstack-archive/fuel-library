@@ -1,0 +1,12 @@
+Verified+2: Jenkins
+Code-Review+1: Igor Yozhikov <iyozhikov@mirantis.com>
+Code-Review+1: Denis Egorenko <degorenko@mirantis.com>
+Code-Review+1: Anastasia Kuznetsova <akuznetsova@mirantis.com>
+Code-Review+2: Nastya Urlapova <aurlapova@mirantis.com>
+Workflow+1: Nastya Urlapova <aurlapova@mirantis.com>
+Verified+1: Fuel CI <fuel-ci-bot@mirantis.com>
+Submitted-by: Jenkins
+Submitted-at: Fri, 27 Jun 2014 15:33:53 +0000
+Reviewed-on: https://review.openstack.org/102844
+Project: stackforge/fuel-library
+Branch: refs/heads/stable/5.0
