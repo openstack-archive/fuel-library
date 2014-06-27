@@ -116,6 +116,13 @@
 #   The parent process manages them.
 #   Defaults to: 0
 #
+# [*rpc_workers*]
+#   (optional) Number of separate RPC worker processes to spawn.
+#   The default, 0, runs the worker thread in the current process.
+#   Greater than 0 launches that number of child processes as workers.
+#   The parent process manages them.
+#   Defaults to: 0
+#
 # [*agent_down_time*]
 #   (optional) Seconds to regard the agent as down; should be at least twice
 #   report_interval, to be sure the agent is down for good.
@@ -153,6 +160,7 @@ class neutron::server (
   $database_retry_interval = 10,
   $sync_db                 = false,
   $api_workers             = '0',
+  $rpc_workers             = '0',
   $agent_down_time         = '75',
   $router_scheduler_driver = 'neutron.scheduler.l3_agent_scheduler.ChanceScheduler',
   $mysql_module            = '0.9',
@@ -258,17 +266,22 @@ class neutron::server (
       # RH platforms
       Package<| title == 'neutron' |> ~> Exec['neutron-db-sync']
     }
+
     exec { 'neutron-db-sync':
       command     => 'neutron-db-manage --config-file /etc/neutron/neutron.conf --config-file /etc/neutron/plugin.ini upgrade head',
       path        => '/usr/bin',
-      before      => Service['neutron-server'],
-      require     => Neutron_config['database/connection'],
-      refreshonly => true
+      refreshonly => true,
+      tries       => 10,
+      try_sleep   => 20,
     }
+
+    Neutron_config<||> -> Exec['neutron-db-sync']
+    Exec['neutron-db-sync'] -> Service['neutron-server']
   }
 
   neutron_config {
     'DEFAULT/api_workers':             value => $api_workers;
+    'DEFAULT/rpc_workers':             value => $rpc_workers;
     'DEFAULT/agent_down_time':         value => $agent_down_time;
     'DEFAULT/router_scheduler_driver': value => $router_scheduler_driver;
     'database/connection':             value => $database_connection_real;
