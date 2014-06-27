@@ -126,6 +126,13 @@
 #   available on some distributions.
 #   Defaults to 'SSLv3'
 #
+# [*kombu_reconnect_delay*]
+#   (optional) The amount of time to wait before attempting to reconnect
+#   to MQ provider. This is used in some cases where you may need to wait
+#   for the provider to propery premote the master before attempting to
+#   reconnect. See https://review.openstack.org/#/c/76686
+#   Defaults to '1.0'
+#
 # [*qpid_hostname*]
 # [*qpid_port*]
 # [*qpid_username*]
@@ -207,6 +214,7 @@ class neutron (
   $kombu_ssl_certfile          = undef,
   $kombu_ssl_keyfile           = undef,
   $kombu_ssl_version           = 'SSLv3',
+  $kombu_reconnect_delay       = '1.0',
   $qpid_hostname               = 'localhost',
   $qpid_port                   = '5672',
   $qpid_username               = 'guest',
@@ -340,10 +348,11 @@ class neutron (
     }
 
     neutron_config {
-      'DEFAULT/rabbit_userid':       value => $rabbit_user;
-      'DEFAULT/rabbit_password':     value => $rabbit_password;
-      'DEFAULT/rabbit_virtual_host': value => $rabbit_virtual_host;
-      'DEFAULT/rabbit_use_ssl':      value => $rabbit_use_ssl;
+      'DEFAULT/rabbit_userid':         value => $rabbit_user;
+      'DEFAULT/rabbit_password':       value => $rabbit_password;
+      'DEFAULT/rabbit_virtual_host':   value => $rabbit_virtual_host;
+      'DEFAULT/rabbit_use_ssl':        value => $rabbit_use_ssl;
+      'DEFAULT/kombu_reconnect_delay': value => $kombu_reconnect_delay;
     }
 
     if $rabbit_use_ssl {
