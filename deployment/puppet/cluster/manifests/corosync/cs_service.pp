@@ -23,8 +23,7 @@ define cluster::corosync::cs_service (
     mode   => '0755',
     owner  => root,
     group  => root,
-    source => "puppet:///modules/cluster/ocf/${ocf_script}",
-    before => Cs_resource["p_${service_name}"],
+    source => "puppet:///modules/cluster/ocf/${ocf_script}"
   }
 
   if $primary {
@@ -41,20 +40,18 @@ define cluster::corosync::cs_service (
         'monitor' => {
           'interval' => $csr_mon_intr,
           'timeout'  => $csr_mon_timeout
-        }
-        ,
+        },
         'start'   => {
           'timeout' => $csr_timeout
-        }
-        ,
+        },
         'stop'    => {
           'timeout' => $csr_timeout
         }
-      },
-      before          => Service["p_${service_name}"],
-      require         => File[$ocf_script]
+      }
     }
-
+    File["$ocf_script"] -> Cs_resource["p_${service_name}"] -> Service["${service_name}"]
+  } else {
+    File["$ocf_script"] -> Service["${service_name}"]
   }
 
   if $mangle_real_service {
@@ -65,9 +62,9 @@ define cluster::corosync::cs_service (
       enable     => false,
       ensure     => stopped,
       hasstatus  => true,
-      hasrestart => true,
-      before     => Service["p_$service_name"]
+      hasrestart => true
     }
+    Service["${service_name}-disable-init"] -> Service["$service_name"]
   }
 
   # Ubuntu packages like to auto-start, this is annoying and makes it harder
@@ -83,10 +80,9 @@ define cluster::corosync::cs_service (
     } -> Package <| title == $package |>
   }
 
-  Service <| title == $service_name or name == $service_name |> ->
-  service { "p_${service_name}":
+  Service<| title=="${service_name}" |> {
+    name       => "p_${service_name}",
     enable     => true,
-    alias      => $service_alias,
     ensure     => running,
     hasstatus  => true,
     hasrestart => $hasrestart,
