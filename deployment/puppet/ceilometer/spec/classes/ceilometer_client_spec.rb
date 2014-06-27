@@ -4,7 +4,7 @@ describe 'ceilometer::client' do
 
   shared_examples_for 'ceilometer client' do
 
-    it { should include_class('ceilometer::params') }
+    it { should contain_class('ceilometer::params') }
 
     it 'installs ceilometer client package' do
       should contain_package('python-ceilometerclient').with(
