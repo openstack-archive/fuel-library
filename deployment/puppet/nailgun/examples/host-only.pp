@@ -13,6 +13,7 @@ Class['nailgun::host'] ->
 Class['docker::dockerctl'] ->
 Class['docker'] ->
 Class['openstack::logrotate'] ->
+Class['nailgun::client'] ->
 Class['nailgun::supervisor']
 
 class { 'nailgun::packages': }
@@ -40,6 +41,12 @@ class {'openstack::logrotate':
   rotation       => 'weekly',
   keep           => '4',
   limitsize      => '100M',
+}
+
+class { "nailgun::client":
+  server        => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
+  keystone_user => $::fuel_settings['FUEL_ACCESS']['user'],
+  keystone_pass => $::fuel_settings['FUEL_ACCESS']['password'],
 }
 
 class { "nailgun::supervisor":

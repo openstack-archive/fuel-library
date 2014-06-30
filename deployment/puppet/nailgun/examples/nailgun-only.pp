@@ -114,6 +114,12 @@ class { "nailgun::venv":
 
   puppet_master_hostname => $puppet_master_hostname,
 }
+
+class { "nailgun::client":
+  server        => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
+  keystone_user => $::fuel_settings['FUEL_ACCESS']['user'],
+  keystone_pass => $::fuel_settings['FUEL_ACCESS']['password'],
+}
 class { "nailgun::supervisor":
   nailgun_env   => $env_path,
   ostf_env      => $env_path,
