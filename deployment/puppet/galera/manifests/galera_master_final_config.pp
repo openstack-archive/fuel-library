@@ -13,14 +13,14 @@
 #    under the License.
 #
 #
-# == Define: galera_master_final_config 
+# == Define: galera_master_final_config
 #
 # Class for final configuring of galera master node.
 #
 # === Parameters
 #
 # [*primary_controller*]
-#  Set to true if the node is primary controller/master of galera cluster.   
+#  Set to true if the node is primary controller/master of galera cluster.
 # [*node_addresses*]
 #   Array of galera cluster node members IPs/hostnames.
 #
