@@ -63,8 +63,6 @@ class galera (
 
   anchor {'galera': }
 
-  Openstack::Ha::Haproxy_service['mysqld'] -> Anchor['galera']
-
   $service_name = "mysql"
   $res_name = "p_${service_name}"
 
@@ -323,14 +321,20 @@ class galera (
   File['/tmp/wsrep-init-file'] -> Service[$service_name] -> Exec['wait-initial-sync'] -> Exec['wait-for-synced-state'] -> Exec ['rm-init-file']
   Package['MySQL-server'] ~> Exec['wait-initial-sync']
 
-# FIXME: This class is deprecated and should be removed in future releases.
-
+  # FIXME: This class is deprecated and should be removed in future releases.
   class { 'galera::galera_master_final_config':
-    require        => Exec["wait-for-haproxy-mysql-backend"],
-    primary_controller => $primary_controller,
-    node_addresses => $node_addresses,
-    node_address   => $node_address,
+    primary_controller  => $primary_controller,
+    node_addresses      => $node_addresses,
+    node_address        => $node_address,
+  }
+
+  if $primary_controller {
+    Galera::Galera_master_final_config{
+      require             => Exec["wait-for-haproxy-mysql-backend"]
+    }
   }
 
   anchor {'galera-done': }
+  Openstack::Ha::Haproxy_service <| title == 'mysqld'|> -> Anchor['galera-done']
+
 }
