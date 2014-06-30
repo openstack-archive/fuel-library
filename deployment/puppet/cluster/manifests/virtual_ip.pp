@@ -18,7 +18,6 @@ define cluster::virtual_ip (
   $vip,
   $key = $name,
 ){
-  $cib_name = "vip__${key}"
   $vip_name = "vip__${key}"
 
   File['ns-ipaddr2-ocf'] -> Cs_resource["${vip_name}"]
@@ -58,11 +57,18 @@ define cluster::virtual_ip (
       },
     },
   }
+
+  service { $vip_name:
+    ensure   => 'running',
+    enable   => true,
+    provider => 'pacemaker',
+  }
+
+  Cs_resource[$vip_name] -> Service[$vip_name]
+
 }
 
 Class['corosync'] -> Cluster::Virtual_ip <||>
 if defined(Corosync::Service['pacemaker']) {
   Corosync::Service['pacemaker'] -> Cluster::Virtual_ip <||>
 }
-#
-###

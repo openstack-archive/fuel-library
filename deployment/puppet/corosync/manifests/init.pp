@@ -222,6 +222,8 @@ class corosync (
   service { 'corosync':
     ensure    => running,
     enable    => true,
+    hasrestart => true,
+    hasstatus  => true,
     subscribe => File[['/etc/corosync/corosync.conf', '/etc/corosync/service.d']],
   }
 
