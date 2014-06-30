@@ -6,6 +6,7 @@ class nailgun::nginx(
   $logdumpdir = "/var/www/nailgun/dump",
   $service_enabled = true,
   $ostf_host = '127.0.0.1',
+  $keystone_host = '127.0.0.1',
   $nailgun_host = '127.0.0.1',
   ) {
 
@@ -43,11 +44,12 @@ class nailgun::nginx(
   }
 
   class { 'nailgun::nginx-nailgun':
-    staticdir    => $staticdir,
-    logdumpdir   => $logdumpdir,
-    ostf_host    => $ostf_host,
-    nailgun_host => $nailgun_host,
-    notify       => Service["nginx"],
+    staticdir     => $staticdir,
+    logdumpdir    => $logdumpdir,
+    ostf_host     => $ostf_host,
+    keystone_host => $keystone_host,
+    nailgun_host  => $nailgun_host,
+    notify        => Service["nginx"],
   }
 }
 
