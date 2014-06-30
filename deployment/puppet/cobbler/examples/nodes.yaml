@@ -3,7 +3,6 @@ fuel-01:
   netboot-enabled: "1"
   ksmeta: "puppet_auto_setup=1 \
 puppet_master=fuel-pm.mirantis.com \
-puppet_version=2.7.19 \
 puppet_enable=0 \
 mco_auto_setup=1 \
 mco_pskey=un0aez2ei9eiGaequaey4loocohjuch4Ievu3shaeweeg5Uthi \
@@ -42,7 +41,6 @@ fuel-02:
   netboot-enabled: "1"
   ksmeta: "puppet_auto_setup=1 \
 puppet_master=fuel-pm.mirantis.com \
-puppet_version=2.7.19 \
 puppet_enable=0 \
 mco_auto_setup=1 \
 mco_pskey=un0aez2ei9eiGaequaey4loocohjuch4Ievu3shaeweeg5Uthi \
@@ -81,7 +79,6 @@ fuel-03:
   netboot-enabled: "1"
   ksmeta: "puppet_auto_setup=1 \
 puppet_master=fuel-pm.mirantis.com \
-puppet_version=2.7.19 \
 puppet_enable=0 \
 mco_auto_setup=1 \
 mco_pskey=un0aez2ei9eiGaequaey4loocohjuch4Ievu3shaeweeg5Uthi \
@@ -120,7 +117,6 @@ fuel-04:
   netboot-enabled: "1"
   ksmeta: "puppet_auto_setup=1 \
 puppet_master=fuel-pm.mirantis.com \
-puppet_version=2.7.19 \
 puppet_enable=0 \
 mco_auto_setup=1 \
 mco_pskey=un0aez2ei9eiGaequaey4loocohjuch4Ievu3shaeweeg5Uthi \
