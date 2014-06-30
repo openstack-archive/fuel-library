@@ -8,7 +8,6 @@ class openstack::ha::mysqld (
     listen_port         => 3306,
     balancermember_port => 3307,
     define_backups      => true,
-    #before_start        => true,
 
     haproxy_config_options => {
       'option'         => ['mysql-check user cluster_watcher', 'tcplog','clitcpka','srvtcpka'],
@@ -22,7 +21,6 @@ class openstack::ha::mysqld (
   }
 
   package { 'socat': ensure => present }
-  Package['socat'] -> Exec['wait-for-haproxy-mysql-backend']
 
   if $is_primary_controller {
     exec { 'wait-for-haproxy-mysql-backend':
@@ -31,25 +29,20 @@ class openstack::ha::mysqld (
       try_sleep => 5,
       tries     => 60,
     }
-  } else {
-    exec { 'wait-for-haproxy-mysql-backend':
-      command   => "true",
-      path      => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
-      try_sleep => 5,
-      tries     => 60,
-    }
+
+    Package['socat'] -> Exec['wait-for-haproxy-mysql-backend']
+
+    Class['cluster::haproxy_ocf'] -> Exec['wait-for-haproxy-mysql-backend']
+    Exec<| title == 'wait-for-synced-state' |> -> Exec['wait-for-haproxy-mysql-backend']
+
+    Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'keystone-manage db_sync' |>
+    Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'glance-manage db_sync' |>
+    Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'cinder-manage db_sync' |>
+    Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'nova-db-sync' |>
+    Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'heat_db_sync' |>
+    Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'ceilometer-dbsync' |>
+    Exec['wait-for-haproxy-mysql-backend'] -> Service <| title == 'cinder-scheduler' |>
+    Exec['wait-for-haproxy-mysql-backend'] -> Service <| title == 'cinder-volume' |>
+    Exec['wait-for-haproxy-mysql-backend'] -> Service <| title == 'cinder-api' |>
   }
-
-  Class['cluster::haproxy_ocf'] -> Exec['wait-for-haproxy-mysql-backend']
-  Exec<| title == 'wait-for-synced-state' |> -> Exec['wait-for-haproxy-mysql-backend']
-
-  Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'keystone-manage db_sync' |>
-  Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'glance-manage db_sync' |>
-  Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'cinder-manage db_sync' |>
-  Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'nova-db-sync' |>
-  Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'heat_db_sync' |>
-  Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'ceilometer-dbsync' |>
-  Exec['wait-for-haproxy-mysql-backend'] -> Service <| title == 'cinder-scheduler' |>
-  Exec['wait-for-haproxy-mysql-backend'] -> Service <| title == 'cinder-volume' |>
-  Exec['wait-for-haproxy-mysql-backend'] -> Service <| title == 'cinder-api' |>
 }
