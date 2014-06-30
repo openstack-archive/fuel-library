@@ -96,16 +96,16 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Cor
   def self.get_node_state_stonith(ha_state,in_ccm,crmd,join,expected,shutdown)
     if (in_ccm == "true") && (ha_state == 'active') && (crmd == 'online')
       case join
-      when 'member'
-        state = :online
-      when 'expected'
-        state = :offline
-      when 'pending'
-        state = :pending
-      when 'banned'
-        state = :standby
-      else
-        state = :unclean
+        when 'member'
+          state = :online
+        when 'expected'
+          state = :offline
+        when 'pending'
+          state = :pending
+        when 'banned'
+          state = :standby
+        else
+          state = :unclean
       end
     elsif !(in_ccm == "true") && (ha_state =='dead') && (crmd == 'offline') && !(shutdown == 0)
       state = :offline
@@ -174,7 +174,7 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Cor
   def get_last_successful_operations
     self.class.get_cib
     self.class.get_nodes
-    @last_successful_operations = []
+    @last_successful_operations = {}
     begin
       @@nodes.each do |node|
         next unless node[:state] == :online
@@ -189,11 +189,11 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Cor
         debug("START/STOP OPERATIONS:\n\n #{start_stop_ops.inspect}")
         next if start_stop_ops.nil?
         sorted_operations = start_stop_ops.sort do
-          |a,b| a.attributes['call-id'].to_i <=> b.attributes['call-id'].to_i
+        |a,b| a.attributes['call-id'].to_i <=> b.attributes['call-id'].to_i
         end
         good_operations = sorted_operations.select do |op|
           op.attributes['rc-code'] == '0' or
-          op.attributes['operation'] == 'monitor'
+              op.attributes['operation'] == 'monitor'
         end
         debug("GOOD OPERATIONS :\n\n #{good_operations.inspect}")
         next if good_operations.nil?
@@ -220,7 +220,7 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Cor
           end
         end
         debug("LAST SUCCESSFUL OP :\n\n #{last_successful_op.inspect}")
-        @last_successful_operations << last_successful_op if !last_successful_op.nil?
+        @last_successful_operations[node[:uname]] = last_successful_op if !last_successful_op.nil?
       end
     rescue  => e
       retry if e.message == 'repeat'
@@ -251,7 +251,8 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Cor
   def start
     get_service_hash
     enable
-    crm('resource', 'start', get_service_name)
+    target_start
+    unban
     debug("Starting countdown for resource start")
     debug("Start timeout is #{@service[:start_timeout]}")
     Timeout::timeout(5*@service[:start_timeout],Puppet::Error) do
@@ -266,7 +267,12 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Cor
   def stop
     get_service_hash
     enable
-    crm('resource', 'stop', get_service_name)
+    return if local_status == :stopped
+    if simple?
+      target_stop
+    else
+      ban
+    end
     debug("Starting countdown for resource stop")
     debug("Stop timeout is #{@service[:stop_timeout]}")
     Timeout::timeout(5*@service[:stop_timeout],Puppet::Error) do
@@ -277,23 +283,92 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Cor
     end
   end
 
+  def set_location(score = 100, diff = 'added')
+    rsc = @resource[:name]
+    node = Facter.value(:pacemaker_hostname)
+    xml = <<-EOF
+    <diff>
+      <diff-#{diff}>
+        <cib>
+          <configuration>
+            <constraints>
+              <rsc_location id="#{rsc}_on_#{node}" node="#{node}" rsc="#{rsc}" score="#{score}"/>
+            </constraints>
+          </configuration>
+        </cib>
+      </diff-#{diff}>
+    </diff>
+    EOF
+    cibadmin '--patch', '--xml-text', xml
+  end
+
+  def ban
+    set_location(-100)
+  end
+
+  def unban
+    set_location(100)
+  end
+
+  def target_start
+    crm('resource', 'start', get_service_name)
+  end
+
+  def target_stop
+    crm('resource', 'stop', get_service_name)
+  end
+
   def restart
     stop
     start
   end
 
-  def status
+  def simple?
+    get_service_hash
+    @service[:msname].nil?
+  end
+
+  def global_status
     #debug(crm('status'))
     debug("getting last operations")
     get_last_successful_operations
-    if @last_successful_operations.any? {|op| ['start','promote'].include?(op)}
+    lso = @last_successful_operations
+    debug "LSO: #{lso.inspect}"
+    if lso.any? { |k,v| ['start','promote'].include?(v) }
       return :running
-    elsif @last_successful_operations.all? {|op| op == 'stop'} or @last_successful_operations.empty?
+    elsif lso.all? { |k,v| v == 'stop' } or lso.empty?
       return :stopped
     else
       raise(Puppet::Error,"resource #{@resource[:name]} in unknown state")
     end
   end
 
-end
+  def local_status
+    #debug(crm('status'))
+    debug("getting last operations")
+    get_last_successful_operations
+    lso = @last_successful_operations
+    hostname = Facter.value(:pacemaker_hostname)
+    debug "LSO: #{lso.inspect}"
+    if ['start','promote'].include? lso[hostname]
+      return :running
+    elsif lso[hostname] == 'stop' or lso.empty?
+      return :stopped
+    else
+      raise(Puppet::Error,"resource #{@resource[:name]} in unknown state")
+    end
+  end
 
+  def status
+    simple = simple?
+    debug "SIMPLE? #{simple}"
+    if simple
+      status = global_status
+    else
+      status = local_status
+    end
+    debug "STATUS IS: #{status}"
+    status
+  end
+
+end
