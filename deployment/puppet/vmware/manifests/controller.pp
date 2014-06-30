@@ -24,14 +24,20 @@ class vmware::controller (
   $vcenter_cluster = 'cluster',
   $use_quantum = false,
   $ensure_package = 'present',
-
+  $ha_mode = false,
 )
 
 { # begin of class
 
+  if $ha_mode {
+    $enabled = false
+  } else {
+    $enabled = true
+  }
+
   # installing the nova-compute service
   nova::generic_service { 'compute':
-    enabled        => true,
+    enabled        => $enabled,
     package_name   => $::nova::params::compute_package_name,
     service_name   => $::nova::params::compute_service_name,
     ensure_package => $ensure_package,
@@ -41,6 +47,7 @@ class vmware::controller (
   # network configuration
   class { 'vmware::network':
     use_quantum => $use_quantum,
+    ha_mode => $ha_mode
   }
 
   # workaround for Ubuntu additional package for hypervisor
