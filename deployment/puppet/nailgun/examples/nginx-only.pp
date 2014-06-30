@@ -25,6 +25,7 @@ $centos_repos =
 ]
 
 $ostf_host = $::fuel_settings['ADMIN_NETWORK']['ipaddress']
+$keystone_host = $::fuel_settings['ADMIN_NETWORK']['ipaddress']
 $nailgun_host = $::fuel_settings['ADMIN_NETWORK']['ipaddress']
 
 $repo_root = "/var/www/nailgun"
@@ -40,6 +41,7 @@ node default {
     templatedir     => $staticdir,
     logdumpdir      => $logdumpdir,
     ostf_host       => $ostf_host,
+    keystone_host   => $keystone_host,
     nailgun_host    => $nailgun_host,
     repo_root       => $repo_root,
     service_enabled => false,
