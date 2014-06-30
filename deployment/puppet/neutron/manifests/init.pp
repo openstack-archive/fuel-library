@@ -22,7 +22,7 @@ class neutron (
   $enabled              = true,
   $verbose              = false,
   $debug                = false,
-  $core_plugin          = 'openvswitch',
+  $core_plugin          = 'neutron.plugins.openvswitch.ovs_neutron_plugin.OVSNeutronPluginV2',
   $auth_strategy        = 'keystone',
   $log_file             = '/var/log/neutron/server.log',
   $log_dir              = '/var/log/neutron',
