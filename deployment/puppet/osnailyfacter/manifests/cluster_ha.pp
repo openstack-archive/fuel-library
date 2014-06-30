@@ -556,15 +556,13 @@ class osnailyfacter::cluster_ha {
 
       # vCenter integration
 
-      if $primary_controller {
-        if $::fuel_settings['libvirt_type'] == 'vcenter' {
-          class { 'vmware' :
-            vcenter_user      => $vcenter_hash['vc_user'],
-            vcenter_password  => $vcenter_hash['vc_password'],
-            vcenter_host_ip   => $vcenter_hash['host_ip'],
-            vcenter_cluster   => $vcenter_hash['cluster'],
-            use_quantum       => $::use_quantum,
-          }
+      if $::fuel_settings['libvirt_type'] == 'vcenter' {
+        class { 'vmware' :
+          vcenter_user      => $vcenter_hash['vc_user'],
+          vcenter_password  => $vcenter_hash['vc_password'],
+          vcenter_host_ip   => $vcenter_hash['host_ip'],
+          vcenter_cluster   => $vcenter_hash['cluster'],
+          use_quantum       => $::use_quantum,
         }
       }
 
