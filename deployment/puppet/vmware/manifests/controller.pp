@@ -24,23 +24,83 @@ class vmware::controller (
   $vcenter_cluster = 'cluster',
   $use_quantum = false,
   $ensure_package = 'present',
-
+  $ha_mode = false,
+  $amqp_port = '5673',
+  $nova_compute_config = '/etc/nova/nova.conf'
 )
 
 { # begin of class
 
-  # installing the nova-compute service
-  nova::generic_service { 'compute':
-    enabled        => true,
-    package_name   => $::nova::params::compute_package_name,
-    service_name   => $::nova::params::compute_service_name,
-    ensure_package => $ensure_package,
-    before         => Exec['networking-refresh']
+  if ! $ha_mode {
+    # installing the nova-compute service
+    nova::generic_service { 'compute':
+      enabled        => true,
+      package_name   => $::nova::params::compute_package_name,
+      service_name   => $::nova::params::compute_service_name,
+      ensure_package => $ensure_package,
+      before         => Exec['networking-refresh']
+    }
+  } else {
+    nova::generic_service { 'compute':
+      enabled        => false,
+      package_name   => $::nova::params::compute_package_name,
+      service_name   => $::nova::params::compute_service_name,
+      ensure_package => $ensure_package,
+      before         => Exec['networking-refresh']
+    }
+
+    cs_resource { 'p_vcenter_nova_compute':
+      ensure          => present,
+      primitive_class => 'ocf',
+      provided_by     => 'mirantis',
+      primitive_type  => 'nova-compute',
+      metadata        => {
+        'resource-stickiness' => '1'
+      },
+      parameters      => {
+        'amqp_server_port' => $amqp_port,
+        'config' => $nova_compute_config
+      },
+      operations      => {
+        'monitor'  => {
+          'interval' => '20',
+          'timeout'  => '10',
+        },
+          'start'  => {
+          'timeout' => '30',
+        },
+          'stop'   => {
+          'timeout' => '30',
+        }
+      }
+    }
+
+    file { 'vcenter-nova-compute-ocf':
+      path  => '/usr/lib/ocf/resource.d/mirantis/nova-compute',
+      source => 'puppet:///modules/vmware/ocf/nova-compute',
+      owner => 'root',
+      group => 'root',
+      mode => '0755',
+    }
+
+    service { 'p_vcenter_nova_compute':
+      ensure => 'running',
+      enable => true,
+      provider => 'pacemaker',
+    }
+
+    Nova::Generic_service['compute']->
+    File['vcenter-nova-compute-ocf']->
+    Cs_resource['p_vcenter_nova_compute']->
+    Service['p_vcenter_nova_compute']
+
   }
+
 
   # network configuration
   class { 'vmware::network':
     use_quantum => $use_quantum,
+    ha_mode => $ha_mode
   }
 
   # workaround for Ubuntu additional package for hypervisor

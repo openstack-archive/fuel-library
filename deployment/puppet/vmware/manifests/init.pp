@@ -28,7 +28,7 @@ class vmware (
   $vcenter_host_ip = '10.10.10.10',
   $vcenter_cluster = 'cluster',
   $use_quantum = false,
-
+  $ha_mode = false,
 )
 
 { # begin of class
@@ -39,6 +39,7 @@ class vmware (
     vcenter_host_ip => $vcenter_host_ip,
     vcenter_cluster => $vcenter_cluster,
     use_quantum => $use_quantum,
+    ha_mode => $ha_mode,
   }
 
 } # end of class
