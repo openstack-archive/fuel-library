@@ -9,7 +9,7 @@ class glance::notify::rabbitmq(
   $rabbit_hosts                 = false,
   $rabbit_virtual_host          = '/',
   $rabbit_use_ssl               = false,
-  $rabbit_notification_exchange = 'glance',
+  $rabbit_notification_exchange = 'openstack',
   $rabbit_notification_topic    = 'notifications',
   $rabbit_durable_queues        = false,
   $amqp_durable_queues          = false,

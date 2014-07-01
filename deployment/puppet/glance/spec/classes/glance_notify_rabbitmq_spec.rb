@@ -23,7 +23,7 @@ describe 'glance::notify::rabbitmq' do
     it { should contain_glance_api_config('DEFAULT/rabbit_ha_queues').with_value('false') }
     it { should contain_glance_api_config('DEFAULT/amqp_durable_queues').with_value('false') }
     it { should contain_glance_api_config('DEFAULT/rabbit_virtual_host').with_value('/') }
-    it { should contain_glance_api_config('DEFAULT/rabbit_notification_exchange').with_value('glance') }
+    it { should contain_glance_api_config('DEFAULT/rabbit_notification_exchange').with_value('openstack') }
     it { should contain_glance_api_config('DEFAULT/rabbit_notification_topic').with_value('notifications') }
   end
 
