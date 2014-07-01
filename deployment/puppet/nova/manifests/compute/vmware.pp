@@ -53,25 +53,22 @@ class nova::compute::vmware(
   $maximum_objects=100,
   $task_poll_interval=5.0,
   $use_linked_clone=true,
-  $wsdl_location=undef
+  $wsdl_location=undef,
+  $compute_driver='vmwareapi.VMwareVCDriver'
 ) {
 
-  nova_config {
-    'DEFAULT/compute_driver':      value => 'vmwareapi.VMwareVCDriver';
-    'VMWARE/host_ip':              value => $host_ip;
-    'VMWARE/host_username':        value => $host_username;
-    'VMWARE/host_password':        value => $host_password;
-    'VMWARE/cluster_name':         value => $cluster_name;
-    'VMWARE/api_retry_count' :     value => $api_retry_count;
-    'VMWARE/maximum_objects' :     value => $maximum_objects;
-    'VMWARE/task_poll_interval' :  value => $task_poll_interval;
-    'VMWARE/use_linked_clone':     value => $use_linked_clone;
-  }
+  validate_string($host_password)
+  #FIXME(bogdando) remove dollar escaping once Oslo.config got fixed
+  $host_pass_quoted = regsubst($host_password, '(^.*\$.*$)' , '"\1"' ,'G')
+  $host_pass_escaped = regsubst($host_pass_quoted, '\$', '$$')
 
-  if $wsdl_location {
-    nova_config {
-      'VMWARE/wsdl_location' : value => $wsdl_location;
-    }
+  file {
+    "/etc/nova/nova-compute.conf":
+    content => template ("nova/nova-compute.conf.erb"),
+    mode => 0644,
+    owner => root,
+    group => root,
+    ensure => present,
   }
 
   package { 'python-suds':
