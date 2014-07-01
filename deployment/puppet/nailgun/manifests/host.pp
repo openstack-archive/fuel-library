@@ -65,4 +65,11 @@ $gem_source = "http://localhost/gems/",
     mode    => '0644', 
   } 
 
+  file { '/etc/dhcp/dhclient.conf':
+    content => template("nailgun/dhclient.conf.erb"),
+    owner   => 'root',
+    group   => 'root',
+    mode    => '0644',
+  }
+
 }
