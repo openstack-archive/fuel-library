@@ -56,6 +56,8 @@ class haproxy::base (
     }
   }
 
+  class { 'haproxy::status' :}
+
   if $use_include {
     concat::fragment { 'haproxy-include':
       target  => '/etc/haproxy/haproxy.cfg',

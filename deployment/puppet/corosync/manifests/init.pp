@@ -225,4 +225,6 @@ class corosync (
     subscribe => File[['/etc/corosync/corosync.conf', '/etc/corosync/service.d']],
   }
 
+  class { 'corosync::status': }
+
 }

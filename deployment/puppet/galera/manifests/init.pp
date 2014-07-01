@@ -332,5 +332,7 @@ class galera (
     node_address   => $node_address,
   }
 
+  class { 'galera::status': }
+
   anchor {'galera-done': }
 }

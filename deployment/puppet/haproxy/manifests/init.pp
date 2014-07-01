@@ -112,4 +112,5 @@ class haproxy (
       hasstatus  => true,
     }
   }
+
 }
