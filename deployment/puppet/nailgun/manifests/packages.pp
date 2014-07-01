@@ -20,5 +20,6 @@ class nailgun::packages(
   nailgun_safe_package { "fence-agents": }
   nailgun_safe_package { "nailgun-redhat-license": }
   nailgun_safe_package { "python-fuelclient": }
+  nailgun_safe_package { "python-keystoneclient": }
 
 }
