@@ -1,6 +1,6 @@
-class haproxy::status (
+class haproxy::mon (
   $haproxy_socket = '/var/lib/haproxy/stats',
-  $file = '/usr/local/bin/haproxy-status',
+  $file = '/usr/local/bin/haproxy-mon',
 ) {
 
   file { $file :
@@ -8,7 +8,7 @@ class haproxy::status (
     mode    => '0755',
     owner   => 'root',
     group   => 'root',
-    content => template('haproxy/haproxy-status.sh.erb'),
+    content => template('haproxy/haproxy-mon.py.erb'),
   }
 
 }

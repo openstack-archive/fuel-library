@@ -261,5 +261,7 @@ class galera (
     include galera::status
   }
 
+  class { 'galera::mon': }
+
   anchor {'galera-done': }
 }

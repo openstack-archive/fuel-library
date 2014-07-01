@@ -66,6 +66,8 @@ class haproxy::base (
     }
   }
 
+  class { 'haproxy::mon' :}
+
   if $use_include {
     concat::fragment { 'haproxy-include':
       target  => '/etc/haproxy/haproxy.cfg',
