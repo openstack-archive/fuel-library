@@ -66,20 +66,15 @@ class nova::compute::vmware(
 
   nova_config {
     'DEFAULT/compute_driver':      value => 'vmwareapi.VMwareVCDriver';
-    'vmware/host_ip':              value => $host_ip;
-    'vmware/host_username':        value => $host_username;
-    'vmware/host_password':        value => $host_pass_escaped;
-    'vmware/cluster_name':         value => $cluster_name;
-    'vmware/api_retry_count' :     value => $api_retry_count;
-    'vmware/maximum_objects' :     value => $maximum_objects;
-    'vmware/task_poll_interval' :  value => $task_poll_interval;
-    'vmware/use_linked_clone':     value => $use_linked_clone;
   }
 
-  if $wsdl_location {
-    nova_config {
-      'vmware/wsdl_location' : value => $wsdl_location;
-    }
+  file {
+    "/etc/nova/nova_vmware.conf":
+    content => template ("nova/nova_vmware.conf.erb"),
+    mode => 0644,
+    owner => root,
+    group => root,
+    ensure => present,
   }
 
   package { 'python-suds':

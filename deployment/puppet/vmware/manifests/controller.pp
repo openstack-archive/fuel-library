@@ -53,6 +53,13 @@ class vmware::controller (
         host_password => $vcenter_password,
         cluster_name => $vcenter_cluster,
       }
+      file {$::nova::params::compute_opts_file:
+        ensure => present,
+      } ->
+      file_line {'nova-compute env':
+        path => $::nova::params::compute_opts_file,
+        line => "OPTIONS='--config-file=/etc/nova/nova.conf --config-file=/etc/nova/nova_vmware.conf'",
+      }
     } # close RedHat
     'Debian': { # open Ubuntu
       class { 'nova::compute::vmware':
@@ -64,6 +71,13 @@ class vmware::controller (
       exec { 'clean-nova-compute-conf': # open exec
         command => "/bin/echo > /etc/nova/nova-compute.conf"
       } # close exec
+      file {$::nova::params::compute_opts_file:
+        ensure => present,
+      } ->
+      file_line {'nova-compute env':
+        path => $::nova::params::compute_opts_file,
+        line => "exec start-stop-daemon --start --chuid nova --exec /usr/bin/nova-compute -- --config-file=/etc/nova/nova.conf --config-file=/etc/nova/nova-compute.conf --config-file=/etc/nova/nova_vmware.conf",
+      }
     } # close Ubuntu
   } # close case
 

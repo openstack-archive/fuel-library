@@ -45,6 +45,7 @@ class nova::params {
       $meta_api_service_name    = 'openstack-nova-metadata-api'
       $special_service_provider = 'init'
       # redhat specific config defaults
+      $compute_opts_file        = '/etc/sysconfig/openstack-nova-compute'
       $python_path		= 'python2.6/site-packages'
       $root_helper              = 'sudo nova-rootwrap'
       $lock_path                = '/var/lib/nova/tmp'
@@ -85,6 +86,7 @@ class nova::params {
       $meta_api_service_name    = 'nova-api-metadata'
       $tgt_service_name         = 'tgt'
       # debian specific nova config
+      $compute_opts_file        = '/etc/init/nova-compute.override'
       $python_path		= 'python2.7/dist-packages'
       $root_helper              = 'sudo nova-rootwrap'
       $lock_path                = '/var/lock/nova'
