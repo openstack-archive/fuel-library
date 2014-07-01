@@ -7,3 +7,11 @@ nailgun_host = <%= @nailgun_host %>
 nailgun_port = <%= @nailgun_port %>
 log_file = <%= @logfile %>
 after_init_hook = False
+auth_enable = <%= @auth_enable %>
+
+[keystone_authtoken]
+admin_token=<%= @keystone_admin_token %>
+auth_protocol=http
+auth_port=<%= @keystone_port %>
+auth_host=<%= @keystone_host %>
+auth_version=v2.0
