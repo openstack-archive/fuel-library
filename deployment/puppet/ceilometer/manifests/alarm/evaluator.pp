@@ -97,8 +97,6 @@ class ceilometer::alarm::evaluator (
       provider   => "pacemaker",
     }
 
-    Cs_resource[$res_name] -> Service['ceilometer-alarm-evaluator']
-
   } else {
     Package['ceilometer-common'] -> Service['ceilometer-alarm-evaluator']
     Package[$::ceilometer::params::alarm_package] -> Service['ceilometer-alarm-evaluator']
