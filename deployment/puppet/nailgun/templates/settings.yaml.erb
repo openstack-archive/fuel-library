@@ -1,6 +1,17 @@
 LISTEN_ADDRESS: "0.0.0.0"
 LISTEN_PORT: "8001"
 DEVELOPMENT: false
+AUTH:
+  # Possible options:
+  # - none - authentication is disabled
+  # - fake - no keystone required, credentials: admin/admin
+  # - keystone - authentication enabled.
+  AUTHENTICATION_METHOD: "keystone"
+  # use only if AUTHENTICATION_METHOD is set to "keystone"
+  AUTH_PROTOCOL: "http"
+  KEYSTONE_ADMIN_TOKEN: "<%= @keystone_admin_token %>"
+  IDENTITY_URI: "https://<%= @keystone_host %>:35357/"
+
 
 DATABASE:
   engine: "<%= @database_engine %>"

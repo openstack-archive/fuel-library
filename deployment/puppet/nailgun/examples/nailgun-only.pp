@@ -113,6 +113,9 @@ class { "nailgun::venv":
   mco_connector => $mco_connector,
 
   puppet_master_hostname => $puppet_master_hostname,
+
+  $keystone_admin_token => $::fuel_settings['keystone']['admin_token'],
+  $keystone_host        => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
 }
 class { "nailgun::supervisor":
   nailgun_env   => $env_path,
