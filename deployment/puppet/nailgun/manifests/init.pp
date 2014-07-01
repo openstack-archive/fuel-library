@@ -272,6 +272,8 @@ class nailgun(
   class { "nailgun::ostf":
     production => $production,
     pip_opts => "${pip_index} ${pip_find_links}",
+    keystone_admin_token => $keystone_admin_token,
+    keystone_host        => $keystone_host,
   }
 
   class { "nailgun::puppetsync": }
