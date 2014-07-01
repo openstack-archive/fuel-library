@@ -40,6 +40,7 @@ class nova::params {
       # redhat specific config defaults
       $root_helper                  = 'sudo nova-rootwrap'
       $lock_path                    = '/var/lib/nova/tmp'
+      $compute_opts_file            = '/etc/sysconfig/openstack-nova-compute'
       case $::operatingsystem {
         'Fedora', 'RedHat': {
           $special_service_provider = undef

@@ -53,6 +53,13 @@ class vmware::controller (
         host_password => $vcenter_password,
         cluster_name => $vcenter_cluster,
       }
+      file {$::nova::params::compute_opts_file:
+        ensure => present,
+      } ->
+      file_line {'nova-compute env':
+        path => $::nova::params::compute_opts_file,
+        line => "OPTIONS='--config-file=/etc/nova/nova.conf --config-file=/etc/nova/nova-compute.conf'",
+      }
     } # close RedHat
     'Debian': { # open Ubuntu
       class { 'nova::compute::vmware':
@@ -60,10 +67,7 @@ class vmware::controller (
         host_username => $vcenter_user,
         host_password => $vcenter_password,
         cluster_name => $vcenter_cluster,
-      } -> # and then we should do the workaround
-      exec { 'clean-nova-compute-conf': # open exec
-        command => "/bin/echo > /etc/nova/nova-compute.conf"
-      } # close exec
+      }
     } # close Ubuntu
   } # close case
 
