@@ -81,6 +81,12 @@ if $::fuel_settings['nodes'] {
   }
 }
 
+if ($::fuel_settings['neutron_mellanox']) and ($::fuel_settings['neutron_mellanox']['plugin'] == 'ethernet') {
+  $::use_mellanox_plugin = true
+} else {
+  $::use_mellanox_plugin = false
+}
+
 # This parameter specifies the verbosity level of log messages
 # in openstack components config.
 # Debug would have set DEBUG level and ignore verbose settings, if any.
