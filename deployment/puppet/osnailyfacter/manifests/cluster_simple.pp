@@ -60,11 +60,16 @@ class osnailyfacter::cluster_simple {
   }
 
   if $::fuel_settings['role'] == 'controller' {
-    package { 'cirros-testvm':
-      ensure => "present"
+    if ($::fuel_settings['neutron_mellanox']) and ($::fuel_settings['neutron_mellanox']['plugin'] == 'ethernet') {
+      $test_vm_pkg = 'cirros-testvm-mellanox'
+    } else {
+      $test_vm_pkg = 'cirros-testvm'
+    }
+    package { 'cirros-testvm' :
+      ensure => 'installed',
+      name   => $test_vm_pkg,
     }
   }
-
 
   $storage_hash         = $::fuel_settings['storage']
   $nova_hash            = $::fuel_settings['nova']
@@ -396,6 +401,19 @@ class osnailyfacter::cluster_simple {
     "compute" : {
       include osnailyfacter::test_compute
 
+      if ($::fuel_settings['neutron_mellanox']) and ($::fuel_settings['neutron_mellanox']['plugin'] == 'ethernet') {
+        $net04_physnet = $quantum_config['predefined_networks']['net04']['L2']['physnet']
+        class { 'mellanox_openstack::compute':
+          physnet => $net04_physnet,
+          physifc => $::fuel_settings['neutron_mellanox']['physical_port'],
+        }
+        $compute_driver                 = 'nova.virt.libvirt.driver.LibvirtDriver'
+        $libvirt_vif_driver             = 'mlnxvif.vif.MlxEthVIFDriver'
+      } else {
+        $compute_driver                 = 'libvirt.LibvirtDriver'
+        $libvirt_vif_driver             = 'nova.virt.libvirt.vif.LibvirtGenericVIFDriver'
+      }
+
       class { 'openstack::compute':
         public_interface               => $::public_int,
         private_interface              => $::use_quantum ? { true=>false, default=>$::fuel_settings['fixed_interface'] },
@@ -441,7 +459,9 @@ class osnailyfacter::cluster_simple {
         nova_rate_limits               => $::nova_rate_limits,
         nova_report_interval           => $::nova_report_interval,
         nova_service_down_time         => $::nova_service_down_time,
-        cinder_rate_limits             => $::cinder_rate_limits
+        cinder_rate_limits             => $::cinder_rate_limits,
+        compute_driver                 => $compute_driver,
+        libvirt_vif_driver             => $libvirt_vif_driver,
       }
       nova_config { 'DEFAULT/start_guests_on_host_boot': value => $::fuel_settings['start_guests_on_host_boot'] }
       nova_config { 'DEFAULT/use_cow_images': value => $::fuel_settings['use_cow_images'] }
@@ -450,6 +470,7 @@ class osnailyfacter::cluster_simple {
       if ($::use_ceph){
         Class['openstack::compute'] -> Class['ceph']
       }
+
     } # COMPUTE ENDS
 
     "mongo" : {
@@ -500,6 +521,7 @@ class osnailyfacter::cluster_simple {
         bind_host            => $bind_host,
         volume_group         => 'cinder',
         manage_volumes       => $manage_volumes,
+        iser                 => $storage_hash['iser'],
         enabled              => true,
         auth_host            => $controller_node_address,
         iscsi_bind_host      => $cinder_iscsi_bind_addr,
