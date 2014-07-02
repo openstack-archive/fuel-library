@@ -121,6 +121,8 @@ class osnailyfacter::cluster_simple {
   # Determine who should get the volume service
   if (member($roles, 'cinder') and $storage_hash['volumes_lvm']) {
     $manage_volumes = 'iscsi'
+  } elsif (member($roles, 'cinder') and $storage_hash['volumes_vmdk']) {
+    $manage_volumes = 'vmdk'
   } elsif ($storage_hash['volumes_ceph']) {
     $manage_volumes = 'ceph'
   } else {
@@ -376,9 +378,7 @@ class osnailyfacter::cluster_simple {
       }
 
       # vCenter integration
-
       if $::fuel_settings['libvirt_type'] == 'vcenter' {
-
         class { 'vmware' :
           vcenter_user      => $vcenter_hash['vc_user'],
           vcenter_password  => $vcenter_hash['vc_password'],
@@ -477,7 +477,6 @@ class osnailyfacter::cluster_simple {
 #        ceilometer_db_password      => $ceilometer_hash['db_password'],
 #      }
 #    } # MONGO ENDS
-
     "cinder" : {
       include keystone::python
       #FIXME(bogdando) notify services on python-amqp update, if needed
@@ -511,7 +510,10 @@ class osnailyfacter::cluster_simple {
         max_pool_size        => $max_pool_size,
         max_overflow         => $max_overflow,
         idle_timeout         => $idle_timeout,
-        ceilometer           => $ceilometer_hash[enabled]
+        ceilometer           => $ceilometer_hash[enabled],
+	vmware_host_ip       => $vcenter_hash['host_ip'],
+        vmware_host_username => $vcenter_hash['vc_user'],
+        vmware_host_password => $vcenter_hash['vc_password']
       }
     } #CINDER ENDS
 
