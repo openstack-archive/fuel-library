@@ -73,8 +73,7 @@ CONTAINER_OPTIONS["mcollective"]="--privileged $base_opts"
 
 #Host volumes
 declare -A HOST_VOL
-HOST_VOL['repo']="-v /var/www/nailgun:/var/www/nailgun"
-HOST_VOL['reporw']="-v /var/www/nailgun:/var/www/nailgun"
+HOST_VOL['repo']="-v /var/www/nailgun:/var/www/nailgun:rw"
 HOST_VOL['puppet']="-v /etc/puppet:/puppet:ro"
 HOST_VOL['sshkey']="-v /root/.ssh:/root/.ssh:ro"
 HOST_VOL['astuteyaml']="-v /etc/fuel:/etc/fuel:ro"
@@ -112,13 +111,12 @@ ASTUTE_VOL="--volumes-from ${CONTAINER_NAMES['astute']}"
 #
 declare -A REQS
 REQS["${HOST_VOL['astuteyaml']}"]="cobbler postgres rabbitmq rsync astute nailgun ostf nginx rsyslog mcollective keystone"
-REQS["${HOST_VOL['repo']}"]="cobbler postgres rabbitmq rsync astute nailgun ostf nginx rsyslog keystone"
+REQS["${HOST_VOL['repo']}"]="cobbler postgres rabbitmq rsync astute nailgun ostf nginx rsyslog keystone mcollective"
 #Most containers work from local integrated puppet
 REQS["$PUPPET_VOL"]="rsync"
 #REQS["$PUPPET_VOL"]="cobbler postgres rabbitmq rsync astute nailgun ostf nginx rsyslog mcollective"
 REQS["$LOG_VOL"]="cobbler postgres rabbitmq rsync astute nailgun ostf nginx rsyslog mcollective"
 REQS["${HOST_VOL['sshkey']}"]="nailgun cobbler astute mcollective ostf"
-REQS["${HOST_VOL['reporw']}"]="mcollective"
 #REQS["${HOST_VOL['remotelogs']}"]="rsyslog nailgun nginx"
 REQS["$NAILGUN_VOL"]="nginx mcollective"
 REQS["$COBBLER_VOL"]="mcollective"
