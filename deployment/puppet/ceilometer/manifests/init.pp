@@ -106,9 +106,10 @@ class ceilometer(
   }
 
   ceilometer_config {
-    'publisher_rpc/metering_secret'  : value => $metering_secret;
-    'DEFAULT/debug'                  : value => $debug;
-    'DEFAULT/verbose'                : value => $verbose;
+    'DEFAULT/glance_control_exchange' : value => 'openstack';
+    'publisher_rpc/metering_secret'   : value => $metering_secret;
+    'DEFAULT/debug'                   : value => $debug;
+    'DEFAULT/verbose'                 : value => $verbose;
   }
 
   # Configure logging
