@@ -66,8 +66,14 @@ class osnailyfacter::cluster_ha {
   }
 
   if $primary_controller {
-    package { 'cirros-testvm':
-      ensure => "present"
+    if ($::fuel_settings['neutron_mellanox']) and ($::fuel_settings['neutron_mellanox']['plugin'] == 'ethernet') {
+      $test_vm_pkg = 'cirros-testvm-mellanox'
+    } else {
+      $test_vm_pkg = 'cirros-testvm'
+    }
+    package { 'cirros-testvm' :
+      ensure => 'installed',
+      name   => $test_vm_pkg,
     }
   }
 
@@ -644,6 +650,14 @@ class osnailyfacter::cluster_ha {
       nova_config { 'DEFAULT/start_guests_on_host_boot': value => $::fuel_settings['start_guests_on_host_boot'] }
       nova_config { 'DEFAULT/use_cow_images': value => $::fuel_settings['use_cow_images'] }
       nova_config { 'DEFAULT/compute_scheduler_driver': value => $::fuel_settings['compute_scheduler_driver'] }
+
+      if ($::fuel_settings['neutron_mellanox']) and ($::fuel_settings['neutron_mellanox']['plugin'] == 'ethernet') {
+        $net04_physnet = $quantum_config['predefined_networks']['net04']['L2']['physnet']
+        class { 'mellanox_openstack::compute':
+          physnet => $net04_physnet,
+          physifc => $::fuel_settings['neutron_mellanox']['physical_port'],
+        }
+      }
 
     } # COMPUTE ENDS
 
