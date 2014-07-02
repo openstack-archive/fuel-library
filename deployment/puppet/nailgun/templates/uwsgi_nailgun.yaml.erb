@@ -1,0 +1,15 @@
+uwsgi:
+  enable-threads: 1
+  threads: 1
+  workers: <%= (@physicalprocessorcount) %>
+  master: 1
+  socket: :8001
+  plugin: python
+  chown-socket: nginx:nginx
+  pythonpath: <%= @venv %>/lib/python2.6/site-packages/nailgun
+  touch-reload: /var/lib/nailgun-uwsgi
+  virtualenv: <%= @venv %>
+  module: nailgun.wsgi
+  buffer-size: 49180
+  pidfile: /tmp/nailgun.pid
+  logto: /var/log/nailgun/app.log
