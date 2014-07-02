@@ -45,11 +45,6 @@
 #  Array with IPs/hostnames of cluster members.
 #
 
-
-
-
-
-
 class galera (
   $cluster_name,
   $primary_controller   = false,
@@ -163,6 +158,14 @@ class galera (
   }
 
   if $primary_controller {
+    $galera_pid = $osfamily ? {
+      'RedHat' => '/var/run/mysql/mysqld.pid',
+      'Debian' => '/var/run/mysqld/mysqld.pid',
+    }
+    $galera_socket = $osfamily ? {
+      'RedHat' => '/var/lib/mysql/mysql.sock',
+      'Debian' => '/var/run/mysqld/mysqld.sock',
+    }
     cs_resource { "$res_name":
       ensure => present,
       primitive_class => 'ocf',
@@ -171,8 +174,11 @@ class galera (
       multistate_hash => {
         'type' => 'clone',
       },
-      ms_metadata => {
-        'interleave' => 'true',
+      parameters => {
+        'test_user'   => "${mysql_user}",
+        'test_passwd' => "${mysql_password}",
+        'pid'         => "${galera_pid}",
+        'socket'      => "${galera_socket}",
       },
       operations => {
         'monitor' => {
