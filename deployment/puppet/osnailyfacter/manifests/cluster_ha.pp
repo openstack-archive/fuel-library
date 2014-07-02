@@ -64,8 +64,14 @@ class osnailyfacter::cluster_ha {
   }
 
   if $primary_controller {
-    package { 'cirros-testvm':
-      ensure => "present"
+    if ($::fuel_settings['neutron_mellanox']) and ($::fuel_settings['neutron_mellanox']['plugin'] == 'ethernet') {
+      $test_vm_pkg = 'cirros-testvm-mellanox'
+    } else {
+      $test_vm_pkg = 'cirros-testvm'
+    }
+    package { 'cirros-testvm' :
+      ensure => 'installed',
+      name   => $test_vm_pkg,
     }
   }
 
