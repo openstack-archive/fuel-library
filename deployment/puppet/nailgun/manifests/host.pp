@@ -64,6 +64,14 @@ $gem_source = "http://localhost/gems/",
     group   => 'root', 
     mode    => '0644', 
   }
+
+  file { '/etc/dhcp/dhclient.conf':
+    content => template("nailgun/dhclient.conf.erb"),
+    owner   => 'root',
+    group   => 'root',
+    mode    => '0644',
+  }
+
   #Suppress kernel messages to console
   sysctl::value{'kernel.printk': value=>'4 1 1 7'}
 
