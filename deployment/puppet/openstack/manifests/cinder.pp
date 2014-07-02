@@ -35,6 +35,9 @@ class openstack::cinder(
   $keystone_auth_protocol = 'http',
   $keystone_user          = 'cinder',
   $ceilometer             = false,
+  $vmware_host_ip         = '10.10.10.10',
+  $vmware_host_username   = 'administrator@vsphere.local',
+  $vmware_host_password   = 'password',
 ) {
   include cinder::params
   #  if ($purge_cinder_config) {
@@ -91,7 +94,7 @@ class openstack::cinder(
         log_facility          => $syslog_log_facility,
         debug                 => $debug,
         database_idle_timeout => $idle_timeout,
-        control_exchange      => 'cinder',
+        control_exchange      => 'cinder'
       }
       cinder_config {
         'DEFAULT/kombu_reconnect_delay': value => '5.0';
@@ -122,13 +125,14 @@ class openstack::cinder(
       enabled        => true,
     }
   }
+
   if $manage_volumes {
     class { 'cinder::volume':
       package_ensure => $::openstack_version['cinder'],
       enabled        => true,
     }
     case $manage_volumes {
-      true, 'iscsi': {
+      'iscsi': {
         if ($physical_volume) {
           class { 'lvm':
             vg     => $volume_group,
@@ -139,6 +143,13 @@ class openstack::cinder(
         class { 'cinder::volume::iscsi':
           iscsi_ip_address => $iscsi_bind_host,
           volume_group     => $volume_group,
+        }
+      }
+      'vmdk': {
+        class {'cinder::volume::vmdk':
+          host_ip         => $::openstack::cinder::vmware_host_ip,
+          host_username   => $::openstack::cinder::vmware_host_username,
+          host_password   => $::openstack::cinder::vmware_host_password,
         }
       }
       'ceph': {
