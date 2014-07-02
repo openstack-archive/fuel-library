@@ -70,6 +70,9 @@ class cinder (
   $verbose                     = false,
   $debug                       = false,
   $mysql_module                = '0.9',
+  $vmware_host_ip,
+  $vmware_host_username        = 'administrator@vsphere.local',
+  $vmware_host_password,
   # DEPRECATED PARAMETERS
   $sql_connection              = undef,
   $sql_idle_timeout            = undef,
