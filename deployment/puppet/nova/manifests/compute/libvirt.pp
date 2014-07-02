@@ -73,7 +73,8 @@ class nova::compute::libvirt (
   $remove_unused_resized_minimum_age_seconds  = undef,
   $remove_unused_original_minimum_age_seconds = undef,
   # DEPRECATED PARAMETER
-  $libvirt_type                               = false
+  $libvirt_type                               = false,
+  $compute_driver                             = 'libvirt.LibvirtDriver',
 ) {
 
   include nova::params
@@ -141,7 +142,7 @@ class nova::compute::libvirt (
   }
 
   nova_config {
-    'DEFAULT/compute_driver':   value => 'libvirt.LibvirtDriver';
+    'DEFAULT/compute_driver':   value => $compute_driver;
     'DEFAULT/vncserver_listen': value => $vncserver_listen;
     'libvirt/virt_type':        value => $libvirt_virt_type_real;
     'libvirt/cpu_mode':         value => $libvirt_cpu_mode_real;
