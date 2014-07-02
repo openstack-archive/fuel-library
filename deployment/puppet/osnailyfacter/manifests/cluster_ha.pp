@@ -66,8 +66,14 @@ class osnailyfacter::cluster_ha {
   }
 
   if $primary_controller {
-    package { 'cirros-testvm':
-      ensure => "present"
+    if $::use_mellanox_plugin {
+      $test_vm_pkg = 'cirros-testvm-mellanox'
+    } else {
+      $test_vm_pkg = 'cirros-testvm'
+    }
+    package { 'cirros-testvm' :
+      ensure => 'installed',
+      name   => $test_vm_pkg,
     }
   }
 
@@ -590,12 +596,31 @@ class osnailyfacter::cluster_ha {
         }
       }
 
+      if $::use_mellanox_plugin {
+        class { 'mellanox_openstack::controller':
+          ml2_eswitch => $::fuel_settings['neutron_mellanox']['ml2_eswitch']
+        }
+      }
+
       #ADDONS END
 
     } #CONTROLLER ENDS
 
     "compute" : {
       include osnailyfacter::test_compute
+
+      if $::use_mellanox_plugin {
+        $net04_physnet = $quantum_config['predefined_networks']['net04']['L2']['physnet']
+        class { 'mellanox_openstack::compute':
+          physnet => $net04_physnet,
+          physifc => $::fuel_settings['neutron_mellanox']['physical_port'],
+        }
+        $compute_driver                 = 'nova.virt.libvirt.driver.LibvirtDriver'
+        $libvirt_vif_driver             = 'mlnxvif.vif.MlxEthVIFDriver'
+      } else {
+        $compute_driver                 = 'libvirt.LibvirtDriver'
+        $libvirt_vif_driver             = 'nova.virt.libvirt.vif.LibvirtGenericVIFDriver'
+      }
 
       class { 'openstack::compute':
         public_interface            => $::public_int,
@@ -641,6 +666,8 @@ class osnailyfacter::cluster_ha {
         nova_report_interval        => $::nova_report_interval,
         nova_service_down_time      => $::nova_service_down_time,
         state_path                  => $nova_hash[state_path],
+        compute_driver              => $compute_driver,
+        libvirt_vif_driver          => $libvirt_vif_driver,
       }
 
       if ($::use_ceph){

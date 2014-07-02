@@ -125,6 +125,8 @@ class openstack::compute (
   $state_path                     = '/var/lib/nova',
   $ceilometer                     = false,
   $ceilometer_metering_secret     = 'ceilometer',
+  $compute_driver                 = 'libvirt.LibvirtDriver',
+  $libvirt_vif_driver             = 'nova.virt.libvirt.vif.LibvirtGenericVIFDriver',
 ) {
 
   #
@@ -292,6 +294,7 @@ class openstack::compute (
     libvirt_cpu_mode        => $libvirt_cpu_mode,
     libvirt_disk_cachemodes => ['"file=directsync"','"block=none"'],
     vncserver_listen        => $vncserver_listen,
+    compute_driver          => $compute_driver,
   }
 
   # From legacy libvirt.pp
@@ -534,7 +537,9 @@ on packages update": }
       source => 'puppet:///modules/nova/libvirt_qemu.conf',
     }
 
-    class { 'nova::compute::neutron': }
+    class { 'nova::compute::neutron':
+      libvirt_vif_driver => $libvirt_vif_driver,
+    }
 
     class { 'nova::network::neutron':
       neutron_auth_strategy            => 'keystone',

@@ -1,0 +1,17 @@
+{
+  "name": "mellanox-mellanox_openstack",
+  "version": "5.1.0",
+  "author": "mellanox",
+  "summary": "Mellanox module for supporting Mellanox hardware on Mirantis Fuel openstack deployment",
+  "license": "Apache 2.0",
+  "source": "",
+  "issues_url": null,
+  "project_page": null,
+  "dependencies": [
+    {
+      "version_range": ">= 1.0.0",
+      "name": "puppetlabs-stdlib"
+    }
+  ]
+}
+
