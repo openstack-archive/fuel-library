@@ -1,0 +1,2 @@
+class mellanox_openstack {
+}
