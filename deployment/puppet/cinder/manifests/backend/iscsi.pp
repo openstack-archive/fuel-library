@@ -12,10 +12,16 @@ define cinder::backend::iscsi (
   $volume_backend_name = $name,
   $volume_group        = 'cinder-volumes',
   $iscsi_helper        = $::cinder::params::iscsi_helper,
+  $iser                = false,
 ) {
 
   include cinder::params
 
+  if $iser {
+    cinder_config {
+      "${name}/volume_driver":  value => 'cinder.volume.drivers.lvm.LVMISERDriver'
+    }
+  }
   cinder_config {
     "${name}/volume_backend_name":  value => $volume_backend_name;
     "${name}/iscsi_ip_address":     value => $iscsi_ip_address;
