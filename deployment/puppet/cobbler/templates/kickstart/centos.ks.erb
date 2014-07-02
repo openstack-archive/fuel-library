@@ -155,7 +155,9 @@ echo -e "modprobe nf_conntrack_ipv4\nmodprobe nf_conntrack_ipv6" >> /etc/rc.modu
 chmod +x /etc/rc.modules
 echo -e "net.nf_conntrack_max=1048576" >> /etc/sysctl.conf
 mkdir -p /var/log/coredump
-echo -e "kernel.core_pattern=/var/log/coredump/core.%e.%p.%h.%t" >> /etc/sysctl.conf
+echo -e "# Uncomment the line below and comment out the next one to enable coredumps" >> /etc/sysctl.conf
+echo -e "#kernel.core_pattern=/var/log/coredump/core.%e.%p.%h.%t" >> /etc/sysctl.conf
+echo -e "kernel.core_pattern=/non/existent/dir/core.%e.%p.%h.%t" >> /etc/sysctl.conf
 chmod 777 /var/log/coredump
 echo -e "* soft core unlimited\n* hard core unlimited" >> /etc/security/limits.conf
 
