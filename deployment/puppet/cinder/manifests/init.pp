@@ -73,6 +73,9 @@ class cinder (
   # DEPRECATED PARAMETERS
   $sql_connection              = undef,
   $sql_idle_timeout            = undef,
+  $vmware_host_ip              = '10.20.30.41',
+  $vmware_host_username        = 'administrator@vsphere.local',
+  $vmware_host_password        = '',
 ) {
 
   include cinder::params
