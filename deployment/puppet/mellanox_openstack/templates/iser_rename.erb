@@ -1,0 +1,68 @@
+#!/usr/bin/bash
+
+readonly SCOPE=`basename $0`
+readonly UDEV_FILE="/etc/udev/rules.d/70-persistent-net.rules"
+readonly SUCCESS=0
+readonly FAILURE=1
+STORAGE_PORT=<%=@storage_parent%>
+ISER_NAME=<%=@iser_interface_name%>
+FATHER_FIRST_VF="/sys/class/net/$STORAGE_PORT/device/virtfn0"
+
+function logger_print () {
+   priority=$1
+   msg=$2
+   logger -t $SCOPE "$priority: $msg"
+}
+
+# Check that a first probe VF exists
+if [ ! -d $FATHER_FIRST_VF ]; then
+    logger_print  err  "Did not find probed ports of ${STORAGE_PORT}, skipping rename."
+    exit $FAILURE
+fi
+
+# Find first probe card BUS ID, and its ports
+SON_BUS=`ls -l $FATHER_FIRST_VF | awk '{print $11}' | sed s/\.\.[\/]// | sed s/[\/]//`
+CANDIDATES=`ls -l /sys/class/net/*/device | grep -i $SON_BUS|awk '{print $9}'`
+
+# Find the probe VF port that fits the storage ports number
+STORAGE_PORT_NUMBER=`cat /sys/class/net/$STORAGE_PORT/dev_id`
+for candidate in $CANDIDATES; do
+  CANDIDATE_DIRNAME=`dirname $candidate`
+  PORT_NUMBER=`cat $CANDIDATE_DIRNAME/dev_id`
+  if [ $PORT_NUMBER = $STORAGE_PORT_NUMBER ]; then
+      PROBED_DIRNAME=`dirname $candidate`
+      PROBED_PORT_NAME=`basename $PROBED_DIRNAME`
+  fi
+done
+
+if [ -z "$PROBED_PORT_NAME" ]; then
+    logger_print  err "Did not find $STORAGE_PORT_NUMBER probed ports of $STORAGE_PORT, exiting."
+    exit $FAILURE
+fi
+
+if [ ! -r "$UDEV_FILE" ]; then
+    logger_print  err "Did not find $UDEV_FILE to rename iser port."
+    exit $FAILURE
+fi
+
+# Persistantly rename the matched probed port
+if [ $PROBED_PORT_NAME != $ISER_NAME ]; then
+  UDEV_LINE="SUBSYSTEM==\"net\", ACTION==\"add\", "
+  UDEV_LINE+="ATTR{dev_id}==\"$STORAGE_PORT_NUMBER\", KERNELS==\"$SON_BUS\", "
+  UDEV_LINE+="ATTR{type}==\"1\", KERNEL==\"eth*\", NAME=\"$ISER_NAME\""
+
+  OLD_LINE_NUMBER=`grep -n $PROBED_PORT_NAME $UDEV_FILE | cut -d : -f 1`
+  eval "sed '"$OLD_LINE_NUMBER"d' -i $UDEV_FILE"
+  echo $UDEV_LINE >> $UDEV_FILE
+
+  /etc/init.d/openibd restart
+  if [ $? -ne $SUCCESS ]; then
+    logger_print  err "Mellanox drivers restart failed."
+    exit $FAILURE
+  fi
+  logger_print info "Changed probed port name from $PROBED_PORT_NAME to $ISER_NAME."
+else
+  logger_print info "Probed port name is configured properly to $ISER_NAME."
+fi
+
+exit $SUCCESS
