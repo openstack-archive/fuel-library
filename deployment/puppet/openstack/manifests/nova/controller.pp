@@ -32,6 +32,7 @@ class openstack::nova::controller (
   $nova_user_password,
   $nova_db_password,
   $primary_controller          = false,
+  $ha_mode                     = false,
   # Network
   $fixed_range                 = '10.0.0.0/24',
   $floating_range              = false,
@@ -123,6 +124,8 @@ class openstack::nova::controller (
         port                   => $rabbitmq_bind_port,
         cluster_nodes          => $rabbitmq_cluster_nodes,
         cluster                => $rabbit_cluster,
+        primary_controller     => $primary_controller,
+        ha_mode                => $ha_mode,
       }
     }
     'qpid': {
