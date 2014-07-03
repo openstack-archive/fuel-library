@@ -122,6 +122,7 @@ class nailgun::rabbitmq (
   }
 
   class { 'rabbitmq::server':
+    production         => $production,
     service_ensure     => running,
     delete_guest_user  => true,
     config_cluster     => false,

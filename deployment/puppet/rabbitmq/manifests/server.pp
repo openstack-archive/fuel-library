@@ -143,36 +143,36 @@ class rabbitmq::server(
     mode    => '0644',
     notify  => Class['rabbitmq::service'],
   }
-
-  case $::osfamily {
-    'RedHat' : {
-      file { 'rabbitmq-server':
-        ensure  => present,
-        path    => '/etc/init.d/rabbitmq-server',
-        content => template('rabbitmq/rabbitmq-server_redhat.erb'),
-        replace => true,
-        owner   => '0',
-        group   => '0',
-        mode    => '0755',
-        #notify  => Class['rabbitmq::service'],
-        require => Package[$package_name],
+  if $production !~ /docker/ {
+    case $::osfamily {
+      'RedHat' : {
+        file { 'rabbitmq-server':
+          ensure  => present,
+          path    => '/etc/init.d/rabbitmq-server',
+          content => template('rabbitmq/rabbitmq-server_redhat.erb'),
+          replace => true,
+          owner   => '0',
+          group   => '0',
+          mode    => '0755',
+          #notify  => Class['rabbitmq::service'],
+          require => Package[$package_name],
+        }
       }
-    }
-    'Debian' : {
-      file { 'rabbitmq-server':
-        ensure  => present,
-        path    => '/etc/init.d/rabbitmq-server',
-        content => template('rabbitmq/rabbitmq-server_ubuntu.erb'),
-        replace => true,
-        owner   => '0',
-        group   => '0',
-        mode    => '0755',
-        #notify  => Class['rabbitmq::service'],
-        require => Package[$package_name],
+      'Debian' : {
+        file { 'rabbitmq-server':
+          ensure  => present,
+          path    => '/etc/init.d/rabbitmq-server',
+          content => template('rabbitmq/rabbitmq-server_ubuntu.erb'),
+          replace => true,
+          owner   => '0',
+          group   => '0',
+          mode    => '0755',
+          #notify  => Class['rabbitmq::service'],
+          require => Package[$package_name],
+        }
       }
     }
   }
-
   class { 'rabbitmq::service':
     service_name     => $service_name,
     ensure           => $service_ensure,
