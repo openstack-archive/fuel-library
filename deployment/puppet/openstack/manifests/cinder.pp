@@ -15,6 +15,7 @@ class openstack::cinder(
   $volume_group           = 'cinder-volumes',
   $physical_volume        = undef,
   $manage_volumes         = false,
+  $iser                   = false,
   $enabled                = true,
   $purge_cinder_config    = true,
   $auth_host              = '127.0.0.1',
@@ -135,6 +136,11 @@ class openstack::cinder(
             pv     => $physical_volume,
             before => Service['cinder-volume'],
           }
+        }
+        if $iser {
+            Class['cinder::volume::iscsi'] {
+                iser => true
+            }
         }
         class { 'cinder::volume::iscsi':
           iscsi_ip_address => $iscsi_bind_host,

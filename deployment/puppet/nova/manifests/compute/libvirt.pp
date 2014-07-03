@@ -196,4 +196,11 @@ class nova::compute::libvirt (
       'DEFAULT/remove_unused_original_minimum_age_seconds': ensure => absent;
     }
   }
+
+  if ($::fuel_settings['neutron_mellanox']['plugin'] == "ethernet") {
+    nova_config {
+      'DEFAULT/compute_driver':  value => 'nova.virt.libvirt.driver.LibvirtDriver';
+      'libvirt/vif_driver':      value => 'mlnxvif.vif.MlxEthVIFDriver';
+    }
+  }
 }
