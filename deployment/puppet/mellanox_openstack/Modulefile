@@ -1,4 +1,4 @@
-name    'mellanox-mellanox_openstack'
+name    'mellanox-mellanox'
 version '0.1.0'
 source 'UNKNOWN'
 author 'mellanox'
