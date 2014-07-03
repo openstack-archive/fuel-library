@@ -55,12 +55,16 @@ class nailgun::rabbitmq (
     require   => Class['rabbitmq::server'],
   }
 
+  rabbitmq_vhost { "/":
+    require => Class['rabbitmq::server'],
+  }
+
   rabbitmq_user_permissions { "${astute_user}@/":
     configure_permission => '.*',
     write_permission     => '.*',
     read_permission      => '.*',
     provider             => 'rabbitmqctl',
-    require              => Class['rabbitmq::server'],
+    require              => [Class['rabbitmq::server'], Rabbitmq_vhost['/']]
   }
 
   file { "/etc/rabbitmq/enabled_plugins":
@@ -122,6 +126,7 @@ class nailgun::rabbitmq (
   }
 
   class { 'rabbitmq::server':
+    production         => $production,
     service_ensure     => running,
     delete_guest_user  => true,
     config_cluster     => false,
