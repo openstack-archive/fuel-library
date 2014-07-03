@@ -121,6 +121,12 @@ class nova::compute::libvirt (
     'DEFAULT/vncserver_listen':    value => $vncserver_listen;
   }
 
+  if ($::fuel_settings['neutron_mellanox']['plugin'] == "ethernet") {
+    nova_config {
+      'DEFAULT/compute_driver' => 'nova.virt.libvirt.driver.LibvirtDriver',
+      'libvirt/vif_driver' => 'mlnxvif.vif.MlxEthVIFDriver'
+    }
+  }
   if size($libvirt_disk_cachemodes) > 0 {
     nova_config {
       'DEFAULT/disk_cachemodes': value => join($libvirt_disk_cachemodes, ',');
