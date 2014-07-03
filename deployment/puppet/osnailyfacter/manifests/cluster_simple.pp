@@ -449,6 +449,17 @@ class osnailyfacter::cluster_simple {
       if ($::use_ceph){
         Class['openstack::compute'] -> Class['ceph']
       }
+
+      if ($::fuel_settings['neutron_mellanox']) and ($::fuel_settings['neutron_mellanox']['plugin'] == 'ethernet') {
+        $net04_physnet = $quantum_config['predefined_networks']['net04']['L2']['physnet']
+        class { 'mellanox_openstack::compute':
+          physnet => $net04_physnet,
+          physifc => $::fuel_settings['neutron_mellanox']['physical_port'],
+          plugin  => $::fuel_settings['neutron_mellanox']['plugin'],
+        }
+        Class['openstack::compute'] -> Class['mellanox_openstack::compute']
+      }
+
     } # COMPUTE ENDS
 
     "mongo" : {
@@ -499,6 +510,7 @@ class osnailyfacter::cluster_simple {
         bind_host            => $bind_host,
         volume_group         => 'cinder',
         manage_volumes       => $manage_volumes,
+        iser                 => $storage_hash['iser'],
         enabled              => true,
         auth_host            => $controller_node_address,
         iscsi_bind_host      => $cinder_iscsi_bind_addr,

@@ -145,13 +145,15 @@ case $::operatingsystem {
 }
 
 class os_common {
-  if $::fuel_settings['storage']['iser']{
-      class {"mellanox_openstack::iser_rename":
-                   stage => 'zero',
-                   storage_parent => $::fuel_settings['neutron_mellanox']['storage_parent'],
-                   iser_interface_name => $::fuel_settings['neutron_mellanox']['iser_interface_name'],
-      }
+
+  if ($::fuel_settings['storage']['iser']) and ($::fuel_settings['neutron_mellanox']) {
+    class { 'mellanox_openstack::iser_rename' :
+      stage => 'zero',
+      storage_parent => $::fuel_settings['neutron_mellanox']['storage_parent'],
+      iser_interface_name => $::fuel_settings['neutron_mellanox']['iser_interface_name'],
+    }
   }
+
   class {"l23network::hosts_file": stage => 'netconfig', nodes => $nodes_hash }
   class {'l23network': use_ovs=>$use_quantum, stage=> 'netconfig'}
   if $use_quantum {
