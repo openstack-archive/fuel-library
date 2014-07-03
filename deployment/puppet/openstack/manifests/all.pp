@@ -453,8 +453,14 @@ class openstack::all (
     vncproxy_host                 => $public_address,
   }
 
+  $compute_driver = 'libvirt.LibvirtDriver'
+  if ($::fuel_settings['neutron_mellanox']['plugin'] == 'ethernet') {
+    $compute_driver = 'nova.virt.libvirt.driver.LibvirtDriver'
+  }
+
   # Configure libvirt for nova-compute
   class { 'nova::compute::libvirt':
+    compute_driver          => $compute_driver,
     libvirt_type            => $libvirt_type,
     vncserver_listen        => $internal_address,
     libvirt_disk_cachemodes => ['"file=directsync"','"block="none"'],

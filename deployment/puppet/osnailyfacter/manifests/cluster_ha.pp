@@ -636,6 +636,15 @@ class osnailyfacter::cluster_ha {
         Class['openstack::compute'] -> Class['ceph']
       }
 
+      if ($::use_quantum and $::fuel_settings['neutron_mellanox']['plugin'] == 'ethernet') {
+        $net04_physnet = $quantum_config['predefined_networks']['net04']['L2']['physnet']
+        class { 'nova::compute::mellanox':
+          physnet => $net04_physnet,
+          physifc => $::fuel_settings['neutron_mellanox']['physical_port']
+        }
+        Class['openstack::compute'] -> Class['nova::compute::mellanox']
+      }
+
       #TODO: PUT this configuration stanza into nova class
       nova_config { 'DEFAULT/start_guests_on_host_boot': value => $::fuel_settings['start_guests_on_host_boot'] }
       nova_config { 'DEFAULT/use_cow_images': value => $::fuel_settings['use_cow_images'] }
@@ -684,6 +693,7 @@ class osnailyfacter::cluster_ha {
         rabbit_ha_queues     => $rabbit_ha_queues,
         volume_group         => 'cinder',
         manage_volumes       => $manage_volumes,
+        iser                 => $storage_hash['iser'],
         enabled              => true,
         auth_host            => $::fuel_settings['management_vip'],
         iscsi_bind_host      => $::storage_address,

@@ -285,12 +285,18 @@ class openstack::compute (
     Nova_config <<| tag == "${::deployment_id}::${::environment}" and title == 'novncproxy_base_url' |>>
   }
 
+  $compute_driver = 'libvirt.LibvirtDriver'
+  if ($::fuel_settings['neutron_mellanox']['plugin'] == 'ethernet') {
+    $compute_driver = 'nova.virt.libvirt.driver.LibvirtDriver'
+  }
+
   # Configure libvirt for nova-compute
   class { 'nova::compute::libvirt':
     libvirt_virt_type       => $libvirt_type,
     libvirt_cpu_mode        => $libvirt_cpu_mode,
     libvirt_disk_cachemodes => ['"file=directsync"','"block=none"'],
     vncserver_listen        => $vncserver_listen,
+    compute_driver          => $compute_driver,
   }
 
   # From legacy libvirt.pp
@@ -529,7 +535,15 @@ on packages update": }
       source => 'puppet:///modules/nova/libvirt_qemu.conf',
     }
 
-    class { 'nova::compute::neutron': }
+    $libvirt_vif_driver = 'nova.virt.libvirt.vif.LibvirtGenericVIFDriver'
+    # use mellanox vif_driver
+    if ($::fuel_settings['neutron_mellanox']['plugin'] == 'ethernet') {
+      $libvirt_vif_driver = 'mlnxvif.vif.MlxEthVIFDriver'
+      class { 'mellanox_openstack::mlnx_vif_driver': }
+    }
+    class { 'nova::compute::neutron':
+      libvirt_vif_driver => $libvirt_vif_driver,
+    }
 
     class { 'nova::network::neutron':
       neutron_auth_strategy            => 'keystone',
