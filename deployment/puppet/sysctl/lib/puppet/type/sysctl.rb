@@ -31,8 +31,7 @@ module Puppet
 
         newproperty(:target) do
             desc "Name of the file to store parameters in"
-            defaultto { if @resource.class.defaultprovider and
-                           @resource.class.defaultprovider.ancestors.include?(Puppet::Provider::ParsedFile)
+            defaultto { if @resource.class.defaultprovider.ancestors.include?(Puppet::Provider::ParsedFile)
                             @resource.class.defaultprovider.default_target
                         else
                             nil

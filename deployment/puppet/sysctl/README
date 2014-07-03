@@ -1,0 +1,34 @@
+= Requirements
+
+= Overview
+
+This modules allows to configure sysctl.
+
+= Usage
+  
+  node "mynode" inherits ... {
+    sysctl::value { "vm.nr_hugepages": value => "1583"}
+  }
+
+  When setting a key that contains multiple values, use a tab to separate the
+  values:
+  
+  node "mynode" inherits ... {
+    sysctl::value { 'net.ipv4.tcp_rmem':
+        value => "4096\t131072\t131072",
+    }
+  }
+
+  It is preferred that you set your exec path globally. This is usually done
+  in site.pp and would look something like this (adjust for your environment):
+
+  # Set a site-wide global path so we don't have to explicitly specify a path
+  # for each exec.
+  Exec { path => '/usr/bin:/usr/sbin/:/bin:/sbin' }
+
+= License
+
+ Copyright (C) 2011 Immerda Project Group
+ Author mh <mh@immerda.ch>
+ Modified by Nicolas Zin <nicolas.zin@savoirfairelinux.com>
+ Licence: GPL v2
