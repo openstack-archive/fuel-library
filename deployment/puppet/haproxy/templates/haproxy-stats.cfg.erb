@@ -1,0 +1,9 @@
+
+listen Stats *:<%= @stats_port %>
+  mode http
+  stats enable
+  stats uri /
+  stats refresh 5s
+  stats show-node
+  stats show-legends
+  stats hide-version
