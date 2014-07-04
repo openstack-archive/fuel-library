@@ -220,6 +220,10 @@ class nailgun(
     dns_upstream       => $dns_upstream,
     domain_name        => $dns_domain,
     dns_search         => $dns_search,
+
+    mco_user           => $mco_user,
+    mco_pass           => $mco_password,
+
     dhcp_start_address => $dhcp_start_address,
     dhcp_end_address   => $dhcp_end_address,
     dhcp_netmask       => $dhcp_netmask,
