@@ -15,7 +15,7 @@ package { 'python-psycopg2':
 case $production {
   'prod', 'docker': {
     class { 'keystone':
-      admin_token     => 'ADMIN',
+      admin_token     => $::fuel_settings['keystone']['admin_token'],
       catalog_type    => 'sql',
       sql_connection => "postgresql://${::fuel_settings['postgres']['keystone_user']}:${::fuel_settings['postgres']['keystone_password']}@${::fuel_settings['ADMIN_NETWORK']['ipaddress']}/${::fuel_settings['postgres']['keystone_dbname']}",
     }
