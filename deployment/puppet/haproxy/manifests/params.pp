@@ -66,4 +66,6 @@ class haproxy::params {
     }
     default: { fail("The $::osfamily operating system is not supported with the haproxy module") }
   }
+  $use_stats = true
+  $stats_port = '10000'
 }
