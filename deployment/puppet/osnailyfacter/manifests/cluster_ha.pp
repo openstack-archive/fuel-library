@@ -490,7 +490,7 @@ class osnailyfacter::cluster_ha {
 
       #FIXME: Disable heat for Red Hat OpenStack 3.0
       if ($::operatingsystem != 'RedHat') {
-        class { 'heat' :
+        class { 'openstack::heat' :
           pacemaker              => true,
           primary_controller     => $primary_controller,
           external_ip            => $controller_node_public,
@@ -500,13 +500,20 @@ class osnailyfacter::cluster_ha {
           keystone_password => 'heat',
           keystone_tenant   => 'services',
 
-          amqp_hosts       => $amqp_hosts,
-          amqp_user        => $rabbit_hash['user'],
-          amqp_password    => $rabbit_hash['password'],
-          rabbit_ha_queues => $rabbit_ha_queues,
+          rpc_backend         => 'heat.openstack.common.rpc.impl_kombu',
+          #FIXME(bogdando) we have to split amqp_hosts until all modules synced
+          amqp_hosts          => split($amqp_hosts, ','),
+          amqp_user           => $rabbit_hash['user'],
+          amqp_password       => $rabbit_hash['password'],
 
-          db_host           => $controller_node_address,
-          db_password       => $heat_hash['db_password'],
+          sql_connection      =>
+            "mysql://heat:${heat_hash['db_password']}@${$controller_node_address}/heat?read_timeout=60",
+          db_host             => $controller_node_address,
+          db_password         => $heat_hash['db_password'],
+          max_retries         => $max_retries,
+          max_pool_size       => $max_pool_size,
+          max_overflow        => $max_overflow,
+          idle_timeout        => $idle_timeout,
 
           debug               => $::debug,
           verbose             => $::verbose,
@@ -550,7 +557,7 @@ class osnailyfacter::cluster_ha {
           primary_controller       => $primary_controller,
         }
 
-        Class['heat'] -> Class['murano']
+       Class['openstack::heat'] -> Class['murano']
 
       }
 
