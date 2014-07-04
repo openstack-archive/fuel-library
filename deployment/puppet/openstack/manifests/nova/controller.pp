@@ -95,9 +95,7 @@ class openstack::nova::controller (
   $max_pool_size               = '10',
   $max_overflow                = '30',
   $max_retries                 = '-1',
-  $novnc_address               = '127.0.0.1',
-  $memcached_servers           = false,
-  $memcached_server_port       = '11211',
+  $novnc_address               = '127.0.0.1'
 ) {
 
   # Configure the db string
@@ -163,8 +161,6 @@ class openstack::nova::controller (
     idle_timeout        => $idle_timeout,
     report_interval     => $nova_report_interval,
     service_down_time   => $nova_service_down_time,
-    memcached_servers   => $memcached_servers,
-    memcached_server_port => $memcached_server_port,
   }
 
   class {'nova::quota':

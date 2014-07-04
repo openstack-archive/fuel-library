@@ -1,17 +1,25 @@
+# == Class: nova::compute::neutron
 #
-class nova::compute::neutron (
-  $libvirt_vif_driver = 'nova.virt.libvirt.vif.LibvirtOpenVswitchDriver'
-){
+# Manage the network driver to use for compute guests
+# This will use virtio for VM guests and the
+# specified driver for the VIF
+#
+# === Parameters
+#
+# [*libvirt_vif_driver*]
+#   (optional) The libvirt VIF driver to configure the VIFs.
+#   Defaults to 'nova.virt.libvirt.vif.LibvirtGenericVIFDriver'.
+#
 
-  nova_config {
-    #    'DEFAULT/libvirt_vif_driver':             value => $libvirt_vif_driver;
-    #'libvirt_vif_driver':             value => 'nova.virt.libvirt.vif.LibvirtHybirdOVSBridgeDriver';
-    'DEFAULT/libvirt_use_virtio_for_bridges': value => 'True';
+class nova::compute::neutron (
+  $libvirt_vif_driver = 'nova.virt.libvirt.vif.LibvirtGenericVIFDriver'
+) {
+
+  if $libvirt_vif_driver == 'nova.virt.libvirt.vif.LibvirtOpenVswitchDriver' {
+    fail('nova.virt.libvirt.vif.LibvirtOpenVswitchDriver as vif_driver is removed from Icehouse')
   }
 
-  # notify and restart neutron-ovs-agent after firewall rules modification on compute
-  # to let it clean out old rules for stopped and removed instances
-  # this can happen when running Puppet on already deployed compute with running instances
-  Firewall <||> ~> Service <| title == 'neutron-ovs-agent' |>
-
+  nova_config {
+    'libvirt/vif_driver': value => $libvirt_vif_driver;
+  }
 }
