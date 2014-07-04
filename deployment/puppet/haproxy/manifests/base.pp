@@ -26,6 +26,8 @@ class haproxy::base (
   $global_options   = $haproxy::params::global_options,
   $defaults_options = $haproxy::params::defaults_options,
   $use_include      = $haproxy::params::use_include,
+  $use_stats        = $haproxy::params::use_stats,
+  $stats_port       = $haproxy::params::stats_port,
 ) inherits haproxy::params {
   include concat::setup
 
@@ -53,6 +55,14 @@ class haproxy::base (
   if $global_options['chroot'] {
     file { $global_options['chroot']:
       ensure => directory,
+    }
+  }
+
+  if $use_stats {
+    concat::fragment { 'haproxy-stats' :
+      target  => '/etc/haproxy/haproxy.cfg',
+      order   => '90',
+      content => template('haproxy/haproxy-stats.cfg.erb'),
     }
   }
 
