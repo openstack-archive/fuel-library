@@ -1,23 +1,23 @@
-# == Class: heat::heat::auth
+# == Class: heat::heat::auth_cfn
 #
-# Configures heat user, service and endpoint in Keystone.
+# Configures heat-api-cfn user, service and endpoint in Keystone.
 #
 # === Parameters
 #
 # [*password*]
-#   Password for heat user. Required.
+#   Password for heat-cfn user. Required.
 #
 # [*email*]
-#   Email for heat user. Optional. Defaults to 'heat@localhost'.
+#   Email for heat-cfn user. Optional. Defaults to 'heat@localhost'.
 #
 # [*auth_name*]
-#   Username for heat service. Optional. Defaults to 'heat'.
+#   Username for heat-cfn service. Optional. Defaults to 'heat'.
 #
 # [*configure_endpoint*]
-#   Should heat endpoint be configured? Optional. Defaults to 'true'.
+#   Should heat-cfn endpoint be configured? Optional. Defaults to 'true'.
 #
 # [*service_type*]
-#    Type of service. Optional. Defaults to 'orchestration'.
+#    Type of service. Optional. Defaults to 'cloudformation'.
 #
 # [*public_address*]
 #    Public address for endpoint. Optional. Defaults to '127.0.0.1'.
@@ -28,30 +28,30 @@
 # [*internal_address*]
 #    Internal address for endpoint. Optional. Defaults to '127.0.0.1'.
 #
-# [*version*]
-#   Version of API to use.  Optional.  Defaults to 'v1'
-#
 # [*port*]
-#    Port for endpoint. Optional. Defaults to '8004'.
+#    Port for endpoint. Optional. Defaults to '8000'.
 #
+# [*version*]
+#    Version for API.  Optional.  Defaults to 'v1'
+
 # [*region*]
 #    Region for endpoint. Optional. Defaults to 'RegionOne'.
 #
 # [*tenant*]
-#    Tenant for heat user. Optional. Defaults to 'services'.
+#    Tenant for heat-cfn user. Optional. Defaults to 'services'.
 #
 # [*protocol*]
 #    Protocol for public endpoint. Optional. Defaults to 'http'.
 #
-class heat::keystone::auth (
+class heat::keystone::auth_cfn (
   $password           = false,
-  $email              = 'heat@localhost',
-  $auth_name          = 'heat',
-  $service_type       = 'orchestration',
+  $email              = 'heat-cfn@localhost',
+  $auth_name          = 'heat-cfn',
+  $service_type       = 'cloudformation',
   $public_address     = '127.0.0.1',
   $admin_address      = '127.0.0.1',
   $internal_address   = '127.0.0.1',
-  $port               = '8004',
+  $port               = '8000',
   $version            = 'v1',
   $region             = 'RegionOne',
   $tenant             = 'services',
@@ -64,7 +64,7 @@ class heat::keystone::auth (
   validate_string($password)
 
   Keystone_user_role["${auth_name}@${tenant}"] ~>
-    Service <| name == 'heat-api' |>
+    Service <| name == 'heat-api-cfn' |>
 
   keystone_user { $auth_name:
     ensure   => present,
@@ -78,21 +78,17 @@ class heat::keystone::auth (
     roles   => ['admin'],
   }
 
-  keystone_role { 'heat_stack_user':
-        ensure => present,
-  }
-
   keystone_service { $auth_name:
     ensure      => present,
     type        => $service_type,
-    description => 'Openstack Orchestration Service',
+    description => 'Openstack Cloudformation Service',
   }
   if $configure_endpoint {
     keystone_endpoint { "${region}/${auth_name}":
       ensure       => present,
-      public_url   => "${public_protocol}://${public_address}:${port}/${version}/%(tenant_id)s",
-      admin_url    => "${admin_protocol}://${admin_address}:${port}/${version}/%(tenant_id)s",
-      internal_url => "${internal_protocol}://${internal_address}:${port}/${version}/%(tenant_id)s",
+      public_url   => "${public_protocol}://${public_address}:${port}/${version}/",
+      admin_url    => "${admin_protocol}://${admin_address}:${port}/${version}/",
+      internal_url => "${internal_protocol}://${internal_address}:${port}/${version}/",
     }
   }
 }
