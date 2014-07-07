@@ -204,6 +204,9 @@ class osnailyfacter::cluster_ha {
       rgw_pub_ip           => $::fuel_settings['public_vip'],
       rgw_adm_ip           => $::fuel_settings['management_vip'],
       rgw_int_ip           => $::fuel_settings['management_vip'],
+      use_syslog           => $::use_syslog,
+      syslog_log_level     => $syslog_log_level,
+      syslog_log_facility  => $::syslog_log_facility_ceph,
     }
   }
 
