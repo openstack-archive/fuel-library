@@ -1,0 +1,338 @@
+#!/bin/bash
+#
+#
+# OpenStack OVS Service (quantum-metadata-agent)
+#
+# Description:  Manages an OpenStack OVS Service (quantum-metadata-agent) process as an HA resource
+#
+# Authors: Emilien Macchi
+# Mainly inspired by the Nova Network resource agent written by Emilien Macchi & Sebastien Han
+#
+# Support:      openstack@lists.launchpad.net
+# License:      Apache Software License (ASL) 2.0
+#
+#
+# See usage() function below for more details ...
+#
+# OCF instance parameters:
+#   OCF_RESKEY_binary
+#   OCF_RESKEY_config
+#   OCF_RESKEY_agent_config
+#   OCF_RESKEY_user
+#   OCF_RESKEY_pid
+#######################################################################
+# Initialization:
+
+: ${OCF_FUNCTIONS_DIR=${OCF_ROOT}/lib/heartbeat}
+. ${OCF_FUNCTIONS_DIR}/ocf-shellfuncs
+
+#######################################################################
+
+# Fill in some defaults if no values are specified
+
+PATH=/sbin:/usr/sbin:/bin:/usr/bin
+
+OCF_RESKEY_binary_default="rabbitmq-server"
+OCF_RESKEY_control_default="/usr/sbin/rabbitmqctl"
+OCF_RESKEY_init_log_dir_default="/var/log/rabbitmq"
+OCF_RESKEY_user_default="rabbitmq"
+OCF_RESKEY_pid_default="$HA_RSCTMP/$OCF_RESOURCE_INSTANCE.pid"
+OCF_RESKEY_start_prog_default="runuser rabbitmq --session-command"
+OCF_RESKEY_lock_file_default="/var/lock/subsys/rabbitmq-server"
+
+: ${OCF_RESKEY_binary=${OCF_RESKEY_binary_default}}
+: ${OCF_RESKEY_user=${OCF_RESKEY_user_default}}
+: ${OCF_RESKEY_pid=${OCF_RESKEY_pid_default}}
+: ${OCF_RESKEY_control=${OCF_RESKEY_control_default}}
+: ${OCF_RESKEY_init_log_dir=${OCF_RESKEY_init_log_dir_default}}
+: ${OCF_RESKEY_start_prog=${OCF_RESKEY_start_prog_default}}
+: ${OCF_RESKEY_lock_file=${OCF_RESKEY_lock_file_default}}
+
+#######################################################################
+
+usage() {
+    cat <<UEND
+        usage: $0 (start|stop|validate-all|meta-data|status|monitor)
+
+        $0 manages an RabbitMQ server process as an HA resource 
+
+        The 'start' operation starts the networking service.
+        The 'stop' operation stops the networking service.
+        The 'validate-all' operation reports whether the parameters are valid
+        The 'meta-data' operation reports this RA's meta-data information
+        The 'status' operation reports whether the networking service is running
+        The 'monitor' operation reports whether the networking service seems to be working
+
+UEND
+}
+
+meta_data() {
+    cat <<END
+<?xml version="1.0"?>
+<!DOCTYPE resource-agent SYSTEM "ra-api-1.dtd">
+<resource-agent name="quantum-metadata-agent">
+<version>1.0</version>
+
+<longdesc lang="en">
+Resource agent for the RabbitMQ server
+May manage a RabbitMQ server instance or a clone set that 
+creates a distributed RabbitMQ cluster.
+</longdesc>
+<shortdesc lang="en">RabbitMQ server</shortdesc>
+
+<parameters>
+
+<parameter name="binary" unique="0" required="0">
+<longdesc lang="en">
+Location of the RabbitMQ server binary
+</longdesc>
+<shortdesc lang="en">RabbitMQ server binary</shortdesc>
+<content type="string" default="${OCF_RESKEY_binary_default}" />
+</parameter>
+
+<parameter name="user" unique="0" required="0">
+<longdesc lang="en">
+User running RabbitMQ server
+</longdesc>
+<shortdesc lang="en">RabbitMQ server user</shortdesc>
+<content type="string" default="${OCF_RESKEY_user_default}" />
+</parameter>
+
+<parameter name="control" unique="0" required="0">
+<longdesc lang="en">
+The control utility to use for this RabbitMQ server instance
+</longdesc>
+<shortdesc lang="en">RabbitMQ server control utility</shortdesc>
+<content type="string" default="${OCF_RESKEY_control_default}" />
+</parameter>  
+
+: ${OCF_RESKEY_init_log_dir=${OCF_RESKEY_init_log_dir_default}}
+: ${OCF_RESKEY_start_prog=${OCF_RESKEY_start_prog_default}}
+: ${OCF_RESKEY_lock_file=${OCF_RESKEY_lock_file_default}}
+
+<parameter name="init_log_dir" unique="0" required="0">
+<longdesc lang="en">
+undef
+</longdesc>
+<shortdesc lang="en">undef</shortdesc>
+<content type="string" default="${OCF_RESKEY_init_log_dir_default}" />
+</parameter>  
+
+<parameter name="start_prog" unique="0" required="0">
+<longdesc lang="en">
+undef</longdesc>
+<shortdesc lang="en">undef</shortdesc>
+<content type="string" default="${OCF_RESKEY_start_prog_default}" />
+</parameter>  
+
+<parameter name="lock_file" unique="0" required="0">
+<longdesc lang="en">
+Lock file
+</longdesc>
+<shortdesc lang="en">Lock file</shortdesc>
+<content type="string" default="${OCF_RESKEY_lock_file_default}" />
+</parameter>  
+
+</parameters>
+
+<actions>
+<action name="start" timeout="20" />
+<action name="stop" timeout="20" />
+<action name="status" timeout="20" />
+<action name="monitor" timeout="30" interval="20" />
+<action name="validate-all" timeout="5" />
+<action name="meta-data" timeout="5" />
+</actions>
+</resource-agent>
+END
+}
+
+#######################################################################
+# Functions invoked by resource manager actions
+
+rabbit_mq_validate() {
+    local rc
+
+    check_binary $OCF_RESKEY_binary
+    check_binary $OCF_RESKEY_control
+    check_binary netstat
+
+    getent passwd $OCF_RESKEY_user >/dev/null 2>&1
+    rc=$?
+    if [ $rc -ne 0 ]; then
+        ocf_log err "User $OCF_RESKEY_user doesn't exist"
+        return $OCF_ERR_INSTALLED
+    fi
+
+    if ! [ -d $OCF_RESKEY_init_log_dir ]; then
+        ocf_log err "Directory $OCF_RESKEY_init_log_dir does not exist"
+        return $OCF_ERR_INSTALLED
+    fi
+
+    true
+}
+
+
+rabbit_mq_status() {
+    local pid
+    local rc
+
+    if [ ! -f $OCF_RESKEY_pid ]; then
+        ocf_log info "Rabbit-MQ server seems not to exist"
+        
+        pid=`pgrep -f ${OCF_RESKEY_binary}`
+        
+        if [ $? -eq 0 ]
+        then
+        	ocf_log warn "Rabbit-MQ server was run, but no pid file found."
+        	ocf_log warn "Will use $pid as PID of process Rabbit-MQ server"
+        	ocf_log warn "Writing $pid into $OCF_RESKEY_pid"
+        	echo $pid > $OCF_RESKEY_pid
+    	else
+    		return $OCF_NOT_RUNNING
+    	fi
+    else
+        pid=`cat $OCF_RESKEY_pid`
+    fi
+
+    $OCF_RESKEY_control status > /dev/null 2>&1
+    rc=$?
+    if [ $rc -eq 0 ]; then
+        return $OCF_SUCCESS
+    else
+        ocf_log info "Old PID file $OCF_RESKEY_pid found (with pid $pid), but Rabbit-MQ server is not running"
+        return $OCF_NOT_RUNNING
+    fi
+}
+
+rabbit_mq_monitor() {
+    rabbit_mq_status
+    rc=$?
+    return $rc
+}
+
+clean_up() {
+	ocf_log info "cleaning up Rabbit-MQ server. nothing to do."
+}
+
+# rotate_logs_rabbitmq() {
+#     $OCF_RESKEY_control rotate_logs > /dev/null 2>&1
+#     if [ $? != 0 ] ; then
+#         RETVAL=1
+#     fi
+# }
+
+rabbit_mq_start() {
+    local rc
+    
+    rabbit_mq_status
+    rc=$?
+    if [ $rc -eq $OCF_SUCCESS ]; then
+        ocf_log info "Rabbit-MQ server already running"
+        return $OCF_SUCCESS
+    fi
+    
+    clean_up
+    
+    # run the actual quantum-metadata-agent daemon. Don't use ocf_run as we're sending the tool's output
+    # straight to /dev/null anyway and using ocf_run would break stdout-redirection here.
+    su ${OCF_RESKEY_user} -s /bin/sh -c "${OCF_RESKEY_binary} --config-file=$OCF_RESKEY_config \
+       --config-file=$OCF_RESKEY_agent_config $OCF_RESKEY_additional_parameters"' >> \
+	/dev/null 2>&1 & echo $!' > $OCF_RESKEY_pid
+
+    # Spin waiting for the server to come up.
+    # Let the CRM/LRM time us out if required
+    while true; do
+    rabbit_mq_monitor
+    rc=$?
+    [ $rc -eq $OCF_SUCCESS ] && break
+    if [ $rc -ne $OCF_NOT_RUNNING ]; then
+        ocf_log err "Rabbit-MQ server start failed"
+        exit $OCF_ERR_GENERIC
+    fi
+    sleep 1
+    done
+
+    ocf_log info "Rabbit-MQ server started"
+    return $OCF_SUCCESS
+}
+
+rabbit_mq_stop() {
+    local rc
+    local pid
+
+    rabbit_mq_status
+    rc=$?
+    if [ $rc -eq $OCF_NOT_RUNNING ]; then
+    	clean_up
+        ocf_log info "Rabbit-MQ server already stopped"
+        return $OCF_SUCCESS
+    fi
+
+    # Try SIGTERM
+    pid=`cat $OCF_RESKEY_pid`
+    ocf_run kill -s TERM $pid
+    rc=$?
+    if [ $rc -ne 0 ]; then
+        ocf_log err "Rabbit-MQ server couldn't be stopped"
+        exit $OCF_ERR_GENERIC
+    fi
+
+    # stop waiting
+    shutdown_timeout=15
+    if [ -n "$OCF_RESKEY_CRM_meta_timeout" ]; then
+        shutdown_timeout=$((($OCF_RESKEY_CRM_meta_timeout/1000)-5))
+    fi
+    count=0
+    while [ $count -lt $shutdown_timeout ]; do
+        rabbit_mq_status
+        rc=$?
+        if [ $rc -eq $OCF_NOT_RUNNING ]; then
+            break
+        fi
+        count=`expr $count + 1`
+        sleep 1
+        ocf_log debug "Rabbit-MQ server still hasn't stopped yet. Waiting ..."
+    done
+
+    rabbit_mq_status
+    rc=$?
+    if [ $rc -ne $OCF_NOT_RUNNING ]; then
+        # SIGTERM didn't help either, try SIGKILL
+        ocf_log info "Rabbit-MQ server failed to stop after ${shutdown_timeout}s \
+          using SIGTERM. Trying SIGKILL ..."
+        ocf_run kill -s KILL $pid
+    fi
+
+    clean_up 
+
+    ocf_log info "Rabbit-MQ server stopped"
+
+    rm -f $OCF_RESKEY_pid
+
+    return $OCF_SUCCESS
+}
+
+#######################################################################
+
+case "$1" in
+  meta-data)    meta_data
+                exit $OCF_SUCCESS;;
+  usage|help)   usage
+                exit $OCF_SUCCESS;;
+esac
+
+# Anything except meta-data and help must pass validation
+rabbit_mq_validate || exit $?
+
+# What kind of method was invoked?
+case "$1" in
+  start)        rabbit_mq_start;;
+  stop)         rabbit_mq_stop;;
+  status)       rabbit_mq_status;;
+  monitor)      rabbit_mq_monitor;;
+  validate)     rabbit_mq_validate;;
+  validate-all) rabbit_mq_validate;;
+  *)            usage
+                exit $OCF_ERR_UNIMPLEMENTED;;
+esac
