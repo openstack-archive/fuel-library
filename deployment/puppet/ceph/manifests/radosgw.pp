@@ -32,6 +32,11 @@ class ceph::radosgw (
   $rgw_keystone_accepted_roles      = $::ceph::rgw_keystone_accepted_roles,
   $rgw_keystone_revocation_interval = $::ceph::rgw_keystone_revocation_interval,
   $rgw_nss_db_path                  = $::ceph::rgw_nss_db_path,
+
+  #rgw Log settings
+  $use_syslog                       = $::ceph::use_syslog,
+  $syslog_facility                  = $::ceph::syslog_log_facility,
+  $syslog_level                     = $::ceph::syslog_log_level,
 ) {
 
   $keyring_path     = "/etc/ceph/keyring.${rgw_id}"
@@ -93,14 +98,17 @@ class ceph::radosgw (
   }
 
   ceph_conf {
-    "client.${rgw_id}/host":                value => $rgw_host;
-    "client.${rgw_id}/keyring":             value => $keyring_path;
-    "client.${rgw_id}/rgw_socket_path":     value => $rgw_socket_path;
-    "client.${rgw_id}/log_file":            value => $rgw_log_file;
-    "client.${rgw_id}/user":                value => $rgw_user;
-    "client.${rgw_id}/rgw_data":            value => $rgw_data;
-    "client.${rgw_id}/rgw_dns_name":        value => $rgw_dns_name;
-    "client.${rgw_id}/rgw_print_continue":  value => $rgw_print_continue;
+    "client.${rgw_id}/host":                   value => $rgw_host;
+    "client.${rgw_id}/keyring":                value => $keyring_path;
+    "client.${rgw_id}/rgw_socket_path":        value => $rgw_socket_path;
+    "client.${rgw_id}/log_file":               value => $rgw_log_file;
+    "client.${rgw_id}/log_to_syslog":          value => $use_syslog;
+    "client.${rgw_id}/log_to_syslog_level":    value => $syslog_log_level;
+    "client.${rgw_id}/log_to_syslog_facility": value => $syslog_log_facility;
+    "client.${rgw_id}/user":                   value => $rgw_user;
+    "client.${rgw_id}/rgw_data":               value => $rgw_data;
+    "client.${rgw_id}/rgw_dns_name":           value => $rgw_dns_name;
+    "client.${rgw_id}/rgw_print_continue":     value => $rgw_print_continue;
   }
 
   if ($use_ssl) {
@@ -172,9 +180,11 @@ class ceph::radosgw (
 
   } #END osfamily Debian
 
-  file {$rgw_log_file:
-    ensure => present,
-    mode   => '0755'
+  if ! $use_syslog {
+    file { $rgw_log_file:
+      ensure => present,
+      mode   => '0755'
+    }
   }
 
   file {[$::ceph::params::dir_httpd_ssl,
