@@ -113,6 +113,7 @@ $syslog_log_facility_murano     = 'LOG_LOCAL0'
 $syslog_log_facility_heat       = 'LOG_LOCAL0'
 $syslog_log_facility_sahara     = 'LOG_LOCAL0'
 $syslog_log_facility_ceilometer = 'LOG_LOCAL0'
+$syslog_log_facility_ceph       = 'LOG_LOCAL0'
 
 $nova_rate_limits = {
   'POST' => 100000,
