@@ -38,6 +38,7 @@ class ceilometer::alarm::evaluator (
 
   Package['ceilometer-common'] -> Service['ceilometer-alarm-evaluator']
 
+<<<<<<< HEAD
   service { 'ceilometer-alarm-evaluator':
     ensure     => $service_ensure,
     name       => $::ceilometer::params::alarm_evaluator_service_name,
@@ -45,6 +46,61 @@ class ceilometer::alarm::evaluator (
     hasstatus  => true,
     hasrestart => true
   }
+=======
+    $res_name = "p_${::ceilometer::params::alarm_evaluator_service}"
+
+    Package['ceilometer-common'] -> File['ceilometer-alarm-evaluator-ocf']
+    Package[$::ceilometer::params::alarm_package] -> File['ceilometer-alarm-evaluator-ocf']
+    Package['pacemaker'] -> File['ceilometer-alarm-evaluator-ocf']
+    file {'ceilometer-alarm-evaluator-ocf':
+      path   =>'/usr/lib/ocf/resource.d/mirantis/ceilometer-alarm-evaluator',
+      mode   => '0755',
+      owner  => root,
+      group  => root,
+      source => 'puppet:///modules/ceilometer/ocf/ceilometer-alarm-evaluator',
+    }
+
+    if $primary_controller {
+      cs_resource { $res_name:
+        ensure          => present,
+        primitive_class => 'ocf',
+        provided_by     => 'mirantis',
+        primitive_type  => 'ceilometer-alarm-evaluator',
+        metadata        => { 'target-role' => 'stopped' },
+        parameters      => { 'user' => 'ceilometer' },
+        operations      => {
+          'monitor'  => {
+            'interval' => '20',
+            'timeout'  => '30'
+          }
+          ,
+          'start'    => {
+            'timeout' => '360'
+          }
+          ,
+          'stop'     => {
+            'timeout' => '360'
+          }
+        },
+      }
+      File['ceilometer-alarm-evaluator-ocf'] -> Cs_resource[$res_name] -> Service['ceilometer-alarm-evaluator']
+    } else {
+      File['ceilometer-alarm-evaluator-ocf'] -> Service['ceilometer-alarm-evaluator']
+    }
+
+    service { 'ceilometer-alarm-evaluator':
+      ensure     => $service_ensure,
+      name       => $res_name,
+      enable     => $enabled,
+      hasstatus  => true,
+      hasrestart => true,
+      provider   => 'pacemaker',
+    }
+
+  } else {
+    Package['ceilometer-common'] -> Service['ceilometer-alarm-evaluator']
+    Package[$::ceilometer::params::alarm_package] -> Service['ceilometer-alarm-evaluator']
+>>>>>>> The modified puppet code style
 
   ceilometer_config {
     'alarm/evaluation_interval' :  value => $evaluation_interval;

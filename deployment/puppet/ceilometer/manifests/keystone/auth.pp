@@ -132,12 +132,24 @@ class ceilometer::keystone::auth (
     description => 'Openstack Metering Service',
   }
   if $configure_endpoint {
+<<<<<<< HEAD
     keystone_endpoint { "${region}/${auth_name}":
       ensure       => present,
       public_url   => $public_url_real,
       admin_url    => $admin_url_real,
       internal_url => $internal_url_real,
+=======
+    $public_protocol    = $api_protocol
+    $admin_protocol     = $api_protocol
+    $internal_protocol  = $api_protocol
+
+    keystone_endpoint { $auth_name:
+      ensure       => present,
+      region       => $region,
+      public_url   => "${public_protocol}://${public_address}:${port}",
+      admin_url    => "${admin_protocol}://${admin_address}:${port}",
+      internal_url => "${internal_protocol}://${internal_address}:${port}",
+>>>>>>> The modified puppet code style
     }
   }
 }
-

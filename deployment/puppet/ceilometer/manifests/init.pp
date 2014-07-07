@@ -227,7 +227,13 @@ class ceilometer(
       'DEFAULT/qpid_reconnect_interval_max': value => $qpid_reconnect_interval_max;
       'DEFAULT/qpid_reconnect_interval'    : value => $qpid_reconnect_interval;
     }
+<<<<<<< HEAD
 
+=======
+    default: {
+      fail("Module ${module_name} is not supported on ${::operatingsystem}")
+    }
+>>>>>>> The modified puppet code style
   }
 
   # Once we got here, we can act as an honey badger on the rpc used.

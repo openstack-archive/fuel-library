@@ -66,6 +66,10 @@ class ceilometer::db (
 
   ceilometer_config {
     'database/connection': value => $database_connection;
+<<<<<<< HEAD
+=======
+    'database/max_retries': value => '-1';
+>>>>>>> The modified puppet code style
   }
 
   Ceilometer_config['database/connection'] ~> Exec['ceilometer-dbsync']
