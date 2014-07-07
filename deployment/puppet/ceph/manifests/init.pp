@@ -67,6 +67,11 @@ class ceph (
       $compute_user          = 'compute',
       $compute_pool          = 'compute',
       $libvirt_images_type   = 'rbd',
+
+      # Log settings
+      $use_syslog            = false,
+      $syslog_log_facility   = 'daemon',
+      $syslog_log_level      = 'info',
 ) {
 
   Exec { path => [ '/bin/', '/sbin/' , '/usr/bin/', '/usr/sbin/' ],

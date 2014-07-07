@@ -37,6 +37,10 @@ class ceph::conf {
       'global/osd_pool_default_pgp_num':  value => $::ceph::osd_pool_default_pgp_num;
       'global/cluster_network':           value => $::ceph::cluster_network;
       'global/public_network':            value => $::ceph::public_network;
+      'global/log_file':                  value => $::ceph::rgw_log_file;
+      'global/log_to_syslog':             value => $::ceph::use_syslog;
+      'global/log_to_syslog_level':       value => $::ceph::syslog_log_level;
+      'global/log_to_syslog_facility':    value => $::ceph::syslog_log_facility;
     }
 
     Exec['ceph-deploy new'] ->
