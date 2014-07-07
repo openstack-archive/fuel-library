@@ -68,6 +68,9 @@ COBBLER_USER: "<%= @cobbler_user %>"
 COBBLER_PASSWORD: "<%= @cobbler_password %>"
 COBBLER_PROFILE: "centos-x86_64"
 
+# Must be one of "cobbler" or "image"
+PROVISION_METHOD: "cobbler"
+
 MCO_PSKEY: "<%= @mco_pskey %>"
 MCO_VHOST: "<%= @mco_vhost %>"
 MCO_HOST: <%= @mco_host %>
