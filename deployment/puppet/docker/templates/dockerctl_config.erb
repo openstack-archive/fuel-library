@@ -33,7 +33,6 @@ SOURCE_IMAGES['mcollective']="${IMAGE_DIR}/mcollective${ZIP_EXT}"
 
 # storage container names
 PREFIX_STORAGE="fuel-storage-${VERSION}-"
-DUMP_CNT="${PREFIX_STORAGE}dump"
 REPO_CNT="${PREFIX_STORAGE}repo"
 PUPPET_CNT="${PREFIX_STORAGE}puppet"
 LOG_CNT="${PREFIX_STORAGE}log"
@@ -74,9 +73,7 @@ CONTAINER_OPTIONS["mcollective"]="--privileged $base_opts"
 
 #Host volumes
 declare -A HOST_VOL
-HOST_VOL['dump']="-v /var/www/nailgun/dump:/dump"
-#HOST_VOL['dump']="-v /var/www/nailgun/dump:/var/www/nailgun/dump"
-HOST_VOL['repo']="-v /var/www/nailgun:/repo:ro"
+HOST_VOL['repo']="-v /var/www/nailgun:/var/www/nailgun:rw"
 HOST_VOL['puppet']="-v /etc/puppet:/puppet:ro"
 HOST_VOL['sshkey']="-v /root/.ssh:/root/.ssh:ro"
 HOST_VOL['astuteyaml']="-v /etc/fuel:/etc/fuel:ro"
@@ -85,7 +82,6 @@ HOST_VOL['dockerlogs']="-v /var/log/docker-logs:/log"
 
 #Storage container volume mounts
 declare -A CONTAINER_VOLUMES
-CONTAINER_VOLUMES[$DUMP_CNT]="${HOST_VOL['dump']}"
 CONTAINER_VOLUMES[$REPO_CNT]="${HOST_VOL['repo']}"
 #TODO(mattymo): inject puppet modules to puppet container during initial run
 #instead of relaying host dir
@@ -93,7 +89,6 @@ CONTAINER_VOLUMES[$PUPPET_CNT]="${HOST_VOL['puppet']}"
 CONTAINER_VOLUMES[$LOG_CNT]="${HOST_VOL['dockerlogs']} ${HOST_VOL['remotelogs']}"
 
 #Storage container volumes
-DUMP_VOL="--volumes-from $DUMP_CNT"
 REPO_VOL="--volumes-from $REPO_CNT"
 PUPPET_VOL="--volumes-from $PUPPET_CNT"
 LOG_VOL="-v /var/log/docker-logs:/var/log"
@@ -108,21 +103,20 @@ ASTUTE_VOL="--volumes-from ${CONTAINER_NAMES['astute']}"
 ###requirements cheat sheet
 ###ALL: astuteyaml $REPO_CNT $LOG_VOL
 ###sshkey: nailgun cobbler astute mcollective ostf
-###dump: nginx mcollective
+###reporw: nginx mcollective
 ###remotelogs: rsyslog nailgun nginx
 ###nailgun: nginx mcollective
 ###cobbler: mcollective
 ###astute: mcollective
 #
 declare -A REQS
-REQS["${HOST_VOL['astuteyaml']}"]="cobbler postgres rabbitmq rsync astute nailgun ostf nginx rsyslog mcollective"
-REQS["$REPO_VOL"]="cobbler postgres rabbitmq rsync astute nailgun ostf nginx rsyslog mcollective"
+REQS["${HOST_VOL['astuteyaml']}"]="cobbler postgres rabbitmq rsync astute nailgun ostf nginx rsyslog mcollective keystone"
+REQS["${HOST_VOL['repo']}"]="cobbler postgres rabbitmq rsync astute nailgun ostf nginx rsyslog keystone mcollective"
 #Most containers work from local integrated puppet
 REQS["$PUPPET_VOL"]="rsync"
 #REQS["$PUPPET_VOL"]="cobbler postgres rabbitmq rsync astute nailgun ostf nginx rsyslog mcollective"
 REQS["$LOG_VOL"]="cobbler postgres rabbitmq rsync astute nailgun ostf nginx rsyslog mcollective"
 REQS["${HOST_VOL['sshkey']}"]="nailgun cobbler astute mcollective ostf"
-REQS["${HOST_VOL['dump']}"]="nginx mcollective"
 #REQS["${HOST_VOL['remotelogs']}"]="rsyslog nailgun nginx"
 REQS["$NAILGUN_VOL"]="nginx mcollective"
 REQS["$COBBLER_VOL"]="mcollective"
