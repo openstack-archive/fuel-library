@@ -8,7 +8,7 @@
 #   Specify dictionary of VIPs describing. Ex:
 #   {
 #     virtual_ip1_name => {
-#       nic    => 'eth0',	
+#       nic    => 'eth0',
 #       ip     => '10.1.1.253'
 #     },
 #     virtual_ip2_name => {
@@ -23,7 +23,7 @@
 define cluster::virtual_ips (
   $vips
 ){
-  cluster::virtual_ip {"$name":
+  cluster::virtual_ip { $name:
     vip => $vips[$name],
   }
 }

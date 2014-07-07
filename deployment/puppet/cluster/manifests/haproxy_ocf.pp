@@ -28,25 +28,25 @@ class cluster::haproxy_ocf (
       multistate_hash => {
         'type' => 'clone',
       },
-      ms_metadata => {
-        'interleave' => 'true',
+      ms_metadata     => {
+        'interleave' => true,
       },
-      metadata => {
+      metadata        => {
         'migration-threshold' => '3',
         'failure-timeout'     => '120',
       },
-      parameters => {
+      parameters      => {
         'ns' => 'haproxy',
       },
-      operations => {
+      operations      => {
         'monitor' => {
           'interval' => '20',
           'timeout'  => '10'
         },
-        'start' => {
+        'start'   => {
           'timeout' => '30'
         },
-        'stop' => {
+        'stop'    => {
           'timeout' => '30'
         },
       },
@@ -82,8 +82,8 @@ class cluster::haproxy_ocf (
     } -> File['haproxy-ocf']
     if $::operatingsystem == 'Ubuntu' {
       file { '/etc/init/haproxy.override':
-        replace => 'no',
         ensure  => 'present',
+        replace => 'no',
         content => 'manual',
         mode    => '0644'
       } -> File['haproxy-ocf']
@@ -91,18 +91,18 @@ class cluster::haproxy_ocf (
   }
 
   service { 'haproxy-init-stopped':
+    ensure     => 'stopped',
     name       => 'haproxy',
     enable     => false,
-    ensure     => 'stopped',
   } -> File['haproxy-ocf']
 
   sysctl::value { 'net.ipv4.ip_nonlocal_bind':
     value => '1'
   } ->
-  service { "$service_name":
+  service { $service_name:
+    ensure     => 'running',
     name       => $service_name,
     enable     => true,
-    ensure     => 'running',
     hasstatus  => true,
     hasrestart => true,
     provider   => 'pacemaker',
