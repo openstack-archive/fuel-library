@@ -16,10 +16,10 @@ $public_network = '192.168.0.0/24'
 # cluster_network is necessary to ensure that osd's bind to the expected interface.
 $cluster_network = '10.0.0.0/24'
 
-# osd_devices is used in ceph::osd to activate the disk and join it to the 
+# osd_devices is used in ceph::osd to activate the disk and join it to the
 # cluster.
 # it may be <device_name|mounted_path>[:journal_device|journal_path]...
-$osd_devices = split($::osd_devices_list, " ")
+$osd_devices = split($::osd_devices_list, ' ')
 
 ########
 #RadosGW
@@ -36,7 +36,7 @@ $use_rgw = false
 
 #rgw_use_pki if true, attempt to sign the keystone certs and enable PKI
 # token verification. If false, will defalt to values that should work with UUID
-# this requires keystone.conf to use token_format = PKI and 
+# this requires keystone.conf to use token_format = PKI and
 # keystone-manage pki_setup to have been run. This also assumes that rados is
 # being installed on the keystone server, otherwise you will need to move the
 # keys yourself into /etc/keystone/ssl.
@@ -79,7 +79,7 @@ node 'default' {
       public_network            => $public_network,
 
       # RadosGW settings
-      rgw_host                         => $::osfamily ? {'Debian'=> $::hostname, default => $::fqdn},
+      rgw_host                         => $::osfamily ? { 'Debian' => $::hostname, default => $::fqdn },
       rgw_port                         => $rgw_port,
       rgw_keyring_path                 => '/etc/ceph/keyring.radosgw.gateway',
       rgw_socket_path                  => '/tmp/radosgw.sock',
@@ -93,7 +93,7 @@ node 'default' {
       rgw_keystone_revocation_interval => $::ceph::rgw_use_pki ? { false => 1000000, default => 60 },
       rgw_data                         => '/var/lib/ceph/radosgw',
       rgw_dns_name                     => "*.${::domain}",
-      rgw_print_continue               => 'false',
+      rgw_print_continue               => false,
       rgw_nss_db_path                  => '/etc/ceph/nss',
 
       # Keystone settings
