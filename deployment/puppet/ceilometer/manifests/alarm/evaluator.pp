@@ -94,7 +94,7 @@ class ceilometer::alarm::evaluator (
       enable     => $enabled,
       hasstatus  => true,
       hasrestart => true,
-      provider   => "pacemaker",
+      provider   => 'pacemaker',
     }
 
   } else {
