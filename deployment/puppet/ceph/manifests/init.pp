@@ -31,7 +31,7 @@ class ceph (
       $swift_endpoint_port              = '8080',
       $rgw_keyring_path                 = '/etc/ceph/keyring.radosgw.gateway',
       $rgw_socket_path                  = '/tmp/radosgw.sock',
-      $rgw_log_file                     = '/var/log/ceph/radosgw.log',
+      $rgw_log_file                     = 'none',
       $rgw_use_keystone                 = true,
       $rgw_use_pki                      = false,
       $rgw_keystone_url                 = "${cluster_node_address}:5000",
@@ -67,6 +67,12 @@ class ceph (
       $compute_user          = 'compute',
       $compute_pool          = 'compute',
       $libvirt_images_type   = 'rbd',
+
+      # Log settings
+      $use_syslog            = true,
+      $syslog_log_facility   = 'daemon',
+      $syslog_log_level      = 'info',
+
 ) {
 
   Exec { path => [ '/bin/', '/sbin/' , '/usr/bin/', '/usr/sbin/' ],
