@@ -20,39 +20,63 @@ define cluster::virtual_ip (
 ){
   $vip_name = "vip__${key}"
 
-  File['ns-ipaddr2-ocf'] -> Cs_resource["${vip_name}"]
+  File['ns-ipaddr2-ocf'] -> Cs_resource['$vip_name']
 
   cs_resource { $vip_name:
     ensure          => present,
     primitive_class => 'ocf',
     provided_by     => 'mirantis',
     primitive_type  => 'ns_IPaddr2',
-    parameters => {
+    parameters      => {
       'nic'                  => $vip[nic],
       'base_veth'            => $vip[base_veth],
       'ns_veth'              => $vip[ns_veth],
       'ip'                   => $vip[ip],
-      'iflabel'              => $vip[iflabel] ? { undef => 'ka', default => $vip[iflabel] },
-      'cidr_netmask'         => $vip[cidr_netmask] ? { undef => '24', default => $vip[cidr_netmask] },
-      'ns'                   => $vip[namespace] ? { undef => 'haproxy', default => $vip[namespace] },
-      'gateway'              => $vip[gateway] ? { undef => '', default => $vip[gateway] },
-      'gateway_metric'       => $vip[gateway_metric] ? { undef => '0', default => $vip[gateway_metric] },
-      'iptables_start_rules' => $vip[iptables_start_rules] ? { undef => '', default => "'${vip[iptables_start_rules]}'" },
-      'iptables_stop_rules'  => $vip[iptables_stop_rules] ? { undef => '', default => "'${vip[iptables_stop_rules]}'" },
-      'iptables_comment'     => $vip[iptables_comment] ? { undef => 'default-comment', default => "'${vip[iptables_comment]}'" },
+      'iflabel'              => $vip[iflabel] ? {
+        undef   => 'ka',
+        default => $vip[iflabel]
+      },
+      'cidr_netmask'         => $vip[cidr_netmask] ? {
+        undef   => '24',
+        default => $vip[cidr_netmask]
+      },
+      'ns'                   => $vip[namespace] ? {
+        undef   => 'haproxy',
+        default => $vip[namespace]
+      },
+      'gateway'              => $vip[gateway] ? {
+        undef   => '',
+        default => $vip[gateway]
+      },
+      'gateway_metric'       => $vip[gateway_metric] ? {
+        undef   => '0',
+        default => $vip[gateway_metric]
+      },
+      'iptables_start_rules' => $vip[iptables_start_rules] ? {
+        undef   => '',
+        default => "'${vip[iptables_start_rules]}'"
+      },
+      'iptables_stop_rules'  => $vip[iptables_stop_rules] ? {
+        undef   => '',
+        default => "'${vip[iptables_stop_rules]}'"
+      },
+      'iptables_comment'     => $vip[iptables_comment] ? {
+        undef   => 'default-comment',
+        default => "'${vip[iptables_comment]}'"
+      },
     },
-    metadata => {
+    metadata        => {
       'resource-stickiness' => '1',
     },
-    operations => {
+    operations      => {
       'monitor' => {
         'interval' => '2',
         'timeout'  => '30'
       },
-      'start' => {
+      'start'   => {
         'timeout' => '30'
       },
-      'stop' => {
+      'stop'    => {
         'timeout' => '30'
       },
     },
