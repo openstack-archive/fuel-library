@@ -131,6 +131,7 @@ class cobbler::server (
       File['/etc/dnsmasq.upstream']],
     subscribe   => Service[$cobbler_service],
     notify      => [Service[$dnsmasq_service], Service["xinetd"]],
+    logoutput   => true,
     tries       => 20,
     try_sleep   => 3,
   }
