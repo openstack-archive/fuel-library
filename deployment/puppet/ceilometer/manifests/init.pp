@@ -113,6 +113,9 @@ class ceilometer(
           value => 'ceilometer.openstack.common.rpc.impl_qpid';
       }
     }
+    default: {
+      fail("Module ${module_name} is not supported on ${::operatingsystem}")
+    }
   }
 
   ceilometer_config {
@@ -121,7 +124,7 @@ class ceilometer(
     'DEFAULT/verbose'                : value => $verbose;
   }
 
- # Log configuration
+  # Log configuration
   if $log_dir {
     ceilometer_config {
       'DEFAULT/log_dir' : value => $log_dir;

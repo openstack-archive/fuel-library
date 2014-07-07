@@ -91,7 +91,10 @@ class ceilometer::agent::central (
         primitive_class => 'ocf',
         provided_by     => 'mirantis',
         primitive_type  => 'ceilometer-agent-central',
-        metadata        => { 'target-role' => 'stopped', 'resource-stickiness' => '1' },
+        metadata        => {
+          'target-role'         => 'stopped',
+          'resource-stickiness' => '1'
+        },
         parameters      => { 'user' => 'ceilometer' },
         operations      => {
           'monitor'  => {
@@ -117,7 +120,7 @@ class ceilometer::agent::central (
       enable     => $enabled,
       hasstatus  => true,
       hasrestart => true,
-      provider   => "pacemaker",
+      provider   => 'pacemaker',
     }
 
   } else {

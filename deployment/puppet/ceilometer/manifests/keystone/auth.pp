@@ -89,13 +89,12 @@ class ceilometer::keystone::auth (
     $admin_protocol     = $api_protocol
     $internal_protocol  = $api_protocol
 
-    keystone_endpoint { "${auth_name}":
-      region       => $region,
+    keystone_endpoint { $auth_name:
       ensure       => present,
+      region       => $region,
       public_url   => "${public_protocol}://${public_address}:${port}",
       admin_url    => "${admin_protocol}://${admin_address}:${port}",
       internal_url => "${internal_protocol}://${internal_address}:${port}",
     }
   }
 }
-
