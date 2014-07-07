@@ -9,7 +9,7 @@ class ceph::apt (
   }
   apt::key { 'radosgw':
     key     => '6EAEAE2203C3951A',
-    require => Class['ceph::ssh']  
+    require => Class['ceph::ssh']
   }
   Apt::Source {
     require => Apt::Key['ceph', 'radosgw'],

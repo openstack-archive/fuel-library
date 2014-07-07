@@ -1,0 +1,11 @@
+require 'rubygems'
+require 'puppetlabs_spec_helper/rake_tasks'
+require 'puppet-lint/tasks/puppet-lint'
+PuppetLint.configuration.send('disable_80chars')
+PuppetLint.configuration.send('disable_2sp_soft_tabs')
+PuppetLint.configuration.send('disable_arrow_alignment')
+PuppetLint.configuration.send('disable_autoloader_layout')
+PuppetLint.configuration.send('disable_selector_inside_resource')
+
+# Disable check due to upstream bug: https://github.com/rodjek/puppet-lint/issues/170
+PuppetLint.configuration.send('disable_class_parameter_defaults')
