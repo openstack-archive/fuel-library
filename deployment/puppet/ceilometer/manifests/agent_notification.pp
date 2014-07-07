@@ -34,6 +34,9 @@ class ceilometer::agent_notification (
 
       Package['ceilometer-agent-notification'] -> Service['ceilometer-agent-notification']
     }
+    default: {
+        fail("Module ${module_name} is not supported on ${::operatingsystem}")
+    }
   }
 
 
@@ -99,6 +102,9 @@ class ceilometer::agent_notification (
       notify{ "Module ${module_name} cannot notify service ceilometer-agent-notification\
  on packages update": }
       }
+    }
+    default: {
+        fail("Module ${module_name} is not supported on ${::operatingsystem}")
     }
   }
 }

@@ -45,7 +45,7 @@ class ceilometer::db (
 
   ceilometer_config {
     'database/connection': value => $database_connection;
-    'database/max_retries': value => "-1";
+    'database/max_retries': value => '-1';
   }
 
   Ceilometer_config['database/connection'] ~> Exec['ceilometer-dbsync']
