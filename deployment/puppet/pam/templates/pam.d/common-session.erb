@@ -1,0 +1,17 @@
+###############################################################################
+# << FILE MANAGED BY PUPPET >>
+# Manual changes are likey to be overwritten
+###############################################################################
+
+<% if scope.lookupvar('pam::pamd::pam_mkhomedir') == true then -%>
+session	<%= scope.lookupvar('pam::pamd::pam_mkhomedir_session_set') %>
+<% end -%>
+
+session	[default=1]	pam_permit.so
+session	requisite	pam_deny.so
+session	required	pam_permit.so
+session	required	pam_unix.so 
+<% if scope.lookupvar('pam::pamd::pam_ldap') == true then -%>
+#session	optional	pam_ldap.so 
+session	<%= scope.lookupvar('pam::pamd::pam_ldap_session_set') %>
+<% end -%>

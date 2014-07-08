@@ -1,0 +1,21 @@
+###############################################################################
+# << FILE MANAGED BY PUPPET >>
+# Manual changes are likey to be overwritten
+###############################################################################
+#
+# /etc/pam.d/common-auth - authentication settings common to all services
+#
+
+<% if scope.lookupvar('pam::pamd::pam_tally') == true then -%>
+auth  <%= scope.lookupvar('pam::pamd::pam_tally_auth_set') %>
+<% end -%>
+<% if scope.lookupvar('pam::pamd::pam_tally2') == true then -%>
+auth  <%= scope.lookupvar('pam::pamd::pam_tally2_auth_set') %>
+<% end -%>
+auth	[success=2 default=ignore]	pam_unix.so nullok_secure
+<% if scope.lookupvar('pam::pamd::pam_ldap') == true then -%>
+#auth	[success=1 default=ignore]	pam_ldap.so use_first_pass
+auth  <%= scope.lookupvar('pam::pamd::pam_ldap_auth_set') %>
+<% end -%>
+auth	requisite			pam_deny.so
+auth	required			pam_permit.so
