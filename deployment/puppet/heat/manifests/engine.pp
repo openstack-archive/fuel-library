@@ -116,15 +116,15 @@ class heat::engine (
         },
       }
 
-      Heat_config<||> -> File['heat-engine-ocf'] -> Cs_resource[$pacemaker_service_name] -> Service[$pacemaker_service_name]
+      Heat_config<||> -> File['heat-engine-ocf'] -> Cs_resource[$pacemaker_service_name] -> Service['heat-engine']
     } else {
 
-      Heat_config<||> -> File['heat-engine-ocf'] -> Service[$pacemaker_service_name]
+      Heat_config<||> -> File['heat-engine-ocf'] -> Service['heat-engine']
 
     }
 
     #NOTE(bogdando) we have to diverge init.d service name vs pacemaker managed one
-    service { $pacemaker_service_name:
+    service { 'heat-engine':
       ensure     => $service_ensure,
       name       => $pacemaker_service_name,
       enable     => $enabled,
@@ -138,12 +138,13 @@ class heat::engine (
     }
 
     #NOTE(bogdando) we have to disable init.d management for pacemaker handled service
-    service { $service_name :
+    service { 'heat-engine_stopped' :
+      name   => $service_name,
       ensure => 'stopped',
-      enable => 'false',
+      enable => false,
     }
 
-    Service[$service_name] -> Service[$pacemaker_service_name]
+    Service['heat-engine_stopped'] -> Service['heat-engine']
 
   }
 
