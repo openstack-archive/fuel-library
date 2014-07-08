@@ -87,6 +87,13 @@ class heat::engine (
 
     # pacemaker resource mode
 
+    service { 'heat-engine':
+      enable  => false,
+      require => [ File['/etc/heat/heat.conf'],
+                      Package['heat-common'],
+                      Package['heat-engine']],
+    }
+
     if $::osfamily == 'RedHat' {
       $ocf_script_template = 'heat_engine_centos.ocf.erb'
     } else {
