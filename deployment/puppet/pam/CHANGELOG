@@ -1,0 +1,51 @@
+2013-07-18 - Version 0.0.9
+ * Moved to $::osfamily
+ * fixed bug on rhel 6 (and derivatives). File pam_ldap.conf was missing.
+
+2013-07-01 - Version 0.0.8
+ * added support for CentOS
+ * commit by Jason Corley <jcorley@sugarcrm.com>: Rake lint compatible
+ * Fixed rhel 6.x nss_ldap => nss-pam-ldapd
+
+2013-05-28 - Version 0.0.7
+ * added support for pam_tally / pam_tally2
+
+2013-04-30 - Version 0.0.6
+ * Added support for rhel 6.x (password-auth-ac)
+ * fixed typo when evaluating $pam_ldapd ($pam::pam_ldapd) at pam::pamd()
+
+2013-04-29 - Version 0.0.5
+ * bugfix: ensure => symlink to ensure => link.
+ * bugfix: Redhat: real file system-auth-ac.
+ * added support for OVS
+ * added support for OpenSuSE 12.x SLES 11.x
+ * packages required by pam_ldap => true are now
+   managed by pam::pamd()
+
+2013-04-27 - Version 0.0.4
+ * Complete rewrite / interface changes
+ * class pam::pamd handles configuration inside /etc/pam.d
+ * pam modules are enabled by pam_<module_name> parameters
+   and configured via pam_<module>_<type> (account, auth,
+   password, session where applicable)
+   - pam_ldap
+   - pam_ldapd
+   - pam_tally
+   - pam_tally2
+   - pam_cracklib
+   - pam_mkhomedir
+ * If pam_ldap => true in pam::pamd() create a symlink
+   to /etc/{ldap,openldap}/ldap.conf (debian / redhat).
+   This requires the use of ldap module.
+
+2013-04-17 - Version 0.0.3
+ * moved pam.d files to templates
+
+2013-04-10 - Version 0.0.2
+ * Udo Waechter <u.waechter@mysportgroup.de>
+   - adding pam_mkhomedir.so
+   - fixing download paths for pam.d/ in debian
+
+2013-03-20 - version 0.0.1
+ * Initial commit
+
