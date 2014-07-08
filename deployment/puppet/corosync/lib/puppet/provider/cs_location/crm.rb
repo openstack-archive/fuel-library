@@ -199,9 +199,7 @@ Puppet::Type.type(:cs_location).provide(:crm, :parent => Puppet::Provider::Coros
       Tempfile.open('puppet_crm_update') do |tmpfile|
         tmpfile.write(updated.rstrip)
         tmpfile.flush
-        env = {}
-        env["CIB_shadow"] = @resource[:cib].to_s if !@resource[:cib].nil?
-        exec_withenv("#{command(:crm)} configure load update #{tmpfile.path.to_s}",env)
+        apply_changes(@resource[:name],tmpfile,'location')
       end
     end
   end
