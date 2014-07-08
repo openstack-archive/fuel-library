@@ -45,6 +45,7 @@ class pam(
   $enable_motd = false,
   $ensure      = present) {
 
+  notify { "***** pam_module:*****": }
   include pam::params
 
   package { $pam::params::packages:
