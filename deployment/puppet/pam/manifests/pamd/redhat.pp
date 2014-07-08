@@ -19,6 +19,11 @@ class pam::pamd::redhat {
     content => template('pam/pam.d/system-auth-ac.erb')
   }
 
+  file { "${pam::params::prefix_pamd}/sshd":
+    content => template('pam/pam.d/sshd.erb')
+  }
+
+
   if($pam::pamd::pam_ldap) {
     
     #File['/etc/ldap.conf'] -> File[$pam::params::ldap_conf]
