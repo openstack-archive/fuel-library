@@ -250,8 +250,6 @@ class openstack::compute (
 
   #Cinder setup
   $enabled_apis = 'metadata'
-  #FIXME(bogdando) notify services on python-cinderclient update, if needed
-  package {'python-cinderclient': ensure => present}
 
   if str2bool($::is_virtual) {
     $libvirt_cpu_mode = 'none'
