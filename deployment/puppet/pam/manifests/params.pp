@@ -40,7 +40,6 @@ class pam::params {
       $prefix_pamd = '/etc/pam.d'
       $owner       = 'root'
       $group       = 'root'
-
       case $::operatingsystemmajrelease {
         5 : {
           $package_pam_ldap = 'nss_ldap'
@@ -49,7 +48,7 @@ class pam::params {
         6 : {
           $package_pam_ldap = 'nss-pam-ldapd'
         }
-      
+
         default : {
           notice("${::operatingsystem} version ${::operatingsystemmajrelease} not handled")
         }
@@ -71,8 +70,7 @@ class pam::params {
       $pam_tally_auth        = 'required      pam_tally.so deny=3 onerr=fail'
 
       $pam_tally2_account    = 'required      pam_tally2.so'
-      $pam_tally2_auth       = 'required      pam_tally2.so deny=3 onerr=fail unlock_time=60'
-
+      $pam_tally2_auth       = 'required      pam_tally2.so deny=3 onerr=fail unlock_time=60 '
       $pam_cracklib_password = 'requisite     pam_cracklib.so try_first_pass retry=3 minlen=9 dcredit=-1'
 
       $pam_mkhomedir_session = 'requisite     pam_mkhomedir.so skel=/etc/skel/ umask=0022'
