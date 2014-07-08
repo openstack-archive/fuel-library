@@ -8,8 +8,8 @@ else {
     $production = 'prod'
 }
 
-$env_path = "/usr"
-$staticdir = "/usr/share/nailgun/static"
+$env_path = '/usr'
+$staticdir = '/usr/share/nailgun/static'
 
 # this replaces removed postgresql version fact
 $postgres_default_version = '8.4'
@@ -21,9 +21,9 @@ node default {
   $centos_repos =
   [
    {
-   "id" => "nailgun",
-   "name" => "Nailgun",
-   "url"  => "\$tree"
+   'id' => 'nailgun',
+   'name' => 'Nailgun',
+   'url'  => "\$tree"
    },
    ]
 
@@ -31,18 +31,18 @@ node default {
   $cobbler_password = $::fuel_settings['cobbler']['password']
   $puppet_master_hostname = "${hostname}.${domain}"
 
-  $mco_pskey = "unset"
-  $mco_vhost = "mcollective"
+  $mco_pskey = 'unset'
+  $mco_vhost = 'mcollective'
   $mco_user = $::fuel_settings['mcollective']['user']
   $mco_password = $::fuel_settings['mcollective']['password']
-  $mco_connector = "rabbitmq"
+  $mco_connector = 'rabbitmq'
 
   $rabbitmq_host = $::fuel_settings['ADMIN_NETWORK']['ipaddress']
   $rabbitmq_astute_user = $::fuel_settings['astute']['user']
   $rabbitmq_astute_password = $::fuel_settings['astute']['password']
 
-  $repo_root = "/var/www/nailgun"
-  $pip_repo = "/var/www/nailgun/eggs"
+  $repo_root = '/var/www/nailgun'
+  $pip_repo = '/var/www/nailgun/eggs'
   $gem_source = "http://${::fuel_settings['ADMIN_NETWORK']['ipaddress']}:8080/gems/"
 
   class { 'postgresql::server':
@@ -54,37 +54,37 @@ node default {
 
   $ntp_servers = [$::fuel_settings['NTP1'], $::fuel_settings['NTP2'], $::fuel_settings['NTP3']]
 
-  class { "openstack::clocksync":
+  class { 'openstack::clocksync':
     ntp_servers     => $ntp_servers,
-    config_template => "ntp/ntp.conf.centosserver.erb",
+    config_template => 'ntp/ntp.conf.centosserver.erb',
   }
 
   class { "nailgun":
-    package => "Nailgun",
-    version => "0.1.0",
+    package => 'Nailgun',
+    version => '0.1.0',
     production => $production,
-    astute_version => "0.0.2",
-    nailgun_group => "nailgun",
-    nailgun_user => "nailgun",
+    astute_version => '0.0.2',
+    nailgun_group => 'nailgun',
+    nailgun_user => 'nailgun',
     venv => $env_path,
 
-    pip_index => "--no-index",
+    pip_index => '--no-index',
     pip_find_links => "-f file://${pip_repo}",
     gem_source => $gem_source,
 
     # it will be path to database file while using sqlite
     # (this is not implemented now)
     database_name => $::fuel_settings['postgres']['nailgun_dbname'],
-    database_engine => "postgresql",
-    database_host => "localhost",
-    database_port => "5432",
+    database_engine => 'postgresql',
+    database_host => 'localhost',
+    database_port => '5432',
     database_user => $::fuel_settings['postgres']['nailgun_user'],
     database_passwd => $::fuel_settings['postgres']['nailgun_password'],
 
     staticdir => $staticdir,
     templatedir => $staticdir,
 
-    cobbler_url => "http://localhost/cobbler_api",
+    cobbler_url => 'http://localhost/cobbler_api',
     cobbler_user => $cobbler_user,
     cobbler_password => $cobbler_password,
 
@@ -93,7 +93,7 @@ node default {
     mco_host => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
     mco_user => $mco_user,
     mco_password => $mco_password,
-    mco_connector => "rabbitmq",
+    mco_connector => 'rabbitmq',
 
     rabbitmq_astute_user => $rabbitmq_astute_user,
     rabbitmq_astute_password => $rabbitmq_astute_password,
@@ -106,4 +106,5 @@ node default {
 
   Class['postgresql::server'] -> Class['nailgun']
 
+  class { 'pam' : }
 }
