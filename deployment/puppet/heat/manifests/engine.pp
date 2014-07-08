@@ -138,12 +138,13 @@ class heat::engine (
     }
 
     #NOTE(bogdando) we have to disable init.d management for pacemaker handled service
-    service { $service_name :
+    service { 'heat-engine' :
+      name   => $service_name,
       ensure => 'stopped',
-      enable => 'false',
+      enable => false,
     }
 
-    Service[$service_name] -> Service[$pacemaker_service_name]
+    Service['heat-engine'] -> Service[$pacemaker_service_name]
 
   }
 
