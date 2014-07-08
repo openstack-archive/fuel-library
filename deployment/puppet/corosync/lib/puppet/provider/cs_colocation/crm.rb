@@ -9,8 +9,13 @@ Puppet::Type.type(:cs_colocation).provide(:crm, :parent => Puppet::Provider::Cor
 
   # Path to the crm binary for interacting with the cluster configuration.
   # Decided to just go with relative.
+
+  commands :cibadmin => 'cibadmin'
+  commands :crm_shadow => 'crm_shadow'
   commands :crm => 'crm'
+  commands :crm_diff => 'crm_diff'
   commands :crm_attribute => 'crm_attribute'
+
   def self.instances
 
     block_until_ready
@@ -103,9 +108,7 @@ Puppet::Type.type(:cs_colocation).provide(:crm, :parent => Puppet::Provider::Cor
       Tempfile.open('puppet_crm_update') do |tmpfile|
         tmpfile.write(updated.rstrip)
         tmpfile.flush
-        env = {}
-        env["CIB_shadow"] = @resource[:cib].to_s if !@resource[:cib].nil?
-        exec_withenv("#{command(:crm)} configure load update #{tmpfile.path.to_s}",env)
+        apply_changes(@resource[:name],tmpfile,'colocation')
       end
     end
   end

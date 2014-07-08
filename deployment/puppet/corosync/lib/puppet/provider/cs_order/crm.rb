@@ -8,8 +8,13 @@ Puppet::Type.type(:cs_order).provide(:crm, :parent => Puppet::Provider::Corosync
         aspects.'
 
   # Path to the crm binary for interacting with the cluster configuration.
+
+  commands :cibadmin => 'cibadmin'
+  commands :crm_shadow => 'crm_shadow'
   commands :crm => 'crm'
+  commands :crm_diff => 'crm_diff'
   commands :crm_attribute => 'crm_attribute'
+
   def self.instances
 
     block_until_ready
@@ -111,9 +116,7 @@ Puppet::Type.type(:cs_order).provide(:crm, :parent => Puppet::Provider::Corosync
       Tempfile.open('puppet_crm_update') do |tmpfile|
         tmpfile.write(updated.rstrip)
         tmpfile.flush
-        env = {}
-        env["CIB_shadow"] = @resource[:cib].to_s if !@resource[:cib].nil?
-        exec_withenv("#{command(:crm)} configure load update #{tmpfile.path.to_s}",env)
+        apply_changes(@resource[:name],tmpfile,'order')
       end
     end
   end
