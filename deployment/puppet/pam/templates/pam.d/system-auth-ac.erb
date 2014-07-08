@@ -21,7 +21,7 @@ auth        required      pam_deny.so
 account	<%= scope.lookupvar('pam::pamd::pam_tally_account_set') %>
 <% end -%>
 <% if scope.lookupvar('pam::pamd::pam_tally2') == true then -%>
-account	<%= scope.lookupvar('pam::pamd::pam_tally2_account_set') %>
+account	<%= scope.lookupvar('pam::pamd::pam_tally2_account') %>
 <% end -%>
 account     required      pam_unix.so broken_shadow
 account     sufficient    pam_succeed_if.so uid < 500 quiet
