@@ -70,4 +70,54 @@ class Puppet::Provider::Corosync < Puppet::Provider
     debug(@property_hash.inspect)
     !(@property_hash[:ensure] == :absent or @property_hash.empty?)
   end
+
+  def get_scope(type)
+      case type
+      when 'resource'
+          scope='resources'
+      when /^(colocation|order|location)$/
+          scope='constraints'
+      when 'rsc_defaults'
+          scope='rsc_defaults'
+      else
+          debug('unknown resource type')
+          scope=nil
+      end
+      if !scope.nil?
+          return "-o #{scope}"
+      else 
+          return nil
+      end
+  end
+
+  def apply_changes(res_name,tmpfile,res_type)
+      env={}
+      shadow_name="#{res_type}_#{res_name}"
+      original_cib="/tmp/#{shadow_name}_orig.xml"
+      new_cib="/tmp/#{shadow_name}_new.xml"
+      crm_shadow("-b","-c",shadow_name)
+      env["CIB_shadow"] = shadow_name
+      exec_withenv("#{command(:crm)} configure load update #{tmpfile.path.to_s}",env)
+      cibadmin(get_scope(res_type),"-Q",">","/tmp/#{shadow_name}_orig.xml")
+      exec_withenv("#{command(:cibadmin)} #{get_scope(res_type)} -Q > /tmp/#{shadow_name}_new.xml",env)
+      patch = Open3.popen3("#{command(:crm_diff)} --original #{original_cib} --new #{new_cib}")[1].read
+      xml_patch = REXML::Document.new(patch)
+      wrap_cib=REXML::Element.new('cib')
+      wrap_configuration=REXML::Element.new('configuration')
+      wrap_cib.add_element(wrap_configuration)
+      wrap_cib_a=Marshal.load(Marshal.dump(wrap_cib))
+      wrap_cib_r=Marshal.load(Marshal.dump(wrap_cib))
+      diff_a=REXML::XPath.first(xml_patch,'//diff-added')
+      diff_r=REXML::XPath.first(xml_patch,'//diff-removed')
+      diff_a_elements=diff_a.elements
+      diff_r_elements=diff_r.elements
+      wrap_configuration_a=REXML::XPath.first(wrap_cib_a,'//configuration')
+      wrap_configuration_r=REXML::XPath.first(wrap_cib_r,'//configuration')
+      diff_a_elements.each {|element| wrap_configuration_a.add_element(element)}
+      diff_r_elements.each {|element| wrap_configuration_r.add_element(element)}
+      diff_a.add_element(wrap_cib_a)
+      diff_r.add_element(wrap_cib_r)
+      cibadmin '--patch', '--sync-call', '--xml-text', xml_patch
+  end
+
 end

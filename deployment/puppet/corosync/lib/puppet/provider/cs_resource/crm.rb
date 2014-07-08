@@ -11,7 +11,9 @@ Puppet::Type.type(:cs_resource).provide(:crm, :parent => Puppet::Provider::Coros
         better model since these values can be almost anything.'
 
   # Path to the crm binary for interacting with the cluster configuration.
+  commands :crm_shadow => 'crm'
   commands :crm => 'crm'
+  commands :crm_diff => 'crm_diff'
   commands :crm_attribute => 'crm_attribute'
   def self.instances
 
@@ -125,6 +127,8 @@ Puppet::Type.type(:cs_resource).provide(:crm, :parent => Puppet::Provider::Coros
     debug('Stopping primitive before removing it')
     crm('resource', 'stop', @resource[:name])
     debug('Removing primitive')
+    ## FIXME(aglarendil): may be we need to apply crm_diff related approach
+    ## FIXME(aglarendil): due to 1338594 bug and do this in flush section
     try_command("delete",@resource[:name])
     @property_hash.clear
   end
@@ -258,9 +262,9 @@ Puppet::Type.type(:cs_resource).provide(:crm, :parent => Puppet::Provider::Coros
       Tempfile.open('puppet_crm_update') do |tmpfile|
         tmpfile.write(updated)
         tmpfile.flush
-        env = {}
-        env["CIB_shadow"] = @resource[:cib].to_s if !@resource[:cib].nil?
-        exec_withenv("#{command(:crm)} configure load update #{tmpfile.path.to_s}",env)
+        #env["CIB_shadow"] = @resource[:cib].to_s if !@resource[:cib].nil?
+        ##LP1338594 part: should be put into separate method, I guess
+        apply_changes(@resource[:name],tmpfile,'resource')
       end
     end
   end
