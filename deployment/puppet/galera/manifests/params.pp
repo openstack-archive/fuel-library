@@ -38,7 +38,7 @@ class galera::params {
     'RedHat': {
       $libssl_package       = 'openssl098e'
       $libaio_package       = 'libaio'
-      $mysql_version        = '5.5.28_wsrep_23.7-12'
+      $mysql_version        = '5.6.16_wsrep_25.5.mira1-1.mira1'
       $mysql_server_name    = 'MySQL-server-wsrep'
       $libgalera_prefix     = '/usr/lib64'
     }

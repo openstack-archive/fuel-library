@@ -49,11 +49,11 @@ class mysql::params {
       default: {
            $service_name          = 'mysql'
            $client_package_name   = 'MySQL-client'
-           $client_version        = '5.5.28_wsrep_23.7'
+           $client_version        = '5.6.16_wsrep_25.5.mira1-1.mira1'
            $server_package_name   = 'MySQL-server'
-           $server_version        = '5.5.28_wsrep_23.7'
+           $server_version        = '5.6.16_wsrep_25.5.mira1-1.mira1'
            $shared_package_name   = 'MySQL-shared'
-           $shared_version        = '5.5.28_wsrep_23.7'
+           $shared_version        = '5.6.16_wsrep_25.5.mira1-1.mira1'
          }
       }
       $socket                = '/var/lib/mysql/mysql.sock'
