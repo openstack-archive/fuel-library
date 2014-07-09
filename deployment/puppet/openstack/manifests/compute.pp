@@ -150,11 +150,6 @@ class openstack::compute (
         before  => Augeas['libvirt-conf'],
       }
 
-      # From legacy libvirt.pp
-      exec { 'symlink-qemu-kvm':
-        command => '/bin/ln -sf /usr/libexec/qemu-kvm /usr/bin/qemu-system-x86_64',
-      }
-
       package { 'avahi':
         ensure => present;
       }
