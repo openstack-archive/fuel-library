@@ -10,7 +10,7 @@ Facter.add("osd_devices_list") do
             # lsblk returns cciss devices as cciss!c0d0p1. The entries
             # in /dev are cciss/c0d0p1
             d.gsub!(/!/, '/')
-            parts = %x{ls /dev/#{d}?}.gsub("/dev/#{d}","").split("\n")
+            parts = %x{ls /dev/#{d}?*}.gsub("/dev/#{d}","").split("\n")
             parts.each { |p|
                 code = %x{sgdisk -i #{p} /dev/#{d} | grep "Partition GUID code" | awk '{print $4}'}.strip()
                 case code
