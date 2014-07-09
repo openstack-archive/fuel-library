@@ -52,10 +52,10 @@ class heat::engine (
   $package_name = $::heat::params::engine_package_name
   $pacemaker_service_name = "p_${service_name}"
 
-  Heat_config<||> ~> Service['heat-engine']
+  Heat_config<||> ~> Service['heat-engine_service']
 
   Package['heat-engine'] -> Heat_config<||>
-  Package['heat-engine'] -> Service['heat-engine']
+  Package['heat-engine'] -> Service['heat-engine_service']
   package { 'heat-engine':
     ensure => installed,
     name   => $package_name,
@@ -71,7 +71,7 @@ class heat::engine (
 
     # standard service mode
 
-    service { 'heat-engine':
+    service { 'heat-engine_service':
       ensure     => $service_ensure,
       name       => $service_name,
       enable     => $enabled,
@@ -116,15 +116,15 @@ class heat::engine (
         },
       }
 
-      Heat_config<||> -> File['heat-engine-ocf'] -> Cs_resource[$pacemaker_service_name] -> Service['heat-engine']
+      Heat_config<||> -> File['heat-engine-ocf'] -> Cs_resource[$pacemaker_service_name] -> Service['heat-engine_service']
     } else {
 
-      Heat_config<||> -> File['heat-engine-ocf'] -> Service['heat-engine']
+      Heat_config<||> -> File['heat-engine-ocf'] -> Service['heat-engine_service']
 
     }
 
     #NOTE(bogdando) we have to diverge init.d service name vs pacemaker managed one
-    service { 'heat-engine':
+    service { 'heat-engine_service':
       ensure     => $service_ensure,
       name       => $pacemaker_service_name,
       enable     => $enabled,
@@ -144,7 +144,7 @@ class heat::engine (
       enable => false,
     }
 
-    Service['heat-engine_stopped'] -> Service['heat-engine']
+    Service['heat-engine_stopped'] -> Service['heat-engine_service']
 
   }
 
@@ -163,5 +163,5 @@ class heat::engine (
     'DEFAULT/engine_life_check_timeout'    : value => $engine_life_check_timeout;
   }
 
-  File['/etc/heat/heat.conf'] -> Exec['heat-encryption-key-replacement'] -> Service['heat-engine']
+  File['/etc/heat/heat.conf'] -> Exec['heat-encryption-key-replacement'] -> Service['heat-engine_service']
 }
