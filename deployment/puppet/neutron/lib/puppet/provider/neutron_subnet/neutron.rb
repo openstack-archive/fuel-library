@@ -1,97 +1,213 @@
-# Load the Neutron provider library to help
-require File.join(File.dirname(__FILE__), '..','..','..', 'puppet/provider/neutron')
+require File.join(File.dirname(__FILE__), '..','..','..',
+                  'puppet/provider/neutron')
 
 Puppet::Type.type(:neutron_subnet).provide(
   :neutron,
   :parent => Puppet::Provider::Neutron
 ) do
+  desc <<-EOT
+    Neutron provider to manage neutron_subnet type.
 
-  desc "Manage neutron subnet/networks"
+    Assumes that the neutron service is configured on the same host.
+  EOT
 
-  optional_commands :neutron  => 'neutron'
-  optional_commands :keystone => 'keystone'
+  commands :neutron => 'neutron'
 
-  # I need to setup caching and what-not to make this lookup performance not suck
+  mk_resource_methods
+
+  def self.neutron_type
+    'subnet'
+  end
+
   def self.instances
-    network_list = auth_neutron("subnet-list")
-    if network_list.nil?
-      raise(Puppet::ExecutionFailure, "Can't prefetch subnet-list. Neutron or Keystone API not availaible.")
-    elsif network_list.chomp.empty?
-      return []
-    end
-
-    network_list.split("\n")[3..-2].collect do |net|
+    list_neutron_resources(neutron_type).collect do |id|
+      attrs = get_neutron_resource_attrs(neutron_type, id)
       new(
-        :name   => net.split[3],
-        :ensure => :present
+        :ensure                    => :present,
+        :name                      => attrs['name'],
+        :id                        => attrs['id'],
+        :cidr                      => attrs['cidr'],
+        :ip_version                => attrs['ip_version'],
+        :gateway_ip                => parse_gateway_ip(attrs['gateway_ip']),
+        :allocation_pools          => parse_allocation_pool(attrs['allocation_pools']),
+        :host_routes               => parse_host_routes(attrs['host_routes']),
+        :dns_nameservers           => parse_dns_nameservers(attrs['dns_nameservers']),
+        :enable_dhcp               => attrs['enable_dhcp'],
+        :network_id                => attrs['network_id'],
+        :tenant_id                 => attrs['tenant_id']
       )
     end
+  end
+
+  def self.prefetch(resources)
+    subnets = instances
+    resources.keys.each do |name|
+      if provider = subnets.find{ |subnet| subnet.name == name }
+        resources[name].provider = provider
+      end
+    end
+  end
+
+  def self.parse_gateway_ip(value)
+    return '' if value.nil?
+    return value
+  end
+
+  def self.parse_allocation_pool(values)
+    allocation_pools = []
+    return [] if values.empty?
+    for value in Array(values)
+      matchdata = /\{\s*"start"\s*:\s*"(.*)"\s*,\s*"end"\s*:\s*"(.*)"\s*\}/.match(value)
+      start_ip = matchdata[1]
+      end_ip = matchdata[2]
+      allocation_pools << "start=#{start_ip},end=#{end_ip}"
+    end
+    return allocation_pools
+  end
+
+  def self.parse_host_routes(values)
+    host_routes = []
+    return [] if values.empty?
+    for value in Array(values)
+      matchdata = /\{\s*"destination"\s*:\s*"(.*)"\s*,\s*"nexthop"\s*:\s*"(.*)"\s*\}/.match(value)
+      destination = matchdata[1]
+      nexthop = matchdata[2]
+      host_routes << "destination=#{destination},nexthop=#{nexthop}"
+    end
+    return host_routes
+  end
+
+  def self.parse_dns_nameservers(values)
+    # just enforce that this is actually an array
+    return Array(values)
   end
 
   def exists?
     @property_hash[:ensure] == :present
   end
 
-  def self.tenant_id
-    @tenant_id ||= get_tenants_id
-  end
-
-  def tenant_id
-    self.class.tenant_id
-  end
-
-
   def create
-    # tenant_subnet_id=$(get_id neutron subnet-create --tenant_id $tenant_id --ip_version 4 $tenant_net_id $fixed_range --gateway $network_gateway)
-    # neutron subnet-create --tenant-id $tenant --name subnet01 net01 192.168.101.0/24
-    # neutron subnet-create --tenant-id $tenant --name pub_subnet01 --gateway 10.0.1.254 public01 10.0.1.0/24 --enable_dhcp False
+    opts = ["--name=#{@resource[:name]}"]
 
-# --allocation-pool start=$pool_floating_start,end=$pool_floating_end
-# --dns_nameservers list=true 8.8.8.8
-    ip_opts = []
-    {
-      :ip_version => '--ip-version',
-      :gateway    => '--gateway',
-      :alloc_pool => '--allocation-pool',
-    }.each do |param, opt|
-      if @resource[param]
-        ip_opts.push(opt).push(@resource[param])
+    if @resource[:ip_version]
+      opts << "--ip-version=#{@resource[:ip_version]}"
+    end
+
+    if @resource[:gateway_ip]
+      if @resource[:gateway_ip] == ''
+        opts << '--no-gateway'
+      else
+        opts << "--gateway-ip=#{@resource[:gateway_ip]}"
       end
     end
 
-    proto_opts = []
-    {
-      :enable_dhcp => '--enable_dhcp',
-      :nameservers => ['--dns_nameservers', 'list=true']
-    }.each do |param, opt|
-      if @resource[param]
-        proto_opts.push(opt).push(@resource[param])
+    if @resource[:enable_dhcp]
+      opts << "--enable-dhcp=#{@resource[:enable_dhcp]}"
+    end
+
+    if @resource[:allocation_pools]
+      Array(@resource[:allocation_pools]).each do |allocation_pool|
+        opts << "--allocation-pool=#{allocation_pool}"
       end
     end
 
-    auth_neutron('subnet-create',
-      '--tenant-id', tenant_id[@resource[:tenant]],
-      '--name', @resource[:name],
-      ip_opts,
-      @resource[:network],
-      @resource[:cidr],
-      '--', proto_opts
-    )
+    if @resource[:dns_nameservers]
+      Array(@resource[:dns_nameservers]).each do |nameserver|
+        opts << "--dns-nameserver=#{nameserver}"
+      end
+    end
+
+    if @resource[:host_routes]
+      Array(@resource[:host_routes]).each do |host_route|
+        opts << "--host-route=#{host_route}"
+      end
+    end
+
+    if @resource[:tenant_name]
+      tenant_id = self.class.get_tenant_id(model.catalog,
+                                           @resource[:tenant_name])
+      opts << "--tenant_id=#{tenant_id}"
+    elsif @resource[:tenant_id]
+      opts << "--tenant_id=#{@resource[:tenant_id]}"
+    end
+
+    if @resource[:network_name]
+      opts << resource[:network_name]
+    elsif @resource[:network_id]
+      opts << resource[:network_id]
+    end
+
+    results = auth_neutron('subnet-create', '--format=shell',
+                           opts, resource[:cidr])
+
+    if results =~ /Created a new subnet:/
+      attrs = self.class.parse_creation_output(results)
+      @property_hash = {
+        :ensure                    => :present,
+        :name                      => resource[:name],
+        :id                        => attrs['id'],
+        :cidr                      => attrs['cidr'],
+        :ip_version                => attrs['ip_version'],
+        :gateway_ip                => self.class.parse_gateway_ip(attrs['gateway_ip']),
+        :allocation_pools          => self.class.parse_allocation_pool(attrs['allocation_pools']),
+        :host_routes               => self.class.parse_host_routes(attrs['host_routes']),
+        :dns_nameservers           => self.class.parse_dns_nameservers(attrs['dns_nameservers']),
+        :enable_dhcp               => attrs['enable_dhcp'],
+        :network_id                => attrs['network_id'],
+        :tenant_id                 => attrs['tenant_id'],
+      }
+    else
+      fail("did not get expected message on subnet creation, got #{results}")
+    end
   end
 
   def destroy
-    auth_neutron("subnet-delete", @resource[:name])
+    auth_neutron('subnet-delete', name)
+    @property_hash[:ensure] = :absent
   end
 
-  private
-    def self.get_id(subnet_info)
-      # ruby 1.8.x specific
-      subnet_info.grep(/ id /).to_s.split[3]
+  def gateway_ip=(value)
+    if value == ''
+      auth_neutron('subnet-update', '--no-gateway', name)
+    else
+      auth_neutron('subnet-update', "--gateway-ip=#{value}", name)
     end
+  end
 
-    def self.get_tenants_id
-      # notice("*** GET_TENANT_ID")
-      list_keystone_tenants
+  def enable_dhcp=(value)
+    auth_neutron('subnet-update', "--enable-dhcp=#{value}", name)
+  end
+
+  def dns_nameservers=(values)
+    unless values.empty?
+      opts = ["#{name}", "--dns-nameservers", "list=true"]
+      for value in values
+        opts << value
+      end
+      auth_neutron('subnet-update', opts)
     end
+  end
+
+  def host_routes=(values)
+    unless values.empty?
+      opts = ["#{name}", "--host-routes", "type=dict", "list=true"]
+      for value in values
+        opts << value
+      end
+      auth_neutron('subnet-update', opts)
+    end
+  end
+
+  [
+   :cidr,
+   :ip_version,
+   :network_id,
+   :allocation_pools,
+   :tenant_id,
+  ].each do |attr|
+     define_method(attr.to_s + "=") do |value|
+       fail("Property #{attr.to_s} does not support being updated")
+     end
+  end
 
 end
