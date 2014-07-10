@@ -364,10 +364,8 @@ class osnailyfacter::cluster_ha {
         unicast_addresses => $::osnailyfacter::cluster_ha::controller_internal_addresses,
       }
 
-      if $primary_controller {
-        Class['::cluster']->
-        class { 'virtual_ips': stage => 'corosync_setup' }
-      }
+      Class['::cluster']->
+      class { 'virtual_ips': stage => 'corosync_setup' }
 
       class { 'cluster::haproxy':
         haproxy_maxconn    => '16000',
