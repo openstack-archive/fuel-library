@@ -253,15 +253,19 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Cor
     enable
     target_start
     unban
-    debug("Starting countdown for resource start")
-    debug("Start timeout is #{@service[:start_timeout]}")
-    Timeout::timeout(5*@service[:start_timeout],Puppet::Error) do
-      loop do
-        break if status == :running
-        sleep 5
+    if simple? and global_status
+      debug("Not starting to wait for the service to start. Simple resource is started elsewhere.")
+    else
+      debug("Starting countdown for resource start")
+      debug("Start timeout is #{@service[:start_timeout]}")
+      Timeout::timeout(5*@service[:start_timeout],Puppet::Error) do
+        loop do
+          break if status == :running
+          sleep 5
+        end
       end
+      sleep 3
     end
-    sleep 3
   end
 
   def stop
@@ -360,13 +364,7 @@ Puppet::Type.type(:service).provide :pacemaker, :parent => Puppet::Provider::Cor
   end
 
   def status
-    simple = simple?
-    debug "SIMPLE? #{simple}"
-    if simple
-      status = global_status
-    else
-      status = local_status
-    end
+    status = local_status
     debug "STATUS IS: #{status}"
     status
   end
