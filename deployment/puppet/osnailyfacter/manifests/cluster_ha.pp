@@ -173,8 +173,11 @@ class osnailyfacter::cluster_ha {
   $cinder_iscsi_bind_addr = $::storage_address
 
   # Determine who should get the volume service
+
   if (member($roles, 'cinder') and $storage_hash['volumes_lvm']) {
     $manage_volumes = 'iscsi'
+  } elsif (member($roles, 'cinder') and $storage_hash['volumes_vmdk']) {
+    $manage_volumes = 'vmdk'
   } elsif ($storage_hash['volumes_ceph']) {
     $manage_volumes = 'ceph'
   } else {
@@ -697,6 +700,9 @@ class osnailyfacter::cluster_ha {
         max_overflow         => $max_overflow,
         idle_timeout         => $idle_timeout,
         ceilometer           => $ceilometer_hash[enabled],
+        vmware_host_ip       => $vcenter_hash['host_ip'],
+        vmware_host_username => $vcenter_hash['vc_user'],
+        vmware_host_password => $vcenter_hash['vc_password']
       }
     } # CINDER ENDS
 
