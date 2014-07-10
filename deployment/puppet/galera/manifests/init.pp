@@ -200,7 +200,6 @@ class galera (
     }
     Service["$service_name"] -> Exec['start-new-galera-cluster']
     Exec['start-new-galera-cluster'] -> Exec['wait-for-synced-state']
-    Exec['start-new-galera-cluster'] ~> Exec['raise-first-setup-flag']
     notify{'xxx-controller-primary':}
   } else {
     Anchor['galera'] -> File['mysql-wss-ocf'] -> Service[$service_name]
@@ -315,12 +314,6 @@ class galera (
     command   => "/usr/bin/mysql ${user_password_string} -Nbe \"show status like 'wsrep_local_state_comment'\" | /bin/grep -q Synced && sleep 10",
     try_sleep => 5,
     tries     => 60,
-  }
-
-  exec { "raise-first-setup-flag" :
-   path    => "/usr/bin:/usr/sbin:/bin:/sbin",
-   command => "crm_attribute -t crm_config --name mysqlprimaryinit --update done",
-   refreshonly => true,
   }
 
 
