@@ -102,10 +102,10 @@ elif [ "$1" == "upgrade" ]; then
   upgrade_container $container $@
 elif [ "$1" == "restore" ]; then
   shift 
-  restore $@
+  restore "$@"
 elif [ "$1" == "backup" ]; then
-  shift 2
-  backup $container $@
+  shift 
+  backup "$@"
 elif [ "$1" == "destroy" ]; then
   shift 2
   destroy_container $container $@
