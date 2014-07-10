@@ -52,35 +52,36 @@ class { '::corosync':
   unicast_addresses => $unicast_addresses
 }
 
-
 #cs_property { 'expected-quorum-votes':
 #  ensure => present,
-#  cib => 'shadow',
 #  value  => $expected_quorum_votes
 #}
+
 cs_property { 'no-quorum-policy':
   ensure => present,
-# cib => 'properties',
   value  => $quorum_policy,
   retries => 5
 } -> Anchor['corosync-done']
+
 cs_property { 'stonith-enabled':
-#  cib => 'properties',
   ensure => present,
   value  => $stonith,
 } -> Anchor['corosync-done']
+
 cs_property { 'start-failure-is-fatal':
-#  cib => 'properties',
   ensure => present,
   value  => "false",
 } -> Anchor['corosync-done']
-#
+
+cs_property { 'symmetric-cluster':
+  ensure => present,
+  value  => "false",
+} -> Anchor['corosync-done']
+
 #cs_property { 'placement-strategy':
-#  cib => 'shadow',
 #  ensure => absent,
 #  value  => 'default',
 #}
-
 
 anchor {'corosync-done':}
 }
