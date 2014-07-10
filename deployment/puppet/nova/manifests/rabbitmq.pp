@@ -118,6 +118,9 @@ class nova::rabbitmq(
         source => "puppet:///modules/nova/ocf/rabbitmq",
       }
 
+      tweaks::ubuntu_service_override {'rabbitmq-server':
+        package_name => $::rabbitmq::server::package_name
+      }
       # Disable OS-aware service, because rabbitmq-server managed by Pacemaker.
       service {'rabbitmq-server__disabled':
         name       => 'rabbitmq-server',
@@ -141,7 +144,7 @@ class nova::rabbitmq(
           primitive_type  => 'rabbitmq-server',
           parameters      => {
             'node_port'     => $port,
-            #'debug'         => true,
+            'debug'         => true,
           },
           metadata => {
              'migration-threshold' => 'INFINITY'
