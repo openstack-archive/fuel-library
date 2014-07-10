@@ -68,7 +68,6 @@ define neutron::plugins::ml2::driver (
         }
       }
       /^ff[\d.]+$/: { }
-      "None": { }
       default: {
         fail("${vxlan_group} is not valid for vxlan_group.")
       }

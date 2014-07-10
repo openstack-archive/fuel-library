@@ -108,6 +108,4 @@ class neutron::params {
     fail("Unsupported osfamily ${::osfamily}")
 
   }
-  # Additional packages
-  $fuel_utils_package = 'fuel-utils'
 }
