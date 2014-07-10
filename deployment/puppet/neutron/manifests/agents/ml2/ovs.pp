@@ -97,13 +97,11 @@ class neutron::agents::ml2::ovs (
   $polling_interval      = 2,
   $l2_population         = false,
   $arp_responder         = false,
-  $firewall_driver       = 'neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver',
-  $service_provider      = $::neutron::params::service_provider,
-  $service_name          = $::neutron::params::ovs_agent_service
+  $firewall_driver       = 'neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver'
 ) {
 
   include neutron::params
-  #require vswitch::ovs
+  require vswitch::ovs
 
   if $enable_tunneling and ! $local_ip {
     fail('Local ip for ovs agent must be set when tunneling is enabled')
@@ -130,12 +128,12 @@ class neutron::agents::ml2::ovs (
     neutron_plugin_ml2 {
       'ovs/bridge_mappings': value => $br_map_str;
     }
-    # neutron::plugins::ovs::bridge{ $bridge_mappings:
-    #   before => Service['neutron-ovs-agent-service'],
-    # }
-    # neutron::plugins::ovs::port{ $bridge_uplinks:
-    #   before => Service['neutron-ovs-agent-service'],
-    # }
+    neutron::plugins::ovs::bridge{ $bridge_mappings:
+      before => Service['neutron-ovs-agent-service'],
+    }
+    neutron::plugins::ovs::port{ $bridge_uplinks:
+      before => Service['neutron-ovs-agent-service'],
+    }
   }
 
   neutron_plugin_ml2 {
@@ -153,14 +151,14 @@ class neutron::agents::ml2::ovs (
     neutron_plugin_ml2 { 'securitygroup/firewall_driver': ensure => absent }
   }
 
-  neutron::agents::utils::bridges { $integration_bridge:
-    #ensure => present,
+  vs_bridge { $integration_bridge:
+    ensure => present,
     before => Service['neutron-ovs-agent-service'],
   }
 
   if $enable_tunneling {
-    neutron::agents::utils::bridges { $tunnel_bridge:
-      #ensure => present,
+    vs_bridge { $tunnel_bridge:
+      ensure => present,
       before => Service['neutron-ovs-agent-service'],
     }
     neutron_plugin_ml2 {
@@ -217,11 +215,10 @@ class neutron::agents::ml2::ovs (
   }
 
   service { 'neutron-ovs-agent-service':
-    ensure   => $service_ensure,
-    name     => $service_name,
-    enable   => $enabled,
-    require  => Class['neutron'],
-    provider => $service_provider
+    ensure  => $service_ensure,
+    name    => $::neutron::params::ovs_agent_service,
+    enable  => $enabled,
+    require => Class['neutron'],
   }
 
   if $::neutron::params::ovs_cleanup_service {
