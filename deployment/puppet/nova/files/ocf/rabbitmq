@@ -328,8 +328,31 @@ kill_rmq_and_remove_pid() {
     fi
 }
 
+trim_var(){
+    return ${1%% }
+}
+
 action_validate() {
     # todo(sv): validate some incoming parameters
+    OCF_RESKEY_CRM_meta_notify_post=$(trim_var $OCF_RESKEY_CRM_meta_notify_post)
+    OCF_RESKEY_CRM_meta_notify_pre=$(trim_var $OCF_RESKEY_CRM_meta_notify_pre)
+    OCF_RESKEY_CRM_meta_notify_start=$(trim_var $OCF_RESKEY_CRM_meta_notify_start)
+    OCF_RESKEY_CRM_meta_notify_stop=$(trim_var $OCF_RESKEY_CRM_meta_notify_stop)
+    OCF_RESKEY_CRM_meta_notify_start_resource=$(trim_var $OCF_RESKEY_CRM_meta_notify_start_resource)
+    OCF_RESKEY_CRM_meta_notify_stop_resource=$(trim_var $OCF_RESKEY_CRM_meta_notify_stop_resource)
+    OCF_RESKEY_CRM_meta_notify_active_resource=$(trim_var $OCF_RESKEY_CRM_meta_notify_active_resource)
+    OCF_RESKEY_CRM_meta_notify_inactive_resource=$(trim_var $OCF_RESKEY_CRM_meta_notify_inactive_resource)
+    OCF_RESKEY_CRM_meta_notify_start_uname=$(trim_var $OCF_RESKEY_CRM_meta_notify_start_uname)
+    OCF_RESKEY_CRM_meta_notify_stop_uname=$(trim_var $OCF_RESKEY_CRM_meta_notify_stop_uname)
+    OCF_RESKEY_CRM_meta_notify_active_uname=$(trim_var $OCF_RESKEY_CRM_meta_notify_active_uname)
+    OCF_RESKEY_CRM_meta_notify_master_resource=$(trim_var $OCF_RESKEY_CRM_meta_notify_master_resource)
+    OCF_RESKEY_CRM_meta_notify_master_uname=$(trim_var $OCF_RESKEY_CRM_meta_notify_master_uname)
+    OCF_RESKEY_CRM_meta_notify_demote_resource=$(trim_var $OCF_RESKEY_CRM_meta_notify_demote_resource)
+    OCF_RESKEY_CRM_meta_notify_demote_uname=$(trim_var $OCF_RESKEY_CRM_meta_notify_demote_uname)
+    OCF_RESKEY_CRM_meta_notify_slave_resource=$(trim_var $OCF_RESKEY_CRM_meta_notify_slave_resource)
+    OCF_RESKEY_CRM_meta_notify_slave_uname=$(trim_var $OCF_RESKEY_CRM_meta_notify_slave_uname)
+    OCF_RESKEY_CRM_meta_notify_promote_resource=$(trim_var $OCF_RESKEY_CRM_meta_notify_promote_resource)
+    OCF_RESKEY_CRM_meta_notify_promote_uname=$(trim_var $OCF_RESKEY_CRM_meta_notify_promote_uname)
     return $OCF_SUCCESS
 }
 
