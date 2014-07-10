@@ -15,6 +15,7 @@ class nailgun::packages(
 
   nailgun_safe_package { "postgresql-libs": }
   nailgun_safe_package { "rsyslog": }
+  nailgun_safe_package { "rsync": }
 
   #  nailgun_safe_package { "cman": }
   nailgun_safe_package { "fence-agents": }
