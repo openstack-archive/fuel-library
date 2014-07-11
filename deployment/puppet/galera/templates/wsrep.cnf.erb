@@ -4,16 +4,16 @@ port=3307
 
 skip-external-locking
 <% if @skip_name_resolve -%>
-skip-name-resolve
+    skip-name-resolve
 <% end -%>
 
 innodb_autoinc_lock_mode=2
 binlog_format=ROW
 log_bin=mysql-bin
 <% if @setup_multiple_gcomm -%>
-wsrep_cluster_address="gcomm://<%= @node_addresses.collect {|ip| ip + ':' + @gcomm_port.to_s }.join ',' %>?pc.wait_prim=no"
+    wsrep_cluster_address="gcomm://<%= @node_addresses.collect {|ip| ip + ':' + @gcomm_port.to_s }.join ',' %>?pc.wait_prim=no"
 <% else -%>
-wsrep_cluster_address="gcomm://<%= @node_addresses.first %>:<%= @gcomm_port.to_s %>?pc.wait_prim=no"
+    wsrep_cluster_address="gcomm://<%= @node_addresses.first %>:<%= @gcomm_port.to_s %>?pc.wait_prim=no"
 <% end -%>
 wsrep_provider=<%= @libgalera_prefix %>/galera/libgalera_smm.so
 wsrep_cluster_name="<%= @cluster_name -%>"
