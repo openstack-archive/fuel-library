@@ -54,13 +54,11 @@ class galera (
   $node_addresses       = [$ipaddress_eth0],
   $use_syslog           = false,
   $gcomm_port           = '4567',
+  $status_check         = true,
   ) {
   include galera::params
 
   anchor {'galera': }
-
-  $service_name = "mysql"
-  $res_name = "p_${service_name}"
 
   $mysql_user = $::galera::params::mysql_user
   $mysql_password = $::galera::params::mysql_password
@@ -76,74 +74,16 @@ class galera (
   $innodb_flush_log_at_trx_commit=$::galera::params::innodb_flush_log_at_trx_commit
   $datadir=$::mysql::params::datadir
 
-  case $::osfamily {
-    'RedHat' : {
+  package { ['wget',
+              'perl']:
+    ensure => present,
+    before => Package['MySQL-server'],
+  }
 
-      file { '/etc/init.d/mysql':
-        ensure  => present,
-        mode    => '0644',
-        require => Package['MySQL-server'],
-        before  => File['mysql-wss-ocf']
-      }
-
-      file { '/etc/my.cnf':
-        ensure => present,
-        content => template("galera/my.cnf.erb"),
-        before => File['mysql-wss-ocf']
-      }
-
-      package { 'wget':
-        ensure => present,
-        before => Package['MySQL-server']
-      }
-
-      package { 'bc':
-        ensure => present,
-        before => Package['MySQL-server']
-      }
-
-      package { 'perl':
-        ensure => present,
-        before => Package['mysql-client']
-      }
-    }
-    'Debian' : {
-
-      file { '/etc/init.d/mysql':
-        ensure  => present,
-        mode    => '0644',
-        source => 'puppet:///modules/galera/mysql.init' ,
-        require => Package['MySQL-server'],
-        before  => File['mysql-wss-ocf']
-      }
-
-      file { '/etc/my.cnf':
-        ensure => present,
-        content => template("galera/my.cnf.erb"),
-        before => File['mysql-wss-ocf']
-      }
-
-      package { 'wget':
-        ensure => present,
-        before => Package['mysql-client']
-      }
-
-      package { 'perl':
-        ensure => present,
-        before => Package['mysql-client']
-      }
-
-      package { 'bc':
-        ensure => present,
-        before => Package['MySQL-server']
-      }
-
-      package { 'mysql-common':
-        ensure => present,
-        before => Package['MySQL-server']
-      }
-
-    }
+  file { '/etc/my.cnf':
+    ensure  => present,
+    content => template('galera/my.cnf.erb'),
+    before  => File['mysql-wss-ocf']
   }
 
   package { 'mysql-client':
@@ -152,33 +92,84 @@ class galera (
     before => Package['MySQL-server']
   }
 
+  file { ['/etc/mysql',
+          '/etc/mysql/conf.d']:
+    ensure => directory,
+    before => Package['MySQL-server']
+  }
+
+  package { [$::galera::params::libssl_package,
+              $::galera::params::libaio_package]:
+    ensure => present,
+    before => Package['galera', 'MySQL-server']
+  }
+
+  package { 'galera':
+    ensure => present,
+    before => Package['MySQL-server']
+  }
+
+  if $::galera::params::mysql_version {
+    $wsrep_version = $::galera::params::mysql_version
+  } else {
+    $wsrep_version = 'installed'
+  }
+
+  package { 'MySQL-server':
+    ensure   => $wsrep_version,
+    name     => $::galera::params::mysql_server_name,
+    provider => $::galera::params::pkg_provider,
+  }
+
+  case $::osfamily {
+    'RedHat': {
+      file { '/etc/init.d/mysql':
+        ensure  => present,
+        mode    => '0644',
+        require => Package['MySQL-server'],
+        before  => File['mysql-wss-ocf']
+      }
+    }
+    'Debian': {
+      file { '/etc/init.d/mysql':
+        ensure  => present,
+        mode    => '0644',
+        require => Package['MySQL-server'],
+        before  => File['mysql-wss-ocf']
+      }
+    }
+    default: {
+      fail('Unsupported OS')
+    }
+  }
+
   if $primary_controller {
-    $galera_pid = $osfamily ? {
+    $galera_pid = $::osfamily ? {
       'RedHat' => '/var/run/mysql/mysqld.pid',
       'Debian' => '/var/run/mysqld/mysqld.pid',
     }
-    $galera_socket = $osfamily ? {
+    $galera_socket = $::osfamily ? {
       'RedHat' => '/var/lib/mysql/mysql.sock',
       'Debian' => '/var/run/mysqld/mysqld.sock',
     }
-    cs_resource { "$res_name":
-      ensure => present,
+    cs_resource { 'p_mysql':
+      ensure          => present,
       primitive_class => 'ocf',
       provided_by     => 'mirantis',
-      primitive_type => 'mysql-wss',
+      primitive_type  => 'mysql-wss',
       multistate_hash => {
-        'type' => 'clone',
+        'type'        => 'clone',
       },
-      parameters => {
+      parameters      => {
         'test_user'   => "${mysql_user}",
         'test_passwd' => "${mysql_password}",
         'pid'         => "${galera_pid}",
         'socket'      => "${galera_socket}",
       },
-      operations => {
+      operations      => {
         'monitor' => {
           'interval' => '60',
-          'timeout' => '55'
+          'timeout'  => '55'
         },
         'start' => {
           'timeout' => '475'
@@ -188,73 +179,38 @@ class galera (
         },
       },
     }
-    Anchor['galera'] -> File['mysql-wss-ocf'] -> Cs_resource[$res_name] -> Service[$service_name]
-
-    exec { 'start-new-galera-cluster':
-      path   => "/usr/bin:/usr/sbin:/bin:/sbin",
-      logoutput => true,
-      command   => 'echo Primary-controller completed',
-    }
-    Service["$service_name"] -> Exec['start-new-galera-cluster']
-    Exec['start-new-galera-cluster'] -> Exec['wait-for-synced-state']
-    Exec['start-new-galera-cluster'] ~> Exec['raise-first-setup-flag']
-    notify{'xxx-controller-primary':}
+    Anchor['galera'] ->
+      File['mysql-wss-ocf'] ->
+        Cs_resource['p_mysql'] ->
+          Service['mysql'] ->
+            Exec['wait-for-synced-state']
   } else {
-    Anchor['galera'] -> File['mysql-wss-ocf'] -> Service[$service_name]
-    notify{'xxx-controller-ordinary':}
+    Anchor['galera'] ->
+      File['mysql-wss-ocf'] ->
+        Service['mysql']
   }
 
-  file {'mysql-wss-ocf':
+  file { 'mysql-wss-ocf':
     path   => '/usr/lib/ocf/resource.d/mirantis/mysql-wss',
     mode   => '0755',
     owner  => root,
     group  => root,
-    source => "puppet:///modules/galera/ocf/mysql-wss",
+    source => 'puppet:///modules/galera/ocf/mysql-wss',
   }
+  
   File<| title == 'ocf-mirantis-path' |> -> File['mysql-wss-ocf']
 
   Package['MySQL-server'] -> File['mysql-wss-ocf']
   Package['galera'] -> File['mysql-wss-ocf']
 
-  service { $service_name:
-    name       => $res_name,
-    enable     => true,
+  service { 'mysql':
     ensure     => 'running',
+    name       => 'p_mysql', 
+    enable     => true,
     provider   => 'pacemaker',
   }
 
-  Service[$service_name] -> Anchor['galera-done']
-
-  package { [$::galera::params::libssl_package, $::galera::params::libaio_package]:
-    ensure => present,
-    before => Package["galera", "MySQL-server"]
-  }
-
-  if $::galera::params::mysql_version {
-    $wsrep_version = $::galera::params::mysql_version
-  } else {
-    $wsrep_version = 'installed'
-  }
-  package { "MySQL-server":
-    ensure   => $wsrep_version,
-    name     => $::galera::params::mysql_server_name,
-    provider => $::galera::params::pkg_provider,
-    require  => Package['galera']
-  }
-
-  package { "galera":
-    ensure   => present,
-  }
-
-  # Uncomment the following Exec and sequence arrow to obtain full MySQL server installation log
-  #  ->
-  #  exec { "debug -mysql-server-installation" :
-  #    command     => "/usr/bin/yum -d 10 -e 10 -y install MySQL-server 2>&1 | tee mysql_install.log",
-  #    before => Package["MySQL-server"],
-  #    logoutput => true,
-  #  }
-
-  file { ["/etc/mysql", "/etc/mysql/conf.d"]: ensure => directory, }
+  Service['mysql'] -> Anchor['galera-done']
 
   if $::galera_gcomm_empty == "true" {
     #FIXME(bogdando): dirtyhack to pervert imperative puppet nature.
@@ -273,29 +229,25 @@ class galera (
       $innodb_log_file_size_real = $::mysql_log_file_size_real
     }
 
-    file { "/etc/mysql/conf.d/wsrep.cnf":
+    file { '/etc/mysql/conf.d/wsrep.cnf':
       ensure  => present,
-      content => template("galera/wsrep.cnf.erb"),
-      require => [File["/etc/mysql/conf.d"], File["/etc/mysql"]],
+      content => template('galera/wsrep.cnf.erb'),
+      require => [File['/etc/mysql/conf.d'], File['/etc/mysql']],
     }
-    File["/etc/mysql/conf.d/wsrep.cnf"] -> Package['MySQL-server']
+    File['/etc/mysql/conf.d/wsrep.cnf'] -> Package['MySQL-server']
   }
-
-#TODO: find another way of mysql initial replication users creation
-
 
 # This file contains initial sql requests for creating replication users.
 
-  file { "/tmp/wsrep-init-file":
+  file { '/tmp/wsrep-init-file':
     ensure  => present,
-    content => template("galera/wsrep-init-file.erb"),
+    content => template('galera/wsrep-init-file.erb'),
   }
 
 # This exec waits for initial sync of galera cluster after mysql replication user creation.
 
-
   $user_password_string="-u${mysql_user} -p${mysql_password}"
-  exec { "wait-initial-sync":
+  exec { 'wait-initial-sync':
     logoutput   => true,
     command     => "/usr/bin/mysql ${user_password_string} -Nbe \"show status like 'wsrep_local_state_comment'\" | /bin/grep -q -e Synced -e Initialized && sleep 10",
     try_sleep   => 5,
@@ -303,30 +255,27 @@ class galera (
     refreshonly => true,
   }
 
-  exec { "rm-init-file":
-    command => "/bin/rm /tmp/wsrep-init-file",
+  exec { 'rm-init-file':
+    command => '/bin/rm /tmp/wsrep-init-file',
   }
 
-  exec { "wait-for-synced-state":
+  exec { 'wait-for-synced-state':
     logoutput => true,
     command   => "/usr/bin/mysql ${user_password_string} -Nbe \"show status like 'wsrep_local_state_comment'\" | /bin/grep -q Synced && sleep 10",
     try_sleep => 5,
     tries     => 60,
   }
 
-  exec { "raise-first-setup-flag" :
-   path    => "/usr/bin:/usr/sbin:/bin:/sbin",
-   command => "crm_attribute -t crm_config --name mysqlprimaryinit --update done",
-   refreshonly => true,
-  }
-
-
   File['/tmp/wsrep-init-file'] ->
-    Service[$service_name] ->
+    Service['mysql'] ->
       Exec['wait-initial-sync'] ->
         Exec['wait-for-synced-state'] ->
           Exec ['rm-init-file']
   Package['MySQL-server'] ~> Exec['wait-initial-sync']
+
+  if $status_check {
+    include galera::status
+  }
 
   anchor {'galera-done': }
 }
