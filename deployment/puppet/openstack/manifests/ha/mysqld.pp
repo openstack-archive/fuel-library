@@ -12,14 +12,14 @@ class openstack::ha::mysqld (
     before_start        => $before_start,
 
     haproxy_config_options => {
-      'option'         => ['mysql-check user cluster_watcher', 'tcplog','clitcpka','srvtcpka'],
-      'balance'        => 'roundrobin',
+      'option'         => ['httpchk', 'tcplog','clitcpka','srvtcpka'],
+      'balance'        => 'leastconn',
       'mode'           => 'tcp',
       'timeout server' => '28801s',
       'timeout client' => '28801s'
     },
 
-    balancermember_options => 'check inter 15s fastinter 2s downinter 1s rise 5 fall 3',
+    balancermember_options => 'check port 49000 inter 15s fastinter 2s downinter 1s rise 3 fall 3',
   }
 
   package { 'socat': ensure => present }
