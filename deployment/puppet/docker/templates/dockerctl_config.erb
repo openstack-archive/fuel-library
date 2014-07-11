@@ -85,7 +85,7 @@ CONTAINER_OPTIONS["keystone"]="-p ${BIND_ALL}5000:5000 -p ${BIND_ALL}35357:35357
 #Host volumes
 declare -A HOST_VOL
 HOST_VOL['repo']="-v /var/www/nailgun:/var/www/nailgun:rw"
-HOST_VOL['puppet']="-v /etc/puppet:/puppet:ro"
+HOST_VOL['puppet']="-v /etc/puppet:/etc/puppet:ro"
 HOST_VOL['sshkey']="-v /root/.ssh:/root/.ssh:ro"
 HOST_VOL['astuteyaml']="-v /etc/fuel:/etc/fuel:ro"
 HOST_VOL['remotelogs']="-v /var/log/remote:/remote"
