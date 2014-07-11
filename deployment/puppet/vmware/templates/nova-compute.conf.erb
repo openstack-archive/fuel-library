@@ -1,0 +1,17 @@
+[DEFAULT]
+compute_driver=<%= @compute_driver %>
+
+[vmware]
+<% for @clustername in @vcenter_cluster.split(',')do -%>
+cluster_name=<%= @clustername %>
+<% end -%>
+use_linked_clone=<%= @use_linked_clone %>
+maximum_objects=<%= @maximum_objects %>
+api_retry_count=<%= @api_retry_count %>
+host_ip=<%= @vcenter_host_ip %>
+host_username=<%= @vcenter_user %>
+host_password=<%= @vcenter_password %>
+task_poll_interval=<%= @task_poll_interval %>
+<% if @wsdl_location -%>
+wsdl_location=<%= @wsdl_location %>
+<% end -%>

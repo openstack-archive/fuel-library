@@ -26,7 +26,14 @@ class vmware::controller (
   $ensure_package = 'present',
   $ha_mode = false,
   $amqp_port = '5673',
-  $nova_compute_config = '/etc/nova/nova.conf'
+  $nova_compute_config = '/etc/nova/nova.conf',
+  $nova_compute_vmware_config = '/etc/nova/nova-compute.conf',
+  $api_retry_count = 5,
+  $maximum_objects = 100,
+  $task_poll_interval = 5.0,
+  $use_linked_clone = true,
+  $wsdl_location = undef,
+  $compute_driver = 'vmwareapi.VMwareVCDriver',
 )
 
 { # begin of class
@@ -59,7 +66,8 @@ class vmware::controller (
       },
       parameters      => {
         'amqp_server_port' => $amqp_port,
-        'config' => $nova_compute_config
+        'config' => $nova_compute_config,
+        'additional_parameters' => "--config-file=${nova_compute_vmware_config}",
       },
       operations      => {
         'monitor'  => {
@@ -97,6 +105,7 @@ class vmware::controller (
 
     Anchor['vcenter-nova-compute-start']->
     Nova::Generic_service['compute']->
+    File['/etc/nova/nova-compute.conf']->
     File['vcenter-nova-compute-ocf']->
     Cs_resource['p_vcenter_nova_compute']->
     Service['p_vcenter_nova_compute']->
@@ -110,35 +119,34 @@ class vmware::controller (
     use_quantum => $use_quantum,
     ha_mode => $ha_mode
   }
-
+  file { "/etc/nova/nova-compute.conf":
+    content => template ("vmware/nova-compute.conf.erb"),
+    mode => 0644,
+    owner => root,
+    group => root,
+    ensure => present,
+  }
   # workaround for Ubuntu additional package for hypervisor
   case $::osfamily { # open case
     'RedHat': { # open RedHat
       # nova-compute service configuration
-      class { 'nova::compute::vmware':
-        host_ip => $vcenter_host_ip,
-        host_username => $vcenter_user,
-        host_password => $vcenter_password,
-        cluster_name => $vcenter_cluster,
+      file { '/etc/sysconfig/openstack-nova-compute':
+        ensure => present,
+      } ->
+      file_line { 'nova-compute env':
+        path => '/etc/sysconfig/openstack-nova-compute',
+        line => "OPTIONS='--config-file=/etc/nova/nova.conf --config-file=/etc/nova/nova-compute.conf'",
       }
     } # close RedHat
-    'Debian': { # open Ubuntu
-      class { 'nova::compute::vmware':
-        host_ip => $vcenter_host_ip,
-        host_username => $vcenter_user,
-        host_password => $vcenter_password,
-        cluster_name => $vcenter_cluster,
-      } -> # and then we should do the workaround
-      exec { 'clean-nova-compute-conf': # open exec
-        command => "/bin/echo > /etc/nova/nova-compute.conf"
-      } # close exec
-    } # close Ubuntu
   } # close case
 
   # install cirros vmdk package
 
   package { 'cirros-testvmware':
     ensure => "present"
+  }
+  package { 'python-suds':
+    ensure   => present
   }
 
 } # end of class
