@@ -219,7 +219,7 @@ my_host() {
 
 srv_uptime() {
     local stime
-    stime=$(cat $RMQ_START_TIME 2>/dev/null)
+    stime=`crm_attribute -N `hostname` -l reboot --name 'rabbit-start-time' --query 2>/dev/null | awk '{print $3}' | awk -F "=" '{print $2}'`
     rc=$?
 
     if [[ $rc == 0 ]] ; then
@@ -428,7 +428,7 @@ unjoin_nodes_from_cluster() {
                 if [[ $rc == 0 ]] ; then
                     ocf_log info "${LH} node '${nodename}' unjoined succesfully."
                 else
-                    ocf_log info "${LH} unjoining node '${nodename}' was fail."
+                    ocf_log info "${LH} unjoining node '${nodename}' failed."
                 fi
             fi
         done
@@ -615,7 +615,7 @@ start_rmq_server_app() {
             # rabbitmq-server started successfuly as master of cluster
             master_score 1  # minimal positive master-score for this node.
             # create timestamp file
-            test -f $RMQ_START_TIME || now > $RMQ_START_TIME
+            ocf_run crm_attribute -N `hostname` -l reboot --name 'rabbit-start-time' --update $(now)
         else
             # error at start RMQ-server
             ocf_log warn "${LH} RMQ-server app can't start without Mnesia cleaning."
@@ -678,7 +678,6 @@ action_status() {
     return $rc
 }
 
-
 get_monitor() {
     local rc
     local scope
@@ -692,13 +691,20 @@ get_monitor() {
         master_score 0
         ocf_run crm_attribute -N $(crm_node -n) -n ${master_for_queues}  -l reboot -v 0
         return $OCF_NOT_RUNNING
-    elif [[ $rc == $OCF_SUCCESS && -f ${MASTER_FLAG_FILE} ]] ; then
-        rc=$OCF_RUNNING_MASTER
+    elif [[ $rc == $OCF_SUCCESS ]] ; then
+        ocf_log info "${LH} get_status() returns ${rc}."
+        ocf_log info "${LH} also checking if we are master."
+        am_i_master=$( crm_attribute -N `hostname` -l reboot --name 'rabbit-master' --query 2>/dev/null | awk '{print $3}' | awk -F "=" '{print $2}' )
+        ocf_log info "${LH} master attribute is ${am_i_master}"
+        if [[ ${am_i_master} == "true" ]]
+        then
+            rc=$OCF_RUNNING_MASTER
+        fi
     fi
     get_status rabbit
     rabbit_running=$?
     ocf_log info "checking if rabbit app is running"
-    if [ $rabbit_running -eq $OCF_SUCCESS ]
+    if [ $rabbit_running -eq $OCF_SUCCESS -a $rc -ne $OCF_RUNNING_MASTER ]
         then
             ocf_log info "rabbit app is running. checking if we are the part of healthy cluster"
             prev_rc=$rc
@@ -807,16 +813,16 @@ action_stop() {
     fi
 
     # remove master flag
-    ocf_run rm -f ${MASTER_FLAG_FILE}
     # remove master score
+    ocf_run crm_attribute -N `hostname` -l reboot --name 'rabbit-master' --delete
     master_score 0
 
     ocf_log info "${LH} RMQ-runtime (beam) going to down."
     stop_server_process
     rc=$?
 
-    # remove file with rmq-server start timestamp
-    rm -f ${RMQ_START_TIME}
+    ocf_run crm_attribute -N `hostname` -l reboot --name 'rabbit-start-time' --delete
+    #  remove file with rmq-server start timestamp
 
     #todo: make this timeout corresponded to the stop timeout for resource
     sleep 10
@@ -889,6 +895,16 @@ action_notify() {
                 unjoin_nodes_from_cluster "${OCF_RESKEY_CRM_meta_notify_stop_uname}"
                 ocf_log info "${LH} post-stop end."
                 ;;
+             demote)
+                # if rabbitmq-server stops on any another node, we should remove it from cluster (as ordinary operation)
+                ocf_log info "${LH} post-demote begin."
+                my_host "${OCF_RESKEY_CRM_meta_notify_demote_uname}"
+                rc=$?
+                if [[ $rc != $OCF_SUCCESS ]] ; then
+                   stop_rmq_server_app 
+                fi
+                ocf_log info "${LH} post-demote end."
+                ;;
             *)  ;;
         esac
     fi
@@ -921,13 +937,14 @@ action_promote() {
             # rabbitmqctl start_app if need
             get_status rabbit
             rc=$?
+            ocf_log info "Updating cluster master attribute"
+            ocf_run crm_attribute -N `hostname` -l reboot --name 'rabbit-master' --update 'true'
             if [[ $rc != $OCF_SUCCESS ]] ; then
                 start_rmq_server_app
                 rc=$?
                 if [[ $rc == 0 ]] ; then
                     # create timestamp file
-                    test -f $RMQ_START_TIME || now > $RMQ_START_TIME
-                    ocf_run crm_attribute -N `hostname` -l reboot --name 'rabbit-master' --update 'true'
+                    ocf_run crm_attribute -N `hostname` -l reboot --name 'rabbit-start-time' --update $(now)
                     get_monitor
                 fi
             fi
@@ -951,7 +968,6 @@ action_promote() {
     esac
 
     # transform slave RMQ-server to master
-    echo > ${MASTER_FLAG_FILE}
 
     ocf_log info "${LH} action end."
     return $rc
@@ -980,9 +996,10 @@ action_demote() {
             # Running as master. Normal, expected behavior.
             ocf_log warn "${LH} Resource is currently running as Master"
             # nothing to do, because rejoin, if need, will happens in post-promote notify
+            stop_rmq_server_app
+            rc=$?
             ocf_run crm_attribute -N `hostname` -l reboot --name 'rabbit-master' --delete
-            ocf_run rm -f $RMQ_START_TIME
-            rc=$OCF_SUCCESS
+            ocf_run crm_attribute -N `hostname` -l reboot --name 'rabbit-start-time' --delete
             ;;
         "$OCF_SUCCESS")
             # Alread running as slave. Nothing to do.
@@ -1006,8 +1023,6 @@ action_demote() {
     esac
 
     # transform master RMQ-server to slave
-    ocf_run rm -f ${MASTER_FLAG_FILE}
-
     ocf_log info "${LH} action end."
     return $rc
 }
