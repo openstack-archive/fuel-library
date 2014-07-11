@@ -695,6 +695,39 @@ get_monitor() {
     elif [[ $rc == $OCF_SUCCESS && -f ${MASTER_FLAG_FILE} ]] ; then
         rc=$OCF_RUNNING_MASTER
     fi
+    get_status rabbit
+    rabbit_running=$?
+    ocf_log info "checking if rabbit app is running"
+    if [ $rabbit_running -eq $OCF_SUCCESS ]
+        then
+            ocf_log info "rabbit app is running. checking if we are the part of healthy cluster"
+            rc=$OCF_ERR_GENERIC
+            nodelist=`crm_node -l | awk '{print $2}' | grep -v "^$"`
+            for node in $nodelist
+            do
+                ocf_log info "rabbit app is running. looking for master on $node"
+                is_master=`crm_attribute -N $node -l reboot --name 'rabbit-master' --query 2>/dev/null | awk '{print $3}' | awk -F "=" '{print $2}'`
+                if [[ ${is_master} == "true" ]]
+                then
+                    ocf_log info "rabbit app is running. master is $node"
+                    cluster_status=$( ${OCF_RESKEY_ctl} cluster_status 2>&1 ) 
+                    if `echo ${cluster_status} | grep -q $node`
+                    then
+                        ocf_log info "rabbit app is running and is member of healthy cluster"
+                        rc=$OCF_SUCCESS
+                        break
+                    fi
+                fi
+            done
+    fi
+ 
+    if [[ $rc -eq $OCF_ERR_GENERIC ]]; then
+        ocf_log info "${LH} get_status() returns generic error ${rc}"
+        ocf_log info "${LH} ensuring it does not get promoted."
+        ocf_run crm_attribute -N $(crm_node -n) -n ${master_for_queues}  -l reboot -v 0
+        master_score 0
+        return $OCF_ERR_GENERIC
+    fi
 
     master_score $(srv_uptime)
 
@@ -918,6 +951,7 @@ action_promote() {
     # transform slave RMQ-server to master
     echo > ${MASTER_FLAG_FILE}
 
+    crm_attribute -N `hostname` -l reboot --name 'rabbit-master' --update 'true'
     ocf_log info "${LH} action end."
     return $rc
 }
@@ -971,6 +1005,7 @@ action_demote() {
 
     # transform master RMQ-server to slave
     ocf_run rm -f ${MASTER_FLAG_FILE}
+    crm_attribute -N `hostname` -l reboot --name 'rabbit-master' --delete
 
     ocf_log info "${LH} action end."
     return $rc
@@ -1000,7 +1035,6 @@ case "$1" in
   demote)       action_demote;;
   notify)       action_notify;;
   validate-all) action_validate;;
-  *)            usage
-                exit $OCF_ERR_UNIMPLEMENTED;;
+  *)            usage;;
 esac
 ###
