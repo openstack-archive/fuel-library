@@ -329,7 +329,7 @@ kill_rmq_and_remove_pid() {
 }
 
 trim_var(){
-    return ${1%% }
+    echo ${1%% }
 }
 
 action_validate() {
