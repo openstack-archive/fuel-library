@@ -219,12 +219,14 @@ my_host() {
 
 srv_uptime() {
     local stime
-    stime=`crm_attribute -N `hostname` -l reboot --name 'rabbit-start-time' --query 2>/dev/null | awk '{print $3}' | awk -F "=" '{print $2}'`
+    stime=$( crm_attribute -N `hostname` -l reboot --name 'rabbit-start-time' --query 2>/dev/null | awk '{print $3}' | awk -F "=" '{print $2}')
     rc=$?
 
-    if [[ $rc == 0 ]] ; then
+    if [[ $rc -eq 0 ]] ; then
+        ocf_log info "srv_uptime(): updating master score with diff between $(now) and ${stime}"
         echo $(( $(now) - ${stime} ))
     else
+        ocf_log info "srv_uptime(): updating master score with 0"
         echo 0
     fi
 
@@ -632,14 +634,14 @@ start_rmq_server_app() {
                         master_score 0
                         break
                     else
-                        ocf_log err "${LH} RMQ-server app can't stopped while Mnesia cleaning. beam will be killed emergency."
+                        ocf_log err "${LH} RMQ-server app can't be stopped during Mnesia cleaning. beam will be killed."
                         ocf_run killall -9 beam
                         return $OCF_ERR_GENERIC
                     fi
                 fi
             done
             if [[ $rc == $OCF_ERR_GENERIC ]] ; then
-                ocf_log err "${LH} RMQ-server can't started while many tries. beam will be killed emergency."
+                ocf_log err "${LH} RMQ-server can't be started while many tries. beam will be killed."
                 ocf_run killall -9 beam
             fi
         fi
@@ -681,7 +683,6 @@ action_status() {
 get_monitor() {
     local rc
     local scope
-    local master_for_queues="master_for_queues-$OCF_RESOURCE_INSTANCE"
     local LH="${LL} get_monitor():"
 
     get_status
@@ -689,7 +690,6 @@ get_monitor() {
     if [[ $rc == $OCF_NOT_RUNNING ]] ; then
         ocf_log info "${LH} get_status() returns ${rc}."
         master_score 0
-        ocf_run crm_attribute -N $(crm_node -n) -n ${master_for_queues}  -l reboot -v 0
         return $OCF_NOT_RUNNING
     elif [[ $rc == $OCF_SUCCESS ]] ; then
         ocf_log info "${LH} get_status() returns ${rc}."
@@ -703,24 +703,25 @@ get_monitor() {
     fi
     get_status rabbit
     rabbit_running=$?
-    ocf_log info "checking if rabbit app is running"
+    ocf_log info "${LH} checking if rabbit app is running"
     if [ $rabbit_running -eq $OCF_SUCCESS -a $rc -ne $OCF_RUNNING_MASTER ]
         then
-            ocf_log info "rabbit app is running. checking if we are the part of healthy cluster"
+            ocf_log info "${LH} rabbit app is running. checking if we are the part of healthy cluster"
             prev_rc=$rc
-            nodelist=`crm_node -l | awk '{print $2}' | grep -v "^$"`
+            nodelist=`crm_node -p -l | grep -v lost | awk '{print $2}' | grep -v "^$"`
             for node in $nodelist
             do
-                ocf_log info "rabbit app is running. looking for master on $node"
+                ocf_log info "${LH} rabbit app is running. looking for master on $node"
                 is_master=`crm_attribute -N $node -l reboot --name 'rabbit-master' --query 2>/dev/null | awk '{print $3}' | awk -F "=" '{print $2}'`
-                if [[ ${is_master} == "true" ]]
+                ocf_log info "${LH} fetched master attribute for $node. attr value is ${is_master}"
+                if [[ "x${is_master}" == "xtrue" ]]
                 then
                     rc=$OCF_ERR_GENERIC
-                    ocf_log info "rabbit app is running. master is $node"
+                    ocf_log info "${LH} rabbit app is running. master is $node"
                     cluster_status=$( ${OCF_RESKEY_ctl} cluster_status 2>&1 ) 
                     if `echo ${cluster_status} | grep -q $node`
                     then
-                        ocf_log info "rabbit app is running and is member of healthy cluster"
+                        ocf_log info "${LH} rabbit app is running and is member of healthy cluster"
                         rc=$prev_rc
                         break
                     fi
@@ -731,18 +732,16 @@ get_monitor() {
     if [[ $rc -eq $OCF_ERR_GENERIC ]]; then
         ocf_log info "${LH} get_status() returns generic error ${rc}"
         ocf_log info "${LH} ensuring it does not get promoted."
-        ocf_run crm_attribute -N $(crm_node -n) -n ${master_for_queues}  -l reboot -v 0
         master_score 0
         return $OCF_ERR_GENERIC
     fi
+    
+    ocf_log info "${LH} preparing to update master score for node"
+    score=$(srv_uptime)
+    master_score $score
+    ocf_log info "${LH} updated master score for node to $score"
 
-    master_score $(srv_uptime)
-
-    score=$( ${OCF_RESKEY_ctl} list_queues pid 2>/dev/null | grep -c "$RABBITMQ_NODENAME" )
-    if [[ $? == 0 ]] ; then
-        ocf_run crm_attribute -N $(crm_node -n) -n ${master_for_queues}  -l reboot -v $score
-    fi
-
+    ocf_log info "${LH} get_monitor function ready to return ${rc}"
     return $rc
 }
 
@@ -865,12 +864,27 @@ action_notify() {
         echo "$d  [notify]  ${OCF_RESKEY_CRM_meta_notify_type}-${OCF_RESKEY_CRM_meta_notify_operation} promote='${OCF_RESKEY_CRM_meta_notify_promote_uname}' demote='${OCF_RESKEY_CRM_meta_notify_demote_uname}' master='${OCF_RESKEY_CRM_meta_notify_master_uname}' slave='${OCF_RESKEY_CRM_meta_notify_slave_uname}' start='${OCF_RESKEY_CRM_meta_notify_start_uname}' stop='${OCF_RESKEY_CRM_meta_notify_stop_uname}' active='${OCF_RESKEY_CRM_meta_notify_active_uname}' inactive='${OCF_RESKEY_CRM_meta_notify_inactive_uname}'" >> /tmp/rmq-ocf.log
     fi
 
-    # if [[ ${OCF_RESKEY_CRM_meta_notify_type} == 'pre' ]] ; then
-    #     # PRE- anything notify section
-    #     case "$OCF_RESKEY_CRM_meta_notify_operation" in
-    #         *)  ;;
-    #     esac
-    # el
+     if [[ ${OCF_RESKEY_CRM_meta_notify_type} == 'pre' ]] ; then
+         # PRE- anything notify section
+         case "$OCF_RESKEY_CRM_meta_notify_operation" in
+             promote)
+                ocf_log info "${LH} pre-promote begin."
+                my_host "$OCF_RESKEY_CRM_meta_notify_promote_uname"
+                rc=$?
+                if [[ $rc == $OCF_SUCCESS ]] ; then
+                nodelist=`crm_node -l | awk '{print $2}' | grep -v "^$"`
+                for i in $nodelist
+                do
+                   crm_attribute -N $i -l reboot --name 'rabbit-master' --delete
+                done
+                ocf_log info "${LH} post-promote end."
+                fi
+                ;;
+            *)
+                ;;
+         esac
+    fi
+
     if [[ ${OCF_RESKEY_CRM_meta_notify_type} == 'post' ]] ; then
         # POST- anything notify section
         case "$OCF_RESKEY_CRM_meta_notify_operation" in
@@ -929,7 +943,7 @@ action_promote() {
 
     get_monitor
     rc=$?
-
+    ocf_log info "${LH} get_monitor returns ${rc}"
     case "$rc" in
         "$OCF_SUCCESS")
             # Running as slave. Normal, expected behavior.
@@ -946,6 +960,13 @@ action_promote() {
                     # create timestamp file
                     ocf_run crm_attribute -N `hostname` -l reboot --name 'rabbit-start-time' --update $(now)
                     get_monitor
+                    rc=$?
+                    if [ $rc -eq $OCF_RUNNING_MASTER ]
+                    then
+                       return $OCF_SUCCESS
+                    else
+                       return $OCF_ERR_GENERIC
+                    fi
                 fi
             fi
             ;;
