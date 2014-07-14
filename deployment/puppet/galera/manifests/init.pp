@@ -92,6 +92,7 @@ class galera (
       }
 
       package { 'MySQL-client':
+        name   => $::galera::params::mysql_client_name,
         ensure => present,
         before => Package['MySQL-server']
       }
