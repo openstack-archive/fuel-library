@@ -143,16 +143,18 @@ class nova::rabbitmq(
             'node_port'     => $port,
             #'debug'         => true,
           },
-          metadata => {
-             'migration-threshold' => 'INFINITY'
+          metadata                 => {
+             'migration-threshold' => 'INFINITY',
+             'failure-timeout'     => '60s'
+
           },
           multistate_hash => {
             'type' => 'master',
           },
           ms_metadata => {
             'notify'      => 'true',
-            'ordered'     => 'true',
-            'interleave'  => 'false',  # We shouldn't enable interleave, for parallel start of RA.
+            'ordered'     => 'false', # We shouldn't enable ordered start for parallel start of RA.
+            'interleave'  => 'true',  
             'master-max'  => '1',
             'master-node-max' => '1',
             'target-role' => 'Master'
