@@ -39,12 +39,14 @@ class galera::params {
       $libssl_package       = 'openssl098e'
       $libaio_package       = 'libaio'
       $mysql_server_name    = 'MySQL-server-wsrep'
+      $mysql_client_name    = 'MySQL-client-wsrep'
       $libgalera_prefix     = '/usr/lib64'
     }
     'Debian': {
       $libssl_package       = 'libssl0.9.8'
       $libaio_package       = 'libaio1'
-      $mysql_server_name    = 'mysql-server-wsrep'
+      $mysql_server_name    = 'mysql-server-wsrep-5.6'
+      $mysql_client_name    = 'mysql-client-5.6'
       $libgalera_prefix     = '/usr/lib'
     }
     default: {

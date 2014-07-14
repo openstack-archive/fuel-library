@@ -91,11 +91,6 @@ class galera (
         before => File['mysql-wss-ocf']
       }
 
-      package { 'MySQL-client':
-        ensure => present,
-        before => Package['MySQL-server']
-      }
-
       package { 'wget':
         ensure => present,
         before => Package['MySQL-server']
@@ -108,7 +103,7 @@ class galera (
 
       package { 'perl':
         ensure => present,
-        before => Package['MySQL-client']
+        before => Package['mysql-client']
       }
     }
     'Debian' : {
@@ -142,17 +137,18 @@ class galera (
         before => Package['MySQL-server']
       }
 
-      package { 'mysql-client':
-        ensure => present,
-        before => Package['MySQL-server']
-      }
-
       package { 'mysql-common':
         ensure => present,
         before => Package['MySQL-server']
       }
 
     }
+  }
+
+  package { 'mysql-client':
+    name   => $::galera::params::mysql_client_name,
+    ensure => present,
+    before => Package['MySQL-server']
   }
 
   if $primary_controller {
