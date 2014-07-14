@@ -92,6 +92,7 @@ class galera (
       }
 
       package { 'MySQL-client':
+        name   => "MySQL-client-wsrep",
         ensure => present,
         before => Package['MySQL-server']
       }
