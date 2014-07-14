@@ -6,7 +6,7 @@ AUTH:
   # - none - authentication is disabled
   # - fake - no keystone required, credentials: admin/admin
   # - keystone - authentication enabled.
-  AUTHENTICATION_METHOD: "none"
+  AUTHENTICATION_METHOD: "keystone"
   # use only if AUTHENTICATION_METHOD is set to "keystone"
   admin_token: "<%= @keystone_admin_token %>"
   auth_host: "<%= @keystone_host %>"
