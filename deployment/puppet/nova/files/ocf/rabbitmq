@@ -206,6 +206,7 @@ my_host() {
     local LH="${LL} my_host():"
 
     rc=1
+    ocf_log info "${LH} hostlist is: $hostlist"
     for host in hostlist ; do
         hn=$(echo "$hostlist" | awk -F. '{print $1}')
         if [[ "X${hostname}" == "X${hn}" ]] ; then
@@ -219,10 +220,10 @@ my_host() {
 
 srv_uptime() {
     local stime
-    stime=`crm_attribute -N `hostname` -l reboot --name 'rabbit-start-time' --query 2>/dev/null | awk '{print $3}' | awk -F "=" '{print $2}'`
+    stime=$( crm_attribute -N `hostname` -l reboot --name 'rabbit-start-time' --query 2>/dev/null | awk '{print $3}' | awk -F "=" '{print $2}')
     rc=$?
 
-    if [[ $rc == 0 ]] ; then
+    if [[ "x$stime" != "x(null)" ]] ; then
         echo $(( $(now) - ${stime} ))
     else
         echo 0
@@ -300,7 +301,7 @@ get_running_nodes() {
 check_need_join_to() {
     local join_to=$(rabbit_node_name $1)
     local node
-    local running_nodes=$(get_nodes)
+    local running_nodes=$(get_running_nodes)
 
     rc=0
     for node in $running_nodes ; do
@@ -373,7 +374,7 @@ join_to_cluster() {
         if [[ $rc != 0 ]] ; then
             ocf_log err "${LH} Can't stop rabbitmq app by stop_app command."
             ocf_run killall beam
-            return $OCF_SUCCESS
+            return $OCF_ERR_GENERIC
         fi
     fi
     # ccc=$(${OCF_RESKEY_ctl} cluster_status 2>&1)
@@ -383,16 +384,18 @@ join_to_cluster() {
     if [[ $rc != 0 ]] ; then
         ocf_log err "${LH} Can't join to cluster by node '${rmq_node}'."
         ocf_run killall beam
-        return $OCF_SUCCESS
+        return $OCF_ERR_GENERIC
     fi
     sleep 2
-    start_rmq_server_app
+    try_to_start_rmq_app
     rc=$?
     if [[ $rc != 0 ]] ; then
         ocf_log err "${LH} Can't start RMQ app after join to cluster."
         ocf_run killall beam
-        return $OCF_SUCCESS
+        return $OCF_ERR_GENERIC
     else
+        ocf_log info "${LH} Rabbit app started successfully. Updating start time attribute with $(now)"
+        ocf_run crm_attribute -N `hostname` -l reboot --name 'rabbit-start-time' --update $(now)
         ocf_log info "${LH} Joined to cluster succesfully."
     fi
 
@@ -603,48 +606,49 @@ start_rmq_server_app() {
     get_status
     if [[ $? != $OCF_SUCCESS ]] ; then
         ocf_log info "${LH} RMQ-runtime (beam) not started, starting..."
-        start_beam_process || return $OCF_ERR_GENERIC
+        start_beam_process
+        rc=$?
+        if [ $rc -ne $OCF_SUCCESS ]
+        then
+            return $OCF_ERR_GENERIC
+        fi
     fi
 
-    get_status rabbit
-    if [[ $? != $OCF_SUCCESS ]] ; then
-        ocf_log info "${LH} RMQ-server app not started, starting..."
-        try_to_start_rmq_app "$startup_log"
-        rc=$?
-        if [[ $rc == $OCF_SUCCESS ]] ; then
-            # rabbitmq-server started successfuly as master of cluster
-            master_score 1  # minimal positive master-score for this node.
-            # create timestamp file
-            ocf_run crm_attribute -N `hostname` -l reboot --name 'rabbit-start-time' --update $(now)
-        else
-            # error at start RMQ-server
-            ocf_log warn "${LH} RMQ-server app can't start without Mnesia cleaning."
-            for ((a=10; a > 0 ; a--)) ; do
-                rc=$OCF_ERR_GENERIC
-                reset_mnesia || break
-                try_to_start_rmq_app "$startup_log"
-                rc=$?
-                if [[ $rc == $OCF_SUCCESS ]]; then
-                    stop_rmq_server_app ; rc=$?
-                    if [[ $rc == $OCF_SUCCESS ]]; then
-                        ocf_log info "${LH} RMQ-server app Mnesia cleaned successfully."
-                        rc=$OCF_SUCCESS
-                        master_score 0
-                        break
-                    else
-                        ocf_log err "${LH} RMQ-server app can't stopped while Mnesia cleaning. beam will be killed emergency."
-                        ocf_run killall -9 beam
-                        return $OCF_ERR_GENERIC
-                    fi
-                fi
-            done
-            if [[ $rc == $OCF_ERR_GENERIC ]] ; then
-                ocf_log err "${LH} RMQ-server can't started while many tries. beam will be killed emergency."
-                ocf_run killall -9 beam
-            fi
-        fi
+    ocf_log info "${LH} RMQ-server app not started, starting..."
+    try_to_start_rmq_app "$startup_log"
+    rc=$?
+    if [[ $rc == $OCF_SUCCESS ]] ; then
+        # rabbitmq-server started successfuly as master of cluster
+        master_score 1  # minimal positive master-score for this node.
+        # create timestamp file
+        #ocf_run crm_attribute -N `hostname` -l reboot --name 'rabbit-start-time' --update $(now)
+        stop_rmq_server_app
     else
-        rc=$OCF_SUCCESS
+       # error at start RMQ-server
+       ocf_log warn "${LH} RMQ-server app can't start without Mnesia cleaning."
+        for ((a=10; a > 0 ; a--)) ; do
+            rc=$OCF_ERR_GENERIC
+            reset_mnesia || break
+            try_to_start_rmq_app "$startup_log"
+            rc=$?
+            if [[ $rc == $OCF_SUCCESS ]]; then
+                stop_rmq_server_app ; rc=$?
+                if [[ $rc == $OCF_SUCCESS ]]; then
+                    ocf_log info "${LH} RMQ-server app Mnesia cleaned successfully."
+                    rc=$OCF_SUCCESS
+                    master_score 1
+                    break
+                else
+                    ocf_log err "${LH} RMQ-server app can't be stopped during Mnesia cleaning. beam will be killed."
+                    ocf_run killall -9 beam
+                    return $OCF_ERR_GENERIC
+                fi
+            fi
+        done
+    fi
+    if [[ $rc == $OCF_ERR_GENERIC ]] ; then
+         ocf_log err "${LH} RMQ-server can't be started while many tries. beam will be killed."
+         ocf_run killall -9 beam
     fi
     ocf_log info "${LH} end."
     return $rc
@@ -678,10 +682,12 @@ action_status() {
     return $rc
 }
 
+
+
+
 get_monitor() {
     local rc
     local scope
-    local master_for_queues="master_for_queues-$OCF_RESOURCE_INSTANCE"
     local LH="${LL} get_monitor():"
 
     get_status
@@ -689,60 +695,84 @@ get_monitor() {
     if [[ $rc == $OCF_NOT_RUNNING ]] ; then
         ocf_log info "${LH} get_status() returns ${rc}."
         master_score 0
-        ocf_run crm_attribute -N $(crm_node -n) -n ${master_for_queues}  -l reboot -v 0
         return $OCF_NOT_RUNNING
     elif [[ $rc == $OCF_SUCCESS ]] ; then
         ocf_log info "${LH} get_status() returns ${rc}."
         ocf_log info "${LH} also checking if we are master."
+        get_status rabbit
+        rabbit_running=$?
         am_i_master=$( crm_attribute -N `hostname` -l reboot --name 'rabbit-master' --query 2>/dev/null | awk '{print $3}' | awk -F "=" '{print $2}' )
         ocf_log info "${LH} master attribute is ${am_i_master}"
-        if [[ ${am_i_master} == "true" ]]
+        if [[ "x${am_i_master}" == "xtrue" && ${rabbit_running} ]]
         then
             rc=$OCF_RUNNING_MASTER
         fi
     fi
     get_status rabbit
     rabbit_running=$?
-    ocf_log info "checking if rabbit app is running"
-    if [ $rabbit_running -eq $OCF_SUCCESS -a $rc -ne $OCF_RUNNING_MASTER ]
+    ocf_log info "${LH} checking if rabbit app is running"
+
+    if [ $rabbit_running -eq $OCF_SUCCESS ]
         then
-            ocf_log info "rabbit app is running. checking if we are the part of healthy cluster"
+            ocf_log info "${LH} rabbit app is running. checking if we are the part of healthy cluster"
             prev_rc=$rc
-            nodelist=`crm_node -l | awk '{print $2}' | grep -v "^$"`
+            nodelist=`crm_node -p -l | grep -v lost | awk '{print $2}' | grep -v "^$"`
             for node in $nodelist
             do
-                ocf_log info "rabbit app is running. looking for master on $node"
+                ocf_log info "${LH} rabbit app is running. looking for master on $node"
                 is_master=`crm_attribute -N $node -l reboot --name 'rabbit-master' --query 2>/dev/null | awk '{print $3}' | awk -F "=" '{print $2}'`
-                if [[ ${is_master} == "true" ]]
+                ocf_log info "${LH} fetched master attribute for $node. attr value is ${is_master}"
+                if [[ "x${is_master}" == "xtrue" ]]
                 then
                     rc=$OCF_ERR_GENERIC
-                    ocf_log info "rabbit app is running. master is $node"
-                    cluster_status=$( ${OCF_RESKEY_ctl} cluster_status 2>&1 ) 
-                    if `echo ${cluster_status} | grep -q $node`
+                    ocf_log info "${LH} rabbit app is running. master is $node"
+                    cluster_status=$( timeout -k5 10 ${OCF_RESKEY_ctl} cluster_status 2>/dev/null ) 
+                    if `echo ${cluster_status} | grep nodes |  grep -q $node`
                     then
-                        ocf_log info "rabbit app is running and is member of healthy cluster"
+                        ocf_log info "${LH} rabbit app is running and is member of healthy cluster"
                         rc=$prev_rc
                         break
                     fi
                 fi
             done
     fi
- 
+
     if [[ $rc -eq $OCF_ERR_GENERIC ]]; then
         ocf_log info "${LH} get_status() returns generic error ${rc}"
-        ocf_log info "${LH} ensuring it does not get promoted."
-        ocf_run crm_attribute -N $(crm_node -n) -n ${master_for_queues}  -l reboot -v 0
+        ocf_log info "${LH} ensuring this slave does not get promoted."
         master_score 0
         return $OCF_ERR_GENERIC
+    else 
+        ocf_log info "${LH} preparing to update master score for node"
+        our_uptime=$(srv_uptime)
+        nodelist=$( crm_node -p -l | grep -v lost | awk '{print $2}' | grep -v "^$" | grep -v `hostname` )
+        max=1
+        for node in $nodelist
+        do
+            node_start_time=`crm_attribute -N $node -l reboot --name 'rabbit-start-time' --query 2>/dev/null | awk '{print $3}' | awk -F "=" '{print $2}'`
+            if [[ x"$node_start_time" == "x(null)" ]]
+            then
+                node_uptime=0
+            else
+                node_uptime=$(( $(now) - ${node_start_time}  ))
+            fi
+            ocf_log info "${LH} comparing our uptime (${our_uptime}) with $node (${node_uptime})"
+            if [ ${our_uptime} -ge ${node_uptime} ]
+            then
+                max=0
+            else
+                max=1
+            fi
+        done
+
+
+        if [ $max -eq 0 ]
+        then
+            ocf_log info "${LH} we are the oldest node"
+            master_score 1000 
+        fi
     fi
-
-    master_score $(srv_uptime)
-
-    score=$( ${OCF_RESKEY_ctl} list_queues pid 2>/dev/null | grep -c "$RABBITMQ_NODENAME" )
-    if [[ $? == 0 ]] ; then
-        ocf_run crm_attribute -N $(crm_node -n) -n ${master_for_queues}  -l reboot -v $score
-    fi
-
+    ocf_log info "${LH} get_monitor function ready to return ${rc}"
     return $rc
 }
 
@@ -750,7 +780,6 @@ get_monitor() {
 action_monitor() {
     local rc
     local LH="${LL} monitor:"
-
     ocf_log debug "${LH} action start."
     get_monitor ; rc=$?
     ocf_log debug "${LH} action end."
@@ -784,7 +813,7 @@ action_start() {
     start_rmq_server_app
     rc=$?
     if [[ $rc == $OCF_SUCCESS ]] ; then
-        ocf_log info "${LH} RMQ started succesfully."
+        ocf_log info "${LH} RMQ prepared for start succesfully."
     fi
 
     ocf_log info "${LH} action end."
@@ -814,14 +843,14 @@ action_stop() {
 
     # remove master flag
     # remove master score
-    ocf_run crm_attribute -N `hostname` -l reboot --name 'rabbit-master' --delete
+    crm_attribute -N `hostname` -l reboot --name 'rabbit-master' --delete
     master_score 0
 
     ocf_log info "${LH} RMQ-runtime (beam) going to down."
     stop_server_process
     rc=$?
 
-    ocf_run crm_attribute -N `hostname` -l reboot --name 'rabbit-start-time' --delete
+    crm_attribute -N `hostname` -l reboot --name 'rabbit-start-time' --delete
     #  remove file with rmq-server start timestamp
 
     #todo: make this timeout corresponded to the stop timeout for resource
@@ -865,12 +894,27 @@ action_notify() {
         echo "$d  [notify]  ${OCF_RESKEY_CRM_meta_notify_type}-${OCF_RESKEY_CRM_meta_notify_operation} promote='${OCF_RESKEY_CRM_meta_notify_promote_uname}' demote='${OCF_RESKEY_CRM_meta_notify_demote_uname}' master='${OCF_RESKEY_CRM_meta_notify_master_uname}' slave='${OCF_RESKEY_CRM_meta_notify_slave_uname}' start='${OCF_RESKEY_CRM_meta_notify_start_uname}' stop='${OCF_RESKEY_CRM_meta_notify_stop_uname}' active='${OCF_RESKEY_CRM_meta_notify_active_uname}' inactive='${OCF_RESKEY_CRM_meta_notify_inactive_uname}'" >> /tmp/rmq-ocf.log
     fi
 
-    # if [[ ${OCF_RESKEY_CRM_meta_notify_type} == 'pre' ]] ; then
-    #     # PRE- anything notify section
-    #     case "$OCF_RESKEY_CRM_meta_notify_operation" in
-    #         *)  ;;
-    #     esac
-    # el
+     if [[ ${OCF_RESKEY_CRM_meta_notify_type} == 'pre' ]] ; then
+         # PRE- anything notify section
+         case "$OCF_RESKEY_CRM_meta_notify_operation" in
+             promote)
+                ocf_log info "${LH} pre-promote begin."
+                my_host "$OCF_RESKEY_CRM_meta_notify_promote_uname"
+                rc=$?
+                if [[ $rc == $OCF_SUCCESS ]] ; then
+                nodelist=`crm_node -l | awk '{print $2}' | grep -v "^$"`
+                for i in $nodelist
+                do
+                   crm_attribute -N $i -l reboot --name 'rabbit-master' --delete
+                done
+                ocf_log info "${LH} pre-promote end."
+                fi
+                ;;
+            *)
+                ;;
+         esac
+    fi
+
     if [[ ${OCF_RESKEY_CRM_meta_notify_type} == 'post' ]] ; then
         # POST- anything notify section
         case "$OCF_RESKEY_CRM_meta_notify_operation" in
@@ -895,13 +939,15 @@ action_notify() {
                 unjoin_nodes_from_cluster "${OCF_RESKEY_CRM_meta_notify_stop_uname}"
                 ocf_log info "${LH} post-stop end."
                 ;;
-             demote)
+            demote)
                 # if rabbitmq-server stops on any another node, we should remove it from cluster (as ordinary operation)
                 ocf_log info "${LH} post-demote begin."
                 my_host "${OCF_RESKEY_CRM_meta_notify_demote_uname}"
                 rc=$?
                 if [[ $rc != $OCF_SUCCESS ]] ; then
+                   ocf_log info "${LH} master was demoted. stopping RabbitMQ app."
                    stop_rmq_server_app 
+                   crm_attribute -N `hostname` -l reboot --name 'rabbit-start-time' --delete
                 fi
                 ocf_log info "${LH} post-demote end."
                 ;;
@@ -929,7 +975,7 @@ action_promote() {
 
     get_monitor
     rc=$?
-
+    ocf_log info "${LH} get_monitor returns ${rc}"
     case "$rc" in
         "$OCF_SUCCESS")
             # Running as slave. Normal, expected behavior.
@@ -940,12 +986,21 @@ action_promote() {
             ocf_log info "Updating cluster master attribute"
             ocf_run crm_attribute -N `hostname` -l reboot --name 'rabbit-master' --update 'true'
             if [[ $rc != $OCF_SUCCESS ]] ; then
-                start_rmq_server_app
+                try_to_start_rmq_app
                 rc=$?
                 if [[ $rc == 0 ]] ; then
                     # create timestamp file
                     ocf_run crm_attribute -N `hostname` -l reboot --name 'rabbit-start-time' --update $(now)
                     get_monitor
+                    rc=$?
+                    if [ $rc -eq $OCF_RUNNING_MASTER ]
+                    then
+                       return $OCF_SUCCESS
+                    else
+                       return $OCF_ERR_GENERIC
+                    fi
+                else
+                    return $OCF_ERR_GENERIC
                 fi
             fi
             ;;
@@ -995,11 +1050,10 @@ action_demote() {
         "$OCF_RUNNING_MASTER")
             # Running as master. Normal, expected behavior.
             ocf_log warn "${LH} Resource is currently running as Master"
-            # nothing to do, because rejoin, if need, will happens in post-promote notify
             stop_rmq_server_app
             rc=$?
-            ocf_run crm_attribute -N `hostname` -l reboot --name 'rabbit-master' --delete
-            ocf_run crm_attribute -N `hostname` -l reboot --name 'rabbit-start-time' --delete
+            crm_attribute -N `hostname` -l reboot --name 'rabbit-master' --delete
+            crm_attribute -N `hostname` -l reboot --name 'rabbit-start-time' --delete
             ;;
         "$OCF_SUCCESS")
             # Alread running as slave. Nothing to do.
