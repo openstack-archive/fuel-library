@@ -27,6 +27,7 @@ define nova::generic_service(
   # ensure that the service has only been started
   # after the initial db sync
   Exec<| title == 'nova-db-sync' |> ~> Service<| title == $nova_title |>
+  Exec<| title == 'nova-db-sync' |> -> Service<| title == $nova_title |>
 
 
   # I need to mark that ths package should be
