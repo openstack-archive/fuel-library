@@ -313,4 +313,30 @@ describe 'neutron::examples::ml2_plugin' do
 
 end
 
+describe 'neutron::examples::ml2_plugin' do
+
+  f_settings = NeutronConfig.new().get_def_config()
+  f_settings['quantum_settings']['L2']['mechanism_drivers'] = 'mlnx,openvswitch'
+  f_settings['quantum_settings']['L2']['type_drivers'] = 'vlan,local,gre,vxlan'
+  f_settings['quantum_settings']['L2']['tenant_network_types'] = 'ddd,eee,fff'
+
+  let(:module_path) { '../' }
+  let(:params) { {
+    :fuel_settings => f_settings
+  } }
+  let(:facts) { {
+    :l3_fqdn_hostname => 'node-1',
+    :osfamily => 'Debian',
+    :operatingsystem => 'Ubuntu',
+    :kernel => 'Linux'
+  } }
+
+  it 'passing ml2/mechanism_drivers option' do
+    should contain_neutron_plugin_ml2('ml2/mechanism_drivers').with_value('mlnx,openvswitch')
+    should contain_neutron_plugin_ml2('ml2/type_drivers').with_value('vlan,local,gre,vxlan')
+    should contain_neutron_plugin_ml2('ml2/tenant_network_types').with_value('ddd,eee,fff')
+  end
+
+end
+
 ###

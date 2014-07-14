@@ -253,7 +253,6 @@ describe 'neutron::examples::ml2_agent' do
 
   f_settings = NeutronConfig.new().get_def_config()
   f_settings['quantum_settings']['L2']['segmentation_type'] = 'gre'
-  f_settings['quantum_settings']['L2']['local_ip'] = '10.108.20.3'
   f_settings['quantum_settings']['predefined_networks']['net04']['L2']['network_type'] = 'gre'
   f_settings['quantum_settings']['predefined_networks']['net04']['L2'].delete('physnet')
 
@@ -276,8 +275,6 @@ describe 'neutron::examples::ml2_agent' do
     should contain_neutron_plugin_ml2('ovs/bridge_mappings')
     should contain_neutron_plugin_ml2('ovs/enable_tunneling').with_value("true")
     should contain_neutron_plugin_ml2('ovs/integration_bridge').with_value("br-int")
-    should contain_neutron_plugin_ml2('ovs/local_ip').with_ensure("10.108.20.3")
-    should contain_neutron_plugin_ml2('ovs/tunnel_bridge').with_ensure("br-tun")
   end
 
   # it '(gre) should create plugin symbolic link' do
@@ -313,8 +310,6 @@ describe 'neutron::examples::ml2_agent' do
     should contain_neutron_plugin_ml2('ovs/bridge_mappings')
     should contain_neutron_plugin_ml2('ovs/integration_bridge').with_value("br-int")
     should contain_neutron_plugin_ml2('ovs/enable_tunneling').with_value("true")
-    should contain_neutron_plugin_ml2('ovs/tunnel_bridge').with_ensure("br-tun")
-    should contain_neutron_plugin_ml2('ovs/local_ip').with_ensure("10.108.20.3")
   end
 
   # it '(gre) should create plugin symbolic link' do
@@ -323,6 +318,31 @@ describe 'neutron::examples::ml2_agent' do
   #     :target  => '/etc/neutron/plugins/ml2/ml2_conf.ini'
   #   )
   # end
+
+end
+
+describe 'neutron::examples::ml2_agent' do
+
+  f_settings = NeutronConfig.new().get_def_config()
+  f_settings['quantum_settings']['L2']['segmentation_type'] = 'vxlan'
+  f_settings['quantum_settings']['L2']['tunnel_types'] = 'vxlan,gre'
+
+  let(:module_path) { '../' }
+  let(:params) { {
+    :fuel_settings => f_settings
+  } }
+  let(:facts) { {
+    :l3_fqdn_hostname => 'node-1',
+    :osfamily => 'Debian',
+    :operatingsystem => 'Ubuntu',
+    :kernel => 'Linux'
+  } }
+
+  it '(vxlan) pass tunnel_types parameter' do
+    should contain_neutron_plugin_ml2('ovs/enable_tunneling').with_value("true")
+    should contain_neutron_plugin_ml2('agent/tunnel_types').with_value("vxlan,gre")
+  end
+
 
 end
 
