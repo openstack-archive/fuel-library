@@ -169,7 +169,7 @@ class MrntNeutron
   end
 
   def get_neutron_gre_ip() # IP, not VIP !!!
-    @scope.function_get_network_role_property(['mesh', 'ipaddr']) || @scope.function_get_network_role_property(['management', 'ipaddr'])
+    @scope.function_get_network_role_property(['mesh', 'ipaddr']) || @scope.function_get_network_role_property(['management', 'ipaddr']) || nil
   end
 
   def get_amqp_passwd()
@@ -354,6 +354,14 @@ class MrntNeutron
         :int_peer_patch_port => "patch-tun",
         :tun_peer_patch_port => "patch-int",
         :local_ip => get_neutron_gre_ip(),
+        # ml2 aware parameters
+        :mechanism_drivers => nil,
+        :type_drivers => nil,
+        :tenant_network_types => nil,
+        :flat_networks => nil,
+        :tunnel_types => nil,
+        :vxlan_group => nil,
+        :vni_ranges => nil,
       },
       :L3 => {
         :router_id => nil,
@@ -398,13 +406,11 @@ class MrntNeutron
       rv[:tunnel_id_ranges] = l2[:tunnel_id_ranges]
       rv[:vxlan_group] ||= 'None'   # because OVS don't support MCAST VxLAN implementation,
       rv[:vni_ranges] ||= l2[:tunnel_id_ranges]
-      #puts("#{rv[:tunnel_types]}  #{rv[:tunnel_id_ranges]}  #{rv[:vxlan_group]}  #{rv[:vni_ranges]} #{rv[:local_ip]}")
     else
       rv[:tunnel_types] = ''
       rv[:tunnel_id_ranges] = ''
-      rv[:vxlan_group] = 'None'   # because OVS don't support MCAST VxLAN implementation,
+      rv[:vxlan_group] = 'None'
       rv[:vni_ranges] = ''
-      #puts("#{rv[:tunnel_types]}  #{rv[:tunnel_id_ranges]}  #{rv[:vxlan_group]}  #{rv[:vni_ranges]} #{rv[:local_ip]}")
     end
     return rv
   end
