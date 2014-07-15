@@ -55,6 +55,34 @@ describe provider do
       @provider.stubs(:query).returns(:ensure => '1.2').then.returns(:ensure => '1.0')
       @provider.install
     end
+
+    it 'should compare tricky versions while downgrading' do
+      @resource.stubs(:should).with(:ensure).returns '2014.1.fuel5.0-mira4'
+      @provider.stubs(:query).returns(:ensure => '2014.1.1.fuel5.1-mira0').then.returns(:ensure => '2014.1.fuel5.0-mira4')
+      @provider.expects(:yum).with('-d', '0', '-e', '0', '-y', :downgrade, 'mypackage-2014.1.fuel5.0-mira4')
+      @provider.install
+    end
+
+    it 'should compare normal versions while downgrading' do
+      @resource.stubs(:should).with(:ensure).returns '2014.1.fuel5.0-mira4'
+      @provider.stubs(:query).returns(:ensure => '2014.1.fuel5.1-mira0').then.returns(:ensure => '2014.1.fuel5.0-mira4')
+      @provider.expects(:yum).with('-d', '0', '-e', '0', '-y', :downgrade, 'mypackage-2014.1.fuel5.0-mira4')
+      @provider.install
+    end
+
+    it 'should compare tricky versions while installing' do
+      @resource.stubs(:should).with(:ensure).returns '2014.1.1.fuel5.1-mira0'
+      @provider.stubs(:query).returns(:ensure => '2014.1.fuel5.0-mira4').then.returns(:ensure => '2014.1.1.fuel5.1-mira0')
+      @provider.expects(:yum).with('-d', '0', '-e', '0', '-y', :install, 'mypackage-2014.1.1.fuel5.1-mira0')
+      @provider.install
+    end
+
+    it 'should compare normal versions while installing' do
+      @resource.stubs(:should).with(:ensure).returns '2014.1.fuel5.1-mira0'
+      @provider.stubs(:query).returns(:ensure => '2014.1.fuel5.0-mira4').then.returns(:ensure => '2014.1.fuel5.1-mira0')
+      @provider.expects(:yum).with('-d', '0', '-e', '0', '-y', :install, 'mypackage-2014.1.fuel5.1-mira0')
+      @provider.install
+    end
   end
 
   describe 'when uninstalling' do
