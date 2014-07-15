@@ -118,7 +118,14 @@ Puppet::Type.type(:package).provide :yum, :parent => :rpm, :source => :rpm do
       # Add the package version
       wanted += "-#{should}"
       is = self.query
-      if is && Puppet::Util::Package.versioncmp(should, is[:ensure]) < 0
+      # Fuel versions should be compared as well as MOS ones
+      if is
+        should_fuel = should.match(/(fuel.*)/).captures[0] rescue should
+        is_fuel = is[:ensure].match(/(fuel.*)/).captures[0] rescue is[:ensure]
+        should_mos = should.match(/(.*)fuel/).captures[0] rescue should
+        is_mos = is[:ensure].match(/(.*)fuel/).captures[0] rescue is[:ensure]
+      end
+      if is && (should_mos < is_mos || should_fuel < is_fuel)
         self.debug "Downgrading package #{@resource[:name]} from version #{is[:ensure]} to #{should}"
         operation = :downgrade
       end
