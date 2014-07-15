@@ -53,6 +53,7 @@ class galera (
   $skip_name_resolve    = false,
   $node_addresses       = [$ipaddress_eth0],
   $use_syslog           = false,
+  $gcomm_port           = '4567',
   ) {
   include galera::params
 
@@ -330,18 +331,6 @@ class galera (
         Exec['wait-for-synced-state'] ->
           Exec ['rm-init-file']
   Package['MySQL-server'] ~> Exec['wait-initial-sync']
-
-  # FIXME: This class is deprecated and should be removed in future releases.
-  class { 'galera::galera_master_final_config':
-    primary_controller  => $primary_controller,
-    node_addresses      => $node_addresses,
-    node_address        => $node_address,
-  }
-
-  if $primary_controller {
-    Exec <| title == "wait-for-haproxy-mysql-backend" |> ->
-      Class['galera::galera_master_final_config']
-  }
 
   anchor {'galera-done': }
 }
