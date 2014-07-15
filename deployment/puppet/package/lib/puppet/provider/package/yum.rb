@@ -1,5 +1,6 @@
 require 'puppet/util/package'
 require 'yaml'
+require File.join(File.dirname(__FILE__), 'rpmvercmp.rb')
 
 Puppet::Type.type(:package).provide :yum, :parent => :rpm, :source => :rpm do
   desc "Support via `yum`.
@@ -118,7 +119,7 @@ Puppet::Type.type(:package).provide :yum, :parent => :rpm, :source => :rpm do
       # Add the package version
       wanted += "-#{should}"
       is = self.query
-      if is && Puppet::Util::Package.versioncmp(should, is[:ensure]) < 0
+      if is && Rpmvercmp.compare_labels(should, is[:ensure]) < 0
         self.debug "Downgrading package #{@resource[:name]} from version #{is[:ensure]} to #{should}"
         operation = :downgrade
       end
