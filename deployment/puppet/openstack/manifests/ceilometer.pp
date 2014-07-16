@@ -5,32 +5,33 @@
 #
 
 class openstack::ceilometer (
-  $keystone_password   = 'ceilometer_pass',
-  $metering_secret     = 'ceilometer',
-  $verbose             =  false,
-  $use_syslog          =  false,
-  $syslog_log_facility = 'LOG_LOCAL0',
-  $debug               =  false,
-  $db_type             = 'mysql',
-  $db_host             = 'localhost',
-  $db_user             = 'ceilometer',
-  $db_password         = 'ceilometer_pass',
-  $db_dbname           = 'ceilometer',
-  $mongo_replicaset    = false,
-  $queue_provider      = 'rabbitmq',
-  $amqp_hosts          = '127.0.0.1',
-  $amqp_user           = 'guest',
-  $amqp_password       = 'rabbit_pw',
-  $rabbit_ha_queues    = false,
-  $keystone_host       = '127.0.0.1',
-  $bind_host           = '0.0.0.0',
-  $bind_port           = '8777',
-  $on_controller       = false,
-  $on_compute          = false,
-  $ha_mode             = false,
-  $primary_controller  = false,
-  $use_neutron         = false,
-  $swift               = false,
+  $keystone_password    = 'ceilometer_pass',
+  $metering_secret      = 'ceilometer',
+  $verbose              =  false,
+  $use_syslog           =  false,
+  $syslog_log_facility  = 'LOG_LOCAL0',
+  $debug                =  false,
+  $db_type              = 'mysql',
+  $db_host              = 'localhost',
+  $db_user              = 'ceilometer',
+  $db_password          = 'ceilometer_pass',
+  $db_dbname            = 'ceilometer',
+  $mongo_replicaset     = false,
+  $queue_provider       = 'rabbitmq',
+  $amqp_hosts           = '127.0.0.1',
+  $amqp_user            = 'guest',
+  $amqp_password        = 'rabbit_pw',
+  $rabbit_ha_queues     = false,
+  $keystone_host        = '127.0.0.1',
+  $bind_host            = '0.0.0.0',
+  $bind_port            = '8777',
+  $on_controller        = false,
+  $on_compute           = false,
+  $ha_mode              = false,
+  $primary_controller   = false,
+  $use_neutron          = false,
+  $swift                = false,
+  $ext_mongo            = false,
 ) {
 
   # Add the base ceilometer class & parameters
@@ -56,6 +57,7 @@ class openstack::ceilometer (
     # Configure the ceilometer database
     # Only needed if ceilometer::agent::central or ceilometer::api are declared
 
+      if ( !$ext_mongo ) {
         if ( $db_type == 'mysql' ) {
           $current_database_connection = "${db_type}://${db_user}:${db_password}@${db_host}/${db_dbname}?read_timeout=60"
         } else {
@@ -66,6 +68,9 @@ class openstack::ceilometer (
             $current_database_connection = "${db_type}://${db_user}:${db_password}@${db_host}/${db_dbname}"
           }
         }
+      } else {
+         $current_database_connection = "${db_type}://${db_user}:${db_password}@${db_host}/${db_dbname}"
+      }
 
     class { '::ceilometer::db':
       database_connection => $current_database_connection,

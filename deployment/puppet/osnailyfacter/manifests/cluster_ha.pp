@@ -54,6 +54,19 @@ class osnailyfacter::cluster_ha {
     }
   } else {
     $ceilometer_hash = $::fuel_settings['ceilometer']
+
+    # External mongo integration
+    if !$::fuel_settings['mongo'] {
+      $ceilometer_db_user = 'ceilometer'
+      $ceilometer_db_password = $ceilometer_hash[db_password]
+      $ceilometer_db_name = 'ceilometer'
+      $ext_mongo = false
+    } else {
+      $ceilometer_db_user = $::fuel_settings['external_mongo']['mongo_user']
+      $ceilometer_db_password = $::fuel_settings['external_mongo']['mongo_password']
+      $ceilometer_db_name = $::fuel_settings['external_mongo']['mongo_db_name']
+      $ext_mongo = true
+    }
   }
 
 
@@ -83,6 +96,12 @@ class osnailyfacter::cluster_ha {
   $nodes_hash           = $::fuel_settings['nodes']
   $mp_hash              = $::fuel_settings['mp']
   $network_manager      = "nova.network.manager.${novanetwork_params['network_manager']}"
+
+  if $ext_mongo {
+    $mongo_hosts = $::fuel_settings['external_mongo']['hosts_ip']
+  } else {
+    $mongo_hosts = mongo_hosts($nodes_hash)
+  }
 
   if !$rabbit_hash['user'] {
     $rabbit_hash['user'] = 'nova'
@@ -316,11 +335,14 @@ class osnailyfacter::cluster_ha {
       cinder_volume_group            => "cinder",
       manage_volumes                 => $::osnailyfacter::cluster_ha::manage_volumes,
       ceilometer                     => $::osnailyfacter::cluster_ha::ceilometer_hash[enabled],
-      ceilometer_db_password         => $::osnailyfacter::cluster_ha::ceilometer_hash[db_password],
+      ceilometer_db_user             => $ceilometer_db_user,
+      ceilometer_db_password         => $ceilometer_db_password,
       ceilometer_user_password       => $::osnailyfacter::cluster_ha::ceilometer_hash[user_password],
       ceilometer_metering_secret     => $::osnailyfacter::cluster_ha::ceilometer_hash[metering_secret],
       ceilometer_db_type             => 'mongodb',
-      ceilometer_db_host             => mongo_hosts($nodes_hash),
+      ceilometer_db_dbname           => $ceilometer_db_name,
+      ceilometer_db_host             => $mongo_hosts,
+      ceilometer_ext_mongo           => $ext_mongo,
       galera_nodes                   => $::osnailyfacter::cluster_ha::controller_nodes,
       novnc_address                  => $::internal_address,
       sahara                         => $::osnailyfacter::cluster_ha::sahara_hash[enabled],
@@ -666,7 +688,7 @@ class osnailyfacter::cluster_ha {
       class { 'openstack::mongo_primary':
         mongodb_bind_address        => [ '127.0.0.1', $::internal_address ],
         ceilometer_metering_secret  => $ceilometer_hash['metering_secret'],
-        ceilometer_db_password      => $ceilometer_hash['db_password'],
+        ceilometer_db_password      => $ceilometer_db_password,
         ceilometer_replset_members  => mongo_hosts($nodes_hash, 'array', 'mongo'),
         use_syslog                  => $use_syslog,
         verbose                     => $verbose,
