@@ -30,6 +30,7 @@ class openstack::ceilometer (
   $primary_controller  = false,
   $use_neutron         = false,
   $swift               = false,
+  $ext_mongo           = false,
 ) {
 
   # Add the base ceilometer class & parameters
@@ -59,15 +60,19 @@ class openstack::ceilometer (
     # Configure the ceilometer database
     # Only needed if ceilometer::agent::central or ceilometer::api are declared
 
-    if ( $db_type == 'mysql' ) {
-      $current_database_connection = "${db_type}://${db_user}:${db_password}@${db_host}/${db_dbname}?read_timeout=60"
-    } else {
-      if ( !$mongo_replicaset ) {
-        $current_database_connection = "${db_type}://${db_user}:${db_password}@${db_host}/${db_dbname}"
+    if ( !$ext_mongo ) {
+      if ( $db_type == 'mysql' ) {
+        $current_database_connection = "${db_type}://${db_user}:${db_password}@${db_host}/${db_dbname}?read_timeout=60"
       } else {
-        # added for future use with replicaset params
-        $current_database_connection = "${db_type}://${db_user}:${db_password}@${db_host}/${db_dbname}"
+        if ( !$mongo_replicaset ) {
+          $current_database_connection = "${db_type}://${db_user}:${db_password}@${db_host}/${db_dbname}"
+        } else {
+          # added for future use with replicaset params
+          $current_database_connection = "${db_type}://${db_user}:${db_password}@${db_host}/${db_dbname}"
+        }
       }
+    } else {
+       $current_database_connection = "${db_type}://${db_user}:${db_password}@${db_host}/${db_dbname}"
     }
 
     class { '::ceilometer::db':

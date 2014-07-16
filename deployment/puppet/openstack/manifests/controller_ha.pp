@@ -73,6 +73,7 @@ class openstack::controller_ha (
    $ceilometer_metering_secret     = 'ceilometer',
    $ceilometer_db_type             = 'mongodb',
    $ceilometer_db_host             = '127.0.0.1',
+   $ceilometer_ext_mongo           = false,
    $sahara                         = false,
    $murano                         = false,
    $rabbit_node_ip_address         = $internal_address,
@@ -178,12 +179,14 @@ class openstack::controller_ha (
       cinder_volume_group            => $cinder_volume_group,
       #
       ceilometer                     => $ceilometer,
+      ceilometer_db_user             => $ceilometer_db_user,
       ceilometer_db_password         => $ceilometer_db_password,
       ceilometer_user_password       => $ceilometer_user_password,
       ceilometer_metering_secret     => $ceilometer_metering_secret,
       ceilometer_db_dbname           => $ceilometer_db_dbname,
       ceilometer_db_type             => $ceilometer_db_type,
       ceilometer_db_host             => $ceilometer_db_host,
+      ceilometer_ext_mongo           => $ceilometer_ext_mongo,
       #
       # turn on SWIFT_ENABLED option for Horizon dashboard
       swift                          => $glance_backend ? { 'swift'    => true, default => false },
