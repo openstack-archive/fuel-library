@@ -47,6 +47,7 @@ class glance::notify::rabbitmq(
   $kombu_ssl_certfile           = undef,
   $kombu_ssl_keyfile            = undef,
   $kombu_ssl_version            = 'SSLv3',
+  $control_exchange             = 'glance',
   $rabbit_notification_exchange = 'glance',
   $rabbit_notification_topic    = 'notifications',
   $rabbit_durable_queues        = false,
@@ -75,6 +76,7 @@ class glance::notify::rabbitmq(
   }
 
   glance_api_config {
+    'DEFAULT/control_exchange':             value => $control_exchange;
     'DEFAULT/notification_driver':          value => 'messaging';
     'DEFAULT/rabbit_virtual_host':          value => $rabbit_virtual_host;
     'DEFAULT/rabbit_password':              value => $rabbit_password;
