@@ -100,6 +100,7 @@ class openstack::controller (
   $ceilometer_metering_secret     = 'ceilometer',
   $ceilometer_db_type             = 'mongodb',
   $ceilometer_db_host             = '127.0.0.1',
+  $ceilometer_ext_mongo           = 'false',
   # Required Horizon
   $secret_key                     = 'dummy_secret_key',
   # not sure if this works correctly
@@ -500,6 +501,7 @@ class openstack::controller (
       on_controller        => true,
       use_neutron          => $quantum,
       swift                => $swift,
+      ext_mongo            => $ceilometer_ext_mongo,
     }
   }
 
