@@ -89,130 +89,138 @@ class nailgun::cobbler(
     require => Class["::cobbler::server"],
   }
 
-
   # THIS VARIABLE IS NEEDED FOR TEMPLATING centos-x86_64.ks
   $ks_repo = $centos_repos
 
-  file { "/var/lib/cobbler/kickstarts/centos-x86_64.ks":
-    content => template("cobbler/kickstart/centos.ks.erb"),
-    owner => root,
-    group => root,
-    mode => 0644,
-    require => Class["::cobbler::server"],
-  } ->
+  case $production {
+    'prod', 'docker': {
 
-  cobbler_distro { "centos-x86_64":
-    kernel => "${repo_root}/centos/fuelweb/x86_64/isolinux/vmlinuz",
-    initrd => "${repo_root}/centos/fuelweb/x86_64/isolinux/initrd.img",
-    arch => "x86_64",
-    breed => "redhat",
-    osversion => "rhel6",
-    ksmeta => "tree=http://@@server@@:8080/centos/fuelweb/x86_64/",
-    require => Class["::cobbler::server"],
+      file { "/var/lib/cobbler/kickstarts/centos-x86_64.ks":
+        content => template("cobbler/kickstart/centos.ks.erb"),
+        owner => root,
+        group => root,
+        mode => 0644,
+        require => Class["::cobbler::server"],
+      } ->
+
+      cobbler_distro { "centos-x86_64":
+        kernel => "${repo_root}/centos/fuelweb/x86_64/isolinux/vmlinuz",
+        initrd => "${repo_root}/centos/fuelweb/x86_64/isolinux/initrd.img",
+        arch => "x86_64",
+        breed => "redhat",
+        osversion => "rhel6",
+        ksmeta => "tree=http://@@server@@:8080/centos/fuelweb/x86_64/",
+        require => Class["::cobbler::server"],
+      }
+
+      file { "/var/lib/cobbler/kickstarts/ubuntu-amd64.preseed":
+        content => template("cobbler/preseed/ubuntu-1204.preseed.erb"),
+        owner => root,
+        group => root,
+        mode => 0644,
+        require => Class["::cobbler::server"],
+      } ->
+
+      cobbler_distro { "ubuntu_1204_x86_64":
+        kernel => "${repo_root}/ubuntu/fuelweb/x86_64/images/linux",
+        initrd => "${repo_root}/ubuntu/fuelweb/x86_64/images/initrd.gz",
+        arch => "x86_64",
+        breed => "ubuntu",
+        osversion => "precise",
+        ksmeta => "",
+        require => Class["::cobbler::server"],
+      }
+
+
+      cobbler_profile { "centos-x86_64":
+        kickstart => "/var/lib/cobbler/kickstarts/centos-x86_64.ks",
+        kopts => "biosdevname=0 sshd=1",
+        distro => "centos-x86_64",
+        ksmeta => "",
+        menu => true,
+        server => $real_server,
+        require => Cobbler_distro["centos-x86_64"],
+      }
+
+      cobbler_profile { "ubuntu_1204_x86_64":
+        kickstart => "/var/lib/cobbler/kickstarts/ubuntu-amd64.preseed",
+        kopts => "netcfg/choose_interface=eth0",
+        distro => "ubuntu_1204_x86_64",
+        ksmeta => "",
+        menu => true,
+        server => $real_server,
+        require => Cobbler_distro["ubuntu_1204_x86_64"],
+      }
+
+
+      cobbler_distro { "bootstrap":
+        kernel => "${repo_root}/bootstrap/linux",
+        initrd => "${repo_root}/bootstrap/initramfs.img",
+        arch => "x86_64",
+        breed => "redhat",
+        osversion => "rhel6",
+        ksmeta => "",
+        require => Class["::cobbler::server"],
+      }
+
+      cobbler_profile { "bootstrap":
+        distro => "bootstrap",
+        menu => true,
+        kickstart => "",
+        kopts => "biosdevname=0 url=http://${::fuel_settings['ADMIN_NETWORK']['ipaddress']}:8000/api mco_user=${mco_user} mco_pass=${mco_pass}",
+        ksmeta => "",
+        server => $real_server,
+        require => Cobbler_distro["bootstrap"],
+      }
+
+      if str2bool($::is_virtual) {  class { cobbler::checksum_bootpc: } }
+
+      exec { "cobbler_system_add_default":
+        command => "cobbler system add --name=default \
+        --profile=bootstrap --netboot-enabled=True",
+        onlyif => "test -z `cobbler system find --name=default`",
+        require => Cobbler_profile["bootstrap"],
+      }
+
+      exec { "cobbler_system_edit_default":
+        command => "cobbler system edit --name=default \
+        --profile=bootstrap --netboot-enabled=True",
+        onlyif => "test ! -z `cobbler system find --name=default`",
+        require => Cobbler_profile["bootstrap"],
+      }
+
+      exec { "nailgun_cobbler_sync":
+        command => "cobbler sync",
+        refreshonly => true,
+      }
+
+      Exec["cobbler_system_add_default"] ~> Exec["nailgun_cobbler_sync"]
+      Exec["cobbler_system_edit_default"] ~> Exec["nailgun_cobbler_sync"]
+
+      #TODO(mattymo): refactor this into cobbler module and use OS-dependent
+      #directories
+      file { ['/etc/httpd', '/etc/httpd/conf.d/']:
+        ensure => 'directory',
+      }
+      file { '/etc/httpd/conf.d/nailgun.conf':
+        content => template('nailgun/httpd_nailgun.conf.erb'),
+        owner   => 'root',
+        group   => 'root',
+        mode    => '0644',
+      }
+
+      #FIXME(mattymo): move pubkey to astute fact or download it
+      exec { "cp /root/.ssh/id_rsa.pub /etc/cobbler/authorized_keys":
+        command => "cp /root/.ssh/id_rsa.pub /etc/cobbler/authorized_keys",
+        creates => "/etc/cobbler/authorized_keys",
+        require => Class["::cobbler::server"],
+      }
+    }
+    'docker-build': {
+      notify { 'Not adding cobbler profiles during docker build.': }
+    }
+    default: {
+      fail("Unsupported production mode: ${production}.")
+    }
   }
-
-  file { "/var/lib/cobbler/kickstarts/ubuntu-amd64.preseed":
-    content => template("cobbler/preseed/ubuntu-1204.preseed.erb"),
-    owner => root,
-    group => root,
-    mode => 0644,
-    require => Class["::cobbler::server"],
-  } ->
-
-  cobbler_distro { "ubuntu_1204_x86_64":
-    kernel => "${repo_root}/ubuntu/fuelweb/x86_64/images/linux",
-    initrd => "${repo_root}/ubuntu/fuelweb/x86_64/images/initrd.gz",
-    arch => "x86_64",
-    breed => "ubuntu",
-    osversion => "precise",
-    ksmeta => "",
-    require => Class["::cobbler::server"],
-  }
-
-
-  cobbler_profile { "centos-x86_64":
-    kickstart => "/var/lib/cobbler/kickstarts/centos-x86_64.ks",
-    kopts => "biosdevname=0 sshd=1",
-    distro => "centos-x86_64",
-    ksmeta => "",
-    menu => true,
-    server => $real_server,
-    require => Cobbler_distro["centos-x86_64"],
-  }
-
-  cobbler_profile { "ubuntu_1204_x86_64":
-    kickstart => "/var/lib/cobbler/kickstarts/ubuntu-amd64.preseed",
-    kopts => "netcfg/choose_interface=eth0",
-    distro => "ubuntu_1204_x86_64",
-    ksmeta => "",
-    menu => true,
-    server => $real_server,
-    require => Cobbler_distro["ubuntu_1204_x86_64"],
-  }
-
-
-  cobbler_distro { "bootstrap":
-    kernel => "${repo_root}/bootstrap/linux",
-    initrd => "${repo_root}/bootstrap/initramfs.img",
-    arch => "x86_64",
-    breed => "redhat",
-    osversion => "rhel6",
-    ksmeta => "",
-    require => Class["::cobbler::server"],
-  }
-
-  cobbler_profile { "bootstrap":
-    distro => "bootstrap",
-    menu => true,
-    kickstart => "",
-    kopts => "biosdevname=0
-url=http://${::fuel_settings['ADMIN_NETWORK']['ipaddress']}:8000/api mco_user=${mco_user} mco_pass=${mco_pass}",
-    ksmeta => "",
-    server => $real_server,
-    require => Cobbler_distro["bootstrap"],
-  }
-
-  if str2bool($::is_virtual) {  class { cobbler::checksum_bootpc: } }
-
-  exec { "cobbler_system_add_default":
-    command => "cobbler system add --name=default \
-    --profile=bootstrap --netboot-enabled=True",
-    onlyif => "test -z `cobbler system find --name=default`",
-    require => Cobbler_profile["bootstrap"],
-  }
-
-  exec { "cobbler_system_edit_default":
-    command => "cobbler system edit --name=default \
-    --profile=bootstrap --netboot-enabled=True",
-    onlyif => "test ! -z `cobbler system find --name=default`",
-    require => Cobbler_profile["bootstrap"],
-  }
-
-  exec { "nailgun_cobbler_sync":
-    command => "cobbler sync",
-    refreshonly => true,
-  }
-
-  Exec["cobbler_system_add_default"] ~> Exec["nailgun_cobbler_sync"]
-  Exec["cobbler_system_edit_default"] ~> Exec["nailgun_cobbler_sync"]
-
-  #TODO(mattymo): refactor this into cobbler module and use OS-dependent
-  #directories
-  file { ['/etc/httpd', '/etc/httpd/conf.d/']:
-    ensure => 'directory',
-  }
-  file { '/etc/httpd/conf.d/nailgun.conf':
-    content => template('nailgun/httpd_nailgun.conf.erb'),
-    owner   => 'root',
-    group   => 'root',
-    mode    => '0644',
-  }
-
-  #FIXME(mattymo): move pubkey to astute fact or download it
-  exec { "cp /root/.ssh/id_rsa.pub /etc/cobbler/authorized_keys":
-    command => "cp /root/.ssh/id_rsa.pub /etc/cobbler/authorized_keys",
-    creates => "/etc/cobbler/authorized_keys",
-    require => Class["::cobbler::server"],
-  }
-
 }
