@@ -98,6 +98,8 @@ class openstack::controller (
   $ceilometer_metering_secret     = 'ceilometer',
   $ceilometer_db_type             = 'mongodb',
   $ceilometer_db_host             = '127.0.0.1',
+  $ceilometer_ext_mongo           = false,
+  $mongo_replicaset               = undef,
   # Required Horizon
   $secret_key                     = 'dummy_secret_key',
   # not sure if this works correctly
@@ -217,9 +219,6 @@ class openstack::controller (
 
   # Ensure things are run in order
   Class['openstack::db::mysql'] -> Class['openstack::keystone']
-  if ($ceilometer) {
-    Class['openstack::db::mysql'] -> Class['openstack::ceilometer']
-  }
   Class['openstack::db::mysql'] -> Class['openstack::glance']
   Class['openstack::db::mysql'] -> Class['openstack::nova::controller']
   Class['openstack::db::mysql'] -> Cinder_config <||>
@@ -247,10 +246,6 @@ class openstack::controller (
       nova_db_user            => $nova_db_user,
       nova_db_password        => $nova_db_password,
       nova_db_dbname          => $nova_db_dbname,
-      ceilometer              => $ceilometer,
-      ceilometer_db_user      => $ceilometer_db_user,
-      ceilometer_db_password  => $ceilometer_db_password,
-      ceilometer_db_dbname    => $ceilometer_db_dbname,
       cinder                  => $cinder,
       cinder_db_user          => $cinder_db_user,
       cinder_db_password      => $cinder_db_password,
@@ -524,6 +519,8 @@ class openstack::controller (
       on_controller        => true,
       use_neutron          => $neutron,
       swift                => $swift,
+      ext_mongo            => $ceilometer_ext_mongo,
+      mongo_replicaset     => $mongo_replicaset,
     }
   }
 
