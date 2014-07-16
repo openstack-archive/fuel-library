@@ -13,8 +13,8 @@ class rsyslog::params {
       $rsyslog_default        = '/etc/default/rsyslog'
       $run_user               = 'syslog'
       $run_group              = 'syslog'
-      $log_user               = 'root'
-      $log_group              = 'adm'
+      $log_user               = 'syslog'
+      $log_group              = 'syslog'
       $spool_dir              = '/var/spool/rsyslog/'
       $service_name           = 'rsyslog'
       $client_conf            = "${rsyslog_d}client.conf"
