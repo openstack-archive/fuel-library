@@ -17,7 +17,7 @@ class openstack::ceilometer (
   $db_password         = 'ceilometer_pass',
   $db_dbname           = 'ceilometer',
   $swift_rados_backend = false,
-  $mongo_replicaset    = false,
+  $mongo_replicaset    = undef,
   $amqp_hosts          = '127.0.0.1',
   $amqp_user           = 'guest',
   $amqp_password       = 'rabbit_pw',
@@ -31,6 +31,7 @@ class openstack::ceilometer (
   $primary_controller  = false,
   $use_neutron         = false,
   $swift               = false,
+  $ext_mongo           = false,
 ) {
 
   # Add the base ceilometer class & parameters
@@ -60,15 +61,26 @@ class openstack::ceilometer (
     # Configure the ceilometer database
     # Only needed if ceilometer::agent::central or ceilometer::api are declared
 
-    if ( $db_type == 'mysql' ) {
-      $current_database_connection = "${db_type}://${db_user}:${db_password}@${db_host}/${db_dbname}?read_timeout=60"
-    } else {
-      if ( !$mongo_replicaset ) {
-        $current_database_connection = "${db_type}://${db_user}:${db_password}@${db_host}/${db_dbname}"
+    if ( !$ext_mongo ) {
+      if ( $db_type == 'mysql' ) {
+        $current_database_connection = "${db_type}://${db_user}:${db_password}@${db_host}/${db_dbname}?read_timeout=60"
       } else {
-        # added for future use with replicaset params
-        $current_database_connection = "${db_type}://${db_user}:${db_password}@${db_host}/${db_dbname}"
+        if ( !$mongo_replicaset ) {
+          $current_database_connection = "${db_type}://${db_user}:${db_password}@${db_host}/${db_dbname}"
+        } else {
+          $current_database_connection = "${db_type}://${db_user}:${db_password}@${db_host}/${db_dbname}"
+          ceilometer_config {
+            'database/mongodb_replica_set' : value => $mongo_replicaset;
+          }
+        }
       }
+    } else {
+       $current_database_connection = "${db_type}://${db_user}:${db_password}@${db_host}/${db_dbname}"
+       if $mongo_replicaset {
+         ceilometer_config {
+            'database/mongodb_replica_set' : value => $mongo_replicaset;
+          }
+       }
     }
 
     class { '::ceilometer::db':
