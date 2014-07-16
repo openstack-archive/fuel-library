@@ -11,16 +11,15 @@ class openstack::mongo_primary (
   $mongodb_port                 = 27017,
   $use_syslog                   = true,
   $verbose                      = false,
+  $replset                      = undef,
 ) {
 
   if size($ceilometer_replset_members) > 0 {
     $replset_setup = true
     $keyfile = '/etc/mongodb.key'
-    $replset = 'ceilometer'
   } else {
     $replset_setup = false
     $keyfile = undef
-    $replset = undef
   }
 
   notify {"MongoDB params: $mongodb_bind_address" :} ->
