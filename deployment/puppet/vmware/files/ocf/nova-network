@@ -178,6 +178,8 @@ nova_network_validate() {
 
     check_binary $OCF_RESKEY_binary
     check_binary netstat
+    check_binary ip
+    check_binary iptables
 
     nova_network_check_port $OCF_RESKEY_amqp_server_port
 
@@ -199,6 +201,80 @@ nova_network_validate() {
     fi
 
     true
+}
+
+nova_network_cleanup() {
+    network_manager_nlines=`egrep -e '^network_manager' $OCF_RESKEY_config | wc -l`
+
+    if [ $network_manager_nlines -ne 1 ];then
+        echo "Specifying more than one 'network_manager' in $OCF_RESKEY_config is not supported"
+        return OCF_ERR_CONFIGURED
+    fi
+
+    # Grab network segmentation type (FlatDHCP or VLAN) from config file
+    network_manager=$(egrep -e '^network_manager' $OCF_RESKEY_config | awk -F '=' '{ print $2 }')
+
+    case $network_manager in
+        nova.network.manager.FlatDHCPManager)
+            use_ipv6=$(egrep -e '^use_ipv6' $OCF_RESKEY_config | awk -F '=' '{ print $2 }')
+
+            # Stop all dnsmasq processes
+            ocf_run killall -SIGKILL dnsmasq
+
+            prefix="nova-network"
+            case $use_ipv6 in
+                # IPv4
+                false)
+                    filter_chains="nova-filter-top $prefix-FORWARD $prefix-INPUT \
+                                   $prefix-OUTPUT $prefix-local"
+                    for filter_chain in $filter_chains
+                    do
+                            ocf_run iptables --flush -t filter $filter_chain
+                    done
+
+                    nat_chains="$prefix-OUTPUT $prefix-PREROUTING $prefix-POSTROUTING \
+                                $prefix-PREROUTING $prefix-float-snat $prefix-snat \
+                                nova-postrouting-bottom"
+                    for nat_chain in $nat_chains
+                    do
+                            ocf_run iptables --flush -t nat $nat_chain
+                    done
+
+                    ocf_run iptables --flush -t mangle $prefix-POSTROUTING
+                ;;
+                # IPv6
+                true)
+                    filter_chains="nova-filter-top $prefix-FORWARD $prefix-INPUT \
+                                   $prefix-OUTPUT $prefix-local"
+
+                    for chain in $filter_chains
+                    do
+                         ocf_run ip6tables --flush -t filter $chain
+                    done
+                ;;
+            esac
+
+            flat_network_bridge_nlines=`egrep -e '^flat_network_bridge' $OCF_RESKEY_config`
+            if [ $flat_network_bridge_nlines -ne 1 ]; then
+                echo "Specifying more than one 'flat_network_bridge' in $OCF_RESKEY_config is not supported"
+                return OCF_ERR_CONFIGURED
+            fi
+
+            # Flush IP address assigned to 'flat_network_bridge' (usually called 'br100')
+            flat_network_bridge=$(egrep -e '^flat_network_bridge' $OCF_RESKEY_config | awk -F '=' '{ print $2 }')
+            tries=3 # Make 3 tries to flush IP addresses, instead of 10 (which is default)
+            ocf_run ip -loops $tries addr flush dev $flat_network_bridge
+        ;;
+        nova.network.manager.VlanManager)
+            # TODO: nova-network (VLAN manager) with vCenter is not supported
+            echo "Unsupported network manager $NETWORK_MANAGER"
+            return OCF_ERR_GENERIC
+        ;;
+        *)
+            echo "Unsupported network manager $NETWORK_MANAGER"
+            return OCF_ERR_GENERIC
+        ;;
+    esac
 }
 
 nova_network_status() {
@@ -261,12 +337,15 @@ nova_network_start() {
         return $OCF_SUCCESS
     fi
 
+    nova_network_cleanup
+    sleep 2
+
     # run the actual nova-network daemon. Don't use ocf_run as we're sending the tool's output
     # straight to /dev/null anyway and using ocf_run would break stdout-redirection here.
     su ${OCF_RESKEY_user} -s /bin/sh -c "${OCF_RESKEY_binary} --config-file=$OCF_RESKEY_config \
        $OCF_RESKEY_additional_parameters"' >> /dev/null 2>&1 & echo $!' > $OCF_RESKEY_pid
 
-    # Note: we do not need to start dnsmasq here, because nova-network starts it.
+    # Note: we do NOT need to start dnsmasq here, because nova-network starts it.
 
     # Spin waiting for the server to come up.
     # Let the CRM/LRM time us out if required
@@ -278,7 +357,7 @@ nova_network_start() {
                 ocf_log err "OpenStack Nova Network (nova-network) start failed"
                 exit $OCF_ERR_GENERIC
         fi
-        sleep 3
+        sleep 1
     done
 
     ocf_log info "OpenStack Nova Network (nova-network) started"
@@ -292,6 +371,8 @@ nova_network_stop() {
     nova_network_status
     rc=$?
     if [ $rc -eq $OCF_NOT_RUNNING ]; then
+        nova_network_cleanup
+        sleep 2
         ocf_log info "OpenStack Nova Network (nova-network) already stopped"
         return $OCF_SUCCESS
     fi
@@ -300,7 +381,7 @@ nova_network_stop() {
     pid=`cat $OCF_RESKEY_pid`
 
     # Also stop dnsmasq processes that may left
-    pid="$pid `ps ax | grep -v grep | grep 'dnsmasq' | cut -c1-5`"
+    pid="$pid `pidof dnsmasq`"
     ocf_run kill -s TERM $pid
     rc=$?
     if [ $rc -ne 0 ]; then
@@ -337,6 +418,9 @@ nova_network_stop() {
     ocf_log info "OpenStack Nova Network (nova-network) stopped"
 
     rm -f $OCF_RESKEY_pid
+
+    nova_network_cleanup
+    sleep 2
 
     return $OCF_SUCCESS
 }
