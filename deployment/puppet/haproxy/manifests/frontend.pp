@@ -12,26 +12,26 @@
 # === Parameters
 #
 # [*name*]
-#    The namevar of the defined resource type is the frontend service's name.
-#     This name goes right after the 'frontend' statement in haproxy.cfg
+#   The namevar of the defined resource type is the frontend service's name.
+#    This name goes right after the 'frontend' statement in haproxy.cfg
 #
 # [*ports*]
-#    Ports on which the proxy will listen for connections on the ip address
+#   Ports on which the proxy will listen for connections on the ip address
 #    specified in the ipaddress parameter. Accepts either a single
 #    comma-separated string or an array of strings which may be ports or
 #    hyphenated port ranges.
 #
 # [*ipaddress*]
-#    The ip address the proxy binds to. Empty addresses, '*', and '0.0.0.0'
-#     mean that the proxy listens to all valid addresses on the system.
+#   The ip address the proxy binds to. Empty addresses, '*', and '0.0.0.0'
+#    mean that the proxy listens to all valid addresses on the system.
 #
 # [*mode*]
-#    The mode of operation for the frontend service. Valid values are undef,
+#   The mode of operation for the frontend service. Valid values are undef,
 #    'tcp', 'http', and 'health'.
 #
 # [*options*]
-#    A hash of options that are inserted into the frontend service
-#     configuration block.
+#   A hash of options that are inserted into the frontend service
+#    configuration block.
 #
 # === Examples
 #
@@ -59,7 +59,7 @@ define haproxy::frontend (
   $ports,
   $ipaddress        = [$::ipaddress],
   $mode             = undef,
-  $order            = '15',
+  $collect_exported = true,
   $options          = {
     'option'  => [
       'tcplog',
@@ -67,9 +67,10 @@ define haproxy::frontend (
   }
 ) {
 
-  # Template uses: $name, $ipaddress, $ports, $mode, $options
-  haproxy::service { $name:
-    order   => $order,
+  # Template uses: $name, $ipaddress, $ports, $options
+  concat::fragment { "${name}_frontend_block":
+    order   => "15-${name}-00",
+    target  => '/etc/haproxy/haproxy.cfg',
     content => template('haproxy/haproxy_frontend_block.erb'),
   }
 }
