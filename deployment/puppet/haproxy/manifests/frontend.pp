@@ -59,7 +59,7 @@ define haproxy::frontend (
   $ports,
   $ipaddress        = [$::ipaddress],
   $mode             = undef,
-  $collect_exported = true,
+  $order            = '15',
   $options          = {
     'option'  => [
       'tcplog',
@@ -68,9 +68,8 @@ define haproxy::frontend (
 ) {
 
   # Template uses: $name, $ipaddress, $ports, $options
-  concat::fragment { "${name}_frontend_block":
-    order   => "15-${name}-00",
-    target  => '/etc/haproxy/haproxy.cfg',
+  haproxy::service { $name:
+    order   => $order,
     content => template('haproxy/haproxy_frontend_block.erb'),
   }
 }
