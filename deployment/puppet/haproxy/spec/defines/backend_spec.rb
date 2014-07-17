@@ -11,8 +11,15 @@ describe 'haproxy::backend' do
       }
     end
 
-    it { should contain_haproxy__service('bar_backend').with_content(
-      "backend bar\n  balance  roundrobin\n  option  tcplog\n  option  ssl-hello-chk\n"
+    it { should contain_concat__fragment('bar_backend_block').with(
+      'order'   => '20-bar-00',
+      'target'  => '/etc/haproxy/haproxy.cfg',
+      'content' => "\nbackend bar\n  balance  roundrobin\n  option  tcplog\n  option  ssl-hello-chk\n"
     ) }
   end
+
+
+
 end
+
+

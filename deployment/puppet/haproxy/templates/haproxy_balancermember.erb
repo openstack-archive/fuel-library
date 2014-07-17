@@ -1,6 +1,3 @@
 <% Array(@ipaddresses).zip(Array(@server_names)).each do |ipaddress,host| -%>
-  server <%= host %> <%= ipaddress %>:<%= Array(@ports).collect {|x|x.split(',')}.flatten.join(",#{ipaddress}:") -%>
- <%= if @define_cookies then "cookie " + host end -%>
- <%= if @define_backups and @server_names.first != host then "backup" end -%>
- <%= Array(@options).join(" ") %>
-<% end %>
+  server <%= host %> <%= ipaddress %>:<%= Array(@ports).collect {|x|x.split(',')}.flatten.join(",#{ipaddress}:") %> <%= if @define_cookies then "cookie " + host end %> <%= Array(@options).join(" ") %>
+<% end -%>
