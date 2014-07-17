@@ -76,7 +76,7 @@ Puppet::Type.newtype(:ring_devices) do
     resources
   end
 
-  def generate
+  def eval_generate
     resources
   end
 
