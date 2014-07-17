@@ -57,6 +57,14 @@ class mysql::server (
     include mysql
     Class['mysql::server'] -> Class['mysql::config']
     Class['mysql']         -> Class['mysql::server']
+    Exec['create-mysql-table-if-missing'] -> Service['mysql']
+
+    exec { "create-mysql-table-if-missing":
+      command => "/usr/bin/mysql_install_db --datadir=$mysql::params::datadir --user=mysql && chown -R mysql:mysql $mysql::params::datadir",
+      path => '/bin:/usr/bin:/sbin:/usr/sbin',
+      creates => "${mysql::params::datadir}/mysql/user.frm",
+      provider => 'shell',
+    }
 
     if !defined(Package[mysql-client]) {
       package { 'mysql-client':
@@ -76,6 +84,7 @@ class mysql::server (
       File['/etc/init.d/mysqld'] -> Service['mysql']
     }
     Package[mysql-client] -> Package[mysql-server]
+    Package[mysql-server] -> Exec['create-mysql-table-if-missing']
 
     service { 'mysql':
       name     => $service_name,
@@ -108,11 +117,6 @@ class mysql::server (
 
     package { 'mysql-server':
       name   => $package_name,
-    } ->
-    exec { "create-mysql-table-if-missing":
-      command => "/usr/bin/mysql_install_db --datadir=$mysql::params::datadir --user=mysql && chown -R mysql:mysql $mysql::params::datadir",
-      path => '/bin:/usr/bin:/sbin:/usr/sbin',
-      unless => "test -d $mysql::params::datadir/mysql",
     }
 
     Class['openstack::corosync'] -> Cs_resource["p_${service_name}"]

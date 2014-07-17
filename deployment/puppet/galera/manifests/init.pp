@@ -213,7 +213,7 @@ class galera (
   }
   File<| title == 'ocf-mirantis-path' |> -> File['mysql-wss-ocf']
 
-  Package['MySQL-server'] -> File['mysql-wss-ocf']
+  Package['MySQL-server'] -> File['mysql-wss-ocf'] -> Exec['create-mysql-table-if-missing']
   Package['galera'] -> File['mysql-wss-ocf']
 
   service { $service_name:
@@ -223,11 +223,17 @@ class galera (
     provider   => 'pacemaker',
   }
 
-  Service[$service_name] -> Anchor['galera-done']
+  Exec['create-mysql-table-if-missing'] -> Service[$service_name] -> Anchor['galera-done']
 
   package { [$::galera::params::libssl_package, $::galera::params::libaio_package]:
     ensure => present,
     before => Package["galera", "MySQL-server"]
+  }
+
+  exec { "create-mysql-table-if-missing":
+    command => "/usr/bin/mysql_install_db --datadir=$mysql::params::datadir --user=mysql && chown -R mysql:mysql $mysql::params::datadir",
+    path => '/bin:/usr/bin:/sbin:/usr/sbin',
+    unless => "test -f $mysql::params::datadir/mysql/user.frm",
   }
 
   if $::galera::params::mysql_version {
