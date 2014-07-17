@@ -5,15 +5,24 @@
 #
 # === Requirement/Dependencies:
 #
-# Currently requires the ripienaar/concat module on the Puppet Forge and
+# Currently requires the puppetlabs/concat module on the Puppet Forge and
 #  uses storeconfigs on the Puppet Master to export/collect resources
 #  from all balancer members.
 #
 # === Parameters
 #
-# [*enable*]
-#   Chooses whether haproxy should be installed or ensured absent.
-#   Currently ONLY accepts valid boolean true/false values.
+# [*package_ensure*]
+#   Chooses whether the haproxy package should be installed or uninstalled. Defaults to 'present'
+#
+# [*package_name*]
+#   The package name of haproxy. Defaults to 'haproxy'
+#
+# [*service_ensure*]
+#   Chooses whether the haproxy service should be running & enabled at boot, or
+#   stopped and disabled at boot. Defaults to 'running'
+#
+# [*service_manage*]
+#   Chooses whether the haproxy service state should be managed by puppet at all. Defaults to true
 #
 # [*global_options*]
 #   A hash of all the haproxy global options. If you want to specify more
@@ -27,13 +36,14 @@
 #    options as an array and you will get a line for each of them in the
 #    resultant haproxy.cfg file.
 #
-# [*package_name*]
-#   The package name to install containing haproxy.  Defaults to <code>'haproxy'</code>
+#[*restart_command*]
+#   Command to use when restarting the on config changes.
+#    Passed directly as the <code>'restart'</code> parameter to the service resource.
+#    Defaults to undef i.e. whatever the service default is.
 #
 # === Examples
 #
 #  class { 'haproxy':
-#    enable           => true,
 #    global_options   => {
 #      'log'     => "${::ipaddress} local0",
 #      'chroot'  => '/var/lib/haproxy',
@@ -62,54 +72,54 @@
 #  }
 #
 class haproxy (
-  $manage_service   = true,
-  $enable           = true,
+  $package_ensure   = 'present',
+  $package_name     = $haproxy::params::package_name,
+  $service_ensure   = 'running',
+  $service_manage   = true,
   $global_options   = $haproxy::params::global_options,
   $defaults_options = $haproxy::params::defaults_options,
-  $package_name     = $haproxy::params::package_name,
+  $restart_command  = undef,
+
+  # Deprecated
+  $manage_service   = undef,
+  $enable           = undef,
 ) inherits haproxy::params {
+  include concat::setup
 
-  package { $package_name:
-    ensure  => $enable ? {
-      true  => present,
-      false => absent,
-    },
-    alias   => 'haproxy',
-  }
-
-  if $enable {
-    class { 'haproxy::base': }
-
-    Package['haproxy'] ->
-    Class['haproxy::base'] ->
-    Haproxy::Service <||>
-
-
-    if $manage_service {
-      Class['haproxy::base'] -> Service['haproxy']
-      Haproxy::Service <||> ~> Service['haproxy']
-      Haproxy::Balancermember <||> ~> Service['haproxy']
-
-      if ($::osfamily == 'Debian') {
-        file { '/etc/default/haproxy':
-          content => 'ENABLED=1',
-          require => Package['haproxy'],
-          before  => Service['haproxy'],
-        }
-      }
+  if $service_ensure != true and $service_ensure != false {
+    if ! ($service_ensure in [ 'running','stopped']) {
+      fail('service_ensure parameter must be running, stopped, true, or false')
     }
   }
+  validate_string($package_name,$package_ensure)
+  validate_bool($service_manage)
 
-  if $manage_service {
-    service { 'haproxy':
-      ensure     => $enable ? {
-        true  => running,
-        false => stopped,
-      },
-      enable     => $enable,
-      name       => 'haproxy',
-      hasrestart => true,
-      hasstatus  => true,
+  # To support deprecating $enable
+  if $enable != undef {
+    warning('The $enable parameter is deprecated; please use service_ensure and/or package_ensure instead')
+    if $enable {
+      $_package_ensure = 'present'
+      $_service_ensure = 'running'
+    } else {
+      $_package_ensure = 'absent'
+      $_service_ensure = 'stopped'
     }
+  } else {
+    $_package_ensure = $package_ensure
+    $_service_ensure = $service_ensure
   }
+
+  # To support deprecating $manage_service
+  if $manage_service != undef {
+    warning('The $manage_service parameter is deprecated; please use $service_manage instead')
+    $_service_manage = $manage_service
+  } else {
+    $_service_manage = $service_manage
+  }
+
+  anchor { 'haproxy::begin': }
+  -> class { 'haproxy::install': }
+  -> class { 'haproxy::config': }
+  ~> class { 'haproxy::service': }
+  -> anchor { 'haproxy::end': }
 }

@@ -1,3 +1,22 @@
+2014-05-28 - Version 0.5.0
+
+Summary:
+
+The primary feature of this release is a reorganization of the
+module to match best practices.  There are several new parameters
+and some bug fixes.
+
+Features:
+- Reorganized the module to follow install/config/service pattern
+- Added bind_options parameter to haproxy::listen
+- Updated tests
+
+Fixes:
+- Add license file
+- Whitespace cleanup
+- Use correct port in README
+- Fix order of concat fragments
+
 2013-10-08 - Version 0.4.1
 
 Summary:
