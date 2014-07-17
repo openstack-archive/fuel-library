@@ -92,6 +92,7 @@ $SNIPPET('pre_install_partition_lvm')
 # FIXME --ignoremissing
 %packages --nobase --ignoremissing
 $SNIPPET('centos_pkg_kernel_lt_if_enabled')
+$SNIPPET('lsi_packages_install_if_enabled')
 @Core
 authconfig
 bfa-firmware
@@ -220,6 +221,10 @@ EOA
 # COBBLER EMBEDDED SNIPPET: 'kernel_lt_if_enabled'
 # INSTALLS kernel-lt PACKAGE IF kernel_lt VARIABLE IS SET TO 1
 $SNIPPET('centos_post_kernel_lt_if_enabled')
+
+# COBBLER EMBEDDED SNIPPET: 'lsi_post_install_if_enabled'
+# LISTS lsi PACKAGE IF lsi-setup VARIABLE IS SET TO 1
+$SNIPPET('lsi_post_install_if_enabled')
 
 # COBBLER EMBEDDED SNIPPET: 'ssh_disable_gssapi'
 # REMOVES "GSSAPICleanupCredentials yes" AND "GSSAPIAuthentication yes" LINES
