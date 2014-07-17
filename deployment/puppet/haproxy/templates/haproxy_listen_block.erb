@@ -1,7 +1,7 @@
 
 listen <%= @name %>
 <% Array(@ipaddress).uniq.each do |virtual_ip| (@ports.is_a?(Array) ? @ports : Array(@ports.split(","))).each do |port| -%>
-  bind <%= virtual_ip %>:<%= port %>
+  bind <%= virtual_ip %>:<%= port %> <%= Array(@bind_options).join(" ") %>
 <% end end -%>
 <% if @mode -%>
   mode  <%= @mode %>
