@@ -51,6 +51,7 @@
 #
 define haproxy::backend (
   $collect_exported = true,
+  $order            = '20',
   $options          = {
     'option'  => [
       'tcplog',
@@ -60,10 +61,9 @@ define haproxy::backend (
   }
 ) {
 
-  # Template uses: $name, $ipaddress, $ports, $options
-  concat::fragment { "${name}_backend_block":
-    order   => "20-${name}-00",
-    target  => '/etc/haproxy/haproxy.cfg',
+  # Template uses: $name, $options
+  haproxy::service { $name:
+    order   => $order,
     content => template('haproxy/haproxy_backend_block.erb'),
   }
 
