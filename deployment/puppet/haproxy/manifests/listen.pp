@@ -75,6 +75,7 @@ define haproxy::listen (
   $ipaddress        = [$::ipaddress],
   $mode             = undef,
   $collect_exported = true,
+  $order            = '20',
   $options          = {
     'option'  => [
       'tcplog',
@@ -86,9 +87,8 @@ define haproxy::listen (
 ) {
 
   # Template uses: $name, $ipaddress, $ports, $options
-  concat::fragment { "${name}_listen_block":
-    order   => "20-${name}-00",
-    target  => '/etc/haproxy/haproxy.cfg',
+  haproxy::service { $name:
+    order   => $order,
     content => template('haproxy/haproxy_listen_block.erb'),
   }
 
