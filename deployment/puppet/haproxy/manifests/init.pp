@@ -73,7 +73,7 @@
 #
 class haproxy (
   $package_ensure   = 'present',
-  $package_name     = $haproxy::params::package_name,
+  $package_name     = 'haproxy',
   $service_ensure   = 'running',
   $service_manage   = true,
   $global_options   = $haproxy::params::global_options,

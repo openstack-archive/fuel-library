@@ -1,5 +1,10 @@
 # Private class
-class haproxy::service inherits haproxy {
+define haproxy::service (
+  $order       = '20',
+  $content     = '',
+  $use_include = $haproxy::params::use_include,
+) {
+
   if $caller_module_name != $module_name {
     fail("Use of private class ${name} by ${caller_module_name}")
   }
@@ -24,5 +29,27 @@ class haproxy::service inherits haproxy {
       hasstatus  => true,
       restart    => $restart_command,
     }
+  }
+
+  if $use_include {
+    $target         = "/etc/haproxy/conf.d/${order}-${name}.cfg"
+    $fragment_order = '00'
+
+    concat { $target:
+      owner  => '0',
+      group  => '0',
+      mode   => '0644',
+    }
+
+  } else {
+    $target         = '/etc/haproxy/haproxy.cfg'
+    $fragment_order = "${order}-${name}-00"
+  }
+
+  concat::fragment { "haproxy_${name}":
+    ensure  => $ensure,
+    order   => $fragment_order,
+    target  => $target,
+    content => $content,
   }
 }
