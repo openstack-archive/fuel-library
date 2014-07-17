@@ -17,34 +17,37 @@
 # === Parameters
 #
 # [*name*]
-#    The namevar of the defined resource type is the listening service's name.
-#     This name goes right after the 'listen' statement in haproxy.cfg
+#   The namevar of the defined resource type is the listening service's name.
+#    This name goes right after the 'listen' statement in haproxy.cfg
 #
 # [*ports*]
-#    Ports on which the proxy will listen for connections on the ip address
+#   Ports on which the proxy will listen for connections on the ip address
 #    specified in the ipaddress parameter. Accepts either a single
 #    comma-separated string or an array of strings which may be ports or
 #    hyphenated port ranges.
 #
 # [*ipaddress*]
-#    The ip address the proxy binds to. Empty addresses, '*', and '0.0.0.0'
-#     mean that the proxy listens to all valid addresses on the system.
+#   The ip address the proxy binds to. Empty addresses, '*', and '0.0.0.0'
+#    mean that the proxy listens to all valid addresses on the system.
 #
 # [*mode*]
-#    The mode of operation for the listening service. Valid values are undef,
+#   The mode of operation for the listening service. Valid values are undef,
 #    'tcp', 'http', and 'health'.
 #
 # [*options*]
-#    A hash of options that are inserted into the listening service
-#     configuration block.
+#   A hash of options that are inserted into the listening service
+#    configuration block.
+#
+# [*bind_options*]
+#   An array of options to be specified after the bind declaration in the
+#    listening serivce's configuration block.
 #
 # [*collect_exported*]
-#    Boolean, default 'true'. True means 'collect exported @@balancermember resources'
+#   Boolean, default 'true'. True means 'collect exported @@balancermember resources'
 #    (for the case when every balancermember node exports itself), false means
-#    'rely on the existing declared balancermember resources' (for the case when you
-#    know the full set of balancermembers in advance and use haproxy::balancermember
+#    'rely on the existing declared balancermember resources' (for the case when you 
+#    know the full set of balancermembers in advance and use haproxy::balancermember 
 #    with array arguments, which allows you to deploy everything in 1 run)
-#
 #
 # === Examples
 #
@@ -72,18 +75,20 @@ define haproxy::listen (
   $ipaddress        = [$::ipaddress],
   $mode             = undef,
   $collect_exported = true,
-  $order            = '20',
   $options          = {
     'option'  => [
       'tcplog',
       'ssl-hello-chk'
     ],
     'balance' => 'roundrobin'
-  }
+  },
+  $bind_options     = ''
 ) {
-  # Template uses: $name, $ipaddress, $ports, $mode, $options
-  haproxy::service { $name:
-    order   => $order,
+
+  # Template uses: $name, $ipaddress, $ports, $options
+  concat::fragment { "${name}_listen_block":
+    order   => "20-${name}-00",
+    target  => '/etc/haproxy/haproxy.cfg',
     content => template('haproxy/haproxy_listen_block.erb'),
   }
 

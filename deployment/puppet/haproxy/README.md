@@ -1,6 +1,8 @@
 PuppetLabs Module for haproxy
 =============================
 
+[![Build Status](https://travis-ci.org/puppetlabs/puppetlabs-haproxy.svg?branch=master)](https://travis-ci.org/puppetlabs/puppetlabs-haproxy)
+
 HAProxy is an HA proxying daemon for load-balancing to clustered services. It
 can proxy TCP directly, or other kinds of traffic such as HTTP.
 
@@ -10,7 +12,7 @@ Basic Usage
 This haproxy uses storeconfigs to collect and realize balancer member servers
 on a load balancer server. Currently Redhat family OSes are supported.
 
-*To install and configure HAProxy server listening on port 80*
+*To install and configure HAProxy server listening on port 8140*
 
 ```puppet
 node 'haproxy-server' {
