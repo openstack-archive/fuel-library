@@ -11,10 +11,8 @@ describe 'haproxy::listen' do
       }
     end
 
-    it { should contain_concat__fragment('croy_listen_block').with(
-      'order'   => '20-croy-00',
-      'target'  => '/etc/haproxy/haproxy.cfg',
-      'content' => "\nlisten croy\n  bind 1.1.1.1:18140 \n  balance  roundrobin\n  option  tcplog\n  option  ssl-hello-chk\n"
+    it { should contain_haproxy__service('croy_listen').with_content(
+      "\nlisten croy\n  bind 1.1.1.1:18140 \n  balance  roundrobin\n  option  tcplog\n  option  ssl-hello-chk\n"
     ) }
   end
   context "when an array of ports is provided" do
@@ -29,10 +27,8 @@ describe 'haproxy::listen' do
       }
     end
 
-    it { should contain_concat__fragment('apache_listen_block').with(
-      'order'   => '20-apache-00',
-      'target'  => '/etc/haproxy/haproxy.cfg',
-      'content' => "\nlisten apache\n  bind 23.23.23.23:80 \n  bind 23.23.23.23:443 \n  balance  roundrobin\n  option  tcplog\n  option  ssl-hello-chk\n"
+    it { should contain_haproxy__service('apache_listen').with_content(
+      "\nlisten apache\n  bind 23.23.23.23:80 \n  bind 23.23.23.23:443 \n  balance  roundrobin\n  option  tcplog\n  option  ssl-hello-chk\n"
     ) }
   end
   context "when a comma-separated list of ports is provided" do
@@ -44,10 +40,8 @@ describe 'haproxy::listen' do
       }
     end
 
-    it { should contain_concat__fragment('apache_listen_block').with(
-      'order'   => '20-apache-00',
-      'target'  => '/etc/haproxy/haproxy.cfg',
-      'content' => "\nlisten apache\n  bind 23.23.23.23:80 \n  bind 23.23.23.23:443 \n  balance  roundrobin\n  option  tcplog\n  option  ssl-hello-chk\n"
+    it { should contain_haproxy__service('apache_listen').with_content(
+      "\nlisten apache\n  bind 23.23.23.23:80 \n  bind 23.23.23.23:443 \n  balance  roundrobin\n  option  tcplog\n  option  ssl-hello-chk\n"
     ) }
   end
   context "when bind options are provided" do
@@ -59,10 +53,8 @@ describe 'haproxy::listen' do
       }
     end
 
-    it { should contain_concat__fragment('apache_listen_block').with(
-      'order'   => '20-apache-00',
-      'target'  => '/etc/haproxy/haproxy.cfg',
-      'content' => "\nlisten apache\n  bind 1.1.1.1:80 the options go here\n  balance  roundrobin\n  option  tcplog\n  option  ssl-hello-chk\n"
+    it { should contain_haproxy__service('apache_listen').with_content(
+      "\nlisten apache\n  bind 1.1.1.1:80 the options go here\n  balance  roundrobin\n  option  tcplog\n  option  ssl-hello-chk\n"
     ) }
   end
 end
