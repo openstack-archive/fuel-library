@@ -44,7 +44,7 @@ function parse_options {
                     nonopts+=("$@")
                     return
                     ;;
-      help|build|start|stop|shell|upgrade|destroy|check|backup|restore)
+      help|list|copy|restart|stop|revert|shell|upgrade|restore|backup|destroy|logs|post_start_hooks)
                     nonopts+=("$@")
                     return
                     ;;
