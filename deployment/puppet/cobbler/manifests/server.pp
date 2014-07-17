@@ -112,11 +112,20 @@ class cobbler::server (
     require    => Package[$cobbler::packages::cobbler_web_package],
   }
 
+  exec { "wait_for_web_service":
+    command   => '[ $(curl --connect-timeout 1 -s -w %{http_code} http://127.0.0.1:80/ -o /dev/null) -lt 500 ]',
+    require   => Service[$cobbler_web_service],
+    subscribe => Service[$cobbler_web_service],
+    tries     => 60,
+    try_sleep => 1,
+  }
+
   exec { "cobbler_sync":
     command     => "cobbler sync",
     refreshonly => true,
     require     => [
       Service[$cobbler_web_service],
+      Exec['wait_for_web_service'],
       Package[$cobbler::packages::cobbler_package],
       Package[$cobbler::packages::dnsmasq_package],
       File['/etc/dnsmasq.upstream']],
