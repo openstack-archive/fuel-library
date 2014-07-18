@@ -1,0 +1,6 @@
+name    'mellanox-mellanox_openstack'
+version '1.0.0'
+author 'mellanox'
+license 'Apache License, Version 2.0'
+summary 'Mellanox module for Mirantis Fuel Openstack deployment'
+description 'This is a Puppet module to install Mellanox Openstack components over Mirantis Fuel'
