@@ -57,8 +57,6 @@ define swift::storage::generic(
     subscribe => Package["swift-${name}"],
   }
 
-  Anchor['rebalance_end'] -> Service["swift-${name}"]
-
   if $::osfamily == "RedHat" {
     service { "swift-${name}-replicator":
       start    => "/usr/bin/swift-init ${name}-replicator start",
@@ -81,5 +79,4 @@ else
     subscribe => Package["swift-${name}"],
   }
 }
-  Anchor['rebalance_end'] -> Service["swift-${name}-replicator"]
 }

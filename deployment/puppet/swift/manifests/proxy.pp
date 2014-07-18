@@ -86,7 +86,6 @@ class swift::proxy(
     name   => $::swift::params::proxy_package_name,
     ensure => $package_ensure,
   }
-  Anchor["rebalance_end"] -> Service['swift-proxy']
 
   concat { '/etc/swift/proxy-server.conf':
     owner   => 'swift',
