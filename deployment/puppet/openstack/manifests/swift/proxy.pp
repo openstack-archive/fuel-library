@@ -118,7 +118,12 @@ class openstack::swift::proxy (
     class { 'swift::ringserver':
       local_net_ip => $swift_local_net_ip,
     }
-  } else {
+
+    # anchors
+    Anchor["rebalance_end"] -> Service['swift-proxy']
+    Anchor['rebalance_end'] -> Swift::Storage::Generic <| |>
+
+ } else {
     validate_string($master_swift_proxy_ip)
 
     if member($rings, 'account') and ! defined(Swift::Ringsync['account']) {
