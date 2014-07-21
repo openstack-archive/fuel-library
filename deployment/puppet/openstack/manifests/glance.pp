@@ -69,6 +69,7 @@ class openstack::glance (
   $rabbit_notification_exchange = 'glance',
   $rabbit_notification_topic    = 'notifications',
   $amqp_durable_queues          = false,
+  $control_exchange             = 'glance',
 ) {
   validate_string($glance_user_password)
   validate_string($glance_db_password)
@@ -113,6 +114,7 @@ class openstack::glance (
     'DEFAULT/image_cache_dir':            value => "/var/lib/glance/image-cache/";
     'keystone_authtoken/signing_dir':     value => '/tmp/keystone-signing-glance';
     'keystone_authtoken/signing_dirname': value => '/tmp/keystone-signing-glance';
+    'DEFAULT/control_exchange':           value => $control_exchange;
   }
   glance_cache_config {
     'DEFAULT/sql_max_pool_size':                      value => $max_pool_size;
