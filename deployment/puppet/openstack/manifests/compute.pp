@@ -125,6 +125,7 @@ class openstack::compute (
   $state_path                     = '/var/lib/nova',
   $ceilometer                     = false,
   $ceilometer_metering_secret     = 'ceilometer',
+  $libvirt_vif_driver             = 'nova.virt.libvirt.vif.LibvirtGenericVIFDriver',
 ) {
 
   #
@@ -534,7 +535,9 @@ on packages update": }
       source => 'puppet:///modules/nova/libvirt_qemu.conf',
     }
 
-    class { 'nova::compute::neutron': }
+    class { 'nova::compute::neutron':
+      libvirt_vif_driver => $libvirt_vif_driver,
+    }
 
     class { 'nova::network::neutron':
       neutron_auth_strategy            => 'keystone',
