@@ -42,11 +42,13 @@ define cluster::virtual_ip (
       'iptables_comment'     => $vip[iptables_comment] ? { undef => 'default-comment', default => "'${vip[iptables_comment]}'" },
     },
     metadata => {
-      'resource-stickiness' => '1',
+      'migration-threshold' => '3',   # will be try start 3 times before migrate to another node
+      'failure-timeout'     => '60',  # forget any fails of starts after this timeout
+      'resource-stickiness' => '1'
     },
     operations => {
       'monitor' => {
-        'interval' => '2',
+        'interval' => '3',
         'timeout'  => '30'
       },
       'start' => {
