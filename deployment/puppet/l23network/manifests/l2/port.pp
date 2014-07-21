@@ -17,7 +17,7 @@
 #   the port with default behavior.
 #   (see http://openvswitch.org/cgi-bin/ovsman.cgi?page=utilities%2Fovs-vsctl.8)
 #
-# [*tag*]
+# [*vlan_tag*]
 #   Specify 802.1q tag for result bond. If need.
 #
 # [*trunks*]
@@ -34,7 +34,7 @@ define l23network::l2::port (
   $type                  = '',
   $port_properties       = [],
   $interface_properties  = [],
-  $tag                   = 0,
+  $vlan_tag              = 0,
   $trunks                = [],
   $vlan_splinters        = false,
   $provider              = 'ovs',
@@ -50,7 +50,7 @@ define l23network::l2::port (
       ensure               => $ensure,
       bridge               => $bridge,
       type                 => $type,
-      tag                  => $tag,
+      vlan_tag             => $vlan_tag,
       trunks               => $trunks,
       vlan_splinters       => $vlan_splinters,
       port_properties      => $port_properties,
