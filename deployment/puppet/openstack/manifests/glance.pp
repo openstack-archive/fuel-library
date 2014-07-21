@@ -69,6 +69,7 @@ class openstack::glance (
   $rabbit_notification_exchange = 'glance',
   $rabbit_notification_topic    = 'notifications',
   $amqp_durable_queues          = false,
+  $control_exchange             = 'glance',
 ) {
   validate_string($glance_user_password)
   validate_string($glance_db_password)
@@ -100,6 +101,10 @@ class openstack::glance (
     sql_idle_timeout      => $idle_timeout,
     show_image_direct_url => true,
     pipeline              => 'keystone+cachemanagement',
+  }
+
+  glance_api_config {
+    'DEFAULT/control_exchange':      value => $control_exchange;
   }
 
   glance_api_config {
