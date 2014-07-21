@@ -8,7 +8,7 @@ dockerctl post_start_hooks cobbler
 ( ps -p "`cat /var/run/dhcrelay.pid 2>/dev/null`" &>/dev/null || /etc/init.d/dhcrelay start )
 if [ $? -eq 0 ]; then
   pid=$(cat /var/run/dhcrelay.pid)
-  while test -e "/proc/$pid"; do 
+  while test -d "/proc/$pid/fd"; do
     sleep 30
   done
 fi
