@@ -18,8 +18,8 @@ Puppet::Type.type(:l2_ovs_port).provide(:ovs) do
     end
     # tag and trunks for port
     port_properties = @resource[:port_properties]
-    if @resource[:tag] > 0
-      port_properties.insert(-1, "tag=#{@resource[:tag]}")
+    if @resource[:vlan_id] > 0
+      port_properties.insert(-1, "tag=#{@resource[:vlan_id]}")
     end
     if not @resource[:trunks].empty?
       port_properties.insert(-1, "trunks=[#{@resource[:trunks].join(',')}]")

@@ -52,7 +52,7 @@ Puppet::Type.newtype(:l2_ovs_port) do
       end
     end
 
-    newparam(:tag) do
+    newparam(:vlan_id) do
       defaultto(0)
       desc "802.1q tag"
       validate do |val|

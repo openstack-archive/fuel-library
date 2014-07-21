@@ -9,7 +9,7 @@
 # [*peers*]
 #   Patch port names for both bridges. must be array of two strings.
 #
-# [*tags*]
+# [*vlan_ids*]
 #   Specify 802.1q tag for each end of patchcord. Must be array of 2 integers.
 #   Default [0,0] -- untagged
 #
@@ -25,7 +25,7 @@
 define l23network::l2::patch (
   $bridges,
   $peers         = [undef,undef],
-  $tags          = [0, 0],
+  $vlan_ids      = [0, 0],
   $trunks        = [],
   $provider      = 'ovs',
   $ensure        = present,
@@ -37,14 +37,14 @@ define l23network::l2::patch (
 
   # Architecture limitation.
   # We can't create more one patch between same bridges.
-  #$patch = "${bridges[0]}_${tags[0]}--${bridges[1]}_${tags[1]}"
+  #$patch = "${bridges[0]}_${vlan_ids[0]}--${bridges[1]}_${vlan_ids[1]}"
   $patch = "${bridges[0]}--${bridges[1]}"
 
   if ! defined (L2_ovs_patch["$patch"]) {
     l2_ovs_patch { "$patch" :
       bridges       => $bridges,
       peers         => $peers,
-      tags          => $tags,
+      vlan_ids      => $vlan_ids,
       trunks        => $trunks,
       ensure        => $ensure
     }

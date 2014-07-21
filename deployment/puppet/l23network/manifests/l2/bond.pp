@@ -13,7 +13,7 @@
 # [*interfaces*]
 #   List of interfaces in this bond.
 #
-# [*tag*]
+# [*vlan_id*]
 #   Specify 802.1q tag for result bond. If need.
 #
 # [*trunks*]
@@ -30,7 +30,7 @@ define l23network::l2::bond (
   $ports         = undef, # deprecated, must be used interfaces
   $bond          = $name,
   $properties    = [],
-  $tag           = 0,
+  $vlan_id       = 0,
   $trunks        = [],
   $provider      = 'ovs',
   $ensure        = present,
@@ -53,7 +53,7 @@ define l23network::l2::bond (
       ensure        => $ensure,
       interfaces    => $r_interfaces,
       bridge        => $bridge,
-      tag           => $tag,
+      vlan_id       => $vlan_id,
       trunks        => $trunks,
       properties    => $properties,
       skip_existing => $skip_existing,
