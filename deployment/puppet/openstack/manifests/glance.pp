@@ -69,6 +69,7 @@ class openstack::glance (
   $rabbit_notification_exchange = 'glance',
   $rabbit_notification_topic    = 'notifications',
   $amqp_durable_queues          = false,
+  $control_exchange             = 'glance',
 ) {
   validate_string($glance_user_password)
   validate_string($glance_db_password)
@@ -103,6 +104,7 @@ class openstack::glance (
   }
 
   glance_api_config {
+    'DEFAULT/control_exchange':           value => $control_exchange;
     'DEFAULT/sql_max_pool_size':          value => $max_pool_size;
     'DEFAULT/sql_max_retries':            value => $max_retries;
     'DEFAULT/sql_max_overflow':           value => $max_overflow;
