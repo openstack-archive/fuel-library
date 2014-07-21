@@ -39,6 +39,7 @@ class murano::api (
 ) {
 
   $database_connection = "mysql://${murano_db_name}:${murano_db_password}@${murano_db_host}:3306/${murano_db_name}?read_timeout=60"
+  $keystone_auth_url = "${auth_protocol}://${auth_host}:${auth_port}/v2.0"
 
   include murano::params
 
@@ -108,6 +109,8 @@ class murano::api (
     'rabbitmq/ca_certs'                     : value => $rabbit_ca_certs;
 
     'database/connection'                   : value => $database_connection;
+
+    'keystone/auth_url'                     : value => $keystone_auth_url;
 
     'keystone_authtoken/auth_host'          : value => $auth_host;
     'keystone_authtoken/auth_port'          : value => $auth_port;
