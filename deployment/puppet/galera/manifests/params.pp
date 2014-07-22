@@ -26,13 +26,12 @@ class galera::params {
   $mysql_buffer_pool_size  =  "${buffer_size}M"
   $mysql_log_file_size     =
     inline_template("<%= [(${buffer_size} * 0.25 + 0).floor, 2047].min %>M")
-  $wait_timeout            = '3600'
+  $wait_timeout            = '1800'
   $myisam_sort_buffer_size = '64M'
   $key_buffer_size         = '64M'
   $table_open_cache        = '10000'
   $open_files_limit        = '102400'
   $max_connections         = '4096'
-  $innodb_flush_log_at_trx_commit = '2'
 
   case $::osfamily {
     'RedHat': {
