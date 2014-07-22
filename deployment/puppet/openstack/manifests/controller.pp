@@ -294,6 +294,10 @@ class openstack::controller (
     max_retries               => $max_retries,
     max_pool_size             => $max_pool_size,
     max_overflow              => $max_overflow,
+    rabbit_password           => $amqp_password,
+    rabbit_userid             => $amqp_user,
+    rabbit_hosts              => $amqp_hosts,
+    rabbit_virtual_host       => $rabbit_virtual_host,
     idle_timeout              => $idle_timeout,
   }
 
