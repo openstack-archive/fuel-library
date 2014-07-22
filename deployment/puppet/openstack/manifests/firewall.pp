@@ -199,7 +199,7 @@ class openstack::firewall (
   }
 
   firewall {'117 libvirt':
-    port   => $libvirt_ports,
+    port   => $libvirt_port,
     proto  => 'tcp',
     action => 'accept',
   }
