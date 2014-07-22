@@ -49,6 +49,7 @@ class nailgun::venv(
   $exclude_network = $admin_network,
   $exclude_cidr = $admin_network_cidr,
 
+  $dns_domain,
   ) {
 
   if $production != 'dev' {

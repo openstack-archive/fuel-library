@@ -67,6 +67,6 @@ MCO_CONNECTOR: "<%= @mco_connector %>"
 PUPPET_MASTER_HOST: "<%= @puppet_master_hostname %>"
 PUPPET_VERSION: "2.7.19"
 
-DNS_DOMAIN: "<%= @domain %>"
+DNS_DOMAIN: "<%= @dns_domain %>"
 DNS_SERVERS: "<%= @cobbler_host %>"
-DNS_SEARCH: "<%= @domain %>"
+DNS_SEARCH: "<%= @dns_domain.gsub(/,/, ' ') %>"
