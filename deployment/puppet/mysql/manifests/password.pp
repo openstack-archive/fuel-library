@@ -35,7 +35,9 @@ class mysql::password (
       group   => 'mysql',
     }
 
-    Service['mysql'] -> Exec['set_mysql_rootpw']
+    Service <| title == 'mysql' |>  -> Exec['set_mysql_rootpw']
+    Service <| title == 'mysql-service' |> -> Exec['set_mysql_rootpw']
+
     Exec['set_mysql_rootpw'] -> File['mysql_password']
     File <| title == $config_file |> -> File['mysql_password']
     File <| title == '/etc/my.cnf' |> -> File['mysql_password']
