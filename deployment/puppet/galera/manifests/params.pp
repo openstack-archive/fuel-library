@@ -19,6 +19,7 @@ class galera::params {
 
   $mysql_user             = 'wsrep_sst'
   $mysql_password         = 'password'
+  $service_name           = 'mysql'
   #TODO(bogdando) remove code duplication for galera and mysql manifests to openstack::db in 'I' release
   #limit buffer size to 10G
   $buffer_size             =

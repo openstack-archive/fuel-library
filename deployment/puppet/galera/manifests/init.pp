@@ -72,6 +72,7 @@ class galera (
   $wait_timeout = $::galera::params::wait_timeout
   $open_files_limit= $::galera::params::open_files_limit
   $datadir=$::mysql::params::datadir
+  $service_name=$::galera::params::service_name
 
   package { ['wget',
               'perl']:
@@ -136,7 +137,7 @@ class galera (
       'RedHat' => '/var/lib/mysql/mysql.sock',
       'Debian' => '/var/run/mysqld/mysqld.sock',
     }
-    cs_resource { 'p_mysql':
+    cs_resource { "p_${service_name}":
       ensure          => present,
       primitive_class => 'ocf',
       provided_by     => 'mirantis',
@@ -165,13 +166,15 @@ class galera (
     }
     Anchor['galera'] ->
       File['mysql-wss-ocf'] ->
-        Cs_resource['p_mysql'] ->
-          Service['mysql'] ->
-            Exec['wait-for-synced-state']
+        Service["${service_name}_stopped"] ->
+          Cs_resource["p_${service_name}"] ->
+            Service["${service_name}-service"] ->
+              Exec['wait-for-synced-state']
   } else {
     Anchor['galera'] ->
       File['mysql-wss-ocf'] ->
-        Service['mysql']
+        Service["${service_name}_stopped"] ->
+          Service["${service_name}-service"]
   }
 
   file { 'mysql-wss-ocf':
@@ -187,16 +190,24 @@ class galera (
   Package['MySQL-server'] -> File['mysql-wss-ocf']
   Package['galera'] -> File['mysql-wss-ocf']
 
-  service { 'mysql':
+  tweaks::ubuntu_service_override { "${service_name}": }
+
+  service { "${service_name}_stopped":
+    ensure => 'stopped',
+    name   => "${service_name}",
+    enable => false,
+  }
+
+  service { "${service_name}-service":
     ensure     => 'running',
-    name       => 'p_mysql',
+    name       => "p_${service_name}",
     enable     => true,
     provider   => 'pacemaker',
   }
 
-  Service['mysql'] -> Anchor['galera-done']
+  Service["${service_name}-service"] -> Anchor['galera-done']
 
-  if $::galera_gcomm_empty == "true" {
+  if $::galera_gcomm_empty == 'true' {
     #FIXME(bogdando): dirtyhack to pervert imperative puppet nature.
     if $::mysql_log_file_size_real != $mysql_log_file_size {
       # delete MySQL ib_logfiles, if log file size does not match the one
@@ -251,7 +262,7 @@ class galera (
   }
 
   File['/tmp/wsrep-init-file'] ->
-    Service['mysql'] ->
+    Service["${service_name}-service"] ->
       Exec['wait-initial-sync'] ->
         Exec['wait-for-synced-state'] ->
           Exec ['rm-init-file']
