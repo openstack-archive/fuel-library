@@ -104,6 +104,12 @@ if $queue_provider == 'rabbitmq' {
     environment_variables      => $environment_variables,
   }
 
+  # Install rabbit-fence daemon
+  class { 'cluster::rabbitmq_fence':
+    enabled => true,
+    require => Class['::rabbitmq']
+  }
+
   class { 'nova::rabbitmq':
     enabled                    => $enabled,
     # Do not install rabbitmq from nova classes
