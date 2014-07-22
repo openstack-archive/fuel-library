@@ -52,6 +52,7 @@ class nailgun::venv(
   $keystone_admin_token = 'ADMIN',
   $keystone_host = '127.0.0.1',
 
+  $dns_domain,
   ) {
 
   package{'nailgun':}
