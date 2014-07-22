@@ -118,6 +118,8 @@ class { "nailgun::venv":
   mco_connector => $mco_connector,
 
   puppet_master_hostname => $puppet_master_hostname,
+
+  dns_domain => $::fuel_settings['DNS_DOMAIN'],
 }
 class { "nailgun::supervisor":
   nailgun_env   => $env_path,
