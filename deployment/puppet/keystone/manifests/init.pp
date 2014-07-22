@@ -33,6 +33,9 @@
 #   [enalbles] If the keystone services should be enabled. Optioal. Default to true.
 #   [sql_conneciton] Url used to connect to database.
 #   [idle_timeout] Timeout when db connections should be reaped.
+#   [notification_driver] RPC driver. Not enabled by default
+#   [notification_topics] AMQP topics to publish to when using the RPC notification driver.
+#   [control_exchange] AMQP exchange to connect to if using RabbitMQ or Qpid
 #
 # == Dependencies
 #  None
@@ -72,6 +75,16 @@ class keystone(
   $enabled              = true,
   $sql_connection       = 'sqlite:////var/lib/keystone/keystone.db',
   $idle_timeout         = '200',
+  $rabbit_host          = 'localhost',
+  $rabbit_hosts         = false,
+  $rabbit_password = 'guest',
+  $rabbit_port = '5672',
+  $rabbit_userid = 'guest',
+  $rabbit_virtual_host = '/',
+  $rabbit_use_ssl = false,
+  $notification_driver = false,
+  $notification_topics = false,
+  $control_exchange = false,
   $max_pool_size        = '10',
   $max_overflow         = '30',
   $max_retries          = '-1',
@@ -295,6 +308,39 @@ class keystone(
       subscribe   => Package['keystone'],
     }
   }
+
+  if $notification_driver {
+    keystone_config { 'DEFAULT/notification_driver': value => $notification_driver }
+  } else {
+    keystone_config { 'DEFAULT/notification_driver': ensure => absent }
+  }
+  if $notification_topics {
+    keystone_config { 'DEFAULT/notification_topics': value => $notification_topics }
+  } else {
+    keystone_config { 'DEFAULT/notification_topics': ensure => absent }
+  }
+  if $control_exchange {
+    keystone_config { 'DEFAULT/control_exchange': value => $control_exchange }
+  } else {
+    keystone_config { 'DEFAULT/control_exchange': ensure => absent }
+  }
+
+  keystone_config {
+    'DEFAULT/rabbit_password': value => $rabbit_password;
+    'DEFAULT/rabbit_userid': value => $rabbit_userid;
+    'DEFAULT/rabbit_virtual_host': value => $rabbit_virtual_host;
+  }
+
+  if $rabbit_hosts {
+    keystone_config { 'DEFAULT/rabbit_hosts': value => join($rabbit_hosts, ',') }
+    keystone_config { 'DEFAULT/rabbit_ha_queues': value => true }
+  } else {
+    keystone_config { 'DEFAULT/rabbit_host': value => $rabbit_host }
+    keystone_config { 'DEFAULT/rabbit_port': value => $rabbit_port }
+    keystone_config { 'DEFAULT/rabbit_hosts': value => "${rabbit_host}:${rabbit_port}" }
+    keystone_config { 'DEFAULT/rabbit_ha_queues': value => false }
+  }
+
 
   # Syslog configuration
   if $use_syslog {
