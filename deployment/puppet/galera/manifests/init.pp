@@ -187,6 +187,8 @@ class galera (
   Package['MySQL-server'] -> File['mysql-wss-ocf']
   Package['galera'] -> File['mysql-wss-ocf']
 
+  tweaks::ubuntu_service_override { 'mysql': }
+
   service { 'mysql':
     ensure     => 'running',
     name       => 'p_mysql',
