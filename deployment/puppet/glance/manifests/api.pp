@@ -179,7 +179,6 @@ class glance::api(
   $ca_file               = false,
   $mysql_module          = '0.9',
   $known_stores          = false,
-  $control_exchange      = 'glance',
 ) inherits glance {
 
   require keystone::python
@@ -235,7 +234,6 @@ class glance::api(
     'DEFAULT/backlog':               value => $backlog;
     'DEFAULT/workers':               value => $workers;
     'DEFAULT/show_image_direct_url': value => $show_image_direct_url;
-    'DEFAULT/control_exchange':      value => $control_exchange;
   }
 
   # known_stores config
