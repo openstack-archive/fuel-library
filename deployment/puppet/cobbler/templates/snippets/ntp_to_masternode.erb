@@ -10,4 +10,4 @@ sed -i '/^\s*server/ d' /etc/ntp.conf
 echo "server $server burst iburst" >> /etc/ntp.conf
 sed -i 's/SYNC_HWCLOCK\s*=\s*no/SYNC_HWCLOCK=yes/' /etc/sysconfig/ntpdate
 chkconfig ntpd on
-chkconfig ntpdate on
+chkconfig sntp on
