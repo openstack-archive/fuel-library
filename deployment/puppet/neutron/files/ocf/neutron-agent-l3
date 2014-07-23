@@ -37,6 +37,7 @@ PATH=/sbin:/usr/sbin:/bin:/usr/bin
 
 OCF_RESKEY_binary_default="neutron-l3-agent"
 OCF_RESKEY_config_default="/etc/neutron/neutron.conf"
+OCF_RESKEY_keystone_config_default="/etc/keystone/keystone.conf"
 OCF_RESKEY_plugin_config_default="/etc/neutron/l3_agent.ini"
 OCF_RESKEY_log_file_default="/var/log/neutron/l3-agent.log"
 OCF_RESKEY_user_default="neutron"
@@ -54,13 +55,13 @@ OCF_RESKEY_debug_default=false
 : ${OCF_RESKEY_tenant=${OCF_RESKEY_tenant_default}}
 : ${OCF_RESKEY_binary=${OCF_RESKEY_binary_default}}
 : ${OCF_RESKEY_config=${OCF_RESKEY_config_default}}
+: ${OCF_RESKEY_keystone_config=${OCF_RESKEY_keystone_config_default}}
 : ${OCF_RESKEY_plugin_config=${OCF_RESKEY_plugin_config_default}}
 : ${OCF_RESKEY_user=${OCF_RESKEY_user_default}}
 : ${OCF_RESKEY_pid=${OCF_RESKEY_pid_default}}
 : ${OCF_RESKEY_external_bridge=${OCF_RESKEY_external_bridge_default}}
 : ${OCF_RESKEY_debug=${OCF_RESKEY_debug_default}}
 : ${OCF_RESKEY_log_file=${OCF_RESKEY_log_file_default}}
-
 
 
 #######################################################################
@@ -110,6 +111,14 @@ Location of the OpenStack Router (neutron-server) configuration file
 </longdesc>
 <shortdesc lang="en">OpenStack Router (neutron-server) config file</shortdesc>
 <content type="string" default="${OCF_RESKEY_config_default}" />
+</parameter>
+
+<parameter name="keystone_config" unique="0" required="0">
+<longdesc lang="en">
+Location of the Keystone configuration file
+</longdesc>
+<shortdesc lang="en">OpenStack Keystone config file</shortdesc>
+<content type="string" default="${OCF_RESKEY_keystone_config_default}" />
 </parameter>
 
 <parameter name="plugin_config" unique="0" required="0">
@@ -268,6 +277,15 @@ neutron_l3_agent_validate() {
     true
 }
 
+setup_auth() {
+    AUTH_TOKEN=""
+
+    if [[ -f $OCF_RESKEY_keystone_config ]] ; then
+        AUTH_TOKEN=$(grep -v '#' $OCF_RESKEY_keystone_config | grep -i 'admin_token\s*=\s*' | awk -F'=' '{print $2}')
+    fi
+
+    true
+}
 
 neutron_l3_agent_status() {
     local pid
@@ -408,8 +426,14 @@ neutron_l3_agent_start() {
         sleep 3
     done
 
+    # setup token-based authentication if it possible
+    AUTH_TAIL=""
+    if [[ -n "$AUTH_TOKEN" ]] ; then
+        AUTH_TAIL="--admin-auth-url=${OCF_RESKEY_os_auth_url} --auth-token=${AUTH_TOKEN}"
+    fi
+
     # detach deferred rescheduling procedure
-    bash -c "sleep 33 ; q-agent-cleanup.py --agent=l3 --reschedule --remove-dead 2>&1 >> /var/log/neutron/rescheduling.log " &
+    bash -c "sleep 33 ; q-agent-cleanup.py --agent=l3 --reschedule --remove-dead ${AUTH_TAIL} 2>&1 >> /var/log/neutron/rescheduling.log " &
     fuel-fdb-cleaner --ssh-keyfile /root/.ssh/id_rsa_neutron -l /var/log/neutron/fdb-cleaner.log
 
     ocf_log info "OpenStack Router (neutron-l3-agent) started"
@@ -491,6 +515,7 @@ esac
 
 # Anything except meta-data and help must pass validation
 neutron_l3_agent_validate || exit $?
+setup_auth || exit $?
 
 # What kind of method was invoked?
 case "$1" in
