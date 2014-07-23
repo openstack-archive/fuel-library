@@ -64,4 +64,10 @@ class nailgun::ostf(
     group   => 'root',
     content => template('nailgun/ostf.conf.erb'),
   }
+  file { '/var/log/ostf':
+    ensure => directory,
+    owner  => 'root',
+    group  => 'root',
+    mode   => '0755',
+  }
 }
