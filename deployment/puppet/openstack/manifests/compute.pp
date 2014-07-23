@@ -147,6 +147,8 @@ class openstack::compute (
     'RedHat': {
       augeas { 'sysconfig-libvirt':
         context => '/files/etc/sysconfig/libvirtd',
+        lens => "shellvars.lns",
+        incl => "/etc/sysconfig/libvirtd",
         changes => 'set LIBVIRTD_ARGS "--listen"',
         before  => Augeas['libvirt-conf'],
       }
