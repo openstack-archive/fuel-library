@@ -14,6 +14,7 @@ OCF_RESKEY_base_veth_default=""       # should be defined
 OCF_RESKEY_ns_veth_default=""         # should be defined
 OCF_RESKEY_gateway_default=""         # can be "", "link", IPaddr
 OCF_RESKEY_gateway_metric_default=0   # can be "", or metric value
+OCF_RESKEY_also_check_interfaces_default="" # can be "", or list of interfaces
 OCF_RESKEY_enable_forwarding_default=true
 
 : ${OCF_RESKEY_cidr_netmask=${OCF_RESKEY_cidr_netmask_default}}
@@ -22,6 +23,7 @@ OCF_RESKEY_enable_forwarding_default=true
 : ${OCF_RESKEY_ns_veth=${OCF_RESKEY_ns_veth_default}}
 : ${OCF_RESKEY_gateway=${OCF_RESKEY_gateway_default}}
 : ${OCF_RESKEY_gateway_metric=${OCF_RESKEY_gateway_metric_default}}
+: ${OCF_RESKEY_also_check_interfaces=${OCF_RESKEY_also_check_interfaces_default}}
 : ${OCF_RESKEY_enable_forwarding=${OCF_RESKEY_enable_forwarding_default}}
 
 FAMILY='inet'
@@ -180,6 +182,14 @@ Iptables comment to associate with rules.\n
 </longdesc>
 <shortdesc lang="en">Iptables comment to associate with rules.</shortdesc>
 <content type="string" default="default-comment"/>
+</parameter>
+
+<parameter name="also_check_interfaces">
+<longdesc lang="en">
+Network interfaces list (ex. NIC), that should be in UP state for monitor action returns succesful.\n
+</longdesc>
+<shortdesc lang="en">Network interfaces list (ex. NIC), that should be in UP state for monitor action returns succesful.</shortdesc>
+<content type="string" default="$OCF_RESKEY_also_check_interfaces_default"/>
 </parameter>
 
 </parameters>
@@ -368,6 +378,20 @@ get_veth_pair() {
   return 0
 }
 
+check_interfaces_for_up_state() {
+  local interfaces=$(echo "$1" | tr " ,:;" "\n")
+  local rc=$OCF_SUCCESS
+
+  for i in $interfaces ; do
+    rv=$(cat /sys/class/net/$i/carrier)  # can return non-zero error-code for administrative-downed interface
+    if [[ $? != 0 || $rv != "1" ]] ; then
+      rc=$OCF_NOT_RUNNING
+      break
+    fi
+  done
+
+  return $rc
+}
 
 ip_prepare() {
   local rc
@@ -437,6 +461,7 @@ iptables_stop() {
 
 ip_start() {
   setup_forwarding
+  check_interfaces_for_up_state "$OCF_RESKEY_nic:$OCF_RESKEY_also_check_interfaces" || return $OCF_ERR_GENERIC
   ip_prepare
   rc=$?
   if [[ $rc != $OCF_SUCCESS ]] ; then
@@ -484,29 +509,18 @@ ip_stop() {
   return $rc
 }
 
-ip_status() {
-  local rc
-  ip_validate
-  # check_ns || return $OCF_NOT_RUNNING
-  # $RUN_IN_NS $SH OCF_RESKEY_ipaddr2_script status
-  # rc=$?
-  #to-do:
-  #  check NS
-  #  check IP address inside NS
-  #  ping base IP from NS
-  exit $rc
-}
-
 ip_monitor() {
   local rc
   ip_validate
   check_ns || return $OCF_NOT_RUNNING
-  local iface=`find_interface_in_ns $OCF_RESKEY_ns $OCF_RESKEY_ip $OCF_RESKEY_cidr_netmask`
+  local iface=$(find_interface_in_ns $OCF_RESKEY_ns $OCF_RESKEY_ip $OCF_RESKEY_cidr_netmask)
   [[ -z $iface ]] && return $OCF_NOT_RUNNING
 
   #todo: finding IP from VIP subnet
-  local ipaddr=`get_first_ip_for_if $OCF_RESKEY_nic`
+  local ipaddr=$(get_first_ip_for_if $OCF_RESKEY_nic)
   [[ -z $ipaddr ]] && return $OCF_NOT_RUNNING
+
+  check_interfaces_for_up_state "$OCF_RESKEY_nic:$OCF_RESKEY_also_check_interfaces" || return $OCF_NOT_RUNNING
 
   ocf_run $RUN_IN_NS ping -n -c3 -q $ipaddr 2>&1 >>/dev/null || return $OCF_NOT_RUNNING
   setup_forwarding
@@ -544,10 +558,6 @@ case $__OCF_ACTION in
     ;;
   monitor)
     ip_monitor
-    rc=$?
-    ;;
-  status)
-    ip_status
     rc=$?
     ;;
   validate-all)
