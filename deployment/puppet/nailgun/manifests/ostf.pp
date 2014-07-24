@@ -16,7 +16,7 @@ class nailgun::ostf(
   $keystone_admin_token = 'ADMIN',
   $keystone_host        = '127.0.0.1',
   $keystone_port        = '35357',
-  $auth_enable          = 'False',
+  $auth_enable          = 'True',
 ){
   package{'libevent-devel':}
   package{'openssl-devel':}

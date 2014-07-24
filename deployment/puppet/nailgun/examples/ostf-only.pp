@@ -42,6 +42,7 @@ node default {
     nailgun_host => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
     nailgun_port => '8000',
     host         => "0.0.0.0",
+    auth_enable  => 'True',
 
     keystone_admin_token => $::fuel_settings['keystone']['admin_token'],
     keystone_host        => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
