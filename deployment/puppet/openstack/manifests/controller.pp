@@ -531,5 +531,80 @@ class openstack::controller (
     log_level         => $syslog_log_level,
   }
 
+  ####### Disable upstart startup on install #######
+  if($::operatingsystem == 'Ubuntu') {
+    tweaks::ubuntu_service_override { 'glance-api':
+      package_name => 'glance-api',
+    }
+    tweaks::ubuntu_service_override { 'glance-registry':
+      package_name => 'glance-registry',
+    }
+    tweaks::ubuntu_service_override { ['murano_api', 'murano_engine']:
+      package_name => 'murano',
+    }
+    tweaks::ubuntu_service_override { 'heat-api-cloudwatch':
+      package_name => 'heat-api-cloudwatch',
+    }
+    tweaks::ubuntu_service_override { 'heat-api-cfn':
+      package_name => 'heat-api-cfn',
+    }
+    tweaks::ubuntu_service_override { 'heat-api':
+      package_name => 'heat-api',
+    }
+    tweaks::ubuntu_service_override { 'sahara-api':
+      package_name => 'sahara',
+    }
+    tweaks::ubuntu_service_override { 'keystone':
+      package_name => 'keystone',
+    }
+    # Ceph rbd backend configures its override on its own
+    if !$::fuel_settings['storage']['volumes_ceph'] {
+      tweaks::ubuntu_service_override { 'cinder-volume':
+        package_name => 'cinder-volume',
+      }
+    }
+    tweaks::ubuntu_service_override { 'cinder-api':
+      package_name => 'cinder-api',
+    }
+    tweaks::ubuntu_service_override { 'cinder-backup':
+      package_name => 'cinder-backup',
+    }
+    tweaks::ubuntu_service_override { 'cinder-scheduler':
+      package_name => 'cinder-scheduler',
+    }
+    tweaks::ubuntu_service_override { 'nova-cert':
+      package_name => 'nova-cert',
+    }
+    tweaks::ubuntu_service_override { 'nova-conductor':
+      package_name => 'nova-conductor',
+    }
+    tweaks::ubuntu_service_override { 'nova-consoleproxy':
+      package_name => 'nova-consoleproxy',
+    }
+    tweaks::ubuntu_service_override { 'nova-api':
+      package_name => 'nova-api',
+    }
+    tweaks::ubuntu_service_override { 'nova-objectstore':
+      package_name => 'nova-objectstore',
+    }
+    tweaks::ubuntu_service_override { 'nova-scheduler':
+      package_name => 'nova-scheduler',
+    }
+    tweaks::ubuntu_service_override { 'nova-consoleauth':
+      package_name => 'nova-consoleauth',
+    }
+    tweaks::ubuntu_service_override { 'nova-vncproxy':
+      package_name => 'nova-vncproxy',
+    }
+    tweaks::ubuntu_service_override { 'nova-spiceproxy':
+      package_name => 'nova-spiceproxy',
+    }
+    tweaks::ubuntu_service_override { 'nova-spicehtml5proxy':
+      package_name => 'nova-spicehtml5proxy',
+    }
+    tweaks::ubuntu_service_override { 'nova-cells':
+      package_name => 'nova-cells',
+    }
+  }
 }
 
