@@ -372,6 +372,13 @@ class osnailyfacter::cluster_ha {
       if ($use_swift) {
         $swift_zone = $node[0]['swift_zone']
 
+        # At least debian glance-common package chowns whole /var/lib/glance recursively
+        # which breaks swift ownership of dirs inside $storage_mnt_base_dir (default: /var/lib/glance/node/)
+        # so we just need to make sure package glance-common (dependency for glance-api) is already installed
+        # before creating swift device directories
+
+        Package[$glance::params::api_package_name] -> Anchor <| title=='swift-device-directories-start' |>
+
         class { 'openstack::swift::storage_node':
           storage_type          => $swift_loopback,
           loopback_size         => '5243780',

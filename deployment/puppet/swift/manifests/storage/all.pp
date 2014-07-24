@@ -46,6 +46,7 @@ class swift::storage::all(
     }
   }
 
+  anchor {'swift-device-directories-start': } -> File[$devices]
 
   define device_directory($devices){
     if ! defined(File["${devices}/${name}"]){
