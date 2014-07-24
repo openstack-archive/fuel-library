@@ -398,7 +398,7 @@ class osnailyfacter::cluster_ha {
         # so we just need to make sure package glance-common (dependency for glance-api) is already installed
         # before creating swift device directories
 
-        Package[$glance::params::api_package_name] -> Swift::Storage::All::Device_directory <| |>
+        Package[$glance::params::api_package_name] -> Anchor <| title=='swift-device-directories-start' |>
 
         class { 'openstack::swift::storage_node':
           storage_type          => $swift_loopback,
