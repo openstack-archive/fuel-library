@@ -43,6 +43,7 @@ class openstack::ha::mysqld (
     Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'nova-db-sync' |>
     Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'heat-dbsync' |>
     Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'ceilometer-dbsync' |>
+    Exec['wait-for-haproxy-mysql-backend'] -> Exec<| title == 'neutron-db-sync' |>
     Exec['wait-for-haproxy-mysql-backend'] -> Service <| title == 'cinder-scheduler' |>
     Exec['wait-for-haproxy-mysql-backend'] -> Service <| title == 'cinder-volume' |>
     Exec['wait-for-haproxy-mysql-backend'] -> Service <| title == 'cinder-api' |>
