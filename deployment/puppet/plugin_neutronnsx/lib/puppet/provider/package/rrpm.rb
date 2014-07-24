@@ -22,12 +22,15 @@ Puppet::Type.type(:package).provide :rrpm, :parent => :rpm, :source => :rpm do
   end
 
   def download
+    Puppet.debug "RRPM: trying to download package #{@resource[:name]}"
     package = get_package_file(@resource[:name],@resource[:source])
     path = "#{@resource[:source]}/#{package}"
+    Puppet.debug "RRPM: package is found at #{path}"
     File.open("/tmp/#{package}", 'wb') do |fo|
       fo.write open(path).read
     end
     @resource[:source] = "/tmp/#{package}"
+    Puppet.debug "RDPKG: package is saved to #{@resource[:source]}"
   end
 
   def install
