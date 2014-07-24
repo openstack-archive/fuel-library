@@ -94,7 +94,21 @@ class neutron::server (
     Neutron_plugin_ovs<||>  -> Exec['neutron-db-sync']
     Neutron_plugin_ml2<||>  -> Exec['neutron-db-sync']
   }
+  
+  if $neutron_config['server']['api_workers'] {
+     $api_workers = $neutron_config['server']['api_workers']
+  }
+  else {
+     $api_workers = min($::processorcount + 0, 50 + 0)
+  }
 
+  if $neutron_config['server']['rpc_workers'] {
+     $rpc_workers = $neutron_config['server']['rpc_workers']
+  }
+  else {
+     $rpc_workers = min($::processorcount + 0, 50 + 0)
+  }
+ 
   neutron_config {
     'DEFAULT/notify_nova_on_port_status_changes': value => $neutron_config['server']['notify_nova_on_port_status_changes'];
     'DEFAULT/notify_nova_on_port_data_changes': value => $neutron_config['server']['notify_nova_on_port_data_changes'];
@@ -105,8 +119,8 @@ class neutron::server (
     'DEFAULT/nova_admin_password':  value => $neutron_config['server']['notify_nova_admin_password'];
     'DEFAULT/nova_admin_auth_url':  value => $neutron_config['server']['notify_nova_admin_auth_url'];
     'DEFAULT/send_events_interval': value => $neutron_config['server']['notify_nova_send_events_interval'];
-    'DEFAULT/api_workers':          value => min($::processorcount + 0, 50 + 0);
-    'DEFAULT/rpc_workers':          value => min($::processorcount + 0, 50 + 0);
+    'DEFAULT/api_workers':          value => $api_workers;
+    'DEFAULT/rpc_workers':          value => $rpc_workers;
     'database/connection':          value => $neutron_config['database']['url'];
     'database/max_retries':         value => $neutron_config['database']['reconnects'];
     'database/reconnect_interval':  value => $neutron_config['database']['reconnect_interval'];

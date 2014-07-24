@@ -20,6 +20,13 @@ class neutron::agents::metadata (
     'DEFAULT/neutron_metadata_proxy_shared_secret': value => $neutron_config['metadata']['metadata_proxy_shared_secret'];
   } -> Nova::Generic_service<| title=='api' |>
 
+  if $neutron_config['metadata']['workers'] {
+     $metadata_workers = $neutron_config['metadata']['workers']
+  }
+  else {
+     $metadata_workers = min($::processorcount + 0, 50 + 0)
+  }
+
   neutron_metadata_agent_config {
     'DEFAULT/debug':              value => $debug;
     'DEFAULT/verbose':            value => $verbose;
@@ -32,8 +39,8 @@ class neutron::agents::metadata (
     'DEFAULT/nova_metadata_port': value => $neutron_config['metadata']['nova_metadata_port'];
     'DEFAULT/use_namespaces':     value => $neutron_config['L3']['use_namespaces'];
     'DEFAULT/metadata_proxy_shared_secret': value => $neutron_config['metadata']['metadata_proxy_shared_secret'];
-    'DEFAULT/metadata_workers':   value => min($::processorcount + 0, 50 + 0);
-    'DEFAULT/metadata_backlog':   value => 2048;
+    'DEFAULT/metadata_workers':   value => $metadata_workers;
+    'DEFAULT/metadata_backlog':   value => $neutron_config['metadata']['backlog'];
   }
 
   if $::neutron::params::metadata_agent_package {
