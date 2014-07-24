@@ -560,4 +560,23 @@ on packages update": }
       'DEFAULT/linuxnet_ovs_integration_bridge': value => $quantum_config['L2']['integration_bridge'];
     }
   }
+
+  ####### Disable upstart startup on install #######
+  if($::operatingsystem == 'Ubuntu') {
+    tweaks::ubuntu_service_override { 'nova-api':
+      package_name => 'nova-api',
+    }
+    tweaks::ubuntu_service_override { 'nova-compute':
+      package_name => 'nova-compute',
+    }
+    tweaks::ubuntu_service_override { 'nova-network':
+      package_name => 'nova-network',
+    }
+    # Ceph rbd backend configures its override on its own
+    if ($::fuel_settings['role'] =~ /ceph-osd/ and $::fuel_settings['storage']['volumes_ceph']) {
+      tweaks::ubuntu_service_override { 'cinder-volume':
+        package_name => 'cinder-volume',
+      }
+    }
+  }
 }
