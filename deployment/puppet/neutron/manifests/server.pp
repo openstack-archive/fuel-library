@@ -105,8 +105,14 @@ class neutron::server (
     'DEFAULT/nova_admin_password':  value => $neutron_config['server']['notify_nova_admin_password'];
     'DEFAULT/nova_admin_auth_url':  value => $neutron_config['server']['notify_nova_admin_auth_url'];
     'DEFAULT/send_events_interval': value => $neutron_config['server']['notify_nova_send_events_interval'];
-    'DEFAULT/api_workers':          value => min($::processorcount + 0, 50 + 0);
-    'DEFAULT/rpc_workers':          value => min($::processorcount + 0, 50 + 0);
+    'DEFAULT/api_workers':          value => $neutron_config['server']['api_workers'] ? {
+                                                default => $neutron_config['server']['api_workers'],
+                                                undef => min($::processorcount + 0, 50 + 0)
+                                    };
+    'DEFAULT/rpc_workers':          value => $neutron_config['server']['rpc_workers'] ? {
+                                                default => $neutron_config['server']['rpc_workers'],
+                                                undef => min($::processorcount + 0, 50 + 0)
+                                    };
     'database/connection':          value => $neutron_config['database']['url'];
     'database/max_retries':         value => $neutron_config['database']['reconnects'];
     'database/reconnect_interval':  value => $neutron_config['database']['reconnect_interval'];

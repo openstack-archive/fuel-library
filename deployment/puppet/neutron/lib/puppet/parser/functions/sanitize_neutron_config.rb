@@ -322,6 +322,8 @@ class MrntNeutron
         :agent_down_time => 15,
         :report_interval => 5,
         :allow_bulk      => true,
+        :api_workers     => nil,
+        :rpc_workers     => nil,
         :control_exchange=> 'neutron',
         :core_plugin  => 'openvswitch',
         :service_plugins  => 'neutron.services.l3_router.l3_router_plugin.L3RouterPlugin,neutron.services.firewall.fwaas_plugin.FirewallPlugin,neutron.services.metering.metering_plugin.MeteringPlugin',
@@ -339,6 +341,8 @@ class MrntNeutron
         :metadata_ip => '169.254.169.254',
         :metadata_port => 8775,
         :metadata_proxy_shared_secret => "secret-word",
+        :workers => nil,
+        :backlog => 2048,
       },
       :L2 => {
         :provider => "ml2",
