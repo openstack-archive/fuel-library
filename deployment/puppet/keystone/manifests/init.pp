@@ -141,6 +141,19 @@ class keystone(
     mode    => '0755',
     notify  => Service['keystone'],
   }
+
+  file { 'keystone.conf' :
+    path   => '/etc/keystone/keystone.conf',
+    ensure => present,
+    owner  => 'keystone',
+    group  => 'keystone',
+    mode   => '0640',
+  }
+
+  Package['keystone'] ->
+  File['keystone.conf'] ~>
+  Service['keystone']
+
   if $::operatingsystem == 'Ubuntu' {
    if $service_provider == 'pacemaker' {
       file { '/etc/init/keystone.override':
