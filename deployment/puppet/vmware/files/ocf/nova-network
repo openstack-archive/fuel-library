@@ -222,6 +222,13 @@ nova_network_cleanup() {
         nova.network.manager.FlatDHCPManager)
             use_ipv6=$(egrep -e '^use_ipv6' $OCF_RESKEY_config | sed -e 's/$regexp/\1/')
 
+            rc=$?
+
+            # Consider IPv4 when we did not found 'use_ipv6' stanza
+            if [ $rc -ne 0 ]; then
+                    use_ipv6=false
+            fi
+
             # Stop all dnsmasq processes
             ocf_run killall -SIGKILL dnsmasq
 
