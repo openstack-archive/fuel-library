@@ -1,4 +1,5 @@
 [mysqld]
+datadir=<%= @datadir %>
 bind-address=<%= @node_address %>
 port=3307
 max_connections=<%= @max_connections %>
@@ -48,6 +49,18 @@ wsrep_provider=<%= @libgalera_prefix %>/galera/libgalera_smm.so
 wsrep_cluster_name="<%= @cluster_name -%>"
 
 wsrep_slave_threads=<%= [[@processorcount.to_i*2, 4].max, 12].min %>
-wsrep_sst_method=mysqldump
+wsrep_sst_method=<%= @wsrep_sst_method %>
+<% if @wsrep_sst_auth -%>
 wsrep_sst_auth=<%= @mysql_user %>:<%= @mysql_password %>
+<% end -%>
 wsrep_node_address=<%= @node_address %>
+
+<% if @wsrep_sst_method =~ /xtrabackup/ -%>
+[xtrabackup]
+parallel=<%= [[@processorcount.to_i*2, 4].max, 12].min %>
+
+[sst]
+streamfmt=xbstream
+transferfmt=socat
+sockopt=,nodelay,sndbuf=1048576
+<% end -%>

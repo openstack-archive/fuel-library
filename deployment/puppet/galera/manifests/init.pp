@@ -44,6 +44,10 @@
 # [*node_addresses*]
 #  Array with IPs/hostnames of cluster members.
 #
+# [*wsrep_sst_method*]
+#  (optional) The method for state snapshot transfer between nodes
+#  Defaults to xtrabackup-v2
+#  xtrabackup, xtrabackup-v2, mysqldump are supported
 
 class galera (
   $cluster_name         = 'openstack',
@@ -55,6 +59,7 @@ class galera (
   $use_syslog           = false,
   $gcomm_port           = '4567',
   $status_check         = true,
+  $wsrep_sst_method     = 'xtrabackup-v2'
   ) {
   include galera::params
 
@@ -115,6 +120,27 @@ class galera (
     $wsrep_version = 'installed'
   }
 
+  if $wsrep_sst_method in [ 'xtrabackup', 'xtrabackup-v2' ] {
+    firewall {'101 xtrabackup':
+      port   => 4444,
+      proto  => 'tcp',
+      action => 'accept',
+      before => Package['MySQL-server'],
+    }
+    package { 'percona-xtrabackup':
+      ensure => present,
+      before => Package['MySQL-server'],
+    }
+    $wsrep_sst_auth = true
+  }
+  elsif $wsrep_sst_method == 'mysqldump' {
+    $wsrep_sst_auth = true
+  }
+  else {
+    $wsrep_sst_auth = undef
+    warning("Unrecognized wsrep_sst method: ${wsrep_sst_auth}")
+  }
+
   package { 'MySQL-server':
     ensure   => $wsrep_version,
     name     => $::galera::params::mysql_server_name,
@@ -127,6 +153,7 @@ class galera (
     require => Package['MySQL-server'],
     before  => File['mysql-wss-ocf']
   }
+
 
   if $primary_controller {
     $galera_pid = $::osfamily ? {
@@ -187,8 +214,7 @@ class galera (
 
   File<| title == 'ocf-mirantis-path' |> -> File['mysql-wss-ocf']
 
-  Package['MySQL-server'] -> File['mysql-wss-ocf']
-  Package['galera'] -> File['mysql-wss-ocf']
+  Package['MySQL-server', 'galera'] -> File['mysql-wss-ocf']
 
   tweaks::ubuntu_service_override { "${service_name}":
     package_name => 'MySQL-server',
