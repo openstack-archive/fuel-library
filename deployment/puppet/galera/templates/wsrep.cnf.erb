@@ -48,6 +48,8 @@ wsrep_provider=<%= @libgalera_prefix %>/galera/libgalera_smm.so
 wsrep_cluster_name="<%= @cluster_name -%>"
 
 wsrep_slave_threads=2
-wsrep_sst_method=mysqldump
+wsrep_sst_method=<%= @wsrep_sst_method %>
+<% if @wsrep_sst_auth -%>
 wsrep_sst_auth=<%= @mysql_user %>:<%= @mysql_password %>
+<% end -%>
 wsrep_node_address=<%= @node_address %>
