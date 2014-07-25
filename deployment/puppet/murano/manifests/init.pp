@@ -121,6 +121,8 @@ class murano (
     bind_host                            => $murano_bind_host,
     bind_port                            => $murano_bind_port,
 
+    api_host                             => $murano_api_host,
+
     rabbit_host                          => $murano_rabbit_host,
     rabbit_port                          => $murano_rabbit_port,
     rabbit_ha_hosts                      => $murano_rabbit_ha_hosts,
