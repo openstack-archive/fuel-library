@@ -26,7 +26,7 @@ class ceph (
       $public_network            = $::fuel_settings['management_network_range'],
 
       # RadosGW settings
-      $rgw_host                         = $::osfamily ? {'Debian'=> $::hostname, default => $::fqdn},
+      $rgw_host                         = $::hostname,
       $rgw_port                         = '6780',
       $swift_endpoint_port              = '8080',
       $rgw_keyring_path                 = '/etc/ceph/keyring.radosgw.gateway',
