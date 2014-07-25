@@ -455,13 +455,6 @@ class osnailyfacter::cluster_ha {
 
       if ! $::use_quantum {
         if $primary_controller {
-          exec { 'wait-for-haproxy-nova-backend':
-            command   => "echo show stat | socat unix-connect:///var/lib/haproxy/stats stdio | grep -q '^nova-api-2,BACKEND,.*,UP,'",
-            path      => ['/usr/bin', '/usr/sbin', '/sbin', '/bin'],
-            try_sleep => 5,
-            tries     => 60,
-            require   => Package['socat'],
-          }
           nova_floating_range { $floating_ips_range:
             ensure          => 'present',
             pool            => 'nova',
@@ -472,8 +465,7 @@ class osnailyfacter::cluster_ha {
             authtenant_name => $access_hash[tenant],
             api_retries     => 10,
           }
-          Class['nova::api', 'openstack::ha::nova'] ->
-          Exec<| title=='wait-for-haproxy-nova-backend' |> ->
+          Class['nova::api', 'openstack::ha::nova', 'nova::keystone::auth'] ->
           Nova_floating_range <| |>
         }
       }
