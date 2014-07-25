@@ -12,6 +12,7 @@ class murano::api (
     $signing_dir                = '/tmp/keystone-signing-muranoapi',
     $bind_host                  = '0.0.0.0',
     $bind_port                  = '8082',
+    $api_host                   = 'localhost',
     $log_file                   = '/var/log/murano/murano.log',
     # rabbit_host and rabbit_port are required for
     #   murano-engine rabbitmq section. It doesn't use oslo.messaging yet.
@@ -40,6 +41,7 @@ class murano::api (
 
   $database_connection = "mysql://${murano_db_name}:${murano_db_password}@${murano_db_host}:3306/${murano_db_name}?read_timeout=60"
   $keystone_auth_url = "${auth_protocol}://${auth_host}:${auth_port}/v2.0"
+  $murano_api_url = "http://${api_host}:${bind_port}"
 
   include murano::params
 
@@ -110,6 +112,8 @@ class murano::api (
 
     'database/connection'                   : value => $database_connection;
 
+    'murano/url'                            : value => $murano_api_url;
+
     'keystone/auth_url'                     : value => $keystone_auth_url;
 
     'keystone_authtoken/auth_host'          : value => $auth_host;
@@ -130,10 +134,10 @@ class murano::api (
   Package['murano'] -> Murano_config<||>
 
   if $primary_controller {
-    $murano_manage = '/usr/bin/murano-manage'
+    $murano_manage = '/usr/bin/murano-db-manage'
     exec { 'murano_manage_db_sync':
       path    => [ '/usr/bin' ],
-      command => "$murano_manage --config-file=/etc/murano/murano.conf db-sync",
+      command => "$murano_manage --config-file=/etc/murano/murano.conf upgrade",
       user    => $murano_user,
       group   => $murano_user,
       onlyif  => "test -f $murano_manage",
