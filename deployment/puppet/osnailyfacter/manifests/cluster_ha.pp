@@ -558,7 +558,7 @@ class osnailyfacter::cluster_ha {
       if $murano_hash['enabled'] {
 
         class { 'murano' :
-          murano_api_host          => $::fuel_settings['public_vip'],
+          murano_api_host          => $::fuel_settings['management_vip'],
 
           # Murano uses two RabbitMQ - one from OpenStack and another one installed on each controller.
           #   The second instance is used for communication with agents.
