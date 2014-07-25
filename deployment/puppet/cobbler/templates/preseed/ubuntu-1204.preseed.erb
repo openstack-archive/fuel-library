@@ -121,7 +121,16 @@ mkdir -p /target/etc/nailgun-agent && \
 echo -e "---\nurl: '<%= scope.lookupvar('nailgun::cobbler::nailgun_api_url') %>'" > /target/etc/nailgun-agent/config.yaml && \
 echo target > /target/etc/nailgun_systemtype && \
 echo 'APT::Get::AllowUnauthenticated 1;' > /target/etc/apt/apt.conf.d/02mirantis-allow-unsigned && \
+# REPOSITORIES FROM Nailgun
+#if $varExists('repo_metadata')
+echo -e "" /target/etc/apt/sources.list && \
+#set repo_list = dict(item.split("=") for item in $repo_metadata.split(","))
+#for $repo_name, $repo_url in $repo_list.items()
+echo -e 'deb $repo_url' >> /target/etc/apt/sources.list && \
+#end for
+#else
 echo 'deb http://@@server@@:8080/ubuntu/fuelweb/x86_64 precise main' > /target/etc/apt/sources.list && \
+#end if
 $SNIPPET('ubuntu_authorized_keys')
 sed -i -e "/^\s*GSSAPICleanupCredentials yes/d" -e "/^\s*GSSAPIAuthentication yes/d" -e "s/.*PasswordAuthentication\ .*/PasswordAuthentication\ no/g" -e "/UseDNS/d" /target/etc/ssh/sshd_config && \
 echo "UseDNS no" >> /target/etc/ssh/sshd_config && \
