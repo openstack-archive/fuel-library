@@ -76,7 +76,7 @@ class mysql::params {
       $service_name         = 'mysql'
       $client_package_name  = 'mysql-client-5.5'
       $server_package_name  = 'mysql-server-5.5'
-      $shared_package_name  = 'mysql-common-5.5'
+      $shared_package_name  = 'mysql-common'
       $socket               = '/var/run/mysqld/mysqld.sock'
       $pidfile              = '/var/run/mysqld/mysqld.pid'
       $config_file          = '/etc/mysql/my.cnf'
