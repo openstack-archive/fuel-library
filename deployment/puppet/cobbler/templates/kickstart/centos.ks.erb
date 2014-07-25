@@ -4,10 +4,19 @@ install
 # INSTALLATION SOURCE (centos repository)
 url --url=$tree
 
-# ALTERNATIVE REPOSITORIES
+#if $varExists('repo_metadata')
+# REPOSITORIES FROM Nailgun
+## Expected repo_metadata format Name1=Value1,Name2=Value2
+#set repo_list = dict(item.split("=") for item in $repo_metadata.split(","))
+#for $repo_name, $repo_url in $repo_list.items()
+repo --name=$repo_name --baseurl=$repo_url
+#end for
+#else
+# ALTERNATIVE REPOSITORIES (PRESET)
 <% @ks_repo.each do |repo| %>
 repo --name=<%= repo['name'] %> --baseurl=<%= repo['url'] %>
 <% end %>
+#end if
 
 # KEYBOARD AND LANGUAGE CUSTOMIZATION
 lang en_US.UTF-8
