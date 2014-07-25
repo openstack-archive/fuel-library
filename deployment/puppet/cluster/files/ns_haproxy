@@ -26,6 +26,10 @@
 ##########################################################################
 # Initialization:
 
+if [ "${OCF_ROOT}" = '' ]; then
+  OCF_ROOT="/usr/lib/ocf"
+fi
+
 OCF_RESKEY_ns_default="haproxy"
 OCF_RESKEY_conffile_default="/etc/haproxy/haproxy.cfg"
 OCF_RESKEY_pidfile_default="/var/run/haproxy.pid"
@@ -38,7 +42,7 @@ OCF_RESKEY_binpath_default="/usr/sbin/haproxy"
 : ${OCF_FUNCTIONS_DIR=${OCF_ROOT}/resource.d/heartbeat}
 . ${OCF_FUNCTIONS_DIR}/.ocf-shellfuncs
 
-USAGE="Usage: $0 {start|stop|status|monitor|validate-all|meta-data}";
+USAGE="Usage: $0 {start|stop|restart|status|monitor|validate-all|meta-data}";
 
 RUN_IN_NS="ip netns exec $OCF_RESKEY_ns "
 if [[ -z $OCF_RESKEY_ns ]] ; then
@@ -124,6 +128,7 @@ check_ns() {
   [[ $ns != $OCF_RESKEY_ns ]] && return $OCF_ERR_GENERIC
   return $OCF_SUCCESS
 }
+
 get_ns() {
   local rc
   check_ns && return $OCF_SUCCESS
@@ -144,6 +149,62 @@ get_variables() {
 	else
 		PIDFILE="${OCF_RESKEY_pidfile}"
 	fi
+}
+
+set_ns_routing() {
+  HOST_INTERFACE="hapr-host"
+  NS_INTERFACE="hapr-ns"
+  NS="${OCF_RESKEY_ns}"
+  HOST_IP="240.0.0.1"
+  NS_IP="240.0.0.2"
+  MASK="30"
+  METRIC="10000"
+
+  nsip() {
+    ip netns exec "${NS}" ip ${@}
+  }
+
+  # create host-ns veth pair unless it's present
+  ip link | grep -q "${HOST_INTERFACE}:"
+  if [ $? -gt 0 ]; then
+    ip link add "${HOST_INTERFACE}" type veth peer name "${NS_INTERFACE}"
+  fi
+
+  # move the ns part to the namespace
+  ip link | grep -q "${NS_INTERFACE}:"
+  if [ $? -eq 0 ]; then
+    ip link set dev "${NS_INTERFACE}" netns "${NS}"
+  fi
+
+  # up the host part
+  ip link set "${HOST_INTERFACE}" up
+
+  # set host part's ip
+  ip addr show dev "${HOST_INTERFACE}" | grep -q "inet ${HOST_IP}/${MASK}"
+  if [ $? -gt 0 ]; then
+    ip addr add "${HOST_IP}/${MASK}" dev "${HOST_INTERFACE}"
+  fi
+
+  # up the ns part
+  nsip link set "${NS_INTERFACE}" up
+
+  # set ns part's ip
+  nsip addr show dev "${NS_INTERFACE}" | grep -q "inet ${NS_IP}/${MASK}"
+  if [ $? -gt 0 ]; then
+    nsip addr add "${NS_IP}/${MASK}" dev "${NS_INTERFACE}"
+  fi
+
+  # set default gateway inside ns
+  nsip route list | grep -q "default via ${HOST_IP}"
+  if [ $? -gt 0 ]; then
+    nsip route add default via "${HOST_IP}" metric "${METRIC}"
+  fi
+
+  # set masquerade on host node
+  iptables -t nat -L | grep -q masquerade-for-haproxy-namespace
+  if [ $? -gt 0 ]; then
+    iptables -t nat -A POSTROUTING -s "${NS_IP}" -j MASQUERADE -m comment --comment "masquerade-for-haproxy-namespace"
+  fi
 }
 
 haproxy_status() {
@@ -178,21 +239,25 @@ haproxy_start()
 	haproxy_status
 	retVal=$?
 	if [ $retVal -eq $OCF_SUCCESS ]; then
-		exit $OCF_SUCCESS
+		return $OCF_SUCCESS
 	elif [ $retVal -ne $OCF_NOT_RUNNING ]; then
 		ocf_log err "Error. Unknown status."
-		exit $OCF_ERR_GENERIC
+		return $OCF_ERR_GENERIC
 	fi
 
-    # run the haproxy binary
+	# run the haproxy binary
 	ocf_run ${COMMAND} ${OCF_RESKEY_extraconf} -f "${CONF_FILE}" -p "${PIDFILE}"
 	if [ $? -ne 0 ]; then
 		ocf_log err "Error. haproxy daemon returned error $?."
-		exit $OCF_ERR_GENERIC
+		return $OCF_ERR_GENERIC
+	fi
+
+	if [ "${OCF_RESKEY_ns}" != '' ]; then
+		set_ns_routing
 	fi
 
 	ocf_log info "Started haproxy daemon."
-	exit $OCF_SUCCESS
+	return $OCF_SUCCESS
 }
 
 haproxy_reload()
@@ -205,7 +270,7 @@ haproxy_reload()
 		ocf_run ${COMMAND} ${OCF_RESKEY_extraconf} -f "${CONF_FILE}" -p "${PIDFILE}" -sf "${PID}"
 		if [ $? -ne 0 ]; then
 			ocf_log err "Error. haproxy daemon returned error $?."
-			exit $OCF_ERR_GENERIC
+			return $OCF_ERR_GENERIC
 		fi
 	else
 		ocf_log info "Haproxy daemon is not running. Starting it."
@@ -231,7 +296,7 @@ haproxy_stop()
 		fi
 	fi
 	ocf_log info "Stopped haproxy daemon."
-	exit $OCF_SUCCESS
+	return $OCF_SUCCESS
 }
 
 haproxy_monitor()
@@ -244,11 +309,11 @@ haproxy_validate_all()
 	get_variables
 	if [ -n "$OCF_RESKEY_binpath" -a ! -x "$OCF_RESKEY_binpath" ]; then
 		ocf_log err "Binary path $OCF_RESKEY_binpath does not exist."
-		exit $OCF_ERR_ARGS
+		return $OCF_ERR_ARGS
 	fi
 	if [ -n "$OCF_RESKEY_conffile" -a ! -f "$OCF_RESKEY_conffile" ]; then
 		ocf_log err "Config file $OCF_RESKEY_conffile does not exist."
-		exit $OCF_ERR_ARGS
+		return $OCF_ERR_ARGS
 	fi
 
 	if  grep -v "^#" "$CONF_FILE" | grep "pidfile" > /dev/null ; then
@@ -261,6 +326,11 @@ haproxy_validate_all()
 	return $OCF_SUCCESS
 }
 
+haproxy_restart()
+{
+	haproxy_stop
+	haproxy_start
+}
 
 #
 # Main
@@ -279,6 +349,9 @@ case $1 in
 	;;
 
 	reload) haproxy_reload
+	;;
+
+	restart) haproxy_restart
 	;;
 
 	status)	haproxy_status
