@@ -276,9 +276,27 @@ reset_mnesia() {
     return $OCF_SUCCESS
 }
 
+
+block_client_access()
+{
+    iptables -I INPUT -p tcp -m tcp --dport ${OCF_RESKEY_node_port} -m comment --comment 'temporary RMQ block' -j DROP
+
+}
+unblock_client_access()
+{
+    iptables -D INPUT -p tcp -m tcp --dport ${OCF_RESKEY_node_port} -m comment --comment 'temporary RMQ block' -j DROP
+}
+
 get_nodes__base(){
-    local cl="{$1,"
-    local c_status=$(${OCF_RESKEY_ctl} cluster_status 2>/dev/null)
+    local infotype=''
+    if [ $1 == 'nodes' ]
+    then
+        infotype='db_nodes'
+    elif [ $1 == 'running' ]
+    then
+        infotype='running_db_nodes'
+    fi
+    local c_status=$(${OCF_RESKEY_ctl} eval "mnesia:system_info(${infotype})." 2>/dev/null)
     if [[ $? != 0 ]] ; then
         echo ''
         return $OCF_ERR_GENERIC
@@ -294,7 +312,7 @@ get_nodes() {
 }
 
 get_running_nodes() {
-    echo $(get_nodes__base running_nodes)
+    echo $(get_nodes__base running)
     return $?
 }
 
@@ -601,8 +619,14 @@ start_rmq_server_app() {
     local startup_output
     local LH="${LL} start_rmq_server_app():"
 
+    #We are performing initial start check.
+    #We are not ready to provide service.
+    #Clients should not have access.
+
+
     ocf_log info "${LH} begin."
 
+    block_client_access
     get_status
     if [[ $? != $OCF_SUCCESS ]] ; then
         ocf_log info "${LH} RMQ-runtime (beam) not started, starting..."
@@ -610,6 +634,7 @@ start_rmq_server_app() {
         rc=$?
         if [ $rc -ne $OCF_SUCCESS ]
         then
+            unblock_client_access
             return $OCF_ERR_GENERIC
         fi
     fi
@@ -641,6 +666,7 @@ start_rmq_server_app() {
                 else
                     ocf_log err "${LH} RMQ-server app can't be stopped during Mnesia cleaning. beam will be killed."
                     ocf_run killall -9 beam
+                    unblock_client_access
                     return $OCF_ERR_GENERIC
                 fi
             fi
@@ -651,6 +677,7 @@ start_rmq_server_app() {
          ocf_run killall -9 beam
     fi
     ocf_log info "${LH} end."
+    unblock_client_access
     return $rc
 }
 
@@ -659,7 +686,7 @@ get_status() {
     local rc
     local body
 
-    body=$( ${OCF_RESKEY_ctl} status 2>&1 )
+    body=$( ${OCF_RESKEY_ctl} eval 'rabbit_misc:which_applications().' 2>&1 )
     rc=$?
 
     if [[ $rc != 0 ]] ; then
@@ -726,8 +753,8 @@ get_monitor() {
                 then
                     rc=$OCF_ERR_GENERIC
                     ocf_log info "${LH} rabbit app is running. master is $node"
-                    cluster_status=$( timeout -s9 10 ${OCF_RESKEY_ctl} cluster_status 2>/dev/null ) 
-                    if `echo ${cluster_status} | grep nodes |  grep -q $(rabbit_node_name $node)`
+                    #cluster_status=$( timeout -s9 10 ${OCF_RESKEY_ctl} cluster_status 2>/dev/null ) 
+                    if `get_nodes | grep -q $(rabbit_node_name $node)`
                     then
                         ocf_log info "${LH} rabbit app is running and is member of healthy cluster"
                         rc=$prev_rc
