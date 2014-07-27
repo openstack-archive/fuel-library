@@ -73,7 +73,7 @@ if [ $PROBED_PORT_NAME != $ISER_NAME ]; then
   echo $UDEV_LINE >> $UDEV_FILE
 
   # Restart Mellanox drivers
-  /etc/init.d/openibd restart
+  modprobe -r mlx4_en; modprobe mlx4_en;
   if [ $? -ne $SUCCESS ]; then
     logger_print  err "Mellanox drivers restart failed."
     exit $FAILURE
