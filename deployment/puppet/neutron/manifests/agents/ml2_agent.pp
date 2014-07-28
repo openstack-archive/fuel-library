@@ -138,8 +138,8 @@ class neutron::agents::ml2_agent (
     #$arp_responder         = false,
   }
 
-  # RPM contains wrong (for ml2 mode) path to ovs plugin config file.
-  # todo (sv): Check it for Ubuntu
+# RPM contains wrong (for ml2 mode) path to ovs plugin config file.
+# todo (sv): Check it for Ubuntu
   if $::osfamily =~ /(?i)redhat/ {
     file {'neutron-openvswitch-agent__sysconfig':
       path   =>'/etc/sysconfig/neutron-openvswitch-agent',
@@ -149,7 +149,7 @@ class neutron::agents::ml2_agent (
       source => "puppet:///modules/neutron/neutron-openvswitch-agent.sysconfig",
     }
     Neutron_plugin_ml2<||> -> File['neutron-openvswitch-agent__sysconfig']
-    File['neutron-openvswitch-agent__sysconfig'] -> Service['neutron-ovs-agent-service']
+    File['neutron-openvswitch-agent__sysconfig'] ~> Service['neutron-ovs-agent-service']
   }
 
   Service['neutron-ovs-agent-service'] -> Anchor['neutron-ovs-agent-done']

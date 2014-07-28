@@ -150,6 +150,7 @@ class neutron (
     $server_bind_host = '0.0.0.0'
   }
 
+  include ::neutron::notify::ceilometer
   neutron_config {
     'DEFAULT/debug':                        value => $debug;
     'DEFAULT/verbose':                      value => $verbose;

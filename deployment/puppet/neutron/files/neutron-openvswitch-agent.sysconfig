@@ -1,4 +1,5 @@
 configs=(
+    "/usr/share/$proj/$proj-dist.conf" \
     "/etc/$proj/$proj.conf" \
     "/etc/$proj/plugin.ini" \
 )
