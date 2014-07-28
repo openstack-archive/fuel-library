@@ -263,7 +263,7 @@ nova_network_cleanup() {
                 ;;
             esac
 
-            flat_network_bridge_nlines=`egrep -e '^flat_network_bridge' $OCF_RESKEY_config`
+            flat_network_bridge_nlines=`egrep -e '^flat_network_bridge' $OCF_RESKEY_config | wc -l`
             if [ $flat_network_bridge_nlines -ne 1 ]; then
                 echo "Specifying more than one 'flat_network_bridge' in $OCF_RESKEY_config is not supported"
                 return OCF_ERR_CONFIGURED
