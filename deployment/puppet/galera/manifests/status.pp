@@ -80,6 +80,7 @@ class galera::status (
     default  => 'nobody',
   }
 
+  include xinetd
   xinetd::service { 'galeracheck':
     bind       => $address,
     port       => $port,
